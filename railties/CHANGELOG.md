@@ -1,3 +1,18 @@
+*   Add `config/initializers/time_zone_aware_types.rb`.
+
+    Newly generated Rails apps have a new initializer called
+    `time_zone_aware_types.rb` which adds `:time` to  the values included in
+    `ActiveRecord::Base.time_zone_aware_types`.
+
+    As a result, in new Rails apps, any `Time` column is stored by ActiveRecord
+    as "time zone aware", meaning that the time zone will also be stored.
+
+    The terminator is *not* added when running `rake rails:update`, so old apps
+    ported to Rails 5 will not store `Time` columns as time zone aware and will
+    displaying a deprecation warning to prompt users to update their code.
+
+    *claudiob*
+
 *   The application generator writes a new file `config/spring.rb`, which tells
     Spring to watch additional common files.
 
