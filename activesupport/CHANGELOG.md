@@ -25,7 +25,7 @@
 
     *Tara Scherner de la Fuente*
 
-*   Make `benchmark('something', silence: true)` actually work
+*   Make `benchmark('something', silence: true)` actually work.
 
     *DHH*
 

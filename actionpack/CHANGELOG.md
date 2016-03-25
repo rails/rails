@@ -40,7 +40,7 @@
     not meant to handle XML requests.
 
     Third, if the current request is an "interactive" browser request (the user
-    navigated here by entering the URL in the address bar, submiting a form,
+    navigated here by entering the URL in the address bar, submitting a form,
     clicking on a link, etc. as opposed to an XHR or non-browser API request),
     `ActionView::UnknownFormat` is raised to display a helpful error
     message.
