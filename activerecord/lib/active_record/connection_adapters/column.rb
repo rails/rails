@@ -1,5 +1,3 @@
-require 'set'
-
 module ActiveRecord
   # :stopdoc:
   module ConnectionAdapters
