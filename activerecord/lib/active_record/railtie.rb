@@ -61,10 +61,11 @@ module ActiveRecord
       require "active_record/base"
     end
 
-    initializer "active_record.initialize_timezone" do
+    initializer "active_record.initialize_timezone" do |app|
       ActiveSupport.on_load(:active_record) do
         self.time_zone_aware_attributes = true
         self.default_timezone = :utc
+        app.config.active_record.time_zone_aware_types = ActiveRecord::Base.time_zone_aware_types
       end
     end
 
