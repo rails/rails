@@ -1,3 +1,7 @@
+*   Add extension synonyms `yml` and `yaml` for MIME type `application/x-yaml`.
+    
+   *bogdanvlviv*
+
 *   When a `respond_to` collector with a block doesn't have a response, then
     a `:no_content` response should be rendered.  This brings the default
     rendering behavior introduced by https://github.com/rails/rails/issues/19036
