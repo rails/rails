@@ -70,7 +70,7 @@ module Rails
       def serve_static_files
         ActiveSupport::Deprecation.warn <<-eow.strip_heredoc
           `serve_static_files` is deprecated and will be removed in Rails 5.1.
-          Please use `public_file_server.enabled` instead.
+          Please use `config.public_file_server.enabled` instead.
         eow
 
         @public_file_server.enabled
@@ -79,7 +79,7 @@ module Rails
       def serve_static_files=(value)
         ActiveSupport::Deprecation.warn <<-eow.strip_heredoc
           `serve_static_files` is deprecated and will be removed in Rails 5.1.
-          Please use `public_file_server.enabled = #{value}` instead.
+          Please use `config.public_file_server.enabled = #{value}` instead.
         eow
 
         @public_file_server.enabled = value
