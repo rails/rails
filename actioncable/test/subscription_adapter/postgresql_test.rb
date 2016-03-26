@@ -21,6 +21,7 @@ class PostgresqlAdapterTest < ActionCable::TestCase
     begin
       ActiveRecord::Base.connection
     rescue
+      @rx_adapter = @tx_adapter = nil
       skip "Couldn't connect to PostgreSQL: #{database_config.inspect}"
     end
 
