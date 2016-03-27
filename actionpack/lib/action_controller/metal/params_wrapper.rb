@@ -105,7 +105,11 @@ module ActionController
 
           unless super || exclude
             if m.respond_to?(:attribute_names) && m.attribute_names.any?
-              self.include = m.attribute_names
+              if m.respond_to?(:attribute_aliases) && m.attribute_aliases.any?
+                self.include = m.attribute_names + m.attribute_aliases.keys
+              else
+                self.include = m.attribute_names
+              end
             end
           end
         end
