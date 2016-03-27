@@ -504,7 +504,7 @@ module ActiveRecord
     #
     # == Customizing the query
     #
-    # \Associations are built from <tt>Relation</tt>s, and you can use the Relation syntax
+    # \Associations are built from <tt>Relation</tt> objects, and you can use the Relation syntax
     # to customize them. For example, to add a condition:
     #
     #   class Blog < ActiveRecord::Base
