@@ -538,13 +538,13 @@
 *   Add option to index errors in nested attributes
 
     For models which have nested attributes, errors within those models will
-    now be indexed if :index_errors is specified when defining a
+    now be indexed if `:index_errors` is specified when defining a
     has_many relationship, or if its set in the global config.
 
     Example:
 
         class Guitar < ActiveRecord::Base
-          has_many :tuning_pegs
+          has_many :tuning_pegs, index_errors: true
           accepts_nested_attributes_for :tuning_pegs
         end
 
