@@ -1051,9 +1051,9 @@ module ActiveRecord
       end
 
       # Adds timestamps (+created_at+ and +updated_at+) columns to +table_name+.
-      # Additional options (like <tt>null: false</tt>) are forwarded to #add_column.
+      # Additional options (like +:null+) are forwarded to #add_column.
       #
-      #   add_timestamps(:suppliers, null: false)
+      #   add_timestamps(:suppliers, null: true)
       #
       def add_timestamps(table_name, options = {})
         options[:null] = false if options[:null].nil?
