@@ -524,13 +524,7 @@ module ActiveRecord
     end
 
     def self.[](version)
-      version = version.to_s
-      name = "V#{version.tr('.', '_')}"
-      unless Compatibility.const_defined?(name)
-        versions = Compatibility.constants.grep(/\AV[0-9_]+\z/).map { |s| s.to_s.delete('V').tr('_', '.').inspect }
-        raise ArgumentError, "Unknown migration version #{version.inspect}; expected one of #{versions.sort.join(', ')}"
-      end
-      Compatibility.const_get(name)
+      Compatibility.find(version)
     end
 
     def self.current_version
