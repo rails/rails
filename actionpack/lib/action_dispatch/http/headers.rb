@@ -5,7 +5,7 @@ module ActionDispatch
     #   env     = { "CONTENT_TYPE" => "text/plain", "HTTP_USER_AGENT" => "curl/7.43.0" }
     #   headers = ActionDispatch::Http::Headers.new(env)
     #   headers["Content-Type"] # => "text/plain"
-    #   headers["User-Agent"] # => "curl/7/43/0"
+    #   headers["User-Agent"] # => "curl/7.43.0"
     #
     # Also note that when headers are mapped to CGI-like variables by the Rack
     # server, both dashes and underscores are converted to underscores. This
