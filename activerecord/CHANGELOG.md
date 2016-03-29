@@ -1,3 +1,16 @@
+*   Delegate `empty?`, `none?` and `one?`. Now they can be invoked as model class methods.
+
+    Example:
+
+        # When no record is found on the table
+        Topic.empty? # => true
+        Topic.none?  # => true
+
+        # When only one record is found on the table
+        Topic.one?   # => true
+
+    *Kenta Shirai*
+
 *   The form builder now properly displays values when passing a proc form
     default to the attributes API.
 
