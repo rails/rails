@@ -1208,6 +1208,7 @@ The `has_one` association supports these options:
 * `:dependent`
 * `:foreign_key`
 * `:inverse_of`
+* `:multiple`
 * `:primary_key`
 * `:source`
 * `:source_type`
@@ -1273,6 +1274,11 @@ class Account < ApplicationRecord
   belongs_to :supplier, inverse_of: :account
 end
 ```
+
+##### `:multiple`
+By default, a `has_one` association assumes you want there to be at most one record in the association table tied to your model. When you save a new association, any existing entries will be removed, based on your setting in `:dependent` and defaulting to nullification.
+
+To disable this, you can set `:multiple` to `true`.
 
 ##### `:primary_key`
 
