@@ -494,7 +494,7 @@ module ActiveRecord
 
     # Deletes the records without instantiating the records
     # first, and hence not calling the {#destroy}[rdoc-ref:Persistence#destroy]
-    # method nor invoking callbacks.
+    # method not invoking callbacks.
     # This is a single SQL DELETE statement that goes straight to the database, much more
     # efficient than #destroy_all. Be careful with relations though, in particular
     # <tt>:dependent</tt> rules defined on associations are not honored. Returns the
