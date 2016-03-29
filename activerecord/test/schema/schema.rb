@@ -1,10 +1,4 @@
 ActiveRecord::Schema.define do
-  def except(adapter_names_to_exclude)
-    unless [adapter_names_to_exclude].flatten.include?(adapter_name)
-      yield
-    end
-  end
-
   # ------------------------------------------------------------------- #
   #                                                                     #
   #   Please keep these create table statements in alphabetical order   #
@@ -991,7 +985,7 @@ ActiveRecord::Schema.define do
   create_table :records, force: true do |t|
   end
 
-  except 'SQLite' do
+  if supports_foreign_keys?
     # fk_test_has_fk should be before fk_test_has_pk
     create_table :fk_test_has_fk, force: true do |t|
       t.integer :fk_id, null: false
