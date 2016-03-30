@@ -37,7 +37,7 @@ module ActionDispatch
     # The +parsers+ argument can take Hash of parsers where key is identifying
     # content mime type, and value is a lambda that is going to process data.
     def self.new(app, parsers = {})
-      ActiveSupport::Deprecation.warn('ActionDispatch::ParamsParser is deprecated and you be removed in Rails 5.1. Configure the parameter parsing in ActionDispatch::Request.parameter_parsers.')
+      ActiveSupport::Deprecation.warn('ActionDispatch::ParamsParser is deprecated and will be removed in Rails 5.1. Configure the parameter parsing in ActionDispatch::Request.parameter_parsers.')
       parsers = parsers.transform_keys { |key| key.respond_to?(:symbol) ? key.symbol : key }
       ActionDispatch::Request.parameter_parsers = ActionDispatch::Request::DEFAULT_PARSERS.merge(parsers)
       app
