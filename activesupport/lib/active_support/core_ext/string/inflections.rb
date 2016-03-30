@@ -222,6 +222,13 @@ class String
     ActiveSupport::Inflector.humanize(self, options)
   end
 
+  # Converts just the first character to uppercase.
+  #
+  #  'what a Lovely Day'.upcase_first # => "What a Lovely Day"
+  def upcase_first
+    ActiveSupport::Inflector.upcase_first(self)
+  end
+
   # Creates a foreign key name from a class name.
   # +separate_class_name_and_id_with_underscore+ sets whether
   # the method should put '_' between the name and 'id'.

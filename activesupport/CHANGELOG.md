@@ -1,3 +1,7 @@
+*   Add `String#upcase_first` method.
+
+     *Glauco Custódio*
+
 *   Prevent `Marshal.load` from looping infinitely when trying to autoload a constant
     which resolves to a different name.
 
