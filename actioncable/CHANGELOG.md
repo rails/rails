@@ -1,3 +1,7 @@
+*  Add ActiveSupport::Notifications and ActiveSupport::LogSubscriber to ActionCable::Channel
+
+   *Matthew Wear*
+
 *   Allow channel identifiers with no backslahes/escaping to be accepted
     by the subscription storer.
 
