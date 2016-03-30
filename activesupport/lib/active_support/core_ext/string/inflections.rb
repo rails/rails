@@ -224,7 +224,9 @@ class String
 
   # Converts just the first character to uppercase.
   #
-  #  'what a Lovely Day'.upcase_first # => "What a Lovely Day"
+  #   'what a Lovely Day'.upcase_first # => "What a Lovely Day"
+  #   'w'.upcase_first                 # => "W"
+  #   ''.upcase_first                  # => ""
   def upcase_first
     ActiveSupport::Inflector.upcase_first(self)
   end
