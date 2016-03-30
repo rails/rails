@@ -1,4 +1,4 @@
-*  Add ActiveSupport::Notifications and ActiveSupport::LogSubscriber to ActionCable::Channel
+*  Add ActiveSupport::Notifications to ActionCable::Channel.
 
    *Matthew Wear*
 
