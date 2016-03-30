@@ -1,3 +1,8 @@
+*   Make `rails restart` command work with Puma by passing the restart command
+    which Puma can use to restart rails server.
+
+    *Prathamesh Sonpatki*
+
 *   The application generator writes a new file `config/spring.rb`, which tells
     Spring to watch additional common files.
 

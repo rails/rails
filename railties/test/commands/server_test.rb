@@ -118,4 +118,18 @@ class Rails::ServerTest < ActiveSupport::TestCase
       assert_equal old_default_options, server.default_options
     end
   end
+
+  def test_restart_command_contains_customized_options
+    original_args = ARGV.dup
+    args = ["-p", "4567"]
+    ARGV.replace args
+
+    options = Rails::Server::Options.new.parse! args
+    server = Rails::Server.new options
+    expected = "bin/rails server -p 4567"
+
+    assert_equal expected, server.default_options[:restart_cmd]
+  ensure
+    ARGV.replace original_args
+  end
 end

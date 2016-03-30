@@ -94,7 +94,8 @@ module Rails
         environment:        (ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development").dup,
         daemonize:          false,
         caching:            nil,
-        pid:                Options::DEFAULT_PID_PATH
+        pid:                Options::DEFAULT_PID_PATH,
+        restart_cmd:        restart_command
       })
     end
 
@@ -129,6 +130,10 @@ module Rails
         unless ActiveSupport::Logger.logger_outputs_to?(Rails.logger, STDOUT)
           Rails.logger.extend(ActiveSupport::Logger.broadcast(console))
         end
+      end
+
+      def restart_command
+        "bin/rails server #{ARGV.join(' ')}"
       end
   end
 end

@@ -29,6 +29,15 @@ module ApplicationTests
           assert_match(/Development mode is no longer being cached/, output)
         end
       end
+
+      test 'dev:cache removes server.pid also' do
+        Dir.chdir(app_path) do
+          FileUtils.mkdir_p("tmp/pids")
+          FileUtils.touch("tmp/pids/server.pid")
+          `rake dev:cache`
+          assert_not File.exist?("tmp/pids/server.pid")
+        end
+      end
     end
   end
 end
