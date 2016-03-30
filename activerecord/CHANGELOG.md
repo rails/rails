@@ -18,6 +18,12 @@
 
     *Sean Griffin*
 
+*   The schema cache is now cleared after the 'migrate' task is run
+
+    Closes #24273
+
+    *Chris Arcand*
+
 *   MySQL: strict mode respects other SQL modes rather than overwriting them.
     Setting `strict: true` adds `STRICT_ALL_TABLES` to `sql_mode`. Setting
     `strict: false` removes `STRICT_TRANS_TABLES`, `STRICT_ALL_TABLES`, and
