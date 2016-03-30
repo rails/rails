@@ -1,6 +1,7 @@
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/connection_adapters/mysql/column'
 require 'active_record/connection_adapters/mysql/explain_pretty_printer'
+require 'active_record/connection_adapters/mysql/quoting'
 require 'active_record/connection_adapters/mysql/schema_creation'
 require 'active_record/connection_adapters/mysql/schema_definitions'
 require 'active_record/connection_adapters/mysql/schema_dumper'
@@ -11,6 +12,7 @@ require 'active_support/core_ext/string/strip'
 module ActiveRecord
   module ConnectionAdapters
     class AbstractMysqlAdapter < AbstractAdapter
+      include MySQL::Quoting
       include MySQL::ColumnDumper
       include Savepoints
 
@@ -164,14 +166,6 @@ module ActiveRecord
       end
 
       # QUOTING ==================================================
-
-      def _quote(value) # :nodoc:
-        if value.is_a?(Type::Binary::Data)
-          "x'#{value.hex}'"
-        else
-          super
-        end
-      end
 
       def quote_column_name(name) #:nodoc:
         @quoted_column_names[name] ||= "`#{name.to_s.gsub('`', '``')}`"

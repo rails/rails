@@ -1,6 +1,7 @@
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/connection_adapters/statement_pool'
 require 'active_record/connection_adapters/sqlite3/explain_pretty_printer'
+require 'active_record/connection_adapters/sqlite3/quoting'
 require 'active_record/connection_adapters/sqlite3/schema_creation'
 
 gem 'sqlite3', '~> 1.3.6'
@@ -49,6 +50,8 @@ module ActiveRecord
     # * <tt>:database</tt> - Path to the database file.
     class SQLite3Adapter < AbstractAdapter
       ADAPTER_NAME = 'SQLite'.freeze
+
+      include SQLite3::Quoting
       include Savepoints
 
       NATIVE_DATABASE_TYPES = {
@@ -175,30 +178,6 @@ module ActiveRecord
       end
 
       # QUOTING ==================================================
-
-      def _quote(value) # :nodoc:
-        case value
-        when Type::Binary::Data
-          "x'#{value.hex}'"
-        else
-          super
-        end
-      end
-
-      def _type_cast(value) # :nodoc:
-        case value
-        when BigDecimal
-          value.to_f
-        when String
-          if value.encoding == Encoding::ASCII_8BIT
-            super(value.encode(Encoding::UTF_8))
-          else
-            super
-          end
-        else
-          super
-        end
-      end
 
       def quote_string(s) #:nodoc:
         @connection.class.quote(s)
