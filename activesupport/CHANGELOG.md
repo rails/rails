@@ -1,3 +1,7 @@
+*   `number_to_currency` now handles nil unit as no unit
+
+    *Hugo Hache*
+
 *   Prevent `Marshal.load` from looping infinitely when trying to autoload a constant
     which resolves to a different name.
 
