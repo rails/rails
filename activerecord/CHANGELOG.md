@@ -18,9 +18,9 @@
 
     *Sean Griffin*
 
-*   The schema cache is now cleared after the 'migrate' task is run
+*   The schema cache is now cleared after the `db:migrate` task is run.
 
-    Closes #24273
+    Closes #24273.
 
     *Chris Arcand*
 
