@@ -14,7 +14,7 @@ module ActionCable
         @log_tags = []
 
         @connection_class = ActionCable::Connection::Base
-        @worker_pool_size = 100
+        @worker_pool_size = 4
 
         @disable_request_forgery_protection = false
       end
