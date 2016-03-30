@@ -1,3 +1,8 @@
+*   `ActionDispatch::ParamsParser` is deprecated and was removed from the middleware
+    stack. To configure the parameter parsers use `ActionDispatch::Request.parameter_parsers=`.
+
+    *tenderlove*
+
 *   When a `respond_to` collector with a block doesn't have a response, then
     a `:no_content` response should be rendered.  This brings the default
     rendering behavior introduced by https://github.com/rails/rails/issues/19036
