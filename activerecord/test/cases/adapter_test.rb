@@ -23,6 +23,12 @@ module ActiveRecord
       end
     end
 
+    def test_create_record_with_pk_as_zero
+      Book.create(id: 0)
+      assert_equal 0, Book.find(0).id
+      assert_nothing_raised { Book.destroy(0) }
+    end
+
     def test_tables
       tables = nil
       ActiveSupport::Deprecation.silence { tables = @connection.tables }
