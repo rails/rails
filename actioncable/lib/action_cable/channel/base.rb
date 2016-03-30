@@ -1,4 +1,3 @@
-require 'action_cable/channel/log_subscriber'
 require 'set'
 
 module ActionCable
@@ -195,6 +194,8 @@ module ActionCable
         # Transmit a hash of data to the subscriber. The hash will automatically be wrapped in a JSON envelope with
         # the proper channel identifier marked as the recipient.
         def transmit(data, via: nil)
+          logger.info "#{self.class.name} transmitting #{data.inspect.truncate(300)}".tap { |m| m << " (via #{via})" if via }
+
           payload = { channel_class: self.class.name, data: data, via: via }
           ActiveSupport::Notifications.instrument("transmit.action_cable", payload) do
             connection.transmit ActiveSupport::JSON.encode(identifier: @identifier, message: data)
@@ -270,6 +271,8 @@ module ActionCable
 
         def transmit_subscription_confirmation
           unless subscription_confirmation_sent?
+            logger.info "#{self.class.name} is transmitting the subscription confirmation"
+
             ActiveSupport::Notifications.instrument("transmit_subscription_confirmation.action_cable", channel_class: self.class.name) do
               connection.transmit ActiveSupport::JSON.encode(identifier: @identifier, type: ActionCable::INTERNAL[:message_types][:confirmation])
               @subscription_confirmation_sent = true
@@ -283,6 +286,8 @@ module ActionCable
         end
 
         def transmit_subscription_rejection
+          logger.info "#{self.class.name} is transmitting the subscription rejection"
+
           ActiveSupport::Notifications.instrument("transmit_subscription_rejection.action_cable", channel_class: self.class.name) do
             connection.transmit ActiveSupport::JSON.encode(identifier: @identifier, type: ActionCable::INTERNAL[:message_types][:rejection])
           end
