@@ -71,12 +71,12 @@ module ActionCable
 
       # Start streaming from the named <tt>broadcasting</tt> pubsub queue. Optionally, you can pass a <tt>callback</tt> that'll be used
       # instead of the default of just transmitting the updates straight to the subscriber.
-      def stream_from(broadcasting, callback = nil)
+      def stream_from(broadcasting, user_callback = nil)
         broadcasting = String(broadcasting)
         # Don't send the confirmation until pubsub#subscribe is successful
         defer_subscription_confirmation!
 
-        callback ||= default_stream_callback(broadcasting)
+        callback = stream_callback(broadcasting, user_callback)
         streams << [ broadcasting, callback ]
 
         connection.server.event_loop.post do
@@ -90,8 +90,8 @@ module ActionCable
       # Start streaming the pubsub queue for the <tt>model</tt> in this channel. Optionally, you can pass a
       # <tt>callback</tt> that'll be used instead of the default of just transmitting the updates straight
       # to the subscriber.
-      def stream_for(model, callback = nil)
-        stream_from(broadcasting_for([ channel_name, model ]), callback)
+      def stream_for(model, user_callback = nil)
+        stream_from(broadcasting_for([ channel_name, model ]), user_callback)
       end
 
       # Unsubscribes all streams associated with this channel from the pubsub queue.
@@ -109,9 +109,15 @@ module ActionCable
           @_streams ||= []
         end
 
-        def default_stream_callback(broadcasting)
-          -> (message) do
-            transmit ActiveSupport::JSON.decode(message), via: "streamed from #{broadcasting}"
+        def stream_callback(broadcasting, user_callback)
+          if user_callback
+            -> (message) do
+              connection.worker_pool.async_invoke(user_callback, :call, message)
+            end
+          else
+            -> (message) do
+              transmit ActiveSupport::JSON.decode(message), via: "streamed from #{broadcasting}"
+            end
           end
         end
     end
