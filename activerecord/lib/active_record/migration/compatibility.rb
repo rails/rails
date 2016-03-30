@@ -57,7 +57,7 @@ module ActiveRecord
         def index_exists?(table_name, column_name, options = {})
           column_names = Array(column_name).map(&:to_s)
           options[:name] =
-            if options.key?(:name).present?
+            if options[:name].present?
               options[:name].to_s
             else
               index_name(table_name, column: column_names)
