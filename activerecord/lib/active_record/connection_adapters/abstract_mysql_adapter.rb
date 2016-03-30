@@ -162,18 +162,6 @@ module ActiveRecord
         raise NotImplementedError
       end
 
-      #--
-      # QUOTING ==================================================
-      #++
-
-      def quoted_date(value)
-        if supports_datetime_with_precision?
-          super
-        else
-          super.sub(/\.\d{6}\z/, '')
-        end
-      end
-
       # REFERENTIAL INTEGRITY ====================================
 
       def disable_referential_integrity #:nodoc:
