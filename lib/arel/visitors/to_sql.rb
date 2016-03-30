@@ -199,7 +199,7 @@ module Arel
             collector << quote(value, attr && column_for(attr)).to_s
           end
           unless i == len
-            collector << ', '
+            collector << COMMA
           end
         }
 
