@@ -1531,4 +1531,12 @@ class BasicsTest < ActiveRecord::TestCase
     assert Developer.new.respond_to?(:last_name=)
     assert Developer.new.respond_to?(:last_name?)
   end
+
+  test "table names containing a dot are deprecated" do
+    assert_deprecated do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "foo.bar"
+      end
+    end
+  end
 end

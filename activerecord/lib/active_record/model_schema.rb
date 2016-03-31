@@ -144,6 +144,13 @@ module ActiveRecord
       def table_name=(value)
         value = value && value.to_s
 
+        if value && value.include?(".")
+          # When this deprecation warning is removed, revert commit 04ac5655be91f49cd4dfe2838df96213502fb274
+          ActiveSupport::Deprecation.warn(
+            'Support for table names containing "." is deprecated and will be removed in Rails 5.1.'
+          )
+        end
+
         if defined?(@table_name)
           return if value == @table_name
           reset_column_information if connected?
