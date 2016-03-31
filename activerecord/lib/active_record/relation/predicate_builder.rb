@@ -84,6 +84,7 @@ module ActiveRecord
       return ["1=0"] if attributes.empty?
 
       attributes.flat_map do |key, value|
+        key = key.to_s
         if value.is_a?(Hash)
           associated_predicate_builder(key).expand_from_hash(value)
         else
@@ -136,7 +137,9 @@ module ActiveRecord
     end
 
     def convert_dot_notation_to_hash(attributes)
-      dot_notation = attributes.keys.select { |s| s.include?(".".freeze) }
+      dot_notation = attributes.keys.select do |s|
+        s.respond_to?(:include?) && s.include?(".".freeze)
+      end
 
       dot_notation.each do |key|
         table_name, column_name = key.split(".".freeze)
