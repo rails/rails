@@ -51,8 +51,8 @@ module ActionCable
       attr_reader :server, :env, :subscriptions, :logger, :worker_pool
       delegate :event_loop, :pubsub, to: :server
 
-      def initialize(server, env)
-        @server, @env = server, env
+      def initialize(server, env, coder: ActiveSupport::JSON)
+        @server, @env, @coder = server, env, coder
 
         @worker_pool = server.worker_pool
         @logger = new_tagged_logger
@@ -67,7 +67,7 @@ module ActionCable
 
       # Called by the server when a new WebSocket connection is established. This configures the callbacks intended for overwriting by the user.
       # This method should not be called directly -- instead rely upon on the #connect (and #disconnect) callbacks.
-      def process # :nodoc:
+      def process #:nodoc:
         logger.info started_request_message
 
         if websocket.possible? && allow_request_origin?
@@ -77,20 +77,22 @@ module ActionCable
         end
       end
 
-      # Data received over the WebSocket connection is handled by this method. It's expected that everything inbound is JSON encoded.
-      # The data is routed to the proper channel that the connection has subscribed to.
-      def receive(data_in_json)
+      # Decodes WebSocket messages and dispatches them to subscribed channels.
+      # WebSocket message transfer encoding is always JSON.
+      def receive(websocket_message) #:nodoc:
+        send_async :dispatch_websocket_message, websocket_message
+      end
+
+      def dispatch_websocket_message(websocket_message) #:nodoc:
         if websocket.alive?
-          subscriptions.execute_command ActiveSupport::JSON.decode(data_in_json)
+          subscriptions.execute_command decode(websocket_message)
         else
-          logger.error "Received data without a live WebSocket (#{data_in_json.inspect})"
+          logger.error "Ignoring message processed after the WebSocket was closed: #{websocket_message.inspect})"
         end
       end
 
-      # Send raw data straight back down the WebSocket. This is not intended to be called directly. Use the #transmit available on the
-      # Channel instead, as that'll automatically address the correct subscriber and wrap the message in JSON.
-      def transmit(data) # :nodoc:
-        websocket.transmit data
+      def transmit(cable_message) # :nodoc:
+        websocket.transmit encode(cable_message)
       end
 
       # Close the WebSocket connection.
@@ -115,7 +117,7 @@ module ActionCable
       end
 
       def beat
-        transmit ActiveSupport::JSON.encode(type: ActionCable::INTERNAL[:message_types][:ping], message: Time.now.to_i)
+        transmit type: ActionCable::INTERNAL[:message_types][:ping], message: Time.now.to_i
       end
 
       def on_open # :nodoc:
@@ -152,6 +154,14 @@ module ActionCable
         attr_reader :message_buffer
 
       private
+        def encode(cable_message)
+          @coder.encode cable_message
+        end
+
+        def decode(websocket_message)
+          @coder.decode websocket_message
+        end
+
         def handle_open
           connect if respond_to?(:connect)
           subscribe_to_internal_channel
@@ -178,7 +188,7 @@ module ActionCable
           # Send welcome message to the internal connection monitor channel.
           # This ensures the connection monitor state is reset after a successful
           # websocket connection.
-          transmit ActiveSupport::JSON.encode(type: ActionCable::INTERNAL[:message_types][:welcome])
+          transmit type: ActionCable::INTERNAL[:message_types][:welcome]
         end
 
         def allow_request_origin?

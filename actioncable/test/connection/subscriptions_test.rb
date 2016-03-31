@@ -88,7 +88,7 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
 
       channel1 = subscribe_to_chat_channel
 
-      channel2_id = ActiveSupport::JSON.encode({ id: 2, channel: 'ActionCable::Connection::SubscriptionsTest::ChatChannel' })
+      channel2_id = ActiveSupport::JSON.encode(id: 2, channel: 'ActionCable::Connection::SubscriptionsTest::ChatChannel')
       channel2 = subscribe_to_chat_channel(channel2_id)
 
       channel1.expects(:unsubscribe_from_channel)

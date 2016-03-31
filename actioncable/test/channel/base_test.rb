@@ -146,12 +146,12 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
   test "transmitting data" do
     @channel.perform_action 'action' => :get_latest
 
-    expected = ActiveSupport::JSON.encode "identifier" => "{id: 1}", "message" => { "data" => "latest" }
+    expected = { "identifier" => "{id: 1}", "message" => { "data" => "latest" }}
     assert_equal expected, @connection.last_transmission
   end
 
   test "subscription confirmation" do
-    expected = ActiveSupport::JSON.encode "identifier" => "{id: 1}", "type" => "confirm_subscription"
+    expected = { "identifier" => "{id: 1}", "type" => "confirm_subscription" }
     assert_equal expected, @connection.last_transmission
   end
 
