@@ -43,6 +43,7 @@ module Rails
           middleware.use ::ActionDispatch::RequestId
 
           # Must come after Rack::MethodOverride to properly log overridden methods
+          middleware.use ::Rails::Rack::QuietAssets if config.respond_to?(:quiet_assets) && config.quiet_assets
           middleware.use ::Rails::Rack::Logger, config.log_tags
           middleware.use ::ActionDispatch::ShowExceptions, show_exceptions_app
           middleware.use ::ActionDispatch::DebugExceptions, app, config.debug_exception_response_format
