@@ -1139,13 +1139,17 @@ class FormHelperTest < ActionView::TestCase
 
   def test_datetime_field
     expected = %{<input id="post_written_on" name="post[written_on]" type="datetime" value="2004-06-15T00:00:00.000+0000" />}
-    assert_dom_equal(expected, datetime_field("post", "written_on"))
+    assert_deprecated do
+      assert_dom_equal(expected, datetime_field("post", "written_on"))
+    end
   end
 
   def test_datetime_field_with_datetime_value
     expected = %{<input id="post_written_on" name="post[written_on]" type="datetime" value="2004-06-15T01:02:03.000+0000" />}
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
-    assert_dom_equal(expected, datetime_field("post", "written_on"))
+    assert_deprecated do
+      assert_dom_equal(expected, datetime_field("post", "written_on"))
+    end
   end
 
   def test_datetime_field_with_extra_attrs
@@ -1154,20 +1158,26 @@ class FormHelperTest < ActionView::TestCase
     min_value = DateTime.new(2000, 6, 15, 20, 45, 30)
     max_value = DateTime.new(2010, 8, 15, 10, 25, 00)
     step = 60
-    assert_dom_equal(expected, datetime_field("post", "written_on", min: min_value, max: max_value, step: step))
+    assert_deprecated do
+      assert_dom_equal(expected, datetime_field("post", "written_on", min: min_value, max: max_value, step: step))
+    end
   end
 
   def test_datetime_field_with_value_attr
     expected = %{<input id="post_written_on" name="post[written_on]" type="datetime" value="2013-06-29T13:37:00+00:00" />}
     value = DateTime.new(2013,6,29,13,37)
-    assert_dom_equal(expected, datetime_field("post", "written_on", value: value))
+    assert_deprecated do
+      assert_dom_equal(expected, datetime_field("post", "written_on", value: value))
+    end
   end
 
   def test_datetime_field_with_timewithzone_value
     previous_time_zone, Time.zone = Time.zone, 'UTC'
     expected = %{<input id="post_written_on" name="post[written_on]" type="datetime" value="2004-06-15T15:30:45.000+0000" />}
     @post.written_on = Time.zone.parse('2004-06-15 15:30:45')
-    assert_dom_equal(expected, datetime_field("post", "written_on"))
+    assert_deprecated do
+      assert_dom_equal(expected, datetime_field("post", "written_on"))
+    end
   ensure
     Time.zone = previous_time_zone
   end
@@ -1175,7 +1185,9 @@ class FormHelperTest < ActionView::TestCase
   def test_datetime_field_with_nil_value
     expected = %{<input id="post_written_on" name="post[written_on]" type="datetime" />}
     @post.written_on = nil
-    assert_dom_equal(expected, datetime_field("post", "written_on"))
+    assert_deprecated do
+      assert_dom_equal(expected, datetime_field("post", "written_on"))
+    end
   end
 
   def test_datetime_field_with_string_values_for_min_and_max
@@ -1183,7 +1195,9 @@ class FormHelperTest < ActionView::TestCase
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
     min_value = "2000-06-15T20:45:30.000+0000"
     max_value = "2010-08-15T10:25:00.000+0000"
-    assert_dom_equal(expected, datetime_field("post", "written_on", min: min_value, max: max_value))
+    assert_deprecated do
+      assert_dom_equal(expected, datetime_field("post", "written_on", min: min_value, max: max_value))
+    end
   end
 
   def test_datetime_field_with_invalid_string_values_for_min_and_max
@@ -1191,7 +1205,9 @@ class FormHelperTest < ActionView::TestCase
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
     min_value = "foo"
     max_value = "bar"
-    assert_dom_equal(expected, datetime_field("post", "written_on", min: min_value, max: max_value))
+    assert_deprecated do
+      assert_dom_equal(expected, datetime_field("post", "written_on", min: min_value, max: max_value))
+    end
   end
 
   def test_datetime_local_field

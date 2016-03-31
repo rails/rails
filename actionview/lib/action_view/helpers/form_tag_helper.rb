@@ -691,6 +691,10 @@ module ActionView
       # * <tt>:step</tt> - The acceptable value granularity.
       # * Otherwise accepts the same options as text_field_tag.
       def datetime_field_tag(name, value = nil, options = {})
+        ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
+          datetime_field_tag is deprecated and will be removed in Rails 5.1.
+          Use datetime_local_field_tag instead.
+        MESSAGE
         text_field_tag(name, value, options.merge(type: :datetime))
       end
 
