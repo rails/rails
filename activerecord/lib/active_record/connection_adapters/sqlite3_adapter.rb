@@ -87,7 +87,6 @@ module ActiveRecord
         @statements = StatementPool.new(self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 }))
 
         @visitor = Arel::Visitors::SQLite.new self
-        @quoted_column_names = {}
 
         if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
           @prepared_statements = true
@@ -185,10 +184,6 @@ module ActiveRecord
 
       def quote_table_name_for_assignment(table, attr)
         quote_column_name(attr)
-      end
-
-      def quote_column_name(name) #:nodoc:
-        @quoted_column_names[name] ||= %Q("#{name.to_s.gsub('"', '""')}")
       end
 
       #--
