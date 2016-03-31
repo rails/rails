@@ -119,18 +119,12 @@ module ActionView
       module ClassMethods #:nodoc:
         attr_writer :full_sanitizer, :link_sanitizer, :white_list_sanitizer
 
-        # Vendors the full, link and white list sanitizers.
-        # Provided strictly for compatibility and can be removed in Rails 5.
-        def sanitizer_vendor
-          Rails::Html::Sanitizer
-        end
-
         def sanitized_allowed_tags
-          sanitizer_vendor.white_list_sanitizer.allowed_tags
+          Rails::Html::Sanitizer.white_list_sanitizer.allowed_tags
         end
 
         def sanitized_allowed_attributes
-          sanitizer_vendor.white_list_sanitizer.allowed_attributes
+          Rails::Html::Sanitizer.white_list_sanitizer.allowed_attributes
         end
 
         # Gets the Rails::Html::FullSanitizer instance used by +strip_tags+. Replace with
@@ -141,7 +135,7 @@ module ActionView
         #   end
         #
         def full_sanitizer
-          @full_sanitizer ||= sanitizer_vendor.full_sanitizer.new
+          @full_sanitizer ||= Rails::Html::Sanitizer.full_sanitizer.new
         end
 
         # Gets the Rails::Html::LinkSanitizer instance used by +strip_links+.
@@ -152,7 +146,7 @@ module ActionView
         #   end
         #
         def link_sanitizer
-          @link_sanitizer ||= sanitizer_vendor.link_sanitizer.new
+          @link_sanitizer ||= Rails::Html::Sanitizer.link_sanitizer.new
         end
 
         # Gets the Rails::Html::WhiteListSanitizer instance used by sanitize and +sanitize_css+.
@@ -163,7 +157,7 @@ module ActionView
         #   end
         #
         def white_list_sanitizer
-          @white_list_sanitizer ||= sanitizer_vendor.white_list_sanitizer.new
+          @white_list_sanitizer ||= Rails::Html::Sanitizer.white_list_sanitizer.new
         end
       end
     end
