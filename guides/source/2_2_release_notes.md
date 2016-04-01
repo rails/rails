@@ -21,7 +21,7 @@ Rails 2.2 supplies an easy system for internationalization (or i18n, for those o
 * Lead Contributors: Rails i18 Team
 * More information :
     * [Official Rails i18 website](http://rails-i18n.org)
-    * [Finally. Ruby on Rails gets internationalized](http://www.artweb-design.de/2008/7/18/finally-ruby-on-rails-gets-internationalized)
+    * [Finally. Ruby on Rails gets internationalized](https://web.archive.org/web/20140407075019/http://www.artweb-design.de/2008/7/18/finally-ruby-on-rails-gets-internationalized)
     * [Localizing Rails : Demo application](http://github.com/clemens/i18n_demo_app)
 
 ### Compatibility with Ruby 1.9 and JRuby
