@@ -16,6 +16,10 @@ class TestControllerWithExtraEtags < ActionController::Base
     render plain: "stale" if stale?(etag: %w(1 2 3), template: false)
   end
 
+  def strong
+    render plain: "stale" if stale?(strong_etag: 'strong')
+  end
+
   def with_template
     if stale? template: 'test/hello_world'
       render plain: 'stale'
@@ -385,7 +389,7 @@ class LastModifiedRenderTest < ActionController::TestCase
 
   def test_request_not_modified_but_etag_differs
     @request.if_modified_since = @last_modified
-    @request.if_none_match = "234"
+    @request.if_none_match = '"234"'
     get :conditional_hello
     assert_response :success
   end
@@ -414,7 +418,7 @@ class LastModifiedRenderTest < ActionController::TestCase
 
   def test_request_not_modified_but_etag_differs_with_record
     @request.if_modified_since = @last_modified
-    @request.if_none_match = "234"
+    @request.if_none_match = '"234"'
     get :conditional_hello_with_record
     assert_response :success
   end
@@ -442,7 +446,7 @@ class LastModifiedRenderTest < ActionController::TestCase
 
   def test_request_not_modified_but_etag_differs_with_collection_of_records
     @request.if_modified_since = @last_modified
-    @request.if_none_match = "234"
+    @request.if_none_match = '"234"'
     get :conditional_hello_with_collection_of_records
     assert_response :success
   end
@@ -477,8 +481,26 @@ end
 class EtagRenderTest < ActionController::TestCase
   tests TestControllerWithExtraEtags
 
+  def test_strong_etag
+    @request.if_none_match = strong_etag(['strong', 'ab', :cde, [:f]])
+    get :strong
+    assert_response :not_modified
+
+    @request.if_none_match = '*'
+    get :strong
+    assert_response :not_modified
+
+    @request.if_none_match = '"strong"'
+    get :strong
+    assert_response :ok
+
+    @request.if_none_match = weak_etag(['strong', 'ab', :cde, [:f]])
+    get :strong
+    assert_response :ok
+  end
+
   def test_multiple_etags
-    @request.if_none_match = etag(["123", 'ab', :cde, [:f]])
+    @request.if_none_match = weak_etag(["123", 'ab', :cde, [:f]])
     get :fresh
     assert_response :not_modified
 
@@ -488,7 +510,7 @@ class EtagRenderTest < ActionController::TestCase
   end
 
   def test_array
-    @request.if_none_match = etag([%w(1 2 3), 'ab', :cde, [:f]])
+    @request.if_none_match = weak_etag([%w(1 2 3), 'ab', :cde, [:f]])
     get :array
     assert_response :not_modified
 
@@ -523,9 +545,14 @@ class EtagRenderTest < ActionController::TestCase
     end
   end
 
-  def etag(record)
-    %(W/"#{Digest::MD5.hexdigest(ActiveSupport::Cache.expand_cache_key(record))}")
-  end
+  private
+    def weak_etag(record)
+      "W/#{strong_etag record}"
+    end
+
+    def strong_etag(record)
+      %("#{Digest::MD5.hexdigest(ActiveSupport::Cache.expand_cache_key(record))}")
+    end
 end
 
 class MetalRenderTest < ActionController::TestCase
@@ -713,20 +740,24 @@ class HttpCacheForeverTest < ActionController::TestCase
 
   def test_cache_with_public
     get :cache_me_forever, params: {public: true}
+    assert_response :ok
     assert_equal "max-age=#{100.years}, public", @response.headers["Cache-Control"]
     assert_not_nil @response.etag
+    assert @response.weak_etag?
   end
 
   def test_cache_with_private
     get :cache_me_forever
+    assert_response :ok
     assert_equal "max-age=#{100.years}, private", @response.headers["Cache-Control"]
     assert_not_nil @response.etag
-    assert_response :success
+    assert @response.weak_etag?
   end
 
   def test_cache_response_code_with_if_modified_since
     get :cache_me_forever
-    assert_response :success
+    assert_response :ok
+
     @request.if_modified_since = @response.headers['Last-Modified']
     get :cache_me_forever
     assert_response :not_modified
@@ -734,13 +765,10 @@ class HttpCacheForeverTest < ActionController::TestCase
 
   def test_cache_response_code_with_etag
     get :cache_me_forever
-    assert_response :success
-    @request.if_modified_since = @response.headers['Last-Modified']
-    @request.if_none_match = @response.etag
+    assert_response :ok
 
+    @request.if_none_match = @response.etag
     get :cache_me_forever
     assert_response :not_modified
-    @request.if_modified_since = @response.headers['Last-Modified']
-    @request.if_none_match = @response.etag
   end
 end

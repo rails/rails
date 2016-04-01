@@ -189,7 +189,7 @@ class ResponseTest < ActiveSupport::TestCase
     assert_equal({"user_name" => "david", "login" => nil}, @response.cookies)
   end
 
-  test "read cache control" do
+  test "read ETag and Cache-Control" do
     resp = ActionDispatch::Response.new.tap { |response|
       response.cache_control[:public] = true
       response.etag = '123'
@@ -197,11 +197,28 @@ class ResponseTest < ActiveSupport::TestCase
     }
     resp.to_a
 
+    assert resp.etag?
+    assert resp.weak_etag?
+    assert_not resp.strong_etag?
     assert_equal('W/"202cb962ac59075b964b07152d234b70"', resp.etag)
     assert_equal({:public => true}, resp.cache_control)
 
     assert_equal('public', resp.headers['Cache-Control'])
     assert_equal('W/"202cb962ac59075b964b07152d234b70"', resp.headers['ETag'])
+  end
+
+  test "read strong ETag" do
+    resp = ActionDispatch::Response.new.tap { |response|
+      response.cache_control[:public] = true
+      response.strong_etag = '123'
+      response.body = 'Hello'
+    }
+    resp.to_a
+
+    assert resp.etag?
+    assert_not resp.weak_etag?
+    assert resp.strong_etag?
+    assert_equal('"202cb962ac59075b964b07152d234b70"', resp.etag)
   end
 
   test "read charset and content type" do
@@ -446,11 +463,19 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
     assert_equal('application/xml; charset=utf-16', @response.headers['Content-Type'])
   end
 
-  test "we can set strong ETag by directly adding it as header" do
-    @response = ActionDispatch::Response.create
-    @response.add_header "ETag", '"202cb962ac59075b964b07152d234b70"'
+  test "strong ETag validator" do
+    @app = lambda { |env|
+      ActionDispatch::Response.new.tap { |resp|
+        resp.strong_etag = '123'
+        resp.body = 'Hello'
+        resp.request = ActionDispatch::Request.empty
+      }.to_a
+    }
 
-    assert_equal('"202cb962ac59075b964b07152d234b70"', @response.etag)
+    get '/'
+    assert_response :ok
+
     assert_equal('"202cb962ac59075b964b07152d234b70"', @response.headers['ETag'])
+    assert_equal('"202cb962ac59075b964b07152d234b70"', @response.etag)
   end
 end

@@ -1152,36 +1152,41 @@ class RequestParameterFilter < BaseRequestTest
 end
 
 class RequestEtag < BaseRequestTest
-  test "if_none_match_etags none" do
+  test "always matches *" do
+    request = stub_request('HTTP_IF_NONE_MATCH' => '*')
+
+    assert_equal '*', request.if_none_match
+    assert_equal ['*'], request.if_none_match_etags
+
+    assert request.etag_matches?('"strong"')
+    assert request.etag_matches?('W/"weak"')
+    assert_not request.etag_matches?(nil)
+  end
+
+  test "doesn't match absent If-None-Match" do
     request = stub_request
 
     assert_equal nil, request.if_none_match
     assert_equal [], request.if_none_match_etags
-    assert !request.etag_matches?("foo")
-    assert !request.etag_matches?(nil)
+
+    assert_not request.etag_matches?("foo")
+    assert_not request.etag_matches?(nil)
   end
 
-  test "if_none_match_etags single" do
-    header = 'the-etag'
-    request = stub_request('HTTP_IF_NONE_MATCH' => header)
-
-    assert_equal header, request.if_none_match
-    assert_equal [header], request.if_none_match_etags
-    assert request.etag_matches?("the-etag")
-  end
-
-  test "if_none_match_etags quoted single" do
+  test "matches opaque ETag validators without unquoting" do
     header = '"the-etag"'
     request = stub_request('HTTP_IF_NONE_MATCH' => header)
 
     assert_equal header, request.if_none_match
-    assert_equal ['the-etag'], request.if_none_match_etags
-    assert request.etag_matches?("the-etag")
+    assert_equal ['"the-etag"'], request.if_none_match_etags
+
+    assert request.etag_matches?('"the-etag"')
+    assert_not request.etag_matches?("the-etag")
   end
 
   test "if_none_match_etags multiple" do
     header = 'etag1, etag2, "third etag", "etag4"'
-    expected = ['etag1', 'etag2', 'third etag', 'etag4']
+    expected = ['etag1', 'etag2', '"third etag"', '"etag4"']
     request = stub_request('HTTP_IF_NONE_MATCH' => header)
 
     assert_equal header, request.if_none_match
