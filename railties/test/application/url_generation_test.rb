@@ -55,5 +55,72 @@ module ApplicationTests
       assert_equal relative_url, app.routes.relative_url_root
       ENV["RAILS_RELATIVE_URL_ROOT"] = nil
     end
+
+    test 'relative_url_root is respected in request.url -- config option' do
+      boot_rails
+      require 'rails'
+      require 'action_controller/railtie'
+      require 'action_view/railtie'
+
+      class MyApp < Rails::Application
+        secrets.secret_key_base = '3b7cd727ee24e8444053437c36cc66c4'
+        config.action_controller.relative_url_root = '/hello'
+      end
+
+      Rails.application.initialize!
+
+      class ::ApplicationController < ActionController::Base
+      end
+
+      class ::HelloController < ::ApplicationController
+        def index
+          render plain: request.url
+        end
+      end
+
+      MyApp.routes.draw do
+        get '/hello' => 'hello#index'
+      end
+
+      require 'rack/test'
+      extend Rack::Test::Methods
+
+      get('/hello', {}, { 'ORIGINAL_FULLPATH' => '/hello/hello' })
+      assert_equal 'http://example.org/hello/hello', last_response.body
+    end
+
+    test 'relative_url_root is respected in request.url -- ENV option' do
+      ENV['RAILS_RELATIVE_URL_ROOT'] = '/hello'
+
+      boot_rails
+      require 'rails'
+      require 'action_controller/railtie'
+      require 'action_view/railtie'
+
+      class MyApp < Rails::Application
+        secrets.secret_key_base = '3b7cd727ee24e8444053437c36cc66c4'
+      end
+
+      Rails.application.initialize!
+
+      class ::ApplicationController < ActionController::Base
+      end
+
+      class ::HelloController < ::ApplicationController
+        def index
+          render plain: request.url
+        end
+      end
+
+      MyApp.routes.draw do
+        get '/hello' => 'hello#index'
+      end
+
+      require 'rack/test'
+      extend Rack::Test::Methods
+
+      get('/hello', {}, { 'ORIGINAL_FULLPATH' => '/hello/hello' })
+      assert_equal 'http://example.org/hello/hello', last_response.body
+    end
   end
 end

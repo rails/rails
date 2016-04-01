@@ -199,7 +199,7 @@ module ActionDispatch
       #   req = Request.new 'HTTP_HOST' => 'example.com'
       #   req.url # => "http://example.com"
       def url
-        protocol + host_with_port + fullpath
+        protocol + host_with_port + relative_url_root + fullpath
       end
 
       # Returns 'https://' if this is an SSL request and 'http://' otherwise.
@@ -371,6 +371,12 @@ module ActionDispatch
       # in "www.rubyonrails.co.uk".
       def subdomain(tld_length = @@tld_length)
         ActionDispatch::Http::URL.extract_subdomain(host, tld_length)
+      end
+
+      private
+
+      def relative_url_root
+        get_header('action_controller.instance'.freeze).relative_url_root || ''.freeze
       end
     end
   end
