@@ -174,7 +174,6 @@ URL fields, email fields, number fields and range fields:
 <%= search_field(:user, :name) %>
 <%= telephone_field(:user, :phone) %>
 <%= date_field(:user, :born_on) %>
-<%= datetime_field(:user, :meeting_time) %>
 <%= datetime_local_field(:user, :graduation_day) %>
 <%= month_field(:user, :birthday_month) %>
 <%= week_field(:user, :birthday_week) %>
@@ -195,7 +194,6 @@ Output:
 <input id="user_name" name="user[name]" type="search" />
 <input id="user_phone" name="user[phone]" type="tel" />
 <input id="user_born_on" name="user[born_on]" type="date" />
-<input id="user_meeting_time" name="user[meeting_time]" type="datetime" />
 <input id="user_graduation_day" name="user[graduation_day]" type="datetime-local" />
 <input id="user_birthday_month" name="user[birthday_month]" type="month" />
 <input id="user_birthday_week" name="user[birthday_week]" type="week" />
