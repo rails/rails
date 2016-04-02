@@ -1,3 +1,8 @@
+*   Change `filter_parameters` to use returned `value` instead of destructing `value`
+    when procs are passed.
+
+    *Yuichiro Kaneko*
+
 *   ETags: Introduce `Response#strong_etag=` and `#weak_etag=` and analogous
     options for `fresh_when` and `stale?`. `Response#etag=` sets a weak ETag.
 

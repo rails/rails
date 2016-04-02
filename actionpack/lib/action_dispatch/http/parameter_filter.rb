@@ -67,7 +67,7 @@ module ActionDispatch
             elsif blocks.any?
               key = key.dup if key.duplicable?
               value = value.dup if value.duplicable?
-              blocks.each { |b| b.call(key, value) }
+              value = blocks.inject(value) { |v, b| b.call(key, v) }
             end
             parents.pop if deep_regexps
 
