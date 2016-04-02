@@ -36,8 +36,23 @@ module ActionController
     #
     # === Parameters:
     #
-    # * <tt>:etag</tt>.
-    # * <tt>:last_modified</tt>.
+    # * <tt>:etag</tt> Sets a "weak" ETag validator on the response. See the
+    #   +:weak_etag+ option.
+    # * <tt>:weak_etag</tt> Sets a "weak" ETag validator on the response.
+    #   requests that set If-None-Match header may return a 304 Not Modified
+    #   response if it matches the ETag exactly. A weak ETag indicates semantic
+    #   equivalence, not byte-for-byte equality, so they're a good for caching
+    #   HTML pages in browser caches. They can't be used for responses that
+    #   must be byte-identical, like serving Range requests within a PDF file.
+    # * <tt>:strong_etag</tt> Sets a "strong" ETag validator on the response.
+    #   Requests that set If-None-Match header may return a 304 Not Modified
+    #   response if it matches the ETag exactly. A strong ETag implies exact
+    #   equality: the response must match byte for byte. This is necessary for
+    #   doing Range requests within a large video or PDF file, for example, or
+    #   for compatibility with some CDNs that don't support weak ETags.
+    # * <tt>:last_modified</tt> Sets a "weak" last-update validator on the
+    #   response. Subsequent requests that set If-Modified-Since may return a
+    #   304 Not Modified response if last_modified <= If-Modified-Since.
     # * <tt>:public</tt> By default the Cache-Control header is private, set this to
     #   +true+ if you want your application to be cacheable by other devices (proxy caches).
     # * <tt>:template</tt> By default, the template digest for the current
@@ -86,12 +101,16 @@ module ActionController
     #
     #   before_action { fresh_when @article, template: 'widgets/show' }
     #
-    def fresh_when(object = nil, etag: object, last_modified: nil, public: false, template: nil)
+    def fresh_when(object = nil, etag: nil, weak_etag: nil, strong_etag: nil, last_modified: nil, public: false, template: nil)
+      weak_etag ||= etag || object unless strong_etag
       last_modified ||= object.try(:updated_at) || object.try(:maximum, :updated_at)
 
-      if etag || template
-        response.etag = combine_etags(etag: etag, last_modified: last_modified,
-          public: public, template: template)
+      if strong_etag
+        response.strong_etag = combine_etags strong_etag,
+          last_modified: last_modified, public: public, template: template
+      elsif weak_etag || template
+        response.weak_etag = combine_etags weak_etag,
+          last_modified: last_modified, public: public, template: template
       end
 
       response.last_modified = last_modified if last_modified
@@ -107,8 +126,23 @@ module ActionController
     #
     # === Parameters:
     #
-    # * <tt>:etag</tt>.
-    # * <tt>:last_modified</tt>.
+    # * <tt>:etag</tt> Sets a "weak" ETag validator on the response. See the
+    #   +:weak_etag+ option.
+    # * <tt>:weak_etag</tt> Sets a "weak" ETag validator on the response.
+    #   requests that set If-None-Match header may return a 304 Not Modified
+    #   response if it matches the ETag exactly. A weak ETag indicates semantic
+    #   equivalence, not byte-for-byte equality, so they're a good for caching
+    #   HTML pages in browser caches. They can't be used for responses that
+    #   must be byte-identical, like serving Range requests within a PDF file.
+    # * <tt>:strong_etag</tt> Sets a "strong" ETag validator on the response.
+    #   Requests that set If-None-Match header may return a 304 Not Modified
+    #   response if it matches the ETag exactly. A strong ETag implies exact
+    #   equality: the response must match byte for byte. This is necessary for
+    #   doing Range requests within a large video or PDF file, for example, or
+    #   for compatibility with some CDNs that don't support weak ETags.
+    # * <tt>:last_modified</tt> Sets a "weak" last-update validator on the
+    #   response. Subsequent requests that set If-Modified-Since may return a
+    #   304 Not Modified response if last_modified <= If-Modified-Since.
     # * <tt>:public</tt> By default the Cache-Control header is private, set this to
     #   +true+ if you want your application to be cacheable by other devices (proxy caches).
     # * <tt>:template</tt> By default, the template digest for the current
@@ -180,8 +214,8 @@ module ActionController
     #     super if stale? @article, template: 'widgets/show'
     #   end
     #
-    def stale?(object = nil, etag: object, last_modified: nil, public: nil, template: nil)
-      fresh_when(object, etag: etag, last_modified: last_modified, public: public, template: template)
+    def stale?(object = nil, **freshness_kwargs)
+      fresh_when(object, **freshness_kwargs)
       !request.fresh?(response)
     end
 
@@ -231,9 +265,8 @@ module ActionController
     end
 
     private
-      def combine_etags(options)
-        etags = etaggers.map { |etagger| instance_exec(options, &etagger) }.compact
-        etags.unshift options[:etag]
+      def combine_etags(validator, options)
+        [validator, *etaggers.map { |etagger| instance_exec(options, &etagger) }].compact
       end
   end
 end

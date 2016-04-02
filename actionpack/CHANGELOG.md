@@ -1,3 +1,25 @@
+*   ETags: Introduce `Response#strong_etag=` and `#weak_etag=` and analogous
+    options for `fresh_when` and `stale?`. `Response#etag=` sets a weak ETag.
+
+    Strong ETags are desirable when you're serving byte-for-byte identical
+    responses that support Range requests, like PDFs or videos (typically
+    done by reproxying the response from a backend storage service).
+    Also desirable when fronted by some CDNs that support strong ETags
+    only, like Akamai.
+
+    *Jeremy Daer*
+
+*   ETags: No longer strips quotes (") from ETag values before comparing them.
+    Quotes are significant, part of the ETag. A quoted ETag and an unquoted
+    one are not the same entity.
+
+    *Jeremy Daer*
+
+*   ETags: Support `If-None-Match: *`. Rarely useful for GET requests; meant
+    to provide some optimistic concurrency control for PUT requests.
+
+    *Jeremy Daer*
+
 *   `ActionDispatch::ParamsParser` is deprecated and was removed from the middleware
     stack. To configure the parameter parsers use `ActionDispatch::Request.parameter_parsers=`.
 
