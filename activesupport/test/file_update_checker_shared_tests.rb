@@ -5,7 +5,7 @@ module FileUpdateCheckerSharedTests
   include FileUtils
 
   def tmpdir
-    @tmpdir ||= Dir.mktmpdir(nil, __dir__)
+    @tmpdir
   end
 
   def tmpfile(name)
@@ -16,8 +16,8 @@ module FileUpdateCheckerSharedTests
     @tmpfiles ||= %w(foo.rb bar.rb baz.rb).map { |f| tmpfile(f) }
   end
 
-  def teardown
-    FileUtils.rm_rf(@tmpdir) if defined? @tmpdir
+  def run(*args)
+    Dir.mktmpdir(nil, __dir__) { |dir| @tmpdir = dir; super }
   end
 
   test 'should not execute the block if no paths are given' do
