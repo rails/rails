@@ -1,3 +1,12 @@
+*   Rely on the native DateTime#<=> implementation to handle non-datetime like
+    objects instead of returning `nil` ourselves. This restores the ability
+    of `DateTime` instances to be compared with a `Numeric` that represents an
+    astronomical julian day number.
+
+    Fixes #24228.
+
+    *Andrew White*
+
 *   Add `String#upcase_first` method.
 
     *Glauco Custódio*, *bogdanvlviv*

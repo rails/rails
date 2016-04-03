@@ -165,13 +165,10 @@ class DateTime
   # Layers additional behavior on DateTime#<=> so that Time and
   # ActiveSupport::TimeWithZone instances can be compared with a DateTime.
   def <=>(other)
-    if other.kind_of?(Infinity)
-      super
-    elsif other.respond_to? :to_datetime
+    if other.respond_to? :to_datetime
       super other.to_datetime rescue nil
     else
-      nil
+      super
     end
   end
-
 end

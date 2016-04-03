@@ -354,6 +354,24 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal nil, DateTime.civil(2000) <=> "Invalid as Time"
   end
 
+  def test_compare_with_integer
+    assert_equal  1, DateTime.civil(1970, 1, 1, 12, 0, 0) <=> 2440587
+    assert_equal  0, DateTime.civil(1970, 1, 1, 12, 0, 0) <=> 2440588
+    assert_equal(-1, DateTime.civil(1970, 1, 1, 12, 0, 0) <=> 2440589)
+  end
+
+  def test_compare_with_float
+    assert_equal  1, DateTime.civil(1970) <=> 2440586.5
+    assert_equal  0, DateTime.civil(1970) <=> 2440587.5
+    assert_equal(-1, DateTime.civil(1970) <=> 2440588.5)
+  end
+
+  def test_compare_with_rational
+    assert_equal  1, DateTime.civil(1970) <=> Rational(4881173, 2)
+    assert_equal  0, DateTime.civil(1970) <=> Rational(4881175, 2)
+    assert_equal(-1, DateTime.civil(1970) <=> Rational(4881177, 2))
+  end
+
   def test_to_f
     assert_equal 946684800.0, DateTime.civil(2000).to_f
     assert_equal 946684800.0, DateTime.civil(1999,12,31,19,0,0,Rational(-5,24)).to_f
