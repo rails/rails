@@ -177,7 +177,7 @@ would produce:
 }
 ```
 
-See the [Jbuilder documention](https://github.com/rails/jbuilder#jbuilder) for
+See the [Jbuilder documentation](https://github.com/rails/jbuilder#jbuilder) for
 more examples and information.
 
 #### Template Caching
