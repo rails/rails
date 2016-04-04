@@ -1,3 +1,12 @@
+*   Adds support for including ActionController::Cookies in API controllers.
+    Previously, including the module would raise when trying to define
+    a `cookies` helper method. Skip calling #helper_method if it is not
+    defined -- if we don't have helpers, we needn't define one.
+
+    Fixes #24304
+
+    *Ryan T. Hosford*
+
 *   ETags: Introduce `Response#strong_etag=` and `#weak_etag=` and analogous
     options for `fresh_when` and `stale?`. `Response#etag=` sets a weak ETag.
 
