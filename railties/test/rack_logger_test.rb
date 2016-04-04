@@ -70,6 +70,47 @@ module Rails
           end
         end
       end
+
+      def test_started_response_message_with_flag_disabled
+        logger_filename = "./rack_logger_test.log"
+        File.open(logger_filename, "w")
+
+        _logger = ::Logger.new(File.new(logger_filename, 'w+'))
+        logger = TestLogger.new(_logger, nil, &Proc.new { [200, {}, []] })
+
+        Rails.application.config.log_start_response_message = false
+        logger.call('REQUEST_METHOD' => 'GET').last.close
+        logger.logger.close
+
+        found_resp_line = false
+        File.open(logger_filename, "r+").each do |line|
+          found_resp_line = true if line.include? "Started response HTTP "
+        end
+        assert !found_resp_line
+
+        File.delete(logger_filename)
+      end
+
+      def test_started_response_message_with_flag_enabled
+        logger_filename = "./rack_logger_test.log"
+        File.open(logger_filename, "w")
+
+        _logger = ::Logger.new(File.new(logger_filename, 'w+'))
+        logger = TestLogger.new(_logger, nil, &Proc.new { [200, {}, []] })
+
+        Rails.application.config.log_start_response_message = true
+        logger.call('REQUEST_METHOD' => 'GET').last.close
+        logger.logger.close
+
+        found_resp_line = false
+        File.open(logger_filename, "r+").each do |line|
+          found_resp_line = true if line.include? "Started response HTTP "
+        end
+
+        assert found_resp_line
+
+        File.delete(logger_filename)
+      end
     end
   end
 end
