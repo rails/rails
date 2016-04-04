@@ -10,20 +10,23 @@ module ActiveRecord
   #
   #   # conversation.update! status: 0
   #   conversation.active!
-  #   conversation.active? # => true
-  #   conversation.status  # => "active"
+  #   conversation.active?         # => true
+  #   conversation.status          # => "active"
+  #   conversation.status_integer  # => 0
   #
   #   # conversation.update! status: 1
   #   conversation.archived!
-  #   conversation.archived? # => true
-  #   conversation.status    # => "archived"
+  #   conversation.archived?       # => true
+  #   conversation.status          # => "archived"
+  #   conversation.status_integer  # => 1
   #
   #   # conversation.status = 1
   #   conversation.status = "archived"
   #
   #   conversation.status = nil
-  #   conversation.status.nil? # => true
-  #   conversation.status      # => nil
+  #   conversation.status.nil?     # => true
+  #   conversation.status          # => nil
+  #   conversation.status_integer  # => nil
   #
   # Scopes based on the allowed values of the enum field will be provided
   # as well. With the above example:
@@ -155,6 +158,10 @@ module ActiveRecord
         # def self.statuses() statuses end
         detect_enum_conflict!(name, name.to_s.pluralize, true)
         klass.singleton_class.send(:define_method, name.to_s.pluralize) { enum_values }
+
+        # def status_raw() klass.statuses[self.status] end
+        klass.send(:detect_enum_conflict!, name, "#{name}_integer")
+        define_method("#{name}_integer") { klass.send(name.to_s.pluralize)[self[name]] }
 
         detect_enum_conflict!(name, name)
         detect_enum_conflict!(name, "#{name}=")

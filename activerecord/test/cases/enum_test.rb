@@ -28,6 +28,14 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal "visible", @book.illustrator_visibility
   end
 
+  test "get integer value" do
+    assert_equal 2, @book.status_integer
+    assert_equal 3, @book.read_status_integer
+    assert_equal 0, @book.language_integer
+    assert_equal 0, @book.author_visibility_integer
+    assert_equal 0, @book.illustrator_visibility_integer
+  end
+
   test "find via scope" do
     assert_equal @book, Book.published.first
     assert_equal @book, Book.read.first
