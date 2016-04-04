@@ -121,6 +121,11 @@ module ActiveSupport
               @key_access.delete(key)
             end
           end
+          # prevent client code from manipulating cache
+          if entry
+            entry = entry.dup
+            entry.dup_value!
+          end
           entry
         end
 
