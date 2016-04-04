@@ -607,7 +607,7 @@ module ActiveRecord
           elsif options[:as]
             "#{options[:as]}_id"
           else
-            active_record.name.foreign_key
+            active_record.table_name.split(".").last.singularize.foreign_key
           end
         end
 
