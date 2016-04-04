@@ -1217,9 +1217,9 @@ person.errors[:name]
 person.errors.clear
 person.errors.empty? # => true
 
-p.save # => false
+person.save # => false
 
-p.errors[:name]
+person.errors[:name]
 # => ["can't be blank", "is too short (minimum is 3 characters)"]
 ```
 
