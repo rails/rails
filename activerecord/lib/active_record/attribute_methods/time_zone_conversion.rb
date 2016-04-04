@@ -100,11 +100,11 @@ module ActiveRecord
 
               To keep the old behavior, you must add the following to your initializer:
 
-                  config.active_record.time_zone_aware_types = [:datetime]
+                  ActiveRecord::Base.time_zone_aware_types = [:datetime]
 
               To silence this deprecation warning, add the following:
 
-                  config.active_record.time_zone_aware_types = [:datetime, :time]
+                  ActiveRecord::Base.time_zone_aware_types = [:datetime, :time]
             MESSAGE
           end
 
