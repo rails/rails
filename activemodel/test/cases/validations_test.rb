@@ -452,4 +452,12 @@ class ValidationsTest < ActiveModel::TestCase
     assert t.invalid?
     assert_equal ["You have failed me for the last time, Admiral."], t.errors[:title]
   end
+
+  def test_validation_with_message_as_proc_that_takes_record_and_data_as_a_parameters
+    Topic.validates_presence_of(:title, message: proc { |record, data| "#{data[:attribute]} is missing. You have failed me for the last time, #{record.author_name}." })
+
+    t = Topic.new(author_name: 'Admiral')
+    assert t.invalid?
+    assert_equal ["Title is missing. You have failed me for the last time, Admiral."], t.errors[:title]
+  end
 end
