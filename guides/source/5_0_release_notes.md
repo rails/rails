@@ -270,7 +270,7 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 *   Changed the `protect_from_forgery` prepend default to `false`.
     ([commit](https://github.com/rails/rails/commit/39794037817703575c35a75f1961b01b83791191))
 
-*   `ActionController::TestCase` will be moved to it's own gem in Rails 5.1. Use
+*   `ActionController::TestCase` will be moved to its own gem in Rails 5.1. Use
     `ActionDispatch::IntegrationTest` instead.
     ([commit](https://github.com/rails/rails/commit/4414c5d1795e815b102571425974a8b1d46d932d))
 

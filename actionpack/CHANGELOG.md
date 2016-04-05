@@ -211,7 +211,7 @@
 
     *Derek Prior*
 
-*   `ActionController::TestCase` will be moved to it's own gem in Rails 5.1
+*   `ActionController::TestCase` will be moved to its own gem in Rails 5.1
 
     With the speed improvements made to `ActionDispatch::IntegrationTest` we no
     longer need to keep two separate code bases for testing controllers. In
