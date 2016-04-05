@@ -3,9 +3,10 @@ require 'faye/websocket'
 module ActionCable
   module Connection
     class FayeClientSocket
-      def initialize(env, event_target, stream_event_loop)
+      def initialize(env, event_target, stream_event_loop, protocols)
         @env = env
         @event_target = event_target
+        @protocols = protocols
 
         @faye = nil
       end
@@ -23,6 +24,10 @@ module ActionCable
         @faye && @faye.close
       end
 
+      def protocol
+        @faye && @faye.protocol
+      end
+
       def rack_response
         connect
         @faye.rack_response
@@ -31,7 +36,7 @@ module ActionCable
       private
         def connect
           return if @faye
-          @faye = Faye::WebSocket.new(@env)
+          @faye = Faye::WebSocket.new(@env, @protocols)
 
           @faye.on(:open)    { |event| @event_target.on_open }
           @faye.on(:message) { |event| @event_target.on_message(event.data) }
