@@ -81,9 +81,10 @@ module ApplicationTests
           end
         end
       RUBY
+
       app_file 'db/schema.rb', ''
 
-      assert_unsuccessful_run "models/user_test.rb", "Migrations are pending"
+      assert_unsuccessful_run "models/user_test.rb", "Could not find table 'users'"
 
       app_file 'db/schema.rb', <<-RUBY
         ActiveRecord::Schema.define(version: #{version}) do
@@ -124,7 +125,7 @@ module ApplicationTests
         Rails.application.config.active_record.schema_format = :sql
       RUBY
 
-      assert_unsuccessful_run "models/user_test.rb", "Migrations are pending"
+      assert_unsuccessful_run "models/user_test.rb", "Could not find table 'users'"
 
       app_file 'db/structure.sql', <<-SQL
         CREATE TABLE "schema_migrations" ("version" varchar(255) NOT NULL);
@@ -194,10 +195,7 @@ module ApplicationTests
       assert_successful_test_run('models/user_test.rb')
     end
 
-    # TODO: would be nice if we could detect the schema change automatically.
-    # For now, the user has to synchronize the schema manually.
-    # This test-case serves as a reminder for this use-case.
-    test "manually synchronize test schema after rollback" do
+    test "automatically maintain test schema after rollback" do
       output  = script('generate model user name:string')
       version = output.match(/(\d+)_create_users\.rb/)[1]
 
@@ -229,10 +227,6 @@ module ApplicationTests
           end
         end
       RUBY
-
-      assert_successful_test_run "models/user_test.rb"
-
-      Dir.chdir(app_path) { `bin/rails db:test:prepare` }
 
       assert_unsuccessful_run "models/user_test.rb", <<-ASSERTION
 Expected: ["id", "name"]

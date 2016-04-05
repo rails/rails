@@ -1045,7 +1045,11 @@ module ActiveRecord
       end
 
       def needs_migration?(connection = Base.connection)
-        (migrations(migrations_paths).collect(&:version) - get_all_versions(connection)).size > 0
+        if File.exist?(schema_file) && ActiveRecord::InternalMetadata.table_exists?
+          ActiveRecord::InternalMetadata[:schema_file_signature] != schema_file_signature(schema_file)
+        else
+          (migrations(migrations_paths).collect(&:version) - get_all_versions(connection)).size > 0
+        end
       end
 
       def any_migrations?
@@ -1087,6 +1091,12 @@ module ActiveRecord
         migrations.sort_by(&:version)
       end
 
+      def record_schema_file_signature(schema_file)
+        if File.exist?(schema_file)
+          ActiveRecord::InternalMetadata[:schema_file_signature] = schema_file_signature(schema_file)
+        end
+      end
+
       private
 
       def move(direction, migrations_paths, steps)
@@ -1097,6 +1107,19 @@ module ActiveRecord
           finish = migrator.migrations[start_index + steps]
           version = finish ? finish.version : 0
           send(direction, migrations_paths, version)
+        end
+      end
+
+      def schema_file_signature(schema_file)
+        Digest::MD5.file(schema_file).hexdigest
+      end
+
+      def schema_file
+        case ActiveRecord::Base.schema_format
+        when :ruby
+          'db/schema.rb'
+        when :sql
+          'db/structure.sql'
         end
       end
     end

@@ -1,3 +1,8 @@
+*   Automatically maintain test database schema even if migration is rolled-back,
+    modified and reapplied.
+
+    *Yuji Yaginuma*
+
 *   Delegate `empty?`, `none?` and `one?`. Now they can be invoked as model class methods.
 
     Example:

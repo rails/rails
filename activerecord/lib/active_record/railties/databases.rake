@@ -252,6 +252,7 @@ db_namespace = namespace :db do
       File.open(filename, "w:utf-8") do |file|
         ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, file)
       end
+      ActiveRecord::Migrator.record_schema_file_signature(ActiveRecord::Tasks::DatabaseTasks.schema_file)
       db_namespace['schema:dump'].reenable
     end
 
@@ -298,6 +299,7 @@ db_namespace = namespace :db do
           f.print "\n"
         end
       end
+      ActiveRecord::Migrator.record_schema_file_signature(ActiveRecord::Tasks::DatabaseTasks.schema_file)
       db_namespace['structure:dump'].reenable
     end
 
@@ -328,6 +330,8 @@ db_namespace = namespace :db do
         when :sql
           db_namespace["test:load_structure"].invoke
       end
+      ActiveRecord::InternalMetadata.create_table
+      ActiveRecord::Migrator.record_schema_file_signature(ActiveRecord::Tasks::DatabaseTasks.schema_file)
     end
 
     # desc "Recreate the test database from an existent schema.rb file"

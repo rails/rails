@@ -223,6 +223,18 @@ module ApplicationTests
           assert_match(/up\s+\d{14}\s+\** NO FILE \**/, output)
         end
       end
+
+      test 'does not record schema file signature when schema file not exist' do
+        add_to_config('config.active_record.dump_schema_after_migration = false')
+        require "#{app_path}/config/environment"
+        Dir.chdir(app_path) do
+          `bin/rails generate model user username:string password:string;
+           bin/rails db:migrate`
+
+          assert_not File.exist?("db/schema.rb")
+          assert_not ActiveRecord::InternalMetadata[:schema_file_signature]
+        end
+      end
     end
   end
 end
