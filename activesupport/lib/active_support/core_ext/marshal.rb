@@ -3,7 +3,7 @@ module ActiveSupport
     def load(source)
       super(source)
     rescue ArgumentError, NameError => exc
-      if exc.message.match(%r|undefined class/module (.+)|)
+      if exc.message.match(%r|undefined class/module (.+?)(::)?\z|)
         # try loading the class/module
         loaded = $1.constantize
 
