@@ -486,7 +486,8 @@ module ActiveModel
         default: defaults,
         model: @base.model_name.human,
         attribute: @base.class.human_attribute_name(attribute),
-        value: value
+        value: value,
+        object: @base
       }.merge!(options)
 
       I18n.translate(key, options)
