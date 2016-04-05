@@ -58,3 +58,8 @@ services:
   - rabbitmq
 addons:
   postgresql: "9.4"
+  apt:
+    sources:
+      - travis-ci/sqlite3
+    packages:
+      - sqlite3
