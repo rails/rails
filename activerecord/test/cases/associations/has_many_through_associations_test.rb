@@ -1085,15 +1085,15 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_preloading_empty_through_with_polymorphic_source_association
-    owner = Owner.create!(:name => "Rainbow Unicat")
-    pet = Pet.create!(:owner => owner)
-    person = Person.create!(:first_name => "Gaga")
-    treasure = Treasure.create!(:looter => person)
+    owner = Owner.create!(name: "Rainbow Unicat")
+    pet = Pet.create!(owner: owner)
+    person = Person.create!(first_name: "Gaga")
+    treasure = Treasure.create!(looter: person)
     non_looted_treasure = Treasure.create!()
-    PetTreasure.create!(:pet => pet, :treasure => treasure, :rainbow_color => "Ultra violet indigo")
-    PetTreasure.create!(:pet => pet, :treasure => non_looted_treasure, :rainbow_color => "Ultra violet indigo")
+    PetTreasure.create!(pet: pet, treasure: treasure, rainbow_color: "Ultra violet indigo")
+    PetTreasure.create!(pet: pet, treasure: non_looted_treasure, rainbow_color: "Ultra violet indigo")
 
-    assert_equal [person], Owner.where(:name => "Rainbow Unicat").includes(:pets => :persons).first.persons.to_a
+    assert_equal [person], Owner.where(name: "Rainbow Unicat").includes(pets: :persons).first.persons.to_a
   end
 
   def test_explicitly_joining_join_table
