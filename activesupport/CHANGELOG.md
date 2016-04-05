@@ -1,3 +1,10 @@
+*   Make `number_to_phone` format number with regexp pattern.
+
+        number_to_phone(18812345678, pattern: /(\d{3})(\d{4})(\d{4})/)
+        # => 188-1234-5678
+
+    *Pan Gaoyong*
+
 *   Match `String#to_time`'s behaviour to that of ruby's implementation for edge cases.
 
     `nil` is now returned instead of the current date if the string provided does
