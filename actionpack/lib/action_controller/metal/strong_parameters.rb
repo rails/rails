@@ -756,7 +756,7 @@ module ActionController
         end
       end
 
-      EMPTY_ARRAY = []
+      EMPTY_ARRAY = [].freeze
       def hash_filter(params, filter)
         filter = filter.with_indifferent_access
 
