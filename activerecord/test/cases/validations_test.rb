@@ -149,10 +149,10 @@ class ValidationsTest < ActiveRecord::TestCase
   end
 
   def test_validators
-    assert_equal 1, Parrot.validators.size
-    assert_equal 1, Company.validators.size
-    assert_equal 1, Parrot.validators_on(:name).size
-    assert_equal 1, Company.validators_on(:name).size
+    assert Parrot.validators.one?
+    assert Company.validators.one?
+    assert Parrot.validators_on(:name).one?
+    assert Company.validators_on(:name).one?
   end
 
   def test_numericality_validation_with_mutation
