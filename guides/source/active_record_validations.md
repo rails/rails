@@ -785,7 +785,7 @@ A `String` `:message` value can optionally contain any/all of `%{value}`,
 `%{attribute}`, and `%{model}` which will be dynamically replaced when
 validation fails.
 
-A `Proc` `:message` value is given two arguments: a message key for i18n, and
+A `Proc` `:message` value is given two arguments: the object being validated, and
 a hash with `:model`, `:attribute`, and `:value` key-value pairs.
 
 ```ruby
@@ -801,10 +801,10 @@ class Person < ApplicationRecord
   # Proc
   validates :username,
     uniqueness: {
-      # key = "activerecord.errors.models.person.attributes.username.taken"
+      # object = person object being validated
       # data = { model: "Person", attribute: "Username", value: <username> }
-      message: ->(key, data) do
-        "#{data[:value]} taken! Try again #{Time.zone.tomorrow}"
+      message: ->(object, data) do
+        "Hey #{object.name}!, #{data[:value]} is taken already! Try again #{Time.zone.tomorrow}"
       end
     }
 end

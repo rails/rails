@@ -1,3 +1,9 @@
+*   Update example of passing a proc to `:message` option for validating records.
+
+    This behavior was recently changed in https://github.com/rails/rails/pull/24119 to
+    pass the object being validated as first argument to the `:message` proc
+    instead of key of the field being validated.
+
 ## Rails 5.0.0.beta3 (February 24, 2016) ##
 
 *   No changes.
