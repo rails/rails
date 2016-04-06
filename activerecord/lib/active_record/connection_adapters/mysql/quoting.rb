@@ -2,6 +2,8 @@ module ActiveRecord
   module ConnectionAdapters
     module MySQL
       module Quoting # :nodoc:
+        QUOTED_TRUE, QUOTED_FALSE = '1', '0'
+
         def quote_column_name(name)
           @quoted_column_names[name] ||= "`#{super.gsub('`', '``')}`"
         end
@@ -35,8 +37,6 @@ module ActiveRecord
         end
 
         private
-
-        QUOTED_TRUE, QUOTED_FALSE = '1', '0'
 
         def _quote(value)
           if value.is_a?(Type::Binary::Data)
