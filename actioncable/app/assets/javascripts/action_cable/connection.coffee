@@ -83,7 +83,7 @@ class ActionCable.Connection
 
   events:
     message: (event) ->
-      return unless @isSupportedProtocol()
+      return unless @isProtocolSupported()
       {identifier, message, type} = JSON.parse(event.data)
       switch type
         when message_types.welcome
