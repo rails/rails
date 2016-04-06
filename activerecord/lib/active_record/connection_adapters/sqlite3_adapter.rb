@@ -176,16 +176,6 @@ module ActiveRecord
         true
       end
 
-      # QUOTING ==================================================
-
-      def quote_string(s) #:nodoc:
-        @connection.class.quote(s)
-      end
-
-      def quote_table_name_for_assignment(table, attr)
-        quote_column_name(attr)
-      end
-
       #--
       # DATABASE STATEMENTS ======================================
       #++

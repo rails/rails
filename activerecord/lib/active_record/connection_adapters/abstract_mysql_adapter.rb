@@ -34,8 +34,6 @@ module ActiveRecord
       class_attribute :emulate_booleans
       self.emulate_booleans = true
 
-      QUOTED_TRUE, QUOTED_FALSE = '1', '0'
-
       NATIVE_DATABASE_TYPES = {
         primary_key: "int auto_increment PRIMARY KEY",
         string:      { name: "varchar", limit: 255 },
@@ -162,34 +160,6 @@ module ActiveRecord
       # error number.
       def error_number(exception) # :nodoc:
         raise NotImplementedError
-      end
-
-      #--
-      # QUOTING ==================================================
-      #++
-
-      def quoted_true
-        QUOTED_TRUE
-      end
-
-      def unquoted_true
-        1
-      end
-
-      def quoted_false
-        QUOTED_FALSE
-      end
-
-      def unquoted_false
-        0
-      end
-
-      def quoted_date(value)
-        if supports_datetime_with_precision?
-          super
-        else
-          super.sub(/\.\d{6}\z/, '')
-        end
       end
 
       # REFERENTIAL INTEGRITY ====================================
@@ -939,8 +909,8 @@ module ActiveRecord
       class MysqlString < Type::String # :nodoc:
         def serialize(value)
           case value
-          when true then QUOTED_TRUE
-          when false then QUOTED_FALSE
+          when true then MySQL::Quoting::QUOTED_TRUE
+          when false then MySQL::Quoting::QUOTED_FALSE
           else super
           end
         end
@@ -949,8 +919,8 @@ module ActiveRecord
 
         def cast_value(value)
           case value
-          when true then QUOTED_TRUE
-          when false then QUOTED_FALSE
+          when true then MySQL::Quoting::QUOTED_TRUE
+          when false then MySQL::Quoting::QUOTED_FALSE
           else super
           end
         end
