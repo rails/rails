@@ -564,6 +564,14 @@ module ActionDispatch
           @recall[:controller]
         end
 
+        def use_recall_for_action
+          if @recall_action && (!@options.key?(:action) || @options[:action] == @recall_action)
+            if !named_route_exists? || segment_keys.include?(:action)
+              @options[:action] = @recall_action
+            end
+          end
+        end
+
         def use_recall_for(key)
           if @recall[key] && (!@options.key?(key) || @options[key] == @recall[key])
             if !named_route_exists? || segment_keys.include?(key)
@@ -574,7 +582,7 @@ module ActionDispatch
 
         # Set 'index' as default action for recall
         def normalize_recall!
-          @recall[:action] ||= 'index'
+          @recall_action = @recall['action'] || 'index'
         end
 
         def normalize_options!
@@ -604,7 +612,7 @@ module ActionDispatch
         # more keys from the recall.
         def normalize_controller_action_id!
           use_recall_for(:controller) or return
-          use_recall_for(:action) or return
+          use_recall_for_action or return
           use_recall_for(:id)
         end
 
@@ -633,7 +641,7 @@ module ActionDispatch
         # Move 'index' action from options to recall
         def normalize_action!
           if @options[:action] == 'index'.freeze
-            @recall[:action] = @options.delete(:action)
+            @recall_action = @options.delete(:action)
           end
         end
 
