@@ -256,7 +256,7 @@ db_namespace = namespace :db do
     end
 
     desc 'Loads a schema.rb file into the database'
-    task :load => [:environment, :load_config] do
+    task :load => [:environment, :load_config, :check_protected_environments] do
       ActiveRecord::Tasks::DatabaseTasks.load_schema_current(:ruby, ENV['SCHEMA'])
     end
 
