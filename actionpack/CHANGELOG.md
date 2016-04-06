@@ -1,3 +1,13 @@
+*   Add warning to change the behavior of `filter_parameters` with Rails 5.1.
+
+    To give developers more flexibility in filtering parameters,
+    in Rails 5.1 procs passed to `filter_parameters` should return filtered value
+    instead of mutating the value.
+
+    See #24397
+
+    *Yuichiro Kaneko*
+
 *   Adds support for including ActionController::Cookies in API controllers.
     Previously, including the module would raise when trying to define
     a `cookies` helper method. Skip calling #helper_method if it is not

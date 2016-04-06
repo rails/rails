@@ -49,6 +49,13 @@ module ActionDispatch
           @regexps = regexps
           @deep_regexps = deep_regexps.any? ? deep_regexps : nil
           @blocks  = blocks
+          unless blocks.empty?
+            ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
+              The behavior of `filter_parameters` will be changed with Rails 5.1.
+              Currently procs passed to `filter_parameters` should mutate the value.
+              In Rails 5.1 procs passed to `filter_parameters` should return filtered value.
+            MESSAGE
+          end
         end
 
         def call(original_params, parents = [])

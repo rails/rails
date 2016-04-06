@@ -1068,8 +1068,20 @@ class RequestParameterFilter < BaseRequestTest
       before_filter['barg'] = {:bargain=>'gain', 'blah'=>'bar', 'bar'=>{'bargain'=>{'blah'=>'foo'}}}
       after_filter['barg']  = {:bargain=>'niag', 'blah'=>'[FILTERED]', 'bar'=>{'bargain'=>{'blah'=>'[FILTERED]'}}}
 
-      assert_equal after_filter, parameter_filter.filter(before_filter)
+      ActiveSupport::Deprecation.silence do
+        assert_equal after_filter, parameter_filter.filter(before_filter)
+      end
     end
+  end
+
+  test "passing procs to ParameterFilter warns deprecation" do
+    filter_words = []
+    filter_words << lambda { |key, value|
+      value.reverse! if key =~ /bargain/
+    }
+
+    parameter_filter = ActionDispatch::Http::ParameterFilter.new(filter_words)
+    assert_deprecated { parameter_filter.filter([{'foo'=>'bar'}]) }
   end
 
   test "filtered_parameters returns params filtered" do
