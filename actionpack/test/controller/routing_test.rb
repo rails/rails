@@ -1478,6 +1478,10 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal '/books', controller.url_for(:controller => 'books',
                                               :only_path => true,
                                               :action => 'index')
+                                              # duplication is intentional see #24438
+    assert_equal '/books', controller.url_for(:controller => 'books',
+                                              :only_path => true,
+                                              :action => 'index')
   end
 
   def test_query_params_will_be_shown_when_recalled
