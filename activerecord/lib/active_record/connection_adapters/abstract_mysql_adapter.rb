@@ -541,8 +541,7 @@ module ActiveRecord
 
       # SHOW VARIABLES LIKE 'name'
       def show_variable(name)
-        variables = select_all("select @@#{name} as 'Value'", 'SCHEMA')
-        variables.first['Value'] unless variables.empty?
+        select_value("SELECT @@#{name}", 'SCHEMA')
       rescue ActiveRecord::StatementInvalid
         nil
       end
