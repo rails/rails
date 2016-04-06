@@ -1,3 +1,9 @@
+*   Removes `-t` from default Sendmail arguments to match the underlying
+    `Mail::Sendmail` setting.
+
+    *Clayton Liggitt*
+
+
 ## Rails 5.0.0.beta3 (February 24, 2016) ##
 
 *   Add support for fragment caching in Action Mailer views.
