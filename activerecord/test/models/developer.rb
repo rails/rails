@@ -16,6 +16,7 @@ class Developer < ActiveRecord::Base
   end
 
   belongs_to :mentor
+  belongs_to :advisor
 
   accepts_nested_attributes_for :projects
 

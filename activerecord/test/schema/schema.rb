@@ -28,6 +28,10 @@ ActiveRecord::Schema.define do
     t.references :account
   end
 
+  create_table :advisors, force: true do |t|
+    t.string :proper_name
+  end
+
   create_table :aircraft, force: true do |t|
     t.string :name
     t.integer :wheels_count, default: 0, null: false
@@ -256,6 +260,7 @@ ActiveRecord::Schema.define do
     t.integer  :salary, default: 70000
     t.integer :firm_id
     t.integer :mentor_id
+    t.integer :advisor_id
     if subsecond_precision_supported?
       t.datetime :created_at, precision: 6
       t.datetime :updated_at, precision: 6

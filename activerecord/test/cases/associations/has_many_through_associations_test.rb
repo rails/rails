@@ -1,4 +1,5 @@
-require "cases/helper"
+require 'cases/helper'
+require 'models/advisor'
 require 'models/post'
 require 'models/person'
 require 'models/reference'
@@ -927,6 +928,15 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_nothing_raised do
       people(:michael).posts.first.update!(title: "Can write")
     end
+  end
+
+  def test_proc_should_receive_correct_object_type
+    developer = Developer.create! name: "Joe Smith"
+    advisor = Advisor.create! proper_name: "Wolfram Pennyworth", developer: developer
+
+    Comment.create! body: "I'm #{developer.name}", developer: developer, post: posts(:welcome)
+
+    assert_equal developer.comments, advisor.developer_comments
   end
 
   def test_has_many_through_polymorphic_with_primary_key_option
