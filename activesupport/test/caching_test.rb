@@ -988,6 +988,12 @@ class MemoryStoreTest < ActiveSupport::TestCase
     @cache.write(1, nil)
     assert_equal false, @cache.write(1, "aaaaaaaaaa", :unless_exist => true)
   end
+
+  def test_cache_manipulation_through_read
+    @cache.write(1, "a")
+    @cache.read(1).upcase!
+    assert_equal "a", @cache.read(1)
+  end
 end
 
 class MemCacheStoreTest < ActiveSupport::TestCase
