@@ -614,6 +614,12 @@ ActiveRecord::Schema.define do
     end
   end
 
+  create_table :pets_treasures, force: true do |t|
+    t.column :treasure_id, :integer
+    t.column :pet_id, :integer
+    t.column :rainbow_color, :string
+  end
+
   create_table :pirates, force: true do |t|
     t.column :catchphrase, :string
     t.column :parrot_id, :integer

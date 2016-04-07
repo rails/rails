@@ -48,7 +48,7 @@ module ActionCable
       include InternalChannel
       include Authorization
 
-      attr_reader :server, :env, :subscriptions, :logger, :worker_pool
+      attr_reader :server, :env, :subscriptions, :logger, :worker_pool, :protocol
       delegate :event_loop, :pubsub, to: :server
 
       def initialize(server, env, coder: ActiveSupport::JSON)
@@ -163,6 +163,7 @@ module ActionCable
         end
 
         def handle_open
+          @protocol = websocket.protocol
           connect if respond_to?(:connect)
           subscribe_to_internal_channel
           send_welcome_message

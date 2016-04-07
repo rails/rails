@@ -136,7 +136,7 @@ module ActiveModel
       # * <tt>:too_long</tt> - The error message if the attribute goes over the
       #   maximum (default is: "is too long (maximum is %{count} characters)").
       # * <tt>:too_short</tt> - The error message if the attribute goes under the
-      #   minimum (default is: "is too short (min is %{count} characters)").
+      #   minimum (default is: "is too short (minimum is %{count} characters)").
       # * <tt>:wrong_length</tt> - The error message if using the <tt>:is</tt>
       #   method and the attribute is the wrong size (default is: "is the wrong
       #   length (should be %{count} characters)").

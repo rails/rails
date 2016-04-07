@@ -34,8 +34,6 @@ module ActiveRecord
       class_attribute :emulate_booleans
       self.emulate_booleans = true
 
-      QUOTED_TRUE, QUOTED_FALSE = '1', '0'
-
       NATIVE_DATABASE_TYPES = {
         primary_key: "int auto_increment PRIMARY KEY",
         string:      { name: "varchar", limit: 255 },
@@ -164,34 +162,6 @@ module ActiveRecord
         raise NotImplementedError
       end
 
-      #--
-      # QUOTING ==================================================
-      #++
-
-      def quoted_true
-        QUOTED_TRUE
-      end
-
-      def unquoted_true
-        1
-      end
-
-      def quoted_false
-        QUOTED_FALSE
-      end
-
-      def unquoted_false
-        0
-      end
-
-      def quoted_date(value)
-        if supports_datetime_with_precision?
-          super
-        else
-          super.sub(/\.\d{6}\z/, '')
-        end
-      end
-
       # REFERENTIAL INTEGRITY ====================================
 
       def disable_referential_integrity #:nodoc:
@@ -288,9 +258,9 @@ module ActiveRecord
       #   create_database 'matt_development', charset: :big5
       def create_database(name, options = {})
         if options[:collation]
-          execute "CREATE DATABASE `#{name}` DEFAULT CHARACTER SET `#{options[:charset] || 'utf8'}` COLLATE `#{options[:collation]}`"
+          execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT CHARACTER SET #{quote_table_name(options[:charset] || 'utf8')} COLLATE #{quote_table_name(options[:collation])}"
         else
-          execute "CREATE DATABASE `#{name}` DEFAULT CHARACTER SET `#{options[:charset] || 'utf8'}`"
+          execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT CHARACTER SET #{quote_table_name(options[:charset] || 'utf8')}"
         end
       end
 
@@ -299,7 +269,7 @@ module ActiveRecord
       # Example:
       #   drop_database('sebastian_development')
       def drop_database(name) #:nodoc:
-        execute "DROP DATABASE IF EXISTS `#{name}`"
+        execute "DROP DATABASE IF EXISTS #{quote_table_name(name)}"
       end
 
       def current_database
@@ -571,8 +541,7 @@ module ActiveRecord
 
       # SHOW VARIABLES LIKE 'name'
       def show_variable(name)
-        variables = select_all("select @@#{name} as 'Value'", 'SCHEMA')
-        variables.first['Value'] unless variables.empty?
+        select_value("SELECT @@#{name}", 'SCHEMA')
       rescue ActiveRecord::StatementInvalid
         nil
       end
@@ -939,8 +908,8 @@ module ActiveRecord
       class MysqlString < Type::String # :nodoc:
         def serialize(value)
           case value
-          when true then "1"
-          when false then "0"
+          when true then MySQL::Quoting::QUOTED_TRUE
+          when false then MySQL::Quoting::QUOTED_FALSE
           else super
           end
         end
@@ -949,8 +918,8 @@ module ActiveRecord
 
         def cast_value(value)
           case value
-          when true then "1"
-          when false then "0"
+          when true then MySQL::Quoting::QUOTED_TRUE
+          when false then MySQL::Quoting::QUOTED_FALSE
           else super
           end
         end

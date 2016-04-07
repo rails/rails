@@ -1,3 +1,8 @@
+*   Allow passing record being validated to the message proc to generate
+    customized error messages for that object using I18n helper.
+
+    *Prathamesh Sonpatki*
+
 ## Rails 5.0.0.beta3 (February 24, 2016) ##
 
 *   No changes.

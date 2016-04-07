@@ -23,23 +23,27 @@ module ActiveRecord
       end
     end
 
-    def self.install_executor_hooks(executor = ActiveSupport::Executor)
-      executor.to_run do
-        connection    = ActiveRecord::Base.connection
-        enabled       = connection.query_cache_enabled
-        connection_id = ActiveRecord::Base.connection_id
-        connection.enable_query_cache!
+    def self.run
+      connection    = ActiveRecord::Base.connection
+      enabled       = connection.query_cache_enabled
+      connection_id = ActiveRecord::Base.connection_id
+      connection.enable_query_cache!
 
-        @restore_query_cache_settings = lambda do
-          ActiveRecord::Base.connection_id = connection_id
-          ActiveRecord::Base.connection.clear_query_cache
-          ActiveRecord::Base.connection.disable_query_cache! unless enabled
-        end
-      end
+      [enabled, connection_id]
+    end
+
+    def self.complete(state)
+      enabled, connection_id = state
+
+      ActiveRecord::Base.connection_id = connection_id
+      ActiveRecord::Base.connection.clear_query_cache
+      ActiveRecord::Base.connection.disable_query_cache! unless enabled
+    end
+
+    def self.install_executor_hooks(executor = ActiveSupport::Executor)
+      executor.register_hook(self)
 
       executor.to_complete do
-        @restore_query_cache_settings.call if defined?(@restore_query_cache_settings)
-
         # FIXME: This should be skipped when env['rack.test']
         ActiveRecord::Base.clear_active_connections!
       end
