@@ -1004,9 +1004,12 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal devs[-1], Developer.offset(2).last
     assert_deprecated { Developer.offset(2).last }
     # assert_raise(ActiveRecord::IrreversibleOrderError) { Developer.offset(2).last } # Rails >= 5.1
+    assert_equal devs[-3], Developer.offset(2).order('id DESC').first
+  end
+
+  def reverse_order_with_offset
     assert_deprecated { Developer.offset(1).reverse_order }
     # assert_raise(ActiveRecord::IrreversibleOrderError) { Developer.offset(1).reverse_order } # Rails >= 5.1
-    assert_equal devs[-3], Developer.offset(2).order('id DESC').first
   end
 
   def test_find_by_nil_attribute
