@@ -705,4 +705,21 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_select "#container p", /Showing #{__FILE__} where line #\d+ raised/
     assert_select "#container code", /undefined local variable or method `string”'/
   end
+
+  test "debug exceptions app shows open in editor link if such option passed" do
+    @app = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, :default, "editor_url_file=%{file},editor_url_line=%{line}")
+    Rails.stub :root, Pathname.new(".") do
+      cleaner = ActiveSupport::BacktraceCleaner.new.tap do |bc|
+        bc.add_silencer { |line| line =~ /method_that_raises/ }
+        bc.add_silencer { |line| line !~ %r{test/dispatch/debug_exceptions_test.rb} }
+      end
+
+      get "/framework_raises", headers: { "action_dispatch.backtrace_cleaner" => cleaner }
+
+      assert_select "div.source:not(.hidden)" do
+        assert_select ".info .editor_url", /Open in editor/
+        assert_match(/editor_url_file=\S+,editor_url_line=\d+/, assert_select(".info .editor_url").first["href"])
+      end
+    end
+  end
 end

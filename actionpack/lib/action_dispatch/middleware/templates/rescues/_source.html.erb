@@ -4,6 +4,9 @@
   <% if source_extract[:code] %>
     <div class="source <%= "hidden" if show_source_idx != index %>" id="frame-source-<%= error_index %>-<%= index %>">
       <div class="info">
+        <% if source_extract[:editor_url] %>
+          <a class="editor_url" href="<%= source_extract[:editor_url] %>">Open in editor</a>
+        <% end %>
         Extracted source (around line <strong>#<%= source_extract[:line_number] %></strong>):
       </div>
       <div class="data">

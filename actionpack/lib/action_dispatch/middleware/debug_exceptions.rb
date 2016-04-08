@@ -17,10 +17,11 @@ module ActionDispatch
       interceptors << interceptor
     end
 
-    def initialize(app, routes_app = nil, response_format = :default, interceptors = self.class.interceptors)
+    def initialize(app, routes_app = nil, response_format = :default, editor_url = nil, interceptors = self.class.interceptors)
       @app             = app
       @routes_app      = routes_app
       @response_format = response_format
+      @editor_url      = editor_url
       @interceptors    = interceptors
     end
 
@@ -54,7 +55,7 @@ module ActionDispatch
 
       def render_exception(request, exception)
         backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")
-        wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
+        wrapper = ExceptionWrapper.new(backtrace_cleaner, exception, @editor_url)
         log_error(request, wrapper)
 
         if request.get_header("action_dispatch.show_detailed_exceptions")

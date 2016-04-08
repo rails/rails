@@ -29,7 +29,7 @@ module ActionDispatch
       wrapper = ExceptionWrapper.new(nil, exception)
 
       assert_called_with(wrapper, :source_fragment, ["lib/file.rb", 42], returns: "foo") do
-        assert_equal [ code: "foo", line_number: 42 ], wrapper.source_extracts
+        assert_equal [ code: "foo", line_number: 42, editor_url: nil ], wrapper.source_extracts
       end
     end
 
@@ -39,7 +39,7 @@ module ActionDispatch
       wrapper = ExceptionWrapper.new(nil, exc)
 
       assert_called_with(wrapper, :source_fragment, ["c:/path/to/rails/app/controller.rb", 27], returns: "nothing") do
-        assert_equal [ code: "nothing", line_number: 27 ], wrapper.source_extracts
+        assert_equal [ code: "nothing", line_number: 27, editor_url: nil ], wrapper.source_extracts
       end
     end
 
@@ -49,7 +49,16 @@ module ActionDispatch
       wrapper = ExceptionWrapper.new(nil, exc)
 
       assert_called_with(wrapper, :source_fragment, ["invalid", 0], returns: "nothing") do
-        assert_equal [ code: "nothing", line_number: 0 ], wrapper.source_extracts
+        assert_equal [ code: "nothing", line_number: 0, editor_url: nil ], wrapper.source_extracts
+      end
+    end
+
+    test "#source_extracts add editor_url if such option passed" do
+      exception = TestError.new("lib/file.rb:42:in `index'")
+      wrapper = ExceptionWrapper.new(nil, exception, "editor_url_file=%{file},editor_url_line=%{line}")
+
+      assert_called_with(wrapper, :source_fragment, ["lib/file.rb", 42], returns: "foo") do
+        assert_equal [ code: "foo", line_number: 42, editor_url: "editor_url_file=lib%2Ffile.rb,editor_url_line=42" ], wrapper.source_extracts
       end
     end
 

@@ -2503,6 +2503,26 @@ module ApplicationTests
       assert_equal true, Rails.application.config.rake_eager_load
     end
 
+    test "debug_exception_editor_url can be specified" do
+      add_to_config <<-RUBY
+        config.debug_exception_editor_url = '_some_editor_url_'
+      RUBY
+
+      app "development"
+
+      assert_equal "_some_editor_url_", Rails.configuration.debug_exception_editor_url
+    end
+
+    test "debug_exception_editor_url can be specified via shortcut" do
+      add_to_config <<-RUBY
+        config.debug_exception_editor_url = :txmt
+      RUBY
+
+      app "development"
+
+      assert_equal "txmt://open?url=file://%{file}&line=%{line}", Rails.configuration.debug_exception_editor_url
+    end
+
     private
       def force_lazy_load_hooks
         yield # Tasty clarifying sugar, homie! We only need to reference a constant to load it.
