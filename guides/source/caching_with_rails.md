@@ -526,7 +526,7 @@ Weak ETags have a leading `W/` to differentiate them from strong ETags.
   "618bbc92e2d35ea1945008b42799b0e7" → Strong ETag
 ```
 
-Unlike weak ETag, Strong ETag implies that response should be exactly same
+Unlike weak ETag, strong ETag implies that response should be exactly the same
 and byte by byte identical. Useful when doing Range requests within a
 large video or PDF file. Some CDNs support only strong ETags, like Akamai.
 If you absolutely need to generate a strong ETag, it can be done as follows.
