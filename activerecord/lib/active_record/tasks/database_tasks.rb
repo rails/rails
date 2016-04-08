@@ -4,6 +4,7 @@ module ActiveRecord
   module Tasks # :nodoc:
     class DatabaseAlreadyExists < StandardError; end # :nodoc:
     class DatabaseNotSupported < StandardError; end # :nodoc:
+    class DatabaseNotSpecified < StandardError; end # :nodoc:
 
     # ActiveRecord::Tasks::DatabaseTasks is a utility class, which encapsulates
     # logic behind common tasks used to manage database and migrations.
@@ -287,7 +288,11 @@ module ActiveRecord
 
         configurations = ActiveRecord::Base.configurations.values_at(*environments)
         configurations.compact.each do |configuration|
-          yield configuration unless configuration['database'].blank?
+          if configuration['database'].blank?
+            raise DatabaseNotSpecified, 'You tried to run a database rake task, but no database is specified.'
+          else
+            yield configuration
+          end
         end
       end
 
