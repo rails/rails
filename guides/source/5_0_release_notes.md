@@ -439,10 +439,6 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Deprecated `ActiveRecord::Base.errors_in_transactional_callbacks=`.
     ([commit](https://github.com/rails/rails/commit/07d3d402341e81ada0214f2cb2be1da69eadfe72))
 
-*   Deprecated passing of `start` value to `find_in_batches` and `find_each`
-    in favour of `begin_at` value.
-    ([Pull Request](https://github.com/rails/rails/pull/18961))
-
 *   Deprecated `Relation#uniq` use `Relation#distinct` instead.
     ([commit](https://github.com/rails/rails/commit/adfab2dcf4003ca564d78d4425566dd2d9cd8b4f))
 
