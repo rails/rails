@@ -223,8 +223,7 @@ the server.
 
 The "Welcome aboard" page is the _smoke test_ for a new Rails application: it
 makes sure that you have your software configured correctly enough to serve a
-page. You can also click on the _About your application's environment_ link to
-see a summary of your application's environment.
+page.
 
 ### Say "Hello", Rails
 
