@@ -43,11 +43,12 @@ module ActionDispatch
 
     attr_reader :backtrace_cleaner, :exception, :wrapped_causes, :line_number, :file
 
-    def initialize(backtrace_cleaner, exception)
+    def initialize(backtrace_cleaner, exception, editor_url = nil)
       @backtrace_cleaner = backtrace_cleaner
       @exception = exception
       @exception_class_name = @exception.class.name
       @wrapped_causes = wrapped_causes_for(exception, backtrace_cleaner)
+      @editor_url = editor_url
 
       expand_backtrace if exception.is_a?(SyntaxError) || exception.cause.is_a?(SyntaxError)
     end
@@ -121,10 +122,15 @@ module ActionDispatch
     def source_extracts
       backtrace.map do |trace|
         file, line_number = extract_file_and_line_number(trace)
+        editor_url = @editor_url && @editor_url % {
+          file: URI.encode_www_form_component(file),
+          line: line_number
+        }
 
         {
           code: source_fragment(file, line_number),
-          line_number: line_number
+          line_number: line_number,
+          editor_url: editor_url
         }
       end
     end

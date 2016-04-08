@@ -2693,6 +2693,26 @@ module ApplicationTests
       assert_equal false, Rails.application.config.assets.unknown_asset_fallback
     end
 
+    test "debug_exception_editor_url can be specified" do
+      add_to_config <<-RUBY
+        config.debug_exception_editor_url = '_some_editor_url_'
+      RUBY
+
+      app "development"
+
+      assert_equal "_some_editor_url_", Rails.configuration.debug_exception_editor_url
+    end
+
+    test "debug_exception_editor_url can be specified via shortcut" do
+      add_to_config <<-RUBY
+        config.debug_exception_editor_url = :txmt
+      RUBY
+
+      app "development"
+
+      assert_equal "txmt://open?url=file://%{file}&line=%{line}", Rails.configuration.debug_exception_editor_url
+    end
+
     private
       def set_custom_config(contents, config_source = "custom".inspect)
         app_file "config/custom.yml", contents

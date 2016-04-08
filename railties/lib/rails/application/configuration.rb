@@ -24,7 +24,7 @@ module Rails
                     :require_master_key, :credentials, :disable_sandbox, :add_autoload_paths_to_load_path,
                     :rake_eager_load
 
-      attr_reader :encoding, :api_only, :loaded_config_version, :autoloader
+      attr_reader :encoding, :api_only, :loaded_config_version, :autoloader, :debug_exception_editor_url
 
       def initialize(*)
         super
@@ -74,6 +74,7 @@ module Rails
         @add_autoload_paths_to_load_path         = true
         @feature_policy                          = nil
         @rake_eager_load                         = false
+        @debug_exception_editor_url              = nil
       end
 
       # Loads default configurations. See {the result of the method for each version}[https://guides.rubyonrails.org/configuring.html#results-of-config-load-defaults].
@@ -358,6 +359,14 @@ module Rails
         f.binmode
         f.sync = autoflush_log # if true make sure every write flushes
         f
+      end
+
+      def debug_exception_editor_url=(url)
+        @debug_exception_editor_url =
+          case url
+          when Symbol then "#{url}://open?url=file://%{file}&line=%{line}"
+          when String then url
+          end
       end
 
       class Custom #:nodoc:
