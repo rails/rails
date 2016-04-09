@@ -121,7 +121,11 @@ module ActiveRecord
       end
 
       def supports_datetime_with_precision?
-        version >= '5.6.4'
+        if mariadb?
+          version >= '5.3.0'
+        else
+          version >= '5.6.4'
+        end
       end
 
       def supports_advisory_locks?
