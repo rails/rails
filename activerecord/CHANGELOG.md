@@ -1,3 +1,7 @@
+*   MariaDB 5.3+ supports microsecond datetime precision.
+
+    *Jeremy Daer*
+
 *   Delegate `empty?`, `none?` and `one?`. Now they can be invoked as model class methods.
 
     Example:
