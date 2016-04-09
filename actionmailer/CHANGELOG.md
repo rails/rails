@@ -1,3 +1,21 @@
+*   Disallow calling `#deliver_later` after making local modifications to
+    the message which would be lost when the delivery job is enqueued.
+
+    Prevents a common, hard-to-find bug like
+
+        message = Notifier.welcome(user, foo)
+        message.message_id = my_generated_message_id
+        message.deliver_later
+
+    The message_id is silently lost! *Only the mailer arguments are passed
+    to the delivery job.*
+
+    This raises an exception now. Make modifications to the message within
+    the mailer method instead, or use a custom Active Job to manage delivery
+    instead of using #deliver_later.
+
+    *Jeremy Daer*
+
 *   Removes `-t` from default Sendmail arguments to match the underlying
     `Mail::Sendmail` setting.
 

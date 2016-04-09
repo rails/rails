@@ -93,4 +93,12 @@ class MessageDeliveryTest < ActiveSupport::TestCase
       @mail.deliver_later(queue: :another_queue)
     end
   end
+
+  test 'deliver_later after accessing the message is disallowed' do
+    @mail.message # Load the message, which calls the mailer method.
+
+    assert_raise RuntimeError do
+      @mail.deliver_later
+    end
+  end
 end
