@@ -10,26 +10,19 @@ module ActiveSupport
       private
 
         def convert_to_phone_number(number)
-          if opts[:area_code]
-            convert_with_area_code(number)
-          else
-            convert_without_area_code(number)
+          parts = parse(number)
+          if parts
+            number = opts[:area_code] && !parts[0].blank? ? "(#{parts.shift}) " : ""
+            number << parts.join(delimiter)
+            number.slice!(0, 1) if start_with_delimiter?(number)
           end
-        end
-
-        def convert_with_area_code(number)
-          default_pattern = /(\d{1,3})(\d{3})(\d{4}$)/
-          number.gsub!(regexp_pattern(default_pattern),
-                       "(\\1) \\2#{delimiter}\\3")
           number
         end
 
-        def convert_without_area_code(number)
-          default_pattern = /(\d{0,3})(\d{3})(\d{4})$/
-          number.gsub!(regexp_pattern(default_pattern),
-                       "\\1#{delimiter}\\2#{delimiter}\\3")
-          number.slice!(0, 1) if start_with_delimiter?(number)
-          number
+        def parse(number)
+          if match_data = number.match(regexp_pattern)
+            match_data.captures
+          end
         end
 
         def start_with_delimiter?(number)
@@ -48,8 +41,8 @@ module ActiveSupport
           ext.blank? ? "" : " x #{ext}"
         end
 
-        def regexp_pattern(default_pattern)
-          opts.fetch :pattern, default_pattern
+        def regexp_pattern
+          opts.fetch :pattern, /(\d{0,3})(\d{3})(\d{4}$)/
         end
 
     end

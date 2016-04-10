@@ -45,7 +45,7 @@ module ActiveSupport
       def test_number_to_phone
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
           assert_equal("555-1234", number_helper.number_to_phone(5551234))
-          assert_equal("5551234", number_helper.number_to_phone(5551234, {:area_code => true}))
+          assert_equal("555-1234", number_helper.number_to_phone(5551234, {:area_code => true}))
           assert_equal("800-555-1212", number_helper.number_to_phone(8005551212))
           assert_equal("(800) 555-1212", number_helper.number_to_phone(8005551212, {:area_code => true}))
           assert_equal("+1-(800) 555-1212", number_helper.number_to_phone(8005551212, {:area_code => true, :country_code => 1}))
@@ -61,6 +61,9 @@ module ActiveSupport
           assert_equal("+45-22-555-1212", number_helper.number_to_phone(225551212, :country_code => 45))
           assert_equal("(755) 6123-4567", number_helper.number_to_phone(75561234567, pattern: /(\d{3,4})(\d{4})(\d{4})/, area_code: true))
           assert_equal("133-1234-5678", number_helper.number_to_phone(13312345678, pattern: /(\d{3})(\d{4})(\d{4})/))
+          assert_equal("030-123-45-67", number_helper.number_to_phone("0301234567", pattern: /(\d{3})(\d{3})(\d{2})(\d{2})/))
+          assert_equal("+31 030 123 45 67", number_helper.number_to_phone("0301234567", pattern: /(\d{3})(\d{3})(\d{2})(\d{2})/, country_code: 31, delimiter: ' '))
+          assert_equal("+31-(030) 123-45-67", number_helper.number_to_phone("0301234567", pattern: /(\d{3})(\d{3})(\d{2})(\d{2})/, country_code: 31, area_code: true))
         end
       end
 
