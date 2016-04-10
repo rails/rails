@@ -116,7 +116,7 @@ defaults to `:debug` for all environments. The available log levels are: `:debug
 
 * `config.log_tags` accepts a list of: methods that the `request` object responds to, a `Proc` that accepts the `request` object, or something that responds to `to_s`. This makes it easy to tag log lines with debug information like subdomain and request id - both very helpful in debugging multi-user production applications.
 
-* `config.logger` is the logger that will be used for `Rails.logger` and any related Rails logging such as `ActiveRecord::Base.logger`. It defaults to an instance of `ActiveSupport::TaggedLogging` that wraps an instance of `ActiveSupport::Logger` which outputs a log to the `log/` directory. You can supply a custom logger, to get full compatability you must follow these guidelines:
+* `config.logger` is the logger that will be used for `Rails.logger` and any related Rails logging such as `ActiveRecord::Base.logger`. It defaults to an instance of `ActiveSupport::TaggedLogging` that wraps an instance of `ActiveSupport::Logger` which outputs a log to the `log/` directory. You can supply a custom logger, to get full compatibility you must follow these guidelines:
   * To support a formatter you must manually assign a formatter from the `config.log_formatter` value to the logger.
   * To support tagged loggs the log instance must be wrapped with `ActiveSupport::TaggedLogging`.
   * To support silencing the logger must include `LoggerSilence` and `ActiveSupport::LoggerThreadSafeLevel` modules. The `ActiveSupport::Logger` class already includes these modules.
@@ -281,8 +281,8 @@ All these configuration options are delegated to the `I18n` library.
 * `config.active_record.logger` accepts a logger conforming to the interface of Log4r or the default Ruby Logger class, which is then passed on to any new database connections made. You can retrieve this logger by calling `logger` on either an Active Record model class or an Active Record model instance. Set to `nil` to disable logging.
 
 * `config.active_record.primary_key_prefix_type` lets you adjust the naming for primary key columns. By default, Rails assumes that primary key columns are named `id` (and this configuration option doesn't need to be set.) There are two other choices:
-    * `:table_name` would make the primary key for the Customer class `customerid`
-    * `:table_name_with_underscore` would make the primary key for the Customer class `customer_id`
+    * `:table_name` would make the primary key for the Customer class `customerid`.
+    * `:table_name_with_underscore` would make the primary key for the Customer class `customer_id`.
 
 * `config.active_record.table_name_prefix` lets you set a global string to be prepended to table names. If you set this to `northwest_`, then the Customer class will look for `northwest_customers` as its table. The default is an empty string.
 
