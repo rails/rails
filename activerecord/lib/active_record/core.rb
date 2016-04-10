@@ -159,7 +159,7 @@ module ActiveRecord
           id = id.id
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
             You are passing an instance of ActiveRecord::Base to `find`.
-            Please pass the id of the object by calling `.id`
+            Please pass the id of the object by calling `.id`.
           MSG
         end
 

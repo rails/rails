@@ -325,7 +325,7 @@ module ActiveRecord
 
               select_value("SELECT setval('#{quoted_sequence}', #{value})", 'SCHEMA')
             else
-              @logger.warn "#{table} has primary key #{pk} with no default sequence" if @logger
+              @logger.warn "#{table} has primary key #{pk} with no default sequence." if @logger
             end
           end
         end
@@ -340,7 +340,7 @@ module ActiveRecord
           end
 
           if @logger && pk && !sequence
-            @logger.warn "#{table} has primary key #{pk} with no default sequence"
+            @logger.warn "#{table} has primary key #{pk} with no default sequence."
           end
 
           if pk && sequence

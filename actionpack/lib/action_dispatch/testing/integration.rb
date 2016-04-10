@@ -95,7 +95,7 @@ module ActionDispatch
 
         ActiveSupport::Deprecation.warn(<<-MSG.strip_heredoc)
           xhr and xml_http_request methods are deprecated in favor of
-          `get "/posts", xhr: true` and `post "/posts/1", xhr: true`
+          `get "/posts", xhr: true` and `post "/posts/1", xhr: true`.
         MSG
 
         process(request_method, path, params: params, headers: headers, xhr: true)
