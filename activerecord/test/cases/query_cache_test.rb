@@ -215,6 +215,7 @@ class QueryCacheTest < ActiveRecord::TestCase
   private
     def middleware(&app)
       executor = Class.new(ActiveSupport::Executor)
+      executor.instance_variable_set('@rack_test', true)
       ActiveRecord::QueryCache.install_executor_hooks executor
       lambda { |env| executor.wrap { app.call(env) } }
     end

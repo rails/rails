@@ -7,6 +7,7 @@ module ActionDispatch
     end
 
     def call(env)
+      @executor.instance_variable_set('@rack_test', env['rack.test'])
       state = @executor.run!
       begin
         response = @app.call(env)
