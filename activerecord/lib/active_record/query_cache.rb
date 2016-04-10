@@ -41,7 +41,7 @@ module ActiveRecord
     end
 
     def self.install_executor_hooks(executor = ActiveSupport::Executor)
-      executor.register_hook(self)
+      executor.register_hook(self) if ActiveRecord::Base.query_cache
 
       executor.to_complete do
         # FIXME: This should be skipped when env['rack.test']

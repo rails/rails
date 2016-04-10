@@ -71,6 +71,17 @@ class QueryCacheTest < ActiveRecord::TestCase
     mw.call({})
   end
 
+  def test_cache_is_ignored_if_query_cache_disabled
+    old_value, ActiveRecord::Base.query_cache = ActiveRecord::Base.query_cache, false
+    mw = middleware { |env|
+      assert_queries(2) { 2.times { Task.find(1) } }
+      [200, {}, nil]
+    }
+    mw.call({})
+  ensure
+    ActiveRecord::Base.query_cache = old_value
+  end
+
   def test_cache_enabled_during_call
     assert !ActiveRecord::Base.connection.query_cache_enabled, 'cache off'
 

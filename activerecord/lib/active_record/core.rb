@@ -112,6 +112,13 @@ module ActiveRecord
       mattr_accessor :warn_on_records_fetched_greater_than, instance_writer: false
       self.warn_on_records_fetched_greater_than = nil
 
+      ##
+      # :singleton-method:
+      # Enable or disable query cache
+      # Default value is +true+, use +false+ to disable query cache.
+      mattr_accessor :query_cache, instance_accessor: false
+      self.query_cache = true
+
       mattr_accessor :maintain_test_schema, instance_accessor: false
 
       mattr_accessor :belongs_to_required_by_default, instance_accessor: false
