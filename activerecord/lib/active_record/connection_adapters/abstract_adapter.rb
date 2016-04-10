@@ -27,6 +27,7 @@ module ActiveRecord
 
     autoload_at 'active_record/connection_adapters/abstract/connection_pool' do
       autoload :ConnectionHandler
+      autoload :ConnectionManagement
     end
 
     autoload_under 'abstract' do
