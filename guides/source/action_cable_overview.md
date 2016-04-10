@@ -106,11 +106,11 @@ Then you would create your own channel classes. For example, you could have a
 **ChatChannel** and an **AppearanceChannel**:
 
 ```ruby
-# app/channels/application_cable/chat_channel.rb
+# app/channels/chat_channel.rb
 class ChatChannel < ApplicationCable::Channel
 end
 
-# app/channels/application_cable/appearance_channel.rb
+# app/channels/appearance_channel.rb
 class AppearanceChannel < ApplicationCable::Channel
 end
 ```
@@ -125,7 +125,7 @@ Incoming messages are then routed to these channel subscriptions based on
 an identifier sent by the cable consumer.
 
 ```ruby
-# app/channels/application_cable/chat_channel.rb
+# app/channels/chat_channel.rb
 class ChatChannel < ApplicationCable::Channel
   # Called when the consumer has successfully become a subscriber of this channel
   def subscribed
@@ -182,7 +182,7 @@ Streams provide the mechanism by which channels route published content
 (broadcasts) to its subscribers.
 
 ```ruby
-# app/channels/application_cable/chat_channel.rb
+# app/channels/chat_channel.rb
 class ChatChannel < ApplicationCable::Channel
   def subscribed
     stream_from "chat_#{params[:room]}"
