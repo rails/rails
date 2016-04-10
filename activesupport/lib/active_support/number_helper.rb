@@ -27,7 +27,7 @@ module ActiveSupport
     #   end of the generated number.
     # * <tt>:country_code</tt> - Sets the country code for the phone
     #   number.
-    # * <tt>:pattern</tt> - Specifies how the number is divided into three
+    # * <tt>:pattern</tt> - Specifies how the number is divided into
     #   groups with the custom regexp to override the default format.
     # ==== Examples
     #
