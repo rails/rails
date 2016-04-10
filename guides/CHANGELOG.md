@@ -6,6 +6,11 @@
     
     *Prathamesh Sonpatki*
 
+*   Added new guide: Action Cable Overview.   
+
+    *David Kuhta*
+
+ 
 ## Rails 5.0.0.beta3 (February 24, 2016) ##
 
 *   No changes.
