@@ -45,8 +45,10 @@ module ActiveSupport
       def test_number_to_phone
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
           assert_equal("555-1234", number_helper.number_to_phone(5551234))
+          assert_equal("5551234", number_helper.number_to_phone(5551234, {:area_code => true}))
           assert_equal("800-555-1212", number_helper.number_to_phone(8005551212))
           assert_equal("(800) 555-1212", number_helper.number_to_phone(8005551212, {:area_code => true}))
+          assert_equal("+1-(800) 555-1212", number_helper.number_to_phone(8005551212, {:area_code => true, :country_code => 1}))
           assert_equal("", number_helper.number_to_phone("", {:area_code => true}))
           assert_equal("800 555 1212", number_helper.number_to_phone(8005551212, {:delimiter => " "}))
           assert_equal("(800) 555-1212 x 123", number_helper.number_to_phone(8005551212, {:area_code => true, :extension => 123}))
