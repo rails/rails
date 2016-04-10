@@ -369,6 +369,13 @@ module ActiveRecord
         reconnect! unless active?
       end
 
+      # raises if there are opened transactions on the connection preventing reuse of connection.
+      def assert_connection_reuseable
+        if transaction_open?
+          raise ActiveRecordError, "Attempt to reuse a connection with open transaction"
+        end
+      end
+
       # Provides access to the underlying database driver for this adapter. For
       # example, this method returns a Mysql2::Client object in case of Mysql2Adapter,
       # and a PGconn object in case of PostgreSQLAdapter.

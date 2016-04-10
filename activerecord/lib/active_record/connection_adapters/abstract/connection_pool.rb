@@ -507,6 +507,7 @@ module ActiveRecord
       # +conn+: an AbstractAdapter object, which was obtained by earlier by
       # calling #checkout on this pool.
       def checkin(conn)
+        conn.assert_connection_reuseable
         synchronize do
           remove_connection_from_thread_cache conn
 
