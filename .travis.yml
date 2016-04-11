@@ -19,6 +19,7 @@ matrix:
   fast_finish: true
   allow_failures:
     - rvm: ruby-head
+    - rvm: jruby-head
 bundler_args: --jobs 3 --retry 3
 notifications:
   email: false
