@@ -7,7 +7,7 @@ class Hash
   #  # => {"NAME"=>"Rob", "AGE"=>"28"}
   def transform_keys
     return enum_for(:transform_keys) unless block_given?
-    result = self.class.new
+    result = {}
     each_key do |key|
       result[yield(key)] = self[key]
     end
