@@ -166,7 +166,15 @@ end_warning
       end
 
       ActiveSupport.on_load(:action_dispatch_integration_test) do
-        conn_hook.clean_connections = false
+        mattr_accessor :connection_executor_hook
+        self.connection_executor_hook = conn_hook
+
+        setup do
+          connection_executor_hook.clean_connections = false
+        end
+        teardown do
+          connection_executor_hook.clean_connections = true
+        end
       end
     end
 
