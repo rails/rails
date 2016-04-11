@@ -6,6 +6,7 @@ require "models/bird"
 require "models/parrot"
 require "models/treasure"
 require "models/man"
+require "models/face"
 require "models/interest"
 require "models/owner"
 require "models/pet"
@@ -157,6 +158,20 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
 
     pirate.update!(ship_attributes: { id: pirate.ship.id, name: "Black Pearl", _destroy: "1" })
     assert_equal "Black Pearl", pirate.reload.ship.name
+  end
+
+  def test_destroyed_existing_has_many_entries_ignored_on_create
+    Man.accepts_nested_attributes_for(:interests)
+    interest = Interest.create(topic: 'test topic')
+    man = Man.create(name: 'John', interests_attributes: { '0' => { 'id': interest.id, '_destroy' => '1' } })
+    assert man.interests.empty?
+  end
+
+  def test_destroyed_existing_has_one_entry_ignored_on_create
+    Man.accepts_nested_attributes_for(:face)
+    face = Face.create(description: 'test face')
+    man = Man.create(name: 'John', face_attributes: { 'id': face.id, '_destroy' => '1' })
+    assert man.face.nil?
   end
 
   def test_has_many_association_updating_a_single_record
