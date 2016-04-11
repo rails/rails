@@ -1,3 +1,11 @@
+*   Changed default behaviour of `ActiveSupport::SecurityUtils.secure_compare`, 
+    to make it not leak length information even for variable length string.
+    
+    Renamed old `ActiveSupport::SecurityUtils.secure_compare` to `fixed_length_secure_compare`, 
+    and started raising `ArgumentError` in case of length mismatch of passed strings.
+
+    *Vipul A M*
+    
 *   Add default option to module and class attribute accessors.
 
         mattr_accessor :settings, default: {}
