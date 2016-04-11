@@ -37,9 +37,8 @@ module ActionView
     end
 
     # Try to get stored content. If the content
-    # is not available and we are inside the layout
-    # fiber, we set that we are waiting for the given
-    # key and yield.
+    # is not available and we're inside the layout fiber,
+    # then it will begin waiting for the given key and yield.
     def get(key)
       return super if @content.key?(key)
 
@@ -60,8 +59,8 @@ module ActionView
     end
 
     # Appends the contents for the given key. This is called
-    # by provides and resumes back to the fiber if it is
-    # the key it is waiting for.
+    # by providing and resuming back to the fiber,
+    # if that's the key it's waiting for.
     def append!(key, value)
       super
       @fiber.resume if @waiting_for == key
