@@ -1,5 +1,3 @@
-require 'fileutils'
-
 namespace :tmp do
   desc "Clear cache and socket files from tmp/ (narrow w/ tmp:cache:clear, tmp:sockets:clear)"
   task clear: ["tmp:cache:clear", "tmp:sockets:clear"]
@@ -17,21 +15,21 @@ namespace :tmp do
   namespace :cache do
     # desc "Clears all files and directories in tmp/cache"
     task :clear do
-      FileUtils.rm_rf(Dir['tmp/cache/[^.]*'])
+      rm_rf Dir['tmp/cache/[^.]*'], verbose: false
     end
   end
 
   namespace :sockets do
     # desc "Clears all files in tmp/sockets"
     task :clear do
-      FileUtils.rm(Dir['tmp/sockets/[^.]*'])
+      rm Dir['tmp/sockets/[^.]*'], verbose: false
     end
   end
 
   namespace :pids do
     # desc "Clears all files in tmp/pids"
     task :clear do
-      FileUtils.rm(Dir['tmp/pids/[^.]*'])
+      rm Dir['tmp/pids/[^.]*'], verbose: false
     end
   end
 end
