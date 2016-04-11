@@ -156,8 +156,8 @@ module ActiveRecord
 
   class ProtectedEnvironmentError < ActiveRecordError #:nodoc:
     def initialize(env = "production")
-      msg = "You are attempting to run a destructive action against your '#{env}' database\n"
-      msg << "If you are sure you want to continue, run the same command with the environment variable\n"
+      msg = "You are attempting to run a destructive action against your '#{env}' database.\n"
+      msg << "If you are sure you want to continue, run the same command with the environment variable:\n"
       msg << "DISABLE_DATABASE_ENVIRONMENT_CHECK=1"
       super(msg)
     end
