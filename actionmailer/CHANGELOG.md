@@ -1,7 +1,7 @@
 *   Disallow calling `#deliver_later` after making local modifications to
     the message which would be lost when the delivery job is enqueued.
 
-    Prevents a common, hard-to-find bug like
+    Prevents a common, hard-to-find bug like:
 
         message = Notifier.welcome(user, foo)
         message.message_id = my_generated_message_id
@@ -41,8 +41,7 @@
 
 ## Rails 5.0.0.beta1 (December 18, 2015) ##
 
-*   `config.force_ssl = true` will set
-    `config.action_mailer.default_url_options = { protocol: 'https' }`.
+*   `config.action_mailer.default_url_options[:protocol]` is now set to `https` if `config.force_ssl` is set to `true`.
 
     *Andrew Kampjes*
 
@@ -51,7 +50,7 @@
 
     *Chris McGrath*
 
-*   `assert_emails` in block form use the given number as expected value.
+*   `assert_emails` in block form, uses the given number as expected value.
     This makes the error message much easier to understand.
 
     *Yuji Yaginuma*
