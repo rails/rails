@@ -1,3 +1,5 @@
+require 'fileutils'
+
 desc "Restart app by touching tmp/restart.txt"
 task :restart do
   FileUtils.mkdir_p('tmp')

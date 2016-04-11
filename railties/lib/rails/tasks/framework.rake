@@ -1,3 +1,4 @@
+require 'fileutils'
 require 'active_support/deprecation'
 
 namespace :app do
