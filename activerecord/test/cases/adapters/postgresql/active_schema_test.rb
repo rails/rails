@@ -69,6 +69,11 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
     ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.send :remove_method, :index_name_for_remove
   end
 
+  def test_remove_index_when_name_is_specified
+    expected = %(DROP INDEX CONCURRENTLY "index_people_on_last_name")
+    assert_equal expected, remove_index(:people, name: "index_people_on_last_name", algorithm: :concurrently)
+  end
+
   private
     def method_missing(method_symbol, *arguments)
       ActiveRecord::Base.connection.send(method_symbol, *arguments)

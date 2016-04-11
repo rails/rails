@@ -1185,6 +1185,8 @@ module ActiveRecord
         end
 
         def index_name_for_remove(table_name, options = {})
+          return options[:name] if can_remove_index_by_name?(options)
+
           # if the adapter doesn't support the indexes call the best we can do
           # is return the default index name for the options provided
           return index_name(table_name, options) unless respond_to?(:indexes)
@@ -1192,7 +1194,7 @@ module ActiveRecord
           checks = []
 
           if options.is_a?(Hash)
-            checks << lambda { |i| i.name == options[:name].to_s } if options.has_key?(:name)
+            checks << lambda { |i| i.name == options[:name].to_s } if options.key?(:name)
             column_names = Array(options[:column]).map(&:to_s)
           else
             column_names = Array(options).map(&:to_s)
@@ -1267,6 +1269,10 @@ module ActiveRecord
         else
           default_or_changes
         end
+      end
+
+      def can_remove_index_by_name?(options)
+        options.is_a?(Hash) && options.key?(:name) && options.except(:name, :algorithm).empty?
       end
     end
   end
