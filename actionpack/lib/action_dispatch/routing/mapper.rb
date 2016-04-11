@@ -1598,7 +1598,7 @@ module ActionDispatch
             route_options = options.dup
             if _path && option_path
               ActiveSupport::Deprecation.warn <<-eowarn
-Specifying strings for both :path and the route path is deprecated.  Change things like this:
+Specifying strings for both :path and the route path is deprecated. Change things like this:
 
   match #{_path.inspect}, :path => #{option_path.inspect}
 

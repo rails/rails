@@ -346,7 +346,7 @@ module ActiveModel
     #   # => {:name=>["can't be empty"]}
     def add_on_empty(attributes, options = {})
       ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
-        ActiveModel::Errors#add_on_empty is deprecated and will be removed in Rails 5.1
+        ActiveModel::Errors#add_on_empty is deprecated and will be removed in Rails 5.1.
 
         To achieve the same use:
 
@@ -368,7 +368,7 @@ module ActiveModel
     #   # => {:name=>["can't be blank"]}
     def add_on_blank(attributes, options = {})
       ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
-        ActiveModel::Errors#add_on_blank is deprecated and will be removed in Rails 5.1
+        ActiveModel::Errors#add_on_blank is deprecated and will be removed in Rails 5.1.
 
         To achieve the same use:
 

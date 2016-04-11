@@ -428,7 +428,7 @@ module ActiveRecord
           id = id.id
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
             You are passing an instance of ActiveRecord::Base to `update`.
-            Please pass the id of the object by calling `.id`
+            Please pass the id of the object by calling `.id`.
           MSG
         end
         object = find(id)
@@ -457,7 +457,7 @@ module ActiveRecord
       if conditions
         ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
           Passing conditions to destroy_all is deprecated and will be removed in Rails 5.1.
-          To achieve the same use where(conditions).destroy_all
+          To achieve the same use where(conditions).destroy_all.
         MESSAGE
         where(conditions).destroy_all
       else
@@ -527,7 +527,7 @@ module ActiveRecord
       if conditions
         ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
           Passing conditions to delete_all is deprecated and will be removed in Rails 5.1.
-          To achieve the same use where(conditions).delete_all
+          To achieve the same use where(conditions).delete_all.
         MESSAGE
         where(conditions).delete_all
       else
