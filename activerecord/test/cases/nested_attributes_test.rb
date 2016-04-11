@@ -163,14 +163,14 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
   def test_destroyed_existing_has_many_entries_ignored_on_create
     Man.accepts_nested_attributes_for(:interests)
     interest = Interest.create(topic: 'test topic')
-    man = Man.create(name: 'John', interests_attributes: { '0' => { 'id': interest.id, '_destroy' => '1' } })
+    man = Man.create(name: 'John', interests_attributes: { '0' => { 'id' => interest.id, '_destroy' => '1' } })
     assert man.interests.empty?
   end
 
   def test_destroyed_existing_has_one_entry_ignored_on_create
     Man.accepts_nested_attributes_for(:face)
     face = Face.create(description: 'test face')
-    man = Man.create(name: 'John', face_attributes: { 'id': face.id, '_destroy' => '1' })
+    man = Man.create(name: 'John', face_attributes: { 'id' => face.id, '_destroy' => '1' })
     assert man.face.nil?
   end
 
