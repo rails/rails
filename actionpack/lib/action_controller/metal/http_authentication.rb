@@ -347,7 +347,12 @@ module ActionController
     #     private
     #       def authenticate
     #         authenticate_or_request_with_http_token do |token, options|
-    #           token == TOKEN
+    #           # Compare the tokens in a time-constant manner, to mitigate
+    #           # timing attacks.
+    #           ActiveSupport::SecurityUtils.secure_compare(
+    #             ::Digest::SHA256.hexdigest(token),
+    #             ::Digest::SHA256.hexdigest(TOKEN)
+    #           )
     #         end
     #       end
     #   end
