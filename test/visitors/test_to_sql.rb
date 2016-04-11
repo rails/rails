@@ -695,7 +695,7 @@ module Arel
         it 'supports #when with two arguments and no #then' do
           node = Arel::Nodes::Case.new @table[:name]
 
-          { foo: 1, bar: 0 }.reduce(node) { |node, pair| node.when *pair }
+          { foo: 1, bar: 0 }.reduce(node) { |_node, pair| _node.when(*pair) }
 
           compile(node).must_be_like %{
             CASE "users"."name" WHEN 'foo' THEN 1 WHEN 'bar' THEN 0 END
