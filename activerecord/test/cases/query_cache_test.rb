@@ -8,6 +8,10 @@ require 'rack'
 class QueryCacheTest < ActiveRecord::TestCase
   fixtures :tasks, :topics, :categories, :posts, :categories_posts
 
+  setup do
+    teardown_fixtures
+  end
+
   teardown do
     Task.connection.clear_query_cache
     ActiveRecord::Base.connection.disable_query_cache!

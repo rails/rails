@@ -1310,6 +1310,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   if Process.respond_to?(:fork) && !in_memory_db?
     def test_marshal_between_processes
+      teardown_fixtures
       # Define a new model to ensure there are no caches
       if self.class.const_defined?("Post", false)
         flunk "there should be no post constant"
