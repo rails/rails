@@ -81,6 +81,10 @@ module ActiveRecord
         @version ||= Version.new(full_version.match(/^\d+\.\d+\.\d+/)[0])
       end
 
+      def mariadb? # :nodoc:
+        full_version =~ /mariadb/i
+      end
+
       # Returns true, since this connection adapter supports migrations.
       def supports_migrations?
         true
@@ -780,10 +784,6 @@ module ActiveRecord
         subselect = Arel::SelectManager.new(select.engine)
         subselect.project Arel.sql(key.name)
         subselect.from subsubselect.as('__active_record_temp')
-      end
-
-      def mariadb?
-        full_version =~ /mariadb/i
       end
 
       def supports_rename_index?
