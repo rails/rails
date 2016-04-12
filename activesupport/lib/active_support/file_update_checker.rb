@@ -114,30 +114,27 @@ module ActiveSupport
       return nil if paths.empty?
 
       time_now = Time.now
-      max_time = nil
+      max_mtime = nil
 
       paths.each do |path|
-        time = File.mtime(path)
+        mtime = File.mtime(path)
 
-        if max_time.nil?
-          if time.compare_without_coercion(time_now) < 0
-            max_time = time
-          end
-
-          next
-        end
+        # Prevent dates in the future being considered
+        # Equivalent ruby:
+        # time.now < mtime
+        next if time_now.compare_without_coercion(mtime) < 0
 
         # This avoids ActiveSupport::CoreExt::Time#time_with_coercion
         # which is super slow when comparing two Time objects
         #
         # Equivalent Ruby:
-        # time < time_now && time > max_time
-        if time.compare_without_coercion(time_now) < 0 && time.compare_without_coercion(max_time) > 0
-          max_time = time
+        # max_mtime.nil? || max_mtime < mtime
+        if max_mtime.nil? || max_mtime.compare_without_coercion(mtime) < 0
+          max_mtime = mtime
         end
       end
 
-      max_time
+      max_mtime
     end
 
     def compile_glob(hash)
