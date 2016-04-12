@@ -111,12 +111,21 @@ module ActiveSupport
     # healthy to consider this edge case because with mtimes in the future
     # reloading is not triggered.
     def max_mtime(paths)
+      return nil if paths.empty?
+
       time_now = Time.now
-      time_at_zero = Time.at(0)
-      max_time = time_at_zero
+      max_time = nil
 
       paths.each do |path|
         time = File.mtime(path)
+
+        if max_time.nil?
+          if time.compare_without_coercion(time_now) < 0
+            max_time = time
+          end
+
+          next
+        end
 
         # This avoids ActiveSupport::CoreExt::Time#time_with_coercion
         # which is super slow when comparing two Time objects
@@ -128,7 +137,7 @@ module ActiveSupport
         end
       end
 
-      max_time.object_id == time_at_zero.object_id ? nil : max_time
+      max_time
     end
 
     def compile_glob(hash)
