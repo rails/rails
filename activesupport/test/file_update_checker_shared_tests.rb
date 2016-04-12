@@ -134,6 +134,23 @@ module FileUpdateCheckerSharedTests
     assert_equal 1, i
   end
 
+  test 'should return max_time for files with mtime = Time.at(0)' do
+    i = 0
+
+    FileUtils.touch(tmpfiles)
+
+    now  = Time.now
+    time = Time.at(0) # wrong mtime from the future
+    File.utime(time, time, tmpfiles[0])
+
+    checker = new_checker(tmpfiles) { i += 1 }
+
+    touch(tmpfiles[1..-1])
+
+    assert checker.execute_if_updated
+    assert_equal 1, i
+  end
+
   test 'should cache updated result until execute' do
     i = 0
 
