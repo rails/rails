@@ -174,11 +174,11 @@ module ActiveModel
     end
 
     # Handles <tt>*_changed?</tt> for +method_missing+.
-    def attribute_changed?(attr, options = nil) #:nodoc:
+    def attribute_changed?(attr, from: nil, to: nil) #:nodoc:
       result = changes_include?(attr)
-      if options
-        result &&= options[:to] == __send__(attr) if options.key?(:to)
-        result &&= options[:from] == changed_attributes[attr] if options.key?(:from)
+      if from || to
+        result &&= to == __send__(attr) if to
+        result &&= from == changed_attributes[attr] if from
       end
       result
     end
@@ -189,7 +189,7 @@ module ActiveModel
     end
 
     # Handles <tt>*_previously_changed?</tt> for +method_missing+.
-    def attribute_previously_changed?(attr, options = {}) #:nodoc:
+    def attribute_previously_changed?(attr) #:nodoc:
       previous_changes_include?(attr)
     end
 
