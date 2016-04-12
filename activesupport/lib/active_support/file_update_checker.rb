@@ -111,8 +111,6 @@ module ActiveSupport
     # healthy to consider this edge case because with mtimes in the future
     # reloading is not triggered.
     def max_mtime(paths)
-      return nil if paths.empty?
-
       time_now = Time.now
       max_mtime = nil
 
