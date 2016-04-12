@@ -652,9 +652,14 @@ class FinderTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordNotFound) { Topic.where(approved: true).find(1) }
   end
 
-  def test_find_on_hash_conditions_with_explicit_table_name
+  def test_find_on_hash_conditions_with_qualified_attribute_dot_notation_string
     assert Topic.where('topics.approved' => false).find(1)
     assert_raise(ActiveRecord::RecordNotFound) { Topic.where('topics.approved' => true).find(1) }
+  end
+
+  def test_find_on_hash_conditions_with_qualified_attribute_dot_notation_symbol
+    assert Topic.where('topics.approved': false).find(1)
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.where('topics.approved': true).find(1) }
   end
 
   def test_find_on_hash_conditions_with_hashed_table_name
@@ -664,6 +669,7 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_on_combined_explicit_and_hashed_table_names
     assert Topic.where('topics.approved' => false, topics: { author_name: "David" }).find(1)
+    assert Topic.where('topics.approved': false, topics: { author_name: "David" }).find(1)
     assert_raise(ActiveRecord::RecordNotFound) { Topic.where('topics.approved' => true, topics: { author_name: "David" }).find(1) }
     assert_raise(ActiveRecord::RecordNotFound) { Topic.where('topics.approved' => false, topics: { author_name: "Melanie" }).find(1) }
   end
