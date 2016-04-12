@@ -180,7 +180,7 @@ module ActiveModel
         result &&= options[:to] == __send__(attr) if options.key?(:to)
         result &&= options[:from] == changed_attributes[attr] if options.key?(:from)
       end
-      result
+      !!result
     end
 
     # Handles <tt>*_was</tt> for +method_missing+.
