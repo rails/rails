@@ -114,19 +114,16 @@ module ActiveSupport
       time_now = Time.now
       max_mtime = nil
 
+      # Time comparisons are performed with #compare_without_coercion because
+      # AS redefines these operators in a way that is much slower and does not
+      # bring any benefit in this particular code.
+      #
+      # Read t1.compare_without_coercion(t2) < 0 as t1 < t2.
       paths.each do |path|
         mtime = File.mtime(path)
 
-        # Prevent dates in the future being considered
-        # Equivalent ruby:
-        # time.now < mtime
         next if time_now.compare_without_coercion(mtime) < 0
 
-        # This avoids ActiveSupport::CoreExt::Time#time_with_coercion
-        # which is super slow when comparing two Time objects
-        #
-        # Equivalent Ruby:
-        # max_mtime.nil? || max_mtime < mtime
         if max_mtime.nil? || max_mtime.compare_without_coercion(mtime) < 0
           max_mtime = mtime
         end
