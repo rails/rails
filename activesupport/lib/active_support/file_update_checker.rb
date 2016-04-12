@@ -112,7 +112,18 @@ module ActiveSupport
     # reloading is not triggered.
     def max_mtime(paths)
       time_now = Time.now
-      paths.map {|path| File.mtime(path)}.reject {|mtime| time_now < mtime}.max
+      time_at_zero = Time.at(0)
+      max_time = time_at_zero
+
+      paths.each do |path|
+        time = File.mtime(path)
+
+        if time < time_now && time > max_time
+          max_time = time
+        end
+      end
+
+      max_time.object_id == time_at_zero.object_id ? nil : max_time
     end
 
     def compile_glob(hash)
