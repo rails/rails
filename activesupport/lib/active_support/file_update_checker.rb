@@ -118,7 +118,12 @@ module ActiveSupport
       paths.each do |path|
         time = File.mtime(path)
 
-        if time < time_now && time > max_time
+        # This avoids ActiveSupport::CoreExt::Time#time_with_coercion
+        # which is super slow when comparing two Time objects
+        #
+        # Equivalent Ruby:
+        # time < time_now && time > max_time
+        if time.compare_without_coercion(time_now) < 0 && time.compare_without_coercion(max_time) > 0
           max_time = time
         end
       end
