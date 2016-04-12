@@ -118,7 +118,7 @@ defaults to `:debug` for all environments. The available log levels are: `:debug
 
 * `config.logger` is the logger that will be used for `Rails.logger` and any related Rails logging such as `ActiveRecord::Base.logger`. It defaults to an instance of `ActiveSupport::TaggedLogging` that wraps an instance of `ActiveSupport::Logger` which outputs a log to the `log/` directory. You can supply a custom logger, to get full compatibility you must follow these guidelines:
   * To support a formatter you must manually assign a formatter from the `config.log_formatter` value to the logger.
-  * To support tagged loggs the log instance must be wrapped with `ActiveSupport::TaggedLogging`.
+  * To support tagged logs, the log instance must be wrapped with `ActiveSupport::TaggedLogging`.
   * To support silencing the logger must include `LoggerSilence` and `ActiveSupport::LoggerThreadSafeLevel` modules. The `ActiveSupport::Logger` class already includes these modules.
 
     ```ruby
