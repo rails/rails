@@ -1014,6 +1014,7 @@ ActiveRecord::Schema.define do
   create_table :users, force: true do |t|
     t.string :token
     t.string :auth_token
+    t.string :auth_secret
   end
 
   create_table :test_with_keyword_column_name, force: true do |t|
