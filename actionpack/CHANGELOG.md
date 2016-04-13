@@ -1,3 +1,7 @@
+*   Add extension synonyms `yml` and `yaml` for MIME type `application/x-yaml`.
+
+   *bogdanvlviv*
+
 *   Adds support for including ActionController::Cookies in API controllers.
     Previously, including the module would raise when trying to define
     a `cookies` helper method. Skip calling #helper_method if it is not
