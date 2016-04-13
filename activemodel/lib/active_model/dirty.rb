@@ -178,7 +178,7 @@ module ActiveModel
 
     # Handles <tt>*_changed?</tt> for +method_missing+.
     def attribute_changed?(attr, from: OPTION_NOT_GIVEN, to: OPTION_NOT_GIVEN) # :nodoc:
-      changes_include?(attr) &&
+      !!changes_include?(attr) &&
         (to == OPTION_NOT_GIVEN || to == __send__(attr)) &&
         (from == OPTION_NOT_GIVEN || from == changed_attributes[attr])
     end
