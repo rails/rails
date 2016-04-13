@@ -70,7 +70,8 @@ Upgrading from Rails 4.2 to Rails 5.0
 
 ### Ruby 2.2.2+
 
-ToDo...
+From Ruby on Rails 5.0 onwards, Ruby 2.2.2+ is the only supported version. 
+Make sure you are on Ruby 2.2.2 version or greater, before you proceed. 
 
 ### Active Record models now inherit from ApplicationRecord by default
 
