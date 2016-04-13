@@ -48,7 +48,74 @@ ToDo...
 
 ### Active Record attributes API
 
-ToDo...
+Defines an attribute with a type on a model. It will override the type of existing attributes if needed. 
+This allows control over how values are converted to and from SQL when assigned to a model.
+It also changes the behavior of values passed to ActiveRecord::Base.where, which lets use our domain objects across much of Active Record, 
+without having to rely on implementation details or monkey patching.
+
+Some things that you can achieve with this:
+* The type detected by Active Record can be overridden.
+* A default can also be provided.
+* Attributes do not need to be backed by a database column.
+
+```ruby
+
+# db/schema.rb
+create_table :store_listings, force: true do |t|
+  t.decimal :price_in_cents
+  t.string :my_string, default: "original default"
+end
+
+# app/models/store_listing.rb
+class StoreListing < ActiveRecord::Base
+end
+
+store_listing = StoreListing.new(price_in_cents: '10.1')
+
+# before
+store_listing.price_in_cents # => BigDecimal.new(10.1)
+StoreListing.new.my_string # => "original default"
+
+class StoreListing < ActiveRecord::Base
+  attribute :price_in_cents, :integer # custom type
+  attribute :my_string, :string, default: "new default" # default value
+  attribute :my_default_proc, :datetime, default: -> { Time.now } # default value
+  attribute :field_without_db_column, :integer, array: true 
+end
+
+# after
+store_listing.price_in_cents # => 10
+StoreListing.new.my_string # => "new default"
+StoreListing.new.my_default_proc # => 2015-05-30 11:04:48 -0600
+model = StoreListing.new(field_without_db_column: ["1", "2", "3"])
+model.attributes #=> {field_without_db_column: [1, 2, 3]}
+```
+
+**Creating Custom Types:**
+
+You can define your own custom types, as long as they respond
+to the methods defined on the value type. The method +deserialize+ or
++cast+ will be called on your type object, with raw input from the
+database or from your controllers. This is useful, for example, when doing custom conversion, 
+like Money data.
+
+**Querying:**
+
+When `ActiveRecord::Base.where` is called, it will
+use the type defined by the model class to convert the value to SQL,
+calling +serialize+ on your type object. 
+
+This gives the objects ability to specify, how to convert values when performing SQL queries. 
+
+**Dirty Tracking:**
+
+The type of an attribute is given the opportunity to change how dirty
+tracking is performed. 
+      
+See its
+[documentation](http://api.rubyonrails.org/classes/ActiveRecord/Attributes/ClassMethods.html)
+for a detailed write up.
+
 
 ### Test Runner
 [Pull Request](https://github.com/rails/rails/pull/19216)
