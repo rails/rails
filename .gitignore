@@ -3,6 +3,7 @@
 
 .Gemfile
 .ruby-version
+.idea/
 debug.log
 pkg
 /.bundle
