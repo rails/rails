@@ -1,3 +1,8 @@
+*   Add environment & load_config dependency to `bin/rake db:seed` to enable
+    seed load in environments without Rails and custom DB configuration
+
+    *Tobias Bielohlawek*
+
 *   MariaDB 5.3+ supports microsecond datetime precision.
 
     *Jeremy Daer*
