@@ -67,12 +67,14 @@ module ActiveRecord
       #
       # A default can also be provided.
       #
+      #   # db/schema.rb
       #   create_table :store_listings, force: true do |t|
       #     t.string :my_string, default: "original default"
       #   end
       #
       #   StoreListing.new.my_string # => "original default"
       #
+      #   # app/models/store_listing.rb
       #   class StoreListing < ActiveRecord::Base
       #     attribute :my_string, :string, default: "new default"
       #   end
@@ -89,6 +91,7 @@ module ActiveRecord
       #
       # \Attributes do not need to be backed by a database column.
       #
+      #   # app/models/my_model.rb
       #   class MyModel < ActiveRecord::Base
       #     attribute :my_string, :string
       #     attribute :my_int_array, :integer, array: true
@@ -131,7 +134,7 @@ module ActiveRecord
       #   # config/initializers/types.rb
       #   ActiveRecord::Type.register(:money, MoneyType)
       #
-      #   # /app/models/store_listing.rb
+      #   # app/models/store_listing.rb
       #   class StoreListing < ActiveRecord::Base
       #     attribute :price_in_cents, :money
       #   end
@@ -167,8 +170,10 @@ module ActiveRecord
       #     end
       #   end
       #
+      #   # config/initializers/types.rb
       #   ActiveRecord::Type.register(:money, MoneyType)
       #
+      #   # app/models/product.rb
       #   class Product < ActiveRecord::Base
       #     currency_converter = ConversionRatesFromTheInternet.new
       #     attribute :price_in_bitcoins, :money, currency_converter: currency_converter
