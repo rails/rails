@@ -139,7 +139,6 @@ module FileUpdateCheckerSharedTests
 
     FileUtils.touch(tmpfiles)
 
-    now  = Time.now
     time = Time.at(0) # wrong mtime from the future
     File.utime(time, time, tmpfiles[0])
 
