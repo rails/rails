@@ -38,4 +38,12 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
 
     assert_no_file "app/assets/javascripts/channels/chat.coffee"
   end
+
+  def test_cable_js_is_created_if_not_present_already
+    run_generator ['chat']
+    FileUtils.rm("#{destination_root}/app/assets/javascripts/cable.js")
+    run_generator ['camp']
+
+    assert_file "app/assets/javascripts/cable.js"
+  end
 end
