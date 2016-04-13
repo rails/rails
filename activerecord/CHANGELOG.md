@@ -1,3 +1,9 @@
+*   Properly accept all valid JSON primitives in the JSON data type.
+
+    Fixes #24234
+
+    *Sean Griffin*
+
 *   MariaDB 5.3+ supports microsecond datetime precision.
 
     *Jeremy Daer*
