@@ -144,7 +144,7 @@ module ActionMailer
   #   mail.deliver_now                               # generates and sends the email now
   #
   # The <tt>ActionMailer::MessageDelivery</tt> class is a wrapper around a delegate that will call
-  # your method to generate the mail. If you want direct access to delegator, or <tt>Mail::Message</tt>,
+  # your method to generate the mail. If you want direct access to the delegator, or <tt>Mail::Message</tt>,
   # you can call the <tt>message</tt> method on the <tt>ActionMailer::MessageDelivery</tt> object.
   #
   #   NotifierMailer.welcome(User.first).message     # => a Mail::Message object
@@ -163,7 +163,7 @@ module ActionMailer
   #
   # Multipart messages can also be used implicitly because Action Mailer will automatically detect and use
   # multipart templates, where each template is named after the name of the action, followed by the content
-  # type. Each such detected template will be added as a separate part to the message.
+  # type. Each such detected template will be added to the message, as a separate part.
   #
   # For example, if the following templates exist:
   # * signup_notification.text.erb
@@ -288,7 +288,7 @@ module ActionMailer
   #   end
   #
   # Note that the proc is evaluated right at the start of the mail message generation, so if you
-  # set something in the default using a proc, and then set the same thing inside of your
+  # set something in the default hash using a proc, and then set the same thing inside of your
   # mailer method, it will get overwritten by the mailer method.
   #
   # It is also possible to set these default options that will be used in all mailers through
