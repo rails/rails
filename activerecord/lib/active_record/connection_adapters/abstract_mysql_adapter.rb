@@ -77,7 +77,7 @@ module ActiveRecord
         }
       end
 
-      def version
+      def version #:nodoc:
         @version ||= Version.new(full_version.match(/^\d+\.\d+\.\d+/)[0])
       end
 
