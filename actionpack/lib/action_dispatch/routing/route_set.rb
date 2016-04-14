@@ -440,7 +440,8 @@ module ActionDispatch
       def url_helpers(supports_path = true)
         routes = self
 
-        Module.new do
+        @_url_helpers ||= {}
+        @_url_helpers[supports_path] ||= Module.new do
           extend ActiveSupport::Concern
           include UrlFor
 

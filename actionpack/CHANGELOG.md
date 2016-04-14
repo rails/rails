@@ -1,3 +1,7 @@
+*   Memoize the `RouteSet#url_helpers` module
+
+   *jeffrafter*
+
 *   Add extension synonyms `yml` and `yaml` for MIME type `application/x-yaml`.
 
    *bogdanvlviv*
