@@ -353,7 +353,7 @@ end
 ```
 
 will append `ENGINE=BLACKHOLE` to the SQL statement used to create the table
-(when using MySQL, the default is `ENGINE=InnoDB`).
+(when using MySQL or MariaDB, the default is `ENGINE=InnoDB`).
 
 ### Creating a Join Table
 
@@ -970,7 +970,7 @@ this, then you should set the schema format to `:sql`.
 Instead of using Active Record's schema dumper, the database's structure will
 be dumped using a tool specific to the database (via the `db:structure:dump`
 rails task) into `db/structure.sql`. For example, for PostgreSQL, the `pg_dump`
-utility is used. For MySQL, this file will contain the output of
+utility is used. For MySQL and MariaDB, this file will contain the output of
 `SHOW CREATE TABLE` for the various tables.
 
 Loading these schemas is simply a question of executing the SQL statements they
