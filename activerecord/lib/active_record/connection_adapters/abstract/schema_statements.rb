@@ -783,6 +783,8 @@ module ActiveRecord
       #   Whether an additional +_type+ column should be added. Defaults to false.
       # [<tt>:null</tt>]
       #   Whether the column allows nulls. Defaults to true.
+      # [<tt>:references</tt>]
+      #   Name of the receiving table. Defaults to the table name of the target model.
       #
       # ====== Create a user_id integer column
       #
