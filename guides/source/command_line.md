@@ -326,7 +326,7 @@ With the `helper` method it is possible to access Rails and your application's h
 
 ### `rails dbconsole`
 
-`rails dbconsole` figures out which database you're using and drops you into whichever command line interface you would use with it (and figures out the command line parameters to give to it, too!). It supports MySQL, PostgreSQL and SQLite3.
+`rails dbconsole` figures out which database you're using and drops you into whichever command line interface you would use with it (and figures out the command line parameters to give to it, too!). It supports MySQL (including MariaDB), PostgreSQL and SQLite3.
 
 INFO: You can also use the alias "db" to invoke the dbconsole: `rails db`.
 

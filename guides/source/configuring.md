@@ -336,7 +336,7 @@ All these configuration options are delegated to the `I18n` library.
 
 The MySQL adapter adds one additional configuration option:
 
-* `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans` controls whether Active Record will consider all `tinyint(1)` columns in a MySQL database to be booleans and is true by default.
+* `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans` controls whether Active Record will consider all `tinyint(1)` columns as booleans. True by default.
 
 The schema dumper adds one additional configuration option:
 
@@ -784,11 +784,11 @@ development:
   timeout: 5000
 ```
 
-NOTE: Rails uses an SQLite3 database for data storage by default because it is a zero configuration database that just works. Rails also supports MySQL and PostgreSQL "out of the box", and has plugins for many database systems. If you are using a database in a production environment Rails most likely has an adapter for it.
+NOTE: Rails uses an SQLite3 database for data storage by default because it is a zero configuration database that just works. Rails also supports MySQL (including MariaDB) and PostgreSQL "out of the box", and has plugins for many database systems. If you are using a database in a production environment Rails most likely has an adapter for it.
 
-#### Configuring a MySQL Database
+#### Configuring a MySQL or MariaDB Database
 
-If you choose to use MySQL instead of the shipped SQLite3 database, your `config/database.yml` will look a little different. Here's the development section:
+If you choose to use MySQL or MariaDB instead of the shipped SQLite3 database, your `config/database.yml` will look a little different. Here's the development section:
 
 ```yaml
 development:
@@ -801,7 +801,7 @@ development:
   socket: /tmp/mysql.sock
 ```
 
-If your development computer's MySQL installation includes a root user with an empty password, this configuration should work for you. Otherwise, change the username and password in the `development` section as appropriate.
+If your development database has a root user with an empty password, this configuration should work for you. Otherwise, change the username and password in the `development` section as appropriate.
 
 #### Configuring a PostgreSQL Database
 
@@ -843,9 +843,9 @@ development:
   database: db/development.sqlite3
 ```
 
-#### Configuring a MySQL Database for JRuby Platform
+#### Configuring a MySQL or MariaDB Database for JRuby Platform
 
-If you choose to use MySQL and are using JRuby, your `config/database.yml` will look a little different. Here's the development section:
+If you choose to use MySQL or MariaDB and are using JRuby, your `config/database.yml` will look a little different. Here's the development section:
 
 ```yaml
 development:
