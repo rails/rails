@@ -8,6 +8,13 @@ module ActiveRecord
       ActiveRecord::Tasks::MySQLDatabaseTasks.stubs(:new).returns @mysql_tasks
       ActiveRecord::Tasks::PostgreSQLDatabaseTasks.stubs(:new).returns @postgresql_tasks
       ActiveRecord::Tasks::SQLiteDatabaseTasks.stubs(:new).returns @sqlite_tasks
+
+      $stdout, @original_stdout = StringIO.new, $stdout
+      $stderr, @original_stderr = StringIO.new, $stderr
+    end
+
+    def teardown
+      $stdout, $stderr = @original_stdout, @original_stderr
     end
   end
 
