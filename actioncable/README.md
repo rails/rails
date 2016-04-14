@@ -455,7 +455,7 @@ with all the popular application servers -- Unicorn, Puma and Passenger.
 Action Cable does not work with WEBrick, because WEBrick does not support the
 Rack socket hijacking API.
 
-When your application have a lot of Action Cable connections, you may need to adjust the Unix `ulimit` settings, for example:
+When your application has a lot of Action Cable connections, you may need to adjust the Unix `ulimit` settings, for example:
 
 ```bash
 $ ulimit -n 65535
