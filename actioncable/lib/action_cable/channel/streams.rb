@@ -76,8 +76,11 @@ module ActionCable
         # Don't send the confirmation until pubsub#subscribe is successful
         defer_subscription_confirmation!
 
-        if handler = callback || block
-          handler = -> message { handler.(coder.decode(message)) } if coder
+        if user_handler = callback || block
+          user_handler = -> message { handler.(coder.decode(message)) } if coder
+          handler = -> message do
+            connection.worker_pool.async_invoke(user_handler, :call, message)
+          end
         else
           handler = default_stream_handler(broadcasting, coder: coder)
         end
