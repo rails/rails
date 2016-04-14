@@ -44,6 +44,7 @@ class TimePrecisionTest < ActiveRecord::TestCase
   end
 
   def test_formatting_time_according_to_precision
+    skip("TIME column on MariaDB doesn't ignore the date part of the string when it coerces to time") if current_adapter?(:Mysql2Adapter) && ActiveRecord::Base.connection.mariadb?
     @connection.create_table(:foos, force: true) do |t|
       t.time :start,  precision: 0
       t.time :finish, precision: 4
