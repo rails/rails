@@ -349,13 +349,13 @@ module Arel
         end
 
         if o.orders.any?
-          collector << ' ' if o.partitions.any?
+          collector << SPACE if o.partitions.any?
           collector << "ORDER BY "
           collector = inject_join o.orders, collector, ", "
         end
 
         if o.framing
-          collector << ' ' if o.partitions.any? or o.orders.any?
+          collector << SPACE if o.partitions.any? or o.orders.any?
           collector = visit o.framing, collector
         end
 
@@ -564,7 +564,7 @@ module Arel
           collector = visit o.left, collector
         end
         if o.right.any?
-          collector << " " if o.left
+          collector << SPACE if o.left
           collector = inject_join o.right, collector, ' '
         end
         collector
