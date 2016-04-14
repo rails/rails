@@ -806,6 +806,10 @@ module ActiveRecord
       #
       #   add_reference(:products, :supplier, foreign_key: {to_table: :firms})
       #
+      # ====== Create an administrator_id column as a reference to the users table
+      #
+      #   add_reference(:products, :administrator, references: :users)
+      #
       def add_reference(table_name, *args)
         ReferenceDefinition.new(*args).add_to(update_table_definition(table_name, self))
       end
