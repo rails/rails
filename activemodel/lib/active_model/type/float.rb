@@ -7,6 +7,15 @@ module ActiveModel
         :float
       end
 
+      def type_cast_for_schema(value)
+        return "::Float::NAN" if value.try(:nan?)
+        case value
+        when ::Float::INFINITY then "::Float::INFINITY"
+        when -::Float::INFINITY then "-::Float::INFINITY"
+        else super
+        end
+      end
+
       alias serialize cast
 
       private
