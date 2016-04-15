@@ -184,8 +184,8 @@ module ActiveSupport
       #
       # If there is no such data in the cache (a cache miss), then +nil+ will be
       # returned. However, if a block has been passed, that block will be passed
-      # the key and executed in the event of a cache miss. The return value of the
-      # block will be written to the cache under the given cache key, and that
+      # to the key and executed in the event of a cache miss. The return value of
+      # the block will be written to the cache under the given cache key, and that
       # return value will be returned.
       #
       #   cache.write('today', 'Monday')
