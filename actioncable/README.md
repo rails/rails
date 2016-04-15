@@ -412,12 +412,12 @@ The above will start a cable server on port 28080.
 
 ### In app
 
-If you are using a server that supports the [Rack socket hijacking API](http://www.rubydoc.info/github/rack/rack/file/SPEC#Hijacking), Action Cable can run alongside your Rails application. For example, to listen for WebSocket requests on `/cable`, mount the server at that path:
+If you are using a server that supports the [Rack socket hijacking API](http://www.rubydoc.info/github/rack/rack/file/SPEC#Hijacking), Action Cable can run alongside your Rails application. For example, to listen for WebSocket requests on `/websocket`, specify that path to `config.action_cable.mount_path`:
 
 ```ruby
-# config/routes.rb
-Example::Application.routes.draw do
-  mount ActionCable.server => '/cable'
+# config/application.rb
+class Application < Rails::Application
+  config.action_cable.mount_path = '/websocket'
 end
 ```
 

@@ -549,12 +549,13 @@ You can change that in `config/database.yml` through the `pool` attribute.
 ### In App
 
 Action Cable can run alongside your Rails application. For example, to
-listen for WebSocket requests on `/websocket`, mount the server at that path:
+listen for WebSocket requests on `/websocket`, specify that path to
+`config.action_cable.mount_path`:
 
 ```ruby
-# config/routes.rb
-Example::Application.routes.draw do
-  mount ActionCable.server => '/cable'
+# config/application.rb
+class Application < Rails::Application
+  config.action_cable.mount_path = '/websocket'
 end
 ```
 
