@@ -756,6 +756,10 @@ module ActionController
         end
       end
 
+      def non_scalar?(value)
+        value.is_a?(Array) || value.is_a?(Parameters)
+      end
+
       EMPTY_ARRAY = []
       def hash_filter(params, filter)
         filter = filter.with_indifferent_access
@@ -770,7 +774,7 @@ module ActionController
             array_of_permitted_scalars?(self[key]) do |val|
               params[key] = val
             end
-          else
+          elsif non_scalar?(value)
             # Declaration { user: :name } or { user: [:name, :age, { address: ... }] }.
             params[key] = each_element(value) do |element|
               element.permit(*Array.wrap(filter[key]))
