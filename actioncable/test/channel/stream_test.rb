@@ -142,6 +142,7 @@ module ActionCable::StreamTests
         connection.websocket.expects(:transmit)
         @server.broadcast 'test_room_1', { foo: 'bar' }, coder: DummyEncoder
         wait_for_async
+        wait_for_executor connection.server.worker_pool.executor
       end
     end
 

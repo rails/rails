@@ -73,18 +73,13 @@ module ActionCable
       # Defaults to `coder: nil` which does no decoding, passes raw messages.
       def stream_from(broadcasting, callback = nil, coder: nil, &block)
         broadcasting = String(broadcasting)
+
         # Don't send the confirmation until pubsub#subscribe is successful
         defer_subscription_confirmation!
 
-        if user_handler = callback || block
-          user_handler = -> message { handler.(coder.decode(message)) } if coder
-          handler = -> message do
-            connection.worker_pool.async_invoke(user_handler, :call, message)
-          end
-        else
-          handler = default_stream_handler(broadcasting, coder: coder)
-        end
-
+        # Build a stream handler by wrapping the user-provided callback with
+        # a decoder or defaulting to a JSON-decoding retransmitter.
+        handler = worker_pool_stream_handler(broadcasting, callback || block, coder: coder)
         streams << [ broadcasting, handler ]
 
         connection.server.event_loop.post do
@@ -120,12 +115,59 @@ module ActionCable
           @_streams ||= []
         end
 
+        # Always wrap the outermost handler to invoke the user handler on the
+        # worker pool rather than blocking the event loop.
+        def worker_pool_stream_handler(broadcasting, user_handler, coder: nil)
+          handler = stream_handler(broadcasting, user_handler, coder: coder)
+
+          -> message do
+            connection.worker_pool.async_invoke handler, :call, message, connection: connection
+          end
+        end
+
+        # May be overridden to add instrumentation, logging, specialized error
+        # handling, or other forms of handler decoration.
+        #
+        # TODO: Tests demonstrating this.
+        def stream_handler(broadcasting, user_handler, coder: nil)
+          if user_handler
+            stream_decoder user_handler, coder: coder
+          else
+            default_stream_handler broadcasting, coder: coder
+          end
+        end
+
+        # May be overridden to change the default stream handling behavior
+        # which decodes JSON and transmits to client.
+        #
+        # TODO: Tests demonstrating this.
+        #
+        # TODO: Room for optimization. Update transmit API to be coder-aware
+        # so we can no-op when pubsub and connection are both JSON-encoded.
+        # Then we can skip decode+encode if we're just proxying messages.
         def default_stream_handler(broadcasting, coder:)
           coder ||= ActiveSupport::JSON
+          stream_transmitter stream_decoder(coder: coder), broadcasting: broadcasting
+        end
+
+        def stream_decoder(handler = identity_handler, coder:)
+          if coder
+            -> message { handler.(coder.decode(message)) }
+          else
+            handler
+          end
+        end
+
+        def stream_transmitter(handler = identity_handler, broadcasting:)
+          via = "streamed from #{broadcasting}"
 
           -> (message) do
-            transmit coder.decode(message), via: "streamed from #{broadcasting}"
+            transmit handler.(message), via: via
           end
+        end
+
+        def identity_handler
+          -> message { message }
         end
     end
   end
