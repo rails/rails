@@ -257,4 +257,7 @@ class String
   def html_safe
     ActiveSupport::SafeBuffer.new(self)
   end
+
+  # Marks a string as unsafe. It is the opposite of calling #html_safe.
+  alias html_unsafe to_str
 end

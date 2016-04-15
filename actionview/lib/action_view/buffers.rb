@@ -46,5 +46,9 @@ module ActionView
     def html_safe
       self
     end
+
+    def html_unsafe
+      self
+    end
   end
 end

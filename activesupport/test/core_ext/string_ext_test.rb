@@ -674,6 +674,20 @@ class OutputSafetyTest < ActiveSupport::TestCase
     assert_equal @string, @string.html_safe
   end
 
+  test "A string can be marked unsafe" do
+    string = @string.html_unsafe
+    assert !string.html_safe?
+  end
+
+  test "Marking a string unsafe returns exactly the string" do
+    assert @string.equal? @string.html_unsafe
+  end
+
+  test "Marking a safe string unsafe returns the string" do
+    string = @string.html_safe
+    assert_equal @string, string.html_unsafe
+  end
+
   test "A fixnum is safe by default" do
     assert 5.html_safe?
   end
