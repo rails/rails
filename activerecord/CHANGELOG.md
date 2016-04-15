@@ -1,3 +1,9 @@
+*   Add `quoted_time` for truncating the date part of a TIME column value.
+    This fixes queries on TIME column on MariaDB, as it doesn't ignore the 
+    date part of the string when it coerces to time.
+
+    *Ryuta Kamizono*
+
 *   Properly accept all valid JSON primitives in the JSON data type.
 
     Fixes #24234
