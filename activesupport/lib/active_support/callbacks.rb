@@ -782,7 +782,7 @@ module ActiveSupport
 
       def display_deprecation_warning_for_false_terminator
         ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          Returning `false` in Active Record and Active Model callbacks will not implicitly halt a callback chain in the next release of Rails.
+          Returning `false` in Active Record and Active Model callbacks will not implicitly halt a callback chain in Rails 5.1.
           To explicitly halt the callback chain, please use `throw :abort` instead.
         MSG
       end
