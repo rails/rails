@@ -1262,3 +1262,41 @@ class RequestFormData < BaseRequestTest
     assert !request.form_data?
   end
 end
+
+class RequestDeprecationTest < BaseRequestTest
+  # This is not at all meant to be a complete suite,
+  # but just two examples of what the deprecation warning would look like
+  test 'request[] is deprecated' do
+    request = stub_request(
+      'REQUEST_METHOD' => 'POST',
+      'CONTENT_TYPE' => 'application/x-www-form-urlencoded; charset=utf-8',
+      'rack.input' => StringIO.new("flamenco=love")
+    )
+
+    warning = <<-MESSAGE.strip_heredoc
+              ActionDispatch::Request will no longer inherit from Rack::Request in Rails 5.1.
+              The method '\\[\\]' and all other public API exposed by ActionDispatch::Request via its inheritance of Rack::Request will be removed without replacement.
+            MESSAGE
+
+    assert_deprecated(/#{warning}/) do
+      request['CONTENT_TYPE']
+    end
+  end
+
+  test 'request[]= is deprecated' do
+    request = stub_request(
+      'REQUEST_METHOD' => 'POST',
+      'CONTENT_TYPE' => 'application/x-www-form-urlencoded; charset=utf-8',
+      'rack.input' => StringIO.new("flamenco=love")
+    )
+
+    warning = <<-MESSAGE.strip_heredoc
+              ActionDispatch::Request will no longer inherit from Rack::Request in Rails 5.1.
+              The method '\\[\\]=' and all other public API exposed by ActionDispatch::Request via its inheritance of Rack::Request will be removed without replacement.
+            MESSAGE
+
+    assert_deprecated(/#{warning}/) do
+      request['CONTENT_TYPE'] = 'application/xml'
+    end
+  end
+end
