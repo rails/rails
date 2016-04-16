@@ -1,3 +1,10 @@
+*   Raise an argument error if no block is passed to #fetch with option
+    `force: true` is set.
+
+        cache.fetch('today', force: true) # => ArgumentError: Missing block
+
+    *Santosh Wadghule*
+
 *   `ActiveSupport::Duration` supports weeks and hours.
 
         [1.hour.inspect, 1.hour.value, 1.hour.parts]
