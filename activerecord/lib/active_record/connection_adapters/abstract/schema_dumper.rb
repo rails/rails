@@ -46,12 +46,14 @@ module ActiveRecord
           spec[:collation] = collation
         end
 
+        spec[:comment] = column.comment.inspect if column.comment
+
         spec
       end
 
       # Lists the valid migration options
       def migration_keys
-        [:name, :limit, :precision, :scale, :default, :null, :collation]
+        [:name, :limit, :precision, :scale, :default, :null, :collation, :comment]
       end
 
       private

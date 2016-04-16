@@ -45,6 +45,14 @@ module ActiveRecord
         !mariadb? && version >= '5.7.8'
       end
 
+      def supports_comments?
+        true
+      end
+
+      def supports_comments_in_create?
+        true
+      end
+
       # HELPER METHODS ===========================================
 
       def each_hash(result) # :nodoc:

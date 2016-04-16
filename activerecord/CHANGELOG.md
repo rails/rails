@@ -1,3 +1,14 @@
+*   Database comments. Annotate database objects (tables, columns, indexes)
+    with comments stored in database metadata. PostgreSQL & MySQL support.
+
+        create_table :pages, force: :cascade, comment: 'CMS content pages' do |t|
+          t.string :path,   comment: 'Path fragment of page URL used for routing'
+          t.string :locale, comment: 'RFC 3066 locale code of website language section'
+          t.index [:path, :locale], comment: 'Look up pages by URI'
+        end
+
+    *Andrey Novikov*
+
 *   Add `quoted_time` for truncating the date part of a TIME column value.
     This fixes queries on TIME column on MariaDB, as it doesn't ignore the 
     date part of the string when it coerces to time.

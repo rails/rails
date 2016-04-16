@@ -278,6 +278,16 @@ module ActiveRecord
         false
       end
 
+      # Does adapter supports comments on database objects (tables, columns, indexes)?
+      def supports_comments?
+        false
+      end
+
+      # Can comments for tables, columns, and indexes be specified in create/alter table statements?
+      def supports_comments_in_create?
+        false
+      end
+
       # This is meant to be implemented by the adapters that support extensions
       def disable_extension(name)
       end

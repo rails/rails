@@ -159,6 +159,10 @@ module ActiveRecord
         postgresql_version >= 90200
       end
 
+      def supports_comments?
+        true
+      end
+
       def index_algorithms
         { concurrently: 'CONCURRENTLY' }
       end
@@ -712,7 +716,7 @@ module ActiveRecord
         # Returns the list of a table's column names, data types, and default values.
         #
         # The underlying query is roughly:
-        #  SELECT column.name, column.type, default.value
+        #  SELECT column.name, column.type, default.value, column.comment
         #    FROM column LEFT JOIN default
         #      ON column.table_id = default.table_id
         #     AND column.num = default.column_num
@@ -732,7 +736,8 @@ module ActiveRecord
               SELECT a.attname, format_type(a.atttypid, a.atttypmod),
                      pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod,
              (SELECT c.collname FROM pg_collation c, pg_type t
-               WHERE c.oid = a.attcollation AND t.oid = a.atttypid AND a.attcollation <> t.typcollation)
+               WHERE c.oid = a.attcollation AND t.oid = a.atttypid AND a.attcollation <> t.typcollation),
+                     col_description(a.attrelid, a.attnum) AS comment
                 FROM pg_attribute a LEFT JOIN pg_attrdef d
                   ON a.attrelid = d.adrelid AND a.attnum = d.adnum
                WHERE a.attrelid = '#{quote_table_name(table_name)}'::regclass
@@ -746,8 +751,8 @@ module ActiveRecord
           $1.strip if $1
         end
 
-        def create_table_definition(name, temporary = false, options = nil, as = nil) # :nodoc:
-          PostgreSQL::TableDefinition.new(name, temporary, options, as)
+        def create_table_definition(name, temporary = false, options = nil, as = nil, comment = nil) # :nodoc:
+          PostgreSQL::TableDefinition.new(name, temporary, options, as, comment)
         end
 
         def can_perform_case_insensitive_comparison_for?(column)

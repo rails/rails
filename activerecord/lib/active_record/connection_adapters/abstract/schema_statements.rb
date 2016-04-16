@@ -18,6 +18,11 @@ module ActiveRecord
         nil
       end
 
+      # Returns comment associated with given table in database
+      def table_comment(table_name)
+        nil
+      end
+
       # Truncates a table alias according to the limits of the current adapter.
       def table_alias_for(table_name)
         table_name[0...table_alias_length].tr('.', '_')
@@ -255,7 +260,7 @@ module ActiveRecord
       #
       # See also TableDefinition#column for details on how to create columns.
       def create_table(table_name, options = {})
-        td = create_table_definition table_name, options[:temporary], options[:options], options[:as]
+        td = create_table_definition table_name, options[:temporary], options[:options], options[:as], options[:comment]
 
         if options[:id] != false && !options[:as]
           pk = options.fetch(:primary_key) do
@@ -265,7 +270,7 @@ module ActiveRecord
           if pk.is_a?(Array)
             td.primary_keys pk
           else
-            td.primary_key pk, options.fetch(:id, :primary_key), options
+            td.primary_key pk, options.fetch(:id, :primary_key), options.except(:comment)
           end
         end
 
@@ -280,6 +285,13 @@ module ActiveRecord
         unless supports_indexes_in_create?
           td.indexes.each_pair do |column_name, index_options|
             add_index(table_name, column_name, index_options)
+          end
+        end
+
+        if supports_comments? && !supports_comments_in_create?
+          change_table_comment(table_name, options[:comment]) if options[:comment]
+          td.columns.each do |column|
+            change_column_comment(table_name, column.name, column.comment) if column.comment
           end
         end
 
@@ -1087,7 +1099,7 @@ module ActiveRecord
       def add_index_options(table_name, column_name, options = {}) #:nodoc:
         column_names = Array(column_name)
 
-        options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type)
+        options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type, :comment)
 
         index_type = options[:type].to_s if options.key?(:type)
         index_type ||= options[:unique] ? "UNIQUE" : ""
@@ -1115,11 +1127,23 @@ module ActiveRecord
         end
         index_columns = quoted_columns_for_index(column_names, options).join(", ")
 
-        [index_name, index_type, index_columns, index_options, algorithm, using]
+        comment = options[:comment] if options.key?(:comment)
+
+        [index_name, index_type, index_columns, index_options, algorithm, using, comment]
       end
 
       def options_include_default?(options)
         options.include?(:default) && !(options[:null] == false && options[:default].nil?)
+      end
+
+      # Adds comment for given table or drops it if +nil+ given
+      def change_table_comment(table_name, comment)
+        raise NotImplementedError, "change_table_comment is not implemented"
+      end
+
+      # Adds comment for given table column or drops it if +nil+ given
+      def change_column_comment(table_name, column_name, comment) #:nodoc:
+        raise NotImplementedError, "change_column_comment is not implemented"
       end
 
       protected
@@ -1203,8 +1227,8 @@ module ActiveRecord
         end
 
       private
-      def create_table_definition(name, temporary = false, options = nil, as = nil)
-        TableDefinition.new(name, temporary, options, as)
+      def create_table_definition(name, temporary = false, options = nil, as = nil, comment = nil)
+        TableDefinition.new(name, temporary, options, as, comment)
       end
 
       def create_alter_table(name)
