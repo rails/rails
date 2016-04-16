@@ -776,7 +776,8 @@ module ActiveRecord
       # [<tt>:type</tt>]
       #   The reference column type. Defaults to +:integer+.
       # [<tt>:index</tt>]
-      #   Add an appropriate index. Defaults to false.
+      #   Add an appropriate index. Defaults to false.  
+      #   See #add_index for usage of this option.
       # [<tt>:foreign_key</tt>]
       #   Add an appropriate foreign key constraint. Defaults to false.
       # [<tt>:polymorphic</tt>]
@@ -795,6 +796,14 @@ module ActiveRecord
       # ====== Create supplier_id, supplier_type columns and appropriate index
       #
       #   add_reference(:products, :supplier, polymorphic: true, index: true)
+      #
+      # ====== Create a supplier_id column with a unique index
+      #
+      #   add_reference(:products, :supplier, index: { unique: true })
+      #
+      # ====== Create a supplier_id column with a named index
+      #
+      #   add_reference(:products, :supplier, index: { name: "my_supplier_index" })
       #
       # ====== Create a supplier_id column and appropriate foreign key
       #
