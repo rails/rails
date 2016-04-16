@@ -1,3 +1,10 @@
+*   Fix a bug where translation for `restrict_with_error` has to be set on child 
+    instead of parent.
+
+    Fixes #17003
+
+    *Alex Handley*
+
 *   Add `quoted_time` for truncating the date part of a TIME column value.
     This fixes queries on TIME column on MariaDB, as it doesn't ignore the 
     date part of the string when it coerces to time.
