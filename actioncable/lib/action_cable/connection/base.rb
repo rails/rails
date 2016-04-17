@@ -40,7 +40,7 @@ module ActionCable
     # Second, we rely on the fact that the WebSocket connection is established with the cookies from the domain being sent along. This makes
     # it easy to use signed cookies that were set when logging in via a web interface to authorize the WebSocket connection.
     #
-    # Finally, we add a tag to the connection-specific logger with name of the current user to easily distinguish their messages in the log.
+    # Finally, we add a tag to the connection-specific logger with the name of the current user to easily distinguish their messages in the log.
     #
     # Pretty simple, eh?
     class Base
