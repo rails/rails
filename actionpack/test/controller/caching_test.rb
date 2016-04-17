@@ -219,12 +219,15 @@ CACHED
   end
 
   def test_fragment_caching_with_options
+    time = Time.now
     get :fragment_cached_with_options
     assert_response :success
     expected_body = "<body>\n<p>ERB</p>\n</body>\n"
 
     assert_equal expected_body, @response.body
-    assert_equal "<p>ERB</p>", @store.read("views/with_options")
+    Time.stub(:now, time + 11) do
+      assert_nil @store.read("views/with_options")
+    end
   end
 
   def test_render_inline_before_fragment_caching
