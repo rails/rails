@@ -26,8 +26,7 @@ class CommentTest < ActiveRecord::TestCase
     @connection.drop_table 'commenteds', if_exists: true
   end
 
-  if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
-
+  if ActiveRecord::Base.connection.supports_comments?
     def test_column_created_in_block
       Commented.reset_column_information
       column = Commented.columns_hash['name']
@@ -86,6 +85,5 @@ class CommentTest < ActiveRecord::TestCase
       assert_match %r[add_index\s+.+\s+comment: "\\\"Very important\\\" index that powers all the performance.\\nAnd it's fun!"], output
       assert_match %r[add_index\s+.+\s+name: "idx_obvious",.+\s+comment: "We need to see obvious comments"], output
     end
-
   end
 end

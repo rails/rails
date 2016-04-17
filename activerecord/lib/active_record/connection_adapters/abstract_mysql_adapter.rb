@@ -160,8 +160,8 @@ module ActiveRecord
         raise NotImplementedError
       end
 
-      def new_column(field, default, sql_type_metadata, null, table_name, default_function = nil, collation = nil, comment = nil) # :nodoc:
-        MySQL::Column.new(field, default, sql_type_metadata, null, table_name, default_function, collation, comment)
+      def new_column(*args) #:nodoc:
+        MySQL::Column.new(*args)
       end
 
       # Must return the MySQL error number from the exception, if the exception has an
@@ -394,20 +394,20 @@ module ActiveRecord
           else
             default, default_function = field[:Default], nil
           end
-          new_column(field[:Field], default, type_metadata, field[:Null] == "YES", table_name, default_function, field[:Collation], field[:Comment].presence)
+          new_column(field[:Field], default, type_metadata, field[:Null] == "YES", table_name, default_function, field[:Collation], comment: field[:Comment].presence)
         end
       end
 
-      def table_comment(table_name)
+      def table_comment(table_name) # :nodoc:
         select_value(<<-SQL.strip_heredoc, 'SCHEMA')
           SELECT table_comment
-          FROM INFORMATION_SCHEMA.TABLES
-          WHERE table_name=#{quote(table_name)};
+          FROM information_schema.tables
+          WHERE table_name=#{quote(table_name)}
         SQL
       end
 
-      def create_table(table_name, options = {}) #:nodoc:
-        super(table_name, options.reverse_merge(:options => "ENGINE=InnoDB"))
+      def create_table(table_name, **options) #:nodoc:
+        super(table_name, options: 'ENGINE=InnoDB', **options)
       end
 
       def bulk_change_table(table_name, operations) #:nodoc:
@@ -881,8 +881,8 @@ module ActiveRecord
         create_table_info_cache[table_name] ||= select_one("SHOW CREATE TABLE #{quote_table_name(table_name)}")["Create Table"]
       end
 
-      def create_table_definition(name, temporary = false, options = nil, as = nil, comment = nil) # :nodoc:
-        MySQL::TableDefinition.new(name, temporary, options, as, comment)
+      def create_table_definition(*args) # :nodoc:
+        MySQL::TableDefinition.new(*args)
       end
 
       def integer_to_sql(limit) # :nodoc:

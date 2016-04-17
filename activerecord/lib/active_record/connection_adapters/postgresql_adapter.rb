@@ -163,6 +163,10 @@ module ActiveRecord
         true
       end
 
+      def supports_comments_in_create?
+        false
+      end
+
       def index_algorithms
         { concurrently: 'CONCURRENTLY' }
       end
@@ -751,8 +755,8 @@ module ActiveRecord
           $1.strip if $1
         end
 
-        def create_table_definition(name, temporary = false, options = nil, as = nil, comment = nil) # :nodoc:
-          PostgreSQL::TableDefinition.new(name, temporary, options, as, comment)
+        def create_table_definition(*args) # :nodoc:
+          PostgreSQL::TableDefinition.new(*args)
         end
 
         def can_perform_case_insensitive_comparison_for?(column)

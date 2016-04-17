@@ -278,7 +278,7 @@ module ActiveRecord
         false
       end
 
-      # Does adapter supports comments on database objects (tables, columns, indexes)?
+      # Does this adapter support metadata comments on database objects (tables, columns, indexes)?
       def supports_comments?
         false
       end

@@ -225,27 +225,27 @@ module ActiveRecord
             type_metadata = fetch_type_metadata(column_name, type, oid, fmod)
             default_value = extract_value_from_default(default)
             default_function = extract_default_function(default_value, default)
-            new_column(column_name, default_value, type_metadata, !notnull, table_name, default_function, collation, comment)
+            new_column(column_name, default_value, type_metadata, !notnull, table_name, default_function, collation, comment: comment)
           end
         end
 
-        def new_column(name, default, sql_type_metadata, null, table_name, default_function = nil, collation = nil, comment = nil) # :nodoc:
-          PostgreSQLColumn.new(name, default, sql_type_metadata, null, table_name, default_function, collation, comment)
+        def new_column(*args) # :nodoc:
+          PostgreSQLColumn.new(*args)
         end
 
         # Returns a comment stored in database for given table
         def table_comment(table_name) # :nodoc:
           name = Utils.extract_schema_qualified_name(table_name.to_s)
-          return nil unless name.identifier
-
-          select_value(<<-SQL.strip_heredoc, 'SCHEMA')
-            SELECT pg_catalog.obj_description(c.oid, 'pg_class')
-            FROM pg_catalog.pg_class c
-              LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
-            WHERE c.relname = '#{name.identifier}'
-              AND c.relkind IN ('r') -- (r)elation/table
-              AND n.nspname = #{name.schema ? "'#{name.schema}'" : 'ANY (current_schemas(false))'}
-          SQL
+          if name.identifier
+            select_value(<<-SQL.strip_heredoc, 'SCHEMA')
+              SELECT pg_catalog.obj_description(c.oid, 'pg_class')
+              FROM pg_catalog.pg_class c
+                LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
+              WHERE c.relname = #{quote(name.identifier)}
+                AND c.relkind IN ('r') -- (r)elation/table
+                AND n.nspname = #{name.schema ? quote(name.schema) : 'ANY (current_schemas(false))'}
+            SQL
+          end
         end
 
         # Returns the current database name.
@@ -536,9 +536,9 @@ module ActiveRecord
 
         def add_index(table_name, column_name, options = {}) #:nodoc:
           index_name, index_type, index_columns, index_options, index_algorithm, index_using, comment = add_index_options(table_name, column_name, options)
-          result = execute "CREATE #{index_type} INDEX #{index_algorithm} #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} #{index_using} (#{index_columns})#{index_options}"
-          execute "COMMENT ON INDEX #{quote_column_name(index_name)} IS #{quote(comment)}" if comment
-          result # Result of execute is used in tests in activerecord/test/cases/adapters/postgresql/active_schema_test.rb
+          execute("CREATE #{index_type} INDEX #{index_algorithm} #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} #{index_using} (#{index_columns})#{index_options}").tap do
+            execute "COMMENT ON INDEX #{quote_column_name(index_name)} IS #{quote(comment)}" if comment
+          end
         end
 
         def remove_index(table_name, options = {}) #:nodoc:

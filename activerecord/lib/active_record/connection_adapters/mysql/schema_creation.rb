@@ -25,10 +25,11 @@ module ActiveRecord
           add_column_position!(change_column_sql, column_options(o.column))
         end
 
-        def add_table_options!(sql, options)
+        def add_table_options!(create_sql, options)
           super
-          if options[:comment]
-            sql << "COMMENT #{quote(options[:comment])} "
+
+          if comment = options[:comment]
+            create_sql << " COMMENT #{quote(comment)}"
           end
         end
 
@@ -39,17 +40,21 @@ module ActiveRecord
         end
 
         def add_column_options!(sql, options)
-          if options[:charset]
-            sql << " CHARACTER SET #{options[:charset]}"
+          if charset = options[:charset]
+            sql << " CHARACTER SET #{charset}"
           end
-          if options[:collation]
-            sql << " COLLATE #{options[:collation]}"
+
+          if collation = options[:collation]
+            sql << " COLLATE #{collation}"
           end
-          new_sql = super
-          if options[:comment]
-            new_sql << " COMMENT #{quote(options[:comment])}"
+
+          super
+
+          if comment = options[:comment]
+            sql << " COMMENT #{quote(comment)}"
           end
-          new_sql
+
+          sql
         end
 
         def add_column_position!(sql, options)
@@ -58,6 +63,7 @@ module ActiveRecord
           elsif options[:after]
             sql << " AFTER #{quote_column_name(options[:after])}"
           end
+
           sql
         end
 
