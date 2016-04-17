@@ -134,21 +134,10 @@ module ActiveSupport
     # See http://en.wikipedia.org/wiki/ISO_8601#Durations
     # This method allows negative parts to be present in pattern.
     # If invalid string is provided, it will raise +ActiveSupport::Duration::ISO8601Parser::ParsingError+.
-    def self.parse!(iso8601duration)
+    def self.parse(iso8601duration)
       parts = ISO8601Parser.new(iso8601duration).parse!
       time  = ::Time.current
       new(time.advance(parts) - time, parts)
-    end
-
-    # Creates a new Duration from string formatted according to ISO 8601 Duration.
-    #
-    # See http://en.wikipedia.org/wiki/ISO_8601#Durations
-    # This method allows negative parts to be present in pattern.
-    # If invalid string is provided, nil will be returned.
-    def self.parse(iso8601duration)
-      parse!(iso8601duration)
-    rescue ISO8601Parser::ParsingError
-      nil
     end
 
     # Build ISO 8601 Duration string for this duration.
