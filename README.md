@@ -68,7 +68,7 @@ and may also be used independently outside Rails.
    Run with `--help` or `-h` for options.
 
 4. Using a browser, go to `http://localhost:3000` and you'll see:
-![Welcome to Rails Page](guides/images/welcome_page.png "Welcome to Rails")
+![Welcome to Rails Page](guides/assets/images/welcome_page.png "Welcome to Rails")
 
 
 5. Follow the guidelines to start developing your application. You may find
