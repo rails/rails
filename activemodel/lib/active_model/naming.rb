@@ -244,7 +244,7 @@ module ActiveModel
 
     # Returns the plural class name of a record or class.
     #
-    #   ActiveModel::Naming.plural(post)             # => "posts"
+    #   ActiveModel::Naming.plural(Post)             # => "posts"
     #   ActiveModel::Naming.plural(Highrise::Person) # => "highrise_people"
     def self.plural(record_or_class)
       model_name_from_record_or_class(record_or_class).plural
@@ -252,7 +252,7 @@ module ActiveModel
 
     # Returns the singular class name of a record or class.
     #
-    #   ActiveModel::Naming.singular(post)             # => "post"
+    #   ActiveModel::Naming.singular(Post)             # => "post"
     #   ActiveModel::Naming.singular(Highrise::Person) # => "highrise_person"
     def self.singular(record_or_class)
       model_name_from_record_or_class(record_or_class).singular
