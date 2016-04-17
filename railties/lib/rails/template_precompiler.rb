@@ -1,3 +1,5 @@
+require "action_view"
+
 module Rails
   class TemplateFinder
     attr_reader :app, :root
