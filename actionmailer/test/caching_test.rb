@@ -125,15 +125,16 @@ class FunctionalFragmentCachingTest < BaseCachingTest
     expected_body = "\"Welcome\""
 
     assert_match expected_body, email.body.encoded
-    assert_match "\"Welcome\"",
+    assert_match expected_body,
       @store.read("views/caching/#{template_digest("caching_mailer/fragment_cache")}")
   end
 
   def test_fragment_caching_in_partials
     email = @mailer.fragment_cache_in_partials
-    assert_match(/Old fragment caching in a partial/, email.body.encoded)
+    expected_body = 'Old fragment caching in a partial'
+    assert_match(expected_body, email.body.encoded)
 
-    assert_match("Old fragment caching in a partial",
+    assert_match(expected_body,
       @store.read("views/caching/#{template_digest("caching_mailer/_partial")}"))
   end
 
@@ -143,6 +144,47 @@ class FunctionalFragmentCachingTest < BaseCachingTest
 
     assert_match expected_body, email.body.encoded
     assert_match expected_body, @store.read("views/no_digest")
+  end
+
+  def test_fragment_caching_options
+    time = Time.now
+    email = @mailer.fragment_caching_options
+    expected_body = "No Digest"
+
+    assert_match expected_body, email.body.encoded
+    Time.stub(:now, time + 11) do
+      assert_nil @store.read("views/no_digest")
+    end
+  end
+
+  def test_multipart_fragment_caching
+    email = @mailer.multipart_cache
+
+    expected_text_body = "\"Welcome text\""
+    expected_html_body = "\"Welcome html\""
+    encoded_body = email.body.encoded
+    assert_match expected_text_body, encoded_body
+    assert_match expected_html_body, encoded_body
+    assert_match expected_text_body,
+                 @store.read("views/text_caching")
+    assert_match expected_html_body,
+                 @store.read("views/html_caching")
+  end
+
+  def test_fragment_cache_instrumentation
+    payload = nil
+
+    subscriber = proc do |*args|
+      event = ActiveSupport::Notifications::Event.new(*args)
+      payload = event.payload
+    end
+
+    ActiveSupport::Notifications.subscribed(subscriber, "read_fragment.action_mailer") do
+      @mailer.fragment_cache
+    end
+
+    assert_equal "caching_mailer", payload[:mailer]
+    assert_equal "views/caching/#{template_digest("caching_mailer/fragment_cache")}", payload[:key]
   end
 
   private
