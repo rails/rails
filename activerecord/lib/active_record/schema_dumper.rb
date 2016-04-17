@@ -138,8 +138,9 @@ HEADER
           table_options = @connection.table_options(table)
           tbl.print ", options: #{table_options.inspect}" unless table_options.blank?
 
-          comment = @connection.table_comment(table)
-          tbl.print ", comment: #{comment.inspect}" if comment
+          if comment = @connection.table_comment(table)
+            tbl.print ", comment: #{comment.inspect}"
+          end
 
           tbl.puts " do |t|"
 

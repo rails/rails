@@ -209,7 +209,7 @@ module ActiveRecord
       attr_accessor :indexes
       attr_reader :name, :temporary, :options, :as, :foreign_keys, :comment
 
-      def initialize(name, temporary, options, as = nil, comment = nil)
+      def initialize(name, temporary = false, options = nil, as = nil, comment: nil)
         @columns_hash = {}
         @indexes = {}
         @foreign_keys = []
