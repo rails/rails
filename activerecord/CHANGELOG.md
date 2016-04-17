@@ -21,6 +21,28 @@
 
     *Sean Griffin*
 
+*   Added notice when a database is successfully created or dropped.
+
+    Example:
+
+      ```
+      $ bin/rails db:create
+      Created database 'blog_development'
+      Created database 'blog_test'
+      ```
+
+      ```
+      $ bin/rails db:drop
+      Dropped database 'blog_development'
+      Dropped database 'blog_test'
+      ```
+    Changed older notices
+    `blog_development  already exists` to `Database 'blog_development' already exists`
+    and
+    `Couldn't drop blog_development` to `Couldn't drop database 'blog_development'`.
+
+    *bogdanvlviv*
+
 *   MariaDB 5.3+ supports microsecond datetime precision.
 
     *Jeremy Daer*
