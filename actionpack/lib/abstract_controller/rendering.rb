@@ -109,7 +109,7 @@ module AbstractController
     end
 
     # Process the rendered format.
-    # :api: private
+    # :api: plugin
     def _process_format(format)
     end
 
