@@ -575,12 +575,12 @@ module ActiveSupport
         end
 
         def get_entry_value(entry, name, options)
-          instrument(:fetch_hit, name, options) { |payload| }
+          instrument(:fetch_hit, name, options) { }
           entry.value
         end
 
         def save_block_result_to_cache(name, options)
-          result = instrument(:generate, name, options) do |payload|
+          result = instrument(:generate, name, options) do
             yield(name)
           end
 
