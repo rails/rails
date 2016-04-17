@@ -237,7 +237,6 @@ module ActionView
       # Compile a template. This method ensures a template is compiled
       # just once and removes the source after it is compiled.
       def compile!(view) #:nodoc:
-        puts "Is (#{self.inspect}/#{object_id}) compiled? #{@compiled}"
         return if @compiled
 
         # Templates can be used concurrently in threaded environments
