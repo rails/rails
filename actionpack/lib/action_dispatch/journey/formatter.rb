@@ -12,12 +12,13 @@ module ActionDispatch
         @cache  = nil
       end
 
-      def generate(name, options, path_parameters, parameterize = nil)
+      def generate(name, options, path_parameters, parameterize = nil, path_parameters_action = nil)
         constraints = path_parameters.merge(options)
+        constraints[:action] = path_parameters_action if path_parameters_action && !options[:action]
         missing_keys = nil # need for variable scope
 
         match_route(name, constraints) do |route|
-          parameterized_parts = extract_parameterized_parts(route, options, path_parameters, parameterize)
+          parameterized_parts = extract_parameterized_parts(route, options, path_parameters, parameterize, path_parameters_action)
 
           # Skip this route unless a name has been provided or it is a
           # standard Rails route since we can't determine whether an options
@@ -51,8 +52,9 @@ module ActionDispatch
 
       private
 
-        def extract_parameterized_parts(route, options, recall, parameterize = nil)
+        def extract_parameterized_parts(route, options, recall, parameterize = nil, recall_action = nil)
           parameterized_parts = recall.merge(options)
+          parameterized_parts[:action] = recall_action if recall_action && !options[:action]
 
           keys_to_keep = route.parts.reverse_each.drop_while { |part|
             !options.key?(part) || (options[part] || recall[part]).nil?
