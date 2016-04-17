@@ -1,8 +1,8 @@
 # Welcome to Rails
 
-A web framework that includes everything needed to create database-backed web applications using the [Model-View-Controller (MVC)](http://en.wikipedia.org/wiki/Model-view-controller) pattern.
+[![Gem Version](https://badge.fury.io/rb/rails.svg)](https://badge.fury.io/rb/rails) [![Build Status](https://travis-ci.org/rails/rails.svg?branch=master)](https://travis-ci.org/rails/rails)
 
-[![GitHub version][img-version-badge]][badge-version] [![Build Status](https://travis-ci.org/rails/rails.svg?branch=master)](https://travis-ci.org/rails/rails)
+A web framework that includes everything needed to create database-backed web applications using the [Model-View-Controller (MVC)](http://en.wikipedia.org/wiki/Model-view-controller) pattern.
 
 Understanding the MVC pattern is key to understanding Rails. MVC divides your application into three layers, each with a specific responsibility.
 
@@ -68,7 +68,7 @@ and may also be used independently outside Rails.
    Run with `--help` or `-h` for options.
 
 4. Using a browser, go to `http://localhost:3000` and you'll see:
-!(Welcome to Rails Page)[guides/images/welcome_page.png]
+![Welcome to Rails Page](guides/images/welcome_page.png "Welcome to Rails")
 
 
 5. Follow the guidelines to start developing your application. You may find
