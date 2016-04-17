@@ -103,7 +103,8 @@ module ActiveSupport
     # exactly once on the result of any call to +run!+.
     #
     # Where possible, prefer +wrap+.
-    def complete!
+    def complete!(**args)
+      @args = args
       run_callbacks(:complete)
     ensure
       self.class.active.delete Thread.current

@@ -44,8 +44,8 @@ module ActiveRecord
       executor.register_hook(self)
 
       executor.to_complete do
-        # FIXME: This should be skipped when env['rack.test']
-        ActiveRecord::Base.clear_active_connections!
+        testing = @args[:env]['rack.test']
+        ActiveRecord::Base.clear_active_connections! unless testing
       end
     end
   end
