@@ -121,10 +121,8 @@ module ActiveSupport
         to_sentence(locale: ::I18n.default_locale)
     end
 
-    # JSON representation should be a string formatted as ISO 8601 Duration, as recommended by Google JSON Style Guide:
-    # https://google-styleguide.googlecode.com/svn/trunk/jsoncstyleguide.xml?showone=Time_Duration_Property_Values#Time_Duration_Property_Values
     def as_json(options = nil) #:nodoc:
-      iso8601(precision: options && options[:precision])
+      to_i
     end
 
     def respond_to_missing?(method, include_private=false) #:nodoc:
