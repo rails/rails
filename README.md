@@ -71,8 +71,10 @@ and may also be used independently outside Rails.
 
 ![Welcome to Rails Page](guides/assets/images/welcome_page.png "Welcome to Rails")
 
-5. Follow the guidelines to start developing your application. You may find
-   the following resources handy:
+## Documentation, Guides, and Tutorials
+
+Follow the guidelines to start developing your application. You may find the following resources handy:
+
     * [Getting Started with Rails](http://guides.rubyonrails.org/getting_started.html)
     * [Ruby on Rails Guides](http://guides.rubyonrails.org)
     * [The API Documentation](http://api.rubyonrails.org)
