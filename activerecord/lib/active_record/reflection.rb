@@ -519,12 +519,6 @@ module ActiveRecord
         seed + [self]
       end
 
-      protected
-
-        def actual_source_reflection # FIXME: this is a horrible name
-          self
-        end
-
       private
 
         def calculate_constructable(macro, options)
@@ -842,9 +836,9 @@ module ActiveRecord
       # the source_reflection, because the source_reflection may be polymorphic. We still
       # need to respect the source_reflection's :primary_key option, though.
       def association_primary_key(klass = nil)
-        # Get the "actual" source reflection if the immediate source reflection has a
-        # source reflection itself
-        actual_source_reflection.options[:primary_key] || primary_key(klass || self.klass)
+        # Get the "actual" (nested) source reflection (source reflection of the current source reflection),
+        # if the immediate source reflection has a source reflection itself
+        source_reflection.source_reflection.options[:primary_key] || primary_key(klass || self.klass)
       end
 
       # Gets an array of possible <tt>:through</tt> source reflection names in both singular and plural form.
@@ -957,10 +951,6 @@ module ActiveRecord
       end
 
       protected
-
-        def actual_source_reflection # FIXME: this is a horrible name
-          source_reflection.send(:actual_source_reflection)
-        end
 
         def primary_key(klass)
           klass.primary_key || raise(UnknownPrimaryKey.new(klass))

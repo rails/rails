@@ -107,6 +107,10 @@ module ActionController
         options[:status] = Rack::Utils.status_code(options[:status])
       end
 
+      if request.variant.present?
+        options[:variant] = request.variant
+      end
+
       super
     end
 
