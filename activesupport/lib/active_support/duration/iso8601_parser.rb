@@ -2,11 +2,11 @@ require 'strscan'
 
 module ActiveSupport
   class Duration
-    # Parses a string formatted according to ISO 8601 Duration into the hash .
+    # Parses a string formatted according to ISO 8601 Duration into the hash.
     #
-    # See http://en.wikipedia.org/wiki/ISO_8601#Durations
-    # Parts of code and logic are taken from ISO8601 gem by Arnau Siches (@arnau).
-    # This parser isn't so strict and allows negative parts to be present in pattern.
+    # See http://en.wikipedia.org/wiki/ISO_8601#Durations .
+    #
+    # This parser allows negative parts to be present in pattern.
     class ISO8601Parser # :nodoc:
       class ParsingError < ::ArgumentError; end
 
@@ -83,7 +83,7 @@ module ActiveSupport
         scanner.eos?
       end
 
-      # Parses number which can be a float with either comma or period
+      # Parses number which can be a float with either comma or period.
       def number
         scanner[1] =~ PERIOD_OR_COMMA ? scanner[1].tr(COMMA, PERIOD).to_f : scanner[1].to_i
       end
@@ -96,16 +96,16 @@ module ActiveSupport
         raise ParsingError, "Invalid ISO 8601 duration: #{scanner.string.inspect} #{reason}".strip
       end
 
-      # Checks for various semantic errors as stated in ISO 8601 standard
+      # Checks for various semantic errors as stated in ISO 8601 standard.
       def validate!
         raise_parsing_error('is empty duration') if parts.empty?
 
-        # Mixing any of Y, M, D with W is invalid
+        # Mixing any of Y, M, D with W is invalid.
         if parts.key?(:weeks) && (parts.keys & DATE_COMPONENTS).any?
           raise_parsing_error('mixing weeks with other date parts not allowed')
         end
 
-        # Specifying an empty T part is invalid
+        # Specifying an empty T part is invalid.
         if mode == :time && (parts.keys & TIME_COMPONENTS).empty?
           raise_parsing_error('time part marker is present but time part is empty')
         end

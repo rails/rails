@@ -10,7 +10,7 @@ module ActiveSupport
         @precision = precision
       end
 
-      # Builds and returns output string
+      # Builds and returns output string.
       def serialize
         output = 'P'
         parts, sign = normalize
@@ -30,9 +30,9 @@ module ActiveSupport
 
       private
 
-        # Return pair of duration's parts and whole duration sign
-        # Parts are summarized (as they can become repetitive due to addition, etc)
-        # zero parts are removed as not significant.
+        # Return pair of duration's parts and whole duration sign.
+        # Parts are summarized (as they can become repetitive due to addition, etc).
+        # Zero parts are removed as not significant.
         # If all parts are negative it will negate all of them and return minus as a sign.
         def normalize
           parts = @duration.parts.each_with_object(Hash.new(0)) do |(k,v),p|
