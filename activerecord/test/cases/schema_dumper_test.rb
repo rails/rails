@@ -323,9 +323,9 @@ class SchemaDumperTest < ActiveRecord::TestCase
       create_table("dogs") do |t|
         t.column :name, :string
         t.column :owner_id, :integer
+        t.index [:name]
+        t.foreign_key :dog_owners, column: "owner_id" if supports_foreign_keys?
       end
-      add_index "dogs", [:name]
-      add_foreign_key :dogs, :dog_owners, column: "owner_id" if supports_foreign_keys?
     end
     def down
       drop_table("dogs")
