@@ -824,6 +824,9 @@ Please refer to the [Changelog][active-support] for detailed changes.
     application code, and the application reloading process.
     ([Pull Request](https://github.com/rails/rails/pull/23807))
 
+*   `ActiveSupport::Duration` now supports ISO8601 formatting and parsing.
+    ([Pull Request](https://github.com/rails/rails/pull/16917))
+
 
 Credits
 -------
