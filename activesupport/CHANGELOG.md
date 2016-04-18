@@ -1,3 +1,11 @@
+*   `Cache#fetch(key, force: true)` forces a cache miss, so it must be called
+    with a block to provide a new value to cache. Fetching with `force: true`
+    but without a block now raises ArgumentError.
+
+        cache.fetch('key', force: true) # => ArgumentError
+
+    *Santosh Wadghule*
+
 *   `ActiveSupport::Duration` supports weeks and hours.
 
         [1.hour.inspect, 1.hour.value, 1.hour.parts]

@@ -198,10 +198,17 @@ module ActiveSupport
       #   cache.fetch('city')   # => "Duckburgh"
       #
       # You may also specify additional options via the +options+ argument.
-      # Setting <tt>force: true</tt> will force a cache miss:
+      # Setting <tt>force: true</tt> forces a cache "miss," meaning we treat
+      # the cache value as missing even if it's present. Passing a block is
+      # required when `force` is true so this always results in a cache write.
       #
       #   cache.write('today', 'Monday')
-      #   cache.fetch('today', force: true)  # => nil
+      #   cache.fetch('today', force: true) { 'Tuesday' } # => 'Tuesday'
+      #   cache.fetch('today', force: true) # => ArgumentError
+      #
+      # The `:force` option is useful when you're calling some other method to
+      # ask whether you should force a cache write. Otherwise, it's clearer to
+      # just call `Cache#write`.
       #
       # Setting <tt>:compress</tt> will store a large cache entry set by the call
       # in a compressed format.
@@ -292,6 +299,8 @@ module ActiveSupport
           else
             save_block_result_to_cache(name, options) { |_name| yield _name }
           end
+        elsif options && options[:force]
+          raise ArgumentError, 'Missing block: Calling `Cache#fetch` with `force: true` requires a block.'
         else
           read(name, options)
         end
