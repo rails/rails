@@ -1,3 +1,20 @@
+*   ActiveSupport::Duration can be parsed from and outputted to ISO 8601 duration format.
+
+    Implementation inspired by [ISO8601](https://github.com/arnau/ISO8601/) gem by Arnau Siches
+    rewritten by Andrey Novikov with suggestions from Andrew White.
+    Test data taken from ISO8601 gem published under the conditions of MIT license:
+    https://github.com/arnau/ISO8601/blob/b93d466840/LICENSE
+
+    Examples:
+
+        ActiveSupport::Duration.parse('P3Y6M4DT12H30M5S')
+        # => 3 years, 6 months, 4 days, 12 hours, 30 minutes, and 5 seconds
+
+        (3.years + 3.days).iso8601
+        # => "P3Y3D"
+
+    *Andrey Novikov*, *Arnau Siches*, *Andrew White*
+
 *   `ActiveSupport::Duration` supports weeks and hours.
 
         [1.hour.inspect, 1.hour.value, 1.hour.parts]
