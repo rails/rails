@@ -10,9 +10,9 @@ module ActionDispatch
       state = @executor.run!
       begin
         response = @app.call(env)
-        returned = response << ::Rack::BodyProxy.new(response.pop) { state.complete! }
+        returned = response << ::Rack::BodyProxy.new(response.pop) { state.complete!(env: env) }
       ensure
-        state.complete! unless returned
+        state.complete!(env: env) unless returned
       end
     end
   end

@@ -70,6 +70,13 @@ module ActiveRecord
         end
       end
 
+      def test_connections_not_closed_if_testing
+        env = @env.merge!('rack.test' => 'hi')
+        _, _, body = @management.call(env)
+        body.close
+        assert ActiveRecord::Base.connection_handler.active_connections?
+      end
+
       test "doesn't clear active connections when running in a test case" do
         executor.wrap do
           @management.call(@env)
@@ -101,7 +108,9 @@ module ActiveRecord
 
         def middleware(app)
           lambda do |env|
-            a, b, c = executor.wrap { app.call(env) }
+            state = executor.run!
+            a, b, c = @app.call(env)
+            state.complete!(env: env)
             [a, b, Rack::BodyProxy.new(c) { }]
           end
         end
