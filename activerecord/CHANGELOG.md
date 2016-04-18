@@ -1,3 +1,22 @@
+*   Added notice when a database is successfully created or dropped.
+
+    Example:
+
+        $ bin/rails db:create
+        Created database 'blog_development'
+        Created database 'blog_test'
+
+        $ bin/rails db:drop
+        Dropped database 'blog_development'
+        Dropped database 'blog_test'
+
+    Changed older notices
+    `blog_development already exists` to `Database 'blog_development' already exists`.
+    and
+    `Couldn't drop blog_development` to `Couldn't drop database 'blog_development'`.
+
+    *bogdanvlviv*
+
 *   Database comments. Annotate database objects (tables, columns, indexes)
     with comments stored in database metadata. PostgreSQL & MySQL support.
 
@@ -10,7 +29,7 @@
     *Andrey Novikov*
 
 *   Add `quoted_time` for truncating the date part of a TIME column value.
-    This fixes queries on TIME column on MariaDB, as it doesn't ignore the 
+    This fixes queries on TIME column on MariaDB, as it doesn't ignore the
     date part of the string when it coerces to time.
 
     *Ryuta Kamizono*
@@ -20,28 +39,6 @@
     Fixes #24234
 
     *Sean Griffin*
-
-*   Added notice when a database is successfully created or dropped.
-
-    Example:
-
-      ```
-      $ bin/rails db:create
-      Created database 'blog_development'
-      Created database 'blog_test'
-      ```
-
-      ```
-      $ bin/rails db:drop
-      Dropped database 'blog_development'
-      Dropped database 'blog_test'
-      ```
-    Changed older notices
-    `blog_development  already exists` to `Database 'blog_development' already exists`
-    and
-    `Couldn't drop blog_development` to `Couldn't drop database 'blog_development'`.
-
-    *bogdanvlviv*
 
 *   MariaDB 5.3+ supports microsecond datetime precision.
 
