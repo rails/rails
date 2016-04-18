@@ -246,7 +246,7 @@ class AddUserRefToProducts < ActiveRecord::Migration[5.0]
 end
 ```
 
-This migration will create a `user_id` column and appropriate index.   
+This migration will create a `user_id` column and appropriate index.
 For more `add_reference` options, visit the [API documentation](http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_reference).
 
 There is also a generator which will produce join tables if `JoinTable` is part of the name:
@@ -361,7 +361,7 @@ that will be stored in database itself and can be viewed with database administr
 tools, such as MySQL Workbench or PgAdmin III. It's highly recommended to specify
 comments in migrations for applications with large databases as it helps people
 to understand data model and generate documentation.
-Currently only MySQL and PostgreSQL supports comments.
+Currently only the MySQL and PostgreSQL adapters support comments.
 
 ### Creating a Join Table
 
