@@ -23,23 +23,23 @@ module ActiveRecord
         end
       end
 
-      ActiveSupport::Notifications.subscribe("sql.active_record") do |*args|
-        payload = args.last
-
+      # :stopdoc:
+      ActiveSupport::Notifications.subscribe("sql.active_record") do |*, payload|
         QueryRegistry.queries << payload[:sql]
       end
+      # :startdoc:
 
       class QueryRegistry # :nodoc:
         extend ActiveSupport::PerThreadRegistry
 
-        attr_accessor :queries
+        attr_reader :queries
 
         def initialize
-          reset
+          @queries = []
         end
 
         def reset
-          @queries = []
+          @queries.clear
         end
       end
     end

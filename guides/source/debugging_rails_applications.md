@@ -109,18 +109,18 @@ It can also be useful to save information to log files at runtime. Rails maintai
 
 Rails makes use of the `ActiveSupport::Logger` class to write log information. Other loggers, such as `Log4r`, may also be substituted.
 
-You can specify an alternative logger in `environment.rb` or any other environment file, for example:
+You can specify an alternative logger in `config/application.rb` or any other environment file, for example:
 
 ```ruby
-Rails.logger = Logger.new(STDOUT)
-Rails.logger = Log4r::Logger.new("Application Log")
+config.logger = Logger.new(STDOUT)
+config.logger = Log4r::Logger.new("Application Log")
 ```
 
 Or in the `Initializer` section, add _any_ of the following
 
 ```ruby
-config.logger = Logger.new(STDOUT)
-config.logger = Log4r::Logger.new("Application Log")
+Rails.logger = Logger.new(STDOUT)
+Rails.logger = Log4r::Logger.new("Application Log")
 ```
 
 TIP: By default, each log is created under `Rails.root/log/` and the log file is named after the environment in which the application is running.
@@ -311,14 +311,15 @@ processing the entire request.
 For example:
 
 ```bash
-=> Booting WEBrick
+=> Booting Puma
 => Rails 5.0.0 application starting in development on http://0.0.0.0:3000
 => Run `rails server -h` for more startup options
-=> Notice: server is listening on all interfaces (0.0.0.0). Consider using 127.0.0.1 (--binding option)
-=> Ctrl-C to shutdown server
-[2014-04-11 13:11:47] INFO  WEBrick 1.3.1
-[2014-04-11 13:11:47] INFO  ruby 2.1.1 (2014-02-24) [i686-linux]
-[2014-04-11 13:11:47] INFO  WEBrick::HTTPServer#start: pid=6370 port=3000
+Puma starting in single mode...
+* Version 3.0.2 (ruby 2.3.0-p0), codename: Plethora of Penguin Pinatas
+* Min threads: 5, max threads: 5
+* Environment: development
+* Listening on tcp://localhost:3000
+Use Ctrl-C to stop
 
 
 Started GET "/" for 127.0.0.1 at 2014-04-11 13:11:48 +0200
@@ -346,22 +347,12 @@ by asking the debugger for help. Type: `help`
 ```
 (byebug) help
 
-byebug 2.7.0
+  h[elp][ <cmd>[ <subcmd>]]
 
-Type 'help <command-name>' for help on a specific command
-
-Available commands:
-backtrace  delete   enable  help       list    pry next  restart  source     up
-break      disable  eval    info       method  ps        save     step       var
-catch      display  exit    interrupt  next    putl      set      thread
-condition  down     finish  irb        p       quit      show     trace
-continue   edit     frame   kill       pp      reload    skip     undisplay
+  help                -- prints this help.
+  help <cmd>          -- prints help on command <cmd>.
+  help <cmd> <subcmd> -- prints help on <cmd>'s subcommand <subcmd>.
 ```
-
-TIP: To view the help menu for any command use `help <command-name>` at the
-debugger prompt. For example: _`help list`_. You can abbreviate any debugging
-command by supplying just enough letters to distinguish them from other
-commands. For example, you can use `l` for the `list` command.
 
 To see the previous ten lines you should type `list-` (or `l-`).
 
@@ -469,12 +460,12 @@ The debugger can list, stop, resume and switch between running threads by using
 the `thread` command (or the abbreviated `th`). This command has a handful of
 options:
 
-* `thread` shows the current thread.
-* `thread list` is used to list all threads and their statuses. The plus +
+* `thread`: shows the current thread.
+* `thread list`: is used to list all threads and their statuses. The plus +
 character and the number indicates the current thread of execution.
-* `thread stop _n_` stop thread _n_.
-* `thread resume _n_` resumes thread _n_.
-* `thread switch _n_` switches the current thread context to _n_.
+* `thread stop _n_`: stop thread _n_.
+* `thread resume _n_`: resumes thread _n_.
+* `thread switch _n_`: switches the current thread context to _n_.
 
 This command is very helpful when you are debugging concurrent threads and need
 to verify that there are no race conditions in your code.
@@ -502,7 +493,7 @@ current context:
 
 (byebug) instance_variables
 [:@_action_has_layout, :@_routes, :@_headers, :@_status, :@_request,
- :@_response, :@_env, :@_prefixes, :@_lookup_context, :@_action_name,
+ :@_response, :@_prefixes, :@_lookup_context, :@_action_name,
  :@_response_body, :@marked_for_same_origin_verification, :@_config]
 ```
 
@@ -531,8 +522,11 @@ command later in this guide).
 And then ask again for the instance_variables:
 
 ```
-(byebug) instance_variables.include? "@articles"
-true
+(byebug) instance_variables
+[:@_action_has_layout, :@_routes, :@_headers, :@_status, :@_request,
+ :@_response, :@_prefixes, :@_lookup_context, :@_action_name,
+ :@_response_body, :@marked_for_same_origin_verification, :@_config,
+ :@articles]
 ```
 
 Now `@articles` is included in the instance variables, because the line defining it
@@ -615,7 +609,7 @@ Started GET "/" for 127.0.0.1 at 2014-04-11 13:39:23 +0200
 Processing by ArticlesController#index as HTML
 
 [1, 8] in /home/davidr/Proyectos/test_app/app/models/article.rb
-   1: class Article < ActiveRecord::Base
+   1: class Article < ApplicationRecord
    2:
    3:   def self.find_recent(limit = 10)
    4:     byebug
@@ -627,13 +621,16 @@ Processing by ArticlesController#index as HTML
 (byebug)
 ```
 
-If we use `next`, we want go deep inside method calls. Instead, byebug will go
-to the next line within the same context. In this case, this is the last line of
-the method, so `byebug` will jump to next next line of the previous frame.
+If we use `next`, we won't go deep inside method calls. Instead, `byebug` will
+go to the next line within the same context. In this case, it is the last line
+of the current method, so `byebug` will return to the next line of the caller
+method.
 
 ```
 (byebug) next
-Next went up a frame because previous frame finished
+
+Next advances to the next line (line 6: `end`), which returns to the next line
+of the caller method:
 
 [4, 13] in /PathTo/project/test_app/app/controllers/articles_controller.rb
     4:   # GET /articles
@@ -650,8 +647,8 @@ Next went up a frame because previous frame finished
 (byebug)
 ```
 
-If we use `step` in the same situation, we will literally go to the next Ruby
-instruction to be executed. In this case, Active Support's `week` method.
+If we use `step` in the same situation, `byebug` will literally go to the next
+Ruby instruction to be executed -- in this case, Active Support's `week` method.
 
 ```
 (byebug) step
@@ -749,12 +746,12 @@ To list all active catchpoints use `catch`.
 There are two ways to resume execution of an application that is stopped in the
 debugger:
 
-* `continue` [line-specification] \(or `c`): resume program execution, at the
+* `continue [line-specification]` \(or `c`): resume program execution, at the
 address where your script last stopped; any breakpoints set at that address are
 bypassed. The optional argument line-specification allows you to specify a line
 number to set a one-time breakpoint which is deleted when that breakpoint is
 reached.
-* `finish` [frame-number] \(or `fin`): execute until the selected stack frame
+* `finish [frame-number]` \(or `fin`): execute until the selected stack frame
 returns. If no frame number is given, the application will run until the
 currently selected frame returns. The currently selected frame starts out the
 most-recent frame or 0 if no frame positioning (e.g up, down or frame) has been
@@ -770,15 +767,15 @@ environment variable. A specific _line_ can also be given.
 
 ### Quitting
 
-To exit the debugger, use the `quit` command (abbreviated `q`), or its alias
-`exit`.
+To exit the debugger, use the `quit` command (abbreviated to `q`). Or, type `q!`
+to bypass the `Really quit? (y/n)` prompt and exit unconditionally.
 
 A simple quit tries to terminate all threads in effect. Therefore your server
 will be stopped and you will have to start it again.
 
 ### Settings
 
-`byebug` has a few available options to tweak its behaviour:
+`byebug` has a few available options to tweak its behavior:
 
 * `set autoreload`: Reload source code when changed (defaults: true).
 * `set autolist`: Execute `list` command on every breakpoint (defaults: true).
@@ -866,8 +863,8 @@ such as Valgrind.
 
 ### Valgrind
 
-[Valgrind](http://valgrind.org/) is a Linux-only application for detecting
-C-based memory leaks and race conditions.
+[Valgrind](http://valgrind.org/) is an application for detecting C-based memory
+leaks and race conditions.
 
 There are Valgrind tools that can automatically detect many memory management
 and threading bugs, and profile your programs in detail. For example, if a C

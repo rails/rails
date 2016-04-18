@@ -112,6 +112,7 @@ Action Controller
 | `:controller` | The controller name                                       |
 | `:action`     | The action                                                |
 | `:params`     | Hash of request parameters without any filtered parameter |
+| `:headers`    | Request headers                                           |
 | `:format`     | html/js/json/xml etc                                      |
 | `:method`     | HTTP request verb                                         |
 | `:path`       | Request path                                              |
@@ -121,6 +122,7 @@ Action Controller
   controller: "PostsController",
   action: "new",
   params: { "action" => "new", "controller" => "posts" },
+  headers: #<ActionDispatch::Http::Headers:0x0055a67a519b88>,
   format: :html,
   method: "GET",
   path: "/posts/new"
@@ -134,6 +136,7 @@ Action Controller
 | `:controller`   | The controller name                                       |
 | `:action`       | The action                                                |
 | `:params`       | Hash of request parameters without any filtered parameter |
+| `:headers`      | Request headers                                           |
 | `:format`       | html/js/json/xml etc                                      |
 | `:method`       | HTTP request verb                                         |
 | `:path`         | Request path                                              |
@@ -146,6 +149,7 @@ Action Controller
   controller: "PostsController",
   action: "index",
   params: {"action" => "index", "controller" => "posts"},
+  headers: #<ActionDispatch::Http::Headers:0x0055a67a519b88>,
   format: :html,
   method: "GET",
   path: "/posts",
@@ -232,6 +236,7 @@ Active Record
 | `:sql`           | SQL statement         |
 | `:name`          | Name of the operation |
 | `:connection_id` | `self.object_id`      |
+| `:binds`         | Bind parameters       |
 
 INFO. The adapters will add their own data as well.
 
@@ -244,13 +249,19 @@ INFO. The adapters will add their own data as well.
 }
 ```
 
-### identity.active_record
+### instantiation.active_record
 
 | Key              | Value                                     |
 | ---------------- | ----------------------------------------- |
-| `:line`          | Primary Key of object in the identity map |
-| `:name`          | Record's class                            |
-| `:connection_id` | `self.object_id`                          |
+| `:record_count`  | Number of records that instantiated       |
+| `:class_name`    | Record's class                            |
+
+```ruby
+{
+  record_count: 1,
+  class_name: "User"
+}
+```
 
 Action Mailer
 -------------
@@ -306,17 +317,6 @@ Action Mailer
   mail: "..." # omitted for brevity
 }
 ```
-
-Active Resource
---------------
-
-### request.active_resource
-
-| Key            | Value                |
-| -------------- | -------------------- |
-| `:method`      | HTTP method          |
-| `:request_uri` | Complete URI         |
-| `:result`      | HTTP response object |
 
 Active Support
 --------------
@@ -400,6 +400,38 @@ INFO. Cache stores may add their own keys
 }
 ```
 
+Active Job
+--------
+
+### enqueue_at.active_job
+
+| Key          | Value                                  |
+| ------------ | -------------------------------------- |
+| `:adapter`   | QueueAdapter object processing the job |
+| `:job`       | Job object                             |
+
+### enqueue.active_job
+
+| Key          | Value                                  |
+| ------------ | -------------------------------------- |
+| `:adapter`   | QueueAdapter object processing the job |
+| `:job`       | Job object                             |
+
+### perform_start.active_job
+
+| Key          | Value                                  |
+| ------------ | -------------------------------------- |
+| `:adapter`   | QueueAdapter object processing the job |
+| `:job`       | Job object                             |
+
+### perform.active_job
+
+| Key          | Value                                  |
+| ------------ | -------------------------------------- |
+| `:adapter`   | QueueAdapter object processing the job |
+| `:job`       | Job object                             |
+
+
 Railties
 --------
 
@@ -430,7 +462,7 @@ The block receives the following arguments:
 * The name of the event
 * Time when it started
 * Time when it finished
-* An unique ID for this event
+* A unique ID for this event
 * The payload (described in previous sections)
 
 ```ruby

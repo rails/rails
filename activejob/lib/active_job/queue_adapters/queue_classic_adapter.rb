@@ -18,7 +18,9 @@ module ActiveJob
     #   Rails.application.config.active_job.queue_adapter = :queue_classic
     class QueueClassicAdapter
       def enqueue(job) #:nodoc:
-        build_queue(job.queue_name).enqueue("#{JobWrapper.name}.perform", job.serialize)
+        qc_job = build_queue(job.queue_name).enqueue("#{JobWrapper.name}.perform", job.serialize)
+        job.provider_job_id = qc_job["id"] if qc_job.is_a?(Hash)
+        qc_job
       end
 
       def enqueue_at(job, timestamp) #:nodoc:
@@ -28,7 +30,9 @@ module ActiveJob
             'the QC::Queue needs to respond to `enqueue_at(timestamp, method, *args)`. ' \
             'You can implement this yourself or you can use the queue_classic-later gem.'
         end
-        queue.enqueue_at(timestamp, "#{JobWrapper.name}.perform", job.serialize)
+        qc_job = queue.enqueue_at(timestamp, "#{JobWrapper.name}.perform", job.serialize)
+        job.provider_job_id = qc_job["id"] if qc_job.is_a?(Hash)
+        qc_job
       end
 
       # Builds a <tt>QC::Queue</tt> object to schedule jobs on.

@@ -503,6 +503,14 @@ Adds a specified source to `Gemfile`:
 add_source "http://gems.github.com"
 ```
 
+This method also takes a block:
+
+```ruby
+add_source "http://gems.github.com" do
+  gem "rspec-rails"
+end
+```
+
 ### `inject_into_file`
 
 Injects a block of code into a defined position in your file.

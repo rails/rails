@@ -1,5 +1,3 @@
-require File.expand_path('../../../load_paths', __FILE__)
-
 $:.unshift(File.dirname(__FILE__) + '/lib')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/helpers')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
@@ -16,6 +14,7 @@ silence_warnings do
 end
 
 require 'active_support/testing/autorun'
+require 'active_support/testing/method_call_assertions'
 require 'action_controller'
 require 'action_view'
 require 'action_view/testing/resolvers'
@@ -94,12 +93,14 @@ module ActionDispatch
       super
       return if DrawOnce.drew
 
-      SharedTestRoutes.draw do
-        get ':controller(/:action)'
-      end
+      ActiveSupport::Deprecation.silence do
+        SharedTestRoutes.draw do
+          get ':controller(/:action)'
+        end
 
-      ActionDispatch::IntegrationTest.app.routes.draw do
-        get ':controller(/:action)'
+        ActionDispatch::IntegrationTest.app.routes.draw do
+          get ':controller(/:action)'
+        end
       end
 
       DrawOnce.drew = true
@@ -147,13 +148,12 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
 
   def self.build_app(routes = nil)
     RoutedRackApp.new(routes || ActionDispatch::Routing::RouteSet.new) do |middleware|
-      middleware.use "ActionDispatch::ShowExceptions", ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public")
-      middleware.use "ActionDispatch::DebugExceptions"
-      middleware.use "ActionDispatch::Callbacks"
-      middleware.use "ActionDispatch::ParamsParser"
-      middleware.use "ActionDispatch::Cookies"
-      middleware.use "ActionDispatch::Flash"
-      middleware.use "Rack::Head"
+      middleware.use ActionDispatch::ShowExceptions, ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public")
+      middleware.use ActionDispatch::DebugExceptions
+      middleware.use ActionDispatch::Callbacks
+      middleware.use ActionDispatch::Cookies
+      middleware.use ActionDispatch::Flash
+      middleware.use Rack::Head
       yield(middleware) if block_given?
     end
   end
@@ -280,4 +280,6 @@ def jruby_skip(message = '')
   skip message if defined?(JRUBY_VERSION)
 end
 
-require 'mocha/setup' # FIXME: stop using mocha
+class ActiveSupport::TestCase
+  include ActiveSupport::Testing::MethodCallAssertions
+end

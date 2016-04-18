@@ -1,11 +1,11 @@
-module ActiveRecord::Associations::Builder
+module ActiveRecord::Associations::Builder # :nodoc:
   class HasOne < SingularAssociation #:nodoc:
     def self.macro
       :has_one
     end
 
     def self.valid_options(options)
-      valid = super + [:as, :foreign_type]
+      valid = super + [:as]
       valid += [:through, :source, :source_type] if options[:through]
       valid
     end

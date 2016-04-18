@@ -6,7 +6,15 @@ module ActionView
   # = Action View Translation Helpers
   module Helpers
     module TranslationHelper
+      extend ActiveSupport::Concern
+
       include TagHelper
+
+      included do
+        mattr_accessor :debug_missing_translation
+        self.debug_missing_translation = true
+      end
+
       # Delegates to <tt>I18n#translate</tt> but also performs three additional
       # functions.
       #
@@ -88,7 +96,16 @@ module ActionView
           raise e if raise_error
 
           keys = I18n.normalize_keys(e.locale, e.key, e.options[:scope])
-          content_tag('span', keys.last.to_s.titleize, :class => 'translation_missing', :title => "translation missing: #{keys.join('.')}")
+          title = "translation missing: #{keys.join('.')}"
+
+          interpolations = options.except(:default, :scope)
+          if interpolations.any?
+            title << ", " << interpolations.map { |k, v| "#{k}: #{ERB::Util.html_escape(v)}" }.join(', ')
+          end
+
+          return title unless ActionView::Base.debug_missing_translation
+
+          content_tag('span', keys.last.to_s.titleize, class: 'translation_missing', title: title)
         end
       end
       alias :t :translate

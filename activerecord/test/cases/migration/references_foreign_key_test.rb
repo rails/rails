@@ -32,6 +32,14 @@ module ActiveRecord
         assert_equal [], @connection.foreign_keys("testings")
       end
 
+      test "foreign keys can be created in one query when index is not added" do
+        assert_queries(1) do
+          @connection.create_table :testings do |t|
+            t.references :testing_parent, foreign_key: true, index: false
+          end
+        end
+      end
+
       test "options hash can be passed" do
         @connection.change_table :testing_parents do |t|
           t.integer :other_id
@@ -43,6 +51,15 @@ module ActiveRecord
 
         fk = @connection.foreign_keys("testings").find { |k| k.to_table == "testing_parents" }
         assert_equal "other_id", fk.primary_key
+      end
+
+      test "to_table option can be passed" do
+        @connection.create_table :testings do |t|
+          t.references :parent, foreign_key: { to_table: :testing_parents }
+        end
+        fks = @connection.foreign_keys("testings")
+        assert_equal([["testings", "testing_parents", "parent_id"]],
+                     fks.map {|fk| [fk.from_table, fk.to_table, fk.column] })
       end
 
       test "foreign keys cannot be added to polymorphic relations when creating the table" do
@@ -127,6 +144,22 @@ module ActiveRecord
           @connection.drop_table "testing", if_exists: true
         end
       end
+
+      test "multiple foreign keys can be added to the same table" do
+        @connection.create_table :testings do |t|
+          t.integer :col_1
+          t.integer :col_2
+
+          t.foreign_key :testing_parents, column: :col_1
+          t.foreign_key :testing_parents, column: :col_2
+        end
+
+        fks = @connection.foreign_keys("testings")
+
+        fk_definitions = fks.map {|fk| [fk.from_table, fk.to_table, fk.column] }
+        assert_equal([["testings", "testing_parents", "col_1"],
+                      ["testings", "testing_parents", "col_2"]], fk_definitions)
+      end
     end
   end
 end
@@ -147,7 +180,7 @@ class ReferencesWithoutForeignKeySupportTest < ActiveRecord::TestCase
       t.references :testing_parent, foreign_key: true
     end
 
-    assert_includes @connection.tables, "testings"
+    assert_includes @connection.data_sources, "testings"
   end
 end
 end

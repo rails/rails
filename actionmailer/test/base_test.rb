@@ -449,6 +449,13 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("Format with any!", email.parts[1].body.encoded)
   end
 
+  test 'explicit without specifying format with format.any' do
+    error = assert_raises(ArgumentError) do
+      BaseMailer.explicit_without_specifying_format_with_any.parts
+    end
+    assert_equal "You have to supply at least one format", error.message
+  end
+
   test "explicit multipart with format(Hash)" do
     email = BaseMailer.explicit_multipart_with_options(true)
     email.ready_to_send!
@@ -505,9 +512,10 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "calling deliver on the action should deliver the mail object" do
-    BaseMailer.expects(:deliver_mail).once
-    mail = BaseMailer.welcome.deliver_now
-    assert_equal 'The first email on new API!', mail.subject
+    assert_called(BaseMailer, :deliver_mail) do
+      mail = BaseMailer.welcome.deliver_now
+      assert_equal 'The first email on new API!', mail.subject
+    end
   end
 
   test "calling deliver on the action should increment the deliveries collection if using the test mailer" do
@@ -517,9 +525,11 @@ class BaseTest < ActiveSupport::TestCase
 
   test "calling deliver, ActionMailer should yield back to mail to let it call :do_delivery on itself" do
     mail = Mail::Message.new
-    mail.expects(:do_delivery).once
-    BaseMailer.expects(:welcome).returns(mail)
-    BaseMailer.welcome.deliver
+    assert_called(mail, :do_delivery) do
+      assert_called(BaseMailer, :welcome, returns: mail) do
+        BaseMailer.welcome.deliver
+      end
+    end
   end
 
   # Rendering
@@ -607,8 +617,9 @@ class BaseTest < ActiveSupport::TestCase
     mail_side_effects do
       ActionMailer::Base.register_observer(MyObserver)
       mail = BaseMailer.welcome
-      MyObserver.expects(:delivered_email).with(mail)
-      mail.deliver_now
+      assert_called_with(MyObserver, :delivered_email, [mail]) do
+        mail.deliver_now
+      end
     end
   end
 
@@ -616,8 +627,9 @@ class BaseTest < ActiveSupport::TestCase
     mail_side_effects do
       ActionMailer::Base.register_observer("BaseTest::MyObserver")
       mail = BaseMailer.welcome
-      MyObserver.expects(:delivered_email).with(mail)
-      mail.deliver_now
+      assert_called_with(MyObserver, :delivered_email, [mail]) do
+        mail.deliver_now
+      end
     end
   end
 
@@ -625,8 +637,9 @@ class BaseTest < ActiveSupport::TestCase
     mail_side_effects do
       ActionMailer::Base.register_observer(:"base_test/my_observer")
       mail = BaseMailer.welcome
-      MyObserver.expects(:delivered_email).with(mail)
-      mail.deliver_now
+      assert_called_with(MyObserver, :delivered_email, [mail]) do
+        mail.deliver_now
+      end
     end
   end
 
@@ -634,9 +647,11 @@ class BaseTest < ActiveSupport::TestCase
     mail_side_effects do
       ActionMailer::Base.register_observers("BaseTest::MyObserver", MySecondObserver)
       mail = BaseMailer.welcome
-      MyObserver.expects(:delivered_email).with(mail)
-      MySecondObserver.expects(:delivered_email).with(mail)
-      mail.deliver_now
+      assert_called_with(MyObserver, :delivered_email, [mail]) do
+        assert_called_with(MySecondObserver, :delivered_email, [mail]) do
+          mail.deliver_now
+        end
+      end
     end
   end
 
@@ -654,8 +669,9 @@ class BaseTest < ActiveSupport::TestCase
     mail_side_effects do
       ActionMailer::Base.register_interceptor(MyInterceptor)
       mail = BaseMailer.welcome
-      MyInterceptor.expects(:delivering_email).with(mail)
-      mail.deliver_now
+      assert_called_with(MyInterceptor, :delivering_email, [mail]) do
+        mail.deliver_now
+      end
     end
   end
 
@@ -663,8 +679,9 @@ class BaseTest < ActiveSupport::TestCase
     mail_side_effects do
       ActionMailer::Base.register_interceptor("BaseTest::MyInterceptor")
       mail = BaseMailer.welcome
-      MyInterceptor.expects(:delivering_email).with(mail)
-      mail.deliver_now
+      assert_called_with(MyInterceptor, :delivering_email, [mail]) do
+        mail.deliver_now
+      end
     end
   end
 
@@ -672,8 +689,9 @@ class BaseTest < ActiveSupport::TestCase
     mail_side_effects do
       ActionMailer::Base.register_interceptor(:"base_test/my_interceptor")
       mail = BaseMailer.welcome
-      MyInterceptor.expects(:delivering_email).with(mail)
-      mail.deliver_now
+      assert_called_with(MyInterceptor, :delivering_email, [mail]) do
+        mail.deliver_now
+      end
     end
   end
 
@@ -681,18 +699,21 @@ class BaseTest < ActiveSupport::TestCase
     mail_side_effects do
       ActionMailer::Base.register_interceptors("BaseTest::MyInterceptor", MySecondInterceptor)
       mail = BaseMailer.welcome
-      MyInterceptor.expects(:delivering_email).with(mail)
-      MySecondInterceptor.expects(:delivering_email).with(mail)
-      mail.deliver_now
+      assert_called_with(MyInterceptor, :delivering_email, [mail]) do
+        assert_called_with(MySecondInterceptor, :delivering_email, [mail]) do
+          mail.deliver_now
+        end
+      end
     end
   end
 
   test "being able to put proc's into the defaults hash and they get evaluated on mail sending" do
     mail1 = ProcMailer.welcome['X-Proc-Method']
     yesterday = 1.day.ago
-    Time.stubs(:now).returns(yesterday)
-    mail2 = ProcMailer.welcome['X-Proc-Method']
-    assert(mail1.to_s.to_i > mail2.to_s.to_i)
+    Time.stub(:now, yesterday) do
+      mail2 = ProcMailer.welcome['X-Proc-Method']
+      assert(mail1.to_s.to_i > mail2.to_s.to_i)
+    end
   end
 
   test 'default values which have to_proc (e.g. symbols) should not be considered procs' do
@@ -877,33 +898,50 @@ class BasePreviewInterceptorsTest < ActiveSupport::TestCase
   test "you can register a preview interceptor to the mail object that gets passed the mail object before previewing" do
     ActionMailer::Base.register_preview_interceptor(MyInterceptor)
     mail = BaseMailer.welcome
-    BaseMailerPreview.any_instance.stubs(:welcome).returns(mail)
-    MyInterceptor.expects(:previewing_email).with(mail)
-    BaseMailerPreview.call(:welcome)
+    stub_any_instance(BaseMailerPreview) do |instance|
+      instance.stub(:welcome, mail) do
+        assert_called_with(MyInterceptor, :previewing_email, [mail]) do
+          BaseMailerPreview.call(:welcome)
+        end
+      end
+    end
   end
 
   test "you can register a preview interceptor using its stringified name to the mail object that gets passed the mail object before previewing" do
     ActionMailer::Base.register_preview_interceptor("BasePreviewInterceptorsTest::MyInterceptor")
     mail = BaseMailer.welcome
-    BaseMailerPreview.any_instance.stubs(:welcome).returns(mail)
-    MyInterceptor.expects(:previewing_email).with(mail)
-    BaseMailerPreview.call(:welcome)
+    stub_any_instance(BaseMailerPreview) do |instance|
+      instance.stub(:welcome, mail) do
+        assert_called_with(MyInterceptor, :previewing_email, [mail]) do
+          BaseMailerPreview.call(:welcome)
+        end
+      end
+    end
   end
 
   test "you can register an interceptor using its symbolized underscored name to the mail object that gets passed the mail object before previewing" do
     ActionMailer::Base.register_preview_interceptor(:"base_preview_interceptors_test/my_interceptor")
     mail = BaseMailer.welcome
-    BaseMailerPreview.any_instance.stubs(:welcome).returns(mail)
-    MyInterceptor.expects(:previewing_email).with(mail)
-    BaseMailerPreview.call(:welcome)
+    stub_any_instance(BaseMailerPreview) do |instance|
+      instance.stub(:welcome, mail) do
+        assert_called_with(MyInterceptor, :previewing_email, [mail]) do
+          BaseMailerPreview.call(:welcome)
+        end
+      end
+    end
   end
 
   test "you can register multiple preview interceptors to the mail object that both get passed the mail object before previewing" do
     ActionMailer::Base.register_preview_interceptors("BasePreviewInterceptorsTest::MyInterceptor", MySecondInterceptor)
     mail = BaseMailer.welcome
-    BaseMailerPreview.any_instance.stubs(:welcome).returns(mail)
-    MyInterceptor.expects(:previewing_email).with(mail)
-    MySecondInterceptor.expects(:previewing_email).with(mail)
-    BaseMailerPreview.call(:welcome)
+    stub_any_instance(BaseMailerPreview) do |instance|
+      instance.stub(:welcome, mail) do
+        assert_called_with(MyInterceptor, :previewing_email, [mail]) do
+          assert_called_with(MySecondInterceptor, :previewing_email, [mail]) do
+            BaseMailerPreview.call(:welcome)
+          end
+        end
+      end
+    end
   end
 end

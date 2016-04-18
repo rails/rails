@@ -1,5 +1,4 @@
 require 'rake/testtask'
-require 'rubygems/package_task'
 
 require File.expand_path(File.dirname(__FILE__)) + "/test/config"
 require File.expand_path(File.dirname(__FILE__)) + "/test/support/config"
@@ -18,14 +17,17 @@ def run_without_aborting(*tasks)
   abort "Errors running #{errors.join(', ')}" if errors.any?
 end
 
-desc 'Run mysql, mysql2, sqlite, and postgresql tests by default'
+desc 'Run mysql2, sqlite, and postgresql tests by default'
 task :default => :test
 
-desc 'Run mysql, mysql2, sqlite, and postgresql tests'
+task :package
+task "package:clean"
+
+desc 'Run mysql2, sqlite, and postgresql tests'
 task :test do
   tasks = defined?(JRUBY_VERSION) ?
     %w(test_jdbcmysql test_jdbcsqlite3 test_jdbcpostgresql) :
-    %w(test_mysql test_mysql2 test_sqlite3 test_postgresql)
+    %w(test_mysql2 test_sqlite3 test_postgresql)
   run_without_aborting(*tasks)
 end
 
@@ -33,7 +35,7 @@ namespace :test do
   task :isolated do
     tasks = defined?(JRUBY_VERSION) ?
       %w(isolated_test_jdbcmysql isolated_test_jdbcsqlite3 isolated_test_jdbcpostgresql) :
-      %w(isolated_test_mysql isolated_test_mysql2 isolated_test_sqlite3 isolated_test_postgresql)
+      %w(isolated_test_mysql2 isolated_test_sqlite3 isolated_test_postgresql)
     run_without_aborting(*tasks)
   end
 end
@@ -44,7 +46,7 @@ namespace :db do
   task :drop => ['db:mysql:drop', 'db:postgresql:drop']
 end
 
-%w( mysql mysql2 postgresql sqlite3 sqlite3_mem db2 oracle jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb ).each do |adapter|
+%w( mysql2 postgresql sqlite3 sqlite3_mem db2 oracle jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb ).each do |adapter|
   namespace :test do
     Rake::TestTask.new(adapter => "#{adapter}:env") { |t|
       adapter_short = adapter == 'db2' ? adapter : adapter[/^[a-z0-9]+/]
@@ -84,29 +86,20 @@ end
   task "isolated_test_#{adapter}" => ["#{adapter}:env", "test:isolated:#{adapter}"]
 end
 
-rule '.sqlite3' do |t|
-  sh %Q{sqlite3 "#{t.name}" "create table a (a integer); drop table a;"}
-end
-
-task :test_sqlite3 => [
-  'test/fixtures/fixture_database.sqlite3',
-  'test/fixtures/fixture_database_2.sqlite3'
-]
-
 namespace :db do
   namespace :mysql do
     desc 'Build the MySQL test databases'
     task :build do
-      config = ARTest.config['connections']['mysql']
-      %x( mysql --user=#{config['arunit']['username']} -e "create DATABASE #{config['arunit']['database']} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci ")
-      %x( mysql --user=#{config['arunit2']['username']} -e "create DATABASE #{config['arunit2']['database']} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci ")
+      config = ARTest.config['connections']['mysql2']
+      %x( mysql --user=#{config['arunit']['username']} --password=#{config['arunit']['password']} -e "create DATABASE #{config['arunit']['database']} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci ")
+      %x( mysql --user=#{config['arunit2']['username']} --password=#{config['arunit2']['password']} -e "create DATABASE #{config['arunit2']['database']} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci ")
     end
 
     desc 'Drop the MySQL test databases'
     task :drop do
-      config = ARTest.config['connections']['mysql']
-      %x( mysqladmin --user=#{config['arunit']['username']} -f drop #{config['arunit']['database']} )
-      %x( mysqladmin --user=#{config['arunit2']['username']} -f drop #{config['arunit2']['database']} )
+      config = ARTest.config['connections']['mysql2']
+      %x( mysqladmin --user=#{config['arunit']['username']} --password=#{config['arunit']['password']} -f drop #{config['arunit']['database']} )
+      %x( mysqladmin --user=#{config['arunit2']['username']} --password=#{config['arunit2']['password']} -f drop #{config['arunit2']['database']} )
     end
 
     desc 'Rebuild the MySQL test databases'
@@ -122,7 +115,7 @@ namespace :db do
 
       # prepare hstore
       if %x( createdb --version ).strip.gsub(/(.*)(\d\.\d\.\d)$/, "\\2") < "9.1.0"
-        puts "Please prepare hstore data type. See http://www.postgresql.org/docs/9.0/static/hstore.html"
+        puts "Please prepare hstore data type. See http://www.postgresql.org/docs/current/static/hstore.html"
       end
     end
 
@@ -150,19 +143,4 @@ task :lines do
   load File.expand_path('..', File.dirname(__FILE__)) + '/tools/line_statistics'
   files = FileList["lib/active_record/**/*.rb"]
   CodeTools::LineStatistics.new(files).print_loc
-end
-
-spec = eval(File.read('activerecord.gemspec'))
-
-Gem::PackageTask.new(spec) do |p|
-  p.gem_spec = spec
-end
-
-# Publishing ------------------------------------------------------
-
-desc "Release to rubygems"
-task :release => :package do
-  require 'rake/gemcutter'
-  Rake::Gemcutter::Tasks.new(spec).define
-  Rake::Task['gem:push'].invoke
 end

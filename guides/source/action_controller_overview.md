@@ -185,7 +185,9 @@ end
 
 These options will be used as a starting point when generating URLs, so it's possible they'll be overridden by the options passed to `url_for` calls.
 
-If you define `default_url_options` in `ApplicationController`, as in the example above, it will be used for all URL generation. The method can also be defined in a specific controller, in which case it only affects URLs generated there.
+If you define `default_url_options` in `ApplicationController`, as in the example above, these defaults will be used for all URL generation. The method can also be defined in a specific controller, in which case it only affects URLs generated there.
+
+In a given request, the method is not actually called for every single generated URL; for performance reasons, the returned hash is cached, there is at most one invocation per request.
 
 ### Strong Parameters
 
@@ -392,7 +394,7 @@ Rails sets up (for the CookieStore) a secret key used for signing the session da
 
 # Make sure the secret is at least 30 characters and all random,
 # no regular words or you'll be exposed to dictionary attacks.
-# You can use `rake secret` to generate a secure secret key.
+# You can use `rails secret` to generate a secure secret key.
 
 # Make sure the secrets in this file are kept private
 # if you're sharing your code publicly.
@@ -698,7 +700,7 @@ class LoginsController < ApplicationController
 end
 ```
 
-Now, the `LoginsController`'s `new` and `create` actions will work as before without requiring the user to be logged in. The `:only` option is used to only skip this filter for these actions, and there is also an `:except` option which works the other way. These options can be used when adding filters too, so you can add a filter which only runs for selected actions in the first place.
+Now, the `LoginsController`'s `new` and `create` actions will work as before without requiring the user to be logged in. The `:only` option is used to skip this filter only for these actions, and there is also an `:except` option which works the other way. These options can be used when adding filters too, so you can add a filter which only runs for selected actions in the first place.
 
 ### After Filters and Around Filters
 
@@ -736,7 +738,7 @@ You can choose not to yield and build the response yourself, in which case the a
 
 While the most common way to use filters is by creating private methods and using *_action to add them, there are two other ways to do the same thing.
 
-The first is to use a block directly with the *\_action methods. The block receives the controller as an argument, and the `require_login` filter from above could be rewritten to use a block:
+The first is to use a block directly with the *\_action methods. The block receives the controller as an argument. The `require_login` filter from above could be rewritten to use a block:
 
 ```ruby
 class ApplicationController < ActionController::Base
@@ -808,7 +810,7 @@ The [Security Guide](security.html) has more about this and a lot of other secur
 The Request and Response Objects
 --------------------------------
 
-In every controller there are two accessor methods pointing to the request and the response objects associated with the request cycle that is currently in execution. The `request` method contains an instance of `AbstractRequest` and the `response` method returns a response object representing what is going to be sent back to the client.
+In every controller there are two accessor methods pointing to the request and the response objects associated with the request cycle that is currently in execution. The `request` method contains an instance of `ActionDispatch::Request` and the `response` method returns a response object representing what is going to be sent back to the client.
 
 ### The `request` Object
 
@@ -993,10 +995,6 @@ you would like in a response object. The `ActionController::Live` module allows
 you to create a persistent connection with a browser. Using this module, you will
 be able to send arbitrary data to the browser at specific points in time.
 
-NOTE: The default Rails server (WEBrick) is a buffering web server and does not
-support streaming. In order to use this feature, you'll need to use a non buffering
-server like [Puma](http://puma.io), [Rainbows](http://rainbows.bogomips.org)
-or [Passenger](https://www.phusionpassenger.com).
 
 #### Incorporating Live Streaming
 
@@ -1027,7 +1025,7 @@ There are a couple of things to notice in the above example. We need to make
 sure to close the response stream. Forgetting to close the stream will leave
 the socket open forever. We also have to set the content type to `text/event-stream`
 before we write to the response stream. This is because headers cannot be written
-after the response has been committed (when `response.committed` returns a truthy
+after the response has been committed (when `response.committed?` returns a truthy
 value), which occurs when you `write` or `commit` the response stream.
 
 #### Example Usage
@@ -1090,6 +1088,8 @@ You can filter out sensitive request parameters from your log files by appending
 config.filter_parameters << :password
 ```
 
+NOTE: Provided parameters will be filtered out by partial matching regular expression. Rails adds default `:password` in the appropriate initializer (`initializers/filter_parameter_logging.rb`) and cares about typical application parameters `password` and `password_confirmation`.
+
 ### Redirects Filtering
 
 Sometimes it's desirable to filter out from log files some sensitive locations your application is redirecting to.
@@ -1112,11 +1112,11 @@ Rescue
 
 Most likely your application is going to contain bugs or otherwise throw an exception that needs to be handled. For example, if the user follows a link to a resource that no longer exists in the database, Active Record will throw the `ActiveRecord::RecordNotFound` exception.
 
-Rails' default exception handling displays a "500 Server Error" message for all exceptions. If the request was made locally, a nice traceback and some added information gets displayed so you can figure out what went wrong and deal with it. If the request was remote Rails will just display a simple "500 Server Error" message to the user, or a "404 Not Found" if there was a routing error or a record could not be found. Sometimes you might want to customize how these errors are caught and how they're displayed to the user. There are several levels of exception handling available in a Rails application:
+Rails default exception handling displays a "500 Server Error" message for all exceptions. If the request was made locally, a nice traceback and some added information gets displayed so you can figure out what went wrong and deal with it. If the request was remote Rails will just display a simple "500 Server Error" message to the user, or a "404 Not Found" if there was a routing error or a record could not be found. Sometimes you might want to customize how these errors are caught and how they're displayed to the user. There are several levels of exception handling available in a Rails application:
 
 ### The Default 500 and 404 Templates
 
-By default a production application will render either a 404 or a 500 error message. These messages are contained in static HTML files in the `public` folder, in `404.html` and `500.html` respectively. You can customize these files to add some extra information and layout, but remember that they are static; i.e. you can't use RHTML or layouts in them, just plain HTML.
+By default a production application will render either a 404 or a 500 error message, in the development environment all unhandled exceptions are raised. These messages are contained in static HTML files in the `public` folder, in `404.html` and `500.html` respectively. You can customize these files to add some extra information and style, but remember that they are static HTML; i.e. you can't use ERB, SCSS, CoffeeScript, or layouts for them.
 
 ### `rescue_from`
 
@@ -1148,7 +1148,7 @@ class ApplicationController < ActionController::Base
 
     def user_not_authorized
       flash[:error] = "You don't have access to this section."
-      redirect_to :back
+      redirect_back(fallback_location: root_path)
     end
 end
 
@@ -1172,7 +1172,11 @@ end
 
 WARNING: You shouldn't do `rescue_from Exception` or `rescue_from StandardError` unless you have a particular reason as it will cause serious side-effects (e.g. you won't be able to see exception details and tracebacks during development).
 
-NOTE: Certain exceptions are only rescuable from the `ApplicationController` class, as they are raised before the controller gets initialized and the action gets executed. See Pratik Naik's [article](http://m.onkey.org/2008/7/20/rescue-from-dispatching) on the subject for more information.
+NOTE: When running in the production environment, all
+`ActiveRecord::RecordNotFound` errors render the 404 error page. Unless you need
+a custom behavior you don't need to handle this.
+
+NOTE: Certain exceptions are only rescuable from the `ApplicationController` class, as they are raised before the controller gets initialized and the action gets executed.
 
 Force HTTPS protocol
 --------------------

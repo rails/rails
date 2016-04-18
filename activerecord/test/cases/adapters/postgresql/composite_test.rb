@@ -40,7 +40,7 @@ end
 #   "unknown OID 5653508: failed to recognize type of 'address'. It will be treated as String."
 # To take full advantage of composite types, we suggest you register your own +OID::Type+.
 # See PostgresqlCompositeWithCustomOIDTest
-class PostgresqlCompositeTest < ActiveRecord::TestCase
+class PostgresqlCompositeTest < ActiveRecord::PostgreSQLTestCase
   include PostgresqlCompositeBehavior
 
   def test_column
@@ -77,7 +77,7 @@ class PostgresqlCompositeTest < ActiveRecord::TestCase
   end
 end
 
-class PostgresqlCompositeWithCustomOIDTest < ActiveRecord::TestCase
+class PostgresqlCompositeWithCustomOIDTest < ActiveRecord::PostgreSQLTestCase
   include PostgresqlCompositeBehavior
 
   class FullAddressType < ActiveRecord::Type::Value

@@ -2,7 +2,19 @@ require "cases/helper"
 require 'models/default'
 require 'support/schema_dumping_helper'
 
-class SchemaTest < ActiveRecord::TestCase
+module PGSchemaHelper
+  def with_schema_search_path(schema_search_path)
+    @connection.schema_search_path = schema_search_path
+    @connection.schema_cache.clear!
+    yield if block_given?
+  ensure
+    @connection.schema_search_path = "'$user', public"
+    @connection.schema_cache.clear!
+  end
+end
+
+class SchemaTest < ActiveRecord::PostgreSQLTestCase
+  include PGSchemaHelper
   self.use_transactional_tests = false
 
   SCHEMA_NAME = 'test_schema'
@@ -84,8 +96,8 @@ class SchemaTest < ActiveRecord::TestCase
   end
 
   teardown do
-    @connection.execute "DROP SCHEMA #{SCHEMA2_NAME} CASCADE"
-    @connection.execute "DROP SCHEMA #{SCHEMA_NAME} CASCADE"
+    @connection.drop_schema SCHEMA2_NAME, if_exists: true
+    @connection.drop_schema SCHEMA_NAME, if_exists: true
   end
 
   def test_schema_names
@@ -121,10 +133,17 @@ class SchemaTest < ActiveRecord::TestCase
     assert !@connection.schema_names.include?("test_schema3")
   end
 
+  def test_drop_schema_if_exists
+    @connection.create_schema "some_schema"
+    assert_includes @connection.schema_names, "some_schema"
+    @connection.drop_schema "some_schema", if_exists: true
+    assert_not_includes @connection.schema_names, "some_schema"
+  end
+
   def test_habtm_table_name_with_schema
+    ActiveRecord::Base.connection.drop_schema "music", if_exists: true
+    ActiveRecord::Base.connection.create_schema "music"
     ActiveRecord::Base.connection.execute <<-SQL
-      DROP SCHEMA IF EXISTS music CASCADE;
-      CREATE SCHEMA music;
       CREATE TABLE music.albums (id serial primary key);
       CREATE TABLE music.songs (id serial primary key);
       CREATE TABLE music.albums_songs (album_id integer, song_id integer);
@@ -134,69 +153,75 @@ class SchemaTest < ActiveRecord::TestCase
     Album.create
     assert_equal song, Song.includes(:albums).references(:albums).first
   ensure
-    ActiveRecord::Base.connection.execute "DROP SCHEMA music CASCADE;"
+    ActiveRecord::Base.connection.drop_schema "music", if_exists: true
   end
 
-  def test_raise_drop_schema_with_nonexisting_schema
+  def test_drop_schema_with_nonexisting_schema
     assert_raises(ActiveRecord::StatementInvalid) do
-      @connection.drop_schema "test_schema3"
+      @connection.drop_schema "idontexist"
+    end
+
+    assert_nothing_raised do
+      @connection.drop_schema "idontexist", if_exists: true
     end
   end
 
-  def test_raise_wraped_exception_on_bad_prepare
+  def test_raise_wrapped_exception_on_bad_prepare
     assert_raises(ActiveRecord::StatementInvalid) do
-      @connection.exec_query "select * from developers where id = ?", 'sql', [[nil, 1]]
+      @connection.exec_query "select * from developers where id = ?", 'sql', [bind_param(1)]
     end
   end
 
-  def test_schema_change_with_prepared_stmt
-    altered = false
-    @connection.exec_query "select * from developers where id = $1", 'sql', [bind_param(1)]
-    @connection.exec_query "alter table developers add column zomg int", 'sql', []
-    altered = true
-    @connection.exec_query "select * from developers where id = $1", 'sql', [bind_param(1)]
-  ensure
-    # We are not using DROP COLUMN IF EXISTS because that syntax is only
-    # supported by pg 9.X
-    @connection.exec_query("alter table developers drop column zomg", 'sql', []) if altered
+  if ActiveRecord::Base.connection.prepared_statements
+    def test_schema_change_with_prepared_stmt
+      altered = false
+      @connection.exec_query "select * from developers where id = $1", 'sql', [bind_param(1)]
+      @connection.exec_query "alter table developers add column zomg int", 'sql', []
+      altered = true
+      @connection.exec_query "select * from developers where id = $1", 'sql', [bind_param(1)]
+    ensure
+      # We are not using DROP COLUMN IF EXISTS because that syntax is only
+      # supported by pg 9.X
+      @connection.exec_query("alter table developers drop column zomg", 'sql', []) if altered
+    end
   end
 
-  def test_table_exists?
+  def test_data_source_exists?
     [Thing1, Thing2, Thing3, Thing4].each do |klass|
       name = klass.table_name
-      assert @connection.table_exists?(name), "'#{name}' table should exist"
+      assert @connection.data_source_exists?(name), "'#{name}' data_source should exist"
     end
   end
 
-  def test_table_exists_when_on_schema_search_path
+  def test_data_source_exists_when_on_schema_search_path
     with_schema_search_path(SCHEMA_NAME) do
-      assert(@connection.table_exists?(TABLE_NAME), "table should exist and be found")
+      assert(@connection.data_source_exists?(TABLE_NAME), "data_source should exist and be found")
     end
   end
 
-  def test_table_exists_when_not_on_schema_search_path
+  def test_data_source_exists_when_not_on_schema_search_path
     with_schema_search_path('PUBLIC') do
-      assert(!@connection.table_exists?(TABLE_NAME), "table exists but should not be found")
+      assert(!@connection.data_source_exists?(TABLE_NAME), "data_source exists but should not be found")
     end
   end
 
-  def test_table_exists_wrong_schema
-    assert(!@connection.table_exists?("foo.things"), "table should not exist")
+  def test_data_source_exists_wrong_schema
+    assert(!@connection.data_source_exists?("foo.things"), "data_source should not exist")
   end
 
-  def test_table_exists_quoted_names
+  def test_data_source_exists_quoted_names
     [ %("#{SCHEMA_NAME}"."#{TABLE_NAME}"), %(#{SCHEMA_NAME}."#{TABLE_NAME}"), %(#{SCHEMA_NAME}."#{TABLE_NAME}")].each do |given|
-      assert(@connection.table_exists?(given), "table should exist when specified as #{given}")
+      assert(@connection.data_source_exists?(given), "data_source should exist when specified as #{given}")
     end
     with_schema_search_path(SCHEMA_NAME) do
       given = %("#{TABLE_NAME}")
-      assert(@connection.table_exists?(given), "table should exist when specified as #{given}")
+      assert(@connection.data_source_exists?(given), "data_source should exist when specified as #{given}")
     end
   end
 
-  def test_table_exists_quoted_table
+  def test_data_source_exists_quoted_table
     with_schema_search_path(SCHEMA_NAME) do
-        assert(@connection.table_exists?('"things.table"'), "table should exist")
+      assert(@connection.data_source_exists?('"things.table"'), "data_source should exist")
     end
   end
 
@@ -298,14 +323,31 @@ class SchemaTest < ActiveRecord::TestCase
     do_dump_index_tests_for_schema("public, #{SCHEMA_NAME}", INDEX_A_COLUMN, INDEX_B_COLUMN_S1, INDEX_D_COLUMN, INDEX_E_COLUMN)
   end
 
+  def test_dump_indexes_for_table_with_scheme_specified_in_name
+    indexes = @connection.indexes("#{SCHEMA_NAME}.#{TABLE_NAME}")
+    assert_equal 4, indexes.size
+  end
+
   def test_with_uppercase_index_name
-    @connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
-    assert_nothing_raised { @connection.remove_index! "things", "#{SCHEMA_NAME}.things_Index"}
     @connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
 
     with_schema_search_path SCHEMA_NAME do
-      assert_nothing_raised { @connection.remove_index! "things", "things_Index"}
+      assert_nothing_raised { @connection.remove_index "things", name: "things_Index"}
     end
+  end
+
+  def test_remove_index_when_schema_specified
+    @connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
+    assert_nothing_raised { @connection.remove_index "things", name: "#{SCHEMA_NAME}.things_Index" }
+
+    @connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
+    assert_nothing_raised { @connection.remove_index "#{SCHEMA_NAME}.things", name: "things_Index" }
+
+    @connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
+    assert_nothing_raised { @connection.remove_index "#{SCHEMA_NAME}.things", name: "#{SCHEMA_NAME}.things_Index" }
+
+    @connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
+    assert_raises(ArgumentError) { @connection.remove_index "#{SCHEMA2_NAME}.things", name: "#{SCHEMA_NAME}.things_Index" }
   end
 
   def test_primary_key_with_schema_specified
@@ -404,13 +446,6 @@ class SchemaTest < ActiveRecord::TestCase
       end
     end
 
-    def with_schema_search_path(schema_search_path)
-      @connection.schema_search_path = schema_search_path
-      yield if block_given?
-    ensure
-      @connection.schema_search_path = "'$user', public"
-    end
-
     def do_dump_index_tests_for_schema(this_schema_name, first_index_column_name, second_index_column_name, third_index_column_name, fourth_index_column_name)
       with_schema_search_path(this_schema_name) do
         indexes = @connection.indexes(TABLE_NAME).sort_by(&:name)
@@ -441,7 +476,7 @@ class SchemaTest < ActiveRecord::TestCase
     end
 end
 
-class SchemaForeignKeyTest < ActiveRecord::TestCase
+class SchemaForeignKeyTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
 
   setup do
@@ -462,14 +497,14 @@ class SchemaForeignKeyTest < ActiveRecord::TestCase
   ensure
     @connection.drop_table "wagons", if_exists: true
     @connection.drop_table "my_schema.trains", if_exists: true
-    @connection.execute "DROP SCHEMA IF EXISTS my_schema"
+    @connection.drop_schema "my_schema", if_exists: true
   end
 end
 
-class DefaultsUsingMultipleSchemasAndDomainTest < ActiveSupport::TestCase
+class DefaultsUsingMultipleSchemasAndDomainTest < ActiveRecord::PostgreSQLTestCase
   setup do
     @connection = ActiveRecord::Base.connection
-    @connection.execute "DROP SCHEMA IF EXISTS schema_1 CASCADE"
+    @connection.drop_schema "schema_1", if_exists: true
     @connection.execute "CREATE SCHEMA schema_1"
     @connection.execute "CREATE DOMAIN schema_1.text AS text"
     @connection.execute "CREATE DOMAIN schema_1.varchar AS varchar"
@@ -480,13 +515,14 @@ class DefaultsUsingMultipleSchemasAndDomainTest < ActiveSupport::TestCase
     @connection.create_table "defaults" do |t|
       t.text "text_col", default: "some value"
       t.string "string_col", default: "some value"
+      t.decimal "decimal_col", default: "3.14159265358979323846"
     end
     Default.reset_column_information
   end
 
   teardown do
     @connection.schema_search_path = @old_search_path
-    @connection.execute "DROP SCHEMA IF EXISTS schema_1 CASCADE"
+    @connection.drop_schema "schema_1", if_exists: true
     Default.reset_column_information
   end
 
@@ -496,6 +532,10 @@ class DefaultsUsingMultipleSchemasAndDomainTest < ActiveSupport::TestCase
 
   def test_string_defaults_in_new_schema_when_overriding_domain
     assert_equal "some value", Default.new.string_col, "Default of string column was not correctly parsed"
+  end
+
+  def test_decimal_defaults_in_new_schema_when_overriding_domain
+    assert_equal BigDecimal.new("3.14159265358979323846"), Default.new.decimal_col, "Default of decimal column was not correctly parsed"
   end
 
   def test_bpchar_defaults_in_new_schema_when_overriding_domain
@@ -512,5 +552,42 @@ class DefaultsUsingMultipleSchemasAndDomainTest < ActiveSupport::TestCase
   def test_default_containing_quote_and_colons
     @connection.execute "ALTER TABLE defaults ALTER COLUMN string_col SET DEFAULT 'foo''::bar'"
     assert_equal "foo'::bar", Default.new.string_col
+  end
+end
+
+class SchemaWithDotsTest < ActiveRecord::PostgreSQLTestCase
+  include PGSchemaHelper
+  self.use_transactional_tests = false
+
+  setup do
+    @connection = ActiveRecord::Base.connection
+    @connection.create_schema "my.schema"
+  end
+
+  teardown do
+    @connection.drop_schema "my.schema", if_exists: true
+  end
+
+  test "rename_table" do
+    with_schema_search_path('"my.schema"') do
+      @connection.create_table :posts
+      @connection.rename_table :posts, :articles
+      assert_equal ["articles"], @connection.tables
+    end
+  end
+
+  test "Active Record basics" do
+    with_schema_search_path('"my.schema"') do
+      @connection.create_table :articles do |t|
+        t.string :title
+      end
+      article_class = Class.new(ActiveRecord::Base) do
+        self.table_name = '"my.schema".articles'
+      end
+
+      article_class.create!(title: "zOMG, welcome to my blorgh!")
+      welcome_article = article_class.last
+      assert_equal "zOMG, welcome to my blorgh!", welcome_article.title
+    end
   end
 end

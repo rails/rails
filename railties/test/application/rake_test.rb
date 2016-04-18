@@ -1,4 +1,3 @@
-# coding:utf-8
 require "isolation/abstract_unit"
 require "active_support/core_ext/string/strip"
 
@@ -25,6 +24,26 @@ module ApplicationTests
       assert $task_loaded
     end
 
+    test "task is protected when previous migration was production" do
+      Dir.chdir(app_path) do
+        output = `bin/rails generate model product name:string;
+         env RAILS_ENV=production bin/rails db:create db:migrate;
+         env RAILS_ENV=production bin/rails db:test:prepare test 2>&1`
+
+        assert_match(/ActiveRecord::ProtectedEnvironmentError/, output)
+      end
+    end
+
+    def test_not_protected_when_previous_migration_was_not_production
+      Dir.chdir(app_path) do
+        output = `bin/rails generate model product name:string;
+         env RAILS_ENV=test bin/rails db:create db:migrate;
+         env RAILS_ENV=test bin/rails db:test:prepare test 2>&1`
+
+        refute_match(/ActiveRecord::ProtectedEnvironmentError/, output)
+      end
+    end
+
     def test_environment_is_required_in_rake_tasks
       app_file "config/environment.rb", <<-RUBY
         SuperMiddleware = Struct.new(:app)
@@ -36,7 +55,7 @@ module ApplicationTests
         Rails.application.initialize!
       RUBY
 
-      assert_match("SuperMiddleware", Dir.chdir(app_path){ `rake middleware` })
+      assert_match("SuperMiddleware", Dir.chdir(app_path){ `bin/rails middleware` })
     end
 
     def test_initializers_are_executed_in_rake_tasks
@@ -51,7 +70,7 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path){ `rake do_nothing` }
+      output = Dir.chdir(app_path){ `bin/rails do_nothing` }
       assert_match "Doing something...", output
     end
 
@@ -72,7 +91,7 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path) { `rake do_nothing` }
+      output = Dir.chdir(app_path) { `bin/rails do_nothing` }
       assert_match 'Hello world', output
     end
 
@@ -93,28 +112,28 @@ module ApplicationTests
       RUBY
 
       Dir.chdir(app_path) do
-        assert system('rake do_nothing RAILS_ENV=production'),
+        assert system('bin/rails do_nothing RAILS_ENV=production'),
                'should not be pre-required for rake even eager_load=true'
       end
     end
 
     def test_code_statistics_sanity
-      assert_match "Code LOC: 7     Test LOC: 0     Code to Test Ratio: 1:0.0",
-        Dir.chdir(app_path){ `rake stats` }
+      assert_match "Code LOC: 18     Test LOC: 0     Code to Test Ratio: 1:0.0",
+        Dir.chdir(app_path){ `bin/rails stats` }
     end
 
-    def test_rake_routes_calls_the_route_inspector
+    def test_rails_routes_calls_the_route_inspector
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get '/cart', to: 'cart#show'
         end
       RUBY
 
-      output = Dir.chdir(app_path){ `rake routes` }
+      output = Dir.chdir(app_path){ `bin/rails routes` }
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
     end
 
-    def test_rake_routes_with_controller_environment
+    def test_rails_routes_with_controller_environment
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get '/cart', to: 'cart#show'
@@ -122,18 +141,85 @@ module ApplicationTests
         end
       RUBY
 
-      ENV['CONTROLLER'] = 'cart'
-      output = Dir.chdir(app_path){ `rake routes` }
+      output = Dir.chdir(app_path){ `bin/rails routes CONTROLLER=cart` }
+      assert_equal ["Passing `CONTROLLER` to `bin/rails routes` is deprecated and will be removed in Rails 5.1.",
+                    "Please use `bin/rails routes -c controller_name` instead.",
+                    "Prefix Verb URI Pattern     Controller#Action",
+                    "  cart GET  /cart(.:format) cart#show\n"].join("\n"), output
+
+      output = Dir.chdir(app_path){ `bin/rails routes -c cart` }
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
     end
 
-    def test_rake_routes_displays_message_when_no_routes_are_defined
+    def test_rails_routes_with_namespaced_controller_environment
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          namespace :admin do
+            resource :post
+          end
+        end
+      RUBY
+      expected_output = ["         Prefix Verb   URI Pattern                Controller#Action",
+                         "     admin_post POST   /admin/post(.:format)      admin/posts#create",
+                         " new_admin_post GET    /admin/post/new(.:format)  admin/posts#new",
+                         "edit_admin_post GET    /admin/post/edit(.:format) admin/posts#edit",
+                         "                GET    /admin/post(.:format)      admin/posts#show",
+                         "                PATCH  /admin/post(.:format)      admin/posts#update",
+                         "                PUT    /admin/post(.:format)      admin/posts#update",
+                         "                DELETE /admin/post(.:format)      admin/posts#destroy\n"].join("\n")
+
+      output = Dir.chdir(app_path){ `bin/rails routes -c Admin::PostController` }
+      assert_equal expected_output, output
+
+      output = Dir.chdir(app_path){ `bin/rails routes -c PostController` }
+      assert_equal expected_output, output
+    end
+
+    def test_rails_routes_with_global_search_key
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get '/cart', to: 'cart#show'
+          post '/cart', to: 'cart#create'
+          get '/basketballs', to: 'basketball#index'
+        end
+      RUBY
+
+      output = Dir.chdir(app_path){ `bin/rails routes -g show` }
+      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+
+      output = Dir.chdir(app_path){ `bin/rails routes -g POST` }
+      assert_equal "Prefix Verb URI Pattern     Controller#Action\n       POST /cart(.:format) cart#create\n", output
+
+      output = Dir.chdir(app_path){ `bin/rails routes -g basketballs` }
+      assert_equal "     Prefix Verb URI Pattern            Controller#Action\n" \
+                   "basketballs GET  /basketballs(.:format) basketball#index\n", output
+    end
+
+    def test_rails_routes_with_controller_search_key
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get '/cart', to: 'cart#show'
+          get '/basketball', to: 'basketball#index'
+        end
+      RUBY
+
+      output = Dir.chdir(app_path){ `bin/rails routes -c cart` }
+      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+
+      output = Dir.chdir(app_path){ `bin/rails routes -c Cart` }
+      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+
+      output = Dir.chdir(app_path){ `bin/rails routes -c CartController` }
+      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+    end
+
+    def test_rails_routes_displays_message_when_no_routes_are_defined
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
         end
       RUBY
 
-      assert_equal <<-MESSAGE.strip_heredoc, Dir.chdir(app_path){ `rake routes` }
+      assert_equal <<-MESSAGE.strip_heredoc, Dir.chdir(app_path){ `bin/rails routes` }
         You don't have any routes defined!
 
         Please add some routes in config/routes.rb.
@@ -151,21 +237,21 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path){ `rake log_something RAILS_ENV=production && cat log/production.log` }
+      output = Dir.chdir(app_path){ `bin/rails log_something RAILS_ENV=production && cat log/production.log` }
       assert_match "Sample log message", output
     end
 
     def test_loading_specific_fixtures
       Dir.chdir(app_path) do
-        `rails generate model user username:string password:string;
-         rails generate model product name:string;
-         rake db:migrate`
+        `bin/rails generate model user username:string password:string;
+         bin/rails generate model product name:string;
+         bin/rails db:migrate`
       end
 
       require "#{rails_root}/config/environment"
 
       # loading a specific fixture
-      errormsg = Dir.chdir(app_path) { `rake db:fixtures:load FIXTURES=products` }
+      errormsg = Dir.chdir(app_path) { `bin/rails db:fixtures:load FIXTURES=products` }
       assert $?.success?, errormsg
 
       assert_equal 2, ::AppTemplate::Application::Product.count
@@ -174,33 +260,51 @@ module ApplicationTests
 
     def test_loading_only_yml_fixtures
       Dir.chdir(app_path) do
-        `rake db:migrate`
+        `bin/rails db:migrate`
       end
 
       app_file "test/fixtures/products.csv", ""
 
       require "#{rails_root}/config/environment"
-      errormsg = Dir.chdir(app_path) { `rake db:fixtures:load` }
+      errormsg = Dir.chdir(app_path) { `bin/rails db:fixtures:load` }
       assert $?.success?, errormsg
     end
 
     def test_scaffold_tests_pass_by_default
       output = Dir.chdir(app_path) do
-        `rails generate scaffold user username:string password:string;
-         bundle exec rake db:migrate test`
+        `bin/rails generate scaffold user username:string password:string;
+         RAILS_ENV=test bin/rails db:migrate test`
       end
 
       assert_match(/7 runs, 12 assertions, 0 failures, 0 errors/, output)
       assert_no_match(/Errors running/, output)
     end
 
-    def test_scaffold_with_references_columns_tests_pass_when_belongs_to_is_optional
-      app_file "config/initializers/active_record_belongs_to_required_by_default.rb",
-        "Rails.application.config.active_record.belongs_to_required_by_default = false"
+    def test_api_scaffold_tests_pass_by_default
+      add_to_config <<-RUBY
+        config.api_only = true
+      RUBY
+
+      app_file "app/controllers/application_controller.rb", <<-RUBY
+        class ApplicationController < ActionController::API
+        end
+      RUBY
 
       output = Dir.chdir(app_path) do
-        `rails generate scaffold LineItems product:references cart:belongs_to;
-         bundle exec rake db:migrate test`
+        `bin/rails generate scaffold user username:string password:string;
+         RAILS_ENV=test bin/rails db:migrate test`
+      end
+
+      assert_match(/5 runs, 7 assertions, 0 failures, 0 errors/, output)
+      assert_no_match(/Errors running/, output)
+    end
+
+    def test_scaffold_with_references_columns_tests_pass_by_default
+      output = Dir.chdir(app_path) do
+        `bin/rails generate model Product;
+         bin/rails generate model Cart;
+         bin/rails generate scaffold LineItems product:references cart:belongs_to;
+         RAILS_ENV=test bin/rails db:migrate test`
       end
 
       assert_match(/7 runs, 12 assertions, 0 failures, 0 errors/, output)
@@ -210,9 +314,9 @@ module ApplicationTests
     def test_db_test_clone_when_using_sql_format
       add_to_config "config.active_record.schema_format = :sql"
       output = Dir.chdir(app_path) do
-        `rails generate scaffold user username:string;
-         bundle exec rake db:migrate;
-         bundle exec rake db:test:clone 2>&1 --trace`
+        `bin/rails generate scaffold user username:string;
+         bin/rails db:migrate;
+         bin/rails db:test:clone 2>&1 --trace`
       end
       assert_match(/Execute db:test:clone_structure/, output)
     end
@@ -220,9 +324,9 @@ module ApplicationTests
     def test_db_test_prepare_when_using_sql_format
       add_to_config "config.active_record.schema_format = :sql"
       output = Dir.chdir(app_path) do
-        `rails generate scaffold user username:string;
-         bundle exec rake db:migrate;
-         bundle exec rake db:test:prepare 2>&1 --trace`
+        `bin/rails generate scaffold user username:string;
+         bin/rails db:migrate;
+         bin/rails db:test:prepare 2>&1 --trace`
       end
       assert_match(/Execute db:test:load_structure/, output)
     end
@@ -230,7 +334,7 @@ module ApplicationTests
     def test_rake_dump_structure_should_respect_db_structure_env_variable
       Dir.chdir(app_path) do
         # ensure we have a schema_migrations table to dump
-        `bundle exec rake db:migrate db:structure:dump SCHEMA=db/my_structure.sql`
+        `bin/rails db:migrate db:structure:dump SCHEMA=db/my_structure.sql`
       end
       assert File.exist?(File.join(app_path, 'db', 'my_structure.sql'))
     end
@@ -239,8 +343,8 @@ module ApplicationTests
       add_to_config "config.active_record.schema_format = :sql"
 
       output = Dir.chdir(app_path) do
-        `rails g model post title:string;
-         bundle exec rake db:migrate:redo 2>&1 --trace;`
+        `bin/rails g model post title:string;
+         bin/rails db:migrate:redo 2>&1 --trace;`
       end
 
       # expect only Invoke db:structure:dump (first_time)
@@ -249,23 +353,23 @@ module ApplicationTests
 
     def test_rake_dump_schema_cache
       Dir.chdir(app_path) do
-        `rails generate model post title:string;
-         rails generate model product name:string;
-         bundle exec rake db:migrate db:schema:cache:dump`
+        `bin/rails generate model post title:string;
+         bin/rails generate model product name:string;
+         bin/rails db:migrate db:schema:cache:dump`
       end
       assert File.exist?(File.join(app_path, 'db', 'schema_cache.dump'))
     end
 
     def test_rake_clear_schema_cache
       Dir.chdir(app_path) do
-        `bundle exec rake db:schema:cache:dump db:schema:cache:clear`
+        `bin/rails db:schema:cache:dump db:schema:cache:clear`
       end
       assert !File.exist?(File.join(app_path, 'db', 'schema_cache.dump'))
     end
 
     def test_copy_templates
       Dir.chdir(app_path) do
-        `bundle exec rake rails:templates:copy`
+        `bin/rails app:templates:copy`
         %w(controller mailer scaffold).each do |dir|
           assert File.exist?(File.join(app_path, 'lib', 'templates', 'erb', dir))
         end
@@ -280,10 +384,17 @@ module ApplicationTests
       app_file "template.rb", ""
 
       output = Dir.chdir(app_path) do
-        `bundle exec rake rails:template LOCATION=template.rb`
+        `bin/rails app:template LOCATION=template.rb`
       end
 
       assert_match(/Hello, World!/, output)
+    end
+
+    def test_tmp_clear_should_work_if_folder_missing
+      FileUtils.remove_dir("#{app_path}/tmp")
+      errormsg = Dir.chdir(app_path) { `bin/rails tmp:clear` }
+      assert_predicate $?, :success?
+      assert_empty errormsg
     end
   end
 end

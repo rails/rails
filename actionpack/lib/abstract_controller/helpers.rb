@@ -38,7 +38,8 @@ module AbstractController
       end
 
       # Declare a controller method as a helper. For example, the following
-      # makes the +current_user+ controller method available to the view:
+      # makes the +current_user+ and +logged_in?+ controller methods available
+      # to the view:
       #   class ApplicationController < ActionController::Base
       #     helper_method :current_user, :logged_in?
       #
@@ -181,7 +182,7 @@ module AbstractController
       end
 
       def default_helper_module!
-        module_name = name.sub(/Controller$/, '')
+        module_name = name.sub(/Controller$/, ''.freeze)
         module_path = module_name.underscore
         helper module_path
       rescue LoadError => e

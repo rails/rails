@@ -10,17 +10,23 @@ module ActiveRecord
     end
 
     def resolve_column_aliases(hash)
-      hash = hash.dup
-      hash.keys.grep(Symbol) do |key|
-        if klass.attribute_alias? key
-          hash[klass.attribute_alias(key)] = hash.delete key
+      # This method is a hot spot, so for now, use Hash[] to dup the hash.
+      #   https://bugs.ruby-lang.org/issues/7166
+      new_hash = Hash[hash]
+      hash.each do |key, _|
+        if (key.is_a?(Symbol)) && klass.attribute_alias?(key)
+          new_hash[klass.attribute_alias(key)] = new_hash.delete(key)
         end
       end
-      hash
+      new_hash
     end
 
     def arel_attribute(column_name)
-      arel_table[column_name]
+      if klass
+        klass.arel_attribute(column_name, arel_table)
+      else
+        arel_table[column_name]
+      end
     end
 
     def type(column_name)
@@ -41,7 +47,7 @@ module ActiveRecord
       association = klass._reflect_on_association(table_name)
       if association && !association.polymorphic?
         association_klass = association.klass
-        arel_table = association_klass.arel_table
+        arel_table = association_klass.arel_table.alias(table_name)
       else
         type_caster = TypeCaster::Connection.new(klass, table_name)
         association_klass = nil

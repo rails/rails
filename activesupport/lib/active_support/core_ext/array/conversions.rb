@@ -32,7 +32,7 @@ class Array
   #   ['one', 'two', 'three'].to_sentence # => "one, two, and three"
   #
   #   ['one', 'two'].to_sentence(passing: 'invalid option')
-  #   # => ArgumentError: Unknown key :passing
+  #   # => ArgumentError: Unknown key: :passing. Valid keys are: :words_connector, :two_words_connector, :last_word_connector, :locale
   #
   #   ['one', 'two'].to_sentence(two_words_connector: '-')
   #   # => "one-two"
@@ -85,7 +85,9 @@ class Array
   # Extends <tt>Array#to_s</tt> to convert a collection of elements into a
   # comma separated id list if <tt>:db</tt> argument is given as the format.
   #
-  #   Blog.all.to_formatted_s(:db) # => "1,2,3"
+  #   Blog.all.to_formatted_s(:db)  # => "1,2,3"
+  #   Blog.none.to_formatted_s(:db) # => "null"
+  #   [1,2].to_formatted_s          # => "[1, 2]"
   def to_formatted_s(format = :default)
     case format
     when :db

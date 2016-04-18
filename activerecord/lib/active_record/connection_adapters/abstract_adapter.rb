@@ -1,8 +1,5 @@
-require 'date'
-require 'bigdecimal'
-require 'bigdecimal/util'
 require 'active_record/type'
-require 'active_support/core_ext/benchmark'
+require 'active_record/connection_adapters/determine_if_preparable_visitor'
 require 'active_record/connection_adapters/schema_cache'
 require 'active_record/connection_adapters/sql_type_metadata'
 require 'active_record/connection_adapters/abstract/schema_dumper'
@@ -25,11 +22,11 @@ module ActiveRecord
       autoload :TableDefinition
       autoload :Table
       autoload :AlterTable
+      autoload :ReferenceDefinition
     end
 
     autoload_at 'active_record/connection_adapters/abstract/connection_pool' do
       autoload :ConnectionHandler
-      autoload :ConnectionManagement
     end
 
     autoload_under 'abstract' do
@@ -54,15 +51,15 @@ module ActiveRecord
     # related classes form the abstraction layer which makes this possible.
     # An AbstractAdapter represents a connection to a database, and provides an
     # abstract interface for database-specific functionality such as establishing
-    # a connection, escaping values, building the right SQL fragments for ':offset'
-    # and ':limit' options, etc.
+    # a connection, escaping values, building the right SQL fragments for +:offset+
+    # and +:limit+ options, etc.
     #
     # All the concrete database adapters follow the interface laid down in this class.
-    # ActiveRecord::Base.connection returns an AbstractAdapter object, which
+    # {ActiveRecord::Base.connection}[rdoc-ref:ConnectionHandling#connection] returns an AbstractAdapter object, which
     # you can use.
     #
     # Most of the methods in the adapter are useful during migrations. Most
-    # notably, the instance methods provided by SchemaStatement are very useful.
+    # notably, the instance methods provided by SchemaStatements are very useful.
     class AbstractAdapter
       ADAPTER_NAME = 'Abstract'.freeze
       include Quoting, DatabaseStatements, SchemaStatements
@@ -97,17 +94,31 @@ module ActiveRecord
 
       attr_reader :prepared_statements
 
-      def initialize(connection, logger = nil, pool = nil) #:nodoc:
+      def initialize(connection, logger = nil, config = {}) # :nodoc:
         super()
 
         @connection          = connection
         @owner               = nil
         @instrumenter        = ActiveSupport::Notifications.instrumenter
         @logger              = logger
-        @pool                = pool
+        @config              = config
+        @pool                = nil
         @schema_cache        = SchemaCache.new self
         @visitor             = nil
         @prepared_statements = false
+        @quoted_column_names, @quoted_table_names = {}, {}
+      end
+
+      class Version
+        include Comparable
+
+        def initialize(version_string)
+          @version = version_string.split('.').map(&:to_i)
+        end
+
+        def <=>(version_string)
+          @version <=> version_string.split('.').map(&:to_i)
+        end
       end
 
       class BindCollector < Arel::Collectors::Bind
@@ -204,6 +215,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support application-enforced advisory locking?
+      def supports_advisory_locks?
+        false
+      end
+
       # Should primary key values be selected from their corresponding
       # sequence before the insert statement? If true, next_sequence_value
       # is called before each insert to set the record's primary key.
@@ -257,12 +273,41 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support json data type?
+      def supports_json?
+        false
+      end
+
+      # Does adapter supports comments on database objects (tables, columns, indexes)?
+      def supports_comments?
+        false
+      end
+
+      # Can comments for tables, columns, and indexes be specified in create/alter table statements?
+      def supports_comments_in_create?
+        false
+      end
+
       # This is meant to be implemented by the adapters that support extensions
       def disable_extension(name)
       end
 
       # This is meant to be implemented by the adapters that support extensions
       def enable_extension(name)
+      end
+
+      # This is meant to be implemented by the adapters that support advisory
+      # locks
+      #
+      # Return true if we got the lock, otherwise false
+      def get_advisory_lock(lock_id) # :nodoc:
+      end
+
+      # This is meant to be implemented by the adapters that support advisory
+      # locks.
+      #
+      # Return true if we released the lock, otherwise false
+      def release_advisory_lock(lock_id) # :nodoc:
       end
 
       # A list of extensions, to be filled in by adapters that support them.
@@ -273,12 +318,6 @@ module ActiveRecord
       # A list of index algorithms, to be filled by adapters that support them.
       def index_algorithms
         {}
-      end
-
-      # Returns a bind substitution value given a bind +column+
-      # NOTE: The column param is currently being used by the sqlserver-adapter
-      def substitute_at(column, _unused = 0)
-        Arel::Nodes::BindParam.new
       end
 
       # REFERENTIAL INTEGRITY ====================================
@@ -334,14 +373,14 @@ module ActiveRecord
       end
 
       # Checks whether the connection to the database is still active (i.e. not stale).
-      # This is done under the hood by calling <tt>active?</tt>. If the connection
+      # This is done under the hood by calling #active?. If the connection
       # is no longer active, then this method will reconnect to the database.
       def verify!(*ignored)
         reconnect! unless active?
       end
 
       # Provides access to the underlying database driver for this adapter. For
-      # example, this method returns a Mysql object in case of MysqlAdapter,
+      # example, this method returns a Mysql2::Client object in case of Mysql2Adapter,
       # and a PGconn object in case of PostgreSQLAdapter.
       #
       # This is useful for when you need to call a proprietary method such as
@@ -356,21 +395,19 @@ module ActiveRecord
       def release_savepoint(name = nil)
       end
 
-      def case_sensitive_modifier(node, table_attribute)
-        node
-      end
-
       def case_sensitive_comparison(table, attribute, column, value)
-        table_attr = table[attribute]
-        value = case_sensitive_modifier(value, table_attr) unless value.nil?
-        table_attr.eq(value)
+        if value.nil?
+          table[attribute].eq(value)
+        else
+          table[attribute].eq(Arel::Nodes::BindParam.new)
+        end
       end
 
       def case_insensitive_comparison(table, attribute, column, value)
         if can_perform_case_insensitive_comparison_for?(column)
-          table[attribute].lower.eq(table.lower(value))
+          table[attribute].lower.eq(table.lower(Arel::Nodes::BindParam.new))
         else
-          case_sensitive_comparison(table, attribute, column, value)
+          table[attribute].eq(Arel::Nodes::BindParam.new)
         end
       end
 
@@ -394,8 +431,8 @@ module ActiveRecord
         end
       end
 
-      def new_column(name, default, sql_type_metadata = nil, null = true, default_function = nil, collation = nil)
-        Column.new(name, default, sql_type_metadata, null, default_function, collation)
+      def new_column(name, default, sql_type_metadata, null, table_name, default_function = nil, collation = nil) # :nodoc:
+        Column.new(name, default, sql_type_metadata, null, table_name, default_function, collation)
       end
 
       def lookup_cast_type(sql_type) # :nodoc:
@@ -504,7 +541,7 @@ module ActiveRecord
 
       def translate_exception(exception, message)
         # override in derived class
-        ActiveRecord::StatementInvalid.new(message, exception)
+        ActiveRecord::StatementInvalid.new(message)
       end
 
       def without_prepared_statement?(binds)

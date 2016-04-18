@@ -15,7 +15,7 @@ After reading this guide, you will know:
 What is Action View?
 --------------------
 
-Action View and Action Controller are the two major components of Action Pack. In Rails, web requests are handled by Action Pack, which splits the work into a controller part (performing the logic) and a view part (rendering a template). Typically, Action Controller will be concerned with communicating with the database and performing CRUD actions where necessary. Action View is then responsible for compiling the response.
+In Rails, web requests are handled by [Action Controller](action_controller_overview.html) and Action View. Typically, Action Controller will be concerned with communicating with the database and performing CRUD actions where necessary. Action View is then responsible for compiling the response.
 
 Action View templates are written using embedded Ruby in tags mingled with HTML. To avoid cluttering the templates with boilerplate code, a number of helper classes provide common behavior for forms, dates, and strings. It's also easy to add new helpers to your application as it evolves.
 
@@ -147,6 +147,39 @@ xml.rss("version" => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/") do
 end
 ```
 
+#### Jbuilder
+[Jbuilder](https://github.com/rails/jbuilder) is a gem that's
+maintained by the Rails team and included in the default Rails Gemfile.
+It's similar to Builder, but is used to generate JSON, instead of XML.
+
+If you don't have it, you can add the following to your Gemfile:
+
+```ruby
+gem 'jbuilder'
+```
+
+A Jbuilder object named `json` is automatically made available to templates with
+a `.jbuilder` extension.
+
+Here is a basic example:
+
+```ruby
+json.name("Alex")
+json.email("alex@example.com")
+```
+
+would produce:
+
+```json
+{
+  "name": "Alex",
+  "email": "alex@example.com"
+}
+```
+
+See the [Jbuilder documentation](https://github.com/rails/jbuilder#jbuilder) for
+more examples and information.
+
 #### Template Caching
 
 By default, Rails will compile each template to a method in order to render it. When you alter a template, Rails will check the file's modification time and recompile it in development mode.
@@ -214,7 +247,8 @@ By default `ActionView::Partials::PartialRenderer` has its object in a local var
 <%= render partial: "product" %>
 ```
 
-within product we'll get `@product` in the local variable `product`, as if we had written:
+within `_product` partial we'll get `@product` in the local variable `product`,
+as if we had written:
 
 ```erb
 <%= render partial: "product", locals: { product: @product } %>
@@ -226,7 +260,7 @@ With the `as` option we can specify a different name for the local variable. For
 <%= render partial: "product", as: "item" %>
 ```
 
-The `object` option can be used to directly specify which object is rendered into the partial; useful when the template's object is elsewhere (eg. in a different instance variable or in a local variable).
+The `object` option can be used to directly specify which object is rendered into the partial; useful when the template's object is elsewhere (e.g. in a different instance variable or in a local variable).
 
 For example, instead of:
 
@@ -317,26 +351,6 @@ The `box` layout simply wraps the `_article` partial in a `div`:
 </div>
 ```
 
-The `_article` partial wraps the article's `body` in a `div` with the `id` of the article using the `div_for` helper:
-
-**articles/_article.html.erb**
-
-```html+erb
-<%= div_for(article) do %>
-  <p><%= article.body %></p>
-<% end %>
-```
-
-this would output the following:
-
-```html
-<div class='box'>
-  <div id='article_1'>
-    <p>Partial Layouts are cool!</p>
-  </div>
-</div>
-```
-
 Note that the partial layout has access to the local `article` variable that was passed into the `render` call. However, unlike application-wide layouts, partial layouts still have the underscore prefix.
 
 You can also render a block of code within a partial layout instead of calling `yield`. For example, if we didn't have the `_article` partial, we could do this instead:
@@ -345,9 +359,9 @@ You can also render a block of code within a partial layout instead of calling `
 
 ```html+erb
 <% render(layout: 'box', locals: { article: @article }) do %>
-  <%= div_for(article) do %>
+  <div>
     <p><%= article.body %></p>
-  <% end %>
+  </div>
 <% end %>
 ```
 
@@ -428,7 +442,7 @@ image_path("edit.png") # => /assets/edit-2d1a2db63fc738690021fedb5a65b68e.png
 
 #### image_url
 
-Computes the url to an image asset in the `app/assets/images` directory. This will call `image_path` internally and merge with your current host or your asset host.
+Computes the URL to an image asset in the `app/assets/images` directory. This will call `image_path` internally and merge with your current host or your asset host.
 
 ```ruby
 image_url("edit.png") # => http://www.example.com/assets/edit.png
@@ -479,7 +493,7 @@ javascript_path "common" # => /assets/common.js
 
 #### javascript_url
 
-Computes the url to a JavaScript asset in the `app/assets/javascripts` directory. This will call `javascript_path` internally and merge with your current host or your asset host.
+Computes the URL to a JavaScript asset in the `app/assets/javascripts` directory. This will call `javascript_path` internally and merge with your current host or your asset host.
 
 ```ruby
 javascript_url "common" # => http://www.example.com/assets/common.js
@@ -516,7 +530,7 @@ stylesheet_path "application" # => /assets/application.css
 
 #### stylesheet_url
 
-Computes the url to a stylesheet asset in the `app/assets/stylesheets` directory. This will call `stylesheet_path` internally and merge with your current host or your asset host.
+Computes the URL to a stylesheet asset in the `app/assets/stylesheets` directory. This will call `stylesheet_path` internally and merge with your current host or your asset host.
 
 ```ruby
 stylesheet_url "application" # => http://www.example.com/assets/application.css
@@ -585,7 +599,7 @@ This would add something like "Process data files (0.34523)" to the log, which y
 
 #### cache
 
-A method for caching fragments of a view rather than an entire action or page. This technique is useful caching pieces like menus, lists of news topics, static HTML fragments, and so on. This method takes a block that contains the content you wish to cache. See `ActionController::Caching::Fragments` for more information.
+A method for caching fragments of a view rather than an entire action or page. This technique is useful for caching pieces like menus, lists of news topics, static HTML fragments, and so on. This method takes a block that contains the content you wish to cache. See `AbstractController::Caching::Fragments` for more information.
 
 ```erb
 <% cache do %>
@@ -726,7 +740,7 @@ Returns a select tag with options for each of the minutes 0 through 59 with the 
 
 ```ruby
 # Generates a select field for minutes that defaults to the minutes for the time provided.
-select_minute(Time.now + 6.hours)
+select_minute(Time.now + 10.minutes)
 ```
 
 #### select_month
@@ -744,7 +758,7 @@ Returns a select tag with options for each of the seconds 0 through 59 with the 
 
 ```ruby
 # Generates a select field for seconds that defaults to the seconds for the time provided
-select_second(Time.now + 16.minutes)
+select_second(Time.now + 16.seconds)
 ```
 
 #### select_time
@@ -976,11 +990,11 @@ Returns `select` and `option` tags for the collection of existing return values 
 Example object structure for use with this method:
 
 ```ruby
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   belongs_to :author
 end
 
-class Author < ActiveRecord::Base
+class Author < ApplicationRecord
   has_many :articles
   def name_with_initial
     "#{first_name.first}. #{last_name}"
@@ -1012,11 +1026,11 @@ Returns `radio_button` tags for the collection of existing return values of `met
 Example object structure for use with this method:
 
 ```ruby
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   belongs_to :author
 end
 
-class Author < ActiveRecord::Base
+class Author < ApplicationRecord
   has_many :articles
   def name_with_initial
     "#{first_name.first}. #{last_name}"
@@ -1048,11 +1062,11 @@ Returns `check_box` tags for the collection of existing return values of `method
 Example object structure for use with this method:
 
 ```ruby
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   has_and_belongs_to_many :authors
 end
 
-class Author < ActiveRecord::Base
+class Author < ApplicationRecord
   has_and_belongs_to_many :articles
   def name_with_initial
     "#{first_name.first}. #{last_name}"
@@ -1078,14 +1092,6 @@ If `@article.author_ids` is [1], this would return:
 <input name="article[author_ids][]" type="hidden" value="" />
 ```
 
-#### country_options_for_select
-
-Returns a string of option tags for pretty much any country in the world.
-
-#### country_select
-
-Returns select and option tags for the given object and method, using country_options_for_select to generate the list of option tags.
-
 #### option_groups_from_collection_for_select
 
 Returns a string of `option` tags, like `options_from_collection_for_select`, but groups them by `optgroup` tags based on the object relationships of the arguments.
@@ -1093,12 +1099,12 @@ Returns a string of `option` tags, like `options_from_collection_for_select`, bu
 Example object structure for use with this method:
 
 ```ruby
-class Continent < ActiveRecord::Base
+class Continent < ApplicationRecord
   has_many :countries
   # attribs: id, name
 end
 
-class Country < ActiveRecord::Base
+class Country < ApplicationRecord
   belongs_to :continent
   # attribs: id, name, continent_id
 end
@@ -1172,8 +1178,8 @@ If `@article.person_id` is 1, this would become:
 <select name="article[person_id]">
   <option value=""></option>
   <option value="1" selected="selected">David</option>
-  <option value="2">Sam</option>
-  <option value="3">Tobias</option>
+  <option value="2">Eileen</option>
+  <option value="3">Rafael</option>
 </select>
 ```
 
@@ -1241,7 +1247,7 @@ file_field_tag 'attachment'
 
 #### form_tag
 
-Starts a form tag that points the action to an url configured with `url_for_options` just like `ActionController::Base#url_for`.
+Starts a form tag that points the action to a URL configured with `url_for_options` just like `ActionController::Base#url_for`.
 
 ```html+erb
 <%= form_tag '/articles' do %>
@@ -1413,7 +1419,7 @@ number_to_percentage(100, precision: 0)        # => 100%
 
 #### number_to_phone
 
-Formats a number into a US phone number.
+Formats a number into a phone number (US by default).
 
 ```ruby
 number_to_phone(1235551234) # => 123-555-1234
@@ -1448,7 +1454,7 @@ This sanitize helper will HTML encode all tags and strip all attributes that are
 sanitize @article.body
 ```
 
-If either the `:attributes` or `:tags` options are passed, only the mentioned tags and attributes are allowed and nothing else.
+If either the `:attributes` or `:tags` options are passed, only the mentioned attributes and tags are allowed and nothing else.
 
 ```ruby
 sanitize @article.body, tags: %w(table tr td), attributes: %w(id class style)
@@ -1470,12 +1476,12 @@ Sanitizes a block of CSS code.
 Strips all link tags from text leaving just the link text.
 
 ```ruby
-strip_links("<a href="http://rubyonrails.org">Ruby on Rails</a>")
+strip_links('<a href="http://rubyonrails.org">Ruby on Rails</a>')
 # => Ruby on Rails
 ```
 
 ```ruby
-strip_links("emails to <a href="mailto:me@email.com">me@email.com</a>.")
+strip_links('emails to <a href="mailto:me@email.com">me@email.com</a>.')
 # => emails to me@email.com.
 ```
 
@@ -1518,7 +1524,7 @@ Localized Views
 
 Action View has the ability to render different templates depending on the current locale.
 
-For example, suppose you have a `ArticlesController` with a show action. By default, calling this action will render `app/views/articles/show.html.erb`. But if you set `I18n.locale = :de`, then `app/views/articles/show.de.html.erb` will be rendered instead. If the localized template isn't present, the undecorated version will be used. This means you're not required to provide localized views for all cases, but they will be preferred and used if available.
+For example, suppose you have an `ArticlesController` with a show action. By default, calling this action will render `app/views/articles/show.html.erb`. But if you set `I18n.locale = :de`, then `app/views/articles/show.de.html.erb` will be rendered instead. If the localized template isn't present, the undecorated version will be used. This means you're not required to provide localized views for all cases, but they will be preferred and used if available.
 
 You can use the same technique to localize the rescue files in your public directory. For example, setting `I18n.locale = :de` and creating `public/500.de.html` and `public/404.de.html` would allow you to have localized rescue pages.
 

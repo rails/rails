@@ -1,8 +1,3 @@
-# encoding: UTF-8
-require 'active_support/core_ext/object/to_param'
-require 'active_support/core_ext/regexp'
-require 'active_support/dependencies/autoload'
-
 module ActionDispatch
   # The routing module provides URL rewriting in native Ruby. It's a way to
   # redirect incoming requests to controllers and actions. This replaces
@@ -58,7 +53,7 @@ module ActionDispatch
   #     resources :posts, :comments
   #   end
   #
-  # Alternately, you can add prefixes to your path without using a separate
+  # Alternatively, you can add prefixes to your path without using a separate
   # directory by using +scope+. +scope+ takes additional options which
   # apply to all enclosed routes.
   #
@@ -78,13 +73,13 @@ module ActionDispatch
   #   get 'post/:id' => 'posts#show'
   #   post 'post/:id' => 'posts#create_comment'
   #
+  # Now, if you POST to <tt>/posts/:id</tt>, it will route to the <tt>create_comment</tt> action. A GET on the same
+  # URL will route to the <tt>show</tt> action.
+  #
   # If your route needs to respond to more than one HTTP method (or all methods) then using the
   # <tt>:via</tt> option on <tt>match</tt> is preferable.
   #
   #   match 'post/:id' => 'posts#show', via: [:get, :post]
-  #
-  # Now, if you POST to <tt>/posts/:id</tt>, it will route to the <tt>create_comment</tt> action. A GET on the same
-  # URL will route to the <tt>show</tt> action.
   #
   # == Named routes
   #
@@ -151,6 +146,7 @@ module ActionDispatch
   #     get 'geocode/:postalcode' => :show, constraints: {
   #       postalcode: /\d{5}(-\d{4})?/
   #     }
+  #   end
   #
   # Constraints can include the 'ignorecase' and 'extended syntax' regular
   # expression modifiers:
@@ -163,7 +159,7 @@ module ActionDispatch
   #
   #   controller 'geocode' do
   #     get 'geocode/:postalcode' => :show, constraints: {
-  #       postalcode: /# Postcode format
+  #       postalcode: /# Postalcode format
   #          \d{5} #Prefix
   #          (-\d{4})? #Suffix
   #          /x
@@ -232,7 +228,6 @@ module ActionDispatch
   #   def send_to_jail
   #     get '/jail'
   #     assert_response :success
-  #     assert_template "jail/front"
   #   end
   #
   #   def goes_to_login
@@ -242,9 +237,9 @@ module ActionDispatch
   #
   # == View a list of all your routes
   #
-  #   rake routes
+  #   rails routes
   #
-  # Target specific controllers by prefixing the command with <tt>CONTROLLER=x</tt>.
+  # Target specific controllers by prefixing the command with <tt>-c</tt> option.
   #
   module Routing
     extend ActiveSupport::Autoload

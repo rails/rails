@@ -34,67 +34,78 @@ module ActionController
   #       ApplicationController.renderer.new(method: 'post', https: true)
   #
   class Renderer
-    class_attribute :controller, :defaults
-    # Rack environment to render templates in.
-    attr_reader :env
+    attr_reader :defaults, :controller
 
-    class << self
-      delegate :render, to: :new
+    DEFAULTS = {
+      http_host: 'example.org',
+      https: false,
+      method: 'get',
+      script_name: '',
+      input: ''
+    }.freeze
 
-      # Create a new renderer class for a specific controller class.
-      def for(controller)
-        Class.new self do
-          self.controller = controller
-          self.defaults = {
-            http_host: 'example.org',
-            https: false,
-            method: 'get',
-            script_name: '',
-            'rack.input' => ''
-          }
-        end
-      end
+    # Create a new renderer instance for a specific controller class.
+    def self.for(controller, env = {}, defaults = DEFAULTS)
+      new(controller, env, defaults)
+    end
+
+    # Create a new renderer for the same controller but with a new env.
+    def new(env = {})
+      self.class.new controller, env, defaults
+    end
+
+    # Create a new renderer for the same controller but with new defaults.
+    def with_defaults(defaults)
+      self.class.new controller, env, self.defaults.merge(defaults)
     end
 
     # Accepts a custom Rack environment to render templates in.
     # It will be merged with ActionController::Renderer.defaults
-    def initialize(env = {})
-      @env = normalize_keys(defaults).merge normalize_keys(env)
-      @env['action_dispatch.routes'] = controller._routes
+    def initialize(controller, env, defaults)
+      @controller = controller
+      @defaults = defaults
+      @env = normalize_keys defaults.merge(env)
     end
 
     # Render templates with any options from ActionController::Base#render_to_string.
     def render(*args)
-      raise 'missing controller' unless controller?
+      raise 'missing controller' unless controller
 
-      instance = controller.build_with_env(env)
+      request = ActionDispatch::Request.new @env
+      request.routes = controller._routes
+
+      instance = controller.new
+      instance.set_request! request
+      instance.set_response! controller.make_response!(request)
       instance.render_to_string(*args)
     end
 
     private
       def normalize_keys(env)
-        http_header_format(env).tap do |new_env|
-          handle_method_key! new_env
-          handle_https_key!  new_env
-        end
+        new_env = {}
+        env.each_pair { |k,v| new_env[rack_key_for(k)] = rack_value_for(k, v) }
+        new_env
       end
 
-      def http_header_format(env)
-        env.transform_keys do |key|
-          key.is_a?(Symbol) ? key.to_s.upcase : key
-        end
-      end
+      RACK_KEY_TRANSLATION = {
+        http_host:   'HTTP_HOST',
+        https:       'HTTPS',
+        method:      'REQUEST_METHOD',
+        script_name: 'SCRIPT_NAME',
+        input:       'rack.input'
+      }
 
-      def handle_method_key!(env)
-        if method = env.delete('METHOD')
-          env['REQUEST_METHOD'] = method.upcase
-        end
-      end
+      IDENTITY = ->(_) { _ }
 
-      def handle_https_key!(env)
-        if env.has_key? 'HTTPS'
-          env['HTTPS'] = env['HTTPS'] ? 'on' : 'off'
-        end
+      RACK_VALUE_TRANSLATION = {
+        https: ->(v) { v ? 'on' : 'off' },
+        method: ->(v) { v.upcase },
+      }
+
+      def rack_key_for(key); RACK_KEY_TRANSLATION[key]; end
+
+      def rack_value_for(key, value)
+        RACK_VALUE_TRANSLATION.fetch(key, IDENTITY).call value
       end
   end
 end

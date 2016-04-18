@@ -10,7 +10,7 @@ module Another
     end
 
     rescue_from SpecialException do
-      head :status => 406
+      head 406
     end
 
     before_action :redirector, only: :never_executed
@@ -19,7 +19,7 @@ module Another
     end
 
     def show
-      render :nothing => true
+      head :ok
     end
 
     def redirector
@@ -170,7 +170,7 @@ class ACLogSubscriberTest < ActionController::TestCase
   def test_process_action_with_view_runtime
     get :show
     wait
-    assert_match(/\(Views: [\d.]+ms\)/, logs[1])
+    assert_match(/Completed 200 OK in \d+ms/, logs[1])
   end
 
   def test_append_info_to_payload_is_called_even_with_exception
@@ -181,6 +181,12 @@ class ACLogSubscriberTest < ActionController::TestCase
     end
 
     assert_equal "test_value", @controller.last_payload[:test_key]
+  end
+
+  def test_process_action_headers
+    get :show
+    wait
+    assert_equal "Rails Testing", @controller.last_payload[:headers]['User-Agent']
   end
 
   def test_process_action_with_filter_parameters

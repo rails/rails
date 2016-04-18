@@ -59,7 +59,7 @@ module CallbacksTest
     [:before_save, :after_save].each do |callback_method|
       callback_method_sym = callback_method.to_sym
       send(callback_method, callback_symbol(callback_method_sym))
-      send(callback_method, callback_string(callback_method_sym))
+      ActiveSupport::Deprecation.silence { send(callback_method, callback_string(callback_method_sym)) }
       send(callback_method, callback_proc(callback_method_sym))
       send(callback_method, callback_object(callback_method_sym.to_s.gsub(/_save/, '')))
       send(callback_method, CallbackClass)
@@ -228,7 +228,7 @@ module CallbacksTest
     set_callback :save, :before, :nope,           :if =>     :no
     set_callback :save, :before, :nope,           :unless => :yes
     set_callback :save, :after,  :tweedle
-    set_callback :save, :before, "tweedle_dee"
+    ActiveSupport::Deprecation.silence { set_callback :save, :before, "tweedle_dee" }
     set_callback :save, :before, proc {|m| m.history << "yup" }
     set_callback :save, :before, :nope,           :if =>     proc { false }
     set_callback :save, :before, :nope,           :unless => proc { true }
@@ -766,34 +766,30 @@ module CallbacksTest
   end
 
   class CallbackFalseTerminatorWithoutConfigTest < ActiveSupport::TestCase
-    def test_returning_false_halts_callback_if_config_variable_is_not_set
+    def test_returning_false_does_not_halt_callback_if_config_variable_is_not_set
       obj = CallbackFalseTerminator.new
-      assert_deprecated do
-        obj.save
-        assert_equal :second, obj.halted
-        assert !obj.saved
-      end
+      obj.save
+      assert_equal nil, obj.halted
+      assert obj.saved
     end
   end
 
   class CallbackFalseTerminatorWithConfigTrueTest < ActiveSupport::TestCase
     def setup
-      ActiveSupport::Callbacks::CallbackChain.halt_and_display_warning_on_return_false = true
+      ActiveSupport::Callbacks.halt_and_display_warning_on_return_false = true
     end
 
-    def test_returning_false_halts_callback_if_config_variable_is_true
+    def test_returning_false_does_not_halt_callback_if_config_variable_is_true
       obj = CallbackFalseTerminator.new
-      assert_deprecated do
-        obj.save
-        assert_equal :second, obj.halted
-        assert !obj.saved
-      end
+      obj.save
+      assert_equal nil, obj.halted
+      assert obj.saved
     end
   end
 
   class CallbackFalseTerminatorWithConfigFalseTest < ActiveSupport::TestCase
     def setup
-      ActiveSupport::Callbacks::CallbackChain.halt_and_display_warning_on_return_false = false
+      ActiveSupport::Callbacks.halt_and_display_warning_on_return_false = false
     end
 
     def test_returning_false_does_not_halt_callback_if_config_variable_is_false
@@ -1050,7 +1046,7 @@ module CallbacksTest
 
     def test_add_eval
       calls = []
-      klass = build_class("bar")
+      klass = ActiveSupport::Deprecation.silence { build_class("bar") }
       klass.class_eval { define_method(:bar) { calls << klass } }
       klass.new.run
       assert_equal 1, calls.length
@@ -1090,7 +1086,7 @@ module CallbacksTest
 
     def test_skip_string # raises error
       calls = []
-      klass = build_class("bar")
+      klass =  ActiveSupport::Deprecation.silence { build_class("bar") }
       klass.class_eval { define_method(:bar) { calls << klass } }
       assert_raises(ArgumentError) { klass.skip "bar" }
       klass.new.run
@@ -1113,6 +1109,16 @@ module CallbacksTest
       klass.skip :qux, raise: false
       klass.new.run
       assert_equal 1, calls.length
+    end
+  end
+
+  class DeprecatedWarningTest < ActiveSupport::TestCase
+    def test_deprecate_string_callback
+      klass = Class.new(Record)
+
+      assert_deprecated do
+        klass.send :before_save, "tweedle_dee"
+      end
     end
   end
 end

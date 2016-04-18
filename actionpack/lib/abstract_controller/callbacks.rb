@@ -39,8 +39,8 @@ module AbstractController
       #   except: :index, if: -> { true } # the :except option will be ignored.
       #
       # ==== Options
-      # * <tt>only</tt>   - The callback should be run only for this action
-      # * <tt>except</tt>  - The callback should be run for all actions except this action
+      # * <tt>only</tt>   - The callback should be run only for this action.
+      # * <tt>except</tt>  - The callback should be run for all actions except this action.
       def _normalize_callback_options(options)
         _normalize_callback_option(options, :only, :if)
         _normalize_callback_option(options, :except, :unless)
@@ -48,7 +48,8 @@ module AbstractController
 
       def _normalize_callback_option(options, from, to) # :nodoc:
         if from = options[from]
-          from = Array(from).map {|o| "action_name == '#{o}'"}.join(" || ")
+          _from = Array(from).map(&:to_s).to_set
+          from = proc {|c| _from.include? c.action_name }
           options[to] = Array(options[to]).unshift(from)
         end
       end
@@ -59,9 +60,9 @@ module AbstractController
       # * <tt>names</tt> - A list of valid names that could be used for
       #   callbacks. Note that skipping uses Ruby equality, so it's
       #   impossible to skip a callback defined using an anonymous proc
-      #   using #skip_action_callback
+      #   using #skip_action_callback.
       def skip_action_callback(*names)
-        ActiveSupport::Deprecation.warn('`skip_action_callback` is deprecated and will be removed in the next major version of Rails. Please use skip_before_action, skip_after_action or skip_around_action instead.')
+        ActiveSupport::Deprecation.warn('`skip_action_callback` is deprecated and will be removed in Rails 5.1. Please use skip_before_action, skip_after_action or skip_around_action instead.')
         skip_before_action(*names, raise: false)
         skip_after_action(*names, raise: false)
         skip_around_action(*names, raise: false)
@@ -82,8 +83,8 @@ module AbstractController
       # * <tt>block</tt>    - A proc that should be added to the callbacks.
       #
       # ==== Block Parameters
-      # * <tt>name</tt>     - The callback to be added
-      # * <tt>options</tt>  - A hash of options to be used when adding the callback
+      # * <tt>name</tt>     - The callback to be added.
+      # * <tt>options</tt>  - A hash of options to be used when adding the callback.
       def _insert_callbacks(callbacks, block = nil)
         options = callbacks.extract_options!
         _normalize_callback_options(options)

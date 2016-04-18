@@ -140,6 +140,16 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     assert_match(/1 .* but 2/, error.message)
   end
 
+  def test_assert_enqueued_jobs_with_only_option_as_array
+    assert_nothing_raised do
+      assert_enqueued_jobs 2, only: [HelloJob, LoggingJob] do
+        HelloJob.perform_later('jeremy')
+        LoggingJob.perform_later('stewie')
+        RescueJob.perform_later('david')
+      end
+    end
+  end
+
   def test_assert_no_enqueued_jobs_with_only_option
     assert_nothing_raised do
       assert_no_enqueued_jobs only: HelloJob do
@@ -159,10 +169,29 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     assert_match(/0 .* but 1/, error.message)
   end
 
+  def test_assert_no_enqueued_jobs_with_only_option_as_array
+    assert_nothing_raised do
+      assert_no_enqueued_jobs only: [HelloJob, RescueJob] do
+        LoggingJob.perform_later
+      end
+    end
+  end
+
   def test_assert_enqueued_job
     assert_enqueued_with(job: LoggingJob, queue: 'default') do
       LoggingJob.set(wait_until: Date.tomorrow.noon).perform_later
     end
+  end
+
+  def test_assert_enqueued_job_returns
+    job = assert_enqueued_with(job: LoggingJob) do
+      LoggingJob.set(wait_until: 5.minutes.from_now).perform_later(1, 2, 3)
+    end
+
+    assert_instance_of LoggingJob, job
+    assert_in_delta 5.minutes.from_now, job.scheduled_at, 1
+    assert_equal 'default', job.queue_name
+    assert_equal [1, 2, 3], job.arguments
   end
 
   def test_assert_enqueued_job_failure
@@ -189,6 +218,12 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_assert_enqueued_job_with_at_option
+    assert_enqueued_with(job: HelloJob, at: Date.tomorrow.noon) do
+      HelloJob.set(wait_until: Date.tomorrow.noon).perform_later
+    end
+  end
+
   def test_assert_enqueued_job_with_global_id_args
     ricardo = Person.new(9)
     assert_enqueued_with(job: HelloJob, args: [ricardo]) do
@@ -206,6 +241,15 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     end
 
     assert_equal "No enqueued job found with {:job=>HelloJob, :args=>[#{wilma.inspect}]}", error.message
+  end
+
+  def test_assert_enqueued_job_does_not_change_jobs_count
+    HelloJob.perform_later
+    assert_enqueued_with(job: HelloJob) do
+      HelloJob.perform_later
+    end
+
+    assert_equal 2, ActiveJob::Base.queue_adapter.enqueued_jobs.count
   end
 end
 
@@ -397,16 +441,39 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_assert_performed_job_returns
+    job = assert_performed_with(job: NestedJob, queue: 'default') do
+      NestedJob.perform_later
+    end
+
+    assert_instance_of NestedJob, job
+    assert_nil job.scheduled_at
+    assert_equal [], job.arguments
+    assert_equal 'default', job.queue_name
+  end
+
   def test_assert_performed_job_failure
     assert_raise ActiveSupport::TestCase::Assertion do
-      assert_performed_with(job: LoggingJob, at: Date.tomorrow.noon, queue: 'default') do
-        NestedJob.set(wait_until: Date.tomorrow.noon).perform_later
+      assert_performed_with(job: LoggingJob) do
+        HelloJob.perform_later
       end
     end
 
     assert_raise ActiveSupport::TestCase::Assertion do
-      assert_performed_with(job: NestedJob, at: Date.tomorrow.noon, queue: 'low') do
-        NestedJob.set(queue: 'low', wait_until: Date.tomorrow.noon).perform_later
+      assert_performed_with(job: HelloJob, queue: 'low') do
+        HelloJob.set(queue: 'important').perform_later
+      end
+    end
+  end
+
+  def test_assert_performed_job_with_at_option
+    assert_performed_with(job: HelloJob, at: Date.tomorrow.noon) do
+      HelloJob.set(wait_until: Date.tomorrow.noon).perform_later
+    end
+
+    assert_raise ActiveSupport::TestCase::Assertion do
+      assert_performed_with(job: HelloJob, at: Date.today.noon) do
+        HelloJob.set(wait_until: Date.tomorrow.noon).perform_later
       end
     end
   end
@@ -428,5 +495,17 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
 
     assert_equal "No performed job found with {:job=>HelloJob, :args=>[#{wilma.inspect}]}", error.message
+  end
+
+  def test_assert_performed_job_does_not_change_jobs_count
+    assert_performed_with(job: HelloJob) do
+      HelloJob.perform_later
+    end
+
+    assert_performed_with(job: HelloJob) do
+      HelloJob.perform_later
+    end
+
+    assert_equal 2, ActiveJob::Base.queue_adapter.performed_jobs.count
   end
 end

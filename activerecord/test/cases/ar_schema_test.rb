@@ -21,10 +21,10 @@ if ActiveRecord::Base.connection.supports_migrations?
       ActiveRecord::Migration.verbose = @original_verbose
     end
 
-    def test_has_no_primary_key
+    def test_has_primary_key
       old_primary_key_prefix_type = ActiveRecord::Base.primary_key_prefix_type
       ActiveRecord::Base.primary_key_prefix_type = :table_name_with_underscore
-      assert_nil ActiveRecord::SchemaMigration.primary_key
+      assert_equal "version", ActiveRecord::SchemaMigration.primary_key
 
       ActiveRecord::SchemaMigration.create_table
       assert_difference "ActiveRecord::SchemaMigration.count", 1 do

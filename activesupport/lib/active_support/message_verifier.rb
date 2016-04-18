@@ -15,7 +15,7 @@ module ActiveSupport
   # In the authentication filter:
   #
   #   id, time = @verifier.verify(cookies[:remember_me])
-  #   if time < Time.now
+  #   if Time.now < time
   #     self.current_user = User.find(id)
   #   end
   #
@@ -24,6 +24,12 @@ module ActiveSupport
   # hash upon initialization:
   #
   #   @verifier = ActiveSupport::MessageVerifier.new('s3Krit', serializer: YAML)
+  #
+  # +MessageVerifier+ creates HMAC signatures using SHA1 hash algorithm by default.
+  # If you want to use a different hash algorithm, you can change it by providing
+  # `:digest` key as an option while initializing the verifier:
+  #
+  #   @verifier = ActiveSupport::MessageVerifier.new('s3Krit', digest: 'SHA256')
   class MessageVerifier
     class InvalidSignature < StandardError; end
 
@@ -44,9 +50,9 @@ module ActiveSupport
     #   tampered_message = signed_message.chop # editing the message invalidates the signature
     #   verifier.valid_message?(tampered_message) # => false
     def valid_message?(signed_message)
-      return if signed_message.blank?
+      return if signed_message.nil? || !signed_message.valid_encoding? || signed_message.blank?
 
-      data, digest = signed_message.split("--")
+      data, digest = signed_message.split("--".freeze)
       data.present? && digest.present? && ActiveSupport::SecurityUtils.secure_compare(digest, generate_digest(data))
     end
 
@@ -74,7 +80,7 @@ module ActiveSupport
     def verified(signed_message)
       if valid_message?(signed_message)
         begin
-          data = signed_message.split("--")[0]
+          data = signed_message.split("--".freeze)[0]
           @serializer.load(decode(data))
         rescue ArgumentError => argument_error
           return if argument_error.message =~ %r{invalid base64}

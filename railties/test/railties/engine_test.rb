@@ -63,22 +63,22 @@ module RailtiesTest
 
     test "copying migrations" do
       @plugin.write "db/migrate/1_create_users.rb", <<-RUBY
-        class CreateUsers < ActiveRecord::Migration
+        class CreateUsers < ActiveRecord::Migration::Current
         end
       RUBY
 
       @plugin.write "db/migrate/2_add_last_name_to_users.rb", <<-RUBY
-        class AddLastNameToUsers < ActiveRecord::Migration
+        class AddLastNameToUsers < ActiveRecord::Migration::Current
         end
       RUBY
 
       @plugin.write "db/migrate/3_create_sessions.rb", <<-RUBY
-        class CreateSessions < ActiveRecord::Migration
+        class CreateSessions < ActiveRecord::Migration::Current
         end
       RUBY
 
       app_file "db/migrate/1_create_sessions.rb", <<-RUBY
-        class CreateSessions < ActiveRecord::Migration
+        class CreateSessions < ActiveRecord::Migration::Current
           def up
           end
         end
@@ -123,12 +123,12 @@ module RailtiesTest
       end
 
       @plugin.write "db/migrate/1_create_users.rb", <<-RUBY
-        class CreateUsers < ActiveRecord::Migration
+        class CreateUsers < ActiveRecord::Migration::Current
         end
       RUBY
 
       @blog.write "db/migrate/2_create_blogs.rb", <<-RUBY
-        class CreateBlogs < ActiveRecord::Migration
+        class CreateBlogs < ActiveRecord::Migration::Current
         end
       RUBY
 
@@ -163,11 +163,11 @@ module RailtiesTest
       end
 
       @core.write "db/migrate/1_create_users.rb", <<-RUBY
-        class CreateUsers < ActiveRecord::Migration; end
+        class CreateUsers < ActiveRecord::Migration::Current; end
       RUBY
 
       @api.write "db/migrate/2_create_keys.rb", <<-RUBY
-        class CreateKeys < ActiveRecord::Migration; end
+        class CreateKeys < ActiveRecord::Migration::Current; end
       RUBY
 
       boot_rails
@@ -190,7 +190,7 @@ module RailtiesTest
       RUBY
 
       @plugin.write "db/migrate/0_add_first_name_to_users.rb", <<-RUBY
-        class AddFirstNameToUsers < ActiveRecord::Migration
+        class AddFirstNameToUsers < ActiveRecord::Migration::Current
         end
       RUBY
 
@@ -1205,7 +1205,7 @@ YAML
 
     test "engine can be properly mounted at root" do
       add_to_config("config.action_dispatch.show_exceptions = false")
-      add_to_config("config.serve_static_files = false")
+      add_to_config("config.public_file_server.enabled = false")
 
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module Bukkits
@@ -1286,6 +1286,55 @@ YAML
         end
       RUBY
 
+
+      @plugin.write "app/controllers/bukkits/bukkit_controller.rb", <<-RUBY
+        class Bukkits::BukkitController < ActionController::Base
+          def index
+            render text: main_app.bar_path
+          end
+        end
+      RUBY
+
+      boot_rails
+
+      get("/bukkits/bukkit", {}, {'SCRIPT_NAME' => '/foo'})
+      assert_equal '/foo/bar', last_response.body
+
+      get("/bar", {}, {'SCRIPT_NAME' => '/foo'})
+      assert_equal '/foo/bukkits/bukkit', last_response.body
+    end
+
+    test "paths are properly generated when application is mounted at sub-path and relative_url_root is set" do
+      add_to_config "config.relative_url_root = '/foo'"
+
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        module Bukkits
+          class Engine < ::Rails::Engine
+            isolate_namespace Bukkits
+          end
+        end
+      RUBY
+
+      app_file "app/controllers/bar_controller.rb", <<-RUBY
+        class BarController < ApplicationController
+          def index
+            render text: bukkits.bukkit_path
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get '/bar' => 'bar#index', :as => 'bar'
+          mount Bukkits::Engine => "/bukkits", :as => "bukkits"
+        end
+      RUBY
+
+      @plugin.write "config/routes.rb", <<-RUBY
+        Bukkits::Engine.routes.draw do
+          get '/bukkit' => 'bukkit#index'
+        end
+      RUBY
 
       @plugin.write "app/controllers/bukkits/bukkit_controller.rb", <<-RUBY
         class Bukkits::BukkitController < ActionController::Base

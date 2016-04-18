@@ -3,12 +3,13 @@
 abort("Abort testing: Your Rails environment is running in production mode!") if Rails.env.production?
 
 require "rails/test_unit/minitest_plugin"
-require 'active_support/testing/autorun'
 require 'active_support/test_case'
 require 'action_controller'
 require 'action_controller/test_case'
 require 'action_dispatch/testing/integration'
 require 'rails/generators/test_case'
+
+require 'active_support/testing/autorun'
 
 if defined?(ActiveRecord::Base)
   ActiveRecord::Migration.maintain_test_schema!
@@ -27,14 +28,14 @@ if defined?(ActiveRecord::Base)
 end
 
 class ActionController::TestCase
-  def before_setup
+  def before_setup # :nodoc:
     @routes = Rails.application.routes
     super
   end
 end
 
 class ActionDispatch::IntegrationTest
-  def before_setup
+  def before_setup # :nodoc:
     @routes = Rails.application.routes
     super
   end

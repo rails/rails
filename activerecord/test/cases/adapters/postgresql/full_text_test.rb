@@ -1,7 +1,7 @@
 require "cases/helper"
 require 'support/schema_dumping_helper'
 
-class PostgresqlFullTextTest < ActiveRecord::TestCase
+class PostgresqlFullTextTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
   class Tsvector < ActiveRecord::Base; end
 

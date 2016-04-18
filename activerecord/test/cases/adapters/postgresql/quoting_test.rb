@@ -4,7 +4,7 @@ require 'ipaddr'
 module ActiveRecord
   module ConnectionAdapters
     class PostgreSQLAdapter
-      class QuotingTest < ActiveRecord::TestCase
+      class QuotingTest < ActiveRecord::PostgreSQLTestCase
         def setup
           @conn = ActiveRecord::Base.connection
         end

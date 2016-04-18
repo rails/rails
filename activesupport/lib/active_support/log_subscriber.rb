@@ -95,7 +95,7 @@ module ActiveSupport
       METHOD
     end
 
-    # Set color by using a string or one of the defined constants. If a third
+    # Set color by using a symbol or one of the defined constants. If a third
     # option is set to +true+, it also adds bold to the string. This is based
     # on the Highline implementation and will automatically append CLEAR to the
     # end of the returned String.

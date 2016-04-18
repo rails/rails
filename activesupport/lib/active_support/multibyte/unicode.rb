@@ -1,4 +1,3 @@
-# encoding: utf-8
 module ActiveSupport
   module Multibyte
     module Unicode
@@ -11,7 +10,7 @@ module ActiveSupport
       NORMALIZATION_FORMS = [:c, :kc, :d, :kd]
 
       # The Unicode version that is supported by the implementation
-      UNICODE_VERSION = '7.0.0'
+      UNICODE_VERSION = '8.0.0'
 
       # The default normalization used for operations that require
       # normalization. It can be set to any of the normalizations
@@ -58,7 +57,7 @@ module ActiveSupport
       # Returns a regular expression pattern that matches the passed Unicode
       # codepoints.
       def self.codepoints_to_pattern(array_of_codepoints) #:nodoc:
-        array_of_codepoints.collect{ |e| [e].pack 'U*' }.join('|')
+        array_of_codepoints.collect{ |e| [e].pack 'U*'.freeze }.join('|'.freeze)
       end
       TRAILERS_PAT = /(#{codepoints_to_pattern(LEADERS_AND_TRAILERS)})+\Z/u
       LEADERS_PAT = /\A(#{codepoints_to_pattern(LEADERS_AND_TRAILERS)})+/u
@@ -88,19 +87,44 @@ module ActiveSupport
           pos += 1
           previous = codepoints[pos-1]
           current = codepoints[pos]
-          if (
-              # CR X LF
-              ( previous == database.boundary[:cr] and current == database.boundary[:lf] ) or
-              # L X (L|V|LV|LVT)
-              ( database.boundary[:l] === previous and in_char_class?(current, [:l,:v,:lv,:lvt]) ) or
-              # (LV|V) X (V|T)
-              ( in_char_class?(previous, [:lv,:v]) and in_char_class?(current, [:v,:t]) ) or
-              # (LVT|T) X (T)
-              ( in_char_class?(previous, [:lvt,:t]) and database.boundary[:t] === current ) or
-              # X Extend
-              (database.boundary[:extend] === current)
-            )
-          else
+
+          should_break =
+            # GB3. CR X LF
+            if previous == database.boundary[:cr] and current == database.boundary[:lf]
+              false
+            # GB4. (Control|CR|LF) ÷
+            elsif previous and in_char_class?(previous, [:control,:cr,:lf])
+              true
+            # GB5. ÷ (Control|CR|LF)
+            elsif in_char_class?(current, [:control,:cr,:lf])
+              true
+            # GB6. L X (L|V|LV|LVT)
+            elsif database.boundary[:l] === previous and in_char_class?(current, [:l,:v,:lv,:lvt])
+              false
+            # GB7. (LV|V) X (V|T)
+            elsif in_char_class?(previous, [:lv,:v]) and in_char_class?(current, [:v,:t])
+              false
+            # GB8. (LVT|T) X (T)
+            elsif in_char_class?(previous, [:lvt,:t]) and database.boundary[:t] === current
+              false
+            # GB8a. Regional_Indicator X Regional_Indicator
+            elsif database.boundary[:regional_indicator] === previous and database.boundary[:regional_indicator] === current
+              false
+            # GB9. X Extend
+            elsif database.boundary[:extend] === current
+              false
+            # GB9a. X SpacingMark
+            elsif database.boundary[:spacingmark] === current
+              false
+            # GB9b. Prepend X
+            elsif database.boundary[:prepend] === previous
+              false
+            # GB10. Any ÷ Any
+            else
+              true
+            end
+
+          if should_break
             unpacked << codepoints[marker..pos-1]
             marker = pos
           end
@@ -257,7 +281,7 @@ module ActiveSupport
       # * <tt>string</tt> - The string to perform normalization on.
       # * <tt>form</tt> - The form you want to normalize in. Should be one of
       #   the following: <tt>:c</tt>, <tt>:kc</tt>, <tt>:d</tt>, or <tt>:kd</tt>.
-      #   Default is ActiveSupport::Multibyte.default_normalization_form.
+      #   Default is ActiveSupport::Multibyte::Unicode.default_normalization_form.
       def normalize(string, form=nil)
         form ||= @default_normalization_form
         # See http://www.unicode.org/reports/tr15, Table 1
@@ -273,7 +297,7 @@ module ActiveSupport
             compose(reorder_characters(decompose(:compatibility, codepoints)))
           else
             raise ArgumentError, "#{form} is not a valid normalization variant", caller
-        end.pack('U*')
+        end.pack('U*'.freeze)
       end
 
       def downcase(string)
@@ -338,7 +362,7 @@ module ActiveSupport
           end
 
           # Redefine the === method so we can write shorter rules for grapheme cluster breaks
-          @boundary.each do |k,_|
+          @boundary.each_key do |k|
             @boundary[k].instance_eval do
               def ===(other)
                 detect { |i| i === other } ? true : false

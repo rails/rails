@@ -11,7 +11,7 @@ module PostgresqlUUIDHelper
   end
 end
 
-class PostgresqlUUIDTest < ActiveRecord::TestCase
+class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
   include PostgresqlUUIDHelper
   include SchemaDumpingHelper
 
@@ -20,6 +20,8 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
   end
 
   setup do
+    enable_extension!('uuid-ossp', connection)
+
     connection.create_table "uuid_data_type" do |t|
       t.uuid 'guid'
     end
@@ -135,7 +137,7 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
   end
 end
 
-class PostgresqlUUIDGenerationTest < ActiveRecord::TestCase
+class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
   include PostgresqlUUIDHelper
   include SchemaDumpingHelper
 
@@ -144,8 +146,6 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::TestCase
   end
 
   setup do
-    enable_extension!('uuid-ossp', connection)
-
     connection.create_table('pg_uuids', id: :uuid, default: 'uuid_generate_v1()') do |t|
       t.string 'name'
       t.uuid 'other_uuid', default: 'uuid_generate_v4()'
@@ -170,7 +170,6 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::TestCase
     drop_table "pg_uuids"
     drop_table 'pg_uuids_2'
     connection.execute 'DROP FUNCTION IF EXISTS my_uuid_generator();'
-    disable_extension!('uuid-ossp', connection)
   end
 
   if ActiveRecord::Base.connection.supports_extensions?
@@ -198,25 +197,23 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::TestCase
 
     def test_schema_dumper_for_uuid_primary_key
       schema = dump_table_schema "pg_uuids"
-      assert_match(/\bcreate_table "pg_uuids", id: :uuid, default: "uuid_generate_v1\(\)"/, schema)
-      assert_match(/t\.uuid   "other_uuid", default: "uuid_generate_v4\(\)"/, schema)
+      assert_match(/\bcreate_table "pg_uuids", id: :uuid, default: -> { "uuid_generate_v1\(\)" }/, schema)
+      assert_match(/t\.uuid   "other_uuid", default: -> { "uuid_generate_v4\(\)" }/, schema)
     end
 
     def test_schema_dumper_for_uuid_primary_key_with_custom_default
       schema = dump_table_schema "pg_uuids_2"
-      assert_match(/\bcreate_table "pg_uuids_2", id: :uuid, default: "my_uuid_generator\(\)"/, schema)
-      assert_match(/t\.uuid   "other_uuid_2", default: "my_uuid_generator\(\)"/, schema)
+      assert_match(/\bcreate_table "pg_uuids_2", id: :uuid, default: -> { "my_uuid_generator\(\)" }/, schema)
+      assert_match(/t\.uuid   "other_uuid_2", default: -> { "my_uuid_generator\(\)" }/, schema)
     end
   end
 end
 
-class PostgresqlUUIDTestNilDefault < ActiveRecord::TestCase
+class PostgresqlUUIDTestNilDefault < ActiveRecord::PostgreSQLTestCase
   include PostgresqlUUIDHelper
   include SchemaDumpingHelper
 
   setup do
-    enable_extension!('uuid-ossp', connection)
-
     connection.create_table('pg_uuids', id: false) do |t|
       t.primary_key :id, :uuid, default: nil
       t.string 'name'
@@ -225,7 +222,6 @@ class PostgresqlUUIDTestNilDefault < ActiveRecord::TestCase
 
   teardown do
     drop_table "pg_uuids"
-    disable_extension!('uuid-ossp', connection)
   end
 
   if ActiveRecord::Base.connection.supports_extensions?
@@ -244,7 +240,7 @@ class PostgresqlUUIDTestNilDefault < ActiveRecord::TestCase
   end
 end
 
-class PostgresqlUUIDTestInverseOf < ActiveRecord::TestCase
+class PostgresqlUUIDTestInverseOf < ActiveRecord::PostgreSQLTestCase
   include PostgresqlUUIDHelper
 
   class UuidPost < ActiveRecord::Base
@@ -258,8 +254,6 @@ class PostgresqlUUIDTestInverseOf < ActiveRecord::TestCase
   end
 
   setup do
-    enable_extension!('uuid-ossp', connection)
-
     connection.transaction do
       connection.create_table('pg_uuid_posts', id: :uuid) do |t|
         t.string 'title'
@@ -274,7 +268,6 @@ class PostgresqlUUIDTestInverseOf < ActiveRecord::TestCase
   teardown do
       drop_table "pg_uuid_comments"
       drop_table "pg_uuid_posts"
-      disable_extension!('uuid-ossp', connection)
   end
 
   if ActiveRecord::Base.connection.supports_extensions?

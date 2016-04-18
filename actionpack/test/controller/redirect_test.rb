@@ -3,8 +3,8 @@ require 'abstract_unit'
 class RedirectController < ActionController::Base
   # empty method not used anywhere to ensure methods like
   # `status` and `location` aren't called on `redirect_to` calls
-  def status; render :text => 'called status'; end
-  def location; render :text => 'called location'; end
+  def status; render plain: 'called status'; end
+  def location; render plain: 'called location'; end
 
   def simple_redirect
     redirect_to :action => "hello_world"
@@ -42,17 +42,16 @@ class RedirectController < ActionController::Base
     redirect_to :back, :status => 307
   end
 
+  def redirect_back_with_status
+    redirect_back(fallback_location: "/things/stuff", status: 307)
+  end
+
   def host_redirect
     redirect_to :action => "other_host", :only_path => false, :host => 'other.test.host'
   end
 
   def module_redirect
     redirect_to :controller => 'module_test/module_redirect', :action => "hello_world"
-  end
-
-  def redirect_with_assigns
-    @hello = "world"
-    redirect_to :action => "hello_world"
   end
 
   def redirect_to_url
@@ -192,7 +191,11 @@ class RedirectTest < ActionController::TestCase
 
   def test_redirect_to_back_with_status
     @request.env["HTTP_REFERER"] = "http://www.example.com/coming/from"
-    get :redirect_to_back_with_status
+
+    assert_deprecated do
+      get :redirect_to_back_with_status
+    end
+
     assert_response 307
     assert_equal "http://www.example.com/coming/from", redirect_to_url
   end
@@ -213,12 +216,6 @@ class RedirectTest < ActionController::TestCase
     get :module_redirect
     assert_response :redirect
     assert_redirected_to :controller => 'module_test/module_redirect', :action => 'hello_world'
-  end
-
-  def test_redirect_with_assigns
-    get :redirect_with_assigns
-    assert_response :redirect
-    assert_equal "world", assigns["hello"]
   end
 
   def test_redirect_to_url
@@ -247,7 +244,11 @@ class RedirectTest < ActionController::TestCase
 
   def test_redirect_to_back
     @request.env["HTTP_REFERER"] = "http://www.example.com/coming/from"
-    get :redirect_to_back
+
+    assert_deprecated do
+      get :redirect_to_back
+    end
+
     assert_response :redirect
     assert_equal "http://www.example.com/coming/from", redirect_to_url
   end
@@ -255,15 +256,40 @@ class RedirectTest < ActionController::TestCase
   def test_redirect_to_back_with_no_referer
     assert_raise(ActionController::RedirectBackError) {
       @request.env["HTTP_REFERER"] = nil
+
+      assert_deprecated do
+        get :redirect_to_back
+      end
+
       get :redirect_to_back
     }
+  end
+
+  def test_redirect_back
+    referer = "http://www.example.com/coming/from"
+    @request.env["HTTP_REFERER"] = referer
+
+    get :redirect_back_with_status
+
+    assert_response 307
+    assert_equal referer, redirect_to_url
+  end
+
+  def test_redirect_back_with_no_referer
+    get :redirect_back_with_status
+
+    assert_response 307
+    assert_equal "http://test.host/things/stuff", redirect_to_url
   end
 
   def test_redirect_to_record
     with_routing do |set|
       set.draw do
         resources :workshops
-        get ':controller/:action'
+
+        ActiveSupport::Deprecation.silence do
+          get ':controller/:action'
+        end
       end
 
       get :redirect_to_existing_record
@@ -277,15 +303,17 @@ class RedirectTest < ActionController::TestCase
   end
 
   def test_redirect_to_nil
-    assert_raise(ActionController::ActionControllerError) do
+    error = assert_raise(ActionController::ActionControllerError) do
       get :redirect_to_nil
     end
+    assert_equal "Cannot redirect to nil!", error.message
   end
 
   def test_redirect_to_params
-    assert_raise(ActionController::ActionControllerError) do
+    error = assert_raise(ArgumentError) do
       get :redirect_to_params
     end
+    assert_equal "Generating a URL from non sanitized request parameters is insecure!", error.message
   end
 
   def test_redirect_to_with_block
@@ -303,7 +331,9 @@ class RedirectTest < ActionController::TestCase
   def test_redirect_to_with_block_and_accepted_options
     with_routing do |set|
       set.draw do
-        get ':controller/:action'
+        ActiveSupport::Deprecation.silence do
+          get ':controller/:action'
+        end
       end
 
       get :redirect_to_with_block_and_options

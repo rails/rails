@@ -163,10 +163,6 @@ module ActiveModel
     # +ArgumentError+ when invalid options are supplied.
     def check_validity!
     end
-
-    def should_validate?(record) # :nodoc:
-      !record.persisted? || record.changed? || record.marked_for_destruction?
-    end
   end
 
   # +BlockValidator+ is a special +EachValidator+ which receives a block on initialization

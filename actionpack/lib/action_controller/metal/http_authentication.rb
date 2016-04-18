@@ -1,4 +1,5 @@
 require 'base64'
+require 'active_support/security_utils'
 
 module ActionController
   # Makes it dead easy to do HTTP Basic, Digest and Token authentication.
@@ -34,7 +35,7 @@ module ActionController
     #
     #       def authenticate
     #         case request.format
-    #         when Mime::XML, Mime::ATOM
+    #         when Mime[:xml], Mime[:atom]
     #           if user = authenticate_with_http_basic { |u, p| @account.users.authenticate(u, p) }
     #             @current_user = user
     #           else
@@ -68,7 +69,11 @@ module ActionController
           def http_basic_authenticate_with(options = {})
             before_action(options.except(:name, :password, :realm)) do
               authenticate_or_request_with_http_basic(options[:realm] || "Application") do |name, password|
-                name == options[:name] && password == options[:password]
+                # This comparison uses & so that it doesn't short circuit and
+                # uses `variable_size_secure_compare` so that length information
+                # isn't leaked.
+                ActiveSupport::SecurityUtils.variable_size_secure_compare(name, options[:name]) &
+                  ActiveSupport::SecurityUtils.variable_size_secure_compare(password, options[:password])
               end
             end
           end
@@ -94,7 +99,7 @@ module ActionController
       end
 
       def has_basic_credentials?(request)
-        request.authorization.present? && (auth_scheme(request) == 'Basic')
+        request.authorization.present? && (auth_scheme(request).downcase == 'basic')
       end
 
       def user_name_and_password(request)
@@ -203,7 +208,7 @@ module ActionController
           password = password_procedure.call(credentials[:username])
           return false unless password
 
-          method = request.env['rack.methodoverride.original_method'] || request.env['REQUEST_METHOD']
+          method = request.get_header('rack.methodoverride.original_method') || request.get_header('REQUEST_METHOD')
           uri    = credentials[:uri]
 
           [true, false].any? do |trailing_question_mark|
@@ -260,8 +265,8 @@ module ActionController
       end
 
       def secret_token(request)
-        key_generator  = request.env["action_dispatch.key_generator"]
-        http_auth_salt = request.env["action_dispatch.http_auth_salt"]
+        key_generator  = request.key_generator
+        http_auth_salt = request.http_auth_salt
         key_generator.generate_key(http_auth_salt)
       end
 
@@ -342,7 +347,12 @@ module ActionController
     #     private
     #       def authenticate
     #         authenticate_or_request_with_http_token do |token, options|
-    #           token == TOKEN
+    #           # Compare the tokens in a time-constant manner, to mitigate
+    #           # timing attacks.
+    #           ActiveSupport::SecurityUtils.secure_compare(
+    #             ::Digest::SHA256.hexdigest(token),
+    #             ::Digest::SHA256.hexdigest(TOKEN)
+    #           )
     #         end
     #       end
     #   end
@@ -361,7 +371,7 @@ module ActionController
     #
     #       def authenticate
     #         case request.format
-    #         when Mime::XML, Mime::ATOM
+    #         when Mime[:xml], Mime[:atom]
     #           if user = authenticate_with_http_token { |t, o| @account.users.authenticate(t, o) }
     #             @current_user = user
     #           else
@@ -397,7 +407,7 @@ module ActionController
     #   RewriteRule ^(.*)$ dispatch.fcgi [E=X-HTTP_AUTHORIZATION:%{HTTP:Authorization},QSA,L]
     module Token
       TOKEN_KEY = 'token='
-      TOKEN_REGEX = /^Token /
+      TOKEN_REGEX = /^(Token|Bearer)\s+/
       AUTHN_PAIR_DELIMITERS = /(?:,|;|\t+)/
       extend self
 
@@ -436,15 +446,17 @@ module ActionController
         end
       end
 
-      # Parses the token and options out of the token authorization header. If
-      # the header looks like this:
+      # Parses the token and options out of the token authorization header.
+      # The value for the Authorization header is expected to have the prefix
+      # <tt>"Token"</tt> or <tt>"Bearer"</tt>. If the header looks like this:
       #   Authorization: Token token="abc", nonce="def"
-      # Then the returned token is "abc", and the options is {nonce: "def"}
+      # Then the returned token is <tt>"abc"</tt>, and the options are
+      # <tt>{nonce: "def"}</tt>
       #
       # request - ActionDispatch::Request instance with the current headers.
       #
-      # Returns an Array of [String, Hash] if a token is present.
-      # Returns nil if no token is found.
+      # Returns an +Array+ of <tt>[String, Hash]</tt> if a token is present.
+      # Returns +nil+ if no token is found.
       def token_and_options(request)
         authorization_request = request.authorization.to_s
         if authorization_request[TOKEN_REGEX]
@@ -493,7 +505,7 @@ module ActionController
         "Token #{values * ", "}"
       end
 
-      # Sets a WWW-Authenticate to let the client know a token is desired.
+      # Sets a WWW-Authenticate header to let the client know a token is desired.
       #
       # controller - ActionController::Base instance for the outgoing response.
       # realm      - String realm to use in the header.
@@ -502,7 +514,7 @@ module ActionController
       def authentication_request(controller, realm, message = nil)
         message ||= "HTTP Token: Access denied.\n"
         controller.headers["WWW-Authenticate"] = %(Token realm="#{realm.tr('"'.freeze, "".freeze)}")
-        controller.__send__ :render, :text => message, :status => :unauthorized
+        controller.__send__ :render, plain: message, status: :unauthorized
       end
     end
   end

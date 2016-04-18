@@ -52,7 +52,7 @@ module ActionMailer
     extend ActiveSupport::DescendantsTracker
 
     class << self
-      # Returns all mailer preview classes
+      # Returns all mailer preview classes.
       def all
         load_previews if descendants.empty?
         descendants
@@ -68,27 +68,27 @@ module ActionMailer
         message
       end
 
-      # Returns all of the available email previews
+      # Returns all of the available email previews.
       def emails
         public_instance_methods(false).map(&:to_s).sort
       end
 
-      # Returns true if the email exists
+      # Returns true if the email exists.
       def email_exists?(email)
         emails.include?(email)
       end
 
-      # Returns true if the preview exists
+      # Returns true if the preview exists.
       def exists?(preview)
         all.any?{ |p| p.preview_name == preview }
       end
 
-      # Find a mailer preview by its underscored class name
+      # Find a mailer preview by its underscored class name.
       def find(preview)
         all.find{ |p| p.preview_name == preview }
       end
 
-      # Returns the underscored name of the mailer preview without the suffix
+      # Returns the underscored name of the mailer preview without the suffix.
       def preview_name
         name.sub(/Preview$/, '').underscore
       end

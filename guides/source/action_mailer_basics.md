@@ -170,7 +170,7 @@ First, let's create a simple `User` scaffold:
 
 ```bash
 $ bin/rails generate scaffold user name email login
-$ bin/rake db:migrate
+$ bin/rails db:migrate
 ```
 
 Now that we have a user model to play with, we will just edit the
@@ -204,10 +204,14 @@ class UsersController < ApplicationController
 end
 ```
 
-NOTE: Active Job's default behavior is to execute jobs ':inline'. So, you can use
-`deliver_later` now to send emails, and when you later decide to start sending
-them from a background job, you'll only need to set up Active Job to use a queueing
-backend (Sidekiq, Resque, etc).
+NOTE: Active Job's default behavior is to execute jobs via the `:async` adapter. So, you can use
+`deliver_later` now to send emails asynchronously.
+Active Job's default adapter runs jobs with an in-process thread pool.
+It's well-suited for the development/test environments, since it doesn't require
+any external infrastructure, but it's a poor fit for production since it drops
+pending jobs on restart.
+If you need a persistent backend, you will need to use an Active Job adapter
+that has a persistent backend (Sidekiq, Resque, etc).
 
 If you want to send emails right away (from a cronjob for example) just call
 `deliver_now`:
@@ -222,7 +226,7 @@ class SendWeeklySummary
 end
 ```
 
-The method `welcome_email` returns a `ActionMailer::MessageDelivery` object which
+The method `welcome_email` returns an `ActionMailer::MessageDelivery` object which
 can then just be told `deliver_now` or `deliver_later` to send itself out. The
 `ActionMailer::MessageDelivery` object is just a wrapper around a `Mail::Message`. If
 you want to inspect, alter or do anything else with the `Mail::Message` object you can
@@ -278,7 +282,7 @@ different, encode your content and pass in the encoded content and encoding in a
     ```ruby
     encoded_content = SpecialEncode(File.read('/path/to/filename.jpg'))
     attachments['filename.jpg'] = {
-      mime_type: 'application/x-gzip',
+      mime_type: 'application/gzip',
       encoding: 'SpecialEncoding',
       content: encoded_content
     }
@@ -326,7 +330,7 @@ key. The list of emails can be an array of email addresses or a single string
 with the addresses separated by commas.
 
 ```ruby
-class AdminMailer < ActionMailer::Base
+class AdminMailer < ApplicationMailer
   default to: Proc.new { Admin.pluck(:email) },
           from: 'notification@example.com'
 
@@ -344,7 +348,7 @@ The same format can be used to set carbon copy (Cc:) and blind carbon copy
 
 Sometimes you wish to show the name of the person instead of just their email
 address when they receive the email. The trick to doing that is to format the
-email address in the format `"Full Name <email>"`.
+email address in the format `"Full Name" <email>`.
 
 ```ruby
 def welcome_email(user)
@@ -406,6 +410,22 @@ This will render the template 'another_template.html.erb' for the HTML part and
 use the rendered text for the text part. The render command is the same one used
 inside of Action Controller, so you can use all the same options, such as
 `:text`, `:inline` etc.
+
+#### Caching mailer view
+
+You can do cache in mailer views like in application views using `cache` method.
+
+```
+<% cache do %>
+  <%= @company.name %>
+<% end %>
+```
+
+And in order to use this feature, you need to configure your application with this:
+
+```
+  config.action_mailer.perform_caching = true
+```
 
 ### Action Mailer Layouts
 
@@ -532,6 +552,24 @@ url helper.
 
 NOTE: non-`GET` links require [jQuery UJS](https://github.com/rails/jquery-ujs)
 and won't work in mailer templates. They will result in normal `GET` requests.
+
+### Adding images in Action Mailer Views
+
+Unlike controllers, the mailer instance doesn't have any context about the
+incoming request so you'll need to provide the `:asset_host` parameter yourself.
+
+As the `:asset_host` usually is consistent across the application you can
+configure it globally in config/application.rb:
+
+```ruby
+config.action_mailer.asset_host = 'http://example.com'
+```
+
+Now you can display an image inside your email.
+
+```ruby
+<%= image_tag 'image.jpg' %>
+```
 
 ### Sending Multipart Emails
 
@@ -696,7 +734,7 @@ files (environment.rb, production.rb, etc...)
 | Configuration | Description |
 |---------------|-------------|
 |`logger`|Generates information on the mailing run if available. Can be set to `nil` for no logging. Compatible with both Ruby's own `Logger` and `Log4r` loggers.|
-|`smtp_settings`|Allows detailed configuration for `:smtp` delivery method:<ul><li>`:address` - Allows you to use a remote mail server. Just change it from its default `"localhost"` setting.</li><li>`:port` - On the off chance that your mail server doesn't run on port 25, you can change it.</li><li>`:domain` - If you need to specify a HELO domain, you can do it here.</li><li>`:user_name` - If your mail server requires authentication, set the username in this setting.</li><li>`:password` - If your mail server requires authentication, set the password in this setting.</li><li>`:authentication` - If your mail server requires authentication, you need to specify the authentication type here. This is a symbol and one of `:plain`, `:login`, `:cram_md5`.</li><li>`:enable_starttls_auto` - Set this to `false` if there is a problem with your server certificate that you cannot resolve.</li></ul>|
+|`smtp_settings`|Allows detailed configuration for `:smtp` delivery method:<ul><li>`:address` - Allows you to use a remote mail server. Just change it from its default `"localhost"` setting.</li><li>`:port` - On the off chance that your mail server doesn't run on port 25, you can change it.</li><li>`:domain` - If you need to specify a HELO domain, you can do it here.</li><li>`:user_name` - If your mail server requires authentication, set the username in this setting.</li><li>`:password` - If your mail server requires authentication, set the password in this setting.</li><li>`:authentication` - If your mail server requires authentication, you need to specify the authentication type here. This is a symbol and one of `:plain` (will send the password in the clear), `:login` (will send password Base64 encoded) or `:cram_md5` (combines a Challenge/Response mechanism to exchange information and a cryptographic Message Digest 5 algorithm to hash important information)</li><li>`:enable_starttls_auto` - Detects if STARTTLS is enabled in your SMTP server and starts to use it. Defaults to `true`.</li><li>`:openssl_verify_mode` - When using TLS, you can set how OpenSSL checks the certificate. This is really useful if you need to validate a self-signed and/or a wildcard certificate. You can use the name of an OpenSSL verify constant ('none', 'peer', 'client_once', 'fail_if_no_peer_cert') or directly the constant (`OpenSSL::SSL::VERIFY_NONE`, `OpenSSL::SSL::VERIFY_PEER`, ...).</li></ul>|
 |`sendmail_settings`|Allows you to override options for the `:sendmail` delivery method.<ul><li>`:location` - The location of the sendmail executable. Defaults to `/usr/sbin/sendmail`.</li><li>`:arguments` - The command line arguments to be passed to sendmail. Defaults to `-i -t`.</li></ul>|
 |`raise_delivery_errors`|Whether or not errors should be raised if the email fails to be delivered. This only works if the external email server is configured for immediate delivery.|
 |`delivery_method`|Defines a delivery method. Possible values are:<ul><li>`:smtp` (default), can be configured by using `config.action_mailer.smtp_settings`.</li><li>`:sendmail`, can be configured by using `config.action_mailer.sendmail_settings`.</li><li>`:file`: save emails to files; can be configured by using `config.action_mailer.file_settings`.</li><li>`:test`: save emails to `ActionMailer::Base.deliveries` array.</li></ul>See [API docs](http://api.rubyonrails.org/classes/ActionMailer/Base.html) for more info.|
@@ -741,6 +779,9 @@ config.action_mailer.smtp_settings = {
   authentication:       'plain',
   enable_starttls_auto: true  }
 ```
+Note: As of July 15, 2014, Google increased [its security measures](https://support.google.com/accounts/answer/6010255) and now blocks attempts from apps it deems less secure.
+You can change your gmail settings [here](https://www.google.com/settings/security/lesssecureapps) to allow the attempts or
+use another ESP to send email by replacing 'smtp.gmail.com' above with the address of your provider.
 
 Mailer Testing
 --------------

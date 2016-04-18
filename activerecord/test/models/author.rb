@@ -75,7 +75,7 @@ class Author < ActiveRecord::Base
   has_many :posts_with_multiple_callbacks, :class_name => "Post",
            :before_add => [:log_before_adding, Proc.new {|o, r| o.post_log << "before_adding_proc#{r.id || '<new>'}"}],
            :after_add  => [:log_after_adding,  Proc.new {|o, r| o.post_log << "after_adding_proc#{r.id || '<new>'}"}]
-  has_many :unchangable_posts, :class_name => "Post", :before_add => :raise_exception, :after_add => :log_after_adding
+  has_many :unchangeable_posts, :class_name => "Post", :before_add => :raise_exception, :after_add => :log_after_adding
 
   has_many :categorizations
   has_many :categories, :through => :categorizations
@@ -144,8 +144,13 @@ class Author < ActiveRecord::Base
 
   has_many :posts_with_signature, ->(record) { where("posts.title LIKE ?", "%by #{record.name.downcase}%") }, class_name: "Post"
 
-  scope :relation_include_posts, -> { includes(:posts) }
-  scope :relation_include_tags,  -> { includes(:tags) }
+  has_many :posts_with_extension, -> { order(:title) }, class_name: "Post" do
+    def extension_method; end
+  end
+
+  has_many :posts_with_extension_and_instance, ->(record) { order(:title) }, class_name: "Post" do
+    def extension_method; end
+  end
 
   attr_accessor :post_log
   after_initialize :set_post_log

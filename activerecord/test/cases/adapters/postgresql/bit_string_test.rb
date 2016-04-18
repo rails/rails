@@ -2,7 +2,7 @@ require "cases/helper"
 require 'support/connection_helper'
 require 'support/schema_dumping_helper'
 
-class PostgresqlBitStringTest < ActiveRecord::TestCase
+class PostgresqlBitStringTest < ActiveRecord::PostgreSQLTestCase
   include ConnectionHelper
   include SchemaDumpingHelper
 
@@ -57,9 +57,11 @@ class PostgresqlBitStringTest < ActiveRecord::TestCase
     assert_match %r{t\.bit_varying\s+"a_bit_varying",\s+limit: 4,\s+default: "0011"$}, output
   end
 
-  def test_assigning_invalid_hex_string_raises_exception
-    assert_raises(ActiveRecord::StatementInvalid) { PostgresqlBitString.create! a_bit: "FF" }
-    assert_raises(ActiveRecord::StatementInvalid) { PostgresqlBitString.create! a_bit_varying: "FF" }
+  if ActiveRecord::Base.connection.prepared_statements
+    def test_assigning_invalid_hex_string_raises_exception
+      assert_raises(ActiveRecord::StatementInvalid) { PostgresqlBitString.create! a_bit: "FF" }
+      assert_raises(ActiveRecord::StatementInvalid) { PostgresqlBitString.create! a_bit_varying: "F" }
+    end
   end
 
   def test_roundtrip

@@ -1,6 +1,6 @@
 require "cases/helper"
 
-if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+if current_adapter?(:Mysql2Adapter)
 module ActiveRecord
   module ConnectionAdapters
     class MysqlTypeLookupTest < ActiveRecord::TestCase
@@ -20,6 +20,10 @@ module ActiveRecord
         assert_lookup_type :string, "ENUM('one', 'two', 'three')"
         assert_lookup_type :string, "set('one', 'two', 'three')"
         assert_lookup_type :string, "SET('one', 'two', 'three')"
+      end
+
+      def test_set_type_with_value_matching_other_type
+        assert_lookup_type :string, "SET('unicode', '8bit', 'none', 'time')"
       end
 
       def test_enum_type_with_value_matching_other_type

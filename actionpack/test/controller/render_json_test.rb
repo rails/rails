@@ -28,7 +28,7 @@ class RenderJsonTest < ActionController::TestCase
     end
 
     def render_json_render_to_string
-      render :text => render_to_string(:json => '[]')
+      render plain: render_to_string(json: '[]')
     end
 
     def render_json_hello_world

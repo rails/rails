@@ -16,13 +16,13 @@ module ActiveJob
     #   Rails.application.config.active_job.queue_adapter = :que
     class QueAdapter
       def enqueue(job) #:nodoc:
-        que_job = JobWrapper.enqueue job.serialize
+        que_job = JobWrapper.enqueue job.serialize, priority: job.priority
         job.provider_job_id = que_job.attrs["job_id"]
         que_job
       end
 
       def enqueue_at(job, timestamp) #:nodoc:
-        que_job = JobWrapper.enqueue job.serialize, run_at: Time.at(timestamp)
+        que_job = JobWrapper.enqueue job.serialize, priority: job.priority, run_at: Time.at(timestamp)
         job.provider_job_id = que_job.attrs["job_id"]
         que_job
       end

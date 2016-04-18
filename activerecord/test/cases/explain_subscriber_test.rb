@@ -48,6 +48,11 @@ if ActiveRecord::Base.connection.supports_explain?
       assert queries.empty?
     end
 
+    def test_collects_cte_queries
+      SUBSCRIBER.finish(nil, nil, name: 'SQL', sql: 'with s as (values(3)) select 1 from s')
+      assert_equal 1, queries.size
+    end
+
     teardown do
       ActiveRecord::ExplainRegistry.reset
     end

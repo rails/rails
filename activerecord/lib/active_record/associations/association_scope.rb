@@ -147,6 +147,7 @@ module ActiveRecord
               scope.includes! item.includes_values
             end
 
+            scope.unscope!(*item.unscope_values)
             scope.where_clause += item.where_clause
             scope.order_values |= item.order_values
           end

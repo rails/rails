@@ -66,12 +66,20 @@ module ActiveSupport
     alias :assert_not_respond_to :refute_respond_to
     alias :assert_not_same :refute_same
 
-    # Reveals the intention that the block should not raise any exception.
+
+    # Assertion that the block should not raise an exception.
+    #
+    # Passes if evaluated code in the yielded block raises no exception.
     #
     #   assert_nothing_raised do
-    #     ...
+    #     perform_service(param: 'no_exception')
     #   end
     def assert_nothing_raised(*args)
+      if args.present?
+        ActiveSupport::Deprecation.warn(
+          "Passing arguments to assert_nothing_raised " \
+          "is deprecated and will be removed in Rails 5.1.")
+      end
       yield
     end
   end

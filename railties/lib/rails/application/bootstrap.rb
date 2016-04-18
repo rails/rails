@@ -1,6 +1,7 @@
-require "active_support/notifications"
-require "active_support/dependencies"
-require "active_support/descendants_tracker"
+require 'fileutils'
+require 'active_support/notifications'
+require 'active_support/dependencies'
+require 'active_support/descendants_tracker'
 
 module Rails
   class Application
@@ -63,7 +64,7 @@ INFO
           Rails.cache = ActiveSupport::Cache.lookup_store(config.cache_store)
 
           if Rails.cache.respond_to?(:middleware)
-            config.middleware.insert_before("Rack::Runtime", Rails.cache.middleware)
+            config.middleware.insert_before(::Rack::Runtime, Rails.cache.middleware)
           end
         end
       end

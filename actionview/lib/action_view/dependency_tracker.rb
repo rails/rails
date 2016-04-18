@@ -1,22 +1,26 @@
-require 'thread_safe'
+require 'concurrent/map'
+require 'action_view/path_set'
 
 module ActionView
   class DependencyTracker # :nodoc:
-    @trackers = ThreadSafe::Cache.new
+    @trackers = Concurrent::Map.new
 
-    def self.find_dependencies(name, template)
+    def self.find_dependencies(name, template, view_paths = nil)
       tracker = @trackers[template.handler]
+      return [] unless tracker
 
-      if tracker.present?
-        tracker.call(name, template)
-      else
-        []
-      end
+      tracker.call(name, template, view_paths)
     end
 
     def self.register_tracker(extension, tracker)
       handler = Template.handler_for_extension(extension)
-      @trackers[handler] = tracker
+      if tracker.respond_to?(:supports_view_paths?)
+        @trackers[handler] = tracker
+      else
+        @trackers[handler] = lambda { |name, template, _|
+          tracker.call(name, template)
+        }
+      end
     end
 
     def self.remove_tracker(handler)
@@ -82,12 +86,16 @@ module ActionView
         (?:#{STRING}|#{VARIABLE_OR_METHOD_CHAIN})      # finally, the dependency name of interest
       /xm
 
-      def self.call(name, template)
-        new(name, template).dependencies
+      def self.supports_view_paths? # :nodoc:
+        true
       end
 
-      def initialize(name, template)
-        @name, @template = name, template
+      def self.call(name, template, view_paths = nil)
+        new(name, template, view_paths).dependencies
+      end
+
+      def initialize(name, template, view_paths = nil)
+        @name, @template, @view_paths = name, template, view_paths
       end
 
       def dependencies
@@ -142,8 +150,22 @@ module ActionView
           end
         end
 
+        def resolve_directories(wildcard_dependencies)
+          return [] unless @view_paths
+
+          wildcard_dependencies.flat_map { |query, templates|
+            @view_paths.find_all_with_query(query).map do |template|
+              "#{File.dirname(query)}/#{File.basename(template).split('.').first}"
+            end
+          }.sort
+        end
+
         def explicit_dependencies
-          source.scan(EXPLICIT_DEPENDENCY).flatten.uniq
+          dependencies = source.scan(EXPLICIT_DEPENDENCY).flatten.uniq
+
+          wildcards, explicits = dependencies.partition { |dependency| dependency[-1] == '*' }
+
+          (explicits + resolve_directories(wildcards)).uniq
         end
     end
 

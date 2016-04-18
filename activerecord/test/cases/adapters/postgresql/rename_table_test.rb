@@ -1,6 +1,6 @@
 require "cases/helper"
 
-class PostgresqlRenameTableTest < ActiveRecord::TestCase
+class PostgresqlRenameTableTest < ActiveRecord::PostgreSQLTestCase
   def setup
     @connection = ActiveRecord::Base.connection
     @connection.create_table :before_rename, force: true

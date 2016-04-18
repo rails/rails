@@ -3,7 +3,7 @@ require "active_support/core_ext/class"
 require "active_support/core_ext/module/attribute_accessors"
 require "action_view/template"
 require "thread"
-require "thread_safe"
+require "concurrent/map"
 
 module ActionView
   # = Action View Resolver
@@ -35,7 +35,7 @@ module ActionView
 
     # Threadsafe template cache
     class Cache #:nodoc:
-      class SmallCache < ThreadSafe::Cache
+      class SmallCache < Concurrent::Map
         def initialize(options = {})
           super(options.merge(:initial_capacity => 2))
         end
@@ -52,6 +52,7 @@ module ActionView
 
       def initialize
         @data = SmallCache.new(&KEY_BLOCK)
+        @query_cache = SmallCache.new
       end
 
       # Cache the templates returned by the block
@@ -70,8 +71,17 @@ module ActionView
         end
       end
 
+      def cache_query(query) # :nodoc:
+        if Resolver.caching?
+          @query_cache[query] ||= canonical_no_templates(yield)
+        else
+          yield
+        end
+      end
+
       def clear
         @data.clear
+        @query_cache.clear
       end
 
       private
@@ -114,6 +124,16 @@ module ActionView
       cached(key, [name, prefix, partial], details, locals) do
         find_templates(name, prefix, partial, details)
       end
+    end
+
+    def find_all_anywhere(name, prefix, partial=false, details={}, key=nil, locals=[])
+      cached(key, [name, prefix, partial], details, locals) do
+        find_templates(name, prefix, partial, details, true)
+      end
+    end
+
+    def find_all_with_query(query) # :nodoc:
+      @cache.cache_query(query) { find_template_paths(File.join(@path, query)) }
     end
 
   private
@@ -173,17 +193,18 @@ module ActionView
 
     private
 
-    def find_templates(name, prefix, partial, details)
+    def find_templates(name, prefix, partial, details, outside_app_allowed = false)
       path = Path.build(name, prefix, partial)
-      query(path, details, details[:formats])
+      query(path, details, details[:formats], outside_app_allowed)
     end
 
-    def query(path, details, formats)
+    def query(path, details, formats, outside_app_allowed)
       query = build_query(path, details)
 
-      template_paths = find_template_paths query
+      template_paths = find_template_paths(query)
+      template_paths = reject_files_external_to_app(template_paths) unless outside_app_allowed
 
-      template_paths.map { |template|
+      template_paths.map do |template|
         handler, format, variant = extract_handler_and_format_and_variant(template, formats)
         contents = File.binread(template)
 
@@ -193,36 +214,50 @@ module ActionView
           :variant      => variant,
           :updated_at   => mtime(template)
         )
-      }
+      end
+    end
+
+    def reject_files_external_to_app(files)
+      files.reject { |filename| !inside_path?(@path, filename) }
     end
 
     def find_template_paths(query)
-      Dir[query].reject { |filename|
+      Dir[query].uniq.reject do |filename|
         File.directory?(filename) ||
           # deals with case-insensitive file systems.
           !File.fnmatch(query, filename, File::FNM_EXTGLOB)
-      }
+      end
+    end
+
+    def inside_path?(path, filename)
+      filename = File.expand_path(filename)
+      path = File.join(path, '')
+      filename.start_with?(path)
     end
 
     # Helper for building query glob string based on resolver's pattern.
     def build_query(path, details)
       query = @pattern.dup
 
-      prefix = path.prefix.empty? ? "" : "#{escape_entry(path.prefix)}\\1"
-      query.gsub!(/\:prefix(\/)?/, prefix)
+      prefix = path.prefix.empty? ? '' : "#{escape_entry(path.prefix)}\\1"
+      query.gsub!(/:prefix(\/)?/, prefix)
 
       partial = escape_entry(path.partial? ? "_#{path.name}" : path.name)
-      query.gsub!(/\:action/, partial)
+      query.gsub!(/:action/, partial)
 
-      details.each do |ext, variants|
-        query.gsub!(/\:#{ext}/, "{#{variants.compact.uniq.join(',')}}")
+      details.each do |ext, candidates|
+        if ext == :variants && candidates == :any
+          query.gsub!(/:#{ext}/, "*")
+        else
+          query.gsub!(/:#{ext}/, "{#{candidates.compact.uniq.join(',')}}")
+        end
       end
 
       File.expand_path(query, @path)
     end
 
     def escape_entry(entry)
-      entry.gsub(/[*?{}\[\]]/, '\\\\\\&')
+      entry.gsub(/[*?{}\[\]]/, '\\\\\\&'.freeze)
     end
 
     # Returns the file mtime from the filesystem.
@@ -234,7 +269,7 @@ module ActionView
     # from the path, or the handler, we should return the array of formats given
     # to the resolver.
     def extract_handler_and_format_and_variant(path, default_formats)
-      pieces = File.basename(path).split(".")
+      pieces = File.basename(path).split('.'.freeze)
       pieces.shift
 
       extension = pieces.pop
@@ -309,7 +344,11 @@ module ActionView
       query = escape_entry(File.join(@path, path))
 
       exts = EXTENSIONS.map do |ext, prefix|
-        "{#{details[ext].compact.uniq.map { |e| "#{prefix}#{e}," }.join}}"
+        if ext == :variants && details[ext] == :any
+          "{#{prefix}*,}"
+        else
+          "{#{details[ext].compact.uniq.map { |e| "#{prefix}#{e}," }.join}}"
+        end
       end.join
 
       query + exts

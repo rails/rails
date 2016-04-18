@@ -1,17 +1,15 @@
-unless File.exist?('Gemfile')
-  File.write('Gemfile', <<-GEMFILE)
-    source 'https://rubygems.org'
-    gem 'rails', github: 'rails/rails'
-    gem 'arel', github: 'rails/arel'
-  GEMFILE
-
-  system 'bundle'
+begin
+  require 'bundler/inline'
+rescue LoadError => e
+  $stderr.puts 'Bundler version 1.10 or later is required. Please update your Bundler'
+  raise e
 end
 
-require 'bundler'
-Bundler.setup(:default)
+gemfile(true) do
+  source 'https://rubygems.org'
+  gem 'rails', github: 'rails/rails'
+end
 
-require 'rails'
 require 'action_controller/railtie'
 
 class TestApp < Rails::Application
@@ -32,7 +30,7 @@ class TestController < ActionController::Base
   include Rails.application.routes.url_helpers
 
   def index
-    render text: 'Home'
+    render plain: 'Home'
   end
 end
 

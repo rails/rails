@@ -17,7 +17,7 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
     end
 
     def read
-      render :text => "File: #{params[:uploaded_data].read}"
+      render plain: "File: #{params[:uploaded_data].read}"
     end
   end
 
@@ -59,6 +59,17 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
 
     file = params['file']
     assert_equal 'file.txt', file.original_filename
+    assert_equal "text/plain", file.content_type
+    assert_equal 'contents', file.read
+  end
+
+  test "parses utf8 filename with percent character" do
+    params = parse_multipart('utf8_filename')
+    assert_equal %w(file foo), params.keys.sort
+    assert_equal 'bar', params['foo']
+
+    file = params['file']
+    assert_equal 'ファイル%名.txt', file.original_filename
     assert_equal "text/plain", file.content_type
     assert_equal 'contents', file.read
   end
@@ -148,7 +159,9 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
   test "does not raise EOFError on GET request with multipart content-type" do
     with_routing do |set|
       set.draw do
-        get ':action', controller: 'multipart_params_parsing_test/test'
+        ActiveSupport::Deprecation.silence do
+          get ':action', controller: 'multipart_params_parsing_test/test'
+        end
       end
       headers = { "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x" }
       get "/parse", headers: headers
@@ -177,7 +190,9 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
     def with_test_routing
       with_routing do |set|
         set.draw do
-          post ':action', :controller => 'multipart_params_parsing_test/test'
+          ActiveSupport::Deprecation.silence do
+            post ':action', :controller => 'multipart_params_parsing_test/test'
+          end
         end
         yield
       end

@@ -83,6 +83,16 @@ Product = Struct.new(:name) do
   end
 end
 
+class Block
+  def hello?
+    true
+  end
+end
+
+HasBlock = Struct.new(:block) do
+  delegate :hello?, to: :block
+end
+
 class ParameterSet
   delegate :[], :[]=, :to => :@params
 
@@ -301,6 +311,11 @@ class ModuleTest < ActiveSupport::TestCase
     assert_raise(NoMethodError) { product.type_name }
   end
 
+  def test_delegation_with_method_arguments
+    has_block = HasBlock.new(Block.new)
+    assert has_block.hello?
+  end
+
   def test_parent
     assert_equal Yz::Zy, Yz::Zy::Cd.parent
     assert_equal Yz, Yz::Zy.parent
@@ -313,7 +328,13 @@ class ModuleTest < ActiveSupport::TestCase
   end
 
   def test_local_constants
-    assert_equal %w(Constant1 Constant3), Ab.local_constants.sort.map(&:to_s)
+    ActiveSupport::Deprecation.silence do
+      assert_equal %w(Constant1 Constant3), Ab.local_constants.sort.map(&:to_s)
+    end
+  end
+
+  def test_local_constants_is_deprecated
+    assert_deprecated { Ab.local_constants.sort.map(&:to_s) }
   end
 end
 

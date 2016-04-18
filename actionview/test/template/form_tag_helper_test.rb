@@ -64,6 +64,18 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_check_box_tag_disabled
+    actual = check_box_tag "admin","1", false, disabled: true
+    expected = %(<input id="admin" disabled="disabled" name="admin" type="checkbox" value="1" />)
+    assert_dom_equal expected, actual
+  end
+
+  def test_check_box_tag_default_checked
+    actual = check_box_tag "admin","1", true
+    expected = %(<input id="admin" checked="checked" name="admin" type="checkbox" value="1" />)
+    assert_dom_equal expected, actual
+  end
+
   def test_check_box_tag_id_sanitized
     label_elem = root_elem(check_box_tag("project[2][admin]"))
     assert_match VALID_HTML_ID, label_elem['id']
@@ -204,19 +216,19 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_select_tag
-    actual = select_tag "people", "<option>david</option>".html_safe
+    actual = select_tag "people", raw("<option>david</option>")
     expected = %(<select id="people" name="people"><option>david</option></select>)
     assert_dom_equal expected, actual
   end
 
   def test_select_tag_with_multiple
-    actual = select_tag "colors", "<option>Red</option><option>Blue</option><option>Green</option>".html_safe, multiple: true
+    actual = select_tag "colors", raw("<option>Red</option><option>Blue</option><option>Green</option>"), multiple: true
     expected = %(<select id="colors" multiple="multiple" name="colors[]"><option>Red</option><option>Blue</option><option>Green</option></select>)
     assert_dom_equal expected, actual
   end
 
   def test_select_tag_disabled
-    actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>".html_safe, disabled: true
+    actual = select_tag "places", raw("<option>Home</option><option>Work</option><option>Pub</option>"), disabled: true
     expected = %(<select id="places" disabled="disabled" name="places"><option>Home</option><option>Work</option><option>Pub</option></select>)
     assert_dom_equal expected, actual
   end
@@ -227,37 +239,37 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_select_tag_with_include_blank
-    actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>".html_safe, :include_blank => true
+    actual = select_tag "places", raw("<option>Home</option><option>Work</option><option>Pub</option>"), :include_blank => true
     expected = %(<select id="places" name="places"><option value=""></option><option>Home</option><option>Work</option><option>Pub</option></select>)
     assert_dom_equal expected, actual
   end
 
   def test_select_tag_with_include_blank_false
-    actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>".html_safe, include_blank: false
+    actual = select_tag "places", raw("<option>Home</option><option>Work</option><option>Pub</option>"), include_blank: false
     expected = %(<select id="places" name="places"><option>Home</option><option>Work</option><option>Pub</option></select>)
     assert_dom_equal expected, actual
   end
 
   def test_select_tag_with_include_blank_string
-    actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>".html_safe, include_blank: 'Choose'
+    actual = select_tag "places", raw("<option>Home</option><option>Work</option><option>Pub</option>"), include_blank: 'Choose'
     expected = %(<select id="places" name="places"><option value="">Choose</option><option>Home</option><option>Work</option><option>Pub</option></select>)
     assert_dom_equal expected, actual
   end
 
   def test_select_tag_with_prompt
-    actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>".html_safe, :prompt => "string"
+    actual = select_tag "places", raw("<option>Home</option><option>Work</option><option>Pub</option>"), :prompt => "string"
     expected = %(<select id="places" name="places"><option value="">string</option><option>Home</option><option>Work</option><option>Pub</option></select>)
     assert_dom_equal expected, actual
   end
 
   def test_select_tag_escapes_prompt
-    actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>".html_safe, :prompt => "<script>alert(1337)</script>"
+    actual = select_tag "places", raw("<option>Home</option><option>Work</option><option>Pub</option>"), :prompt => "<script>alert(1337)</script>"
     expected = %(<select id="places" name="places"><option value="">&lt;script&gt;alert(1337)&lt;/script&gt;</option><option>Home</option><option>Work</option><option>Pub</option></select>)
     assert_dom_equal expected, actual
   end
 
   def test_select_tag_with_prompt_and_include_blank
-    actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>".html_safe, :prompt => "string", :include_blank => true
+    actual = select_tag "places", raw("<option>Home</option><option>Work</option><option>Pub</option>"), :prompt => "string", :include_blank => true
     expected = %(<select name="places" id="places"><option value="">string</option><option value=""></option><option>Home</option><option>Work</option><option>Pub</option></select>)
     assert_dom_equal expected, actual
   end
@@ -351,9 +363,15 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
-  def test_text_field_disabled
+  def test_text_field_tag_disabled
     actual = text_field_tag "title", "Hello!", disabled: true
     expected = %(<input id="title" name="title" disabled="disabled" type="text" value="Hello!" />)
+    assert_dom_equal expected, actual
+  end
+
+  def test_text_field_tag_with_placeholder_option
+    actual = text_field_tag "title", "Hello!", placeholder: 'Enter search term...'
+    expected = %(<input id="title" name="title" placeholder="Enter search term..." type="text" value="Hello!" />)
     assert_dom_equal expected, actual
   end
 
@@ -415,9 +433,9 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal %(<input checked="checked" disabled="disabled" id="admin" name="admin" readonly="readonly" type="checkbox" value="1" />), check_box_tag("admin", 1, true, 'disabled' => true, :readonly => "yes")
     assert_dom_equal %(<input checked="checked" id="admin" name="admin" type="checkbox" value="1" />), check_box_tag("admin", 1, true, :disabled => false, :readonly => nil)
     assert_dom_equal %(<input type="checkbox" />), tag(:input, :type => "checkbox", :checked => false)
-    assert_dom_equal %(<select id="people" multiple="multiple" name="people[]"><option>david</option></select>), select_tag("people", "<option>david</option>".html_safe, :multiple => true)
-    assert_dom_equal %(<select id="people_" multiple="multiple" name="people[]"><option>david</option></select>), select_tag("people[]", "<option>david</option>".html_safe, :multiple => true)
-    assert_dom_equal %(<select id="people" name="people"><option>david</option></select>), select_tag("people", "<option>david</option>".html_safe, :multiple => nil)
+    assert_dom_equal %(<select id="people" multiple="multiple" name="people[]"><option>david</option></select>), select_tag("people", raw("<option>david</option>"), :multiple => true)
+    assert_dom_equal %(<select id="people_" multiple="multiple" name="people[]"><option>david</option></select>), select_tag("people[]", raw("<option>david</option>"), :multiple => true)
+    assert_dom_equal %(<select id="people" name="people"><option>david</option></select>), select_tag("people", raw("<option>david</option>"), :multiple => nil)
   end
 
   def test_stringify_symbol_keys
@@ -433,6 +451,44 @@ class FormTagHelperTest < ActionView::TestCase
     )
   end
 
+  def test_empty_submit_tag
+    assert_dom_equal(
+      %(<input data-disable-with="Save" name='commit' type="submit" value="Save" />),
+      submit_tag("Save")
+    )
+  end
+
+  def test_empty_submit_tag_with_opt_out
+    ActionView::Base.automatically_disable_submit_tag = false
+    assert_dom_equal(
+      %(<input name='commit' type="submit" value="Save" />),
+      submit_tag("Save")
+    )
+  ensure
+    ActionView::Base.automatically_disable_submit_tag = true
+  end
+
+  def test_submit_tag_having_data_disable_with_string
+    assert_dom_equal(
+      %(<input data-disable-with="Processing..." data-confirm="Are you sure?" name='commit' type="submit" value="Save" />),
+      submit_tag("Save", { "data-disable-with" => "Processing...", "data-confirm" => "Are you sure?" })
+    )
+  end
+
+  def test_submit_tag_having_data_disable_with_boolean
+    assert_dom_equal(
+      %(<input data-confirm="Are you sure?" name='commit' type="submit" value="Save" />),
+      submit_tag("Save", { "data-disable-with" => false, "data-confirm" => "Are you sure?" })
+    )
+  end
+
+  def test_submit_tag_having_data_hash_disable_with_boolean
+    assert_dom_equal(
+      %(<input data-confirm="Are you sure?" name='commit' type="submit" value="Save" />),
+      submit_tag("Save", { :data => { :confirm => "Are you sure?", :disable_with => false } })
+    )
+  end
+
   def test_submit_tag_with_no_onclick_options
     assert_dom_equal(
       %(<input name='commit' data-disable-with="Saving..." type="submit" value="Save" />),
@@ -442,10 +498,25 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_submit_tag_with_confirmation
     assert_dom_equal(
-      %(<input name='commit' type='submit' value='Save' data-confirm="Are you sure?" />),
+      %(<input name='commit' type='submit' value='Save' data-confirm="Are you sure?" data-disable-with="Save" />),
       submit_tag("Save", :data => { :confirm => "Are you sure?" })
     )
   end
+
+  def test_submit_tag_doesnt_have_data_disable_with_twice
+    assert_equal(
+      %(<input type="submit" name="commit" value="Save" data-confirm="Are you sure?" data-disable-with="Processing..." />),
+      submit_tag("Save", { "data-disable-with" => "Processing...", "data-confirm" => "Are you sure?" })
+    )
+  end
+
+  def test_submit_tag_with_symbol_value
+    assert_dom_equal(
+      %(<input data-disable-with="Save" name='commit' type="submit" value="Save" />),
+      submit_tag(:Save)
+    )
+  end
+
 
   def test_button_tag
     assert_dom_equal(
@@ -510,6 +581,13 @@ class FormTagHelperTest < ActionView::TestCase
     )
   end
 
+  def test_button_tag_with_data_disable_with_option
+    assert_dom_equal(
+      %(<button name="button" type="submit" data-disable-with="Please wait...">Checkout</button>),
+      button_tag("Checkout", data: { disable_with: "Please wait..." })
+    )
+  end
+
   def test_image_submit_tag_with_confirmation
     assert_dom_equal(
       %(<input alt="Save" type="image" src="/images/save.gif" data-confirm="Are you sure?" />),
@@ -544,7 +622,9 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_datetime_field_tag
     expected = %{<input id="appointment" name="appointment" type="datetime" />}
-    assert_dom_equal(expected, datetime_field_tag("appointment"))
+    assert_deprecated do
+      assert_dom_equal(expected, datetime_field_tag("appointment"))
+    end
   end
 
   def test_datetime_local_field_tag

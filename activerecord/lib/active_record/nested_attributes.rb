@@ -166,6 +166,11 @@ module ActiveRecord
     #   member.posts.first.title # => '[UPDATED] An, as of yet, undisclosed awesome Ruby documentation browser!'
     #   member.posts.second.title # => '[UPDATED] other post'
     #
+    # However, the above applies if the parent model is being updated as well.
+    # For example, If you wanted to create a +member+ named _joe_ and wanted to
+    # update the +posts+ at the same time, that would give an
+    # ActiveRecord::RecordNotFound error.
+    #
     # By default the associated records are protected from being destroyed. If
     # you want to destroy any of the associated records through the attributes
     # hash, you have to enable it first using the <tt>:allow_destroy</tt>
@@ -190,25 +195,33 @@ module ActiveRecord
     # Nested attributes for an associated collection can also be passed in
     # the form of a hash of hashes instead of an array of hashes:
     #
-    #   Member.create(name:             'joe',
-    #                 posts_attributes: { first:  { title: 'Foo' },
-    #                                     second: { title: 'Bar' } })
+    #   Member.create(
+    #     name: 'joe',
+    #     posts_attributes: {
+    #       first:  { title: 'Foo' },
+    #       second: { title: 'Bar' }
+    #     }
+    #   )
     #
     # has the same effect as
     #
-    #   Member.create(name:             'joe',
-    #                 posts_attributes: [ { title: 'Foo' },
-    #                                     { title: 'Bar' } ])
+    #   Member.create(
+    #     name: 'joe',
+    #     posts_attributes: [
+    #       { title: 'Foo' },
+    #       { title: 'Bar' }
+    #     ]
+    #   )
     #
     # The keys of the hash which is the value for +:posts_attributes+ are
     # ignored in this case.
-    # However, it is not allowed to use +'id'+ or +:id+ for one of
+    # However, it is not allowed to use <tt>'id'</tt> or <tt>:id</tt> for one of
     # such keys, otherwise the hash will be wrapped in an array and
     # interpreted as an attribute hash for a single post.
     #
     # Passing attributes for an associated collection in the form of a hash
     # of hashes can be used with hashes generated from HTTP/HTML parameters,
-    # where there maybe no natural way to submit an array of hashes.
+    # where there may be no natural way to submit an array of hashes.
     #
     # === Saving
     #
@@ -381,6 +394,9 @@ module ActiveRecord
     # then the existing record will be marked for destruction.
     def assign_nested_attributes_for_one_to_one_association(association_name, attributes)
       options = self.nested_attributes_options[association_name]
+      if attributes.respond_to?(:permitted?)
+        attributes = attributes.to_h
+      end
       attributes = attributes.with_indifferent_access
       existing_record = send(association_name)
 
@@ -437,6 +453,9 @@ module ActiveRecord
     #   ])
     def assign_nested_attributes_for_collection_association(association_name, attributes_collection)
       options = self.nested_attributes_options[association_name]
+      if attributes_collection.respond_to?(:permitted?)
+        attributes_collection = attributes_collection.to_h
+      end
 
       unless attributes_collection.is_a?(Hash) || attributes_collection.is_a?(Array)
         raise ArgumentError, "Hash or Array expected, got #{attributes_collection.class.name} (#{attributes_collection.inspect})"
@@ -463,6 +482,9 @@ module ActiveRecord
       end
 
       attributes_collection.each do |attributes|
+        if attributes.respond_to?(:permitted?)
+          attributes = attributes.to_h
+        end
         attributes = attributes.with_indifferent_access
 
         if attributes['id'].blank?
@@ -528,7 +550,7 @@ module ActiveRecord
     # has_destroy_flag? or if a <tt>:reject_if</tt> proc exists for this
     # association and evaluates to +true+.
     def reject_new_record?(association_name, attributes)
-      has_destroy_flag?(attributes) || call_reject_if(association_name, attributes)
+      will_be_destroyed?(association_name, attributes) || call_reject_if(association_name, attributes)
     end
 
     # Determines if a record with the particular +attributes+ should be
@@ -537,7 +559,8 @@ module ActiveRecord
     #
     # Returns false if there is a +destroy_flag+ on the attributes.
     def call_reject_if(association_name, attributes)
-      return false if has_destroy_flag?(attributes)
+      return false if will_be_destroyed?(association_name, attributes)
+
       case callback = self.nested_attributes_options[association_name][:reject_if]
       when Symbol
         method(callback).arity == 0 ? send(callback) : send(callback, attributes)
@@ -546,8 +569,19 @@ module ActiveRecord
       end
     end
 
+    # Only take into account the destroy flag if <tt>:allow_destroy</tt> is true
+    def will_be_destroyed?(association_name, attributes)
+      allow_destroy?(association_name) && has_destroy_flag?(attributes)
+    end
+
+    def allow_destroy?(association_name)
+      self.nested_attributes_options[association_name][:allow_destroy]
+    end
+
     def raise_nested_attributes_record_not_found!(association_name, record_id)
-      raise RecordNotFound, "Couldn't find #{self.class._reflect_on_association(association_name).klass.name} with ID=#{record_id} for #{self.class.name} with ID=#{id}"
+      model = self.class._reflect_on_association(association_name).klass.name
+      raise RecordNotFound.new("Couldn't find #{model} with ID=#{record_id} for #{self.class.name} with ID=#{id}",
+                               model, 'id', record_id)
     end
   end
 end

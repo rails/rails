@@ -3,7 +3,8 @@ require 'active_support/core_ext/module/reachable'
 
 class Class
   begin
-    ObjectSpace.each_object(Class.new) {}
+    # Test if this Ruby supports each_object against singleton_class
+    ObjectSpace.each_object(Numeric.singleton_class) {}
 
     def descendants # :nodoc:
       descendants = []
@@ -12,7 +13,7 @@ class Class
       end
       descendants
     end
-  rescue StandardError # JRuby
+  rescue StandardError # JRuby 9.0.4.0 and earlier
     def descendants # :nodoc:
       descendants = []
       ObjectSpace.each_object(Class) do |k|

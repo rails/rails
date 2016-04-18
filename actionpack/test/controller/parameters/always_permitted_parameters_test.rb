@@ -1,6 +1,5 @@
 require 'abstract_unit'
 require 'action_controller/metal/strong_parameters'
-require 'minitest/mock'
 
 class AlwaysPermittedParametersTest < ActiveSupport::TestCase
   def setup
@@ -11,12 +10,6 @@ class AlwaysPermittedParametersTest < ActiveSupport::TestCase
   def teardown
     ActionController::Parameters.action_on_unpermitted_parameters = false
     ActionController::Parameters.always_permitted_parameters = %w( controller action )
-  end
-
-  test "shows deprecations warning on NEVER_UNPERMITTED_PARAMS" do
-    assert_deprecated do
-      ActionController::Parameters::NEVER_UNPERMITTED_PARAMS
-    end
   end
 
   test "returns super on missing constant other than NEVER_UNPERMITTED_PARAMS" do

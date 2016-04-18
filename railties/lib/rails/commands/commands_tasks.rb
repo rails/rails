@@ -1,3 +1,5 @@
+require 'rails/commands/rake_proxy'
+
 module Rails
   # This is a class which takes in a rails command and initiates the appropriate
   # initiation sequence.
@@ -5,6 +7,8 @@ module Rails
   # Warning: This class mutates ARGV because some commands require manipulating
   # it before they are run.
   class CommandsTasks # :nodoc:
+    include Rails::RakeProxy
+
     attr_reader :argv
 
     HELP_MESSAGE = <<-EOT
@@ -20,13 +24,17 @@ The most common rails commands are:
  new         Create a new Rails application. "rails new my_app" creates a
              new application called MyApp in "./my_app"
 
-In addition to those, there are:
- destroy      Undo code generated with "generate" (short-cut alias: "d")
- plugin new   Generates skeleton for developing a Rails plugin
- runner       Run a piece of code in the application environment (short-cut alias: "r")
-
 All commands can be run with -h (or --help) for more information.
+
+In addition to those commands, there are:
 EOT
+
+    ADDITIONAL_COMMANDS = [
+      [ 'destroy', 'Undo code generated with "generate" (short-cut alias: "d")' ],
+      [ 'plugin new', 'Generates skeleton for developing a Rails plugin' ],
+      [ 'runner',
+        'Run a piece of code in the application environment (short-cut alias: "r")' ]
+    ]
 
     COMMAND_WHITELIST = %w(plugin generate destroy console server dbconsole runner new version help test)
 
@@ -36,10 +44,11 @@ EOT
 
     def run_command!(command)
       command = parse_command(command)
+
       if COMMAND_WHITELIST.include?(command)
         send(command)
       else
-        write_error_message(command)
+        run_rake_task(command)
       end
     end
 
@@ -110,6 +119,7 @@ EOT
 
     def help
       write_help_message
+      write_commands ADDITIONAL_COMMANDS + formatted_rake_tasks
     end
 
     private
@@ -151,24 +161,9 @@ EOT
         puts HELP_MESSAGE
       end
 
-      # Output an error message stating that the attempted command is not a valid rails command.
-      # Run the attempted command as a rake command with the --dry-run flag. If successful, suggest
-      # to the user that they possibly meant to run the given rails command as a rake command.
-      # Append the help message.
-      #
-      #   Example:
-      #   $ rails db:migrate
-      #   Error: Command 'db:migrate' not recognized
-      #   Did you mean: `$ rake db:migrate` ?
-      #   (Help message output)
-      #
-      def write_error_message(command)
-        puts "Error: Command '#{command}' not recognized"
-        if %x{rake #{command} --dry-run 2>&1 } && $?.success?
-          puts "Did you mean: `$ rake #{command}` ?\n\n"
-        end
-        write_help_message
-        exit(1)
+      def write_commands(commands)
+        width = commands.map { |name, _| name.size }.max || 10
+        commands.each { |command| printf(" %-#{width}s   %s\n", *command) }
       end
 
       def parse_command(command)

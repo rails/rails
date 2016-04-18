@@ -61,7 +61,7 @@ module ApplicationTests
     test "files handled by ActionDispatch::Static are handled by Rack::Sendfile" do
       make_basic_app do |app|
         app.config.action_dispatch.x_sendfile_header = 'X-Sendfile'
-        app.config.serve_static_files = true
+        app.config.public_file_server.enabled = true
         app.paths["public"] = File.join(rails_root, "public")
       end
 

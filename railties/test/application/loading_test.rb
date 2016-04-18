@@ -56,10 +56,10 @@ class LoadingTest < ActiveSupport::TestCase
 
     require "#{rails_root}/config/environment"
 
-    assert_nothing_raised(NameError) { Trackable }
-    assert_nothing_raised(NameError) { EmailLoggable }
-    assert_nothing_raised(NameError) { Orderable }
-    assert_nothing_raised(NameError) { Matchable }
+    assert_nothing_raised { Trackable }
+    assert_nothing_raised { EmailLoggable }
+    assert_nothing_raised { Orderable }
+    assert_nothing_raised { Matchable }
   end
 
   test "models without table do not panic on scope definitions when loaded" do
@@ -116,11 +116,11 @@ class LoadingTest < ActiveSupport::TestCase
     require "#{rails_root}/config/environment"
     setup_ar!
 
-    assert_equal [ActiveRecord::SchemaMigration], ActiveRecord::Base.descendants
+    assert_equal [ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata], ActiveRecord::Base.descendants
     get "/load"
-    assert_equal [ActiveRecord::SchemaMigration, Post], ActiveRecord::Base.descendants
+    assert_equal [ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata, Post], ActiveRecord::Base.descendants
     get "/unload"
-    assert_equal [ActiveRecord::SchemaMigration], ActiveRecord::Base.descendants
+    assert_equal [ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata], ActiveRecord::Base.descendants
   end
 
   test "initialize cant be called twice" do
@@ -169,6 +169,8 @@ class LoadingTest < ActiveSupport::TestCase
       config.file_watcher = Class.new do
         def initialize(*); end
         def updated?; false; end
+        def execute; end
+        def execute_if_updated; false; end
       end
     RUBY
 
@@ -288,7 +290,7 @@ class LoadingTest < ActiveSupport::TestCase
     extend Rack::Test::Methods
 
     app_file "db/migrate/1_create_posts.rb", <<-MIGRATION
-      class CreatePosts < ActiveRecord::Migration
+      class CreatePosts < ActiveRecord::Migration::Current
         def change
           create_table :posts do |t|
             t.string :title, default: "TITLE"
@@ -304,7 +306,7 @@ class LoadingTest < ActiveSupport::TestCase
     assert_equal "TITLE", last_response.body
 
     app_file "db/migrate/2_add_body_to_posts.rb", <<-MIGRATION
-      class AddBodyToPosts < ActiveRecord::Migration
+      class AddBodyToPosts < ActiveRecord::Migration::Current
         def change
           add_column :posts, :body, :text, default: "BODY"
         end

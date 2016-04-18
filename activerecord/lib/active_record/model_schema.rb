@@ -44,11 +44,31 @@ module ActiveRecord
 
       ##
       # :singleton-method:
+      # Accessor for the name of the internal metadata table. By default, the value is "ar_internal_metadata"
+      class_attribute :internal_metadata_table_name, instance_accessor: false
+      self.internal_metadata_table_name = "ar_internal_metadata"
+
+      ##
+      # :singleton-method:
+      # Accessor for an array of names of environments where destructive actions should be prohibited. By default,
+      # the value is ["production"]
+      class_attribute :protected_environments, instance_accessor: false
+      self.protected_environments = ["production"]
+
+      ##
+      # :singleton-method:
       # Indicates whether table names should be the pluralized versions of the corresponding class names.
       # If true, the default table name for a Product class will be +products+. If false, it would just be +product+.
       # See table_name for the full rules on table/class naming. This is true, by default.
       class_attribute :pluralize_table_names, instance_writer: false
       self.pluralize_table_names = true
+
+      ##
+      # :singleton-method:
+      # Accessor for the list of columns names the model should ignore. Ignored columns won't have attribute
+      # accessors defined, and won't be referenced in SQL queries.
+      class_attribute :ignored_columns, instance_accessor: false
+      self.ignored_columns = [].freeze
 
       self.inheritance_column = 'type'
 
@@ -211,9 +231,21 @@ module ActiveRecord
         @explicit_sequence_name = true
       end
 
+      # Determines if the primary key values should be selected from their
+      # corresponding sequence before the insert statement.
+      def prefetch_primary_key?
+        connection.prefetch_primary_key?(table_name)
+      end
+
+      # Returns the next value that will be used as the primary key on
+      # an insert statment.
+      def next_sequence_value
+        connection.next_sequence_value(sequence_name)
+      end
+
       # Indicates whether the table associated with this class exists
       def table_exists?
-        connection.schema_cache.table_exists?(table_name)
+        connection.schema_cache.data_source_exists?(table_name)
       end
 
       def attributes_builder # :nodoc:
@@ -235,12 +267,23 @@ module ActiveRecord
         @attribute_types ||= Hash.new(Type::Value.new)
       end
 
-      def type_for_attribute(attr_name) # :nodoc:
+      # Returns the type of the attribute with the given name, after applying
+      # all modifiers. This method is the only valid source of information for
+      # anything related to the types of a model's attributes. This method will
+      # access the database and load the model's schema if it is required.
+      #
+      # The return value of this method will implement the interface described
+      # by ActiveModel::Type::Value (though the object itself may not subclass
+      # it).
+      #
+      # +attr_name+ The name of the attribute to retrieve the type for. Must be
+      # a string
+      def type_for_attribute(attr_name)
         attribute_types[attr_name]
       end
 
       # Returns a hash where the keys are column names and the values are
-      # default values when instantiating the AR object for this table.
+      # default values when instantiating the Active Record object for this table.
       def column_defaults
         load_schema
         _default_attributes.to_hash
@@ -268,7 +311,7 @@ module ActiveRecord
       # when just after creating a table you want to populate it with some default
       # values, eg:
       #
-      #  class CreateJobLevels < ActiveRecord::Migration
+      #  class CreateJobLevels < ActiveRecord::Migration[5.0]
       #    def up
       #      create_table :job_levels do |t|
       #        t.integer :id
@@ -290,7 +333,7 @@ module ActiveRecord
       def reset_column_information
         connection.clear_cache!
         undefine_attribute_methods
-        connection.schema_cache.clear_table_cache!(table_name)
+        connection.schema_cache.clear_data_source_cache!(table_name)
 
         reload_schema_from_cache
       end
@@ -308,8 +351,9 @@ module ActiveRecord
       end
 
       def load_schema!
-        @columns_hash = connection.schema_cache.columns_hash(table_name)
+        @columns_hash = connection.schema_cache.columns_hash(table_name).except(*ignored_columns)
         @columns_hash.each do |name, column|
+          warn_if_deprecated_type(column)
           define_attribute(
             name,
             connection.lookup_cast_type_from_column(column),
@@ -331,6 +375,9 @@ module ActiveRecord
         @columns = nil
         @columns_hash = nil
         @attribute_names = nil
+        direct_descendants.each do |descendant|
+          descendant.send(:reload_schema_from_cache)
+        end
       end
 
       # Guesses the table name, but does not decorate it with prefix and suffix information.
@@ -354,6 +401,28 @@ module ActiveRecord
         else
           # STI subclasses always use their superclass' table.
           base.table_name
+        end
+      end
+
+      def warn_if_deprecated_type(column)
+        return if attributes_to_define_after_schema_loads.key?(column.name)
+        if column.respond_to?(:oid) && column.sql_type.start_with?("point")
+          if column.array?
+            array_arguments = ", array: true"
+          else
+            array_arguments = ""
+          end
+          ActiveSupport::Deprecation.warn(<<-WARNING.strip_heredoc)
+            The behavior of the `:point` type will be changing in Rails 5.1 to
+            return a `Point` object, rather than an `Array`. If you'd like to
+            keep the old behavior, you can add this line to #{self.name}:
+
+              attribute :#{column.name}, :legacy_point#{array_arguments}
+
+            If you'd like the new behavior today, you can add this line:
+
+              attribute :#{column.name}, :point#{array_arguments}
+          WARNING
         end
       end
     end

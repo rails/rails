@@ -1,12 +1,16 @@
 module ActiveSupport
   module NumberHelper
     class NumberToHumanSizeConverter < NumberConverter #:nodoc:
-      STORAGE_UNITS = [:byte, :kb, :mb, :gb, :tb]
+      STORAGE_UNITS = [:byte, :kb, :mb, :gb, :tb, :pb, :eb]
 
       self.namespace      = :human
       self.validate_float = true
 
       def convert
+        if opts.key?(:prefix)
+          ActiveSupport::Deprecation.warn('The :prefix option of `number_to_human_size` is deprecated and will be removed in Rails 5.1 with no replacement.')
+        end
+
         @number = Float(number)
 
         # for backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files

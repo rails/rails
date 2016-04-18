@@ -5,6 +5,7 @@ module ActiveRecord
     require 'active_record/relation/predicate_builder/base_handler'
     require 'active_record/relation/predicate_builder/basic_object_handler'
     require 'active_record/relation/predicate_builder/class_handler'
+    require 'active_record/relation/predicate_builder/polymorphic_array_handler'
     require 'active_record/relation/predicate_builder/range_handler'
     require 'active_record/relation/predicate_builder/relation_handler'
 
@@ -18,18 +19,20 @@ module ActiveRecord
       register_handler(Class, ClassHandler.new(self))
       register_handler(Base, BaseHandler.new(self))
       register_handler(Range, RangeHandler.new(self))
+      register_handler(RangeHandler::RangeWithBinds, RangeHandler.new(self))
       register_handler(Relation, RelationHandler.new)
       register_handler(Array, ArrayHandler.new(self))
       register_handler(AssociationQueryValue, AssociationQueryHandler.new(self))
+      register_handler(PolymorphicArrayValue, PolymorphicArrayHandler.new(self))
     end
 
     def build_from_hash(attributes)
-      attributes = convert_dot_notation_to_hash(attributes.stringify_keys)
+      attributes = convert_dot_notation_to_hash(attributes)
       expand_from_hash(attributes)
     end
 
     def create_binds(attributes)
-      attributes = convert_dot_notation_to_hash(attributes.stringify_keys)
+      attributes = convert_dot_notation_to_hash(attributes)
       create_binds_for_hash(attributes)
     end
 
@@ -39,10 +42,7 @@ module ActiveRecord
       #
       # For polymorphic relationships, find the foreign key and type:
       # PriceEstimate.where(estimate_of: treasure)
-      if table.associated_with?(column)
-        value = AssociationQueryValue.new(table.associated_table(column), value)
-      end
-
+      value = AssociationQueryHandler.value_for(table, column, value) if table.associated_with?(column)
       build(table.arel_attribute(column), value)
     end
 
@@ -52,7 +52,7 @@ module ActiveRecord
           key
         else
           key = key.to_s
-          key.split('.').first if key.include?('.')
+          key.split('.'.freeze).first if key.include?('.'.freeze)
         end
       end.compact
     end
@@ -67,7 +67,7 @@ module ActiveRecord
     #         Arel::Nodes::And.new([range.start, range.end])
     #       )
     #     end
-    #     ActiveRecord::PredicateBuilder.register_handler(MyCustomDateRange, handler)
+    #     ActiveRecord::PredicateBuilder.new("users").register_handler(MyCustomDateRange, handler)
     def register_handler(klass, handler)
       @handlers.unshift([klass, handler])
     end
@@ -105,10 +105,23 @@ module ActiveRecord
           binds += bvs
         when Relation
           binds += value.bound_attributes
+        when Range
+          first = value.begin
+          last = value.end
+          unless first.respond_to?(:infinite?) && first.infinite?
+            binds << build_bind_param(column_name, first)
+            first = Arel::Nodes::BindParam.new
+          end
+          unless last.respond_to?(:infinite?) && last.infinite?
+            binds << build_bind_param(column_name, last)
+            last = Arel::Nodes::BindParam.new
+          end
+
+          result[column_name] = RangeHandler::RangeWithBinds.new(first, last, value.exclude_end?)
         else
           if can_be_bound?(column_name, value)
             result[column_name] = Arel::Nodes::BindParam.new
-            binds << Relation::QueryAttribute.new(column_name.to_s, value, table.type(column_name))
+            binds << build_bind_param(column_name, value)
           end
         end
       end
@@ -123,10 +136,12 @@ module ActiveRecord
     end
 
     def convert_dot_notation_to_hash(attributes)
-      dot_notation = attributes.keys.select { |s| s.include?(".") }
+      dot_notation = attributes.select do |k, v|
+        k.include?(".".freeze) && !v.is_a?(Hash)
+      end
 
-      dot_notation.each do |key|
-        table_name, column_name = key.split(".")
+      dot_notation.each_key do |key|
+        table_name, column_name = key.split(".".freeze)
         value = attributes.delete(key)
         attributes[table_name] ||= {}
 
@@ -144,6 +159,10 @@ module ActiveRecord
       !value.nil? &&
         handler_for(value).is_a?(BasicObjectHandler) &&
         !table.associated_with?(column_name)
+    end
+
+    def build_bind_param(column_name, value)
+      Relation::QueryAttribute.new(column_name.to_s, value, table.type(column_name))
     end
   end
 end

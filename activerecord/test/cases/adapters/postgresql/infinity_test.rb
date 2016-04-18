@@ -1,6 +1,6 @@
 require "cases/helper"
 
-class PostgresqlInfinityTest < ActiveRecord::TestCase
+class PostgresqlInfinityTest < ActiveRecord::PostgreSQLTestCase
   include InTimeZone
 
   class PostgresqlInfinity < ActiveRecord::Base

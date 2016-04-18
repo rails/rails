@@ -6,6 +6,10 @@ module ActionDispatch
     class Parser < Racc::Parser # :nodoc:
       include Journey::Nodes
 
+      def self.parse(string)
+        new.parse string
+      end
+
       def initialize
         @scanner = Scanner.new
       end

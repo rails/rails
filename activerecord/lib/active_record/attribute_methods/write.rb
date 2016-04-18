@@ -1,19 +1,6 @@
 module ActiveRecord
   module AttributeMethods
     module Write
-      WriterMethodCache = Class.new(AttributeMethodCache) {
-        private
-
-        def method_body(method_name, const_name)
-          <<-EOMETHOD
-          def #{method_name}(value)
-            name = ::ActiveRecord::AttributeMethods::AttrNames::ATTR_#{const_name}
-            write_attribute(name, value)
-          end
-          EOMETHOD
-        end
-      }.new
-
       extend ActiveSupport::Concern
 
       included do
@@ -24,7 +11,7 @@ module ActiveRecord
         protected
 
         def define_method_attribute=(name)
-          safe_name = name.unpack('h*').first
+          safe_name = name.unpack('h*'.freeze).first
           ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
 
           generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
@@ -45,7 +32,7 @@ module ActiveRecord
         write_attribute_with_type_cast(attr_name, value, true)
       end
 
-      def raw_write_attribute(attr_name, value)
+      def raw_write_attribute(attr_name, value) # :nodoc:
         write_attribute_with_type_cast(attr_name, value, false)
       end
 

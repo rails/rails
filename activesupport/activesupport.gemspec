@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
 
   s.author   = 'David Heinemeier Hansson'
   s.email    = 'david@loudthinking.com'
-  s.homepage = 'http://www.rubyonrails.org'
+  s.homepage = 'http://rubyonrails.org'
 
   s.files        = Dir['CHANGELOG.md', 'MIT-LICENSE', 'README.rdoc', 'lib/**/*']
   s.require_path = 'lib'
@@ -21,8 +21,7 @@ Gem::Specification.new do |s|
   s.rdoc_options.concat ['--encoding',  'UTF-8']
 
   s.add_dependency 'i18n',       '~> 0.7'
-  s.add_dependency 'json',       '~> 1.7', '>= 1.7.7'
   s.add_dependency 'tzinfo',     '~> 1.1'
   s.add_dependency 'minitest',   '~> 5.1'
-  s.add_dependency 'thread_safe','~> 0.3', '>= 0.3.4'
+  s.add_dependency 'concurrent-ruby', '~> 1.0'
 end

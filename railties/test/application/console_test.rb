@@ -29,6 +29,18 @@ class ConsoleTest < ActiveSupport::TestCase
     assert_instance_of ActionDispatch::Integration::Session, console_session
   end
 
+  def test_app_can_access_path_helper_method
+    app_file 'config/routes.rb', <<-RUBY
+      Rails.application.routes.draw do
+        get 'foo', to: 'foo#index'
+      end
+    RUBY
+
+    load_environment
+    console_session = irb_context.app
+    assert_equal '/foo', console_session.foo_path
+  end
+
   def test_new_session_should_return_integration_session
     load_environment
     session = irb_context.new_session
@@ -40,12 +52,11 @@ class ConsoleTest < ActiveSupport::TestCase
     a = b = c = nil
 
     # TODO: These should be defined on the initializer
-    ActionDispatch::Reloader.to_cleanup { a = b = c = 1 }
-    ActionDispatch::Reloader.to_cleanup { b = c = 2 }
-    ActionDispatch::Reloader.to_prepare { c = 3 }
+    ActiveSupport::Reloader.to_complete { a = b = c = 1 }
+    ActiveSupport::Reloader.to_complete { b = c = 2 }
+    ActiveSupport::Reloader.to_prepare { c = 3 }
 
-    # Hide Reloading... output
-    silence_stream(STDOUT) { irb_context.reload! }
+    irb_context.reload!(false)
 
     assert_equal 1, a
     assert_equal 2, b
@@ -69,7 +80,7 @@ class ConsoleTest < ActiveSupport::TestCase
     MODEL
 
     assert !User.new.respond_to?(:age)
-    silence_stream(STDOUT) { irb_context.reload! }
+    irb_context.reload!(false)
     assert User.new.respond_to?(:age)
   end
 

@@ -6,6 +6,14 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
   arguments %w(Account name:string age:integer)
 
+   def test_application_record_skeleton_is_created
+     run_generator
+     assert_file "app/models/application_record.rb" do |record|
+       assert_match(/class ApplicationRecord < ActiveRecord::Base/, record)
+       assert_match(/self.abstract_class = true/, record)
+     end
+   end
+
   def test_help_shows_invoked_generators_options
     content = run_generator ["--help"]
     assert_match(/ActiveRecord options:/, content)
@@ -35,6 +43,17 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_no_migration "db/migrate/create_accounts.rb"
   end
 
+  def test_model_with_existent_application_record
+    mkdir_p "#{destination_root}/app/models"
+    touch "#{destination_root}/app/models/application_record.rb"
+
+    Dir.chdir(destination_root) do
+      run_generator ["account"]
+    end
+
+    assert_file "app/models/account.rb", /class Account < ApplicationRecord/
+  end
+
   def test_plural_names_are_singularized
     content = run_generator ["accounts".freeze]
     assert_file "app/models/account.rb", /class Account < ActiveRecord::Base/
@@ -57,12 +76,12 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
   def test_migration
     run_generator
-    assert_migration "db/migrate/create_accounts.rb", /class CreateAccounts < ActiveRecord::Migration/
+    assert_migration "db/migrate/create_accounts.rb", /class CreateAccounts < ActiveRecord::Migration\[[0-9.]+\]/
   end
 
   def test_migration_with_namespace
     run_generator ["Gallery::Image"]
-    assert_migration "db/migrate/create_gallery_images", /class CreateGalleryImages < ActiveRecord::Migration/
+    assert_migration "db/migrate/create_gallery_images", /class CreateGalleryImages < ActiveRecord::Migration\[[0-9.]+\]/
     assert_no_migration "db/migrate/create_images"
   end
 
@@ -70,7 +89,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     run_generator ["Admin::Gallery::Image"]
     assert_no_migration "db/migrate/create_images"
     assert_no_migration "db/migrate/create_gallery_images"
-    assert_migration "db/migrate/create_admin_gallery_images", /class CreateAdminGalleryImages < ActiveRecord::Migration/
+    assert_migration "db/migrate/create_admin_gallery_images", /class CreateAdminGalleryImages < ActiveRecord::Migration\[[0-9.]+\]/
     assert_migration "db/migrate/create_admin_gallery_images", /create_table :admin_gallery_images/
   end
 
@@ -80,7 +99,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_no_migration "db/migrate/create_images"
     assert_no_migration "db/migrate/create_gallery_images"
     assert_no_migration "db/migrate/create_admin_gallery_images"
-    assert_migration "db/migrate/create_admin_gallery_image", /class CreateAdminGalleryImage < ActiveRecord::Migration/
+    assert_migration "db/migrate/create_admin_gallery_image", /class CreateAdminGalleryImage < ActiveRecord::Migration\[[0-9.]+\]/
     assert_migration "db/migrate/create_admin_gallery_image", /create_table :admin_gallery_image/
   ensure
     ActiveRecord::Base.pluralize_table_names = true
@@ -89,7 +108,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   def test_migration_with_namespaces_in_model_name_without_plurization
     ActiveRecord::Base.pluralize_table_names = false
     run_generator ["Gallery::Image"]
-    assert_migration "db/migrate/create_gallery_image", /class CreateGalleryImage < ActiveRecord::Migration/
+    assert_migration "db/migrate/create_gallery_image", /class CreateGalleryImage < ActiveRecord::Migration\[[0-9.]+\]/
     assert_no_migration "db/migrate/create_gallery_images"
   ensure
     ActiveRecord::Base.pluralize_table_names = true
@@ -98,7 +117,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   def test_migration_without_pluralization
     ActiveRecord::Base.pluralize_table_names = false
     run_generator
-    assert_migration "db/migrate/create_account", /class CreateAccount < ActiveRecord::Migration/
+    assert_migration "db/migrate/create_account", /class CreateAccount < ActiveRecord::Migration\[[0-9.]+\]/
     assert_no_migration "db/migrate/create_accounts"
   ensure
     ActiveRecord::Base.pluralize_table_names = true
@@ -193,10 +212,10 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   def test_migration_without_timestamps
     ActiveRecord::Base.timestamped_migrations = false
     run_generator ["account"]
-    assert_file  "db/migrate/001_create_accounts.rb", /class CreateAccounts < ActiveRecord::Migration/
+    assert_file  "db/migrate/001_create_accounts.rb", /class CreateAccounts < ActiveRecord::Migration\[[0-9.]+\]/
 
     run_generator ["project"]
-    assert_file  "db/migrate/002_create_projects.rb", /class CreateProjects < ActiveRecord::Migration/
+    assert_file  "db/migrate/002_create_projects.rb", /class CreateProjects < ActiveRecord::Migration\[[0-9.]+\]/
   ensure
     ActiveRecord::Base.timestamped_migrations = true
   end
@@ -287,18 +306,18 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   def test_fixtures_use_the_references_ids
     run_generator ["LineItem", "product:references", "cart:belongs_to"]
 
-    assert_file "test/fixtures/line_items.yml", /product: \n  cart: /
+    assert_file "test/fixtures/line_items.yml", /product: one\n  cart: one/
     assert_generated_fixture("test/fixtures/line_items.yml",
-                             {"one"=>{"product"=>nil, "cart"=>nil}, "two"=>{"product"=>nil, "cart"=>nil}})
+                             {"one"=>{"product"=>"one", "cart"=>"one"}, "two"=>{"product"=>"two", "cart"=>"two"}})
   end
 
   def test_fixtures_use_the_references_ids_and_type
     run_generator ["LineItem", "product:references{polymorphic}", "cart:belongs_to"]
 
-    assert_file "test/fixtures/line_items.yml", /product: \n  product_type: Product\n  cart: /
+    assert_file "test/fixtures/line_items.yml", /product: one\n  product_type: Product\n  cart: one/
     assert_generated_fixture("test/fixtures/line_items.yml",
-                             {"one"=>{"product"=>nil, "product_type"=>"Product", "cart"=>nil},
-                              "two"=>{"product"=>nil, "product_type"=>"Product", "cart"=>nil}})
+                             {"one"=>{"product"=>"one", "product_type"=>"Product", "cart"=>"one"},
+                              "two"=>{"product"=>"two", "product_type"=>"Product", "cart"=>"two"}})
   end
 
   def test_fixtures_respect_reserved_yml_keywords
@@ -334,26 +353,6 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_match(/The name 'Object' is either already used in your application or reserved/, content)
   end
 
-  def test_index_is_added_for_belongs_to_association
-    run_generator ["account", "supplier:belongs_to"]
-
-    assert_migration "db/migrate/create_accounts.rb" do |m|
-      assert_method :change, m do |up|
-        assert_match(/index: true/, up)
-      end
-    end
-  end
-
-  def test_index_is_added_for_references_association
-    run_generator ["account", "supplier:references"]
-
-    assert_migration "db/migrate/create_accounts.rb" do |m|
-      assert_method :change, m do |up|
-        assert_match(/index: true/, up)
-      end
-    end
-  end
-
   def test_index_is_skipped_for_belongs_to_association
     run_generator ["account", "supplier:belongs_to", "--no-indexes"]
 
@@ -370,6 +369,15 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_migration "db/migrate/create_accounts.rb" do |m|
       assert_method :change, m do |up|
         assert_no_match(/index: true/, up)
+      end
+    end
+  end
+
+  def test_add_uuid_to_create_table_migration
+    run_generator ["account", "--primary_key_type=uuid"]
+    assert_migration "db/migrate/create_accounts.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/create_table :accounts, id: :uuid/, change)
       end
     end
   end

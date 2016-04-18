@@ -1,4 +1,3 @@
-require 'action_controller/metal/exceptions'
 require 'active_support/core_ext/module/attribute_accessors'
 require 'rack/utils'
 
@@ -17,7 +16,9 @@ module ActionDispatch
       'ActionController::InvalidCrossOriginRequest'   => :unprocessable_entity,
       'ActionDispatch::ParamsParser::ParseError'      => :bad_request,
       'ActionController::BadRequest'                  => :bad_request,
-      'ActionController::ParameterMissing'            => :bad_request
+      'ActionController::ParameterMissing'            => :bad_request,
+      'Rack::Utils::ParameterTypeError'               => :bad_request,
+      'Rack::Utils::InvalidParameterError'            => :bad_request
     )
 
     cattr_accessor :rescue_templates
@@ -29,13 +30,13 @@ module ActionDispatch
       'ActionView::Template::Error'         => 'template_error'
     )
 
-    attr_reader :env, :exception, :line_number, :file
+    attr_reader :backtrace_cleaner, :exception, :line_number, :file
 
-    def initialize(env, exception)
-      @env = env
+    def initialize(backtrace_cleaner, exception)
+      @backtrace_cleaner = backtrace_cleaner
       @exception = original_exception(exception)
 
-      expand_backtrace if exception.is_a?(SyntaxError) || exception.try(:original_exception).try(:is_a?, SyntaxError)
+      expand_backtrace if exception.is_a?(SyntaxError) || exception.cause.is_a?(SyntaxError)
     end
 
     def rescue_template
@@ -59,7 +60,7 @@ module ActionDispatch
     end
 
     def traces
-      appplication_trace_with_ids = []
+      application_trace_with_ids = []
       framework_trace_with_ids = []
       full_trace_with_ids = []
 
@@ -67,7 +68,7 @@ module ActionDispatch
         trace_with_id = { id: idx, trace: trace }
 
         if application_trace.include?(trace)
-          appplication_trace_with_ids << trace_with_id
+          application_trace_with_ids << trace_with_id
         else
           framework_trace_with_ids << trace_with_id
         end
@@ -76,7 +77,7 @@ module ActionDispatch
       end
 
       {
-        "Application Trace" => appplication_trace_with_ids,
+        "Application Trace" => application_trace_with_ids,
         "Framework Trace" => framework_trace_with_ids,
         "Full Trace" => full_trace_with_ids
       }
@@ -104,15 +105,11 @@ module ActionDispatch
     end
 
     def original_exception(exception)
-      if registered_original_exception?(exception)
-        exception.original_exception
+      if @@rescue_responses.has_key?(exception.cause.class.name)
+        exception.cause
       else
         exception
       end
-    end
-
-    def registered_original_exception?(exception)
-      exception.respond_to?(:original_exception) && @@rescue_responses.has_key?(exception.original_exception.class.name)
     end
 
     def clean_backtrace(*args)
@@ -121,10 +118,6 @@ module ActionDispatch
       else
         backtrace
       end
-    end
-
-    def backtrace_cleaner
-      @backtrace_cleaner ||= @env['action_dispatch.backtrace_cleaner']
     end
 
     def source_fragment(path, line)

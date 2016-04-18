@@ -7,12 +7,14 @@ module ActiveRecord
   #     Book.where(name: "my book").where("author_id > 3")
   #   end
   #
-  # The cached statement is executed by using the +execute+ method:
+  # The cached statement is executed by using the
+  # [connection.execute]{rdoc-ref:ConnectionAdapters::DatabaseStatements#execute} method:
   #
   #   cache.execute([], Book, Book.connection)
   #
-  # The relation returned by the block is cached, and for each +execute+ call the cached relation gets duped.
-  # Database is queried when +to_a+ is called on the relation.
+  # The relation returned by the block is cached, and for each
+  # [execute]{rdoc-ref:ConnectionAdapters::DatabaseStatements#execute}
+  # call the cached relation gets duped. Database is queried when +to_a+ is called on the relation.
   #
   # If you want to cache the statement without the values you can use the +bind+ method of the
   # block parameter.
@@ -104,7 +106,7 @@ module ActiveRecord
 
       sql = query_builder.sql_for bind_values, connection
 
-      klass.find_by_sql sql, bind_values
+      klass.find_by_sql(sql, bind_values, preparable: true)
     end
     alias :call :execute
   end

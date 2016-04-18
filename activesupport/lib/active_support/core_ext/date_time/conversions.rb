@@ -40,6 +40,8 @@ class DateTime
   alias_method :to_default_s, :to_s if instance_methods(false).include?(:to_s)
   alias_method :to_s, :to_formatted_s
 
+  # Returns a formatted string of the offset from UTC, or an alternative
+  # string if the time zone is already UTC.
   #
   #   datetime = DateTime.civil(2000, 1, 1, 0, 0, 0, Rational(-6, 24))
   #   datetime.formatted_offset         # => "-06:00"

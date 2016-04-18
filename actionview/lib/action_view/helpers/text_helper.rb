@@ -204,7 +204,12 @@ module ActionView
 
       # Attempts to pluralize the +singular+ word unless +count+ is 1. If
       # +plural+ is supplied, it will use that when count is > 1, otherwise
-      # it will use the Inflector to determine the plural form.
+      # it will use the Inflector to determine the plural form for the given locale,
+      # which defaults to I18n.locale
+      #
+      # The word will be pluralized using rules defined for the locale
+      # (you must define your own inflection rules for languages other than English).
+      # See ActiveSupport::Inflector.pluralize
       #
       #   pluralize(1, 'person')
       #   # => 1 person
@@ -212,16 +217,26 @@ module ActionView
       #   pluralize(2, 'person')
       #   # => 2 people
       #
-      #   pluralize(3, 'person', 'users')
+      #   pluralize(3, 'person', plural: 'users')
       #   # => 3 users
       #
       #   pluralize(0, 'person')
       #   # => 0 people
-      def pluralize(count, singular, plural = nil)
+      #
+      #   pluralize(2, 'Person', locale: :de)
+      #   # => 2 Personen
+      def pluralize(count, singular, deprecated_plural = nil, plural: nil, locale: I18n.locale)
+        if deprecated_plural
+          ActiveSupport::Deprecation.warn("Passing plural as a positional argument " \
+            "is deprecated and will be removed in Rails 5.1. Use e.g. " \
+            "pluralize(1, 'person', plural: 'people') instead.")
+          plural ||= deprecated_plural
+        end
+
         word = if (count == 1 || count =~ /^1(\.0+)?$/)
           singular
         else
-          plural || singular.pluralize
+          plural || singular.pluralize(locale)
         end
 
         "#{count || 0} #{word}"
@@ -242,12 +257,15 @@ module ActionView
       #
       #   word_wrap('Once upon a time', line_width: 1)
       #   # => Once\nupon\na\ntime
-      def word_wrap(text, options = {})
-        line_width = options.fetch(:line_width, 80)
-
+      #
+      #   You can also specify a custom +break_sequence+ ("\n" by default)
+      #
+      #   word_wrap('Once upon a time', line_width: 1, break_sequence: "\r\n")
+      #   # => Once\r\nupon\r\na\r\ntime
+      def word_wrap(text, line_width: 80, break_sequence: "\n")
         text.split("\n").collect! do |line|
-          line.length > line_width ? line.gsub(/(.{1,#{line_width}})(\s+|$)/, "\\1\n").strip : line
-        end * "\n"
+          line.length > line_width ? line.gsub(/(.{1,#{line_width}})(\s+|$)/, "\\1#{break_sequence}").strip : line
+        end * break_sequence
       end
 
       # Returns +text+ transformed into HTML using simple formatting rules.

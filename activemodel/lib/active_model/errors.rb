@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 require 'active_support/core_ext/array/conversions'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/object/deep_dup'
@@ -43,11 +41,11 @@ module ActiveModel
   #     end
   #   end
   #
-  # The last three methods are required in your object for Errors to be
+  # The last three methods are required in your object for +Errors+ to be
   # able to generate error messages correctly and also handle multiple
-  # languages. Of course, if you extend your object with ActiveModel::Translation
+  # languages. Of course, if you extend your object with <tt>ActiveModel::Translation</tt>
   # you will not need to implement the last two. Likewise, using
-  # ActiveModel::Validations will handle the validation related methods
+  # <tt>ActiveModel::Validations</tt> will handle the validation related methods
   # for you.
   #
   # The above allows you to do:
@@ -83,6 +81,18 @@ module ActiveModel
       super
     end
 
+    # Copies the errors from <tt>other</tt>.
+    #
+    # other - The ActiveModel::Errors instance.
+    #
+    # Examples
+    #
+    #   person.errors.copy!(other)
+    def copy!(other) # :nodoc:
+      @messages = other.messages.dup
+      @details  = other.details.dup
+    end
+
     # Clear the error messages.
     #
     #   person.errors.full_messages # => ["name cannot be nil"]
@@ -100,7 +110,7 @@ module ActiveModel
     #   person.errors.include?(:name) # => true
     #   person.errors.include?(:age)  # => false
     def include?(attribute)
-      messages[attribute].present?
+      messages.key?(attribute) && messages[attribute].present?
     end
     alias :has_key? :include?
     alias :key? :include?
@@ -150,6 +160,15 @@ module ActiveModel
     #
     #   person.errors[:name]  # => ["cannot be nil"]
     #   person.errors['name'] # => ["cannot be nil"]
+    #
+    # Note that, if you try to get errors of an attribute which has
+    # no errors associated with it, this method will instantiate
+    # an empty error list for it and +keys+ will return an array
+    # of error keys which includes this attribute.
+    #
+    #   person.errors.keys    # => []
+    #   person.errors[:name]  # => []
+    #   person.errors.keys    # => [:name]
     def [](attribute)
       messages[attribute.to_sym]
     end
@@ -308,7 +327,7 @@ module ActiveModel
     #   # => {:base=>[{error: :name_or_email_blank}]}
     def add(attribute, message = :invalid, options = {})
       message = message.call if message.respond_to?(:call)
-      detail  = normalize_detail(attribute, message, options)
+      detail  = normalize_detail(message, options)
       message = normalize_message(attribute, message, options)
       if exception = options[:strict]
         exception = ActiveModel::StrictValidationFailed if exception == true
@@ -327,7 +346,7 @@ module ActiveModel
     #   # => {:name=>["can't be empty"]}
     def add_on_empty(attributes, options = {})
       ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
-        ActiveModel::Errors#add_on_empty is deprecated and will be removed in Rails 5.1
+        ActiveModel::Errors#add_on_empty is deprecated and will be removed in Rails 5.1.
 
         To achieve the same use:
 
@@ -349,7 +368,7 @@ module ActiveModel
     #   # => {:name=>["can't be blank"]}
     def add_on_blank(attributes, options = {})
       ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
-        ActiveModel::Errors#add_on_blank is deprecated and will be removed in Rails 5.1
+        ActiveModel::Errors#add_on_blank is deprecated and will be removed in Rails 5.1.
 
         To achieve the same use:
 
@@ -467,7 +486,8 @@ module ActiveModel
         default: defaults,
         model: @base.model_name.human,
         attribute: @base.class.human_attribute_name(attribute),
-        value: value
+        value: value,
+        object: @base
       }.merge!(options)
 
       I18n.translate(key, options)
@@ -483,7 +503,7 @@ module ActiveModel
       end
     end
 
-    def normalize_detail(attribute, message, options)
+    def normalize_detail(message, options)
       { error: message }.merge(options.except(*CALLBACKS_OPTIONS + MESSAGE_OPTIONS))
     end
   end

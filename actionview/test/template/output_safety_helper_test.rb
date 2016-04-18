@@ -18,10 +18,10 @@ class OutputSafetyHelperTest < ActionView::TestCase
   end
 
   test "safe_join should html_escape any items, including the separator, if they are not html_safe" do
-    joined = safe_join(["<p>foo</p>".html_safe, "<p>bar</p>"], "<br />")
+    joined = safe_join([raw("<p>foo</p>"), "<p>bar</p>"], "<br />")
     assert_equal "<p>foo</p>&lt;br /&gt;&lt;p&gt;bar&lt;/p&gt;", joined
 
-    joined = safe_join(["<p>foo</p>".html_safe, "<p>bar</p>".html_safe], "<br />".html_safe)
+    joined = safe_join([raw("<p>foo</p>"), raw("<p>bar</p>")], raw("<br />"))
     assert_equal "<p>foo</p><br /><p>bar</p>", joined
   end
 

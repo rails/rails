@@ -57,8 +57,7 @@ module Rails
       directory 'app'
 
       keep_file  'app/assets/images'
-      keep_file  'app/mailers'
-      keep_file  'app/models'
+      empty_directory_with_keep_file 'app/assets/javascripts/channels' unless options[:skip_action_cable]
 
       keep_file  'app/controllers/concerns'
       keep_file  'app/models/concerns'
@@ -79,6 +78,9 @@ module Rails
         template "application.rb"
         template "environment.rb"
         template "secrets.yml"
+        template "cable.yml" unless options[:skip_action_cable]
+        template "puma.rb"   unless options[:skip_puma]
+        template "spring.rb" if spring_install?
 
         directory "environments"
         directory "initializers"
@@ -90,19 +92,36 @@ module Rails
       cookie_serializer_config_exist = File.exist?('config/initializers/cookies_serializer.rb')
       callback_terminator_config_exist = File.exist?('config/initializers/callback_terminator.rb')
       active_record_belongs_to_required_by_default_config_exist = File.exist?('config/initializers/active_record_belongs_to_required_by_default.rb')
+      action_cable_config_exist = File.exist?('config/cable.yml')
+      ssl_options_exist = File.exist?('config/initializers/ssl_options.rb')
+      rack_cors_config_exist = File.exist?('config/initializers/cors.rb')
 
       config
+
+      gsub_file 'config/environments/development.rb', /^(\s+)config\.file_watcher/, '\1# config.file_watcher'
 
       unless callback_terminator_config_exist
         remove_file 'config/initializers/callback_terminator.rb'
       end
 
       unless cookie_serializer_config_exist
-        gsub_file 'config/initializers/cookies_serializer.rb', /json/, 'marshal'
+        gsub_file 'config/initializers/cookies_serializer.rb', /json(?!,)/, 'marshal'
       end
 
       unless active_record_belongs_to_required_by_default_config_exist
         remove_file 'config/initializers/active_record_belongs_to_required_by_default.rb'
+      end
+
+      unless action_cable_config_exist
+        template 'config/cable.yml'
+      end
+
+      unless ssl_options_exist
+        remove_file 'config/initializers/ssl_options.rb'
+      end
+
+      unless rack_cors_config_exist
+        remove_file 'config/initializers/cors.rb'
       end
     end
 
@@ -141,6 +160,7 @@ module Rails
     end
 
     def tmp
+      empty_directory_with_keep_file "tmp"
       empty_directory "tmp/cache"
       empty_directory "tmp/cache/assets"
     end
@@ -174,6 +194,9 @@ module Rails
       class_option :version, type: :boolean, aliases: "-v", group: :rails,
                              desc: "Show Rails version number and quit"
 
+      class_option :api, type: :boolean,
+                         desc: "Preconfigure smaller stack for API only apps"
+
       def initialize(*args)
         super
 
@@ -184,6 +207,10 @@ module Rails
         if !options[:skip_active_record] && !DATABASES.include?(options[:database])
           raise Error, "Invalid value for --database option. Supported for preconfiguration are: #{DATABASES.join(", ")}."
         end
+
+        # Force sprockets to be skipped when generating API only apps.
+        # Can't modify options hash as it's frozen by default.
+        self.options = options.merge(skip_sprockets: true, skip_javascript: true).freeze if options[:api]
       end
 
       public_task :set_default_accessors!
@@ -251,6 +278,28 @@ module Rails
         build(:vendor)
       end
 
+      def delete_app_assets_if_api_option
+        if options[:api]
+          remove_dir 'app/assets'
+          remove_dir 'lib/assets'
+          remove_dir 'tmp/cache/assets'
+          remove_dir 'vendor/assets'
+        end
+      end
+
+      def delete_app_helpers_if_api_option
+        if options[:api]
+          remove_dir 'app/helpers'
+          remove_dir 'test/helpers'
+        end
+      end
+
+      def delete_application_layout_file_if_api_option
+        if options[:api]
+          remove_file 'app/views/layouts/application.html.erb'
+        end
+      end
+
       def delete_js_folder_skipping_javascript
         if options[:skip_javascript]
           remove_dir 'app/assets/javascripts'
@@ -263,9 +312,46 @@ module Rails
         end
       end
 
+      def delete_application_record_skipping_active_record
+        if options[:skip_active_record]
+          remove_file 'app/models/application_record.rb'
+        end
+      end
+
+      def delete_action_mailer_files_skipping_action_mailer
+        if options[:skip_action_mailer]
+          remove_file 'app/mailers/application_mailer.rb'
+          remove_file 'app/views/layouts/mailer.html.erb'
+          remove_file 'app/views/layouts/mailer.text.erb'
+        end
+      end
+
       def delete_active_record_initializers_skipping_active_record
         if options[:skip_active_record]
           remove_file 'config/initializers/active_record_belongs_to_required_by_default.rb'
+        end
+      end
+
+      def delete_action_cable_files_skipping_action_cable
+        if options[:skip_action_cable]
+          remove_file 'config/cable.yml'
+          remove_file 'app/assets/javascripts/cable.js'
+          remove_dir 'app/channels'
+        end
+      end
+
+      def delete_non_api_initializers_if_api_option
+        if options[:api]
+          remove_file 'config/initializers/session_store.rb'
+          remove_file 'config/initializers/cookies_serializer.rb'
+          remove_file 'config/initializers/request_forgery_protection.rb'
+          remove_file 'config/initializers/per_form_csrf_tokens.rb'
+        end
+      end
+
+      def delete_api_initializers
+        unless options[:api]
+          remove_file 'config/initializers/cors.rb'
         end
       end
 
@@ -319,7 +405,9 @@ module Rails
         if app_const =~ /^\d/
           raise Error, "Invalid application name #{app_name}. Please give a name which does not start with numbers."
         elsif RESERVED_NAMES.include?(app_name)
-          raise Error, "Invalid application name #{app_name}. Please give a name which does not match one of the reserved rails words: #{RESERVED_NAMES}"
+          raise Error, "Invalid application name #{app_name}. Please give a " \
+                       "name which does not match one of the reserved rails " \
+                       "words: #{RESERVED_NAMES.join(", ")}"
         elsif Object.const_defined?(app_const_base)
           raise Error, "Invalid application name #{app_name}, constant #{app_const_base} is already in use. Please choose another application name."
         end

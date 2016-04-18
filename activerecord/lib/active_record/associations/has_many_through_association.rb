@@ -66,6 +66,11 @@ module ActiveRecord
 
             through_record = through_association.build(*options_for_through_record)
             through_record.send("#{source_reflection.name}=", record)
+
+            if options[:source_type]
+              through_record.send("#{source_reflection.foreign_type}=", options[:source_type])
+            end
+
             through_record
           end
         end
@@ -110,7 +115,7 @@ module ActiveRecord
         def update_through_counter?(method)
           case method
           when :destroy
-            !inverse_updates_counter_cache?(through_reflection)
+            !through_reflection.inverse_updates_counter_cache?
           when :nullify
             false
           else
@@ -133,7 +138,7 @@ module ActiveRecord
             if scope.klass.primary_key
               count = scope.destroy_all.length
             else
-              scope.each { |record| record.run_callbacks :destroy }
+              scope.each(&:_run_destroy_callbacks)
 
               arel = scope.arel
 

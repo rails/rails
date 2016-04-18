@@ -81,7 +81,11 @@ module ActiveRecord
 
       def test_bigint_limit
         cast_type = @connection.type_map.lookup("bigint")
-        assert_equal 8, cast_type.limit
+        if current_adapter?(:OracleAdapter)
+          assert_equal 19, cast_type.limit
+        else
+          assert_equal 8, cast_type.limit
+        end
       end
 
       def test_decimal_without_scale

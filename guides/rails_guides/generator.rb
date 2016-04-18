@@ -162,7 +162,7 @@ module RailsGuides
     def select_only(guides)
       prefixes = ENV['ONLY'].split(",").map(&:strip)
       guides.select do |guide|
-        prefixes.any? { |p| guide.start_with?(p) || guide.start_with?("kindle") }
+        guide.start_with?('kindle'.freeze, *prefixes)
       end
     end
 
@@ -194,7 +194,7 @@ module RailsGuides
       layout = kindle? ? 'kindle/layout' : 'layout'
 
       File.open(output_path, 'w') do |f|
-        view = ActionView::Base.new(source_dir, :edge => @edge, :version => @version, :mobi => "kindle/#{mobi}")
+        view = ActionView::Base.new(source_dir, :edge => @edge, :version => @version, :mobi => "kindle/#{mobi}", :lang => @lang)
         view.extend(Helpers)
 
         if guide =~ /\.(\w+)\.erb$/

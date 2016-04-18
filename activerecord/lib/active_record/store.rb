@@ -16,7 +16,8 @@ module ActiveRecord
   # JSON, YAML, Marshal are supported out of the box. Generally it can be any wrapper that provides +load+ and +dump+.
   #
   # NOTE: If you are using PostgreSQL specific columns like +hstore+ or +json+ there is no need for
-  # the serialization provided by +store+. Simply use +store_accessor+ instead to generate
+  # the serialization provided by {.store}[rdoc-ref:rdoc-ref:ClassMethods#store].
+  # Simply use {.store_accessor}[rdoc-ref:ClassMethods#store_accessor] instead to generate
   # the accessor methods. Be aware that these columns use a string keyed hash and do not allow access
   # using a symbol.
   #
@@ -43,7 +44,7 @@ module ActiveRecord
   #     store_accessor :settings, :privileges, :servants
   #   end
   #
-  # The stored attribute names can be retrieved using +stored_attributes+.
+  # The stored attribute names can be retrieved using {.stored_attributes}[rdoc-ref:rdoc-ref:ClassMethods#stored_attributes].
   #
   #   User.stored_attributes[:settings] # [:color, :homepage]
   #

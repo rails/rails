@@ -1,7 +1,6 @@
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/app/app_generator'
 require 'env_helpers'
-require 'mocha/setup' # FIXME: stop using mocha
 
 class ActionsTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -43,6 +42,23 @@ class ActionsTest < Rails::Generators::TestCase
     run_generator
     action :add_source, 'http://gems.github.com'
     assert_file 'Gemfile', /source 'http:\/\/gems\.github\.com'/
+  end
+
+  def test_add_source_with_block_adds_source_to_gemfile_with_gem
+    run_generator
+    action :add_source, 'http://gems.github.com' do
+      gem 'rspec-rails'
+    end
+    assert_file 'Gemfile', /source 'http:\/\/gems\.github\.com' do\n  gem 'rspec-rails'\nend/
+  end
+
+  def test_add_source_with_block_adds_source_to_gemfile_after_gem
+    run_generator
+    action :gem, 'will-paginate'
+    action :add_source, 'http://gems.github.com' do
+      gem 'rspec-rails'
+    end
+    assert_file 'Gemfile', /gem 'will-paginate'\nsource 'http:\/\/gems\.github\.com' do\n  gem 'rspec-rails'\nend/
   end
 
   def test_gem_should_put_gem_dependency_in_gemfile
@@ -97,6 +113,14 @@ class ActionsTest < Rails::Generators::TestCase
     assert_file 'Gemfile', /^gem 'rspec', ">=2\.0'0"$/
   end
 
+  def test_gem_works_even_if_frozen_string_is_passed_as_argument
+    run_generator
+
+    action :gem, "frozen_gem".freeze, "1.0.0".freeze
+
+    assert_file 'Gemfile', /^gem 'frozen_gem', '1.0.0'$/
+  end
+
   def test_gem_group_should_wrap_gems_in_a_group
     run_generator
 
@@ -140,13 +164,15 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   def test_git_with_symbol_should_run_command_using_git_scm
-    generator.expects(:run).once.with('git init')
-    action :git, :init
+    assert_called_with(generator, :run, ['git init']) do
+      action :git, :init
+    end
   end
 
   def test_git_with_hash_should_run_each_command_using_git_scm
-    generator.expects(:run).times(2)
-    action :git, rm: 'README', add: '.'
+    assert_called_with(generator, :run, [ ["git rm README"], ["git add ."] ]) do
+      action :git, rm: 'README', add: '.'
+    end
   end
 
   def test_vendor_should_write_data_to_file_in_vendor
@@ -170,46 +196,91 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   def test_generate_should_run_script_generate_with_argument_and_options
-    generator.expects(:run_ruby_script).once.with('bin/rails generate model MyModel', verbose: false)
-    action :generate, 'model', 'MyModel'
-  end
-
-  def test_rake_should_run_rake_command_with_default_env
-    generator.expects(:run).once.with("rake log:clear RAILS_ENV=development", verbose: false)
-    with_rails_env nil do
-      action :rake, 'log:clear'
+    assert_called_with(generator, :run_ruby_script, ['bin/rails generate model MyModel', verbose: false]) do
+      action :generate, 'model', 'MyModel'
     end
   end
 
-  def test_rake_with_env_option_should_run_rake_command_in_env
-    generator.expects(:run).once.with('rake log:clear RAILS_ENV=production', verbose: false)
-    action :rake, 'log:clear', env: 'production'
-  end
-
-  def test_rake_with_rails_env_variable_should_run_rake_command_in_env
-    generator.expects(:run).once.with('rake log:clear RAILS_ENV=production', verbose: false)
-    with_rails_env "production" do
-      action :rake, 'log:clear'
+  def test_rails_should_run_rake_command_with_default_env
+    assert_called_with(generator, :run, ["rake log:clear RAILS_ENV=development", verbose: false]) do
+      with_rails_env nil do
+        action :rake, 'log:clear'
+      end
     end
   end
 
-  def test_env_option_should_win_over_rails_env_variable_when_running_rake
-    generator.expects(:run).once.with('rake log:clear RAILS_ENV=production', verbose: false)
-    with_rails_env "staging" do
+  def test_rails_with_env_option_should_run_rake_command_in_env
+    assert_called_with(generator, :run, ['rake log:clear RAILS_ENV=production', verbose: false]) do
       action :rake, 'log:clear', env: 'production'
     end
   end
 
-  def test_rake_with_sudo_option_should_run_rake_command_with_sudo
-    generator.expects(:run).once.with("sudo rake log:clear RAILS_ENV=development", verbose: false)
-    with_rails_env nil do
-      action :rake, 'log:clear', sudo: true
+  test "rails command with RAILS_ENV variable should run rake command in env" do
+    assert_called_with(generator, :run, ['rake log:clear RAILS_ENV=production', verbose: false]) do
+      with_rails_env "production" do
+        action :rake, 'log:clear'
+      end
+    end
+  end
+
+  test "env option should win over RAILS_ENV variable when running rake" do
+    assert_called_with(generator, :run, ['rake log:clear RAILS_ENV=production', verbose: false]) do
+      with_rails_env "staging" do
+        action :rake, 'log:clear', env: 'production'
+      end
+    end
+  end
+
+  test "rails command with sudo option should run rake command with sudo" do
+    assert_called_with(generator, :run, ["sudo rake log:clear RAILS_ENV=development", verbose: false]) do
+      with_rails_env nil do
+        action :rake, 'log:clear', sudo: true
+      end
+    end
+  end
+
+  test "rails command should run rails_command with default env" do
+    assert_called_with(generator, :run, ["rails log:clear RAILS_ENV=development", verbose: false]) do
+      with_rails_env nil do
+        action :rails_command, 'log:clear'
+      end
+    end
+  end
+
+  test "rails command with env option should run rails_command with same env" do
+    assert_called_with(generator, :run, ['rails log:clear RAILS_ENV=production', verbose: false]) do
+      action :rails_command, 'log:clear', env: 'production'
+    end
+  end
+
+  test "rails command with RAILS_ENV variable should run rails_command in env" do
+    assert_called_with(generator, :run, ['rails log:clear RAILS_ENV=production', verbose: false]) do
+      with_rails_env "production" do
+        action :rails_command, 'log:clear'
+      end
+    end
+  end
+
+  def test_env_option_should_win_over_rails_env_variable_when_running_rails
+    assert_called_with(generator, :run, ['rails log:clear RAILS_ENV=production', verbose: false]) do
+      with_rails_env "staging" do
+        action :rails_command, 'log:clear', env: 'production'
+      end
+    end
+  end
+
+  test "rails command with sudo option should run rails_command with sudo" do
+    assert_called_with(generator, :run, ["sudo rails log:clear RAILS_ENV=development", verbose: false]) do
+      with_rails_env nil do
+        action :rails_command, 'log:clear', sudo: true
+      end
     end
   end
 
   def test_capify_should_run_the_capify_command
-    generator.expects(:run).once.with('capify .', verbose: false)
-    action :capify!
+    assert_called_with(generator, :run, ['capify .', verbose: false]) do
+      action :capify!
+    end
   end
 
   def test_route_should_add_data_to_the_routes_block_in_config_routes
@@ -217,6 +288,21 @@ class ActionsTest < Rails::Generators::TestCase
     route_command = "route '/login', controller: 'sessions', action: 'new'"
     action :route, route_command
     assert_file 'config/routes.rb', /#{Regexp.escape(route_command)}/
+  end
+
+  def test_route_should_be_idempotent
+    run_generator
+    route_path = File.expand_path('config/routes.rb', destination_root)
+
+    # runs first time, not asserting
+    action :route, "root 'welcome#index'"
+    content_1 = File.read(route_path)
+
+    # runs second time
+    action :route, "root 'welcome#index'"
+    content_2 = File.read(route_path)
+
+    assert_equal content_1, content_2
   end
 
   def test_route_should_add_data_with_an_new_line
@@ -230,7 +316,14 @@ class ActionsTest < Rails::Generators::TestCase
     content.gsub!(/^\n/, '')
 
     File.open(route_path, "wb") { |file| file.write(content) }
-    assert_file "config/routes.rb", /\.routes\.draw do\n  root 'welcome#index'\nend\n\z/
+
+    routes = <<-F
+Rails.application.routes.draw do
+  root 'welcome#index'
+end
+F
+
+    assert_file "config/routes.rb", routes
 
     action :route, "resources :product_lines"
 
@@ -245,15 +338,17 @@ F
 
   def test_readme
     run_generator
-    Rails::Generators::AppGenerator.expects(:source_root).times(2).returns(destination_root)
-    assert_match "application up and running", action(:readme, "README.md")
+    assert_called(Rails::Generators::AppGenerator, :source_root, times: 2, returns: destination_root) do
+      assert_match "application up and running", action(:readme, "README.md")
+    end
   end
 
   def test_readme_with_quiet
     generator(default_arguments, quiet: true)
     run_generator
-    Rails::Generators::AppGenerator.expects(:source_root).times(2).returns(destination_root)
-    assert_no_match "application up and running", action(:readme, "README.md")
+    assert_called(Rails::Generators::AppGenerator, :source_root, times: 2, returns: destination_root) do
+      assert_no_match "application up and running", action(:readme, "README.md")
+    end
   end
 
   def test_log

@@ -270,7 +270,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
       car.wheels << Wheel.create!
     end
     assert_difference 'car.wheels.count', -1  do
-      car.destroy
+      car.reload.destroy
     end
     assert car.destroyed?
   end
@@ -441,7 +441,7 @@ unless in_memory_db?
       def test_lock_sending_custom_lock_statement
         Person.transaction do
           person = Person.find(1)
-          assert_sql(/LIMIT 1 FOR SHARE NOWAIT/) do
+          assert_sql(/LIMIT \$?\d FOR SHARE NOWAIT/) do
             person.lock!('FOR SHARE NOWAIT')
           end
         end

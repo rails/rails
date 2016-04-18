@@ -45,14 +45,14 @@ module ActiveRecord
       end
 
       # A generic "counter updater" implementation, intended primarily to be
-      # used by increment_counter and decrement_counter, but which may also
+      # used by #increment_counter and #decrement_counter, but which may also
       # be useful on its own. It simply does a direct SQL update for the record
       # with the given ID, altering the given hash of counters by the amount
       # given by the corresponding value:
       #
       # ==== Parameters
       #
-      # * +id+ - The id of the object you wish to update a counter on or an Array of ids.
+      # * +id+ - The id of the object you wish to update a counter on or an array of ids.
       # * +counters+ - A Hash containing the names of the fields
       #   to update as keys and the amount to update the field by as values.
       #
@@ -86,37 +86,37 @@ module ActiveRecord
       # Increment a numeric field by one, via a direct SQL update.
       #
       # This method is used primarily for maintaining counter_cache columns that are
-      # used to store aggregate values. For example, a DiscussionBoard may cache
+      # used to store aggregate values. For example, a +DiscussionBoard+ may cache
       # posts_count and comments_count to avoid running an SQL query to calculate the
       # number of posts and comments there are, each time it is displayed.
       #
       # ==== Parameters
       #
       # * +counter_name+ - The name of the field that should be incremented.
-      # * +id+ - The id of the object that should be incremented or an Array of ids.
+      # * +id+ - The id of the object that should be incremented or an array of ids.
       #
       # ==== Examples
       #
-      #   # Increment the post_count column for the record with an id of 5
-      #   DiscussionBoard.increment_counter(:post_count, 5)
+      #   # Increment the posts_count column for the record with an id of 5
+      #   DiscussionBoard.increment_counter(:posts_count, 5)
       def increment_counter(counter_name, id)
         update_counters(id, counter_name => 1)
       end
 
       # Decrement a numeric field by one, via a direct SQL update.
       #
-      # This works the same as increment_counter but reduces the column value by
+      # This works the same as #increment_counter but reduces the column value by
       # 1 instead of increasing it.
       #
       # ==== Parameters
       #
       # * +counter_name+ - The name of the field that should be decremented.
-      # * +id+ - The id of the object that should be decremented or an Array of ids.
+      # * +id+ - The id of the object that should be decremented or an array of ids.
       #
       # ==== Examples
       #
-      #   # Decrement the post_count column for the record with an id of 5
-      #   DiscussionBoard.decrement_counter(:post_count, 5)
+      #   # Decrement the posts_count column for the record with an id of 5
+      #   DiscussionBoard.decrement_counter(:posts_count, 5)
       def decrement_counter(counter_name, id)
         update_counters(id, counter_name => -1)
       end

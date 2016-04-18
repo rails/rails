@@ -3,12 +3,12 @@ require 'active_support/concern'
 
 module ActiveRecord
   module Delegation # :nodoc:
-    module DelegateCache
-      def relation_delegate_class(klass) # :nodoc:
+    module DelegateCache # :nodoc:
+      def relation_delegate_class(klass)
         @relation_delegate_cache[klass]
       end
 
-      def initialize_relation_delegate_cache # :nodoc:
+      def initialize_relation_delegate_cache
         @relation_delegate_cache = cache = {}
         [
           ActiveRecord::Relation,
@@ -18,7 +18,7 @@ module ActiveRecord
           delegate = Class.new(klass) {
             include ClassSpecificRelation
           }
-          const_set klass.name.gsub('::', '_'), delegate
+          const_set klass.name.gsub('::'.freeze, '_'.freeze), delegate
           cache[klass] = delegate
         end
       end
@@ -36,13 +36,9 @@ module ActiveRecord
     # may vary depending on the klass of a relation, so we create a subclass of Relation
     # for each different klass, and the delegations are compiled into that subclass only.
 
-    BLACKLISTED_ARRAY_METHODS = [
-      :compact!, :flatten!, :reject!, :reverse!, :rotate!, :map!,
-      :shuffle!, :slice!, :sort!, :sort_by!, :delete_if,
-      :keep_if, :pop, :shift, :delete_at, :compact, :select!
-    ].to_set # :nodoc:
-
-    delegate :to_xml, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to_ary, :join, to: :to_a
+    delegate :to_xml, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to_ary, :join,
+             :[], :&, :|, :+, :-, :sample, :reverse, :compact, :in_groups, :in_groups_of,
+             :shuffle, :split, to: :records
 
     delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key,
              :connection, :columns_hash, :to => :klass
@@ -114,21 +110,14 @@ module ActiveRecord
 
     def respond_to?(method, include_private = false)
       super || @klass.respond_to?(method, include_private) ||
-        array_delegable?(method) ||
         arel.respond_to?(method, include_private)
     end
 
     protected
 
-    def array_delegable?(method)
-      Array.method_defined?(method) && BLACKLISTED_ARRAY_METHODS.exclude?(method)
-    end
-
     def method_missing(method, *args, &block)
       if @klass.respond_to?(method)
         scoping { @klass.public_send(method, *args, &block) }
-      elsif array_delegable?(method)
-        to_a.public_send(method, *args, &block)
       elsif arel.respond_to?(method)
         arel.public_send(method, *args, &block)
       else

@@ -164,7 +164,7 @@ module ActiveModel
       @route_key << "_index" if @plural == @singular
     end
 
-    # Transform the model name into a more humane format, using I18n. By default,
+    # Transform the model name into a more human format, using I18n. By default,
     # it will underscore then humanize the class name.
     #
     #   class BlogPost
@@ -192,7 +192,7 @@ module ActiveModel
     private
 
     def _singularize(string)
-      ActiveSupport::Inflector.underscore(string).tr('/', '_')
+      ActiveSupport::Inflector.underscore(string).tr('/'.freeze, '_'.freeze)
     end
   end
 
@@ -226,7 +226,7 @@ module ActiveModel
     # (See ActiveModel::Name for more information).
     #
     #   class Person
-    #     include ActiveModel::Model
+    #     extend ActiveModel::Naming
     #   end
     #
     #   Person.model_name.name     # => "Person"

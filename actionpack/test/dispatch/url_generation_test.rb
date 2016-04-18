@@ -8,7 +8,7 @@ module TestUrlGeneration
     class ::MyRouteGeneratingController < ActionController::Base
       include Routes.url_helpers
       def index
-        render :text => foo_path
+        render plain: foo_path
       end
     end
 
@@ -125,6 +125,13 @@ module TestUrlGeneration
       assert_equal "/bars.json?a=b", bars_path(
         trailing_slash: true,
         a: 'b',
+        format: 'json'
+      )
+    end
+
+    test "generating URLS with empty querystring" do
+      assert_equal "/bars.json", bars_path(
+        a: {},
         format: 'json'
       )
     end

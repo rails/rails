@@ -17,7 +17,10 @@ require 'models/minivan'
 require 'models/owner'
 require 'models/person'
 require 'models/pet'
+require 'models/ship'
 require 'models/toy'
+require 'models/admin'
+require 'models/admin/user'
 require 'rexml/document'
 
 class PersistenceTest < ActiveRecord::TestCase
@@ -119,13 +122,22 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal 59, accounts(:signals37, :reload).credit_limit
   end
 
+  def test_increment_updates_counter_in_db_using_offset
+    a1 = accounts(:signals37)
+    initial_credit = a1.credit_limit
+    a2 = Account.find(accounts(:signals37).id)
+    a1.increment!(:credit_limit)
+    a2.increment!(:credit_limit)
+    assert_equal initial_credit + 2, a1.reload.credit_limit
+  end
+
   def test_destroy_all
     conditions = "author_name = 'Mary'"
     topics_by_mary = Topic.all.merge!(:where => conditions, :order => 'id').to_a
     assert ! topics_by_mary.empty?
 
     assert_difference('Topic.count', -topics_by_mary.size) do
-      destroyed = Topic.destroy_all(conditions).sort_by(&:id)
+      destroyed = Topic.where(conditions).destroy_all.sort_by(&:id)
       assert_equal topics_by_mary, destroyed
       assert destroyed.all?(&:frozen?), "destroyed topics should be frozen"
     end
@@ -151,10 +163,27 @@ class PersistenceTest < ActiveRecord::TestCase
     assert !company.valid?
     original_errors = company.errors
     client = company.becomes(Client)
-    assert_equal original_errors, client.errors
+    assert_equal original_errors.keys, client.errors.keys
   end
 
-  def test_dupd_becomes_persists_changes_from_the_original
+  def test_becomes_errors_base
+    child_class = Class.new(Admin::User) do
+      store_accessor :settings, :foo
+
+      def self.name; 'Admin::ChildUser'; end
+    end
+
+    admin = Admin::User.new
+    admin.errors.add :token, :invalid
+    child = admin.becomes(child_class)
+
+    assert_equal [:token], child.errors.keys
+    assert_nothing_raised do
+      child.errors.add :foo, :invalid
+    end
+  end
+
+  def test_duped_becomes_persists_changes_from_the_original
     original = topics(:first)
     copy = original.dup.becomes(Reply)
     copy.save!
@@ -734,9 +763,10 @@ class PersistenceTest < ActiveRecord::TestCase
     assert !topic.approved?
     assert_equal "The First Topic", topic.title
 
-    assert_raise(ActiveRecord::RecordNotUnique, ActiveRecord::StatementInvalid) do
+    error = assert_raise(ActiveRecord::RecordNotUnique, ActiveRecord::StatementInvalid) do
       topic.update_attributes(id: 3, title: "Hm is it possible?")
     end
+    assert_not_nil error.cause
     assert_not_equal "Hm is it possible?", Topic.find(3).title
 
     topic.update_attributes(id: 1234)
@@ -897,6 +927,33 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_not post.new_record?
   end
 
+  def test_reload_via_querycache
+    ActiveRecord::Base.connection.enable_query_cache!
+    ActiveRecord::Base.connection.clear_query_cache
+    assert ActiveRecord::Base.connection.query_cache_enabled, 'cache should be on'
+    parrot = Parrot.create(:name => 'Shane')
+
+    # populate the cache with the SELECT result
+    found_parrot = Parrot.find(parrot.id)
+    assert_equal parrot.id, found_parrot.id
+
+    # Manually update the 'name' attribute in the DB directly
+    assert_equal 1, ActiveRecord::Base.connection.query_cache.length
+    ActiveRecord::Base.uncached do
+      found_parrot.name = 'Mary'
+      found_parrot.save
+    end
+
+    # Now reload, and verify that it gets the DB version, and not the querycache version
+    found_parrot.reload
+    assert_equal 'Mary', found_parrot.name
+
+    found_parrot = Parrot.find(parrot.id)
+    assert_equal 'Mary', found_parrot.name
+  ensure
+    ActiveRecord::Base.connection.disable_query_cache!
+  end
+
   class SaveTest < ActiveRecord::TestCase
     self.use_transactional_tests = false
 
@@ -927,5 +984,18 @@ class PersistenceTest < ActiveRecord::TestCase
       ActiveRecord::Base.connection.drop_table widget.table_name
       widget.reset_column_information
     end
+  end
+
+  def test_reset_column_information_resets_children
+    child = Class.new(Topic)
+    child.new # force schema to load
+
+    ActiveRecord::Base.connection.add_column(:topics, :foo, :string)
+    Topic.reset_column_information
+
+    assert_equal "bar", child.new(foo: :bar).foo
+  ensure
+    ActiveRecord::Base.connection.remove_column(:topics, :foo)
+    Topic.reset_column_information
   end
 end

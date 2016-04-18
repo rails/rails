@@ -18,9 +18,33 @@ module ActiveRecord
         nil
       end
 
+      # Returns comment associated with given table in database
+      def table_comment(table_name)
+        nil
+      end
+
       # Truncates a table alias according to the limits of the current adapter.
       def table_alias_for(table_name)
         table_name[0...table_alias_length].tr('.', '_')
+      end
+
+      # Returns the relation names useable to back Active Record models.
+      # For most adapters this means all #tables and #views.
+      def data_sources
+        tables | views
+      end
+
+      # Checks to see if the data source +name+ exists on the database.
+      #
+      #   data_source_exists?(:ebooks)
+      #
+      def data_source_exists?(name)
+        data_sources.include?(name.to_s)
+      end
+
+      # Returns an array of table names defined in the database.
+      def tables(name = nil)
+        raise NotImplementedError, "#tables is not implemented"
       end
 
       # Checks to see if the table +table_name+ exists on the database.
@@ -29,6 +53,19 @@ module ActiveRecord
       #
       def table_exists?(table_name)
         tables.include?(table_name.to_s)
+      end
+
+      # Returns an array of view names defined in the database.
+      def views
+        raise NotImplementedError, "#views is not implemented"
+      end
+
+      # Checks to see if the view +view_name+ exists on the database.
+      #
+      #   view_exists?(:ebooks)
+      #
+      def view_exists?(view_name)
+        views.include?(view_name.to_s)
       end
 
       # Returns an array of indexes for the given table.
@@ -50,18 +87,19 @@ module ActiveRecord
       #
       def index_exists?(table_name, column_name, options = {})
         column_names = Array(column_name).map(&:to_s)
-        index_name = options.key?(:name) ? options[:name].to_s : index_name(table_name, column: column_names)
         checks = []
-        checks << lambda { |i| i.name == index_name }
         checks << lambda { |i| i.columns == column_names }
         checks << lambda { |i| i.unique } if options[:unique]
+        checks << lambda { |i| i.name == options[:name].to_s } if options[:name]
 
         indexes(table_name).any? { |i| checks.all? { |check| check[i] } }
       end
 
       # Returns an array of Column objects for the table specified by +table_name+.
       # See the concrete implementation for details on the expected parameter values.
-      def columns(table_name) end
+      def columns(table_name)
+        raise NotImplementedError, "#columns is not implemented"
+      end
 
       # Checks to see if a column exists in a given table.
       #
@@ -79,19 +117,32 @@ module ActiveRecord
       #
       def column_exists?(table_name, column_name, type = nil, options = {})
         column_name = column_name.to_s
-        columns(table_name).any?{ |c| c.name == column_name &&
-                                      (!type                     || c.type == type) &&
-                                      (!options.key?(:limit)     || c.limit == options[:limit]) &&
-                                      (!options.key?(:precision) || c.precision == options[:precision]) &&
-                                      (!options.key?(:scale)     || c.scale == options[:scale]) &&
-                                      (!options.key?(:default)   || c.default == options[:default]) &&
-                                      (!options.key?(:null)      || c.null == options[:null]) }
+        checks = []
+        checks << lambda { |c| c.name == column_name }
+        checks << lambda { |c| c.type == type } if type
+        (migration_keys - [:name]).each do |attr|
+          checks << lambda { |c| c.send(attr) == options[attr] } if options.key?(attr)
+        end
+
+        columns(table_name).any? { |c| checks.all? { |check| check[c] } }
+      end
+
+      # Returns just a table's primary key
+      def primary_key(table_name)
+        pks = primary_keys(table_name)
+        warn <<-WARNING.strip_heredoc if pks.count > 1
+          WARNING: Rails does not support composite primary key.
+
+          #{table_name} has composite primary key. Composite primary key is ignored.
+        WARNING
+
+        pks.first if pks.one?
       end
 
       # Creates a new table with the name +table_name+. +table_name+ may either
       # be a String or a Symbol.
       #
-      # There are two ways to work with +create_table+. You can use the block
+      # There are two ways to work with #create_table. You can use the block
       # form or the regular form, like this:
       #
       # === Block form
@@ -123,7 +174,7 @@ module ActiveRecord
       # The +options+ hash can include the following keys:
       # [<tt>:id</tt>]
       #   Whether to automatically add a primary key column. Defaults to true.
-      #   Join tables for +has_and_belongs_to_many+ should set it to false.
+      #   Join tables for {ActiveRecord::Base.has_and_belongs_to_many}[rdoc-ref:Associations::ClassMethods#has_and_belongs_to_many] should set it to false.
       #
       #   A Symbol can be used to specify the type of the generated primary key column.
       # [<tt>:primary_key</tt>]
@@ -131,7 +182,8 @@ module ActiveRecord
       #   Defaults to +id+. If <tt>:id</tt> is false this option is ignored.
       #
       #   Note that Active Record models will automatically detect their
-      #   primary key. This can be avoided by using +self.primary_key=+ on the model
+      #   primary key. This can be avoided by using
+      #   {self.primary_key=}[rdoc-ref:AttributeMethods::PrimaryKey::ClassMethods#primary_key=] on the model
       #   to define the key explicitly.
       #
       # [<tt>:options</tt>]
@@ -153,7 +205,7 @@ module ActiveRecord
       # generates:
       #
       #   CREATE TABLE suppliers (
-      #     id int(11) DEFAULT NULL auto_increment PRIMARY KEY
+      #     id int auto_increment PRIMARY KEY
       #   ) ENGINE=InnoDB DEFAULT CHARSET=utf8
       #
       # ====== Rename the primary key column
@@ -165,7 +217,7 @@ module ActiveRecord
       # generates:
       #
       #   CREATE TABLE objects (
-      #     guid int(11) DEFAULT NULL auto_increment PRIMARY KEY,
+      #     guid int auto_increment PRIMARY KEY,
       #     name varchar(80)
       #   )
       #
@@ -208,19 +260,23 @@ module ActiveRecord
       #
       # See also TableDefinition#column for details on how to create columns.
       def create_table(table_name, options = {})
-        td = create_table_definition table_name, options[:temporary], options[:options], options[:as]
+        td = create_table_definition table_name, options[:temporary], options[:options], options[:as], options[:comment]
 
         if options[:id] != false && !options[:as]
           pk = options.fetch(:primary_key) do
             Base.get_primary_key table_name.to_s.singularize
           end
 
-          td.primary_key pk, options.fetch(:id, :primary_key), options
+          if pk.is_a?(Array)
+            td.primary_keys pk
+          else
+            td.primary_key pk, options.fetch(:id, :primary_key), options.except(:comment)
+          end
         end
 
         yield td if block_given?
 
-        if options[:force] && table_exists?(table_name)
+        if options[:force] && data_source_exists?(table_name)
           drop_table(table_name, options)
         end
 
@@ -232,8 +288,11 @@ module ActiveRecord
           end
         end
 
-        td.foreign_keys.each_pair do |other_table_name, foreign_key_options|
-          add_foreign_key(table_name, other_table_name, foreign_key_options)
+        if supports_comments? && !supports_comments_in_create?
+          change_table_comment(table_name, options[:comment]) if options[:comment]
+          td.columns.each do |column|
+            change_column_comment(table_name, column.name, column.comment) if column.comment
+          end
         end
 
         result
@@ -258,7 +317,7 @@ module ActiveRecord
       #   Set to true to drop the table before creating it.
       #   Defaults to false.
       #
-      # Note that +create_join_table+ does not create any indices by default; you can use
+      # Note that #create_join_table does not create any indices by default; you can use
       # its block form to do so yourself:
       #
       #   create_join_table :products, :categories do |t|
@@ -293,11 +352,11 @@ module ActiveRecord
       end
 
       # Drops the join table specified by the given arguments.
-      # See +create_join_table+ for details.
+      # See #create_join_table for details.
       #
       # Although this command ignores the block if one is given, it can be helpful
       # to provide one in a migration's +change+ method so it can be reverted.
-      # In that case, the block will be used by create_join_table.
+      # In that case, the block will be used by #create_join_table.
       def drop_join_table(table_1, table_2, options = {})
         join_table_name = find_join_table_name(table_1, table_2, options)
         drop_table(join_table_name)
@@ -315,7 +374,7 @@ module ActiveRecord
       # [<tt>:bulk</tt>]
       #   Set this to true to make this a bulk alter query, such as
       #
-      #     ALTER TABLE `users` ADD COLUMN age INT(11), ADD COLUMN birthdate DATETIME ...
+      #     ALTER TABLE `users` ADD COLUMN age INT, ADD COLUMN birthdate DATETIME ...
       #
       #   Defaults to false.
       #
@@ -402,17 +461,84 @@ module ActiveRecord
       #
       # Although this command ignores most +options+ and the block if one is given,
       # it can be helpful to provide these in a migration's +change+ method so it can be reverted.
-      # In that case, +options+ and the block will be used by create_table.
+      # In that case, +options+ and the block will be used by #create_table.
       def drop_table(table_name, options = {})
         execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}"
       end
 
-      # Adds a new column to the named table.
-      # See TableDefinition#column for details of the options you can use.
+      # Add a new +type+ column named +column_name+ to +table_name+.
       #
-      # Note: Not all options will be available, generally this command should
-      # ignore most of them. In favor of doing a low-level call to simply
-      # create a column.
+      # The +type+ parameter is normally one of the migrations native types,
+      # which is one of the following:
+      # <tt>:primary_key</tt>, <tt>:string</tt>, <tt>:text</tt>,
+      # <tt>:integer</tt>, <tt>:bigint</tt>, <tt>:float</tt>, <tt>:decimal</tt>, <tt>:numeric</tt>,
+      # <tt>:datetime</tt>, <tt>:time</tt>, <tt>:date</tt>,
+      # <tt>:binary</tt>, <tt>:boolean</tt>.
+      #
+      # You may use a type not in this list as long as it is supported by your
+      # database (for example, "polygon" in MySQL), but this will not be database
+      # agnostic and should usually be avoided.
+      #
+      # Available options are (none of these exists by default):
+      # * <tt>:limit</tt> -
+      #   Requests a maximum column length. This is number of characters for a <tt>:string</tt> column
+      #   and number of bytes for <tt>:text</tt>, <tt>:binary</tt> and <tt>:integer</tt> columns.
+      # * <tt>:default</tt> -
+      #   The column's default value. Use nil for NULL.
+      # * <tt>:null</tt> -
+      #   Allows or disallows +NULL+ values in the column. This option could
+      #   have been named <tt>:null_allowed</tt>.
+      # * <tt>:precision</tt> -
+      #   Specifies the precision for the <tt>:decimal</tt> and <tt>:numeric</tt> columns.
+      # * <tt>:scale</tt> -
+      #   Specifies the scale for the <tt>:decimal</tt> and <tt>:numeric</tt> columns.
+      #
+      # Note: The precision is the total number of significant digits
+      # and the scale is the number of digits that can be stored following
+      # the decimal point. For example, the number 123.45 has a precision of 5
+      # and a scale of 2. A decimal with a precision of 5 and a scale of 2 can
+      # range from -999.99 to 999.99.
+      #
+      # Please be aware of different RDBMS implementations behavior with
+      # <tt>:decimal</tt> columns:
+      # * The SQL standard says the default scale should be 0, <tt>:scale</tt> <=
+      #   <tt>:precision</tt>, and makes no comments about the requirements of
+      #   <tt>:precision</tt>.
+      # * MySQL: <tt>:precision</tt> [1..63], <tt>:scale</tt> [0..30].
+      #   Default is (10,0).
+      # * PostgreSQL: <tt>:precision</tt> [1..infinity],
+      #   <tt>:scale</tt> [0..infinity]. No default.
+      # * SQLite3: No restrictions on <tt>:precision</tt> and <tt>:scale</tt>,
+      #   but the maximum supported <tt>:precision</tt> is 16. No default.
+      # * Oracle: <tt>:precision</tt> [1..38], <tt>:scale</tt> [-84..127].
+      #   Default is (38,0).
+      # * DB2: <tt>:precision</tt> [1..63], <tt>:scale</tt> [0..62].
+      #   Default unknown.
+      # * SqlServer?: <tt>:precision</tt> [1..38], <tt>:scale</tt> [0..38].
+      #   Default (38,0).
+      #
+      # == Examples
+      #
+      #  add_column(:users, :picture, :binary, limit: 2.megabytes)
+      #  # ALTER TABLE "users" ADD "picture" blob(2097152)
+      #
+      #  add_column(:articles, :status, :string, limit: 20, default: 'draft', null: false)
+      #  # ALTER TABLE "articles" ADD "status" varchar(20) DEFAULT 'draft' NOT NULL
+      #
+      #  add_column(:answers, :bill_gates_money, :decimal, precision: 15, scale: 2)
+      #  # ALTER TABLE "answers" ADD "bill_gates_money" decimal(15,2)
+      #
+      #  add_column(:measurements, :sensor_reading, :decimal, precision: 30, scale: 20)
+      #  # ALTER TABLE "measurements" ADD "sensor_reading" decimal(30,20)
+      #
+      #  # While :scale defaults to zero on most databases, it
+      #  # probably wouldn't hurt to include it.
+      #  add_column(:measurements, :huge_integer, :decimal, precision: 30)
+      #  # ALTER TABLE "measurements" ADD "huge_integer" decimal(30)
+      #
+      #  # Defines a column with a database-specific type.
+      #  add_column(:shapes, :triangle, 'polygon')
+      #  # ALTER TABLE "shapes" ADD "triangle" polygon
       def add_column(table_name, column_name, type, options = {})
         at = create_alter_table table_name
         at.add_column(column_name, type, options)
@@ -460,11 +586,16 @@ module ActiveRecord
       #
       #   change_column_default(:users, :email, nil)
       #
-      def change_column_default(table_name, column_name, default)
+      # Passing a hash containing +:from+ and +:to+ will make this change
+      # reversible in migration:
+      #
+      #   change_column_default(:posts, :state, from: nil, to: "draft")
+      #
+      def change_column_default(table_name, column_name, default_or_changes)
         raise NotImplementedError, "change_column_default is not implemented"
       end
 
-      # Sets or removes a +NOT NULL+ constraint on a column. The +null+ flag
+      # Sets or removes a <tt>NOT NULL</tt> constraint on a column. The +null+ flag
       # indicates whether the value can be +NULL+. For example
       #
       #   change_column_null(:users, :nickname, false)
@@ -476,7 +607,7 @@ module ActiveRecord
       # allows them to be +NULL+ (drops the constraint).
       #
       # The method accepts an optional fourth argument to replace existing
-      # +NULL+s with some other value. Use that one when enabling the
+      # <tt>NULL</tt>s with some other value. Use that one when enabling the
       # constraint if needed, since otherwise those rows would not be valid.
       #
       # Please note the fourth argument does not set a column's default.
@@ -530,6 +661,8 @@ module ActiveRecord
       #
       #   CREATE INDEX by_name ON accounts(name(10))
       #
+      # ====== Creating an index with specific key lengths for multiple keys
+      #
       #   add_index(:accounts, [:name, :surname], name: 'by_name_surname', length: {name: 10, surname: 15})
       #
       # generates:
@@ -577,7 +710,7 @@ module ActiveRecord
       #
       #   CREATE FULLTEXT INDEX index_developers_on_name ON developers (name) -- MySQL
       #
-      # Note: only supported by MySQL. Supported: <tt>:fulltext</tt> and <tt>:spatial</tt> on MyISAM tables.
+      # Note: only supported by MySQL.
       def add_index(table_name, column_name, options = {})
         index_name, index_type, index_columns, index_options = add_index_options(table_name, column_name, options)
         execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} (#{index_columns})#{index_options}"
@@ -585,15 +718,15 @@ module ActiveRecord
 
       # Removes the given index from the table.
       #
-      # Removes the +index_accounts_on_column+ in the +accounts+ table.
+      # Removes the index on +branch_id+ in the +accounts+ table if exactly one such index exists.
       #
-      #   remove_index :accounts, :column
+      #   remove_index :accounts, :branch_id
       #
-      # Removes the index named +index_accounts_on_branch_id+ in the +accounts+ table.
+      # Removes the index on +branch_id+ in the +accounts+ table if exactly one such index exists.
       #
       #   remove_index :accounts, column: :branch_id
       #
-      # Removes the index named +index_accounts_on_branch_id_and_party_id+ in the +accounts+ table.
+      # Removes the index on +branch_id+ and +party_id+ in the +accounts+ table if exactly one such index exists.
       #
       #   remove_index :accounts, column: [:branch_id, :party_id]
       #
@@ -602,10 +735,7 @@ module ActiveRecord
       #   remove_index :accounts, name: :by_branch_party
       #
       def remove_index(table_name, options = {})
-        remove_index!(table_name, index_name_for_remove(table_name, options))
-      end
-
-      def remove_index!(table_name, index_name) #:nodoc:
+        index_name = index_name_for_remove(table_name, options)
         execute "DROP INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)}"
       end
 
@@ -649,10 +779,23 @@ module ActiveRecord
         indexes(table_name).detect { |i| i.name == index_name }
       end
 
-      # Adds a reference. Optionally adds a +type+ column, if <tt>:polymorphic</tt> option is provided.
-      # The reference column is an +integer+ by default, the <tt>:type</tt> option can be used to specify
-      # a different type.
-      # <tt>add_reference</tt> and <tt>add_belongs_to</tt> are acceptable.
+      # Adds a reference. The reference column is an integer by default,
+      # the <tt>:type</tt> option can be used to specify a different type.
+      # Optionally adds a +_type+ column, if <tt>:polymorphic</tt> option is provided.
+      # #add_reference and #add_belongs_to are acceptable.
+      #
+      # The +options+ hash can include the following keys:
+      # [<tt>:type</tt>]
+      #   The reference column type. Defaults to +:integer+.
+      # [<tt>:index</tt>]
+      #   Add an appropriate index. Defaults to false.  
+      #   See #add_index for usage of this option.
+      # [<tt>:foreign_key</tt>]
+      #   Add an appropriate foreign key constraint. Defaults to false.
+      # [<tt>:polymorphic</tt>]
+      #   Whether an additional +_type+ column should be added. Defaults to false.
+      # [<tt>:null</tt>]
+      #   Whether the column allows nulls. Defaults to true.
       #
       # ====== Create a user_id integer column
       #
@@ -662,17 +805,25 @@ module ActiveRecord
       #
       #   add_reference(:products, :user, type: :string)
       #
-      # ====== Create a supplier_id and supplier_type columns
-      #
-      #   add_belongs_to(:products, :supplier, polymorphic: true)
-      #
       # ====== Create supplier_id, supplier_type columns and appropriate index
       #
       #   add_reference(:products, :supplier, polymorphic: true, index: true)
       #
+      # ====== Create a supplier_id column with a unique index
+      #
+      #   add_reference(:products, :supplier, index: { unique: true })
+      #
+      # ====== Create a supplier_id column with a named index
+      #
+      #   add_reference(:products, :supplier, index: { name: "my_supplier_index" })
+      #
       # ====== Create a supplier_id column and appropriate foreign key
       #
       #   add_reference(:products, :supplier, foreign_key: true)
+      #
+      # ====== Create a supplier_id column and a foreign key to the firms table
+      #
+      #   add_reference(:products, :supplier, foreign_key: {to_table: :firms})
       #
       def add_reference(table_name, *args)
         ReferenceDefinition.new(*args).add_to(update_table_definition(table_name, self))
@@ -680,7 +831,7 @@ module ActiveRecord
       alias :add_belongs_to :add_reference
 
       # Removes the reference(s). Also removes a +type+ column if one exists.
-      # <tt>remove_reference</tt> and <tt>remove_belongs_to</tt> are acceptable.
+      # #remove_reference and #remove_belongs_to are acceptable.
       #
       # ====== Remove the reference
       #
@@ -706,7 +857,7 @@ module ActiveRecord
       alias :remove_belongs_to :remove_reference
 
       # Returns an array of foreign keys for the given table.
-      # The foreign keys are represented as +ForeignKeyDefinition+ objects.
+      # The foreign keys are represented as ForeignKeyDefinition objects.
       def foreign_keys(table_name)
         raise NotImplementedError, "foreign_keys is not implemented"
       end
@@ -724,7 +875,7 @@ module ActiveRecord
       #
       # generates:
       #
-      #   ALTER TABLE "articles" ADD CONSTRAINT articles_author_id_fk FOREIGN KEY ("author_id") REFERENCES "authors" ("id")
+      #   ALTER TABLE "articles" ADD CONSTRAINT fk_rails_e74ce85cbc FOREIGN KEY ("author_id") REFERENCES "authors" ("id")
       #
       # ====== Creating a foreign key on a specific column
       #
@@ -740,7 +891,7 @@ module ActiveRecord
       #
       # generates:
       #
-      #   ALTER TABLE "articles" ADD CONSTRAINT articles_author_id_fk FOREIGN KEY ("author_id") REFERENCES "authors" ("id") ON DELETE CASCADE
+      #   ALTER TABLE "articles" ADD CONSTRAINT fk_rails_e74ce85cbc FOREIGN KEY ("author_id") REFERENCES "authors" ("id") ON DELETE CASCADE
       #
       # The +options+ hash can include the following keys:
       # [<tt>:column</tt>]
@@ -750,28 +901,23 @@ module ActiveRecord
       # [<tt>:name</tt>]
       #   The constraint name. Defaults to <tt>fk_rails_<identifier></tt>.
       # [<tt>:on_delete</tt>]
-      #   Action that happens <tt>ON DELETE</tt>. Valid values are +:nullify+, +:cascade:+ and +:restrict+
+      #   Action that happens <tt>ON DELETE</tt>. Valid values are +:nullify+, +:cascade+ and +:restrict+
       # [<tt>:on_update</tt>]
-      #   Action that happens <tt>ON UPDATE</tt>. Valid values are +:nullify+, +:cascade:+ and +:restrict+
+      #   Action that happens <tt>ON UPDATE</tt>. Valid values are +:nullify+, +:cascade+ and +:restrict+
       def add_foreign_key(from_table, to_table, options = {})
         return unless supports_foreign_keys?
 
-        options[:column] ||= foreign_key_column_for(to_table)
-
-        options = {
-          column: options[:column],
-          primary_key: options[:primary_key],
-          name: foreign_key_name(from_table, options),
-          on_delete: options[:on_delete],
-          on_update: options[:on_update]
-        }
+        options = foreign_key_options(from_table, to_table, options)
         at = create_alter_table from_table
         at.add_foreign_key to_table, options
 
         execute schema_creation.accept(at)
       end
 
-      # Removes the given foreign key from the table.
+      # Removes the given foreign key from the table. Any option parameters provided
+      # will be used to re-add the foreign key in case of a migration rollback.
+      # It is recommended that you provide any options used when creating the foreign
+      # key so that the migration can be reverted properly.
       #
       # Removes the foreign key on +accounts.branch_id+.
       #
@@ -785,6 +931,7 @@ module ActiveRecord
       #
       #   remove_foreign_key :accounts, name: :special_fk_name
       #
+      # The +options+ hash accepts the same keys as SchemaStatements#add_foreign_key.
       def remove_foreign_key(from_table, options_or_to_table = {})
         return unless supports_foreign_keys?
 
@@ -822,15 +969,25 @@ module ActiveRecord
       end
 
       def foreign_key_column_for(table_name) # :nodoc:
-        "#{table_name.to_s.singularize}_id"
+        prefix = Base.table_name_prefix
+        suffix = Base.table_name_suffix
+        name = table_name.to_s =~ /#{prefix}(.+)#{suffix}/ ? $1 : table_name.to_s
+        "#{name.singularize}_id"
+      end
+
+      def foreign_key_options(from_table, to_table, options) # :nodoc:
+        options = options.dup
+        options[:column] ||= foreign_key_column_for(to_table)
+        options[:name]   ||= foreign_key_name(from_table, options)
+        options
       end
 
       def dump_schema_information #:nodoc:
         sm_table = ActiveRecord::Migrator.schema_migrations_table_name
 
-        ActiveRecord::SchemaMigration.order('version').map { |sm|
-          "INSERT INTO #{sm_table} (version) VALUES ('#{sm.version}');"
-        }.join "\n\n"
+        sql = "INSERT INTO #{sm_table} (version) VALUES "
+        sql << ActiveRecord::SchemaMigration.order('version').pluck(:version).map {|v| "('#{v}')" }.join(', ')
+        sql << ";\n\n"
       end
 
       # Should not be called normally, but this operation is non-destructive.
@@ -839,7 +996,15 @@ module ActiveRecord
         ActiveRecord::SchemaMigration.create_table
       end
 
-      def assume_migrated_upto_version(version, migrations_paths = ActiveRecord::Migrator.migrations_paths)
+      def initialize_internal_metadata_table
+        ActiveRecord::InternalMetadata.create_table
+      end
+
+      def internal_string_options_for_primary_key # :nodoc:
+        { primary_key: true }
+      end
+
+      def assume_migrated_upto_version(version, migrations_paths)
         migrations_paths = Array(migrations_paths)
         version = version.to_i
         sm_table = quote_table_name(ActiveRecord::Migrator.schema_migrations_table_name)
@@ -854,14 +1019,12 @@ module ActiveRecord
           execute "INSERT INTO #{sm_table} (version) VALUES ('#{version}')"
         end
 
-        inserted = Set.new
-        (versions - migrated).each do |v|
-          if inserted.include?(v)
-            raise "Duplicate migration #{v}. Please renumber your migrations to resolve the conflict."
-          elsif v < version
-            execute "INSERT INTO #{sm_table} (version) VALUES ('#{v}')"
-            inserted << v
+        inserting = (versions - migrated).select {|v| v < version}
+        if inserting.any?
+          if (duplicate = inserting.detect {|v| inserting.count(v) > 1})
+            raise "Duplicate migration #{duplicate}. Please renumber your migrations to resolve the conflict."
           end
+          execute "INSERT INTO #{sm_table} (version) VALUES #{inserting.map {|v| "('#{v}')"}.join(', ') }"
         end
       end
 
@@ -899,18 +1062,19 @@ module ActiveRecord
       end
 
       # Given a set of columns and an ORDER BY clause, returns the columns for a SELECT DISTINCT.
-      # Both PostgreSQL and Oracle overrides this for custom DISTINCT syntax - they
+      # PostgreSQL, MySQL, and Oracle overrides this for custom DISTINCT syntax - they
       # require the order columns appear in the SELECT.
       #
       #   columns_for_distinct("posts.id", ["posts.created_at desc"])
-      def columns_for_distinct(columns, orders) #:nodoc:
+      #
+      def columns_for_distinct(columns, orders) # :nodoc:
         columns
       end
 
       # Adds timestamps (+created_at+ and +updated_at+) columns to +table_name+.
-      # Additional options (like <tt>null: false</tt>) are forwarded to #add_column.
+      # Additional options (like +:null+) are forwarded to #add_column.
       #
-      #   add_timestamps(:suppliers, null: false)
+      #   add_timestamps(:suppliers, null: true)
       #
       def add_timestamps(table_name, options = {})
         options[:null] = false if options[:null].nil?
@@ -935,7 +1099,7 @@ module ActiveRecord
       def add_index_options(table_name, column_name, options = {}) #:nodoc:
         column_names = Array(column_name)
 
-        options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type)
+        options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type, :comment)
 
         index_type = options[:type].to_s if options.key?(:type)
         index_type ||= options[:unique] ? "UNIQUE" : ""
@@ -958,12 +1122,28 @@ module ActiveRecord
         if index_name.length > max_index_length
           raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' is too long; the limit is #{max_index_length} characters"
         end
-        if table_exists?(table_name) && index_name_exists?(table_name, index_name, false)
+        if data_source_exists?(table_name) && index_name_exists?(table_name, index_name, false)
           raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' already exists"
         end
         index_columns = quoted_columns_for_index(column_names, options).join(", ")
 
-        [index_name, index_type, index_columns, index_options, algorithm, using]
+        comment = options[:comment] if options.key?(:comment)
+
+        [index_name, index_type, index_columns, index_options, algorithm, using, comment]
+      end
+
+      def options_include_default?(options)
+        options.include?(:default) && !(options[:null] == false && options[:default].nil?)
+      end
+
+      # Adds comment for given table or drops it if +nil+ given
+      def change_table_comment(table_name, comment)
+        raise NotImplementedError, "change_table_comment is not implemented"
+      end
+
+      # Adds comment for given table column or drops it if +nil+ given
+      def change_column_comment(table_name, column_name, comment) #:nodoc:
+        raise NotImplementedError, "change_column_comment is not implemented"
       end
 
       protected
@@ -992,26 +1172,36 @@ module ActiveRecord
           column_names.map {|name| quote_column_name(name) + option_strings[name]}
         end
 
-        def options_include_default?(options)
-          options.include?(:default) && !(options[:null] == false && options[:default].nil?)
-        end
-
         def index_name_for_remove(table_name, options = {})
-          index_name = index_name(table_name, options)
+          # if the adapter doesn't support the indexes call the best we can do
+          # is return the default index name for the options provided
+          return index_name(table_name, options) unless respond_to?(:indexes)
 
-          unless index_name_exists?(table_name, index_name, true)
-            if options.is_a?(Hash) && options.has_key?(:name)
-              options_without_column = options.dup
-              options_without_column.delete :column
-              index_name_without_column = index_name(table_name, options_without_column)
+          checks = []
 
-              return index_name_without_column if index_name_exists?(table_name, index_name_without_column, false)
-            end
-
-            raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' does not exist"
+          if options.is_a?(Hash)
+            checks << lambda { |i| i.name == options[:name].to_s } if options.has_key?(:name)
+            column_names = Array(options[:column]).map(&:to_s)
+          else
+            column_names = Array(options).map(&:to_s)
           end
 
-          index_name
+          if column_names.any?
+            checks << lambda { |i| i.columns.join('_and_') == column_names.join('_and_') }
+          end
+
+          raise ArgumentError "No name or columns specified" if checks.none?
+
+          matching_indexes = indexes(table_name).select { |i| checks.all? { |check| check[i] } }
+
+          if matching_indexes.count > 1
+            raise ArgumentError, "Multiple indexes found on #{table_name} columns #{column_names}. " \
+                                 "Specify an index name from #{matching_indexes.map(&:name).join(', ')}"
+          elsif matching_indexes.none?
+            raise ArgumentError, "No indexes found on #{table_name} with the options provided."
+          else
+            matching_indexes.first.name
+          end
         end
 
         def rename_table_indexes(table_name, new_name)
@@ -1037,8 +1227,8 @@ module ActiveRecord
         end
 
       private
-      def create_table_definition(name, temporary = false, options = nil, as = nil)
-        TableDefinition.new native_database_types, name, temporary, options, as
+      def create_table_definition(name, temporary = false, options = nil, as = nil, comment = nil)
+        TableDefinition.new(name, temporary, options, as, comment)
       end
 
       def create_alter_table(name)
@@ -1056,6 +1246,14 @@ module ActiveRecord
       def validate_index_length!(table_name, new_name) # :nodoc:
         if new_name.length > allowed_index_name_length
           raise ArgumentError, "Index name '#{new_name}' on table '#{table_name}' is too long; the limit is #{allowed_index_name_length} characters"
+        end
+      end
+
+      def extract_new_default_value(default_or_changes)
+        if default_or_changes.is_a?(Hash) && default_or_changes.has_key?(:from) && default_or_changes.has_key?(:to)
+          default_or_changes[:to]
+        else
+          default_or_changes
         end
       end
     end

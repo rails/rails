@@ -413,10 +413,22 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
     assert_equal 'にち', @chars.slice!(1..2)
   end
 
+  def test_slice_bang_returns_nil_on_out_of_bound_arguments
+    assert_equal nil, @chars.mb_chars.slice!(9..10)
+  end
+
   def test_slice_bang_removes_the_slice_from_the_receiver
     chars = 'úüù'.mb_chars
     chars.slice!(0,2)
     assert_equal 'ù', chars
+  end
+
+  def test_slice_bang_returns_nil_and_does_not_modify_receiver_if_out_of_bounds
+    string = 'úüù'
+    chars = string.mb_chars
+    assert_nil chars.slice!(4, 5)
+    assert_equal 'úüù', chars
+    assert_equal 'úüù', string
   end
 
   def test_slice_should_throw_exceptions_on_invalid_arguments
@@ -600,28 +612,54 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
       ['abc', 3],
       ['こにちわ', 4],
       [[0x0924, 0x094D, 0x0930].pack('U*'), 2],
+      # GB3
       [%w(cr lf), 1],
+      # GB4
+      [%w(cr n), 2],
+      [%w(lf n), 2],
+      [%w(control n), 2],
+      [%w(cr extend), 2],
+      [%w(lf extend), 2],
+      [%w(control extend), 2],
+      # GB 5
+      [%w(n cr), 2],
+      [%w(n lf), 2],
+      [%w(n control), 2],
+      [%w(extend cr), 2],
+      [%w(extend lf), 2],
+      [%w(extend control), 2],
+      # GB 6
       [%w(l l), 1],
       [%w(l v), 1],
       [%w(l lv), 1],
       [%w(l lvt), 1],
+      # GB7
       [%w(lv v), 1],
       [%w(lv t), 1],
       [%w(v v), 1],
       [%w(v t), 1],
+      # GB8
       [%w(lvt t), 1],
       [%w(t t), 1],
+      # GB8a
+      [%w(r r), 1],
+      # GB9
       [%w(n extend), 1],
+      # GB9a
+      [%w(n spacingmark), 1],
+      # GB10
       [%w(n n), 2],
+      # Other
       [%w(n cr lf n), 3],
-      [%w(n l v t), 2]
+      [%w(n l v t), 2],
+      [%w(cr extend n), 3],
     ].each do |input, expected_length|
       if input.kind_of?(Array)
         str = string_from_classes(input)
       else
         str = input
       end
-      assert_equal expected_length, chars(str).grapheme_length
+      assert_equal expected_length, chars(str).grapheme_length, input.inspect
     end
   end
 
@@ -686,7 +724,7 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
     # Characters from the character classes as described in UAX #29
     character_from_class = {
       :l => 0x1100, :v => 0x1160, :t => 0x11A8, :lv => 0xAC00, :lvt => 0xAC01, :cr => 0x000D, :lf => 0x000A,
-      :extend => 0x094D, :n => 0x64
+      :extend => 0x094D, :n => 0x64, :spacingmark => 0x0903, :r => 0x1F1E6, :control => 0x0001
     }
     classes.collect do |k|
       character_from_class[k.intern]

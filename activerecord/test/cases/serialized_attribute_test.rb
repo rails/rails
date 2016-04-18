@@ -274,4 +274,25 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
     assert_equal({}, topic.content)
   end
+
+  def test_values_cast_from_nil_are_persisted_as_nil
+    # This is required to fulfil the following contract, which must be universally
+    # true in Active Record:
+    #
+    # model.attribute = value
+    # assert_equal model.attribute, model.tap(&:save).reload.attribute
+    Topic.serialize(:content, Hash)
+    topic = Topic.create!(content: {})
+    topic2 = Topic.create!(content: nil)
+
+    assert_equal [topic, topic2], Topic.where(content: nil)
+  end
+
+  def test_nil_is_always_persisted_as_null
+    Topic.serialize(:content, Hash)
+
+    topic = Topic.create!(content: { foo: "bar" })
+    topic.update_attribute :content, nil
+    assert_equal [topic], Topic.where(content: nil)
+  end
 end

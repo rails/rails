@@ -25,7 +25,7 @@ module ActiveSupport
   # of the backtrace, you can call <tt>BacktraceCleaner#remove_filters!</tt>
   # These two methods will give you a completely untouched backtrace.
   #
-  # Inspired by the Quiet Backtrace gem by Thoughtbot.
+  # Inspired by the Quiet Backtrace gem by thoughtbot.
   class BacktraceCleaner
     def initialize
       @filters, @silencers = [], []

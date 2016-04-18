@@ -40,7 +40,23 @@ class Time
       Thread.current[:time_zone] = find_zone!(time_zone)
     end
 
-    # Allows override of <tt>Time.zone</tt> locally inside supplied block; resets <tt>Time.zone</tt> to existing value when done.
+    # Allows override of <tt>Time.zone</tt> locally inside supplied block;
+    # resets <tt>Time.zone</tt> to existing value when done.
+    #
+    #   class ApplicationController < ActionController::Base
+    #     around_action :set_time_zone
+    #
+    #     private
+    #
+    #     def set_time_zone
+    #       Time.use_zone(current_user.timezone) { yield }
+    #     end
+    #   end
+    #
+    #  NOTE: This won't affect any <tt>ActiveSupport::TimeWithZone</tt>
+    #  objects that have already been created, e.g. any model timestamp
+    #  attributes that have been read before the block will remain in
+    #  the application's default timezone.
     def use_zone(time_zone)
       new_zone = find_zone!(time_zone)
       begin
@@ -53,7 +69,7 @@ class Time
 
     # Returns a TimeZone instance matching the time zone provided.
     # Accepts the time zone in any format supported by <tt>Time.zone=</tt>.
-    # Raises an ArgumentError for invalid time zones.
+    # Raises an +ArgumentError+ for invalid time zones.
     #
     #   Time.find_zone! "America/New_York" # => #<ActiveSupport::TimeZone @name="America/New_York" ...>
     #   Time.find_zone! "EST"              # => #<ActiveSupport::TimeZone @name="EST" ...>
@@ -65,7 +81,8 @@ class Time
       if !time_zone || time_zone.is_a?(ActiveSupport::TimeZone)
         time_zone
       else
-        # lookup timezone based on identifier (unless we've been passed a TZInfo::Timezone)
+        # Look up the timezone based on the identifier (unless we've been
+        # passed a TZInfo::Timezone)
         unless time_zone.respond_to?(:period_for_local)
           time_zone = ActiveSupport::TimeZone[time_zone] || TZInfo::Timezone.get(time_zone)
         end

@@ -188,8 +188,9 @@ class NamedScopingTest < ActiveRecord::TestCase
   def test_any_should_call_proxy_found_if_using_a_block
     topics = Topic.base
     assert_queries(1) do
-      topics.expects(:empty?).never
-      topics.any? { true }
+      assert_not_called(topics, :empty?) do
+        topics.any? { true }
+      end
     end
   end
 
@@ -217,8 +218,9 @@ class NamedScopingTest < ActiveRecord::TestCase
   def test_many_should_call_proxy_found_if_using_a_block
     topics = Topic.base
     assert_queries(1) do
-      topics.expects(:size).never
-      topics.many? { true }
+      assert_not_called(topics, :size) do
+        topics.many? { true }
+      end
     end
   end
 
@@ -438,6 +440,25 @@ class NamedScopingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_scopes_with_reserved_names
+    class << Topic
+      def public_method; end
+      public :public_method
+
+      def protected_method; end
+      protected :protected_method
+
+      def private_method; end
+      private :private_method
+    end
+
+    [:public_method, :protected_method, :private_method].each do |reserved_method|
+      assert Topic.respond_to?(reserved_method, true)
+      ActiveRecord::Base.logger.expects(:warn)
+      silence_warnings { Topic.scope(reserved_method, -> { }) }
+    end
+  end
+
   def test_scopes_on_relations
     # Topic.replied
     approved_topics = Topic.all.approved.order('id DESC')
@@ -521,6 +542,26 @@ class NamedScopingTest < ActiveRecord::TestCase
 
   def test_subclass_merges_scopes_properly
     assert_equal 1, SpecialComment.where(body: 'go crazy').created.count
+  end
+
+  def test_model_class_should_respond_to_empty
+    assert !Topic.empty?
+    Topic.delete_all
+    assert Topic.empty?
+  end
+
+  def test_model_class_should_respond_to_none
+    assert !Topic.none?
+    Topic.delete_all
+    assert Topic.none?
+  end
+
+  def test_model_class_should_respond_to_one
+    assert !Topic.one?
+    Topic.delete_all
+    assert !Topic.one?
+    Topic.create!
+    assert Topic.one?
   end
 
 end

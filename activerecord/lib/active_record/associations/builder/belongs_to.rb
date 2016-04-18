@@ -1,11 +1,11 @@
-module ActiveRecord::Associations::Builder
+module ActiveRecord::Associations::Builder # :nodoc:
   class BelongsTo < SingularAssociation #:nodoc:
     def self.macro
       :belongs_to
     end
 
     def self.valid_options(options)
-      super + [:foreign_type, :polymorphic, :touch, :counter_cache, :optional]
+      super + [:polymorphic, :touch, :counter_cache, :optional]
     end
 
     def self.valid_dependent_options
@@ -33,16 +33,24 @@ module ActiveRecord::Associations::Builder
 
           if (@_after_create_counter_called ||= false)
             @_after_create_counter_called = false
-          elsif attribute_changed?(foreign_key) && !new_record? && reflection.constructable?
-            model           = reflection.klass
+          elsif attribute_changed?(foreign_key) && !new_record?
+            if reflection.polymorphic?
+              model     = attribute(reflection.foreign_type).try(:constantize)
+              model_was = attribute_was(reflection.foreign_type).try(:constantize)
+            else
+              model     = reflection.klass
+              model_was = reflection.klass
+            end
+
             foreign_key_was = attribute_was foreign_key
             foreign_key     = attribute foreign_key
 
             if foreign_key && model.respond_to?(:increment_counter)
               model.increment_counter(cache_column, foreign_key)
             end
-            if foreign_key_was && model.respond_to?(:decrement_counter)
-              model.decrement_counter(cache_column, foreign_key_was)
+
+            if foreign_key_was && model_was.respond_to?(:decrement_counter)
+              model_was.decrement_counter(cache_column, foreign_key_was)
             end
           end
         end
@@ -98,8 +106,7 @@ module ActiveRecord::Associations::Builder
       touch       = reflection.options[:touch]
 
       callback = lambda { |record|
-        touch_method = touching_delayed_records? ? :touch : :touch_later
-        BelongsTo.touch_record(record, foreign_key, n, touch, touch_method)
+        BelongsTo.touch_record(record, foreign_key, n, touch, belongs_to_touch_method)
       }
 
       model.after_save    callback, if: :changed?
@@ -108,8 +115,7 @@ module ActiveRecord::Associations::Builder
     end
 
     def self.add_destroy_callbacks(model, reflection)
-      name = reflection.name
-      model.after_destroy lambda { |o| o.association(name).handle_dependency }
+      model.after_destroy lambda { |o| o.association(reflection.name).handle_dependency }
     end
 
     def self.define_validations(model, reflection)

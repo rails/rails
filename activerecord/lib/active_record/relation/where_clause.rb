@@ -81,7 +81,7 @@ module ActiveRecord
       end
 
       def self.empty
-        new([], [])
+        @empty ||= new([], [])
       end
 
       protected

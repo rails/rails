@@ -2,7 +2,7 @@ require "cases/helper"
 require 'support/schema_dumping_helper'
 
 if ActiveRecord::Base.connection.supports_extensions?
-  class PostgresqlHstoreTest < ActiveRecord::TestCase
+  class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
     include SchemaDumpingHelper
     class Hstore < ActiveRecord::Base
       self.table_name = 'hstores'
@@ -86,7 +86,7 @@ if ActiveRecord::Base.connection.supports_extensions?
     end
 
     def test_hstore_migration
-      hstore_migration = Class.new(ActiveRecord::Migration) do
+      hstore_migration = Class.new(ActiveRecord::Migration::Current) do
         def change
           change_table("hstores") do |t|
             t.hstore :keys

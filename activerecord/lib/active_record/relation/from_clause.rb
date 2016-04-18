@@ -1,6 +1,6 @@
 module ActiveRecord
   class Relation
-    class FromClause
+    class FromClause # :nodoc:
       attr_reader :value, :name
 
       def initialize(value, name)
@@ -25,7 +25,7 @@ module ActiveRecord
       end
 
       def self.empty
-        new(nil, nil)
+        @empty ||= new(nil, nil)
       end
     end
   end

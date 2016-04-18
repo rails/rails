@@ -50,9 +50,9 @@ module ActionController
   #
   # == Parameters
   #
-  # All request parameters, whether they come from a GET or POST request, or from the URL, are available through the params method
-  # which returns a hash. For example, an action that was performed through <tt>/posts?category=All&limit=5</tt> will include
-  # <tt>{ "category" => "All", "limit" => "5" }</tt> in params.
+  # All request parameters, whether they come from a query string in the URL or form data submitted through a POST request are
+  # available through the params method which returns a hash. For example, an action that was performed through
+  # <tt>/posts?category=All&limit=5</tt> will include <tt>{ "category" => "All", "limit" => "5" }</tt> in params.
   #
   # It's also possible to construct multi-dimensional parameter hashes by specifying keys using brackets, such as:
   #
@@ -183,7 +183,7 @@ module ActionController
     # Shortcut helper that returns all the modules included in
     # ActionController::Base except the ones passed as arguments:
     #
-    #   class MetalController
+    #   class MyBaseController < ActionController::Metal
     #     ActionController::Base.without_modules(:ParamsWrapper, :Streaming).each do |left|
     #       include left
     #     end
@@ -213,7 +213,6 @@ module ActionController
       Renderers::All,
       ConditionalGet,
       EtagWithTemplateDigest,
-      RackDelegation,
       Caching,
       MimeResponds,
       ImplicitRender,
@@ -249,17 +248,14 @@ module ActionController
     MODULES.each do |mod|
       include mod
     end
+    setup_renderer!
 
     # Define some internal variables that should not be propagated to the view.
     PROTECTED_IVARS = AbstractController::Rendering::DEFAULT_PROTECTED_INSTANCE_VARIABLES + [
-      :@_status, :@_headers, :@_params, :@_env, :@_response, :@_request,
+      :@_params, :@_response, :@_request,
       :@_view_runtime, :@_stream, :@_url_options, :@_action_has_layout ]
 
     def _protected_ivars # :nodoc:
-      PROTECTED_IVARS
-    end
-
-    def self.protected_instance_variables
       PROTECTED_IVARS
     end
 

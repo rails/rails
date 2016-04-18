@@ -1,5 +1,4 @@
 require 'stringio'
-require 'active_support/core_ext/big_decimal'
 
 module ActiveRecord
   # = Active Record Schema Dumper
@@ -90,7 +89,7 @@ HEADER
       end
 
       def tables(stream)
-        sorted_tables = @connection.tables.sort
+        sorted_tables = @connection.data_sources.sort - @connection.views
 
         sorted_tables.each do |table_name|
           table(table_name, stream) unless ignored?(table_name)
@@ -105,28 +104,32 @@ HEADER
       end
 
       def table(table, stream)
-        columns = @connection.columns(table).map do |column|
-          column.instance_variable_set(:@table_name, table)
-          column
-        end
+        columns = @connection.columns(table)
         begin
           tbl = StringIO.new
 
           # first dump primary key column
-          pk = @connection.primary_key(table)
+          if @connection.respond_to?(:primary_keys)
+            pk = @connection.primary_keys(table)
+            pk = pk.first unless pk.size > 1
+          else
+            pk = @connection.primary_key(table)
+          end
 
           tbl.print "  create_table #{remove_prefix_and_suffix(table).inspect}"
-          pkcol = columns.detect { |c| c.name == pk }
-          if pkcol
-            if pk != 'id'
-              tbl.print %Q(, primary_key: "#{pk}")
-            end
+
+          case pk
+          when String
+            tbl.print ", primary_key: #{pk.inspect}" unless pk == 'id'
+            pkcol = columns.detect { |c| c.name == pk }
             pkcolspec = @connection.column_spec_for_primary_key(pkcol)
-            if pkcolspec
+            if pkcolspec.present?
               pkcolspec.each do |key, value|
                 tbl.print ", #{key}: #{value}"
               end
             end
+          when Array
+            tbl.print ", primary_key: #{pk.inspect}"
           else
             tbl.print ", id: false"
           end
@@ -134,6 +137,9 @@ HEADER
 
           table_options = @connection.table_options(table)
           tbl.print ", options: #{table_options.inspect}" unless table_options.blank?
+
+          comment = @connection.table_comment(table)
+          tbl.print ", comment: #{comment.inspect}" if comment
 
           tbl.puts " do |t|"
 
@@ -172,10 +178,10 @@ HEADER
             tbl.puts
           end
 
-          indexes(table, tbl)
-
           tbl.puts "  end"
           tbl.puts
+
+          indexes(table, tbl)
 
           tbl.rewind
           stream.print tbl.read
@@ -192,7 +198,8 @@ HEADER
         if (indexes = @connection.indexes(table)).any?
           add_index_statements = indexes.map do |index|
             statement_parts = [
-              "t.index #{index.columns.inspect}",
+              "add_index #{remove_prefix_and_suffix(index.table).inspect}",
+              index.columns.inspect,
               "name: #{index.name.inspect}",
             ]
             statement_parts << 'unique: true' if index.unique
@@ -205,11 +212,13 @@ HEADER
             statement_parts << "where: #{index.where.inspect}" if index.where
             statement_parts << "using: #{index.using.inspect}" if index.using
             statement_parts << "type: #{index.type.inspect}" if index.type
+            statement_parts << "comment: #{index.comment.inspect}" if index.comment
 
-            "    #{statement_parts.join(', ')}"
+            "  #{statement_parts.join(', ')}"
           end
 
           stream.puts add_index_statements.sort.join("\n")
+          stream.puts
         end
       end
 
@@ -248,7 +257,7 @@ HEADER
       end
 
       def ignored?(table_name)
-        ['schema_migrations', ignore_tables].flatten.any? do |ignored|
+        [ActiveRecord::Base.schema_migrations_table_name, ActiveRecord::Base.internal_metadata_table_name, ignore_tables].flatten.any? do |ignored|
           ignored === remove_prefix_and_suffix(table_name)
         end
       end

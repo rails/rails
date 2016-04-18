@@ -11,8 +11,9 @@ class MultibyteUnicodeDatabaseTest < ActiveSupport::TestCase
 
   UnicodeDatabase::ATTRIBUTES.each do |attribute|
     define_method "test_lazy_loading_on_attribute_access_of_#{attribute}" do
-      @ucd.expects(:load)
-      @ucd.send(attribute)
+      assert_called(@ucd, :load) do
+        @ucd.send(attribute)
+      end
     end
   end
 

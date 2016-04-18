@@ -10,7 +10,7 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
   end
 
   [ nil, 1, 1.0, 1_000_000_000_000_000_000_000,
-    'a', true, false,
+    'a', true, false, BigDecimal.new(5),
     [ 1, 'a' ],
     { 'a' => 1 }
   ].each do |arg|
@@ -62,13 +62,14 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     assert_raises ActiveJob::SerializationError do
       ActiveJob::Arguments.serialize [ { :a => [{ 2 => 3 }] } ]
     end
+  end
 
-    assert_raises ActiveJob::SerializationError do
-      ActiveJob::Arguments.serialize [ '_aj_globalid' => 1 ]
-    end
-
-    assert_raises ActiveJob::SerializationError do
-      ActiveJob::Arguments.serialize [ :_aj_globalid => 1 ]
+  test 'should not allow reserved hash keys' do
+    ['_aj_globalid', :_aj_globalid, '_aj_symbol_keys', :_aj_symbol_keys,
+     '_aj_hash_with_indifferent_access', :_aj_hash_with_indifferent_access].each do |key|
+      assert_raises ActiveJob::SerializationError do
+        ActiveJob::Arguments.serialize [key => 1]
+      end
     end
   end
 
@@ -86,6 +87,13 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     KwargsJob.perform_later(argument: 2)
 
     assert_equal "Job with argument: 2", JobBuffer.last_value
+  end
+
+  test 'raises a friendly SerializationError for records without ids' do
+    err = assert_raises ActiveJob::SerializationError do
+      ActiveJob::Arguments.serialize [Person.new(nil)]
+    end
+    assert_match 'Unable to serialize Person without an id.', err.message
   end
 
   private

@@ -18,10 +18,15 @@ module ActionMailer
       @mailer = mailer
       @mail_method = mail_method
       @args = args
+      @obj = nil
     end
 
     def __getobj__ #:nodoc:
-      @obj ||= @mailer.send(:new, @mail_method, *@args).message
+      @obj ||= begin
+                 mailer = @mailer.new
+                 mailer.process @mail_method, *@args
+                 mailer.message
+               end
     end
 
     def __setobj__(obj) #:nodoc:
@@ -60,9 +65,9 @@ module ActionMailer
     #
     # Options:
     #
-    # * <tt>:wait</tt> - Enqueue the email to be delivered with a delay
-    # * <tt>:wait_until</tt> - Enqueue the email to be delivered at (after) a specific date / time
-    # * <tt>:queue</tt> - Enqueue the email on the specified queue
+    # * <tt>:wait</tt> - Enqueue the email to be delivered with a delay.
+    # * <tt>:wait_until</tt> - Enqueue the email to be delivered at (after) a specific date / time.
+    # * <tt>:queue</tt> - Enqueue the email on the specified queue.
     def deliver_later(options={})
       enqueue_delivery :deliver_now, options
     end
@@ -87,8 +92,19 @@ module ActionMailer
     private
 
       def enqueue_delivery(delivery_method, options={})
-        args = @mailer.name, @mail_method.to_s, delivery_method.to_s, *@args
-        ActionMailer::DeliveryJob.set(options).perform_later(*args)
+        if @obj
+          raise "You've accessed the message before asking to deliver it " \
+            "later, so you may have made local changes that would be " \
+            "silently lost if we enqueued a job to deliver it. Why? Only " \
+            "the mailer method *arguments* are passed with the delivery job! " \
+            "Do not access the message in any way if you mean to deliver it " \
+            "later. Workarounds: 1. don't touch the message before calling " \
+            "#deliver_later, 2. only touch the message *within your mailer " \
+            "method*, or 3. use a custom Active Job instead of #deliver_later."
+        else
+          args = @mailer.name, @mail_method.to_s, delivery_method.to_s, *@args
+          ActionMailer::DeliveryJob.set(options).perform_later(*args)
+        end
       end
   end
 end

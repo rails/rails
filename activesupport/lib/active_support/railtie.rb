@@ -26,7 +26,7 @@ module ActiveSupport
 
       unless zone_default
         raise 'Value assigned to config.time_zone not recognized. ' \
-          'Run "rake -D time" for a list of tasks for finding appropriate time zone names.'
+          'Run "rake time:zones:all" for a time zone names list.'
       end
 
       Time.zone_default = zone_default

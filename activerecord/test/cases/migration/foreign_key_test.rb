@@ -99,7 +99,7 @@ module ActiveRecord
         assert_equal 1, foreign_keys.size
 
         fk = foreign_keys.first
-        if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+        if current_adapter?(:Mysql2Adapter)
           # ON DELETE RESTRICT is the default on MySQL
           assert_equal nil, fk.on_delete
         else
@@ -224,7 +224,7 @@ module ActiveRecord
         assert_match %r{\s+add_foreign_key "astronauts",.+on_update: :cascade,.+on_delete: :nullify$}, output
       end
 
-      class CreateCitiesAndHousesMigration < ActiveRecord::Migration
+      class CreateCitiesAndHousesMigration < ActiveRecord::Migration::Current
         def change
           create_table("cities") { |t| }
 
@@ -241,6 +241,37 @@ module ActiveRecord
         assert_equal 1, @connection.foreign_keys("houses").size
       ensure
         silence_stream($stdout) { migration.migrate(:down) }
+      end
+
+      class CreateSchoolsAndClassesMigration < ActiveRecord::Migration::Current
+        def change
+          create_table(:schools)
+
+          create_table(:classes) do |t|
+            t.column :school_id, :integer
+          end
+          add_foreign_key :classes, :schools
+        end
+      end
+
+      def test_add_foreign_key_with_prefix
+        ActiveRecord::Base.table_name_prefix = 'p_'
+        migration = CreateSchoolsAndClassesMigration.new
+        silence_stream($stdout) { migration.migrate(:up) }
+        assert_equal 1, @connection.foreign_keys("p_classes").size
+      ensure
+        silence_stream($stdout) { migration.migrate(:down) }
+        ActiveRecord::Base.table_name_prefix = nil
+      end
+
+      def test_add_foreign_key_with_suffix
+        ActiveRecord::Base.table_name_suffix = '_s'
+        migration = CreateSchoolsAndClassesMigration.new
+        silence_stream($stdout) { migration.migrate(:up) }
+        assert_equal 1, @connection.foreign_keys("classes_s").size
+      ensure
+        silence_stream($stdout) { migration.migrate(:down) }
+        ActiveRecord::Base.table_name_suffix = nil
       end
 
     end

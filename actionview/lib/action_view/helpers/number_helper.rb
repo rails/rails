@@ -1,4 +1,3 @@
-
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/string/output_safety'
 require 'active_support/number_helper'
@@ -24,7 +23,7 @@ module ActionView
         end
       end
 
-      # Formats a +number+ into a US phone number (e.g., (555)
+      # Formats a +number+ into a phone number (US by default e.g., (555)
       # 123-9876). You can customize the format in the +options+ hash.
       #
       # ==== Options
@@ -36,6 +35,8 @@ module ActionView
       #   end of the generated number.
       # * <tt>:country_code</tt> - Sets the country code for the phone
       #   number.
+      # * <tt>:pattern</tt> - Specifies how the number is divided into three
+      #   groups with the custom regexp to override the default format.
       # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
       #   the argument is invalid.
       #
@@ -53,6 +54,11 @@ module ActionView
       #
       #   number_to_phone(1235551234, country_code: 1, extension: 1343, delimiter: ".")
       #   # => +1.123.555.1234 x 1343
+      #
+      #   number_to_phone(75561234567, pattern: /(\d{1,4})(\d{4})(\d{4})$/, area_code: true)
+      #   # => "(755) 6123-4567"
+      #   number_to_phone(13312345678, pattern: /(\d{3})(\d{4})(\d{4})$/))
+      #   # => "133-1234-5678"
       def number_to_phone(number, options = {})
         return unless number
         options = options.symbolize_keys
@@ -63,6 +69,14 @@ module ActionView
 
       # Formats a +number+ into a currency string (e.g., $13.65). You
       # can customize the format in the +options+ hash.
+      #
+      # The currency unit and number formatting of the current locale will be used
+      # unless otherwise specified in the provided options. No currency conversion
+      # is performed. If the user is given a way to change their locale, they will
+      # also be able to change the relative value of the currency displayed with
+      # this helper. If your application will ever support multiple locales, you
+      # may want to specify a constant <tt>:locale</tt> option or consider
+      # using a library capable of currency conversion.
       #
       # ==== Options
       #
@@ -140,7 +154,7 @@ module ActionView
       #   number_to_percentage(302.24398923423, precision: 5)              # => 302.24399%
       #   number_to_percentage(1000, locale: :fr)                          # => 1 000,000%
       #   number_to_percentage("98a")                                      # => 98a%
-      #   number_to_percentage(100, format: "%n  %")                       # => 100  %
+      #   number_to_percentage(100, format: "%n  %")                       # => 100.000  %
       #
       #   number_to_percentage("98a", raise: true)                         # => InvalidNumberError
       def number_to_percentage(number, options = {})
@@ -262,6 +276,8 @@ module ActionView
       #   number_to_human_size(1234567)                                      # => 1.18 MB
       #   number_to_human_size(1234567890)                                   # => 1.15 GB
       #   number_to_human_size(1234567890123)                                # => 1.12 TB
+      #   number_to_human_size(1234567890123456)                             # => 1.1 PB
+      #   number_to_human_size(1234567890123456789)                          # => 1.07 EB
       #   number_to_human_size(1234567, precision: 2)                        # => 1.2 MB
       #   number_to_human_size(483989, precision: 2)                         # => 470 KB
       #   number_to_human_size(1234567, precision: 2, separator: ',')        # => 1,2 MB
@@ -279,7 +295,7 @@ module ActionView
       # See <tt>number_to_human_size</tt> if you want to print a file
       # size.
       #
-      # You can also define you own unit-quantifier names if you want
+      # You can also define your own unit-quantifier names if you want
       # to use other decimal units (eg.: 1500 becomes "1.5
       # kilometers", 0.150 becomes "150 milliliters", etc). You may
       # define a wide range of unit quantifiers, even fractional ones

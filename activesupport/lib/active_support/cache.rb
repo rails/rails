@@ -8,6 +8,7 @@ require 'active_support/core_ext/numeric/bytes'
 require 'active_support/core_ext/numeric/time'
 require 'active_support/core_ext/object/to_param'
 require 'active_support/core_ext/string/inflections'
+require 'active_support/core_ext/string/strip'
 
 module ActiveSupport
   # See ActiveSupport::Cache::Store for documentation.
@@ -26,7 +27,7 @@ module ActiveSupport
     end
 
     class << self
-      # Creates a new CacheStore object according to the given options.
+      # Creates a new Store object according to the given options.
       #
       # If no arguments are passed to this method, then a new
       # ActiveSupport::Cache::MemoryStore object will be returned.
@@ -254,10 +255,11 @@ module ActiveSupport
       #     end
       #   end
       #
-      #   # val_1 => "new value 1"
-      #   # val_2 => "original value"
-      #   # sleep 10 # First thread extend the life of cache by another 10 seconds
-      #   # cache.fetch('foo') => "new value 1"
+      #   cache.fetch('foo') # => "original value"
+      #   sleep 10 # First thread extended the life of cache by another 10 seconds
+      #   cache.fetch('foo') # => "new value 1"
+      #   val_1 # => "new value 1"
+      #   val_2 # => "original value"
       #
       # Other options will be handled by the specific cache store implementation.
       # Internally, #fetch calls #read_entry, and calls #write_entry on a cache
@@ -275,10 +277,15 @@ module ActiveSupport
       def fetch(name, options = nil)
         if block_given?
           options = merged_options(options)
-          key = namespaced_key(name, options)
+          key = normalize_key(name, options)
 
-          cached_entry = find_cached_entry(key, name, options) unless options[:force]
-          entry = handle_expired_entry(cached_entry, key, options)
+          entry = nil
+          instrument(:read, name, options) do |payload|
+            cached_entry = read_entry(key, options) unless options[:force]
+            entry = handle_expired_entry(cached_entry, key, options)
+            payload[:super_operation] = :fetch if payload
+            payload[:hit] = !!entry if payload
+          end
 
           if entry
             get_entry_value(entry, name, options)
@@ -297,7 +304,7 @@ module ActiveSupport
       # Options are passed to the underlying cache implementation.
       def read(name, options = nil)
         options = merged_options(options)
-        key = namespaced_key(name, options)
+        key = normalize_key(name, options)
         instrument(:read, name, options) do |payload|
           entry = read_entry(key, options)
           if entry
@@ -326,21 +333,19 @@ module ActiveSupport
         options = names.extract_options!
         options = merged_options(options)
 
-        instrument_multi(:read, names, options) do |payload|
-          results = {}
-          names.each do |name|
-            key = namespaced_key(name, options)
-            entry = read_entry(key, options)
-            if entry
-              if entry.expired?
-                delete_entry(key, options)
-              else
-                results[name] = entry.value
-              end
+        results = {}
+        names.each do |name|
+          key = normalize_key(name, options)
+          entry = read_entry(key, options)
+          if entry
+            if entry.expired?
+              delete_entry(key, options)
+            else
+              results[name] = entry.value
             end
           end
-          results
         end
+        results
       end
 
       # Fetches data from the cache, using the given keys. If there is data in
@@ -381,7 +386,7 @@ module ActiveSupport
 
         instrument(:write, name, options) do
           entry = Entry.new(value, options)
-          write_entry(namespaced_key(name, options), entry, options)
+          write_entry(normalize_key(name, options), entry, options)
         end
       end
 
@@ -392,7 +397,7 @@ module ActiveSupport
         options = merged_options(options)
 
         instrument(:delete, name) do
-          delete_entry(namespaced_key(name, options), options)
+          delete_entry(normalize_key(name, options), options)
         end
       end
 
@@ -403,7 +408,7 @@ module ActiveSupport
         options = merged_options(options)
 
         instrument(:exist?, name) do
-          entry = read_entry(namespaced_key(name, options), options)
+          entry = read_entry(normalize_key(name, options), options)
           (entry && !entry.expired?) || false
         end
       end
@@ -524,7 +529,7 @@ module ActiveSupport
 
         # Prefix a key with the namespace. Namespace and key will be delimited
         # with a colon.
-        def namespaced_key(key, options)
+        def normalize_key(key, options)
           key = expanded_key(key)
           namespace = options[:namespace] if options
           prefix = namespace.is_a?(Proc) ? namespace.call : namespace
@@ -532,35 +537,25 @@ module ActiveSupport
           key
         end
 
+        def namespaced_key(*args)
+          ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
+            `namespaced_key` is deprecated and will be removed from Rails 5.1.
+            Please use `normalize_key` which will return a fully resolved key.
+          MESSAGE
+          normalize_key(*args)
+        end
+
         def instrument(operation, key, options = nil)
-          log { "Cache #{operation}: #{key}#{options.blank? ? "" : " (#{options.inspect})"}" }
+          log { "Cache #{operation}: #{normalize_key(key, options)}#{options.blank? ? "" : " (#{options.inspect})"}" }
 
           payload = { :key => key }
           payload.merge!(options) if options.is_a?(Hash)
           ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload){ yield(payload) }
         end
 
-        def instrument_multi(operation, keys, options = nil)
-          log do
-            formatted_keys = keys.map { |k| "- #{k}" }.join("\n")
-            "Caches multi #{operation}:\n#{formatted_keys}#{options.blank? ? "" : " (#{options.inspect})"}"
-          end
-
-          payload = { key: keys }
-          payload.merge!(options) if options.is_a?(Hash)
-          ActiveSupport::Notifications.instrument("cache_#{operation}_multi.active_support", payload) { yield(payload) }
-        end
-
         def log
           return unless logger && logger.debug? && !silence?
           logger.debug(yield)
-        end
-
-        def find_cached_entry(key, name, options)
-          instrument(:read, name, options) do |payload|
-            payload[:super_operation] = :fetch if payload
-            read_entry(key, options)
-          end
         end
 
         def handle_expired_entry(entry, key, options)
@@ -580,12 +575,12 @@ module ActiveSupport
         end
 
         def get_entry_value(entry, name, options)
-          instrument(:fetch_hit, name, options) { |payload| }
+          instrument(:fetch_hit, name, options) { }
           entry.value
         end
 
         def save_block_result_to_cache(name, options)
-          result = instrument(:generate, name, options) do |payload|
+          result = instrument(:generate, name, options) do
             yield(name)
           end
 

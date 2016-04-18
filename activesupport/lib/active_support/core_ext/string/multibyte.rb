@@ -9,12 +9,10 @@ class String
   # encapsulates the original string. A Unicode safe version of all the String methods are defined on this proxy
   # class. If the proxy class doesn't respond to a certain method, it's forwarded to the encapsulated string.
   #
-  #   name = 'Claus Müller'
-  #   name.reverse # => "rell??M sualC"
-  #   name.length  # => 13
-  #
-  #   name.mb_chars.reverse.to_s # => "rellüM sualC"
-  #   name.mb_chars.length       # => 12
+  #   >> "ǉ".upcase
+  #   => "ǉ"
+  #   >> "ǉ".mb_chars.upcase.to_s
+  #   => "Ǉ"
   #
   # == Method chaining
   #

@@ -1,3 +1,5 @@
+require 'active_support/core_ext/time/calculations'
+
 module ActiveSupport
   # FileUpdateChecker specifies the API used by Rails to watch files
   # and control reloading. The API depends on four methods:
@@ -23,7 +25,7 @@ module ActiveSupport
   #     I18n.reload!
   #   end
   #
-  #   ActionDispatch::Reloader.to_prepare do
+  #   ActiveSupport::Reloader.to_prepare do
   #     i18n_reloader.execute_if_updated
   #   end
   class FileUpdateChecker
@@ -35,7 +37,7 @@ module ActiveSupport
     # This method must also receive a block that will be called once a path
     # changes. The array of files and list of directories cannot be changed
     # after FileUpdateChecker has been initialized.
-    def initialize(files, dirs={}, &block)
+    def initialize(files, dirs = {}, &block)
       @files = files.freeze
       @glob  = compile_glob(dirs)
       @block = block
@@ -81,6 +83,7 @@ module ActiveSupport
     # Execute the block given if updated.
     def execute_if_updated
       if updated?
+        yield if block_given?
         execute
         true
       else
@@ -111,7 +114,24 @@ module ActiveSupport
     # reloading is not triggered.
     def max_mtime(paths)
       time_now = Time.now
-      paths.map {|path| File.mtime(path)}.reject {|mtime| time_now < mtime}.max
+      max_mtime = nil
+
+      # Time comparisons are performed with #compare_without_coercion because
+      # AS redefines these operators in a way that is much slower and does not
+      # bring any benefit in this particular code.
+      #
+      # Read t1.compare_without_coercion(t2) < 0 as t1 < t2.
+      paths.each do |path|
+        mtime = File.mtime(path)
+
+        next if time_now.compare_without_coercion(mtime) < 0
+
+        if max_mtime.nil? || max_mtime.compare_without_coercion(mtime) < 0
+          max_mtime = mtime
+        end
+      end
+
+      max_mtime
     end
 
     def compile_glob(hash)

@@ -1,7 +1,7 @@
 require "cases/helper"
 require 'support/schema_dumping_helper'
 
-class PostgresqlCollationTest < ActiveRecord::TestCase
+class PostgresqlCollationTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
 
   def setup

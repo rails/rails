@@ -1,26 +1,18 @@
-require 'thread'
-require 'monitor'
+require 'concurrent/atomic/count_down_latch'
 
 module ActiveSupport
   module Concurrency
-    class Latch
+    class Latch < Concurrent::CountDownLatch
+
       def initialize(count = 1)
-        @count = count
-        @lock = Monitor.new
-        @cv = @lock.new_cond
+        ActiveSupport::Deprecation.warn("ActiveSupport::Concurrency::Latch is deprecated. Please use Concurrent::CountDownLatch instead.")
+        super(count)
       end
 
-      def release
-        @lock.synchronize do
-          @count -= 1 if @count > 0
-          @cv.broadcast if @count.zero?
-        end
-      end
+      alias_method :release, :count_down
 
       def await
-        @lock.synchronize do
-          @cv.wait_while { @count > 0 }
-        end
+        wait(nil)
       end
     end
   end

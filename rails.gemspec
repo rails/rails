@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
 
   s.author   = 'David Heinemeier Hansson'
   s.email    = 'david@loudthinking.com'
-  s.homepage = 'http://www.rubyonrails.org'
+  s.homepage = 'http://rubyonrails.org'
 
   s.files = ['README.md']
 
@@ -25,8 +25,9 @@ Gem::Specification.new do |s|
   s.add_dependency 'activerecord',  version
   s.add_dependency 'actionmailer',  version
   s.add_dependency 'activejob',     version
+  s.add_dependency 'actioncable',   version
   s.add_dependency 'railties',      version
 
   s.add_dependency 'bundler',         '>= 1.3.0', '< 2.0'
-  s.add_dependency 'sprockets-rails'
+  s.add_dependency 'sprockets-rails', '>= 2.0.0'
 end

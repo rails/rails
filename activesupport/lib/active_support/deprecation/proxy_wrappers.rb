@@ -20,7 +20,7 @@ module ActiveSupport
 
       private
         def method_missing(called, *args, &block)
-          warn caller, called, args
+          warn caller_locations, called, args
           target.__send__(called, *args, &block)
         end
     end
@@ -80,7 +80,7 @@ module ActiveSupport
     #   example.old_request.to_s
     #   # => DEPRECATION WARNING: @request is deprecated! Call request.to_s instead of
     #      @request.to_s
-    #      (Bactrace information…)
+    #      (Backtrace information…)
     #      "special_request"
     #
     #   example.request.to_s
@@ -104,21 +104,21 @@ module ActiveSupport
     end
 
     # DeprecatedConstantProxy transforms a constant into a deprecated one. It
-    # takes the names of an old (deprecated) constant and of a new contstant
+    # takes the names of an old (deprecated) constant and of a new constant
     # (both in string form) and optionally a deprecator. The deprecator defaults
     # to +ActiveSupport::Deprecator+ if none is specified. The deprecated constant
     # now returns the value of the new one.
     #
     #   PLANETS = %w(mercury venus earth mars jupiter saturn uranus neptune pluto)
     #
-    #   (In a later update, the orignal implementation of `PLANETS` has been removed.)
+    #   (In a later update, the original implementation of `PLANETS` has been removed.)
     #
     #   PLANETS_POST_2006 = %w(mercury venus earth mars jupiter saturn uranus neptune)
     #   PLANETS = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('PLANETS', 'PLANETS_POST_2006')
     #
     #   PLANETS.map { |planet| planet.capitalize }
     #   # => DEPRECATION WARNING: PLANETS is deprecated! Use PLANETS_POST_2006 instead.
-    #        (Bactrace information…)
+    #        (Backtrace information…)
     #        ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"]
     class DeprecatedConstantProxy < DeprecationProxy
       def initialize(old_const, new_const, deprecator = ActiveSupport::Deprecation.instance)
@@ -127,6 +127,11 @@ module ActiveSupport
         @deprecator = deprecator
       end
 
+      # Returns the class of the new constant.
+      #
+      #   PLANETS_POST_2006 = %w(mercury venus earth mars jupiter saturn uranus neptune)
+      #   PLANETS = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('PLANETS', 'PLANETS_POST_2006')
+      #   PLANETS.class # => Array
       def class
         target.class
       end

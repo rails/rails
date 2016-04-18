@@ -197,3 +197,9 @@ class Process::Status #:nodoc:
     { :exitstatus => exitstatus, :pid => pid }
   end
 end
+
+class Exception
+  def as_json(options = nil)
+    to_s
+  end
+end

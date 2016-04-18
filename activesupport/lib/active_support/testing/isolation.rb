@@ -41,7 +41,23 @@ module ActiveSupport
           pid = fork do
             read.close
             yield
-            write.puts [Marshal.dump(self.dup)].pack("m")
+            begin
+              if error?
+                failures.map! { |e|
+                  begin
+                    Marshal.dump e
+                    e
+                  rescue TypeError
+                    ex = Exception.new e.message
+                    ex.set_backtrace e.backtrace
+                    Minitest::UnexpectedError.new ex
+                  end
+                }
+              end
+              result = Marshal.dump(self.dup)
+            end
+
+            write.puts [result].pack("m")
             exit!
           end
 

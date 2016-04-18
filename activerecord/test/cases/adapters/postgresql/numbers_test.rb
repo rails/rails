@@ -1,6 +1,6 @@
 require "cases/helper"
 
-class PostgresqlNumberTest < ActiveRecord::TestCase
+class PostgresqlNumberTest < ActiveRecord::PostgreSQLTestCase
   class PostgresqlNumber < ActiveRecord::Base; end
 
   setup do

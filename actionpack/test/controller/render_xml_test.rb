@@ -72,7 +72,10 @@ class RenderXmlTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         resources :customers
-        get ':controller/:action'
+
+        ActiveSupport::Deprecation.silence do
+          get ':controller/:action'
+        end
       end
 
       get :render_with_object_location
@@ -92,6 +95,6 @@ class RenderXmlTest < ActionController::TestCase
 
   def test_should_use_implicit_content_type
     get :implicit_content_type, format: 'atom'
-    assert_equal Mime::ATOM, @response.content_type
+    assert_equal Mime[:atom], @response.content_type
   end
 end

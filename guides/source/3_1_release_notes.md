@@ -151,7 +151,7 @@ $ cd myapp
 
 Rails now uses a `Gemfile` in the application root to determine the gems you require for your application to start. This `Gemfile` is processed by the [Bundler](https://github.com/carlhuda/bundler) gem, which then installs all your dependencies. It can even install all the dependencies locally to your application so that it doesn't depend on the system gems.
 
-More information: - [bundler homepage](http://gembundler.com)
+More information: - [bundler homepage](http://bundler.io/)
 
 ### Living on the Edge
 
@@ -199,7 +199,7 @@ Railties
 
 * jQuery is the new default JavaScript library.
 
-* jQuery and Prototype are no longer vendored and is provided from now on by the jquery-rails and prototype-rails gems.
+* jQuery and Prototype are no longer vendored and is provided from now on by the `jquery-rails` and `prototype-rails` gems.
 
 * The application generator accepts an option `-j` which can be an arbitrary string. If passed "foo", the gem "foo-rails" is added to the `Gemfile`, and the application JavaScript manifest requires "foo" and "foo_ujs". Currently only "prototype-rails" and "jquery-rails" exist and provide those files via the asset pipeline.
 
@@ -558,4 +558,4 @@ Credits
 
 See the [full list of contributors to Rails](http://contributors.rubyonrails.org/) for the many people who spent many hours making Rails, the stable and robust framework it is. Kudos to all of them.
 
-Rails 3.1 Release Notes were compiled by [Vijay Dev](https://github.com/vijaydev.)
+Rails 3.1 Release Notes were compiled by [Vijay Dev](https://github.com/vijaydev)

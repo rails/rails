@@ -1,13 +1,12 @@
 require 'action_dispatch/middleware/cookies'
 require 'action_dispatch/middleware/flash'
-require 'active_support/core_ext/hash/indifferent_access'
 
 module ActionDispatch
   module TestProcess
     def assigns(key = nil)
-      assigns = {}.with_indifferent_access
-      @controller.view_assigns.each { |k, v| assigns.regular_writer(k, v) }
-      key.nil? ? assigns : assigns[key]
+      raise NoMethodError,
+        "assigns has been extracted to a gem. To continue using it,
+        add `gem 'rails-controller-testing'` to your Gemfile."
     end
 
     def session
@@ -19,14 +18,14 @@ module ActionDispatch
     end
 
     def cookies
-      @request.cookie_jar
+      @cookie_jar ||= Cookies::CookieJar.build(@request, @request.cookies)
     end
 
     def redirect_to_url
       @response.redirect_url
     end
 
-    # Shortcut for <tt>Rack::Test::UploadedFile.new(File.join(ActionController::TestCase.fixture_path, path), type)</tt>:
+    # Shortcut for <tt>Rack::Test::UploadedFile.new(File.join(ActionDispatch::IntegrationTest.fixture_path, path), type)</tt>:
     #
     #   post :change_avatar, avatar: fixture_file_upload('files/spongebob.png', 'image/png')
     #

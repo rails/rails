@@ -18,9 +18,17 @@ class TransformKeysTest < ActiveSupport::TestCase
     assert_same original, mapped
   end
 
-  test "transform_keys returns an Enumerator if no block is given" do
+  test "transform_keys returns a sized Enumerator if no block is given" do
     original = { a: 'a', b: 'b' }
     enumerator = original.transform_keys
+    assert_equal original.size, enumerator.size
+    assert_equal Enumerator, enumerator.class
+  end
+
+  test "transform_keys! returns a sized Enumerator if no block is given" do
+    original = { a: 'a', b: 'b' }
+    enumerator = original.transform_keys!
+    assert_equal original.size, enumerator.size
     assert_equal Enumerator, enumerator.class
   end
 
@@ -28,5 +36,27 @@ class TransformKeysTest < ActiveSupport::TestCase
     original = { a: 'a', b: 'b' }
     mapped = original.transform_keys.with_index { |k, i| [k, i].join.to_sym }
     assert_equal({ a0: 'a', b1: 'b' }, mapped)
+  end
+
+  test "transform_keys! is chainable with Enumerable methods" do
+    original = { a: 'a', b: 'b' }
+    original.transform_keys!.with_index { |k, i| [k, i].join.to_sym }
+    assert_equal({ a0: 'a', b1: 'b' }, original)
+  end
+
+  test "transform_keys returns a Hash instance when self is inherited from Hash" do
+    class HashDescendant < ::Hash
+      def initialize(elements = nil)
+        super(elements)
+        (elements || {}).each_pair{ |key, value| self[key] = value }
+      end
+    end
+
+    original = HashDescendant.new({ a: 'a', b: 'b' })
+    mapped = original.transform_keys { |k| "#{k}!".to_sym }
+
+    assert_equal({ a: 'a', b: 'b' }, original)
+    assert_equal({ a!: 'a', b!: 'b' }, mapped)
+    assert_equal(::Hash, mapped.class)
   end
 end

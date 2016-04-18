@@ -8,15 +8,49 @@ module ActiveRecord
       ActiveRecord::Tasks::MySQLDatabaseTasks.stubs(:new).returns @mysql_tasks
       ActiveRecord::Tasks::PostgreSQLDatabaseTasks.stubs(:new).returns @postgresql_tasks
       ActiveRecord::Tasks::SQLiteDatabaseTasks.stubs(:new).returns @sqlite_tasks
+
+      $stdout, @original_stdout = StringIO.new, $stdout
+      $stderr, @original_stderr = StringIO.new, $stderr
+    end
+
+    def teardown
+      $stdout, $stderr = @original_stdout, @original_stderr
     end
   end
 
   ADAPTERS_TASKS = {
-    mysql:      :mysql_tasks,
     mysql2:     :mysql_tasks,
     postgresql: :postgresql_tasks,
     sqlite3:    :sqlite_tasks
   }
+
+  class DatabaseTasksUtilsTask< ActiveRecord::TestCase
+    def test_raises_an_error_when_called_with_protected_environment
+      ActiveRecord::Migrator.stubs(:current_version).returns(1)
+
+      protected_environments = ActiveRecord::Base.protected_environments.dup
+      current_env            = ActiveRecord::Migrator.current_environment
+      assert !protected_environments.include?(current_env)
+      # Assert no error
+      ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+
+      ActiveRecord::Base.protected_environments << current_env
+      assert_raise(ActiveRecord::ProtectedEnvironmentError) do
+        ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+      end
+    ensure
+      ActiveRecord::Base.protected_environments = protected_environments
+    end
+
+    def test_raises_an_error_if_no_migrations_have_been_made
+      ActiveRecord::InternalMetadata.stubs(:table_exists?).returns(false)
+      ActiveRecord::Migrator.stubs(:current_version).returns(1)
+
+      assert_raise(ActiveRecord::NoEnvironmentInSchemaError) do
+        ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+      end
+    end
+  end
 
   class DatabaseTasksRegisterTask < ActiveRecord::TestCase
     def test_register_task
@@ -134,21 +168,25 @@ module ActiveRecord
         with('database' => 'dev-db')
       ActiveRecord::Tasks::DatabaseTasks.expects(:create).
         with('database' => 'test-db')
-      ENV.expects(:[]).with('RAILS_ENV').returns(nil)
 
       ActiveRecord::Tasks::DatabaseTasks.create_current(
         ActiveSupport::StringInquirer.new('development')
       )
     end
 
-    def test_creates_only_development_database_when_rails_env_is_development
+    def test_creates_test_and_development_databases_when_rails_env_is_development
+      old_env = ENV['RAILS_ENV']
+      ENV['RAILS_ENV'] = 'development'
       ActiveRecord::Tasks::DatabaseTasks.expects(:create).
         with('database' => 'dev-db')
-      ENV.expects(:[]).with('RAILS_ENV').returns('development')
+      ActiveRecord::Tasks::DatabaseTasks.expects(:create).
+        with('database' => 'test-db')
 
       ActiveRecord::Tasks::DatabaseTasks.create_current(
         ActiveSupport::StringInquirer.new('development')
       )
+    ensure
+      ENV['RAILS_ENV'] = old_env
     end
 
     def test_establishes_connection_for_the_given_environment
@@ -255,35 +293,52 @@ module ActiveRecord
         with('database' => 'dev-db')
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
         with('database' => 'test-db')
-      ENV.expects(:[]).with('RAILS_ENV').returns(nil)
 
       ActiveRecord::Tasks::DatabaseTasks.drop_current(
         ActiveSupport::StringInquirer.new('development')
       )
     end
 
-    def test_drops_only_development_database_when_rails_env_is_development
+    def test_drops_testand_development_databases_when_rails_env_is_development
+      old_env = ENV['RAILS_ENV']
+      ENV['RAILS_ENV'] = 'development'
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
         with('database' => 'dev-db')
-      ENV.expects(:[]).with('RAILS_ENV').returns('development')
+      ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
+        with('database' => 'test-db')
 
       ActiveRecord::Tasks::DatabaseTasks.drop_current(
         ActiveSupport::StringInquirer.new('development')
       )
+    ensure
+      ENV['RAILS_ENV'] = old_env
     end
   end
 
   class DatabaseTasksMigrateTest < ActiveRecord::TestCase
+    def setup
+      ActiveRecord::Tasks::DatabaseTasks.migrations_paths = 'custom/path'
+    end
+
+    def teardown
+      ActiveRecord::Tasks::DatabaseTasks.migrations_paths = nil
+    end
+
     def test_migrate_receives_correct_env_vars
       verbose, version = ENV['VERBOSE'], ENV['VERSION']
 
       ENV['VERBOSE'] = 'false'
       ENV['VERSION'] = '4'
 
-      ActiveRecord::Migrator.expects(:migrate).with(ActiveRecord::Migrator.migrations_paths, 4)
+      ActiveRecord::Migrator.expects(:migrate).with('custom/path', 4)
       ActiveRecord::Tasks::DatabaseTasks.migrate
     ensure
       ENV['VERBOSE'], ENV['VERSION'] = verbose, version
+    end
+
+    def test_migrate_clears_schema_cache_afterward
+      ActiveRecord::Base.expects(:clear_cache!)
+      ActiveRecord::Tasks::DatabaseTasks.migrate
     end
   end
 

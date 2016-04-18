@@ -16,6 +16,9 @@ module ActionMailer
       cattr_accessor :perform_deliveries
       self.perform_deliveries = true
 
+      cattr_accessor :deliver_later_queue_name
+      self.deliver_later_queue_name = :mailers
+
       self.delivery_methods = {}.freeze
       self.delivery_method  = :smtp
 
@@ -33,7 +36,7 @@ module ActionMailer
 
       add_delivery_method :sendmail, Mail::Sendmail,
         location:  '/usr/sbin/sendmail',
-        arguments: '-i -t'
+        arguments: '-i'
 
       add_delivery_method :test, Mail::TestMailer
     end

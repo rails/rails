@@ -1,4 +1,3 @@
-require 'fileutils'
 require 'yaml'
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/object/blank'
@@ -74,8 +73,7 @@ module Rails
   # the configuration.
   #
   # If you decide to define rake tasks, runners, or initializers in an
-  # application other than +Rails.application+, then you must run those
-  # these manually.
+  # application other than +Rails.application+, then you must run them manually.
   class Application < Engine
     autoload :Bootstrap,              'rails/application/bootstrap'
     autoload :Configuration,          'rails/application/configuration'
@@ -113,7 +111,7 @@ module Rails
 
     attr_accessor :assets, :sandbox
     alias_method :sandbox?, :sandbox
-    attr_reader :reloaders
+    attr_reader :reloaders, :reloader, :executor
 
     delegate :default_url_options, :default_url_options=, to: :routes
 
@@ -130,6 +128,10 @@ module Rails
       @railties          = nil
       @message_verifiers = {}
       @ran_load_hooks    = false
+
+      @executor          = Class.new(ActiveSupport::Executor)
+      @reloader          = Class.new(ActiveSupport::Reloader)
+      @reloader.executor = @executor
 
       # are these actually used?
       @initial_variable_values = initial_variable_values
@@ -156,26 +158,20 @@ module Rails
       self
     end
 
-    # Implements call according to the Rack API. It simply
-    # dispatches the request to the underlying middleware stack.
-    def call(env)
-      req = ActionDispatch::Request.new env
-      env["ORIGINAL_FULLPATH"] = req.fullpath
-      env["ORIGINAL_SCRIPT_NAME"] = req.script_name
-      super(env)
-    end
-
     # Reload application routes regardless if they changed or not.
     def reload_routes!
       routes_reloader.reload!
     end
 
-    # Return the application's KeyGenerator
+    # Returns the application's KeyGenerator
     def key_generator
       # number of iterations selected based on consultation with the google security
       # team. Details at https://github.com/rails/rails/pull/6952#issuecomment-7661220
       @caching_key_generator ||=
         if secrets.secret_key_base
+          unless secrets.secret_key_base.kind_of?(String)
+            raise ArgumentError, "`secret_key_base` for #{Rails.env} environment must be a type of String, change this value in `config/secrets.yml`"
+          end
           key_generator = ActiveSupport::KeyGenerator.new(secrets.secret_key_base, iterations: 1000)
           ActiveSupport::CachingKeyGenerator.new(key_generator)
         else
@@ -220,16 +216,20 @@ module Rails
     #       url: http://localhost:3001
     #       namespace: my_app_development
     #
-    #     # config/production.rb
+    #     # config/environments/production.rb
     #     Rails.application.configure do
     #       config.middleware.use ExceptionNotifier, config_for(:exception_notification)
     #     end
-    def config_for(name)
-      yaml = Pathname.new("#{paths["config"].existent.first}/#{name}.yml")
+    def config_for(name, env: Rails.env)
+      if name.is_a?(Pathname)
+        yaml = name
+      else
+        yaml = Pathname.new("#{paths["config"].existent.first}/#{name}.yml")
+      end
 
       if yaml.exist?
         require "erb"
-        (YAML.load(ERB.new(yaml.read).result) || {})[Rails.env] || {}
+        (YAML.load(ERB.new(yaml.read).result) || {})[env] || {}
       else
         raise "Could not load configuration. No such file - #{yaml}"
       end
@@ -245,7 +245,7 @@ module Rails
       @app_env_config ||= begin
         validate_secret_key_config!
 
-        super.merge({
+        super.merge(
           "action_dispatch.parameter_filter" => config.filter_parameters,
           "action_dispatch.redirect_filter" => config.filter_redirect,
           "action_dispatch.secret_token" => secrets.secret_token,
@@ -261,7 +261,7 @@ module Rails
           "action_dispatch.encrypted_signed_cookie_salt" => config.action_dispatch.encrypted_signed_cookie_salt,
           "action_dispatch.cookies_serializer" => config.action_dispatch.cookies_serializer,
           "action_dispatch.cookies_digest" => config.action_dispatch.cookies_digest
-        })
+        )
       end
     end
 
@@ -513,6 +513,19 @@ module Rails
           raise "Missing `secret_key_base` for '#{Rails.env}' environment, set this value in `config/secrets.yml`"
         end
       end
+    end
+
+    private
+
+    def build_request(env)
+      req = super
+      env["ORIGINAL_FULLPATH"] = req.fullpath
+      env["ORIGINAL_SCRIPT_NAME"] = req.script_name
+      req
+    end
+
+    def build_middleware
+      config.app_middleware + super
     end
   end
 end

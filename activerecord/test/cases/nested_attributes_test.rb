@@ -61,6 +61,13 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     assert_equal "No association found for name `honesty'. Has it been defined yet?", exception.message
   end
 
+  def test_should_raise_an_UnknownAttributeError_for_non_existing_nested_attributes
+    exception = assert_raise ActiveModel::UnknownAttributeError do
+      Pirate.new(:ship_attributes => { :sail => true })
+    end
+    assert_equal "unknown attribute 'sail' for Ship.", exception.message
+  end
+
   def test_should_disable_allow_destroy_by_default
     Pirate.accepts_nested_attributes_for :ship
 
@@ -69,7 +76,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
 
     pirate.update(ship_attributes: { '_destroy' => true, :id => ship.id })
 
-    assert_nothing_raised(ActiveRecord::RecordNotFound) { pirate.ship.reload }
+    assert_nothing_raised { pirate.ship.reload }
   end
 
   def test_a_model_should_respond_to_underscore_destroy_and_return_if_it_is_marked_for_destruction
@@ -146,6 +153,19 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     assert man.reload.interests.empty?
   end
 
+  def test_reject_if_is_not_short_circuited_if_allow_destroy_is_false
+    Pirate.accepts_nested_attributes_for :ship, reject_if: ->(a) { a[:name] == "The Golden Hind" }, allow_destroy: false
+
+    pirate = Pirate.create!(catchphrase: "Stop wastin' me time", ship_attributes: { name: "White Pearl", _destroy: "1" })
+    assert_equal "White Pearl", pirate.reload.ship.name
+
+    pirate.update!(ship_attributes: { id: pirate.ship.id, name: "The Golden Hind", _destroy: "1" })
+    assert_equal "White Pearl", pirate.reload.ship.name
+
+    pirate.update!(ship_attributes: { id: pirate.ship.id, name: "Black Pearl", _destroy: "1" })
+    assert_equal "Black Pearl", pirate.reload.ship.name
+  end
+
   def test_has_many_association_updating_a_single_record
     Man.accepts_nested_attributes_for(:interests)
     man = Man.create(name: 'John')
@@ -160,7 +180,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
 
     pirate = Pirate.new(:catchphrase => "Stop wastin' me time")
     pirate.ship_attributes = { :id => "" }
-    assert_nothing_raised(ActiveRecord::RecordNotFound) { pirate.save! }
+    assert_nothing_raised { pirate.save! }
   end
 
   def test_first_and_array_index_zero_methods_return_the_same_value_when_nested_attributes_are_set_to_update_existing_record
@@ -273,10 +293,11 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
   end
 
   def test_should_modify_an_existing_record_if_there_is_a_matching_composite_id
-    @ship.stubs(:id).returns('ABC1X')
-    @pirate.ship_attributes = { :id => @ship.id, :name => 'Davy Jones Gold Dagger' }
+    @ship.stub(:id, 'ABC1X') do
+      @pirate.ship_attributes = { :id => @ship.id, :name => 'Davy Jones Gold Dagger' }
 
-    assert_equal 'Davy Jones Gold Dagger', @pirate.ship.name
+      assert_equal 'Davy Jones Gold Dagger', @pirate.ship.name
+    end
   end
 
   def test_should_destroy_an_existing_record_if_there_is_a_matching_id_and_destroy_is_truthy
@@ -457,10 +478,11 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
   end
 
   def test_should_modify_an_existing_record_if_there_is_a_matching_composite_id
-    @pirate.stubs(:id).returns('ABC1X')
-    @ship.pirate_attributes = { :id => @pirate.id, :catchphrase => 'Arr' }
+    @pirate.stub(:id, 'ABC1X') do
+      @ship.pirate_attributes = { :id => @pirate.id, :catchphrase => 'Arr' }
 
-    assert_equal 'Arr', @ship.pirate.catchphrase
+      assert_equal 'Arr', @ship.pirate.catchphrase
+    end
   end
 
   def test_should_destroy_an_existing_record_if_there_is_a_matching_id_and_destroy_is_truthy
@@ -489,7 +511,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
   def test_should_not_destroy_an_existing_record_if_destroy_is_not_truthy
     [nil, '0', 0, 'false', false].each do |not_truth|
       @ship.update(pirate_attributes: { id: @ship.pirate.id, _destroy: not_truth })
-      assert_nothing_raised(ActiveRecord::RecordNotFound) { @ship.pirate.reload }
+      assert_nothing_raised { @ship.pirate.reload }
     end
   end
 
@@ -497,7 +519,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
     Ship.accepts_nested_attributes_for :pirate, :allow_destroy => false, :reject_if => proc(&:empty?)
 
     @ship.update(pirate_attributes: { id: @ship.pirate.id, _destroy: '1' })
-    assert_nothing_raised(ActiveRecord::RecordNotFound) { @ship.pirate.reload }
+    assert_nothing_raised { @ship.pirate.reload }
   ensure
     Ship.accepts_nested_attributes_for :pirate, :allow_destroy => true, :reject_if => proc(&:empty?)
   end
@@ -514,7 +536,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
     pirate = @ship.pirate
 
     @ship.attributes = { :pirate_attributes => { :id => pirate.id, '_destroy' => true } }
-    assert_nothing_raised(ActiveRecord::RecordNotFound) { Pirate.find(pirate.id) }
+    assert_nothing_raised { Pirate.find(pirate.id) }
     @ship.save
     assert_raise(ActiveRecord::RecordNotFound) { Pirate.find(pirate.id) }
   end
@@ -565,6 +587,13 @@ end
 module NestedAttributesOnACollectionAssociationTests
   def test_should_define_an_attribute_writer_method_for_the_association
     assert_respond_to @pirate, association_setter
+  end
+
+  def test_should_raise_an_UnknownAttributeError_for_non_existing_nested_attributes_for_has_many
+    exception = assert_raise ActiveModel::UnknownAttributeError do
+      @pirate.parrots_attributes = [{ peg_leg: true }]
+    end
+    assert_equal "unknown attribute 'peg_leg' for Parrot.", exception.message
   end
 
   def test_should_save_only_one_association_on_create
@@ -638,17 +667,19 @@ module NestedAttributesOnACollectionAssociationTests
   end
 
   def test_should_take_a_hash_with_composite_id_keys_and_assign_the_attributes_to_the_associated_models
-    @child_1.stubs(:id).returns('ABC1X')
-    @child_2.stubs(:id).returns('ABC2X')
+    @child_1.stub(:id, 'ABC1X') do
+      @child_2.stub(:id, 'ABC2X') do
 
-    @pirate.attributes = {
-      association_getter => [
-        { :id => @child_1.id, :name => 'Grace OMalley' },
-        { :id => @child_2.id, :name => 'Privateers Greed' }
-      ]
-    }
+        @pirate.attributes = {
+          association_getter => [
+            { :id => @child_1.id, :name => 'Grace OMalley' },
+            { :id => @child_2.id, :name => 'Privateers Greed' }
+          ]
+        }
 
-    assert_equal ['Grace OMalley', 'Privateers Greed'], [@child_1.name, @child_2.name]
+        assert_equal ['Grace OMalley', 'Privateers Greed'], [@child_1.name, @child_2.name]
+      end
+    end
   end
 
   def test_should_raise_RecordNotFound_if_an_id_is_given_but_doesnt_return_a_record
@@ -656,6 +687,16 @@ module NestedAttributesOnACollectionAssociationTests
       @pirate.attributes = { association_getter => [{ :id => 1234567890 }] }
     end
     assert_equal "Couldn't find #{@child_1.class.name} with ID=1234567890 for Pirate with ID=#{@pirate.id}", exception.message
+  end
+
+  def test_should_raise_RecordNotFound_if_an_id_belonging_to_a_different_record_is_given
+    other_pirate = Pirate.create! catchphrase: 'Ahoy!'
+    other_child = other_pirate.send(@association_name).create! name: 'Buccaneers Servant'
+
+    exception = assert_raise ActiveRecord::RecordNotFound do
+      @pirate.attributes = { association_getter => [{ id: other_child.id }] }
+    end
+    assert_equal "Couldn't find #{@child_1.class.name} with ID=#{other_child.id} for Pirate with ID=#{@pirate.id}", exception.message
   end
 
   def test_should_automatically_build_new_associated_models_for_each_entry_in_a_hash_where_the_id_is_missing
@@ -672,7 +713,7 @@ module NestedAttributesOnACollectionAssociationTests
   end
 
   def test_should_not_assign_destroy_key_to_a_record
-    assert_nothing_raised ActiveRecord::UnknownAttributeError do
+    assert_nothing_raised do
       @pirate.send(association_setter, { 'foo' => { '_destroy' => '0' }})
     end
   end
@@ -707,8 +748,8 @@ module NestedAttributesOnACollectionAssociationTests
   end
 
   def test_should_raise_an_argument_error_if_something_else_than_a_hash_is_passed
-    assert_nothing_raised(ArgumentError) { @pirate.send(association_setter, {}) }
-    assert_nothing_raised(ArgumentError) { @pirate.send(association_setter, Hash.new) }
+    assert_nothing_raised { @pirate.send(association_setter, {}) }
+    assert_nothing_raised { @pirate.send(association_setter, Hash.new) }
 
     exception = assert_raise ArgumentError do
       @pirate.send(association_setter, "foo")
@@ -783,7 +824,7 @@ module NestedAttributesOnACollectionAssociationTests
 
   def test_can_use_symbols_as_object_identifier
     @pirate.attributes = { :parrots_attributes => { :foo => { :name => 'Lovely Day' }, :bar => { :name => 'Blown Away' } } }
-    assert_nothing_raised(NoMethodError) { @pirate.save! }
+    assert_nothing_raised { @pirate.save! }
   end
 
   def test_numeric_column_changes_from_zero_to_no_empty_string

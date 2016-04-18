@@ -12,7 +12,7 @@ module ActiveRecord
       end
 
       def sql_type
-        super.gsub(/\[\]$/, "")
+        super.gsub(/\[\]$/, "".freeze)
       end
 
       def ==(other)

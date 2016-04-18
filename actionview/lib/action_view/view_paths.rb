@@ -1,5 +1,3 @@
-require 'action_view/base'
-
 module ActionView
   module ViewPaths
     extend ActiveSupport::Concern
@@ -10,7 +8,7 @@ module ActionView
       self._view_paths.freeze
     end
 
-    delegate :template_exists?, :view_paths, :formats, :formats=,
+    delegate :template_exists?, :any_templates?, :view_paths, :formats, :formats=,
              :locale, :locale=, :to => :lookup_context
 
     module ClassMethods
@@ -36,9 +34,9 @@ module ActionView
       self.class._prefixes
     end
 
-    # LookupContext is the object responsible to hold all information required to lookup
-    # templates, i.e. view paths and details. Check ActionView::LookupContext for more
-    # information.
+    # <tt>LookupContext</tt> is the object responsible for holding all
+    # information required for looking up templates, i.e. view paths and
+    # details. Check <tt>ActionView::LookupContext</tt> for more information.
     def lookup_context
       @_lookup_context ||=
         ActionView::LookupContext.new(self.class._view_paths, details_for_lookup, _prefixes)

@@ -45,6 +45,15 @@ module ActiveRecord
               delimiter == other.delimiter
           end
 
+          def type_cast_for_schema(value)
+            return super unless value.is_a?(::Array)
+            "[" + value.map { |v| subtype.type_cast_for_schema(v) }.join(", ") + "]"
+          end
+
+          def map(value, &block)
+            value.map(&block)
+          end
+
           private
 
           def type_cast_array(value, method)

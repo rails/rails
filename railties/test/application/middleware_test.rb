@@ -26,7 +26,7 @@ module ApplicationTests
       assert_equal [
         "Rack::Sendfile",
         "ActionDispatch::Static",
-        "Rack::Lock",
+        "ActionDispatch::Executor",
         "ActiveSupport::Cache::Strategy::LocalCache",
         "Rack::Runtime",
         "Rack::MethodOverride",
@@ -38,12 +38,33 @@ module ApplicationTests
         "ActionDispatch::Reloader",
         "ActionDispatch::Callbacks",
         "ActiveRecord::Migration::CheckPending",
-        "ActiveRecord::ConnectionAdapters::ConnectionManagement",
-        "ActiveRecord::QueryCache",
         "ActionDispatch::Cookies",
         "ActionDispatch::Session::CookieStore",
         "ActionDispatch::Flash",
-        "ActionDispatch::ParamsParser",
+        "Rack::Head",
+        "Rack::ConditionalGet",
+        "Rack::ETag"
+      ], middleware
+    end
+
+    test "api middleware stack" do
+      add_to_config "config.api_only = true"
+
+      boot!
+
+      assert_equal [
+        "Rack::Sendfile",
+        "ActionDispatch::Static",
+        "ActionDispatch::Executor",
+        "ActiveSupport::Cache::Strategy::LocalCache",
+        "Rack::Runtime",
+        "ActionDispatch::RequestId",
+        "Rails::Rack::Logger", # must come after Rack::MethodOverride to properly log overridden methods
+        "ActionDispatch::ShowExceptions",
+        "ActionDispatch::DebugExceptions",
+        "ActionDispatch::RemoteIp",
+        "ActionDispatch::Reloader",
+        "ActionDispatch::Callbacks",
         "Rack::Head",
         "Rack::ConditionalGet",
         "Rack::ETag"
@@ -89,32 +110,35 @@ module ApplicationTests
     test "removing Active Record omits its middleware" do
       use_frameworks []
       boot!
-      assert !middleware.include?("ActiveRecord::ConnectionAdapters::ConnectionManagement")
-      assert !middleware.include?("ActiveRecord::QueryCache")
       assert !middleware.include?("ActiveRecord::Migration::CheckPending")
     end
 
-    test "includes lock if cache_classes is set but eager_load is not" do
-      add_to_config "config.cache_classes = true"
+    test "includes executor" do
       boot!
-      assert middleware.include?("Rack::Lock")
+      assert_includes middleware, "ActionDispatch::Executor"
     end
 
     test "does not include lock if cache_classes is set and so is eager_load" do
       add_to_config "config.cache_classes = true"
       add_to_config "config.eager_load = true"
       boot!
-      assert !middleware.include?("Rack::Lock")
+      assert_not_includes middleware, "Rack::Lock"
     end
 
-    test "does not include lock if allow_concurrency is set" do
-      add_to_config "config.allow_concurrency = true"
+    test "does not include lock if allow_concurrency is set to :unsafe" do
+      add_to_config "config.allow_concurrency = :unsafe"
       boot!
-      assert !middleware.include?("Rack::Lock")
+      assert_not_includes middleware, "Rack::Lock"
     end
 
-    test "removes static asset server if serve_static_files is disabled" do
-      add_to_config "config.serve_static_files = false"
+    test "includes lock if allow_concurrency is disabled" do
+      add_to_config "config.allow_concurrency = false"
+      boot!
+      assert_includes middleware, "Rack::Lock"
+    end
+
+    test "removes static asset server if public_file_server.enabled is disabled" do
+      add_to_config "config.public_file_server.enabled = false"
       boot!
       assert !middleware.include?("ActionDispatch::Static")
     end

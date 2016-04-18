@@ -2,7 +2,7 @@ require 'cases/helper'
 require 'models/developer'
 require 'models/topic'
 
-class PostgresqlTimestampTest < ActiveRecord::TestCase
+class PostgresqlTimestampTest < ActiveRecord::PostgreSQLTestCase
   class PostgresqlTimestampWithZone < ActiveRecord::Base; end
 
   self.use_transactional_tests = false
@@ -43,7 +43,7 @@ class PostgresqlTimestampTest < ActiveRecord::TestCase
   end
 end
 
-class TimestampTest < ActiveRecord::TestCase
+class PostgresqlTimestampFixtureTest < ActiveRecord::PostgreSQLTestCase
   fixtures :topics
 
   def test_group_by_date

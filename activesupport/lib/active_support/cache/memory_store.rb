@@ -75,30 +75,12 @@ module ActiveSupport
 
       # Increment an integer value in the cache.
       def increment(name, amount = 1, options = nil)
-        synchronize do
-          options = merged_options(options)
-          if num = read(name, options)
-            num = num.to_i + amount
-            write(name, num, options)
-            num
-          else
-            nil
-          end
-        end
+        modify_value(name, amount, options)
       end
 
       # Decrement an integer value in the cache.
       def decrement(name, amount = 1, options = nil)
-        synchronize do
-          options = merged_options(options)
-          if num = read(name, options)
-            num = num.to_i - amount
-            write(name, num, options)
-            num
-          else
-            nil
-          end
-        end
+        modify_value(name, -amount, options)
       end
 
       def delete_matched(matcher, options = nil)
@@ -126,7 +108,7 @@ module ActiveSupport
 
         PER_ENTRY_OVERHEAD = 240
 
-        def cached_size(key, entry)
+        def cached_size(key, entry) # :nodoc:
           key.to_s.bytesize + entry.size + PER_ENTRY_OVERHEAD
         end
 
@@ -165,6 +147,19 @@ module ActiveSupport
             entry = @data.delete(key)
             @cache_size -= cached_size(key, entry) if entry
             !!entry
+          end
+        end
+
+      private
+
+        def modify_value(name, amount, options)
+          synchronize do
+            options = merged_options(options)
+            if num = read(name, options)
+              num = num.to_i + amount
+              write(name, num, options)
+              num
+            end
           end
         end
     end

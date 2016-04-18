@@ -1,5 +1,3 @@
-require 'open-uri'
-
 module Rails
   module Generators
     module Actions
@@ -20,7 +18,7 @@ module Rails
 
         # Set the message to be shown in logs. Uses the git repo if one is given,
         # otherwise use name (version).
-        parts, message = [ quote(name) ], name
+        parts, message = [ quote(name) ], name.dup
         if version ||= options.delete(:version)
           parts   << quote(version)
           message << " (#{version})"
@@ -63,12 +61,26 @@ module Rails
 
       # Add the given source to +Gemfile+
       #
+      # If block is given, gem entries in block are wrapped into the source group.
+      #
       #   add_source "http://gems.github.com/"
-      def add_source(source, options={})
+      #
+      #   add_source "http://gems.github.com/" do
+      #     gem "rspec-rails"
+      #   end
+      def add_source(source, options={}, &block)
         log :source, source
 
         in_root do
-          prepend_file "Gemfile", "source #{quote(source)}\n", verbose: false
+          if block
+            append_file "Gemfile", "\nsource #{quote(source)} do", force: true
+            @in_group = true
+            instance_eval(&block)
+            @in_group = false
+            append_file "Gemfile", "\nend\n", force: true
+          else
+            prepend_file "Gemfile", "source #{quote(source)}\n", verbose: false
+          end
         end
       end
 
@@ -78,11 +90,11 @@ module Rails
       # file in <tt>config/environments</tt>.
       #
       #   environment do
-      #     "config.autoload_paths += %W(#{config.root}/extras)"
+      #     "config.action_controller.asset_host = 'cdn.provider.com'"
       #   end
       #
       #   environment(nil, env: "development") do
-      #     "config.autoload_paths += %W(#{config.root}/extras)"
+      #     "config.action_controller.asset_host = 'localhost:3000'"
       #   end
       def environment(data=nil, options={})
         sentinel = /class [a-z_:]+ < Rails::Application/i
@@ -193,16 +205,22 @@ module Rails
         in_root { run_ruby_script("bin/rails generate #{what} #{argument}", verbose: false) }
       end
 
-      # Runs the supplied rake task
+      # Runs the supplied rake task (invoked with 'rake ...')
       #
       #   rake("db:migrate")
       #   rake("db:migrate", env: "production")
       #   rake("gems:install", sudo: true)
       def rake(command, options={})
-        log :rake, command
-        env  = options[:env] || ENV["RAILS_ENV"] || 'development'
-        sudo = options[:sudo] && RbConfig::CONFIG['host_os'] !~ /mswin|mingw/ ? 'sudo ' : ''
-        in_root { run("#{sudo}#{extify(:rake)} #{command} RAILS_ENV=#{env}", verbose: false) }
+        execute_command :rake, command, options
+      end
+
+      # Runs the supplied rake task (invoked with 'rails ...')
+      #
+      #   rails("db:migrate")
+      #   rails("db:migrate", env: "production")
+      #   rails("gems:install", sudo: true)
+      def rails_command(command, options={})
+        execute_command :rails, command, options
       end
 
       # Just run the capify command in root
@@ -221,7 +239,7 @@ module Rails
         sentinel = /\.routes\.draw do\s*\n/m
 
         in_root do
-          inject_into_file 'config/routes.rb', "  #{routing_code}\n", { after: sentinel, verbose: false, force: true }
+          inject_into_file 'config/routes.rb', "  #{routing_code}\n", { after: sentinel, verbose: false, force: false }
         end
       end
 
@@ -254,6 +272,16 @@ module Rails
             args << (self.behavior == :invoke ? :green : :red)
             say_status(*args)
           end
+        end
+
+
+        # Runs the supplied command using either "rake ..." or "rails ..."
+        # based on the executor parameter provided.
+        def execute_command(executor, command, options={})
+          log executor, command
+          env  = options[:env] || ENV["RAILS_ENV"] || 'development'
+          sudo = options[:sudo] && RbConfig::CONFIG['host_os'] !~ /mswin|mingw/ ? 'sudo ' : ''
+          in_root { run("#{sudo}#{extify(executor)} #{command} RAILS_ENV=#{env}", verbose: false) }
         end
 
         # Add an extension to the given name based on the platform.

@@ -23,6 +23,7 @@ require 'models/chef'
 require 'models/department'
 require 'models/cake_designer'
 require 'models/drink_designer'
+require 'models/mocktail_designer'
 require 'models/recipe'
 
 class ReflectionTest < ActiveRecord::TestCase
@@ -278,6 +279,15 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal 2, @hotel.chefs.size
   end
 
+  def test_scope_chain_does_not_interfere_with_hmt_with_polymorphic_case_and_sti
+    @hotel = Hotel.create!
+    @hotel.mocktail_designers << MocktailDesigner.create!
+
+    assert_equal 1, @hotel.mocktail_designers.size
+    assert_equal 1, @hotel.mocktail_designers.count
+    assert_equal 1, @hotel.chef_lists.size
+  end
+
   def test_scope_chain_of_polymorphic_association_does_not_leak_into_other_hmt_associations
     hotel = Hotel.create!
     department = hotel.departments.create!
@@ -393,12 +403,14 @@ class ReflectionTest < ActiveRecord::TestCase
     product = Struct.new(:table_name, :pluralize_table_names).new('products', true)
 
     reflection = ActiveRecord::Reflection.create(:has_many, :categories, nil, {}, product)
-    reflection.stubs(:klass).returns(category)
-    assert_equal 'categories_products', reflection.join_table
+    reflection.stub(:klass, category) do
+      assert_equal 'categories_products', reflection.join_table
+    end
 
     reflection = ActiveRecord::Reflection.create(:has_many, :products, nil, {}, category)
-    reflection.stubs(:klass).returns(product)
-    assert_equal 'categories_products', reflection.join_table
+    reflection.stub(:klass, product) do
+      assert_equal 'categories_products', reflection.join_table
+    end
   end
 
   def test_join_table_with_common_prefix
@@ -406,12 +418,14 @@ class ReflectionTest < ActiveRecord::TestCase
     product = Struct.new(:table_name, :pluralize_table_names).new('catalog_products', true)
 
     reflection = ActiveRecord::Reflection.create(:has_many, :categories, nil, {}, product)
-    reflection.stubs(:klass).returns(category)
-    assert_equal 'catalog_categories_products', reflection.join_table
+    reflection.stub(:klass, category) do
+      assert_equal 'catalog_categories_products', reflection.join_table
+    end
 
     reflection = ActiveRecord::Reflection.create(:has_many, :products, nil, {}, category)
-    reflection.stubs(:klass).returns(product)
-    assert_equal 'catalog_categories_products', reflection.join_table
+    reflection.stub(:klass, product) do
+      assert_equal 'catalog_categories_products', reflection.join_table
+    end
   end
 
   def test_join_table_with_different_prefix
@@ -419,12 +433,14 @@ class ReflectionTest < ActiveRecord::TestCase
     page = Struct.new(:table_name, :pluralize_table_names).new('content_pages', true)
 
     reflection = ActiveRecord::Reflection.create(:has_many, :categories, nil, {}, page)
-    reflection.stubs(:klass).returns(category)
-    assert_equal 'catalog_categories_content_pages', reflection.join_table
+    reflection.stub(:klass, category) do
+      assert_equal 'catalog_categories_content_pages', reflection.join_table
+    end
 
     reflection = ActiveRecord::Reflection.create(:has_many, :pages, nil, {}, category)
-    reflection.stubs(:klass).returns(page)
-    assert_equal 'catalog_categories_content_pages', reflection.join_table
+    reflection.stub(:klass, page) do
+      assert_equal 'catalog_categories_content_pages', reflection.join_table
+    end
   end
 
   def test_join_table_can_be_overridden
@@ -432,12 +448,14 @@ class ReflectionTest < ActiveRecord::TestCase
     product = Struct.new(:table_name, :pluralize_table_names).new('products', true)
 
     reflection = ActiveRecord::Reflection.create(:has_many, :categories, nil, { :join_table => 'product_categories' }, product)
-    reflection.stubs(:klass).returns(category)
-    assert_equal 'product_categories', reflection.join_table
+    reflection.stub(:klass, category) do
+      assert_equal 'product_categories', reflection.join_table
+    end
 
     reflection = ActiveRecord::Reflection.create(:has_many, :products, nil, { :join_table => 'product_categories' }, category)
-    reflection.stubs(:klass).returns(product)
-    assert_equal 'product_categories', reflection.join_table
+    reflection.stub(:klass, product) do
+      assert_equal 'product_categories', reflection.join_table
+    end
   end
 
   def test_includes_accepts_symbols

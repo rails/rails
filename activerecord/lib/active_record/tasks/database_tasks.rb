@@ -5,7 +5,7 @@ module ActiveRecord
     class DatabaseAlreadyExists < StandardError; end # :nodoc:
     class DatabaseNotSupported < StandardError; end # :nodoc:
 
-    # <tt>ActiveRecord::Tasks::DatabaseTasks</tt> is a utility class, which encapsulates
+    # ActiveRecord::Tasks::DatabaseTasks is a utility class, which encapsulates
     # logic behind common tasks used to manage database and migrations.
     #
     # The tasks defined here are used with Rake tasks provided by Active Record.
@@ -18,15 +18,15 @@ module ActiveRecord
     #
     # The possible config values are:
     #
-    #   * +env+: current environment (like Rails.env).
-    #   * +database_configuration+: configuration of your databases (as in +config/database.yml+).
-    #   * +db_dir+: your +db+ directory.
-    #   * +fixtures_path+: a path to fixtures directory.
-    #   * +migrations_paths+: a list of paths to directories with migrations.
-    #   * +seed_loader+: an object which will load seeds, it needs to respond to the +load_seed+ method.
-    #   * +root+: a path to the root of the application.
+    # * +env+: current environment (like Rails.env).
+    # * +database_configuration+: configuration of your databases (as in +config/database.yml+).
+    # * +db_dir+: your +db+ directory.
+    # * +fixtures_path+: a path to fixtures directory.
+    # * +migrations_paths+: a list of paths to directories with migrations.
+    # * +seed_loader+: an object which will load seeds, it needs to respond to the +load_seed+ method.
+    # * +root+: a path to the root of the application.
     #
-    # Example usage of +DatabaseTasks+ outside Rails could look as such:
+    # Example usage of DatabaseTasks outside Rails could look as such:
     #
     #   include ActiveRecord::Tasks
     #   DatabaseTasks.database_configuration = YAML.load_file('my_database_config.yml')
@@ -41,6 +41,22 @@ module ActiveRecord
       attr_accessor :database_configuration
 
       LOCAL_HOSTS    = ['127.0.0.1', 'localhost']
+
+      def check_protected_environments!
+        unless ENV['DISABLE_DATABASE_ENVIRONMENT_CHECK']
+          current = ActiveRecord::Migrator.current_environment
+          stored  = ActiveRecord::Migrator.last_stored_environment
+
+          if ActiveRecord::Migrator.protected_environment?
+            raise ActiveRecord::ProtectedEnvironmentError.new(stored)
+          end
+
+          if stored && stored != current
+            raise ActiveRecord::EnvironmentMismatchError.new(current: current, stored: stored)
+          end
+        end
+      rescue ActiveRecord::NoDatabaseError
+      end
 
       def register_task(pattern, task)
         @tasks ||= {}
@@ -91,15 +107,21 @@ module ActiveRecord
       def create(*arguments)
         configuration = arguments.first
         class_for_adapter(configuration['adapter']).new(*arguments).create
+        $stdout.puts "Created database '#{configuration['database']}'"
       rescue DatabaseAlreadyExists
-        $stderr.puts "#{configuration['database']} already exists"
+        $stderr.puts "Database '#{configuration['database']}' already exists"
       rescue Exception => error
-        $stderr.puts error, *(error.backtrace)
+        $stderr.puts error
         $stderr.puts "Couldn't create database for #{configuration.inspect}"
+        raise
       end
 
       def create_all
+        old_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(ActiveRecord::Base)
         each_local_configuration { |configuration| create configuration }
+        if old_pool
+          ActiveRecord::Base.connection_handler.establish_connection(ActiveRecord::Base, old_pool.spec)
+        end
       end
 
       def create_current(environment = env)
@@ -112,11 +134,13 @@ module ActiveRecord
       def drop(*arguments)
         configuration = arguments.first
         class_for_adapter(configuration['adapter']).new(*arguments).drop
+        $stdout.puts "Dropped database '#{configuration['database']}'"
       rescue ActiveRecord::NoDatabaseError
         $stderr.puts "Database '#{configuration['database']}' does not exist"
       rescue Exception => error
-        $stderr.puts error, *(error.backtrace)
-        $stderr.puts "Couldn't drop #{configuration['database']}"
+        $stderr.puts error
+        $stderr.puts "Couldn't drop database '#{configuration['database']}'"
+        raise
       end
 
       def drop_all
@@ -134,9 +158,10 @@ module ActiveRecord
         version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
         scope   = ENV['SCOPE']
         verbose_was, Migration.verbose = Migration.verbose, verbose
-        Migrator.migrate(Migrator.migrations_paths, version) do |migration|
+        Migrator.migrate(migrations_paths, version) do |migration|
           scope.blank? || scope == migration.scope
         end
+        ActiveRecord::Base.clear_cache!
       ensure
         Migration.verbose = verbose_was
       end
@@ -202,6 +227,8 @@ module ActiveRecord
         else
           raise ArgumentError, "unknown format #{format.inspect}"
         end
+        ActiveRecord::InternalMetadata.create_table
+        ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Migrator.current_environment
       end
 
       def load_schema_for(*args)
@@ -221,12 +248,6 @@ module ActiveRecord
         end
       end
 
-      def load_schema_current_if_exists(format = ActiveRecord::Base.schema_format, file = nil, environment = env)
-        if File.exist?(file || schema_file(format))
-          load_schema_current(format, file, environment)
-        end
-      end
-
       def load_schema_current(format = ActiveRecord::Base.schema_format, file = nil, environment = env)
         each_current_configuration(environment) { |configuration|
           load_schema configuration, format, file
@@ -236,7 +257,7 @@ module ActiveRecord
 
       def check_schema_file(filename)
         unless File.exist?(filename)
-          message = %{#{filename} doesn't exist yet. Run `rake db:migrate` to create it, then try again.}
+          message = %{#{filename} doesn't exist yet. Run `rails db:migrate` to create it, then try again.}
           message << %{ If you do not intend to use a database, you should instead alter #{Rails.root}/config/application.rb to limit the frameworks that will be loaded.} if defined?(::Rails)
           Kernel.abort message
         end
@@ -264,8 +285,7 @@ module ActiveRecord
 
       def each_current_configuration(environment)
         environments = [environment]
-        # add test environment only if no RAILS_ENV was specified.
-        environments << 'test' if environment == 'development' && ENV['RAILS_ENV'].nil?
+        environments << 'test' if environment == 'development'
 
         configurations = ActiveRecord::Base.configurations.values_at(*environments)
         configurations.compact.each do |configuration|

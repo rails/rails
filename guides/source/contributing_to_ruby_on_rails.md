@@ -15,6 +15,9 @@ After reading this guide, you will know:
 
 Ruby on Rails is not "someone else's framework." Over the years, hundreds of people have contributed to Ruby on Rails ranging from a single character to massive architectural changes or significant documentation - all with the goal of making Ruby on Rails better for everyone. Even if you don't feel up to writing code or documentation yet, there are a variety of other ways that you can contribute, from reporting issues to testing patches.
 
+As mentioned in [Rails
+README](https://github.com/rails/rails/blob/master/README.md), everyone interacting in Rails and its sub-projects' codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](http://rubyonrails.org/conduct/).
+
 --------------------------------------------------------------------------------
 
 Reporting an Issue
@@ -28,7 +31,7 @@ NOTE: Bugs in the most recent released version of Ruby on Rails are likely to ge
 
 If you've found a problem in Ruby on Rails which is not a security risk, do a search on GitHub under [Issues](https://github.com/rails/rails/issues) in case it has already been reported. If you are unable to find any open GitHub issues addressing the problem you found, your next step will be to [open a new one](https://github.com/rails/rails/issues/new). (See the next section for reporting security issues.)
 
-Your issue report should contain a title and a clear description of the issue at the bare minimum. You should include as much relevant information as possible and should at least post a code sample that demonstrates the issue. It would be even better if you could include a unit test that shows how the expected behavior is not occurring. Your goal should be to make it easy for yourself - and others - to replicate the bug and figure out a fix.
+Your issue report should contain a title and a clear description of the issue at the bare minimum. You should include as much relevant information as possible and should at least post a code sample that demonstrates the issue. It would be even better if you could include a unit test that shows how the expected behavior is not occurring. Your goal should be to make it easy for yourself - and others - to reproduce the bug and figure out a fix.
 
 Then, don't get your hopes up! Unless you have a "Code Red, Mission Critical, the World is Coming to an End" kind of bug, you're creating this issue report in the hope that others with the same problem will be able to collaborate with you on solving it. Do not expect that the issue report will automatically see any activity or that others will jump to fix it. Creating an issue like this is mostly to help yourself start on the path of fixing the problem and for others to confirm it with an "I'm having this problem too" comment.
 
@@ -61,12 +64,12 @@ can expect it to be marked "invalid" as soon as it's reviewed.
 
 Sometimes, the line between 'bug' and 'feature' is a hard one to draw.
 Generally, a feature is anything that adds new behavior, while a bug is
-anything that fixes already existing behavior that is misbehaving. Sometimes,
+anything that causes incorrect behavior. Sometimes,
 the core team will have to make a judgement call. That said, the distinction
 generally just affects which release your patch will get in to; we love feature
 submissions! They just won't get backported to maintenance branches.
 
-If you'd like feedback on an idea for a feature before doing the work for make
+If you'd like feedback on an idea for a feature before doing the work to make
 a patch, please send an email to the [rails-core mailing
 list](https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core). You
 might get no response, which means that everyone is indifferent. You might find
@@ -79,17 +82,17 @@ discussions new features require.
 Helping to Resolve Existing Issues
 ----------------------------------
 
-As a next step beyond reporting issues, you can help the core team resolve existing issues. If you check the [Everyone's Issues](https://github.com/rails/rails/issues) list in GitHub Issues, you'll find lots of issues already requiring attention. What can you do for these? Quite a bit, actually:
+As a next step beyond reporting issues, you can help the core team resolve existing issues. If you check the [issues list](https://github.com/rails/rails/issues) in GitHub Issues, you'll find lots of issues already requiring attention. What can you do for these? Quite a bit, actually:
 
 ### Verifying Bug Reports
 
 For starters, it helps just to verify bug reports. Can you reproduce the reported issue on your own computer? If so, you can add a comment to the issue saying that you're seeing the same thing.
 
-If something is very vague, can you help squash it down into something specific? Maybe you can provide additional information to help reproduce a bug, or help by eliminating needless steps that aren't required to demonstrate the problem.
+If an issue is very vague, can you help narrow it down to something more specific? Maybe you can provide additional information to help reproduce a bug, or help by eliminating needless steps that aren't required to demonstrate the problem.
 
 If you find a bug report without a test, it's very useful to contribute a failing test. This is also a great way to get started exploring the source code: looking at the existing test files will teach you how to write more tests. New tests are best contributed in the form of a patch, as explained later on in the "Contributing to the Rails Code" section.
 
-Anything you can do to make bug reports more succinct or easier to reproduce is a help to folks trying to write code to fix those bugs - whether you end up writing the code yourself or not.
+Anything you can do to make bug reports more succinct or easier to reproduce helps folks trying to write code to fix those bugs - whether you end up writing the code yourself or not.
 
 ### Testing Patches
 
@@ -102,7 +105,7 @@ $ git checkout -b testing_branch
 Then you can use their remote branch to update your codebase. For example, let's say the GitHub user JohnSmith has forked and pushed to a topic branch "orange" located at https://github.com/JohnSmith/rails.
 
 ```bash
-$ git remote add JohnSmith git://github.com/JohnSmith/rails.git
+$ git remote add JohnSmith https://github.com/JohnSmith/rails.git
 $ git pull JohnSmith orange
 ```
 
@@ -117,7 +120,7 @@ Once you're happy that the pull request contains a good change, comment on the G
 
 >I like the way you've restructured that code in generate_finder_sql - much nicer. The tests look good too.
 
-If your comment simply says "+1", then odds are that other reviewers aren't going to take it too seriously. Show that you took the time to review the pull request.
+If your comment simply reads "+1", then odds are that other reviewers aren't going to take it too seriously. Show that you took the time to review the pull request.
 
 Contributing to the Rails Documentation
 ---------------------------------------
@@ -125,11 +128,11 @@ Contributing to the Rails Documentation
 Ruby on Rails has two main sets of documentation: the guides, which help you
 learn about Ruby on Rails, and the API, which serves as a reference.
 
-You can help improve the Rails guides by making them more coherent, consistent or readable, adding missing information, correcting factual errors, fixing typos, or bringing it up to date with the latest edge Rails. To get involved in the translation of Rails guides, please see [Translating Rails Guides](https://wiki.github.com/rails/docrails/translating-rails-guides).
+You can help improve the Rails guides by making them more coherent, consistent or readable, adding missing information, correcting factual errors, fixing typos, or bringing them up to date with the latest edge Rails.
 
 You can either open a pull request to [Rails](http://github.com/rails/rails) or
 ask the [Rails core team](http://rubyonrails.org/core) for commit access on
-[docrails](http://github.com/rails/docrails) if you contribute regularly.
+docrails if you contribute regularly.
 Please do not open pull requests in docrails, if you'd like to get feedback on your
 change, ask for it in [Rails](http://github.com/rails/rails) instead.
 
@@ -144,6 +147,42 @@ NOTE: As explained earlier, ordinary code patches should have proper documentati
 NOTE: To help our CI servers you should add [ci skip] to your documentation commit message to skip build on that commit. Please remember to use it for commits containing only documentation changes.
 
 WARNING: Docrails has a very strict policy: no code can be touched whatsoever, no matter how trivial or small the change. Only RDoc and guides can be edited via docrails. Also, CHANGELOGs should never be edited in docrails.
+
+Translating Rails Guides
+------------------------
+
+We are happy to have people volunteer to translate the Rails guides into their own language.
+If you want to translate the Rails guides in your own language, follows these steps:
+
+* Fork the project (rails/rails).
+* Add a source folder for your own language, for example: *guides/source/it-IT* for Italian.
+* Copy the contents of *guides/source* into your own language directory and translate them.
+* Do NOT translate the HTML files, as they are automatically generated.
+
+To generate the guides in HTML format cd into the *guides* directory then run (eg. for it-IT):
+
+```bash
+$ bundle install
+$ bundle exec rake guides:generate:html GUIDES_LANGUAGE=it-IT
+```
+
+This will generate the guides in an *output* directory.
+
+NOTE: The instructions are for Rails > 4. The Redcarpet Gem doesn't work with JRuby.
+
+Translation efforts we know about (various versions):
+
+* **Italian**: [https://github.com/rixlabs/docrails](https://github.com/rixlabs/docrails)
+* **Spanish**: [http://wiki.github.com/gramos/docrails](http://wiki.github.com/gramos/docrails)
+* **Polish**: [http://github.com/apohllo/docrails/tree/master](http://github.com/apohllo/docrails/tree/master)
+* **French** : [http://github.com/railsfrance/docrails](http://github.com/railsfrance/docrails)
+* **Czech** : [https://github.com/rubyonrails-cz/docrails/tree/czech](https://github.com/rubyonrails-cz/docrails/tree/czech)
+* **Turkish** : [https://github.com/ujk/docrails/tree/master](https://github.com/ujk/docrails/tree/master)
+* **Korean** : [https://github.com/rorlakr/rails-guides](https://github.com/rorlakr/rails-guides)
+* **Simplified Chinese** : [https://github.com/ruby-china/guides](https://github.com/ruby-china/guides)
+* **Traditional Chinese** : [https://github.com/docrails-tw/guides](https://github.com/docrails-tw/guides)
+* **Russian** : [https://github.com/morsbox/rusrails](https://github.com/morsbox/rusrails)
+* **Japanese** : [https://github.com/yasslab/railsguides.jp](https://github.com/yasslab/railsguides.jp)
 
 Contributing to the Rails Code
 ------------------------------
@@ -165,7 +204,7 @@ In case you can't use the Rails development box, see [this other guide](developm
 To be able to contribute code, you need to clone the Rails repository:
 
 ```bash
-$ git clone git://github.com/rails/rails.git
+$ git clone https://github.com/rails/rails.git
 ```
 
 and create a dedicated branch:
@@ -295,7 +334,7 @@ You can run a single test through ruby. For instance:
 
 ```bash
 $ cd actionmailer
-$ ruby -w -Itest test/mail_layout_test.rb -n test_explicit_class_layout
+$ bundle exec ruby -w -Itest test/mail_layout_test.rb -n test_explicit_class_layout
 ```
 
 The `-n` option allows you to run a single method instead of the whole
@@ -315,10 +354,9 @@ $ cd activerecord
 $ bundle exec rake test:sqlite3
 ```
 
-You can now run the tests as you did for `sqlite3`. The tasks are respectively
+You can now run the tests as you did for `sqlite3`. The tasks are respectively:
 
 ```bash
-test:mysql
 test:mysql2
 test:postgresql
 ```
@@ -329,12 +367,12 @@ Finally,
 $ bundle exec rake test
 ```
 
-will now run the four of them in turn.
+will now run the three of them in turn.
 
 You can also run any single test separately:
 
 ```bash
-$ ARCONN=sqlite3 ruby -Itest test/cases/associations/has_many_associations_test.rb
+$ ARCONN=sqlite3 bundle exec ruby -Itest test/cases/associations/has_many_associations_test.rb
 ```
 
 To run a single test against all adapters, use:
@@ -468,7 +506,7 @@ Navigate to the Rails [GitHub repository](https://github.com/rails/rails) and pr
 Add the new remote to your local repository on your local machine:
 
 ```bash
-$ git remote add mine git@github.com:<your user name>/rails.git
+$ git remote add mine https://github.com:<your user name>/rails.git
 ```
 
 Push to your remote:
@@ -482,7 +520,7 @@ You might have cloned your forked repository into your machine and might want to
 In the directory you cloned your fork:
 
 ```bash
-$ git remote add rails git://github.com/rails/rails.git
+$ git remote add rails https://github.com/rails/rails.git
 ```
 
 Download new commits and branches from the official repository:
@@ -579,8 +617,7 @@ following:
 ```bash
 $ git fetch upstream
 $ git checkout my_pull_request
-$ git rebase upstream/master
-$ git rebase -i
+$ git rebase -i upstream/master
 
 < Choose 'squash' for all of your commits except the first one. >
 < Edit the commit message to make sense, and describe all your changes. >

@@ -1,6 +1,8 @@
 require "active_support/notifications"
 
 module ActiveSupport
+  # Raised when <tt>ActiveSupport::Deprecation::Behavior#behavior</tt> is set with <tt>:raise</tt>.
+  # You would set <tt>:raise</tt>, as a behaviour to raise errors and proactively report exceptions from deprecations.
   class DeprecationException < StandardError
   end
 
@@ -9,7 +11,7 @@ module ActiveSupport
     DEFAULT_BEHAVIORS = {
       raise: ->(message, callstack) {
         e = DeprecationException.new(message)
-        e.set_backtrace(callstack)
+        e.set_backtrace(callstack.map(&:to_s))
         raise e
       },
 
@@ -38,6 +40,18 @@ module ActiveSupport
       silence: ->(message, callstack) {},
     }
 
+    # Behavior module allows to determine how to display deprecation messages.
+    # You can create a custom behavior or set any from the +DEFAULT_BEHAVIORS+
+    # constant. Available behaviors are:
+    #
+    # [+raise+]   Raise <tt>ActiveSupport::DeprecationException</tt>.
+    # [+stderr+]  Log all deprecation warnings to +$stderr+.
+    # [+log+]     Log all deprecation warnings to +Rails.logger+.
+    # [+notify+]  Use +ActiveSupport::Notifications+ to notify +deprecation.rails+.
+    # [+silence+] Do nothing.
+    #
+    # Setting behaviors only affects deprecations that happen after boot time.
+    # For more information you can read the documentation of the +behavior=+ method.
     module Behavior
       # Whether to print a backtrace along with the warning.
       attr_accessor :debug

@@ -1,7 +1,6 @@
 require "cases/helper"
 require 'models/minimalistic'
 require 'models/developer'
-require 'models/computer'
 require 'models/auto_id'
 require 'models/boolean'
 require 'models/computer'
@@ -67,8 +66,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   def test_caching_nil_primary_key
     klass = Class.new(Minimalistic)
-    klass.expects(:reset_primary_key).returns(nil).once
-    2.times { klass.primary_key }
+    assert_called(klass, :reset_primary_key, returns: nil) do
+      2.times { klass.primary_key }
+    end
   end
 
   def test_attribute_keys_on_new_instance
@@ -175,9 +175,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal category_attrs , category.attributes_before_type_cast
   end
 
-  if current_adapter?(:MysqlAdapter)
+  if current_adapter?(:Mysql2Adapter)
     def test_read_attributes_before_type_cast_on_boolean
-      bool = Boolean.create({ "value" => false })
+      bool = Boolean.create!({ "value" => false })
       if RUBY_PLATFORM =~ /java/
         # JRuby will return the value before typecast as string
         assert_equal "0", bool.reload.attributes_before_type_cast["value"]
@@ -542,9 +542,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
     developer.save!
 
-    assert_equal "50000", developer.salary_before_type_cast
-    assert_equal 1337, developer.name_before_type_cast
-
     assert_equal 50000, developer.salary
     assert_equal "1337", developer.name
   end
@@ -717,6 +714,13 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_time_zone_aware_attributes_dont_recurse_infinitely_on_invalid_values
+    in_time_zone "Pacific Time (US & Canada)" do
+      record = @target.new(bonus_time: [])
+      assert_equal nil, record.bonus_time
+    end
+  end
+
   def test_setting_time_zone_conversion_for_attributes_should_write_value_on_class_variable
     Topic.skip_time_zone_conversion_for_attributes = [:field_a]
     Minimalistic.skip_time_zone_conversion_for_attributes = [:field_b]
@@ -794,7 +798,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_nil computer.system
   end
 
-  def test_global_methods_are_overwritte_when_subclassing
+  def test_global_methods_are_overwritten_when_subclassing
     klass = Class.new(ActiveRecord::Base) { self.abstract_class = true }
 
     subklass = Class.new(klass) do

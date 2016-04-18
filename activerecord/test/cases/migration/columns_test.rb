@@ -62,7 +62,7 @@ module ActiveRecord
         assert_equal '70000', default_after
       end
 
-      if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+      if current_adapter?(:Mysql2Adapter)
         def test_mysql_rename_column_preserves_auto_increment
           rename_column "test_models", "id", "id_test"
           assert connection.columns("test_models").find { |c| c.name == "id_test" }.auto_increment?
@@ -265,6 +265,13 @@ module ActiveRecord
         add_column "test_models", "first_name", :string
         connection.change_column_default "test_models", "first_name", nil
         assert_nil TestModel.new.first_name
+      end
+
+      def test_change_column_default_with_from_and_to
+        add_column "test_models", "first_name", :string
+        connection.change_column_default "test_models", "first_name", from: nil, to: "Tester"
+
+        assert_equal "Tester", TestModel.new.first_name
       end
 
       def test_remove_column_no_second_parameter_raises_exception

@@ -11,13 +11,18 @@ module ActiveRecord
       end
 
       def validate_each(record, attribute, value)
-        return unless should_validate?(record)
         finder_class = find_finder_class_for(record)
         table = finder_class.arel_table
         value = map_enum_attribute(finder_class, attribute, value)
 
         relation = build_relation(finder_class, table, attribute, value)
-        relation = relation.where.not(finder_class.primary_key => record.id) if record.persisted?
+        if record.persisted?
+          if finder_class.primary_key
+            relation = relation.where.not(finder_class.primary_key => record.id_was || record.id)
+          else
+            raise UnknownPrimaryKey.new(finder_class, "Can not validate uniqueness for persisted record without primary key.")
+          end
+        end
         relation = scope_relation(record, table, relation)
         relation = relation.merge(options[:conditions]) if options[:conditions]
 
@@ -51,13 +56,12 @@ module ActiveRecord
           value = value.attributes[reflection.klass.primary_key] unless value.nil?
         end
 
-        attribute_name = attribute.to_s
-
         # the attribute may be an aliased attribute
-        if klass.attribute_aliases[attribute_name]
-          attribute = klass.attribute_aliases[attribute_name]
-          attribute_name = attribute.to_s
+        if klass.attribute_alias?(attribute)
+          attribute = klass.attribute_alias(attribute)
         end
+
+        attribute_name = attribute.to_s
 
         column = klass.columns_hash[attribute_name]
         cast_type = klass.type_for_attribute(attribute_name)
@@ -67,15 +71,18 @@ module ActiveRecord
           value = value.to_s[0, column.limit]
         end
 
-        value = Arel::Nodes::Quoted.new(value)
-
         comparison = if !options[:case_sensitive] && !value.nil?
           # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
           klass.connection.case_insensitive_comparison(table, attribute, column, value)
         else
           klass.connection.case_sensitive_comparison(table, attribute, column, value)
         end
-        klass.unscoped.where(comparison)
+        if value.nil?
+          klass.unscoped.where(comparison)
+        else
+          bind = Relation::QueryAttribute.new(attribute_name, value, Type::Value.new)
+          klass.unscoped.where(comparison, bind)
+        end
       rescue RangeError
         klass.none
       end
@@ -166,7 +173,8 @@ module ActiveRecord
       #
       # === Concurrency and integrity
       #
-      # Using this validation method in conjunction with ActiveRecord::Base#save
+      # Using this validation method in conjunction with
+      # {ActiveRecord::Base#save}[rdoc-ref:Persistence#save]
       # does not guarantee the absence of duplicate record insertions, because
       # uniqueness checks on the application level are inherently prone to race
       # conditions. For example, suppose that two users try to post a Comment at
@@ -203,12 +211,12 @@ module ActiveRecord
       # This could even happen if you use transactions with the 'serializable'
       # isolation level. The best way to work around this problem is to add a unique
       # index to the database table using
-      # ActiveRecord::ConnectionAdapters::SchemaStatements#add_index. In the
-      # rare case that a race condition occurs, the database will guarantee
+      # {connection.add_index}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_index].
+      # In the rare case that a race condition occurs, the database will guarantee
       # the field's uniqueness.
       #
       # When the database catches such a duplicate insertion,
-      # ActiveRecord::Base#save will raise an ActiveRecord::StatementInvalid
+      # {ActiveRecord::Base#save}[rdoc-ref:Persistence#save] will raise an ActiveRecord::StatementInvalid
       # exception. You can either choose to let this error propagate (which
       # will result in the default Rails exception page being shown), or you
       # can catch it and restart the transaction (e.g. by telling the user
@@ -224,7 +232,6 @@ module ActiveRecord
       #
       # The following bundled adapters throw the ActiveRecord::RecordNotUnique exception:
       #
-      # * ActiveRecord::ConnectionAdapters::MysqlAdapter.
       # * ActiveRecord::ConnectionAdapters::Mysql2Adapter.
       # * ActiveRecord::ConnectionAdapters::SQLite3Adapter.
       # * ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.

@@ -143,6 +143,14 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     gigabytes(number) * 1024
   end
 
+  def petabytes(number)
+    terabytes(number) * 1024
+  end
+
+  def exabytes(number)
+    petabytes(number) * 1024
+  end
+
   def test_to_s__phone
     assert_equal("555-1234", 5551234.to_s(:phone))
     assert_equal("800-555-1212", 8005551212.to_s(:phone))
@@ -266,7 +274,9 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal '1.18 MB',   1234567.to_s(:human_size)
     assert_equal '1.15 GB',   1234567890.to_s(:human_size)
     assert_equal '1.12 TB',   1234567890123.to_s(:human_size)
-    assert_equal '1030 TB',   terabytes(1026).to_s(:human_size)
+    assert_equal '1.1 PB',    1234567890123456.to_s(:human_size)
+    assert_equal '1.07 EB',   1234567890123456789.to_s(:human_size)
+    assert_equal '1030 EB',   exabytes(1026).to_s(:human_size)
     assert_equal '444 KB',    kilobytes(444).to_s(:human_size)
     assert_equal '1020 MB',   megabytes(1023).to_s(:human_size)
     assert_equal '3 TB',      terabytes(3).to_s(:human_size)
@@ -280,14 +290,18 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
   end
 
   def test_to_s__human_size_with_si_prefix
-    assert_equal '3 Bytes',    3.14159265.to_s(:human_size, :prefix => :si)
-    assert_equal '123 Bytes',  123.0.to_s(:human_size, :prefix => :si)
-    assert_equal '123 Bytes',  123.to_s(:human_size, :prefix => :si)
-    assert_equal '1.23 KB',    1234.to_s(:human_size, :prefix => :si)
-    assert_equal '12.3 KB',    12345.to_s(:human_size, :prefix => :si)
-    assert_equal '1.23 MB',    1234567.to_s(:human_size, :prefix => :si)
-    assert_equal '1.23 GB',    1234567890.to_s(:human_size, :prefix => :si)
-    assert_equal '1.23 TB',    1234567890123.to_s(:human_size, :prefix => :si)
+    assert_deprecated do
+      assert_equal '3 Bytes',    3.14159265.to_s(:human_size, :prefix => :si)
+      assert_equal '123 Bytes',  123.0.to_s(:human_size, :prefix => :si)
+      assert_equal '123 Bytes',  123.to_s(:human_size, :prefix => :si)
+      assert_equal '1.23 KB',    1234.to_s(:human_size, :prefix => :si)
+      assert_equal '12.3 KB',    12345.to_s(:human_size, :prefix => :si)
+      assert_equal '1.23 MB',    1234567.to_s(:human_size, :prefix => :si)
+      assert_equal '1.23 GB',    1234567890.to_s(:human_size, :prefix => :si)
+      assert_equal '1.23 TB',    1234567890123.to_s(:human_size, :prefix => :si)
+      assert_equal '1.23 PB',    1234567890123456.to_s(:human_size, :prefix => :si)
+      assert_equal '1.23 EB',    1234567890123456789.to_s(:human_size, :prefix => :si)
+    end
   end
 
   def test_to_s__human_size_with_options_hash
@@ -386,7 +400,117 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal '1 Million', BigDecimal("1000010").to_s(:human)
   end
 
+  def test_to_formatted_s_is_deprecated
+    assert_deprecated do
+      5551234.to_formatted_s(:phone)
+    end
+  end
+
+  def test_to_s_with_invalid_formatter
+    assert_equal '123', 123.to_s(:invalid)
+    assert_equal '2.5', 2.5.to_s(:invalid)
+    assert_equal '100000000000000000000', (100**10).to_s(:invalid)
+    assert_equal '1000010.0', BigDecimal("1000010").to_s(:invalid)
+  end
+
+  def test_default_to_s
+    assert_equal '123', 123.to_s
+    assert_equal '1111011', 123.to_s(2)
+
+    assert_equal '2.5', 2.5.to_s
+
+    assert_equal '100000000000000000000', (100**10).to_s
+    assert_equal '1010110101111000111010111100010110101100011000100000000000000000000', (100**10).to_s(2)
+
+    assert_equal '1000010.0', BigDecimal("1000010").to_s
+    assert_equal '10000 10.0', BigDecimal("1000010").to_s('5F')
+  end
+
   def test_in_milliseconds
     assert_equal 10_000, 10.seconds.in_milliseconds
+  end
+
+  # TODO: Remove positive and negative tests when we drop support to ruby < 2.3
+  b = 2**64
+  b *= b until Bignum === b
+
+  T_ZERO = b.coerce(0).first
+  T_ONE  = b.coerce(1).first
+  T_MONE = b.coerce(-1).first
+
+  def test_positive
+    assert_predicate(1, :positive?)
+    assert_not_predicate(0, :positive?)
+    assert_not_predicate(-1, :positive?)
+    assert_predicate(+1.0, :positive?)
+    assert_not_predicate(+0.0, :positive?)
+    assert_not_predicate(-0.0, :positive?)
+    assert_not_predicate(-1.0, :positive?)
+    assert_predicate(+(0.0.next_float), :positive?)
+    assert_not_predicate(-(0.0.next_float), :positive?)
+    assert_predicate(Float::INFINITY, :positive?)
+    assert_not_predicate(-Float::INFINITY, :positive?)
+    assert_not_predicate(Float::NAN, :positive?)
+
+    a = Class.new(Numeric) do
+      def >(x); true; end
+    end.new
+    assert_predicate(a, :positive?)
+
+    a = Class.new(Numeric) do
+      def >(x); false; end
+    end.new
+    assert_not_predicate(a, :positive?)
+
+    assert_predicate(1/2r, :positive?)
+    assert_not_predicate(-1/2r, :positive?)
+
+    assert_predicate(T_ONE, :positive?)
+    assert_not_predicate(T_MONE, :positive?)
+    assert_not_predicate(T_ZERO, :positive?)
+
+    e = assert_raises(NoMethodError) do
+      Complex(1).positive?
+    end
+
+    assert_match(/positive\?/, e.message)
+  end
+
+  def test_negative
+    assert_predicate(-1, :negative?)
+    assert_not_predicate(0, :negative?)
+    assert_not_predicate(1, :negative?)
+    assert_predicate(-1.0, :negative?)
+    assert_not_predicate(-0.0, :negative?)
+    assert_not_predicate(+0.0, :negative?)
+    assert_not_predicate(+1.0, :negative?)
+    assert_predicate(-(0.0.next_float), :negative?)
+    assert_not_predicate(+(0.0.next_float), :negative?)
+    assert_predicate(-Float::INFINITY, :negative?)
+    assert_not_predicate(Float::INFINITY, :negative?)
+    assert_not_predicate(Float::NAN, :negative?)
+
+    a = Class.new(Numeric) do
+      def <(x); true; end
+    end.new
+    assert_predicate(a, :negative?)
+
+    a = Class.new(Numeric) do
+      def <(x); false; end
+    end.new
+    assert_not_predicate(a, :negative?)
+
+    assert_predicate(-1/2r, :negative?)
+    assert_not_predicate(1/2r, :negative?)
+
+    assert_not_predicate(T_ONE, :negative?)
+    assert_predicate(T_MONE, :negative?)
+    assert_not_predicate(T_ZERO, :negative?)
+
+    e = assert_raises(NoMethodError) do
+      Complex(1).negative?
+    end
+
+    assert_match(/negative\?/, e.message)
   end
 end

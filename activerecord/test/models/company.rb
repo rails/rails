@@ -10,7 +10,6 @@ class Company < AbstractCompany
   has_one :dummy_account, :foreign_key => "firm_id", :class_name => "Account"
   has_many :contracts
   has_many :developers, :through => :contracts
-  has_many :accounts
 
   scope :of_first_firm, lambda {
     joins(:account => :firm).
@@ -85,6 +84,9 @@ class Firm < Company
   has_many :unautosaved_accounts, :foreign_key => "firm_id", :class_name => 'Account', :autosave => false
 
   has_many :association_with_references, -> { references(:foo) }, :class_name => 'Client'
+
+  has_one :lead_developer, class_name: "Developer"
+  has_many :projects
 
   def log
     @log ||= []

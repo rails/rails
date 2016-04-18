@@ -21,7 +21,7 @@ module Enumerable
     if block_given?
       map(&block).sum(identity)
     else
-      inject { |sum, element| sum + element } || identity
+      inject(:+) || identity
     end
   end
 
@@ -70,6 +70,21 @@ module Enumerable
   #     => {foo: 1, baz: 3}
   def without(*elements)
     reject { |element| elements.include?(element) }
+  end
+
+  # Convert an enumerable to an array based on the given key.
+  #
+  #   [{ name: "David" }, { name: "Rafael" }, { name: "Aaron" }].pluck(:name)
+  #     => ["David", "Rafael", "Aaron"]
+  #
+  #   [{ id: 1, name: "David" }, { id: 2, name: "Rafael" }].pluck(:id, :name)
+  #     => [[1, "David"], [2, "Rafael"]]
+  def pluck(*keys)
+    if keys.many?
+      map { |element| keys.map { |key| element[key] } }
+    else
+      map { |element| element[keys.first] }
+    end
   end
 end
 

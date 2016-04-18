@@ -1,9 +1,72 @@
+*   Enable class reloading prior to job dispatch, and ensure Active Record
+    connections are returned to the pool when jobs are run in separate threads.
+
+    *Matthew Draper*
+
+*   Tune the async adapter for low-footprint dev/test usage. Use a single
+    thread pool for all queues and limit to 0 to #CPU total threads, down from
+    2 to 10*#CPU per queue.
+
+    *Jeremy Daer*
+
+
+## Rails 5.0.0.beta3 (February 24, 2016) ##
+
+*   Change the default adapter from inline to async. It's a better default as tests will then not mistakenly
+    come to rely on behavior happening synchronously. This is especially important with things like jobs kicked off
+    in Active Record lifecycle callbacks.
+
+    *DHH*
+
+
+## Rails 5.0.0.beta2 (February 01, 2016) ##
+
+*   No changes.
+
+
+## Rails 5.0.0.beta1 (December 18, 2015) ##
+
+*   Fixed serializing `:at` option for `assert_enqueued_with`
+    and `assert_performed_with`.
+
+    *Wojciech Wnętrzak*
+
+*   Support passing array to `assert_enqueued_jobs` in `:only` option.
+
+    *Wojciech Wnętrzak*
+
+*   Add job priorities to Active Job.
+
+    *wvengen*
+
+*   Implement a simple `AsyncJob` processor and associated `AsyncAdapter` that
+    queue jobs to a `concurrent-ruby` thread pool.
+
+    *Jerry D'Antonio*
+
+*   Implement `provider_job_id` for `queue_classic` adapter. This requires the
+    latest, currently unreleased, version of queue_classic.
+
+    *Yves Senn*
+
+*   `assert_enqueued_with` and `assert_performed_with` now returns the matched
+    job instance for further assertions.
+
+    *Jean Boussier*
+
+*   Include `I18n.locale` into job serialization/deserialization and use it around
+    `perform`.
+
+    Fixes #20799.
+
+    *Johannes Opper*
+
 *   Allow `DelayedJob`, `Sidekiq`, `qu`, and `que` to report the job id back to
     `ActiveJob::Base` as `provider_job_id`.
 
     Fixes #18821.
 
-    *Kevin Deisz* And *Jeroen van Baarsen*
+    *Kevin Deisz*, *Jeroen van Baarsen*
 
 *   `assert_enqueued_jobs` and `assert_performed_jobs` in block form use the
     given number as expected value. This makes the error message much easier to

@@ -1,7 +1,7 @@
 require 'cases/helper'
 require 'support/schema_dumping_helper'
 
-class PostgresqlXMLTest < ActiveRecord::TestCase
+class PostgresqlXMLTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
   class XmlDataType < ActiveRecord::Base
     self.table_name = 'xml_data_type'

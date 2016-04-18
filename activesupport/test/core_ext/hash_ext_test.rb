@@ -524,6 +524,10 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_indifferent_reverse_merging
+    hash = HashWithIndifferentAccess.new key: :old_value
+    hash.reverse_merge! key: :new_value
+    assert_equal :old_value, hash[:key]
+
     hash = HashWithIndifferentAccess.new('some' => 'value', 'other' => 'value')
     hash.reverse_merge!(:some => 'noclobber', :another => 'clobber')
     assert_equal 'value', hash[:some]
@@ -547,6 +551,11 @@ class HashExtTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
   end
 
+  def test_indifferent_select_returns_enumerator
+    enum = ActiveSupport::HashWithIndifferentAccess.new(@strings).select
+    assert_instance_of Enumerator, enum
+  end
+
   def test_indifferent_select_returns_a_hash_when_unchanged
     hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).select {|k,v| true}
 
@@ -566,6 +575,11 @@ class HashExtTest < ActiveSupport::TestCase
 
     assert_equal({ 'a' => 1 }, hash)
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+  end
+
+  def test_indifferent_reject_returns_enumerator
+    enum = ActiveSupport::HashWithIndifferentAccess.new(@strings).reject
+    assert_instance_of Enumerator, enum
   end
 
   def test_indifferent_reject_bang
@@ -686,6 +700,12 @@ class HashExtTest < ActiveSupport::TestCase
     # Should preserve class for subclasses
     h = IndifferentHash.new
     assert_equal h.class, h.dup.class
+  end
+
+  def test_nested_dig_indifferent_access
+    skip if RUBY_VERSION < "2.3.0"
+    data = {"this" => {"views" => 1234}}.with_indifferent_access
+    assert_equal 1234, data.dig(:this, :views)
   end
 
   def test_assert_valid_keys
@@ -961,10 +981,11 @@ class HashExtTest < ActiveSupport::TestCase
     assert_raise(RuntimeError) { original.except!(:a) }
   end
 
-  def test_except_with_mocha_expectation_on_original
+  def test_except_does_not_delete_values_in_original
     original = { :a => 'x', :b => 'y' }
-    original.expects(:delete).never
-    original.except(:a)
+    assert_not_called(original, :delete) do
+      original.except(:a)
+    end
   end
 
   def test_compact
@@ -997,6 +1018,55 @@ class HashExtTest < ActiveSupport::TestCase
     hash = HashWithIndifferentAccess.new(HashByConversion.new(a: 1))
     assert hash.key?('a')
     assert_equal 1, hash[:a]
+  end
+
+  def test_dup_with_default_proc
+    hash = HashWithIndifferentAccess.new
+    hash.default_proc = proc { |h, v| raise "walrus" }
+    assert_nothing_raised { hash.dup }
+  end
+
+  def test_dup_with_default_proc_sets_proc
+    hash = HashWithIndifferentAccess.new
+    hash.default_proc = proc { |h, k| k + 1 }
+    new_hash = hash.dup
+
+    assert_equal 3, new_hash[2]
+
+    new_hash.default = 2
+    assert_equal 2, new_hash[:non_existant]
+  end
+
+  def test_to_hash_with_raising_default_proc
+    hash = HashWithIndifferentAccess.new
+    hash.default_proc = proc { |h, k| raise "walrus" }
+
+    assert_nothing_raised { hash.to_hash }
+  end
+
+  def test_new_from_hash_copying_default_should_not_raise_when_default_proc_does
+    hash = Hash.new
+    hash.default_proc = proc { |h, k| raise "walrus" }
+
+    assert_deprecated { HashWithIndifferentAccess.new_from_hash_copying_default(hash) }
+  end
+
+  def test_new_with_to_hash_conversion_copies_default
+    normal_hash = Hash.new(3)
+    normal_hash[:a] = 1
+
+    hash = HashWithIndifferentAccess.new(HashByConversion.new(normal_hash))
+    assert_equal 1, hash[:a]
+    assert_equal 3, hash[:b]
+  end
+
+  def test_new_with_to_hash_conversion_copies_default_proc
+    normal_hash = Hash.new { 1 + 2 }
+    normal_hash[:a] = 1
+
+    hash = HashWithIndifferentAccess.new(HashByConversion.new(normal_hash))
+    assert_equal 1, hash[:a]
+    assert_equal 3, hash[:b]
   end
 end
 
@@ -1523,9 +1593,9 @@ class HashToXmlTest < ActiveSupport::TestCase
     assert_equal 3, hash_wia[:new_key]
   end
 
-  def test_should_use_default_proc_if_no_key_is_supplied
+  def test_should_return_nil_if_no_key_is_supplied
     hash_wia = HashWithIndifferentAccess.new { 1 +  2 }
-    assert_equal 3, hash_wia.default
+    assert_equal nil, hash_wia.default
   end
 
   def test_should_use_default_value_for_unknown_key
@@ -1548,7 +1618,6 @@ class HashToXmlTest < ActiveSupport::TestCase
     assert_equal hash_wia, hash_wia.with_indifferent_access
     assert_not_same hash_wia, hash_wia.with_indifferent_access
   end
-
 
   def test_allows_setting_frozen_array_values_with_indifferent_access
     value = [1, 2, 3].freeze

@@ -55,6 +55,10 @@ module ActiveSupport
       end
     end
 
+    # Returns the amount of seconds a duration covers as a string.
+    # For more information check to_i method.
+    #
+    #   1.day.to_s # => "86400"
     def to_s
       @value.to_s
     end
@@ -155,6 +159,8 @@ module ActiveSupport
           if t.acts_like?(:time) || t.acts_like?(:date)
             if type == :seconds
               t.since(sign * number)
+            elsif [:hours, :minutes].include?(type)
+              t.in_time_zone.advance(type => sign * number)
             else
               t.advance(type => sign * number)
             end
