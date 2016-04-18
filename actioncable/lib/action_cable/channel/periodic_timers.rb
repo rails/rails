@@ -12,8 +12,8 @@ module ActionCable
       end
 
       module ClassMethods
-        # Allows you to call a private method <tt>every</tt> so often seconds. This periodic timer can be useful
-        # for sending a steady flow of updates to a client based off an object that was configured on subscription.
+        # Allows you to call a private method periodically. Specify the period, in seconds, using the <tt>every</tt> keyword argument.
+        # This periodic timer can be useful for sending a steady flow of updates to a client based off an object that was configured on subscription.
         # It's an alternative to using streams if the channel is able to do the work internally.
         def periodically(callback, every:)
           self.periodic_timers += [ [ callback, every: every ] ]

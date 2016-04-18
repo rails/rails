@@ -178,7 +178,7 @@ App.cable.subscriptions.create "AppearanceChannel",
 ```
 
 Simply calling `App.cable.subscriptions.create` will setup the subscription, which will call `AppearanceChannel#subscribed`,
-which in turn is linked to original `App.cable` -> `ApplicationCable::Connection` instances.
+which in turn is linked to the original `App.cable` -> `ApplicationCable::Connection` instances.
 
 Next, we link the client-side `appear` method to `AppearanceChannel#appear(data)`. This is possible because the server-side
 channel instance will automatically expose the public methods declared on the class (minus the callbacks), so that these
