@@ -229,7 +229,7 @@ class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
     assert_equal "code", Barcode.primary_key
 
     column = Barcode.column_for_attribute(Barcode.primary_key)
-    assert_not column.null unless current_adapter?(:SQLite3Adapter)
+    assert_not column.null
     assert_equal :string, column.type
     assert_equal 42, column.limit
   end
