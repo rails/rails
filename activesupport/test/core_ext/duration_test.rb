@@ -224,6 +224,9 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal(1, (61 <=> 1.minute))
   end
 
+  # ISO8601 string examples are taken from ISO8601 gem at https://github.com/arnau/ISO8601/blob/b93d466840/spec/iso8601/duration_spec.rb
+  # published under the conditions of MIT license: https://github.com/arnau/ISO8601/blob/b93d466840/LICENSE
+
   def test_iso8601_parsing_wrong_patterns_with_raise
     invalid_patterns = ['', 'P', 'PT', 'P1YT', 'T', 'PW', 'P1Y1W', '~P1Y', '.P1Y', 'P1.5Y0.5M', 'P1.5Y1M', 'P1.5MT10.5S']
     invalid_patterns.each do |pattern|
