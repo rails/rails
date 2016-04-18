@@ -585,6 +585,9 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Added ActiveRecord `#second_to_last` and `#third_to_last` methods.
     ([Pull Request](https://github.com/rails/rails/pull/23583))
 
+*  Added ability to annotate database objects (tables, columns, indexes)
+   with comments stored in database metadata for PostgreSQL & MySQL.
+   ([Pull Request](https://github.com/rails/rails/pull/22911))
 
 Active Model
 ------------
