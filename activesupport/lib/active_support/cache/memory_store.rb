@@ -105,11 +105,9 @@ module ActiveSupport
       end
 
       protected
-
-        PER_ENTRY_OVERHEAD = 240
-
+        MARSHAL_OVERHEAD = Marshal.dump('').bytesize
         def cached_size(key, entry) # :nodoc:
-          key.to_s.bytesize + entry.size + PER_ENTRY_OVERHEAD
+          key.to_s.bytesize + entry.size + entry.class::MAX_OVERHEAD + MARSHAL_OVERHEAD
         end
 
         def read_entry(key, options) # :nodoc:

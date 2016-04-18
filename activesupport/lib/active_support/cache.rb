@@ -9,6 +9,7 @@ require 'active_support/core_ext/numeric/time'
 require 'active_support/core_ext/object/to_param'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/string/strip'
+autoload :ASCE_5, 'active_support/cache/entry/asce_5'
 
 module ActiveSupport
   # See ActiveSupport::Cache::Store for documentation.
@@ -17,6 +18,7 @@ module ActiveSupport
     autoload :MemoryStore,   'active_support/cache/memory_store'
     autoload :MemCacheStore, 'active_support/cache/mem_cache_store'
     autoload :NullStore,     'active_support/cache/null_store'
+    autoload :Entry,         'active_support/cache/entry'
 
     # These options mean something to all cache implementations. Individual cache
     # implementations may support additional options.
@@ -586,106 +588,6 @@ module ActiveSupport
 
           write(name, result, options)
           result
-        end
-    end
-
-    # This class is used to represent cache entries. Cache entries have a value and an optional
-    # expiration time. The expiration time is used to support the :race_condition_ttl option
-    # on the cache.
-    #
-    # Since cache entries in most instances will be serialized, the internals of this class are highly optimized
-    # using short instance variable names that are lazily defined.
-    class Entry # :nodoc:
-      DEFAULT_COMPRESS_LIMIT = 16.kilobytes
-
-      # Create a new cache entry for the specified value. Options supported are
-      # +:compress+, +:compress_threshold+, and +:expires_in+.
-      def initialize(value, options = {})
-        if should_compress?(value, options)
-          @value = compress(value)
-          @compressed = true
-        else
-          @value = value
-        end
-
-        @created_at = Time.now.to_f
-        @expires_in = options[:expires_in]
-        @expires_in = @expires_in.to_f if @expires_in
-      end
-
-      def value
-        compressed? ? uncompress(@value) : @value
-      end
-
-      # Check if the entry is expired. The +expires_in+ parameter can override
-      # the value set when the entry was created.
-      def expired?
-        @expires_in && @created_at + @expires_in <= Time.now.to_f
-      end
-
-      def expires_at
-        @expires_in ? @created_at + @expires_in : nil
-      end
-
-      def expires_at=(value)
-        if value
-          @expires_in = value.to_f - @created_at
-        else
-          @expires_in = nil
-        end
-      end
-
-      # Returns the size of the cached value. This could be less than
-      # <tt>value.size</tt> if the data is compressed.
-      def size
-        if defined?(@s)
-          @s
-        else
-          case value
-          when NilClass
-            0
-          when String
-            @value.bytesize
-          else
-            @s = Marshal.dump(@value).bytesize
-          end
-        end
-      end
-
-      # Duplicate the value in a class. This is used by cache implementations that don't natively
-      # serialize entries to protect against accidental cache modifications.
-      def dup_value!
-        if @value && !compressed? && !(@value.is_a?(Numeric) || @value == true || @value == false)
-          if @value.is_a?(String)
-            @value = @value.dup
-          else
-            @value = Marshal.load(Marshal.dump(@value))
-          end
-        end
-      end
-
-      private
-        def should_compress?(value, options)
-          if value && options[:compress]
-            compress_threshold = options[:compress_threshold] || DEFAULT_COMPRESS_LIMIT
-            serialized_value_size = (value.is_a?(String) ? value : Marshal.dump(value)).bytesize
-
-            return true if serialized_value_size >= compress_threshold
-          end
-
-          false
-        end
-
-        def compressed?
-          defined?(@compressed) ? @compressed : false
-        end
-
-        def compress(value)
-          Zlib::Deflate.deflate(Marshal.dump(value))
-        end
-
-        def uncompress(value)
-          Marshal.load(Zlib::Inflate.inflate(value))
         end
     end
   end
