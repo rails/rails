@@ -41,14 +41,4 @@ class WorkerTest < ActiveSupport::TestCase
     @worker.invoke @receiver, :process, "Hello"
     assert_equal [ :process, "Hello" ], @receiver.last_action
   end
-
-  test "running periodic timers with a proc" do
-    @worker.run_periodic_timer @receiver, @receiver.method(:run)
-    assert_equal :run, @receiver.last_action
-  end
-
-  test "running periodic timers with a method" do
-    @worker.run_periodic_timer @receiver, :run
-    assert_equal :run, @receiver.last_action
-  end
 end

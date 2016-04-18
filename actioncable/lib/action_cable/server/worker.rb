@@ -59,18 +59,6 @@ module ActionCable
         end
       end
 
-      def async_run_periodic_timer(channel, callback)
-        @pool.post do
-          run_periodic_timer(channel, callback)
-        end
-      end
-
-      def run_periodic_timer(channel, callback)
-        work(channel.connection) do
-          callback.respond_to?(:call) ? channel.instance_exec(&callback) : channel.send(callback)
-        end
-      end
-
       private
 
         def logger
