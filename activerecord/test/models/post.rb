@@ -60,6 +60,9 @@ class Post < ActiveRecord::Base
     end
   end
 
+  has_many :jamises_developer_comments, -> { joins(:developer).merge(Developer.jamises) }, class_name: 'Comment'
+  has_many :jamises_developer_comments_authors, through: :jamises_developer_comments, source: :author, source_type: 'Author'
+
   has_many :comments_with_extend, extend: NamedExtension, class_name: "Comment", foreign_key: "post_id" do
     def greeting
       "hello"

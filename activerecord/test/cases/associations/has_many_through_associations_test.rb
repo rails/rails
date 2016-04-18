@@ -1215,4 +1215,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   ensure
     TenantMembership.current_member = nil
   end
+
+  def test_has_many_through_with_joins_in_scope
+    developer = Developer.create! name: 'Jamis'
+    post = Post.first
+    author = Author.create! name: 'John'
+    Comment.create! developer: developer, post: post, body: '', author: author
+
+    assert_includes post.reload.jamises_developer_comments_authors, author
+  end
 end
