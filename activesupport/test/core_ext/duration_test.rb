@@ -66,8 +66,9 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal '10 years, 2 months, and 1 day',   (10.years + 2.months + 1.day).inspect
     assert_equal '10 years, 2 months, and 1 day',   (10.years + 1.month  + 1.day + 1.month).inspect
     assert_equal '10 years, 2 months, and 1 day',   (1.day + 10.years + 2.months).inspect
-    assert_equal '7 days',                          1.week.inspect
-    assert_equal '14 days',                         1.fortnight.inspect
+    assert_equal '7 days',                          7.days.inspect
+    assert_equal '1 week',                          1.week.inspect
+    assert_equal '2 weeks',                         1.fortnight.inspect
   end
 
   def test_inspect_locale
