@@ -1,5 +1,4 @@
 require 'rails/initializable'
-require 'rails/configuration'
 require 'active_support/inflector'
 require 'active_support/core_ext/module/introspection'
 require 'active_support/core_ext/module/delegation'
@@ -112,7 +111,7 @@ module Rails
   #
   # Be sure to look at the documentation of those specific classes for more information.
   class Railtie
-    autoload :Configuration, "rails/railtie/configuration"
+    autoload :Configuration, 'rails/railtie/configuration'
 
     include Initializable
 
