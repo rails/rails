@@ -79,8 +79,6 @@ Handled at the middleware layer:
   code. All you need to do is use the
   [`stale?`](http://api.rubyonrails.org/classes/ActionController/ConditionalGet.html#method-i-stale-3F)
   check in your controller, and Rails will handle all of the HTTP details for you.
-- Caching: If you use `dirty?` with public cache control, Rails will automatically
-  cache your responses. You can easily configure the cache store.
 - HEAD requests: Rails will transparently convert `HEAD` requests into `GET` ones,
   and return just the headers on the way out. This makes `HEAD` work reliably in
   all Rails APIs.
