@@ -64,4 +64,14 @@ class Time
   def formatted_offset(colon = true, alternate_utc_string = nil)
     utc? && alternate_utc_string || ActiveSupport::TimeZone.seconds_to_utc_offset(utc_offset, colon)
   end
+
+  # 2.3 compatible
+  def to_time
+    utc.getlocal
+  end
+
+  # 2.4 compatible
+  def to_time
+    self
+  end
 end

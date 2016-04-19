@@ -1,6 +1,15 @@
 require 'date'
 
 class DateTime
+  module Compatibility
+    # 2.3 compatible
+    def to_time
+      super.utc.getlocal
+    end
+  end
+
+  prepend Compatibility
+
   class << self
     # Returns <tt>Time.zone.now.to_datetime</tt> when <tt>Time.zone</tt> or
     # <tt>config.time_zone</tt> are set, otherwise returns
@@ -170,5 +179,10 @@ class DateTime
     else
       super
     end
+  end
+
+  # 2.4 compatible
+  def to_time
+    Time.new(year, month, day, hour, min, (sec + sec_fraction), offset)
   end
 end
