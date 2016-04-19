@@ -427,6 +427,17 @@ EXPECTED
     assert_equal '"foo"', ActiveSupport::JSON.encode(exception)
   end
 
+  class DetailedException < Exception
+    def initialize(message)
+      @message = message
+    end
+  end
+
+  def test_exception_with_instance_values_to_json
+    exception = DetailedException.new("foo")
+    assert_equal %({"message":"foo"}), ActiveSupport::JSON.encode(exception)
+  end
+
   protected
 
     def object_keys(json_object)

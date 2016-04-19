@@ -200,6 +200,10 @@ end
 
 class Exception
   def as_json(options = nil)
-    to_s
+    if instance_values.empty?
+      to_s
+    else
+      super(options)
+    end
   end
 end
