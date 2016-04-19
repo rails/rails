@@ -80,6 +80,10 @@ module ActiveRecord
         SQLite3::SchemaCreation.new self
       end
 
+      def arel_visitor # :nodoc:
+        Arel::Visitors::SQLite.new(self)
+      end
+
       def initialize(connection, logger, connection_options, config)
         super(connection, logger, config)
 

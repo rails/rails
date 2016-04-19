@@ -149,7 +149,7 @@ module ActiveRecord
       end
 
       def arel_visitor # :nodoc:
-        (Arel::Visitors::VISITORS[@config[:adapter]] || Arel::Visitors::ToSql).new(self)
+        Arel::Visitors::ToSql.new(self)
       end
 
       def valid_type?(type)
