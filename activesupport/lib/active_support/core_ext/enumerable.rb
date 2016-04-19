@@ -110,7 +110,7 @@ end
 # We tried shimming it to attempt the fast native method, rescue TypeError,
 # and fall back to the compatible implementation, but that's much slower than
 # just calling the compat method in the first place.
-if Array.instance_methods(false).include?(:sum) && (%w[a].sum rescue true)
+if Array.instance_methods(false).include?(:sum) && !(%w[a].sum rescue false)
   class Array
     def sum(*args) #:nodoc:
       # Use Enumerable#sum instead.
