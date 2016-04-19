@@ -104,9 +104,15 @@ module ActiveRecord
         @config              = config
         @pool                = nil
         @schema_cache        = SchemaCache.new self
-        @visitor             = nil
-        @prepared_statements = false
         @quoted_column_names, @quoted_table_names = {}, {}
+        @visitor             = arel_visitor
+
+        if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
+          @prepared_statements = true
+          @visitor.extend(DetermineIfPreparableVisitor)
+        else
+          @prepared_statements = false
+        end
       end
 
       class Version
@@ -140,6 +146,10 @@ module ActiveRecord
         else
           BindCollector.new
         end
+      end
+
+      def arel_visitor # :nodoc:
+        (Arel::Visitors::VISITORS[@config[:adapter]] || Arel::Visitors::ToSql).new(self)
       end
 
       def valid_type?(type)
