@@ -225,7 +225,7 @@ module ActiveRecord
             type_metadata = fetch_type_metadata(column_name, type, oid, fmod)
             default_value = extract_value_from_default(default)
             default_function = extract_default_function(default_value, default)
-            new_column(column_name, default_value, type_metadata, !notnull, table_name, default_function, collation, comment: comment)
+            new_column(column_name, default_value, type_metadata, !notnull, table_name, default_function, collation, comment: comment.presence)
           end
         end
 
