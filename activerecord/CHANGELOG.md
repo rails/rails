@@ -1,3 +1,7 @@
+*   Migrations: `#foreign_key` respects `table_name_prefix` and `_suffix`.
+
+    *Ryuta Kamizono*
+
 *   SQLite: Force NOT NULL primary keys.
 
     From SQLite docs: https://www.sqlite.org/lang_createtable.html
