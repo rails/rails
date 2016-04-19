@@ -24,6 +24,10 @@ module ActiveRecord
         MySQL::SchemaCreation.new(self)
       end
 
+      def arel_visitor # :nodoc:
+        Arel::Visitors::MySQL.new(self)
+      end
+
       ##
       # :singleton-method:
       # By default, the Mysql2Adapter will consider all columns of type <tt>tinyint(1)</tt>

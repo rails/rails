@@ -125,6 +125,10 @@ module ActiveRecord
         PostgreSQL::SchemaCreation.new self
       end
 
+      def arel_visitor # :nodoc:
+        Arel::Visitors::PostgreSQL.new(self)
+      end
+
       # Returns true, since this connection adapter supports prepared statement
       # caching.
       def supports_statement_cache?
