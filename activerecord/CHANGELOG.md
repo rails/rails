@@ -1,3 +1,8 @@
+*   Raise `ActiveRecord::ValueTooLong` when column limits are exceeded.
+    Supported by MySQL and PostgreSQL adapters.
+
+    *Ryuta Kamizono*
+
 *   Migrations: `#foreign_key` respects `table_name_prefix` and `_suffix`.
 
     *Ryuta Kamizono*

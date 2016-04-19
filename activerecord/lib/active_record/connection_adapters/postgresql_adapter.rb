@@ -406,6 +406,7 @@ module ActiveRecord
       protected
 
         # See http://www.postgresql.org/docs/current/static/errcodes-appendix.html
+        VALUE_LIMIT_VIOLATION = "22001"
         FOREIGN_KEY_VIOLATION = "23503"
         UNIQUE_VIOLATION      = "23505"
 
@@ -417,6 +418,8 @@ module ActiveRecord
             RecordNotUnique.new(message)
           when FOREIGN_KEY_VIOLATION
             InvalidForeignKey.new(message)
+          when VALUE_LIMIT_VIOLATION
+            ValueTooLong.new(message)
           else
             super
           end
