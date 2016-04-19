@@ -2,6 +2,7 @@ require "cases/helper"
 require "models/book"
 require "models/post"
 require "models/author"
+require "models/event"
 
 module ActiveRecord
   class AdapterTest < ActiveRecord::TestCase
@@ -196,6 +197,14 @@ module ActiveRecord
           has_fk = klass_has_fk.new
           has_fk.fk_id = 1231231231
           has_fk.save(validate: false)
+        end
+
+        assert_not_nil error.cause
+      end
+
+      def test_value_limit_violations_are_translated_to_specific_exception
+        error = assert_raises(ActiveRecord::ValueTooLong) do
+          Event.create(title: 'abcdefgh')
         end
 
         assert_not_nil error.cause
