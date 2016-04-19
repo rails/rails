@@ -57,12 +57,12 @@ class SerializationTest < ActiveModel::TestCase
 
   def test_method_serializable_hash_should_work_with_only_option
     expected = {"name"=>"David"}
-    assert_equal expected, @user.serializable_hash(only: [:name])
+    assert_equal expected, @user.serializable_hash(only: ['name'])
   end
 
   def test_method_serializable_hash_should_work_with_except_option
     expected = {"gender"=>"male", "email"=>"david@example.com"}
-    assert_equal expected, @user.serializable_hash(except: [:name])
+    assert_equal expected, @user.serializable_hash(except: ['name'])
   end
 
   def test_method_serializable_hash_should_work_with_methods_option
@@ -77,7 +77,7 @@ class SerializationTest < ActiveModel::TestCase
 
   def test_method_serializable_hash_should_work_with_except_and_methods
     expected = {"gender"=>"male", "foo"=>"i_am_foo", "bar"=>"i_am_bar"}
-    assert_equal expected, @user.serializable_hash(except: [:name, :email], methods: [:foo, :bar])
+    assert_equal expected, @user.serializable_hash(except: ['name', 'email'], methods: [:foo, :bar])
   end
 
   def test_should_raise_NoMethodError_for_non_existing_method
@@ -90,7 +90,7 @@ class SerializationTest < ActiveModel::TestCase
     end
 
     expected = { "name" => "Jon" }
-    assert_equal expected, @user.serializable_hash(only: :name)
+    assert_equal expected, @user.serializable_hash(only: 'name')
   end
 
   def test_include_option_with_singular_association
@@ -155,14 +155,14 @@ class SerializationTest < ActiveModel::TestCase
 
   def test_only_include
     expected = {"name"=>"David", "friends" => [{"name" => "Joe"}, {"name" => "Sue"}]}
-    assert_equal expected, @user.serializable_hash(only: :name, include: { friends: { only: :name } })
+    assert_equal expected, @user.serializable_hash(only: 'name', include: { friends: { only: 'name' } })
   end
 
   def test_except_include
     expected = {"name"=>"David", "email"=>"david@example.com",
                 "friends"=> [{"name" => 'Joe', "email" => 'joe@example.com'},
                              {"name" => "Sue", "email" => 'sue@example.com'}]}
-    assert_equal expected, @user.serializable_hash(except: :gender, include: { friends: { except: :gender } })
+    assert_equal expected, @user.serializable_hash(except: 'gender', include: { friends: { except: 'gender' } })
   end
 
   def test_multiple_includes_with_options

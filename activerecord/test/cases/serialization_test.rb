@@ -38,7 +38,7 @@ class SerializationTest < ActiveRecord::TestCase
 
   def test_serialize_should_allow_attribute_only_filtering
     FORMATS.each do |format|
-      @serialized = Contact.new(@contact_attributes).send("to_#{format}", :only => [ :age, :name ])
+      @serialized = Contact.new(@contact_attributes).send("to_#{format}", :only => [ 'age', 'name' ])
       contact = Contact.new.send("from_#{format}", @serialized)
       assert_equal @contact_attributes[:name], contact.name, "For #{format}"
       assert_nil contact.avatar, "For #{format}"
