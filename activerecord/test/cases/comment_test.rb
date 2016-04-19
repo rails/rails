@@ -127,4 +127,4 @@ class CommentTest < ActiveRecord::TestCase
   end
 end
 
-end # if ActiveRecord::Base.connection.supports_comments?
+end
