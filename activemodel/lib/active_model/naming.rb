@@ -238,6 +238,11 @@ module ActiveModel
         namespace = self.parents.detect do |n|
           n.respond_to?(:use_relative_model_naming?) && n.use_relative_model_naming?
         end
+
+        if respond_to?(:use_relative_model_naming?) && use_relative_model_naming?
+          namespace = name.split('::').first.constantize
+        end
+
         ActiveModel::Name.new(self, namespace)
       end
     end
