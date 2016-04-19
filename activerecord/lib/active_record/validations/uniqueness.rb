@@ -67,9 +67,6 @@ module ActiveRecord
         cast_type = klass.type_for_attribute(attribute_name)
         value = cast_type.serialize(value)
         value = klass.connection.type_cast(value)
-        if value.is_a?(String) && column.limit
-          value = value.to_s[0, column.limit]
-        end
 
         comparison = if !options[:case_sensitive] && !value.nil?
           # will use SQL LOWER function before comparison, unless it detects a case insensitive collation

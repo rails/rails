@@ -1,3 +1,20 @@
+*   SQLite: Fix uniqueness validation when values exceed the column limit.
+
+    SQLite doesn't impose length restrictions on strings, BLOBs, or numeric
+    values. It treats them as helpful metadata. When we truncate strings
+    before checking uniqueness, we'd miss values that exceed the column limit.
+
+    Other databases enforce length limits. A large value will pass uniqueness
+    validation since the column limit guarantees no value that long exists.
+    When we insert the row, it'll raise `ActiveRecord::ValueTooLong` as we
+    expect.
+
+    This fixes edge-case incorrect validation failures for values that exceed
+    the column limit but are identical to an existing value *when truncated*.
+    Now these will pass validation and raise an exception.
+
+    *Ryuta Kamizono*
+
 *   Raise `ActiveRecord::ValueTooLong` when column limits are exceeded.
     Supported by MySQL and PostgreSQL adapters.
 
