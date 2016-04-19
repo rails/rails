@@ -56,4 +56,12 @@ class InTest < ActiveSupport::TestCase
     assert_nil "stuff".presence_in(%w( lots of crap ))
     assert_raise(ArgumentError) { 1.presence_in(1) }
   end
+
+  def test_presence_in_with_block
+    assert_equal "stuff", "stuff".presence_in(%w( lots of stuff )) { 42 }
+    assert_equal 42, "stuff".presence_in(%w( lots of crap )) { 42 }
+    assert_equal "Did not find your stuff",
+      "stuff".presence_in(%w( lots of crap )) { |k| "Did not find your #{k}" }
+    assert_raise(ArgumentError) { 1.presence_in(1) { 42 } }
+  end
 end

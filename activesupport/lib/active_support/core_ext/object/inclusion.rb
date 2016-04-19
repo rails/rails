@@ -13,15 +13,24 @@ class Object
     raise ArgumentError.new("The parameter passed to #in? must respond to #include?")
   end
 
-  # Returns the receiver if it's included in the argument otherwise returns +nil+.
+  # Returns the receiver if it's included in the argument. If the optional code
+  # block is specified, that will be called with +self+ and its result
+  # returned. Otherwise, +nil+ is returned.
   # Argument must be any object which responds to +#include?+. Usage:
   #
   #   params[:bucket_type].presence_in %w( project calendar )
+  #   params[:bucket_type].presence_in %w( project calendar ) { "project" }
   #
   # This will throw an +ArgumentError+ if the argument doesn't respond to +#include?+.
   #
   # @return [Object]
-  def presence_in(another_object)
-    self.in?(another_object) ? self : nil
+  def presence_in(another_object, &block)
+    if self.in?(another_object)
+      self
+    elsif block_given?
+      yield(self)
+    else
+      nil
+    end
   end
 end
