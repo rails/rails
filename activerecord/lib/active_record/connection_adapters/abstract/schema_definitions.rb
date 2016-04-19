@@ -331,6 +331,9 @@ module ActiveRecord
       end
 
       def foreign_key(table_name, options = {}) # :nodoc:
+        table_name_prefix = ActiveRecord::Base.table_name_prefix
+        table_name_suffix = ActiveRecord::Base.table_name_suffix
+        table_name = "#{table_name_prefix}#{table_name}#{table_name_suffix}"
         foreign_keys.push([table_name, options])
       end
 
