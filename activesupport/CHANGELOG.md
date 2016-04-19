@@ -15,7 +15,7 @@
         # => 'ab'
 
     We tried shimming the fast path and falling back to the compatible path
-    if it fails, but that ends up slower even in simple causes due to the cost
+    if it fails, but that ends up slower even in simple cases due to the cost
     of exception handling. Our only choice is to override the native `Array#sum`
     with our `Enumerable#sum`.
 
