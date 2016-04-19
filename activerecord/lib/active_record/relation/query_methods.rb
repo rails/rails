@@ -1120,6 +1120,8 @@ module ActiveRecord
           o.desc
         when Arel::Nodes::Ordering
           o.reverse
+        when Arel::Nodes::Node
+          Arel::Nodes::Descending.new(o)
         when String
           if does_not_support_reverse?(o)
             raise IrreversibleOrderError, "Order #{o.inspect} can not be reversed automatically"
