@@ -620,11 +620,12 @@ module ActiveRecord
     end
 
     cattr_accessor :verbose
-    attr_accessor :name, :version
+    attr_accessor :name, :version, :filename
 
-    def initialize(name = self.class.name, version = nil)
+    def initialize(name = self.class.name, version = nil, filename = nil)
       @name       = name
       @version    = version
+      @filename   = filename
       @connection = nil
     end
 
@@ -845,11 +846,27 @@ module ActiveRecord
               (method == :remove_foreign_key && !arguments.second.is_a?(Hash))
               arguments[1] = proper_table_name(arguments.second, table_name_options)
             end
+            *arguments = add_default_comment_to_method method, *arguments
           end
         end
         return super unless connection.respond_to?(method)
         connection.send(method, *arguments, &block)
       end
+    end
+
+    def add_default_comment_to_method method, *arguments
+      arg_index = if method == :create_table
+                    1
+                  elsif [:add_index, :add_column].include? method
+                    2
+                  end
+      case arguments[arg_index]
+        when Hash
+          arguments[arg_index][:comment] ||= self.filename
+        when NilClass
+          arguments[arg_index] = { comment: self.filename }
+      end if arg_index
+      arguments
     end
 
     def copy(destination, sources, options = {})
@@ -963,7 +980,7 @@ module ActiveRecord
 
       def load_migration
         require(File.expand_path(filename))
-        name.constantize.new(name, version)
+        name.constantize.new(name, version, basename)
       end
 
   end
