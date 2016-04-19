@@ -46,7 +46,7 @@ module ActiveRecord
           spec[:collation] = collation
         end
 
-        spec[:comment] = column.comment.inspect if column.comment
+        spec[:comment] = column.comment.inspect if column.comment.present?
 
         spec
       end
