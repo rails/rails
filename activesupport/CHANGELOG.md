@@ -1,3 +1,26 @@
+*   `Array#sum` compat with Ruby 2.4's native method.
+
+    Ruby 2.4 introduces `Array#sum`, but it only supports numeric elements,
+    breaking our `Enumerable#sum` which supports arbitrary `Object#+`.
+    To fix, override `Array#sum` with our compatible implementation.
+
+    Native Ruby 2.4:
+
+        %w[ a b ].sum
+        # => TypeError: String can't be coerced into Fixnum
+
+    With `Enumerable#sum` shim:
+
+        %w[ a b ].sum
+        # => 'ab'
+
+    We tried shimming the fast path and falling back to the compatible path
+    if it fails, but that ends up slower even in simple causes due to the cost
+    of exception handling. Our only choice is to override the native `Array#sum`
+    with our `Enumerable#sum`.
+
+    *Jeremy Daer*
+
 *   `ActiveSupport::Duration` supports ISO8601 formatting and parsing.
 
         ActiveSupport::Duration.parse('P3Y6M4DT12H30M5S')

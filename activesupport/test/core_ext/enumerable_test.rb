@@ -10,22 +10,22 @@ class SummablePayment < Payment
 end
 
 class EnumerableTests < ActiveSupport::TestCase
-
   class GenericEnumerable
     include Enumerable
+
     def initialize(values = [1, 2, 3])
       @values = values
     end
 
     def each
-      @values.each{|v| yield v}
+      @values.each { |v| yield v }
     end
   end
 
   def test_sums
     enum = GenericEnumerable.new([5, 15, 10])
     assert_equal 30, enum.sum
-    assert_equal 60, enum.sum { |i| i * 2}
+    assert_equal 60, enum.sum { |i| i * 2 }
 
     enum = GenericEnumerable.new(%w(a b c))
     assert_equal 'abc', enum.sum
@@ -68,6 +68,24 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal 5, (10..0).sum(5)
     assert_equal 10, (10..10).sum
     assert_equal 42, (10...10).sum(42)
+  end
+
+  def test_array_sums
+    enum = [5, 15, 10]
+    assert_equal 30, enum.sum
+    assert_equal 60, enum.sum { |i| i * 2 }
+
+    enum = %w(a b c)
+    assert_equal 'abc', enum.sum
+    assert_equal 'aabbcc', enum.sum { |i| i * 2 }
+
+    payments = [ Payment.new(5), Payment.new(15), Payment.new(10) ]
+    assert_equal 30, payments.sum(&:price)
+    assert_equal 60, payments.sum { |p| p.price * 2 }
+
+    payments = [ SummablePayment.new(5), SummablePayment.new(15) ]
+    assert_equal SummablePayment.new(20), payments.sum
+    assert_equal SummablePayment.new(20), payments.sum { |p| p }
   end
 
   def test_index_by
