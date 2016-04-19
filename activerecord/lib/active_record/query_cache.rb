@@ -42,11 +42,6 @@ module ActiveRecord
 
     def self.install_executor_hooks(executor = ActiveSupport::Executor)
       executor.register_hook(self)
-
-      executor.to_complete do
-        # FIXME: This should be skipped when env['rack.test']
-        ActiveRecord::Base.clear_active_connections!
-      end
     end
   end
 end

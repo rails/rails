@@ -951,5 +951,19 @@ module ActiveRecord
         owner_to_pool && owner_to_pool[owner.name]
       end
     end
+
+    class ConnectionManagement
+      attr_accessor :clean_connections
+
+      def initialize
+        @clean_connections = true
+      end
+
+      def run; end
+
+      def complete(*)
+        ActiveRecord::Base.clear_active_connections! if clean_connections
+      end
+    end
   end
 end

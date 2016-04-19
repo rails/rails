@@ -157,9 +157,24 @@ end_warning
       end
     end
 
-    initializer "active_record.set_executor_hooks" do
+    initializer "active_record.set_executor_hooks" do |app|
+      conn_hook = ActiveRecord::ConnectionAdapters::ConnectionManagement.new
+
       ActiveSupport.on_load(:active_record) do
         ActiveRecord::QueryCache.install_executor_hooks
+        app.executor.register_hook(conn_hook)
+      end
+
+      ActiveSupport.on_load(:action_dispatch_integration_test) do
+        mattr_accessor :connection_executor_hook
+        self.connection_executor_hook = conn_hook
+
+        setup do
+          connection_executor_hook.clean_connections = false
+        end
+        teardown do
+          connection_executor_hook.clean_connections = true
+        end
       end
     end
 

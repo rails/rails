@@ -137,6 +137,7 @@ module ActiveRecord
 
     eager_autoload do
       autoload :AbstractAdapter
+      autoload :ConnectionManagement, "active_record/connection_adapters/abstract/connection_pool"
     end
   end
 

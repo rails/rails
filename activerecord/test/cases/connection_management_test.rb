@@ -62,12 +62,11 @@ module ActiveRecord
       end
 
       def test_connections_not_closed_if_exception_and_test
-        executor.wrap do
-          app               = Class.new(App) { def call(env); raise; end }.new
-          explosive         = middleware(app)
-          assert_raises(RuntimeError) { explosive.call(@env) }
-          assert ActiveRecord::Base.connection_handler.active_connections?
-        end
+        conn_management.clean_connections = false
+        app               = Class.new(App) { def call(env); raise; end }.new
+        explosive         = middleware(app)
+        assert_raises(RuntimeError) { explosive.call(@env) }
+        assert ActiveRecord::Base.connection_handler.active_connections?
       end
 
       test "doesn't clear active connections when running in a test case" do
@@ -93,9 +92,13 @@ module ActiveRecord
       end
 
       private
+        def conn_management
+          @conn_management ||= ActiveRecord::ConnectionAdapters::ConnectionManagement.new
+        end
+
         def executor
           @executor ||= Class.new(ActiveSupport::Executor).tap do |exe|
-            ActiveRecord::QueryCache.install_executor_hooks(exe)
+            exe.register_hook(conn_management)
           end
         end
 
