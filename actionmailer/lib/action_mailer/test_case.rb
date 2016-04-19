@@ -15,11 +15,11 @@ module ActionMailer
       extend ActiveSupport::Concern
 
       included do
-        teardown :clear_test_deliviers
+        teardown :clear_test_deliveries
       end
 
       private
-      def clear_test_deliviers
+      def clear_test_deliveries
         if ActionMailer::Base.delivery_method == :test
           ActionMailer::Base.deliveries.clear
         end
