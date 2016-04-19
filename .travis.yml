@@ -59,6 +59,7 @@ matrix:
       env:
         - "JRUBY_OPTS='--dev -J-Xmx1024M'"
         - "GEM='ap'"
+        - "TESTOPTS='-v'"
   allow_failures:
     - rvm: ruby-head
   fast_finish: true
