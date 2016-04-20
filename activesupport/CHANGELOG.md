@@ -1,3 +1,14 @@
+*   `ActiveSupport::TimeZone.country_zones(country_code)` looks up the
+    country's time zones by its two-letter ISO3166 country code, e.g.
+
+        >> ActiveSupport::TimeZone.country_zones(:jp).map(&:to_s)
+        => ["(GMT+09:00) Osaka"]
+
+        >> ActiveSupport::TimeZone.country_zones(:uy).map(&:to_s)
+        => ["(GMT-03:00) Montevideo"]
+
+    *Andrey Novikov*
+
 *   `Array#sum` compat with Ruby 2.4's native method.
 
     Ruby 2.4 introduces `Array#sum`, but it only supports numeric elements,
