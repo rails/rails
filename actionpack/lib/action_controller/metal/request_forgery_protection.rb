@@ -405,7 +405,8 @@ module ActionController #:nodoc:
       end
 
       def normalize_action_path(action_path)
-        action_path.split('?').first.to_s.chomp('/')
+        uri = URI.parse(action_path)
+        uri.path.chomp('/')
       end
   end
 end
