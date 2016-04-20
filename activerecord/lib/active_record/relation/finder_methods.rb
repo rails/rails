@@ -107,7 +107,8 @@ module ActiveRecord
     end
 
     # Find the first record (or first N records if a parameter is supplied).
-    # If no order is defined it will order by primary key.
+    # If the records are not already present in memory, it will order by primary key if no other order is specified.
+    # When the records are already in memory it will just return the first record.
     #
     #   Person.first # returns the first object fetched by SELECT * FROM people ORDER BY people.id LIMIT 1
     #   Person.where(["user_name = ?", user_name]).first
@@ -130,7 +131,8 @@ module ActiveRecord
     end
 
     # Find the last record (or last N records if a parameter is supplied).
-    # If no order is defined it will order by primary key.
+    # If the records are not already present in memory, it will order by primary key if no other order is specified.
+    # When the records are already in memory it will just return the last record.
     #
     #   Person.last # returns the last object fetched by SELECT * FROM people
     #   Person.where(["user_name = ?", user_name]).last
@@ -169,7 +171,8 @@ module ActiveRecord
     end
 
     # Find the second record.
-    # If no order is defined it will order by primary key.
+    # If the records are not already present in memory, it will order by primary key if no other order is specified.
+    # When the records are already in memory it will just return the second record.
     #
     #   Person.second # returns the second object fetched by SELECT * FROM people
     #   Person.offset(3).second # returns the second object from OFFSET 3 (which is OFFSET 4)
@@ -185,7 +188,8 @@ module ActiveRecord
     end
 
     # Find the third record.
-    # If no order is defined it will order by primary key.
+    # If the records are not already present in memory, it will order by primary key if no other order is specified.
+    # When the records are already in memory it will just return the third record.
     #
     #   Person.third # returns the third object fetched by SELECT * FROM people
     #   Person.offset(3).third # returns the third object from OFFSET 3 (which is OFFSET 5)
@@ -201,7 +205,8 @@ module ActiveRecord
     end
 
     # Find the fourth record.
-    # If no order is defined it will order by primary key.
+    # If the records are not already present in memory, it will order by primary key if no other order is specified.
+    # When the records are already in memory it will just return the fourth record.
     #
     #   Person.fourth # returns the fourth object fetched by SELECT * FROM people
     #   Person.offset(3).fourth # returns the fourth object from OFFSET 3 (which is OFFSET 6)
@@ -217,7 +222,8 @@ module ActiveRecord
     end
 
     # Find the fifth record.
-    # If no order is defined it will order by primary key.
+    # If the records are not already present in memory, it will order by primary key if no other order is specified.
+    # When the records are already in memory it will just return the fifth record.
     #
     #   Person.fifth # returns the fifth object fetched by SELECT * FROM people
     #   Person.offset(3).fifth # returns the fifth object from OFFSET 3 (which is OFFSET 7)
@@ -233,7 +239,8 @@ module ActiveRecord
     end
 
     # Find the forty-second record. Also known as accessing "the reddit".
-    # If no order is defined it will order by primary key.
+    # If the records are not already present in memory, it will order by primary key if no other order is specified.
+    # When the records are already in memory it will just return the forty-second record.
     #
     #   Person.forty_two # returns the forty-second object fetched by SELECT * FROM people
     #   Person.offset(3).forty_two # returns the forty-second object from OFFSET 3 (which is OFFSET 44)
@@ -249,7 +256,8 @@ module ActiveRecord
     end
 
     # Find the third-to-last record.
-    # If no order is defined it will order by primary key.
+    # If the records are not already present in memory, it will order by primary key if no other order is specified.
+    # When the records are already in memory it will just return the third-to-last record.
     #
     #   Person.third_to_last # returns the third-to-last object fetched by SELECT * FROM people
     #   Person.offset(3).third_to_last # returns the third-to-last object from OFFSET 3
@@ -265,7 +273,8 @@ module ActiveRecord
     end
 
     # Find the second-to-last record.
-    # If no order is defined it will order by primary key.
+    # If the records are not already present in memory, it will order by primary key if no other order is specified.
+    # When the records are already in memory it will just return the second-to-last record.
     #
     #   Person.second_to_last # returns the second-to-last object fetched by SELECT * FROM people
     #   Person.offset(3).second_to_last # returns the second-to-last object from OFFSET 3
@@ -579,7 +588,7 @@ module ActiveRecord
         # e.g., reverse_order.offset(index-1).first
       end
     end
-    
+
     private
 
     def find_nth_with_limit_and_offset(index, limit, offset:) # :nodoc:
