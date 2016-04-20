@@ -1,3 +1,7 @@
+*   Add `to_sentence` helper that is a HTML-safe aware version of `Array#to_sentence`.
+
+    *Neil Matatall*
+
 *   Deprecate `datetime_field` and `datetime_field_tag` helpers.
     Datetime input type was removed from HTML specification.
     One can use `datetime_local_field` and `datetime_local_field_tag` instead.
