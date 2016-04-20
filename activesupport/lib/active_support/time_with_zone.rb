@@ -403,7 +403,7 @@ module ActiveSupport
 
     # Returns an instance of Time in the system timezone.
     def to_time
-      utc.to_time
+      ActiveSupport.to_time_preserves_timezone ? localtime : utc.to_time.getlocal
     end
 
     # Returns an instance of DateTime with the timezone's UTC offset

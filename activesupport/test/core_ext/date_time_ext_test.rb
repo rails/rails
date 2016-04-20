@@ -56,6 +56,34 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_to_time_not_preserves_timezone_mode
+    prev = ActiveSupport.to_time_preserves_timezone
+    ActiveSupport.to_time_preserves_timezone = false
+    date_time = DateTime.new(2005, 2, 21, 11, 11, 12, '+01:00')
+
+    with_env_tz 'US/Eastern' do
+      assert_equal Time, date_time.to_time.class
+      assert_equal Time.local(2005, 2, 21, 5, 11, 12), date_time.to_time
+      assert_equal Time.local(2005, 2, 21, 5, 11, 12).utc_offset, date_time.to_time.utc_offset
+    end
+  ensure
+    ActiveSupport.to_time_preserves_timezone = prev
+  end
+
+  def test_to_time_preserves_timezone_mode
+    prev = ActiveSupport.to_time_preserves_timezone
+    ActiveSupport.to_time_preserves_timezone = true
+    date_time = DateTime.new(2005, 2, 21, 11, 11, 12, '+01:00')
+
+    with_env_tz 'US/Eastern' do
+      assert_equal Time, date_time.to_time.class
+      assert_equal Time.local(2005, 2, 21, 5, 11, 12), date_time.to_time
+      assert_equal (-18000 - 3600), Time.local(2005, 2, 21, 5, 11, 12).utc_offset - date_time.to_time.utc_offset
+    end
+  ensure
+    ActiveSupport.to_time_preserves_timezone = prev
+  end
+
   def test_to_time_preserves_fractional_seconds
     assert_equal Time.utc(2005, 2, 21, 10, 11, 12, 256), DateTime.new(2005, 2, 21, 10, 11, 12 + Rational(256, 1000000), 0).to_time
   end

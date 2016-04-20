@@ -77,6 +77,8 @@ module ActiveSupport
   end
 
   cattr_accessor :test_order # :nodoc:
+  cattr_accessor :to_time_preserves_timezone # :nodoc:
+  self.to_time_preserves_timezone = false
 
   def self.halt_callback_chains_on_return_false
     Callbacks.halt_and_display_warning_on_return_false

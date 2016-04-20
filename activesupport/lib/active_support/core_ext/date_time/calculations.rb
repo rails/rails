@@ -1,14 +1,17 @@
 require 'date'
 
 class DateTime
-  module Compatibility
-    # 2.3 compatible
+  module ToTimeCompatibility # :nodoc:
     def to_time
-      super.utc.getlocal
+      if ActiveSupport.to_time_preserves_timezone
+        Time.new(year, month, day, hour, min, (sec + sec_fraction), utc_offset)
+      else
+        super.utc.getlocal
+      end
     end
   end
 
-  prepend Compatibility
+  prepend ToTimeCompatibility
 
   class << self
     # Returns <tt>Time.zone.now.to_datetime</tt> when <tt>Time.zone</tt> or
@@ -179,10 +182,5 @@ class DateTime
     else
       super
     end
-  end
-
-  # 2.4 compatible
-  def to_time
-    Time.new(year, month, day, hour, min, (sec + sec_fraction), offset)
   end
 end

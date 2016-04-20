@@ -65,13 +65,7 @@ class Time
     utc? && alternate_utc_string || ActiveSupport::TimeZone.seconds_to_utc_offset(utc_offset, colon)
   end
 
-  # 2.3 compatible
   def to_time
-    utc.getlocal
-  end
-
-  # 2.4 compatible
-  def to_time
-    self
+    ActiveSupport.to_time_preserves_timezone ? self : utc.getlocal
   end
 end
