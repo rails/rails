@@ -40,7 +40,7 @@ module ActiveModel
       self
     end
 
-    # Returns an Array of all key attributes if any is set, regardless if
+    # Returns an Array of all key attributes, if any are set, regardless if
     # the object is persisted or not. Returns +nil+ if there are no key attributes.
     #
     #   class Person
