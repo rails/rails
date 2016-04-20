@@ -227,6 +227,9 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     `RedirectBackError`.
     ([Pull Request](https://github.com/rails/rails/pull/22506))
 
+*   `ActionDispatch::IntegrationTest` and `ActionController::TestCase` deprecate positional arguments in favor of
+    keyword arguments. ([Pull Request](https://github.com/rails/rails/pull/18323))
+
 ### Notable changes
 
 *   Added `ActionController::Renderer` to render arbitrary templates
