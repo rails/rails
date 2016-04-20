@@ -29,6 +29,14 @@ class SerializationTest < ActiveModel::TestCase
     end
   end
 
+  class SuperUser < User
+
+    def attributes
+      instance_values.except("address", "friends").symbolize_keys
+    end
+
+  end
+
   class Address
     include ActiveModel::Serialization
 
@@ -48,6 +56,7 @@ class SerializationTest < ActiveModel::TestCase
     @user.address.zip = 11111
     @user.friends = [User.new('Joe', 'joe@example.com', 'male'),
                      User.new('Sue', 'sue@example.com', 'female')]
+    @super_user = SuperUser.new('John', 'john@example.com', 'male')
   end
 
   def test_method_serializable_hash_should_work
@@ -63,6 +72,21 @@ class SerializationTest < ActiveModel::TestCase
   def test_method_serializable_hash_should_work_with_except_option
     expected = {"gender"=>"male", "email"=>"david@example.com"}
     assert_equal expected, @user.serializable_hash(except: ['name'])
+  end
+
+  def test_method_serializable_hash_should_work_with_symbolizes_attributes
+    expected = {"name"=>"John", "gender"=>"male", "email"=>"john@example.com"}
+    assert_equal expected, @super_user.serializable_hash
+  end
+
+  def test_method_serializable_hash_should_work_with_only_option_with_symbolized_attributes
+    expected = {"name"=>"John"}
+    assert_equal expected, @super_user.serializable_hash(only: [:name])
+  end
+
+  def test_method_serializable_hash_should_work_with_except_option_with_symbolized_attributes
+    expected = {"gender"=>"male", "email"=>"john@example.com"}
+    assert_equal expected, @super_user.serializable_hash(except: [:name])
   end
 
   def test_method_serializable_hash_should_work_with_methods_option
