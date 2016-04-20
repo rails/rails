@@ -15,7 +15,7 @@ module ActionCable
 
       # Overwrite this factory method for EventMachine Redis connections if you want to use a different Redis connection library than EM::Hiredis.
       # This is needed, for example, when using Makara proxies for distributed Redis.
-      cattr_accessor(:em_redis_connector) { ->(config) { EM::Hiredis.connect(config[:url]) } }
+      cattr_accessor(:em_redis_connector) { ->(config) { EM.run { return EM::Hiredis.connect(config[:url]) } } }
 
       # Overwrite this factory method for Redis connections if you want to use a different Redis connection library than Redis.
       # This is needed, for example, when using Makara proxies for distributed Redis.
