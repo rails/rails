@@ -10,7 +10,7 @@ task about: :environment do
 end
 
 namespace :time do
-  desc 'List all time zones, list by two-letter country code (`rake time:zones[US]`), or list by UTC offset (`rake time:zones[-8]`)'
+  desc 'List all time zones, list by two-letter country code (`rails time:zones[US]`), or list by UTC offset (`rails time:zones[-8]`)'
   task :zones, :country_or_offset do |t, args|
     zones, offset = ActiveSupport::TimeZone.all, nil
 
