@@ -112,7 +112,12 @@ class String
   #
   # @return [true, false]
   def blank?
-    BLANK_RE === self
+    # In practice, the majority of blank strings are empty. As of this writing
+    # checking for empty? is about 3.5x faster than matching against the regexp
+    # in MRI, so we call the predicate first, and then fallback.
+    #
+    # The penalty for blank strings with whitespace or present ones is marginal.
+    empty? || BLANK_RE === self
   end
 end
 
