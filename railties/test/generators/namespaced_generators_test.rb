@@ -409,7 +409,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Route
     assert_file "config/routes.rb" do |route|
-      assert_match(/^  namespace :admin do\n    resources :roles\n  end$/, route)
+      assert_match(/^  namespace :admin do\n    resources :roles, except: \[:new, :edit\]\n  end$/, route)
     end
 
     # Controller
