@@ -1,3 +1,9 @@
+*   Time zones: Ensure that the UTC offset reflects DST changes that occurred
+    since the app started. Removes UTC offset caching, reducing performance,
+    but this is still relatively quick and isn't in any hot paths.
+
+    *Alexey Shein*
+
 *   Make `getlocal` and `getutc` always return instances of `Time` for
     `ActiveSupport::TimeWithZone` and `DateTime`. This eliminates a possible
     stack level too deep error in `to_time` where `ActiveSupport::TimeWithZone`
