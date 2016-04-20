@@ -157,13 +157,16 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_no_file "app/assets/stylesheets/product_lines.css"
   end
 
-  def test_api_scaffold_doesnt_generate_views_and_assets
+  def test_api_scaffold_doesnt_generate_views_assets_helpers
     run_generator %w(product_line title:string product:belongs_to user:references --api)
 
     # Views
     %w(index show new edit _form).each do |view|
       assert_no_file "app/views/product_lines/#{view}.html.erb"
     end
+
+    # Helpers
+    assert_no_file "app/helpers/product_lines_helper.rb"
 
     # Assets
     assert_no_file "app/assets/stylesheets/scaffold.css"

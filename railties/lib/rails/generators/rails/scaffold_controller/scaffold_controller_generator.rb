@@ -28,7 +28,7 @@ module Rails
 
       # Invoke the helper using the controller name (pluralized)
       hook_for :helper, as: :scaffold do |invoked|
-        invoke invoked, [ controller_name ]
+        invoke invoked, [ controller_name ] unless options.api?
       end
     end
   end
