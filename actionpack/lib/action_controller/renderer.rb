@@ -45,7 +45,7 @@ module ActionController
     }.freeze
 
     # Create a new renderer instance for a specific controller class.
-    def self.for(controller, env = {}, defaults = DEFAULTS)
+    def self.for(controller, env = {}, defaults = DEFAULTS.dup)
       new(controller, env, defaults)
     end
 
