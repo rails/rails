@@ -524,7 +524,7 @@ On the contrary, if `ApplicationController` is unknown, the constant is
 considered missing and an autoload is going to be attempted by Rails.
 
 In order to load `ApplicationController`, Rails iterates over `autoload_paths`.
-First checks if `app/assets/application_controller.rb` exists. If it does not,
+First it checks if `app/assets/application_controller.rb` exists. If it does not,
 which is normally the case, it continues and finds
 `app/controllers/application_controller.rb`.
 
@@ -624,7 +624,7 @@ file is loaded. If the file actually defines `Post` all is fine, otherwise
 ### Qualified References
 
 When a qualified constant is missing Rails does not look for it in the parent
-namespaces. But there is a caveat: When a constant is missing, Rails is
+namespaces. But there is a caveat: when a constant is missing, Rails is
 unable to tell if the trigger was a relative reference or a qualified one.
 
 For example, consider
