@@ -1762,4 +1762,10 @@ class HashToXmlTest < ActiveSupport::TestCase
       Hash.from_xml(attack_xml)
     end
   end
+
+  def test_from_xml_doesnt_taint_strings
+    string_object = "<?xml version=\"1.0\"?><a>Cat</a>".freeze
+    assert_equal({"a"=>"Cat"}, Hash.from_xml(string_object))
+    assert_equal "<?xml version=\"1.0\"?><a>Cat</a>", string_object
+  end
 end

@@ -126,7 +126,7 @@ class Hash
     # Note that passing custom disallowed types will override the default types,
     # which are Symbol and YAML.
     def from_xml(xml, disallowed_types = nil)
-      ActiveSupport::XMLConverter.new(xml, disallowed_types).to_h
+      ActiveSupport::XMLConverter.new(xml.dup, disallowed_types).to_h
     end
 
     # Builds a Hash from XML just like <tt>Hash.from_xml</tt>, but also allows Symbol and YAML.
