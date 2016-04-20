@@ -1,3 +1,13 @@
+*   Schema dumper: Indexes are now included in the `create_table` block
+    instead of listed afterward as separate `add_index` lines.
+
+    This tidies up schema.rb and makes it easy to read as a list of tables.
+
+    Bonus: Allows databases that support it (MySQL) to perform as single
+    `CREATE TABLE` query, no additional query per index.
+
+    *Ryuta Kamizono*
+
 *   SQLite: Fix uniqueness validation when values exceed the column limit.
 
     SQLite doesn't impose length restrictions on strings, BLOBs, or numeric
