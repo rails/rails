@@ -1,3 +1,9 @@
+*   Time zones: Ensure that the UTC offset reflects DST changes that occurred
+    since the app started. Removes UTC offset caching, reducing performance,
+    but this is still relatively quick and isn't in any hot paths.
+
+    *Alexey Shein*
+
 *   Prevent `Marshal.load` from looping infinitely when trying to autoload a constant
     which resolves to a different name.
 
