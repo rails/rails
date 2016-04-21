@@ -34,7 +34,7 @@ module ApplicationTests
         Dir.chdir(app_path) do
           FileUtils.mkdir_p("tmp/pids")
           FileUtils.touch("tmp/pids/server.pid")
-          `rake dev:cache`
+          `rails dev:cache`
           assert_not File.exist?("tmp/pids/server.pid")
         end
       end
