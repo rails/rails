@@ -265,6 +265,7 @@ GEM
     w3c_validators (1.2)
       json
       nokogiri
+    wdm (0.1.1)
     websocket-driver (0.6.3)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.2)
@@ -323,6 +324,7 @@ DEPENDENCIES
   tzinfo-data
   uglifier (>= 1.3.0)
   w3c_validators
+  wdm (>= 0.1.0)
 
 BUNDLED WITH
    1.11.2

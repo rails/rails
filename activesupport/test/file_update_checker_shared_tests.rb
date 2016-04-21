@@ -9,7 +9,7 @@ module FileUpdateCheckerSharedTests
   end
 
   def tmpfile(name)
-    "#{tmpdir}/#{name}"
+    File.join(tmpdir, name)
   end
 
   def tmpfiles
@@ -17,7 +17,9 @@ module FileUpdateCheckerSharedTests
   end
 
   def run(*args)
-    Dir.mktmpdir(nil, __dir__) { |dir| @tmpdir = dir; super }
+    capture_exceptions do
+      Dir.mktmpdir(nil, __dir__) { |dir| @tmpdir = dir; super }
+    end
   end
 
   test 'should not execute the block if no paths are given' do
@@ -225,7 +227,7 @@ module FileUpdateCheckerSharedTests
     assert !checker.execute_if_updated
     assert_equal 0, i
 
-    touch("#{subdir}/nested.rb")
+    touch(File.join(subdir, "nested.rb"))
 
     assert checker.execute_if_updated
     assert_equal 1, i
@@ -245,12 +247,12 @@ module FileUpdateCheckerSharedTests
     assert_equal 0, i
 
     # subdir does not look for Ruby files, but its parent tmpdir does.
-    touch("#{subdir}/nested.rb")
+    touch(File.join(subdir, "nested.rb"))
 
     assert checker.execute_if_updated
     assert_equal 1, i
 
-    touch("#{subdir}/nested.txt")
+    touch(File.join(subdir, "nested.txt"))
 
     assert checker.execute_if_updated
     assert_equal 2, i
