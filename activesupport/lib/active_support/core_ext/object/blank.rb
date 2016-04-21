@@ -110,8 +110,12 @@ class String
   #
   # @return [true, false]
   def blank?
-    # Regex check is slow, only check non-empty strings.
-    # A string not blank if it contains a single non-space string.
+    # In practice, the majority of blank strings are empty. The predicate is
+    # about 3.5x faster than the regexp check so we first test empty?, and then
+    # fallback. Penalty for the rest of strings is marginal.
+    #
+    # Double negation in the second operand is also a performance tweak, it is
+    # faster than the positive \A[[:space:]]*\z due to lack of backtracking.
     empty? || !(/[[:^space:]]/ === self)
   end
 end
