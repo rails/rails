@@ -97,8 +97,6 @@ class Hash
 end
 
 class String
-  BLANK_RE = /\A[[:space:]]*\z/
-
   # A string is blank if it's empty or contains whitespaces only:
   #
   #   ''.blank?       # => true
