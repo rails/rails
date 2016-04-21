@@ -318,7 +318,7 @@ module ActiveRecord
     #   create_other(attributes={})       |     X      |              |    X
     #   create_other!(attributes={})      |     X      |              |    X
     #
-    # ===Collection associations (one-to-many / many-to-many)
+    # === Collection associations (one-to-many / many-to-many)
     #                                     |       |          | has_many
     #   generated methods                 | habtm | has_many | :through
     #   ----------------------------------+-------+----------+----------
