@@ -533,7 +533,7 @@ module ActiveModel
     def initialize(record, attribute)
       @record = record
       @attribute = attribute
-      super("unknown attribute '#{attribute}' for #{@record.class}.")
+      super("unknown attribute '#{@attribute}' for #{@record.class}.")
     end
   end
 end
