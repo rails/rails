@@ -1109,7 +1109,7 @@ module ActionDispatch
         class Resource #:nodoc:
           attr_reader :controller, :path, :param
 
-          def initialize(entities, api_only, shallow, options = {})
+          def initialize(entities, api_only, engine, shallow, options = {})
             @name       = entities.to_s
             @path       = (options[:path] || @name).to_s
             @controller = (options[:controller] || @name).to_s
@@ -1120,10 +1120,11 @@ module ActionDispatch
             @api_only   = api_only
             @only       = options.delete :only
             @except     = options.delete :except
+            @engine     = engine
           end
 
           def default_actions
-            if @api_only
+            if @api_only && !@engine
               [:index, :create, :show, :update, :destroy]
             else
               [:index, :create, :new, :show, :update, :destroy, :edit]
@@ -1192,7 +1193,7 @@ module ActionDispatch
         end
 
         class SingletonResource < Resource #:nodoc:
-          def initialize(entities, api_only, shallow, options)
+          def initialize(entities, api_only, engine, shallow, options)
             super
             @as         = nil
             @controller = (options[:controller] || plural).to_s
@@ -1200,7 +1201,7 @@ module ActionDispatch
           end
 
           def default_actions
-            if @api_only
+            if @api_only && !@engine
               [:show, :create, :update, :destroy]
             else
               [:show, :create, :update, :destroy, :new, :edit]
@@ -1258,7 +1259,7 @@ module ActionDispatch
 
           with_scope_level(:resource) do
             options = apply_action_options options
-            resource_scope(SingletonResource.new(resources.pop, api_only?, @scope[:shallow], options)) do
+            resource_scope(SingletonResource.new(resources.pop, api_only?, engine?, @scope[:shallow], options)) do
               yield if block_given?
 
               concerns(options[:concerns]) if options[:concerns]
@@ -1419,7 +1420,7 @@ module ActionDispatch
 
           with_scope_level(:resources) do
             options = apply_action_options options
-            resource_scope(Resource.new(resources.pop, api_only?, @scope[:shallow], options)) do
+            resource_scope(Resource.new(resources.pop, api_only?, engine?, @scope[:shallow], options)) do
               yield if block_given?
 
               concerns(options[:concerns]) if options[:concerns]
@@ -1894,6 +1895,11 @@ to this:
           def api_only?
             @set.api_only?
           end
+
+          def engine?
+            @set.engine?
+          end
+
         private
 
         def path_scope(path)

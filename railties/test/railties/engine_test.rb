@@ -370,6 +370,67 @@ module RailtiesTest
       assert_equal 'bar', last_response.body
     end
 
+    def test_engine_and_app_routes_within_api_app
+      add_to_config <<-RUBY
+        config.api_only = true
+      RUBY
+
+      controller "foos", <<-RUBY
+        class FoosController < ActionController::Base
+          def index
+            render :text => "foo"
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          resources :foos
+        end
+      RUBY
+
+      @plugin.write "app/controllers/bars_controller.rb", <<-RUBY
+        class BarsController < ActionController::Base
+          def index
+            render :text => "bar"
+          end
+
+          def new
+            render :text => "new bar"
+          end
+
+          def edit
+            render :text => "edit bar"
+          end
+        end
+      RUBY
+
+      @plugin.write "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          resources :bars
+        end
+      RUBY
+
+      boot_rails
+      require 'rack/test'
+      extend Rack::Test::Methods
+
+      get '/foos'
+      assert_equal 'foo', last_response.body
+
+      get '/foos/new'
+      assert_equal 404, last_response.status
+
+      get '/bars'
+      assert_equal 'bar', last_response.body
+
+      get '/bars/new'
+      assert_equal 'new bar', last_response.body
+
+      get '/bars/1/edit'
+      assert_equal 'edit bar', last_response.body
+    end
+
     test "rake tasks lib tasks are loaded" do
       $executed = false
       @plugin.write "lib/tasks/foo.rake", <<-RUBY
