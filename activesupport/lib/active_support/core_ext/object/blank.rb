@@ -115,7 +115,7 @@ class String
     # fallback. Penalty for the rest of strings is marginal.
     #
     # Double negation in the second operand is also a performance tweak, it is
-    # faster than the positive \A[[:space:]]*\z due to lack of backtracking.
+    # faster than the positive \A[[:space:]]*\z.
     empty? || !(/[[:^space:]]/ === self)
   end
 end
