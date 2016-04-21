@@ -28,7 +28,7 @@ module ActionCable
 
     private
       # Represents a single remote connection found via <tt>ActionCable.server.remote_connections.where(*)</tt>.
-      # Exists for the solely for the purpose of calling #disconnect on that connection.
+      # Exists solely for the purpose of calling #disconnect on that connection.
       class RemoteConnection
         class InvalidIdentifiersError < StandardError; end
 
