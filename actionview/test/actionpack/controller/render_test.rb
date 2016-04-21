@@ -625,6 +625,11 @@ class TestController < ApplicationController
     render :action => "calling_partial_with_layout", :layout => "layouts/partial_with_layout"
   end
 
+  def render_changes_rendered_format
+    render_to_string file: 'test', formats: [:xml], layout: false
+    render plain: '<p>hello world</p>'
+  end
+
   before_action only: :render_with_filters do
     request.format = :xml
   end
@@ -1327,5 +1332,12 @@ class RenderTest < ActionController::TestCase
   def test_render_call_to_partial_with_layout_in_main_layout_and_within_content_for_layout
     get :render_call_to_partial_with_layout_in_main_layout_and_within_content_for_layout
     assert_equal "Before (Anthony)\nInside from partial (Anthony)\nAfter\nBefore (David)\nInside from partial (David)\nAfter\nBefore (Ramm)\nInside from partial (Ramm)\nAfter", @response.body
+  end
+
+  def test_render_changes_rendered_format
+    get :render_changes_rendered_format
+    assert_equal 200, @response.status
+    assert_equal '<p>hello world</p>', @response.body
+    assert_equal 'text/plain; charset=utf-8', @response.headers['Content-Type']
   end
 end

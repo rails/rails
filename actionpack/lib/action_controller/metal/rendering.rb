@@ -67,9 +67,7 @@ module ActionController
     end
 
     def _set_rendered_content_type(format)
-      unless response.content_type
         self.content_type = format.to_s
-      end
     end
 
     # Normalize arguments by catching blocks and setting them on :update.

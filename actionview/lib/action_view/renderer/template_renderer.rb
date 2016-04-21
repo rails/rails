@@ -9,7 +9,7 @@ module ActionView
 
       prepend_formats(template.formats)
 
-      @lookup_context.rendered_format ||= (template.formats.first || formats.first)
+      @lookup_context.rendered_format = (template.formats.first || formats.first)
 
       render_template(template, options[:layout], options[:locals])
     end
