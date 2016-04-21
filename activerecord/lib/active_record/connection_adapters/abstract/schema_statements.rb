@@ -317,6 +317,8 @@ module ActiveRecord
       # [<tt>:force</tt>]
       #   Set to true to drop the table before creating it.
       #   Defaults to false.
+      # [<tt>:type</tt>]
+      #   The column type of primary key. Defaults to +:integer+.
       #
       # Note that #create_join_table does not create any indices by default; you can use
       # its block form to do so yourself:
