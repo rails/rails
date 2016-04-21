@@ -287,4 +287,8 @@ class EnumTest < ActiveRecord::TestCase
     book2.status = :uploaded
     assert_equal ['drafted', 'uploaded'], book2.status_change
   end
+
+  test "enum values by symbol" do
+    assert_equal [Book.statuses[:proposed], Book.statuses[:written]], Book.statuses_by_sym(:proposed, :written)
+  end
 end

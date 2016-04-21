@@ -67,6 +67,14 @@ module ActiveRecord
   #   Conversation.where("status <> ?", Conversation.statuses[:archived])
   #
   # Where conditions on an enum attribute must use the ordinal value of an enum.
+  #
+  # If you need to get indexes by several enum values you can use method like:
+  #
+  #   Conversation.statuses_by_sym(:active, :archived) # => [0, 1]
+  #
+  # This method is helpful when you need few statuses for where query:
+  #
+  #   Conversation.where(status: Conversation.statuses_by_sym(:active, :archived))
   module Enum
     def self.extended(base) # :nodoc:
       base.class_attribute(:defined_enums, instance_writer: false)
@@ -84,10 +92,18 @@ module ActiveRecord
         # statuses = { }
         enum_values = ActiveSupport::HashWithIndifferentAccess.new
         name        = name.to_sym
+        plural_name = name.to_s.pluralize
 
         # def self.statuses statuses end
-        detect_enum_conflict!(name, name.to_s.pluralize, true)
-        klass.singleton_class.send(:define_method, name.to_s.pluralize) { enum_values }
+        detect_enum_conflict!(name, plural_name, true)
+        klass.singleton_class.send(:define_method, plural_name) { enum_values }
+
+        # def self.statuses_by_sym statuses(:active, :offline) end
+        detect_enum_conflict!(name, "#{plural_name}_by_sym", true)
+        klass.singleton_class.send(:define_method, "#{plural_name}_by_sym") { |*values|
+          raise ArgumentError, 'Values should be String or Symbol' if values.any? { |val| val.is_a?(Array) }
+          klass.send(plural_name).values_at(*values).compact
+        }
 
         _enum_methods_module.module_eval do
           # def status=(value) self[:status] = statuses[value] end
