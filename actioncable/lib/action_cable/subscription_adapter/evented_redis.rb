@@ -53,6 +53,10 @@ module ActionCable
               redis.on(:reconnect_failed) do
                 @logger.error "[ActionCable] Redis reconnect failed."
               end
+
+              redis.on(:failed) do
+                @logger.error "[ActionCable] Redis connection has failed."
+              end
             end
           end
         end
