@@ -1,3 +1,19 @@
+*   ActiveRecord::Enum#enum: method `enum` added one extra method for each
+    enum declaration. This extra method allows object to get the indexes
+    for several keys (String or Symbol type). This extra method needs for
+    where queries for search by several enum keys.
+
+    Examples:
+        class Book
+          enum status: [:proposed, :written]
+        end
+
+        Book.statuses_by_sym(:proposed, :written) # => [0, 1]
+
+        Book.where(status: Book.statuses_by_sym(:proposed, :written))
+
+    *Yuri Holubchenko*
+
 *   ActiveRecord::Relation#count: raise an ArgumentError when finder options
     are specified or an ActiveRecord::StatementInvalid when an invalid type
     is provided for a column name (e.g. a Hash).
