@@ -111,6 +111,7 @@ module ActiveRecord
       end
 
       def test_not_specifying_database_name_for_cross_database_selects
+        teardown_fixtures
         begin
           assert_nothing_raised do
             ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations['arunit'].except(:database))

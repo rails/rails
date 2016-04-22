@@ -99,6 +99,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_passing_arbitary_flags_to_adapter
+    teardown_fixtures
     run_without_connection do |orig_connection|
       ActiveRecord::Base.establish_connection(orig_connection.merge({flags: Mysql2::Client::COMPRESS}))
       assert_equal (Mysql2::Client::COMPRESS |  Mysql2::Client::FOUND_ROWS), ActiveRecord::Base.connection.raw_connection.query_options[:flags]
@@ -106,6 +107,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_passing_flags_by_array_to_adapter
+    teardown_fixtures
     run_without_connection do |orig_connection|
       ActiveRecord::Base.establish_connection(orig_connection.merge({flags: ['COMPRESS'] }))
       assert_equal ["COMPRESS", "FOUND_ROWS"], ActiveRecord::Base.connection.raw_connection.query_options[:flags]
@@ -113,6 +115,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_mysql_set_session_variable
+    teardown_fixtures
     run_without_connection do |orig_connection|
       ActiveRecord::Base.establish_connection(orig_connection.deep_merge({:variables => {:default_week_format => 3}}))
       session_mode = ActiveRecord::Base.connection.exec_query "SELECT @@SESSION.DEFAULT_WEEK_FORMAT"
@@ -121,6 +124,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_mysql_set_session_variable_to_default
+    teardown_fixtures
     run_without_connection do |orig_connection|
       ActiveRecord::Base.establish_connection(orig_connection.deep_merge({:variables => {:default_week_format => :default}}))
       global_mode = ActiveRecord::Base.connection.exec_query "SELECT @@GLOBAL.DEFAULT_WEEK_FORMAT"

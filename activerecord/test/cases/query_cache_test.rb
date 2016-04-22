@@ -8,6 +8,10 @@ require 'rack'
 class QueryCacheTest < ActiveRecord::TestCase
   fixtures :tasks, :topics, :categories, :posts, :categories_posts
 
+  setup do
+    teardown_fixtures
+  end
+
   teardown do
     Task.connection.clear_query_cache
     ActiveRecord::Base.connection.disable_query_cache!
@@ -211,6 +215,7 @@ class QueryCacheTest < ActiveRecord::TestCase
   private
     def middleware(&app)
       executor = Class.new(ActiveSupport::Executor)
+      executor.instance_variable_set('@rack_test', true)
       ActiveRecord::QueryCache.install_executor_hooks executor
       lambda { |env| executor.wrap { app.call(env) } }
     end

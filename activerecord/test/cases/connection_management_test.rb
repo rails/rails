@@ -17,6 +17,7 @@ module ActiveRecord
       end
 
       def setup
+        teardown_fixtures
         @env = {}
         @app = App.new
         @management = middleware(@app)

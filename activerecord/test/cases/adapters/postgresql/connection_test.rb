@@ -12,6 +12,7 @@ module ActiveRecord
 
     def setup
       super
+      teardown_fixtures
       @subscriber = SQLSubscriber.new
       @subscription = ActiveSupport::Notifications.subscribe('sql.active_record', @subscriber)
       @connection = ActiveRecord::Base.connection
