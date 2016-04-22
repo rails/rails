@@ -61,12 +61,12 @@ module ActionMailer
           set_delivery_method :test
           @old_perform_deliveries = ActionMailer::Base.perform_deliveries
           ActionMailer::Base.perform_deliveries = true
+          ActionMailer::Base.deliveries.clear
         end
 
         def restore_test_deliveries
           restore_delivery_method
           ActionMailer::Base.perform_deliveries = @old_perform_deliveries
-          ActionMailer::Base.deliveries.clear
         end
 
         def set_delivery_method(method)
@@ -75,6 +75,7 @@ module ActionMailer
         end
 
         def restore_delivery_method
+          ActionMailer::Base.deliveries.clear
           ActionMailer::Base.delivery_method = @old_delivery_method
         end
 
