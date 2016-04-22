@@ -755,6 +755,12 @@ module ActionDispatch
         @@app = nil
       end
 
+      def run(*)
+        app.executor.wrap do
+          super
+        end
+      end
+
       module ClassMethods
         def app
           defined?(@@app) ? @@app : ActionDispatch.test_app
