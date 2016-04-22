@@ -86,7 +86,7 @@ $ cd myapp
 
 ### Vendoring Gems
 
-Rails now uses a `Gemfile` in the application root to determine the gems you require for your application to start. This `Gemfile` is processed by the [Bundler](http://github.com/carlhuda/bundler,) which then installs all your dependencies. It can even install all the dependencies locally to your application so that it doesn't depend on the system gems.
+Rails now uses a `Gemfile` in the application root to determine the gems you require for your application to start. This `Gemfile` is processed by the [Bundler](http://github.com/bundler/bundler,) which then installs all your dependencies. It can even install all the dependencies locally to your application so that it doesn't depend on the system gems.
 
 More information: - [bundler homepage](http://bundler.io/)
 
@@ -213,7 +213,6 @@ Railties now deprecates:
 More information:
 
 * [Discovering Rails 3 generators](http://blog.plataformatec.com.br/2010/01/discovering-rails-3-generators)
-* [Making Generators for Rails 3 with Thor](http://caffeinedd.com/guides/331-making-generators-for-rails-3-with-thor)
 * [The Rails Module (in Rails 3)](http://litanyagainstfear.com/blog/2010/02/03/the-rails-module/)
 
 Action Pack
@@ -250,7 +249,7 @@ Deprecations:
 
 More Information:
 
-* [Render Options in Rails 3](http://www.engineyard.com/blog/2010/render-options-in-rails-3/)
+* [Render Options in Rails 3](https://blog.engineyard.com/2010/render-options-in-rails-3)
 * [Three reasons to love ActionController::Responder](http://weblog.rubyonrails.org/2009/8/31/three-reasons-love-responder)
 
 
