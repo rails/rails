@@ -298,6 +298,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support multi-value insert
+      def supports_multi_insert?
+        true
+      end
+
       # This is meant to be implemented by the adapters that support extensions
       def disable_extension(name)
       end
