@@ -4,6 +4,8 @@ require "rack"
 module ActiveRecord
   module ConnectionAdapters
     class ConnectionManagementTest < ActiveRecord::TestCase
+      self.use_transactional_tests = false
+
       class App
         attr_reader :calls
         def initialize
@@ -46,8 +48,8 @@ module ActiveRecord
         assert !ActiveRecord::Base.connection_handler.active_connections?
       end
 
-      def test_active_connections_are_not_cleared_on_body_close_during_test
-        executor.wrap do
+      def test_active_connections_are_not_cleared_on_body_close_during_transaction
+        ActiveRecord::Base.transaction do
           _, _, body = @management.call(@env)
           body.close
           assert ActiveRecord::Base.connection_handler.active_connections?
@@ -61,9 +63,9 @@ module ActiveRecord
         assert !ActiveRecord::Base.connection_handler.active_connections?
       end
 
-      def test_connections_not_closed_if_exception_and_test
-        executor.wrap do
-          app               = Class.new(App) { def call(env); raise; end }.new
+      def test_connections_not_closed_if_exception_inside_transaction
+        ActiveRecord::Base.transaction do
+          app               = Class.new(App) { def call(env); raise RuntimeError; end }.new
           explosive         = middleware(app)
           assert_raises(RuntimeError) { explosive.call(@env) }
           assert ActiveRecord::Base.connection_handler.active_connections?
