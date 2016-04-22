@@ -29,6 +29,24 @@ class SchemaDumperTest < ActiveRecord::TestCase
     ActiveRecord::SchemaMigration.delete_all
   end
 
+  if current_adapter?(:SQLite3Adapter)
+    %w{3.7.8 3.7.11 3.7.12}.each do |version_string|
+      test "dumps schema version for sqlite version #{version_string}" do
+        version = ActiveRecord::ConnectionAdapters::SQLite3Adapter::Version.new(version_string)
+        ActiveRecord::Base.connection.stubs(:sqlite_version).returns(version)
+
+        versions = %w{ 20100101010101 20100201010101 20100301010101 }
+        versions.reverse_each do |v|
+          ActiveRecord::SchemaMigration.create!(:version => v)
+        end
+
+        schema_info = ActiveRecord::Base.connection.dump_schema_information
+        assert_match(/20100201010101.*20100301010101/m, schema_info)
+        ActiveRecord::SchemaMigration.delete_all
+      end
+    end
+  end
+
   def test_magic_comment
     assert_match "# encoding: #{Encoding.default_external.name}", standard_dump
   end

@@ -985,11 +985,23 @@ module ActiveRecord
       end
 
       def dump_schema_information #:nodoc:
+        versions = ActiveRecord::SchemaMigration.order('version').pluck(:version)
+        insert_versions_sql(versions)
+      end
+
+      def insert_versions_sql(versions)
         sm_table = ActiveRecord::Migrator.schema_migrations_table_name
 
-        sql = "INSERT INTO #{sm_table} (version) VALUES "
-        sql << ActiveRecord::SchemaMigration.order('version').pluck(:version).map {|v| "('#{v}')" }.join(', ')
-        sql << ";\n\n"
+        if supports_multi_insert?
+          sql = "INSERT INTO #{sm_table} (version) VALUES "
+          sql << versions.map {|v| "('#{v}')" }.join(', ')
+          sql << ";\n\n"
+          sql
+        else
+          versions.map { |version|
+            "INSERT INTO #{sm_table} (version) VALUES ('#{version}');"
+          }.join "\n\n"
+        end
       end
 
       # Should not be called normally, but this operation is non-destructive.
@@ -1026,7 +1038,7 @@ module ActiveRecord
           if (duplicate = inserting.detect {|v| inserting.count(v) > 1})
             raise "Duplicate migration #{duplicate}. Please renumber your migrations to resolve the conflict."
           end
-          execute "INSERT INTO #{sm_table} (version) VALUES #{inserting.map {|v| "('#{v}')"}.join(', ') }"
+          execute insert_versions_sql(versions)
         end
       end
 

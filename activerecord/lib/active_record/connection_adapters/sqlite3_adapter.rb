@@ -130,6 +130,10 @@ module ActiveRecord
         true
       end
 
+      def supports_multi_insert?
+        sqlite_version >= '3.7.11'
+      end
+
       def active?
         @active != false
       end
