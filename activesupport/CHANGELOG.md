@@ -1,3 +1,15 @@
+*   `travel/travel_to` travel time helpers, now support nested calls,  
+     and restore properly to time state for respective blocks.  
+
+        travel_to outer_expected_time do
+          travel_to inner_expected_time do
+            #will work with inner_expected_time as time values
+            end
+          #will work with outer_expected_time as time values
+        end
+
+    *Vipul A M*
+ 
 *   Add `ActiveSupport.to_time_preserves_timezone` config option to control
     how `to_time` handles timezones. In Ruby 2.4+ the behavior will change
     from converting to the local system timezone to preserving the timezone

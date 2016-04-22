@@ -1,32 +1,48 @@
 module ActiveSupport
   module Testing
     class SimpleStubs # :nodoc:
-      Stub = Struct.new(:object, :method_name, :original_method)
+      Stub = Struct.new(:object, :method_name, :original_method, :return_value)
 
       def initialize
-        @stubs = {}
+        @stubs = Hash.new { |h,k| h[k] = [] }
       end
 
       def stub_object(object, method_name, return_value)
         key = [object.object_id, method_name]
 
-        if stub = @stubs[key]
-          unstub_object(stub)
+        if @stubs[key].any?
+          stub = @stubs[key].last
+          unstub_object(stub) if stub
         end
 
         new_name = "__simple_stub__#{method_name}"
 
-        @stubs[key] = Stub.new(object, method_name, new_name)
+        @stubs[key].push(Stub.new(object, method_name, new_name, return_value))
 
         object.singleton_class.send :alias_method, new_name, method_name
         object.define_singleton_method(method_name) { return_value }
       end
 
       def unstub_all!
-        @stubs.each_value do |stub|
-          unstub_object(stub)
+        @stubs.each_value do |stubs|
+          stub = stubs.first
+          unstub_object(stub) if stub
         end
-        @stubs = {}
+        @stubs.clear
+      end
+
+      def unstub_to_previous_stub_state(object, method_name, return_value)
+        key = [object.object_id, method_name]
+
+        if @stubs[key].any?
+          current_stub = @stubs[key].pop
+
+          if stub = @stubs[key].last
+            stub_object(stub.object, stub.method_name, stub.return_value)
+          else
+            unstub_object(current_stub)
+          end
+        end
       end
 
       private
@@ -98,16 +114,16 @@ module ActiveSupport
         else
           now = date_or_time.to_time.change(usec: 0)
         end
+        to_date_value = now.to_date
+        to_datetime_value = now.to_datetime
 
-        simple_stubs.stub_object(Time, :now, now)
-        simple_stubs.stub_object(Date, :today, now.to_date)
-        simple_stubs.stub_object(DateTime, :now, now.to_datetime)
+        stub_unstub_date_time_objects(:stub_object, now, to_date_value, to_datetime_value)
 
         if block_given?
           begin
             yield
           ensure
-            travel_back
+            stub_unstub_date_time_objects(:unstub_to_previous_stub_state, now, to_date_value, to_datetime_value)
           end
         end
       end
@@ -128,6 +144,12 @@ module ActiveSupport
 
         def simple_stubs
           @simple_stubs ||= SimpleStubs.new
+        end
+
+        def stub_unstub_date_time_objects(method, now, to_date_value, to_datetime_value)
+          simple_stubs.public_send(method, Time, :now, now)
+          simple_stubs.public_send(method, Date, :today, to_date_value)
+          simple_stubs.public_send(method, DateTime, :now, to_datetime_value)
         end
     end
   end
