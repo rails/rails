@@ -33,7 +33,8 @@ module ActiveJob
   #
   # ==== Async
   #
-  # Yes: The Queue Adapter runs the jobs in a separate or forked process.
+  # Yes: The Queue Adapter has the ability to run the job in a non-blocking manner.
+  # It either runs on a separate or forked process, or on a different thread.
   #
   # No: The job is run in the same process.
   #
