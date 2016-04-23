@@ -75,9 +75,9 @@ class Time
 
   # Returns the fraction of a second as a +Rational+
   #
-  #    Time.new(2012, 8, 29, 0, 0, 0.5).sec_fraction # => (1/2)
+  #   Time.new(2012, 8, 29, 0, 0, 0.5).sec_fraction # => (1/2)
   def sec_fraction
-    Rational(nsec, 1000000000)
+    subsec
   end
 
   # Returns a new Time where one or more of the elements have been changed according
