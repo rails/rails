@@ -310,9 +310,9 @@ module ActionController
       end
 
       # Might want a shorter timeout depending on whether the request
-      # is a PATCH, PUT, or POST, and if client is browser or web service.
+      # is a PATCH, PUT, or POST, and if the client is a browser or web service.
       # Can be much shorter if the Stale directive is implemented. This would
-      # allow a user to use new nonce without prompting user again for their
+      # allow a user to use new nonce without prompting the user again for their
       # username and password.
       def validate_nonce(secret_key, request, value, seconds_to_timeout=5*60)
         return false if value.nil?
