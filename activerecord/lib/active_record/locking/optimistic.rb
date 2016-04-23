@@ -190,6 +190,10 @@ module ActiveRecord
         super.to_i
       end
 
+      def serialize(value)
+        super.to_i
+      end
+
       def init_with(coder)
         __setobj__(coder['subtype'])
       end
