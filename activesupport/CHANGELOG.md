@@ -1,3 +1,8 @@
+*   Add `DateTime#localtime` to return an instance of `Time` in the system's
+    local timezone. Also aliased to `getlocal`.
+
+    *Andrew White*, *Yuichiro Kaneko*
+
 *   Add `Time#sec_fraction` to return the fraction of a second as a `Rational`.
 
     *Andrew White*
