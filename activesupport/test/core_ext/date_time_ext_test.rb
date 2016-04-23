@@ -40,8 +40,18 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     Time::DATE_FORMATS.delete(:custom)
   end
 
+  def test_localtime
+    with_env_tz 'US/Eastern' do
+      assert_instance_of Time, DateTime.new(2016, 3, 11, 15, 11, 12, 0).localtime
+      assert_equal Time.local(2016, 3, 11, 10, 11, 12), DateTime.new(2016, 3, 11, 15, 11, 12, 0).localtime
+      assert_equal Time.local(2016, 3, 21, 11, 11, 12), DateTime.new(2016, 3, 21, 15, 11, 12, 0).localtime
+      assert_equal Time.local(2016, 4, 1, 11, 11, 12), DateTime.new(2016, 4, 1, 16, 11, 12, Rational(1,24)).localtime
+    end
+  end
+
   def test_getlocal
     with_env_tz 'US/Eastern' do
+      assert_instance_of Time, DateTime.new(2016, 3, 11, 15, 11, 12, 0).getlocal
       assert_equal Time.local(2016, 3, 11, 10, 11, 12), DateTime.new(2016, 3, 11, 15, 11, 12, 0).getlocal
       assert_equal Time.local(2016, 3, 21, 11, 11, 12), DateTime.new(2016, 3, 21, 15, 11, 12, 0).getlocal
       assert_equal Time.local(2016, 4, 1, 11, 11, 12), DateTime.new(2016, 4, 1, 16, 11, 12, Rational(1,24)).getlocal
@@ -58,7 +68,7 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_to_time
     with_env_tz 'US/Eastern' do
-      assert_equal Time, DateTime.new(2005, 2, 21, 10, 11, 12, 0).to_time.class
+      assert_instance_of Time, DateTime.new(2005, 2, 21, 10, 11, 12, 0).to_time
       assert_equal Time.local(2005, 2, 21, 5, 11, 12), DateTime.new(2005, 2, 21, 10, 11, 12, 0).to_time
       assert_equal Time.local(2005, 2, 21, 5, 11, 12).utc_offset, DateTime.new(2005, 2, 21, 10, 11, 12, 0).to_time.utc_offset
     end
@@ -318,6 +328,7 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_utc
+    assert_instance_of Time, DateTime.civil(2005, 2, 21, 10, 11, 12, Rational(-6, 24)).utc
     assert_equal DateTime.civil(2005, 2, 21, 16, 11, 12, 0), DateTime.civil(2005, 2, 21, 10, 11, 12, Rational(-6, 24)).utc
     assert_equal DateTime.civil(2005, 2, 21, 15, 11, 12, 0), DateTime.civil(2005, 2, 21, 10, 11, 12, Rational(-5, 24)).utc
     assert_equal DateTime.civil(2005, 2, 21, 10, 11, 12, 0), DateTime.civil(2005, 2, 21, 10, 11, 12, 0).utc

@@ -150,21 +150,9 @@ class DateTime
   end
   alias :at_end_of_minute :end_of_minute
 
-  # Adjusts DateTime to UTC by adding its offset value; offset is set to 0.
-  #
-  #   DateTime.civil(2005, 2, 21, 10, 11, 12, Rational(-6, 24))     # => Mon, 21 Feb 2005 10:11:12 -0600
-  #   DateTime.civil(2005, 2, 21, 10, 11, 12, Rational(-6, 24)).utc # => Mon, 21 Feb 2005 16:11:12 +0000
-  def utc
-    new_offset(0)
-  end
-  alias_method :getgm, :utc
-  alias_method :getutc, :utc
-  alias_method :gmtime, :utc
-
-  # Returns a <tt>Time.local()</tt> instance of the simultaneous time in your
-  # system's <tt>ENV['TZ']</tt> zone.
+  # Returns a <tt>Time</tt> instance of the simultaneous time in the system timezone.
   def localtime(utc_offset = nil)
-    utc = getutc
+    utc = new_offset(0)
 
     Time.utc(
       utc.year, utc.month, utc.day,
@@ -172,6 +160,22 @@ class DateTime
     ).getlocal(utc_offset)
   end
   alias_method :getlocal, :localtime
+
+  # Returns a <tt>Time</tt> instance of the simultaneous time in the UTC timezone.
+  #
+  #   DateTime.civil(2005, 2, 21, 10, 11, 12, Rational(-6, 24))     # => Mon, 21 Feb 2005 10:11:12 -0600
+  #   DateTime.civil(2005, 2, 21, 10, 11, 12, Rational(-6, 24)).utc # => Mon, 21 Feb 2005 16:11:12 UTC
+  def utc
+    utc = new_offset(0)
+
+    Time.utc(
+      utc.year, utc.month, utc.day,
+      utc.hour, utc.min, utc.sec + utc.sec_fraction
+    )
+  end
+  alias_method :getgm, :utc
+  alias_method :getutc, :utc
+  alias_method :gmtime, :utc
 
   # Returns +true+ if <tt>offset == 0</tt>.
   def utc?

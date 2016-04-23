@@ -7,6 +7,7 @@ class DateAndTimeCompatibilityTest < ActiveSupport::TestCase
 
   def setup
     @utc_time = Time.utc(2016, 4, 23, 14, 11, 12)
+    @date_time = DateTime.new(2016, 4, 23, 14, 11, 12, 0)
     @utc_offset = 3600
     @system_offset = -14400
     @zone = ActiveSupport::TimeZone['London']
@@ -67,6 +68,14 @@ class DateAndTimeCompatibilityTest < ActiveSupport::TestCase
 
         assert_instance_of Time, time
         assert_equal @utc_time, time.getutc
+        assert_instance_of Time, time.getutc
+        assert_equal @utc_offset, time.utc_offset
+
+        time = ActiveSupport::TimeWithZone.new(@date_time, @zone).to_time
+
+        assert_instance_of Time, time
+        assert_equal @date_time, time.getutc
+        assert_instance_of Time, time.getutc
         assert_equal @utc_offset, time.utc_offset
       end
     end
@@ -79,6 +88,14 @@ class DateAndTimeCompatibilityTest < ActiveSupport::TestCase
 
         assert_instance_of Time, time
         assert_equal @utc_time, time.getutc
+        assert_instance_of Time, time.getutc
+        assert_equal @system_offset, time.utc_offset
+
+        time = ActiveSupport::TimeWithZone.new(@date_time, @zone).to_time
+
+        assert_instance_of Time, time
+        assert_equal @date_time, time.getutc
+        assert_instance_of Time, time.getutc
         assert_equal @system_offset, time.utc_offset
       end
     end
