@@ -30,7 +30,7 @@
 
 *   Add `ActiveSupport.to_time_preserves_timezone` config option to control
     how `to_time` handles timezones. In Ruby 2.4+ the behavior will change
-    from converting to the local system timezone to preserving the timezone
+    from converting to the local system timezone, to preserving the timezone
     of the receiver. This config option defaults to false so that apps made
     with earlier versions of Rails are not affected when upgrading, e.g:
 
