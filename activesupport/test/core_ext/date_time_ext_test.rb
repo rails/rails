@@ -40,6 +40,14 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     Time::DATE_FORMATS.delete(:custom)
   end
 
+  def test_getlocal
+    with_env_tz 'US/Eastern' do
+      assert_equal Time.local(2016, 3, 11, 10, 11, 12), DateTime.new(2016, 3, 11, 15, 11, 12, 0).getlocal
+      assert_equal Time.local(2016, 3, 21, 11, 11, 12), DateTime.new(2016, 3, 21, 15, 11, 12, 0).getlocal
+      assert_equal Time.local(2016, 4, 1, 11, 11, 12), DateTime.new(2016, 4, 1, 16, 11, 12, Rational(1,24)).getlocal
+    end
+  end
+
   def test_to_date
     assert_equal Date.new(2005, 2, 21), DateTime.new(2005, 2, 21, 14, 30, 0).to_date
   end

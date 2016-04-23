@@ -32,7 +32,7 @@ class String
       parts.fetch(:offset, form == :utc ? 0 : nil)
     )
 
-    form == :utc ? time.utc : time.getlocal
+    form == :utc ? time.utc : time.to_time
   end
 
   # Converts a string to a Date value.
