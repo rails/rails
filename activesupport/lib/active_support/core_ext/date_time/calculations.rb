@@ -150,7 +150,9 @@ class DateTime
   def utc
     new_offset(0)
   end
+  alias_method :getgm, :utc
   alias_method :getutc, :utc
+  alias_method :gmtime, :utc
 
   # Returns a <tt>Time.local()</tt> instance of the simultaneous time in your
   # system's <tt>ENV['TZ']</tt> zone.

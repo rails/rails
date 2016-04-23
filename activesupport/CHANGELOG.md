@@ -1,3 +1,8 @@
+*   Add additional aliases for `DateTime#utc` to mirror the ones on
+    `ActiveSupport::TimeWithZone` and `Time`.
+
+    *Andrew White*
+
 *   Add `DateTime#localtime` to return an instance of `Time` in the system's
     local timezone. Also aliased to `getlocal`.
 
