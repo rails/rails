@@ -524,7 +524,13 @@ module ActiveRecord
     end
 
     def self.[](version)
-      Compatibility.find(version)
+      version = version.to_s
+      name = "V#{version.tr('.', '_')}"
+      unless Compatibility.const_defined?(name)
+        versions = Compatibility.constants.grep(/\AV[0-9_]+\z/).map { |s| s.to_s.delete('V').tr('_', '.').inspect }
+        raise ArgumentError, "Unknown migration version #{version.inspect}; expected one of #{versions.sort.join(', ')}"
+      end
+      Compatibility.const_get(name)
     end
 
     def self.current_version
@@ -555,7 +561,7 @@ module ActiveRecord
       private
 
       def connection
-        ActiveRecord::Base.connection
+        ActiveRecord::Migration.connection
       end
     end
 
@@ -568,8 +574,8 @@ module ActiveRecord
       end
 
       # Raises <tt>ActiveRecord::PendingMigrationError</tt> error if any migrations are pending.
-      def check_pending!(connection = Base.connection)
-        raise ActiveRecord::PendingMigrationError if ActiveRecord::Migrator.needs_migration?(connection)
+      def check_pending!(conn = connection)
+        raise ActiveRecord::PendingMigrationError if ActiveRecord::Migrator.needs_migration?(conn)
       end
 
       def load_schema_if_pending!
@@ -606,6 +612,10 @@ module ActiveRecord
       # For more details read the {"Transactional Migrations" section above}[rdoc-ref:Migration].
       def disable_ddl_transaction!
         @disable_ddl_transaction = true
+      end
+
+      def connection
+        ActiveRecord::Base.connection
       end
     end
 
@@ -825,7 +835,7 @@ module ActiveRecord
     end
 
     def connection
-      @connection || ActiveRecord::Base.connection
+      @connection || self.class.connection
     end
 
     def method_missing(method, *arguments, &block)
@@ -1024,7 +1034,7 @@ module ActiveRecord
         SchemaMigration.table_name
       end
 
-      def get_all_versions(connection = Base.connection)
+      def get_all_versions(connection = database_connection)
         ActiveSupport::Deprecation.silence do
           if connection.table_exists?(schema_migrations_table_name)
             SchemaMigration.all.map { |x| x.version.to_i }.sort
@@ -1034,11 +1044,11 @@ module ActiveRecord
         end
       end
 
-      def current_version(connection = Base.connection)
+      def current_version(connection = database_connection)
         get_all_versions(connection).max || 0
       end
 
-      def needs_migration?(connection = Base.connection)
+      def needs_migration?(connection = database_connection)
         (migrations(migrations_paths).collect(&:version) - get_all_versions(connection)).size > 0
       end
 
@@ -1096,7 +1106,7 @@ module ActiveRecord
     end
 
     def initialize(direction, migrations, target_version = nil)
-      raise StandardError.new("This database does not yet support migrations") unless Base.connection.supports_migrations?
+      raise StandardError.new("This database does not yet support migrations") unless database_connection.supports_migrations?
 
       @direction         = direction
       @target_version    = target_version
@@ -1105,8 +1115,8 @@ module ActiveRecord
 
       validate(@migrations)
 
-      Base.connection.initialize_schema_migrations_table
-      Base.connection.initialize_internal_metadata_table
+      database_connection.initialize_schema_migrations_table
+      database_connection.initialize_internal_metadata_table
     end
 
     def current_version
@@ -1163,6 +1173,15 @@ module ActiveRecord
     end
 
     private
+
+    # The proper place to override Migration and Migrator's database connection
+    # is in ActiveRecord::Migration.connection
+    def database_connection # :nodoc:
+      self.class.database_connection
+    end
+    def self.database_connection # :nodoc:
+      ActiveRecord::Migration.connection
+    end
 
     # Used for running a specific migration.
     def run_without_lock
@@ -1283,26 +1302,26 @@ module ActiveRecord
     end
 
     def use_transaction?(migration)
-      !migration.disable_ddl_transaction && Base.connection.supports_ddl_transactions?
+      !migration.disable_ddl_transaction && database_connection.supports_ddl_transactions?
     end
 
     def use_advisory_lock?
-      Base.connection.supports_advisory_locks?
+      database_connection.supports_advisory_locks?
     end
 
     def with_advisory_lock
       lock_id = generate_migrator_advisory_lock_id
-      got_lock = Base.connection.get_advisory_lock(lock_id)
+      got_lock = database_connection.get_advisory_lock(lock_id)
       raise ConcurrentMigrationError unless got_lock
       load_migrated # reload schema_migrations to be sure it wasn't changed by another process before we got the lock
       yield
     ensure
-      Base.connection.release_advisory_lock(lock_id) if got_lock
+      database_connection.release_advisory_lock(lock_id) if got_lock
     end
 
     MIGRATOR_SALT = 2053462845
     def generate_migrator_advisory_lock_id
-      db_name_hash = Zlib.crc32(Base.connection.current_database)
+      db_name_hash = Zlib.crc32(database_connection.current_database)
       MIGRATOR_SALT * db_name_hash
     end
   end
