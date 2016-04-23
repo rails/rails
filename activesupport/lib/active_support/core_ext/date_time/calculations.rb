@@ -152,6 +152,18 @@ class DateTime
   end
   alias_method :getutc, :utc
 
+  # Returns a <tt>Time.local()</tt> instance of the simultaneous time in your
+  # system's <tt>ENV['TZ']</tt> zone.
+  def localtime(utc_offset = nil)
+    utc = getutc
+
+    Time.utc(
+      utc.year, utc.month, utc.day,
+      utc.hour, utc.min, utc.sec + utc.sec_fraction
+    ).getlocal(utc_offset)
+  end
+  alias_method :getlocal, :localtime
+
   # Returns +true+ if <tt>offset == 0</tt>.
   def utc?
     offset == 0
