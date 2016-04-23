@@ -69,6 +69,7 @@ module ActiveSupport
 
             if eligible_waiters?(compatible)
               yield_shares(compatible: compatible, block_share: true) do
+                @cv.broadcast
                 @cv.wait_while { @exclusive_thread || eligible_waiters?(compatible) }
               end
             end
