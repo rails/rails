@@ -700,6 +700,17 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 17, reply.replies.size
   end
 
+  def test_replace_counter_cache
+    topic = Topic.create(title: "Zoom-zoom-zoom")
+    reply = Reply.create(title: "re: zoom", content: "speedy quick!")
+
+    reply.topic = topic
+    reply.save
+    topic.reload
+
+    assert_equal 1, topic.replies_count
+  end
+
   def test_association_assignment_sticks
     post = Post.first
 
