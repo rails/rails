@@ -45,6 +45,31 @@ class TimeTravelTest < ActiveSupport::TestCase
     end
   end
 
+  def test_time_helper_travel_to_with_nested_calls
+    Time.stub(:now, Time.now) do
+      outer_expected_time = Time.new(2004, 11, 24, 01, 04, 44)
+      inner_expected_time = Time.new(2004, 10, 24, 01, 04, 44)
+      travel_to outer_expected_time do
+        travel_to inner_expected_time do
+          assert_equal inner_expected_time, Time.now
+        end
+        assert_equal outer_expected_time, Time.now
+      end
+    end
+  end
+
+  def test_time_helper_travel_to_with_nested_calls_and_travel_back
+    current_time = Time.now
+    Time.stub(:now, Time.now) do
+      expected_time = Time.new(2004, 11, 24, 01, 04, 44)
+      travel_to expected_time do
+        assert_equal expected_time, Time.now
+        travel_back
+      end
+      assert_equal current_time.to_i, Time.now.to_i
+    end
+  end
+
   def test_time_helper_travel_to_with_block
     Time.stub(:now, Time.now) do
       expected_time = Time.new(2004, 11, 24, 01, 04, 44)
