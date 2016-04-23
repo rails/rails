@@ -459,6 +459,10 @@ class StringConversionsTest < ActiveSupport::TestCase
       assert_nil "010".to_time
       assert_nil "".to_time
     end
+
+    assert_raise(ArgumentError) do
+      "2011-02-27 22:50 -0100".to_time(:tokyo)
+    end
   end
 
   def test_string_to_time_utc_offset
