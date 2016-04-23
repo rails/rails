@@ -400,4 +400,9 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal 0, DateTime.civil(2000).nsec
     assert_equal 500000000, DateTime.civil(2000, 1, 1, 0, 0, Rational(1,2)).nsec
   end
+
+  def test_subsec
+    assert_equal 0, DateTime.civil(2000).subsec
+    assert_equal Rational(1,2), DateTime.civil(2000, 1, 1, 0, 0, Rational(1,2)).subsec
+  end
 end

@@ -28,6 +28,13 @@ class DateTime
     end_of_day.to_i - to_i
   end
 
+  # Returns the fraction of a second as a +Rational+
+  #
+  #   DateTime.new(2012, 8, 29, 0, 0, 0.5).subsec # => (1/2)
+  def subsec
+    sec_fraction
+  end
+
   # Returns a new DateTime where one or more of the elements have been changed
   # according to the +options+ parameter. The time options (<tt>:hour</tt>,
   # <tt>:min</tt>, <tt>:sec</tt>) reset cascadingly, so if only the hour is
