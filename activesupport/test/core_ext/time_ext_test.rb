@@ -578,6 +578,34 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_to_time_not_preserves_timezone_mode
+    prev = ActiveSupport.to_time_preserves_timezone
+    ActiveSupport.to_time_preserves_timezone = false
+    time = Time.utc(2005, 2, 21, 22, 44, 30).getlocal('+01:00')
+
+    with_env_tz 'US/Eastern' do
+      assert_equal Time, time.to_time.class
+      assert_equal Time.local(2005, 2, 21, 17, 44, 30), time.to_time
+      assert_equal Time.local(2005, 2, 21, 17, 44, 30).utc_offset, time.to_time.utc_offset
+    end
+  ensure
+    ActiveSupport.to_time_preserves_timezone = prev
+  end
+
+  def test_to_time_preserves_timezone_mode
+    prev = ActiveSupport.to_time_preserves_timezone
+    ActiveSupport.to_time_preserves_timezone = true
+    time = Time.utc(2005, 2, 21, 22, 44, 30).getlocal('+01:00')
+
+    with_env_tz 'US/Eastern' do
+      assert_equal Time, time.to_time.class
+      assert_equal Time.local(2005, 2, 21, 17, 44, 30), time.to_time
+      assert_equal (-18000 - 3600), Time.local(2005, 2, 21, 17, 44, 30).utc_offset - time.to_time.utc_offset
+    end
+  ensure
+    ActiveSupport.to_time_preserves_timezone = prev
+  end
+
   # NOTE: this test seems to fail (changeset 1958) only on certain platforms,
   # like OSX, and FreeBSD 5.4.
   def test_fp_inaccuracy_ticket_1836
