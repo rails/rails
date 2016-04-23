@@ -1,3 +1,15 @@
+*   Make `getlocal` and `getutc` always return instances of `Time` for
+    `ActiveSupport::TimeWithZone` and `DateTime`. This eliminates a possible
+    stack level too deep error in `to_time` where `ActiveSupport::TimeWithZone`
+    was wrapping a `DateTime` instance. As a consequence of this the internal
+    time value in `ActiveSupport::TimeWithZone` is now always an instance of
+    `Time` in the UTC timezone, whether that's as the UTC time directly or
+    a representation of the local time in the timezone. There should be no
+    consequences of this internal change and if there are it's a bug due to
+    leaky abstractions.
+
+    *Andrew White*
+
 *   Add `DateTime#subsec` to return the fraction of a second as a `Rational`.
 
     *Andrew White*
