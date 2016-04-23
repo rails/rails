@@ -1,3 +1,7 @@
+*   Add `Time#sec_fraction` to return the fraction of a second as a `Rational`.
+
+    *Andrew White*
+
 *   Add `ActiveSupport.to_time_preserves_timezone` config option to control
     how `to_time` handles timezones. In Ruby 2.4+ the behavior will change
     from converting to the local system timezone to preserving the timezone
