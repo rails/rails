@@ -88,11 +88,16 @@ module Rails
 
     def config_when_updating
       cookie_serializer_config_exist = File.exist?('config/initializers/cookies_serializer.rb')
+      to_time_preserves_timezone_config_exist = File.exist?('config/initializers/to_time_preserves_timezone.rb')
 
       config
 
       unless cookie_serializer_config_exist
         gsub_file 'config/initializers/cookies_serializer.rb', /json/, 'marshal'
+      end
+
+      unless to_time_preserves_timezone_config_exist
+        remove_file 'config/initializers/to_time_preserves_timezone.rb'
       end
     end
 
