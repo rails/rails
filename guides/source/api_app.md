@@ -181,7 +181,7 @@ To render debugging information preserving the response format, use the value `:
 config.debug_exception_response_format = :api
 ```
 
-By default, `config.debug_exception_response_format` is set to `:api` for API apps.
+By default, `config.debug_exception_response_format` is set to `:api`, when `config.api_only` is set to true.
 
 Finally, inside `app/controllers/application_controller.rb`, instead of:
 
