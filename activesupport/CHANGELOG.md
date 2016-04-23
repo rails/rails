@@ -1,3 +1,7 @@
+*   Add `DateTime#subsec` to return the fraction of a second as a `Rational`.
+
+    *Andrew White*
+
 *   Add additional aliases for `DateTime#utc` to mirror the ones on
     `ActiveSupport::TimeWithZone` and `Time`.
 
