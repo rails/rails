@@ -54,7 +54,7 @@ module Minitest
 
     options[:color] = true
     options[:output_inline] = true
-    options[:patterns] = opts.order!
+    options[:patterns] = defined?(@rake_patterns) ? @rake_patterns : opts.order!
   end
 
   # Running several Rake tasks in a single command would trip up the runner,
@@ -73,10 +73,7 @@ module Minitest
 
     ENV["RAILS_ENV"] = options[:environment] || "test"
 
-    unless run_with_autorun
-      patterns = defined?(@rake_patterns) ? @rake_patterns : options[:patterns]
-      ::Rails::TestRequirer.require_files(patterns)
-    end
+    ::Rails::TestRequirer.require_files(options[:patterns]) unless run_with_autorun
 
     unless options[:full_backtrace] || ENV["BACKTRACE"]
       # Plugin can run without Rails loaded, check before filtering.

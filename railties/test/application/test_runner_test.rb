@@ -502,6 +502,14 @@ module ApplicationTests
       assert_match '1 runs, 1 assertions', output
     end
 
+    def test_pass_rake_options
+      create_test_file :models, 'account'
+      output =  Dir.chdir(app_path) { `bin/rake --rakefile Rakefile --trace=stdout test` }
+
+      assert_match '1 runs, 1 assertions', output
+      assert_match 'Execute test', output
+    end
+
     def test_rails_db_create_all_restores_db_connection
       create_test_file :models, 'account'
       output =  Dir.chdir(app_path) { `bin/rails db:create:all db:migrate && echo ".tables" | rails dbconsole` }
