@@ -73,6 +73,13 @@ class Time
     end_of_day.to_i - to_i
   end
 
+  # Returns the fraction of a second as a +Rational+
+  #
+  #    Time.new(2012, 8, 29, 0, 0, 0.5).sec_fraction # => (1/2)
+  def sec_fraction
+    Rational(nsec, 1000000000)
+  end
+
   # Returns a new Time where one or more of the elements have been changed according
   # to the +options+ parameter. The time options (<tt>:hour</tt>, <tt>:min</tt>,
   # <tt>:sec</tt>, <tt>:usec</tt>, <tt>:nsec</tt>) reset cascadingly, so if only
