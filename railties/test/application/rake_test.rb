@@ -118,8 +118,8 @@ module ApplicationTests
     end
 
     def test_code_statistics_sanity
-      assert_match "Code LOC: 18     Test LOC: 0     Code to Test Ratio: 1:0.0",
-        Dir.chdir(app_path){ `bin/rails stats` }
+      assert_match "Code LOC: 26     Test LOC: 0     Code to Test Ratio: 1:0.0",
+        Dir.chdir(app_path) { `bin/rails stats` }
     end
 
     def test_rails_routes_calls_the_route_inspector
