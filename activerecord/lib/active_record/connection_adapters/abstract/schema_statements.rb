@@ -989,7 +989,7 @@ module ActiveRecord
         insert_versions_sql(versions)
       end
 
-      def insert_versions_sql(versions)
+      def insert_versions_sql(versions) # :nodoc:
         sm_table = ActiveRecord::Migrator.schema_migrations_table_name
 
         if supports_multi_insert?
