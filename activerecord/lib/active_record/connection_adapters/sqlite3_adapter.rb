@@ -52,7 +52,6 @@ module ActiveRecord
       ADAPTER_NAME = 'SQLite'.freeze
 
       include SQLite3::Quoting
-      include Savepoints
 
       NATIVE_DATABASE_TYPES = {
         primary_key:  'INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL',

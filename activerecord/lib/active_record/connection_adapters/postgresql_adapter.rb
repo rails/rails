@@ -117,7 +117,6 @@ module ActiveRecord
       include PostgreSQL::SchemaStatements
       include PostgreSQL::DatabaseStatements
       include PostgreSQL::ColumnDumper
-      include Savepoints
 
       def schema_creation # :nodoc:
         PostgreSQL::SchemaCreation.new self
@@ -167,6 +166,10 @@ module ActiveRecord
 
       def supports_comments_in_create?
         false
+      end
+
+      def supports_savepoints?
+        true
       end
 
       def index_algorithms

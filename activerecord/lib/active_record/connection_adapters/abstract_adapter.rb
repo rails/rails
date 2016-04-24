@@ -67,6 +67,7 @@ module ActiveRecord
       include QueryCache
       include ActiveSupport::Callbacks
       include ColumnDumper
+      include Savepoints
 
       SIMPLE_INT = /\A\d+\z/
 
@@ -402,12 +403,6 @@ module ActiveRecord
       # PostgreSQL's lo_* methods.
       def raw_connection
         @connection
-      end
-
-      def create_savepoint(name = nil)
-      end
-
-      def release_savepoint(name = nil)
       end
 
       def case_sensitive_comparison(table, attribute, column, value)
