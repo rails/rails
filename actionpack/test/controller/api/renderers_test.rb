@@ -29,6 +29,14 @@ class RenderersApiController < ActionController::API
   end
 end
 
+class IncludeACRenderingController < ActionController::API
+  include ActionView::Rendering
+
+  def respond_with_json
+    render json: { foo: :bar }
+  end
+end
+
 class RenderersApiTest < ActionController::TestCase
   tests RenderersApiController
 
@@ -56,5 +64,15 @@ class RenderersApiTest < ActionController::TestCase
     end
     assert_response :internal_server_error
     assert_equal('Hi from text', @response.body)
+  end
+end
+
+class RenderersJSONApiTest < ActionController::TestCase
+  tests IncludeACRenderingController
+
+  def test_render_json
+    get :respond_with_json
+    assert_response :success
+    assert_equal({ foo: :bar }.to_json, @response.body)
   end
 end

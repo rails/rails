@@ -1,3 +1,9 @@
+*   Fix ActionView::Rendering include order for API only applications with jbuilder.
+
+    Fixes #23923
+
+    *Mehmet Emin İNAÇ*
+
 *   Add extension synonyms `yml` and `yaml` for MIME type `application/x-yaml`.
 
    *bogdanvlviv*

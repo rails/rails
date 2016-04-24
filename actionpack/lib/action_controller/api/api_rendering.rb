@@ -4,6 +4,7 @@ module ActionController
 
     included do
       include Rendering
+      include ActionView::Rendering
     end
 
     def render_to_body(options = {})
