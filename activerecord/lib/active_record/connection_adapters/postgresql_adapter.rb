@@ -168,6 +168,10 @@ module ActiveRecord
         false
       end
 
+      def supports_savepoints?
+        true
+      end
+
       def index_algorithms
         { concurrently: 'CONCURRENTLY' }
       end

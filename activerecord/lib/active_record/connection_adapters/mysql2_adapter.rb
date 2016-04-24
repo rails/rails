@@ -57,6 +57,10 @@ module ActiveRecord
         true
       end
 
+      def supports_savepoints?
+        true
+      end
+
       # HELPER METHODS ===========================================
 
       def each_hash(result) # :nodoc:

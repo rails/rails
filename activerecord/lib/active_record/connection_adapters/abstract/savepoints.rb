@@ -1,10 +1,6 @@
 module ActiveRecord
   module ConnectionAdapters
-    module Savepoints #:nodoc:
-      def supports_savepoints?
-        true
-      end
-
+    module Savepoints
       def create_savepoint(name = current_savepoint_name)
         execute("SAVEPOINT #{name}")
       end

@@ -291,9 +291,6 @@ module ActiveRecord
         exec_rollback_to_savepoint(name)
       end
 
-      def exec_rollback_to_savepoint(name = nil) #:nodoc:
-      end
-
       def default_sequence_name(table, column)
         nil
       end
