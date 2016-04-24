@@ -1,3 +1,10 @@
+*   MySQL: Prepared statements support.
+
+    To enable, set `prepared_statements: true` in config/database.yml.
+    Requires mysql2 0.4.4+.
+
+    *Ryuta Kamizono*
+
 *   Schema dumper: Indexes are now included in the `create_table` block
     instead of listed afterward as separate `add_index` lines.
 

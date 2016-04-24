@@ -1,7 +1,9 @@
 require 'active_record/connection_adapters/abstract_mysql_adapter'
+require 'active_record/connection_adapters/mysql/database_statements'
 
 gem 'mysql2', '>= 0.3.18', '< 0.5'
 require 'mysql2'
+raise 'mysql2 0.4.3 is not supported. Please upgrade to 0.4.4+' if Mysql2::VERSION == '0.4.3'
 
 module ActiveRecord
   module ConnectionHandling # :nodoc:
@@ -35,9 +37,11 @@ module ActiveRecord
     class Mysql2Adapter < AbstractMysqlAdapter
       ADAPTER_NAME = 'Mysql2'.freeze
 
+      include MySQL::DatabaseStatements
+
       def initialize(connection, logger, connection_options, config)
         super
-        @prepared_statements = false
+        @prepared_statements = false unless config.key?(:prepared_statements)
         configure_connection
       end
 
@@ -101,55 +105,6 @@ module ActiveRecord
           @connection.close
           @connection = nil
         end
-      end
-
-      #--
-      # DATABASE STATEMENTS ======================================
-      #++
-
-      # Returns a record hash with the column names as keys and column values
-      # as values.
-      def select_one(arel, name = nil, binds = [])
-        arel, binds = binds_from_relation(arel, binds)
-        execute(to_sql(arel, binds), name).each(as: :hash) do |row|
-          @connection.next_result while @connection.more_results?
-          return row
-        end
-      end
-
-      # Returns an array of arrays containing the field values.
-      # Order is the same as that returned by +columns+.
-      def select_rows(sql, name = nil, binds = [])
-        result = execute(sql, name)
-        @connection.next_result while @connection.more_results?
-        result.to_a
-      end
-
-      # Executes the SQL statement in the context of this connection.
-      def execute(sql, name = nil)
-        if @connection
-          # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
-          # made since we established the connection
-          @connection.query_options[:database_timezone] = ActiveRecord::Base.default_timezone
-        end
-
-        super
-      end
-
-      def exec_query(sql, name = 'SQL', binds = [], prepare: false)
-        result = execute(sql, name)
-        @connection.next_result while @connection.more_results?
-        ActiveRecord::Result.new(result.fields, result.to_a) if result
-      end
-
-      def exec_delete(sql, name, binds)
-        execute to_sql(sql, binds), name
-        @connection.affected_rows
-      end
-      alias :exec_update :exec_delete
-
-      def last_inserted_id(result)
-        @connection.last_id
       end
 
       private

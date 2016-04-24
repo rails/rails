@@ -1,4 +1,5 @@
 require 'active_record/connection_adapters/abstract_adapter'
+require 'active_record/connection_adapters/statement_pool'
 require 'active_record/connection_adapters/mysql/column'
 require 'active_record/connection_adapters/mysql/explain_pretty_printer'
 require 'active_record/connection_adapters/mysql/quoting'
@@ -56,8 +57,16 @@ module ActiveRecord
       INDEX_TYPES  = [:fulltext, :spatial]
       INDEX_USINGS = [:btree, :hash]
 
+      class StatementPool < ConnectionAdapters::StatementPool
+        private def dealloc(stmt)
+          stmt[:stmt].close
+        end
+      end
+
       def initialize(connection, logger, connection_options, config)
         super(connection, logger, config)
+
+        @statements = StatementPool.new(self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 }))
 
         if version < '5.0.0'
           raise "Your version of MySQL (#{full_version.match(/^\d+\.\d+\.\d+/)[0]}) is too old. Active Record supports MySQL >= 5.0."
@@ -90,6 +99,12 @@ module ActiveRecord
       end
 
       def supports_bulk_alter? #:nodoc:
+        true
+      end
+
+      # Returns true, since this connection adapter supports prepared statement
+      # caching.
+      def supports_statement_cache?
         true
       end
 
@@ -178,6 +193,14 @@ module ActiveRecord
         end
       end
 
+      # CONNECTION MANAGEMENT ====================================
+
+      # Clears the prepared statements cache.
+      def clear_cache!
+        reload_type_map
+        @statements.clear
+      end
+
       #--
       # DATABASE STATEMENTS ======================================
       #++
@@ -189,11 +212,6 @@ module ActiveRecord
         elapsed = Time.now - start
 
         MySQL::ExplainPrettyPrinter.new.pp(result, elapsed)
-      end
-
-      def clear_cache!
-        super
-        reload_type_map
       end
 
       # Executes the SQL statement in the context of this connection.
