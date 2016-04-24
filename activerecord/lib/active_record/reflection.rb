@@ -32,8 +32,13 @@ module ActiveRecord
     end
 
     def self.add_reflection(ar, name, reflection)
+      # Add reflection to the current class, and downstream it to its descendants
       ar.clear_reflections_cache
       ar._reflections = ar._reflections.merge(name.to_s => reflection)
+
+      ar.subclasses.each do |klass|
+        add_reflection(klass, name, reflection)
+      end
     end
 
     def self.add_aggregate_reflection(ar, name, reflection)

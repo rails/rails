@@ -329,6 +329,53 @@ class OverridingAssociationsTest < ActiveRecord::TestCase
       end
     end
   end
+
+  # We are creating a special class here, to avoid mangling any other models with a `class_eval`
+  class SpecialPirate1 < ActiveRecord::Base
+    self.table_name = 'pirates'
+  end
+
+  class SpecialPirate2 < SpecialPirate1
+  end
+
+  class SpecialBird1 < ActiveRecord::Base
+    self.table_name = 'birds'
+    belongs_to :pirate
+  end
+
+  SpecialPirate1.class_eval do
+    has_many :birds, class_name: 'SpecialBird1', foreign_key: 'pirate_id'
+  end
+
+  def test_associations_are_inherited
+    pirate = SpecialPirate2.new
+    pirate.birds << SpecialBird1.new
+    pirate.save!
+
+    refute_equal 0, SpecialPirate2.count
+  end
+
+  def test_associations_are_inherited_eager_loading
+    pirate = SpecialPirate2.new
+    pirate.birds << SpecialBird1.new
+    pirate.save!
+
+    refute_equal 0, SpecialPirate2.includes(:birds).count
+  end
+
+  class SpecialBird2 < SpecialBird1
+  end
+
+  def test_associations_are_inherited_if_class_defined_after_associations_defined
+    pirate = SpecialPirate2.new
+    bird = SpecialBird2.new
+    bird.save!
+
+    pirate.birds << bird
+    pirate.save!
+
+    assert_equal pirate.id, bird.pirate_id
+  end
 end
 
 class GeneratedMethodsTest < ActiveRecord::TestCase
