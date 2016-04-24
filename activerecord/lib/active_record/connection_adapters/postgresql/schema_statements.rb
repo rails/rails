@@ -217,7 +217,7 @@ module ActiveRecord
               ]
             end
 
-            IndexDefinition.new(table_name, index_name, unique, columns, [], orders, where, nil, using.to_sym, comment)
+            IndexDefinition.new(table_name, index_name, unique, columns, [], orders, where, nil, using.to_sym, comment.presence)
           end.compact
         end
 
