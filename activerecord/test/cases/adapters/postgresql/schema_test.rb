@@ -325,7 +325,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
 
   def test_dump_indexes_for_table_with_scheme_specified_in_name
     indexes = @connection.indexes("#{SCHEMA_NAME}.#{TABLE_NAME}")
-    assert_equal 4, indexes.size
+    assert_equal 5, indexes.size
   end
 
   def test_with_uppercase_index_name
@@ -449,18 +449,22 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     def do_dump_index_tests_for_schema(this_schema_name, first_index_column_name, second_index_column_name, third_index_column_name, fourth_index_column_name)
       with_schema_search_path(this_schema_name) do
         indexes = @connection.indexes(TABLE_NAME).sort_by(&:name)
-        assert_equal 4,indexes.size
+        assert_equal 5, indexes.size
 
-        do_dump_index_assertions_for_one_index(indexes[0], INDEX_A_NAME, first_index_column_name)
-        do_dump_index_assertions_for_one_index(indexes[1], INDEX_B_NAME, second_index_column_name)
-        do_dump_index_assertions_for_one_index(indexes[2], INDEX_D_NAME, third_index_column_name)
-        do_dump_index_assertions_for_one_index(indexes[3], INDEX_E_NAME, fourth_index_column_name)
+        index_a, index_b, index_c, index_d, index_e = indexes
 
-        indexes.select{|i| i.name != INDEX_E_NAME}.each do |index|
-           assert_equal :btree, index.using
-        end
-        assert_equal :gin, indexes.select{|i| i.name == INDEX_E_NAME}[0].using
-        assert_equal :desc, indexes.select{|i| i.name == INDEX_D_NAME}[0].orders[INDEX_D_COLUMN]
+        do_dump_index_assertions_for_one_index(index_a, INDEX_A_NAME, first_index_column_name)
+        do_dump_index_assertions_for_one_index(index_b, INDEX_B_NAME, second_index_column_name)
+        do_dump_index_assertions_for_one_index(index_d, INDEX_D_NAME, third_index_column_name)
+        do_dump_index_assertions_for_one_index(index_e, INDEX_E_NAME, fourth_index_column_name)
+
+        assert_equal :btree, index_a.using
+        assert_equal :btree, index_b.using
+        assert_equal :gin,   index_c.using
+        assert_equal :btree, index_d.using
+        assert_equal :gin,   index_e.using
+
+        assert_equal :desc,  index_d.orders[INDEX_D_COLUMN]
       end
     end
 
