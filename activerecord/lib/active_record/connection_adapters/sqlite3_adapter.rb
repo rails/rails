@@ -87,7 +87,7 @@ module ActiveRecord
         super(connection, logger, config)
 
         @active     = nil
-        @statements = StatementPool.new(self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 }))
+        @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
       end
 
       def supports_ddl_transactions?
