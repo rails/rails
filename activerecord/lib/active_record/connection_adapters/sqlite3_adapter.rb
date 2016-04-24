@@ -229,10 +229,6 @@ module ActiveRecord
         log(sql, name) { @connection.execute(sql) }
       end
 
-      def select_rows(sql, name = nil, binds = [])
-        exec_query(sql, name, binds).rows
-      end
-
       def begin_db_transaction #:nodoc:
         log('begin transaction',nil) { @connection.transaction }
       end

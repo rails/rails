@@ -66,7 +66,7 @@ module ActiveRecord
       # Returns an array of arrays containing the field values.
       # Order is the same as that returned by +columns+.
       def select_rows(sql, name = nil, binds = [])
-        raise NotImplementedError
+        exec_query(sql, name, binds).rows
       end
 
       # Executes the SQL statement in the context of this connection and returns
