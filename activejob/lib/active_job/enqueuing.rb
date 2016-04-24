@@ -36,7 +36,7 @@ module ActiveJob
     #
     # ==== Examples
     #
-    #  class SiteScrapperJob < ActiveJob::Base
+    #  class SiteScraperJob < ActiveJob::Base
     #    rescue_from(ErrorLoadingSite) do
     #      retry_job queue: :low_priority
     #    end
