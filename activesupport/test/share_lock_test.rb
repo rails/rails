@@ -487,6 +487,36 @@ class ShareLockTest < ActiveSupport::TestCase
     end
   end
 
+  def test_leaving_exclusive_section_wakes_other_share_yielders
+    in_yielded_sharing = Concurrent::CountDownLatch.new
+    yielded_sharing_go = Concurrent::CountDownLatch.new
+    yield_sharing_t = Thread.new do
+      @lock.sharing do
+        @lock.yield_shares(:purpose => :foo, :compatible => [:foo]) do
+          in_yielded_sharing.count_down
+          yielded_sharing_go.wait
+        end
+      end
+    end
+    in_yielded_sharing.wait
+
+    in_exclusive = Concurrent::CountDownLatch.new
+    exclusive_go = Concurrent::CountDownLatch.new
+    exclusive_t = Thread.new do
+      @lock.exclusive(purpose: :foo, compatible: [:foo], after_compatible: [:foo]) do
+        in_exclusive.count_down
+        exclusive_go.wait
+      end
+    end
+    in_exclusive.wait
+
+    yielded_sharing_go.count_down
+    assert_threads_stuck(yield_sharing_t)
+
+    exclusive_go.count_down
+    assert_threads_not_stuck([yield_sharing_t, exclusive_t])
+  end
+
   private
 
   module CustomAssertions
