@@ -1,6 +1,6 @@
 module ActiveRecord
   module ConnectionAdapters
-    class StatementPool
+    class StatementPool # :nodoc:
       include Enumerable
 
       def initialize(max = 1000)
