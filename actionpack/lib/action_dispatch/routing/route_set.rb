@@ -548,12 +548,10 @@ module ActionDispatch
           @recall      = recall
           @set         = set
 
-          normalize_recall!
           normalize_options!
           normalize_controller_action_id!
           use_relative_controller!
           normalize_controller!
-          normalize_action!
         end
 
         def controller
@@ -570,11 +568,6 @@ module ActionDispatch
               @options[key] = @recall[key]
             end
           end
-        end
-
-        # Set 'index' as default action for recall
-        def normalize_recall!
-          @recall[:action] ||= 'index'
         end
 
         def normalize_options!
@@ -627,13 +620,6 @@ module ActionDispatch
             else
               @options[:controller] = controller
             end
-          end
-        end
-
-        # Move 'index' action from options to recall
-        def normalize_action!
-          if @options[:action] == 'index'.freeze
-            @recall[:action] = @options.delete(:action)
           end
         end
 

@@ -137,6 +137,10 @@ module ActionDispatch
           @conditions = Hash[conditions]
           @defaults = formats[:defaults].merge(@defaults).merge(normalize_defaults(options))
 
+          if path_params.include?(:action) && !@requirements.key?(:action)
+            @defaults[:action] ||= 'index'
+          end
+
           @required_defaults = (split_options[:required_defaults] || []).map(&:first)
         end
 
