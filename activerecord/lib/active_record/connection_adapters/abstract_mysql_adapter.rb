@@ -15,7 +15,6 @@ module ActiveRecord
     class AbstractMysqlAdapter < AbstractAdapter
       include MySQL::Quoting
       include MySQL::ColumnDumper
-      include Savepoints
 
       def update_table_definition(table_name, base) # :nodoc:
         MySQL::Table.new(table_name, base)

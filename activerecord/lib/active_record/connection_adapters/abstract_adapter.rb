@@ -67,6 +67,7 @@ module ActiveRecord
       include QueryCache
       include ActiveSupport::Callbacks
       include ColumnDumper
+      include Savepoints
 
       SIMPLE_INT = /\A\d+\z/
 
