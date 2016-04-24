@@ -298,7 +298,7 @@ module ActiveRecord
         false
       end
 
-      # Does this adapter support multi-value insert
+      # Does this adapter support multi-value insert?
       def supports_multi_insert?
         true
       end
