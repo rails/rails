@@ -20,7 +20,7 @@ module ActiveSupport
         @cv = new_cond
 
         @sharing = Hash.new(0)
-        @waiting = {}
+        @waiting_with_yielded_shares = {}
         @exclusive_thread = nil
         @exclusive_depth = 0
       end
@@ -67,9 +67,9 @@ module ActiveSupport
           if @exclusive_depth == 0
             @exclusive_thread = nil
 
-            if eligible_waiters?(compatible)
+            if eligible_waiters_with_yielded_shares?(compatible)
               yield_shares(compatible: compatible, block_share: true) do
-                @cv.wait_while { @exclusive_thread || eligible_waiters?(compatible) }
+                @cv.wait_while { @exclusive_thread || eligible_waiters_with_yielded_shares?(compatible) }
               end
             end
             @cv.broadcast
@@ -81,7 +81,7 @@ module ActiveSupport
         synchronize do
           if @sharing[Thread.current] > 0 || @exclusive_thread == Thread.current
             # We already hold a lock; nothing to wait for
-          elsif @waiting[Thread.current]
+          elsif @waiting_with_yielded_shares[Thread.current]
             # We're nested inside a +yield_shares+ call: we'll resume as
             # soon as there isn't an exclusive lock in our way
             @cv.wait_while { @exclusive_thread }
@@ -138,12 +138,12 @@ module ActiveSupport
         loose_shares = previous_wait = nil
         synchronize do
           if loose_shares = @sharing.delete(Thread.current)
-            if previous_wait = @waiting[Thread.current]
+            if previous_wait = @waiting_with_yielded_shares[Thread.current]
               purpose = nil unless purpose == previous_wait[0]
               compatible &= previous_wait[1]
             end
             compatible |= [false] unless block_share
-            @waiting[Thread.current] = [purpose, compatible]
+            @waiting_with_yielded_shares[Thread.current] = [purpose, compatible]
           end
 
           @cv.broadcast
@@ -156,9 +156,9 @@ module ActiveSupport
             @cv.wait_while { @exclusive_thread && @exclusive_thread != Thread.current }
 
             if previous_wait
-              @waiting[Thread.current] = previous_wait
+              @waiting_with_yielded_shares[Thread.current] = previous_wait
             else
-              @waiting.delete Thread.current
+              @waiting_with_yielded_shares.delete Thread.current
             end
             @sharing[Thread.current] = loose_shares if loose_shares
           end
@@ -175,11 +175,13 @@ module ActiveSupport
 
       def busy_for_sharing?(purpose)
         (@exclusive_thread && @exclusive_thread != Thread.current) ||
-          @waiting.any? { |t, (_, c)| t != Thread.current && !c.include?(purpose) }
+          @waiting_with_yielded_shares.any? { |t, (_, c)| t != Thread.current && !c.include?(purpose) }
       end
 
-      def eligible_waiters?(compatible)
-        @waiting.any? { |t, (p, _)| compatible.include?(p) && @waiting.all? { |t2, (_, c2)| t == t2 || c2.include?(p) } }
+      def eligible_waiters_with_yielded_shares?(compatible)
+        @waiting_with_yielded_shares.any? do |t, (p, _)|
+          compatible.include?(p) && @waiting_with_yielded_shares.all? { |t2, (_, c2)| t == t2 || c2.include?(p) }
+        end
       end
     end
   end
