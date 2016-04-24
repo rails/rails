@@ -25,6 +25,18 @@ class REXMLEngineTest < ActiveSupport::TestCase
     assert_equal_rexml(io)
   end
 
+  def test_parse_empty
+    ActiveSupport::XmlMini.backend = 'REXML'
+    assert_equal({}, ActiveSupport::XmlMini.parse(""))
+  end
+
+  def test_parse_from_freezed_string
+    ActiveSupport::XmlMini.backend = 'REXML'
+    io = "<root></root>"
+    io.freeze
+    assert_equal_rexml(io)
+  end
+
   private
     def assert_equal_rexml(xml)
       parsed_xml = ActiveSupport::XmlMini.parse(xml)
