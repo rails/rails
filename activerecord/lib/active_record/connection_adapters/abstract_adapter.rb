@@ -404,12 +404,6 @@ module ActiveRecord
         @connection
       end
 
-      def create_savepoint(name = nil)
-      end
-
-      def release_savepoint(name = nil)
-      end
-
       def case_sensitive_comparison(table, attribute, column, value)
         if value.nil?
           table[attribute].eq(value)
