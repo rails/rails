@@ -154,7 +154,7 @@ module ActiveRecord
       end
 
       def valid_type?(type)
-        true
+        false
       end
 
       def schema_creation

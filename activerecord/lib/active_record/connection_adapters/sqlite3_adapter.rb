@@ -154,6 +154,10 @@ module ActiveRecord
         true
       end
 
+      def valid_type?(type)
+        true
+      end
+
       # Returns 62. SQLite supports index names up to 64
       # characters. The rest is used by rails internally to perform
       # temporary rename operations
