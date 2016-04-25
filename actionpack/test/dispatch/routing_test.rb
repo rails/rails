@@ -4651,6 +4651,37 @@ class TestDefaultUrlOptions < ActionDispatch::IntegrationTest
   end
 end
 
+class TestUrlHelpersInheritance < ActionDispatch::IntegrationTest
+  class PagesController < ActionController::Base
+    def home
+    end
+  end
+
+  Routes = ActionDispatch::Routing::RouteSet.new
+  Routes.draw do
+    get :home, controller: 'pages'
+  end
+
+  APP = build_app Routes
+
+  def app
+    APP
+  end
+
+  module FooHelper
+    include Routes.url_helpers
+  end
+  class Foo
+    include FooHelper
+  end
+
+  def test_url_helpers_inheritance
+    assert_nothing_raised do
+      Foo.new.home_path
+    end
+  end
+end
+
 class TestErrorsInController < ActionDispatch::IntegrationTest
   class ::PostsController < ActionController::Base
     def foo
