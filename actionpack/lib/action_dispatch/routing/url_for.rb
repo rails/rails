@@ -87,7 +87,7 @@ module ActionDispatch
       include PolymorphicRoutes
 
       included do
-        unless method_defined?(:default_url_options)
+        unless method_defined?(:default_url_options=)
           # Including in a class uses an inheritable hash. Modules get a plain hash.
           if respond_to?(:class_attribute)
             class_attribute :default_url_options
@@ -104,6 +104,10 @@ module ActionDispatch
       def initialize(*)
         @_routes = nil
         super
+      end
+
+      def default_url_options
+        @default_url_options ||= defined?(super) ? super : {}
       end
 
       # Hook overridden in controller to add request information
