@@ -80,7 +80,9 @@ class Hash
       end
     end
   end
+end
 
+module DeepTransformKeys
   # Returns a new hash with all keys converted by the block operation.
   # This includes the keys from the root hash and from all
   # nested hashes and arrays.
@@ -167,4 +169,12 @@ class Hash
         object
       end
     end
+end
+
+class Hash
+  include DeepTransformKeys
+end
+
+class Array
+  include DeepTransformKeys
 end
