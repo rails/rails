@@ -431,10 +431,6 @@ module ActiveRecord
       end
       private :can_perform_case_insensitive_comparison_for?
 
-      def current_savepoint_name
-        current_transaction.savepoint_name
-      end
-
       # Check the connection back in to the connection pool
       def close
         pool.checkin self
