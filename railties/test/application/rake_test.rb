@@ -228,6 +228,17 @@ module ApplicationTests
       MESSAGE
     end
 
+    def test_rake_routes_with_rake_options
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get '/cart', to: 'cart#show'
+        end
+      RUBY
+
+      output = Dir.chdir(app_path){ `bin/rake --rakefile Rakefile routes` }
+      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+    end
+
     def test_logger_is_flushed_when_exiting_production_rake_tasks
       add_to_config <<-RUBY
         rake_tasks do
