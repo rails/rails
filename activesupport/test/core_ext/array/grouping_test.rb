@@ -123,4 +123,12 @@ class SplitTest < ActiveSupport::TestCase
     assert_equal [[], [2, 3, 4], []], a.split { |i| i == 1 || i == 5 }
     assert_equal [1, 2, 3, 4, 5], a
   end
+
+  def test_split_with_repeated_values
+    a = [1, 2, 3, 5, 5, 3, 4, 6, 2, 1, 3]
+    assert_equal [[1, 2], [5, 5], [4, 6, 2, 1], []], a.split(3)
+    assert_equal [[1, 2, 3], [], [3, 4, 6, 2, 1, 3]], a.split(5)
+    assert_equal [[1, 2], [], [], [], [4, 6, 2, 1], []], a.split { |i| i == 3 || i == 5 }
+    assert_equal [1, 2, 3, 5, 5, 3, 4, 6, 2, 1, 3], a
+  end
 end
