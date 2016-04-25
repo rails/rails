@@ -19,7 +19,7 @@ module ActiveRecord
       end
 
       def []=(key, value)
-        first_or_initialize(key: key).update_attributes!(value: value)
+        find_or_initialize_by(key: key).update_attributes!(value: value)
       end
 
       def [](key)
