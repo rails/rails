@@ -1,3 +1,7 @@
+*   Sanitize args for logging.
+
+    *Max Melentiev*
+
 *   Enable class reloading prior to job dispatch, and ensure Active Record
     connections are returned to the pool when jobs are run in separate threads.
 
@@ -22,7 +26,6 @@
 ## Rails 5.0.0.beta2 (February 01, 2016) ##
 
 *   No changes.
-
 
 ## Rails 5.0.0.beta1 (December 18, 2015) ##
 

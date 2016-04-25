@@ -4,6 +4,7 @@ require 'active_support/core_ext/numeric/time'
 require 'jobs/hello_job'
 require 'jobs/logging_job'
 require 'jobs/nested_job'
+require 'jobs/sanitized_param_job'
 require 'models/person'
 
 class LoggingTest < ActiveSupport::TestCase
@@ -72,6 +73,12 @@ class LoggingTest < ActiveSupport::TestCase
     assert_match(%r{Enqueued.*gid://aj/Person/123}, @logger.messages)
     assert_match(%r{Dummy, here is it: #<Person:.*>}, @logger.messages)
     assert_match(%r{Performing.*gid://aj/Person/123}, @logger.messages)
+  end
+
+  def test_sanitized_parameter_logging
+    SanitizedParamJob.perform_later 'public', 'secret'
+    assert_match(/with arguments: "public", "\[FILTERED\]"/, @logger.messages)
+    refute_match(/secret/, @logger.messages)
   end
 
   def test_globalid_nested_parameter_logging

@@ -7,6 +7,8 @@ module ActiveJob
   module Logging #:nodoc:
     extend ActiveSupport::Concern
 
+    SANITIZED_ARG = Object.new
+
     included do
       cattr_accessor(:logger) { ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(STDOUT)) }
 
@@ -35,6 +37,8 @@ module ActiveJob
             adapter: job.class.queue_adapter, job: job
         end
       end
+
+      alias_method :arguments_to_log, :arguments
     end
 
     private
@@ -88,7 +92,7 @@ module ActiveJob
         def args_info(job)
           if job.arguments.any?
             ' with arguments: ' +
-              job.arguments.map { |arg| format(arg).inspect }.join(', ')
+              job.arguments_to_log.map { |arg| format(arg).inspect }.join(', ')
           else
             ''
           end
@@ -102,6 +106,8 @@ module ActiveJob
             arg.map { |value| format(value) }
           when GlobalID::Identification
             arg.to_global_id rescue arg
+          when SANITIZED_ARG
+            '[FILTERED]'
           else
             arg
           end
