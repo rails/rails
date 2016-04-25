@@ -68,6 +68,12 @@ Don't forget to review the difference, to see if there were any unexpected chang
 Upgrading from Rails 4.2 to Rails 5.0
 -------------------------------------
 
+### Removal of `config.autoload_paths`
+
+`autoload_paths` won't autoload your code anymore, if you're using autoloaded
+code outside of your app (lib for example), you have to add this to
+`config.eager_load_paths`
+
 ### Ruby 2.2.2+
 
 From Ruby on Rails 5.0 onwards, Ruby 2.2.2+ is the only supported version. 
