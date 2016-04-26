@@ -252,5 +252,13 @@ module ActionDispatch
 
     SEPARATORS = %w( / . ? ) #:nodoc:
     HTTP_METHODS = [:get, :head, :post, :patch, :put, :delete, :options] #:nodoc:
+    INSECURE_URL_PARAMETERS_MESSAGE = <<-MSG.squish
+      Generating a URL from non-sanitized request parameters is insecure.
+
+      An attacker may use this to inject malicious data into the URL and may,
+      for instance, change the host to one which they control. For this reason,
+      you should whitelist and sanitize any parameters you intend to pass to URL
+      helpers rather than passing the collection of raw parameters directly.
+    MSG
   end
 end
