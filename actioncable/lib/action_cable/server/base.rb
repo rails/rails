@@ -20,13 +20,13 @@ module ActionCable
       def initialize
         @mutex = Monitor.new
         @remote_connections = @event_loop = @worker_pool = @channel_classes = @pubsub = nil
-        @channel_classes = self.channel_classes
       end
 
       # Called by Rack to setup the server.
       def call(env)
         setup_heartbeat_timer
         config.connection_class.new(self, env).process
+        @channel_classes = self.channel_classes
       end
 
       # Disconnect all the connections identified by `identifiers` on this server or any others via RemoteConnections.
