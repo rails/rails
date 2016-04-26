@@ -178,7 +178,6 @@ module ActionDispatch
         key = key.to_s
         @discard.delete key
         @flashes.delete key
-        self
       end
 
       def to_hash
