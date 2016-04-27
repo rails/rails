@@ -350,6 +350,35 @@ class HasManyThroughFixture < ActiveRecord::TestCase
     assert_equal load_has_and_belongs_to_many["parrots_treasures"], rows["parrot_treasures"]
   end
 
+  def test_has_many_through_load_order
+    pt = make_model "ParrotTreasure"
+    parrot = make_model "Parrot"
+    treasure = make_model "Treasure"
+
+    pt.belongs_to :parrot, anonymous_class: parrot
+    pt.belongs_to :treasure, anonymous_class: treasure
+
+    parrot.has_many :parrot_treasures, anonymous_class: pt
+    parrot.has_many :treasures, through: :parrot_treasures
+
+    parrots = File.join FIXTURES_ROOT, "parrots"
+
+    fs = ActiveRecord::FixtureSet.new parrot.connection, "parrots", parrot, parrots
+    ordered_rows = fs.table_rows.to_a
+    parrot_load_order = ordered_rows.index { |arr| arr[0] == "parrots" }
+    parrot_treasures_load_order = ordered_rows.index { |arr| arr[0] == "parrot_treasures" }
+
+    assert parrot_load_order < parrot_treasures_load_order
+  end
+
+  def test_has_and_belongs_to_many_load_order
+    ordered_rows = load_has_and_belongs_to_many.to_a
+    parrot_load_order = ordered_rows.index { |arr| arr[0] == "parrots" }
+    parrots_treasures_load_order = ordered_rows.index { |arr| arr[0] == "parrots_treasures" }
+
+    assert parrot_load_order < parrots_treasures_load_order
+  end
+
   def load_has_and_belongs_to_many
     parrot = make_model "Parrot"
     parrot.has_and_belongs_to_many :treasures

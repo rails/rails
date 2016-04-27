@@ -650,6 +650,8 @@ module ActiveRecord
       # track any join tables we need to insert later
       rows = Hash.new { |h, table| h[table] = [] }
 
+      # Insert the table_name hash key before any join table keys
+      rows[table_name] = []
       rows[table_name] = fixtures.map do |label, fixture|
         row = fixture.to_hash
 
