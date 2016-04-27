@@ -1,3 +1,5 @@
+## Rails 5.0.0.beta4 (April 27, 2016) ##
+
 *   Enable class reloading prior to job dispatch, and ensure Active Record
     connections are returned to the pool when jobs are run in separate threads.
 
