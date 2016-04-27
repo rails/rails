@@ -112,26 +112,6 @@
 
     *Santosh Wadghule*
 
-*   `ActiveSupport::Duration` supports weeks and hours.
-
-        [1.hour.inspect, 1.hour.value, 1.hour.parts]
-        # => ["3600 seconds", 3600, [[:seconds, 3600]]]   # Before
-        # => ["1 hour", 3600, [[:hours, 1]]]              # After
-
-        [1.week.inspect, 1.week.value, 1.week.parts]
-        # => ["7 days", 604800, [[:days, 7]]]             # Before
-        # => ["1 week", 604800, [[:weeks, 1]]]            # After
-
-    This brings us into closer conformance with ISO8601 and relieves some
-    astonishment about getting `1.hour.inspect # => 3600 seconds`.
-
-    Compatibility: The duration's `value` remains the same, so apps using
-    durations are oblivious to the new time periods. Apps, libraries, and
-    plugins that work with the internal `parts` hash will need to broaden
-    their time period handling to cover hours & weeks.
-
-    *Andrey Novikov*
-
 *   Fix behavior of JSON encoding for `Exception`.
 
     *namusyaka*

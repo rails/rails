@@ -25,17 +25,17 @@ class Numeric
 
   # Returns a Duration instance matching the number of minutes provided.
   #
-  #   2.minutes # => 2 minutes
+  #   2.minutes # => 120 seconds
   def minutes
-    ActiveSupport::Duration.new(self * 60, [[:minutes, self]])
+    ActiveSupport::Duration.new(self * 60, [[:seconds, self * 60]])
   end
   alias :minute :minutes
 
   # Returns a Duration instance matching the number of hours provided.
   #
-  #   2.hours # => 2 hours
+  #   2.hours # => 7_200 seconds
   def hours
-    ActiveSupport::Duration.new(self * 3600, [[:hours, self]])
+    ActiveSupport::Duration.new(self * 3600, [[:seconds, self * 3600]])
   end
   alias :hour :hours
 
@@ -49,17 +49,17 @@ class Numeric
 
   # Returns a Duration instance matching the number of weeks provided.
   #
-  #   2.weeks # => 2 weeks
+  #   2.weeks # => 14 days
   def weeks
-    ActiveSupport::Duration.new(self * 7.days, [[:weeks, self]])
+    ActiveSupport::Duration.new(self * 7.days, [[:days, self * 7]])
   end
   alias :week :weeks
 
   # Returns a Duration instance matching the number of fortnights provided.
   #
-  #   2.fortnights # => 4 weeks
+  #   2.fortnights # => 28 days
   def fortnights
-    ActiveSupport::Duration.new(self * 2.weeks, [[:weeks, self * 2]])
+    ActiveSupport::Duration.new(self * 2.weeks, [[:days, self * 14]])
   end
   alias :fortnight :fortnights
 
