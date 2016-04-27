@@ -168,7 +168,12 @@ module ActionView
       #   asset_url "application.js", host: "http://cdn.example.com" # => http://cdn.example.com/assets/application.js
       #
       def asset_url(source, options = {})
-        path_to_asset(source, options.merge(:protocol => :request))
+        protocol = if respond_to?(:request)
+          :request
+        else
+          (defined?(config.default_asset_host_protocol) && config.default_asset_host_protocol) || :relative
+        end
+        path_to_asset(source, options.merge(protocol: protocol))
       end
       alias_method :url_to_asset, :asset_url # aliased to avoid conflicts with an asset_url named route
 

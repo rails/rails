@@ -783,6 +783,10 @@ class AssetUrlHelperEmptyModuleTest < ActionView::TestCase
     assert_equal "/foo", @module.asset_url("foo")
   end
 
+  def test_asset_url_with_host
+    assert_equal '//example.com/foo', @module.asset_url('foo', host: 'example.com')
+  end
+
   def test_asset_url_with_request
     @module.instance_eval do
       def request
@@ -813,6 +817,17 @@ class AssetUrlHelperEmptyModuleTest < ActionView::TestCase
     end
 
     assert @module.config.asset_host
-    assert_equal "http://custom.example.com/foo", @module.asset_url("foo", :host => "http://custom.example.com")
+    assert_equal "http://custom.example.com/foo", @module.asset_url("foo", host: "http://custom.example.com")
+  end
+
+  def test_asset_url_with_default_asset_protocol
+    @module.instance_eval do
+      def config
+        Struct.new(:default_asset_host_protocol).new('gopher')
+      end
+    end
+
+    assert @module.config.default_asset_host_protocol
+    assert_equal 'gopher://example.com/foo', @module.asset_url('foo', host: 'example.com')
   end
 end

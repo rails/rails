@@ -1,3 +1,12 @@
+*   Allow `AssetUrlHelper#asset_url` to be used in mailers. As of now, mailer
+    templates need to provide a complete path to their assets including the protocol.
+
+    Instead forcing `asset_url` to use the protocol as `:request`,
+    it tries to use the `config.default_asset_host_protocol` and
+    for last it sets as `:relative`.
+
+    *akshetpandey*, *Roque Pinel*
+
 ## Rails 5.0.0.beta4 (April 27, 2016) ##
 
 *   `date_select` helper `:with_css_classes` option now accepts a hash of strings 
