@@ -52,7 +52,6 @@ module ActiveRecord
       ADAPTER_NAME = 'SQLite'.freeze
 
       include SQLite3::Quoting
-      include Savepoints
 
       NATIVE_DATABASE_TYPES = {
         primary_key:  'INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL',
@@ -88,7 +87,7 @@ module ActiveRecord
         super(connection, logger, config)
 
         @active     = nil
-        @statements = StatementPool.new(self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 }))
+        @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
       end
 
       def supports_ddl_transactions?
@@ -152,6 +151,10 @@ module ActiveRecord
       end
 
       def supports_index_sort_order?
+        true
+      end
+
+      def valid_type?(type)
         true
       end
 

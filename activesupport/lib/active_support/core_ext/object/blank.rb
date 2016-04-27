@@ -110,9 +110,9 @@ class String
   #
   # @return [true, false]
   def blank?
-    # In practice, the majority of blank strings are empty. The predicate is
-    # about 3.5x faster than the regexp check so we first test empty?, and then
-    # fallback. Penalty for the rest of strings is marginal.
+    # The regexp that matches blank strings is expensive. For the case of empty
+    # strings we can speed up this method (~3.5x) with an empty? call. The
+    # penalty for the rest of strings is marginal.
     #
     # Double negation in the second operand is also a performance tweak, it is
     # faster than the positive \A[[:space:]]*\z.

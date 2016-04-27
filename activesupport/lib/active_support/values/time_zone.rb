@@ -278,7 +278,6 @@ module ActiveSupport
       @name = name
       @utc_offset = utc_offset
       @tzinfo = tzinfo || TimeZone.find_tzinfo(name)
-      @current_period = nil
     end
 
     # Returns the offset of this time zone from UTC in seconds.
@@ -286,8 +285,7 @@ module ActiveSupport
       if @utc_offset
         @utc_offset
       else
-        @current_period ||= tzinfo.current_period if tzinfo
-        @current_period.utc_offset if @current_period
+        tzinfo.current_period.utc_offset if tzinfo && tzinfo.current_period
       end
     end
 

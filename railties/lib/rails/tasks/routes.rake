@@ -19,6 +19,9 @@ task routes: :environment do
 
   OptionParser.new do |opts|
     opts.banner = "Usage: rails routes [options]"
+
+    Rake.application.standard_rake_options.each { |args| opts.on(*args) }
+
     opts.on("-c CONTROLLER") do |controller|
       routes_filter = { controller: controller }
     end

@@ -61,6 +61,7 @@ matrix:
         - "GEM='ap'"
   allow_failures:
     - rvm: ruby-head
+    - rvm: jruby-9.0.5.0
   fast_finish: true
 
 notifications:

@@ -15,7 +15,6 @@ module ActiveRecord
     class AbstractMysqlAdapter < AbstractAdapter
       include MySQL::Quoting
       include MySQL::ColumnDumper
-      include Savepoints
 
       def update_table_definition(table_name, base) # :nodoc:
         MySQL::Table.new(table_name, base)
@@ -66,7 +65,7 @@ module ActiveRecord
       def initialize(connection, logger, connection_options, config)
         super(connection, logger, config)
 
-        @statements = StatementPool.new(self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 }))
+        @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
 
         if version < '5.0.0'
           raise "Your version of MySQL (#{full_version.match(/^\d+\.\d+\.\d+/)[0]}) is too old. Active Record supports MySQL >= 5.0."

@@ -87,6 +87,17 @@ module ActiveRecord
       @connection.remove_index(:accounts, :name => idx_name) rescue nil
     end
 
+    def test_remove_index_when_name_and_wrong_column_name_specified
+      index_name = "accounts_idx"
+
+      @connection.add_index :accounts, :firm_id, :name => index_name
+      assert_raises ArgumentError do
+        @connection.remove_index :accounts, :name => index_name, :column => :wrong_column_name
+      end
+    ensure
+      @connection.remove_index(:accounts, :name => index_name)
+    end
+
     def test_current_database
       if @connection.respond_to?(:current_database)
         assert_equal ARTest.connection_config['arunit']['database'], @connection.current_database

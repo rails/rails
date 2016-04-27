@@ -395,6 +395,17 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal(-18_000, zone.utc_offset)
   end
 
+  def test_utc_offset_is_not_cached_when_current_period_gets_stale
+    tz = ActiveSupport::TimeZone.create('Moscow')
+    travel_to(Time.utc(2014, 10, 25, 21)) do # 1 hour before TZ change
+      assert_equal 14400, tz.utc_offset, 'utc_offset should be initialized according to current_period'
+    end
+
+    travel_to(Time.utc(2014, 10, 25, 22)) do # after TZ change
+      assert_equal 10800, tz.utc_offset, 'utc_offset should not be cached when current_period gets stale'
+    end
+  end
+
   def test_seconds_to_utc_offset_with_colon
     assert_equal "-06:00", ActiveSupport::TimeZone.seconds_to_utc_offset(-21_600)
     assert_equal "+00:00", ActiveSupport::TimeZone.seconds_to_utc_offset(0)

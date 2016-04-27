@@ -116,7 +116,7 @@ defaults to `:debug` for all environments. The available log levels are: `:debug
 
 * `config.log_tags` accepts a list of: methods that the `request` object responds to, a `Proc` that accepts the `request` object, or something that responds to `to_s`. This makes it easy to tag log lines with debug information like subdomain and request id - both very helpful in debugging multi-user production applications.
 
-* `config.logger` is the logger that will be used for `Rails.logger` and any related Rails logging such as `ActiveRecord::Base.logger`. It defaults to an instance of `ActiveSupport::TaggedLogging` that wraps an instance of `ActiveSupport::Logger` which outputs a log to the `log/` directory. You can supply a custom logger, to get full compatability you must follow these guidelines:
+* `config.logger` is the logger that will be used for `Rails.logger` and any related Rails logging such as `ActiveRecord::Base.logger`. It defaults to an instance of `ActiveSupport::TaggedLogging` that wraps an instance of `ActiveSupport::Logger` which outputs a log to the `log/` directory. You can supply a custom logger, to get full compatibility you must follow these guidelines:
   * To support a formatter you must manually assign a formatter from the `config.log_formatter` value to the logger.
   * To support tagged loggs the log instance must be wrapped with `ActiveSupport::TaggedLogging`.
   * To support silencing the logger must include `LoggerSilence` and `ActiveSupport::LoggerThreadSafeLevel` modules. The `ActiveSupport::Logger` class already includes these modules.
@@ -480,7 +480,7 @@ encrypted cookies salt value. Defaults to `'signed encrypted cookie'`.
 * `config.action_view.automatically_disable_submit_tag` determines whether
   submit_tag should automatically disable on click, this defaults to true.
 
-* `config.action_view.debug_missing_translation` determins whether to wrap the missing translations key in a `<span>` tag or not. This defaults to true.
+* `config.action_view.debug_missing_translation` determines whether to wrap the missing translations key in a `<span>` tag or not. This defaults to true.
 
 ### Configuring Action Mailer
 
