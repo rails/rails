@@ -2,8 +2,8 @@ module ActiveRecord
   module ConnectionAdapters
     module MySQL
       class SchemaCreation < AbstractAdapter::SchemaCreation
-        delegate :quote, to: :@conn
-        private :quote
+        delegate :add_sql_comment!, to: :@conn
+        private :add_sql_comment!
 
         private
 
@@ -26,11 +26,7 @@ module ActiveRecord
         end
 
         def add_table_options!(create_sql, options)
-          super
-
-          if comment = options[:comment]
-            create_sql << " COMMENT #{quote(comment)}"
-          end
+          add_sql_comment!(super, options[:comment])
         end
 
         def column_options(o)
@@ -48,13 +44,7 @@ module ActiveRecord
             sql << " COLLATE #{collation}"
           end
 
-          super
-
-          if comment = options[:comment]
-            sql << " COMMENT #{quote(comment)}"
-          end
-
-          sql
+          add_sql_comment!(super, options[:comment])
         end
 
         def add_column_position!(sql, options)
@@ -69,8 +59,7 @@ module ActiveRecord
 
         def index_in_create(table_name, column_name, options)
           index_name, index_type, index_columns, _, _, index_using, comment = @conn.add_index_options(table_name, column_name, options)
-          index_option = " COMMENT #{quote(comment)}" if comment
-          "#{index_type} INDEX #{quote_column_name(index_name)} #{index_using} (#{index_columns})#{index_option} "
+          add_sql_comment!("#{index_type} INDEX #{quote_column_name(index_name)} #{index_using} (#{index_columns})", comment)
         end
       end
     end
