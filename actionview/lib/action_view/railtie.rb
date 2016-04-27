@@ -37,7 +37,7 @@ module ActionView
       end
     end
 
-    initializer "action_view.collection_caching" do |app|
+    initializer "action_view.collection_caching", after: "action_controller.set_configs" do |app|
       ActiveSupport.on_load(:action_controller) do
         PartialRenderer.collection_cache = app.config.action_controller.cache_store
       end
