@@ -502,8 +502,12 @@ module ActiveRecord
       def add_index(table_name, column_name, options = {}) #:nodoc:
         index_name, index_type, index_columns, _, index_algorithm, index_using, comment = add_index_options(table_name, column_name, options)
         sql = "CREATE #{index_type} INDEX #{quote_column_name(index_name)} #{index_using} ON #{quote_table_name(table_name)} (#{index_columns}) #{index_algorithm}"
+        execute add_sql_comment!(sql, comment)
+      end
+
+      def add_sql_comment!(sql, comment) # :nodoc:
         sql << " COMMENT #{quote(comment)}" if comment
-        execute sql
+        sql
       end
 
       def foreign_keys(table_name)

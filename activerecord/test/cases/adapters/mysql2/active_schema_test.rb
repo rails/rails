@@ -63,14 +63,14 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
     def (ActiveRecord::Base.connection).data_source_exists?(*); false; end
 
     %w(SPATIAL FULLTEXT UNIQUE).each do |type|
-      expected = "CREATE TABLE `people` (#{type} INDEX `index_people_on_last_name`  (`last_name`) ) ENGINE=InnoDB"
+      expected = "CREATE TABLE `people` (#{type} INDEX `index_people_on_last_name`  (`last_name`)) ENGINE=InnoDB"
       actual = ActiveRecord::Base.connection.create_table(:people, id: false) do |t|
         t.index :last_name, type: type
       end
       assert_equal expected, actual
     end
 
-    expected = "CREATE TABLE `people` ( INDEX `index_people_on_last_name` USING btree (`last_name`(10)) ) ENGINE=InnoDB"
+    expected = "CREATE TABLE `people` ( INDEX `index_people_on_last_name` USING btree (`last_name`(10))) ENGINE=InnoDB"
     actual = ActiveRecord::Base.connection.create_table(:people, id: false) do |t|
       t.index :last_name, length: 10, using: :btree
     end
@@ -155,7 +155,7 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
     ActiveRecord::Base.connection.stubs(:data_source_exists?).with(:temp).returns(false)
     ActiveRecord::Base.connection.stubs(:index_name_exists?).with(:index_temp_on_zip).returns(false)
 
-    expected = "CREATE TEMPORARY TABLE `temp` ( INDEX `index_temp_on_zip`  (`zip`) ) ENGINE=InnoDB AS SELECT id, name, zip FROM a_really_complicated_query"
+    expected = "CREATE TEMPORARY TABLE `temp` ( INDEX `index_temp_on_zip`  (`zip`)) ENGINE=InnoDB AS SELECT id, name, zip FROM a_really_complicated_query"
     actual = ActiveRecord::Base.connection.create_table(:temp, temporary: true, as: "SELECT id, name, zip FROM a_really_complicated_query") do |t|
       t.index :zip
     end
