@@ -7,15 +7,8 @@ module ActiveSupport
     end
 
     def try!(*a, &b)
-      if a.empty? && block_given?
-        if b.arity == 0
-          instance_eval(&b)
-        else
-          yield self
-        end
-      else
-        public_send(*a, &b)
-      end
+      return public_send(*a, &b) unless a.empty? && block_given?
+      b.arity == 0 ? instance_eval(&b) : yield self
     end
   end
 end

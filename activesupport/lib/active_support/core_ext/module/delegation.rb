@@ -183,19 +183,18 @@ class Module
       # On the other hand it could be that the target has side-effects,
       # whereas conceptually, from the user point of view, the delegator should
       # be doing one call.
-      if allow_nil
-        method_def = [
+      method_def = if allow_nil
+        [
           "def #{method_prefix}#{method}(#{definition})",
           "_ = #{to}",
           "if !_.nil? || nil.respond_to?(:#{method})",
           "  _.#{method}(#{definition})",
           "end",
         "end"
-        ].join ';'
+        ]
       else
         exception = %(raise DelegationError, "#{self}##{method_prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
-
-        method_def = [
+        [
           "def #{method_prefix}#{method}(#{definition})",
           " _ = #{to}",
           "  _.#{method}(#{definition})",
@@ -206,8 +205,9 @@ class Module
           "    raise",
           "  end",
           "end"
-        ].join ';'
+        ]
       end
+      method_def = method_def.join(';')
 
       module_eval(method_def, file, line)
     end

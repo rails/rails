@@ -23,10 +23,9 @@ class Module
   end
 
   def method_visibility(method) # :nodoc:
-    case
-    when private_method_defined?(method)
+    if private_method_defined?(method)
       :private
-    when protected_method_defined?(method)
+    elsif protected_method_defined?(method)
       :protected
     else
       :public

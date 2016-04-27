@@ -194,7 +194,7 @@ end
 
 class Process::Status #:nodoc:
   def as_json(options = nil)
-    { :exitstatus => exitstatus, :pid => pid }
+    { exitstatus: exitstatus, pid: pid }
   end
 end
 

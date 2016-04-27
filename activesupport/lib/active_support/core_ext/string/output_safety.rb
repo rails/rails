@@ -149,20 +149,13 @@ module ActiveSupport #:nodoc:
     end
 
     def [](*args)
-      if args.size < 2
-        super
+      return super if args.size < 2
+      if html_safe?
+        new_safe_buffer = super
+        new_safe_buffer.instance_variable_set(:@html_safe, true) if new_safe_buffer
+        new_safe_buffer
       else
-        if html_safe?
-          new_safe_buffer = super
-
-          if new_safe_buffer
-            new_safe_buffer.instance_variable_set :@html_safe, true
-          end
-
-          new_safe_buffer
-        else
-          to_str[*args]
-        end
+        to_str[*args]
       end
     end
 
@@ -199,11 +192,10 @@ module ActiveSupport #:nodoc:
     end
 
     def %(args)
-      case args
-      when Hash
-        escaped_args = Hash[args.map { |k,arg| [k, html_escape_interpolated_argument(arg)] }]
+      escaped_args = if args.is_a?(Hash)
+        Hash[args.map { |k, arg| [k, html_escape_interpolated_argument(arg)] }]
       else
-        escaped_args = Array(args).map { |arg| html_escape_interpolated_argument(arg) }
+        Array(args).map { |arg| html_escape_interpolated_argument(arg) }
       end
 
       self.class.new(super(escaped_args))

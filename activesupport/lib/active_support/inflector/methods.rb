@@ -65,14 +65,13 @@ module ActiveSupport
     #   camelize(underscore('SSLError'))        # => "SslError"
     def camelize(term, uppercase_first_letter = true)
       string = term.to_s
-      if uppercase_first_letter
-        string = string.sub(/^[a-z\d]*/) { |match| inflections.acronyms[match] || match.capitalize }
+      string = if uppercase_first_letter
+        string.sub(/^[a-z\d]*/) { |match| inflections.acronyms[match] || match.capitalize }
       else
-        string = string.sub(/^(?:#{inflections.acronym_regex}(?=\b|[A-Z_])|\w)/) { |match| match.downcase }
+        string.sub(/^(?:#{inflections.acronym_regex}(?=\b|[A-Z_])|\w)/) { |match| match.downcase }
       end
       string.gsub!(/(?:_|(\/))([a-z\d]*)/i) { "#{$1}#{inflections.acronyms[$2] || $2.capitalize}" }
       string.gsub!('/'.freeze, '::'.freeze)
-      string
     end
 
     # Makes an underscored, lowercase form from the expression in the string.
@@ -94,7 +93,6 @@ module ActiveSupport
       word.gsub!(/([a-z\d])([A-Z])/, '\1_\2'.freeze)
       word.tr!("-".freeze, "_".freeze)
       word.downcase!
-      word
     end
 
     # Tweaks an attribute name for display to end users.
