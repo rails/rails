@@ -125,14 +125,14 @@ Order.scoped_by_customer_id(12).scoped_by_status("open")
 There's nothing to define to use dynamic scopes: they just work.
 
 * Lead Contributor: [Yaroslav Markin](http://evilmartians.com/)
-* More Information: [What's New in Edge Rails: Dynamic Scope Methods](http://ryandaigle.com/articles/2008/12/29/what-s-new-in-edge-rails-dynamic-scope-methods.)
+* More Information: [What's New in Edge Rails: Dynamic Scope Methods](http://archives.ryandaigle.com/articles/2008/12/29/what-s-new-in-edge-rails-dynamic-scope-methods.)
 
 ### Default Scopes
 
 Rails 2.3 will introduce the notion of _default scopes_ similar to named scopes, but applying to all named scopes or find methods within the model. For example, you can write `default_scope :order => 'name ASC'` and any time you retrieve records from that model they'll come out sorted by name (unless you override the option, of course).
 
 * Lead Contributor: Paweł Kondzior
-* More Information: [What's New in Edge Rails: Default Scoping](http://ryandaigle.com/articles/2008/11/18/what-s-new-in-edge-rails-default-scoping)
+* More Information: [What's New in Edge Rails: Default Scoping](http://archives.ryandaigle.com/articles/2008/11/18/what-s-new-in-edge-rails-default-scoping)
 
 ### Batch Processing
 
@@ -158,7 +158,7 @@ Note that you should only use this method for batch processing: for small number
 
 * More Information (at that point the convenience method was called just `each`):
     * [Rails 2.3: Batch Finding](http://afreshcup.com/2009/02/23/rails-23-batch-finding/)
-    * [What's New in Edge Rails: Batched Find](http://ryandaigle.com/articles/2009/2/23/what-s-new-in-edge-rails-batched-find)
+    * [What's New in Edge Rails: Batched Find](http://archives.ryandaigle.com/articles/2009/2/23/what-s-new-in-edge-rails-batched-find)
 
 ### Multiple Conditions for Callbacks
 
@@ -235,7 +235,7 @@ If you're one of the people who has always been bothered by the special-case nam
 
 * More Information:
     * [The Death of Application.rb](http://afreshcup.com/2008/11/17/rails-2x-the-death-of-applicationrb/)
-    * [What's New in Edge Rails: Application.rb Duality is no More](http://ryandaigle.com/articles/2008/11/19/what-s-new-in-edge-rails-application-rb-duality-is-no-more)
+    * [What's New in Edge Rails: Application.rb Duality is no More](http://archives.ryandaigle.com/articles/2008/11/19/what-s-new-in-edge-rails-application-rb-duality-is-no-more)
 
 ### HTTP Digest Authentication Support
 
@@ -261,7 +261,7 @@ end
 ```
 
 * Lead Contributor: [Gregg Kellogg](http://www.kellogg-assoc.com/)
-* More Information: [What's New in Edge Rails: HTTP Digest Authentication](http://ryandaigle.com/articles/2009/1/30/what-s-new-in-edge-rails-http-digest-authentication)
+* More Information: [What's New in Edge Rails: HTTP Digest Authentication](http://archives.ryandaigle.com/articles/2009/1/30/what-s-new-in-edge-rails-http-digest-authentication)
 
 ### More Efficient Routing
 
@@ -378,7 +378,7 @@ You can write this view in Rails 2.3:
 * More Information:
     * [Nested Model Forms](http://weblog.rubyonrails.org/2009/1/26/nested-model-forms)
     * [complex-form-examples](http://github.com/alloy/complex-form-examples)
-    * [What's New in Edge Rails: Nested Object Forms](http://ryandaigle.com/articles/2009/2/1/what-s-new-in-edge-rails-nested-attributes)
+    * [What's New in Edge Rails: Nested Object Forms](http://archives.ryandaigle.com/articles/2009/2/1/what-s-new-in-edge-rails-nested-attributes)
 
 ### Smart Rendering of Partials
 
@@ -394,7 +394,7 @@ render @article
 render @articles
 ```
 
-* More Information: [What's New in Edge Rails: render Stops Being High-Maintenance](http://ryandaigle.com/articles/2008/11/20/what-s-new-in-edge-rails-render-stops-being-high-maintenance)
+* More Information: [What's New in Edge Rails: render Stops Being High-Maintenance](http://archives.ryandaigle.com/articles/2008/11/20/what-s-new-in-edge-rails-render-stops-being-high-maintenance)
 
 ### Prompts for Date Select Helpers
 
@@ -555,7 +555,7 @@ Rails Metal is a new mechanism that provides superfast endpoints inside of your 
     * [Introducing Rails Metal](http://weblog.rubyonrails.org/2008/12/17/introducing-rails-metal)
     * [Rails Metal: a micro-framework with the power of Rails](http://soylentfoo.jnewland.com/articles/2008/12/16/rails-metal-a-micro-framework-with-the-power-of-rails-m)
     * [Metal: Super-fast Endpoints within your Rails Apps](http://www.railsinside.com/deployment/180-metal-super-fast-endpoints-within-your-rails-apps.html)
-    * [What's New in Edge Rails: Rails Metal](http://ryandaigle.com/articles/2008/12/18/what-s-new-in-edge-rails-rails-metal)
+    * [What's New in Edge Rails: Rails Metal](http://archives.ryandaigle.com/articles/2008/12/18/what-s-new-in-edge-rails-rails-metal)
 
 ### Application Templates
 
