@@ -69,8 +69,14 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   def test_to_time
     with_env_tz 'US/Eastern' do
       assert_instance_of Time, DateTime.new(2005, 2, 21, 10, 11, 12, 0).to_time
-      assert_equal Time.local(2005, 2, 21, 5, 11, 12), DateTime.new(2005, 2, 21, 10, 11, 12, 0).to_time
-      assert_equal Time.local(2005, 2, 21, 5, 11, 12).utc_offset, DateTime.new(2005, 2, 21, 10, 11, 12, 0).to_time.utc_offset
+
+      if ActiveSupport.to_time_preserves_timezone
+        assert_equal Time.local(2005, 2, 21, 5, 11, 12).getlocal(0), DateTime.new(2005, 2, 21, 10, 11, 12, 0).to_time
+        assert_equal Time.local(2005, 2, 21, 5, 11, 12).getlocal(0).utc_offset, DateTime.new(2005, 2, 21, 10, 11, 12, 0).to_time.utc_offset
+      else
+        assert_equal Time.local(2005, 2, 21, 5, 11, 12), DateTime.new(2005, 2, 21, 10, 11, 12, 0).to_time
+        assert_equal Time.local(2005, 2, 21, 5, 11, 12).utc_offset, DateTime.new(2005, 2, 21, 10, 11, 12, 0).to_time.utc_offset
+      end
     end
   end
 
