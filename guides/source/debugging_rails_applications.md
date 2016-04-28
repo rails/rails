@@ -727,7 +727,7 @@ For example, in the previous situation
    13:   end
 
 (byebug) break 11
-Succesfully created breakpoint with id 1
+Successfully created breakpoint with id 1
 
 ```
 
