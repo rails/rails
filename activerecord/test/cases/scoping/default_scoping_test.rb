@@ -4,6 +4,7 @@ require 'models/comment'
 require 'models/developer'
 require 'models/computer'
 require 'models/vehicle'
+require 'models/company'
 
 class DefaultScopingTest < ActiveRecord::TestCase
   fixtures :developers, :posts, :comments
@@ -221,6 +222,17 @@ class DefaultScopingTest < ActiveRecord::TestCase
     expected = Developer.all.collect { |dev| dev.name }
     received = Developer.joins('JOIN developers_projects ON id = developer_id').select(:id).unscope(:joins, :select).collect { |dev| dev.name }
     assert_equal expected, received
+  end
+
+  def test_joins_with_default_scopes
+    company = CompanyWithZeroId.create!(id: 0)
+    DeveloperWithZeroId.create!(id: 0, firm: company)
+
+    scope = DeveloperWithZeroId.joins(:firm)
+    assert scope.exists?
+
+    result = DeveloperWithZeroId.connection.select_all(scope)
+    assert result.present?
   end
 
   def test_unscope_includes

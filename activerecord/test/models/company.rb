@@ -100,6 +100,11 @@ class Firm < Company
     end
 end
 
+class CompanyWithZeroId < ActiveRecord::Base
+  self.table_name = 'companies'
+  default_scope { where(id: 0) }
+end
+
 class DependentFirm < Company
   has_one :account, :foreign_key => "firm_id", :dependent => :nullify
   has_many :companies, :foreign_key => 'client_of', :dependent => :nullify

@@ -384,7 +384,7 @@ module ActiveRecord
 
         def binds_from_relation(relation, binds)
           if relation.is_a?(Relation) && binds.empty?
-            relation, binds = relation.arel, relation.bind_values
+            relation, binds = relation.arel, relation.bind_values + relation.arel.bind_values
           end
           [relation, binds]
         end
