@@ -100,9 +100,9 @@ class Firm < Company
     end
 end
 
-class CompanyWithZeroId < ActiveRecord::Base
+class CompanyWithIdMillion < ActiveRecord::Base
   self.table_name = 'companies'
-  default_scope { where(id: 0) }
+  default_scope { where(id: 1_000_000) }
 end
 
 class DependentFirm < Company

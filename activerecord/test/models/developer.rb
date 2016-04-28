@@ -125,10 +125,10 @@ class DeveloperCalledDavid < ActiveRecord::Base
   default_scope { where("name = 'David'") }
 end
 
-class DeveloperWithZeroId < ActiveRecord::Base
+class DeveloperWithIdMillion < ActiveRecord::Base
   self.table_name = 'developers'
-  default_scope { where(id: 0) }
-  belongs_to :firm, class_name: 'CompanyWithZeroId'
+  default_scope { where(id: 1_000_000) }
+  belongs_to :firm, class_name: 'CompanyWithIdMillion'
 end
 
 class LazyLambdaDeveloperCalledDavid < ActiveRecord::Base

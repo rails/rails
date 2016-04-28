@@ -225,13 +225,13 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_joins_with_default_scopes
-    company = CompanyWithZeroId.create!(id: 0)
-    DeveloperWithZeroId.create!(id: 0, firm: company)
+    company = CompanyWithIdMillion.create!(id: 1_000_000)
+    DeveloperWithIdMillion.create!(id: 1_000_000, firm: company)
 
-    scope = DeveloperWithZeroId.joins(:firm)
+    scope = DeveloperWithIdMillion.joins(:firm)
     assert scope.exists?
 
-    result = DeveloperWithZeroId.connection.select_all(scope)
+    result = DeveloperWithIdMillion.connection.select_all(scope)
     assert result.present?
   end
 
