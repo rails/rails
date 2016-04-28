@@ -244,11 +244,11 @@ Ruby) which is processed by the request cycle in Rails before being sent to the
 user.
 
 To create a new controller, you will need to run the "controller" generator and
-tell it you want a controller called "welcome" with an action called "index",
+tell it you want a controller called "Welcome" with an action called "index",
 just like this:
 
 ```bash
-$ bin/rails generate controller welcome index
+$ bin/rails generate controller Welcome index
 ```
 
 Rails will create several files and a route for you.
@@ -327,7 +327,7 @@ end
 application to the welcome controller's index action and `get 'welcome/index'`
 tells Rails to map requests to <http://localhost:3000/welcome/index> to the
 welcome controller's index action. This was created earlier when you ran the
-controller generator (`bin/rails generate controller welcome index`).
+controller generator (`bin/rails generate controller Welcome index`).
 
 Launch the web server again if you stopped it to generate the controller (`bin/rails
 server`) and navigate to <http://localhost:3000> in your browser. You'll see the
@@ -406,7 +406,7 @@ a controller called `ArticlesController`. You can do this by running this
 command:
 
 ```bash
-$ bin/rails generate controller articles
+$ bin/rails generate controller Articles
 ```
 
 If you open up the newly generated `app/controllers/articles_controller.rb`
