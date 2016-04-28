@@ -10,6 +10,7 @@ require 'active_support/core_ext/string/strip'
 require 'active_support/core_ext/string/output_safety'
 require 'active_support/core_ext/string/indent'
 require 'time_zone_test_helpers'
+require 'yaml'
 
 class StringInflectionsTest < ActiveSupport::TestCase
   include InflectorTestCases
