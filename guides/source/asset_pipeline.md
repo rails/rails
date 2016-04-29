@@ -1111,6 +1111,17 @@ effect on the application. Instead, setting `config.assets.css_compressor` and
 `config.assets.js_compressor` will control compression of CSS and JavaScript
 assets.
 
+
+### Serving GZipped version of assets
+
+By default, gzipped version of compiled assets will be generated, along 
+with the non-gzipped version of assets. Gzipped assets help reduce, the transmission of 
+date over the wire. You can configure this by setting the `gzip` flag.
+
+```ruby
+config.assets.gzip = false # disable gzipped assets generation
+```
+
 ### Using Your Own Compressor
 
 The compressor config settings for CSS and JavaScript also take any object.
