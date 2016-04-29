@@ -146,7 +146,7 @@ development:
 
 * Lead Contributor: [Nick Sieger](http://blog.nicksieger.com/)
 * More information:
-    * [What's New in Edge Rails: Connection Pools](http://ryandaigle.com/articles/2008/9/7/what-s-new-in-edge-rails-connection-pools)
+    * [What's New in Edge Rails: Connection Pools](http://archives.ryandaigle.com/articles/2008/9/7/what-s-new-in-edge-rails-connection-pools)
 
 ### Hashes for Join Table Conditions
 
@@ -166,7 +166,7 @@ Product.all(:joins => :photos, :conditions => { :photos => { :copyright => false
 ```
 
 * More information:
-    * [What's New in Edge Rails: Easy Join Table Conditions](http://ryandaigle.com/articles/2008/7/7/what-s-new-in-edge-rails-easy-join-table-conditions)
+    * [What's New in Edge Rails: Easy Join Table Conditions](http://archives.ryandaigle.com/articles/2008/7/7/what-s-new-in-edge-rails-easy-join-table-conditions)
 
 ### New Dynamic Finders
 
@@ -239,7 +239,7 @@ This will enable recognition of (among others) these routes:
 * Lead Contributor: [S. Brent Faulkner](http://www.unwwwired.net/)
 * More information:
     * [Rails Routing from the Outside In](routing.html#nested-resources)
-    * [What's New in Edge Rails: Shallow Routes](http://ryandaigle.com/articles/2008/9/7/what-s-new-in-edge-rails-shallow-routes)
+    * [What's New in Edge Rails: Shallow Routes](http://archives.ryandaigle.com/articles/2008/9/7/what-s-new-in-edge-rails-shallow-routes)
 
 ### Method Arrays for Member or Collection Routes
 
@@ -287,7 +287,7 @@ Action Mailer
 Action Mailer now supports mailer layouts. You can make your HTML emails as pretty as your in-browser views by supplying an appropriately-named layout - for example, the `CustomerMailer` class expects to use `layouts/customer_mailer.html.erb`.
 
 * More information:
-    * [What's New in Edge Rails: Mailer Layouts](http://ryandaigle.com/articles/2008/9/7/what-s-new-in-edge-rails-mailer-layouts)
+    * [What's New in Edge Rails: Mailer Layouts](http://archives.ryandaigle.com/articles/2008/9/7/what-s-new-in-edge-rails-mailer-layouts)
 
 Action Mailer now offers built-in support for GMail's SMTP servers, by turning on STARTTLS automatically. This requires Ruby 1.8.7 to be installed.
 
@@ -321,7 +321,7 @@ Other features of memoization include `unmemoize`, `unmemoize_all`, and `memoize
 
 * Lead Contributor: [Josh Peek](http://joshpeek.com/)
 * More information:
-    * [What's New in Edge Rails: Easy Memoization](http://ryandaigle.com/articles/2008/7/16/what-s-new-in-edge-rails-memoization)
+    * [What's New in Edge Rails: Easy Memoization](http://archives.ryandaigle.com/articles/2008/7/16/what-s-new-in-edge-rails-memoization)
     * [Memo-what? A Guide to Memoization](http://www.railway.at/articles/2008/09/20/a-guide-to-memoization)
 
 ### each_with_object
@@ -391,7 +391,7 @@ You can unpack or install a single gem by specifying `GEM=_gem_name_` on the com
 
 * Lead Contributor: [Matt Jones](http://github.com/al2o3cr)
 * More information:
-    * [What's New in Edge Rails: Gem Dependencies](http://ryandaigle.com/articles/2008/4/1/what-s-new-in-edge-rails-gem-dependencies)
+    * [What's New in Edge Rails: Gem Dependencies](http://archives.ryandaigle.com/articles/2008/4/1/what-s-new-in-edge-rails-gem-dependencies)
     * [Rails 2.1.2 and 2.2RC1: Update Your RubyGems](http://afreshcup.com/2008/10/25/rails-212-and-22rc1-update-your-rubygems/)
     * [Detailed discussion on Lighthouse](http://rails.lighthouseapp.com/projects/8994-ruby-on-rails/tickets/1128)
 

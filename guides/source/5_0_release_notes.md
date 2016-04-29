@@ -655,10 +655,14 @@ Please refer to the [Changelog][active-job] for detailed changes.
 
 ### Notable changes
 
-*   `ActiveJob::Base.deserialize` delegates to the job class. this allows jobs
+*   `ActiveJob::Base.deserialize` delegates to the job class. This allows jobs
     to attach arbitrary metadata when they get serialized and read it back when
     they get performed.
     ([Pull Request](https://github.com/rails/rails/pull/18260))
+
+*   Add ability to configure the queue adapter on a per job basis without
+    affecting each other.
+    ([Pull Request](https://github.com/rails/rails/pull/16992))
 
 *   A generated job now inherits from `app/jobs/application_job.rb` by default.
     ([Pull Request](https://github.com/rails/rails/pull/19034))

@@ -150,7 +150,7 @@ module ActiveRecord
 
         # The version column used for optimistic locking. Defaults to +lock_version+.
         def locking_column
-          reset_locking_column unless defined?(@locking_column)
+          @locking_column = DEFAULT_LOCKING_COLUMN unless defined?(@locking_column)
           @locking_column
         end
 

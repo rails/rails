@@ -98,13 +98,13 @@ application. Accepts a valid week day symbol (e.g. `:monday`).
 
 * `config.exceptions_app` sets the exceptions application invoked by the ShowException middleware when an exception happens. Defaults to `ActionDispatch::PublicExceptions.new(Rails.public_path)`.
 
-* `config.debug_exception_response_format` sets the format used in responses when errors occur in development mode.
+* `config.debug_exception_response_format` sets the format used in responses when errors occur in development mode. Defaults to `:api` for API only apps and `:default` for normal apps.
 
 * `config.file_watcher` is the class used to detect file updates in the file system when `config.reload_classes_only_on_change` is true. Rails ships with `ActiveSupport::FileUpdateChecker`, the default, and `ActiveSupport::EventedFileUpdateChecker` (this one depends on the [listen](https://github.com/guard/listen) gem). Custom classes must conform to the `ActiveSupport::FileUpdateChecker` API.
 
 * `config.filter_parameters` used for filtering out the parameters that
 you don't want shown in the logs, such as passwords or credit card
-numbers. New applications filter out passwords by adding the following `config.filter_parameters+=[:password]` in `config/initializers/filter_parameter_logging.rb`. Parameters filter works by partial matching regular expression.
+numbers. By default, Rails filters out passwords by adding `Rails.application.config.filter_parameters += [:password]` in `config/initializers/filter_parameter_logging.rb`. Parameters filter works by partial matching regular expression.
 
 * `config.force_ssl` forces all requests to be served over HTTPS by using the `ActionDispatch::SSL` middleware, and sets `config.action_mailer.default_url_options` to be `{ protocol: 'https' }`. This can be configured by setting `config.ssl_options` - see the [ActionDispatch::SSL documentation](http://edgeapi.rubyonrails.org/classes/ActionDispatch/SSL.html) for details.
 
@@ -117,9 +117,9 @@ defaults to `:debug` for all environments. The available log levels are: `:debug
 * `config.log_tags` accepts a list of: methods that the `request` object responds to, a `Proc` that accepts the `request` object, or something that responds to `to_s`. This makes it easy to tag log lines with debug information like subdomain and request id - both very helpful in debugging multi-user production applications.
 
 * `config.logger` is the logger that will be used for `Rails.logger` and any related Rails logging such as `ActiveRecord::Base.logger`. It defaults to an instance of `ActiveSupport::TaggedLogging` that wraps an instance of `ActiveSupport::Logger` which outputs a log to the `log/` directory. You can supply a custom logger, to get full compatibility you must follow these guidelines:
-  * To support a formatter you must manually assign a formatter from the `config.log_formatter` value to the logger.
-  * To support tagged loggs the log instance must be wrapped with `ActiveSupport::TaggedLogging`.
-  * To support silencing the logger must include `LoggerSilence` and `ActiveSupport::LoggerThreadSafeLevel` modules. The `ActiveSupport::Logger` class already includes these modules.
+  * To support a formatter, you must manually assign a formatter from the `config.log_formatter` value to the logger.
+  * To support tagged logs, the log instance must be wrapped with `ActiveSupport::TaggedLogging`.
+  * To support silencing, the logger must include `LoggerSilence` and `ActiveSupport::LoggerThreadSafeLevel` modules. The `ActiveSupport::Logger` class already includes these modules.
 
     ```ruby
     class MyLogger < ::Logger
@@ -281,8 +281,8 @@ All these configuration options are delegated to the `I18n` library.
 * `config.active_record.logger` accepts a logger conforming to the interface of Log4r or the default Ruby Logger class, which is then passed on to any new database connections made. You can retrieve this logger by calling `logger` on either an Active Record model class or an Active Record model instance. Set to `nil` to disable logging.
 
 * `config.active_record.primary_key_prefix_type` lets you adjust the naming for primary key columns. By default, Rails assumes that primary key columns are named `id` (and this configuration option doesn't need to be set.) There are two other choices:
-    * `:table_name` would make the primary key for the Customer class `customerid`
-    * `:table_name_with_underscore` would make the primary key for the Customer class `customer_id`
+    * `:table_name` would make the primary key for the Customer class `customerid`.
+    * `:table_name_with_underscore` would make the primary key for the Customer class `customer_id`.
 
 * `config.active_record.table_name_prefix` lets you set a global string to be prepended to table names. If you set this to `northwest_`, then the Customer class will look for `northwest_customers` as its table. The default is an empty string.
 

@@ -56,7 +56,7 @@ directory "pkg"
 
     task :build => [:clean, gem]
     task :install => :build do
-      sh "gem install #{gem}"
+      sh "gem install --pre #{gem}"
     end
 
     task :push => :build do
