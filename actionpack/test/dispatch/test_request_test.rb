@@ -88,6 +88,33 @@ class TestRequestTest < ActiveSupport::TestCase
     assert_equal 'GoogleBot', req.user_agent
   end
 
+  test "setter methods" do
+    req = ActionDispatch::TestRequest.create({})
+    get = 'GET'
+
+    [
+      'request_method=', 'host=', 'request_uri=', 'path=', 'if_modified_since=', 'if_none_match=',
+      'remote_addr=', 'user_agent=', 'accept='
+    ].each do |method|
+      req.send(method, get)
+    end
+
+    req.port = 8080
+    req.accept = 'hello goodbye'
+
+    assert_equal(get, req.get_header('REQUEST_METHOD'))
+    assert_equal(get, req.get_header('HTTP_HOST'))
+    assert_equal(8080, req.get_header('SERVER_PORT'))
+    assert_equal(get, req.get_header('REQUEST_URI'))
+    assert_equal(get, req.get_header('PATH_INFO'))
+    assert_equal(get, req.get_header('HTTP_IF_MODIFIED_SINCE'))
+    assert_equal(get, req.get_header('HTTP_IF_NONE_MATCH'))
+    assert_equal(get, req.get_header('REMOTE_ADDR'))
+    assert_equal(get, req.get_header('HTTP_USER_AGENT'))
+    assert_nil(req.get_header('action_dispatch.request.accepts'))
+    assert_equal('hello goodbye', req.get_header('HTTP_ACCEPT'))
+  end
+
   private
     def assert_cookies(expected, cookie_jar)
       assert_equal(expected, cookie_jar.instance_variable_get("@cookies"))
