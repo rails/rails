@@ -1,4 +1,3 @@
-require 'thread'
 require "cases/helper"
 
 module SchemaLoadCounter
