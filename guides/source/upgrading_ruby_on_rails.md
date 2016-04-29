@@ -22,10 +22,10 @@ When changing Rails versions, it's best to move slowly, one minor version at a t
 
 The process should go as follows:
 
-1. Write tests and make sure they pass
-2. Move to the latest patch version after your current version
-3. Fix tests and deprecated features
-4. Move to the latest patch version of the next minor version
+1. Write tests and make sure they pass.
+2. Move to the latest patch version after your current version.
+3. Fix tests and deprecated features.
+4. Move to the latest patch version of the next minor version.
 
 Repeat this process until you reach your target Rails version. Each time you move versions, you will need to change the Rails version number in the Gemfile (and possibly other gem versions) and run `bundle update`. Then run the Update task mentioned below to update configuration files, then run your tests.
 
@@ -42,7 +42,7 @@ Rails generally stays close to the latest released Ruby version when it's releas
 
 TIP: Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterprise Edition has these fixed since the release of 1.8.7-2010.02. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults, so if you want to use 1.9.x, jump straight to 1.9.3 for smooth sailing.
 
-### The Task
+### The Update Task
 
 Rails provides the `app:update` task (`rails:update` on 4.2 and earlier). After updating the Rails version
 in the Gemfile, run this task.
