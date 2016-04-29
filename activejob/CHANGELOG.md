@@ -80,6 +80,23 @@
 
     *Jeroen van Baarsen*
 
+*   Add ability to configure the queue adapter on a per job basis.
+
+    Now different jobs can have different queue adapters without conflicting with
+    each other.
+
+    Example:
+
+        class EmailJob < ActiveJob::Base
+          self.queue_adapter = :sidekiq
+        end
+
+        class ImageProcessingJob < ActiveJob::Base
+          self.queue_adapter = :delayed_job
+        end
+
+    *tamird*
+
 *   Add an `:only` option to `perform_enqueued_jobs` to filter jobs based on
     type.
 
