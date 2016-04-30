@@ -316,6 +316,13 @@ Please refer to the [Changelog][action-view] for detailed changes.
     supported by I18n.
     ([Pull Request](https://github.com/rails/rails/pull/20019))
 
+### Deprecations
+
+*   Deprecated `datetime_field` and `datetime_field_tag` helpers.
+    Datetime input type was removed from HTML specification.
+    One can use `datetime_local_field` and `datetime_local_field_tag` instead.
+    ([Pull Request](https://github.com/rails/rails/pull/24385))
+
 ### Notable Changes
 
 *   Changed the default template handler from `ERB` to `Raw`.
