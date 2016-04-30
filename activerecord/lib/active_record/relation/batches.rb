@@ -2,7 +2,7 @@ require 'active_record/relation/batches/batch_enumerator'
 
 module ActiveRecord
   module Batches
-    ORDER_IGNORE_MESSAGE = "Scoped order is ignored, it's forced to be batch order."
+    ORDER_OR_LIMIT_IGNORED_MESSAGE = "Scoped order and limit are ignored, it's forced to be batch order and batch size. If you want to have your scope, you need to pass `ignore_order_and_limit: false` while calling method"
 
     # Looping through a collection of records from the database
     # (using the Scoping::Named::ClassMethods.all method, for example)
@@ -33,8 +33,9 @@ module ActiveRecord
     # * <tt>:batch_size</tt> - Specifies the size of the batch. Default to 1000.
     # * <tt>:start</tt> - Specifies the primary key value to start from, inclusive of the value.
     # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
-    # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
-    #                               an order is present in the relation.
+    # * <tt>:ignore_order_and_limit</tt> - Specifies if you want to use order_and_limit scope then an extra query
+    #                                    will be fired to load all the ids. Default value will be true as
+    #                                    earlier behaviour of the function
     #
     # Limits are honored, and if present there is no requirement for the batch
     # size, it can be less than, equal, or greater than the limit.
@@ -50,22 +51,15 @@ module ActiveRecord
     #     person.party_all_night!
     #   end
     #
-    # NOTE: It's not possible to set the order. That is automatically set to
-    # ascending on the primary key ("id ASC") to make the batch ordering
-    # work. This also means that this method only works when the primary key is
-    # orderable (e.g. an integer or string).
-    #
-    # NOTE: By its nature, batch processing is subject to race conditions if
-    # other processes are modifying the database.
-    def find_each(start: nil, finish: nil, batch_size: 1000, error_on_ignore: nil)
+    def find_each(start: nil, finish: nil, batch_size: 1000, ignore_order_and_limit: true)
       if block_given?
-        find_in_batches(start: start, finish: finish, batch_size: batch_size, error_on_ignore: error_on_ignore) do |records|
+        find_in_batches(start: start, finish: finish, batch_size: batch_size, ignore_order_and_limit: ignore_order_and_limit) do |records|
           records.each { |record| yield record }
         end
       else
-        enum_for(:find_each, start: start, finish: finish, batch_size: batch_size, error_on_ignore: error_on_ignore) do
+        enum_for(:find_each, start: start, finish: finish, batch_size: batch_size, ignore_order_and_limit: ignore_order_and_limit) do
           relation = self
-          apply_limits(relation, start, finish).size
+          apply_limits(relation, start, finish, ignore_order_and_limit).size
         end
       end
     end
@@ -92,11 +86,9 @@ module ActiveRecord
     # * <tt>:batch_size</tt> - Specifies the size of the batch. Default to 1000.
     # * <tt>:start</tt> - Specifies the primary key value to start from, inclusive of the value.
     # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
-    # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
-    #                               an order is present in the relation.
-    #
-    # Limits are honored, and if present there is no requirement for the batch
-    # size, it can be less than, equal, or greater than the limit.
+    # * <tt>:ignore_order_and_limit</tt> - Specifies if you want to use order_and_limit scope then an extra query
+    #                                    will be fired to load all the ids. Default value will be true as
+    #                                    earlier behaviour of the function
     #
     # The options +start+ and +finish+ are especially useful if you want
     # multiple workers dealing with the same processing queue. You can make
@@ -109,23 +101,16 @@ module ActiveRecord
     #     group.each { |person| person.party_all_night! }
     #   end
     #
-    # NOTE: It's not possible to set the order. That is automatically set to
-    # ascending on the primary key ("id ASC") to make the batch ordering
-    # work. This also means that this method only works when the primary key is
-    # orderable (e.g. an integer or string).
-    #
-    # NOTE: By its nature, batch processing is subject to race conditions if
-    # other processes are modifying the database.
-    def find_in_batches(start: nil, finish: nil, batch_size: 1000, error_on_ignore: nil)
+    def find_in_batches(start: nil, finish: nil, batch_size: 1000, ignore_order_and_limit: true)
       relation = self
       unless block_given?
-        return to_enum(:find_in_batches, start: start, finish: finish, batch_size: batch_size, error_on_ignore: error_on_ignore) do
-          total = apply_limits(relation, start, finish).size
+        return to_enum(:find_in_batches, start: start, finish: finish, batch_size: batch_size, ignore_order_and_limit: ignore_order_and_limit) do
+          total = apply_limits(relation, start, finish, ignore_order_and_limit).size
           (total - 1).div(batch_size) + 1
         end
       end
 
-      in_batches(of: batch_size, start: start, finish: finish, load: true, error_on_ignore: error_on_ignore) do |batch|
+      in_batches(of: batch_size, start: start, finish: finish, load: true, ignore_order_and_limit: ignore_order_and_limit) do |batch|
         yield batch.to_a
       end
     end
@@ -156,8 +141,9 @@ module ActiveRecord
     # * <tt>:load</tt> - Specifies if the relation should be loaded. Default to false.
     # * <tt>:start</tt> - Specifies the primary key value to start from, inclusive of the value.
     # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
-    # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
-    #                               an order is present in the relation.
+    # * <tt>:ignore_order_and_limit</tt> - Specifies if you want to use order_and_limit scope then an extra query
+    #                                    will be fired to load all the ids. Default value will be true as
+    #                                    earlier behaviour of the function
     #
     # Limits are honored, and if present there is no requirement for the batch
     # size, it can be less than, equal, or greater than the limit.
@@ -184,74 +170,69 @@ module ActiveRecord
     #
     #   Person.in_batches.each_record(&:party_all_night!)
     #
-    # NOTE: It's not possible to set the order. That is automatically set to
-    # ascending on the primary key ("id ASC") to make the batch ordering
-    # consistent. Therefore the primary key must be orderable, e.g an integer
-    # or a string.
-    #
-    # NOTE: By its nature, batch processing is subject to race conditions if
-    # other processes are modifying the database.
-    def in_batches(of: 1000, start: nil, finish: nil, load: false, error_on_ignore: nil)
+    def in_batches(of: 1000, start: nil, finish: nil, load: false, ignore_order_and_limit: true)
       relation = self
       unless block_given?
         return BatchEnumerator.new(of: of, start: start, finish: finish, relation: self)
       end
 
-      if arel.orders.present?
-        act_on_ignored_order(error_on_ignore)
-      end
-
-      batch_limit = of
-      if limit_value
-        remaining   = limit_value
-        batch_limit = remaining if remaining < batch_limit
-      end
-
-      relation = relation.reorder(batch_order).limit(batch_limit)
-      relation = apply_limits(relation, start, finish)
-      batch_relation = relation
-
-      loop do
-        if load
-          records = batch_relation.records
-          ids = records.map(&:id)
-          yielded_relation = where(primary_key => ids)
-          yielded_relation.load_records(records)
-        else
-          ids = batch_relation.pluck(primary_key)
-          yielded_relation = where(primary_key => ids)
+      if ignore_order_and_limit
+        if arel.orders.present? || arel.taken.present?
+          logger.warn ORDER_OR_LIMIT_IGNORED_MESSAGE
         end
 
-        break if ids.empty?
+        relation = relation.reorder(batch_order).limit(of)
+        relation = apply_limits(relation, start, finish, ignore_order_and_limit)
+        batch_relation = relation
 
-        primary_key_offset = ids.last
-        raise ArgumentError.new("Primary key not included in the custom select clause") unless primary_key_offset
-
-        yield yielded_relation
-
-        break if ids.length < batch_limit
-
-        if limit_value
-          remaining -= ids.length
-
-          if remaining == 0
-            # Saves a useless iteration when the limit is a multiple of the
-            # batch size.
-            break
-          elsif remaining < batch_limit
-            relation = relation.limit(remaining)
+        loop do
+          if load
+            records = batch_relation.records
+            ids = records.map(&:id)
+            yielded_relation = self.where(primary_key => ids)
+            yielded_relation.load_records(records)
+          else
+            ids = batch_relation.pluck(primary_key)
+            yielded_relation = self.where(primary_key => ids)
           end
-        end
 
-        batch_relation = relation.where(arel_attribute(primary_key).gt(primary_key_offset))
+          break if ids.empty?
+
+          primary_key_offset = ids.last
+          raise ArgumentError.new("Primary key not included in the custom select clause") unless primary_key_offset
+
+          yield yielded_relation
+
+          break if ids.length < of
+          batch_relation = relation.where(arel_attribute(primary_key).gt(primary_key_offset))
+        end
+      else
+        batch_relation = apply_limits(relation, start, finish, ignore_order_and_limit)
+        total_ids = batch_relation.pluck(primary_key)
+
+        total_ids.each_slice(of).each_with_index do |ids, index|
+
+          if load
+            yielded_relation = batch_relation.limit(of).offset((index * of) + start)
+            records = yielded_relation.records
+            yielded_relation.load_records(records)
+          end
+
+          yield yielded_relation
+        end
       end
     end
 
     private
 
-    def apply_limits(relation, start, finish)
-      relation = relation.where(arel_attribute(primary_key).gteq(start)) if start
-      relation = relation.where(arel_attribute(primary_key).lteq(finish)) if finish
+    def apply_limits(relation, start, finish, ignore_order_and_limit = true)
+      if ignore_order_and_limit
+        relation = relation.where(arel_attribute(primary_key).gteq(start)) if start
+        relation = relation.where(arel_attribute(primary_key).lteq(finish)) if finish
+      else
+        relation = relation.offset(start) if start
+        relation = relation.limit(finish - start.to_i) if finish
+      end
       relation
     end
 
@@ -259,14 +240,5 @@ module ActiveRecord
       "#{quoted_table_name}.#{quoted_primary_key} ASC"
     end
 
-    def act_on_ignored_order(error_on_ignore)
-      raise_error = (error_on_ignore.nil? ? self.klass.error_on_ignored_order : error_on_ignore)
-
-      if raise_error
-        raise ArgumentError.new(ORDER_IGNORE_MESSAGE)
-      elsif logger
-        logger.warn(ORDER_IGNORE_MESSAGE)
-      end
-    end
   end
 end
