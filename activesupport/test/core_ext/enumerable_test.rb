@@ -79,6 +79,34 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_typed_equal(16, sum, Integer)
   end
 
+  def test_precision_compensated_sums
+    large_number = 100_000_000
+    small_number = 1e-9
+    until (large_number + small_number) == large_number
+      small_number /= 10
+    end
+
+    ary = [large_number, *[small_number]*10]
+    assert_typed_equal large_number+(small_number*10), ary.sum, Float
+    enum = GenericEnumerable.new(ary)
+    assert_typed_equal large_number+(small_number*10), enum.sum, Float
+
+    ary = [large_number, *[small_number]*10]
+    assert_equal large_number+(small_number*10), ary.sum, Float
+    enum = GenericEnumerable.new(ary)
+    assert_equal large_number+(small_number*10), enum.sum, Float
+
+    ary = [large_number/1r, *[small_number]*10]
+    assert_equal large_number+(small_number*10), ary.sum, Float
+    enum = GenericEnumerable.new(ary)
+    assert_equal large_number+(small_number*10), enum.sum, Float
+
+    ary = [small_number, large_number/1r, *[small_number]*10]
+    assert_equal large_number+(small_number*11), ary.sum, Float
+    enum = GenericEnumerable.new(ary)
+    assert_equal large_number+(small_number*11), enum.sum, Float
+  end
+
   def test_nil_sums
     expected_raise = TypeError
 

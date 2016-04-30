@@ -21,8 +21,21 @@ module Enumerable
     if block_given?
       map(&block).sum(identity)
     else
-      sum = identity ? inject(identity, :+) : inject(:+)
-      sum || identity || 0
+      sum = identity
+      c = 0.0
+      each do |e|
+        if sum.nil?
+          sum = e
+        elsif sum.kind_of?(Float) || e.kind_of?(Float)
+          y = e - c
+          t = sum + y
+          c = (t - sum) - y
+          sum = t
+        else
+          sum += e
+        end
+      end
+      sum || 0
     end
   end
 
