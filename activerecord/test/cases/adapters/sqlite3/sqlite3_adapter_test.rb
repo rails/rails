@@ -2,6 +2,7 @@ require "cases/helper"
 require 'models/owner'
 require 'tempfile'
 require 'support/ddl_helper'
+require 'support/sql_subscriber'
 
 module ActiveRecord
   module ConnectionAdapters
