@@ -528,7 +528,7 @@ module ActiveRecord
     end
 
     def self.current_version
-      Rails.version.to_f
+      ActiveRecord::VERSION::STRING.to_f
     end
 
     MigrationFilenameRegexp = /\A([0-9]+)_([_a-z0-9]*)\.?([_a-z0-9]*)?\.rb\z/ # :nodoc:
