@@ -527,6 +527,15 @@ module ActiveModel
   end
 
   # Raised when unknown attributes are supplied via mass assignment.
+  #
+  #   class Person
+  #     include ActiveModel::AttributeAssignment
+  #     include ActiveModel::Validations
+  #   end
+  #
+  #   person = Person.new
+  #   person.assign_attributes(name: 'Gorby')
+  #   # => ActiveModel::UnknownAttributeError: unknown attribute 'name' for Person.
   class UnknownAttributeError < NoMethodError
     attr_reader :record, :attribute
 
