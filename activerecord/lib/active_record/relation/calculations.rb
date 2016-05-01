@@ -287,6 +287,7 @@ module ActiveRecord
       else
         group_fields = group_attrs
       end
+      group_fields = arel_columns(group_fields)
 
       group_aliases = group_fields.map { |field|
         column_alias_for(field)
