@@ -310,9 +310,9 @@ module ActiveModel
     # <tt>:strict</tt> option can also be set to any other exception.
     #
     #   person.errors.add(:name, :invalid, strict: true)
-    #   # => ActiveModel::StrictValidationFailed: name is invalid
+    #   # => ActiveModel::StrictValidationFailed: Name is invalid
     #   person.errors.add(:name, :invalid, strict: NameIsInvalid)
-    #   # => NameIsInvalid: name is invalid
+    #   # => NameIsInvalid: Name is invalid
     #
     #   person.errors.messages # => {}
     #
