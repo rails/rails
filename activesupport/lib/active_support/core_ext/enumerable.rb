@@ -114,11 +114,15 @@ end
 # just calling the compat method in the first place.
 if Array.instance_methods(false).include?(:sum) && !(%w[a].sum rescue false)
   class Array
-    remove_method :sum
+    alias :orig_sum :sum
 
-    def sum(*args) #:nodoc:
-      # Use Enumerable#sum instead.
-      super
+    def sum(init = nil, &block) #:nodoc:
+      if init.is_a?(Numeric) || first.is_a?(Numeric)
+        init ||= 0
+        orig_sum(init, &block)
+      else
+        super
+      end
     end
   end
 end
