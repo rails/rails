@@ -135,6 +135,17 @@ module ActiveRecord
       assert_equal 2, klass.new.counter
     end
 
+    test "procs are memoized before type casting" do
+      klass = Class.new(OverloadedType) do
+        @@counter = 0
+        attribute :counter, :integer, default: -> { @@counter += 1 }
+      end
+
+      model = klass.new
+      assert_equal 1, model.counter_before_type_cast
+      assert_equal 1, model.counter_before_type_cast
+    end
+
     test "user provided defaults are persisted even if unchanged" do
       model = OverloadedType.create!
 

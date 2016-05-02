@@ -169,7 +169,8 @@ module ActiveRecord #:nodoc:
   # ActiveRecord::RecordNotFound error if they do not return any records,
   # like <tt>Person.find_by_last_name!</tt>.
   #
-  # It's also possible to use multiple attributes in the same find by separating them with "_and_".
+  # It's also possible to use multiple attributes in the same <tt>find_by_</tt> by separating them with
+  # "_and_".
   #
   #  Person.find_by(user_name: user_name, password: password)
   #  Person.find_by_user_name_and_password(user_name, password) # with dynamic finder

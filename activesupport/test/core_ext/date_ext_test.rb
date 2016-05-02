@@ -49,6 +49,10 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
         end
       end
     end
+
+    assert_raise(ArgumentError) do
+      Date.new(2005, 2, 21).to_time(:tokyo)
+    end
   end
 
   def test_compare_to_time

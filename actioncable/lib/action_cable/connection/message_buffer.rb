@@ -30,7 +30,7 @@ module ActionCable
 
       protected
         attr_reader :connection
-        attr_accessor :buffered_messages
+        attr_reader :buffered_messages
 
       private
         def valid?(message)
@@ -38,7 +38,7 @@ module ActionCable
         end
 
         def receive(message)
-          connection.send_async :receive, message
+          connection.receive message
         end
 
         def buffer(message)

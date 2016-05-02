@@ -145,6 +145,36 @@ module ActiveRecord
         end
       end
 
+      class CreateDogsMigration < ActiveRecord::Migration::Current
+        def change
+          create_table :dog_owners
+
+          create_table :dogs do |t|
+            t.references :dog_owner, foreign_key: true
+          end
+        end
+      end
+
+      def test_references_foreign_key_with_prefix
+        ActiveRecord::Base.table_name_prefix = 'p_'
+        migration = CreateDogsMigration.new
+        silence_stream($stdout) { migration.migrate(:up) }
+        assert_equal 1, @connection.foreign_keys("p_dogs").size
+      ensure
+        silence_stream($stdout) { migration.migrate(:down) }
+        ActiveRecord::Base.table_name_prefix = nil
+      end
+
+      def test_references_foreign_key_with_suffix
+        ActiveRecord::Base.table_name_suffix = '_s'
+        migration = CreateDogsMigration.new
+        silence_stream($stdout) { migration.migrate(:up) }
+        assert_equal 1, @connection.foreign_keys("dogs_s").size
+      ensure
+        silence_stream($stdout) { migration.migrate(:down) }
+        ActiveRecord::Base.table_name_suffix = nil
+      end
+
       test "multiple foreign keys can be added to the same table" do
         @connection.create_table :testings do |t|
           t.integer :col_1

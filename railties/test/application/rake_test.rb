@@ -118,8 +118,8 @@ module ApplicationTests
     end
 
     def test_code_statistics_sanity
-      assert_match "Code LOC: 18     Test LOC: 0     Code to Test Ratio: 1:0.0",
-        Dir.chdir(app_path){ `bin/rails stats` }
+      assert_match "Code LOC: 26     Test LOC: 0     Code to Test Ratio: 1:0.0",
+        Dir.chdir(app_path) { `bin/rails stats` }
     end
 
     def test_rails_routes_calls_the_route_inspector
@@ -226,6 +226,17 @@ module ApplicationTests
 
         For more information about routes, see the Rails guide: http://guides.rubyonrails.org/routing.html.
       MESSAGE
+    end
+
+    def test_rake_routes_with_rake_options
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get '/cart', to: 'cart#show'
+        end
+      RUBY
+
+      output = Dir.chdir(app_path){ `bin/rake --rakefile Rakefile routes` }
+      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
     end
 
     def test_logger_is_flushed_when_exiting_production_rake_tasks

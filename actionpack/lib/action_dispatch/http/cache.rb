@@ -17,9 +17,7 @@ module ActionDispatch
         end
 
         def if_none_match_etags
-          (if_none_match ? if_none_match.split(/\s*,\s*/) : []).collect do |etag|
-            etag.gsub(/^\"|\"$/, "")
-          end
+          if_none_match ? if_none_match.split(/\s*,\s*/) : []
         end
 
         def not_modified?(modified_at)
@@ -28,8 +26,8 @@ module ActionDispatch
 
         def etag_matches?(etag)
           if etag
-            etag = etag.gsub(/^\"|\"$/, "")
-            if_none_match_etags.include?(etag)
+            validators = if_none_match_etags
+            validators.include?(etag) || validators.include?('*')
           end
         end
 
@@ -80,26 +78,62 @@ module ActionDispatch
           set_header DATE, utc_time.httpdate
         end
 
-        # This method allows you to set the ETag for cached content, which
-        # will be returned to the end user.
+        # This method sets a weak ETag validator on the response so browsers
+        # and proxies may cache the response, keyed on the ETag. On subsequent
+        # requests, the If-None-Match header is set to the cached ETag. If it
+        # matches the current ETag, we can return a 304 Not Modified response
+        # with no body, letting the browser or proxy know that their cache is
+        # current. Big savings in request time and network bandwidth.
         #
-        # By default, Action Dispatch sets all ETags to be weak.
-        # This ensures that if the content changes only semantically,
-        # the whole page doesn't have to be regenerated from scratch
-        # by the web server. With strong ETags, pages are compared
-        # byte by byte, and are regenerated only if they are not exactly equal.
-        def etag=(etag)
-          key = ActiveSupport::Cache.expand_cache_key(etag)
-          super %(W/"#{Digest::MD5.hexdigest(key)}")
+        # Weak ETags are considered to be semantically equivalent but not
+        # byte-for-byte identical. This is perfect for browser caching of HTML
+        # pages where we don't care about exact equality, just what the user
+        # is viewing.
+        #
+        # Strong ETags are considered byte-for-byte identical. They allow a
+        # browser or proxy cache to support Range requests, useful for paging
+        # through a PDF file or scrubbing through a video. Some CDNs only
+        # support strong ETags and will ignore weak ETags entirely.
+        #
+        # Weak ETags are what we almost always need, so they're the default.
+        # Check out `#strong_etag=` to provide a strong ETag validator.
+        def etag=(weak_validators)
+          self.weak_etag = weak_validators
+        end
+
+        def weak_etag=(weak_validators)
+          set_header 'ETag', generate_weak_etag(weak_validators)
+        end
+
+        def strong_etag=(strong_validators)
+          set_header 'ETag', generate_strong_etag(strong_validators)
         end
 
         def etag?; etag; end
+
+        # True if an ETag is set and it's a weak validator (preceded with W/)
+        def weak_etag?
+          etag? && etag.starts_with?('W/"')
+        end
+
+        # True if an ETag is set and it isn't a weak validator (not preceded with W/)
+        def strong_etag?
+          etag? && !weak_etag?
+        end
 
       private
 
         DATE          = 'Date'.freeze
         LAST_MODIFIED = "Last-Modified".freeze
         SPECIAL_KEYS  = Set.new(%w[extras no-cache max-age public private must-revalidate])
+
+        def generate_weak_etag(validators)
+          "W/#{generate_strong_etag(validators)}"
+        end
+
+        def generate_strong_etag(validators)
+          %("#{Digest::MD5.hexdigest(ActiveSupport::Cache.expand_cache_key(validators))}")
+        end
 
         def cache_control_segments
           if cache_control = _cache_control

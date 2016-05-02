@@ -1,4 +1,3 @@
-require 'active_support/core_ext/hash/reverse_merge'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/enumerable'
 require 'active_support/core_ext/array/extract_options'
@@ -137,6 +136,10 @@ module ActionDispatch
           @requirements = formats[:requirements].merge Hash[requirements]
           @conditions = Hash[conditions]
           @defaults = formats[:defaults].merge(@defaults).merge(normalize_defaults(options))
+
+          if path_params.include?(:action) && !@requirements.key?(:action)
+            @defaults[:action] ||= 'index'
+          end
 
           @required_defaults = (split_options[:required_defaults] || []).map(&:first)
         end
@@ -824,7 +827,7 @@ module ActionDispatch
               URL_OPTIONS.include?(k) && (v.is_a?(String) || v.is_a?(Fixnum))
             end
 
-            (options[:defaults] ||= {}).reverse_merge!(defaults)
+            options[:defaults] = defaults.merge(options[:defaults] || {})
           else
             block, options[:constraints] = options[:constraints], {}
           end
@@ -1598,7 +1601,7 @@ module ActionDispatch
             route_options = options.dup
             if _path && option_path
               ActiveSupport::Deprecation.warn <<-eowarn
-Specifying strings for both :path and the route path is deprecated.  Change things like this:
+Specifying strings for both :path and the route path is deprecated. Change things like this:
 
   match #{_path.inspect}, :path => #{option_path.inspect}
 

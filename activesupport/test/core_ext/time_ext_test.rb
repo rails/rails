@@ -107,6 +107,20 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_sec_fraction
+    time = Time.utc(2016, 4, 23, 0, 0, Rational(1,10000000000))
+    assert_equal Rational(1,10000000000), time.sec_fraction
+
+    time = Time.utc(2016, 4, 23, 0, 0, 0.0000000001)
+    assert_equal 0.0000000001.to_r, time.sec_fraction
+
+    time = Time.utc(2016, 4, 23, 0, 0, 0, Rational(1,10000))
+    assert_equal Rational(1,10000000000), time.sec_fraction
+
+    time = Time.utc(2016, 4, 23, 0, 0, 0, 0.0001)
+    assert_equal 0.0001.to_r / 1000000, time.sec_fraction
+  end
+
   def test_beginning_of_day
     assert_equal Time.local(2005,2,4,0,0,0), Time.local(2005,2,4,10,10,10).beginning_of_day
     with_env_tz 'US/Eastern' do

@@ -269,6 +269,28 @@ class DependenciesTest < ActiveSupport::TestCase
     remove_constants(:ModuleFolder)
   end
 
+  def test_raising_discards_autoloaded_constants
+    with_autoloading_fixtures do
+      assert_raises(Exception, 'arbitray exception message') { RaisesArbitraryException }
+      assert_not defined?(A)
+      assert_not defined?(RaisesArbitraryException)
+    end
+  ensure
+    remove_constants(:A, :RaisesArbitraryException)
+  end
+
+  def test_throwing_discards_autoloaded_constants
+    with_autoloading_fixtures do
+      catch :t do
+        Throws
+      end
+      assert_not defined?(A)
+      assert_not defined?(Throws)
+    end
+  ensure
+    remove_constants(:A, :Throws)
+  end
+
   def test_doesnt_break_normal_require
     path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
     original_path = $:.dup

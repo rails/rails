@@ -505,6 +505,8 @@ constraints to acceptable values:
 * `:less_than_or_equal_to` - Specifies the value must be less than or equal to
   the supplied value. The default error message for this option is _"must be
   less than or equal to %{count}"_.
+* `:other_than` - Specifies the value must be other than the supplied value.
+  The default error message for this option is _"must be other than %{count}"_.
 * `:odd` - Specifies the value must be an odd number if set to true. The
   default error message for this option is _"must be odd"_.
 * `:even` - Specifies the value must be an even number if set to true. The
@@ -783,7 +785,7 @@ A `String` `:message` value can optionally contain any/all of `%{value}`,
 `%{attribute}`, and `%{model}` which will be dynamically replaced when
 validation fails.
 
-A `Proc` `:message` value is given two arguments: a message key for i18n, and
+A `Proc` `:message` value is given two arguments: the object being validated, and
 a hash with `:model`, `:attribute`, and `:value` key-value pairs.
 
 ```ruby
@@ -799,10 +801,10 @@ class Person < ApplicationRecord
   # Proc
   validates :username,
     uniqueness: {
-      # key = "activerecord.errors.models.person.attributes.username.taken"
+      # object = person object being validated
       # data = { model: "Person", attribute: "Username", value: <username> }
-      message: ->(key, data) do
-        "#{data[:value]} taken! Try again #{Time.zone.tomorrow}"
+      message: ->(object, data) do
+        "Hey #{object.name}!, #{data[:value]} is taken already! Try again #{Time.zone.tomorrow}"
       end
     }
 end
@@ -829,6 +831,25 @@ class Person < ApplicationRecord
   validates :name, presence: true
 end
 ```
+
+You can also use `on:` to define custom context.
+Custom contexts need to be triggered explicitly
+by passing name of the context to `valid?`, `invalid?` or `save`.
+
+```ruby
+class Person < ApplicationRecord
+  validates :email, uniqueness: true, on: :account_setup
+  validates :age, numericality: true, on: :account_setup
+end
+
+person = Person.new
+```
+
+`person.valid?(:account_setup)` executes both the validations
+without saving the model. And `person.save(context: :account_setup)`
+validates `person` in `account_setup` context before saving.
+On explicit triggers, model is validated by
+validations of only that context and validations without context.
 
 Strict Validations
 ------------------
@@ -1196,9 +1217,9 @@ person.errors[:name]
 person.errors.clear
 person.errors.empty? # => true
 
-p.save # => false
+person.save # => false
 
-p.errors[:name]
+person.errors[:name]
 # => ["can't be blank", "is too short (minimum is 3 characters)"]
 ```
 

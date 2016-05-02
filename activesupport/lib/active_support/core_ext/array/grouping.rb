@@ -100,17 +100,13 @@ class Array
         results
       end
     else
-      results, arr = [[]], self.dup
-      until arr.empty?
-        if (idx = arr.index(value))
-          results.last.concat(arr.shift(idx))
-          arr.shift
-          results << []
-        else
-          results.last.concat(arr.shift(arr.size))
-        end
+      arr = self.dup
+      result = []
+      while (idx = arr.index(value))
+        result << arr.shift(idx)
+        arr.shift
       end
-      results
+      result << arr
     end
   end
 end

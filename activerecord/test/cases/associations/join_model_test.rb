@@ -747,6 +747,23 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_equal aircraft.engines, [engine]
   end
 
+  def test_proper_error_message_for_eager_load_and_includes_association_errors
+    includes_error = assert_raises(ActiveRecord::ConfigurationError) {
+      Post.includes(:nonexistent_relation).where(nonexistent_relation: {name: 'Rochester'}).find(1)
+    }
+    assert_equal("Can't join 'Post' to association named 'nonexistent_relation'; perhaps you misspelled it?", includes_error.message)
+
+    eager_load_error = assert_raises(ActiveRecord::ConfigurationError) {
+      Post.eager_load(:nonexistent_relation).where(nonexistent_relation: {name: 'Rochester'}).find(1)
+    }
+    assert_equal("Can't join 'Post' to association named 'nonexistent_relation'; perhaps you misspelled it?", eager_load_error.message)
+
+    includes_and_eager_load_error = assert_raises(ActiveRecord::ConfigurationError) {
+      Post.eager_load(:nonexistent_relation).includes(:nonexistent_relation).where(nonexistent_relation: {name: 'Rochester'}).find(1)
+    }
+    assert_equal("Can't join 'Post' to association named 'nonexistent_relation'; perhaps you misspelled it?", includes_and_eager_load_error.message)
+  end
+
   private
     # create dynamic Post models to allow different dependency options
     def find_post_with_dependency(post_id, association, association_name, dependency)

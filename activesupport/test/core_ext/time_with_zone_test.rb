@@ -11,10 +11,13 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     @utc = Time.utc(2000, 1, 1, 0)
     @time_zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     @twz = ActiveSupport::TimeWithZone.new(@utc, @time_zone)
+    @dt_twz = ActiveSupport::TimeWithZone.new(@utc.to_datetime, @time_zone)
   end
 
   def test_utc
     assert_equal @utc, @twz.utc
+    assert_instance_of Time, @twz.utc
+    assert_instance_of Time, @dt_twz.utc
   end
 
   def test_time
@@ -47,6 +50,8 @@ class TimeWithZoneTest < ActiveSupport::TestCase
 
   def test_localtime
     assert_equal @twz.localtime, @twz.utc.getlocal
+    assert_instance_of Time, @twz.localtime
+    assert_instance_of Time, @dt_twz.localtime
   end
 
   def test_utc?

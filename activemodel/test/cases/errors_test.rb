@@ -128,6 +128,13 @@ class ErrorsTest < ActiveModel::TestCase
     assert !person.errors.include?(:foo)
   end
 
+  test "include? does not add a key to messages hash" do
+    person = Person.new
+    person.errors.include?(:foo)
+
+    assert_not person.errors.messages.key?(:foo)
+  end
+
   test "adding errors using conditionals with Person#validate!" do
     person = Person.new
     person.validate!

@@ -545,12 +545,12 @@ author.books.size            # uses the cached copy of books
 author.books.empty?          # uses the cached copy of books
 ```
 
-But what if you want to reload the cache, because data might have been changed by some other part of the application? Just pass `true` to the association call:
+But what if you want to reload the cache, because data might have been changed by some other part of the application? Just call `reload` on the association:
 
 ```ruby
 author.books                 # retrieves books from the database
 author.books.size            # uses the cached copy of books
-author.books(true).empty?    # discards the cached copy of books
+author.books.reload.empty?    # discards the cached copy of books
                                 # and goes back to the database
 ```
 

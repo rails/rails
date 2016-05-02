@@ -178,7 +178,7 @@ App.cable.subscriptions.create "AppearanceChannel",
 ```
 
 Simply calling `App.cable.subscriptions.create` will setup the subscription, which will call `AppearanceChannel#subscribed`,
-which in turn is linked to original `App.cable` -> `ApplicationCable::Connection` instances.
+which in turn is linked to the original `App.cable` -> `ApplicationCable::Connection` instances.
 
 Next, we link the client-side `appear` method to `AppearanceChannel#appear(data)`. This is possible because the server-side
 channel instance will automatically expose the public methods declared on the class (minus the callbacks), so that these
@@ -385,7 +385,7 @@ Rails.application.config.action_cable.log_tags = [
 
 For a full list of all configuration options, see the `ActionCable::Server::Configuration` class.
 
-Also note that your server must provide at least the same number of database connections as you have workers. The default worker pool is set to 100, so that means you have to make at least that available. You can change that in `config/database.yml` through the `pool` attribute.
+Also note that your server must provide at least the same number of database connections as you have workers. The default worker pool is set to 4, so that means you have to make at least that available. You can change that in `config/database.yml` through the `pool` attribute.
 
 
 ## Running the cable server
@@ -412,12 +412,12 @@ The above will start a cable server on port 28080.
 
 ### In app
 
-If you are using a server that supports the [Rack socket hijacking API](http://www.rubydoc.info/github/rack/rack/file/SPEC#Hijacking), Action Cable can run alongside your Rails application. For example, to listen for WebSocket requests on `/cable`, mount the server at that path:
+If you are using a server that supports the [Rack socket hijacking API](http://www.rubydoc.info/github/rack/rack/file/SPEC#Hijacking), Action Cable can run alongside your Rails application. For example, to listen for WebSocket requests on `/websocket`, specify that path to `config.action_cable.mount_path`:
 
 ```ruby
-# config/routes.rb
-Example::Application.routes.draw do
-  mount ActionCable.server => '/cable'
+# config/application.rb
+class Application < Rails::Application
+  config.action_cable.mount_path = '/websocket'
 end
 ```
 

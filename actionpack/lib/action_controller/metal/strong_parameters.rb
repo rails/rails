@@ -43,7 +43,7 @@ module ActionController
 
   # == Action Controller \Parameters
   #
-  # Allows to choose which attributes should be whitelisted for mass updating
+  # Allows you to choose which attributes should be whitelisted for mass updating
   # and thus prevent accidentally exposing that which shouldn't be exposed.
   # Provides two methods for this purpose: #require and #permit. The former is
   # used to mark parameters as required. The latter is used to set the parameter
@@ -184,12 +184,19 @@ module ActionController
     # Returns an unsafe, unfiltered
     # <tt>ActiveSupport::HashWithIndifferentAccess</tt> representation of this
     # parameter.
+    #
+    #   params = ActionController::Parameters.new({
+    #     name: 'Senjougahara Hitagi',
+    #     oddity: 'Heavy stone crab'
+    #   })
+    #   params.to_unsafe_h
+    #   # => {"name"=>"Senjougahara Hitagi", "oddity" => "Heavy stone crab"}
     def to_unsafe_h
       convert_parameters_to_hashes(@parameters, :to_unsafe_h)
     end
     alias_method :to_unsafe_hash, :to_unsafe_h
 
-    # Convert all hashes in values into parameters, then yield each pair like
+    # Convert all hashes in values into parameters, then yield each pair in
     # the same way as <tt>Hash#each_pair</tt>
     def each_pair(&block)
       @parameters.each_pair do |key, value|
@@ -271,7 +278,7 @@ module ActionController
     #   params = ActionController::Parameters.new(user: { ... }, profile: { ... })
     #   user_params, profile_params = params.require(:user, :profile)
     #
-    # Otherwise, the method reraises the first exception found:
+    # Otherwise, the method re-raises the first exception found:
     #
     #   params = ActionController::Parameters.new(user: {}, profile: {})
     #   user_params, profile_params = params.require(:user, :profile)
@@ -749,6 +756,10 @@ module ActionController
         end
       end
 
+      def non_scalar?(value)
+        value.is_a?(Array) || value.is_a?(Parameters)
+      end
+
       EMPTY_ARRAY = []
       def hash_filter(params, filter)
         filter = filter.with_indifferent_access
@@ -763,7 +774,7 @@ module ActionController
             array_of_permitted_scalars?(self[key]) do |val|
               params[key] = val
             end
-          else
+          elsif non_scalar?(value)
             # Declaration { user: :name } or { user: [:name, :age, { address: ... }] }.
             params[key] = each_element(value) do |element|
               element.permit(*Array.wrap(filter[key]))

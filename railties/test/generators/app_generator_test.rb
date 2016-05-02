@@ -65,8 +65,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_assets
     run_generator
 
-    assert_file("app/views/layouts/application.html.erb", /stylesheet_link_tag\s+'application', media: 'all', 'data-turbolinks-track' => 'reload'/)
-    assert_file("app/views/layouts/application.html.erb", /javascript_include_tag\s+'application', 'data-turbolinks-track' => 'reload'/)
+    assert_file("app/views/layouts/application.html.erb", /stylesheet_link_tag\s+'application', media: 'all', 'data-turbolinks-track': 'reload'/)
+    assert_file("app/views/layouts/application.html.erb", /javascript_include_tag\s+'application', 'data-turbolinks-track': 'reload'/)
     assert_file("app/assets/stylesheets/application.css")
     assert_file("app/assets/javascripts/application.js")
   end
@@ -215,6 +215,20 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_rails_update_dont_set_file_watcher
+    app_root = File.join(destination_root, 'myapp')
+    run_generator [app_root]
+
+    stub_rails_application(app_root) do
+      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
+      generator.send(:app_const)
+      quietly { generator.send(:update_config_files) }
+      assert_file "#{app_root}/config/environments/development.rb" do |content|
+        assert_match(/# config.file_watcher/, content)
+      end
+    end
+  end
+
   def test_rails_update_does_not_create_active_record_belongs_to_required_by_default
     app_root = File.join(destination_root, 'myapp')
     run_generator [app_root]
@@ -240,6 +254,34 @@ class AppGeneratorTest < Rails::Generators::TestCase
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
       assert_file "#{app_root}/config/initializers/active_record_belongs_to_required_by_default.rb"
+    end
+  end
+
+  def test_rails_update_does_not_create_to_time_preserves_timezone
+    app_root = File.join(destination_root, 'myapp')
+    run_generator [app_root]
+
+    FileUtils.rm("#{app_root}/config/initializers/to_time_preserves_timezone.rb")
+
+    stub_rails_application(app_root) do
+      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
+      generator.send(:app_const)
+      quietly { generator.send(:update_config_files) }
+      assert_no_file "#{app_root}/config/initializers/to_time_preserves_timezone.rb"
+    end
+  end
+
+  def test_rails_update_does_not_remove_to_time_preserves_timezone_if_already_present
+    app_root = File.join(destination_root, 'myapp')
+    run_generator [app_root]
+
+    FileUtils.touch("#{app_root}/config/initializers/to_time_preserves_timezone.rb")
+
+    stub_rails_application(app_root) do
+      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
+      generator.send(:app_const)
+      quietly { generator.send(:update_config_files) }
+      assert_file "#{app_root}/config/initializers/to_time_preserves_timezone.rb"
     end
   end
 

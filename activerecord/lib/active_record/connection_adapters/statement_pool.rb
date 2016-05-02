@@ -1,11 +1,13 @@
 module ActiveRecord
   module ConnectionAdapters
-    class StatementPool
+    class StatementPool # :nodoc:
       include Enumerable
 
-      def initialize(max = 1000)
+      DEFAULT_STATEMENT_LIMIT = 1000
+
+      def initialize(statement_limit = nil)
         @cache = Hash.new { |h,pid| h[pid] = {} }
-        @max = max
+        @statement_limit = statement_limit || DEFAULT_STATEMENT_LIMIT
       end
 
       def each(&block)
@@ -25,7 +27,7 @@ module ActiveRecord
       end
 
       def []=(sql, stmt)
-        while @max <= cache.size
+        while @statement_limit <= cache.size
           dealloc(cache.shift.last)
         end
         cache[sql] = stmt

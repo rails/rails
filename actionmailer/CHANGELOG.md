@@ -1,8 +1,32 @@
+## Rails 5.0.0.beta4 (April 27, 2016) ##
+
+*   Disallow calling `#deliver_later` after making local modifications to
+    the message which would be lost when the delivery job is enqueued.
+
+    Prevents a common, hard-to-find bug like:
+
+        message = Notifier.welcome(user, foo)
+        message.message_id = my_generated_message_id
+        message.deliver_later
+
+    The message_id is silently lost! *Only the mailer arguments are passed
+    to the delivery job.*
+
+    This raises an exception now. Make modifications to the message within
+    the mailer method instead, or use a custom Active Job to manage delivery
+    instead of using #deliver_later.
+
+    *Jeremy Daer*
+
+*   Removes `-t` from default Sendmail arguments to match the underlying
+    `Mail::Sendmail` setting.
+
+    *Clayton Liggitt*
+
+
 ## Rails 5.0.0.beta3 (February 24, 2016) ##
 
-*   Add support to fragment cache in Action Mailer.
-
-    Now you can use fragment caching in your mailers views.
+*   Add support for fragment caching in Action Mailer views.
 
     *Stan Lo*
 
@@ -19,8 +43,7 @@
 
 ## Rails 5.0.0.beta1 (December 18, 2015) ##
 
-*   `config.force_ssl = true` will set
-    `config.action_mailer.default_url_options = { protocol: 'https' }`.
+*   `config.action_mailer.default_url_options[:protocol]` is now set to `https` if `config.force_ssl` is set to `true`.
 
     *Andrew Kampjes*
 
@@ -29,7 +52,7 @@
 
     *Chris McGrath*
 
-*   `assert_emails` in block form use the given number as expected value.
+*   `assert_emails` in block form, uses the given number as expected value.
     This makes the error message much easier to understand.
 
     *Yuji Yaginuma*

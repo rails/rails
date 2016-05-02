@@ -266,6 +266,20 @@ module CacheStoreBehavior
     end
   end
 
+  def test_fetch_with_forced_cache_miss_with_block
+    @cache.write('foo', 'bar')
+    assert_equal 'foo_bar', @cache.fetch('foo', force: true) { 'foo_bar' }
+  end
+
+  def test_fetch_with_forced_cache_miss_without_block
+    @cache.write('foo', 'bar')
+    assert_raises(ArgumentError) do
+      @cache.fetch('foo', force: true)
+    end
+
+    assert_equal 'bar', @cache.read('foo')
+  end
+
   def test_should_read_and_write_hash
     assert @cache.write('foo', {:a => "b"})
     assert_equal({:a => "b"}, @cache.read('foo'))

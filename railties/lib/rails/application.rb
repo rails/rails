@@ -1,4 +1,3 @@
-require 'fileutils'
 require 'yaml'
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/object/blank'
@@ -246,7 +245,7 @@ module Rails
       @app_env_config ||= begin
         validate_secret_key_config!
 
-        super.merge({
+        super.merge(
           "action_dispatch.parameter_filter" => config.filter_parameters,
           "action_dispatch.redirect_filter" => config.filter_redirect,
           "action_dispatch.secret_token" => secrets.secret_token,
@@ -262,7 +261,7 @@ module Rails
           "action_dispatch.encrypted_signed_cookie_salt" => config.action_dispatch.encrypted_signed_cookie_salt,
           "action_dispatch.cookies_serializer" => config.action_dispatch.cookies_serializer,
           "action_dispatch.cookies_digest" => config.action_dispatch.cookies_digest
-        })
+        )
       end
     end
 

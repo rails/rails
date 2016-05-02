@@ -1,3 +1,31 @@
+## Rails 5.0.0.beta4 (April 27, 2016) ##
+
+*   `date_select` helper `:with_css_classes` option now accepts a hash of strings 
+    for `:year`, `:month`, `:day`, `:hour`, `:minute`, `:second` that will extend
+    the select type with the given css class value.
+
+    ```erb
+    <%= f.date_select :birthday, with_css_classes: { month: "my-month", year: "my-year" } %>
+    ```
+
+    ```html
+    <select id="user_birthday_3i" name="user[birthday(3i)]">…</select>
+    <select id="user_birthday_2i" name="user[birthday(2i)]" class="my-month">…</select>
+    <select id="user_birthday_1i" name="user[birthday(1i)]" class="my-year">…</select>
+    ```
+
+    *Matthias Neumayr*
+
+*   Add `to_sentence` helper that is a HTML-safe aware version of `Array#to_sentence`.
+
+    *Neil Matatall*
+
+*   Deprecate `datetime_field` and `datetime_field_tag` helpers.
+    Datetime input type was removed from HTML specification.
+    One can use `datetime_local_field` and `datetime_local_field_tag` instead.
+
+    *Wojciech Wnętrzak*
+
 *   Added log "Rendering ...", when starting to render a template to log that
     we have started rendering something. This helps to easily identify the origin
     of queries in the log whether they came from controller or views.
@@ -44,7 +72,7 @@
 
 *   Create a new `ActiveSupport::SafeBuffer` instance when `content_for` is flushed.
 
-    Fixes #19890
+    Fixes #19890.
 
     *Yoong Kang Lim*
 

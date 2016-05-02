@@ -1,6 +1,6 @@
 module ActionController #:nodoc:
-  # This module is responsible to provide `rescue_from` helpers
-  # to controllers and configure when detailed exceptions must be
+  # This module is responsible for providing `rescue_from` helpers
+  # to controllers and configuring when detailed exceptions must be
   # shown.
   module Rescue
     extend ActiveSupport::Concern

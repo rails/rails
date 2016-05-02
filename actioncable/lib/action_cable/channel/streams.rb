@@ -2,7 +2,7 @@ module ActionCable
   module Channel
     # Streams allow channels to route broadcastings to the subscriber. A broadcasting is, as discussed elsewhere, a pubsub queue where any data
     # placed into it is automatically sent to the clients that are connected at that time. It's purely an online queue, though. If you're not
-    # streaming a broadcasting at the very moment it sends out an update, you will not get that update, if you connect after it has been sent.
+    # streaming a broadcasting at the very moment it sends out an update, you will not get that update, even if you connect after it has been sent.
     #
     # Most commonly, the streamed broadcast is sent straight to the subscriber on the client-side. The channel just acts as a connector between
     # the two parties (the broadcaster and the channel subscriber). Here's an example of a channel that allows subscribers to get all new
@@ -46,9 +46,7 @@ module ActionCable
     #     def subscribed
     #       @room = Chat::Room[params[:room_number]]
     #
-    #       stream_for @room, -> (encoded_message) do
-    #         message = ActiveSupport::JSON.decode(encoded_message)
-    #
+    #       stream_for @room, coder: ActiveSupport::JSON do |message|
     #         if message['originated_at'].present?
     #           elapsed_time = (Time.now.to_f - message['originated_at']).round(2)
     #
@@ -71,16 +69,21 @@ module ActionCable
 
       # Start streaming from the named <tt>broadcasting</tt> pubsub queue. Optionally, you can pass a <tt>callback</tt> that'll be used
       # instead of the default of just transmitting the updates straight to the subscriber.
-      def stream_from(broadcasting, callback = nil)
+      # Pass `coder: ActiveSupport::JSON` to decode messages as JSON before passing to the callback.
+      # Defaults to `coder: nil` which does no decoding, passes raw messages.
+      def stream_from(broadcasting, callback = nil, coder: nil, &block)
         broadcasting = String(broadcasting)
+
         # Don't send the confirmation until pubsub#subscribe is successful
         defer_subscription_confirmation!
 
-        callback ||= default_stream_callback(broadcasting)
-        streams << [ broadcasting, callback ]
+        # Build a stream handler by wrapping the user-provided callback with
+        # a decoder or defaulting to a JSON-decoding retransmitter.
+        handler = worker_pool_stream_handler(broadcasting, callback || block, coder: coder)
+        streams << [ broadcasting, handler ]
 
         connection.server.event_loop.post do
-          pubsub.subscribe(broadcasting, callback, lambda do
+          pubsub.subscribe(broadcasting, handler, lambda do
             transmit_subscription_confirmation
             logger.info "#{self.class.name} is streaming from #{broadcasting}"
           end)
@@ -90,8 +93,11 @@ module ActionCable
       # Start streaming the pubsub queue for the <tt>model</tt> in this channel. Optionally, you can pass a
       # <tt>callback</tt> that'll be used instead of the default of just transmitting the updates straight
       # to the subscriber.
-      def stream_for(model, callback = nil)
-        stream_from(broadcasting_for([ channel_name, model ]), callback)
+      #
+      # Pass `coder: ActiveSupport::JSON` to decode messages as JSON before passing to the callback.
+      # Defaults to `coder: nil` which does no decoding, passes raw messages.
+      def stream_for(model, callback = nil, coder: nil, &block)
+        stream_from(broadcasting_for([ channel_name, model ]), callback || block, coder: coder)
       end
 
       # Unsubscribes all streams associated with this channel from the pubsub queue.
@@ -109,10 +115,59 @@ module ActionCable
           @_streams ||= []
         end
 
-        def default_stream_callback(broadcasting)
-          -> (message) do
-            transmit ActiveSupport::JSON.decode(message), via: "streamed from #{broadcasting}"
+        # Always wrap the outermost handler to invoke the user handler on the
+        # worker pool rather than blocking the event loop.
+        def worker_pool_stream_handler(broadcasting, user_handler, coder: nil)
+          handler = stream_handler(broadcasting, user_handler, coder: coder)
+
+          -> message do
+            connection.worker_pool.async_invoke handler, :call, message, connection: connection
           end
+        end
+
+        # May be overridden to add instrumentation, logging, specialized error
+        # handling, or other forms of handler decoration.
+        #
+        # TODO: Tests demonstrating this.
+        def stream_handler(broadcasting, user_handler, coder: nil)
+          if user_handler
+            stream_decoder user_handler, coder: coder
+          else
+            default_stream_handler broadcasting, coder: coder
+          end
+        end
+
+        # May be overridden to change the default stream handling behavior
+        # which decodes JSON and transmits to client.
+        #
+        # TODO: Tests demonstrating this.
+        #
+        # TODO: Room for optimization. Update transmit API to be coder-aware
+        # so we can no-op when pubsub and connection are both JSON-encoded.
+        # Then we can skip decode+encode if we're just proxying messages.
+        def default_stream_handler(broadcasting, coder:)
+          coder ||= ActiveSupport::JSON
+          stream_transmitter stream_decoder(coder: coder), broadcasting: broadcasting
+        end
+
+        def stream_decoder(handler = identity_handler, coder:)
+          if coder
+            -> message { handler.(coder.decode(message)) }
+          else
+            handler
+          end
+        end
+
+        def stream_transmitter(handler = identity_handler, broadcasting:)
+          via = "streamed from #{broadcasting}"
+
+          -> (message) do
+            transmit handler.(message), via: via
+          end
+        end
+
+        def identity_handler
+          -> message { message }
         end
     end
   end

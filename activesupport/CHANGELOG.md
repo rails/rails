@@ -1,3 +1,172 @@
+*   `ActiveSupport::Duration` supports weeks and hours.
+
+        [1.hour.inspect, 1.hour.value, 1.hour.parts]
+        # => ["3600 seconds", 3600, [[:seconds, 3600]]]   # Before
+        # => ["1 hour", 3600, [[:hours, 1]]]              # After
+
+        [1.week.inspect, 1.week.value, 1.week.parts]
+        # => ["7 days", 604800, [[:days, 7]]]             # Before
+        # => ["1 week", 604800, [[:weeks, 1]]]            # After
+
+    This brings us into closer conformance with ISO8601 and relieves some
+    astonishment about getting `1.hour.inspect # => 3600 seconds`.
+
+    Compatibility: The duration's `value` remains the same, so apps using
+    durations are oblivious to the new time periods. Apps, libraries, and
+    plugins that work with the internal `parts` hash will need to broaden
+    their time period handling to cover hours & weeks.
+
+    *Andrey Novikov*
+
+## Rails 5.0.0.beta4 (April 27, 2016) ##
+
+*   Time zones: Ensure that the UTC offset reflects DST changes that occurred
+    since the app started. Removes UTC offset caching, reducing performance,
+    but this is still relatively quick and isn't in any hot paths.
+
+    *Alexey Shein*
+
+*   Make `getlocal` and `getutc` always return instances of `Time` for
+    `ActiveSupport::TimeWithZone` and `DateTime`. This eliminates a possible
+    stack level too deep error in `to_time` where `ActiveSupport::TimeWithZone`
+    was wrapping a `DateTime` instance. As a consequence of this the internal
+    time value in `ActiveSupport::TimeWithZone` is now always an instance of
+    `Time` in the UTC timezone, whether that's as the UTC time directly or
+    a representation of the local time in the timezone. There should be no
+    consequences of this internal change and if there are it's a bug due to
+    leaky abstractions.
+
+    *Andrew White*
+
+*   Add `DateTime#subsec` to return the fraction of a second as a `Rational`.
+
+    *Andrew White*
+
+*   Add additional aliases for `DateTime#utc` to mirror the ones on
+    `ActiveSupport::TimeWithZone` and `Time`.
+
+    *Andrew White*
+
+*   Add `DateTime#localtime` to return an instance of `Time` in the system's
+    local timezone. Also aliased to `getlocal`.
+
+    *Andrew White*, *Yuichiro Kaneko*
+
+*   Add `Time#sec_fraction` to return the fraction of a second as a `Rational`.
+
+    *Andrew White*
+
+*   Add `ActiveSupport.to_time_preserves_timezone` config option to control
+    how `to_time` handles timezones. In Ruby 2.4+ the behavior will change
+    from converting to the local system timezone, to preserving the timezone
+    of the receiver. This config option defaults to false so that apps made
+    with earlier versions of Rails are not affected when upgrading, e.g:
+
+        >> ENV['TZ'] = 'US/Eastern'
+
+        >> "2016-04-23T10:23:12.000Z".to_time
+        => "2016-04-23T06:23:12.000-04:00"
+
+        >> ActiveSupport.to_time_preserves_timezone = true
+
+        >> "2016-04-23T10:23:12.000Z".to_time
+        => "2016-04-23T10:23:12.000Z"
+
+    Fixes #24617.
+
+    *Andrew White*
+
+*   `ActiveSupport::TimeZone.country_zones(country_code)` looks up the
+    country's time zones by its two-letter ISO3166 country code, e.g.
+
+        >> ActiveSupport::TimeZone.country_zones(:jp).map(&:to_s)
+        => ["(GMT+09:00) Osaka"]
+
+        >> ActiveSupport::TimeZone.country_zones(:uy).map(&:to_s)
+        => ["(GMT-03:00) Montevideo"]
+
+    *Andrey Novikov*
+
+*   `Array#sum` compat with Ruby 2.4's native method.
+
+    Ruby 2.4 introduces `Array#sum`, but it only supports numeric elements,
+    breaking our `Enumerable#sum` which supports arbitrary `Object#+`.
+    To fix, override `Array#sum` with our compatible implementation.
+
+    Native Ruby 2.4:
+
+        %w[ a b ].sum
+        # => TypeError: String can't be coerced into Fixnum
+
+    With `Enumerable#sum` shim:
+
+        %w[ a b ].sum
+        # => 'ab'
+
+    We tried shimming the fast path and falling back to the compatible path
+    if it fails, but that ends up slower even in simple cases due to the cost
+    of exception handling. Our only choice is to override the native `Array#sum`
+    with our `Enumerable#sum`.
+
+    *Jeremy Daer*
+
+*   `ActiveSupport::Duration` supports ISO8601 formatting and parsing.
+
+        ActiveSupport::Duration.parse('P3Y6M4DT12H30M5S')
+        # => 3 years, 6 months, 4 days, 12 hours, 30 minutes, and 5 seconds
+
+        (3.years + 3.days).iso8601
+        # => "P3Y3D"
+
+    Inspired by Arnau Siches' [ISO8601 gem](https://github.com/arnau/ISO8601/)
+    and rewritten by Andrey Novikov with suggestions from Andrew White. Test
+    data from the ISO8601 gem redistributed under MIT license.
+
+    (Will be used to support the PostgreSQL interval data type.)
+
+    *Andrey Novikov*, *Arnau Siches*, *Andrew White*
+
+*   `Cache#fetch(key, force: true)` forces a cache miss, so it must be called
+    with a block to provide a new value to cache. Fetching with `force: true`
+    but without a block now raises ArgumentError.
+
+        cache.fetch('key', force: true) # => ArgumentError
+
+    *Santosh Wadghule*
+
+*   Fix behavior of JSON encoding for `Exception`.
+
+    *namusyaka*
+
+*   Make `number_to_phone` format number with regexp pattern.
+
+        number_to_phone(18812345678, pattern: /(\d{3})(\d{4})(\d{4})/)
+        # => 188-1234-5678
+
+    *Pan Gaoyong*
+
+*   Match `String#to_time`'s behaviour to that of ruby's implementation for edge cases.
+
+    `nil` is now returned instead of the current date if the string provided does
+    contain time information, but none that is used to build the `Time` object.
+
+    Fixes #22958.
+
+    *Siim Liiser*
+
+*   Rely on the native DateTime#<=> implementation to handle non-datetime like
+    objects instead of returning `nil` ourselves. This restores the ability
+    of `DateTime` instances to be compared with a `Numeric` that represents an
+    astronomical julian day number.
+
+    Fixes #24228.
+
+    *Andrew White*
+
+*   Add `String#upcase_first` method.
+
+    *Glauco Custódio*, *bogdanvlviv*
+
 *   Prevent `Marshal.load` from looping infinitely when trying to autoload a constant
     which resolves to a different name.
 
@@ -7,7 +176,7 @@
 
     *Yuichiro Kaneko*
 
-*   Publish ActiveSupport::Executor and ActiveSupport::Reloader APIs to allow
+*   Publish `ActiveSupport::Executor` and `ActiveSupport::Reloader` APIs to allow
     components and libraries to manage, and participate in, the execution of
     application code, and the application reloading process.
 
@@ -25,7 +194,7 @@
 
     *Tara Scherner de la Fuente*
 
-*   Make `benchmark('something', silence: true)` actually work
+*   Make `benchmark('something', silence: true)` actually work.
 
     *DHH*
 
@@ -44,9 +213,10 @@
 
     *Jon Moss*
 
+
 ## Rails 5.0.0.beta2 (February 01, 2016) ##
 
-*   Change number_to_currency behavior for checking negativity.
+*   Change `number_to_currency` behavior for checking negativity.
 
     Used `to_f.negative` instead of using `to_f.phase` for checking negativity
     of a number in number_to_currency helper.
@@ -80,6 +250,7 @@
 *   Add petabyte and exabyte numeric conversion.
 
     *Akshay Vishnoi*
+
 
 ## Rails 5.0.0.beta1 (December 18, 2015) ##
 

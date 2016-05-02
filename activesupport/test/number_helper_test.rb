@@ -57,6 +57,8 @@ module ActiveSupport
           assert_equal("+18005551212", number_helper.number_to_phone(8005551212, :country_code => 1, :delimiter => ''))
           assert_equal("22-555-1212", number_helper.number_to_phone(225551212))
           assert_equal("+45-22-555-1212", number_helper.number_to_phone(225551212, :country_code => 45))
+          assert_equal("(755) 6123-4567", number_helper.number_to_phone(75561234567, pattern: /(\d{3,4})(\d{4})(\d{4})/, area_code: true))
+          assert_equal("133-1234-5678", number_helper.number_to_phone(13312345678, pattern: /(\d{3})(\d{4})(\d{4})/))
         end
       end
 

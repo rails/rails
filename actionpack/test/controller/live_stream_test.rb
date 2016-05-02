@@ -205,7 +205,7 @@ module ActionController
       def overfill_buffer_and_die
         logger = ActionController::Base.logger || Logger.new($stdout)
         response.stream.on_error do
-          logger.warn 'Error while streaming'
+          logger.warn 'Error while streaming.'
           error_latch.count_down
         end
 

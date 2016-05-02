@@ -16,7 +16,7 @@ class MailerGeneratorTest < Rails::Generators::TestCase
     assert_file 'app/mailers/application_mailer.rb' do |mailer|
       assert_match(/class ApplicationMailer < ActionMailer::Base/, mailer)
       assert_match(/default from: 'from@example.com'/, mailer)
-      assert_match(/layout :mailer/, mailer)
+      assert_match(/layout 'mailer'/, mailer)
     end
   end
 

@@ -25,13 +25,9 @@ It allows assets in your application to be automatically combined with assets
 from other gems. For example, jquery-rails includes a copy of jquery.js
 and enables AJAX features in Rails.
 
-The asset pipeline is technically no longer a core feature from Rails 4 onwards -- it has
-been extracted out of the framework into the
-[sprockets-rails](https://github.com/rails/sprockets-rails) gem.
-
-The asset pipeline is enabled by default.
-
-You can disable the asset pipeline while creating a new application by
+The asset pipeline is implemented by the
+[sprockets-rails](https://github.com/rails/sprockets-rails) gem,
+and is enabled by default. You can disable it while creating a new application by
 passing the `--skip-sprockets` option.
 
 ```bash
@@ -1114,6 +1110,17 @@ Rails to enable either CSS or JavaScript compression. Setting it will have no
 effect on the application. Instead, setting `config.assets.css_compressor` and
 `config.assets.js_compressor` will control compression of CSS and JavaScript
 assets.
+
+
+### Serving GZipped version of assets
+
+By default, gzipped version of compiled assets will be generated, along 
+with the non-gzipped version of assets. Gzipped assets help reduce the transmission of 
+data over the wire. You can configure this by setting the `gzip` flag.
+
+```ruby
+config.assets.gzip = false # disable gzipped assets generation
+```
 
 ### Using Your Own Compressor
 

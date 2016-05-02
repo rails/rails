@@ -1,3 +1,18 @@
+## Rails 5.0.0.beta4 (April 27, 2016) ##
+
+*   Add `config/initializers/to_time_preserves_timezone.rb`, which tells
+    Active Support to preserve the receiver's timezone when calling `to_time`.
+    This matches the new behavior that will be part of Ruby 2.4.
+
+    Fixes #24617.
+
+    *Andrew White*
+
+*   Make `rails restart` command work with Puma by passing the restart command
+    which Puma can use to restart rails server.
+
+    *Prathamesh Sonpatki*
+
 *   The application generator writes a new file `config/spring.rb`, which tells
     Spring to watch additional common files.
 
@@ -33,7 +48,7 @@
     system monitor and the async plugin for spring.
 
 *   The Gemfiles of new applications include spring-watcher-listen on Linux and
-    Mac OS X (unless --skip-spring).
+    Mac OS X (unless `--skip-spring`).
 
     *Xavier Noria*
 
@@ -42,7 +57,9 @@
 
     *Xavier Noria*
 
-*   Add dummy files for apple-touch-icon.png and apple-touch-icon.png. GH#23427
+*   Add dummy files for apple-touch-icon.png and apple-touch-icon.png.
+
+    See #23427.
 
     *Alexey Zabelin*
 
@@ -106,7 +123,7 @@
 
     *Chuck Callebs*
 
-*   Allow use of minitest-rails gem with Rails test runner.
+*   Allow use of `minitest-rails` gem with Rails test runner.
 
     Fixes #22455.
 
@@ -119,13 +136,13 @@
     *Yuji Yaginuma*
 
 *   Make `static_index` part of the `config.public_file_server` config and
-    call it `public_file_server.index_name`.
+    call it `config.public_file_server.index_name`.
 
     *Yuki Nishijima*
 
-*   Deprecate `serve_static_files` in favor of `public_file_server.enabled`.
+*   Deprecate `config.serve_static_files` in favor of `config.public_file_server.enabled`.
 
-    Unifies the static asset options under `public_file_server`.
+    Unifies the static asset options under `config.public_file_server`.
 
     To upgrade, replace occurrences of:
 
@@ -163,8 +180,8 @@
 
     *Yuki Nishijima*
 
-*   Route generator should be idempotent
-    running generators several times no longer require you to cleanup routes.rb
+*   Route generators are now idempotent.
+    Running generators several times no longer require you to cleanup routes.rb.
 
     *Thiago Pinto*
 
@@ -172,7 +189,7 @@
 
     *Simon Eskildsen*
 
-*   Allow rake:stats to account for rake tasks in lib/tasks
+*   Allow `rake stats` to account for rake tasks in lib/tasks.
 
     *Kevin Deisz*
 
@@ -182,7 +199,7 @@
 
     *James Kerr*
 
-*   Add fail fast to `bin/rails test`
+*   Add fail fast to `bin/rails test`.
 
     Adding `--fail-fast` or `-f` when running tests will interrupt the run on
     the first failure:
@@ -214,7 +231,7 @@
 
     *Kasper Timm Hansen*
 
-*   Add inline output to `bin/rails test`
+*   Add inline output to `bin/rails test`.
 
     Any failures or errors (and skips if running in verbose mode) are output
     during a test run:
@@ -245,7 +262,7 @@
     *Kasper Timm Hansen*
 
 *   Fix displaying mailer previews on non local requests when config
-    `action_mailer.show_previews` is set
+    `config.action_mailer.show_previews` is set.
 
     *Wojciech Wnętrzak*
 
@@ -276,14 +293,14 @@
     *Ersin Akinci*
 
 *   Make enabling or disabling caching in development mode possible with
-    rake dev:cache.
+    `rake dev:cache`.
 
-    Running rake dev:cache will create or remove tmp/caching-dev.txt. When this
-    file exists config.action_controller.perform_caching will be set to true in
+    Running `rake dev:cache` will create or remove tmp/caching-dev.txt. When this
+    file exists `config.action_controller.perform_caching` will be set to true in
     config/environments/development.rb.
 
-    Additionally, a server can be started with either --dev-caching or
-    --no-dev-caching included to toggle caching on startup.
+    Additionally, a server can be started with either `--dev-caching` or
+    `--no-dev-caching` included to toggle caching on startup.
 
     *Jussi Mertanen*, *Chuck Callebs*
 
@@ -296,11 +313,11 @@
 
     *Yuji Yaginuma*
 
-*   Adding support for passing a block to the `add_source` action of a custom generator
+*   Adding support for passing a block to the `add_source` action of a custom generator.
 
     *Mike Dalton*, *Hirofumi Wakasugi*
 
-*   `assert_file` understands paths with special characters
+*   `assert_file` now understands paths with special characters
     (eg. `v0.1.4~alpha+nightly`).
 
     *Diego Carrion*

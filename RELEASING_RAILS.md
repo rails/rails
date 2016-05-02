@@ -21,7 +21,7 @@ http://travis-ci.org/rails/rails
 
 Sam Ruby keeps a [test suite](https://github.com/rubys/awdwr) that makes
 sure the code samples in his book 
-([Agile Web Development with Rails](https://pragprog.com/titles/rails4/agile-web-development-with-rails-4th-edition))
+([Agile Web Development with Rails](https://pragprog.com/titles/rails5/agile-web-development-with-rails-5th-edition))
 all work.  These are valuable system tests
 for Rails.  You can check the status of these tests here:
 

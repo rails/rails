@@ -1088,6 +1088,8 @@ You can filter out sensitive request parameters from your log files by appending
 config.filter_parameters << :password
 ```
 
+NOTE: Provided parameters will be filtered out by partial matching regular expression. Rails adds default `:password` in the appropriate initializer (`initializers/filter_parameter_logging.rb`) and cares about typical application parameters `password` and `password_confirmation`.
+
 ### Redirects Filtering
 
 Sometimes it's desirable to filter out from log files some sensitive locations your application is redirecting to.

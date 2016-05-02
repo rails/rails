@@ -177,7 +177,7 @@ would produce:
 }
 ```
 
-See the [Jbuilder documention](https://github.com/rails/jbuilder#jbuilder) for
+See the [Jbuilder documentation](https://github.com/rails/jbuilder#jbuilder) for
 more examples and information.
 
 #### Template Caching
@@ -1419,7 +1419,7 @@ number_to_percentage(100, precision: 0)        # => 100%
 
 #### number_to_phone
 
-Formats a number into a US phone number.
+Formats a number into a phone number (US by default).
 
 ```ruby
 number_to_phone(1235551234) # => 123-555-1234

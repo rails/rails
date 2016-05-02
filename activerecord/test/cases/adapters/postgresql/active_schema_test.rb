@@ -28,7 +28,13 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
     ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.send(:define_method, :index_name_exists?) { |*| false }
 
     expected = %(CREATE UNIQUE INDEX  "index_people_on_last_name" ON "people"  ("last_name") WHERE state = 'active')
-    assert_equal expected, add_index(:people, :last_name, :unique => true, :where => "state = 'active'")
+    assert_equal expected, add_index(:people, :last_name, unique: true, where: "state = 'active'")
+
+    expected = %(CREATE UNIQUE INDEX  "index_people_on_lower_last_name" ON "people"  (lower(last_name)))
+    assert_equal expected, add_index(:people, 'lower(last_name)', unique: true)
+
+    expected = %(CREATE UNIQUE INDEX  "index_people_on_last_name_varchar_pattern_ops" ON "people"  (last_name varchar_pattern_ops))
+    assert_equal expected, add_index(:people, 'last_name varchar_pattern_ops', unique: true)
 
     expected = %(CREATE  INDEX CONCURRENTLY "index_people_on_last_name" ON "people"  ("last_name"))
     assert_equal expected, add_index(:people, :last_name, algorithm: :concurrently)
@@ -39,16 +45,17 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
 
       expected = %(CREATE  INDEX CONCURRENTLY "index_people_on_last_name" ON "people" USING #{type} ("last_name"))
       assert_equal expected, add_index(:people, :last_name, using: type, algorithm: :concurrently)
+
+      expected = %(CREATE UNIQUE INDEX  "index_people_on_last_name" ON "people" USING #{type} ("last_name") WHERE state = 'active')
+      assert_equal expected, add_index(:people, :last_name, using: type, unique: true, where: "state = 'active'")
+
+      expected = %(CREATE UNIQUE INDEX  "index_people_on_lower_last_name" ON "people" USING #{type} (lower(last_name)))
+      assert_equal expected, add_index(:people, 'lower(last_name)', using: type, unique: true)
     end
 
     assert_raise ArgumentError do
       add_index(:people, :last_name, algorithm: :copy)
     end
-    expected = %(CREATE UNIQUE INDEX  "index_people_on_last_name" ON "people" USING gist ("last_name"))
-    assert_equal expected, add_index(:people, :last_name, :unique => true, :using => :gist)
-
-    expected = %(CREATE UNIQUE INDEX  "index_people_on_last_name" ON "people" USING gist ("last_name") WHERE state = 'active')
-    assert_equal expected, add_index(:people, :last_name, :unique => true, :where => "state = 'active'", :using => :gist)
 
     ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.send :remove_method, :index_name_exists?
   end
@@ -67,6 +74,11 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
     end
 
     ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.send :remove_method, :index_name_for_remove
+  end
+
+  def test_remove_index_when_name_is_specified
+    expected = %(DROP INDEX CONCURRENTLY "index_people_on_last_name")
+    assert_equal expected, remove_index(:people, name: "index_people_on_last_name", algorithm: :concurrently)
   end
 
   private

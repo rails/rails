@@ -29,6 +29,24 @@ class SchemaDumperTest < ActiveRecord::TestCase
     ActiveRecord::SchemaMigration.delete_all
   end
 
+  if current_adapter?(:SQLite3Adapter)
+    %w{3.7.8 3.7.11 3.7.12}.each do |version_string|
+      test "dumps schema version for sqlite version #{version_string}" do
+        version = ActiveRecord::ConnectionAdapters::SQLite3Adapter::Version.new(version_string)
+        ActiveRecord::Base.connection.stubs(:sqlite_version).returns(version)
+
+        versions = %w{ 20100101010101 20100201010101 20100301010101 }
+        versions.reverse_each do |v|
+          ActiveRecord::SchemaMigration.create!(:version => v)
+        end
+
+        schema_info = ActiveRecord::Base.connection.dump_schema_information
+        assert_match(/20100201010101.*20100301010101/m, schema_info)
+        ActiveRecord::SchemaMigration.delete_all
+      end
+    end
+  end
+
   def test_magic_comment
     assert_match "# encoding: #{Encoding.default_external.name}", standard_dump
   end
@@ -74,7 +92,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
       next if column_set.empty?
 
       lengths = column_set.map do |column|
-        if match = column.match(/\bt\.\w+\s+"/)
+        if match = column.match(/\bt\.\w+\s+(?="\w+?")/)
           match[0].length
         end
       end.compact
@@ -171,24 +189,24 @@ class SchemaDumperTest < ActiveRecord::TestCase
   end
 
   def test_schema_dumps_index_columns_in_right_order
-    index_definition = standard_dump.split(/\n/).grep(/add_index.*companies/).first.strip
+    index_definition = standard_dump.split(/\n/).grep(/t\.index.*company_index/).first.strip
     if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
-      assert_equal 'add_index "companies", ["firm_id", "type", "rating"], name: "company_index", using: :btree', index_definition
+      assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", using: :btree', index_definition
     else
-      assert_equal 'add_index "companies", ["firm_id", "type", "rating"], name: "company_index"', index_definition
+      assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index"', index_definition
     end
   end
 
   def test_schema_dumps_partial_indices
-    index_definition = standard_dump.split(/\n/).grep(/add_index.*company_partial_index/).first.strip
+    index_definition = standard_dump.split(/\n/).grep(/t\.index.*company_partial_index/).first.strip
     if current_adapter?(:PostgreSQLAdapter)
-      assert_equal 'add_index "companies", ["firm_id", "type"], name: "company_partial_index", where: "(rating > 10)", using: :btree', index_definition
+      assert_equal 't.index ["firm_id", "type"], name: "company_partial_index", where: "(rating > 10)", using: :btree', index_definition
     elsif current_adapter?(:Mysql2Adapter)
-      assert_equal 'add_index "companies", ["firm_id", "type"], name: "company_partial_index", using: :btree', index_definition
+      assert_equal 't.index ["firm_id", "type"], name: "company_partial_index", using: :btree', index_definition
     elsif current_adapter?(:SQLite3Adapter) && ActiveRecord::Base.connection.supports_partial_index?
-      assert_equal 'add_index "companies", ["firm_id", "type"], name: "company_partial_index", where: "rating > 10"', index_definition
+      assert_equal 't.index ["firm_id", "type"], name: "company_partial_index", where: "rating > 10"', index_definition
     else
-      assert_equal 'add_index "companies", ["firm_id", "type"], name: "company_partial_index"', index_definition
+      assert_equal 't.index ["firm_id", "type"], name: "company_partial_index"', index_definition
     end
   end
 
@@ -235,8 +253,8 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
     def test_schema_dumps_index_type
       output = standard_dump
-      assert_match %r{add_index "key_tests", \["awesome"\], name: "index_key_tests_on_awesome", type: :fulltext}, output
-      assert_match %r{add_index "key_tests", \["pizza"\], name: "index_key_tests_on_pizza", using: :btree}, output
+      assert_match %r{t\.index \["awesome"\], name: "index_key_tests_on_awesome", type: :fulltext}, output
+      assert_match %r{t\.index \["pizza"\], name: "index_key_tests_on_pizza", using: :btree}, output
     end
   end
 
@@ -259,6 +277,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
     def test_schema_dump_allows_array_of_decimal_defaults
       output = standard_dump
       assert_match %r{t\.decimal\s+"decimal_array_default",\s+default: \["1.23", "3.45"\],\s+array: true}, output
+    end
+
+    def test_schema_dump_expression_indices
+      index_definition = standard_dump.split(/\n/).grep(/t\.index.*company_expression_index/).first.strip
+      assert_equal 't.index "lower((name)::text)", name: "company_expression_index", using: :btree', index_definition
     end
 
     if ActiveRecord::Base.connection.supports_extensions?
@@ -323,9 +346,9 @@ class SchemaDumperTest < ActiveRecord::TestCase
       create_table("dogs") do |t|
         t.column :name, :string
         t.column :owner_id, :integer
+        t.index [:name]
+        t.foreign_key :dog_owners, column: "owner_id" if supports_foreign_keys?
       end
-      add_index "dogs", [:name]
-      add_foreign_key :dogs, :dog_owners, column: "owner_id" if supports_foreign_keys?
     end
     def down
       drop_table("dogs")

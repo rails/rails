@@ -36,7 +36,7 @@ module ActionCable
           end
 
           def shutdown
-            inner.cancel
+            @inner.cancel
           end
         end
     end

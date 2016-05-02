@@ -1,7 +1,38 @@
-*   Allow channel identifiers with no backslahes/escaping to be accepted
-    by the subscription storer.
+## Rails 5.0.0.beta4 (April 27, 2016) ##
 
-    *Jon Moss*
+*   WebSocket protocol negotiation.
+
+    Introduces an Action Cable protocol version that moves independently
+    of and, hopefully, more slowly than Action Cable itself. Client sockets
+    negotiate a protocol with the Cable server using WebSockets' native
+    subprotocol support:
+      * https://tools.ietf.org/html/rfc6455#section-1.9
+      * https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_servers#Subprotocols
+
+    If they can't negotiate a compatible protocol (usually due to upgrading
+    the Cable server with a browser still running old JavaScript) then the
+    client knows to disconnect, cease retrying, and tell the app that it hit
+    a protocol mismatch.
+
+    This allows us to evolve the Action Cable message format, handshaking,
+    pings, acknowledgements, and more without breaking older clients'
+    expectations of server behavior.
+
+    *Daniel Rhodes*
+
+*   Pubsub: automatic stream decoding.
+
+        stream_for @room, coder: ActiveSupport::JSON do |message|
+          # `message` is a Ruby hash here instead of a JSON string
+
+    The `coder` must respond to `#decode`. Defaults to `coder: nil`
+    which skips decoding entirely.
+
+    *Jeremy Daer*
+
+*   Add ActiveSupport::Notifications to ActionCable::Channel.
+
+    *Matthew Wear*
 
 *   Safely support autoloading and class unloading, by preventing concurrent
     loads, and disconnecting all cables during reload.

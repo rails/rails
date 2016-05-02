@@ -8,9 +8,7 @@ module ActiveRecord
     class SQLite3Adapter
       class QuotingTest < ActiveRecord::SQLite3TestCase
         def setup
-          @conn = Base.sqlite3_connection :database => ':memory:',
-            :adapter => 'sqlite3',
-            :timeout => 100
+          @conn = ActiveRecord::Base.connection
         end
 
         def test_type_cast_binary_encoding_without_logger
@@ -88,6 +86,13 @@ module ActiveRecord
           type = Type::String.new
 
           assert_equal "'hello'", @conn.quote(type.serialize(value))
+        end
+
+        def test_quoted_time_returns_date_qualified_time
+          value = ::Time.utc(2000, 1, 1, 12, 30, 0, 999999)
+          type = Type::Time.new
+
+          assert_equal "'2000-01-01 12:30:00.999999'", @conn.quote(type.serialize(value))
         end
       end
     end

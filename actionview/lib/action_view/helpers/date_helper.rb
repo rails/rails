@@ -226,8 +226,10 @@ module ActionView
       #   for <tt>:year</tt>, <tt>:month</tt>, <tt>:day</tt>, <tt>:hour</tt>, <tt>:minute</tt> and <tt>:second</tt>.
       #   Setting this option prepends a select option with a generic prompt  (Day, Month, Year, Hour, Minute, Seconds)
       #   or the given prompt string.
-      # * <tt>:with_css_classes</tt>   - Set to true if you want assign different styles for 'select' tags. This option
-      #   automatically set classes 'year', 'month', 'day', 'hour', 'minute' and 'second' for your 'select' tags.
+      # * <tt>:with_css_classes</tt>  - Set to true or a hash of strings. Use true if you want to assign generic styles for
+      #   select tags. This automatically set classes 'year', 'month', 'day', 'hour', 'minute' and 'second'. A hash of
+      #   strings for <tt>:year</tt>, <tt>:month</tt>, <tt>:day</tt>, <tt>:hour</tt>, <tt>:minute</tt>, <tt>:second</tt>
+      #   will extend the select type with the given value. Use +html_options+ to modify every select tag in the set.
       # * <tt>:use_hidden</tt>         - Set to true if you only want to generate hidden input tags.
       #
       # If anything is passed in the +html_options+ hash it will be applied to every select tag in the set.
@@ -994,7 +996,7 @@ module ActionView
             :name => input_name_from_type(type)
           }.merge!(@html_options)
           select_options[:disabled] = 'disabled' if @options[:disabled]
-          select_options[:class] = [select_options[:class], type].compact.join(' ') if @options[:with_css_classes]
+          select_options[:class] = css_class_attribute(type, select_options[:class], @options[:with_css_classes]) if @options[:with_css_classes]
 
           select_html = "\n"
           select_html << content_tag("option".freeze, '', :value => '') + "\n" if @options[:include_blank]
@@ -1002,6 +1004,20 @@ module ActionView
           select_html << select_options_as_html
 
           (content_tag("select".freeze, select_html.html_safe, select_options) + "\n").html_safe
+        end
+
+        # Builds the css class value for the select element
+        #  css_class_attribute(:year, 'date optional', { year: 'my-year' })
+        #  => "date optional my-year"
+        def css_class_attribute(type, html_options_class, options) # :nodoc:
+          css_class = case options
+                      when Hash
+                        options[type.to_sym]
+                      else
+                        type
+                      end
+
+          [html_options_class, css_class].compact.join(' ')
         end
 
         # Builds a prompt option tag with supplied options or from default options.

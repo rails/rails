@@ -3,7 +3,7 @@ source 'https://rubygems.org'
 gemspec
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
-gem 'rake', '>= 10.3'
+gem 'rake', '>= 11.1'
 
 # This needs to be with require false to ensure correct loading order, as it has to
 # be loaded after loading the test library.
@@ -92,7 +92,7 @@ platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
 
   group :db do
     gem 'pg', '>= 0.18.0'
-    gem 'mysql2', '>= 0.4.0'
+    gem 'mysql2', '>= 0.4.4'
   end
 end
 
@@ -129,3 +129,4 @@ end
 # A gem necessary for Active Record tests with IBM DB.
 gem 'ibm_db' if ENV['IBM_DB']
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
+gem 'wdm', '>= 0.1.0', platforms: [:mingw, :mswin, :x64_mingw, :mswin64]

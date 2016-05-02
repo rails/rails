@@ -571,15 +571,15 @@ module ActiveSupport
 
       # Install a callback for the given event.
       #
-      #   set_callback :save, :before, :before_meth
-      #   set_callback :save, :after,  :after_meth, if: :condition
+      #   set_callback :save, :before, :before_method
+      #   set_callback :save, :after,  :after_method, if: :condition
       #   set_callback :save, :around, ->(r, block) { stuff; result = block.call; stuff }
       #
       # The second argument indicates whether the callback is to be run +:before+,
       # +:after+, or +:around+ the event. If omitted, +:before+ is assumed. This
       # means the first example above can also be written as:
       #
-      #   set_callback :save, :before_meth
+      #   set_callback :save, :before_method
       #
       # The callback can be specified as a symbol naming an instance method; as a
       # proc, lambda, or block; as a string to be instance evaluated(deprecated); or as an
@@ -782,7 +782,7 @@ module ActiveSupport
 
       def display_deprecation_warning_for_false_terminator
         ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          Returning `false` in Active Record and Active Model callbacks will not implicitly halt a callback chain in the next release of Rails.
+          Returning `false` in Active Record and Active Model callbacks will not implicitly halt a callback chain in Rails 5.1.
           To explicitly halt the callback chain, please use `throw :abort` instead.
         MSG
       end

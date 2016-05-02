@@ -136,7 +136,7 @@ module ActiveRecord
       end
 
       def initialize_find_by_cache # :nodoc:
-        @find_by_statement_cache = {}.extend(Mutex_m)
+        @find_by_statement_cache = { true => {}.extend(Mutex_m), false => {}.extend(Mutex_m) }
       end
 
       def inherited(child_class) # :nodoc:
@@ -159,7 +159,7 @@ module ActiveRecord
           id = id.id
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
             You are passing an instance of ActiveRecord::Base to `find`.
-            Please pass the id of the object by calling `.id`
+            Please pass the id of the object by calling `.id`.
           MSG
         end
 
@@ -280,8 +280,9 @@ module ActiveRecord
       private
 
       def cached_find_by_statement(key, &block) # :nodoc:
-        @find_by_statement_cache[key] || @find_by_statement_cache.synchronize {
-          @find_by_statement_cache[key] ||= StatementCache.create(connection, &block)
+        cache = @find_by_statement_cache[connection.prepared_statements]
+        cache[key] || cache.synchronize {
+          cache[key] ||= StatementCache.create(connection, &block)
         }
       end
 

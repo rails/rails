@@ -45,8 +45,8 @@ module ActiveRecord
           k.name == primary_key
         }]
 
-        if !primary_key_value && connection.prefetch_primary_key?(klass.table_name)
-          primary_key_value = connection.next_sequence_value(klass.sequence_name)
+        if !primary_key_value && klass.prefetch_primary_key?
+          primary_key_value = klass.next_sequence_value
           values[arel_attribute(klass.primary_key)] = primary_key_value
         end
       end
@@ -94,12 +94,12 @@ module ActiveRecord
     end
 
     def substitute_values(values) # :nodoc:
-      binds = values.map do |arel_attr, value|
-        QueryAttribute.new(arel_attr.name, value, klass.type_for_attribute(arel_attr.name))
-      end
+      binds = []
+      substitutes = []
 
-      substitutes = values.map do |(arel_attr, _)|
-        [arel_attr, Arel::Nodes::BindParam.new]
+      values.each do |arel_attr, value|
+        binds.push QueryAttribute.new(arel_attr.name, value, klass.type_for_attribute(arel_attr.name))
+        substitutes.push [arel_attr, Arel::Nodes::BindParam.new]
       end
 
       [substitutes, binds]
@@ -428,7 +428,7 @@ module ActiveRecord
           id = id.id
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
             You are passing an instance of ActiveRecord::Base to `update`.
-            Please pass the id of the object by calling `.id`
+            Please pass the id of the object by calling `.id`.
           MSG
         end
         object = find(id)
@@ -457,7 +457,7 @@ module ActiveRecord
       if conditions
         ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
           Passing conditions to destroy_all is deprecated and will be removed in Rails 5.1.
-          To achieve the same use where(conditions).destroy_all
+          To achieve the same use where(conditions).destroy_all.
         MESSAGE
         where(conditions).destroy_all
       else
@@ -527,7 +527,7 @@ module ActiveRecord
       if conditions
         ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
           Passing conditions to delete_all is deprecated and will be removed in Rails 5.1.
-          To achieve the same use where(conditions).delete_all
+          To achieve the same use where(conditions).delete_all.
         MESSAGE
         where(conditions).delete_all
       else

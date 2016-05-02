@@ -16,8 +16,6 @@ require "active_record/connection_adapters/postgresql/type_metadata"
 require "active_record/connection_adapters/postgresql/utils"
 require "active_record/connection_adapters/statement_pool"
 
-require 'ipaddr'
-
 module ActiveRecord
   module ConnectionHandling # :nodoc:
     # Establishes a connection to the database that's used by all Active Record objects
@@ -119,10 +117,13 @@ module ActiveRecord
       include PostgreSQL::SchemaStatements
       include PostgreSQL::DatabaseStatements
       include PostgreSQL::ColumnDumper
-      include Savepoints
 
       def schema_creation # :nodoc:
         PostgreSQL::SchemaCreation.new self
+      end
+
+      def arel_visitor # :nodoc:
+        Arel::Visitors::PostgreSQL.new(self)
       end
 
       # Returns true, since this connection adapter supports prepared statement
@@ -136,6 +137,10 @@ module ActiveRecord
       end
 
       def supports_partial_index?
+        true
+      end
+
+      def supports_expression_index?
         true
       end
 
@@ -157,6 +162,14 @@ module ActiveRecord
 
       def supports_json?
         postgresql_version >= 90200
+      end
+
+      def supports_comments?
+        true
+      end
+
+      def supports_savepoints?
+        true
       end
 
       def index_algorithms
@@ -195,14 +208,6 @@ module ActiveRecord
       def initialize(connection, logger, connection_parameters, config)
         super(connection, logger, config)
 
-        @visitor = Arel::Visitors::PostgreSQL.new self
-        if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
-          @prepared_statements = true
-          @visitor.extend(DetermineIfPreparableVisitor)
-        else
-          @prepared_statements = false
-        end
-
         @connection_parameters = connection_parameters
 
         # @local_tz is initialized as nil to avoid warnings when connect tries to use it
@@ -212,7 +217,7 @@ module ActiveRecord
         connect
         add_pg_encoders
         @statements = StatementPool.new @connection,
-                                        self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 })
+                                        self.class.type_cast_config_to_integer(config[:statement_limit])
 
         if postgresql_version < 90100
           raise "Your version of PostgreSQL (#{postgresql_version}) is too old. Active Record supports PostgreSQL >= 9.1."
@@ -398,6 +403,7 @@ module ActiveRecord
       protected
 
         # See http://www.postgresql.org/docs/current/static/errcodes-appendix.html
+        VALUE_LIMIT_VIOLATION = "22001"
         FOREIGN_KEY_VIOLATION = "23503"
         UNIQUE_VIOLATION      = "23505"
 
@@ -409,6 +415,8 @@ module ActiveRecord
             RecordNotUnique.new(message)
           when FOREIGN_KEY_VIOLATION
             InvalidForeignKey.new(message)
+          when VALUE_LIMIT_VIOLATION
+            ValueTooLong.new(message)
           else
             super
           end
@@ -712,7 +720,7 @@ module ActiveRecord
         # Returns the list of a table's column names, data types, and default values.
         #
         # The underlying query is roughly:
-        #  SELECT column.name, column.type, default.value
+        #  SELECT column.name, column.type, default.value, column.comment
         #    FROM column LEFT JOIN default
         #      ON column.table_id = default.table_id
         #     AND column.num = default.column_num
@@ -732,7 +740,8 @@ module ActiveRecord
               SELECT a.attname, format_type(a.atttypid, a.atttypmod),
                      pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod,
              (SELECT c.collname FROM pg_collation c, pg_type t
-               WHERE c.oid = a.attcollation AND t.oid = a.atttypid AND a.attcollation <> t.typcollation)
+               WHERE c.oid = a.attcollation AND t.oid = a.atttypid AND a.attcollation <> t.typcollation),
+                     col_description(a.attrelid, a.attnum) AS comment
                 FROM pg_attribute a LEFT JOIN pg_attrdef d
                   ON a.attrelid = d.adrelid AND a.attnum = d.adnum
                WHERE a.attrelid = '#{quote_table_name(table_name)}'::regclass
@@ -746,8 +755,8 @@ module ActiveRecord
           $1.strip if $1
         end
 
-        def create_table_definition(name, temporary = false, options = nil, as = nil) # :nodoc:
-          PostgreSQL::TableDefinition.new(name, temporary, options, as)
+        def create_table_definition(*args) # :nodoc:
+          PostgreSQL::TableDefinition.new(*args)
         end
 
         def can_perform_case_insensitive_comparison_for?(column)

@@ -51,7 +51,11 @@ module ActionCable
           @redis_connection_for_subscriptions || @server.mutex.synchronize do
             @redis_connection_for_subscriptions ||= self.class.em_redis_connector.call(@server.config.cable).tap do |redis|
               redis.on(:reconnect_failed) do
-                @logger.info "[ActionCable] Redis reconnect failed."
+                @logger.error "[ActionCable] Redis reconnect failed."
+              end
+
+              redis.on(:failed) do
+                @logger.error "[ActionCable] Redis connection has failed."
               end
             end
           end

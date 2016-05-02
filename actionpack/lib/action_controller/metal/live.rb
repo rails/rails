@@ -3,7 +3,7 @@ require 'delegate'
 require 'active_support/json'
 
 module ActionController
-  # Mix this module in to your controller, and all actions in that controller
+  # Mix this module into your controller, and all actions in that controller
   # will be able to stream data to the client as it's written.
   #
   #   class MyController < ActionController::Base
@@ -20,7 +20,7 @@ module ActionController
   #     end
   #   end
   #
-  # There are a few caveats with this use. You *cannot* write headers after the
+  # There are a few caveats with this module. You *cannot* write headers after the
   # response has been committed (Response#committed? will return truthy).
   # Calling +write+ or +close+ on the response stream will cause the response
   # object to be committed. Make sure all headers are set before calling write
