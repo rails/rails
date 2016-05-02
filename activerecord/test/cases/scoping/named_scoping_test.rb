@@ -544,12 +544,6 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_equal 1, SpecialComment.where(body: 'go crazy').created.count
   end
 
-  def test_model_class_should_respond_to_empty
-    assert !Topic.empty?
-    Topic.delete_all
-    assert Topic.empty?
-  end
-
   def test_model_class_should_respond_to_none
     assert !Topic.none?
     Topic.delete_all
