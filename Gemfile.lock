@@ -69,7 +69,7 @@ PATH
       activesupport (= 5.0.0.beta4)
       arel (~> 7.0)
     activesupport (5.0.0.beta4)
-      concurrent-ruby (~> 1.0)
+      concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (~> 0.7)
       minitest (~> 5.1)
       tzinfo (~> 1.1)
@@ -116,7 +116,7 @@ GEM
       coffee-script-source
       execjs
     coffee-script-source (1.10.0)
-    concurrent-ruby (1.0.1)
+    concurrent-ruby (1.0.2)
     connection_pool (2.2.0)
     dalli (2.7.6)
     dante (0.2.0)
