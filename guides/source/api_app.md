@@ -202,7 +202,7 @@ An API application comes with the following middleware by default:
 
 - `Rack::Sendfile`
 - `ActionDispatch::Static`
-- `ActionDispatch::LoadInterlock`
+- `ActionDispatch::Executor`
 - `ActiveSupport::Cache::Strategy::LocalCache::Middleware`
 - `Rack::Runtime`
 - `ActionDispatch::RequestId`
@@ -409,7 +409,7 @@ Some common modules you might want to add:
   and translation methods.
 - `ActionController::HttpAuthentication::Basic` (or `Digest` or `Token`): Support
   for basic, digest or token HTTP authentication.
-- `AbstractController::Layouts`: Support for layouts when rendering.
+- `ActionView::Layouts`: Support for layouts when rendering.
 - `ActionController::MimeResponds`: Support for `respond_to`.
 - `ActionController::Cookies`: Support for `cookies`, which includes
   support for signed and encrypted cookies. This requires the cookies middleware.

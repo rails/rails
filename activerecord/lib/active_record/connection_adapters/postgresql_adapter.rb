@@ -168,10 +168,6 @@ module ActiveRecord
         true
       end
 
-      def supports_comments_in_create?
-        false
-      end
-
       def supports_savepoints?
         true
       end

@@ -104,7 +104,7 @@ For a freshly generated Rails application, this might produce something like:
 ```ruby
 use Rack::Sendfile
 use ActionDispatch::Static
-use ActionDispatch::LoadInterlock
+use ActionDispatch::Executor
 use #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x000000029a0838>
 use Rack::Runtime
 use Rack::MethodOverride
@@ -219,7 +219,7 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 
 * Sets `env["rack.multithread"]` flag to `false` and wraps the application within a Mutex.
 
-**`ActionDispatch::LoadInterlock`**
+**`ActionDispatch::Executor`**
 
 * Used for thread safe code reloading during development.
 

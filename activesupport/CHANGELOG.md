@@ -1,22 +1,20 @@
-*   Change `ActiveSupport::Duration` creation with numeric methods like `1.week`
-    to create durations with more predictable and ISO8601-conformant parts.
+*   `ActiveSupport::Duration` supports weeks and hours.
 
-    This is to remove astonishment from getting `3600 seconds` from `1.hour`.
+        [1.hour.inspect, 1.hour.value, 1.hour.parts]
+        # => ["3600 seconds", 3600, [[:seconds, 3600]]]   # Before
+        # => ["1 hour", 3600, [[:hours, 1]]]              # After
 
-    It should not affect current apps as duration's `value` (number of seconds) remains the same,
-    only hash of `parts` (and `inspect` value) is changed and only when it's constructed by calling
-    methods on integers. Manual construction of Durations isn't affected.
-    Inside the ActiveSupport::Duration itself most operations rely only on number of seconds.
+        [1.week.inspect, 1.week.value, 1.week.parts]
+        # => ["7 days", 604800, [[:days, 7]]]             # Before
+        # => ["1 week", 604800, [[:weeks, 1]]]            # After
 
-    Before:
+    This brings us into closer conformance with ISO8601 and relieves some
+    astonishment about getting `1.hour.inspect # => 3600 seconds`.
 
-        [1.hour.inspect, 1.hour.value, 1.hour.parts] # => ["3600 seconds", 3600, [[:seconds, 3600]]]
-        [1.week.inspect, 1.week.value, 1.week.parts] # => ["7 days", 604800, [[:days, 7]]]
-
-    After:
-
-        [1.hour.inspect, 1.hour.value, 1.hour.parts] # => ["1 hour", 3600, [[:hours, 1]]]
-        [1.week.inspect, 1.week.value, 1.week.parts] # => ["1 week", 604800, [[:weeks, 1]]]
+    Compatibility: The duration's `value` remains the same, so apps using
+    durations are oblivious to the new time periods. Apps, libraries, and
+    plugins that work with the internal `parts` hash will need to broaden
+    their time period handling to cover hours & weeks.
 
     *Andrey Novikov*
 
