@@ -315,6 +315,13 @@ class InheritanceTest < ActiveRecord::TestCase
     end
   end
 
+  def test_new_when_passing_class_to_type_when_store_attributes_are_present_on_sti_class
+    without_store_full_sti_class do
+      item = Company.new(type: Firm)
+      assert_instance_of Firm, item
+    end
+  end
+
   def test_new_with_autoload_paths
     path = File.expand_path('../../models/autoloadable', __FILE__)
     ActiveSupport::Dependencies.autoload_paths << path

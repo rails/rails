@@ -1349,7 +1349,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_attribute_names
-    assert_equal ["id", "type", "firm_id", "firm_name", "name", "client_of", "rating", "account_id", "description"],
+    assert_equal ["id", "type", "firm_id", "firm_name", "name", "client_of", "rating", "account_id", "description", "features"],
                  Company.attribute_names
   end
 

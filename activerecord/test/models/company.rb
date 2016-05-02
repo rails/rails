@@ -44,6 +44,7 @@ end
 
 class Firm < Company
   to_param :name
+  store :features, accessors: [:exceptional_company]
 
   has_many :clients, -> { order "id" }, :dependent => :destroy, :before_remove => :log_before_remove, :after_remove  => :log_after_remove
   has_many :unsorted_clients, :class_name => "Client"
