@@ -20,7 +20,7 @@ module ActiveRecord
         MySQL::Table.new(table_name, base)
       end
 
-      def schema_creation
+      def schema_creation # :nodoc:
         MySQL::SchemaCreation.new(self)
       end
 
