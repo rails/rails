@@ -2,16 +2,31 @@ module ActiveRecord
   module Validations
     class AssociatedValidator < ActiveModel::EachValidator #:nodoc:
       def validate_each(record, attribute, value)
-        if Array(value).reject { |r| valid_object?(r) }.any?
+        if Array(value).reject { |r| valid_object?(r, record.validation_context) }.any?
           record.errors.add(attribute, :invalid, options.merge(value: value))
         end
       end
 
       private
 
-        def valid_object?(record)
-          (record.respond_to?(:marked_for_destruction?) && record.marked_for_destruction?) || record.valid?
+      def valid_object?(record, context)
+        context = replace_an_implied_context(record, context)
+        (record.respond_to?(:marked_for_destruction?) && record.marked_for_destruction?) || record.valid?(context)
+      end
+
+      def replace_an_implied_context(record, context)
+        return nil unless context
+        implied_contexts, context = Array(context).partition{|s| ['create', 'update'].include?(s.to_s)}
+        if !implied_contexts.empty?
+          new_context = if !record.respond_to?(:new_record?) || record.new_record?
+                          :create
+                        else
+                          :update
+                        end
+          context << new_context
         end
+        context
+      end
     end
 
     module ClassMethods

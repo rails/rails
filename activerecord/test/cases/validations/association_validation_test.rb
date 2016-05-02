@@ -24,6 +24,56 @@ class AssociationValidationTest < ActiveRecord::TestCase
     assert t.valid?
   end
 
+  def test_validates_associated_many_with_validation_context
+    Topic.validates_associated(:replies)
+    Reply.validates_presence_of(:content)
+    Reply.validates_format_of(:author_name, :with => /\Asecret\z/, :on => :special_case)
+    t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
+    t.replies << [
+      r = Reply.new("title" => "A reply"),
+      r2 = Reply.new("title" => "Another reply", "content" => "non-empty", "author_name" => "not secret"),
+      r3 = Reply.new("title" => "Yet another reply", "author_name" => "secret"),
+      r4 = Reply.new("title" => "The last reply", "content" => "non-empty", "author_name" => "secret")
+    ]
+    assert t.invalid?([:create, :special_case])
+    assert t.errors[:replies].any?
+    assert_equal 2, r.errors.count  # make sure all associated objects have been validated
+    assert_equal 1, r2.errors.count
+    assert_equal 1, r3.errors.count
+    assert_equal 0, r4.errors.count
+    r.content = r3.content = "non-empty"
+    r.author_name = r2.author_name = 'secret'
+    assert t.valid?([:create, :special_case])
+  end
+
+  def test_validates_associated_many_mixed_implicit_context
+    Topic.validates_associated(:replies)
+    Reply.validates_presence_of(:content)
+    Reply.validates_format_of(:content, :with => /empty/, :on => :create, :message => "does not mention empty on create")
+    Reply.validates_format_of(:content, :without => /empty/, :on => :update, :message => "mentions empty on update")
+    t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
+    t.replies << [
+      r1 = Reply.new("title" => "A reply", "content" => "non-empty"),
+      r2 = Reply.new("title" => "Another reply", "content" => "non-empty"),
+    ]
+    r1.reload
+    r2.reload
+    r1.content = "updating - not vacant"
+    r2.content = "updating - still empty"
+    t.replies << [
+      r3 = Reply.new("title" => "Yet another reply", "content" => "creating - full"),
+      r4 = Reply.new("title" => "The last reply", "content" => "creating - non-empty")
+    ]
+    assert !t.valid?
+    assert_equal 0, r1.errors.count
+    assert_equal 1, r2.errors.count
+    assert_equal 1, r3.errors.count
+    assert_equal 0, r4.errors.count
+    r3.content = "mention empty"
+    r2.content = "not absent"
+    assert t.valid?
+  end
+
   def test_validates_associated_one
     Reply.validates :topic, :associated => true
     Topic.validates_presence_of( :content )
@@ -47,7 +97,7 @@ class AssociationValidationTest < ActiveRecord::TestCase
 
   def test_validates_associated_without_marked_for_destruction
     reply = Class.new do
-      def valid?
+      def valid?(context)
         true
       end
     end
