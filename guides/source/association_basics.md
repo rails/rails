@@ -754,10 +754,9 @@ Most associations with standard names will be supported. However, associations
 that contain the following options will not have their inverses set
 automatically:
 
-* `:conditions`
 * `:through`
 * `:polymorphic`
-* `:foreign_key`
+* `:foreign_type`
 
 Detailed Association Reference
 ------------------------------

@@ -5,6 +5,8 @@ require 'models/developer'
 require 'models/computer'
 require 'models/vehicle'
 require 'models/cat'
+require 'models/author'
+require 'models/rating'
 
 class DefaultScopingTest < ActiveRecord::TestCase
   fixtures :developers, :posts, :comments

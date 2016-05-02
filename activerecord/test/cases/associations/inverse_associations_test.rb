@@ -16,6 +16,12 @@ require 'models/admin/user'
 require 'models/developer'
 require 'models/company'
 require 'models/project'
+require 'models/contract'
+require 'models/membership'
+require 'models/member'
+require 'models/post'
+require 'models/mentor'
+require 'models/computer'
 
 class AutomaticInverseFindingTests < ActiveRecord::TestCase
   fixtures :ratings, :comments, :cars
@@ -164,9 +170,9 @@ class InverseAssociationTests < ActiveRecord::TestCase
     assert_respond_to has_many_without_inverse_ref, :has_inverse?
     assert !has_many_without_inverse_ref.has_inverse?
 
-    belongs_to_without_inverse_ref = Sponsor.reflect_on_association(:sponsor_club)
-    assert_respond_to belongs_to_without_inverse_ref, :has_inverse?
-    assert !belongs_to_without_inverse_ref.has_inverse?
+    belongs_to_without_inverse_ref_with_foreign_key = Sponsor.reflect_on_association(:sponsor_club)
+    assert_respond_to belongs_to_without_inverse_ref_with_foreign_key, :has_inverse?
+    assert belongs_to_without_inverse_ref_with_foreign_key.has_inverse?
   end
 
   def test_should_be_able_to_ask_a_reflection_what_it_is_the_inverse_of
@@ -197,9 +203,11 @@ class InverseAssociationTests < ActiveRecord::TestCase
 
     has_many_ref = Club.reflect_on_association(:memberships)
     assert_nil has_many_ref.inverse_of
+  end
 
+  def test_associations_with_no_inverse_of_but_with_foreign_key_return_not_nil
     belongs_to_ref = Sponsor.reflect_on_association(:sponsor_club)
-    assert_nil belongs_to_ref.inverse_of
+    assert_not_nil belongs_to_ref.inverse_of
   end
 
   def test_this_inverse_stuff

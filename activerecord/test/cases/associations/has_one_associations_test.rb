@@ -10,6 +10,9 @@ require 'models/bulb'
 require 'models/author'
 require 'models/image'
 require 'models/post'
+require 'models/contract'
+require 'models/ship_part'
+require 'models/treasure'
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?

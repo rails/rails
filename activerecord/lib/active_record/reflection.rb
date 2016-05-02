@@ -270,6 +270,11 @@ module ActiveRecord
 
       attr_reader :plural_name # :nodoc:
 
+      # Creates new MacroReflection instance where
+      # +name+ is association name
+      # +scope+ is association scope
+      # +options+ is association options
+      # +active_record+ is association owner class
       def initialize(name, scope, options, active_record)
         @name          = name
         @scope         = scope
@@ -505,7 +510,8 @@ module ActiveRecord
       end
 
       VALID_AUTOMATIC_INVERSE_MACROS = [:has_many, :has_one, :belongs_to]
-      INVALID_AUTOMATIC_INVERSE_OPTIONS = [:conditions, :through, :polymorphic, :foreign_key]
+      INVALID_AUTOMATIC_INVERSE_OPTIONS = [:through, :polymorphic, :foreign_type]
+      VALID_AUTOMATIC_INVERSE_OPTIONS = [:foreign_key]
 
       def add_as_source(seed)
         seed
@@ -547,18 +553,16 @@ module ActiveRecord
         # returns either false or the inverse association name that it finds.
         def automatic_inverse_of
           if can_find_inverse_of_automatically?(self)
-            inverse_name = ActiveSupport::Inflector.underscore(options[:as] || active_record.name.demodulize).to_sym
+            valid_keys = options.keys & VALID_AUTOMATIC_INVERSE_OPTIONS
 
-            begin
-              reflection = klass._reflect_on_association(inverse_name)
-            rescue NameError
-              # Give up: we couldn't compute the klass type so we won't be able
-              # to find any associations either.
-              reflection = false
+            reflection = if valid_keys.any?
+              find_inverse_reflection_by_options valid_keys
+            else
+              find_inverse_reflection_by_class_name
             end
 
             if valid_inverse_reflection?(reflection)
-              return inverse_name
+              return reflection.name.to_s
             end
           end
 
@@ -583,7 +587,7 @@ module ActiveRecord
         # <tt>inverse_of</tt> option cannot be set to false. Second, we must
         # have <tt>has_many</tt>, <tt>has_one</tt>, <tt>belongs_to</tt> associations.
         # Third, we must not have options such as <tt>:polymorphic</tt> or
-        # <tt>:foreign_key</tt> which prevent us from correctly guessing the
+        # <tt>:foreign_type</tt> which prevent us from correctly guessing the
         # inverse association.
         #
         # Anything with a scope can additionally ruin our attempt at finding an
@@ -617,6 +621,30 @@ module ActiveRecord
 
         def primary_key(klass)
           klass.primary_key || raise(UnknownPrimaryKey.new(klass))
+        end
+
+        # Finds inverse reflection from +klass+ with properties equal to options with provided keys.
+        def find_inverse_reflection_by_options keys
+          result = klass.reflections.find do |name, refl|
+            # We skip polymorphic and associations with :as option because we can't determine their classes.
+            !refl.polymorphic? && !refl.options.key?(:as) && refl.klass == active_record && keys.all? do |key|
+              refl.public_send(key) == options[key].to_s
+            end
+          end
+
+          result[1] if result
+        end
+
+        # Finds inverse reflection from +klass+ by <tt>:as</tt> property or association owner class name.
+        def find_inverse_reflection_by_class_name
+          begin
+            inverse_name = ActiveSupport::Inflector.underscore(options[:as] || active_record.name.demodulize).to_s
+            klass._reflect_on_association(inverse_name)
+          rescue NameError
+            # Give up: we couldn't compute the klass type so we won't be able
+            # to find any associations either.
+            false
+          end
         end
     end
 

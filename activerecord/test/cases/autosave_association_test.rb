@@ -26,6 +26,8 @@ require 'models/member_detail'
 require 'models/organization'
 require 'models/guitar'
 require 'models/tuning_peg'
+require 'models/rating'
+require 'models/contract'
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   def test_autosave_validation

@@ -128,7 +128,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_has_one_through_with_has_one_source_reflection_preload
-    members = assert_queries(4) { Member.includes(:nested_sponsors).to_a }
+    members = assert_queries(3) { Member.includes(:nested_sponsors).to_a }
     mustache = sponsors(:moustache_club_sponsor_for_groucho)
     assert_no_queries(ignore_none: false) do
       assert_equal [mustache], members.first.nested_sponsors
