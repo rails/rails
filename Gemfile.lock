@@ -82,7 +82,6 @@ PATH
       activemodel (= 5.0.0.beta4)
       activerecord (= 5.0.0.beta4)
       activesupport (= 5.0.0.beta4)
-      bundler (>= 1.3.0, < 2.0)
       railties (= 5.0.0.beta4)
       sprockets-rails (>= 2.0.0)
     railties (5.0.0.beta4)
@@ -238,7 +237,7 @@ GEM
       serverengine (~> 1.5.11)
       thor
       thread (~> 0.1.7)
-    sprockets (3.5.2)
+    sprockets (3.6.0)
       concurrent-ruby (~> 1.0)
       rack (> 1, < 3)
     sprockets-rails (3.0.4)
@@ -284,6 +283,7 @@ DEPENDENCIES
   backburner
   bcrypt (~> 3.1.11)
   benchmark-ips
+  bundler (= 1.12.0.pre.1)
   byebug
   coffee-rails (~> 4.1.0)
   dalli (>= 2.2.1)
@@ -329,4 +329,4 @@ DEPENDENCIES
   wdm (>= 0.1.0)
 
 BUNDLED WITH
-   1.11.2
+   1.12.0.pre.1
