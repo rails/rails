@@ -19,14 +19,14 @@ module ActionCable
     #   end
     #
     # Based on the above example, the subscribers of this channel will get whatever data is put into the,
-    # let's say, `comments_for_45` broadcasting as soon as it's put there.
+    # let's say, <tt>comments_for_45</tt> broadcasting as soon as it's put there.
     #
     # An example broadcasting for this channel looks like so:
     #
     #   ActionCable.server.broadcast "comments_for_45", author: 'DHH', content: 'Rails is just swell'
     #
     # If you have a stream that is related to a model, then the broadcasting used can be generated from the model and channel.
-    # The following example would subscribe to a broadcasting like `comments:Z2lkOi8vVGVzdEFwcC9Qb3N0LzE`
+    # The following example would subscribe to a broadcasting like <tt>comments:Z2lkOi8vVGVzdEFwcC9Qb3N0LzE</tt>.
     #
     #   class CommentsChannel < ApplicationCable::Channel
     #     def subscribed
