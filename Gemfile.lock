@@ -284,6 +284,7 @@ DEPENDENCIES
   backburner
   bcrypt (~> 3.1.11)
   benchmark-ips
+  bundler (= 1.12.1)
   byebug
   coffee-rails (~> 4.1.0)
   dalli (>= 2.2.1)
@@ -329,4 +330,4 @@ DEPENDENCIES
   wdm (>= 0.1.0)
 
 BUNDLED WITH
-   1.11.2
+   1.12.1
