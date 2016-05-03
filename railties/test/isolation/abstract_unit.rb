@@ -304,6 +304,7 @@ module TestHelpers
       to_remove = [:actionmailer, :activerecord] - arr
 
       if to_remove.include?(:activerecord)
+        remove_from_config "active_record/railtie"
         remove_from_config 'config.active_record.*'
       end
 
@@ -334,6 +335,32 @@ Module.new do
 
   `#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails new #{app_template_path} --skip-gemfile --skip-listen --no-rc`
   File.open("#{app_template_path}/config/boot.rb", 'w') do |f|
-    f.puts "require 'rails/all'"
+    f.puts "
+    require 'bundler/setup'
+    require 'rails'
+    "
   end
+
+  file = "#{app_template_path}/config/application.rb"
+  contents = File.read(file)
+  contents.sub! "require 'rails/all'", "
+    require 'rails'
+
+    %w(
+      active_record/railtie
+      action_controller/railtie
+      action_view/railtie
+      action_mailer/railtie
+      active_job/railtie
+      action_cable/engine
+      rails/test_unit/railtie
+      sprockets/railtie
+    ).each do |railtie|
+      begin
+        require railtie
+      rescue LoadError
+      end
+    end
+  "
+  File.write(file, contents)
 end unless defined?(RAILS_ISOLATED_ENGINE)
