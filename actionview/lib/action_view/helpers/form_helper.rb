@@ -494,7 +494,7 @@ module ActionView
       #     First name: <%= person_form.text_field :first_name %>
       #     Last name : <%= person_form.text_field :last_name %>
       #
-      #     <%= fields_for :permission, @person.permission do |permission_fields| %>
+      #     <%= fields_for :permission, @person.build_permission do |permission_fields| %>
       #       Admin?  : <%= permission_fields.check_box :admin %>
       #     <% end %>
       #
