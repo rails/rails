@@ -49,6 +49,7 @@ module ActiveModel
 
   eager_autoload do
     autoload :Errors
+    autoload :OutOfRangeError, 'active_model/errors'
     autoload :StrictValidationFailed, 'active_model/errors'
     autoload :UnknownAttributeError, 'active_model/errors'
   end
