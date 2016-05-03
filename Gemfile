@@ -2,7 +2,7 @@ source 'https://rubygems.org'
 
 gemspec
 
-gem 'bundler', '1.12.1'
+gem 'bundler', '1.12.0.pre.1'
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem 'rake', '>= 11.1'
