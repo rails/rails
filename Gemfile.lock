@@ -329,4 +329,4 @@ DEPENDENCIES
   wdm (>= 0.1.0)
 
 BUNDLED WITH
-   1.12.1
+   1.12.0.pre.1
