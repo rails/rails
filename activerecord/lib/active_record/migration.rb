@@ -277,7 +277,7 @@ module ActiveRecord
   # * <tt>change_column(table_name, column_name, type, options)</tt>:  Changes
   #   the column to a different type using the same parameters as add_column.
   # * <tt>change_column_default(table_name, column_name, default)</tt>: Sets a
-  #   default value for +column_name+ definded by +default+ on +table_name+.
+  #   default value for +column_name+ defined by +default+ on +table_name+.
   # * <tt>change_column_null(table_name, column_name, null, default = nil)</tt>:
   #   Sets or removes a +NOT NULL+ constraint on +column_name+. The +null+ flag
   #   indicates whether the value can be +NULL+. See
