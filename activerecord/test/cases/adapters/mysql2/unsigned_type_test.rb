@@ -28,10 +28,10 @@ class Mysql2UnsignedTypeTest < ActiveRecord::Mysql2TestCase
   end
 
   test "minus value is out of range" do
-    assert_raise(RangeError) do
+    assert_raise(ActiveModel::RangeError) do
       UnsignedType.create(unsigned_integer: -10)
     end
-    assert_raise(RangeError) do
+    assert_raise(ActiveModel::RangeError) do
       UnsignedType.create(unsigned_bigint: -10)
     end
     assert_raise(ActiveRecord::StatementInvalid) do
