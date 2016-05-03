@@ -328,7 +328,7 @@ Please refer to the [Changelog][action-view] for detailed changes.
 *   Changed the default template handler from `ERB` to `Raw`.
     ([commit](https://github.com/rails/rails/commit/4be859f0fdf7b3059a28d03c279f03f5938efc80))
 
-*   Collection rendering can cache and fetches multiple partials.
+*   Collection rendering can cache and fetches multiple partials at once.
     ([Pull Request](https://github.com/rails/rails/pull/18948),
     [commit](https://github.com/rails/rails/commit/e93f0f0f133717f9b06b1eaefd3442bd0ff43985))
 
@@ -338,10 +338,6 @@ Please refer to the [Changelog][action-view] for detailed changes.
 *   Make `disable_with` the default behavior for submit tags. Disables the
     button on submit to prevent double submits.
     ([Pull Request](https://github.com/rails/rails/pull/21135))
-
-*   Collection rendering can cache and fetch multiple partials at once.
-    ([Pull Request](https://github.com/rails/rails/pull/21135))
-
 
 Action Mailer
 -------------
@@ -508,10 +504,6 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Added `#cache_key` to `ActiveRecord::Relation`.
     ([Pull Request](https://github.com/rails/rails/pull/20884))
 
-*   Require `belongs_to` by default.
-    ([Pull Request](https://github.com/rails/rails/pull/18937)) - Deprecate
-    `required` option in favor of `optional` for `belongs_to`
-
 *   Changed the default `null` value for `timestamps` to `false`.
     ([commit](https://github.com/rails/rails/commit/a939506f297b667291480f26fa32a373a18ae06a))
 
@@ -540,7 +532,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   `belongs_to` will now trigger a validation error by default if the
     association is not present. You can turn this off on a per-association basis
-    with `optional: true`.
+    with `optional: true`. Also deprecate `required` option in favor of `optional`
+    for `belongs_to`.
     ([Pull Request](https://github.com/rails/rails/pull/18937))
 
 *   Added `config.active_record.dump_schemas` to configure the behavior of
