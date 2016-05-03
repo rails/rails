@@ -526,6 +526,10 @@ module ActiveModel
   class StrictValidationFailed < StandardError
   end
 
+  # Raised when attribute values are out of range.
+  class RangeError < ::RangeError
+  end
+
   # Raised when unknown attributes are supplied via mass assignment.
   class UnknownAttributeError < NoMethodError
     attr_reader :record, :attribute
