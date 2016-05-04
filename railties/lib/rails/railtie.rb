@@ -4,6 +4,7 @@ require 'active_support/core_ext/module/introspection'
 require 'active_support/core_ext/module/delegation'
 
 module Rails
+  autoload :Forker, 'rails/railtie/forker'
   # <tt>Rails::Railtie</tt> is the core of the Rails framework and provides
   # several hooks to extend Rails and/or modify the initialization process.
   #
@@ -155,6 +156,17 @@ module Rails
         @generators
       end
 
+      def forkers(label=nil)
+        @forkers ||= {}
+        unless block_given?
+          return @forkers if label.nil?
+          return @forkers[label]
+        end
+        forker = @forkers[label] ||= Forker.new
+        yield forker
+        @forkers
+      end
+
       def abstract_railtie?
         ABSTRACT_RAILTIES.include?(name)
       end
@@ -232,6 +244,12 @@ module Rails
 
     def run_runner_blocks(app) #:nodoc:
       each_registered_block(:runner) { |block| block.call(app) }
+    end
+
+    def run_forkers_blocks(app) #:nodoc:
+      each_registered_block(:forkers) do |label, forker| 
+        forker.fork!(label, app)        
+      end
     end
 
     def run_tasks_blocks(app) #:nodoc:
