@@ -1327,6 +1327,24 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 'hen', hen.name
   end
 
+  def test_create_with_callback
+    parrot = Bird.create!(name: 'parrot', color: 'green')
+
+    birds = Bird.all
+    hen = birds.where(name: 'hen').create do |bird|
+      bird.evangelist = true
+      bird.color = 'blue'
+    end
+
+    assert_kind_of Bird, hen
+    assert hen.persisted?
+    assert_equal 'hen', hen.name
+    assert_equal 'blue', hen.color
+
+    parrot.reload
+    assert_equal 'blue', parrot.color
+  end
+
   def test_first_or_create
     parrot = Bird.where(:color => 'green').first_or_create(:name => 'parrot')
     assert_kind_of Bird, parrot

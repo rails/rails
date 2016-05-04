@@ -1,3 +1,10 @@
+*   Fix `ActiveRecord::Relation#create` and `#create!` scope leaking to 
+    callbacks
+
+    Fixes #7391, #7853, #9894, #12305, #18952.
+
+    *Guilherme Goettems Schneider*
+
 ## Rails 5.0.0.beta4 (April 27, 2016) ##
 
 *   PostgreSQL: Support Expression Indexes and Operator Classes.
