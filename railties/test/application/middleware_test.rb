@@ -108,7 +108,7 @@ module ApplicationTests
     end
 
     test "removing Active Record omits its middleware" do
-      use_frameworks []
+      remove_frameworks [:activerecord]
       boot!
       assert !middleware.include?("ActiveRecord::Migration::CheckPending")
     end
@@ -179,7 +179,6 @@ module ApplicationTests
     end
 
     test "use middleware" do
-      use_frameworks []
       add_to_config "config.middleware.use Rack::Config"
       boot!
       assert_equal "Rack::Config", middleware.last

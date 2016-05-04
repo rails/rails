@@ -300,15 +300,13 @@ module TestHelpers
       app_file("app/controllers/#{name}_controller.rb", contents)
     end
 
-    def use_frameworks(arr)
-      to_remove = [:actionmailer, :activerecord] - arr
-
-      if to_remove.include?(:activerecord)
+    def remove_frameworks(arr)
+      if arr.include?(:activerecord)
         remove_from_config "active_record/railtie"
         remove_from_config 'config.active_record.*'
       end
 
-      $:.reject! {|path| path =~ %r'/(#{to_remove.join('|')})/' }
+      $:.reject! {|path| path =~ %r'/(#{arr.join('|')})/' }
     end
 
     def boot_rails
