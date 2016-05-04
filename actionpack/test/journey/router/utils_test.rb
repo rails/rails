@@ -42,6 +42,22 @@ module ActionDispatch
         def test_normalize_path_with_nil
           assert_equal "/", Utils.normalize_path(nil)
         end
+
+        def test_normalize_path_root
+          assert_equal "/root", Utils.normalize_path("root")
+        end
+
+        def test_normalize_path_route_one_level_deep
+          assert_equal "/(:foo)", Utils.normalize_path("/(:foo)")
+        end
+
+        def test_normalize_path_route_two_levels_deep_with_second_slash
+          assert_equal "/(/:locale)(/:platform)", Utils.normalize_path("/(/:locale)(/:platform)")
+        end
+
+        def test_normalize_path_route_two_levels_deep
+          assert_equal "/(/:locale)(:platform)", Utils.normalize_path("/(/:locale)(:platform)")
+        end
       end
     end
   end
