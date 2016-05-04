@@ -49,6 +49,7 @@ module ActiveRecord
 
       spec     ||= DEFAULT_ENV.call.to_sym
       resolver =   ConnectionAdapters::ConnectionSpecification::Resolver.new configurations
+      # TODO: uses name on establish_connection, for backwards compatibility
       spec     =   resolver.spec(spec, self == Base ? "primary" : name)
       self.specification_id = spec.id
 
@@ -94,17 +95,13 @@ module ActiveRecord
       @specification_id = value
     end
 
-    def specification_id(fallback = true)
-      return @specification_id if defined?(@specification_id)
-      find_parent_spec_id(self) if fallback
-    end
-
-    def find_parent_spec_id(klass)
-      return "primary" if klass == Base
-      if id = klass.specification_id(false)
-        return id
+    # Return the specification id from this class otherwise look it up
+    # in the parent.
+    def specification_id
+      unless defined?(@specification_id)
+        @specification_id = self == Base ? "primary" : superclass.specification_id
       end
-      find_parent_spec_id(klass.superclass)
+      @specification_id
     end
 
     def connection_id
