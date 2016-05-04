@@ -91,9 +91,7 @@ module ActiveRecord
       retrieve_connection
     end
 
-    def specification_id=(value)
-      @specification_id = value
-    end
+    attr_writer :specification_id
 
     # Return the specification id from this class otherwise look it up
     # in the parent.
