@@ -172,6 +172,23 @@ module ActiveRecord
       first || new(attributes, &block)
     end
 
+    # Finds a record for current scope, or creates a record with the given
+    # attributes if one is not found. See #create.
+    def take_or_create(attributes = nil, &block)
+      take || create(attributes, &block)
+    end
+
+    # Like #take_or_create but calls #create! so an exception is raised if the
+    # created record is invalid.
+    def take_or_create!(attributes = nil, &block)
+      take || create!(attributes, &block)
+    end
+
+    # Like #take_or_create but calls #new instead of #create.
+    def take_or_initialize(attributes = nil, &block)
+      take || new(attributes, &block)
+    end
+
     # Finds the first record with the given attributes, or creates a record
     # with the attributes if one is not found:
     #

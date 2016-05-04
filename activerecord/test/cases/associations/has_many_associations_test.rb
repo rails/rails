@@ -2130,6 +2130,20 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [client], firm.reload.clients_of_firm
   end
 
+  test "take_or_initialize adds the record to the association" do
+    firm = Firm.create! name: 'omg'
+    client = firm.clients_of_firm.take_or_initialize
+    assert_equal [client], firm.clients_of_firm
+  end
+
+  test "take_or_create adds the record to the association" do
+    firm = Firm.create! name: 'omg'
+    firm.clients_of_firm.load_target
+    client = firm.clients_of_firm.take_or_create name: 'lol'
+    assert_equal [client], firm.clients_of_firm
+    assert_equal [client], firm.reload.clients_of_firm
+  end
+
   test "delete_all, when not loaded, doesn't load the records" do
     post = posts(:welcome)
 

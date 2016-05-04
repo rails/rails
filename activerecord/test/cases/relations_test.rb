@@ -1449,6 +1449,128 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 'parrot', parrot.name
   end
 
+  def test_take_or_create
+    parrot = Bird.where(color: 'green').take_or_create(name: 'parrot')
+    assert_kind_of Bird, parrot
+    assert parrot.persisted?
+    assert_equal 'parrot', parrot.name
+    assert_equal 'green', parrot.color
+
+    same_parrot = Bird.where(color: 'green').take_or_create(name: 'parakeet')
+    assert_kind_of Bird, same_parrot
+    assert same_parrot.persisted?
+    assert_equal parrot, same_parrot
+  end
+
+  def test_take_or_create_with_no_parameters
+    parrot = Bird.where(color: 'green').take_or_create
+    assert_kind_of Bird, parrot
+    assert !parrot.persisted?
+    assert_equal 'green', parrot.color
+  end
+
+  def test_take_or_create_with_block
+    parrot = Bird.where(color: 'green').take_or_create { |bird| bird.name = 'parrot' }
+    assert_kind_of Bird, parrot
+    assert parrot.persisted?
+    assert_equal 'green', parrot.color
+    assert_equal 'parrot', parrot.name
+
+    same_parrot = Bird.where(color: 'green').take_or_create { |bird| bird.name = 'parakeet' }
+    assert_equal parrot, same_parrot
+  end
+
+  def test_take_or_create_with_array
+    several_green_birds = Bird.where(color: 'green').take_or_create([{name: 'parrot'}, {name: 'parakeet'}])
+    assert_kind_of Array, several_green_birds
+    several_green_birds.each { |bird| assert bird.persisted? }
+
+    same_parrot = Bird.where(color: 'green').take_or_create([{name: 'hummingbird'}, {name: 'macaw'}])
+    assert_kind_of Bird, same_parrot
+    assert_includes several_green_birds, same_parrot
+  end
+
+  def test_take_or_create_bang_with_valid_options
+    parrot = Bird.where(color: 'green').take_or_create!(name: 'parrot')
+    assert_kind_of Bird, parrot
+    assert parrot.persisted?
+    assert_equal 'parrot', parrot.name
+    assert_equal 'green', parrot.color
+
+    same_parrot = Bird.where(color: 'green').take_or_create!(name: 'parakeet')
+    assert_kind_of Bird, same_parrot
+    assert same_parrot.persisted?
+    assert_equal parrot, same_parrot
+  end
+
+  def test_take_or_create_bang_with_invalid_options
+    assert_raises(ActiveRecord::RecordInvalid) { Bird.where(color: 'green').take_or_create!(pirate_id: 1) }
+  end
+
+  def test_take_or_create_bang_with_no_parameters
+    assert_raises(ActiveRecord::RecordInvalid) { Bird.where(color: 'green').take_or_create! }
+  end
+
+  def test_take_or_create_bang_with_valid_block
+    parrot = Bird.where(color: 'green').take_or_create! { |bird| bird.name = 'parrot' }
+    assert_kind_of Bird, parrot
+    assert parrot.persisted?
+    assert_equal 'green', parrot.color
+    assert_equal 'parrot', parrot.name
+
+    same_parrot = Bird.where(color: 'green').take_or_create! { |bird| bird.name = 'parakeet' }
+    assert_equal parrot, same_parrot
+  end
+
+  def test_take_or_create_bang_with_invalid_block
+    assert_raise(ActiveRecord::RecordInvalid) do
+      Bird.where(color: 'green').take_or_create! { |bird| bird.pirate_id = 1 }
+    end
+  end
+
+  def test_take_or_create_with_valid_array
+    several_green_birds = Bird.where(color: 'green').take_or_create!([{name: 'parrot'}, {name: 'parakeet'}])
+    assert_kind_of Array, several_green_birds
+    several_green_birds.each { |bird| assert bird.persisted? }
+
+    same_parrot = Bird.where(color: 'green').take_or_create!([{name: 'hummingbird'}, {name: 'macaw'}])
+    assert_kind_of Bird, same_parrot
+    assert_includes several_green_birds, same_parrot
+  end
+
+  def test_take_or_create_with_invalid_array
+    assert_raises(ActiveRecord::RecordInvalid) { Bird.where(color: 'green').take_or_create!([ {name: 'parrot'}, {pirate_id: 1} ]) }
+  end
+
+  def test_take_or_initialize
+    parrot = Bird.where(color: 'green').take_or_initialize(name: 'parrot')
+    assert_kind_of Bird, parrot
+    assert !parrot.persisted?
+    assert parrot.valid?
+    assert parrot.new_record?
+    assert_equal 'parrot', parrot.name
+    assert_equal 'green', parrot.color
+  end
+
+  def test_take_or_initialize_with_no_parameters
+    parrot = Bird.where(color: 'green').take_or_initialize
+    assert_kind_of Bird, parrot
+    assert !parrot.persisted?
+    assert !parrot.valid?
+    assert parrot.new_record?
+    assert_equal 'green', parrot.color
+  end
+
+  def test_take_or_initialize_with_block
+    parrot = Bird.where(color: 'green').take_or_initialize { |bird| bird.name = 'parrot' }
+    assert_kind_of Bird, parrot
+    assert !parrot.persisted?
+    assert parrot.valid?
+    assert parrot.new_record?
+    assert_equal 'green', parrot.color
+    assert_equal 'parrot', parrot.name
+  end
+
   def test_find_or_create_by
     assert_nil Bird.find_by(name: 'bob')
 

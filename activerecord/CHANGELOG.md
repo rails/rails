@@ -1,3 +1,9 @@
+*   Add `take_or_create`, `take_or_create!` and `take_or_initialize` methods 
+    as alternatives for `find_or_{create,create!,initialize}` but without 
+    doing an order by to find the record.
+    
+    *Guilherme Goettems Schneider*
+
 ## Rails 5.0.0.beta4 (April 27, 2016) ##
 
 *   PostgreSQL: Support Expression Indexes and Operator Classes.
