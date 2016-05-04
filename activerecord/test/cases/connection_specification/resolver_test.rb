@@ -116,6 +116,15 @@ module ActiveRecord
             "encoding" => "utf8" }, spec)
         end
 
+        def test_spec_id_on_key_lookup
+          spec = spec(:readonly, 'readonly' => {'adapter' => 'sqlite3'})
+          assert_equal "readonly", spec.id
+        end
+
+        def test_spec_id_with_inline_config
+          spec = spec({'adapter' => 'sqlite3'})
+          assert_equal "primary", spec.id, "should default to primary id"
+        end
       end
     end
   end
