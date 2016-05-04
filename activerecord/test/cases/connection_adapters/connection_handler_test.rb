@@ -6,10 +6,19 @@ module ActiveRecord
       def setup
         @handler = ConnectionHandler.new
         resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new Base.configurations
-        spec =   resolver.spec(:arunit)
-
         @spec_id = "primary"
-        @pool    = @handler.establish_connection(spec)
+        @pool    = @handler.establish_connection(resolver.spec(:arunit, @spec_id))
+      end
+
+      def test_establish_connection_uses_spec_id
+        config = {"readonly" => {"adapter" => 'sqlite3'}}
+        resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(config)
+        spec =   resolver.spec(:readonly)
+        @handler.establish_connection(spec)
+
+        assert_not_nil @handler.retrieve_connection_pool('readonly')
+      ensure
+        @handler.remove_connection('readonly')
       end
 
       def test_retrieve_connection
@@ -24,31 +33,18 @@ module ActiveRecord
         assert !@handler.active_connections?
       end
 
-#      def test_retrieve_connection_pool_with_ar_base
-#        assert_nil @handler.retrieve_connection_pool(ActiveRecord::Base)
-#      end
-
       def test_retrieve_connection_pool
         assert_not_nil @handler.retrieve_connection_pool(@spec_id)
       end
 
-#      def test_retrieve_connection_pool_uses_superclass_when_no_subclass_connection
-#        assert_not_nil @handler.retrieve_connection_pool(@subklass)
-#      end
-
-#      def test_retrieve_connection_pool_uses_superclass_pool_after_subclass_establish_and_remove
-#        sub_pool = @handler.establish_connection(@subklass, Base.connection_pool.spec)
-#        assert_same sub_pool, @handler.retrieve_connection_pool(@subklass)
-#
-#        @handler.remove_connection @subklass
-#        assert_same @pool, @handler.retrieve_connection_pool(@subklass)
-#      end
+      def test_retrieve_connection_pool_with_invalid_id
+        assert_nil @handler.retrieve_connection_pool("foo")
+      end
 
       def test_connection_pools
         assert_equal([@pool], @handler.connection_pools)
       end
 
-      # TODO
       if Process.respond_to?(:fork)
         def test_connection_pool_per_pid
           object_id = ActiveRecord::Base.connection.object_id

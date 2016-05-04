@@ -164,7 +164,7 @@ module ActiveRecord
         #   spec.config
         #   # => { "host" => "localhost", "database" => "foo", "adapter" => "sqlite3" }
         #
-        def spec(config, id = "primary")
+        def spec(config, id = nil)
           spec = resolve(config).symbolize_keys
 
           raise(AdapterNotSpecified, "database configuration does not specify adapter") unless spec.key?(:adapter)
@@ -179,6 +179,13 @@ module ActiveRecord
           end
 
           adapter_method = "#{spec[:adapter]}_connection"
+
+          id ||=
+            if config.is_a?(Symbol)
+              config.to_s
+            else
+              "primary"
+            end
           ConnectionSpecification.new(id, spec, adapter_method)
         end
 
