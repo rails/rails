@@ -333,14 +333,13 @@ module ActiveRecord
 
       # make sure exceptions are thrown when establish_connection
       # is called with an anonymous class
-#      def test_anonymous_class_exception
-#        anonymous = Class.new(ActiveRecord::Base)
-#        handler = ActiveRecord::Base.connection_handler
-#
-#        assert_raises(RuntimeError) {
-#          handler.establish_connection anonymous, nil
-#        }
-#      end
+      def test_anonymous_class_exception
+        anonymous = Class.new(ActiveRecord::Base)
+
+        assert_raises(RuntimeError) do
+          anonymous.establish_connection
+        end
+      end
 
       def test_pool_sets_connection_schema_cache
         connection = pool.checkout
