@@ -905,17 +905,7 @@ module ActiveRecord
       # take place, but that's ok since the nil case is not the common one that we wish
       # to optimise for.
       def retrieve_connection_pool(spec_id)
-        pool_for(spec_id)
-      end
-
-      private
-
-      def owner_to_pool
-        @owner_to_pool[Process.pid]
-      end
-
-      def pool_for(spec_id)
-        owner_to_pool.fetch(spec_id) {
+        owner_to_pool.fetch(spec_id) do
           if ancestor_pool = pool_from_any_process_for(spec_id)
             # A connection was established in an ancestor process that must have
             # subsequently forked. We can't reuse the connection, but we can copy
@@ -926,7 +916,13 @@ module ActiveRecord
           else
             owner_to_pool[spec_id] = nil
           end
-        }
+        end
+      end
+
+      private
+
+      def owner_to_pool
+        @owner_to_pool[Process.pid]
       end
 
       def pool_from_any_process_for(spec_id)
