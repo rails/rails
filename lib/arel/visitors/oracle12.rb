@@ -6,10 +6,12 @@ module Arel
       def visit_Arel_Nodes_SelectStatement o, collector
         # Oracle does not allow LIMIT clause with select for update
         if o.limit && o.lock
-          o = o.dup
-          o.limit = []
+          raise ArgumentError, <<-MSG
+            'Combination of limit and lock is not supported.
+            because generated SQL statements
+            `SELECT FOR UPDATE and FETCH FIRST n ROWS` generates ORA-02014.`
+          MSG
         end
-
         super
       end
 

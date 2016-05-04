@@ -29,12 +29,13 @@ module Arel
       end
 
       describe 'locking' do
-        it 'removes limit when locking' do
+        it 'generates ArgumentError if limit and lock are used' do
           stmt = Nodes::SelectStatement.new
           stmt.limit = Nodes::Limit.new(10)
           stmt.lock = Nodes::Lock.new(Arel.sql('FOR UPDATE'))
-          sql = compile(stmt)
-          sql.must_be_like "SELECT FOR UPDATE"
+          assert_raises ArgumentError do
+            sql = compile(stmt)
+          end
         end
 
         it 'defaults to FOR UPDATE when locking' do
