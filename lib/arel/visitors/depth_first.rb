@@ -18,6 +18,10 @@ module Arel
       end
       alias :visit_Arel_Nodes_Else              :unary
       alias :visit_Arel_Nodes_Group             :unary
+      alias :visit_Arel_Nodes_Cube              :unary
+      alias :visit_Arel_Nodes_RollUp            :unary
+      alias :visit_Arel_Nodes_GroupingSet       :unary
+      alias :visit_Arel_Nodes_GroupingElement   :unary
       alias :visit_Arel_Nodes_Grouping          :unary
       alias :visit_Arel_Nodes_Having            :unary
       alias :visit_Arel_Nodes_Limit             :unary
