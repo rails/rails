@@ -44,14 +44,14 @@ env:
     - "GEM=guides"
 
 rvm:
-  - 2.2.4
-  - 2.3.0
+  - 2.2.5
+  - 2.3.1
   - ruby-head
 
 matrix:
   include:
     # Latest compiled version in http://rubies.travis-ci.org
-    - rvm: 2.3.0
+    - rvm: 2.3.1
       env:
         - "GEM=ar:mysql2"
       addons:
