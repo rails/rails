@@ -13,11 +13,11 @@ module ActionController
   #
   #   ApplicationController.renderer.render template: '...'
   #
-  # You can use a shortcut on controller to replace previous example with:
+  # You can use this shortcut in a controller, instead of the previous example:
   #
   #   ApplicationController.render template: '...'
   #
-  # #render method allows you to use any options as when rendering in controller.
+  # #render allows you to use the same options that you can use when rendering in a controller.
   # For example,
   #
   #   FooController.render :action, locals: { ... }, assigns: { ... }
