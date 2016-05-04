@@ -96,15 +96,15 @@ module ActiveRecord
 
     def specification_id(fallback = true)
       return @specification_id if defined?(@specification_id)
-      find_legacy_spec_id(self) if fallback
+      find_parent_spec_id(self) if fallback
     end
 
-    def find_legacy_spec_id(klass)
+    def find_parent_spec_id(klass)
       return "primary" if klass == Base
       if id = klass.specification_id(false)
         return id
       end
-      find_legacy_spec_id(klass.superclass)
+      find_parent_spec_id(klass.superclass)
     end
 
     def connection_id
