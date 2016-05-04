@@ -4,7 +4,7 @@ require "action_cable/helpers/action_cable_helper"
 require "active_support/core_ext/hash/indifferent_access"
 
 module ActionCable
-  class Railtie < Rails::Engine # :nodoc:
+  class Engine < Rails::Engine # :nodoc:
     config.action_cable = ActiveSupport::OrderedOptions.new
     config.action_cable.mount_path = ActionCable::INTERNAL[:default_mount_path]
 
