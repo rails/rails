@@ -45,16 +45,19 @@ module ActiveRecord
     # The exceptions AdapterNotSpecified, AdapterNotFound and +ArgumentError+
     # may be returned on an error.
     def establish_connection(spec = nil)
+      raise RuntimeError, "Anonymous class is not allowed." unless name
+
       spec     ||= DEFAULT_ENV.call.to_sym
       resolver =   ConnectionAdapters::ConnectionSpecification::Resolver.new configurations
-      spec     =   resolver.spec(spec)
+      spec     =   resolver.spec(spec, self == Base ? "primary" : name)
+      self.specification_id = spec.id
 
       unless respond_to?(spec.adapter_method)
         raise AdapterNotFound, "database configuration specifies nonexistent #{spec.config[:adapter]} adapter"
       end
 
       remove_connection
-      connection_handler.establish_connection self, spec
+      connection_handler.establish_connection spec
     end
 
     class MergeAndResolveDefaultUrlConfig # :nodoc:
@@ -87,6 +90,23 @@ module ActiveRecord
       retrieve_connection
     end
 
+    def specification_id=(value)
+      @specification_id = value
+    end
+
+    def specification_id(fallback = true)
+      return @specification_id if defined?(@specification_id)
+      find_legacy_spec_id(self) if fallback
+    end
+
+    def find_legacy_spec_id(klass)
+      return "primary" if klass == Base
+      if id = klass.specification_id(false)
+        return id
+      end
+      find_legacy_spec_id(klass.superclass)
+    end
+
     def connection_id
       ActiveRecord::RuntimeRegistry.connection_id ||= Thread.current.object_id
     end
@@ -106,20 +126,20 @@ module ActiveRecord
     end
 
     def connection_pool
-      connection_handler.retrieve_connection_pool(self) or raise ConnectionNotEstablished
+      connection_handler.retrieve_connection_pool(specification_id) or raise ConnectionNotEstablished
     end
 
     def retrieve_connection
-      connection_handler.retrieve_connection(self)
+      connection_handler.retrieve_connection(specification_id)
     end
 
     # Returns +true+ if Active Record is connected.
     def connected?
-      connection_handler.connected?(self)
+      connection_handler.connected?(specification_id)
     end
 
-    def remove_connection(klass = self)
-      connection_handler.remove_connection(klass)
+    def remove_connection(id = specification_id)
+      connection_handler.remove_connection(id)
     end
 
     def clear_cache! # :nodoc:

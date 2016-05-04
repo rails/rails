@@ -89,8 +89,8 @@ class MultipleDbTest < ActiveRecord::TestCase
   end
 
   def test_connection
-    assert_equal Entrant.arel_engine.connection, Bird.arel_engine.connection
-    assert_not_equal Entrant.arel_engine.connection, Course.arel_engine.connection
+    assert_equal Entrant.arel_engine.connection.object_id, Bird.arel_engine.connection.object_id
+    assert_not_equal Entrant.arel_engine.connection.object_id, Course.arel_engine.connection.object_id
   end
 
   unless in_memory_db?
