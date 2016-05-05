@@ -37,6 +37,7 @@ env:
     - "GEM=ac"
     - "GEM=ac FAYE=1"
     - "GEM=am,amo,as,av,aj"
+    - "GEM=as PRESERVE_TIMEZONES=1"
     - "GEM=ar:mysql2"
     - "GEM=ar:sqlite3"
     - "GEM=ar:postgresql"
