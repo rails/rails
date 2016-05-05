@@ -278,12 +278,6 @@ form was submitted. This is typically used when the user needs to agree to your
 application's terms of service, confirm that some text is read, or any similar
 concept.
 
-This validation is very specific to web applications and this
-'acceptance' does not need to be recorded anywhere in your database. If you
-don't have a field for it, the helper will just create a virtual attribute. If
-the field does exist in your database, the `accept` option must be set to
-`true` or else the validation will not run.
-
 ```ruby
 class Person < ApplicationRecord
   validates :terms_of_service, acceptance: true
@@ -292,15 +286,30 @@ end
 
 This check is performed only if `terms_of_service` is not `nil`.
 The default error message for this helper is _"must be accepted"_.
+You can also pass custom message via the `message` option.
 
-It can receive an `:accept` option, which determines the value that will be
-considered acceptance. It defaults to "1" and can be easily changed.
+```ruby
+class Person < ApplicationRecord
+  validates :terms_of_service, acceptance: true, message: 'must be abided'
+end
+```
+
+It can also receive an `:accept` option, which determines the allowed values
+that will be considered as accepted. It defaults to `['1', true]` and can be
+easily changed.
 
 ```ruby
 class Person < ApplicationRecord
   validates :terms_of_service, acceptance: { accept: 'yes' }
+  validates :eula, acceptance: { accept: ['TRUE', 'accepted'] }
 end
 ```
+
+This validation is very specific to web applications and this
+'acceptance' does not need to be recorded anywhere in your database. If you
+don't have a field for it, the helper will just create a virtual attribute. If
+the field does exist in your database, the `accept` option must be set to
+or include `true` or else the validation will not run.
 
 ### `validates_associated`
 
