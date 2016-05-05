@@ -131,6 +131,7 @@ module ApplicationTests
       app 'development'
 
       ActiveRecord::Migrator.migrations_paths = ["#{app_path}/db/migrate"]
+      ActiveRecord::Base.connection
 
       begin
         get "/foo"
