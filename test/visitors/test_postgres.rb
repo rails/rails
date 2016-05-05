@@ -182,6 +182,84 @@ module Arel
           }
         end
       end
+
+      describe "Nodes::Cube" do
+        it "should know how to visit with array arguments" do
+          node = Arel::Nodes::Cube.new([@table[:name], @table[:bool]])
+          compile(node).must_be_like %{
+            CUBE( "users"."name", "users"."bool" )
+          }
+        end
+
+        it "should know how to visit with CubeDimension Argument" do
+          dimensions = Arel::Nodes::GroupingElement.new([@table[:name], @table[:bool]])
+          node = Arel::Nodes::Cube.new(dimensions)
+          compile(node).must_be_like %{
+            CUBE( "users"."name", "users"."bool" )
+          }
+        end
+
+        it "should know how to generate paranthesis when supplied with many Dimensions" do
+          dim1 = Arel::Nodes::GroupingElement.new(@table[:name])
+          dim2 = Arel::Nodes::GroupingElement.new([@table[:bool], @table[:created_at]])
+          node = Arel::Nodes::Cube.new([dim1, dim2])
+          compile(node).must_be_like %{
+            CUBE( ( "users"."name" ), ( "users"."bool", "users"."created_at" ) )
+          }
+        end
+      end
+
+      describe "Nodes::GroupingSet" do
+        it "should know how to visit with array arguments" do
+          node = Arel::Nodes::GroupingSet.new([@table[:name], @table[:bool]])
+          compile(node).must_be_like %{
+            GROUPING SET( "users"."name", "users"."bool" )
+          }
+        end
+
+        it "should know how to visit with CubeDimension Argument" do
+          group = Arel::Nodes::GroupingElement.new([@table[:name], @table[:bool]])
+          node = Arel::Nodes::GroupingSet.new(group)
+          compile(node).must_be_like %{
+            GROUPING SET( "users"."name", "users"."bool" )
+          }
+        end
+
+        it "should know how to generate paranthesis when supplied with many Dimensions" do
+          group1 = Arel::Nodes::GroupingElement.new(@table[:name])
+          group2 = Arel::Nodes::GroupingElement.new([@table[:bool], @table[:created_at]])
+          node = Arel::Nodes::GroupingSet.new([group1, group2])
+          compile(node).must_be_like %{
+            GROUPING SET( ( "users"."name" ), ( "users"."bool", "users"."created_at" ) )
+          }
+        end
+      end
+
+      describe "Nodes::RollUp" do
+        it "should know how to visit with array arguments" do
+          node = Arel::Nodes::RollUp.new([@table[:name], @table[:bool]])
+          compile(node).must_be_like %{
+            ROLLUP( "users"."name", "users"."bool" )
+          }
+        end
+
+        it "should know how to visit with CubeDimension Argument" do
+          group = Arel::Nodes::GroupingElement.new([@table[:name], @table[:bool]])
+          node = Arel::Nodes::RollUp.new(group)
+          compile(node).must_be_like %{
+            ROLLUP( "users"."name", "users"."bool" )
+          }
+        end
+
+        it "should know how to generate paranthesis when supplied with many Dimensions" do
+          group1 = Arel::Nodes::GroupingElement.new(@table[:name])
+          group2 = Arel::Nodes::GroupingElement.new([@table[:bool], @table[:created_at]])
+          node = Arel::Nodes::RollUp.new([group1, group2])
+          compile(node).must_be_like %{
+            ROLLUP( ( "users"."name" ), ( "users"."bool", "users"."created_at" ) )
+          }
+        end
+      end
     end
   end
 end

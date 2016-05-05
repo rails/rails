@@ -22,15 +22,19 @@ module Arel
 
     %w{
       Bin
+      Cube
+      DistinctOn
       Group
+      GroupingElement
+      GroupingSet
       Limit
+      Lock
       Not
       Offset
       On
       Ordering
+      RollUp
       Top
-      Lock
-      DistinctOn
     }.each do |name|
       const_set(name, Class.new(Unary))
     end
