@@ -1,3 +1,9 @@
+*   Add `ActionController#helpers` to get access to the view context in the controller
+    level.
+
+    *Rafael Mendonça França*
+
+
 ## Rails 5.0.0.beta4 (April 27, 2016) ##
 
 *   Routing: Refactor `:action` default handling to ensure that path
