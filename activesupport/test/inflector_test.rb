@@ -534,4 +534,10 @@ class InflectorTest < ActiveSupport::TestCase
 
     assert_equal "HTTP", ActiveSupport::Inflector.pluralize("HTTP")
   end
+
+  def test_demodulize_with_symbol_deprecated
+    assert_deprecated(/Using symbols in inflections is deprecated/) do
+      ActiveSupport::Inflector.demodulize(:'Foo::Bar')
+    end
+  end
 end

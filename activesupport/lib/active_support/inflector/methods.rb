@@ -206,6 +206,7 @@ module ActiveSupport
     #
     # See also #deconstantize.
     def demodulize(path)
+      path = deprecate_symbol(path)
       (i = path.rindex('::')) ? path[(i + 2)..-1] : path
     end
 
@@ -382,6 +383,18 @@ module ActiveSupport
         rules.each { |(rule, replacement)| break if result.sub!(rule, replacement) }
         result
       end
+    end
+
+    def deprecate_symbol(symbol)
+      if symbol.is_a?(Symbol)
+        symbol = symbol.to_s
+
+        ActiveSupport::Deprecation.warn(
+          'Using symbols in inflections is deprecated. Please use #to_s'
+        )
+      end
+
+      symbol
     end
   end
 end
