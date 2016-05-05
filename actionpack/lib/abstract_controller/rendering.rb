@@ -60,9 +60,7 @@ module AbstractController
     end
 
     DEFAULT_PROTECTED_INSTANCE_VARIABLES = Set.new %i(
-      @_action_name @_response_body @_formats @_prefixes @_config
-      @_view_context_class @_view_renderer @_lookup_context
-      @_routes @_db_runtime
+      @_action_name @_response_body @_formats @_prefixes
     )
 
     # This method should return a hash with assigns.
