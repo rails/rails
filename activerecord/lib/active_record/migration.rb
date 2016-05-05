@@ -542,7 +542,7 @@ module ActiveRecord
       end
 
       def call(env)
-        if connection.supports_migrations?
+        if ActiveRecord::Base.connected? && connection.supports_migrations?
           mtime = ActiveRecord::Migrator.last_migration.mtime.to_i
           if @last_check < mtime
             ActiveRecord::Migration.check_pending!(connection)
