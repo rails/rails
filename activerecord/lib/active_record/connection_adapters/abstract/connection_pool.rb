@@ -837,7 +837,7 @@ module ActiveRecord
       alias :connection_pools :connection_pool_list
 
       def establish_connection(spec)
-        owner_to_pool[spec.id] = ConnectionAdapters::ConnectionPool.new(spec)
+        owner_to_pool[spec.name] = ConnectionAdapters::ConnectionPool.new(spec)
       end
 
       # Returns true if there are any active connections among the connection
@@ -868,18 +868,18 @@ module ActiveRecord
       # active or defined connection: if it is the latter, it will be
       # opened and set as the active connection for the class it was defined
       # for (not necessarily the current class).
-      def retrieve_connection(spec_id) #:nodoc:
-        pool = retrieve_connection_pool(spec_id)
-        raise ConnectionNotEstablished, "No connection pool with id #{spec_id} found." unless pool
+      def retrieve_connection(spec_name) #:nodoc:
+        pool = retrieve_connection_pool(spec_name)
+        raise ConnectionNotEstablished, "No connection pool with id #{spec_name} found." unless pool
         conn = pool.connection
-        raise ConnectionNotEstablished, "No connection for #{spec_id} in connection pool" unless conn
+        raise ConnectionNotEstablished, "No connection for #{spec_name} in connection pool" unless conn
         conn
       end
 
       # Returns true if a connection that's accessible to this class has
       # already been opened.
-      def connected?(spec_id)
-        conn = retrieve_connection_pool(spec_id)
+      def connected?(spec_name)
+        conn = retrieve_connection_pool(spec_name)
         conn && conn.connected?
       end
 
@@ -887,8 +887,8 @@ module ActiveRecord
       # connection and the defined connection (if they exist). The result
       # can be used as an argument for establish_connection, for easily
       # re-establishing the connection.
-      def remove_connection(spec_id)
-        if pool = owner_to_pool.delete(spec_id)
+      def remove_connection(spec_name)
+        if pool = owner_to_pool.delete(spec_name)
           pool.automatic_reconnect = false
           pool.disconnect!
           pool.spec.config
@@ -904,9 +904,9 @@ module ActiveRecord
       # #fetch is significantly slower than #[]. So in the nil case, no caching will
       # take place, but that's ok since the nil case is not the common one that we wish
       # to optimise for.
-      def retrieve_connection_pool(spec_id)
-        owner_to_pool.fetch(spec_id) do
-          if ancestor_pool = pool_from_any_process_for(spec_id)
+      def retrieve_connection_pool(spec_name)
+        owner_to_pool.fetch(spec_name) do
+          if ancestor_pool = pool_from_any_process_for(spec_name)
             # A connection was established in an ancestor process that must have
             # subsequently forked. We can't reuse the connection, but we can copy
             # the specification and establish a new connection with it.
@@ -914,7 +914,7 @@ module ActiveRecord
               pool.schema_cache = ancestor_pool.schema_cache if ancestor_pool.schema_cache
             end
           else
-            owner_to_pool[spec_id] = nil
+            owner_to_pool[spec_name] = nil
           end
         end
       end
@@ -925,9 +925,9 @@ module ActiveRecord
         @owner_to_pool[Process.pid]
       end
 
-      def pool_from_any_process_for(spec_id)
-        owner_to_pool = @owner_to_pool.values.find { |v| v[spec_id] }
-        owner_to_pool && owner_to_pool[spec_id]
+      def pool_from_any_process_for(spec_name)
+        owner_to_pool = @owner_to_pool.values.find { |v| v[spec_name] }
+        owner_to_pool && owner_to_pool[spec_name]
       end
     end
   end

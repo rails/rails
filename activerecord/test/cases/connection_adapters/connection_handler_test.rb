@@ -6,11 +6,11 @@ module ActiveRecord
       def setup
         @handler = ConnectionHandler.new
         resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new Base.configurations
-        @spec_id = "primary"
-        @pool    = @handler.establish_connection(resolver.spec(:arunit, @spec_id))
+        @spec_name = "primary"
+        @pool    = @handler.establish_connection(resolver.spec(:arunit, @spec_name))
       end
 
-      def test_establish_connection_uses_spec_id
+      def test_establish_connection_uses_spec_name
         config = {"readonly" => {"adapter" => 'sqlite3'}}
         resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(config)
         spec =   resolver.spec(:readonly)
@@ -22,19 +22,19 @@ module ActiveRecord
       end
 
       def test_retrieve_connection
-        assert @handler.retrieve_connection(@spec_id)
+        assert @handler.retrieve_connection(@spec_name)
       end
 
       def test_active_connections?
         assert !@handler.active_connections?
-        assert @handler.retrieve_connection(@spec_id)
+        assert @handler.retrieve_connection(@spec_name)
         assert @handler.active_connections?
         @handler.clear_active_connections!
         assert !@handler.active_connections?
       end
 
       def test_retrieve_connection_pool
-        assert_not_nil @handler.retrieve_connection_pool(@spec_id)
+        assert_not_nil @handler.retrieve_connection_pool(@spec_name)
       end
 
       def test_retrieve_connection_pool_with_invalid_id
@@ -77,7 +77,7 @@ module ActiveRecord
 
           pid = fork {
             rd.close
-            pool = @handler.retrieve_connection_pool(@spec_id)
+            pool = @handler.retrieve_connection_pool(@spec_name)
             wr.write Marshal.dump pool.schema_cache.size
             wr.close
             exit!
