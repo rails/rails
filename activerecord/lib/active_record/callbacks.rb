@@ -54,8 +54,8 @@ module ActiveRecord
   #
   #   class Firm < ActiveRecord::Base
   #     # Destroys the associated clients and people when the firm is destroyed
-  #     before_destroy { |record| Person.where("firm_id = #{record.id}").destroy_all   }
-  #     before_destroy { |record| Client.where("client_of = #{record.id}").destroy_all }
+  #     before_destroy { |record| Person.where(firm_id: record.id).destroy_all   }
+  #     before_destroy { |record| Client.where(client_of: record.id).destroy_all }
   #   end
   #
   # == Inheritable callback queues
