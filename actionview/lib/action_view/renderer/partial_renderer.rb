@@ -330,21 +330,18 @@ module ActionView
     end
 
     def render_partial
-      view, locals, block = @view, @locals, @block
-      object, as = @object, @variable
-
-      if !block && (layout = @options[:layout])
+      if !@block && (layout = @options[:layout])
         layout = find_template(layout.to_s, @template_keys)
       end
 
-      object = locals[as] if object.nil? # Respect object when object is false
-      locals[as] = object if @has_object
+      @object = @locals[@variable] if @object.nil? # Respect object when object is false
+      @locals[@variable] = @object if @has_object
 
-      content = @template.render(view, locals) do |*name|
-        view._layout_for(*name, &block)
+      content = @template.render(@view, @locals) do |*name|
+        @view._layout_for(*name, &@block)
       end
 
-      content = layout.render(view, locals){ content } if layout
+      content = layout.render(@view, @locals){ content } if layout
       content
     end
 
