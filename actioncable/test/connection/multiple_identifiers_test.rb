@@ -1,9 +1,7 @@
 require 'test_helper'
-require 'stubs/test_server'
-require 'stubs/user'
 
 class ActionCable::Connection::MultipleIdentifiersTest < ActionCable::TestCase
-  class Connection < ActionCable::Connection::Base
+  class Connection < TestConnection
     identified_by :current_user, :current_room
 
     def connect
@@ -28,8 +26,7 @@ class ActionCable::Connection::MultipleIdentifiersTest < ActionCable::TestCase
     end
 
     def open_connection(server:)
-      env = Rack::MockRequest.env_for "/test", 'HTTP_HOST' => 'localhost', 'HTTP_CONNECTION' => 'upgrade', 'HTTP_UPGRADE' => 'websocket'
-      @connection = Connection.new(server, env)
+      @connection = Connection.new(server, default_env)
 
       @connection.process
       @connection.send :handle_open

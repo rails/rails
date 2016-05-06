@@ -1,8 +1,15 @@
 require 'test_helper'
-require 'stubs/test_connection'
-require 'stubs/room'
 
 class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
+  class Connection < TestConnection
+    attr_reader :current_user
+
+    def initialize(*)
+      super
+      @identifiers = [:current_user]
+    end
+  end
+
   class ActionCable::Channel::Base
     def kick
       @last_action = [ :kick ]
@@ -73,7 +80,10 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
 
   setup do
     @user = User.new "lifo"
-    @connection = TestConnection.new(@user)
+
+    @connection = Connection.new
+    @connection.instance_variable_set(:@current_user, @user)
+
     @channel = ChatChannel.new @connection, "{id: 1}", { id: 1 }
   end
 

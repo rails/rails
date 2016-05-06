@@ -1,17 +1,7 @@
 require 'test_helper'
-require 'stubs/test_connection'
-require 'stubs/room'
 
 module ActionCable::StreamTests
-  class Connection < ActionCable::Connection::Base
-    attr_reader :websocket
-
-    def send_async(method, *args)
-      send method, *args
-    end
-  end
-
-  class ChatChannel < ActionCable::Channel::Base
+  class ChatChannel < TestChannel
     def subscribed
       if params[:id]
         @room = Room.new params[:id]
@@ -23,7 +13,9 @@ module ActionCable::StreamTests
       transmit_subscription_confirmation
     end
 
-    private def pick_coder(coder)
+    private
+
+    def pick_coder(coder)
       case coder
       when nil, 'json'
         ActiveSupport::JSON
@@ -41,7 +33,7 @@ module ActionCable::StreamTests
     def decode(*) { foo: 'decoded' } end
   end
 
-  class SymbolChannel < ActionCable::Channel::Base
+  class SymbolChannel < TestChannel
     def subscribed
       stream_from :channel
     end
@@ -50,7 +42,8 @@ module ActionCable::StreamTests
   class StreamTest < ActionCable::TestCase
     test "streaming start and stop" do
       run_in_eventmachine do
-        connection = TestConnection.new
+        connection = TestConnection.new(TestServer.new, default_env)
+
         connection.expects(:pubsub).returns mock().tap { |m| m.expects(:subscribe).with("test_room_1", kind_of(Proc), kind_of(Proc)).returns stub_everything(:pubsub) }
         channel = ChatChannel.new connection, "{id: 1}", { id: 1 }
 
@@ -72,7 +65,7 @@ module ActionCable::StreamTests
 
     test "stream_for" do
       run_in_eventmachine do
-        connection = TestConnection.new
+        connection = TestConnection.new(TestServer.new, default_env)
         connection.expects(:pubsub).returns mock().tap { |m| m.expects(:subscribe).with("action_cable:stream_tests:chat:Room#1-Campfire", kind_of(Proc), kind_of(Proc)).returns stub_everything(:pubsub) }
 
         channel = ChatChannel.new connection, ""
@@ -82,7 +75,7 @@ module ActionCable::StreamTests
 
     test "stream_from subscription confirmation" do
       run_in_eventmachine do
-        connection = TestConnection.new
+        connection = TestConnection.new(TestServer.new, rack_hijack_env)
 
         ChatChannel.new connection, "{id: 1}", { id: 1 }
         assert_nil connection.last_transmission
@@ -98,7 +91,7 @@ module ActionCable::StreamTests
 
     test "subscription confirmation should only be sent out once" do
       run_in_eventmachine do
-        connection = TestConnection.new
+        connection = TestConnection.new(TestServer.new, default_env)
 
         channel = ChatChannel.new connection, "test_channel"
         channel.send_confirmation
@@ -116,7 +109,7 @@ module ActionCable::StreamTests
 
   require 'action_cable/subscription_adapter/inline'
 
-  class UserCallbackChannel < ActionCable::Channel::Base
+  class UserCallbackChannel < TestChannel
     def subscribed
       stream_from :channel do
         Thread.current[:ran_callback] = true
@@ -163,9 +156,7 @@ module ActionCable::StreamTests
       end
 
       def open_connection
-        env = Rack::MockRequest.env_for '/test', 'HTTP_HOST' => 'localhost', 'HTTP_CONNECTION' => 'upgrade', 'HTTP_UPGRADE' => 'websocket', 'HTTP_ORIGIN' => 'http://rubyonrails.com'
-
-        Connection.new(@server, env).tap do |connection|
+        TestConnection.new(@server, default_env).tap do |connection|
           connection.process
           assert connection.websocket.possible?
 

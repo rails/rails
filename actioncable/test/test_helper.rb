@@ -12,6 +12,7 @@ end
 
 # Require all the stubs and models
 Dir[File.dirname(__FILE__) + '/stubs/*.rb'].each {|file| require file }
+Dir[File.dirname(__FILE__) + '/support/*.rb'].each {|file| require file }
 
 if ENV['FAYE'].present?
   require 'faye/websocket'
@@ -64,6 +65,8 @@ class ActionCable::TestCase < ActiveSupport::TestCase
   else
     include ConcurrentRubyConcurrencyHelpers
   end
+
+  include EnvHelpers
 
   def wait_for_executor(executor)
     until executor.completed_task_count == executor.scheduled_task_count

@@ -1,16 +1,9 @@
 require 'test_helper'
-require 'stubs/test_server'
 
 class ActionCable::Connection::AuthorizationTest < ActionCable::TestCase
-  class Connection < ActionCable::Connection::Base
-    attr_reader :websocket
-
+  class Connection < TestConnection
     def connect
       reject_unauthorized_connection
-    end
-
-    def send_async(method, *args)
-      send method, *args
     end
   end
 
@@ -19,10 +12,7 @@ class ActionCable::Connection::AuthorizationTest < ActionCable::TestCase
       server = TestServer.new
       server.config.allowed_request_origins = %w( http://rubyonrails.com )
 
-      env = Rack::MockRequest.env_for "/test", 'HTTP_CONNECTION' => 'upgrade', 'HTTP_UPGRADE' => 'websocket',
-        'HTTP_HOST' => 'localhost', 'HTTP_ORIGIN' => 'http://rubyonrails.com'
-
-      connection = Connection.new(server, env)
+      connection = Connection.new(server, default_env)
       connection.websocket.expects(:close)
 
       connection.process

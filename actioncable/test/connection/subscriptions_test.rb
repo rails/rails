@@ -1,14 +1,6 @@
 require 'test_helper'
 
 class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
-  class Connection < ActionCable::Connection::Base
-    attr_reader :websocket
-
-    def send_async(method, *args)
-      send method, *args
-    end
-  end
-
   class ChatChannel < ActionCable::Channel::Base
     attr_reader :room, :lines
 
@@ -107,9 +99,7 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
     end
 
     def setup_connection
-      env = Rack::MockRequest.env_for "/test", 'HTTP_HOST' => 'localhost', 'HTTP_CONNECTION' => 'upgrade', 'HTTP_UPGRADE' => 'websocket'
-      @connection = Connection.new(@server, env)
-
+      @connection = TestConnection.new(@server, default_env)
       @subscriptions = ActionCable::Connection::Subscriptions.new(@connection)
     end
 end

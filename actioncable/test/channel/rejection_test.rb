@@ -1,9 +1,7 @@
 require 'test_helper'
-require 'stubs/test_connection'
-require 'stubs/room'
 
 class ActionCable::Channel::RejectionTest < ActiveSupport::TestCase
-  class SecretChannel < ActionCable::Channel::Base
+  class SecretChannel < TestChannel
     def subscribed
       reject if params[:id] > 0
     end
@@ -11,7 +9,8 @@ class ActionCable::Channel::RejectionTest < ActiveSupport::TestCase
 
   setup do
     @user = User.new "lifo"
-    @connection = TestConnection.new(@user)
+    @connection = TestConnection.new
+    @connection.instance_variable_set(:@current_user, @user)
   end
 
   test "subscription rejection" do
@@ -21,5 +20,4 @@ class ActionCable::Channel::RejectionTest < ActiveSupport::TestCase
     expected = { "identifier" => "{id: 1}", "type" => "reject_subscription" }
     assert_equal expected, @connection.last_transmission
   end
-
 end

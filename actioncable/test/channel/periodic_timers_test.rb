@@ -1,10 +1,8 @@
 require 'test_helper'
-require 'stubs/test_connection'
-require 'stubs/room'
 require 'active_support/time'
 
 class ActionCable::Channel::PeriodicTimersTest < ActiveSupport::TestCase
-  class ChatChannel < ActionCable::Channel::Base
+  class ChatChannel < TestChannel
     # Method name arg
     periodically :send_updates, every: 1
 

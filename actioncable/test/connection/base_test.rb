@@ -1,24 +1,7 @@
 require 'test_helper'
-require 'stubs/test_server'
 require 'active_support/core_ext/object/json'
 
 class ActionCable::Connection::BaseTest < ActionCable::TestCase
-  class Connection < ActionCable::Connection::Base
-    attr_reader :websocket, :subscriptions, :message_buffer, :connected
-
-    def connect
-      @connected = true
-    end
-
-    def disconnect
-      @connected = false
-    end
-
-    def send_async(method, *args)
-      send method, *args
-    end
-  end
-
   setup do
     @server = TestServer.new
     @server.config.allowed_request_origins = %w( http://rubyonrails.com )
@@ -26,7 +9,7 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
 
   test "making a connection with invalid headers" do
     run_in_eventmachine do
-      connection = ActionCable::Connection::Base.new(@server, Rack::MockRequest.env_for("/test"))
+      connection = TestConnection.new(@server, Rack::MockRequest.env_for("/test"))
       response = connection.process
       assert_equal 404, response[0]
     end
@@ -117,13 +100,9 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
         end
       end
 
-      env = Rack::MockRequest.env_for(
-        "/test",
-        { 'HTTP_CONNECTION' => 'upgrade', 'HTTP_UPGRADE' => 'websocket',
-          'HTTP_HOST' => 'localhost', 'HTTP_ORIGIN' => 'http://rubyonrails.org', 'rack.hijack' => CallMeMaybe.new }
-      )
+      env = default_env({ 'HTTP_ORIGIN' => 'http://rubyonrails.org', 'rack.hijack' => CallMeMaybe.new })
 
-      connection = ActionCable::Connection::Base.new(@server, env)
+      connection = TestConnection.new(@server, env)
       response = connection.process
       assert_equal 404, response[0]
     end
@@ -131,9 +110,6 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
 
   private
     def open_connection
-      env = Rack::MockRequest.env_for "/test", 'HTTP_CONNECTION' => 'upgrade', 'HTTP_UPGRADE' => 'websocket',
-        'HTTP_HOST' => 'localhost', 'HTTP_ORIGIN' => 'http://rubyonrails.com'
-
-      Connection.new(@server, env)
+      TestConnection.new(@server, default_env)
     end
 end

@@ -1,33 +1,37 @@
-require 'stubs/user'
+require 'support/env_helpers'
 
-class TestConnection
-  attr_reader :identifiers, :logger, :current_user, :server, :transmissions
+class TestConnection < ActionCable::Connection::Base
+  include EnvHelpers
+  attr_reader :connected, :errors, :message_buffer, :transmissions, :websocket
 
-  delegate :pubsub, to: :server
-
-  def initialize(user = User.new("lifo"), coder: ActiveSupport::JSON, subscription_adapter: SuccessAdapter)
-    @coder = coder
-    @identifiers = [ :current_user ]
-
-    @current_user = user
-    @logger = ActiveSupport::TaggedLogging.new ActiveSupport::Logger.new(StringIO.new)
-    @server = TestServer.new(subscription_adapter: subscription_adapter)
+  def initialize(server = TestServer.new, env = rack_hijack_env, *)
+    super
+    @errors = []
     @transmissions = []
   end
 
-  def transmit(cable_message)
-    @transmissions << encode(cable_message)
+  def connect
+    @connected = true
+  end
+
+  def disconnect
+    @connected = false
   end
 
   def last_transmission
-    decode @transmissions.last if @transmissions.any?
+    @coder.decode(@transmissions.last) if @transmissions.any?
   end
 
-  def decode(websocket_message)
-    @coder.decode websocket_message
+  def on_error(error)
+    @errors << error
   end
 
-  def encode(cable_message)
-    @coder.encode cable_message
+  def send_async(method, *args)
+    send method, *args
+  end
+
+  def transmit(cable_message)
+    super
+    @transmissions << encode(cable_message)
   end
 end

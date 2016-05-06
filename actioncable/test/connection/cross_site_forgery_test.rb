@@ -1,14 +1,7 @@
 require 'test_helper'
-require 'stubs/test_server'
 
 class ActionCable::Connection::CrossSiteForgeryTest < ActionCable::TestCase
   HOST = 'rubyonrails.com'
-
-  class Connection < ActionCable::Connection::Base
-    def send_async(method, *args)
-      send method, *args
-    end
-  end
 
   setup do
     @server = TestServer.new
@@ -68,14 +61,10 @@ class ActionCable::Connection::CrossSiteForgeryTest < ActionCable::TestCase
       response = nil
 
       run_in_eventmachine do
-        response = Connection.new(@server, env_for_origin(origin)).process
+        env = default_env({ 'SERVER_NAME' => HOST, 'HTTP_HOST' => HOST, 'HTTP_ORIGIN' => origin })
+        response = TestConnection.new(@server, env).process
       end
 
       response
-    end
-
-    def env_for_origin(origin)
-      Rack::MockRequest.env_for "/test", 'HTTP_CONNECTION' => 'upgrade', 'HTTP_UPGRADE' => 'websocket', 'SERVER_NAME' => HOST,
-        'HTTP_HOST' => HOST, 'HTTP_ORIGIN' => origin
     end
 end
