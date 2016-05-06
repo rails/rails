@@ -20,4 +20,11 @@ class StringInquirerTest < ActiveSupport::TestCase
   def test_respond_to
     assert_respond_to @string_inquirer, :development?
   end
+
+  def test_ignore_case
+    @string_inquirer = ActiveSupport::StringInquirer.new('Production')
+
+    assert @string_inquirer.production?
+    assert @string_inquirer.Production?
+  end
 end
