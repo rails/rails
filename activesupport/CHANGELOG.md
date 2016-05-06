@@ -1,3 +1,5 @@
+## Rails 5.0.0.rc1 (May 06, 2016) ##
+
 *   `ActiveSupport::Duration` supports weeks and hours.
 
         [1.hour.inspect, 1.hour.value, 1.hour.parts]

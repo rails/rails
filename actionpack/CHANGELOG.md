@@ -1,3 +1,5 @@
+## Rails 5.0.0.rc1 (May 06, 2016) ##
+
 *   Add `ActionController#helpers` to get access to the view context at the controller
     level.
 

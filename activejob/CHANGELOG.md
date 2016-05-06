@@ -1,3 +1,8 @@
+## Rails 5.0.0.rc1 (May 06, 2016) ##
+
+*   No changes.
+
+
 ## Rails 5.0.0.beta4 (April 27, 2016) ##
 
 *   Enable class reloading prior to job dispatch, and ensure Active Record
