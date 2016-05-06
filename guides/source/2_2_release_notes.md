@@ -3,7 +3,7 @@
 Ruby on Rails 2.2 Release Notes
 ===============================
 
-Rails 2.2 delivers a number of new and improved features. This list covers the major upgrades, but doesn't include every little bug fix and change. If you want to see everything, check out the [list of commits](http://github.com/rails/rails/commits/2-2-stable) in the main Rails repository on GitHub.
+Rails 2.2 delivers a number of new and improved features. This list covers the major upgrades, but doesn't include every little bug fix and change. If you want to see everything, check out the [list of commits](https://github.com/rails/rails/commits/2-2-stable) in the main Rails repository on GitHub.
 
 Along with Rails, 2.2 marks the launch of the [Ruby on Rails Guides](http://guides.rubyonrails.org/), the first results of the ongoing [Rails Guides hackfest](http://hackfest.rubyonrails.org/guide). This site will deliver high-quality documentation of the major features of Rails.
 
@@ -22,7 +22,7 @@ Rails 2.2 supplies an easy system for internationalization (or i18n, for those o
 * More information :
     * [Official Rails i18 website](http://rails-i18n.org)
     * [Finally. Ruby on Rails gets internationalized](https://web.archive.org/web/20140407075019/http://www.artweb-design.de/2008/7/18/finally-ruby-on-rails-gets-internationalized)
-    * [Localizing Rails : Demo application](http://github.com/clemens/i18n_demo_app)
+    * [Localizing Rails : Demo application](https://github.com/clemens/i18n_demo_app)
 
 ### Compatibility with Ruby 1.9 and JRuby
 
@@ -389,7 +389,7 @@ To avoid deployment issues and make Rails applications more self-contained, it's
 
 You can unpack or install a single gem by specifying `GEM=_gem_name_` on the command line.
 
-* Lead Contributor: [Matt Jones](http://github.com/al2o3cr)
+* Lead Contributor: [Matt Jones](https://github.com/al2o3cr)
 * More information:
     * [What's New in Edge Rails: Gem Dependencies](http://archives.ryandaigle.com/articles/2008/4/1/what-s-new-in-edge-rails-gem-dependencies)
     * [Rails 2.1.2 and 2.2RC1: Update Your RubyGems](http://afreshcup.com/2008/10/25/rails-212-and-22rc1-update-your-rubygems/)
@@ -411,7 +411,7 @@ Deprecated
 A few pieces of older code are deprecated in this release:
 
 * `Rails::SecretKeyGenerator` has been replaced by `ActiveSupport::SecureRandom`
-* `render_component` is deprecated. There's a [render_components plugin](http://github.com/rails/render_component/tree/master) available if you need this functionality.
+* `render_component` is deprecated. There's a [render_components plugin](https://github.com/rails/render_component/tree/master) available if you need this functionality.
 * Implicit local assignments when rendering partials has been deprecated.
 
     ```ruby
