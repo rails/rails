@@ -900,7 +900,7 @@ Rails will now prepend "/app1" when generating links.
 
 #### Using Passenger
 
-Passenger makes it easy to run your application in a subdirectory. You can find the relevant configuration in the [Passenger manual](http://www.modrails.com/documentation/Users%20guide%20Apache.html#deploying_rails_to_sub_uri).
+Passenger makes it easy to run your application in a subdirectory. You can find the relevant configuration in the [Passenger manual](https://www.phusionpassenger.com/library/deploy/apache/deploy/ruby/#deploying-an-app-to-a-sub-uri-or-subdirectory).
 
 #### Using a Reverse Proxy
 
