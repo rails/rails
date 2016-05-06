@@ -41,13 +41,12 @@ class TouchTest < ActiveRecord::TestCase
 
     old_updated_at = stamped.updated_at
 
-    travel 5.minutes do
-      stamped.lft_will_change!
-      stamped.save
+    travel 5.minutes
+    stamped.lft_will_change!
+    stamped.save
 
-      assert_equal Time.now, stamped.updated_at
-      assert_equal old_updated_at, stamped.created_at
-    end
+    assert_equal Time.now, stamped.updated_at
+    assert_equal old_updated_at, stamped.created_at
   end
 
   def test_create_turned_off
