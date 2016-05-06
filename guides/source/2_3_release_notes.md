@@ -125,7 +125,7 @@ Order.scoped_by_customer_id(12).scoped_by_status("open")
 There's nothing to define to use dynamic scopes: they just work.
 
 * Lead Contributor: [Yaroslav Markin](http://evilmartians.com/)
-* More Information: [What's New in Edge Rails: Dynamic Scope Methods](http://archives.ryandaigle.com/articles/2008/12/29/what-s-new-in-edge-rails-dynamic-scope-methods.)
+* More Information: [What's New in Edge Rails: Dynamic Scope Methods](http://archives.ryandaigle.com/articles/2008/12/29/what-s-new-in-edge-rails-dynamic-scope-methods)
 
 ### Default Scopes
 
@@ -498,7 +498,7 @@ Active Support has a few interesting changes, including the introduction of `Obj
 
 A lot of folks have adopted the notion of using try() to attempt operations on objects. It's especially helpful in views where you can avoid nil-checking by writing code like `<%= @person.try(:name) %>`. Well, now it's baked right into Rails. As implemented in Rails, it raises `NoMethodError` on private methods and always returns `nil` if the object is nil.
 
-* More Information: [try()](http://ozmm.org/posts/try.html.)
+* More Information: [try()](http://ozmm.org/posts/try.html)
 
 ### Object#tap Backport
 
@@ -533,7 +533,7 @@ If you look up the spec on the "json.org" site, you'll discover that all keys in
 ### Other Active Support Changes
 
 * You can use `Enumerable#none?` to check that none of the elements match the supplied block.
-* If you're using Active Support [delegates](http://afreshcup.com/2008/10/19/coming-in-rails-22-delegate-prefixes/,) the new `:allow_nil` option lets you return `nil` instead of raising an exception when the target object is nil.
+* If you're using Active Support [delegates](http://afreshcup.com/2008/10/19/coming-in-rails-22-delegate-prefixes/) the new `:allow_nil` option lets you return `nil` instead of raising an exception when the target object is nil.
 * `ActiveSupport::OrderedHash`: now implements `each_key` and `each_value`.
 * `ActiveSupport::MessageEncryptor` provides a simple way to encrypt information for storage in an untrusted location (like cookies).
 * Active Support's `from_xml` no longer depends on XmlSimple. Instead, Rails now includes its own XmlMini implementation, with just the functionality that it requires. This lets Rails dispense with the bundled copy of XmlSimple that it's been carting around.
@@ -559,7 +559,7 @@ Rails Metal is a new mechanism that provides superfast endpoints inside of your 
 
 ### Application Templates
 
-Rails 2.3 incorporates Jeremy McAnally's [rg](http://github.com/jeremymcanally/rg/tree/master) application generator. What this means is that we now have template-based application generation built right into Rails; if you have a set of plugins you include in every application (among many other use cases), you can just set up a template once and use it over and over again when you run the `rails` command. There's also a rake task to apply a template to an existing application:
+Rails 2.3 incorporates Jeremy McAnally's [rg](https://github.com/jm/rg) application generator. What this means is that we now have template-based application generation built right into Rails; if you have a set of plugins you include in every application (among many other use cases), you can just set up a template once and use it over and over again when you run the `rails` command. There's also a rake task to apply a template to an existing application:
 
 ```
 rake rails:template LOCATION=~/template.rb
