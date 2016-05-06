@@ -50,6 +50,10 @@ module Arel
 
         super
       end
+
+      def visit_Arel_Nodes_BindParam o, collector
+        collector.add_bind(o) { |i| ":a#{i}" }
+      end
     end
   end
 end

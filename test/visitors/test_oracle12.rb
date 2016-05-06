@@ -2,9 +2,10 @@ require 'helper'
 
 module Arel
   module Visitors
-    describe 'the oracle visitor' do
+    describe 'the oracle12 visitor' do
       before do
-        @visitor = Oracle12.new Table.engine.connection_pool
+        @visitor = Oracle12.new Table.engine.connection
+        @table = Table.new(:users)
       end
 
       def compile node
@@ -41,6 +42,16 @@ module Arel
         it 'defaults to FOR UPDATE when locking' do
           node = Nodes::Lock.new(Arel.sql('FOR UPDATE'))
           compile(node).must_be_like "FOR UPDATE"
+        end
+      end
+
+      describe "Nodes::BindParam" do
+        it "increments each bind param" do
+          query = @table[:name].eq(Arel::Nodes::BindParam.new)
+            .and(@table[:id].eq(Arel::Nodes::BindParam.new))
+          compile(query).must_be_like %{
+            "users"."name" = :a1 AND "users"."id" = :a2
+          }
         end
       end
     end
