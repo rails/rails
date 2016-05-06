@@ -2,7 +2,6 @@ module Rails
   class Forker
     autoload :Runner, 'rails/railtie/forker/runner'
 
-
     def runner=(runner)
       @runner=runner 
     end
