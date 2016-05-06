@@ -297,6 +297,10 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/23827))
 
 
+*   Add `ActionController#helpers` to get access to the view context
+    at the controller level.
+    ([Pull Request](https://github.com/rails/rails/pull/24866))
+
 Action View
 -------------
 

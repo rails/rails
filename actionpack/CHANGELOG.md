@@ -1,4 +1,4 @@
-*   Add `ActionController#helpers` to get access to the view context in the controller
+*   Add `ActionController#helpers` to get access to the view context at the controller
     level.
 
     *Rafael Mendonça França*
