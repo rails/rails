@@ -3,10 +3,10 @@ require 'uri'
 module ActiveRecord
   module ConnectionAdapters
     class ConnectionSpecification #:nodoc:
-      attr_reader :config, :adapter_method
+      attr_reader :name, :config, :adapter_method
 
-      def initialize(config, adapter_method)
-        @config, @adapter_method = config, adapter_method
+      def initialize(name, config, adapter_method)
+        @name, @config, @adapter_method = name, config, adapter_method
       end
 
       def initialize_dup(original)
@@ -164,7 +164,7 @@ module ActiveRecord
         #   spec.config
         #   # => { "host" => "localhost", "database" => "foo", "adapter" => "sqlite3" }
         #
-        def spec(config)
+        def spec(config, name = nil)
           spec = resolve(config).symbolize_keys
 
           raise(AdapterNotSpecified, "database configuration does not specify adapter") unless spec.key?(:adapter)
@@ -179,7 +179,14 @@ module ActiveRecord
           end
 
           adapter_method = "#{spec[:adapter]}_connection"
-          ConnectionSpecification.new(spec, adapter_method)
+
+          name ||=
+            if config.is_a?(Symbol)
+              config.to_s
+            else
+              "primary"
+            end
+          ConnectionSpecification.new(name, spec, adapter_method)
         end
 
         private
