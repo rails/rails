@@ -4766,8 +4766,6 @@ class TestPathParameters < ActionDispatch::IntegrationTest
           get '/about', to: 'pages#about'
         end
       end
-
-      get ':controller(/:action/(:id))'
     end
   end
 
