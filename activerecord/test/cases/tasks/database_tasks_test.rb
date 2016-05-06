@@ -316,6 +316,8 @@ module ActiveRecord
   end
 
   class DatabaseTasksMigrateTest < ActiveRecord::TestCase
+    self.use_transactional_tests = false
+
     def setup
       ActiveRecord::Tasks::DatabaseTasks.migrations_paths = 'custom/path'
     end
