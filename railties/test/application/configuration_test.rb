@@ -191,8 +191,6 @@ module ApplicationTests
         config.root = '#{new_app}'
       RUBY
 
-      use_frameworks []
-
       app 'development'
 
       assert_equal Pathname.new(new_app), Rails.application.root
@@ -200,8 +198,6 @@ module ApplicationTests
 
     test "the application root is Dir.pwd if there is no config.ru" do
       File.delete("#{app_path}/config.ru")
-
-      use_frameworks []
 
       Dir.chdir("#{app_path}") do
         app 'development'
@@ -253,8 +249,6 @@ module ApplicationTests
         config.eager_load = true
         config.cache_classes = true
       RUBY
-
-      use_frameworks []
 
       assert_nothing_raised do
         app 'development'

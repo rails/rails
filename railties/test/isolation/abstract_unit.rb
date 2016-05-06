@@ -300,14 +300,13 @@ module TestHelpers
       app_file("app/controllers/#{name}_controller.rb", contents)
     end
 
-    def use_frameworks(arr)
-      to_remove = [:actionmailer, :activerecord] - arr
-
-      if to_remove.include?(:activerecord)
+    def remove_frameworks(arr)
+      if arr.include?(:activerecord)
+        remove_from_config "active_record/railtie"
         remove_from_config 'config.active_record.*'
       end
 
-      $:.reject! {|path| path =~ %r'/(#{to_remove.join('|')})/' }
+      $:.reject! {|path| path =~ %r'/(#{arr.join('|')})/' }
     end
 
     def boot_rails
@@ -334,6 +333,32 @@ Module.new do
 
   `#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails new #{app_template_path} --skip-gemfile --skip-listen --no-rc`
   File.open("#{app_template_path}/config/boot.rb", 'w') do |f|
-    f.puts "require 'rails/all'"
+    f.puts "
+    require 'bundler/setup'
+    require 'rails'
+    "
   end
+
+  file = "#{app_template_path}/config/application.rb"
+  contents = File.read(file)
+  contents.sub! "require 'rails/all'", "
+    require 'rails'
+
+    %w(
+      active_record/railtie
+      action_controller/railtie
+      action_view/railtie
+      action_mailer/railtie
+      active_job/railtie
+      action_cable/engine
+      rails/test_unit/railtie
+      sprockets/railtie
+    ).each do |railtie|
+      begin
+        require railtie
+      rescue LoadError
+      end
+    end
+  "
+  File.write(file, contents)
 end unless defined?(RAILS_ISOLATED_ENGINE)

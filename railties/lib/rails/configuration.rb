@@ -121,6 +121,9 @@ module Rails
         else
           namespace, configuration = args.shift, args.shift
           namespace = namespace.to_sym if namespace.respond_to?(:to_sym)
+          if method == :orm
+            require 'pry'; binding.pry
+          end
           @options[:rails][method] = namespace
         end
 

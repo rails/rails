@@ -254,6 +254,7 @@ module ActionDispatch
     HTTP_METHODS = [:get, :head, :post, :patch, :put, :delete, :options] #:nodoc:
 
     #:stopdoc:
+    require 'active_support/core_ext/string/filters'
     INSECURE_URL_PARAMETERS_MESSAGE = <<-MSG.squish
       Attempting to generate a URL from non-sanitized request parameters!
 

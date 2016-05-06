@@ -109,6 +109,7 @@ GEM
     bunny (2.2.2)
       amq-protocol (>= 2.0.1)
     byebug (8.2.1)
+    coderay (1.1.1)
     coffee-rails (4.1.1)
       coffee-script (>= 2.2.0)
       railties (>= 4.0.0, < 5.1.x)
@@ -181,6 +182,10 @@ GEM
     pg (0.18.4)
     pg (0.18.4-x64-mingw32)
     pg (0.18.4-x86-mingw32)
+    pry (0.10.3)
+      coderay (~> 1.1.0)
+      method_source (~> 0.8.1)
+      slop (~> 3.4)
     psych (2.0.17)
     puma (2.16.0)
     que (0.11.2)
@@ -233,6 +238,7 @@ GEM
     sigdump (0.2.3)
     sinatra (1.0)
       rack (>= 1.0)
+    slop (3.6.0)
     sneakers (2.3.5)
       bunny (~> 2.2.0)
       serverengine (~> 1.5.11)
@@ -300,6 +306,7 @@ DEPENDENCIES
   mysql2 (>= 0.4.4)
   nokogiri (>= 1.6.7.1)
   pg (>= 0.18.0)
+  pry
   psych (~> 2.0)
   puma
   qu-rails!
@@ -329,4 +336,4 @@ DEPENDENCIES
   wdm (>= 0.1.0)
 
 BUNDLED WITH
-   1.11.2
+   1.12.1

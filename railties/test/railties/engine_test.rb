@@ -965,7 +965,6 @@ YAML
       RUBY
 
       boot_rails
-
       app_generators = Rails.application.config.generators.options[:rails]
       assert_equal :mongoid  , app_generators[:orm]
       assert_equal :liquid   , app_generators[:template_engine]
@@ -987,7 +986,7 @@ YAML
       RUBY
 
       boot_rails
-
+# require 'pry'; binding.pry
       generators = Bukkits::Engine.config.generators.options[:rails]
       assert_equal :active_record, generators[:orm]
       assert_equal :rspec        , generators[:test_framework]
