@@ -51,7 +51,7 @@ module ActiveRecord
       resolver =   ConnectionAdapters::ConnectionSpecification::Resolver.new configurations
       # TODO: uses name on establish_connection, for backwards compatibility
       spec     =   resolver.spec(spec, self == Base ? "primary" : name)
-      self.specification_name = spec.name
+      self.connection_specification_name = spec.name
 
       unless respond_to?(spec.adapter_method)
         raise AdapterNotFound, "database configuration specifies nonexistent #{spec.config[:adapter]} adapter"
@@ -91,15 +91,15 @@ module ActiveRecord
       retrieve_connection
     end
 
-    attr_writer :specification_name
+    attr_writer :connection_specification_name
 
     # Return the specification id from this class otherwise look it up
     # in the parent.
-    def specification_name
-      unless defined?(@specification_name)
-        @specification_name = self == Base ? "primary" : superclass.specification_name
+    def connection_specification_name
+      unless defined?(@connection_specification_name)
+        @connection_specification_name = self == Base ? "primary" : superclass.connection_specification_name
       end
-      @specification_name
+      @connection_specification_name
     end
 
     def connection_id
@@ -121,19 +121,19 @@ module ActiveRecord
     end
 
     def connection_pool
-      connection_handler.retrieve_connection_pool(specification_name) or raise ConnectionNotEstablished
+      connection_handler.retrieve_connection_pool(connection_specification_name) or raise ConnectionNotEstablished
     end
 
     def retrieve_connection
-      connection_handler.retrieve_connection(specification_name)
+      connection_handler.retrieve_connection(connection_specification_name)
     end
 
     # Returns +true+ if Active Record is connected.
     def connected?
-      connection_handler.connected?(specification_name)
+      connection_handler.connected?(connection_specification_name)
     end
 
-    def remove_connection(name = specification_name)
+    def remove_connection(name = connection_specification_name)
       connection_handler.remove_connection(name)
     end
 
