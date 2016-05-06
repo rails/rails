@@ -37,6 +37,39 @@ class ResponseTest < ActiveSupport::TestCase
     assert_equal "closed stream", e.message
   end
 
+  def test_each_isnt_called_if_str_body_is_written
+    # Controller writes and reads response body
+    each_counter = 0
+    @response.body = Object.new.tap {|o| o.singleton_class.send(:define_method, :each) { |&block| each_counter += 1; block.call 'foo' } }
+    @response['X-Foo'] = @response.body
+
+    assert_equal 1, each_counter, "#each was not called once"
+
+    # Build response
+    status, headers, body = @response.to_a
+
+    assert_equal 200, status
+    assert_equal "foo", headers['X-Foo']
+    assert_equal "foo", body.each.to_a.join
+
+    # Show that #each was not called twice
+    assert_equal 1, each_counter, "#each was not called once"
+  end
+
+  def test_set_header_after_read_body_during_action
+    @response.body
+
+    # set header after the action reads back @response.body
+    @response['x-header'] = "Best of all possible worlds."
+
+    # the response can be built.
+    status, headers, body = @response.to_a
+    assert_equal 200, status
+    assert_equal "", body.body
+
+    assert_equal "Best of all possible worlds.", headers['x-header']
+  end
+
   def test_read_body_during_action
     @response.body = "Hello, World!"
 

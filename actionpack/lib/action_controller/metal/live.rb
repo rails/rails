@@ -163,14 +163,6 @@ module ActionController
         end
       end
 
-      def each
-        @response.sending!
-        while str = @buf.pop
-          yield str
-        end
-        @response.sent!
-      end
-
       # Write a 'close' event to the buffer; the producer/writing thread
       # uses this to notify us that it's finished supplying content.
       #
@@ -210,6 +202,14 @@ module ActionController
       def call_on_error
         @error_callback.call
       end
+
+      private
+
+        def each_chunk(&block)
+          while str = @buf.pop
+            yield str
+          end
+        end
     end
 
     class Response < ActionDispatch::Response #:nodoc: all

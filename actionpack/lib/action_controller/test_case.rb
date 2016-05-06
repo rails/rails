@@ -554,6 +554,8 @@ module ActionController
         end
         @request.query_string = ''
 
+        @response.sent!
+
         @response
       end
 
