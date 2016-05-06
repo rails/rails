@@ -29,7 +29,14 @@ module ActionCable
         subscription_klass = id_options[:channel].safe_constantize
 
         if subscription_klass && ActionCable::Channel::Base >= subscription_klass
-          subscriptions[id_key] ||= subscription_klass.new(connection, id_key, id_options)
+          if existing_subscription = subscriptions[id_key]
+            existing_subscription.transmit_client_error(
+              error_type: :subscribing_to_existing_subscription,
+              error_message: "Subscription on #{subscription_klass} already exists for: #{id_key}"
+            )
+          else
+            subscriptions[id_key] = subscription_klass.new(connection, id_key, id_options)
+          end
         else
           logger.error "Subscription class not found: #{id_options[:channel].inspect}"
         end

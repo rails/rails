@@ -30,10 +30,11 @@ module ActionCable
 
   INTERNAL = {
     message_types: {
-      welcome: "welcome".freeze,
-      ping: "ping".freeze,
-      confirmation: "confirm_subscription".freeze,
-      rejection: "reject_subscription".freeze
+      welcome: 'welcome'.freeze,
+      ping: 'ping'.freeze,
+      confirmation: 'confirm_subscription'.freeze,
+      rejection: 'reject_subscription'.freeze,
+      client_error: 'client_error'.freeze
     },
     default_mount_path: "/cable".freeze,
     protocols: ["actioncable-v1-json".freeze, "actioncable-unsupported".freeze].freeze

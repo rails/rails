@@ -177,6 +177,16 @@ module ActionCable
         end
       end
 
+      def transmit_client_error(error_type:, error_message:) # :nodoc:
+        logger.error error_message
+        logger.info "#{self.class.name} is transmitting a client error"
+
+        ActiveSupport::Notifications.instrument("transmit_client_error.action_cable", channel_class: self.class.name) do
+          data = { identifier: @identifier, type: ActionCable::INTERNAL[:message_types][:client_error] }
+          connection.transmit data.merge!(message: { error_type: error_type })
+        end
+      end
+
       protected
         # Called once a consumer has become a subscriber of the channel. Usually the place to setup any streams
         # you want this channel to be sending to the subscriber.

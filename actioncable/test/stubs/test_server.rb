@@ -4,10 +4,11 @@ class TestServer
   include ActionCable::Server::Connections
   include ActionCable::Server::Broadcasting
 
-  attr_reader :logger, :config, :mutex
+  attr_reader :logger, :config, :mutex, :output
 
   def initialize(subscription_adapter: SuccessAdapter)
-    @logger = ActiveSupport::TaggedLogging.new ActiveSupport::Logger.new(StringIO.new)
+    @output = StringIO.new
+    @logger = ActiveSupport::TaggedLogging.new ActiveSupport::Logger.new(@output)
 
     @config = OpenStruct.new(log_tags: [], subscription_adapter: subscription_adapter)
     @config.use_faye = ENV["FAYE"].present?

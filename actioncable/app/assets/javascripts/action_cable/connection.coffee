@@ -95,6 +95,17 @@ class ActionCable.Connection
           @subscriptions.notify(identifier, "connected")
         when message_types.rejection
           @subscriptions.reject(identifier)
+        when message_types.client_error
+          # When interacting with the server, there is a possiblity that the
+          # client could misbehave -- for example, a "client error" would be returned
+          # if the client tried to double subscribe to a particular channel with
+          # the same identifier.
+          #
+          # Right now, possible client erros include the following:
+          #
+          # - `subscribing_to_existing_subscription`: This will be triggered if
+          # the client tries to double subscribe to a channel.
+          @subscriptions.notify(identifier, "error")
         else
           @subscriptions.notify(identifier, "received", message)
 

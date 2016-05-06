@@ -177,6 +177,18 @@ class ClientTest < ActionCable::TestCase
     end
   end
 
+  def test_double_subscribe
+    with_puma_server do |port|
+      c = faye_client(port)
+      assert_equal({ "type" => "welcome" }, c.read_message)  # pop the first welcome message off the stack
+      c.send_message command: 'subscribe', identifier: JSON.generate(channel: 'ClientTest::EchoChannel')
+      assert_equal({ "identifier"=>"{\"channel\":\"ClientTest::EchoChannel\"}", "type"=>"confirm_subscription" }, c.read_message)
+      c.send_message command: 'subscribe', identifier: JSON.generate(channel: 'ClientTest::EchoChannel')
+      assert_equal({ "identifier"=>"{\"channel\":\"ClientTest::EchoChannel\"}", "type"=>"client_error", "message"=>{"error_type"=>"subscribing_to_existing_subscription"} }, c.read_message)
+      c.close
+    end
+  end
+
   def test_interacting_clients
     with_puma_server do |port|
       clients = 10.times.map { faye_client(port) }

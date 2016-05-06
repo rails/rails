@@ -47,6 +47,27 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
     end
   end
 
+  test "subscribe command when subscription already exists" do
+    run_in_eventmachine do
+      channel1_output = "#{ChatChannel.name} is transmitting the subscription confirmation\n"
+      channel2_output = "Subscription on #{ChatChannel.name} already exists for: #{@chat_identifier}"
+      rejection_output = "#{ChatChannel.name} is transmitting a client error\n"
+
+      setup_connection
+      channel1 = subscribe_to_chat_channel
+      assert_kind_of ChatChannel, channel1
+      assert_equal 1, channel1.room.id
+      assert_equal channel1_output, @server.output.string
+
+      assert_equal 1, @subscriptions.send(:subscriptions).size
+
+      # Assert that no new subscription has been created
+      subscribe_to_chat_channel
+      assert_equal 1, @subscriptions.send(:subscriptions).size
+      assert_equal "#{channel1_output}#{channel2_output}\n#{rejection_output}", @server.output.string
+    end
+  end
+
   test "unsubscribe command" do
     run_in_eventmachine do
       setup_connection
