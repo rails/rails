@@ -45,7 +45,7 @@ module ActiveRecord
     # The exceptions AdapterNotSpecified, AdapterNotFound and +ArgumentError+
     # may be returned on an error.
     def establish_connection(spec = nil)
-      raise RuntimeError, "Anonymous class is not allowed." unless name
+      raise "Anonymous class is not allowed." unless name
 
       spec     ||= DEFAULT_ENV.call.to_sym
       resolver =   ConnectionAdapters::ConnectionSpecification::Resolver.new configurations
@@ -93,8 +93,7 @@ module ActiveRecord
 
     attr_writer :connection_specification_name
 
-    # Return the specification id from this class otherwise look it up
-    # in the parent.
+    # Return the specification name from the current class or its parent.
     def connection_specification_name
       unless defined?(@connection_specification_name)
         @connection_specification_name = self == Base ? "primary" : superclass.connection_specification_name
