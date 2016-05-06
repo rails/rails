@@ -99,22 +99,28 @@ module ActiveRecord
     end
 
     def bound_attributes
-      result = from_clause.binds + arel.bind_values + where_clause.binds + having_clause.binds
       if limit_value && !string_containing_comma?(limit_value)
-        result << Attribute.with_cast_value(
+        limit_bind = Attribute.with_cast_value(
           "LIMIT".freeze,
           connection.sanitize_limit(limit_value),
           Type::Value.new,
         )
       end
       if offset_value
-        result << Attribute.with_cast_value(
+        offset_bind = Attribute.with_cast_value(
           "OFFSET".freeze,
           offset_value.to_i,
           Type::Value.new,
         )
       end
-      result
+      connection.combine_bind_parameters(
+        from_clause: from_clause.binds,
+        join_clause: arel.bind_values,
+        where_clause: where_clause.binds,
+        having_clause: having_clause.binds,
+        limit: limit_bind,
+        offset: offset_bind,
+      )
     end
 
     FROZEN_EMPTY_HASH = {}.freeze

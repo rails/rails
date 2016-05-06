@@ -1989,4 +1989,22 @@ class RelationTest < ActiveRecord::TestCase
   def test_relation_join_method
     assert_equal 'Thank you for the welcome,Thank you again for the welcome', Post.first.comments.join(",")
   end
+
+  def test_connection_adapters_can_reorder_binds
+    posts = Post.limit(1).offset(2)
+
+    stubbed_connection = Post.connection.dup
+    def stubbed_connection.combine_bind_parameters(**kwargs)
+      offset = kwargs[:offset]
+      kwargs[:offset] = kwargs[:limit]
+      kwargs[:limit] = offset
+      super(**kwargs)
+    end
+
+    posts.define_singleton_method(:connection) do
+      stubbed_connection
+    end
+
+    assert_equal 2, posts.to_a.length
+  end
 end
