@@ -23,16 +23,20 @@ module ActionCable
       end
 
       def add(data)
+        # Send acknowledge message to the internal connection monitor channel.
+        # This is Action Cable's way of acknowledging that a request to create a
+        # new subscription has been sent, and will be following up with a confirm_subscription
+        # message shortly.
+        logger.info "#{self.class.name} is transmitting the create subscription acknowledgement"
+
         id_key = data['identifier']
-        id_options = ActiveSupport::JSON.decode(id_key).with_indifferent_access
 
-        subscription_klass = connection.server.channel_classes[id_options[:channel]]
-
-        if subscription_klass
-          subscriptions[id_key] ||= subscription_klass.new(connection, id_key, id_options)
-        else
-          logger.error "Subscription class not found (#{data.inspect})"
+        ActiveSupport::Notifications.instrument("transmit_subscription_acknowledgement.action_cable", channel_class: self.class.name) do
+          connection.transmit identifier: id_key, type: ActionCable::INTERNAL[:message_types][:acknowledge]
         end
+
+        # Place subscription creation task into the worker pool
+        @connection.send_async :create_subscription, self, data
       end
 
       def remove(data)
@@ -62,6 +66,19 @@ module ActionCable
 
       private
         delegate :logger, to: :connection
+
+        def create_subscription(data)
+          id_key = data['identifier']
+          id_options = ActiveSupport::JSON.decode(id_key).with_indifferent_access
+
+          subscription_klass = connection.server.channel_classes[id_options[:channel]]
+
+          if subscription_klass
+            subscriptions[id_key] ||= subscription_klass.new(connection, id_key, id_options)
+          else
+            logger.error "Subscription class not found (#{data.inspect})"
+          end
+        end
 
         def find(data)
           if subscription = subscriptions[data['identifier']]

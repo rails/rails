@@ -92,9 +92,12 @@ class ActionCable.Connection
         when message_types.ping
           @monitor.recordPing()
         when message_types.confirmation
+          @subscriptions.confirmSubscription(identifier)
           @subscriptions.notify(identifier, "connected")
         when message_types.rejection
           @subscriptions.reject(identifier)
+        when message_types.acknowledge
+          @subscriptions.notify(identifier, "acknowledge")
         else
           @subscriptions.notify(identifier, "received", message)
 

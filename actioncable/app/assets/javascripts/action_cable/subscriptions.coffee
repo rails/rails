@@ -8,6 +8,7 @@
 # For more details on how you'd configure an actual channel subscription, see ActionCable.Subscription.
 class ActionCable.Subscriptions
   constructor: (@consumer) ->
+    @holdSubscriptions = []
     @subscriptions = []
 
   create: (channelName, mixin) ->
@@ -15,15 +16,25 @@ class ActionCable.Subscriptions
     params = if typeof channel is "object" then channel else {channel}
     subscription = new ActionCable.Subscription @consumer, params, mixin
     @add(subscription)
+    subscription
 
   # Private
 
   add: (subscription) ->
-    @subscriptions.push(subscription)
+    @holdSubscriptions.push(subscription)
     @consumer.ensureActiveConnection()
-    @notify(subscription, "initialized")
+    # debugger
     @sendCommand(subscription, "subscribe")
-    subscription
+    # subscription
+
+  confirmSubscription: (identifier) ->
+    for subscription in @findAllHold(identifier)
+      @holdSubscriptions = @holdSubscriptions.filter (sub) -> sub isnt subscription
+      @subscriptions.push(subscription)
+      debugger
+
+      # Create new subscription
+      @notify(subscription, "initialized")
 
   remove: (subscription) ->
     @forget(subscription)
@@ -43,6 +54,9 @@ class ActionCable.Subscriptions
 
   findAll: (identifier) ->
     s for s in @subscriptions when s.identifier is identifier
+
+  findAllHold: (identifier) ->
+    s for s in @holdSubscriptions when s.identifier is identifier
 
   reload: ->
     for subscription in @subscriptions
