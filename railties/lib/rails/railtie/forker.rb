@@ -2,8 +2,12 @@ module Rails
   class Forker
     autoload :Runner, 'rails/railtie/forker/runner'
 
-    def runner=(runner)
-      @runner=runner 
+    attr_writer :runner
+
+    def initialize(namespace)
+      # inferring namespace
+      puts "namespace: #{namespace}"
+      @runner = namespace.const_get(:Runner) if namespace.const_defined?(:Runner)
     end
 
     def options
@@ -42,7 +46,7 @@ module Rails
     end
 
     def run!
-      @runner::Runner.new(options).run!
+      @runner.new(options).run!
     end 
   end
 end

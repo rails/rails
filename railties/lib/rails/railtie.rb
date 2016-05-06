@@ -156,14 +156,25 @@ module Rails
         @generators
       end
 
-      def forkers(label=nil)
+      def forkers(namespace=nil)
         @forkers ||= {}
+        label = forker = nil
+
+        # preload forker object
+        unless namespace.nil?
+          label = namespace.name.underscore
+          forker = @forkers[label] ||= Forker.new(namespace)
+        end
+
+        # return it (or them) immediately if no block is passed
         unless block_given?
           return @forkers if label.nil?
-          return @forkers[label]
+          return forker
+        else
+          raise "must pass a label" unless forker
+          yield forker
         end
-        forker = @forkers[label] ||= Forker.new
-        yield forker
+    
         @forkers
       end
 
