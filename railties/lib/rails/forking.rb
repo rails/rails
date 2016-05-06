@@ -1,1 +1,0 @@
-Rails.application.load_forkers
