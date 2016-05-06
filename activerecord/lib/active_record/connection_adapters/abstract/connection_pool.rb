@@ -778,8 +778,7 @@ module ActiveRecord
     end
 
     # ConnectionHandler is a collection of ConnectionPool objects. It is used
-    # for keeping separate connection pools for Active Record models that connect
-    # to different databases.
+    # for keeping separate connection pools that connect to different databases.
     #
     # For example, suppose that you have 5 models, with the following hierarchy:
     #
@@ -821,6 +820,10 @@ module ActiveRecord
     # ConnectionHandler accessible via ActiveRecord::Base.connection_handler.
     # All Active Record models use this handler to determine the connection pool that they
     # should use.
+    #
+    # The ConnectionHandler class is not coupled with the Active models, as it has no knowlodge
+    # about the model. The model, needs to pass a specification name to the handler,
+    # in order to lookup the correct connection pool.
     class ConnectionHandler
       def initialize
         # These caches are keyed by klass.name, NOT klass. Keying them by klass
