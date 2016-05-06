@@ -494,6 +494,10 @@ Please refer to the [Changelog][active-record] for detailed changes.
     Use the `{insert|update|delete}` public methods instead.
     ([Pull Request](https://github.com/rails/rails/pull/23086))
 
+*   Deprecated `use_transactional_fixtures` in favor of
+    `use_transactional_tests` for more clarity.
+    ([Pull Request](https://github.com/rails/rails/pull/19282))
+
 ### Notable changes
 
 *   Added a `foreign_key` option to `references` while creating the table.
