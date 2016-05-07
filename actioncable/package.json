@@ -23,7 +23,7 @@
   },
   "homepage": "http://rubyonrails.org/",
   "scripts": {
-    "test": "mocha jstest/"
+    "test": "mocha jstest/*"
   },
   "devDependencies": {
     "chai": "^3.5.0",
