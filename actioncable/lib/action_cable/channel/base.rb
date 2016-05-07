@@ -177,6 +177,24 @@ module ActionCable
         end
       end
 
+      def transmit_subscription_confirmation # :nodoc:
+        unless subscription_confirmation_sent?
+          logger.info "#{self.class.name} is transmitting the subscription confirmation"
+
+          ActiveSupport::Notifications.instrument("transmit_subscription_confirmation.action_cable", channel_class: self.class.name) do
+            connection.transmit identifier: @identifier, type: ActionCable::INTERNAL[:message_types][:confirmation]
+            @subscription_confirmation_sent = true
+          end
+        end
+      end
+
+      def transmit_unsubscribe_confirmation # :nodoc:
+        logger.info "#{self.class.name} is transmitting the unsubscribe confirmation"
+
+        ActiveSupport::Notifications.instrument("transmit_unsubscribe_confirmation.action_cable", channel_class: self.class.name) do
+          connection.transmit identifier: @identifier, type: ActionCable::INTERNAL[:message_types][:unsubscribe_confirmation]
+        end
+      end
 
       protected
         # Called once a consumer has become a subscriber of the channel. Usually the place to setup any streams
@@ -265,17 +283,6 @@ module ActionCable
           "#{self.class.name}##{action}".tap do |signature|
             if (arguments = data.except('action')).any?
               signature << "(#{arguments.inspect})"
-            end
-          end
-        end
-
-        def transmit_subscription_confirmation
-          unless subscription_confirmation_sent?
-            logger.info "#{self.class.name} is transmitting the subscription confirmation"
-
-            ActiveSupport::Notifications.instrument("transmit_subscription_confirmation.action_cable", channel_class: self.class.name) do
-              connection.transmit identifier: @identifier, type: ActionCable::INTERNAL[:message_types][:confirmation]
-              @subscription_confirmation_sent = true
             end
           end
         end

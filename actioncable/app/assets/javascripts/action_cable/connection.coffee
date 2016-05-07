@@ -95,6 +95,8 @@ class ActionCable.Connection
           @subscriptions.notify(identifier, "connected")
         when message_types.rejection
           @subscriptions.reject(identifier)
+        when message_types.unsubscribe_confirmation
+          @subscriptions.notify(identifier, "unsubscribed")
         else
           @subscriptions.notify(identifier, "received", message)
 

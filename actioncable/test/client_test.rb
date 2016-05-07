@@ -229,7 +229,11 @@ class ClientTest < ActionCable::TestCase
       subscriptions = app.connections.first.subscriptions.send(:subscriptions)
       assert_not_equal 0, subscriptions.size, 'Missing EchoChannel subscription'
       channel = subscriptions.first[1]
+
+      c.send_message command: 'unsubscribe', identifier: identifier
       channel.expects(:unsubscribed)
+      assert_equal({"identifier"=>"{\"channel\":\"EchoChannel\"}", "type"=>"confirm_unsubscribe"}, c.read_message)
+
       c.close
       sleep 0.1 # Data takes a moment to process
 

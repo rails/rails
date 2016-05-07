@@ -42,6 +42,8 @@ module ActionCable
 
       def remove_subscription(subscription)
         subscription.unsubscribe_from_channel
+      ensure
+        subscription.send :transmit_unsubscribe_confirmation
         subscriptions.delete(subscription.identifier)
       end
 

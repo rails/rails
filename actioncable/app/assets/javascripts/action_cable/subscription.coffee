@@ -63,6 +63,9 @@ class ActionCable.Subscription
     @consumer.send(command: "message", identifier: @identifier, data: JSON.stringify(data))
 
   unsubscribe: ->
+    @consumer.send(command: "unsubscribe", identifier: @identifier)
+
+  unsubscribed: ->
     @consumer.subscriptions.remove(this)
 
   extend = (object, properties) ->

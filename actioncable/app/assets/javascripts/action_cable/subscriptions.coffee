@@ -27,8 +27,6 @@ class ActionCable.Subscriptions
 
   remove: (subscription) ->
     @forget(subscription)
-    unless @findAll(subscription.identifier).length
-      @sendCommand(subscription, "unsubscribe")
     subscription
 
   reject: (identifier) ->
