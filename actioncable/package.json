@@ -1,0 +1,24 @@
+{
+  "name": "actioncable",
+  "version": "5.0.0-rc1",
+  "description": "WebSocket framework for Ruby on Rails.",
+  "main": "lib/assets/compiled/action_cable.js",
+  "files": [
+    "lib/assets/compiled/*.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "rails/rails"
+  },
+  "keywords": [
+    "websockets",
+    "actioncable",
+    "rails"
+  ],
+  "author": "David Heinemeier Hansson <david@loudthinking.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rails/rails/issues"
+  },
+  "homepage": "http://rubyonrails.org/"
+}
