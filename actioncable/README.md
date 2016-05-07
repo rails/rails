@@ -86,12 +86,17 @@ end
 
 The client-side needs to setup a consumer instance of this connection. That's done like so:
 
-```coffeescript
-# app/assets/javascripts/cable.coffee
-#= require action_cable
+```js
+// app/assets/javascripts/cable.js
+//= require action_cable
+//= require_self
+//= require_tree ./channels
 
-@App = {}
-App.cable = ActionCable.createConsumer("ws://cable.example.com")
+(function() {
+  this.App || (this.App = {});
+
+  App.cable = ActionCable.createConsumer("ws://cable.example.com");
+}).call(this);
 ```
 
 The `ws://cable.example.com` address must point to your Action Cable server(s), and it
