@@ -158,8 +158,9 @@ module ActiveRecord
         scope
       end
 
+      # Merges inner joins from `other` relation to `scope` relation.
       def merge_joins(scope, other)
-        joins_dependency, rest = other.joins_values.partition do |join|
+        association_joins, rest_joins = other.joins_values.partition do |join|
           case join
           when Hash, Symbol, Array
             true
@@ -168,7 +169,7 @@ module ActiveRecord
           end
         end
 
-        join_dependency = ActiveRecord::Associations::JoinDependency.new(other.klass, joins_dependency, rest)
+        join_dependency = ActiveRecord::Associations::JoinDependency.new(other.klass, association_joins, rest_joins)
         scope.joins! join_dependency.join_constraints([], Arel::Nodes::InnerJoin).map(&:joins)
       end
 

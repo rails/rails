@@ -1,7 +1,13 @@
 ## Rails 5.0.0.rc1 (May 06, 2016) ##
 
-*   No changes.
+*   Merge parent joins for through associations.
 
+    Merges parent associations joins for through associations into a scope. Previously joins in association scope were
+    taken into account only for root associations with that scope.
+
+    Fixes #22538.
+
+    *Seva Orlov*
 
 ## Rails 5.0.0.beta4 (April 27, 2016) ##
 
