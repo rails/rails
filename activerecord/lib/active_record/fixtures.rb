@@ -962,7 +962,7 @@ module ActiveRecord
 
     def setup_fixtures(config = ActiveRecord::Base)
       if pre_loaded_fixtures && !use_transactional_tests
-        raise RuntimeError, 'pre_loaded_fixtures requires use_transactional_tests'
+        raise 'pre_loaded_fixtures requires use_transactional_tests'
       end
 
       @fixture_cache = {}
@@ -1018,10 +1018,10 @@ module ActiveRecord
 
       def instantiate_fixtures
         if pre_loaded_fixtures
-          raise RuntimeError, 'Load fixtures before instantiating them.' if ActiveRecord::FixtureSet.all_loaded_fixtures.empty?
+          raise 'Load fixtures before instantiating them.' if ActiveRecord::FixtureSet.all_loaded_fixtures.empty?
           ActiveRecord::FixtureSet.instantiate_all_loaded_fixtures(self, load_instances?)
         else
-          raise RuntimeError, 'Load fixtures before instantiating them.' if @loaded_fixtures.nil?
+          raise 'Load fixtures before instantiating them.' if @loaded_fixtures.nil?
           @loaded_fixtures.each_value do |fixture_set|
             ActiveRecord::FixtureSet.instantiate_fixtures(self, fixture_set, load_instances?)
           end
