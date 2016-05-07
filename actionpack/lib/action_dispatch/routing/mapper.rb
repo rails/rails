@@ -2088,8 +2088,7 @@ to this:
 
         def each
           node = self
-          loop do
-            break if node.equal? NULL
+          until node.equal? NULL
             yield node
             node = node.parent
           end
