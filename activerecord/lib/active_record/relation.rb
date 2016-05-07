@@ -146,8 +146,12 @@ module ActiveRecord
     #
     #   users.create(name: nil) # validation on name
     #   # => #<User id: nil, name: nil, ...>
-    def create(*args, &block)
-      scoping { @klass.create(*args, &block) }
+    def create(args = nil, &block)
+      if args.is_a?(Array)
+        args.map { |attr| create(attr, &block) }
+      else
+        new(args, &block).tap(&:save)
+      end
     end
 
     # Similar to #create, but calls
@@ -156,8 +160,12 @@ module ActiveRecord
     #
     # Expects arguments in the same format as
     # {ActiveRecord::Base.create!}[rdoc-ref:Persistence::ClassMethods#create!].
-    def create!(*args, &block)
-      scoping { @klass.create!(*args, &block) }
+    def create!(args = nil, &block)
+      if args.is_a?(Array)
+        args.map { |attr| create!(attr, &block) }
+      else
+        new(args, &block).tap(&:save!)
+      end
     end
 
     def first_or_create(attributes = nil, &block) # :nodoc:
