@@ -56,6 +56,7 @@ namespace :assets do
     manifest.compile(precompile_list)
 
     destination_path.rmtree if destination_path.exist?
+
     manifest.assets.each do |path, fingerprint_path|
       destination_path.join(path).dirname.mkpath
       FileUtils.cp(compile_path.join(fingerprint_path), destination_path.join(path))
