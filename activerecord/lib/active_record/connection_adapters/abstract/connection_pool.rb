@@ -909,6 +909,8 @@ module ActiveRecord
       # to optimise for.
       def retrieve_connection_pool(spec_name)
         owner_to_pool.fetch(spec_name) do
+          # Check if a connection was previously established in an ancestor process,
+          # which may have been forked.
           if ancestor_pool = pool_from_any_process_for(spec_name)
             # A connection was established in an ancestor process that must have
             # subsequently forked. We can't reuse the connection, but we can copy
