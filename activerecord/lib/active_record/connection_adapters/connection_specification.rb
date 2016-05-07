@@ -180,6 +180,10 @@ module ActiveRecord
 
           adapter_method = "#{spec[:adapter]}_connection"
 
+          unless ActiveRecord::Base.respond_to?(adapter_method)
+            raise AdapterNotFound, "database configuration specifies nonexistent #{spec.config[:adapter]} adapter"
+          end
+
           name ||=
             if config.is_a?(Symbol)
               config.to_s

@@ -44,21 +44,13 @@ module ActiveRecord
     #
     # The exceptions AdapterNotSpecified, AdapterNotFound and +ArgumentError+
     # may be returned on an error.
-    def establish_connection(spec = nil)
+    def establish_connection(config = nil)
       raise "Anonymous class is not allowed." unless name
 
-      spec     ||= DEFAULT_ENV.call.to_sym
-      resolver =   ConnectionAdapters::ConnectionSpecification::Resolver.new configurations
-      # TODO: uses name on establish_connection, for backwards compatibility
-      spec     =   resolver.spec(spec, self == Base ? "primary" : name)
-
-      unless respond_to?(spec.adapter_method)
-        raise AdapterNotFound, "database configuration specifies nonexistent #{spec.config[:adapter]} adapter"
-      end
-
-      remove_connection(spec.name)
-      self.connection_specification_name = spec.name
-      connection_handler.establish_connection spec
+      config ||= DEFAULT_ENV.call.to_sym
+      spec_name = self == Base ? "primary" : name
+      self.connection_specification_name = spec_name
+      connection_handler.establish_connection(config, name: spec_name)
     end
 
     class MergeAndResolveDefaultUrlConfig # :nodoc:

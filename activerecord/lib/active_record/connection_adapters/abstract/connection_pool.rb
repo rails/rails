@@ -837,7 +837,15 @@ module ActiveRecord
       end
       alias :connection_pools :connection_pool_list
 
-      def establish_connection(spec)
+      def establish_connection(spec_or_config, name: "primary")
+        if spec_or_config.is_a?(ConnectionSpecification)
+          spec = spec_or_config
+        else
+          resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(ActiveRecord::Base.configurations)
+          spec = resolver.spec(spec_or_config, name)
+        end
+
+        remove_connection(spec.name)
         owner_to_pool[spec.name] = ConnectionAdapters::ConnectionPool.new(spec)
       end
 
