@@ -1,6 +1,11 @@
+gem "mysql2", ">= 0.3.18", "< 0.5"
+require "mysql2"
+raise "mysql2 0.4.3 is not supported. Please upgrade to 0.4.4+" if Mysql2::VERSION == "0.4.3"
+
 require "active_record/connection_adapters/abstract_adapter"
 require "active_record/connection_adapters/statement_pool"
 require "active_record/connection_adapters/mysql/column"
+require "active_record/connection_adapters/mysql/database_statements"
 require "active_record/connection_adapters/mysql/explain_pretty_printer"
 require "active_record/connection_adapters/mysql/quoting"
 require "active_record/connection_adapters/mysql/schema_creation"
@@ -11,10 +16,40 @@ require "active_record/connection_adapters/mysql/type_metadata"
 require "active_support/core_ext/string/strip"
 
 module ActiveRecord
+  module ConnectionHandling # :nodoc:
+    # Establishes a connection to the database that's used by all Active Record objects.
+    def mysql2_connection(config)
+      config = config.symbolize_keys
+
+      config[:username] = "root" if config[:username].nil?
+      config[:flags] ||= 0
+
+      if Mysql2::Client.const_defined? :FOUND_ROWS
+        if config[:flags].kind_of? Array
+          config[:flags].push "FOUND_ROWS".freeze
+        else
+          config[:flags] |= Mysql2::Client::FOUND_ROWS
+        end
+      end
+
+      client = Mysql2::Client.new(config)
+      ConnectionAdapters::Mysql2Adapter.new(client, logger, nil, config)
+    rescue Mysql2::Error => error
+      if error.message.include?("Unknown database")
+        raise ActiveRecord::NoDatabaseError
+      else
+        raise
+      end
+    end
+  end
+
   module ConnectionAdapters
-    class AbstractMysqlAdapter < AbstractAdapter
+    class Mysql2Adapter < AbstractAdapter
+      ADAPTER_NAME = "Mysql2".freeze
+
       include MySQL::Quoting
       include MySQL::ColumnDumper
+      include MySQL::DatabaseStatements
 
       def update_table_definition(table_name, base) # :nodoc:
         MySQL::Table.new(table_name, base)
@@ -66,6 +101,9 @@ module ActiveRecord
         super(connection, logger, config)
 
         @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
+        @prepared_statements = false unless config.key?(:prepared_statements)
+
+        configure_connection
 
         if version < "5.0.0"
           raise "Your version of MySQL (#{full_version.match(/^\d+\.\d+\.\d+/)[0]}) is too old. Active Record supports MySQL >= 5.0."
@@ -141,6 +179,22 @@ module ActiveRecord
         end
       end
 
+      def supports_json?
+        !mariadb? && version >= "5.7.8"
+      end
+
+      def supports_comments?
+        true
+      end
+
+      def supports_comments_in_create?
+        true
+      end
+
+      def supports_savepoints?
+        true
+      end
+
       def supports_advisory_locks?
         true
       end
@@ -163,20 +217,20 @@ module ActiveRecord
 
       # HELPER METHODS ===========================================
 
-      # The two drivers have slightly different ways of yielding hashes of results, so
-      # this method must be implemented to provide a uniform interface.
       def each_hash(result) # :nodoc:
-        raise NotImplementedError
-      end
-
-      def new_column(*args) #:nodoc:
-        MySQL::Column.new(*args)
+        if block_given?
+          result.each(as: :hash, symbolize_keys: true) do |row|
+            yield row
+          end
+        else
+          to_enum(:each_hash, result)
+        end
       end
 
       # Must return the MySQL error number from the exception, if the exception has an
       # error number.
       def error_number(exception) # :nodoc:
-        raise NotImplementedError
+        exception.error_number if exception.respond_to?(:error_number)
       end
 
       # REFERENTIAL INTEGRITY ====================================
@@ -192,7 +246,28 @@ module ActiveRecord
         end
       end
 
+      #--
       # CONNECTION MANAGEMENT ====================================
+      #++
+
+      def active?
+        return false unless @connection
+        @connection.ping
+      end
+
+      def reconnect!
+        super
+        disconnect!
+        connect
+      end
+      alias :reset! :reconnect!
+
+      # Disconnects from the database if already connected.
+      # Otherwise, this method does nothing.
+      def disconnect!
+        super
+        @connection.close
+      end
 
       # Clears the prepared statements cache.
       def clear_cache!
@@ -203,31 +278,6 @@ module ActiveRecord
       #--
       # DATABASE STATEMENTS ======================================
       #++
-
-      def explain(arel, binds = [])
-        sql     = "EXPLAIN #{to_sql(arel, binds)}"
-        start   = Time.now
-        result  = exec_query(sql, "EXPLAIN", binds)
-        elapsed = Time.now - start
-
-        MySQL::ExplainPrettyPrinter.new.pp(result, elapsed)
-      end
-
-      # Executes the SQL statement in the context of this connection.
-      def execute(sql, name = nil)
-        log(sql, name) do
-          ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-            @connection.query(sql)
-          end
-        end
-      end
-
-      # Mysql2Adapter doesn't have to free a result after using it, but we use this method
-      # to write stuff in an abstract way without concerning ourselves about whether it
-      # needs to be explicitly freed or not.
-      def execute_and_free(sql, name = nil) # :nodoc:
-        yield execute(sql, name)
-      end
 
       def begin_db_transaction
         execute "BEGIN"
@@ -410,6 +460,10 @@ module ActiveRecord
           end
           new_column(field[:Field], default, type_metadata, field[:Null] == "YES", table_name, default_function, field[:Collation], comment: field[:Comment].presence)
         end
+      end
+
+      def new_column(*args) # :nodoc:
+        MySQL::Column.new(*args)
       end
 
       def table_comment(table_name) # :nodoc:
@@ -840,7 +894,18 @@ module ActiveRecord
           mariadb? ? false : version >= "5.7.6"
         end
 
+        def full_version
+          @full_version ||= @connection.server_info[:version]
+        end
+
+        def connect
+          @connection = Mysql2::Client.new(@config)
+          configure_connection
+        end
+
         def configure_connection
+          @connection.query_options.merge!(as: :array)
+
           variables = @config.fetch(:variables, {}).stringify_keys
 
           # By default, MySQL 'where id is null' selects the last inserted id; Turn this off.

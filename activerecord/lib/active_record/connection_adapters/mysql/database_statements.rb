@@ -2,6 +2,15 @@ module ActiveRecord
   module ConnectionAdapters
     module MySQL
       module DatabaseStatements
+        def explain(arel, binds = [])
+          sql     = "EXPLAIN #{to_sql(arel, binds)}"
+          start   = Time.now
+          result  = exec_query(sql, "EXPLAIN", binds)
+          elapsed = Time.now - start
+
+          MySQL::ExplainPrettyPrinter.new.pp(result, elapsed)
+        end
+
         # Returns an ActiveRecord::Result instance.
         def select_all(arel, name = nil, binds = [], preparable: nil)
           result = if ExplainRegistry.collect? && prepared_statements
@@ -28,7 +37,11 @@ module ActiveRecord
           # made since we established the connection
           @connection.query_options[:database_timezone] = ActiveRecord::Base.default_timezone
 
-          super
+          log(sql, name) do
+            ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+              @connection.query(sql)
+            end
+          end
         end
 
         def exec_query(sql, name = "SQL", binds = [], prepare: false)
@@ -68,6 +81,10 @@ module ActiveRecord
             end
           end
 
+          def execute_and_free(sql, name = nil)
+            yield execute(sql, name)
+          end
+
           def exec_stmt_and_free(sql, name, binds, cache_stmt: false)
             # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
             # made since we established the connection
@@ -86,9 +103,10 @@ module ActiveRecord
               end
 
               begin
-                ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-                  result = stmt.execute(*type_casted_binds)
-                end
+                result =
+                  ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+                    stmt.execute(*type_casted_binds)
+                  end
               rescue Mysql2::Error => e
                 if cache_stmt
                   @statements.delete(sql)

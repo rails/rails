@@ -2,7 +2,7 @@ module ActiveRecord
   module ConnectionAdapters #:nodoc:
     # Abstract representation of an index definition on a table. Instances of
     # this type are typically created and returned by methods in database
-    # adapters. e.g. ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter#indexes
+    # adapters. e.g. ActiveRecord::ConnectionAdapters::Mysql2Adapter#indexes
     class IndexDefinition < Struct.new(:table, :name, :unique, :columns, :lengths, :orders, :where, :type, :using, :comment) #:nodoc:
     end
 
