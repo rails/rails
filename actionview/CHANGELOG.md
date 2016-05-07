@@ -1,6 +1,11 @@
+## Rails 5.0.0.rc1 (May 06, 2016) ##
+
+*   No changes.
+
+
 ## Rails 5.0.0.beta4 (April 27, 2016) ##
 
-*   `date_select` helper `:with_css_classes` option now accepts a hash of strings 
+*   `date_select` helper `:with_css_classes` option now accepts a hash of strings
     for `:year`, `:month`, `:day`, `:hour`, `:minute`, `:second` that will extend
     the select type with the given css class value.
 
