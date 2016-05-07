@@ -470,7 +470,7 @@ the data argument arriving to `#received`.
 
 ### More complete examples
 
-See the [rails/actioncable-examples](http://github.com/rails/actioncable-examples)
+See the [rails/actioncable-examples](https://github.com/rails/actioncable-examples)
 repository for a full example of how to setup Action Cable in a Rails app and adding channels.
 
 ## Configuration
