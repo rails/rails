@@ -33,3 +33,9 @@
     if @debugging
       messages.push(Date.now())
       console.log("[ActionCable]", messages...)
+
+# NOTE: We expose ActionCable as a browser global so we can reference it
+# internally without concern for how the module is loaded.
+window?.ActionCable = @ActionCable
+
+module?.exports = @ActionCable
