@@ -71,7 +71,7 @@ module ActionController
         attrs.flatten.each { |attr| helper_method(attr, "#{attr}=") }
       end
 
-      # Provides a proxy to access helpers methods from outside the view.
+      # Provides a proxy to access helper methods from outside the view.
       def helpers
         @helper_proxy ||= begin
           proxy = ActionView::Base.new
@@ -114,7 +114,7 @@ module ActionController
       end
     end
 
-    # Provides a proxy to access helpers methods from outside the view.
+    # Provides a proxy to access helper methods from outside the view.
     def helpers
       @_helper_proxy ||= view_context
     end
