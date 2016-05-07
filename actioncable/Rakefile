@@ -29,7 +29,7 @@ end
 
 namespace :assets do
   root_path = Pathname.new(dir)
-  destination_path = root_path.join("lib/assets/compiled")
+  destination_paths = [ root_path.join("lib/assets/compiled"), root_path.join("dist") ]
 
   desc "Compile dist/action_cable.js"
   task :compile do
@@ -50,10 +50,13 @@ namespace :assets do
     manifest = Sprockets::Manifest.new(environment.index, compile_path)
     manifest.compile(precompile_list)
 
-    destination_path.rmtree if destination_path.exist?
+    destination_paths.each { |path| path.rmtree if path.exist? }
+
     manifest.assets.each do |path, fingerprint_path|
-      destination_path.join(path).dirname.mkpath
-      FileUtils.cp(compile_path.join(fingerprint_path), destination_path.join(path))
+      destination_paths.each do |destination_path|
+        destination_path.join(path).dirname.mkpath
+        FileUtils.cp(compile_path.join(fingerprint_path), destination_path.join(path))
+      end
     end
 
     puts 'Done'

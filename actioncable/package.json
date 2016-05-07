@@ -1,0 +1,28 @@
+{
+  "name": "actioncable",
+  "version": "5.0.0-beta4",
+  "description": "WebSocket framework for Rails.",
+  "main": "dist/actioncable.js",
+  "files": [
+    "dist/*.css",
+    "dist/*.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rails/rails.git"
+  },
+  "keywords": [
+    "websockets",
+    "actioncable",
+    "rails"
+  ],
+  "author": "David Heinemeier Hansson <david@loudthinking.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rails/rails/issues"
+  },
+  "homepage": "http://rubyonrails.org/",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
