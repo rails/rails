@@ -130,11 +130,11 @@ learn about Ruby on Rails, and the API, which serves as a reference.
 
 You can help improve the Rails guides by making them more coherent, consistent or readable, adding missing information, correcting factual errors, fixing typos, or bringing them up to date with the latest edge Rails.
 
-You can either open a pull request to [Rails](http://github.com/rails/rails) or
+You can either open a pull request to [Rails](https://github.com/rails/rails) or
 ask the [Rails core team](http://rubyonrails.org/core) for commit access on
 docrails if you contribute regularly.
 Please do not open pull requests in docrails, if you'd like to get feedback on your
-change, ask for it in [Rails](http://github.com/rails/rails) instead.
+change, ask for it in [Rails](https://github.com/rails/rails) instead.
 
 Docrails is merged with master regularly, so you are effectively editing the Ruby on Rails documentation.
 
@@ -174,8 +174,8 @@ Translation efforts we know about (various versions):
 
 * **Italian**: [https://github.com/rixlabs/docrails](https://github.com/rixlabs/docrails)
 * **Spanish**: [http://wiki.github.com/gramos/docrails](http://wiki.github.com/gramos/docrails)
-* **Polish**: [http://github.com/apohllo/docrails/tree/master](http://github.com/apohllo/docrails/tree/master)
-* **French** : [http://github.com/railsfrance/docrails](http://github.com/railsfrance/docrails)
+* **Polish**: [https://github.com/apohllo/docrails/tree/master](https://github.com/apohllo/docrails/tree/master)
+* **French** : [https://github.com/railsfrance/docrails](https://github.com/railsfrance/docrails)
 * **Czech** : [https://github.com/rubyonrails-cz/docrails/tree/czech](https://github.com/rubyonrails-cz/docrails/tree/czech)
 * **Turkish** : [https://github.com/ujk/docrails/tree/master](https://github.com/ujk/docrails/tree/master)
 * **Korean** : [https://github.com/rorlakr/rails-guides](https://github.com/rorlakr/rails-guides)
