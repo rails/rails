@@ -135,6 +135,11 @@ module ActionView
       end
       alias :any_templates? :any?
 
+      def find_all_partials_with(query) #:nodoc:
+        prefix = query.chomp('/*')
+        @view_paths.find_all_unescaped(*args_for_lookup('*', prefix, true, [], {}))
+      end
+
       # Adds fallbacks to the view paths. Useful in cases when you are rendering
       # a :file.
       def with_fallbacks

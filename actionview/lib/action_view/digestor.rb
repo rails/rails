@@ -49,7 +49,7 @@ module ActionView
           else
             node = seen[template.identifier] = Node.create(name, logical_name, template, partial)
 
-            deps = DependencyTracker.find_dependencies(name, template, finder.view_paths)
+            deps = DependencyTracker.find_dependencies(name, template, finder)
             deps.uniq { |n| n.gsub(%r|/_|, "/") }.each do |dep_file|
               node.children << tree(dep_file, finder, true, seen)
             end

@@ -5,16 +5,16 @@ module ActionView
   class DependencyTracker # :nodoc:
     @trackers = Concurrent::Map.new
 
-    def self.find_dependencies(name, template, view_paths = nil)
+    def self.find_dependencies(name, template, lookup_context = nil)
       tracker = @trackers[template.handler]
       return [] unless tracker
 
-      tracker.call(name, template, view_paths)
+      tracker.call(name, template, lookup_context)
     end
 
     def self.register_tracker(extension, tracker)
       handler = Template.handler_for_extension(extension)
-      if tracker.respond_to?(:supports_view_paths?)
+      if tracker.respond_to?(:supports_lookup_context?)
         @trackers[handler] = tracker
       else
         @trackers[handler] = lambda { |name, template, _|
@@ -86,16 +86,16 @@ module ActionView
         (?:#{STRING}|#{VARIABLE_OR_METHOD_CHAIN})      # finally, the dependency name of interest
       /xm
 
-      def self.supports_view_paths? # :nodoc:
+      def self.supports_lookup_context? # :nodoc:
         true
       end
 
-      def self.call(name, template, view_paths = nil)
-        new(name, template, view_paths).dependencies
+      def self.call(name, template, lookup_context = nil)
+        new(name, template, lookup_context).dependencies
       end
 
-      def initialize(name, template, view_paths = nil)
-        @name, @template, @view_paths = name, template, view_paths
+      def initialize(name, template, lookup_context = nil)
+        @name, @template, @lookup_context = name, template, lookup_context
       end
 
       def dependencies
@@ -151,11 +151,11 @@ module ActionView
         end
 
         def resolve_directories(wildcard_dependencies)
-          return [] unless @view_paths
+          return [] unless @lookup_context
 
           wildcard_dependencies.flat_map { |query, templates|
-            @view_paths.find_all_with_query(query).map do |template|
-              "#{File.dirname(query)}/#{File.basename(template).split('.').first}"
+            @lookup_context.find_all_partials_with(query).map do |template|
+              "#{File.dirname(query)}/#{File.basename(template.identifier)}"
             end
           }.sort
         end

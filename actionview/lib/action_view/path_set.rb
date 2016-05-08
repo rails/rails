@@ -58,9 +58,9 @@ module ActionView #:nodoc:
       find_all(path, prefixes, *args).any?
     end
 
-    def find_all_with_query(query) # :nodoc:
+    def find_all_unescaped(*args) # :nodoc:
       paths.each do |resolver|
-        templates = resolver.find_all_with_query(query)
+        templates = resolver.find_all_unescaped(*args)
         return templates unless templates.empty?
       end
 
