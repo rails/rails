@@ -370,9 +370,16 @@ module ApplicationTests
       end
     end
 
-    test "config.serve_static_files is deprecated" do
+    def test_config_serve_static_files_is_deprecated
+      message = "`config.serve_static_files` is deprecated and will be " \
+        "removed in Rails 5.1. Please use `config.public_file_server.enabled"
+
       make_basic_app do |application|
-        assert_deprecated do
+        assert_deprecated("#{message}` instead.") do
+          application.config.serve_static_files
+        end
+
+        assert_deprecated("#{message} = true` instead.") do
           application.config.serve_static_files = true
         end
 
@@ -380,13 +387,18 @@ module ApplicationTests
       end
     end
 
-    test "config.static_cache_control is deprecated" do
+    def test_config_static_cache_control_is_deprecated
+      value   = "public, max-age=60"
+      message = "`config.static_cache_control` is deprecated and will be " \
+        "removed in Rails 5.1. Please use `config.public_file_server.headers" \
+        " = { 'Cache-Control' => '#{value}' }` instead."
+
       make_basic_app do |application|
-        assert_deprecated do
-          application.config.static_cache_control = "public, max-age=60"
+        assert_deprecated(message) do
+          application.config.static_cache_control = value
         end
 
-        assert_equal application.config.static_cache_control, "public, max-age=60"
+        assert_equal application.config.static_cache_control, value
       end
     end
 
