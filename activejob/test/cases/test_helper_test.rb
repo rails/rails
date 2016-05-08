@@ -4,6 +4,7 @@ require 'active_support/core_ext/date'
 require 'jobs/hello_job'
 require 'jobs/logging_job'
 require 'jobs/nested_job'
+require 'jobs/requeue_job'
 require 'jobs/rescue_job'
 require 'models/person'
 
@@ -308,8 +309,42 @@ class PerformedJobsTest < ActiveJob::TestCase
       perform_enqueued_jobs do
         HelloJob.perform_later('aaron')
         HelloJob.perform_later('matthew')
-        assert_performed_jobs 3
       end
+      assert_performed_jobs 3
+    end
+  end
+
+  def test_perform_enqueued_jobs
+    assert_nothing_raised do
+      perform_enqueued_jobs do
+        HelloJob.perform_later
+        assert_enqueued_jobs 1
+        assert_performed_jobs 0
+      end
+      assert_enqueued_jobs 1
+      assert_performed_jobs 1
+    end
+  end
+
+  def test_perform_enqueued_jobs_that_requeue
+    assert_nothing_raised do
+      perform_enqueued_jobs do
+        RequeueJob.perform_later
+        assert_enqueued_jobs 1
+      end
+      assert_enqueued_jobs 2
+      assert_performed_jobs 1
+    end
+  end
+
+  def test_perform_enqueued_jobs_that_requeue_wait
+    assert_nothing_raised do
+      perform_enqueued_jobs do
+        RequeueWaitJob.perform_later
+        assert_enqueued_jobs 1
+      end
+      assert_enqueued_jobs 2
+      assert_performed_jobs 1
     end
   end
 

@@ -4,7 +4,8 @@ require 'active_support/core_ext/hash/keys'
 module ActiveJob
   # Provides helper methods for testing Active Job
   module TestHelper
-    delegate :enqueued_jobs, :enqueued_jobs=,
+    delegate :to_perform_jobs, :to_perform_jobs=,
+      :enqueued_jobs, :enqueued_jobs=,
       :performed_jobs, :performed_jobs=,
       to: :queue_adapter
 
@@ -163,6 +164,7 @@ module ActiveJob
     def assert_performed_jobs(number, only: nil)
       if block_given?
         original_count = performed_jobs.size
+        clear_to_perform_jobs  # If a block is passed, that block should cause the specified number of jobs to be performed.
         perform_enqueued_jobs(only: only) { yield }
         new_count = performed_jobs.size
         assert_equal number, new_count - original_count,
@@ -262,10 +264,11 @@ module ActiveJob
       old_filter = queue_adapter.filter
 
       begin
-        queue_adapter.perform_enqueued_jobs = true
-        queue_adapter.perform_enqueued_at_jobs = true
+        queue_adapter.perform_enqueued_jobs = false
+        queue_adapter.perform_enqueued_at_jobs = false
         queue_adapter.filter = only
         yield
+        queue_adapter.perform_jobs
       ensure
         queue_adapter.perform_enqueued_jobs = old_perform_enqueued_jobs
         queue_adapter.perform_enqueued_at_jobs = old_perform_enqueued_at_jobs
@@ -278,6 +281,10 @@ module ActiveJob
     end
 
     private
+      def clear_to_perform_jobs # :nodoc:
+        to_perform_jobs.clear
+      end
+
       def clear_enqueued_jobs # :nodoc:
         enqueued_jobs.clear
       end
