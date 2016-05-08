@@ -22,7 +22,11 @@ module Enumerable
       map(&block).sum(identity)
     else
       sum = identity ? inject(identity, :+) : inject(:+)
-      sum || identity || 0
+      if !sum && count == 0
+        identity || 0
+      else
+        sum
+      end
     end
   end
 

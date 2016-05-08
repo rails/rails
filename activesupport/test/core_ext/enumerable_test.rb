@@ -77,6 +77,12 @@ class EnumerableTests < ActiveSupport::TestCase
 
     sum = GenericEnumerable.new([1, 2]).sum(10) {|v| v * 2 }
     assert_typed_equal(16, sum, Integer)
+
+    sum = GenericEnumerable.new([nil]).sum
+    assert_equal nil, sum
+
+    sum = GenericEnumerable.new([false]).sum
+    assert_equal false, sum
   end
 
   def test_nil_sums
