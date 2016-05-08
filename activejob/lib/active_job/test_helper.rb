@@ -267,7 +267,7 @@ module ActiveJob
         queue_adapter.perform_enqueued_jobs = false
         queue_adapter.perform_enqueued_at_jobs = false
         queue_adapter.filter = only
-        yield
+        yield if block_given?
         queue_adapter.perform_jobs
       ensure
         queue_adapter.perform_enqueued_jobs = old_perform_enqueued_jobs
