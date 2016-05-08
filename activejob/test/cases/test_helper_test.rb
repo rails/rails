@@ -326,6 +326,20 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_perform_enqueued_jobs_performs_previously_queued_jobs
+    assert_nothing_raised do
+      HelloJob.perform_later
+      assert_enqueued_jobs 1
+      assert_performed_jobs 0
+
+      perform_enqueued_jobs do
+      end
+
+      assert_enqueued_jobs 1
+      assert_performed_jobs 1
+    end
+  end
+
   def test_perform_enqueued_jobs_that_requeue
     assert_nothing_raised do
       perform_enqueued_jobs do
