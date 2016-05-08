@@ -5,8 +5,18 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
   include InTimeZone
 
+  class TransformsType < ActiveRecord::Type::Integer
+    def deserialize(value)
+      # This will raise if value isn't an integer.
+      value + 1 if value
+    end
+  end
+
   class PgArray < ActiveRecord::Base
     self.table_name = 'pg_arrays'
+
+    oid = ActiveRecord::ConnectionAdapters::PostgreSQL::OID
+    attribute :transforms, oid::Array.new(TransformsType.new)
   end
 
   def setup
@@ -18,6 +28,7 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
       @connection.create_table('pg_arrays') do |t|
         t.string 'tags', array: true
         t.integer 'ratings', array: true
+        t.integer 'transforms', array: true
         t.datetime :datetimes, array: true
         t.hstore :hstores, array: true
       end
@@ -106,6 +117,17 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
     x.reload
 
     assert_equal([1, 2], x.ratings)
+  end
+
+  def test_type_cast_custom_attribute_types
+    x = PgArray.new(transforms: [1, 2])
+
+    assert_equal([1, 2], x.transforms)
+
+    x.save!
+    x.reload
+
+    assert_equal([2, 3], x.transforms)
   end
 
   def test_schema_dump_with_shorthand
