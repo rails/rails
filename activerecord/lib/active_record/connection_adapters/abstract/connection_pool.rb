@@ -298,7 +298,7 @@ module ActiveRecord
         def run
           return unless frequency
           Thread.new(frequency, pool) { |t, p|
-            while true
+            loop do
               sleep t
               p.reap
             end
@@ -618,7 +618,7 @@ module ActiveRecord
         timeout_time      = Time.now + (@checkout_timeout * 2)
 
         @available.with_a_bias_for(Thread.current) do
-          while true
+          loop do
             synchronize do
               return if collected_conns.size == @connections.size && @now_connecting == 0
               remaining_timeout = timeout_time - Time.now
