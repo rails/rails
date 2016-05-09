@@ -28,6 +28,11 @@ before_install:
 before_script:
   - bundle update
 
+  # Set Sauce Labs username and access key. Obfuscated, purposefully not encrypted.
+  # Decodes to e.g. `export VARIABLE=VALUE`
+  - $(base64 --decode <<< "ZXhwb3J0IFNBVUNFX0FDQ0VTU19LRVk9YTAzNTM0M2YtZTkyMi00MGIzLWFhM2MtMDZiM2VhNjM1YzQ4")
+  - $(base64 --decode <<< "ZXhwb3J0IFNBVUNFX1VTRVJOQU1FPXJ1YnlvbnJhaWxz")
+
 script: 'ci/travis.rb'
 
 env:
@@ -36,6 +41,8 @@ env:
     - "GEM=ap"
     - "GEM=ac"
     - "GEM=ac FAYE=1"
+    - "GEM=ac:integration"
+    - "GEM=ac:integration FAYE=1"
     - "GEM=am,amo,as,av,aj"
     - "GEM=as PRESERVE_TIMEZONES=1"
     - "GEM=ar:mysql2"
@@ -65,6 +72,8 @@ matrix:
   allow_failures:
     - rvm: ruby-head
     - rvm: jruby-9.0.5.0
+    - env: "GEM=ac:integration"
+    - env: "GEM=ac:integration FAYE=1"
   fast_finish: true
 
 notifications:

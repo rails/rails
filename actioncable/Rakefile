@@ -24,8 +24,12 @@ namespace :test do
     end or raise "Failures"
   end
 
-  task :javascript do
-    Blade.start(interface: :runner)
+  task :integration do
+    if ENV['CI']
+      Blade.start(interface: :ci)
+    else
+      Blade.start(interface: :runner)
+    end
   end
 end
 
