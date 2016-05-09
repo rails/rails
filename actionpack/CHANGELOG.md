@@ -1,3 +1,12 @@
+*   Update `Session::CookieStore` to use `HashWithIndifferentAccess`
+
+        session[:deep][:hash] = "Magic"
+
+        session[:deep][:hash] == "Magic"
+        session[:deep]["hash"] == "Magic"
+
+    *Tom Prats*
+
 ## Rails 5.0.0.rc1 (May 06, 2016) ##
 
 *   Add `ActionController#helpers` to get access to the view context at the controller
