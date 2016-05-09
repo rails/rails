@@ -292,7 +292,24 @@
 *   Change the default template handler from `ERB` to `Raw`.
 
     Files without a template handler in their extension will be rendered using the raw
-    handler instead of ERB.
+    handler instead of ERB. The raw handler does not flag the rendered text as html safe,
+    so if your application rendered plain JS or HTML files before, you'll have to replace:
+
+    ```erb
+    <%= render '/common/analytics.js' %>
+    ```
+
+    with either
+
+    ```erb
+    <%= raw render '/common/analytics.js' %>
+    ```
+
+    or
+
+    ```erb
+    <%= render('/common/analytics.js').html_safe %>
+    ```
 
     *Rafael Mendonça França*
 
