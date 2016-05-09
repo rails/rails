@@ -36,6 +36,8 @@ env:
     - "GEM=ap"
     - "GEM=ac"
     - "GEM=ac FAYE=1"
+    - "GEM=ac:integration"
+    - "GEM=ac:integration FAYE=1"
     - "GEM=am,amo,as,av,aj"
     - "GEM=as PRESERVE_TIMEZONES=1"
     - "GEM=ar:mysql2"

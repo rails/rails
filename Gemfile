@@ -64,7 +64,9 @@ group :cable do
   gem 'redis', require: false
 
   gem 'faye-websocket', require: false
+
   gem 'blade', '~> 0.5.5', require: false
+  gem 'blade-sauce_labs_plugin', github: 'javan/blade-sauce_labs_plugin', require: false
 end
 
 # Add your own local bundler stuff.

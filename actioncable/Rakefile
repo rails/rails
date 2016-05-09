@@ -9,7 +9,7 @@ task :default => :test
 
 task :package => "assets:compile"
 
-Rake::TestTask.new do |t|
+Rake::TestTask.new(:test) do |t|
   t.libs << "test"
   t.test_files = Dir.glob("#{dir}/test/**/*_test.rb")
   t.warning = true
@@ -24,8 +24,12 @@ namespace :test do
     end or raise "Failures"
   end
 
-  task :javascript do
-    Blade.start(interface: :runner)
+  task :integration do
+    if ENV['CI']
+      Blade.start(interface: :ci)
+    else
+      Blade.start(interface: :runner)
+    end
   end
 end
 
