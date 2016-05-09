@@ -390,7 +390,7 @@ create and read. The form for doing this will look like this:
 It will look a little basic for now, but that's ok. We'll look at improving the
 styling for it afterwards.
 
-### Laying down the ground work
+### Laying down the groundwork
 
 Firstly, you need a place within the application to create a new article. A
 great place for that would be at `/articles/new`. With the route already
@@ -474,7 +474,7 @@ one here because the `ArticlesController` inherits from `ApplicationController`.
 The next part of the message contains a hash. The `:locale` key in this hash
 simply indicates which spoken language template should be retrieved. By default,
 this is the English - or "en" - template. The next key, `:formats` specifies the
-format of template to be served in response. The default format is `:html`, and
+format of the template to be served in response. The default format is `:html`, and
 so Rails is looking for an HTML template. The final key, `:handlers`, is telling
 us what _template handlers_ could be used to render our template. `:erb` is most
 commonly used for HTML templates, `:builder` is used for XML templates, and
