@@ -5,3 +5,22 @@ load_paths:
 
 logical_paths:
   - test.js
+
+plugins:
+  sauce_labs:
+    browsers:
+      Google Chrome:
+        os: Mac, Windows
+        version: -2
+      Firefox:
+        os: Mac, Windows
+        version: -2
+      Safari:
+        platform: Mac
+        version: -3
+      Internet Explorer:
+        version: -1
+      iPhone:
+        version: [9.1, 8.4]
+      Motorola Droid 4 Emulator:
+        version: [5.1, 4.4]

@@ -119,10 +119,16 @@ GEM
       thor (~> 0.19.1)
       useragent (~> 0.16.7)
     blade-qunit_adapter (1.20.0)
+    blade-sauce_labs_plugin (0.5.1)
+      childprocess
+      faraday
+      selenium-webdriver
     builder (3.2.2)
     bunny (2.2.2)
       amq-protocol (>= 2.0.1)
     byebug (8.2.5)
+    childprocess (0.5.9)
+      ffi (~> 1.0, >= 1.0.11)
     coffee-rails (4.1.1)
       coffee-script (>= 2.2.0)
       railties (>= 4.0.0, < 5.1.x)
@@ -158,6 +164,8 @@ GEM
     eventmachine (1.2.0.1-x64-mingw32)
     eventmachine (1.2.0.1-x86-mingw32)
     execjs (2.6.0)
+    faraday (0.9.2)
+      multipart-post (>= 1.2, < 3)
     faye (1.1.2)
       cookiejar (>= 0.3.0)
       em-http-request (>= 0.3.0)
@@ -203,6 +211,7 @@ GEM
       metaclass (~> 0.0.1)
     mono_logger (1.1.0)
     multi_json (1.12.0)
+    multipart-post (2.0.0)
     mustache (1.0.3)
     mysql2 (0.4.4)
     mysql2 (0.4.4-x64-mingw32)
@@ -256,10 +265,15 @@ GEM
       redis (~> 3.0)
       resque (~> 1.25)
       rufus-scheduler (~> 3.2)
+    rubyzip (1.2.0)
     rufus-scheduler (3.2.1)
     sdoc (0.4.1)
       json (~> 1.7, >= 1.7.7)
       rdoc (~> 4.0)
+    selenium-webdriver (2.53.0)
+      childprocess (~> 0.5)
+      rubyzip (~> 1.0)
+      websocket (~> 1.0)
     sequel (4.34.0)
     serverengine (1.5.11)
       sigdump (~> 0.2.2)
@@ -309,6 +323,7 @@ GEM
       json
       nokogiri
     wdm (0.1.1)
+    websocket (1.2.3)
     websocket-driver (0.6.3)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.2)
@@ -326,6 +341,7 @@ DEPENDENCIES
   bcrypt (~> 3.1.11)
   benchmark-ips
   blade (~> 0.5.1)
+  blade-sauce_labs_plugin (~> 0.5.1)
   byebug
   coffee-rails (~> 4.1.0)
   dalli (>= 2.2.1)
