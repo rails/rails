@@ -20,7 +20,7 @@ http://travis-ci.org/rails/rails
 ### Is Sam Ruby happy?  If not, make him happy.
 
 Sam Ruby keeps a [test suite](https://github.com/rubys/awdwr) that makes
-sure the code samples in his book 
+sure the code samples in his book
 ([Agile Web Development with Rails](https://pragprog.com/titles/rails5/agile-web-development-with-rails-5th-edition))
 all work.  These are valuable system tests
 for Rails.  You can check the status of these tests here:
@@ -123,6 +123,16 @@ $ git tag -m 'v3.0.10.rc1 release' v3.0.10.rc1
 $ git push
 $ git push --tags
 $ for i in $(ls pkg); do gem push $i; done
+```
+
+However, due to that Action Cable also maintains an `npm` package (you must have `npm` installed in order to release Rails) here are the additional build steps that are run to release it:
+
+```
+# This is run as a part of the actioncable:update_versions rake task
+npm version #{version} --no-git-tag-version
+
+# This is run as a part of the actioncable:push rake task
+npm publish
 ```
 
 ### Send Rails release announcements
