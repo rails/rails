@@ -44,6 +44,13 @@ directory "pkg"
       raise "Could not insert PRE in #{file}" unless $1
 
       File.open(file, 'w') { |f| f.write ruby }
+
+      if framework == "actioncable"
+        Dir.chdir("#{root}/actioncable") do
+          version = version.gsub(/\./).with_index { |s, i| i === 2 ? '-' : s }
+          sh "npm version #{version} --no-git-tag-version"
+        end
+      end
     end
 
     task gem => %w(update_versions pkg) do
@@ -51,6 +58,7 @@ directory "pkg"
       cmd << "cd #{framework} && " unless framework == "rails"
       cmd << "bundle exec rake package && " unless framework == "rails"
       cmd << "gem build #{gemspec} && mv #{framework}-#{version}.gem #{root}/pkg/"
+      cmd << "&& npm publish" if framework == "rails"
       sh cmd
     end
 
