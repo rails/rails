@@ -284,6 +284,23 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_all_day
+    beginning_of_day = Time.local(2011,6,7,0,0,0)
+    end_of_day = Time.local(2011,6,7,23,59,59,Rational(999999999, 1000))
+    assert_equal beginning_of_day..end_of_day, Date.new(2011,6,7).all_day
+  end
+
+  def test_all_day_when_zone_is_set
+    zone = ActiveSupport::TimeZone["Hawaii"]
+    with_env_tz "UTC" do
+      with_tz_default zone do
+        beginning_of_day = zone.local(2011,6,7,0,0,0)
+        end_of_day = zone.local(2011,6,7,23,59,59,Rational(999999999, 1000))
+        assert_equal beginning_of_day..end_of_day, Date.new(2011,6,7).all_day
+      end
+    end
+  end
+
   def test_all_week
     assert_equal Date.new(2011,6,6)..Date.new(2011,6,12), Date.new(2011,6,7).all_week
     assert_equal Date.new(2011,6,5)..Date.new(2011,6,11), Date.new(2011,6,7).all_week(:sunday)

@@ -227,11 +227,6 @@ class Time
   end
   alias :at_end_of_minute :end_of_minute
 
-  # Returns a Range representing the whole day of the current time.
-  def all_day
-    beginning_of_day..end_of_day
-  end
-
   def plus_with_duration(other) #:nodoc:
     if ActiveSupport::Duration === other
       other.since(self)
