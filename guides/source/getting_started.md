@@ -337,7 +337,7 @@ TIP: For more information about routing, refer to [Rails Routing from the Outsid
 Getting Up and Running
 ----------------------
 
-Now that you've seen how to create a controller, an action and a view, let's
+Now that you've seen how to create a controller, an action, and a view, let's
 create something with a bit more substance.
 
 In the Blog application, you will now create a new _resource_. A resource is the
@@ -385,9 +385,9 @@ create and read. The form for doing this will look like this:
 ![The new article form](images/getting_started/new_article.png)
 
 It will look a little basic for now, but that's ok. We'll look at improving the
-styling for it afterwards.
+styling for it afterward.
 
-### Laying down the ground work
+### Laying down the groundwork
 
 Firstly, you need a place within the application to create a new article. A
 great place for that would be at `/articles/new`. With the route already
@@ -430,7 +430,7 @@ If you refresh <http://localhost:3000/articles/new> now, you'll get a new error:
 
 This error indicates that Rails cannot find the `new` action inside the
 `ArticlesController` that you just generated. This is because when controllers
-are generated in Rails they are empty by default, unless you tell it
+are generated in Rails they are empty by default unless you tell it
 your desired actions during the generation process.
 
 To manually define an action inside a controller, all you need to do is to
@@ -471,7 +471,7 @@ one here because the `ArticlesController` inherits from `ApplicationController`.
 The next part of the message contains a hash. The `:locale` key in this hash
 simply indicates which spoken language template should be retrieved. By default,
 this is the English - or "en" - template. The next key, `:formats` specifies the
-format of template to be served in response. The default format is `:html`, and
+format of the template to be served in response. The default format is `:html`, and
 so Rails is looking for an HTML template. The final key, `:handlers`, is telling
 us what _template handlers_ could be used to render our template. `:erb` is most
 commonly used for HTML templates, `:builder` is used for XML templates, and
@@ -490,7 +490,7 @@ this template can only be `html` and the handler must be one of `erb`,
 `builder` or `coffee`. Because you want to create a new HTML form, you will be
 using the `ERB` language which is designed to embed Ruby in HTML.
 
-Therefore the file should be called `articles/new.html.erb` and needs to be
+Therefore, the file should be called `articles/new.html.erb` and needs to be
 located inside the `app/views` directory of the application.
 
 Go ahead now and create a new file at `app/views/articles/new.html.erb` and
@@ -501,7 +501,7 @@ write this content in it:
 ```
 
 When you refresh <http://localhost:3000/articles/new> you'll now see that the
-page has a title. The route, controller, action and view are now working
+page has a title. The route, controller, action, and view are now working
 harmoniously! It's time to create the form for a new article.
 
 ### The first form
@@ -539,7 +539,7 @@ helper what this form is for. Inside the block for this method, the
 text fields, one each for the title and text of an article. Finally, a call to
 `submit` on the `f` object will create a submit button for the form.
 
-There's one problem with this form though. If you inspect the HTML that is
+There's one problem with this form, though. If you inspect the HTML that is
 generated, by viewing the source of the page, you will see that the `action`
 attribute for the form is pointing at `/articles/new`. This is a problem because
 this route goes to the very page that you're on right at the moment, and that
@@ -640,7 +640,7 @@ template error. Instead, you'll see something that looks like the following:
 
 This action is now displaying the parameters for the article that are coming in
 from the form. However, this isn't really all that helpful. Yes, you can see the
-parameters but nothing in particular is being done with them.
+parameters, but nothing in particular is being done with them.
 
 ### Creating the Article model
 
@@ -653,7 +653,7 @@ run this command in your terminal:
 $ bin/rails generate model Article title:string text:text
 ```
 
-With that command we told Rails that we want an `Article` model, together
+With that command, we told Rails that we want an `Article` model, together
 with a _title_ attribute of type string, and a _text_ attribute
 of type text. Those attributes are automatically added to the `articles`
 table in the database and mapped to the `Article` model.
@@ -742,7 +742,7 @@ end
 
 Here's what's going on: every Rails model can be initialized with its
 respective attributes, which are automatically mapped to the respective
-database columns. In the first line we do just that (remember that
+database columns. In the first line, we do just that (remember that
 `params[:article]` contains the attributes we're interested in). Then,
 `@article.save` is responsible for saving the model in the database. Finally,
 we redirect the user to the `show` action, which we'll define later.
@@ -781,7 +781,7 @@ assignment. In this case, we want to both allow and require the `title` and
 ```
 
 This is often factored out into its own method so it can be reused by multiple
-actions in the same controller, for example `create` and `update`. Above and
+actions in the same controller, for example, `create` and `update`. Above and
 beyond mass assignment issues, the method is often made `private` to make sure
 it can't be called outside its intended context. Here is the result:
 
@@ -806,7 +806,7 @@ TIP: For more information, refer to the reference above and
 ### Showing Articles
 
 If you submit the form again now, Rails will complain about not finding the
-`show` action. That's not very useful though, so let's add the `show` action
+`show` action. That's not very useful, though. So let's add the `show` action
 before proceeding.
 
 As we have seen in the output of `bin/rails routes`, the route for `show` action is
@@ -1191,7 +1191,7 @@ it look as follows:
 <%= link_to 'Back', articles_path %>
 ```
 
-This time we point the form to the `update` action, which is not defined yet
+This time, we point the form to the `update` action, which is not defined yet
 but will be very soon.
 
 The `method: :patch` option tells Rails that we want this form to be submitted
@@ -1512,7 +1512,7 @@ comments on articles.
 ### Generating a Model
 
 We're going to see the same generator that we used before when creating
-the `Article` model. This time we'll create a `Comment` model to hold
+the `Article` model. This time, we'll create a `Comment` model to hold
 reference to an article. Run this command in your terminal:
 
 ```bash
@@ -1571,7 +1571,7 @@ $ bin/rails db:migrate
 ```
 
 Rails is smart enough to only execute the migrations that have not already been
-run against the current database, so in this case you will just see:
+run against the current database. So, in this case, you will just see:
 
 ```bash
 ==  CreateComments: migrating =================================================
@@ -1964,7 +1964,7 @@ database and send us back to the show action for the article.
 ### Deleting Associated Objects
 
 If you delete an article, its associated comments will also need to be
-deleted, otherwise they would simply occupy space in the database. Rails allows
+deleted. Otherwise, they would simply occupy space in the database. Rails allows
 you to use the `dependent` option of an association to achieve this. Modify the
 Article model, `app/models/article.rb`, as follows:
 
