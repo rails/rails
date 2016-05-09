@@ -26,6 +26,7 @@ class TemplateDigestorTest < ActionView::TestCase
     @cwd     = Dir.pwd
     @tmp_dir = Dir.mktmpdir
 
+    ActionView::LookupContext::DetailsKey.clear
     FileUtils.cp_r FixtureFinder::FIXTURES_DIR, @tmp_dir
     Dir.chdir @tmp_dir
   end
@@ -33,7 +34,6 @@ class TemplateDigestorTest < ActionView::TestCase
   def teardown
     Dir.chdir @cwd
     FileUtils.rm_r @tmp_dir
-    ActionView::Digestor.cache.clear
   end
 
   def test_top_level_change_reflected
@@ -61,25 +61,21 @@ class TemplateDigestorTest < ActionView::TestCase
   end
 
   def test_explicit_dependency_wildcard_picks_up_added_file
-    old_caching, ActionView::Resolver.caching = ActionView::Resolver.caching, false
-
-    assert_digest_difference("events/index") do
-      add_template("events/_uncompleted")
+    disable_resolver_caching do
+      assert_digest_difference("events/index") do
+        add_template("events/_uncompleted")
+      end
     end
-  ensure
-    remove_template("events/_uncompleted")
-    ActionView::Resolver.caching = old_caching
   end
 
   def test_explicit_dependency_wildcard_picks_up_removed_file
-    old_caching, ActionView::Resolver.caching = ActionView::Resolver.caching, false
-    add_template("events/_subscribers_changed")
+    disable_resolver_caching do
+      add_template("events/_subscribers_changed")
 
-    assert_digest_difference("events/index") do
-      remove_template("events/_subscribers_changed")
+      assert_digest_difference("events/index") do
+        remove_template("events/_subscribers_changed")
+      end
     end
-  ensure
-    ActionView::Resolver.caching = old_caching
   end
 
   def test_second_level_dependency
@@ -144,6 +140,11 @@ class TemplateDigestorTest < ActionView::TestCase
     assert_digest_difference("messages/show") do
       change_template("messages/actions/_move")
     end
+  end
+
+  def test_nested_template_deps
+    nested_deps = ["messages/header", {"comments/comments"=>["comments/comment"]}, "messages/actions/move", "events/event", "messages/something_missing", "messages/something_missing_1", "messages/message", "messages/form"]
+    assert_equal nested_deps, nested_dependencies("messages/show")
   end
 
   def test_recursion_in_renders
@@ -268,18 +269,15 @@ class TemplateDigestorTest < ActionView::TestCase
   end
 
   def test_digest_cache_cleanup_with_recursion_and_template_caching_off
-    resolver_before = ActionView::Resolver.caching
-    ActionView::Resolver.caching = false
+    disable_resolver_caching do
+      first_digest = digest("level/_recursion")
+      second_digest = digest("level/_recursion")
 
-    first_digest = digest("level/_recursion")
-    second_digest = digest("level/_recursion")
+      assert first_digest
 
-    assert first_digest
-
-    # If the cache is cleaned up correctly, subsequent digests should return the same
-    assert_equal first_digest, second_digest
-  ensure
-    ActionView::Resolver.caching = resolver_before
+      # If the cache is cleaned up correctly, subsequent digests should return the same
+      assert_equal first_digest, second_digest
+    end
   end
 
 
@@ -301,28 +299,36 @@ class TemplateDigestorTest < ActionView::TestCase
 
     def assert_digest_difference(template_name, options = {})
       previous_digest = digest(template_name, options)
-      ActionView::Digestor.cache.clear
+      finder.digest_cache.clear
 
       yield
 
       assert_not_equal previous_digest, digest(template_name, options), "digest didn't change"
-      ActionView::Digestor.cache.clear
+      finder.digest_cache.clear
     end
 
     def digest(template_name, options = {})
       options = options.dup
 
       finder.variants = options.delete(:variants) || []
-
-      ActionView::Digestor.digest({ name: template_name, finder: finder }.merge(options))
+      ActionView::Digestor.digest(name: template_name, finder: finder, dependencies: (options[:dependencies] || []))
     end
 
     def dependencies(template_name)
-      ActionView::Digestor.new(template_name, finder).dependencies
+      tree = ActionView::Digestor.tree(template_name, finder)
+      tree.children.map(&:name)
     end
 
     def nested_dependencies(template_name)
-      ActionView::Digestor.new(template_name, finder).nested_dependencies
+      tree = ActionView::Digestor.tree(template_name, finder)
+      tree.children.map(&:to_dep_map)
+    end
+
+    def disable_resolver_caching
+      old_caching, ActionView::Resolver.caching = ActionView::Resolver.caching, false
+      yield
+    ensure
+      ActionView::Resolver.caching = old_caching
     end
 
     def finder

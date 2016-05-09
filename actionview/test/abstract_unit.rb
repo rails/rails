@@ -1,5 +1,3 @@
-require File.expand_path('../../../load_paths', __FILE__)
-
 $:.unshift(File.dirname(__FILE__) + '/lib')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/helpers')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
@@ -95,12 +93,14 @@ module ActionDispatch
       super
       return if DrawOnce.drew
 
-      SharedTestRoutes.draw do
-        get ':controller(/:action)'
-      end
+      ActiveSupport::Deprecation.silence do
+        SharedTestRoutes.draw do
+          get ':controller(/:action)'
+        end
 
-      ActionDispatch::IntegrationTest.app.routes.draw do
-        get ':controller(/:action)'
+        ActionDispatch::IntegrationTest.app.routes.draw do
+          get ':controller(/:action)'
+        end
       end
 
       DrawOnce.drew = true

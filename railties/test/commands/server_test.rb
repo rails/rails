@@ -54,7 +54,8 @@ class Rails::ServerTest < ActiveSupport::TestCase
   def test_caching_without_option
     args = []
     options = Rails::Server::Options.new.parse!(args)
-    assert_equal nil, options[:caching]
+    merged_options = Rails::Server.new.default_options.merge(options)
+    assert_equal nil, merged_options[:caching]
   end
 
   def test_caching_with_option
@@ -116,5 +117,19 @@ class Rails::ServerTest < ActiveSupport::TestCase
     Dir.chdir("..") do
       assert_equal old_default_options, server.default_options
     end
+  end
+
+  def test_restart_command_contains_customized_options
+    original_args = ARGV.dup
+    args = ["-p", "4567"]
+    ARGV.replace args
+
+    options = Rails::Server::Options.new.parse! args
+    server = Rails::Server.new options
+    expected = "bin/rails server -p 4567"
+
+    assert_equal expected, server.default_options[:restart_cmd]
+  ensure
+    ARGV.replace original_args
   end
 end

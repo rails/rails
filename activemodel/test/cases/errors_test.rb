@@ -11,7 +11,7 @@ class ErrorsTest < ActiveModel::TestCase
     attr_reader   :errors
 
     def validate!
-      errors.add(:name, "cannot be nil") if name == nil
+      errors.add(:name, :blank, message: "cannot be nil") if name == nil
     end
 
     def read_attribute_for_validation(attr)
@@ -126,6 +126,13 @@ class ErrorsTest < ActiveModel::TestCase
     assert person.errors.empty?
     assert person.errors.blank?
     assert !person.errors.include?(:foo)
+  end
+
+  test "include? does not add a key to messages hash" do
+    person = Person.new
+    person.errors.include?(:foo)
+
+    assert_not person.errors.messages.key?(:foo)
   end
 
   test "adding errors using conditionals with Person#validate!" do

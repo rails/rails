@@ -15,11 +15,13 @@ module ActionMailer
       extend ActiveSupport::Concern
 
       included do
-        teardown :clear_test_deliviers
+        setup :clear_test_deliveries
+        teardown :clear_test_deliveries
       end
 
       private
-      def clear_test_deliviers
+
+      def clear_test_deliveries
         if ActionMailer::Base.delivery_method == :test
           ActionMailer::Base.deliveries.clear
         end
@@ -76,6 +78,7 @@ module ActionMailer
           set_delivery_method :test
           @old_perform_deliveries = ActionMailer::Base.perform_deliveries
           ActionMailer::Base.perform_deliveries = true
+          ActionMailer::Base.deliveries.clear
         end
 
         def restore_test_deliveries # :nodoc:
@@ -89,6 +92,7 @@ module ActionMailer
         end
 
         def restore_delivery_method # :nodoc:
+          ActionMailer::Base.deliveries.clear
           ActionMailer::Base.delivery_method = @old_delivery_method
         end
 
@@ -114,6 +118,5 @@ module ActionMailer
     end
 
     include Behavior
-    include ClearTestDeliveries
   end
 end

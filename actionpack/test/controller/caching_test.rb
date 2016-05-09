@@ -219,12 +219,15 @@ CACHED
   end
 
   def test_fragment_caching_with_options
+    time = Time.now
     get :fragment_cached_with_options
     assert_response :success
     expected_body = "<body>\n<p>ERB</p>\n</body>\n"
 
     assert_equal expected_body, @response.body
-    assert_equal "<p>ERB</p>", @store.read("views/with_options")
+    Time.stub(:now, time + 11) do
+      assert_nil @store.read("views/with_options")
+    end
   end
 
   def test_render_inline_before_fragment_caching
@@ -381,19 +384,14 @@ class CollectionCacheController < ActionController::Base
     render 'index'
   end
 
-  def index_explicit_render
+  def index_explicit_render_in_controller
     @customers = [Customer.new('david', 1)]
-    render partial: 'customers/customer', collection: @customers
+    render partial: 'customers/customer', collection: @customers, cached: true
   end
 
   def index_with_comment
     @customers = [Customer.new('david', 1)]
-    render partial: 'customers/commented_customer', collection: @customers, as: :customer
-  end
-
-  def index_with_callable_cache_key
-    @customers = [Customer.new('david', 1)]
-    render @customers, cache: -> customer { 'cached_david' }
+    render partial: 'customers/commented_customer', collection: @customers, as: :customer, cached: true
   end
 end
 
@@ -404,7 +402,7 @@ class AutomaticCollectionCacheTest < ActionController::TestCase
     @controller.perform_caching = true
     @controller.partial_rendered_times = 0
     @controller.cache_store = ActiveSupport::Cache::MemoryStore.new
-    ActionView::PartialRenderer.collection_cache = @controller.cache_store
+    ActionView::PartialRenderer.collection_cache = ActiveSupport::Cache::MemoryStore.new
   end
 
   def test_collection_fetches_cached_views
@@ -427,7 +425,7 @@ class AutomaticCollectionCacheTest < ActionController::TestCase
   end
 
   def test_explicit_render_call_with_options
-    get :index_explicit_render
+    get :index_explicit_render_in_controller
 
     assert_select ':root', "david, 1"
   end
@@ -438,12 +436,6 @@ class AutomaticCollectionCacheTest < ActionController::TestCase
 
     get :index_with_comment
     assert_equal 1, @controller.partial_rendered_times
-  end
-
-  def test_caching_with_callable_cache_key
-    get :index_with_callable_cache_key
-    assert_customer_cached 'cached_david', 'david, 1'
-    assert_customer_cached 'david/1', 'david, 1'
   end
 
   private

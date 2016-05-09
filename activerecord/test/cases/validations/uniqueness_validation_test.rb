@@ -5,6 +5,7 @@ require 'models/warehouse_thing'
 require 'models/guid'
 require 'models/event'
 require 'models/dashboard'
+require 'models/uuid_item'
 
 class Wizard < ActiveRecord::Base
   self.abstract_class = true
@@ -46,6 +47,18 @@ class BigIntReverseTest < ActiveRecord::Base
   self.table_name = 'cars'
   validates :engines_count, inclusion: { in: 0..INT_MAX_VALUE }
   validates :engines_count, uniqueness: true
+end
+
+class CoolTopic < Topic
+  validates_uniqueness_of :id
+end
+
+class TopicWithAfterCreate < Topic
+  after_create :set_author
+
+  def set_author
+    update_attributes!(:author_name => "#{title} #{id}")
+  end
 end
 
 class UniquenessValidationTest < ActiveRecord::TestCase
@@ -336,19 +349,41 @@ class UniquenessValidationTest < ActiveRecord::TestCase
   end
 
   def test_validate_uniqueness_with_limit
-    # Event.title is limited to 5 characters
-    e1 = Event.create(:title => "abcde")
-    assert e1.valid?, "Could not create an event with a unique, 5 character title"
-    e2 = Event.create(:title => "abcdefgh")
-    assert !e2.valid?, "Created an event whose title, with limit taken into account, is not unique"
+    if current_adapter?(:SQLite3Adapter)
+      # Event.title has limit 5, but SQLite doesn't truncate.
+      e1 = Event.create(title: "abcdefgh")
+      assert e1.valid?, "Could not create an event with a unique 8 characters title"
+
+      e2 = Event.create(title: "abcdefgh")
+      assert_not e2.valid?, "Created an event whose title is not unique"
+    elsif current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter, :SQLServerAdapter)
+      assert_raise(ActiveRecord::ValueTooLong) do
+        Event.create(title: "abcdefgh")
+      end
+    else
+      assert_raise(ActiveRecord::StatementInvalid) do
+        Event.create(title: "abcdefgh")
+      end
+    end
   end
 
   def test_validate_uniqueness_with_limit_and_utf8
-    # Event.title is limited to 5 characters
-    e1 = Event.create(:title => "一二三四五")
-    assert e1.valid?, "Could not create an event with a unique, 5 character title"
-    e2 = Event.create(:title => "一二三四五六七八")
-    assert !e2.valid?, "Created an event whose title, with limit taken into account, is not unique"
+    if current_adapter?(:SQLite3Adapter)
+      # Event.title has limit 5, but does SQLite doesn't truncate.
+      e1 = Event.create(title: "一二三四五六七八")
+      assert e1.valid?, "Could not create an event with a unique 8 characters title"
+
+      e2 = Event.create(title: "一二三四五六七八")
+      assert_not e2.valid?, "Created an event whose title is not unique"
+    elsif current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter, :SQLServerAdapter)
+      assert_raise(ActiveRecord::ValueTooLong) do
+        Event.create(title: "一二三四五六七八")
+      end
+    else
+      assert_raise(ActiveRecord::StatementInvalid) do
+        Event.create(title: "一二三四五六七八")
+      end
+    end
   end
 
   def test_validate_straight_inheritance_uniqueness
@@ -412,23 +447,6 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert topic.valid?
   end
 
-  def test_does_not_validate_uniqueness_of_if_parent_record_is_validate_false
-    Reply.validates_uniqueness_of(:content)
-
-    Reply.create!(content: "Topic Title")
-
-    reply = Reply.new(content: "Topic Title")
-    reply.save!(validate: false)
-    assert reply.persisted?
-
-    topic = Topic.new(reply_ids: [reply.id])
-    topic.save!
-
-    assert_equal topic.replies.size, 1
-    assert reply.valid?
-    assert topic.valid?
-  end
-
   def test_validate_uniqueness_of_custom_primary_key
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "keyboards"
@@ -479,5 +497,36 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     t.id += 1
     assert t.valid?, "Should be valid"
     assert t.save, "Should still save t as unique"
+  end
+
+  def test_validate_uniqueness_with_after_create_performing_save
+    TopicWithAfterCreate.validates_uniqueness_of(:title)
+    topic = TopicWithAfterCreate.create!(:title => "Title1")
+    assert topic.author_name.start_with?("Title1")
+
+    topic2 = TopicWithAfterCreate.new(:title => "Title1")
+    refute topic2.valid?
+    assert_equal(["has already been taken"], topic2.errors[:title])
+  end
+
+  def test_validate_uniqueness_uuid
+    skip unless current_adapter?(:PostgreSQLAdapter)
+    item = UuidItem.create!(uuid: SecureRandom.uuid, title: 'item1')
+    item.update(title: 'item1-title2')
+    assert_empty item.errors
+
+    item2 = UuidValidatingItem.create!(uuid: SecureRandom.uuid, title: 'item2')
+    item2.update(title: 'item2-title2')
+    assert_empty item2.errors
+  end
+
+  def test_validate_uniqueness_regular_id
+    item = CoolTopic.create!(title: 'MyItem')
+    assert_empty item.errors
+
+    item2 = CoolTopic.new(id: item.id, title: 'MyItem2')
+    refute item2.valid?
+
+    assert_equal(["has already been taken"], item2.errors[:id])
   end
 end

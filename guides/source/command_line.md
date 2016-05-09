@@ -65,11 +65,12 @@ $ bin/rails server
 => Booting Puma
 => Rails 5.0.0 application starting in development on http://0.0.0.0:3000
 => Run `rails server -h` for more startup options
-=> Ctrl-C to shutdown server
-Puma 2.15.3 starting...
-* Min threads: 0, max threads: 16
+Puma starting in single mode...
+* Version 3.0.2 (ruby 2.3.0-p0), codename: Plethora of Penguin Pinatas
+* Min threads: 5, max threads: 5
 * Environment: development
 * Listening on tcp://localhost:3000
+Use Ctrl-C to stop
 ```
 
 With just three commands we whipped up a Rails server listening on port 3000. Go to your browser and open [http://localhost:3000](http://localhost:3000), you will see a basic Rails app running.
@@ -325,7 +326,7 @@ With the `helper` method it is possible to access Rails and your application's h
 
 ### `rails dbconsole`
 
-`rails dbconsole` figures out which database you're using and drops you into whichever command line interface you would use with it (and figures out the command line parameters to give to it, too!). It supports MySQL, PostgreSQL and SQLite3.
+`rails dbconsole` figures out which database you're using and drops you into whichever command line interface you would use with it (and figures out the command line parameters to give to it, too!). It supports MySQL (including MariaDB), PostgreSQL and SQLite3.
 
 INFO: You can also use the alias "db" to invoke the dbconsole: `rails db`.
 
@@ -432,7 +433,7 @@ Ruby version              2.2.2 (x86_64-linux)
 RubyGems version          2.4.6
 Rack version              1.6
 JavaScript Runtime        Node.js (V8)
-Middleware                Rack::Sendfile, ActionDispatch::Static, ActionDispatch::LoadInterlock, #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x007ffd131a7c88>, Rack::Runtime, Rack::MethodOverride, ActionDispatch::RequestId, Rails::Rack::Logger, ActionDispatch::ShowExceptions, ActionDispatch::DebugExceptions, ActionDispatch::RemoteIp, ActionDispatch::Reloader, ActionDispatch::Callbacks, ActiveRecord::Migration::CheckPending, ActiveRecord::ConnectionAdapters::ConnectionManagement, ActiveRecord::QueryCache, ActionDispatch::Cookies, ActionDispatch::Session::CookieStore, ActionDispatch::Flash, Rack::Head, Rack::ConditionalGet, Rack::ETag
+Middleware                Rack::Sendfile, ActionDispatch::Static, ActionDispatch::Executor, #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x007ffd131a7c88>, Rack::Runtime, Rack::MethodOverride, ActionDispatch::RequestId, Rails::Rack::Logger, ActionDispatch::ShowExceptions, ActionDispatch::DebugExceptions, ActionDispatch::RemoteIp, ActionDispatch::Reloader, ActionDispatch::Callbacks, ActiveRecord::Migration::CheckPending, ActiveRecord::ConnectionAdapters::ConnectionManagement, ActiveRecord::QueryCache, ActionDispatch::Cookies, ActionDispatch::Session::CookieStore, ActionDispatch::Flash, Rack::Head, Rack::ConditionalGet, Rack::ETag
 Application root          /home/foobar/commandsapp
 Environment               development
 Database adapter          sqlite3

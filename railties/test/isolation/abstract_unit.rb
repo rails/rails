@@ -124,7 +124,7 @@ module TestHelpers
       routes = File.read("#{app_path}/config/routes.rb")
       if routes =~ /(\n\s*end\s*)\Z/
         File.open("#{app_path}/config/routes.rb", 'w') do |f|
-          f.puts $` + "\nmatch ':controller(/:action(/:id))(.:format)', via: :all\n" + $1
+          f.puts $` + "\nActiveSupport::Deprecation.silence { match ':controller(/:action(/:id))(.:format)', via: :all }\n" + $1
         end
       end
 
@@ -311,10 +311,6 @@ module TestHelpers
     end
 
     def boot_rails
-      # FIXME: shush Sass warning spam, not relevant to testing Railties
-      Kernel.silence_warnings do
-        require File.expand_path('../../../../load_paths', __FILE__)
-      end
     end
   end
 end
@@ -336,12 +332,8 @@ Module.new do
   FileUtils.rm_rf(app_template_path)
   FileUtils.mkdir(app_template_path)
 
-  environment = File.expand_path('../../../../load_paths', __FILE__)
-  require_environment = "-r #{environment}"
-
-  `#{Gem.ruby} #{require_environment} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails new #{app_template_path} --skip-gemfile --skip-listen --no-rc`
+  `#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails new #{app_template_path} --skip-gemfile --skip-listen --no-rc`
   File.open("#{app_template_path}/config/boot.rb", 'w') do |f|
-    f.puts "require '#{environment}'"
     f.puts "require 'rails/all'"
   end
 end unless defined?(RAILS_ISOLATED_ENGINE)

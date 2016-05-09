@@ -444,6 +444,14 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_dummy_appplication_skip_listen_by_default
+    run_generator
+
+    assert_file 'test/dummy/config/environments/development.rb' do |contents|
+      assert_match(/^\s*# config.file_watcher = ActiveSupport::EventedFileUpdateChecker/, contents)
+    end
+  end
+
   def test_ensure_that_gitignore_can_be_generated_from_a_template_for_dummy_path
     FileUtils.cd(Rails.root)
     run_generator([destination_root, "--dummy_path", "spec/dummy", "--skip-test"])
@@ -632,6 +640,46 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "app/models/bukkits/article.rb", /class Article < ApplicationRecord/
+  end
+
+  def test_generate_application_record_when_does_not_exist_in_mountable_engine
+    run_generator [destination_root, '--mountable']
+    FileUtils.rm "#{destination_root}/app/models/bukkits/application_record.rb"
+    capture(:stdout) do
+      `#{destination_root}/bin/rails g model article`
+    end
+
+    assert_file "#{destination_root}/app/models/bukkits/application_record.rb" do |record|
+      assert_match(/module Bukkits/, record)
+      assert_match(/class ApplicationRecord < ActiveRecord::Base/, record)
+      assert_match(/self.abstract_class = true/, record)
+    end
+  end
+
+  def test_generate_application_mailer_when_does_not_exist_in_mountable_engine
+    run_generator [destination_root, '--mountable']
+    FileUtils.rm "#{destination_root}/app/mailers/bukkits/application_mailer.rb"
+    capture(:stdout) do
+      `#{destination_root}/bin/rails g mailer User`
+    end
+
+    assert_file "#{destination_root}/app/mailers/bukkits/application_mailer.rb" do |mailer|
+      assert_match(/module Bukkits/, mailer)
+      assert_match(/class ApplicationMailer < ActionMailer::Base/, mailer)
+    end
+  end
+
+  def test_generate_application_job_when_does_not_exist_in_mountable_engine
+    run_generator [destination_root, '--mountable']
+    FileUtils.rm "#{destination_root}/app/jobs/bukkits/application_job.rb"
+    capture(:stdout) do
+      `#{destination_root}/bin/rails g job refresh_counters`
+    end
+
+    assert_file "#{destination_root}/app/jobs/bukkits/application_job.rb" do |record|
+      assert_match(/module Bukkits/, record)
+      assert_match(/class ApplicationJob < ActiveJob::Base/, record)
+    end
   end
 
   def test_after_bundle_callback

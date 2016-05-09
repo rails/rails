@@ -146,6 +146,19 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, country.treaties.count
   end
 
+  def test_join_table_composite_primary_key_should_not_warn
+    country = Country.new(:name => 'India')
+    country.country_id = 'c1'
+    country.save!
+
+    treaty = Treaty.new(:name => 'peace')
+    treaty.treaty_id = 't1'
+    warning = capture(:stderr) do
+      country.treaties << treaty
+    end
+    assert_no_match(/WARNING: Rails does not support composite primary key\./, warning)
+  end
+
   def test_has_and_belongs_to_many
     david = Developer.find(1)
 
@@ -925,7 +938,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_with_symbol_class_name
-    assert_nothing_raised NoMethodError do
+    assert_nothing_raised do
       DeveloperWithSymbolClassName.new
     end
   end

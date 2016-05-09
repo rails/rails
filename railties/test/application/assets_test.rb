@@ -186,6 +186,26 @@ module ApplicationTests
       assert_file_exists("#{app_path}/public/assets/something-*.js")
     end
 
+    test 'sprockets cache is not shared between environments' do
+      app_file "app/assets/images/rails.png", "notactuallyapng"
+      app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
+      add_to_env_config 'production', 'config.assets.prefix = "production_assets"'
+
+      precompile!
+
+      assert_file_exists("#{app_path}/public/assets/application-*.css")
+
+      file = Dir["#{app_path}/public/assets/application-*.css"].first
+      assert_match(/assets\/rails-([0-z]+)\.png/, File.read(file))
+
+      precompile! RAILS_ENV: 'production'
+
+      assert_file_exists("#{app_path}/public/production_assets/application-*.css")
+
+      file = Dir["#{app_path}/public/production_assets/application-*.css"].first
+      assert_match(/production_assets\/rails-([0-z]+)\.png/, File.read(file))
+    end
+
     test 'precompile use assets defined in app config and reassigned in app env config' do
       add_to_config 'config.assets.precompile = [ "something_manifest.js" ]'
       add_to_env_config 'production', 'config.assets.precompile += [ "another_manifest.js" ]'
@@ -324,8 +344,7 @@ module ApplicationTests
 
       clean_assets!
 
-      files = Dir["#{app_path}/public/assets/**/*", "#{app_path}/tmp/cache/assets/development/*",
-                  "#{app_path}/tmp/cache/assets/test/*", "#{app_path}/tmp/cache/assets/production/*"]
+      files = Dir["#{app_path}/public/assets/**/*"]
       assert_equal 0, files.length, "Expected no assets, but found #{files.join(', ')}"
     end
 

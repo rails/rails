@@ -149,23 +149,22 @@ render template: "products/show"
 
 #### Rendering an Arbitrary File
 
-The `render` method can also use a view that's entirely outside of your application (perhaps you're sharing views between two Rails applications):
-
-```ruby
-render "/u/apps/warehouse_app/current/app/views/products/show"
-```
-
-Rails determines that this is a file render because of the leading slash character. To be explicit, you can use the `:file` option (which was required on Rails 2.2 and earlier):
+The `render` method can also use a view that's entirely outside of your application:
 
 ```ruby
 render file: "/u/apps/warehouse_app/current/app/views/products/show"
 ```
 
-The `:file` option takes an absolute file-system path. Of course, you need to have rights to the view that you're using to render the content.
+The `:file` option takes an absolute file-system path. Of course, you need to have rights
+to the view that you're using to render the content.
+
+NOTE: Using the `:file` option in combination with users input can lead to security problems
+since an attacker could use this action to access security sensitive files in your file system.
 
 NOTE: By default, the file is rendered using the current layout.
 
-TIP: If you're running Rails on Microsoft Windows, you should use the `:file` option to render a file, because Windows filenames do not have the same format as Unix filenames.
+TIP: If you're running Rails on Microsoft Windows, you should use the `:file` option to
+render a file, because Windows filenames do not have the same format as Unix filenames.
 
 #### Wrapping it up
 
@@ -238,7 +237,7 @@ TIP: This is useful when you're rendering a small snippet of HTML code.
 However, you might want to consider moving it to a template file if the markup
 is complex.
 
-NOTE: When using `html:` option, HTML entities will be escaped if the string is not marked as HTML safe by using `html_safe` method.  
+NOTE: When using `html:` option, HTML entities will be escaped if the string is not marked as HTML safe by using `html_safe` method.
 
 #### Rendering JSON
 
@@ -700,7 +699,7 @@ This would detect that there are no books with the specified ID, populate the `@
 
 ### Using `head` To Build Header-Only Responses
 
-The `head` method can be used to send responses with only headers to the browser. The `head` method accepts a number or symbol (see [reference table](#the-status-option)) representing a HTTP status code. The options argument is interpreted as a hash of header names and values. For example, you can return only an error header:
+The `head` method can be used to send responses with only headers to the browser. The `head` method accepts a number or symbol (see [reference table](#the-status-option)) representing an HTTP status code. The options argument is interpreted as a hash of header names and values. For example, you can return only an error header:
 
 ```ruby
 head :bad_request

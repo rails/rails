@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
 
   s.author   = 'David Heinemeier Hansson'
   s.email    = 'david@loudthinking.com'
-  s.homepage = 'http://www.rubyonrails.org'
+  s.homepage = 'http://rubyonrails.org'
 
   s.files        = Dir['CHANGELOG.md', 'README.rdoc', 'MIT-LICENSE', 'RDOC_MAIN.rdoc', 'exe/**/*', 'lib/**/{*,.[a-z]*}']
   s.require_path = 'lib'

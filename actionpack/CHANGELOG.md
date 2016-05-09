@@ -1,4 +1,112 @@
-*   Add application/gzip as a default mime type.
+## Rails 5.0.0.rc1 (May 06, 2016) ##
+
+*   Add `ActionController#helpers` to get access to the view context at the controller
+    level.
+
+    *Rafael Mendonça França*
+
+
+## Rails 5.0.0.beta4 (April 27, 2016) ##
+
+*   Routing: Refactor `:action` default handling to ensure that path
+    parameters are not mutated during route generation.
+
+    *Andrew White*
+
+*   Add extension synonyms `yml` and `yaml` for MIME type `application/x-yaml`.
+
+    *bogdanvlviv*
+
+*   Adds support for including ActionController::Cookies in API controllers.
+    Previously, including the module would raise when trying to define
+    a `cookies` helper method. Skip calling #helper_method if it is not
+    defined -- if we don't have helpers, we needn't define one.
+
+    Fixes #24304
+
+    *Ryan T. Hosford*
+
+*   ETags: Introduce `Response#strong_etag=` and `#weak_etag=` and analogous
+    options for `fresh_when` and `stale?`. `Response#etag=` sets a weak ETag.
+
+    Strong ETags are desirable when you're serving byte-for-byte identical
+    responses that support Range requests, like PDFs or videos (typically
+    done by reproxying the response from a backend storage service).
+    Also desirable when fronted by some CDNs that support strong ETags
+    only, like Akamai.
+
+    *Jeremy Daer*
+
+*   ETags: No longer strips quotes (") from ETag values before comparing them.
+    Quotes are significant, part of the ETag. A quoted ETag and an unquoted
+    one are not the same entity.
+
+    *Jeremy Daer*
+
+*   ETags: Support `If-None-Match: *`. Rarely useful for GET requests; meant
+    to provide some optimistic concurrency control for PUT requests.
+
+    *Jeremy Daer*
+
+*   `ActionDispatch::ParamsParser` is deprecated and was removed from the middleware
+    stack. To configure the parameter parsers use `ActionDispatch::Request.parameter_parsers=`.
+
+    *tenderlove*
+
+*   When a `respond_to` collector with a block doesn't have a response, then
+    a `:no_content` response should be rendered.  This brings the default
+    rendering behavior introduced by https://github.com/rails/rails/issues/19036
+    to controller methods employing `respond_to`.
+
+    *Justin Coyne*
+
+*   Add `ActionController::Parameters#dig` on Ruby 2.3 and greater, which
+    behaves the same as `Hash#dig`.
+
+    *Sean Griffin*
+
+*   Add request headers in the payload of the `start_processing.action_controller`
+    and `process_action.action_controller` notifications.
+
+    *Gareth du Plooy*
+
+*   Add `action_dispatch_integration_test` load hook. The hook can be used to
+    extend `ActionDispatch::IntegrationTest` once it has been loaded.
+
+    *Yuichiro Kaneko*
+
+*   Update default rendering policies when the controller action did
+    not explicitly indicate a response.
+
+    For API controllers, the implicit render always renders "204 No Content"
+    and does not account for any templates.
+
+    For other controllers, the following conditions are checked:
+
+    First, if a template exists for the controller action, it is rendered.
+    This template lookup takes into account the action name, locales, format,
+    variant, template handlers, etc. (see `render` for details).
+
+    Second, if other templates exist for the controller action but is not in
+    the right format (or variant, etc.), an `ActionController::UnknownFormat`
+    is raised. The list of available templates is assumed to be a complete
+    enumeration of all the possible formats (or variants, etc.); that is,
+    having only HTML and JSON templates indicate that the controller action is
+    not meant to handle XML requests.
+
+    Third, if the current request is an "interactive" browser request (the user
+    navigated here by entering the URL in the address bar, submitting a form,
+    clicking on a link, etc. as opposed to an XHR or non-browser API request),
+    `ActionView::UnknownFormat` is raised to display a helpful error
+    message.
+
+    Finally, it falls back to the same "204 No Content" behavior as API controllers.
+
+    *Godfrey Chan*, *Jon Moss*, *Kasper Timm Hansen*, *Mike Clark*, *Matthew Draper*
+
+## Rails 5.0.0.beta3 (February 24, 2016) ##
+
+*   Add "application/gzip" as a default mime type.
 
     *Mehmet Emin İNAÇ*
 
@@ -37,19 +145,19 @@
       end
     end
     ```
-    
+
     Passing `as: :json` to integration test request helpers will set the format,
     content type and encode the parameters as JSON.
-    
+
     Then on the response side, `parsed_body` will parse the body according to the
     content type the response has.
-    
+
     Currently JSON is the only supported MIME type. Add your own with
     `ActionDispatch::IntegrationTest.register_encoder`.
 
     *Kasper Timm Hansen*
 
-*   Add image/svg+xml as a default mime type.
+*   Add "image/svg+xml" as a default mime type.
 
     *DHH*
 
@@ -62,7 +170,7 @@
 
     See #18902.
 
-    *Anton Davydov* & *Vipul A M*
+    *Anton Davydov*, *Vipul A M*
 
 *   Response etags to always be weak: Prefixes 'W/' to value returned by
    `ActionDispatch::Http::Cache::Response#etag=`, such that etags set in
@@ -94,11 +202,7 @@
 
 *   Add option for per-form CSRF tokens.
 
-    *Greg Ose & Ben Toews*
-
-*   Add tests and documentation for `ActionController::Renderers::use_renderers`.
-
-    *Benjamin Fleischer*
+    *Greg Ose*, *Ben Toews*
 
 *   Fix `ActionController::Parameters#convert_parameters_to_hashes` to return filtered
     or unfiltered values based on from where it is called, `to_h` or `to_unsafe_h`
@@ -126,14 +230,14 @@
 
     *Derek Prior*
 
-*   `ActionController::TestCase` will be moved to it's own gem in Rails 5.1
+*   `ActionController::TestCase` will be moved to its own gem in Rails 5.1.
 
     With the speed improvements made to `ActionDispatch::IntegrationTest` we no
     longer need to keep two separate code bases for testing controllers. In
     Rails 5.1 `ActionController::TestCase` will be deprecated and moved into a
     gem outside of Rails source.
 
-    This is a documentation deprecation so that going forward so new tests will use
+    This is a documentation deprecation so that going forward new tests will use
     `ActionDispatch::IntegrationTest` instead of `ActionController::TestCase`.
 
     *Eileen M. Uchitelle*

@@ -35,7 +35,7 @@ class SessionTest < ActiveSupport::TestCase
     path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue"}
     assert_called_with @session, :process, [:put, path, params: args, headers: headers] do
       @session.stub :redirect?, false do
-        @session.request_via_redirect(:put, path, params: args, headers: headers)
+        assert_deprecated { @session.request_via_redirect(:put, path, params: args, headers: headers) }
       end
     end
   end
@@ -54,7 +54,7 @@ class SessionTest < ActiveSupport::TestCase
     value_series = [true, true, false]
     assert_called @session, :follow_redirect!, times: 2 do
       @session.stub :redirect?, ->{ value_series.shift } do
-        @session.request_via_redirect(:get, path, params: args, headers: headers)
+        assert_deprecated { @session.request_via_redirect(:get, path, params: args, headers: headers) }
       end
     end
   end
@@ -63,7 +63,9 @@ class SessionTest < ActiveSupport::TestCase
     path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue"}
     @session.stub :redirect?, false do
       @session.stub :status, 200 do
-        assert_equal 200, @session.request_via_redirect(:get, path, params: args, headers: headers)
+        assert_deprecated do
+          assert_equal 200, @session.request_via_redirect(:get, path, params: args, headers: headers)
+        end
       end
     end
   end
@@ -390,7 +392,7 @@ class IntegrationTestUsesCorrectClass < ActionDispatch::IntegrationTest
     reset!
 
     %w( get post head patch put delete ).each do |verb|
-      assert_nothing_raised("'#{verb}' should use integration test methods") { __send__(verb, '/') }
+      assert_nothing_raised { __send__(verb, '/') }
     end
   end
 end
@@ -730,8 +732,10 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
         set.draw do
           get 'moved' => redirect('/method')
 
-          match ':action', :to => controller, :via => [:get, :post], :as => :action
-          get 'get/:action', :to => controller, :as => :get_action
+          ActiveSupport::Deprecation.silence do
+            match ':action', :to => controller, :via => [:get, :post], :as => :action
+            get 'get/:action', :to => controller, :as => :get_action
+          end
         end
 
         self.singleton_class.include(set.url_helpers)
@@ -1105,7 +1109,12 @@ class IntegrationRequestsWithoutSetup < ActionDispatch::IntegrationTest
 
   def test_request
     with_routing do |routes|
-      routes.draw { get ':action' => FooController }
+      routes.draw do
+        ActiveSupport::Deprecation.silence do
+          get ':action' => FooController
+        end
+      end
+
       get '/ok'
 
       assert_response 200
@@ -1173,7 +1182,11 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
 
   def test_parsed_body_without_as_option
     with_routing do |routes|
-      routes.draw { get ':action' => FooController }
+      routes.draw do
+        ActiveSupport::Deprecation.silence do
+          get ':action' => FooController
+        end
+      end
 
       get '/foos_json.json', params: { foo: 'heyo' }
 
@@ -1184,7 +1197,11 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
   private
     def post_to_foos(as:)
       with_routing do |routes|
-        routes.draw { post ':action' => FooController }
+        routes.draw do
+          ActiveSupport::Deprecation.silence do
+            post ':action' => FooController
+          end
+        end
 
         post "/foos_#{as}", params: { foo: 'fighters' }, as: as
 

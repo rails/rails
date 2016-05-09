@@ -76,6 +76,9 @@ module ActiveRecord::Associations::Builder # :nodoc:
           left_model.retrieve_connection
         end
 
+        def self.primary_key
+          false
+        end
       }
 
       join_model.name                = "HABTM_#{association_name.to_s.camelize}"

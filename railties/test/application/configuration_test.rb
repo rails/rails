@@ -348,6 +348,17 @@ module ApplicationTests
       end
     end
 
+    test "In production mode, STDOUT logging is enabled when RAILS_LOG_TO_STDOUT is set" do
+      restore_default_config
+
+      with_rails_env "production" do
+        switch_env "RAILS_LOG_TO_STDOUT", "1" do
+          app 'production'
+          assert ActiveSupport::Logger.logger_outputs_to?(app.config.logger, STDOUT)
+        end
+      end
+    end
+
     test "In production mode, config.public_file_server.enabled is disabled when RAILS_SERVE_STATIC_FILES is blank" do
       restore_default_config
 
@@ -675,7 +686,7 @@ module ApplicationTests
 
         private
 
-        def form_authenticity_token(*args); token; end # stub the authenticy token
+        def form_authenticity_token(*args); token; end # stub the authenticity token
       end
       RUBY
 
@@ -988,7 +999,7 @@ module ApplicationTests
       app 'development'
 
       post "/posts.json", '{ "title": "foo", "name": "bar" }', "CONTENT_TYPE" => "application/json"
-      assert_equal '<ActionController::Parameters {"title"=>"foo"}>', last_response.body
+      assert_equal '<ActionController::Parameters {"title"=>"foo"} permitted: false>', last_response.body
     end
 
     test "config.action_controller.permit_all_parameters = true" do
@@ -1326,7 +1337,7 @@ module ApplicationTests
       assert_equal 'custom key', Rails.application.config.my_custom_config['key']
     end
 
-    test "config_for use the Pathname object if it is provided" do
+    test "config_for uses the Pathname object if it is provided" do
       app_file 'config/custom.yml', <<-RUBY
       development:
         key: 'custom key'
@@ -1453,7 +1464,7 @@ module ApplicationTests
       assert_equal :api, Rails.configuration.debug_exception_response_format
     end
 
-    test "debug_exception_response_format can be override" do
+    test "debug_exception_response_format can be overridden" do
       add_to_config <<-RUBY
         config.api_only = true
       RUBY

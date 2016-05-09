@@ -33,15 +33,15 @@ module ActionDispatch
       end
 
       def controller
-        requirements[:controller] || ':controller'
+        parts.include?(:controller) ? ':controller' : requirements[:controller]
       end
 
       def action
-        requirements[:action] || ':action'
+        parts.include?(:action) ? ':action' : requirements[:action]
       end
 
       def internal?
-        controller.to_s =~ %r{\Arails/(info|mailers|welcome)}
+        internal
       end
 
       def engine?
@@ -51,7 +51,7 @@ module ActionDispatch
 
     ##
     # This class is just used for displaying route information when someone
-    # executes `rake routes` or looks at the RoutingError page.
+    # executes `rails routes` or looks at the RoutingError page.
     # People should not use this class.
     class RoutesInspector # :nodoc:
       def initialize(routes)

@@ -29,11 +29,11 @@ module ApplicationTests
       def db_create_and_drop(expected_database)
         Dir.chdir(app_path) do
           output = `bin/rails db:create`
-          assert_empty output
+          assert_match(/Created database/, output)
           assert File.exist?(expected_database)
           assert_equal expected_database, ActiveRecord::Base.connection_config[:database]
           output = `bin/rails db:drop`
-          assert_empty output
+          assert_match(/Dropped database/, output)
           assert !File.exist?(expected_database)
         end
       end

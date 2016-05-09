@@ -141,6 +141,50 @@ class LoggerTest < ActiveSupport::TestCase
     assert @output.string.include?("THIS IS HERE")
   end
 
+  def test_logger_silencing_works_for_broadcast
+    another_output  = StringIO.new
+    another_logger  = Logger.new(another_output)
+
+    @logger.extend Logger.broadcast(another_logger)
+
+    @logger.debug "CORRECT DEBUG"
+    @logger.silence do
+      @logger.debug "FAILURE"
+      @logger.error "CORRECT ERROR"
+    end
+
+    assert @output.string.include?("CORRECT DEBUG")
+    assert @output.string.include?("CORRECT ERROR")
+    assert_not @output.string.include?("FAILURE")
+
+    assert another_output.string.include?("CORRECT DEBUG")
+    assert another_output.string.include?("CORRECT ERROR")
+    assert_not another_output.string.include?("FAILURE")
+  end
+
+  def test_broadcast_silencing_does_not_break_plain_ruby_logger
+    another_output  = StringIO.new
+    another_logger  = ::Logger.new(another_output)
+
+    @logger.extend Logger.broadcast(another_logger)
+
+    @logger.debug "CORRECT DEBUG"
+    @logger.silence do
+      @logger.debug "FAILURE"
+      @logger.error "CORRECT ERROR"
+    end
+
+    assert @output.string.include?("CORRECT DEBUG")
+    assert @output.string.include?("CORRECT ERROR")
+    assert_not @output.string.include?("FAILURE")
+
+    assert another_output.string.include?("CORRECT DEBUG")
+    assert another_output.string.include?("CORRECT ERROR")
+    assert another_output.string.include?("FAILURE")
+    # We can't silence plain ruby Logger cause with thread safety
+    # but at least we don't break it
+  end
+
   def test_logger_level_per_object_thread_safety
     logger1 = Logger.new(StringIO.new)
     logger2 = Logger.new(StringIO.new)

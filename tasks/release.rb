@@ -56,7 +56,7 @@ directory "pkg"
 
     task :build => [:clean, gem]
     task :install => :build do
-      sh "gem install #{gem}"
+      sh "gem install --pre #{gem}"
     end
 
     task :push => :build do
@@ -135,7 +135,7 @@ namespace :all do
   end
 
   task :tag do
-    sh "git tag -m '#{tag} release' #{tag}"
+    sh "git tag -s -m '#{tag} release' #{tag}"
     sh "git push --tags"
   end
 

@@ -16,6 +16,10 @@ class TestControllerWithExtraEtags < ActionController::Base
     render plain: "stale" if stale?(etag: %w(1 2 3), template: false)
   end
 
+  def strong
+    render plain: "stale" if stale?(strong_etag: 'strong')
+  end
+
   def with_template
     if stale? template: 'test/hello_world'
       render plain: 'stale'
@@ -25,6 +29,9 @@ end
 
 class ImplicitRenderTestController < ActionController::Base
   def empty_action
+  end
+
+  def empty_action_with_template
   end
 end
 
@@ -382,7 +389,7 @@ class LastModifiedRenderTest < ActionController::TestCase
 
   def test_request_not_modified_but_etag_differs
     @request.if_modified_since = @last_modified
-    @request.if_none_match = "234"
+    @request.if_none_match = '"234"'
     get :conditional_hello
     assert_response :success
   end
@@ -411,7 +418,7 @@ class LastModifiedRenderTest < ActionController::TestCase
 
   def test_request_not_modified_but_etag_differs_with_record
     @request.if_modified_since = @last_modified
-    @request.if_none_match = "234"
+    @request.if_none_match = '"234"'
     get :conditional_hello_with_record
     assert_response :success
   end
@@ -439,7 +446,7 @@ class LastModifiedRenderTest < ActionController::TestCase
 
   def test_request_not_modified_but_etag_differs_with_collection_of_records
     @request.if_modified_since = @last_modified
-    @request.if_none_match = "234"
+    @request.if_none_match = '"234"'
     get :conditional_hello_with_collection_of_records
     assert_response :success
   end
@@ -474,8 +481,26 @@ end
 class EtagRenderTest < ActionController::TestCase
   tests TestControllerWithExtraEtags
 
+  def test_strong_etag
+    @request.if_none_match = strong_etag(['strong', 'ab', :cde, [:f]])
+    get :strong
+    assert_response :not_modified
+
+    @request.if_none_match = '*'
+    get :strong
+    assert_response :not_modified
+
+    @request.if_none_match = '"strong"'
+    get :strong
+    assert_response :ok
+
+    @request.if_none_match = weak_etag(['strong', 'ab', :cde, [:f]])
+    get :strong
+    assert_response :ok
+  end
+
   def test_multiple_etags
-    @request.if_none_match = etag(["123", 'ab', :cde, [:f]])
+    @request.if_none_match = weak_etag(["123", 'ab', :cde, [:f]])
     get :fresh
     assert_response :not_modified
 
@@ -485,7 +510,7 @@ class EtagRenderTest < ActionController::TestCase
   end
 
   def test_array
-    @request.if_none_match = etag([%w(1 2 3), 'ab', :cde, [:f]])
+    @request.if_none_match = weak_etag([%w(1 2 3), 'ab', :cde, [:f]])
     get :array
     assert_response :not_modified
 
@@ -509,7 +534,7 @@ class EtagRenderTest < ActionController::TestCase
 
     begin
       File.write path, 'foo'
-      ActionView::Digestor.cache.clear
+      ActionView::LookupContext::DetailsKey.clear
 
       request.if_none_match = etag
       get :with_template
@@ -520,9 +545,14 @@ class EtagRenderTest < ActionController::TestCase
     end
   end
 
-  def etag(record)
-    %(W/"#{Digest::MD5.hexdigest(ActiveSupport::Cache.expand_cache_key(record))}")
-  end
+  private
+    def weak_etag(record)
+      "W/#{strong_etag record}"
+    end
+
+    def strong_etag(record)
+      %("#{Digest::MD5.hexdigest(ActiveSupport::Cache.expand_cache_key(record))}")
+    end
 end
 
 class MetalRenderTest < ActionController::TestCase
@@ -537,9 +567,27 @@ end
 class ImplicitRenderTest < ActionController::TestCase
   tests ImplicitRenderTestController
 
-  def test_implicit_no_content_response
-    get :empty_action
+  def test_implicit_no_content_response_as_browser
+    assert_raises(ActionController::UnknownFormat) do
+      get :empty_action
+    end
+  end
+
+  def test_implicit_no_content_response_as_xhr
+    get :empty_action, xhr: true
     assert_response :no_content
+  end
+
+  def test_implicit_success_response_with_right_format
+    get :empty_action_with_template
+    assert_equal "<h1>Empty action rendered this implicitly.</h1>\n", @response.body
+    assert_response :success
+  end
+
+  def test_implicit_unknown_format_response
+    assert_raises(ActionController::UnknownFormat) do
+      get :empty_action_with_template, format: 'json'
+    end
   end
 end
 
@@ -594,7 +642,10 @@ class HeadRenderTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         resources :customers
-        get ':controller/:action'
+
+        ActiveSupport::Deprecation.silence do
+          get ':controller/:action'
+        end
       end
 
       get :head_with_location_object
@@ -679,7 +730,7 @@ end
 class HttpCacheForeverTest < ActionController::TestCase
   class HttpCacheForeverController < ActionController::Base
     def cache_me_forever
-      http_cache_forever(public: params[:public], version: params[:version] || 'v1') do
+      http_cache_forever(public: params[:public]) do
         render plain: 'hello'
       end
     end
@@ -689,20 +740,24 @@ class HttpCacheForeverTest < ActionController::TestCase
 
   def test_cache_with_public
     get :cache_me_forever, params: {public: true}
+    assert_response :ok
     assert_equal "max-age=#{100.years}, public", @response.headers["Cache-Control"]
     assert_not_nil @response.etag
+    assert @response.weak_etag?
   end
 
   def test_cache_with_private
     get :cache_me_forever
+    assert_response :ok
     assert_equal "max-age=#{100.years}, private", @response.headers["Cache-Control"]
     assert_not_nil @response.etag
-    assert_response :success
+    assert @response.weak_etag?
   end
 
   def test_cache_response_code_with_if_modified_since
     get :cache_me_forever
-    assert_response :success
+    assert_response :ok
+
     @request.if_modified_since = @response.headers['Last-Modified']
     get :cache_me_forever
     assert_response :not_modified
@@ -710,21 +765,10 @@ class HttpCacheForeverTest < ActionController::TestCase
 
   def test_cache_response_code_with_etag
     get :cache_me_forever
-    assert_response :success
-    @request.if_modified_since = @response.headers['Last-Modified']
-    @request.if_none_match = @response.etag
+    assert_response :ok
 
+    @request.if_none_match = @response.etag
     get :cache_me_forever
-    assert_response :not_modified
-    @request.if_modified_since = @response.headers['Last-Modified']
-    @request.if_none_match = @response.etag
-
-    get :cache_me_forever, params: {version: 'v2'}
-    assert_response :success
-    @request.if_modified_since = @response.headers['Last-Modified']
-    @request.if_none_match = @response.etag
-
-    get :cache_me_forever, params: {version: 'v2'}
     assert_response :not_modified
   end
 end

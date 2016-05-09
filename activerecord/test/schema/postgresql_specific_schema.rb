@@ -106,4 +106,9 @@ _SQL
     t.integer :big_int_data_points, limit: 8, array: true
     t.decimal :decimal_array_default, array: true, default: [1.23, 3.45]
   end
+
+  create_table :uuid_items, force: true, id: false do |t|
+    t.uuid :uuid, primary_key: true
+    t.string :title
+  end
 end

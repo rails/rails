@@ -1,12 +1,5 @@
 ORIG_ARGV = ARGV.dup
 
-begin
-  old, $VERBOSE = $VERBOSE, nil
-  require File.expand_path('../../../load_paths', __FILE__)
-ensure
-  $VERBOSE = old
-end
-
 require 'active_support/core_ext/kernel/reporting'
 
 silence_warnings do
@@ -24,6 +17,9 @@ Thread.abort_on_exception = true
 
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true
+
+# Default to old to_time behavior but allow running tests with new behavior
+ActiveSupport.to_time_preserves_timezone = ENV['PRESERVE_TIMEZONES'] == '1'
 
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false

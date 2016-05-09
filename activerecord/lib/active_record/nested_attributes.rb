@@ -195,19 +195,27 @@ module ActiveRecord
     # Nested attributes for an associated collection can also be passed in
     # the form of a hash of hashes instead of an array of hashes:
     #
-    #   Member.create(name:             'joe',
-    #                 posts_attributes: { first:  { title: 'Foo' },
-    #                                     second: { title: 'Bar' } })
+    #   Member.create(
+    #     name: 'joe',
+    #     posts_attributes: {
+    #       first:  { title: 'Foo' },
+    #       second: { title: 'Bar' }
+    #     }
+    #   )
     #
     # has the same effect as
     #
-    #   Member.create(name:             'joe',
-    #                 posts_attributes: [ { title: 'Foo' },
-    #                                     { title: 'Bar' } ])
+    #   Member.create(
+    #     name: 'joe',
+    #     posts_attributes: [
+    #       { title: 'Foo' },
+    #       { title: 'Bar' }
+    #     ]
+    #   )
     #
     # The keys of the hash which is the value for +:posts_attributes+ are
     # ignored in this case.
-    # However, it is not allowed to use +'id'+ or +:id+ for one of
+    # However, it is not allowed to use <tt>'id'</tt> or <tt>:id</tt> for one of
     # such keys, otherwise the hash will be wrapped in an array and
     # interpreted as an attribute hash for a single post.
     #

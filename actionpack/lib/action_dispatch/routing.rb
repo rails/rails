@@ -73,13 +73,13 @@ module ActionDispatch
   #   get 'post/:id' => 'posts#show'
   #   post 'post/:id' => 'posts#create_comment'
   #
+  # Now, if you POST to <tt>/posts/:id</tt>, it will route to the <tt>create_comment</tt> action. A GET on the same
+  # URL will route to the <tt>show</tt> action.
+  #
   # If your route needs to respond to more than one HTTP method (or all methods) then using the
   # <tt>:via</tt> option on <tt>match</tt> is preferable.
   #
   #   match 'post/:id' => 'posts#show', via: [:get, :post]
-  #
-  # Now, if you POST to <tt>/posts/:id</tt>, it will route to the <tt>create_comment</tt> action. A GET on the same
-  # URL will route to the <tt>show</tt> action.
   #
   # == Named routes
   #
@@ -159,7 +159,7 @@ module ActionDispatch
   #
   #   controller 'geocode' do
   #     get 'geocode/:postalcode' => :show, constraints: {
-  #       postalcode: /# Postcode format
+  #       postalcode: /# Postalcode format
   #          \d{5} #Prefix
   #          (-\d{4})? #Suffix
   #          /x
@@ -252,5 +252,14 @@ module ActionDispatch
 
     SEPARATORS = %w( / . ? ) #:nodoc:
     HTTP_METHODS = [:get, :head, :post, :patch, :put, :delete, :options] #:nodoc:
+
+    #:stopdoc:
+    INSECURE_URL_PARAMETERS_MESSAGE = <<-MSG.squish
+      Attempting to generate a URL from non-sanitized request parameters!
+
+      An attacker can inject malicious data into the generated URL, such as
+      changing the host. Whitelist and sanitize passed parameters to be secure.
+    MSG
+    #:startdoc:
   end
 end

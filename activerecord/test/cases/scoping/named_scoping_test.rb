@@ -301,7 +301,7 @@ class NamedScopingTest < ActiveRecord::TestCase
       :relation,      # private class method on AR::Base
       :new,           # redefined class method on AR::Base
       :all,           # a default scope
-      :public,        # some imporant methods on Module and Class
+      :public,        # some important methods on Module and Class
       :protected,
       :private,
       :name,
@@ -542,6 +542,20 @@ class NamedScopingTest < ActiveRecord::TestCase
 
   def test_subclass_merges_scopes_properly
     assert_equal 1, SpecialComment.where(body: 'go crazy').created.count
+  end
+
+  def test_model_class_should_respond_to_none
+    assert !Topic.none?
+    Topic.delete_all
+    assert Topic.none?
+  end
+
+  def test_model_class_should_respond_to_one
+    assert !Topic.one?
+    Topic.delete_all
+    assert !Topic.one?
+    Topic.create!
+    assert Topic.one?
   end
 
 end

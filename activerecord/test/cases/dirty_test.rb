@@ -37,8 +37,8 @@ class DirtyTest < ActiveRecord::TestCase
   def test_attribute_changes
     # New record - no changes.
     pirate = Pirate.new
-    assert !pirate.catchphrase_changed?
-    assert_nil pirate.catchphrase_change
+    assert_equal false, pirate.catchphrase_changed?
+    assert_equal false, pirate.non_validated_parrot_id_changed?
 
     # Change catchphrase.
     pirate.catchphrase = 'arrr'

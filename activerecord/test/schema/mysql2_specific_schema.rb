@@ -33,6 +33,7 @@ ActiveRecord::Schema.define do
   create_table :collation_tests, id: false, force: true do |t|
     t.string :string_cs_column, limit: 1, collation: 'utf8_bin'
     t.string :string_ci_column, limit: 1, collation: 'utf8_general_ci'
+    t.binary :binary_column,    limit: 1
   end
 
   ActiveRecord::Base.connection.execute <<-SQL

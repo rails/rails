@@ -52,9 +52,15 @@ module ActiveRecord
           end
         end
 
+        def prepare_erb(content)
+          erb = ERB.new(content)
+          erb.filename = @file
+          erb
+        end
+
         def render(content)
           context = ActiveRecord::FixtureSet::RenderContext.create_subclass.new
-          ERB.new(content).result(context.get_binding)
+          prepare_erb(content).result(context.get_binding)
         end
 
         # Validate our unmarshalled data.

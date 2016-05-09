@@ -1,14 +1,18 @@
 module ActionController #:nodoc:
-  # This module is responsible to provide `rescue_from` helpers
-  # to controllers and configure when detailed exceptions must be
+  # This module is responsible for providing `rescue_from` helpers
+  # to controllers and configuring when detailed exceptions must be
   # shown.
   module Rescue
     extend ActiveSupport::Concern
     include ActiveSupport::Rescuable
 
     def rescue_with_handler(exception)
-      if exception.cause && handler_for_rescue(exception.cause)
-        exception = exception.cause
+      if exception.cause
+        handler_index = index_of_handler_for_rescue(exception) || Float::INFINITY
+        cause_handler_index = index_of_handler_for_rescue(exception.cause)
+        if cause_handler_index && cause_handler_index <= handler_index
+          exception = exception.cause
+        end
       end
       super(exception)
     end

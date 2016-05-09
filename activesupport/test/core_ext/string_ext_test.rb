@@ -10,6 +10,7 @@ require 'active_support/core_ext/string/strip'
 require 'active_support/core_ext/string/output_safety'
 require 'active_support/core_ext/string/indent'
 require 'time_zone_test_helpers'
+require 'yaml'
 
 class StringInflectionsTest < ActiveSupport::TestCase
   include InflectorTestCases
@@ -74,6 +75,18 @@ class StringInflectionsTest < ActiveSupport::TestCase
     MixtureToTitleCase.each do |before, titleized|
       assert_equal(titleized, before.titleize)
     end
+  end
+
+  def test_upcase_first
+    assert_equal "What a Lovely Day", "what a Lovely Day".upcase_first
+  end
+
+  def test_upcase_first_with_one_char
+    assert_equal "W", "w".upcase_first
+  end
+
+  def test_upcase_first_with_empty_string
+    assert_equal "", "".upcase_first
   end
 
   def test_camelize
@@ -444,16 +457,24 @@ class StringConversionsTest < ActiveSupport::TestCase
       assert_equal Time.local(2011, 2, 27, 17, 50), "2011-02-27 13:50 -0100".to_time
       assert_equal Time.utc(2011, 2, 27, 23, 50), "2011-02-27 22:50 -0100".to_time(:utc)
       assert_equal Time.local(2005, 2, 27, 22, 50), "2005-02-27 14:50 -0500".to_time
+      assert_nil "010".to_time
       assert_nil "".to_time
     end
   end
 
   def test_string_to_time_utc_offset
     with_env_tz "US/Eastern" do
-      assert_equal 0, "2005-02-27 23:50".to_time(:utc).utc_offset
-      assert_equal(-18000, "2005-02-27 23:50".to_time.utc_offset)
-      assert_equal 0, "2005-02-27 22:50 -0100".to_time(:utc).utc_offset
-      assert_equal(-18000, "2005-02-27 22:50 -0100".to_time.utc_offset)
+      if ActiveSupport.to_time_preserves_timezone
+        assert_equal 0, "2005-02-27 23:50".to_time(:utc).utc_offset
+        assert_equal(-18000, "2005-02-27 23:50".to_time.utc_offset)
+        assert_equal 0, "2005-02-27 22:50 -0100".to_time(:utc).utc_offset
+        assert_equal(-3600, "2005-02-27 22:50 -0100".to_time.utc_offset)
+      else
+        assert_equal 0, "2005-02-27 23:50".to_time(:utc).utc_offset
+        assert_equal(-18000, "2005-02-27 23:50".to_time.utc_offset)
+        assert_equal 0, "2005-02-27 22:50 -0100".to_time(:utc).utc_offset
+        assert_equal(-18000, "2005-02-27 22:50 -0100".to_time.utc_offset)
+      end
     end
   end
 

@@ -5,7 +5,7 @@ module ActionController
   #
   # In addition to using the standard template helpers provided, creating custom helpers to
   # extract complicated logic or reusable functionality is strongly encouraged. By default, each controller
-  # will include all helpers. These helpers are only accessible on the controller through <tt>.helpers</tt>
+  # will include all helpers. These helpers are only accessible on the controller through <tt>#helpers</tt>
   #
   # In previous versions of \Rails the controller will include a helper which
   # matches the name of the controller, e.g., <tt>MyController</tt> will automatically
@@ -71,7 +71,7 @@ module ActionController
         attrs.flatten.each { |attr| helper_method(attr, "#{attr}=") }
       end
 
-      # Provides a proxy to access helpers methods from outside the view.
+      # Provides a proxy to access helper methods from outside the view.
       def helpers
         @helper_proxy ||= begin
           proxy = ActionView::Base.new
@@ -112,6 +112,11 @@ module ActionController
       def all_application_helpers
         all_helpers_from_path(helpers_path)
       end
+    end
+
+    # Provides a proxy to access helper methods from outside the view.
+    def helpers
+      @_helper_proxy ||= view_context
     end
   end
 end

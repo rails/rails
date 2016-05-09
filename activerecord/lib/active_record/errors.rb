@@ -125,6 +125,10 @@ module ActiveRecord
   class InvalidForeignKey < WrappedDatabaseException
   end
 
+  # Raised when a record cannot be inserted or updated because a value too long for a column type.
+  class ValueTooLong < StatementInvalid
+  end
+
   # Raised when number of bind variables in statement given to +:condition+ key
   # (for example, when using {ActiveRecord::Base.find}[rdoc-ref:FinderMethods#find] method)
   # does not match number of expected values supplied.
@@ -137,6 +141,11 @@ module ActiveRecord
 
   # Raised when a given database does not exist.
   class NoDatabaseError < StatementInvalid
+  end
+
+  # Raised when Postgres returns 'cached plan must not change result type' and
+  # we cannot retry gracefully (e.g. inside a transaction)
+  class PreparedStatementCacheExpired < StatementInvalid
   end
 
   # Raised on attempt to save stale record. Record is stale when it's being saved in another query after

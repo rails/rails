@@ -198,7 +198,7 @@ module ActionController #:nodoc:
         _process_format(format)
         _set_rendered_content_type format
         response = collector.response
-        response ? response.call : render({})
+        response.call if response
       else
         raise ActionController::UnknownFormat
       end

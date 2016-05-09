@@ -38,7 +38,7 @@ module PostgresqlJSONSharedTestCases
   end
 
   def test_default
-    @connection.add_column 'json_data_type', 'permissions', column_type, default: '{"users": "read", "posts": ["read", "write"]}'
+    @connection.add_column 'json_data_type', 'permissions', column_type, default: {"users": "read", "posts": ["read", "write"]}
     JsonDataType.reset_column_information
 
     assert_equal({"users"=>"read", "posts"=>["read", "write"]}, JsonDataType.column_defaults['permissions'])
@@ -178,12 +178,19 @@ module PostgresqlJSONSharedTestCases
     assert_not json.changed?
   end
 
-  def test_assigning_invalid_json
-    json = JsonDataType.new
+  def test_assigning_string_literal
+    json = JsonDataType.create(payload: "foo")
+    assert_equal "foo", json.payload
+  end
 
-    json.payload = 'foo'
+  def test_assigning_number
+    json = JsonDataType.create(payload: 1.234)
+    assert_equal 1.234, json.payload
+  end
 
-    assert_nil json.payload
+  def test_assigning_boolean
+    json = JsonDataType.create(payload: true)
+    assert_equal true, json.payload
   end
 end
 

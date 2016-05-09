@@ -88,7 +88,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_polymorphic_has_many_going_through_join_model_with_custom_select_and_joins
     assert_equal tags(:general), tag = posts(:welcome).tags.add_joins_and_select.first
-    assert_nothing_raised(NoMethodError) { tag.author_id }
+    assert_nothing_raised { tag.author_id }
   end
 
   def test_polymorphic_has_many_going_through_join_model_with_custom_foreign_key
@@ -361,6 +361,13 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   def test_has_many_polymorphic_with_source_type
     # added sort by ID as otherwise Oracle select sometimes returned rows in different order
     assert_equal posts(:welcome, :thinking).sort_by(&:id), tags(:general).tagged_posts.sort_by(&:id)
+  end
+
+  def test_has_many_polymorphic_associations_merges_through_scope
+    Tag.has_many :null_taggings, -> { none }, class_name: :Tagging
+    Tag.has_many :null_tagged_posts, :through => :null_taggings, :source => 'taggable', :source_type => 'Post'
+    assert_equal [], tags(:general).null_tagged_posts
+    refute_equal [], tags(:general).tagged_posts
   end
 
   def test_eager_has_many_polymorphic_with_source_type
@@ -738,6 +745,23 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     aircraft = Aircraft.create!(:name => "Airbus 380")
     engine = Engine.create!(:car_id => aircraft.id)
     assert_equal aircraft.engines, [engine]
+  end
+
+  def test_proper_error_message_for_eager_load_and_includes_association_errors
+    includes_error = assert_raises(ActiveRecord::ConfigurationError) {
+      Post.includes(:nonexistent_relation).where(nonexistent_relation: {name: 'Rochester'}).find(1)
+    }
+    assert_equal("Can't join 'Post' to association named 'nonexistent_relation'; perhaps you misspelled it?", includes_error.message)
+
+    eager_load_error = assert_raises(ActiveRecord::ConfigurationError) {
+      Post.eager_load(:nonexistent_relation).where(nonexistent_relation: {name: 'Rochester'}).find(1)
+    }
+    assert_equal("Can't join 'Post' to association named 'nonexistent_relation'; perhaps you misspelled it?", eager_load_error.message)
+
+    includes_and_eager_load_error = assert_raises(ActiveRecord::ConfigurationError) {
+      Post.eager_load(:nonexistent_relation).includes(:nonexistent_relation).where(nonexistent_relation: {name: 'Rochester'}).find(1)
+    }
+    assert_equal("Can't join 'Post' to association named 'nonexistent_relation'; perhaps you misspelled it?", includes_and_eager_load_error.message)
   end
 
   private

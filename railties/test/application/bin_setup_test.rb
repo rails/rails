@@ -43,6 +43,8 @@ module ApplicationTests
 The Gemfile's dependencies are satisfied
 
 == Preparing database ==
+Created database 'db/development.sqlite3'
+Created database 'db/test.sqlite3'
 
 == Removing old logs and tempfiles ==
 

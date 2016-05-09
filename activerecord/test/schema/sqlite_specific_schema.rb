@@ -1,8 +1,4 @@
 ActiveRecord::Schema.define do
-  create_table :table_with_autoincrement, :force => true do |t|
-    t.column :name, :string
-  end
-
   execute "DROP TABLE fk_test_has_fk" rescue nil
   execute "DROP TABLE fk_test_has_pk" rescue nil
   execute <<_SQL

@@ -42,10 +42,10 @@ module ActiveRecord
     #   Person.find_by(name: 'Spartacus', rating: 4)
     #   # returns the first item or nil.
     #
-    #   Person.where(name: 'Spartacus', rating: 4).first_or_initialize
+    #   Person.find_or_initialize_by(name: 'Spartacus', rating: 4)
     #   # returns the first item or returns a new instance (requires you call .save to persist against the database).
     #
-    #   Person.where(name: 'Spartacus', rating: 4).first_or_create
+    #   Person.find_or_create_by(name: 'Spartacus', rating: 4)
     #   # returns the first item or creates it and returns it.
     #
     # ==== Alternatives for #find
@@ -255,13 +255,13 @@ module ActiveRecord
     #   Person.offset(3).third_to_last # returns the third-to-last object from OFFSET 3
     #   Person.where(["user_name = :u", { u: user_name }]).third_to_last
     def third_to_last
-      find_nth(-3)
+      find_nth_from_last 3
     end
 
     # Same as #third_to_last but raises ActiveRecord::RecordNotFound if no record
     # is found.
     def third_to_last!
-      find_nth!(-3)
+      find_nth_from_last 3 or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql(@klass.arel_engine)}]")
     end
 
     # Find the second-to-last record.
@@ -271,13 +271,13 @@ module ActiveRecord
     #   Person.offset(3).second_to_last # returns the second-to-last object from OFFSET 3
     #   Person.where(["user_name = :u", { u: user_name }]).second_to_last
     def second_to_last
-      find_nth(-2)
+      find_nth_from_last 2
     end
 
     # Same as #second_to_last but raises ActiveRecord::RecordNotFound if no record
     # is found.
     def second_to_last!
-      find_nth!(-2)
+      find_nth_from_last 2 or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql(@klass.arel_engine)}]")
     end
 
     # Returns true if a record exists in the table that matches the +id+ or
@@ -312,7 +312,7 @@ module ActiveRecord
         conditions = conditions.id
         ActiveSupport::Deprecation.warn(<<-MSG.squish)
           You are passing an instance of ActiveRecord::Base to `exists?`.
-          Please pass the id of the object by calling `.id`
+          Please pass the id of the object by calling `.id`.
         MSG
       end
 
@@ -467,7 +467,7 @@ module ActiveRecord
         id = id.id
         ActiveSupport::Deprecation.warn(<<-MSG.squish)
           You are passing an instance of ActiveRecord::Base to `find`.
-          Please pass the id of the object by calling `.id`
+          Please pass the id of the object by calling `.id`.
         MSG
       end
 
@@ -506,7 +506,7 @@ module ActiveRecord
     def find_some_ordered(ids)
       ids = ids.slice(offset_value || 0, limit_value || ids.size) || []
 
-      result = except(:limit, :offset).where(primary_key => ids).to_a
+      result = except(:limit, :offset).where(primary_key => ids).records
 
       if result.size == ids.size
         pk_type = @klass.type_for_attribute(primary_key)
@@ -522,7 +522,7 @@ module ActiveRecord
       if loaded?
         @records.first
       else
-        @take ||= limit(1).to_a.first
+        @take ||= limit(1).records.first
       end
     end
 
@@ -561,6 +561,25 @@ module ActiveRecord
       relation.limit(limit).to_a
     end
 
+    def find_nth_from_last(index)
+      if loaded?
+        @records[-index]
+      else
+        relation = if order_values.empty? && primary_key
+                     order(arel_attribute(primary_key).asc)
+                   else
+                     self
+                   end
+
+        relation.to_a[-index]
+        # TODO: can be made more performant on large result sets by
+        # for instance, last(index)[-index] (which would require
+        # refactoring the last(n) finder method to make test suite pass),
+        # or by using a combination of reverse_order, limit, and offset,
+        # e.g., reverse_order.offset(index-1).first
+      end
+    end
+    
     private
 
     def find_nth_with_limit_and_offset(index, limit, offset:) # :nodoc:
@@ -573,7 +592,7 @@ module ActiveRecord
     end
 
     def find_last(limit)
-      limit ? to_a.last(limit) : to_a.last
+      limit ? records.last(limit) : records.last
     end
   end
 end

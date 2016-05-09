@@ -43,7 +43,7 @@ class ActionCable::SubscriptionAdapter::BaseTest < ActionCable::TestCase
 
     assert_respond_to(SuccessAdapter.new(@server), :broadcast)
 
-    assert_nothing_raised NotImplementedError do
+    assert_nothing_raised do
       broadcast
     end
   end
@@ -55,7 +55,7 @@ class ActionCable::SubscriptionAdapter::BaseTest < ActionCable::TestCase
 
     assert_respond_to(SuccessAdapter.new(@server), :subscribe)
 
-    assert_nothing_raised NotImplementedError do
+    assert_nothing_raised do
       subscribe
     end
   end
@@ -66,7 +66,7 @@ class ActionCable::SubscriptionAdapter::BaseTest < ActionCable::TestCase
 
     assert_respond_to(SuccessAdapter.new(@server), :unsubscribe)
 
-    assert_nothing_raised NotImplementedError do
+    assert_nothing_raised do
       unsubscribe
     end
   end

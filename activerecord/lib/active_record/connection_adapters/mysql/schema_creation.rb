@@ -2,6 +2,9 @@ module ActiveRecord
   module ConnectionAdapters
     module MySQL
       class SchemaCreation < AbstractAdapter::SchemaCreation
+        delegate :add_sql_comment!, to: :@conn
+        private :add_sql_comment!
+
         private
 
         def visit_DropForeignKey(name)
@@ -22,6 +25,10 @@ module ActiveRecord
           add_column_position!(change_column_sql, column_options(o.column))
         end
 
+        def add_table_options!(create_sql, options)
+          add_sql_comment!(super, options[:comment])
+        end
+
         def column_options(o)
           column_options = super
           column_options[:charset] = o.charset
@@ -29,13 +36,15 @@ module ActiveRecord
         end
 
         def add_column_options!(sql, options)
-          if options[:charset]
-            sql << " CHARACTER SET #{options[:charset]}"
+          if charset = options[:charset]
+            sql << " CHARACTER SET #{charset}"
           end
-          if options[:collation]
-            sql << " COLLATE #{options[:collation]}"
+
+          if collation = options[:collation]
+            sql << " COLLATE #{collation}"
           end
-          super
+
+          add_sql_comment!(super, options[:comment])
         end
 
         def add_column_position!(sql, options)
@@ -44,12 +53,13 @@ module ActiveRecord
           elsif options[:after]
             sql << " AFTER #{quote_column_name(options[:after])}"
           end
+
           sql
         end
 
         def index_in_create(table_name, column_name, options)
-          index_name, index_type, index_columns, _, _, index_using = @conn.add_index_options(table_name, column_name, options)
-          "#{index_type} INDEX #{quote_column_name(index_name)} #{index_using} (#{index_columns}) "
+          index_name, index_type, index_columns, _, _, index_using, comment = @conn.add_index_options(table_name, column_name, options)
+          add_sql_comment!("#{index_type} INDEX #{quote_column_name(index_name)} #{index_using} (#{index_columns})", comment)
         end
       end
     end

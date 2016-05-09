@@ -138,6 +138,10 @@ module ActiveRecord
     #       PolymorphicReflection
     #         RuntimeReflection
     class AbstractReflection # :nodoc:
+      def through_reflection?
+        false
+      end
+
       def table_name
         klass.table_name
       end
@@ -445,6 +449,10 @@ module ActiveRecord
         scope ? [[scope]] : [[]]
       end
 
+      def has_scope?
+        scope
+      end
+
       def has_inverse?
         inverse_name
       end
@@ -700,6 +708,10 @@ module ActiveRecord
         @source_reflection_name = delegate_reflection.options[:source]
       end
 
+      def through_reflection?
+        true
+      end
+
       def klass
         @klass ||= delegate_reflection.compute_class(class_name)
       end
@@ -765,7 +777,6 @@ module ActiveRecord
       # This is for clearing cache on the reflection. Useful for tests that need to compare
       # SQL queries on associations.
       def clear_association_scope_cache # :nodoc:
-        @chain = nil
         delegate_reflection.clear_association_scope_cache
         source_reflection.clear_association_scope_cache
         through_reflection.clear_association_scope_cache
@@ -812,13 +823,19 @@ module ActiveRecord
         end
       end
 
+      def has_scope?
+        scope || options[:source_type] ||
+          source_reflection.has_scope? ||
+          through_reflection.has_scope?
+      end
+
       def join_keys(association_klass)
         source_reflection.join_keys(association_klass)
       end
 
       # A through association is nested if there would be more than one join table
       def nested?
-        chain.length > 2
+        source_reflection.through_reflection? || through_reflection.through_reflection?
       end
 
       # We want to use the klass from this reflection, rather than just delegate straight to
@@ -857,7 +874,7 @@ module ActiveRecord
           example_options = options.dup
           example_options[:source] = source_reflection_names.first
           ActiveSupport::Deprecation.warn \
-            "Ambiguous source reflection for through association.  Please " \
+            "Ambiguous source reflection for through association. Please " \
             "specify a :source directive on your declaration like:\n" \
             "\n" \
             "  class #{active_record.name} < ActiveRecord::Base\n" \
@@ -995,7 +1012,7 @@ module ActiveRecord
       end
 
       def constraints
-        [source_type_info]
+        @reflection.constraints + [source_type_info]
       end
 
       def source_type_info

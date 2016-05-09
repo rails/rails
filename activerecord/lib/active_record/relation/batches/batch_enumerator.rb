@@ -35,14 +35,14 @@ module ActiveRecord
         return to_enum(:each_record) unless block_given?
 
         @relation.to_enum(:in_batches, of: @of, start: @start, finish: @finish, load: true).each do |relation|
-          relation.to_a.each { |record| yield record }
+          relation.records.each { |record| yield record }
         end
       end
 
       # Delegates #delete_all, #update_all, #destroy_all methods to each batch.
       #
       #   People.in_batches.delete_all
-      #   People.in_batches.destroy_all('age < 10')
+      #   People.where('age < 10').in_batches.destroy_all
       #   People.in_batches.update_all('age = age + 1')
       [:delete_all, :update_all, :destroy_all].each do |method|
         define_method(method) do |*args, &block|

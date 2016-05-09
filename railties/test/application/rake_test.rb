@@ -24,7 +24,7 @@ module ApplicationTests
       assert $task_loaded
     end
 
-    def test_the_test_rake_task_is_protected_when_previous_migration_was_production
+    test "task is protected when previous migration was production" do
       Dir.chdir(app_path) do
         output = `bin/rails generate model product name:string;
          env RAILS_ENV=production bin/rails db:create db:migrate;
@@ -118,11 +118,11 @@ module ApplicationTests
     end
 
     def test_code_statistics_sanity
-      assert_match "Code LOC: 14     Test LOC: 0     Code to Test Ratio: 1:0.0",
-        Dir.chdir(app_path){ `bin/rails stats` }
+      assert_match "Code LOC: 26     Test LOC: 0     Code to Test Ratio: 1:0.0",
+        Dir.chdir(app_path) { `bin/rails stats` }
     end
 
-    def test_rake_routes_calls_the_route_inspector
+    def test_rails_routes_calls_the_route_inspector
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get '/cart', to: 'cart#show'
@@ -133,7 +133,7 @@ module ApplicationTests
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
     end
 
-    def test_rake_routes_with_controller_environment
+    def test_rails_routes_with_controller_environment
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get '/cart', to: 'cart#show'
@@ -151,7 +151,7 @@ module ApplicationTests
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
     end
 
-    def test_rake_routes_with_namespaced_controller_environment
+    def test_rails_routes_with_namespaced_controller_environment
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           namespace :admin do
@@ -175,7 +175,7 @@ module ApplicationTests
       assert_equal expected_output, output
     end
 
-    def test_rake_routes_with_global_search_key
+    def test_rails_routes_with_global_search_key
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get '/cart', to: 'cart#show'
@@ -195,7 +195,7 @@ module ApplicationTests
                    "basketballs GET  /basketballs(.:format) basketball#index\n", output
     end
 
-    def test_rake_routes_with_controller_search_key
+    def test_rails_routes_with_controller_search_key
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get '/cart', to: 'cart#show'
@@ -213,7 +213,7 @@ module ApplicationTests
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
     end
 
-    def test_rake_routes_displays_message_when_no_routes_are_defined
+    def test_rails_routes_displays_message_when_no_routes_are_defined
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
         end
@@ -226,6 +226,17 @@ module ApplicationTests
 
         For more information about routes, see the Rails guide: http://guides.rubyonrails.org/routing.html.
       MESSAGE
+    end
+
+    def test_rake_routes_with_rake_options
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get '/cart', to: 'cart#show'
+        end
+      RUBY
+
+      output = Dir.chdir(app_path){ `bin/rake --rakefile Rakefile routes` }
+      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
     end
 
     def test_logger_is_flushed_when_exiting_production_rake_tasks
@@ -369,7 +380,7 @@ module ApplicationTests
 
     def test_copy_templates
       Dir.chdir(app_path) do
-        `bin/rails rails:templates:copy`
+        `bin/rails app:templates:copy`
         %w(controller mailer scaffold).each do |dir|
           assert File.exist?(File.join(app_path, 'lib', 'templates', 'erb', dir))
         end
@@ -384,7 +395,7 @@ module ApplicationTests
       app_file "template.rb", ""
 
       output = Dir.chdir(app_path) do
-        `bin/rails rails:template LOCATION=template.rb`
+        `bin/rails app:template LOCATION=template.rb`
       end
 
       assert_match(/Hello, World!/, output)

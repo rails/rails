@@ -287,7 +287,7 @@ specify to make your test failure messages clearer.
 | `assert_not_in_delta( expected, actual, [delta], [msg] )`        | Ensures that the numbers `expected` and `actual` are not within `delta` of each other.|
 | `assert_throws( symbol, [msg] ) { block }`                       | Ensures that the given block throws the symbol.|
 | `assert_raises( exception1, exception2, ... ) { block }`         | Ensures that the given block raises one of the given exceptions.|
-| `assert_nothing_raised( exception1, exception2, ... ) { block }` | Ensures that the given block doesn't raise one of the given exceptions.|
+| `assert_nothing_raised { block }`                                | Ensures that the given block doesn't raise any exceptions.|
 | `assert_instance_of( class, obj, [msg] )`                        | Ensures that `obj` is an instance of `class`.|
 | `assert_not_instance_of( class, obj, [msg] )`                    | Ensures that `obj` is not an instance of `class`.|
 | `assert_kind_of( class, obj, [msg] )`                            | Ensures that `obj` is an instance of `class` or is descending from it.|
@@ -495,7 +495,8 @@ users(:david)
 users(:david).id
 
 # one can also access methods available on the User class
-email(david.partner.email, david.location_tonight)
+david = users(:david)
+david.call(david.partner)
 ```
 
 To get multiple fixtures at once, you can pass in a list of fixture names. For example:
@@ -798,7 +799,7 @@ and
 can be set directly on the `@request` instance variable:
 
 ```ruby
-# setting a HTTP Header
+# setting an HTTP Header
 @request.headers["Accept"] = "text/plain, text/html"
 get articles_url # simulate the request with custom header
 

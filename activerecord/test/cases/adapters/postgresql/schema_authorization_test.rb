@@ -55,20 +55,22 @@ class SchemaAuthorizationTest < ActiveRecord::PostgreSQLTestCase
       set_session_auth
       USERS.each do |u|
         set_session_auth u
-        assert_equal u, @connection.exec_query("SELECT name FROM #{TABLE_NAME} WHERE id = $1", 'SQL', [bind_param(1)]).first['name']
+        assert_equal u, @connection.select_value("SELECT name FROM #{TABLE_NAME} WHERE id = 1")
         set_session_auth
       end
     end
   end
 
-  def test_auth_with_bind
-    assert_nothing_raised do
-      set_session_auth
-      USERS.each do |u|
-        @connection.clear_cache!
-        set_session_auth u
-        assert_equal u, @connection.exec_query("SELECT name FROM #{TABLE_NAME} WHERE id = $1", 'SQL', [bind_param(1)]).first['name']
+  if ActiveRecord::Base.connection.prepared_statements
+    def test_auth_with_bind
+      assert_nothing_raised do
         set_session_auth
+        USERS.each do |u|
+          @connection.clear_cache!
+          set_session_auth u
+          assert_equal u, @connection.select_value("SELECT name FROM #{TABLE_NAME} WHERE id = $1", 'SQL', [bind_param(1)])
+          set_session_auth
+        end
       end
     end
   end

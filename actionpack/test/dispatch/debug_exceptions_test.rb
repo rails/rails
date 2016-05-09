@@ -75,13 +75,6 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     end
   end
 
-  class BoomerAPI < Boomer
-    def call(env)
-      env['action_dispatch.show_detailed_exceptions'] = @detailed
-      raise "puke!"
-    end
-  end
-
   RoutesApp = Struct.new(:routes).new(SharedTestRoutes)
   ProductionApp  = ActionDispatch::DebugExceptions.new(Boomer.new(false), RoutesApp)
   DevelopmentApp = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp)

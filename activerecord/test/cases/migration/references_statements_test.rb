@@ -55,6 +55,11 @@ module ActiveRecord
         assert index_exists?(table_name, :tag_id, name: 'index_taggings_on_tag_id')
       end
 
+      def test_creates_named_unique_index
+        add_reference table_name, :tag, index: { name: 'index_taggings_on_tag_id', unique: true }
+        assert index_exists?(table_name, :tag_id, name: 'index_taggings_on_tag_id', unique: true )
+      end
+
       def test_creates_reference_id_with_specified_type
         add_reference table_name, :user, type: :string
         assert column_exists?(table_name, :user_id, :string)

@@ -3,7 +3,7 @@ require 'delegate'
 require 'active_support/json'
 
 module ActionController
-  # Mix this module in to your controller, and all actions in that controller
+  # Mix this module into your controller, and all actions in that controller
   # will be able to stream data to the client as it's written.
   #
   #   class MyController < ActionController::Base
@@ -20,7 +20,7 @@ module ActionController
   #     end
   #   end
   #
-  # There are a few caveats with this use. You *cannot* write headers after the
+  # There are a few caveats with this module. You *cannot* write headers after the
   # response has been committed (Response#committed? will return truthy).
   # Calling +write+ or +close+ on the response stream will cause the response
   # object to be committed. Make sure all headers are set before calling write
@@ -163,14 +163,6 @@ module ActionController
         end
       end
 
-      def each
-        @response.sending!
-        while str = @buf.pop
-          yield str
-        end
-        @response.sent!
-      end
-
       # Write a 'close' event to the buffer; the producer/writing thread
       # uses this to notify us that it's finished supplying content.
       #
@@ -210,6 +202,14 @@ module ActionController
       def call_on_error
         @error_callback.call
       end
+
+      private
+
+        def each_chunk(&block)
+          while str = @buf.pop
+            yield str
+          end
+        end
     end
 
     class Response < ActionDispatch::Response #:nodoc: all

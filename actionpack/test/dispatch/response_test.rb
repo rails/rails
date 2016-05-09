@@ -37,6 +37,39 @@ class ResponseTest < ActiveSupport::TestCase
     assert_equal "closed stream", e.message
   end
 
+  def test_each_isnt_called_if_str_body_is_written
+    # Controller writes and reads response body
+    each_counter = 0
+    @response.body = Object.new.tap {|o| o.singleton_class.send(:define_method, :each) { |&block| each_counter += 1; block.call 'foo' } }
+    @response['X-Foo'] = @response.body
+
+    assert_equal 1, each_counter, "#each was not called once"
+
+    # Build response
+    status, headers, body = @response.to_a
+
+    assert_equal 200, status
+    assert_equal "foo", headers['X-Foo']
+    assert_equal "foo", body.each.to_a.join
+
+    # Show that #each was not called twice
+    assert_equal 1, each_counter, "#each was not called once"
+  end
+
+  def test_set_header_after_read_body_during_action
+    @response.body
+
+    # set header after the action reads back @response.body
+    @response['x-header'] = "Best of all possible worlds."
+
+    # the response can be built.
+    status, headers, body = @response.to_a
+    assert_equal 200, status
+    assert_equal "", body.body
+
+    assert_equal "Best of all possible worlds.", headers['x-header']
+  end
+
   def test_read_body_during_action
     @response.body = "Hello, World!"
 
@@ -189,7 +222,7 @@ class ResponseTest < ActiveSupport::TestCase
     assert_equal({"user_name" => "david", "login" => nil}, @response.cookies)
   end
 
-  test "read cache control" do
+  test "read ETag and Cache-Control" do
     resp = ActionDispatch::Response.new.tap { |response|
       response.cache_control[:public] = true
       response.etag = '123'
@@ -197,11 +230,28 @@ class ResponseTest < ActiveSupport::TestCase
     }
     resp.to_a
 
+    assert resp.etag?
+    assert resp.weak_etag?
+    assert_not resp.strong_etag?
     assert_equal('W/"202cb962ac59075b964b07152d234b70"', resp.etag)
     assert_equal({:public => true}, resp.cache_control)
 
     assert_equal('public', resp.headers['Cache-Control'])
     assert_equal('W/"202cb962ac59075b964b07152d234b70"', resp.headers['ETag'])
+  end
+
+  test "read strong ETag" do
+    resp = ActionDispatch::Response.new.tap { |response|
+      response.cache_control[:public] = true
+      response.strong_etag = '123'
+      response.body = 'Hello'
+    }
+    resp.to_a
+
+    assert resp.etag?
+    assert_not resp.weak_etag?
+    assert resp.strong_etag?
+    assert_equal('"202cb962ac59075b964b07152d234b70"', resp.etag)
   end
 
   test "read charset and content type" do
@@ -444,5 +494,21 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
     assert_equal(Mime[:xml], @response.content_type)
 
     assert_equal('application/xml; charset=utf-16', @response.headers['Content-Type'])
+  end
+
+  test "strong ETag validator" do
+    @app = lambda { |env|
+      ActionDispatch::Response.new.tap { |resp|
+        resp.strong_etag = '123'
+        resp.body = 'Hello'
+        resp.request = ActionDispatch::Request.empty
+      }.to_a
+    }
+
+    get '/'
+    assert_response :ok
+
+    assert_equal('"202cb962ac59075b964b07152d234b70"', @response.headers['ETag'])
+    assert_equal('"202cb962ac59075b964b07152d234b70"', @response.etag)
   end
 end

@@ -11,6 +11,7 @@ module CommonSubscriptionAdapterTest
   def setup
     server = ActionCable::Server::Base.new
     server.config.cable = cable_config.with_indifferent_access
+    server.config.use_faye = ENV['FAYE'].present?
 
     adapter_klass = server.config.pubsub_adapter
 
@@ -19,8 +20,7 @@ module CommonSubscriptionAdapterTest
   end
 
   def teardown
-    @tx_adapter.shutdown if @tx_adapter && @tx_adapter != @rx_adapter
-    @rx_adapter.shutdown if @rx_adapter
+    [@rx_adapter, @tx_adapter].uniq.each(&:shutdown)
   end
 
 

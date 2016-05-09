@@ -136,9 +136,11 @@ module ActiveRecord
     end
 
     def convert_dot_notation_to_hash(attributes)
-      dot_notation = attributes.keys.select { |s| s.include?(".".freeze) }
+      dot_notation = attributes.select do |k, v|
+        k.include?(".".freeze) && !v.is_a?(Hash)
+      end
 
-      dot_notation.each do |key|
+      dot_notation.each_key do |key|
         table_name, column_name = key.split(".".freeze)
         value = attributes.delete(key)
         attributes[table_name] ||= {}

@@ -40,8 +40,7 @@ class ActionCable::Connection::IdentifierTest < ActionCable::TestCase
       open_connection_with_stubbed_pubsub
 
       @connection.websocket.expects(:close)
-      message = ActiveSupport::JSON.encode('type' => 'disconnect')
-      @connection.process_internal_message message
+      @connection.process_internal_message 'type' => 'disconnect'
     end
   end
 
@@ -50,8 +49,7 @@ class ActionCable::Connection::IdentifierTest < ActionCable::TestCase
       open_connection_with_stubbed_pubsub
 
       @connection.websocket.expects(:close).never
-      message = ActiveSupport::JSON.encode('type' => 'unknown')
-      @connection.process_internal_message message
+      @connection.process_internal_message 'type' => 'unknown'
     end
   end
 
@@ -64,7 +62,7 @@ class ActionCable::Connection::IdentifierTest < ActionCable::TestCase
     end
 
     def open_connection(server:)
-      env = Rack::MockRequest.env_for "/test", 'HTTP_CONNECTION' => 'upgrade', 'HTTP_UPGRADE' => 'websocket'
+      env = Rack::MockRequest.env_for "/test", 'HTTP_HOST' => 'localhost', 'HTTP_CONNECTION' => 'upgrade', 'HTTP_UPGRADE' => 'websocket'
       @connection = Connection.new(server, env)
 
       @connection.process

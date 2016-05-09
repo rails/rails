@@ -1,5 +1,3 @@
-require File.expand_path('../../../load_paths', __FILE__)
-
 $:.unshift(File.dirname(__FILE__) + '/lib')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/helpers')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
@@ -69,7 +67,9 @@ FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
 SharedTestRoutes = ActionDispatch::Routing::RouteSet.new
 
 SharedTestRoutes.draw do
-  get ':controller(/:action)'
+  ActiveSupport::Deprecation.silence do
+    get ':controller(/:action)'
+  end
 end
 
 module ActionDispatch
@@ -118,7 +118,9 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
   self.app = build_app
 
   app.routes.draw do
-    get ':controller(/:action)'
+    ActiveSupport::Deprecation.silence do
+      get ':controller(/:action)'
+    end
   end
 
   class DeadEndRoutes < ActionDispatch::Routing::RouteSet

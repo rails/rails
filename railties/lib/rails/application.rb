@@ -1,4 +1,3 @@
-require 'fileutils'
 require 'yaml'
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/object/blank'
@@ -74,8 +73,7 @@ module Rails
   # the configuration.
   #
   # If you decide to define rake tasks, runners, or initializers in an
-  # application other than +Rails.application+, then you must run those
-  # these manually.
+  # application other than +Rails.application+, then you must run them manually.
   class Application < Engine
     autoload :Bootstrap,              'rails/application/bootstrap'
     autoload :Configuration,          'rails/application/configuration'
@@ -113,7 +111,7 @@ module Rails
 
     attr_accessor :assets, :sandbox
     alias_method :sandbox?, :sandbox
-    attr_reader :reloaders
+    attr_reader :reloaders, :reloader, :executor
 
     delegate :default_url_options, :default_url_options=, to: :routes
 
@@ -130,6 +128,10 @@ module Rails
       @railties          = nil
       @message_verifiers = {}
       @ran_load_hooks    = false
+
+      @executor          = Class.new(ActiveSupport::Executor)
+      @reloader          = Class.new(ActiveSupport::Reloader)
+      @reloader.executor = @executor
 
       # are these actually used?
       @initial_variable_values = initial_variable_values
@@ -243,7 +245,7 @@ module Rails
       @app_env_config ||= begin
         validate_secret_key_config!
 
-        super.merge({
+        super.merge(
           "action_dispatch.parameter_filter" => config.filter_parameters,
           "action_dispatch.redirect_filter" => config.filter_redirect,
           "action_dispatch.secret_token" => secrets.secret_token,
@@ -259,7 +261,7 @@ module Rails
           "action_dispatch.encrypted_signed_cookie_salt" => config.action_dispatch.encrypted_signed_cookie_salt,
           "action_dispatch.cookies_serializer" => config.action_dispatch.cookies_serializer,
           "action_dispatch.cookies_digest" => config.action_dispatch.cookies_digest
-        })
+        )
       end
     end
 

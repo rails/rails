@@ -29,10 +29,10 @@ module ActionCable
 
       attr_reader :env, :url
 
-      def initialize(env, event_target, stream_event_loop)
-        @env               = env
-        @event_target      = event_target
-        @stream_event_loop = stream_event_loop
+      def initialize(env, event_target, event_loop, protocols)
+        @env          = env
+        @event_target = event_target
+        @event_loop   = event_loop
 
         @url = ClientSocket.determine_url(@env)
 
@@ -42,22 +42,24 @@ module ActionCable
         @ready_state = CONNECTING
 
         # The driver calls +env+, +url+, and +write+
-        @driver = ::WebSocket::Driver.rack(self)
+        @driver = ::WebSocket::Driver.rack(self, protocols: protocols)
 
         @driver.on(:open)    { |e| open }
         @driver.on(:message) { |e| receive_message(e.data) }
         @driver.on(:close)   { |e| begin_close(e.reason, e.code) }
         @driver.on(:error)   { |e| emit_error(e.message) }
 
-        @stream = ActionCable::Connection::Stream.new(@stream_event_loop, self)
-
-        if callback = @env['async.callback']
-          callback.call([101, {}, @stream])
-        end
+        @stream = ActionCable::Connection::Stream.new(@event_loop, self)
       end
 
       def start_driver
         return if @driver.nil? || @driver_started
+        @stream.hijack_rack_socket
+
+        if callback = @env['async.callback']
+          callback.call([101, {}, @stream])
+        end
+
         @driver_started = true
         @driver.start
       end
@@ -69,6 +71,8 @@ module ActionCable
 
       def write(data)
         @stream.write(data)
+      rescue => e
+        emit_error e.message
       end
 
       def transmit(message)
@@ -107,6 +111,10 @@ module ActionCable
         @ready_state == OPEN
       end
 
+      def protocol
+        @driver.protocol
+      end
+
       private
         def open
           return unless @ready_state == CONNECTING
@@ -132,11 +140,8 @@ module ActionCable
           @ready_state = CLOSING
           @close_params = [reason, code]
 
-          if @stream
-            @stream.shutdown
-          else
-            finalize_close
-          end
+          @stream.shutdown if @stream
+          finalize_close
         end
 
         def finalize_close

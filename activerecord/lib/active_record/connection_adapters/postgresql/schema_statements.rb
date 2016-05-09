@@ -1,3 +1,5 @@
+require 'active_support/core_ext/string/strip'
+
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
@@ -172,7 +174,11 @@ module ActiveRecord
           table = Utils.extract_schema_qualified_name(table_name.to_s)
 
           result = query(<<-SQL, 'SCHEMA')
-            SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid), t.oid
+            SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid), t.oid,
+                            pg_catalog.obj_description(i.oid, 'pg_class') AS comment,
+            (SELECT COUNT(*) FROM pg_opclass o
+               JOIN (SELECT unnest(string_to_array(d.indclass::text, ' '))::int oid) c
+                 ON o.oid = c.oid WHERE o.opcdefault = 'f')
             FROM pg_class t
             INNER JOIN pg_index d ON t.oid = d.indrelid
             INNER JOIN pg_class i ON d.indexrelid = i.oid
@@ -190,43 +196,61 @@ module ActiveRecord
             indkey = row[2].split(" ").map(&:to_i)
             inddef = row[3]
             oid = row[4]
+            comment = row[5]
+            opclass = row[6]
 
-            columns = Hash[query(<<-SQL, "SCHEMA")]
-            SELECT a.attnum, a.attname
-            FROM pg_attribute a
-            WHERE a.attrelid = #{oid}
-            AND a.attnum IN (#{indkey.join(",")})
-            SQL
+            using, expressions, where = inddef.scan(/ USING (\w+?) \((.+?)\)(?: WHERE (.+))?\z/).flatten
 
-            column_names = columns.values_at(*indkey).compact
+            if indkey.include?(0) || opclass > 0
+              columns = expressions
+            else
+              columns = Hash[query(<<-SQL.strip_heredoc, "SCHEMA")].values_at(*indkey).compact
+                SELECT a.attnum, a.attname
+                FROM pg_attribute a
+                WHERE a.attrelid = #{oid}
+                AND a.attnum IN (#{indkey.join(",")})
+              SQL
 
-            unless column_names.empty?
               # add info on sort order for columns (only desc order is explicitly specified, asc is the default)
-              desc_order_columns = inddef.scan(/(\w+) DESC/).flatten
-              orders = desc_order_columns.any? ? Hash[desc_order_columns.map {|order_column| [order_column, :desc]}] : {}
-              where = inddef.scan(/WHERE (.+)$/).flatten[0]
-              using = inddef.scan(/USING (.+?) /).flatten[0].to_sym
-
-              IndexDefinition.new(table_name, index_name, unique, column_names, [], orders, where, nil, using)
+              orders = Hash[
+                expressions.scan(/(\w+) DESC/).flatten.map { |order_column| [order_column, :desc] }
+              ]
             end
+
+            IndexDefinition.new(table_name, index_name, unique, columns, [], orders, where, nil, using.to_sym, comment.presence)
           end.compact
         end
 
         # Returns the list of all column definitions for a table.
-        def columns(table_name)
-          # Limit, precision, and scale are all handled by the superclass.
-          column_definitions(table_name).map do |column_name, type, default, notnull, oid, fmod, collation|
+        def columns(table_name) # :nodoc:
+          table_name = table_name.to_s
+          column_definitions(table_name).map do |column_name, type, default, notnull, oid, fmod, collation, comment|
             oid = oid.to_i
             fmod = fmod.to_i
             type_metadata = fetch_type_metadata(column_name, type, oid, fmod)
             default_value = extract_value_from_default(default)
             default_function = extract_default_function(default_value, default)
-            new_column(column_name, default_value, type_metadata, !notnull, default_function, collation)
+            new_column(column_name, default_value, type_metadata, !notnull, table_name, default_function, collation, comment: comment.presence)
           end
         end
 
-        def new_column(name, default, sql_type_metadata = nil, null = true, default_function = nil, collation = nil) # :nodoc:
-          PostgreSQLColumn.new(name, default, sql_type_metadata, null, default_function, collation)
+        def new_column(*args) # :nodoc:
+          PostgreSQLColumn.new(*args)
+        end
+
+        # Returns a comment stored in database for given table
+        def table_comment(table_name) # :nodoc:
+          name = Utils.extract_schema_qualified_name(table_name.to_s)
+          if name.identifier
+            select_value(<<-SQL.strip_heredoc, 'SCHEMA')
+              SELECT pg_catalog.obj_description(c.oid, 'pg_class')
+              FROM pg_catalog.pg_class c
+                LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
+              WHERE c.relname = #{quote(name.identifier)}
+                AND c.relkind IN ('r') -- (r)elation/table
+                AND n.nspname = #{name.schema ? quote(name.schema) : 'ANY (current_schemas(false))'}
+            SQL
+          end
         end
 
         # Returns the current database name.
@@ -325,7 +349,7 @@ module ActiveRecord
 
               select_value("SELECT setval('#{quoted_sequence}', #{value})", 'SCHEMA')
             else
-              @logger.warn "#{table} has primary key #{pk} with no default sequence" if @logger
+              @logger.warn "#{table} has primary key #{pk} with no default sequence." if @logger
             end
           end
         end
@@ -340,7 +364,7 @@ module ActiveRecord
           end
 
           if @logger && pk && !sequence
-            @logger.warn "#{table} has primary key #{pk} with no default sequence"
+            @logger.warn "#{table} has primary key #{pk} with no default sequence."
           end
 
           if pk && sequence
@@ -445,6 +469,7 @@ module ActiveRecord
         def add_column(table_name, column_name, type, options = {}) #:nodoc:
           clear_cache!
           super
+          change_column_comment(table_name, column_name, options[:comment]) if options.key?(:comment)
         end
 
         def change_column(table_name, column_name, type, options = {}) #:nodoc:
@@ -466,6 +491,7 @@ module ActiveRecord
 
           change_column_default(table_name, column_name, options[:default]) if options_include_default?(options)
           change_column_null(table_name, column_name, options[:null], options[:default]) if options.key?(:null)
+          change_column_comment(table_name, column_name, options[:comment]) if options.key?(:comment)
         end
 
         # Changes the default value of a table column.
@@ -494,6 +520,18 @@ module ActiveRecord
           execute("ALTER TABLE #{quote_table_name(table_name)} ALTER #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL")
         end
 
+        # Adds comment for given table column or drops it if +comment+ is a +nil+
+        def change_column_comment(table_name, column_name, comment) # :nodoc:
+          clear_cache!
+          execute "COMMENT ON COLUMN #{quote_table_name(table_name)}.#{quote_column_name(column_name)} IS #{quote(comment)}"
+        end
+
+        # Adds comment for given table or drops it if +comment+ is a +nil+
+        def change_table_comment(table_name, comment) # :nodoc:
+          clear_cache!
+          execute "COMMENT ON TABLE #{quote_table_name(table_name)} IS #{quote(comment)}"
+        end
+
         # Renames a column in a table.
         def rename_column(table_name, column_name, new_column_name) #:nodoc:
           clear_cache!
@@ -502,8 +540,10 @@ module ActiveRecord
         end
 
         def add_index(table_name, column_name, options = {}) #:nodoc:
-          index_name, index_type, index_columns, index_options, index_algorithm, index_using = add_index_options(table_name, column_name, options)
-          execute "CREATE #{index_type} INDEX #{index_algorithm} #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} #{index_using} (#{index_columns})#{index_options}"
+          index_name, index_type, index_columns, index_options, index_algorithm, index_using, comment = add_index_options(table_name, column_name, options)
+          execute("CREATE #{index_type} INDEX #{index_algorithm} #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} #{index_using} (#{index_columns})#{index_options}").tap do
+            execute "COMMENT ON INDEX #{quote_column_name(index_name)} IS #{quote(comment)}" if comment
+          end
         end
 
         def remove_index(table_name, options = {}) #:nodoc:

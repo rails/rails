@@ -43,7 +43,7 @@ module ActionController
 
   # == Action Controller \Parameters
   #
-  # Allows to choose which attributes should be whitelisted for mass updating
+  # Allows you to choose which attributes should be whitelisted for mass updating
   # and thus prevent accidentally exposing that which shouldn't be exposed.
   # Provides two methods for this purpose: #require and #permit. The former is
   # used to mark parameters as required. The latter is used to set the parameter
@@ -144,17 +144,21 @@ module ActionController
     end
 
     # Returns true if another +Parameters+ object contains the same content and
-    # permitted flag, or other Hash-like object contains the same content. This
-    # override is in place so you can perform a comparison with `Hash`.
-    def ==(other_hash)
-      if other_hash.respond_to?(:permitted?)
-        super
+    # permitted flag.
+    def ==(other)
+      if other.respond_to?(:permitted?)
+        self.permitted? == other.permitted? && self.parameters == other.parameters
+      elsif other.is_a?(Hash)
+        ActiveSupport::Deprecation.warn <<-WARNING.squish
+          Comparing equality between `ActionController::Parameters` and a
+          `Hash` is deprecated and will be removed in Rails 5.1. Please only do
+          comparisons between instances of `ActionController::Parameters`. If
+          you need to compare to a hash, first convert it using
+          `ActionController::Parameters#new`.
+        WARNING
+        @parameters == other.with_indifferent_access
       else
-        if other_hash.is_a?(Hash)
-          @parameters == other_hash.with_indifferent_access
-        else
-          @parameters == other_hash
-        end
+        @parameters == other
       end
     end
 
@@ -180,12 +184,19 @@ module ActionController
     # Returns an unsafe, unfiltered
     # <tt>ActiveSupport::HashWithIndifferentAccess</tt> representation of this
     # parameter.
+    #
+    #   params = ActionController::Parameters.new({
+    #     name: 'Senjougahara Hitagi',
+    #     oddity: 'Heavy stone crab'
+    #   })
+    #   params.to_unsafe_h
+    #   # => {"name"=>"Senjougahara Hitagi", "oddity" => "Heavy stone crab"}
     def to_unsafe_h
       convert_parameters_to_hashes(@parameters, :to_unsafe_h)
     end
     alias_method :to_unsafe_hash, :to_unsafe_h
 
-    # Convert all hashes in values into parameters, then yield each pair like
+    # Convert all hashes in values into parameters, then yield each pair in
     # the same way as <tt>Hash#each_pair</tt>
     def each_pair(&block)
       @parameters.each_pair do |key, value|
@@ -267,7 +278,7 @@ module ActionController
     #   params = ActionController::Parameters.new(user: { ... }, profile: { ... })
     #   user_params, profile_params = params.require(:user, :profile)
     #
-    # Otherwise, the method reraises the first exception found:
+    # Otherwise, the method re-raises the first exception found:
     #
     #   params = ActionController::Parameters.new(user: {}, profile: {})
     #   user_params, profile_params = params.require(:user, :profile)
@@ -426,6 +437,21 @@ module ActionController
       )
     end
 
+    if Hash.method_defined?(:dig)
+      # Extracts the nested parameter from the given +keys+ by calling +dig+
+      # at each step. Returns +nil+ if any intermediate step is +nil+.
+      #
+      # params = ActionController::Parameters.new(foo: { bar: { baz: 1 } })
+      # params.dig(:foo, :bar, :baz) # => 1
+      # params.dig(:foo, :zot, :xyz) # => nil
+      #
+      # params2 = ActionController::Parameters.new(foo: [10, 11, 12])
+      # params2.dig(:foo, 1) # => 11
+      def dig(*keys)
+        convert_value_to_parameters(@parameters.dig(*keys))
+      end
+    end
+
     # Returns a new <tt>ActionController::Parameters</tt> instance that
     # includes only the given +keys+. If the given +keys+
     # don't exist, returns an empty hash.
@@ -575,7 +601,7 @@ module ActionController
     end
 
     def inspect
-      "<#{self.class} #{@parameters}>"
+      "<#{self.class} #{@parameters} permitted: #{@permitted}>"
     end
 
     def method_missing(method_sym, *args, &block)
@@ -597,6 +623,8 @@ module ActionController
     end
 
     protected
+      attr_reader :parameters
+
       def permitted=(new_permitted)
         @permitted = new_permitted
       end
@@ -728,6 +756,10 @@ module ActionController
         end
       end
 
+      def non_scalar?(value)
+        value.is_a?(Array) || value.is_a?(Parameters)
+      end
+
       EMPTY_ARRAY = []
       def hash_filter(params, filter)
         filter = filter.with_indifferent_access
@@ -742,7 +774,7 @@ module ActionController
             array_of_permitted_scalars?(self[key]) do |val|
               params[key] = val
             end
-          else
+          elsif non_scalar?(value)
             # Declaration { user: :name } or { user: [:name, :age, { address: ... }] }.
             params[key] = each_element(value) do |element|
               element.permit(*Array.wrap(filter[key]))
@@ -793,7 +825,8 @@ module ActionController
   #   end
   #
   # In order to use <tt>accepts_nested_attributes_for</tt> with Strong \Parameters, you
-  # will need to specify which nested attributes should be whitelisted.
+  # will need to specify which nested attributes should be whitelisted. You might want
+  # to allow +:id+ and +:_destroy+, see ActiveRecord::NestedAttributes for more information.
   #
   #   class Person
   #     has_many :pets
@@ -813,7 +846,7 @@ module ActionController
   #         # It's mandatory to specify the nested attributes that should be whitelisted.
   #         # If you use `permit` with just the key that points to the nested attributes hash,
   #         # it will return an empty hash.
-  #         params.require(:person).permit(:name, :age, pets_attributes: [ :name, :category ])
+  #         params.require(:person).permit(:name, :age, pets_attributes: [ :id, :name, :category ])
   #       end
   #   end
   #
