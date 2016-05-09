@@ -13,7 +13,7 @@ module ActiveModel
       #   validates :terms, acceptance: true
       #   validates :password, confirmation: true
       #   validates :username, exclusion: { in: %w(admin superuser) }
-      #   validates :email, format: { with: /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i, on: :create }
+      #   validates :email, format: { with: /\A((?:[\w+\-].?)+)@([a-z\d\-]+(?:\.[a-z]+)*\.[a-z]+)\z/i, on: :create }
       #   validates :age, inclusion: { in: 0..9 }
       #   validates :first_name, length: { maximum: 30 }
       #   validates :age, numericality: true
@@ -26,7 +26,7 @@ module ActiveModel
       #   class EmailValidator < ActiveModel::EachValidator
       #     def validate_each(record, attribute, value)
       #       record.errors.add attribute, (options[:message] || "is not an email") unless
-      #         value =~ /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i
+      #         value =~ /\A((?:[\w+\-].?)+)@([a-z\d\-]+(?:\.[a-z]+)*\.[a-z]+)\z/i
       #     end
       #   end
       #
