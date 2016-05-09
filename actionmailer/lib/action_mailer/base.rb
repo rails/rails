@@ -392,7 +392,7 @@ module ActionMailer
   #     of an OpenSSL verify constant (<tt>'none'</tt>, <tt>'peer'</tt>, <tt>'client_once'</tt>,
   #     <tt>'fail_if_no_peer_cert'</tt>) or directly the constant (<tt>OpenSSL::SSL::VERIFY_NONE</tt>,
   #     <tt>OpenSSL::SSL::VERIFY_PEER</tt>, ...).
-  #     <tt>:ssl</tt> - Forces ActionMailer to use SSL in the SMTP connection. Defaults to <tt>false</tt>.
+  #     <tt>:ssl/:tls</tt> Enables Action Mailer to use SMTP/TLS (SMTPS: SMTP over direct TLS connection).
   #
   # * <tt>sendmail_settings</tt> - Allows you to override options for the <tt>:sendmail</tt> delivery method.
   #   * <tt>:location</tt> - The location of the sendmail executable. Defaults to <tt>/usr/sbin/sendmail</tt>.
