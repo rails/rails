@@ -67,7 +67,6 @@ class TemplateDigestorTest < ActionView::TestCase
       add_template("events/_uncompleted")
     end
   ensure
-    remove_template("events/_uncompleted")
     ActionView::Resolver.caching = old_caching
   end
 
