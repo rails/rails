@@ -11,7 +11,16 @@ module ActionCable
         @todo = Queue.new
 
         @spawn_mutex = Mutex.new
-        spawn
+      end
+
+      def timer(interval, &block)
+        Concurrent::TimerTask.new(execution_interval: interval, &block).tap(&:execute)
+      end
+
+      def post(task = nil, &block)
+        task ||= block
+
+        Concurrent.global_io_executor << task
       end
 
       def attach(io, stream)

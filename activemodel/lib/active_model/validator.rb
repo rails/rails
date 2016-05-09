@@ -100,7 +100,7 @@ module ActiveModel
     #   PresenceValidator.kind   # => :presence
     #   UniquenessValidator.kind # => :uniqueness
     def self.kind
-      @kind ||= name.split('::').last.underscore.sub(/_validator$/, '').to_sym unless anonymous?
+      @kind ||= name.split('::').last.underscore.chomp('_validator').to_sym unless anonymous?
     end
 
     # Accepts options that will be made available through the +options+ reader.
@@ -162,10 +162,6 @@ module ActiveModel
     # that the arguments supplied are valid. You could for example raise an
     # +ArgumentError+ when invalid options are supplied.
     def check_validity!
-    end
-
-    def should_validate?(record) # :nodoc:
-      !record.persisted? || record.changed? || record.marked_for_destruction?
     end
   end
 

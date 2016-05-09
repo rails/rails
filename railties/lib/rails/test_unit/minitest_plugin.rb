@@ -1,6 +1,7 @@
 require "active_support/core_ext/module/attribute_accessors"
 require "rails/test_unit/reporter"
 require "rails/test_unit/test_requirer"
+require 'shellwords'
 
 module Minitest
   class SuppressedSummaryReporter < SummaryReporter
@@ -53,27 +54,26 @@ module Minitest
 
     options[:color] = true
     options[:output_inline] = true
-    options[:patterns] = opts.order!
+    options[:patterns] = defined?(@rake_patterns) ? @rake_patterns : opts.order!
   end
 
   # Running several Rake tasks in a single command would trip up the runner,
   # as the patterns would also contain the other Rake tasks.
   def self.rake_run(patterns) # :nodoc:
     @rake_patterns = patterns
-    passed = run
+    passed = run(Shellwords.split(ENV['TESTOPTS'] || ''))
     exit passed unless passed
     passed
   end
 
+  # Owes great inspiration to test runner trailblazers like RSpec,
+  # minitest-reporters, maxitest and others.
   def self.plugin_rails_init(options)
     self.run_with_rails_extension = true
 
     ENV["RAILS_ENV"] = options[:environment] || "test"
 
-    unless run_with_autorun
-      patterns = defined?(@rake_patterns) ? @rake_patterns : options[:patterns]
-      ::Rails::TestRequirer.require_files(patterns)
-    end
+    ::Rails::TestRequirer.require_files(options[:patterns]) unless run_with_autorun
 
     unless options[:full_backtrace] || ENV["BACKTRACE"]
       # Plugin can run without Rails loaded, check before filtering.
@@ -81,14 +81,18 @@ module Minitest
     end
 
     # Replace progress reporter for colors.
-    self.reporter.reporters.delete_if { |reporter| reporter.kind_of?(SummaryReporter) || reporter.kind_of?(ProgressReporter) }
-    self.reporter << SuppressedSummaryReporter.new(options[:io], options)
-    self.reporter << ::Rails::TestUnitReporter.new(options[:io], options)
+    reporter.reporters.delete_if { |reporter| reporter.kind_of?(SummaryReporter) || reporter.kind_of?(ProgressReporter) }
+    reporter << SuppressedSummaryReporter.new(options[:io], options)
+    reporter << ::Rails::TestUnitReporter.new(options[:io], options)
   end
 
   mattr_accessor(:run_with_autorun)         { false }
   mattr_accessor(:run_with_rails_extension) { false }
 end
 
+# Put Rails as the first plugin minitest initializes so other plugins
+# can override or replace our default reporter setup.
+# Since minitest only loads plugins if its extensions are empty we have
+# to call `load_plugins` first.
 Minitest.load_plugins
-Minitest.extensions << 'rails'
+Minitest.extensions.unshift 'rails'

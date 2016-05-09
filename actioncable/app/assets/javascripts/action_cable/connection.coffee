@@ -1,12 +1,17 @@
+#= require ./connection_monitor
+
 # Encapsulate the cable connection held by the consumer. This is an internal class not intended for direct user manipulation.
 
-{message_types} = ActionCable.INTERNAL
+{message_types, protocols} = ActionCable.INTERNAL
+[supportedProtocols..., unsupportedProtocol] = protocols
 
 class ActionCable.Connection
   @reopenDelay: 500
 
   constructor: (@consumer) ->
-    @open()
+    {@subscriptions} = @consumer
+    @monitor = new ActionCable.ConnectionMonitor this
+    @disconnected = true
 
   send: (data) ->
     if @isOpen()
@@ -16,29 +21,47 @@ class ActionCable.Connection
       false
 
   open: =>
-    if @webSocket and not @isState("closed")
+    if @isActive()
+      ActionCable.log("Attempted to open WebSocket, but existing socket is #{@getState()}")
       throw new Error("Existing connection must be closed before opening")
     else
-      @webSocket = new WebSocket(@consumer.url)
+      ActionCable.log("Opening WebSocket, current state is #{@getState()}, subprotocols: #{protocols}")
+      @uninstallEventHandlers() if @webSocket?
+      @webSocket = new WebSocket(@consumer.url, protocols)
       @installEventHandlers()
+      @monitor.start()
       true
 
-  close: ->
-    @webSocket?.close()
+  close: ({allowReconnect} = {allowReconnect: true}) ->
+    @monitor.stop() unless allowReconnect
+    @webSocket?.close() if @isActive()
 
   reopen: ->
-    if @isState("closed")
-      @open()
-    else
+    ActionCable.log("Reopening WebSocket, current state is #{@getState()}")
+    if @isActive()
       try
         @close()
+      catch error
+        ActionCable.log("Failed to reopen WebSocket", error)
       finally
+        ActionCable.log("Reopening WebSocket in #{@constructor.reopenDelay}ms")
         setTimeout(@open, @constructor.reopenDelay)
+    else
+      @open()
+
+  getProtocol: ->
+    @webSocket?.protocol
 
   isOpen: ->
     @isState("open")
 
+  isActive: ->
+    @isState("open", "connecting")
+
   # Private
+
+  isProtocolSupported: ->
+    @getProtocol() in supportedProtocols
 
   isState: (states...) ->
     @getState() in states
@@ -53,29 +76,41 @@ class ActionCable.Connection
       @webSocket["on#{eventName}"] = handler
     return
 
+  uninstallEventHandlers: ->
+    for eventName of @events
+      @webSocket["on#{eventName}"] = ->
+    return
+
   events:
     message: (event) ->
+      return unless @isProtocolSupported()
       {identifier, message, type} = JSON.parse(event.data)
-
       switch type
+        when message_types.welcome
+          @monitor.recordConnect()
+          @subscriptions.reload()
+        when message_types.ping
+          @monitor.recordPing()
         when message_types.confirmation
-          @consumer.subscriptions.notify(identifier, "connected")
+          @subscriptions.notify(identifier, "connected")
         when message_types.rejection
-          @consumer.subscriptions.reject(identifier)
+          @subscriptions.reject(identifier)
         else
-          @consumer.subscriptions.notify(identifier, "received", message)
+          @subscriptions.notify(identifier, "received", message)
 
     open: ->
+      ActionCable.log("WebSocket onopen event, using '#{@getProtocol()}' subprotocol")
       @disconnected = false
-      @consumer.subscriptions.reload()
+      if not @isProtocolSupported()
+        ActionCable.log("Protocol is unsupported. Stopping monitor and disconnecting.")
+        @close(allowReconnect: false)
 
-    close: ->
-      @disconnect()
+    close: (event) ->
+      ActionCable.log("WebSocket onclose event")
+      return if @disconnected
+      @disconnected = true
+      @monitor.recordDisconnect()
+      @subscriptions.notifyAll("disconnected", {willAttemptReconnect: @monitor.isRunning()})
 
     error: ->
-      @disconnect()
-
-  disconnect: ->
-    return if @disconnected
-    @disconnected = true
-    @consumer.subscriptions.notifyAll("disconnected")
+      ActionCable.log("WebSocket onerror event")

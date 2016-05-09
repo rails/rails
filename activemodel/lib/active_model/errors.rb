@@ -110,7 +110,7 @@ module ActiveModel
     #   person.errors.include?(:name) # => true
     #   person.errors.include?(:age)  # => false
     def include?(attribute)
-      messages[attribute].present?
+      messages.key?(attribute) && messages[attribute].present?
     end
     alias :has_key? :include?
     alias :key? :include?
@@ -327,7 +327,7 @@ module ActiveModel
     #   # => {:base=>[{error: :name_or_email_blank}]}
     def add(attribute, message = :invalid, options = {})
       message = message.call if message.respond_to?(:call)
-      detail  = normalize_detail(attribute, message, options)
+      detail  = normalize_detail(message, options)
       message = normalize_message(attribute, message, options)
       if exception = options[:strict]
         exception = ActiveModel::StrictValidationFailed if exception == true
@@ -346,7 +346,7 @@ module ActiveModel
     #   # => {:name=>["can't be empty"]}
     def add_on_empty(attributes, options = {})
       ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
-        ActiveModel::Errors#add_on_empty is deprecated and will be removed in Rails 5.1
+        ActiveModel::Errors#add_on_empty is deprecated and will be removed in Rails 5.1.
 
         To achieve the same use:
 
@@ -368,7 +368,7 @@ module ActiveModel
     #   # => {:name=>["can't be blank"]}
     def add_on_blank(attributes, options = {})
       ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
-        ActiveModel::Errors#add_on_blank is deprecated and will be removed in Rails 5.1
+        ActiveModel::Errors#add_on_blank is deprecated and will be removed in Rails 5.1.
 
         To achieve the same use:
 
@@ -486,7 +486,8 @@ module ActiveModel
         default: defaults,
         model: @base.model_name.human,
         attribute: @base.class.human_attribute_name(attribute),
-        value: value
+        value: value,
+        object: @base
       }.merge!(options)
 
       I18n.translate(key, options)
@@ -502,7 +503,7 @@ module ActiveModel
       end
     end
 
-    def normalize_detail(attribute, message, options)
+    def normalize_detail(message, options)
       { error: message }.merge(options.except(*CALLBACKS_OPTIONS + MESSAGE_OPTIONS))
     end
   end
@@ -523,6 +524,10 @@ module ActiveModel
   #   person.valid?
   #   # => ActiveModel::StrictValidationFailed: Name can't be blank
   class StrictValidationFailed < StandardError
+  end
+
+  # Raised when attribute values are out of range.
+  class RangeError < ::RangeError
   end
 
   # Raised when unknown attributes are supplied via mass assignment.

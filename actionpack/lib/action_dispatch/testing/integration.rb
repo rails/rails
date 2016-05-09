@@ -95,7 +95,7 @@ module ActionDispatch
 
         ActiveSupport::Deprecation.warn(<<-MSG.strip_heredoc)
           xhr and xml_http_request methods are deprecated in favor of
-          `get "/posts", xhr: true` and `post "/posts/1", xhr: true`
+          `get "/posts", xhr: true` and `post "/posts/1", xhr: true`.
         MSG
 
         process(request_method, path, params: params, headers: headers, xhr: true)
@@ -122,6 +122,7 @@ module ActionDispatch
       #     params: { ref_id: 14 },
       #     headers: { "X-Test-Header" => "testvalue" }
       def request_via_redirect(http_method, path, *args)
+        ActiveSupport::Deprecation.warn('`request_via_redirect` is deprecated and will be removed in Rails 5.1. Please use `follow_redirect!` manually after the request call for the same behavior.')
         process_with_kwargs(http_method, path, *args)
 
         follow_redirect! while redirect?
@@ -131,35 +132,35 @@ module ActionDispatch
       # Performs a GET request, following any subsequent redirect.
       # See +request_via_redirect+ for more information.
       def get_via_redirect(path, *args)
-        ActiveSupport::Deprecation.warn('`get_via_redirect` is deprecated and will be removed in Rails 5.1. Please use follow_redirect! manually after the request call for the same behavior.')
+        ActiveSupport::Deprecation.warn('`get_via_redirect` is deprecated and will be removed in Rails 5.1. Please use `follow_redirect!` manually after the request call for the same behavior.')
         request_via_redirect(:get, path, *args)
       end
 
       # Performs a POST request, following any subsequent redirect.
       # See +request_via_redirect+ for more information.
       def post_via_redirect(path, *args)
-        ActiveSupport::Deprecation.warn('`post_via_redirect` is deprecated and will be removed in Rails 5.1. Please use follow_redirect! manually after the request call for the same behavior.')
+        ActiveSupport::Deprecation.warn('`post_via_redirect` is deprecated and will be removed in Rails 5.1. Please use `follow_redirect!` manually after the request call for the same behavior.')
         request_via_redirect(:post, path, *args)
       end
 
       # Performs a PATCH request, following any subsequent redirect.
       # See +request_via_redirect+ for more information.
       def patch_via_redirect(path, *args)
-        ActiveSupport::Deprecation.warn('`patch_via_redirect` is deprecated and will be removed in Rails 5.1. Please use follow_redirect! manually after the request call for the same behavior.')
+        ActiveSupport::Deprecation.warn('`patch_via_redirect` is deprecated and will be removed in Rails 5.1. Please use `follow_redirect!` manually after the request call for the same behavior.')
         request_via_redirect(:patch, path, *args)
       end
 
       # Performs a PUT request, following any subsequent redirect.
       # See +request_via_redirect+ for more information.
       def put_via_redirect(path, *args)
-        ActiveSupport::Deprecation.warn('`put_via_redirect` is deprecated and will be removed in Rails 5.1. Please use follow_redirect! manually after the request call for the same behavior.')
+        ActiveSupport::Deprecation.warn('`put_via_redirect` is deprecated and will be removed in Rails 5.1. Please use `follow_redirect!` manually after the request call for the same behavior.')
         request_via_redirect(:put, path, *args)
       end
 
       # Performs a DELETE request, following any subsequent redirect.
       # See +request_via_redirect+ for more information.
       def delete_via_redirect(path, *args)
-        ActiveSupport::Deprecation.warn('`delete_via_redirect` is deprecated and will be removed in Rails 5.1. Please use follow_redirect! manually after the request call for the same behavior.')
+        ActiveSupport::Deprecation.warn('`delete_via_redirect` is deprecated and will be removed in Rails 5.1. Please use `follow_redirect!` manually after the request call for the same behavior.')
         request_via_redirect(:delete, path, *args)
       end
     end
@@ -735,34 +736,49 @@ module ActionDispatch
   # Consult the Rails Testing Guide for more.
 
   class IntegrationTest < ActiveSupport::TestCase
-    include Integration::Runner
-    include ActionController::TemplateAssertions
-    include ActionDispatch::Routing::UrlFor
-
-    @@app = nil
-
-    def self.app
-      @@app || ActionDispatch.test_app
+    module UrlOptions
+      extend ActiveSupport::Concern
+      def url_options
+        integration_session.url_options
+      end
     end
 
-    def self.app=(app)
-      @@app = app
+    module Behavior
+      extend ActiveSupport::Concern
+
+      include Integration::Runner
+      include ActionController::TemplateAssertions
+
+      included do
+        include ActionDispatch::Routing::UrlFor
+        include UrlOptions # don't let UrlFor override the url_options method
+        ActiveSupport.run_load_hooks(:action_dispatch_integration_test, self)
+        @@app = nil
+      end
+
+      module ClassMethods
+        def app
+          defined?(@@app) ? @@app : ActionDispatch.test_app
+        end
+
+        def app=(app)
+          @@app = app
+        end
+
+        def register_encoder(*args)
+          Integration::Session::RequestEncoder.register_encoder(*args)
+        end
+      end
+
+      def app
+        super || self.class.app
+      end
+
+      def document_root_element
+        html_document.root
+      end
     end
 
-    def app
-      super || self.class.app
-    end
-
-    def url_options
-      integration_session.url_options
-    end
-
-    def document_root_element
-      html_document.root
-    end
-
-    def self.register_encoder(*args)
-      Integration::Session::RequestEncoder.register_encoder(*args)
-    end
+    include Behavior
   end
 end

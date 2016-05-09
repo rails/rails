@@ -144,6 +144,14 @@ class Author < ActiveRecord::Base
 
   has_many :posts_with_signature, ->(record) { where("posts.title LIKE ?", "%by #{record.name.downcase}%") }, class_name: "Post"
 
+  has_many :posts_with_extension, -> { order(:title) }, class_name: "Post" do
+    def extension_method; end
+  end
+
+  has_many :posts_with_extension_and_instance, ->(record) { order(:title) }, class_name: "Post" do
+    def extension_method; end
+  end
+
   attr_accessor :post_log
   after_initialize :set_post_log
 

@@ -4,7 +4,8 @@
 @ActionCable =
   INTERNAL: <%= ActionCable::INTERNAL.to_json %>
 
-  createConsumer: (url = @getConfig("url")) ->
+  createConsumer: (url) ->
+    url ?= @getConfig("url") ? @INTERNAL.default_mount_path
     new ActionCable.Consumer @createWebSocketURL(url)
 
   getConfig: (name) ->
@@ -21,3 +22,14 @@
       a.href
     else
       url
+
+  startDebugging: ->
+    @debugging = true
+
+  stopDebugging: ->
+    @debugging = null
+
+  log: (messages...) ->
+    if @debugging
+      messages.push(Date.now())
+      console.log("[ActionCable]", messages...)

@@ -22,11 +22,13 @@ module ActiveRecord
 
       def create_model_file
         template 'model.rb', File.join('app/models', class_path, "#{file_name}.rb")
+        generate_application_record
       end
 
       def create_module_file
         return if regular_class_path.empty?
         template 'module.rb', File.join('app/models', "#{class_path.join('/')}.rb") if behavior == :invoke
+        generate_application_record
       end
 
       hook_for :test_framework
@@ -37,23 +39,34 @@ module ActiveRecord
           attributes.select { |a| !a.reference? && a.has_index? }
         end
 
+        # FIXME: Change this file to a symlink once RubyGems 2.5.0 is required.
+        def generate_application_record
+          if self.behavior == :invoke && !application_record_exist?
+            template 'application_record.rb', application_record_file_name
+          end
+        end
+
         # Used by the migration template to determine the parent name of the model
         def parent_class_name
           options[:parent] || determine_default_parent_class
         end
 
-        def determine_default_parent_class
-          application_record = nil
+        def application_record_exist?
+          file_exist = nil
+          in_root { file_exist = File.exist?(application_record_file_name) }
+          file_exist
+        end
 
-          in_root do
-            application_record = if mountable_engine?
-              File.exist?("app/models/#{namespaced_path}/application_record.rb")
-            else
-              File.exist?('app/models/application_record.rb')
-            end
+        def application_record_file_name
+          @application_record_file_name ||= if mountable_engine?
+            "app/models/#{namespaced_path}/application_record.rb"
+          else
+            'app/models/application_record.rb'
           end
+        end
 
-          if application_record
+        def determine_default_parent_class
+          if application_record_exist?
             "ApplicationRecord"
           else
             "ActiveRecord::Base"

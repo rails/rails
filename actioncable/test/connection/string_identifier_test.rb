@@ -30,7 +30,7 @@ class ActionCable::Connection::StringIdentifierTest < ActionCable::TestCase
     end
 
     def open_connection
-      env = Rack::MockRequest.env_for "/test", 'HTTP_CONNECTION' => 'upgrade', 'HTTP_UPGRADE' => 'websocket'
+      env = Rack::MockRequest.env_for "/test", 'HTTP_HOST' => 'localhost', 'HTTP_CONNECTION' => 'upgrade', 'HTTP_UPGRADE' => 'websocket'
       @connection = Connection.new(@server, env)
 
       @connection.process

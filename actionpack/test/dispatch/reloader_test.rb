@@ -4,15 +4,17 @@ class ReloaderTest < ActiveSupport::TestCase
   Reloader = ActionDispatch::Reloader
 
   teardown do
-    Reloader.reset_callbacks :prepare
-    Reloader.reset_callbacks :cleanup
+    ActiveSupport::Reloader.reset_callbacks :prepare
+    ActiveSupport::Reloader.reset_callbacks :complete
   end
 
   def test_prepare_callbacks
     a = b = c = nil
-    Reloader.to_prepare { |*args| a = b = c = 1 }
-    Reloader.to_prepare { |*args| b = c = 2 }
-    Reloader.to_prepare { |*args| c = 3 }
+    assert_deprecated do
+      Reloader.to_prepare { |*args| a = b = c = 1 }
+      Reloader.to_prepare { |*args| b = c = 2 }
+      Reloader.to_prepare { |*args| c = 3 }
+    end
 
     # Ensure to_prepare callbacks are not run when defined
     assert_nil a || b || c
@@ -60,9 +62,15 @@ class ReloaderTest < ActiveSupport::TestCase
 
   def test_condition_specifies_when_to_reload
     i, j = 0, 0, 0, 0
-    Reloader.to_prepare { |*args| i += 1 }
-    Reloader.to_cleanup { |*args| j += 1 }
-    app = Reloader.new(lambda { |env| [200, {}, []] }, lambda { i < 3 })
+    assert_deprecated do
+      Reloader.to_prepare { |*args| i += 1 }
+      Reloader.to_cleanup { |*args| j += 1 }
+    end
+
+    x = Class.new(ActiveSupport::Reloader)
+    x.check = lambda { i < 3 }
+
+    app = Reloader.new(lambda { |env| [200, {}, []] }, x)
     5.times do
       resp = app.call({})
       resp[2].close
@@ -109,7 +117,9 @@ class ReloaderTest < ActiveSupport::TestCase
 
   def test_cleanup_callbacks_are_called_when_body_is_closed
     cleaned = false
-    Reloader.to_cleanup { cleaned = true }
+    assert_deprecated do
+      Reloader.to_cleanup { cleaned = true }
+    end
 
     body = call_and_return_body
     assert !cleaned
@@ -120,7 +130,9 @@ class ReloaderTest < ActiveSupport::TestCase
 
   def test_prepare_callbacks_arent_called_when_body_is_closed
     prepared = false
-    Reloader.to_prepare { prepared = true }
+    assert_deprecated do
+      Reloader.to_prepare { prepared = true }
+    end
 
     body = call_and_return_body
     prepared = false
@@ -131,31 +143,43 @@ class ReloaderTest < ActiveSupport::TestCase
 
   def test_manual_reloading
     prepared = cleaned = false
-    Reloader.to_prepare { prepared = true }
-    Reloader.to_cleanup { cleaned  = true }
+    assert_deprecated do
+      Reloader.to_prepare { prepared = true }
+      Reloader.to_cleanup { cleaned  = true }
+    end
 
-    Reloader.prepare!
+    assert_deprecated do
+      Reloader.prepare!
+    end
     assert prepared
     assert !cleaned
 
     prepared = cleaned = false
-    Reloader.cleanup!
-    assert !prepared
+    assert_deprecated do
+      Reloader.cleanup!
+    end
+    assert prepared
     assert cleaned
   end
 
   def test_prepend_prepare_callback
     i = 10
-    Reloader.to_prepare { i += 1 }
-    Reloader.to_prepare(:prepend => true) { i = 0 }
+    assert_deprecated do
+      Reloader.to_prepare { i += 1 }
+      Reloader.to_prepare(:prepend => true) { i = 0 }
+    end
 
-    Reloader.prepare!
+    assert_deprecated do
+      Reloader.prepare!
+    end
     assert_equal 1, i
   end
 
   def test_cleanup_callbacks_are_called_on_exceptions
     cleaned = false
-    Reloader.to_cleanup { cleaned  = true }
+    assert_deprecated do
+      Reloader.to_cleanup { cleaned  = true }
+    end
 
     begin
       call_and_return_body do
@@ -169,8 +193,11 @@ class ReloaderTest < ActiveSupport::TestCase
 
   private
     def call_and_return_body(&block)
+      x = Class.new(ActiveSupport::Reloader)
+      x.check = lambda { true }
+
       @response ||= 'response'
-      @reloader ||= Reloader.new(block || proc {[200, {}, @response]})
+      @reloader ||= Reloader.new(block || proc {[200, {}, @response]}, x)
       @reloader.call({'rack.input' => StringIO.new('')})[2]
     end
 end

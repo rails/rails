@@ -23,34 +23,31 @@ module ActiveRecord
       end
     end
 
-    def initialize(app)
-      @app = app
-    end
-
-    def call(env)
+    def self.run
       connection    = ActiveRecord::Base.connection
       enabled       = connection.query_cache_enabled
       connection_id = ActiveRecord::Base.connection_id
       connection.enable_query_cache!
 
-      response = @app.call(env)
-      response[2] = Rack::BodyProxy.new(response[2]) do
-        restore_query_cache_settings(connection_id, enabled)
-      end
-
-      response
-    rescue Exception => e
-      restore_query_cache_settings(connection_id, enabled)
-      raise e
+      [enabled, connection_id]
     end
 
-    private
+    def self.complete(state)
+      enabled, connection_id = state
 
-    def restore_query_cache_settings(connection_id, enabled)
       ActiveRecord::Base.connection_id = connection_id
       ActiveRecord::Base.connection.clear_query_cache
       ActiveRecord::Base.connection.disable_query_cache! unless enabled
     end
 
+    def self.install_executor_hooks(executor = ActiveSupport::Executor)
+      executor.register_hook(self)
+
+      executor.to_complete do
+        unless ActiveRecord::Base.connection.transaction_open?
+          ActiveRecord::Base.clear_active_connections!
+        end
+      end
+    end
   end
 end

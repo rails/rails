@@ -130,7 +130,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   end
 
   def test_supports_primary_key
-    assert_nothing_raised NoMethodError do
+    assert_nothing_raised do
       ActiveRecord::Base.connection.supports_primary_key?
     end
   end
@@ -228,9 +228,10 @@ class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
   def test_any_type_primary_key
     assert_equal "code", Barcode.primary_key
 
-    column_type = Barcode.type_for_attribute(Barcode.primary_key)
-    assert_equal :string, column_type.type
-    assert_equal 42, column_type.limit
+    column = Barcode.column_for_attribute(Barcode.primary_key)
+    assert_not column.null
+    assert_equal :string, column.type
+    assert_equal 42, column.limit
   end
 
   test "schema dump primary key includes type and options" do
@@ -350,9 +351,9 @@ if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
     test "schema dump primary key with bigserial" do
       schema = dump_table_schema "widgets"
       if current_adapter?(:PostgreSQLAdapter)
-        assert_match %r{create_table "widgets", id: :bigserial}, schema
+        assert_match %r{create_table "widgets", id: :bigserial, force: :cascade}, schema
       else
-        assert_match %r{create_table "widgets", id: :bigint}, schema
+        assert_match %r{create_table "widgets", id: :bigint, force: :cascade}, schema
       end
     end
 

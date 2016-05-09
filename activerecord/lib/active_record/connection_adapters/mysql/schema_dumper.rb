@@ -3,18 +3,13 @@ module ActiveRecord
     module MySQL
       module ColumnDumper
         def column_spec_for_primary_key(column)
-          spec = {}
           if column.bigint?
-            spec[:id] = ':bigint'
+            spec = { id: :bigint.inspect }
             spec[:default] = schema_default(column) || 'nil' unless column.auto_increment?
-            spec[:unsigned] = 'true' if column.unsigned?
-          elsif column.auto_increment?
-            spec[:unsigned] = 'true' if column.unsigned?
-            return if spec.empty?
           else
-            spec[:id] = schema_type(column).inspect
-            spec.merge!(prepare_column_options(column).delete_if { |key, _| [:name, :type, :null].include?(key) })
+            spec = super
           end
+          spec[:unsigned] = 'true' if column.unsigned?
           spec
         end
 
@@ -30,6 +25,10 @@ module ActiveRecord
 
         private
 
+        def default_primary_key?(column)
+          super && column.auto_increment?
+        end
+
         def schema_type(column)
           if column.sql_type == 'tinyblob'
             :blob
@@ -38,16 +37,12 @@ module ActiveRecord
           end
         end
 
-        def schema_limit(column)
-          super unless column.type == :boolean
-        end
-
         def schema_precision(column)
           super unless /time/ === column.sql_type && column.precision == 0
         end
 
         def schema_collation(column)
-          if column.collation && table_name = column.instance_variable_get(:@table_name)
+          if column.collation && table_name = column.table_name
             @table_collation_cache ||= {}
             @table_collation_cache[table_name] ||= select_one("SHOW TABLE STATUS LIKE '#{table_name}'")["Collation"]
             column.collation.inspect if column.collation != @table_collation_cache[table_name]

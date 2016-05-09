@@ -63,7 +63,7 @@ class ModulesTest < ActiveRecord::TestCase
   def test_assign_ids
     firm = MyApplication::Business::Firm.first
 
-    assert_nothing_raised NameError, "Should be able to resolve all class constants via reflection" do
+    assert_nothing_raised do
       firm.client_ids = [MyApplication::Business::Client.first.id]
     end
   end
@@ -72,7 +72,7 @@ class ModulesTest < ActiveRecord::TestCase
   def test_eager_loading_in_modules
     clients = []
 
-    assert_nothing_raised NameError, "Should be able to resolve all class constants via reflection" do
+    assert_nothing_raised do
       clients << MyApplication::Business::Client.references(:accounts).merge!(:includes => {:firm => :account}, :where => 'accounts.id IS NOT NULL').find(3)
       clients << MyApplication::Business::Client.includes(:firm => :account).find(3)
     end

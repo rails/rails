@@ -213,24 +213,12 @@ module ActiveRecord
         assert_equal "''", @conn.quote_string("'")
       end
 
-      def test_insert_sql
-        with_example_table do
-          2.times do |i|
-            rv = @conn.insert_sql "INSERT INTO ex (number) VALUES (#{i})"
-            assert_equal(i + 1, rv)
-          end
-
-          records = @conn.execute "SELECT * FROM ex"
-          assert_equal 2, records.length
-        end
-      end
-
-      def test_insert_sql_logged
+      def test_insert_logged
         with_example_table do
           sql = "INSERT INTO ex (number) VALUES (10)"
           name = "foo"
           assert_logged [[sql, name, []]] do
-            @conn.insert_sql sql, name
+            @conn.insert(sql, name)
           end
         end
       end
@@ -239,7 +227,7 @@ module ActiveRecord
         with_example_table do
           sql = "INSERT INTO ex (number) VALUES (10)"
           idval = 'vuvuzela'
-          id = @conn.insert_sql sql, nil, nil, idval
+          id = @conn.insert(sql, nil, nil, idval)
           assert_equal idval, id
         end
       end

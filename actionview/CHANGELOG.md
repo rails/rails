@@ -1,3 +1,73 @@
+## Rails 5.0.0.rc1 (May 06, 2016) ##
+
+*   No changes.
+
+
+## Rails 5.0.0.beta4 (April 27, 2016) ##
+
+*   `date_select` helper `:with_css_classes` option now accepts a hash of strings
+    for `:year`, `:month`, `:day`, `:hour`, `:minute`, `:second` that will extend
+    the select type with the given css class value.
+
+    ```erb
+    <%= f.date_select :birthday, with_css_classes: { month: "my-month", year: "my-year" } %>
+    ```
+
+    ```html
+    <select id="user_birthday_3i" name="user[birthday(3i)]">…</select>
+    <select id="user_birthday_2i" name="user[birthday(2i)]" class="my-month">…</select>
+    <select id="user_birthday_1i" name="user[birthday(1i)]" class="my-year">…</select>
+    ```
+
+    *Matthias Neumayr*
+
+*   Add `to_sentence` helper that is a HTML-safe aware version of `Array#to_sentence`.
+
+    *Neil Matatall*
+
+*   Deprecate `datetime_field` and `datetime_field_tag` helpers.
+    Datetime input type was removed from HTML specification.
+    One can use `datetime_local_field` and `datetime_local_field_tag` instead.
+
+    *Wojciech Wnętrzak*
+
+*   Added log "Rendering ...", when starting to render a template to log that
+    we have started rendering something. This helps to easily identify the origin
+    of queries in the log whether they came from controller or views.
+
+    *Vipul A M and Prem Sichanugrist*
+
+## Rails 5.0.0.beta3 (February 24, 2016) ##
+
+*   Collection rendering can cache and fetch multiple partials at once.
+
+    Collections rendered as:
+
+    ```ruby
+    <%= render partial: 'notifications/notification', collection: @notifications, as: :notification, cached: true %>
+    ```
+
+    will read several partials from cache at once. The templates in the collection
+    that haven't been cached already will automatically be written to cache. Works
+    great alongside individual template fragment caching. For instance if the
+    template the collection renders is cached like:
+
+    ```ruby
+    # notifications/_notification.html.erb
+    <% cache notification do %>
+      <%# ... %>
+    <% end %>
+    ```
+
+    Then any collection renders shares that cache when attempting to read multiple
+    ones at once.
+
+    *Kasper Timm Hansen*
+
+*   Add support for nested hashes/arrays to `:params` option of `button_to` helper.
+
+    *James Coleman*
+
 ## Rails 5.0.0.beta2 (February 01, 2016) ##
 
 *   Fix stripping the digest from the automatically generated img tag alt
@@ -7,7 +77,7 @@
 
 *   Create a new `ActiveSupport::SafeBuffer` instance when `content_for` is flushed.
 
-    Fixes #19890
+    Fixes #19890.
 
     *Yoong Kang Lim*
 
@@ -192,26 +262,6 @@
     besides String.
 
     *Ulisses Almeida*
-
-*   Collection rendering automatically caches and fetches multiple partials.
-
-    Collections rendered as:
-
-    ```ruby
-    <%= render @notifications %>
-    <%= render partial: 'notifications/notification', collection: @notifications, as: :notification %>
-    ```
-
-    will now read several partials from cache at once, if the template starts with a cache call:
-
-    ```ruby
-    # notifications/_notification.html.erb
-    <% cache notification do %>
-      <%# ... %>
-    <% end %>
-    ```
-
-    *Kasper Timm Hansen*
 
 *   Fixed a dependency tracker bug that caused template dependencies not
     count layouts as dependencies for partials.

@@ -29,6 +29,8 @@ class PerRequestDigestCacheTest < ActiveSupport::TestCase
 
     app_file 'app/controllers/customers_controller.rb', <<-RUBY
       class CustomersController < ApplicationController
+        self.perform_caching = true
+
         def index
           render [ Customer.new('david', 1), Customer.new('dingus', 2) ]
         end
@@ -50,12 +52,13 @@ class PerRequestDigestCacheTest < ActiveSupport::TestCase
     get '/customers'
     assert_equal 200, last_response.status
 
-    assert_equal [ '8ba099b7749542fe765ff34a6824d548' ], ActionView::Digestor.cache.values
+    values = ActionView::LookupContext::DetailsKey.digest_caches.first.values
+    assert_equal [ '8ba099b7749542fe765ff34a6824d548' ], values
     assert_equal %w(david dingus), last_response.body.split.map(&:strip)
   end
 
   test "template digests are cleared before a request" do
-    assert_called(ActionView::Digestor.cache, :clear) do
+    assert_called(ActionView::LookupContext::DetailsKey, :clear) do
       get '/customers'
       assert_equal 200, last_response.status
     end

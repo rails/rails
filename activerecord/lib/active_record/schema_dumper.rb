@@ -104,10 +104,7 @@ HEADER
       end
 
       def table(table, stream)
-        columns = @connection.columns(table).map do |column|
-          column.instance_variable_set(:@table_name, table)
-          column
-        end
+        columns = @connection.columns(table)
         begin
           tbl = StringIO.new
 
@@ -126,7 +123,7 @@ HEADER
             tbl.print ", primary_key: #{pk.inspect}" unless pk == 'id'
             pkcol = columns.detect { |c| c.name == pk }
             pkcolspec = @connection.column_spec_for_primary_key(pkcol)
-            if pkcolspec
+            if pkcolspec.present?
               pkcolspec.each do |key, value|
                 tbl.print ", #{key}: #{value}"
               end
@@ -140,6 +137,10 @@ HEADER
 
           table_options = @connection.table_options(table)
           tbl.print ", options: #{table_options.inspect}" unless table_options.blank?
+
+          if comment = @connection.table_comment(table).presence
+            tbl.print ", comment: #{comment.inspect}"
+          end
 
           tbl.puts " do |t|"
 
@@ -178,10 +179,10 @@ HEADER
             tbl.puts
           end
 
+          indexes_in_create(table, tbl)
+
           tbl.puts "  end"
           tbl.puts
-
-          indexes(table, tbl)
 
           tbl.rewind
           stream.print tbl.read
@@ -194,31 +195,45 @@ HEADER
         stream
       end
 
+      # Keep it for indexing materialized views
       def indexes(table, stream)
         if (indexes = @connection.indexes(table)).any?
           add_index_statements = indexes.map do |index|
-            statement_parts = [
-              "add_index #{remove_prefix_and_suffix(index.table).inspect}",
-              index.columns.inspect,
-              "name: #{index.name.inspect}",
-            ]
-            statement_parts << 'unique: true' if index.unique
-
-            index_lengths = (index.lengths || []).compact
-            statement_parts << "length: #{Hash[index.columns.zip(index.lengths)].inspect}" if index_lengths.any?
-
-            index_orders = index.orders || {}
-            statement_parts << "order: #{index.orders.inspect}" if index_orders.any?
-            statement_parts << "where: #{index.where.inspect}" if index.where
-            statement_parts << "using: #{index.using.inspect}" if index.using
-            statement_parts << "type: #{index.type.inspect}" if index.type
-
-            "  #{statement_parts.join(', ')}"
+            table_name = remove_prefix_and_suffix(index.table).inspect
+            "  add_index #{([table_name]+index_parts(index)).join(', ')}"
           end
 
           stream.puts add_index_statements.sort.join("\n")
           stream.puts
         end
+      end
+
+      def indexes_in_create(table, stream)
+        if (indexes = @connection.indexes(table)).any?
+          index_statements = indexes.map do |index|
+            "    t.index #{index_parts(index).join(', ')}"
+          end
+          stream.puts index_statements.sort.join("\n")
+        end
+      end
+
+      def index_parts(index)
+        index_parts = [
+          index.columns.inspect,
+          "name: #{index.name.inspect}",
+        ]
+        index_parts << 'unique: true' if index.unique
+
+        index_lengths = (index.lengths || []).compact
+        index_parts << "length: #{Hash[index.columns.zip(index.lengths)].inspect}" if index_lengths.any?
+
+        index_orders = index.orders || {}
+        index_parts << "order: #{index.orders.inspect}" if index_orders.any?
+        index_parts << "where: #{index.where.inspect}" if index.where
+        index_parts << "using: #{index.using.inspect}" if index.using
+        index_parts << "type: #{index.type.inspect}" if index.type
+        index_parts << "comment: #{index.comment.inspect}" if index.comment
+        index_parts
       end
 
       def foreign_keys(table, stream)

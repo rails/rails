@@ -337,7 +337,6 @@ module ActionDispatch
       else
         self.session = {}
       end
-      self.flash = nil
     end
 
     def session=(session) #:nodoc:
@@ -401,6 +400,10 @@ module ActionDispatch
     end
 
     def commit_flash
+    end
+
+    def ssl?
+      super || scheme == 'wss'.freeze
     end
 
     private

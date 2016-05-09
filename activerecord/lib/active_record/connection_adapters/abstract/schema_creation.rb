@@ -53,8 +53,8 @@ module ActiveRecord
               statements.concat(o.foreign_keys.map { |to_table, options| foreign_key_in_create(o.name, to_table, options) })
             end
 
-            create_sql << "(#{statements.join(', ')}) " if statements.present?
-            create_sql << "#{o.options}"
+            create_sql << "(#{statements.join(', ')})" if statements.present?
+            add_table_options!(create_sql, table_options(o))
             create_sql << " AS #{@conn.to_sql(o.as)}" if o.as
             create_sql
           end
@@ -82,6 +82,19 @@ module ActiveRecord
             "DROP CONSTRAINT #{quote_column_name(name)}"
           end
 
+          def table_options(o)
+            table_options = {}
+            table_options[:comment] = o.comment
+            table_options[:options] = o.options
+            table_options
+          end
+
+          def add_table_options!(create_sql, options)
+            if options_sql = options[:options]
+              create_sql << " #{options_sql}"
+            end
+          end
+
           def column_options(o)
             column_options = {}
             column_options[:null] = o.null unless o.null.nil?
@@ -92,6 +105,7 @@ module ActiveRecord
             column_options[:auto_increment] = o.auto_increment
             column_options[:primary_key] = o.primary_key
             column_options[:collation] = o.collation
+            column_options[:comment] = o.comment
             column_options
           end
 

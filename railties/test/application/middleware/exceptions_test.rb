@@ -85,7 +85,7 @@ module ApplicationTests
     test "unspecified route when action_dispatch.show_exceptions is set shows 404" do
       app.config.action_dispatch.show_exceptions = true
 
-      assert_nothing_raised(ActionController::RoutingError) do
+      assert_nothing_raised do
         get '/foo'
         assert_match "The page you were looking for doesn't exist.", last_response.body
       end
@@ -95,7 +95,7 @@ module ApplicationTests
       app.config.action_dispatch.show_exceptions = true
       app.config.consider_all_requests_local = true
 
-      assert_nothing_raised(ActionController::RoutingError) do
+      assert_nothing_raised do
         get '/foo'
         assert_match "No route matches", last_response.body
       end

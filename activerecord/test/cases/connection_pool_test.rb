@@ -335,11 +335,10 @@ module ActiveRecord
       # is called with an anonymous class
       def test_anonymous_class_exception
         anonymous = Class.new(ActiveRecord::Base)
-        handler = ActiveRecord::Base.connection_handler
 
-        assert_raises(RuntimeError) {
-          handler.establish_connection anonymous, nil
-        }
+        assert_raises(RuntimeError) do
+          anonymous.establish_connection
+        end
       end
 
       def test_pool_sets_connection_schema_cache

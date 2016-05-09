@@ -13,11 +13,11 @@ module ActionCable
     class EventedRedis < Base # :nodoc:
       @@mutex = Mutex.new
 
-      # Overwrite this factory method for EventMachine redis connections if you want to use a different Redis library than EM::Hiredis.
+      # Overwrite this factory method for EventMachine Redis connections if you want to use a different Redis connection library than EM::Hiredis.
       # This is needed, for example, when using Makara proxies for distributed Redis.
       cattr_accessor(:em_redis_connector) { ->(config) { EM::Hiredis.connect(config[:url]) } }
 
-      # Overwrite this factory method for redis connections if you want to use a different Redis library than Redis.
+      # Overwrite this factory method for Redis connections if you want to use a different Redis connection library than Redis.
       # This is needed, for example, when using Makara proxies for distributed Redis.
       cattr_accessor(:redis_connector) { ->(config) { ::Redis.new(url: config[:url]) } }
 
@@ -51,7 +51,11 @@ module ActionCable
           @redis_connection_for_subscriptions || @server.mutex.synchronize do
             @redis_connection_for_subscriptions ||= self.class.em_redis_connector.call(@server.config.cable).tap do |redis|
               redis.on(:reconnect_failed) do
-                @logger.info "[ActionCable] Redis reconnect failed."
+                @logger.error "[ActionCable] Redis reconnect failed."
+              end
+
+              redis.on(:failed) do
+                @logger.error "[ActionCable] Redis connection has failed."
               end
             end
           end

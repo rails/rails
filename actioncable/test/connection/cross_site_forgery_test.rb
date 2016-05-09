@@ -76,6 +76,6 @@ class ActionCable::Connection::CrossSiteForgeryTest < ActionCable::TestCase
 
     def env_for_origin(origin)
       Rack::MockRequest.env_for "/test", 'HTTP_CONNECTION' => 'upgrade', 'HTTP_UPGRADE' => 'websocket', 'SERVER_NAME' => HOST,
-        'HTTP_ORIGIN' => origin
+        'HTTP_HOST' => HOST, 'HTTP_ORIGIN' => origin
     end
 end

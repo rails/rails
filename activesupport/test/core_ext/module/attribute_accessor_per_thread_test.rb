@@ -106,4 +106,10 @@ class ModuleAttributeAccessorPerThreadTest < ActiveSupport::TestCase
     end
     assert_equal "invalid attribute name: 2valid_part", exception.message
   end
+
+  def test_should_return_same_value_by_class_or_instance_accessor
+    @class.foo = 'fries'
+
+    assert_equal @class.foo, @object.foo
+  end
 end

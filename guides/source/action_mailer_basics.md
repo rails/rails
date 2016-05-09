@@ -204,10 +204,14 @@ class UsersController < ApplicationController
 end
 ```
 
-NOTE: Active Job's default behavior is to execute jobs ':inline'. So, you can use
-`deliver_later` now to send emails, and when you later decide to start sending
-them from a background job, you'll only need to set up Active Job to use a queueing
-backend (Sidekiq, Resque, etc).
+NOTE: Active Job's default behavior is to execute jobs via the `:async` adapter. So, you can use
+`deliver_later` now to send emails asynchronously.
+Active Job's default adapter runs jobs with an in-process thread pool.
+It's well-suited for the development/test environments, since it doesn't require
+any external infrastructure, but it's a poor fit for production since it drops
+pending jobs on restart.
+If you need a persistent backend, you will need to use an Active Job adapter
+that has a persistent backend (Sidekiq, Resque, etc).
 
 If you want to send emails right away (from a cronjob for example) just call
 `deliver_now`:
@@ -406,6 +410,22 @@ This will render the template 'another_template.html.erb' for the HTML part and
 use the rendered text for the text part. The render command is the same one used
 inside of Action Controller, so you can use all the same options, such as
 `:text`, `:inline` etc.
+
+#### Caching mailer view
+
+You can do cache in mailer views like in application views using `cache` method.
+
+```
+<% cache do %>
+  <%= @company.name %>
+<% end %>
+```
+
+And in order to use this feature, you need to configure your application with this:
+
+```
+  config.action_mailer.perform_caching = true
+```
 
 ### Action Mailer Layouts
 

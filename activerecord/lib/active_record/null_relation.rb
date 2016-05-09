@@ -1,7 +1,7 @@
 module ActiveRecord
   module NullRelation # :nodoc:
     def exec_queries
-      @records = []
+      @records = [].freeze
     end
 
     def pluck(*column_names)

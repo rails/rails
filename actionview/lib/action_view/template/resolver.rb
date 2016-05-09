@@ -55,6 +55,10 @@ module ActionView
         @query_cache = SmallCache.new
       end
 
+      def inspect
+        "#<#{self.class.name}:0x#{(object_id << 1).to_s(16)} keys=#{@data.size} queries=#{@query_cache.size}>"
+      end
+
       # Cache the templates returned by the block
       def cache(key, name, prefix, partial, locals)
         if Resolver.caching?
@@ -222,7 +226,7 @@ module ActionView
     end
 
     def find_template_paths(query)
-      Dir[query].reject do |filename|
+      Dir[query].uniq.reject do |filename|
         File.directory?(filename) ||
           # deals with case-insensitive file systems.
           !File.fnmatch(query, filename, File::FNM_EXTGLOB)
@@ -245,8 +249,12 @@ module ActionView
       partial = escape_entry(path.partial? ? "_#{path.name}" : path.name)
       query.gsub!(/:action/, partial)
 
-      details.each do |ext, variants|
-        query.gsub!(/:#{ext}/, "{#{variants.compact.uniq.join(',')}}")
+      details.each do |ext, candidates|
+        if ext == :variants && candidates == :any
+          query.gsub!(/:#{ext}/, "*")
+        else
+          query.gsub!(/:#{ext}/, "{#{candidates.compact.uniq.join(',')}}")
+        end
       end
 
       File.expand_path(query, @path)
@@ -340,7 +348,11 @@ module ActionView
       query = escape_entry(File.join(@path, path))
 
       exts = EXTENSIONS.map do |ext, prefix|
-        "{#{details[ext].compact.uniq.map { |e| "#{prefix}#{e}," }.join}}"
+        if ext == :variants && details[ext] == :any
+          "{#{prefix}*,}"
+        else
+          "{#{details[ext].compact.uniq.map { |e| "#{prefix}#{e}," }.join}}"
+        end
       end.join
 
       query + exts

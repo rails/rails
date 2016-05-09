@@ -17,8 +17,10 @@ module ActiveJob
       end
 
       def execute(job_data) #:nodoc:
-        job = deserialize(job_data)
-        job.perform_now
+        ActiveJob::Callbacks.run_callbacks(:execute) do
+          job = deserialize(job_data)
+          job.perform_now
+        end
       end
     end
 

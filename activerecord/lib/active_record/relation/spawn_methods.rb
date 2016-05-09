@@ -29,7 +29,7 @@ module ActiveRecord
     # This is mainly intended for sharing common conditions between multiple associations.
     def merge(other)
       if other.is_a?(Array)
-        to_a & other
+        records & other
       elsif other
         spawn.merge!(other)
       else

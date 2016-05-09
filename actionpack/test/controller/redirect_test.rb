@@ -176,7 +176,6 @@ class RedirectTest < ActionController::TestCase
     assert_equal "http://www.example.com", redirect_to_url
   end
 
-
   def test_relative_url_redirect_with_status
     get :relative_url_redirect_with_status
     assert_response 302
@@ -286,7 +285,10 @@ class RedirectTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         resources :workshops
-        get ':controller/:action'
+
+        ActiveSupport::Deprecation.silence do
+          get ':controller/:action'
+        end
       end
 
       get :redirect_to_existing_record
@@ -310,7 +312,7 @@ class RedirectTest < ActionController::TestCase
     error = assert_raise(ArgumentError) do
       get :redirect_to_params
     end
-    assert_equal "Generating a URL from non sanitized request parameters is insecure!", error.message
+    assert_equal ActionDispatch::Routing::INSECURE_URL_PARAMETERS_MESSAGE, error.message
   end
 
   def test_redirect_to_with_block
@@ -328,7 +330,9 @@ class RedirectTest < ActionController::TestCase
   def test_redirect_to_with_block_and_accepted_options
     with_routing do |set|
       set.draw do
-        get ':controller/:action'
+        ActiveSupport::Deprecation.silence do
+          get ':controller/:action'
+        end
       end
 
       get :redirect_to_with_block_and_options

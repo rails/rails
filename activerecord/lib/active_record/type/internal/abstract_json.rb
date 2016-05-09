@@ -17,11 +17,7 @@ module ActiveRecord
         end
 
         def serialize(value)
-          if value.is_a?(::Array) || value.is_a?(::Hash)
-            ::ActiveSupport::JSON.encode(value)
-          else
-            value
-          end
+          ::ActiveSupport::JSON.encode(value)
         end
 
         def accessor

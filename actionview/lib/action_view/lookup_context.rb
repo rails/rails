@@ -55,9 +55,7 @@ module ActionView
 
     class DetailsKey #:nodoc:
       alias :eql? :equal?
-      alias :object_hash :hash
 
-      attr_reader :hash
       @details_keys = Concurrent::Map.new
 
       def self.get(details)
@@ -72,8 +70,14 @@ module ActionView
         @details_keys.clear
       end
 
+      def self.digest_caches
+        @details_keys.values.map(&:digest_cache)
+      end
+
+      attr_reader :digest_cache
+
       def initialize
-        @hash = object_hash
+        @digest_cache = Concurrent::Map.new
       end
     end
 
@@ -132,6 +136,11 @@ module ActionView
       end
       alias :template_exists? :exists?
 
+      def any?(name, prefixes = [], partial = false)
+        @view_paths.exists?(*args_for_any(name, prefixes, partial))
+      end
+      alias :any_templates? :any?
+
       # Adds fallbacks to the view paths. Useful in cases when you are rendering
       # a :file.
       def with_fallbacks
@@ -168,6 +177,32 @@ module ActionView
         [user_details, details_key]
       end
 
+      def args_for_any(name, prefixes, partial) # :nodoc:
+        name, prefixes = normalize_name(name, prefixes)
+        details, details_key = detail_args_for_any
+        [name, prefixes, partial || false, details, details_key]
+      end
+
+      def detail_args_for_any # :nodoc:
+        @detail_args_for_any ||= begin
+          details = {}
+
+          registered_details.each do |k|
+            if k == :variants
+              details[k] = :any
+            else
+              details[k] = Accessors::DEFAULT_PROCS[k].call
+            end
+          end
+
+          if @cache
+            [details, DetailsKey.get(details)]
+          else
+            [details, nil]
+          end
+        end
+      end
+
       # Support legacy foo.erb names even though we now ignore .erb
       # as well as incorrectly putting part of the path in the template
       # name instead of the prefix.
@@ -198,6 +233,10 @@ module ActionView
 
       @details = initialize_details({}, details)
       self.view_paths = view_paths
+    end
+
+    def digest_cache
+      details_key.digest_cache
     end
 
     def initialize_details(target, details)

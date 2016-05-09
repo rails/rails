@@ -1,3 +1,225 @@
+## Rails 5.0.0.rc1 (May 06, 2016) ##
+
+*   No changes.
+
+
+## Rails 5.0.0.beta4 (April 27, 2016) ##
+
+*   PostgreSQL: Support Expression Indexes and Operator Classes.
+
+    Example:
+
+        create_table :users do |t|
+          t.string :name
+          t.index 'lower(name) varchar_pattern_ops'
+        end
+
+    Fixes #19090, #21765, #21819, #24359.
+
+    *Ryuta Kamizono*
+
+*   MySQL: Prepared statements support.
+
+    To enable, set `prepared_statements: true` in config/database.yml.
+    Requires mysql2 0.4.4+.
+
+    *Ryuta Kamizono*
+
+*   Schema dumper: Indexes are now included in the `create_table` block
+    instead of listed afterward as separate `add_index` lines.
+
+    This tidies up schema.rb and makes it easy to read as a list of tables.
+
+    Bonus: Allows databases that support it (MySQL) to perform as single
+    `CREATE TABLE` query, no additional query per index.
+
+    *Ryuta Kamizono*
+
+*   SQLite: Fix uniqueness validation when values exceed the column limit.
+
+    SQLite doesn't impose length restrictions on strings, BLOBs, or numeric
+    values. It treats them as helpful metadata. When we truncate strings
+    before checking uniqueness, we'd miss values that exceed the column limit.
+
+    Other databases enforce length limits. A large value will pass uniqueness
+    validation since the column limit guarantees no value that long exists.
+    When we insert the row, it'll raise `ActiveRecord::ValueTooLong` as we
+    expect.
+
+    This fixes edge-case incorrect validation failures for values that exceed
+    the column limit but are identical to an existing value *when truncated*.
+    Now these will pass validation and raise an exception.
+
+    *Ryuta Kamizono*
+
+*   Raise `ActiveRecord::ValueTooLong` when column limits are exceeded.
+    Supported by MySQL and PostgreSQL adapters.
+
+    *Ryuta Kamizono*
+
+*   Migrations: `#foreign_key` respects `table_name_prefix` and `_suffix`.
+
+    *Ryuta Kamizono*
+
+*   SQLite: Force NOT NULL primary keys.
+
+    From SQLite docs: https://www.sqlite.org/lang_createtable.html
+        According to the SQL standard, PRIMARY KEY should always imply NOT
+        NULL. Unfortunately, due to a bug in some early versions, this is not
+        the case in SQLite. Unless the column is an INTEGER PRIMARY KEY or the
+        table is a WITHOUT ROWID table or the column is declared NOT NULL,
+        SQLite allows NULL values in a PRIMARY KEY column. SQLite could be
+        fixed to conform to the standard, but doing so might break legacy
+        applications. Hence, it has been decided to merely document the fact
+        that SQLite allowing NULLs in most PRIMARY KEY columns.
+
+    Now we override column options to explicitly set NOT NULL rather than rely
+    on implicit NOT NULL like MySQL and PostgreSQL adapters.
+
+    *Ryuta Kamizono*
+
+*   Added notice when a database is successfully created or dropped.
+
+    Example:
+
+        $ bin/rails db:create
+        Created database 'blog_development'
+        Created database 'blog_test'
+
+        $ bin/rails db:drop
+        Dropped database 'blog_development'
+        Dropped database 'blog_test'
+
+    Changed older notices
+    `blog_development already exists` to `Database 'blog_development' already exists`.
+    and
+    `Couldn't drop blog_development` to `Couldn't drop database 'blog_development'`.
+
+    *bogdanvlviv*
+
+*   Database comments. Annotate database objects (tables, columns, indexes)
+    with comments stored in database metadata. PostgreSQL & MySQL support.
+
+        create_table :pages, force: :cascade, comment: 'CMS content pages' do |t|
+          t.string :path,   comment: 'Path fragment of page URL used for routing'
+          t.string :locale, comment: 'RFC 3066 locale code of website language section'
+          t.index [:path, :locale], comment: 'Look up pages by URI'
+        end
+
+    *Andrey Novikov*
+
+*   Add `quoted_time` for truncating the date part of a TIME column value.
+    This fixes queries on TIME column on MariaDB, as it doesn't ignore the
+    date part of the string when it coerces to time.
+
+    *Ryuta Kamizono*
+
+*   Properly accept all valid JSON primitives in the JSON data type.
+
+    Fixes #24234
+
+    *Sean Griffin*
+
+*   MariaDB 5.3+ supports microsecond datetime precision.
+
+    *Jeremy Daer*
+
+*   Delegate `none?` and `one?`. Now they can be invoked as model class methods.
+
+    Example:
+
+        # When no record is found on the table
+        Topic.none?  # => true
+
+        # When only one record is found on the table
+        Topic.one?   # => true
+
+    *Kenta Shirai*
+
+*   The form builder now properly displays values when passing a proc form
+    default to the attributes API.
+
+    Fixes #24249.
+
+    *Sean Griffin*
+
+*   The schema cache is now cleared after the `db:migrate` task is run.
+
+    Closes #24273.
+
+    *Chris Arcand*
+
+*   MySQL: strict mode respects other SQL modes rather than overwriting them.
+    Setting `strict: true` adds `STRICT_ALL_TABLES` to `sql_mode`. Setting
+    `strict: false` removes `STRICT_TRANS_TABLES`, `STRICT_ALL_TABLES`, and
+    `TRADITIONAL` from `sql_mode`.
+
+    *Ryuta Kamizono*
+
+*   Execute default_scope defined by abstract class in the context of subclass.
+
+    Fixes #23413.
+    Fixes #10658.
+
+    *Mehmet Emin İNAÇ*
+
+*   Fix an issue when preloading associations with extensions.
+    Previously every association with extension methods was transformed into an
+    instance dependent scope. This is no longer the case.
+
+    Fixes #23934.
+
+    *Yves Senn*
+
+*   Deprecate `{insert|update|delete}_sql` in `DatabaseStatements`.
+    Use the `{insert|update|delete}` public methods instead.
+
+    *Ryuta Kamizono*
+
+*   Added a configuration option to have active record raise an ArgumentError
+    if the order or limit is ignored in a batch query, rather than logging a
+    warning message.
+
+    *Scott Ringwelski*
+
+*   Honour the order of the joining model in a `has_many :through` association when eager loading.
+
+    Example:
+
+    The below will now follow the order of `by_lines` when eager loading `authors`.
+
+        class Article < ActiveRecord::Base
+          has_many :by_lines, -> { order(:position) }
+          has_many :authors, through: :by_lines
+        end
+
+    Fixes #17864.
+
+    *Yasyf Mohamedali*, *Joel Turkel*
+
+*   Ensure that the Suppressor runs before validations.
+
+    This moves the suppressor up to be run before validations rather than after
+    validations. There's no reason to validate a record you aren't planning on saving.
+
+    *Eileen M. Uchitelle*
+
+## Rails 5.0.0.beta3 (February 24, 2016) ##
+
+*   Save many-to-many objects based on association primary key.
+
+    Fixes #20995.
+
+    *himesh-r*
+
+*   Ensure that mutations of the array returned from `ActiveRecord::Relation#to_a`
+    do not affect the original relation, by returning a duplicate array each time.
+
+    This brings the behavior in line with `CollectionProxy#to_a`, which was
+    already more careful.
+
+    *Matthew Draper*
+
 *   Fixed `where` for polymorphic associations when passed an array containing different types.
 
     Fixes #17011.
@@ -42,7 +264,6 @@
           # after:  Deprecation Warning for irreversible order
 
     *Bogdan Gusiev*
-
 
 *   Allow `joins` to be unscoped.
 
@@ -171,6 +392,21 @@
     *Ben Woosley*
 
 ## Rails 5.0.0.beta1 (December 18, 2015) ##
+
+*   Limit record touching to once per transaction.
+
+    If you have a parent/grand-parent relation like:
+
+        Comment belongs_to :message, touch: true
+        Message belongs_to :project, touch: true
+        Project belongs_to :account, touch: true
+
+    When the lowest entry(`Comment`) is saved, now, it won't repeat the touch
+    call multiple times for the parent records.
+
+    Related #18606.
+
+    *arthurnn*
 
 *   Order the result of `find(ids)` to match the passed array, if the relation
     has no explicit order defined.
@@ -446,13 +682,13 @@
 *   Add option to index errors in nested attributes
 
     For models which have nested attributes, errors within those models will
-    now be indexed if :index_errors is specified when defining a
+    now be indexed if `:index_errors` is specified when defining a
     has_many relationship, or if its set in the global config.
 
     Example:
 
         class Guitar < ActiveRecord::Base
-          has_many :tuning_pegs
+          has_many :tuning_pegs, index_errors: true
           accepts_nested_attributes_for :tuning_pegs
         end
 
@@ -1330,11 +1566,6 @@
 
     *Hyonjee Joo*
 
-*   Deprecate passing of `start` value to `find_in_batches` and `find_each`
-    in favour of `begin_at` value.
-
-    *Vipul A M*
-
 *   Add `foreign_key_exists?` method.
 
     *Tõnis Simo*
@@ -1443,18 +1674,6 @@
     column name, which is consistent every time you run the migration.
 
     *Chris Sinjakli*
-
-*   Validation errors would be raised for parent records when an association
-    was saved when the parent had `validate: false`. It should not be the
-    responsibility of the model to validate an associated object unless the
-    object was created or modified by the parent.
-
-    This fixes the issue by skipping validations if the parent record is
-    persisted, not changed, and not marked for destruction.
-
-    Fixes #17621.
-
-    *Eileen M. Uchitelle*, *Aaron Patterson*
 
 *   Fix n+1 query problem when eager loading nil associations (fixes #18312)
 

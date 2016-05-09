@@ -1,3 +1,20 @@
+## Rails 5.0.0.rc1 (May 06, 2016) ##
+
+*   No changes.
+
+
+## Rails 5.0.0.beta4 (April 27, 2016) ##
+
+*   Allow passing record being validated to the message proc to generate
+    customized error messages for that object using I18n helper.
+
+    *Prathamesh Sonpatki*
+
+## Rails 5.0.0.beta3 (February 24, 2016) ##
+
+*   No changes.
+
+
 ## Rails 5.0.0.beta2 (February 01, 2016) ##
 
 *   No changes.
@@ -111,11 +128,13 @@
 
     *Wojciech Wnętrzak*
 
-*   Change validates_acceptance_of to accept true by default.
+*   Change `validates_acceptance_of` to accept `true` by default besides `'1'`.
 
-    The default for validates_acceptance_of is now "1" and true.
-    In the past, only "1" was the default and you were required to add
-    accept: true.
+    The default for `validates_acceptance_of` is now `'1'` and `true`.
+    In the past, only `"1"` was the default and you were required to pass
+    `accept: true` separately.
+
+    *mokhan*
 
 *   Remove deprecated `ActiveModel::Dirty#reset_#{attribute}` and
     `ActiveModel::Dirty#reset_changes`.

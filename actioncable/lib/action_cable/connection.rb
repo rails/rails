@@ -8,6 +8,8 @@ module ActionCable
       autoload :ClientSocket
       autoload :Identification
       autoload :InternalChannel
+      autoload :FayeClientSocket
+      autoload :FayeEventLoop
       autoload :MessageBuffer
       autoload :Stream
       autoload :StreamEventLoop

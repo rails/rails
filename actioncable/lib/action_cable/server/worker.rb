@@ -4,60 +4,60 @@ require 'concurrent'
 
 module ActionCable
   module Server
-    # Worker used by Server.send_async to do connection work in threads. Only for internal use.
-    class Worker
+    # Worker used by Server.send_async to do connection work in threads.
+    class Worker # :nodoc:
       include ActiveSupport::Callbacks
 
       thread_mattr_accessor :connection
       define_callbacks :work
       include ActiveRecordConnectionManagement
 
+      attr_reader :executor
+
       def initialize(max_size: 5)
-        @pool = Concurrent::ThreadPoolExecutor.new(
+        @executor = Concurrent::ThreadPoolExecutor.new(
           min_threads: 1,
           max_threads: max_size,
           max_queue: 0,
         )
       end
 
-      def async_invoke(receiver, method, *args)
-        @pool.post do
-          invoke(receiver, method, *args)
+      # Stop processing work: any work that has not already started
+      # running will be discarded from the queue
+      def halt
+        @executor.kill
+      end
+
+      def stopping?
+        @executor.shuttingdown?
+      end
+
+      def work(connection)
+        self.connection = connection
+
+        run_callbacks :work do
+          yield
+        end
+      ensure
+        self.connection = nil
+      end
+
+      def async_invoke(receiver, method, *args, connection: receiver)
+        @executor.post do
+          invoke(receiver, method, *args, connection: connection)
         end
       end
 
-      def invoke(receiver, method, *args)
-        begin
-          self.connection = receiver
-
-          run_callbacks :work do
+      def invoke(receiver, method, *args, connection:)
+        work(connection) do
+          begin
             receiver.send method, *args
+          rescue Exception => e
+            logger.error "There was an exception - #{e.class}(#{e.message})"
+            logger.error e.backtrace.join("\n")
+
+            receiver.handle_exception if receiver.respond_to?(:handle_exception)
           end
-        rescue Exception => e
-          logger.error "There was an exception - #{e.class}(#{e.message})"
-          logger.error e.backtrace.join("\n")
-
-          receiver.handle_exception if receiver.respond_to?(:handle_exception)
-        ensure
-          self.connection = nil
-        end
-      end
-
-      def async_run_periodic_timer(channel, callback)
-        @pool.post do
-          run_periodic_timer(channel, callback)
-        end
-      end
-
-      def run_periodic_timer(channel, callback)
-        begin
-          self.connection = channel.connection
-
-          run_callbacks :work do
-            callback.respond_to?(:call) ? channel.instance_exec(&callback) : channel.send(callback)
-          end
-        ensure
-          self.connection = nil
         end
       end
 

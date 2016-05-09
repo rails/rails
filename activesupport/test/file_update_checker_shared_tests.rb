@@ -5,19 +5,21 @@ module FileUpdateCheckerSharedTests
   include FileUtils
 
   def tmpdir
-    @tmpdir ||= Dir.mktmpdir(nil, __dir__)
+    @tmpdir
   end
 
   def tmpfile(name)
-    "#{tmpdir}/#{name}"
+    File.join(tmpdir, name)
   end
 
   def tmpfiles
     @tmpfiles ||= %w(foo.rb bar.rb baz.rb).map { |f| tmpfile(f) }
   end
 
-  def teardown
-    FileUtils.rm_rf(@tmpdir) if defined? @tmpdir
+  def run(*args)
+    capture_exceptions do
+      Dir.mktmpdir(nil, __dir__) { |dir| @tmpdir = dir; super }
+    end
   end
 
   test 'should not execute the block if no paths are given' do
@@ -134,6 +136,22 @@ module FileUpdateCheckerSharedTests
     assert_equal 1, i
   end
 
+  test 'should return max_time for files with mtime = Time.at(0)' do
+    i = 0
+
+    FileUtils.touch(tmpfiles)
+
+    time = Time.at(0) # wrong mtime from the future
+    File.utime(time, time, tmpfiles[0])
+
+    checker = new_checker(tmpfiles) { i += 1 }
+
+    touch(tmpfiles[1..-1])
+
+    assert checker.execute_if_updated
+    assert_equal 1, i
+  end
+
   test 'should cache updated result until execute' do
     i = 0
 
@@ -209,7 +227,7 @@ module FileUpdateCheckerSharedTests
     assert !checker.execute_if_updated
     assert_equal 0, i
 
-    touch("#{subdir}/nested.rb")
+    touch(File.join(subdir, "nested.rb"))
 
     assert checker.execute_if_updated
     assert_equal 1, i
@@ -229,12 +247,12 @@ module FileUpdateCheckerSharedTests
     assert_equal 0, i
 
     # subdir does not look for Ruby files, but its parent tmpdir does.
-    touch("#{subdir}/nested.rb")
+    touch(File.join(subdir, "nested.rb"))
 
     assert checker.execute_if_updated
     assert_equal 1, i
 
-    touch("#{subdir}/nested.txt")
+    touch(File.join(subdir, "nested.txt"))
 
     assert checker.execute_if_updated
     assert_equal 2, i

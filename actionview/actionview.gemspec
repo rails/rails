@@ -9,11 +9,11 @@ Gem::Specification.new do |s|
 
   s.required_ruby_version = '>= 2.2.2'
 
-  s.license     = 'MIT'
+  s.license = 'MIT'
 
-  s.author            = 'David Heinemeier Hansson'
-  s.email             = 'david@loudthinking.com'
-  s.homepage          = 'http://www.rubyonrails.org'
+  s.author   = 'David Heinemeier Hansson'
+  s.email    = 'david@loudthinking.com'
+  s.homepage = 'http://rubyonrails.org'
 
   s.files        = Dir['CHANGELOG.md', 'README.rdoc', 'MIT-LICENSE', 'lib/**/*']
   s.require_path = 'lib'

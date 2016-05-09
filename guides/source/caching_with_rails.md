@@ -119,25 +119,16 @@ If you want to cache a fragment under certain conditions, you can use
 
 The `render` helper can also cache individual templates rendered for a collection.
 It can even one up the previous example with `each` by reading all cache
-templates at once instead of one by one. This is done automatically if the template
-rendered by the collection includes a `cache` call. Take a collection that renders
-a `products/_product.html.erb` partial for each element:
-
-```ruby
-render products
-```
-
-If `products/_product.html.erb` starts with a `cache` call like so:
+templates at once instead of one by one. This is done by passing `cached: true` when rendering the collection:
 
 ```html+erb
-<% cache product do %>
-  <%= product.name %>
-<% end %>
+<%= render partial: 'products/product', collection: @products, cached: true %>
 ```
 
-All the cached templates from previous renders will be fetched at once with much
-greater speed. There's more info on how to make your templates [eligible for
-collection caching](http://api.rubyonrails.org/classes/ActionView/Template/Handlers/ERB.html#method-i-resource_cache_call_pattern).
+All cached templates from previous renders will be fetched at once with much
+greater speed. Additionally, the templates that haven't yet been cached will be
+written to cache and multi fetched on the next render.
+
 
 ### Russian Doll Caching
 
@@ -519,6 +510,40 @@ class ProductsController < ApplicationController
     fresh_when last_modified: @product.published_at.utc, etag: @product
   end
 end
+```
+
+### Strong v/s Weak ETags
+
+Rails generates weak ETags by default. Weak ETags allow semantically equivalent
+responses to have the same ETags, even if their bodies do not match exactly.
+This is useful when we don't want the page to be regenerated for minor changes in
+response body.
+
+Weak ETags have a leading `W/` to differentiate them from strong ETags.
+
+```
+  W/"618bbc92e2d35ea1945008b42799b0e7" → Weak ETag
+  "618bbc92e2d35ea1945008b42799b0e7" → Strong ETag
+```
+
+Unlike weak ETag, strong ETag implies that response should be exactly the same
+and byte by byte identical. Useful when doing Range requests within a
+large video or PDF file. Some CDNs support only strong ETags, like Akamai.
+If you absolutely need to generate a strong ETag, it can be done as follows.
+
+```ruby
+  class ProductsController < ApplicationController
+    def show
+      @product = Product.find(params[:id])
+      fresh_when last_modified: @product.published_at.utc, strong_etag: @product
+    end
+  end
+```
+
+You can also set the strong ETag directly on the response.
+
+```ruby
+  response.strong_etag = response.body # => "618bbc92e2d35ea1945008b42799b0e7"
 ```
 
 References

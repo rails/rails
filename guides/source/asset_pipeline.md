@@ -25,13 +25,9 @@ It allows assets in your application to be automatically combined with assets
 from other gems. For example, jquery-rails includes a copy of jquery.js
 and enables AJAX features in Rails.
 
-The asset pipeline is technically no longer a core feature from Rails 4 onwards -- it has
-been extracted out of the framework into the
-[sprockets-rails](https://github.com/rails/sprockets-rails) gem.
-
-The asset pipeline is enabled by default.
-
-You can disable the asset pipeline while creating a new application by
+The asset pipeline is implemented by the
+[sprockets-rails](https://github.com/rails/sprockets-rails) gem,
+and is enabled by default. You can disable it while creating a new application by
 passing the `--skip-sprockets` option.
 
 ```bash
@@ -335,8 +331,8 @@ include the 'data-turbolinks-track' option which causes turbolinks to check if
 an asset has been updated and if so loads it into the page:
 
 ```erb
-<%= stylesheet_link_tag "application", media: "all", "data-turbolinks-track" => true %>
-<%= javascript_include_tag "application", "data-turbolinks-track" => true %>
+<%= stylesheet_link_tag "application", media: "all", "data-turbolinks-track" => "reload" %>
+<%= javascript_include_tag "application", "data-turbolinks-track" => "reload" %>
 ```
 
 In regular views you can access images in the `public/assets/images` directory
@@ -670,7 +666,7 @@ anymore, delete these options from the `javascript_include_tag` and
 `stylesheet_link_tag`.
 
 The fingerprinting behavior is controlled by the `config.assets.digest`
-initialization option (which defaults to `true` for production and development).
+initialization option (which defaults to `true`).
 
 NOTE: Under normal circumstances the default `config.assets.digest` option
 should not be changed. If there are no digests in the filenames, and far-future
@@ -789,7 +785,6 @@ location ~ ^/assets/ {
   add_header Cache-Control public;
 
   add_header ETag "";
-  break;
 }
 ```
 
@@ -1115,6 +1110,17 @@ Rails to enable either CSS or JavaScript compression. Setting it will have no
 effect on the application. Instead, setting `config.assets.css_compressor` and
 `config.assets.js_compressor` will control compression of CSS and JavaScript
 assets.
+
+
+### Serving GZipped version of assets
+
+By default, gzipped version of compiled assets will be generated, along 
+with the non-gzipped version of assets. Gzipped assets help reduce the transmission of 
+data over the wire. You can configure this by setting the `gzip` flag.
+
+```ruby
+config.assets.gzip = false # disable gzipped assets generation
+```
 
 ### Using Your Own Compressor
 

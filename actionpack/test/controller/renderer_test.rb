@@ -87,6 +87,14 @@ class RendererTest < ActiveSupport::TestCase
     assert_equal "<p>1\n<br />2</p>", render[inline: '<%= simple_format "1\n2" %>']
   end
 
+  test 'rendering with user specified defaults' do
+    ApplicationController.renderer.defaults.merge!({ hello: 'hello', https: true })
+    renderer = ApplicationController.renderer.new
+    content = renderer.render inline: '<%= request.ssl? %>'
+
+    assert_equal 'true', content
+  end
+
   private
     def render
       @render ||= ApplicationController.renderer.method(:render)

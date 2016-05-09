@@ -20,7 +20,23 @@ module ActionView
       end
     end
     alias :render_partial :render_template
-    alias :render_collection :render_template
+
+    def render_collection(event)
+      identifier = event.payload[:identifier] || 'templates'
+
+      info do
+        "  Rendered collection of #{from_rails_root(identifier)}" \
+        " #{render_count(event.payload)} (#{event.duration.round(1)}ms)"
+      end
+    end
+
+    def start(name, id, payload)
+      if name == "render_template.action_view"
+        log_rendering_start(payload)
+      end
+
+      super
+    end
 
     def logger
       ActionView::Base.logger
@@ -37,6 +53,24 @@ module ActionView
 
     def rails_root
       @root ||= "#{Rails.root}/"
+    end
+
+    def render_count(payload)
+      if payload[:cache_hits]
+        "[#{payload[:cache_hits]} / #{payload[:count]} cache hits]"
+      else
+        "[#{payload[:count]} times]"
+      end
+    end
+
+  private
+
+    def log_rendering_start(payload)
+      info do
+        message = "  Rendering #{from_rails_root(payload[:identifier])}"
+        message << " within #{from_rails_root(payload[:layout])}" if payload[:layout]
+        message
+      end
     end
   end
 end

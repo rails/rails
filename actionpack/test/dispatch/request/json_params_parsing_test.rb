@@ -103,7 +103,9 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     def with_test_routing
       with_routing do |set|
         set.draw do
-          post ':action', :to => ::JsonParamsParsingTest::TestController
+          ActiveSupport::Deprecation.silence do
+            post ':action', :to => ::JsonParamsParsingTest::TestController
+          end
         end
         yield
       end
@@ -150,6 +152,34 @@ class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
     )
   end
 
+  test "parses json params after custom json mime type registered" do
+    begin
+      Mime::Type.unregister :json
+      Mime::Type.register "application/json", :json, %w(application/vnd.api+json)
+      assert_parses(
+        {"user" => {"username" => "meinac"}, "username" => "meinac"},
+        "{\"username\": \"meinac\"}", { 'CONTENT_TYPE' => 'application/json' }
+      )
+    ensure
+      Mime::Type.unregister :json
+      Mime::Type.register "application/json", :json, %w( text/x-json application/jsonrequest )
+    end
+  end
+
+  test "parses json params after custom json mime type registered with synonym" do
+    begin
+      Mime::Type.unregister :json
+      Mime::Type.register "application/json", :json, %w(application/vnd.api+json)
+      assert_parses(
+        {"user" => {"username" => "meinac"}, "username" => "meinac"},
+        "{\"username\": \"meinac\"}", { 'CONTENT_TYPE' => 'application/vnd.api+json' }
+      )
+    ensure
+      Mime::Type.unregister :json
+      Mime::Type.register "application/json", :json, %w( text/x-json application/jsonrequest )
+    end
+  end
+
   private
     def assert_parses(expected, actual, headers = {})
       with_test_routing(UsersController) do
@@ -163,7 +193,9 @@ class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
     def with_test_routing(controller)
       with_routing do |set|
         set.draw do
-          post ':action', :to => controller
+          ActiveSupport::Deprecation.silence do
+            post ':action', :to => controller
+          end
         end
         yield
       end

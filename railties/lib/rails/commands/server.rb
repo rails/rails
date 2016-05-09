@@ -2,6 +2,7 @@ require 'fileutils'
 require 'optparse'
 require 'action_dispatch'
 require 'rails'
+require 'rails/dev_caching'
 
 module Rails
   class Server < ::Rack::Server
@@ -92,20 +93,17 @@ module Rails
         DoNotReverseLookup: true,
         environment:        (ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development").dup,
         daemonize:          false,
-        caching:            false,
-        pid:                Options::DEFAULT_PID_PATH
+        caching:            nil,
+        pid:                Options::DEFAULT_PID_PATH,
+        restart_cmd:        restart_command
       })
     end
 
     private
 
       def setup_dev_caching
-        return unless options[:environment] == "development"
-
-        if options[:caching] == false
-          delete_cache_file
-        elsif options[:caching]
-          create_cache_file
+        if options[:environment] == "development"
+          Rails::DevCaching.enable_by_argument(options[:caching])
         end
       end
 
@@ -114,16 +112,6 @@ module Rails
         puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
         puts "=> Rails #{Rails.version} application starting in #{Rails.env} on #{url}"
         puts "=> Run `rails server -h` for more startup options"
-
-        puts "=> Ctrl-C to shutdown server" unless options[:daemonize]
-      end
-
-      def create_cache_file
-        FileUtils.touch("tmp/caching-dev.txt")
-      end
-
-      def delete_cache_file
-        FileUtils.rm("tmp/caching-dev.txt") if File.exist?("tmp/caching-dev.txt")
       end
 
       def create_tmp_directories
@@ -142,6 +130,10 @@ module Rails
         unless ActiveSupport::Logger.logger_outputs_to?(Rails.logger, STDOUT)
           Rails.logger.extend(ActiveSupport::Logger.broadcast(console))
         end
+      end
+
+      def restart_command
+        "bin/rails server #{ARGV.join(' ')}"
       end
   end
 end
