@@ -75,7 +75,6 @@ directory "pkg"
       cmd << "cd #{framework} && " unless framework == "rails"
       cmd << "bundle exec rake package && " unless framework == "rails"
       cmd << "gem build #{gemspec} && mv #{framework}-#{version}.gem #{root}/pkg/"
-      cmd << "&& npm publish" if File.exist?("#{framework}/package.json")
       sh cmd
     end
 
@@ -86,6 +85,7 @@ directory "pkg"
 
     task :push => :build do
       sh "gem push #{gem}"
+      sh "npm publish" if File.exist?("#{framework}/package.json")
     end
   end
 end

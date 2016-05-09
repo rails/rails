@@ -8,7 +8,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rails/rails.git"
+    "url": "rails/rails"
   },
   "keywords": [
     "websockets",
@@ -20,6 +20,5 @@
   "bugs": {
     "url": "https://github.com/rails/rails/issues"
   },
-  "homepage": "http://rubyonrails.org/",
-  "scripts": {}
+  "homepage": "http://rubyonrails.org/"
 }
