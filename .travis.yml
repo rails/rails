@@ -43,6 +43,12 @@ env:
     - "GEM=ar:postgresql"
     - "GEM=aj:integration"
     - "GEM=guides"
+  global:
+    # SAUCE_ACCESS_KEY
+    - secure: "ILoHFHcjPzUr3K9aqafLIqdSCgeQGihcSMGmIfhOzdZ+GlCKGZQCCpNEBfAwVI+QPH1LsS10WcxRXzoH/O6oUB1vIV/wznGQcIwqCymLEhoMqDmbDYMbCOxzyNWFD9oxczDr+4B4+D8wu8v3n4GpQKIrwCsAMDYs9hkDl0YxPRg="
+
+    # SAUCE_USERNAME
+    - secure: "mJIggvjB1dGc3z1Yc/D17n3tODGkF7WEZuvEYoeow9m9mPBAQxHdTBFuvlHqszSy/KjhlVZl6B9x34k6Giq+m++SACGXg2DaN8QW9/GDbyRBwXdj4ml+su3A0DX3Aest24rBTUAkKh94V3oGsk8tDtfP4gOIARqwB+Edqse3bG4="
 
 rvm:
   - 2.2.5
