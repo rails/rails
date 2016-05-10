@@ -18,13 +18,7 @@ module ActionController
     # See Rack::Utils::SYMBOL_TO_STATUS_CODE for a full list of valid +status+ symbols.
     def head(status, options = {})
       if status.is_a?(Hash)
-        msg = status[:status] ? "The :status option" : "The implicit :ok status"
-        options, status = status, status.delete(:status)
-
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          #{msg} on `head` has been deprecated and will be removed in Rails 5.1.
-          Please pass the status as a separate parameter before the options, instead.
-        MSG
+        raise ArgumentError, "#{status.inspect} is not a valid value for `status`."
       end
 
       status ||= :ok

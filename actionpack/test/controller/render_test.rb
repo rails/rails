@@ -173,14 +173,6 @@ class TestController < ActionController::Base
     fresh_when(last_modified: Time.now.utc.beginning_of_day, etag: [ :foo, 123 ])
   end
 
-  def head_with_status_hash
-    head status: :created
-  end
-
-  def head_with_hash_does_not_include_status
-    head warning: :deprecated
-  end
-
   def head_created
     head :created
   end
@@ -668,19 +660,6 @@ class HeadRenderTest < ActionController::TestCase
     post :head_created
     assert @response.body.blank?
     assert_response :created
-  end
-
-  def test_passing_hash_to_head_as_first_parameter_deprecated
-    assert_deprecated do
-      get :head_with_status_hash
-    end
-  end
-
-  def test_head_with_default_value_is_deprecated
-    assert_deprecated do
-      get :head_with_hash_does_not_include_status
-      assert_response :ok
-    end
   end
 
   def test_head_created_with_application_json_content_type

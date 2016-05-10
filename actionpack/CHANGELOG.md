@@ -1,3 +1,7 @@
+*   Remove deprecated support to passing status as option `head`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to passing original exception to `ActionController::BadRequest`
     and the `ActionController::BadRequest#original_exception` method.
 
