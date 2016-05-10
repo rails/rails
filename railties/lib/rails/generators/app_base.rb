@@ -234,16 +234,14 @@ module Rails
       end
 
       def rails_gemfile_entry
-        dev_edge_common = [
-        ]
         if options.dev?
           [
             GemfileEntry.path('rails', Rails::Generators::RAILS_DEV_PATH)
-          ] + dev_edge_common
+          ]
         elsif options.edge?
           [
-            GemfileEntry.github('rails', 'rails/rails')
-          ] + dev_edge_common
+            GemfileEntry.github('rails', 'rails/rails', '5-0-stable')
+          ]
         else
           [GemfileEntry.version('rails',
                             rails_version_specifier,
