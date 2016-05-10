@@ -134,13 +134,13 @@ module ActiveRecord
             scope = next_chain_scope(scope, table, reflection, association_klass, foreign_table, next_reflection)
           end
 
-          # Exclude the scope of the association itself, because that
-          # was already merged in the #scope method.
           reflection.constraints.each do |scope_chain_item|
-            item  = eval_scope(reflection.klass, scope_chain_item, owner)
+            item = eval_scope(reflection.klass, scope_chain_item, owner)
 
             if scope_chain_item == refl.scope
               scope.merge! item.except(:where, :includes)
+            elsif item.joins_values.any?
+              merge_joins(scope, item)
             end
 
             reflection.all_includes do
@@ -156,6 +156,21 @@ module ActiveRecord
         end
 
         scope
+      end
+
+      # Merges inner joins from `other` relation to `scope` relation.
+      def merge_joins(scope, other)
+        association_joins, rest_joins = other.joins_values.partition do |join|
+          case join
+          when Hash, Symbol, Array
+            true
+          else
+            false
+          end
+        end
+
+        join_dependency = ActiveRecord::Associations::JoinDependency.new(other.klass, association_joins, rest_joins)
+        scope.joins! join_dependency.join_constraints([], Arel::Nodes::InnerJoin).map(&:joins)
       end
 
       def eval_scope(klass, scope, owner)
