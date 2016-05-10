@@ -43,6 +43,9 @@ env:
     - "GEM=ar:postgresql"
     - "GEM=aj:integration"
     - "GEM=guides"
+  global:
+  - secure: ctwuhhY76OFhI/lmK054lL4Tzmney3l3gpnCkzlZ8idMAbeKAPOGdJxx7QUVQi3dY3N9lg+iAhKGNk+/J/ze7SG0gjGFsjAjqzIZonirwkfNIZrTgWmkclE4IbqAU9rG7kvsobzlMNNpS7sfmoT4vabvsJyCMObuEfBnaVZE0DA=
+  - secure: bcEdBn7qw0KpbPIzTMN0fL6CNmpUZHGm3QJfThRzDm9S4X1Y5Yo063TXtb8nvy4P7019MPGezNd6Xw3kslB1D3g6R9nnEUrB0jd94VdKqw+HJzHkaT/hdGoB5ODVgIfrUcfAuElwT+7jd1Fx5JjtYbEgQjlVOyw0mk4SiV88IJQ=
 
 rvm:
   - 2.2.5
