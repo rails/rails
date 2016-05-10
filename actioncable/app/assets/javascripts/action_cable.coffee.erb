@@ -33,3 +33,12 @@
     if @debugging
       messages.push(Date.now())
       console.log("[ActionCable]", messages...)
+
+# Since we are `module.exports`-ing below, in order to make the internal `ActionCable class`
+# recognize the `ActionCable` constant, we need to place the constant on the `window`, so that
+# way it will be recognized.
+window.ActionCable = @ActionCable
+
+# We need to module.exports here, in order to make ActionCable a "true Node.js module".
+# This makes it so that way an `Import` or `require` will load in the `ActionCable` module.
+module?.exports = @ActionCable
