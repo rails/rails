@@ -146,11 +146,11 @@ module ActiveRecord
       end
 
       def get_advisory_lock(lock_name, timeout = 0) # :nodoc:
-        select_value("SELECT GET_LOCK('#{lock_name}', #{timeout});").to_s == '1'
+        select_value("SELECT GET_LOCK(#{quote(lock_name)}, #{timeout})") == 1
       end
 
       def release_advisory_lock(lock_name) # :nodoc:
-        select_value("SELECT RELEASE_LOCK('#{lock_name}')").to_s == '1'
+        select_value("SELECT RELEASE_LOCK(#{quote(lock_name)})") == 1
       end
 
       def native_database_types
