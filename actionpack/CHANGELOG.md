@@ -1,3 +1,10 @@
+*   Remove deprecated methods `skip_action_callback`, `skip_filter`, `before_filter`,
+    `prepend_before_filter`, `skip_before_filter`, `append_before_filter`, `around_filter`
+    `prepend_around_filter`, `skip_around_filter`, `append_around_filter`, `after_filter`,
+    `prepend_after_filter`, `skip_after_filter` and `append_after_filter`.
+
+    *Rafael Mendonça França*
+
 *   Show an "unmatched constraints" error when params fail to match constraints
     on a matched route, rather than a "missing keys" error.
 
