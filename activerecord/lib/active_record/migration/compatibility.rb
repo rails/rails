@@ -11,7 +11,7 @@ module ActiveRecord
         const_get(name)
       end
 
-      V5_0 = Current
+      V5_1 = Current
 
       module FourTwoShared
         module TableDefinition
@@ -100,6 +100,9 @@ module ActiveRecord
 
           index_name
         end
+      end
+
+      class V5_0 < V5_1
       end
 
       class V4_2 < V5_0
