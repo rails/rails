@@ -1,3 +1,8 @@
+*   Remove deprecated support to passing original exception to `ActionController::BadRequest`
+    and the `ActionController::BadRequest#original_exception` method.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated methods `skip_action_callback`, `skip_filter`, `before_filter`,
     `prepend_before_filter`, `skip_before_filter`, `append_before_filter`, `around_filter`
     `prepend_around_filter`, `skip_around_filter`, `append_around_filter`, `after_filter`,
