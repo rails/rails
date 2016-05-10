@@ -361,6 +361,13 @@ class PrimaryKeyIntegerTest < ActiveRecord::TestCase
     Widget.reset_column_information
   end
 
+  if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
+    test "schema dump primary key with bigserial" do
+      schema = dump_table_schema "widgets"
+      assert_match %r{create_table "widgets", force: :cascade}, schema
+    end
+  end
+
   test "primary key column type" do
     column_type = Widget.type_for_attribute(Widget.primary_key)
     assert_equal :integer, column_type.type

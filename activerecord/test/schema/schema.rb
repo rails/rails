@@ -126,6 +126,9 @@ ActiveRecord::Schema.define do
     t.timestamps null: false
   end
 
+  create_table :old_cars, id: :integer, force: true do |t|
+  end
+
   create_table :carriers, force: true
 
   create_table :categories, force: true do |t|
