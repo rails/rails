@@ -114,7 +114,7 @@ module ActionView
         end
 
         def sanitized_value(value)
-          value.to_s.gsub(/\s/, "_").gsub(/[^-\w]/, "").downcase
+          value.to_s.gsub(/\s/, "_").gsub(/[^-\p{Word}]/, "").downcase
         end
 
         def select_content_tag(option_tags, options, html_options)
