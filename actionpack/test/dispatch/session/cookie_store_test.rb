@@ -24,8 +24,21 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       render plain: Rack::Utils.escape(Verifier.generate(session.to_hash))
     end
 
+    def set_deep_session_value
+      session[:foo] = { bar: "baz" }
+      render plain: Rack::Utils.escape(Verifier.generate(session.to_hash))
+    end
+
     def get_session_value
       render plain: "foo: #{session[:foo].inspect}"
+    end
+
+    def get_deep_session_value_with_symbol
+      render plain: "foo: { bar: #{session[:foo][:bar].inspect} }"
+    end
+
+    def get_deep_session_value_with_string
+      render plain: "foo: { \"bar\" => #{session[:foo]["bar"].inspect} }"
     end
 
     def get_session_id
@@ -92,6 +105,18 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       get '/get_session_id'
       assert_response :success
       assert_equal "id: #{session_id}", response.body, "should be able to read session id without accessing the session hash"
+    end
+  end
+
+  def test_getting_session_has_indifferent_access
+    with_test_route_set do
+      get '/set_deep_session_value'
+
+      get '/get_deep_session_value_with_symbol'
+      assert_equal 'foo: { bar: "baz" }', response.body
+
+      get '/get_deep_session_value_with_string'
+      assert_equal 'foo: { "bar" => "baz" }', response.body
     end
   end
 
