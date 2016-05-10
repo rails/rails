@@ -2,6 +2,7 @@ module ActiveRecord
   module Tasks # :nodoc:
     class PostgreSQLDatabaseTasks # :nodoc:
       DEFAULT_ENCODING = ENV['CHARSET'] || 'utf8'
+      ON_ERROR_STOP_1 = 'ON_ERROR_STOP=1'.freeze
 
       delegate :connection, :establish_connection, :clear_active_connections!,
         to: ActiveRecord::Base
@@ -67,7 +68,7 @@ module ActiveRecord
 
       def structure_load(filename)
         set_psql_env
-        args = [ '-q', '-f', filename, configuration['database'] ]
+        args = [ '-v', ON_ERROR_STOP_1, '-q', '-f', filename, configuration['database'] ]
         run_cmd('psql', args, 'loading' )
       end
 
