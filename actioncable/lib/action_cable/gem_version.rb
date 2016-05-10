@@ -6,9 +6,9 @@ module ActionCable
 
   module VERSION
     MAJOR = 5
-    MINOR = 0
+    MINOR = 1
     TINY  = 0
-    PRE   = "rc1"
+    PRE   = "alpha"
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join(".")
   end
