@@ -317,6 +317,19 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_select 'label[for=bar]'
   end
 
+  test 'collection check boxes propagates input id to the label for attribute with cjk characters' do
+    collection = ['中国', '日本', '한국']
+    with_collection_check_boxes :user, :visited, collection, :to_s, :to_s
+
+    assert_select 'input[type=checkbox][value="中国"]#user_visited_中国'
+    assert_select 'input[type=checkbox][value="日本"]#user_visited_日本'
+    assert_select 'input[type=checkbox][value="한국"]#user_visited_한국'
+
+    assert_select 'label[for=user_visited_中国]'
+    assert_select 'label[for=user_visited_日本]'
+    assert_select 'label[for=user_visited_한국]'
+  end
+
   test 'collection check boxes sets the label class defined inside the block' do
     collection = [[1, 'Category 1', {class: 'foo'}], [2, 'Category 2', {class: 'bar'}]]
     with_collection_check_boxes :user, :active, collection, :second, :first do |b|
