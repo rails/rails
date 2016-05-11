@@ -112,6 +112,13 @@ module ActiveRecord
           klassA.connection_specification_name = "readonly"
           assert_equal "readonly", klassB.connection_specification_name
         end
+
+        def test_remove_connection_should_not_remove_parent
+          klass2 = Class.new(Base) { def self.name; 'klass2'; end }
+          klass2.remove_connection
+          refute_nil ActiveRecord::Base.connection.object_id
+          assert_equal klass2.connection.object_id, ActiveRecord::Base.connection.object_id
+        end
       end
     end
   end
