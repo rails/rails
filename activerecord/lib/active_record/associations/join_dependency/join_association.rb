@@ -106,7 +106,7 @@ module ActiveRecord
               ]
             end
 
-            scope_chain_items += [reflection.klass.send(:build_default_scope, ActiveRecord::Relation.new(reflection.klass, table))].compact
+            #scope_chain_items += [reflection.klass.send(:build_default_scope, ActiveRecord::Relation.new(reflection.klass, table))].compact
 
             scope_chain_items.each do |item|
               unless item.is_a?(Relation)
@@ -115,6 +115,8 @@ module ActiveRecord
 
               constraint = constraint.and(item.arel.constraints) unless item.arel.constraints.empty?
             end
+
+            scope_chain_items.unshift(*[reflection.klass.send(:build_default_scope, ActiveRecord::Relation.new(reflection.klass, table))].compact)
 
             manager.from(join(table, constraint))
 
