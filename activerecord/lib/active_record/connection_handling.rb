@@ -51,13 +51,13 @@ module ActiveRecord
       resolver =   ConnectionAdapters::ConnectionSpecification::Resolver.new configurations
       # TODO: uses name on establish_connection, for backwards compatibility
       spec     =   resolver.spec(spec, self == Base ? "primary" : name)
-      self.connection_specification_name = spec.name
 
       unless respond_to?(spec.adapter_method)
         raise AdapterNotFound, "database configuration specifies nonexistent #{spec.config[:adapter]} adapter"
       end
 
-      remove_connection
+      remove_connection(spec.name)
+      self.connection_specification_name = spec.name
       connection_handler.establish_connection spec
     end
 
