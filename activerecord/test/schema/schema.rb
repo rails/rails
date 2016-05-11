@@ -1005,16 +1005,14 @@ ActiveRecord::Schema.define do
   create_table :records, force: true do |t|
   end
 
-  if supports_foreign_keys?
-    # fk_test_has_fk should be before fk_test_has_pk
+  disable_referential_integrity do
+    create_table :fk_test_has_pk, primary_key: "pk_id", force: :cascade do |t|
+    end
+
     create_table :fk_test_has_fk, force: true do |t|
-      t.bigint :fk_id, null: false
+      t.references :fk, null: false
+      t.foreign_key :fk_test_has_pk, column: "fk_id", name: "fk_name", primary_key: "pk_id"
     end
-
-    create_table :fk_test_has_pk, force: true, primary_key: "pk_id" do |t|
-    end
-
-    add_foreign_key :fk_test_has_fk, :fk_test_has_pk, column: "fk_id", name: "fk_name", primary_key: "pk_id"
   end
 
   create_table :overloaded_types, force: true do |t|
