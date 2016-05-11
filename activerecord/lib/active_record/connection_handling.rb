@@ -96,7 +96,7 @@ module ActiveRecord
     # Return the specification id from this class otherwise look it up
     # in the parent.
     def connection_specification_name
-      unless defined?(@connection_specification_name)
+      if !defined?(@connection_specification_name) || @connection_specification_name.nil?
         @connection_specification_name = self == Base ? "primary" : superclass.connection_specification_name
       end
       @connection_specification_name
@@ -134,6 +134,13 @@ module ActiveRecord
     end
 
     def remove_connection(name = connection_specification_name)
+      # if removing a connection that have a pool, we reset the
+      # connection_specification_name so it will use the parent
+      # pool.
+      if connection_handler.retrieve_connection_pool(name)
+        self.connection_specification_name = nil
+      end
+
       connection_handler.remove_connection(name)
     end
 

@@ -89,6 +89,20 @@ module ActiveRecord
           assert_equal @pool.schema_cache.size, Marshal.load(rd.read)
           rd.close
         end
+
+        def test_a_class_using_custom_pool_and_switching_back_to_primary
+          klass2     = Class.new(Base)   { def self.name; 'klass2'; end }
+
+          assert_equal klass2.connection.object_id, ActiveRecord::Base.connection.object_id
+
+          pool = klass2.establish_connection(ActiveRecord::Base.connection_pool.spec.config)
+          assert_equal klass2.connection.object_id, pool.connection.object_id
+          refute_equal klass2.connection.object_id, ActiveRecord::Base.connection.object_id
+
+          klass2.remove_connection
+
+          assert_equal klass2.connection.object_id, ActiveRecord::Base.connection.object_id
+        end
       end
     end
   end
