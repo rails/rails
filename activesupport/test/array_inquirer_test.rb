@@ -18,14 +18,34 @@ class ArrayInquirerTest < ActiveSupport::TestCase
     assert_not @array_inquirer.any?(:desktop, :watch)
   end
 
+  def test_none
+    assert_not @array_inquirer.none?
+    assert @array_inquirer.none?(:desktop)
+    assert @array_inquirer.none?(:desktop, :watch)
+    assert_not @array_inquirer.none?(:watch, :tablet)
+    assert_not @array_inquirer.none?(:mobile)
+  end
+
   def test_any_string_symbol_mismatch
     assert @array_inquirer.any?('mobile')
     assert @array_inquirer.any?(:api)
   end
 
+  def test_none_string_symbol_mismatch
+    assert_not @array_inquirer.none?('mobile')
+    assert_not @array_inquirer.none?(:api)
+    assert @array_inquirer.none?(:desktop)
+    assert @array_inquirer.none?('laptop')
+  end
+
   def test_any_with_block
     assert @array_inquirer.any? { |v| v == :mobile }
     assert_not @array_inquirer.any? { |v| v == :desktop }
+  end
+
+  def test_none_with_block
+    assert_not @array_inquirer.none? { |v| v == :mobile }
+    assert @array_inquirer.none? { |v| v == :desktop }
   end
 
   def test_respond_to

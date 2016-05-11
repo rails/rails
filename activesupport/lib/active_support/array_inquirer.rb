@@ -28,6 +28,20 @@ module ActiveSupport
       end
     end
 
+    # Passes each element of +candidates+ collection to ArrayInquirer collection.
+    # The method returns true if none of the elements in +candidates+ are part of ArrayInquirer collection.
+    # If +candidates+ collection is not given, method returns false.
+    #
+    #   variants = ActiveSupport::ArrayInquirer.new([:phone, :tablet])
+    #
+    #   variants.none?                     # => false
+    #   variants.none?(:phone, :tablet)     # => false
+    #   variants.none?('phone', 'desktop')  # => false
+    #   variants.none?(:desktop, :watch)    # => true
+    def none?(*candidates, &block)
+      !any?(*candidates, &block)
+    end
+
     private
       def respond_to_missing?(name, include_private = false)
         name[-1] == '?'
