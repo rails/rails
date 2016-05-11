@@ -50,10 +50,6 @@ module ActiveRecord
       def header(stream)
         define_params = @version ? "version: #{@version}" : ""
 
-        if stream.respond_to?(:external_encoding) && stream.external_encoding
-          stream.puts "# encoding: #{stream.external_encoding.name}"
-        end
-
         stream.puts <<HEADER
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
