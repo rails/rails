@@ -80,6 +80,15 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_find_in_batches_should_ignore_reverse_order
+    ids = []
+    Post.select(:id).reverse_order.find_in_batches(:batch_size => 2) do |batch|
+      ids.concat batch.map(&:id)
+    end
+
+    assert_equal ids, Post.all.map(&:id)
+  end
+
   def test_find_in_batches_shouldnt_execute_query_unless_needed
     post_count = Post.count
 
