@@ -904,9 +904,8 @@ module ActionView
           output.safe_concat("</form>")
         end
 
-        # see http://www.w3.org/TR/html4/types.html#type-name
         def sanitize_to_id(name)
-          name.to_s.delete(']').tr('^-a-zA-Z0-9:.', "_")
+          name.to_s.delete(']').gsub(/[^-:.\p{Word}]/, "_")
         end
     end
   end

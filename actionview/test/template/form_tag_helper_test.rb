@@ -213,6 +213,10 @@ class FormTagHelperTest < ActionView::TestCase
     actual = radio_button_tag('ctrlname', 'apache2.2')
     expected = %(<input id="ctrlname_apache2.2" name="ctrlname" type="radio" value="apache2.2" />)
     assert_dom_equal expected, actual
+
+    actual = radio_button_tag('country', '中国')
+    expected = %(<input id="country_中国" name="country" type="radio" value="中国" />)
+    assert_dom_equal expected, actual
   end
 
   def test_select_tag
