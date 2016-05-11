@@ -217,7 +217,7 @@ module ActionDispatch
         @protocol ||= ssl? ? 'https://' : 'http://'
       end
 
-      # Returns the \host for this request, such as "example.com".
+      # Returns the \host and port for this request, such as "example.com:8080".
       #
       #   class Request < Rack::Request
       #     include ActionDispatch::Http::URL
@@ -225,6 +225,9 @@ module ActionDispatch
       #
       #   req = Request.new 'HTTP_HOST' => 'example.com'
       #   req.raw_host_with_port # => "example.com"
+      #
+      #   req = Request.new 'HTTP_HOST' => 'example.com:80'
+      #   req.raw_host_with_port # => "example.com:80"
       #
       #   req = Request.new 'HTTP_HOST' => 'example.com:8080'
       #   req.raw_host_with_port # => "example.com:8080"
@@ -236,7 +239,7 @@ module ActionDispatch
         end
       end
 
-      # Returns the host for this request, such as example.com.
+      # Returns the host for this request, such as "example.com".
       #
       #   class Request < Rack::Request
       #     include ActionDispatch::Http::URL
@@ -249,11 +252,15 @@ module ActionDispatch
       end
 
       # Returns a \host:\port string for this request, such as "example.com" or
-      # "example.com:8080".
+      # "example.com:8080". Port is only included if it is not a default port
+      # (80 or 443)
       #
       #   class Request < Rack::Request
       #     include ActionDispatch::Http::URL
       #   end
+      #
+      #   req = Request.new 'HTTP_HOST' => 'example.com'
+      #   req.host_with_port # => "example.com"
       #
       #   req = Request.new 'HTTP_HOST' => 'example.com:80'
       #   req.host_with_port # => "example.com"

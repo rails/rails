@@ -417,6 +417,11 @@ class RequestPath < BaseRequestTest
 end
 
 class RequestHost < BaseRequestTest
+  test "host without specifying port" do
+    request = stub_request 'HTTP_HOST' => 'rubyonrails.org'
+    assert_equal "rubyonrails.org", request.host_with_port
+  end
+
   test "host with default port" do
     request = stub_request 'HTTP_HOST' => 'rubyonrails.org:80'
     assert_equal "rubyonrails.org", request.host_with_port
@@ -425,6 +430,21 @@ class RequestHost < BaseRequestTest
   test "host with non default port" do
     request = stub_request 'HTTP_HOST' => 'rubyonrails.org:81'
     assert_equal "rubyonrails.org:81", request.host_with_port
+  end
+
+  test "raw without specifying port" do
+    request = stub_request 'HTTP_HOST' => 'rubyonrails.org'
+    assert_equal "rubyonrails.org", request.raw_host_with_port
+  end
+
+  test "raw host with default port" do
+    request = stub_request 'HTTP_HOST' => 'rubyonrails.org:80'
+    assert_equal "rubyonrails.org:80", request.raw_host_with_port
+  end
+
+  test "raw host with non default port" do
+    request = stub_request 'HTTP_HOST' => 'rubyonrails.org:81'
+    assert_equal "rubyonrails.org:81", request.raw_host_with_port
   end
 
   test "proxy request" do
