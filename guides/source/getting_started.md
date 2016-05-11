@@ -93,7 +93,7 @@ current version of Ruby installed:
 
 ```bash
 $ ruby -v
-ruby 2.3.0p0
+ruby 2.3.1p112
 ```
 
 TIP: A number of tools exist to help you quickly install Ruby and Ruby
