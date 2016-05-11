@@ -97,7 +97,7 @@ module ActiveRecord
     # in the parent.
     def connection_specification_name
       if !defined?(@connection_specification_name) || @connection_specification_name.nil?
-        @connection_specification_name = self == Base ? "primary" : superclass.connection_specification_name
+        return self == Base ? "primary" : superclass.connection_specification_name
       end
       @connection_specification_name
     end

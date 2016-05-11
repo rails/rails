@@ -91,7 +91,7 @@ module ActiveRecord
         end
 
         def test_a_class_using_custom_pool_and_switching_back_to_primary
-          klass2     = Class.new(Base)   { def self.name; 'klass2'; end }
+          klass2 = Class.new(Base) { def self.name; 'klass2'; end }
 
           assert_equal klass2.connection.object_id, ActiveRecord::Base.connection.object_id
 
@@ -102,6 +102,15 @@ module ActiveRecord
           klass2.remove_connection
 
           assert_equal klass2.connection.object_id, ActiveRecord::Base.connection.object_id
+        end
+
+        def test_connection_specification_name_should_fallback_to_parent
+          klassA = Class.new(Base)
+          klassB = Class.new(klassA)
+
+          assert_equal klassB.connection_specification_name, klassA.connection_specification_name
+          klassA.connection_specification_name = "readonly"
+          assert_equal "readonly", klassB.connection_specification_name
         end
       end
     end
