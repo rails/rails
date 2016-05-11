@@ -132,7 +132,8 @@ module ActiveRecord
       connection_handler.connected?(connection_specification_name)
     end
 
-    def remove_connection(name = connection_specification_name)
+    def remove_connection(name = nil)
+      name ||= @connection_specification_name if defined?(@connection_specification_name)
       # if removing a connection that have a pool, we reset the
       # connection_specification_name so it will use the parent
       # pool.
