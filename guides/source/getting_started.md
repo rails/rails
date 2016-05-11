@@ -263,6 +263,7 @@ invoke  test_unit
 create    test/controllers/welcome_controller_test.rb
 invoke  helper
 create    app/helpers/welcome_helper.rb
+invoke    test_unit
 invoke  assets
 invoke    coffee
 create      app/assets/javascripts/welcome.coffee
