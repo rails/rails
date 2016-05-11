@@ -310,6 +310,12 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support creating foreign key constraints
+      # in the same statement as creating the table?
+      def supports_foreign_keys_in_create?
+        supports_foreign_keys?
+      end
+
       # Does this adapter support views?
       def supports_views?
         false

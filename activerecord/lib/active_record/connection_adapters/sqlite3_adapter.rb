@@ -130,6 +130,10 @@ module ActiveRecord
         true
       end
 
+      def supports_foreign_keys_in_create?
+        sqlite_version >= "3.6.19"
+      end
+
       def supports_views?
         true
       end
@@ -439,6 +443,19 @@ module ActiveRecord
         rename_column_indexes(table_name, column.name, new_column_name)
       end
 
+      def foreign_keys(table_name)
+        fk_info = select_all("PRAGMA foreign_key_list(#{quote(table_name)})", "SCHEMA")
+        fk_info.map do |row|
+          options = {
+            column: row["from"],
+            primary_key: row["to"],
+            on_delete: extract_foreign_key_action(row["on_delete"]),
+            on_update: extract_foreign_key_action(row["on_update"])
+          }
+          ForeignKeyDefinition.new(table_name, row["table"], options)
+        end
+      end
+
       private
 
         def table_structure(table_name)
@@ -590,6 +607,14 @@ module ActiveRecord
 
         def create_table_definition(*args)
           SQLite3::TableDefinition.new(*args)
+        end
+
+        def extract_foreign_key_action(specifier)
+          case specifier
+          when "CASCADE"; :cascade
+          when "SET NULL"; :nullify
+          when "RESTRICT"; :restrict
+          end
         end
 
         def configure_connection
