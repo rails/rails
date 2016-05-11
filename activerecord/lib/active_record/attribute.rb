@@ -170,7 +170,7 @@ module ActiveRecord
         super(name, nil, Type::Value.new)
       end
 
-      def value
+      def type_cast(*)
         nil
       end
 
