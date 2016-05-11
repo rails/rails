@@ -826,9 +826,7 @@ module ActiveRecord
     # in order to lookup the correct connection pool.
     class ConnectionHandler
       def initialize
-        # These caches are keyed by klass.name, NOT klass. Keying them by klass
-        # alone would lead to memory leaks in development mode as all previous
-        # instances of the class would stay in memory.
+        # These caches are keyed by spec.name (ConnectionSpecification#name).
         @owner_to_pool = Concurrent::Map.new(:initial_capacity => 2) do |h,k|
           h[k] = Concurrent::Map.new(:initial_capacity => 2)
         end
