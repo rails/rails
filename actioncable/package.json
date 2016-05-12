@@ -4,7 +4,7 @@
   "description": "WebSocket framework for Ruby on Rails.",
   "main": "lib/assets/compiled/action_cable.js",
   "files": [
-    "lib/assets/compiled//*.js"
+    "lib/assets/compiled/*.js"
   ],
   "repository": {
     "type": "git",
