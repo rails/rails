@@ -458,6 +458,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "test/test_helper.rb" do |helper_content|
       assert_no_match(/fixtures :all/, helper_content)
     end
+    assert_file 'Gemfile' do |content|
+      assert_match(/^# gem\s+["']rails["']/, content)
+      assert_match(/^# gem\s+["']activerecord["']/, content)
+      assert_match(/^gem\s+["']activejob["']/, content)
+      assert_match(/^gem\s+["']activemodel["']/, content)
+      assert_match(/^gem\s+["']railties["']/, content)
+    end
   end
 
   def test_generator_if_skip_action_mailer_is_given
@@ -471,6 +478,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
     assert_file "config/environments/production.rb" do |content|
       assert_no_match(/config\.action_mailer/, content)
+    end
+    assert_file 'Gemfile' do |content|
+      assert_match(/^# gem\s+["']rails["']/, content)
+      assert_match(/^# gem\s+["']actionmailer["']/, content)
+      assert_match(/^gem\s+["']activejob["']/, content)
+      assert_match(/^gem\s+["']activemodel["']/, content)
+      assert_match(/^gem\s+["']railties["']/, content)
     end
   end
 
@@ -511,6 +525,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "app/channels"
     assert_file "Gemfile" do |content|
       assert_no_match(/redis/, content)
+      assert_match(/^# gem\s+["']rails["']/, content)
+      assert_match(/^# gem\s+["']actioncable["']/, content)
+      assert_match(/^gem\s+["']activejob["']/, content)
+      assert_match(/^gem\s+["']activemodel["']/, content)
+      assert_match(/^gem\s+["']railties["']/, content)
     end
   end
 

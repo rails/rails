@@ -118,7 +118,7 @@ module Rails
       end
 
       def gemfile_entries
-        [rails_gemfile_entry,
+        [rails_gemfile_entries,
          database_gemfile_entry,
          webserver_gemfile_entry,
          assets_gemfile_entry,
@@ -206,20 +206,17 @@ module Rails
           super
         end
 
-        def self.github(name, github, branch = nil, comment = nil)
-          if branch
-            new(name, nil, comment, github: github, branch: branch)
-          else
-            new(name, nil, comment, github: github)
-          end
+        def self.github(name, github, branch = nil, comment = nil, commented_out = false)
+          options = branch ? {github: github, branch: branch} : {github: github}
+          new(name, nil, comment, options, commented_out)
         end
 
-        def self.version(name, version, comment = nil)
-          new(name, version, comment)
+        def self.version(name, version, comment = nil, commented_out = false)
+          new(name, version, comment, {}, commented_out)
         end
 
-        def self.path(name, path, comment = nil)
-          new(name, nil, comment, path: path)
+        def self.path(name, path, comment = nil, commented_out = false)
+          new(name, nil, comment, {path: path}, commented_out)
         end
 
         def version
@@ -233,22 +230,55 @@ module Rails
         end
       end
 
-      def rails_gemfile_entry
+      def rails_gemfile_entries
+        skips = %i(skip_action_cable skip_action_mailer skip_active_record)
+        components_to_skip = options.slice(*skips).select{|_,v| v}
+        if components_to_skip.any?
+          rails_gemfile_entry_skipping components_to_skip
+        else
+          rails_gemfile_entry
+        end
+      end
+
+      def rails_gemfile_entry(gem_name = 'rails', commented_out: false)
         dev_edge_common = [
         ]
         if options.dev?
           [
-            GemfileEntry.path('rails', Rails::Generators::RAILS_DEV_PATH)
+            GemfileEntry.path(gem_name, Rails::Generators::RAILS_DEV_PATH, nil, commented_out)
           ] + dev_edge_common
         elsif options.edge?
           [
-            GemfileEntry.github('rails', 'rails/rails')
+            GemfileEntry.github(gem_name, "rails/#{gem_name}", nil, nil, commented_out)
           ] + dev_edge_common
-        else
-          [GemfileEntry.version('rails',
+        elsif gem_name == 'rails'
+          [GemfileEntry.version(gem_name,
                             rails_version_specifier,
-                            "Bundle edge Rails instead: gem 'rails', github: 'rails/rails'")]
+                            "Bundle edge Rails instead: gem '#{gem_name}', github: 'rails/#{gem_name}'", commented_out)]
+        else
+          [GemfileEntry.version(gem_name, rails_version_specifier, nil, commented_out)]
         end
+      end
+
+      def rails_gemfile_entry_skipping(components_to_skip)
+        gems = rails_gemfile_entry('rails', commented_out: true)
+
+        skip = components_to_skip.key? 'skip_action_cable'
+        gems << rails_gemfile_entry('actioncable', commented_out: skip)
+
+        skip = components_to_skip.key? 'skip_action_mailer'
+        gems << rails_gemfile_entry('actionmailer', commented_out: skip)
+
+        gems << rails_gemfile_entry('activejob', commented_out: false)
+
+        gems << rails_gemfile_entry('activemodel', commented_out: false)
+
+        skip = components_to_skip.key? 'skip_active_record'
+        gems << rails_gemfile_entry('activerecord', commented_out: skip)
+
+        gems << rails_gemfile_entry('railties', commented_out: false)
+
+        gems
       end
 
       def rails_version_specifier(gem_version = Rails.gem_version)
