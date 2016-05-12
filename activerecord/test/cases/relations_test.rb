@@ -28,6 +28,13 @@ class RelationTest < ActiveRecord::TestCase
   class TopicWithCallbacks < ActiveRecord::Base
     self.table_name = :topics
     before_update { |topic| topic.author_name = 'David' if topic.author_name.blank? }
+
+    before_destroy {|object| TopicWithCallbacks.destroyed_ids << object.id }
+
+    def self.destroyed_ids
+      @_destroyed_ids ||= []
+    end
+    
   end
 
   def test_do_not_double_quote_string_id
@@ -1624,6 +1631,15 @@ class RelationTest < ActiveRecord::TestCase
     # Testing that the before_update callbacks have run
     assert_equal 'David', topic1.reload.author_name
     assert_equal 'David', topic2.reload.author_name
+  end
+
+  def test_destroy_on_relation
+    content_1 = TopicWithCallbacks.create! title: 'arel'
+    content_2 = TopicWithCallbacks.create! title: 'activemodel'
+    topics = TopicWithCallbacks.where(id: [content_1.id, content_2.id])
+    topics.destroy
+
+    assert_equal [content_1.id, content_2.id], TopicWithCallbacks.destroyed_ids
   end
 
   def test_update_on_relation_passing_active_record_object_is_deprecated

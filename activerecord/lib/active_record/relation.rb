@@ -484,9 +484,15 @@ module ActiveRecord
     #   # Destroy multiple objects
     #   todos = [1,2,3]
     #   Todo.destroy(todos)
-    def destroy(id)
+    #
+    #   Destroys multiple records from the result of a relation
+    #   people = Person.where(group: 'expert')
+    #   people.destroy
+    def destroy(id = :all)
       if id.is_a?(Array)
         id.map { |one_id| destroy(one_id) }
+      elsif id == :all
+        records.each { |record| record.destroy }
       else
         find(id).destroy
       end
