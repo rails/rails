@@ -36,8 +36,9 @@ module ActiveSupport
   autoload :DescendantsTracker
   autoload :ExecutionWrapper
   autoload :Executor
-  autoload :FileUpdateChecker
-  autoload :EventedFileUpdateChecker
+  autoload :FileUpdateMonitor
+  autoload :FileUpdateChecker, 'active_support/file_update_monitor/classic'
+  autoload :EventedFileUpdateChecker, 'active_support/file_update_monitor/evented'
   autoload :LogSubscriber
   autoload :Notifications
   autoload :Reloader

@@ -1,6 +1,6 @@
 require 'fileutils'
 
-module FileUpdateCheckerSharedTests
+module FileUpdateMonitorSharedTests
   extend ActiveSupport::Testing::Declarative
   include FileUtils
 
