@@ -460,6 +460,74 @@ with all the popular application servers -- Unicorn, Puma and Passenger.
 Action Cable does not work with WEBrick, because WEBrick does not support the
 Rack socket hijacking API.
 
+## Frontend assets
+
+Action Cable's frontend assets are distributed through two channels: the
+official gem and npm package, both titled `actioncable`.
+
+### Gem usage
+
+Through the `actioncable` gem, Action Cable's frontend assets are
+available through the Rails Asset Pipeline. Create a `cable.js` or
+`cable.coffee` file (this is automatically done for you with Rails
+generators), and then simply require the assets:
+
+In JavaScript...
+
+```javascript
+//= require action_cable
+```
+
+... and in CoffeeScript:
+
+```coffeescript
+#= require action_cable
+```
+
+### npm usage
+
+In addition to being available through the `actioncable` gem, Action Cable's
+frontend JS assets are also bundled in an officially supported npm module,
+intended for usage in standalone frontend applications that communicate with a
+Rails application. A common use case for this could be if you have a decoupled
+frontend application written in React, Ember.js, etc. and want to add real-time
+WebSocket functionality.
+
+### Installation
+
+```
+npm install actioncable --save
+```
+
+### Usage
+
+The `ActionCable` constant is available as a `require`-able module, so
+you only have to require the package to gain access to the API that is
+provided.
+
+In JavaScript...
+
+```javascript
+ActionCable = require('actioncable')
+
+var cable = ActionCable.createConsumer('wss://RAILS-API-PATH.com/cable')
+
+cable.subscriptions.create('AppearanceChannel', {
+  // normal channel code goes here...
+});
+```
+
+and in CoffeeScript...
+
+```coffeescript
+ActionCable = require('actioncable')
+
+cable = ActionCable.createConsumer('wss://RAILS-API-PATH.com/cable')
+
+cable.subscriptions.create 'AppearanceChannel',
+    # normal channel code goes here...
+```
+
 ## License
 
 Action Cable is released under the MIT license:
