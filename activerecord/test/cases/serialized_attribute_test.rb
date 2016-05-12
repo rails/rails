@@ -295,4 +295,37 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     topic.update_attribute :content, nil
     assert_equal [topic], Topic.where(content: nil)
   end
+
+  def test_mutation_detection_does_not_double_serialize
+    coder = Object.new
+    def coder.dump(value)
+      return if value.nil?
+      value + " encoded"
+    end
+    def coder.load(value)
+      return if value.nil?
+      value.gsub(" encoded", "")
+    end
+    type = Class.new(ActiveModel::Type::Value) do
+      include ActiveModel::Type::Helpers::Mutable
+
+      def serialize(value)
+        return if value.nil?
+        value + " serialized"
+      end
+
+      def deserialize(value)
+        return if value.nil?
+        value.gsub(" serialized", "")
+      end
+    end.new
+    model = Class.new(Topic) do
+      attribute :foo, type
+      serialize :foo, coder
+    end
+
+    topic = model.create!(foo: "bar")
+    topic.foo
+    refute topic.changed?
+  end
 end
