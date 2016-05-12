@@ -65,7 +65,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     Class.new(ActiveRecord::Base) { define_singleton_method(:name) { name } }
   end
 
-  def test_ordered_habtm
+  def test_ordered_has_many_through
     person_prime = Class.new(ActiveRecord::Base) do
       def self.name; 'Person'; end
 
