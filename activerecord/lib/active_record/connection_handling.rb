@@ -45,19 +45,19 @@ module ActiveRecord
     # The exceptions AdapterNotSpecified, AdapterNotFound and +ArgumentError+
     # may be returned on an error.
     def establish_connection(spec = nil)
-      raise RuntimeError, "Anonymous class is not allowed." unless name
+      raise "Anonymous class is not allowed." unless name
 
       spec     ||= DEFAULT_ENV.call.to_sym
       resolver =   ConnectionAdapters::ConnectionSpecification::Resolver.new configurations
       # TODO: uses name on establish_connection, for backwards compatibility
       spec     =   resolver.spec(spec, self == Base ? "primary" : name)
-      self.connection_specification_name = spec.name
 
       unless respond_to?(spec.adapter_method)
         raise AdapterNotFound, "database configuration specifies nonexistent #{spec.config[:adapter]} adapter"
       end
 
-      remove_connection
+      remove_connection(spec.name)
+      self.connection_specification_name = spec.name
       connection_handler.establish_connection spec
     end
 
@@ -93,11 +93,10 @@ module ActiveRecord
 
     attr_writer :connection_specification_name
 
-    # Return the specification id from this class otherwise look it up
-    # in the parent.
+    # Return the specification name from the current class or its parent.
     def connection_specification_name
-      unless defined?(@connection_specification_name)
-        @connection_specification_name = self == Base ? "primary" : superclass.connection_specification_name
+      if !defined?(@connection_specification_name) || @connection_specification_name.nil?
+        return self == Base ? "primary" : superclass.connection_specification_name
       end
       @connection_specification_name
     end
@@ -133,7 +132,15 @@ module ActiveRecord
       connection_handler.connected?(connection_specification_name)
     end
 
-    def remove_connection(name = connection_specification_name)
+    def remove_connection(name = nil)
+      name ||= @connection_specification_name if defined?(@connection_specification_name)
+      # if removing a connection that have a pool, we reset the
+      # connection_specification_name so it will use the parent
+      # pool.
+      if connection_handler.retrieve_connection_pool(name)
+        self.connection_specification_name = nil
+      end
+
       connection_handler.remove_connection(name)
     end
 

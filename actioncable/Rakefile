@@ -25,6 +25,11 @@ namespace :test do
       sh(Gem.ruby, '-w', '-Ilib:test', file)
     end or raise "Failures"
   end
+
+  task :javascript do
+    require 'blade'
+    Blade.start(interface: :runner)
+  end
 end
 
 namespace :assets do

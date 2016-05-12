@@ -298,7 +298,7 @@ module ActiveRecord
         def run
           return unless frequency
           Thread.new(frequency, pool) { |t, p|
-            while true
+            loop do
               sleep t
               p.reap
             end
@@ -618,7 +618,7 @@ module ActiveRecord
         timeout_time      = Time.now + (@checkout_timeout * 2)
 
         @available.with_a_bias_for(Thread.current) do
-          while true
+          loop do
             synchronize do
               return if collected_conns.size == @connections.size && @now_connecting == 0
               remaining_timeout = timeout_time - Time.now
@@ -826,9 +826,7 @@ module ActiveRecord
     # in order to lookup the correct connection pool.
     class ConnectionHandler
       def initialize
-        # These caches are keyed by klass.name, NOT klass. Keying them by klass
-        # alone would lead to memory leaks in development mode as all previous
-        # instances of the class would stay in memory.
+        # These caches are keyed by spec.name (ConnectionSpecification#name).
         @owner_to_pool = Concurrent::Map.new(:initial_capacity => 2) do |h,k|
           h[k] = Concurrent::Map.new(:initial_capacity => 2)
         end
@@ -909,6 +907,8 @@ module ActiveRecord
       # to optimise for.
       def retrieve_connection_pool(spec_name)
         owner_to_pool.fetch(spec_name) do
+          # Check if a connection was previously established in an ancestor process,
+          # which may have been forked.
           if ancestor_pool = pool_from_any_process_for(spec_name)
             # A connection was established in an ancestor process that must have
             # subsequently forked. We can't reuse the connection, but we can copy

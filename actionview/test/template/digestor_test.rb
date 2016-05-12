@@ -61,25 +61,21 @@ class TemplateDigestorTest < ActionView::TestCase
   end
 
   def test_explicit_dependency_wildcard_picks_up_added_file
-    old_caching, ActionView::Resolver.caching = ActionView::Resolver.caching, false
-
-    assert_digest_difference("events/index") do
-      add_template("events/_uncompleted")
+    disable_resolver_caching do
+      assert_digest_difference("events/index") do
+        add_template("events/_uncompleted")
+      end
     end
-  ensure
-    remove_template("events/_uncompleted")
-    ActionView::Resolver.caching = old_caching
   end
 
   def test_explicit_dependency_wildcard_picks_up_removed_file
-    old_caching, ActionView::Resolver.caching = ActionView::Resolver.caching, false
-    add_template("events/_subscribers_changed")
+    disable_resolver_caching do
+      add_template("events/_subscribers_changed")
 
-    assert_digest_difference("events/index") do
-      remove_template("events/_subscribers_changed")
+      assert_digest_difference("events/index") do
+        remove_template("events/_subscribers_changed")
+      end
     end
-  ensure
-    ActionView::Resolver.caching = old_caching
   end
 
   def test_second_level_dependency
@@ -273,18 +269,15 @@ class TemplateDigestorTest < ActionView::TestCase
   end
 
   def test_digest_cache_cleanup_with_recursion_and_template_caching_off
-    resolver_before = ActionView::Resolver.caching
-    ActionView::Resolver.caching = false
+    disable_resolver_caching do
+      first_digest = digest("level/_recursion")
+      second_digest = digest("level/_recursion")
 
-    first_digest = digest("level/_recursion")
-    second_digest = digest("level/_recursion")
+      assert first_digest
 
-    assert first_digest
-
-    # If the cache is cleaned up correctly, subsequent digests should return the same
-    assert_equal first_digest, second_digest
-  ensure
-    ActionView::Resolver.caching = resolver_before
+      # If the cache is cleaned up correctly, subsequent digests should return the same
+      assert_equal first_digest, second_digest
+    end
   end
 
 
@@ -329,6 +322,13 @@ class TemplateDigestorTest < ActionView::TestCase
     def nested_dependencies(template_name)
       tree = ActionView::Digestor.tree(template_name, finder)
       tree.children.map(&:to_dep_map)
+    end
+
+    def disable_resolver_caching
+      old_caching, ActionView::Resolver.caching = ActionView::Resolver.caching, false
+      yield
+    ensure
+      ActionView::Resolver.caching = old_caching
     end
 
     def finder
