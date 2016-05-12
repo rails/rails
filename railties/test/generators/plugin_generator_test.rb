@@ -448,7 +448,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     assert_file 'test/dummy/config/environments/development.rb' do |contents|
-      assert_match(/^\s*# config.file_watcher = ActiveSupport::EventedFileUpdateChecker/, contents)
+      assert_match(/^\s*# config.file_watcher = ActiveSupport::FileUpdateMonitor::Evented/, contents)
     end
   end
 

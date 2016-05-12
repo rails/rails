@@ -1,5 +1,5 @@
 require 'active_support/core_ext/kernel/reporting'
-require 'active_support/file_update_checker'
+require 'active_support/file_update_monitor'
 require 'rails/engine/configuration'
 require 'rails/source_annotation_extractor'
 
@@ -44,7 +44,7 @@ module Rails
         @railties_order                  = [:all]
         @relative_url_root               = ENV["RAILS_RELATIVE_URL_ROOT"]
         @reload_classes_only_on_change   = true
-        @file_watcher                    = ActiveSupport::FileUpdateChecker
+        @file_watcher                    = ActiveSupport::FileUpdateMonitor::Classic
         @exceptions_app                  = nil
         @autoflush_log                   = true
         @log_formatter                   = ActiveSupport::Logger::SimpleFormatter.new

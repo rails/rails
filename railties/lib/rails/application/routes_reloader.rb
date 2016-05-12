@@ -23,7 +23,7 @@ module Rails
 
       def updater
         @updater ||= begin
-          updater = ActiveSupport::FileUpdateChecker.new(paths) { reload! }
+          updater = ActiveSupport::FileUpdateMonitor::Classic.new(paths) { reload! }
           updater.execute
           updater
         end

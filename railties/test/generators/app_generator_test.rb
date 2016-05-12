@@ -597,9 +597,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator
     assert_file 'config/environments/development.rb' do |content|
       if RbConfig::CONFIG['host_os'] =~ /darwin|linux/
-        assert_match(/^\s*config.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
+        assert_match(/^\s*config.file_watcher = ActiveSupport::FileUpdateMonitor::Evented/, content)
       else
-        assert_match(/^\s*# config.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
+        assert_match(/^\s*# config.file_watcher = ActiveSupport::FileUpdateMonitor::Evented/, content)
       end
     end
   end
@@ -868,7 +868,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem 'spring-watcher-listen'
 
     assert_file 'config/environments/development.rb' do |content|
-      assert_match(/^\s*config.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
+      assert_match(/^\s*config.file_watcher = ActiveSupport::FileUpdateMonitor::Evented/, content)
     end
   end
 
@@ -878,7 +878,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file 'config/environments/development.rb' do |content|
-      assert_match(/^\s*# config.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
+      assert_match(/^\s*# config.file_watcher = ActiveSupport::FileUpdateMonitor::Evented/, content)
     end
   end
 end
