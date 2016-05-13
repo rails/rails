@@ -49,6 +49,7 @@ module ActiveJob
         jobs.each do |job_info|
           job = job_info[:job]
           job_data = job_info[:job_data]
+          next if filtered?(job)
 
           performed_jobs << job_data
           Base.execute job.serialize

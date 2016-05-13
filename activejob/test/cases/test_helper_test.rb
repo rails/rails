@@ -404,6 +404,50 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_perform_enqueued_jobs_with_only_option
+    assert_nothing_raised do
+      perform_enqueued_jobs only: HelloJob do
+        HelloJob.perform_later
+        LoggingJob.perform_later('robbie')
+        assert_enqueued_jobs 1
+        assert_performed_jobs 0
+      end
+      assert_enqueued_jobs 1
+      assert_performed_jobs 1
+    end
+  end
+
+  def test_perform_enqueued_jobs_with_only_option_ignores_previously_queued_jobs
+    assert_nothing_raised do
+      HelloJob.perform_later
+      assert_enqueued_jobs 1
+      assert_performed_jobs 0
+
+      perform_enqueued_jobs only: HelloJob do
+        LoggingJob.perform_later('robbie')
+        assert_enqueued_jobs 1
+        assert_performed_jobs 0
+      end
+
+      assert_enqueued_jobs 1
+      assert_performed_jobs 0
+    end
+  end
+
+  def test_perform_enqueued_jobs_with_only_option_with_no_block_performs_previously_queued_jobs
+    assert_nothing_raised do
+      HelloJob.perform_later
+      LoggingJob.perform_later('robbie')
+      assert_enqueued_jobs 2
+      assert_performed_jobs 0
+
+      perform_enqueued_jobs only: HelloJob
+
+      assert_enqueued_jobs 2
+      assert_performed_jobs 1
+    end
+  end
+
   def test_assert_no_performed_jobs_with_no_block
     assert_nothing_raised do
       assert_no_performed_jobs
