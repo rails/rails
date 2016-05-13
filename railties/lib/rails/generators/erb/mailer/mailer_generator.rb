@@ -9,6 +9,13 @@ module Erb # :nodoc:
         view_base_path = File.join("app/views", class_path, file_name + '_mailer')
         empty_directory view_base_path
 
+        if self.behavior == :invoke
+          formats.each do |format|
+            layout_path = File.join('app/views/layouts', class_path, filename_with_extensions('mailer', format))
+            template filename_with_extensions(:layout, format), layout_path
+          end
+        end
+
         actions.each do |action|
           @action = action
 

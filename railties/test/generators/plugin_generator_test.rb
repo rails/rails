@@ -669,6 +669,21 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_generate_mailer_layouts_when_does_not_exist_in_mountable_engine
+    run_generator [destination_root, '--mountable']
+    capture(:stdout) do
+      `#{destination_root}/bin/rails g mailer User`
+    end
+
+    assert_file "#{destination_root}/app/views/layouts/bukkits/mailer.text.erb" do |view|
+      assert_match(/<%= yield %>/, view)
+    end
+
+    assert_file "#{destination_root}/app/views/layouts/bukkits/mailer.html.erb" do |view|
+      assert_match(%r{<body>\n    <%= yield %>\n  </body>}, view)
+    end
+  end
+
   def test_generate_application_job_when_does_not_exist_in_mountable_engine
     run_generator [destination_root, '--mountable']
     FileUtils.rm "#{destination_root}/app/jobs/bukkits/application_job.rb"
