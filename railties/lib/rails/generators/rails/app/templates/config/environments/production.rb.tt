@@ -36,6 +36,9 @@ Rails.application.configure do
   # config.action_dispatch.x_sendfile_header = 'X-Sendfile' # for Apache
   # config.action_dispatch.x_sendfile_header = 'X-Accel-Redirect' # for NGINX
 
+  # Also, set `X-Accel-Mapping` header in Nginx conf or configure path rewriting here.
+  # config.action_dispatch.x_accel_mappings = [["/internal/path/", "/external/path/"]] # for NGINX
+
   <%- unless options[:skip_action_cable] -%>
   # Mount Action Cable outside main process or domain
   # config.action_cable.mount_path = nil

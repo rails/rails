@@ -1167,6 +1167,8 @@ Apache and NGINX support this option, which can be enabled in
 ```ruby
 # config.action_dispatch.x_sendfile_header = "X-Sendfile" # for Apache
 # config.action_dispatch.x_sendfile_header = 'X-Accel-Redirect' # for NGINX
+# Also, set `X-Accel-Mapping` header in Nginx conf or configure path rewriting from Rails:
+# config.action_dispatch.x_accel_mappings = [["/internal/path/", "/external/path/"]] # for NGINX
 ```
 
 WARNING: If you are upgrading an existing application and intend to use this

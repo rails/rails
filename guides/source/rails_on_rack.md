@@ -208,7 +208,7 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 
 **`Rack::Sendfile`**
 
-* Sets server specific X-Sendfile header. Configure this via `config.action_dispatch.x_sendfile_header` option.
+* Sets server specific X-Sendfile header. Configure this via `config.action_dispatch.x_sendfile_header` and `config.action_dispatch.x_accel_mappings` options.
 
 **`ActionDispatch::Static`**
 

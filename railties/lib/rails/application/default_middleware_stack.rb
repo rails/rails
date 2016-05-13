@@ -15,7 +15,7 @@ module Rails
             middleware.use ::ActionDispatch::SSL, config.ssl_options
           end
 
-          middleware.use ::Rack::Sendfile, config.action_dispatch.x_sendfile_header
+          middleware.use ::Rack::Sendfile, config.action_dispatch.x_sendfile_header, config.action_dispatch.x_accel_mappings
 
           if config.public_file_server.enabled
             headers = config.public_file_server.headers || {}

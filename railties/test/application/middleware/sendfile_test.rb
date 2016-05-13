@@ -58,6 +58,22 @@ module ApplicationTests
       assert_equal File.expand_path(__FILE__), last_response.headers["X-Lighttpd-Send-File"]
     end
 
+    test "config.action_dispatch.x_accel_mappings can be set along with X-Accel-Redirect header" do
+      make_basic_app do |app|
+        app.config.action_dispatch.x_sendfile_header = 'X-Accel-Redirect'
+        app.config.action_dispatch.x_accel_mappings = [
+          [File.join(rails_root, "public/"), "/some_external_path/"]
+        ]
+        app.config.public_file_server.enabled = true
+        app.paths["public"] = File.join(rails_root, "public")
+      end
+
+      app_file "public/foo.txt", "foo"
+
+      get "/foo.txt"
+      assert_equal "/some_external_path/foo.txt", last_response.headers["X-Accel-Redirect"]
+    end
+
     test "files handled by ActionDispatch::Static are handled by Rack::Sendfile" do
       make_basic_app do |app|
         app.config.action_dispatch.x_sendfile_header = 'X-Sendfile'

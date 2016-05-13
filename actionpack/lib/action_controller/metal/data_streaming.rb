@@ -16,6 +16,9 @@ module ActionController #:nodoc:
       # via the Rack::Sendfile middleware. The header to use is set via
       # +config.action_dispatch.x_sendfile_header+.
       # Your server can also configure this for you by setting the X-Sendfile-Type header.
+      # X-Accel-Mapping header is used with Nginx for path rewriting,
+      # you can also configure path rewriting via
+      # +config.action_dispatch.x_accel_mappings+.
       #
       # Be careful to sanitize the path parameter if it is coming from a web
       # page. <tt>send_file(params[:path])</tt> allows a malicious user to

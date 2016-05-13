@@ -275,12 +275,13 @@ Think of it as page caching using HTTP semantics.
 
 ### Using Rack::Sendfile
 
-When you use the `send_file` method inside a Rails controller, it sets the
-`X-Sendfile` header. `Rack::Sendfile` is responsible for actually sending the
-file.
+When you use the `send_file` method inside a Rails controller, `Rack::Sendfile`
+middleware is responsible for sending the file to your front-end web-server.
 
 If your front-end server supports accelerated file sending, `Rack::Sendfile`
-will offload the actual file sending work to the front-end server.
+will offload the actual file sending work to the front-end server. For example,
+it may send only the `X-Sendfile` header to Apache web-server instead of sending
+a whole file.
 
 You can configure the name of the header that your front-end server uses for
 this purpose using `config.action_dispatch.x_sendfile_header` in the appropriate
@@ -299,6 +300,9 @@ config.action_dispatch.x_sendfile_header = "X-Sendfile"
 
 # Nginx
 config.action_dispatch.x_sendfile_header = "X-Accel-Redirect"
+
+# Also, set `X-Accel-Mapping` header in Nginx conf or configure path rewriting from Rails:
+config.action_dispatch.x_accel_mappings = [["/internal/path/", "/external/path/"]]
 ```
 
 Make sure to configure your server to support these options following the
