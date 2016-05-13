@@ -259,17 +259,22 @@ module ActiveJob
     end
 
     def perform_enqueued_jobs(only: nil)
+      old_to_perform_jobs = queue_adapter.to_perform_jobs
       old_perform_enqueued_jobs = queue_adapter.perform_enqueued_jobs
       old_perform_enqueued_at_jobs = queue_adapter.perform_enqueued_at_jobs
       old_filter = queue_adapter.filter
 
       begin
+        queue_adapter.filter = only
         queue_adapter.perform_enqueued_jobs = false
         queue_adapter.perform_enqueued_at_jobs = false
-        queue_adapter.filter = only
-        yield if block_given?
+        if block_given?
+          queue_adapter.to_perform_jobs = []  # only consider jobs enqueued within the block
+          yield
+        end
         queue_adapter.perform_jobs
       ensure
+        queue_adapter.to_perform_jobs = old_to_perform_jobs
         queue_adapter.perform_enqueued_jobs = old_perform_enqueued_jobs
         queue_adapter.perform_enqueued_at_jobs = old_perform_enqueued_at_jobs
         queue_adapter.filter = old_filter

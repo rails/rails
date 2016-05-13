@@ -326,7 +326,7 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
   end
 
-  def test_perform_enqueued_jobs_performs_previously_queued_jobs
+  def test_perform_enqueued_jobs_ignores_previously_queued_jobs
     assert_nothing_raised do
       HelloJob.perform_later
       assert_enqueued_jobs 1
@@ -336,15 +336,18 @@ class PerformedJobsTest < ActiveJob::TestCase
       end
 
       assert_enqueued_jobs 1
-      assert_performed_jobs 1
+      assert_performed_jobs 0
     end
   end
 
-  def test_perform_enqueued_jobs_with_no_block
+  def test_perform_enqueued_jobs_with_no_block_performs_previously_queued_jobs
     assert_nothing_raised do
       HelloJob.perform_later
       assert_enqueued_jobs 1
       assert_performed_jobs 0
+
+      perform_enqueued_jobs do
+      end
 
       perform_enqueued_jobs
 
@@ -370,6 +373,32 @@ class PerformedJobsTest < ActiveJob::TestCase
         RequeueWaitJob.perform_later
         assert_enqueued_jobs 1
       end
+      assert_enqueued_jobs 2
+      assert_performed_jobs 1
+    end
+  end
+
+  def test_perform_enqueued_jobs_with_no_block_that_requeue
+    assert_nothing_raised do
+      RequeueJob.perform_later
+      assert_enqueued_jobs 1
+      assert_performed_jobs 0
+
+      perform_enqueued_jobs
+
+      assert_enqueued_jobs 2
+      assert_performed_jobs 1
+    end
+  end
+
+  def test_perform_enqueued_jobs_with_no_block_that_requeue_wait
+    assert_nothing_raised do
+      RequeueWaitJob.perform_later
+      assert_enqueued_jobs 1
+      assert_performed_jobs 0
+
+      perform_enqueued_jobs
+
       assert_enqueued_jobs 2
       assert_performed_jobs 1
     end

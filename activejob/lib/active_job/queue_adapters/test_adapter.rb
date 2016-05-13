@@ -11,7 +11,7 @@ module ActiveJob
     #   Rails.application.config.active_job.queue_adapter = :test
     class TestAdapter
       attr_accessor(:perform_enqueued_jobs, :perform_enqueued_at_jobs, :filter)
-      attr_writer(:enqueued_jobs, :performed_jobs)
+      attr_writer(:enqueued_jobs, :performed_jobs, :to_perform_jobs)
 
       # Provides a store of all the jobs to be performed with the TestAdapter
       def to_perform_jobs
