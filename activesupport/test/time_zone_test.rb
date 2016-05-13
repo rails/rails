@@ -515,4 +515,18 @@ class TimeZoneTest < ActiveSupport::TestCase
   def test_yaml_load
     assert_equal(ActiveSupport::TimeZone["Pacific/Honolulu"], YAML.load("--- !ruby/object:ActiveSupport::TimeZone\nname: Pacific/Honolulu\n"))
   end
+
+  def test_timezone_symbol
+    assert_equal ActiveSupport::TimeZone['Hawaii'], ActiveSupport::TimeZone[:hawaii]
+    assert_equal ActiveSupport::TimeZone['American Samoa'], ActiveSupport::TimeZone[:american_samoa]
+    assert_nil ActiveSupport::TimeZone[:american_sam]
+  end
+
+  def test_timezone_lower_case
+    assert_equal ActiveSupport::TimeZone['Hawaii'], ActiveSupport::TimeZone['hawaii']
+    assert_equal ActiveSupport::TimeZone['American Samoa'], ActiveSupport::TimeZone['american samoa']
+    assert_equal ActiveSupport::TimeZone['American Samoa'], ActiveSupport::TimeZone['american_samoa']
+    assert_nil ActiveSupport::TimeZone['american_sam']
+  end
+
 end

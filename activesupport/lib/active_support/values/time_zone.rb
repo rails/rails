@@ -203,6 +203,10 @@ module ActiveSupport
         TZInfo::Timezone.new(MAPPING[name] || name)
       end
 
+      def upcased_timezone_map
+        @_upcased_timezone_map ||= Hash[MAPPING.map{|k, v| [k.upcase, v]}]
+      end
+
       alias_method :create, :new
 
       # Returns a TimeZone instance with the given name, or +nil+ if no
@@ -225,10 +229,11 @@ module ActiveSupport
       # timezone to find. (The first one with that offset will be returned.)
       # Returns +nil+ if no such time zone is known to the system.
       def [](arg)
+        arg = arg.to_s.titleize if arg.is_a? Symbol
         case arg
           when String
           begin
-            @lazy_zones_map[arg] ||= create(arg)
+            @lazy_zones_map[arg.titleize] ||= create(arg)
           rescue TZInfo::InvalidTimezoneIdentifier
             nil
           end
@@ -275,7 +280,7 @@ module ActiveSupport
     # (GMT). Seconds were chosen as the offset unit because that is the unit
     # that Ruby uses to represent time zone offsets (see Time#utc_offset).
     def initialize(name, utc_offset = nil, tzinfo = nil)
-      @name = name
+      @name = name.titleize
       @utc_offset = utc_offset
       @tzinfo = tzinfo || TimeZone.find_tzinfo(name)
     end
@@ -311,7 +316,7 @@ module ActiveSupport
     # Compare #name and TZInfo identifier to a supplied regexp, returning +true+
     # if a match is found.
     def =~(re)
-      re === name || re === MAPPING[name]
+      re === name || re === self.class.upcased_timezone_map[name.upcase]
     end
 
     # Returns a textual representation of this time zone.
