@@ -166,13 +166,13 @@ module ActiveRecord
   class EnvironmentMismatchError < ActiveRecordError
     def initialize(current: nil, stored: nil)
       msg =  "You are attempting to modify a database that was last run in `#{ stored }` environment.\n"
-      msg << "You are running in `#{ current }` environment."
+      msg << "You are running in `#{ current }` environment. "
       msg << "If you are sure you want to continue, first set the environment using:\n\n"
       msg << "\tbin/rails db:environment:set"
       if defined?(Rails.env)
-        super("#{msg} RAILS_ENV=#{::Rails.env}")
+        super("#{msg} RAILS_ENV=#{::Rails.env}\n\n")
       else
-        super(msg)
+        super("#{msg}\n\n")
       end
     end
   end
