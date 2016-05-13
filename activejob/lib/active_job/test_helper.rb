@@ -164,7 +164,6 @@ module ActiveJob
     def assert_performed_jobs(number, only: nil)
       if block_given?
         original_count = performed_jobs.size
-        clear_to_perform_jobs  # If a block is passed, that block should cause the specified number of jobs to be performed.
         perform_enqueued_jobs(only: only) { yield }
         new_count = performed_jobs.size
         assert_equal number, new_count - original_count,
@@ -286,10 +285,6 @@ module ActiveJob
     end
 
     private
-      def clear_to_perform_jobs # :nodoc:
-        to_perform_jobs.clear
-      end
-
       def clear_enqueued_jobs # :nodoc:
         enqueued_jobs.clear
       end
