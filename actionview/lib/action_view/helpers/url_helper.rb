@@ -561,7 +561,7 @@ module ActionView
             html_options = html_options.stringify_keys
             html_options['data-remote'] = 'true'.freeze if link_to_remote_options?(options) || link_to_remote_options?(html_options)
 
-            method  = html_options.delete('method'.freeze)
+            method = html_options.delete('method'.freeze)
 
             add_method_to_attributes!(html_options, method) if method
 
