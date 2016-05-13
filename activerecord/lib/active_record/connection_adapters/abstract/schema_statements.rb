@@ -790,7 +790,7 @@ module ActiveRecord
       # [<tt>:type</tt>]
       #   The reference column type. Defaults to +:integer+.
       # [<tt>:index</tt>]
-      #   Add an appropriate index. Defaults to false.  
+      #   Add an appropriate index. Defaults to false.
       #   See #add_index for usage of this option.
       # [<tt>:foreign_key</tt>]
       #   Add an appropriate foreign key constraint. Defaults to false.
@@ -1024,7 +1024,7 @@ module ActiveRecord
         sm_table = quote_table_name(ActiveRecord::Migrator.schema_migrations_table_name)
 
         migrated = select_values("SELECT version FROM #{sm_table}").map(&:to_i)
-        paths = migrations_paths.map {|p| "#{p}/[0-9]*_*.rb" }
+        paths = migrations_paths.map {|p| "#{p}/**/[0-9]*_*.rb" }
         versions = Dir[*paths].map do |filename|
           filename.split('/').last.split('_').first.to_i
         end
