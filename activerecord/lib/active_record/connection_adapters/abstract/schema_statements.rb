@@ -1017,7 +1017,7 @@ module ActiveRecord
       def internal_string_options_for_primary_key # :nodoc:
         { primary_key: true }
       end
-
+ 
       def assume_migrated_upto_version(version, migrations_paths)
         migrations_paths = Array(migrations_paths)
         version = version.to_i
