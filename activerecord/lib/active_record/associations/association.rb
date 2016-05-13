@@ -217,7 +217,8 @@ module ActiveRecord
           unless record.is_a?(reflection.klass)
             fresh_class = reflection.class_name.safe_constantize
             unless fresh_class && record.is_a?(fresh_class)
-              message = "#{reflection.class_name}(##{reflection.klass.object_id}) expected, got #{record.class}(##{record.class.object_id})"
+              message = "#{reflection.class_name}(##{reflection.klass.object_id}) expected, "\
+                "got #{record.inspect} which is an instance of #{record.class}(##{record.class.object_id})"
               raise ActiveRecord::AssociationTypeMismatch, message
             end
           end

@@ -168,7 +168,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     e = assert_raise(ActiveRecord::AssociationTypeMismatch) {
       Admin::RegionalUser.new(region: 'wrong value')
     }
-    assert_match(/^Region\([^)]+\) expected, got String\([^)]+\)$/, e.message)
+    assert_match(/^Region\([^)]+\) expected, got "wrong value" which is an instance of String\([^)]+\)$/, e.message)
   ensure
     Admin.send :remove_const, "Region" if Admin.const_defined?("Region")
     Admin.send :remove_const, "RegionalUser" if Admin.const_defined?("RegionalUser")
