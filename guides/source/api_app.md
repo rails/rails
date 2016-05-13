@@ -395,6 +395,13 @@ included into `ActionController::API` in the rails console:
 ```bash
 $ bin/rails c
 >> ActionController::API.ancestors - ActionController::Metal.ancestors
+=> [ActionController::API, 
+    ActiveRecord::Railties::ControllerRuntime, 
+    ActionDispatch::Routing::RouteSet::MountedHelpers, 
+    ActionController::ParamsWrapper, 
+    ... , 
+    AbstractController::Rendering, 
+    ActionView::ViewPaths]
 ```
 
 ### Adding Other Modules
