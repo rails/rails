@@ -21,6 +21,10 @@
 
 * Before submitting, please read the [Contributing to Ruby on Rails](http://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html) guide to know more about coding conventions and benchmarks.
 
+#### **Did you fix whitespace, format code, or make a purely cosmetic patch?**
+
+Changes that are cosmetic in nature and do not add anything substantial to the stability, functionality, or testability of Rails will generally not be accepted (read more about [our rationales behind this decision](https://github.com/rails/rails/pull/13771#issuecomment-32746700)).
+
 #### **Do you intend to add a new feature or change an existing one?**
 
 * Suggest your change in the [rubyonrails-core mailing list](https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core) and start writing code.
