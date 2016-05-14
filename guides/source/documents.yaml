@@ -139,6 +139,10 @@
       name: Using Rails for API-only Applications
       url: api_app.html
       description: This guide explains how to effectively use Rails to develop a JSON API application.
+    -
+      name: Action Cable Overview
+      url: action_cable_overview.html
+      description: This guide explains how Action Cable works, and how to use WebSockets to create real-time features.
 
 -
   name: Extending Rails
