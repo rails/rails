@@ -1,3 +1,9 @@
+*   Rescuable: If a handler doesn't match the exception, check for handlers
+    matching the exception's cause.
+
+    *Jeremy Daer*
+
+
 ## Rails 5.0.0.rc1 (May 06, 2016) ##
 
 *   `ActiveSupport::Duration` supports weeks and hours.
@@ -19,6 +25,7 @@
     their time period handling to cover hours & weeks.
 
     *Andrey Novikov*
+
 
 ## Rails 5.0.0.beta4 (April 27, 2016) ##
 
