@@ -358,6 +358,17 @@ class RequestPort < BaseRequestTest
     request = stub_request 'HTTP_HOST' => 'www.example.org:8080'
     assert_equal ':8080', request.port_string
   end
+
+  test "server port" do
+    request = stub_request 'SERVER_PORT' => '8080'
+    assert_equal 8080, request.server_port
+
+    request = stub_request 'SERVER_PORT' => '80'
+    assert_equal 80, request.server_port
+
+    request = stub_request 'SERVER_PORT' => ''
+    assert_equal 0, request.server_port
+  end
 end
 
 class RequestPath < BaseRequestTest
