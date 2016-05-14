@@ -5,6 +5,7 @@ require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/module/anonymous'
 
 require 'action_mailer/log_subscriber'
+require 'action_mailer/rescuable'
 
 module ActionMailer
   # Action Mailer allows you to send email from your application using a mailer model and views.
@@ -420,6 +421,7 @@ module ActionMailer
   # * <tt>deliver_later_queue_name</tt> - The name of the queue used with <tt>deliver_later</tt>.
   class Base < AbstractController::Base
     include DeliveryMethods
+    include Rescuable
     include Previews
 
     abstract!
