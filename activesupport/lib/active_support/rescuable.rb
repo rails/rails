@@ -1,7 +1,6 @@
 require 'active_support/concern'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/string/inflections'
-require 'active_support/core_ext/array/extract_options'
 
 module ActiveSupport
   # Rescuable module adds support for easier exception handling.
@@ -48,14 +47,12 @@ module ActiveSupport
       #   end
       #
       # Exceptions raised inside exception handlers are not propagated up.
-      def rescue_from(*klasses, &block)
-        options = klasses.extract_options!
-
-        unless options.has_key?(:with)
+      def rescue_from(*klasses, with: nil, &block)
+        unless with
           if block_given?
-            options[:with] = block
+            with = block
           else
-            raise ArgumentError, "Need a handler. Supply an options hash that has a :with key as the last argument."
+            raise ArgumentError, 'Need a handler. Pass the with: keyword argument or provide a block.'
           end
         end
 
@@ -65,65 +62,104 @@ module ActiveSupport
           elsif klass.is_a?(String)
             klass
           else
-            raise ArgumentError, "#{klass} is neither an Exception nor a String"
+            raise ArgumentError, "#{klass.inspect} must be an Exception class or a String referencing an Exception class"
           end
 
           # Put the new handler at the end because the list is read in reverse.
-          self.rescue_handlers += [[key, options[:with]]]
+          self.rescue_handlers += [[key, with]]
         end
       end
+
+      # Matches an exception to a handler based on the exception class.
+      #
+      # If no handler matches the exception, check for a handler matching the
+      # (optional) exception.cause. If no handler matches the exception or its
+      # cause, this returns nil so you can deal with unhandled exceptions.
+      # Be sure to re-raise unhandled exceptions if this is what you expect.
+      #
+      #     begin
+      #       …
+      #     rescue => exception
+      #       rescue_with_handler(exception) || raise
+      #     end
+      #
+      # Returns the exception if it was handled and nil if it was not.
+      def rescue_with_handler(exception, object: self)
+        if handler = handler_for_rescue(exception, object: object)
+          handler.call exception
+          exception
+        end
+      end
+
+      def handler_for_rescue(exception, object: self) #:nodoc:
+        case rescuer = find_rescue_handler(exception)
+        when Symbol
+          method = object.method(rescuer)
+          if method.arity == 0
+            -> e { method.call }
+          else
+            method
+          end
+        when Proc
+          if rescuer.arity == 0
+            -> e { object.instance_exec(&rescuer) }
+          else
+            -> e { object.instance_exec(e, &rescuer) }
+          end
+        end
+      end
+
+      private
+        def find_rescue_handler(exception)
+          if exception
+            # Handlers are in order of declaration but the most recently declared
+            # is the highest priority match, so we search for matching handlers
+            # in reverse.
+            _, handler = rescue_handlers.reverse_each.detect do |class_or_name, _|
+              if klass = constantize_rescue_handler_class(class_or_name)
+                klass === exception
+              end
+            end
+
+            handler || find_rescue_handler(exception.cause)
+          end
+        end
+
+        def constantize_rescue_handler_class(class_or_name)
+          case class_or_name
+          when String, Symbol
+            begin
+              # Try a lexical lookup first since we support
+              #
+              #     class Super
+              #       rescue_from 'Error', with: …
+              #     end
+              #
+              #     class Sub
+              #       class Error < StandardError; end
+              #     end
+              #
+              # so an Error raised in Sub will hit the 'Error' handler.
+              const_get class_or_name
+            rescue NameError
+              class_or_name.safe_constantize
+            end
+          else
+            class_or_name
+          end
+        end
     end
 
-    # Tries to rescue the exception by looking up and calling a registered handler.
+    # Delegates to the class method, but uses the instance as the subject for
+    # rescue_from handlers (method calls, instance_exec blocks).
     def rescue_with_handler(exception)
-      if handler = handler_for_rescue(exception)
-        handler.arity != 0 ? handler.call(exception) : handler.call
-        true # don't rely on the return value of the handler
-      end
+      self.class.rescue_with_handler exception, object: self
     end
 
-    def handler_for_rescue(exception)
-      # We go from right to left because pairs are pushed onto rescue_handlers
-      # as rescue_from declarations are found.
-      _, rescuer = self.class.rescue_handlers.reverse.detect do |klass_name, handler|
-        # The purpose of allowing strings in rescue_from is to support the
-        # declaration of handler associations for exception classes whose
-        # definition is yet unknown.
-        #
-        # Since this loop needs the constants it would be inconsistent to
-        # assume they should exist at this point. An early raised exception
-        # could trigger some other handler and the array could include
-        # precisely a string whose corresponding constant has not yet been
-        # seen. This is why we are tolerant to unknown constants.
-        #
-        # Note that this tolerance only matters if the exception was given as
-        # a string, otherwise a NameError will be raised by the interpreter
-        # itself when rescue_from CONSTANT is executed.
-        klass = self.class.const_get(klass_name) rescue nil
-        klass ||= (klass_name.constantize rescue nil)
-        klass === exception if klass
-      end
-
-      case rescuer
-      when Symbol
-        method(rescuer)
-      when Proc
-        if rescuer.arity == 0
-          Proc.new { instance_exec(&rescuer) }
-        else
-          Proc.new { |_exception| instance_exec(_exception, &rescuer) }
-        end
-      end
-    end
-
-    def index_of_handler_for_rescue(exception)
-      handlers = self.class.rescue_handlers.reverse_each.with_index
-      _, index = handlers.detect do |(klass_name, _), _|
-        klass = self.class.const_get(klass_name) rescue nil
-        klass ||= (klass_name.constantize rescue nil)
-        klass === exception if klass
-      end
-      index
+    # Internal handler lookup. Delegates to class method. Some libraries call
+    # this directly, so keeping it around for compatibility.
+    def handler_for_rescue(exception) #:nodoc:
+      self.class.handler_for_rescue exception, object: self
     end
   end
 end

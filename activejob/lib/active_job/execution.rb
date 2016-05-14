@@ -34,7 +34,7 @@ module ActiveJob
         perform(*arguments)
       end
     rescue => exception
-      rescue_with_handler(exception) || raise(exception)
+      rescue_with_handler(exception) || raise
     end
 
     def perform(*)

@@ -12,16 +12,23 @@ class MessageDeliveryTest < ActiveSupport::TestCase
     ActionMailer::Base.deliver_later_queue_name = :test_queue
     ActionMailer::Base.delivery_method = :test
     ActiveJob::Base.logger = Logger.new(nil)
-    @mail = DelayedMailer.test_message(1, 2, 3)
     ActionMailer::Base.deliveries.clear
     ActiveJob::Base.queue_adapter.perform_enqueued_at_jobs = true
     ActiveJob::Base.queue_adapter.perform_enqueued_jobs = true
+
+    DelayedMailer.last_error = nil
+    DelayedMailer.last_rescue_from_instance = nil
+
+    @mail = DelayedMailer.test_message(1, 2, 3)
   end
 
   teardown do
     ActiveJob::Base.logger = @previous_logger
     ActionMailer::Base.delivery_method = @previous_delivery_method
     ActionMailer::Base.deliver_later_queue_name = @previous_deliver_later_queue_name
+
+    DelayedMailer.last_error = nil
+    DelayedMailer.last_rescue_from_instance = nil
   end
 
   test 'should have a message' do
@@ -100,5 +107,47 @@ class MessageDeliveryTest < ActiveSupport::TestCase
     assert_raise RuntimeError do
       @mail.deliver_later
     end
+  end
+
+  test 'job delegates error handling to mailer' do
+    # Superclass not rescued by mailer's rescue_from RuntimeError
+    message = DelayedMailer.test_raise('StandardError')
+    assert_raise(StandardError) { message.deliver_later }
+    assert_nil DelayedMailer.last_error
+    assert_nil DelayedMailer.last_rescue_from_instance
+
+    # Rescued by mailer's rescue_from RuntimeError
+    message = DelayedMailer.test_raise('DelayedMailerError')
+    assert_nothing_raised { message.deliver_later }
+    assert_equal 'boom', DelayedMailer.last_error.message
+    assert_kind_of DelayedMailer, DelayedMailer.last_rescue_from_instance
+  end
+
+  class DeserializationErrorFixture
+    include GlobalID::Identification
+
+    def self.find(id)
+      raise 'boom, missing find'
+    end
+
+    attr_reader :id
+    def initialize(id = 1)
+      @id = id
+    end
+
+    def to_global_id(options = {})
+      super app: 'foo'
+    end
+  end
+
+  test 'job delegates deserialization errors to mailer class' do
+    # Inject an argument that can't be deserialized.
+    message = DelayedMailer.test_message(DeserializationErrorFixture.new)
+
+    # DeserializationError is raised, rescued, and delegated to the handler
+    # on the mailer class.
+    assert_nothing_raised { message.deliver_later }
+    assert_equal DelayedMailer, DelayedMailer.last_rescue_from_instance
+    assert_equal 'Error while trying to deserialize arguments: boom, missing find', DelayedMailer.last_error.message
   end
 end
