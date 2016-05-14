@@ -310,9 +310,9 @@ module ActiveModel
     # <tt>:strict</tt> option can also be set to any other exception.
     #
     #   person.errors.add(:name, :invalid, strict: true)
-    #   # => ActiveModel::StrictValidationFailed: name is invalid
+    #   # => ActiveModel::StrictValidationFailed: Name is invalid
     #   person.errors.add(:name, :invalid, strict: NameIsInvalid)
-    #   # => NameIsInvalid: name is invalid
+    #   # => NameIsInvalid: Name is invalid
     #
     #   person.errors.messages # => {}
     #
@@ -531,6 +531,15 @@ module ActiveModel
   end
 
   # Raised when unknown attributes are supplied via mass assignment.
+  #
+  #   class Person
+  #     include ActiveModel::AttributeAssignment
+  #     include ActiveModel::Validations
+  #   end
+  #
+  #   person = Person.new
+  #   person.assign_attributes(name: 'Gorby')
+  #   # => ActiveModel::UnknownAttributeError: unknown attribute 'name' for Person.
   class UnknownAttributeError < NoMethodError
     attr_reader :record, :attribute
 
