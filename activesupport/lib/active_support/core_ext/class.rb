@@ -1,2 +1,1 @@
-require 'active_support/core_ext/class/attribute'
-require 'active_support/core_ext/class/subclasses'
+Requirer.new(__FILE__, exclude: %w(attribute_accessors)).require
