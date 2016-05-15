@@ -384,7 +384,7 @@ class AppearanceChannel < ApplicationCable::Channel
 end
 ```
 
-When a subscription is initiated the `subscribed` callback gets fired and we
+When a subscription is initiated the `subscribed` callback gets fired, and we
 take that opportunity to say "the current user has indeed appeared". That
 appear/disappear API could be backed by Redis, a database, or whatever else.
 
@@ -587,7 +587,7 @@ connections as you have workers. The default worker pool size is set to 100, so
 that means you have to make at least that available. You can change that in
 `config/database.yml` through the `pool` attribute.
 
-## Running Standalone Cable Servers
+## Running Standalone Action Cable Servers
 
 ### In App
 
