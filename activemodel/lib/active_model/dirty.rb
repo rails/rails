@@ -202,9 +202,8 @@ module ActiveModel
 
       # Returns +true+ if attr_name is changed, +false+ otherwise.
       def changes_include?(attr_name)
-        attributes_changed_by_setter.include?(attr_name)
+        changed_attributes.include?(attr_name)
       end
-      alias attribute_changed_by_setter? changes_include?
 
       # Returns +true+ if attr_name were changed before the model was saved,
       # +false+ otherwise.
@@ -255,18 +254,14 @@ module ActiveModel
         end
       end
 
-      # This is necessary because `changed_attributes` might be overridden in
-      # other implementations (e.g. in `ActiveRecord`)
-      alias_method :attributes_changed_by_setter, :changed_attributes # :nodoc:
-
       # Force an attribute to have a particular "before" value
       def set_attribute_was(attr, old_value)
-        attributes_changed_by_setter[attr] = old_value
+        changed_attributes[attr] = old_value
       end
 
       # Remove changes information for the provided attributes.
       def clear_attribute_changes(attributes) # :doc:
-        attributes_changed_by_setter.except!(*attributes)
+        changed_attributes.except!(*attributes)
       end
   end
 end

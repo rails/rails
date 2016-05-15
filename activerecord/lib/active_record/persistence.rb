@@ -213,7 +213,7 @@ module ActiveRecord
       became = klass.new
       became.instance_variable_set("@attributes", @attributes)
       became.instance_variable_set("@mutation_tracker", @mutation_tracker) if defined?(@mutation_tracker)
-      became.instance_variable_set("@changed_attributes", attributes_changed_by_setter)
+      became.instance_variable_set("@changed_attributes", changed_attributes)
       became.instance_variable_set("@new_record", new_record?)
       became.instance_variable_set("@destroyed", destroyed?)
       became.errors.copy!(errors)
