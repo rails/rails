@@ -105,25 +105,25 @@ For a freshly generated Rails application, this might produce something like:
 use Rack::Sendfile
 use ActionDispatch::Static
 use ActionDispatch::Executor
-use #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x000000029a0838>
+use ActiveSupport::Cache::Strategy::LocalCache::Middleware
 use Rack::Runtime
 use Rack::MethodOverride
 use ActionDispatch::RequestId
 use Rails::Rack::Logger
 use ActionDispatch::ShowExceptions
+use WebConsole::Middleware
 use ActionDispatch::DebugExceptions
 use ActionDispatch::RemoteIp
 use ActionDispatch::Reloader
 use ActionDispatch::Callbacks
 use ActiveRecord::Migration::CheckPending
-use ActiveRecord::ConnectionAdapters::ConnectionManagement
-use ActiveRecord::QueryCache
 use ActionDispatch::Cookies
 use ActionDispatch::Session::CookieStore
 use ActionDispatch::Flash
 use Rack::Head
 use Rack::ConditionalGet
 use Rack::ETag
+use ActionView::Digestor::PerRequestDigestCacheExpiry
 run Rails.application.routes
 ```
 
