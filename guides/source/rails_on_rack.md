@@ -149,9 +149,9 @@ You can add a new middleware to the middleware stack using any of the following 
 # Push Rack::BounceFavicon at the bottom
 config.middleware.use Rack::BounceFavicon
 
-# Add Lifo::Cache after ActiveRecord::QueryCache.
+# Add Lifo::Cache after ActionDispatch::Executor.
 # Pass { page_cache: false } argument to Lifo::Cache.
-config.middleware.insert_after ActiveRecord::QueryCache, Lifo::Cache, page_cache: false
+config.middleware.insert_after ActionDispatch::Executor, Lifo::Cache, page_cache: false
 ```
 
 #### Swapping a Middleware
@@ -266,14 +266,6 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 **`ActiveRecord::Migration::CheckPending`**
 
 * Checks pending migrations and raises `ActiveRecord::PendingMigrationError` if any migrations are pending.
-
-**`ActiveRecord::ConnectionAdapters::ConnectionManagement`**
-
-* Cleans active connections after each request, unless the `rack.test` key in the request environment is set to `true`.
-
-**`ActiveRecord::QueryCache`**
-
-* Enables the Active Record query cache.
 
 **`ActionDispatch::Cookies`**
 
