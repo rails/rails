@@ -4,7 +4,12 @@ class SchemaLoadingTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
 
   setup do
+    ActiveRecord::SchemaMigration.drop_table
     ActiveRecord::SchemaMigration.create_table
+  end
+
+  teardown do
+    ActiveRecord::SchemaMigration.drop_table
   end
 
   def test_assume_migrated_upto_version_gets_all_versions
