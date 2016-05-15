@@ -3,10 +3,8 @@ require 'bigdecimal/util'
 
 module ActiveSupport
   module BigDecimalWithDefaultFormat #:nodoc:
-    DEFAULT_STRING_FORMAT = 'F'
-
-    def to_s(format = nil)
-      super(format || DEFAULT_STRING_FORMAT)
+    def to_s(format = 'F')
+      super(format)
     end
   end
 end
