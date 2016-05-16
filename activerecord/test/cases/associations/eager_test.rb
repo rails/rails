@@ -679,6 +679,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_eager_with_has_many_and_hash_order
+    posts = Post.includes(:comments).references(:comments).order(title: :asc).limit(1).to_a
+
+    assert_equal 1, posts.length
+  end
+
   def test_eager_association_loading_with_habtm
     posts = Post.all.merge!(:includes => :categories, :order => "posts.id").to_a
     assert_equal 2, posts[0].categories.size
