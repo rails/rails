@@ -10,7 +10,8 @@
 # If you want to require all files in the array directory,
 # you can use Kernel.require(file) like below as always.
 #
-# rails/activesupport/lib/active_support/core_ext/array.rb
+# in rails/activesupport/lib/active_support/core_ext/array.rb
+#
 #   require 'active_support/core_ext/array/access'
 #   require 'active_support/core_ext/array/conversions'
 #   require 'active_support/core_ext/array/extract_options'
@@ -20,14 +21,18 @@
 #   require 'active_support/core_ext/array/wrap'
 #
 # Or, you can use Requirer#require_all.
+#
 #   Requirer.new(__FILE__).require_all
 #
 # If the first parameter of Requirer constructor is "/path/to/example.rb",
 # all files will be required recursively which are in "/path/to/example".
 #
 # Of course, you can exclude file(s) like this.
+#
 #   Requirer.new(__FILE__, exclude: ['access', 'wrap']).require_all
-#     Or
+#
+#                              Or
+#
 #   Requirer.new(__FILE__).require_all(exclude: ['access', 'wrap'])
 #
 class Requirer
@@ -71,8 +76,8 @@ end
 # Define Array#append_extension(extension = '.rb')
 # which does append the extension to each string element.
 #
-# [1, [], 'hogerb', 'fuga.rb'].append_extension
-# => [1, [], 'hogerb.rb', 'fuga.rb']
+#   [1, [], 'hogerb', 'fuga.rb'].append_extension
+#   => [1, [], 'hogerb.rb', 'fuga.rb']
 #
 class Array
   method_name = :append_extension
