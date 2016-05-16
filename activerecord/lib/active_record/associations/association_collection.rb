@@ -384,7 +384,16 @@ module ActiveRecord
             return  send("find_by_#{rest}", *find_args) ||
                     method_missing("create_by_#{rest}", *args, &block)
           when /^create_by_(.*)$/
-            return create($1.split('_and_').zip(args).inject({}) { |h,kv| k,v=kv ; h[k] = v ; h }, &block)
+            attribute_names = $1.split('_and_')
+            if args[0].is_a? Hash
+              create_args = args[0]
+            else
+              create_args = Hash[ attribute_names.zip(args.first(attribute_names.length))]
+              if args.length > attribute_names.length && args[attribute_names.length].is_a?(Hash)
+                create_args.merge! args[attribute_names.length]
+              end
+            end
+            return create create_args, &block
           end
 
           if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))
