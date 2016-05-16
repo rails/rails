@@ -101,7 +101,8 @@ HEADER
           # first dump primary key column
           if @connection.respond_to?(:pk_and_sequence_for)
             pk, _ = @connection.pk_and_sequence_for(table)
-          elsif @connection.respond_to?(:primary_key)
+          end
+          if pk.empty? && @connection.respond_to?(:primary_key)
             pk = @connection.primary_key(table)
           end
 
