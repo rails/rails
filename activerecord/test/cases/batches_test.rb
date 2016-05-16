@@ -78,4 +78,11 @@ class EachTest < ActiveRecord::TestCase
       end
     end
   end
+
+  def test_find_in_batches_should_not_have_conflict_with_scope
+    ActiveRecord::Base.uncached { @posts = Post.all }
+    Post.containing_the_letter_a.find_in_batches(:batch_size => 1) do |posts|
+      assert @posts == Post.all
+    end
+  end
 end
