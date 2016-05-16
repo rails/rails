@@ -26,11 +26,6 @@ module SharedGeneratorTests
     default_files.each { |path| assert_file path }
   end
 
-  def test_generation_runs_bundle_install
-    generator([destination_root]).expects(:bundle_command).with('install').once
-    quietly { generator.invoke_all }
-  end
-
   def test_plugin_new_generate_pretend
     run_generator ["testapp", "--pretend"]
     default_files.each{ |path| assert_no_file File.join("testapp",path) }
@@ -116,14 +111,14 @@ module SharedGeneratorTests
   end
 
   def test_dev_option
-    generator([destination_root], :dev => true).expects(:bundle_command).with('install').once
+    generator([destination_root], :dev => true).expects(:bundle_command).never 
     quietly { generator.invoke_all }
     rails_path = File.expand_path('../../..', Rails.root)
     assert_file 'Gemfile', /^gem\s+["']rails["'],\s+:path\s+=>\s+["']#{Regexp.escape(rails_path)}["']$/
   end
 
   def test_edge_option
-    generator([destination_root], :edge => true).expects(:bundle_command).with('install').once
+    generator([destination_root], :edge => true).expects(:bundle_command).never
     quietly { generator.invoke_all }
     assert_file 'Gemfile', %r{^gem\s+["']rails["'],\s+:git\s+=>\s+["']#{Regexp.escape("git://github.com/rails/rails.git")}["']$}
   end
@@ -135,7 +130,7 @@ module SharedGeneratorTests
   end
 
   def test_skip_bundle
-    generator([destination_root], :skip_bundle => true).expects(:bundle_command).never
+    generator([destination_root], :skip_bundle => false).expects(:bundle_command).with('install').once
     quietly { generator.invoke_all }
 
     # skip_bundle is only about running bundle install, ensure the Gemfile is still

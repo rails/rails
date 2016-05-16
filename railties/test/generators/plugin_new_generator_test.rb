@@ -95,7 +95,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_generation_runs_bundle_install_with_full_and_mountable
-    result = run_generator [destination_root, "--mountable", "--full"]
+    result = run_generator [destination_root, "--mountable", "--full", "--skip_bundle=false"]
     assert_equal 1, result.scan("Your bundle is complete").size
   end
 
