@@ -78,7 +78,7 @@ module Rails
         spec = Gem.source_index.find { |_,s| s.satisfies_requirement?(dep) }.last
         spec.activate           # a way that exists
       rescue
-        gem self.name, self.requirement # <  1.8 unhappy way
+        gem self.name, :version => (self.respond_to?(:requirement) ? self.requirement : self.version_requirements) # <  1.8 unhappy way
       end
 
       @spec = Gem.loaded_specs[name]
