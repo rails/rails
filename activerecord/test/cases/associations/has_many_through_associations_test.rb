@@ -452,6 +452,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert person.jobs.include?(job)
   end
 
+  def test_include_method_in_association_through_should_return_true_when_instance_exists_but_through_is_new
+    person = Person.new
+    job = Job.create
+    reference = person.references.build(:job => job)
+    assert person.jobs.include?(job)
+  end
+
   def test_include_method_in_association_through_should_return_true_for_instance_added_with_nested_builds
     author = Author.new
     post = author.posts.build
