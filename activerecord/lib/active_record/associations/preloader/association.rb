@@ -113,7 +113,7 @@ module ActiveRecord
         end
 
         def process_conditions(conditions)
-          if conditions.respond_to?(:to_proc)
+          if conditions.respond_to?(:to_proc) && !conditions.is_a?(Hash)
             conditions = klass.send(:instance_eval, &conditions)
           end
 

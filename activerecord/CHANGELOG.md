@@ -1,3 +1,9 @@
+* Support Ruby 2.3 by not unexpectedly calling `.to_proc` on Hash objects
+
+    Fixes #25010
+
+    *tlrdstd*
+
 ## Rails 3.2.22 (Jun 16, 2015) ##
 
 * No changes.
