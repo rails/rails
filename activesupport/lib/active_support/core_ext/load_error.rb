@@ -21,7 +21,8 @@ class MissingSourceFile < LoadError #:nodoc:
     [/^cannot load such file -- (.+)$/i, 1],
     [/^no such file to load -- (.+)$/i, 1],
     [/^Missing \w+ (file\s*)?([^\s]+.rb)$/i, 2],
-    [/^Missing API definition file in (.+)$/i, 1]
+    [/^Missing API definition file in (.+)$/i, 1],
+    [/^cannot load such file -- (.+)$/i, 1]
   ] unless defined?(REGEXPS)
 end
 

@@ -129,11 +129,19 @@ module ActiveSupport
       end
     end
 
+    def encode_with(coder)
+      if coder.respond_to?(:represent_object)
+        coder.represent_object(nil, utc)
+       else
+        coder.represent_scalar(nil, utc.strftime("%Y-%m-%d %H:%M:%S.%9NZ"))
+      end
+    end
+
     def to_yaml(options = {})
       if options.kind_of?(YAML::Emitter)
         utc.to_yaml(options)
       else
-        time.to_yaml(options).gsub('Z', formatted_offset(true, 'Z'))
+        time.to_yaml(options).to_s.gsub('Z', formatted_offset(true, 'Z'))
       end
     end
 

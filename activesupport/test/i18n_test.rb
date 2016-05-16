@@ -7,8 +7,8 @@ class I18nTest < Test::Unit::TestCase
   end
   
   def test_time_zone_localization_with_default_format
-    Time.zone.stubs(:now).returns Time.local(2000)
-    assert_equal Time.zone.now.strftime("%a, %d %b %Y %H:%M:%S %z"), I18n.localize(Time.zone.now)
+    time = Time.local(2000)
+    assert_equal time.strftime("%a, %d %b %Y %H:%M:%S %z"), I18n.localize(time)
   end
   
   def test_date_localization_should_use_default_format
