@@ -352,7 +352,10 @@ module ActiveRecord
         end
 
         def copy_table(from, to, options = {}) #:nodoc:
-          options = options.merge(:id => (!columns(from).detect{|c| c.name == 'id'}.nil? && 'id' == primary_key(from).to_s))
+          options.merge!(:primary_key => primary_key(from)) if primary_key(from) != 'id'
+          unless options[:primary_key]
+            options.merge!(:id => (!columns(from).detect{|c| c.name == 'id'}.nil? && 'id' == primary_key(from).to_s))
+          end
           create_table(to, options) do |definition|
             @definition = definition
             columns(from).each do |column|

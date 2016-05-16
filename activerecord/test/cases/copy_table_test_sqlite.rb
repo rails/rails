@@ -56,6 +56,14 @@ class CopyTableTest < ActiveRecord::TestCase
       assert_equal original_id.primary, copied_id.primary
     end
   end
+  
+  def test_copy_table_with_unconventional_primary_key
+    test_copy_table('owners', 'owners_unconventional') do |from, to, options|
+      original_pk = @connection.primary_key('owners') 
+      copied_pk = @connection.primary_key('owners_unconventional')
+      assert_equal original_pk, copied_pk
+    end
+  end
 
 protected
   def copy_table(from, to, options = {})
