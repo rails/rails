@@ -4,7 +4,7 @@ require 'monitor'
 
 module ActionView
   class Digestor
-    @@digest_mutex   = Mutex.new
+    @@digest_mutex = Mutex.new
 
     class << self
       # Supported options:
