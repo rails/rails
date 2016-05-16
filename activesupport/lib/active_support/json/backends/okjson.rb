@@ -213,6 +213,7 @@ module ActiveSupport
       when ?t  then truetok(s)
       when ?f  then falsetok(s)
       when ?"  then strtok(s)
+      when ?'  then strtoksingleqoute(s)
       when Spc then [:space, s[0,1], s[0,1]]
       when ?\t then [:space, s[0,1], s[0,1]]
       when ?\n then [:space, s[0,1], s[0,1]]
@@ -242,6 +243,13 @@ module ActiveSupport
       end
     end
 
+    def strtoksingleqoute(s)
+      m = /'([^'\\]|\\['\/\\bfnrt]|\\u[0-9a-fA-F]{4})*'/.match(s)
+      if ! m
+        raise Error, "invalid string literal at #{abbrev(s)}"
+      end
+      [:str, m[0], unquote(m[0])]
+    end
 
     def strtok(s)
       m = /"([^"\\]|\\["\/\\bfnrt]|\\u[0-9a-fA-F]{4})*"/.match(s)
