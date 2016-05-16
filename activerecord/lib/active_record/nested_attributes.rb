@@ -286,7 +286,15 @@ module ActiveRecord
       #   are used to update the record's attributes always, regardless of
       #   whether the <tt>:id</tt> is present. The option is ignored for collection
       #   associations.
-      #
+      # [:keys]
+      #   Allows you to specifiy a set of keys any one of which can be used to
+      #   uniquely identify an associated model. Setting keys overrides the
+      #   default behavoir of looking up associated models by their 'id' primary
+      #   key.
+      # [:overwrite]
+      #   If true, destroys any members from the association which aren't
+      #   explicitly included in the attributes hash. This option is off
+      #   by default.
       # Examples:
       #   # creates avatar_attributes=
       #   accepts_nested_attributes_for :avatar, reject_if: proc { |attributes| attributes['name'].blank? }
@@ -295,9 +303,15 @@ module ActiveRecord
       #   # creates avatar_attributes= and posts_attributes=
       #   accepts_nested_attributes_for :avatar, :posts, allow_destroy: true
       def accepts_nested_attributes_for(*attr_names)
-        options = { :allow_destroy => false, :update_only => false }
+        options = {
+          :allow_destroy => false,
+          :update_only => false,
+          :overwrite => false
+        }
         options.update(attr_names.extract_options!)
-        options.assert_valid_keys(:allow_destroy, :reject_if, :limit, :update_only)
+        options.assert_valid_keys(
+          :allow_destroy, :reject_if, :limit, :update_only, :keys, :overwrite
+        )
         options[:reject_if] = REJECT_ALL_BLANK_PROC if options[:reject_if] == :all_blank
 
         attr_names.each do |association_name|
@@ -380,7 +394,7 @@ module ActiveRecord
         assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy]) unless call_reject_if(association_name, attributes)
 
       elsif attributes['id'].present?
-        raise_nested_attributes_record_not_found!(association_name, attributes['id'])
+        raise_nested_attributes_record_not_found!(association_name, {:id => attributes['id']})
 
       elsif !reject_new_record?(association_name, attributes)
         assignable_attributes = attributes.except(*UNASSIGNABLE_KEYS)
@@ -448,19 +462,29 @@ module ActiveRecord
 
       existing_records = if association.loaded?
         association.target
+      elsif options[:overwrite] || options[:keys]
+        association.reload.target
       else
         attribute_ids = attributes_collection.map {|a| a['id'] || a[:id] }.compact
         attribute_ids.empty? ? [] : association.scope.where(association.klass.primary_key => attribute_ids)
       end
 
+      updated_records = []
       attributes_collection.each do |attributes|
         attributes = attributes.with_indifferent_access
 
-        if attributes['id'].blank?
+        keys = if options[:keys].present?
+          attributes.select{ |k,v| options[:keys].include? k.to_sym }
+        else
+          {:id => attributes['id']}
+        end
+        keys.delete_if {|k, v| v.blank?}
+
+        if keys.blank?
           unless reject_new_record?(association_name, attributes)
-            association.build(attributes.except(*UNASSIGNABLE_KEYS))
+            updated_records << association.build(attributes.except(*UNASSIGNABLE_KEYS))
           end
-        elsif existing_record = existing_records.detect { |record| record.id.to_s == attributes['id'].to_s }
+        elsif existing_record = find_existing_record(keys, attributes, existing_records)
           unless association.loaded? || call_reject_if(association_name, attributes)
             # Make sure we are operating on the actual object which is in the association's
             # proxy_target array (either by finding it, or adding it if not found)
@@ -474,11 +498,27 @@ module ActiveRecord
           end
 
           if !call_reject_if(association_name, attributes)
+            updated_records << existing_record
             assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
           end
         else
-          raise_nested_attributes_record_not_found!(association_name, attributes['id'])
+          raise_nested_attributes_record_not_found!(association_name, keys)
         end
+      end
+
+      # Remove ommitted records if overwrite is true
+      if options[:overwrite]
+        updated_record_ids = updated_records.map &:id
+        existing_records.each do |record|
+          next if updated_record_ids.include? record.id || record.new_record?
+          record.mark_for_destruction
+        end
+      end
+    end
+
+    def find_existing_record(keys, attributes, existing_records)
+      existing_record = existing_records.detect do |record|
+        keys.map {|k, v| record.send(k) == v}.all?
       end
     end
 
@@ -539,8 +579,12 @@ module ActiveRecord
       end
     end
 
-    def raise_nested_attributes_record_not_found!(association_name, record_id)
-      raise RecordNotFound, "Couldn't find #{self.class.reflect_on_association(association_name).klass.name} with ID=#{record_id} for #{self.class.name} with ID=#{id}"
+    def raise_nested_attributes_record_not_found!(association_name, keys)
+      klass_name = self.class.reflect_on_association(association_name).klass.name
+      keys_text = keys.map{|k,v| "#{k.upcase}=#{v}"}.join(", ")
+      msg =  "Couldn't find #{klass_name} with #{keys_text} for "
+      msg += "#{self.class.name} with ID=#{id}"
+      raise RecordNotFound, msg
     end
   end
 end
