@@ -335,6 +335,16 @@
 
     *arthurnn*
 
+*   Active Record joins with default_scope leads to duplicated sql.
+    Prevent generation of multiple where clauses when the 
+    default scope method is defined by the user and
+    contains a condition which would be different on each
+    call to `default_scope`, e.g. `Time.zone.now`
+
+    Fixes #14351.
+
+    *Larry Reid*
+
 *   Add support for `Relation` be passed as parameter on `QueryCache#select_all`.
 
     Fixes #14361.
