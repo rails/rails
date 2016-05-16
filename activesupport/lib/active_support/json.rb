@@ -1,2 +1,1 @@
-require 'active_support/json/decoding'
-require 'active_support/json/encoding'
+Requirer.new(__FILE__).require_all
