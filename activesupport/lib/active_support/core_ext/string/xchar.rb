@@ -13,6 +13,13 @@ else
 
   class String
     alias_method :original_xs, :to_xs if method_defined?(:to_xs)
-    alias_method :to_xs, :fast_xs
+
+    # to_xs expects 0 args from Builder < 3 but not >= 3, although fast_xs is 0 args
+    if instance_method(:to_xs).arity == 0
+      alias_method :to_xs, :fast_xs
+    else
+      def fast_xs_absorb_args(*args); fast_xs; end
+      alias_method :to_xs, :fast_xs_absorb_args
+    end
   end
 end
