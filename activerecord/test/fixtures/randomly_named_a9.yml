@@ -1,0 +1,7 @@
+first_instance:
+  some_attribute: CCC
+  another_attribute: 111
+
+second_instance:
+  some_attribute: DDD
+  another_attribute: 888

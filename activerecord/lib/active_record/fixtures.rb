@@ -392,10 +392,10 @@ module ActiveRecord
 
     @@all_cached_fixtures = Hash.new { |h,k| h[k] = {} }
 
-    def self.find_table_name(table_name) # :nodoc:
+    def self.default_fixture_class_name(fixture_name) # :nodoc:
       ActiveRecord::Base.pluralize_table_names ?
-        table_name.to_s.singularize.camelize :
-        table_name.to_s.camelize
+        fixture_name.to_s.singularize.camelize :
+        fixture_name.to_s.camelize
     end
 
     def self.reset_cache
@@ -443,17 +443,14 @@ module ActiveRecord
     cattr_accessor :all_loaded_fixtures
     self.all_loaded_fixtures = {}
 
-    def self.create_fixtures(fixtures_directory, table_names, class_names = {})
-      table_names = [table_names].flatten.map { |n| n.to_s }
-      table_names.each { |n|
-        class_names[n.tr('/', '_').to_sym] = n.classify if n.include?('/')
-      }
+    def self.create_fixtures(fixtures_directory, table_names, fixture_classes = {})
+      table_names = [table_names].flatten.map(&:to_s)
 
       # FIXME: Apparently JK uses this.
       connection = block_given? ? yield : ActiveRecord::Base.connection
 
-      files_to_read = table_names.reject { |table_name|
-        fixture_is_cached?(connection, table_name)
+      files_to_read = table_names.reject { |name|
+        fixture_is_cached?(connection, name)
       }
 
       unless files_to_read.empty?
@@ -461,13 +458,11 @@ module ActiveRecord
           fixtures_map = {}
 
           fixture_files = files_to_read.map do |path|
-            table_name = path.tr '/', '_'
-
-            fixtures_map[path] = ActiveRecord::Fixtures.new(
+            fixtures_map[path] = new(
               connection,
-              table_name,
-              class_names[table_name.to_sym] || table_name.classify,
-              File.join(fixtures_directory, path))
+              path,
+              fixture_classes[path.to_sym] || path.classify,
+              ::File.join(fixtures_directory, path))
           end
 
           all_loaded_fixtures.update(fixtures_map)
@@ -490,8 +485,8 @@ module ActiveRecord
 
             # Cap primary key sequences to max(pk).
             if connection.respond_to?(:reset_pk_sequence!)
-              table_names.each do |table_name|
-                connection.reset_pk_sequence!(table_name.tr('/', '_'))
+              table_names.each do |name|
+                connection.reset_pk_sequence!(name.tr('/', '_'))
               end
             end
           end
@@ -510,24 +505,26 @@ module ActiveRecord
 
     attr_reader :table_name, :name, :fixtures, :model_class
 
-    def initialize(connection, table_name, class_name, fixture_path)
+    def initialize(connection, fixture_short_path, class_name, fixture_full_path)
       @connection   = connection
-      @table_name   = table_name
-      @fixture_path = fixture_path
-      @name         = table_name # preserve fixture base name
+      @fixture_path = fixture_full_path
+      @name         = fixture_short_path.tr('/', '_') # preserve fixture base name
+                                                      # TODO: see what it is used for and if the substitution can be avoided
       @class_name   = class_name
 
       @fixtures     = ActiveSupport::OrderedHash.new
-      @table_name   = "#{ActiveRecord::Base.table_name_prefix}#{@table_name}#{ActiveRecord::Base.table_name_suffix}"
 
       # Should be an AR::Base type class
       if class_name.is_a?(Class)
-        @table_name   = class_name.table_name
         @connection   = class_name.connection
         @model_class  = class_name
       else
         @model_class  = class_name.constantize rescue nil
       end
+
+      @table_name = ( model_class.respond_to?(:table_name) ?
+                      model_class.table_name :
+                      "#{ActiveRecord::Base.table_name_prefix}#{name}#{ActiveRecord::Base.table_name_suffix}" )
 
       read_fixture_files
     end
@@ -782,14 +779,26 @@ module ActiveRecord
       self.use_instantiated_fixtures = false
       self.pre_loaded_fixtures = false
 
-      self.fixture_class_names = Hash.new do |h, table_name|
-        h[table_name] = ActiveRecord::Fixtures.find_table_name(table_name)
+      self.fixture_class_names = Hash.new do |h, fixture_name|
+        h[fixture_name] = ActiveRecord::Fixtures.default_fixture_class_name(fixture_name)
       end
     end
 
     module ClassMethods
+      # Sets the model class for a fixture when the class name cannot be inferred from the fixture name.
+      #
+      # Examples:
+      #
+      #   set_fixture_class 'some_fixture'        => SomeModel
+      #   set_fixture_class :'namespaced/fixture' => Another::Model
+      #--
+      # Currently it is possible to pass the class name instead of the class:
+      #   set_fixture_class 'some_fixture' => 'SomeModel'
+      # I think this option is redundant, i propose to deprecate it.
+      # Isn't it easier to always pass the class itself?
+      #++
       def set_fixture_class(class_names = {})
-        self.fixture_class_names = self.fixture_class_names.merge(class_names)
+        self.fixture_class_names = self.fixture_class_names.merge(class_names.symbolize_keys)
       end
 
       def fixtures(*fixture_names)
@@ -797,7 +806,7 @@ module ActiveRecord
           fixture_names = Dir["#{fixture_path}/**/*.{yml,csv}"]
           fixture_names.map! { |f| f[(fixture_path.size + 1)..-5] }
         else
-          fixture_names = fixture_names.flatten.map { |n| n.to_s }
+          fixture_names = fixture_names.flatten.map(&:to_s)
         end
 
         self.fixture_table_names |= fixture_names
@@ -858,7 +867,7 @@ module ActiveRecord
 
       def uses_transaction(*methods)
         @uses_transaction = [] unless defined?(@uses_transaction)
-        @uses_transaction.concat methods.map { |m| m.to_s }
+        @uses_transaction.concat methods.map(&:to_s)
       end
 
       def uses_transaction?(method)
