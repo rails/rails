@@ -23,20 +23,40 @@ a {
 a:visited {
   color: #666;
 }
-
+table{
+  border: 1px solid #cccccc;
+  border-spacing: 0px;
+}
 a:hover {
   color: #fff;
   background-color: #000;
 }
 
 th {
-  padding-bottom: 5px;
+   border-bottom: 1px solid #cccccc;
+  height: 15px;
 }
 
 td {
   padding-bottom: 7px;
   padding-left: 5px;
   padding-right: 5px;
+  font-family: verdana, arial, helvetica, sans-serif;
+  border-left: none;
+  border-bottom: 1px solid #cccccc;
+  border-right: 1px solid #cccccc;
+  vertical-align: top;
+  font-size: 13px;
+  color: inherit;
+  border-top: solid 1px transparent;
+  white-space: normal;
+}
+
+tr:nth-child(even) {
+  background: #f2f2f2
+}
+tr:nth-child(odd) {
+  background: #FFF
 }
 
 div.field,
