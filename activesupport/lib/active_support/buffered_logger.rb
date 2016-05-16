@@ -50,6 +50,7 @@ module ActiveSupport
         @log = open(log, (File::WRONLY | File::APPEND))
         @log.sync = true
       else
+        require 'fileutils'
         FileUtils.mkdir_p(File.dirname(log))
         @log = open(log, (File::WRONLY | File::APPEND | File::CREAT))
         @log.sync = true
