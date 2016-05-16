@@ -1,5 +1,5 @@
 require 'abstract_unit'
-
+require 'stringio' # to eat unintended output
 require 'action_controller' # console_app uses 'action_controller/integration'
 
 unless defined? ApplicationController
@@ -25,6 +25,7 @@ if Test::Unit.respond_to?(:run=)
     end
 
     def test_reload_should_fire_preparation_callbacks
+      stdout, $stdout = $stdout, StringIO.new # hide output during tests
       a = b = c = nil
 
       Dispatcher.to_prepare { a = b = c = 1 }
@@ -37,6 +38,8 @@ if Test::Unit.respond_to?(:run=)
       assert_equal 1, a
       assert_equal 2, b
       assert_equal 3, c
+
+      $stdout = stdout # restore output
     end
   end
 end

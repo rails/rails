@@ -114,7 +114,6 @@ class GemBootTest < Test::Unit::TestCase
     GemBoot.stubs(:gem_version).returns('0.0.1')
 
     boot = GemBoot.new
-    boot.expects(:gem).with('rails', '0.0.1').raises(Gem::LoadError, 'missing rails 0.0.1 gem')
     STDERR.expects(:puts)
     boot.expects(:exit).with(1)
     boot.load_rails_gem

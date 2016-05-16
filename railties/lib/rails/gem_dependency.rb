@@ -270,7 +270,7 @@ module Rails
     end
 
     def ==(other)
-      Gem::Dependency === other.class &&
+      Gem::Dependency === other &&
         self.name == other.name && self.requirement == other.requirement
     end
     alias_method :eql?, :"=="
@@ -297,7 +297,7 @@ module Rails
 
       def unpack_command
         cmd = %w(unpack) << name
-        cmd << "--version" << "= "+specification.version.to_s if requirement
+        cmd << "--version" << %("#{requirement.to_s}") if requirement
         cmd
       end
 
