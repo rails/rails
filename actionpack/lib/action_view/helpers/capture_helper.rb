@@ -134,9 +134,13 @@ module ActionView
       # WARNING: content_for is ignored in caches. So you shouldn't use it
       # for elements that will be fragment cached.
       def content_for(name, content = nil, &block)
-        content = capture(&block) if block_given?
-        @_content_for[name] << content if content
-        @_content_for[name] unless content
+        if content || block_given?
+          content = capture(&block) if block_given?
+          @_content_for[name] << content if content
+          nil
+        else
+          @_content_for[name]
+        end
       end
 
       # content_for? simply checks whether any content has been captured yet using content_for
