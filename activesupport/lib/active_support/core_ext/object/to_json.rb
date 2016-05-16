@@ -12,7 +12,7 @@ end
 [Object, Array, FalseClass, Float, Hash, Integer, NilClass, String, TrueClass].each do |klass|
   klass.class_eval <<-RUBY, __FILE__, __LINE__
     # Dumps object in JSON (JavaScript Object Notation). See www.json.org for more info.
-    def to_json(options = nil)
+    def to_json(options = {})
       ActiveSupport::JSON.encode(self, options)
     end
   RUBY
