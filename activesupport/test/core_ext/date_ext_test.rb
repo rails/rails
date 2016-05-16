@@ -426,6 +426,16 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     Date.new(2005,2,28).advance(options)
     assert_equal({ :years => 3, :months => 11, :days => 2 }, options)
   end
+  
+  def test_date_today_should_not_equal_yesterday
+    with_env_tz 'US/Pacific' do
+      Time.zone = ActiveSupport::TimeZone['UTC']
+      Time.stubs(:now).returns Time.local(2011,8,4,22)
+      assert_not_equal Date.today, Date.yesterday
+    end
+  ensure
+    Time.zone = nil
+  end
 
   protected
     def with_env_tz(new_tz = 'US/Eastern')
