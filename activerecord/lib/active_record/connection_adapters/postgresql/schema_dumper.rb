@@ -3,7 +3,7 @@ module ActiveRecord
     module PostgreSQL
       module ColumnDumper
         def column_spec_for_primary_key(column)
-          spec = super.except!(:null)
+          spec = super
           if schema_type(column) == :uuid
             spec[:default] ||= 'nil'
           end

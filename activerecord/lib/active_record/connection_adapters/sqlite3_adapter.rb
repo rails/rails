@@ -52,7 +52,6 @@ module ActiveRecord
       ADAPTER_NAME = 'SQLite'.freeze
 
       include SQLite3::Quoting
-      include Savepoints
 
       NATIVE_DATABASE_TYPES = {
         primary_key:  'INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL',
@@ -80,20 +79,15 @@ module ActiveRecord
         SQLite3::SchemaCreation.new self
       end
 
+      def arel_visitor # :nodoc:
+        Arel::Visitors::SQLite.new(self)
+      end
+
       def initialize(connection, logger, connection_options, config)
         super(connection, logger, config)
 
         @active     = nil
-        @statements = StatementPool.new(self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 }))
-
-        @visitor = Arel::Visitors::SQLite.new self
-
-        if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
-          @prepared_statements = true
-          @visitor.extend(DetermineIfPreparableVisitor)
-        else
-          @prepared_statements = false
-        end
+        @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
       end
 
       def supports_ddl_transactions?
@@ -135,6 +129,10 @@ module ActiveRecord
         true
       end
 
+      def supports_multi_insert?
+        sqlite_version >= '3.7.11'
+      end
+
       def active?
         @active != false
       end
@@ -156,6 +154,10 @@ module ActiveRecord
         true
       end
 
+      def valid_type?(type)
+        true
+      end
+
       # Returns 62. SQLite supports index names up to 64
       # characters. The rest is used by rails internally to perform
       # temporary rename operations
@@ -174,16 +176,6 @@ module ActiveRecord
 
       def supports_explain?
         true
-      end
-
-      # QUOTING ==================================================
-
-      def quote_string(s) #:nodoc:
-        @connection.class.quote(s)
-      end
-
-      def quote_table_name_for_assignment(table, attr)
-        quote_column_name(attr)
       end
 
       #--
@@ -238,10 +230,6 @@ module ActiveRecord
 
       def execute(sql, name = nil) #:nodoc:
         log(sql, name) { @connection.execute(sql) }
-      end
-
-      def select_rows(sql, name = nil, binds = [])
-        exec_query(sql, name, binds).rows
       end
 
       def begin_db_transaction #:nodoc:
@@ -553,7 +541,7 @@ module ActiveRecord
           result = exec_query(sql, 'SCHEMA').first
 
           if result
-            # Splitting with left parantheses and picking up last will return all
+            # Splitting with left parentheses and picking up last will return all
             # columns separated with comma(,).
             columns_string = result["sql"].split('(').last
 

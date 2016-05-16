@@ -349,19 +349,41 @@ class UniquenessValidationTest < ActiveRecord::TestCase
   end
 
   def test_validate_uniqueness_with_limit
-    # Event.title is limited to 5 characters
-    e1 = Event.create(:title => "abcde")
-    assert e1.valid?, "Could not create an event with a unique, 5 character title"
-    e2 = Event.create(:title => "abcdefgh")
-    assert !e2.valid?, "Created an event whose title, with limit taken into account, is not unique"
+    if current_adapter?(:SQLite3Adapter)
+      # Event.title has limit 5, but SQLite doesn't truncate.
+      e1 = Event.create(title: "abcdefgh")
+      assert e1.valid?, "Could not create an event with a unique 8 characters title"
+
+      e2 = Event.create(title: "abcdefgh")
+      assert_not e2.valid?, "Created an event whose title is not unique"
+    elsif current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter, :SQLServerAdapter)
+      assert_raise(ActiveRecord::ValueTooLong) do
+        Event.create(title: "abcdefgh")
+      end
+    else
+      assert_raise(ActiveRecord::StatementInvalid) do
+        Event.create(title: "abcdefgh")
+      end
+    end
   end
 
   def test_validate_uniqueness_with_limit_and_utf8
-    # Event.title is limited to 5 characters
-    e1 = Event.create(:title => "一二三四五")
-    assert e1.valid?, "Could not create an event with a unique, 5 character title"
-    e2 = Event.create(:title => "一二三四五六七八")
-    assert !e2.valid?, "Created an event whose title, with limit taken into account, is not unique"
+    if current_adapter?(:SQLite3Adapter)
+      # Event.title has limit 5, but does SQLite doesn't truncate.
+      e1 = Event.create(title: "一二三四五六七八")
+      assert e1.valid?, "Could not create an event with a unique 8 characters title"
+
+      e2 = Event.create(title: "一二三四五六七八")
+      assert_not e2.valid?, "Created an event whose title is not unique"
+    elsif current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter, :SQLServerAdapter)
+      assert_raise(ActiveRecord::ValueTooLong) do
+        Event.create(title: "一二三四五六七八")
+      end
+    else
+      assert_raise(ActiveRecord::StatementInvalid) do
+        Event.create(title: "一二三四五六七八")
+      end
+    end
   end
 
   def test_validate_straight_inheritance_uniqueness

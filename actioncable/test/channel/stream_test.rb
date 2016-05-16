@@ -116,11 +116,22 @@ module ActionCable::StreamTests
 
   require 'action_cable/subscription_adapter/inline'
 
+  class UserCallbackChannel < ActionCable::Channel::Base
+    def subscribed
+      stream_from :channel do
+        Thread.current[:ran_callback] = true
+      end
+    end
+  end
+
   class StreamEncodingTest < ActionCable::TestCase
     setup do
       @server = TestServer.new(subscription_adapter: ActionCable::SubscriptionAdapter::Inline)
       @server.config.allowed_request_origins = %w( http://rubyonrails.com )
-      @server.stubs(:channel_classes).returns(ChatChannel.name => ChatChannel)
+      @server.stubs(:channel_classes).returns(
+        ChatChannel.name => ChatChannel,
+        UserCallbackChannel.name => UserCallbackChannel,
+      )
     end
 
     test 'custom encoder' do
@@ -131,6 +142,18 @@ module ActionCable::StreamTests
         connection.websocket.expects(:transmit)
         @server.broadcast 'test_room_1', { foo: 'bar' }, coder: DummyEncoder
         wait_for_async
+        wait_for_executor connection.server.worker_pool.executor
+      end
+    end
+
+    test "user supplied callbacks are run through the worker pool" do
+      run_in_eventmachine do
+        connection = open_connection
+        receive(connection, command: 'subscribe', channel: UserCallbackChannel.name, identifiers: { id: 1 })
+
+        @server.broadcast 'channel', {}
+        wait_for_async
+        refute Thread.current[:ran_callback], "User callback was not run through the worker pool"
       end
     end
 
@@ -151,8 +174,8 @@ module ActionCable::StreamTests
         end
       end
 
-      def receive(connection, command:, identifiers:)
-        identifier = JSON.generate(channel: 'ActionCable::StreamTests::ChatChannel', **identifiers)
+      def receive(connection, command:, identifiers:, channel: 'ActionCable::StreamTests::ChatChannel')
+        identifier = JSON.generate(channel: channel, **identifiers)
         connection.dispatch_websocket_message JSON.generate(command: command, identifier: identifier)
         wait_for_async
       end

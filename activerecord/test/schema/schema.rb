@@ -199,6 +199,7 @@ ActiveRecord::Schema.define do
     t.index [:firm_id, :type, :rating], name: "company_index"
     t.index [:firm_id, :type], name: "company_partial_index", where: "rating > 10"
     t.index :name, name: 'company_name_index', using: :btree
+    t.index 'lower(name)', name: "company_expression_index" if supports_expression_index?
   end
 
   create_table :content, force: true do |t|
@@ -612,6 +613,12 @@ ActiveRecord::Schema.define do
     else
       t.timestamps null: false
     end
+  end
+
+  create_table :pets_treasures, force: true do |t|
+    t.column :treasure_id, :integer
+    t.column :pet_id, :integer
+    t.column :rainbow_color, :string
   end
 
   create_table :pirates, force: true do |t|

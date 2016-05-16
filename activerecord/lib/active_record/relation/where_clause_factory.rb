@@ -15,6 +15,7 @@ module ActiveRecord
         when Hash
           attributes = predicate_builder.resolve_column_aliases(opts)
           attributes = klass.send(:expand_hash_conditions_for_aggregates, attributes)
+          attributes.stringify_keys!
 
           attributes, binds = predicate_builder.create_binds(attributes)
 

@@ -19,6 +19,32 @@ module ActiveSupport
       set_callback(:complete, *args, &block)
     end
 
+    # Register an object to be invoked during both the +run+ and
+    # +complete+ steps.
+    #
+    # +hook.complete+ will be passed the value returned from +hook.run+,
+    # and will only be invoked if +run+ has previously been called.
+    # (Mostly, this means it won't be invoked if an exception occurs in
+    # a preceding +to_run+ block; all ordinary +to_complete+ blocks are
+    # invoked in that situation.)
+    def self.register_hook(hook, outer: false)
+      if outer
+        run_args = [prepend: true]
+        complete_args = [:after]
+      else
+        run_args = complete_args = []
+      end
+
+      to_run(*run_args) do
+        hook_state[hook] = hook.run
+      end
+      to_complete(*complete_args) do
+        if hook_state.key?(hook)
+          hook.complete hook_state[hook]
+        end
+      end
+    end
+
     # Run this execution.
     #
     # Returns an instance, whose +complete!+ method *must* be invoked
@@ -29,7 +55,15 @@ module ActiveSupport
       if active?
         Null
       else
-        new.tap(&:run!)
+        new.tap do |instance|
+          success = nil
+          begin
+            instance.run!
+            success = true
+          ensure
+            instance.complete! unless success
+          end
+        end
       end
     end
 
@@ -37,11 +71,11 @@ module ActiveSupport
     def self.wrap
       return yield if active?
 
-      state = run!
+      instance = run!
       begin
         yield
       ensure
-        state.complete!
+        instance.complete!
       end
     end
 
@@ -74,5 +108,10 @@ module ActiveSupport
     ensure
       self.class.active.delete Thread.current
     end
+
+    private
+      def hook_state
+        @_hook_state ||= {}
+      end
   end
 end

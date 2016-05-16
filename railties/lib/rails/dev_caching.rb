@@ -1,3 +1,5 @@
+require 'fileutils'
+
 module Rails
   module DevCaching # :nodoc:
     class << self

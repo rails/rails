@@ -13,7 +13,7 @@ After reading this guide, you will know:
 * How an Active Record model behaves.
 * How Callbacks and validations work.
 * How serializers work.
-* The Rails internationalization (i18n) framework.
+* How Active Model integrates with the Rails internationalization (i18n) framework.
 
 --------------------------------------------------------------------------------
 

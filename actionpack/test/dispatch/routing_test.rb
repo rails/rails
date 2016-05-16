@@ -3991,16 +3991,6 @@ class TestUnicodePaths < ActionDispatch::IntegrationTest
 end
 
 class TestMultipleNestedController < ActionDispatch::IntegrationTest
-  module ::Foo
-    module Bar
-      class BazController < ActionController::Base
-        def index
-          render :inline => "<%= url_for :controller => '/pooh', :action => 'index' %>"
-        end
-      end
-    end
-  end
-
   Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
     app.draw do
       namespace :foo do
@@ -4012,7 +4002,18 @@ class TestMultipleNestedController < ActionDispatch::IntegrationTest
     end
   end
 
-  include Routes.url_helpers
+  module ::Foo
+    module Bar
+      class BazController < ActionController::Base
+        include Routes.url_helpers
+
+        def index
+          render :inline => "<%= url_for :controller => '/pooh', :action => 'index' %>"
+        end
+      end
+    end
+  end
+
   APP = build_app Routes
   def app; APP end
 
@@ -4753,5 +4754,44 @@ class TestPartialDynamicPathSegments < ActionDispatch::IntegrationTest
 
   def assert_params(params)
     assert_equal(params, request.path_parameters)
+  end
+end
+
+class TestPathParameters < ActionDispatch::IntegrationTest
+  Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
+    app.draw do
+      scope module: 'test_path_parameters' do
+        scope ':locale', locale: /en|ar/ do
+          root to: 'home#index'
+          get '/about', to: 'pages#about'
+        end
+      end
+
+      get ':controller(/:action/(:id))'
+    end
+  end
+
+  class HomeController < ActionController::Base
+    include Routes.url_helpers
+
+    def index
+      render inline: "<%= root_path %>"
+    end
+  end
+
+  class PagesController < ActionController::Base
+    include Routes.url_helpers
+
+    def about
+      render inline: "<%= root_path(locale: :ar) %> | <%= url_for(locale: :ar) %>"
+    end
+  end
+
+  APP = build_app Routes
+  def app; APP end
+
+  def test_path_parameters_are_not_mutated
+    get '/en/about'
+    assert_equal "/ar | /ar/about", @response.body
   end
 end

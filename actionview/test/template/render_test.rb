@@ -207,6 +207,10 @@ module RenderTestCases
     assert_nothing_raised { @view.render(:partial => "test/a-in") }
   end
 
+  def test_render_partial_with_unicode_text
+    assert_nothing_raised { @view.render(:partial => "test/🍣") }
+  end
+
   def test_render_partial_with_invalid_option_as
     e = assert_raises(ArgumentError) { @view.render(:partial => "test/partial_only", :as => 'a-in') }
     assert_equal "The value (a-in) of the option `as` is not a valid Ruby identifier; " +

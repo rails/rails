@@ -205,7 +205,7 @@ module ActionController
       def overfill_buffer_and_die
         logger = ActionController::Base.logger || Logger.new($stdout)
         response.stream.on_error do
-          logger.warn 'Error while streaming'
+          logger.warn 'Error while streaming.'
           error_latch.count_down
         end
 
@@ -246,7 +246,8 @@ module ActionController
 
     def assert_stream_closed
       assert response.stream.closed?, 'stream should be closed'
-      assert response.sent?, 'stream should be sent'
+      assert response.committed?,     'response should be committed'
+      assert response.sent?,          'response should be sent'
     end
 
     def capture_log_output

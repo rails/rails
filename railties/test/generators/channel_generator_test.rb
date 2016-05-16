@@ -38,4 +38,24 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
 
     assert_no_file "app/assets/javascripts/channels/chat.coffee"
   end
+
+  def test_cable_js_is_created_if_not_present_already
+    run_generator ['chat']
+    FileUtils.rm("#{destination_root}/app/assets/javascripts/cable.js")
+    run_generator ['camp']
+
+    assert_file "app/assets/javascripts/cable.js"
+  end
+
+  def test_channel_on_revoke
+    run_generator ['chat']
+    run_generator ['chat'], behavior: :revoke
+
+    assert_no_file "app/channels/chat_channel.rb"
+    assert_no_file "app/assets/javascripts/channels/chat.coffee"
+
+    assert_file "app/channels/application_cable/channel.rb"
+    assert_file "app/channels/application_cable/connection.rb"
+    assert_file "app/assets/javascripts/cable.js"
+  end
 end

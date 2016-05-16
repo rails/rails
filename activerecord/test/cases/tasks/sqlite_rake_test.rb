@@ -1,4 +1,5 @@
 require 'cases/helper'
+require 'active_record/tasks/database_tasks'
 require 'pathname'
 
 if current_adapter?(:SQLite3Adapter)
@@ -15,6 +16,13 @@ module ActiveRecord
       File.stubs(:exist?).returns(false)
       ActiveRecord::Base.stubs(:connection).returns(@connection)
       ActiveRecord::Base.stubs(:establish_connection).returns(true)
+
+      $stdout, @original_stdout = StringIO.new, $stdout
+      $stderr, @original_stderr = StringIO.new, $stderr
+    end
+
+    def teardown
+      $stdout, $stderr = @original_stdout, @original_stderr
     end
 
     def test_db_checks_database_exists
@@ -23,12 +31,18 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.create @configuration, '/rails/root'
     end
 
+    def test_when_db_created_successfully_outputs_info_to_stdout
+      ActiveRecord::Tasks::DatabaseTasks.create @configuration, '/rails/root'
+
+      assert_equal $stdout.string, "Created database '#{@database}'\n"
+    end
+
     def test_db_create_when_file_exists
       File.stubs(:exist?).returns(true)
 
-      $stderr.expects(:puts).with("#{@database} already exists")
-
       ActiveRecord::Tasks::DatabaseTasks.create @configuration, '/rails/root'
+
+      assert_equal $stderr.string, "Database '#{@database}' already exists\n"
     end
 
     def test_db_create_with_file_does_nothing
@@ -69,6 +83,13 @@ module ActiveRecord
       Pathname.stubs(:new).returns(@path)
       File.stubs(:join).returns('/former/relative/path')
       FileUtils.stubs(:rm).returns(true)
+
+      $stdout, @original_stdout = StringIO.new, $stdout
+      $stderr, @original_stderr = StringIO.new, $stderr
+    end
+
+    def teardown
+      $stdout, $stderr = @original_stdout, @original_stderr
     end
 
     def test_creates_path_from_database
@@ -102,6 +123,12 @@ module ActiveRecord
       FileUtils.expects(:rm).with('/former/relative/path')
 
       ActiveRecord::Tasks::DatabaseTasks.drop @configuration, '/rails/root'
+    end
+
+    def test_when_db_dropped_successfully_outputs_info_to_stdout
+      ActiveRecord::Tasks::DatabaseTasks.drop @configuration, '/rails/root'
+
+      assert_equal $stdout.string, "Dropped database '#{@database}'\n"
     end
   end
 

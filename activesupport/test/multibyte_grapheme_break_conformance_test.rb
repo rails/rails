@@ -27,7 +27,7 @@ class MultibyteGraphemeBreakConformanceTest < ActiveSupport::TestCase
 
   TEST_DATA_URL = "http://www.unicode.org/Public/#{ActiveSupport::Multibyte::Unicode::UNICODE_VERSION}/ucd/auxiliary"
   TEST_DATA_FILE = '/GraphemeBreakTest.txt'
-  CACHE_DIR = File.join(Dir.tmpdir, 'cache')
+  CACHE_DIR = "#{Dir.tmpdir}/cache/unicode_conformance"
 
   def setup
     FileUtils.mkdir_p(CACHE_DIR)

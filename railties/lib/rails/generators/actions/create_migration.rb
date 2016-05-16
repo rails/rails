@@ -1,3 +1,4 @@
+require 'fileutils'
 require 'thor/actions'
 
 module Rails

@@ -11,7 +11,7 @@ class Hash
   #  hash.transform_keys.with_index { |k, i| [k, i].join } # => {"name0"=>"Rob", "age1"=>"28"}
   def transform_keys
     return enum_for(:transform_keys) { size } unless block_given?
-    result = self.class.new
+    result = {}
     each_key do |key|
       result[yield(key)] = self[key]
     end

@@ -12,8 +12,10 @@ module ActionCable
       define_callbacks :work
       include ActiveRecordConnectionManagement
 
+      attr_reader :executor
+
       def initialize(max_size: 5)
-        @pool = Concurrent::ThreadPoolExecutor.new(
+        @executor = Concurrent::ThreadPoolExecutor.new(
           min_threads: 1,
           max_threads: max_size,
           max_queue: 0,
@@ -23,11 +25,11 @@ module ActionCable
       # Stop processing work: any work that has not already started
       # running will be discarded from the queue
       def halt
-        @pool.kill
+        @executor.kill
       end
 
       def stopping?
-        @pool.shuttingdown?
+        @executor.shuttingdown?
       end
 
       def work(connection)
@@ -40,14 +42,14 @@ module ActionCable
         self.connection = nil
       end
 
-      def async_invoke(receiver, method, *args)
-        @pool.post do
-          invoke(receiver, method, *args)
+      def async_invoke(receiver, method, *args, connection: receiver)
+        @executor.post do
+          invoke(receiver, method, *args, connection: connection)
         end
       end
 
-      def invoke(receiver, method, *args)
-        work(receiver) do
+      def invoke(receiver, method, *args, connection:)
+        work(connection) do
           begin
             receiver.send method, *args
           rescue Exception => e
@@ -56,18 +58,6 @@ module ActionCable
 
             receiver.handle_exception if receiver.respond_to?(:handle_exception)
           end
-        end
-      end
-
-      def async_run_periodic_timer(channel, callback)
-        @pool.post do
-          run_periodic_timer(channel, callback)
-        end
-      end
-
-      def run_periodic_timer(channel, callback)
-        work(channel.connection) do
-          callback.respond_to?(:call) ? channel.instance_exec(&callback) : channel.send(callback)
         end
       end
 

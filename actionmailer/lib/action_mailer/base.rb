@@ -5,6 +5,7 @@ require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/module/anonymous'
 
 require 'action_mailer/log_subscriber'
+require 'action_mailer/rescuable'
 
 module ActionMailer
   # Action Mailer allows you to send email from your application using a mailer model and views.
@@ -86,7 +87,7 @@ module ActionMailer
   # Like Action Controller, each mailer class has a corresponding view directory in which each
   # method of the class looks for a template with its name.
   #
-  # To define a template to be used with a mailing, create an <tt>.erb</tt> file with the same
+  # To define a template to be used with a mailer, create an <tt>.erb</tt> file with the same
   # name as the method in your mailer model. For example, in the mailer defined above, the template at
   # <tt>app/views/notifier_mailer/welcome.text.erb</tt> would be used to generate the email.
   #
@@ -144,7 +145,7 @@ module ActionMailer
   #   mail.deliver_now                               # generates and sends the email now
   #
   # The <tt>ActionMailer::MessageDelivery</tt> class is a wrapper around a delegate that will call
-  # your method to generate the mail. If you want direct access to delegator, or <tt>Mail::Message</tt>,
+  # your method to generate the mail. If you want direct access to the delegator, or <tt>Mail::Message</tt>,
   # you can call the <tt>message</tt> method on the <tt>ActionMailer::MessageDelivery</tt> object.
   #
   #   NotifierMailer.welcome(User.first).message     # => a Mail::Message object
@@ -163,7 +164,7 @@ module ActionMailer
   #
   # Multipart messages can also be used implicitly because Action Mailer will automatically detect and use
   # multipart templates, where each template is named after the name of the action, followed by the content
-  # type. Each such detected template will be added as a separate part to the message.
+  # type. Each such detected template will be added to the message, as a separate part.
   #
   # For example, if the following templates exist:
   # * signup_notification.text.erb
@@ -288,7 +289,7 @@ module ActionMailer
   #   end
   #
   # Note that the proc is evaluated right at the start of the mail message generation, so if you
-  # set something in the default using a proc, and then set the same thing inside of your
+  # set something in the default hash using a proc, and then set the same thing inside of your
   # mailer method, it will get overwritten by the mailer method.
   #
   # It is also possible to set these default options that will be used in all mailers through
@@ -392,6 +393,7 @@ module ActionMailer
   #     of an OpenSSL verify constant (<tt>'none'</tt>, <tt>'peer'</tt>, <tt>'client_once'</tt>,
   #     <tt>'fail_if_no_peer_cert'</tt>) or directly the constant (<tt>OpenSSL::SSL::VERIFY_NONE</tt>,
   #     <tt>OpenSSL::SSL::VERIFY_PEER</tt>, ...).
+  #     <tt>:ssl/:tls</tt> Enables the SMTP connection to use SMTP/TLS (SMTPS: SMTP over direct TLS connection)
   #
   # * <tt>sendmail_settings</tt> - Allows you to override options for the <tt>:sendmail</tt> delivery method.
   #   * <tt>:location</tt> - The location of the sendmail executable. Defaults to <tt>/usr/sbin/sendmail</tt>.
@@ -419,6 +421,7 @@ module ActionMailer
   # * <tt>deliver_later_queue_name</tt> - The name of the queue used with <tt>deliver_later</tt>.
   class Base < AbstractController::Base
     include DeliveryMethods
+    include Rescuable
     include Previews
 
     abstract!

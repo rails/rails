@@ -125,6 +125,10 @@ module ActiveRecord
   class InvalidForeignKey < WrappedDatabaseException
   end
 
+  # Raised when a record cannot be inserted or updated because a value too long for a column type.
+  class ValueTooLong < StatementInvalid
+  end
+
   # Raised when number of bind variables in statement given to +:condition+ key
   # (for example, when using {ActiveRecord::Base.find}[rdoc-ref:FinderMethods#find] method)
   # does not match number of expected values supplied.

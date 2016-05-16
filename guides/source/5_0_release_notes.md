@@ -48,7 +48,74 @@ ToDo...
 
 ### Active Record attributes API
 
-ToDo...
+Defines an attribute with a type on a model. It will override the type of existing attributes if needed. 
+This allows control over how values are converted to and from SQL when assigned to a model.
+It also changes the behavior of values passed to ActiveRecord::Base.where, which lets use our domain objects across much of Active Record, 
+without having to rely on implementation details or monkey patching.
+
+Some things that you can achieve with this:
+* The type detected by Active Record can be overridden.
+* A default can also be provided.
+* Attributes do not need to be backed by a database column.
+
+```ruby
+
+# db/schema.rb
+create_table :store_listings, force: true do |t|
+  t.decimal :price_in_cents
+  t.string :my_string, default: "original default"
+end
+
+# app/models/store_listing.rb
+class StoreListing < ActiveRecord::Base
+end
+
+store_listing = StoreListing.new(price_in_cents: '10.1')
+
+# before
+store_listing.price_in_cents # => BigDecimal.new(10.1)
+StoreListing.new.my_string # => "original default"
+
+class StoreListing < ActiveRecord::Base
+  attribute :price_in_cents, :integer # custom type
+  attribute :my_string, :string, default: "new default" # default value
+  attribute :my_default_proc, :datetime, default: -> { Time.now } # default value
+  attribute :field_without_db_column, :integer, array: true 
+end
+
+# after
+store_listing.price_in_cents # => 10
+StoreListing.new.my_string # => "new default"
+StoreListing.new.my_default_proc # => 2015-05-30 11:04:48 -0600
+model = StoreListing.new(field_without_db_column: ["1", "2", "3"])
+model.attributes #=> {field_without_db_column: [1, 2, 3]}
+```
+
+**Creating Custom Types:**
+
+You can define your own custom types, as long as they respond
+to the methods defined on the value type. The method +deserialize+ or
++cast+ will be called on your type object, with raw input from the
+database or from your controllers. This is useful, for example, when doing custom conversion, 
+like Money data.
+
+**Querying:**
+
+When `ActiveRecord::Base.where` is called, it will
+use the type defined by the model class to convert the value to SQL,
+calling +serialize+ on your type object. 
+
+This gives the objects ability to specify, how to convert values when performing SQL queries. 
+
+**Dirty Tracking:**
+
+The type of an attribute is given the opportunity to change how dirty
+tracking is performed. 
+      
+See its
+[documentation](http://api.rubyonrails.org/classes/ActiveRecord/Attributes/ClassMethods.html)
+for a detailed write up.
+
 
 ### Test Runner
 [Pull Request](https://github.com/rails/rails/pull/19216)
@@ -227,6 +294,9 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     `RedirectBackError`.
     ([Pull Request](https://github.com/rails/rails/pull/22506))
 
+*   `ActionDispatch::IntegrationTest` and `ActionController::TestCase` deprecate positional arguments in favor of
+    keyword arguments. ([Pull Request](https://github.com/rails/rails/pull/18323))
+
 ### Notable changes
 
 *   Added `ActionController::Renderer` to render arbitrary templates
@@ -270,7 +340,7 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 *   Changed the `protect_from_forgery` prepend default to `false`.
     ([commit](https://github.com/rails/rails/commit/39794037817703575c35a75f1961b01b83791191))
 
-*   `ActionController::TestCase` will be moved to it's own gem in Rails 5.1. Use
+*   `ActionController::TestCase` will be moved to its own gem in Rails 5.1. Use
     `ActionDispatch::IntegrationTest` instead.
     ([commit](https://github.com/rails/rails/commit/4414c5d1795e815b102571425974a8b1d46d932d))
 
@@ -294,6 +364,10 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/23827))
 
 
+*   Add `ActionController#helpers` to get access to the view context
+    at the controller level.
+    ([Pull Request](https://github.com/rails/rails/pull/24866))
+
 Action View
 -------------
 
@@ -313,12 +387,19 @@ Please refer to the [Changelog][action-view] for detailed changes.
     supported by I18n.
     ([Pull Request](https://github.com/rails/rails/pull/20019))
 
+### Deprecations
+
+*   Deprecated `datetime_field` and `datetime_field_tag` helpers.
+    Datetime input type was removed from HTML specification.
+    One can use `datetime_local_field` and `datetime_local_field_tag` instead.
+    ([Pull Request](https://github.com/rails/rails/pull/24385))
+
 ### Notable Changes
 
 *   Changed the default template handler from `ERB` to `Raw`.
     ([commit](https://github.com/rails/rails/commit/4be859f0fdf7b3059a28d03c279f03f5938efc80))
 
-*   Collection rendering can cache and fetches multiple partials.
+*   Collection rendering can cache and fetches multiple partials at once.
     ([Pull Request](https://github.com/rails/rails/pull/18948),
     [commit](https://github.com/rails/rails/commit/e93f0f0f133717f9b06b1eaefd3442bd0ff43985))
 
@@ -328,10 +409,6 @@ Please refer to the [Changelog][action-view] for detailed changes.
 *   Make `disable_with` the default behavior for submit tags. Disables the
     button on submit to prevent double submits.
     ([Pull Request](https://github.com/rails/rails/pull/21135))
-
-*   Collection rendering can cache and fetch multiple partials at once.
-    ([Pull Request](https://github.com/rails/rails/pull/21135))
-
 
 Action Mailer
 -------------
@@ -439,10 +516,6 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Deprecated `ActiveRecord::Base.errors_in_transactional_callbacks=`.
     ([commit](https://github.com/rails/rails/commit/07d3d402341e81ada0214f2cb2be1da69eadfe72))
 
-*   Deprecated passing of `start` value to `find_in_batches` and `find_each`
-    in favour of `begin_at` value.
-    ([Pull Request](https://github.com/rails/rails/pull/18961))
-
 *   Deprecated `Relation#uniq` use `Relation#distinct` instead.
     ([commit](https://github.com/rails/rails/commit/adfab2dcf4003ca564d78d4425566dd2d9cd8b4f))
 
@@ -488,6 +561,10 @@ Please refer to the [Changelog][active-record] for detailed changes.
     Use the `{insert|update|delete}` public methods instead.
     ([Pull Request](https://github.com/rails/rails/pull/23086))
 
+*   Deprecated `use_transactional_fixtures` in favor of
+    `use_transactional_tests` for more clarity.
+    ([Pull Request](https://github.com/rails/rails/pull/19282))
+
 ### Notable changes
 
 *   Added a `foreign_key` option to `references` while creating the table.
@@ -501,10 +578,6 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Added `#cache_key` to `ActiveRecord::Relation`.
     ([Pull Request](https://github.com/rails/rails/pull/20884))
-
-*   Require `belongs_to` by default.
-    ([Pull Request](https://github.com/rails/rails/pull/18937)) - Deprecate
-    `required` option in favor of `optional` for `belongs_to`
 
 *   Changed the default `null` value for `timestamps` to `false`.
     ([commit](https://github.com/rails/rails/commit/a939506f297b667291480f26fa32a373a18ae06a))
@@ -534,7 +607,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   `belongs_to` will now trigger a validation error by default if the
     association is not present. You can turn this off on a per-association basis
-    with `optional: true`.
+    with `optional: true`. Also deprecate `required` option in favor of `optional`
+    for `belongs_to`.
     ([Pull Request](https://github.com/rails/rails/pull/18937))
 
 *   Added `config.active_record.dump_schemas` to configure the behavior of
@@ -589,6 +663,14 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Added ActiveRecord `#second_to_last` and `#third_to_last` methods.
     ([Pull Request](https://github.com/rails/rails/pull/23583))
 
+*   Added ability to annotate database objects (tables, columns, indexes)
+    with comments stored in database metadata for PostgreSQL & MySQL.
+    ([Pull Request](https://github.com/rails/rails/pull/22911))
+
+*   Added prepared statements support to `mysql2` adapter, for mysql2 0.4.4+, 
+    Previously this was only supported on the deprecated `mysql` legacy adapter. 
+    To enable, set `prepared_statements: true` in config/database.yml.
+    ([Pull Request](https://github.com/rails/rails/pull/23461))        
 
 Active Model
 ------------
@@ -648,10 +730,14 @@ Please refer to the [Changelog][active-job] for detailed changes.
 
 ### Notable changes
 
-*   `ActiveJob::Base.deserialize` delegates to the job class. this allows jobs
+*   `ActiveJob::Base.deserialize` delegates to the job class. This allows jobs
     to attach arbitrary metadata when they get serialized and read it back when
     they get performed.
     ([Pull Request](https://github.com/rails/rails/pull/18260))
+
+*   Add ability to configure the queue adapter on a per job basis without
+    affecting each other.
+    ([Pull Request](https://github.com/rails/rails/pull/16992))
 
 *   A generated job now inherits from `app/jobs/application_job.rb` by default.
     ([Pull Request](https://github.com/rails/rails/pull/19034))
@@ -824,6 +910,9 @@ Please refer to the [Changelog][active-support] for detailed changes.
     components and libraries to manage, and participate in, the execution of
     application code, and the application reloading process.
     ([Pull Request](https://github.com/rails/rails/pull/23807))
+
+*   `ActiveSupport::Duration` now supports ISO8601 formatting and parsing.
+    ([Pull Request](https://github.com/rails/rails/pull/16917))
 
 
 Credits

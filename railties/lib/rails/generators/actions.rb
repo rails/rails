@@ -1,5 +1,3 @@
-require 'open-uri'
-
 module Rails
   module Generators
     module Actions

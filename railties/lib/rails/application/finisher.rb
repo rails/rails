@@ -62,18 +62,36 @@ module Rails
         ActiveSupport.run_load_hooks(:after_initialize, self)
       end
 
+      class MutexHook
+        def initialize(mutex = Mutex.new)
+          @mutex = mutex
+        end
+
+        def run
+          @mutex.lock
+        end
+
+        def complete(_state)
+          @mutex.unlock
+        end
+      end
+
+      module InterlockHook
+        def self.run
+          ActiveSupport::Dependencies.interlock.start_running
+        end
+
+        def self.complete(_state)
+          ActiveSupport::Dependencies.interlock.done_running
+        end
+      end
+
       initializer :configure_executor_for_concurrency do |app|
         if config.allow_concurrency == false
           # User has explicitly opted out of concurrent request
           # handling: presumably their code is not threadsafe
 
-          mutex = Mutex.new
-          app.executor.to_run(prepend: true) do
-            mutex.lock
-          end
-          app.executor.to_complete(:after) do
-            mutex.unlock
-          end
+          app.executor.register_hook(MutexHook.new, outer: true)
 
         elsif config.allow_concurrency == :unsafe
           # Do nothing, even if we know this is dangerous. This is the
@@ -86,12 +104,7 @@ module Rails
             # Without cache_classes + eager_load, the load interlock
             # is required for proper operation
 
-            app.executor.to_run(prepend: true) do
-              ActiveSupport::Dependencies.interlock.start_running
-            end
-            app.executor.to_complete(:after) do
-              ActiveSupport::Dependencies.interlock.done_running
-            end
+            app.executor.register_hook(InterlockHook, outer: true)
           end
         end
       end

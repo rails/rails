@@ -9,7 +9,7 @@ module ActionDispatch
 
       # Singleton object used to determine if an optional param wasn't specified
       Unspecified = Object.new
-      
+
       # Creates a session hash, merging the properties of the previous session if any
       def self.create(store, req, default_options)
         session_was = find req
@@ -196,6 +196,10 @@ module ActionDispatch
       def merge!(other)
         load_for_write!
         @delegate.merge!(other)
+      end
+
+      def each(&block)
+        to_hash.each(&block)
       end
 
       private

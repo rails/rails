@@ -495,7 +495,8 @@ users(:david)
 users(:david).id
 
 # one can also access methods available on the User class
-email(david.partner.email, david.location_tonight)
+david = users(:david)
+david.call(david.partner)
 ```
 
 To get multiple fixtures at once, you can pass in a list of fixture names. For example:

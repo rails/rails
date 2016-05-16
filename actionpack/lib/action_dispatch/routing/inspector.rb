@@ -33,11 +33,11 @@ module ActionDispatch
       end
 
       def controller
-        requirements[:controller] || ':controller'
+        parts.include?(:controller) ? ':controller' : requirements[:controller]
       end
 
       def action
-        requirements[:action] || ':action'
+        parts.include?(:action) ? ':action' : requirements[:action]
       end
 
       def internal?

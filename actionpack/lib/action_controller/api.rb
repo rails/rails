@@ -14,22 +14,22 @@ module ActionController
   # flash, assets, and so on. This makes the entire controller stack thinner,
   # suitable for API applications. It doesn't mean you won't have such
   # features if you need them: they're all available for you to include in
-  # your application, they're just not part of the default API Controller stack.
+  # your application, they're just not part of the default API controller stack.
   #
-  # By default, only the ApplicationController in a \Rails application inherits
-  # from <tt>ActionController::API</tt>. All other controllers in turn inherit
-  # from ApplicationController.
+  # Normally, +ApplicationController+ is the only controller that inherits from
+  # <tt>ActionController::API</tt>. All other controllers in turn inherit from
+  # +ApplicationController+.
   #
   # A sample controller could look like this:
   #
   #   class PostsController < ApplicationController
   #     def index
-  #       @posts = Post.all
-  #       render json: @posts
+  #       posts = Post.all
+  #       render json: posts
   #     end
   #   end
   #
-  # Request, response and parameters objects all work the exact same way as
+  # Request, response, and parameters objects all work the exact same way as
   # <tt>ActionController::Base</tt>.
   #
   # == Renders
@@ -37,18 +37,18 @@ module ActionController
   # The default API Controller stack includes all renderers, which means you
   # can use <tt>render :json</tt> and brothers freely in your controllers. Keep
   # in mind that templates are not going to be rendered, so you need to ensure
-  # your controller is calling either <tt>render</tt> or <tt>redirect</tt> in
-  # all actions, otherwise it will return 204 No Content response.
+  # your controller is calling either <tt>render</tt> or <tt>redirect_to</tt> in
+  # all actions, otherwise it will return 204 No Content.
   #
   #   def show
-  #     @post = Post.find(params[:id])
-  #     render json: @post
+  #     post = Post.find(params[:id])
+  #     render json: post
   #   end
   #
   # == Redirects
   #
   # Redirects are used to move from one action to another. You can use the
-  # <tt>redirect</tt> method in your controllers in the same way as
+  # <tt>redirect_to</tt> method in your controllers in the same way as in
   # <tt>ActionController::Base</tt>. For example:
   #
   #   def create
@@ -56,7 +56,7 @@ module ActionController
   #     # do stuff here
   #   end
   #
-  # == Adding new behavior
+  # == Adding New Behavior
   #
   # In some scenarios you may want to add back some functionality provided by
   # <tt>ActionController::Base</tt> that is not present by default in
@@ -72,18 +72,19 @@ module ActionController
   #
   #   class PostsController < ApplicationController
   #     def index
-  #       @posts = Post.all
+  #       posts = Post.all
   #
   #       respond_to do |format|
-  #         format.json { render json: @posts }
-  #         format.xml  { render xml: @posts }
+  #         format.json { render json: posts }
+  #         format.xml  { render xml: posts }
   #       end
   #     end
   #   end
   #
-  # Quite straightforward. Make sure to check <tt>ActionController::Base</tt>
-  # available modules if you want to include any other functionality that is
-  # not provided by <tt>ActionController::API</tt> out of the box.
+  # Quite straightforward. Make sure to check the modules included in
+  # <tt>ActionController::Base</tt> if you want to use any other
+  # functionality that is not provided by <tt>ActionController::API</tt>
+  # out of the box.
   class API < Metal
     abstract!
 

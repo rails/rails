@@ -43,7 +43,13 @@ module ActiveSupport
     # Initiate a manual reload
     def self.reload!
       executor.wrap do
-        new.tap(&:run!).complete!
+        new.tap do |instance|
+          begin
+            instance.run!
+          ensure
+            instance.complete!
+          end
+        end
       end
       prepare!
     end

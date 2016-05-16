@@ -29,7 +29,12 @@ class MarshalTest < ActiveSupport::TestCase
     ActiveSupport::Dependencies.clear
 
     with_autoloading_fixtures do
-      assert_kind_of EM, Marshal.load(dumped)
+      object = nil
+      assert_nothing_raised do
+        object = Marshal.load(dumped)
+      end
+
+      assert_kind_of EM, object
     end
   end
 
@@ -43,7 +48,12 @@ class MarshalTest < ActiveSupport::TestCase
     ActiveSupport::Dependencies.clear
 
     with_autoloading_fixtures do
-      assert_kind_of ClassFolder::ClassFolderSubclass, Marshal.load(dumped)
+      object = nil
+      assert_nothing_raised do
+        object = Marshal.load(dumped)
+      end
+
+      assert_kind_of ClassFolder::ClassFolderSubclass, object
     end
   end
 
@@ -128,7 +138,12 @@ class MarshalTest < ActiveSupport::TestCase
       ActiveSupport::Dependencies.clear
 
       with_autoloading_fixtures do
-        assert_kind_of EM, Marshal.load(f)
+        object = nil
+        assert_nothing_raised do
+          object = Marshal.load(f)
+        end
+
+        assert_kind_of EM, object
       end
     end
   end

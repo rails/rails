@@ -63,6 +63,15 @@ module ActiveRecord
       end
     end
 
+    test "model with nonexistent attribute with default value can be saved" do
+      klass = Class.new(OverloadedType) do
+        attribute :non_existent_string_with_default, :string, default: 'nonexistent'
+      end
+
+      model = klass.new
+      assert model.save
+    end
+
     test "changing defaults" do
       data = OverloadedType.new
       unoverloaded_data = UnoverloadedType.new

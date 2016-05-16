@@ -35,7 +35,7 @@ class SessionTest < ActiveSupport::TestCase
     path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue"}
     assert_called_with @session, :process, [:put, path, params: args, headers: headers] do
       @session.stub :redirect?, false do
-        @session.request_via_redirect(:put, path, params: args, headers: headers)
+        assert_deprecated { @session.request_via_redirect(:put, path, params: args, headers: headers) }
       end
     end
   end
@@ -54,7 +54,7 @@ class SessionTest < ActiveSupport::TestCase
     value_series = [true, true, false]
     assert_called @session, :follow_redirect!, times: 2 do
       @session.stub :redirect?, ->{ value_series.shift } do
-        @session.request_via_redirect(:get, path, params: args, headers: headers)
+        assert_deprecated { @session.request_via_redirect(:get, path, params: args, headers: headers) }
       end
     end
   end
@@ -63,7 +63,9 @@ class SessionTest < ActiveSupport::TestCase
     path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue"}
     @session.stub :redirect?, false do
       @session.stub :status, 200 do
-        assert_equal 200, @session.request_via_redirect(:get, path, params: args, headers: headers)
+        assert_deprecated do
+          assert_equal 200, @session.request_via_redirect(:get, path, params: args, headers: headers)
+        end
       end
     end
   end

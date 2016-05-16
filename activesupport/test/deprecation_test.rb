@@ -341,7 +341,7 @@ class DeprecationTest < ActiveSupport::TestCase
   end
 
   def test_default_deprecation_horizon_should_always_bigger_than_current_rails_version
-    assert ActiveSupport::Deprecation.new.deprecation_horizon > ActiveSupport::VERSION::STRING
+    assert_operator ActiveSupport::Deprecation.new.deprecation_horizon, :>, ActiveSupport::VERSION::STRING
   end
 
   def test_default_gem_name

@@ -213,7 +213,7 @@ module ActionController #:nodoc:
 
         if !verified_request?
           if logger && log_warning_on_csrf_failure
-            logger.warn "Can't verify CSRF token authenticity"
+            logger.warn "Can't verify CSRF token authenticity."
           end
           handle_unverified_request
         end
@@ -405,7 +405,8 @@ module ActionController #:nodoc:
       end
 
       def normalize_action_path(action_path)
-        action_path.split('?').first.to_s.chomp('/')
+        uri = URI.parse(action_path)
+        uri.path.chomp('/')
       end
   end
 end

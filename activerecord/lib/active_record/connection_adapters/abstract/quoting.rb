@@ -146,6 +146,10 @@ module ActiveRecord
         end
       end
 
+      def quoted_time(value) # :nodoc:
+        quoted_date(value).sub(/\A2000-01-01 /, '')
+      end
+
       def prepare_binds_for_database(binds) # :nodoc:
         binds.map(&:value_for_database)
       end
@@ -166,6 +170,7 @@ module ActiveRecord
         # BigDecimals need to be put in a non-normalized form and quoted.
         when BigDecimal then value.to_s('F')
         when Numeric, ActiveSupport::Duration then value.to_s
+        when Type::Time::Value then "'#{quoted_time(value)}'"
         when Date, Time then "'#{quoted_date(value)}'"
         when Symbol     then "'#{quote_string(value.to_s)}'"
         when Class      then "'#{value}'"
@@ -181,6 +186,7 @@ module ActiveRecord
         when false      then unquoted_false
         # BigDecimals need to be put in a non-normalized form and quoted.
         when BigDecimal then value.to_s('F')
+        when Type::Time::Value then quoted_time(value)
         when Date, Time then quoted_date(value)
         when *types_which_need_no_typecasting
           value

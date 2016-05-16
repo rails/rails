@@ -49,6 +49,10 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
         end
       end
     end
+
+    assert_raise(ArgumentError) do
+      Date.new(2005, 2, 21).to_time(:tokyo)
+    end
   end
 
   def test_compare_to_time
@@ -276,6 +280,23 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
       with_tz_default zone do
         assert_equal zone.local(2005,2,21,23,59,59,Rational(999999999, 1000)), Date.new(2005,2,21).end_of_day
         assert_equal zone, Date.new(2005,2,21).end_of_day.time_zone
+      end
+    end
+  end
+
+  def test_all_day
+    beginning_of_day = Time.local(2011,6,7,0,0,0)
+    end_of_day = Time.local(2011,6,7,23,59,59,Rational(999999999, 1000))
+    assert_equal beginning_of_day..end_of_day, Date.new(2011,6,7).all_day
+  end
+
+  def test_all_day_when_zone_is_set
+    zone = ActiveSupport::TimeZone["Hawaii"]
+    with_env_tz "UTC" do
+      with_tz_default zone do
+        beginning_of_day = zone.local(2011,6,7,0,0,0)
+        end_of_day = zone.local(2011,6,7,23,59,59,Rational(999999999, 1000))
+        assert_equal beginning_of_day..end_of_day, Date.new(2011,6,7).all_day
       end
     end
   end

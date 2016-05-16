@@ -138,6 +138,18 @@ module YourApp
 end
 ```
 
+You can also configure your backend on a per job basis.
+
+```ruby
+class GuestsCleanupJob < ActiveJob::Base
+  self.queue_adapter = :resque
+  #....
+end
+
+# Now your job will use `resque` as it's backend queue adapter overriding what
+# was configured in `config.active_job.queue_adapter`.
+```
+
 ### Starting the Backend
 
 Since jobs run in parallel to your Rails application, most queuing libraries

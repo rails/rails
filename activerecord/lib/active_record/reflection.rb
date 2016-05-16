@@ -874,7 +874,7 @@ module ActiveRecord
           example_options = options.dup
           example_options[:source] = source_reflection_names.first
           ActiveSupport::Deprecation.warn \
-            "Ambiguous source reflection for through association.  Please " \
+            "Ambiguous source reflection for through association. Please " \
             "specify a :source directive on your declaration like:\n" \
             "\n" \
             "  class #{active_record.name} < ActiveRecord::Base\n" \

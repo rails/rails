@@ -49,10 +49,7 @@ end
 
 module ConcurrentRubyConcurrencyHelpers
   def wait_for_async
-    e = Concurrent.global_io_executor
-    until e.completed_task_count == e.scheduled_task_count
-      sleep 0.1
-    end
+    wait_for_executor Concurrent.global_io_executor
   end
 
   def run_in_eventmachine
@@ -66,5 +63,11 @@ class ActionCable::TestCase < ActiveSupport::TestCase
     include EventMachineConcurrencyHelpers
   else
     include ConcurrentRubyConcurrencyHelpers
+  end
+
+  def wait_for_executor(executor)
+    until executor.completed_task_count == executor.scheduled_task_count
+      sleep 0.1
+    end
   end
 end

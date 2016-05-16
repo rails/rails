@@ -69,6 +69,10 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Migration.verbose = @verbose_was
   end
 
+  def test_migration_version_matches_component_version
+    assert_equal ActiveRecord::VERSION::STRING.to_f, ActiveRecord::Migration.current_version
+  end
+
   def test_migrator_versions
     migrations_path = MIGRATIONS_ROOT + "/valid"
     old_path = ActiveRecord::Migrator.migrations_paths

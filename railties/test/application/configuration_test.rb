@@ -686,7 +686,7 @@ module ApplicationTests
 
         private
 
-        def form_authenticity_token(*args); token; end # stub the authenticy token
+        def form_authenticity_token(*args); token; end # stub the authenticity token
       end
       RUBY
 
@@ -1464,7 +1464,7 @@ module ApplicationTests
       assert_equal :api, Rails.configuration.debug_exception_response_format
     end
 
-    test "debug_exception_response_format can be overriden" do
+    test "debug_exception_response_format can be overridden" do
       add_to_config <<-RUBY
         config.api_only = true
       RUBY

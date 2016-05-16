@@ -247,6 +247,7 @@ end
 ```
 
 This migration will create a `user_id` column and appropriate index.
+For more `add_reference` options, visit the [API documentation](http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_reference).
 
 There is also a generator which will produce join tables if `JoinTable` is part of the name:
 
@@ -353,7 +354,14 @@ end
 ```
 
 will append `ENGINE=BLACKHOLE` to the SQL statement used to create the table
-(when using MySQL, the default is `ENGINE=InnoDB`).
+(when using MySQL or MariaDB, the default is `ENGINE=InnoDB`).
+
+Also you can pass the `:comment` option with any description for the table
+that will be stored in database itself and can be viewed with database administration
+tools, such as MySQL Workbench or PgAdmin III. It's highly recommended to specify
+comments in migrations for applications with large databases as it helps people
+to understand data model and generate documentation.
+Currently only the MySQL and PostgreSQL adapters support comments.
 
 ### Creating a Join Table
 
@@ -454,6 +462,7 @@ number of digits after the decimal point.
 are using a dynamic value (such as a date), the default will only be calculated
 the first time (i.e. on the date the migration is applied).
 * `index`        Adds an index for the column.
+* `comment`      Adds a comment for the column.
 
 Some adapters may support additional options; see the adapter specific API docs
 for further information.
@@ -970,7 +979,7 @@ this, then you should set the schema format to `:sql`.
 Instead of using Active Record's schema dumper, the database's structure will
 be dumped using a tool specific to the database (via the `db:structure:dump`
 rails task) into `db/structure.sql`. For example, for PostgreSQL, the `pg_dump`
-utility is used. For MySQL, this file will contain the output of
+utility is used. For MySQL and MariaDB, this file will contain the output of
 `SHOW CREATE TABLE` for the various tables.
 
 Loading these schemas is simply a question of executing the SQL statements they

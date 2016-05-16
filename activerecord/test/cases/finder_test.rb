@@ -174,7 +174,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_fails_when_parameter_has_invalid_type
-    assert_raises(RangeError) do
+    assert_raises(ActiveModel::RangeError) do
       assert_equal false, Topic.exists?(("9"*53).to_i) # number that's bigger than int
     end
     assert_equal false, Topic.exists?("foo")
@@ -652,9 +652,14 @@ class FinderTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordNotFound) { Topic.where(approved: true).find(1) }
   end
 
-  def test_find_on_hash_conditions_with_explicit_table_name
+  def test_find_on_hash_conditions_with_qualified_attribute_dot_notation_string
     assert Topic.where('topics.approved' => false).find(1)
     assert_raise(ActiveRecord::RecordNotFound) { Topic.where('topics.approved' => true).find(1) }
+  end
+
+  def test_find_on_hash_conditions_with_qualified_attribute_dot_notation_symbol
+    assert Topic.where('topics.approved': false).find(1)
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.where('topics.approved': true).find(1) }
   end
 
   def test_find_on_hash_conditions_with_hashed_table_name

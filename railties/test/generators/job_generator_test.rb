@@ -26,4 +26,11 @@ class JobGeneratorTest < Rails::Generators::TestCase
       assert_match(/queue_as :admin/, job)
     end
   end
+
+  def test_application_job_skeleton_is_created
+    run_generator ["refresh_counters"]
+    assert_file "app/jobs/application_job.rb" do |job|
+      assert_match(/class ApplicationJob < ActiveJob::Base/, job)
+    end
+  end
 end

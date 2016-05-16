@@ -14,6 +14,19 @@
 #   App.appearance = App.cable.subscriptions.create "AppearanceChannel"
 #
 # For more details on how you'd configure an actual channel subscription, see ActionCable.Subscription.
+#
+# When a consumer is created, it automatically connects with the server.
+#
+# To disconnect from the server, call
+#
+#   App.cable.disconnect()
+#
+# and to restart the connection:
+#
+#   App.cable.connect()
+#
+# Any channel subscriptions which existed prior to disconnecting will
+# automatically resubscribe.
 class ActionCable.Consumer
   constructor: (@url) ->
     @subscriptions = new ActionCable.Subscriptions this
@@ -21,6 +34,12 @@ class ActionCable.Consumer
 
   send: (data) ->
     @connection.send(data)
+
+  connect: ->
+    @connection.open()
+
+  disconnect: ->
+    @connection.close(allowReconnect: false)
 
   ensureActiveConnection: ->
     unless @connection.isActive()

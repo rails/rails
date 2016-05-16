@@ -3,8 +3,7 @@ require 'stubs/test_server'
 
 class ActionCable::Connection::StreamTest < ActionCable::TestCase
   class Connection < ActionCable::Connection::Base
-    attr_reader :websocket, :subscriptions, :message_buffer, :connected
-    attr_reader :errors
+    attr_reader :connected, :websocket, :errors
 
     def initialize(*)
       super

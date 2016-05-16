@@ -1086,6 +1086,11 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 9, posts.where(:comments_count => 0).count
   end
 
+  def test_count_with_block
+    posts = Post.all
+    assert_equal 10, posts.count { |p| p.comments_count.even? }
+  end
+
   def test_count_on_association_relation
     author = Author.last
     another_author = Author.first
@@ -1988,5 +1993,23 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_relation_join_method
     assert_equal 'Thank you for the welcome,Thank you again for the welcome', Post.first.comments.join(",")
+  end
+
+  def test_connection_adapters_can_reorder_binds
+    posts = Post.limit(1).offset(2)
+
+    stubbed_connection = Post.connection.dup
+    def stubbed_connection.combine_bind_parameters(**kwargs)
+      offset = kwargs[:offset]
+      kwargs[:offset] = kwargs[:limit]
+      kwargs[:limit] = offset
+      super(**kwargs)
+    end
+
+    posts.define_singleton_method(:connection) do
+      stubbed_connection
+    end
+
+    assert_equal 2, posts.to_a.length
   end
 end

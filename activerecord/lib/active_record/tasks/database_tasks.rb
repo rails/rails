@@ -107,8 +107,9 @@ module ActiveRecord
       def create(*arguments)
         configuration = arguments.first
         class_for_adapter(configuration['adapter']).new(*arguments).create
+        $stdout.puts "Created database '#{configuration['database']}'"
       rescue DatabaseAlreadyExists
-        $stderr.puts "#{configuration['database']} already exists"
+        $stderr.puts "Database '#{configuration['database']}' already exists"
       rescue Exception => error
         $stderr.puts error
         $stderr.puts "Couldn't create database for #{configuration.inspect}"
@@ -116,10 +117,10 @@ module ActiveRecord
       end
 
       def create_all
-        old_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(ActiveRecord::Base)
+        old_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(ActiveRecord::Base.connection_specification_name)
         each_local_configuration { |configuration| create configuration }
         if old_pool
-          ActiveRecord::Base.connection_handler.establish_connection(ActiveRecord::Base, old_pool.spec)
+          ActiveRecord::Base.connection_handler.establish_connection(old_pool.spec)
         end
       end
 
@@ -133,11 +134,12 @@ module ActiveRecord
       def drop(*arguments)
         configuration = arguments.first
         class_for_adapter(configuration['adapter']).new(*arguments).drop
+        $stdout.puts "Dropped database '#{configuration['database']}'"
       rescue ActiveRecord::NoDatabaseError
         $stderr.puts "Database '#{configuration['database']}' does not exist"
       rescue Exception => error
         $stderr.puts error
-        $stderr.puts "Couldn't drop #{configuration['database']}"
+        $stderr.puts "Couldn't drop database '#{configuration['database']}'"
         raise
       end
 

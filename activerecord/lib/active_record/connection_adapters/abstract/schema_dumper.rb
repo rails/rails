@@ -16,7 +16,7 @@ module ActiveRecord
       def column_spec_for_primary_key(column)
         return {} if default_primary_key?(column)
         spec = { id: schema_type(column).inspect }
-        spec.merge!(prepare_column_options(column))
+        spec.merge!(prepare_column_options(column).except!(:null))
       end
 
       # This can be overridden on an Adapter level basis to support other
@@ -46,12 +46,14 @@ module ActiveRecord
           spec[:collation] = collation
         end
 
+        spec[:comment] = column.comment.inspect if column.comment.present?
+
         spec
       end
 
       # Lists the valid migration options
       def migration_keys
-        [:name, :limit, :precision, :scale, :default, :null, :collation]
+        [:name, :limit, :precision, :scale, :default, :null, :collation, :comment]
       end
 
       private

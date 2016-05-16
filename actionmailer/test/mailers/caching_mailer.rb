@@ -12,4 +12,12 @@ class CachingMailer < ActionMailer::Base
   def skip_fragment_cache_digesting
     mail(subject: "welcome", template_name: "skip_fragment_cache_digesting")
   end
+
+  def fragment_caching_options
+    mail(subject: "welcome", template_name: "fragment_caching_options")
+  end
+
+  def multipart_cache
+    mail(subject: "welcome", template_name: "multipart_cache")
+  end
 end

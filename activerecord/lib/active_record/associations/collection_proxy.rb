@@ -715,12 +715,13 @@ module ActiveRecord
       end
       alias uniq distinct
 
-      # Count all records using SQL.
+      # Count all records.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
       #   end
       #
+      #   # This will perform the count using SQL.
       #   person.pets.count # => 3
       #   person.pets
       #   # => [
@@ -728,8 +729,13 @@ module ActiveRecord
       #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
       #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
       #   #    ]
-      def count(column_name = nil)
-        @association.count(column_name)
+      #
+      # Passing a block will select all of a person's pets in SQL and then
+      # perform the count using Ruby.
+      #
+      #   person.pets.count { |pet| pet.name.include?('-') } # => 2
+      def count(column_name = nil, &block)
+        @association.count(column_name, &block)
       end
 
       # Returns the size of the collection. If the collection hasn't been loaded,

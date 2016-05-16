@@ -144,9 +144,9 @@ module ActiveSupport
             end
             compatible |= [false] unless block_share
             @waiting[Thread.current] = [purpose, compatible]
-
-            @cv.broadcast
           end
+
+          @cv.broadcast
         end
 
         begin

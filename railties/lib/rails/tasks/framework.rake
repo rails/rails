@@ -26,12 +26,12 @@ namespace :app do
 
       default_templates.each do |type, names|
         local_template_type_dir = File.join(project_templates, type)
-        FileUtils.mkdir_p local_template_type_dir
+        mkdir_p local_template_type_dir, verbose: false
 
         names.each do |name|
           dst_name = File.join(local_template_type_dir, name)
           src_name = File.join(generators_lib, type, name, "templates")
-          FileUtils.cp_r src_name, dst_name
+          cp_r src_name, dst_name, verbose: false
         end
       end
     end

@@ -50,9 +50,9 @@ User.find(session[:user_id])
 
 ### Session id
 
-NOTE: _The session id is a 32 byte long MD5 hash value._
+NOTE: _The session id is a 32-character random hex string._
 
-A session id consists of the hash value of a random string. The random string is the current time, a random number between 0 and 1, the process id number of the Ruby interpreter (also basically a random number) and a constant string. Currently it is not feasible to brute-force Rails' session ids. To date MD5 is uncompromised, but there have been collisions, so it is theoretically possible to create another input text with the same hash value. But this has had no security impact to date.
+The session id is generated using `SecureRandom.hex` which generates a random hex string using platform specific methods (such as openssl, /dev/urandom or win32) for generating cryptographically secure random numbers. Currently it is not feasible to brute-force Rails' session ids.
 
 ### Session Hijacking
 

@@ -159,7 +159,7 @@ module ActiveRecord
           id = id.id
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
             You are passing an instance of ActiveRecord::Base to `find`.
-            Please pass the id of the object by calling `.id`
+            Please pass the id of the object by calling `.id`.
           MSG
         end
 
@@ -257,7 +257,7 @@ module ActiveRecord
       # Returns the Arel engine.
       def arel_engine # :nodoc:
         @arel_engine ||=
-          if Base == self || connection_handler.retrieve_connection_pool(self)
+          if Base == self || connection_handler.retrieve_connection_pool(connection_specification_name)
             self
           else
             superclass.arel_engine

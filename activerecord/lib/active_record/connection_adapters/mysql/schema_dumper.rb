@@ -7,7 +7,7 @@ module ActiveRecord
             spec = { id: :bigint.inspect }
             spec[:default] = schema_default(column) || 'nil' unless column.auto_increment?
           else
-            spec = super.except!(:null)
+            spec = super
           end
           spec[:unsigned] = 'true' if column.unsigned?
           spec

@@ -2,6 +2,7 @@ require "cases/helper"
 require "models/book"
 require "models/post"
 require "models/author"
+require "models/event"
 
 module ActiveRecord
   class AdapterTest < ActiveRecord::TestCase
@@ -84,6 +85,17 @@ module ActiveRecord
 
     ensure
       @connection.remove_index(:accounts, :name => idx_name) rescue nil
+    end
+
+    def test_remove_index_when_name_and_wrong_column_name_specified
+      index_name = "accounts_idx"
+
+      @connection.add_index :accounts, :firm_id, :name => index_name
+      assert_raises ArgumentError do
+        @connection.remove_index :accounts, :name => index_name, :column => :wrong_column_name
+      end
+    ensure
+      @connection.remove_index(:accounts, :name => index_name)
     end
 
     def test_current_database
@@ -196,6 +208,14 @@ module ActiveRecord
           has_fk = klass_has_fk.new
           has_fk.fk_id = 1231231231
           has_fk.save(validate: false)
+        end
+
+        assert_not_nil error.cause
+      end
+
+      def test_value_limit_violations_are_translated_to_specific_exception
+        error = assert_raises(ActiveRecord::ValueTooLong) do
+          Event.create(title: 'abcdefgh')
         end
 
         assert_not_nil error.cause

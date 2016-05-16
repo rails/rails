@@ -6,7 +6,7 @@ module ActiveRecord
       end
 
       def self.load(json)
-        ActiveSupport::JSON.decode(json) unless json.nil?
+        ActiveSupport::JSON.decode(json) unless json.blank?
       end
     end
   end

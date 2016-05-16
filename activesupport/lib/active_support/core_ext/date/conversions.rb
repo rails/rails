@@ -80,6 +80,7 @@ class Date
   #
   #   date.to_time(:utc)             # => 2007-11-10 00:00:00 UTC
   def to_time(form = :local)
+    raise ArgumentError, "Expected :local or :utc, got #{form.inspect}." unless [:local, :utc].include?(form)
     ::Time.send(form, year, month, day)
   end
 

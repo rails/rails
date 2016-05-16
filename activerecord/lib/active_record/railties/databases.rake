@@ -256,7 +256,7 @@ db_namespace = namespace :db do
     end
 
     desc 'Loads a schema.rb file into the database'
-    task :load => [:environment, :load_config] do
+    task :load => [:environment, :load_config, :check_protected_environments] do
       ActiveRecord::Tasks::DatabaseTasks.load_schema_current(:ruby, ENV['SCHEMA'])
     end
 
@@ -278,7 +278,7 @@ db_namespace = namespace :db do
       desc 'Clears a db/schema_cache.dump file.'
       task :clear => [:environment, :load_config] do
         filename = File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "schema_cache.dump")
-        FileUtils.rm(filename) if File.exist?(filename)
+        rm_f filename, verbose: false
       end
     end
 
@@ -302,7 +302,7 @@ db_namespace = namespace :db do
     end
 
     desc "Recreates the databases from the structure.sql file"
-    task :load => [:environment, :load_config] do
+    task :load => [:environment, :load_config, :check_protected_environments] do
       ActiveRecord::Tasks::DatabaseTasks.load_schema_current(:sql, ENV['SCHEMA'])
     end
 

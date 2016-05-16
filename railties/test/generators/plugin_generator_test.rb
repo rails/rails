@@ -669,6 +669,19 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_generate_application_job_when_does_not_exist_in_mountable_engine
+    run_generator [destination_root, '--mountable']
+    FileUtils.rm "#{destination_root}/app/jobs/bukkits/application_job.rb"
+    capture(:stdout) do
+      `#{destination_root}/bin/rails g job refresh_counters`
+    end
+
+    assert_file "#{destination_root}/app/jobs/bukkits/application_job.rb" do |record|
+      assert_match(/module Bukkits/, record)
+      assert_match(/class ApplicationJob < ActiveJob::Base/, record)
+    end
+  end
+
   def test_after_bundle_callback
     path = 'http://example.org/rails_template'
     template = %{ after_bundle { run 'echo ran after_bundle' } }

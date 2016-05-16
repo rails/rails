@@ -144,7 +144,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_get_and_release_advisory_lock
-    lock_name = "test_lock_name"
+    lock_name = "test lock'n'name"
 
     got_lock = @connection.get_advisory_lock(lock_name)
     assert got_lock, "get_advisory_lock should have returned true but it didn't"
@@ -159,7 +159,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_release_non_existent_advisory_lock
-    lock_name = "fake_lock_name"
+    lock_name = "fake lock'n'name"
     released_non_existent_lock = @connection.release_advisory_lock(lock_name)
     assert_equal released_non_existent_lock, false,
       'expected release_advisory_lock to return false when there was no lock to release'
@@ -168,6 +168,6 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   protected
 
   def test_lock_free(lock_name)
-    @connection.select_value("SELECT IS_FREE_LOCK('#{lock_name}');") == 1
+    @connection.select_value("SELECT IS_FREE_LOCK(#{@connection.quote(lock_name)})") == 1
   end
 end
