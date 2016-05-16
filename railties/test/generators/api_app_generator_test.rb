@@ -104,7 +104,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
        config/initializers/per_form_csrf_tokens.rb
        lib/assets
        vendor/assets
-       test/helpers
        tmp/cache/assets)
   end
 end
