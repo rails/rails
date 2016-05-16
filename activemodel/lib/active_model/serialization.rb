@@ -72,7 +72,7 @@ module ActiveModel
       only   = Array.wrap(options[:only]).map(&:to_s)
       except = Array.wrap(options[:except]).map(&:to_s)
 
-      attribute_names = attributes.keys.sort
+      attribute_names = attributes.keys
       if only.any?
         attribute_names &= only
       elsif except.any?

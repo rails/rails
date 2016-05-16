@@ -135,6 +135,15 @@ class JsonSerializationTest < ActiveModel::TestCase
     end
   end
 
+  test "as_json should keep the default order in the hash" do
+    json = @contact.as_json
+
+    keys = json['contact'].keys
+    %w(name age created_at awesome preferences).each_with_index do |field, index|
+      assert_equal keys.index(field), index
+    end
+  end
+
   test "custom as_json should be honored when generating json" do
     def @contact.as_json(options); { :name => name, :created_at => created_at }; end
     json = @contact.to_json
