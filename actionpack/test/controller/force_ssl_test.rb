@@ -31,6 +31,11 @@ class ForceSSLControllerLevelTest < ActionController::TestCase
     assert_equal "https://test.host/force_ssl_controller_level/banana", redirect_to_url
   end
 
+  def test_banana_with_params_redirects_to_https_with_params
+    get :banana, :id => "12345"
+    assert_equal "https://test.host/force_ssl_controller_level/banana?id=12345", redirect_to_url
+  end
+
   def test_cheeseburger_redirects_to_https
     get :cheeseburger
     assert_response 301
