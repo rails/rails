@@ -1,3 +1,9 @@
+*   Handle JSON deserialization correctly if the column default from database
+    adapter returns `''` instead of `nil`.
+
+    *Johannes Opper*
+
+
 ## Rails 5.0.0.rc1 (May 06, 2016) ##
 
 *   No changes.
