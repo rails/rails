@@ -1033,6 +1033,8 @@ module ActionView
             value != 0
           when String
             value == checked_value
+          when Symbol
+            checked_value.is_a?(Symbol) ? (value == checked_value) : (value.to_s == checked_value)
           when Array
             value.include?(checked_value)
           else
