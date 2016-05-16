@@ -6,13 +6,6 @@ module ActionView
   class Digestor
     @@digest_mutex   = Mutex.new
 
-    class PerRequestDigestCacheExpiry < Struct.new(:app) # :nodoc:
-      def call(env)
-        ActionView::LookupContext::DetailsKey.clear
-        app.call(env)
-      end
-    end
-
     class << self
       # Supported options:
       #
