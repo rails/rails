@@ -999,8 +999,8 @@ module ActiveRecord
           sql
         else
           versions.map { |version|
-            "INSERT INTO #{sm_table} (version) VALUES ('#{version}');"
-          }.join "\n\n"
+            "INSERT INTO #{sm_table} (version) VALUES ('#{version}');\n\n"
+          }.join ""
         end
       end
 
@@ -1039,7 +1039,12 @@ module ActiveRecord
           if (duplicate = inserting.detect {|v| inserting.count(v) > 1})
             raise "Duplicate migration #{duplicate}. Please renumber your migrations to resolve the conflict."
           end
-          execute insert_versions_sql(inserting)
+
+          sql = insert_versions_sql(inserting)
+          statements = sql.split(';').select{|i| i.present? } # Splitting up because old versions of sqlite3 can't string sql commands properly
+          statements.each do |statement|
+            execute "#{statement};"
+          end
         end
       end
 
