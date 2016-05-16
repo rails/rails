@@ -160,6 +160,20 @@ module ActiveRecord
         end
       end
 
+      def ids_reader
+        if loaded? || @reflection.options[:finder_sql]
+          load_target.map do |record|
+            record.send(@reflection.association_primary_key)
+          end
+        else
+          column  = "#{@reflection.quoted_table_name}.#{@reflection.association_primary_key}"
+
+          scoped.except(:select).select(column).to_array(false).map! do |record|
+            record.send(@reflection.association_primary_key)
+          end
+        end
+      end
+
       protected
         # Does the association have a <tt>:dependent</tt> option?
         def dependent?

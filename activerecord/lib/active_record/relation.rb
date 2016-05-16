@@ -59,13 +59,19 @@ module ActiveRecord
     end
 
     def to_a
+      to_array
+    end
+
+    def to_array(with_preload = true)
       return @records if loaded?
 
       @records = eager_loading? ? find_with_associations : @klass.find_by_sql(arel.to_sql)
 
-      preload = @preload_values
-      preload +=  @includes_values unless eager_loading?
-      preload.each {|associations| @klass.send(:preload_associations, @records, associations) }
+      if with_preload
+        preload = @preload_values
+        preload += @includes_values unless eager_loading?
+        preload.each {|associations| @klass.send(:preload_associations, @records, associations) }
+      end
 
       # @readonly_value is true only if set explicitly. @implicit_readonly is true if there
       # are JOINS and no explicit SELECT.

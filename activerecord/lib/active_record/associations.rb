@@ -1490,17 +1490,7 @@ module ActiveRecord
           end
 
           redefine_method("#{reflection.name.to_s.singularize}_ids") do
-            if send(reflection.name).loaded? || reflection.options[:finder_sql]
-              send(reflection.name).map { |r| r.id }
-            else
-              if reflection.through_reflection && reflection.source_reflection.belongs_to?
-                through = reflection.through_reflection
-                primary_key = reflection.source_reflection.primary_key_name
-                send(through.name).select("DISTINCT #{through.quoted_table_name}.#{primary_key}").map! { |r| r.send(primary_key) }
-              else
-                send(reflection.name).select("#{reflection.quoted_table_name}.#{reflection.klass.primary_key}").except(:includes).map! { |r| r.id }
-              end
-            end
+            send(reflection.name).ids_reader
           end
 
         end
