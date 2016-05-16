@@ -12,6 +12,8 @@ def app_task(name)
   task name => [:load_app, "app:db:#{name}"]
 end
 
+task "app:railties:install:migrations" => "railties:install:migrations"
+
 namespace :db do
   app_task "reset"
 
