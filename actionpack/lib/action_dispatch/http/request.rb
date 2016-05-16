@@ -296,7 +296,7 @@ module ActionDispatch
 
     # True if the request came from localhost, 127.0.0.1.
     def local?
-      LOCALHOST =~ remote_addr && LOCALHOST =~ remote_ip
+      (LOCALHOST =~ remote_addr).present? && (LOCALHOST =~ remote_ip).present?
     end
 
     # Remove nils from the params hash
