@@ -123,7 +123,6 @@ use ActionDispatch::Flash
 use Rack::Head
 use Rack::ConditionalGet
 use Rack::ETag
-use ActionView::Digestor::PerRequestDigestCacheExpiry
 run Rails.application.routes
 ```
 
