@@ -5,6 +5,13 @@ module ActionView
   # = Action View Railtie
   class Railtie < Rails::Railtie
     config.action_view = ActiveSupport::OrderedOptions.new
+    class << config.action_view
+      def debug_rjs=(val)
+        ActiveSupport::Deprecation.warn("config.action_view.debug_rjs is " <<
+          "deprecated, please install prototype-rails to use RJS templates")
+        self[:debug_rjs] = val
+      end
+    end
     config.action_view.stylesheet_expansions = {}
     config.action_view.javascript_expansions = { :defaults => %w(jquery jquery_ujs) }
 
