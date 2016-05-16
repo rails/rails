@@ -63,6 +63,7 @@ module ActiveSupport
 
       typ, _, val = ts[0]
       case typ
+      when :str, :val then valparse(ts)
       when '{' then objparse(ts)
       when '[' then arrparse(ts)
       else

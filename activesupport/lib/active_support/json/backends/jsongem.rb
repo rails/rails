@@ -9,7 +9,7 @@ module ActiveSupport
 
         # Converts a JSON string into a Ruby object.
         def decode(json)
-          data = ::JSON.parse(json)
+          data = ::JSON.load(json)
           if ActiveSupport.parse_json_times
             convert_dates_from(data)
           else
