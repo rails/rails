@@ -2,13 +2,23 @@ normal_comment_rating:
   id: 1
   comment_id: 8
   value: 1
+  type: Rating
 
 special_comment_rating:
   id: 2
   comment_id: 6
   value: 1
+  type: Rating
 
 sub_special_comment_rating:
   id: 3
   comment_id: 12
   value: 1
+  type: Rating
+
+special_rating:
+  id: 4
+  comment_id: 10
+  value: 1
+  type: SpecialRating
+  special_comment_id: 3

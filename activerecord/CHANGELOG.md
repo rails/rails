@@ -2197,6 +2197,17 @@
 
     *Yves Senn*
 
+*   Changed scoped blocks to be executed with `instance_eval`
+
+    Named scopes (i.e. using STI) were previously cached according to
+    base class so scoped queries made by classes with a common ancestor would
+    leak. Changed the way scope blocks were called so inheritance rules are
+    followed during the call and scopes are cached correctly.
+
+    Fixes #13466.
+
+    *Jefferson Lai*
+
 *   Do not create useless database transaction when building `has_one` association.
 
     Example:
