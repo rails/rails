@@ -1,3 +1,4 @@
+require 'active_support/core_ext/requirer'
 require 'singleton'
 
 module ActiveSupport
