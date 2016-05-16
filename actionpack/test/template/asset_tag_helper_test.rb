@@ -1056,6 +1056,11 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
     assert_equal 'gopher://a.example.com/files/go/here/collaboration/hieraki/images/xml.png', image_path('xml.png')
   end
 
+  def test_asset_host_with_protocol_agnostic_link
+    @controller.config.asset_host = '//a.example.com'
+    assert_equal '//a.example.com/collaboration/hieraki/images/pants.png', image_path('pants.png')
+  end
+
   def test_assert_css_and_js_of_the_same_name_return_correct_extension
     assert_dom_equal(%(/collaboration/hieraki/javascripts/foo.js), javascript_path("foo"))
     assert_dom_equal(%(/collaboration/hieraki/stylesheets/foo.css), stylesheet_path("foo"))
