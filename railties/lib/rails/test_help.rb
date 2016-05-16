@@ -14,6 +14,8 @@ if defined?(Test::Unit::Util::BacktraceFilter) && ENV['BACKTRACE'].nil?
 end
 
 if defined?(MiniTest)
+  require 'rails/mini_test_backtrace_cleaner'
+
   # Enable turn if it is available
   begin
     require 'turn'
