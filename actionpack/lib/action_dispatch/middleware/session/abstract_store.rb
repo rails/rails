@@ -201,7 +201,7 @@ module ActionDispatch
           stale_session_check! do
             request = ActionDispatch::Request.new(env)
             sid = request.cookies[@key]
-            sid ||= request.params[@key] unless @cookie_only
+            sid ||= (request.GET[@key] || request.POST[@key]) unless @cookie_only
             sid
           end
         end
