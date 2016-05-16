@@ -103,7 +103,8 @@ module ActiveRecord
       if lookup.is_a?(Hash)
         lookup.each do |key, value| 
           if value.is_a?(Hash) && value.any? { |k,v| v.is_a?(Hash) }
-            $stderr.puts "[DEPRECATION WARNING] Nested I18n namespace lookup under \"#{container}.#{key}\" is no longer supported"
+            ActiveSupport::Deprecation.warn "[DEPRECATION WARNING] Nested I18n namespace lookup under \"#{container}.#{key}\" is no longer supported"
+
           end
         end
       end
@@ -113,7 +114,7 @@ module ActiveRecord
       if lookup.is_a?(Hash)
         lookup.each do |key, value|
           if value.is_a?(Hash) && !value.key?(:one)
-            $stderr.puts "[DEPRECATION WARNING] Nested I18n namespace lookup under \"#{container}.#{key}\" is no longer supported"
+            ActiveSupport::Deprecation.warn "[DEPRECATION WARNING] Nested I18n namespace lookup under \"#{container}.#{key}\" is no longer supported"
           end
         end
       end
