@@ -13,14 +13,6 @@ class RequirerTest < ActiveSupport::TestCase
   MOCK_BASE_FILE = '/tmp.rb'.freeze
   MOCK_FILES     = %w(a.rb b.rb c.rb).map { |f| [MOCK_PATH, f].join('/') }
 
-  def setup
-    FileUtils.touch MOCK_FILES
-  end
-
-  def cleanup
-    FileUtils.rm MOCK_FILES
-  end
-
   def test_initialize_without_parameter_exclude
     setup
     rq = Requirer.new(MOCK_PATH)
@@ -82,5 +74,15 @@ class RequirerTest < ActiveSupport::TestCase
     end
   ensure
     cleanup
+  end
+
+  private
+
+  def setup
+    FileUtils.touch MOCK_FILES
+  end
+
+  def cleanup
+    FileUtils.rm MOCK_FILES
   end
 end
