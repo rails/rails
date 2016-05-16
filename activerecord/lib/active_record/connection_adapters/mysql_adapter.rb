@@ -62,6 +62,7 @@ module ActiveRecord
         def simplified_type(field_type)
           return :boolean if MysqlAdapter.emulate_booleans && field_type.downcase.index("tinyint(1)")
           return :string  if field_type =~ /enum/i
+          return :integer  if field_type =~ /year/i
           super
         end
 
@@ -78,6 +79,7 @@ module ActiveRecord
             else
               super # we could return 65535 here, but we leave it undecorated by default
             end
+          when /^enum/i;     255
           when /^bigint/i;    8
           when /^int/i;       4
           when /^mediumint/i; 3
