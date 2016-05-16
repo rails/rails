@@ -92,7 +92,7 @@ module ActiveRecord
               options
             when Proc
               if self.model_name != parent_scope.model_name
-                options.bind(parent_scope).call(*args)
+                parent_scope.class_exec(*args, &options)
               else
                 options.call(*args)
               end
