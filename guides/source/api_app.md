@@ -331,6 +331,19 @@ will be:
 { :person => { :firstName => "Yehuda", :lastName => "Katz" } }
 ```
 
+### Using ActionView::Digestor::PerRequestDigestCacheExpiry
+
+If you're using digest caching — e.g. via cache helpers in templates — you
+should add `ActionView::Digestor::PerRequestDigestCacheExpiry` to ensure the
+template digests Rails caches in a request is cleared when it's done.
+The middleware should only be included in development environments. Therefore use:
+
+```ruby
+if app.config.consider_all_requests_local
+ config.middleware.use ActionView::Digestor::PerRequestDigestCacheExpiry
+end
+```
+
 ### Other Middleware
 
 Rails ships with a number of other middleware that you might want to use in an
