@@ -123,6 +123,10 @@ module ActionController
       self.path_parameters = path_parameters
     end
 
+    def recycle
+      env.delete 'PATH_INFO'
+    end
+
     ENCODER = Class.new do
       include Rack::Test::Utils
 
