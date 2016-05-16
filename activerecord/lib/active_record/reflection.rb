@@ -281,7 +281,7 @@ module ActiveRecord
         dependent_conditions = []
         dependent_conditions << "#{primary_key_name} = #{record.send(name).send(:owner_quoted_id)}"
         dependent_conditions << "#{options[:as]}_type = '#{base_class.name}'" if options[:as]
-        dependent_conditions << klass.send(:sanitize_sql, options[:conditions]) if options[:conditions]
+        dependent_conditions << record.send(:interpolate_sql, klass.send(:sanitize_sql, options[:conditions])) if options[:conditions]
         dependent_conditions = dependent_conditions.collect {|where| "(#{where})" }.join(" AND ")
         dependent_conditions << extra_conditions if extra_conditions
         dependent_conditions = dependent_conditions.gsub('@', '\@')
