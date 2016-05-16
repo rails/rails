@@ -167,6 +167,7 @@ module ActionMailer
         if real_content_type =~ /multipart/
           ctype_attrs.delete "charset"
           m.content_type([main_type, sub_type, ctype_attrs])
+          m.body.boundary = ctype_attrs["boundary"] if ctype_attrs.has_key?("boundary")
         end
       end
 
@@ -206,8 +207,8 @@ module ActionMailer
           @parts << create_inline_part(render(:template => template), template.mime_type)
         end
 
-        if @parts.size > 1
-          @content_type = "multipart/alternative" if @content_type !~ /^multipart/
+        if @parts.size > 1 && @content_type !~ /^multipart/
+          @content_type = Mail::ContentTypeField.with_boundary("multipart/alternative").value
         end
 
         # If this is a multipart e-mail add the mime_version if it is not
