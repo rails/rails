@@ -1024,7 +1024,8 @@ module ActiveRecord
         sm_table = quote_table_name(ActiveRecord::Migrator.schema_migrations_table_name)
 
         migrated = select_values("SELECT version FROM #{sm_table}").map(&:to_i)
-        paths = migrations_paths.map {|p| "#{p}/**/[0-9]*_*.rb" }
+
+        paths = migrations_paths.map {|p| ActiveRecord::Migrator.migration_paths_regex(p) }
         versions = Dir[*paths].map do |filename|
           filename.split('/').last.split('_').first.to_i
         end
