@@ -62,7 +62,7 @@ class DateTime
   #   # => Mon, 17 Dec 2012 00:00:00 +0000
   def self.civil_from_format(utc_or_local, year, month=1, day=1, hour=0, min=0, sec=0)
     if utc_or_local.to_sym == :local
-      offset = ::Time.local(year, month, day).utc_offset.to_r / 86400
+      offset = Rational(::Time.local(year, month, day).utc_offset, 86400)
     else
       offset = 0
     end
