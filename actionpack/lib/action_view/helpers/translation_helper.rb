@@ -18,7 +18,12 @@ module ActionView
         options[:raise] = true
         keys = scope_keys_by_partial(keys)
 
-        translations = I18n.translate(keys, options)
+        html_safe_options = options.dup
+        options.except(*I18n::RESERVED_KEYS).each do |name, value|
+          html_safe_options[name] = ERB::Util.html_escape(value.to_s)
+        end
+
+        translations = I18n.translate(keys, html_safe_options)
         translations = [translations] if !multiple_keys && translations.size > 1
         translations = html_safe_translation_keys(keys, translations)
 
