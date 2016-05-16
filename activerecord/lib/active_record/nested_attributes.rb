@@ -371,10 +371,17 @@ module ActiveRecord
           unless reject_new_record?(association_name, attributes)
             association.build(attributes.except(*UNASSIGNABLE_KEYS))
           end
-
-        elsif existing_record = existing_records.detect { |record| record.id.to_s == attributes['id'].to_s }
-          association.send(:add_record_to_target_with_callbacks, existing_record) if !association.loaded? && !call_reject_if(association_name, attributes)
-          assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
+        elsif existing_record = begin
+            # Make sure we are operating on the actual object which is in the association's
+            # proxy_target array (either by finding it, or adding it if not found)
+            # Take into account that the proxy_target is a "moving target" since it may change due to callbacks
+            target_record,existing_record = *[association.target,existing_records].map { |recs| recs.detect { |record| record.id.to_s == attributes['id'].to_s }}
+            association.target << existing_record if existing_record && !target_record #FIXME: there is no good way of adding without callback, but the record is already part of the association so there shouldn't be any callback
+            target_record or existing_record
+          end
+          if !call_reject_if(association_name, attributes)
+            assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
+          end
 
         else
           raise_nested_attributes_record_not_found(association_name, attributes['id'])
