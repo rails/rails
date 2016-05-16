@@ -25,6 +25,8 @@ module ActionView #:nodoc:
       # local assigns available to the template. The +render+ method ought to
       # return the rendered template as a string.
       def register_template_handler(extension, klass)
+        # Clear cache of template extensions
+        @@template_extensions = nil
         @@template_handlers[extension.to_sym] = klass
       end
 
