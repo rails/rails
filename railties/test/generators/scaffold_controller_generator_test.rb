@@ -128,8 +128,10 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     assert_file "app/controllers/users_controller.rb" do |content|
       if RUBY_VERSION < "1.9"
         assert_match(/\{ render :action => "new" \}/, content)
+        assert_match(/\{ render :json => true, :status => :ok\}/, content)
       else
         assert_match(/\{ render action: "new" \}/, content)
+        assert_match(/\{ render json: true, status: :ok\}/, content)
       end
     end
   end
