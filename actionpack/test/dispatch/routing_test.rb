@@ -2241,6 +2241,29 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal '/api/1.0/users/first.last.xml', api_user_path(:version => '1.0', :id => 'first.last', :format => :xml)
   end
 
+  def test_direct_children_of_shallow_resources
+    draw do
+      resources :blogs do
+        resources :posts, shallow: true do
+          resources :comments
+        end
+      end
+    end
+
+    post '/posts/1/comments'
+    assert_equal 'comments#create', @response.body
+    assert_equal '/posts/1/comments', post_comments_path('1')
+
+    get '/posts/2/comments/new'
+    assert_equal 'comments#new', @response.body
+    assert_equal '/posts/2/comments/new', new_post_comment_path('2')
+
+    get '/posts/1/comments'
+    assert_equal 'comments#index', @response.body
+    assert_equal '/posts/1/comments', post_comments_path('1')
+  end
+
+
   def test_glob_parameter_accepts_regexp
     draw do
       get '/:locale/*file.:format', :to => 'files#show', :file => /path\/to\/existing\/file/
