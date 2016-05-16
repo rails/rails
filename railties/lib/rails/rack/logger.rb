@@ -21,8 +21,12 @@ module Rails
         request = ActionDispatch::Request.new(env)
         path = request.filtered_path
 
-        info "\n\nStarted #{request.request_method} \"#{path}\" " \
-             "for #{request.ip} at #{Time.now.to_default_s}"
+        # If config.assets.logger is set to false, only log non-assets related requests
+        if ((Rails.application.config.assets.logger != false) || 
+          (env['PATH_INFO'].index("/assets/") != 0))
+          info "\n\nStarted #{request.request_method} \"#{path}\"" \
+              " for #{request.ip} at #{Time.now.to_default_s}"
+        end
       end
 
       def after_dispatch(env)

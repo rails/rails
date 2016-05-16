@@ -19,8 +19,9 @@ module Sprockets
 
       require 'sprockets'
 
+      # Don't display Sprockets log messages if config.assets.logger is false in envrionment
       app.assets = Sprockets::Environment.new(app.root.to_s) do |env|
-        env.logger  = ::Rails.logger
+        env.logger  = ::Rails.logger unless config.assets.logger == false
         env.version = ::Rails.env + "-#{config.assets.version}"
 
         if config.assets.cache_store != false
