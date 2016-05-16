@@ -35,6 +35,36 @@ module ActiveRecord
         assert !Session.table_exists?
       end
 
+      def test_changing_data_updates_session
+        Session.create_table!
+
+        session = Session.new(:data => 'hello')
+        session.session_id = "100"
+        session.save!
+
+        session.data = 'world'
+        assert_queries(1) do
+          assert_equal session.save, true
+        end
+      ensure
+        Session.drop_table!
+      end
+
+      def test_unchanged_data_does_not_update_session
+        Session.create_table!
+
+        session = Session.new(:data => 'hello')
+        session.session_id = "100"
+        session.save!
+
+        session.data = 'hello'
+        assert_no_queries do
+          assert_equal session.save, false
+        end
+      ensure
+        Session.drop_table!
+      end
+
       def test_find_by_sess_id_compat
         klass = Class.new(Session) do
           def self.session_id_column

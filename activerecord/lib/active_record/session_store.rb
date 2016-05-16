@@ -87,6 +87,7 @@ module ActiveRecord
 
       before_save :marshal_data!
       before_save :raise_on_session_data_overflow!
+      before_save :data_changed?
 
       class << self
         def data_column_size_limit
@@ -100,6 +101,10 @@ module ActiveRecord
         end
 
         private
+          def data_changed?
+            changes && changes[@@data_column_name]
+          end
+
           def session_id_column
             'session_id'
           end
