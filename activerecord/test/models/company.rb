@@ -69,6 +69,8 @@ class Firm < Company
   has_many :readonly_clients, :class_name => 'Client', :readonly => true
   has_many :clients_using_primary_key, :class_name => 'Client',
            :primary_key => 'name', :foreign_key => 'firm_name'
+  has_many :clients_using_primary_key_method, :class_name => 'Client',
+           :primary_key => 'primary_key_method', :foreign_key => 'firm_name'
   has_many :clients_using_primary_key_with_delete_all, :class_name => 'Client',
            :primary_key => 'name', :foreign_key => 'firm_name', :dependent => :delete_all
   has_many :clients_grouped_by_firm_id, :class_name => "Client", :group => "firm_id", :select => "firm_id"
@@ -89,6 +91,10 @@ class Firm < Company
   has_one :unautosaved_account, :foreign_key => "firm_id", :class_name => 'Account', :autosave => false
   has_many :accounts
   has_many :unautosaved_accounts, :foreign_key => "firm_id", :class_name => 'Account', :autosave => false
+  
+  def primary_key_method
+    name
+  end
 end
 
 class DependentFirm < Company
