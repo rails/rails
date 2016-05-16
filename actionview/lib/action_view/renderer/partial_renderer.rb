@@ -313,6 +313,10 @@ module ActionView
       end
     end
 
+    def render_if(condition, context, options, block)
+      render(content, content, options, block) if condition
+    end
+
     private
 
     def render_collection
