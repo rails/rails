@@ -126,7 +126,9 @@ class DateTime
   end
 
   # Layers additional behavior on DateTime#<=> so that Time and ActiveSupport::TimeWithZone instances can be compared with a DateTime
-  def <=>(other)
-    super other.to_datetime
+  def compare_with_coercion(other)
+    compare_without_coercion other.to_datetime
   end
+  alias_method :compare_without_coercion, :<=>
+  alias_method :<=>, :compare_with_coercion
 end
