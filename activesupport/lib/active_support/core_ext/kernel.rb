@@ -1,1 +1,1 @@
-Requirer.new(__FILE__, exclude: %w(debugger.rb)).require
+Requirer.new(__FILE__, exclude: %w(debugger.rb)).require_all

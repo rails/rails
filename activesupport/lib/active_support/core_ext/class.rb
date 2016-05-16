@@ -1,1 +1,1 @@
-Requirer.new(__FILE__, exclude: %w(attribute_accessors)).require
+Requirer.new(__FILE__, exclude: %w(attribute_accessors)).require_all

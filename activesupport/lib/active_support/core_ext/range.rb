@@ -1,1 +1,1 @@
-Requirer.new(__FILE__).require
+Requirer.new(__FILE__).require_all
