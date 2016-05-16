@@ -40,6 +40,9 @@ module Rails
         class_option :skip_sprockets,     type: :boolean, aliases: '-S', default: false,
                                           desc: 'Skip Sprockets files'
 
+        class_option :skip_turbolinks,    type: :boolean, default: false,
+                                          desc: "Skip Turbolinks on Gemfile and asset files"
+
         class_option :database,           type: :string, aliases: '-d', default: 'sqlite3',
                                           desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
 
@@ -231,6 +234,13 @@ module Rails
             #{javascript_runtime_gemfile_entry}
             # Use #{options[:javascript]} as the JavaScript library
             gem '#{options[:javascript]}-rails'
+          GEMFILE
+        end
+      end
+
+      def turbolinks_gemfile_entry
+        unless options[:skip_javascript] || options[:skip_turbolinks]
+          <<-GEMFILE.gsub(/^[ \t]+/, '')
 
             # Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks
             gem 'turbolinks'
