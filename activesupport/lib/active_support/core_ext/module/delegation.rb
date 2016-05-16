@@ -119,6 +119,8 @@ class Module
     line = line.to_i
 
     methods.each do |method|
+      method_name = ":#{method}"
+
       on_nil =
         if options[:allow_nil]
           'return'
@@ -126,16 +128,56 @@ class Module
           %(raise "#{self}##{prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
         end
 
+      nil_clause = <<-EOS
+        if #{to}.nil?  # if client.nil?
+          #{on_nil}    #   return # depends on :allow_nil
+        else           # else
+          raise(e)     #   raise(e)
+        end            # end
+      EOS
+
+      rescue_clause = <<-EOS
+        rescue NoMethodError => e                                                  # rescue NoMethodError => e
+          if e.name == #{method_name} &&                                           #   if e.name == :name &&
+             e.message =~ /(private|protected) method/ &&                          #      e.message =~ /(private|protected) method/ &&
+             e.backtrace.first.include?(__FILE__)                                  #      e.backtrace.first.include?(__FILE__)
+            begin                                                                  #     begin
+              ActiveSupport::Deprecation.warn(                                     #       ActiveSupport::Deprecation.warn(
+                'Delegating to non-public methods is deprecated.', caller)         #         'Delegating to non-public methods is deprecated.', caller)
+              #{to}.__send__(#{method_name}, *args, &block)                        #       client.__send__(:name, *args, &block)
+            rescue NoMethodError                                                   #     rescue NoMethodError
+              #{nil_clause}
+            end                                                                    #     end
+          else                                                                     #   else
+            #{nil_clause}
+          end                                                                      #   end
+      EOS
+
+      method_body =
+        if method.to_s =~ /[^\]]=/
+          <<-EOS
+            if args.length > 1 || block_given?                                     #   if args.length > 1 || block_given?
+              ActiveSupport::Deprecation.warn(                                     #     ActiveSupport::Deprecation.warn(
+                "Support for using Module#delegate with writer methods and " +     #       "Support for using Module#delegate with writer methods and " +
+                "multiple arguments, or block arguments, is going to be " +        #       "multiple arguments, or block arguments, is going to be " +
+                "removed. If you need this functionality, please define your " +   #       "removed. If you need this functionality, please define your " +
+                "own delegation manually.", caller)                                #       "own delegation manually.", caller)
+              #{to}.__send__(#{method_name}, *args, &block)                        #     client.__send__(:invoices=, *args, &block)
+            else                                                                   #   else
+              #{to}.#{method}(args.first)                                          #     client.invoices=(args.first)
+            end                                                                    #   end
+          EOS
+        else
+          <<-EOS
+            #{to}.#{method}(*args, &block)                                         #   client.name(*args, &block)
+          EOS
+        end
+
       module_eval(<<-EOS, file, line - 1)
-        def #{prefix}#{method}(*args, &block)               # def customer_name(*args, &block)
-          #{to}.__send__(#{method.inspect}, *args, &block)  #   client.__send__(:name, *args, &block)
-        rescue NoMethodError                                # rescue NoMethodError
-          if #{to}.nil?                                     #   if client.nil?
-            #{on_nil}                                       #     return # depends on :allow_nil
-          else                                              #   else
-            raise                                           #     raise
-          end                                               #   end
-        end                                                 # end
+        def #{prefix}#{method}(*args, &block)                                    # def customer_name(*args, &block)
+          #{method_body}
+          #{rescue_clause}
+        end                                                                      # end
       EOS
     end
   end

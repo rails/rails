@@ -34,6 +34,39 @@ class Someone < Struct.new(:name, :place)
 
   FAILED_DELEGATE_LINE = __LINE__ + 1
   delegate :foo, :to => :place
+
+  def raise_calls
+    @raise_calls
+  end
+
+  def initialize(*args)
+    @raise_calls = 0
+    super
+  end
+
+  def raises_no_method_error
+    @raise_calls += 1
+    raise NoMethodError.new("no method!", :fizzle)
+  end
+
+  def occupation=(a, b)
+    "WRITER"
+  end
+
+  private
+  def something_private
+    "PRIVATE"
+  end
+
+  def raises_no_method_error_in_private
+    @raise_calls += 1
+    raise NoMethodError.new("no method!")
+  end
+
+  protected
+  def something_protected
+    "PROTECTED"
+  end
 end
 
 Invoice   = Struct.new(:client) do
@@ -52,6 +85,8 @@ end
 
 Tester = Struct.new(:client) do
   delegate :name, :to => :client, :prefix => false
+  delegate :something_private, :something_protected, :occupation=, :to => :client
+  delegate :raises_no_method_error, :raises_no_method_error_in_private, :to => :client
 end
 
 class Name
@@ -62,7 +97,7 @@ class Name
   end
 end
 
-class ModuleTest < Test::Unit::TestCase
+class ModuleTest < ActiveSupport::TestCase
   def setup
     @david = Someone.new("David", Somewhere.new("Paulina", "Chicago"))
   end
@@ -88,6 +123,48 @@ class ModuleTest < Test::Unit::TestCase
     assert_raise(ArgumentError) do
       Name.send :delegate, :noplace, :tos => :hollywood
     end
+  end
+
+  def test_deprecates_delegation_to_private_methods
+    assert_deprecated do
+      assert_equal "PRIVATE", Tester.new(@david).something_private
+    end
+  end
+
+  def test_deprecates_delegation_to_protected_methods
+    assert_deprecated do
+      assert_equal "PROTECTED", Tester.new(@david).something_protected
+    end
+  end
+
+  def test_deprecates_delegation_to_attr_writer_with_multiple_args
+    assert_deprecated do
+      assert_equal "WRITER", Tester.new(@david).send(:occupation=, 1, 2)
+    end
+  end
+
+  def test_does_not_swallow_no_method_errors
+    @tester = Tester.new(@david)
+
+    error = assert_raise(NoMethodError) do
+      @tester.raises_no_method_error
+    end
+
+    assert_equal :fizzle, error.name
+    assert_equal 1, @david.raise_calls
+  end
+
+  def test_does_not_swallow_no_method_errors_from_private_methods
+    @tester = Tester.new(@david)
+
+    error = assert_raise(NoMethodError) do
+      assert_deprecated do
+        @tester.raises_no_method_error_in_private
+      end
+    end
+
+    assert_equal :raises_no_method_error_in_private, error.name
+    assert_equal 1, @david.raise_calls
   end
 
   def test_delegation_prefix
