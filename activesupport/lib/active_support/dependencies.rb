@@ -559,7 +559,7 @@ module ActiveSupport #:nodoc:
     # as the environment will be in an inconsistent state, e.g. other constants
     # may have already been unloaded and not accessible.
     def remove_unloadable_constants!
-      autoloaded_constants.each { |const| remove_constant const }
+      autoloaded_constants.clone.each { |const| remove_constant const }
       autoloaded_constants.clear
       Reference.clear!
       explicitly_unloadable_constants.each { |const| remove_constant const }
