@@ -1,21 +1,27 @@
 require "cases/helper"
 require 'models/topic'
 require 'models/reply'
+require 'models/namespaced_model'
 
 class ActiveRecordI18nTests < Test::Unit::TestCase
 
   def setup
     I18n.backend = I18n::Backend::Simple.new
   end
-  
+
   def test_translated_model_attributes
     I18n.backend.store_translations 'en', :activerecord => {:attributes => {:topic => {:title => 'topic title attribute'} } }
     assert_equal 'topic title attribute', Topic.human_attribute_name('title')
   end
-  
+
   def test_translated_model_attributes_with_symbols
     I18n.backend.store_translations 'en', :activerecord => {:attributes => {:topic => {:title => 'topic title attribute'} } }
     assert_equal 'topic title attribute', Topic.human_attribute_name(:title)
+  end
+
+  def test_translated_model_attributes_of_namespaced_models
+    I18n.backend.store_translations 'en', :activerecord => {:attributes => {:namespaced_model => {:title => 'some namespaced model title attribute'} } }
+    assert_equal 'some namespaced model title attribute', Namespaced::Model.human_attribute_name(:title)
   end
 
   def test_translated_model_attributes_with_sti

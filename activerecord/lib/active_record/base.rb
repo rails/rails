@@ -1394,7 +1394,7 @@ module ActiveRecord #:nodoc:
       # Specify +options+ with additional translating options.
       def human_attribute_name(attribute_key_name, options = {})
         defaults = self_and_descendants_from_active_record.map do |klass|
-          :"#{klass.name.underscore}.#{attribute_key_name}"
+          :"#{klass.name.underscore.gsub("/", "_")}.#{attribute_key_name}"
         end
         defaults << options[:default] if options[:default]
         defaults.flatten!
