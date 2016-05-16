@@ -873,6 +873,12 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal Post.all, all_posts.all
   end
 
+  def test_except_with_default_scope
+    # We compare attributes because the class names will be different
+    assert_equal DeveloperCalledDavid.except(:where).all.collect(&:attributes), Developer.all.collect(&:attributes)
+    assert_equal DeveloperCalledDavid.except(:order).all, DeveloperCalledDavid.all
+  end
+
   def test_extensions_with_except
     assert_equal 2, Topic.named_extension.order(:author_name).except(:order).two
   end
@@ -886,6 +892,12 @@ class RelationTest < ActiveRecord::TestCase
 
     all_posts = relation.only(:limit)
     assert_equal Post.limit(1).all.first, all_posts.first
+  end
+
+  def test_only_with_default_scope
+    # We compare attributes because the class names will be different
+    assert_equal DeveloperCalledDavid.scoped.only(:order).all.collect(&:attributes), Developer.all.collect(&:attributes)
+    assert_equal DeveloperCalledDavid.scoped.only(:except).all, DeveloperCalledDavid.all
   end
 
   def test_extensions_with_only
