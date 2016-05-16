@@ -294,6 +294,23 @@ class TimeZoneTest < Test::Unit::TestCase
     assert_equal ActiveSupport::TimeZone["Central Time (US & Canada)"], ActiveSupport::TimeZone.new("Central Time (US & Canada)")
   end
 
+  def test_freeze
+    @tz = ActiveSupport::TimeZone.new("Arizona")
+    @tz.freeze
+
+    assert @tz.frozen?
+  end
+
+  def test_freeze_preloads_instance_variables
+    @tz = ActiveSupport::TimeZone.new('Alaska')
+
+    assert_nothing_raised do
+      @tz.freeze
+      @tz.utc_offset
+      @tz.tzinfo
+    end
+  end
+
   def test_us_zones
     assert ActiveSupport::TimeZone.us_zones.include?(ActiveSupport::TimeZone["Hawaii"])
     assert !ActiveSupport::TimeZone.us_zones.include?(ActiveSupport::TimeZone["Kuala Lumpur"])
