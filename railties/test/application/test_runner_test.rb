@@ -430,6 +430,26 @@ module ApplicationTests
       end
     end
 
+    def test_unknown_option_is_invalid
+      create_test_file
+
+      assert_match 'invalid option: --unknown', run_test_command('--unknown')
+    end
+
+    def test_extra_plugin_options_goes_through_unscathed
+      skip 'cannot get this to load the plugin'
+
+      app_file 'lib/minitest/extra_plugin.rb', <<-RUBY
+        class Minitest
+          def self.plugin_extra_options(opts, options)
+            opts.on('--extra') { puts 'extra option found' }
+          end
+        end
+      RUBY
+
+      assert_match '0 runs, 0 assertions', run_test_command('--extra')
+    end
+
     def test_shows_filtered_backtrace_by_default
       create_backtrace_test
 
