@@ -1,3 +1,5 @@
+require 'jsonapi'
+
 module ActionDispatch
   module Http
     module Parameters
@@ -9,6 +11,25 @@ module ActionDispatch
         Mime[:json].symbol => -> (raw_post) {
           data = ActiveSupport::JSON.decode(raw_post)
           data.is_a?(Hash) ? data : {:_json => data}
+        },
+        Mime[:jsonapi].symbol => -> (raw_post) {
+          data = JSONAPI.parse(raw_post).data
+          hash = {}
+          hash[:id] = data.id unless data.id.nil?
+          hash[:_type] = data.type unless data.type.nil?
+          hash.merge!(data.attributes.to_hash)
+          data.relationships.each do |name, rel|
+            if rel.data.respond_to?(:each)
+              hash["#{name.singularize}_ids".to_sym] = rel.data.map(&:id)
+              hash["#{name.singularize}_types".to_sym] = rel.data.map { |val| val.type.singularize.capitalize }
+            elsif !rel.data.nil?
+              hash["#{name}_id".to_sym] = rel.data.id
+              hash["#{name}_type".to_sym] = rel.data.type.singularize.capitalize
+            else
+              hash["#{name}_id".to_sym] = nil
+            end
+          end
+          hash
         }
       }
 
