@@ -14,7 +14,7 @@ module ActionView
       attr_accessor :request, :response, :params
 
       class << self
-        attr_writer :controller_path
+        attr_accessor :controller_path
       end
 
       def controller_path=(path)
