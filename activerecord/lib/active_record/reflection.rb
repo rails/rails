@@ -510,8 +510,8 @@ module ActiveRecord
       end
 
       VALID_AUTOMATIC_INVERSE_MACROS = [:has_many, :has_one, :belongs_to]
-      INVALID_AUTOMATIC_INVERSE_OPTIONS = [:through, :polymorphic, :foreign_type]
-      VALID_AUTOMATIC_INVERSE_OPTIONS = [:foreign_key]
+      INVALID_AUTOMATIC_INVERSE_OPTIONS = [:through, :polymorphic]
+      VALID_AUTOMATIC_INVERSE_OPTIONS_TO_FIND_BY = [:foreign_key]
 
       def add_as_source(seed)
         seed
@@ -553,7 +553,7 @@ module ActiveRecord
         # returns either false or the inverse association name that it finds.
         def automatic_inverse_of
           if can_find_inverse_of_automatically?(self)
-            valid_keys = options.keys & VALID_AUTOMATIC_INVERSE_OPTIONS
+            valid_keys = options.keys & VALID_AUTOMATIC_INVERSE_OPTIONS_TO_FIND_BY
 
             reflection = if valid_keys.any?
               find_inverse_reflection_by_options valid_keys
