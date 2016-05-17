@@ -626,9 +626,10 @@ module ActiveRecord
         # Finds inverse reflection from +klass+ with properties equal to options with provided keys.
         def find_inverse_reflection_by_options keys
           result = klass.reflections.find do |name, refl|
-            # We skip polymorphic and associations with :as option because we can't determine their classes.
-            !refl.polymorphic? && !refl.options.key?(:as) && refl.klass == active_record && keys.all? do |key|
-              refl.public_send(key) == options[key].to_s
+            begin
+              refl.klass == active_record && keys.all? { |key| refl.public_send(key) == options[key].to_s }
+            rescue NameError
+              false
             end
           end
 

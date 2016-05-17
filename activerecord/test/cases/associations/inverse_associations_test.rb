@@ -688,6 +688,15 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
     # fails because Interest does have the correct inverse_of
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Face.first.polymorphic_man = Interest.first }
   end
+
+  def test_automatic_inverse_association_is_found_when_foreign_key_present
+    dummy_account_reflection = Company.reflect_on_association(:dummy_account)
+    firm_reflection = Account.reflect_on_association(:firm)
+
+    assert_respond_to dummy_account_reflection, :has_inverse?
+    assert dummy_account_reflection.has_inverse?, "The firm reflection should have an inverse"
+    assert_equal firm_reflection, dummy_account_reflection.inverse_of, "The dummy account reflection's inverse should be the firm reflection"
+  end
 end
 
 # NOTE - these tests might not be meaningful, ripped as they were from the parental_control plugin
