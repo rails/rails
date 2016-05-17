@@ -70,7 +70,7 @@ class Numeric
   # Numbers are not duplicable:
   #
   #  3.duplicable? # => false
-  #  3.dup         # => TypeError: can't dup Fixnum
+  #  3.dup         # => TypeError: can't dup Integer
   def duplicable?
     false
   end

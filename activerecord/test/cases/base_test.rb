@@ -1023,7 +1023,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_kind_of Integer, m1.world_population
     assert_equal 6000000000, m1.world_population
 
-    assert_kind_of Fixnum, m1.my_house_population
+    assert_kind_of Integer, m1.my_house_population
     assert_equal 3, m1.my_house_population
 
     assert_kind_of BigDecimal, m1.bank_balance
@@ -1051,7 +1051,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_kind_of Integer, m1.world_population
     assert_equal 6000000000, m1.world_population
 
-    assert_kind_of Fixnum, m1.my_house_population
+    assert_kind_of Integer, m1.my_house_population
     assert_equal 3, m1.my_house_population
 
     assert_kind_of BigDecimal, m1.bank_balance
