@@ -120,7 +120,7 @@ module ActionDispatch
 
           if options_constraints.is_a?(Hash)
             @defaults = Hash[options_constraints.find_all { |key, default|
-              URL_OPTIONS.include?(key) && (String === default || Fixnum === default)
+              URL_OPTIONS.include?(key) && (String === default || Integer === default)
             }].merge @defaults
             @blocks = blocks
             constraints.merge! options_constraints
@@ -824,7 +824,7 @@ module ActionDispatch
 
           if options[:constraints].is_a?(Hash)
             defaults = options[:constraints].select do |k, v|
-              URL_OPTIONS.include?(k) && (v.is_a?(String) || v.is_a?(Fixnum))
+              URL_OPTIONS.include?(k) && (v.is_a?(String) || v.is_a?(Integer))
             end
 
             options[:defaults] = defaults.merge(options[:defaults] || {})

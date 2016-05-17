@@ -32,20 +32,25 @@ module ActiveSupport
       "binary" => "base64"
     } unless defined?(DEFAULT_ENCODINGS)
 
-    TYPE_NAMES = {
-      "Symbol"     => "symbol",
-      "Fixnum"     => "integer",
-      "Bignum"     => "integer",
-      "BigDecimal" => "decimal",
-      "Float"      => "float",
-      "TrueClass"  => "boolean",
-      "FalseClass" => "boolean",
-      "Date"       => "date",
-      "DateTime"   => "dateTime",
-      "Time"       => "dateTime",
-      "Array"      => "array",
-      "Hash"       => "hash"
-    } unless defined?(TYPE_NAMES)
+    unless defined?(TYPE_NAMES)
+      TYPE_NAMES = {
+        "Symbol"     => "symbol",
+        "Integer"    => "integer",
+        "BigDecimal" => "decimal",
+        "Float"      => "float",
+        "TrueClass"  => "boolean",
+        "FalseClass" => "boolean",
+        "Date"       => "date",
+        "DateTime"   => "dateTime",
+        "Time"       => "dateTime",
+        "Array"      => "array",
+        "Hash"       => "hash"
+      }
+
+      # No need to map these on Ruby 2.4+
+      TYPE_NAMES["Fixnum"] = "integer" unless Fixnum == Integer
+      TYPE_NAMES["Bignum"] = "integer" unless Bignum == Integer
+    end
 
     FORMATTING = {
       "symbol"   => Proc.new { |symbol| symbol.to_s },

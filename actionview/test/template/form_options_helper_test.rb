@@ -798,7 +798,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
-  def test_select_with_fixnum
+  def test_select_with_integer
     @post = Post.new
     @post.category = ""
     assert_dom_equal(

@@ -553,7 +553,7 @@ XML
     assert_equal 'created', flash[:notice]
   end
 
-  def test_params_passing_with_fixnums
+  def test_params_passing_with_integer
     get :test_params, params: {
       page: { name: "Page name", month: 4, year: 2004, day: 6 }
     }
@@ -565,7 +565,7 @@ XML
     )
   end
 
-  def test_params_passing_with_fixnums_when_not_html_request
+  def test_params_passing_with_integers_when_not_html_request
     get :test_params, params: { format: 'json', count: 999 }
     parsed_params = ::JSON.parse(@response.body)
     assert_equal(

@@ -38,7 +38,7 @@ module ActiveRecord
     # by calling new on the column type or aggregation type (through composed_of) object with these parameters.
     # So having the pairs written_on(1) = "2004", written_on(2) = "6", written_on(3) = "24", will instantiate
     # written_on (a date type) with Date.new("2004", "6", "24"). You can also specify a typecast character in the
-    # parentheses to have the parameters typecasted before they're used in the constructor. Use i for Fixnum and
+    # parentheses to have the parameters typecasted before they're used in the constructor. Use i for Integer and
     # f for Float. If all the values for a given attribute are empty, the attribute will be set to +nil+.
     def assign_multiparameter_attributes(pairs)
       execute_callstack_for_multiparameter_attributes(
