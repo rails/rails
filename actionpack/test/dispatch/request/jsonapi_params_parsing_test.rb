@@ -16,7 +16,7 @@ class JsonapiParamsParsingTest < ActionDispatch::IntegrationTest
     TestController.last_request_parameters = nil
   end
 
-  test "parses json params for application json" do
+  test "parses jsonapi params for application/vnd.api+json" do
     payload = "{ \"data\": { \"type\": \"posts\", \"attributes\": { \"title\":"\
               "\"Hello\", \"date\": \"today\"} , \"relationships\": { "\
               "\"author\": { \"data\": { \"id\": \"2\", \"type\": \"users\" }"\
