@@ -587,7 +587,7 @@ module ActiveRecord
         # <tt>inverse_of</tt> option cannot be set to false. Second, we must
         # have <tt>has_many</tt>, <tt>has_one</tt>, <tt>belongs_to</tt> associations.
         # Third, we must not have options such as <tt>:polymorphic</tt> or
-        # <tt>:foreign_type</tt> which prevent us from correctly guessing the
+        # <tt>:through</tt> which prevent us from correctly guessing the
         # inverse association.
         #
         # Anything with a scope can additionally ruin our attempt at finding an

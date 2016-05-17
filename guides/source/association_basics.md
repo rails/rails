@@ -756,7 +756,6 @@ automatically:
 
 * `:through`
 * `:polymorphic`
-* `:foreign_type`
 
 Detailed Association Reference
 ------------------------------
