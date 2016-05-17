@@ -881,7 +881,7 @@ Please refer to the [Changelog][active-support] for detailed changes.
     ([commit](https://github.com/rails/rails/commit/a5e507fa0b8180c3d97458a9b86c195e9857d8f6))
 
 *   Added `Integer#positive?` and `Integer#negative?` query methods
-    in the vein of `Fixnum#zero?`.
+    in the vein of `Integer#zero?`.
     ([commit](https://github.com/rails/rails/commit/e54277a45da3c86fecdfa930663d7692fd083daa))
 
 *   Added a bang version to `ActiveSupport::OrderedOptions` get methods which will raise

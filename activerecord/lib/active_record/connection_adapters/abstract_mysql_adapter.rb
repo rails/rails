@@ -707,7 +707,7 @@ module ActiveRecord
           case length
           when Hash
             column_names.each {|name| option_strings[name] += "(#{length[name]})" if length.has_key?(name) && length[name].present?}
-          when Fixnum
+          when Integer
             column_names.each {|name| option_strings[name] += "(#{length})"}
           end
         end
@@ -832,7 +832,7 @@ module ActiveRecord
 
         # Increase timeout so the server doesn't disconnect us.
         wait_timeout = @config[:wait_timeout]
-        wait_timeout = 2147483 unless wait_timeout.is_a?(Fixnum)
+        wait_timeout = 2147483 unless wait_timeout.is_a?(Integer)
         variables['wait_timeout'] = self.class.type_cast_config_to_integer(wait_timeout)
 
         defaults = [':default', :default].to_set

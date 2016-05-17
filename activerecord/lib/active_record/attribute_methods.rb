@@ -360,7 +360,7 @@ module ActiveRecord
     #   person = Person.new
     #   person[:age] = '22'
     #   person[:age] # => 22
-    #   person[:age] # => Fixnum
+    #   person[:age].class # => Integer
     def []=(attr_name, value)
       write_attribute(attr_name, value)
     end

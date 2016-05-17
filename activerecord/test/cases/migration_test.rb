@@ -180,7 +180,7 @@ class MigrationTest < ActiveRecord::TestCase
     # is_a?(Bignum)
     assert_kind_of Integer, b.world_population
     assert_equal 6000000000, b.world_population
-    assert_kind_of Fixnum, b.my_house_population
+    assert_kind_of Integer, b.my_house_population
     assert_equal 3, b.my_house_population
     assert_kind_of BigDecimal, b.bank_balance
     assert_equal BigDecimal("1586.43"), b.bank_balance
@@ -204,7 +204,7 @@ class MigrationTest < ActiveRecord::TestCase
       assert_in_delta BigDecimal("2.71828182845905"), b.value_of_e, 0.00000000000001
     else
       # - SQL standard is an integer
-      assert_kind_of Fixnum, b.value_of_e
+      assert_kind_of Integer, b.value_of_e
       assert_equal 2, b.value_of_e
     end
 
