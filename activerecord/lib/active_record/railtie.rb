@@ -16,12 +16,6 @@ module ActiveRecord
     config.app_generators.orm :active_record, :migration => true,
                                               :timestamps => true
 
-    config.app_middleware.insert_after ::ActionDispatch::Callbacks,
-      ActiveRecord::QueryCache
-
-    config.app_middleware.insert_after ::ActionDispatch::Callbacks,
-      ActiveRecord::ConnectionAdapters::ConnectionManagement
-
     config.action_dispatch.rescue_responses.merge!(
       'ActiveRecord::RecordNotFound'   => :not_found,
       'ActiveRecord::StaleObjectError' => :conflict,
@@ -40,7 +34,7 @@ module ActiveRecord
         task :load_config do
           ActiveRecord::Tasks::DatabaseTasks.database_configuration = Rails.application.config.database_configuration
 
-          if defined?(ENGINE_PATH) && engine = Rails::Engine.find(ENGINE_PATH)
+          if defined?(ENGINE_ROOT) && engine = Rails::Engine.find(ENGINE_ROOT)
             if engine.paths['db/migrate'].existent
               ActiveRecord::Tasks::DatabaseTasks.migrations_paths += engine.paths['db/migrate'].to_a
             end
@@ -71,7 +65,6 @@ module ActiveRecord
       ActiveSupport.on_load(:active_record) do
         self.time_zone_aware_attributes = true
         self.default_timezone = :utc
-        self.time_zone_aware_types = ActiveRecord::Base.time_zone_aware_types
       end
     end
 
@@ -153,16 +146,20 @@ end_warning
       end
     end
 
-    initializer "active_record.set_reloader_hooks" do |app|
-      hook = app.config.reload_classes_only_on_change ? :to_prepare : :to_cleanup
-
+    initializer "active_record.set_reloader_hooks" do
       ActiveSupport.on_load(:active_record) do
-        ActionDispatch::Reloader.send(hook) do
+        ActiveSupport::Reloader.before_class_unload do
           if ActiveRecord::Base.connected?
             ActiveRecord::Base.clear_cache!
             ActiveRecord::Base.clear_reloadable_connections!
           end
         end
+      end
+    end
+
+    initializer "active_record.set_executor_hooks" do
+      ActiveSupport.on_load(:active_record) do
+        ActiveRecord::QueryCache.install_executor_hooks
       end
     end
 

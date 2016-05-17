@@ -99,7 +99,7 @@ class WebServiceTest < ActionDispatch::IntegrationTest
   def test_parsing_json_doesnot_rescue_exception
     req = Class.new(ActionDispatch::Request) do
       def params_parsers
-        { Mime[:json] => Proc.new { |data| raise Interrupt } }
+        { json: Proc.new { |data| raise Interrupt } }
       end
 
       def content_length; get_header('rack.input').length; end

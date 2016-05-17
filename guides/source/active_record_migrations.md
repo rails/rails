@@ -12,7 +12,7 @@ After reading this guide, you will know:
 
 * The generators you can use to create them.
 * The methods Active Record provides to manipulate your database.
-* The Rake tasks that manipulate migrations and your schema.
+* The bin/rails tasks that manipulate migrations and your schema.
 * How migrations relate to `schema.rb`.
 
 --------------------------------------------------------------------------------
@@ -41,7 +41,7 @@ class CreateProducts < ActiveRecord::Migration[5.0]
       t.string :name
       t.text :description
 
-      t.timestamps null: false
+      t.timestamps
     end
   end
 end
@@ -247,6 +247,7 @@ end
 ```
 
 This migration will create a `user_id` column and appropriate index.
+For more `add_reference` options, visit the [API documentation](http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_reference).
 
 There is also a generator which will produce join tables if `JoinTable` is part of the name:
 
@@ -287,7 +288,7 @@ class CreateProducts < ActiveRecord::Migration[5.0]
       t.string :name
       t.text :description
 
-      t.timestamps null: false
+      t.timestamps
     end
   end
 end
@@ -353,7 +354,14 @@ end
 ```
 
 will append `ENGINE=BLACKHOLE` to the SQL statement used to create the table
-(when using MySQL, the default is `ENGINE=InnoDB`).
+(when using MySQL or MariaDB, the default is `ENGINE=InnoDB`).
+
+Also you can pass the `:comment` option with any description for the table
+that will be stored in database itself and can be viewed with database administration
+tools, such as MySQL Workbench or PgAdmin III. It's highly recommended to specify
+comments in migrations for applications with large databases as it helps people
+to understand data model and generate documentation.
+Currently only the MySQL and PostgreSQL adapters support comments.
 
 ### Creating a Join Table
 
@@ -454,6 +462,7 @@ number of digits after the decimal point.
 are using a dynamic value (such as a date), the default will only be calculated
 the first time (i.e. on the date the migration is applied).
 * `index`        Adds an index for the column.
+* `comment`      Adds a comment for the column.
 
 Some adapters may support additional options; see the adapter specific API docs
 for further information.
@@ -717,9 +726,9 @@ you will have to use `structure.sql` as dump method. See
 Running Migrations
 ------------------
 
-Rails provides a set of Rake tasks to run certain sets of migrations.
+Rails provides a set of bin/rails tasks to run certain sets of migrations.
 
-The very first migration related Rake task you will use will probably be
+The very first migration related bin/rails task you will use will probably be
 `rails db:migrate`. In its most basic form it just runs the `change` or `up`
 method for all the migrations that have not yet been run. If there are
 no such migrations, it exits. It will run these migrations in order based
@@ -772,7 +781,7 @@ if you need to go more than one version back, for example:
 $ bin/rails db:migrate:redo STEP=3
 ```
 
-Neither of these Rake tasks do anything you could not do with `db:migrate`. They
+Neither of these bin/rails tasks do anything you could not do with `db:migrate`. They
 are simply more convenient, since you do not need to explicitly specify the
 version to migrate to.
 
@@ -784,7 +793,7 @@ it with the seed data.
 ### Resetting the Database
 
 The `rails db:reset` task will drop the database and set it up again. This is
-functionally equivalent to `rake db:drop db:setup`.
+functionally equivalent to `rails db:drop db:setup`.
 
 NOTE: This is not the same as running all the migrations. It will only use the
 contents of the current `db/schema.rb` or `db/structure.sql` file. If a migration can't be rolled back,
@@ -809,7 +818,7 @@ Active Record believes that it has already been run.
 
 ### Running Migrations in Different Environments
 
-By default running `rake db:migrate` will run in the `development` environment.
+By default running `bin/rails db:migrate` will run in the `development` environment.
 To run migrations against another environment you can specify it using the
 `RAILS_ENV` environment variable while running the command. For example to run
 migrations against the `test` environment you could run:
@@ -847,7 +856,7 @@ class CreateProducts < ActiveRecord::Migration[5.0]
       create_table :products do |t|
         t.string :name
         t.text :description
-        t.timestamps null: false
+        t.timestamps
       end
     end
 
@@ -883,10 +892,10 @@ Changing Existing Migrations
 ----------------------------
 
 Occasionally you will make a mistake when writing a migration. If you have
-already run the migration then you cannot just edit the migration and run the
+already run the migration, then you cannot just edit the migration and run the
 migration again: Rails thinks it has already run the migration and so will do
 nothing when you run `rails db:migrate`. You must rollback the migration (for
-example with `rake db:rollback`), edit your migration and then run
+example with `bin/rails db:rollback`), edit your migration and then run
 `rails db:migrate` to run the corrected version.
 
 In general, editing existing migrations is not a good idea. You will be
@@ -933,7 +942,7 @@ There are two ways to dump the schema. This is set in `config/application.rb`
 by the `config.active_record.schema_format` setting, which may be either `:sql`
 or `:ruby`.
 
-If `:ruby` is selected then the schema is stored in `db/schema.rb`. If you look
+If `:ruby` is selected, then the schema is stored in `db/schema.rb`. If you look
 at this file you'll find that it looks an awful lot like one very big
 migration:
 
@@ -970,7 +979,7 @@ this, then you should set the schema format to `:sql`.
 Instead of using Active Record's schema dumper, the database's structure will
 be dumped using a tool specific to the database (via the `db:structure:dump`
 rails task) into `db/structure.sql`. For example, for PostgreSQL, the `pg_dump`
-utility is used. For MySQL, this file will contain the output of
+utility is used. For MySQL and MariaDB, this file will contain the output of
 `SHOW CREATE TABLE` for the various tables.
 
 Loading these schemas is simply a question of executing the SQL statements they

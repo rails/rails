@@ -57,10 +57,10 @@ module ActionDispatch
 
     def test_to_session_value
       @hash['foo'] = 'bar'
-      assert_equal({'flashes' => {'foo' => 'bar'}}, @hash.to_session_value)
+      assert_equal({ 'discard' => [], 'flashes' => { 'foo' => 'bar' } }, @hash.to_session_value)
 
       @hash.now['qux'] = 1
-      assert_equal({'flashes' => {'foo' => 'bar'}}, @hash.to_session_value)
+      assert_equal({ 'flashes' => { 'foo' => 'bar' }, 'discard' => [] }, @hash.to_session_value)
 
       @hash.discard('foo')
       assert_equal(nil, @hash.to_session_value)

@@ -130,27 +130,25 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   end
 
   def test_supports_primary_key
-    assert_nothing_raised NoMethodError do
+    assert_nothing_raised do
       ActiveRecord::Base.connection.supports_primary_key?
     end
   end
 
-  def test_primary_key_returns_value_if_it_exists
-    klass = Class.new(ActiveRecord::Base) do
-      self.table_name = 'developers'
-    end
+  if ActiveRecord::Base.connection.supports_primary_key?
+    def test_primary_key_returns_value_if_it_exists
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = 'developers'
+      end
 
-    if ActiveRecord::Base.connection.supports_primary_key?
       assert_equal 'id', klass.primary_key
     end
-  end
 
-  def test_primary_key_returns_nil_if_it_does_not_exist
-    klass = Class.new(ActiveRecord::Base) do
-      self.table_name = 'developers_projects'
-    end
+    def test_primary_key_returns_nil_if_it_does_not_exist
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = 'developers_projects'
+      end
 
-    if ActiveRecord::Base.connection.supports_primary_key?
       assert_nil klass.primary_key
     end
   end
@@ -230,9 +228,10 @@ class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
   def test_any_type_primary_key
     assert_equal "code", Barcode.primary_key
 
-    column_type = Barcode.type_for_attribute(Barcode.primary_key)
-    assert_equal :string, column_type.type
-    assert_equal 42, column_type.limit
+    column = Barcode.column_for_attribute(Barcode.primary_key)
+    assert_not column.null
+    assert_equal :string, column.type
+    assert_equal 42, column.limit
   end
 
   test "schema dump primary key includes type and options" do
@@ -260,6 +259,13 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
 
   def test_composite_primary_key
     assert_equal ["region", "code"], @connection.primary_keys("barcodes")
+  end
+
+  def test_primary_key_issues_warning
+    warning = capture(:stderr) do
+      assert_nil @connection.primary_key("barcodes")
+    end
+    assert_match(/WARNING: Rails does not support composite primary key\./, warning)
   end
 
   def test_collectly_dump_composite_primary_key
@@ -345,9 +351,9 @@ if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
     test "schema dump primary key with bigserial" do
       schema = dump_table_schema "widgets"
       if current_adapter?(:PostgreSQLAdapter)
-        assert_match %r{create_table "widgets", id: :bigserial}, schema
+        assert_match %r{create_table "widgets", id: :bigserial, force: :cascade}, schema
       else
-        assert_match %r{create_table "widgets", id: :bigint}, schema
+        assert_match %r{create_table "widgets", id: :bigint, force: :cascade}, schema
       end
     end
 

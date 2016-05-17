@@ -23,7 +23,7 @@ module ActionView
         end
       end
 
-      # Formats a +number+ into a US phone number (e.g., (555)
+      # Formats a +number+ into a phone number (US by default e.g., (555)
       # 123-9876). You can customize the format in the +options+ hash.
       #
       # ==== Options
@@ -35,6 +35,8 @@ module ActionView
       #   end of the generated number.
       # * <tt>:country_code</tt> - Sets the country code for the phone
       #   number.
+      # * <tt>:pattern</tt> - Specifies how the number is divided into three
+      #   groups with the custom regexp to override the default format.
       # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
       #   the argument is invalid.
       #
@@ -52,6 +54,11 @@ module ActionView
       #
       #   number_to_phone(1235551234, country_code: 1, extension: 1343, delimiter: ".")
       #   # => +1.123.555.1234 x 1343
+      #
+      #   number_to_phone(75561234567, pattern: /(\d{1,4})(\d{4})(\d{4})$/, area_code: true)
+      #   # => "(755) 6123-4567"
+      #   number_to_phone(13312345678, pattern: /(\d{3})(\d{4})(\d{4})$/))
+      #   # => "133-1234-5678"
       def number_to_phone(number, options = {})
         return unless number
         options = options.symbolize_keys

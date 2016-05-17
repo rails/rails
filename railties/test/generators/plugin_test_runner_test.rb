@@ -59,19 +59,11 @@ class PluginTestRunnerTest < ActiveSupport::TestCase
     end
   end
 
-  def test_line_filter_without_line_runs_all_tests
-    create_test_file 'account'
-
-    run_test_command('test/account_test.rb:').tap do |output|
-      assert_match 'AccountTest', output
-    end
-  end
-
   def test_output_inline_by_default
     create_test_file 'post', pass: false
 
     output = run_test_command('test/post_test.rb')
-    expect = %r{Running:\n\nPostTest\nF\n\nFailure:\nPostTest#test_truth:\nwups!\n\nbin/test (/private)?#{plugin_path}/test/post_test.rb:6}
+    expect = %r{Running:\n\nPostTest\nF\n\nFailure:\nPostTest#test_truth \[[^\]]+test/post_test.rb:6\]:\nwups!\n\nbin/test (/private)?#{plugin_path}/test/post_test.rb:4}
     assert_match expect, output
   end
 

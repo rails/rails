@@ -12,6 +12,12 @@ class MailerGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/default from: "from@example.com"/, mailer)
       assert_no_match(/layout :mailer_notifier/, mailer)
     end
+
+    assert_file 'app/mailers/application_mailer.rb' do |mailer|
+      assert_match(/class ApplicationMailer < ActionMailer::Base/, mailer)
+      assert_match(/default from: 'from@example.com'/, mailer)
+      assert_match(/layout 'mailer'/, mailer)
+    end
   end
 
   def test_mailer_with_i18n_helper

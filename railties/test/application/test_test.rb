@@ -232,7 +232,7 @@ module ApplicationTests
 
       assert_successful_test_run "models/user_test.rb"
 
-      Dir.chdir(app_path) { `bin/rake db:test:prepare` }
+      Dir.chdir(app_path) { `bin/rails db:test:prepare` }
 
       assert_unsuccessful_run "models/user_test.rb", <<-ASSERTION
 Expected: ["id", "name"]

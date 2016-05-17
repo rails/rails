@@ -79,9 +79,11 @@ class ActionMailerUrlTest < ActionMailer::TestCase
     UrlTestMailer.delivery_method = :test
 
     AppRoutes.draw do
-      get ':controller(/:action(/:id))'
-      get '/welcome'  => 'foo#bar', as: 'welcome'
-      get '/dummy_model' => 'foo#baz', as: 'dummy_model'
+      ActiveSupport::Deprecation.silence do
+        get ':controller(/:action(/:id))'
+        get '/welcome'  => 'foo#bar', as: 'welcome'
+        get '/dummy_model' => 'foo#baz', as: 'dummy_model'
+      end
     end
 
     # string
@@ -108,8 +110,10 @@ class ActionMailerUrlTest < ActionMailer::TestCase
     UrlTestMailer.delivery_method = :test
 
     AppRoutes.draw do
-      get ':controller(/:action(/:id))'
-      get '/welcome' => "foo#bar", as: "welcome"
+      ActiveSupport::Deprecation.silence do
+        get ':controller(/:action(/:id))'
+        get '/welcome' => "foo#bar", as: "welcome"
+      end
     end
 
     expected = new_mail

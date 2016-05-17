@@ -213,7 +213,7 @@ module ActionController #:nodoc:
 
         if !verified_request?
           if logger && log_warning_on_csrf_failure
-            logger.warn "Can't verify CSRF token authenticity"
+            logger.warn "Can't verify CSRF token authenticity."
           end
           handle_unverified_request
         end
@@ -378,7 +378,9 @@ module ActionController #:nodoc:
       end
 
       def xor_byte_strings(s1, s2)
-        s1.bytes.zip(s2.bytes).map { |(c1,c2)| c1 ^ c2 }.pack('c*')
+        s2_bytes = s2.bytes
+        s1.each_byte.with_index { |c1, i| s2_bytes[i] ^= c1 }
+        s2_bytes.pack('C*')
       end
 
       # The form's authenticity parameter. Override to provide your own.
@@ -403,7 +405,8 @@ module ActionController #:nodoc:
       end
 
       def normalize_action_path(action_path)
-        action_path.split('?').first.to_s.chomp('/')
+        uri = URI.parse(action_path)
+        uri.path.chomp('/')
       end
   end
 end

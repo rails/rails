@@ -4,9 +4,9 @@ require "action_cable/helpers/action_cable_helper"
 require "active_support/core_ext/hash/indifferent_access"
 
 module ActionCable
-  class Railtie < Rails::Engine # :nodoc:
+  class Engine < Rails::Engine # :nodoc:
     config.action_cable = ActiveSupport::OrderedOptions.new
-    config.action_cable.url = '/cable'
+    config.action_cable.mount_path = ActionCable::INTERNAL[:default_mount_path]
 
     config.eager_load_namespaces << ActionCable
 
@@ -24,14 +24,56 @@ module ActionCable
       options = app.config.action_cable
       options.allowed_request_origins ||= "http://localhost:3000" if ::Rails.env.development?
 
-      app.paths.add "config/redis/cable", with: "config/redis/cable.yml"
+      app.paths.add "config/cable", with: "config/cable.yml"
 
       ActiveSupport.on_load(:action_cable) do
-        if (redis_cable_path = Pathname.new(app.config.paths["config/redis/cable"].first)).exist?
-          self.redis = Rails.application.config_for(redis_cable_path).with_indifferent_access
+        if (config_path = Pathname.new(app.config.paths["config/cable"].first)).exist?
+          self.cable = Rails.application.config_for(config_path).with_indifferent_access
         end
 
+        if 'ApplicationCable::Connection'.safe_constantize
+          self.connection_class = ApplicationCable::Connection
+        end
+
+        self.channel_paths = Rails.application.paths['app/channels'].existent
+
         options.each { |k,v| send("#{k}=", v) }
+      end
+    end
+
+    initializer "action_cable.routes" do
+      config.after_initialize do |app|
+        config = app.config
+        unless config.action_cable.mount_path.nil?
+          app.routes.prepend do
+            mount ActionCable.server => config.action_cable.mount_path, internal: true
+          end
+        end
+      end
+    end
+
+    initializer "action_cable.set_work_hooks" do |app|
+      ActiveSupport.on_load(:action_cable) do
+        ActionCable::Server::Worker.set_callback :work, :around, prepend: true do |_, inner|
+          app.executor.wrap do
+            # If we took a while to get the lock, we may have been halted
+            # in the meantime. As we haven't started doing any real work
+            # yet, we should pretend that we never made it off the queue.
+            unless stopping?
+              inner.call
+            end
+          end
+        end
+
+        wrap = lambda do |_, inner|
+          app.executor.wrap(&inner)
+        end
+        ActionCable::Channel::Base.set_callback :subscribe, :around, prepend: true, &wrap
+        ActionCable::Channel::Base.set_callback :unsubscribe, :around, prepend: true, &wrap
+
+        app.reloader.before_class_unload do
+          ActionCable.server.restart
+        end
       end
     end
   end

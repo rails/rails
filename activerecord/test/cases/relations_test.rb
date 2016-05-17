@@ -19,6 +19,7 @@ require 'models/aircraft'
 require "models/possession"
 require "models/reader"
 require "models/categorization"
+require "models/edge"
 
 class RelationTest < ActiveRecord::TestCase
   fixtures :authors, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
@@ -223,6 +224,39 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal topics(:fifth).title, topics.first.title
   end
 
+  def test_reverse_order_with_function
+    topics = Topic.order("length(title)").reverse_order
+    assert_equal topics(:second).title, topics.first.title
+  end
+
+  def test_reverse_order_with_function_other_predicates
+    topics = Topic.order("author_name, length(title), id").reverse_order
+    assert_equal topics(:second).title, topics.first.title
+    topics = Topic.order("length(author_name), id, length(title)").reverse_order
+    assert_equal topics(:fifth).title, topics.first.title
+  end
+
+  def test_reverse_order_with_multiargument_function
+    assert_raises(ActiveRecord::IrreversibleOrderError) do
+      Topic.order("concat(author_name, title)").reverse_order
+    end
+  end
+
+  def test_reverse_order_with_nulls_first_or_last
+    assert_raises(ActiveRecord::IrreversibleOrderError) do
+      Topic.order("title NULLS FIRST").reverse_order
+    end
+    assert_raises(ActiveRecord::IrreversibleOrderError) do
+      Topic.order("title nulls last").reverse_order
+    end
+  end
+
+  def test_default_reverse_order_on_table_without_primary_key
+    assert_raises(ActiveRecord::IrreversibleOrderError) do
+      Edge.all.reverse_order
+    end
+  end
+
   def test_order_with_hash_and_symbol_generates_the_same_sql
     assert_equal Topic.order(:id).to_sql, Topic.order(:id => :asc).to_sql
   end
@@ -324,6 +358,12 @@ class RelationTest < ActiveRecord::TestCase
   def test_finding_with_sanitized_order
     query = Tag.order(["field(id, ?)", [1,3,2]]).to_sql
     assert_match(/field\(id, 1,3,2\)/, query)
+
+    query = Tag.order(["field(id, ?)", []]).to_sql
+    assert_match(/field\(id, NULL\)/, query)
+
+    query = Tag.order(["field(id, ?)", nil]).to_sql
+    assert_match(/field\(id, NULL\)/, query)
   end
 
   def test_finding_with_order_limit_and_offset
@@ -1046,6 +1086,11 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 9, posts.where(:comments_count => 0).count
   end
 
+  def test_count_with_block
+    posts = Post.all
+    assert_equal 10, posts.count { |p| p.comments_count.even? }
+  end
+
   def test_count_on_association_relation
     author = Author.last
     another_author = Author.first
@@ -1237,6 +1282,16 @@ class RelationTest < ActiveRecord::TestCase
     end
 
     assert posts.loaded?
+  end
+
+  def test_to_a_should_dup_target
+    posts = Post.all
+
+    original_size = posts.size
+    removed = posts.to_a.pop
+
+    assert_equal original_size, posts.size
+    assert_includes posts.to_a, removed
   end
 
   def test_build
@@ -1938,5 +1993,23 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_relation_join_method
     assert_equal 'Thank you for the welcome,Thank you again for the welcome', Post.first.comments.join(",")
+  end
+
+  def test_connection_adapters_can_reorder_binds
+    posts = Post.limit(1).offset(2)
+
+    stubbed_connection = Post.connection.dup
+    def stubbed_connection.combine_bind_parameters(**kwargs)
+      offset = kwargs[:offset]
+      kwargs[:offset] = kwargs[:limit]
+      kwargs[:limit] = offset
+      super(**kwargs)
+    end
+
+    posts.define_singleton_method(:connection) do
+      stubbed_connection
+    end
+
+    assert_equal 2, posts.to_a.length
   end
 end

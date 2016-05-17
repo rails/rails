@@ -67,18 +67,19 @@ module ActionDispatch
       log_error(request, wrapper)
 
       if request.get_header('action_dispatch.show_detailed_exceptions')
-        case @response_format
-        when :api
-          render_for_api_application(request, wrapper)
-        when :default
-          render_for_default_application(request, wrapper)
+        content_type = request.formats.first
+
+        if api_request?(content_type)
+          render_for_api_request(content_type, wrapper)
+        else
+          render_for_browser_request(request, wrapper)
         end
       else
         raise exception
       end
     end
 
-    def render_for_default_application(request, wrapper)
+    def render_for_browser_request(request, wrapper)
       template = create_template(request, wrapper)
       file = "rescues/#{wrapper.rescue_template}"
 
@@ -92,7 +93,7 @@ module ActionDispatch
       render(wrapper.status_code, body, format)
     end
 
-    def render_for_api_application(request, wrapper)
+    def render_for_api_request(content_type, wrapper)
       body = {
         status: wrapper.status_code,
         error:  Rack::Utils::HTTP_STATUS_CODES.fetch(
@@ -103,7 +104,6 @@ module ActionDispatch
         traces: wrapper.traces
       }
 
-      content_type = request.formats.first
       to_format = "to_#{content_type.to_sym}"
 
       if content_type && body.respond_to?(to_format)
@@ -156,15 +156,20 @@ module ActionDispatch
       trace = wrapper.framework_trace if trace.empty?
 
       ActiveSupport::Deprecation.silence do
-        message = "\n#{exception.class} (#{exception.message}):\n"
-        message << exception.annoted_source_code.to_s if exception.respond_to?(:annoted_source_code)
-        message << "  " << trace.join("\n  ")
-        logger.fatal("#{message}\n\n")
+        logger.fatal "  "
+        logger.fatal "#{exception.class} (#{exception.message}):"
+        log_array logger, exception.annoted_source_code if exception.respond_to?(:annoted_source_code)
+        logger.fatal "  "
+        log_array logger, trace
       end
     end
 
+    def log_array(logger, array)
+      array.map { |line| logger.fatal line }
+    end
+
     def logger(request)
-      request.logger || stderr_logger
+      request.logger || ActionView::Base.logger || stderr_logger
     end
 
     def stderr_logger
@@ -175,6 +180,10 @@ module ActionDispatch
       if @routes_app.respond_to?(:routes) && (exception.is_a?(ActionController::RoutingError) || exception.is_a?(ActionView::Template::Error))
         ActionDispatch::Routing::RoutesInspector.new(@routes_app.routes.routes)
       end
+    end
+
+    def api_request?(content_type)
+      @response_format == :api && !content_type.html?
     end
   end
 end

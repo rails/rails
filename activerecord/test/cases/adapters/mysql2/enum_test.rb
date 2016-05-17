@@ -18,4 +18,9 @@ class Mysql2EnumTest < ActiveRecord::Mysql2TestCase
     column = EnumTest.columns_hash['enum_column']
     assert_not column.unsigned?
   end
+
+  def test_should_not_be_bigint
+    column = EnumTest.columns_hash['enum_column']
+    assert_not column.bigint?
+  end
 end

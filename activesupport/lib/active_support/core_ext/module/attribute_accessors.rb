@@ -27,7 +27,7 @@ class Module
   # <tt>instance_reader: false</tt> or <tt>instance_accessor: false</tt>.
   #
   #   module HairColors
-  #     mattr_writer :hair_colors, instance_reader: false
+  #     mattr_reader :hair_colors, instance_reader: false
   #   end
   #
   #   class Person
@@ -40,7 +40,7 @@ class Module
   # Also, you can pass a block to set up the attribute with a default value.
   #
   #   module HairColors
-  #     cattr_reader :hair_colors do
+  #     mattr_reader :hair_colors do
   #       [:brown, :black, :blonde, :red]
   #     end
   #   end

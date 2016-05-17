@@ -52,12 +52,15 @@ module ActionPack
 
       get 'news(.:format)' => "news#index"
 
-      get 'comment/:id(/:action)' => "comments#show"
-      get 'ws/:controller(/:action(/:id))', :ws => true
-      get 'account(/:action)' => "account#subscription"
-      get 'pages/:page_id/:controller(/:action(/:id))'
-      get ':controller/ping', :action => 'ping'
-      get ':controller(/:action(/:id))(.:format)'
+      ActiveSupport::Deprecation.silence {
+        get 'comment/:id(/:action)' => "comments#show"
+        get 'ws/:controller(/:action(/:id))', :ws => true
+        get 'account(/:action)' => "account#subscription"
+        get 'pages/:page_id/:controller(/:action(/:id))'
+        get ':controller/ping', :action => 'ping'
+        get ':controller(/:action(/:id))(.:format)'
+      }
+
       root :to => "news#index"
     }
 

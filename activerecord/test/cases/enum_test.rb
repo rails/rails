@@ -411,4 +411,14 @@ class EnumTest < ActiveRecord::TestCase
     assert book.proposed?, "expected fixture to default to proposed status"
     assert book.in_english?, "expected fixture to default to english language"
   end
+
+  test "uses default value from database on initialization" do
+    book = Book.new
+    assert book.proposed?
+  end
+
+  test "uses default value from database on initialization when using custom mapping" do
+    book = Book.new
+    assert book.hard?
+  end
 end

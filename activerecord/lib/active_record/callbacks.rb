@@ -53,9 +53,9 @@ module ActiveRecord
   #   end
   #
   #   class Firm < ActiveRecord::Base
-  #     # Destroys the associated clients and people when the firm is destroyed
-  #     before_destroy { |record| Person.destroy_all "firm_id = #{record.id}"   }
-  #     before_destroy { |record| Client.destroy_all "client_of = #{record.id}" }
+  #     # Disables access to the system, for associated clients and people when the firm is destroyed
+  #     before_destroy { |record| Person.where(firm_id: record.id).update_all(access: 'disabled')   }
+  #     before_destroy { |record| Client.where(client_of: record.id).update_all(access: 'disabled') }
   #   end
   #
   # == Inheritable callback queues
@@ -179,7 +179,7 @@ module ActiveRecord
   #
   # If the +before_validation+ callback throws +:abort+, the process will be
   # aborted and {ActiveRecord::Base#save}[rdoc-ref:Persistence#save] will return +false+.
-  # If {ActiveRecord::Base#save!}[rdoc-ref:Persistence#save!] is called it will raise a ActiveRecord::RecordInvalid exception.
+  # If {ActiveRecord::Base#save!}[rdoc-ref:Persistence#save!] is called it will raise an ActiveRecord::RecordInvalid exception.
   # Nothing will be appended to the errors object.
   #
   # == Canceling callbacks

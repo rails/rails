@@ -34,21 +34,9 @@ module Rails
             # handling: presumably their code is not threadsafe
 
             middleware.use ::Rack::Lock
-
-          elsif config.allow_concurrency == :unsafe
-            # Do nothing, even if we know this is dangerous. This is the
-            # historical behaviour for true.
-
-          else
-            # Default concurrency setting: enabled, but safe
-
-            unless config.cache_classes && config.eager_load
-              # Without cache_classes + eager_load, the load interlock
-              # is required for proper operation
-
-              middleware.use ::ActionDispatch::LoadInterlock
-            end
           end
+
+          middleware.use ::ActionDispatch::Executor, app.executor
 
           middleware.use ::Rack::Runtime
           middleware.use ::Rack::MethodOverride unless config.api_only
@@ -61,7 +49,7 @@ module Rails
           middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
 
           unless config.cache_classes
-            middleware.use ::ActionDispatch::Reloader, lambda { reload_dependencies? }
+            middleware.use ::ActionDispatch::Reloader, app.reloader
           end
 
           middleware.use ::ActionDispatch::Callbacks
@@ -82,10 +70,6 @@ module Rails
       end
 
       private
-
-        def reload_dependencies?
-          config.reload_classes_only_on_change != true || app.reloaders.map(&:updated?).any?
-        end
 
         def load_rack_cache
           rack_cache = config.action_dispatch.rack_cache

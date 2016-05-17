@@ -23,6 +23,7 @@ require 'models/chef'
 require 'models/department'
 require 'models/cake_designer'
 require 'models/drink_designer'
+require 'models/mocktail_designer'
 require 'models/recipe'
 
 class ReflectionTest < ActiveRecord::TestCase
@@ -276,6 +277,15 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal 1, @hotel.cake_designers.size
     assert_equal 1, @hotel.drink_designers.size
     assert_equal 2, @hotel.chefs.size
+  end
+
+  def test_scope_chain_does_not_interfere_with_hmt_with_polymorphic_case_and_sti
+    @hotel = Hotel.create!
+    @hotel.mocktail_designers << MocktailDesigner.create!
+
+    assert_equal 1, @hotel.mocktail_designers.size
+    assert_equal 1, @hotel.mocktail_designers.count
+    assert_equal 1, @hotel.chef_lists.size
   end
 
   def test_scope_chain_of_polymorphic_association_does_not_leak_into_other_hmt_associations

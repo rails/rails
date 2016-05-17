@@ -5,12 +5,10 @@ module ActiveJob
     # == Sucker Punch adapter for Active Job
     #
     # Sucker Punch is a single-process Ruby asynchronous processing library.
-    # It's girl_friday and DSL sugar on top of Celluloid. With Celluloid's
-    # actor pattern, we can do asynchronous processing within a single process.
-    # This reduces costs of hosting on a service like Heroku along with the
-    # memory footprint of having to maintain additional jobs if hosting on
-    # a dedicated server. All queues can run within a single Rails/Sinatra
-    # process.
+    # This reduces the cost of of hosting on a service like Heroku along
+    # with the memory footprint of having to maintain additional jobs if
+    # hosting on a dedicated server. All queues can run within a
+    # single application (eg. Rails, Sinatra, etc.) process.
     #
     # Read more about Sucker Punch {here}[https://github.com/brandonhilkert/sucker_punch].
     #
@@ -19,11 +17,22 @@ module ActiveJob
     #   Rails.application.config.active_job.queue_adapter = :sucker_punch
     class SuckerPunchAdapter
       def enqueue(job) #:nodoc:
-        JobWrapper.new.async.perform job.serialize
+        if JobWrapper.respond_to?(:perform_async)
+          # sucker_punch 2.0 API
+          JobWrapper.perform_async job.serialize
+        else
+          # sucker_punch 1.0 API
+          JobWrapper.new.async.perform job.serialize
+        end
       end
 
       def enqueue_at(job, timestamp) #:nodoc:
-        raise NotImplementedError, "This queueing backend does not support scheduling jobs. To see what features are supported go to http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html"
+        if JobWrapper.respond_to?(:perform_in)
+          delay = timestamp - Time.current.to_f
+          JobWrapper.perform_in delay, job.serialize
+        else
+          raise NotImplementedError, 'sucker_punch 1.0 does not support `enqueued_at`. Please upgrade to version ~> 2.0.0 to enable this behavior.'
+        end
       end
 
       class JobWrapper #:nodoc:

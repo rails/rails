@@ -302,7 +302,7 @@ module ActionView
         params = html_options.delete('params')
 
         method     = html_options.delete('method').to_s
-        method_tag = BUTTON_TAG_METHOD_VERBS.include?(method) ? method_tag(method) : ''.html_safe
+        method_tag = BUTTON_TAG_METHOD_VERBS.include?(method) ? method_tag(method) : ''.freeze.html_safe
 
         form_method  = method == 'get' ? 'get' : 'post'
         form_options = html_options.delete('form') || {}
@@ -312,9 +312,10 @@ module ActionView
         form_options[:'data-remote'] = true if remote
 
         request_token_tag = if form_method == 'post'
-          token_tag(nil, form_options: form_options)
+          request_method = method.empty? ? 'post' : method
+          token_tag(nil, form_options: { action: url, method: request_method })
         else
-          ''
+          ''.freeze
         end
 
         html_options = convert_options_to_data_attributes(options, html_options)
@@ -329,8 +330,8 @@ module ActionView
 
         inner_tags = method_tag.safe_concat(button).safe_concat(request_token_tag)
         if params
-          params.each do |param_name, value|
-            inner_tags.safe_concat tag(:input, type: "hidden", name: param_name, value: value.to_param)
+          to_form_params(params).each do |param|
+            inner_tags.safe_concat tag(:input, type: "hidden", name: param[:name], value: param[:value])
           end
         end
         content_tag('form', inner_tags, form_options)
@@ -480,7 +481,7 @@ module ActionView
           option = html_options.delete(item).presence || next
           "#{item.dasherize}=#{ERB::Util.url_encode(option)}"
         }.compact
-        extras = extras.empty? ? '' : '?' + extras.join('&')
+        extras = extras.empty? ? ''.freeze : '?' + extras.join('&')
 
         encoded_email_address = ERB::Util.url_encode(email_address).gsub("%40", "@")
         html_options["href"] = "mailto:#{encoded_email_address}#{extras}"
@@ -558,29 +559,29 @@ module ActionView
         def convert_options_to_data_attributes(options, html_options)
           if html_options
             html_options = html_options.stringify_keys
-            html_options['data-remote'] = 'true' if link_to_remote_options?(options) || link_to_remote_options?(html_options)
+            html_options['data-remote'] = 'true'.freeze if link_to_remote_options?(options) || link_to_remote_options?(html_options)
 
-            method  = html_options.delete('method')
+            method  = html_options.delete('method'.freeze)
 
             add_method_to_attributes!(html_options, method) if method
 
             html_options
           else
-            link_to_remote_options?(options) ? {'data-remote' => 'true'} : {}
+            link_to_remote_options?(options) ? {'data-remote' => 'true'.freeze} : {}
           end
         end
 
         def link_to_remote_options?(options)
           if options.is_a?(Hash)
-            options.delete('remote') || options.delete(:remote)
+            options.delete('remote'.freeze) || options.delete(:remote)
           end
         end
 
         def add_method_to_attributes!(html_options, method)
-          if method && method.to_s.downcase != "get" && html_options["rel"] !~ /nofollow/
-            html_options["rel"] = "#{html_options["rel"]} nofollow".lstrip
+          if method && method.to_s.downcase != "get".freeze && html_options["rel".freeze] !~ /nofollow/
+            html_options["rel".freeze] = "#{html_options["rel".freeze]} nofollow".lstrip
           end
-          html_options["data-method"] = method
+          html_options["data-method".freeze] = method
         end
 
         def token_tag(token=nil, form_options: {})
@@ -588,12 +589,48 @@ module ActionView
             token ||= form_authenticity_token(form_options: form_options)
             tag(:input, type: "hidden", name: request_forgery_protection_token.to_s, value: token)
           else
-            ''
+            ''.freeze
           end
         end
 
         def method_tag(method)
           tag('input', type: 'hidden', name: '_method', value: method.to_s)
+        end
+
+        # Returns an array of hashes each containing :name and :value keys
+        # suitable for use as the names and values of form input fields:
+        #
+        #   to_form_params(name: 'David', nationality: 'Danish')
+        #   # => [{name: :name, value: 'David'}, {name: 'nationality', value: 'Danish'}]
+        #
+        #   to_form_params(country: {name: 'Denmark'})
+        #   # => [{name: 'country[name]', value: 'Denmark'}]
+        #
+        #   to_form_params(countries: ['Denmark', 'Sweden']})
+        #   # => [{name: 'countries[]', value: 'Denmark'}, {name: 'countries[]', value: 'Sweden'}]
+        #
+        # An optional namespace can be passed to enclose key names:
+        #
+        #   to_form_params({ name: 'Denmark' }, 'country')
+        #   # => [{name: 'country[name]', value: 'Denmark'}]
+        def to_form_params(attribute, namespace = nil) # :nodoc:
+          params = []
+          case attribute
+          when Hash
+            attribute.each do |key, value|
+              prefix = namespace ? "#{namespace}[#{key}]" : key
+              params.push(*to_form_params(value, prefix))
+            end
+          when Array
+            array_prefix = "#{namespace}[]"
+            attribute.each do |value|
+              params.push(*to_form_params(value, array_prefix))
+            end
+          else
+            params << { name: namespace, value: attribute.to_param }
+          end
+
+          params.sort_by { |pair| pair[:name] }
         end
     end
   end

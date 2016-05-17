@@ -1,7 +1,7 @@
 module ActiveRecord
   module Querying
-    delegate :find, :take, :take!, :first, :first!, :last, :last!, :exists?, :any?, :many?, to: :all
-    delegate :second, :second!, :third, :third!, :fourth, :fourth!, :fifth, :fifth!, :forty_two, :forty_two!, to: :all
+    delegate :find, :take, :take!, :first, :first!, :last, :last!, :exists?, :any?, :many?, :none?, :one?, to: :all
+    delegate :second, :second!, :third, :third!, :fourth, :fourth!, :fifth, :fifth!, :forty_two, :forty_two!, :third_to_last, :third_to_last!, :second_to_last, :second_to_last!, to: :all
     delegate :first_or_create, :first_or_create!, :first_or_initialize, to: :all
     delegate :find_or_create_by, :find_or_create_by!, :find_or_initialize_by, to: :all
     delegate :find_by, :find_by!, to: :all
@@ -35,8 +35,8 @@ module ActiveRecord
     #
     #   Post.find_by_sql ["SELECT title FROM posts WHERE author = ? AND created > ?", author_id, start_date]
     #   Post.find_by_sql ["SELECT body FROM comments WHERE author = :user_id OR approved_by = :user_id", { :user_id => user_id }]
-    def find_by_sql(sql, binds = [])
-      result_set = connection.select_all(sanitize_sql(sql), "#{name} Load", binds)
+    def find_by_sql(sql, binds = [], preparable: nil)
+      result_set = connection.select_all(sanitize_sql(sql), "#{name} Load", binds, preparable: preparable)
       column_types = result_set.column_types.dup
       columns_hash.each_key { |k| column_types.delete k }
       message_bus = ActiveSupport::Notifications.instrumenter

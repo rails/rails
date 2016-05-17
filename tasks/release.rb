@@ -13,6 +13,7 @@ directory "pkg"
 
     task :clean do
       rm_f gem
+      sh "cd #{framework} && bundle exec rake package:clean" unless framework == "rails"
     end
 
     task :update_versions do
@@ -27,7 +28,7 @@ directory "pkg"
       file = Dir[glob].first
       ruby = File.read(file)
 
-      major, minor, tiny, pre = version.split('.')
+      major, minor, tiny, pre = version.split('.', 4)
       pre = pre ? pre.inspect : "nil"
 
       ruby.gsub!(/^(\s*)MAJOR(\s*)= .*?$/, "\\1MAJOR = #{major}")
@@ -43,22 +44,54 @@ directory "pkg"
       raise "Could not insert PRE in #{file}" unless $1
 
       File.open(file, 'w') { |f| f.write ruby }
+
+      if File.exist?("#{framework}/package.json")
+        Dir.chdir("#{framework}") do
+          # This "npm-ifies" the current version
+          # With npm, versions such as "5.0.0.rc1" or "5.0.0.beta1.1" are not compliant with its
+          # versioning system, so they must be transformed to "5.0.0-rc1" and "5.0.0-beta1-1" respectively.
+
+          # In essence, the code below runs through all "."s that appear in the version,
+          # and checks to see if their index in the version string is greater than or equal to 2,
+          # and if so, it will change the "." to a "-".
+
+          # Sample version transformations:
+          # irb(main):001:0> version = "5.0.1.1"
+          # => "5.0.1.1"
+          # irb(main):002:0> version.gsub(/\./).with_index { |s, i| i >= 2 ? '-' : s }
+          # => "5.0.1-1"
+          # irb(main):003:0> version = "5.0.0.rc1"
+          # => "5.0.0.rc1"
+          # irb(main):004:0> version.gsub(/\./).with_index { |s, i| i >= 2 ? '-' : s }
+          # => "5.0.0-rc1"
+          version = version.gsub(/\./).with_index { |s, i| i >= 2 ? '-' : s }
+
+          # Check if npm is installed, and raise an error if not
+          if sh 'which npm'
+            sh "npm version #{version} --no-git-tag-version"
+          else
+            raise 'You must have npm installed to release Rails.'
+          end
+        end
+      end
     end
 
     task gem => %w(update_versions pkg) do
       cmd = ""
       cmd << "cd #{framework} && " unless framework == "rails"
+      cmd << "bundle exec rake package && " unless framework == "rails"
       cmd << "gem build #{gemspec} && mv #{framework}-#{version}.gem #{root}/pkg/"
       sh cmd
     end
 
     task :build => [:clean, gem]
     task :install => :build do
-      sh "gem install #{gem}"
+      sh "gem install --pre #{gem}"
     end
 
     task :push => :build do
       sh "gem push #{gem}"
+      sh "npm publish" if File.exist?("#{framework}/package.json")
     end
   end
 end
@@ -133,7 +166,7 @@ namespace :all do
   end
 
   task :tag do
-    sh "git tag -m '#{tag} release' #{tag}"
+    sh "git tag -s -m '#{tag} release' #{tag}"
     sh "git push --tags"
   end
 

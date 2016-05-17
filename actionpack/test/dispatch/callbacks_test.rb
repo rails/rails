@@ -37,13 +37,19 @@ class DispatcherTest < ActiveSupport::TestCase
 
   def test_to_prepare_and_cleanup_delegation
     prepared = cleaned = false
-    ActionDispatch::Callbacks.to_prepare { prepared = true }
-    ActionDispatch::Callbacks.to_prepare { cleaned = true }
+    assert_deprecated do
+      ActionDispatch::Callbacks.to_prepare { prepared = true }
+      ActionDispatch::Callbacks.to_prepare { cleaned = true }
+    end
 
-    ActionDispatch::Reloader.prepare!
+    assert_deprecated do
+      ActionDispatch::Reloader.prepare!
+    end
     assert prepared
 
-    ActionDispatch::Reloader.cleanup!
+    assert_deprecated do
+      ActionDispatch::Reloader.cleanup!
+    end
     assert cleaned
   end
 

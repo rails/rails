@@ -345,7 +345,9 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     def with_test_route_set(options = {})
       with_routing do |set|
         set.draw do
-          get ':action', :to => ::CookieStoreTest::TestController
+          ActiveSupport::Deprecation.silence do
+            get ':action', :to => ::CookieStoreTest::TestController
+          end
         end
 
         options = { :key => SessionKey }.merge!(options)

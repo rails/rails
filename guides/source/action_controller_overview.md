@@ -700,7 +700,7 @@ class LoginsController < ApplicationController
 end
 ```
 
-Now, the `LoginsController`'s `new` and `create` actions will work as before without requiring the user to be logged in. The `:only` option is used to only skip this filter for these actions, and there is also an `:except` option which works the other way. These options can be used when adding filters too, so you can add a filter which only runs for selected actions in the first place.
+Now, the `LoginsController`'s `new` and `create` actions will work as before without requiring the user to be logged in. The `:only` option is used to skip this filter only for these actions, and there is also an `:except` option which works the other way. These options can be used when adding filters too, so you can add a filter which only runs for selected actions in the first place.
 
 ### After Filters and Around Filters
 
@@ -995,10 +995,6 @@ you would like in a response object. The `ActionController::Live` module allows
 you to create a persistent connection with a browser. Using this module, you will
 be able to send arbitrary data to the browser at specific points in time.
 
-NOTE: The default Rails server (WEBrick) is a buffering web server and does not
-support streaming. In order to use this feature, you'll need to use a non buffering
-server like [Puma](http://puma.io), [Rainbows](http://rainbows.bogomips.org)
-or [Passenger](https://www.phusionpassenger.com).
 
 #### Incorporating Live Streaming
 
@@ -1091,6 +1087,8 @@ You can filter out sensitive request parameters from your log files by appending
 ```ruby
 config.filter_parameters << :password
 ```
+
+NOTE: Provided parameters will be filtered out by partial matching regular expression. Rails adds default `:password` in the appropriate initializer (`initializers/filter_parameter_logging.rb`) and cares about typical application parameters `password` and `password_confirmation`.
 
 ### Redirects Filtering
 

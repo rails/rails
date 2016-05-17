@@ -1,9 +1,8 @@
 module ActionCable
   module Server
-    # Collection class for all the connections that's been established on this specific server. Remember, usually you'll run many cable servers, so
-    # you can't use this collection as an full list of all the connections established against your application. Use RemoteConnections for that.
-    # As such, this is primarily for internal use.
-    module Connections
+    # Collection class for all the connections that have been established on this specific server. Remember, usually you'll run many Action Cable servers, so
+    # you can't use this collection as a full list of all of the connections established against your application. Instead, use RemoteConnections for that.
+    module Connections # :nodoc:
       BEAT_INTERVAL = 3
 
       def connections
@@ -19,13 +18,11 @@ module ActionCable
       end
 
       # WebSocket connection implementations differ on when they'll mark a connection as stale. We basically never want a connection to go stale, as you
-      # then can't rely on being able to receive and send to it. So there's a 3 second heartbeat running on all connections. If the beat fails, we automatically
+      # then can't rely on being able to communicate with the connection. To solve this, a 3 second heartbeat runs on all connections. If the beat fails, we automatically
       # disconnect.
       def setup_heartbeat_timer
-        EM.next_tick do
-          @heartbeat_timer ||= EventMachine.add_periodic_timer(BEAT_INTERVAL) do
-            EM.next_tick { connections.map(&:beat) }
-          end
+        @heartbeat_timer ||= event_loop.timer(BEAT_INTERVAL) do
+          event_loop.post { connections.map(&:beat) }
         end
       end
 

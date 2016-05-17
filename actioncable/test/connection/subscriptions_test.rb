@@ -5,7 +5,6 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
     attr_reader :websocket
 
     def send_async(method, *args)
-      # Bypass Celluloid
       send method, *args
     end
   end
@@ -83,7 +82,7 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
     end
   end
 
-  test "unsubscrib from all" do
+  test "unsubscribe from all" do
     run_in_eventmachine do
       setup_connection
 
@@ -108,7 +107,7 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
     end
 
     def setup_connection
-      env = Rack::MockRequest.env_for "/test", 'HTTP_CONNECTION' => 'upgrade', 'HTTP_UPGRADE' => 'websocket'
+      env = Rack::MockRequest.env_for "/test", 'HTTP_HOST' => 'localhost', 'HTTP_CONNECTION' => 'upgrade', 'HTTP_UPGRADE' => 'websocket'
       @connection = Connection.new(@server, env)
 
       @subscriptions = ActionCable::Connection::Subscriptions.new(@connection)

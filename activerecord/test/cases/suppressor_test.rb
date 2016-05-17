@@ -46,7 +46,30 @@ class SuppressorTest < ActiveRecord::TestCase
     Notification.suppress { UserWithNotification.create! }
 
     assert_difference -> { Notification.count } do
-      Notification.create!
+      Notification.create!(message: "New Comment")
+    end
+  end
+
+  def test_suppresses_validations_on_create
+    assert_no_difference -> { Notification.count } do
+      Notification.suppress do
+        User.create
+        User.create!
+        User.new.save
+        User.new.save!
+      end
+    end
+  end
+
+  def test_suppresses_when_nested_multiple_times
+    assert_no_difference -> { Notification.count } do
+      Notification.suppress do
+        Notification.suppress { }
+        Notification.create
+        Notification.create!
+        Notification.new.save
+        Notification.new.save!
+      end
     end
   end
 end

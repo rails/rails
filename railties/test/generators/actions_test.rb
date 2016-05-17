@@ -113,6 +113,14 @@ class ActionsTest < Rails::Generators::TestCase
     assert_file 'Gemfile', /^gem 'rspec', ">=2\.0'0"$/
   end
 
+  def test_gem_works_even_if_frozen_string_is_passed_as_argument
+    run_generator
+
+    action :gem, "frozen_gem".freeze, "1.0.0".freeze
+
+    assert_file 'Gemfile', /^gem 'frozen_gem', '1.0.0'$/
+  end
+
   def test_gem_group_should_wrap_gems_in_a_group
     run_generator
 
@@ -193,7 +201,7 @@ class ActionsTest < Rails::Generators::TestCase
     end
   end
 
-  def test_rake_should_run_rake_command_with_default_env
+  def test_rails_should_run_rake_command_with_default_env
     assert_called_with(generator, :run, ["rake log:clear RAILS_ENV=development", verbose: false]) do
       with_rails_env nil do
         action :rake, 'log:clear'
@@ -201,13 +209,13 @@ class ActionsTest < Rails::Generators::TestCase
     end
   end
 
-  def test_rake_with_env_option_should_run_rake_command_in_env
+  def test_rails_with_env_option_should_run_rake_command_in_env
     assert_called_with(generator, :run, ['rake log:clear RAILS_ENV=production', verbose: false]) do
       action :rake, 'log:clear', env: 'production'
     end
   end
 
-  def test_rake_with_rails_env_variable_should_run_rake_command_in_env
+  test "rails command with RAILS_ENV variable should run rake command in env" do
     assert_called_with(generator, :run, ['rake log:clear RAILS_ENV=production', verbose: false]) do
       with_rails_env "production" do
         action :rake, 'log:clear'
@@ -215,7 +223,7 @@ class ActionsTest < Rails::Generators::TestCase
     end
   end
 
-  def test_env_option_should_win_over_rails_env_variable_when_running_rake
+  test "env option should win over RAILS_ENV variable when running rake" do
     assert_called_with(generator, :run, ['rake log:clear RAILS_ENV=production', verbose: false]) do
       with_rails_env "staging" do
         action :rake, 'log:clear', env: 'production'
@@ -223,10 +231,48 @@ class ActionsTest < Rails::Generators::TestCase
     end
   end
 
-  def test_rake_with_sudo_option_should_run_rake_command_with_sudo
+  test "rails command with sudo option should run rake command with sudo" do
     assert_called_with(generator, :run, ["sudo rake log:clear RAILS_ENV=development", verbose: false]) do
       with_rails_env nil do
         action :rake, 'log:clear', sudo: true
+      end
+    end
+  end
+
+  test "rails command should run rails_command with default env" do
+    assert_called_with(generator, :run, ["rails log:clear RAILS_ENV=development", verbose: false]) do
+      with_rails_env nil do
+        action :rails_command, 'log:clear'
+      end
+    end
+  end
+
+  test "rails command with env option should run rails_command with same env" do
+    assert_called_with(generator, :run, ['rails log:clear RAILS_ENV=production', verbose: false]) do
+      action :rails_command, 'log:clear', env: 'production'
+    end
+  end
+
+  test "rails command with RAILS_ENV variable should run rails_command in env" do
+    assert_called_with(generator, :run, ['rails log:clear RAILS_ENV=production', verbose: false]) do
+      with_rails_env "production" do
+        action :rails_command, 'log:clear'
+      end
+    end
+  end
+
+  def test_env_option_should_win_over_rails_env_variable_when_running_rails
+    assert_called_with(generator, :run, ['rails log:clear RAILS_ENV=production', verbose: false]) do
+      with_rails_env "staging" do
+        action :rails_command, 'log:clear', env: 'production'
+      end
+    end
+  end
+
+  test "rails command with sudo option should run rails_command with sudo" do
+    assert_called_with(generator, :run, ["sudo rails log:clear RAILS_ENV=development", verbose: false]) do
+      with_rails_env nil do
+        action :rails_command, 'log:clear', sudo: true
       end
     end
   end

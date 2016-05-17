@@ -26,6 +26,10 @@ module ActiveRecord
       def sanitize_sql_for_order(sql)
         sql
       end
+
+      def arel_attribute(name, table)
+        table[name]
+      end
     end
 
     def relation

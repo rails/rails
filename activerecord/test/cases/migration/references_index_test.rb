@@ -23,12 +23,12 @@ module ActiveRecord
         assert connection.index_exists?(table_name, :foo_id, :name => :index_testings_on_foo_id)
       end
 
-      def test_does_not_create_index
+      def test_creates_index_by_default_even_if_index_option_is_not_passed
         connection.create_table table_name do |t|
           t.references :foo
         end
 
-        assert_not connection.index_exists?(table_name, :foo_id, :name => :index_testings_on_foo_id)
+        assert connection.index_exists?(table_name, :foo_id, :name => :index_testings_on_foo_id)
       end
 
       def test_does_not_create_index_explicit
@@ -68,13 +68,13 @@ module ActiveRecord
         assert connection.index_exists?(table_name, :foo_id, :name => :index_testings_on_foo_id)
       end
 
-      def test_does_not_create_index_for_existing_table
+      def test_creates_index_for_existing_table_even_if_index_option_is_not_passed
         connection.create_table table_name
         connection.change_table table_name do |t|
           t.references :foo
         end
 
-        assert_not connection.index_exists?(table_name, :foo_id, :name => :index_testings_on_foo_id)
+        assert connection.index_exists?(table_name, :foo_id, :name => :index_testings_on_foo_id)
       end
 
       def test_does_not_create_index_for_existing_table_explicit

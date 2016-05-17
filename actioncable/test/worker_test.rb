@@ -13,12 +13,17 @@ class WorkerTest < ActiveSupport::TestCase
     end
 
     def connection
+      self
+    end
+
+    def logger
+      # Impersonating a connection requires a TaggedLoggerProxy'ied logger.
+      inner_logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
+      ActionCable::Connection::TaggedLoggerProxy.new(inner_logger, tags: [])
     end
   end
 
   setup do
-    Celluloid.boot
-
     @worker = ActionCable::Server::Worker.new
     @receiver = Receiver.new
   end
@@ -28,22 +33,12 @@ class WorkerTest < ActiveSupport::TestCase
   end
 
   test "invoke" do
-    @worker.invoke @receiver, :run
+    @worker.invoke @receiver, :run, connection: @receiver.connection
     assert_equal :run, @receiver.last_action
   end
 
   test "invoke with arguments" do
-    @worker.invoke @receiver, :process, "Hello"
+    @worker.invoke @receiver, :process, "Hello", connection: @receiver.connection
     assert_equal [ :process, "Hello" ], @receiver.last_action
-  end
-
-  test "running periodic timers with a proc" do
-    @worker.run_periodic_timer @receiver, @receiver.method(:run)
-    assert_equal :run, @receiver.last_action
-  end
-
-  test "running periodic timers with a method" do
-    @worker.run_periodic_timer @receiver, :run
-    assert_equal :run, @receiver.last_action
   end
 end

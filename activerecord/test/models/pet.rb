@@ -4,6 +4,9 @@ class Pet < ActiveRecord::Base
   self.primary_key = :pet_id
   belongs_to :owner, :touch => true
   has_many :toys
+  has_many :pet_treasures
+  has_many :treasures, through: :pet_treasures
+  has_many :persons, through: :treasures, source: :looter, source_type: 'Person'
 
   class << self
     attr_accessor :after_destroy_output

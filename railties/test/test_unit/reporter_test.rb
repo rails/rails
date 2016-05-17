@@ -62,7 +62,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     @reporter.record(failed_test)
     @reporter.report
 
-    expect = %r{\AF\n\nFailure:\nTestUnitReporterTest::ExampleTest#woot:\nboo\n\nbin/rails test test/test_unit/reporter_test.rb:\d+\n\n\z}
+    expect = %r{\AF\n\nFailure:\nTestUnitReporterTest::ExampleTest#woot \[[^\]]+\]:\nboo\n\nbin/rails test test/test_unit/reporter_test.rb:\d+\n\n\z}
     assert_match expect, @output.string
   end
 
@@ -79,7 +79,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     verbose.record(skipped_test)
     verbose.report
 
-    expect = %r{\ATestUnitReporterTest::ExampleTest#woot = 10\.00 s = S\n\n\nSkipped:\nTestUnitReporterTest::ExampleTest#woot:\nskipchurches, misstemples\n\nbin/rails test test/test_unit/reporter_test.rb:\d+\n\n\z}
+    expect = %r{\ATestUnitReporterTest::ExampleTest#woot = 10\.00 s = S\n\n\nSkipped:\nTestUnitReporterTest::ExampleTest#woot \[[^\]]+\]:\nskipchurches, misstemples\n\nbin/rails test test/test_unit/reporter_test.rb:\d+\n\n\z}
     assert_match expect, @output.string
   end
 
@@ -104,11 +104,22 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     end
   end
 
-  test "fail fast does not interrupt run errors or skips" do
+  test "fail fast interrupts run on error" do
     fail_fast = Rails::TestUnitReporter.new @output, fail_fast: true
+    interrupt_raised = false
 
-    fail_fast.record(errored_test)
-    assert_no_match 'Failed tests:', @output.string
+    # Minitest passes through Interrupt, catch it manually.
+    begin
+      fail_fast.record(errored_test)
+    rescue Interrupt
+      interrupt_raised = true
+    ensure
+      assert interrupt_raised, 'Expected Interrupt to be raised.'
+    end
+  end
+
+  test "fail fast does not interrupt run skips" do
+    fail_fast = Rails::TestUnitReporter.new @output, fail_fast: true
 
     fail_fast.record(skipped_test)
     assert_no_match 'Failed tests:', @output.string

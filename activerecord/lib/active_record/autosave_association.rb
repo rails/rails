@@ -22,7 +22,7 @@ module ActiveRecord
   #
   # == Validation
   #
-  # Children records are validated unless <tt>:validate</tt> is +false+.
+  # Child records are validated unless <tt>:validate</tt> is +false+.
   #
   # == Callbacks
   #

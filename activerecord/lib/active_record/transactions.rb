@@ -233,19 +233,19 @@ module ActiveRecord
         set_callback(:commit, :after, *args, &block)
       end
 
-      # Shortcut for +after_commit :hook, on: :create+.
+      # Shortcut for <tt>after_commit :hook, on: :create</tt>.
       def after_create_commit(*args, &block)
         set_options_for_callbacks!(args, on: :create)
         set_callback(:commit, :after, *args, &block)
       end
 
-      # Shortcut for +after_commit :hook, on: :update+.
+      # Shortcut for <tt>after_commit :hook, on: :update</tt>.
       def after_update_commit(*args, &block)
         set_options_for_callbacks!(args, on: :update)
         set_callback(:commit, :after, *args, &block)
       end
 
-      # Shortcut for +after_commit :hook, on: :destroy+.
+      # Shortcut for <tt>after_commit :hook, on: :destroy</tt>.
       def after_destroy_commit(*args, &block)
         set_options_for_callbacks!(args, on: :destroy)
         set_callback(:commit, :after, *args, &block)

@@ -1,10 +1,26 @@
 module ActiveRecord
   class Migration
     module Compatibility # :nodoc: all
-      V5_0 = Current
+      def self.find(version)
+        version = version.to_s
+        name = "V#{version.tr('.', '_')}"
+        unless const_defined?(name)
+          versions = constants.grep(/\AV[0-9_]+\z/).map { |s| s.to_s.delete('V').tr('_', '.').inspect }
+          raise ArgumentError, "Unknown migration version #{version.inspect}; expected one of #{versions.sort.join(', ')}"
+        end
+        const_get(name)
+      end
+
+      V5_1 = Current
 
       module FourTwoShared
         module TableDefinition
+          def references(*, **options)
+            options[:index] ||= false
+            super
+          end
+          alias :belongs_to :references
+
           def timestamps(*, **options)
             options[:null] = true if options[:null].nil?
             super
@@ -24,6 +40,25 @@ module ActiveRecord
           end
         end
 
+        def change_table(table_name, options = {})
+          if block_given?
+            super(table_name, options) do |t|
+              class << t
+                prepend TableDefinition
+              end
+              yield t
+            end
+          else
+            super
+          end
+        end
+
+        def add_reference(*, **options)
+          options[:index] ||= false
+          super
+        end
+        alias :add_belongs_to :add_reference
+
         def add_timestamps(*, **options)
           options[:null] = true if options[:null].nil?
           super
@@ -32,7 +67,7 @@ module ActiveRecord
         def index_exists?(table_name, column_name, options = {})
           column_names = Array(column_name).map(&:to_s)
           options[:name] =
-            if options.key?(:name).present?
+            if options[:name].present?
               options[:name].to_s
             else
               index_name(table_name, column: column_names)
@@ -67,6 +102,9 @@ module ActiveRecord
         end
       end
 
+      class V5_0 < V5_1
+      end
+
       class V4_2 < V5_0
         # 4.2 is defined as a module because it needs to be shared with
         # Legacy. When the time comes, V5_0 should be defined straight
@@ -77,7 +115,7 @@ module ActiveRecord
       module Legacy
         include FourTwoShared
 
-        def run(*)
+        def migrate(*)
           ActiveSupport::Deprecation.warn \
             "Directly inheriting from ActiveRecord::Migration is deprecated. " \
             "Please specify the Rails release the migration was written for:\n" \

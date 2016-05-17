@@ -3,16 +3,9 @@ module ActiveRecord
     module PostgreSQL
       module ColumnDumper
         def column_spec_for_primary_key(column)
-          spec = {}
-          if column.serial?
-            return unless column.bigint?
-            spec[:id] = ':bigserial'
-          elsif column.type == :uuid
-            spec[:id] = ':uuid'
-            spec[:default] = column.default_function.inspect
-          else
-            spec[:id] = column.type.inspect
-            spec.merge!(prepare_column_options(column).delete_if { |key, _| [:name, :type, :null].include?(key) })
+          spec = super
+          if schema_type(column) == :uuid
+            spec[:default] ||= 'nil'
           end
           spec
         end
@@ -31,22 +24,22 @@ module ActiveRecord
 
         private
 
+        def default_primary_key?(column)
+          schema_type(column) == :serial
+        end
+
         def schema_type(column)
           return super unless column.serial?
 
           if column.bigint?
-            'bigserial'
+            :bigserial
           else
-            'serial'
+            :serial
           end
         end
 
-        def schema_default(column)
-          if column.default_function
-            column.default_function.inspect unless column.serial?
-          else
-            super
-          end
+        def schema_expression(column)
+          super unless column.serial?
         end
       end
     end

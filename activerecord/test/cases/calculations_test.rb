@@ -124,7 +124,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_generate_valid_sql_with_joins_and_group
-    assert_nothing_raised ActiveRecord::StatementInvalid do
+    assert_nothing_raised do
       AuditLog.joins(:developer).group(:id).count
     end
   end
@@ -482,6 +482,10 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 1, Account.where(firm_name: '37signals').order(:firm_name).reverse_order.count
   end
 
+  def test_count_with_block
+    assert_equal 4, Account.count { |account| account.credit_limit.modulo(10).zero? }
+  end
+
   def test_should_sum_expression
     # Oracle adapter returns floating point value 636.0 after SUM
     if current_adapter?(:OracleAdapter)
@@ -742,7 +746,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_reference_correct_aliases_while_joining_tables_of_has_many_through_association
-    assert_nothing_raised ActiveRecord::StatementInvalid do
+    assert_nothing_raised do
       developer = Developer.create!(name: 'developer')
       developer.ratings.includes(comment: :post).where(posts: { id: 1 }).count
     end

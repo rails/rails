@@ -17,8 +17,10 @@ module ActiveJob
       end
 
       def execute(job_data) #:nodoc:
-        job = deserialize(job_data)
-        job.perform_now
+        ActiveJob::Callbacks.run_callbacks(:execute) do
+          job = deserialize(job_data)
+          job.perform_now
+        end
       end
     end
 
@@ -32,7 +34,7 @@ module ActiveJob
         perform(*arguments)
       end
     rescue => exception
-      rescue_with_handler(exception) || raise(exception)
+      rescue_with_handler(exception) || raise
     end
 
     def perform(*)

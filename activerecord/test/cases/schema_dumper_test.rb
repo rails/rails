@@ -29,6 +29,24 @@ class SchemaDumperTest < ActiveRecord::TestCase
     ActiveRecord::SchemaMigration.delete_all
   end
 
+  if current_adapter?(:SQLite3Adapter)
+    %w{3.7.8 3.7.11 3.7.12}.each do |version_string|
+      test "dumps schema version for sqlite version #{version_string}" do
+        version = ActiveRecord::ConnectionAdapters::SQLite3Adapter::Version.new(version_string)
+        ActiveRecord::Base.connection.stubs(:sqlite_version).returns(version)
+
+        versions = %w{ 20100101010101 20100201010101 20100301010101 }
+        versions.reverse_each do |v|
+          ActiveRecord::SchemaMigration.create!(:version => v)
+        end
+
+        schema_info = ActiveRecord::Base.connection.dump_schema_information
+        assert_match(/20100201010101.*20100301010101/m, schema_info)
+        ActiveRecord::SchemaMigration.delete_all
+      end
+    end
+  end
+
   def test_magic_comment
     assert_match "# encoding: #{Encoding.default_external.name}", standard_dump
   end
@@ -38,7 +56,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r{create_table "accounts"}, output
     assert_match %r{create_table "authors"}, output
     assert_no_match %r{create_table "schema_migrations"}, output
-    assert_no_match %r{create_table "active_record_internal_metadatas"}, output
+    assert_no_match %r{create_table "ar_internal_metadata"}, output
   end
 
   def test_schema_dump_uses_force_cascade_on_create_table
@@ -74,7 +92,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
       next if column_set.empty?
 
       lengths = column_set.map do |column|
-        if match = column.match(/\bt\.\w+\s+"/)
+        if match = column.match(/\bt\.\w+\s+(?="\w+?")/)
           match[0].length
         end
       end.compact
@@ -147,10 +165,10 @@ class SchemaDumperTest < ActiveRecord::TestCase
       assert_match %r{c_int_7.*limit: 7}, output
       assert_match %r{c_int_8.*limit: 8}, output
     else
-      assert_match %r{c_int_5.*limit: 8}, output
-      assert_match %r{c_int_6.*limit: 8}, output
-      assert_match %r{c_int_7.*limit: 8}, output
-      assert_match %r{c_int_8.*limit: 8}, output
+      assert_match %r{t\.bigint\s+"c_int_5"$}, output
+      assert_match %r{t\.bigint\s+"c_int_6"$}, output
+      assert_match %r{t\.bigint\s+"c_int_7"$}, output
+      assert_match %r{t\.bigint\s+"c_int_8"$}, output
     end
   end
 
@@ -159,7 +177,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_no_match %r{create_table "accounts"}, output
     assert_match %r{create_table "authors"}, output
     assert_no_match %r{create_table "schema_migrations"}, output
-    assert_no_match %r{create_table "active_record_internal_metadatas"}, output
+    assert_no_match %r{create_table "ar_internal_metadata"}, output
   end
 
   def test_schema_dump_with_regexp_ignored_table
@@ -167,7 +185,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_no_match %r{create_table "accounts"}, output
     assert_match %r{create_table "authors"}, output
     assert_no_match %r{create_table "schema_migrations"}, output
-    assert_no_match %r{create_table "active_record_internal_metadatas"}, output
+    assert_no_match %r{create_table "ar_internal_metadata"}, output
   end
 
   def test_schema_dumps_index_columns_in_right_order
@@ -248,17 +266,22 @@ class SchemaDumperTest < ActiveRecord::TestCase
   if current_adapter?(:PostgreSQLAdapter)
     def test_schema_dump_includes_bigint_default
       output = standard_dump
-      assert_match %r{t\.integer\s+"bigint_default",\s+limit: 8,\s+default: 0}, output
+      assert_match %r{t\.bigint\s+"bigint_default",\s+default: 0}, output
     end
 
     def test_schema_dump_includes_limit_on_array_type
       output = standard_dump
-      assert_match %r{t\.integer\s+"big_int_data_points\",\s+limit: 8,\s+array: true}, output
+      assert_match %r{t\.bigint\s+"big_int_data_points\",\s+array: true}, output
     end
 
     def test_schema_dump_allows_array_of_decimal_defaults
       output = standard_dump
       assert_match %r{t\.decimal\s+"decimal_array_default",\s+default: \["1.23", "3.45"\],\s+array: true}, output
+    end
+
+    def test_schema_dump_expression_indices
+      index_definition = standard_dump.split(/\n/).grep(/t\.index.*company_expression_index/).first.strip
+      assert_equal 't.index "lower((name)::text)", name: "company_expression_index", using: :btree', index_definition
     end
 
     if ActiveRecord::Base.connection.supports_extensions?
@@ -323,9 +346,9 @@ class SchemaDumperTest < ActiveRecord::TestCase
       create_table("dogs") do |t|
         t.column :name, :string
         t.column :owner_id, :integer
+        t.index [:name]
+        t.foreign_key :dog_owners, column: "owner_id" if supports_foreign_keys?
       end
-      add_index "dogs", [:name]
-      add_foreign_key :dogs, :dog_owners, column: "owner_id" if supports_foreign_keys?
     end
     def down
       drop_table("dogs")
@@ -345,7 +368,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_no_match %r{create_table "foo_.+_bar"}, output
     assert_no_match %r{add_index "foo_.+_bar"}, output
     assert_no_match %r{create_table "schema_migrations"}, output
-    assert_no_match %r{create_table "active_record_internal_metadatas"}, output
+    assert_no_match %r{create_table "ar_internal_metadata"}, output
 
     if ActiveRecord::Base.connection.supports_foreign_keys?
       assert_no_match %r{add_foreign_key "foo_.+_bar"}, output

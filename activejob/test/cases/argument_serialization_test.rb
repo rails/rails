@@ -62,13 +62,14 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     assert_raises ActiveJob::SerializationError do
       ActiveJob::Arguments.serialize [ { :a => [{ 2 => 3 }] } ]
     end
+  end
 
-    assert_raises ActiveJob::SerializationError do
-      ActiveJob::Arguments.serialize [ '_aj_globalid' => 1 ]
-    end
-
-    assert_raises ActiveJob::SerializationError do
-      ActiveJob::Arguments.serialize [ :_aj_globalid => 1 ]
+  test 'should not allow reserved hash keys' do
+    ['_aj_globalid', :_aj_globalid, '_aj_symbol_keys', :_aj_symbol_keys,
+     '_aj_hash_with_indifferent_access', :_aj_hash_with_indifferent_access].each do |key|
+      assert_raises ActiveJob::SerializationError do
+        ActiveJob::Arguments.serialize [key => 1]
+      end
     end
   end
 

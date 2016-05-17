@@ -105,13 +105,13 @@ class DeprecationTest < ActiveSupport::TestCase
     ActiveSupport::Deprecation.behavior = :raise
 
     message   = 'Revise this deprecated stuff now!'
-    callstack = %w(foo bar baz)
+    callstack = caller_locations
 
     e = assert_raise ActiveSupport::DeprecationException do
       ActiveSupport::Deprecation.behavior.first.call(message, callstack)
     end
     assert_equal message, e.message
-    assert_equal callstack, e.backtrace
+    assert_equal callstack.map(&:to_s), e.backtrace.map(&:to_s)
   end
 
   def test_default_stderr_behavior
@@ -341,7 +341,7 @@ class DeprecationTest < ActiveSupport::TestCase
   end
 
   def test_default_deprecation_horizon_should_always_bigger_than_current_rails_version
-    assert ActiveSupport::Deprecation.new.deprecation_horizon > ActiveSupport::VERSION::STRING
+    assert_operator ActiveSupport::Deprecation.new.deprecation_horizon, :>, ActiveSupport::VERSION::STRING
   end
 
   def test_default_gem_name

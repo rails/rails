@@ -63,6 +63,15 @@ module ActiveRecord
       end
     end
 
+    test "model with nonexistent attribute with default value can be saved" do
+      klass = Class.new(OverloadedType) do
+        attribute :non_existent_string_with_default, :string, default: 'nonexistent'
+      end
+
+      model = klass.new
+      assert model.save
+    end
+
     test "changing defaults" do
       data = OverloadedType.new
       unoverloaded_data = UnoverloadedType.new
@@ -133,6 +142,17 @@ module ActiveRecord
 
       assert_equal 1, klass.new.counter
       assert_equal 2, klass.new.counter
+    end
+
+    test "procs are memoized before type casting" do
+      klass = Class.new(OverloadedType) do
+        @@counter = 0
+        attribute :counter, :integer, default: -> { @@counter += 1 }
+      end
+
+      model = klass.new
+      assert_equal 1, model.counter_before_type_cast
+      assert_equal 1, model.counter_before_type_cast
     end
 
     test "user provided defaults are persisted even if unchanged" do

@@ -8,25 +8,23 @@ module ActiveSupport #:nodoc:
       end
 
       def loading
-        @lock.exclusive(purpose: :load, compatible: [:load]) do
+        @lock.exclusive(purpose: :load, compatible: [:load], after_compatible: [:load]) do
           yield
         end
       end
 
       def unloading
-        @lock.exclusive(purpose: :unload, compatible: [:load, :unload]) do
+        @lock.exclusive(purpose: :unload, compatible: [:load, :unload], after_compatible: [:load, :unload]) do
           yield
         end
       end
 
-      # Attempt to obtain an "unloading" (exclusive) lock. If possible,
-      # execute the supplied block while holding the lock. If there is
-      # concurrent activity, return immediately (without executing the
-      # block) instead of waiting.
-      def attempt_unloading
-        @lock.exclusive(purpose: :unload, compatible: [:load, :unload], no_wait: true) do
-          yield
-        end
+      def start_unloading
+        @lock.start_exclusive(purpose: :unload, compatible: [:load, :unload])
+      end
+
+      def done_unloading
+        @lock.stop_exclusive(compatible: [:load, :unload])
       end
 
       def start_running
@@ -39,6 +37,12 @@ module ActiveSupport #:nodoc:
 
       def running
         @lock.sharing do
+          yield
+        end
+      end
+
+      def permit_concurrent_loads
+        @lock.yield_shares(compatible: [:load]) do
           yield
         end
       end

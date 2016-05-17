@@ -16,7 +16,7 @@ module ApplicationTests
 
     # AC & AM
     test "set load paths set only if action controller or action mailer are in use" do
-      assert_nothing_raised NameError do
+      assert_nothing_raised do
         add_to_config <<-RUBY
           config.root = "#{app_path}"
         RUBY
@@ -216,7 +216,7 @@ module ApplicationTests
     test "use schema cache dump" do
       Dir.chdir(app_path) do
         `rails generate model post title:string;
-         bin/rake db:migrate db:schema:cache:dump`
+         bin/rails db:migrate db:schema:cache:dump`
       end
       require "#{app_path}/config/environment"
       ActiveRecord::Base.connection.drop_table("posts") # force drop posts table for test.
@@ -226,7 +226,7 @@ module ApplicationTests
     test "expire schema cache dump" do
       Dir.chdir(app_path) do
         `rails generate model post title:string;
-         bin/rake db:migrate db:schema:cache:dump db:rollback`
+         bin/rails db:migrate db:schema:cache:dump db:rollback`
       end
       silence_warnings {
         require "#{app_path}/config/environment"

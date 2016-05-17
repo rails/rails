@@ -42,10 +42,10 @@ module ActiveRecord
     #   Person.find_by(name: 'Spartacus', rating: 4)
     #   # returns the first item or nil.
     #
-    #   Person.where(name: 'Spartacus', rating: 4).first_or_initialize
+    #   Person.find_or_initialize_by(name: 'Spartacus', rating: 4)
     #   # returns the first item or returns a new instance (requires you call .save to persist against the database).
     #
-    #   Person.where(name: 'Spartacus', rating: 4).first_or_create
+    #   Person.find_or_create_by(name: 'Spartacus', rating: 4)
     #   # returns the first item or creates it and returns it.
     #
     # ==== Alternatives for #find
@@ -145,15 +145,21 @@ module ActiveRecord
     #
     #   [#<Person id:4>, #<Person id:3>, #<Person id:2>]
     def last(limit = nil)
-      if limit
-        if order_values.empty? && primary_key
-          order(arel_table[primary_key].desc).limit(limit).reverse
-        else
-          to_a.last(limit)
-        end
-      else
-        find_last
-      end
+      return find_last(limit) if loaded? || limit_value
+
+      result = limit(limit || 1)
+      result.order!(arel_attribute(primary_key)) if order_values.empty? && primary_key
+      result = result.reverse_order!
+
+      limit ? result.reverse : result.first
+    rescue ActiveRecord::IrreversibleOrderError
+      ActiveSupport::Deprecation.warn(<<-WARNING.squish)
+          Finding a last element by loading the relation when SQL ORDER
+          can not be reversed is deprecated.
+          Rails 5.1 will raise ActiveRecord::IrreversibleOrderError in this case.
+          Please call `to_a.last` if you still want to load the relation.
+      WARNING
+      find_last(limit)
     end
 
     # Same as #last but raises ActiveRecord::RecordNotFound if no record
@@ -242,6 +248,38 @@ module ActiveRecord
       find_nth! 41
     end
 
+    # Find the third-to-last record.
+    # If no order is defined it will order by primary key.
+    #
+    #   Person.third_to_last # returns the third-to-last object fetched by SELECT * FROM people
+    #   Person.offset(3).third_to_last # returns the third-to-last object from OFFSET 3
+    #   Person.where(["user_name = :u", { u: user_name }]).third_to_last
+    def third_to_last
+      find_nth_from_last 3
+    end
+
+    # Same as #third_to_last but raises ActiveRecord::RecordNotFound if no record
+    # is found.
+    def third_to_last!
+      find_nth_from_last 3 or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql(@klass.arel_engine)}]")
+    end
+
+    # Find the second-to-last record.
+    # If no order is defined it will order by primary key.
+    #
+    #   Person.second_to_last # returns the second-to-last object fetched by SELECT * FROM people
+    #   Person.offset(3).second_to_last # returns the second-to-last object from OFFSET 3
+    #   Person.where(["user_name = :u", { u: user_name }]).second_to_last
+    def second_to_last
+      find_nth_from_last 2
+    end
+
+    # Same as #second_to_last but raises ActiveRecord::RecordNotFound if no record
+    # is found.
+    def second_to_last!
+      find_nth_from_last 2 or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql(@klass.arel_engine)}]")
+    end
+
     # Returns true if a record exists in the table that matches the +id+ or
     # conditions given, or false otherwise. The argument can take six forms:
     #
@@ -274,7 +312,7 @@ module ActiveRecord
         conditions = conditions.id
         ActiveSupport::Deprecation.warn(<<-MSG.squish)
           You are passing an instance of ActiveRecord::Base to `exists?`.
-          Please pass the id of the object by calling `.id`
+          Please pass the id of the object by calling `.id`.
         MSG
       end
 
@@ -298,7 +336,7 @@ module ActiveRecord
     end
 
     # This method is called whenever no records are found with either a single
-    # id or multiple ids and raises a ActiveRecord::RecordNotFound exception.
+    # id or multiple ids and raises an ActiveRecord::RecordNotFound exception.
     #
     # The error message is different depending on whether a single id or
     # multiple ids are provided. If multiple ids are provided, then the number
@@ -429,7 +467,7 @@ module ActiveRecord
         id = id.id
         ActiveSupport::Deprecation.warn(<<-MSG.squish)
           You are passing an instance of ActiveRecord::Base to `find`.
-          Please pass the id of the object by calling `.id`
+          Please pass the id of the object by calling `.id`.
         MSG
       end
 
@@ -468,7 +506,7 @@ module ActiveRecord
     def find_some_ordered(ids)
       ids = ids.slice(offset_value || 0, limit_value || ids.size) || []
 
-      result = except(:limit, :offset).where(primary_key => ids).to_a
+      result = except(:limit, :offset).where(primary_key => ids).records
 
       if result.size == ids.size
         pk_type = @klass.type_for_attribute(primary_key)
@@ -484,25 +522,24 @@ module ActiveRecord
       if loaded?
         @records.first
       else
-        @take ||= limit(1).to_a.first
+        @take ||= limit(1).records.first
       end
     end
 
     def find_nth(index, offset = nil)
+      # TODO: once the offset argument is removed we rely on offset_index
+      # within find_nth_with_limit, rather than pass it in via
+      # find_nth_with_limit_and_offset
+      if offset
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          Passing an offset argument to find_nth is deprecated,
+          please use Relation#offset instead.
+        MSG
+      end
       if loaded?
         @records[index]
       else
-        # TODO: once the offset argument is removed we rely on offset_index
-        # within find_nth_with_limit, rather than pass it in via
-        # find_nth_with_limit_and_offset
-        if offset
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Passing an offset argument to find_nth is deprecated,
-            please use Relation#offset instead.
-          MSG
-        else
-          offset = offset_index
-        end
+        offset ||= offset_index
         @offsets[offset + index] ||= find_nth_with_limit_and_offset(index, 1, offset: offset).first
       end
     end
@@ -515,7 +552,7 @@ module ActiveRecord
       # TODO: once the offset argument is removed from find_nth,
       # find_nth_with_limit_and_offset can be merged into this method
       relation = if order_values.empty? && primary_key
-                   order(arel_table[primary_key].asc)
+                   order(arel_attribute(primary_key).asc)
                  else
                    self
                  end
@@ -524,19 +561,25 @@ module ActiveRecord
       relation.limit(limit).to_a
     end
 
-    def find_last
+    def find_nth_from_last(index)
       if loaded?
-        @records.last
+        @records[-index]
       else
-        @last ||=
-          if limit_value
-            to_a.last
-          else
-            reverse_order.limit(1).to_a.first
-          end
+        relation = if order_values.empty? && primary_key
+                     order(arel_attribute(primary_key).asc)
+                   else
+                     self
+                   end
+
+        relation.to_a[-index]
+        # TODO: can be made more performant on large result sets by
+        # for instance, last(index)[-index] (which would require
+        # refactoring the last(n) finder method to make test suite pass),
+        # or by using a combination of reverse_order, limit, and offset,
+        # e.g., reverse_order.offset(index-1).first
       end
     end
-
+    
     private
 
     def find_nth_with_limit_and_offset(index, limit, offset:) # :nodoc:
@@ -546,6 +589,10 @@ module ActiveRecord
         index += offset
         find_nth_with_limit(index, limit)
       end
+    end
+
+    def find_last(limit)
+      limit ? records.last(limit) : records.last
     end
   end
 end

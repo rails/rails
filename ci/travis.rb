@@ -120,7 +120,7 @@ class Build
 
   def env
     if activesupport? && !isolated?
-      # There is a known issue with the listen tests that casuses files to be
+      # There is a known issue with the listen tests that causes files to be
       # incorrectly GC'ed even when they are still in-use. The current is to
       # only run them in isolation to avoid randomly failing our test suite.
       { 'LISTEN' => '0' }
@@ -156,20 +156,6 @@ ENV['GEM'].split(',').each do |gem|
 
   end
 end
-
-# puts
-# puts "Build environment:"
-# puts "  #{`cat /etc/issue`}"
-# puts "  #{`uname -a`}"
-# puts "  #{`ruby -v`}"
-# puts "  #{`mysql --version`}"
-# puts "  #{`pg_config --version`}"
-# puts "  SQLite3: #{`sqlite3 -version`}"
-# `gem env`.each_line {|line| print "   #{line}"}
-# puts "   Bundled gems:"
-# `bundle show`.each_line {|line| print "     #{line}"}
-# puts "   Local gems:"
-# `gem list`.each_line {|line| print "     #{line}"}
 
 failures = results.select { |key, value| !value  }
 

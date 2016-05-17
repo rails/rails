@@ -137,6 +137,10 @@ XML
       head :created, location: 'created resource'
     end
 
+    def render_cookie
+      render plain: cookies["foo"]
+    end
+
     def delete_cookie
       cookies.delete("foo")
       render plain: 'ok'
@@ -163,7 +167,9 @@ XML
     @request.delete_header 'PATH_INFO'
     @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
       r.draw do
-        get ':controller(/:action(/:id))'
+        ActiveSupport::Deprecation.silence do
+          get ':controller(/:action(/:id))'
+        end
       end
     end
   end
@@ -668,7 +674,10 @@ XML
     with_routing do |set|
       set.draw do
         get 'file/*path', to: 'test_case_test/test#test_params'
-        get ':controller/:action'
+
+        ActiveSupport::Deprecation.silence do
+          get ':controller/:action'
+        end
       end
 
       get :test_params, params: { path: ['hello', 'world'] }
@@ -827,6 +836,12 @@ XML
     cookies['foo'] = 'bar'
     get :no_op
     assert_equal 'bar', cookies['foo']
+  end
+
+  def test_cookies_should_be_escaped_properly
+    cookies['foo'] = '+'
+    get :render_cookie
+    assert_equal '+', @response.body
   end
 
   def test_should_detect_if_cookie_is_deleted
@@ -998,7 +1013,9 @@ class ResponseDefaultHeadersTest < ActionController::TestCase
     @request.env['PATH_INFO'] = nil
     @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
       r.draw do
-        get ':controller(/:action(/:id))'
+        ActiveSupport::Deprecation.silence do
+          get ':controller(/:action(/:id))'
+        end
       end
     end
   end
@@ -1125,7 +1142,9 @@ class AnonymousControllerTest < ActionController::TestCase
 
     @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
       r.draw do
-        get ':controller(/:action(/:id))'
+        ActiveSupport::Deprecation.silence do
+          get ':controller(/:action(/:id))'
+        end
       end
     end
   end

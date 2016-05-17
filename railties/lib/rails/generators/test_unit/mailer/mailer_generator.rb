@@ -19,7 +19,7 @@ module TestUnit # :nodoc:
 
       protected
         def file_name
-          @_file_name ||= super.gsub(/\_mailer/i, '')
+          @_file_name ||= super.gsub(/_mailer/i, '')
         end
     end
   end

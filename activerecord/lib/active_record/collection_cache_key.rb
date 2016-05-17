@@ -7,18 +7,27 @@ module ActiveRecord
 
       if collection.loaded?
         size = collection.size
-        timestamp = collection.max_by(&timestamp_column).public_send(timestamp_column)
+        if size > 0
+          timestamp = collection.max_by(&timestamp_column).public_send(timestamp_column)
+        end
       else
         column_type = type_for_attribute(timestamp_column.to_s)
         column = "#{connection.quote_table_name(collection.table_name)}.#{connection.quote_column_name(timestamp_column)}"
 
         query = collection
-          .select("COUNT(*) AS size", "MAX(#{column}) AS timestamp")
+          .unscope(:select)
+          .select("COUNT(*) AS #{connection.quote_column_name("size")}", "MAX(#{column}) AS timestamp")
           .unscope(:order)
         result = connection.select_one(query)
 
-        size = result["size"]
-        timestamp = column_type.deserialize(result["timestamp"])
+        if result.blank?
+          size = 0
+          timestamp = nil
+        else
+          size = result["size"]
+          timestamp = column_type.deserialize(result["timestamp"])
+        end
+
       end
 
       if timestamp

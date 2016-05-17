@@ -1,5 +1,2 @@
-## Rails 5.0.0.beta1 (December 18, 2015) ##
 
-*   Added to Rails!
-
-    *DHH*
+Please check [5-0-stable](https://github.com/rails/rails/blob/5-0-stable/actioncable/CHANGELOG.md) for previous changes.

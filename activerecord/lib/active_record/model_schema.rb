@@ -44,9 +44,9 @@ module ActiveRecord
 
       ##
       # :singleton-method:
-      # Accessor for the name of the internal metadata table. By default, the value is "active_record_internal_metadatas"
+      # Accessor for the name of the internal metadata table. By default, the value is "ar_internal_metadata"
       class_attribute :internal_metadata_table_name, instance_accessor: false
-      self.internal_metadata_table_name = "active_record_internal_metadatas"
+      self.internal_metadata_table_name = "ar_internal_metadata"
 
       ##
       # :singleton-method:
@@ -231,6 +231,18 @@ module ActiveRecord
         @explicit_sequence_name = true
       end
 
+      # Determines if the primary key values should be selected from their
+      # corresponding sequence before the insert statement.
+      def prefetch_primary_key?
+        connection.prefetch_primary_key?(table_name)
+      end
+
+      # Returns the next value that will be used as the primary key on
+      # an insert statement.
+      def next_sequence_value
+        connection.next_sequence_value(sequence_name)
+      end
+
       # Indicates whether the table associated with this class exists
       def table_exists?
         connection.schema_cache.data_source_exists?(table_name)
@@ -255,7 +267,18 @@ module ActiveRecord
         @attribute_types ||= Hash.new(Type::Value.new)
       end
 
-      def type_for_attribute(attr_name) # :nodoc:
+      # Returns the type of the attribute with the given name, after applying
+      # all modifiers. This method is the only valid source of information for
+      # anything related to the types of a model's attributes. This method will
+      # access the database and load the model's schema if it is required.
+      #
+      # The return value of this method will implement the interface described
+      # by ActiveModel::Type::Value (though the object itself may not subclass
+      # it).
+      #
+      # +attr_name+ The name of the attribute to retrieve the type for. Must be
+      # a string
+      def type_for_attribute(attr_name)
         attribute_types[attr_name]
       end
 

@@ -90,6 +90,7 @@ task default: :test
       opts[:force] = force
       opts[:skip_bundle] = true
       opts[:api] = options.api?
+      opts[:skip_listen] = true
 
       invoke Rails::Generators::AppGenerator,
         [ File.expand_path(dummy_path, destination_root) ], opts
@@ -259,6 +260,12 @@ task default: :test
 
       public_task :apply_rails_template, :run_bundle
 
+      def run_after_bundle_callbacks
+        @after_bundle_callbacks.each do |callback|
+          callback.call
+        end
+      end
+
       def name
         @name ||= begin
           # same as ActiveSupport::Inflector#underscore except not replacing '-'
@@ -280,10 +287,6 @@ task default: :test
       end
 
     protected
-
-      def app_templates_dir
-        "../../app/templates"
-      end
 
       def create_dummy_app(path = nil)
         dummy_path(path) if path
@@ -337,7 +340,7 @@ task default: :test
       end
 
       def wrap_in_modules(unwrapped_code)
-        unwrapped_code = "#{unwrapped_code}".strip.gsub(/\W$\n/, '')
+        unwrapped_code = "#{unwrapped_code}".strip.gsub(/\s$\n/, '')
         modules.reverse.inject(unwrapped_code) do |content, mod|
           str = "module #{mod}\n"
           str += content.lines.map { |line| "  #{line}" }.join

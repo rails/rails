@@ -27,10 +27,10 @@ module ActiveRecord
       end
 
       # Returns an ActiveRecord::Result instance.
-      def select_all(arel, name = nil, binds = [])
+      def select_all(arel, name = nil, binds = [], preparable: nil)
         arel, binds = binds_from_relation arel, binds
         sql = to_sql(arel, binds)
-        if arel.is_a?(String)
+        if !prepared_statements || (arel.is_a?(String) && preparable.nil?)
           preparable = false
         else
           preparable = visitor.preparable
@@ -66,18 +66,23 @@ module ActiveRecord
       # Returns an array of arrays containing the field values.
       # Order is the same as that returned by +columns+.
       def select_rows(sql, name = nil, binds = [])
+        exec_query(sql, name, binds).rows
       end
-      undef_method :select_rows
 
-      # Executes the SQL statement in the context of this connection.
+      # Executes the SQL statement in the context of this connection and returns
+      # the raw result from the connection adapter.
+      # Note: depending on your database connector, the result returned by this
+      # method may be manually memory managed. Consider using the exec_query
+      # wrapper instead.
       def execute(sql, name = nil)
+        raise NotImplementedError
       end
-      undef_method :execute
 
       # Executes +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
       def exec_query(sql, name = 'SQL', binds = [], prepare: false)
+        raise NotImplementedError
       end
 
       # Executes insert +sql+ statement in the context of this connection using
@@ -106,7 +111,7 @@ module ActiveRecord
         exec_query(sql, name, binds)
       end
 
-      # Returns the last auto-generated ID from the affected table.
+      # Executes an INSERT query and returns the new record's ID
       #
       # +id_value+ will be returned unless the value is nil, in
       # which case the database will attempt to calculate the last inserted
@@ -115,21 +120,27 @@ module ActiveRecord
       # If the next id was calculated in advance (as in Oracle), it should be
       # passed in as +id_value+.
       def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [])
-        insert_sql(to_sql(arel, binds), name, pk, id_value, sequence_name, binds)
+        sql, binds, pk, sequence_name = sql_for_insert(to_sql(arel, binds), pk, id_value, sequence_name, binds)
+        value = exec_insert(sql, name, binds, pk, sequence_name)
+        id_value || last_inserted_id(value)
       end
       alias create insert
+      alias insert_sql insert
+      deprecate insert_sql: :insert
 
       # Executes the update statement and returns the number of rows affected.
       def update(arel, name = nil, binds = [])
         exec_update(to_sql(arel, binds), name, binds)
       end
       alias update_sql update
+      deprecate update_sql: :update
 
       # Executes the delete statement and returns the number of rows affected.
       def delete(arel, name = nil, binds = [])
         exec_delete(to_sql(arel, binds), name, binds)
       end
       alias delete_sql delete
+      deprecate delete_sql: :delete
 
       # Returns +true+ when the connection adapter supports prepared statement
       # caching, otherwise returns +false+
@@ -210,9 +221,7 @@ module ActiveRecord
       # * You are creating a nested (savepoint) transaction
       #
       # The mysql2 and postgresql adapters support setting the transaction
-      # isolation level. However, support is disabled for MySQL versions below 5,
-      # because they are affected by a bug[http://bugs.mysql.com/bug.php?id=39170]
-      # which means the isolation level gets persisted outside the transaction.
+      # isolation level.
       def transaction(requires_new: nil, isolation: nil, joinable: true)
         if !requires_new && current_transaction.joinable?
           if isolation
@@ -280,9 +289,6 @@ module ActiveRecord
 
       def rollback_to_savepoint(name = nil)
         exec_rollback_to_savepoint(name)
-      end
-
-      def exec_rollback_to_savepoint(name = nil) #:nodoc:
       end
 
       def default_sequence_name(table, column)
@@ -353,13 +359,6 @@ module ActiveRecord
       end
       alias join_to_delete join_to_update
 
-      # Executes an INSERT query and returns the new record's ID
-      def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [])
-        sql, binds = sql_for_insert(sql, pk, id_value, sequence_name, binds)
-        value = exec_insert(sql, name, binds, pk, sequence_name)
-        id_value || last_inserted_id(value)
-      end
-
       protected
 
         # Returns a subquery for the given key using the join information.
@@ -379,7 +378,7 @@ module ActiveRecord
         end
 
         def sql_for_insert(sql, pk, id_value, sequence_name, binds)
-          [sql, binds]
+          [sql, binds, pk, sequence_name]
         end
 
         def last_inserted_id(result)

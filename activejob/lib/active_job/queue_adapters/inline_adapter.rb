@@ -2,7 +2,7 @@ module ActiveJob
   module QueueAdapters
     # == Active Job Inline adapter
     #
-    # When enqueueing jobs with the Inline adapter the job will be executed
+    # When enqueuing jobs with the Inline adapter the job will be executed
     # immediately.
     #
     # To use the Inline set the queue_adapter config to +:inline+.

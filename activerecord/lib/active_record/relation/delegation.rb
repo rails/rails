@@ -1,4 +1,3 @@
-require 'set'
 require 'active_support/concern'
 
 module ActiveRecord
@@ -36,8 +35,9 @@ module ActiveRecord
     # may vary depending on the klass of a relation, so we create a subclass of Relation
     # for each different klass, and the delegations are compiled into that subclass only.
 
-    delegate :to_xml, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to_ary, :join,
-      :[], :&, :|, :+, :-, :sample, :shuffle, :reverse, :compact, to: :to_a
+    delegate :to_xml, :encode_with, :length, :collect, :map, :each, :all?, :include?, :to_ary, :join,
+             :[], :&, :|, :+, :-, :sample, :reverse, :compact, :in_groups, :in_groups_of,
+             :shuffle, :split, to: :records
 
     delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key,
              :connection, :columns_hash, :to => :klass

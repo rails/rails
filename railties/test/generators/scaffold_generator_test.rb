@@ -14,8 +14,8 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_file "app/models/product_line.rb", /class ProductLine < ActiveRecord::Base/
     assert_file "test/models/product_line_test.rb", /class ProductLineTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/product_lines.yml"
-    assert_migration "db/migrate/create_product_lines.rb", /belongs_to :product, index: true/
-    assert_migration "db/migrate/create_product_lines.rb", /references :user, index: true/
+    assert_migration "db/migrate/create_product_lines.rb", /belongs_to :product/
+    assert_migration "db/migrate/create_product_lines.rb", /references :user/
 
     # Route
     assert_file "config/routes.rb" do |route|
@@ -94,8 +94,8 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_file "app/models/product_line.rb", /class ProductLine < ActiveRecord::Base/
     assert_file "test/models/product_line_test.rb", /class ProductLineTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/product_lines.yml"
-    assert_migration "db/migrate/create_product_lines.rb", /belongs_to :product, index: true/
-    assert_migration "db/migrate/create_product_lines.rb", /references :user, index: true/
+    assert_migration "db/migrate/create_product_lines.rb", /belongs_to :product/
+    assert_migration "db/migrate/create_product_lines.rb", /references :user/
 
     # Route
     assert_file "config/routes.rb" do |route|
@@ -486,7 +486,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     Dir.chdir(engine_path) do
       quietly do
         `bin/rails g scaffold User name:string age:integer;
-        bundle exec rake db:migrate`
+        bin/rails db:migrate`
       end
       assert_match(/8 runs, 13 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
     end
@@ -500,7 +500,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     Dir.chdir(engine_path) do
       quietly do
         `bin/rails g scaffold User name:string age:integer;
-        bundle exec rake db:migrate`
+        bin/rails db:migrate`
       end
       assert_match(/8 runs, 13 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
     end
@@ -514,7 +514,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     Dir.chdir(engine_path) do
       quietly do
         `bin/rails g scaffold User name:string age:integer;
-        bundle exec rake db:migrate`
+        bin/rails db:migrate`
       end
       assert_match(/6 runs, 8 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
     end
@@ -528,7 +528,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     Dir.chdir(engine_path) do
       quietly do
         `bin/rails g scaffold User name:string age:integer;
-        bundle exec rake db:migrate`
+        bin/rails db:migrate`
       end
       assert_match(/6 runs, 8 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
     end

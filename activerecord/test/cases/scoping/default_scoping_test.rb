@@ -4,6 +4,7 @@ require 'models/comment'
 require 'models/developer'
 require 'models/computer'
 require 'models/vehicle'
+require 'models/cat'
 
 class DefaultScopingTest < ActiveRecord::TestCase
   fixtures :developers, :posts, :comments
@@ -374,6 +375,18 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal 10, DeveloperCalledJamis.unscoped { DeveloperCalledJamis.poor }.length
   end
 
+  def test_default_scope_with_joins
+    assert_equal Comment.where(post_id: SpecialPostWithDefaultScope.pluck(:id)).count,
+                 Comment.joins(:special_post_with_default_scope).count
+    assert_equal Comment.where(post_id: Post.pluck(:id)).count,
+                 Comment.joins(:post).count
+  end
+
+  def test_unscoped_with_joins_should_not_have_default_scope
+    assert_equal SpecialPostWithDefaultScope.unscoped { Comment.joins(:special_post_with_default_scope).to_a },
+                 Comment.joins(:post).to_a
+  end
+
   def test_default_scope_select_ignored_by_aggregations
     assert_equal DeveloperWithSelect.all.to_a.count, DeveloperWithSelect.count
   end
@@ -472,5 +485,16 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal 1, SubConditionalStiPost.count
     assert_equal 1, SubConditionalStiPost.all.to_a.size
     assert_equal 2, SubConditionalStiPost.unscope(where: :title).to_a.size
+  end
+
+  def test_with_abstract_class_scope_should_be_executed_in_correct_context
+    vegetarian_pattern, gender_pattern = if current_adapter?(:Mysql2Adapter)
+      [/`lions`.`is_vegetarian`/, /`lions`.`gender`/]
+    else
+      [/"lions"."is_vegetarian"/, /"lions"."gender"/]
+    end
+
+    assert_match vegetarian_pattern, Lion.all.to_sql
+    assert_match gender_pattern, Lion.female.to_sql
   end
 end

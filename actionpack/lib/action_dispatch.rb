@@ -51,8 +51,8 @@ module ActionDispatch
     autoload :Cookies
     autoload :DebugExceptions
     autoload :ExceptionWrapper
+    autoload :Executor
     autoload :Flash
-    autoload :LoadInterlock
     autoload :ParamsParser
     autoload :PublicExceptions
     autoload :Reloader

@@ -183,7 +183,7 @@ class PersistenceTest < ActiveRecord::TestCase
     end
   end
 
-  def test_dupd_becomes_persists_changes_from_the_original
+  def test_duped_becomes_persists_changes_from_the_original
     original = topics(:first)
     copy = original.dup.becomes(Reply)
     copy.save!

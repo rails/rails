@@ -35,7 +35,8 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
       @view.render(:file => "test/hello_world")
       wait
 
-      assert_equal 1, @logger.logged(:info).size
+      assert_equal 2, @logger.logged(:info).size
+      assert_match(/Rendering test\/hello_world\.erb/, @logger.logged(:info).first)
       assert_match(/Rendered test\/hello_world\.erb/, @logger.logged(:info).last)
     end
   end
@@ -45,7 +46,8 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
       @view.render(:text => "TEXT")
       wait
 
-      assert_equal 1, @logger.logged(:info).size
+      assert_equal 2, @logger.logged(:info).size
+      assert_match(/Rendering text template/, @logger.logged(:info).first)
       assert_match(/Rendered text template/, @logger.logged(:info).last)
     end
   end
@@ -55,7 +57,8 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
       @view.render(:inline => "<%= 'TEXT' %>")
       wait
 
-      assert_equal 1, @logger.logged(:info).size
+      assert_equal 2, @logger.logged(:info).size
+      assert_match(/Rendering inline template/, @logger.logged(:info).first)
       assert_match(/Rendered inline template/, @logger.logged(:info).last)
     end
   end
@@ -86,7 +89,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
       wait
 
       assert_equal 1, @logger.logged(:info).size
-      assert_match(/Rendered test\/_customer.erb/, @logger.logged(:info).last)
+      assert_match(/Rendered collection of test\/_customer.erb \[2 times\]/, @logger.logged(:info).last)
     end
   end
 
@@ -96,7 +99,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
       wait
 
       assert_equal 1, @logger.logged(:info).size
-      assert_match(/Rendered customers\/_customer\.html\.erb/, @logger.logged(:info).last)
+      assert_match(/Rendered collection of customers\/_customer\.html\.erb \[2 times\]/, @logger.logged(:info).last)
     end
   end
 
@@ -106,7 +109,21 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
       wait
 
       assert_equal 1, @logger.logged(:info).size
-      assert_match(/Rendered collection/, @logger.logged(:info).last)
+      assert_match(/Rendered collection of templates/, @logger.logged(:info).last)
+    end
+  end
+
+  def test_render_collection_with_cached_set
+    Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
+      def @view.view_cache_dependencies; []; end
+      def @view.fragment_cache_key(*); 'ahoy `controller` dependency'; end
+
+      @view.render(partial: 'customers/customer', collection: [ Customer.new('david'), Customer.new('mary') ], cached: true,
+        locals: { greeting: 'hi' })
+      wait
+
+      assert_equal 1, @logger.logged(:info).size
+      assert_match(/Rendered collection of customers\/_customer\.html\.erb \[0 \/ 2 cache hits\]/, @logger.logged(:info).last)
     end
   end
 end

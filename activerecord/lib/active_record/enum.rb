@@ -95,7 +95,7 @@ module ActiveRecord
 
   module Enum
     def self.extended(base) # :nodoc:
-      base.class_attribute(:defined_enums)
+      base.class_attribute(:defined_enums, instance_writer: false)
       base.defined_enums = {}
     end
 
@@ -105,9 +105,10 @@ module ActiveRecord
     end
 
     class EnumType < Type::Value # :nodoc:
-      def initialize(name, mapping)
+      def initialize(name, mapping, subtype)
         @name = name
         @mapping = mapping
+        @subtype = subtype
       end
 
       def cast(value)
@@ -124,7 +125,7 @@ module ActiveRecord
 
       def deserialize(value)
         return if value.nil?
-        mapping.key(value)
+        mapping.key(subtype.deserialize(value))
       end
 
       def serialize(value)
@@ -139,7 +140,7 @@ module ActiveRecord
 
       protected
 
-      attr_reader :name, :mapping
+      attr_reader :name, :mapping, :subtype
     end
 
     def enum(definitions)
@@ -151,14 +152,16 @@ module ActiveRecord
         enum_values = ActiveSupport::HashWithIndifferentAccess.new
         name        = name.to_sym
 
-        # def self.statuses statuses end
+        # def self.statuses() statuses end
         detect_enum_conflict!(name, name.to_s.pluralize, true)
         klass.singleton_class.send(:define_method, name.to_s.pluralize) { enum_values }
 
         detect_enum_conflict!(name, name)
         detect_enum_conflict!(name, "#{name}=")
 
-        attribute name, EnumType.new(name, enum_values)
+        decorate_attribute_type(name, :enum) do |subtype|
+          EnumType.new(name, enum_values, subtype)
+        end
 
         _enum_methods_module.module_eval do
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index

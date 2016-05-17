@@ -1,4 +1,3 @@
-require 'active_support/core_ext/hash/reverse_merge'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/enumerable'
 require 'active_support/core_ext/array/extract_options'
@@ -107,6 +106,7 @@ module ActionDispatch
           @ast                = ast
           @anchor             = anchor
           @via                = via
+          @internal           = options[:internal]
 
           path_params = ast.find_all(&:symbol?).map(&:to_sym)
 
@@ -137,6 +137,10 @@ module ActionDispatch
           @conditions = Hash[conditions]
           @defaults = formats[:defaults].merge(@defaults).merge(normalize_defaults(options))
 
+          if path_params.include?(:action) && !@requirements.key?(:action)
+            @defaults[:action] ||= 'index'
+          end
+
           @required_defaults = (split_options[:required_defaults] || []).map(&:first)
         end
 
@@ -148,7 +152,8 @@ module ActionDispatch
                             required_defaults,
                             defaults,
                             request_method,
-                            precedence)
+                            precedence,
+                            @internal)
 
           route
         end
@@ -184,25 +189,31 @@ module ActionDispatch
         def build_path(ast, requirements, anchor)
           pattern = Journey::Path::Pattern.new(ast, requirements, JOINED_SEPARATORS, anchor)
 
-          # Get all the symbol nodes followed by literals that are not the
-          # dummy node.
-          symbols = ast.find_all { |n|
-            n.cat? && n.left.symbol? && n.right.cat? && n.right.left.literal?
-          }.map(&:left)
+          # Find all the symbol nodes that are adjacent to literal nodes and alter
+          # the regexp so that Journey will partition them into custom routes.
+          ast.find_all { |node|
+            next unless node.cat?
 
-          # Get all the symbol nodes preceded by literals.
-          symbols.concat ast.find_all { |n|
-            n.cat? && n.left.literal? && n.right.cat? && n.right.left.symbol?
-          }.map { |n| n.right.left }
+            if node.left.literal? && node.right.symbol?
+              symbol = node.right
+            elsif node.left.literal? && node.right.cat? && node.right.left.symbol?
+              symbol = node.right.left
+            elsif node.left.symbol? && node.right.literal?
+              symbol = node.left
+            elsif node.left.symbol? && node.right.cat? && node.right.left.literal?
+              symbol = node.left
+            else
+              next
+            end
 
-          symbols.each { |x|
-            x.regexp = /(?:#{Regexp.union(x.regexp, '-')})+/
+            if symbol
+              symbol.regexp = /(?:#{Regexp.union(symbol.regexp, '-')})+/
+            end
           }
 
           pattern
         end
         private :build_path
-
 
         private
           def add_wildcard_options(options, formatted, path_ast)
@@ -816,7 +827,7 @@ module ActionDispatch
               URL_OPTIONS.include?(k) && (v.is_a?(String) || v.is_a?(Fixnum))
             end
 
-            (options[:defaults] ||= {}).reverse_merge!(defaults)
+            options[:defaults] = defaults.merge(options[:defaults] || {})
           else
             block, options[:constraints] = options[:constraints], {}
           end
@@ -1590,7 +1601,7 @@ module ActionDispatch
             route_options = options.dup
             if _path && option_path
               ActiveSupport::Deprecation.warn <<-eowarn
-Specifying strings for both :path and the route path is deprecated.  Change things like this:
+Specifying strings for both :path and the route path is deprecated. Change things like this:
 
   match #{_path.inspect}, :path => #{option_path.inspect}
 
@@ -2077,8 +2088,7 @@ to this:
 
         def each
           node = self
-          loop do
-            break if node.equal? NULL
+          until node.equal? NULL
             yield node
             node = node.parent
           end

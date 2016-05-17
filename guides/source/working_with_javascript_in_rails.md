@@ -148,10 +148,10 @@ and Rails has got your back in those cases.
 Because of Unobtrusive JavaScript, the Rails "Ajax helpers" are actually in two
 parts: the JavaScript half and the Ruby half.
 
+Unless you have disabled the Asset Pipeline,
 [rails.js](https://github.com/rails/jquery-ujs/blob/master/src/rails.js)
 provides the JavaScript half, and the regular Ruby view helpers add appropriate
-tags to your DOM. The CoffeeScript in rails.js then listens for these
-attributes, and attaches appropriate handlers.
+tags to your DOM.
 
 ### form_for
 
@@ -328,7 +328,7 @@ this:
     respond_to do |format|
       if @user.save
         format.html { redirect_to @user, notice: 'User was successfully created.' }
-        format.js   {}
+        format.js
         format.json { render json: @user, status: :created, location: @user }
       else
         format.html { render action: "new" }
@@ -350,8 +350,8 @@ $("<%= escape_javascript(render @user) %>").appendTo("#users");
 Turbolinks
 ----------
 
-Rails 4 ships with the [Turbolinks gem](https://github.com/rails/turbolinks).
-This gem uses Ajax to speed up page rendering in most applications.
+Rails ships with the [Turbolinks library](https://github.com/turbolinks/turbolinks),
+which uses Ajax to speed up page rendering in most applications.
 
 ### How Turbolinks Works
 
@@ -364,14 +364,14 @@ will then use PushState to change the URL to the correct one, preserving
 refresh semantics and giving you pretty URLs.
 
 The only thing you have to do to enable Turbolinks is have it in your Gemfile,
-and put `//= require turbolinks` in your CoffeeScript manifest, which is usually
+and put `//= require turbolinks` in your JavaScript manifest, which is usually
 `app/assets/javascripts/application.js`.
 
-If you want to disable Turbolinks for certain links, add a `data-no-turbolink`
+If you want to disable Turbolinks for certain links, add a `data-turbolinks="false"`
 attribute to the tag:
 
 ```html
-<a href="..." data-no-turbolink>No turbolinks here</a>.
+<a href="..." data-turbolinks="false">No turbolinks here</a>.
 ```
 
 ### Page Change Events
@@ -389,13 +389,13 @@ event that this relies on will not be fired. If you have code that looks like
 this, you must change your code to do this instead:
 
 ```coffeescript
-$(document).on "page:change", ->
+$(document).on "turbolinks:load", ->
   alert "page has loaded!"
 ```
 
 For more details, including other events you can bind to, check out [the
 Turbolinks
-README](https://github.com/rails/turbolinks/blob/master/README.md).
+README](https://github.com/turbolinks/turbolinks/blob/master/README.md).
 
 Other Resources
 ---------------

@@ -207,6 +207,22 @@ class HelperTest < ActiveSupport::TestCase
     assert methods.include?(:foobar)
   end
 
+  def test_helper_proxy_in_instance
+    methods = AllHelpersController.new.helpers.methods
+
+    # Action View
+    assert_includes methods, :pluralize
+
+    # abc_helper.rb
+    assert_includes methods, :bare_a
+
+    # fun/games_helper.rb
+    assert_includes methods, :stratego
+
+    # fun/pdf_helper.rb
+    assert_includes methods, :foobar
+  end
+
   def test_helper_proxy_config
     AllHelpersController.config.my_var = 'smth'
 

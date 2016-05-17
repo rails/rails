@@ -28,7 +28,7 @@ module ApplicationTests
         assert_not File.exist?("tmp/restart.txt")
         `bin/setup 2>&1`
         assert_equal 0, File.size("log/test.log")
-        assert_equal '["articles", "schema_migrations", "active_record_internal_metadatas"]', list_tables.call
+        assert_equal '["articles", "schema_migrations", "ar_internal_metadata"]', list_tables.call
         assert File.exist?("tmp/restart.txt")
       end
     end
@@ -43,6 +43,8 @@ module ApplicationTests
 The Gemfile's dependencies are satisfied
 
 == Preparing database ==
+Created database 'db/development.sqlite3'
+Created database 'db/test.sqlite3'
 
 == Removing old logs and tempfiles ==
 

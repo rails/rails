@@ -3,27 +3,21 @@ source 'https://rubygems.org'
 gemspec
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
-gem 'rake', '>= 10.3'
+gem 'rake', '>= 11.1'
 
-# This needs to be with require false to ensure correct loading order, as has to
+# This needs to be with require false to ensure correct loading order, as it has to
 # be loaded after loading the test library.
 gem 'mocha', '~> 0.14', require: false
 
 gem 'rack-cache', '~> 1.2'
 gem 'jquery-rails'
-gem 'coffee-rails', '~> 4.1.0'
-gem 'turbolinks'
+gem 'coffee-rails', github: 'rails/coffee-rails'
+gem 'turbolinks', github: 'turbolinks/turbolinks-rails'
 
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)
 # being dependent on a binary library.
-platforms :mingw, :x64_mingw, :mswin, :mswin64 do
-  gem 'bcrypt-ruby', '~> 3.0.0', require: false
-end
-
-platforms :ruby, :jruby, :rbx do
-  gem 'bcrypt', '~> 3.1.10', require: false
-end
+gem 'bcrypt', '~> 3.1.11', require: false
 
 # This needs to be with require false to avoid it being automatically loaded by
 # sprockets.
@@ -45,24 +39,31 @@ gem 'listen', '~> 3.0.5', require: false
 
 # Active Job.
 group :job do
-  gem 'resque', require: false
+  gem 'resque', '< 1.26', require: false
   gem 'resque-scheduler', require: false
   gem 'sidekiq', require: false
-  gem 'sucker_punch', '< 2.0', require: false
-  gem 'delayed_job', require: false
+  gem 'sucker_punch', require: false
+  gem 'delayed_job', require: false, github: 'collectiveidea/delayed_job'
   gem 'queue_classic', github: "QueueClassic/queue_classic", branch: 'master', require: false, platforms: :ruby
   gem 'sneakers', require: false
   gem 'que', require: false
   gem 'backburner', require: false
-  gem 'qu-rails', github: "bkeepers/qu", branch: "master", require: false
+  #TODO: add qu after it support Rails 5.1
+  # gem 'qu-rails', github: "bkeepers/qu", branch: "master", require: false
   gem 'qu-redis', require: false
-  gem 'delayed_job_active_record', require: false
+  gem 'delayed_job_active_record', require: false, github: 'collectiveidea/delayed_job_active_record'
   gem 'sequel', require: false
 end
 
 # Action Cable
 group :cable do
   gem 'puma', require: false
+
+  gem 'em-hiredis', require: false
+  gem 'hiredis', require: false
+  gem 'redis', require: false
+
+  gem 'faye-websocket', require: false
 end
 
 # Add your own local bundler stuff.
@@ -92,12 +93,11 @@ platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
 
   group :db do
     gem 'pg', '>= 0.18.0'
-    gem 'mysql2', '>= 0.4.0'
+    gem 'mysql2', '>= 0.4.4'
   end
 end
 
 platforms :jruby do
-  gem 'json'
   if ENV['AR_JDBC']
     gem 'activerecord-jdbcsqlite3-adapter', github: 'jruby/activerecord-jdbc-adapter', branch: 'master'
     group :db do
@@ -130,3 +130,4 @@ end
 # A gem necessary for Active Record tests with IBM DB.
 gem 'ibm_db' if ENV['IBM_DB']
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
+gem 'wdm', '>= 0.1.0', platforms: [:mingw, :mswin, :x64_mingw, :mswin64]

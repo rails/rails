@@ -12,6 +12,8 @@ class Car < ActiveRecord::Base
   has_many :engines, :dependent => :destroy, inverse_of: :my_car
   has_many :wheels, :as => :wheelable, :dependent => :destroy
 
+  has_many :price_estimates, :as => :estimate_of
+
   scope :incl_tyres, -> { includes(:tyres) }
   scope :incl_engines, -> { includes(:engines) }
 

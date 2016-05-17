@@ -41,6 +41,20 @@ class BenchmarkableTest < ActiveSupport::TestCase
     assert_last_logged 'test_run'
   end
 
+  def test_with_silence
+    assert_difference 'buffer.count', +2 do
+      benchmark('test_run') do
+        logger.info "SOMETHING"
+      end
+    end
+
+    assert_difference 'buffer.count', +1 do
+      benchmark('test_run', silence: true) do
+        logger.info "NOTHING"
+      end
+    end
+  end
+
   def test_within_level
     logger.level = ActiveSupport::Logger::DEBUG
     benchmark('included_debug_run', :level => :debug) { }

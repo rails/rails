@@ -765,7 +765,7 @@ module ActionView
       #   # => <label for="post_privacy_public">Public Post</label>
       #
       #   label(:post, :terms) do
-      #     'Accept <a href="/terms">Terms</a>.'.html_safe
+      #     raw('Accept <a href="/terms">Terms</a>.')
       #   end
       #   # => <label for="post_terms">Accept <a href="/terms">Terms</a>.</label>
       def label(object_name, method, content_or_options = nil, options = nil, &block)
@@ -1118,6 +1118,10 @@ module ActionView
       #   # => <input id="user_born_on" name="user[born_on]" type="datetime" min="2014-05-20T00:00:00.000+0000" />
       #
       def datetime_field(object_name, method, options = {})
+        ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
+          datetime_field is deprecated and will be removed in Rails 5.1.
+          Use datetime_local_field instead.
+        MESSAGE
         Tags::DatetimeField.new(object_name, method, self, options).render
       end
 
@@ -1675,7 +1679,7 @@ module ActionView
       #   # => <label for="post_privacy_public">Public Post</label>
       #
       #   label(:terms) do
-      #     'Accept <a href="/terms">Terms</a>.'.html_safe
+      #     raw('Accept <a href="/terms">Terms</a>.')
       #   end
       #   # => <label for="post_terms">Accept <a href="/terms">Terms</a>.</label>
       def label(method, text = nil, options = {}, &block)
@@ -1921,8 +1925,6 @@ module ActionView
           else
             @object_name.to_s.humanize
           end
-
-          model = model.downcase
 
           defaults = []
           defaults << :"helpers.submit.#{object_name}.#{key}"

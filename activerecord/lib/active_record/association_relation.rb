@@ -10,7 +10,7 @@ module ActiveRecord
     end
 
     def ==(other)
-      other == to_a
+      other == records
     end
 
     def build(*args, &block)

@@ -1,4 +1,4 @@
-## Welcome to Rails
+# Welcome to Rails
 
 Rails is a web-application framework that includes everything needed to
 create database-backed web applications according to the
@@ -35,7 +35,7 @@ or to generate the body of an email. In Rails, View generation is handled by Act
 You can read more about Action View in its [README](actionview/README.rdoc).
 
 Active Record, Active Model, Action Pack, and Action View can each be used independently outside Rails.
-In addition to them, Rails also comes with Action Mailer ([README](actionmailer/README.rdoc)), a library
+In addition to that, Rails also comes with Action Mailer ([README](actionmailer/README.rdoc)), a library
 to generate and send emails; Active Job ([README](activejob/README.md)), a
 framework for declaring jobs and making them run on a variety of queueing
 backends; Action Cable ([README](actioncable/README.md)), a framework to
@@ -64,7 +64,7 @@ and may also be used independently outside Rails.
    Run with `--help` or `-h` for options.
 
 4. Using a browser, go to `http://localhost:3000` and you'll see:
-"Welcome aboard: You're riding Ruby on Rails!"
+"Yay! You’re on Rails!"
 
 5. Follow the guidelines to start developing your application. You may find
    the following resources handy:

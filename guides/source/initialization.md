@@ -3,8 +3,8 @@
 The Rails Initialization Process
 ================================
 
-This guide explains the internals of the initialization process in Rails
-as of Rails 4. It is an extremely in-depth guide and recommended for advanced Rails developers.
+This guide explains the internals of the initialization process in Rails.
+It is an extremely in-depth guide and recommended for advanced Rails developers.
 
 After reading this guide, you will know:
 
@@ -157,7 +157,7 @@ snippet.
 If we had used `s` rather than `server`, Rails would have used the `aliases`
 defined here to find the matching command.
 
-### `rails/commands/command_tasks.rb`
+### `rails/commands/commands_tasks.rb`
 
 When one types a valid Rails command, `run_command!` a method of the same name
 is called. If Rails doesn't recognize the command, it tries to run a Rake task
@@ -356,8 +356,6 @@ private
   def print_boot_information
     ...
     puts "=> Run `rails server -h` for more startup options"
-    ...
-    puts "=> Ctrl-C to shutdown server" unless options[:daemonize]
   end
 
   def create_tmp_directories

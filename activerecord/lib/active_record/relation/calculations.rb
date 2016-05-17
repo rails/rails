@@ -37,7 +37,11 @@ module ActiveRecord
     # Note: not all valid {Relation#select}[rdoc-ref:QueryMethods#select] expressions are valid #count expressions. The specifics differ
     # between databases. In invalid cases, an error from the database is thrown.
     def count(column_name = nil)
-      calculate(:count, column_name)
+      if block_given?
+        to_a.count { |*block_args| yield(*block_args) }
+      else
+        calculate(:count, column_name)
+      end
     end
 
     # Calculates the average value on a given column. Returns +nil+ if there's
@@ -155,15 +159,7 @@ module ActiveRecord
     # See also #ids.
     #
     def pluck(*column_names)
-      column_names.map! do |column_name|
-        if column_name.is_a?(Symbol) && attribute_alias?(column_name)
-          attribute_alias(column_name)
-        else
-          column_name.to_s
-        end
-      end
-
-      if loaded? && (column_names - @klass.column_names).empty?
+      if loaded? && (column_names.map(&:to_s) - @klass.attribute_names - @klass.attribute_aliases.keys).empty?
         return @records.pluck(*column_names)
       end
 
@@ -172,7 +168,7 @@ module ActiveRecord
       else
         relation = spawn
         relation.select_values = column_names.map { |cn|
-          columns_hash.key?(cn) ? arel_table[cn] : cn
+          @klass.has_attribute?(cn) || @klass.attribute_alias?(cn) ? arel_attribute(cn) : cn
         }
         result = klass.connection.select_all(relation.arel, nil, bound_attributes)
         result.cast_values(klass.attribute_types)

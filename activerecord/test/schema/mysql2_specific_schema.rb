@@ -1,4 +1,11 @@
 ActiveRecord::Schema.define do
+
+  if ActiveRecord::Base.connection.version >= '5.6.0'
+    create_table :datetime_defaults, force: true do |t|
+      t.datetime :modified_datetime, default: -> { 'CURRENT_TIMESTAMP' }
+    end
+  end
+
   create_table :binary_fields, force: true do |t|
     t.binary :var_binary, limit: 255
     t.binary :var_binary_large, limit: 4095
@@ -14,19 +21,19 @@ ActiveRecord::Schema.define do
     t.index :var_binary
   end
 
-  create_table :key_tests, force: true, :options => 'ENGINE=MyISAM' do |t|
+  create_table :key_tests, force: true, options: 'ENGINE=MyISAM' do |t|
     t.string :awesome
     t.string :pizza
     t.string :snacks
+    t.index :awesome, type: :fulltext, name: 'index_key_tests_on_awesome'
+    t.index :pizza, using: :btree, name: 'index_key_tests_on_pizza'
+    t.index :snacks, name: 'index_key_tests_on_snack'
   end
-
-  add_index :key_tests, :awesome, :type => :fulltext, :name => 'index_key_tests_on_awesome'
-  add_index :key_tests, :pizza, :using => :btree, :name => 'index_key_tests_on_pizza'
-  add_index :key_tests, :snacks, :name => 'index_key_tests_on_snack'
 
   create_table :collation_tests, id: false, force: true do |t|
     t.string :string_cs_column, limit: 1, collation: 'utf8_bin'
     t.string :string_ci_column, limit: 1, collation: 'utf8_general_ci'
+    t.binary :binary_column,    limit: 1
   end
 
   ActiveRecord::Base.connection.execute <<-SQL
@@ -55,7 +62,7 @@ SQL
 
   ActiveRecord::Base.connection.execute <<-SQL
 CREATE TABLE enum_tests (
-  enum_column ENUM('text','blob','tiny','medium','long','unsigned')
+  enum_column ENUM('text','blob','tiny','medium','long','unsigned','bigint')
 )
 SQL
 end

@@ -85,7 +85,7 @@ class ActiveModelHelperTest < ActionView::TestCase
   def test_field_error_proc
     old_proc = ActionView::Base.field_error_proc
     ActionView::Base.field_error_proc = Proc.new do |html_tag, instance|
-      %(<div class=\"field_with_errors\">#{html_tag} <span class="error">#{[instance.error_message].join(', ')}</span></div>).html_safe
+      raw(%(<div class=\"field_with_errors\">#{html_tag} <span class="error">#{[instance.error_message].join(', ')}</span></div>))
     end
 
     assert_dom_equal(

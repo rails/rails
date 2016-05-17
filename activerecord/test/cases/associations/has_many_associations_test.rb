@@ -408,6 +408,16 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_no_queries do
+      bulbs.third_to_last()
+      bulbs.third_to_last({})
+    end
+
+    assert_no_queries do
+      bulbs.second_to_last()
+      bulbs.second_to_last({})
+    end
+
+    assert_no_queries do
       bulbs.last()
       bulbs.last({})
     end
@@ -2271,7 +2281,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [], authors(:david).posts_with_signature.map(&:title)
   end
 
-  test 'associations autosaves when object is already persited' do
+  test 'associations autosaves when object is already persisted' do
     bulb = Bulb.create!
     tyre = Tyre.create!
 

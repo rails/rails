@@ -1,4 +1,4 @@
-# Be sure to restart your server when you modify this file. Action Cable runs in an EventMachine loop that does not support auto reloading.
+# Be sure to restart your server when you modify this file. Action Cable runs in a loop that does not support auto reloading.
 <% module_namespacing do -%>
 class <%= class_name %>Channel < ApplicationCable::Channel
   def subscribed

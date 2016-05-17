@@ -124,8 +124,7 @@ module ActiveRecord
         scope = last_chain_scope(scope, table, owner_reflection, owner, association_klass)
 
         reflection = chain_head
-        loop do
-          break unless reflection
+        while reflection
           table = reflection.alias_name
 
           unless reflection == chain_tail

@@ -14,6 +14,8 @@ module ActiveRecord
           def cast(value)
             case value
             when ::String
+              return if value.blank?
+              
               if value[0] == '(' && value[-1] == ')'
                 value = value[1...-1]
               end

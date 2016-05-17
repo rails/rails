@@ -141,6 +141,7 @@ module ActiveSupport #:nodoc:
     alias_method :original_concat, :concat
     private :original_concat
 
+    # Raised when <tt>ActiveSupport::SafeBuffer#safe_concat</tt> is called on unsafe buffers.
     class SafeConcatError < StandardError
       def initialize
         super 'Could not concatenate to the buffer because it is not html safe.'
@@ -170,7 +171,7 @@ module ActiveSupport #:nodoc:
       original_concat(value)
     end
 
-    def initialize(*)
+    def initialize(str = '')
       @html_safe = true
       super
     end
@@ -249,7 +250,7 @@ end
 
 class String
   # Marks a string as trusted safe. It will be inserted into HTML with no
-  # additional escaping performed. It is your responsibilty to ensure that the
+  # additional escaping performed. It is your responsibility to ensure that the
   # string contains no malicious content. This method is equivalent to the
   # `raw` helper in views. It is recommended that you use `sanitize` instead of
   # this method. It should never be called on user input.

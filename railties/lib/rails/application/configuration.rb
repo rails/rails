@@ -58,7 +58,7 @@ module Rails
 
       def static_cache_control=(value)
         ActiveSupport::Deprecation.warn <<-eow.strip_heredoc
-          `static_cache_control` is deprecated and will be removed in Rails 5.1.
+          `config.static_cache_control` is deprecated and will be removed in Rails 5.1.
           Please use
           `config.public_file_server.headers = { 'Cache-Control' => '#{value}' }`
           instead.
@@ -69,8 +69,8 @@ module Rails
 
       def serve_static_files
         ActiveSupport::Deprecation.warn <<-eow.strip_heredoc
-          `serve_static_files` is deprecated and will be removed in Rails 5.1.
-          Please use `public_file_server.enabled` instead.
+          `config.serve_static_files` is deprecated and will be removed in Rails 5.1.
+          Please use `config.public_file_server.enabled` instead.
         eow
 
         @public_file_server.enabled
@@ -78,8 +78,8 @@ module Rails
 
       def serve_static_files=(value)
         ActiveSupport::Deprecation.warn <<-eow.strip_heredoc
-          `serve_static_files` is deprecated and will be removed in Rails 5.1.
-          Please use `public_file_server.enabled = #{value}` instead.
+          `config.serve_static_files` is deprecated and will be removed in Rails 5.1.
+          Please use `config.public_file_server.enabled = #{value}` instead.
         eow
 
         @public_file_server.enabled = value

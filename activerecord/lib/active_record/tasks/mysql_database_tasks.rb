@@ -130,7 +130,7 @@ IDENTIFIED BY '#{configuration['password']}' WITH GRANT OPTION;
           'sslca'     => '--ssl-ca',
           'sslcert'   => '--ssl-cert',
           'sslcapath' => '--ssl-capath',
-          'sslcipher' => '--ssh-cipher',
+          'sslcipher' => '--ssl-cipher',
           'sslkey'    => '--ssl-key'
         }.map { |opt, arg| "#{arg}=#{configuration[opt]}" if configuration[opt] }.compact
 

@@ -1,8 +1,31 @@
 require "cases/helper"
+require "support/ddl_helper"
 
 class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
+  include DdlHelper
+
   def setup
     @conn = ActiveRecord::Base.connection
+  end
+
+  def test_exec_query_nothing_raises_with_no_result_queries
+    assert_nothing_raised do
+      with_example_table do
+        @conn.exec_query('INSERT INTO ex (number) VALUES (1)')
+        @conn.exec_query('DELETE FROM ex WHERE number = 1')
+      end
+    end
+  end
+
+  def test_valid_column
+    with_example_table do
+      column = @conn.columns('ex').find { |col| col.name == 'id' }
+      assert @conn.valid_type?(column.type)
+    end
+  end
+
+  def test_invalid_column
+    assert_not @conn.valid_type?(:foobar)
   end
 
   def test_columns_for_distinct_zero_orders
@@ -40,5 +63,11 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     end
     assert_equal "posts.id, posts.created_at AS alias_0",
       @conn.columns_for_distinct("posts.id", [order])
+  end
+
+  private
+
+  def with_example_table(definition = 'id int auto_increment primary key, number int, data varchar(255)', &block)
+    super(@conn, 'ex', definition, &block)
   end
 end

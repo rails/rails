@@ -43,11 +43,11 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_simple_format_should_sanitize_input_when_sanitize_option_is_not_false
-    assert_equal "<p><b> test with unsafe string </b></p>", simple_format("<b> test with unsafe string </b><script>code!</script>")
+    assert_equal "<p><b> test with unsafe string </b>code!</p>", simple_format("<b> test with unsafe string </b><script>code!</script>")
   end
 
   def test_simple_format_should_sanitize_input_when_sanitize_option_is_true
-    assert_equal '<p><b> test with unsafe string </b></p>',
+    assert_equal '<p><b> test with unsafe string </b>code!</p>',
       simple_format('<b> test with unsafe string </b><script>code!</script>', {}, sanitize: true)
   end
 
@@ -198,7 +198,7 @@ class TextHelperTest < ActionView::TestCase
 
   def test_highlight_should_sanitize_input
     assert_equal(
-      "This is a <mark>beautiful</mark> morning",
+      "This is a <mark>beautiful</mark> morningcode!",
       highlight("This is a beautiful morning<script>code!</script>", "beautiful")
     )
   end

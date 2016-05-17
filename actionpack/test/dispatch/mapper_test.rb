@@ -178,6 +178,19 @@ module ActionDispatch
           mapper.mount as: "exciting"
         end
       end
+
+      def test_scope_does_not_destructively_mutate_default_options
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+
+        frozen = { foo: :bar }.freeze
+
+        assert_nothing_raised do
+          mapper.scope(defaults: frozen) do
+            # pass
+          end
+        end
+      end
     end
   end
 end

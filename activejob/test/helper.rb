@@ -1,5 +1,3 @@
-require File.expand_path('../../../load_paths', __FILE__)
-
 require 'active_job'
 require 'support/job_buffer'
 

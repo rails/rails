@@ -60,7 +60,7 @@ module ActiveRecord
       end
 
       # Accepts an array, or string of SQL conditions and sanitizes
-      # them into a valid SQL fragment for a ORDER clause.
+      # them into a valid SQL fragment for an ORDER clause.
       #
       #   sanitize_sql_for_order(["field(id, ?)", [1,3,2]])
       #   # => "field(id, 1,3,2)"

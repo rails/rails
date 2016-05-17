@@ -43,7 +43,7 @@ class FinderTest < ActiveRecord::TestCase
     end
     assert_equal "should happen", exception.message
 
-    assert_nothing_raised(RuntimeError) do
+    assert_nothing_raised do
       Topic.all.find(-> { raise "should not happen" }) { |e| e.title == topics(:first).title }
     end
   end
@@ -101,7 +101,7 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_with_ids_where_and_limit
     # Please note that Topic 1 is the only not approved so
-    # if it were among the first 3 it would raise a ActiveRecord::RecordNotFound
+    # if it were among the first 3 it would raise an ActiveRecord::RecordNotFound
     records = Topic.where(approved: true).limit(3).find([3,2,5,1,4])
     assert_equal 3, records.size
     assert_equal 'The Third Topic of the day',  records[0].title
@@ -174,7 +174,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_fails_when_parameter_has_invalid_type
-    assert_raises(RangeError) do
+    assert_raises(ActiveModel::RangeError) do
       assert_equal false, Topic.exists?(("9"*53).to_i) # number that's bigger than int
     end
     assert_equal false, Topic.exists?("foo")
@@ -486,6 +486,66 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_second_to_last
+    assert_equal topics(:fourth).title, Topic.second_to_last.title
+
+    # test with offset
+    assert_equal topics(:fourth), Topic.offset(1).second_to_last
+    assert_equal topics(:fourth), Topic.offset(2).second_to_last
+    assert_equal topics(:fourth), Topic.offset(3).second_to_last
+    assert_equal nil, Topic.offset(4).second_to_last
+    assert_equal nil, Topic.offset(5).second_to_last
+
+    #test with limit
+    # assert_equal nil, Topic.limit(1).second # TODO: currently failing
+    assert_equal nil, Topic.limit(1).second_to_last
+  end
+
+  def test_second_to_last_have_primary_key_order_by_default
+    expected = topics(:fourth)
+    expected.touch # PostgreSQL changes the default order if no order clause is used
+    assert_equal expected, Topic.second_to_last
+  end
+
+  def test_model_class_responds_to_second_to_last_bang
+    assert Topic.second_to_last!
+    Topic.delete_all
+    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+      Topic.second_to_last!
+    end
+  end
+
+  def test_third_to_last
+    assert_equal topics(:third).title, Topic.third_to_last.title
+
+    # test with offset
+    assert_equal topics(:third), Topic.offset(1).third_to_last
+    assert_equal topics(:third), Topic.offset(2).third_to_last
+    assert_equal nil, Topic.offset(3).third_to_last
+    assert_equal nil, Topic.offset(4).third_to_last
+    assert_equal nil, Topic.offset(5).third_to_last
+
+    # test with limit
+    # assert_equal nil, Topic.limit(1).third # TODO: currently failing
+    assert_equal nil, Topic.limit(1).third_to_last
+    # assert_equal nil, Topic.limit(2).third # TODO: currently failing
+    assert_equal nil, Topic.limit(2).third_to_last
+  end
+
+  def test_third_to_last_have_primary_key_order_by_default
+    expected = topics(:third)
+    expected.touch # PostgreSQL changes the default order if no order clause is used
+    assert_equal expected, Topic.third_to_last
+  end
+
+  def test_model_class_responds_to_third_to_last_bang
+    assert Topic.third_to_last!
+    Topic.delete_all
+    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+      Topic.third_to_last!
+    end
+  end
+
   def test_last_bang_present
     assert_nothing_raised do
       assert_equal topics(:second), Topic.where("title = 'The Second Topic of the day'").last!
@@ -516,16 +576,44 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal Topic.order("title").to_a.last(2), Topic.order("title").last(2)
   end
 
-  def test_last_with_integer_and_order_should_not_use_sql_limit
-    query = assert_sql { Topic.order("title").last(5).entries }
-    assert_equal 1, query.length
-    assert_no_match(/LIMIT/, query.first)
+  def test_last_with_integer_and_order_should_use_sql_limit
+    relation = Topic.order("title")
+    assert_queries(1) { relation.last(5) }
+    assert !relation.loaded?
   end
 
-  def test_last_with_integer_and_reorder_should_not_use_sql_limit
-    query = assert_sql { Topic.reorder("title").last(5).entries }
-    assert_equal 1, query.length
-    assert_no_match(/LIMIT/, query.first)
+  def test_last_with_integer_and_reorder_should_use_sql_limit
+    relation = Topic.reorder("title")
+    assert_queries(1) { relation.last(5) }
+    assert !relation.loaded?
+  end
+
+  def test_last_on_loaded_relation_should_not_use_sql
+    relation  = Topic.limit(10).load
+    assert_no_queries do
+      relation.last
+      relation.last(2)
+    end
+  end
+
+  def test_last_with_irreversible_order
+    assert_deprecated do
+      Topic.order("coalesce(author_name, title)").last
+    end
+  end
+
+  def test_last_on_relation_with_limit_and_offset
+    post = posts('sti_comments')
+
+    comments = post.comments.order(id: :asc)
+    assert_equal comments.limit(2).to_a.last, comments.limit(2).last
+    assert_equal comments.limit(2).to_a.last(2), comments.limit(2).last(2)
+    assert_equal comments.limit(2).to_a.last(3), comments.limit(2).last(3)
+
+    comments = comments.offset(1)
+    assert_equal comments.limit(2).to_a.last, comments.limit(2).last
+    assert_equal comments.limit(2).to_a.last(2), comments.limit(2).last(2)
+    assert_equal comments.limit(2).to_a.last(3), comments.limit(2).last(3)
   end
 
   def test_take_and_first_and_last_with_integer_should_return_an_array
@@ -564,9 +652,14 @@ class FinderTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordNotFound) { Topic.where(approved: true).find(1) }
   end
 
-  def test_find_on_hash_conditions_with_explicit_table_name
+  def test_find_on_hash_conditions_with_qualified_attribute_dot_notation_string
     assert Topic.where('topics.approved' => false).find(1)
     assert_raise(ActiveRecord::RecordNotFound) { Topic.where('topics.approved' => true).find(1) }
+  end
+
+  def test_find_on_hash_conditions_with_qualified_attribute_dot_notation_symbol
+    assert Topic.where('topics.approved': false).find(1)
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.where('topics.approved': true).find(1) }
   end
 
   def test_find_on_hash_conditions_with_hashed_table_name
@@ -1058,7 +1151,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_finder_with_offset_string
-    assert_nothing_raised(ActiveRecord::StatementInvalid) { Topic.offset("3").to_a }
+    assert_nothing_raised { Topic.offset("3").to_a }
   end
 
   test "find_by with hash conditions returns the first matching record" do

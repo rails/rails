@@ -21,7 +21,13 @@ module ActiveSupport
         # Loading listen triggers warnings. These are originated by a legit
         # usage of attr_* macros for private attributes, but adds a lot of noise
         # to our test suite. Thus, we lazy load it and disable warnings locally.
-        silence_warnings { require 'listen' }
+        silence_warnings do
+          begin
+            require 'listen'
+          rescue LoadError => e
+            raise LoadError, "Could not load the 'listen' gem. Add `gem 'listen'` to the development group of your Gemfile", e.backtrace
+          end
+        end
         Listen.to(*dtw, &method(:changed)).start
       end
     end
@@ -37,6 +43,7 @@ module ActiveSupport
 
     def execute_if_updated
       if updated?
+        yield if block_given?
         execute
         true
       end
@@ -79,16 +86,6 @@ module ActiveSupport
       end
 
     class PathHelper
-      using Module.new {
-        refine Pathname do
-          def ascendant_of?(other)
-            self != other && other.ascend do |ascendant|
-              break true if self == ascendant
-            end
-          end
-        end
-      }
-
       def xpath(path)
         Pathname.new(path).expand_path
       end
@@ -105,7 +102,7 @@ module ActiveSupport
         lcsp = Pathname.new(paths[0])
 
         paths[1..-1].each do |path|
-          until lcsp.ascendant_of?(path)
+          until ascendant_of?(lcsp, path)
             if lcsp.root?
               # If we get here a root directory is not an ascendant of path.
               # This may happen if there are paths in different drives on
@@ -138,13 +135,21 @@ module ActiveSupport
           dir = dirs_sorted_by_nparts.shift
 
           dirs_sorted_by_nparts.reject! do |possible_descendant|
-            dir.ascendant_of?(possible_descendant) && descendants << possible_descendant
+            ascendant_of?(dir, possible_descendant) && descendants << possible_descendant
           end
         end
 
         # Array#- preserves order.
         dirs - descendants
       end
+
+      private
+
+        def ascendant_of?(base, other)
+          base != other && other.ascend do |ascendant|
+            break true if base == ascendant
+          end
+        end
     end
   end
 end

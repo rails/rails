@@ -21,7 +21,10 @@ task :default => %w(test test:isolated)
   task task_name do
     errors = []
     FRAMEWORKS.each do |project|
-      system(%(cd #{project} && #{$0} #{task_name})) || errors << project
+      system(%(cd #{project} && #{$0} #{task_name} --trace)) || errors << project
+    end
+    if task_name =~ /test/
+      system(%(cd actioncable && env FAYE=1 #{$0} #{task_name} --trace)) || errors << 'actioncable-faye'
     end
     fail("Errors in #{errors.join(', ')}") unless errors.empty?
   end
@@ -30,9 +33,10 @@ end
 desc "Smoke-test all projects"
 task :smoke do
   (FRAMEWORKS - %w(activerecord)).each do |project|
-    system %(cd #{project} && #{$0} test:isolated)
+    system %(cd #{project} && #{$0} test:isolated --trace)
   end
-  system %(cd activerecord && #{$0} sqlite3:isolated_test)
+  system %(cd activerecord && #{$0} sqlite3:isolated_test --trace)
+  system %(cd actioncable && env FAYE=1 #{$0} test:isolated --trace)
 end
 
 desc "Install gems for all projects."

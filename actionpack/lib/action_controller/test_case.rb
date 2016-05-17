@@ -12,6 +12,17 @@ module ActionController
     include Testing::Functional
   end
 
+  module Live
+    # Disable controller / rendering threads in tests.  User tests can access
+    # the database on the main thread, so they could open a txn, then the
+    # controller thread will open a new connection and try to access data
+    # that's only visible to the main thread's txn.  This is the problem in #23483
+    remove_method :new_controller_thread
+    def new_controller_thread # :nodoc:
+      yield
+    end
+  end
+
   # ActionController::TestCase will be deprecated and moved to a gem in Rails 5.1.
   # Please use ActionDispatch::IntegrationTest going forward.
   class TestRequest < ActionDispatch::TestRequest #:nodoc:
@@ -41,7 +52,7 @@ module ActionController
       self.session = session
       self.session_options = TestSession::DEFAULT_OPTIONS
       @custom_param_parsers = {
-        Mime[:xml] => lambda { |raw_post| Hash.from_xml(raw_post)['hash'] }
+        xml: lambda { |raw_post| Hash.from_xml(raw_post)['hash'] }
       }
     end
 
@@ -94,7 +105,7 @@ module ActionController
           when :url_encoded_form
             data = non_path_parameters.to_query
           else
-            @custom_param_parsers[content_mime_type] = ->(_) { non_path_parameters }
+            @custom_param_parsers[content_mime_type.symbol] = ->(_) { non_path_parameters }
             data = non_path_parameters.to_query
           end
         end
@@ -417,7 +428,7 @@ module ActionController
       end
       alias xhr :xml_http_request
 
-      # Simulate a HTTP request to +action+ by specifying request method,
+      # Simulate an HTTP request to +action+ by specifying request method,
       # parameters and set/volley the response.
       #
       # - +action+: The controller action to call.
@@ -542,6 +553,8 @@ module ActionController
           @request.delete_header 'HTTP_ACCEPT'
         end
         @request.query_string = ''
+
+        @response.sent!
 
         @response
       end

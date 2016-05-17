@@ -714,6 +714,13 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_time_zone_aware_attributes_dont_recurse_infinitely_on_invalid_values
+    in_time_zone "Pacific Time (US & Canada)" do
+      record = @target.new(bonus_time: [])
+      assert_equal nil, record.bonus_time
+    end
+  end
+
   def test_setting_time_zone_conversion_for_attributes_should_write_value_on_class_variable
     Topic.skip_time_zone_conversion_for_attributes = [:field_a]
     Minimalistic.skip_time_zone_conversion_for_attributes = [:field_b]
@@ -791,7 +798,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_nil computer.system
   end
 
-  def test_global_methods_are_overwritte_when_subclassing
+  def test_global_methods_are_overwritten_when_subclassing
     klass = Class.new(ActiveRecord::Base) { self.abstract_class = true }
 
     subklass = Class.new(klass) do

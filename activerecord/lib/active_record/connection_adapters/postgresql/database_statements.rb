@@ -4,44 +4,7 @@ module ActiveRecord
       module DatabaseStatements
         def explain(arel, binds = [])
           sql = "EXPLAIN #{to_sql(arel, binds)}"
-          ExplainPrettyPrinter.new.pp(exec_query(sql, 'EXPLAIN', binds))
-        end
-
-        class ExplainPrettyPrinter # :nodoc:
-          # Pretty prints the result of an EXPLAIN in a way that resembles the output of the
-          # PostgreSQL shell:
-          #
-          #                                     QUERY PLAN
-          #   ------------------------------------------------------------------------------
-          #    Nested Loop Left Join  (cost=0.00..37.24 rows=8 width=0)
-          #      Join Filter: (posts.user_id = users.id)
-          #      ->  Index Scan using users_pkey on users  (cost=0.00..8.27 rows=1 width=4)
-          #            Index Cond: (id = 1)
-          #      ->  Seq Scan on posts  (cost=0.00..28.88 rows=8 width=4)
-          #            Filter: (posts.user_id = 1)
-          #   (6 rows)
-          #
-          def pp(result)
-            header = result.columns.first
-            lines  = result.rows.map(&:first)
-
-            # We add 2 because there's one char of padding at both sides, note
-            # the extra hyphens in the example above.
-            width = [header, *lines].map(&:length).max + 2
-
-            pp = []
-
-            pp << header.center(width).rstrip
-            pp << '-' * width
-
-            pp += lines.map {|line| " #{line}"}
-
-            nrows = result.rows.length
-            rows_label = nrows == 1 ? 'row' : 'rows'
-            pp << "(#{nrows} #{rows_label})"
-
-            pp.join("\n") + "\n"
-          end
+          PostgreSQL::ExplainPrettyPrinter.new.pp(exec_query(sql, 'EXPLAIN', binds))
         end
 
         def select_value(arel, name = nil, binds = [])
@@ -70,16 +33,6 @@ module ActiveRecord
           execute_and_clear(sql, name, binds) do |result|
             result.values
           end
-        end
-
-        # Executes an INSERT query and returns the new record's ID
-        def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = []) # :nodoc:
-          unless pk
-            # Extract the table from the insert sql. Yuck.
-            table_ref = extract_table_ref_from_insert_sql(sql)
-            pk = primary_key(table_ref) if table_ref
-          end
-          super
         end
 
         # The internal PostgreSQL identifier of the money data type.
@@ -138,6 +91,8 @@ module ActiveRecord
 
         # Executes an SQL statement, returning a PGresult object on success
         # or raising a PGError exception otherwise.
+        # Note: the PGresult object is manually memory managed; if you don't
+        # need it specifically, you many want consider the exec_query wrapper.
         def execute(sql, name = nil)
           log(sql, name) do
             @connection.async_exec(sql)
@@ -162,12 +117,18 @@ module ActiveRecord
         end
         alias :exec_update :exec_delete
 
-        def sql_for_insert(sql, pk, id_value, sequence_name, binds)
+        def sql_for_insert(sql, pk, id_value, sequence_name, binds) # :nodoc:
+          if pk.nil?
+            # Extract the table from the insert sql. Yuck.
+            table_ref = extract_table_ref_from_insert_sql(sql)
+            pk = primary_key(table_ref) if table_ref
+          end
+
           if pk && use_insert_returning?
             sql = "#{sql} RETURNING #{quote_column_name(pk)}"
           end
 
-          [sql, binds]
+          super
         end
 
         def exec_insert(sql, name, binds, pk = nil, sequence_name = nil)

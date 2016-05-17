@@ -32,8 +32,11 @@ module ActionCable
     #
     # == Action processing
     #
-    # Unlike Action Controllers, channels do not follow a REST constraint form for its actions. It's a remote-procedure call model. You can
-    # declare any public method on the channel (optionally taking a data argument), and this method is automatically exposed as callable to the client.
+    # Unlike subclasses of ActionController::Base, channels do not follow a RESTful
+    # constraint form for their actions. Instead, Action Cable operates through a
+    # remote-procedure call model. You can declare any public method on the
+    # channel (optionally taking a <tt>data</tt> argument), and this method is
+    # automatically exposed as callable to the client.
     #
     # Example:
     #
@@ -60,18 +63,22 @@ module ActionCable
     #       end
     #   end
     #
-    # In this example, subscribed/unsubscribed are not callable methods, as they were already declared in ActionCable::Channel::Base, but #appear/away
-    # are. #generate_connection_token is also not callable as its a private method. You'll see that appear accepts a data parameter, which it then
-    # uses as part of its model call. #away does not, it's simply a trigger action.
+    # In this example, the subscribed and unsubscribed methods are not callable methods, as they
+    # were already declared in ActionCable::Channel::Base, but <tt>#appear</tt>
+    # and <tt>#away</tt> are. <tt>#generate_connection_token</tt> is also not
+    # callable, since it's a private method. You'll see that appear accepts a data
+    # parameter, which it then uses as part of its model call. <tt>#away</tt>
+    # does not, since it's simply a trigger action.
     #
-    # Also note that in this example, current_user is available because it was marked as an identifying attribute on the connection.
-    # All such identifiers will automatically create a delegation method of the same name on the channel instance.
+    # Also note that in this example, <tt>current_user</tt> is available because
+    # it was marked as an identifying attribute on the connection. All such
+    # identifiers will automatically create a delegation method of the same name
+    # on the channel instance.
     #
     # == Rejecting subscription requests
     #
-    # A channel can reject a subscription request in the #subscribed callback by invoking #reject!
-    #
-    # Example:
+    # A channel can reject a subscription request in the #subscribed callback by
+    # invoking the #reject method:
     #
     #   class ChatChannel < ApplicationCable::Channel
     #     def subscribed
@@ -80,8 +87,10 @@ module ActionCable
     #     end
     #   end
     #
-    # In this example, the subscription will be rejected if the current_user does not have access to the chat room.
-    # On the client-side, Channel#rejected callback will get invoked when the server rejects the subscription request.
+    # In this example, the subscription will be rejected if the
+    # <tt>current_user</tt> does not have access to the chat room. On the
+    # client-side, the <tt>Channel#rejected</tt> callback will get invoked when
+    # the server rejects the subscription request.
     class Base
       include Callbacks
       include PeriodicTimers
@@ -116,7 +125,7 @@ module ActionCable
         protected
           # action_methods are cached and there is sometimes need to refresh
           # them. ::clear_action_methods! allows you to do that, so next time
-          # you run action_methods, they will be recalculated
+          # you run action_methods, they will be recalculated.
           def clear_action_methods!
             @action_methods = nil
           end
@@ -133,8 +142,8 @@ module ActionCable
         @identifier = identifier
         @params     = params
 
-        # When a channel is streaming via redis pubsub, we want to delay the confirmation
-        # transmission until redis pubsub subscription is confirmed.
+        # When a channel is streaming via pubsub, we want to delay the confirmation
+        # transmission until pubsub subscription is confirmed.
         @defer_subscription_confirmation = false
 
         @reject_subscription = nil
@@ -151,15 +160,18 @@ module ActionCable
         action = extract_action(data)
 
         if processable_action?(action)
-          dispatch_action(action, data)
+          payload = { channel_class: self.class.name, action: action, data: data }
+          ActiveSupport::Notifications.instrument("perform_action.action_cable", payload) do
+            dispatch_action(action, data)
+          end
         else
           logger.error "Unable to process #{action_signature(action, data)}"
         end
       end
 
-      # Called by the cable connection when its cut so the channel has a chance to cleanup with callbacks.
+      # Called by the cable connection when it's cut, so the channel has a chance to cleanup with callbacks.
       # This method is not intended to be called directly by the user. Instead, overwrite the #unsubscribed callback.
-      def unsubscribe_from_channel
+      def unsubscribe_from_channel # :nodoc:
         run_callbacks :unsubscribe do
           unsubscribed
         end
@@ -174,7 +186,7 @@ module ActionCable
         end
 
         # Called once a consumer has cut its cable connection. Can be used for cleaning up connections or marking
-        # people as offline or the like.
+        # users as offline or the like.
         def unsubscribed
           # Override in subclasses
         end
@@ -182,8 +194,12 @@ module ActionCable
         # Transmit a hash of data to the subscriber. The hash will automatically be wrapped in a JSON envelope with
         # the proper channel identifier marked as the recipient.
         def transmit(data, via: nil)
-          logger.info "#{self.class.name} transmitting #{data.inspect}".tap { |m| m << " (via #{via})" if via }
-          connection.transmit ActiveSupport::JSON.encode(identifier: @identifier, message: data)
+          logger.info "#{self.class.name} transmitting #{data.inspect.truncate(300)}".tap { |m| m << " (via #{via})" if via }
+
+          payload = { channel_class: self.class.name, data: data, via: via }
+          ActiveSupport::Notifications.instrument("transmit.action_cable", payload) do
+            connection.transmit identifier: @identifier, message: data
+          end
         end
 
         def defer_subscription_confirmation!
@@ -215,7 +231,6 @@ module ActionCable
           end
         end
 
-
         def subscribe_to_channel
           run_callbacks :subscribe do
             subscribed
@@ -227,7 +242,6 @@ module ActionCable
             transmit_subscription_confirmation unless defer_subscription_confirmation?
           end
         end
-
 
         def extract_action(data)
           (data['action'].presence || :receive).to_sym
@@ -258,8 +272,11 @@ module ActionCable
         def transmit_subscription_confirmation
           unless subscription_confirmation_sent?
             logger.info "#{self.class.name} is transmitting the subscription confirmation"
-            connection.transmit ActiveSupport::JSON.encode(identifier: @identifier, type: ActionCable::INTERNAL[:message_types][:confirmation])
-            @subscription_confirmation_sent = true
+
+            ActiveSupport::Notifications.instrument("transmit_subscription_confirmation.action_cable", channel_class: self.class.name) do
+              connection.transmit identifier: @identifier, type: ActionCable::INTERNAL[:message_types][:confirmation]
+              @subscription_confirmation_sent = true
+            end
           end
         end
 
@@ -270,7 +287,10 @@ module ActionCable
 
         def transmit_subscription_rejection
           logger.info "#{self.class.name} is transmitting the subscription rejection"
-          connection.transmit ActiveSupport::JSON.encode(identifier: @identifier, type: ActionCable::INTERNAL[:message_types][:rejection])
+
+          ActiveSupport::Notifications.instrument("transmit_subscription_rejection.action_cable", channel_class: self.class.name) do
+            connection.transmit identifier: @identifier, type: ActionCable::INTERNAL[:message_types][:rejection]
+          end
         end
     end
   end

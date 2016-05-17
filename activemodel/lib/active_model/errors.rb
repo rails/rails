@@ -110,7 +110,7 @@ module ActiveModel
     #   person.errors.include?(:name) # => true
     #   person.errors.include?(:age)  # => false
     def include?(attribute)
-      messages[attribute].present?
+      messages.key?(attribute) && messages[attribute].present?
     end
     alias :has_key? :include?
     alias :key? :include?
@@ -160,6 +160,15 @@ module ActiveModel
     #
     #   person.errors[:name]  # => ["cannot be nil"]
     #   person.errors['name'] # => ["cannot be nil"]
+    #
+    # Note that, if you try to get errors of an attribute which has
+    # no errors associated with it, this method will instantiate
+    # an empty error list for it and +keys+ will return an array
+    # of error keys which includes this attribute.
+    #
+    #   person.errors.keys    # => []
+    #   person.errors[:name]  # => []
+    #   person.errors.keys    # => [:name]
     def [](attribute)
       messages[attribute.to_sym]
     end
@@ -301,9 +310,9 @@ module ActiveModel
     # <tt>:strict</tt> option can also be set to any other exception.
     #
     #   person.errors.add(:name, :invalid, strict: true)
-    #   # => ActiveModel::StrictValidationFailed: name is invalid
+    #   # => ActiveModel::StrictValidationFailed: Name is invalid
     #   person.errors.add(:name, :invalid, strict: NameIsInvalid)
-    #   # => NameIsInvalid: name is invalid
+    #   # => NameIsInvalid: Name is invalid
     #
     #   person.errors.messages # => {}
     #
@@ -318,7 +327,7 @@ module ActiveModel
     #   # => {:base=>[{error: :name_or_email_blank}]}
     def add(attribute, message = :invalid, options = {})
       message = message.call if message.respond_to?(:call)
-      detail  = normalize_detail(attribute, message, options)
+      detail  = normalize_detail(message, options)
       message = normalize_message(attribute, message, options)
       if exception = options[:strict]
         exception = ActiveModel::StrictValidationFailed if exception == true
@@ -337,7 +346,7 @@ module ActiveModel
     #   # => {:name=>["can't be empty"]}
     def add_on_empty(attributes, options = {})
       ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
-        ActiveModel::Errors#add_on_empty is deprecated and will be removed in Rails 5.1
+        ActiveModel::Errors#add_on_empty is deprecated and will be removed in Rails 5.1.
 
         To achieve the same use:
 
@@ -359,7 +368,7 @@ module ActiveModel
     #   # => {:name=>["can't be blank"]}
     def add_on_blank(attributes, options = {})
       ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
-        ActiveModel::Errors#add_on_blank is deprecated and will be removed in Rails 5.1
+        ActiveModel::Errors#add_on_blank is deprecated and will be removed in Rails 5.1.
 
         To achieve the same use:
 
@@ -477,7 +486,8 @@ module ActiveModel
         default: defaults,
         model: @base.model_name.human,
         attribute: @base.class.human_attribute_name(attribute),
-        value: value
+        value: value,
+        object: @base
       }.merge!(options)
 
       I18n.translate(key, options)
@@ -493,7 +503,7 @@ module ActiveModel
       end
     end
 
-    def normalize_detail(attribute, message, options)
+    def normalize_detail(message, options)
       { error: message }.merge(options.except(*CALLBACKS_OPTIONS + MESSAGE_OPTIONS))
     end
   end
@@ -516,7 +526,20 @@ module ActiveModel
   class StrictValidationFailed < StandardError
   end
 
+  # Raised when attribute values are out of range.
+  class RangeError < ::RangeError
+  end
+
   # Raised when unknown attributes are supplied via mass assignment.
+  #
+  #   class Person
+  #     include ActiveModel::AttributeAssignment
+  #     include ActiveModel::Validations
+  #   end
+  #
+  #   person = Person.new
+  #   person.assign_attributes(name: 'Gorby')
+  #   # => ActiveModel::UnknownAttributeError: unknown attribute 'name' for Person.
   class UnknownAttributeError < NoMethodError
     attr_reader :record, :attribute
 

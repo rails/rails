@@ -3,11 +3,11 @@ module ActiveRecord
     class BatchEnumerator
       include Enumerable
 
-      def initialize(of: 1000, begin_at: nil, end_at: nil, relation:) #:nodoc:
+      def initialize(of: 1000, start: nil, finish: nil, relation:) #:nodoc:
         @of       = of
         @relation = relation
-        @begin_at = begin_at
-        @end_at   = end_at
+        @start = start
+        @finish   = finish
       end
 
       # Looping through a collection of records from the database (using the
@@ -34,19 +34,19 @@ module ActiveRecord
       def each_record
         return to_enum(:each_record) unless block_given?
 
-        @relation.to_enum(:in_batches, of: @of, begin_at: @begin_at, end_at: @end_at, load: true).each do |relation|
-          relation.to_a.each { |record| yield record }
+        @relation.to_enum(:in_batches, of: @of, start: @start, finish: @finish, load: true).each do |relation|
+          relation.records.each { |record| yield record }
         end
       end
 
       # Delegates #delete_all, #update_all, #destroy_all methods to each batch.
       #
       #   People.in_batches.delete_all
-      #   People.in_batches.destroy_all('age < 10')
+      #   People.where('age < 10').in_batches.destroy_all
       #   People.in_batches.update_all('age = age + 1')
       [:delete_all, :update_all, :destroy_all].each do |method|
         define_method(method) do |*args, &block|
-          @relation.to_enum(:in_batches, of: @of, begin_at: @begin_at, end_at: @end_at, load: false).each do |relation|
+          @relation.to_enum(:in_batches, of: @of, start: @start, finish: @finish, load: false).each do |relation|
             relation.send(method, *args, &block)
           end
         end
@@ -58,7 +58,7 @@ module ActiveRecord
       #     relation.update_all(awesome: true)
       #   end
       def each
-        enum = @relation.to_enum(:in_batches, of: @of, begin_at: @begin_at, end_at: @end_at, load: false)
+        enum = @relation.to_enum(:in_batches, of: @of, start: @start, finish: @finish, load: false)
         return enum.each { |relation| yield relation } if block_given?
         enum
       end

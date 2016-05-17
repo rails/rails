@@ -96,16 +96,14 @@ module ActiveSupport
         options = names.extract_options!
         options = merged_options(options)
 
-        instrument_multi(:read, names, options) do
-          keys_to_names = Hash[names.map{|name| [normalize_key(name, options), name]}]
-          raw_values = @data.get_multi(keys_to_names.keys, :raw => true)
-          values = {}
-          raw_values.each do |key, value|
-            entry = deserialize_entry(value)
-            values[keys_to_names[key]] = entry.value unless entry.expired?
-          end
-          values
+        keys_to_names = Hash[names.map{|name| [normalize_key(name, options), name]}]
+        raw_values = @data.get_multi(keys_to_names.keys, :raw => true)
+        values = {}
+        raw_values.each do |key, value|
+          entry = deserialize_entry(value)
+          values[keys_to_names[key]] = entry.value unless entry.expired?
         end
+        values
       end
 
       # Increment a cached value. This method uses the memcached incr atomic

@@ -183,6 +183,12 @@ class ACLogSubscriberTest < ActionController::TestCase
     assert_equal "test_value", @controller.last_payload[:test_key]
   end
 
+  def test_process_action_headers
+    get :show
+    wait
+    assert_equal "Rails Testing", @controller.last_payload[:headers]['User-Agent']
+  end
+
   def test_process_action_with_filter_parameters
     @request.env["action_dispatch.parameter_filter"] = [:lifo, :amount]
 

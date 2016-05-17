@@ -161,12 +161,19 @@ class Mysql2JSONTest < ActiveRecord::Mysql2TestCase
     assert_not json.changed?
   end
 
-  def test_assigning_invalid_json
-    json = JsonDataType.new
+  def test_assigning_string_literal
+    json = JsonDataType.create(payload: "foo")
+    assert_equal "foo", json.payload
+  end
 
-    json.payload = 'foo'
+  def test_assigning_number
+    json = JsonDataType.create(payload: 1.234)
+    assert_equal 1.234, json.payload
+  end
 
-    assert_nil json.payload
+  def test_assigning_boolean
+    json = JsonDataType.create(payload: true)
+    assert_equal true, json.payload
   end
 end
 end

@@ -10,22 +10,27 @@ class SummablePayment < Payment
 end
 
 class EnumerableTests < ActiveSupport::TestCase
-
   class GenericEnumerable
     include Enumerable
+
     def initialize(values = [1, 2, 3])
       @values = values
     end
 
     def each
-      @values.each{|v| yield v}
+      @values.each { |v| yield v }
     end
+  end
+
+  def assert_typed_equal(e, v, cls, msg=nil)
+    assert_kind_of(cls, v, msg)
+    assert_equal(e, v, msg)
   end
 
   def test_sums
     enum = GenericEnumerable.new([5, 15, 10])
     assert_equal 30, enum.sum
-    assert_equal 60, enum.sum { |i| i * 2}
+    assert_equal 60, enum.sum { |i| i * 2 }
 
     enum = GenericEnumerable.new(%w(a b c))
     assert_equal 'abc', enum.sum
@@ -38,6 +43,40 @@ class EnumerableTests < ActiveSupport::TestCase
     payments = GenericEnumerable.new([ SummablePayment.new(5), SummablePayment.new(15) ])
     assert_equal SummablePayment.new(20), payments.sum
     assert_equal SummablePayment.new(20), payments.sum { |p| p }
+
+    sum = GenericEnumerable.new([3, 5.quo(1)]).sum
+    assert_typed_equal(8, sum, Rational)
+
+    sum = GenericEnumerable.new([3, 5.quo(1)]).sum(0.0)
+    assert_typed_equal(8.0, sum, Float)
+
+    sum = GenericEnumerable.new([3, 5.quo(1), 7.0]).sum
+    assert_typed_equal(15.0, sum, Float)
+
+    sum = GenericEnumerable.new([3, 5.quo(1), Complex(7)]).sum
+    assert_typed_equal(Complex(15), sum, Complex)
+    assert_typed_equal(15, sum.real, Rational)
+    assert_typed_equal(0, sum.imag, Integer)
+
+    sum = GenericEnumerable.new([3.5, 5]).sum
+    assert_typed_equal(8.5, sum, Float)
+
+    sum = GenericEnumerable.new([2, 8.5]).sum
+    assert_typed_equal(10.5, sum, Float)
+
+    sum = GenericEnumerable.new([1.quo(2), 1]).sum
+    assert_typed_equal(3.quo(2), sum, Rational)
+
+    sum = GenericEnumerable.new([1.quo(2), 1.quo(3)]).sum
+    assert_typed_equal(5.quo(6), sum, Rational)
+
+    sum = GenericEnumerable.new([2.0, 3.0*Complex::I]).sum
+    assert_typed_equal(Complex(2.0, 3.0), sum, Complex)
+    assert_typed_equal(2.0, sum.real, Float)
+    assert_typed_equal(3.0, sum.imag, Float)
+
+    sum = GenericEnumerable.new([1, 2]).sum(10) {|v| v * 2 }
+    assert_typed_equal(16, sum, Integer)
   end
 
   def test_nil_sums
@@ -55,6 +94,7 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal 0, GenericEnumerable.new([]).sum
     assert_equal 0, GenericEnumerable.new([]).sum { |i| i + 10 }
     assert_equal Payment.new(0), GenericEnumerable.new([]).sum(Payment.new(0))
+    assert_typed_equal 0.0, GenericEnumerable.new([]).sum(0.0), Float
   end
 
   def test_range_sums
@@ -68,6 +108,62 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal 5, (10..0).sum(5)
     assert_equal 10, (10..10).sum
     assert_equal 42, (10...10).sum(42)
+    assert_typed_equal 20.0, (1..4).sum(0.0) { |i| i * 2 }, Float
+    assert_typed_equal 10.0, (1..4).sum(0.0), Float
+    assert_typed_equal 20.0, (1..4).sum(10.0), Float
+    assert_typed_equal 5.0, (10..0).sum(5.0), Float
+  end
+
+  def test_array_sums
+    enum = [5, 15, 10]
+    assert_equal 30, enum.sum
+    assert_equal 60, enum.sum { |i| i * 2 }
+
+    enum = %w(a b c)
+    assert_equal 'abc', enum.sum
+    assert_equal 'aabbcc', enum.sum { |i| i * 2 }
+
+    payments = [ Payment.new(5), Payment.new(15), Payment.new(10) ]
+    assert_equal 30, payments.sum(&:price)
+    assert_equal 60, payments.sum { |p| p.price * 2 }
+
+    payments = [ SummablePayment.new(5), SummablePayment.new(15) ]
+    assert_equal SummablePayment.new(20), payments.sum
+    assert_equal SummablePayment.new(20), payments.sum { |p| p }
+
+    sum = [3, 5.quo(1)].sum
+    assert_typed_equal(8, sum, Rational)
+
+    sum = [3, 5.quo(1)].sum(0.0)
+    assert_typed_equal(8.0, sum, Float)
+
+    sum = [3, 5.quo(1), 7.0].sum
+    assert_typed_equal(15.0, sum, Float)
+
+    sum = [3, 5.quo(1), Complex(7)].sum
+    assert_typed_equal(Complex(15), sum, Complex)
+    assert_typed_equal(15, sum.real, Rational)
+    assert_typed_equal(0, sum.imag, Integer)
+
+    sum = [3.5, 5].sum
+    assert_typed_equal(8.5, sum, Float)
+
+    sum = [2, 8.5].sum
+    assert_typed_equal(10.5, sum, Float)
+
+    sum = [1.quo(2), 1].sum
+    assert_typed_equal(3.quo(2), sum, Rational)
+
+    sum = [1.quo(2), 1.quo(3)].sum
+    assert_typed_equal(5.quo(6), sum, Rational)
+
+    sum = [2.0, 3.0*Complex::I].sum
+    assert_typed_equal(Complex(2.0, 3.0), sum, Complex)
+    assert_typed_equal(2.0, sum.real, Float)
+    assert_typed_equal(3.0, sum.imag, Float)
+
+    sum = [1, 2].sum(10) {|v| v * 2 }
+    assert_typed_equal(16, sum, Integer)
   end
 
   def test_index_by

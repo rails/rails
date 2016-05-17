@@ -29,8 +29,7 @@ module Rails
     # reloads the environment
     def reload!(print=true)
       puts "Reloading..." if print
-      ActionDispatch::Reloader.cleanup!
-      ActionDispatch::Reloader.prepare!
+      Rails.application.reloader.reload!
       true
     end
   end

@@ -1,13 +1,11 @@
 require 'erubis'
+require 'abstract_controller/error'
 require 'active_support/configurable'
 require 'active_support/descendants_tracker'
 require 'active_support/core_ext/module/anonymous'
 require 'active_support/core_ext/module/attr_internal'
 
 module AbstractController
-  class Error < StandardError #:nodoc:
-  end
-
   # Raised when a non-existing controller action is triggered.
   class ActionNotFound < StandardError
   end
@@ -78,7 +76,7 @@ module AbstractController
         end
       end
 
-      # action_methods are cached and there is sometimes need to refresh
+      # action_methods are cached and there is sometimes a need to refresh
       # them. ::clear_action_methods! allows you to do that, so next time
       # you run action_methods, they will be recalculated.
       def clear_action_methods!

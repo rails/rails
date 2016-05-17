@@ -16,6 +16,21 @@ Before attempting to upgrade an existing application, you should be sure you hav
 
 The best way to be sure that your application still works after upgrading is to have good test coverage before you start the process. If you don't have automated tests that exercise the bulk of your application, you'll need to spend time manually exercising all the parts that have changed. In the case of a Rails upgrade, that will mean every single piece of functionality in the application. Do yourself a favor and make sure your test coverage is good _before_ you start an upgrade.
 
+### The Upgrade Process
+
+When changing Rails versions, it's best to move slowly, one minor version at a time, in order to make good use of the deprecation warnings. Rails version numbers are in the form Major.Minor.Patch. Major and Minor versions are allowed to make changes to the public API, so this may cause errors in your application. Patch versions only include bug fixes, and don't change any public API.
+
+The process should go as follows:
+
+1. Write tests and make sure they pass.
+2. Move to the latest patch version after your current version.
+3. Fix tests and deprecated features.
+4. Move to the latest patch version of the next minor version.
+
+Repeat this process until you reach your target Rails version. Each time you move versions, you will need to change the Rails version number in the Gemfile (and possibly other gem versions) and run `bundle update`. Then run the Update task mentioned below to update configuration files, then run your tests.
+
+You can find a list of all released Rails versions [here](https://rubygems.org/gems/rails/versions).
+
 ### Ruby Versions
 
 Rails generally stays close to the latest released Ruby version when it's released:
@@ -27,15 +42,15 @@ Rails generally stays close to the latest released Ruby version when it's releas
 
 TIP: Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterprise Edition has these fixed since the release of 1.8.7-2010.02. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults, so if you want to use 1.9.x, jump straight to 1.9.3 for smooth sailing.
 
-### The Rake Task
+### The Update Task
 
-Rails provides the `rails:update` rake task. After updating the Rails version
-in the Gemfile, run this rake task.
+Rails provides the `app:update` task (`rails:update` on 4.2 and earlier). After updating the Rails version
+in the Gemfile, run this task.
 This will help you with the creation of new files and changes of old files in an
 interactive session.
 
 ```bash
-$ rake rails:update
+$ rails app:update
    identical  config/boot.rb
        exist  config
     conflict  config/routes.rb
@@ -55,11 +70,8 @@ Upgrading from Rails 4.2 to Rails 5.0
 
 ### Ruby 2.2.2+
 
-ToDo...
-
-### Ruby 2.2.2+
-
-ToDo...
+From Ruby on Rails 5.0 onwards, Ruby 2.2.2+ is the only supported version. 
+Make sure you are on Ruby 2.2.2 version or greater, before you proceed. 
 
 ### Active Record models now inherit from ApplicationRecord by default
 
@@ -172,7 +184,7 @@ the logs. In the next version, these errors will no longer be suppressed.
 Instead, the errors will propagate normally just like in other Active
 Record callbacks.
 
-When you define a `after_rollback` or `after_commit` callback, you
+When you define an `after_rollback` or `after_commit` callback, you
 will receive a deprecation warning about this upcoming change. When
 you are ready, you can opt into the new behavior and remove the
 deprecation warning by adding following configuration to your

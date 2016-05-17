@@ -4,7 +4,13 @@ module AbstractController
   module Testing
     class UrlForTest < ActionController::TestCase
       class W
-        include ActionDispatch::Routing::RouteSet.new.tap { |r| r.draw { get ':controller(/:action(/:id(.:format)))' } }.url_helpers
+        include ActionDispatch::Routing::RouteSet.new.tap { |r|
+          r.draw {
+            ActiveSupport::Deprecation.silence {
+              get ':controller(/:action(/:id(.:format)))'
+            }
+          }
+        }.url_helpers
       end
 
       def teardown
@@ -260,7 +266,7 @@ module AbstractController
         w = Class.new {
           config = ActionDispatch::Routing::RouteSet::Config.new '/subdir'
           r = ActionDispatch::Routing::RouteSet.new(config)
-          r.draw { get ':controller(/:action(/:id(.:format)))' }
+          r.draw { ActiveSupport::Deprecation.silence { get ':controller(/:action(/:id(.:format)))' } }
           include r.url_helpers
         }
         add_host!(w)
@@ -315,7 +321,10 @@ module AbstractController
         with_routing do |set|
           set.draw do
             get 'home/sweet/home/:user', :to => 'home#index', :as => :home
-            get ':controller/:action/:id'
+
+            ActiveSupport::Deprecation.silence do
+              get ':controller/:action/:id'
+            end
           end
 
           # We need to create a new class in order to install the new named route.

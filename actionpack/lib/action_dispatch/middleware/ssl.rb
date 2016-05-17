@@ -23,7 +23,7 @@ module ActionDispatch
   #     preload lists is `18.weeks`.
   #   * `subdomains`: Set to `true` to tell the browser to apply these settings
   #     to all subdomains. This protects your cookies from interception by a
-  #     vulnerable site on a subdomain. Defaults to `false`.
+  #     vulnerable site on a subdomain. Defaults to `true`.
   #   * `preload`: Advertise that this site may be included in browsers'
   #     preloaded HSTS lists. HSTS protects your site on every visit *except the
   #     first visit* since it hasn't seen your HSTS header yet. To close this
@@ -34,6 +34,10 @@ module ActionDispatch
   # original HSTS directive until it expires. Instead, use the header to tell browsers to
   # expire HSTS immediately. Setting `hsts: false` is a shortcut for
   # `hsts: { expires: 0 }`.
+  #
+  # Requests can opt-out of redirection with `exclude`:
+  #
+  #    config.ssl_options = { redirect: { exclude: -> request { request.path =~ /healthcheck/ } } }
   class SSL
     # Default to 180 days, the low end for https://www.ssllabs.com/ssltest/
     # and greater than the 18-week requirement for browser preload lists.
@@ -49,14 +53,26 @@ module ActionDispatch
       if options[:host] || options[:port]
         ActiveSupport::Deprecation.warn <<-end_warning.strip_heredoc
           The `:host` and `:port` options are moving within `:redirect`:
-          `config.ssl_options = { redirect: { host: …, port: … }}`.
+          `config.ssl_options = { redirect: { host: …, port: … } }`.
         end_warning
         @redirect = options.slice(:host, :port)
       else
         @redirect = redirect
       end
 
+      @exclude = @redirect && @redirect[:exclude] || proc { !@redirect }
       @secure_cookies = secure_cookies
+
+      if hsts != true && hsts != false && hsts[:subdomains].nil?
+        hsts[:subdomains] = false
+
+        ActiveSupport::Deprecation.warn <<-end_warning.strip_heredoc
+          In Rails 5.1, The `:subdomains` option of HSTS config will be treated as true if
+          unspecified. Set `config.ssl_options = { hsts: { subdomains: false } }` to opt out
+          of this behavior.
+        end_warning
+      end
+
       @hsts_header = build_hsts_header(normalize_hsts_options(hsts))
     end
 
@@ -69,7 +85,7 @@ module ActionDispatch
           flag_cookies_as_secure! headers if @secure_cookies
         end
       else
-        return redirect_to_https request if @redirect
+        return redirect_to_https request unless @exclude.call(request)
         @app.call(env)
       end
     end

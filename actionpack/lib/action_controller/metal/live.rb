@@ -3,7 +3,7 @@ require 'delegate'
 require 'active_support/json'
 
 module ActionController
-  # Mix this module in to your controller, and all actions in that controller
+  # Mix this module into your controller, and all actions in that controller
   # will be able to stream data to the client as it's written.
   #
   #   class MyController < ActionController::Base
@@ -20,7 +20,7 @@ module ActionController
   #     end
   #   end
   #
-  # There are a few caveats with this use. You *cannot* write headers after the
+  # There are a few caveats with this module. You *cannot* write headers after the
   # response has been committed (Response#committed? will return truthy).
   # Calling +write+ or +close+ on the response stream will cause the response
   # object to be committed. Make sure all headers are set before calling write
@@ -163,14 +163,6 @@ module ActionController
         end
       end
 
-      def each
-        @response.sending!
-        while str = @buf.pop
-          yield str
-        end
-        @response.sent!
-      end
-
       # Write a 'close' event to the buffer; the producer/writing thread
       # uses this to notify us that it's finished supplying content.
       #
@@ -210,6 +202,14 @@ module ActionController
       def call_on_error
         @error_callback.call
       end
+
+      private
+
+        def each_chunk(&block)
+          while str = @buf.pop
+            yield str
+          end
+        end
     end
 
     class Response < ActionDispatch::Response #:nodoc: all
@@ -237,37 +237,53 @@ module ActionController
       # This processes the action in a child thread. It lets us return the
       # response code and headers back up the rack stack, and still process
       # the body in parallel with sending data to the client
-      Thread.new {
-        t2 = Thread.current
-        t2.abort_on_exception = true
+      new_controller_thread {
+        ActiveSupport::Dependencies.interlock.running do
+          t2 = Thread.current
 
-        # Since we're processing the view in a different thread, copy the
-        # thread locals from the main thread to the child thread. :'(
-        locals.each { |k,v| t2[k] = v }
+          # Since we're processing the view in a different thread, copy the
+          # thread locals from the main thread to the child thread. :'(
+          locals.each { |k,v| t2[k] = v }
 
-        begin
-          super(name)
-        rescue => e
-          if @_response.committed?
-            begin
-              @_response.stream.write(ActionView::Base.streaming_completion_on_exception) if request.format == :html
-              @_response.stream.call_on_error
-            rescue => exception
-              log_error(exception)
-            ensure
-              log_error(e)
-              @_response.stream.close
+          begin
+            super(name)
+          rescue => e
+            if @_response.committed?
+              begin
+                @_response.stream.write(ActionView::Base.streaming_completion_on_exception) if request.format == :html
+                @_response.stream.call_on_error
+              rescue => exception
+                log_error(exception)
+              ensure
+                log_error(e)
+                @_response.stream.close
+              end
+            else
+              error = e
             end
-          else
-            error = e
+          ensure
+            @_response.commit!
           end
-        ensure
-          @_response.commit!
         end
       }
 
-      @_response.await_commit
+      ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+        @_response.await_commit
+      end
+
       raise error if error
+    end
+
+    # Spawn a new thread to serve up the controller in.  This is to get
+    # around the fact that Rack isn't based around IOs and we need to use
+    # a thread to stream data from the response bodies.  Nobody should call
+    # this method except in Rails internals. Seriously!
+    def new_controller_thread # :nodoc:
+      Thread.new {
+        t2 = Thread.current
+        t2.abort_on_exception = true
+        yield
+      }
     end
 
     def log_error(exception)

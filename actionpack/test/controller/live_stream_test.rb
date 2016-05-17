@@ -152,7 +152,6 @@ module ActionController
 
       def thread_locals
         tc.assert_equal 'aaron', Thread.current[:setting]
-        tc.assert_not_equal Thread.current.object_id, Thread.current[:originating_thread]
 
         response.headers['Content-Type'] = 'text/event-stream'
         %w{ hello world }.each do |word|
@@ -206,7 +205,7 @@ module ActionController
       def overfill_buffer_and_die
         logger = ActionController::Base.logger || Logger.new($stdout)
         response.stream.on_error do
-          logger.warn 'Error while streaming'
+          logger.warn 'Error while streaming.'
           error_latch.count_down
         end
 
@@ -247,7 +246,8 @@ module ActionController
 
     def assert_stream_closed
       assert response.stream.closed?, 'stream should be closed'
-      assert response.sent?, 'stream should be sent'
+      assert response.committed?,     'response should be committed'
+      assert response.sent?,          'response should be sent'
     end
 
     def capture_log_output
@@ -258,6 +258,14 @@ module ActionController
         yield output
       ensure
         ActionController::Base.logger = old_logger
+      end
+    end
+
+    def setup
+      super
+
+      def @controller.new_controller_thread
+        Thread.new { yield }
       end
     end
 
@@ -429,7 +437,7 @@ module ActionController
     end
 
     def test_stale_with_etag
-      @request.if_none_match = Digest::MD5.hexdigest("123")
+      @request.if_none_match = %(W/"#{Digest::MD5.hexdigest('123')}")
       get :with_stale
       assert_equal 304, response.status.to_i
     end

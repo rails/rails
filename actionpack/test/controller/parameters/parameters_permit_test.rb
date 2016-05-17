@@ -27,6 +27,27 @@ class ParametersPermitTest < ActiveSupport::TestCase
     end
   end
 
+  def walk_permitted params
+    params.each do |k,v|
+      case v
+      when ActionController::Parameters
+        walk_permitted v
+      when Array
+        v.each { |x| walk_permitted v }
+      end
+    end
+  end
+
+  test 'iteration should not impact permit' do
+    hash = {"foo"=>{"bar"=>{"0"=>{"baz"=>"hello", "zot"=>"1"}}}}
+    params = ActionController::Parameters.new(hash)
+
+    walk_permitted params
+
+    sanitized = params[:foo].permit(bar: [:baz])
+    assert_equal({"0"=>{"baz"=>"hello"}}, sanitized[:bar].to_unsafe_h)
+  end
+
   test 'if nothing is permitted, the hash becomes empty' do
     params = ActionController::Parameters.new(id: '1234')
     permitted = params.permit
@@ -334,9 +355,18 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_not company.dupped
   end
 
-  test "included? returns true when the key is present" do
+  test "include? returns true when the key is present" do
     assert @params.include? :person
     assert @params.include? 'person'
     assert_not @params.include? :gorilla
+  end
+
+  test "scalar values should be filtered when array or hash is specified" do
+    params = ActionController::Parameters.new(foo: "bar")
+
+    assert params.permit(:foo).has_key?(:foo)
+    refute params.permit(foo: []).has_key?(:foo)
+    refute params.permit(foo: [:bar]).has_key?(:foo)
+    refute params.permit(foo: :bar).has_key?(:foo)
   end
 end

@@ -1,6 +1,7 @@
 module ActionCable
-  # If you need to disconnect a given connection, you go through the RemoteConnections. You find the connections you're looking for by
-  # searching the identifier declared on the connection. Example:
+  # If you need to disconnect a given connection, you can go through the
+  # RemoteConnections. You can find the connections you're looking for by
+  # searching for the identifier declared on the connection. For example:
   #
   #   module ApplicationCable
   #     class Connection < ActionCable::Connection::Base
@@ -11,8 +12,9 @@ module ActionCable
   #
   #   ActionCable.server.remote_connections.where(current_user: User.find(1)).disconnect
   #
-  # That will disconnect all the connections established for User.find(1) across all servers running on all machines (because it uses
-  # the internal channel that all these servers are subscribed to).
+  # This will disconnect all the connections established for
+  # <tt>User.find(1)</tt>, across all servers running on all machines, because
+  # it uses the internal channel that all of these servers are subscribed to.
   class RemoteConnections
     attr_reader :server
 
@@ -25,8 +27,8 @@ module ActionCable
     end
 
     private
-      # Represents a single remote connection found via ActionCable.server.remote_connections.where(*).
-      # Exists for the solely for the purpose of calling #disconnect on that connection.
+      # Represents a single remote connection found via <tt>ActionCable.server.remote_connections.where(*)</tt>.
+      # Exists solely for the purpose of calling #disconnect on that connection.
       class RemoteConnection
         class InvalidIdentifiersError < StandardError; end
 
@@ -39,7 +41,7 @@ module ActionCable
 
         # Uses the internal channel to disconnect the connection.
         def disconnect
-          server.broadcast internal_redis_channel, type: 'disconnect'
+          server.broadcast internal_channel, type: 'disconnect'
         end
 
         # Returns all the identifiers that were applied to this connection.

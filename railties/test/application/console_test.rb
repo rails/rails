@@ -52,12 +52,11 @@ class ConsoleTest < ActiveSupport::TestCase
     a = b = c = nil
 
     # TODO: These should be defined on the initializer
-    ActionDispatch::Reloader.to_cleanup { a = b = c = 1 }
-    ActionDispatch::Reloader.to_cleanup { b = c = 2 }
-    ActionDispatch::Reloader.to_prepare { c = 3 }
+    ActiveSupport::Reloader.to_complete { a = b = c = 1 }
+    ActiveSupport::Reloader.to_complete { b = c = 2 }
+    ActiveSupport::Reloader.to_prepare { c = 3 }
 
-    # Hide Reloading... output
-    silence_stream(STDOUT) { irb_context.reload! }
+    irb_context.reload!(false)
 
     assert_equal 1, a
     assert_equal 2, b
@@ -81,7 +80,7 @@ class ConsoleTest < ActiveSupport::TestCase
     MODEL
 
     assert !User.new.respond_to?(:age)
-    silence_stream(STDOUT) { irb_context.reload! }
+    irb_context.reload!(false)
     assert User.new.respond_to?(:age)
   end
 

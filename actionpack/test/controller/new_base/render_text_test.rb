@@ -83,7 +83,7 @@ module RenderText
 
     test "rendering text from an action with default options renders the text with the layout" do
       with_routing do |set|
-        set.draw { get ':controller', action: 'index' }
+        set.draw { ActiveSupport::Deprecation.silence { get ':controller', action: 'index' } }
 
         ActiveSupport::Deprecation.silence do
           get "/render_text/simple"
@@ -96,7 +96,7 @@ module RenderText
 
     test "rendering text from an action with default options renders the text without the layout" do
       with_routing do |set|
-        set.draw { get ':controller', action: 'index' }
+        set.draw { ActiveSupport::Deprecation.silence { get ':controller', action: 'index' } }
 
         ActiveSupport::Deprecation.silence do
           get "/render_text/with_layout"

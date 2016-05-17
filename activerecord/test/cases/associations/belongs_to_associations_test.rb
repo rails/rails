@@ -168,7 +168,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     e = assert_raise(ActiveRecord::AssociationTypeMismatch) {
       Admin::RegionalUser.new(region: 'wrong value')
     }
-    assert_match(/^Region\([^)]+\) expected, got String\([^)]+\)$/, e.message)
+    assert_match(/^Region\([^)]+\) expected, got "wrong value" which is an instance of String\([^)]+\)$/, e.message)
   ensure
     Admin.send :remove_const, "Region" if Admin.const_defined?("Region")
     Admin.send :remove_const, "RegionalUser" if Admin.const_defined?("RegionalUser")
@@ -700,6 +700,17 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 17, reply.replies.size
   end
 
+  def test_replace_counter_cache
+    topic = Topic.create(title: "Zoom-zoom-zoom")
+    reply = Reply.create(title: "re: zoom", content: "speedy quick!")
+
+    reply.topic = topic
+    reply.save
+    topic.reload
+
+    assert_equal 1, topic.replies_count
+  end
+
   def test_association_assignment_sticks
     post = Post.first
 
@@ -726,7 +737,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert companies(:first_client).readonly_firm.readonly?
   end
 
-  def test_test_polymorphic_assignment_foreign_key_type_string
+  def test_polymorphic_assignment_foreign_key_type_string
     comment = Comment.first
     comment.author   = Author.first
     comment.resource = Member.first

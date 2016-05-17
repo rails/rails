@@ -125,14 +125,16 @@ module ActiveRecord
       assert_equal 'SCHEMA', @subscriber.logged[0][1]
     end
 
-    def test_statement_key_is_logged
-      bind = Relation::QueryAttribute.new(nil, 1, Type::Value.new)
-      @connection.exec_query('SELECT $1::integer', 'SQL', [bind], prepare: true)
-      name = @subscriber.payloads.last[:statement_name]
-      assert name
-      res = @connection.exec_query("EXPLAIN (FORMAT JSON) EXECUTE #{name}(1)")
-      plan = res.column_types['QUERY PLAN'].deserialize res.rows.first.first
-      assert_operator plan.length, :>, 0
+    if ActiveRecord::Base.connection.prepared_statements
+      def test_statement_key_is_logged
+        bind = Relation::QueryAttribute.new(nil, 1, Type::Value.new)
+        @connection.exec_query('SELECT $1::integer', 'SQL', [bind], prepare: true)
+        name = @subscriber.payloads.last[:statement_name]
+        assert name
+        res = @connection.exec_query("EXPLAIN (FORMAT JSON) EXECUTE #{name}(1)")
+        plan = res.column_types['QUERY PLAN'].deserialize res.rows.first.first
+        assert_operator plan.length, :>, 0
+      end
     end
 
     # Must have PostgreSQL >= 9.2, or with_manual_interventions set to

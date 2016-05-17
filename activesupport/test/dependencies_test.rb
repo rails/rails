@@ -76,6 +76,7 @@ class DependenciesTest < ActiveSupport::TestCase
   def test_dependency_which_raises_exception_isnt_added_to_loaded_set
     with_loading do
       filename = 'dependencies/raises_exception'
+      expanded = File.expand_path(filename)
       $raises_exception_load_count = 0
 
       5.times do |count|
@@ -86,8 +87,8 @@ class DependenciesTest < ActiveSupport::TestCase
         assert_equal 'Loading me failed, so do not add to loaded or history.', e.message
         assert_equal count + 1, $raises_exception_load_count
 
-        assert_not ActiveSupport::Dependencies.loaded.include?(filename)
-        assert_not ActiveSupport::Dependencies.history.include?(filename)
+        assert_not ActiveSupport::Dependencies.loaded.include?(expanded)
+        assert_not ActiveSupport::Dependencies.history.include?(expanded)
       end
     end
   end
@@ -266,6 +267,28 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   ensure
     remove_constants(:ModuleFolder)
+  end
+
+  def test_raising_discards_autoloaded_constants
+    with_autoloading_fixtures do
+      assert_raises(Exception, 'arbitray exception message') { RaisesArbitraryException }
+      assert_not defined?(A)
+      assert_not defined?(RaisesArbitraryException)
+    end
+  ensure
+    remove_constants(:A, :RaisesArbitraryException)
+  end
+
+  def test_throwing_discards_autoloaded_constants
+    with_autoloading_fixtures do
+      catch :t do
+        Throws
+      end
+      assert_not defined?(A)
+      assert_not defined?(Throws)
+    end
+  ensure
+    remove_constants(:A, :Throws)
   end
 
   def test_doesnt_break_normal_require
@@ -1044,14 +1067,6 @@ class DependenciesTest < ActiveSupport::TestCase
 
     assert Object.private_methods.include?(:load)
     assert Object.private_methods.include?(:require)
-  ensure
-    ActiveSupport::Dependencies.hook!
-  end
-
-  def test_unhook
-    ActiveSupport::Dependencies.unhook!
-    assert !Module.new.respond_to?(:const_missing_without_dependencies)
-    assert !Module.new.respond_to?(:load_without_new_constant_marking)
   ensure
     ActiveSupport::Dependencies.hook!
   end

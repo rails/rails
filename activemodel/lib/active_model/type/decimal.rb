@@ -29,12 +29,12 @@ module ActiveModel
           end
         end
 
-        scale ? casted_value.round(scale) : casted_value
+        apply_scale(casted_value)
       end
 
       def convert_float_to_big_decimal(value)
         if precision
-          BigDecimal(value, float_precision)
+          BigDecimal(apply_scale(value), float_precision)
         else
           value.to_d
         end
@@ -45,6 +45,14 @@ module ActiveModel
           ::Float::DIG + 1
         else
           precision.to_i
+        end
+      end
+
+      def apply_scale(value)
+        if scale
+          value.round(scale)
+        else
+          value
         end
       end
     end

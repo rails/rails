@@ -57,6 +57,8 @@ module ActiveSupport
           assert_equal("+18005551212", number_helper.number_to_phone(8005551212, :country_code => 1, :delimiter => ''))
           assert_equal("22-555-1212", number_helper.number_to_phone(225551212))
           assert_equal("+45-22-555-1212", number_helper.number_to_phone(225551212, :country_code => 45))
+          assert_equal("(755) 6123-4567", number_helper.number_to_phone(75561234567, pattern: /(\d{3,4})(\d{4})(\d{4})/, area_code: true))
+          assert_equal("133-1234-5678", number_helper.number_to_phone(13312345678, pattern: /(\d{3})(\d{4})(\d{4})/))
         end
       end
 
@@ -74,7 +76,6 @@ module ActiveSupport
           assert_equal("1,234,567,890.50 K&#269;", number_helper.number_to_currency("1234567890.50", {:unit => "K&#269;", :format => "%n %u"}))
           assert_equal("1,234,567,890.50 - K&#269;", number_helper.number_to_currency("-1234567890.50", {:unit => "K&#269;", :format => "%n %u", :negative_format => "%n - %u"}))
           assert_equal("0.00", number_helper.number_to_currency(+0.0, {:unit => "", :negative_format => "(%n)"}))
-          assert_equal("(0.00)", number_helper.number_to_currency(-0.0, {:unit => "", :negative_format => "(%n)"}))
         end
       end
 

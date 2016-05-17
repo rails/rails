@@ -174,10 +174,8 @@ module ActionController
     def response_body=(body)
       body = [body] unless body.nil? || body.respond_to?(:each)
       response.reset_body!
-      body.each { |part|
-        next if part.empty?
-        response.write part
-      }
+      return unless body
+      response.body = body
       super
     end
 

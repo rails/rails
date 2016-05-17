@@ -158,8 +158,9 @@ module ActiveRecord
         end
       end
 
+      ARRAY_WITH_EMPTY_STRING = ['']
       def non_empty_predicates
-        predicates - ['']
+        predicates - ARRAY_WITH_EMPTY_STRING
       end
 
       def wrap_sql_literal(node)

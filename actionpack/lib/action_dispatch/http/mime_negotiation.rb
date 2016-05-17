@@ -164,7 +164,7 @@ module ActionDispatch
       end
 
       def format_from_path_extension
-        path = @env['action_dispatch.original_path'] || @env['PATH_INFO']
+        path = get_header('action_dispatch.original_path') || get_header('PATH_INFO')
         if match = path && path.match(/\.(\w+)\z/)
           Mime[match.captures.first]
         end

@@ -132,7 +132,7 @@ module ActionView
         end
 
         private
-          # Delegate to xml builder, first wrapping the element in a xhtml
+          # Delegate to xml builder, first wrapping the element in an xhtml
           # namespaced div element if the method and arguments indicate
           # that an xhtml_block? is desired.
           def method_missing(method, *arguments, &block)
