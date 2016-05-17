@@ -41,24 +41,24 @@ NOTE: _HTTP is a stateless protocol. Sessions make it stateful._
 Most applications need to keep track of certain state of a particular user. This could be the contents of a shopping basket or the user id of the currently logged in user. Without the idea of sessions, the user would have to identify, and probably authenticate, on every request.
 Rails will create a new session automatically if a new user accesses the application. It will load an existing session if the user has already used the application.
 
-A session usually consists of a hash of values and a session id, usually a 32-character string, to identify the hash. Every cookie sent to the client's browser includes the session id. And the other way round: the browser will send it to the server on every request from the client. In Rails you can save and retrieve values using the session method:
+A session usually consists of a hash of values and a session ID, usually a 32-character string, to identify the hash. Every cookie sent to the client's browser includes the session ID. And the other way round: the browser will send it to the server on every request from the client. In Rails you can save and retrieve values using the session method:
 
 ```ruby
 session[:user_id] = @current_user.id
 User.find(session[:user_id])
 ```
 
-### Session id
+### Session ID
 
-NOTE: _The session id is a 32-character random hex string._
+NOTE: _The session ID is a 32-character random hex string._
 
-The session id is generated using `SecureRandom.hex` which generates a random hex string using platform specific methods (such as openssl, /dev/urandom or win32) for generating cryptographically secure random numbers. Currently it is not feasible to brute-force Rails' session ids.
+The session ID is generated using `SecureRandom.hex` which generates a random hex string using platform specific methods (such as OpenSSL, /dev/urandom or Win32) for generating cryptographically secure random numbers. Currently it is not feasible to brute-force Rails' session IDs.
 
 ### Session Hijacking
 
-WARNING: _Stealing a user's session id lets an attacker use the web application in the victim's name._
+WARNING: _Stealing a user's session ID lets an attacker use the web application in the victim's name._
 
-Many web applications have an authentication system: a user provides a user name and password, the web application checks them and stores the corresponding user id in the session hash. From now on, the session is valid. On every request the application will load the user, identified by the user id in the session, without the need for new authentication. The session id in the cookie identifies the session.
+Many web applications have an authentication system: a user provides a user name and password, the web application checks them and stores the corresponding user id in the session hash. From now on, the session is valid. On every request the application will load the user, identified by the user id in the session, without the need for new authentication. The session ID in the cookie identifies the session.
 
 Hence, the cookie serves as temporary authentication for the web application. Anyone who seizes a cookie from someone else, may use the web application as this user - with possibly severe consequences. Here are some ways to hijack a session, and their countermeasures:
 
@@ -89,7 +89,7 @@ This will also be a good idea, if you modify the structure of an object and old 
 
 NOTE: _Rails provides several storage mechanisms for the session hashes. The most important is `ActionDispatch::Session::CookieStore`._
 
-Rails 2 introduced a new default session storage, CookieStore. CookieStore saves the session hash directly in a cookie on the client-side. The server retrieves the session hash from the cookie and eliminates the need for a session id. That will greatly increase the speed of the application, but it is a controversial storage option and you have to think about the security implications of it:
+Rails 2 introduced a new default session storage, CookieStore. CookieStore saves the session hash directly in a cookie on the client-side. The server retrieves the session hash from the cookie and eliminates the need for a session ID. That will greatly increase the speed of the application, but it is a controversial storage option and you have to think about the security implications of it:
 
 * Cookies imply a strict size limit of 4kB. This is fine as you should not store large amounts of data in a session anyway, as described before. _Storing the current user's database id in a session is usually ok_.
 
@@ -137,16 +137,16 @@ The best _solution against it is not to store this kind of data in a session, bu
 
 ### Session Fixation
 
-NOTE: _Apart from stealing a user's session id, the attacker may fix a session id known to them. This is called session fixation._
+NOTE: _Apart from stealing a user's session ID, the attacker may fix a session ID known to them. This is called session fixation._
 
 ![Session fixation](images/session_fixation.png)
 
-This attack focuses on fixing a user's session id known to the attacker, and forcing the user's browser into using this id. It is therefore not necessary for the attacker to steal the session id afterwards. Here is how this attack works:
+This attack focuses on fixing a user's session ID known to the attacker, and forcing the user's browser into using this ID. It is therefore not necessary for the attacker to steal the session ID afterwards. Here is how this attack works:
 
-* The attacker creates a valid session id: They load the login page of the web application where they want to fix the session, and take the session id in the cookie from the response (see number 1 and 2 in the image).
+* The attacker creates a valid session ID: They load the login page of the web application where they want to fix the session, and take the session ID in the cookie from the response (see number 1 and 2 in the image).
 * They maintain the session by accessing the web application periodically in order to keep an expiring session alive.
-* The attacker forces the user's browser into using this session id (see number 3 in the image). As you may not change a cookie of another domain (because of the same origin policy), the attacker has to run a JavaScript from the domain of the target web application. Injecting the JavaScript code into the application by XSS accomplishes this attack. Here is an example: `<script>document.cookie="_session_id=16d5b78abb28e3d6206b60f22a03c8d9";</script>`. Read more about XSS and injection later on.
-* The attacker lures the victim to the infected page with the JavaScript code. By viewing the page, the victim's browser will change the session id to the trap session id.
+* The attacker forces the user's browser into using this session ID (see number 3 in the image). As you may not change a cookie of another domain (because of the same origin policy), the attacker has to run a JavaScript from the domain of the target web application. Injecting the JavaScript code into the application by XSS accomplishes this attack. Here is an example: `<script>document.cookie="_session_id=16d5b78abb28e3d6206b60f22a03c8d9";</script>`. Read more about XSS and injection later on.
+* The attacker lures the victim to the infected page with the JavaScript code. By viewing the page, the victim's browser will change the session ID to the trap session ID.
 * As the new trap session is unused, the web application will require the user to authenticate.
 * From now on, the victim and the attacker will co-use the web application with the same session: The session became valid and the victim didn't notice the attack.
 
@@ -168,7 +168,7 @@ Another countermeasure is to _save user-specific properties in the session_, ver
 
 NOTE: _Sessions that never expire extend the time-frame for attacks such as cross-site request forgery (CSRF), session hijacking and session fixation._
 
-One possibility is to set the expiry time-stamp of the cookie with the session id. However the client can edit cookies that are stored in the web browser so expiring sessions on the server is safer. Here is an example of how to _expire sessions in a database table_. Call `Session.sweep("20 minutes")` to expire sessions that were used longer than 20 minutes ago.
+One possibility is to set the expiry time-stamp of the cookie with the session ID. However the client can edit cookies that are stored in the web browser so expiring sessions on the server is safer. Here is an example of how to _expire sessions in a database table_. Call `Session.sweep("20 minutes")` to expire sessions that were used longer than 20 minutes ago.
 
 ```ruby
 class Session < ApplicationRecord
@@ -196,11 +196,11 @@ This attack method works by including malicious code or a link in a page that ac
 
 ![](images/csrf.png)
 
-In the [session chapter](#sessions) you have learned that most Rails applications use cookie-based sessions. Either they store the session id in the cookie and have a server-side session hash, or the entire session hash is on the client-side. In either case the browser will automatically send along the cookie on every request to a domain, if it can find a cookie for that domain. The controversial point is that if the request comes from a site of a different domain, it will also send the cookie. Let's start with an example:
+In the [session chapter](#sessions) you have learned that most Rails applications use cookie-based sessions. Either they store the session ID in the cookie and have a server-side session hash, or the entire session hash is on the client-side. In either case the browser will automatically send along the cookie on every request to a domain, if it can find a cookie for that domain. The controversial point is that if the request comes from a site of a different domain, it will also send the cookie. Let's start with an example:
 
 * Bob browses a message board and views a post from a hacker where there is a crafted HTML image element. The element references a command in Bob's project management application, rather than an image file: `<img src="http://www.webapp.com/project/1/destroy">`
 * Bob's session at `www.webapp.com` is still alive, because he didn't log out a few minutes ago.
-* By viewing the post, the browser finds an image tag. It tries to load the suspected image from `www.webapp.com`. As explained before, it will also send along the cookie with the valid session id.
+* By viewing the post, the browser finds an image tag. It tries to load the suspected image from `www.webapp.com`. As explained before, it will also send along the cookie with the valid session ID.
 * The web application at `www.webapp.com` verifies the user information in the corresponding session hash and destroys the project with the ID 1. It then returns a result page which is an unexpected result for the browser, so it will not display the image.
 * Bob doesn't notice the attack - but a few days later he finds out that project number one is gone.
 
