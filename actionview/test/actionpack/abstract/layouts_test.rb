@@ -224,6 +224,25 @@ module AbstractControllerTests
         assert_equal "With String hello less than 3 bar", controller.response_body
       end
 
+      test "cache should not grow when locals change for a string template" do
+        cache = WithString.view_paths.paths.first.instance_variable_get(:@cache)
+
+        controller = WithString.new
+        controller.process(:index) # heat the cache
+
+        size = cache.size
+
+        10.times do |x|
+          controller = WithString.new
+          controller.define_singleton_method :index do
+            render :template => ActionView::Template::Text.new("Hello string!"), :locals => { :"x#{x}" => :omg }
+          end
+          controller.process(:index)
+        end
+
+        assert_equal size, cache.size
+      end
+
       test "when layout is specified as a string, render with that layout" do
         controller = WithString.new
         controller.process(:index)
