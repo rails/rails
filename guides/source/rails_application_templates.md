@@ -15,14 +15,14 @@ After reading this guide, you will know:
 Usage
 -----
 
-To apply a template, you need to provide the Rails generator with the location of the template you wish to apply using the -m option. This can either be a path to a file or a URL.
+To apply a template, you need to provide the Rails generator with the location of the template you wish to apply using the `-m` option. This can either be a path to a file or a URL.
 
 ```bash
 $ rails new blog -m ~/template.rb
 $ rails new blog -m http://example.com/template.rb
 ```
 
-You can use the task `app:template` to apply templates to an existing Rails application. The location of the template needs to be passed in to an environment variable named LOCATION. Again, this can either be path to a file or a URL.
+You can use the `app:template` Rake task to apply templates to an existing Rails application. The location of the template needs to be passed in via the LOCATION environment variable. Again, this can either be path to a file or a URL.
 
 ```bash
 $ bin/rails app:template LOCATION=~/template.rb
