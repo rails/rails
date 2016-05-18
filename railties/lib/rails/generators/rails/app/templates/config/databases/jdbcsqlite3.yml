@@ -6,6 +6,7 @@
 #
 default: &default
   adapter: sqlite3
+  pool: <%%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
 
 development:
   <<: *default
