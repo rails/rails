@@ -6,7 +6,7 @@ module ActiveSupport
       # Parses a JSON API string into a hash.
       # See http://jsonapi.org for more info.
       def decode(json)
-        json = ActiveSupport::JSON.parse(json)
+        json = ActiveSupport::JSON.decode(json)
         data = ::JSONAPI.parse(json).data
         return {} if data.nil?
         hash = {}
