@@ -238,7 +238,8 @@ module InflectorTestCases
     "maybe you'll be there" => "Maybe You'll Be There",
     "¿por qué?"             => '¿Por Qué?',
     "Fred’s"                => "Fred’s",
-    "Fred`s"                => "Fred`s"
+    "Fred`s"                => "Fred`s",
+    ActiveSupport::SafeBuffer.new("confirmation num") => "Confirmation Num"
   }
 
   OrdinalNumbers = {

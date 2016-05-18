@@ -1,3 +1,8 @@
+*   Fixed a problem with ActiveSupport::SafeBuffer.titleize calling capitalize
+    on nil.
+
+    *Brian McManus*
+
 *   Time zones: Ensure that the UTC offset reflects DST changes that occurred
     since the app started. Removes UTC offset caching, reducing performance,
     but this is still relatively quick and isn't in any hot paths.
