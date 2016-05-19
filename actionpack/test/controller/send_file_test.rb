@@ -11,6 +11,8 @@ class SendFileController < ActionController::Base
   include ActionController::Testing
   layout "layouts/standard" # to make sure layouts don't interfere
 
+  before_action :file, only: :file_from_before_action
+
   attr_writer :options
   def options
     @options ||= {}
@@ -18,6 +20,10 @@ class SendFileController < ActionController::Base
 
   def file
     send_file(file_path, options)
+  end
+
+  def file_from_before_action
+    raise 'No file sent from before action.'
   end
 
   def test_send_file_headers_bang
@@ -190,6 +196,15 @@ class SendFileTest < ActionController::TestCase
     @controller.options = {:disposition => nil}
     process('data')
     assert_nil @controller.headers['Content-Disposition']
+  end
+
+  def test_send_file_from_before_action
+    response = nil
+    assert_nothing_raised { response = process('file_from_before_action') }
+    assert_not_nil response
+
+    assert_kind_of String, response.body
+    assert_equal file_data, response.body
   end
 
   %w(file data).each do |method|

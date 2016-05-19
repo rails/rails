@@ -150,6 +150,13 @@ module AbstractController
       _find_action_name(action_name)
     end
 
+    # Tests if a response body is set. Used to determine if the
+    # +process_action+ callback needs to be terminated in
+    # +AbstractController::Callbacks+.
+    def performed?
+      response_body
+    end
+
     # Returns true if the given controller is capable of rendering
     # a path. A subclass of +AbstractController::Base+
     # may return false. An Email controller for example does not
