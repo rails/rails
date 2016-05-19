@@ -10,18 +10,18 @@ module ActiveSupport
         data = ::JSONAPI.parse(json).data
         return {} if data.nil?
         hash = {}
-        hash[:id] = data.id unless data.id.nil?
-        hash[:_type] = data.type
+        hash["id"] = data.id unless data.id.nil?
+        hash["_type"] = data.type
         hash.merge!(data.attributes.to_hash)
         data.relationships.each do |name, rel|
           if rel.data.respond_to?(:each)
-            hash["#{name.singularize}_ids".to_sym] = rel.data.map(&:id)
-            hash["#{name.singularize}_types".to_sym] = rel.data.map { |val| val.type.singularize.capitalize }
+            hash["#{name.singularize}_ids"] = rel.data.map(&:id)
+            hash["#{name.singularize}_types"] = rel.data.map { |val| val.type.singularize.capitalize }
           elsif !rel.data.nil?
-            hash["#{name}_id".to_sym] = rel.data.id
-            hash["#{name}_type".to_sym] = rel.data.type.singularize.capitalize
+            hash["#{name}_id"] = rel.data.id
+            hash["#{name}_type"] = rel.data.type.singularize.capitalize
           else
-            hash["#{name}_id".to_sym] = nil
+            hash["#{name}_id"] = nil
           end
         end
         hash
