@@ -89,7 +89,7 @@ module ActionDispatch
   #
   # Example:
   #
-  #   # In routes.rb
+  #   # In config/routes.rb
   #   get '/login' => 'accounts#login', as: 'login'
   #
   #   # With render, redirect_to, tests, etc.
@@ -101,7 +101,7 @@ module ActionDispatch
   #
   # Use <tt>root</tt> as a shorthand to name a route for the root path "/".
   #
-  #   # In routes.rb
+  #   # In config/routes.rb
   #   root to: 'blogs#index'
   #
   #   # would recognize http://www.example.com/ as
@@ -114,7 +114,7 @@ module ActionDispatch
   # Note: when using +controller+, the route is simply named after the
   # method you call on the block parameter rather than map.
   #
-  #   # In routes.rb
+  #   # In config/routes.rb
   #   controller :blog do
   #     get 'blog/show'     => :list
   #     get 'blog/delete'   => :delete
@@ -196,7 +196,7 @@ module ActionDispatch
   #
   #   Rails.application.reload_routes!
   #
-  # This will clear all named routes and reload routes.rb if the file has been modified from
+  # This will clear all named routes and reload config/routes.rb if the file has been modified from
   # last load. To absolutely force reloading, use <tt>reload!</tt>.
   #
   # == Testing Routes
