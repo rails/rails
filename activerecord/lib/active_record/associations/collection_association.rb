@@ -283,7 +283,7 @@ module ActiveRecord
         _options = records.extract_options!
         dependent = _options[:dependent] || options[:dependent]
 
-        records = find(records) if records.any? { |record| record.kind_of?(Fixnum) || record.kind_of?(String) }
+        records = find(records) if records.any? { |record| record.kind_of?(Integer) || record.kind_of?(String) }
         delete_or_destroy(records, dependent)
       end
 
@@ -294,7 +294,7 @@ module ActiveRecord
       # +:dependent+ option.
       def destroy(*records)
         return if records.empty?
-        records = find(records) if records.any? { |record| record.kind_of?(Fixnum) || record.kind_of?(String) }
+        records = find(records) if records.any? { |record| record.kind_of?(Integer) || record.kind_of?(String) }
         delete_or_destroy(records, :destroy)
       end
 

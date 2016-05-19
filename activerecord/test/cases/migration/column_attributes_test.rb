@@ -154,7 +154,7 @@ module ActiveRecord
           assert_equal String, bob.first_name.class
           assert_equal String, bob.last_name.class
           assert_equal String, bob.bio.class
-          assert_equal Fixnum, bob.age.class
+          assert_kind_of Integer, bob.age
           assert_equal Time, bob.birthday.class
 
           if current_adapter?(:OracleAdapter)

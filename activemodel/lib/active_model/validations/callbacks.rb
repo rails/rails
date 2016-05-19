@@ -29,8 +29,7 @@ module ActiveModel
       end
 
       module ClassMethods
-        # Defines a callback that will get called right before validation
-        # happens.
+        # Defines a callback that will get called right before validation.
         #
         #   class Person
         #     include ActiveModel::Validations
@@ -65,8 +64,7 @@ module ActiveModel
           set_callback(:validation, :before, *args, &block)
         end
 
-        # Defines a callback that will get called right after validation
-        # happens.
+        # Defines a callback that will get called right after validation.
         #
         #   class Person
         #     include ActiveModel::Validations
