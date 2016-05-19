@@ -121,7 +121,7 @@ module ActionDispatch
   #     get 'blog/edit' => :edit
   #   end
   #
-  #   # provides named routes for show, delete and edit
+  #   # provides named routes for show, delete, and edit
   #   link_to @article.title, blog_show_path(id: @article.id)
   #
   # == Pretty URLs
