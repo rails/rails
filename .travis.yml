@@ -1,7 +1,11 @@
 language: ruby
 sudo: false
 script: 'ci/travis.rb'
+#FIXME: Remove bundler uninstall on Travis when https://github.com/bundler/bundler/issues/4493 is fixed.
 before_install:
+  - rvm @global do gem uninstall bundler --all --ignore-dependencies --executables
+  - rvm @global do gem install bundler -v '1.11.2'
+  - bundle --version
   - "rvm current | grep 'jruby' && export AR_JDBC=true || echo"
   - "rm ${BUNDLE_GEMFILE}.lock"
 before_script:
