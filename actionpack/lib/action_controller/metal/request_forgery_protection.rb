@@ -235,7 +235,9 @@ module ActionController #:nodoc:
       # we aren't serving an unauthorized cross-origin response.
       def verify_same_origin_request
         if marked_for_same_origin_verification? && non_xhr_javascript_response?
-          logger.warn CROSS_ORIGIN_JAVASCRIPT_WARNING if logger
+          if logger && log_warning_on_csrf_failure
+            logger.warn CROSS_ORIGIN_JAVASCRIPT_WARNING
+          end
           raise ActionController::InvalidCrossOriginRequest, CROSS_ORIGIN_JAVASCRIPT_WARNING
         end
       end
