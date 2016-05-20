@@ -896,15 +896,9 @@ module ActiveRecord
         end
       end
 
-      # Retrieving the connection pool happens a lot so we cache it in @class_to_pool.
+      # Retrieving the connection pool happens a lot, so we cache it in @owner_to_pool.
       # This makes retrieving the connection pool O(1) once the process is warm.
       # When a connection is established or removed, we invalidate the cache.
-      #
-      # Ideally we would use #fetch here, as class_to_pool[klass] may sometimes be nil.
-      # However, benchmarking (https://gist.github.com/jonleighton/3552829) showed that
-      # #fetch is significantly slower than #[]. So in the nil case, no caching will
-      # take place, but that's ok since the nil case is not the common one that we wish
-      # to optimise for.
       def retrieve_connection_pool(spec_name)
         owner_to_pool.fetch(spec_name) do
           # Check if a connection was previously established in an ancestor process,
