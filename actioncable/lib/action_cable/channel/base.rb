@@ -1,4 +1,6 @@
 require 'set'
+require 'action_dispatch'
+require 'action_dispatch/http/filter_parameters'
 
 module ActionCable
   module Channel
@@ -261,9 +263,36 @@ module ActionCable
           end
         end
 
+        # A helper class, with allows for select parameters to be filtered when being outputted.
+        # Used primarily in ActionCable::Channel::Base#action_signature.
+        class DataWrapper # :nodoc:
+          include ActionDispatch::Http::FilterParameters
+
+          def initialize(data)
+            @env = data
+          end
+
+          # If a block is given, it yields to the block if the value hasn't been set.
+          def fetch_header(name, &block)
+            @env.fetch(name, &block)
+          end
+
+          def parameters
+            @env
+          end
+
+          def parameter_filter
+            @env['action_dispatch.parameter_filter'] || super
+          end
+        end
+
         def action_signature(action, data)
           "#{self.class.name}##{action}".tap do |signature|
             if (arguments = data.except('action')).any?
+              arguments['action_dispatch.parameter_filter'] ||= []
+              arguments['action_dispatch.parameter_filter'].concat(connection.server.config.filter_parameters)
+
+              arguments = DataWrapper.new(arguments).filtered_env
               signature << "(#{arguments.inspect})"
             end
           end

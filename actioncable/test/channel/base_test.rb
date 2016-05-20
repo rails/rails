@@ -241,6 +241,15 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
     end
   end
 
+  test 'does not log filtered parameters' do
+    data = { 'action' => :topic, 'content' => "This is Sparta!", 'foo' => 'foo' }
+    @connection.server.config.filter_parameters << :foo
+
+    assert_logged('foo"=>"[FILTERED]"') do
+      @channel.perform_action data
+    end
+  end
+
   private
     def assert_logged(message)
       old_logger = @connection.logger

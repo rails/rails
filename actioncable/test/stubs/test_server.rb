@@ -9,7 +9,7 @@ class TestServer
   def initialize(subscription_adapter: SuccessAdapter)
     @logger = ActiveSupport::TaggedLogging.new ActiveSupport::Logger.new(StringIO.new)
 
-    @config = OpenStruct.new(log_tags: [], subscription_adapter: subscription_adapter)
+    @config = OpenStruct.new(log_tags: [], subscription_adapter: subscription_adapter, filter_parameters: [])
     @config.use_faye = ENV['FAYE'].present?
     @config.client_socket_class = if @config.use_faye
                                     ActionCable::Connection::FayeClientSocket

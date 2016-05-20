@@ -5,7 +5,7 @@ module ActionCable
     class Configuration
       attr_accessor :logger, :log_tags
       attr_accessor :use_faye, :connection_class, :worker_pool_size
-      attr_accessor :disable_request_forgery_protection, :allowed_request_origins
+      attr_accessor :disable_request_forgery_protection, :allowed_request_origins, :filter_parameters
       attr_accessor :cable, :url, :mount_path
 
       def initialize
@@ -15,6 +15,7 @@ module ActionCable
         @worker_pool_size = 4
 
         @disable_request_forgery_protection = false
+        @filter_parameters = []
       end
 
       # Returns constant of subscription adapter specified in config/cable.yml.
