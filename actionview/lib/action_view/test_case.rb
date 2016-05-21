@@ -126,7 +126,7 @@ module ActionView
       end
 
       # Need to experiment if this priority is the best one: rendered => output_buffer
-      class RenderedViewsCollection
+      class RenderedViewsCollection # :nodoc:
         def initialize
           @rendered_views ||= Hash.new { |hash, key| hash[key] = [] }
         end
