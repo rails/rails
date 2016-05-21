@@ -21,7 +21,7 @@ _SQL
   CREATE TABLE 'defaults' (
     'id'         INTEGER NOT NULL PRIMARY KEY,
     'fixed_date' DATE DEFAULT '2004-01-01',
-    'fixed_time' DATETIME DEFAULT '2004-01-01 00:00:00.000000-00',
+    'fixed_time' DATETIME DEFAULT '2004-01-01 00:00:00',
     'char1'      CHAR(1) DEFAULT 'Y',
     'char2'      CHAR(50) DEFAULT 'a varchar field',
     'char3'      TEXT DEFAULT 'a text field'
