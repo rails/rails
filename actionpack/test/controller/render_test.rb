@@ -160,10 +160,6 @@ class TestController < ActionController::Base
     render action: "hello_world"
   end
 
-  def respond_with_empty_body
-    render nothing: true
-  end
-
   def conditional_hello_with_bangs
     render action: "hello_world"
   end
@@ -369,12 +365,6 @@ class ExpiresInRenderTest < ActionController::TestCase
     get :conditional_hello_with_cache_control_headers
     assert_match(/no-cache/, @response.headers["Cache-Control"])
     assert_match(/no-transform/, @response.headers["Cache-Control"])
-  end
-
-  def test_render_nothing_deprecated
-    assert_deprecated do
-      get :respond_with_empty_body
-    end
   end
 
   def test_date_header_when_expires_in

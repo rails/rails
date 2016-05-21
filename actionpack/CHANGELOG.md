@@ -1,3 +1,7 @@
+*   Remove deprecated support to `:nothing` in `render`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to `:back` in `redirect_to`.
 
     *Rafael Mendonça França*
