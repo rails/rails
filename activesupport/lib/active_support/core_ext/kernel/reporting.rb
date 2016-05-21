@@ -1,9 +1,6 @@
 module Kernel
   module_function
 
-  DEFAULT_SUPPRESS_EXCEPTIONS = [StandardError].freeze
-  private_constant :DEFAULT_SUPPRESS_EXCEPTIONS
-
   # Sets $VERBOSE to nil for the duration of the block and back to its original
   # value afterwards.
   #
@@ -40,7 +37,7 @@ module Kernel
   #
   #   puts 'This code gets executed and nothing related to ZeroDivisionError was seen'
   def suppress(*exception_classes)
-    exception_classes = DEFAULT_SUPPRESS_EXCEPTIONS if exception_classes.empty?
+    exception_classes = StandardError if exception_classes.empty?
     yield
   rescue *exception_classes
   end
