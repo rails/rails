@@ -1,3 +1,9 @@
+## Rails 5.1.0.alpha ##
+
+*   Remove deprecated `alias_method_chain` method.
+
+    *Jon Moss*
+
 *   Rescuable: If a handler doesn't match the exception, check for handlers
     matching the exception's cause.
 
