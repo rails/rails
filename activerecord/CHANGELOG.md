@@ -1,5 +1,6 @@
 *   Fix logging edge case where if an attribute was of the binary type and
     was provided as a Hash.
+
     *Jon Moss*
 
 *   Handle JSON deserialization correctly if the column default from database
