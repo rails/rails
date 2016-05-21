@@ -36,14 +36,16 @@ module ActionView
     module Behavior
       extend ActiveSupport::Concern
 
-      include ActionDispatch::Assertions, ActionDispatch::TestProcess
+      if defined?(ActionPack)
+        include ActionDispatch::Assertions, ActionDispatch::TestProcess
+        include ActionController::TemplateAssertions
+        include ActionDispatch::Routing::PolymorphicRoutes
+        include AbstractController::Helpers
+      end
+
       include Rails::Dom::Testing::Assertions
-      include ActionController::TemplateAssertions
+
       include ActionView::Context
-
-      include ActionDispatch::Routing::PolymorphicRoutes
-
-      include AbstractController::Helpers
       include ActionView::Helpers
       include ActionView::RecordIdentifier
       include ActionView::RoutingUrlFor
