@@ -2,6 +2,7 @@ require 'active_support/core_ext/module/remove_method'
 require 'action_controller'
 require 'action_controller/test_case'
 require 'action_view'
+require 'active_support/deprecation'
 
 require 'rails-dom-testing'
 
@@ -139,16 +140,19 @@ module ActionView
         def locals_for(view)
           @rendered_views[view]
         end
+        deprecate :locals_for
 
         def rendered_views
           @rendered_views.keys
         end
+        deprecate :rendered_views
 
         def view_rendered?(view, expected_locals)
           locals_for(view).any? do |actual_locals|
             expected_locals.all? {|key, value| value == actual_locals[key] }
           end
         end
+        deprecate :view_rendered?
       end
 
       included do
