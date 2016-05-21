@@ -1,6 +1,6 @@
 ## Rails 5.1.0.alpha ##
 
-*   Added a shared section to config/secrets.yml that will be loaded for all environments.
+*   Added a shared section to `config/secrets.yml` that will be loaded for all environments.
 
     *DHH*
 
