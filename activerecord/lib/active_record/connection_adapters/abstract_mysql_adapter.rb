@@ -727,14 +727,22 @@ module ActiveRecord
         column_names.map {|name| quote_column_name(name) + option_strings[name]}
       end
 
+      # See https://dev.mysql.com/doc/refman/5.7/en/error-messages-server.html
+      ER_DUP_ENTRY            = 1062
+      ER_NO_REFERENCED_ROW_2  = 1452
+      ER_DATA_TOO_LONG        = 1406
+      ER_LOCK_DEADLOCK        = 1213
+
       def translate_exception(exception, message)
         case error_number(exception)
-        when 1062
+        when ER_DUP_ENTRY
           RecordNotUnique.new(message)
-        when 1452
+        when ER_NO_REFERENCED_ROW_2
           InvalidForeignKey.new(message)
-        when 1406
+        when ER_DATA_TOO_LONG
           ValueTooLong.new(message)
+        when ER_LOCK_DEADLOCK
+          TransactionSerializationError.new(message)
         else
           super
         end
