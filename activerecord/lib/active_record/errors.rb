@@ -285,6 +285,16 @@ module ActiveRecord
   class TransactionIsolationError < ActiveRecordError
   end
 
+  # TransactionSerializationError will be raised when a transaction is rolled
+  # back by the database due to a serialization failure or a deadlock.
+  #
+  # See the following:
+  #
+  # * http://www.postgresql.org/docs/current/static/transaction-iso.html
+  # * https://dev.mysql.com/doc/refman/5.7/en/error-messages-server.html#error_er_lock_deadlock
+  class TransactionSerializationError < ActiveRecordError
+  end
+
   # IrreversibleOrderError is raised when a relation's order is too complex for
   # +reverse_order+ to automatically reverse.
   class IrreversibleOrderError < ActiveRecordError
