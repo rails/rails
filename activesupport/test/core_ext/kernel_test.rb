@@ -42,6 +42,15 @@ class KernelSuppressTest < ActiveSupport::TestCase
     end
   end
 
+  def test_suppress_with_defaults
+    suppress { raise RuntimeError }
+    suppress { raise ArgumentError }
+
+    assert_raise(LoadError) do
+      suppress { raise LoadError }
+    end
+  end
+
   def test_suppression
     suppress(ArgumentError) { raise ArgumentError }
     suppress(LoadError) { raise LoadError }
