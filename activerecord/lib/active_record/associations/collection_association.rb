@@ -10,9 +10,9 @@ module ActiveRecord
     #     HasManyAssociation => has_many
     #       HasManyThroughAssociation + ThroughAssociation => has_many :through
     #
-    # CollectionAssociation class provides common methods to the collections
+    # The CollectionAssociation class provides common methods to the collections
     # defined by +has_and_belongs_to_many+, +has_many+ or +has_many+ with
-    # +:through association+ option.
+    # the +:through association+ option.
     #
     # You need to be careful with assumptions regarding the target: The proxy
     # does not fetch records from the database until it needs them, but new
