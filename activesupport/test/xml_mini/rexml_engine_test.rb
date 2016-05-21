@@ -22,14 +22,24 @@ class REXMLEngineTest < ActiveSupport::TestCase
       morning
     </root>
     eoxml
-    assert_equal_rexml(io)
+    hash = ActiveSupport::XmlMini.parse(io)
+    assert hash.has_key?('root')
+    assert hash['root'].has_key?('products')
+    assert_match "good", hash['root']['__content__']
+    products = hash['root']['products']    
+    assert products.has_key?("__content__")    
+    assert_match 'hello everyone', products['__content__']
   end
 
-  private
-    def assert_equal_rexml(xml)
-      parsed_xml = ActiveSupport::XmlMini.parse(xml)
-      xml.rewind if xml.respond_to?(:rewind)
-      hash = ActiveSupport::XmlMini.with_backend('REXML') { ActiveSupport::XmlMini.parse(xml) }
-      assert_equal(hash, parsed_xml)
-    end
+  def test_parse_from_empty_string
+    ActiveSupport::XmlMini.backend = 'REXML'
+    assert_equal({}, ActiveSupport::XmlMini.parse(""))
+  end
+
+  def test_parse_from_frozen_string
+    ActiveSupport::XmlMini.backend = 'REXML'
+    xml_string = "<root></root>".freeze
+    assert_equal({"root" => {}}, ActiveSupport::XmlMini.parse(xml_string))
+  end
+
 end
