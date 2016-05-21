@@ -1,5 +1,9 @@
 ## Rails 5.1.0.alpha ##
 
+*   Remove deprecated `config.static_cache_control=`.
+
+    *Jon Moss*
+
 *   Added a shared section to `config/secrets.yml` that will be loaded for all environments.
 
     *DHH*

@@ -1,5 +1,9 @@
 ## Rails 5.1.0.alpha ##
 
+*   Remove deprecated `cache_control` initialization option from `ActionDispatch::Static`.
+
+    *Jon Moss*
+
 *   Remove deprecated `original_exception` method from `ActionDispatch::Session::SessionRestoreError`.
 
     *Jon Moss*

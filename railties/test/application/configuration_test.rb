@@ -370,26 +370,6 @@ module ApplicationTests
       end
     end
 
-    test "config.serve_static_files is deprecated" do
-      make_basic_app do |application|
-        assert_deprecated do
-          application.config.serve_static_files = true
-        end
-
-        assert application.config.public_file_server.enabled
-      end
-    end
-
-    test "config.static_cache_control is deprecated" do
-      make_basic_app do |application|
-        assert_deprecated do
-          application.config.static_cache_control = "public, max-age=60"
-        end
-
-        assert_equal application.config.static_cache_control, "public, max-age=60"
-      end
-    end
-
     test "Use key_generator when secret_key_base is set" do
       make_basic_app do |application|
         application.secrets.secret_key_base = 'b3c631c314c0bbca50c1b2843150fe33'
@@ -570,7 +550,7 @@ module ApplicationTests
       app_file 'config/secrets.yml', <<-YAML
         shared:
           api_key: 3b7cd727
-        
+
         development:
           api_key: abc12345
       YAML
