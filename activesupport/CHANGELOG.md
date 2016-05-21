@@ -1,5 +1,9 @@
 ## Rails 5.1.0.alpha ##
 
+*   Remove deprecated `namespaced_key` method from `ActiveSupport::Cache::Store`.
+
+    *Jon Moss*
+
 *   Remove deprecated `alias_method_chain` method.
 
     *Jon Moss*
