@@ -158,7 +158,7 @@ module ActiveRecord
       end
 
       def interpolate(sql, record = nil)
-        if sql.respond_to?(:to_proc)
+        if sql.respond_to?(:to_proc) && !sql.is_a?(Hash)
           owner.send(:instance_exec, record, &sql)
         else
           sql

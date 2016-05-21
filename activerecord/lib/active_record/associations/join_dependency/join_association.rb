@@ -146,7 +146,7 @@ module ActiveRecord
         private
 
         def interpolate(conditions)
-          if conditions.respond_to?(:to_proc)
+          if conditions.respond_to?(:to_proc) && !conditions.is_a?(Hash)
             instance_eval(&conditions)
           else
             conditions
