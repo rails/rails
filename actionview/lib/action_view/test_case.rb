@@ -113,6 +113,7 @@ module ActionView
         make_test_case_available_to_view!
         say_no_to_protect_against_forgery!
       end
+      deprecate :@request
 
       def config
         @controller.config if @controller.respond_to?(:config)
