@@ -1,3 +1,7 @@
+*   Remove deprecated support to `:text` in `render`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to `:nothing` in `render`.
 
     *Rafael Mendonça França*

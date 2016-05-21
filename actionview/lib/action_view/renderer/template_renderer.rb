@@ -22,8 +22,6 @@ module ActionView
 
         if options.key?(:body)
           Template::Text.new(options[:body])
-        elsif options.key?(:text)
-          Template::Text.new(options[:text], formats.first)
         elsif options.key?(:plain)
           Template::Text.new(options[:plain])
         elsif options.key?(:html)
@@ -40,7 +38,7 @@ module ActionView
             find_template(options[:template], options[:prefixes], false, keys, @details)
           end
         else
-          raise ArgumentError, "You invoked render but did not give any of :partial, :template, :inline, :file, :plain, :html, :text or :body option."
+          raise ArgumentError, "You invoked render but did not give any of :partial, :template, :inline, :file, :plain, :html or :body option."
         end
       end
 

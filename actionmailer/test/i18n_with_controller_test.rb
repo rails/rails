@@ -18,7 +18,7 @@ end
 class TestController < ActionController::Base
   def send_mail
     email = I18nTestMailer.mail_with_i18n_subject("test@localhost").deliver_now
-    render text: "Mail sent - Subject: #{email.subject}"
+    render plain: "Mail sent - Subject: #{email.subject}"
   end
 end
 
