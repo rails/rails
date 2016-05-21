@@ -1,5 +1,9 @@
 ## Rails 5.1.0.alpha ##
 
+*   Remove deprecated `false` callback terminator from `ActiveSupport::Callbacks`.
+
+    *Jon Moss*
+
 *   Remove deprecated `namespaced_key` method from `ActiveSupport::Cache::Store`.
 
     *Jon Moss*

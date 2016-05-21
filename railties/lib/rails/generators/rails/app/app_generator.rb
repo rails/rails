@@ -90,7 +90,6 @@ module Rails
 
     def config_when_updating
       cookie_serializer_config_exist = File.exist?('config/initializers/cookies_serializer.rb')
-      callback_terminator_config_exist = File.exist?('config/initializers/callback_terminator.rb')
       active_record_belongs_to_required_by_default_config_exist = File.exist?('config/initializers/active_record_belongs_to_required_by_default.rb')
       to_time_preserves_timezone_config_exist = File.exist?('config/initializers/to_time_preserves_timezone.rb')
       action_cable_config_exist = File.exist?('config/cable.yml')
@@ -100,10 +99,6 @@ module Rails
       config
 
       gsub_file 'config/environments/development.rb', /^(\s+)config\.file_watcher/, '\1# config.file_watcher'
-
-      unless callback_terminator_config_exist
-        remove_file 'config/initializers/callback_terminator.rb'
-      end
 
       unless cookie_serializer_config_exist
         gsub_file 'config/initializers/cookies_serializer.rb', /json(?!,)/, 'marshal'

@@ -206,14 +206,12 @@ class TransactionTest < ActiveRecord::TestCase
     assert_equal posts_count, author.posts.reload.size
   end
 
-  def test_cancellation_from_returning_false_in_before_filter
+  def test_false_in_before_filter_does_not_halt
     def @first.before_save_for_transaction
       false
     end
 
-    assert_deprecated do
-      @first.save
-    end
+    assert @first.save
   end
 
   def test_cancellation_from_before_destroy_rollbacks_in_destroy
