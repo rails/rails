@@ -1,3 +1,9 @@
+*   Fix logging edge case where if an attribute was of the binary type and
+    was provided as a Hash.
+
+    *Jon Moss*
+
+
 ## Rails 5.0.0.rc1 (May 06, 2016) ##
 
 *   No changes.
