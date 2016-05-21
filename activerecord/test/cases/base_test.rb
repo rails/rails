@@ -886,8 +886,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal 2147483647, company.rating
   end
 
-  # TODO: extend defaults tests to other databases!
-  if current_adapter?(:PostgreSQLAdapter)
+  if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter, :SQLite3Adapter)
     def test_default
       with_timezone_config default: :local do
         default = Default.new
@@ -899,7 +898,10 @@ class BasicsTest < ActiveRecord::TestCase
         # char types
         assert_equal 'Y', default.char1
         assert_equal 'a varchar field', default.char2
-        assert_equal 'a text field', default.char3
+        # Mysql text type can't have default value
+        unless current_adapter?(:Mysql2Adapter)
+          assert_equal 'a text field', default.char3
+        end
       end
     end
   end
