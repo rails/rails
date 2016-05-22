@@ -1,5 +1,10 @@
 ## Rails 5.1.0.alpha ##
 
+*   Remove deprecated `conditions` argument from the `destroy_all` and `delete_all`
+    methods in `ActiveRecord::Relation`.
+
+    *Jon Moss*
+
 *   Remove deprecated `uniq`, `uniq!` and `uniq_value` methods from `ActiveRecord::Relation`.
 
     *Jon Moss*
