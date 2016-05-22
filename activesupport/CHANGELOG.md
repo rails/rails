@@ -1,5 +1,9 @@
 ## Rails 5.1.0.alpha ##
 
+*   Remove deprecated `new_from_hash_copying_default` method from `ActiveSupport::HashWithIndifferentAccess`.
+
+   *Jon Moss*
+
 *   Remove deprecated `key_file_path` method from `ActiveSupport::Cache::FileStore`.
 
     *Jon Moss*
