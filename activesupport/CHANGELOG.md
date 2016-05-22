@@ -1,5 +1,9 @@
 ## Rails 5.1.0.alpha ##
 
+*   Remove deprecated `MissingSourceFile` core extension.
+
+    *Jon Moss*
+
 *   Remove deprecated `ActiveSupport::Concurrency::Latch`.
 
     *Jon Moss*
