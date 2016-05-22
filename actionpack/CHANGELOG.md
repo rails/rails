@@ -1,5 +1,9 @@
 ## Rails 5.1.0.alpha ##
 
+*   Remove deprecated constant lookup for `MIME` types.
+
+    *Jon Moss*
+
 *   Remove deprecated `*_via_redirect` methods from `ActionDispatch::Integration::RequestHelpers`.
 
     *Jon Moss*
