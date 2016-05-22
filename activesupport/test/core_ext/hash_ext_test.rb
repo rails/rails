@@ -1768,4 +1768,16 @@ class HashToXmlTest < ActiveSupport::TestCase
       Hash.from_xml(attack_xml)
     end
   end
+
+  def test__deep_transform_keys_in_object_returns_unchanged_first_arg_unless_array_or_hash
+    ['string', -> {}, 123, Object.new].each do |object|
+      assert_same object, {}.send(:_deep_transform_keys_in_object, object)
+    end
+  end
+
+  def test__deep_transform_keys_in_object_returns_changed_first_arg_if_array_or_hash
+    [{}, []].each do |object|
+      assert_not_same object, {}.send(:_deep_transform_keys_in_object, object)
+    end
+  end
 end
