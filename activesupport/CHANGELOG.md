@@ -1,5 +1,9 @@
 ## Rails 5.1.0.alpha ##
 
+*   Remove deprecated `Time` marshal core extension.
+
+    *Jon Moss*
+
 *   Remove deprecated `set_cache_value` method from `ActiveSupport::Cache::Strategy::LocalCache`.
 
     *Jon Moss*
