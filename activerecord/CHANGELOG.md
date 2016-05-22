@@ -1,5 +1,9 @@
 ## 5.1.0.alpha ##
 
+*   Remove deprecated `load_schema_for` method from `ActiveRecord::Tasks::DatabaseTasks`.
+
+    *Jon Moss*
+
 *   Remove deprecated `ActiveRecord::PredicateBuilder::ClassHandler`.
 
     *Jon Moss*
