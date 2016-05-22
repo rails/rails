@@ -1,5 +1,9 @@
 ## Rails 5.1.0.alpha ##
 
+*   Remove deprecated `*_via_redirect` methods from `ActionDispatch::Integration::RequestHelpers`.
+
+    *Jon Moss*
+
 *   Remove deprecated `xhr` and `xml_http_request` methods from
     `ActionDispatch::Integration::RequestHelpers` and `ActionController::TestCase`.
 
