@@ -1,5 +1,9 @@
 ## Rails 5.1.0.alpha ##
 
+*   Remove deprecated `ActiveSupport::Concurrency::Latch`.
+
+    *Jon Moss*
+
 *   Remove deprecated `local_constants` method from `Module` core extension.
 
     *Jon Moss*
