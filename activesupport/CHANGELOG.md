@@ -1,5 +1,9 @@
 ## Rails 5.1.0.alpha ##
 
+*   Remove deprecated `:prefix` option from `ActiveSupport::NumberHelper::NumberToHumanSizeConverter`.
+
+    *Jon Moss*
+
 *   Remove deprecated `Module` `methods_transplantable` core extension.
 
     *Jon Moss*
