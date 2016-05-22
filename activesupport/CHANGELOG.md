@@ -1,5 +1,10 @@
 ## Rails 5.1.0.alpha ##
 
+*   Remove deprecated `separator` positional argument from `String#parameterize`
+    core extension.
+
+   *Jon Moss*
+
 *   Remove deprecated `new_from_hash_copying_default` method from `ActiveSupport::HashWithIndifferentAccess`.
 
    *Jon Moss*
