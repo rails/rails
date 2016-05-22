@@ -1,4 +1,8 @@
-## 5.1.0.alpha ##
+## Rails 5.1.0.alpha ##
+
+*   Remove deprecated `original_exception` method from `ActiveRecord::StatementInvalid`.
+
+    *Jon Moss*
 
 *   Remove deprecated `load_schema_for` method from `ActiveRecord::Tasks::DatabaseTasks`.
 
