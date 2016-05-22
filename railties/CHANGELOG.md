@@ -1,5 +1,9 @@
 ## Rails 5.1.0.alpha ##
 
+*   Remove deprecated `rails:` namespaced Rake tasks.
+
+    *Jon Moss*
+
 *   Remove deprecated `Rails::Rack::Debugger`.
 
     *Jon Moss*
