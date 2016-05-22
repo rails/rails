@@ -1,5 +1,9 @@
 ## Rails 5.1.0.alpha ##
 
+*   Remove deprecated `set_cache_value` method from `ActiveSupport::Cache::Strategy::LocalCache`.
+
+    *Jon Moss*
+
 *   Remove deprecated `MissingSourceFile` core extension.
 
     *Jon Moss*

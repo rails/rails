@@ -712,11 +712,9 @@ module LocalCacheBehavior
     app.call({})
   end
 
-  def test_can_call_deprecated_set_cache_value
+  def test_write_cache_value
     @cache.with_local_cache do
-      assert_deprecated "`set_cache_value` is deprecated" do
-        @cache.send(:set_cache_value, 1, 'foo', :ignored, {})
-      end
+      @cache.send(:write_cache_value, 'foo', 1, {})
       assert_equal 1, @cache.read('foo')
     end
   end
