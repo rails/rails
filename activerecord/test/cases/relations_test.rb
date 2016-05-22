@@ -836,8 +836,13 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_find_by_classname
     Author.create!(:name => Mary.name)
-    assert_deprecated do
+
+    # MySQL is able to properly process this, due to its internal quoting.
+    if current_adapter?(:Mysql2Adapter)
       assert_equal 1, Author.where(:name => Mary).size
+    else
+      err = assert_raises(TypeError) { Author.where(:name => Mary).size }
+      assert_equal "can't cast Class", err.message
     end
   end
 

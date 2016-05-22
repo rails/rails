@@ -1,3 +1,9 @@
+## 5.1.0.alpha ##
+
+*   Remove deprecated `ActiveRecord::PredicateBuilder::ClassHandler`.
+
+    *Jon Moss*
+
 *   Fix logging edge case where if an attribute was of the binary type and
     was provided as a Hash.
 
