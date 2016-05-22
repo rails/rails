@@ -1,5 +1,9 @@
 ## Rails 5.1.0.alpha ##
 
+*   Remove deprecated `Rails::Rack::Debugger`.
+
+    *Jon Moss*
+
 *   Remove deprecated `config.static_cache_control=`.
 
     *Jon Moss*
