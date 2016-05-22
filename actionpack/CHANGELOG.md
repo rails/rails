@@ -1,5 +1,9 @@
 ## Rails 5.1.0.alpha ##
 
+*   Remove deprecated `original_exception` method from `ActionController::BadRequest`.
+
+    *Jon Moss*
+
 *   Remove deprecated `skip_action_callback` controller callbacks.
 
     *Jon Moss*
