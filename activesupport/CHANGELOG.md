@@ -1,5 +1,9 @@
 ## Rails 5.1.0.alpha ##
 
+*   Remove deprecated `Module` `methods_transplantable` core extension.
+
+    *Jon Moss*
+
 *   Remove deprecated `escape_key` method from `ActiveSupport::Cache::MemCacheStore`.
 
     *Jon Moss*
