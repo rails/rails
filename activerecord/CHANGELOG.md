@@ -1,5 +1,9 @@
 ## Rails 5.1.0.alpha ##
 
+*   Remove rescue for `ActiveRecord::IrreversibleOrderError`.
+
+    *Jon Moss*
+
 *   Remove deprecated `original_exception` method from `ActiveRecord::StatementInvalid`.
 
     *Jon Moss*

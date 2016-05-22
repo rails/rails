@@ -597,9 +597,11 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_last_with_irreversible_order
-    assert_deprecated do
+    err = assert_raises(ActiveRecord::IrreversibleOrderError) do
       Topic.order("coalesce(author_name, title)").last
     end
+
+    assert_equal 'Order "coalesce(author_name, title)" can not be reversed automatically', err.message
   end
 
   def test_last_on_relation_with_limit_and_offset
