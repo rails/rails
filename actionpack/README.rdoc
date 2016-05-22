@@ -14,7 +14,7 @@ It consists of several modules:
   handling HTTP caching logic, cookies and sessions.
 
 * Action Controller, which provides a base controller class that can be
-  subclassed to implement filters and actions to handle requests. The result
+  subclassed to implement callbacks and actions to handle requests. The result
   of an action is typically content generated from views.
 
 With the Ruby on Rails framework, users only directly interface with the

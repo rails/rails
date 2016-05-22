@@ -15,6 +15,7 @@ class ActionController::Base
   end
 end
 
+# <tt>filters</tt> refers to action callbacks, previously being call 'filters'.
 class FilterTest < ActionController::TestCase
   class TestController < ActionController::Base
     before_action :ensure_login

@@ -71,6 +71,7 @@ module ActionController
   private
 
     # A hook invoked every time a before callback is halted.
+    # <tt>payload[:filter]</tt> refers to action callbacks, previously being call 'filters'.
     def halted_callback_hook(filter)
       ActiveSupport::Notifications.instrument("halted_callback.action_controller", filter: filter)
     end
