@@ -620,13 +620,6 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal(expected, time_field_tag("cell"))
   end
 
-  def test_datetime_field_tag
-    expected = %{<input id="appointment" name="appointment" type="datetime" />}
-    assert_deprecated do
-      assert_dom_equal(expected, datetime_field_tag("appointment"))
-    end
-  end
-
   def test_datetime_local_field_tag
     expected = %{<input id="appointment" name="appointment" type="datetime-local" />}
     assert_dom_equal(expected, datetime_local_field_tag("appointment"))

@@ -1,5 +1,9 @@
 ## Rails 5.1.0.alpha ##
 
+*   Remove deprecated `datetime_field` form helper.
+
+    *Jon Moss*
+
 *   Remove deprecated `original_exception` method from `ActionView::Template::Error`.
 
     *Jon Moss*
