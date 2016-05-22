@@ -74,6 +74,12 @@ class HashExtTest < ActiveSupport::TestCase
     assert_respond_to h, :except!
   end
 
+  def test_private_methods
+    h = {}
+    assert_equal true, h.private_methods.include?(:_deep_transform_keys_in_object)
+    assert_equal true, h.private_methods.include?(:_deep_transform_keys_in_object!)
+  end
+
   def test_transform_keys
     assert_equal @upcase_strings, @strings.transform_keys{ |key| key.to_s.upcase }
     assert_equal @upcase_strings, @symbols.transform_keys{ |key| key.to_s.upcase }
