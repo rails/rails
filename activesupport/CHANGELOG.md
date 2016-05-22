@@ -1,5 +1,9 @@
 ## Rails 5.1.0.alpha ##
 
+*   Remove deprecated `escape_key` method from `ActiveSupport::Cache::MemCacheStore`.
+
+    *Jon Moss*
+
 *   Remove deprecated `Time` marshal core extension.
 
     *Jon Moss*
