@@ -1,5 +1,9 @@
 ## Rails 5.1.0.alpha ##
 
+*   Remove deprecated `key_file_path` method from `ActiveSupport::Cache::FileStore`.
+
+    *Jon Moss*
+
 *   Remove deprecated `Kernel#debugger` core extension.
 
     *Jon Moss*
