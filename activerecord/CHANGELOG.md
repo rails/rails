@@ -1,5 +1,9 @@
 ## Rails 5.1.0.alpha ##
 
+*   Remove deprecated `uniq`, `uniq!` and `uniq_value` methods from `ActiveRecord::Relation`.
+
+    *Jon Moss*
+
 *   Remove rescue for `ActiveRecord::IrreversibleOrderError`.
 
     *Jon Moss*

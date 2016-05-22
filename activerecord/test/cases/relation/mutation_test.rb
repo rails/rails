@@ -162,22 +162,6 @@ module ActiveRecord
     test 'distinct!' do
       relation.distinct! :foo
       assert_equal :foo, relation.distinct_value
-
-      assert_deprecated do
-        assert_equal :foo, relation.uniq_value # deprecated access
-      end
-    end
-
-    test 'uniq! was replaced by distinct!' do
-      assert_deprecated(/use distinct! instead/) do
-        relation.uniq! :foo
-      end
-
-      assert_deprecated(/use distinct_value instead/) do
-        assert_equal :foo, relation.uniq_value # deprecated access
-      end
-
-      assert_equal :foo, relation.distinct_value
     end
   end
 end
