@@ -252,7 +252,7 @@ Note that `try` will swallow no-method errors, returning nil instead. If you wan
 
 ```ruby
 @number.try(:nest)  # => nil
-@number.try!(:nest) # NoMethodError: undefined method `nest' for 1:Fixnum
+@number.try!(:nest) # NoMethodError: undefined method `nest' for 1:Integer
 ```
 
 NOTE: Defined in `active_support/core_ext/object/try.rb`.
@@ -1742,7 +1742,7 @@ NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 The method `constantize` resolves the constant reference expression in its receiver:
 
 ```ruby
-"Fixnum".constantize # => Fixnum
+"Integer".constantize # => Integer
 
 module M
   X = 1
@@ -2611,8 +2611,7 @@ To do so, the method loops over the pairs and builds nodes that depend on the _v
 ```ruby
 XML_TYPE_NAMES = {
   "Symbol"     => "symbol",
-  "Fixnum"     => "integer",
-  "Bignum"     => "integer",
+  "Integer"    => "integer",
   "BigDecimal" => "decimal",
   "Float"      => "float",
   "TrueClass"  => "boolean",

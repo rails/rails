@@ -26,7 +26,7 @@ module ActiveRecord
       end
 
       # Updates the attribute identified by <tt>attr_name</tt> with the
-      # specified +value+. Empty strings for fixnum and float columns are
+      # specified +value+. Empty strings for Integer and Float columns are
       # turned into +nil+.
       def write_attribute(attr_name, value)
         write_attribute_with_type_cast(attr_name, value, true)

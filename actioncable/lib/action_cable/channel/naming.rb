@@ -10,6 +10,7 @@ module ActionCable
         #
         #   ChatChannel.channel_name # => 'chat'
         #   Chats::AppearancesChannel.channel_name # => 'chats:appearances'
+        #   FooChats::BarAppearancesChannel.channel_name # => 'foo_chats:bar_appearances'
         def channel_name
           @channel_name ||= name.sub(/Channel$/, '').gsub('::',':').underscore
         end

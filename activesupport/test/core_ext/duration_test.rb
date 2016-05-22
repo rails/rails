@@ -12,7 +12,7 @@ class DurationTest < ActiveSupport::TestCase
     assert d.is_a?(ActiveSupport::Duration)
     assert_kind_of ActiveSupport::Duration, d
     assert_kind_of Numeric, d
-    assert_kind_of Fixnum, d
+    assert_kind_of Integer, d
     assert !d.is_a?(Hash)
 
     k = Class.new

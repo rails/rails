@@ -598,7 +598,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::AssociationTypeMismatch) { posts(:thinking).tags.delete(Object.new) }
   end
 
-  def test_deleting_by_fixnum_id_from_has_many_through
+  def test_deleting_by_integer_id_from_has_many_through
     post = posts(:thinking)
 
     assert_difference 'post.tags.count', -1 do
