@@ -1,5 +1,9 @@
 ## Rails 5.1.0.alpha ##
 
+*   Remove deprecated `to_formatted_s` method from `ActiveSupport::NumericWithFormat`.
+
+    *Jon Moss*
+
 *   Remove deprecated `false` callback terminator from `ActiveSupport::Callbacks`.
 
     *Jon Moss*
