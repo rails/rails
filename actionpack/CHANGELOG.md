@@ -1,5 +1,13 @@
 ## Rails 5.1.0.alpha ##
 
+*   Remove deprecated `skip_action_callback` controller callbacks.
+
+    *Jon Moss*
+
+*   Remove deprecated `*_filter` controller callbacks.
+
+    *Jon Moss*
+
 *   Remove deprecated `cache_control` initialization option from `ActionDispatch::Static`.
 
     *Jon Moss*
