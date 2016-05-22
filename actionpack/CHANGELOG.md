@@ -1,5 +1,10 @@
 ## Rails 5.1.0.alpha ##
 
+*   Remove deprecated `xhr` and `xml_http_request` methods from
+    `ActionDispatch::Integration::RequestHelpers` and `ActionController::TestCase`.
+
+    *Jon Moss*
+
 *   Remove deprecated `original_exception` method from `ActionController::BadRequest`.
 
     *Jon Moss*
