@@ -1,5 +1,9 @@
 ## Rails 5.1.0.alpha ##
 
+*   Remove deprecated `redirect_to :back` helper from `ActionController::Redirecting`.
+
+    *Jon Moss*
+
 *   Remove deprecated constant lookup for `MIME` types.
 
     *Jon Moss*
