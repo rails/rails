@@ -37,12 +37,6 @@ module ActiveJob
         else
           if queue_adapter?(name_or_adapter_or_class)
             name_or_adapter_or_class
-          elsif queue_adapter_class?(name_or_adapter_or_class)
-            ActiveSupport::Deprecation.warn "Passing an adapter class is deprecated " \
-              "and will be removed in Rails 5.1. Please pass an adapter name " \
-              "(.queue_adapter = :#{name_or_adapter_or_class.name.demodulize.remove('Adapter').underscore}) " \
-              "or an instance (.queue_adapter = #{name_or_adapter_or_class.name}.new) instead."
-              name_or_adapter_or_class.new
           else
             raise ArgumentError
           end
