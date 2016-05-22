@@ -1,5 +1,9 @@
 ## Rails 5.1.0.alpha ##
 
+*   Remove deprecated `qualified_const_` methods from the `Module` core extension.
+
+    *Jon Moss*
+
 *   Remove deprecated `:prefix` option from `ActiveSupport::NumberHelper::NumberToHumanSizeConverter`.
 
     *Jon Moss*
