@@ -1,3 +1,8 @@
+*   Remove deprecated support to non-keyword arguments in `ActionController::TestCase#process`,
+    `#get`, `#post`, `#patch`, `#put`, `#delete`, and `#head`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `xml_http_request` and `xhr` methods in `ActionController::TestCase`.
 
     *Rafael Mendonça França*
