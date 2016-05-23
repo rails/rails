@@ -26,10 +26,10 @@ module ActionCable
       end
 
       # Returns constant of subscription adapter specified in config/cable.yml.
-      # If the adapter cannot be found, this will default to the Redis adapter.
+      # If the adapter cannot be found, this will default to the Async adapter.
       # Also makes sure proper dependencies are required.
       def pubsub_adapter
-        adapter = (cable.fetch('adapter') { 'redis' })
+        adapter = cable.fetch('adapter', 'async')
         path_to_adapter = "action_cable/subscription_adapter/#{adapter}"
         begin
           require path_to_adapter
