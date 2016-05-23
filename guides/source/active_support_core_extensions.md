@@ -707,64 +707,6 @@ M.parents       # => [X::Y, X, Object]
 
 NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
 
-#### Qualified Constant Names
-
-The standard methods `const_defined?`, `const_get`, and `const_set` accept
-bare constant names. Active Support extends this API to be able to pass
-relative qualified constant names.
-
-The new methods are `qualified_const_defined?`, `qualified_const_get`, and
-`qualified_const_set`. Their arguments are assumed to be qualified constant
-names relative to their receiver:
-
-```ruby
-Object.qualified_const_defined?("Math::PI")       # => true
-Object.qualified_const_get("Math::PI")            # => 3.141592653589793
-Object.qualified_const_set("Math::Phi", 1.618034) # => 1.618034
-```
-
-Arguments may be bare constant names:
-
-```ruby
-Math.qualified_const_get("E") # => 2.718281828459045
-```
-
-These methods are analogous to their built-in counterparts. In particular,
-`qualified_constant_defined?` accepts an optional second argument to be
-able to say whether you want the predicate to look in the ancestors.
-This flag is taken into account for each constant in the expression while
-walking down the path.
-
-For example, given
-
-```ruby
-module M
-  X = 1
-end
-
-module N
-  class C
-    include M
-  end
-end
-```
-
-`qualified_const_defined?` behaves this way:
-
-```ruby
-N.qualified_const_defined?("C::X", false) # => false
-N.qualified_const_defined?("C::X", true)  # => true
-N.qualified_const_defined?("C::X")        # => true
-```
-
-As the last example implies, the second argument defaults to true,
-as in `const_defined?`.
-
-For coherence with the built-in methods only relative paths are accepted.
-Absolute qualified constant names like `::Math::PI` raise `NameError`.
-
-NOTE: Defined in `active_support/core_ext/module/qualified_const.rb`.
-
 ### Reachable
 
 A named module is reachable if it is stored in its corresponding constant. It means you can reach the module object via the constant.
@@ -1659,19 +1601,6 @@ Given a string with a qualified constant reference expression, `deconstantize` r
 "Product".deconstantize                        # => ""
 "Backoffice::UsersController".deconstantize    # => "Backoffice"
 "Admin::Hotel::ReservationUtils".deconstantize # => "Admin::Hotel"
-```
-
-Active Support for example uses this method in `Module#qualified_const_set`:
-
-```ruby
-def qualified_const_set(path, value)
-  QualifiedConstUtils.raise_if_absolute(path)
-
-  const_name = path.demodulize
-  mod_name = path.deconstantize
-  mod = mod_name.empty? ? self : qualified_const_get(mod_name)
-  mod.const_set(const_name, value)
-end
 ```
 
 NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
