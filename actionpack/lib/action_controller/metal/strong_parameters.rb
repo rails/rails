@@ -151,15 +151,6 @@ module ActionController
     def ==(other)
       if other.respond_to?(:permitted?)
         self.permitted? == other.permitted? && self.parameters == other.parameters
-      elsif other.is_a?(Hash)
-        ActiveSupport::Deprecation.warn <<-WARNING.squish
-          Comparing equality between `ActionController::Parameters` and a
-          `Hash` is deprecated and will be removed in Rails 5.1. Please only do
-          comparisons between instances of `ActionController::Parameters`. If
-          you need to compare to a hash, first convert it using
-          `ActionController::Parameters#new`.
-        WARNING
-        @parameters == other.with_indifferent_access
       else
         @parameters == other
       end

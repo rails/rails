@@ -1,3 +1,8 @@
+*   Remove deprecated support to comparing a `ActionController::Parameters`
+    with a `Hash`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to `:text` in `render`.
 
     *Rafael Mendonça França*
