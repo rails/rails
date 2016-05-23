@@ -29,6 +29,9 @@ Mime::Type.register "application/x-www-form-urlencoded", :url_encoded_form
 # http://www.ietf.org/rfc/rfc4627.txt
 # http://www.json.org/JSONRequest.html
 Mime::Type.register "application/json", :json, %w( text/x-json application/jsonrequest )
+
+# https://www.ietf.org/assignments/media-types/application/vnd.api+json
+# http://jsonapi.org/format
 Mime::Type.register "application/vnd.api+json", :jsonapi
 
 Mime::Type.register "application/pdf", :pdf, [], %w(pdf)
