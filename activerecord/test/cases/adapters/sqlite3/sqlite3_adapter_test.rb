@@ -281,7 +281,7 @@ module ActiveRecord
         SQL
         assert_logged [[sql.squish, 'SCHEMA', []]] do
           ActiveSupport::Deprecation.silence do
-            @conn.tables('hello')
+            @conn.tables
           end
         end
       end

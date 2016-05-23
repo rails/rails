@@ -1,5 +1,10 @@
 ## Rails 5.1.0.alpha ##
 
+*   Remove `table` argument from the `table` method in database
+    adapters.
+
+    *Jon Moss*
+
 *   Remove deprecated `conditions` argument from the `destroy_all` and `delete_all`
     methods in `ActiveRecord::Relation`.
 
