@@ -5,3 +5,9 @@ load_paths:
 
 logical_paths:
   - test.js
+
+build:
+  logical_paths:
+    - action_cable.js
+  path: lib/assets/compiled
+  clean: true
