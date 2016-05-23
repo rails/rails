@@ -1,3 +1,7 @@
+*   Remove deprecated `xml_http_request` and `xhr` methods in `ActionController::TestCase`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated methods in `ActionController::Parameters`.
 
     *Rafael Mendonça França*

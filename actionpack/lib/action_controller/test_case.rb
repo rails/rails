@@ -422,21 +422,6 @@ module ActionController
         process_with_kwargs("HEAD", action, *args)
       end
 
-      def xml_http_request(*args)
-        ActiveSupport::Deprecation.warn(<<-MSG.strip_heredoc)
-          xhr and xml_http_request methods are deprecated in favor of
-          `get :index, xhr: true` and `post :create, xhr: true`
-        MSG
-
-        @request.env["HTTP_X_REQUESTED_WITH"] = "XMLHttpRequest"
-        @request.env["HTTP_ACCEPT"] ||= [Mime[:js], Mime[:html], Mime[:xml], "text/xml", "*/*"].join(", ")
-        __send__(*args).tap do
-          @request.env.delete "HTTP_X_REQUESTED_WITH"
-          @request.env.delete "HTTP_ACCEPT"
-        end
-      end
-      alias xhr :xml_http_request
-
       # Simulate an HTTP request to +action+ by specifying request method,
       # parameters and set/volley the response.
       #
