@@ -1769,17 +1769,21 @@ class HashToXmlTest < ActiveSupport::TestCase
     end
   end
 
-  def test__deep_transform_keys_in_object_returns_unchanged_object_unless_first_arg_is_array_or_hash
-    h = {}
+  test '_deep_transform_keys_in_object returns the same object unless first arg is array or hash' do
     ['string', -> {}, 123, Object.new].each do |object|
-      assert_same object, h.send(:_deep_transform_keys_in_object, object)
+      assert_same object, {}.send(:_deep_transform_keys_in_object, object)
     end
   end
 
-  def test__deep_transform_keys_in_object_returns_changed_object_if_first_arg_is_array_or_hash
-    h = {}
+  test '_deep_transform_keys_in_object returns different object if first arg is array or hash' do
     [{}, []].each do |object|
-      assert_not_same object, h.send(:_deep_transform_keys_in_object, object)
+      assert_not_same object, {}.send(:_deep_transform_keys_in_object, object)
+    end
+  end
+
+  test '_deep_transform_keys_in_object! always returns the same object' do
+    [{}, [], 'string', -> {}, 123, Object.new].each do |object|
+      assert_same object, {}.send(:_deep_transform_keys_in_object!, object)
     end
   end
 end
