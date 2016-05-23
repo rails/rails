@@ -37,6 +37,7 @@ module Kernel
   #
   #   puts 'This code gets executed and nothing related to ZeroDivisionError was seen'
   def suppress(*exception_classes)
+    exception_classes = StandardError if exception_classes.empty?
     yield
   rescue *exception_classes
   end
