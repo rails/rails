@@ -72,14 +72,8 @@ class ParametersRequireTest < ActiveSupport::TestCase
     assert params.value?("cinco")
   end
 
-  test "Deprecated methods are deprecated" do
-    assert_deprecated do
-      ActionController::Parameters.new(foo: "bar").merge!(bar: "foo")
-    end
-  end
-
   test "to_query is not supported" do
-    assert_deprecated do
+    assert_raises(NoMethodError) do
       ActionController::Parameters.new(foo: "bar").to_param
     end
   end

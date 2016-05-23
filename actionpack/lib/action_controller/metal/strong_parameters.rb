@@ -611,27 +611,7 @@ module ActionController
       end
     end
 
-    # Undefine `to_param` such that it gets caught in the `method_missing`
-    # deprecation cycle below.
     undef_method :to_param
-
-    def method_missing(method_sym, *args, &block)
-      if @parameters.respond_to?(method_sym)
-        message = <<-DEPRECATE.squish
-          Method #{method_sym} is deprecated and will be removed in Rails 5.1,
-          as `ActionController::Parameters` no longer inherits from
-          hash. Using this deprecated behavior exposes potential security
-          problems. If you continue to use this method you may be creating
-          a security vulnerability in your app that can be exploited. Instead,
-          consider using one of these documented methods which are not
-          deprecated: http://api.rubyonrails.org/v#{ActionPack.version}/classes/ActionController/Parameters.html
-        DEPRECATE
-        ActiveSupport::Deprecation.warn(message)
-        @parameters.public_send(method_sym, *args, &block)
-      else
-        super
-      end
-    end
 
     protected
       attr_reader :parameters

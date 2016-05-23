@@ -1,3 +1,7 @@
+*   Remove deprecated methods in `ActionController::Parameters`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to comparing a `ActionController::Parameters`
     with a `Hash`.
 
