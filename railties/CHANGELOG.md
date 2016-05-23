@@ -1,5 +1,9 @@
 ## Rails 5.1.0.alpha ##
 
+*   Remove deprecated `CONTROLLER` environment variable from `rake routes`
+
+    *Jon Moss*
+
 *   Remove deprecated `rails:` namespaced Rake tasks.
 
     *Jon Moss*
