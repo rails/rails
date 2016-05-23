@@ -31,23 +31,22 @@ class JsonapiParamsParsingTest < ActionDispatch::IntegrationTest
   end
 
   private
-
-  def assert_parses(expected, actual, headers = {})
-    with_test_routing do
-      post "/parse", params: actual, headers: headers
-      assert_response :ok
-      assert_equal(expected, TestController.last_request_parameters)
-    end
-  end
-
-  def with_test_routing
-    with_routing do |set|
-      set.draw do
-        ActiveSupport::Deprecation.silence do
-          post ':action', :to => ::JsonapiParamsParsingTest::TestController
-        end
+    def assert_parses(expected, actual, headers = {})
+      with_test_routing do
+        post "/parse", params: actual, headers: headers
+        assert_response :ok
+        assert_equal(expected, TestController.last_request_parameters)
       end
-      yield
     end
-  end
+
+    def with_test_routing
+      with_routing do |set|
+        set.draw do
+          ActiveSupport::Deprecation.silence do
+            post ':action', :to => ::JsonapiParamsParsingTest::TestController
+          end
+        end
+        yield
+      end
+    end
 end
