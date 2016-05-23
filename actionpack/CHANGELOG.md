@@ -1,5 +1,10 @@
 ## Rails 5.1.0.alpha ##
 
+*   Remove deprecated `render text:` helper from
+    `ActionController::Rendering`
+
+    *Jon Moss*
+
 *   Remove deprecated `redirect_to :back` helper from `ActionController::Redirecting`.
 
     *Jon Moss*
