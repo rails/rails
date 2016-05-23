@@ -4,7 +4,6 @@ desc "Default Task"
 task default: [ :test ]
 
 task :package
-task "package:clean"
 
 # Run the unit tests
 Rake::TestTask.new { |t|

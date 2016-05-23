@@ -8,7 +8,6 @@ dir = File.dirname(__FILE__)
 task :default => :test
 
 task :package => "assets:compile"
-task "package:clean"
 
 Rake::TestTask.new do |t|
   t.libs << "test"
