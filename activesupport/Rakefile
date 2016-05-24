@@ -3,7 +3,6 @@ require 'rake/testtask'
 task :default => :test
 
 task :package
-task "package:clean"
 
 Rake::TestTask.new do |t|
   t.libs << 'test'

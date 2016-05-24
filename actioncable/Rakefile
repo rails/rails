@@ -1,15 +1,13 @@
 require 'rake/testtask'
 require 'pathname'
-require 'sprockets'
-require 'coffee-script'
 require 'action_cable'
+require 'blade'
 
 dir = File.dirname(__FILE__)
 
 task :default => :test
 
 task :package => "assets:compile"
-task "package:clean" => "assets:clean"
 
 Rake::TestTask.new do |t|
   t.libs << "test"
@@ -27,44 +25,13 @@ namespace :test do
   end
 
   task :javascript do
-    require 'blade'
     Blade.start(interface: :runner)
   end
 end
 
 namespace :assets do
-  root_path = Pathname.new(dir)
-  destination_path = root_path.join("lib/assets/compiled")
-
-  desc "Compile dist/action_cable.js"
+  desc "Compile Action Cable assets"
   task :compile do
-    puts 'Compiling Action Cable assets...'
-
-    precompile_list = %w(action_cable.js)
-
-    environment = Sprockets::Environment.new
-    environment.gzip = false
-    Pathname.glob(root_path.join("app/assets/*/")) do |subdir|
-      environment.append_path subdir
-    end
-
-    compile_path = root_path.join("tmp/sprockets")
-    compile_path.rmtree if compile_path.exist?
-    compile_path.mkpath
-
-    manifest = Sprockets::Manifest.new(environment.index, compile_path)
-    manifest.compile(precompile_list)
-
-    destination_path.rmtree if destination_path.exist?
-    manifest.assets.each do |path, fingerprint_path|
-      destination_path.join(path).dirname.mkpath
-      FileUtils.cp(compile_path.join(fingerprint_path), destination_path.join(path))
-    end
-
-    puts 'Done'
-  end
-
-  task :clean do
-    destination_path.rmtree if destination_path.exist?
+    Blade.build
   end
 end
