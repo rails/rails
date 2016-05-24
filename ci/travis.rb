@@ -121,8 +121,8 @@ class Build
   def env
     if activesupport? && !isolated?
       # There is a known issue with the listen tests that causes files to be
-      # incorrectly GC'ed even when they are still in-use. The current is to
-      # only run them in isolation to avoid randomly failing our test suite.
+      # incorrectly GC'ed even when they are still in-use. The current solution
+      # is to only run them in isolation to avoid randomly failing our test suite.
       { 'LISTEN' => '0' }
     else
       {}
