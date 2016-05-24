@@ -3,7 +3,6 @@ require 'rake/testtask'
 task :default => :test
 
 task :package
-task "package:clean"
 
 desc "Run all unit tests"
 task :test => 'test:isolated'
