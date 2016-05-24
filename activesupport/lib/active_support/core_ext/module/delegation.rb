@@ -267,7 +267,7 @@ class Module
       end
 
       def method_missing(method, *args, &block)
-        #{target}.send(method, *args, &block)
+        #{target}.public_send(method, *args, &block)
       end
     RUBY
   end
