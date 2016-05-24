@@ -297,6 +297,9 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 *   `ActionDispatch::IntegrationTest` and `ActionController::TestCase` deprecate positional arguments in favor of
     keyword arguments. ([Pull Request](https://github.com/rails/rails/pull/18323))
 
+*   Deprecated `:controller` and `:action` path parameters.
+    ([Pull Request](https://github.com/rails/rails/pull/23980))
+
 ### Notable changes
 
 *   Added `ActionController::Renderer` to render arbitrary templates

@@ -428,6 +428,23 @@ class MigrationTest < ActiveRecord::TestCase
     ENV["RACK_ENV"]  = original_rack_env
   end
 
+  def test_internal_metadata_stores_environment_when_other_data_exists
+    ActiveRecord::InternalMetadata.delete_all
+    ActiveRecord::InternalMetadata[:foo]  = 'bar'
+
+    current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+    migrations_path = MIGRATIONS_ROOT + "/valid"
+    old_path        = ActiveRecord::Migrator.migrations_paths
+    ActiveRecord::Migrator.migrations_paths = migrations_path
+
+    current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+    ActiveRecord::Migrator.up(migrations_path)
+    assert_equal current_env, ActiveRecord::InternalMetadata[:environment]
+    assert_equal 'bar', ActiveRecord::InternalMetadata[:foo]
+  ensure
+    ActiveRecord::Migrator.migrations_paths = old_path
+  end
+
   def test_rename_internal_metadata_table
     original_internal_metadata_table_name = ActiveRecord::Base.internal_metadata_table_name
 

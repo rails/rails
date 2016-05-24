@@ -134,13 +134,15 @@ module ActionView
 
         if options.include?(:include_blank)
           include_blank = options.delete(:include_blank)
+          options_for_blank_options_tag = { value: '' }
 
           if include_blank == true
             include_blank = ''
+            options_for_blank_options_tag[:label] = ' '
           end
 
           if include_blank
-            option_tags = content_tag("option".freeze, include_blank, value: '').safe_concat(option_tags)
+            option_tags = content_tag("option".freeze, include_blank, options_for_blank_options_tag).safe_concat(option_tags)
           end
         end
 
