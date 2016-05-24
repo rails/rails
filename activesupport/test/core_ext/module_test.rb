@@ -83,6 +83,20 @@ Product = Struct.new(:name) do
   end
 end
 
+DecoratedTester = Struct.new(:client) do
+  delegate_missing_to :client
+end
+
+class DecoratedReserved
+  delegate_missing_to :case
+
+  attr_reader :case
+
+  def initialize(kase)
+    @case = kase
+  end
+end
+
 class Block
   def hello?
     true
@@ -314,6 +328,14 @@ class ModuleTest < ActiveSupport::TestCase
   def test_delegation_with_method_arguments
     has_block = HasBlock.new(Block.new)
     assert has_block.hello?
+  end
+
+  def test_delegate_to_missing_with_method
+    assert_equal "David", DecoratedTester.new(@david).name
+  end
+
+  def test_delegate_to_missing_with_reserved_methods
+    assert_equal "David", DecoratedReserved.new(@david).name
   end
 
   def test_parent
