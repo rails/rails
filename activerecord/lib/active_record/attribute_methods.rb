@@ -334,8 +334,6 @@ module ActiveRecord
     #
     # Note: +:id+ is always present.
     #
-    # Alias for the #read_attribute method.
-    #
     #   class Person < ActiveRecord::Base
     #     belongs_to :organization
     #   end
