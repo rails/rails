@@ -25,6 +25,7 @@
 default: &default
   adapter: sqlserver
   encoding: utf8
+  pool: <%%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   reconnect: false
   username: <%= app_name %>
   password:
