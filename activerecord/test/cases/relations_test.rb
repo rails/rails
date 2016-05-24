@@ -836,8 +836,13 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_find_by_classname
     Author.create!(:name => Mary.name)
-    assert_deprecated do
+
+    # MySQL is able to properly process this, due to its internal quoting.
+    if current_adapter?(:Mysql2Adapter)
       assert_equal 1, Author.where(:name => Mary).size
+    else
+      err = assert_raises(TypeError) { Author.where(:name => Mary).size }
+      assert_equal "can't cast Class", err.message
     end
   end
 
@@ -1006,23 +1011,11 @@ class RelationTest < ActiveRecord::TestCase
     assert davids.loaded?
   end
 
-  def test_destroy_all_with_conditions_is_deprecated
-    assert_deprecated do
-      assert_difference('Author.count', -1) { Author.destroy_all(name: 'David') }
-    end
-  end
-
   def test_delete_all
     davids = Author.where(:name => 'David')
 
     assert_difference('Author.count', -1) { davids.delete_all }
     assert ! davids.loaded?
-  end
-
-  def test_delete_all_with_conditions_is_deprecated
-    assert_deprecated do
-      assert_difference('Author.count', -1) { Author.delete_all(name: 'David') }
-    end
   end
 
   def test_delete_all_loaded
@@ -1647,17 +1640,11 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal ['Foo', 'Foo'], query.map(&:name)
     assert_sql(/DISTINCT/) do
       assert_equal ['Foo'], query.distinct.map(&:name)
-      assert_deprecated { assert_equal ['Foo'], query.uniq.map(&:name) }
     end
     assert_sql(/DISTINCT/) do
       assert_equal ['Foo'], query.distinct(true).map(&:name)
-      assert_deprecated { assert_equal ['Foo'], query.uniq(true).map(&:name) }
     end
     assert_equal ['Foo', 'Foo'], query.distinct(true).distinct(false).map(&:name)
-
-    assert_deprecated do
-      assert_equal ['Foo', 'Foo'], query.uniq(true).uniq(false).map(&:name)
-    end
   end
 
   def test_doesnt_add_having_values_if_options_are_blank

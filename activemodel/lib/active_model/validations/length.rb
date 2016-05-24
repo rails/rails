@@ -18,27 +18,6 @@ module ActiveModel
           options[:minimum] = 1
         end
 
-        if options[:tokenizer]
-          ActiveSupport::Deprecation.warn(<<-EOS.strip_heredoc)
-            The `:tokenizer` option is deprecated, and will be removed in Rails 5.1.
-            You can achieve the same functionality by defining an instance method
-            with the value that you want to validate the length of. For example,
-
-                validates_length_of :essay, minimum: 100,
-                  tokenizer: ->(str) { str.scan(/\w+/) }
-
-            should be written as
-
-                validates_length_of :words_in_essay, minimum: 100
-
-                private
-
-                def words_in_essay
-                  essay.scan(/\w+/)
-                end
-          EOS
-        end
-
         super
       end
 

@@ -45,9 +45,7 @@ module StaticTests
   end
 
   def test_sets_cache_control
-    app = assert_deprecated do
-      ActionDispatch::Static.new(DummyApp, @root, "public, max-age=60")
-    end
+    app = ActionDispatch::Static.new(DummyApp, @root, headers: { 'Cache-Control' => "public, max-age=60" })
     response = Rack::MockRequest.new(app).request("GET", "/index.html")
 
     assert_html "/index.html", response

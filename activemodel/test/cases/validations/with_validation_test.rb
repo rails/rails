@@ -101,7 +101,6 @@ class ValidatesWithTest < ActiveModel::TestCase
     validator.expect(:new, validator, [{foo: :bar, if: "1 == 1", class: Topic}])
     validator.expect(:validate, nil, [topic])
     validator.expect(:is_a?, false, [Symbol])
-    validator.expect(:is_a?, false, [String])
 
     Topic.validates_with(validator, if: "1 == 1", foo: :bar)
     assert topic.valid?

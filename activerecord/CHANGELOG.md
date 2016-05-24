@@ -1,3 +1,35 @@
+## Rails 5.1.0.alpha ##
+
+*   Remove `table` argument from the `table` method in database
+    adapters.
+
+    *Jon Moss*
+
+*   Remove deprecated `conditions` argument from the `destroy_all` and `delete_all`
+    methods in `ActiveRecord::Relation`.
+
+    *Jon Moss*
+
+*   Remove deprecated `uniq`, `uniq!` and `uniq_value` methods from `ActiveRecord::Relation`.
+
+    *Jon Moss*
+
+*   Remove rescue for `ActiveRecord::IrreversibleOrderError`.
+
+    *Jon Moss*
+
+*   Remove deprecated `original_exception` method from `ActiveRecord::StatementInvalid`.
+
+    *Jon Moss*
+
+*   Remove deprecated `load_schema_for` method from `ActiveRecord::Tasks::DatabaseTasks`.
+
+    *Jon Moss*
+
+*   Remove deprecated `ActiveRecord::PredicateBuilder::ClassHandler`.
+
+    *Jon Moss*
+
 *   Fix logging edge case where if an attribute was of the binary type and
     was provided as a Hash.
 

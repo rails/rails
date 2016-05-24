@@ -152,14 +152,6 @@ module ActiveRecord
       result = result.reverse_order!
 
       limit ? result.reverse : result.first
-    rescue ActiveRecord::IrreversibleOrderError
-      ActiveSupport::Deprecation.warn(<<-WARNING.squish)
-          Finding a last element by loading the relation when SQL ORDER
-          can not be reversed is deprecated.
-          Rails 5.1 will raise ActiveRecord::IrreversibleOrderError in this case.
-          Please call `to_a.last` if you still want to load the relation.
-      WARNING
-      find_last(limit)
     end
 
     # Same as #last but raises ActiveRecord::RecordNotFound if no record
@@ -579,7 +571,7 @@ module ActiveRecord
         # e.g., reverse_order.offset(index-1).first
       end
     end
-    
+
     private
 
     def find_nth_with_limit_and_offset(index, limit, offset:) # :nodoc:

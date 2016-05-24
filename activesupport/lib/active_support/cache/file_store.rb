@@ -138,14 +138,6 @@ module ActiveSupport
           File.join(cache_path, DIR_FORMATTER % dir_1, DIR_FORMATTER % dir_2, *fname_paths)
         end
 
-        def key_file_path(key)
-          ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
-            `key_file_path` is deprecated and will be removed from Rails 5.1.
-            Please use `normalize_key` which will return a fully resolved key or nothing.
-          MESSAGE
-          key
-        end
-
         # Translate a file path into a key.
         def file_path_key(path)
           fname = path[cache_path.to_s.size..-1].split(File::SEPARATOR, 4).last

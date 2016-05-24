@@ -64,12 +64,10 @@ class CallbacksTest < ActiveModel::TestCase
     assert_equal model.callbacks.last, :final_callback
   end
 
-  test "the callback chain is halted when a before callback returns false (deprecated)" do
+  test "the callback chain is not halted when a before callback returns false" do
     model = ModelCallbacks.new(before_create_returns: false)
-    assert_deprecated do
-      model.create
-      assert_equal model.callbacks.last, :before_create
-    end
+    model.create
+    assert_equal model.callbacks.last, :final_callback
   end
 
   test "the callback chain is halted when a callback throws :abort" do

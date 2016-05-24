@@ -444,15 +444,10 @@ class CallbacksTest < ActiveRecord::TestCase
     ], david.history
   end
 
-  def test_deprecated_before_save_returning_false
+  def test_before_save_returning_false_does_not_halt
     david = ImmutableDeveloper.find(1)
-    assert_deprecated do
-      assert david.valid?
-      assert !david.save
-      exc = assert_raise(ActiveRecord::RecordNotSaved) { david.save! }
-      assert_equal exc.record, david
-      assert_equal "Failed to save the record", exc.message
-    end
+    assert david.valid?
+    assert david.save
 
     david = ImmutableDeveloper.find(1)
     david.salary = 10_000_000
@@ -462,50 +457,32 @@ class CallbacksTest < ActiveRecord::TestCase
 
     someone = CallbackCancellationDeveloper.find(1)
     someone.cancel_before_save = true
-    assert_deprecated do
-      assert someone.valid?
-      assert !someone.save
-    end
-    assert_save_callbacks_not_called(someone)
+    assert someone.valid?
+    assert someone.save
   end
 
-  def test_deprecated_before_create_returning_false
+  def test_before_create_returning_false_does_not_halt
     someone = CallbackCancellationDeveloper.new
     someone.cancel_before_create = true
-    assert_deprecated do
-      assert someone.valid?
-      assert !someone.save
-    end
-    assert_save_callbacks_not_called(someone)
+    assert someone.valid?
+    assert someone.save
   end
 
-  def test_deprecated_before_update_returning_false
+  def test_before_update_returning_false_does_not_halt
     someone = CallbackCancellationDeveloper.find(1)
     someone.cancel_before_update = true
-    assert_deprecated do
-      assert someone.valid?
-      assert !someone.save
-    end
-    assert_save_callbacks_not_called(someone)
+    assert someone.valid?
+    assert someone.save
   end
 
-  def test_deprecated_before_destroy_returning_false
+  def test_before_destroy_returning_false_does_not_halt
     david = ImmutableDeveloper.find(1)
-    assert_deprecated do
-      assert !david.destroy
-      exc = assert_raise(ActiveRecord::RecordNotDestroyed) { david.destroy! }
-      assert_equal exc.record, david
-      assert_equal "Failed to destroy the record", exc.message
-    end
-    assert_not_nil ImmutableDeveloper.find_by_id(1)
+    assert david.destroy
 
-    someone = CallbackCancellationDeveloper.find(1)
+    someone = CallbackCancellationDeveloper.new
     someone.cancel_before_destroy = true
-    assert_deprecated do
-      assert !someone.destroy
-      assert_raise(ActiveRecord::RecordNotDestroyed) { someone.destroy! }
-    end
-    assert !someone.after_destroy_called
+    assert someone.destroy
+    assert someone.after_destroy_called
   end
 
   def assert_save_callbacks_not_called(someone)
@@ -565,31 +542,57 @@ class CallbacksTest < ActiveRecord::TestCase
     assert !someone.after_destroy_called
   end
 
-  def test_callback_returning_false
+  def test_callback_returning_false_does_not_halt
     david = CallbackDeveloperWithFalseValidation.find(1)
-    assert_deprecated { david.save }
+    david.save
     assert_equal [
-      [ :after_find,            :method ],
-      [ :after_find,            :string ],
-      [ :after_find,            :proc   ],
-      [ :after_find,            :object ],
-      [ :after_find,            :block  ],
-      [ :after_initialize,            :method ],
-      [ :after_initialize,            :string ],
-      [ :after_initialize,            :proc   ],
-      [ :after_initialize,            :object ],
-      [ :after_initialize,            :block  ],
-      [ :before_validation,           :method ],
-      [ :before_validation,           :string ],
-      [ :before_validation,           :proc   ],
-      [ :before_validation,           :object ],
-      [ :before_validation,           :block  ],
-      [ :before_validation, :returning_false  ],
-      [ :after_rollback, :block  ],
-      [ :after_rollback, :object ],
-      [ :after_rollback, :proc   ],
-      [ :after_rollback, :string ],
-      [ :after_rollback, :method ],
+      [ :after_find, :method ],
+      [ :after_find, :string ],
+      [ :after_find, :proc ],
+      [ :after_find, :object ],
+      [ :after_find, :block ],
+      [ :after_initialize, :method ],
+      [ :after_initialize, :string ],
+      [ :after_initialize, :proc ],
+      [ :after_initialize, :object ],
+      [ :after_initialize, :block ],
+      [ :before_validation, :method ],
+      [ :before_validation, :string ],
+      [ :before_validation, :proc ],
+      [ :before_validation, :object ],
+      [ :before_validation, :block ],
+      [ :before_validation, :returning_false ],
+      [ :before_validation, :should_never_get_here ],
+      [ :after_validation, :method ],
+      [ :after_validation, :string ],
+      [ :after_validation, :proc ],
+      [ :after_validation, :object ],
+      [ :after_validation, :block ],
+      [ :before_save, :method ],
+      [ :before_save, :string ],
+      [ :before_save, :proc ],
+      [ :before_save, :object ],
+      [ :before_save, :block ],
+      [ :before_update, :method ],
+      [ :before_update, :string ],
+      [ :before_update, :proc ],
+      [ :before_update, :object ],
+      [ :before_update, :block ],
+      [ :after_update, :method ],
+      [ :after_update, :string ],
+      [ :after_update, :proc ],
+      [ :after_update, :object ],
+      [ :after_update, :block ],
+      [ :after_save, :method ],
+      [ :after_save, :string ],
+      [ :after_save, :proc ],
+      [ :after_save, :object ],
+      [ :after_save, :block ],
+      [ :after_commit, :block ],
+      [ :after_commit, :object ],
+      [ :after_commit, :proc ],
+      [ :after_commit, :string ],
+      [ :after_commit, :method ]
     ], david.history
   end
 

@@ -1,3 +1,13 @@
+## Rails 5.1.0.alpha ##
+
+*   Remove deprecated `datetime_field` form helper.
+
+    *Jon Moss*
+
+*   Remove deprecated `original_exception` method from `ActionView::Template::Error`.
+
+    *Jon Moss*
+
 *   `select_tag`'s `include_blank` option for generation for blank option tag, now adds an empty space label,
      when the value as well as content for option tag are empty, so that we confirm with html specification.
      Ref: https://www.w3.org/TR/html5/forms.html#the-option-element.

@@ -49,7 +49,7 @@ class MimeTypeTest < ActiveSupport::TestCase
 
   test "parse application with trailing star" do
     accept = "application/*"
-    expect = [Mime[:html], Mime[:js], Mime[:xml], Mime[:rss], Mime[:atom], Mime[:yaml], Mime[:url_encoded_form], Mime[:json], Mime[:pdf], Mime[:zip], Mime[:gzip]]
+    expect = [Mime[:html], Mime[:js], Mime[:xml], Mime[:rss], Mime[:atom], Mime[:yaml], Mime[:url_encoded_form], Mime[:pdf], Mime[:zip], Mime[:gzip], Mime[:json]]
     parsed = Mime::Type.parse(accept)
     assert_equal expect, parsed
   end
@@ -164,18 +164,6 @@ class MimeTypeTest < ActiveSupport::TestCase
       invalid_types.each { |other_type|
         assert_not_equal mime.symbol, other_type, "#{mime.inspect} is #{other_type}?"
       }
-    end
-  end
-
-  test "deprecated lookup" do
-    assert_deprecated do
-      Mime::HTML
-    end
-  end
-
-  test "deprecated const_defined?" do
-    assert_deprecated do
-      Mime.const_defined? :HTML
     end
   end
 
