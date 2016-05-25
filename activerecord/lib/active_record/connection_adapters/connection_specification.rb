@@ -13,6 +13,10 @@ module ActiveRecord
         @config = original.config.dup
       end
 
+      def to_hash
+        @config.merge(name: @name)
+      end
+
       # Expands a connection string into a hash.
       class ConnectionUrlResolver # :nodoc:
 
