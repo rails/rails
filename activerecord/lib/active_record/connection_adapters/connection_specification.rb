@@ -164,7 +164,7 @@ module ActiveRecord
         #   spec.config
         #   # => { "host" => "localhost", "database" => "foo", "adapter" => "sqlite3" }
         #
-        def spec(config, name = nil)
+        def spec(config)
           spec = resolve(config).symbolize_keys
 
           raise(AdapterNotSpecified, "database configuration does not specify adapter") unless spec.key?(:adapter)
@@ -184,13 +184,7 @@ module ActiveRecord
             raise AdapterNotFound, "database configuration specifies nonexistent #{spec.config[:adapter]} adapter"
           end
 
-          name ||=
-            if config.is_a?(Symbol)
-              config.to_s
-            else
-              "primary"
-            end
-          ConnectionSpecification.new(name, spec, adapter_method)
+          ConnectionSpecification.new(spec.delete(:name) || "primary", spec, adapter_method)
         end
 
         private
@@ -235,7 +229,7 @@ module ActiveRecord
         #
         def resolve_symbol_connection(spec)
           if config = configurations[spec.to_s]
-            resolve_connection(config)
+            resolve_connection(config).merge("name" => spec.to_s)
           else
             raise(AdapterNotSpecified, "'#{spec}' database is not configured. Available: #{configurations.keys.inspect}")
           end

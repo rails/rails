@@ -50,7 +50,12 @@ module ActiveRecord
       config ||= DEFAULT_ENV.call.to_sym
       spec_name = self == Base ? "primary" : name
       self.connection_specification_name = spec_name
-      connection_handler.establish_connection(config, name: spec_name)
+
+      resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(Base.configurations)
+      spec = resolver.resolve(config).symbolize_keys
+      spec[:name] = spec_name
+
+      connection_handler.establish_connection(spec)
     end
 
     class MergeAndResolveDefaultUrlConfig # :nodoc:
