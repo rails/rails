@@ -26,6 +26,9 @@ class SchemaLoadingTest < ActiveRecord::TestCase
   if current_adapter?(:SQLite3Adapter)
     %w{3.7.8 3.7.11 3.7.12}.each do |version_string|
       test "sql insertion for sqlite version #{version_string}" do
+        version = ActiveRecord::ConnectionAdapters::SQLite3Adapter::Version.new(version_string)
+        ActiveRecord::Base.connection.stubs(:sqlite_version).returns(version)
+
         sm_table = ActiveRecord::Migrator.schema_migrations_table_name
         connection = ActiveRecord::Base.connection
 
