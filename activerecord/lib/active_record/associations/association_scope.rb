@@ -138,6 +138,10 @@ module ActiveRecord
           reflection.constraints.each do |scope_chain_item|
             item  = eval_scope(reflection.klass, scope_chain_item, owner)
 
+            unless item.is_a?(Relation)
+              raise ArgumentError, "#{item.inspect} is not valid scope argument"
+            end
+
             if scope_chain_item == refl.scope
               scope.merge! item.except(:where, :includes)
             end
