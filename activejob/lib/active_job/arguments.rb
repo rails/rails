@@ -24,7 +24,7 @@ module ActiveJob
   end
 
   # Raised when an unsupported argument type is set as a job argument. We
-  # currently support NilClass, Fixnum, Float, String, TrueClass, FalseClass,
+  # currently support NilClass, Integer, Fixnum, Float, String, TrueClass, FalseClass,
   # Bignum, BigDecimal, and objects that can be represented as GlobalIDs (ex: Active Record).
   # Raised if you set the key for a Hash something else than a string or
   # a symbol. Also raised when trying to serialize an object which can't be
@@ -34,7 +34,8 @@ module ActiveJob
   module Arguments
     extend self
     # :nodoc:
-    TYPE_WHITELIST = [ NilClass, Fixnum, Float, String, TrueClass, FalseClass, Bignum, BigDecimal ]
+    # Calls #uniq since Integer, Fixnum, and Bignum are all the same class on Ruby 2.4+
+    TYPE_WHITELIST = [ NilClass, String, Integer, Fixnum, Bignum, Float, BigDecimal, TrueClass, FalseClass ].uniq
 
     # Serializes a set of arguments. Whitelisted types are returned
     # as-is. Arrays/Hashes are serialized element by element.

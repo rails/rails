@@ -26,6 +26,10 @@ module Rails
             super
           end
         end
+
+        def js_template(source, destination)
+          template(source + '.js', destination + '.js')
+        end
       end
 
       protected

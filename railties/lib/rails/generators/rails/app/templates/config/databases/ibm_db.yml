@@ -34,6 +34,7 @@
 #
 default: &default
   adapter: ibm_db
+  pool: <%%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   username: db2inst1
   password:
   #schema: db2inst1
