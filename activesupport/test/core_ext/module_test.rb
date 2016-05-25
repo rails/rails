@@ -193,6 +193,21 @@ class ModuleTest < ActiveSupport::TestCase
     end
   end
 
+  def test_delegation_target_when_prefix_is_true
+    assert_nothing_raised do
+      Name.send :delegate, :go, to: :you, prefix: true
+    end
+    assert_nothing_raised do
+      Name.send :delegate, :go, to: :_you, prefix: true
+    end
+    assert_raise(ArgumentError) do
+      Name.send :delegate, :go, to: :You, prefix: true
+    end
+    assert_raise(ArgumentError) do
+      Name.send :delegate, :go, to: :@you, prefix: true
+    end
+  end
+
   def test_delegation_prefix
     invoice = Invoice.new(@david)
     assert_equal invoice.client_name, "David"
