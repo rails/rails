@@ -1477,7 +1477,7 @@ WARNING: Objects will _always_ be removed from the database, ignoring the `:depe
 
 ##### `collection=(objects)`
 
-The `collection=` method makes the collection contain only the supplied objects, by adding and deleting as appropriate.
+The `collection=` method makes the collection contain only the supplied objects, by adding and deleting as appropriate. The changes are persisted to the database.
 
 ##### `collection_singular_ids`
 
@@ -1489,7 +1489,7 @@ The `collection_singular_ids` method returns an array of the ids of the objects 
 
 ##### `collection_singular_ids=(ids)`
 
-The `collection_singular_ids=` method makes the collection contain only the objects identified by the supplied primary key values, by adding and deleting as appropriate.
+The `collection_singular_ids=` method makes the collection contain only the objects identified by the supplied primary key values, by adding and deleting as appropriate. The changes are persisted to the database.
 
 ##### `collection.clear`
 
@@ -2006,7 +2006,7 @@ The `collection.destroy` method removes one or more objects from the collection 
 
 ##### `collection=(objects)`
 
-The `collection=` method makes the collection contain only the supplied objects, by adding and deleting as appropriate.
+The `collection=` method makes the collection contain only the supplied objects, by adding and deleting as appropriate. The changes are persisted to the database.
 
 ##### `collection_singular_ids`
 
@@ -2018,7 +2018,7 @@ The `collection_singular_ids` method returns an array of the ids of the objects 
 
 ##### `collection_singular_ids=(ids)`
 
-The `collection_singular_ids=` method makes the collection contain only the objects identified by the supplied primary key values, by adding and deleting as appropriate.
+The `collection_singular_ids=` method makes the collection contain only the objects identified by the supplied primary key values, by adding and deleting as appropriate. The changes are persisted to the database.
 
 ##### `collection.clear`
 
