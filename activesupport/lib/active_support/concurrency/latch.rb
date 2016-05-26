@@ -1,4 +1,5 @@
 require 'concurrent/atomic/count_down_latch'
+require 'active_support/deprecation'
 
 module ActiveSupport
   module Concurrency
