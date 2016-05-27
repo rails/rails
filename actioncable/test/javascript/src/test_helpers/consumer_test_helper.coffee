@@ -35,3 +35,5 @@ TestHelpers.consumerTest = (name, options = {}, callback) ->
         testData.client = server.clients()[0]
         callback(testData)
       consumer.connect()
+  #QUnit.testDone ->
+    #server.close()
