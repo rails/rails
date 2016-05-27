@@ -114,6 +114,15 @@ module SharedGeneratorTests
     end
   end
 
+  def test_template_is_never_executed_when_no_template_option_given
+    path = "https://gist.github.com/103208.txt"
+    template = %{ say "It works!" }
+    template.instance_eval "def read; self; end" # Make the string respond to read
+
+    generator([destination_root], template: path, no_template: true).expects(:open).never
+    assert_no_match(/It works!/, capture(:stdout) { generator.invoke_all })
+  end
+
   def test_dev_option
     assert_generates_with_bundler dev: true
     rails_path = File.expand_path('../../..', Rails.root)
