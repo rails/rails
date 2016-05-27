@@ -823,11 +823,11 @@ module ActionView
         end
 
         def javascript_src_tag(source, options)
-          content_tag("script", "", { "type" => Mime::JS, "src" => path_to_javascript(source) }.merge(options))
+          content_tag("script", "", { "type" => Mime::JS.to_s.html_safe, "src" => path_to_javascript(source).html_safe }.merge(options))
         end
 
         def stylesheet_tag(source, options)
-          tag("link", { "rel" => "stylesheet", "type" => Mime::CSS, "media" => "screen", "href" => html_escape(path_to_stylesheet(source)) }.merge(options), false, false)
+          tag("link", { "rel" => "stylesheet", "type" => Mime::CSS, "media" => "screen", "href" => html_escape(path_to_stylesheet(source).html_safe) }.merge(options), false, false)
         end
 
         def compute_javascript_paths(*args)
