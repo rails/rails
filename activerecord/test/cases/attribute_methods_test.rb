@@ -27,6 +27,12 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     ActiveRecord::Base.send(:attribute_method_matchers).concat(@old_matchers)
   end
 
+  def test_attributes!
+    attributes = Category.new(name: 'Test category').attributes!
+    assert_equal 'Test category', attributes['name']
+    assert_equal 'Test category', attributes[:name]
+  end
+
   def test_attribute_for_inspect
     t = topics(:first)
     t.title = "The First Topic Now Has A Title With\nNewlines And More Than 50 Characters"

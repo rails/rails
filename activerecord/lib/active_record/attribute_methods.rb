@@ -276,6 +276,10 @@ module ActiveRecord
       @attributes.to_hash
     end
 
+    def attributes!
+      attributes.with_indifferent_access
+    end
+
     # Returns an <tt>#inspect</tt>-like string for the value of the
     # attribute +attr_name+. String attributes are truncated up to 50
     # characters, Date and Time attributes are returned in the
