@@ -367,6 +367,14 @@ class ModuleTest < ActiveSupport::TestCase
     assert_match(/undefined method `private_name' for/, e.message)
   end
 
+  def test_delegate_to_missing_does_not_delegate_to_fake_methods
+    e = assert_raises(NoMethodError) do
+      DecoratedReserved.new(@david).my_fake_method
+    end
+
+    assert_match(/undefined method `my_fake_method' for/, e.message)
+  end
+
   def test_parent
     assert_equal Yz::Zy, Yz::Zy::Cd.parent
     assert_equal Yz, Yz::Zy.parent
