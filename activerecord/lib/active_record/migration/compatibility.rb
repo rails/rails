@@ -116,7 +116,7 @@ module ActiveRecord
         include FourTwoShared
 
         def migrate(*)
-          ActiveSupport::Deprecation.warn \
+          puts \
             "Directly inheriting from ActiveRecord::Migration is deprecated. " \
             "Please specify the Rails release the migration was written for:\n" \
             "\n" \

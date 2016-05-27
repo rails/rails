@@ -102,15 +102,19 @@ module ActiveRecord
         assert connection.columns(:testings).find { |c| c.name == 'updated_at' }.null
       end
 
-      def test_legacy_migrations_get_deprecation_warning_when_run
-        migration = Class.new(ActiveRecord::Migration) {
-          def up
-            add_column :testings, :baz, :string
-          end
-        }
+      LegacyMigration = Class.new(ActiveRecord::Migration) {
+        def up
+          add_column :testings, :baz, :string
+        end
+      }
 
-        assert_deprecated do
-          migration.migrate :up
+      def test_legacy_migrations_get_deprecation_warning_when_run
+        message = "Directly inheriting from ActiveRecord::Migration is deprecated. " \
+                  "Please specify the Rails release the migration was written for:\n" \
+                  "\n" \
+                  "  class #{LegacyMigration} < ActiveRecord::Migration[4.2]\n"
+        assert_output message do
+          LegacyMigration.migrate :up
         end
       end
     end
