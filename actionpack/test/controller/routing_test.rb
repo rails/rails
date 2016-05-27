@@ -1526,6 +1526,18 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal(name_param, 'mypage')
   end
 
+  def test_if_routes_in_scope_with_optional_path_processed_after_root
+    set.draw do
+      scope path: '(:name)', constraints: lambda { |request| request.params[:name].blank? || (request.params[:name] == 'foo') } do
+        root 'pages#index'
+        get 'bar' => 'pages#bar'
+      end
+    end
+
+    assert_equal({:controller => 'pages', :action => 'bar'},
+      set.recognize_path('/bar'))
+  end
+
   def test_route_requirement_recognize_with_ignore_case
     set.draw do
       get 'page/:name' => 'pages#show',
