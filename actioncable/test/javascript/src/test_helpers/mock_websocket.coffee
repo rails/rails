@@ -1,10 +1,11 @@
 #= require mock-socket
 
+ActionCable.TestHelpers.MockWebSocket = MockWebSocket
+
 server = null
 consumer = null
 
 ActionCable.TestHelpers.createConsumer = (url, callback) ->
-  ActionCable.WebSocket = MockWebSocket
   server = new MockServer url
   consumer = ActionCable.createConsumer(url)
   callback(consumer, server)
