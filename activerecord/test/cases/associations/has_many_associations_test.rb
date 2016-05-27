@@ -91,6 +91,54 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_find_or_create_by_with_hash_sets_proper_attributes
+    author = Author.create!(:name => "Sir Vayor")
+    post = author.posts.create!(:title => "A fine post", :body => "It is fine, is it not?")
+    assert_equal 1, author.posts.count
+    assert_equal 1, author.posts.length
+    assert_equal post, author.posts.find_or_create_by_title("A fine post")
+
+    post = author.posts.find_or_create_by_title(:title => "A wood post", :body => "It is made of wood.")
+    assert_equal 2, author.posts.count
+    assert_equal 2, author.posts.length
+    assert_equal "A wood post", post.title
+    assert_equal "It is made of wood.", post.body
+
+    post = author.posts.find_or_create_by_title("An iron post", :body => "A heavy post made of iron.")
+    assert_equal 3, author.posts.count
+    assert_equal 3, author.posts.length
+    assert_equal "An iron post", post.title
+    assert_equal "A heavy post made of iron.", post.body
+
+    post = author.posts.find_or_create_by_title_and_body("A witness post", "The other post was near here.")
+    assert_equal 4, author.posts.count
+    assert_equal 4, author.posts.length
+    assert_equal "A witness post", post.title
+    assert_equal "The other post was near here.", post.body
+
+    post = author.posts.find_or_create_by_title_and_body("An iron post", :body => "A heavy post made of iron.")
+    assert_equal 5, author.posts.count
+    assert_equal 5, author.posts.length
+    assert_equal "An iron post", post.title
+    assert_equal "A heavy post made of iron.", post.body
+
+    post = author.posts.find_or_create_by_title_and_body("The last post", "If only they were this easy to find.", {:title => "Maybe not the last post", :body => "Another post."})
+    assert_equal 6, author.posts.count
+    assert_equal 6, author.posts.length
+    assert_equal "Maybe not the last post", post.title
+    assert_equal "Another post.", post.body
+
+    post = author.posts.find_or_create_by_title_and_type("I have no type", :body => "test")
+    assert_equal 7, author.posts.count
+    assert_equal 7, author.posts.length
+    assert_equal "I have no type", post.title
+    assert_equal nil, post.type
+
+    assert_raise ActiveRecord::UnknownAttributeError do
+      post = author.posts.find_or_create_by_title("I should throw ActiveRecord::UnknownAttributeError", "This is an unspecified body")
+    end
+  end
+
   def test_find_or_create_by_with_block
     post = Post.create! :title => 'test_find_or_create_by_with_additional_parameters', :body => 'this is the body'
     comment = post.comments.find_or_create_by_body('other test comment body') { |comment| comment.type = 'test' }

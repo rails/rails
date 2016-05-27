@@ -384,7 +384,14 @@ module ActiveRecord
             return  send("find_by_#{rest}", *find_args) ||
                     method_missing("create_by_#{rest}", *args, &block)
           when /^create_by_(.*)$/
-            return create($1.split('_and_').zip(args).inject({}) { |h,kv| k,v=kv ; h[k] = v ; h }, &block)
+            explicit_args = args.last.is_a?(Hash) ? args.pop : {}
+            implicit_args = $1.split('_and_')
+            if args.count > implicit_args.count
+              raise ActiveRecord::UnknownAttributeError
+            end
+            implicit_args = implicit_args.zip(args).inject({}) { |h,kv| k,v=kv ; h[k.to_sym] = v ; h }
+
+            return create(implicit_args.merge(explicit_args), &block)
           end
 
           if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))
