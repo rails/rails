@@ -1,5 +1,5 @@
 {module, test} = QUnit
-{testURL} = ActionCable.TestHelpers
+{testURL, sinon} = ActionCable.TestHelpers
 
 module "ActionCable", ->
   module "Adapters", ->
@@ -39,3 +39,27 @@ module "ActionCable", ->
       document.head.removeChild(element)
 
       assert.equal consumer.url, testURL
+
+  module "#log", (hooks) ->
+    sandbox = undefined
+
+    hooks.beforeEach ->
+      sandbox = sinon.sandbox.create()
+      sandbox.spy(window.console, "log")
+      sandbox.stub(Date, "now").withArgs().returns(123)
+      return
+
+    hooks.afterEach ->
+      sandbox.restore()
+      return
+
+    test "logs by default", (assert) ->
+      ActionCable.startDebugging()
+      ActionCable.log('testing')
+      assert.equal 1, console.log.callCount
+      assert.deepEqual ["[ActionCable]", "testing", 123], console.log.getCall(0).args
+
+    test "does not log if turned off", (assert) ->
+      ActionCable.stopDebugging()
+      ActionCable.log('testing')
+      assert.equal 0, console.log.callCount
