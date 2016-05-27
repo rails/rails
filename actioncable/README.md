@@ -408,7 +408,7 @@ run ActionCable.server
 ```
 
 Then you start the server using a binstub in bin/cable ala:
-```
+```sh
 #!/bin/bash
 bundle exec puma -p 28080 cable/config.ru
 ```
