@@ -1,4 +1,4 @@
-class CreateArticles < ActiveRecord::Migration::Current
+class CreateComments < ActiveRecord::Migration::Current
   def self.up
   end
 
