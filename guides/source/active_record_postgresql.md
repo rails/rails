@@ -435,7 +435,7 @@ create_table :documents do |t|
   t.string 'body'
 end
 
-execute "CREATE INDEX documents_idx ON documents USING gin(to_tsvector('english', title || ' ' || body));"
+add_index :documents, "to_tsvector('english', title || ' ' || body)", using: :gin, name: 'documents_idx'
 
 # app/models/document.rb
 class Document < ApplicationRecord
