@@ -1,4 +1,5 @@
 require "active_support/core_ext/module/attribute_accessors"
+require "active_support/core_ext/hash/keys"
 require "rails/test_unit/reporter"
 require "rails/test_unit/test_requirer"
 require "shellwords"
