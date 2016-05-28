@@ -797,7 +797,7 @@ module ActionController
   #
   #   class PeopleController < ActionController::Base
   #     # Using "Person.create(params[:person])" would raise an
-  #     # ActiveModel::ForbiddenAttributes exception because it'd
+  #     # ActiveModel::ForbiddenAttributesError exception because it'd
   #     # be using mass assignment without an explicit permit step.
   #     # This is the recommended form:
   #     def create
