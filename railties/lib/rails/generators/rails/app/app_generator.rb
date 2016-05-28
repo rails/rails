@@ -305,6 +305,17 @@ module Rails
         end
       end
 
+      def delete_public_files_if_api_option
+        if options[:api]
+          remove_file 'public/404.html'
+          remove_file 'public/422.html'
+          remove_file 'public/500.html'
+          remove_file 'public/apple-touch-icon-precomposed.png'
+          remove_file 'public/apple-touch-icon.png'
+          remove_file 'public/favicon.ico'
+        end
+      end
+
       def delete_js_folder_skipping_javascript
         if options[:skip_javascript]
           remove_dir 'app/assets/javascripts'
