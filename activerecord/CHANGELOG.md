@@ -1,3 +1,7 @@
+*   Fix `rake db:migrate:status` with subdirectories.
+
+    *Ryuta Kamizono*
+
 *   Don't share options between reference id and type columns
 
     When using a polymorphic reference column in a migration, sharing options
