@@ -1,3 +1,7 @@
+*   Fix `rake db:migrate:status` with subdirectories.
+
+    *Ryuta Kamizono*
+
 *   Use `max_identifier_length` for `index_name_length` in PostgreSQL adapter.
 
     *Ryuta Kamizono*
