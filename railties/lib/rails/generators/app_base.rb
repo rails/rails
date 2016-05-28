@@ -112,6 +112,7 @@ module Rails
           jbuilder_gemfile_entry,
           sdoc_gemfile_entry,
           spring_gemfile_entry,
+          mime_type_gemfile_entry,
           @extra_entries].flatten.find_all(&@gem_filter)
       end
 
@@ -308,6 +309,12 @@ module Rails
         return [] unless spring_install?
         comment = 'Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring'
         GemfileEntry.new('spring', nil, comment, group: :development)
+      end
+
+      def mime_type_gemfile_entry
+        return [] unless RUBY_VERSION < '2'
+
+        GemfileEntry.new('mime-types', '< 3', nil, require: false)
       end
 
       def bundle_command(command)
