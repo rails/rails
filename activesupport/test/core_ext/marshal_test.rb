@@ -74,6 +74,7 @@ class MarshalTest < ActiveSupport::TestCase
     end
   end
 
+  unless RUBY_VERSION < "2"
   test "when one constant resolves to another" do
     class Parent; C = Class.new; end
     class Child < Parent; C = Class.new; end
@@ -83,6 +84,7 @@ class MarshalTest < ActiveSupport::TestCase
     Child.send(:remove_const, :C)
 
     assert_raise(ArgumentError) { Marshal.load(dump) }
+  end
   end
 
   test "that a real missing class is causing an exception" do

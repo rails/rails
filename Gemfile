@@ -75,7 +75,7 @@ group :test do
   #   gem 'debugger'
   # end
 
-  platforms :mri do
+  platforms :mri_21 do
     gem 'stackprof'
   end
 

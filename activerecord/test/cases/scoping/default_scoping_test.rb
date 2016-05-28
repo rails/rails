@@ -4,7 +4,6 @@ require 'models/comment'
 require 'models/developer'
 require 'models/computer'
 require 'models/vehicle'
-require 'models/cat'
 
 class DefaultScopingTest < ActiveRecord::TestCase
   fixtures :developers, :posts, :comments
@@ -451,16 +450,5 @@ class DefaultScopingTest < ActiveRecord::TestCase
   def test_with_abstract_class_where_clause_should_not_be_duplicated
     scope = Bus.all
     assert_equal scope.where_values.length, 1
-  end
-
-  def test_with_abstract_class_scope_should_be_executed_in_correct_context
-    vegetarian_pattern, gender_pattern = if current_adapter?(:Mysql2Adapter)
-      [/`lions`.`is_vegetarian`/, /`lions`.`gender`/]
-    else
-      [/"lions"."is_vegetarian"/, /"lions"."gender"/]
-    end
-
-    assert_match vegetarian_pattern, Lion.all.to_sql
-    assert_match gender_pattern, Lion.female.to_sql
   end
 end
