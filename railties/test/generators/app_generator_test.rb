@@ -176,13 +176,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     app_root = File.join(destination_root, 'myapp')
     run_generator [app_root]
 
-    FileUtils.rm("#{app_root}/config/initializers/callback_terminator.rb")
+    FileUtils.rm("#{app_root}/config/initializers/new_framework_defaults/callback_terminator.rb")
 
     stub_rails_application(app_root) do
       generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
-      assert_no_file "#{app_root}/config/initializers/callback_terminator.rb"
+      assert_no_file "#{app_root}/config/initializers/new_framework_defaults/callback_terminator.rb"
     end
   end
 
@@ -190,13 +190,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     app_root = File.join(destination_root, 'myapp')
     run_generator [app_root]
 
-    FileUtils.touch("#{app_root}/config/initializers/callback_terminator.rb")
+    FileUtils.touch("#{app_root}/config/initializers/new_framework_defaults/callback_terminator.rb")
 
     stub_rails_application(app_root) do
       generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
-      assert_file "#{app_root}/config/initializers/callback_terminator.rb"
+      assert_file "#{app_root}/config/initializers/new_framework_defaults/callback_terminator.rb"
     end
   end
 
@@ -233,13 +233,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     app_root = File.join(destination_root, 'myapp')
     run_generator [app_root]
 
-    FileUtils.rm("#{app_root}/config/initializers/active_record_belongs_to_required_by_default.rb")
+    FileUtils.rm("#{app_root}/config/initializers/new_framework_defaults/active_record_belongs_to_required_by_default.rb")
 
     stub_rails_application(app_root) do
       generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
-      assert_no_file "#{app_root}/config/initializers/active_record_belongs_to_required_by_default.rb"
+      assert_no_file "#{app_root}/config/initializers/new_framework_defaults/active_record_belongs_to_required_by_default.rb"
     end
   end
 
@@ -247,13 +247,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     app_root = File.join(destination_root, 'myapp')
     run_generator [app_root]
 
-    FileUtils.touch("#{app_root}/config/initializers/active_record_belongs_to_required_by_default.rb")
+    FileUtils.touch("#{app_root}/config/initializers/new_framework_defaults/active_record_belongs_to_required_by_default.rb")
 
     stub_rails_application(app_root) do
       generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
-      assert_file "#{app_root}/config/initializers/active_record_belongs_to_required_by_default.rb"
+      assert_file "#{app_root}/config/initializers/new_framework_defaults/active_record_belongs_to_required_by_default.rb"
     end
   end
 
@@ -261,13 +261,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     app_root = File.join(destination_root, 'myapp')
     run_generator [app_root]
 
-    FileUtils.rm("#{app_root}/config/initializers/to_time_preserves_timezone.rb")
+    FileUtils.rm("#{app_root}/config/initializers/new_framework_defaults/to_time_preserves_timezone.rb")
 
     stub_rails_application(app_root) do
       generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
-      assert_no_file "#{app_root}/config/initializers/to_time_preserves_timezone.rb"
+      assert_no_file "#{app_root}/config/initializers/new_framework_defaults/to_time_preserves_timezone.rb"
     end
   end
 
@@ -275,13 +275,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     app_root = File.join(destination_root, 'myapp')
     run_generator [app_root]
 
-    FileUtils.touch("#{app_root}/config/initializers/to_time_preserves_timezone.rb")
+    FileUtils.touch("#{app_root}/config/initializers/new_framework_defaults/to_time_preserves_timezone.rb")
 
     stub_rails_application(app_root) do
       generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
-      assert_file "#{app_root}/config/initializers/to_time_preserves_timezone.rb"
+      assert_file "#{app_root}/config/initializers/new_framework_defaults/to_time_preserves_timezone.rb"
     end
   end
 
@@ -289,13 +289,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     app_root = File.join(destination_root, 'myapp')
     run_generator [app_root]
 
-    FileUtils.rm("#{app_root}/config/initializers/ssl_options.rb")
+    FileUtils.rm("#{app_root}/config/initializers/new_framework_defaults/ssl_options.rb")
 
     stub_rails_application(app_root) do
       generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
-      assert_no_file "#{app_root}/config/initializers/ssl_options.rb"
+      assert_no_file "#{app_root}/config/initializers/new_framework_defaults/ssl_options.rb"
     end
   end
 
@@ -303,13 +303,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     app_root = File.join(destination_root, 'myapp')
     run_generator [app_root]
 
-    FileUtils.touch("#{app_root}/config/initializers/ssl_options.rb")
+    FileUtils.touch("#{app_root}/config/initializers/new_framework_defaults/ssl_options.rb")
 
     stub_rails_application(app_root) do
       generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
-      assert_file "#{app_root}/config/initializers/ssl_options.rb"
+      assert_file "#{app_root}/config/initializers/new_framework_defaults/ssl_options.rb"
     end
   end
 
@@ -452,7 +452,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_generator_if_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
     assert_no_file "config/database.yml"
-    assert_no_file "config/initializers/active_record_belongs_to_required_by_default.rb"
+    assert_no_file "config/initializers/new_framework_defaults/active_record_belongs_to_required_by_default.rb"
     assert_no_file "app/models/application_record.rb"
     assert_file "config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
     assert_file "test/test_helper.rb" do |helper_content|

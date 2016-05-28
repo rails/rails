@@ -111,7 +111,7 @@ module TestHelpers
 
       # Delete the initializers unless requested
       unless options[:initializers]
-        Dir["#{app_path}/config/initializers/*.rb"].each do |initializer|
+        Dir["#{app_path}/config/initializers/**/*.rb"].each do |initializer|
           File.delete(initializer)
         end
       end

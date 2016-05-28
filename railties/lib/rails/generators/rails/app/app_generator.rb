@@ -90,11 +90,11 @@ module Rails
 
     def config_when_updating
       cookie_serializer_config_exist = File.exist?('config/initializers/cookies_serializer.rb')
-      callback_terminator_config_exist = File.exist?('config/initializers/callback_terminator.rb')
-      active_record_belongs_to_required_by_default_config_exist = File.exist?('config/initializers/active_record_belongs_to_required_by_default.rb')
-      to_time_preserves_timezone_config_exist = File.exist?('config/initializers/to_time_preserves_timezone.rb')
+      callback_terminator_config_exist = File.exist?('config/initializers/new_framework_defaults/callback_terminator.rb')
+      active_record_belongs_to_required_by_default_config_exist = File.exist?('config/initializers/new_framework_defaults/active_record_belongs_to_required_by_default.rb')
+      to_time_preserves_timezone_config_exist = File.exist?('config/initializers/new_framework_defaults/to_time_preserves_timezone.rb')
       action_cable_config_exist = File.exist?('config/cable.yml')
-      ssl_options_exist = File.exist?('config/initializers/ssl_options.rb')
+      ssl_options_exist = File.exist?('config/initializers/new_framework_defaults/ssl_options.rb')
       rack_cors_config_exist = File.exist?('config/initializers/cors.rb')
 
       config
@@ -102,7 +102,7 @@ module Rails
       gsub_file 'config/environments/development.rb', /^(\s+)config\.file_watcher/, '\1# config.file_watcher'
 
       unless callback_terminator_config_exist
-        remove_file 'config/initializers/callback_terminator.rb'
+        remove_file 'config/initializers/new_framework_defaults/callback_terminator.rb'
       end
 
       unless cookie_serializer_config_exist
@@ -110,11 +110,11 @@ module Rails
       end
 
       unless active_record_belongs_to_required_by_default_config_exist
-        remove_file 'config/initializers/active_record_belongs_to_required_by_default.rb'
+        remove_file 'config/initializers/new_framework_defaults/active_record_belongs_to_required_by_default.rb'
       end
 
       unless to_time_preserves_timezone_config_exist
-        remove_file 'config/initializers/to_time_preserves_timezone.rb'
+        remove_file 'config/initializers/new_framework_defaults/to_time_preserves_timezone.rb'
       end
 
       unless action_cable_config_exist
@@ -122,7 +122,7 @@ module Rails
       end
 
       unless ssl_options_exist
-        remove_file 'config/initializers/ssl_options.rb'
+        remove_file 'config/initializers/new_framework_defaults/ssl_options.rb'
       end
 
       unless rack_cors_config_exist
@@ -344,7 +344,7 @@ module Rails
 
       def delete_active_record_initializers_skipping_active_record
         if options[:skip_active_record]
-          remove_file 'config/initializers/active_record_belongs_to_required_by_default.rb'
+          remove_file 'config/initializers/new_framework_defaults/active_record_belongs_to_required_by_default.rb'
         end
       end
 
@@ -360,8 +360,8 @@ module Rails
         if options[:api]
           remove_file 'config/initializers/session_store.rb'
           remove_file 'config/initializers/cookies_serializer.rb'
-          remove_file 'config/initializers/request_forgery_protection.rb'
-          remove_file 'config/initializers/per_form_csrf_tokens.rb'
+          remove_file 'config/initializers/new_framework_defaults/request_forgery_protection.rb'
+          remove_file 'config/initializers/new_framework_defaults/per_form_csrf_tokens.rb'
         end
       end
 
