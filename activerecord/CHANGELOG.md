@@ -13,4 +13,9 @@
 
     *Erol Fornoles*
 
+*   Use `take` instead of `first` in `ActiveRecord::Relation#first_or_create`, 
+    `#first_or_create!` and `#first_or_initialize`.
+     
+    *Guilherme Goettems Schneider*
+
 Please check [5-0-stable](https://github.com/rails/rails/blob/5-0-stable/activerecord/CHANGELOG.md) for previous changes.

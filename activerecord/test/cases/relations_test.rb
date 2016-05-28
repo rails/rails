@@ -1370,7 +1370,7 @@ class RelationTest < ActiveRecord::TestCase
 
     same_parrot = Bird.where(:color => 'green').first_or_create([{:name => 'hummingbird'}, {:name => 'macaw'}])
     assert_kind_of Bird, same_parrot
-    assert_equal several_green_birds.first, same_parrot
+    assert_includes several_green_birds, same_parrot
   end
 
   def test_first_or_create_bang_with_valid_options
@@ -1418,7 +1418,7 @@ class RelationTest < ActiveRecord::TestCase
 
     same_parrot = Bird.where(:color => 'green').first_or_create!([{:name => 'hummingbird'}, {:name => 'macaw'}])
     assert_kind_of Bird, same_parrot
-    assert_equal several_green_birds.first, same_parrot
+    assert_includes several_green_birds, same_parrot
   end
 
   def test_first_or_create_with_invalid_array

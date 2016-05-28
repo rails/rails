@@ -161,15 +161,15 @@ module ActiveRecord
     end
 
     def first_or_create(attributes = nil, &block) # :nodoc:
-      first || create(attributes, &block)
+      take || create(attributes, &block)
     end
 
     def first_or_create!(attributes = nil, &block) # :nodoc:
-      first || create!(attributes, &block)
+      take || create!(attributes, &block)
     end
 
     def first_or_initialize(attributes = nil, &block) # :nodoc:
-      first || new(attributes, &block)
+      take || new(attributes, &block)
     end
 
     # Finds the first record with the given attributes, or creates a record
