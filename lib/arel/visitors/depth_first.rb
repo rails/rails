@@ -141,6 +141,7 @@ module Arel
       alias :visit_FalseClass                    :terminal
       alias :visit_Fixnum                        :terminal
       alias :visit_Float                         :terminal
+      alias :visit_Integer                       :terminal
       alias :visit_NilClass                      :terminal
       alias :visit_String                        :terminal
       alias :visit_Symbol                        :terminal
