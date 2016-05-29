@@ -576,8 +576,9 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   New attributes
     API. ([commit](https://github.com/rails/rails/commit/8c752c7ac739d5a86d4136ab1e9d0142c4041e58))
 
-*   Added `:enum_prefix`/`:enum_suffix` option to `enum`
-    definition. ([Pull Request](https://github.com/rails/rails/pull/19813))
+*   Added `:_prefix`/`:_suffix` option to `enum` definition.
+    ([Pull Request](https://github.com/rails/rails/pull/19813),
+     [Pull Request](https://github.com/rails/rails/pull/20999))
 
 *   Added `#cache_key` to `ActiveRecord::Relation`.
     ([Pull Request](https://github.com/rails/rails/pull/20884))
