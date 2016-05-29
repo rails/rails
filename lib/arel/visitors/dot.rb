@@ -205,6 +205,7 @@ module Arel
       alias :visit_TrueClass :visit_String
       alias :visit_FalseClass :visit_String
       alias :visit_Arel_Nodes_BindParam :visit_String
+      alias :visit_Integer :visit_String
       alias :visit_Fixnum :visit_String
       alias :visit_BigDecimal :visit_String
       alias :visit_Float :visit_String
