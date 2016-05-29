@@ -152,7 +152,39 @@ module ActiveRecord
           end
 
           scope.unscope_values = Array(values[:unscope]) + Array(preload_values[:unscope])
-          klass.default_scoped.merge(scope)
+          remove_circular_references(klass.all.spawn).merge(scope)
+        end
+
+        def remove_circular_references(scope)
+          names = association_name_candidates(scope.klass)
+          scope.preload_values  = remove_references(names, scope.preload_values)
+          scope.includes_values = remove_references(names, scope.includes_values)
+          scope
+        end
+
+        def association_name_candidates(klass)
+          name = klass.name.underscore.tr('/', '_')
+          [name.singularize, name.pluralize]
+        end
+
+        def remove_references(names, values)
+          case values
+          when Hash
+            values.keys.each do |key|
+              values[key] = remove_references(names, values[key])
+            end
+            values
+          when Array
+            values.map { |v| remove_references(names, v) }.compact
+          when String, Symbol
+            if names.include?(values.to_s)
+              nil
+            else
+              values
+            end
+          else
+            values
+          end
         end
       end
     end
