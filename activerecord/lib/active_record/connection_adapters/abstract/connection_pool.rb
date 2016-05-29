@@ -837,7 +837,11 @@ module ActiveRecord
       end
       alias :connection_pools :connection_pool_list
 
-      def establish_connection(spec)
+      def establish_connection(config)
+        resolver = ConnectionSpecification::Resolver.new(Base.configurations)
+        spec = resolver.spec(config)
+
+        remove_connection(spec.name)
         owner_to_pool[spec.name] = ConnectionAdapters::ConnectionPool.new(spec)
       end
 
@@ -871,9 +875,9 @@ module ActiveRecord
       # for (not necessarily the current class).
       def retrieve_connection(spec_name) #:nodoc:
         pool = retrieve_connection_pool(spec_name)
-        raise ConnectionNotEstablished, "No connection pool with id #{spec_name} found." unless pool
+        raise ConnectionNotEstablished, "No connection pool with id '#{spec_name}' found." unless pool
         conn = pool.connection
-        raise ConnectionNotEstablished, "No connection for #{spec_name} in connection pool" unless conn
+        raise ConnectionNotEstablished, "No connection for '#{spec_name}' in connection pool" unless conn
         conn
       end
 
@@ -907,7 +911,7 @@ module ActiveRecord
             # A connection was established in an ancestor process that must have
             # subsequently forked. We can't reuse the connection, but we can copy
             # the specification and establish a new connection with it.
-            establish_connection(ancestor_pool.spec).tap do |pool|
+            establish_connection(ancestor_pool.spec.to_hash).tap do |pool|
               pool.schema_cache = ancestor_pool.schema_cache if ancestor_pool.schema_cache
             end
           else
