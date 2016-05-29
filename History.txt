@@ -1,3 +1,9 @@
+=== 7.0.1 / unreleased
+
+* Enhancements
+
+  * Support Ruby 2.4 unified Integer class
+
 === 7.0.0 / 2015-12-17
 
 * Enhancements
