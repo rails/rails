@@ -9,7 +9,7 @@ require 'rails/generators'
 module Rails
   module Generators
     module Testing
-      module Behaviour
+      module Behavior
         extend ActiveSupport::Concern
         include ActiveSupport::Testing::Stream
 
