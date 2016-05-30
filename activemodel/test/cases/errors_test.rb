@@ -427,4 +427,13 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal [:name], person.errors.messages.keys
     assert_equal [:name], person.errors.details.keys
   end
+
+  test "errors are marshalable" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :invalid)
+    serialized = Marshal.load(Marshal.dump(errors))
+
+    assert_equal errors.messages, serialized.messages
+    assert_equal errors.details, serialized.details
+  end
 end
