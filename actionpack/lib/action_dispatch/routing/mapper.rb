@@ -869,11 +869,20 @@ module ActionDispatch
         #   controller "food" do
         #     match "bacon", action: :bacon, via: :get
         #   end
-        def controller(controller)
-          @scope = @scope.new(controller: controller)
-          yield
-        ensure
-          @scope = @scope.parent
+        def controller(controller, options = {})
+          if options.empty?
+            begin
+              @scope = @scope.new(controller: controller)
+              yield
+            ensure
+              @scope = @scope.parent
+            end
+          else
+            ActiveSupport::Deprecation.warn "#controller with options is deprecated. If you need to pass more options than the controller name use #scope."
+
+            options[:controller] = controller
+            scope(options) { yield }
+          end
         end
 
         # Scopes routes to a specific namespace. For example:

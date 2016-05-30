@@ -363,6 +363,35 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal '/bookmark/remove', bookmark_remove_path
   end
 
+  def test_bookmarks_with_deprecated_controller_block
+    assert_deprecated do
+      draw do
+        controller "bookmarks", as: :bookmark, path: "bookmark" do
+          get  :new, path: "build"
+          post :create, path: "create", as: ""
+          put  :update
+          get  :remove, action: :destroy, as: :remove
+        end
+      end
+    end
+
+    get '/bookmark/build'
+    assert_equal 'bookmarks#new', @response.body
+    assert_equal '/bookmark/build', bookmark_new_path
+
+    post '/bookmark/create'
+    assert_equal 'bookmarks#create', @response.body
+    assert_equal '/bookmark/create', bookmark_path
+
+    put '/bookmark/update'
+    assert_equal 'bookmarks#update', @response.body
+    assert_equal '/bookmark/update', bookmark_update_path
+
+    get '/bookmark/remove'
+    assert_equal 'bookmarks#destroy', @response.body
+    assert_equal '/bookmark/remove', bookmark_remove_path
+  end
+
   def test_pagemarks
     tc = self
     draw do
