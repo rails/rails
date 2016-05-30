@@ -17,13 +17,28 @@ module Enumerable
   # The default sum of an empty list is zero. You can override this default:
   #
   #  [].sum(Payment.new(0)) { |i| i.amount } # => Payment.new(0)
-  def sum(identity = nil, &block)
+  def _enum_sum(identity = nil, &block)
     if block_given?
       map(&block).sum(identity)
     else
       sum = identity ? inject(identity, :+) : inject(:+)
       sum || identity || 0
     end
+  end
+
+  if Enumerable.instance_methods(false).include?(:sum) && !(%w[a].sum rescue false)
+      alias :orig_enum_sum :sum
+
+      def sum(identity = nil, &block) #:nodoc:
+        if identity || first.is_a?(Numeric)
+          identity ||= 0
+          orig_enum_sum(identity, &block)
+        else
+          _enum_sum(identity, &block)
+        end
+      end
+  else
+    alias :sum :_enum_sum
   end
 
   # Convert an enumerable to a hash.
@@ -119,7 +134,7 @@ if Array.instance_methods(false).include?(:sum) && !(%w[a].sum rescue false)
     alias :orig_sum :sum
 
     def sum(init = nil, &block) #:nodoc:
-      if init.is_a?(Numeric) || first.is_a?(Numeric)
+      if init || first.is_a?(Numeric)
         init ||= 0
         orig_sum(init, &block)
       else
