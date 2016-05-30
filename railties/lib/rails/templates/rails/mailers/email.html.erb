@@ -98,8 +98,8 @@
     <% if @email.multipart? %>
       <dd>
         <select onchange="formatChanged(this);">
-          <option <%= request.format == Mime[:html] ? 'selected' : '' %> value="?part=text%2Fhtml">View as HTML email</option>
-          <option <%= request.format == Mime[:text] ? 'selected' : '' %> value="?part=text%2Fplain">View as plain-text email</option>
+          <option <%= request.format == Mime[:html] ? 'selected' : '' %> value="?<%= part_query('text/html') %>">View as HTML email</option>
+          <option <%= request.format == Mime[:text] ? 'selected' : '' %> value="?<%= part_query('text/plain') %>">View as plain-text email</option>
         </select>
       </dd>
     <% end %>
@@ -107,7 +107,7 @@
 </header>
 
 <% if @part && @part.mime_type %>
-  <iframe seamless name="messageBody" src="?part=<%= Rack::Utils.escape(@part.mime_type) %>"></iframe>
+  <iframe seamless name="messageBody" src="?<%= part_query(@part.mime_type) %>"></iframe>
 <% else %>
   <p>
     You are trying to preview an email that does not have any content.
