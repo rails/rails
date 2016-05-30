@@ -17,7 +17,7 @@ Even if you don't give a hoot about any of our internal cleanups, Rails 3.0 is g
 
 On top of all that, we've tried our best to deprecate the old APIs with nice warnings. That means that you can move your existing application to Rails 3 without immediately rewriting all your old code to the latest best practices.
 
-These release notes cover the major upgrades, but don't include every little bug fix and change. Rails 3.0 consists of almost 4,000 commits by more than 250 authors! If you want to see everything, check out the [list of commits](http://github.com/rails/rails/commits/3-0-stable) in the main Rails repository on GitHub.
+These release notes cover the major upgrades, but don't include every little bug fix and change. Rails 3.0 consists of almost 4,000 commits by more than 250 authors! If you want to see everything, check out the [list of commits](https://github.com/rails/rails/commits/3-0-stable) in the main Rails repository on GitHub.
 
 --------------------------------------------------------------------------------
 
@@ -63,7 +63,7 @@ The `config.gem` method is gone and has been replaced by using `bundler` and a `
 
 ### Upgrade Process
 
-To help with the upgrade process, a plugin named [Rails Upgrade](http://github.com/rails/rails_upgrade) has been created to automate part of it.
+To help with the upgrade process, a plugin named [Rails Upgrade](https://github.com/rails/rails_upgrade) has been created to automate part of it.
 
 Simply install the plugin, then run `rake rails:upgrade:check` to check your app for pieces that need to be updated (with links to information on how to update them). It also offers a task to generate a `Gemfile` based on your current `config.gem` calls and a task to generate a new routes file from your current one. To get the plugin, simply run the following:
 
@@ -86,7 +86,7 @@ $ cd myapp
 
 ### Vendoring Gems
 
-Rails now uses a `Gemfile` in the application root to determine the gems you require for your application to start. This `Gemfile` is processed by the [Bundler](http://github.com/bundler/bundler,) which then installs all your dependencies. It can even install all the dependencies locally to your application so that it doesn't depend on the system gems.
+Rails now uses a `Gemfile` in the application root to determine the gems you require for your application to start. This `Gemfile` is processed by the [Bundler](https://github.com/bundler/bundler) which then installs all your dependencies. It can even install all the dependencies locally to your application so that it doesn't depend on the system gems.
 
 More information: - [bundler homepage](http://bundler.io/)
 
@@ -138,14 +138,14 @@ More Information: - [Rails Edge Architecture](http://yehudakatz.com/2009/06/11/r
 
 ### Arel Integration
 
-[Arel](http://github.com/brynary/arel) (or Active Relation) has been taken on as the underpinnings of Active Record and is now required for Rails. Arel provides an SQL abstraction that simplifies out Active Record and provides the underpinnings for the relation functionality in Active Record.
+[Arel](https://github.com/brynary/arel) (or Active Relation) has been taken on as the underpinnings of Active Record and is now required for Rails. Arel provides an SQL abstraction that simplifies out Active Record and provides the underpinnings for the relation functionality in Active Record.
 
 More information: - [Why I wrote Arel](https://web.archive.org/web/20120718093140/http://magicscalingsprinkles.wordpress.com/2010/01/28/why-i-wrote-arel/)
 
 
 ### Mail Extraction
 
-Action Mailer ever since its beginnings has had monkey patches, pre parsers and even delivery and receiver agents, all in addition to having TMail vendored in the source tree. Version 3 changes that with all email message related functionality abstracted out to the [Mail](http://github.com/mikel/mail) gem. This again reduces code duplication and helps create definable boundaries between Action Mailer and the email parser.
+Action Mailer ever since its beginnings has had monkey patches, pre parsers and even delivery and receiver agents, all in addition to having TMail vendored in the source tree. Version 3 changes that with all email message related functionality abstracted out to the [Mail](https://github.com/mikel/mail) gem. This again reduces code duplication and helps create definable boundaries between Action Mailer and the email parser.
 
 More information: - [New Action Mailer API in Rails 3](http://lindsaar.net/2010/1/26/new-actionmailer-api-in-rails-3)
 
@@ -161,7 +161,7 @@ More Information: - [Rails Documentation Projects](http://weblog.rubyonrails.org
 Internationalization
 --------------------
 
-A large amount of work has been done with I18n support in Rails 3, including the latest [I18n](http://github.com/svenfuchs/i18n) gem supplying many speed improvements.
+A large amount of work has been done with I18n support in Rails 3, including the latest [I18n](https://github.com/svenfuchs/i18n) gem supplying many speed improvements.
 
 * I18n for any object - I18n behavior can be added to any object by including `ActiveModel::Translation` and `ActiveModel::Validations`. There is also an `errors.messages` fallback for translations.
 * Attributes can have default translations.
@@ -309,7 +309,7 @@ More Information:
 
 Major re-write was done in the Action View helpers, implementing Unobtrusive JavaScript (UJS) hooks and removing the old inline AJAX commands. This enables Rails to use any compliant UJS driver to implement the UJS hooks in the helpers.
 
-What this means is that all previous `remote_<method>` helpers have been removed from Rails core and put into the [Prototype Legacy Helper](http://github.com/rails/prototype_legacy_helper). To get UJS hooks into your HTML, you now pass `:remote => true` instead. For example:
+What this means is that all previous `remote_<method>` helpers have been removed from Rails core and put into the [Prototype Legacy Helper](https://github.com/rails/prototype_legacy_helper). To get UJS hooks into your HTML, you now pass `:remote => true` instead. For example:
 
 ```ruby
 form_for @post, :remote => true
@@ -575,7 +575,7 @@ The following methods have been removed because they are no longer used in the f
 Action Mailer
 -------------
 
-Action Mailer has been given a new API with TMail being replaced out with the new [Mail](http://github.com/mikel/mail) as the email library. Action Mailer itself has been given an almost complete re-write with pretty much every line of code touched. The result is that Action Mailer now simply inherits from Abstract Controller and wraps the Mail gem in a Rails DSL. This reduces the amount of code and duplication of other libraries in Action Mailer considerably.
+Action Mailer has been given a new API with TMail being replaced out with the new [Mail](https://github.com/mikel/mail) as the email library. Action Mailer itself has been given an almost complete re-write with pretty much every line of code touched. The result is that Action Mailer now simply inherits from Abstract Controller and wraps the Mail gem in a Rails DSL. This reduces the amount of code and duplication of other libraries in Action Mailer considerably.
 
 * All mailers are now in `app/mailers` by default.
 * Can now send email using new API with three methods: `attachments`, `headers` and `mail`.

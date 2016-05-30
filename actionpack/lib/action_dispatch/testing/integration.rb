@@ -300,7 +300,7 @@ module ActionDispatch
           end
         end
 
-        REQUEST_KWARGS = %i(params headers env xhr)
+        REQUEST_KWARGS = %i(params headers env xhr as)
         def kwarg_request?(args)
           args[0].respond_to?(:keys) && args[0].keys.any? { |k| REQUEST_KWARGS.include?(k) }
         end
@@ -317,7 +317,8 @@ module ActionDispatch
               params: { id: 1 },
               headers: { 'X-Extra-Header' => '123' },
               env: { 'action_dispatch.custom' => 'custom' },
-              xhr: true
+              xhr: true,
+              as: :json
           MSG
         end
 

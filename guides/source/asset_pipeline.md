@@ -435,11 +435,11 @@ Sprockets uses manifest files to determine which assets to include and serve.
 These manifest files contain _directives_ - instructions that tell Sprockets
 which files to require in order to build a single CSS or JavaScript file. With
 these directives, Sprockets loads the files specified, processes them if
-necessary, concatenates them into one single file and then compresses them (if
-`Rails.application.config.assets.compress` is true). By serving one file rather
-than many, the load time of pages can be greatly reduced because the browser
-makes fewer requests. Compression also reduces file size, enabling the
-browser to download them faster.
+necessary, concatenates them into one single file and then compresses them
+(based on value of `Rails.application.config.assets.js_compressor`). By serving
+one file rather than many, the load time of pages can be greatly reduced because
+the browser makes fewer requests. Compression also reduces file size, enabling
+the browser to download them faster.
 
 
 For example, a new Rails application includes a default
@@ -1105,11 +1105,17 @@ NOTE: You will need an [ExecJS](https://github.com/rails/execjs#readme)
 supported runtime in order to use `uglifier`. If you are using Mac OS X or
 Windows you have a JavaScript runtime installed in your operating system.
 
-NOTE: The `config.assets.compress` initialization option is no longer used in
-Rails to enable either CSS or JavaScript compression. Setting it will have no
-effect on the application. Instead, setting `config.assets.css_compressor` and
-`config.assets.js_compressor` will control compression of CSS and JavaScript
-assets.
+
+
+### Serving GZipped version of assets
+
+By default, gzipped version of compiled assets will be generated, along 
+with the non-gzipped version of assets. Gzipped assets help reduce the transmission of 
+data over the wire. You can configure this by setting the `gzip` flag.
+
+```ruby
+config.assets.gzip = false # disable gzipped assets generation
+```
 
 ### Using Your Own Compressor
 
@@ -1280,7 +1286,7 @@ config.assets.js_compressor = :uglifier
 # Don't fallback to assets pipeline if a precompiled asset is missed
 config.assets.compile = false
 
-# Generate digests for assets URLs. This is planned for deprecation.
+# Generate digests for assets URLs.
 config.assets.digest = true
 
 # Precompile additional assets (application.js, application.css, and all

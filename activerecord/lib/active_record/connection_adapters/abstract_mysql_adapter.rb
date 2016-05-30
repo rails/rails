@@ -20,7 +20,7 @@ module ActiveRecord
         MySQL::Table.new(table_name, base)
       end
 
-      def schema_creation
+      def schema_creation # :nodoc:
         MySQL::SchemaCreation.new(self)
       end
 
@@ -146,11 +146,11 @@ module ActiveRecord
       end
 
       def get_advisory_lock(lock_name, timeout = 0) # :nodoc:
-        select_value("SELECT GET_LOCK('#{lock_name}', #{timeout});").to_s == '1'
+        select_value("SELECT GET_LOCK(#{quote(lock_name)}, #{timeout})") == 1
       end
 
       def release_advisory_lock(lock_name) # :nodoc:
-        select_value("SELECT RELEASE_LOCK('#{lock_name}')").to_s == '1'
+        select_value("SELECT RELEASE_LOCK(#{quote(lock_name)})") == 1
       end
 
       def native_database_types
@@ -502,8 +502,12 @@ module ActiveRecord
       def add_index(table_name, column_name, options = {}) #:nodoc:
         index_name, index_type, index_columns, _, index_algorithm, index_using, comment = add_index_options(table_name, column_name, options)
         sql = "CREATE #{index_type} INDEX #{quote_column_name(index_name)} #{index_using} ON #{quote_table_name(table_name)} (#{index_columns}) #{index_algorithm}"
+        execute add_sql_comment!(sql, comment)
+      end
+
+      def add_sql_comment!(sql, comment) # :nodoc:
         sql << " COMMENT #{quote(comment)}" if comment
-        execute sql
+        sql
       end
 
       def foreign_keys(table_name)
@@ -703,7 +707,7 @@ module ActiveRecord
           case length
           when Hash
             column_names.each {|name| option_strings[name] += "(#{length[name]})" if length.has_key?(name) && length[name].present?}
-          when Fixnum
+          when Integer
             column_names.each {|name| option_strings[name] += "(#{length})"}
           end
         end
@@ -723,14 +727,22 @@ module ActiveRecord
         column_names.map {|name| quote_column_name(name) + option_strings[name]}
       end
 
+      # See https://dev.mysql.com/doc/refman/5.7/en/error-messages-server.html
+      ER_DUP_ENTRY            = 1062
+      ER_NO_REFERENCED_ROW_2  = 1452
+      ER_DATA_TOO_LONG        = 1406
+      ER_LOCK_DEADLOCK        = 1213
+
       def translate_exception(exception, message)
         case error_number(exception)
-        when 1062
+        when ER_DUP_ENTRY
           RecordNotUnique.new(message)
-        when 1452
+        when ER_NO_REFERENCED_ROW_2
           InvalidForeignKey.new(message)
-        when 1406
+        when ER_DATA_TOO_LONG
           ValueTooLong.new(message)
+        when ER_LOCK_DEADLOCK
+          TransactionSerializationError.new(message)
         else
           super
         end
@@ -828,7 +840,7 @@ module ActiveRecord
 
         # Increase timeout so the server doesn't disconnect us.
         wait_timeout = @config[:wait_timeout]
-        wait_timeout = 2147483 unless wait_timeout.is_a?(Fixnum)
+        wait_timeout = 2147483 unless wait_timeout.is_a?(Integer)
         variables['wait_timeout'] = self.class.type_cast_config_to_integer(wait_timeout)
 
         defaults = [':default', :default].to_set

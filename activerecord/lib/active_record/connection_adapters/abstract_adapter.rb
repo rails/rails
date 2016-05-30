@@ -454,6 +454,24 @@ module ActiveRecord
         visitor.accept(node, collector).value
       end
 
+      def combine_bind_parameters(
+        from_clause: [],
+        join_clause: [],
+        where_clause: [],
+        having_clause: [],
+        limit: nil,
+        offset: nil
+      ) # :nodoc:
+        result = from_clause + join_clause + where_clause + having_clause
+        if limit
+          result << limit
+        end
+        if offset
+          result << offset
+        end
+        result
+      end
+
       protected
 
       def initialize_type_map(m) # :nodoc:

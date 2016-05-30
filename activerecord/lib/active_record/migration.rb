@@ -166,13 +166,13 @@ module ActiveRecord
   class EnvironmentMismatchError < ActiveRecordError
     def initialize(current: nil, stored: nil)
       msg =  "You are attempting to modify a database that was last run in `#{ stored }` environment.\n"
-      msg << "You are running in `#{ current }` environment."
+      msg << "You are running in `#{ current }` environment. "
       msg << "If you are sure you want to continue, first set the environment using:\n\n"
       msg << "\tbin/rails db:environment:set"
       if defined?(Rails.env)
-        super("#{msg} RAILS_ENV=#{::Rails.env}")
+        super("#{msg} RAILS_ENV=#{::Rails.env}\n\n")
       else
-        super(msg)
+        super("#{msg}\n\n")
       end
     end
   end
@@ -277,7 +277,7 @@ module ActiveRecord
   # * <tt>change_column(table_name, column_name, type, options)</tt>:  Changes
   #   the column to a different type using the same parameters as add_column.
   # * <tt>change_column_default(table_name, column_name, default)</tt>: Sets a
-  #   default value for +column_name+ definded by +default+ on +table_name+.
+  #   default value for +column_name+ defined by +default+ on +table_name+.
   # * <tt>change_column_null(table_name, column_name, null, default = nil)</tt>:
   #   Sets or removes a +NOT NULL+ constraint on +column_name+. The +null+ flag
   #   indicates whether the value can be +NULL+. See
@@ -524,17 +524,11 @@ module ActiveRecord
     end
 
     def self.[](version)
-      version = version.to_s
-      name = "V#{version.tr('.', '_')}"
-      unless Compatibility.const_defined?(name)
-        versions = Compatibility.constants.grep(/\AV[0-9_]+\z/).map { |s| s.to_s.delete('V').tr('_', '.').inspect }
-        raise ArgumentError, "Unknown migration version #{version.inspect}; expected one of #{versions.sort.join(', ')}"
-      end
-      Compatibility.const_get(name)
+      Compatibility.find(version)
     end
 
     def self.current_version
-      Rails.version.to_f
+      ActiveRecord::VERSION::STRING.to_f
     end
 
     MigrationFilenameRegexp = /\A([0-9]+)_([_a-z0-9]*)\.?([_a-z0-9]*)?\.rb\z/ # :nodoc:

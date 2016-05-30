@@ -1,0 +1,34 @@
+load_paths:
+  - app/assets/javascripts
+  - test/javascript/src
+  - test/javascript/vendor
+
+logical_paths:
+  - test.js
+
+build:
+  logical_paths:
+    - action_cable.js
+  path: lib/assets/compiled
+  clean: true
+
+plugins:
+  sauce_labs:
+    browsers:
+      Google Chrome:
+        os: Mac, Windows
+        version: -2
+      Firefox:
+        os: Mac, Windows
+        version: -2
+      Safari:
+        platform: Mac
+        version: -3
+      Microsoft Edge:
+        version: -2
+      Internet Explorer:
+        version: 11
+      iPhone:
+        version: [9.2, 8.4]
+      Motorola Droid 4 Emulator:
+        version: [5.1, 4.4]

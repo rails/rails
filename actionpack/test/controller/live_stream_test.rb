@@ -246,7 +246,8 @@ module ActionController
 
     def assert_stream_closed
       assert response.stream.closed?, 'stream should be closed'
-      assert response.sent?, 'stream should be sent'
+      assert response.committed?,     'response should be committed'
+      assert response.sent?,          'response should be sent'
     end
 
     def capture_log_output

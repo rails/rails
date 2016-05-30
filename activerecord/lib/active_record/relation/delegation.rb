@@ -35,7 +35,7 @@ module ActiveRecord
     # may vary depending on the klass of a relation, so we create a subclass of Relation
     # for each different klass, and the delegations are compiled into that subclass only.
 
-    delegate :to_xml, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to_ary, :join,
+    delegate :to_xml, :encode_with, :length, :collect, :map, :each, :all?, :include?, :to_ary, :join,
              :[], :&, :|, :+, :-, :sample, :reverse, :compact, :in_groups, :in_groups_of,
              :shuffle, :split, to: :records
 

@@ -100,11 +100,17 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
        config/initializers/assets.rb
        config/initializers/cookies_serializer.rb
        config/initializers/session_store.rb
-       config/initializers/request_forgery_protection.rb
-       config/initializers/per_form_csrf_tokens.rb
+       config/initializers/new_framework_defaults/request_forgery_protection.rb
+       config/initializers/new_framework_defaults/per_form_csrf_tokens.rb
        lib/assets
        vendor/assets
        test/helpers
-       tmp/cache/assets)
+       tmp/cache/assets
+       public/404.html
+       public/422.html
+       public/500.html
+       public/apple-touch-icon-precomposed.png
+       public/apple-touch-icon.png
+       public/favicon.ico)
   end
 end

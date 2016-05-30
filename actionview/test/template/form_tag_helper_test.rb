@@ -239,8 +239,8 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_select_tag_with_include_blank
-    actual = select_tag "places", raw("<option>Home</option><option>Work</option><option>Pub</option>"), :include_blank => true
-    expected = %(<select id="places" name="places"><option value=""></option><option>Home</option><option>Work</option><option>Pub</option></select>)
+    actual = select_tag "places", raw("<option>Home</option><option>Work</option><option>Pub</option>"), include_blank: true
+    expected = %(<select id="places" name="places"><option value="" label=" "></option><option>Home</option><option>Work</option><option>Pub</option></select>)
     assert_dom_equal expected, actual
   end
 
@@ -269,14 +269,14 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_select_tag_with_prompt_and_include_blank
-    actual = select_tag "places", raw("<option>Home</option><option>Work</option><option>Pub</option>"), :prompt => "string", :include_blank => true
-    expected = %(<select name="places" id="places"><option value="">string</option><option value=""></option><option>Home</option><option>Work</option><option>Pub</option></select>)
+    actual = select_tag "places", raw("<option>Home</option><option>Work</option><option>Pub</option>"), prompt: "string", include_blank: true
+    expected = %(<select name="places" id="places"><option value="">string</option><option value="" label=" "></option><option>Home</option><option>Work</option><option>Pub</option></select>)
     assert_dom_equal expected, actual
   end
 
   def test_select_tag_with_nil_option_tags_and_include_blank
     actual = select_tag "places", nil, :include_blank => true
-    expected = %(<select id="places" name="places"><option value=""></option></select>)
+    expected = %(<select id="places" name="places"><option value="" label=" "></option></select>)
     assert_dom_equal expected, actual
   end
 

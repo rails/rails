@@ -16,15 +16,22 @@ addons:
   postgresql: "9.4"
 
 bundler_args: --without test --jobs 3 --retry 3
-
+#FIXME: Remove bundler uninstall on Travis when https://github.com/bundler/bundler/issues/4493 is fixed.
 before_install:
-  - gem install bundler
+  - rvm @global do gem uninstall bundler --all --ignore-dependencies --executables
+  - rvm @global do gem install bundler -v '1.11.2'
+  - bundle --version
   - "rm ${BUNDLE_GEMFILE}.lock"
   - "[ -f /tmp/beanstalkd-1.10/Makefile ] || (curl -L https://github.com/kr/beanstalkd/archive/v1.10.tar.gz | tar xz -C /tmp)"
   - "pushd /tmp/beanstalkd-1.10 && make && (./beanstalkd &); popd"
 
 before_script:
   - bundle update
+
+  # Set Sauce Labs username and access key. Obfuscated, purposefully not encrypted.
+  # Decodes to e.g. `export VARIABLE=VALUE`
+  - $(base64 --decode <<< "ZXhwb3J0IFNBVUNFX0FDQ0VTU19LRVk9YTAzNTM0M2YtZTkyMi00MGIzLWFhM2MtMDZiM2VhNjM1YzQ4")
+  - $(base64 --decode <<< "ZXhwb3J0IFNBVUNFX1VTRVJOQU1FPXJ1YnlvbnJhaWxz")
 
 script: 'ci/travis.rb'
 
@@ -34,7 +41,10 @@ env:
     - "GEM=ap"
     - "GEM=ac"
     - "GEM=ac FAYE=1"
+    - "GEM=ac:integration"
+    - "GEM=ac:integration FAYE=1"
     - "GEM=am,amo,as,av,aj"
+    - "GEM=as PRESERVE_TIMEZONES=1"
     - "GEM=ar:mysql2"
     - "GEM=ar:sqlite3"
     - "GEM=ar:postgresql"
@@ -42,14 +52,14 @@ env:
     - "GEM=guides"
 
 rvm:
-  - 2.2.4
-  - 2.3.0
+  - 2.2.5
+  - 2.3.1
   - ruby-head
 
 matrix:
   include:
     # Latest compiled version in http://rubies.travis-ci.org
-    - rvm: 2.3.0
+    - rvm: 2.3.1
       env:
         - "GEM=ar:mysql2"
       addons:
@@ -62,6 +72,8 @@ matrix:
   allow_failures:
     - rvm: ruby-head
     - rvm: jruby-9.0.5.0
+    - env: "GEM=ac:integration"
+    - env: "GEM=ac:integration FAYE=1"
   fast_finish: true
 
 notifications:
@@ -76,3 +88,6 @@ notifications:
     on_failure: always
     rooms:
       - secure: "YA1alef1ESHWGFNVwvmVGCkMe4cUy4j+UcNvMUESraceiAfVyRMAovlQBGs6\n9kBRm7DHYBUXYC2ABQoJbQRLDr/1B5JPf/M8+Qd7BKu8tcDC03U01SMHFLpO\naOs/HLXcDxtnnpL07tGVsm0zhMc5N8tq4/L3SHxK7Vi+TacwQzI="
+
+git:
+  depth: 1

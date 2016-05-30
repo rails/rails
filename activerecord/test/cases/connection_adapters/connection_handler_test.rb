@@ -4,43 +4,40 @@ module ActiveRecord
   module ConnectionAdapters
     class ConnectionHandlerTest < ActiveRecord::TestCase
       def setup
-        @klass    = Class.new(Base)   { def self.name; 'klass';    end }
-        @subklass = Class.new(@klass) { def self.name; 'subklass'; end }
-
         @handler = ConnectionHandler.new
-        @pool    = @handler.establish_connection(@klass, Base.connection_pool.spec)
+        @spec_name = "primary"
+        @pool    = @handler.establish_connection(ActiveRecord::Base.configurations['arunit'])
+      end
+
+      def test_establish_connection_uses_spec_name
+        config = {"readonly" => {"adapter" => 'sqlite3'}}
+        resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(config)
+        spec =   resolver.spec(:readonly)
+        @handler.establish_connection(spec.to_hash)
+
+        assert_not_nil @handler.retrieve_connection_pool('readonly')
+      ensure
+        @handler.remove_connection('readonly')
       end
 
       def test_retrieve_connection
-        assert @handler.retrieve_connection(@klass)
+        assert @handler.retrieve_connection(@spec_name)
       end
 
       def test_active_connections?
         assert !@handler.active_connections?
-        assert @handler.retrieve_connection(@klass)
+        assert @handler.retrieve_connection(@spec_name)
         assert @handler.active_connections?
         @handler.clear_active_connections!
         assert !@handler.active_connections?
       end
 
-      def test_retrieve_connection_pool_with_ar_base
-        assert_nil @handler.retrieve_connection_pool(ActiveRecord::Base)
-      end
-
       def test_retrieve_connection_pool
-        assert_not_nil @handler.retrieve_connection_pool(@klass)
+        assert_not_nil @handler.retrieve_connection_pool(@spec_name)
       end
 
-      def test_retrieve_connection_pool_uses_superclass_when_no_subclass_connection
-        assert_not_nil @handler.retrieve_connection_pool(@subklass)
-      end
-
-      def test_retrieve_connection_pool_uses_superclass_pool_after_subclass_establish_and_remove
-        sub_pool = @handler.establish_connection(@subklass, Base.connection_pool.spec)
-        assert_same sub_pool, @handler.retrieve_connection_pool(@subklass)
-
-        @handler.remove_connection @subklass
-        assert_same @pool, @handler.retrieve_connection_pool(@subklass)
+      def test_retrieve_connection_pool_with_invalid_id
+        assert_nil @handler.retrieve_connection_pool("foo")
       end
 
       def test_connection_pools
@@ -79,7 +76,7 @@ module ActiveRecord
 
           pid = fork {
             rd.close
-            pool = @handler.retrieve_connection_pool(@klass)
+            pool = @handler.retrieve_connection_pool(@spec_name)
             wr.write Marshal.dump pool.schema_cache.size
             wr.close
             exit!
@@ -90,6 +87,36 @@ module ActiveRecord
           Process.waitpid pid
           assert_equal @pool.schema_cache.size, Marshal.load(rd.read)
           rd.close
+        end
+
+        def test_a_class_using_custom_pool_and_switching_back_to_primary
+          klass2 = Class.new(Base) { def self.name; 'klass2'; end }
+
+          assert_equal klass2.connection.object_id, ActiveRecord::Base.connection.object_id
+
+          pool = klass2.establish_connection(ActiveRecord::Base.connection_pool.spec.config)
+          assert_equal klass2.connection.object_id, pool.connection.object_id
+          refute_equal klass2.connection.object_id, ActiveRecord::Base.connection.object_id
+
+          klass2.remove_connection
+
+          assert_equal klass2.connection.object_id, ActiveRecord::Base.connection.object_id
+        end
+
+        def test_connection_specification_name_should_fallback_to_parent
+          klassA = Class.new(Base)
+          klassB = Class.new(klassA)
+
+          assert_equal klassB.connection_specification_name, klassA.connection_specification_name
+          klassA.connection_specification_name = "readonly"
+          assert_equal "readonly", klassB.connection_specification_name
+        end
+
+        def test_remove_connection_should_not_remove_parent
+          klass2 = Class.new(Base) { def self.name; 'klass2'; end }
+          klass2.remove_connection
+          refute_nil ActiveRecord::Base.connection.object_id
+          assert_equal klass2.connection.object_id, ActiveRecord::Base.connection.object_id
         end
       end
     end

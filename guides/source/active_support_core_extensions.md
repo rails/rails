@@ -252,7 +252,7 @@ Note that `try` will swallow no-method errors, returning nil instead. If you wan
 
 ```ruby
 @number.try(:nest)  # => nil
-@number.try!(:nest) # NoMethodError: undefined method `nest' for 1:Fixnum
+@number.try!(:nest) # NoMethodError: undefined method `nest' for 1:Integer
 ```
 
 NOTE: Defined in `active_support/core_ext/object/try.rb`.
@@ -706,64 +706,6 @@ M.parents       # => [X::Y, X, Object]
 ```
 
 NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
-
-#### Qualified Constant Names
-
-The standard methods `const_defined?`, `const_get`, and `const_set` accept
-bare constant names. Active Support extends this API to be able to pass
-relative qualified constant names.
-
-The new methods are `qualified_const_defined?`, `qualified_const_get`, and
-`qualified_const_set`. Their arguments are assumed to be qualified constant
-names relative to their receiver:
-
-```ruby
-Object.qualified_const_defined?("Math::PI")       # => true
-Object.qualified_const_get("Math::PI")            # => 3.141592653589793
-Object.qualified_const_set("Math::Phi", 1.618034) # => 1.618034
-```
-
-Arguments may be bare constant names:
-
-```ruby
-Math.qualified_const_get("E") # => 2.718281828459045
-```
-
-These methods are analogous to their built-in counterparts. In particular,
-`qualified_constant_defined?` accepts an optional second argument to be
-able to say whether you want the predicate to look in the ancestors.
-This flag is taken into account for each constant in the expression while
-walking down the path.
-
-For example, given
-
-```ruby
-module M
-  X = 1
-end
-
-module N
-  class C
-    include M
-  end
-end
-```
-
-`qualified_const_defined?` behaves this way:
-
-```ruby
-N.qualified_const_defined?("C::X", false) # => false
-N.qualified_const_defined?("C::X", true)  # => true
-N.qualified_const_defined?("C::X")        # => true
-```
-
-As the last example implies, the second argument defaults to true,
-as in `const_defined?`.
-
-For coherence with the built-in methods only relative paths are accepted.
-Absolute qualified constant names like `::Math::PI` raise `NameError`.
-
-NOTE: Defined in `active_support/core_ext/module/qualified_const.rb`.
 
 ### Reachable
 
@@ -1661,19 +1603,6 @@ Given a string with a qualified constant reference expression, `deconstantize` r
 "Admin::Hotel::ReservationUtils".deconstantize # => "Admin::Hotel"
 ```
 
-Active Support for example uses this method in `Module#qualified_const_set`:
-
-```ruby
-def qualified_const_set(path, value)
-  QualifiedConstUtils.raise_if_absolute(path)
-
-  const_name = path.demodulize
-  mod_name = path.deconstantize
-  mod = mod_name.empty? ? self : qualified_const_get(mod_name)
-  mod.const_set(const_name, value)
-end
-```
-
 NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
 #### `parameterize`
@@ -1742,7 +1671,7 @@ NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 The method `constantize` resolves the constant reference expression in its receiver:
 
 ```ruby
-"Fixnum".constantize # => Fixnum
+"Integer".constantize # => Integer
 
 module M
   X = 1
@@ -2349,7 +2278,7 @@ Contributor.limit(2).order(:rank).to_xml
 
 To do so it sends `to_xml` to every item in turn, and collects the results under a root node. All items must respond to `to_xml`, an exception is raised otherwise.
 
-By default, the name of the root element is the underscorized and dasherized plural of the name of the class of the first item, provided the rest of elements belong to that type (checked with `is_a?`) and they are not hashes. In the example above that's "contributors".
+By default, the name of the root element is the underscored and dasherized plural of the name of the class of the first item, provided the rest of elements belong to that type (checked with `is_a?`) and they are not hashes. In the example above that's "contributors".
 
 If there's any element that does not belong to the type of the first one the root node becomes "objects":
 
@@ -2611,8 +2540,7 @@ To do so, the method loops over the pairs and builds nodes that depend on the _v
 ```ruby
 XML_TYPE_NAMES = {
   "Symbol"     => "symbol",
-  "Fixnum"     => "integer",
-  "Bignum"     => "integer",
+  "Integer"    => "integer",
   "BigDecimal" => "decimal",
   "Float"      => "float",
   "TrueClass"  => "boolean",

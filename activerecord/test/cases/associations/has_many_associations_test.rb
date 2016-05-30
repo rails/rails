@@ -1315,7 +1315,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, summit.client_of
   end
 
-  def test_deleting_by_fixnum_id
+  def test_deleting_by_integer_id
     david = Developer.find(1)
 
     assert_difference 'david.projects.count', -1 do
@@ -1352,7 +1352,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, companies(:first_firm).clients_of_firm.reload.size
   end
 
-  def test_destroying_by_fixnum_id
+  def test_destroying_by_integer_id
     force_signal37_to_load_all_clients_of_firm
 
     assert_difference "Client.count", -1 do

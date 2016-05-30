@@ -12,7 +12,9 @@ module AbstractControllerTests
       abstract!
 
       self.view_paths = [ActionView::FixtureResolver.new(
+        "some/template.erb"             => "hello <%= foo %> bar",
         "layouts/hello.erb"             => "With String <%= yield %>",
+        "layouts/hello_locals.erb"      => "With String <%= yield %>",
         "layouts/hello_override.erb"    => "With Override <%= yield %>",
         "layouts/overwrite.erb"         => "Overwrite <%= yield %>",
         "layouts/with_false_layout.erb" => "False Layout <%= yield %>",
@@ -32,11 +34,23 @@ module AbstractControllerTests
       end
     end
 
+    class WithStringLocals < Base
+      layout "hello_locals"
+
+      def index
+        render :template => 'some/template', locals: { foo: "less than 3" }
+      end
+    end
+
     class WithString < Base
       layout "hello"
 
       def index
         render :template => ActionView::Template::Text.new("Hello string!")
+      end
+
+      def action_has_layout_false
+        render template: ActionView::Template::Text.new("Hello string!")
       end
 
       def overwrite_default
@@ -82,11 +96,19 @@ module AbstractControllerTests
       end
     end
 
-    class WithProcReturningNil < Base
+    class WithProcReturningNil < WithString
       layout proc { nil }
 
       def index
         render template: ActionView::Template::Text.new("Hello nil!")
+      end
+    end
+
+    class WithProcReturningFalse < WithString
+      layout proc { false }
+
+      def index
+        render template: ActionView::Template::Text.new("Hello false!")
       end
     end
 
@@ -189,6 +211,14 @@ module AbstractControllerTests
       end
     end
 
+    class WithOnlyConditionalFlipped < WithOnlyConditional
+      layout "hello_override", only: :index
+    end
+
+    class WithOnlyConditionalFlippedAndInheriting < WithOnlyConditional
+      layout nil, only: :index
+    end
+
     class WithExceptConditional < WithStringImpliedChild
       layout "overwrite", :except => :show
 
@@ -201,11 +231,75 @@ module AbstractControllerTests
       end
     end
 
+    class AbstractWithString < Base
+      layout "hello"
+      abstract!
+    end
+
+    class AbstractWithStringChild < AbstractWithString
+      def index
+        render template: ActionView::Template::Text.new("Hello abstract child!")
+      end
+    end
+
+    class AbstractWithStringChildDefaultsToInherited < AbstractWithString
+      layout nil
+
+      def index
+        render template: ActionView::Template::Text.new("Hello abstract child!")
+      end
+    end
+
+    class WithConditionalOverride < WithString
+      layout "overwrite", only: :overwritten
+
+      def non_overwritten
+        render template: ActionView::Template::Text.new("Hello non overwritten!")
+      end
+
+      def overwritten
+        render template: ActionView::Template::Text.new("Hello overwritten!")
+      end
+    end
+
+    class WithConditionalOverrideFlipped < WithConditionalOverride
+      layout "hello_override", only: :non_overwritten
+    end
+
+    class WithConditionalOverrideFlippedAndInheriting < WithConditionalOverride
+      layout nil, only: :non_overwritten
+    end
+
     class TestBase < ActiveSupport::TestCase
       test "when no layout is specified, and no default is available, render without a layout" do
         controller = Blank.new
         controller.process(:index)
         assert_equal "Hello blank!", controller.response_body
+      end
+
+      test "with locals" do
+        controller = WithStringLocals.new
+        controller.process(:index)
+        assert_equal "With String hello less than 3 bar", controller.response_body
+      end
+
+      test "cache should not grow when locals change for a string template" do
+        cache = WithString.view_paths.paths.first.instance_variable_get(:@cache)
+
+        controller = WithString.new
+        controller.process(:index) # heat the cache
+
+        size = cache.size
+
+        10.times do |x|
+          controller = WithString.new
+          controller.define_singleton_method :index do
+            render :template => ActionView::Template::Text.new("Hello string!"), :locals => { :"x#{x}" => :omg }
+          end
+          controller.process(:index)
+        end
+
+        assert_equal size, cache.size
       end
 
       test "when layout is specified as a string, render with that layout" do
@@ -264,10 +358,16 @@ module AbstractControllerTests
         assert_equal "Overwrite Hello proc!", controller.response_body
       end
 
-      test "when layout is specified as a proc and the proc returns nil, don't use a layout" do
+      test "when layout is specified as a proc and the proc returns nil, use inherited layout" do
         controller = WithProcReturningNil.new
         controller.process(:index)
-        assert_equal "Hello nil!", controller.response_body
+        assert_equal "With String Hello nil!", controller.response_body
+      end
+
+      test "when layout is specified as a proc and the proc returns false, use no layout instead of inherited layout" do
+        controller = WithProcReturningFalse.new
+        controller.process(:index)
+        assert_equal "Hello false!", controller.response_body
       end
 
       test "when layout is specified as a proc without parameters it works just the same" do
@@ -328,10 +428,22 @@ module AbstractControllerTests
       end
 
       test "when a grandchild has nil layout specified, the child has an implied layout, and the " \
-        "parent has specified a layout, use the child controller layout" do
+        "parent has specified a layout, use the grand child controller layout" do
           controller = WithGrandChildOfImplied.new
           controller.process(:index)
           assert_equal "With Grand Child Hello string!", controller.response_body
+      end
+
+      test "a child inherits layout from abstract controller" do
+        controller = AbstractWithStringChild.new
+        controller.process(:index)
+        assert_equal "With String Hello abstract child!", controller.response_body
+      end
+
+      test "a child inherits layout from abstract controller2" do
+        controller = AbstractWithStringChildDefaultsToInherited.new
+        controller.process(:index)
+        assert_equal "With String Hello abstract child!", controller.response_body
       end
 
       test "raises an exception when specifying layout true" do
@@ -356,6 +468,30 @@ module AbstractControllerTests
         assert_equal "With Implied Hello index!", controller.response_body
       end
 
+      test "when specify an :only option which match current action name and is opposite from parent controller" do
+        controller = WithOnlyConditionalFlipped.new
+        controller.process(:show)
+        assert_equal "With Implied Hello show!", controller.response_body
+      end
+
+      test "when specify an :only option which does not match current action name and is opposite from parent controller" do
+        controller = WithOnlyConditionalFlipped.new
+        controller.process(:index)
+        assert_equal "With Override Hello index!", controller.response_body
+      end
+
+      test "when specify to inherit and an :only option which match current action name and is opposite from parent controller" do
+        controller = WithOnlyConditionalFlippedAndInheriting.new
+        controller.process(:show)
+        assert_equal "With Implied Hello show!", controller.response_body
+      end
+
+      test "when specify to inherit and an :only option which does not match current action name and is opposite from parent controller" do
+        controller = WithOnlyConditionalFlippedAndInheriting.new
+        controller.process(:index)
+        assert_equal "Overwrite Hello index!", controller.response_body
+      end
+
       test "when specify an :except option which match current action name" do
         controller = WithExceptConditional.new
         controller.process(:show)
@@ -368,6 +504,42 @@ module AbstractControllerTests
         assert_equal "Overwrite Hello index!", controller.response_body
       end
 
+      test "when specify overwrite as an :only option which match current action name" do
+        controller = WithConditionalOverride.new
+        controller.process(:overwritten)
+        assert_equal "Overwrite Hello overwritten!", controller.response_body
+      end
+
+      test "when specify overwrite as an :only option which does not match current action name" do
+        controller = WithConditionalOverride.new
+        controller.process(:non_overwritten)
+        assert_equal "Hello non overwritten!", controller.response_body
+      end
+
+      test "when specify overwrite as an :only option which match current action name and is opposite from parent controller" do
+        controller = WithConditionalOverrideFlipped.new
+        controller.process(:overwritten)
+        assert_equal "Hello overwritten!", controller.response_body
+      end
+
+      test "when specify overwrite as an :only option which does not match current action name and is opposite from parent controller" do
+        controller = WithConditionalOverrideFlipped.new
+        controller.process(:non_overwritten)
+        assert_equal "With Override Hello non overwritten!", controller.response_body
+      end
+
+      test "when specify to inherit and overwrite as an :only option which match current action name and is opposite from parent controller" do
+        controller = WithConditionalOverrideFlippedAndInheriting.new
+        controller.process(:overwritten)
+        assert_equal "Hello overwritten!", controller.response_body
+      end
+
+      test "when specify to inherit and overwrite as an :only option which does not match current action name and is opposite from parent controller" do
+        controller = WithConditionalOverrideFlippedAndInheriting.new
+        controller.process(:non_overwritten)
+        assert_equal "Overwrite Hello non overwritten!", controller.response_body
+      end
+
       test "layout for anonymous controller" do
         klass = Class.new(WithString) do
           def index
@@ -378,6 +550,17 @@ module AbstractControllerTests
         controller = klass.new
         controller.process(:index)
         assert_equal "With String index", controller.response_body
+      end
+
+      test "when layout is disabled with #action_has_layout? returning false, render no layout" do
+        controller = WithString.new
+        controller.instance_eval do
+          def action_has_layout?
+            false
+          end
+        end
+        controller.process(:action_has_layout_false)
+        assert_equal "Hello string!", controller.response_body
       end
     end
   end

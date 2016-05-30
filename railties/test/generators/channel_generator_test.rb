@@ -24,8 +24,24 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
       assert_match(/class ChatChannel < ApplicationCable::Channel/, channel)
     end
 
-    assert_file "app/assets/javascripts/channels/chat.coffee" do |channel|
-      assert_match(/App.cable.subscriptions.create "ChatChannel"/, channel)
+    assert_file "app/assets/javascripts/channels/chat.js" do |channel|
+      assert_match(/App.chat = App.cable.subscriptions.create\("ChatChannel/, channel)
+    end
+  end
+
+  def test_channel_with_multiple_actions_is_created
+    run_generator ['chat', 'speak', 'mute']
+
+    assert_file "app/channels/chat_channel.rb" do |channel|
+      assert_match(/class ChatChannel < ApplicationCable::Channel/, channel)
+      assert_match(/def speak/, channel)
+      assert_match(/def mute/, channel)
+    end
+
+    assert_file "app/assets/javascripts/channels/chat.js" do |channel|
+      assert_match(/App.chat = App.cable.subscriptions.create\("ChatChannel/, channel)
+      assert_match(/,\n\n  speak/, channel)
+      assert_match(/,\n\n  mute: function\(\) \{\n    return this\.perform\('mute'\);\n  \}\n\}\);/, channel)
     end
   end
 
@@ -36,7 +52,7 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
       assert_match(/class ChatChannel < ApplicationCable::Channel/, channel)
     end
 
-    assert_no_file "app/assets/javascripts/channels/chat.coffee"
+    assert_no_file "app/assets/javascripts/channels/chat.js"
   end
 
   def test_cable_js_is_created_if_not_present_already
@@ -52,7 +68,7 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
     run_generator ['chat'], behavior: :revoke
 
     assert_no_file "app/channels/chat_channel.rb"
-    assert_no_file "app/assets/javascripts/channels/chat.coffee"
+    assert_no_file "app/assets/javascripts/channels/chat.js"
 
     assert_file "app/channels/application_cable/channel.rb"
     assert_file "app/channels/application_cable/connection.rb"

@@ -11,7 +11,7 @@ class ErrorsTest < ActiveModel::TestCase
     attr_reader   :errors
 
     def validate!
-      errors.add(:name, "cannot be nil") if name == nil
+      errors.add(:name, :blank, message: "cannot be nil") if name == nil
     end
 
     def read_attribute_for_validation(attr)

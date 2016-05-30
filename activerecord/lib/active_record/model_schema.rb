@@ -238,7 +238,7 @@ module ActiveRecord
       end
 
       # Returns the next value that will be used as the primary key on
-      # an insert statment.
+      # an insert statement.
       def next_sequence_value
         connection.next_sequence_value(sequence_name)
       end

@@ -296,7 +296,7 @@ module Rails
         return [] if options[:skip_sprockets]
 
         gems = []
-        gems << GemfileEntry.version('sass-rails', '~> 5.0',
+        gems << GemfileEntry.github('sass-rails', 'rails/sass-rails', nil,
                                      'Use SCSS for stylesheets')
 
         gems << GemfileEntry.version('uglifier',
@@ -312,7 +312,7 @@ module Rails
       end
 
       def coffee_gemfile_entry
-        GemfileEntry.version 'coffee-rails', '~> 4.1.0', 'Use CoffeeScript for .coffee assets and views'
+        GemfileEntry.github 'coffee-rails', 'rails/coffee-rails', nil, 'Use CoffeeScript for .coffee assets and views'
       end
 
       def javascript_gemfile_entry

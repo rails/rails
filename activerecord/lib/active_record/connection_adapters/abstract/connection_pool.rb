@@ -298,7 +298,7 @@ module ActiveRecord
         def run
           return unless frequency
           Thread.new(frequency, pool) { |t, p|
-            while true
+            loop do
               sleep t
               p.reap
             end
@@ -618,7 +618,7 @@ module ActiveRecord
         timeout_time      = Time.now + (@checkout_timeout * 2)
 
         @available.with_a_bias_for(Thread.current) do
-          while true
+          loop do
             synchronize do
               return if collected_conns.size == @connections.size && @now_connecting == 0
               remaining_timeout = timeout_time - Time.now
@@ -778,8 +778,7 @@ module ActiveRecord
     end
 
     # ConnectionHandler is a collection of ConnectionPool objects. It is used
-    # for keeping separate connection pools for Active Record models that connect
-    # to different databases.
+    # for keeping separate connection pools that connect to different databases.
     #
     # For example, suppose that you have 5 models, with the following hierarchy:
     #
@@ -821,16 +820,15 @@ module ActiveRecord
     # ConnectionHandler accessible via ActiveRecord::Base.connection_handler.
     # All Active Record models use this handler to determine the connection pool that they
     # should use.
+    #
+    # The ConnectionHandler class is not coupled with the Active models, as it has no knowlodge
+    # about the model. The model, needs to pass a specification name to the handler,
+    # in order to lookup the correct connection pool.
     class ConnectionHandler
       def initialize
-        # These caches are keyed by klass.name, NOT klass. Keying them by klass
-        # alone would lead to memory leaks in development mode as all previous
-        # instances of the class would stay in memory.
+        # These caches are keyed by spec.name (ConnectionSpecification#name).
         @owner_to_pool = Concurrent::Map.new(:initial_capacity => 2) do |h,k|
           h[k] = Concurrent::Map.new(:initial_capacity => 2)
-        end
-        @class_to_pool = Concurrent::Map.new(:initial_capacity => 2) do |h,k|
-          h[k] = Concurrent::Map.new
         end
       end
 
@@ -839,10 +837,12 @@ module ActiveRecord
       end
       alias :connection_pools :connection_pool_list
 
-      def establish_connection(owner, spec)
-        @class_to_pool.clear
-        raise RuntimeError, "Anonymous class is not allowed." unless owner.name
-        owner_to_pool[owner.name] = ConnectionAdapters::ConnectionPool.new(spec)
+      def establish_connection(config)
+        resolver = ConnectionSpecification::Resolver.new(Base.configurations)
+        spec = resolver.spec(config)
+
+        remove_connection(spec.name)
+        owner_to_pool[spec.name] = ConnectionAdapters::ConnectionPool.new(spec)
       end
 
       # Returns true if there are any active connections among the connection
@@ -873,18 +873,18 @@ module ActiveRecord
       # active or defined connection: if it is the latter, it will be
       # opened and set as the active connection for the class it was defined
       # for (not necessarily the current class).
-      def retrieve_connection(klass) #:nodoc:
-        pool = retrieve_connection_pool(klass)
-        raise ConnectionNotEstablished, "No connection pool for #{klass}" unless pool
+      def retrieve_connection(spec_name) #:nodoc:
+        pool = retrieve_connection_pool(spec_name)
+        raise ConnectionNotEstablished, "No connection pool with id '#{spec_name}' found." unless pool
         conn = pool.connection
-        raise ConnectionNotEstablished, "No connection for #{klass} in connection pool" unless conn
+        raise ConnectionNotEstablished, "No connection for '#{spec_name}' in connection pool" unless conn
         conn
       end
 
       # Returns true if a connection that's accessible to this class has
       # already been opened.
-      def connected?(klass)
-        conn = retrieve_connection_pool(klass)
+      def connected?(spec_name)
+        conn = retrieve_connection_pool(spec_name)
         conn && conn.connected?
       end
 
@@ -892,32 +892,31 @@ module ActiveRecord
       # connection and the defined connection (if they exist). The result
       # can be used as an argument for establish_connection, for easily
       # re-establishing the connection.
-      def remove_connection(owner)
-        if pool = owner_to_pool.delete(owner.name)
-          @class_to_pool.clear
+      def remove_connection(spec_name)
+        if pool = owner_to_pool.delete(spec_name)
           pool.automatic_reconnect = false
           pool.disconnect!
           pool.spec.config
         end
       end
 
-      # Retrieving the connection pool happens a lot so we cache it in @class_to_pool.
+      # Retrieving the connection pool happens a lot, so we cache it in @owner_to_pool.
       # This makes retrieving the connection pool O(1) once the process is warm.
       # When a connection is established or removed, we invalidate the cache.
-      #
-      # Ideally we would use #fetch here, as class_to_pool[klass] may sometimes be nil.
-      # However, benchmarking (https://gist.github.com/jonleighton/3552829) showed that
-      # #fetch is significantly slower than #[]. So in the nil case, no caching will
-      # take place, but that's ok since the nil case is not the common one that we wish
-      # to optimise for.
-      def retrieve_connection_pool(klass)
-        class_to_pool[klass.name] ||= begin
-          until pool = pool_for(klass)
-            klass = klass.superclass
-            break unless klass <= Base
+      def retrieve_connection_pool(spec_name)
+        owner_to_pool.fetch(spec_name) do
+          # Check if a connection was previously established in an ancestor process,
+          # which may have been forked.
+          if ancestor_pool = pool_from_any_process_for(spec_name)
+            # A connection was established in an ancestor process that must have
+            # subsequently forked. We can't reuse the connection, but we can copy
+            # the specification and establish a new connection with it.
+            establish_connection(ancestor_pool.spec.to_hash).tap do |pool|
+              pool.schema_cache = ancestor_pool.schema_cache if ancestor_pool.schema_cache
+            end
+          else
+            owner_to_pool[spec_name] = nil
           end
-
-          class_to_pool[klass.name] = pool
         end
       end
 
@@ -927,28 +926,9 @@ module ActiveRecord
         @owner_to_pool[Process.pid]
       end
 
-      def class_to_pool
-        @class_to_pool[Process.pid]
-      end
-
-      def pool_for(owner)
-        owner_to_pool.fetch(owner.name) {
-          if ancestor_pool = pool_from_any_process_for(owner)
-            # A connection was established in an ancestor process that must have
-            # subsequently forked. We can't reuse the connection, but we can copy
-            # the specification and establish a new connection with it.
-            establish_connection(owner, ancestor_pool.spec).tap do |pool|
-              pool.schema_cache = ancestor_pool.schema_cache if ancestor_pool.schema_cache
-            end
-          else
-            owner_to_pool[owner.name] = nil
-          end
-        }
-      end
-
-      def pool_from_any_process_for(owner)
-        owner_to_pool = @owner_to_pool.values.find { |v| v[owner.name] }
-        owner_to_pool && owner_to_pool[owner.name]
+      def pool_from_any_process_for(spec_name)
+        owner_to_pool = @owner_to_pool.values.find { |v| v[spec_name] }
+        owner_to_pool && owner_to_pool[spec_name]
       end
     end
   end

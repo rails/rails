@@ -21,7 +21,7 @@ http://travis-ci.org/rails/rails
 
 Sam Ruby keeps a [test suite](https://github.com/rubys/awdwr) that makes
 sure the code samples in his book 
-([Agile Web Development with Rails](https://pragprog.com/titles/rails4/agile-web-development-with-rails-4th-edition))
+([Agile Web Development with Rails](https://pragprog.com/titles/rails5/agile-web-development-with-rails-5th-edition))
 all work.  These are valuable system tests
 for Rails.  You can check the status of these tests here:
 
@@ -103,18 +103,24 @@ branch.
 Run `rake install` to generate the gems and install them locally. Then try
 generating a new app and ensure that nothing explodes.
 
+Verify that Action Cable's package.json is updated with the RC version.
+
 This will stop you from looking silly when you push an RC to rubygems.org and
 then realize it is broken.
 
-### Release the gem.
+### Release to RubyGems and NPM.
 
-IMPORTANT: Due to YAML parse problems on the rubygems.org server, it is safest
-to use Ruby 1.8 when releasing.
+IMPORTANT: The Action Cable client is released as an NPM package, so you must
+have Node.js installed, have an NPM account (npmjs.com), and be an actioncable
+package owner (`npm owner ls actioncable`) to do a full release. Do not release
+until you're set up with NPM!
 
-Run `rake release`.  This will populate the gemspecs with data from
-RAILS_VERSION, commit the changes, tag it, and push the gems to rubygems.org.
-Here are the commands that `rake release` should use, so you can understand
-what to do in case anything goes wrong:
+Run `rake release`. This will populate the gemspecs and NPM package.json with
+the current RAILS_VERSION, commit the changes, tag it, and push the gems to
+rubygems.org.
+
+Here are the commands that `rake release` uses so you can understand what to do
+in case anything goes wrong:
 
 ```
 $ rake all:build
@@ -122,7 +128,7 @@ $ git commit -am'updating RAILS_VERSION'
 $ git tag -m 'v3.0.10.rc1 release' v3.0.10.rc1
 $ git push
 $ git push --tags
-$ for i in $(ls pkg); do gem push $i; done
+$ for i in $(ls pkg); do gem push $i; npm publish; done
 ```
 
 ### Send Rails release announcements

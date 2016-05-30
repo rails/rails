@@ -28,7 +28,8 @@ module ActiveRecord
           assert_equal({
             "adapter"  =>  "abstract",
             "host"     =>  "foo",
-            "encoding" => "utf8" }, spec)
+            "encoding" => "utf8",
+            "name"     => "production"}, spec)
         end
 
         def test_url_sub_key
@@ -36,7 +37,8 @@ module ActiveRecord
           assert_equal({
             "adapter"  => "abstract",
             "host"     => "foo",
-            "encoding" => "utf8" }, spec)
+            "encoding" => "utf8",
+            "name"     => "production"}, spec)
         end
 
         def test_url_sub_key_merges_correctly
@@ -46,7 +48,8 @@ module ActiveRecord
             "adapter"  => "abstract",
             "host"     => "foo",
             "encoding" => "utf8",
-            "pool"     => "3" }, spec)
+            "pool"     => "3",
+            "name"     => "production"}, spec)
         end
 
         def test_url_host_no_db
@@ -113,9 +116,19 @@ module ActiveRecord
           assert_equal({
             "adapter"  => "sqlite3",
             "database" => "foo",
-            "encoding" => "utf8" }, spec)
+            "encoding" => "utf8",
+            "name"     => "production"}, spec)
         end
 
+        def test_spec_name_on_key_lookup
+          spec = spec(:readonly, 'readonly' => {'adapter' => 'sqlite3'})
+          assert_equal "readonly", spec.name
+        end
+
+        def test_spec_name_with_inline_config
+          spec = spec({'adapter' => 'sqlite3'})
+          assert_equal "primary", spec.name, "should default to primary id"
+        end
       end
     end
   end

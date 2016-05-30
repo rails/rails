@@ -307,7 +307,7 @@ module ApplicationTests
       assert_not_equal asset_path, assets["assets"]["application.css"]
     end
 
-    test "precompile appends the md5 hash to files referenced with asset_path and run in production with digest true" do
+    test "precompile appends the MD5 hash to files referenced with asset_path and run in production with digest true" do
       app_file "app/assets/images/rails.png", "notactuallyapng"
       app_file "app/assets/stylesheets/application.css.erb", "p { background-image: url(<%= asset_path('rails.png') %>) }"
 

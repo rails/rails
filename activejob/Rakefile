@@ -1,13 +1,13 @@
 require 'rake/testtask'
 
-ACTIVEJOB_ADAPTERS = %w(async inline delayed_job qu que queue_classic resque sidekiq sneakers sucker_punch backburner test)
+#TODO: add qu back to the list after it support Rails 5.1
+ACTIVEJOB_ADAPTERS = %w(async inline delayed_job que queue_classic resque sidekiq sneakers sucker_punch backburner test)
 ACTIVEJOB_ADAPTERS -= %w(queue_classic) if defined?(JRUBY_VERSION)
 
 task default: :test
 task test: 'test:default'
 
 task :package
-task "package:clean"
 
 namespace :test do
   desc 'Run all adapter tests'

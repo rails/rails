@@ -68,7 +68,13 @@ module ActionDispatch # :nodoc:
     alias_method :headers,  :header
 
     delegate :[], :[]=, :to => :@header
-    delegate :each, :to => :@stream
+
+    def each(&block)
+      sending!
+      x = @stream.each(&block)
+      sent!
+      x
+    end
 
     CONTENT_TYPE = "Content-Type".freeze
     SET_COOKIE   = "Set-Cookie".freeze
@@ -97,10 +103,10 @@ module ActionDispatch # :nodoc:
 
       def body
         @str_body ||= begin
-                        buf = ''
-                        each { |chunk| buf << chunk }
-                        buf
-                      end
+          buf = ''
+            each { |chunk| buf << chunk }
+          buf
+        end
       end
 
       def write(string)
@@ -112,10 +118,13 @@ module ActionDispatch # :nodoc:
       end
 
       def each(&block)
-        @response.sending!
-        x = @buf.each(&block)
-        @response.sent!
-        x
+        if @str_body
+          return enum_for(:each) unless block_given?
+
+          yield @str_body
+        else
+          each_chunk(&block)
+        end
       end
 
       def abort
@@ -129,6 +138,12 @@ module ActionDispatch # :nodoc:
       def closed?
         @closed
       end
+
+      private
+
+        def each_chunk(&block)
+          @buf.each(&block) # extract into own method
+        end
     end
 
     def self.create(status = 200, header = {}, body = [], default_headers: self.default_headers)

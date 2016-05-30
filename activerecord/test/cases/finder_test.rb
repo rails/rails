@@ -174,7 +174,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_fails_when_parameter_has_invalid_type
-    assert_raises(RangeError) do
+    assert_raises(ActiveModel::RangeError) do
       assert_equal false, Topic.exists?(("9"*53).to_i) # number that's bigger than int
     end
     assert_equal false, Topic.exists?("foo")

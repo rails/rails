@@ -20,10 +20,10 @@ ActiveRecord::Base.establish_connection(adapter: 'sqlite3', database: ':memory:'
 ActiveRecord::Base.logger = Logger.new(STDOUT)
 
 ActiveRecord::Schema.define do
-  create_table :posts, force: true  do |t|
+  create_table :posts, force: true do |t|
   end
 
-  create_table :comments, force: true  do |t|
+  create_table :comments, force: true do |t|
     t.integer :post_id
   end
 end

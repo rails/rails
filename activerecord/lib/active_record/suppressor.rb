@@ -30,10 +30,11 @@ module ActiveRecord
 
     module ClassMethods
       def suppress(&block)
+        previous_state = SuppressorRegistry.suppressed[name]
         SuppressorRegistry.suppressed[name] = true
         yield
       ensure
-        SuppressorRegistry.suppressed[name] = false
+        SuppressorRegistry.suppressed[name] = previous_state
       end
     end
 

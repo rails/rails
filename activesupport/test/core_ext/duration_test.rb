@@ -12,7 +12,7 @@ class DurationTest < ActiveSupport::TestCase
     assert d.is_a?(ActiveSupport::Duration)
     assert_kind_of ActiveSupport::Duration, d
     assert_kind_of Numeric, d
-    assert_kind_of Fixnum, d
+    assert_kind_of Integer, d
     assert !d.is_a?(Hash)
 
     k = Class.new
@@ -86,6 +86,15 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_plus_with_time
     assert_equal 1 + 1.second, 1.second + 1, "Duration + Numeric should == Numeric + Duration"
+  end
+
+  def test_time_plus_duration_returns_same_time_datatype
+    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone['Moscow'] , Time.utc(2016,4,28,00,45))
+    now = Time.now.utc
+    %w( second minute hour day week month year ).each do |unit|
+      assert_equal((now + 1.send(unit)).class, Time, "Time + 1.#{unit} must be Time")
+      assert_equal((twz + 1.send(unit)).class, ActiveSupport::TimeWithZone, "TimeWithZone + 1.#{unit} must be TimeWithZone")
+    end
   end
 
   def test_argument_error

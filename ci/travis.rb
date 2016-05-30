@@ -120,9 +120,9 @@ class Build
 
   def env
     if activesupport? && !isolated?
-      # There is a known issue with the listen tests that casuses files to be
-      # incorrectly GC'ed even when they are still in-use. The current is to
-      # only run them in isolation to avoid randomly failing our test suite.
+      # There is a known issue with the listen tests that causes files to be
+      # incorrectly GC'ed even when they are still in-use. The current solution
+      # is to only run them in isolation to avoid randomly failing our test suite.
       { 'LISTEN' => '0' }
     else
       {}
@@ -148,6 +148,7 @@ ENV['GEM'].split(',').each do |gem|
     next if ENV['TRAVIS_PULL_REQUEST'] && ENV['TRAVIS_PULL_REQUEST'] != 'false' && isolated
     next if gem == 'railties' && isolated
     next if gem == 'ac' && isolated
+    next if gem == 'ac:integration' && isolated
     next if gem == 'aj:integration' && isolated
     next if gem == 'guides' && isolated
 

@@ -18,7 +18,7 @@ class PostgresqlTypeLookupTest < ActiveRecord::PostgreSQLTestCase
     bigint_array = @connection.type_map.lookup(1016, -1, "bigint[]")
     big_array = [123456789123456789]
 
-    assert_raises(RangeError) { int_array.serialize(big_array) }
+    assert_raises(ActiveModel::RangeError) { int_array.serialize(big_array) }
     assert_equal "{123456789123456789}", bigint_array.serialize(big_array)
   end
 
@@ -27,7 +27,7 @@ class PostgresqlTypeLookupTest < ActiveRecord::PostgreSQLTestCase
     bigint_range = @connection.type_map.lookup(3926, -1, "int8range")
     big_range = 0..123456789123456789
 
-    assert_raises(RangeError) { int_range.serialize(big_range) }
+    assert_raises(ActiveModel::RangeError) { int_range.serialize(big_range) }
     assert_equal "[0,123456789123456789]", bigint_range.serialize(big_range)
   end
 end

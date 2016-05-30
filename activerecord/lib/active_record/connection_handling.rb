@@ -44,17 +44,18 @@ module ActiveRecord
     #
     # The exceptions AdapterNotSpecified, AdapterNotFound and +ArgumentError+
     # may be returned on an error.
-    def establish_connection(spec = nil)
-      spec     ||= DEFAULT_ENV.call.to_sym
-      resolver =   ConnectionAdapters::ConnectionSpecification::Resolver.new configurations
-      spec     =   resolver.spec(spec)
+    def establish_connection(config = nil)
+      raise "Anonymous class is not allowed." unless name
 
-      unless respond_to?(spec.adapter_method)
-        raise AdapterNotFound, "database configuration specifies nonexistent #{spec.config[:adapter]} adapter"
-      end
+      config ||= DEFAULT_ENV.call.to_sym
+      spec_name = self == Base ? "primary" : name
+      self.connection_specification_name = spec_name
 
-      remove_connection
-      connection_handler.establish_connection self, spec
+      resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(Base.configurations)
+      spec = resolver.resolve(config).symbolize_keys
+      spec[:name] = spec_name
+
+      connection_handler.establish_connection(spec)
     end
 
     class MergeAndResolveDefaultUrlConfig # :nodoc:
@@ -87,6 +88,16 @@ module ActiveRecord
       retrieve_connection
     end
 
+    attr_writer :connection_specification_name
+
+    # Return the specification name from the current class or its parent.
+    def connection_specification_name
+      if !defined?(@connection_specification_name) || @connection_specification_name.nil?
+        return self == Base ? "primary" : superclass.connection_specification_name
+      end
+      @connection_specification_name
+    end
+
     def connection_id
       ActiveRecord::RuntimeRegistry.connection_id ||= Thread.current.object_id
     end
@@ -106,20 +117,28 @@ module ActiveRecord
     end
 
     def connection_pool
-      connection_handler.retrieve_connection_pool(self) or raise ConnectionNotEstablished
+      connection_handler.retrieve_connection_pool(connection_specification_name) or raise ConnectionNotEstablished
     end
 
     def retrieve_connection
-      connection_handler.retrieve_connection(self)
+      connection_handler.retrieve_connection(connection_specification_name)
     end
 
     # Returns +true+ if Active Record is connected.
     def connected?
-      connection_handler.connected?(self)
+      connection_handler.connected?(connection_specification_name)
     end
 
-    def remove_connection(klass = self)
-      connection_handler.remove_connection(klass)
+    def remove_connection(name = nil)
+      name ||= @connection_specification_name if defined?(@connection_specification_name)
+      # if removing a connection that have a pool, we reset the
+      # connection_specification_name so it will use the parent
+      # pool.
+      if connection_handler.retrieve_connection_pool(name)
+        self.connection_specification_name = nil
+      end
+
+      connection_handler.remove_connection(name)
     end
 
     def clear_cache! # :nodoc:

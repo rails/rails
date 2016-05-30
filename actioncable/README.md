@@ -86,12 +86,17 @@ end
 
 The client-side needs to setup a consumer instance of this connection. That's done like so:
 
-```coffeescript
-# app/assets/javascripts/cable.coffee
-#= require action_cable
+```js
+// app/assets/javascripts/cable.js
+//= require action_cable
+//= require_self
+//= require_tree ./channels
 
-@App = {}
-App.cable = ActionCable.createConsumer("ws://cable.example.com")
+(function() {
+  this.App || (this.App = {});
+
+  App.cable = ActionCable.createConsumer("ws://cable.example.com");
+}).call(this);
 ```
 
 The `ws://cable.example.com` address must point to your Action Cable server(s), and it
@@ -293,7 +298,7 @@ The rebroadcast will be received by all connected clients, _including_ the clien
 
 ### More complete examples
 
-See the [rails/actioncable-examples](http://github.com/rails/actioncable-examples) repository for a full example of how to setup Action Cable in a Rails app, and how to add channels.
+See the [rails/actioncable-examples](https://github.com/rails/actioncable-examples) repository for a full example of how to setup Action Cable in a Rails app, and how to add channels.
 
 
 ## Configuration
@@ -385,7 +390,7 @@ Rails.application.config.action_cable.log_tags = [
 
 For a full list of all configuration options, see the `ActionCable::Server::Configuration` class.
 
-Also note that your server must provide at least the same number of database connections as you have workers. The default worker pool is set to 100, so that means you have to make at least that available. You can change that in `config/database.yml` through the `pool` attribute.
+Also note that your server must provide at least the same number of database connections as you have workers. The default worker pool is set to 4, so that means you have to make at least that available. You can change that in `config/database.yml` through the `pool` attribute.
 
 
 ## Running the cable server
@@ -403,7 +408,7 @@ run ActionCable.server
 ```
 
 Then you start the server using a binstub in bin/cable ala:
-```
+```sh
 #!/bin/bash
 bundle exec puma -p 28080 cable/config.ru
 ```

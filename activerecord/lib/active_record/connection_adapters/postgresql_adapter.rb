@@ -168,10 +168,6 @@ module ActiveRecord
         true
       end
 
-      def supports_comments_in_create?
-        false
-      end
-
       def supports_savepoints?
         true
       end
@@ -410,6 +406,7 @@ module ActiveRecord
         VALUE_LIMIT_VIOLATION = "22001"
         FOREIGN_KEY_VIOLATION = "23503"
         UNIQUE_VIOLATION      = "23505"
+        SERIALIZATION_FAILURE = "40001"
 
         def translate_exception(exception, message)
           return exception unless exception.respond_to?(:result)
@@ -421,6 +418,8 @@ module ActiveRecord
             InvalidForeignKey.new(message)
           when VALUE_LIMIT_VIOLATION
             ValueTooLong.new(message)
+          when SERIALIZATION_FAILURE
+            TransactionSerializationError.new(message)
           else
             super
           end

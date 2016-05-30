@@ -69,6 +69,10 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Migration.verbose = @verbose_was
   end
 
+  def test_migration_version_matches_component_version
+    assert_equal ActiveRecord::VERSION::STRING.to_f, ActiveRecord::Migration.current_version
+  end
+
   def test_migrator_versions
     migrations_path = MIGRATIONS_ROOT + "/valid"
     old_path = ActiveRecord::Migrator.migrations_paths
@@ -176,7 +180,7 @@ class MigrationTest < ActiveRecord::TestCase
     # is_a?(Bignum)
     assert_kind_of Integer, b.world_population
     assert_equal 6000000000, b.world_population
-    assert_kind_of Fixnum, b.my_house_population
+    assert_kind_of Integer, b.my_house_population
     assert_equal 3, b.my_house_population
     assert_kind_of BigDecimal, b.bank_balance
     assert_equal BigDecimal("1586.43"), b.bank_balance
@@ -200,7 +204,7 @@ class MigrationTest < ActiveRecord::TestCase
       assert_in_delta BigDecimal("2.71828182845905"), b.value_of_e, 0.00000000000001
     else
       # - SQL standard is an integer
-      assert_kind_of Fixnum, b.value_of_e
+      assert_kind_of Integer, b.value_of_e
       assert_equal 2, b.value_of_e
     end
 
@@ -422,6 +426,23 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Migrator.migrations_paths = old_path
     ENV["RAILS_ENV"] = original_rails_env
     ENV["RACK_ENV"]  = original_rack_env
+  end
+
+  def test_internal_metadata_stores_environment_when_other_data_exists
+    ActiveRecord::InternalMetadata.delete_all
+    ActiveRecord::InternalMetadata[:foo]  = 'bar'
+
+    current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+    migrations_path = MIGRATIONS_ROOT + "/valid"
+    old_path        = ActiveRecord::Migrator.migrations_paths
+    ActiveRecord::Migrator.migrations_paths = migrations_path
+
+    current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+    ActiveRecord::Migrator.up(migrations_path)
+    assert_equal current_env, ActiveRecord::InternalMetadata[:environment]
+    assert_equal 'bar', ActiveRecord::InternalMetadata[:foo]
+  ensure
+    ActiveRecord::Migrator.migrations_paths = old_path
   end
 
   def test_rename_internal_metadata_table

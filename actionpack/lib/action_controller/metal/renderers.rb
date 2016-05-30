@@ -103,7 +103,7 @@ module ActionController
       #
       # Both <tt>ActionController::Base</tt> and <tt>ActionController::API</tt>
       # include <tt>ActionController::Renderers::All</tt>, making all renderers
-      # avaialable in the controller. See <tt>Renderers::RENDERERS</tt> and <tt>Renderers.add</tt>.
+      # available in the controller. See <tt>Renderers::RENDERERS</tt> and <tt>Renderers.add</tt>.
       #
       # Since <tt>ActionController::Metal</tt> controllers cannot render, the controller
       # must include <tt>AbstractController::Rendering</tt>, <tt>ActionController::Rendering</tt>,

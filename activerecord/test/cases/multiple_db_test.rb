@@ -24,6 +24,13 @@ class MultipleDbTest < ActiveRecord::TestCase
     assert_equal(ActiveRecord::Base.connection, Entrant.connection)
   end
 
+  def test_swapping_the_connection
+    old_spec_name, Course.connection_specification_name = Course.connection_specification_name, "primary"
+    assert_equal(Entrant.connection, Course.connection)
+  ensure
+    Course.connection_specification_name = old_spec_name
+  end
+
   def test_find
     c1 = Course.find(1)
     assert_equal "Ruby Development", c1.name
@@ -89,8 +96,8 @@ class MultipleDbTest < ActiveRecord::TestCase
   end
 
   def test_connection
-    assert_equal Entrant.arel_engine.connection, Bird.arel_engine.connection
-    assert_not_equal Entrant.arel_engine.connection, Course.arel_engine.connection
+    assert_equal Entrant.arel_engine.connection.object_id, Bird.arel_engine.connection.object_id
+    assert_not_equal Entrant.arel_engine.connection.object_id, Course.arel_engine.connection.object_id
   end
 
   unless in_memory_db?

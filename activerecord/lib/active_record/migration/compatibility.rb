@@ -1,7 +1,17 @@
 module ActiveRecord
   class Migration
     module Compatibility # :nodoc: all
-      V5_0 = Current
+      def self.find(version)
+        version = version.to_s
+        name = "V#{version.tr('.', '_')}"
+        unless const_defined?(name)
+          versions = constants.grep(/\AV[0-9_]+\z/).map { |s| s.to_s.delete('V').tr('_', '.').inspect }
+          raise ArgumentError, "Unknown migration version #{version.inspect}; expected one of #{versions.sort.join(', ')}"
+        end
+        const_get(name)
+      end
+
+      V5_1 = Current
 
       module FourTwoShared
         module TableDefinition
@@ -90,6 +100,9 @@ module ActiveRecord
 
           index_name
         end
+      end
+
+      class V5_0 < V5_1
       end
 
       class V4_2 < V5_0

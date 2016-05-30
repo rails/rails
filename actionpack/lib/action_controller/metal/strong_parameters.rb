@@ -43,7 +43,7 @@ module ActionController
 
   # == Action Controller \Parameters
   #
-  # Allows to choose which attributes should be whitelisted for mass updating
+  # Allows you to choose which attributes should be whitelisted for mass updating
   # and thus prevent accidentally exposing that which shouldn't be exposed.
   # Provides two methods for this purpose: #require and #permit. The former is
   # used to mark parameters as required. The latter is used to set the parameter
@@ -196,7 +196,7 @@ module ActionController
     end
     alias_method :to_unsafe_hash, :to_unsafe_h
 
-    # Convert all hashes in values into parameters, then yield each pair like
+    # Convert all hashes in values into parameters, then yield each pair in
     # the same way as <tt>Hash#each_pair</tt>
     def each_pair(&block)
       @parameters.each_pair do |key, value|
@@ -278,7 +278,7 @@ module ActionController
     #   params = ActionController::Parameters.new(user: { ... }, profile: { ... })
     #   user_params, profile_params = params.require(:user, :profile)
     #
-    # Otherwise, the method reraises the first exception found:
+    # Otherwise, the method re-raises the first exception found:
     #
     #   params = ActionController::Parameters.new(user: {}, profile: {})
     #   user_params, profile_params = params.require(:user, :profile)
@@ -441,12 +441,12 @@ module ActionController
       # Extracts the nested parameter from the given +keys+ by calling +dig+
       # at each step. Returns +nil+ if any intermediate step is +nil+.
       #
-      # params = ActionController::Parameters.new(foo: { bar: { baz: 1 } })
-      # params.dig(:foo, :bar, :baz) # => 1
-      # params.dig(:foo, :zot, :xyz) # => nil
+      #   params = ActionController::Parameters.new(foo: { bar: { baz: 1 } })
+      #   params.dig(:foo, :bar, :baz) # => 1
+      #   params.dig(:foo, :zot, :xyz) # => nil
       #
-      # params2 = ActionController::Parameters.new(foo: [10, 11, 12])
-      # params2.dig(:foo, 1) # => 11
+      #   params2 = ActionController::Parameters.new(foo: [10, 11, 12])
+      #   params2.dig(:foo, 1) # => 11
       def dig(*keys)
         convert_value_to_parameters(@parameters.dig(*keys))
       end
@@ -797,7 +797,7 @@ module ActionController
   #
   #   class PeopleController < ActionController::Base
   #     # Using "Person.create(params[:person])" would raise an
-  #     # ActiveModel::ForbiddenAttributes exception because it'd
+  #     # ActiveModel::ForbiddenAttributesError exception because it'd
   #     # be using mass assignment without an explicit permit step.
   #     # This is the recommended form:
   #     def create

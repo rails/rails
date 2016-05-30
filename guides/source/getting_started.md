@@ -93,7 +93,7 @@ current version of Ruby installed:
 
 ```bash
 $ ruby -v
-ruby 2.3.0p0
+ruby 2.3.1p112
 ```
 
 TIP: A number of tools exist to help you quickly install Ruby and Ruby
@@ -164,7 +164,7 @@ of the files and folders that Rails created by default:
 
 | File/Folder | Purpose |
 | ----------- | ------- |
-|app/|Contains the controllers, models, views, helpers, mailers and assets for your application. You'll focus on this folder for the remainder of this guide.|
+|app/|Contains the controllers, models, views, helpers, mailers, channels, jobs and assets for your application. You'll focus on this folder for the remainder of this guide.|
 |bin/|Contains the rails script that starts your app and can contain other scripts you use to setup, update, deploy or run your application.|
 |config/|Configure your application's routes, database, and more. This is covered in more detail in [Configuring Rails Applications](configuring.html).|
 |config.ru|Rack configuration for Rack based servers used to start the application.|
@@ -244,11 +244,11 @@ Ruby) which is processed by the request cycle in Rails before being sent to the
 user.
 
 To create a new controller, you will need to run the "controller" generator and
-tell it you want a controller called "welcome" with an action called "index",
+tell it you want a controller called "Welcome" with an action called "index",
 just like this:
 
 ```bash
-$ bin/rails generate controller welcome index
+$ bin/rails generate controller Welcome index
 ```
 
 Rails will create several files and a route for you.
@@ -263,6 +263,7 @@ invoke  test_unit
 create    test/controllers/welcome_controller_test.rb
 invoke  helper
 create    app/helpers/welcome_helper.rb
+invoke    test_unit
 invoke  assets
 invoke    coffee
 create      app/assets/javascripts/welcome.coffee
@@ -327,7 +328,7 @@ end
 application to the welcome controller's index action and `get 'welcome/index'`
 tells Rails to map requests to <http://localhost:3000/welcome/index> to the
 welcome controller's index action. This was created earlier when you ran the
-controller generator (`bin/rails generate controller welcome index`).
+controller generator (`bin/rails generate controller Welcome index`).
 
 Launch the web server again if you stopped it to generate the controller (`bin/rails
 server`) and navigate to <http://localhost:3000> in your browser. You'll see the
@@ -390,7 +391,7 @@ create and read. The form for doing this will look like this:
 It will look a little basic for now, but that's ok. We'll look at improving the
 styling for it afterwards.
 
-### Laying down the ground work
+### Laying down the groundwork
 
 Firstly, you need a place within the application to create a new article. A
 great place for that would be at `/articles/new`. With the route already
@@ -406,7 +407,7 @@ a controller called `ArticlesController`. You can do this by running this
 command:
 
 ```bash
-$ bin/rails generate controller articles
+$ bin/rails generate controller Articles
 ```
 
 If you open up the newly generated `app/controllers/articles_controller.rb`
@@ -474,7 +475,7 @@ one here because the `ArticlesController` inherits from `ApplicationController`.
 The next part of the message contains a hash. The `:locale` key in this hash
 simply indicates which spoken language template should be retrieved. By default,
 this is the English - or "en" - template. The next key, `:formats` specifies the
-format of template to be served in response. The default format is `:html`, and
+format of the template to be served in response. The default format is `:html`, and
 so Rails is looking for an HTML template. The final key, `:handlers`, is telling
 us what _template handlers_ could be used to render our template. `:erb` is most
 commonly used for HTML templates, `:builder` is used for XML templates, and

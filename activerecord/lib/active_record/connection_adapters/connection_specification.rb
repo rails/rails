@@ -3,14 +3,18 @@ require 'uri'
 module ActiveRecord
   module ConnectionAdapters
     class ConnectionSpecification #:nodoc:
-      attr_reader :config, :adapter_method
+      attr_reader :name, :config, :adapter_method
 
-      def initialize(config, adapter_method)
-        @config, @adapter_method = config, adapter_method
+      def initialize(name, config, adapter_method)
+        @name, @config, @adapter_method = name, config, adapter_method
       end
 
       def initialize_dup(original)
         @config = original.config.dup
+      end
+
+      def to_hash
+        @config.merge(name: @name)
       end
 
       # Expands a connection string into a hash.
@@ -179,7 +183,12 @@ module ActiveRecord
           end
 
           adapter_method = "#{spec[:adapter]}_connection"
-          ConnectionSpecification.new(spec, adapter_method)
+
+          unless ActiveRecord::Base.respond_to?(adapter_method)
+            raise AdapterNotFound, "database configuration specifies nonexistent #{spec.config[:adapter]} adapter"
+          end
+
+          ConnectionSpecification.new(spec.delete(:name) || "primary", spec, adapter_method)
         end
 
         private
@@ -224,7 +233,7 @@ module ActiveRecord
         #
         def resolve_symbol_connection(spec)
           if config = configurations[spec.to_s]
-            resolve_connection(config)
+            resolve_connection(config).merge("name" => spec.to_s)
           else
             raise(AdapterNotSpecified, "'#{spec}' database is not configured. Available: #{configurations.keys.inspect}")
           end

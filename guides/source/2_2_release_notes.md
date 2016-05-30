@@ -3,7 +3,7 @@
 Ruby on Rails 2.2 Release Notes
 ===============================
 
-Rails 2.2 delivers a number of new and improved features. This list covers the major upgrades, but doesn't include every little bug fix and change. If you want to see everything, check out the [list of commits](http://github.com/rails/rails/commits/2-2-stable) in the main Rails repository on GitHub.
+Rails 2.2 delivers a number of new and improved features. This list covers the major upgrades, but doesn't include every little bug fix and change. If you want to see everything, check out the [list of commits](https://github.com/rails/rails/commits/2-2-stable) in the main Rails repository on GitHub.
 
 Along with Rails, 2.2 marks the launch of the [Ruby on Rails Guides](http://guides.rubyonrails.org/), the first results of the ongoing [Rails Guides hackfest](http://hackfest.rubyonrails.org/guide). This site will deliver high-quality documentation of the major features of Rails.
 
@@ -22,7 +22,7 @@ Rails 2.2 supplies an easy system for internationalization (or i18n, for those o
 * More information :
     * [Official Rails i18 website](http://rails-i18n.org)
     * [Finally. Ruby on Rails gets internationalized](https://web.archive.org/web/20140407075019/http://www.artweb-design.de/2008/7/18/finally-ruby-on-rails-gets-internationalized)
-    * [Localizing Rails : Demo application](http://github.com/clemens/i18n_demo_app)
+    * [Localizing Rails : Demo application](https://github.com/clemens/i18n_demo_app)
 
 ### Compatibility with Ruby 1.9 and JRuby
 
@@ -59,7 +59,7 @@ rake doc:guides
 This will put the guides inside `Rails.root/doc/guides` and you may start surfing straight away by opening `Rails.root/doc/guides/index.html` in your favourite browser.
 
 * Lead Contributors: [Rails Documentation Team](credits.html)
-* Major contributions from [Xavier Noria":http://advogato.org/person/fxn/diary.html and "Hongli Lai](http://izumi.plan99.net/blog/.)
+* Major contributions from [Xavier Noria](http://advogato.org/person/fxn/diary.html) and [Hongli Lai](http://izumi.plan99.net/blog/).
 * More information:
     * [Rails Guides hackfest](http://hackfest.rubyonrails.org/guide)
     * [Help improve Rails documentation on Git branch](http://weblog.rubyonrails.org/2008/5/2/help-improve-rails-documentation-on-git-branch)
@@ -146,7 +146,7 @@ development:
 
 * Lead Contributor: [Nick Sieger](http://blog.nicksieger.com/)
 * More information:
-    * [What's New in Edge Rails: Connection Pools](http://ryandaigle.com/articles/2008/9/7/what-s-new-in-edge-rails-connection-pools)
+    * [What's New in Edge Rails: Connection Pools](http://archives.ryandaigle.com/articles/2008/9/7/what-s-new-in-edge-rails-connection-pools)
 
 ### Hashes for Join Table Conditions
 
@@ -166,7 +166,7 @@ Product.all(:joins => :photos, :conditions => { :photos => { :copyright => false
 ```
 
 * More information:
-    * [What's New in Edge Rails: Easy Join Table Conditions](http://ryandaigle.com/articles/2008/7/7/what-s-new-in-edge-rails-easy-join-table-conditions)
+    * [What's New in Edge Rails: Easy Join Table Conditions](http://archives.ryandaigle.com/articles/2008/7/7/what-s-new-in-edge-rails-easy-join-table-conditions)
 
 ### New Dynamic Finders
 
@@ -239,7 +239,7 @@ This will enable recognition of (among others) these routes:
 * Lead Contributor: [S. Brent Faulkner](http://www.unwwwired.net/)
 * More information:
     * [Rails Routing from the Outside In](routing.html#nested-resources)
-    * [What's New in Edge Rails: Shallow Routes](http://ryandaigle.com/articles/2008/9/7/what-s-new-in-edge-rails-shallow-routes)
+    * [What's New in Edge Rails: Shallow Routes](http://archives.ryandaigle.com/articles/2008/9/7/what-s-new-in-edge-rails-shallow-routes)
 
 ### Method Arrays for Member or Collection Routes
 
@@ -287,7 +287,7 @@ Action Mailer
 Action Mailer now supports mailer layouts. You can make your HTML emails as pretty as your in-browser views by supplying an appropriately-named layout - for example, the `CustomerMailer` class expects to use `layouts/customer_mailer.html.erb`.
 
 * More information:
-    * [What's New in Edge Rails: Mailer Layouts](http://ryandaigle.com/articles/2008/9/7/what-s-new-in-edge-rails-mailer-layouts)
+    * [What's New in Edge Rails: Mailer Layouts](http://archives.ryandaigle.com/articles/2008/9/7/what-s-new-in-edge-rails-mailer-layouts)
 
 Action Mailer now offers built-in support for GMail's SMTP servers, by turning on STARTTLS automatically. This requires Ruby 1.8.7 to be installed.
 
@@ -321,7 +321,7 @@ Other features of memoization include `unmemoize`, `unmemoize_all`, and `memoize
 
 * Lead Contributor: [Josh Peek](http://joshpeek.com/)
 * More information:
-    * [What's New in Edge Rails: Easy Memoization](http://ryandaigle.com/articles/2008/7/16/what-s-new-in-edge-rails-memoization)
+    * [What's New in Edge Rails: Easy Memoization](http://archives.ryandaigle.com/articles/2008/7/16/what-s-new-in-edge-rails-memoization)
     * [Memo-what? A Guide to Memoization](http://www.railway.at/articles/2008/09/20/a-guide-to-memoization)
 
 ### each_with_object
@@ -389,9 +389,9 @@ To avoid deployment issues and make Rails applications more self-contained, it's
 
 You can unpack or install a single gem by specifying `GEM=_gem_name_` on the command line.
 
-* Lead Contributor: [Matt Jones](http://github.com/al2o3cr)
+* Lead Contributor: [Matt Jones](https://github.com/al2o3cr)
 * More information:
-    * [What's New in Edge Rails: Gem Dependencies](http://ryandaigle.com/articles/2008/4/1/what-s-new-in-edge-rails-gem-dependencies)
+    * [What's New in Edge Rails: Gem Dependencies](http://archives.ryandaigle.com/articles/2008/4/1/what-s-new-in-edge-rails-gem-dependencies)
     * [Rails 2.1.2 and 2.2RC1: Update Your RubyGems](http://afreshcup.com/2008/10/25/rails-212-and-22rc1-update-your-rubygems/)
     * [Detailed discussion on Lighthouse](http://rails.lighthouseapp.com/projects/8994-ruby-on-rails/tickets/1128)
 
@@ -411,7 +411,7 @@ Deprecated
 A few pieces of older code are deprecated in this release:
 
 * `Rails::SecretKeyGenerator` has been replaced by `ActiveSupport::SecureRandom`
-* `render_component` is deprecated. There's a [render_components plugin](http://github.com/rails/render_component/tree/master) available if you need this functionality.
+* `render_component` is deprecated. There's a [render_components plugin](https://github.com/rails/render_component/tree/master) available if you need this functionality.
 * Implicit local assignments when rendering partials has been deprecated.
 
     ```ruby

@@ -179,7 +179,7 @@ To render debugging information preserving the response format, use the value `:
 config.debug_exception_response_format = :api
 ```
 
-By default, `config.debug_exception_response_format` is set to `:api`.
+By default, `config.debug_exception_response_format` is set to `:api`, when `config.api_only` is set to true.
 
 Finally, inside `app/controllers/application_controller.rb`, instead of:
 
@@ -202,7 +202,7 @@ An API application comes with the following middleware by default:
 
 - `Rack::Sendfile`
 - `ActionDispatch::Static`
-- `ActionDispatch::LoadInterlock`
+- `ActionDispatch::Executor`
 - `ActiveSupport::Cache::Strategy::LocalCache::Middleware`
 - `Rack::Runtime`
 - `ActionDispatch::RequestId`
@@ -289,7 +289,7 @@ You can learn more about how to use `Rack::Sendfile` with popular
 front-ends in [the Rack::Sendfile
 documentation](http://rubydoc.info/github/rack/rack/master/Rack/Sendfile).
 
-Here are some values for popular servers, once they are configured, to support
+Here are some values for this header for some popular servers, once these servers are configured to support
 accelerated file sending:
 
 ```ruby
@@ -395,6 +395,13 @@ included into `ActionController::API` in the rails console:
 ```bash
 $ bin/rails c
 >> ActionController::API.ancestors - ActionController::Metal.ancestors
+=> [ActionController::API, 
+    ActiveRecord::Railties::ControllerRuntime, 
+    ActionDispatch::Routing::RouteSet::MountedHelpers, 
+    ActionController::ParamsWrapper, 
+    ... , 
+    AbstractController::Rendering, 
+    ActionView::ViewPaths]
 ```
 
 ### Adding Other Modules
@@ -409,7 +416,7 @@ Some common modules you might want to add:
   and translation methods.
 - `ActionController::HttpAuthentication::Basic` (or `Digest` or `Token`): Support
   for basic, digest or token HTTP authentication.
-- `AbstractController::Layouts`: Support for layouts when rendering.
+- `ActionView::Layouts`: Support for layouts when rendering.
 - `ActionController::MimeResponds`: Support for `respond_to`.
 - `ActionController::Cookies`: Support for `cookies`, which includes
   support for signed and encrypted cookies. This requires the cookies middleware.

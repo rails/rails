@@ -33,6 +33,8 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
           if (@_after_create_counter_called ||= false)
             @_after_create_counter_called = false
+          elsif (@_after_replace_counter_called ||= false)
+            @_after_replace_counter_called = false
           elsif attribute_changed?(foreign_key) && !new_record?
             if reflection.polymorphic?
               model     = attribute(reflection.foreign_type).try(:constantize)

@@ -159,8 +159,10 @@ module ActiveSupport
           if t.acts_like?(:time) || t.acts_like?(:date)
             if type == :seconds
               t.since(sign * number)
-            elsif [:hours, :minutes].include?(type)
-              t.in_time_zone.advance(type => sign * number)
+            elsif type == :minutes
+              t.since(sign * number * 60)
+            elsif type == :hours
+              t.since(sign * number * 3600)
             else
               t.advance(type => sign * number)
             end

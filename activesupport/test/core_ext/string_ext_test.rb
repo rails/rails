@@ -10,6 +10,7 @@ require 'active_support/core_ext/string/strip'
 require 'active_support/core_ext/string/output_safety'
 require 'active_support/core_ext/string/indent'
 require 'time_zone_test_helpers'
+require 'yaml'
 
 class StringInflectionsTest < ActiveSupport::TestCase
   include InflectorTestCases
@@ -344,7 +345,7 @@ class StringInflectionsTest < ActiveSupport::TestCase
 end
 
 class StringAccessTest < ActiveSupport::TestCase
-  test "#at with Fixnum, returns a substring of one character at that position" do
+  test "#at with Integer, returns a substring of one character at that position" do
     assert_equal "h", "hello".at(0)
   end
 
@@ -357,19 +358,19 @@ class StringAccessTest < ActiveSupport::TestCase
     assert_equal nil, "hello".at(/nonexisting/)
   end
 
-  test "#from with positive Fixnum, returns substring from the given position to the end" do
+  test "#from with positive Integer, returns substring from the given position to the end" do
     assert_equal "llo", "hello".from(2)
   end
 
-  test "#from with negative Fixnum, position is counted from the end" do
+  test "#from with negative Integer, position is counted from the end" do
     assert_equal "lo", "hello".from(-2)
   end
 
-  test "#to with positive Fixnum, substring from the beginning to the given position" do
+  test "#to with positive Integer, substring from the beginning to the given position" do
     assert_equal "hel", "hello".to(2)
   end
 
-  test "#to with negative Fixnum, position is counted from the end" do
+  test "#to with negative Integer, position is counted from the end" do
     assert_equal "hell", "hello".to(-2)
   end
 
@@ -383,14 +384,14 @@ class StringAccessTest < ActiveSupport::TestCase
     assert_equal 'x', 'x'.first
   end
 
-  test "#first with Fixnum, returns a substring from the beginning to position" do
+  test "#first with Integer, returns a substring from the beginning to position" do
     assert_equal "he", "hello".first(2)
     assert_equal "", "hello".first(0)
     assert_equal "hello", "hello".first(10)
     assert_equal 'x', 'x'.first(4)
   end
 
-  test "#first with Fixnum >= string length still returns a new string" do
+  test "#first with Integer >= string length still returns a new string" do
     string = "hello"
     different_string = string.first(5)
     assert_not_same different_string, string
@@ -401,14 +402,14 @@ class StringAccessTest < ActiveSupport::TestCase
     assert_equal 'x', 'x'.last
   end
 
-  test "#last with Fixnum, returns a substring from the end to position" do
+  test "#last with Integer, returns a substring from the end to position" do
     assert_equal "llo", "hello".last(3)
     assert_equal "hello", "hello".last(10)
     assert_equal "", "hello".last(0)
     assert_equal 'x', 'x'.last(4)
   end
 
-  test "#last with Fixnum >= string length still returns a new string" do
+  test "#last with Integer >= string length still returns a new string" do
     string = "hello"
     different_string = string.last(5)
     assert_not_same different_string, string
@@ -463,10 +464,17 @@ class StringConversionsTest < ActiveSupport::TestCase
 
   def test_string_to_time_utc_offset
     with_env_tz "US/Eastern" do
-      assert_equal 0, "2005-02-27 23:50".to_time(:utc).utc_offset
-      assert_equal(-18000, "2005-02-27 23:50".to_time.utc_offset)
-      assert_equal 0, "2005-02-27 22:50 -0100".to_time(:utc).utc_offset
-      assert_equal(-18000, "2005-02-27 22:50 -0100".to_time.utc_offset)
+      if ActiveSupport.to_time_preserves_timezone
+        assert_equal 0, "2005-02-27 23:50".to_time(:utc).utc_offset
+        assert_equal(-18000, "2005-02-27 23:50".to_time.utc_offset)
+        assert_equal 0, "2005-02-27 22:50 -0100".to_time(:utc).utc_offset
+        assert_equal(-3600, "2005-02-27 22:50 -0100".to_time.utc_offset)
+      else
+        assert_equal 0, "2005-02-27 23:50".to_time(:utc).utc_offset
+        assert_equal(-18000, "2005-02-27 23:50".to_time.utc_offset)
+        assert_equal 0, "2005-02-27 22:50 -0100".to_time(:utc).utc_offset
+        assert_equal(-18000, "2005-02-27 22:50 -0100".to_time.utc_offset)
+      end
     end
   end
 
@@ -674,7 +682,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
     assert_equal @string, @string.html_safe
   end
 
-  test "A fixnum is safe by default" do
+  test "An integer is safe by default" do
     assert 5.html_safe?
   end
 
@@ -805,7 +813,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
     assert_equal ["<p>", "<b>", "<h1>"], @other_string
   end
 
-  test "Concatting a fixnum to safe always yields safe" do
+  test "Concatting an integer to safe always yields safe" do
     string = @string.html_safe
     string = string.concat(13)
     assert_equal "hello".concat(13), string

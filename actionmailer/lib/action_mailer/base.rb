@@ -5,6 +5,7 @@ require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/module/anonymous'
 
 require 'action_mailer/log_subscriber'
+require 'action_mailer/rescuable'
 
 module ActionMailer
   # Action Mailer allows you to send email from your application using a mailer model and views.
@@ -392,6 +393,7 @@ module ActionMailer
   #     of an OpenSSL verify constant (<tt>'none'</tt>, <tt>'peer'</tt>, <tt>'client_once'</tt>,
   #     <tt>'fail_if_no_peer_cert'</tt>) or directly the constant (<tt>OpenSSL::SSL::VERIFY_NONE</tt>,
   #     <tt>OpenSSL::SSL::VERIFY_PEER</tt>, ...).
+  #     <tt>:ssl/:tls</tt> Enables the SMTP connection to use SMTP/TLS (SMTPS: SMTP over direct TLS connection)
   #
   # * <tt>sendmail_settings</tt> - Allows you to override options for the <tt>:sendmail</tt> delivery method.
   #   * <tt>:location</tt> - The location of the sendmail executable. Defaults to <tt>/usr/sbin/sendmail</tt>.
@@ -419,6 +421,7 @@ module ActionMailer
   # * <tt>deliver_later_queue_name</tt> - The name of the queue used with <tt>deliver_later</tt>.
   class Base < AbstractController::Base
     include DeliveryMethods
+    include Rescuable
     include Previews
 
     abstract!
