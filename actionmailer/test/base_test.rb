@@ -968,3 +968,19 @@ class BasePreviewInterceptorsTest < ActiveSupport::TestCase
     end
   end
 end
+
+class BasePreviewTest < ActiveSupport::TestCase
+  class BaseMailerPreview < ActionMailer::Preview
+    def welcome
+      BaseMailer.welcome(params)
+    end
+  end
+
+  test "has access to params" do
+    params = { name: "World" }
+
+    assert_called_with(BaseMailer, :welcome, [params]) do
+      BaseMailerPreview.call(:welcome, params)
+    end
+  end
+end
