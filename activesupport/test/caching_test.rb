@@ -428,6 +428,23 @@ module CacheStoreBehavior
     end
   end
 
+  def test_expires_at
+    time = Time.local(2008, 4, 24)
+
+    Time.stub(:now, time) do
+      @cache.write('foo', 'bar', expires_in: nil, expires_at: time + 60)
+      assert_equal 'bar', @cache.read('foo')
+    end
+
+    Time.stub(:now, time + 30) do
+      assert_equal 'bar', @cache.read('foo')
+    end
+
+    Time.stub(:now, time + 61) do
+      assert_nil @cache.read('foo')
+    end
+  end
+
   def test_race_condition_protection_skipped_if_not_defined
     @cache.write('foo', 'bar')
     time = @cache.send(:read_entry, @cache.send(:normalize_key, 'foo', {}), {}).expires_at

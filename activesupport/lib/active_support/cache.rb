@@ -608,7 +608,7 @@ module ActiveSupport
       DEFAULT_COMPRESS_LIMIT = 16.kilobytes
 
       # Creates a new cache entry for the specified value. Options supported are
-      # +:compress+, +:compress_threshold+, and +:expires_in+.
+      # +:compress+, +:compress_threshold+, +:expires_in+ and +:expires_at+
       def initialize(value, options = {})
         if should_compress?(value, options)
           @value = compress(value)
@@ -619,6 +619,7 @@ module ActiveSupport
 
         @created_at = Time.now.to_f
         @expires_in = options[:expires_in]
+        self.expires_at = options[:expires_at] if options[:expires_at]
         @expires_in = @expires_in.to_f if @expires_in
       end
 
