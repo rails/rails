@@ -48,7 +48,7 @@ module ActiveSupport
       @secret = secret
       @sign_secret = sign_secret
       @cipher = options[:cipher] || 'aes-256-cbc'
-      @verifier = MessageVerifier.new(@sign_secret || @secret, digest: options[:digest] || 'SHA1', serializer: NullSerializer)
+      @verifier = MessageVerifier.new(@sign_secret || @secret, digest: options[:digest] || 'SHA256', serializer: NullSerializer)
       @serializer = options[:serializer] || Marshal
     end
 

@@ -528,7 +528,7 @@ module ActionDispatch
         end
 
         def digest
-          request.cookies_digest || 'SHA1'
+          request.cookies_digest || 'SHA256'
         end
 
         def key_generator

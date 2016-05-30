@@ -64,7 +64,7 @@ class MessageVerifierTest < ActiveSupport::TestCase
     #   AutoloadClass = Struct.new(:foo)
     #   valid_message = @verifier.generate(foo: AutoloadClass.new('foo'))
     #
-    valid_message = "BAh7BjoIZm9vbzonTWVzc2FnZVZlcmlmaWVyVGVzdDo6QXV0b2xvYWRDbGFzcwY6CUBmb29JIghmb28GOgZFVA==--f3ef39a5241c365083770566dc7a9eb5d6ace914"
+    valid_message = "BAh7BjoIZm9vUzonTWVzc2FnZVZlcmlmaWVyVGVzdDo6QXV0b2xvYWRDbGFzcwY7AEkiCGZvbwY6BkVU--cd79e1d143d545c2f4e51f8f681627f4e57d64026d55b0f52cd2d4c1f85303f2"
     exception = assert_raise(ArgumentError, NameError) do
       @verifier.verified(valid_message)
     end
