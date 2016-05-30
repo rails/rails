@@ -1171,6 +1171,15 @@ class RelationTest < ActiveRecord::TestCase
     assert_no_queries { assert_equal 0, posts.size }
   end
 
+  def test_size_with_group_and_order
+    posts = Post.select("author_id")
+              .group("author_id")
+              .order("author_count DESC")
+
+    expected = { 0 => 1, 1 => 5, 2 => 3, 3 => 2 }
+    assert_queries(1) { assert_equal expected, posts.size }
+  end
+
   def test_empty_with_zero_limit
     posts = Post.limit(0)
 
@@ -1209,6 +1218,17 @@ class RelationTest < ActiveRecord::TestCase
     no_posts = posts.where(:title => "")
     assert_queries(1) { assert_equal true, no_posts.empty? }
     assert ! no_posts.loaded?
+  end
+
+  def test_empty_complex_chained_relations_with_group_order_and_count
+    posts = Post.select("author_id, count(author_id) AS author_count")
+      .order("author_count DESC")
+      .group("author_id")
+
+    assert_queries(1) { assert_equal false, posts.empty? }
+
+    no_posts = posts.where(title: "")
+    assert_queries(1) { assert_equal true, no_posts.empty? }
   end
 
   def test_any
