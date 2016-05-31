@@ -430,7 +430,7 @@ For every instance of your server you create and for every worker your server sp
 
 ### Notes
 
-Beware that currently the cable server will _not_ auto-reload any changes in the framework. As we've discussed, long-running cable connections mean long-running objects. We don't yet have a way of reloading the classes of those objects in a safe manner. So when you change your channels, or the model your channels use, you must restart the cable server.
+Beware that currently, the cable server will _not_ auto-reload any changes in the framework. As we've discussed, long-running cable connections mean long-running objects. We don't yet have a way of reloading the classes of those objects in a safe manner. So when you change your channels, or the model your channels use, you must restart the cable server.
 
 We'll get all this abstracted properly when the framework is integrated into Rails.
 
