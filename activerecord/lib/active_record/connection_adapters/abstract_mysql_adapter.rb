@@ -693,13 +693,7 @@ module ActiveRecord
         end
 
         def register_integer_type(mapping, key, options) # :nodoc:
-          mapping.register_type(key) do |sql_type|
-            if /\bunsigned\z/ === sql_type
-              Type::UnsignedInteger.new(options)
-            else
-              Type::Integer.new(options)
-            end
-          end
+          mapping.register_type(key) { Type::Integer.new(options) }
         end
 
         def extract_precision(sql_type)
