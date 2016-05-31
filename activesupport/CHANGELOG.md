@@ -9,8 +9,14 @@
     these purposes. It finds the next_*day relative to the current date, being used.
     Usage example:
 
-    Date.today.next_tuesday # if the next day is a Tueday, it should return tomorrow, else next_week's
-    Date.today.prev_tuesday # if the previous day is a Tueday, it should return yesterday, else prev_week's
+    With this implementation, to get the next 4 Thursdays for a list, it can easily be achieved with the snippet below:
+
+        4.times{ |i|
+           Date.today.next_thursday + i.week
+        }
+
+        Date.today.next_tuesday # if the next day is a Tueday, it should return tomorrow, else next_week's
+        Date.today.prev_tuesday # if the previous day is a Tueday, it should return yesterday, else prev_week's
 
     This uses the Calculations API to achieve this efficiently.
 

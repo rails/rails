@@ -358,37 +358,37 @@ module DateAndTime
     ##
     # :method: prev_sunday
     #
-    # Returns the date of the next Sunday after self
+    # Returns the date of the previous Sunday before self
 
     ##
     # :method: prev_monday
     #
-    # Returns the date of the next Monday after self
+    # Returns the date of the previous Monday before self
 
     ##
     # :method: prev_tuesday
     #
-    # Returns the date of the next Tuesday after self
+    # Returns the date of the previous Tuesday before self
 
     ##
     # :method: prev_wednesday
     #
-    # Returns the date of the next Wednesday after self
+    # Returns the date of the previous Wednesday before self
 
     ##
     # :method: prev_thursday
     #
-    # Returns the date of the next Thurday after self
+    # Returns the date of the previous Thurday before self
 
     ##
     # :method: prev_friday
     #
-    # Returns the date of the next Friday after self
+    # Returns the date of the previous Friday before self
 
     ##
     # :method: prev_saturday
     #
-    # Returns the date of the next Saturday after self
+    # Returns the date of the previous Saturday before self
     DAYS_INTO_WEEK.each do |day_name, index|
       define_method "next_#{day_name}" do
         days_advance = 7 - distance_from_next_day_name(day_name)
@@ -396,8 +396,8 @@ module DateAndTime
       end
 
       define_method "prev_#{day_name}" do
-        days_distance = distance_from_next_day_name(day_name)
-        days_advance = days_distance == 0 ? -7 : -days_distance
+        days_difference = distance_from_next_day_name(day_name)
+        days_advance = days_difference == 0 ? -7 : -days_difference
         advance(days: days_advance)
       end
     end
