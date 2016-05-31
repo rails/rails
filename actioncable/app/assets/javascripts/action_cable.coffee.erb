@@ -4,6 +4,8 @@
 
 @ActionCable =
   INTERNAL: <%= ActionCable::INTERNAL.to_json %>
+  WebSocket: window.WebSocket
+  logger: window.console
 
   createConsumer: (url) ->
     url ?= @getConfig("url") ? @INTERNAL.default_mount_path
@@ -33,4 +35,4 @@
   log: (messages...) ->
     if @debugging
       messages.push(Date.now())
-      console.log("[ActionCable]", messages...)
+      @logger.log("[ActionCable]", messages...)
