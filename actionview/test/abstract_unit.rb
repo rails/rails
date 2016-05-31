@@ -20,17 +20,8 @@ require 'action_view'
 require 'action_view/testing/resolvers'
 require 'active_support/dependencies'
 require 'active_model'
-require 'active_record'
 
 require 'pp' # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
-
-module Rails
-  class << self
-    def env
-      @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "test")
-    end
-  end
-end
 
 ActiveSupport::Dependencies.hook!
 
@@ -42,9 +33,6 @@ ActiveSupport::Deprecation.debug = true
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false
 
-# Register danish language for testing
-I18n.backend.store_translations 'da', {}
-I18n.backend.store_translations 'pt-BR', {}
 ORIGINAL_LOCALES = I18n.available_locales.map(&:to_s).sort
 
 FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
@@ -194,21 +182,6 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
     self.class.app = old_app
     silence_warnings { Object.const_set(:SharedTestRoutes, old_routes) }
   end
-
-  def with_autoload_path(path)
-    path = File.join(File.dirname(__FILE__), "fixtures", path)
-    if ActiveSupport::Dependencies.autoload_paths.include?(path)
-      yield
-    else
-      begin
-        ActiveSupport::Dependencies.autoload_paths << path
-        yield
-      ensure
-        ActiveSupport::Dependencies.autoload_paths.reject! {|p| p == path}
-        ActiveSupport::Dependencies.clear
-      end
-    end
-  end
 end
 
 ActionView::RoutingUrlFor.include(ActionDispatch::Routing::UrlFor)
@@ -239,24 +212,6 @@ module ActionView
     # Must repeat the setup because AV::TestCase is a duplication
     # of AC::TestCase
     include ActionDispatch::SharedRoutes
-  end
-end
-
-class Workshop
-  extend ActiveModel::Naming
-  include ActiveModel::Conversion
-  attr_accessor :id
-
-  def initialize(id)
-    @id = id
-  end
-
-  def persisted?
-    id.present?
-  end
-
-  def to_s
-    id.to_s
   end
 end
 
