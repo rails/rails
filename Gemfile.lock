@@ -22,15 +22,6 @@ GIT
       delayed_job (>= 3.0, < 5)
 
 GIT
-  remote: git://github.com/javan/blade-sauce_labs_plugin.git
-  revision: dd4230c556aaa19b62cca757d6faeb2bb6bf95e7
-  specs:
-    blade-sauce_labs_plugin (0.5.1)
-      childprocess
-      faraday
-      selenium-webdriver
-
-GIT
   remote: git://github.com/rails/coffee-rails.git
   revision: aa2e623cbda4f3c789a0a15d1f707239e68f5736
   specs:
@@ -139,6 +130,10 @@ GEM
       thor (~> 0.19.1)
       useragent (~> 0.16.7)
     blade-qunit_adapter (1.20.0)
+    blade-sauce_labs_plugin (0.5.1)
+      childprocess
+      faraday
+      selenium-webdriver
     builder (3.2.2)
     bunny (2.2.2)
       amq-protocol (>= 2.0.1)
@@ -174,7 +169,7 @@ GEM
     execjs (2.6.0)
     faraday (0.9.2)
       multipart-post (>= 1.2, < 3)
-    faye (1.1.2)
+    faye (1.1.1)
       cookiejar (>= 0.3.0)
       em-http-request (>= 0.3.0)
       eventmachine (>= 0.12.0)
@@ -182,7 +177,7 @@ GEM
       multi_json (>= 1.0.0)
       rack (>= 1.0.0)
       websocket-driver (>= 0.5.1)
-    faye-websocket (0.10.3)
+    faye-websocket (0.10.4)
       eventmachine (>= 0.12.0)
       websocket-driver (>= 0.5.1)
     ffi (1.9.10)
@@ -218,7 +213,7 @@ GEM
     mocha (0.14.0)
       metaclass (~> 0.0.1)
     mono_logger (1.1.0)
-    multi_json (1.12.0)
+    multi_json (1.12.1)
     multipart-post (2.0.0)
     mustache (1.0.3)
     mysql2 (0.4.4)
@@ -337,7 +332,7 @@ GEM
       nokogiri
     wdm (0.1.1)
     websocket (1.2.3)
-    websocket-driver (0.6.3)
+    websocket-driver (0.6.4)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.2)
 
@@ -354,13 +349,14 @@ DEPENDENCIES
   bcrypt (~> 3.1.11)
   benchmark-ips
   blade (~> 0.5.5)
-  blade-sauce_labs_plugin!
+  blade-sauce_labs_plugin (~> 0.5.1)
   byebug
   coffee-rails!
   dalli (>= 2.2.1)
   delayed_job!
   delayed_job_active_record!
   em-hiredis
+  faye (= 1.1.1)
   faye-websocket
   hiredis
   jquery-rails
