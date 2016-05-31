@@ -527,34 +527,37 @@ module ActionController
           @request.set_header k, @controller.config.relative_url_root
         end
 
-        @controller.recycle!
-        @controller.dispatch(action, @request, @response)
-        @request = @controller.request
-        @response = @controller.response
+        begin
+          @controller.recycle!
+          @controller.dispatch(action, @request, @response)
+        ensure
+          @request = @controller.request
+          @response = @controller.response
 
-        @request.delete_header 'HTTP_COOKIE'
+          @request.delete_header 'HTTP_COOKIE'
 
-        if @request.have_cookie_jar?
-          unless @request.cookie_jar.committed?
-            @request.cookie_jar.write(@response)
-            self.cookies.update(@request.cookie_jar.instance_variable_get(:@cookies))
+          if @request.have_cookie_jar?
+            unless @request.cookie_jar.committed?
+              @request.cookie_jar.write(@response)
+              self.cookies.update(@request.cookie_jar.instance_variable_get(:@cookies))
+            end
           end
-        end
-        @response.prepare!
+          @response.prepare!
 
-        if flash_value = @request.flash.to_session_value
-          @request.session['flash'] = flash_value
-        else
-          @request.session.delete('flash')
-        end
+          if flash_value = @request.flash.to_session_value
+            @request.session['flash'] = flash_value
+          else
+            @request.session.delete('flash')
+          end
 
-        if xhr
-          @request.delete_header 'HTTP_X_REQUESTED_WITH'
-          @request.delete_header 'HTTP_ACCEPT'
-        end
-        @request.query_string = ''
+          if xhr
+            @request.delete_header 'HTTP_X_REQUESTED_WITH'
+            @request.delete_header 'HTTP_ACCEPT'
+          end
+          @request.query_string = ''
 
-        @response.sent!
+          @response.sent!
+        end
 
         @response
       end
