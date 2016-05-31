@@ -1621,7 +1621,7 @@ module ActiveRecord
                   record,
                   reflection.name,
                   reflection.klass,
-                  reflection.dependent_conditions(record, self.class, extra_conditions))
+                  reflection.dependent_conditions(record, self.class.base_class, extra_conditions))
                 end
               when :nullify
                 before_destroy do |record|
@@ -1630,7 +1630,7 @@ module ActiveRecord
                   reflection.name,
                   reflection.klass,
                   reflection.primary_key_name,
-                  reflection.dependent_conditions(record, self.class, extra_conditions))
+                  reflection.dependent_conditions(record, self.class.base_class, extra_conditions))
                 end
               when :restrict
                 method_name = "has_many_dependent_restrict_for_#{reflection.name}".to_sym
