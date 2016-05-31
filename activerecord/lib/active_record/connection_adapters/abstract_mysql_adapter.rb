@@ -742,6 +742,7 @@ module ActiveRecord
         ER_DUP_ENTRY            = 1062
         ER_NO_REFERENCED_ROW_2  = 1452
         ER_DATA_TOO_LONG        = 1406
+        ER_OUT_OF_RANGE         = 1264
         ER_LOCK_DEADLOCK        = 1213
 
         def translate_exception(exception, message)
@@ -752,6 +753,8 @@ module ActiveRecord
             InvalidForeignKey.new(message)
           when ER_DATA_TOO_LONG
             ValueTooLong.new(message)
+          when ER_OUT_OF_RANGE
+            RangeError.new(message)
           when ER_LOCK_DEADLOCK
             Deadlocked.new(message)
           else
