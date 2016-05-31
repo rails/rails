@@ -138,7 +138,7 @@ module ActionCable
         end
 
         # May be overridden to change the default stream handling behavior
-        # which decodes JSON and transmits to client.
+        # which decodes JSON and transmits to the client.
         #
         # TODO: Tests demonstrating this.
         #
