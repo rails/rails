@@ -22,7 +22,6 @@ module Rails
     private
       def add_gem_filters
         gems_paths = (Gem.path | [Gem.default_dir]).map { |p| Regexp.escape(p) }
-        return if gems_paths.empty?
 
         gems_regexp = %r{(#{gems_paths.join('|')})/gems/([^/]+)-([\w.]+)/(.*)}
         gems_result = '\2 (\3) \4'.freeze
