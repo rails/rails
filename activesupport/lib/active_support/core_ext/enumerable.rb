@@ -1,3 +1,5 @@
+require 'active_support/deprecation'
+
 module Enumerable
   # Calculates a sum from the elements.
   #
@@ -17,28 +19,46 @@ module Enumerable
   # The default sum of an empty list is zero. You can override this default:
   #
   #  [].sum(Payment.new(0)) { |i| i.amount } # => Payment.new(0)
-  def _enum_sum(identity = nil, &block)
-    if block_given?
-      map(&block).sum(identity)
-    else
-      sum = identity ? inject(identity, :+) : inject(:+)
-      sum || identity || 0
-    end
-  end
-
   if Enumerable.instance_methods(false).include?(:sum) && !(%w[a].sum rescue false)
-      alias :orig_enum_sum :sum
+    alias :orig_enum_sum :sum
 
-      def sum(identity = nil, &block) #:nodoc:
-        if identity || first.is_a?(Numeric)
-          identity ||= 0
-          orig_enum_sum(identity, &block)
+    def sum(identity = nil, &block) #:nodoc:
+      if identity
+        orig_enum_sum(identity, &block)
+      elsif identity = _identity_for_sum
+        orig_enum_sum(identity, &block)
+      else
+        if block_given?
+          map(&block).sum(identity)
         else
-          _enum_sum(identity, &block)
+          sum = identity ? inject(identity, :+) : inject(:+)
+          sum || identity || 0
         end
       end
+    end
+
+    private def _identity_for_sum #:nodoc:
+      return 0 if first.is_a?(Numeric)
+      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          Support for calling #sum on a non-numeric enumerable without an identity argument,
+          is deprecated and will soon be removed.
+      MSG
+      case first
+        when String;
+          ''
+        when Array;
+          []
+      end
+    end
   else
-    alias :sum :_enum_sum
+    def sum(identity = nil, &block)
+      if block_given?
+        map(&block).sum(identity)
+      else
+        sum = identity ? inject(identity, :+) : inject(:+)
+        sum || identity || 0
+      end
+    end
   end
 
   # Convert an enumerable to a hash.
@@ -133,10 +153,11 @@ if Array.instance_methods(false).include?(:sum) && !(%w[a].sum rescue false)
   class Array
     alias :orig_sum :sum
 
-    def sum(init = nil, &block) #:nodoc:
-      if init || first.is_a?(Numeric)
-        init ||= 0
-        orig_sum(init, &block)
+    def sum(identity = nil, &block) #:nodoc:
+      if identity
+        orig_sum(identity, &block)
+      elsif identity = _identity_for_sum
+        orig_sum(identity, &block)
       else
         super
       end
