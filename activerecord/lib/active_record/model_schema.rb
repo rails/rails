@@ -267,6 +267,10 @@ module ActiveRecord
         @attribute_types ||= Hash.new(Type::Value.new)
       end
 
+      def yaml_encoder # :nodoc:
+        @yaml_encoder ||= AttributeSet::YAMLEncoder.new(attribute_types)
+      end
+
       # Returns the type of the attribute with the given name, after applying
       # all modifiers. This method is the only valid source of information for
       # anything related to the types of a model's attributes. This method will
@@ -375,6 +379,7 @@ module ActiveRecord
         @columns = nil
         @columns_hash = nil
         @attribute_names = nil
+        @yaml_encoder = nil
         direct_descendants.each do |descendant|
           descendant.send(:reload_schema_from_cache)
         end

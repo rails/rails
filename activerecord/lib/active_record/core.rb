@@ -338,7 +338,7 @@ module ActiveRecord
     #   post.title # => 'hello world'
     def init_with(coder)
       coder = LegacyYamlAdapter.convert(self.class, coder)
-      @attributes = coder['attributes']
+      @attributes = self.class.yaml_encoder.decode(coder)
 
       init_internals
 
@@ -404,11 +404,9 @@ module ActiveRecord
     #   Post.new.encode_with(coder)
     #   coder # => {"attributes" => {"id" => nil, ... }}
     def encode_with(coder)
-      # FIXME: Remove this when we better serialize attributes
-      coder['raw_attributes'] = attributes_before_type_cast
-      coder['attributes'] = @attributes
+      self.class.yaml_encoder.encode(@attributes, coder)
       coder['new_record'] = new_record?
-      coder['active_record_yaml_version'] = 1
+      coder['active_record_yaml_version'] = 2
     end
 
     # Returns true if +comparison_object+ is the same exact object, or +comparison_object+
