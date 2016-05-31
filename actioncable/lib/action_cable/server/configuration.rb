@@ -8,7 +8,7 @@ module ActionCable
       attr_accessor :disable_request_forgery_protection, :allowed_request_origins
       attr_accessor :cable, :url, :mount_path
 
-      attr_accessor :channel_paths # :nodoc:
+      attr_accessor :channel_paths, :base_channel_path # :nodoc:
 
       def initialize
         @log_tags = []
@@ -21,7 +21,15 @@ module ActionCable
 
       def channel_class_names
         @channel_class_names ||= channel_paths.collect do |channel_path|
-          Pathname.new(channel_path).basename.to_s.split('.').first.camelize
+          # First, remove the base_channel_path, and reveal the relative
+          # location of the `channel_path`
+          path = Pathname.new(channel_path).relative_path_from(base_channel_path).to_s
+
+          # Next, remove the file extension
+          path = path.split('.').first
+
+          # Finally, camelize and turn the file name into a usable constant
+          path.camelize
         end
       end
 

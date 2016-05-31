@@ -18,6 +18,7 @@ class ClientTest < ActionCable::TestCase
 
     server.config.cable = { adapter: 'async' }.with_indifferent_access
     server.config.use_faye = ENV['FAYE'].present?
+    server.config.base_channel_path = Pathname.new(Dir.pwd + '/test/client')
 
     # and now the "real" setup for our test:
     server.config.disable_request_forgery_protection = true
