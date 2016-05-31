@@ -311,6 +311,96 @@ module DateAndTimeBehavior
     assert date_time_init(2015,1,5,15,15,10).on_weekday?
   end
 
+  def test_next_sunday
+    assert_equal date_time_init(2016,5,29,0,0,0), date_time_init(2016,5,28,0,0,0).next_sunday
+    assert_equal date_time_init(2016,4,10,0,0,0), date_time_init(2016,4,6,0,0,0).next_sunday
+  end
+
+  def test_next_monday
+    assert_equal date_time_init(2016,5,30,0,0,0), date_time_init(2016,5,28,0,0,0).next_monday
+    assert_equal date_time_init(2016,4,11,0,0,0), date_time_init(2016,4,6,0,0,0).next_monday
+  end
+
+  def test_next_tuesday
+    assert_equal date_time_init(2016,5,31,0,0,0), date_time_init(2016,5,28,0,0,0).next_tuesday
+    assert_equal date_time_init(2016,4,12,0,0,0), date_time_init(2016,4,6,0,0,0).next_tuesday
+  end
+
+  def test_next_wednesday
+    assert_equal date_time_init(2016,6,1,0,0,0), date_time_init(2016,5,28,0,0,0).next_wednesday
+    assert_equal date_time_init(2016,4,13,0,0,0), date_time_init(2016,4,6,0,0,0).next_wednesday
+  end
+
+  def test_next_thursday
+    assert_equal date_time_init(2016,6,2,0,0,0), date_time_init(2016,5,28,0,0,0).next_thursday
+    assert_equal date_time_init(2016,4,7,0,0,0), date_time_init(2016,4,6,0,0,0).next_thursday
+  end
+
+  def test_next_friday
+    assert_equal date_time_init(2016,6,3,0,0,0), date_time_init(2016,5,28,0,0,0).next_friday
+    assert_equal date_time_init(2016,4,8,0,0,0), date_time_init(2016,4,6,0,0,0).next_friday
+  end
+
+  def test_next_saturday
+    assert_equal date_time_init(2016,6,4,0,0,0), date_time_init(2016,5,28,0,0,0).next_saturday
+    assert_equal date_time_init(2016,4,9,0,0,0), date_time_init(2016,4,6,0,0,0).next_saturday
+  end
+
+  def test_next_sunday_on_saturday
+    assert_equal date_time_init(2016,5,29,0,0,0), date_time_init(2016,5,28,0,0,0).next_sunday
+    assert_equal date_time_init(2016,4,10,0,0,0), date_time_init(2016,4,9,0,0,0).next_sunday
+  end
+
+  def test_next_sunday_on_sunday
+    assert_equal date_time_init(2016,6,5,0,0,0), date_time_init(2016,5,29,0,0,0).next_sunday
+    assert_equal date_time_init(2016,4,17,0,0,0), date_time_init(2016,4,10,0,0,0).next_sunday
+  end
+
+  def test_prev_sunday
+    assert_equal date_time_init(2016,5,22,0,0,0), date_time_init(2016,5,28,0,0,0).prev_sunday
+    assert_equal date_time_init(2016,4,3,0,0,0), date_time_init(2016,4,6,0,0,0).prev_sunday
+  end
+
+  def test_prev_monday
+    assert_equal date_time_init(2016,5,23,0,0,0), date_time_init(2016,5,28,0,0,0).prev_monday
+    assert_equal date_time_init(2016,4,4,0,0,0), date_time_init(2016,4,6,0,0,0).prev_monday
+  end
+
+  def test_prev_tuesday
+    assert_equal date_time_init(2016,5,24,0,0,0), date_time_init(2016,5,28,0,0,0).prev_tuesday
+    assert_equal date_time_init(2016,4,5,0,0,0), date_time_init(2016,4,6,0,0,0).prev_tuesday
+  end
+
+  def test_prev_wednesday
+    assert_equal date_time_init(2016,5,25,0,0,0), date_time_init(2016,5,28,0,0,0).prev_wednesday
+    assert_equal date_time_init(2016,3,30,0,0,0), date_time_init(2016,4,6,0,0,0).prev_wednesday
+  end
+
+  def test_prev_thursday
+    assert_equal date_time_init(2016,5,26,0,0,0), date_time_init(2016,5,28,0,0,0).prev_thursday
+    assert_equal date_time_init(2016,3,31,0,0,0), date_time_init(2016,4,6,0,0,0).prev_thursday
+  end
+
+  def test_prev_friday
+    assert_equal date_time_init(2016,5,27,0,0,0), date_time_init(2016,5,28,0,0,0).prev_friday
+    assert_equal date_time_init(2016,4,1,0,0,0), date_time_init(2016,4,6,0,0,0).prev_friday
+  end
+
+  def test_prev_saturday
+    assert_equal date_time_init(2016,5,21,0,0,0), date_time_init(2016,5,28,0,0,0).prev_saturday
+    assert_equal date_time_init(2016,4,2,0,0,0), date_time_init(2016,4,6,0,0,0).prev_saturday
+  end
+
+  def test_prev_saturday_on_sunday
+    assert_equal date_time_init(2016,5,28,0,0,0), date_time_init(2016,5,29,0,0,0).prev_saturday
+    assert_equal date_time_init(2016,4,9,0,0,0), date_time_init(2016,4,10,0,0,0).prev_saturday
+  end
+
+  def test_prev_sunday_on_sunday
+    assert_equal date_time_init(2016,5,22,0,0,0), date_time_init(2016,5,29,0,0,0).prev_sunday
+    assert_equal date_time_init(2016,4,3,0,0,0), date_time_init(2016,4,10,0,0,0).prev_sunday
+  end
+
   def with_bw_default(bw = :monday)
     old_bw = Date.beginning_of_week
     Date.beginning_of_week = bw

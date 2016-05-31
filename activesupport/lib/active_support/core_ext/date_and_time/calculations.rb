@@ -320,7 +320,95 @@ module DateAndTime
       beginning_of_year..end_of_year
     end
 
+    ##
+    # :method: next_sunday
+    #
+    # Returns the date of the next Sunday after self
+
+    ##
+    # :method: next_monday
+    #
+    # Returns the date of the next Monday after self
+
+    ##
+    # :method: next_tuesday
+    #
+    # Returns the date of the next Tuesday after self
+
+    ##
+    # :method: next_wednesday
+    #
+    # Returns the date of the next Wednesday after self
+
+    ##
+    # :method: next_thursday
+    #
+    # Returns the date of the next Thurday after self
+
+    ##
+    # :method: next_friday
+    #
+    # Returns the date of the next Friday after self
+
+    ##
+    # :method: next_saturday
+    #
+    # Returns the date of the next Saturday after self
+
+    ##
+    # :method: prev_sunday
+    #
+    # Returns the date of the next Sunday after self
+
+    ##
+    # :method: prev_monday
+    #
+    # Returns the date of the next Monday after self
+
+    ##
+    # :method: prev_tuesday
+    #
+    # Returns the date of the next Tuesday after self
+
+    ##
+    # :method: prev_wednesday
+    #
+    # Returns the date of the next Wednesday after self
+
+    ##
+    # :method: prev_thursday
+    #
+    # Returns the date of the next Thurday after self
+
+    ##
+    # :method: prev_friday
+    #
+    # Returns the date of the next Friday after self
+
+    ##
+    # :method: prev_saturday
+    #
+    # Returns the date of the next Saturday after self
+    DAYS_INTO_WEEK.each do |day_name, index|
+      define_method "next_#{day_name}" do
+        days_advance = 7 - distance_from_next_day_name(day_name)
+        advance(days: days_advance)
+      end
+
+      define_method "prev_#{day_name}" do
+        days_distance = distance_from_next_day_name(day_name)
+        days_advance = days_distance == 0 ? -7 : -days_distance
+        advance(days: days_advance)
+      end
+    end
+
     private
+      def distance_from_next_day_name(day_name)
+        day_number = Date::DAYS_INTO_WEEK[day_name]
+        current_day_number = wday != 0 ? wday - 1 : 6
+        (current_day_number - day_number) % 7
+      end
+
       def first_hour(date_or_time)
         date_or_time.acts_like?(:time) ? date_or_time.beginning_of_day : date_or_time
       end

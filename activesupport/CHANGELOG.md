@@ -1,3 +1,21 @@
+*   Introduce next_*day and prev_*day helpers for Date, DateTime and Time  
+
+    Rails provides the Date#next_week method, but at times this is not the required date.
+    For example, if today is a Monday and there is a need for the next Tuesday, one way is to loop through
+    the next seven days to get the first match for Tuesday, or to blindly use the next_week(:tuesday)
+    method, which would usually not be the required value.
+
+    This implementation adds the Date#(next_sunday..next_saturday) and Date#(prev_sunday..prev_saturday), which would be super helpful for
+    these purposes. It finds the next_*day relative to the current date, being used.
+    Usage example:
+
+    Date.today.next_tuesday # if the next day is a Tueday, it should return tomorrow, else next_week's
+    Date.today.prev_tuesday # if the previous day is a Tueday, it should return yesterday, else prev_week's
+
+    This uses the Calculations API to achieve this efficiently.
+
+    *Oreoluwa Akinniranye*
+
 *   Support parsing JSON time in ISO8601 local time strings in
     `ActiveSupport::JSON.decode` when `parse_json_times` is enabled.
     Strings in the format of `YYYY-MM-DD hh:mm:ss` (without a `Z` at
