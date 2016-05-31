@@ -194,7 +194,7 @@ module ActiveRecord
                                    name, primary_key, id)
         end
         record
-      rescue RangeError
+      rescue ::RangeError
         raise RecordNotFound.new("Couldn't find #{name} with an out of range value for '#{primary_key}'",
                                  name, primary_key)
       end
@@ -223,7 +223,7 @@ module ActiveRecord
           statement.execute(hash.values, self, connection).first
         rescue TypeError
           raise ActiveRecord::StatementInvalid
-        rescue RangeError
+        rescue ::RangeError
           nil
         end
       end

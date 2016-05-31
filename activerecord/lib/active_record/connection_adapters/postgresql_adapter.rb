@@ -408,6 +408,7 @@ module ActiveRecord
 
         # See http://www.postgresql.org/docs/current/static/errcodes-appendix.html
         VALUE_LIMIT_VIOLATION = "22001"
+        NUMERIC_VALUE_OUT_OF_RANGE = "22003"
         NOT_NULL_VIOLATION    = "23502"
         FOREIGN_KEY_VIOLATION = "23503"
         UNIQUE_VIOLATION      = "23505"
@@ -424,6 +425,8 @@ module ActiveRecord
             InvalidForeignKey.new(message)
           when VALUE_LIMIT_VIOLATION
             ValueTooLong.new(message)
+          when NUMERIC_VALUE_OUT_OF_RANGE
+            RangeError.new(message)
           when NOT_NULL_VIOLATION
             NotNullViolation.new(message)
           when SERIALIZATION_FAILURE
