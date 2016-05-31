@@ -256,24 +256,6 @@ end
 class ::ApplicationController < ActionController::Base
 end
 
-class Workshop
-  extend ActiveModel::Naming
-  include ActiveModel::Conversion
-  attr_accessor :id
-
-  def initialize(id)
-    @id = id
-  end
-
-  def persisted?
-    id.present?
-  end
-
-  def to_s
-    id.to_s
-  end
-end
-
 module ActionDispatch
   class DebugExceptions
     private
