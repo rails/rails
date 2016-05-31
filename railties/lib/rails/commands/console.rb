@@ -7,6 +7,14 @@ module Rails
   class Console
     include ConsoleHelper
 
+    module BacktraceCleaner
+      def filter_backtrace(bt)
+        if result = super
+          Rails.backtrace_cleaner.filter([result]).first
+        end
+      end
+    end
+
     class << self
       def parse_arguments(arguments)
         options = {}
@@ -34,6 +42,10 @@ module Rails
       app.load_console
 
       @console = app.config.console || IRB
+
+      if @console == IRB
+        IRB::WorkSpace.prepend(BacktraceCleaner)
+      end
     end
 
     def sandbox?
