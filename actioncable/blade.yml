@@ -17,18 +17,18 @@ plugins:
     browsers:
       Google Chrome:
         os: Mac, Windows
-        version: -2
+        version: -1
       Firefox:
         os: Mac, Windows
-        version: -2
+        version: -1
       Safari:
         platform: Mac
-        version: -3
+        version: -1
       Microsoft Edge:
-        version: -2
+        version: -1
       Internet Explorer:
         version: 11
       iPhone:
-        version: [9.2, 8.4]
+        version: -1
       Motorola Droid 4 Emulator:
-        version: [5.1, 4.4]
+        version: -1
