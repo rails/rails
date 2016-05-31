@@ -34,7 +34,6 @@ require 'action_dispatch'
 require 'active_support/dependencies'
 require 'active_model'
 require 'active_record'
-require 'action_controller/caching'
 
 require 'pp' # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
 
@@ -57,10 +56,6 @@ ActiveSupport::Deprecation.debug = true
 
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false
-
-# Register danish language for testing
-I18n.backend.store_translations 'da', {}
-I18n.backend.store_translations 'pt-BR', {}
 
 FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
 
@@ -359,36 +354,14 @@ module RoutingTestHelpers
   end
 end
 
-class MetalRenderingController < ActionController::Metal
-  include AbstractController::Rendering
-  include ActionController::Rendering
-  include ActionController::Renderers
-end
-
 class ResourcesController < ActionController::Base
   def index() head :ok end
   alias_method :show, :index
 end
 
-class ThreadsController  < ResourcesController; end
-class MessagesController < ResourcesController; end
 class CommentsController < ResourcesController; end
-class ReviewsController < ResourcesController; end
-
 class AccountsController <  ResourcesController; end
-class AdminController   <  ResourcesController; end
-class ProductsController < ResourcesController; end
 class ImagesController < ResourcesController; end
-
-module Backoffice
-  class ProductsController < ResourcesController; end
-  class ImagesController < ResourcesController; end
-
-  module Admin
-    class ProductsController < ResourcesController; end
-    class ImagesController < ResourcesController; end
-  end
-end
 
 # Skips the current run on Rubinius using Minitest::Assertions#skip
 def rubinius_skip(message = '')
