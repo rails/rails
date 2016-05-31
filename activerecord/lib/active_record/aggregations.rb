@@ -244,12 +244,13 @@ module ActiveRecord
         def writer_method(name, class_name, mapping, allow_nil, converter)
           define_method("#{name}=") do |part|
             klass = class_name.constantize
-            if part.is_a?(Hash)
-              part = klass.new(*part.values)
-            end
 
             unless part.is_a?(klass) || converter.nil? || part.nil?
               part = converter.respond_to?(:call) ? converter.call(part) : klass.send(converter, part)
+            end
+
+            if part.is_a?(Hash)
+              part = klass.new(*part.values)
             end
 
             if part.nil? && allow_nil

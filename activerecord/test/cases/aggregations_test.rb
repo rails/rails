@@ -138,6 +138,11 @@ class AggregationsTest < ActiveRecord::TestCase
     assert_equal 'Barnoit GUMBLEAU', customers(:barney).fullname.to_s
     assert_kind_of Fullname, customers(:barney).fullname
   end
+
+  def test_assigning_hash_to_custom_converter
+    customers(:barney).fullname = { first: "Barney", last: "Stinson" }
+    assert_equal "Barney STINSON", customers(:barney).name
+  end
 end
 
 class OverridingAggregationsTest < ActiveRecord::TestCase
