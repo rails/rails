@@ -41,14 +41,14 @@ module ActiveRecord
       NATIVE_DATABASE_TYPES = {
         primary_key: "int auto_increment PRIMARY KEY",
         string:      { name: "varchar", limit: 255 },
-        text:        { name: "text" },
+        text:        { name: "text", limit: 65535 },
         integer:     { name: "int", limit: 4 },
         float:       { name: "float" },
         decimal:     { name: "decimal" },
         datetime:    { name: "datetime" },
         time:        { name: "time" },
         date:        { name: "date" },
-        binary:      { name: "blob" },
+        binary:      { name: "blob", limit: 65535 },
         boolean:     { name: "tinyint", limit: 1 },
         json:        { name: "json" },
       }

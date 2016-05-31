@@ -218,12 +218,17 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r{t\.boolean\s+"has_fun",.+default: false}, output
   end
 
-  if current_adapter?(:Mysql2Adapter)
-    def test_schema_dump_should_add_default_value_for_mysql_text_field
-      output = standard_dump
-      assert_match %r{t\.text\s+"body",\s+limit: 65535,\s+null: false$}, output
-    end
+  def test_schema_dump_does_not_include_limit_for_text_field
+    output = standard_dump
+    assert_match %r{t\.text\s+"params"$}, output
+  end
 
+  def test_schema_dump_does_not_include_limit_for_binary_field
+    output = standard_dump
+    assert_match %r{t\.binary\s+"data"$}, output
+  end
+
+  if current_adapter?(:Mysql2Adapter)
     def test_schema_dump_includes_length_for_mysql_binary_fields
       output = standard_dump
       assert_match %r{t\.binary\s+"var_binary",\s+limit: 255$}, output
@@ -233,11 +238,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
     def test_schema_dump_includes_length_for_mysql_blob_and_text_fields
       output = standard_dump
       assert_match %r{t\.blob\s+"tiny_blob",\s+limit: 255$}, output
-      assert_match %r{t\.binary\s+"normal_blob",\s+limit: 65535$}, output
+      assert_match %r{t\.binary\s+"normal_blob"$}, output
       assert_match %r{t\.binary\s+"medium_blob",\s+limit: 16777215$}, output
       assert_match %r{t\.binary\s+"long_blob",\s+limit: 4294967295$}, output
       assert_match %r{t\.text\s+"tiny_text",\s+limit: 255$}, output
-      assert_match %r{t\.text\s+"normal_text",\s+limit: 65535$}, output
+      assert_match %r{t\.text\s+"normal_text"$}, output
       assert_match %r{t\.text\s+"medium_text",\s+limit: 16777215$}, output
       assert_match %r{t\.text\s+"long_text",\s+limit: 4294967295$}, output
     end
