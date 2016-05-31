@@ -1,5 +1,4 @@
 require 'active_model'
-require 'active_support/core_ext/string/access'
 
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true
