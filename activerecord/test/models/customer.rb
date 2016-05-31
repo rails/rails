@@ -64,7 +64,12 @@ class Fullname
 
   def self.parse(str)
     return nil unless str
-    new(*str.to_s.split)
+
+    if str.is_a?(Hash)
+      new(str[:first], str[:last])
+    else
+      new(*str.to_s.split)
+    end
   end
 
   def initialize(first, last = nil)
