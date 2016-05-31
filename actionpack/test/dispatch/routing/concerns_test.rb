@@ -1,5 +1,7 @@
 require 'abstract_unit'
 
+class ReviewsController < ResourcesController; end
+
 class RoutingConcernsTest < ActionDispatch::IntegrationTest
   class Reviewable
     def self.call(mapper, options = {})
