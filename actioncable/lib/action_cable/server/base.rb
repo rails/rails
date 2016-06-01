@@ -26,6 +26,7 @@ module ActionCable
       def call(env)
         setup_heartbeat_timer
         config.connection_class.new(self, env).process
+        @channel_classes = self.channel_classes
       end
 
       # Disconnect all the connections identified by `identifiers` on this server or any others via RemoteConnections.
