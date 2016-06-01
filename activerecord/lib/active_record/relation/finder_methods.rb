@@ -318,7 +318,7 @@ module ActiveRecord
 
       return false if !conditions
 
-      relation = apply_join_dependency(self, construct_join_dependency)
+      relation = apply_join_dependency(self, construct_join_dependency(eager_loading: false))
       return false if ActiveRecord::NullRelation === relation
 
       relation = relation.except(:select, :order).select(ONE_AS_ONE).limit(1)
@@ -392,9 +392,9 @@ module ActiveRecord
       end
     end
 
-    def construct_join_dependency(joins = [])
+    def construct_join_dependency(joins = [], eager_loading: true)
       including = eager_load_values + includes_values
-      ActiveRecord::Associations::JoinDependency.new(@klass, including, joins)
+      ActiveRecord::Associations::JoinDependency.new(@klass, including, joins, eager_loading: eager_loading)
     end
 
     def construct_relation_for_association_calculations

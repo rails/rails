@@ -289,7 +289,7 @@ You can learn more about how to use `Rack::Sendfile` with popular
 front-ends in [the Rack::Sendfile
 documentation](http://rubydoc.info/github/rack/rack/master/Rack/Sendfile).
 
-Here are some values for popular servers, once they are configured, to support
+Here are some values for this header for some popular servers, once these servers are configured to support
 accelerated file sending:
 
 ```ruby
@@ -395,6 +395,13 @@ included into `ActionController::API` in the rails console:
 ```bash
 $ bin/rails c
 >> ActionController::API.ancestors - ActionController::Metal.ancestors
+=> [ActionController::API, 
+    ActiveRecord::Railties::ControllerRuntime, 
+    ActionDispatch::Routing::RouteSet::MountedHelpers, 
+    ActionController::ParamsWrapper, 
+    ... , 
+    AbstractController::Rendering, 
+    ActionView::ViewPaths]
 ```
 
 ### Adding Other Modules

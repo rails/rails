@@ -940,7 +940,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_kind_of Integer, m1.world_population
     assert_equal 6000000000, m1.world_population
 
-    assert_kind_of Fixnum, m1.my_house_population
+    assert_kind_of Integer, m1.my_house_population
     assert_equal 3, m1.my_house_population
 
     assert_kind_of BigDecimal, m1.bank_balance
@@ -968,7 +968,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_kind_of Integer, m1.world_population
     assert_equal 6000000000, m1.world_population
 
-    assert_kind_of Fixnum, m1.my_house_population
+    assert_kind_of Integer, m1.my_house_population
     assert_equal 3, m1.my_house_population
 
     assert_kind_of BigDecimal, m1.bank_balance
@@ -1502,6 +1502,10 @@ class BasicsTest < ActiveRecord::TestCase
   # delete this.
   test "records without an id have unique hashes" do
     assert_not_equal Post.new.hash, Post.new.hash
+  end
+
+  test "records of different classes have different hashes" do
+    assert_not_equal Post.new(id: 1).hash, Developer.new(id: 1).hash
   end
 
   test "resetting column information doesn't remove attribute methods" do

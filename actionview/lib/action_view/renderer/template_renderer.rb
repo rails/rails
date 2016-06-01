@@ -84,13 +84,13 @@ module ActionView
       when String
         begin
           if layout =~ /^\//
-            with_fallbacks { find_template(layout, nil, false, keys, details) }
+            with_fallbacks { find_template(layout, nil, false, [], details) }
           else
-            find_template(layout, nil, false, keys, details)
+            find_template(layout, nil, false, [], details)
           end
         rescue ActionView::MissingTemplate
           all_details = @details.merge(:formats => @lookup_context.default_formats)
-          raise unless template_exists?(layout, nil, false, keys, all_details)
+          raise unless template_exists?(layout, nil, false, [], all_details)
         end
       when Proc
         resolve_layout(layout.call(formats), keys, formats)

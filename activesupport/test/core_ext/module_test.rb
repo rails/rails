@@ -40,6 +40,12 @@ class Someone < Struct.new(:name, :place)
 
   FAILED_DELEGATE_LINE_2 = __LINE__ + 1
   delegate :bar, :to => :place, :allow_nil => true
+
+  private
+
+  def private_name
+    "Private"
+  end
 end
 
 Invoice   = Struct.new(:client) do
@@ -80,6 +86,20 @@ Product = Struct.new(:name) do
     @type ||= begin
       nil.type_name
     end
+  end
+end
+
+DecoratedTester = Struct.new(:client) do
+  delegate_missing_to :client
+end
+
+class DecoratedReserved
+  delegate_missing_to :case
+
+  attr_reader :case
+
+  def initialize(kase)
+    @case = kase
   end
 end
 
@@ -170,6 +190,21 @@ class ModuleTest < ActiveSupport::TestCase
     end
     assert_raise(ArgumentError) do
       Name.send :delegate, :noplace, :tos => :hollywood
+    end
+  end
+
+  def test_delegation_target_when_prefix_is_true
+    assert_nothing_raised do
+      Name.send :delegate, :go, to: :you, prefix: true
+    end
+    assert_nothing_raised do
+      Name.send :delegate, :go, to: :_you, prefix: true
+    end
+    assert_raise(ArgumentError) do
+      Name.send :delegate, :go, to: :You, prefix: true
+    end
+    assert_raise(ArgumentError) do
+      Name.send :delegate, :go, to: :@you, prefix: true
     end
   end
 
@@ -314,6 +349,30 @@ class ModuleTest < ActiveSupport::TestCase
   def test_delegation_with_method_arguments
     has_block = HasBlock.new(Block.new)
     assert has_block.hello?
+  end
+
+  def test_delegate_to_missing_with_method
+    assert_equal "David", DecoratedTester.new(@david).name
+  end
+
+  def test_delegate_to_missing_with_reserved_methods
+    assert_equal "David", DecoratedReserved.new(@david).name
+  end
+
+  def test_delegate_to_missing_does_not_delegate_to_private_methods
+    e = assert_raises(NoMethodError) do
+      DecoratedReserved.new(@david).private_name
+    end
+
+    assert_match(/undefined method `private_name' for/, e.message)
+  end
+
+  def test_delegate_to_missing_does_not_delegate_to_fake_methods
+    e = assert_raises(NoMethodError) do
+      DecoratedReserved.new(@david).my_fake_method
+    end
+
+    assert_match(/undefined method `my_fake_method' for/, e.message)
   end
 
   def test_parent

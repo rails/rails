@@ -5,16 +5,15 @@ module ActiveRecord
     class ConnectionHandlerTest < ActiveRecord::TestCase
       def setup
         @handler = ConnectionHandler.new
-        resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new Base.configurations
         @spec_name = "primary"
-        @pool    = @handler.establish_connection(resolver.spec(:arunit, @spec_name))
+        @pool    = @handler.establish_connection(ActiveRecord::Base.configurations['arunit'])
       end
 
       def test_establish_connection_uses_spec_name
         config = {"readonly" => {"adapter" => 'sqlite3'}}
         resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(config)
         spec =   resolver.spec(:readonly)
-        @handler.establish_connection(spec)
+        @handler.establish_connection(spec.to_hash)
 
         assert_not_nil @handler.retrieve_connection_pool('readonly')
       ensure
@@ -88,6 +87,36 @@ module ActiveRecord
           Process.waitpid pid
           assert_equal @pool.schema_cache.size, Marshal.load(rd.read)
           rd.close
+        end
+
+        def test_a_class_using_custom_pool_and_switching_back_to_primary
+          klass2 = Class.new(Base) { def self.name; 'klass2'; end }
+
+          assert_equal klass2.connection.object_id, ActiveRecord::Base.connection.object_id
+
+          pool = klass2.establish_connection(ActiveRecord::Base.connection_pool.spec.config)
+          assert_equal klass2.connection.object_id, pool.connection.object_id
+          refute_equal klass2.connection.object_id, ActiveRecord::Base.connection.object_id
+
+          klass2.remove_connection
+
+          assert_equal klass2.connection.object_id, ActiveRecord::Base.connection.object_id
+        end
+
+        def test_connection_specification_name_should_fallback_to_parent
+          klassA = Class.new(Base)
+          klassB = Class.new(klassA)
+
+          assert_equal klassB.connection_specification_name, klassA.connection_specification_name
+          klassA.connection_specification_name = "readonly"
+          assert_equal "readonly", klassB.connection_specification_name
+        end
+
+        def test_remove_connection_should_not_remove_parent
+          klass2 = Class.new(Base) { def self.name; 'klass2'; end }
+          klass2.remove_connection
+          refute_nil ActiveRecord::Base.connection.object_id
+          assert_equal klass2.connection.object_id, ActiveRecord::Base.connection.object_id
         end
       end
     end

@@ -38,7 +38,7 @@ module ActiveRecord
       data.reload
 
       assert_equal 2, data.overloaded_float
-      assert_kind_of Fixnum, OverloadedType.last.overloaded_float
+      assert_kind_of Integer, OverloadedType.last.overloaded_float
       assert_equal 2.0, UnoverloadedType.last.overloaded_float
       assert_kind_of Float, UnoverloadedType.last.overloaded_float
     end
@@ -61,6 +61,15 @@ module ActiveRecord
       assert_raise ActiveRecord::UnknownAttributeError do
         UnoverloadedType.new(non_existent_decimal: 1)
       end
+    end
+
+    test "model with nonexistent attribute with default value can be saved" do
+      klass = Class.new(OverloadedType) do
+        attribute :non_existent_string_with_default, :string, default: 'nonexistent'
+      end
+
+      model = klass.new
+      assert model.save
     end
 
     test "changing defaults" do

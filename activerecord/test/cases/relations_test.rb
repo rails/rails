@@ -1086,6 +1086,11 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 9, posts.where(:comments_count => 0).count
   end
 
+  def test_count_with_block
+    posts = Post.all
+    assert_equal 10, posts.count { |p| p.comments_count.even? }
+  end
+
   def test_count_on_association_relation
     author = Author.last
     another_author = Author.first

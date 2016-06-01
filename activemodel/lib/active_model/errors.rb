@@ -71,8 +71,8 @@ module ActiveModel
     #   end
     def initialize(base)
       @base     = base
-      @messages = Hash.new { |messages, attribute| messages[attribute] = [] }
-      @details  = Hash.new { |details, attribute| details[attribute] = [] }
+      @messages = apply_default_array({})
+      @details = apply_default_array({})
     end
 
     def initialize_dup(other) # :nodoc:
@@ -310,9 +310,9 @@ module ActiveModel
     # <tt>:strict</tt> option can also be set to any other exception.
     #
     #   person.errors.add(:name, :invalid, strict: true)
-    #   # => ActiveModel::StrictValidationFailed: name is invalid
+    #   # => ActiveModel::StrictValidationFailed: Name is invalid
     #   person.errors.add(:name, :invalid, strict: NameIsInvalid)
-    #   # => NameIsInvalid: name is invalid
+    #   # => NameIsInvalid: Name is invalid
     #
     #   person.errors.messages # => {}
     #
@@ -493,6 +493,16 @@ module ActiveModel
       I18n.translate(key, options)
     end
 
+    def marshal_dump
+      [@base, without_default_proc(@messages), without_default_proc(@details)]
+    end
+
+    def marshal_load(array)
+      @base, @messages, @details = array
+      apply_default_array(@messages)
+      apply_default_array(@details)
+    end
+
   private
     def normalize_message(attribute, message, options)
       case message
@@ -505,6 +515,17 @@ module ActiveModel
 
     def normalize_detail(message, options)
       { error: message }.merge(options.except(*CALLBACKS_OPTIONS + MESSAGE_OPTIONS))
+    end
+
+    def without_default_proc(hash)
+      hash.dup.tap do |new_h|
+        new_h.default_proc = nil
+      end
+    end
+
+    def apply_default_array(hash)
+      hash.default_proc = proc { |h, key| h[key] = [] }
+      hash
     end
   end
 
@@ -531,6 +552,15 @@ module ActiveModel
   end
 
   # Raised when unknown attributes are supplied via mass assignment.
+  #
+  #   class Person
+  #     include ActiveModel::AttributeAssignment
+  #     include ActiveModel::Validations
+  #   end
+  #
+  #   person = Person.new
+  #   person.assign_attributes(name: 'Gorby')
+  #   # => ActiveModel::UnknownAttributeError: unknown attribute 'name' for Person.
   class UnknownAttributeError < NoMethodError
     attr_reader :record, :attribute
 

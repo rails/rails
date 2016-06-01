@@ -100,8 +100,8 @@ called key-based expiration.
 
 Cache fragments will also be expired when the view fragment changes (e.g., the
 HTML in the view changes). The string of characters at the end of the key is a
-template tree digest. It is an md5 hash computed based on the contents of the
-view fragment you are caching. If you change the view fragment, the md5 hash
+template tree digest. It is an MD5 hash computed based on the contents of the
+view fragment you are caching. If you change the view fragment, the MD5 hash
 will change, expiring the existing file.
 
 TIP: Cache stores like Memcached will automatically delete old cache files.
@@ -258,7 +258,7 @@ comment format anywhere in the template, like:
 
 If you use a helper method, for example, inside a cached block and you then update
 that helper, you'll have to bump the cache as well. It doesn't really matter how
-you do it, but the md5 of the template file must change. One recommendation is to
+you do it, but the MD5 of the template file must change. One recommendation is to
 simply be explicit in a comment, like:
 
 ```html+erb

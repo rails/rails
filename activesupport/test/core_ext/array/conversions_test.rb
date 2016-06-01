@@ -101,10 +101,10 @@ class ToXmlTest < ActiveSupport::TestCase
   end
 
   def test_to_xml_with_non_hash_elements
-    xml = [1, 2, 3].to_xml(skip_instruct: true, indent: 0)
+    xml = %w[1 2 3].to_xml(skip_instruct: true, indent: 0)
 
-    assert_equal '<fixnums type="array"><fixnum', xml.first(29)
-    assert xml.include?(%(<fixnum type="integer">2</fixnum>)), xml
+    assert_equal '<strings type="array"><string', xml.first(29)
+    assert xml.include?(%(<string>2</string>)), xml
   end
 
   def test_to_xml_with_non_hash_different_type_elements

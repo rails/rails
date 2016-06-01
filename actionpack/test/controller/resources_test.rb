@@ -3,8 +3,22 @@ require 'active_support/core_ext/object/try'
 require 'active_support/core_ext/object/with_options'
 require 'active_support/core_ext/array/extract_options'
 
-class ResourcesTest < ActionController::TestCase
+class AdminController < ResourcesController; end
+class MessagesController < ResourcesController; end
+class ProductsController < ResourcesController; end
+class ThreadsController < ResourcesController; end
 
+module Backoffice
+  class ProductsController < ResourcesController; end
+  class ImagesController < ResourcesController; end
+
+  module Admin
+    class ProductsController < ResourcesController; end
+    class ImagesController < ResourcesController; end
+  end
+end
+
+class ResourcesTest < ActionController::TestCase
   def test_default_restful_routes
     with_restful_routing :messages do
       assert_simply_restful_for :messages

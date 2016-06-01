@@ -203,7 +203,7 @@ predefined raise/rescue flow to end up as a 400 Bad Request.
 
 ```ruby
 class PeopleController < ActionController::Base
-  # This will raise an ActiveModel::ForbiddenAttributes exception
+  # This will raise an ActiveModel::ForbiddenAttributesError exception
   # because it's using mass assignment without an explicit permit
   # step.
   def create

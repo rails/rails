@@ -1121,7 +1121,7 @@ If you want to select a set of records whether or not they have associated
 records you can use the `left_outer_joins` method.
 
 ```ruby
-Author.left_outer_joins(:posts).uniq.select('authors.*, COUNT(posts.*) AS posts_count').group('authors.id')
+Author.left_outer_joins(:posts).distinct.select('authors.*, COUNT(posts.*) AS posts_count').group('authors.id')
 ```
 
 Which produces:

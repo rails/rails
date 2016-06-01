@@ -148,7 +148,6 @@ class Module
   #   Foo.new("Bar").name # raises NoMethodError: undefined method `name'
   #
   # The target method must be public, otherwise it will raise +NoMethodError+.
-  #
   def delegate(*methods, to: nil, prefix: nil, allow_nil: nil)
     unless to
       raise ArgumentError, 'Delegation needs a target. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, to: :greeter).'
@@ -211,5 +210,69 @@ class Module
 
       module_eval(method_def, file, line)
     end
+  end
+
+  # When building decorators, a common pattern may emerge:
+  #
+  #   class Partition
+  #     def initialize(first_event)
+  #       @events = [ first_event ]
+  #     end
+  #
+  #     def people
+  #       if @events.first.detail.people.any?
+  #         @events.collect { |e| Array(e.detail.people) }.flatten.uniq
+  #       else
+  #         @events.collect(&:creator).uniq
+  #       end
+  #     end
+  #
+  #     private
+  #       def respond_to_missing?(name, include_private = false)
+  #         @events.respond_to?(name, include_private)
+  #       end
+  #
+  #       def method_missing(method, *args, &block)
+  #         @events.send(method, *args, &block)
+  #       end
+  #   end
+  #
+  # With `Module#delegate_missing_to`, the above is condensed to:
+  #
+  #   class Partition
+  #     delegate_missing_to :@events
+  #
+  #     def initialize(first_event)
+  #       @events = [ first_event ]
+  #     end
+  #
+  #     def people
+  #       if @events.first.detail.people.any?
+  #         @events.collect { |e| Array(e.detail.people) }.flatten.uniq
+  #       else
+  #         @events.collect(&:creator).uniq
+  #       end
+  #     end
+  #   end
+  #
+  # The target can be anything callable withing the object. E.g. instance
+  # variables, methods, constants ant the likes.
+  def delegate_missing_to(target)
+    target = target.to_s
+    target = "self.#{target}" if DELEGATION_RESERVED_METHOD_NAMES.include?(target)
+
+    module_eval <<-RUBY, __FILE__, __LINE__ + 1
+      def respond_to_missing?(name, include_private = false)
+        #{target}.respond_to?(name, include_private)
+      end
+
+      def method_missing(method, *args, &block)
+        if #{target}.respond_to?(method)
+          #{target}.public_send(method, *args, &block)
+        else
+          super
+        end
+      end
+    RUBY
   end
 end
