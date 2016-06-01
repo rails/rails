@@ -9,7 +9,7 @@ module ActiveRecord
 
       def encode(attribute_set, coder)
         coder['concise_attributes'] = attribute_set.each_value.map do |attr|
-          if attr.type.equal?(default_types[attr.name])
+          if attr.type.equal?(default_types[attr.name]) && !attr.changed?
             attr.with_type(nil)
           else
             attr
