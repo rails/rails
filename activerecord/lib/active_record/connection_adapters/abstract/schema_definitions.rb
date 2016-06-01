@@ -53,7 +53,7 @@ module ActiveRecord
 
       def defined_for?(options_or_to_table = {})
         if options_or_to_table.is_a?(Hash)
-          options_or_to_table.all? {|key, value| options[key].to_s == value.to_s }
+          options_or_to_table.all? {|key, value| send(key).to_s == value.to_s }
         else
           to_table == options_or_to_table.to_s
         end
