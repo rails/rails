@@ -31,11 +31,8 @@ module ActionCable
           self.cable = Rails.application.config_for(config_path).with_indifferent_access
         end
 
-        if 'ApplicationCable::Connection'.safe_constantize
-          self.connection_class = ApplicationCable::Connection
-        end
-
-        self.channel_paths = Rails.application.paths['app/channels'].existent
+        previous_connection_class = self.connection_class
+        self.connection_class = -> { 'ApplicationCable::Connection'.safe_constantize || previous_connection_class.call }
 
         options.each { |k,v| send("#{k}=", v) }
       end

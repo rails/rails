@@ -8,21 +8,13 @@ module ActionCable
       attr_accessor :disable_request_forgery_protection, :allowed_request_origins
       attr_accessor :cable, :url, :mount_path
 
-      attr_accessor :channel_paths # :nodoc:
-
       def initialize
         @log_tags = []
 
-        @connection_class = ActionCable::Connection::Base
+        @connection_class = -> { ActionCable::Connection::Base }
         @worker_pool_size = 4
 
         @disable_request_forgery_protection = false
-      end
-
-      def channel_class_names
-        @channel_class_names ||= channel_paths.collect do |channel_path|
-          Pathname.new(channel_path).basename.to_s.split('.').first.camelize
-        end
       end
 
       # Returns constant of subscription adapter specified in config/cable.yml.
