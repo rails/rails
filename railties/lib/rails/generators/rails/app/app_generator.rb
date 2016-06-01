@@ -90,39 +90,24 @@ module Rails
 
     def config_when_updating
       cookie_serializer_config_exist = File.exist?('config/initializers/cookies_serializer.rb')
-      callback_terminator_config_exist = File.exist?('config/initializers/new_framework_defaults/callback_terminator.rb')
-      active_record_belongs_to_required_by_default_config_exist = File.exist?('config/initializers/new_framework_defaults/active_record_belongs_to_required_by_default.rb')
-      to_time_preserves_timezone_config_exist = File.exist?('config/initializers/new_framework_defaults/to_time_preserves_timezone.rb')
+      new_framework_defaults_config_exist = File.exist?('config/initializers/new_framework_defaults.rb')
       action_cable_config_exist = File.exist?('config/cable.yml')
-      ssl_options_exist = File.exist?('config/initializers/new_framework_defaults/ssl_options.rb')
       rack_cors_config_exist = File.exist?('config/initializers/cors.rb')
 
       config
 
       gsub_file 'config/environments/development.rb', /^(\s+)config\.file_watcher/, '\1# config.file_watcher'
 
-      unless callback_terminator_config_exist
-        remove_file 'config/initializers/new_framework_defaults/callback_terminator.rb'
-      end
-
       unless cookie_serializer_config_exist
         gsub_file 'config/initializers/cookies_serializer.rb', /json(?!,)/, 'marshal'
       end
 
-      unless active_record_belongs_to_required_by_default_config_exist
-        remove_file 'config/initializers/new_framework_defaults/active_record_belongs_to_required_by_default.rb'
-      end
-
-      unless to_time_preserves_timezone_config_exist
-        remove_file 'config/initializers/new_framework_defaults/to_time_preserves_timezone.rb'
+      unless new_framework_defaults_config_exist
+        remove_file 'config/initializers/new_framework_defaults.rb'
       end
 
       unless action_cable_config_exist
         template 'config/cable.yml'
-      end
-
-      unless ssl_options_exist
-        remove_file 'config/initializers/new_framework_defaults/ssl_options.rb'
       end
 
       unless rack_cors_config_exist
@@ -342,12 +327,6 @@ module Rails
         end
       end
 
-      def delete_active_record_initializers_skipping_active_record
-        if options[:skip_active_record]
-          remove_file 'config/initializers/new_framework_defaults/active_record_belongs_to_required_by_default.rb'
-        end
-      end
-
       def delete_action_cable_files_skipping_action_cable
         if options[:skip_action_cable]
           remove_file 'config/cable.yml'
@@ -360,8 +339,6 @@ module Rails
         if options[:api]
           remove_file 'config/initializers/session_store.rb'
           remove_file 'config/initializers/cookies_serializer.rb'
-          remove_file 'config/initializers/new_framework_defaults/request_forgery_protection.rb'
-          remove_file 'config/initializers/new_framework_defaults/per_form_csrf_tokens.rb'
         end
       end
 
