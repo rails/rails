@@ -4,6 +4,8 @@ module ActionView
       class Select < Base # :nodoc:
         def initialize(object_name, method_name, template_object, choices, options, html_options)
           @choices = block_given? ? template_object.capture { yield || "" } : choices
+          @choices = choices[:collection] if choices.respond_to?(:keys) && choices.keys.any? { |k| k == :collection }
+          @choices = choices[:range] if choices.respond_to?(:keys) && choices.keys.any? { |k| k == :range }
           @choices = @choices.to_a if @choices.is_a?(Range)
 
           @html_options = html_options
@@ -13,9 +15,12 @@ module ActionView
 
         def render
           option_tags_options = {
-            :selected => @options.fetch(:selected) { value(@object) },
-            :disabled => @options[:disabled]
+            selected: @options.fetch(:selected) { value(@object) },
+            disabled: @options[:disabled]
           }
+
+          @options.except!(:collection)
+          @html_options.except!(:collection)
 
           option_tags = if grouped_choices?
             grouped_options_for_select(@choices, option_tags_options)
