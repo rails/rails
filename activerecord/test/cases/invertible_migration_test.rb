@@ -151,6 +151,14 @@ module ActiveRecord
       end
     end
 
+    class RevertCustomForeignKeyTable < SilentMigration
+      def change
+        change_table(:horses) do |t|
+          t.references :owner, foreign_key: { to_table: :developers }
+        end
+      end
+    end
+
     setup do
       @verbose_was, ActiveRecord::Migration.verbose = ActiveRecord::Migration.verbose, false
     end
@@ -351,6 +359,13 @@ module ActiveRecord
       ActiveSupport::Deprecation.silence { assert !ActiveRecord::Base.connection.table_exists?("p_horses_s"), "p_horses_s should not exist" }
     ensure
       ActiveRecord::Base.table_name_prefix = ActiveRecord::Base.table_name_suffix = ''
+    end
+
+    def test_migrations_can_handle_foreign_keys_to_specific_tables
+      migration = RevertCustomForeignKeyTable.new
+      InvertibleMigration.migrate(:up)
+      migration.migrate(:up)
+      migration.migrate(:down)
     end
 
     # MySQL 5.7 and Oracle do not allow to create duplicate indexes on the same columns

@@ -488,7 +488,7 @@ module ActionMailer
       end
       private :observer_class_for
 
-      # Returns the name of current mailer. This method is also being used as a path for a view lookup.
+      # Returns the name of the current mailer. This method is also being used as a path for a view lookup.
       # If this is an anonymous mailer, this method will return +anonymous+ instead.
       def mailer_name
         @mailer_name ||= anonymous? ? "anonymous" : name.underscore

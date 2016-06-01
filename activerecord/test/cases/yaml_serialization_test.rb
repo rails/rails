@@ -109,6 +109,16 @@ class YamlSerializationTest < ActiveRecord::TestCase
     assert_equal("Have a nice day", topic.content)
   end
 
+  def test_yaml_encoding_keeps_mutations
+    author = Author.first
+    author.name = "Sean"
+    dumped = YAML.load(YAML.dump(author))
+
+    assert_equal "Sean", dumped.name
+    assert_equal author.name_was, dumped.name_was
+    assert_equal author.changes, dumped.changes
+  end
+
   private
 
   def yaml_fixture(file_name)

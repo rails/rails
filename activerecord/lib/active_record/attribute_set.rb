@@ -1,7 +1,10 @@
 require 'active_record/attribute_set/builder'
+require 'active_record/attribute_set/yaml_encoder'
 
 module ActiveRecord
   class AttributeSet # :nodoc:
+    delegate :each_value, to: :attributes
+
     def initialize(attributes)
       @attributes = attributes
     end

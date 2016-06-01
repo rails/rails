@@ -20,7 +20,7 @@ http://travis-ci.org/rails/rails
 ### Is Sam Ruby happy?  If not, make him happy.
 
 Sam Ruby keeps a [test suite](https://github.com/rubys/awdwr) that makes
-sure the code samples in his book 
+sure the code samples in his book
 ([Agile Web Development with Rails](https://pragprog.com/titles/rails5/agile-web-development-with-rails-5th-edition))
 all work.  These are valuable system tests
 for Rails.  You can check the status of these tests here:
@@ -47,7 +47,7 @@ Ruby implementors have high stakes in making sure Rails works.  Be kind and
 give them a heads up that Rails will be released soonish.
 
 This is only required for major and minor releases, bugfix releases aren't a
-big enough deal, and are supposed to be backwards compatible.
+big enough deal, and are supposed to be backward compatible.
 
 Send an email just giving a heads up about the upcoming release to these
 lists:
@@ -150,7 +150,7 @@ break existing applications.
 
 ### Post the announcement to the Rails blog.
 
-If you used Markdown format for your email, you can just paste it in to the
+If you used Markdown format for your email, you can just paste it into the
 blog.
 
 * http://weblog.rubyonrails.org

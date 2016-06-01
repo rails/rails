@@ -44,7 +44,8 @@ module ActiveRecord
     def associated_table(table_name)
       return self if table_name == arel_table.name
 
-      association = klass._reflect_on_association(table_name)
+      association = klass._reflect_on_association(table_name) || klass._reflect_on_association(table_name.singularize)
+
       if association && !association.polymorphic?
         association_klass = association.klass
         arel_table = association_klass.arel_table.alias(table_name)

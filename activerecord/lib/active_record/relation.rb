@@ -279,12 +279,7 @@ module ActiveRecord
     def empty?
       return @records.empty? if loaded?
 
-      if limit_value == 0
-        true
-      else
-        c = count(:all)
-        c.respond_to?(:zero?) ? c.zero? : c.empty?
-      end
+      limit_value == 0 || !exists?
     end
 
     # Returns true if there are no records.

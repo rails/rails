@@ -287,7 +287,7 @@ module ApplicationTests
          RAILS_ENV=test bin/rails db:migrate test`
       end
 
-      assert_match(/7 runs, 12 assertions, 0 failures, 0 errors/, output)
+      assert_match(/7 runs, 9 assertions, 0 failures, 0 errors/, output)
       assert_no_match(/Errors running/, output)
     end
 
@@ -318,7 +318,7 @@ module ApplicationTests
          RAILS_ENV=test bin/rails db:migrate test`
       end
 
-      assert_match(/7 runs, 12 assertions, 0 failures, 0 errors/, output)
+      assert_match(/7 runs, 9 assertions, 0 failures, 0 errors/, output)
       assert_no_match(/Errors running/, output)
     end
 

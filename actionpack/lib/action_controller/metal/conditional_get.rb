@@ -129,7 +129,7 @@ module ActionController
     # * <tt>:etag</tt> Sets a "weak" ETag validator on the response. See the
     #   +:weak_etag+ option.
     # * <tt>:weak_etag</tt> Sets a "weak" ETag validator on the response.
-    #   requests that set If-None-Match header may return a 304 Not Modified
+    #   Requests that set If-None-Match header may return a 304 Not Modified
     #   response if it matches the ETag exactly. A weak ETag indicates semantic
     #   equivalence, not byte-for-byte equality, so they're good for caching
     #   HTML pages in browser caches. They can't be used for responses that
