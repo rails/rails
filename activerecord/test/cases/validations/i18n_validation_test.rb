@@ -41,10 +41,8 @@ class I18nValidationTest < ActiveRecord::TestCase
     [ "given custom message",              {:message => "custom"},        {:message => "custom"}],
     [ "given if condition",                {:if     => lambda { true }},  {}],
     [ "given unless condition",            {:unless => lambda { false }}, {}],
-    [ "given option that is not reserved", {:format => "jpg"},            {:format => "jpg" }]
-    # TODO Add :on case, but below doesn't work, because then the validation isn't run for some reason
-    #      even when using .save instead .valid?
-    # [ "given on condition",     {on: :save},                {}]
+    [ "given option that is not reserved", {:format => "jpg"},            {:format => "jpg" }],
+    [ "given on condition",                {on: [:create, :update] },     {}]
   ]
 
   COMMON_CASES.each do |name, validation_options, generate_message_options|
