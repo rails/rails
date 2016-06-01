@@ -149,6 +149,7 @@ class ClientTest < ActionCable::TestCase
       c = faye_client(port)
       assert_equal({"type" => "welcome"}, c.read_message)  # pop the first welcome message off the stack
       c.send_message command: 'subscribe', identifier: JSON.generate(channel: 'EchoChannel')
+      assert_equal({"identifier"=>"{\"channel\":\"EchoChannel\"}", "type"=>"acknowledge"}, c.read_message)
       assert_equal({"identifier"=>"{\"channel\":\"EchoChannel\"}", "type"=>"confirm_subscription"}, c.read_message)
       c.send_message command: 'message', identifier: JSON.generate(channel: 'EchoChannel'), data: JSON.generate(action: 'ding', message: 'hello')
       assert_equal({"identifier"=>"{\"channel\":\"EchoChannel\"}", "message"=>{"dong"=>"hello"}}, c.read_message)
@@ -162,16 +163,19 @@ class ClientTest < ActionCable::TestCase
 
       barrier_1 = Concurrent::CyclicBarrier.new(clients.size)
       barrier_2 = Concurrent::CyclicBarrier.new(clients.size)
+      barrier_3 = Concurrent::CyclicBarrier.new(clients.size)
 
       clients.map {|c| Concurrent::Future.execute {
         assert_equal({"type" => "welcome"}, c.read_message)  # pop the first welcome message off the stack
         c.send_message command: 'subscribe', identifier: JSON.generate(channel: 'EchoChannel')
+        assert_equal({"identifier"=>'{"channel":"EchoChannel"}', "type"=>"acknowledge"}, c.read_message)
+        barrier_2.wait WAIT_WHEN_EXPECTING_EVENT
         assert_equal({"identifier"=>'{"channel":"EchoChannel"}', "type"=>"confirm_subscription"}, c.read_message)
         c.send_message command: 'message', identifier: JSON.generate(channel: 'EchoChannel'), data: JSON.generate(action: 'ding', message: 'hello')
         assert_equal({"identifier"=>'{"channel":"EchoChannel"}', "message"=>{"dong"=>"hello"}}, c.read_message)
-        barrier_1.wait WAIT_WHEN_EXPECTING_EVENT
-        c.send_message command: 'message', identifier: JSON.generate(channel: 'EchoChannel'), data: JSON.generate(action: 'bulk', message: 'hello')
         barrier_2.wait WAIT_WHEN_EXPECTING_EVENT
+        c.send_message command: 'message', identifier: JSON.generate(channel: 'EchoChannel'), data: JSON.generate(action: 'bulk', message: 'hello')
+        barrier_3.wait WAIT_WHEN_EXPECTING_EVENT
         assert_equal clients.size, c.read_messages(clients.size).size
       } }.each(&:wait!)
 
@@ -186,6 +190,7 @@ class ClientTest < ActionCable::TestCase
       clients.map {|c| Concurrent::Future.execute {
         assert_equal({"type" => "welcome"}, c.read_message)  # pop the first welcome message off the stack
         c.send_message command: 'subscribe', identifier: JSON.generate(channel: 'EchoChannel')
+        assert_equal({"identifier"=>'{"channel":"EchoChannel"}', "type"=>"acknowledge"}, c.read_message)
         assert_equal({"identifier"=>'{"channel":"EchoChannel"}', "type"=>"confirm_subscription"}, c.read_message)
         c.send_message command: 'message', identifier: JSON.generate(channel: 'EchoChannel'), data: JSON.generate(action: 'ding', message: 'hello')
         assert_equal({"identifier"=>'{"channel":"EchoChannel"}', "message"=>{"dong"=>"hello"}}, c.read_message)
@@ -200,6 +205,7 @@ class ClientTest < ActionCable::TestCase
       c = faye_client(port)
       assert_equal({"type" => "welcome"}, c.read_message)  # pop the first welcome message off the stack
       c.send_message command: 'subscribe', identifier: JSON.generate(channel: 'EchoChannel')
+      assert_equal({"identifier"=>'{"channel":"EchoChannel"}', "type"=>"acknowledge"}, c.read_message)
       assert_equal({"identifier"=>"{\"channel\":\"EchoChannel\"}", "type"=>"confirm_subscription"}, c.read_message)
       c.send_message command: 'message', identifier: JSON.generate(channel: 'EchoChannel'), data: JSON.generate(action: 'delay', message: 'hello')
       c.close # disappear before write
@@ -207,6 +213,7 @@ class ClientTest < ActionCable::TestCase
       c = faye_client(port)
       assert_equal({"type" => "welcome"}, c.read_message) # pop the first welcome message off the stack
       c.send_message command: 'subscribe', identifier: JSON.generate(channel: 'EchoChannel')
+      assert_equal({"identifier"=>'{"channel":"EchoChannel"}', "type"=>"acknowledge"}, c.read_message)
       assert_equal({"identifier"=>"{\"channel\":\"EchoChannel\"}", "type"=>"confirm_subscription"}, c.read_message)
       c.send_message command: 'message', identifier: JSON.generate(channel: 'EchoChannel'), data: JSON.generate(action: 'ding', message: 'hello')
       assert_equal({"identifier"=>'{"channel":"EchoChannel"}', "message"=>{"dong"=>"hello"}}, c.read_message)
@@ -222,6 +229,7 @@ class ClientTest < ActionCable::TestCase
       c = faye_client(port)
       assert_equal({"type" => "welcome"}, c.read_message)
       c.send_message command: 'subscribe', identifier: identifier
+      assert_equal({"identifier"=>'{"channel":"EchoChannel"}', "type"=>"acknowledge"}, c.read_message)
       assert_equal({"identifier"=>"{\"channel\":\"EchoChannel\"}", "type"=>"confirm_subscription"}, c.read_message)
       assert_equal(1, app.connections.count)
       assert(app.remote_connections.where(identifier: identifier))
@@ -243,6 +251,7 @@ class ClientTest < ActionCable::TestCase
       c = faye_client(port)
       assert_equal({"type" => "welcome"}, c.read_message)
       c.send_message command: 'subscribe', identifier: JSON.generate(channel: 'EchoChannel')
+      assert_equal({"identifier"=>'{"channel":"EchoChannel"}', "type"=>"acknowledge"}, c.read_message)
       assert_equal({"identifier"=>"{\"channel\":\"EchoChannel\"}", "type"=>"confirm_subscription"}, c.read_message)
 
       ActionCable.server.restart
