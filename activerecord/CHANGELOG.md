@@ -1,3 +1,9 @@
+*   Allow `joins` to be unscoped.
+
+    Fixes #13775.
+
+    *Takashi Kokubun*
+
 *   Hashes can once again be passed to setters of `composed_of`, if all of the
     mapping methods are methods implemented on `Hash`.
 
