@@ -449,9 +449,10 @@ Alright, Rails has a collection of directories similar to `$LOAD_PATH` in which
 to look up `post.rb`. That collection is called `autoload_paths` and by
 default it contains:
 
-* All subdirectories of `app` in the application and engines. For example,
-  `app/controllers`. They do not need to be the default ones, any custom
-  directories like `app/workers` belong automatically to `autoload_paths`.
+* All subdirectories of `app` in the application and engines present at boot
+  time. For example, `app/controllers`. They do not need to be the default
+  ones, any custom directories like `app/workers` belong automatically to
+  `autoload_paths`.
 
 * Any existing second level directories called `app/*/concerns` in the
   application and engines.

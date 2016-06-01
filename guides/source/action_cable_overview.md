@@ -583,7 +583,7 @@ For a full list of all configuration options, see the
 `ActionCable::Server::Configuration` class.
 
 Also note that your server must provide at least the same number of database
-connections as you have workers. The default worker pool size is set to 100, so
+connections as you have workers. The default worker pool size is set to 4, so
 that means you have to make at least that available. You can change that in
 `config/database.yml` through the `pool` attribute.
 
@@ -619,7 +619,7 @@ basic setup is as follows:
 
 ```ruby
 # cable/config.ru
-require_relative 'config/environment'
+require_relative '../config/environment'
 Rails.application.eager_load!
 
 run ActionCable.server

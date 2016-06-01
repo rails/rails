@@ -1504,6 +1504,10 @@ class BasicsTest < ActiveRecord::TestCase
     assert_not_equal Post.new.hash, Post.new.hash
   end
 
+  test "records of different classes have different hashes" do
+    assert_not_equal Post.new(id: 1).hash, Developer.new(id: 1).hash
+  end
+
   test "resetting column information doesn't remove attribute methods" do
     topic = topics(:first)
 

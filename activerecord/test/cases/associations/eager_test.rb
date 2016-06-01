@@ -1341,6 +1341,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
     assert_nothing_raised do
       authors(:david).essays.includes(:writer).any?
+      authors(:david).essays.includes(:writer).exists?
     end
   end
 

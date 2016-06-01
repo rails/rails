@@ -1008,12 +1008,6 @@ module ActiveRecord
       self.send(unscope_code, result)
     end
 
-    def association_for_table(table_name)
-      table_name = table_name.to_s
-      @klass._reflect_on_association(table_name) ||
-        @klass._reflect_on_association(table_name.singularize)
-    end
-
     def build_from
       opts = from_clause.value
       name = from_clause.name

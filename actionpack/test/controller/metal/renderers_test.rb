@@ -1,6 +1,12 @@
 require 'abstract_unit'
 require 'active_support/core_ext/hash/conversions'
 
+class MetalRenderingController < ActionController::Metal
+  include AbstractController::Rendering
+  include ActionController::Rendering
+  include ActionController::Renderers
+end
+
 class MetalRenderingJsonController < MetalRenderingController
   class Model
     def to_json(options = {})

@@ -1,3 +1,8 @@
+*   Ensure hashes can be assigned to attributes created using `composed_of`.
+    Fixes #25210.
+
+    *Sean Griffin*
+
 *   Fix logging edge case where if an attribute was of the binary type and
     was provided as a Hash.
 
