@@ -308,7 +308,7 @@ module Rails
 
       def jbuilder_gemfile_entry
         comment = 'Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder'
-        GemfileEntry.new 'jbuilder', '~> 2.5', comment, {}, options[:api]
+        GemfileEntry.new 'jbuilder', '~> 2.5', comment, {}, true
       end
 
       def coffee_gemfile_entry

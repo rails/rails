@@ -563,9 +563,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_inclusion_of_jbuilder
+  def test_inclusion_of_jbuilder_but_commented
     run_generator
-    assert_gem 'jbuilder'
+
+    assert_file 'Gemfile', /# gem 'jbuilder'/
   end
 
   def test_inclusion_of_a_debugger
