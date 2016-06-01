@@ -1003,14 +1003,14 @@ module ActiveRecord
         end
       end
 
-      def execute_multi_insert(sql)
+      def execute_multi_insert(sql) # :nodoc:
         if supports_multi_insert?
           execute sql
         else
           # executing separately because old versions of sqlite3 can't reliably execute multiple statements at once
-          statements = sql.split(';').select{|i| i.present? } 
+          statements = sql.split(';').select{|i| i.present? }
           statements.each do |statement|
-            execute "#{statement};"
+            execute statement
           end
         end
       end
@@ -1036,8 +1036,8 @@ module ActiveRecord
 
         migrated = select_values("SELECT version FROM #{sm_table}").map(&:to_i)
 
-        paths = migrations_paths.map {|p| ActiveRecord::Migrator.migration_paths_regex(p) }
-        versions = Dir[*paths].map do |filename|
+        files = ActiveRecord::Migrator.migration_files(p)
+        versions = files.map do |filename|
           filename.split('/').last.split('_').first.to_i
         end
 

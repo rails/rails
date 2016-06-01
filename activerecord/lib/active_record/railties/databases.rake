@@ -111,18 +111,16 @@ db_namespace = namespace :db do
         abort 'Schema migrations table does not exist yet.'
       end
       db_list = ActiveRecord::SchemaMigration.normalized_versions
+      paths = ActiveRecord::Tasks::DatabaseTasks.migrations_paths
 
-      file_list =
-          ActiveRecord::Tasks::DatabaseTasks.migrations_paths.flat_map do |path|
-            Dir.foreach(path).map do |file|
-              next unless ActiveRecord::Migrator.match_to_migration_filename?(file)
+      file_list = ActiveRecord::Migrator.migration_files(paths).map do |file|
+          next unless ActiveRecord::Migrator.match_to_migration_filename?(file)
 
-              version, name, scope = ActiveRecord::Migrator.parse_migration_filename(file)
-              version = ActiveRecord::SchemaMigration.normalize_migration_number(version)
-              status = db_list.delete(version) ? 'up' : 'down'
-              [status, version, (name + scope).humanize]
-            end.compact
-          end
+          version, name, scope = ActiveRecord::Migrator.parse_migration_filename(file)
+          version = ActiveRecord::SchemaMigration.normalize_migration_number(version)
+          status = db_list.delete(version) ? 'up' : 'down'
+          [status, version, (name + scope).humanize]
+        end.compact
 
       db_list.map! do |version|
         ['up', version, '********** NO FILE **********']
