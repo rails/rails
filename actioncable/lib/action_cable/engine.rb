@@ -35,6 +35,7 @@ module ActionCable
           self.connection_class = ApplicationCable::Connection
         end
 
+        self.base_channel_path = Rails.root.join('app/channels')
         self.channel_paths = Rails.application.paths['app/channels'].existent
 
         options.each { |k,v| send("#{k}=", v) }
