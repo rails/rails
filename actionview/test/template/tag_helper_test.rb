@@ -21,8 +21,8 @@ class TagHelperTest < ActionView::TestCase
     assert_equal "<p />", tag("p", :ignored => nil)
   end
 
-  def test_tag_options_accepts_false_option
-    assert_equal "<p value=\"false\" />", tag("p", :value => false)
+  def test_tag_options_rejects_false_option
+    assert_equal "<p />", tag("p", :value => false)
   end
 
   def test_tag_options_accepts_blank_option

@@ -680,13 +680,13 @@ class FormHelperTest < ActionView::TestCase
   def test_check_box_with_explicit_checked_and_unchecked_values_when_object_value_is_boolean
     @post.secret = false
     assert_dom_equal(
-      '<input name="post[secret]" type="hidden" value="true" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="false" />',
+      '<input name="post[secret]" type="hidden" value="true" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" />',
       check_box("post", "secret", {}, false, true)
     )
 
     @post.secret = true
     assert_dom_equal(
-      '<input name="post[secret]" type="hidden" value="true" /><input id="post_secret" name="post[secret]" type="checkbox" value="false" />',
+      '<input name="post[secret]" type="hidden" value="true" /><input id="post_secret" name="post[secret]" type="checkbox" />',
       check_box("post", "secret", {}, false, true)
     )
   end
@@ -836,7 +836,7 @@ class FormHelperTest < ActionView::TestCase
       radio_button("post", "secret", true)
     )
 
-    assert_dom_equal('<input id="post_secret_false" name="post[secret]" type="radio" value="false" />',
+    assert_dom_equal('<input id="post_secret_false" name="post[secret]" type="radio" />',
       radio_button("post", "secret", false)
     )
   end
