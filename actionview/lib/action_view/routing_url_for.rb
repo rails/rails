@@ -1,3 +1,6 @@
+gem 'actionpack', ActionView::VERSION::STRING
+require 'action_pack'
+
 require 'action_dispatch/routing/polymorphic_routes'
 
 module ActionView

@@ -62,10 +62,6 @@ module ActionController
       nil
     end
 
-    def _set_html_content_type
-      self.content_type = Mime[:html].to_s
-    end
-
     def _set_rendered_content_type(format)
       unless response.content_type
         self.content_type = format.to_s
