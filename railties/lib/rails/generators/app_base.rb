@@ -67,6 +67,9 @@ module Rails
         class_option :skip_listen,        type: :boolean, default: false,
                                           desc: "Don't generate configuration that depends on the listen gem"
 
+        class_option :skip_coffee,        type: :boolean, default: false,
+                                          desc: "Don't use CoffeeScript"
+
         class_option :skip_javascript,    type: :boolean, aliases: '-J', default: false,
                                           desc: 'Skip JavaScript files'
 
@@ -319,7 +322,9 @@ module Rails
         if options[:skip_javascript] || options[:skip_sprockets]
           []
         else
-          gems = [coffee_gemfile_entry, javascript_runtime_gemfile_entry]
+          gems = [javascript_runtime_gemfile_entry]
+          gems << coffee_gemfile_entry unless options[:skip_coffee]
+
           gems << GemfileEntry.version("#{options[:javascript]}-rails", nil,
                                        "Use #{options[:javascript]} as the JavaScript library")
 
