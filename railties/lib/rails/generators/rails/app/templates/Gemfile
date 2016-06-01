@@ -9,7 +9,7 @@ source 'https://rubygems.org'
 <% if gem.options.any? -%>
 , <%= gem.options.map { |k,v|
   "#{k}: #{v.inspect}" }.join(', ') %>
-<% end -%>
+<% end %>
 <% end -%>
 
 # Use ActiveModel has_secure_password
