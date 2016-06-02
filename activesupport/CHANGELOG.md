@@ -1,3 +1,10 @@
+*   `Date.to_s` doesn't produce too many spaces. For example, `to_s(:short)`
+    will now produce `01 Feb` instead of ` 1 Feb`.
+
+    Fixes #25251.
+
+    *Sean Griffin*
+
 *   Introduce Module#delegate_missing_to.
 
     When building a decorator, a common pattern emerges:

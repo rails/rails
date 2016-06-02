@@ -30,6 +30,17 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal "2005-02-21",          date.to_s(:iso8601)
   end
 
+  def test_to_s_with_single_digit_day
+    date = Date.new(2005, 2, 1)
+    assert_equal "2005-02-01",          date.to_s
+    assert_equal "01 Feb",              date.to_s(:short)
+    assert_equal "February 01, 2005",   date.to_s(:long)
+    assert_equal "February 1st, 2005",  date.to_s(:long_ordinal)
+    assert_equal "2005-02-01",          date.to_s(:db)
+    assert_equal "01 Feb 2005",         date.to_s(:rfc822)
+    assert_equal "2005-02-01",          date.to_s(:iso8601)
+  end
+
   def test_readable_inspect
     assert_equal "Mon, 21 Feb 2005", Date.new(2005, 2, 21).readable_inspect
     assert_equal Date.new(2005, 2, 21).readable_inspect, Date.new(2005, 2, 21).inspect

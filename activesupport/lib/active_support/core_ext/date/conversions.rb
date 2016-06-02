@@ -5,15 +5,15 @@ require 'active_support/core_ext/module/remove_method'
 
 class Date
   DATE_FORMATS = {
-    :short        => '%e %b',
-    :long         => '%B %e, %Y',
+    :short        => '%d %b',
+    :long         => '%B %d, %Y',
     :db           => '%Y-%m-%d',
     :number       => '%Y%m%d',
     :long_ordinal => lambda { |date|
       day_format = ActiveSupport::Inflector.ordinalize(date.day)
       date.strftime("%B #{day_format}, %Y") # => "April 25th, 2007"
     },
-    :rfc822       => '%e %b %Y',
+    :rfc822       => '%d %b %Y',
     :iso8601      => lambda { |date| date.iso8601 }
   }
 
