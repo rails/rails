@@ -1,9 +1,9 @@
 require 'abstract_unit'
 require 'pathname'
-require 'file_update_checker_shared_tests'
+require 'file_update_monitor_shared_tests'
 
-class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
-  include FileUpdateCheckerSharedTests
+class EventedFileUpdateMonitorTest < ActiveSupport::TestCase
+  include FileUpdateMonitorSharedTests
 
   def setup
     skip if ENV['LISTEN'] == '0'
@@ -11,7 +11,7 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
   end
 
   def new_checker(files = [], dirs = {}, &block)
-    ActiveSupport::EventedFileUpdateChecker.new(files, dirs, &block).tap do
+    ActiveSupport::FileUpdateMonitor::Evented.new(files, dirs, &block).tap do
       wait
     end
   end
@@ -36,13 +36,13 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
   end
 end
 
-class EventedFileUpdateCheckerPathHelperTest < ActiveSupport::TestCase
+class EventedFileUpdateMonitorPathHelperTest < ActiveSupport::TestCase
   def pn(path)
     Pathname.new(path)
   end
 
   setup do
-    @ph = ActiveSupport::EventedFileUpdateChecker::PathHelper.new
+    @ph = ActiveSupport::FileUpdateMonitor::Evented::PathHelper.new
   end
 
   test '#xpath returns the expanded path as a Pathname object' do

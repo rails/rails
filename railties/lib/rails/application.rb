@@ -333,7 +333,7 @@ module Rails
     end
 
     # Returns an array of file paths appended with a hash of
-    # directories-extensions suitable for ActiveSupport::FileUpdateChecker
+    # directories-extensions suitable for ActiveSupport::FileUpdateMonitor's
     # API.
     def watchable_args #:nodoc:
       files, dirs = config.watchable_files.dup, config.watchable_dirs.dup
