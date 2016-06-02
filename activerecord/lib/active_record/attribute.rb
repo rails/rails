@@ -77,7 +77,11 @@ module ActiveRecord
     end
 
     def with_type(type)
-      self.class.new(name, value_before_type_cast, type, original_attribute)
+      if changed_in_place?
+        with_value_from_user(value).with_type(type)
+      else
+        self.class.new(name, value_before_type_cast, type, original_attribute)
+      end
     end
 
     def type_cast(*)
