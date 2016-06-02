@@ -205,6 +205,8 @@ module ActiveRecord
     end
 
     class Uninitialized < Attribute # :nodoc:
+      UNINITIALIZED_ORIGINAL_VALUE = Object.new
+
       def initialize(name, type)
         super(name, nil, type)
       end
@@ -213,6 +215,10 @@ module ActiveRecord
         if block_given?
           yield name
         end
+      end
+
+      def original_value
+        UNINITIALIZED_ORIGINAL_VALUE
       end
 
       def value_for_database
