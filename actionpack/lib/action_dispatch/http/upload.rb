@@ -73,6 +73,10 @@ module ActionDispatch
       def eof?
         @tempfile.eof?
       end
+
+      def to_hash
+        instance_values.except('tempfile')
+      end
     end
   end
 end
