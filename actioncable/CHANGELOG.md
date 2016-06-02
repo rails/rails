@@ -1,3 +1,10 @@
+*  Fix development reloading support: new cable connections are now correctly
+   dispatched to the reloaded channel class, instead of using a cached reference
+   to the originally-loaded version.
+
+   *Matthew Draper*
+
+
 ## Rails 5.0.0.rc1 (May 06, 2016) ##
 
 *   No changes.

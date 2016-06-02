@@ -26,12 +26,12 @@ module ActionCable
         id_key = data['identifier']
         id_options = ActiveSupport::JSON.decode(id_key).with_indifferent_access
 
-        subscription_klass = connection.server.channel_classes[id_options[:channel]]
+        subscription_klass = id_options[:channel].safe_constantize
 
-        if subscription_klass
+        if subscription_klass && ActionCable::Channel::Base >= subscription_klass
           subscriptions[id_key] ||= subscription_klass.new(connection, id_key, id_options)
         else
-          logger.error "Subscription class not found (#{data.inspect})"
+          logger.error "Subscription class not found: #{id_options[:channel].inspect}"
         end
       end
 
