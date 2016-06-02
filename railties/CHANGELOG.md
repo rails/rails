@@ -1,3 +1,7 @@
+*   `rails server` will now honour the `PORT` environment variable
+
+    *David Cornu*
+
 ## Rails 4.2.6 (March 07, 2016) ##
 
 *   No changes.
