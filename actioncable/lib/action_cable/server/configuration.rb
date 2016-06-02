@@ -21,7 +21,9 @@ module ActionCable
 
       def channel_class_names
         @channel_class_names ||= channel_paths.collect do |channel_path|
-          Pathname.new(channel_path).basename.to_s.split('.').first.camelize
+          Pathname.new(channel_path).sub_ext('').each_filename.to_a.split do |file|
+            file === 'channels'
+          end.last.join('/').camelize
         end
       end
 
