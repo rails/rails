@@ -1081,7 +1081,7 @@ module ActiveRecord
         migrations.sort_by(&:version)
       end
 
-      def migration_files(paths)
+      def migration_files(paths = [])
         Dir[*paths.map { |p| "#{p}/**/[0-9]*_*.rb" }]
       end
 

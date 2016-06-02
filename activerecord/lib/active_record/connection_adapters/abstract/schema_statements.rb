@@ -1041,7 +1041,7 @@ module ActiveRecord
 
         migrated = select_values("SELECT version FROM #{sm_table}").map(&:to_i)
 
-        files = ActiveRecord::Migrator.migration_files(p)
+        files = ActiveRecord::Migrator.migration_files(migrations_paths)
         versions = files.map do |filename|
           filename.split('/').last.split('_').first.to_i
         end
