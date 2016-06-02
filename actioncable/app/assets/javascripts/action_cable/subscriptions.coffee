@@ -12,7 +12,7 @@ class ActionCable.Subscriptions
 
   create: (channelName, mixin) ->
     channel = channelName
-    params = if typeof channel is "object" then channel else {channel}
+    params = if channel and typeof channel is "object" then channel else {channel}
     subscription = new ActionCable.Subscription @consumer, params, mixin
     @add(subscription)
 
