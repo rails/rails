@@ -25,7 +25,7 @@ their host applications. A Rails application is actually just a "supercharged"
 engine, with the `Rails::Application` class inheriting a lot of its behavior
 from `Rails::Engine`.
 
-Therefore, engines and applications can be thought of almost the same thing,
+Therefore, engines and applications can be thought of as almost the same thing,
 just with subtle differences, as you'll see throughout this guide. Engines and
 applications also share a common structure.
 
