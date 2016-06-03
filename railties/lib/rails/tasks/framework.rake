@@ -48,7 +48,7 @@ namespace :app do
           require 'rails/generators'
           require 'rails/generators/rails/app/app_generator'
           gen = Rails::Generators::AppGenerator.new ["rails"],
-                                                    { api: !!Rails.application.config.api_only },
+                                                    { api: !!Rails.application.config.api_only, update: true, force: ENV['FORCE'] },
                                                     destination_root: Rails.root
           File.exist?(Rails.root.join("config", "application.rb")) ?
             gen.send(:app_const) : gen.send(:valid_const?)

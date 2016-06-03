@@ -15,14 +15,16 @@ Rails.application.config.action_controller.forgery_protection_origin_check = tru
 <%- unless options[:skip_active_record] -%>
 
 # Require `belongs_to` associations by default.
-Rails.application.config.active_record.belongs_to_required_by_default = true
+Rails.application.config.active_record.belongs_to_required_by_default = <%= options[:update] ? false : true %>
 <%- end -%>
 
 # Do not halt callback chains when a callback returns false.
-ActiveSupport.halt_callback_chains_on_return_false = false
+ActiveSupport.halt_callback_chains_on_return_false = <%= options[:update] ? true : false %>
+<%- unless options[:update] -%>
 
 # Configure SSL options to enable HSTS with subdomains.
 Rails.application.config.ssl_options = { hsts: { subdomains: true } }
+<%- end -%>
 
 # Preserve the timezone of the receiver when calling to `to_time`.
 # Ruby 2.4 will change the behavior of `to_time` to preserve the timezone
