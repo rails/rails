@@ -25,7 +25,7 @@ class Module
   #   end
   #   # => NameError: invalid attribute name: 1_Badname
   #
-  # If you want to opt out the creation on the instance reader method, pass
+  # If you want to opt out of the creation of the instance reader method, pass
   # <tt>instance_reader: false</tt> or <tt>instance_accessor: false</tt>.
   #
   #   class Current
@@ -65,7 +65,7 @@ class Module
   #   Current.user = "DHH"
   #   Thread.current[:attr_Current_user] # => "DHH"
   #
-  # If you want to opt out the instance writer method, pass
+  # If you want to opt out of the creation of the instance writer method, pass
   # <tt>instance_writer: false</tt> or <tt>instance_accessor: false</tt>.
   #
   #   class Current
