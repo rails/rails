@@ -25,7 +25,7 @@ Reporting an Issue
 
 Ruby on Rails uses [GitHub Issue Tracking](https://github.com/rails/rails/issues) to track issues (primarily bugs and contributions of new code). If you've found a bug in Ruby on Rails, this is the place to start. You'll need to create a (free) GitHub account in order to submit an issue, to comment on them or to create pull requests.
 
-NOTE: Bugs in the most recent released version of Ruby on Rails are likely to get the most attention. Also, the Rails core team is always interested in feedback from those who can take the time to test _edge Rails_ (the code for the version of Rails that is currently under development). Later in this guide you'll find out how to get edge Rails for testing.
+NOTE: Bugs in the most recent released version of Ruby on Rails are likely to get the most attention. Also, the Rails core team is always interested in feedback from those who can take the time to test _edge Rails_ (the code for the version of Rails that is currently under development). Later in this guide, you'll find out how to get edge Rails for testing.
 
 ### Creating a Bug Report
 
@@ -58,14 +58,14 @@ WARNING: Please do not report security vulnerabilities with public GitHub issue 
 Please don't put "feature request" items into GitHub Issues. If there's a new
 feature that you want to see added to Ruby on Rails, you'll need to write the
 code yourself - or convince someone else to partner with you to write the code.
-Later in this guide you'll find detailed instructions for proposing a patch to
+Later in this guide, you'll find detailed instructions for proposing a patch to
 Ruby on Rails. If you enter a wish list item in GitHub Issues with no code, you
 can expect it to be marked "invalid" as soon as it's reviewed.
 
 Sometimes, the line between 'bug' and 'feature' is a hard one to draw.
 Generally, a feature is anything that adds new behavior, while a bug is
 anything that causes incorrect behavior. Sometimes,
-the core team will have to make a judgement call. That said, the distinction
+the core team will have to make a judgment call. That said, the distinction
 generally just affects which release your patch will get in to; we love feature
 submissions! They just won't get backported to maintenance branches.
 
@@ -189,7 +189,7 @@ Contributing to the Rails Code
 
 ### Setting Up a Development Environment
 
-To move on from submitting bugs to helping resolve existing issues or contributing your own code to Ruby on Rails, you _must_ be able to run its test suite. In this section of the guide you'll learn how to setup the tests on your own computer.
+To move on from submitting bugs to helping resolve existing issues or contributing your own code to Ruby on Rails, you _must_ be able to run its test suite. In this section of the guide, you'll learn how to setup the tests on your own computer.
 
 #### The Easy Way
 
@@ -300,7 +300,7 @@ Please see the benchmark/ips [README](https://github.com/evanphx/benchmark-ips/b
 
 It is not customary in Rails to run the full test suite before pushing
 changes. The railties test suite in particular takes a long time, and even
-more if the source code is mounted in `/vagrant` as happens in the recommended
+more, if the source code is mounted in `/vagrant` as happens in the recommended
 workflow with the [rails-dev-box](https://github.com/rails/rails-dev-box).
 
 As a compromise, test what your code obviously affects, and if the change is
@@ -633,7 +633,7 @@ been updated.
 Sometimes you will be asked to make some changes to the code you have
 already committed. This can include amending existing commits. In this
 case Git will not allow you to push the changes as the pushed branch
-and local branch do not match. Instead of opening a new pull request,
+and local branch does not match. Instead of opening a new pull request,
 you can force push to your branch on GitHub as described earlier in
 squashing commits section:
 
@@ -662,7 +662,7 @@ Changes that are merged into master are intended for the next major release of R
 
 For simple fixes, the easiest way to backport your changes is to [extract a diff from your changes in master and apply them to the target branch](http://ariejan.net/2009/10/26/how-to-create-and-apply-a-patch-with-git).
 
-First make sure your changes are the only difference between your current branch and master:
+First, make sure your changes are the only difference between your current branch and master:
 
 ```bash
 $ git log master..HEAD
