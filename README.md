@@ -15,11 +15,11 @@ your application. In Rails, database-backed model classes are derived from
 database rows as objects and embellish these data objects with business logic
 methods. You can read more about Active Record in its [README](activerecord/README.rdoc).
 Although most Rails models are backed by a database, models can also be ordinary
-Ruby classes, or Ruby classes that implement a set of interfaces as provided by
+Ruby classes or Ruby classes that implement a set of interfaces as provided by
 the Active Model module. You can read more about Active Model in its [README](activemodel/README.rdoc).
 
 The _Controller layer_ is responsible for handling incoming HTTP requests and
-providing a suitable response. Usually this means returning HTML, but Rails controllers
+providing a suitable response. Usually, this means returning HTML, but Rails controllers
 can also generate XML, JSON, PDFs, mobile-specific views, and more. Controllers load and
 manipulate models, and render view templates in order to generate the appropriate HTTP response.
 In Rails, incoming requests are routed by Action Dispatch to an appropriate controller, and
