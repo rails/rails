@@ -212,6 +212,7 @@ An API application comes with the following middleware by default:
 - `ActionDispatch::RemoteIp`
 - `ActionDispatch::Reloader`
 - `ActionDispatch::Callbacks`
+- `ActiveRecord::Migration::CheckPending`
 - `Rack::Head`
 - `Rack::ConditionalGet`
 - `Rack::ETag`
@@ -339,7 +340,7 @@ API application, especially if one of your API clients is the browser:
 - `Rack::MethodOverride`
 - `ActionDispatch::Cookies`
 - `ActionDispatch::Flash`
-- For sessions management
+- For session management
     * `ActionDispatch::Session::CacheStore`
     * `ActionDispatch::Session::CookieStore`
     * `ActionDispatch::Session::MemCacheStore`
@@ -373,10 +374,8 @@ controller modules by default:
 - `AbstractController::Rendering` and `ActionController::ApiRendering`: Basic support for rendering.
 - `ActionController::Renderers::All`: Support for `render :json` and friends.
 - `ActionController::ConditionalGet`: Support for `stale?`.
-- `ActionController::BasicImplicitRender`: Makes sure to return an empty response
-  if there's not an explicit one.
-- `ActionController::StrongParameters`: Support for parameters white-listing in
-  combination with Active Model mass assignment.
+- `ActionController::BasicImplicitRender`: Makes sure to return an empty response, if there isn't an explicit one.
+- `ActionController::StrongParameters`: Support for parameters white-listing in combination with Active Model mass assignment.
 - `ActionController::ForceSSL`: Support for `force_ssl`.
 - `ActionController::DataStreaming`: Support for `send_file` and `send_data`.
 - `AbstractController::Callbacks`: Support for `before_action` and
@@ -386,8 +385,8 @@ controller modules by default:
   hooks defined by Action Controller (see [the instrumentation
   guide](active_support_instrumentation.html#action-controller) for
 more information regarding this).
-- `ActionController::ParamsWrapper`: Wraps the parameters hash into a nested hash
-  so you don't have to specify root elements sending POST requests for instance.
+- `ActionController::ParamsWrapper`: Wraps the parameters hash into a nested hash, 
+  so that you don't have to specify root elements sending POST requests for instance.
 
 Other plugins may add additional modules. You can get a list of all modules
 included into `ActionController::API` in the rails console:

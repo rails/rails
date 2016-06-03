@@ -21,7 +21,7 @@ After reading this guide, you will know:
 What Does a Controller Do?
 --------------------------
 
-Action Controller is the C in MVC. After routing has determined which controller to use for a request, the controller is responsible for making sense of the request and producing the appropriate output. Luckily, Action Controller does most of the groundwork for you and uses smart conventions to make this as straightforward as possible.
+Action Controller is the C in MVC. After the router has determined which controller to use for a request, the controller is responsible for making sense of the request and producing the appropriate output. Luckily, Action Controller does most of the groundwork for you and uses smart conventions to make this as straightforward as possible.
 
 For most conventional [RESTful](http://en.wikipedia.org/wiki/Representational_state_transfer) applications, the controller will receive the request (this is invisible to you as the developer), fetch or save data from a model and use a view to create HTML output. If your controller needs to do things a little differently, that's not a problem, this is just the most common way for a controller to work.
 
@@ -145,7 +145,7 @@ So for example, if you are sending this JSON content:
 
 Your controller will receive `params[:company]` as `{ "name" => "acme", "address" => "123 Carrot Street" }`.
 
-Also, if you've turned on `config.wrap_parameters` in your initializer or called `wrap_parameters` in your controller, you can safely omit the root element in the JSON parameter. In this case, the parameters will be cloned and wrapped with a key chosen based on your controller's name. So the above JSON POST can be written as:
+Also, if you've turned on `config.wrap_parameters` in your initializer or called `wrap_parameters` in your controller, you can safely omit the root element in the JSON parameter. In this case, the parameters will be cloned and wrapped with a key chosen based on your controller's name. So the above JSON request can be written as:
 
 ```json
 { "name": "acme", "address": "123 Carrot Street" }
@@ -199,7 +199,8 @@ practice to help prevent accidentally allowing users to update sensitive
 model attributes.
 
 In addition, parameters can be marked as required and will flow through a
-predefined raise/rescue flow to end up as a 400 Bad Request.
+predefined raise/rescue flow that will result in a 400 Bad Request being
+returned if not all required parameters are passed in.
 
 ```ruby
 class PeopleController < ActionController::Base
@@ -213,8 +214,8 @@ class PeopleController < ActionController::Base
   # This will pass with flying colors as long as there's a person key
   # in the parameters, otherwise it'll raise a
   # ActionController::ParameterMissing exception, which will get
-  # caught by ActionController::Base and turned into that 400 Bad
-  # Request reply.
+  # caught by ActionController::Base and turned into a 400 Bad
+  # Request error.
   def update
     person = current_account.people.find(params[:id])
     person.update!(person_params)

@@ -82,7 +82,7 @@ The cookie is then automatically sent to the connection instance when a new conn
 is attempted, and you use that to set the `current_user`. By identifying the connection
 by this same current user, you're also ensuring that you can later retrieve all open
 connections by a given user (and potentially disconnect them all if the user is deleted
-or deauthorized).
+or unauthorized).
 
 ### Channels
 
