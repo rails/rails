@@ -1,7 +1,7 @@
-require "rails"
-require "action_cable"
-require "action_cable/helpers/action_cable_helper"
-require "active_support/core_ext/hash/indifferent_access"
+require 'rails'
+require 'action_cable'
+require 'action_cable/helpers/action_cable_helper'
+require 'active_support/core_ext/hash/indifferent_access'
 
 module ActionCable
   class Engine < Rails::Engine # :nodoc:
