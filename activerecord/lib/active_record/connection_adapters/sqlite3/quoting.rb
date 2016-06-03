@@ -2,6 +2,24 @@ module ActiveRecord
   module ConnectionAdapters
     module SQLite3
       module Quoting # :nodoc:
+        QUOTED_TRUE, QUOTED_FALSE = '1', '0'
+
+        def quoted_true
+          QUOTED_TRUE
+        end
+
+        def unquoted_true
+          1
+        end
+
+        def quoted_false
+          QUOTED_FALSE
+        end
+
+        def unquoted_false
+          0
+        end
+        
         def quote_string(s)
           @connection.class.quote(s)
         end
