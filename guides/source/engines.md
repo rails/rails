@@ -11,9 +11,9 @@ After reading this guide, you will know:
 
 * What makes an engine.
 * How to generate an engine.
-* Building features for the engine.
-* Hooking the engine into an application.
-* Overriding engine functionality in the application.
+* How to build features for the engine.
+* How to hook the engine into an application.
+* How to override engine functionality in the application.
 
 --------------------------------------------------------------------------------
 
