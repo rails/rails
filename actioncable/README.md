@@ -299,6 +299,16 @@ The rebroadcast will be received by all connected clients, _including_ the clien
 
 See the [rails/actioncable-examples](https://github.com/rails/actioncable-examples) repository for a full example of how to setup Action Cable in a Rails app, and how to add channels.
 
+## Download and installation
+
+The latest version of Action Cable can be installed with RubyGems:
+
+    $ gem install actioncable
+
+Source code can be downloaded as part of the Rails project on GitHub
+
+*   https://github.com/rails/rails/tree/master/actioncable
+
 ## License
 
 Action Cable is released under the MIT license:
