@@ -116,7 +116,7 @@ GEM
     bcrypt (3.1.11-x86-mingw32)
     beaneater (1.0.0)
     benchmark-ips (2.6.1)
-    blade (0.5.5)
+    blade (0.5.6)
       activesupport (>= 3.0.0)
       blade-qunit_adapter (~> 1.20.0)
       coffee-script
@@ -126,11 +126,11 @@ GEM
       faye
       sprockets (>= 3.0)
       sprockets-export (~> 0.9.1)
-      thin (~> 1.6.0)
+      thin (>= 1.6.0)
       thor (~> 0.19.1)
       useragent (~> 0.16.7)
     blade-qunit_adapter (1.20.0)
-    blade-sauce_labs_plugin (0.5.1)
+    blade-sauce_labs_plugin (0.5.2)
       childprocess
       faraday
       selenium-webdriver
@@ -166,7 +166,7 @@ GEM
     eventmachine (1.2.0.1)
     eventmachine (1.2.0.1-x64-mingw32)
     eventmachine (1.2.0.1-x86-mingw32)
-    execjs (2.6.0)
+    execjs (2.7.0)
     faraday (0.9.2)
       multipart-post (>= 1.2, < 3)
     faye (1.1.1)
@@ -310,10 +310,10 @@ GEM
     stackprof (0.2.9)
     sucker_punch (2.0.2)
       concurrent-ruby (~> 1.0.0)
-    thin (1.6.2)
-      daemons (>= 1.0.9)
-      eventmachine (>= 1.0.0)
-      rack (>= 1.0.0)
+    thin (1.7.0)
+      daemons (~> 1.0, >= 1.0.9)
+      eventmachine (~> 1.0, >= 1.0.4)
+      rack (>= 1, < 3)
     thor (0.19.1)
     thread (0.1.7)
     thread_safe (0.3.5)
@@ -348,8 +348,8 @@ DEPENDENCIES
   backburner
   bcrypt (~> 3.1.11)
   benchmark-ips
-  blade (~> 0.5.5)
-  blade-sauce_labs_plugin (~> 0.5.1)
+  blade
+  blade-sauce_labs_plugin
   byebug
   coffee-rails!
   dalli (>= 2.2.1)
