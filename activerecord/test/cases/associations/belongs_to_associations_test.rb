@@ -1062,6 +1062,20 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, parent.reload.children_count
   end
 
+  def test_belongs_to_with_out_of_range_value_assigning
+    model = Class.new(Comment) do
+      def self.name; "Temp"; end
+      validates :post, presence: true
+    end
+
+    comment = model.new
+    comment.post_id = 10_000_000_000
+
+    assert_nil comment.post
+    assert_not comment.valid?
+    assert_equal [{ error: :blank }], comment.errors.details[:post]
+  end
+
   def test_polymorphic_with_custom_primary_key
     toy = Toy.create!
     sponsor = Sponsor.create!(sponsorable: toy)
