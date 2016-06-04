@@ -14,10 +14,6 @@ require MIGRATIONS_ROOT + "/rename/2_rename_things"
 require MIGRATIONS_ROOT + "/decimal/1_give_me_big_numbers"
 
 class BigNumber < ActiveRecord::Base
-  unless current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter)
-    attribute :value_of_e, :integer
-  end
-  attribute :my_house_population, :integer
 end
 
 class Reminder < ActiveRecord::Base; end
