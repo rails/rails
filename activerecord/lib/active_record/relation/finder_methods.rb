@@ -333,6 +333,8 @@ module ActiveRecord
       end
 
       connection.select_value(relation, "#{name} Exists", relation.bound_attributes) ? true : false
+    rescue RangeError
+      false
     end
 
     # This method is called whenever no records are found with either a single
@@ -579,7 +581,7 @@ module ActiveRecord
         # e.g., reverse_order.offset(index-1).first
       end
     end
-    
+
     private
 
     def find_nth_with_limit_and_offset(index, limit, offset:) # :nodoc:

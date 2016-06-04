@@ -32,7 +32,6 @@ module ActiveRecord
 
           record.errors.add(attribute, :taken, error_options)
         end
-      rescue RangeError
       end
 
     protected
