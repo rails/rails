@@ -106,7 +106,7 @@ module ActionDispatch
           @ast                = ast
           @anchor             = anchor
           @via                = via
-          @internal           = options[:internal]
+          @internal           = options.delete(:internal)
 
           path_params = ast.find_all(&:symbol?).map(&:to_sym)
 
