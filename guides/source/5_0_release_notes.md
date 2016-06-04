@@ -50,7 +50,7 @@ ToDo...
 
 Defines an attribute with a type on a model. It will override the type of existing attributes if needed. 
 This allows control over how values are converted to and from SQL when assigned to a model.
-It also changes the behavior of values passed to ActiveRecord::Base.where, which lets use our domain objects across much of Active Record, 
+It also changes the behavior of values passed to `ActiveRecord::Base.where`, which lets use our domain objects across much of Active Record,
 without having to rely on implementation details or monkey patching.
 
 Some things that you can achieve with this:
