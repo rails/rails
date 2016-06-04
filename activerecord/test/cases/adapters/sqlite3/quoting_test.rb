@@ -80,14 +80,14 @@ class SQLite3QuotingTest < ActiveRecord::SQLite3TestCase
 
   def test_quoting_binary_strings
     value = "hello".encode('ascii-8bit')
-    type = Type::String.new
+    type = ActiveRecord::Type::String.new
 
     assert_equal "'hello'", @conn.quote(type.serialize(value))
   end
 
   def test_quoted_time_returns_date_qualified_time
     value = ::Time.utc(2000, 1, 1, 12, 30, 0, 999999)
-    type = Type::Time.new
+    type = ActiveRecord::Type::Time.new
 
     assert_equal "'2000-01-01 12:30:00.999999'", @conn.quote(type.serialize(value))
   end
