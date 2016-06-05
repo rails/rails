@@ -47,10 +47,6 @@ class SchemaDumperTest < ActiveRecord::TestCase
     end
   end
 
-  def test_magic_comment
-    assert_match "# encoding: #{Encoding.default_external.name}", standard_dump
-  end
-
   def test_schema_dump
     output = standard_dump
     assert_match %r{create_table "accounts"}, output

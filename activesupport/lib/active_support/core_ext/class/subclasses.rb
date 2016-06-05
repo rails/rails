@@ -26,8 +26,6 @@ class Class
 
   # Returns an array with the direct children of +self+.
   #
-  #   Integer.subclasses # => [Fixnum, Bignum]
-  #
   #   class Foo; end
   #   class Bar < Foo; end
   #   class Baz < Bar; end

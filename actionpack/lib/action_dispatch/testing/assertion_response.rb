@@ -1,14 +1,7 @@
 module ActionDispatch
-  # This is a class that abstracts away an asserted response.
-  # It purposely does not inherit from Response, because it doesn't need it.
-  # That means it does not have headers or a body.
-  #
-  # As an input to the initializer, we take a Fixnum, a String, or a Symbol.
-  # If it's a Fixnum or String, we figure out what its symbolized name.
-  # If it's a Symbol, we figure out what its corresponding code is.
-  # The resulting code will be a Fixnum, for real HTTP codes, and it will
-  # be a String for the pseudo-HTTP codes, such as:
-  #   :success, :missing, :redirect and :error
+  # This is a class that abstracts away an asserted response. It purposely
+  # does not inherit from Response because it doesn't need it. That means it
+  # does not have headers or a body.
   class AssertionResponse
     attr_reader :code, :name
 
@@ -19,6 +12,9 @@ module ActionDispatch
       error: "5XX"
     }
 
+    # Accepts a specific response status code as an Integer (404) or String
+    # ('404') or a response status range as a Symbol pseudo-code (:success,
+    # indicating any 200-299 status code).
     def initialize(code_or_name)
       if code_or_name.is_a?(Symbol)
         @name = code_or_name

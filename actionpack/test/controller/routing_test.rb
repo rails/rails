@@ -626,7 +626,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     assert_equal '/pages/boo', url_for(rs, { :controller => 'pages', :action => 'boo' })
   end
 
-  def test_route_with_fixnum_default
+  def test_route_with_integer_default
     rs.draw do
       get 'page(/:id)' => 'content#show_page', :id => 1
 

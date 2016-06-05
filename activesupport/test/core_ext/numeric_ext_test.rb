@@ -387,16 +387,9 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
   end
 
   def test_to_s__injected_on_proper_types
-    assert_equal Fixnum, 1230.class
     assert_equal '1.23 Thousand', 1230.to_s(:human)
-
-    assert_equal Float, Float(1230).class
     assert_equal '1.23 Thousand', Float(1230).to_s(:human)
-
-    assert_equal Bignum, (100**10).class
     assert_equal '100000 Quadrillion', (100**10).to_s(:human)
-
-    assert_equal BigDecimal, BigDecimal("1000010").class
     assert_equal '1 Million', BigDecimal("1000010").to_s(:human)
   end
 
