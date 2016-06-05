@@ -856,6 +856,7 @@ module ActiveRecord
           else
             foreign_key_options = { to_table: reference_name }
           end
+          foreign_key_options[:column] ||= "#{ref_name}_id"
           remove_foreign_key(table_name, **foreign_key_options)
         end
 
