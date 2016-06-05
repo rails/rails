@@ -1058,7 +1058,7 @@ module ActionView
           prefix = @options[:prefix] || ActionView::Helpers::DateTimeSelector::DEFAULT_PREFIX
           prefix += "[#{@options[:index]}]" if @options.has_key?(:index)
 
-          field_name = @options[:field_name] || type
+          field_name = @options[:field_name] || type.to_s
           if @options[:include_position]
             field_name += "(#{ActionView::Helpers::DateTimeSelector::POSITION[type]}i)"
           end
