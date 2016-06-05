@@ -26,6 +26,43 @@ module ActionView
       PRE_CONTENT_STRINGS[:textarea]  = "\n"
       PRE_CONTENT_STRINGS["textarea"] = "\n"
 
+      # TagBuilder work in progress
+      # TODO:
+      # * Documentation
+      # * More tests
+      # * support for NEED_CLOSING element
+      # * Method missing -> raise if unknown html tag
+      # * fill NEED_CLOSING
+      # * include support for escape argument
+      # * blocks
+      # * Extract to sepearete file (?)
+
+      class TagBuilder
+        include ActionView::Helpers::TagHelper
+
+        VOID_ELEMENTS = %w(base  br  col  embed  hr  img  input  keygen  link  meta  param  source  track  wbr).to_set
+        VOID_ELEMENTS.merge(VOID_ELEMENTS.map(&:to_sym))
+
+        private
+
+          def render_tag(name, content_or_options = nil, options = nil, &block)
+            if block_given?
+              content_tag(name, yield(self), content_or_options)
+            elsif content_or_options.is_a? String
+              content_tag(name, content_or_options, options)
+            elsif VOID_ELEMENTS.include?(name)
+              tag(name, content_or_options, false, escape = true)
+            else
+              content_tag(name, "", content_or_options)
+            end
+          end
+
+          def method_missing(called, *args, &block)
+            render_tag(called, args[0], args[1], &block)
+          end
+
+      end
+
 
       # Returns an empty HTML tag of type +name+ which by default is XHTML
       # compliant. Set +open+ to true to create an open tag compatible
@@ -72,7 +109,8 @@ module ActionView
       #
       #   tag("div", data: {name: 'Stephen', city_state: %w(Chicago IL)})
       #   # => <div data-name="Stephen" data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]" />
-      def tag(name, options = nil, open = false, escape = true)
+      def tag(name = nil, options = nil, open = false, escape = true)
+        return TagBuilder.new if name == nil
         "<#{name}#{tag_options(options, escape) if options}#{open ? ">" : " />"}".html_safe
       end
 

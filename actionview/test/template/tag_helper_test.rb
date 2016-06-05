@@ -5,6 +5,19 @@ class TagHelperTest < ActionView::TestCase
 
   tests ActionView::Helpers::TagHelper
 
+  def test_builder_tag
+    assert_equal "<br />", tag.br
+    assert_equal "<span class=\"bookmark\"></span>", tag.span(class: "bookmark")
+  end
+
+  def test_builder_content_tag
+    assert_equal "<div id=\"post_1\">Content</div>", tag.div("Content", id: "post_1")
+  end
+
+  def test_builder_nested
+    assert_equal "<div id=\"header\"><span>hello</span></div>", tag.div(id: 'header') { |tag| tag.span 'hello' }
+  end
+
   def test_tag
     assert_equal "<br />", tag("br")
     assert_equal "<br clear=\"left\" />", tag(:br, :clear => "left")
