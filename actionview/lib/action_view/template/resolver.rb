@@ -88,6 +88,23 @@ module ActionView
         @query_cache.clear
       end
 
+      # Get the cache size.  Do not call this
+      # method. This method is not guaranteed to be here ever.
+      def size # :nodoc:
+        size = 0
+        @data.each_value do |v1|
+          v1.each_value do |v2|
+            v2.each_value do |v3|
+              v3.each_value do |v4|
+                size += v4.size
+              end
+            end
+          end
+        end
+
+        size + @query_cache.size
+      end
+
       private
 
       def canonical_no_templates(templates)

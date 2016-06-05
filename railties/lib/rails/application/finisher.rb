@@ -95,7 +95,7 @@ module Rails
 
         elsif config.allow_concurrency == :unsafe
           # Do nothing, even if we know this is dangerous. This is the
-          # historical behaviour for true.
+          # historical behavior for true.
 
         else
           # Default concurrency setting: enabled, but safe

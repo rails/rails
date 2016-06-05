@@ -41,14 +41,14 @@ module ActiveRecord
       NATIVE_DATABASE_TYPES = {
         primary_key: "int auto_increment PRIMARY KEY",
         string:      { name: "varchar", limit: 255 },
-        text:        { name: "text" },
+        text:        { name: "text", limit: 65535 },
         integer:     { name: "int", limit: 4 },
         float:       { name: "float" },
         decimal:     { name: "decimal" },
         datetime:    { name: "datetime" },
         time:        { name: "time" },
         date:        { name: "date" },
-        binary:      { name: "blob" },
+        binary:      { name: "blob", limit: 65535 },
         boolean:     { name: "tinyint", limit: 1 },
         json:        { name: "json" },
       }
@@ -707,7 +707,7 @@ module ActiveRecord
           case length
           when Hash
             column_names.each {|name| option_strings[name] += "(#{length[name]})" if length.has_key?(name) && length[name].present?}
-          when Fixnum
+          when Integer
             column_names.each {|name| option_strings[name] += "(#{length})"}
           end
         end
@@ -727,14 +727,22 @@ module ActiveRecord
         column_names.map {|name| quote_column_name(name) + option_strings[name]}
       end
 
+      # See https://dev.mysql.com/doc/refman/5.7/en/error-messages-server.html
+      ER_DUP_ENTRY            = 1062
+      ER_NO_REFERENCED_ROW_2  = 1452
+      ER_DATA_TOO_LONG        = 1406
+      ER_LOCK_DEADLOCK        = 1213
+
       def translate_exception(exception, message)
         case error_number(exception)
-        when 1062
+        when ER_DUP_ENTRY
           RecordNotUnique.new(message)
-        when 1452
+        when ER_NO_REFERENCED_ROW_2
           InvalidForeignKey.new(message)
-        when 1406
+        when ER_DATA_TOO_LONG
           ValueTooLong.new(message)
+        when ER_LOCK_DEADLOCK
+          TransactionSerializationError.new(message)
         else
           super
         end
@@ -832,7 +840,7 @@ module ActiveRecord
 
         # Increase timeout so the server doesn't disconnect us.
         wait_timeout = @config[:wait_timeout]
-        wait_timeout = 2147483 unless wait_timeout.is_a?(Fixnum)
+        wait_timeout = 2147483 unless wait_timeout.is_a?(Integer)
         variables['wait_timeout'] = self.class.type_cast_config_to_integer(wait_timeout)
 
         defaults = [':default', :default].to_set

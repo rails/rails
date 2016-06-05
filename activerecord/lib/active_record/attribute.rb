@@ -77,7 +77,11 @@ module ActiveRecord
     end
 
     def with_type(type)
-      self.class.new(name, value_before_type_cast, type, original_attribute)
+      if changed_in_place?
+        with_value_from_user(value).with_type(type)
+      else
+        self.class.new(name, value_before_type_cast, type, original_attribute)
+      end
     end
 
     def type_cast(*)
@@ -106,6 +110,22 @@ module ActiveRecord
 
     def hash
       [self.class, name, value_before_type_cast, type].hash
+    end
+
+    def init_with(coder)
+      @name = coder["name"]
+      @value_before_type_cast = coder["value_before_type_cast"]
+      @type = coder["type"]
+      @original_attribute = coder["original_attribute"]
+      @value = coder["value"] if coder.map.key?("value")
+    end
+
+    def encode_with(coder)
+      coder["name"] = name
+      coder["value_before_type_cast"] = value_before_type_cast if value_before_type_cast
+      coder["type"] = type if type
+      coder["original_attribute"] = original_attribute if original_attribute
+      coder["value"] = value if defined?(@value)
     end
 
     protected
@@ -185,6 +205,8 @@ module ActiveRecord
     end
 
     class Uninitialized < Attribute # :nodoc:
+      UNINITIALIZED_ORIGINAL_VALUE = Object.new
+
       def initialize(name, type)
         super(name, nil, type)
       end
@@ -195,11 +217,19 @@ module ActiveRecord
         end
       end
 
+      def original_value
+        UNINITIALIZED_ORIGINAL_VALUE
+      end
+
       def value_for_database
       end
 
       def initialized?
         false
+      end
+
+      def with_type(type)
+        self.class.new(name, type)
       end
     end
     private_constant :FromDatabase, :FromUser, :Null, :Uninitialized, :WithCastValue

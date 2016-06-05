@@ -3,9 +3,6 @@ require 'abstract_unit'
 class WraithAttack < StandardError
 end
 
-class NuclearExplosion < StandardError
-end
-
 class MadRonon < StandardError
 end
 
@@ -19,6 +16,10 @@ module WeirdError
 end
 
 class Stargate
+  # Nest this so the 'NuclearExplosion' handler needs a lexical const_get
+  # to find it.
+  class NuclearExplosion < StandardError; end
+
   attr_accessor :result
 
   include ActiveSupport::Rescuable
@@ -57,6 +58,14 @@ class Stargate
     raise MadRonon.new("dex")
   end
 
+  def fall_back_to_cause
+    # This exception is the cause and has a handler.
+    ronanize
+  rescue
+    # This is the exception we'll handle that doesn't have a cause.
+    raise 'unhandled RuntimeError with a handleable cause'
+  end
+
   def weird
     StandardError.new.tap do |exc|
       def exc.weird?
@@ -74,7 +83,6 @@ class Stargate
   def sos_first
     @result = 'sos_first'
   end
-
 end
 
 class CoolStargate < Stargate
@@ -126,5 +134,10 @@ class RescuableTest < ActiveSupport::TestCase
     expected = ["WraithAttack", "WraithAttack", "NuclearExplosion", "MadRonon", "WeirdError", "CoolError"]
     result = @cool_stargate.send(:rescue_handlers).collect(&:first)
     assert_equal expected, result
+  end
+
+  def test_rescue_falls_back_to_exception_cause
+    @stargate.dispatch :fall_back_to_cause
+    assert_equal 'unhandled RuntimeError with a handleable cause', @stargate.result
   end
 end

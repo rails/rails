@@ -16,7 +16,8 @@ module Rails
           if self.behavior == :invoke
             template "assets/cable.js", "app/assets/javascripts/cable.js"
           end
-          template "assets/channel.coffee", File.join('app/assets/javascripts/channels', class_path, "#{file_name}.coffee")
+
+          js_template "assets/channel", File.join('app/assets/javascripts/channels', class_path, "#{file_name}")
         end
 
         generate_application_cable_files

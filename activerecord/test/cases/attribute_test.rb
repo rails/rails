@@ -242,5 +242,12 @@ module ActiveRecord
         attribute.with_value_from_user(1)
       end
     end
+
+    test "with_type preserves mutations" do
+      attribute = Attribute.from_database(:foo, "", Type::Value.new)
+      attribute.value << "1"
+
+      assert_equal 1, attribute.with_type(Type::Integer.new).value
+    end
   end
 end

@@ -64,6 +64,12 @@ group :cable do
   gem 'redis', require: false
 
   gem 'faye-websocket', require: false
+
+  # Lock to 1.1.1 until the fix for https://github.com/faye/faye/issues/394 is released
+  gem 'faye', '1.1.1', require: false
+
+  gem 'blade', '~> 0.5.5', require: false
+  gem 'blade-sauce_labs_plugin', '~> 0.5.1', require: false
 end
 
 # Add your own local bundler stuff.

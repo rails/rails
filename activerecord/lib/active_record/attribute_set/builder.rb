@@ -22,7 +22,7 @@ module ActiveRecord
   end
 
   class LazyAttributeHash # :nodoc:
-    delegate :transform_values, :each_key, to: :materialize
+    delegate :transform_values, :each_key, :each_value, to: :materialize
 
     def initialize(types, values, additional_types)
       @types = types

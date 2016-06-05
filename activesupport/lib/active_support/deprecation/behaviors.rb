@@ -2,7 +2,7 @@ require "active_support/notifications"
 
 module ActiveSupport
   # Raised when <tt>ActiveSupport::Deprecation::Behavior#behavior</tt> is set with <tt>:raise</tt>.
-  # You would set <tt>:raise</tt>, as a behaviour to raise errors and proactively report exceptions from deprecations.
+  # You would set <tt>:raise</tt>, as a behavior to raise errors and proactively report exceptions from deprecations.
   class DeprecationException < StandardError
   end
 

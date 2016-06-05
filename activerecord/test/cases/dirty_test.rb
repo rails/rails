@@ -734,6 +734,17 @@ class DirtyTest < ActiveRecord::TestCase
     assert_equal "arr", pirate.catchphrase
   end
 
+  test "attributes assigned but not selected are dirty" do
+    person = Person.select(:id).first
+    refute person.changed?
+
+    person.first_name = "Sean"
+    assert person.changed?
+
+    person.first_name = nil
+    assert person.changed?
+  end
+
   private
     def with_partial_writes(klass, on = true)
       old = klass.partial_writes?

@@ -1,7 +1,6 @@
 require 'delegate'
 
 module ActionMailer
-
   # The <tt>ActionMailer::MessageDelivery</tt> class is used by
   # <tt>ActionMailer::Base</tt> when creating a new mailer.
   # <tt>MessageDelivery</tt> is a wrapper (+Delegator+ subclass) around a lazy
@@ -14,28 +13,33 @@ module ActionMailer
   #   Notifier.welcome(User.first).deliver_later # enqueue email delivery as a job through Active Job
   #   Notifier.welcome(User.first).message       # a Mail::Message object
   class MessageDelivery < Delegator
-    def initialize(mailer, mail_method, *args) #:nodoc:
-      @mailer = mailer
-      @mail_method = mail_method
-      @args = args
-      @obj = nil
+    def initialize(mailer_class, action, *args) #:nodoc:
+      @mailer_class, @action, @args = mailer_class, action, args
+
+      # The mail is only processed if we try to call any methods on it.
+      # Typical usage will leave it unloaded and call deliver_later.
+      @processed_mailer = nil
+      @mail_message = nil
     end
 
+    # Method calls are delegated to the Mail::Message that's ready to deliver.
     def __getobj__ #:nodoc:
-      @obj ||= begin
-                 mailer = @mailer.new
-                 mailer.process @mail_method, *@args
-                 mailer.message
-               end
+      @mail_message ||= processed_mailer.message
     end
 
-    def __setobj__(obj) #:nodoc:
-      @obj = obj
+    # Unused except for delegator internals (dup, marshaling).
+    def __setobj__(mail_message) #:nodoc:
+      @mail_message = mail_message
     end
 
-    # Returns the Mail::Message object
+    # Returns the resulting Mail::Message
     def message
       __getobj__
+    end
+
+    # Was the delegate loaded, causing the mailer action to be processed?
+    def processed?
+      @processed_mailer || @mail_message
     end
 
     # Enqueues the email to be delivered through Active Job. When the
@@ -78,7 +82,9 @@ module ActionMailer
     #   Notifier.welcome(User.first).deliver_now!
     #
     def deliver_now!
-      message.deliver!
+      processed_mailer.handle_exceptions do
+        message.deliver!
+      end
     end
 
     # Delivers an email:
@@ -86,24 +92,33 @@ module ActionMailer
     #   Notifier.welcome(User.first).deliver_now
     #
     def deliver_now
-      message.deliver
+      processed_mailer.handle_exceptions do
+        message.deliver
+      end
     end
 
     private
+      # Returns the processed Mailer instance. We keep this instance
+      # on hand so we can delegate exception handling to it.
+      def processed_mailer
+        @processed_mailer ||= @mailer_class.new.tap do |mailer|
+          mailer.process @action, *@args
+        end
+      end
 
       def enqueue_delivery(delivery_method, options={})
-        if @obj
-          raise "You've accessed the message before asking to deliver it " \
-            "later, so you may have made local changes that would be " \
-            "silently lost if we enqueued a job to deliver it. Why? Only " \
+        if processed?
+          ::Kernel.raise "You've accessed the message before asking to " \
+            "deliver it later, so you may have made local changes that would " \
+            "be silently lost if we enqueued a job to deliver it. Why? Only " \
             "the mailer method *arguments* are passed with the delivery job! " \
             "Do not access the message in any way if you mean to deliver it " \
             "later. Workarounds: 1. don't touch the message before calling " \
             "#deliver_later, 2. only touch the message *within your mailer " \
             "method*, or 3. use a custom Active Job instead of #deliver_later."
         else
-          args = @mailer.name, @mail_method.to_s, delivery_method.to_s, *@args
-          ActionMailer::DeliveryJob.set(options).perform_later(*args)
+          args = @mailer_class.name, @action.to_s, delivery_method.to_s, *@args
+          ::ActionMailer::DeliveryJob.set(options).perform_later(*args)
         end
       end
   end

@@ -13,7 +13,6 @@ directory "pkg"
 
     task :clean do
       rm_f gem
-      sh "cd #{framework} && bundle exec rake package:clean" unless framework == "rails"
     end
 
     task :update_versions do

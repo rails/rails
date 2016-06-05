@@ -30,6 +30,17 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal "2005-02-21",          date.to_s(:iso8601)
   end
 
+  def test_to_s_with_single_digit_day
+    date = Date.new(2005, 2, 1)
+    assert_equal "2005-02-01",          date.to_s
+    assert_equal "01 Feb",              date.to_s(:short)
+    assert_equal "February 01, 2005",   date.to_s(:long)
+    assert_equal "February 1st, 2005",  date.to_s(:long_ordinal)
+    assert_equal "2005-02-01",          date.to_s(:db)
+    assert_equal "01 Feb 2005",         date.to_s(:rfc822)
+    assert_equal "2005-02-01",          date.to_s(:iso8601)
+  end
+
   def test_readable_inspect
     assert_equal "Mon, 21 Feb 2005", Date.new(2005, 2, 21).readable_inspect
     assert_equal Date.new(2005, 2, 21).readable_inspect, Date.new(2005, 2, 21).inspect
@@ -280,6 +291,23 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
       with_tz_default zone do
         assert_equal zone.local(2005,2,21,23,59,59,Rational(999999999, 1000)), Date.new(2005,2,21).end_of_day
         assert_equal zone, Date.new(2005,2,21).end_of_day.time_zone
+      end
+    end
+  end
+
+  def test_all_day
+    beginning_of_day = Time.local(2011,6,7,0,0,0)
+    end_of_day = Time.local(2011,6,7,23,59,59,Rational(999999999, 1000))
+    assert_equal beginning_of_day..end_of_day, Date.new(2011,6,7).all_day
+  end
+
+  def test_all_day_when_zone_is_set
+    zone = ActiveSupport::TimeZone["Hawaii"]
+    with_env_tz "UTC" do
+      with_tz_default zone do
+        beginning_of_day = zone.local(2011,6,7,0,0,0)
+        end_of_day = zone.local(2011,6,7,23,59,59,Rational(999999999, 1000))
+        assert_equal beginning_of_day..end_of_day, Date.new(2011,6,7).all_day
       end
     end
   end

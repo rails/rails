@@ -41,11 +41,11 @@ module ActionView
       #
       # ==== \Template digest
       #
-      # The template digest that's added to the cache key is computed by taking an md5 of the
+      # The template digest that's added to the cache key is computed by taking an MD5 of the
       # contents of the entire template file. This ensures that your caches will automatically
       # expire when you change the template file.
       #
-      # Note that the md5 is taken of the entire template file, not just what's within the
+      # Note that the MD5 is taken of the entire template file, not just what's within the
       # cache do/end call. So it's possible that changing something outside of that call will
       # still expire the cache.
       #
@@ -118,7 +118,7 @@ module ActionView
       #
       # If you use a helper method, for example, inside a cached block and
       # you then update that helper, you'll have to bump the cache as well.
-      # It doesn't really matter how you do it, but the md5 of the template file
+      # It doesn't really matter how you do it, but the MD5 of the template file
       # must change. One recommendation is to simply be explicit in a comment, like:
       #
       #   <%# Helper Dependency Updated: May 6, 2012 at 6pm %>

@@ -120,7 +120,7 @@ module ActiveModel
       # * <tt>:only_integer</tt> - Specifies whether the value has to be an
       #   integer, e.g. an integral value (default is +false+).
       # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+ (default is
-      #   +false+). Notice that for fixnum and float columns empty strings are
+      #   +false+). Notice that for Integer and Float columns empty strings are
       #   converted to +nil+.
       # * <tt>:greater_than</tt> - Specifies the value must be greater than the
       #   supplied value.

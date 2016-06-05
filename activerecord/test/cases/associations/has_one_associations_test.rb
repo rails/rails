@@ -659,4 +659,22 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     assert_deprecated { firm.account(true) }
   end
+
+  class SpecialBook < ActiveRecord::Base
+    self.table_name = 'books'
+    belongs_to :author, class_name: 'SpecialAuthor'
+  end
+
+  class SpecialAuthor < ActiveRecord::Base
+    self.table_name = 'authors'
+    has_one :book, class_name: 'SpecialBook', foreign_key: 'author_id'
+  end
+
+  def test_assocation_enum_works_properly
+    author = SpecialAuthor.create!(name: 'Test')
+    book = SpecialBook.create!(status: 'published')
+    author.book = book
+
+    refute_equal 0, SpecialAuthor.joins(:book).where(books: { status: 'published' } ).count
+  end
 end

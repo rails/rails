@@ -154,6 +154,10 @@ XML
       render html: '<body class="foo"></body>'.html_safe
     end
 
+    def boom
+      raise 'boom!'
+    end
+
     private
 
       def generate_url(opts)
@@ -553,7 +557,7 @@ XML
     assert_equal 'created', flash[:notice]
   end
 
-  def test_params_passing_with_fixnums
+  def test_params_passing_with_integer
     get :test_params, params: {
       page: { name: "Page name", month: 4, year: 2004, day: 6 }
     }
@@ -565,7 +569,7 @@ XML
     )
   end
 
-  def test_params_passing_with_fixnums_when_not_html_request
+  def test_params_passing_with_integers_when_not_html_request
     get :test_params, params: { format: 'json', count: 999 }
     parsed_params = ::JSON.parse(@response.body)
     assert_equal(
@@ -980,6 +984,26 @@ XML
     assert_raise(ActiveSupport::TestCase::Assertion) do
       assert_redirected_to 'created resource'
     end
+  end
+
+  def test_exception_in_action_reaches_test
+    assert_raise(RuntimeError) do
+      process :boom, method: "GET"
+    end
+  end
+
+  def test_request_state_is_cleared_after_exception
+    assert_raise(RuntimeError) do
+      process :boom,
+        method: "GET",
+        params: { q: 'test1' }
+    end
+
+    process :test_query_string,
+      method: "GET",
+      params: { q: 'test2' }
+
+    assert_equal "q=test2", @response.body
   end
 end
 

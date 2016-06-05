@@ -131,22 +131,6 @@ class RescueController < ActionController::Base
   def missing_template
   end
 
-  def io_error_in_view
-    begin
-      raise IOError.new('this is io error')
-    rescue
-      raise ActionView::TemplateError.new(nil)
-    end
-  end
-
-  def zero_division_error_in_view
-    begin
-      raise ZeroDivisionError.new('this is zero division error')
-    rescue
-      raise ActionView::TemplateError.new(nil)
-    end
-  end
-
   def exception_with_more_specific_handler_for_wrapper
     raise RecordInvalid
   rescue
@@ -251,17 +235,6 @@ class ControllerInheritanceRescueControllerTest < ActionController::TestCase
 end
 
 class RescueControllerTest < ActionController::TestCase
-
-  def test_io_error_in_view
-    get :io_error_in_view
-    assert_equal 'io error', @response.body
-  end
-
-  def test_zero_division_error_in_view
-    get :zero_division_error_in_view
-    assert_equal 'action_view templater error', @response.body
-  end
-
   def test_rescue_handler
     get :not_authorized
     assert_response :forbidden
@@ -276,7 +249,6 @@ class RescueControllerTest < ActionController::TestCase
       get :record_invalid
     end
   end
-
   def test_rescue_handler_with_argument_as_string
     assert_called_with @controller, :show_errors, [Exception] do
       get :record_invalid_raise_as_string
@@ -314,7 +286,6 @@ class RescueControllerTest < ActionController::TestCase
     get :resource_unavailable
     assert_equal "RescueController::ResourceUnavailable", @response.body
   end
-
   def test_block_rescue_handler_with_argument_as_string
     get :resource_unavailable_raise_as_string
     assert_equal "RescueController::ResourceUnavailableToRescueAsString", @response.body
@@ -322,7 +293,7 @@ class RescueControllerTest < ActionController::TestCase
 
   test 'rescue when wrapper has more specific handler than cause' do
     get :exception_with_more_specific_handler_for_wrapper
-    assert_response :unprocessable_entity
+    assert_response :forbidden
   end
 
   test 'rescue when cause has more specific handler than wrapper' do

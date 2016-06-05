@@ -354,6 +354,17 @@ module ActionDispatch
         standard_port? ? '' : ":#{port}"
       end
 
+      # Returns the requested port, such as 8080, based on SERVER_PORT
+      #
+      #   class Request < Rack::Request
+      #     include ActionDispatch::Http::URL
+      #   end
+      #
+      #   req = Request.new 'SERVER_PORT' => '80'
+      #   req.server_port # => 80
+      #
+      #   req = Request.new 'SERVER_PORT' => '8080'
+      #   req.server_port # => 8080
       def server_port
         get_header('SERVER_PORT').to_i
       end

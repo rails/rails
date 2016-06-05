@@ -128,10 +128,6 @@ module ActionCable::StreamTests
     setup do
       @server = TestServer.new(subscription_adapter: ActionCable::SubscriptionAdapter::Inline)
       @server.config.allowed_request_origins = %w( http://rubyonrails.com )
-      @server.stubs(:channel_classes).returns(
-        ChatChannel.name => ChatChannel,
-        UserCallbackChannel.name => UserCallbackChannel,
-      )
     end
 
     test 'custom encoder' do

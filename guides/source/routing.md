@@ -9,16 +9,16 @@ After reading this guide, you will know:
 
 * How to interpret the code in `config/routes.rb`.
 * How to construct your own routes, using either the preferred resourceful style or the `match` method.
-* What parameters to expect an action to receive.
+* How to declare route parameters, which are passed onto controller actions.
 * How to automatically create paths and URLs using route helpers.
-* Advanced techniques such as constraints and Rack endpoints.
+* Advanced techniques such as creating constraints and mounting Rack endpoints.
 
 --------------------------------------------------------------------------------
 
 The Purpose of the Rails Router
 -------------------------------
 
-The Rails router recognizes URLs and dispatches them to a controller's action. It can also generate paths and URLs, avoiding the need to hardcode strings in your views.
+The Rails router recognizes URLs and dispatches them to a controller's action, or to a Rack application. It can also generate paths and URLs, avoiding the need to hardcode strings in your views.
 
 ### Connecting URLs to Code
 
