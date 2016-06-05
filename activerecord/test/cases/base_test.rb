@@ -886,7 +886,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal 2147483647, company.rating
   end
 
-  if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter, :SQLite3Adapter)
+  if current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter)
     def test_default
       with_timezone_config default: :local do
         default = Default.new
