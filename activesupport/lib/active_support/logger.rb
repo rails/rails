@@ -6,6 +6,12 @@ module ActiveSupport
   class Logger < ::Logger
     include LoggerSilence
 
+    def self.logger_outputs_to?(logger, *sources)
+      logdev = logger.instance_variable_get("@logdev")
+      logger_source = logdev.dev if logdev.respond_to?(:dev)
+      sources.any? { |source| source == logger_source }
+    end
+    
     # Broadcasts logs to multiple loggers.
     def self.broadcast(logger) # :nodoc:
       Module.new do

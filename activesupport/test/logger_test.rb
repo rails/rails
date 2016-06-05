@@ -17,6 +17,14 @@ class LoggerTest < ActiveSupport::TestCase
     @logger  = Logger.new(@output)
   end
 
+  def test_log_outputs_to
+    assert Logger.logger_outputs_to?(@logger, @output),            "Expected logger_outputs_to? @output to return true but was false"
+    assert Logger.logger_outputs_to?(@logger, @output, STDOUT),    "Expected logger_outputs_to? @output or STDOUT to return true but was false"
+
+    assert_not Logger.logger_outputs_to?(@logger, STDOUT),         "Expected logger_outputs_to? to STDOUT to return false, but was true"
+    assert_not Logger.logger_outputs_to?(@logger, STDOUT, STDERR), "Expected logger_outputs_to? to STDOUT or STDERR to return false, but was true"
+  end
+  
   def test_write_binary_data_to_existing_file
     t = Tempfile.new ['development', 'log']
     t.binmode
@@ -122,13 +130,13 @@ class LoggerTest < ActiveSupport::TestCase
     byte_string.force_encoding("ASCII-8BIT")
     assert byte_string.include?(BYTE_STRING)
   end
-  
+
   def test_silencing_everything_but_errors
     @logger.silence do
       @logger.debug "NOT THERE"
       @logger.error "THIS IS HERE"
     end
-    
+
     assert !@output.string.include?("NOT THERE")
     assert @output.string.include?("THIS IS HERE")
   end
