@@ -242,6 +242,12 @@ This will put the `Magical::Unicorns` middleware on the end of the stack. You ca
 config.middleware.insert_before Rack::Head, Magical::Unicorns
 ```
 
+Or you can insert a middleware to exact position by using indexes. For example, if you want to insert `Magical::Unicorns` middleware on top of the stack, you can do it, like so:
+
+```ruby
+config.middleware.insert_before 0, Magical::Unicorns
+```
+
 There's also `insert_after` which will insert a middleware after another:
 
 ```ruby
@@ -271,6 +277,26 @@ All these configuration options are delegated to the `I18n` library.
 * `config.i18n.enforce_available_locales` ensures that all locales passed through i18n must be declared in the `available_locales` list, raising an `I18n::InvalidLocale` exception when setting an unavailable locale. Defaults to `true`. It is recommended not to disable this option unless strongly required, since this works as a security measure against setting any invalid locale from user input.
 
 * `config.i18n.load_path` sets the path Rails uses to look for locale files. Defaults to `config/locales/*.{yml,rb}`.
+
+* `config.i18n.fallbacks` sets fallback behavior for missing translations. Here are 3 usage examples for this option:
+
+  * You can set the option to `true` for using default locale as fallback, like so:
+
+    ```ruby
+    config.i18n.fallbacks = true
+    ```
+
+  * Or you can set an array of locales as fallback, like so:
+
+    ```ruby
+    config.i18n.fallbacks = [:tr, :en]
+    ```
+
+  * Or you can set different fallbacks for locales individually. For example, if you want to use `:tr` for `:az` and `:de`, `:en` for `:da` as fallbacks, you can do it, like so:
+
+    ```ruby
+    config.i18n.fallbacks = { az: :tr, da: [:de, :en] }
+    ```
 
 ### Configuring Active Record
 
