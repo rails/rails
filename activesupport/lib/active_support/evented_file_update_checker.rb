@@ -13,11 +13,12 @@ module ActiveSupport
         @dirs[@ph.xpath(dir)] = Array(exts).map { |ext| @ph.normalize_extension(ext) }
       end
 
-      @block   = block
-      @updated = Concurrent::AtomicBoolean.new(false)
-      @lcsp    = @ph.longest_common_subpath(@dirs.keys)
+      @block    = block
+      @updated  = Concurrent::AtomicBoolean.new(false)
+      @lcsp     = @ph.longest_common_subpath(@dirs.keys)
+      @pid_hash = Concurrent::Hash.new
 
-      if (dtw = directories_to_watch).any?
+      if (@dtw = directories_to_watch).any?
         # Loading listen triggers warnings. These are originated by a legit
         # usage of attr_* macros for private attributes, but adds a lot of noise
         # to our test suite. Thus, we lazy load it and disable warnings locally.
@@ -28,11 +29,11 @@ module ActiveSupport
             raise LoadError, "Could not load the 'listen' gem. Add `gem 'listen'` to the development group of your Gemfile", e.backtrace
           end
         end
-        Listen.to(*dtw, &method(:changed)).start
       end
     end
 
     def updated?
+      boot! unless @pid_hash[Process.pid]
       @updated.true?
     end
 
@@ -50,6 +51,10 @@ module ActiveSupport
     end
 
     private
+      def boot!
+        Listen.to(*@dtw, &method(:changed)).start
+        @pid_hash[Process.pid] = true
+      end
 
       def changed(modified, added, removed)
         unless updated?

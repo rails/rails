@@ -11,7 +11,8 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
   end
 
   def new_checker(files = [], dirs = {}, &block)
-    ActiveSupport::EventedFileUpdateChecker.new(files, dirs, &block).tap do
+    ActiveSupport::EventedFileUpdateChecker.new(files, dirs, &block).tap do |c|
+      c.updated?
       wait
     end
   end
