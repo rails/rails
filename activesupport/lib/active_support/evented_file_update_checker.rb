@@ -13,8 +13,7 @@ module ActiveSupport
   # EventedFileUpdateChecker#execute is run or when EventedFileUpdateChecker#execute_if_updated
   # is run and there have been changes to the file system.
   #
-  # Note: To start listening to change events you must first call
-  # EventedFileUpdateChecker#updated? inside of each process.
+  # Note: Forking will cause the first call to `updated?` to return `true`.
   #
   # Example:
   #
@@ -41,10 +40,11 @@ module ActiveSupport
         @dirs[@ph.xpath(dir)] = Array(exts).map { |ext| @ph.normalize_extension(ext) }
       end
 
-      @block    = block
-      @updated  = Concurrent::AtomicBoolean.new(false)
-      @lcsp     = @ph.longest_common_subpath(@dirs.keys)
-      @pid_hash = Concurrent::Hash.new
+      @block      = block
+      @updated    = Concurrent::AtomicBoolean.new(false)
+      @lcsp       = @ph.longest_common_subpath(@dirs.keys)
+      @pid_hash   = Concurrent::Hash.new
+      @parent_pid = Process.pid
 
       if (@dtw = directories_to_watch).any?
         # Loading listen triggers warnings. These are originated by a legit
@@ -58,6 +58,7 @@ module ActiveSupport
           end
         end
       end
+      boot!
     end
 
     def updated?
@@ -82,6 +83,7 @@ module ActiveSupport
       def boot!
         Listen.to(*@dtw, &method(:changed)).start
         @pid_hash[Process.pid] = true
+        @updated.make_true if @parent_pid != Process.pid
       end
 
       def changed(modified, added, removed)
