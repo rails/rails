@@ -515,7 +515,7 @@ module ActiveRecord
 
         schema, name = extract_schema_qualified_name(table_name)
 
-        fk_info = select_all <<-SQL.strip_heredoc
+        fk_info = select_all(<<-SQL.strip_heredoc, 'SCHEMA')
           SELECT fk.referenced_table_name as 'to_table'
                 ,fk.referenced_column_name as 'primary_key'
                 ,fk.column_name as 'column'
