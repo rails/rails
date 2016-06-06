@@ -103,3 +103,24 @@ module ActiveRecord
     end
   end
 end
+
+class Mysql2AnsiQuotesTest < ActiveRecord::Mysql2TestCase
+  def setup
+    @connection = ActiveRecord::Base.connection
+    @connection.execute("SET SESSION sql_mode='ANSI_QUOTES'")
+  end
+
+  def teardown
+    @connection.reconnect!
+  end
+
+  def test_primary_key_method_with_ansi_quotes
+    assert_equal "id", @connection.primary_key("topics")
+  end
+
+  def test_foreign_keys_method_with_ansi_quotes
+    fks = @connection.foreign_keys("lessons_students")
+    assert_equal([["lessons_students", "students", :cascade]],
+                 fks.map {|fk| [fk.from_table, fk.to_table, fk.on_delete] })
+  end
+end

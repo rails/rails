@@ -275,18 +275,6 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
 end
 
 if current_adapter?(:Mysql2Adapter)
-  class PrimaryKeyWithAnsiQuotesTest < ActiveRecord::TestCase
-    self.use_transactional_tests = false
-
-    def test_primary_key_method_with_ansi_quotes
-      con = ActiveRecord::Base.connection
-      con.execute("SET SESSION sql_mode='ANSI_QUOTES'")
-      assert_equal "id", con.primary_key("topics")
-    ensure
-      con.reconnect!
-    end
-  end
-
   class PrimaryKeyBigintNilDefaultTest < ActiveRecord::TestCase
     include SchemaDumpingHelper
 
