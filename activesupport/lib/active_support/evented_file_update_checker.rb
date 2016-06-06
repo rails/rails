@@ -3,6 +3,34 @@ require 'pathname'
 require 'concurrent/atomic/atomic_boolean'
 
 module ActiveSupport
+  # Allows you to "listen" to changes in a file system.
+  # The evented file updater does not hit disk when checking for updates
+  # instead it uses platform specific file system events to trigger a change
+  # in state.
+  #
+  # The file checker takes an array of files to watch or a hash specifying directories
+  # and file extensions to watch. It also takes a block that is called when
+  # EventedFileUpdateChecker#execute is run or when EventedFileUpdateChecker#execute_if_updated
+  # is run and there have been changes to the file system.
+  #
+  # Note: To start listening to change events you must first call
+  # EventedFileUpdateChecker#updated? inside of each process.
+  #
+  # Example:
+  #
+  #     checker = EventedFileUpdateChecker.new(["/tmp/foo"], -> { puts "changed" })
+  #     checker.updated?
+  #     # => false
+  #     checker.execute_if_updated
+  #     # => nil
+  #
+  #     FileUtils.touch("/tmp/foo")
+  #
+  #     checker.updated?
+  #     # => true
+  #     checker.execute_if_updated
+  #     # => "changed"
+  #
   class EventedFileUpdateChecker #:nodoc: all
     def initialize(files, dirs = {}, &block)
       @ph    = PathHelper.new
