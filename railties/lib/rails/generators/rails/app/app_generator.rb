@@ -90,7 +90,6 @@ module Rails
 
     def config_when_updating
       cookie_serializer_config_exist = File.exist?('config/initializers/cookies_serializer.rb')
-      new_framework_defaults_config_exist = File.exist?('config/initializers/new_framework_defaults.rb')
       action_cable_config_exist = File.exist?('config/cable.yml')
       rack_cors_config_exist = File.exist?('config/initializers/cors.rb')
 
@@ -100,10 +99,6 @@ module Rails
 
       unless cookie_serializer_config_exist
         gsub_file 'config/initializers/cookies_serializer.rb', /json(?!,)/, 'marshal'
-      end
-
-      unless new_framework_defaults_config_exist
-        remove_file 'config/initializers/new_framework_defaults.rb'
       end
 
       unless action_cable_config_exist

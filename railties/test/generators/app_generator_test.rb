@@ -208,24 +208,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
     FileUtils.rm("#{app_root}/config/initializers/new_framework_defaults.rb")
 
     stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
+      generator = Rails::Generators::AppGenerator.new ["rails"], { update: true }, destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
-      assert_no_file "#{app_root}/config/initializers/new_framework_defaults.rb"
-    end
-  end
 
-  def test_rails_update_does_not_new_framework_defaults_if_already_present
-    app_root = File.join(destination_root, 'myapp')
-    run_generator [app_root]
-
-    FileUtils.touch("#{app_root}/config/initializers/new_framework_defaults.rb")
-
-    stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
-      generator.send(:app_const)
-      quietly { generator.send(:update_config_files) }
-      assert_file "#{app_root}/config/initializers/new_framework_defaults.rb"
+      assert_file "#{app_root}/config/initializers/new_framework_defaults.rb" do |content|
+        assert_match(/ActiveSupport\.halt_callback_chains_on_return_false = true/, content)
+        assert_match(/Rails\.application\.config.active_record\.belongs_to_required_by_default = false/, content)
+        assert_no_match(/Rails\.application\.config\.ssl_options/, content)
+      end
     end
   end
 
