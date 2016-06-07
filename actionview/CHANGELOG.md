@@ -333,6 +333,10 @@
 
     *Mauro George*
 
+*   Add support for Reply-To field in `mail_to` helper.
+
+    *Mark Dodwell*
+
 *   Add an explicit error message, in `ActionView::PartialRenderer` for partial
     `rendering`, when the value of option `as` has invalid characters.
 

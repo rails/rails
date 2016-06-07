@@ -744,6 +744,10 @@
 
     *Rafael Mendonça França*
 
+*   Remove `Object#itself` as it is implemented in Ruby 2.2.
+
+    *Cristian Bica*
+
 *   Add support for error dispatcher classes in `ActiveSupport::Rescuable`.
     Now it acts closer to Ruby's rescue.
 
