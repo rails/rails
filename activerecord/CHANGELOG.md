@@ -695,11 +695,12 @@
 
     *Bigxiang*
 
-*   Add option to index errors in nested attributes
+*   Add option to index errors in nested attributes.
 
     For models which have nested attributes, errors within those models will
-    now be indexed if `:index_errors` is specified when defining a
-    has_many relationship, or if its set in the global config.
+    now be indexed if `:index_errors` option is set to true when defining a
+    `has_many` relationship or by setting the configuration option
+    `config.active_record.index_nested_attribute_errors` to true.
 
     Example:
 
@@ -713,10 +714,10 @@
           validates_numericality_of :pitch
         end
 
-        # Old style
+        # Before
         guitar.errors["tuning_pegs.pitch"] = ["is not a number"]
 
-        # New style (if defined globally, or set in has_many_relationship)
+        # After
         guitar.errors["tuning_pegs[1].pitch"] = ["is not a number"]
 
     *Michael Probber*, *Terence Sun*
