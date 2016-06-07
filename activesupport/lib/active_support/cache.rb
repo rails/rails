@@ -250,14 +250,14 @@ module ActiveSupport
       #   sleep 60
       #
       #   Thread.new do
-      #     val_1 = cache.fetch('foo', race_condition_ttl: 10) do
+      #     val_1 = cache.fetch('foo', race_condition_ttl: 10.seconds) do
       #       sleep 1
       #       'new value 1'
       #     end
       #   end
       #
       #   Thread.new do
-      #     val_2 = cache.fetch('foo', race_condition_ttl: 10) do
+      #     val_2 = cache.fetch('foo', race_condition_ttl: 10.seconds) do
       #       'new value 2'
       #     end
       #   end
