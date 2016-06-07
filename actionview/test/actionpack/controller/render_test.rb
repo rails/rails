@@ -726,11 +726,6 @@ class RenderTest < ActionController::TestCase
     assert_equal "Elastica", @response.body
   end
 
-  def test_render_process
-    get :render_action_hello_world_as_string
-    assert_equal "Hello world!", @controller.process(:render_action_hello_world_as_string)
-  end
-
   # :ported:
   def test_render_from_variable
     get :render_hello_world_from_variable
