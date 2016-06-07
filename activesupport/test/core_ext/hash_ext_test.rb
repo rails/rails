@@ -999,6 +999,10 @@ class HashExtTest < ActiveSupport::TestCase
     h = hash_with_only_nil_values.dup
     assert_equal({}, h.compact)
     assert_equal(hash_with_only_nil_values, h)
+
+    h = @symbols.dup
+    assert_equal(@symbols, h.compact)
+    assert_equal(@symbols, h)
   end
 
   def test_compact!
@@ -1012,6 +1016,10 @@ class HashExtTest < ActiveSupport::TestCase
     h = hash_with_only_nil_values.dup
     assert_equal({}, h.compact!)
     assert_equal({}, h)
+
+    h = @symbols.dup
+    assert_equal(nil, h.compact!)
+    assert_equal(@symbols, h)
   end
 
   def test_new_with_to_hash_conversion
