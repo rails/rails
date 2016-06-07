@@ -1,33 +1,30 @@
 # Be sure to restart your server when you modify this file.
 #
 # This file contains migration options to ease your Rails 5.0 upgrade.
-# They will be removed in the next major Rails version.
 #
-# Flip the defaults to the value of past versions then once upgraded
-# begin migrating to the new default one by one.
+<%- if options[:update] -%>
+# Once upgraded flip defaults one by one to migrate to the new default.
 #
+<%- end -%>
 # Read the Rails 5.0 release notes for more info on each option.
 <%- unless options[:api] -%>
 
-# Enable per-form CSRF tokens. This is new feature of Rails 5.
-Rails.application.config.action_controller.per_form_csrf_tokens = true
+# Enable per-form CSRF tokens. <%= options[:update] ? 'Next major version defaults to true.' : 'Previous versions had false.' %>
+Rails.application.config.action_controller.per_form_csrf_tokens = <%= options[:update] ? false : true %>
 
-# Enable origin-checking CSRF mitigation. This is new feature of Rails 5.
-Rails.application.config.action_controller.forgery_protection_origin_check = true
+# Enable origin-checking CSRF mitigation. <%= options[:update] ? 'Next major version defaults to true.' : 'Previous versions had false.' %>
+Rails.application.config.action_controller.forgery_protection_origin_check = <%= options[:update] ? false : true %>
 <%- end -%>
 
 # Make Ruby 2.4 preserve the timezone of the receiver when calling `to_time`.
 ActiveSupport.to_time_preserves_timezone = true
-
-# Following config options are introduced to ensure that apps
-# made on earlier versions of Rails are not affected when upgrading.
 <%- unless options[:skip_active_record] -%>
 
-# Require `belongs_to` associations by default. Previous versions had false.
+# Require `belongs_to` associations by default. <%= options[:update] ? 'Next major version defaults to true.' : 'Previous versions had false.' %>
 Rails.application.config.active_record.belongs_to_required_by_default = <%= options[:update] ? false : true %>
 <%- end -%>
 
-# Do not halt callback chains when a callback returns false. Previous versions had true.
+# Do not halt callback chains when a callback returns false. <%= options[:update] ? 'Next major version defaults to false.' : 'Previous versions had true.' %>
 ActiveSupport.halt_callback_chains_on_return_false = <%= options[:update] ? true : false %>
 <%- unless options[:update] -%>
 
