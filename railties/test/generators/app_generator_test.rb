@@ -208,7 +208,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     FileUtils.rm("#{app_root}/config/initializers/new_framework_defaults.rb")
 
     stub_rails_application(app_root) do
-      quietly { `FORCE=true bin/rails app:update` }
+      generator = Rails::Generators::AppGenerator.new ["rails"], { update: true }, destination_root: app_root, shell: @shell
+      generator.send(:app_const)
+      quietly { generator.send(:update_config_files) }
 
       assert_file "#{app_root}/config/initializers/new_framework_defaults.rb" do |content|
         assert_match(/ActiveSupport\.halt_callback_chains_on_return_false = true/, content)
