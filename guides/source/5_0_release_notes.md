@@ -37,9 +37,20 @@ Major Features
 --------------
 
 ### Action Cable
-[Pull Request](https://github.com/rails/rails/pull/22586)
 
-ToDo...
+Action Cable is a new framework in Rails 5. It seamlessly integrates
+[WebSockets](https://en.wikipedia.org/wiki/WebSocket) with the rest of your
+Rails application. 
+
+Action Cable allows for real-time features to be written in Ruby in the
+same style and form as the rest of your Rails application, while still being
+performant and scalable. It's a full-stack offering that provides both a
+client-side JavaScript framework and a server-side Ruby framework. You have
+access to your full domain model written with Active Record or your ORM of
+choice.
+
+See the [Active Cable Overview](action_cable_overview.html) guide for more
+information.
 
 ### Rails API
 [Pull Request](https://github.com/rails/rails/pull/19832)
