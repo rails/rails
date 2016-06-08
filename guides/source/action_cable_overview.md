@@ -6,8 +6,10 @@ incorporate real-time features into your Rails application.
 
 After reading this guide, you will know:
 
+* What Action Cable is and its integration on backend and frontend  
 * How to setup Action Cable
 * How to setup channels
+* Deployment and Architecture setup for running Action Cable 
 
 Introduction
 ------------
