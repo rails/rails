@@ -4795,3 +4795,33 @@ class TestPathParameters < ActionDispatch::IntegrationTest
     assert_equal "/ar | /ar/about", @response.body
   end
 end
+
+class TestInternalRoutingParams < ActionDispatch::IntegrationTest
+  Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
+    app.draw do
+      get '/test_internal/:internal' => 'internal#internal'
+    end
+  end
+
+  class ::InternalController < ActionController::Base
+    def internal
+      head :ok
+    end
+  end
+
+  APP = build_app Routes
+
+  def app
+    APP
+  end
+
+  def test_paths_with_partial_dynamic_segments_are_recognised
+    get '/test_internal/123'
+    assert_equal 200, response.status
+
+    assert_equal(
+      { controller: 'internal', action: 'internal', internal: '123' },
+      request.path_parameters
+    )
+  end
+end
