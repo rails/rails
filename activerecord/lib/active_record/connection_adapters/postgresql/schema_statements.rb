@@ -238,6 +238,10 @@ module ActiveRecord
           PostgreSQLColumn.new(*args)
         end
 
+        def table_options(table_name) # :nodoc:
+          { comment: table_comment(table_name) }
+        end
+
         # Returns a comment stored in database for given table
         def table_comment(table_name) # :nodoc:
           name = Utils.extract_schema_qualified_name(table_name.to_s)

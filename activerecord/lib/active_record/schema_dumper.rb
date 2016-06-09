@@ -132,10 +132,10 @@ HEADER
           tbl.print ", force: :cascade"
 
           table_options = @connection.table_options(table)
-          tbl.print ", options: #{table_options.inspect}" unless table_options.blank?
-
-          if comment = @connection.table_comment(table).presence
-            tbl.print ", comment: #{comment.inspect}"
+          if table_options.present?
+            table_options.each do |key, value|
+              tbl.print ", #{key}: #{value.inspect}" if value.present?
+            end
           end
 
           tbl.puts " do |t|"
