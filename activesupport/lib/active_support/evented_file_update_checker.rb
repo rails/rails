@@ -43,8 +43,8 @@ module ActiveSupport
       @block      = block
       @updated    = Concurrent::AtomicBoolean.new(false)
       @lcsp       = @ph.longest_common_subpath(@dirs.keys)
-      @pid_hash   = Concurrent::Hash.new
-      @parent_pid = Process.pid
+      @pid        = Process.pid
+      @boot_mutex = Mutex.new
 
       if (@dtw = directories_to_watch).any?
         # Loading listen triggers warnings. These are originated by a legit
@@ -62,7 +62,13 @@ module ActiveSupport
     end
 
     def updated?
-      boot! unless @pid_hash[Process.pid]
+      @boot_mutex.synchronize do
+        if @pid != Process.pid
+          boot!
+          @pid = Process.pid
+          @updated.make_true
+        end
+      end
       @updated.true?
     end
 
@@ -82,8 +88,6 @@ module ActiveSupport
     private
       def boot!
         Listen.to(*@dtw, &method(:changed)).start
-        @pid_hash[Process.pid] = true
-        @updated.make_true if @parent_pid != Process.pid
       end
 
       def changed(modified, added, removed)
