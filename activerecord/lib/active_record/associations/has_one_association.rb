@@ -35,7 +35,7 @@ module ActiveRecord
         return target unless target || record
 
         assigning_another_record = target != record
-        if assigning_another_record || record.changed?
+        if assigning_another_record || record.has_changes_to_save?
           save &&= owner.persisted?
 
           transaction_if(save) do

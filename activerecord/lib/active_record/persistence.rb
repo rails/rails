@@ -253,7 +253,11 @@ module ActiveRecord
       verify_readonly_attribute(name)
       public_send("#{name}=", value)
 
-      changed? ? save(validate: false) : true
+      if has_changes_to_save?
+        save(validate: false)
+      else
+        true
+      end
     end
 
     # Updates the attributes of the model from the passed-in hash and saves the
@@ -336,7 +340,7 @@ module ActiveRecord
     # record could be saved.
     def increment!(attribute, by = 1)
       increment(attribute, by)
-      change = public_send(attribute) - (attribute_was(attribute.to_s) || 0)
+      change = public_send(attribute) - (attribute_in_database(attribute.to_s) || 0)
       self.class.update_counters(id, attribute => change)
       clear_attribute_change(attribute) # eww
       self
@@ -548,7 +552,7 @@ module ActiveRecord
       if attributes_values.empty?
         0
       else
-        self.class.unscoped._update_record attributes_values, id, id_was
+        self.class.unscoped._update_record attributes_values, id, id_in_database
       end
     end
 
