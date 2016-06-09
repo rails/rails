@@ -170,8 +170,8 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
-  def test_find_in_batches_should_not_error_if_config_overriden
-    # Set the config option which will be overriden
+  def test_find_in_batches_should_not_error_if_config_overridden
+    # Set the config option which will be overridden
     prev = ActiveRecord::Base.error_on_ignored_order_or_limit
     ActiveRecord::Base.error_on_ignored_order_or_limit = true
     assert_nothing_raised do
