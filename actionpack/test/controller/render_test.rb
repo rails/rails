@@ -564,6 +564,13 @@ class MetalRenderTest < ActionController::TestCase
   end
 end
 
+class ActionControllerBaseRenderTest < ActionController::TestCase
+  def test_direct_render_to_string
+    ac = ActionController::Base.new()
+    assert_equal "Hello world!", ac.render_to_string(template: 'test/hello_world')
+  end
+end
+
 class ImplicitRenderTest < ActionController::TestCase
   tests ImplicitRenderTestController
 
