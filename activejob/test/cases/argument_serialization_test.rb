@@ -44,6 +44,10 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     assert_arguments_roundtrip([a: 1, "b" => 2])
   end
 
+  test 'should maintain strings that look like Global IDs' do
+    assert_arguments_roundtrip ['gid://notanapp/NotAnObject/1']
+  end
+
   test 'should maintain hash with indifferent access' do
     symbol_key = { a: 1 }
     string_key = { 'a' => 1 }
