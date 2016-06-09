@@ -790,7 +790,7 @@ module ActiveRecord
       # [<tt>:type</tt>]
       #   The reference column type. Defaults to +:integer+.
       # [<tt>:index</tt>]
-      #   Add an appropriate index. Defaults to false.  
+      #   Add an appropriate index. Defaults to false.
       #   See #add_index for usage of this option.
       # [<tt>:foreign_key</tt>]
       #   Add an appropriate foreign key constraint. Defaults to false.
@@ -1128,7 +1128,6 @@ module ActiveRecord
         index_type ||= options[:unique] ? "UNIQUE" : ""
         index_name = options[:name].to_s if options.key?(:name)
         index_name ||= index_name(table_name, index_name_options(column_names))
-        max_index_length = options.fetch(:internal, false) ? index_name_length : allowed_index_name_length
 
         if options.key?(:algorithm)
           algorithm = index_algorithms.fetch(options[:algorithm]) {
@@ -1142,9 +1141,8 @@ module ActiveRecord
           index_options = options[:where] ? " WHERE #{options[:where]}" : ""
         end
 
-        if index_name.length > max_index_length
-          raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' is too long; the limit is #{max_index_length} characters"
-        end
+        validate_index_length!(table_name, index_name, options.fetch(:internal, false))
+
         if data_source_exists?(table_name) && index_name_exists?(table_name, index_name, false)
           raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' already exists"
         end
@@ -1276,8 +1274,10 @@ module ActiveRecord
         end
       end
 
-      def validate_index_length!(table_name, new_name) # :nodoc:
-        if new_name.length > allowed_index_name_length
+      def validate_index_length!(table_name, new_name, internal = false) # :nodoc:
+        max_index_length = internal ? index_name_length : allowed_index_name_length
+
+        if new_name.length > max_index_length
           raise ArgumentError, "Index name '#{new_name}' on table '#{table_name}' is too long; the limit is #{allowed_index_name_length} characters"
         end
       end
