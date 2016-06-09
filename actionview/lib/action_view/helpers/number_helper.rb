@@ -263,8 +263,6 @@ module ActionView
       # * <tt>:strip_insignificant_zeros</tt> - If +true+ removes
       #   insignificant zeros after the decimal separator (defaults to
       #   +true+)
-      # * <tt>:prefix</tt> - If +:si+ formats the number using the SI
-      #   prefix (defaults to :binary)
       # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
       #   the argument is invalid.
       #
