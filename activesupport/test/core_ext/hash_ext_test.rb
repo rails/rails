@@ -1042,7 +1042,7 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal 3, new_hash[2]
 
     new_hash.default = 2
-    assert_equal 2, new_hash[:non_existant]
+    assert_equal 2, new_hash[:non_existent]
   end
 
   def test_to_hash_with_raising_default_proc
