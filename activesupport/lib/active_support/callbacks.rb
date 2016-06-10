@@ -736,8 +736,13 @@ module ActiveSupport
       #
       #   would call <tt>Audit#save</tt>.
       #
-      # NOTE: +method_name+ passed to `define_model_callbacks` must not end with
+      # ===== Notes
+      #
+      # +names+ passed to `define_callbacks` must not end with
       # `!`, `?` or `=`.
+      #
+      # Calling `define_callbacks` multiple times with the same +names+ will
+      # overwrite previous callbacks registered with `set_callback`.
       def define_callbacks(*names)
         options = names.extract_options!
 
