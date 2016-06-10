@@ -62,14 +62,14 @@ module ActiveSupport
               if respond_to?(:silence)
                 super(level, &block)
               else
-                block.call(level)
+                block.call(self)
               end
             end
           else
             if respond_to?(:silence)
               super(level, &block)
             else
-              block.call(level)
+              block.call(self)
             end
           end
         end
