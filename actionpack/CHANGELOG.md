@@ -642,6 +642,10 @@
 
     *Terence Sun*
 
+*   Discarded flash messages get removed before storing into session.
+
+    *Samuel Cochran*
+
 *   Migrating xhr methods to keyword arguments syntax
     in `ActionController::TestCase` and `ActionDispatch::Integration`
 
@@ -809,6 +813,10 @@
     of input (any nils are still stripped from the array).
 
     *Chris Sinjakli*
+
+*   Remove `ActionController::ModelNaming` module.
+
+    *claudiob*
 
 *   Fixed usage of optional scopes in url helpers.
 
