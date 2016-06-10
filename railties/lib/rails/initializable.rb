@@ -9,6 +9,8 @@ module Rails
     class Initializer
       attr_reader :name, :block
 
+      delegate :railtie_name, to: :@context
+
       def initialize(name, context, options, &block)
         options[:group] ||= :default
         @name, @context, @options, @block = name, context, options, block
