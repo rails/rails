@@ -36,6 +36,14 @@ module ActionDispatch
       def debug_hash(object)
         object.to_hash.sort_by { |k, _| k.to_s }.map { |k, v| "#{k}: #{v.inspect rescue $!.message}" }.join("\n")
       end
+
+      def render(*)
+        if logger = ActionView::Base.logger
+          logger.silence { super }
+        else
+          super
+        end
+      end
     end
 
     def initialize(app, routes_app = nil, response_format = :default)
