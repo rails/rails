@@ -143,9 +143,9 @@ class LoggerTest < ActiveSupport::TestCase
 
   def test_logger_silencing_works_for_broadcast
     another_output  = StringIO.new
-    another_logger  = Logger.new(another_output)
+    another_logger  = ActiveSupport::Logger.new(another_output)
 
-    @logger.extend Logger.broadcast(another_logger)
+    @logger.extend ActiveSupport::Logger.broadcast(another_logger)
 
     @logger.debug "CORRECT DEBUG"
     @logger.silence do
@@ -166,7 +166,7 @@ class LoggerTest < ActiveSupport::TestCase
     another_output  = StringIO.new
     another_logger  = ::Logger.new(another_output)
 
-    @logger.extend Logger.broadcast(another_logger)
+    @logger.extend ActiveSupport::Logger.broadcast(another_logger)
 
     @logger.debug "CORRECT DEBUG"
     @logger.silence do
