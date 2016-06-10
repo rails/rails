@@ -1,7 +1,7 @@
 require 'active_support/core_ext/hash/keys'
 
 module ActionController
-  # ActionController::Renderer allows to render arbitrary templates
+  # ActionController::Renderer allows you to render arbitrary templates
   # without requirement of being in controller actions.
   #
   # You get a concrete renderer class by invoking ActionController::Base#renderer.
