@@ -50,6 +50,7 @@ module ActionDispatch
     autoload :Callbacks
     autoload :Cookies
     autoload :DebugExceptions
+    autoload :DebugLocks
     autoload :ExceptionWrapper
     autoload :Executor
     autoload :Flash
