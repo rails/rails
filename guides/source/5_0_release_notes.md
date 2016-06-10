@@ -59,7 +59,7 @@ ToDo...
 
 ### Active Record attributes API
 
-Defines an attribute with a type on a model. It will override the type of existing attributes if needed. 
+Defines an attribute with a type on a model. It will override the type of existing attributes if needed.
 This allows control over how values are converted to and from SQL when assigned to a model.
 It also changes the behavior of values passed to `ActiveRecord::Base.where`, which lets use our domain objects across much of Active Record,
 without having to rely on implementation details or monkey patching.
@@ -91,7 +91,7 @@ class StoreListing < ActiveRecord::Base
   attribute :price_in_cents, :integer # custom type
   attribute :my_string, :string, default: "new default" # default value
   attribute :my_default_proc, :datetime, default: -> { Time.now } # default value
-  attribute :field_without_db_column, :integer, array: true 
+  attribute :field_without_db_column, :integer, array: true
 end
 
 # after
@@ -107,22 +107,22 @@ model.attributes #=> {field_without_db_column: [1, 2, 3]}
 You can define your own custom types, as long as they respond
 to the methods defined on the value type. The method +deserialize+ or
 +cast+ will be called on your type object, with raw input from the
-database or from your controllers. This is useful, for example, when doing custom conversion, 
+database or from your controllers. This is useful, for example, when doing custom conversion,
 like Money data.
 
 **Querying:**
 
 When `ActiveRecord::Base.where` is called, it will
 use the type defined by the model class to convert the value to SQL,
-calling +serialize+ on your type object. 
+calling +serialize+ on your type object.
 
-This gives the objects ability to specify, how to convert values when performing SQL queries. 
+This gives the objects ability to specify, how to convert values when performing SQL queries.
 
 **Dirty Tracking:**
 
 The type of an attribute is given the opportunity to change how dirty
-tracking is performed. 
-      
+tracking is performed.
+
 See its
 [documentation](http://api.rubyonrails.org/classes/ActiveRecord/Attributes/ClassMethods.html)
 for a detailed write up.
@@ -381,6 +381,9 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 *   Add `ActionController#helpers` to get access to the view context
     at the controller level.
     ([Pull Request](https://github.com/rails/rails/pull/24866))
+
+*   Discarded flash messages get removed before storing into session.
+    ([Pull Request](https://github.com/rails/rails/pull/18721))
 
 Action View
 -------------
@@ -682,10 +685,24 @@ Please refer to the [Changelog][active-record] for detailed changes.
     with comments stored in database metadata for PostgreSQL & MySQL.
     ([Pull Request](https://github.com/rails/rails/pull/22911))
 
-*   Added prepared statements support to `mysql2` adapter, for mysql2 0.4.4+, 
-    Previously this was only supported on the deprecated `mysql` legacy adapter. 
+*   Added prepared statements support to `mysql2` adapter, for mysql2 0.4.4+,
+    Previously this was only supported on the deprecated `mysql` legacy adapter.
     To enable, set `prepared_statements: true` in config/database.yml.
-    ([Pull Request](https://github.com/rails/rails/pull/23461))        
+    ([Pull Request](https://github.com/rails/rails/pull/23461))
+
+*   Added ability to call `ActionRecord::Relation#update` on relation objects
+    which will run validations on callbacks on all objects in the relation.
+    ([Pull Request](https://github.com/rails/rails/pull/11898))
+
+*   Added `:touch` option to the `save` method so that records can be saved without
+    updating timestamps.
+    ([Pull Request](https://github.com/rails/rails/pull/18225))
+
+*   Added expression indexes and operator classes support for PostgreSQL.
+    ([commit](https://github.com/rails/rails/commit/edc2b7718725016e988089b5fb6d6fb9d6e16882))
+
+*   Added `:index_errors` option to add indexes to errors of nested attributes.
+    ([Pull Request](https://github.com/rails/rails/pull/19686))
 
 Active Model
 ------------
@@ -701,6 +718,9 @@ Please refer to the [Changelog][active-model] for detailed changes.
 *   Removed XML serialization. This feature has been extracted into the
     [activemodel-serializers-xml](https://github.com/rails/activemodel-serializers-xml) gem.
     ([Pull Request](https://github.com/rails/rails/pull/21161))
+
+*   Removed `ActionController::ModelNaming` module.
+    ([Pull Request](https://github.com/rails/rails/pull/18194))
 
 ### Deprecations
 
@@ -807,6 +827,9 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Removed deprecated `ThreadSafe::Cache`. Use `Concurrent::Map` instead.
     ([Pull Request](https://github.com/rails/rails/pull/21679))
+
+*   Removed `Object#itself` as it is implemented in Ruby 2.2.
+    ([Pull Request](https://github.com/rails/rails/pull/18244))
 
 ### Deprecations
 
