@@ -55,6 +55,24 @@ module ActiveSupport
           logger.local_level = level if logger.respond_to?(:local_level=)
           super(level) if respond_to?(:local_level=)
         end
+
+        define_method(:silence) do |level = Logger::ERROR, &block|
+          if logger.respond_to?(:silence)
+            logger.silence(level) do
+              if respond_to?(:silence)
+                super(level, &block)
+              else
+                block.call(level)
+              end
+            end
+          else
+            if respond_to?(:silence)
+              super(level, &block)
+            else
+              block.call(level)
+            end
+          end
+        end
       end
     end
 
