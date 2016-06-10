@@ -140,7 +140,8 @@ class LoggerTest < ActiveSupport::TestCase
     @logger.extend Logger.broadcast(another_logger)
 
     @logger.debug "CORRECT DEBUG"
-    @logger.silence do
+    @logger.silence do |logger|
+      assert_kind_of ActiveSupport::Logger, logger
       @logger.debug "FAILURE"
       @logger.error "CORRECT ERROR"
     end
@@ -161,7 +162,8 @@ class LoggerTest < ActiveSupport::TestCase
     @logger.extend Logger.broadcast(another_logger)
 
     @logger.debug "CORRECT DEBUG"
-    @logger.silence do
+    @logger.silence do |logger|
+      assert_kind_of ActiveSupport::Logger, logger
       @logger.debug "FAILURE"
       @logger.error "CORRECT ERROR"
     end
