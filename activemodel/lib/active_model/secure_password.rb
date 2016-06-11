@@ -76,6 +76,8 @@ module ActiveModel
 
           validates_length_of :password, maximum: ActiveModel::SecurePassword::MAX_PASSWORD_LENGTH_ALLOWED
           validates_confirmation_of :password, allow_blank: true
+          
+          define_model_callbacks :authenticate
         end
       end
     end
@@ -92,7 +94,9 @@ module ActiveModel
       #   user.authenticate('notright')      # => false
       #   user.authenticate('mUc3m00RsqyRe') # => user
       def authenticate(unencrypted_password)
-        BCrypt::Password.new(password_digest).is_password?(unencrypted_password) && self
+        run_callbacks :authenticate do
+          BCrypt::Password.new(password_digest).is_password?(unencrypted_password) && self
+        end
       end
 
       attr_reader :password
