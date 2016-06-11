@@ -71,7 +71,7 @@ module ActiveRecord
           assert_equal '10.1', @conn.type_cast('10.1', c)
 
           c = Column.new(nil, 1, Type::Date.new)
-          assert_equal '10.1', @conn.type_cast('10.1', c)
+          assert_equal '2016-05-11', @conn.type_cast('2016-05-11 19:00:00', c)
         end
 
         def test_type_cast_bigdecimal
