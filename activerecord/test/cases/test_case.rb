@@ -6,11 +6,26 @@ module ActiveRecord
   #
   # Defines some test assertions to test against SQL queries.
   class TestCase < ActiveSupport::TestCase #:nodoc:
+    require 'support/validations_repair'
+    include ::ValidationsRepairHelper
+
+    include ActiveRecord::TestFixtures
+    include ActiveSupport::Testing::MethodCallAssertions
     include ActiveSupport::Testing::Stream
+
+    self.fixture_path = FIXTURES_ROOT
+    self.use_instantiated_fixtures  = false
+    self.use_transactional_tests = true
 
     def teardown
       SQLCounter.clear_log
     end
+
+    def create_fixtures(*fixture_set_names, &block)
+      ActiveRecord::FixtureSet.create_fixtures(ActiveRecord::TestCase.fixture_path, fixture_set_names, fixture_class_names, &block)
+    end
+
+    # Helpers:
 
     def assert_date_from_db(expected, actual, message = nil)
       assert_equal expected.to_s, actual.to_s, message
@@ -63,6 +78,9 @@ module ActiveRecord
       model.reset_column_information
       model.column_names.include?(column_name.to_s)
     end
+
+    require 'support/helpers'
+    include TestHelpers
   end
 
   class PostgreSQLTestCase < TestCase
@@ -125,3 +143,6 @@ module ActiveRecord
 
   ActiveSupport::Notifications.subscribe('sql.active_record', SQLCounter.new)
 end
+
+require 'support/helpers'
+include TestHelpers
