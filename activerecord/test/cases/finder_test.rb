@@ -202,6 +202,10 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal true, Topic.first.replies.exists?
   end
 
+  def test_exists_with_not_large_number_relation
+    assert_equal true, Topic.where.not(id: 2147483648).exists?
+  end
+
   # ensures +exists?+ runs valid SQL by excluding order value
   def test_exists_with_order
     assert_equal true, Topic.order(:id).distinct.exists?

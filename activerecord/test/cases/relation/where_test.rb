@@ -315,6 +315,10 @@ module ActiveRecord
       assert_equal author, Author.where(params.permit!).first
     end
 
+    def test_where_with_out_of_range_value
+      assert_nothing_raised { Post.where(id: 2147483648).to_sql }
+    end
+
     def test_where_with_unsupported_arguments
       assert_raises(ArgumentError) { Author.where(42) }
     end
