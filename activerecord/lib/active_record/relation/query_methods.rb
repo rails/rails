@@ -658,7 +658,7 @@ module ActiveRecord
     # present). Neither relation may have a #limit, #offset, or #distinct set.
     #
     #    Post.where("id = 1").or(Post.where("author_id = 3"))
-    #    # SELECT `posts`.* FROM `posts`  WHERE (('id = 1' OR 'author_id = 3'))
+    #    # SELECT `posts`.* FROM `posts` WHERE ((id = 1) OR (author_id = 3))
     #
     def or(other)
       unless other.is_a? Relation
