@@ -509,3 +509,15 @@ class PerformedJobsTest < ActiveJob::TestCase
     assert_equal 2, ActiveJob::Base.queue_adapter.performed_jobs.count
   end
 end
+
+class OverrideQueueAdapterTest < ActiveJob::TestCase
+  class CustomQueueAdapter < ActiveJob::QueueAdapters::TestAdapter; end
+
+  def queue_adapter_for_test
+    CustomQueueAdapter.new
+  end
+
+  def test_assert_job_has_custom_queue_adapter_set
+    assert_instance_of CustomQueueAdapter, HelloJob.queue_adapter
+  end
+end
