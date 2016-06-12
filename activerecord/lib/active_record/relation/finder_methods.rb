@@ -398,15 +398,7 @@ module ActiveRecord
     end
 
     def construct_relation_for_association_calculations
-      from = arel.froms.first
-      if Arel::Table === from
-        apply_join_dependency(self, construct_join_dependency(joins_values))
-      else
-        # FIXME: as far as I can tell, `from` will always be an Arel::Table.
-        # There are no tests that test this branch, but presumably it's
-        # possible for `from` to be a list?
-        apply_join_dependency(self, construct_join_dependency(from))
-      end
+      apply_join_dependency(self, construct_join_dependency(joins_values))
     end
 
     def apply_join_dependency(relation, join_dependency)
