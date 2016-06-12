@@ -1,4 +1,5 @@
 require 'set'
+require 'active_support/rescuable'
 
 module ActionCable
   module Channel
@@ -97,6 +98,7 @@ module ActionCable
       include Streams
       include Naming
       include Broadcasting
+      include ActiveSupport::Rescuable
 
       attr_reader :params, :connection, :identifier
       delegate :logger, to: :connection
@@ -259,6 +261,8 @@ module ActionCable
           else
             public_send action
           end
+          rescue Exception => exception
+            rescue_with_handler(exception) || raise
         end
 
         def action_signature(action, data)
