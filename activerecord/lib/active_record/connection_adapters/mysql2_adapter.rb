@@ -14,14 +14,6 @@ module ActiveRecord
       config[:username] = 'root' if config[:username].nil?
       config[:flags] ||= 0
 
-      if Mysql2::Client.const_defined? :FOUND_ROWS
-        if config[:flags].kind_of? Array
-          config[:flags].push "FOUND_ROWS".freeze
-        else
-          config[:flags] |= Mysql2::Client::FOUND_ROWS
-        end
-      end
-
       client = Mysql2::Client.new(config)
       ConnectionAdapters::Mysql2Adapter.new(client, logger, nil, config)
     rescue Mysql2::Error => error
