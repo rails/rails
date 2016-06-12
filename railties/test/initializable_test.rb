@@ -174,6 +174,11 @@ module InitializableTests
         end
       end
     end
+
+    test "Initializer provides context's class name" do
+      foo = Foo.new
+      assert_equal foo.class, foo.initializers.first.context_class
+    end
   end
 
   class BeforeAfter < ActiveSupport::TestCase
