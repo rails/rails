@@ -143,7 +143,7 @@ class DeprecationTest < ActiveSupport::TestCase
     stderr_output = capture(:stderr) {
       assert_nil behavior.call('Some error!', ['call stack!'])
     }
-    assert stderr_output.blank?
+    assert stderr_output.empty?
   end
 
   def test_deprecated_instance_variable_proxy
