@@ -27,8 +27,8 @@ module ActiveRecord
 
       def create_module_file
         return if regular_class_path.empty?
-        template 'module.rb', File.join('app/models', "#{class_path.join('/')}.rb") if behavior == :invoke
         generate_application_record
+        template 'module.rb', File.join('app/models', "#{class_path.join('/')}.rb") if behavior == :invoke
       end
 
       hook_for :test_framework
@@ -48,7 +48,7 @@ module ActiveRecord
 
         # Used by the migration template to determine the parent name of the model
         def parent_class_name
-          options[:parent] || "ApplicationRecord"
+          options[:parent] || 'ApplicationRecord'
         end
 
         def application_record_exist?
