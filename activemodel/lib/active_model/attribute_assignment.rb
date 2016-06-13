@@ -24,10 +24,10 @@ module ActiveModel
     #   cat.name # => 'Gorby'
     #   cat.status => 'sleeping'
     def assign_attributes(new_attributes)
-      if !new_attributes.respond_to?(:stringify_keys)
+      unless new_attributes.is_a?(Hash)
         raise ArgumentError, "When assigning attributes, you must pass a hash as an argument."
       end
-      return if new_attributes.nil? || new_attributes.empty?
+      return if new_attributes.empty?
 
       attributes = new_attributes.stringify_keys
       _assign_attributes(sanitize_for_mass_assignment(attributes))
