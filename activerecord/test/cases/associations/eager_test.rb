@@ -90,6 +90,10 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_no_queries { authors.map(&:post) }
   end
 
+  def test_calculate_with_string_in_from_and_eager_loading
+    assert_equal 10, Post.from("authors, posts").eager_load(:comments).where("posts.author_id = authors.id").count
+  end
+
   def test_with_two_tables_in_from_without_getting_double_quoted
     posts = Post.select("posts.*").from("authors, posts").eager_load(:comments).where("posts.author_id = authors.id").order("posts.id").to_a
     assert_equal 2, posts.first.comments.size
