@@ -11,7 +11,7 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
     topic.attributes = attributes
     # note that extra #to_date call allows test to pass for Oracle, which
     # treats dates/times the same
-    assert_date_from_db Date.new(2004, 6, 24), topic.last_read.to_date
+    assert_equal Date.new(2004, 6, 24), topic.last_read.to_date
   end
 
   def test_multiparameter_attributes_on_date_with_empty_year
