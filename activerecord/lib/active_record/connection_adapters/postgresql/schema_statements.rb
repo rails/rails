@@ -641,7 +641,7 @@ module ActiveRecord
             when 1, 2; 'smallint'
             when nil, 3, 4; 'integer'
             when 5..8; 'bigint'
-            else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a numeric with precision 0 instead.")
+            else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a numeric with scale 0 instead.")
             end
           else
             super(type, limit, precision, scale)
