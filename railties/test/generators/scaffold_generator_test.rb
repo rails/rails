@@ -11,7 +11,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     # Model
-    assert_file "app/models/product_line.rb", /class ProductLine < ActiveRecord::Base/
+    assert_file "app/models/product_line.rb", /class ProductLine < ApplicationRecord/
     assert_file "test/models/product_line_test.rb", /class ProductLineTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/product_lines.yml"
     assert_migration "db/migrate/create_product_lines.rb", /belongs_to :product/
@@ -91,7 +91,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     run_generator %w(product_line title:string product:belongs_to user:references --api --no-template-engine --no-helper --no-assets)
 
     # Model
-    assert_file "app/models/product_line.rb", /class ProductLine < ActiveRecord::Base/
+    assert_file "app/models/product_line.rb", /class ProductLine < ApplicationRecord/
     assert_file "test/models/product_line_test.rb", /class ProductLineTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/product_lines.yml"
     assert_migration "db/migrate/create_product_lines.rb", /belongs_to :product/
@@ -205,7 +205,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Model
     assert_file "app/models/admin.rb", /module Admin/
-    assert_file "app/models/admin/role.rb", /class Admin::Role < ActiveRecord::Base/
+    assert_file "app/models/admin/role.rb", /class Admin::Role < ApplicationRecord/
     assert_file "test/models/admin/role_test.rb", /class Admin::RoleTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/admin/roles.yml"
     assert_migration "db/migrate/create_admin_roles.rb"
