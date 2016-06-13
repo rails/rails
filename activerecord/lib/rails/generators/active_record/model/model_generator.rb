@@ -21,8 +21,8 @@ module ActiveRecord
       end
 
       def create_model_file
-        template 'model.rb', File.join('app/models', class_path, "#{file_name}.rb")
         generate_application_record
+        template 'model.rb', File.join('app/models', class_path, "#{file_name}.rb")
       end
 
       def create_module_file
@@ -48,7 +48,7 @@ module ActiveRecord
 
         # Used by the migration template to determine the parent name of the model
         def parent_class_name
-          options[:parent] || determine_default_parent_class
+          options[:parent] || "ApplicationRecord"
         end
 
         def application_record_exist?
@@ -62,14 +62,6 @@ module ActiveRecord
             "app/models/#{namespaced_path}/application_record.rb"
           else
             'app/models/application_record.rb'
-          end
-        end
-
-        def determine_default_parent_class
-          if application_record_exist?
-            "ApplicationRecord"
-          else
-            "ActiveRecord::Base"
           end
         end
     end
