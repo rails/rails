@@ -1,0 +1,27 @@
+AllCops:
+  TargetRubyVersion: 2.3
+  DisabledByDefault: true
+
+# Two spaces, no tabs (for indentation).
+Style/IndentationWidth:
+  enabled: true
+
+# No trailing whitespace.
+Style/TrailingWhitespace:
+  enabled: true
+
+# Blank lines should not have any spaces.
+Style/TrailingBlankLines:
+  enabled: true
+
+# Use Ruby >= 1.9 syntax for hashes. Prefer { a: :b } over { :a => :b }.
+Style/HashSyntax:
+  enabled: true
+
+# Prefer &&/|| over and/or.
+Style/AndOr:
+  enabled: true
+
+# Use my_method(my_arg) not my_method( my_arg ) or my_method my_arg.
+Lint/RequireParentheses:
+  enabled: true
