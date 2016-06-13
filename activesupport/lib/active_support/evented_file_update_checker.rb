@@ -13,8 +13,6 @@ module ActiveSupport
   # EventedFileUpdateChecker#execute is run or when EventedFileUpdateChecker#execute_if_updated
   # is run and there have been changes to the file system.
   #
-  # Note: Forking will cause the first call to `updated?` to return `true`.
-  #
   # Example:
   #
   #     checker = EventedFileUpdateChecker.new(["/tmp/foo"], -> { puts "changed" })
@@ -43,9 +41,10 @@ module ActiveSupport
       @block      = block
       @updated    = Concurrent::AtomicBoolean.new(false)
       @lcsp       = @ph.longest_common_subpath(@dirs.keys)
-      @pid_hash   = Concurrent::Hash.new
-      @pid        = Process.pid
-      @boot_mutex = Mutex.new
+      @pipe_sync  = PipeSyncOnce.new(before_listen: method(:boot!))
+      @pipe_sync.notify do
+        @updated.true? ? 'T' : 'F'
+      end
 
       if (@dtw = directories_to_watch).any?
         # Loading listen triggers warnings. These are originated by a legit
@@ -58,17 +57,13 @@ module ActiveSupport
             raise LoadError, "Could not load the 'listen' gem. Add `gem 'listen'` to the development group of your Gemfile", e.backtrace
           end
         end
+        boot!
       end
-      boot!
     end
 
     def updated?
-      @boot_mutex.synchronize do
-        if @pid != Process.pid
-          boot!
-          @pid = Process.pid
-          @updated.make_true
-        end
+      @pipe_sync.listen_once do |value|
+        @updated.make_true if value == "T"
       end
       @updated.true?
     end
@@ -88,7 +83,7 @@ module ActiveSupport
 
     private
       def boot!
-        Listen.to(*@dtw, &method(:changed)).start
+        Listen.to(*@dtw, &method(:changed)).start if @dtw
       end
 
       def changed(modified, added, removed)
@@ -192,4 +187,98 @@ module ActiveSupport
         end
     end
   end
+
+
+  # A utility class for communicating a single message fixed length message from
+  # a parent process to any number of forked processes child process.
+  #
+  # Each child process will receive a message once and only once.
+  # There is no guaranteed time between when a response is requested and
+  # a response received. This class does not entirely prevent race conditions
+  # care should be taken while using the class
+  #
+  # Example:
+  #
+  #     pipe_sync = PipeSyncOnce.new
+  #
+  #     def boot(pipe_sync)
+  #       puts "Reading Ready #{ Process.pid }"
+  #       pipe_sync.listen_once do |value|
+  #         puts "Process: #{ Process.pid }, value: #{value }"
+  #       end
+  #     end
+  #
+  #     fork do
+  #       boot(pipe_sync)
+  #       sleep 10
+  #     end
+  #
+  #     fork do
+  #       boot(pipe_sync)
+  #       sleep 10
+  #     end
+  #
+  #     sleep 1
+  #     puts "Writing"
+  #     pipe_sync.notify do
+  #       'T'
+  #     end
+  #
+  #     sleep 10
+  #
+  # Result:
+  #
+  #     => Reading Ready 90575
+  #     => Reading Ready 905776
+  #     => Writing
+  #     => Process: 90576, value: T
+  #     => Process: 90575, value: T
+  class PipeSyncOnce # :nodoc: all
+
+    def initialize(before_listen: nil, true_value: 'T', &block)
+      @changed_reader, @changed_writer = IO.pipe
+      @boot_reader,    @boot_writer    = IO.pipe
+      @ack_reader,     @ack_writer     = IO.pipe
+      @mutex         = Mutex.new
+      @read_once     = nil
+      @true_value    = true_value
+      @read_length   = @true_value.length
+      @parent_pid    = Process.pid
+      @before_listen = before_listen
+    end
+
+    def notify(&block)
+      return if Process.pid != @parent_pid
+
+      Thread.new do
+        loop do
+          IO.select([@boot_reader])
+          @boot_reader.read(@read_length)
+          value = block.call
+          raise "Value: #{value} is not appropriate lenght must be exactly #{ @read_length }" unless value.length == @read_length
+          @changed_writer.write(value)
+          IO.select([@ack_reader])
+          @ack_reader.read(@read_length)
+        end
+      end
+    end
+
+    def listen_once(&block)
+      return if Process.pid == @parent_pid
+      @mutex.synchronize do
+        return if @read_once
+        @before_listen.call if @before_listen
+        @boot_writer.write(@true_value)
+        IO.select([@changed_reader])
+        value = @changed_reader.read(@read_length)
+        raise "Value: #{value} is not appropriate lenght must be exactly #{ @read_length }" unless value.length == @read_length
+
+        block.call(value)
+        @ack_writer.write(@true_value)
+        @read_once = true
+      end
+    end
+  end
+  private_constant :PipeSyncOnce
+
 end
