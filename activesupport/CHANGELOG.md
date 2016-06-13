@@ -670,6 +670,25 @@
 
     *George Claghorn*
 
+*   Added ability to `TaggedLogging` to allow loggers to be instantiated multiple times
+    so that they don't share tags with each other.
+
+        Rails.logger = Logger.new(STDOUT)
+
+        # Before
+        custom_logger = ActiveSupport::TaggedLogging.new(Rails.logger)
+        custom_logger.push_tags "custom_tag"
+        custom_logger.info "test"  # => "[custom_tag] [custom_tag] test"
+        Rails.logger.info "test"   # => "[custom_tag] [custom_tag] test"
+
+        # After
+        custom_logger = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))
+        custom_logger.push_tags "custom_tag"
+        custom_logger.info "test"  # => "[custom_tag] test"
+        Rails.logger.info "test"   # => "test"
+
+    *Alexander Staubo*
+
 *   Change the default test order from `:sorted` to `:random`.
 
     *Rafael Mendonça França*
