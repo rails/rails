@@ -1,3 +1,36 @@
+*   Introduce `assert_changes` and `assert_no_changes`.
+
+    `assert_changes` is a more general `assert_difference` that works with any
+    value.
+
+        assert_changes 'Error.current', from: nil, to: 'ERR' do
+          expected_bad_operation
+        end
+
+    Can be called with strings, to be evaluated in the binding (context) of
+    the block given to the assertion, or a lambda.
+
+        assert_changes -> { Error.current }, from: nil, to: 'ERR' do
+          expected_bad_operation
+        end
+
+    The `from` and `to` arguments are compared with the case operator (`===`).
+
+        assert_changes 'Error.current', from: nil, to: Error do
+          expected_bad_operation
+        end
+
+    This is pretty useful, if you need to loosely compare a value. For example,
+    you need to test a token has been generated and it has that many random
+    characters.
+
+        user = User.start_registration
+        assert_changes 'user.token', to: /\w{32}/ do
+          user.finish_registration
+        end
+
+    *Genadi Samokovarov*
+
 *   Add `:fallback_string` option to `Array#to_sentence`. If an empty array
     calls the function and a fallback string option is set then it returns the
     fallback string other than an empty string.
@@ -15,14 +48,14 @@
 
 *   `travel/travel_to` travel time helpers, now raise on nested calls, 
      as this can lead to confusing time stubbing.
-       
+
      Instead of:
-     
+
          travel_to 2.days.from_now do
            # 2 days from today
            travel_to 3.days.from_now do
              # 5 days from today
-           end          
+           end
          end
 
      preferred way to achieve above is:
@@ -30,13 +63,12 @@
          travel 2.days do 
            # 2 days from today
          end
-         
-         travel 5.days do  
-           # 5 days from today          
-         end        
-        
+
+         travel 5.days do
+           # 5 days from today
+         end
+
      *Vipul A M*
-     
 
 *   Support parsing JSON time in ISO8601 local time strings in
     `ActiveSupport::JSON.decode` when `parse_json_times` is enabled.
