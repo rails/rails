@@ -177,8 +177,9 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   def test_cache_is_not_available_when_using_a_not_connected_connection
     spec_name = Task.connection_specification_name
-    conf = ActiveRecord::Base.configurations['arunit'].merge('name' => 'test2')
-    ActiveRecord::Base.connection_handler.establish_connection(conf)
+    resolver = ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.new(ActiveRecord::Base.configurations)
+    ActiveRecord::Base.connection_handler.establish_connection(resolver.spec(:arunit, 'test2'))
+
     Task.connection_specification_name = "test2"
     refute Task.connected?
 
