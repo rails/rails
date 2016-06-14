@@ -182,6 +182,7 @@ class QueryCacheTest < ActiveRecord::TestCase
     refute Task.connected?
 
     Task.cache do
+      Task.connection # warmup postgresql connection setup queries
       assert_queries(2) { Task.find(1); Task.find(1) }
     end
   ensure
