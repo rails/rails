@@ -47,16 +47,16 @@ module ActiveSupport
         end
 
         define_method(:silence) do |level = Logger::ERROR, &block|
-          if logger.respond_to?(:silence)
+          if logger.respond_to?(:silence) && logger.method(:silence).owner != ::Kernel
             logger.silence(level) do
-              if respond_to?(:silence)
+              if respond_to?(:silence) && method(:silence).owner != ::Kernel
                 super(level, &block)
               else
                 block.call(self)
               end
             end
           else
-            if respond_to?(:silence)
+            if respond_to?(:silence) && method(:silence).owner != ::Kernel
               super(level, &block)
             else
               block.call(self)
