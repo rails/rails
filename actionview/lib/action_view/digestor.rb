@@ -15,7 +15,7 @@ module ActionView
       # * <tt>partial</tt>  - Specifies whether the template is a partial
       def digest(name:, finder:, dependencies: [])
         dependencies ||= []
-        cache_key = ([ name ].compact + dependencies).join('.')
+        cache_key = [ name, finder.rendered_format, dependencies ].flatten.compact.join('.')
 
         # this is a correctly done double-checked locking idiom
         # (Concurrent::Map's lookups have volatile semantics)
@@ -39,8 +39,11 @@ module ActionView
       def tree(name, finder, partial = false, seen = {})
         logical_name = name.gsub(%r|/_|, "/")
 
-        if finder.disable_cache { finder.exists?(logical_name, [], partial) }
-          template = finder.disable_cache { finder.find(logical_name, [], partial) }
+        format = finder.rendered_format
+        formats = finder.formats.without(format).unshift(format)
+
+        if finder.disable_cache { finder.exists?(logical_name, [], partial, [], formats: formats) }
+          template = finder.disable_cache { finder.find(logical_name, [], partial, [], formats: formats) }
 
           if node = seen[template.identifier] # handle cycles in the tree
             node

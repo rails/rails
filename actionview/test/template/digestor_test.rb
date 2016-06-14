@@ -18,6 +18,7 @@ class FixtureFinder < ActionView::LookupContext
 
   def initialize(details = {})
     super(ActionView::PathSet.new(['digestor']), details, [])
+    @rendered_format = :html
   end
 end
 
@@ -280,6 +281,12 @@ class TemplateDigestorTest < ActionView::TestCase
     end
   end
 
+  def test_different_formats
+    html_digest = digest("comments/_comment", format: :html)
+    json_digest = digest("comments/_comment", format: :json)
+
+    assert_not_equal html_digest, json_digest
+  end
 
   private
     def assert_logged(message)
@@ -309,8 +316,11 @@ class TemplateDigestorTest < ActionView::TestCase
 
     def digest(template_name, options = {})
       options = options.dup
+      finder_options = options.extract!(:variants, :format)
 
-      finder.variants = options.delete(:variants) || []
+      finder.variants = finder_options[:variants] || []
+      finder.rendered_format = finder_options[:format] if finder_options[:format]
+
       ActionView::Digestor.digest(name: template_name, finder: finder, dependencies: (options[:dependencies] || []))
     end
 
