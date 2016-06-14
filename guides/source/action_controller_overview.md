@@ -815,7 +815,7 @@ In every controller there are two accessor methods pointing to the request and t
 
 ### The `request` Object
 
-The request object contains a lot of useful information about the request coming in from the client. To get a full list of the available methods, refer to the [API documentation](http://api.rubyonrails.org/classes/ActionDispatch/Request.html). Among the properties that you can access on this object are:
+The request object contains a lot of useful information about the request coming in from the client. To get a full list of the available methods, refer to the [Rails API documentation](http://api.rubyonrails.org/classes/ActionDispatch/Request.html) and [Rack Documentation](http://www.rubydoc.info/github/rack/rack/Rack/Request). Among the properties that you can access on this object are:
 
 | Property of `request`                     | Purpose                                                                          |
 | ----------------------------------------- | -------------------------------------------------------------------------------- |
@@ -837,7 +837,7 @@ Rails collects all of the parameters sent along with the request in the `params`
 
 ### The `response` Object
 
-The response object is not usually used directly, but is built up during the execution of the action and rendering of the data that is being sent back to the user, but sometimes - like in an after filter - it can be useful to access the response directly. Some of these accessor methods also have setters, allowing you to change their values.
+The response object is not usually used directly, but is built up during the execution of the action and rendering of the data that is being sent back to the user, but sometimes - like in an after filter - it can be useful to access the response directly. Some of these accessor methods also have setters, allowing you to change their values. To get a full list of the available methods, refer to the [Rails API documentation](http://api.rubyonrails.org/classes/ActionDispatch/Response.html) and [Rack Documentation](http://www.rubydoc.info/github/rack/rack/Rack/Response).
 
 | Property of `response` | Purpose                                                                                             |
 | ---------------------- | --------------------------------------------------------------------------------------------------- |
