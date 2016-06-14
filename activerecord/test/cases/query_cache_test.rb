@@ -133,7 +133,6 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   def test_cache_is_flat
     Task.cache do
-      Topic.columns # don't count this query
       assert_queries(1) { Topic.find(1); Topic.find(1); }
     end
 
