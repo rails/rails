@@ -22,6 +22,12 @@ class FixtureFinder < ActionView::LookupContext
   end
 end
 
+class ActionView::Digestor::Node
+  def flatten
+    [self] + children.flat_map(&:flatten)
+  end
+end
+
 class TemplateDigestorTest < ActionView::TestCase
   def setup
     @cwd     = Dir.pwd
@@ -146,6 +152,17 @@ class TemplateDigestorTest < ActionView::TestCase
   def test_nested_template_deps
     nested_deps = ["messages/header", {"comments/comments"=>["comments/comment"]}, "messages/actions/move", "events/event", "messages/something_missing", "messages/something_missing_1", "messages/message", "messages/form"]
     assert_equal nested_deps, nested_dependencies("messages/show")
+  end
+
+  def test_nested_template_deps_with_non_default_rendered_format
+    finder.rendered_format = nil
+    nested_deps = [{"comments/comments"=>["comments/comment"]}]
+    assert_equal nested_deps, nested_dependencies("messages/thread")
+  end
+
+  def test_template_formats_of_nested_deps_with_non_default_rendered_format
+    finder.rendered_format = nil
+    assert_equal [:json, :json, :json], tree_template_formats("messages/thread")
   end
 
   def test_recursion_in_renders
@@ -332,6 +349,11 @@ class TemplateDigestorTest < ActionView::TestCase
     def nested_dependencies(template_name)
       tree = ActionView::Digestor.tree(template_name, finder)
       tree.children.map(&:to_dep_map)
+    end
+
+    def tree_template_formats(template_name)
+      tree = ActionView::Digestor.tree(template_name, finder)
+      tree.flatten.map(&:template).flat_map(&:formats)
     end
 
     def disable_resolver_caching

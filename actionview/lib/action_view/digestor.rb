@@ -38,10 +38,13 @@ module ActionView
       # Create a dependency tree for template named +name+.
       def tree(name, finder, partial = false, seen = {})
         logical_name = name.gsub(%r|/_|, "/")
-        formats = [finder.rendered_format]
 
-        if finder.disable_cache { finder.exists?(logical_name, [], partial, [], formats: formats) }
-          template = finder.disable_cache { finder.find(logical_name, [], partial, [], formats: formats) }
+        options = {}
+        options[:formats] = [finder.rendered_format] if finder.rendered_format
+
+        if finder.disable_cache { finder.exists?(logical_name, [], partial, [], options) }
+          template = finder.disable_cache { finder.find(logical_name, [], partial, [], options) }
+          finder.rendered_format ||= template.formats.first
 
           if node = seen[template.identifier] # handle cycles in the tree
             node
