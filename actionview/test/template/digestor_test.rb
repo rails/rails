@@ -162,7 +162,11 @@ class TemplateDigestorTest < ActionView::TestCase
 
   def test_template_formats_of_nested_deps_with_non_default_rendered_format
     finder.rendered_format = nil
-    assert_equal [:json, :json, :json], tree_template_formats("messages/thread")
+    assert_equal [:json], tree_template_formats("messages/thread").uniq
+  end
+
+  def test_template_formats_of_dependencies_with_same_logical_name_and_different_rendered_format
+    assert_equal [:html], tree_template_formats("messages/show").uniq
   end
 
   def test_recursion_in_renders
@@ -353,7 +357,7 @@ class TemplateDigestorTest < ActionView::TestCase
 
     def tree_template_formats(template_name)
       tree = ActionView::Digestor.tree(template_name, finder)
-      tree.flatten.map(&:template).flat_map(&:formats)
+      tree.flatten.map(&:template).compact.flat_map(&:formats)
     end
 
     def disable_resolver_caching
