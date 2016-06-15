@@ -276,6 +276,13 @@ class TemplateDigestorTest < ActionView::TestCase
     assert_not_equal digest_phone, digest_fridge_phone
   end
 
+  def test_different_formats_with_same_logical_template_names_results_in_different_digests
+    html_digest = digest("comments/_comment", format: :html)
+    json_digest = digest("comments/_comment", format: :json)
+
+    assert_not_equal html_digest, json_digest
+  end
+
   def test_digest_cache_cleanup_with_recursion
     first_digest = digest("level/_recursion")
     second_digest = digest("level/_recursion")
@@ -296,13 +303,6 @@ class TemplateDigestorTest < ActionView::TestCase
       # If the cache is cleaned up correctly, subsequent digests should return the same
       assert_equal first_digest, second_digest
     end
-  end
-
-  def test_different_formats
-    html_digest = digest("comments/_comment", format: :html)
-    json_digest = digest("comments/_comment", format: :json)
-
-    assert_not_equal html_digest, json_digest
   end
 
   private
