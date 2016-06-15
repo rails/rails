@@ -68,5 +68,77 @@ module ApplicationTests
       assert_match(/<script src="\/assets\/application(\.self)?-([0-z]+)\.js\?body=1"><\/script>/, last_response.body)
       assert_match(/<script src="\/assets\/xmlhr(\.self)?-([0-z]+)\.js\?body=1"><\/script>/, last_response.body)
     end
+
+    test "public path methods are not over-written by the asset pipeline" do
+      contents = "doesnotexist"
+      cases = {
+        public_asset_path:       %r{/#{ contents }},
+        public_image_path:       %r{/images/#{ contents }},
+        public_video_path:       %r{/videos/#{ contents }},
+        public_audio_path:       %r{/audios/#{ contents }},
+        public_font_path:        %r{/fonts/#{ contents }},
+        public_javascript_path:  %r{/javascripts/#{ contents }},
+        public_stylesheet_path:  %r{/stylesheets/#{ contents }},
+      }
+
+      cases.each do |(view_method, tag_match)|
+        app_file "app/views/posts/index.html.erb", "<%= #{ view_method } '#{contents}' %>"
+
+        app "development"
+
+        class ::PostsController < ActionController::Base ; end
+
+        get '/posts?debug_assets=true'
+
+        body = last_response.body
+        assert_match(tag_match, body, "Expected `#{view_method}` to produce a match to #{ tag_match }, but did not: #{ body }")
+      end
+    end
+
+    test "public url methods are not over-written by the asset pipeline" do
+      contents = "doesnotexist"
+      cases = {
+        public_asset_url:       %r{http://example.org/#{ contents }},
+        public_image_url:       %r{http://example.org/images/#{ contents }},
+        public_video_url:       %r{http://example.org/videos/#{ contents }},
+        public_audio_url:       %r{http://example.org/audios/#{ contents }},
+        public_font_url:        %r{http://example.org/fonts/#{ contents }},
+        public_javascript_url:  %r{http://example.org/javascripts/#{ contents }},
+        public_stylesheet_url:  %r{http://example.org/stylesheets/#{ contents }},
+      }
+
+      cases.each do |(view_method, tag_match)|
+        app_file "app/views/posts/index.html.erb", "<%= #{ view_method } '#{contents}' %>"
+
+        app "development"
+
+        class ::PostsController < ActionController::Base ; end
+
+        get '/posts?debug_assets=true'
+
+        body = last_response.body
+        assert_match(tag_match, body, "Expected `#{view_method}` to produce a match to #{ tag_match }, but did not: #{ body }")
+      end
+    end
+
+    test "public path methods do not use the asset pipeline" do
+      cases = {
+        asset_path:        /\/assets\/application-.*.\.js/,
+        public_asset_path: /application.js/
+      }
+
+      cases.each do |(view_method, tag_match)|
+        app_file "app/views/posts/index.html.erb", "<%= #{ view_method } 'application.js' %>"
+
+        app "development"
+
+        class ::PostsController < ActionController::Base ; end
+
+        get '/posts?debug_assets=true'
+
+        body = last_response.body.strip
+        assert_match(tag_match, body, "Expected `#{view_method}` to produce a match to #{ tag_match }, but did not: #{ body }")
+      end
+    end
   end
 end
