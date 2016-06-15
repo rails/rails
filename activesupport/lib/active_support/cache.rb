@@ -78,14 +78,10 @@ module ActiveSupport
       #
       # The +key+ argument can also respond to +cache_key+ or +to_param+.
       def expand_cache_key(key, namespace = nil)
-        expanded_cache_key = namespace ? "#{namespace}/" : ""
-
-        if prefix = ENV["RAILS_CACHE_ID"] || ENV["RAILS_APP_VERSION"]
-          expanded_cache_key << "#{prefix}/"
-        end
-
+        prefix = ENV['RAILS_CACHE_ID'] || ENV['RAILS_APP_VERSION']
+        expanded_cache_key = namespace ? "#{namespace}/" : ''
+        expanded_cache_key << "#{prefix}/" if prefix
         expanded_cache_key << retrieve_cache_key(key)
-        expanded_cache_key
       end
 
       private
@@ -477,11 +473,12 @@ module ActiveSupport
           prefix = options[:namespace].is_a?(Proc) ? options[:namespace].call : options[:namespace]
           if prefix
             source = pattern.source
-            if source.start_with?('^')
-              source = source[1, source.length]
-            else
-              source = ".*#{source[0, source.length]}"
-            end
+            source =
+              if source.start_with?('^')
+                source[1, source.length]
+              else
+                ".*#{source[0, source.length]}"
+              end
             Regexp.new("^#{Regexp.escape(prefix)}:#{source}", pattern.options)
           else
             pattern
@@ -610,16 +607,16 @@ module ActiveSupport
       # Creates a new cache entry for the specified value. Options supported are
       # +:compress+, +:compress_threshold+, and +:expires_in+.
       def initialize(value, options = {})
-        if should_compress?(value, options)
-          @value = compress(value)
-          @compressed = true
-        else
-          @value = value
-        end
+        @value =
+          if should_compress?(value, options)
+            @compressed = true
+            compress(value)
+          else
+            value
+          end
 
         @created_at = Time.now.to_f
-        @expires_in = options[:expires_in]
-        @expires_in = @expires_in.to_f if @expires_in
+        @expires_in = options[:expires_in] && options[:expires_in].to_f
       end
 
       def value
@@ -633,15 +630,11 @@ module ActiveSupport
       end
 
       def expires_at
-        @expires_in ? @created_at + @expires_in : nil
+        @expires_in && @created_at + @expires_in
       end
 
       def expires_at=(value)
-        if value
-          @expires_in = value.to_f - @created_at
-        else
-          @expires_in = nil
-        end
+        @expires_in = value && value.to_f - @created_at
       end
 
       # Returns the size of the cached value. This could be less than
@@ -665,11 +658,12 @@ module ActiveSupport
       # serialize entries to protect against accidental cache modifications.
       def dup_value!
         if @value && !compressed? && !(@value.is_a?(Numeric) || @value == true || @value == false)
-          if @value.is_a?(String)
-            @value = @value.dup
-          else
-            @value = Marshal.load(Marshal.dump(@value))
-          end
+          @value =
+            if @value.is_a?(String)
+              @value.dup
+            else
+              Marshal.load(Marshal.dump(@value))
+            end
         end
       end
 
