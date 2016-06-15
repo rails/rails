@@ -141,8 +141,17 @@ module ActionView
           source = "#{source}#{extname}"
         end
 
-        if source[0] != ?/
-          source = compute_asset_path(source, options)
+        if options[:public_folder]
+          source = public_compute_asset_path(source, options) unless options[:raw]
+        else
+          if source[0] != ?/
+            source = compute_asset_path(source, options) unless options[:raw]
+          elsif !options[:raw]
+            message =  "Skipping computing asset path since asset #{ source.inspect } starts with a slash `/`.\n"
+            message << "This behavior is deprecated and will be removed. Instead explicitly\n"
+            message << "use a `public_*` helper instead. Optionally pass in `raw: true` to get the exact same behavior."
+            ActiveSupport::Deprecation.warn(message)
+          end
         end
 
         relative_url_root = defined?(config.relative_url_root) && config.relative_url_root
@@ -157,6 +166,11 @@ module ActionView
         "#{source}#{tail}"
       end
       alias_method :path_to_asset, :asset_path # aliased to avoid conflicts with an asset_path named route
+
+
+      def public_asset_path(source, options = {})
+        path_to_asset(source, {public_folder: true}.merge!(options))
+      end
 
       # Computes the full URL to an asset in the public directory. This
       # will use +asset_path+ internally, so most of their behaviors
@@ -203,6 +217,7 @@ module ActionView
         dir = ASSET_PUBLIC_DIRECTORIES[options[:type]] || ""
         File.join(dir, source)
       end
+      alias :public_compute_asset_path :compute_asset_path
 
       # Pick an asset host for this source. Returns +nil+ if no host is set,
       # the host if no wildcard is set, the host interpolated with the
@@ -258,6 +273,9 @@ module ActionView
       end
       alias_method :path_to_javascript, :javascript_path # aliased to avoid conflicts with a javascript_path named route
 
+      def public_javascript_path(source, options = {})
+        path_to_javascript(source, {public_folder: true}.merge!(options))
+      end
       # Computes the full URL to a JavaScript asset in the public javascripts directory.
       # This will use +javascript_path+ internally, so most of their behaviors will be the same.
       # Since +javascript_url+ is based on +asset_url+ method you can set :host options. If :host
@@ -284,6 +302,10 @@ module ActionView
         path_to_asset(source, { type: :stylesheet }.merge!(options))
       end
       alias_method :path_to_stylesheet, :stylesheet_path # aliased to avoid conflicts with a stylesheet_path named route
+
+      def public_stylesheet_path(source, options)
+        path_to_stylesheet(source, {public_folder: true}.merge!(options))
+      end
 
       # Computes the full URL to a stylesheet asset in the public stylesheets directory.
       # This will use +stylesheet_path+ internally, so most of their behaviors will be the same.
@@ -315,6 +337,9 @@ module ActionView
       end
       alias_method :path_to_image, :image_path # aliased to avoid conflicts with an image_path named route
 
+      def public_image_path(source, options)
+        path_to_image(source, {public_folder: true}.merge!(options))
+      end
       # Computes the full URL to an image asset.
       # This will use +image_path+ internally, so most of their behaviors will be the same.
       # Since +image_url+ is based on +asset_url+ method you can set :host options. If :host
@@ -340,6 +365,10 @@ module ActionView
         path_to_asset(source, { type: :video }.merge!(options))
       end
       alias_method :path_to_video, :video_path # aliased to avoid conflicts with a video_path named route
+
+      def public_video_path(source, options)
+        path_to_video(source, {public_folder: true}.merge!(options))
+      end
 
       # Computes the full URL to a video asset in the public videos directory.
       # This will use +video_path+ internally, so most of their behaviors will be the same.
@@ -367,6 +396,9 @@ module ActionView
       end
       alias_method :path_to_audio, :audio_path # aliased to avoid conflicts with an audio_path named route
 
+      def public_audio_path(source, options = {})
+        path_to_audio(source, {public_folder: true}.merge!(options))
+      end
       # Computes the full URL to an audio asset in the public audios directory.
       # This will use +audio_path+ internally, so most of their behaviors will be the same.
       # Since +audio_url+ is based on +asset_url+ method you can set :host options. If :host
@@ -392,6 +424,9 @@ module ActionView
       end
       alias_method :path_to_font, :font_path # aliased to avoid conflicts with an font_path named route
 
+      def public_font_path(source, options = {})
+        path_to_font(source, {public_folder: true}.merge!(options))
+      end
       # Computes the full URL to a font asset.
       # This will use +font_path+ internally, so most of their behaviors will be the same.
       # Since +font_url+ is based on +asset_url+ method you can set :host options. If :host
