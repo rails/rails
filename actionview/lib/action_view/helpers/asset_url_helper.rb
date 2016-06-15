@@ -331,7 +331,7 @@ module ActionView
       # Computes the path to a stylesheet asset in the public folder.
       # This uses +stylesheet_path+ and skips any asset lookups by assuming the asset is in the
       # `public` folder.
-      def public_stylesheet_path(source, options)
+      def public_stylesheet_path(source, options = {})
         path_to_stylesheet(source, {public_folder: true}.merge!(options))
       end
       alias_method :path_to_public_stylesheet, :public_stylesheet_path # aliased to avoid conflicts with a public_stylesheet_path named route
@@ -377,7 +377,7 @@ module ActionView
       # Computes the path to a image asset in the public folder.
       # This uses +image_path+ and skips any asset lookups by assuming the asset is in the
       # `public` folder.
-      def public_image_path(source, options)
+      def public_image_path(source, options = {})
         path_to_image(source, {public_folder: true}.merge!(options))
       end
       alias_method :path_to_public_image, :public_image_path # aliased to avoid conflicts with a public_image_path named route
@@ -419,7 +419,7 @@ module ActionView
       # Computes the path to a video asset in the public folder.
       # This uses +video_path+ and skips any asset lookups by assuming the asset is in the
       # `public` folder.
-      def public_video_path(source, options)
+      def public_video_path(source, options = {})
         path_to_video(source, {public_folder: true}.merge!(options))
       end
       alias_method :path_to_public_video, :public_video_path # aliased to avoid conflicts with a public_video_path named route
