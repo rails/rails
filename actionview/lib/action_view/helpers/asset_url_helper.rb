@@ -188,6 +188,14 @@ module ActionView
       end
       alias_method :url_to_asset, :asset_url # aliased to avoid conflicts with an asset_url named route
 
+      # Computes the full URL to a asset in the public folder.
+      # This uses +asset_url+ and skips any asset lookups by assuming the asset is in the
+      # `public` folder.
+      def public_asset_url(source, options = {})
+        url_to_asset(source, {public_folder: true}.merge!(options))
+      end
+      alias_method :path_to_public_asset, :public_asset_path # aliased to avoid conflicts with an asset_path named route
+
       ASSET_EXTENSIONS = {
         javascript: ".js",
         stylesheet: ".css"
@@ -291,6 +299,14 @@ module ActionView
       end
       alias_method :url_to_javascript, :javascript_url # aliased to avoid conflicts with a javascript_url named route
 
+      # Computes the full URL to a javascript asset in the public folder.
+      # This uses +javascript_url+ and skips any asset lookups by assuming the asset is in the
+      # `public` folder.
+      def public_javascript_url(source, options = {})
+        url_to_javascript(source, {public_folder: true}.merge!(options))
+      end
+      alias_method :path_to_public_javascript, :public_javascript_path # aliased to avoid conflicts with an javascript_path named route
+
       # Computes the path to a stylesheet asset in the public stylesheets directory.
       # If the +source+ filename has no extension, .css will be appended (except for explicit URIs).
       # Full paths from the document root will be passed through.
@@ -322,6 +338,14 @@ module ActionView
         url_to_asset(source, { type: :stylesheet }.merge!(options))
       end
       alias_method :url_to_stylesheet, :stylesheet_url # aliased to avoid conflicts with a stylesheet_url named route
+
+      # Computes the full URL to a stylesheet asset in the public folder.
+      # This uses +stylesheet_url+ and skips any asset lookups by assuming the asset is in the
+      # `public` folder.
+      def public_stylesheet_url(source, options = {})
+        url_to_stylesheet(source, {public_folder: true}.merge!(options))
+      end
+      alias_method :path_to_public_stylesheet, :public_stylesheet_path # aliased to avoid conflicts with an stylesheet_path named route
 
       # Computes the path to an image asset.
       # Full paths from the document root will be passed through.
@@ -358,6 +382,14 @@ module ActionView
       end
       alias_method :url_to_image, :image_url # aliased to avoid conflicts with an image_url named route
 
+      # Computes the full URL to a image asset in the public folder.
+      # This uses +image_url+ and skips any asset lookups by assuming the asset is in the
+      # `public` folder.
+      def public_image_url(source, options = {})
+        url_to_image(source, {public_folder: true}.merge!(options))
+      end
+      alias_method :path_to_public_image, :public_image_path # aliased to avoid conflicts with an image_path named route
+
       # Computes the path to a video asset in the public videos directory.
       # Full paths from the document root will be passed through.
       # Used internally by +video_tag+ to build the video path.
@@ -388,6 +420,14 @@ module ActionView
         url_to_asset(source, { type: :video }.merge!(options))
       end
       alias_method :url_to_video, :video_url # aliased to avoid conflicts with an video_url named route
+
+      # Computes the full URL to a video asset in the public folder.
+      # This uses +video_url+ and skips any asset lookups by assuming the asset is in the
+      # `public` folder.
+      def public_video_url(source, options = {})
+        url_to_video(source, {public_folder: true}.merge!(options))
+      end
+      alias_method :path_to_public_video, :public_video_path # aliased to avoid conflicts with an video_path named route
 
       # Computes the path to an audio asset in the public audios directory.
       # Full paths from the document root will be passed through.
@@ -420,6 +460,14 @@ module ActionView
       end
       alias_method :url_to_audio, :audio_url # aliased to avoid conflicts with an audio_url named route
 
+      # Computes the full URL to a audio asset in the public folder.
+      # This uses +audio_url+ and skips any asset lookups by assuming the asset is in the
+      # `public` folder.
+      def public_audio_url(source, options = {})
+        url_to_audio(source, {public_folder: true}.merge!(options))
+      end
+      alias_method :path_to_public_audio, :public_audio_path # aliased to avoid conflicts with an audio_path named route
+
       # Computes the path to a font asset.
       # Full paths from the document root will be passed through.
       #
@@ -449,6 +497,14 @@ module ActionView
         url_to_asset(source, { type: :font }.merge!(options))
       end
       alias_method :url_to_font, :font_url # aliased to avoid conflicts with an font_url named route
+
+      # Computes the full URL to a font asset in the public folder.
+      # This uses +font_url+ and skips any asset lookups by assuming the asset is in the
+      # `public` folder.
+      def public_font_url(source, options = {})
+        url_to_font(source, {public_folder: true}.merge!(options))
+      end
+      alias_method :path_to_public_font, :public_font_path # aliased to avoid conflicts with an public_font_url named route
     end
   end
 end
