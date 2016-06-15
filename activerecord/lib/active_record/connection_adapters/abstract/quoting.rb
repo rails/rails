@@ -112,19 +112,19 @@ module ActiveRecord
       end
 
       def quoted_true
-        "'t'"
+        "'t'".freeze
       end
 
       def unquoted_true
-        't'
+        't'.freeze
       end
 
       def quoted_false
-        "'f'"
+        "'f'".freeze
       end
 
       def unquoted_false
-        'f'
+        'f'.freeze
       end
 
       # Quote date/time values for use in SQL input. Includes microseconds
