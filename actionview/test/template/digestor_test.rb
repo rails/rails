@@ -17,7 +17,7 @@ class FixtureFinder < ActionView::LookupContext
   FIXTURES_DIR = "#{File.dirname(__FILE__)}/../fixtures/digestor"
 
   def initialize(details = {})
-    super(ActionView::PathSet.new(['digestor']), details, [])
+    super(ActionView::PathSet.new(['digestor', 'digestor/api']), details, [])
     @rendered_format = :html
   end
 end
