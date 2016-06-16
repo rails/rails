@@ -378,11 +378,11 @@ App.cable = ActionCable.createConsumer()
 
 ### Other Configurations
 
-The other common option to configure is the log tags applied to the per-connection logger. Here's close to what we're using in Basecamp:
+The other common option to configure is the log tags applied to the per-connection logger. Here's an example that uses the user account id if available, else "no-account" while tagging:
 
 ```ruby
-Rails.application.config.action_cable.log_tags = [
-  -> request { request.env['bc.account_id'] || "no-account" },
+config.action_cable.log_tags = [
+  -> request { request.env['user_account_id'] || "no-account" },
   :action_cable,
   -> request { request.uuid }
 ]
