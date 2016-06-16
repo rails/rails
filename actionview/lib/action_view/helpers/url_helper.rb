@@ -98,6 +98,10 @@ module ActionView
       #   the link. The drivers each provide mechanisms for listening for the
       #   completion of the Ajax request and performing JavaScript operations once
       #   they're complete
+      # * <tt>opener: false</tt> - If link has <tt>target="blank_"</tt> attribute,
+      #   generated html has <tt>rel="noopener"</tt> by default for avoid touching <tt>window.opener</tt>
+      #   from opened tab. If this option is <tt>true</tt>, it will remove <tt>rel="noopener"</tt>
+      #   from html even if link has <tt>target="blank_"</tt> attribute.
       #
       # ==== Data attributes
       #
@@ -177,6 +181,16 @@ module ActionView
       #
       #   link_to("Destroy", "http://www.example.com", method: :delete)
       #   # => <a href='http://www.example.com' rel="nofollow" data-method="delete">Destroy</a>
+      #
+      # If you use <tt>target: "_blank"</tt>, the <tt>rel="noopener"</tt> will added as default.
+      #
+      #   link = link_to("Hello", "http://www.example.com", target: "_blank")
+      #   # => <a target="_blank" rel="noopener" href="http://www.example.com">Hello</a>
+      #
+      # but you can disable <tt>rel="noopener"</tt> with using <tt>opener: true</tt>.
+      #
+      #   link = link_to("Hello", "http://www.example.com", target: "_blank")
+      #   # => <a target="_blank" rel="noopener" href="http://www.example.com">Hello</a>
       #
       # You can also use custom data attributes using the <tt>:data</tt> option:
       #
@@ -556,10 +570,27 @@ module ActionView
       end
 
       private
+        def default_noopener(rel)
+          rel ||= 'noopener'
+          return rel if rel.include?('noopener')
+          return rel.split(' ') << 'noopener'
+        end
+
+        def target_blank?(html_options)
+          html_options['target'] && html_options['target'].include?('_blank')
+        end
+
+        def allow_noopener?(options)
+          if options.is_a?(Hash)
+            !(options.delete('opener'.freeze) || options.delete(:opener))
+          end
+        end
+
         def convert_options_to_data_attributes(options, html_options)
           if html_options
             html_options = html_options.stringify_keys
             html_options['data-remote'] = 'true'.freeze if link_to_remote_options?(options) || link_to_remote_options?(html_options)
+            html_options['rel'] = default_noopener(html_options['rel']) if target_blank?(html_options) && allow_noopener?(options)
 
             method  = html_options.delete('method'.freeze)
 

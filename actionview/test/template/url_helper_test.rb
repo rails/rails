@@ -284,6 +284,37 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_dom_equal %{<a href="/">Hello</a>}, link
   end
 
+  def test_link_with_html_options
+    link = link_to("Hello", url_hash, { class: ["foo", "bar"] })
+    assert_dom_equal %{<a class="foo bar" href="/">Hello</a>}, link
+  end
+
+  def test_link_with_target_blank
+    link = link_to("Hello", url_hash, { target: "_blank" })
+    assert_dom_equal %{<a target="_blank" rel="noopener" href="/">Hello</a>}, link
+  end
+
+  def test_link_with_target_but_no_blank
+    link = link_to("Hello", url_hash, { target: "_self" })
+    assert_dom_equal %{<a target="_self" href="/">Hello</a>}, link
+  end
+
+  def test_link_with_target_blank_with_rel
+    link = link_to("Hello", url_hash, { target: "_blank", rel: "noreferrer" })
+    assert_dom_equal %{<a target="_blank" rel="noreferrer noopener" href="/">Hello</a>}, link
+  end
+
+  def test_link_with_target_blank_with_rel_noopener
+    link = link_to("Hello", url_hash, { target: "_blank", rel: "noopener" })
+    assert_dom_equal %{<a target="_blank" rel="noopener" href="/">Hello</a>}, link
+  end
+
+  def test_link_with_target_blank_but_opener_true
+    option = url_hash.merge({ opener: true })
+    link = link_to("Hello", option, { target: "_blank" })
+    assert_dom_equal %{<a target="_blank" href="/">Hello</a>}, link
+  end
+
   def test_link_tag_with_custom_onclick
     link = link_to("Hello", "http://www.example.com", onclick: "alert('yay!')")
     expected = %{<a href="http://www.example.com" onclick="alert(&#39;yay!&#39;)">Hello</a>}
