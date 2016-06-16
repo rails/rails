@@ -31,6 +31,10 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 318, Account.sum(:credit_limit)
   end
 
+  def test_should_sum_fields
+    assert_equal [318, 21], Account.sum(:credit_limit, :id)
+  end
+
   def test_should_sum_arel_attribute
     assert_equal 318, Account.sum(Account.arel_table[:credit_limit])
   end
@@ -40,13 +44,32 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 53.0, value
   end
 
+  def test_should_average_fields
+    value = Account.average(:credit_limit, :id)
+    assert_equal [53.0, 3.5], value
+  end
+
   def test_should_average_arel_attribute
     value = Account.average(Account.arel_table[:credit_limit])
     assert_equal 53.0, value
   end
 
+  def test_should_average_arel_attributes
+    value = Account.average(Account.arel_table[:credit_limit], Account.arel_table[:id])
+    assert_equal [53.0, 3.5], value
+  end
+
+  def test_should_average_a_mix_of_arel_attributes_and_fields
+    value = Account.average(Account.arel_table[:credit_limit], :id)
+    assert_equal [53.0, 3.5], value
+  end
+
   def test_should_resolve_aliased_attributes
     assert_equal 318, Account.sum(:available_credit)
+  end
+
+  def test_should_resolve_aliased_attributes_mixed_with_fields
+    assert_equal [318, 21], Account.sum(:available_credit, :id)
   end
 
   def test_should_return_decimal_average_of_integer_field
@@ -69,24 +92,52 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 60, Account.maximum(:credit_limit)
   end
 
+  def test_should_get_maximum_of_fields
+    assert_equal [60, 6], Account.maximum(:credit_limit, :id)
+  end
+
   def test_should_get_maximum_of_arel_attribute
     assert_equal 60, Account.maximum(Account.arel_table[:credit_limit])
+  end
+
+  def test_should_get_maximum_of_arel_attributes
+    assert_equal [60, 6], Account.maximum(Account.arel_table[:credit_limit], :id)
+  end
+
+  def test_should_get_maximum_a_mix_of_arel_attributes_and_fields
+    assert_equal [60, 6], Account.maximum(Account.arel_table[:credit_limit], :id)
   end
 
   def test_should_get_maximum_of_field_with_include
     assert_equal 55, Account.where("companies.name != 'Summit'").references(:companies).includes(:firm).maximum(:credit_limit)
   end
 
+  def test_should_get_maximum_of_fields_with_include
+    assert_equal [55, 6], Account.where("companies.name != 'Summit'").references(:companies).includes(:firm).maximum(:credit_limit, :id)
+  end
+
   def test_should_get_maximum_of_arel_attribute_with_include
     assert_equal 55, Account.where("companies.name != 'Summit'").references(:companies).includes(:firm).maximum(Account.arel_table[:credit_limit])
+  end
+
+  def test_should_get_maximum_of_arel_attributes_with_include
+    assert_equal [55, 6], Account.where("companies.name != 'Summit'").references(:companies).includes(:firm).maximum(Account.arel_table[:credit_limit],Account.arel_table[:id])
   end
 
   def test_should_get_minimum_of_field
     assert_equal 50, Account.minimum(:credit_limit)
   end
 
+  def test_should_get_minimum_of_fields
+    assert_equal [50, 1], Account.minimum(:credit_limit, :id)
+  end
+
   def test_should_get_minimum_of_arel_attribute
     assert_equal 50, Account.minimum(Account.arel_table[:credit_limit])
+  end
+
+  def test_should_get_minimum_of_arel_attributes
+    assert_equal [50, 1], Account.minimum(Account.arel_table[:credit_limit], Account.arel_table[:id])
   end
 
   def test_should_group_by_field
@@ -121,6 +172,13 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 50,   c[1]
     assert_equal 105,  c[6]
     assert_equal 60,   c[2]
+  end
+
+  def test_should_group_by_summed_fields
+    c = Account.group(:firm_id).sum(:credit_limit, :id)
+    assert_equal [50, 1],   c[1]
+    assert_equal [105, 8],  c[6]
+    assert_equal [60, 4],   c[2]
   end
 
   def test_should_generate_valid_sql_with_joins_and_group
@@ -233,6 +291,13 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 60,  c[2]
   end
 
+  def test_should_group_by_summed_fields_having_condition
+    c = Account.group(:firm_id).having('sum(credit_limit) > 50').sum(:credit_limit, :id)
+    assert_nil        c[1]
+    assert_equal [105, 8], c[6]
+    assert_equal [60, 4],  c[2]
+  end
+
   def test_should_group_by_summed_field_having_condition_from_select
     c = Account.select("MIN(credit_limit) AS min_credit_limit").group(:firm_id).having("MIN(credit_limit) > 50").sum(:credit_limit)
     assert_nil       c[1]
@@ -251,8 +316,13 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 105, Account.where('firm_id = 6').sum(:credit_limit)
   end
 
+  def test_should_sum_fields_with_conditions
+    assert_equal [105, 8], Account.where('firm_id = 6').sum(:credit_limit, :id)
+  end
+
   def test_should_return_zero_if_sum_conditions_return_nothing
     assert_equal 0, Account.where('1 = 2').sum(:credit_limit)
+    assert_equal [0, 0], Account.where('1 = 2').sum(:credit_limit, :id)
     assert_equal 0, companies(:rails_core).companies.where('1 = 2').sum(:id)
   end
 
@@ -263,6 +333,7 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_should_return_type_casted_values_with_group_and_expression
     assert_equal 0.5, Account.group(:firm_name).sum('0.01 * credit_limit')['37signals']
+    assert_equal [0.5, 1], Account.group(:firm_name).sum('0.01 * credit_limit', :id)['37signals']
   end
 
   def test_should_group_by_summed_field_with_conditions
@@ -272,12 +343,27 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 60,  c[2]
   end
 
+  def test_should_group_by_summed_fields_with_conditions
+    c = Account.where('firm_id > 1').group(:firm_id).sum(:credit_limit, :id)
+    assert_nil             c[1]
+    assert_equal [105, 8], c[6]
+    assert_equal [60, 4],  c[2]
+  end
+
   def test_should_group_by_summed_field_with_conditions_and_having
     c = Account.where('firm_id > 1').group(:firm_id).
      having('sum(credit_limit) > 60').sum(:credit_limit)
     assert_nil        c[1]
     assert_equal 105, c[6]
     assert_nil        c[2]
+  end
+
+  def test_should_group_by_summed_fields_with_conditions_and_having
+    c = Account.where('firm_id > 1').group(:firm_id).
+     having('sum(credit_limit) > 60').sum(:credit_limit, :id)
+    assert_nil             c[1]
+    assert_equal [105, 8], c[6]
+    assert_nil             c[2]
   end
 
   def test_should_group_by_fields_with_table_alias
@@ -291,6 +377,13 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 6, Account.calculate(:count, '*')
     assert_equal 6, Account.calculate(:count, :all)
   end
+
+  def test_should_raise_on_calculate_count_on_multiple_fields
+    assert_raises(ArgumentError) do
+      Account.calculate(:count, :id, :credit_limit)
+    end
+  end
+
 
   def test_should_calculate_grouped_with_invalid_field
     c = Account.group('accounts.firm_id').count(:all)
@@ -511,24 +604,40 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal Account.sum(:credit_limit), Account.from('accounts').sum(:credit_limit)
     assert_equal Account.where("credit_limit > 50").sum(:credit_limit),
         Account.where("credit_limit > 50").from('accounts').sum(:credit_limit)
+
+    assert_equal Account.sum(:credit_limit, :id), Account.from('accounts').sum(:credit_limit, :id)
+    assert_equal Account.where("credit_limit > 50").sum(:credit_limit, :id),
+        Account.where("credit_limit > 50").from('accounts').sum(:credit_limit, :id)
   end
 
   def test_average_with_from_option
     assert_equal Account.average(:credit_limit), Account.from('accounts').average(:credit_limit)
     assert_equal Account.where("credit_limit > 50").average(:credit_limit),
         Account.where("credit_limit > 50").from('accounts').average(:credit_limit)
+
+    assert_equal Account.average(:credit_limit, :id), Account.from('accounts').average(:credit_limit, :id)
+    assert_equal Account.where("credit_limit > 50").average(:credit_limit, :id),
+        Account.where("credit_limit > 50").from('accounts').average(:credit_limit, :id)
   end
 
   def test_minimum_with_from_option
     assert_equal Account.minimum(:credit_limit), Account.from('accounts').minimum(:credit_limit)
     assert_equal Account.where("credit_limit > 50").minimum(:credit_limit),
         Account.where("credit_limit > 50").from('accounts').minimum(:credit_limit)
+
+    assert_equal Account.minimum(:credit_limit, :id), Account.from('accounts').minimum(:credit_limit, :id)
+    assert_equal Account.where("credit_limit > 50").minimum(:credit_limit, :id),
+        Account.where("credit_limit > 50").from('accounts').minimum(:credit_limit, :id)
   end
 
   def test_maximum_with_from_option
     assert_equal Account.maximum(:credit_limit), Account.from('accounts').maximum(:credit_limit)
     assert_equal Account.where("credit_limit > 50").maximum(:credit_limit),
         Account.where("credit_limit > 50").from('accounts').maximum(:credit_limit)
+
+    assert_equal Account.maximum(:credit_limit, :id), Account.from('accounts').maximum(:credit_limit, :id)
+    assert_equal Account.where("credit_limit > 50").maximum(:credit_limit, :id),
+        Account.where("credit_limit > 50").from('accounts').maximum(:credit_limit, :id)
   end
 
   def test_maximum_with_not_auto_table_name_prefix_if_column_included
@@ -537,16 +646,34 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 7, Company.includes(:contracts).maximum(:developer_id)
   end
 
+  def test_maximums_with_not_auto_table_name_prefix_if_column_included
+    Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
+
+    assert_equal [7, Company.last.id], Company.includes(:contracts).maximum(:developer_id, :id)
+  end
+
   def test_minimum_with_not_auto_table_name_prefix_if_column_included
     Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
 
     assert_equal 7, Company.includes(:contracts).minimum(:developer_id)
   end
 
+  def test_minimums_with_not_auto_table_name_prefix_if_column_included
+    Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
+
+    assert_equal [7, 1], Company.includes(:contracts).minimum(:developer_id, :id)
+  end
+
   def test_sum_with_not_auto_table_name_prefix_if_column_included
     Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
 
     assert_equal 7, Company.includes(:contracts).sum(:developer_id)
+  end
+
+  def test_sums_with_not_auto_table_name_prefix_if_column_included
+    Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
+
+    assert_equal [7, Company.sum(:id)], Company.includes(:contracts).sum(:developer_id, :id)
   end
 
   if current_adapter?(:Mysql2Adapter)

@@ -44,43 +44,47 @@ module ActiveRecord
       end
     end
 
-    # Calculates the average value on a given column. Returns +nil+ if there's
+    # Calculates the average value on a given column or columns. Returns +nil+ if there's
     # no row. See #calculate for examples with options.
     #
     #   Person.average(:age) # => 35.8
-    def average(column_name)
-      calculate(:average, column_name)
+    #   Person.average(:age, :weight) # => [35.8, 50.4]
+    def average(*column_names)
+      calculate(:average, *column_names)
     end
 
-    # Calculates the minimum value on a given column. The value is returned
-    # with the same data type of the column, or +nil+ if there's no row. See
+    # Calculates the minimum value on a given column or columns. The values are returned
+    # with the same data type of the columns, or +nil+ if there's no row. See
     # #calculate for examples with options.
     #
     #   Person.minimum(:age) # => 7
-    def minimum(column_name)
-      calculate(:minimum, column_name)
+    #   Person.minimum(:age, :weight) # => [7, 35]
+    def minimum(*column_names)
+      calculate(:minimum, *column_names)
     end
 
-    # Calculates the maximum value on a given column. The value is returned
-    # with the same data type of the column, or +nil+ if there's no row. See
+    # Calculates the maximum value on a given column or columns. The values are returned
+    # with the same data type of the columns, or +nil+ if there's no row. See
     # #calculate for examples with options.
     #
     #   Person.maximum(:age) # => 93
-    def maximum(column_name)
-      calculate(:maximum, column_name)
+    #   Person.maximum(:age, :weight) # => [93, 120]
+    def maximum(*column_names)
+      calculate(:maximum, *column_names)
     end
 
-    # Calculates the sum of values on a given column. The value is returned
-    # with the same data type of the column, +0+ if there's no row. See
+    # Calculates the sum of values on a given column or columns. The values are returned
+    # with the same data type of the columns, +0+ if there's no row. See
     # #calculate for examples with options.
     #
     #   Person.sum(:age) # => 4562
-    def sum(column_name = nil, &block)
+    #   Person.sum(:age, :weight) # => [4562, 6400]
+    def sum(*column_names, &block)
       return super(&block) if block_given?
-      calculate(:sum, column_name)
+      calculate(:sum, *column_names)
     end
 
-    # This calculates aggregate values in the given column. Methods for #count, #sum, #average,
+    # This calculates aggregate values in the given columns. Methods for #count, #sum, #average,
     # #minimum, and #maximum have been added as shortcuts.
     #
     #   Person.calculate(:count, :all) # The same as Person.count
@@ -95,9 +99,13 @@ module ActiveRecord
     #
     # * Single aggregate value: The single value is type cast to Integer for COUNT, Float
     #   for AVG, and the given column's type for everything else.
+    #   In case multiple columns are being aggregated the values will be returned in an
+    #   array, with same type casting as above.
     #
     # * Grouped values: This returns an ordered hash of the values and groups them. It
     #   takes either a column name, or the name of a belongs_to association.
+    #   In case multiple columns are being aggregated the values will be returned in an
+    #   array.
     #
     #      values = Person.group('last_name').maximum(:age)
     #      puts values["Drake"]
@@ -111,15 +119,21 @@ module ActiveRecord
     #      values.each do |family, max_age|
     #        ...
     #      end
-    def calculate(operation, column_name)
-      if column_name.is_a?(Symbol) && attribute_alias?(column_name)
-        column_name = attribute_alias(column_name)
+    #
+    # Note: Count on multiple columns is not supported and will result in an ArgumentError
+    def calculate(operation, *column_names)
+      column_names = column_names.map do |column_name|
+        if column_name.is_a?(Symbol) && attribute_alias?(column_name)
+          attribute_alias(column_name)
+        else
+          column_name
+        end
       end
 
-      if has_include?(column_name)
-        construct_relation_for_association_calculations.calculate(operation, column_name)
+      if has_include?(column_names.first)
+        construct_relation_for_association_calculations.calculate(operation, *column_names)
       else
-        perform_calculation(operation, column_name)
+        perform_calculation(operation, column_names)
       end
     end
 
@@ -189,7 +203,7 @@ module ActiveRecord
       eager_loading? || (includes_values.present? && column_name && column_name != :all)
     end
 
-    def perform_calculation(operation, column_name)
+    def perform_calculation(operation, column_names)
       operation = operation.to_s.downcase
 
       # If #count is used with #distinct (i.e. `relation.distinct.count`) it is
@@ -197,6 +211,8 @@ module ActiveRecord
       distinct = self.distinct_value
 
       if operation == "count"
+        raise ArgumentError.new("Count operation does not accept multiple columns") if column_names.size > 1
+        column_name = column_names.first
         column_name ||= select_for_count
 
         unless arel.ast.grep(Arel::Nodes::OuterJoin).empty?
@@ -205,12 +221,13 @@ module ActiveRecord
 
         column_name = primary_key if column_name == :all && distinct
         distinct = nil if column_name =~ /\s*DISTINCT[\s(]+/i
+        column_names = [column_name]
       end
 
       if group_values.any?
-        execute_grouped_calculation(operation, column_name, distinct)
+        execute_grouped_calculation(operation, column_names, distinct)
       else
-        execute_simple_calculation(operation, column_name, distinct)
+        execute_simple_calculation(operation, column_names, distinct)
       end
     end
 
@@ -228,40 +245,56 @@ module ActiveRecord
       operation == 'count' ? column.count(distinct) : column.send(operation)
     end
 
-    def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
+    def execute_simple_calculation(operation, column_names, distinct) #:nodoc:
       # PostgreSQL doesn't like ORDER BY when there are no GROUP BY
       relation = unscope(:order)
 
-      column_alias = column_name
+      column_aliases = Hash[column_names.map do |name|
+        relation_name = name
+        if relation_name.respond_to? :name
+          relation_name = "#{relation_name.relation.name}.#{relation_name.name}"
+        end
+
+        [name, column_alias_for([operation, relation_name].join(' '))]
+      end]
 
       if operation == "count" && (relation.limit_value || relation.offset_value)
         # Shortcut when limit is zero.
         return 0 if relation.limit_value == 0
 
-        query_builder = build_count_subquery(relation, column_name, distinct)
+        query_builder = build_count_subquery(relation, column_names.first, distinct)
       else
-        column = aggregate_column(column_name)
+        select_values = column_names.map do |name|
+          operation_over_aggregate_column(
+              aggregate_column(name),
+              operation,
+              distinct).as(column_aliases[name])
+        end
 
-        select_value = operation_over_aggregate_column(column, operation, distinct)
-
-        column_alias = select_value.alias
-        column_alias ||= @klass.connection.column_name_for_operation(operation, select_value)
-        relation.select_values = [select_value]
+        relation.select_values = select_values
 
         query_builder = relation.arel
       end
 
       result = @klass.connection.select_all(query_builder, nil, bound_attributes)
       row    = result.first
-      value  = row && row.values.first
-      column = result.column_types.fetch(column_alias) do
-        type_for(column_name)
+      values  = row && row.values
+      columns = column_aliases.map do |name, column_alias|
+        result.column_types.fetch(column_alias) do
+          type_for(name)
+        end
       end
 
-      type_cast_calculated_value(value, column, operation)
+      if values.size == 1 # Might be [nil] so .one? does not work
+        type_cast_calculated_value(values.first, columns.first, operation)
+      else
+        values.zip(columns).map do |value, column|
+          type_cast_calculated_value(value, column, operation)
+        end
+      end
     end
 
-    def execute_grouped_calculation(operation, column_name, distinct) #:nodoc:
+    def execute_grouped_calculation(operation, column_names, distinct) #:nodoc:
       group_attrs = group_values
 
       if group_attrs.first.respond_to?(:to_sym)
@@ -276,18 +309,18 @@ module ActiveRecord
       group_aliases = group_fields.map { |field| column_alias_for(field) }
       group_columns = group_aliases.zip(group_fields)
 
-      if operation == 'count' && column_name == :all
-        aggregate_alias = 'count_all'
+      if operation == 'count' && column_names.first == :all
+        aggregate_aliases = {all: 'count_all'}
       else
-        aggregate_alias = column_alias_for([operation, column_name].join(' '))
+        aggregate_aliases = column_names.map {|name| [name, column_alias_for([operation, name].join(' '))] }.to_h
       end
 
-      select_values = [
+      select_values = column_names.map do |name|
         operation_over_aggregate_column(
-          aggregate_column(column_name),
-          operation,
-          distinct).as(aggregate_alias)
-      ]
+            aggregate_column(name),
+            operation,
+            distinct).as(aggregate_aliases[name])
+      end
       select_values += select_values unless having_clause.empty?
 
       select_values.concat group_columns.map { |aliaz, field|
@@ -320,8 +353,13 @@ module ActiveRecord
         key = key.first if key.size == 1
         key = key_records[key] if associated
 
-        column_type = calculated_data.column_types.fetch(aggregate_alias) { type_for(column_name) }
-        [key, type_cast_calculated_value(row[aggregate_alias], column_type, operation)]
+        values =
+            aggregate_aliases.map do |name, aliaz|
+              column_type = calculated_data.column_types.fetch(aliaz) { type_for(name) }
+              type_cast_calculated_value(row[aliaz], column_type, operation)
+            end
+        values = values.first if values.size == 1
+        [key, values]
       end]
     end
 
