@@ -327,6 +327,7 @@ if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
       @connection = ActiveRecord::Base.connection
       if current_adapter?(:PostgreSQLAdapter)
         @connection.create_table(:widgets, id: :bigserial, force: true)
+        @connection.create_table(:badges, id: :serial, force: true)
       else
         @connection.create_table(:widgets, id: :bigint, force: true)
       end
@@ -348,10 +349,18 @@ if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
       assert_not_nil widget.id
     end
 
+    if current_adapter?(:PostgreSQLAdapter)
+      test "schema dump primary key with serial" do
+        schema = dump_table_schema "badges"
+        assert_match %r{create_table "badges", id: :serial, force: :cascade}, schema
+      end
+    end
+
     test "schema dump primary key with bigserial" do
       schema = dump_table_schema "widgets"
       if current_adapter?(:PostgreSQLAdapter)
-        assert_match %r{create_table "widgets", id: :bigserial, force: :cascade}, schema
+        # bigserial is the default for PostgreSQL adapter, so it won't show up
+        assert_match %r{create_table "widgets", force: :cascade}, schema
       else
         assert_match %r{create_table "widgets", id: :bigint, force: :cascade}, schema
       end

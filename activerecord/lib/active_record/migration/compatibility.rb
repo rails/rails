@@ -103,6 +103,16 @@ module ActiveRecord
       end
 
       class V5_0 < V5_1
+        def create_table(table_name, options = {})
+          # Since version 5.1 Postgres adapter uses bigserial type for primary
+          # keys by default. This compat layer makes old migrations utilize
+          # serial type instead, the way it used to work before 5.1
+          if connection.adapter_name == "PostgreSQL"
+            options[:id] ||= "serial"
+          end
+
+          super table_name, options
+        end
       end
 
       class V4_2 < V5_0
