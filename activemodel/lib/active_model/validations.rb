@@ -304,8 +304,6 @@ module ActiveModel
     # Runs all the specified validations and returns +true+ if no errors were
     # added otherwise +false+.
     #
-    # Aliased as validate.
-    #
     #   class Person
     #     include ActiveModel::Validations
     #
