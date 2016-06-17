@@ -202,11 +202,9 @@ The following methods trigger callbacks:
 
 * `create`
 * `create!`
-* `decrement!`
 * `destroy`
 * `destroy!`
 * `destroy_all`
-* `increment!`
 * `save`
 * `save!`
 * `save(validate: false)`
