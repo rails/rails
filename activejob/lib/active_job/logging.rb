@@ -41,7 +41,7 @@ module ActiveJob
       def tag_logger(*tags)
         if logger.respond_to?(:tagged)
           tags.unshift "ActiveJob" unless logger_tagged_by_active_job?
-          ActiveJob::Base.logger.tagged(*tags){ yield }
+          logger.tagged(*tags){ yield }
         else
           yield
         end

@@ -3,6 +3,7 @@ require "active_support/log_subscriber/test_helper"
 require 'active_support/core_ext/numeric/time'
 require 'jobs/hello_job'
 require 'jobs/logging_job'
+require 'jobs/overridden_logging_job'
 require 'jobs/nested_job'
 require 'models/person'
 
@@ -40,7 +41,6 @@ class LoggingTest < ActiveSupport::TestCase
   def set_logger(logger)
     ActiveJob::Base.logger = logger
   end
-
 
   def test_uses_active_job_as_tag
     HelloJob.perform_later "Cristian"
@@ -118,5 +118,10 @@ class LoggingTest < ActiveSupport::TestCase
     assert_match(/Enqueued HelloJob \(Job ID: .*\) to .*? at.*Cristian/, @logger.messages)
   rescue NotImplementedError
     skip
+  end
+
+  def test_for_tagged_logger_support_is_consistent
+    set_logger ::Logger.new(nil)
+    OverriddenLoggingJob.perform_later "Dummy"
   end
 end
