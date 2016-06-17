@@ -11,7 +11,7 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
   end
 
   def new_checker(files = [], dirs = {}, &block)
-    ActiveSupport::EventedFileUpdateChecker.new(files, dirs, &block).tap do
+    ActiveSupport::EventedFileUpdateChecker.new(files, dirs, &block).tap do |c|
       wait
     end
   end
@@ -33,6 +33,48 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
   def rm_f(files)
     super
     wait
+  end
+
+  test 'notifies forked processes' do
+    FileUtils.touch(tmpfiles)
+
+    checker = new_checker(tmpfiles) { }
+    assert !checker.updated?
+
+    # Pipes used for flow controll across fork.
+    boot_reader,  boot_writer  = IO.pipe
+    touch_reader, touch_writer = IO.pipe
+
+    pid = fork do
+      assert checker.updated?
+
+      # Clear previous check value.
+      checker.execute
+      assert !checker.updated?
+
+      # Fork is booted, ready for file to be touched
+      # notify parent process.
+      boot_writer.write("booted")
+
+      # Wait for parent process to signal that file
+      # has been touched.
+      IO.select([touch_reader])
+
+      assert checker.updated?
+    end
+
+    assert pid
+
+    # Wait for fork to be booted before touching files.
+    IO.select([boot_reader])
+    touch(tmpfiles)
+
+    # Notify fork that files have been touched.
+    touch_writer.write("touched")
+
+    assert checker.updated?
+
+    Process.wait(pid)
   end
 end
 
