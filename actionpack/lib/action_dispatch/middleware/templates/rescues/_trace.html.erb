@@ -19,7 +19,7 @@
 
   <script type="text/javascript">
     var traceFrames = document.getElementsByClassName('trace-frames');
-    var selectedFrame, currentSource = document.getElementById('frame-source-0');
+    var selectedFrame, currentSource = document.getElementById('frame-source-<%= @show_source_idx %>');
 
     // Add click listeners for all stack frames
     for (var i = 0; i < traceFrames.length; i++) {
