@@ -1,3 +1,7 @@
+*   Ensure `/rails/info` routes match in development for apps with a catch-all globbing route.
+
+    *Nicholas Firth-McCoy*
+
 *   Added a shared section to `config/secrets.yml` that will be loaded for all environments.
 
     *DHH*
