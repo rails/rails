@@ -55,6 +55,7 @@ module CacheStoreBehavior
   def test_fetch_cache_miss_with_skip_nil
     assert_not_called(@cache, :write) do
       assert_nil @cache.fetch("foo", skip_nil: true) { nil }
+      assert_equal false, @cache.exist?("foo")
     end
   end
 
