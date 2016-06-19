@@ -241,7 +241,7 @@ GEM
       serverengine (~> 1.5.11)
       thor
       thread (~> 0.1.7)
-    sprockets (3.6.0)
+    sprockets (3.6.1)
       concurrent-ruby (~> 1.0)
       rack (> 1, < 3)
     sprockets-rails (3.0.4)
