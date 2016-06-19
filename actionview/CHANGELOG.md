@@ -1,3 +1,34 @@
+*   New syntax for tag helpers. Avoid positional parameters and suport HTML5 by default.
+    Example usage of tag helpers before:
+
+    ```ruby
+    tag(:br)
+
+    content_tag(:div, content_tag(:p, "Hello world!"), class: "strong")
+    ```
+
+    ```html
+    <%= content_tag :div, class: "strong" do -%>
+      Hello world!
+    <% end -%>
+    ```
+
+    Example usage of tag helpers after:
+
+    ```ruby
+    tag.br
+
+    tag.div tag.p("Hello world!"), class: "strong"
+    ```
+
+    ```html
+    <%= tag.div class: "strong" do %>
+      Hello world!
+    <% end %>
+    ```
+
+    *Marek Kirejczyk*
+
 *   `select_tag`'s `include_blank` option for generation for blank option tag, now adds an empty space label,
      when the value as well as content for option tag are empty, so that we confirm with html specification.
      Ref: https://www.w3.org/TR/html5/forms.html#the-option-element.
