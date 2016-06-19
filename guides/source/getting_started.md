@@ -313,8 +313,6 @@ It should look something like the following:
 Rails.application.routes.draw do
   get 'welcome/index'
 
-  # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
-
   root 'welcome#index'
 end
 ```
@@ -457,7 +455,7 @@ available, Rails will raise an exception.
 In the above image, the bottom line has been truncated. Let's see what the full
 error message looks like:
 
->Missing template articles/new, application/new with {locale:[:en], formats:[:html], handlers:[:erb, :builder, :coffee]}. Searched in: * "/path/to/blog/app/views"
+>ArticlesController#new is missing a template for this request format and variant. request.formats: ["text/html"] request.variant: [] NOTE! For XHR/Ajax or API requests, this action would normally respond with 204 No Content: an empty white screen. Since you're loading it in a web browser, we assume that you expected to actually render a template, not… nothing, so we're showing an error to be extra-clear. If you expect 204 No Content, carry on. That's what you'll get from an XHR or API request. Give it a shot.
 
 That's quite a lot of text! Let's quickly go through and understand what each
 part of it means.
@@ -476,9 +474,9 @@ us what _template handlers_ could be used to render our template. `:erb` is most
 commonly used for HTML templates, `:builder` is used for XML templates, and
 `:coffee` uses CoffeeScript to build JavaScript templates.
 
-The final part of this message tells us where Rails has looked for the templates.
-Templates within a basic Rails application like this are kept in a single
-location, but in more complex applications it could be many different paths.
+The message also contains `request.formats` which specifies the format of template to be
+served in response. It is set to `text/html` as we requested this page via browser, so Rails
+is looking for an HTML template.
 
 The simplest template that would work in this case would be one located at
 `app/views/articles/new.html.erb`. The extension of this file name is important:
@@ -486,7 +484,9 @@ the first extension is the _format_ of the template, and the second extension
 is the _handler_ that will be used. Rails is attempting to find a template
 called `articles/new` within `app/views` for the application. The format for
 this template can only be `html` and the handler must be one of `erb`,
-`builder` or `coffee`. Because you want to create a new HTML form, you will be
+`builder` or `coffee`. `:erb` is most commonly used for HTML templates, `:builder` is
+used for XML templates, and `:coffee` uses CoffeeScript to build JavaScript templates.
+Because you want to create a new HTML form, you will be
 using the `ERB` language which is designed to embed Ruby in HTML.
 
 Therefore the file should be called `articles/new.html.erb` and needs to be
@@ -606,9 +606,11 @@ class ArticlesController < ApplicationController
 end
 ```
 
-If you re-submit the form now, you'll see another familiar error: a template is
-missing. That's ok, we can ignore that for now. What the `create` action should
-be doing is saving our new article to the database.
+If you re-submit the form now, you may not see any change on the page. Don't worry!
+This is because Rails by default returns `204 No Content` response for an action if
+we don't specify what the response should be. We just added the `create` action
+but didn't specify anything about how the response should be. In this case, the
+`create` action should save our new article to the database.
 
 When a form is submitted, the fields of the form are sent to Rails as
 _parameters_. These parameters can then be referenced inside the controller
