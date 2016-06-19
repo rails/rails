@@ -226,6 +226,11 @@ module Rails
       end
       remove_task :update_config_files
 
+      def display_upgrade_guide_info
+        say "\nAfter this, check Rails upgrade guide at http://guides.rubyonrails.org/upgrading_ruby_on_rails.html for more details about upgrading your app."
+      end
+      remove_task :display_upgrade_info
+
       def create_boot_file
         template "config/boot.rb"
       end
