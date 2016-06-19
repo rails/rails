@@ -164,8 +164,8 @@ class Module
         ''
       end
 
-    file, line = caller(1, 1).first.split(':'.freeze, 2)
-    line = line.to_i
+    location = caller_locations(1, 1).first
+    file, line = location.path, location.lineno
 
     to = to.to_s
     to = "self.#{to}" if DELEGATION_RESERVED_METHOD_NAMES.include?(to)

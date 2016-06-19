@@ -65,8 +65,6 @@ module ActiveRecord
 
         column = klass.columns_hash[attribute_name]
         cast_type = klass.type_for_attribute(attribute_name)
-        value = cast_type.serialize(value)
-        value = klass.connection.type_cast(value)
 
         comparison = if !options[:case_sensitive] && !value.nil?
           # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
@@ -77,11 +75,9 @@ module ActiveRecord
         if value.nil?
           klass.unscoped.where(comparison)
         else
-          bind = Relation::QueryAttribute.new(attribute_name, value, Type::Value.new)
+          bind = Relation::QueryAttribute.new(attribute_name, value, cast_type)
           klass.unscoped.where(comparison, bind)
         end
-      rescue RangeError
-        klass.none
       end
 
       def scope_relation(record, table, relation)

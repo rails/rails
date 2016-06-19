@@ -1147,6 +1147,22 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_standard_json_encoding_works
+    with_routing do |routes|
+      routes.draw do
+        ActiveSupport::Deprecation.silence do
+          post ':action' => FooController
+        end
+      end
+
+      post '/foos_json.json', params: { foo: 'fighters' }.to_json,
+        headers: { 'Content-Type' => 'application/json' }
+
+      assert_response :success
+      assert_equal({ 'foo' => 'fighters' }, response.parsed_body)
+    end
+  end
+
   def test_encoding_as_json
     post_to_foos as: :json do
       assert_response :success

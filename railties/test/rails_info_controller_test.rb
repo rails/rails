@@ -78,4 +78,10 @@ class InfoControllerTest < ActionController::TestCase
     get :routes, params: { path: 'rails/info/routes.html' }
     assert fuzzy_count.call == 0, 'should match optional parts of route literally'
   end
+
+  test "internal routes do not have a default params[:internal] value" do
+    get :properties
+    assert_response :success
+    assert_nil @controller.params[:internal]
+  end
 end

@@ -17,7 +17,14 @@ class FixtureFinder < ActionView::LookupContext
   FIXTURES_DIR = "#{File.dirname(__FILE__)}/../fixtures/digestor"
 
   def initialize(details = {})
-    super(ActionView::PathSet.new(['digestor']), details, [])
+    super(ActionView::PathSet.new(['digestor', 'digestor/api']), details, [])
+    @rendered_format = :html
+  end
+end
+
+class ActionView::Digestor::Node
+  def flatten
+    [self] + children.flat_map(&:flatten)
   end
 end
 
@@ -147,6 +154,21 @@ class TemplateDigestorTest < ActionView::TestCase
     assert_equal nested_deps, nested_dependencies("messages/show")
   end
 
+  def test_nested_template_deps_with_non_default_rendered_format
+    finder.rendered_format = nil
+    nested_deps = [{"comments/comments"=>["comments/comment"]}]
+    assert_equal nested_deps, nested_dependencies("messages/thread")
+  end
+
+  def test_template_formats_of_nested_deps_with_non_default_rendered_format
+    finder.rendered_format = nil
+    assert_equal [:json], tree_template_formats("messages/thread").uniq
+  end
+
+  def test_template_formats_of_dependencies_with_same_logical_name_and_different_rendered_format
+    assert_equal [:html], tree_template_formats("messages/show").uniq
+  end
+
   def test_recursion_in_renders
     assert digest("level/recursion") # assert recursion is possible
     assert_not_nil digest("level/recursion") # assert digest is stored
@@ -258,6 +280,13 @@ class TemplateDigestorTest < ActionView::TestCase
     assert_not_equal digest_phone, digest_fridge_phone
   end
 
+  def test_different_formats_with_same_logical_template_names_results_in_different_digests
+    html_digest = digest("comments/_comment", format: :html)
+    json_digest = digest("comments/_comment", format: :json)
+
+    assert_not_equal html_digest, json_digest
+  end
+
   def test_digest_cache_cleanup_with_recursion
     first_digest = digest("level/_recursion")
     second_digest = digest("level/_recursion")
@@ -279,7 +308,6 @@ class TemplateDigestorTest < ActionView::TestCase
       assert_equal first_digest, second_digest
     end
   end
-
 
   private
     def assert_logged(message)
@@ -309,8 +337,11 @@ class TemplateDigestorTest < ActionView::TestCase
 
     def digest(template_name, options = {})
       options = options.dup
+      finder_options = options.extract!(:variants, :format)
 
-      finder.variants = options.delete(:variants) || []
+      finder.variants = finder_options[:variants] || []
+      finder.rendered_format = finder_options[:format] if finder_options[:format]
+
       ActionView::Digestor.digest(name: template_name, finder: finder, dependencies: (options[:dependencies] || []))
     end
 
@@ -322,6 +353,11 @@ class TemplateDigestorTest < ActionView::TestCase
     def nested_dependencies(template_name)
       tree = ActionView::Digestor.tree(template_name, finder)
       tree.children.map(&:to_dep_map)
+    end
+
+    def tree_template_formats(template_name)
+      tree = ActionView::Digestor.tree(template_name, finder)
+      tree.flatten.map(&:template).compact.flat_map(&:formats)
     end
 
     def disable_resolver_caching

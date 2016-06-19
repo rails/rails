@@ -1,0 +1,27 @@
+engines:
+  rubocop:
+    enabled: true
+
+ratings:
+  paths:
+  - "**.rb"
+
+exclude_paths:
+  - actioncable/lib/rails/generators/
+  - actioncable/test/
+  - actionmailer/lib/rails/generators/
+  - actionmailer/test/
+  - actionpack/test/
+  - actionview/test/
+  - activejob/lib/rails/generators/
+  - activejob/test/
+  - activemodel/test/
+  - activerecord/lib/rails/generators/
+  - activerecord/test/
+  - activesupport/test/
+  - railties/lib/rails/generators/
+  - railties/test/
+  - ci/
+  - guides/
+  - tasks/
+  - tools/

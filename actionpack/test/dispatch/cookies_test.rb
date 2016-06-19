@@ -520,7 +520,7 @@ class CookiesTest < ActionController::TestCase
 
   def test_accessing_nonexistent_signed_cookie_should_not_raise_an_invalid_signature
     get :set_signed_cookie
-    assert_nil @controller.send(:cookies).signed[:non_existant_attribute]
+    assert_nil @controller.send(:cookies).signed[:non_existent_attribute]
   end
 
   def test_encrypted_cookie_using_default_serializer
@@ -638,7 +638,7 @@ class CookiesTest < ActionController::TestCase
 
   def test_accessing_nonexistent_encrypted_cookie_should_not_raise_invalid_message
     get :set_encrypted_cookie
-    assert_nil @controller.send(:cookies).encrypted[:non_existant_attribute]
+    assert_nil @controller.send(:cookies).encrypted[:non_existent_attribute]
   end
 
   def test_setting_invalid_encrypted_cookie_should_return_nil_when_accessing_it

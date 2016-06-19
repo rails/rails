@@ -1,3 +1,7 @@
+*   Remove deprecated arguments in `assert_nothing_raised`.
+
+    *Rafel Mendonça França*
+
 *   `Date.to_s` doesn't produce too many spaces. For example, `to_s(:short)`
     will now produce `01 Feb` instead of ` 1 Feb`.
 

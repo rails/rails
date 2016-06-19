@@ -5,23 +5,6 @@ require 'models/parrot'
 require 'models/person'   # For optimistic locking
 require 'models/aircraft'
 
-class Pirate # Just reopening it, not defining it
-  attr_accessor :detected_changes_in_after_update # Boolean for if changes are detected
-  attr_accessor :changes_detected_in_after_update # Actual changes
-
-  after_update :check_changes
-
-private
-  # after_save/update and the model itself
-  # can end up checking dirty status and acting on the results
-  def check_changes
-    if self.changed?
-      self.detected_changes_in_after_update = true
-      self.changes_detected_in_after_update = self.changes
-    end
-  end
-end
-
 class NumericData < ActiveRecord::Base
   self.table_name = 'numeric_data'
 end

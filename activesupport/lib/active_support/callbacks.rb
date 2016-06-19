@@ -103,7 +103,7 @@ module ActiveSupport
     end
 
     # A hook invoked every time a before callback is halted.
-    # This can be overridden in AS::Callback implementors in order
+    # This can be overridden in ActiveSupport::Callbacks implementors in order
     # to provide better debugging/logging.
     def halted_callback_hook(filter)
     end
@@ -736,8 +736,13 @@ module ActiveSupport
       #
       #   would call <tt>Audit#save</tt>.
       #
-      # NOTE: +method_name+ passed to `define_model_callbacks` must not end with
+      # ===== Notes
+      #
+      # +names+ passed to `define_callbacks` must not end with
       # `!`, `?` or `=`.
+      #
+      # Calling `define_callbacks` multiple times with the same +names+ will
+      # overwrite previous callbacks registered with `set_callback`.
       def define_callbacks(*names)
         options = names.extract_options!
 

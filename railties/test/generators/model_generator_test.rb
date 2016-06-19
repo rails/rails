@@ -34,7 +34,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
   def test_invokes_default_orm
     run_generator
-    assert_file "app/models/account.rb", /class Account < ActiveRecord::Base/
+    assert_file "app/models/account.rb", /class Account < ApplicationRecord/
   end
 
   def test_model_with_parent_option
@@ -56,7 +56,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
   def test_plural_names_are_singularized
     content = run_generator ["accounts".freeze]
-    assert_file "app/models/account.rb", /class Account < ActiveRecord::Base/
+    assert_file "app/models/account.rb", /class Account < ApplicationRecord/
     assert_file "test/models/account_test.rb", /class AccountTest/
     assert_match(/\[WARNING\] The model name 'accounts' was recognized as a plural, using the singular 'account' instead\. Override with --force-plural or setup custom inflection rules for this noun before running the generator\./, content)
   end
@@ -71,7 +71,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_file "app/models/admin.rb", /module Admin/
     assert_file "app/models/admin.rb", /def self\.table_name_prefix/
     assert_file "app/models/admin.rb", /'admin_'/
-    assert_file "app/models/admin/account.rb", /class Admin::Account < ActiveRecord::Base/
+    assert_file "app/models/admin/account.rb", /class Admin::Account < ApplicationRecord/
   end
 
   def test_migration
@@ -386,7 +386,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     run_generator ["account", "supplier:references{required}"]
 
     expected_file = <<-FILE.strip_heredoc
-    class Account < ActiveRecord::Base
+    class Account < ApplicationRecord
       belongs_to :supplier, required: true
     end
     FILE
@@ -397,7 +397,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     run_generator ["account", "supplier:references{required,polymorphic}"]
 
     expected_file = <<-FILE.strip_heredoc
-    class Account < ActiveRecord::Base
+    class Account < ApplicationRecord
       belongs_to :supplier, polymorphic: true, required: true
     end
     FILE
@@ -408,7 +408,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     run_generator ["account", "supplier:references{polymorphic.required}"]
 
     expected_file = <<-FILE.strip_heredoc
-    class Account < ActiveRecord::Base
+    class Account < ApplicationRecord
       belongs_to :supplier, polymorphic: true, required: true
     end
     FILE
@@ -459,7 +459,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   def test_token_option_adds_has_secure_token
     run_generator ["user", "token:token", "auth_token:token"]
     expected_file = <<-FILE.strip_heredoc
-    class User < ActiveRecord::Base
+    class User < ApplicationRecord
       has_secure_token
       has_secure_token :auth_token
     end

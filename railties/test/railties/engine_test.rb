@@ -481,7 +481,7 @@ YAML
         end
       RUBY
 
-      add_to_config "config.middleware.use \"Bukkits\""
+      add_to_config "config.middleware.use Bukkits"
       boot_rails
     end
 
