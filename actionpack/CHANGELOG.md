@@ -1,3 +1,7 @@
+*   Remove deprecated `cache_control` argument from `ActionDispatch::Static#initialize`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to passing strings or symbols to the middleware stack.
 
     *Rafael Mendonça França*
