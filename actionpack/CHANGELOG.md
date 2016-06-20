@@ -1,3 +1,8 @@
+*   Deprecate `ActionDispatch::ParamsParser::ParseError` in favor of
+    `ActionDispatch::Http::Parameters::ParseError`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActionDispatch::ParamsParser`.
 
     *Rafael Mendonça França*
