@@ -1,3 +1,7 @@
+*   Remove deprecated `ActionDispatch::ParamsParser`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `original_exception` and `message` arguments in
     `ActionDispatch::ParamsParser::ParseError#initialize`.
 

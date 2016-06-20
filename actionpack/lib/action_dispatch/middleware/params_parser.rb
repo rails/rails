@@ -6,24 +6,13 @@ module ActionDispatch
   # that is picked based on Content-Type header.
   #
   # In case of any error while parsing data ParamsParser::ParseError is raised.
-  class ParamsParser
+  module ParamsParser
     # Raised when raw data from the request cannot be parsed by the parser
     # defined for request's content mime type.
     class ParseError < StandardError
       def initialize
         super($!.message)
       end
-    end
-
-    # Create a new +ParamsParser+ middleware instance.
-    #
-    # The +parsers+ argument can take Hash of parsers where key is identifying
-    # content mime type, and value is a lambda that is going to process data.
-    def self.new(app, parsers = {})
-      ActiveSupport::Deprecation.warn("ActionDispatch::ParamsParser is deprecated and will be removed in Rails 5.1. Configure the parameter parsing in ActionDispatch::Request.parameter_parsers.")
-      parsers = parsers.transform_keys { |key| key.respond_to?(:symbol) ? key.symbol : key }
-      ActionDispatch::Request.parameter_parsers = ActionDispatch::Request::DEFAULT_PARSERS.merge(parsers)
-      app
     end
   end
 end
