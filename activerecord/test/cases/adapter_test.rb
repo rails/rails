@@ -185,34 +185,6 @@ module ActiveRecord
     end
 
     unless current_adapter?(:SQLite3Adapter)
-      def test_foreign_key_violations_are_translated_to_specific_exception
-        error = assert_raises(ActiveRecord::InvalidForeignKey) do
-          # Oracle adapter uses prefetched primary key values from sequence and passes them to connection adapter insert method
-          if @connection.prefetch_primary_key?
-            id_value = @connection.next_sequence_value(@connection.default_sequence_name("fk_test_has_fk", "id"))
-            @connection.execute "INSERT INTO fk_test_has_fk (id, fk_id) VALUES (#{id_value},0)"
-          else
-            @connection.execute "INSERT INTO fk_test_has_fk (fk_id) VALUES (0)"
-          end
-        end
-
-        assert_not_nil error.cause
-      end
-
-      def test_foreign_key_violations_are_translated_to_specific_exception_with_validate_false
-        klass_has_fk = Class.new(ActiveRecord::Base) do
-          self.table_name = "fk_test_has_fk"
-        end
-
-        error = assert_raises(ActiveRecord::InvalidForeignKey) do
-          has_fk = klass_has_fk.new
-          has_fk.fk_id = 1231231231
-          has_fk.save(validate: false)
-        end
-
-        assert_not_nil error.cause
-      end
-
       def test_value_limit_violations_are_translated_to_specific_exception
         error = assert_raises(ActiveRecord::ValueTooLong) do
           Event.create(title: "abcdefgh")
@@ -227,23 +199,6 @@ module ActiveRecord
         end
 
         assert_not_nil error.cause
-      end
-    end
-
-    def test_disable_referential_integrity
-      assert_nothing_raised do
-        @connection.disable_referential_integrity do
-          # Oracle adapter uses prefetched primary key values from sequence and passes them to connection adapter insert method
-          if @connection.prefetch_primary_key?
-            id_value = @connection.next_sequence_value(@connection.default_sequence_name("fk_test_has_fk", "id"))
-            @connection.execute "INSERT INTO fk_test_has_fk (id, fk_id) VALUES (#{id_value},0)"
-          else
-            @connection.execute "INSERT INTO fk_test_has_fk (fk_id) VALUES (0)"
-          end
-          # should delete created record as otherwise disable_referential_integrity will try to enable constraints after executed block
-          # and will fail (at least on Oracle)
-          @connection.execute "DELETE FROM fk_test_has_fk"
-        end
       end
     end
 
@@ -288,6 +243,59 @@ module ActiveRecord
         assert_not_nil error.message
       end
     end
+  end
+
+  class AdapterForeignKeyTest < ActiveRecord::TestCase
+    self.use_transactional_tests = false
+
+    def setup
+      @connection = ActiveRecord::Base.connection
+    end
+
+    def test_foreign_key_violations_are_translated_to_specific_exception_with_validate_false
+      klass_has_fk = Class.new(ActiveRecord::Base) do
+        self.table_name = "fk_test_has_fk"
+      end
+
+      error = assert_raises(ActiveRecord::InvalidForeignKey) do
+        has_fk = klass_has_fk.new
+        has_fk.fk_id = 1231231231
+        has_fk.save(validate: false)
+      end
+
+      assert_not_nil error.cause
+    end
+
+    def test_foreign_key_violations_are_translated_to_specific_exception
+      error = assert_raises(ActiveRecord::InvalidForeignKey) do
+        insert_into_fk_test_has_fk
+      end
+
+      assert_not_nil error.cause
+    end
+
+    def test_disable_referential_integrity
+      assert_nothing_raised do
+        @connection.disable_referential_integrity do
+          insert_into_fk_test_has_fk
+          # should delete created record as otherwise disable_referential_integrity will try to enable constraints
+          # after executed block and will fail (at least on Oracle)
+          @connection.execute "DELETE FROM fk_test_has_fk"
+        end
+      end
+    end
+
+    private
+
+      def insert_into_fk_test_has_fk
+        # Oracle adapter uses prefetched primary key values from sequence and passes them to connection adapter insert method
+        if @connection.prefetch_primary_key?
+          id_value = @connection.next_sequence_value(@connection.default_sequence_name("fk_test_has_fk", "id"))
+          @connection.execute "INSERT INTO fk_test_has_fk (id,fk_id) VALUES (#{id_value},0)"
+        else
+          @connection.execute "INSERT INTO fk_test_has_fk (fk_id) VALUES (0)"
+        end
+      end
   end
 
   class AdapterTestWithoutTransaction < ActiveRecord::TestCase
