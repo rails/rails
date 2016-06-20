@@ -34,7 +34,6 @@ class TagHelperTest < ActionView::TestCase
     assert_equal tag, tag
   end
 
-
   def test_tag_options
     str = tag("p", "class" => "show", :class => "elsewhere")
     assert_match(/class="show"/, str)
