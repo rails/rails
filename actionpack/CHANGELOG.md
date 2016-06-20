@@ -1,3 +1,12 @@
+*   Remove deprecated `original_exception` and `message` arguments in
+    `ActionDispatch::ParamsParser::ParseError#initialize`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `#original_exception` in `ActionDispatch::ParamsParser::ParseError`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated access to mime types through constants.
 
     *Rafael Mendonça França*
