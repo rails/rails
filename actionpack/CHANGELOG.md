@@ -1,3 +1,7 @@
+*   Remove deprecated support to passing strings or symbols to the middleware stack.
+
+    *Rafael Mendonça França*
+
 *   Change HSTS subdomain to true.
 
     *Rafael Mendonça França*
