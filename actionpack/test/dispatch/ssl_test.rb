@@ -12,25 +12,16 @@ class SSLTest < ActionDispatch::IntegrationTest
 end
 
 class RedirectSSLTest < SSLTest
-  def assert_not_redirected(url, headers: {}, redirect: {}, deprecated_host: nil,
-    deprecated_port: nil)
-
-    self.app = build_app ssl_options: { redirect: redirect,
-      host: deprecated_host, port: deprecated_port
-    }
-
+  def assert_not_redirected(url, headers: {}, redirect: {})
+    self.app = build_app ssl_options: { redirect: redirect }
     get url, headers: headers
     assert_response :ok
   end
 
-  def assert_redirected(redirect: {}, deprecated_host: nil, deprecated_port: nil,
-    from: "http://a/b?c=d", to: from.sub("http", "https"))
-
+  def assert_redirected(redirect: {}, from: "http://a/b?c=d", to: from.sub("http", "https"))
     redirect = { status: 301, body: [] }.merge(redirect)
 
-    self.app = build_app ssl_options: { redirect: redirect,
-      host: deprecated_host, port: deprecated_port
-    }
+    self.app = build_app ssl_options: { redirect: redirect }
 
     get from
     assert_response redirect[:status] || 301
@@ -99,18 +90,6 @@ class RedirectSSLTest < SSLTest
     assert_redirected redirect: { host: "ssl:443" }, to: "https://ssl:443/b?c=d"
   end
 
-  test ":host is deprecated, moved within redirect: { host: … }" do
-    assert_deprecated do
-      assert_redirected deprecated_host: "foo", to: "https://foo/b?c=d"
-    end
-  end
-
-  test ":port is deprecated, moved within redirect: { port: … }" do
-    assert_deprecated do
-      assert_redirected deprecated_port: 1, to: "https://a:1/b?c=d"
-    end
-  end
-
   test "no redirect with redirect set to false" do
     assert_not_redirected "http://example.org", redirect: false
   end
@@ -139,23 +118,19 @@ class StrictTransportSecurityTest < SSLTest
   end
 
   test "hsts: true enables default settings" do
-    assert_hsts EXPECTED, hsts: true
+    assert_hsts EXPECTED_WITH_SUBDOMAINS, hsts: true
   end
 
   test "hsts: false sets max-age to zero, clearing browser HSTS settings" do
-    assert_hsts "max-age=0", hsts: false
+    assert_hsts "max-age=0; includeSubDomains", hsts: false
   end
 
   test ":expires sets max-age" do
-    assert_deprecated do
-      assert_hsts "max-age=500", hsts: { expires: 500 }
-    end
+    assert_hsts "max-age=500; includeSubDomains", hsts: { expires: 500 }
   end
 
   test ":expires supports AS::Duration arguments" do
-    assert_deprecated do
-      assert_hsts "max-age=31557600", hsts: { expires: 1.year }
-    end
+    assert_hsts "max-age=31557600; includeSubDomains", hsts: { expires: 1.year }
   end
 
   test "include subdomains" do
@@ -167,15 +142,11 @@ class StrictTransportSecurityTest < SSLTest
   end
 
   test "opt in to browser preload lists" do
-    assert_deprecated do
-      assert_hsts "#{EXPECTED}; preload", hsts: { preload: true }
-    end
+    assert_hsts "#{EXPECTED_WITH_SUBDOMAINS}; preload", hsts: { preload: true }
   end
 
   test "opt out of browser preload lists" do
-    assert_deprecated do
-      assert_hsts EXPECTED, hsts: { preload: false }
-    end
+    assert_hsts EXPECTED_WITH_SUBDOMAINS, hsts: { preload: false }
   end
 end
 

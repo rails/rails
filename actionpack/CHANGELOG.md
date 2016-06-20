@@ -1,3 +1,11 @@
+*   Change HSTS subdomain to true.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `host` and `port` ssl options.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `const_error` argument in
     `ActionDispatch::Session::SessionRestoreError#initialize`.
 

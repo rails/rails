@@ -100,10 +100,10 @@ module ApplicationTests
 
     test "ActionDispatch::SSL is configured with options when given" do
       add_to_config "config.force_ssl = true"
-      add_to_config "config.ssl_options = { host: 'example.com' }"
+      add_to_config "config.ssl_options = { redirect: { host: 'example.com' } }"
       boot!
 
-      assert_equal [{ host: "example.com" }], Rails.application.middleware.first.args
+      assert_equal [{ redirect: { host: "example.com" } }], Rails.application.middleware.first.args
     end
 
     test "removing Active Record omits its middleware" do
