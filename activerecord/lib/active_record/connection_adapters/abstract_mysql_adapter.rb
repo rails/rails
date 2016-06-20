@@ -734,6 +734,8 @@ module ActiveRecord
 
         # See https://dev.mysql.com/doc/refman/5.7/en/error-messages-server.html
         ER_DUP_ENTRY            = 1062
+        ER_NOT_NULL_VIOLATION   = 1048
+        ER_DO_NOT_HAVE_DEFAULT  = 1364
         ER_NO_REFERENCED_ROW_2  = 1452
         ER_DATA_TOO_LONG        = 1406
         ER_LOCK_DEADLOCK        = 1213
@@ -756,6 +758,8 @@ module ActiveRecord
             end
           when ER_DATA_TOO_LONG
             ValueTooLong.new(message)
+          when ER_NOT_NULL_VIOLATION, ER_DO_NOT_HAVE_DEFAULT
+            NotNullViolation.new(message)
           when ER_LOCK_DEADLOCK
             Deadlocked.new(message)
           else

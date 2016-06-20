@@ -182,6 +182,14 @@ module ActiveRecord
       assert_not_nil error.cause
     end
 
+    def test_not_null_violations_are_translated_to_specific_exception
+      error = assert_raises(ActiveRecord::NotNullViolation) do
+        Post.create
+      end
+
+      assert_not_nil error.cause
+    end
+
     unless current_adapter?(:SQLite3Adapter)
       def test_foreign_key_violations_are_translated_to_specific_exception
         error = assert_raises(ActiveRecord::InvalidForeignKey) do

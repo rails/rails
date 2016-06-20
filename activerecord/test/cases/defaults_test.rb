@@ -169,7 +169,7 @@ if current_adapter?(:Mysql2Adapter)
           assert_nil record.non_null_text
           assert_nil record.non_null_blob
 
-          assert_raises(ActiveRecord::StatementInvalid) { klass.create }
+          assert_raises(ActiveRecord::NotNullViolation) { klass.create }
         end
       end
     end
