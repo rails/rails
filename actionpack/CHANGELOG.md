@@ -1,3 +1,12 @@
+*   Remove deprecated `const_error` argument in
+    `ActionDispatch::Session::SessionRestoreError#initialize`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `#original_exception` in `ActionDispatch::Session::SessionRestoreError`.
+
+    *Rafael Mendonça França*
+
 *   Deprecate `ActionDispatch::ParamsParser::ParseError` in favor of
     `ActionDispatch::Http::Parameters::ParseError`.
 
