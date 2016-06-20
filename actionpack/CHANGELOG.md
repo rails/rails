@@ -1,3 +1,7 @@
+*   Remove deprecated access to mime types through constants.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to non-keyword arguments in `ActionController::TestCase#process`,
     `#get`, `#post`, `#patch`, `#put`, `#delete`, and `#head`.
 
