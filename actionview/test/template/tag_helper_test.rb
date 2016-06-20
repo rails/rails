@@ -30,6 +30,11 @@ class TagHelperTest < ActionView::TestCase
     assert_raises(NoMethodError) { tag.unknown_tag }
   end
 
+  def test_tag_builder_is_singleton
+    assert_equal tag, tag
+  end
+
+
   def test_tag_options
     str = tag("p", "class" => "show", :class => "elsewhere")
     assert_match(/class="show"/, str)

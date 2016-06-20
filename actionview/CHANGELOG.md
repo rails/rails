@@ -1,4 +1,4 @@
-*   New syntax for tag helpers. Avoid positional parameters and suport HTML5 by default.
+*   New syntax for tag helpers. Avoid positional parameters and support HTML5 by default.
     Example usage of tag helpers before:
 
     ```ruby

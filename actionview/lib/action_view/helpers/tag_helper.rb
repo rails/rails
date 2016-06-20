@@ -86,6 +86,7 @@ module ActionView
       end
 
       # Returns an HTML tag. Supports two syntax variants: traditonal and modern.
+      #
       # === Traditional syntax
       # Returns an empty HTML tag of type +name+ which by default is XHTML
       # compliant. Set +open+ to true to create an open tag compatible
@@ -134,13 +135,25 @@ module ActionView
       #   # => <div data-name="Stephen" data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]" />
       # 
       # === Modern syntax
-      # Modern syntax uses one of following format:
+      # Modern syntax follows one of two formats:
       #   tag.<name>(options, escape)
       #   tag.<name>(content, options, escape)
-      # Returns an HTML tag. Conetent has to be a string. If content is passed tag is surrounding the content. Otherwise tag will be empty. You can also use a block to pass the content inside ERB templates. Result is by default is HTML5 compliant. Set escape parameter to false to disable attribute value escaping. The tag will be generated with related closing tag unless tag is a void[https://www.w3.org/TR/html5/syntax.html#void-elements] element. Method will rise NoMethodError if element is not a part of the standard and ArgumentError if you try to pass content to a void element.
+      # Returns an HTML tag. Content has to be a string. If content is passed
+      # than tag is surrounding the content. Otherwise tag will be empty. Youl
+      # can also use a block to pass the content inside ERB templates. Result
+      # is by default HTML5 compliant. Set escape parameter to false to
+      # disable attribute value escaping. The tag will be generated with
+      # related closing tag unless tag represents a
+      # void[https://www.w3.org/TR/html5/syntax.html#void-elements] element.
+      # Method will rise NoMethodError if element is not a part of the HTML5
+      # standard. It will rise ArgumentError if you try to pass content for a 
+      # void element.
       #
       # ==== Options
-      # Like with traditional syntax the options hash can be used with attributes with no value like (disabled and readonly), which you can give a value of true in the options hash. You can use symbols or strings for the attribute names. 
+      # Like with traditional syntax the options hash can be used with
+      # attributes with no value (like disabled and readonly), which you can
+      # give a value of true in the options hash. You can use symbols or
+      # strings for the attribute names.
       #    
       # ==== Examples
       #   tag.span
@@ -188,7 +201,7 @@ module ActionView
 
       
       def tag(name = nil, options = nil, open = false, escape = true)
-        return TagBuilder.new(self) if name == nil
+        return @tag_builder ||= TagBuilder.new(self) if name == nil
         "<#{name}#{tag_options(options, escape) if options}#{open ? ">" : " />"}".html_safe
       end
 
