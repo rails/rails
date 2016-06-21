@@ -18,15 +18,11 @@ module ActiveRecord
           quoted_date(value)
         end
 
-        private
+        def quoted_binary(value)
+          "x'#{value.hex}'"
+        end
 
-          def _quote(value)
-            if value.is_a?(Type::Binary::Data)
-              "x'#{value.hex}'"
-            else
-              super
-            end
-          end
+        private
 
           def _type_cast(value)
             case value

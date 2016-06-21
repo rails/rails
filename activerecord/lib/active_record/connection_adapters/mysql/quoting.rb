@@ -36,15 +36,9 @@ module ActiveRecord
           end
         end
 
-        private
-
-          def _quote(value)
-            if value.is_a?(Type::Binary::Data)
-              "x'#{value.hex}'"
-            else
-              super
-            end
-          end
+        def quoted_binary(value)
+          "x'#{value.hex}'"
+        end
       end
     end
   end

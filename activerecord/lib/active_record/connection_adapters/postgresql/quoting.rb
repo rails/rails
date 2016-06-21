@@ -55,6 +55,10 @@ module ActiveRecord
           end
         end
 
+        def quoted_binary(value) # :nodoc:
+          "'#{escape_bytea(value.to_s)}'"
+        end
+
         def quote_default_expression(value, column) # :nodoc:
           if value.is_a?(Proc)
             value.call
@@ -76,8 +80,6 @@ module ActiveRecord
 
           def _quote(value)
             case value
-            when Type::Binary::Data
-              "'#{escape_bytea(value.to_s)}'"
             when OID::Xml::Data
               "xml '#{quote_string(value.to_s)}'"
             when OID::Bit::Data

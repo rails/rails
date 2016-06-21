@@ -150,6 +150,10 @@ module ActiveRecord
         quoted_date(value).sub(/\A2000-01-01 /, "")
       end
 
+      def quoted_binary(value) # :nodoc:
+        "'#{quote_string(value.to_s)}'"
+      end
+
       private
 
         def type_casted_binds(binds)
@@ -162,7 +166,7 @@ module ActiveRecord
 
         def _quote(value)
           case value
-          when String, ActiveSupport::Multibyte::Chars, Type::Binary::Data
+          when String, ActiveSupport::Multibyte::Chars
             "'#{quote_string(value.to_s)}'"
           when true       then quoted_true
           when false      then quoted_false
@@ -170,6 +174,7 @@ module ActiveRecord
           # BigDecimals need to be put in a non-normalized form and quoted.
           when BigDecimal then value.to_s("F")
           when Numeric, ActiveSupport::Duration then value.to_s
+          when Type::Binary::Data then quoted_binary(value)
           when Type::Time::Value then "'#{quoted_time(value)}'"
           when Date, Time then "'#{quoted_date(value)}'"
           when Symbol     then "'#{quote_string(value.to_s)}'"
