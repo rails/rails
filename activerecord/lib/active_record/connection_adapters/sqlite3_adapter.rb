@@ -188,7 +188,7 @@ module ActiveRecord
       end
 
       def exec_query(sql, name = nil, binds = [], prepare: false)
-        type_casted_binds = binds.map { |attr| type_cast(attr.value_for_database) }
+        type_casted_binds = type_casted_binds(binds)
 
         log(sql, name, binds, type_casted_binds) do
           # Don't cache statements if they are not prepared
@@ -203,7 +203,6 @@ module ActiveRecord
             ensure
               stmt.close
             end
-            stmt = records
           else
             cache = @statements[sql] ||= {
               :stmt => @connection.prepare(sql)
@@ -212,9 +211,10 @@ module ActiveRecord
             cols = cache[:cols] ||= stmt.columns
             stmt.reset!
             stmt.bind_params(type_casted_binds)
+            records = stmt.to_a
           end
 
-          ActiveRecord::Result.new(cols, stmt.to_a)
+          ActiveRecord::Result.new(cols, records)
         end
       end
 
