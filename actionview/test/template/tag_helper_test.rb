@@ -21,19 +21,13 @@ class TagHelperTest < ActionView::TestCase
     assert_equal "<br class=\"some_class\">", tag.br(class: 'some_class')
   end
 
-  def test_tag_builder_void_tag_with_content
-    assert_raises(ArgumentError) { tag.br "Content Not Allowed for void tags" }
-    assert_raises(ArgumentError) { tag.br { |t| t.span } }
-  end
-
-  def test_tag_builder_unknown_tag
-    assert_raises(NoMethodError) { tag.unknown_tag }
+  def test_tag_builder_void_tag_with_forced_content
+    assert_equal "<br>some content</br>", tag.br("some content")
   end
 
   def test_tag_builder_is_singleton
     assert_equal tag, tag
   end
-
 
   def test_tag_options
     str = tag("p", "class" => "show", :class => "elsewhere")
@@ -100,7 +94,7 @@ class TagHelperTest < ActionView::TestCase
     assert_equal "<p>&lt;script&gt;evil_js&lt;/script&gt;</p>",
                  tag.p("<script>evil_js</script>")
     assert_equal "<p><script>evil_js</script></p>",
-                 tag.p('<script>evil_js</script>', nil, false)
+                 tag.p('<script>evil_js</script>', {}, false)
   end
 
   def test_tag_builder_nested
@@ -278,19 +272,13 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_tag_honors_html_safe_with_escaped_array_class
-    str = tag('p', :class => ['song>', raw('play>')])
-    assert_equal '<p class="song&gt; play>" />', str
-
-    str = tag('p', :class => [raw('song>'), 'play>'])
-    assert_equal '<p class="song> play&gt;" />', str
+    assert_equal '<p class="song&gt; play>" />', tag('p', :class => ['song>', raw('play>')])
+    assert_equal '<p class="song> play&gt;" />', tag('p', :class => [raw('song>'), 'play>'])
   end
 
   def test_tag_builder_honors_html_safe_with_escaped_array_class
-    str = tag.p(:class => ['song>', raw('play>')])
-    assert_equal '<p class="song&gt; play>"></p>', str
-
-    str = tag.p(:class => [raw('song>'), 'play>'])
-    assert_equal '<p class="song> play&gt;"></p>', str
+    assert_equal '<p class="song&gt; play>"></p>', tag.p(:class => ['song>', raw('play>')])
+    assert_equal '<p class="song> play&gt;"></p>', tag.p(:class => [raw('song>'), 'play>'])
   end
 
   def test_skip_invalid_escaped_attributes

@@ -29,42 +29,23 @@ module ActionView
       class TagBuilder #:nodoc:
         include TagHelper
 
-        VOID_ELEMENTS = %w(base  br  col  embed  hr  img  input  keygen  link
-                        meta  param  source  track  wbr).to_set
+        VOID_ELEMENTS = %w(base br col embed hr img input keygen link meta
+        param source track wbr).to_set
 
         VOID_ELEMENTS.merge(VOID_ELEMENTS.map(&:to_sym))
-
-        ELEMENTS = %w(a abbr acronym address applet area article aside audio b
-                   base basefont bdi bdo bgsound big blink blockquote body br
-                   button canvas caption center cite code col colgroup command
-                   content data datalist dd del details dfn dialog dir div dl
-                   dt element em embed fieldset figcaption figure font footer
-                   form frame frameset h1 h2 h3 h4 h5 h6 head header hgroup hr
-                   html i iframe image img input ins isindex kbd keygen label
-                   legend li link listing main map mark marquee menu menuitem
-                   meta meter multicol nav nextid nobr noembed noframes
-                   noscript object ol optgroup option output p param picture
-                   plaintext pre progress q rp rt rtc ruby s samp script
-                   section select shadow small source spacer span strike strong
-                   style sub summary sup table tbody td template textarea tfoot
-                   th thead time title tr track tt u ul var video wbr xmp
-                   ).to_set
-
-        ELEMENTS.merge(ELEMENTS.map(&:to_sym))
 
         def initialize(view_context)
           @view_context = view_context
         end
 
         private
-
           def tag_string(name, content_or_options = nil, options_or_escape = nil, escape = true, &block)
-            raise_if_void_tag_with_content(name, content_or_options, &block)
-            if block_given?
+            case
+            when block_given?
               content_tag_string(name, @view_context.capture(self, &block), content_or_options, options_or_escape)
-            elsif content_or_options.is_a? String
+            when content_or_options.is_a?(String)
               content_tag_string(name, content_or_options, options_or_escape, escape)
-            elsif VOID_ELEMENTS.include?(name)
+            when VOID_ELEMENTS.include?(name)
               options_or_escape = true if options_or_escape.nil?
               "<#{name}#{tag_options(content_or_options, options_or_escape)}>".html_safe
             else
@@ -73,15 +54,8 @@ module ActionView
             end
           end
 
-          def raise_if_void_tag_with_content(name, content_or_options, &block)
-            has_content = block_given? || content_or_options.is_a?(String)
-            void_with_content = has_content && VOID_ELEMENTS.include?(name)
-            raise ArgumentError, "Void tag with content" if void_with_content
-          end
-
           def method_missing(called, *args, &block)
-            return tag_string(called, *args, &block) if ELEMENTS.include?(called)
-            super
+            tag_string(called, *args, &block)
           end
       end
 
@@ -171,7 +145,7 @@ module ActionView
       #   tag.img src: "open & shut.png"
       #   # => <img src="open &amp; shut.png">
       #
-      #   tag.img({src: "open &amp; shut.png"}, nil, false)
+      #   tag.img({src: "open &amp; shut.png"}, false)
       #   # => <img src="open &amp; shut.png">
       #
       #   tag.div(data: {name: 'Stephen', city_state: %w(Chicago IL)})
@@ -197,12 +171,13 @@ module ActionView
       #   <%= tag.div class: "strong" do |t| %>
       #     <% t.p("Hello world!") %>
       #   <% end %>
-      #    # => <div class="strong"><p>Hello world!</p></div>
-
-      
+      #    # => <div class="strong"><p>Hello world!</p></div>  
       def tag(name = nil, options = nil, open = false, escape = true)
-        return @tag_builder ||= TagBuilder.new(self) if name == nil
-        "<#{name}#{tag_options(options, escape) if options}#{open ? ">" : " />"}".html_safe
+        if name.nil?
+          @tag_builder ||= TagBuilder.new(self)
+        else
+          "<#{name}#{tag_options(options, escape) if options}#{open ? ">" : " />"}".html_safe
+        end
       end
 
       # Returns an HTML block tag of type +name+ surrounding the +content+. Add
@@ -269,7 +244,6 @@ module ActionView
       end
 
       private
-
         def content_tag_string(name, content, options, escape = true)
           tag_options = tag_options(options, escape) if options
           content     = ERB::Util.unwrapped_html_escape(content) if escape
