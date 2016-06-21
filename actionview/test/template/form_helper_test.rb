@@ -528,33 +528,18 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, text_field(object_name, "title")
   end
 
-  def test_file_field_does_generate_a_hidden_field
-    expected = '<input name="user[avatar]" type="hidden" value="" /><input id="user_avatar" name="user[avatar]" type="file" />'
-    assert_dom_equal expected, file_field("user", "avatar")
-  end
-
-  def test_file_field_does_not_generate_a_hidden_field_if_included_hidden_option_is_false
-    expected = '<input id="user_avatar" name="user[avatar]" type="file" />'
-    assert_dom_equal expected, file_field("user", "avatar", include_hidden: false)
-  end
-
-  def test_file_field_does_not_generate_a_hidden_field_if_included_hidden_option_is_false_with_key_as_string
-    expected = '<input id="user_avatar" name="user[avatar]" type="file" />'
-    assert_dom_equal expected, file_field("user", "avatar", "include_hidden" => false)
-  end
-
   def test_file_field_has_no_size
-    expected = '<input name="user[avatar]" type="hidden" value="" /><input id="user_avatar" name="user[avatar]" type="file" />'
+    expected = '<input id="user_avatar" name="user[avatar]" type="file" />'
     assert_dom_equal expected, file_field("user", "avatar")
   end
 
   def test_file_field_with_multiple_behavior
-    expected = '<input name="import[file][]" type="hidden" value="" /><input id="import_file" multiple="multiple" name="import[file][]" type="file" />'
+    expected = '<input id="import_file" multiple="multiple" name="import[file][]" type="file" />'
     assert_dom_equal expected, file_field("import", "file", :multiple => true)
   end
 
   def test_file_field_with_multiple_behavior_and_explicit_name
-    expected = '<input name="custom" type="hidden" value="" /><input id="import_file" multiple="multiple" name="custom" type="file" />'
+    expected = '<input id="import_file" multiple="multiple" name="custom" type="file" />'
     assert_dom_equal expected, file_field("import", "file", :multiple => true, :name => "custom")
   end
 
@@ -1838,7 +1823,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts/123", "create-post", "edit_post", method: "patch", multipart: true) do
-      "<input name='post[file]' type='hidden' value='' /><input name='post[file]' type='file' id='post_file' />"
+      "<input name='post[file]' type='file' id='post_file' />"
     end
 
     assert_dom_equal expected, output_buffer
@@ -1854,7 +1839,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch", multipart: true) do
-      "<input name='post[comment][file]' type='hidden' value='' /><input name='post[comment][file]' type='file' id='post_comment_file' />"
+      "<input name='post[comment][file]' type='file' id='post_comment_file' />"
     end
 
     assert_dom_equal expected, output_buffer

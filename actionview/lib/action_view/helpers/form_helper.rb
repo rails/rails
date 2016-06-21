@@ -860,24 +860,6 @@ module ActionView
       #
       #   file_field(:attachment, :file, class: 'file_input')
       #   # => <input type="file" id="attachment_file" name="attachment[file]" class="file_input" />
-      #
-      # ==== Gotcha
-      #
-      # The HTML specification says that when a file field is empty, web browsers
-      # do not send any value to the server. Unfortunately this introduces a
-      # gotcha: if a +User+ model has an +avatar+ field, and no file is selected,
-      # then the +avatar+ parameter is empty. Thus, any mass-assignment idiom like
-      #
-      #   @user.update(params[:user])
-      #
-      # wouldn't update the +avatar+ field.
-      #
-      # To prevent this, the helper generates an auxiliary hidden field before
-      # every file field. The hidden field has the same name as the file one and
-      # a blank value.
-      #
-      # In case you don't want the helper to generate this hidden field you can
-      # specify the <tt>include_hidden: false</tt> option.
       def file_field(object_name, method, options = {})
         Tags::FileField.new(object_name, method, self, options).render
       end
