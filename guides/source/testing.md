@@ -722,7 +722,7 @@ get :show, params: { id: 12 }, headers: { "HTTP_REFERER" => "http://example.com/
 Another example: Calling the `:update` action, passing an `id` of 12 as the `params` as an Ajax request.
 
 ```ruby
-get update_url, params: { id: 12 }, xhr: true
+patch update_url, params: { id: 12 }, xhr: true
 ```
 
 NOTE: If you try running `test_should_create_article` test from `articles_controller_test.rb` it will fail on account of the newly added model level validation and rightly so.
