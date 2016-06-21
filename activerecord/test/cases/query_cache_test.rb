@@ -190,6 +190,27 @@ class QueryCacheTest < ActiveRecord::TestCase
     Task.connection_specification_name = spec_name
   end
 
+  def test_query_cache_executes_new_queries_within_block
+    ActiveRecord::Base.connection.enable_query_cache!
+
+    # Warm up the cache by running the query
+    assert_queries(1) do
+      assert_equal 0, Post.where(title: 'test').to_a.count
+    end
+
+    # Check that if the same query is run again, no queries are executed
+    assert_queries(0) do
+      assert_equal 0, Post.where(title: 'test').to_a.count
+    end
+
+    ActiveRecord::Base.connection.uncached do
+      # Check that new query is executed, avoiding the cache
+      assert_queries(1) do
+        assert_equal 0, Post.where(title: 'test').to_a.count
+      end
+    end
+  end
+
   def test_query_cache_doesnt_leak_cached_results_of_rolled_back_queries
     ActiveRecord::Base.connection.enable_query_cache!
     post = Post.first
