@@ -3,11 +3,8 @@
 
     ```ruby
     tag(:br)
-
     content_tag(:div, content_tag(:p, "Hello world!"), class: "strong")
-    ```
 
-    ```html
     <%= content_tag :div, class: "strong" do -%>
       Hello world!
     <% end -%>
@@ -17,11 +14,8 @@
 
     ```ruby
     tag.br
-
     tag.div tag.p("Hello world!"), class: "strong"
-    ```
 
-    ```html
     <%= tag.div class: "strong" do %>
       Hello world!
     <% end %>
