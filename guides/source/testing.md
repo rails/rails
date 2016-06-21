@@ -695,7 +695,7 @@ end
 In the `test_should_get_index` test, Rails simulates a request on the action called `index`, making sure the request was successful
 and also ensuring that the right response body has been generated.
 
-The `get` method kicks off the web request and populates the results into the `@response`. It accepts 4 arguments:
+The `get` method kicks off the web request and populates the results into the `@response`. It can accept up to 6 arguments:
 
 * The action of the controller you are requesting.
   This can be in the form of a string or a route (i.e. `articles_url`).
@@ -703,22 +703,26 @@ The `get` method kicks off the web request and populates the results into the `@
 * `params`: option with a hash of request parameters to pass into the action
   (e.g. query string parameters or article variables).
 
-* `session`: option with a hash of session variables to pass along with the request.
+* `headers`: for setting the headers that will be passed with the request.
 
-* `flash`: option with a hash of flash values.
+* `env`: for customizing the request environment as needed.
+
+* `xhr`: whether the request is Ajax request or not. Can be set to true for marking the request as Ajax.
+
+* `as`: for encoding the request with different content type. Supports `:json` by default.
 
 All of these keyword arguments are optional.
 
-Example: Calling the `:show` action, passing an `id` of 12 as the `params` and setting a `user_id` of 5 in the session:
+Example: Calling the `:show` action, passing an `id` of 12 as the `params` and setting `HTTP_REFERER` header:
 
 ```ruby
-get(:show, params: { id: 12 }, session: { user_id: 5 })
+get :show, params: { id: 12 }, headers: { "HTTP_REFERER" => "http://example.com/home" }
 ```
 
-Another example: Calling the `:view` action, passing an `id` of 12 as the `params`, this time with no session, but with a flash message.
+Another example: Calling the `:update` action, passing an `id` of 12 as the `params` as an Ajax request.
 
 ```ruby
-get(view_url, params: { id: 12 }, flash: { message: 'booya!' })
+get update_url, params: { id: 12 }, xhr: true
 ```
 
 NOTE: If you try running `test_should_create_article` test from `articles_controller_test.rb` it will fail on account of the newly added model level validation and rightly so.
