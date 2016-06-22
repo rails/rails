@@ -412,9 +412,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   def test_include_has_many_through_polymorphic_has_many
     author            = Author.includes(:taggings).find authors(:david).id
     expected_taggings = taggings(:welcome_general, :thinking_general)
-    assert_no_queries do
-      assert_equal expected_taggings, author.taggings.distinct.sort_by(&:id)
-    end
+    assert_equal expected_taggings, author.taggings.distinct.sort_by(&:id)
   end
 
   def test_eager_load_has_many_through_has_many

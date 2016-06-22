@@ -775,10 +775,8 @@ class RelationTest < ActiveRecord::TestCase
     author = Author.preload(:taggings).find_by_id(david.id)
     expected_taggings = taggings(:welcome_general, :thinking_general)
 
-    assert_no_queries do
-      assert_equal expected_taggings, author.taggings.distinct.sort_by(&:id)
-      assert_equal expected_taggings, author.taggings.uniq.sort_by(&:id)
-    end
+    assert_equal expected_taggings, author.taggings.distinct.sort_by(&:id)
+    assert_equal expected_taggings, author.taggings.uniq.sort_by(&:id)
 
     authors = Author.all
     assert_equal david, authors.find_by_id_and_name(david.id, david.name)

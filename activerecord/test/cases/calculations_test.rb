@@ -793,4 +793,11 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 50, result[1].credit_limit
     assert_equal 50, result[2].credit_limit
   end
+
+  def test_distinct_count_on_association_column
+    Contract.destroy_all
+    company = Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7), Contract.new(:developer_id => 7), Contract.new(:developer_id => 1)])
+    assert_equal 2, Contract.distinct.count(:developer_id)
+    company.contracts.distinct.count(:developer_id)
+  end
 end
