@@ -173,7 +173,7 @@ module Rails
 
       # Disable dependency loading during request cycle
       initializer :disable_dependency_loading do
-        if config.eager_load && config.cache_classes
+        if config.eager_load && config.cache_classes && !config.enable_dependency_loading
           ActiveSupport::Dependencies.unhook!
         end
       end
