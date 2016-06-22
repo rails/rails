@@ -1,3 +1,11 @@
+*   Change `datetime_field` and `datetime_field_tag` to generate `datetime-local` fields.
+
+    As a new specification of the HTML 5 the text field type `datetime` will no longer exist
+    and it is recomended to use `datetime-local`.
+    Ref: https://html.spec.whatwg.org/multipage/forms.html#local-date-and-time-state-(type=datetime-local)
+
+    *Herminio Torres*
+
 *   Raw template handler (which is also the default template handler in Rails 5) now outputs
     HTML-safe strings.
 
@@ -54,12 +62,6 @@
 *   Add `to_sentence` helper that is a HTML-safe aware version of `Array#to_sentence`.
 
     *Neil Matatall*
-
-*   Deprecate `datetime_field` and `datetime_field_tag` helpers.
-    Datetime input type was removed from HTML specification.
-    One can use `datetime_local_field` and `datetime_local_field_tag` instead.
-
-    *Wojciech Wnętrzak*
 
 *   Added log "Rendering ...", when starting to render a template to log that
     we have started rendering something. This helps to easily identify the origin

@@ -14,7 +14,7 @@ module ActionView
         private
 
           def format_date(value)
-            value.try(:strftime, "%Y-%m-%dT%T.%L%z")
+            raise NoImplementedError
           end
 
           def datetime_value(value)
