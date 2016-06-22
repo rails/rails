@@ -35,6 +35,7 @@ module Rails
         logger.info { started_request_message(request) }
         resp = @app.call(env)
         resp[2] = ::Rack::BodyProxy.new(resp[2]) { finish(request) }
+        logger.info { started_response_message(request, resp) } if response_message_enabled?
         resp
       rescue Exception
         finish(request)
@@ -46,6 +47,17 @@ module Rails
       # Started GET "/session/new" for 127.0.0.1 at 2012-09-26 14:51:42 -0700
       def started_request_message(request)
         'Started %s "%s" for %s at %s' % [
+          request.request_method,
+          request.filtered_path,
+          request.ip,
+          Time.now.to_default_s ]
+      end
+
+      # Started response HTTP 200 (117532 bytes) for GET "/session/new" for 127.0.0.1 at 2012-09-26 14:52:42 -0700
+      def started_response_message(request, resp)
+        'Started response HTTP %s (%s) for %s "%s" for %s at %s' % [
+          resp[0],
+          resp[1]['Content-Length'].nil? ? 'unknown length' : (resp[1]['Content-Length'] + " bytes"),
           request.request_method,
           request.filtered_path,
           request.ip,
@@ -74,6 +86,10 @@ module Rails
 
       def logger
         Rails.logger
+      end
+
+      def response_message_enabled?
+        Rails.application.config.log_start_response_message || false
       end
     end
   end

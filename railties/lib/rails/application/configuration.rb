@@ -16,7 +16,7 @@ module Rails
                     :railties_order, :relative_url_root, :secret_key_base, :secret_token,
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
-                    :beginning_of_week, :filter_redirect, :x
+                    :beginning_of_week, :filter_redirect, :log_start_response_message, :x
 
       attr_writer :log_level
       attr_reader :encoding, :api_only, :static_cache_control
@@ -53,6 +53,7 @@ module Rails
         @secret_key_base                 = nil
         @api_only                        = false
         @debug_exception_response_format = nil
+        @log_start_response_message      = false
         @x                               = Custom.new
       end
 
