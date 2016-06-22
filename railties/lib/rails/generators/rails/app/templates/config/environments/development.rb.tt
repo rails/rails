@@ -57,7 +57,4 @@ Rails.application.configure do
   # Use an evented file watcher to asynchronously detect changes in source code,
   # routes, locales, etc. This feature depends on the listen gem.
   <%= '# ' unless depend_on_listen? %>config.file_watcher = ActiveSupport::EventedFileUpdateChecker
-
-  # Enable the autoload loading behavior even if the application is eager loaded
-  config.enable_dependency_loading = false
 end
