@@ -1,3 +1,11 @@
+*   A change was made in the helper that renders the `datetime`, being now by default `datetime-local` and
+    creating an alias of `datetime-local` for `datetime`, `datetime` tag and it passes to be an abstract class for all other tags that inherit from him.
+
+    As a new specification of the HTML 5 the text field type `datetime` will no longer exist and will pass a `datetime-local`.
+    Ref: https://html.spec.whatwg.org/multipage/forms.html#local-date-and-time-state-(type=datetime-local)
+
+    *Herminio Torres*
+
 *   Raw template handler (which is also the default template handler in Rails 5) now outputs
     HTML-safe strings.
 

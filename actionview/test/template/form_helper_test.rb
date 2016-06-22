@@ -1123,127 +1123,65 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_datetime_field
-    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime" value="2004-06-15T00:00:00.000+0000" />}
-    assert_deprecated do
-      assert_dom_equal(expected, datetime_field("post", "written_on"))
-    end
+    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T00:00:00" />}
+    assert_dom_equal(expected, datetime_field("post", "written_on"))
   end
 
   def test_datetime_field_with_datetime_value
-    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime" value="2004-06-15T01:02:03.000+0000" />}
+    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T01:02:03" />}
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
-    assert_deprecated do
-      assert_dom_equal(expected, datetime_field("post", "written_on"))
-    end
+    assert_dom_equal(expected, datetime_field("post", "written_on"))
   end
 
   def test_datetime_field_with_extra_attrs
-    expected = %{<input id="post_written_on" step="60" max="2010-08-15T10:25:00.000+0000" min="2000-06-15T20:45:30.000+0000" name="post[written_on]" type="datetime" value="2004-06-15T01:02:03.000+0000" />}
-    @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
-    min_value = DateTime.new(2000, 6, 15, 20, 45, 30)
-    max_value = DateTime.new(2010, 8, 15, 10, 25, 00)
-    step = 60
-    assert_deprecated do
-      assert_dom_equal(expected, datetime_field("post", "written_on", min: min_value, max: max_value, step: step))
-    end
-  end
-
-  def test_datetime_field_with_value_attr
-    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime" value="2013-06-29T13:37:00+00:00" />}
-    value = DateTime.new(2013,6,29,13,37)
-    assert_deprecated do
-      assert_dom_equal(expected, datetime_field("post", "written_on", value: value))
-    end
-  end
-
-  def test_datetime_field_with_timewithzone_value
-    previous_time_zone, Time.zone = Time.zone, 'UTC'
-    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime" value="2004-06-15T15:30:45.000+0000" />}
-    @post.written_on = Time.zone.parse('2004-06-15 15:30:45')
-    assert_deprecated do
-      assert_dom_equal(expected, datetime_field("post", "written_on"))
-    end
-  ensure
-    Time.zone = previous_time_zone
-  end
-
-  def test_datetime_field_with_nil_value
-    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime" />}
-    @post.written_on = nil
-    assert_deprecated do
-      assert_dom_equal(expected, datetime_field("post", "written_on"))
-    end
-  end
-
-  def test_datetime_field_with_string_values_for_min_and_max
-    expected = %{<input id="post_written_on" max="2010-08-15T10:25:00.000+0000" min="2000-06-15T20:45:30.000+0000" name="post[written_on]" type="datetime" value="2004-06-15T01:02:03.000+0000" />}
-    @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
-    min_value = "2000-06-15T20:45:30.000+0000"
-    max_value = "2010-08-15T10:25:00.000+0000"
-    assert_deprecated do
-      assert_dom_equal(expected, datetime_field("post", "written_on", min: min_value, max: max_value))
-    end
-  end
-
-  def test_datetime_field_with_invalid_string_values_for_min_and_max
-    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime" value="2004-06-15T01:02:03.000+0000" />}
-    @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
-    min_value = "foo"
-    max_value = "bar"
-    assert_deprecated do
-      assert_dom_equal(expected, datetime_field("post", "written_on", min: min_value, max: max_value))
-    end
-  end
-
-  def test_datetime_local_field
-    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T00:00:00" />}
-    assert_dom_equal(expected, datetime_local_field("post", "written_on"))
-  end
-
-  def test_datetime_local_field_with_datetime_value
-    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T01:02:03" />}
-    @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
-    assert_dom_equal(expected, datetime_local_field("post", "written_on"))
-  end
-
-  def test_datetime_local_field_with_extra_attrs
     expected = %{<input id="post_written_on" step="60" max="2010-08-15T10:25:00" min="2000-06-15T20:45:30" name="post[written_on]" type="datetime-local" value="2004-06-15T01:02:03" />}
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
     min_value = DateTime.new(2000, 6, 15, 20, 45, 30)
     max_value = DateTime.new(2010, 8, 15, 10, 25, 00)
     step = 60
-    assert_dom_equal(expected, datetime_local_field("post", "written_on", min: min_value, max: max_value, step: step))
+    assert_dom_equal(expected, datetime_field("post", "written_on", min: min_value, max: max_value, step: step))
   end
 
-  def test_datetime_local_field_with_timewithzone_value
+  def test_datetime_field_with_value_attr
+    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2013-06-29T13:37:00+00:00" />}
+    value = DateTime.new(2013,6,29,13,37)
+    assert_dom_equal(expected, datetime_field("post", "written_on", value: value))
+  end
+
+  def test_datetime_field_with_timewithzone_value
     previous_time_zone, Time.zone = Time.zone, 'UTC'
     expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T15:30:45" />}
     @post.written_on = Time.zone.parse('2004-06-15 15:30:45')
-    assert_dom_equal(expected, datetime_local_field("post", "written_on"))
+    assert_dom_equal(expected, datetime_field("post", "written_on"))
   ensure
     Time.zone = previous_time_zone
   end
 
-  def test_datetime_local_field_with_nil_value
+  def test_datetime_field_with_nil_value
     expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" />}
     @post.written_on = nil
-    assert_dom_equal(expected, datetime_local_field("post", "written_on"))
+    assert_dom_equal(expected, datetime_field("post", "written_on"))
   end
 
-  def test_datetime_local_field_with_string_values_for_min_and_max
+  def test_datetime_field_with_string_values_for_min_and_max
     expected = %{<input id="post_written_on" max="2010-08-15T10:25:00" min="2000-06-15T20:45:30" name="post[written_on]" type="datetime-local" value="2004-06-15T01:02:03" />}
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
     min_value = "2000-06-15T20:45:30"
     max_value = "2010-08-15T10:25:00"
-    assert_dom_equal(expected, datetime_local_field("post", "written_on", min: min_value, max: max_value))
+    assert_dom_equal(expected, datetime_field("post", "written_on", min: min_value, max: max_value))
   end
 
-  def test_datetime_local_field_with_invalid_string_values_for_min_and_max
+  def test_datetime_field_with_invalid_string_values_for_min_and_max
     expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T01:02:03" />}
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
     min_value = "foo"
     max_value = "bar"
-    assert_dom_equal(expected, datetime_local_field("post", "written_on", min: min_value, max: max_value))
+    assert_dom_equal(expected, datetime_field("post", "written_on", min: min_value, max: max_value))
+  end
+
+  def test_datetime_local_field
+    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T00:00:00" />}
+    assert_dom_equal(expected, datetime_local_field("post", "written_on"))
   end
 
   def test_month_field
