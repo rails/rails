@@ -1,3 +1,5 @@
+## Rails 5.0.0.rc2 (June 22, 2016) ##
+
 *   `Date.to_s` doesn't produce too many spaces. For example, `to_s(:short)`
     will now produce `01 Feb` instead of ` 1 Feb`.
 

@@ -1,3 +1,8 @@
+## Rails 5.0.0.rc2 (June 22, 2016) ##
+
+*   No changes.
+
+
 ## Rails 5.0.0.rc1 (May 06, 2016) ##
 
 *   No changes.
