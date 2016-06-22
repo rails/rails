@@ -66,7 +66,7 @@ module ActiveSupport
       # +Date.today+, and +DateTime.now+ to return the time or date passed into this method.
       #
       #   Time.current     # => Sat, 09 Nov 2013 15:34:49 EST -05:00
-      #   travel_to Time.new(2004, 11, 24, 01, 04, 44)
+      #   travel_to Time.zone.local(2004, 11, 24, 01, 04, 44)
       #   Time.current     # => Wed, 24 Nov 2004 01:04:44 EST -05:00
       #   Date.current     # => Wed, 24 Nov 2004
       #   DateTime.current # => Wed, 24 Nov 2004 01:04:44 -0500
@@ -88,7 +88,7 @@ module ActiveSupport
       # state at the end of the block:
       #
       #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
-      #   travel_to Time.new(2004, 11, 24, 01, 04, 44) do
+      #   travel_to Time.zone.local(2004, 11, 24, 01, 04, 44) do
       #     Time.current # => Wed, 24 Nov 2004 01:04:44 EST -05:00
       #   end
       #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
@@ -116,7 +116,7 @@ module ActiveSupport
       # `travel` and `travel_to`.
       #
       #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
-      #   travel_to Time.new(2004, 11, 24, 01, 04, 44)
+      #   travel_to Time.zone.local(2004, 11, 24, 01, 04, 44)
       #   Time.current # => Wed, 24 Nov 2004 01:04:44 EST -05:00
       #   travel_back
       #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
