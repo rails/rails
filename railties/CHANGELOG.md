@@ -1,3 +1,8 @@
+*   Default `config.assets.quiet = true` in the development environment. Suppress
+    logging of `sprockets-rails` requests by default.
+
+    *Kevin McPhillips*
+
 *   Ensure `/rails/info` routes match in development for apps with a catch-all globbing route.
 
     *Nicholas Firth-McCoy*
