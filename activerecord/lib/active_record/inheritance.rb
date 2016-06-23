@@ -19,7 +19,7 @@ module ActiveRecord
   # Be aware that because the type column is an attribute on the record every new
   # subclass will instantly be marked as dirty and the type column will be included
   # in the list of changed attributes on the record. This is different from non
-  # STI classes:
+  # Single Table Inheritance(STI) classes:
   #
   #   Company.new.changed? # => false
   #   Firm.new.changed?    # => true
@@ -37,6 +37,7 @@ module ActiveRecord
 
     included do
       # Determines whether to store the full constant name including namespace when using STI.
+      # This is true, by default.
       class_attribute :store_full_sti_class, instance_writer: false
       self.store_full_sti_class = true
     end
