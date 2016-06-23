@@ -13,19 +13,6 @@ module ActiveRecord
           result
         end
 
-        # Returns a record hash with the column names as keys and column values
-        # as values.
-        def select_one(arel, name = nil, binds = [])
-          arel, binds = binds_from_relation(arel, binds)
-          @connection.query_options.merge!(as: :hash)
-          select_result(to_sql(arel, binds), name, binds) do |result|
-            @connection.next_result while @connection.more_results?
-            result.first
-          end
-        ensure
-          @connection.query_options.merge!(as: :array)
-        end
-
         # Returns an array of arrays containing the field values.
         # Order is the same as that returned by +columns+.
         def select_rows(sql, name = nil, binds = [])
