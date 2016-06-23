@@ -219,6 +219,12 @@ class ErrorsTest < ActiveModel::TestCase
     assert !person.errors.added?(:name, "cannot be blank")
   end
 
+  test "added? returns false when checking for an error, but not providing message arguments" do
+    person = Person.new
+    person.errors.add(:name, "cannot be blank")
+    assert !person.errors.added?(:name)
+  end
+
   test "size calculates the number of error messages" do
     person = Person.new
     person.errors.add(:name, "cannot be blank")

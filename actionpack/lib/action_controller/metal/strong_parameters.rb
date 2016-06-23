@@ -58,8 +58,7 @@ module ActionController
   #   })
   #
   #   permitted = params.require(:person).permit(:name, :age)
-  #   permitted            # => {"name"=>"Francesco", "age"=>22}
-  #   permitted.class      # => ActionController::Parameters
+  #   permitted            # => <ActionController::Parameters {"name"=>"Francesco", "age"=>22} permitted: true>
   #   permitted.permitted? # => true
   #
   #   Person.first.update!(permitted)
@@ -87,7 +86,7 @@ module ActionController
   #
   #   params = ActionController::Parameters.new(a: "123", b: "456")
   #   params.permit(:c)
-  #   # => {}
+  #   # => <ActionController::Parameters {} permitted: true>
   #
   #   ActionController::Parameters.action_on_unpermitted_parameters = :raise
   #
@@ -255,7 +254,7 @@ module ActionController
     # either present or the singleton +false+, returns said value:
     #
     #   ActionController::Parameters.new(person: { name: 'Francesco' }).require(:person)
-    #   # => {"name"=>"Francesco"}
+    #   # => <ActionController::Parameters {"name"=>"Francesco"} permitted: false>
     #
     # Otherwise raises <tt>ActionController::ParameterMissing</tt>:
     #
@@ -276,12 +275,12 @@ module ActionController
     # returned:
     #
     #   params = ActionController::Parameters.new(user: { ... }, profile: { ... })
-    #   user_params, profile_params = params.require(:user, :profile)
+    #   user_params, profile_params = params.require([:user, :profile])
     #
     # Otherwise, the method re-raises the first exception found:
     #
     #   params = ActionController::Parameters.new(user: {}, profile: {})
-    #   user_params, profile_params = params.require(:user, :profile)
+    #   user_params, profile_params = params.require([:user, :profile])
     #   # ActionController::ParameterMissing: param is missing or the value is empty: user
     #
     # Technically this method can be used to fetch terminal values:
@@ -374,13 +373,13 @@ module ActionController
     #   })
     #
     #   params.require(:person).permit(:contact)
-    #   # => {}
+    #   # => <ActionController::Parameters {} permitted: true>
     #
     #   params.require(:person).permit(contact: :phone)
-    #   # => {"contact"=>{"phone"=>"555-1234"}}
+    #   # => <ActionController::Parameters {"contact"=><ActionController::Parameters {"phone"=>"555-1234"} permitted: true>} permitted: true>
     #
     #   params.require(:person).permit(contact: [ :email, :phone ])
-    #   # => {"contact"=>{"email"=>"none@test.com", "phone"=>"555-1234"}}
+    #   # => <ActionController::Parameters {"contact"=><ActionController::Parameters {"email"=>"none@test.com", "phone"=>"555-1234"} permitted: true>} permitted: true>
     def permit(*filters)
       params = self.class.new
 
@@ -402,7 +401,7 @@ module ActionController
     # returns +nil+.
     #
     #   params = ActionController::Parameters.new(person: { name: 'Francesco' })
-    #   params[:person] # => {"name"=>"Francesco"}
+    #   params[:person] # => <ActionController::Parameters {"name"=>"Francesco"} permitted: false>
     #   params[:none]   # => nil
     def [](key)
       convert_hashes_to_parameters(key, @parameters[key])
@@ -421,7 +420,7 @@ module ActionController
     # is given, then that will be run and its result returned.
     #
     #   params = ActionController::Parameters.new(person: { name: 'Francesco' })
-    #   params.fetch(:person)               # => {"name"=>"Francesco"}
+    #   params.fetch(:person)               # => <ActionController::Parameters {"name"=>"Francesco"} permitted: false>
     #   params.fetch(:none)                 # => ActionController::ParameterMissing: param is missing or the value is empty: none
     #   params.fetch(:none, 'Francesco')    # => "Francesco"
     #   params.fetch(:none) { 'Francesco' } # => "Francesco"
@@ -457,8 +456,8 @@ module ActionController
     # don't exist, returns an empty hash.
     #
     #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
-    #   params.slice(:a, :b) # => {"a"=>1, "b"=>2}
-    #   params.slice(:d)     # => {}
+    #   params.slice(:a, :b) # => <ActionController::Parameters {"a"=>1, "b"=>2} permitted: false>
+    #   params.slice(:d)     # => <ActionController::Parameters {} permitted: false>
     def slice(*keys)
       new_instance_with_inherited_permitted_status(@parameters.slice(*keys))
     end
@@ -474,8 +473,8 @@ module ActionController
     # filters out the given +keys+.
     #
     #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
-    #   params.except(:a, :b) # => {"c"=>3}
-    #   params.except(:d)     # => {"a"=>1,"b"=>2,"c"=>3}
+    #   params.except(:a, :b) # => <ActionController::Parameters {"c"=>3} permitted: false>
+    #   params.except(:d)     # => <ActionController::Parameters {"a"=>1, "b"=>2, "c"=>3} permitted: false>
     def except(*keys)
       new_instance_with_inherited_permitted_status(@parameters.except(*keys))
     end
@@ -483,8 +482,8 @@ module ActionController
     # Removes and returns the key/value pairs matching the given keys.
     #
     #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
-    #   params.extract!(:a, :b) # => {"a"=>1, "b"=>2}
-    #   params                  # => {"c"=>3}
+    #   params.extract!(:a, :b) # => <ActionController::Parameters {"a"=>1, "b"=>2} permitted: false>
+    #   params                  # => <ActionController::Parameters {"c"=>3} permitted: false>
     def extract!(*keys)
       new_instance_with_inherited_permitted_status(@parameters.extract!(*keys))
     end
@@ -494,7 +493,7 @@ module ActionController
     #
     #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
     #   params.transform_values { |x| x * 2 }
-    #   # => {"a"=>2, "b"=>4, "c"=>6}
+    #   # => <ActionController::Parameters {"a"=>2, "b"=>4, "c"=>6} permitted: false>
     def transform_values(&block)
       if block
         new_instance_with_inherited_permitted_status(
@@ -577,7 +576,7 @@ module ActionController
     #   params = ActionController::Parameters.new(a: 1)
     #   params.permit!
     #   params.permitted?        # => true
-    #   copy_params = params.dup # => {"a"=>1}
+    #   copy_params = params.dup # => <ActionController::Parameters {"a"=>1} permitted: true>
     #   copy_params.permitted?   # => true
     def dup
       super.tap do |duplicate|
