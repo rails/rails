@@ -1,3 +1,9 @@
+*   Fixed `ActiveSupport::Logger.broadcast` so that calls to `#silence` now
+    properly delegate to all loggers. Silencing now properly suppresses logging
+    to both the log and the console.
+
+    *Kevin McPhillips*
+
 *   Remove deprecated arguments in `assert_nothing_raised`.
 
     *Rafel Mendonça França*
