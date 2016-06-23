@@ -17,13 +17,10 @@ module ActiveRecord
         # as values.
         def select_one(arel, name = nil, binds = [])
           arel, binds = binds_from_relation(arel, binds)
-          @connection.query_options.merge!(as: :hash)
           select_result(to_sql(arel, binds), name, binds) do |result|
             @connection.next_result while @connection.more_results?
-            result.first
+            result.each(as: :hash).first
           end
-        ensure
-          @connection.query_options.merge!(as: :array)
         end
 
         # Returns an array of arrays containing the field values.
