@@ -591,8 +591,11 @@ module ActiveRecord
           else
             result = exec_cache(sql, name, binds)
           end
-          ret = yield result
-          result.clear
+          begin
+            ret = yield result
+          ensure
+            result.clear
+          end
           ret
         end
 
