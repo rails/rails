@@ -106,6 +106,8 @@ module ActionController
   #   params["key"] # => "value"
   class Parameters
     cattr_accessor :permit_all_parameters, instance_accessor: false
+    self.permit_all_parameters = false
+
     cattr_accessor :action_on_unpermitted_parameters, instance_accessor: false
 
     delegate :keys, :key?, :has_key?, :values, :has_value?, :value?, :empty?, :include?,
