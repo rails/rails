@@ -2,7 +2,7 @@ module ActiveRecord
   class AttributeSet
     # Attempts to do more intelligent YAML dumping of an
     # ActiveRecord::AttributeSet to reduce the size of the resulting string
-    class YAMLEncoder
+    class YAMLEncoder # :nodoc:
       def initialize(default_types)
         @default_types = default_types
       end
