@@ -8,6 +8,8 @@ module ActionView
     # HTML5 compliant builder style and legacy XHTML compliant tags.
     module TagHelper
       extend ActiveSupport::Concern
+      include CaptureHelper
+      include OutputSafetyHelper
 
       BOOLEAN_ATTRIBUTES = %w(disabled readonly multiple checked autobuffer
                            autoplay controls loop selected hidden scoped async
