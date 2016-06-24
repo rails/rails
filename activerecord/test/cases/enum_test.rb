@@ -421,4 +421,8 @@ class EnumTest < ActiveRecord::TestCase
     book = Book.new
     assert book.hard?
   end
+
+  test "data type of Enum type" do
+    assert_equal :integer, Book.type_for_attribute('status').type
+  end
 end
