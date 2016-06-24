@@ -22,6 +22,11 @@ module ActiveRecord
       ], result.to_hash
     end
 
+    test "first returns first row as a hash" do
+      assert_equal(
+        {'col_1' => 'row 1 col 1', 'col_2' => 'row 1 col 2'}, result.first)
+    end
+
     test "each with block returns row hashes" do
       result.each do |row|
         assert_equal ['col_1', 'col_2'], row.keys

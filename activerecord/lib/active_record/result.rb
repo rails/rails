@@ -75,6 +75,11 @@ module ActiveRecord
       hash_rows[idx]
     end
 
+    def first
+      return nil if @rows.empty?
+      Hash[@columns.zip(@rows.first)]
+    end
+
     def last
       hash_rows.last
     end
