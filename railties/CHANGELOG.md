@@ -1,3 +1,7 @@
+*   Ensure `/rails/info` routes match in development for apps with a catch-all globbing route.
+
+    *Nicholas Firth-McCoy*
+
 ## Rails 5.0.0.rc2 (June 22, 2016) ##
 
 *   No changes.

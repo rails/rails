@@ -39,6 +39,25 @@ module ApplicationTests
       assert_equal 200, last_response.status
     end
 
+    test "/rails/info routes are accessible with globbing route present" do
+      app("development")
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get '*foo', to: 'foo#index'
+        end
+      RUBY
+
+      get "/rails/info"
+      assert_equal 302, last_response.status
+
+      get "rails/info/routes"
+      assert_equal 200, last_response.status
+
+      get "rails/info/properties"
+      assert_equal 200, last_response.status
+    end
+
     test "root takes precedence over internal welcome controller" do
       app("development")
 
