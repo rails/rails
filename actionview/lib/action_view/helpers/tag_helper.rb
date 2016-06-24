@@ -28,8 +28,7 @@ module ActionView
         include CaptureHelper
         include OutputSafetyHelper
 
-        VOID_ELEMENTS = %i(base br col embed hr img input keygen link meta
-        param source track wbr).to_set
+        VOID_ELEMENTS = %i(base br col embed hr img input keygen link meta param source track wbr).to_set
 
         def initialize(view_context)
           @view_context = view_context
@@ -96,7 +95,7 @@ module ActionView
             tag_option(key, value, escape)
           end
 
-          def respond_to_missing?(method_name, include_private = false)
+          def respond_to_missing?(*args)
             true
           end
 
@@ -165,7 +164,7 @@ module ActionView
       #   <% end %>
       #   # => <div class="strong">Hello world!</div>
       #
-      #   <%= tag.div class: "strong" do |t| %>
+      #   <%= tag.div class: "strong" do %>
       #     <% tag.p("Hello world!") %>
       #   <% end %>
       #   # => <div class="strong"><p>Hello world!</p></div>
