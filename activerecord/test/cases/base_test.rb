@@ -1032,12 +1032,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal t1.title, t2.title
   end
 
-  def test_reload_with_exclusive_scope
-    dev = DeveloperCalledDavid.first
-    dev.update!(name: "NotDavid" )
-    assert_equal dev, dev.reload
-  end
-
   def test_switching_between_table_name
     k = Class.new(Joke)
 
