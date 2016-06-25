@@ -1,8 +1,11 @@
 require 'abstract_unit'
 require 'active_support/json'
 require 'active_support/time'
+require 'time_zone_test_helpers'
 
 class TestJSONDecoding < ActiveSupport::TestCase
+  include TimeZoneTestHelpers
+
   class Foo
     def self.json_create(object)
       "Foo"
@@ -24,10 +27,11 @@ class TestJSONDecoding < ActiveSupport::TestCase
     %(["2007-01-01 01:12:34 Z"])                 => [Time.utc(2007, 1, 1, 1, 12, 34)],
     %(["2007-01-01 01:12:34 Z", "2007-01-01 01:12:35 Z"]) => [Time.utc(2007, 1, 1, 1, 12, 34), Time.utc(2007, 1, 1, 1, 12, 35)],
     # no time zone
-    %({"a": "2007-01-01 01:12:34"})              => {'a' => "2007-01-01 01:12:34"},
+    %({"a": "2007-01-01 01:12:34"})              => {'a' => Time.new(2007, 1, 1, 1, 12, 34, "-05:00")},
     # invalid date
     %({"a": "1089-10-40"})                       => {'a' => "1089-10-40"},
     # xmlschema date notation
+    %({"a": "2009-08-10T19:01:02"})              => {'a' => Time.new(2009, 8, 10, 19, 1, 2, "-04:00")},
     %({"a": "2009-08-10T19:01:02Z"})             => {'a' => Time.utc(2009, 8, 10, 19, 1, 2)},
     %({"a": "2009-08-10T19:01:02+02:00"})        => {'a' => Time.utc(2009, 8, 10, 17, 1, 2)},
     %({"a": "2009-08-10T19:01:02-05:00"})        => {'a' => Time.utc(2009, 8, 11, 00, 1, 2)},
@@ -72,10 +76,12 @@ class TestJSONDecoding < ActiveSupport::TestCase
 
   TESTS.each_with_index do |(json, expected), index|
     test "json decodes #{index}" do
-      with_parse_json_times(true) do
-        silence_warnings do
-          assert_equal expected, ActiveSupport::JSON.decode(json), "JSON decoding \
-          failed for #{json}"
+      with_tz_default 'Eastern Time (US & Canada)' do
+        with_parse_json_times(true) do
+          silence_warnings do
+            assert_equal expected, ActiveSupport::JSON.decode(json), "JSON decoding \
+            failed for #{json}"
+          end
         end
       end
     end
