@@ -6,7 +6,6 @@ module ActiveRecord
 
         def initialize(*)
           super
-          assert_valid_default
           extract_default
         end
 
@@ -36,12 +35,6 @@ module ActiveRecord
         def extract_default
           if blob_or_text_column?
             @default = null || strict ? nil : ''
-          end
-        end
-
-        def assert_valid_default
-          if blob_or_text_column? && default.present?
-            raise ArgumentError, "#{type} columns cannot have a default value: #{default.inspect}"
           end
         end
       end
