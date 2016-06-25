@@ -147,9 +147,9 @@ module ActiveModel
 
     # Delete messages for +key+. Returns the deleted messages.
     #
-    #   person.errors[:name]    # => ["cannot be nil"]
+    #   person.errors[:name]        # => ["cannot be nil"]
     #   person.errors.delete(:name) # => ["cannot be nil"]
-    #   person.errors[:name]    # => []
+    #   person.errors[:name]        # => []
     def delete(key)
       details.delete(key)
       messages.delete(key)
@@ -385,18 +385,18 @@ module ActiveModel
     # present, or +false+ otherwise. +message+ is treated the same as for +add+.
     #
     #   person.errors.add :name, :blank
-    #   person.errors.added? :name, :blank # => true
+    #   person.errors.added? :name, :blank           # => true
     #   person.errors.added? :name, "can't be blank" # => true
     #
     # If the error message requires an option, then it returns +true+ with
     # the correct option, or +false+ with an incorrect or missing option.
     #
     #  person.errors.add :name, :too_long, { count: 25 }
-    #  person.errors.added? :name, :too_long, count: 25 # => true
-    #  person.errors.added? :name, :too_long, count: 24 # => false
-    #  person.errors.added? :name, :too_long # => false
+    #  person.errors.added? :name, :too_long, count: 25                     # => true
     #  person.errors.added? :name, "is too long (maximum is 25 characters)" # => true
-    #  person.errors.added? :name, "is too long" # => false
+    #  person.errors.added? :name, :too_long, count: 24                     # => false
+    #  person.errors.added? :name, :too_long                                # => false
+    #  person.errors.added? :name, "is too long"                            # => false
     def added?(attribute, message = :invalid, options = {})
       message = message.call if message.respond_to?(:call)
       message = normalize_message(attribute, message, options)
