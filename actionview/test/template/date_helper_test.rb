@@ -534,6 +534,13 @@ class DateHelperTest < ActionView::TestCase
 
     assert_dom_equal expected, select_year(nil, start_year: 2003, end_year: 2005, with_css_classes: { year: 'my-year' })
   end
+  
+  def test_select_year_with_position
+    expected = %(<select id="date_year_1i" name="date[year(1i)]">\n)
+    expected << %(<option value="2003">2003</option>\n<option value="2004">2004</option>\n<option value="2005">2005</option>\n)
+    expected << "</select>\n"
+    assert_dom_equal expected, select_year(Date.current, include_position: true,  start_year: 2003, end_year: 2005)
+  end
 
   def test_select_hour
     expected = %(<select id="date_hour" name="date[hour]">\n)
