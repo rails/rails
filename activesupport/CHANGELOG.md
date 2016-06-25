@@ -1,3 +1,10 @@
+## Rails 5.0.0.rc3 (Unreleased) ##
+
+*   Fix parsing JSON time in `YYYY-MM-DD hh:mm:ss` (without `Z`).
+    Before such time was considered in UTC timezone, now, to comply with standard, it uses local timezone.
+
+    *Grzegorz Witek*
+
 ## Rails 5.0.0.rc2 (June 22, 2016) ##
 
 *   `Date.to_s` doesn't produce too many spaces. For example, `to_s(:short)`
