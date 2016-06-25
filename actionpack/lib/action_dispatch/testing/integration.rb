@@ -336,8 +336,10 @@ module ActionDispatch
             end
             path = request_encoder.append_format_to location.path
             path = location.query ? "#{path}?#{location.query}" : path
-          else
-            path = request_encoder.append_format_to path
+          elsif !as.nil?
+            location = URI.parse(path)
+            path = request_encoder.append_format_to location.path
+            path = location.query ? "#{path}?#{location.query}" : path
           end
 
           hostname, port = host.split(':')
