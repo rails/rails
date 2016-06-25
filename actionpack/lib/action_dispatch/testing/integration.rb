@@ -336,7 +336,7 @@ module ActionDispatch
             end
             path = request_encoder.append_format_to location.path
             path = location.query ? "#{path}?#{location.query}" : path
-          elsif !as.nil?
+          elsif as
             location = URI.parse(path)
             path = request_encoder.append_format_to location.path
             path = location.query ? "#{path}?#{location.query}" : path
