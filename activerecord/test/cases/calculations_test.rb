@@ -796,8 +796,8 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_distinct_count_on_association_column
     Contract.destroy_all
-    company = Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7), Contract.new(:developer_id => 7), Contract.new(:developer_id => 1)])
+    company = Company.create!(name: "test", contracts: [Contract.new(developer_id: 7), Contract.new(developer_id: 7), Contract.new(developer_id: 1)])
     assert_equal 2, Contract.distinct.count(:developer_id)
-    company.contracts.distinct.count(:developer_id)
+    assert_equal 2, company.contracts.distinct.count(:developer_id)
   end
 end
