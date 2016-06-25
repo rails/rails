@@ -78,6 +78,8 @@ module JSONTest
 
     URITests      = [[ URI.parse('http://example.com'), %("http://example.com") ]]
 
+    PathnameTests = [[ Pathname.new('lib/index.rb'), %("lib/index.rb") ]]
+
     DateTests     = [[ Date.new(2005,2,1), %("2005/02/01") ]]
     TimeTests     = [[ Time.utc(2005,2,1,15,15,10), %("2005/02/01 15:15:10 +0000") ]]
     DateTimeTests = [[ DateTime.civil(2005,2,1,15,15,10), %("2005/02/01 15:15:10 +0000") ]]
