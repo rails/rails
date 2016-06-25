@@ -1210,6 +1210,20 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_get_parameters_with_as_option
+    with_routing do |routes|
+      routes.draw do
+        ActiveSupport::Deprecation.silence do
+          get ':action' => FooController
+        end
+      end
+
+      get '/foos_json?foo=heyo', as: :json
+
+      assert_equal({ 'foo' => 'heyo' }, response.parsed_body)
+    end
+  end
+
   private
     def post_to_foos(as:)
       with_routing do |routes|
