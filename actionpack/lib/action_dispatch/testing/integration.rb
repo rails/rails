@@ -327,19 +327,17 @@ module ActionDispatch
           request_encoder = RequestEncoder.encoder(as)
 
           if path =~ %r{://}
-            location = URI.parse(path)
-            https! URI::HTTPS === location if location.scheme
-            if url_host = location.host
-              default = Rack::Request::DEFAULT_PORTS[location.scheme]
-              url_host += ":#{location.port}" if default != location.port
-              host! url_host
+            path = build_expanded_path(path, request_encoder) do |location|
+              https! URI::HTTPS === location if location.scheme
+
+              if url_host = location.host
+                default = Rack::Request::DEFAULT_PORTS[location.scheme]
+                url_host += ":#{location.port}" if default != location.port
+                host! url_host
+              end
             end
-            path = request_encoder.append_format_to location.path
-            path = location.query ? "#{path}?#{location.query}" : path
           elsif as
-            location = URI.parse(path)
-            path = request_encoder.append_format_to location.path
-            path = location.query ? "#{path}?#{location.query}" : path
+            path = build_expanded_path(path, request_encoder)
           end
 
           hostname, port = host.split(':')
@@ -396,6 +394,13 @@ module ActionDispatch
 
         def build_full_uri(path, env)
           "#{env['rack.url_scheme']}://#{env['SERVER_NAME']}:#{env['SERVER_PORT']}#{path}"
+        end
+
+        def build_expanded_path(path, request_encoder)
+          location = URI.parse(path)
+          yield location if block_given?
+          path = request_encoder.append_format_to location.path
+          location.query ? "#{path}?#{location.query}" : path
         end
 
         class RequestEncoder # :nodoc:
