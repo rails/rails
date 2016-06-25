@@ -60,15 +60,8 @@ module ActiveRecord
         end
 
         def test_should_not_set_default_for_blob_and_text_data_types
-          assert_raise ArgumentError do
-            MySQL::Column.new("title", "a", SqlTypeMetadata.new(sql_type: "blob"))
-          end
-
           text_type = MySQL::TypeMetadata.new(
             SqlTypeMetadata.new(type: :text))
-          assert_raise ArgumentError do
-            MySQL::Column.new("title", "Hello", text_type)
-          end
 
           text_column = MySQL::Column.new("title", nil, text_type)
           assert_equal nil, text_column.default
