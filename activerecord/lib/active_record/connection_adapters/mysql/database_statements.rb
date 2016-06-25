@@ -15,8 +15,8 @@ module ActiveRecord
 
         # Returns an array of arrays containing the field values.
         # Order is the same as that returned by +columns+.
-        def select_rows(sql, name = nil, binds = [])
-          select_result(sql, name, binds) do |result|
+        def select_rows(arel, name = nil, binds = [])
+          select_result(arel, name, binds) do |result|
             @connection.next_result while @connection.more_results?
             result.to_a
           end
@@ -60,7 +60,9 @@ module ActiveRecord
 
         private
 
-          def select_result(sql, name = nil, binds = [])
+          def select_result(arel, name, binds)
+            arel, binds = binds_from_relation(arel, binds)
+            sql = to_sql(arel, binds)
             if without_prepared_statement?(binds)
               execute_and_free(sql, name) { |result| yield result }
             else
