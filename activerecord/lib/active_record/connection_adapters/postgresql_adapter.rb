@@ -447,9 +447,9 @@ module ActiveRecord
         end
 
         def initialize_type_map(m) # :nodoc:
-          m.register_type "int2", Type::Integer.new(limit: 2)
-          m.register_type "int4", Type::Integer.new(limit: 4)
-          m.register_type "int8", Type::Integer.new(limit: 8)
+          m.register_type "int2", OID::Integer.new(limit: 2)
+          m.register_type "int4", OID::Integer.new(limit: 4)
+          m.register_type "int8", OID::Integer.new(limit: 8)
           m.alias_type "oid", "int4"
           m.register_type "float4", Type::Float.new
           m.alias_type "float8", "float4"
@@ -827,6 +827,7 @@ module ActiveRecord
         ActiveRecord::Type.register(:enum, OID::Enum, adapter: :postgresql)
         ActiveRecord::Type.register(:hstore, OID::Hstore, adapter: :postgresql)
         ActiveRecord::Type.register(:inet, OID::Inet, adapter: :postgresql)
+        ActiveRecord::Type.register(:integer, OID::Integer, adapter: :postgresql)
         ActiveRecord::Type.register(:json, OID::Json, adapter: :postgresql)
         ActiveRecord::Type.register(:jsonb, OID::Jsonb, adapter: :postgresql)
         ActiveRecord::Type.register(:money, OID::Money, adapter: :postgresql)
