@@ -442,7 +442,6 @@ The Ruby side of things is built on top of [websocket-driver](https://github.com
 
 
 ## Deployment
->>>>>>> b94b04b1d11b1d095918b8bae2b6b5f76f092cf7
 
     $ gem install actioncable
 
