@@ -49,7 +49,7 @@ client-side JavaScript framework and a server-side Ruby framework. You have
 access to your full domain model written with Active Record or your ORM of
 choice.
 
-See the [Active Cable Overview](action_cable_overview.html) guide for more
+See the [Action Cable Overview](action_cable_overview.html) guide for more
 information.
 
 ### Rails API

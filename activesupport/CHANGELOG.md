@@ -1,3 +1,8 @@
+*   Fix parsing JSON time in `YYYY-MM-DD hh:mm:ss` (without `Z`).
+    Before such time was considered in UTC timezone, now, to comply with standard, it uses local timezone.
+
+    *Grzegorz Witek*
+
 *   Fixed `ActiveSupport::Logger.broadcast` so that calls to `#silence` now
     properly delegate to all loggers. Silencing now properly suppresses logging
     to both the log and the console.

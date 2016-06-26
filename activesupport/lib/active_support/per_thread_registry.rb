@@ -1,7 +1,7 @@
 require 'active_support/core_ext/module/delegation'
 
 module ActiveSupport
-  # NOTE: This approach has been deprecated for end-user code in favor of thread_mattr_accessor and friends.
+  # NOTE: This approach has been deprecated for end-user code in favor of {thread_mattr_accessor}[rdoc-ref:Module#thread_mattr_accessor] and friends.
   # Please use that approach instead.
   #
   # This module is used to encapsulate access to thread local variables.
