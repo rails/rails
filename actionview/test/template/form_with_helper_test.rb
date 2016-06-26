@@ -16,8 +16,12 @@ class FormWithHelperTest < ActionView::TestCase
 
   include Routes.url_helpers
 
+  def test_form_tag_with_url
+    assert_dom_equal whole_form('/posts', remote: true), form_with(url: '/posts') {}
+  end
+
   def test_form_tag_with_model
-    assert_dom_equal whole_form('/posts', remote: true, autocomplete: "on"), form_with(model: @post, autocomplete: "on") {}
+    assert_dom_equal whole_form('/posts', remote: true), form_with(model: @post) {}
   end
 
   def test_form_tag_with_id_and_class
