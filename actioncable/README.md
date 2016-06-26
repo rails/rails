@@ -443,11 +443,20 @@ The Ruby side of things is built on top of [websocket-driver](https://github.com
 
 ## Deployment
 
-    $ gem install actioncable
+Action Cable is powered by a combination of WebSockets and threads. All of the
+connection management is handled internally by utilizing Ruby’s native thread
+support, which means you can use all your regular Rails models with no problems
+as long as you haven’t committed any thread-safety sins.
 
-Source code can be downloaded as part of the Rails project on GitHub
+The Action Cable server does _not_ need to be a multi-threaded application server.
+This is because Action Cable uses the [Rack socket hijacking API](http://www.rubydoc.info/github/rack/rack/file/SPEC#Hijacking)
+to take over control of connections from the application server. Action Cable
+then manages connections internally, in a multithreaded manner, regardless of
+whether the application server is multi-threaded or not. So Action Cable works
+with all the popular application servers -- Unicorn, Puma and Passenger.
 
-*   https://github.com/rails/rails/tree/master/actioncable
+Action Cable does not work with WEBrick, because WEBrick does not support the
+Rack socket hijacking API.
 
 ## License
 
