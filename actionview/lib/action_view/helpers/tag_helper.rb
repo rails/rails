@@ -110,9 +110,8 @@ module ActionView
       # Returns an HTML tag. Supports two syntax variants: legacy and modern.
       #
       # === Modern syntax
-      # Modern syntax follows one of two formats:
-      #   tag.<name>(options)
-      #   tag.<name>(content, options)
+      # Modern syntax uses following format:
+      #   tag.<name>(args)
       # Returns an HTML tag. Content has to be a string. If content is passed
       # than tag is surrounding the content. Otherwise tag will be empty. You
       # can also use a block to pass the content inside ERB templates. Result
@@ -122,11 +121,9 @@ module ActionView
       # void[https://www.w3.org/TR/html5/syntax.html#void-elements] element.
       #
       # ==== Options
-      # Like with traditional syntax the options hash can be used with
-      # attributes with no value (like disabled and readonly), which you can
-      # give a value of true in the options hash. You can use symbols or
-      # strings for the attribute names.
-      #    
+      # Use +true+ with boolean attributes that can render with no value, like
+      # +disabled+ and +readonly+.
+      #
       # ==== Examples
       #   tag.span
       #   # => <span></span>

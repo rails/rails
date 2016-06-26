@@ -2,7 +2,7 @@
     Example usage of tag helpers before:
 
     ```ruby
-    tag(:br)
+    tag(:br, nil, true)
     content_tag(:div, content_tag(:p, "Hello world!"), class: "strong")
 
     <%= content_tag :div, class: "strong" do -%>
