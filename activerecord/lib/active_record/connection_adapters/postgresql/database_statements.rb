@@ -7,6 +7,11 @@ module ActiveRecord
           PostgreSQL::ExplainPrettyPrinter.new.pp(exec_query(sql, "EXPLAIN", binds))
         end
 
+        def select_all(arel, name = nil, binds = [], preparable: nil)
+          arel, binds = binds_from_relation(arel, binds)
+          preparable_statement(arel, binds) { super }
+        end
+
         def select_value(arel, name = nil, binds = [])
           select_result(arel, name, binds) do |result|
             result.getvalue(0, 0) if result.ntuples > 0 && result.nfields > 0
@@ -174,9 +179,22 @@ module ActiveRecord
 
           def select_result(arel, name, binds)
             arel, binds = binds_from_relation(arel, binds)
-            sql = to_sql(arel, binds)
-            execute_and_clear(sql, name, binds) do |result|
-              yield result
+            preparable_statement(arel, binds) do
+              sql = to_sql(arel, binds)
+              execute_and_clear(sql, name, binds) do |result|
+                yield result
+              end
+            end
+          end
+
+          def preparable_statement(arel, binds)
+            if !arel.is_a?(String) && prepared_statements && binds.find { |attr|
+              value = attr.value_for_database
+              OID::Integer === attr.type && value && !attr.type.cover?(value)
+            }
+              unprepared_statement { yield }
+            else
+              yield
             end
           end
       end

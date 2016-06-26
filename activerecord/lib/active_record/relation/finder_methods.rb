@@ -76,17 +76,12 @@ module ActiveRecord
     #   Post.find_by "published_at < ?", 2.weeks.ago
     def find_by(arg, *args)
       where(arg, *args).take
-    rescue RangeError
-      nil
     end
 
     # Like #find_by, except that if no record is found, raises
     # an ActiveRecord::RecordNotFound error.
     def find_by!(arg, *args)
       where(arg, *args).take!
-    rescue RangeError
-      raise RecordNotFound.new("Couldn't find #{@klass.name} with an out of range value",
-                               @klass.name)
     end
 
     # Gives a record (or N records if a parameter is supplied) without any implied
@@ -333,8 +328,6 @@ module ActiveRecord
       end
 
       connection.select_value(relation, "#{name} Exists", relation.bound_attributes) ? true : false
-    rescue RangeError
-      false
     end
 
     # This method is called whenever no records are found with either a single
@@ -458,8 +451,6 @@ module ActiveRecord
         else
           find_some(ids)
         end
-      rescue RangeError
-        raise RecordNotFound, "Couldn't find #{@klass.name} with an out of range ID"
       end
 
       def find_one(id)
