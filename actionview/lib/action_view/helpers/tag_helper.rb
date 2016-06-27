@@ -107,68 +107,86 @@ module ActionView
 
       end
 
-      # Returns an HTML tag. Supports two syntax variants: legacy and modern.
+      # Returns an HTML tag.
       #
-      # === Modern syntax
-      # Modern syntax uses following format:
-      #   tag.<name>(args)
-      # Returns an HTML tag. Content has to be a string. If content is passed
-      # than tag is surrounding the content. Otherwise tag will be empty. You
-      # can also use a block to pass the content inside ERB templates. Result
-      # is by default HTML5 compliant. Include +escape_attributes+: +false+ 
-      # in options to disable attribute value escaping. The tag will be
-      # generated with related closing tag unless tag represents a
-      # void[https://www.w3.org/TR/html5/syntax.html#void-elements] element.
+      # === Building HTML tags
+      # Builds HTML5 compliant tags with a tag proxy. Every tag can be built with:
+      #
+      #   tag.<tag name>(optional content, options)
+      #
+      # where tag name can be e.g. br, div, section, article, or any tag really.
+      #
+      # ==== Passing content
+      # Tags can pass content to embed within it:
+      #
+      #   tag.h1 'All shit fit to print' # => <h1>All shit fit to print</h1>
+      #
+      #   tag.div tag.p('Hello world!')  # => <div><p>Hello world!</p></div>
+      #
+      # Content can also be captured with a block. Great for ERB templates:
+      #
+      #   <%= tag.p do %>
+      #     The next great American novel starts here.
+      #   <% end %>
+      #   # => <p>The next great American novel starts here.</p>
       #
       # ==== Options
-      # Use +true+ with boolean attributes that can render with no value, like
-      # +disabled+ and +readonly+.
+      # Any passed options becomes attributes on the generated tag.
       #
-      # ==== Examples
-      #   tag.span
-      #   # => <span></span>
+      #   tag.section class: %w( kitties puppies )
+      #   # => <section class="kitties puppies"></section>
       #
-      #   tag.span(class: "bookmark")
-      #   # => <span class=\"bookmark\"></span>
+      #   tag.section id: dom_id(@post)
+      #   # => <section id="<generated dom id>"></section>
+      #
+      # Pass true for any attributes that can render with no values like +disabled+.
       #
       #   tag.input type: 'text', disabled: true
       #   # => <input type="text" disabled="disabled">
       #
-      #   tag.input type: 'text', class: ["strong", "highlight"]
-      #   # => <input class="strong highlight" type="text">
+      # HTML5 <tt>data-*</tt> attributes can be set with a single +data+ key
+      # pointing to a hash of sub-attributes.
       #
-      #   tag.img src: "open & shut.png"
+      # To play nicely with JavaScript conventions sub-attributes are dasherized.
+      #
+      #   tag.article data: { user_id: 123 }
+      #   # => <article data-user-id="123"></article>
+      #
+      # Thus <tt>data-user-id</tt> can be accessed as <tt>dataset.userId</tt>.
+      #
+      # Data attribute values are encoded to JSON, with the exception of strings, symbols and
+      # BigDecimals.
+      # This may come in handy when using jQuery's HTML5-aware <tt>.data()</tt>
+      # from 1.4.3.
+      #
+      #   tag.div data: { city_state: %w( Chigaco IL ) }
+      #   # => <div data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]"></div>
+      #
+      # The generated attributes are escaped by default, but it can be turned off with
+      # +escape_attributes+.
+      #
+      #   tag.img src: 'open & shut.png'
       #   # => <img src="open &amp; shut.png">
       #
-      #   tag.img(src: "open & shut.png", escape_attributes: false)
+      #   tag.img src: 'open & shut.png', escape_attributes: false
       #   # => <img src="open & shut.png">
       #
-      #   tag.div(data: {name: 'Stephen', city_state: %w(Chicago IL)})
-      #   # => <div data-name="Stephen" data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]"></div>
+      # The tag builder respects
+      # [HTML5 void elements](https://www.w3.org/TR/html5/syntax.html#void-elements)
+      # if no content is passed, and omits closing tags for those elements.
       #
-      #   tag.p "Hello world!"
-      #   # => <p>Hello world!</p>
+      #   # A standard element:
+      #   tag.div # => <div></div>
       #
-      #   tag.div tag.p("Hello world!"), class: "strong"
-      #   # => <div class="strong"><p>Hello world!</p></div>
-      #
-      #   tag.div "Hello world!", class: ["strong", "highlight"]
-      #   # => <div class="strong highlight">Hello world!</div>
-      #
-      #   tag.select options, multiple: true
-      #   # => <select multiple="multiple">...options...</select>
-      #
-      #   <%= tag.div class: "strong" do %>
-      #     Hello world!
-      #   <% end %>
-      #   # => <div class="strong">Hello world!</div>
-      #
-      #   <%= tag.div class: "strong" do %>
-      #     <% tag.p("Hello world!") %>
-      #   <% end %>
-      #   # => <div class="strong"><p>Hello world!</p></div>
+      #   # A void element:
+      #   tag.br  # => <br>
       #
       # === Legacy syntax
+      # Following format is legacy sytax. It will be deprecated in future versions of rails.
+      #
+      #   tag(tag_name, options)
+      #
+      # === Building HTML tags
       # Returns an empty HTML tag of type +name+ which by default is XHTML
       # compliant. Set +open+ to true to create an open tag compatible
       # with HTML 4.0 and below. Add HTML attributes by passing an attributes
