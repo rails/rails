@@ -2,6 +2,9 @@ require 'abstract_unit'
 require 'controller/fake_models'
 
 class TestControllerWithExtraEtags < ActionController::Base
+  def self.controller_name; 'test'; end
+  def self.controller_path; 'test'; end
+
   etag { nil  }
   etag { 'ab' }
   etag { :cde }
@@ -17,13 +20,17 @@ class TestControllerWithExtraEtags < ActionController::Base
   end
 
   def strong
-    render plain: "stale" if stale?(strong_etag: 'strong')
+    render plain: "stale" if stale?(strong_etag: 'strong', template: false)
   end
 
   def with_template
     if stale? template: 'test/hello_world'
       render plain: 'stale'
     end
+  end
+
+  def with_implicit_template
+    fresh_when(etag: '123')
   end
 end
 
@@ -528,20 +535,28 @@ class EtagRenderTest < ActionController::TestCase
     get :with_template
     assert_response :not_modified
 
-    # Modify the template digest
-    path = File.expand_path('../../fixtures/test/hello_world.erb', __FILE__)
-    old = File.read(path)
-
-    begin
-      File.write path, 'foo'
-      ActionView::LookupContext::DetailsKey.clear
-
+    modify_template(:hello_world) do
       request.if_none_match = etag
       get :with_template
       assert_response :ok
       assert_not_equal etag, @response.etag
-    ensure
-      File.write path, old
+    end
+  end
+
+  def test_etag_reflects_implicit_template_digest
+    get :with_implicit_template
+    assert_response :ok
+    assert_not_nil etag = @response.etag
+
+    request.if_none_match = etag
+    get :with_implicit_template
+    assert_response :not_modified
+
+    modify_template(:with_implicit_template) do
+      request.if_none_match = etag
+      get :with_implicit_template
+      assert_response :ok
+      assert_not_equal etag, @response.etag
     end
   end
 
@@ -552,6 +567,16 @@ class EtagRenderTest < ActionController::TestCase
 
     def strong_etag(record)
       %("#{Digest::MD5.hexdigest(ActiveSupport::Cache.expand_cache_key(record))}")
+    end
+
+    def modify_template(name)
+      path = File.expand_path("../../fixtures/test/#{name}.erb", __FILE__)
+      original = File.read(path)
+      File.write(path, "#{original} Modified!")
+      ActionView::LookupContext::DetailsKey.clear
+      yield
+    ensure
+      File.write(path, original)
     end
 end
 

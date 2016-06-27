@@ -40,7 +40,9 @@ module ActionController
     end
 
     def pick_template_for_etag(options)
-      options.fetch(:template) { "#{controller_name}/#{action_name}" }
+      unless options[:template] == false
+        options[:template] || "#{controller_name}/#{action_name}"
+      end
     end
 
     def lookup_and_digest_template(template)
