@@ -327,6 +327,10 @@ class TagHelperTest < ActionView::TestCase
     assert_equal "<foo></foo>", tag.method(:foo).call
   end
 
+  def test_tag_builder_dasherize_names
+    assert_equal "<img-slider></img-slider>", tag.img_slider
+  end
+
   def test_respond_to
     assert_respond_to tag, :any_tag
   end
