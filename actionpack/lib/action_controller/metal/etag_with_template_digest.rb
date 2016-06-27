@@ -39,8 +39,14 @@ module ActionController
       end
     end
 
+    # Pick the template digest to include in the ETag. If the +:template+ option
+    # is present, use the named template. If +:template+ is nil or absent, use
+    # the default controller/action template. If +:template+ is false, omit the
+    # template digest from the ETag.
     def pick_template_for_etag(options)
-      options.fetch(:template) { "#{controller_name}/#{action_name}" }
+      unless options[:template] == false
+        options[:template] || "#{controller_name}/#{action_name}"
+      end
     end
 
     def lookup_and_digest_template(template)
