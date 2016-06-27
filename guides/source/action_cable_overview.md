@@ -6,8 +6,10 @@ incorporate real-time features into your Rails application.
 
 After reading this guide, you will know:
 
+* What Action Cable is and its integration on backend and frontend  
 * How to setup Action Cable
 * How to setup channels
+* Deployment and Architecture setup for running Action Cable 
 
 Introduction
 ------------
@@ -568,12 +570,13 @@ environment configuration files.
 
 ### Other Configurations
 
-The other common option to configure is the log tags applied to the
-per-connection logger. Here's close to what we're using in Basecamp:
+The other common option to configure, is the log tags applied to the
+per-connection logger. Here's an example that uses
+the user account id if available, else "no-account" while tagging:
 
 ```ruby
 config.action_cable.log_tags = [
-  -> request { request.env['bc.account_id'] || "no-account" },
+  -> request { request.env['user_account_id'] || "no-account" },
   :action_cable,
   -> request { request.uuid }
 ]

@@ -1,6 +1,8 @@
 # Hack to load json gem first so we can overwrite its to_json.
 require 'json'
 require 'bigdecimal'
+require 'uri/generic'
+require 'pathname'
 require 'active_support/core_ext/big_decimal/conversions' # for #to_s
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/hash/slice'
@@ -189,6 +191,18 @@ class DateTime
     else
       strftime('%Y/%m/%d %H:%M:%S %z')
     end
+  end
+end
+
+class URI::Generic #:nodoc:
+  def as_json(options = nil)
+    to_s
+  end
+end
+
+class Pathname #:nodoc:
+  def as_json(options = nil)
+    to_s
   end
 end
 
