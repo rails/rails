@@ -81,6 +81,7 @@ PATH
     activesupport (5.1.0.alpha)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (~> 0.7)
+      jsonapi (~> 0.1.1.beta2)
       minitest (~> 5.1)
       tzinfo (~> 1.1)
     rails (5.1.0.alpha)
@@ -193,6 +194,8 @@ GEM
       railties (>= 4.2.0)
       thor (>= 0.14, < 2.0)
     json (1.8.3)
+    jsonapi (0.1.1.beta2)
+      json (~> 1.8)
     kindlerb (0.1.1)
       mustache
       nokogiri

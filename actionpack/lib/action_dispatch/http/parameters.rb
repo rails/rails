@@ -9,6 +9,9 @@ module ActionDispatch
         Mime[:json].symbol => -> (raw_post) {
           data = ActiveSupport::JSON.decode(raw_post)
           data.is_a?(Hash) ? data : {:_json => data}
+        },
+        Mime[:jsonapi].symbol => -> (raw_post) {
+          ActiveSupport::JSONAPI.decode(raw_post)
         }
       }
 
