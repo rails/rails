@@ -1,3 +1,28 @@
+*   New syntax for tag helpers. Avoid positional parameters and support HTML5 by default.
+    Example usage of tag helpers before:
+
+    ```ruby
+    tag(:br, nil, true)
+    content_tag(:div, content_tag(:p, "Hello world!"), class: "strong")
+
+    <%= content_tag :div, class: "strong" do -%>
+      Hello world!
+    <% end -%>
+    ```
+
+    Example usage of tag helpers after:
+
+    ```ruby
+    tag.br
+    tag.div tag.p("Hello world!"), class: "strong"
+
+    <%= tag.div class: "strong" do %>
+      Hello world!
+    <% end %>
+    ```
+
+    *Marek Kirejczyk*, *Kasper Timm Hansen*
+
 *   Change `datetime_field` and `datetime_field_tag` to generate `datetime-local` fields.
 
     As a new specification of the HTML 5 the text field type `datetime` will no longer exist
