@@ -969,10 +969,10 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   `ActiveSupport::JSON.decode` now supports parsing ISO8601 local times when
     `parse_json_times` is enabled.
-    ([Pull Request](https://github.com/rails/rails/pull/16917))
+    ([Pull Request](https://github.com/rails/rails/pull/23011))
 
 *   `ActiveSupport::JSON.decode` now return `Date` objects for date strings.
-    ([Pull Request](https://github.com/rails/rails/pull/16917))
+    ([Pull Request](https://github.com/rails/rails/pull/23011))
 
 *   Added ability to `TaggedLogging` to allow loggers to be instantiated multiple
     times so that they don't share tags with each other.

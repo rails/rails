@@ -1,5 +1,9 @@
-*   Fix parsing JSON time in `YYYY-MM-DD hh:mm:ss` (without `Z`).
-    Before such time was considered in UTC timezone, now, to comply with standard, it uses local timezone.
+*   Support parsing JSON time in ISO8601 local time strings in
+    `ActiveSupport::JSON.decode` when `parse_json_times` is enabled.
+    Strings in the format of `YYYY-MM-DD hh:mm:ss` (without a `Z` at
+    the end) will be parsed in the local timezone (`Time.zone`). In
+    addition, date strings (`YYYY-MM-DD`) are now parsed into `Date`
+    objects.
 
     *Grzegorz Witek*
 
