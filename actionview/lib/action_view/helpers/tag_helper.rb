@@ -182,7 +182,7 @@ module ActionView
       #   tag.br  # => <br>
       #
       # === Legacy syntax
-      # Following format is legacy sytax. It will be deprecated in future versions of rails.
+      # Following format is legacy syntax. It will be deprecated in future versions of rails.
       #
       #   tag(tag_name, options)
       #
