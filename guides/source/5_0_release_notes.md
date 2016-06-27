@@ -967,6 +967,13 @@ Please refer to the [Changelog][active-support] for detailed changes.
 *   `ActiveSupport::Duration` now supports ISO8601 formatting and parsing.
     ([Pull Request](https://github.com/rails/rails/pull/16917))
 
+*   `ActiveSupport::JSON.decode` now supports parsing ISO8601 local times when
+    `parse_json_times` is enabled.
+    ([Pull Request](https://github.com/rails/rails/pull/16917))
+
+*   `ActiveSupport::JSON.decode` now return `Date` objects for date strings.
+    ([Pull Request](https://github.com/rails/rails/pull/16917))
+
 *   Added ability to `TaggedLogging` to allow loggers to be instantiated multiple
     times so that they don't share tags with each other.
     ([Pull Request](https://github.com/rails/rails/pull/9065))
