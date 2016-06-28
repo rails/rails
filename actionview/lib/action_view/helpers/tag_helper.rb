@@ -30,7 +30,7 @@ module ActionView
         include CaptureHelper
         include OutputSafetyHelper
 
-        VOID_ELEMENTS = %i(base br col embed hr img input keygen link meta param source track wbr).to_set
+        VOID_ELEMENTS = %i(area base br col embed hr img input keygen link meta param source track wbr).to_set
 
         def initialize(view_context)
           @view_context = view_context
