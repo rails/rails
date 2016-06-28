@@ -16,22 +16,6 @@ class FormWithHelperTest < ActionView::TestCase
 
   include Routes.url_helpers
 
-  def test_form_with_url_and_scope
-    expected = whole_form('/posts', remote: true) do
-      "<label for='post_title'>The Title</label>" + 
-      "<input type='text' name='post[title]' value='Catch 22' />" +
-      "<textarea name='post[body]'>\nBack to the hill and over it again!</textarea>"
-    end
-
-    actual = form_with(url: '/posts', scope: :post) do |f|
-      concat f.label(:title, "The Title")
-      concat f.text_field :title
-      concat f.text_area :body, "Back to the hill and over it again!"
-    end
-
-    assert_dom_equal  expected, actual
-  end
-
   def test_form_with_url
     expected = whole_form('/posts', remote: true) do
       "<label for='form_title'>The Title</label>"
@@ -42,40 +26,56 @@ class FormWithHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_form_with_url_and_scope
+    expected = whole_form('/posts', remote: true) do
+      "<label for='post_title'>The Title</label>" +
+      "<input type='text' name='post[title]' value='Catch 22' />" +
+      "<textarea name='post[body]'>\nThe plotline follows the airmen of the 256th Squadron...</textarea>" +
+      "<input name='commit' value='Save Post' data-disable-with='Save Post' type='submit' />"
+    end
+
+    actual = form_with(url: '/posts', scope: :post) do |f|
+      concat f.label(:title, "The Title")
+      concat f.text_field :title
+      concat f.text_area :body
+      concat f.submit
+    end
+
+    assert_dom_equal  expected, actual
+  end
+
   def test_form_with_model
     expected = whole_form('/posts', remote: true) do
       "<label for='post_title'>The Title</label>" +
       "<input type='text' name='post[title]' value='Catch 22' />" +
-      "<input type='text' name='post[title]' value='Catch 22' id='this_is_post_title'/>" +
-      "<input type='text' name='post[title]' value='Closing Time' />" +
-      "<textarea name='post[body]'>\nBack to the hill and over it again!</textarea>" +
       "<textarea name='post[body]'>\nThe plotline follows the airmen of the 256th Squadron...</textarea>" +
       "<input name='commit' value='Create Post' data-disable-with='Create Post' type='submit' />"
     end
+
     actual = form_with(model: @post) do |f|
       concat f.label(:title, "The Title")
       concat f.text_field :title
-      concat f.text_field :title, id: 'this_is_post_title'
-      concat f.text_field :title, 'Closing Time'
-      concat f.text_area :body, "Back to the hill and over it again!"
       concat f.text_area :body
       concat f.submit
     end
+
     assert_dom_equal expected, actual
   end
 
-  def test_form_with_model_and_checkbox
-    expected = whole_form('/posts', remote: true) do
-      "<input name='post[secret]' type='hidden' value='0' />" +
-      "<input name='post[secret]' checked='checked' type='checkbox' value='1' />" +
-      "<input name='post[secret]' type='hidden' value='noo' />" +
-      "<input name='post[secret]' type='checkbox' value='yees' />"
+  def test_form_with_text_field_with_id
+    assert_tag_equals("<input type='text' name='post[title]' value='Catch 22' id='this_is_post_title'/>") { |f| f.text_field :title, id: 'this_is_post_title' }
+  end
+  def test_form_with_text_field_with_value
+    assert_tag_equals("<input type='text' name='post[title]' value='Closing Time' />") { |f| f.text_field :title, 'Closing Time' }
+  end
+
+  def test_form_with_checkbox
+    assert_tag_equals("<input name='post[secret]' type='hidden' value='0' /><input name='post[secret]' checked='checked' type='checkbox' value='1' />") do |f|
+      f.check_box(:secret)
     end
-    actual = form_with(model: @post) do |f|
-      concat f.check_box(:secret)
-      concat f.check_box(:secret, on: 'yees', off: 'noo')
+    assert_tag_equals("<input name='post[secret]' type='hidden' value='noo' /><input name='post[secret]' type='checkbox' value='yees' />") do |f|
+      f.check_box(:secret, on: 'yees', off: 'noo')
     end
-    assert_dom_equal expected, actual
   end
 
   def test_form_with_id_and_class
@@ -95,6 +95,10 @@ class FormWithHelperTest < ActionView::TestCase
   end
 
   protected
+
+    def assert_tag_equals(expected, &actual)
+      assert_dom_equal whole_form('/posts', remote: true) { expected }, form_with(model: @post, &actual)
+    end
 
     def hidden_fields(method: nil, enforce_utf8: true, **options)
       if enforce_utf8
