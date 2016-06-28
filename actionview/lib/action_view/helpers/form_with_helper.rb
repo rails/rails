@@ -26,12 +26,12 @@ module ActionView
 
         GENERATED_FIELD_HELPERS.each do |selector|
           class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-            def #{selector}(method, *args, **options)  # def text_field(method, options = {})
+            def #{selector}(method, *args, **options)  # def text_field(method, *args, **options)
               @template.send(                          #   @template.send(
                 #{selector.inspect},                   #     "text_field",
                 @object_name,                          #     @object_name,
                 method,                                #     method,
-                prepare_options(args, options))        #     objectify_options(options))
+                prepare_options(args, options))        #     prepare_options(args, options))
             end                                        # end
           RUBY_EVAL
         end
