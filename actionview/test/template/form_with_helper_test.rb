@@ -16,29 +16,54 @@ class FormWithHelperTest < ActionView::TestCase
 
   include Routes.url_helpers
 
-  def test_form_tag_with_url
-    assert_dom_equal whole_form('/posts', remote: true), form_with(url: '/posts') {}
+  def test_form_with_url_and_scope
+    expected = whole_form('/posts', remote: true) do
+      "<label for='post_title'>The Title</label>"
+    end
+
+    actual = form_with(url: '/posts', scope: :post) do |f|
+      f.label(:title, "The Title")
+    end
+
+    assert_dom_equal  expected, actual
   end
 
-  def test_form_tag_with_model
-    assert_dom_equal whole_form('/posts', remote: true), form_with(model: @post) {}
+  def test_form_with_url
+    expected = whole_form('/posts', remote: true) do
+      "<label for='form_title'>The Title</label>"
+    end
+    actual = form_with(url: '/posts') do |f|
+      f.label(:title, "The Title")
+    end
+    assert_dom_equal expected, actual
   end
 
-  def test_form_tag_with_id_and_class
+  def test_form_with_model
+    expected = whole_form('/posts', remote: true) do
+      "<label for='post_title'>The Title</label>"
+    end
+    actual = form_with(model: @post) do |f|
+      f.label(:title, "The Title")
+    end
+    assert_dom_equal expected, actual
+  end
+
+  def test_form_with_id_and_class
     expected = whole_form('/posts', remote: true, id: "post_id", class: "post_class")
     assert_dom_equal expected, form_with(model: @post, class: "post_class", id: "post_id") {}
   end
 
-  def test_form_tag_with_custom_attribute
+  def test_form_with_custom_attribute
     expected = whole_form('/posts', remote: true, autocomplete: "on")
     assert_dom_equal expected, form_with(model: @post, autocomplete: "on") {}
   end
 
-  def test_form_tag_with_data_attributes
+  def test_form_with_data_attributes
     expected = whole_form('/posts', remote: true, "data-test": "test")
     assert_dom_equal expected, form_with(model: @post, "data-test": "test") {}
     assert_dom_equal expected, form_with(model: @post, data: {test: "test"} ) {}    
   end
+
 
   protected
 
