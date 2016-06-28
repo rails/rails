@@ -1,10 +1,12 @@
+# frozen-string-literal: true
+
 require 'active_support/core_ext/string/output_safety'
 require 'set'
 
 module ActionView
   # = Action View Tag Helpers
   module Helpers #:nodoc:
-    # Provides methods to generate HTML tags programmatically both as a modern 
+    # Provides methods to generate HTML tags programmatically both as a modern
     # HTML5 compliant builder style and legacy XHTML compliant tags.
     module TagHelper
       extend ActiveSupport::Concern
@@ -25,7 +27,7 @@ module ActionView
 
       TAG_PREFIXES = ['aria', 'data', :aria, :data].to_set
 
-      PRE_CONTENT_STRINGS             = Hash.new { "".freeze }
+      PRE_CONTENT_STRINGS             = Hash.new { "" }
       PRE_CONTENT_STRINGS[:textarea]  = "\n"
       PRE_CONTENT_STRINGS["textarea"] = "\n"
 
@@ -44,7 +46,7 @@ module ActionView
           if VOID_ELEMENTS.include?(name) && content.nil?
             "<#{name.to_s.dasherize}#{tag_options(options, escape_attributes)}>".html_safe
           else
-            content_tag_string(name.to_s.dasherize, content || ''.freeze, options, escape_attributes)
+            content_tag_string(name.to_s.dasherize, content || '', options, escape_attributes)
           end
         end
 
@@ -57,7 +59,7 @@ module ActionView
         def tag_options(options, escape = true)
           return if options.blank?
           output = ""
-          sep    = " ".freeze
+          sep    = " "
           options.each_pair do |key, value|
             if TAG_PREFIXES.include?(key) && value.is_a?(Hash)
               value.each_pair do |k, v|
@@ -84,7 +86,7 @@ module ActionView
 
         def tag_option(key, value, escape)
           if value.is_a?(Array)
-            value = escape ? safe_join(value, " ".freeze) : value.join(" ".freeze)
+            value = escape ? safe_join(value, " ") : value.join(" ")
           else
             value = escape ? ERB::Util.unwrapped_html_escape(value) : value
           end
