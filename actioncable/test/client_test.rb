@@ -4,6 +4,8 @@ require 'concurrent'
 require 'faye/websocket'
 require 'json'
 
+require 'active_support/hash_with_indifferent_access'
+
 class ClientTest < ActionCable::TestCase
   WAIT_WHEN_EXPECTING_EVENT = 8
   WAIT_WHEN_NOT_EXPECTING_EVENT = 0.5
@@ -36,7 +38,7 @@ class ClientTest < ActionCable::TestCase
     server = ActionCable.server
     server.config.logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
 
-    server.config.cable = { adapter: 'async' }.with_indifferent_access
+    server.config.cable = ActiveSupport::HashWithIndifferentAccess.new(adapter: 'async')
     server.config.use_faye = ENV['FAYE'].present?
 
     # and now the "real" setup for our test:
