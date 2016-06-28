@@ -1,3 +1,11 @@
+# Consideration:
+# * scope/prefix/object_name when url with no scope?
+# * Allow form fields that do not correspond to model attributes - how? f.input scope: 'other'
+# * Implement own builder
+# * reimplement helpers (?)
+# * Default Form Builder for legacy and modern syntax (two?)
+# * Get rid of base builder
+
 module ActionView
   module Helpers
     module FormWithHelper
@@ -28,11 +36,17 @@ module ActionView
           RUBY_EVAL
         end
 
-        def prepare_options(args, options)
-          options = {id: nil}.merge(options)
-          options[:value] = args[0] if args.size > 0
-          objectify_options(options)
+        def check_box(method, *args, on: "1", off: "0", **options)
+          @template.check_box(@object_name, method, prepare_options(args, options), on, off)
         end
+
+        private
+
+          def prepare_options(args, options)
+            options = {id: nil}.merge(options)
+            options[:value] = args[0] if args.size > 0
+            objectify_options(options)
+          end
 
       end
 

@@ -6,7 +6,7 @@ class FormWithHelperTest < ActionView::TestCase
   tests ActionView::Helpers::FormTagHelper
 
   setup do
-    @post = Post.new("Catch 22", "Joseph Heller", "The plotline follows the airmen of the 256th Squadron...")
+    @post = Post.new("Catch 22", "Joseph Heller", "The plotline follows the airmen of the 256th Squadron...", 1)
   end
 
   Routes = ActionDispatch::Routing::RouteSet.new
@@ -18,11 +18,15 @@ class FormWithHelperTest < ActionView::TestCase
 
   def test_form_with_url_and_scope
     expected = whole_form('/posts', remote: true) do
-      "<label for='post_title'>The Title</label>"
+      "<label for='post_title'>The Title</label>" + 
+      "<input type='text' name='post[title]' value='Catch 22' />" +
+      "<textarea name='post[body]'>\nBack to the hill and over it again!</textarea>"
     end
 
     actual = form_with(url: '/posts', scope: :post) do |f|
-      f.label(:title, "The Title")
+      concat f.label(:title, "The Title")
+      concat f.text_field :title
+      concat f.text_area :body, "Back to the hill and over it again!"
     end
 
     assert_dom_equal  expected, actual
@@ -45,7 +49,8 @@ class FormWithHelperTest < ActionView::TestCase
       "<input type='text' name='post[title]' value='Catch 22' id='this_is_post_title'/>" +
       "<input type='text' name='post[title]' value='Closing Time' />" +
       "<textarea name='post[body]'>\nBack to the hill and over it again!</textarea>" +
-      "<textarea name='post[body]'>\nThe plotline follows the airmen of the 256th Squadron...</textarea>"
+      "<textarea name='post[body]'>\nThe plotline follows the airmen of the 256th Squadron...</textarea>" +
+      "<input name='commit' value='Create Post' data-disable-with='Create Post' type='submit' />"
     end
     actual = form_with(model: @post) do |f|
       concat f.label(:title, "The Title")
@@ -54,6 +59,21 @@ class FormWithHelperTest < ActionView::TestCase
       concat f.text_field :title, 'Closing Time'
       concat f.text_area :body, "Back to the hill and over it again!"
       concat f.text_area :body
+      concat f.submit
+    end
+    assert_dom_equal expected, actual
+  end
+
+  def test_form_with_model_and_checkbox
+    expected = whole_form('/posts', remote: true) do
+      "<input name='post[secret]' type='hidden' value='0' />" +
+      "<input name='post[secret]' checked='checked' type='checkbox' value='1' />" +
+      "<input name='post[secret]' type='hidden' value='noo' />" +
+      "<input name='post[secret]' type='checkbox' value='yees' />"
+    end
+    actual = form_with(model: @post) do |f|
+      concat f.check_box(:secret)
+      concat f.check_box(:secret, on: 'yees', off: 'noo')
     end
     assert_dom_equal expected, actual
   end
@@ -73,7 +93,6 @@ class FormWithHelperTest < ActionView::TestCase
     assert_dom_equal expected, form_with(model: @post, "data-test": "test") {}
     assert_dom_equal expected, form_with(model: @post, data: {test: "test"} ) {}    
   end
-
 
   protected
 
