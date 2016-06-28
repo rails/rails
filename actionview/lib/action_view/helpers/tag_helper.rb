@@ -41,7 +41,7 @@ module ActionView
           if VOID_ELEMENTS.include?(name) && content.nil?
             "<#{name.to_s.dasherize}#{tag_options(options, escape_attributes)}>".html_safe
           else
-            content_tag_string(name.to_s.dasherize, content || '', options, escape_attributes)
+            content_tag_string(name.to_s.dasherize, content || ''.freeze, options, escape_attributes)
           end
         end
 
