@@ -264,8 +264,8 @@ module ActionView
       #   # => <video src="/videos/trailer"></video>
       #   video_tag("trailer.ogg")
       #   # => <video src="/videos/trailer.ogg"></video>
-      #   video_tag("trailer.ogg", controls: true, autobuffer: true)
-      #   # => <video autobuffer="autobuffer" controls="controls" src="/videos/trailer.ogg" ></video>
+      #   video_tag("trailer.ogg", controls: true, preload: 'none')
+      #   # => <video preload="none" controls="controls" src="/videos/trailer.ogg" ></video>
       #   video_tag("trailer.m4v", size: "16x10", poster: "screenshot.png")
       #   # => <video src="/videos/trailer.m4v" width="16" height="10" poster="/assets/screenshot.png"></video>
       #   video_tag("/trailers/hd.avi", size: "16x16")
