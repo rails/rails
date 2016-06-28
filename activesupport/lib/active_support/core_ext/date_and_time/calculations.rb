@@ -19,8 +19,21 @@ module DateAndTime
     end
 
     # Returns a new date/time representing the previous day.
-    def prev_day
-      advance(days: -1)
+    # Argument could either be a numeric or a symbol of the day
+    #
+    #   today = Date.current # => Fri, 10 Jul 2015
+    #   today.prev_day(1) # => Thu, 09 Jul 2015
+    #   OR
+    #   today = Date.current # => Fri, 10 Jul 2015
+    #   today.prev_day(:thursday) # => Thu, 09 Jul 2015
+    def prev_day(days_to_advance = 1)
+      if DAYS_INTO_WEEK.keys.include?(days_to_advance)
+        days_to_advance = distance_from_day_name(days_to_advance)
+        days_to_advance -= 7 if days_to_advance >= 0
+      else
+        days_to_advance *= -1
+      end
+      advance(days: days_to_advance)
     end
 
     # Returns a new date/time representing tomorrow.
@@ -29,8 +42,29 @@ module DateAndTime
     end
 
     # Returns a new date/time representing the next day.
-    def next_day
-      advance(days: 1)
+    # Argument could either be a numeric or a symbol of the day
+    #
+    #   today = Date.current # => Fri, 10 Jul 2015
+    #   today.next_day(1) # => Sat, 11 Jul 2015
+    #   OR
+    #   today = Date.current # => Fri, 10 Jul 2015
+    #   today.next_day(:saturday) # => Sat, 11 Jul 2015
+    def next_day(days_to_advance = 1)
+      if DAYS_INTO_WEEK.keys.include?(days_to_advance)
+        days_to_advance = distance_from_day_name(days_to_advance)
+        days_to_advance += 7 if days_to_advance <= 0
+      end
+      advance(days: days_to_advance)
+    end
+
+    def prev_wday(wday_key)
+      day_name = day_from_wday(wday_key)
+      prev_day(day_name.to_sym)
+    end
+
+    def next_wday(wday_key)
+      day_name = day_from_wday(wday_key)
+      next_day(day_name.to_sym)
     end
 
     # Returns true if the date/time is today.
@@ -320,93 +354,16 @@ module DateAndTime
       beginning_of_year..end_of_year
     end
 
-    ##
-    # :method: next_sunday
-    #
-    # Returns the date of the next Sunday after self
-
-    ##
-    # :method: next_monday
-    #
-    # Returns the date of the next Monday after self
-
-    ##
-    # :method: next_tuesday
-    #
-    # Returns the date of the next Tuesday after self
-
-    ##
-    # :method: next_wednesday
-    #
-    # Returns the date of the next Wednesday after self
-
-    ##
-    # :method: next_thursday
-    #
-    # Returns the date of the next Thurday after self
-
-    ##
-    # :method: next_friday
-    #
-    # Returns the date of the next Friday after self
-
-    ##
-    # :method: next_saturday
-    #
-    # Returns the date of the next Saturday after self
-
-    ##
-    # :method: prev_sunday
-    #
-    # Returns the date of the previous Sunday before self
-
-    ##
-    # :method: prev_monday
-    #
-    # Returns the date of the previous Monday before self
-
-    ##
-    # :method: prev_tuesday
-    #
-    # Returns the date of the previous Tuesday before self
-
-    ##
-    # :method: prev_wednesday
-    #
-    # Returns the date of the previous Wednesday before self
-
-    ##
-    # :method: prev_thursday
-    #
-    # Returns the date of the previous Thurday before self
-
-    ##
-    # :method: prev_friday
-    #
-    # Returns the date of the previous Friday before self
-
-    ##
-    # :method: prev_saturday
-    #
-    # Returns the date of the previous Saturday before self
-    DAYS_INTO_WEEK.each do |day_name, index|
-      define_method "next_#{day_name}" do
-        days_advance = 7 - distance_from_next_day_name(day_name)
-        advance(days: days_advance)
-      end
-
-      define_method "prev_#{day_name}" do
-        days_difference = distance_from_next_day_name(day_name)
-        days_advance = days_difference == 0 ? -7 : -days_difference
-        advance(days: days_advance)
-      end
-    end
-
     private
-      def distance_from_next_day_name(day_name)
-        day_number = Date::DAYS_INTO_WEEK[day_name]
-        current_day_number = wday != 0 ? wday - 1 : 6
-        (current_day_number - day_number) % 7
+      def day_from_wday(wday_key)
+        day_name = Date::DAYNAMES[wday_key]
+        day_name.downcase
+      end
+
+      def distance_from_day_name(day_name)
+        index = DAYS_INTO_WEEK[day_name]
+        n = (index + 1) % 7
+        n - wday
       end
 
       def first_hour(date_or_time)

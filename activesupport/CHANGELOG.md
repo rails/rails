@@ -1,22 +1,21 @@
-*   Introduce next_*day and prev_*day helpers for Date, DateTime and Time  
+*   Extend next_day and prev_day helpers for Date, DateTime and Time  
 
-    Rails provides the Date#next_week method, but at times this is not the required date.
-    For example, if today is a Monday and there is a need for the next Tuesday, one way is to loop through
-    the next seven days to get the first match for Tuesday, or to blindly use the next_week(:tuesday)
-    method, which would usually not be the required value.
-
-    This implementation adds the Date#(next_sunday..next_saturday) and Date#(prev_sunday..prev_saturday), which would be super helpful for
-    these purposes. It finds the next_*day relative to the current date, being used.
+    This implementation extends the Date#next_day and Date#prev_day to accept a day argument which would be super helpful for
+    creating scheduling applications.
     Usage example:
 
     With this implementation, to get the next 4 Thursdays for a list, it can easily be achieved with the snippet below:
 
         4.times{ |i|
-           Date.today.next_thursday + i.week
+           Date.current.next_day(:tuesday) + i.week
         }
 
-        Date.today.next_tuesday # if the next day is a Tueday, it should return tomorrow, else next_week's
-        Date.today.prev_tuesday # if the previous day is a Tueday, it should return yesterday, else prev_week's
+        Date.current.next_day(:tuesday) # if the next day is a Tueday, it should return tomorrow, else next_week's
+        Date.current.prev_day(:tuesday) # if the previous day is a Tueday, it should return yesterday, else prev_week's
+
+    Also added the next_wday and prev_wday to find the next relative date through wday
+
+        Date.current.next_wday(4) # get the next Thursday after today
 
     This uses the Calculations API to achieve this efficiently.
 
