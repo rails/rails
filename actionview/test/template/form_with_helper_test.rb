@@ -6,7 +6,7 @@ class FormWithHelperTest < ActionView::TestCase
   tests ActionView::Helpers::FormTagHelper
 
   setup do
-    @post = Post.new
+    @post = Post.new("Catch 22", "Joseph Heller", "The plotline follows the airmen of the 256th Squadron...")
   end
 
   Routes = ActionDispatch::Routing::RouteSet.new
@@ -40,10 +40,20 @@ class FormWithHelperTest < ActionView::TestCase
 
   def test_form_with_model
     expected = whole_form('/posts', remote: true) do
-      "<label for='post_title'>The Title</label>"
+      "<label for='post_title'>The Title</label>" +
+      "<input type='text' name='post[title]' value='Catch 22' />" +
+      "<input type='text' name='post[title]' value='Catch 22' id='this_is_post_title'/>" +
+      "<input type='text' name='post[title]' value='Closing Time' />" +
+      "<textarea name='post[body]'>\nBack to the hill and over it again!</textarea>" +
+      "<textarea name='post[body]'>\nThe plotline follows the airmen of the 256th Squadron...</textarea>"
     end
     actual = form_with(model: @post) do |f|
-      f.label(:title, "The Title")
+      concat f.label(:title, "The Title")
+      concat f.text_field :title
+      concat f.text_field :title, id: 'this_is_post_title'
+      concat f.text_field :title, 'Closing Time'
+      concat f.text_area :body, "Back to the hill and over it again!"
+      concat f.text_area :body
     end
     assert_dom_equal expected, actual
   end
