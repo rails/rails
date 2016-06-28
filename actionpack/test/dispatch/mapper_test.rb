@@ -102,6 +102,18 @@ module ActionDispatch
         assert_equal("PUT", fakeset.routes.first.verb)
       end
 
+      def test_to_scope
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        mapper.scope(to: "posts#index") do
+          mapper.get :all
+          mapper.post :most
+        end
+
+        assert_equal "posts#index", fakeset.routes.to_a[0].defaults[:to]
+        assert_equal "posts#index", fakeset.routes.to_a[1].defaults[:to]
+      end
+
       def test_map_slash
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
