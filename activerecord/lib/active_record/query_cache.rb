@@ -40,7 +40,7 @@ module ActiveRecord
       executor.register_hook(self)
 
       executor.to_complete do
-        unless ActiveRecord::Base.connection.transaction_open?
+        unless ActiveRecord::Base.connected? && ActiveRecord::Base.connection.transaction_open?
           ActiveRecord::Base.clear_active_connections!
         end
       end
