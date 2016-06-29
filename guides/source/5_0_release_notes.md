@@ -524,8 +524,10 @@ Please refer to the [Changelog][active-record] for detailed changes.
     [activemodel-serializers-xml](https://github.com/rails/activemodel-serializers-xml)
     gem. ([Pull Request](https://github.com/rails/rails/pull/21161))
 
-*   Removed support for the legacy `mysql` database adapter from core. It will
-    live on in a separate gem for now, but most users should just use `mysql2`.
+*   Removed support for the legacy `mysql` database adapter from core. Most users should
+    be able to use `mysql2`. It will be converted to a separate gem when when we find someone
+    to maintain it. ([Pull Request 1](https://github.com/rails/rails/pull/22642)],
+    [Pull Request 2](https://github.com/rails/rails/pull/22715))
 
 *   Removed support for the `protected_attributes` gem.
     ([commit](https://github.com/rails/rails/commit/f4fbc0301021f13ae05c8e941c8efc4ae351fdf9))
