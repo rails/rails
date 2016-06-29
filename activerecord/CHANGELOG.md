@@ -1,3 +1,9 @@
+*   Inspecting an object with an associated array of over 10 elements no longer
+    truncates the array, preventing `inspect` from looping infinitely in some
+    cases.
+
+    *Kevin McPhillips*
+
 *   Removed the unused methods `ActiveRecord::Base.connection_id` and
     `ActiveRecord::Base.connection_id=`
 
