@@ -9,7 +9,7 @@ module ActiveRecord #:nodoc:
     end
 
     def serializable_hash(options = nil)
-      options = options.try(:clone) || {}
+      options = options.try(:dup) || {}
 
       options[:except] = Array(options[:except]).map(&:to_s)
       options[:except] |= Array(self.class.inheritance_column)
