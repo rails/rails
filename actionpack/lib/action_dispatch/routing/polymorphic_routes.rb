@@ -4,7 +4,7 @@ module ActionDispatch
     # given an Active Record model instance. They are to be used in combination with
     # ActionController::Resources.
     #
-    # These methods are useful when you want to generate correct URL or path to a RESTful
+    # These methods are useful when you want to generate the correct URL or path to a RESTful
     # resource without having to know the exact type of the record in question.
     #
     # Nested resources and/or namespaces are also supported, as illustrated in the example:
@@ -79,7 +79,7 @@ module ActionDispatch
       #   polymorphic_url([blog, post], anchor: 'my_anchor', script_name: "/my_app")
       #     # => "http://example.com/my_app/blogs/1/posts/1#my_anchor"
       #
-      # For all of these options, see the documentation for <tt>url_for</tt>.
+      # For all of these options, see the documentation for {url_for}[rdoc-ref:ActionDispatch::Routing::UrlFor].
       #
       # ==== Functionality
       #
