@@ -1,3 +1,9 @@
+*   Inspecting an object with an associated array of over 10 elements no longer
+    truncates the array, preventing `inspect` from looping infinitely in some
+    cases.
+
+    *Kevin McPhillips*
+
 *   Ensure hashes can be assigned to attributes created using `composed_of`.
     Fixes #25210.
 
