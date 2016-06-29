@@ -232,6 +232,20 @@ class QueryCacheTest < ActiveRecord::TestCase
     }.call({})
   end
 
+  def test_query_caching_is_local_to_the_current_thread
+    ActiveRecord::Base.clear_all_connections!
+
+    middleware {
+      assert ActiveRecord::Base.query_cache_enabled?
+      assert ActiveRecord::Base.connection.query_cache_enabled
+
+      Thread.new {
+        refute ActiveRecord::Base.query_cache_enabled?
+        refute ActiveRecord::Base.connection.query_cache_enabled
+      }.join
+    }.call({})
+  end
+
   private
     def middleware(&app)
       executor = Class.new(ActiveSupport::Executor)
