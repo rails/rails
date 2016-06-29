@@ -134,6 +134,8 @@ Then make sure that all your job classes inherit from it.
 
 See [#19034](https://github.com/rails/rails/pull/19034) for more details.
 
+_For more information see the [Ruby on Rails 5.0 Release Notes](5_0_release_notes.html)._
+
 Upgrading from Rails 4.1 to Rails 4.2
 -------------------------------------
 
