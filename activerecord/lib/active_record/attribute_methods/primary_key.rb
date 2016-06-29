@@ -95,7 +95,8 @@ module ActiveRecord
             base_name.foreign_key
           else
             if ActiveRecord::Base != self && table_exists?
-              connection.schema_cache.primary_keys(table_name)
+              pk = connection.schema_cache.primary_keys(table_name)
+              suppress_composite_primary_key(pk)
             else
               'id'
             end
@@ -121,6 +122,18 @@ module ActiveRecord
           @primary_key        = value && value.to_s
           @quoted_primary_key = nil
           @attributes_builder = nil
+        end
+
+        private
+
+        def suppress_composite_primary_key(pk)
+          return pk unless pk.is_a?(Array)
+
+          warn <<-WARNING.strip_heredoc
+            WARNING: Active Record does not support composite primary key.
+
+            #{table_name} has composite primary key. Composite primary key is ignored.
+          WARNING
         end
       end
     end

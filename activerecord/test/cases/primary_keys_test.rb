@@ -255,6 +255,7 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
 
   def setup
     @connection = ActiveRecord::Base.connection
+    @connection.schema_cache.clear!
     @connection.create_table(:barcodes, primary_key: ["region", "code"], force: true) do |t|
       t.string :region
       t.integer :code
@@ -270,10 +271,15 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
   end
 
   def test_primary_key_issues_warning
-    warning = capture(:stderr) do
-      assert_nil @connection.primary_key("barcodes")
+    model = Class.new(ActiveRecord::Base) do
+      def self.table_name
+        "barcodes"
+      end
     end
-    assert_match(/WARNING: Rails does not support composite primary key\./, warning)
+    warning = capture(:stderr) do
+      assert_nil model.primary_key
+    end
+    assert_match(/WARNING: Active Record does not support composite primary key\./, warning)
   end
 
   def test_collectly_dump_composite_primary_key
