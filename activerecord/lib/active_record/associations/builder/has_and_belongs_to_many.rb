@@ -77,7 +77,12 @@ module ActiveRecord::Associations::Builder # :nodoc:
         end
 
         def self.primary_key
-          false
+          pks = connection.primary_keys(self.table_name)
+          if pks.count > 1
+            false
+          else
+            super
+          end
         end
       }
 
