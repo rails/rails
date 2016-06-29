@@ -1,3 +1,10 @@
+*   Inspecting an object with an associated array of over 10 elements no longer
+    truncates the array, preventing `inspect` from looping infinitely in some
+    cases.
+
+    *Kevin McPhillips*
+
+
 ## Rails 5.0.0.rc2 (June 22, 2016) ##
 
 *   Ensure hashes can be assigned to attributes created using `composed_of`.
