@@ -90,7 +90,7 @@ module ActiveRecord
 
       def test_sql_for_insert_with_returning_disabled
         connection = connection_without_insert_returning
-        sql, binds = connection.sql_for_insert('sql', nil, nil, nil, 'binds')
+        sql, binds = connection.sql_for_insert('sql', nil, nil, 'binds')
         assert_equal ['sql', 'binds'], [sql, binds]
       end
 
