@@ -68,10 +68,10 @@ Don't forget to review the difference, to see if there were any unexpected chang
 Upgrading from Rails 4.2 to Rails 5.0
 -------------------------------------
 
-### Ruby 2.2.2+
+### Ruby 2.2.2+ required
 
-From Ruby on Rails 5.0 onwards, Ruby 2.2.2+ is the only supported version. 
-Make sure you are on Ruby 2.2.2 version or greater, before you proceed. 
+From Ruby on Rails 5.0 onwards, Ruby 2.2.2+ is the only supported Ruby version.
+Make sure you are on Ruby 2.2.2 version or greater, before you proceed.
 
 ### Active Record models now inherit from ApplicationRecord by default
 
@@ -119,7 +119,7 @@ See [#17227](https://github.com/rails/rails/pull/17227) for more details.
 
 ### ActiveJob jobs now inherit from ApplicationJob by default
 
-In Rails 4.2 an ActiveJob inherits from `ActiveJob::Base`. In Rails 5.0 this
+In Rails 4.2 an Active Job inherits from `ActiveJob::Base`. In Rails 5.0 this
 behavior has changed to now inherit from `ApplicationJob`.
 
 When upgrading from Rails 4.2 to Rails 5.0 you need to create an
@@ -133,6 +133,135 @@ end
 Then make sure that all your job classes inherit from it.
 
 See [#19034](https://github.com/rails/rails/pull/19034) for more details.
+
+### Rails Controller Testing
+
+`assigns` and `assert_template` have been extracted to the `rails-controller-testing` gem. To
+continue using these methods in your controller tests add `gem 'rails-controller-testing'` to
+your Gemfile.
+
+If you are using Rspec for testing please see the extra configuration required in the gem's
+documentation.
+
+### XML Serialization
+
+`ActiveModel::Serializers::Xml` has been extracted from Rails to the `activemodel-serializers-xml`
+gem. To continue using XML serialization in your application add `gem 'activemodel-serializers-xml'`
+to your Gemfile.
+
+### Removed support for legacy MySQL
+
+Rails 5 removes support for the legacy `mysql` database adapter. Most users should be able to
+use `mysql2` instead. It will be converted to a separate gem when we find someone to maintain
+it.
+
+### Removed support for debugger
+
+`debugger` is not supported by Ruby 2.2 which is required by Rails 5. Use `byebug` instead.
+
+### Use bin/rails for running tasks and tests
+
+Rails 5 adds the ability to run tasks and tests through `bin/rails` instead of rake. Generally
+these changes are in paralell with rake, but some were ported over altogether.
+
+To use the new test runner simply type `bin/rails test`.
+
+    rake dev:cache` is now `rails dev:cache
+
+Run `bin/rails` to see the list of commands available.
+
+### `ActionController::Parameters` no longer inherits from `HashWithIndifferentAccess`
+
+Calling `params` in your application will now return an object instead of a hash. If your
+parameters are already permitted you will not need to make any changes. If you are using slice
+and other methods that depend on being able to read the hash regardless of `permitted?` you will
+need to ugrade your application to first permit and then convert to a hash.
+
+    params.permit([:proceed_to, :return_to]).to_h
+
+### `protect_from_forgery` now defaults to `prepend: false`
+
+`protect_from_forgery` defaults to `prepend: false` which means that it will be inserted into
+the callback chain at the point in which you call it in your application. If you want
+`protect_from_forgery` to always run first you should change your application to use
+`protect_from_forgery prepend: true`.
+
+### Default template handler is now RAW
+
+Files without a template handler in their extension will be rendered using the raw handler.
+Previously Rails would render files using the ERB template handler.
+
+If you do not want your file to be handled via the raw handler, you should add an extension
+to your file that can be parsed by the appropriate template handler.
+
+### Add wildcard matching for template dependencies
+
+You can now use wildcard matching for your template dependencies. For example if you were
+defining your templates as such:
+
+```erb
+<% # Template Dependency: recordings/threads/events/subscribers_changed %>
+<% # Template Dependency: recordings/threads/events/completed %>
+<% # Template Dependency: recordings/threads/events/uncompleted %>
+```
+
+You can now just call the dependency once with a wildcard.
+
+```erb
+<% # Template Dependency: recordings/threads/events/* %>
+```
+
+### Remove support for `protected_attributes` gem
+
+The `protected_attributes` gem is no longer supported in Rails 5.
+
+### Remove support for `activerecord-deprecated_finders` gem
+
+The `activerecord-deprecated_finders` gem is no longer supported in Rails 5.
+
+### `ActiveSupport::TestCase` default test order is now random
+
+When tests are run in your application the default order is now `:random`
+instead of `:sorted`. Use the following config option to set it back to `:sorted`.
+
+```ruby
+# config/environments/test.rb
+Rails.application.configure do
+  config.active_support.test_order = :sorted
+end
+```
+
+### New config options
+
+## Active Record `belongs_to` Required by Default Option
+
+`belongs_to` will now trigger a validation error by default if the association is not present.
+
+This can be turned off per-association with `optional: true`.
+
+This default will will be automatically configured in new applications. If existing application
+want to add this feature it will need to be turned on in an initializer.
+
+    config.active_record.belongs_to_required_by_default = true
+
+## Allow configuration of Action Mailer queue name
+
+The default mailer queue name is `mailers`. This configuration option allows you to globally change
+the queue name. Set the following in your config.
+
+    config.action_mailer.deliver_later_queue_name
+
+## Support fragment caching in Action Mailer views
+
+Set `config.action_mailer.perform_caching` in your config to determine whether your Action Mailer views
+should support caching.
+
+## Configure the output of `db:structure:dump`
+
+If you're using `schema_search_path` or other PostgreSQL extentions, you can control how the schema is
+dumped. Set to `:all` to generate all dumps, or `:schema_search_path` to generate from schame search path.
+
+    config.active_record.dump_schemas = :all
 
 Upgrading from Rails 4.1 to Rails 4.2
 -------------------------------------
