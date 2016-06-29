@@ -12,9 +12,9 @@ module ActiveRecord
   class RuntimeRegistry # :nodoc:
     extend ActiveSupport::PerThreadRegistry
 
-    attr_accessor :connection_handler, :sql_runtime, :connection_id
+    attr_accessor :connection_handler, :sql_runtime
 
-    [:connection_handler, :sql_runtime, :connection_id].each do |val|
+    [:connection_handler, :sql_runtime].each do |val|
       class_eval %{ def self.#{val}; instance.#{val}; end }, __FILE__, __LINE__
       class_eval %{ def self.#{val}=(x); instance.#{val}=x; end }, __FILE__, __LINE__
     end

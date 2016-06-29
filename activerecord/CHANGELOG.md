@@ -1,3 +1,8 @@
+*   Removed the unused methods `ActiveRecord::Base.connection_id` and
+    `ActiveRecord::Base.connection_id=`
+
+    *Sean Griffin*
+
 *   Ensure hashes can be assigned to attributes created using `composed_of`.
     Fixes #25210.
 

@@ -98,14 +98,6 @@ module ActiveRecord
       @connection_specification_name
     end
 
-    def connection_id
-      ActiveRecord::RuntimeRegistry.connection_id ||= Thread.current.object_id
-    end
-
-    def connection_id=(connection_id)
-      ActiveRecord::RuntimeRegistry.connection_id = connection_id
-    end
-
     # Returns the configuration of the associated connection as a hash:
     #
     #  ActiveRecord::Base.connection_config

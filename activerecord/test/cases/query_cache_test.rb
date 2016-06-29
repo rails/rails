@@ -39,18 +39,6 @@ class QueryCacheTest < ActiveRecord::TestCase
     assert ActiveRecord::Base.connection.query_cache_enabled, 'cache on'
   end
 
-  def test_exceptional_middleware_assigns_original_connection_id_on_error
-    connection_id = ActiveRecord::Base.connection_id
-
-    mw = middleware { |env|
-      ActiveRecord::Base.connection_id = self.object_id
-      raise "lol borked"
-    }
-    assert_raises(RuntimeError) { mw.call({}) }
-
-    assert_equal connection_id, ActiveRecord::Base.connection_id
-  end
-
   def test_middleware_delegates
     called = false
     mw = middleware { |env|
