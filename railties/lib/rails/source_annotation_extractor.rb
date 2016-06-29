@@ -16,6 +16,7 @@ class SourceAnnotationExtractor
   class Annotation < Struct.new(:line, :tag, :text)
     def self.directories
       @@directories ||= %w(app config db lib test) + (ENV['SOURCE_ANNOTATION_DIRECTORIES'] || '').split(',')
+      @@directories << 'spec' if Dir.glob('*').include?('spec') 
     end
 
     def self.extensions
