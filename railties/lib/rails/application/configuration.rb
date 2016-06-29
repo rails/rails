@@ -16,7 +16,7 @@ module Rails
                     :railties_order, :relative_url_root, :secret_key_base, :secret_token,
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
-                    :beginning_of_week, :filter_redirect, :x
+                    :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading
 
       attr_writer :log_level
       attr_reader :encoding, :api_only, :static_cache_control
@@ -54,6 +54,7 @@ module Rails
         @api_only                        = false
         @debug_exception_response_format = nil
         @x                               = Custom.new
+        @enable_dependency_loading       = false
       end
 
       def static_cache_control=(value)

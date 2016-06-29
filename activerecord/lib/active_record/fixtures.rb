@@ -66,7 +66,7 @@ module ActiveRecord
   # By default, +test_helper.rb+ will load all of your fixtures into your test
   # database, so this test will succeed.
   #
-  # The testing environment will automatically load the all fixtures into the database before each
+  # The testing environment will automatically load all the fixtures into the database before each
   # test. To ensure consistent data, the environment deletes the fixtures before running the load.
   #
   # In addition to being available in the database, the fixture's data may also be accessed by

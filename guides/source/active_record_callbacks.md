@@ -399,7 +399,7 @@ By using the `after_commit` callback we can account for this case.
 
 ```ruby
 class PictureFile < ApplicationRecord
-  after_commit :delete_picture_file_from_disk, on: [:destroy]
+  after_commit :delete_picture_file_from_disk, on: :destroy
 
   def delete_picture_file_from_disk
     if File.exist?(filepath)
@@ -409,7 +409,7 @@ class PictureFile < ApplicationRecord
 end
 ```
 
-NOTE: the `:on` option specifies when a callback will be fired. If you
+NOTE: The `:on` option specifies when a callback will be fired. If you
 don't supply the `:on` option the callback will fire for every action.
 
 Since using `after_commit` callback only on create, update or delete is

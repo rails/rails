@@ -503,9 +503,9 @@ second = Article.create! title: "Brace yourself",
                          status: "draft",
                          published_at: 1.month.ago
 
-Article.count # => 1
-first.archive!
 Article.count # => 2
+first.archive!
+Article.count # => 1
 ```
 
 NOTE: This application only cares about non-archived `Articles`. A view also

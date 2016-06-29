@@ -1,3 +1,22 @@
+*   Support parsing JSON time in ISO8601 local time strings in
+    `ActiveSupport::JSON.decode` when `parse_json_times` is enabled.
+    Strings in the format of `YYYY-MM-DD hh:mm:ss` (without a `Z` at
+    the end) will be parsed in the local timezone (`Time.zone`). In
+    addition, date strings (`YYYY-MM-DD`) are now parsed into `Date`
+    objects.
+
+    *Grzegorz Witek*
+
+*   Fixed `ActiveSupport::Logger.broadcast` so that calls to `#silence` now
+    properly delegate to all loggers. Silencing now properly suppresses logging
+    to both the log and the console.
+
+    *Kevin McPhillips*
+
+*   Remove deprecated arguments in `assert_nothing_raised`.
+
+    *Rafel Mendonça França*
+
 *   `Date.to_s` doesn't produce too many spaces. For example, `to_s(:short)`
     will now produce `01 Feb` instead of ` 1 Feb`.
 

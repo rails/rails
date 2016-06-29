@@ -363,7 +363,7 @@ module ActionView
           html_attributes[:disabled] ||= disabled && option_value_selected?(value, disabled)
           html_attributes[:value] = value
 
-          content_tag_string(:option, text, html_attributes)
+          tag_builder.content_tag_string(:option, text, html_attributes)
         end.join("\n").html_safe
       end
 

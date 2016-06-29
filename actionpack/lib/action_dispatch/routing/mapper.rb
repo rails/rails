@@ -1062,6 +1062,10 @@ module ActionDispatch
           def merge_shallow_scope(parent, child) #:nodoc:
             child ? true : false
           end
+
+          def merge_to_scope(parent, child)
+            child
+          end
       end
 
       # Resource routing allows you to quickly declare all of the common routes
@@ -1582,6 +1586,10 @@ module ActionDispatch
             raise ArgumentError, "Unknown scope #{on.inspect} given to :on"
           end
 
+          if @scope[:to]
+            options[:to] ||= @scope[:to]
+          end
+
           if @scope[:controller] && @scope[:action]
             options[:to] ||= "#{@scope[:controller]}##{@scope[:action]}"
           end
@@ -2021,7 +2029,7 @@ to this:
       class Scope # :nodoc:
         OPTIONS = [:path, :shallow_path, :as, :shallow_prefix, :module,
                    :controller, :action, :path_names, :constraints,
-                   :shallow, :blocks, :defaults, :via, :format, :options]
+                   :shallow, :blocks, :defaults, :via, :format, :options, :to]
 
         RESOURCE_SCOPES = [:resource, :resources]
         RESOURCE_METHOD_SCOPES = [:collection, :member, :new]

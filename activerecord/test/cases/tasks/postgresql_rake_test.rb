@@ -288,14 +288,14 @@ module ActiveRecord
 
     def test_structure_load
       filename = "awesome-file.sql"
-      Kernel.expects(:system).with('psql', '-q', '-f', filename, @configuration['database']).returns(true)
+      Kernel.expects(:system).with('psql', '-v', 'ON_ERROR_STOP=1', '-q', '-f', filename, @configuration['database']).returns(true)
 
       ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
     end
 
     def test_structure_load_accepts_path_with_spaces
       filename = "awesome file.sql"
-      Kernel.expects(:system).with('psql', '-q', '-f', filename, @configuration['database']).returns(true)
+      Kernel.expects(:system).with('psql', '-v', 'ON_ERROR_STOP=1', '-q', '-f', filename, @configuration['database']).returns(true)
 
       ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
     end

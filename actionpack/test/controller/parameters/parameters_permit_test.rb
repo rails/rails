@@ -369,4 +369,10 @@ class ParametersPermitTest < ActiveSupport::TestCase
     refute params.permit(foo: [:bar]).has_key?(:foo)
     refute params.permit(foo: :bar).has_key?(:foo)
   end
+
+  test '#permitted? is false by default' do
+    params = ActionController::Parameters.new
+
+    assert_equal false, params.permitted?
+  end
 end

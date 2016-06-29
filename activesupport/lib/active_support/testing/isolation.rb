@@ -13,17 +13,6 @@ module ActiveSupport
         !ENV["NO_FORK"] && Process.respond_to?(:fork)
       end
 
-      @@class_setup_mutex = Mutex.new
-
-      def _run_class_setup      # class setup method should only happen in parent
-        @@class_setup_mutex.synchronize do
-          unless defined?(@@ran_class_setup) || ENV['ISOLATION_TEST']
-            self.class.setup if self.class.respond_to?(:setup)
-            @@ran_class_setup = true
-          end
-        end
-      end
-
       def run
         serialized = run_in_isolation do
           super

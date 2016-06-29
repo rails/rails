@@ -94,6 +94,8 @@ application. Accepts a valid week day symbol (e.g. `:monday`).
 
 * `config.eager_load_paths` accepts an array of paths from which Rails will eager load on boot if cache classes is enabled. Defaults to every folder in the `app` directory of the application.
 
+* `config.enable_dependency_loading`: when true, enables autoload loading, even if the application is eager loaded and `config.cache_classes` is set as true. Defaults to false.
+
 * `config.encoding` sets up the application-wide encoding. Defaults to UTF-8.
 
 * `config.exceptions_app` sets the exceptions application invoked by the ShowException middleware when an exception happens. Defaults to `ActionDispatch::PublicExceptions.new(Rails.public_path)`.

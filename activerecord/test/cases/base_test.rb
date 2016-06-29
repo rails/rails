@@ -14,7 +14,6 @@ require 'models/auto_id'
 require 'models/boolean'
 require 'models/column_name'
 require 'models/subscriber'
-require 'models/keyboard'
 require 'models/comment'
 require 'models/minimalistic'
 require 'models/warehouse_thing'
@@ -25,7 +24,6 @@ require 'models/joke'
 require 'models/bird'
 require 'models/car'
 require 'models/bulb'
-require 'rexml/document'
 require 'concurrent/atomic/count_down_latch'
 
 class FirstAbstractClass < ActiveRecord::Base
@@ -1032,12 +1030,6 @@ class BasicsTest < ActiveRecord::TestCase
     t1.save
     t2.reload
     assert_equal t1.title, t2.title
-  end
-
-  def test_reload_with_exclusive_scope
-    dev = DeveloperCalledDavid.first
-    dev.update!(name: "NotDavid" )
-    assert_equal dev, dev.reload
   end
 
   def test_switching_between_table_name

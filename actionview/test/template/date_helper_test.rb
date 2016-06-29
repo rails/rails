@@ -534,6 +534,13 @@ class DateHelperTest < ActionView::TestCase
 
     assert_dom_equal expected, select_year(nil, start_year: 2003, end_year: 2005, with_css_classes: { year: 'my-year' })
   end
+  
+  def test_select_year_with_position
+    expected = %(<select id="date_year_1i" name="date[year(1i)]">\n)
+    expected << %(<option value="2003">2003</option>\n<option value="2004">2004</option>\n<option value="2005">2005</option>\n)
+    expected << "</select>\n"
+    assert_dom_equal expected, select_year(Date.current, include_position: true,  start_year: 2003, end_year: 2005)
+  end
 
   def test_select_hour
     expected = %(<select id="date_hour" name="date[hour]">\n)
@@ -3600,10 +3607,6 @@ class DateHelperTest < ActionView::TestCase
     time = Time.new(2013, 2, 20, 0, 0, 0, '+00:00')
     expected = '<time datetime="2013-02-20T00:00:00+00:00">February 20, 2013 00:00</time>'
     assert_equal expected, time_tag(time)
-  end
-
-  def test_time_tag_pubdate_option
-    assert_match(/<time.*pubdate="pubdate">.*<\/time>/, time_tag(Time.now, :pubdate => true))
   end
 
   def test_time_tag_with_given_text

@@ -100,6 +100,13 @@ module RenderTestCases
     assert_equal %q;Here are some characters: !@#$%^&*()-="'}{`; + "\n", @view.render(:template => "plain_text_with_characters")
   end
 
+  def test_render_raw_is_html_safe_and_does_not_escape_output
+    buffer = ActiveSupport::SafeBuffer.new
+    buffer << @view.render(file: "plain_text")
+    assert_equal true, buffer.html_safe?
+    assert_equal buffer, "<%= hello_world %>\n"
+  end
+
   def test_render_ruby_template_with_handlers
     assert_equal "Hello from Ruby code", @view.render(:template => "ruby_template")
   end

@@ -21,10 +21,13 @@ module Rails
 
       initializer :add_builtin_route do |app|
         if Rails.env.development?
-          app.routes.append do
+          app.routes.prepend do
             get '/rails/info/properties' => "rails/info#properties", internal: true
             get '/rails/info/routes'     => "rails/info#routes", internal: true
             get '/rails/info'            => "rails/info#index", internal: true
+          end
+
+          app.routes.append do
             get '/'                      => "rails/welcome#index", internal: true
           end
         end
@@ -173,7 +176,7 @@ module Rails
 
       # Disable dependency loading during request cycle
       initializer :disable_dependency_loading do
-        if config.eager_load && config.cache_classes
+        if config.eager_load && config.cache_classes && !config.enable_dependency_loading
           ActiveSupport::Dependencies.unhook!
         end
       end
