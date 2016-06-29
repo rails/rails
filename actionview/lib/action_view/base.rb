@@ -17,7 +17,7 @@ module ActionView #:nodoc:
   #
   # == ERB
   #
-  # You trigger ERB by using embeddings such as <% %>, <% -%>, and <%= %>. The <%= %> tag set is used when you want output. Consider the
+  # You trigger ERB by using embeddings such as <tt><% %></tt>, <tt><% -%></tt>, and <tt><%= %></tt>. The <tt><%= %></tt> tag set is used when you want output. Consider the
   # following loop for names:
   #
   #   <b>Names of all the people</b>
@@ -25,7 +25,7 @@ module ActionView #:nodoc:
   #     Name: <%= person.name %><br/>
   #   <% end %>
   #
-  # The loop is setup in regular embedding tags <% %> and the name is written using the output embedding tag <%= %>. Note that this
+  # The loop is setup in regular embedding tags <tt><% %></tt>, and the name is written using the output embedding tag <tt><%= %></tt>. Note that this
   # is not just a usage suggestion. Regular output functions like print or puts won't work with ERB templates. So this would be wrong:
   #
   #   <%# WRONG %>
@@ -33,9 +33,9 @@ module ActionView #:nodoc:
   #
   # If you absolutely must write from within a function use +concat+.
   #
-  # When on a line that only contains whitespaces except for the tag, <% %> suppress leading and trailing whitespace,
-  # including the trailing newline. <% %> and <%- -%> are the same.
-  # Note however that <%= %> and <%= -%> are different: only the latter removes trailing whitespaces.
+  # When on a line that only contains whitespaces except for the tag, <tt><% %></tt> suppresses leading and trailing whitespace,
+  # including the trailing newline. <tt><% %></tt> and <tt><%- -%></tt> are the same.
+  # Note however that <tt><%= %></tt> and <tt><%= -%></tt> are different: only the latter removes trailing whitespaces.
   #
   # === Using sub templates
   #
@@ -110,7 +110,7 @@ module ActionView #:nodoc:
   #     <p>A product of Danish Design during the Winter of '79...</p>
   #   </div>
   #
-  # A full-length RSS example actually used on Basecamp:
+  # Here is a full-length RSS example actually used on Basecamp:
   #
   #   xml.rss("version" => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/") do
   #     xml.channel do
