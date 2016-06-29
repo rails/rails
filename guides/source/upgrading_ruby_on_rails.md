@@ -162,7 +162,7 @@ it.
 ### Use bin/rails for running tasks and tests
 
 Rails 5 adds the ability to run tasks and tests through `bin/rails` instead of rake. Generally
-these changes are in paralell with rake, but some were ported over altogether.
+these changes are in parallel with rake, but some were ported over altogether.
 
 To use the new test runner simply type `bin/rails test`.
 
@@ -175,7 +175,7 @@ Run `bin/rails` to see the list of commands available.
 Calling `params` in your application will now return an object instead of a hash. If your
 parameters are already permitted you will not need to make any changes. If you are using slice
 and other methods that depend on being able to read the hash regardless of `permitted?` you will
-need to ugrade your application to first permit and then convert to a hash.
+need to upgrade your application to first permit and then convert to a hash.
 
     params.permit([:proceed_to, :return_to]).to_h
 
@@ -259,7 +259,7 @@ should support caching.
 ## Configure the output of `db:structure:dump`
 
 If you're using `schema_search_path` or other PostgreSQL extentions, you can control how the schema is
-dumped. Set to `:all` to generate all dumps, or `:schema_search_path` to generate from schame search path.
+dumped. Set to `:all` to generate all dumps, or `:schema_search_path` to generate from schema search path.
 
     config.active_record.dump_schemas = :all
 
