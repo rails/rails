@@ -1,7 +1,19 @@
 require 'cases/helper'
 require 'models/topic'
 
-class InvalidDateTest < ActiveRecord::TestCase
+class DateTest < ActiveRecord::TestCase
+  def test_date_with_time_value
+    time_value = Time.new(2016, 05, 11, 19, 0, 0)
+    topic = Topic.create(last_read: time_value)
+    assert_equal topic, Topic.find_by(last_read: time_value)
+  end
+
+  def test_date_with_string_value
+    string_value = '2016-05-11 19:00:00'
+    topic = Topic.create(last_read: string_value)
+    assert_equal topic, Topic.find_by(last_read: string_value)
+  end
+
   def test_assign_valid_dates
     valid_dates = [[2007, 11, 30], [1993, 2, 28], [2008, 2, 29]]
 
