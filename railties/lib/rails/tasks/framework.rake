@@ -2,7 +2,7 @@ require 'active_support/deprecation'
 
 namespace :app do
   desc "Update configs and some other initially generated files (or use just update:configs or update:bin)"
-  task update: [ "update:configs", "update:bin" ]
+  task update: [ "update:configs", "update:bin", "update:upgrade_guide_info" ]
 
   desc "Applies the template supplied by LOCATION=(/path/to/template) or URL"
   task template: :environment do
@@ -66,6 +66,10 @@ namespace :app do
     # desc "Adds new executables to the application bin/ directory"
     task :bin do
       RailsUpdate.invoke_from_app_generator :create_bin_files
+    end
+
+    task :upgrade_guide_info do
+      RailsUpdate.invoke_from_app_generator :display_upgrade_guide_info
     end
   end
 end
