@@ -188,7 +188,7 @@ module ApplicationTests
 
     test 'sprockets cache is not shared between environments' do
       app_file "app/assets/images/rails.png", "notactuallyapng"
-      app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
+      app_file "app/assets/stylesheets/application.css.erb", "body { background: '<%= asset_path('rails.png') %>'; }"
       add_to_env_config 'production', 'config.assets.prefix = "production_assets"'
 
       precompile!
