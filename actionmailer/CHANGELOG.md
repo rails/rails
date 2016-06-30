@@ -1,3 +1,5 @@
+## Rails 5.0.0 (June 30, 2016) ##
+
 *   Exception handling: use `rescue_from` to handle exceptions raised by
     mailer actions, by message delivery, and by deferred delivery jobs.
 

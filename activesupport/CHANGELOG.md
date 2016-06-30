@@ -1,3 +1,5 @@
+## Rails 5.0.0 (June 30, 2016) ##
+
 *   Support parsing JSON time in ISO8601 local time strings in
     `ActiveSupport::JSON.decode` when `parse_json_times` is enabled.
     Strings in the format of `YYYY-MM-DD hh:mm:ss` (without a `Z` at

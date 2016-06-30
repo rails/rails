@@ -1,3 +1,5 @@
+## Rails 5.0.0 (June 30, 2016) ##
+
 *   Ensure hashes can be assigned to attributes created using `composed_of`.
     Fixes #25210.
 

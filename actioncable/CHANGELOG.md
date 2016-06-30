@@ -1,8 +1,10 @@
-*  Fix development reloading support: new cable connections are now correctly
-   dispatched to the reloaded channel class, instead of using a cached reference
-   to the originally-loaded version.
+## Rails 5.0.0 (June 30, 2016) ##
 
-   *Matthew Draper*
+*   Fix development reloading support: new cable connections are now correctly
+    dispatched to the reloaded channel class, instead of using a cached reference
+    to the originally-loaded version.
+
+    *Matthew Draper*
 
 *   WebSocket protocol negotiation.
 

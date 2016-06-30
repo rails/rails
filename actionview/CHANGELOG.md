@@ -1,3 +1,5 @@
+## Rails 5.0.0 (June 30, 2016) ##
+
 *   Change `datetime_field` and `datetime_field_tag` to generate `datetime-local` fields.
 
     As a new specification of the HTML 5 the text field type `datetime` will no longer exist

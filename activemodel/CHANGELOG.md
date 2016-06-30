@@ -1,3 +1,5 @@
+## Rails 5.0.0 (June 30, 2016) ##
+
 *   Ensure that instances of `ActiveModel::Errors` can be marshalled.
     Fixes #25165.
 
