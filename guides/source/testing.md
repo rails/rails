@@ -365,9 +365,9 @@ documentation](http://docs.seattlerb.org/minitest).
 
 ### The Rails Test Runner
 
-We can run all of our tests at once by using the `rails test` command.
+We can run all of our tests at once by using the `bin/rails test` command.
 
-Or we can run a single test by passing the `rails test` command the filename containing the test cases.
+Or we can run a single test by passing the `bin/rails test` command the filename containing the test cases.
 
 ```bash
 $ bin/rails test test/models/article_test.rb
@@ -412,6 +412,38 @@ You can also run an entire directory of tests by providing the path to the direc
 $ bin/rails test test/controllers # run all tests from specific directory
 ```
 
+The test runner provides lot of other features too like failing fast, deferring test output
+at the end of test run and so on. Check the documentation of the test runner as follows:
+
+```bash
+$ bin/rails test -h
+minitest options:
+    -h, --help                       Display this help.
+    -s, --seed SEED                  Sets random seed. Also via env. Eg: SEED=n rake
+    -v, --verbose                    Verbose. Show progress processing files.
+    -n, --name PATTERN               Filter run on /regexp/ or string.
+        --exclude PATTERN            Exclude /regexp/ or string from run.
+
+Known extensions: rails, pride
+
+Usage: bin/rails test [options] [files or directories]
+You can run a single test by appending a line number to a filename:
+
+    bin/rails test test/models/user_test.rb:27
+
+You can run multiple files and directories at the same time:
+
+    bin/rails test test/controllers test/integration/login_test.rb
+
+By default test failures and errors are reported inline during a run.
+
+Rails options:
+    -e, --environment ENV            Run tests in the ENV environment
+    -b, --backtrace                  Show the complete backtrace
+    -d, --defer-output               Output test failures and errors after the test run
+    -f, --fail-fast                  Abort test run on first failure or error
+    -c, --[no-]color                 Enable color in the output
+```
 
 The Test Database
 -----------------
