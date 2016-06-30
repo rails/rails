@@ -75,7 +75,7 @@ For more information on changes made to Rails 5.0 please see the [release notes]
 From Ruby on Rails 5.0 onwards, Ruby 2.2.2+ is the only supported Ruby version.
 Make sure you are on Ruby 2.2.2 version or greater, before you proceed.
 
-### Active Record models now inherit from ApplicationRecord by default
+### Active Record Models Now Inherit from ApplicationRecord by Default
 
 In Rails 4.2, an Active Record model inherits from `ActiveRecord::Base`. In Rails 5.0,
 all models inherit from `ApplicationRecord`.
@@ -94,7 +94,7 @@ class ApplicationRecord < ActiveRecord::Base
 end
 ```
 
-### Halting callback chains via `throw(:abort)`
+### Halting Callback Chains via `throw(:abort)`
 
 In Rails 4.2, when a 'before' callback returns `false` in Active Record
 and Active Model, then the entire callback chain is halted. In other words,
@@ -119,7 +119,7 @@ halted the chain when any value was returned.
 
 See [#17227](https://github.com/rails/rails/pull/17227) for more details.
 
-### ActiveJob jobs now inherit from ApplicationJob by default
+### ActiveJob Now Inherits from ApplicationJob by Default
 
 In Rails 4.2, an Active Job inherits from `ActiveJob::Base`. In Rails 5.0, this
 behavior has changed to now inherit from `ApplicationJob`.
@@ -145,7 +145,7 @@ your Gemfile.
 If you are using Rspec for testing, please see the extra configuration required in the gem's
 documentation.
 
-### Autoloading is disabled after booting in the production environment
+### Autoloading is Disabled After Booting in the Production Environment
 
 Autoloading is now disabled after booting in the production environment by
 default.
@@ -167,13 +167,13 @@ true.
 gem. To continue using XML serialization in your application, add `gem 'activemodel-serializers-xml'`
 to your Gemfile.
 
-### Removed support for legacy MySQL
+### Removed Support for Legacy `mysql` Database Adapter
 
 Rails 5 removes support for the legacy `mysql` database adapter. Most users should be able to
 use `mysql2` instead. It will be converted to a separate gem when we find someone to maintain
 it.
 
-### Removed support for debugger
+### Removed Support for Debugger
 
 `debugger` is not supported by Ruby 2.2 which is required by Rails 5. Use `byebug` instead.
 
@@ -188,7 +188,7 @@ To use the new test runner simply type `bin/rails test`.
 
 Run `bin/rails` to see the list of commands available.
 
-### `ActionController::Parameters` no longer inherits from `HashWithIndifferentAccess`
+### `ActionController::Parameters` No Longer Inherits from `HashWithIndifferentAccess`
 
 Calling `params` in your application will now return an object instead of a hash. If your
 parameters are already permitted, then you will not need to make any changes. If you are using `slice`
@@ -197,14 +197,14 @@ need to upgrade your application to first permit and then convert to a hash.
 
     params.permit([:proceed_to, :return_to]).to_h
 
-### `protect_from_forgery` now defaults to `prepend: false`
+### `protect_from_forgery` Now Defaults to `prepend: false`
 
 `protect_from_forgery` defaults to `prepend: false` which means that it will be inserted into
 the callback chain at the point in which you call it in your application. If you want
 `protect_from_forgery` to always run first you should change your application to use
 `protect_from_forgery prepend: true`.
 
-### Default template handler is now RAW
+### Default Template Handler is Now RAW
 
 Files without a template handler in their extension will be rendered using the raw handler.
 Previously Rails would render files using the ERB template handler.
@@ -212,7 +212,7 @@ Previously Rails would render files using the ERB template handler.
 If you do not want your file to be handled via the raw handler, you should add an extension
 to your file that can be parsed by the appropriate template handler.
 
-### Add wildcard matching for template dependencies
+### Added Wildcard Matching for Template Dependencies
 
 You can now use wildcard matching for your template dependencies. For example if you were
 defining your templates as such:
@@ -229,15 +229,15 @@ You can now just call the dependency once with a wildcard.
 <% # Template Dependency: recordings/threads/events/* %>
 ```
 
-### Remove support for `protected_attributes` gem
+### Removed Support for `protected_attributes` Gem
 
 The `protected_attributes` gem is no longer supported in Rails 5.
 
-### Remove support for `activerecord-deprecated_finders` gem
+### Removed support for `activerecord-deprecated_finders` gem
 
 The `activerecord-deprecated_finders` gem is no longer supported in Rails 5.
 
-### `ActiveSupport::TestCase` default test order is now random
+### `ActiveSupport::TestCase` Default Test Rrder is Now Random
 
 When tests are run in your application the default order is now `:random`
 instead of `:sorted`. Use the following config option to set it back to `:sorted`.
@@ -262,7 +262,7 @@ want to add this feature it will need to be turned on in an initializer.
 
     config.active_record.belongs_to_required_by_default = true
 
-#### Per-form CSRF tokens
+#### Per-form CSRF Tokens
 
 Rails 5 now supports per-form CSRF tokens to mitigate against code-injection attacks with forms
 created by JavaScript. With this option turned on forms in your application will each have their
@@ -270,7 +270,7 @@ own CSRF token that is specified to the action and method for that form.
 
     config.action_controller.per_form_csrf_tokens = true
 
-#### Forgery protection with origin check
+#### Forgery Protection with Origin Check
 
 You can how configure your application to check if the HTTP `Origin` header should be checked
 against the site's origin as an additional CSRF defense. Set the following in your config to
@@ -278,34 +278,34 @@ true:
 
     config.action_controller.forgery_protection_origin_check = true
 
-#### Allow configuration of Action Mailer queue name
+#### Allow Configuration of Action Mailer Queue Name
 
 The default mailer queue name is `mailers`. This configuration option allows you to globally change
 the queue name. Set the following in your config.
 
     config.action_mailer.deliver_later_queue_name = :new_queue_name
 
-#### Support fragment caching in Action Mailer views
+#### Support Fragment Caching in Action Mailer Views
 
 Set `config.action_mailer.perform_caching` in your config to determine whether your Action Mailer views
 should support caching.
 
     config.action_mailer.perform_caching = true
 
-#### Configure the output of `db:structure:dump`
+#### Configure the Output of `db:structure:dump`
 
 If you're using `schema_search_path` or other PostgreSQL extentions, you can control how the schema is
 dumped. Set to `:all` to generate all dumps, or `:schema_search_path` to generate from schema search path.
 
     config.active_record.dump_schemas = :all
 
-#### Configure SSL options to enable HSTS with subdomains
+#### Configure SSL Options to Enable HSTS with Subdomains
 
 Set the following in your config to enable HSTS when using subdomains.
 
     config.ssl_options = { hsts: { subdomains: true } }
 
-#### Preserve timezone of the receiver
+#### Preserve Timezone of the Receiver
 
 When using Ruby 2.4 you can preserve the timezone of the receiver when calling `to_time`.
 
