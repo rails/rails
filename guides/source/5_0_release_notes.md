@@ -346,6 +346,15 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 *   Deprecated `:controller` and `:action` path parameters.
     ([Pull Request](https://github.com/rails/rails/pull/23980))
 
+*   Deprecated env method on controller instances.
+    ([commit](https://github.com/rails/rails/commit/05934d24aff62d66fc62621aa38dae6456e276be))
+
+*   `ActionDispatch::ParamsParser` is deprecated and was removed from the
+    middleware stack. To configure the parameter parsers use
+    `ActionDispatch::Request.parameter_parsers=`.
+    ([commit](https://github.com/rails/rails/commit/38d2bf5fd1f3e014f2397898d371c339baa627b1),
+    [commit](https://github.com/rails/rails/commit/5ed38014811d4ce6d6f957510b9153938370173b))
+
 ### Notable changes
 
 *   Added `ActionController::Renderer` to render arbitrary templates
@@ -457,6 +466,10 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 *   Partial template name no longer has to be a valid Ruby identifier.
     ([commit](https://github.com/rails/rails/commit/da9038e))
+
+*   The `datetime_tag` helper now generates an input tag with the type of
+    `datetime-local`.
+    ([Pull Request](https://github.com/rails/rails/pull/25469))
 
 Action Mailer
 -------------
