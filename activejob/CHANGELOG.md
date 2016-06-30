@@ -1,14 +1,4 @@
-## Rails 5.0.0.rc2 (June 22, 2016) ##
-
-*   No changes.
-
-
-## Rails 5.0.0.rc1 (May 06, 2016) ##
-
-*   No changes.
-
-
-## Rails 5.0.0.beta4 (April 27, 2016) ##
+## Rails 5.0.0 (June 30, 2016) ##
 
 *   Enable class reloading prior to job dispatch, and ensure Active Record
     connections are returned to the pool when jobs are run in separate threads.
@@ -21,22 +11,11 @@
 
     *Jeremy Daer*
 
-
-## Rails 5.0.0.beta3 (February 24, 2016) ##
-
 *   Change the default adapter from inline to async. It's a better default as tests will then not mistakenly
     come to rely on behavior happening synchronously. This is especially important with things like jobs kicked off
     in Active Record lifecycle callbacks.
 
     *DHH*
-
-
-## Rails 5.0.0.beta2 (February 01, 2016) ##
-
-*   No changes.
-
-
-## Rails 5.0.0.beta1 (December 18, 2015) ##
 
 *   Fixed serializing `:at` option for `assert_enqueued_with`
     and `assert_performed_with`.

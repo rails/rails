@@ -1,33 +1,14 @@
-## Rails 5.0.0.rc2 (June 22, 2016) ##
+## Rails 5.0.0 (June 30, 2016) ##
 
 *   Ensure that instances of `ActiveModel::Errors` can be marshalled.
     Fixes #25165.
 
     *Sean Griffin*
 
-## Rails 5.0.0.rc1 (May 06, 2016) ##
-
-*   No changes.
-
-
-## Rails 5.0.0.beta4 (April 27, 2016) ##
-
 *   Allow passing record being validated to the message proc to generate
     customized error messages for that object using I18n helper.
 
     *Prathamesh Sonpatki*
-
-## Rails 5.0.0.beta3 (February 24, 2016) ##
-
-*   No changes.
-
-
-## Rails 5.0.0.beta2 (February 01, 2016) ##
-
-*   No changes.
-
-
-## Rails 5.0.0.beta1 (December 18, 2015) ##
 
 *   Validate multiple contexts on `valid?` and `invalid?` at once.
 

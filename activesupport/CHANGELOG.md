@@ -1,4 +1,4 @@
-## Rails 5.0.0.rc3 (Unreleased) ##
+## Rails 5.0.0 (June 30, 2016) ##
 
 *   Support parsing JSON time in ISO8601 local time strings in
     `ActiveSupport::JSON.decode` when `parse_json_times` is enabled.
@@ -8,8 +8,6 @@
     objects.
 
     *Grzegorz Witek*
-
-## Rails 5.0.0.rc2 (June 22, 2016) ##
 
 *   `Date.to_s` doesn't produce too many spaces. For example, `to_s(:short)`
     will now produce `01 Feb` instead of ` 1 Feb`.
@@ -22,9 +20,6 @@
     matching the exception's cause.
 
     *Jeremy Daer*
-
-
-## Rails 5.0.0.rc1 (May 06, 2016) ##
 
 *   `ActiveSupport::Duration` supports weeks and hours.
 
@@ -45,9 +40,6 @@
     their time period handling to cover hours & weeks.
 
     *Andrey Novikov*
-
-
-## Rails 5.0.0.beta4 (April 27, 2016) ##
 
 *   Time zones: Ensure that the UTC offset reflects DST changes that occurred
     since the app started. Removes UTC offset caching, reducing performance,
@@ -211,9 +203,6 @@
 
     *Matthew Draper*
 
-
-## Rails 5.0.0.beta3 (February 24, 2016) ##
-
 *   Deprecate arguments on `assert_nothing_raised`.
 
     `assert_nothing_raised` does not assert the arguments that have been passed
@@ -241,9 +230,6 @@
 *   Fix regression in `Hash#dig` for HashWithIndifferentAccess.
 
     *Jon Moss*
-
-
-## Rails 5.0.0.beta2 (February 01, 2016) ##
 
 *   Change `number_to_currency` behavior for checking negativity.
 
@@ -279,9 +265,6 @@
 *   Add petabyte and exabyte numeric conversion.
 
     *Akshay Vishnoi*
-
-
-## Rails 5.0.0.beta1 (December 18, 2015) ##
 
 *   Add thread_m/cattr_accessor/reader/writer suite of methods for declaring class and module variables that live per-thread.
     This makes it easy to declare per-thread globals that are encapsulated. Note: This is a sharp edge. A wild proliferation
