@@ -324,7 +324,7 @@ module Rails
                                        "Use #{options[:javascript]} as the JavaScript library")
 
           unless options[:skip_turbolinks]
-            gems << GemfileEntry.version("turbolinks", "~> 5.x",
+            gems << GemfileEntry.version("turbolinks", "~> 5",
              "Turbolinks makes navigating your web application faster. Read more: https://github.com/turbolinks/turbolinks")
           end
 
