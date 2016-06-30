@@ -145,6 +145,12 @@ your Gemfile.
 If you are using Rspec for testing please see the extra configuration required in the gem's
 documentation.
 
+### Autoloading is disabled in production environment
+
+Autoloading of classes is now disabled in production environment by default. If your code
+is dependent on autoloading in production, then you can opt out by setting
+`Rails.application.config.enable_dependency_loading` to true.
+
 ### XML Serialization
 
 `ActiveModel::Serializers::Xml` has been extracted from Rails to the `activemodel-serializers-xml`
@@ -293,7 +299,7 @@ Set the following in your config to enable HSTS when using subdomains.
 
 When using Ruby 2.4 you can preserve the timezone of the receiver when calling `to_time`.
 
-    ActiveSupport.to_time_preserves_timezone = <%= options[:update] ? false : true %>
+    ActiveSupport.to_time_preserves_timezone = false
 
 Upgrading from Rails 4.1 to Rails 4.2
 -------------------------------------
