@@ -77,7 +77,7 @@ Make sure you are on Ruby 2.2.2 version or greater, before you proceed.
 
 ### Active Record models now inherit from ApplicationRecord by default
 
-In Rails 4.2 an Active Record model inherits from `ActiveRecord::Base`. In Rails 5.0,
+In Rails 4.2, an Active Record model inherits from `ActiveRecord::Base`. In Rails 5.0,
 all models inherit from `ApplicationRecord`.
 
 `ApplicationRecord` is a new superclass for all app models, analogous to app
@@ -85,7 +85,7 @@ controllers subclassing `ApplicationController` instead of
 `ActionController::Base`. This gives apps a single spot to configure app-wide
 model behavior.
 
-When upgrading from Rails 4.2 to Rails 5.0 you need to create an
+When upgrading from Rails 4.2 to Rails 5.0, you need to create an
 `application_record.rb` file in `app/models/` and add the following content:
 
 ```
@@ -121,10 +121,10 @@ See [#17227](https://github.com/rails/rails/pull/17227) for more details.
 
 ### ActiveJob jobs now inherit from ApplicationJob by default
 
-In Rails 4.2 an Active Job inherits from `ActiveJob::Base`. In Rails 5.0 this
+In Rails 4.2, an Active Job inherits from `ActiveJob::Base`. In Rails 5.0, this
 behavior has changed to now inherit from `ApplicationJob`.
 
-When upgrading from Rails 4.2 to Rails 5.0 you need to create an
+When upgrading from Rails 4.2 to Rails 5.0, you need to create an
 `application_job.rb` file in `app/jobs/` and add the following content:
 
 ```
@@ -139,10 +139,10 @@ See [#19034](https://github.com/rails/rails/pull/19034) for more details.
 ### Rails Controller Testing
 
 `assigns` and `assert_template` have been extracted to the `rails-controller-testing` gem. To
-continue using these methods in your controller tests add `gem 'rails-controller-testing'` to
+continue using these methods in your controller tests, add `gem 'rails-controller-testing'` to
 your Gemfile.
 
-If you are using Rspec for testing please see the extra configuration required in the gem's
+If you are using Rspec for testing, please see the extra configuration required in the gem's
 documentation.
 
 ### Autoloading is disabled after booting in the production environment
@@ -153,9 +153,8 @@ default.
 Eager loading the application is part of the boot process, so top-level
 constants are fine and are still autoloaded, no need to require their files.
 
-Constants in deeper places only executed at runtime like regular method bodies
-are also fine anyway, the are known by then because the file defining them
-will have been eager loaded while booting.
+Constants in deeper places only executed at runtime, like regular method bodies,
+are also fine because the file defining them will have been eager loaded while booting.
 
 For the vast majority of applications this change needs no action. But in the
 very rare event that your application needs autoloading while running in
@@ -165,7 +164,7 @@ true.
 ### XML Serialization
 
 `ActiveModel::Serializers::Xml` has been extracted from Rails to the `activemodel-serializers-xml`
-gem. To continue using XML serialization in your application add `gem 'activemodel-serializers-xml'`
+gem. To continue using XML serialization in your application, add `gem 'activemodel-serializers-xml'`
 to your Gemfile.
 
 ### Removed support for legacy MySQL
@@ -185,14 +184,14 @@ these changes are in parallel with rake, but some were ported over altogether.
 
 To use the new test runner simply type `bin/rails test`.
 
-    rake dev:cache` is now `rails dev:cache
+`rake dev:cache` is now `rails dev:cache`.
 
 Run `bin/rails` to see the list of commands available.
 
 ### `ActionController::Parameters` no longer inherits from `HashWithIndifferentAccess`
 
 Calling `params` in your application will now return an object instead of a hash. If your
-parameters are already permitted you will not need to make any changes. If you are using slice
+parameters are already permitted, then you will not need to make any changes. If you are using `slice`
 and other methods that depend on being able to read the hash regardless of `permitted?` you will
 need to upgrade your application to first permit and then convert to a hash.
 
