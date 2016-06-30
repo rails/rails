@@ -2,18 +2,6 @@
 
     *Nicholas Firth-McCoy*
 
-## Rails 5.0.0.rc2 (June 22, 2016) ##
-
-*   No changes.
-
-
-## Rails 5.0.0.rc1 (May 06, 2016) ##
-
-*   No changes.
-
-
-## Rails 5.0.0.beta4 (April 27, 2016) ##
-
 *   Add `config/initializers/to_time_preserves_timezone.rb`, which tells
     Active Support to preserve the receiver's timezone when calling `to_time`.
     This matches the new behavior that will be part of Ruby 2.4.
@@ -40,8 +28,6 @@
 *   Enable HSTS with IncludeSudomains header for new applications.
 
     *Egor Homakov*, *Prathamesh Sonpatki*
-
-## Rails 5.0.0.beta3 (February 24, 2016) ##
 
 *   Alias `rake` with `rails_command` in the Rails Application Templates API
     following Rails 5 convention of preferring "rails" to "rake" to run tasks.
@@ -77,8 +63,6 @@
 
     *Alexey Zabelin*
 
-## Rails 5.0.0.beta2 (February 01, 2016) ##
-
 *   Add `after_bundle` callbacks in Rails plugin templates.  Useful for allowing
     templates to perform actions that are dependent upon `bundle install`.
 
@@ -101,9 +85,6 @@
 *   Fix using `add_source` with a block after using `gem` in a custom generator.
 
     *Will Fisher*
-
-
-## Rails 5.0.0.beta1 (December 18, 2015) ##
 
 *   Newly generated plugins get a `README.md` in Markdown.
 

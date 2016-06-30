@@ -1,19 +1,8 @@
-## Rails 5.0.0.rc2 (June 22, 2016) ##
-
-
 *  Fix development reloading support: new cable connections are now correctly
    dispatched to the reloaded channel class, instead of using a cached reference
    to the originally-loaded version.
 
    *Matthew Draper*
-
-
-## Rails 5.0.0.rc1 (May 06, 2016) ##
-
-*   No changes.
-
-
-## Rails 5.0.0.beta4 (April 27, 2016) ##
 
 *   WebSocket protocol negotiation.
 
@@ -58,8 +47,6 @@
 
     *Jay Hayes*
 
-## Rails 5.0.0.beta3 (February 24, 2016) ##
-
 *   Added `em_redis_connector` and `redis_connector` to
    `ActionCable::SubscriptionAdapter::EventedRedis` and added `redis_connector`
     to `ActionCable::SubscriptionAdapter::Redis`, so you can overwrite with your
@@ -67,8 +54,6 @@
     Redis adapters, like for Makara distributed Redis.
 
     *DHH*
-
-## Rails 5.0.0.beta2 (February 01, 2016) ##
 
 *   Support PostgreSQL pubsub adapter.
 
@@ -90,8 +75,6 @@
     `config/cable.yml`.
 
     *Jon Moss*
-
-## Rails 5.0.0.beta1 (December 18, 2015) ##
 
 *   Added to Rails!
 

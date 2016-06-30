@@ -1,5 +1,3 @@
-## Rails 5.0.0.rc2 (June 22, 2016) ##
-
 *   Ensure hashes can be assigned to attributes created using `composed_of`.
     Fixes #25210.
 
@@ -14,14 +12,6 @@
     adapter returns `''` instead of `nil`.
 
     *Johannes Opper*
-
-
-## Rails 5.0.0.rc1 (May 06, 2016) ##
-
-*   No changes.
-
-
-## Rails 5.0.0.beta4 (April 27, 2016) ##
 
 *   PostgreSQL: Support Expression Indexes and Operator Classes.
 
@@ -222,8 +212,6 @@
 
     *Eileen M. Uchitelle*
 
-## Rails 5.0.0.beta3 (February 24, 2016) ##
-
 *   Save many-to-many objects based on association primary key.
 
     Fixes #20995.
@@ -308,8 +296,6 @@
     http://www.postgresql.org/support/versioning/
 
     *Remo Mueller*
-
-## Rails 5.0.0.beta2 (February 01, 2016) ##
 
 *   `ActiveRecord::Relation#reverse_order` throws `ActiveRecord::IrreversibleOrderError`
     when the order can not be reversed using current trivial algorithm.
@@ -408,8 +394,6 @@
     `offset` method on relation instead.
 
     *Ben Woosley*
-
-## Rails 5.0.0.beta1 (December 18, 2015) ##
 
 *   Limit record touching to once per transaction.
 

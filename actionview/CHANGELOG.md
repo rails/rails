@@ -1,5 +1,3 @@
-## Rails 5.0.0.rc2 (June 22, 2016) ##
-
 *   Change `datetime_field` and `datetime_field_tag` to generate `datetime-local` fields.
 
     As a new specification of the HTML 5 the text field type `datetime` will no longer exist
@@ -37,14 +35,6 @@
 
     *Vipul A M *
 
-
-## Rails 5.0.0.rc1 (May 06, 2016) ##
-
-*   No changes.
-
-
-## Rails 5.0.0.beta4 (April 27, 2016) ##
-
 *   `date_select` helper `:with_css_classes` option now accepts a hash of strings
     for `:year`, `:month`, `:day`, `:hour`, `:minute`, `:second` that will extend
     the select type with the given css class value.
@@ -70,8 +60,6 @@
     of queries in the log whether they came from controller or views.
 
     *Vipul A M and Prem Sichanugrist*
-
-## Rails 5.0.0.beta3 (February 24, 2016) ##
 
 *   Collection rendering can cache and fetch multiple partials at once.
 
@@ -102,8 +90,6 @@
 
     *James Coleman*
 
-## Rails 5.0.0.beta2 (February 01, 2016) ##
-
 *   Fix stripping the digest from the automatically generated img tag alt
     attribute when assets are handled by Sprockets >=3.0.
 
@@ -131,9 +117,6 @@
 *   Fix regression in `submit_tag` when a symbol is used as label argument.
 
     *Yuuji Yaginuma*
-
-
-## Rails 5.0.0.beta1 (December 18, 2015) ##
 
 *   `I18n.translate` helper will wrap the missing translation keys
      in a <span> tag only if `debug_missing_translation` configuration

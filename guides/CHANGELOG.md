@@ -1,15 +1,3 @@
-## Rails 5.0.0.rc2 (June 22, 2016) ##
-
-*   No changes.
-
-
-## Rails 5.0.0.rc1 (May 06, 2016) ##
-
-*   No changes.
-
-
-## Rails 5.0.0.beta4 (April 27, 2016) ##
-
 *   Update example of passing a proc to `:message` option for validating records.
 
     This behavior was recently changed in [Pull Request #24199](https://github.com/rails/rails/pull/24119) to
@@ -21,19 +9,6 @@
 *   Added new guide: Action Cable Overview.
 
     *David Kuhta*
-
-
-## Rails 5.0.0.beta3 (February 24, 2016) ##
-
-*   No changes.
-
-
-## Rails 5.0.0.beta2 (February 01, 2016) ##
-
-*   No changes.
-
-
-## Rails 5.0.0.beta1 (December 18, 2015) ##
 
 *   Add code of conduct to contributing guide.
 

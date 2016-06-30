@@ -1,17 +1,7 @@
-## Rails 5.0.0.rc2 (June 22, 2016) ##
-
-*   No changes.
-
-
-## Rails 5.0.0.rc1 (May 06, 2016) ##
-
 *   Add `ActionController#helpers` to get access to the view context at the controller
     level.
 
     *Rafael Mendonça França*
-
-
-## Rails 5.0.0.beta4 (April 27, 2016) ##
 
 *   Routing: Refactor `:action` default handling to ensure that path
     parameters are not mutated during route generation.
@@ -109,8 +99,6 @@
 
     *Godfrey Chan*, *Jon Moss*, *Kasper Timm Hansen*, *Mike Clark*, *Matthew Draper*
 
-## Rails 5.0.0.beta3 (February 24, 2016) ##
-
 *   Add "application/gzip" as a default mime type.
 
     *Mehmet Emin İNAÇ*
@@ -166,8 +154,6 @@
 
     *DHH*
 
-## Rails 5.0.0.beta2 (February 01, 2016) ##
-
 *   Add `-g` and `-c` options to `bin/rails routes`. These options return the url `name`, `verb` and
     `path` field that match the pattern or match a specific controller.
 
@@ -220,8 +206,6 @@
 *   Add `ActionController::Parameters#include?`
 
     *Justin Coyne*
-
-## Rails 5.0.0.beta1 (December 18, 2015) ##
 
 *   Deprecate `redirect_to :back` in favor of `redirect_back`, which accepts a
     required `fallback_location` argument, thus eliminating the possibility of a

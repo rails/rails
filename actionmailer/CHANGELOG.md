@@ -1,17 +1,7 @@
-## Rails 5.0.0.rc2 (June 22, 2016) ##
-
 *   Exception handling: use `rescue_from` to handle exceptions raised by
     mailer actions, by message delivery, and by deferred delivery jobs.
 
     *Jeremy Daer*
-
-
-## Rails 5.0.0.rc1 (May 06, 2016) ##
-
-*   No changes.
-
-
-## Rails 5.0.0.beta4 (April 27, 2016) ##
 
 *   Disallow calling `#deliver_later` after making local modifications to
     the message which would be lost when the delivery job is enqueued.
@@ -36,9 +26,6 @@
 
     *Clayton Liggitt*
 
-
-## Rails 5.0.0.beta3 (February 24, 2016) ##
-
 *   Add support for fragment caching in Action Mailer views.
 
     *Stan Lo*
@@ -47,14 +34,6 @@
     `ActionDispatch::IntegrationTest`.
 
     *Yves Senn*
-
-
-## Rails 5.0.0.beta2 (February 01, 2016) ##
-
-*   No changes.
-
-
-## Rails 5.0.0.beta1 (December 18, 2015) ##
 
 *   `config.action_mailer.default_url_options[:protocol]` is now set to `https` if `config.force_ssl` is set to `true`.
 
