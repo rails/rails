@@ -201,7 +201,7 @@ need to upgrade your application to first permit and then convert to a hash.
 
 `protect_from_forgery` defaults to `prepend: false` which means that it will be inserted into
 the callback chain at the point in which you call it in your application. If you want
-`protect_from_forgery` to always run first you should change your application to use
+`protect_from_forgery` to always run first, then you should change your application to use
 `protect_from_forgery prepend: true`.
 
 ### Default Template Handler is Now RAW
@@ -214,7 +214,7 @@ to your file that can be parsed by the appropriate template handler.
 
 ### Added Wildcard Matching for Template Dependencies
 
-You can now use wildcard matching for your template dependencies. For example if you were
+You can now use wildcard matching for your template dependencies. For example, if you were
 defining your templates as such:
 
 ```erb
@@ -237,9 +237,9 @@ The `protected_attributes` gem is no longer supported in Rails 5.
 
 The `activerecord-deprecated_finders` gem is no longer supported in Rails 5.
 
-### `ActiveSupport::TestCase` Default Test Rrder is Now Random
+### `ActiveSupport::TestCase` Default Test Order is Now Random
 
-When tests are run in your application the default order is now `:random`
+When tests are run in your application, the default order is now `:random`
 instead of `:sorted`. Use the following config option to set it back to `:sorted`.
 
 ```ruby
@@ -251,7 +251,11 @@ end
 
 ### `ActionController::Live` became a `Concern`
 
-That means that if your application used to have its own streaming module, the following code
+If you include `ActionController::Live` in another module that is included in your controller, then you
+should also extend the module with `ActiveSupport::Concern`. Alternatively, you can use the `self.included` hook
+to include `ActionController::Live` directly to the controller once the `StreamingSupport` is included.
+
+This means that if your application used to have its own streaming module, the following code
 would break in production mode:
 
 ```ruby
@@ -274,10 +278,6 @@ class StreamingSupport
 end
 ```
 
-If you include `ActionController::Live` in another module that is included in your controller you
-should also extend the module with `ActiveSupport::Concern`. Or you could use the `self.included` hook
-to include `ActionController::Live` directly to the controller once the `StreamingSupport` is included.
-
 ### New Framework Defaults
 
 #### Active Record `belongs_to` Required by Default Option
@@ -286,7 +286,7 @@ to include `ActionController::Live` directly to the controller once the `Streami
 
 This can be turned off per-association with `optional: true`.
 
-This default will will be automatically configured in new applications. If existing application
+This default will be automatically configured in new applications. If existing application
 want to add this feature it will need to be turned on in an initializer.
 
     config.active_record.belongs_to_required_by_default = true
@@ -294,14 +294,14 @@ want to add this feature it will need to be turned on in an initializer.
 #### Per-form CSRF Tokens
 
 Rails 5 now supports per-form CSRF tokens to mitigate against code-injection attacks with forms
-created by JavaScript. With this option turned on forms in your application will each have their
+created by JavaScript. With this option turned on, forms in your application will each have their
 own CSRF token that is specified to the action and method for that form.
 
     config.action_controller.per_form_csrf_tokens = true
 
 #### Forgery Protection with Origin Check
 
-You can how configure your application to check if the HTTP `Origin` header should be checked
+You can now configure your application to check if the HTTP `Origin` header should be checked
 against the site's origin as an additional CSRF defense. Set the following in your config to
 true:
 
@@ -310,7 +310,7 @@ true:
 #### Allow Configuration of Action Mailer Queue Name
 
 The default mailer queue name is `mailers`. This configuration option allows you to globally change
-the queue name. Set the following in your config.
+the queue name. Set the following in your config:
 
     config.action_mailer.deliver_later_queue_name = :new_queue_name
 
@@ -324,19 +324,19 @@ should support caching.
 #### Configure the Output of `db:structure:dump`
 
 If you're using `schema_search_path` or other PostgreSQL extentions, you can control how the schema is
-dumped. Set to `:all` to generate all dumps, or `:schema_search_path` to generate from schema search path.
+dumped. Set to `:all` to generate all dumps, or to `:schema_search_path` to generate from schema search path.
 
     config.active_record.dump_schemas = :all
 
 #### Configure SSL Options to Enable HSTS with Subdomains
 
-Set the following in your config to enable HSTS when using subdomains.
+Set the following in your config to enable HSTS when using subdomains:
 
     config.ssl_options = { hsts: { subdomains: true } }
 
 #### Preserve Timezone of the Receiver
 
-When using Ruby 2.4 you can preserve the timezone of the receiver when calling `to_time`.
+When using Ruby 2.4, you can preserve the timezone of the receiver when calling `to_time`.
 
     ActiveSupport.to_time_preserves_timezone = false
 
