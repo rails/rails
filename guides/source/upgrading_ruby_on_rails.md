@@ -145,11 +145,22 @@ your Gemfile.
 If you are using Rspec for testing please see the extra configuration required in the gem's
 documentation.
 
-### Autoloading is disabled in production environment
+### Autoloading is disabled after booting in the production environment
 
-Autoloading of classes is now disabled in production environment by default. If your code
-is dependent on autoloading in production, then you can opt out by setting
-`Rails.application.config.enable_dependency_loading` to true.
+Autoloading is now disabled after booting in the production environment by
+default.
+
+Eager loading the application is part of the boot process, so top-level
+constants are fine and are still autoloaded, no need to require their files.
+
+Constants in deeper places only executed at runtime like regular method bodies
+are also fine anyway, the are known by then because the file defining them
+will have been eager loaded while booting.
+
+For the vast majority of applications this change needs no action. But in the
+very rare event that your application needs autoloading while running in
+production mode, set `Rails.application.config.enable_dependency_loading` to
+false.
 
 ### XML Serialization
 
