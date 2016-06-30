@@ -68,7 +68,7 @@ Don't forget to review the difference, to see if there were any unexpected chang
 Upgrading from Rails 4.2 to Rails 5.0
 -------------------------------------
 
-For more information on changes made to Rails 5.0 please see the [release notes](https://github.com/rails/rails/blob/5-0-stable/guides/source/5_0_release_notes.md).
+For more information on changes made to Rails 5.0 please see the [release notes](5_0_release_notes.html).
 
 ### Ruby 2.2.2+ required
 
