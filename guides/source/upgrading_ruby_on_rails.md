@@ -233,9 +233,9 @@ Rails.application.configure do
 end
 ```
 
-### New config options
+### New Framework Defaults
 
-## Active Record `belongs_to` Required by Default Option
+#### Active Record `belongs_to` Required by Default Option
 
 `belongs_to` will now trigger a validation error by default if the association is not present.
 
@@ -246,24 +246,54 @@ want to add this feature it will need to be turned on in an initializer.
 
     config.active_record.belongs_to_required_by_default = true
 
-## Allow configuration of Action Mailer queue name
+#### Per-form CSRF tokens
+
+Rails 5 now supports per-form CSRF tokens to mitigate against code-injection attacks with forms
+created by JavaScript. With this option turned on forms in your application will each have their
+own CSRF token that is specified to the action and method for that form.
+
+    config.action_controller.per_form_csrf_tokens = true
+
+#### Forgery protection with origin check
+
+You can how configure your application to check if the HTTP `Origin` header should be checked
+against the site's origin as an additional CSRF defense. Set the following in your config to
+true:
+
+    config.action_controller.forgery_protection_origin_check = true
+
+#### Allow configuration of Action Mailer queue name
 
 The default mailer queue name is `mailers`. This configuration option allows you to globally change
 the queue name. Set the following in your config.
 
-    config.action_mailer.deliver_later_queue_name
+    config.action_mailer.deliver_later_queue_name = :new_queue_name
 
-## Support fragment caching in Action Mailer views
+#### Support fragment caching in Action Mailer views
 
 Set `config.action_mailer.perform_caching` in your config to determine whether your Action Mailer views
 should support caching.
 
-## Configure the output of `db:structure:dump`
+    config.action_mailer.perform_caching = true
+
+#### Configure the output of `db:structure:dump`
 
 If you're using `schema_search_path` or other PostgreSQL extentions, you can control how the schema is
 dumped. Set to `:all` to generate all dumps, or `:schema_search_path` to generate from schema search path.
 
     config.active_record.dump_schemas = :all
+
+#### Configure SSL options to enable HSTS with subdomains
+
+Set the following in your config to enable HSTS when using subdomains.
+
+    config.ssl_options = { hsts: { subdomains: true } }
+
+#### Preserve timezone of the receiver
+
+When using Ruby 2.4 you can preserve the timezone of the receiver when calling `to_time`.
+
+    ActiveSupport.to_time_preserves_timezone = <%= options[:update] ? false : true %>
 
 Upgrading from Rails 4.1 to Rails 4.2
 -------------------------------------
