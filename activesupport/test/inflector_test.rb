@@ -59,7 +59,7 @@ class InflectorTest < ActiveSupport::TestCase
     ActiveSupport::Inflector.inflections.uncountables.pop
   end
 
-  ActiveSupport::Inflector.inflections.uncountable.each do |word|
+  ActiveSupport::Inflector.inflections.uncountables.each do |word|
     define_method "test_uncountability_of_#{word}" do
       assert_equal word, ActiveSupport::Inflector.singularize(word)
       assert_equal word, ActiveSupport::Inflector.pluralize(word)
@@ -71,7 +71,7 @@ class InflectorTest < ActiveSupport::TestCase
     uncountable_word = "ors"
     countable_word = "sponsor"
 
-    ActiveSupport::Inflector.inflections.uncountable << uncountable_word
+    ActiveSupport::Inflector.inflections.uncountable(uncountable_word)
 
     assert_equal uncountable_word, ActiveSupport::Inflector.singularize(uncountable_word)
     assert_equal uncountable_word, ActiveSupport::Inflector.pluralize(uncountable_word)
