@@ -264,6 +264,12 @@ GEM
       rufus-scheduler (~> 3.2)
     rubyzip (1.2.0)
     rufus-scheduler (3.2.1)
+    sass-rails (5.0.5)
+      railties (>= 4.0.0, < 6)
+      sass (~> 3.1)
+      sprockets (>= 2.8, < 4.0)
+      sprockets-rails (>= 2.0, < 4.0)
+      tilt (>= 1.1, < 3)
     sdoc (0.4.1)
       json (~> 1.7, >= 1.7.7)
       rdoc (~> 4.0)
@@ -308,6 +314,7 @@ GEM
     thor (0.19.1)
     thread (0.1.7)
     thread_safe (0.3.5)
+    tilt (2.0.5)
     turbolinks (5.0.0)
       turbolinks-source (~> 5)
     turbolinks-source (5.0.0)
@@ -374,6 +381,7 @@ DEPENDENCIES
   resque (< 1.26)
   resque-scheduler
   sass!
+  sass-rails
   sdoc (~> 0.4.0)
   sequel
   sidekiq
