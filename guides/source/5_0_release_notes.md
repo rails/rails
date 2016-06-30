@@ -447,6 +447,17 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     `stale?`.
     ([Pull Request](https://github.com/rails/rails/pull/18374))
 
+*   `ActionController::Live` became an `ActiveSupport::Concern`. That
+    means it can't be just included in other modules without extending
+    them with `ActiveSupport::Concern` or `ActionController::Live`
+    won't take effect in production. Some people may be using another
+    module to include some special `Warden`/`Devise` authentication
+    failure handling code as well since the middleware can't catch a
+    `:warden` thrown by a spawned thread which is the case when using
+    `ActionController::Live`.
+    ([More details in this issue](https://github.com/rails/rails/issues/25581))
+
+
 Action View
 -------------
 
