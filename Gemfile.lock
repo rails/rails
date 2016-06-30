@@ -22,14 +22,6 @@ GIT
       delayed_job (>= 3.0, < 5)
 
 GIT
-  remote: git://github.com/rails/coffee-rails.git
-  revision: aa2e623cbda4f3c789a0a15d1f707239e68f5736
-  specs:
-    coffee-rails (4.1.1)
-      coffee-script (>= 2.2.0)
-      railties (>= 4.0.0, < 5.2.x)
-
-GIT
   remote: git://github.com/sass/sass.git
   revision: 3fda1cbe70d615e7ef96e28db4fd1f8a3ebb5505
   branch: stable
@@ -140,6 +132,9 @@ GEM
     byebug (8.2.5)
     childprocess (0.5.9)
       ffi (~> 1.0, >= 1.0.11)
+    coffee-rails (4.2.1)
+      coffee-script (>= 2.2.0)
+      railties (>= 4.0.0, < 5.2.x)
     coffee-script (2.4.1)
       coffee-script-source
       execjs
@@ -355,7 +350,7 @@ DEPENDENCIES
   blade
   blade-sauce_labs_plugin
   byebug
-  coffee-rails!
+  coffee-rails
   dalli (>= 2.2.1)
   delayed_job!
   delayed_job_active_record!

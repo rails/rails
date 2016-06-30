@@ -312,7 +312,7 @@ module Rails
       end
 
       def coffee_gemfile_entry
-        GemfileEntry.github 'coffee-rails', 'rails/coffee-rails', nil, 'Use CoffeeScript for .coffee assets and views'
+        GemfileEntry.version 'coffee-rails', '~> 4.2', 'Use CoffeeScript for .coffee assets and views'
       end
 
       def javascript_gemfile_entry
