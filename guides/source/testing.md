@@ -592,7 +592,7 @@ Integration Testing
 
 Integration tests are used to test how various parts of your application interact. They are generally used to test important workflows within our application.
 
-For creating Rails integration tests, we use the 'test/integration' directory for our application. Rails provides a generator to create an integration test skeleton for us.
+For creating Rails integration tests, we use the `test/integration` directory for our application. Rails provides a generator to create an integration test skeleton for us.
 
 ```bash
 $ bin/rails generate integration_test user_flows
@@ -748,7 +748,7 @@ Let's take a look at one such test, `test_should_get_index` from the file `artic
 # articles_controller_test.rb
 class ArticlesControllerTest < ActionDispatch::IntegrationTest
   test "should get index" do
-    get '/articles'
+    get get articles_url
     assert_response :success
     assert_includes @response.body, 'Articles'
   end
@@ -795,7 +795,7 @@ Let us modify `test_should_create_article` test in `articles_controller_test.rb`
 ```ruby
 test "should create article" do
   assert_difference('Article.count') do
-    post '/article', params: { article: { title: 'Some title' } }
+    post articles_url, params: { article: { body: 'Rails is awesome!', title: 'Hello Rails' } }
   end
 
   assert_redirected_to article_path(Article.last)
@@ -867,12 +867,10 @@ can be set directly on the `@request` instance variable:
 
 ```ruby
 # setting an HTTP Header
-@request.headers["Accept"] = "text/plain, text/html"
-get articles_url # simulate the request with custom header
+get articles_url, headers: text/plain, text/html" # simulate the request with custom header # PENDING, looks like requires array.
 
 # setting a CGI variable
-@request.headers["HTTP_REFERER"] = "http://example.com/home"
-post article_url # simulate the request with custom env variable
+get articles_url, headers: "HTTP_REFERER" => "http://example.com/home" # simulate the request with custom env variable
 ```
 
 ### Testing `flash` notices
@@ -908,7 +906,7 @@ F
 Finished in 0.114870s, 8.7055 runs/s, 34.8220 assertions/s.
 
   1) Failure:
-ArticlesControllerTest#test_should_create_article [/Users/zzak/code/bench/sharedapp/test/controllers/articles_controller_test.rb:16]:
+ArticlesControllerTest#test_should_create_article [/test/controllers/articles_controller_test.rb:16]:
 --- expected
 +++ actual
 @@ -1 +1 @@
@@ -957,7 +955,7 @@ Let's write a test for the `:show` action:
 ```ruby
 test "should show article" do
   article = articles(:one)
-  get '/article', params: { id: article.id }
+  get article_url(article)
   assert_response :success
 end
 ```
@@ -983,7 +981,7 @@ We can also add a test for updating an existing Article.
 test "should update article" do
   article = articles(:one)
 
-  patch '/article', params: { id: article.id, article: { title: "updated" } }
+  patch article_url(article), params: { article: { title: "updated" } }
 
   assert_redirected_to article_path(article)
   # Reload association to fetch updated data and assert that title is updated.
@@ -1026,7 +1024,7 @@ class ArticlesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should update article" do
-    patch '/article', params: { id: @article.id, article: { title: "updated" } }
+    patch article_url(@article), params: { article: { title: "updated" } }
 
     assert_redirected_to article_path(@article)
     # Reload association to fetch updated data and assert that title is updated.
