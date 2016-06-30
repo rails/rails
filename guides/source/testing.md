@@ -826,7 +826,7 @@ To test AJAX requests, you can specify the `xhr: true` option to `get`, `post`,
 
 ```ruby
 test "ajax request" do
-  article = articles(:first)
+  article = articles(:one)
   get article_url(article), xhr: true
 
   assert_equal 'hello world', @response.body
