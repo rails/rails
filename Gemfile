@@ -11,7 +11,7 @@ gem 'mocha', '~> 0.14', require: false
 
 gem 'rack-cache', '~> 1.2'
 gem 'jquery-rails'
-gem 'coffee-rails', '~> 4.1.0'
+gem 'coffee-rails', '~> 4.2'
 gem 'turbolinks', github: 'turbolinks/turbolinks-rails'
 
 # require: false so bcrypt is loaded only when has_secure_password is used.
