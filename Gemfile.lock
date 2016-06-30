@@ -36,13 +36,6 @@ GIT
   specs:
     sass (3.4.22)
 
-GIT
-  remote: git://github.com/turbolinks/turbolinks-rails.git
-  revision: 65884729016dbb4d032f12bb01b7e7c1ddeb68ac
-  specs:
-    turbolinks (5.0.0.beta2)
-      turbolinks-source
-
 PATH
   remote: .
   specs:
@@ -321,7 +314,9 @@ GEM
     thor (0.19.1)
     thread (0.1.7)
     thread_safe (0.3.5)
-    turbolinks-source (5.0.0.beta4)
+    turbolinks (5.0.0)
+      turbolinks-source (~> 5)
+    turbolinks-source (5.0.0)
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
     tzinfo-data (1.2016.4)
@@ -392,7 +387,7 @@ DEPENDENCIES
   sqlite3 (~> 1.3.6)
   stackprof
   sucker_punch
-  turbolinks!
+  turbolinks (~> 5)
   tzinfo-data
   uglifier (>= 1.3.0)
   w3c_validators
