@@ -750,7 +750,6 @@ class ArticlesControllerTest < ActionDispatch::IntegrationTest
   test "should get index" do
     get get articles_url
     assert_response :success
-    assert_includes @response.body, 'Articles'
   end
 end
 ```
