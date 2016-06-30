@@ -48,6 +48,20 @@ class ActionCable::Connection::ClientSocketTest < ActionCable::TestCase
     end
   end
 
+  test 'closes hijacked i/o socket at shutdown' do
+    skip if ENV['FAYE'].present?
+
+    run_in_eventmachine do
+      connection = open_connection
+
+      client = connection.websocket.send(:websocket)
+      client.instance_variable_get('@stream')
+        .instance_variable_get('@rack_hijack_io')
+        .expects(:close)
+      connection.close
+    end
+  end
+
   private
     def open_connection
       env = Rack::MockRequest.env_for '/test',
