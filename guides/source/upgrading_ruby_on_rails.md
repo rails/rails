@@ -249,6 +249,35 @@ Rails.application.configure do
 end
 ```
 
+### `ActionController::Live` became a `Concern`
+
+That means that if your application used to have its own streaming module, the following code
+would break in production mode:
+
+```ruby
+# This is a work-around for streamed controllers performing authentication with Warden/Devise.
+# See https://github.com/plataformatec/devise/issues/2332
+# Authenticating in the router is another solution as suggested in that issue
+class StreamingSupport
+  include ActionController::Live # this won't work in production for Rails 5
+  # extend ActiveSupport::Concern # unless you uncomment this line.
+
+  def process(name)
+    super(name)
+  rescue ArgumentError => e
+    if e.message == 'uncaught throw :warden'
+      throw :warden
+    else
+      raise e
+    end
+  end
+end
+```
+
+If you include `ActionController::Live` in another module that is included in your controller you
+should also extend the module with `ActiveSupport::Concern`. Or you could use the `self.included` hook
+to include `ActionController::Live` directly to the controller once the `StreamingSupport` is included.
+
 ### New Framework Defaults
 
 #### Active Record `belongs_to` Required by Default Option
