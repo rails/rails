@@ -1044,8 +1044,8 @@ Sign in helper can be a good example:
 #test/test_helper.rb
 
 module SignInHelper
-  def sign_in(user)
-    session[:user_id] = user.id
+  def sign_in_as(user)
+    post sign_in_url(email: user.email, password: user.password)
   end
 end
 
@@ -1061,7 +1061,7 @@ class ProfileControllerTest < ActionDispatch::IntegrationTest
 
   test "should show profile" do
     # helper is now reusable from any controller test case
-    sign_in users(:david)
+    sign_in_as users(:david)
 
     get profile_url
     assert_response :success
