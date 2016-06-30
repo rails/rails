@@ -154,10 +154,23 @@ for a detailed write up.
 
 
 ### Test Runner
-[Pull Request](https://github.com/rails/rails/pull/19216)
 
-ToDo...
+A new test runner has been introduced to enhance the capabilities of running tests from Rails.
+To use this test runner simply type `bin/rails test`.
 
+Test Runner is inspired from `RSpec`, `minitest-reporters`, `maxitest` and others.
+It includes some of these notable advancements:
+
+- Run a single test using line number of test.
+- Run multiple tests pinpointing to line number of tests.
+- Improved failure messages, which also add ease of re-running failed tests.
+- Fail fast using `-f` option, to stop tests immediately on occurrence of failure,
+instead of waiting for the suite to complete.
+- Defer test output until the end of a full test run using the `-d` option.
+- Complete exception backtrace output using `-b` option.
+- Integration with `Minitest` to allow options like `-s` for test seed data,
+`-n` for running specific test by name, `-v` for better verbose output and so forth.
+- Colored test output
 
 Railties
 --------
