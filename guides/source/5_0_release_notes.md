@@ -52,10 +52,35 @@ choice.
 See the [Action Cable Overview](action_cable_overview.html) guide for more
 information.
 
-### Rails API
-[Pull Request](https://github.com/rails/rails/pull/19832)
+### API Applications
 
-ToDo...
+Rails can now be used to create slimmed down API only applications.
+This is useful for creating and serving APIs similar to [Twitter](https://dev.twitter.com) or [GitHub](http://developer.github.com) API, 
+that can be used to serve public facing, as well as, for custom applications.
+
+You can generate a new api Rails app using:
+
+```bash
+$ rails new my_api --api
+```
+
+This will do three main things:
+
+- Configure your application to start with a more limited set of middleware
+  than normal. Specifically, it will not include any middleware primarily useful
+  for browser applications (like cookies support) by default.
+- Make `ApplicationController` inherit from `ActionController::API` instead of
+  `ActionController::Base`. As with middleware, this will leave out any Action
+  Controller modules that provide functionalities primarily used by browser
+  applications.
+- Configure the generators to skip generating views, helpers and assets when
+  you generate a new resource. 
+
+The application provides a base for APIs, 
+that can then be [configured to pull in functionality](api_app.html) as suitable for the application's needs.  
+ 
+See the [Using Rails for API-only Applications](api_app.html) guide for more
+information.
 
 ### Active Record attributes API
 
