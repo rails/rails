@@ -519,6 +519,7 @@ ActiveRecord::Schema.define do
     else
       t.decimal :atoms_in_universe, precision: 55, scale: 0
     end
+    t.decimal :avogadro_constant, precision: 24, scale: 0
   end
 
   create_table :orders, force: true do |t|

@@ -914,7 +914,8 @@ class BasicsTest < ActiveRecord::TestCase
       :bank_balance => 1586.43,
       :big_bank_balance => BigDecimal("1000234000567.95"),
       :world_population => 6000000000,
-      :my_house_population => 3
+      :my_house_population => 3,
+      :avogadro_constant => 602214085700000000000000
     )
     assert m.save
     assert_equal 0, NumericData.where("bank_balance > ?", 2000.0).count
@@ -925,16 +926,14 @@ class BasicsTest < ActiveRecord::TestCase
       :bank_balance => 1586.43,
       :big_bank_balance => BigDecimal("1000234000567.95"),
       :world_population => 6000000000,
-      :my_house_population => 3
+      :my_house_population => 3,
+      :avogadro_constant => 602214085700000000000000
     )
     assert m.save
 
     m1 = NumericData.find(m.id)
     assert_not_nil m1
 
-    # As with migration_test.rb, we should make world_population >= 2**62
-    # to cover 64-bit platforms and test it is a Bignum, but the main thing
-    # is that it's an Integer.
     assert_kind_of Integer, m1.world_population
     assert_equal 6000000000, m1.world_population
 
@@ -946,6 +945,11 @@ class BasicsTest < ActiveRecord::TestCase
 
     assert_kind_of BigDecimal, m1.big_bank_balance
     assert_equal BigDecimal("1000234000567.95"), m1.big_bank_balance
+
+    assert_equal m1.avogadro_constant.is_a?(Bignum), true
+    unless current_adapter?(:SQLite3Adapter)
+      assert_equal 602214085700000000000000, m1.avogadro_constant
+    end
   end
 
   def test_numeric_fields_with_scale
@@ -953,16 +957,14 @@ class BasicsTest < ActiveRecord::TestCase
       :bank_balance => 1586.43122334,
       :big_bank_balance => BigDecimal("234000567.952344"),
       :world_population => 6000000000,
-      :my_house_population => 3
+      :my_house_population => 3,
+      :avogadro_constant => 602214085700000000000000
     )
     assert m.save
 
     m1 = NumericData.find(m.id)
     assert_not_nil m1
 
-    # As with migration_test.rb, we should make world_population >= 2**62
-    # to cover 64-bit platforms and test it is a Bignum, but the main thing
-    # is that it's an Integer.
     assert_kind_of Integer, m1.world_population
     assert_equal 6000000000, m1.world_population
 
@@ -974,6 +976,11 @@ class BasicsTest < ActiveRecord::TestCase
 
     assert_kind_of BigDecimal, m1.big_bank_balance
     assert_equal BigDecimal("234000567.95"), m1.big_bank_balance
+
+    assert_equal m1.avogadro_constant.is_a?(Bignum), true
+    unless current_adapter?(:SQLite3Adapter)
+      assert_equal 602214085700000000000000, m1.avogadro_constant
+    end
   end
 
   def test_auto_id

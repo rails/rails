@@ -6,6 +6,7 @@ class GiveMeBigNumbers < ActiveRecord::Migration::Current
       table.column :world_population, :decimal, :precision => 10
       table.column :my_house_population, :decimal, :precision => 2
       table.column :value_of_e, :decimal
+      table.column :avogadro_constant, :decimal, :precision => 24
     end
   end
 

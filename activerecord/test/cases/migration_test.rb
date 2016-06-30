@@ -164,7 +164,8 @@ class MigrationTest < ActiveRecord::TestCase
       :big_bank_balance => BigDecimal("1000234000567.95"),
       :world_population => 6000000000,
       :my_house_population => 3,
-      :value_of_e => BigDecimal("2.7182818284590452353602875")
+      :value_of_e => BigDecimal("2.7182818284590452353602875"),
+      :avogadro_constant => 602214085700000000000000
     )
 
     b = BigNumber.first
@@ -176,8 +177,6 @@ class MigrationTest < ActiveRecord::TestCase
     assert_not_nil b.my_house_population
     assert_not_nil b.value_of_e
 
-    # TODO: set world_population >= 2**62 to cover 64-bit platforms and test
-    # is_a?(Bignum)
     assert_kind_of Integer, b.world_population
     assert_equal 6000000000, b.world_population
     assert_kind_of Integer, b.my_house_population
@@ -186,6 +185,10 @@ class MigrationTest < ActiveRecord::TestCase
     assert_equal BigDecimal("1586.43"), b.bank_balance
     assert_kind_of BigDecimal, b.big_bank_balance
     assert_equal BigDecimal("1000234000567.95"), b.big_bank_balance
+    unless current_adapter?(:SQLite3Adapter)
+      assert_equal 602214085700000000000000, b.avogadro_constant
+    end
+    assert_equal b.avogadro_constant.is_a?(Bignum), true
 
     # This one is fun. The 'value_of_e' field is defined as 'DECIMAL' with
     # precision/scale explicitly left out.  By the SQL standard, numbers
