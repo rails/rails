@@ -91,7 +91,6 @@ directory "pkg"
 
     task :push => :build do
       sh "gem push #{gem}"
-      sh "npm publish" if File.exist?("#{framework}/package.json")
     end
   end
 end
