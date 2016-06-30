@@ -15,8 +15,9 @@ module ActiveSupport
     end
 
     # Returns a derived key suitable for use.  The default key_size is chosen
-    # to be compatible with the acceptable key length of aes-256-cbc, the default cipher.
-    def generate_key(salt, key_size=32)
+    # to be compatible with the default settings of ActiveSupport::MessageVerifier.
+    # i.e. OpenSSL::Digest::SHA1#block_length
+    def generate_key(salt, key_size=64)
       OpenSSL::PKCS5.pbkdf2_hmac_sha1(@secret, salt, @iterations, key_size)
     end
   end
@@ -30,10 +31,9 @@ module ActiveSupport
       @cache_keys = Concurrent::Map.new
     end
 
-    # Returns a derived key suitable for use.  The default key_size is chosen
-    # to be compatible with the acceptable key length of aes-256-cbc, the default cipher.
-    def generate_key(salt, key_size=32)
-      @cache_keys["#{salt}#{key_size}"] ||= @key_generator.generate_key(salt, key_size)
+    # Returns a derived key suitable for use.
+    def generate_key(*args)
+      @cache_keys[args.join] ||= @key_generator.generate_key(*args)
     end
   end
 
