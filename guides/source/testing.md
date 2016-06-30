@@ -146,18 +146,28 @@ Let us run this newly added test (where `6` is the number of line where the test
 
 ```bash
 $ bin/rails test test/models/article_test.rb:6
+Run options: --seed 44656
+
+# Running:
+
 F
 
-Finished tests in 0.044632s, 22.4054 tests/s, 22.4054 assertions/s.
+Failure:
+ArticleTest#test_should_not_save_article_without_title [/path/to/blog/test/models/article_test.rb:6]:
+Expected true to be nil or false
 
-  1) Failure:
-test_should_not_save_article_without_title(ArticleTest) [test/models/article_test.rb:6]:
-Failed assertion, no message given.
 
-1 tests, 1 assertions, 1 failures, 0 errors, 0 skips
+bin/rails test test/models/article_test.rb:6
+
+
+
+Finished in 0.023918s, 41.8090 runs/s, 41.8090 assertions/s.
+
+1 runs, 1 assertions, 1 failures, 0 errors, 0 skips
+
 ```
 
-In the output, `F` denotes a failure. You can see the corresponding trace shown under `1)` along with the name of the failing test. The next few lines contain the stack trace followed by a message that mentions the actual value and the expected value by the assertion. The default assertion messages provide just enough information to help pinpoint the error. To make the assertion failure message more readable, every assertion provides an optional message parameter, as shown here:
+In the output, `F` denotes a failure. You can see the corresponding trace shown under `Failure` along with the name of the failing test. The next few lines contain the stack trace followed by a message that mentions the actual value and the expected value by the assertion. The default assertion messages provide just enough information to help pinpoint the error. To make the assertion failure message more readable, every assertion provides an optional message parameter, as shown here:
 
 ```ruby
 test "should not save article without title" do
@@ -169,8 +179,8 @@ end
 Running this test shows the friendlier assertion message:
 
 ```bash
-  1) Failure:
-test_should_not_save_article_without_title(ArticleTest) [test/models/article_test.rb:6]:
+Failure:
+ArticleTest#test_should_not_save_article_without_title [/path/to/blog/test/models/article_test.rb:6]:
 Saved the article without a title
 ```
 
@@ -186,11 +196,15 @@ Now the test should pass. Let us verify by running the test again:
 
 ```bash
 $ bin/rails test test/models/article_test.rb:6
+Run options: --seed 31252
+
+# Running:
+
 .
 
-Finished tests in 0.047721s, 20.9551 tests/s, 20.9551 assertions/s.
+Finished in 0.027476s, 36.3952 runs/s, 36.3952 assertions/s.
 
-1 tests, 1 assertions, 0 failures, 0 errors, 0 skips
+1 runs, 1 assertions, 0 failures, 0 errors, 0 skips
 ```
 
 Now, if you noticed, we first wrote a test which fails for a desired
@@ -215,16 +229,25 @@ Now you can see even more output in the console from running the tests:
 
 ```bash
 $ bin/rails test test/models/article_test.rb
-E
+Run options: --seed 1808
 
-Finished tests in 0.030974s, 32.2851 tests/s, 0.0000 assertions/s.
+# Running:
 
-  1) Error:
-test_should_report_error(ArticleTest):
-NameError: undefined local variable or method `some_undefined_variable' for #<ArticleTest:0x007fe32e24afe0>
-    test/models/article_test.rb:10:in `block in <class:ArticleTest>'
+.E
 
-1 tests, 0 assertions, 0 failures, 1 errors, 0 skips
+Error:
+ArticleTest#test_should_report_error:
+NameError: undefined local variable or method `some_undefined_variable' for #<ArticleTest:0x007fee3aa71798>
+    test/models/article_test.rb:11:in `block in <class:ArticleTest>'
+
+
+bin/rails test test/models/article_test.rb:9
+
+
+
+Finished in 0.040609s, 49.2500 runs/s, 24.6250 assertions/s.
+
+2 runs, 1 assertions, 0 failures, 1 errors, 0 skips
 ```
 
 Notice the 'E' in the output. It denotes a test with error.
@@ -342,17 +365,21 @@ documentation](http://docs.seattlerb.org/minitest).
 
 ### The Rails Test Runner
 
-We can run all of our tests at once by using the `rails test` command.
+We can run all of our tests at once by using the `bin/rails test` command.
 
-Or we can run a single test by passing the `rails test` command the filename containing the test cases.
+Or we can run a single test by passing the `bin/rails test` command the filename containing the test cases.
 
 ```bash
 $ bin/rails test test/models/article_test.rb
-.
+Run options: --seed 1559
 
-Finished tests in 0.009262s, 107.9680 tests/s, 107.9680 assertions/s.
+# Running:
 
-1 tests, 1 assertions, 0 failures, 0 errors, 0 skips
+..
+
+Finished in 0.027034s, 73.9810 runs/s, 110.9715 assertions/s.
+
+2 runs, 3 assertions, 0 failures, 0 errors, 0 skips
 ```
 
 This will run all test methods from the test case.
@@ -362,6 +389,10 @@ You can also run a particular test method from the test case by providing the
 
 ```bash
 $ bin/rails test test/models/article_test.rb -n test_the_truth
+Run options: -n test_the_truth --seed 43583
+
+# Running:
+
 .
 
 Finished tests in 0.009064s, 110.3266 tests/s, 110.3266 assertions/s.
@@ -372,7 +403,7 @@ Finished tests in 0.009064s, 110.3266 tests/s, 110.3266 assertions/s.
 You can also run a test at a specific line by providing the line number.
 
 ```bash
-$ bin/rails test test/models/post_test.rb:44 # run specific test and line
+$ bin/rails test test/models/article_test.rb:6 # run specific test and line
 ```
 
 You can also run an entire directory of tests by providing the path to the directory.
@@ -381,6 +412,38 @@ You can also run an entire directory of tests by providing the path to the direc
 $ bin/rails test test/controllers # run all tests from specific directory
 ```
 
+The test runner provides lot of other features too like failing fast, deferring test output
+at the end of test run and so on. Check the documentation of the test runner as follows:
+
+```bash
+$ bin/rails test -h
+minitest options:
+    -h, --help                       Display this help.
+    -s, --seed SEED                  Sets random seed. Also via env. Eg: SEED=n rake
+    -v, --verbose                    Verbose. Show progress processing files.
+    -n, --name PATTERN               Filter run on /regexp/ or string.
+        --exclude PATTERN            Exclude /regexp/ or string from run.
+
+Known extensions: rails, pride
+
+Usage: bin/rails test [options] [files or directories]
+You can run a single test by appending a line number to a filename:
+
+    bin/rails test test/models/user_test.rb:27
+
+You can run multiple files and directories at the same time:
+
+    bin/rails test test/controllers test/integration/login_test.rb
+
+By default test failures and errors are reported inline during a run.
+
+Rails options:
+    -e, --environment ENV            Run tests in the ENV environment
+    -b, --backtrace                  Show the complete backtrace
+    -d, --defer-output               Output test failures and errors after the test run
+    -f, --fail-fast                  Abort test run on first failure or error
+    -c, --[no-]color                 Enable color in the output
+```
 
 The Test Database
 -----------------
@@ -529,7 +592,7 @@ Integration Testing
 
 Integration tests are used to test how various parts of your application interact. They are generally used to test important workflows within our application.
 
-For creating Rails integration tests, we use the 'test/integration' directory for our application. Rails provides a generator to create an integration test skeleton for us.
+For creating Rails integration tests, we use the `test/integration` directory for our application. Rails provides a generator to create an integration test skeleton for us.
 
 ```bash
 $ bin/rails generate integration_test user_flows
@@ -685,9 +748,8 @@ Let's take a look at one such test, `test_should_get_index` from the file `artic
 # articles_controller_test.rb
 class ArticlesControllerTest < ActionDispatch::IntegrationTest
   test "should get index" do
-    get '/articles'
+    get articles_url
     assert_response :success
-    assert_includes @response.body, 'Articles'
   end
 end
 ```
@@ -732,7 +794,7 @@ Let us modify `test_should_create_article` test in `articles_controller_test.rb`
 ```ruby
 test "should create article" do
   assert_difference('Article.count') do
-    post '/article', params: { article: { title: 'Some title' } }
+    post articles_url, params: { article: { body: 'Rails is awesome!', title: 'Hello Rails' } }
   end
 
   assert_redirected_to article_path(Article.last)
@@ -763,7 +825,7 @@ To test AJAX requests, you can specify the `xhr: true` option to `get`, `post`,
 
 ```ruby
 test "ajax request" do
-  article = articles(:first)
+  article = articles(:one)
   get article_url(article), xhr: true
 
   assert_equal 'hello world', @response.body
@@ -800,16 +862,14 @@ You also have access to three instance variables in your functional tests:
 [HTTP headers](http://tools.ietf.org/search/rfc2616#section-5.3)
 and
 [CGI variables](http://tools.ietf.org/search/rfc3875#section-4.1)
-can be set directly on the `@request` instance variable:
+can be passed as headers:
 
 ```ruby
 # setting an HTTP Header
-@request.headers["Accept"] = "text/plain, text/html"
-get articles_url # simulate the request with custom header
+get articles_url, headers: "Content-Type" => "text/plain" # simulate the request with custom header
 
 # setting a CGI variable
-@request.headers["HTTP_REFERER"] = "http://example.com/home"
-post article_url # simulate the request with custom env variable
+get articles_url, headers: "HTTP_REFERER" => "http://example.com/home" # simulate the request with custom env variable
 ```
 
 ### Testing `flash` notices
@@ -845,7 +905,7 @@ F
 Finished in 0.114870s, 8.7055 runs/s, 34.8220 assertions/s.
 
   1) Failure:
-ArticlesControllerTest#test_should_create_article [/Users/zzak/code/bench/sharedapp/test/controllers/articles_controller_test.rb:16]:
+ArticlesControllerTest#test_should_create_article [/test/controllers/articles_controller_test.rb:16]:
 --- expected
 +++ actual
 @@ -1 +1 @@
@@ -894,7 +954,7 @@ Let's write a test for the `:show` action:
 ```ruby
 test "should show article" do
   article = articles(:one)
-  get '/article', params: { id: article.id }
+  get article_url(article)
   assert_response :success
 end
 ```
@@ -920,7 +980,7 @@ We can also add a test for updating an existing Article.
 test "should update article" do
   article = articles(:one)
 
-  patch '/article', params: { id: article.id, article: { title: "updated" } }
+  patch article_url(article), params: { article: { title: "updated" } }
 
   assert_redirected_to article_path(article)
   # Reload association to fetch updated data and assert that title is updated.
@@ -963,7 +1023,7 @@ class ArticlesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should update article" do
-    patch '/article', params: { id: @article.id, article: { title: "updated" } }
+    patch article_url(@article), params: { article: { title: "updated" } }
 
     assert_redirected_to article_path(@article)
     # Reload association to fetch updated data and assert that title is updated.
@@ -984,8 +1044,8 @@ Sign in helper can be a good example:
 #test/test_helper.rb
 
 module SignInHelper
-  def sign_in(user)
-    session[:user_id] = user.id
+  def sign_in_as(user)
+    post sign_in_url(email: user.email, password: user.password)
   end
 end
 
@@ -1001,7 +1061,7 @@ class ProfileControllerTest < ActionDispatch::IntegrationTest
 
   test "should show profile" do
     # helper is now reusable from any controller test case
-    sign_in users(:david)
+    sign_in_as users(:david)
 
     get profile_url
     assert_response :success
@@ -1247,8 +1307,8 @@ end
 This test is pretty simple and only asserts that the job get the work done
 as expected.
 
-By default, `ActiveJob::TestCase` will set the queue adapter to `:test` so that
-your jobs are performed inline. It will also ensure that all previously performed
+By default, `ActiveJob::TestCase` will set the queue adapter to `:async` so that
+your jobs are performed in an async fashion. It will also ensure that all previously performed
 and enqueued jobs are cleared before any test run so you can safely assume that
 no jobs have already been executed in the scope of each test.
 
