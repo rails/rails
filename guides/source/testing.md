@@ -748,7 +748,7 @@ Let's take a look at one such test, `test_should_get_index` from the file `artic
 # articles_controller_test.rb
 class ArticlesControllerTest < ActionDispatch::IntegrationTest
   test "should get index" do
-    get get articles_url
+    get articles_url
     assert_response :success
   end
 end
@@ -862,11 +862,11 @@ You also have access to three instance variables in your functional tests:
 [HTTP headers](http://tools.ietf.org/search/rfc2616#section-5.3)
 and
 [CGI variables](http://tools.ietf.org/search/rfc3875#section-4.1)
-can be set directly on the `@request` instance variable:
+can be passed as headers:
 
 ```ruby
 # setting an HTTP Header
-get articles_url, headers: text/plain, text/html" # simulate the request with custom header # PENDING, looks like requires array.
+get articles_url, headers: "Content-Type" => "text/plain" # simulate the request with custom header
 
 # setting a CGI variable
 get articles_url, headers: "HTTP_REFERER" => "http://example.com/home" # simulate the request with custom env variable
@@ -1308,7 +1308,7 @@ This test is pretty simple and only asserts that the job get the work done
 as expected.
 
 By default, `ActiveJob::TestCase` will set the queue adapter to `:async` so that
-your jobs are performed in async fashion. It will also ensure that all previously performed
+your jobs are performed in an async fashion. It will also ensure that all previously performed
 and enqueued jobs are cleared before any test run so you can safely assume that
 no jobs have already been executed in the scope of each test.
 
