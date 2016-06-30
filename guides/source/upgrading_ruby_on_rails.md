@@ -160,7 +160,7 @@ will have been eager loaded while booting.
 For the vast majority of applications this change needs no action. But in the
 very rare event that your application needs autoloading while running in
 production mode, set `Rails.application.config.enable_dependency_loading` to
-false.
+true.
 
 ### XML Serialization
 
