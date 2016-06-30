@@ -297,7 +297,9 @@ All these configuration options are delegated to the `I18n` library.
   * Or you can set different fallbacks for locales individually. For example, if you want to use `:tr` for `:az` and `:de`, `:en` for `:da` as fallbacks, you can do it, like so:
 
     ```ruby
-    config.i18n.fallbacks = { az: :tr, da: [:de, :en] }
+    config.i18n.fallbacks = { az: :tr, da: [:de, :en] } 
+    #or
+    config.i18n.fallbacks.map = { az: :tr, da: [:de, :en] }
     ```
 
 ### Configuring Active Record
