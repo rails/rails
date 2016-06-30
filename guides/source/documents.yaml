@@ -85,9 +85,8 @@
       description: This guide provides you with all you need to get started creating, enqueuing, and executing background jobs.
     -
       name: Testing Rails Applications
-      work_in_progress: true
       url: testing.html
-      description: This is a rather comprehensive guide to the various testing facilities in Rails. It covers everything from 'What is a test?' to the testing APIs. Enjoy.
+      description: This is a rather comprehensive guide to the various testing facilities in Rails. It covers everything from 'What is a test?' to Integration Testing. Enjoy.
     -
       name: Securing Rails Applications
       url: security.html
