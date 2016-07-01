@@ -362,6 +362,29 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_match(/puke/, output.rewind && output.read)
   end
 
+  test 'logs only what is necessary' do
+    @app = DevelopmentApp
+    io = StringIO.new
+    logger = ActiveSupport::Logger.new(io)
+
+    _old, ActionView::Base.logger = ActionView::Base.logger, logger
+    begin
+      get "/", headers: { 'action_dispatch.show_exceptions' => true, 'action_dispatch.logger' => logger }
+    ensure
+      ActionView::Base.logger = _old
+    end
+
+    output = io.rewind && io.read
+    lines = output.lines
+
+    # Other than the first three...
+    assert_equal(["  \n", "RuntimeError (puke!):\n", "  \n"], lines.slice!(0, 3))
+    lines.each do |line|
+      # .. all the remaining lines should be from the backtrace
+      assert_match(/:\d+:in /, line)
+    end
+  end
+
   test 'uses backtrace cleaner from env' do
     @app = DevelopmentApp
     backtrace_cleaner = ActiveSupport::BacktraceCleaner.new
