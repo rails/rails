@@ -460,7 +460,6 @@ module ActiveRecord
       # it can be helpful to provide these in a migration's +change+ method so it can be reverted.
       # In that case, +options+ and the block will be used by create_table.
       def drop_table(table_name, options = {})
-        create_table_info_cache.delete(table_name) if create_table_info_cache.key?(table_name)
         execute "DROP#{' TEMPORARY' if options[:temporary]} TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}#{' CASCADE' if options[:force] == :cascade}"
       end
 
@@ -900,12 +899,8 @@ module ActiveRecord
         end
       end
 
-      def create_table_info_cache # :nodoc:
-        @create_table_info_cache ||= {}
-      end
-
       def create_table_info(table_name) # :nodoc:
-        create_table_info_cache[table_name] ||= select_one("SHOW CREATE TABLE #{quote_table_name(table_name)}")["Create Table"]
+        select_one("SHOW CREATE TABLE #{quote_table_name(table_name)}")["Create Table"]
       end
 
       def create_table_definition(*args) # :nodoc:
