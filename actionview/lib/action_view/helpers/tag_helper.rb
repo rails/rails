@@ -124,11 +124,11 @@ module ActionView
       # ==== Passing content
       # Tags can pass content to embed within it:
       #
-      #   tag.h1 'All shit fit to print' # => <h1>All shit fit to print</h1>
+      #   tag.h1 'All titles fit to print' # => <h1>All titles fit to print</h1>
       #
       #   tag.div tag.p('Hello world!')  # => <div><p>Hello world!</p></div>
       #
-      # Content can also be captured with a block. Great for ERB templates:
+      # Content can also be captured with a block, which is useful in templates:
       #
       #   <%= tag.p do %>
       #     The next great American novel starts here.
@@ -136,7 +136,7 @@ module ActionView
       #   # => <p>The next great American novel starts here.</p>
       #
       # ==== Options
-      # Any passed options becomes attributes on the generated tag.
+      # Any passed options become attributes on the generated tag.
       #
       #   tag.section class: %w( kitties puppies )
       #   # => <section class="kitties puppies"></section>
@@ -144,7 +144,7 @@ module ActionView
       #   tag.section id: dom_id(@post)
       #   # => <section id="<generated dom id>"></section>
       #
-      # Pass true for any attributes that can render with no values like +disabled+.
+      # Pass +true+ for any attributes that can render with no values, like +disabled+ and +readonly+.
       #
       #   tag.input type: 'text', disabled: true
       #   # => <input type="text" disabled="disabled">
@@ -152,7 +152,7 @@ module ActionView
       # HTML5 <tt>data-*</tt> attributes can be set with a single +data+ key
       # pointing to a hash of sub-attributes.
       #
-      # To play nicely with JavaScript conventions sub-attributes are dasherized.
+      # To play nicely with JavaScript conventions, sub-attributes are dasherized.
       #
       #   tag.article data: { user_id: 123 }
       #   # => <article data-user-id="123"></article>
@@ -167,7 +167,7 @@ module ActionView
       #   tag.div data: { city_state: %w( Chigaco IL ) }
       #   # => <div data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]"></div>
       #
-      # The generated attributes are escaped by default, but it can be turned off with
+      # The generated attributes are escaped by default. This can be disabled using
       # +escape_attributes+.
       #
       #   tag.img src: 'open & shut.png'
@@ -187,7 +187,7 @@ module ActionView
       #   tag.br  # => <br>
       #
       # === Legacy syntax
-      # Following format is legacy syntax. It will be deprecated in future versions of rails.
+      # The following format is for legacy syntax support. It will be deprecated in future versions of Rails.
       #
       #   tag(tag_name, options)
       #
@@ -206,15 +206,6 @@ module ActionView
       #
       # HTML5 <tt>data-*</tt> attributes can be set with a single +data+ key
       # pointing to a hash of sub-attributes.
-      #
-      # To play nicely with JavaScript conventions sub-attributes are dasherized.
-      # For example, a key +user_id+ would render as <tt>data-user-id</tt> and
-      # thus accessed as <tt>dataset.userId</tt>.
-      #
-      # Values are encoded to JSON, with the exception of strings, symbols and
-      # BigDecimals.
-      # This may come in handy when using jQuery's HTML5-aware <tt>.data()</tt>
-      # from 1.4.3.
       #
       # ==== Examples
       #   tag("br")
