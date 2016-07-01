@@ -46,6 +46,10 @@ module ActiveSupport #:nodoc:
           yield
         end
       end
+
+      def raw_state(&block) # :nodoc:
+        @lock.raw_state(&block)
+      end
     end
   end
 end
