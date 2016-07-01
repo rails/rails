@@ -420,6 +420,21 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem 'web-console'
   end
 
+  def test_generation_runs_bundle_install
+    assert_generates_with_bundler
+  end
+
+  def test_dev_option
+    assert_generates_with_bundler dev: true
+    rails_path = File.expand_path('../../..', Rails.root)
+    assert_file 'Gemfile', /^gem\s+["']rails["'],\s+path:\s+["']#{Regexp.escape(rails_path)}["']$/
+  end
+
+  def test_edge_option
+    assert_generates_with_bundler edge: true
+    assert_file 'Gemfile', %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']#{Regexp.escape("4-2-stable")}["']$}
+  end
+
   def test_spring
     run_generator
     assert_gem 'spring'
@@ -518,15 +533,22 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   protected
 
-  def action(*args, &block)
-    capture(:stdout) { generator.send(*args, &block) }
-  end
-
-  def assert_gem(gem, constraint = nil)
-    if constraint
-      assert_file "Gemfile", /^\s*gem\s+["']#{gem}["'], #{constraint}$*/
-    else
-      assert_file "Gemfile", /^\s*gem\s+["']#{gem}["']$*/
+    def action(*args, &block)
+      capture(:stdout) { generator.send(*args, &block) }
     end
-  end
+
+    def assert_gem(gem, constraint = nil)
+      if constraint
+        assert_file "Gemfile", /^\s*gem\s+["']#{gem}["'], #{constraint}$*/
+      else
+        assert_file "Gemfile", /^\s*gem\s+["']#{gem}["']$*/
+      end
+    end
+
+    def assert_generates_with_bundler(options = {})
+      generator([destination_root], options)
+      generator.expects(:bundle_command).with('install').once
+      generator.stubs(:bundle_command).with('exec spring binstub --all')
+      quietly { generator.invoke_all }
+    end
 end

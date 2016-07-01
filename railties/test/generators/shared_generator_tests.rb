@@ -26,17 +26,6 @@ module SharedGeneratorTests
     default_files.each { |path| assert_file path }
   end
 
-  def assert_generates_with_bundler(options = {})
-    generator([destination_root], options)
-    generator.expects(:bundle_command).with('install').once
-    generator.stubs(:bundle_command).with('exec spring binstub --all')
-    quietly { generator.invoke_all }
-  end
-
-  def test_generation_runs_bundle_install
-    assert_generates_with_bundler
-  end
-
   def test_plugin_new_generate_pretend
     run_generator ["testapp", "--pretend"]
     default_files.each{ |path| assert_no_file File.join("testapp",path) }
@@ -102,17 +91,6 @@ module SharedGeneratorTests
 
     generator([destination_root], template: path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
     quietly { assert_match(/It works!/, capture(:stdout) { generator.invoke_all }) }
-  end
-
-  def test_dev_option
-    assert_generates_with_bundler dev: true
-    rails_path = File.expand_path('../../..', Rails.root)
-    assert_file 'Gemfile', /^gem\s+["']rails["'],\s+path:\s+["']#{Regexp.escape(rails_path)}["']$/
-  end
-
-  def test_edge_option
-    assert_generates_with_bundler edge: true
-    assert_file 'Gemfile', %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']#{Regexp.escape("4-2-stable")}["']$$}
   end
 
   def test_skip_gemfile

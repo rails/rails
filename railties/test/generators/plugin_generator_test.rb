@@ -158,13 +158,32 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "test/dummy/config/database.yml", /postgres/
   end
 
-  def test_generation_runs_bundle_install_with_full_and_mountable
-    result = run_generator [destination_root, "--mountable", "--full", "--dev"]
-    assert_match(/run  bundle install/, result)
-    assert $?.success?, "Command failed: #{result}"
-    assert_file "#{destination_root}/Gemfile.lock" do |contents|
-      assert_match(/bukkits/, contents)
-    end
+  def test_generation_runs_bundle_install
+    generator([destination_root])
+    generator.expects(:bundle_command).with('install').never
+    quietly { generator.invoke_all }
+  end
+
+  def test_dev_option
+    generator([destination_root], dev: true)
+    generator.expects(:bundle_command).with('install').never
+    quietly { generator.invoke_all }
+    rails_path = File.expand_path('../../..', Rails.root)
+    assert_file 'Gemfile', /^gem\s+["']rails["'],\s+path:\s+["']#{Regexp.escape(rails_path)}["']$/
+  end
+
+  def test_edge_option
+    generator([destination_root], edge: true)
+    generator.expects(:bundle_command).with('install').never
+    quietly { generator.invoke_all }
+    assert_file 'Gemfile', %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']#{Regexp.escape("4-2-stable")}["']$}
+  end
+
+  def test_generation_does_not_run_bundle_install_with_full_and_mountable
+    generator([destination_root], mountable: true, full: true, dev: true)
+    generator.expects(:bundle_command).with('install').never
+    quietly { generator.invoke_all }
+    assert_no_file "#{destination_root}/Gemfile.lock"
   end
 
   def test_skipping_javascripts_without_mountable_option
