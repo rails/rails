@@ -1,3 +1,5 @@
+## Rails 4.2.7.rc1 (June 30, 2016) ##
+
 *   Fixed `ActiveSupport::Logger.broadcast` so that calls to `#silence` now
     properly delegate to all loggers. Silencing now properly suppresses logging
     to both the log and the console.

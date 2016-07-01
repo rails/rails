@@ -1,3 +1,8 @@
+## Rails 4.2.7.rc1 (June 30, 2016) ##
+
+*   No changes.
+
+
 ## Rails 4.2.6 (March 07, 2016) ##
 
 *   No changes.
