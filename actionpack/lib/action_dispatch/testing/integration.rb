@@ -418,7 +418,7 @@ module ActionDispatch
           end
 
           def append_format_to(path)
-            path << @path_format unless @url_encoded_form
+            path += @path_format unless @url_encoded_form
             path
           end
 
