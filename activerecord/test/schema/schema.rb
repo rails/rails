@@ -409,6 +409,14 @@ ActiveRecord::Schema.define do
     t.references :student
   end
 
+  create_table :students, force: true do |t|
+    t.string :name
+    t.boolean :active
+    t.integer :college_id
+  end
+
+  add_foreign_key :lessons_students, :students, on_delete: :cascade
+
   create_table :lint_models, force: true
 
   create_table :line_items, force: true do |t|
@@ -777,12 +785,6 @@ ActiveRecord::Schema.define do
     t.integer    :lock_version, null: false, default: 0
   end
 
-  create_table :students, force: true do |t|
-    t.string :name
-    t.boolean :active
-    t.integer :college_id
-  end
-
   create_table :subscribers, force: true, id: false do |t|
     t.string :nick, null: false
     t.string :name
@@ -1002,7 +1004,6 @@ ActiveRecord::Schema.define do
     end
 
     add_foreign_key :fk_test_has_fk, :fk_test_has_pk, column: "fk_id", name: "fk_name", primary_key: "pk_id"
-    add_foreign_key :lessons_students, :students
   end
 
   create_table :overloaded_types, force: true do |t|
