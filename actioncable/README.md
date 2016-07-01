@@ -526,6 +526,15 @@ cable.subscriptions.create 'AppearanceChannel',
     # normal channel code goes here...
 ```
 
+## Download and Installation
+
+The latest version of Action Cable can be installed with [RubyGems](#gem-usage),
+or with [npm](#npm-usage).
+
+Source code can be downloaded as part of the Rails project on GitHub
+
+* https://github.com/rails/rails/tree/master/actioncable
+
 ## License
 
 Action Cable is released under the MIT license:
