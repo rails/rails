@@ -238,8 +238,8 @@ module ActiveSupport
 
     # Tries to find a constant with the name specified in the argument string.
     #
-    #   'Module'.constantize   # => Module
-    #   'Foo::Bar'.constantize # => Foo::Bar
+    #   constantize('Module')   # => Module
+    #   constantize('Foo::Bar') # => Foo::Bar
     #
     # The name is assumed to be the one of a top-level constant, no matter
     # whether it starts with "::" or not. No lexical context is taken into
@@ -248,8 +248,8 @@ module ActiveSupport
     #   C = 'outside'
     #   module M
     #     C = 'inside'
-    #     C               # => 'inside'
-    #     'C'.constantize # => 'outside', same as ::C
+    #     C                # => 'inside'
+    #     constantize('C') # => 'outside', same as ::C
     #   end
     #
     # NameError is raised when the name is not in CamelCase or the constant is
