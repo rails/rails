@@ -424,9 +424,9 @@ module ActionDispatch
 
           def append_format_to(path)
             if @url_encoded_form
-              path + @path_format
-            else
               path
+            else
+              path + @path_format
             end
           end
 
