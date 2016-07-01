@@ -515,18 +515,20 @@ module ActiveRecord
 
         schema, name = extract_schema_qualified_name(table_name)
 
-        fk_info = select_all <<-SQL.strip_heredoc
-          SELECT fk.referenced_table_name as 'to_table'
-                ,fk.referenced_column_name as 'primary_key'
-                ,fk.column_name as 'column'
-                ,fk.constraint_name as 'name'
+        fk_info = select_all(<<-SQL.strip_heredoc, 'SCHEMA')
+          SELECT fk.referenced_table_name AS 'to_table',
+                 fk.referenced_column_name AS 'primary_key',
+                 fk.column_name AS 'column',
+                 fk.constraint_name AS 'name',
+                 rc.update_rule AS 'on_update',
+                 rc.delete_rule AS 'on_delete'
           FROM information_schema.key_column_usage fk
-          WHERE fk.referenced_column_name is not null
+          JOIN information_schema.referential_constraints rc
+          USING (constraint_schema, constraint_name)
+          WHERE fk.referenced_column_name IS NOT NULL
             AND fk.table_schema = #{quote(schema)}
             AND fk.table_name = #{quote(name)}
         SQL
-
-        create_table_info = create_table_info(table_name)
 
         fk_info.map do |row|
           options = {
@@ -535,8 +537,8 @@ module ActiveRecord
             primary_key: row['primary_key']
           }
 
-          options[:on_update] = extract_foreign_key_action(create_table_info, row['name'], "UPDATE")
-          options[:on_delete] = extract_foreign_key_action(create_table_info, row['name'], "DELETE")
+          options[:on_update] = extract_foreign_key_action(row['on_update'])
+          options[:on_delete] = extract_foreign_key_action(row['on_delete'])
 
           ForeignKeyDefinition.new(table_name, row['to_table'], options)
         end
@@ -891,12 +893,10 @@ module ActiveRecord
         end
       end
 
-      def extract_foreign_key_action(structure, name, action) # :nodoc:
-        if structure =~ /CONSTRAINT #{quote_column_name(name)} FOREIGN KEY .* REFERENCES .* ON #{action} (CASCADE|SET NULL|RESTRICT)/
-          case $1
-          when 'CASCADE'; :cascade
-          when 'SET NULL'; :nullify
-          end
+      def extract_foreign_key_action(specifier) # :nodoc:
+        case specifier
+        when 'CASCADE'; :cascade
+        when 'SET NULL'; :nullify
         end
       end
 
