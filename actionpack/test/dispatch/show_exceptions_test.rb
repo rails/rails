@@ -98,7 +98,7 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
 
   test "calls custom exceptions app" do
     exceptions_app = lambda do |env|
-      assert_kind_of AbstractController::ActionNotFound, env["action_dispatch.exception"]
+      assert_kind_of ActionView::Template::Error, env["action_dispatch.exception"]
       assert_equal "/404", env["PATH_INFO"]
       assert_equal "/not_found_original_exception", env["action_dispatch.original_path"]
       [404, { "Content-Type" => "text/plain" }, ["YOU FAILED"]]

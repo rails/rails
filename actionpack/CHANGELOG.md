@@ -1,3 +1,20 @@
+*   Store original exception in action_dispatch.exception, not exception cause
+
+    Previously, when an error was raised that had a cause, we would store the cause
+    of the error in `request.env["action_dispatch.exception"]`, rather than the
+    error itself. That causes a loss of important information - it's not possible
+    to get back to the top-level error from the stored exception (since the `cause`
+    relationship on errors in one-way).
+
+    After this change, it is the top-level error, rather than its cause, that will
+    be stored in `request.env["action_dispatch.exception"]`. Any exception handler
+    app can then take responsibilty for inspecting the error's cause, if required.
+
+    Reverses the (undesired) change in behaviour from
+    https://github.com/rails/rails/pull/18774
+
+    *Grey Baker*
+
 *   Check `request.path_parameters` encoding at the point they're set
 
     Check for any non-UTF8 characters in path parameters at the point they're
