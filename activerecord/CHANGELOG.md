@@ -1,3 +1,9 @@
+*   Option to remove standardized column types/arguments spaces in schema dump
+    with `ActiveRecord::SchemaDumper.standardized_argument_widths` and
+    `ActiveRecord::SchemaDumper.standardized_type_widths` methods.
+
+    *Tim Petricola*
+
 *   Doing count on relations that contain LEFT OUTER JOIN Arel node no longer
     force a DISTINCT. This solves issues when using count after a left_joins.
 
@@ -57,8 +63,8 @@
     *Xavier Noria*
 
 *   Using `group` with an attribute that has a custom type will properly cast
-    the hash keys after calling a calculation method like `count`. 
-    
+    the hash keys after calling a calculation method like `count`.
+
     Fixes #25595.
 
     *Sean Griffin*
@@ -93,7 +99,7 @@
     *Sean Griffin*
 
 *   Ensure hashes can be assigned to attributes created using `composed_of`.
-    
+
     Fixes #25210.
 
     *Sean Griffin*
