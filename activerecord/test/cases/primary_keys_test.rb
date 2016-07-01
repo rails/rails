@@ -174,6 +174,14 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_equal '2', dashboard.id
   end
 
+  def test_create_without_primary_key_no_extra_query
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = 'dashboards'
+    end
+    klass.create! # warmup schema cache
+    assert_queries(3, ignore_none: true) { klass.create! }
+  end
+
   if current_adapter?(:PostgreSQLAdapter)
     def test_serial_with_quoted_sequence_name
       column = MixedCaseMonkey.columns_hash[MixedCaseMonkey.primary_key]
