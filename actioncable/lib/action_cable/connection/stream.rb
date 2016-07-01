@@ -50,6 +50,7 @@ module ActionCable
         def clean_rack_hijack
           return unless @rack_hijack_io
           @event_loop.detach(@rack_hijack_io, self)
+          @rack_hijack_io.close
           @rack_hijack_io = nil
         end
     end
