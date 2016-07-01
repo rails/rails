@@ -32,7 +32,7 @@ module ActionController
   # new post), it initiates a redirect instead. This redirect works by returning an external
   # "302 Moved" HTTP response that takes the user to the index action.
   #
-  # These two methods represent the two basic action archetypes used in Action Controllers. Get-and-show and do-and-redirect.
+  # These two methods represent the two basic action archetypes used in Action Controllers: Get-and-show and do-and-redirect.
   # Most actions are variations on these themes.
   #
   # == Requests
@@ -51,8 +51,8 @@ module ActionController
   # == Parameters
   #
   # All request parameters, whether they come from a query string in the URL or form data submitted through a POST request are
-  # available through the params method which returns a hash. For example, an action that was performed through
-  # <tt>/posts?category=All&limit=5</tt> will include <tt>{ "category" => "All", "limit" => "5" }</tt> in params.
+  # available through the <tt>params</tt> method which returns a hash. For example, an action that was performed through
+  # <tt>/posts?category=All&limit=5</tt> will include <tt>{ "category" => "All", "limit" => "5" }</tt> in <tt>params</tt>.
   #
   # It's also possible to construct multi-dimensional parameter hashes by specifying keys using brackets, such as:
   #
@@ -60,7 +60,7 @@ module ActionController
   #   <input type="text" name="post[address]" value="hyacintvej">
   #
   # A request stemming from a form holding these inputs will include <tt>{ "post" => { "name" => "david", "address" => "hyacintvej" } }</tt>.
-  # If the address input had been named <tt>post[address][street]</tt>, the params would have included
+  # If the address input had been named <tt>post[address][street]</tt>, the <tt>params</tt> would have included
   # <tt>{ "post" => { "address" => { "street" => "hyacintvej" } } }</tt>. There's no limit to the depth of the nesting.
   #
   # == Sessions
