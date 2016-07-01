@@ -177,9 +177,9 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_generation_does_not_run_bundle_install_with_full_and_mountable
-    result = run_generator [destination_root, "--mountable", "--full", "--dev"]
-    assert_no_match(/run  bundle install/, result)
-    assert $?.success?, "Command failed: #{result}"
+    generator([destination_root], mountable: true, full: true, dev: true)
+    generator.expects(:bundle_command).with('install').never
+    quietly { generator.invoke_all }
     assert_no_file "#{destination_root}/Gemfile.lock"
   end
 
