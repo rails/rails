@@ -232,6 +232,10 @@ module ActiveRecord
             t.column :city_id, :integer
           end
           add_foreign_key :houses, :cities, column: "city_id"
+
+          # remove and re-add to test that schema is updated and not accidently cached
+          remove_foreign_key :houses, :cities
+          add_foreign_key :houses, :cities, column: "city_id", on_delete: :cascade
         end
       end
 
@@ -239,6 +243,15 @@ module ActiveRecord
         migration = CreateCitiesAndHousesMigration.new
         silence_stream($stdout) { migration.migrate(:up) }
         assert_equal 1, @connection.foreign_keys("houses").size
+      ensure
+        silence_stream($stdout) { migration.migrate(:down) }
+      end
+
+      def test_foreign_key_constraint_is_not_cached_incorrectly
+        migration = CreateCitiesAndHousesMigration.new
+        silence_stream($stdout) { migration.migrate(:up) }
+        output = dump_table_schema "houses"
+        assert_match %r{\s+add_foreign_key "houses",.+on_delete: :cascade$}, output
       ensure
         silence_stream($stdout) { migration.migrate(:down) }
       end
