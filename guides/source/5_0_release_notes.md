@@ -663,10 +663,6 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Deprecated passing a column to `ActiveRecord::Connection#quote`.
     ([commit](https://github.com/rails/rails/commit/7bb620869725ad6de603f6a5393ee17df13aa96c))
 
-*   Deprecated passing of `start` value to `find_in_batches` and `find_each`
-    in favour of `begin_at`.
-    ([Pull Request](https://github.com/rails/rails/pull/18961))
-
 *   Added an option `end` to `find_in_batches` that complements the `start`
     parameter to specify where to stop batch processing.
     ([Pull Request](https://github.com/rails/rails/pull/12257))
