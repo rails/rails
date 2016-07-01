@@ -423,8 +423,11 @@ module ActionDispatch
           end
 
           def append_format_to(path)
-            path += @path_format unless @url_encoded_form
-            path
+            if @url_encoded_form
+              path + @path_format
+            else
+              path
+            end
           end
 
           def content_type
