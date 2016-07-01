@@ -2,17 +2,24 @@ require 'concurrent/atomic/count_down_latch'
 
 module ActiveSupport
   module Concurrency
-    class Latch < Concurrent::CountDownLatch
+    class Latch
 
       def initialize(count = 1)
-        ActiveSupport::Deprecation.warn("ActiveSupport::Concurrency::Latch is deprecated. Please use Concurrent::CountDownLatch instead.")
-        super(count)
+        if count == 1
+          ActiveSupport::Deprecation.warn("ActiveSupport::Concurrency::Latch is deprecated. Please use Concurrent::Event instead.")
+        else
+          ActiveSupport::Deprecation.warn("ActiveSupport::Concurrency::Latch is deprecated. Please use Concurrent::CountDownLatch instead.")
+        end
+
+        @inner = Concurrent::CountDownLatch.new(count)
       end
 
-      alias_method :release, :count_down
+      def release
+        @inner.count_down
+      end
 
       def await
-        wait(nil)
+        @inner.wait(nil)
       end
     end
   end
