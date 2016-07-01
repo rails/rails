@@ -1,3 +1,12 @@
+*   Do not run `bundle install` when generating a new plugin.
+
+    Since bundler 1.12.0, the gemspec is validated so the `bundle install`
+    command will fail just after the gem is created causing confusion to the
+    users. This change was a bug fix to correctly validate gemspecs.
+
+    *Rafael Mendonça França*
+
+
 ## Rails 4.2.7.rc1 (June 30, 2016) ##
 
 *   No changes.
