@@ -242,7 +242,7 @@ module Rails
           ] + dev_edge_common
         elsif options.edge?
           [
-            GemfileEntry.github('rails', 'rails/rails')
+            GemfileEntry.github('rails', 'rails/rails', '5-0-stable')
           ] + dev_edge_common
         else
           [GemfileEntry.version('rails',

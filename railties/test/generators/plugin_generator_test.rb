@@ -193,13 +193,24 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "test/dummy/config/database.yml", /postgres/
   end
 
-  def test_generation_runs_bundle_install_with_full_and_mountable
-    result = run_generator [destination_root, "--mountable", "--full", "--dev"]
-    assert_match(/run  bundle install/, result)
-    assert $?.success?, "Command failed: #{result}"
-    assert_file "#{destination_root}/Gemfile.lock" do |contents|
-      assert_match(/bukkits/, contents)
-    end
+  def test_generation_runs_bundle_install
+    assert_generates_without_bundler
+  end
+
+  def test_dev_option
+    assert_generates_without_bundler(dev: true)
+    rails_path = File.expand_path('../../..', Rails.root)
+    assert_file 'Gemfile', /^gem\s+["']rails["'],\s+path:\s+["']#{Regexp.escape(rails_path)}["']$/
+  end
+
+  def test_edge_option
+    assert_generates_without_bundler(edge: true)
+    assert_file 'Gemfile', %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']#{Regexp.escape("5-0-stable")}["']$}
+  end
+
+  def test_generation_does_not_run_bundle_install_with_full_and_mountable
+    assert_generates_without_bundler(mountable: true, full: true, dev: true)
+    assert_no_file "#{destination_root}/Gemfile.lock"
   end
 
   def test_skipping_javascripts_without_mountable_option
@@ -697,48 +708,38 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_after_bundle_callback
-    path = 'http://example.org/rails_template'
-    template = %{ after_bundle { run 'echo ran after_bundle' } }
-    template.instance_eval "def read; self; end" # Make the string respond to read
+  protected
 
-    check_open = -> *args do
-      assert_equal [ path, 'Accept' => 'application/x-thor-template' ], args
-      template
+    def action(*args, &block)
+      silence(:stdout){ generator.send(*args, &block) }
     end
 
-    sequence = ['install', 'echo ran after_bundle']
-    @sequence_step ||= 0
-    ensure_bundler_first = -> command do
-      assert_equal sequence[@sequence_step], command, "commands should be called in sequence #{sequence}"
-      @sequence_step += 1
+    def default_files
+      ::DEFAULT_PLUGIN_FILES
     end
 
-    generator([destination_root], template: path).stub(:open, check_open, template) do
-      generator.stub(:bundle_command, ensure_bundler_first) do
-        generator.stub(:run, ensure_bundler_first) do
-          quietly { generator.invoke_all }
-        end
+    def assert_match_sqlite3(contents)
+      if defined?(JRUBY_VERSION)
+        assert_match(/group :development do\n  gem 'activerecord-jdbcsqlite3-adapter'\nend/, contents)
+      else
+        assert_match(/group :development do\n  gem 'sqlite3'\nend/, contents)
       end
     end
 
-    assert_equal 2, @sequence_step
-  end
+    def assert_generates_without_bundler(options = {})
+      generator([destination_root], options)
 
-protected
-  def action(*args, &block)
-    silence(:stdout){ generator.send(*args, &block) }
-  end
+      command_check = -> command do
+        case command
+        when 'install'
+          flunk "install expected to not be called"
+        when 'exec spring binstub --all'
+          # Called when running tests with spring, let through unscathed.
+        end
+      end
 
-  def default_files
-    ::DEFAULT_PLUGIN_FILES
-  end
-
-  def assert_match_sqlite3(contents)
-    if defined?(JRUBY_VERSION)
-      assert_match(/group :development do\n  gem 'activerecord-jdbcsqlite3-adapter'\nend/, contents)
-    else
-      assert_match(/group :development do\n  gem 'sqlite3'\nend/, contents)
+      generator.stub :bundle_command, command_check do
+        quietly { generator.invoke_all }
+      end
     end
-  end
 end

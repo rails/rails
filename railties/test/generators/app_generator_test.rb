@@ -597,6 +597,21 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_generation_runs_bundle_install
+    assert_generates_with_bundler
+  end
+
+  def test_dev_option
+    assert_generates_with_bundler dev: true
+    rails_path = File.expand_path('../../..', Rails.root)
+    assert_file 'Gemfile', /^gem\s+["']rails["'],\s+path:\s+["']#{Regexp.escape(rails_path)}["']$/
+  end
+
+  def test_edge_option
+    assert_generates_with_bundler edge: true
+    assert_file 'Gemfile', %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']#{Regexp.escape("5-0-stable")}["']$}
+  end
+
   def test_spring
     run_generator
     assert_gem 'spring'
@@ -754,41 +769,61 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   protected
 
-  def stub_rails_application(root)
-    Rails.application.config.root = root
-    Rails.application.class.stub(:name, "Myapp") do
-      yield
-    end
-  end
-
-  def action(*args, &block)
-    capture(:stdout) { generator.send(*args, &block) }
-  end
-
-  def assert_gem(gem, constraint = nil)
-    if constraint
-      assert_file "Gemfile", /^\s*gem\s+["']#{gem}["'], #{constraint}$*/
-    else
-      assert_file "Gemfile", /^\s*gem\s+["']#{gem}["']$*/
-    end
-  end
-
-  def assert_listen_related_configuration
-    assert_gem 'listen'
-    assert_gem 'spring-watcher-listen'
-
-    assert_file 'config/environments/development.rb' do |content|
-      assert_match(/^\s*config.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
-    end
-  end
-
-  def assert_no_listen_related_configuration
-    assert_file 'Gemfile' do |content|
-      assert_no_match(/listen/, content)
+    def stub_rails_application(root)
+      Rails.application.config.root = root
+      Rails.application.class.stub(:name, "Myapp") do
+        yield
+      end
     end
 
-    assert_file 'config/environments/development.rb' do |content|
-      assert_match(/^\s*# config.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
+    def action(*args, &block)
+      capture(:stdout) { generator.send(*args, &block) }
     end
-  end
+
+    def assert_gem(gem, constraint = nil)
+      if constraint
+        assert_file "Gemfile", /^\s*gem\s+["']#{gem}["'], #{constraint}$*/
+      else
+        assert_file "Gemfile", /^\s*gem\s+["']#{gem}["']$*/
+      end
+    end
+
+    def assert_listen_related_configuration
+      assert_gem 'listen'
+      assert_gem 'spring-watcher-listen'
+
+      assert_file 'config/environments/development.rb' do |content|
+        assert_match(/^\s*config.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
+      end
+    end
+
+    def assert_no_listen_related_configuration
+      assert_file 'Gemfile' do |content|
+        assert_no_match(/listen/, content)
+      end
+
+      assert_file 'config/environments/development.rb' do |content|
+        assert_match(/^\s*# config.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
+      end
+    end
+
+    def assert_generates_with_bundler(options = {})
+      generator([destination_root], options)
+
+      command_check = -> command do
+        @install_called ||= 0
+
+        case command
+        when 'install'
+          @install_called += 1
+          assert_equal 1, @install_called, "install expected to be called once, but was called #{@install_called} times"
+        when 'exec spring binstub --all'
+          # Called when running tests with spring, let through unscathed.
+        end
+      end
+
+      generator.stub :bundle_command, command_check do
+        quietly { generator.invoke_all }
+      end
+    end
 end
