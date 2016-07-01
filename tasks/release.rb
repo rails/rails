@@ -43,7 +43,28 @@ directory "pkg"
       raise "Could not insert PRE in #{file}" unless $1
 
       File.open(file, 'w') { |f| f.write ruby }
+    end
 
+    task gem => %w(update_versions pkg) do
+      cmd = ""
+      cmd << "cd #{framework} && " unless framework == "rails"
+      cmd << "bundle exec rake package && " unless framework == "rails"
+      cmd << "gem build #{gemspec} && mv #{framework}-#{version}.gem #{root}/pkg/"
+      sh cmd
+    end
+
+    task :build => [:clean, gem]
+    task :install => :build do
+      sh "gem install --pre #{gem}"
+    end
+
+    task :push => :build do
+      sh "gem push #{gem}"
+
+      # When running the release task we usually run build first to check that the gem works properly.
+      # NPM will refuse to publish or rebuild the gem if the version is changed when the Rails gem
+      # versions are changed. This then causes the gem push to fail. Because of this we need to update
+      # the version and publish at the same time.
       if File.exist?("#{framework}/package.json")
         Dir.chdir("#{framework}") do
           # This "npm-ifies" the current version
@@ -68,29 +89,12 @@ directory "pkg"
           # Check if npm is installed, and raise an error if not
           if sh 'which npm'
             sh "npm version #{version} --no-git-tag-version"
+            sh "npm publish"
           else
             raise 'You must have npm installed to release Rails.'
           end
         end
       end
-    end
-
-    task gem => %w(update_versions pkg) do
-      cmd = ""
-      cmd << "cd #{framework} && " unless framework == "rails"
-      cmd << "bundle exec rake package && " unless framework == "rails"
-      cmd << "gem build #{gemspec} && mv #{framework}-#{version}.gem #{root}/pkg/"
-      sh cmd
-    end
-
-    task :build => [:clean, gem]
-    task :install => :build do
-      sh "gem install --pre #{gem}"
-    end
-
-    task :push => :build do
-      sh "gem push #{gem}"
-      sh "npm publish" if File.exist?("#{framework}/package.json")
     end
   end
 end
