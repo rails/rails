@@ -241,7 +241,7 @@ task default: :test
         build(:leftovers)
       end
 
-      public_task :apply_rails_template, :run_bundle
+      public_task :apply_rails_template
 
       def name
         @name ||= begin
