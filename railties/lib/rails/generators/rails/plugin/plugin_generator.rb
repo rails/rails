@@ -258,7 +258,7 @@ task default: :test
         build(:leftovers)
       end
 
-      public_task :apply_rails_template, :run_bundle
+      public_task :apply_rails_template
 
       def run_after_bundle_callbacks
         @after_bundle_callbacks.each do |callback|
