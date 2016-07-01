@@ -11,6 +11,7 @@ module ActionCable
         @stream_send   = socket.env['stream.send']
 
         @rack_hijack_io = nil
+        @write_lock = Mutex.new
       end
 
       def each(&callback)
@@ -27,10 +28,13 @@ module ActionCable
       end
 
       def write(data)
+        @write_lock.lock
         return @rack_hijack_io.write(data) if @rack_hijack_io
         return @stream_send.call(data) if @stream_send
       rescue EOFError, Errno::ECONNRESET
         @socket_object.client_gone
+      ensure
+        @write_lock.unlock
       end
 
       def receive(data)
