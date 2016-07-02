@@ -1,3 +1,5 @@
+## Rails 4.1.16.rc1 (July 01, 2016) ##
+
 *   Correctly pass MySQL options when using structure_dump or structure_load
 
     Specifically, it fixes an issue when using SSL authentication.

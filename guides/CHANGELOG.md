@@ -1,3 +1,8 @@
+## Rails 4.1.16.rc1 (July 01, 2016) ##
+
+*   No changes.
+
+
 ## Rails 4.1.15 (March 07, 2016) ##
 
 *   No changes.

@@ -1,3 +1,5 @@
+## Rails 4.1.16.rc1 (July 01, 2016) ##
+
 *   Do not run `bundle install` when generating a new plugin.
 
     Since bundler 1.12.0, the gemspec is validated so the `bundle install`
