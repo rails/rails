@@ -65,7 +65,7 @@ module ActiveRecord
       @klass.connection.insert(
         im,
         'SQL',
-        primary_key,
+        primary_key || false,
         primary_key_value,
         nil,
         binds)
