@@ -14,6 +14,7 @@ module ActiveSupport
       def serialize
         output = 'P'
         parts, sign = normalize
+        return output << "T0S" if parts.empty?
         output << "#{parts[:years]}Y"   if parts.key?(:years)
         output << "#{parts[:months]}M"  if parts.key?(:months)
         output << "#{parts[:weeks]}W"   if parts.key?(:weeks)
@@ -40,7 +41,7 @@ module ActiveSupport
           end
           # If all parts are negative - let's make a negative duration
           sign = ''
-          if parts.values.all? { |v| v < 0 }
+          if !parts.empty? && parts.values.all? { |v| v < 0 }
             sign = '-'
             parts.transform_values!(&:-@)
           end
