@@ -16,11 +16,7 @@ addons:
   postgresql: "9.4"
 
 bundler_args: --without test --jobs 3 --retry 3
-#FIXME: Remove bundler uninstall on Travis when https://github.com/bundler/bundler/issues/4493 is fixed.
 before_install:
-  - rvm @global do gem uninstall bundler --all --ignore-dependencies --executables
-  - rvm @global do gem install bundler -v '1.11.2'
-  - bundle --version
   - "rm ${BUNDLE_GEMFILE}.lock"
   - "[ -f /tmp/beanstalkd-1.10/Makefile ] || (curl -L https://github.com/kr/beanstalkd/archive/v1.10.tar.gz | tar xz -C /tmp)"
   - "pushd /tmp/beanstalkd-1.10 && make && (./beanstalkd &); popd"
