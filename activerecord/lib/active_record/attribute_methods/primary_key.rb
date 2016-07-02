@@ -94,8 +94,10 @@ module ActiveRecord
           elsif base_name && primary_key_prefix_type == :table_name_with_underscore
             base_name.foreign_key
           else
-            if ActiveRecord::Base != self && table_exists?
-              connection.schema_cache.primary_keys(table_name)
+            if ActiveRecord::Base != self && table_exists? && 
+              ((primary_key = connection.schema_cache.primary_keys(table_name)).present? ||
+              !connection.schema_cache.columns(table_name).include?('id'))
+              primary_key 
             else
               'id'
             end
