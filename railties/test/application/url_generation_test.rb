@@ -9,7 +9,6 @@ module ApplicationTests
     end
 
     test "it works" do
-      boot_rails
       require "rails"
       require "action_controller/railtie"
       require "action_view/railtie"
@@ -44,7 +43,6 @@ module ApplicationTests
     end
 
     def test_routes_know_the_relative_root
-      boot_rails
       require "rails"
       require "action_controller/railtie"
       require "action_view/railtie"

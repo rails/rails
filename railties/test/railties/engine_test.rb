@@ -28,7 +28,6 @@ module RailtiesTest
     end
 
     def boot_rails
-      super
       require "#{app_path}/config/environment"
     end
 

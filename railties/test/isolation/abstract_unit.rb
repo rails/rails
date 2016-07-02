@@ -310,9 +310,6 @@ module TestHelpers
 
       $:.reject! {|path| path =~ %r'/(#{to_remove.join('|')})/' }
     end
-
-    def boot_rails
-    end
   end
 end
 

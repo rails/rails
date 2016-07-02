@@ -6,7 +6,6 @@ module ApplicationTests
 
     def setup
       build_app
-      boot_rails
       FileUtils.rm_rf("#{app_path}/config/environments")
       app_file "config/environments/development.rb", ""
       add_to_config <<-RUBY

@@ -5,7 +5,6 @@ module ApplicationTests
     class RakeMigrationsTest < ActiveSupport::TestCase
       def setup
         build_app
-        boot_rails
         FileUtils.rm_rf("#{app_path}/config/environments")
       end
 

@@ -28,8 +28,6 @@ module ApplicationTests
       RUBY
 
       ENV["RAILS_ENV"] = "production"
-
-      boot_rails
     end
 
     def teardown

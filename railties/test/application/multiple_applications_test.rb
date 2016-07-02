@@ -6,7 +6,6 @@ module ApplicationTests
 
     def setup
       build_app(initializers: true)
-      boot_rails
       require "#{rails_root}/config/environment"
       Rails.application.config.some_setting = 'something_or_other'
     end

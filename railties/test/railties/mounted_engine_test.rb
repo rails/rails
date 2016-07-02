@@ -179,8 +179,6 @@ module ApplicationTests
           end
         end
       RUBY
-
-      boot_rails
     end
 
     def teardown
