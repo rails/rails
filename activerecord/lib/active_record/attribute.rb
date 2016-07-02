@@ -28,7 +28,11 @@ module ActiveRecord
     # Use #from_database or #from_user
     def initialize(name, value_before_type_cast, type, original_attribute = nil)
       @name = name
-      @value_before_type_cast = value_before_type_cast
+      @value_before_type_cast = if value_before_type_cast.kind_of?(Proc)
+                                  value_before_type_cast.call
+                                else
+                                  value_before_type_cast
+                                end
       @type = type
       @original_attribute = original_attribute
     end
