@@ -15,11 +15,11 @@ module ActiveRecord
       @table = table
       @handlers = []
 
-      register_handler(BasicObject, BasicObjectHandler.new(self))
+      register_handler(BasicObject, BasicObjectHandler.new)
       register_handler(Class, ClassHandler.new(self))
       register_handler(Base, BaseHandler.new(self))
-      register_handler(Range, RangeHandler.new(self))
-      register_handler(RangeHandler::RangeWithBinds, RangeHandler.new(self))
+      register_handler(Range, RangeHandler.new)
+      register_handler(RangeHandler::RangeWithBinds, RangeHandler.new)
       register_handler(Relation, RelationHandler.new)
       register_handler(Array, ArrayHandler.new(self))
       register_handler(AssociationQueryValue, AssociationQueryHandler.new(self))
