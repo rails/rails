@@ -464,7 +464,7 @@ module ActiveSupport
       # The options hash is passed to the underlying cache implementation.
       #
       # All implementations may not support this method.
-      def clear(options = nil)
+      def clear
         raise NotImplementedError.new("#{self.class.name} does not support clear")
       end
 

@@ -27,7 +27,7 @@ module ActiveSupport
       # Deletes all items from the cache. In this case it deletes all the entries in the specified
       # file store directory except for .keep or .gitkeep. Be careful which directory is specified in your
       # config file when using +FileStore+ because everything in that directory will be deleted.
-      def clear(options = nil)
+      def clear
         root_dirs = exclude_from(cache_path, EXCLUDED_DIRS + GITKEEP_FILES)
         FileUtils.rm_r(root_dirs.collect{|f| File.join(cache_path, f)})
       rescue Errno::ENOENT
