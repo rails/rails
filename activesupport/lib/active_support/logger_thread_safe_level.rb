@@ -1,12 +1,12 @@
 require 'active_support/concern'
-require 'concurrent'
+require 'thread_safe'
 
 module ActiveSupport
   module LoggerThreadSafeLevel
     extend ActiveSupport::Concern
 
     def after_initialize
-      @local_levels = Concurrent::Map.new(:initial_capacity => 2)
+      @local_levels = ThreadSafe::Cache.new
     end
 
     def local_log_id
