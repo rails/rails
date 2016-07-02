@@ -1439,7 +1439,7 @@ Formats a number with the specified level of `precision`, which defaults to 3.
 
 ```ruby
 number_with_precision(111.2345)     # => 111.235
-number_with_precision(111.2345, 2)  # => 111.23
+number_with_precision(111.2345, number_with_precision: 2)  # => 111.23
 ```
 
 ### SanitizeHelper
