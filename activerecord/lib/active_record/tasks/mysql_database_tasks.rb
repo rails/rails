@@ -73,10 +73,7 @@ module ActiveRecord
       end
 
       private
-
-      def configuration
-        @configuration
-      end
+      attr_reader :configuration
 
       def configuration_without_database
         configuration.merge('database' => nil)

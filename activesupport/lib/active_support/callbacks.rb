@@ -519,7 +519,7 @@ module ActiveSupport
       end
 
       protected
-      def chain; @chain; end
+      attr_reader :chain
 
       private
 
