@@ -90,6 +90,7 @@ It also changes the behavior of values passed to `ActiveRecord::Base.where`, whi
 without having to rely on implementation details or monkey patching.
 
 Some things that you can achieve with this:
+
 * The type detected by Active Record can be overridden.
 * A default can also be provided.
 * Attributes do not need to be backed by a database column.
@@ -130,8 +131,8 @@ model.attributes #=> {field_without_db_column: [1, 2, 3]}
 **Creating Custom Types:**
 
 You can define your own custom types, as long as they respond
-to the methods defined on the value type. The method +deserialize+ or
-+cast+ will be called on your type object, with raw input from the
+to the methods defined on the value type. The method `deserialize` or
+`cast` will be called on your type object, with raw input from the
 database or from your controllers. This is useful, for example, when doing custom conversion,
 like Money data.
 
@@ -139,7 +140,7 @@ like Money data.
 
 When `ActiveRecord::Base.where` is called, it will
 use the type defined by the model class to convert the value to SQL,
-calling +serialize+ on your type object.
+calling `serialize` on your type object.
 
 This gives the objects ability to specify, how to convert values when performing SQL queries.
 
