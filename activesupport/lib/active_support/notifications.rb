@@ -1,5 +1,4 @@
-require 'active_support/notifications/instrumenter'
-require 'active_support/notifications/fanout'
+Requirer.new(__FILE__).require_all
 require 'active_support/per_thread_registry'
 
 module ActiveSupport
