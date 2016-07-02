@@ -445,21 +445,6 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Migrator.migrations_paths = old_path
   end
 
-  def test_rename_internal_metadata_table
-    original_internal_metadata_table_name = ActiveRecord::Base.internal_metadata_table_name
-
-    ActiveRecord::Base.internal_metadata_table_name = "active_record_internal_metadatas"
-    Reminder.reset_table_name
-
-    ActiveRecord::Base.internal_metadata_table_name = original_internal_metadata_table_name
-    Reminder.reset_table_name
-
-    assert_equal "ar_internal_metadata", ActiveRecord::InternalMetadata.table_name
-  ensure
-    ActiveRecord::Base.internal_metadata_table_name = original_internal_metadata_table_name
-    Reminder.reset_table_name
-  end
-
   def test_proper_table_name_on_migration
     reminder_class = new_isolated_reminder_class
     migration = ActiveRecord::Migration.new
