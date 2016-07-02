@@ -68,7 +68,7 @@ module ActiveSupport
 
       module Subscribers # :nodoc:
         def self.new(pattern, listener)
-          if listener.respond_to?(:start) and listener.respond_to?(:finish)
+          if listener.respond_to?(:start) && listener.respond_to?(:finish)
             subscriber = Evented.new pattern, listener
           else
             subscriber = Timed.new pattern, listener
