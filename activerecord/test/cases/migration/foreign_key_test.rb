@@ -233,7 +233,7 @@ module ActiveRecord
           end
           add_foreign_key :houses, :cities, column: "city_id"
 
-          # remove and re-add to test that schema is updated and not accidently cached
+          # remove and re-add to test that schema is updated and not accidentally cached
           remove_foreign_key :houses, :cities
           add_foreign_key :houses, :cities, column: "city_id", on_delete: :cascade
         end
