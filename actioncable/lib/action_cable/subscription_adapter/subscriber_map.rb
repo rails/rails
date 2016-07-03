@@ -32,7 +32,11 @@ module ActionCable
       end
 
       def broadcast(channel, message)
-        list = @sync.synchronize { @subscribers[channel].dup }
+        list = @sync.synchronize do
+          return if !@subscribers.key?(channel)
+          @subscribers[channel].dup
+        end
+
         list.each do |subscriber|
           invoke_callback(subscriber, message)
         end
