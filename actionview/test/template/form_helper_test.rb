@@ -540,6 +540,17 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, file_field("import", "file", multiple: true, name: "custom")
   end
 
+  def test_file_field_with_mime_type_string
+    expected = '<input accept="image/png,image/gif,image/jpeg" type="file" name="import[file]" id="import_file" />'
+    assert_dom_equal expected, file_field("import", "file", accept: "image/png,image/gif,image/jpeg")
+  end
+
+  def test_file_field_with_mime_type_symbol
+    Mime::Type.register "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", :xlsx
+    expected = '<input accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" type="file" name="import[file]" id="import_file" />'
+    assert_dom_equal expected, file_field("import", "file", accept: :xlsx)
+  end
+
   def test_hidden_field
     assert_dom_equal(
       '<input id="post_title" name="post[title]" type="hidden" value="Hello World" />',
