@@ -125,13 +125,9 @@ module ActiveRecord
 
   class PendingMigrationError < MigrationError#:nodoc:
     def initialize(message = nil)
-      if !message && defined?(Rails.env)
-        super("Migrations are pending. To resolve this issue, run:\n\n\tbin/rails db:migrate RAILS_ENV=#{::Rails.env}")
-      elsif !message
-        super("Migrations are pending. To resolve this issue, run:\n\n\tbin/rails db:migrate")
-      else
-        super
-      end
+      message = "Migrations are pending. #{message} To resolve this issue, run:\n\n\tbin/rake db:migrate"
+      message = "#{message} RAILS_ENV=#{::Rails.env}" if defined?(Rails.env)
+      super(message)
     end
   end
 
@@ -569,7 +565,9 @@ module ActiveRecord
 
       # Raises <tt>ActiveRecord::PendingMigrationError</tt> error if any migrations are pending.
       def check_pending!(connection = Base.connection)
-        raise ActiveRecord::PendingMigrationError if ActiveRecord::Migrator.needs_migration?(connection)
+        pending_migrations = ActiveRecord::Migrator.pending_migrations(connection)
+        return if pending_migrations.empty?
+        raise ActiveRecord::PendingMigrationError, pending_migrations
       end
 
       def load_schema_if_pending!
@@ -1039,7 +1037,11 @@ module ActiveRecord
       end
 
       def needs_migration?(connection = Base.connection)
-        (migrations(migrations_paths).collect(&:version) - get_all_versions(connection)).size > 0
+        !pending_migrations(connection).empty?
+      end
+
+      def pending_migrations(connection = Base.connection)
+        migrations(migrations_paths).collect(&:version) - get_all_versions(connection)
       end
 
       def any_migrations?
