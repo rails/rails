@@ -22,13 +22,13 @@ class FinderTest < ActiveRecord::TestCase
   fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :author_addresses, :customers, :categories, :categorizations, :cars
 
   def test_find_by_id_with_hash
-    assert_raises(ActiveRecord::StatementInvalid) do
+    assert_nothing_raised do
       Post.find_by_id(limit: 1)
     end
   end
 
   def test_find_by_title_and_id_with_hash
-    assert_raises(ActiveRecord::StatementInvalid) do
+    assert_nothing_raised do
       Post.find_by_title_and_id("foo", limit: 1)
     end
   end

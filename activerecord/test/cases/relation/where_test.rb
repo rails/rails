@@ -196,7 +196,7 @@ module ActiveRecord
     end
 
     def test_where_error
-      assert_raises(ActiveRecord::StatementInvalid) do
+      assert_nothing_raised do
         Post.where(id: { "posts.author_id" => 10 }).first
       end
     end
