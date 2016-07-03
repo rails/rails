@@ -34,10 +34,10 @@ module ActiveRecord
       # is not passed, the previous default value (if any) will be used.
       # Otherwise, the default will be +nil+.
       #
-      # +array+ (PG only) specifies that the type should be an array (see the
+      # +array+ (PostgreSQL only) specifies that the type should be an array (see the
       # examples below).
       #
-      # +range+ (PG only) specifies that the type should be a range (see the
+      # +range+ (PostgreSQL only) specifies that the type should be a range (see the
       # examples below).
       #
       # ==== Examples
