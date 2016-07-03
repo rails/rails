@@ -815,4 +815,15 @@ class AssetUrlHelperEmptyModuleTest < ActionView::TestCase
     assert @module.config.asset_host
     assert_equal "http://custom.example.com/foo", @module.asset_url("foo", :host => "http://custom.example.com")
   end
+
+  def test_asset_url_with_specific_protocol
+    @module.instance_eval do
+      def config
+        Struct.new(:asset_host).new("www.example.com")
+      end
+    end
+
+    assert @module.config.asset_host
+    assert_equal "//www.example.com/foo", @module.asset_url("foo", protocol: :relative)
+  end
 end
