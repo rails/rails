@@ -9,10 +9,10 @@ module ActiveRecord
 
     def touch_later(*names) # :nodoc:
       unless persisted?
-        raise ActiveRecordError, <<-end_error.strip_heredoc
+        raise ActiveRecordError, <<-MSG.squish
           cannot touch on a new or destroyed record object. Consider using
           persisted?, new_record?, or destroyed? before touching
-        end_error
+        MSG
       end
 
       @_defer_touch_attrs ||= timestamp_attributes_for_update_in_model

@@ -480,10 +480,10 @@ module ActiveRecord
     #
     def touch(*names, time: nil)
       unless persisted?
-        raise ActiveRecordError, <<-end_error.strip_heredoc
+        raise ActiveRecordError, <<-MSG.squish
           cannot touch on a new or destroyed record object. Consider using
           persisted?, new_record?, or destroyed? before touching
-        end_error
+        MSG
       end
 
       time ||= current_time_from_proper_timezone
