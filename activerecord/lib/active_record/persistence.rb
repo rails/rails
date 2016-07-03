@@ -479,7 +479,12 @@ module ActiveRecord
     #   ball.touch(:updated_at)   # => raises ActiveRecordError
     #
     def touch(*names, time: nil)
-      raise ActiveRecordError, "cannot touch on a new record object" unless persisted?
+      unless persisted?
+        raise ActiveRecordError, <<-end_error.strip_heredoc
+          cannot touch on a new or destroyed record object. Consider using
+          persisted?, new_record?, or destroyed? before touching
+        end_error
+      end
 
       time ||= current_time_from_proper_timezone
       attributes = timestamp_attributes_for_update_in_model

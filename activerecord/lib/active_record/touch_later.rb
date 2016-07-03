@@ -8,7 +8,12 @@ module ActiveRecord
     end
 
     def touch_later(*names) # :nodoc:
-      raise ActiveRecordError, "cannot touch on a new record object" unless persisted?
+      unless persisted?
+        raise ActiveRecordError, <<-end_error.strip_heredoc
+          cannot touch on a new or destroyed record object. Consider using
+          persisted?, new_record?, or destroyed? before touching
+        end_error
+      end
 
       @_defer_touch_attrs ||= timestamp_attributes_for_update_in_model
       @_defer_touch_attrs |= names
