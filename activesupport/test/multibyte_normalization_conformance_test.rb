@@ -8,24 +8,6 @@ require 'open-uri'
 require 'tmpdir'
 
 class MultibyteNormalizationConformanceTest < ActiveSupport::TestCase
-  class Downloader
-    def self.download(from, to)
-      unless File.exist?(to)
-        $stderr.puts "Downloading #{from} to #{to}"
-        unless File.exist?(File.dirname(to))
-          system "mkdir -p #{File.dirname(to)}"
-        end
-        open(from) do |source|
-          File.open(to, 'w') do |target|
-            source.each_line do |l|
-              target.write l
-            end
-          end
-        end
-      end
-    end
-  end
-
   include MultibyteTestHelpers
 
   UNIDATA_URL = "http://www.unicode.org/Public/#{ActiveSupport::Multibyte::Unicode::UNICODE_VERSION}/ucd"
