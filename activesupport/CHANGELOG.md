@@ -1,3 +1,10 @@
+*   Fix `thread_mattr_accessor` share variable superclass with subclass
+
+    The current implementation of `thread_mattr_accessor` set variable
+    sharing superclass with subclass. So the method doesn't work as documented.
+
+    *Shinichi Maeshima*
+
 *   Since weeks are no longer converted to days, add `:weeks` to the list of
     parts that `ActiveSupport::TimeWithZone` will recognize as possibly being
     of variable duration to take account of DST transitions.
