@@ -10,14 +10,15 @@ require 'tmpdir'
 class MultibyteNormalizationConformanceTest < ActiveSupport::TestCase
   include MultibyteTestHelpers
 
-  UNIDATA_URL = "http://www.unicode.org/Public/#{ActiveSupport::Multibyte::Unicode::UNICODE_VERSION}/ucd"
   UNIDATA_FILE = '/NormalizationTest.txt'
-  CACHE_DIR = "#{Dir.tmpdir}/cache/unicode_conformance"
+  RUN_P = begin
+            Downloader.download(UNIDATA_URL + UNIDATA_FILE, CACHE_DIR + UNIDATA_FILE)
+          rescue
+          end
 
   def setup
-    FileUtils.mkdir_p(CACHE_DIR)
-    Downloader.download(UNIDATA_URL + UNIDATA_FILE, CACHE_DIR + UNIDATA_FILE)
     @proxy = ActiveSupport::Multibyte::Chars
+    skip "Unable to download test data" unless RUN_P
   end
 
   def test_normalizations_C

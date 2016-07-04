@@ -10,13 +10,14 @@ require 'tmpdir'
 class MultibyteGraphemeBreakConformanceTest < ActiveSupport::TestCase
   include MultibyteTestHelpers
 
-  TEST_DATA_URL = "http://www.unicode.org/Public/#{ActiveSupport::Multibyte::Unicode::UNICODE_VERSION}/ucd/auxiliary"
-  TEST_DATA_FILE = '/GraphemeBreakTest.txt'
-  CACHE_DIR = "#{Dir.tmpdir}/cache/unicode_conformance"
+  UNIDATA_FILE = '/auxiliary/GraphemeBreakTest.txt'
+  RUN_P = begin
+            Downloader.download(UNIDATA_URL + UNIDATA_FILE, CACHE_DIR + UNIDATA_FILE)
+          rescue
+          end
 
   def setup
-    FileUtils.mkdir_p(CACHE_DIR)
-    Downloader.download(TEST_DATA_URL + TEST_DATA_FILE, CACHE_DIR + TEST_DATA_FILE)
+    skip "Unable to download test data" unless RUN_P
   end
 
   def test_breaks
@@ -31,7 +32,7 @@ class MultibyteGraphemeBreakConformanceTest < ActiveSupport::TestCase
     def each_line_of_break_tests(&block)
       lines = 0
       max_test_lines = 0 # Don't limit below 21, because that's the header of the testfile
-      File.open(File.join(CACHE_DIR, TEST_DATA_FILE), 'r') do | f |
+      File.open(File.join(CACHE_DIR, UNIDATA_FILE), 'r') do | f |
         until f.eof? || (max_test_lines > 21 and lines > max_test_lines)
           lines += 1
           line = f.gets.chomp!
