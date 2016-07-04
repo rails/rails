@@ -51,6 +51,13 @@ class Rails::ServerTest < ActiveSupport::TestCase
     end
   end
 
+  def test_environment_with_host
+    switch_env "HOST", "1.2.3.4" do
+      server = Rails::Server.new
+      assert_equal "1.2.3.4", server.options[:Host]
+    end
+  end
+
   def test_caching_without_option
     args = []
     options = Rails::Server::Options.new.parse!(args)

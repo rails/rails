@@ -90,6 +90,7 @@ module Rails
     def default_options
       super.merge({
         Port:               ENV.fetch('PORT', 3000).to_i,
+        Host:               ENV.fetch('HOST', 'localhost').dup,
         DoNotReverseLookup: true,
         environment:        (ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development").dup,
         daemonize:          false,
