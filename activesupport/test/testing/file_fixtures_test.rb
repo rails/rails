@@ -1,5 +1,7 @@
 require 'abstract_unit'
 
+require 'pathname'
+
 class FileFixturesTest < ActiveSupport::TestCase
   self.file_fixture_path = File.expand_path("../../file_fixtures", __FILE__)
 
