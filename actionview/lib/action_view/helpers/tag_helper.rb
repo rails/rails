@@ -115,6 +115,7 @@ module ActionView
       # Returns an HTML tag.
       #
       # === Building HTML tags
+      #
       # Builds HTML5 compliant tags with a tag proxy. Every tag can be built with:
       #
       #   tag.<tag name>(optional content, options)
@@ -122,6 +123,7 @@ module ActionView
       # where tag name can be e.g. br, div, section, article, or any tag really.
       #
       # ==== Passing content
+      #
       # Tags can pass content to embed within it:
       #
       #   tag.h1 'All titles fit to print' # => <h1>All titles fit to print</h1>
@@ -136,6 +138,7 @@ module ActionView
       #   # => <p>The next great American novel starts here.</p>
       #
       # ==== Options
+      #
       # Any passed options become attributes on the generated tag.
       #
       #   tag.section class: %w( kitties puppies )
@@ -177,7 +180,7 @@ module ActionView
       #   # => <img src="open & shut.png">
       #
       # The tag builder respects
-      # [HTML5 void elements](https://www.w3.org/TR/html5/syntax.html#void-elements)
+      # {HTML5 void elements}[https://www.w3.org/TR/html5/syntax.html#void-elements]
       # if no content is passed, and omits closing tags for those elements.
       #
       #   # A standard element:
@@ -187,18 +190,19 @@ module ActionView
       #   tag.br  # => <br>
       #
       # === Legacy syntax
+      #
       # The following format is for legacy syntax support. It will be deprecated in future versions of Rails.
       #
-      #   tag(tag_name, options)
+      #   tag(name, options = nil, open = false, escape = true)
       #
-      # === Building HTML tags
-      # Returns an empty HTML tag of type +name+ which by default is XHTML
+      # It returns an empty HTML tag of type +name+ which by default is XHTML
       # compliant. Set +open+ to true to create an open tag compatible
       # with HTML 4.0 and below. Add HTML attributes by passing an attributes
       # hash to +options+. Set +escape+ to false to disable attribute value
       # escaping.
       #
       # ==== Options
+      #
       # You can use symbols or strings for the attribute names.
       #
       # Use +true+ with boolean attributes that can render with no value, like
@@ -208,6 +212,7 @@ module ActionView
       # pointing to a hash of sub-attributes.
       #
       # ==== Examples
+      #
       #   tag("br")
       #   # => <br />
       #
