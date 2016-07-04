@@ -209,13 +209,13 @@ module ActiveRecord
     #   end
     #
     #   person = Person.new
-    #   person.respond_to(:name)    # => true
-    #   person.respond_to(:name=)   # => true
-    #   person.respond_to(:name?)   # => true
-    #   person.respond_to('age')    # => true
-    #   person.respond_to('age=')   # => true
-    #   person.respond_to('age?')   # => true
-    #   person.respond_to(:nothing) # => false
+    #   person.respond_to?(:name)    # => true
+    #   person.respond_to?(:name=)   # => true
+    #   person.respond_to?(:name?)   # => true
+    #   person.respond_to?('age')    # => true
+    #   person.respond_to?('age=')   # => true
+    #   person.respond_to?('age?')   # => true
+    #   person.respond_to?(:nothing) # => false
     def respond_to?(name, include_private = false)
       return false unless super
 
