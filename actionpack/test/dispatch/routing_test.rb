@@ -373,6 +373,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         post "create", :as => ""
         put  "update"
         get  "remove", :action => :destroy, :as => :remove
+        tc.assert_deprecated do
+          get action: :show, as: :show
+        end
       end
     end
 
@@ -391,6 +394,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     get '/pagemark/remove'
     assert_equal 'pagemarks#destroy', @response.body
     assert_equal '/pagemark/remove', pagemark_remove_path
+
+    get '/pagemark'
+    assert_equal 'pagemarks#show', @response.body
+    assert_equal '/pagemark', pagemark_show_path
   end
 
   def test_admin
