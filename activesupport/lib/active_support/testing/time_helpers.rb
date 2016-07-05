@@ -1,32 +1,39 @@
+require 'active_support/core_ext/string/strip' # for strip_heredoc
+require 'concurrent/map'
+
 module ActiveSupport
   module Testing
     class SimpleStubs # :nodoc:
       Stub = Struct.new(:object, :method_name, :original_method)
 
       def initialize
-        @stubs = {}
+        @stubs = Concurrent::Map.new { |h, k| h[k] = {} }
       end
 
       def stub_object(object, method_name, return_value)
-        key = [object.object_id, method_name]
-
-        if stub = @stubs[key]
+        if stub = stubbing(object, method_name)
           unstub_object(stub)
         end
 
         new_name = "__simple_stub__#{method_name}"
 
-        @stubs[key] = Stub.new(object, method_name, new_name)
+        @stubs[object.object_id][method_name] = Stub.new(object, method_name, new_name)
 
         object.singleton_class.send :alias_method, new_name, method_name
         object.define_singleton_method(method_name) { return_value }
       end
 
       def unstub_all!
-        @stubs.each_value do |stub|
-          unstub_object(stub)
+        @stubs.each_value do |object_stubs|
+          object_stubs.each_value do |stub|
+            unstub_object(stub)
+          end
         end
-        @stubs = {}
+        @stubs.clear
+      end
+
+      def stubbing(object, method_name)
+        @stubs[object.object_id][method_name]
       end
 
       private
@@ -93,6 +100,34 @@ module ActiveSupport
       #   end
       #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
       def travel_to(date_or_time)
+        if block_given? && simple_stubs.stubbing(Time, :now)
+          travel_to_nested_block_call = <<-MSG.strip_heredoc
+
+      Calling `travel_to` with a block, when we have previously already made a call to `travel_to`, can lead to confusing time stubbing.
+
+      Instead of:
+
+         travel_to 2.days.from_now do
+           # 2 days from today
+           travel_to 3.days.from_now do
+             # 5 days from today
+           end
+         end
+
+      preferred way to achieve above is:
+
+         travel 2.days do
+           # 2 days from today
+         end
+
+         travel 5.days do
+           # 5 days from today
+         end
+
+          MSG
+          raise travel_to_nested_block_call
+        end
+
         if date_or_time.is_a?(Date) && !date_or_time.is_a?(DateTime)
           now = date_or_time.midnight.to_time
         else

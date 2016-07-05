@@ -77,6 +77,49 @@ class TimeTravelTest < ActiveSupport::TestCase
     end
   end
 
+  def test_time_helper_travel_to_with_nested_calls_with_blocks
+    Time.stub(:now, Time.now) do
+      outer_expected_time = Time.new(2004, 11, 24, 01, 04, 44)
+      inner_expected_time = Time.new(2004, 10, 24, 01, 04, 44)
+      travel_to outer_expected_time do
+        assert_raises(RuntimeError, /Calling `travel_to` with a block, when we have previously already made a call to `travel_to`, can lead to confusing time stubbing./) do
+          travel_to(inner_expected_time) do
+            #noop
+          end
+        end
+      end
+    end
+  end
+
+  def test_time_helper_travel_to_with_nested_calls
+    Time.stub(:now, Time.now) do
+      outer_expected_time = Time.new(2004, 11, 24, 01, 04, 44)
+      inner_expected_time = Time.new(2004, 10, 24, 01, 04, 44)
+      travel_to outer_expected_time do
+        assert_nothing_raised do
+          travel_to(inner_expected_time)
+
+          assert_equal inner_expected_time, Time.now
+        end
+      end
+    end
+  end
+
+  def test_time_helper_travel_to_with_subsequent_calls
+    Time.stub(:now, Time.now) do
+      initial_expected_time = Time.new(2004, 11, 24, 01, 04, 44)
+      subsequent_expected_time = Time.new(2004, 10, 24, 01, 04, 44)
+      assert_nothing_raised do
+        travel_to initial_expected_time
+        travel_to subsequent_expected_time
+
+        assert_equal subsequent_expected_time, Time.now
+
+        travel_back
+      end
+    end
+  end
+
   def test_travel_to_will_reset_the_usec_to_avoid_mysql_rouding
     Time.stub(:now, Time.now) do
       travel_to Time.utc(2014, 10, 10, 10, 10, 50, 999999) do

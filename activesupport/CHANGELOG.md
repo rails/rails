@@ -1,3 +1,28 @@
+*   `travel/travel_to` travel time helpers, now raise on nested calls, 
+     as this can lead to confusing time stubbing.
+       
+     Instead of:
+     
+         travel_to 2.days.from_now do
+           # 2 days from today
+           travel_to 3.days.from_now do
+             # 5 days from today
+           end          
+         end
+
+     preferred way to achieve above is:
+
+         travel 2.days do 
+           # 2 days from today
+         end
+         
+         travel 5.days do  
+           # 5 days from today          
+         end        
+        
+     *Vipul A M*
+     
+
 *   Support parsing JSON time in ISO8601 local time strings in
     `ActiveSupport::JSON.decode` when `parse_json_times` is enabled.
     Strings in the format of `YYYY-MM-DD hh:mm:ss` (without a `Z` at
