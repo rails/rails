@@ -34,6 +34,10 @@ module Rails
         return self if @context
         Initializer.new(@name, context, @options, &block)
       end
+
+      def context_class
+        @context.class
+      end
     end
 
     class Collection < Array
