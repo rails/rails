@@ -6,7 +6,7 @@
 # Once upgraded flip defaults one by one to migrate to the new default.
 #
 <%- end -%>
-# Read the Rails 5.0 release notes for more info on each option.
+# Read the Guide for Upgrading Ruby on Rails for more info on each option.
 <%- unless options[:api] -%>
 
 # Enable per-form CSRF tokens. Previous versions had false.
