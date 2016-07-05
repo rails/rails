@@ -126,6 +126,18 @@ module ApplicationTests
         end
       end
 
+      test 'register additional directories' do
+        app_file "spec/spec_helper.rb", "# TODO: note in spec"
+        app_file "spec/models/user_spec.rb", "# TODO: note in model spec"
+        add_to_config %q{ config.annotations.register_directories("spec") }
+
+        run_rake_notes do |output, lines|
+          assert_match(/note in spec/, output)
+          assert_match(/note in model spec/, output)
+          assert_equal 2, lines.size
+        end
+      end
+
       private
 
       def run_rake_notes(command = 'bin/rails notes')

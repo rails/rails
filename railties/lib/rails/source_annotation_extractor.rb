@@ -18,6 +18,12 @@ class SourceAnnotationExtractor
       @@directories ||= %w(app config db lib test) + (ENV['SOURCE_ANNOTATION_DIRECTORIES'] || '').split(',')
     end
 
+    # Registers additional directories to be included
+    #  SourceAnnotationExtractor::Annotation.register_directories("spec","another")
+    def self.register_directories(*dirs)
+      directories.push(*dirs)
+    end
+
     def self.extensions
       @@extensions ||= {}
     end
