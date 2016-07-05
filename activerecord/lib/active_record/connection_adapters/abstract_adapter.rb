@@ -184,7 +184,17 @@ module ActiveRecord
 
       # this method must only be called while holding connection pool's mutex
       def expire
-        @owner = nil
+        if in_use?
+          if @owner != Thread.current && @owner.alive?
+            raise ActiveRecordError, "Cannot expire connection, " <<
+              "it is owned by a different thread: #{@owner}. " <<
+              "Current thread: #{Thread.current}."
+          end
+
+          @owner = nil
+        else
+          raise ActiveRecordError, 'Cannot expire connection, it is not currently leased.'
+        end
       end
 
       def unprepared_statement
