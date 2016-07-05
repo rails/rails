@@ -206,6 +206,10 @@ module Rails
             }
           end
         end
+
+        def respond_to_missing?(symbol, *)
+          true
+        end
       end
     end
   end
