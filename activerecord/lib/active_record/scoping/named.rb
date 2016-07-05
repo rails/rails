@@ -156,7 +156,13 @@ module ActiveRecord
 
           if body.respond_to?(:to_proc)
             singleton_class.send(:define_method, name) do |*args|
-              scope = all.scoping { instance_exec(*args, &body) }
+
+              scope = if args.length == 1 && args.first.is_a?(Array)
+                        all.scoping { instance_exec(args, &body) }
+                      else
+                        all.scoping { instance_exec(*args, &body) }
+                      end
+
               scope = scope.extending(extension) if extension
 
               scope || all
