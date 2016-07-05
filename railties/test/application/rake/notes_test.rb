@@ -127,8 +127,8 @@ module ApplicationTests
       end
 
       test 'register additional directories' do
-        app_file "app/spec/spec_helper.rb", "# TODO: note in spec"
-        app_file "app/spec/models/user_spec.rb", "# TODO: note in model spec"
+        app_file "spec/spec_helper.rb", "# TODO: note in spec"
+        app_file "spec/models/user_spec.rb", "# TODO: note in model spec"
         add_to_config %q{ config.annotations.register_directories("spec") }
 
         run_rake_notes do |output, lines|
