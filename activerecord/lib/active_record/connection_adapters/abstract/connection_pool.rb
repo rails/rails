@@ -556,19 +556,18 @@ module ActiveRecord
         stale_connections = synchronize do
           @connections.select do |conn|
             conn.in_use? && !conn.owner.alive?
+          end.each do |conn|
+            conn.expire
+            conn.lease
           end
         end
 
         stale_connections.each do |conn|
-          synchronize do
-            next unless conn.in_use? && !conn.owner.alive?
-
-            if conn.active?
-              conn.reset!
-              checkin conn
-            else
-              remove conn
-            end
+          if conn.active?
+            conn.reset!
+            checkin conn
+          else
+            remove conn
           end
         end
       end
