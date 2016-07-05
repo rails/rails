@@ -8,6 +8,9 @@ After reading this guide, you will know:
 
 * How to setup Action Cable
 * How to setup channels
+* Deployment and Architecture setup for running Action Cable
+
+--------------------------------------------------------------------------------
 
 Introduction
 ------------
