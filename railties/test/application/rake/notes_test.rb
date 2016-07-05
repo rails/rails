@@ -131,7 +131,6 @@ module ApplicationTests
         app_file "app/spec/models/user_spec.rb", "# TODO: note in model spec"
         add_to_config %q{ config.annotations.register_directories("spec") }
 
-
         run_rake_notes do |output, lines|
           assert_match(/note in spec/, output)
           assert_match(/note in model spec/, output)
