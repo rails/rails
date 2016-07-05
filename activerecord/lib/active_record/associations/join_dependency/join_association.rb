@@ -54,7 +54,9 @@ module ActiveRecord
 
             klass_scope =
               if klass.current_scope
-                klass.current_scope.clone
+                klass.current_scope.clone.tap { |scope|
+                  scope.joins_values = []
+                }
               else
                 klass.send(:build_default_scope, ActiveRecord::Relation.create(klass, table))
               end
