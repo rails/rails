@@ -228,6 +228,13 @@ class RelationScopingTest < ActiveRecord::TestCase
       assert SpecialComment.all.any?
     end
   end
+
+  def test_circular_joins_with_current_scope_does_not_crash
+    posts = Post.joins(comments: :post).scoping do
+      Post.current_scope.first(10)
+    end
+    assert_equal posts, Post.joins(comments: :post).first(10)
+  end
 end
 
 class NestedRelationScopingTest < ActiveRecord::TestCase
