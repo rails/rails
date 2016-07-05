@@ -561,6 +561,8 @@ module ActiveRecord
 
         stale_connections.each do |conn|
           synchronize do
+            next unless conn.in_use? && !conn.owner.alive?
+
             if conn.active?
               conn.reset!
               checkin conn
