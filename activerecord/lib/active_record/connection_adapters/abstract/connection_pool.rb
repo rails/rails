@@ -74,7 +74,7 @@ module ActiveRecord
     #--
     # Synchronization policy:
     # * all public methods can be called outside +synchronize+
-    # * access to these i-vars needs to be in +synchronize+:
+    # * access to these instance variables needs to be in +synchronize+:
     #   * @connections
     #   * @now_connecting
     # * private methods that require being called in a +synchronize+ blocks
@@ -329,13 +329,13 @@ module ActiveRecord
         # default max pool size to 5
         @size = (spec.config[:pool] && spec.config[:pool].to_i) || 5
 
-        # The cache of threads mapped to reserved connections, the sole purpose
-        # of the cache is to speed-up +connection+ method, it is not the authoritative
-        # registry of which thread owns which connection, that is tracked by
-        # +connection.owner+ attr on each +connection+ instance.
+        # This variable tracks the cache of threads mapped to reserved connections, with the
+        # sole purpose of speeding up the +connection+ method. It is not the authoritative
+        # registry of which thread owns which connection. Connection ownership is tracked by
+        # the +connection.owner+ attr on each +connection+ instance.
         # The invariant works like this: if there is mapping of <tt>thread => conn</tt>,
-        # then that +thread+ does indeed own that +conn+, however an absence of a such
-        # mapping does not mean that the +thread+ doesn't own the said connection, in
+        # then that +thread+ does indeed own that +conn+. However, an absence of a such
+        # mapping does not mean that the +thread+ doesn't own the said connection. In
         # that case +conn.owner+ attr should be consulted.
         # Access and modification of +@thread_cached_conns+ does not require
         # synchronization.
@@ -364,10 +364,10 @@ module ActiveRecord
         @thread_cached_conns[connection_cache_key(Thread.current)] ||= checkout
       end
 
-      # Is there an open connection that is being used for the current thread?
+      # Returns true if there is an open connection being used for the current thread.
       #
       # This method only works for connections that have been obtained through
-      # #connection or #with_connection methods, connections obtained through
+      # #connection or #with_connection methods. Connections obtained through
       # #checkout will not be detected by #active_connection?
       def active_connection?
         @thread_cached_conns[connection_cache_key(Thread.current)]
@@ -426,9 +426,9 @@ module ActiveRecord
 
       # Disconnects all connections in the pool, and clears the pool.
       #
-      # The pool first tries to gain ownership of all connections, if unable to
+      # The pool first tries to gain ownership of all connections. If unable to
       # do so within a timeout interval (default duration is
-      # <tt>spec.config[:checkout_timeout] * 2</tt> seconds), the pool is forcefully
+      # <tt>spec.config[:checkout_timeout] * 2</tt> seconds), then the pool is forcefully
       # disconnected without any regard for other connection owning threads.
       def disconnect!
         disconnect(false)
@@ -474,9 +474,9 @@ module ActiveRecord
       # Clears the cache which maps classes and re-connects connections that
       # require reloading.
       #
-      # The pool first tries to gain ownership of all connections, if unable to
+      # The pool first tries to gain ownership of all connections. If unable to
       # do so within a timeout interval (default duration is
-      # <tt>spec.config[:checkout_timeout] * 2</tt> seconds), the pool forcefully
+      # <tt>spec.config[:checkout_timeout] * 2</tt> seconds), then the pool forcefully
       # clears the cache and reloads connections without any regard for other
       # connection owning threads.
       def clear_reloadable_connections!
@@ -530,20 +530,20 @@ module ActiveRecord
           @available.delete conn
 
           # @available.any_waiting? => true means that prior to removing this
-          # conn, the pool was at its max size (@connections.size == @size)
-          # this would mean that any threads stuck waiting in the queue wouldn't
+          # conn, the pool was at its max size (@connections.size == @size).
+          # This would mean that any threads stuck waiting in the queue wouldn't
           # know they could checkout_new_connection, so let's do it for them.
           # Because condition-wait loop is encapsulated in the Queue class
           # (that in turn is oblivious to ConnectionPool implementation), threads
-          # that are "stuck" there are helpless, they have no way of creating
+          # that are "stuck" there are helpless. They have no way of creating
           # new connections and are completely reliant on us feeding available
           # connections into the Queue.
           needs_new_connection = @available.any_waiting?
         end
 
         # This is intentionally done outside of the synchronized section as we
-        # would like not to hold the main mutex while checking out new connections,
-        # thus there is some chance that needs_new_connection information is now
+        # would like not to hold the main mutex while checking out new connections.
+        # Thus there is some chance that needs_new_connection information is now
         # stale, we can live with that (bulk_make_new_connections will make
         # sure not to exceed the pool's @size limit).
         bulk_make_new_connections(1) if needs_new_connection
@@ -698,7 +698,7 @@ module ActiveRecord
       def acquire_connection(checkout_timeout)
         # NOTE: we rely on +@available.poll+ and +try_to_checkout_new_connection+ to
         # +conn.lease+ the returned connection (and to do this in a +synchronized+
-        # section), this is not the cleanest implementation, as ideally we would
+        # section). This is not the cleanest implementation, as ideally we would
         # <tt>synchronize { conn.lease }</tt> in this method, but by leaving it to +@available.poll+
         # and +try_to_checkout_new_connection+ we can piggyback on +synchronize+ sections
         # of the said methods and avoid an additional +synchronize+ overhead.
@@ -822,7 +822,7 @@ module ActiveRecord
     # should use.
     #
     # The ConnectionHandler class is not coupled with the Active models, as it has no knowlodge
-    # about the model. The model, needs to pass a specification name to the handler,
+    # about the model. The model needs to pass a specification name to the handler,
     # in order to lookup the correct connection pool.
     class ConnectionHandler
       def initialize
@@ -890,7 +890,7 @@ module ActiveRecord
 
       # Remove the connection for this class. This will close the active
       # connection and the defined connection (if they exist). The result
-      # can be used as an argument for establish_connection, for easily
+      # can be used as an argument for #establish_connection, for easily
       # re-establishing the connection.
       def remove_connection(spec_name)
         if pool = owner_to_pool.delete(spec_name)
