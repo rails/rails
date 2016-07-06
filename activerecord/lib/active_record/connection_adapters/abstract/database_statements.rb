@@ -18,11 +18,12 @@ module ActiveRecord
 
       # This is used in the StatementCache object. It returns an object that
       # can be used to query the database repeatedly.
-      def cacheable_query(arel) # :nodoc:
+      def cacheable_query(klass, arel) # :nodoc:
+        collected = visitor.accept(arel.ast, collector)
         if prepared_statements
-          ActiveRecord::StatementCache.query visitor, arel.ast
+          klass.query(collected.value)
         else
-          ActiveRecord::StatementCache.partial_query visitor, arel.ast, collector
+          klass.partial_query(collected.value)
         end
       end
 
