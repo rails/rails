@@ -1,3 +1,9 @@
+*   Setting invalid ids with ids_writer now raises a more informative 
+    RecordNotFound exception with invalid or non-existing ids.
+    Fixes #25719
+
+    *Albert Cabré Juan*
+
 *   Inspecting an object with an associated array of over 10 elements no longer
     truncates the array, preventing `inspect` from looping infinitely in some
     cases.
