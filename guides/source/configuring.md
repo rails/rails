@@ -531,7 +531,7 @@ There are a number of settings available on `config.action_mailer`:
 
 * `config.action_mailer.sendmail_settings` allows detailed configuration for the `sendmail` delivery method. It accepts a hash of options, which can include any of these options:
     * `:location` - The location of the sendmail executable. Defaults to `/usr/sbin/sendmail`.
-    * `:arguments` - The command line arguments. Defaults to `-i -t`.
+    * `:arguments` - The command line arguments. Defaults to `-i`.
 
 * `config.action_mailer.raise_delivery_errors` specifies whether to raise an error if email delivery cannot be completed. It defaults to `true`.
 
