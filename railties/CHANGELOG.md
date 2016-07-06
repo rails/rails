@@ -1,3 +1,9 @@
+*   Add a public API to register new folders for `rake notes`:
+
+        config.annotations.register_directories('spec', 'features')
+
+    *John Meehan*
+
 *   Do not run `bundle install` when generating a new plugin.
 
     Since bundler 1.12.0, the gemspec is validated so the `bundle install`
