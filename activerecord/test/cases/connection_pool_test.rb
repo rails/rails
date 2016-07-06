@@ -151,7 +151,7 @@ module ActiveRecord
 
         assert_equal 1, active_connections(@pool).size
       ensure
-        @pool.connections.each(&:close)
+        @pool.connections.each { |conn| conn.close if conn.in_use? }
       end
 
       def test_remove_connection
@@ -432,6 +432,9 @@ module ActiveRecord
             Thread.new { @pool.send(group_action_method) }.join
             # assert connection has been forcefully taken away from us
             assert_not @pool.active_connection?
+
+            # make a new connection for with_connection to clean up
+            @pool.connection
           end
         end
       end

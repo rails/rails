@@ -1,3 +1,10 @@
+*   Ensure concurrent invocations of the connection reaper cannot allocate the
+    same connection to two threads.
+
+    Fixes #25585.
+
+    *Matthew Draper*
+
 *   Inspecting an object with an associated array of over 10 elements no longer
     truncates the array, preventing `inspect` from looping infinitely in some
     cases.
