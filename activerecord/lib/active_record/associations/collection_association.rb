@@ -72,7 +72,7 @@ module ActiveRecord
         pk_type = reflection.primary_key_type
         ids = Array(ids).reject(&:blank?)
         ids.map! { |i| pk_type.cast(i) }
-        records = klass.find(reflection.association_primary_key => ids).index_by do |r|
+        records = klass.find(ids).index_by do |r|
           r.send(reflection.association_primary_key)
         end.values_at(*ids)
         replace(records)
