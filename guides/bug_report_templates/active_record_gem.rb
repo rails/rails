@@ -8,7 +8,7 @@ end
 gemfile(true) do
   source 'https://rubygems.org'
   # Activate the gem you are reporting the issue against.
-  gem 'activerecord', '5.0.0.rc1'
+  gem 'activerecord', '5.0.0'
   gem 'sqlite3'
 end
 
