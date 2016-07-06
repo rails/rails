@@ -185,7 +185,7 @@ module ActiveRecord
       # this method must only be called while holding connection pool's mutex
       def expire
         if in_use?
-          if @owner != Thread.current && @owner.alive?
+          if @owner != Thread.current
             raise ActiveRecordError, "Cannot expire connection, " <<
               "it is owned by a different thread: #{@owner}. " <<
               "Current thread: #{Thread.current}."
@@ -194,6 +194,19 @@ module ActiveRecord
           @owner = nil
         else
           raise ActiveRecordError, 'Cannot expire connection, it is not currently leased.'
+        end
+      end
+
+      # this method must only be called while holding connection pool's mutex (and a desire for segfaults)
+      def steal! # :nodoc:
+        if in_use?
+          if @owner != Thread.current
+            pool.send :remove_connection_from_thread_cache, self, @owner
+
+            @owner = Thread.current
+          end
+        else
+          raise ActiveRecordError, 'Cannot steal connection, it is not currently leased.'
         end
       end
 
