@@ -62,6 +62,14 @@ class FormWithHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_form_with_text_field_with_custom_scope
+    assert_tag_equals("<input type='text' name='custom[title]' value='Catch 22' />") { |f| f.text_field :title, scope: 'custom' }
+  end
+
+  def test_form_with_text_field_with_nil_scope
+    assert_tag_equals("<input type='text' name='title' value='Catch 22' />") { |f| f.text_field :title, scope: nil }
+  end
+
   def test_form_with_text_field_with_id
     assert_tag_equals("<input type='text' name='post[title]' value='Catch 22' id='this_is_post_title'/>") { |f| f.text_field :title, id: 'this_is_post_title' }
   end

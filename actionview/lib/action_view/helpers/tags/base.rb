@@ -80,19 +80,22 @@ module ActionView
 
         def add_default_name_and_id(options)
           index = name_and_id_index(options)
-          options["name"] = options.fetch("name"){ tag_name(options["multiple"], index) }
+          scope = options.delete("scope") { @object_name }
+          options["name"] = options.fetch("name"){ tag_name(options["multiple"], index, scope) }
           options["id"] = options.fetch("id"){ tag_id(index) }
           if namespace = options.delete("namespace")
             options['id'] = options['id'] ? "#{namespace}_#{options['id']}" : namespace
           end
         end
 
-        def tag_name(multiple = false, index = nil)
+        def tag_name(multiple = false, index = nil, scope = @object_name)
           # a little duplication to construct less strings
-          if index
-            "#{@object_name}[#{index}][#{sanitized_method_name}]#{"[]" if multiple}"
+          if scope.nil?
+            sanitized_method_name
+          elsif index
+            "#{scope}[#{index}][#{sanitized_method_name}]#{"[]" if multiple}"
           else
-            "#{@object_name}[#{sanitized_method_name}]#{"[]" if multiple}"
+            "#{scope}[#{sanitized_method_name}]#{"[]" if multiple}"
           end
         end
 

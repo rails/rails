@@ -1,11 +1,3 @@
-# Consideration:
-# * scope/prefix/object_name when url with no scope?
-# * Allow form fields that do not correspond to model attributes - how? f.input scope: 'other'
-# * Implement own builder
-# * reimplement helpers (?)
-# * Default Form Builder for legacy and modern syntax (two?)
-# * Get rid of base builder
-
 module ActionView
   module Helpers
     module FormWithHelper
