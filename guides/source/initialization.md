@@ -464,7 +464,7 @@ The `options[:config]` value defaults to `config.ru` which contains this:
 ```ruby
 # This file is used by Rack-based servers to start the application.
 
-require ::File.expand_path('../config/environment', __FILE__)
+require_relative 'config/environment'
 run <%= app_const %>
 ```
 
@@ -485,7 +485,7 @@ end
 The `initialize` method of `Rack::Builder` will take the block here and execute it within an instance of `Rack::Builder`. This is where the majority of the initialization process of Rails happens. The `require` line for `config/environment.rb` in `config.ru` is the first to run:
 
 ```ruby
-require ::File.expand_path('../config/environment', __FILE__)
+require_relative 'config/environment'
 ```
 
 ### `config/environment.rb`
@@ -495,7 +495,7 @@ This file is the common file required by `config.ru` (`rails server`) and Passen
 This file begins with requiring `config/application.rb`:
 
 ```ruby
-require File.expand_path('../application', __FILE__)
+require_relative 'application'
 ```
 
 ### `config/application.rb`
@@ -503,7 +503,7 @@ require File.expand_path('../application', __FILE__)
 This file requires `config/boot.rb`:
 
 ```ruby
-require File.expand_path('../boot', __FILE__)
+require_relative 'boot'
 ```
 
 But only if it hasn't been required before, which would be the case in `rails server`
