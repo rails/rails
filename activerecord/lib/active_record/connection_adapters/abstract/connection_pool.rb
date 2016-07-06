@@ -415,7 +415,10 @@ module ActiveRecord
         with_exclusively_acquired_all_connections(raise_on_acquisition_timeout) do
           synchronize do
             @connections.each do |conn|
-              checkin conn
+              if conn.in_use?
+                conn.steal!
+                checkin conn
+              end
               conn.disconnect!
             end
             @connections = []
@@ -447,7 +450,10 @@ module ActiveRecord
         with_exclusively_acquired_all_connections(raise_on_acquisition_timeout) do
           synchronize do
             @connections.each do |conn|
-              checkin conn
+              if conn.in_use?
+                conn.steal!
+                checkin conn
+              end
               conn.disconnect! if conn.requires_reloading?
             end
             @connections.delete_if(&:requires_reloading?)
@@ -556,17 +562,17 @@ module ActiveRecord
         stale_connections = synchronize do
           @connections.select do |conn|
             conn.in_use? && !conn.owner.alive?
+          end.each do |conn|
+            conn.steal!
           end
         end
 
         stale_connections.each do |conn|
-          synchronize do
-            if conn.active?
-              conn.reset!
-              checkin conn
-            else
-              remove conn
-            end
+          if conn.active?
+            conn.reset!
+            checkin conn
+          else
+            remove conn
           end
         end
       end

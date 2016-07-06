@@ -1,3 +1,11 @@
+*   Ensure concurrent invocations of the connection reaper cannot allocate the
+    same connection to two threads.
+
+    Fixes #25585.
+
+    *Matthew Draper*
+
+
 ## Rails 5.0.0 (June 30, 2016) ##
 
 *   Inspecting an object with an associated array of over 10 elements no longer
