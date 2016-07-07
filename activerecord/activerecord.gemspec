@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
 
   s.author   = 'David Heinemeier Hansson'
   s.email    = 'david@loudthinking.com'
-  s.homepage = 'http://www.rubyonrails.org'
+  s.homepage = 'http://rubyonrails.org'
 
   s.files        = Dir['CHANGELOG.md', 'MIT-LICENSE', 'README.rdoc', 'examples/**/*', 'lib/**/*']
   s.require_path = 'lib'
@@ -24,5 +24,5 @@ Gem::Specification.new do |s|
   s.add_dependency 'activesupport', version
   s.add_dependency 'activemodel',   version
 
-  s.add_dependency 'arel', '7.0.0.alpha'
+  s.add_dependency 'arel', '~> 7.0'
 end

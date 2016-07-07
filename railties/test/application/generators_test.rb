@@ -160,5 +160,15 @@ module ApplicationTests
       assert Rails::Generators.options[:rails][:helper]
       assert_equal :my_template, Rails::Generators.options[:rails][:template_engine]
     end
+
+    test "api only generator generate mailer views" do
+      add_to_config <<-RUBY
+        config.api_only = true
+      RUBY
+
+      FileUtils.cd(rails_root){ `bin/rails generate mailer notifier foo` }
+      assert File.exist?(File.join(rails_root, "app/views/notifier_mailer/foo.text.erb"))
+      assert File.exist?(File.join(rails_root, "app/views/notifier_mailer/foo.html.erb"))
+    end
   end
 end

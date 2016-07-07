@@ -6,6 +6,7 @@ module ActionView
   class Railtie < Rails::Railtie # :nodoc:
     config.action_view = ActiveSupport::OrderedOptions.new
     config.action_view.embed_authenticity_token_in_remote_forms = false
+    config.action_view.debug_missing_translation = true
 
     config.eager_load_namespaces << ActionView
 
@@ -36,16 +37,10 @@ module ActionView
       end
     end
 
-    initializer "action_view.collection_caching" do |app|
-      ActiveSupport.on_load(:action_controller) do
-        PartialRenderer.collection_cache = app.config.action_controller.cache_store
-      end
-    end
-
     initializer "action_view.per_request_digest_cache" do |app|
       ActiveSupport.on_load(:action_view) do
         if app.config.consider_all_requests_local
-          app.middleware.use ActionView::Digestor::PerRequestDigestCacheExpiry
+          app.executor.to_run { ActionView::LookupContext::DetailsKey.clear }
         end
       end
     end
@@ -56,9 +51,13 @@ module ActionView
       end
     end
 
+    initializer "action_view.collection_caching", after: "action_controller.set_configs" do |app|
+      PartialRenderer.collection_cache = app.config.action_controller.cache_store
+    end
+
     rake_tasks do |app|
       unless app.config.api_only
-        load "action_view/tasks/dependencies.rake"
+        load "action_view/tasks/cache_digests.rake"
       end
     end
   end

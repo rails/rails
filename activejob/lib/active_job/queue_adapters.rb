@@ -27,13 +27,14 @@ module ActiveJob
   #   | Resque            | Yes   | Yes    | Yes (Gem)  | Queue      | Global  | Yes     |
   #   | Sidekiq           | Yes   | Yes    | Yes        | Queue      | No      | Job     |
   #   | Sneakers          | Yes   | Yes    | No         | Queue      | Queue   | No      |
-  #   | Sucker Punch      | Yes   | Yes    | No         | No         | No      | No      |
+  #   | Sucker Punch      | Yes   | Yes    | Yes        | No         | No      | No      |
   #   | Active Job Async  | Yes   | Yes    | Yes        | No         | No      | No      |
   #   | Active Job Inline | No    | Yes    | N/A        | N/A        | N/A     | N/A     |
   #
   # ==== Async
   #
-  # Yes: The Queue Adapter runs the jobs in a separate or forked process.
+  # Yes: The Queue Adapter has the ability to run the job in a non-blocking manner.
+  # It either runs on a separate or forked process, or on a different thread.
   #
   # No: The job is run in the same process.
   #

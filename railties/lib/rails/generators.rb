@@ -105,7 +105,7 @@ module Rails
 
     # Configure generators for API only applications. It basically hides
     # everything that is usually browser related, such as assets and session
-    # migration generators, and completely disable views, helpers and assets
+    # migration generators, and completely disable helpers and assets
     # so generators such as scaffold won't create them.
     def self.api_only!
       hide_namespaces "assets", "helper", "css", "js"
@@ -116,6 +116,10 @@ module Rails
         helper: false,
         template_engine: nil
       )
+
+      if ARGV.first == 'mailer'
+        options[:rails].merge!(template_engine: :erb)
+      end
     end
 
     # Remove the color from output.
@@ -208,6 +212,7 @@ module Rails
           "#{test}:model",
           "#{test}:scaffold",
           "#{test}:view",
+          "#{test}:job",
           "#{template}:controller",
           "#{template}:scaffold",
           "#{template}:mailer",

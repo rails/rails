@@ -323,7 +323,9 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
     def with_test_route_set
       with_routing do |set|
         set.draw do
-          get ':action', :to => FlashIntegrationTest::TestController
+          ActiveSupport::Deprecation.silence do
+            get ':action', :to => FlashIntegrationTest::TestController
+          end
         end
 
         @app = self.class.build_app(set) do |middleware|

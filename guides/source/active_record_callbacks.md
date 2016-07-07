@@ -31,7 +31,7 @@ Callbacks are methods that get called at certain moments of an object's life cyc
 In order to use the available callbacks, you need to register them. You can implement the callbacks as ordinary methods and use a macro-style class method to register them as callbacks:
 
 ```ruby
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   validates :login, :email, presence: true
 
   before_validation :ensure_login_has_a_value
@@ -48,7 +48,7 @@ end
 The macro-style class methods can also receive a block. Consider using this style if the code inside your block is so short that it fits in a single line:
 
 ```ruby
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   validates :login, :email, presence: true
 
   before_create do
@@ -60,7 +60,7 @@ end
 Callbacks can also be registered to only fire on certain life cycle events:
 
 ```ruby
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   before_validation :normalize_name, on: :create
 
   # :on takes an array as well
@@ -126,7 +126,7 @@ The `after_find` callback will be called whenever Active Record loads a record f
 The `after_initialize` and `after_find` callbacks have no `before_*` counterparts, but they can be registered just like the other Active Record callbacks.
 
 ```ruby
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   after_initialize do |user|
     puts "You have initialized an object!"
   end
@@ -151,7 +151,7 @@ You have initialized an object!
 The `after_touch` callback will be called whenever an Active Record object is touched.
 
 ```ruby
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   after_touch do |user|
     puts "You have touched an object"
   end
@@ -168,14 +168,14 @@ You have touched an object
 It can be used along with `belongs_to`:
 
 ```ruby
-class Employee < ActiveRecord::Base
+class Employee < ApplicationRecord
   belongs_to :company, touch: true
   after_touch do
     puts 'An Employee was touched'
   end
 end
 
-class Company < ActiveRecord::Base
+class Company < ApplicationRecord
   has_many :employees
   after_touch :log_when_employees_or_company_touched
 
@@ -258,7 +258,7 @@ As you start registering new callbacks for your models, they will be queued for 
 
 The whole callback chain is wrapped in a transaction. If any _before_ callback method returns exactly `false` or raises an exception, the execution chain gets halted and a ROLLBACK is issued; _after_ callbacks can only accomplish that by raising an exception.
 
-WARNING. Any exception that is not `ActiveRecord::Rollback` will be re-raised by Rails after the callback chain is halted. Raising an exception other than `ActiveRecord::Rollback` may break code that does not expect methods like `save` and `update_attributes` (which normally try to return `true` or `false`) to raise an exception.
+WARNING. Any exception that is not `ActiveRecord::Rollback` or `ActiveRecord::RecordInvalid` will be re-raised by Rails after the callback chain is halted. Raising an exception other than `ActiveRecord::Rollback` or `ActiveRecord::RecordInvalid` may break code that does not expect methods like `save` and `update_attributes` (which normally try to return `true` or `false`) to raise an exception.
 
 Relational Callbacks
 --------------------
@@ -266,11 +266,11 @@ Relational Callbacks
 Callbacks work through model relationships, and can even be defined by them. Suppose an example where a user has many articles. A user's articles should be destroyed if the user is destroyed. Let's add an `after_destroy` callback to the `User` model by way of its relationship to the `Article` model:
 
 ```ruby
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   has_many :articles, dependent: :destroy
 end
 
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   after_destroy :log_destroy_action
 
   def log_destroy_action
@@ -297,7 +297,7 @@ As with validations, we can also make the calling of a callback method condition
 You can associate the `:if` and `:unless` options with a symbol corresponding to the name of a predicate method that will get called right before the callback. When using the `:if` option, the callback won't be executed if the predicate method returns false; when using the `:unless` option, the callback won't be executed if the predicate method returns true. This is the most common option. Using this form of registration it is also possible to register several different predicates that should be called to check if the callback should be executed.
 
 ```ruby
-class Order < ActiveRecord::Base
+class Order < ApplicationRecord
   before_save :normalize_card_number, if: :paid_with_card?
 end
 ```
@@ -307,7 +307,7 @@ end
 You can also use a string that will be evaluated using `eval` and hence needs to contain valid Ruby code. You should use this option only when the string represents a really short condition:
 
 ```ruby
-class Order < ActiveRecord::Base
+class Order < ApplicationRecord
   before_save :normalize_card_number, if: "paid_with_card?"
 end
 ```
@@ -317,7 +317,7 @@ end
 Finally, it is possible to associate `:if` and `:unless` with a `Proc` object. This option is best suited when writing short validation methods, usually one-liners:
 
 ```ruby
-class Order < ActiveRecord::Base
+class Order < ApplicationRecord
   before_save :normalize_card_number,
     if: Proc.new { |order| order.paid_with_card? }
 end
@@ -328,7 +328,7 @@ end
 When writing conditional callbacks, it is possible to mix both `:if` and `:unless` in the same callback declaration:
 
 ```ruby
-class Comment < ActiveRecord::Base
+class Comment < ApplicationRecord
   after_create :send_email_to_author, if: :author_wants_emails?,
     unless: Proc.new { |comment| comment.article.ignore_comments? }
 end
@@ -354,7 +354,7 @@ end
 When declared inside a class, as above, the callback methods will receive the model object as a parameter. We can now use the callback class in the model:
 
 ```ruby
-class PictureFile < ActiveRecord::Base
+class PictureFile < ApplicationRecord
   after_destroy PictureFileCallbacks.new
 end
 ```
@@ -374,7 +374,7 @@ end
 If the callback method is declared this way, it won't be necessary to instantiate a `PictureFileCallbacks` object.
 
 ```ruby
-class PictureFile < ActiveRecord::Base
+class PictureFile < ApplicationRecord
   after_destroy PictureFileCallbacks
 end
 ```
@@ -398,7 +398,7 @@ end
 By using the `after_commit` callback we can account for this case.
 
 ```ruby
-class PictureFile < ActiveRecord::Base
+class PictureFile < ApplicationRecord
   after_commit :delete_picture_file_from_disk, on: [:destroy]
 
   def delete_picture_file_from_disk
@@ -411,5 +411,24 @@ end
 
 NOTE: the `:on` option specifies when a callback will be fired. If you
 don't supply the `:on` option the callback will fire for every action.
+
+Since using `after_commit` callback only on create, update or delete is
+common, there are aliases for those operations:
+
+* `after_create_commit`
+* `after_update_commit`
+* `after_destroy_commit`
+
+```ruby
+class PictureFile < ApplicationRecord
+  after_destroy_commit :delete_picture_file_from_disk
+
+  def delete_picture_file_from_disk
+    if File.exist?(filepath)
+      File.delete(filepath)
+    end
+  end
+end
+```
 
 WARNING. The `after_commit` and `after_rollback` callbacks are guaranteed to be called for all models created, updated, or destroyed within a transaction block. If any exceptions are raised within one of these callbacks, they will be ignored so that they don't interfere with the other callbacks. As such, if your callback code could raise an exception, you'll need to rescue it and handle it appropriately within the callback.

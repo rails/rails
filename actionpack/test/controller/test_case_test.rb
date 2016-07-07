@@ -137,6 +137,10 @@ XML
       head :created, location: 'created resource'
     end
 
+    def render_cookie
+      render plain: cookies["foo"]
+    end
+
     def delete_cookie
       cookies.delete("foo")
       render plain: 'ok'
@@ -148,6 +152,10 @@ XML
 
     def test_with_body
       render html: '<body class="foo"></body>'.html_safe
+    end
+
+    def boom
+      raise 'boom!'
     end
 
     private
@@ -163,7 +171,9 @@ XML
     @request.delete_header 'PATH_INFO'
     @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
       r.draw do
-        get ':controller(/:action(/:id))'
+        ActiveSupport::Deprecation.silence do
+          get ':controller(/:action(/:id))'
+        end
       end
     end
   end
@@ -172,7 +182,7 @@ XML
     before_action { @dynamic_opt = 'opt' }
 
     def test_url_options_reset
-      render plain: url_for(params)
+      render plain: url_for
     end
 
     def default_url_options
@@ -547,7 +557,7 @@ XML
     assert_equal 'created', flash[:notice]
   end
 
-  def test_params_passing_with_fixnums
+  def test_params_passing_with_integer
     get :test_params, params: {
       page: { name: "Page name", month: 4, year: 2004, day: 6 }
     }
@@ -559,7 +569,7 @@ XML
     )
   end
 
-  def test_params_passing_with_fixnums_when_not_html_request
+  def test_params_passing_with_integers_when_not_html_request
     get :test_params, params: { format: 'json', count: 999 }
     parsed_params = ::JSON.parse(@response.body)
     assert_equal(
@@ -668,7 +678,10 @@ XML
     with_routing do |set|
       set.draw do
         get 'file/*path', to: 'test_case_test/test#test_params'
-        get ':controller/:action'
+
+        ActiveSupport::Deprecation.silence do
+          get ':controller/:action'
+        end
       end
 
       get :test_params, params: { path: ['hello', 'world'] }
@@ -829,6 +842,12 @@ XML
     assert_equal 'bar', cookies['foo']
   end
 
+  def test_cookies_should_be_escaped_properly
+    cookies['foo'] = '+'
+    get :render_cookie
+    assert_equal '+', @response.body
+  end
+
   def test_should_detect_if_cookie_is_deleted
     cookies['foo'] = 'bar'
     get :delete_cookie
@@ -966,6 +985,26 @@ XML
       assert_redirected_to 'created resource'
     end
   end
+
+  def test_exception_in_action_reaches_test
+    assert_raise(RuntimeError) do
+      process :boom, method: "GET"
+    end
+  end
+
+  def test_request_state_is_cleared_after_exception
+    assert_raise(RuntimeError) do
+      process :boom,
+        method: "GET",
+        params: { q: 'test1' }
+    end
+
+    process :test_query_string,
+      method: "GET",
+      params: { q: 'test2' }
+
+    assert_equal "q=test2", @response.body
+  end
 end
 
 class ResponseDefaultHeadersTest < ActionController::TestCase
@@ -998,7 +1037,9 @@ class ResponseDefaultHeadersTest < ActionController::TestCase
     @request.env['PATH_INFO'] = nil
     @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
       r.draw do
-        get ':controller(/:action(/:id))'
+        ActiveSupport::Deprecation.silence do
+          get ':controller(/:action(/:id))'
+        end
       end
     end
   end
@@ -1125,7 +1166,9 @@ class AnonymousControllerTest < ActionController::TestCase
 
     @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
       r.draw do
-        get ':controller(/:action(/:id))'
+        ActiveSupport::Deprecation.silence do
+          get ':controller(/:action(/:id))'
+        end
       end
     end
   end

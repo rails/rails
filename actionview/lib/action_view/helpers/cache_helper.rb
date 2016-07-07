@@ -126,47 +126,33 @@ module ActionView
       #
       # Now all you have to do is change that timestamp when the helper method changes.
       #
-      # === Automatic Collection Caching
+      # === Collection Caching
       #
-      # When rendering collections such as:
+      # When rendering a collection of objects that each use the same partial, a `cached`
+      # option can be passed.
+      # For collections rendered such:
       #
-      #   <%= render @notifications %>
-      #   <%= render partial: 'notifications/notification', collection: @notifications %>
+      #   <%= render partial: 'notifications/notification', collection: @notifications, cached: true %>
       #
-      # If the notifications/_notification partial starts with a cache call as:
+      # The `cached: true` will make Action View's rendering read several templates
+      # from cache at once instead of one call per template.
       #
+      # Templates in the collection not already cached are written to cache.
+      #
+      # Works great alongside individual template fragment caching.
+      # For instance if the template the collection renders is cached like:
+      #
+      #   # notifications/_notification.html.erb
       #   <% cache notification do %>
-      #     <%= notification.name %>
+      #     <%# ... %>
       #   <% end %>
       #
-      # The collection can then automatically use any cached renders for that
-      # template by reading them at once instead of one by one.
-      #
-      # See ActionView::Template::Handlers::ERB.resource_cache_call_pattern for
-      # more information on what cache calls make a template eligible for this
-      # collection caching.
-      #
-      # The automatic cache multi read can be turned off like so:
-      #
-      #   <%= render @notifications, cache: false %>
-      #
-      # === Explicit Collection Caching
-      #
-      # If the partial template doesn't start with a clean cache call as
-      # mentioned above, you can still benefit from collection caching by
-      # adding a special comment format anywhere in the template, like:
-      #
-      #   <%# Template Collection: notification %>
-      #   <% my_helper_that_calls_cache(some_arg, notification) do %>
-      #     <%= notification.name %>
-      #   <% end %>
-      #
-      # The pattern used to match these is <tt>/# Template Collection: (\S+)/</tt>,
-      # so it's important that you type it out just so.
-      # You can only declare one collection in a partial template file.
+      # Any collection renders will find those cached templates when attempting
+      # to read multiple templates at once.
       def cache(name = {}, options = {}, &block)
         if controller.respond_to?(:perform_caching) && controller.perform_caching
-          safe_concat(fragment_for(cache_fragment_name(name, options), options, &block))
+          name_options = options.slice(:skip_digest, :virtual_path)
+          safe_concat(fragment_for(cache_fragment_name(name, name_options), options, &block))
         else
           yield
         end
@@ -214,14 +200,6 @@ module ActionView
         else
           fragment_name_with_digest(name, virtual_path)
         end
-      end
-
-      # Given a key (as described in ActionController::Caching::Fragments.expire_fragment),
-      # returns a key suitable for use in reading, writing, or expiring a
-      # cached fragment. All keys are prefixed with <tt>views/</tt> and uses
-      # ActiveSupport::Cache.expand_cache_key for the expansion.
-      def fragment_cache_key(key)
-        ActiveSupport::Cache.expand_cache_key(key.is_a?(Hash) ? url_for(key).split("://").last : key, :views)
       end
 
     private

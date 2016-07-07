@@ -184,7 +184,6 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_fixtures_from_root_yml_with_instantiation
-    # assert_equal 2, @accounts.size
     assert_equal 50, @unknown.credit_limit
   end
 
@@ -222,6 +221,10 @@ class FixturesTest < ActiveRecord::TestCase
       ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT + "/naked/yml", "parrots")
     end
     assert_equal(%(table "parrots" has no column named "arrr".), e.message)
+  end
+
+  def test_yaml_file_with_symbol_columns
+    ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT + "/naked/yml", "trees")
   end
 
   def test_omap_fixtures
@@ -854,7 +857,7 @@ class FoxyFixturesTest < ActiveRecord::TestCase
     assert_equal("X marks the spot!", pirates(:mark).catchphrase)
   end
 
-  def test_supports_label_interpolation_for_fixnum_label
+  def test_supports_label_interpolation_for_integer_label
     assert_equal("#1 pirate!", pirates(1).catchphrase)
   end
 

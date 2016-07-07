@@ -204,12 +204,12 @@ module ActionView
 
       # Attempts to pluralize the +singular+ word unless +count+ is 1. If
       # +plural+ is supplied, it will use that when count is > 1, otherwise
-      # it will use the Inflector to determine the plural form.
+      # it will use the Inflector to determine the plural form for the given locale,
+      # which defaults to I18n.locale
       #
-      # If passed an optional +locale:+ parameter, the word will be pluralized
-      # using rules defined for that language (you must define your own
-      # inflection rules for languages other than English).  See
-      # ActiveSupport::Inflector.pluralize
+      # The word will be pluralized using rules defined for the locale
+      # (you must define your own inflection rules for languages other than English).
+      # See ActiveSupport::Inflector.pluralize
       #
       #   pluralize(1, 'person')
       #   # => 1 person
@@ -217,7 +217,7 @@ module ActionView
       #   pluralize(2, 'person')
       #   # => 2 people
       #
-      #   pluralize(3, 'person', 'users')
+      #   pluralize(3, 'person', plural: 'users')
       #   # => 3 users
       #
       #   pluralize(0, 'person')
@@ -225,7 +225,14 @@ module ActionView
       #
       #   pluralize(2, 'Person', locale: :de)
       #   # => 2 Personen
-      def pluralize(count, singular, plural = nil, locale: nil)
+      def pluralize(count, singular, deprecated_plural = nil, plural: nil, locale: I18n.locale)
+        if deprecated_plural
+          ActiveSupport::Deprecation.warn("Passing plural as a positional argument " \
+            "is deprecated and will be removed in Rails 5.1. Use e.g. " \
+            "pluralize(1, 'person', plural: 'people') instead.")
+          plural ||= deprecated_plural
+        end
+
         word = if (count == 1 || count =~ /^1(\.0+)?$/)
           singular
         else

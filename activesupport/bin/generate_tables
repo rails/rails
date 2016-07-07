@@ -50,16 +50,11 @@ module ActiveSupport
             ([0-9A-F]*);        # simple lowercase mapping
             ([0-9A-F]*)$/ix     # simple titlecase mapping
           codepoint.code              = $1.hex
-          #codepoint.name              = $2
-          #codepoint.category          = $3
           codepoint.combining_class   = Integer($4)
-          #codepoint.bidi_class        = $5
           codepoint.decomp_type       = $7
           codepoint.decomp_mapping    = ($8=='') ? nil : $8.split.collect(&:hex)
-          #codepoint.bidi_mirrored     = ($13=='Y') ? true : false
           codepoint.uppercase_mapping = ($16=='') ? 0 : $16.hex
           codepoint.lowercase_mapping = ($17=='') ? 0 : $17.hex
-          #codepoint.titlecase_mapping = ($18=='') ? nil : $18.hex
           @ucd.codepoints[codepoint.code] = codepoint
         end
 

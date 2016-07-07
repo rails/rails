@@ -22,7 +22,11 @@ module ActiveRecord
 
     def render_bind(attribute)
       value = if attribute.type.binary? && attribute.value
-        "<#{attribute.value.bytesize} bytes of binary data>"
+        if attribute.value.is_a?(Hash)
+          "<#{attribute.value_for_database.to_s.bytesize} bytes of binary data>"
+        else
+          "<#{attribute.value.bytesize} bytes of binary data>"
+        end
       else
         attribute.value_for_database
       end
@@ -67,7 +71,7 @@ module ActiveRecord
       case sql
         when /\A\s*rollback/mi
           RED
-        when /\s*.*?select .*for update/mi, /\A\s*lock/mi
+        when /select .*for update/mi, /\A\s*lock/mi
           WHITE
         when /\A\s*select/i
           BLUE

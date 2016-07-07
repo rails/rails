@@ -86,7 +86,7 @@ if ActiveRecord::Base.connection.supports_extensions?
     end
 
     def test_hstore_migration
-      hstore_migration = Class.new(ActiveRecord::Migration) do
+      hstore_migration = Class.new(ActiveRecord::Migration::Current) do
         def change
           change_table("hstores") do |t|
             t.hstore :keys

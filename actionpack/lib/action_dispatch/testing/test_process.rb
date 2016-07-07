@@ -1,6 +1,5 @@
 require 'action_dispatch/middleware/cookies'
 require 'action_dispatch/middleware/flash'
-require 'active_support/core_ext/hash/indifferent_access'
 
 module ActionDispatch
   module TestProcess
@@ -26,7 +25,7 @@ module ActionDispatch
       @response.redirect_url
     end
 
-    # Shortcut for <tt>Rack::Test::UploadedFile.new(File.join(ActionController::TestCase.fixture_path, path), type)</tt>:
+    # Shortcut for <tt>Rack::Test::UploadedFile.new(File.join(ActionDispatch::IntegrationTest.fixture_path, path), type)</tt>:
     #
     #   post :change_avatar, avatar: fixture_file_upload('files/spongebob.png', 'image/png')
     #

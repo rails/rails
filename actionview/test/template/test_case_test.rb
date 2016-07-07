@@ -42,6 +42,10 @@ module ActionView
       assert_same view, view
     end
 
+    test "exposes params" do
+      assert params.is_a? ActionController::Parameters
+    end
+
     test "exposes view as _view for backwards compatibility" do
       assert_same _view, view
     end

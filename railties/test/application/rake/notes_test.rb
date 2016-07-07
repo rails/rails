@@ -74,7 +74,7 @@ module ApplicationTests
 
         app_file "some_other_dir/blah.rb", "# TODO: note in some_other directory"
 
-        run_rake_notes "SOURCE_ANNOTATION_DIRECTORIES='some_other_dir' bin/rake notes" do |output, lines|
+        run_rake_notes "SOURCE_ANNOTATION_DIRECTORIES='some_other_dir' bin/rails notes" do |output, lines|
           assert_match(/note in app directory/, output)
           assert_match(/note in config directory/, output)
           assert_match(/note in db directory/, output)
@@ -102,7 +102,7 @@ module ApplicationTests
           end
         EOS
 
-        run_rake_notes "bin/rake notes_custom" do |output, lines|
+        run_rake_notes "bin/rails notes_custom" do |output, lines|
           assert_match(/\[FIXME\] note in lib directory/, output)
           assert_match(/\[TODO\] note in test directory/, output)
           assert_no_match(/OPTIMIZE/, output)
@@ -128,7 +128,7 @@ module ApplicationTests
 
       private
 
-      def run_rake_notes(command = 'bin/rake notes')
+      def run_rake_notes(command = 'bin/rails notes')
         boot_rails
         load_tasks
 

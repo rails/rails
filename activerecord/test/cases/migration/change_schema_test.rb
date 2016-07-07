@@ -50,7 +50,7 @@ module ActiveRecord
 
       def test_create_table_with_defaults
         # MySQL doesn't allow defaults on TEXT or BLOB columns.
-        mysql = current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+        mysql = current_adapter?(:Mysql2Adapter)
 
         connection.create_table :testings do |t|
           t.column :one, :string, :default => "hello"
@@ -141,7 +141,7 @@ module ActiveRecord
           assert_equal 'smallint', one.sql_type
           assert_equal 'integer', four.sql_type
           assert_equal 'bigint', eight.sql_type
-        elsif current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+        elsif current_adapter?(:Mysql2Adapter)
           assert_match 'int(11)', default.sql_type
           assert_match 'tinyint', one.sql_type
           assert_match 'int', four.sql_type
@@ -339,7 +339,7 @@ module ActiveRecord
 
       def test_change_column_null
         testing_table_with_only_foo_attribute do
-          notnull_migration = Class.new(ActiveRecord::Migration) do
+          notnull_migration = Class.new(ActiveRecord::Migration::Current) do
             def change
               change_column_null :testings, :foo, false
             end
@@ -442,7 +442,7 @@ module ActiveRecord
         end
 
         def test_create_table_with_force_cascade_drops_dependent_objects
-          skip "MySQL > 5.5 does not drop dependent objects with DROP TABLE CASCADE" if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+          skip "MySQL > 5.5 does not drop dependent objects with DROP TABLE CASCADE" if current_adapter?(:Mysql2Adapter)
           # can't re-create table referenced by foreign key
           assert_raises(ActiveRecord::StatementInvalid) do
             @connection.create_table :trains, force: true

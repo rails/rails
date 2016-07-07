@@ -14,6 +14,15 @@ module ActionDispatch
 
       def name; klass.name; end
 
+      def ==(middleware)
+        case middleware
+        when Middleware
+          klass == middleware.klass
+        when Class
+          klass == middleware
+        end
+      end
+
       def inspect
         if klass.is_a?(Class)
           klass.to_s

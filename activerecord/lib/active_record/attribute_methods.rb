@@ -34,30 +34,6 @@ module ActiveRecord
 
     BLACKLISTED_CLASS_METHODS = %w(private public protected allocate new name parent superclass)
 
-    class AttributeMethodCache
-      def initialize
-        @module = Module.new
-        @method_cache = Concurrent::Map.new
-      end
-
-      def [](name)
-        @method_cache.compute_if_absent(name) do
-          safe_name = name.unpack('h*'.freeze).first
-          temp_method = "__temp__#{safe_name}"
-          ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
-          @module.module_eval method_body(temp_method, safe_name), __FILE__, __LINE__
-          @module.instance_method temp_method
-        end
-      end
-
-      private
-
-      # Override this method in the subclasses for method body.
-      def method_body(method_name, const_name)
-        raise NotImplementedError, "Subclasses must implement a method_body(method_name, const_name) method."
-      end
-    end
-
     class GeneratedAttributeMethods < Module; end # :nodoc:
 
     module ClassMethods
@@ -191,6 +167,18 @@ module ActiveRecord
           end
       end
 
+      # Returns true if the given attribute exists, otherwise false.
+      #
+      #   class Person < ActiveRecord::Base
+      #   end
+      #
+      #   Person.has_attribute?('name')   # => true
+      #   Person.has_attribute?(:age)     # => true
+      #   Person.has_attribute?(:nothing) # => false
+      def has_attribute?(attr_name)
+        attribute_types.key?(attr_name.to_s)
+      end
+
       # Returns the column object for the named attribute.
       # Returns a +ActiveRecord::ConnectionAdapters::NullColumn+ if the
       # named attribute does not exist.
@@ -291,9 +279,8 @@ module ActiveRecord
     # Returns an <tt>#inspect</tt>-like string for the value of the
     # attribute +attr_name+. String attributes are truncated up to 50
     # characters, Date and Time attributes are returned in the
-    # <tt>:db</tt> format, Array attributes are truncated up to 10 values.
-    # Other attributes return the value of <tt>#inspect</tt> without
-    # modification.
+    # <tt>:db</tt> format. Other attributes return the value of
+    # <tt>#inspect</tt> without modification.
     #
     #   person = Person.create!(name: 'David Heinemeier Hansson ' * 3)
     #
@@ -304,7 +291,7 @@ module ActiveRecord
     #   # => "\"2012-10-22 00:15:07\""
     #
     #   person.attribute_for_inspect(:tag_ids)
-    #   # => "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...]"
+    #   # => "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]"
     def attribute_for_inspect(attr_name)
       value = read_attribute(attr_name)
 
@@ -312,9 +299,6 @@ module ActiveRecord
         "#{value[0, 50]}...".inspect
       elsif value.is_a?(Date) || value.is_a?(Time)
         %("#{value.to_s(:db)}")
-      elsif value.is_a?(Array) && value.size > 10
-        inspected = value.first(10).inspect
-        %(#{inspected[0...-1]}, ...])
       else
         value.inspect
       end
@@ -372,7 +356,7 @@ module ActiveRecord
     #   person = Person.new
     #   person[:age] = '22'
     #   person[:age] # => 22
-    #   person[:age] # => Fixnum
+    #   person[:age].class # => Integer
     def []=(attr_name, value)
       write_attribute(attr_name, value)
     end

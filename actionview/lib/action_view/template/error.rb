@@ -59,6 +59,9 @@ module ActionView
     class Error < ActionViewError #:nodoc:
       SOURCE_CODE_RADIUS = 3
 
+      # Override to prevent #cause resetting during re-raise.
+      attr_reader :cause
+
       def initialize(template, original_exception = nil)
         if original_exception
           ActiveSupport::Deprecation.warn("Passing #original_exception is deprecated and has no effect. " \
@@ -67,6 +70,7 @@ module ActionView
 
         super($!.message)
         set_backtrace($!.backtrace)
+        @cause = $!
         @template, @sub_templates = template, nil
       end
 
@@ -131,13 +135,13 @@ module ActionView
         end
 
         def formatted_code_for(source_code, line_counter, indent, output)
-          start_value = (output == :html) ? {} : ""
+          start_value = (output == :html) ? {} : []
           source_code.inject(start_value) do |result, line|
             line_counter += 1
             if output == :html
               result.update(line_counter.to_s => "%#{indent}s %s\n" % ["", line])
             else
-              result << "%#{indent}s: %s\n" % [line_counter, line]
+              result << "%#{indent}s: %s" % [line_counter, line]
             end
           end
         end

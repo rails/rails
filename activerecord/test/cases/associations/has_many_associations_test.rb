@@ -408,6 +408,16 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_no_queries do
+      bulbs.third_to_last()
+      bulbs.third_to_last({})
+    end
+
+    assert_no_queries do
+      bulbs.second_to_last()
+      bulbs.second_to_last({})
+    end
+
+    assert_no_queries do
       bulbs.last()
       bulbs.last({})
     end
@@ -1305,7 +1315,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, summit.client_of
   end
 
-  def test_deleting_by_fixnum_id
+  def test_deleting_by_integer_id
     david = Developer.find(1)
 
     assert_difference 'david.projects.count', -1 do
@@ -1342,7 +1352,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, companies(:first_firm).clients_of_firm.reload.size
   end
 
-  def test_destroying_by_fixnum_id
+  def test_destroying_by_integer_id
     force_signal37_to_load_all_clients_of_firm
 
     assert_difference "Client.count", -1 do
@@ -2271,7 +2281,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [], authors(:david).posts_with_signature.map(&:title)
   end
 
-  test 'associations autosaves when object is already persited' do
+  test 'associations autosaves when object is already persisted' do
     bulb = Bulb.create!
     tyre = Tyre.create!
 
@@ -2346,6 +2356,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     car.bulbs = [second_bulb, same_bulb]
 
     assert_equal [first_bulb, second_bulb], car.bulbs
+  end
+
+  test 'double insertion of new object to association when same association used in the after create callback of a new object' do
+    car = Car.create!
+    car.bulbs << TrickyBulb.new
+    assert_equal 1, car.bulbs.size
   end
 
   def test_association_force_reload_with_only_true_is_deprecated

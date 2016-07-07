@@ -6,7 +6,7 @@ class MigratorTest < ActiveRecord::TestCase
 
   # Use this class to sense if migrations have gone
   # up or down.
-  class Sensor < ActiveRecord::Migration
+  class Sensor < ActiveRecord::Migration::Current
     attr_reader :went_up, :went_down
 
     def initialize name = self.class.name, version = nil

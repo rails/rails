@@ -29,14 +29,6 @@ module ActiveRecord
       assign_multiparameter_attributes(multi_parameter_attributes) unless multi_parameter_attributes.empty?
     end
 
-    # Tries to assign given value to given attribute.
-    # In case of an error, re-raises with the ActiveRecord constant.
-    def _assign_attribute(k, v) # :nodoc:
-      super
-    rescue ActiveModel::UnknownAttributeError
-      raise UnknownAttributeError.new(self, k)
-    end
-
     # Assign any deferred nested attributes after the base attributes have been set.
     def assign_nested_parameter_attributes(pairs)
       pairs.each { |k, v| _assign_attribute(k, v) }
@@ -46,7 +38,7 @@ module ActiveRecord
     # by calling new on the column type or aggregation type (through composed_of) object with these parameters.
     # So having the pairs written_on(1) = "2004", written_on(2) = "6", written_on(3) = "24", will instantiate
     # written_on (a date type) with Date.new("2004", "6", "24"). You can also specify a typecast character in the
-    # parentheses to have the parameters typecasted before they're used in the constructor. Use i for Fixnum and
+    # parentheses to have the parameters typecasted before they're used in the constructor. Use i for Integer and
     # f for Float. If all the values for a given attribute are empty, the attribute will be set to +nil+.
     def assign_multiparameter_attributes(pairs)
       execute_callstack_for_multiparameter_attributes(

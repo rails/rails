@@ -72,6 +72,14 @@ module ActiveRecord
 
       ##
       # :singleton-method:
+      # Specifies if an error should be raised on query limit or order being
+      # ignored when doing batch queries. Useful in applications where the
+      # limit or scope being ignored is error-worthy, rather than a warning.
+      mattr_accessor :error_on_ignored_order_or_limit, instance_writer: false
+      self.error_on_ignored_order_or_limit = false
+
+      ##
+      # :singleton-method:
       # Specify whether or not to use timestamps for migration versions
       mattr_accessor :timestamped_migrations, instance_writer: false
       self.timestamped_migrations = true
@@ -128,7 +136,7 @@ module ActiveRecord
       end
 
       def initialize_find_by_cache # :nodoc:
-        @find_by_statement_cache = {}.extend(Mutex_m)
+        @find_by_statement_cache = { true => {}.extend(Mutex_m), false => {}.extend(Mutex_m) }
       end
 
       def inherited(child_class) # :nodoc:
@@ -151,7 +159,7 @@ module ActiveRecord
           id = id.id
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
             You are passing an instance of ActiveRecord::Base to `find`.
-            Please pass the id of the object by calling `.id`
+            Please pass the id of the object by calling `.id`.
           MSG
         end
 
@@ -249,11 +257,16 @@ module ActiveRecord
       # Returns the Arel engine.
       def arel_engine # :nodoc:
         @arel_engine ||=
-          if Base == self || connection_handler.retrieve_connection_pool(self)
+          if Base == self || connection_handler.retrieve_connection_pool(connection_specification_name)
             self
           else
             superclass.arel_engine
           end
+      end
+
+      def arel_attribute(name, table = arel_table) # :nodoc:
+        name = attribute_alias(name) if attribute_alias?(name)
+        table[name]
       end
 
       def predicate_builder # :nodoc:
@@ -267,15 +280,16 @@ module ActiveRecord
       private
 
       def cached_find_by_statement(key, &block) # :nodoc:
-        @find_by_statement_cache[key] || @find_by_statement_cache.synchronize {
-          @find_by_statement_cache[key] ||= StatementCache.create(connection, &block)
+        cache = @find_by_statement_cache[connection.prepared_statements]
+        cache[key] || cache.synchronize {
+          cache[key] ||= StatementCache.create(connection, &block)
         }
       end
 
       def relation # :nodoc:
         relation = Relation.create(self, arel_table, predicate_builder)
 
-        if finder_needs_type_condition?
+        if finder_needs_type_condition? && !ignore_default_scope?
           relation.where(type_condition).create_with(inheritance_column.to_sym => sti_name)
         else
           relation

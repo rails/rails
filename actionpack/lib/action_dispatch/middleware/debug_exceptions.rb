@@ -38,9 +38,10 @@ module ActionDispatch
       end
     end
 
-    def initialize(app, routes_app = nil)
-      @app        = app
-      @routes_app = routes_app
+    def initialize(app, routes_app = nil, response_format = :default)
+      @app             = app
+      @routes_app      = routes_app
+      @response_format = response_format
     end
 
     def call(env)
@@ -66,41 +67,79 @@ module ActionDispatch
       log_error(request, wrapper)
 
       if request.get_header('action_dispatch.show_detailed_exceptions')
-        traces = wrapper.traces
-
-        trace_to_show = 'Application Trace'
-        if traces[trace_to_show].empty? && wrapper.rescue_template != 'routing_error'
-          trace_to_show = 'Full Trace'
+        case @response_format
+        when :api
+          render_for_api_application(request, wrapper)
+        when :default
+          render_for_default_application(request, wrapper)
         end
-
-        if source_to_show = traces[trace_to_show].first
-          source_to_show_id = source_to_show[:id]
-        end
-
-        template = DebugView.new([RESCUES_TEMPLATE_PATH],
-          request: request,
-          exception: wrapper.exception,
-          traces: traces,
-          show_source_idx: source_to_show_id,
-          trace_to_show: trace_to_show,
-          routes_inspector: routes_inspector(exception),
-          source_extracts: wrapper.source_extracts,
-          line_number: wrapper.line_number,
-          file: wrapper.file
-        )
-        file = "rescues/#{wrapper.rescue_template}"
-
-        if request.xhr?
-          body = template.render(template: file, layout: false, formats: [:text])
-          format = "text/plain"
-        else
-          body = template.render(template: file, layout: 'rescues/layout')
-          format = "text/html"
-        end
-        render(wrapper.status_code, body, format)
       else
         raise exception
       end
+    end
+
+    def render_for_default_application(request, wrapper)
+      template = create_template(request, wrapper)
+      file = "rescues/#{wrapper.rescue_template}"
+
+      if request.xhr?
+        body = template.render(template: file, layout: false, formats: [:text])
+        format = "text/plain"
+      else
+        body = template.render(template: file, layout: 'rescues/layout')
+        format = "text/html"
+      end
+      render(wrapper.status_code, body, format)
+    end
+
+    def render_for_api_application(request, wrapper)
+      body = {
+        status: wrapper.status_code,
+        error:  Rack::Utils::HTTP_STATUS_CODES.fetch(
+          wrapper.status_code,
+          Rack::Utils::HTTP_STATUS_CODES[500]
+        ),
+        exception: wrapper.exception.inspect,
+        traces: wrapper.traces
+      }
+
+      content_type = request.formats.first
+      to_format = "to_#{content_type.to_sym}"
+
+      if content_type && body.respond_to?(to_format)
+        formatted_body = body.public_send(to_format)
+        format = content_type
+      else
+        formatted_body = body.to_json
+        format = Mime[:json]
+      end
+
+      render(wrapper.status_code, formatted_body, format)
+    end
+
+    def create_template(request, wrapper)
+      traces = wrapper.traces
+
+      trace_to_show = 'Application Trace'
+      if traces[trace_to_show].empty? && wrapper.rescue_template != 'routing_error'
+        trace_to_show = 'Full Trace'
+      end
+
+      if source_to_show = traces[trace_to_show].first
+        source_to_show_id = source_to_show[:id]
+      end
+
+      DebugView.new([RESCUES_TEMPLATE_PATH],
+        request: request,
+        exception: wrapper.exception,
+        traces: traces,
+        show_source_idx: source_to_show_id,
+        trace_to_show: trace_to_show,
+        routes_inspector: routes_inspector(wrapper.exception),
+        source_extracts: wrapper.source_extracts,
+        line_number: wrapper.line_number,
+        file: wrapper.file
+      )
     end
 
     def render(status, body, format)
@@ -117,15 +156,20 @@ module ActionDispatch
       trace = wrapper.framework_trace if trace.empty?
 
       ActiveSupport::Deprecation.silence do
-        message = "\n#{exception.class} (#{exception.message}):\n"
-        message << exception.annoted_source_code.to_s if exception.respond_to?(:annoted_source_code)
-        message << "  " << trace.join("\n  ")
-        logger.fatal("#{message}\n\n")
+        logger.fatal "  "
+        logger.fatal "#{exception.class} (#{exception.message}):"
+        log_array logger, exception.annoted_source_code if exception.respond_to?(:annoted_source_code)
+        logger.fatal "  "
+        log_array logger, trace
       end
     end
 
+    def log_array(logger, array)
+      array.map { |line| logger.fatal line }
+    end
+
     def logger(request)
-      request.logger || stderr_logger
+      request.logger || ActionView::Base.logger || stderr_logger
     end
 
     def stderr_logger

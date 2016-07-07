@@ -3,7 +3,7 @@
 module ActiveRecord::Associations::Builder # :nodoc:
   class SingularAssociation < Association #:nodoc:
     def self.valid_options(options)
-      super + [:dependent, :primary_key, :inverse_of, :required]
+      super + [:foreign_type, :dependent, :primary_key, :inverse_of, :required]
     end
 
     def self.define_accessors(model, reflection)

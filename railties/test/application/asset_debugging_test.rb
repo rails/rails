@@ -44,7 +44,7 @@ module ApplicationTests
     test "assets are concatenated when debug is off and compile is off either if debug_assets param is provided" do
       # config.assets.debug and config.assets.compile are false for production environment
       ENV["RAILS_ENV"] = "production"
-      output = Dir.chdir(app_path){ `bin/rake assets:precompile --trace 2>&1` }
+      output = Dir.chdir(app_path){ `bin/rails assets:precompile --trace 2>&1` }
       assert $?.success?, output
 
       # Load app env
@@ -58,7 +58,7 @@ module ApplicationTests
       assert_no_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js"><\/script>/, last_response.body)
     end
 
-    test "assets are served with sourcemaps when compile is true and debug_assets params is true" do
+    test "assets aren't concatenated when compile is true is on and debug_assets params is true" do
       add_to_env_config "production", "config.assets.compile = true"
 
       # Load app env
@@ -67,7 +67,8 @@ module ApplicationTests
       class ::PostsController < ActionController::Base ; end
 
       get '/posts?debug_assets=true'
-      assert_match(/<script src="\/assets\/application(\.debug)?-([0-z]+)\.js"><\/script>/, last_response.body)
+      assert_match(/<script src="\/assets\/application(\.self)?-([0-z]+)\.js\?body=1"><\/script>/, last_response.body)
+      assert_match(/<script src="\/assets\/xmlhr(\.self)?-([0-z]+)\.js\?body=1"><\/script>/, last_response.body)
     end
   end
 end

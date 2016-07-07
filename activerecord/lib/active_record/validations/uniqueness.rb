@@ -11,15 +11,14 @@ module ActiveRecord
       end
 
       def validate_each(record, attribute, value)
-        return unless should_validate?(record)
         finder_class = find_finder_class_for(record)
         table = finder_class.arel_table
         value = map_enum_attribute(finder_class, attribute, value)
 
         relation = build_relation(finder_class, table, attribute, value)
-        if record.persisted? && finder_class.primary_key.to_s != attribute.to_s
+        if record.persisted?
           if finder_class.primary_key
-            relation = relation.where.not(finder_class.primary_key => record.id)
+            relation = relation.where.not(finder_class.primary_key => record.id_was || record.id)
           else
             raise UnknownPrimaryKey.new(finder_class, "Can not validate uniqueness for persisted record without primary key.")
           end
@@ -57,23 +56,17 @@ module ActiveRecord
           value = value.attributes[reflection.klass.primary_key] unless value.nil?
         end
 
-        attribute_name = attribute.to_s
-
         # the attribute may be an aliased attribute
-        if klass.attribute_aliases[attribute_name]
-          attribute = klass.attribute_aliases[attribute_name]
-          attribute_name = attribute.to_s
+        if klass.attribute_alias?(attribute)
+          attribute = klass.attribute_alias(attribute)
         end
+
+        attribute_name = attribute.to_s
 
         column = klass.columns_hash[attribute_name]
         cast_type = klass.type_for_attribute(attribute_name)
         value = cast_type.serialize(value)
         value = klass.connection.type_cast(value)
-        if value.is_a?(String) && column.limit
-          value = value.to_s[0, column.limit]
-        end
-
-        value = Arel::Nodes::Quoted.new(value)
 
         comparison = if !options[:case_sensitive] && !value.nil?
           # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
@@ -81,7 +74,12 @@ module ActiveRecord
         else
           klass.connection.case_sensitive_comparison(table, attribute, column, value)
         end
-        klass.unscoped.where(comparison)
+        if value.nil?
+          klass.unscoped.where(comparison)
+        else
+          bind = Relation::QueryAttribute.new(attribute_name, value, Type::Value.new)
+          klass.unscoped.where(comparison, bind)
+        end
       rescue RangeError
         klass.none
       end
@@ -231,7 +229,6 @@ module ActiveRecord
       #
       # The following bundled adapters throw the ActiveRecord::RecordNotUnique exception:
       #
-      # * ActiveRecord::ConnectionAdapters::MysqlAdapter.
       # * ActiveRecord::ConnectionAdapters::Mysql2Adapter.
       # * ActiveRecord::ConnectionAdapters::SQLite3Adapter.
       # * ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.

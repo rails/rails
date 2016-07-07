@@ -61,7 +61,7 @@ module ActiveRecord
       # +instantiate+ instead of +new+, finder methods ensure they get new
       # instances of the appropriate class for each record.
       #
-      # See +ActiveRecord::Inheritance#discriminate_class_for_record+ to see
+      # See <tt>ActiveRecord::Inheritance#discriminate_class_for_record</tt> to see
       # how this "single-table" inheritance mapping is implemented.
       def instantiate(attributes, column_types = {})
         klass = discriminate_class_for_record(attributes)
@@ -102,11 +102,11 @@ module ActiveRecord
 
     # Saves the model.
     #
-    # If the model is new a record gets created in the database, otherwise
+    # If the model is new, a record gets created in the database, otherwise
     # the existing record gets updated.
     #
-    # By default, save always run validations. If any of them fail the action
-    # is cancelled and #save returns +false+. However, if you supply
+    # By default, save always runs validations. If any of them fail the action
+    # is cancelled and #save returns +false+, and the record won't be saved. However, if you supply
     # validate: false, validations are bypassed altogether. See
     # ActiveRecord::Validations for more information.
     #
@@ -132,9 +132,10 @@ module ActiveRecord
     # If the model is new, a record gets created in the database, otherwise
     # the existing record gets updated.
     #
-    # With #save! validations always run. If any of them fail
-    # ActiveRecord::RecordInvalid gets raised. See ActiveRecord::Validations
-    # for more information.
+    # By default, #save! always runs validations. If any of them fail
+    # ActiveRecord::RecordInvalid gets raised, and the record won't be saved. However, if you supply
+    # validate: false, validations are bypassed altogether. See
+    # ActiveRecord::Validations for more information.
     #
     # By default, #save! also sets the +updated_at+/+updated_on+ attributes to
     # the current time. However, if you supply <tt>touch: false</tt>, these
@@ -215,7 +216,7 @@ module ActiveRecord
       became.instance_variable_set("@changed_attributes", attributes_changed_by_setter)
       became.instance_variable_set("@new_record", new_record?)
       became.instance_variable_set("@destroyed", destroyed?)
-      became.instance_variable_set("@errors", errors)
+      became.errors.copy!(errors)
       became
     end
 
@@ -246,7 +247,7 @@ module ActiveRecord
     # This method raises an ActiveRecord::ActiveRecordError  if the
     # attribute is marked as readonly.
     #
-    # See also #update_column.
+    # Also see #update_column.
     def update_attribute(name, value)
       name = name.to_s
       verify_readonly_attribute(name)
@@ -269,7 +270,7 @@ module ActiveRecord
     alias update_attributes update
 
     # Updates its receiver just like #update but calls #save! instead
-    # of +save+, so an exception is raised if the record is invalid.
+    # of +save+, so an exception is raised if the record is invalid and saving will fail.
     def update!(attributes)
       # The following transaction covers any possible database side-effects of the
       # attributes assignment. For example, setting the IDs of a child collection.
@@ -298,6 +299,7 @@ module ActiveRecord
     # * \Validations are skipped.
     # * \Callbacks are skipped.
     # * +updated_at+/+updated_on+ are not updated.
+    # * However, attributes are serialized with the same rules as ActiveRecord::Relation#update_all
     #
     # This method raises an ActiveRecord::ActiveRecordError when called on new
     # objects, or when at least one of the attributes is marked as readonly.
@@ -347,7 +349,7 @@ module ActiveRecord
     end
 
     # Wrapper around #decrement that saves the record. This method differs from
-    # its non-bang version in that it passes through the attribute setter.
+    # its non-bang version in the sense that it passes through the attribute setter.
     # Saving is not subjected to validation checks. Returns +true+ if the
     # record could be saved.
     def decrement!(attribute, by = 1)
@@ -372,7 +374,7 @@ module ActiveRecord
     end
 
     # Wrapper around #toggle that saves the record. This method differs from
-    # its non-bang version in that it passes through the attribute setter.
+    # its non-bang version in the sense that it passes through the attribute setter.
     # Saving is not subjected to validation checks. Returns +true+ if the
     # record could be saved.
     def toggle!(attribute)
@@ -477,7 +479,12 @@ module ActiveRecord
     #   ball.touch(:updated_at)   # => raises ActiveRecordError
     #
     def touch(*names, time: nil)
-      raise ActiveRecordError, "cannot touch on a new record object" unless persisted?
+      unless persisted?
+        raise ActiveRecordError, <<-MSG.squish
+          cannot touch on a new or destroyed record object. Consider using
+          persisted?, new_record?, or destroyed? before touching
+        MSG
+      end
 
       time ||= current_time_from_proper_timezone
       attributes = timestamp_attributes_for_update_in_model
@@ -565,6 +572,10 @@ module ActiveRecord
       raise @_association_destroy_exception || RecordNotDestroyed.new("Failed to destroy the record", self)
     ensure
       @_association_destroy_exception = nil
+    end
+
+    def belongs_to_touch_method
+      :touch
     end
   end
 end

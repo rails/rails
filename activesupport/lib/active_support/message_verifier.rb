@@ -15,7 +15,7 @@ module ActiveSupport
   # In the authentication filter:
   #
   #   id, time = @verifier.verify(cookies[:remember_me])
-  #   if time < Time.now
+  #   if Time.now < time
   #     self.current_user = User.find(id)
   #   end
   #
@@ -24,6 +24,12 @@ module ActiveSupport
   # hash upon initialization:
   #
   #   @verifier = ActiveSupport::MessageVerifier.new('s3Krit', serializer: YAML)
+  #
+  # +MessageVerifier+ creates HMAC signatures using SHA1 hash algorithm by default.
+  # If you want to use a different hash algorithm, you can change it by providing
+  # `:digest` key as an option while initializing the verifier:
+  #
+  #   @verifier = ActiveSupport::MessageVerifier.new('s3Krit', digest: 'SHA256')
   class MessageVerifier
     class InvalidSignature < StandardError; end
 

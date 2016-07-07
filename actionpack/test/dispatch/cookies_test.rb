@@ -7,7 +7,7 @@ class CookieJarTest < ActiveSupport::TestCase
   attr_reader :request
 
   def setup
-    @request = ActionDispatch::Request.new({})
+    @request = ActionDispatch::Request.empty
   end
 
   def test_fetch

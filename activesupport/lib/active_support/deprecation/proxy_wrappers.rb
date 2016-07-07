@@ -80,7 +80,7 @@ module ActiveSupport
     #   example.old_request.to_s
     #   # => DEPRECATION WARNING: @request is deprecated! Call request.to_s instead of
     #      @request.to_s
-    #      (Bactrace information…)
+    #      (Backtrace information…)
     #      "special_request"
     #
     #   example.request.to_s
@@ -118,7 +118,7 @@ module ActiveSupport
     #
     #   PLANETS.map { |planet| planet.capitalize }
     #   # => DEPRECATION WARNING: PLANETS is deprecated! Use PLANETS_POST_2006 instead.
-    #        (Bactrace information…)
+    #        (Backtrace information…)
     #        ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"]
     class DeprecatedConstantProxy < DeprecationProxy
       def initialize(old_const, new_const, deprecator = ActiveSupport::Deprecation.instance)

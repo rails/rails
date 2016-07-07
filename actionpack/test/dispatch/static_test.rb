@@ -40,6 +40,10 @@ module StaticTests
     assert_equal "Hello, World!", get("/doorkeeper%E3E4".force_encoding('ASCII-8BIT')).body
   end
 
+  def test_handles_urls_with_null_byte
+    assert_equal "Hello, World!", get("/doorkeeper%00").body
+  end
+
   def test_sets_cache_control
     app = assert_deprecated do
       ActionDispatch::Static.new(DummyApp, @root, "public, max-age=60")

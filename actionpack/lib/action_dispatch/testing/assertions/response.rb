@@ -1,4 +1,3 @@
-
 module ActionDispatch
   module Assertions
     # A small suite of assertions that test responses from \Rails applications.
@@ -27,18 +26,12 @@ module ActionDispatch
       #   # Asserts that the response code was status code 401 (unauthorized)
       #   assert_response 401
       def assert_response(type, message = nil)
-        if Symbol === type
-          if [:success, :missing, :redirect, :error].include?(type)
-            assert_predicate @response, RESPONSE_PREDICATES[type], message
-          else
-            code = Rack::Utils::SYMBOL_TO_STATUS_CODE[type]
-            if code.nil?
-              raise ArgumentError, "Invalid response type :#{type}"
-            end
-            assert_equal code, @response.response_code, message
-          end
+        message ||= generate_response_message(type)
+
+        if RESPONSE_PREDICATES.keys.include?(type)
+          assert @response.send(RESPONSE_PREDICATES[type]), message
         else
-          assert_equal type, @response.response_code, message
+          assert_equal AssertionResponse.new(type).code, @response.response_code, message
         end
       end
 
@@ -81,6 +74,26 @@ module ActionDispatch
             handle = @controller || ActionController::Redirecting
             handle._compute_redirect_to_location(@request, fragment)
           end
+        end
+
+        def generate_response_message(expected, actual = @response.response_code)
+          "Expected response to be a <#{code_with_name(expected)}>,"\
+          " but was a <#{code_with_name(actual)}>"
+          .concat location_if_redirected
+        end
+
+        def location_if_redirected
+          return '' unless @response.redirection? && @response.location.present?
+          location = normalize_argument_to_redirection(@response.location)
+          " redirect to <#{location}>"
+        end
+
+        def code_with_name(code_or_name)
+          if RESPONSE_PREDICATES.values.include?("#{code_or_name}?".to_sym)
+            code_or_name = RESPONSE_PREDICATES.invert["#{code_or_name}?".to_sym]
+          end
+
+          AssertionResponse.new(code_or_name).code_and_name
         end
     end
   end

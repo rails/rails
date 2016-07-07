@@ -5,15 +5,15 @@ require 'active_support/core_ext/module/remove_method'
 
 class Date
   DATE_FORMATS = {
-    :short        => '%e %b',
-    :long         => '%B %e, %Y',
+    :short        => '%d %b',
+    :long         => '%B %d, %Y',
     :db           => '%Y-%m-%d',
     :number       => '%Y%m%d',
     :long_ordinal => lambda { |date|
       day_format = ActiveSupport::Inflector.ordinalize(date.day)
       date.strftime("%B #{day_format}, %Y") # => "April 25th, 2007"
     },
-    :rfc822       => '%e %b %Y',
+    :rfc822       => '%d %b %Y',
     :iso8601      => lambda { |date| date.iso8601 }
   }
 
@@ -80,6 +80,7 @@ class Date
   #
   #   date.to_time(:utc)             # => 2007-11-10 00:00:00 UTC
   def to_time(form = :local)
+    raise ArgumentError, "Expected :local or :utc, got #{form.inspect}." unless [:local, :utc].include?(form)
     ::Time.send(form, year, month, day)
   end
 

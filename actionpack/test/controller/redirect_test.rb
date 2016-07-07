@@ -42,6 +42,10 @@ class RedirectController < ActionController::Base
     redirect_to :back, :status => 307
   end
 
+  def redirect_back_with_status
+    redirect_back(fallback_location: "/things/stuff", status: 307)
+  end
+
   def host_redirect
     redirect_to :action => "other_host", :only_path => false, :host => 'other.test.host'
   end
@@ -172,7 +176,6 @@ class RedirectTest < ActionController::TestCase
     assert_equal "http://www.example.com", redirect_to_url
   end
 
-
   def test_relative_url_redirect_with_status
     get :relative_url_redirect_with_status
     assert_response 302
@@ -187,7 +190,11 @@ class RedirectTest < ActionController::TestCase
 
   def test_redirect_to_back_with_status
     @request.env["HTTP_REFERER"] = "http://www.example.com/coming/from"
-    get :redirect_to_back_with_status
+
+    assert_deprecated do
+      get :redirect_to_back_with_status
+    end
+
     assert_response 307
     assert_equal "http://www.example.com/coming/from", redirect_to_url
   end
@@ -236,7 +243,11 @@ class RedirectTest < ActionController::TestCase
 
   def test_redirect_to_back
     @request.env["HTTP_REFERER"] = "http://www.example.com/coming/from"
-    get :redirect_to_back
+
+    assert_deprecated do
+      get :redirect_to_back
+    end
+
     assert_response :redirect
     assert_equal "http://www.example.com/coming/from", redirect_to_url
   end
@@ -244,15 +255,40 @@ class RedirectTest < ActionController::TestCase
   def test_redirect_to_back_with_no_referer
     assert_raise(ActionController::RedirectBackError) {
       @request.env["HTTP_REFERER"] = nil
+
+      assert_deprecated do
+        get :redirect_to_back
+      end
+
       get :redirect_to_back
     }
+  end
+
+  def test_redirect_back
+    referer = "http://www.example.com/coming/from"
+    @request.env["HTTP_REFERER"] = referer
+
+    get :redirect_back_with_status
+
+    assert_response 307
+    assert_equal referer, redirect_to_url
+  end
+
+  def test_redirect_back_with_no_referer
+    get :redirect_back_with_status
+
+    assert_response 307
+    assert_equal "http://test.host/things/stuff", redirect_to_url
   end
 
   def test_redirect_to_record
     with_routing do |set|
       set.draw do
         resources :workshops
-        get ':controller/:action'
+
+        ActiveSupport::Deprecation.silence do
+          get ':controller/:action'
+        end
       end
 
       get :redirect_to_existing_record
@@ -273,10 +309,10 @@ class RedirectTest < ActionController::TestCase
   end
 
   def test_redirect_to_params
-    error = assert_raise(ActionController::ActionControllerError) do
+    error = assert_raise(ArgumentError) do
       get :redirect_to_params
     end
-    assert_equal "Cannot redirect to a parameter hash!", error.message
+    assert_equal ActionDispatch::Routing::INSECURE_URL_PARAMETERS_MESSAGE, error.message
   end
 
   def test_redirect_to_with_block
@@ -294,7 +330,9 @@ class RedirectTest < ActionController::TestCase
   def test_redirect_to_with_block_and_accepted_options
     with_routing do |set|
       set.draw do
-        get ':controller/:action'
+        ActiveSupport::Deprecation.silence do
+          get ':controller/:action'
+        end
       end
 
       get :redirect_to_with_block_and_options

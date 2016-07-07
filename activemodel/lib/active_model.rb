@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2004-2015 David Heinemeier Hansson
+# Copyright (c) 2004-2016 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -49,6 +49,7 @@ module ActiveModel
 
   eager_autoload do
     autoload :Errors
+    autoload :RangeError, 'active_model/errors'
     autoload :StrictValidationFailed, 'active_model/errors'
     autoload :UnknownAttributeError, 'active_model/errors'
   end

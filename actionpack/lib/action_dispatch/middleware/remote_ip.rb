@@ -43,7 +43,7 @@ module ActionDispatch
 
     # Create a new +RemoteIp+ middleware instance.
     #
-    # The +check_ip_spoofing+ option is on by default. When on, an exception
+    # The +ip_spoofing_check+ option is on by default. When on, an exception
     # is raised if it looks like the client is trying to lie about its own IP
     # address. It makes sense to turn off this check on sites aimed at non-IP
     # clients (like WAP devices), or behind proxies that set headers in an
@@ -57,9 +57,9 @@ module ActionDispatch
     # with your proxy servers after it. If your proxies aren't removed, pass
     # them in via the +custom_proxies+ parameter. That way, the middleware will
     # ignore those IP addresses, and return the one that you want.
-    def initialize(app, check_ip_spoofing = true, custom_proxies = nil)
+    def initialize(app, ip_spoofing_check = true, custom_proxies = nil)
       @app = app
-      @check_ip = check_ip_spoofing
+      @check_ip = ip_spoofing_check
       @proxies = if custom_proxies.blank?
         TRUSTED_PROXIES
       elsif custom_proxies.respond_to?(:any?)
@@ -116,10 +116,18 @@ module ActionDispatch
         forwarded_ips = ips_from(@req.x_forwarded_for).reverse
 
         # +Client-Ip+ and +X-Forwarded-For+ should not, generally, both be set.
-        # If they are both set, it means that this request passed through two
-        # proxies with incompatible IP header conventions, and there is no way
-        # for us to determine which header is the right one after the fact.
-        # Since we have no idea, we give up and explode.
+        # If they are both set, it means that either:
+        #
+        # 1) This request passed through two proxies with incompatible IP header
+        #    conventions.
+        # 2) The client passed one of +Client-Ip+ or +X-Forwarded-For+
+        #    (whichever the proxy servers weren't using) themselves.
+        #
+        # Either way, there is no way for us to determine which header is the
+        # right one after the fact. Since we have no idea, if we are concerned
+        # about IP spoofing we need to give up and explode. (If you're not
+        # concerned about IP spoofing you can turn the +ip_spoofing_check+
+        # option off.)
         should_check_ip = @check_ip && client_ips.last && forwarded_ips.last
         if should_check_ip && !forwarded_ips.include?(client_ips.last)
           # We don't know which came from the proxy, and which from the user

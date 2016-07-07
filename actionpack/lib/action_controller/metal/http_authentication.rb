@@ -1,4 +1,5 @@
 require 'base64'
+require 'active_support/security_utils'
 
 module ActionController
   # Makes it dead easy to do HTTP Basic, Digest and Token authentication.
@@ -68,7 +69,11 @@ module ActionController
           def http_basic_authenticate_with(options = {})
             before_action(options.except(:name, :password, :realm)) do
               authenticate_or_request_with_http_basic(options[:realm] || "Application") do |name, password|
-                name == options[:name] && password == options[:password]
+                # This comparison uses & so that it doesn't short circuit and
+                # uses `variable_size_secure_compare` so that length information
+                # isn't leaked.
+                ActiveSupport::SecurityUtils.variable_size_secure_compare(name, options[:name]) &
+                  ActiveSupport::SecurityUtils.variable_size_secure_compare(password, options[:password])
               end
             end
           end
@@ -305,9 +310,9 @@ module ActionController
       end
 
       # Might want a shorter timeout depending on whether the request
-      # is a PATCH, PUT, or POST, and if client is browser or web service.
+      # is a PATCH, PUT, or POST, and if the client is a browser or web service.
       # Can be much shorter if the Stale directive is implemented. This would
-      # allow a user to use new nonce without prompting user again for their
+      # allow a user to use new nonce without prompting the user again for their
       # username and password.
       def validate_nonce(secret_key, request, value, seconds_to_timeout=5*60)
         return false if value.nil?
@@ -342,7 +347,12 @@ module ActionController
     #     private
     #       def authenticate
     #         authenticate_or_request_with_http_token do |token, options|
-    #           token == TOKEN
+    #           # Compare the tokens in a time-constant manner, to mitigate
+    #           # timing attacks.
+    #           ActiveSupport::SecurityUtils.secure_compare(
+    #             ::Digest::SHA256.hexdigest(token),
+    #             ::Digest::SHA256.hexdigest(TOKEN)
+    #           )
     #         end
     #       end
     #   end
@@ -397,7 +407,7 @@ module ActionController
     #   RewriteRule ^(.*)$ dispatch.fcgi [E=X-HTTP_AUTHORIZATION:%{HTTP:Authorization},QSA,L]
     module Token
       TOKEN_KEY = 'token='
-      TOKEN_REGEX = /^(Token|Bearer) /
+      TOKEN_REGEX = /^(Token|Bearer)\s+/
       AUTHN_PAIR_DELIMITERS = /(?:,|;|\t+)/
       extend self
 

@@ -1,17 +1,18 @@
 language: ruby
 sudo: false
-script: 'ci/travis.rb'
+
+cache:
+  bundler: true
+
+bundler_args: --without test --jobs 3 --retry 3
 before_install:
-  - gem install bundler
   - "rm ${BUNDLE_GEMFILE}.lock"
-  - curl -L https://github.com/kr/beanstalkd/archive/v1.10.tar.gz | tar xz -C /tmp
-  - cd /tmp/beanstalkd-1.10/
-  - make
-  - ./beanstalkd &
-  - cd $TRAVIS_BUILD_DIR
+
 before_script:
   - bundle update
-cache: bundler
+
+script: 'ci/travis.rb'
+
 env:
   global:
     - LISTEN_GEM_DEBUGGING=2
@@ -29,8 +30,11 @@ env:
     - LISTEN=1 LISTEN_GC_FIX=0 Z=9
     - LISTEN=1 LISTEN_GC_FIX=0 Z=9
     - LISTEN=0
+
 rvm:
-  - 2.2.3
+  - 2.2.5
+  - 2.3.1
+
 matrix:
   allow_failures:
     - rvm: ruby-head
@@ -47,10 +51,3 @@ notifications:
     on_failure: always
     rooms:
       - secure: "YA1alef1ESHWGFNVwvmVGCkMe4cUy4j+UcNvMUESraceiAfVyRMAovlQBGs6\n9kBRm7DHYBUXYC2ABQoJbQRLDr/1B5JPf/M8+Qd7BKu8tcDC03U01SMHFLpO\naOs/HLXcDxtnnpL07tGVsm0zhMc5N8tq4/L3SHxK7Vi+TacwQzI="
-bundler_args: --without test --jobs 3 --retry 3
-services:
-  - memcached
-  - redis
-  - rabbitmq
-addons:
-  postgresql: "9.3"

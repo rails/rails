@@ -1,0 +1,42 @@
+require 'abstract_unit'
+require 'active_support/core_ext/hash/conversions'
+
+class MetalRenderingJsonController < MetalRenderingController
+  class Model
+    def to_json(options = {})
+      { a: 'b' }.to_json(options)
+    end
+
+    def to_xml(options = {})
+      { a: 'b' }.to_xml(options)
+    end
+  end
+
+  use_renderers :json
+
+  def one
+    render json: Model.new
+  end
+
+  def two
+    render xml: Model.new
+  end
+end
+
+class RenderersMetalTest < ActionController::TestCase
+  tests MetalRenderingJsonController
+
+  def test_render_json
+    get :one
+    assert_response :success
+    assert_equal({ a: 'b' }.to_json, @response.body)
+    assert_equal 'application/json', @response.content_type
+  end
+
+  def test_render_xml
+    get :two
+    assert_response :success
+    assert_equal(" ", @response.body)
+    assert_equal 'text/plain', @response.content_type
+  end
+end

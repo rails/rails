@@ -42,8 +42,8 @@ module ActiveSupport
         listeners_for(name).each { |s| s.start(name, id, payload) }
       end
 
-      def finish(name, id, payload)
-        listeners_for(name).each { |s| s.finish(name, id, payload) }
+      def finish(name, id, payload, listeners = listeners_for(name))
+        listeners.each { |s| s.finish(name, id, payload) }
       end
 
       def publish(name, *args)

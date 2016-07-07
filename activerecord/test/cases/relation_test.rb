@@ -43,13 +43,17 @@ module ActiveRecord
       (Relation::SINGLE_VALUE_METHODS - [:create_with]).each do |method|
         assert_nil relation.send("#{method}_value"), method.to_s
       end
-      assert_equal({}, relation.create_with_value)
+      value = relation.create_with_value
+      assert_equal({}, value)
+      assert_predicate value, :frozen?
     end
 
     def test_multi_value_initialize
       relation = Relation.new(FakeKlass, :b, nil)
       Relation::MULTI_VALUE_METHODS.each do |method|
-        assert_equal [], relation.send("#{method}_values"), method.to_s
+        values = relation.send("#{method}_values")
+        assert_equal [], values, method.to_s
+        assert_predicate values, :frozen?, method.to_s
       end
     end
 
@@ -77,7 +81,6 @@ module ActiveRecord
 
     def test_tree_is_not_traversed
       relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
-      # FIXME: Remove the Arel::Nodes::Quoted in Rails 5.1
       left     = relation.table[:id].eq(10)
       right    = relation.table[:id].eq(10)
       combine  = left.and right
@@ -104,7 +107,6 @@ module ActiveRecord
 
     def test_create_with_value_with_wheres
       relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
-      # FIXME: Remove the Arel::Nodes::Quoted in Rails 5.1
       relation.where! relation.table[:id].eq(10)
       relation.create_with_value = {:hello => 'world'}
       assert_equal({:hello => 'world', :id => 10}, relation.scope_for_create)
@@ -115,7 +117,6 @@ module ActiveRecord
       relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
       assert_equal({}, relation.scope_for_create)
 
-      # FIXME: Remove the Arel::Nodes::Quoted in Rails 5.1
       relation.where! relation.table[:id].eq(10)
       assert_equal({}, relation.scope_for_create)
 

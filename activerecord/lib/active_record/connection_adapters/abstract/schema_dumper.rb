@@ -7,15 +7,16 @@ module ActiveRecord
     # Adapter level by over-writing this code inside the database specific adapters
     module ColumnDumper
       def column_spec(column)
-        spec = prepare_column_options(column)
-        (spec.keys - [:name, :type]).each{ |k| spec[k].insert(0, "#{k}: ")}
+        spec = Hash[prepare_column_options(column).map { |k, v| [k, "#{k}: #{v}"] }]
+        spec[:name] = column.name.inspect
+        spec[:type] = schema_type(column).to_s
         spec
       end
 
       def column_spec_for_primary_key(column)
-        return if column.type == :integer
-        spec = { id: column.type.inspect }
-        spec.merge!(prepare_column_options(column).delete_if { |key, _| [:name, :type].include?(key) })
+        return {} if default_primary_key?(column)
+        spec = { id: schema_type(column).inspect }
+        spec.merge!(prepare_column_options(column).except!(:null))
       end
 
       # This can be overridden on an Adapter level basis to support other
@@ -23,9 +24,6 @@ module ActiveRecord
       # PostgreSQL::ColumnDumper)
       def prepare_column_options(column)
         spec = {}
-        spec[:name]      = column.name.inspect
-        spec[:type]      = schema_type(column)
-        spec[:null]      = 'false' unless column.null
 
         if limit = schema_limit(column)
           spec[:limit] = limit
@@ -42,27 +40,39 @@ module ActiveRecord
         default = schema_default(column) if column.has_default?
         spec[:default]   = default unless default.nil?
 
+        spec[:null] = 'false' unless column.null
+
         if collation = schema_collation(column)
           spec[:collation] = collation
         end
+
+        spec[:comment] = column.comment.inspect if column.comment.present?
 
         spec
       end
 
       # Lists the valid migration options
       def migration_keys
-        [:name, :limit, :precision, :scale, :default, :null, :collation]
+        [:name, :limit, :precision, :scale, :default, :null, :collation, :comment]
       end
 
       private
 
+      def default_primary_key?(column)
+        schema_type(column) == :integer
+      end
+
       def schema_type(column)
-        column.type.to_s
+        if column.bigint?
+          :bigint
+        else
+          column.type
+        end
       end
 
       def schema_limit(column)
-        limit = column.limit || native_database_types[column.type][:limit]
-        limit.inspect if limit
+        limit = column.limit unless column.bigint?
+        limit.inspect if limit && limit != native_database_types[column.type][:limit]
       end
 
       def schema_precision(column)
@@ -76,9 +86,15 @@ module ActiveRecord
       def schema_default(column)
         type = lookup_cast_type_from_column(column)
         default = type.deserialize(column.default)
-        unless default.nil?
+        if default.nil?
+          schema_expression(column)
+        else
           type.type_cast_for_schema(default)
         end
+      end
+
+      def schema_expression(column)
+        "-> { #{column.default_function.inspect} }" if column.default_function
       end
 
       def schema_collation(column)

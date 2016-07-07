@@ -61,6 +61,13 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     assert_equal "No association found for name `honesty'. Has it been defined yet?", exception.message
   end
 
+  def test_should_raise_an_UnknownAttributeError_for_non_existing_nested_attributes
+    exception = assert_raise ActiveModel::UnknownAttributeError do
+      Pirate.new(:ship_attributes => { :sail => true })
+    end
+    assert_equal "unknown attribute 'sail' for Ship.", exception.message
+  end
+
   def test_should_disable_allow_destroy_by_default
     Pirate.accepts_nested_attributes_for :ship
 
@@ -69,7 +76,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
 
     pirate.update(ship_attributes: { '_destroy' => true, :id => ship.id })
 
-    assert_nothing_raised(ActiveRecord::RecordNotFound) { pirate.ship.reload }
+    assert_nothing_raised { pirate.ship.reload }
   end
 
   def test_a_model_should_respond_to_underscore_destroy_and_return_if_it_is_marked_for_destruction
@@ -146,6 +153,19 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     assert man.reload.interests.empty?
   end
 
+  def test_reject_if_is_not_short_circuited_if_allow_destroy_is_false
+    Pirate.accepts_nested_attributes_for :ship, reject_if: ->(a) { a[:name] == "The Golden Hind" }, allow_destroy: false
+
+    pirate = Pirate.create!(catchphrase: "Stop wastin' me time", ship_attributes: { name: "White Pearl", _destroy: "1" })
+    assert_equal "White Pearl", pirate.reload.ship.name
+
+    pirate.update!(ship_attributes: { id: pirate.ship.id, name: "The Golden Hind", _destroy: "1" })
+    assert_equal "White Pearl", pirate.reload.ship.name
+
+    pirate.update!(ship_attributes: { id: pirate.ship.id, name: "Black Pearl", _destroy: "1" })
+    assert_equal "Black Pearl", pirate.reload.ship.name
+  end
+
   def test_has_many_association_updating_a_single_record
     Man.accepts_nested_attributes_for(:interests)
     man = Man.create(name: 'John')
@@ -160,7 +180,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
 
     pirate = Pirate.new(:catchphrase => "Stop wastin' me time")
     pirate.ship_attributes = { :id => "" }
-    assert_nothing_raised(ActiveRecord::RecordNotFound) { pirate.save! }
+    assert_nothing_raised { pirate.save! }
   end
 
   def test_first_and_array_index_zero_methods_return_the_same_value_when_nested_attributes_are_set_to_update_existing_record
@@ -491,7 +511,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
   def test_should_not_destroy_an_existing_record_if_destroy_is_not_truthy
     [nil, '0', 0, 'false', false].each do |not_truth|
       @ship.update(pirate_attributes: { id: @ship.pirate.id, _destroy: not_truth })
-      assert_nothing_raised(ActiveRecord::RecordNotFound) { @ship.pirate.reload }
+      assert_nothing_raised { @ship.pirate.reload }
     end
   end
 
@@ -499,7 +519,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
     Ship.accepts_nested_attributes_for :pirate, :allow_destroy => false, :reject_if => proc(&:empty?)
 
     @ship.update(pirate_attributes: { id: @ship.pirate.id, _destroy: '1' })
-    assert_nothing_raised(ActiveRecord::RecordNotFound) { @ship.pirate.reload }
+    assert_nothing_raised { @ship.pirate.reload }
   ensure
     Ship.accepts_nested_attributes_for :pirate, :allow_destroy => true, :reject_if => proc(&:empty?)
   end
@@ -516,7 +536,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
     pirate = @ship.pirate
 
     @ship.attributes = { :pirate_attributes => { :id => pirate.id, '_destroy' => true } }
-    assert_nothing_raised(ActiveRecord::RecordNotFound) { Pirate.find(pirate.id) }
+    assert_nothing_raised { Pirate.find(pirate.id) }
     @ship.save
     assert_raise(ActiveRecord::RecordNotFound) { Pirate.find(pirate.id) }
   end
@@ -567,6 +587,13 @@ end
 module NestedAttributesOnACollectionAssociationTests
   def test_should_define_an_attribute_writer_method_for_the_association
     assert_respond_to @pirate, association_setter
+  end
+
+  def test_should_raise_an_UnknownAttributeError_for_non_existing_nested_attributes_for_has_many
+    exception = assert_raise ActiveModel::UnknownAttributeError do
+      @pirate.parrots_attributes = [{ peg_leg: true }]
+    end
+    assert_equal "unknown attribute 'peg_leg' for Parrot.", exception.message
   end
 
   def test_should_save_only_one_association_on_create
@@ -686,7 +713,7 @@ module NestedAttributesOnACollectionAssociationTests
   end
 
   def test_should_not_assign_destroy_key_to_a_record
-    assert_nothing_raised ActiveRecord::UnknownAttributeError do
+    assert_nothing_raised do
       @pirate.send(association_setter, { 'foo' => { '_destroy' => '0' }})
     end
   end
@@ -721,8 +748,8 @@ module NestedAttributesOnACollectionAssociationTests
   end
 
   def test_should_raise_an_argument_error_if_something_else_than_a_hash_is_passed
-    assert_nothing_raised(ArgumentError) { @pirate.send(association_setter, {}) }
-    assert_nothing_raised(ArgumentError) { @pirate.send(association_setter, Hash.new) }
+    assert_nothing_raised { @pirate.send(association_setter, {}) }
+    assert_nothing_raised { @pirate.send(association_setter, Hash.new) }
 
     exception = assert_raise ArgumentError do
       @pirate.send(association_setter, "foo")
@@ -797,7 +824,7 @@ module NestedAttributesOnACollectionAssociationTests
 
   def test_can_use_symbols_as_object_identifier
     @pirate.attributes = { :parrots_attributes => { :foo => { :name => 'Lovely Day' }, :bar => { :name => 'Blown Away' } } }
-    assert_nothing_raised(NoMethodError) { @pirate.save! }
+    assert_nothing_raised { @pirate.save! }
   end
 
   def test_numeric_column_changes_from_zero_to_no_empty_string
@@ -1067,40 +1094,5 @@ class TestHasManyAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveR
 
     assert_not part.valid?
     assert_equal ["Ship name can't be blank"], part.errors.full_messages
-  end
-
-  class ProtectedParameters
-    def initialize(hash)
-      @hash = hash
-    end
-
-    def permitted?
-      true
-    end
-
-    def [](key)
-      @hash[key]
-    end
-
-    def to_h
-      @hash
-    end
-  end
-
-  test "strong params style objects can be assigned for singular associations" do
-    params = { name: "Stern", ship_attributes:
-               ProtectedParameters.new(name: "The Black Rock") }
-    part = ShipPart.new(params)
-
-    assert_equal "Stern", part.name
-    assert_equal "The Black Rock", part.ship.name
-  end
-
-  test "strong params style objects can be assigned for collection associations" do
-    params = { trinkets_attributes: ProtectedParameters.new("0" => ProtectedParameters.new(name: "Necklace"), "1" => ProtectedParameters.new(name: "Spoon")) }
-    part = ShipPart.new(params)
-
-    assert_equal "Necklace", part.trinkets[0].name
-    assert_equal "Spoon", part.trinkets[1].name
   end
 end

@@ -1,3 +1,22 @@
+## Rails 5.0.0 (June 30, 2016) ##
+
+*   Enable class reloading prior to job dispatch, and ensure Active Record
+    connections are returned to the pool when jobs are run in separate threads.
+
+    *Matthew Draper*
+
+*   Tune the async adapter for low-footprint dev/test usage. Use a single
+    thread pool for all queues and limit to 0 to #CPU total threads, down from
+    2 to 10*#CPU per queue.
+
+    *Jeremy Daer*
+
+*   Change the default adapter from inline to async. It's a better default as tests will then not mistakenly
+    come to rely on behavior happening synchronously. This is especially important with things like jobs kicked off
+    in Active Record lifecycle callbacks.
+
+    *DHH*
+
 *   Fixed serializing `:at` option for `assert_enqueued_with`
     and `assert_performed_with`.
 
@@ -26,7 +45,7 @@
 
     *Jean Boussier*
 
-*   Include I18n.locale into job serialization/deserialization and use it around
+*   Include `I18n.locale` into job serialization/deserialization and use it around
     `perform`.
 
     Fixes #20799.
@@ -49,6 +68,23 @@
 *   A generated job now inherits from `app/jobs/application_job.rb` by default.
 
     *Jeroen van Baarsen*
+
+*   Add ability to configure the queue adapter on a per job basis.
+
+    Now different jobs can have different queue adapters without conflicting with
+    each other.
+
+    Example:
+
+        class EmailJob < ActiveJob::Base
+          self.queue_adapter = :sidekiq
+        end
+
+        class ImageProcessingJob < ActiveJob::Base
+          self.queue_adapter = :delayed_job
+        end
+
+    *tamird*
 
 *   Add an `:only` option to `perform_enqueued_jobs` to filter jobs based on
     type.

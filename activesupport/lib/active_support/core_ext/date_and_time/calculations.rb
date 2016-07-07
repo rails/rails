@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object/try'
+
 module DateAndTime
   module Calculations
     DAYS_INTO_WEEK = {
@@ -49,6 +51,11 @@ module DateAndTime
     # Returns true if the date/time falls on a Saturday or Sunday.
     def on_weekend?
       WEEKEND_DAYS.include?(wday)
+    end
+
+    # Returns true if the date/time does not fall on a Saturday or Sunday.
+    def on_weekday?
+      !WEEKEND_DAYS.include?(wday)
     end
 
     # Returns a new date/time the specified number of days ago.

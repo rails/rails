@@ -1,5 +1,4 @@
 require 'active_record/type'
-require 'active_support/core_ext/benchmark'
 require 'active_record/connection_adapters/determine_if_preparable_visitor'
 require 'active_record/connection_adapters/schema_cache'
 require 'active_record/connection_adapters/sql_type_metadata'
@@ -23,11 +22,11 @@ module ActiveRecord
       autoload :TableDefinition
       autoload :Table
       autoload :AlterTable
+      autoload :ReferenceDefinition
     end
 
     autoload_at 'active_record/connection_adapters/abstract/connection_pool' do
       autoload :ConnectionHandler
-      autoload :ConnectionManagement
     end
 
     autoload_under 'abstract' do
@@ -68,6 +67,7 @@ module ActiveRecord
       include QueryCache
       include ActiveSupport::Callbacks
       include ColumnDumper
+      include Savepoints
 
       SIMPLE_INT = /\A\d+\z/
 
@@ -95,17 +95,25 @@ module ActiveRecord
 
       attr_reader :prepared_statements
 
-      def initialize(connection, logger = nil, pool = nil) #:nodoc:
+      def initialize(connection, logger = nil, config = {}) # :nodoc:
         super()
 
         @connection          = connection
         @owner               = nil
         @instrumenter        = ActiveSupport::Notifications.instrumenter
         @logger              = logger
-        @pool                = pool
+        @config              = config
+        @pool                = nil
         @schema_cache        = SchemaCache.new self
-        @visitor             = nil
-        @prepared_statements = false
+        @quoted_column_names, @quoted_table_names = {}, {}
+        @visitor             = arel_visitor
+
+        if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
+          @prepared_statements = true
+          @visitor.extend(DetermineIfPreparableVisitor)
+        else
+          @prepared_statements = false
+        end
       end
 
       class Version
@@ -141,8 +149,12 @@ module ActiveRecord
         end
       end
 
+      def arel_visitor # :nodoc:
+        Arel::Visitors::ToSql.new(self)
+      end
+
       def valid_type?(type)
-        true
+        false
       end
 
       def schema_creation
@@ -172,7 +184,30 @@ module ActiveRecord
 
       # this method must only be called while holding connection pool's mutex
       def expire
-        @owner = nil
+        if in_use?
+          if @owner != Thread.current
+            raise ActiveRecordError, "Cannot expire connection, " <<
+              "it is owned by a different thread: #{@owner}. " <<
+              "Current thread: #{Thread.current}."
+          end
+
+          @owner = nil
+        else
+          raise ActiveRecordError, 'Cannot expire connection, it is not currently leased.'
+        end
+      end
+
+      # this method must only be called while holding connection pool's mutex (and a desire for segfaults)
+      def steal! # :nodoc:
+        if in_use?
+          if @owner != Thread.current
+            pool.send :remove_connection_from_thread_cache, self, @owner
+
+            @owner = Thread.current
+          end
+        else
+          raise ActiveRecordError, 'Cannot steal connection, it is not currently leased.'
+        end
       end
 
       def unprepared_statement
@@ -236,6 +271,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support expression indices?
+      def supports_expression_index?
+        false
+      end
+
       # Does this adapter support explain?
       def supports_explain?
         false
@@ -277,6 +317,21 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support metadata comments on database objects (tables, columns, indexes)?
+      def supports_comments?
+        false
+      end
+
+      # Can comments for tables, columns, and indexes be specified in create/alter table statements?
+      def supports_comments_in_create?
+        false
+      end
+
+      # Does this adapter support multi-value insert?
+      def supports_multi_insert?
+        true
+      end
+
       # This is meant to be implemented by the adapters that support extensions
       def disable_extension(name)
       end
@@ -307,12 +362,6 @@ module ActiveRecord
       # A list of index algorithms, to be filled by adapters that support them.
       def index_algorithms
         {}
-      end
-
-      # Returns a bind substitution value given a bind +column+
-      # NOTE: The column param is currently being used by the sqlserver-adapter
-      def substitute_at(column, _unused = 0)
-        Arel::Nodes::BindParam.new
       end
 
       # REFERENTIAL INTEGRITY ====================================
@@ -375,7 +424,7 @@ module ActiveRecord
       end
 
       # Provides access to the underlying database driver for this adapter. For
-      # example, this method returns a Mysql object in case of MysqlAdapter,
+      # example, this method returns a Mysql2::Client object in case of Mysql2Adapter,
       # and a PGconn object in case of PostgreSQLAdapter.
       #
       # This is useful for when you need to call a proprietary method such as
@@ -384,27 +433,19 @@ module ActiveRecord
         @connection
       end
 
-      def create_savepoint(name = nil)
-      end
-
-      def release_savepoint(name = nil)
-      end
-
-      def case_sensitive_modifier(node, table_attribute)
-        node
-      end
-
       def case_sensitive_comparison(table, attribute, column, value)
-        table_attr = table[attribute]
-        value = case_sensitive_modifier(value, table_attr) unless value.nil?
-        table_attr.eq(value)
+        if value.nil?
+          table[attribute].eq(value)
+        else
+          table[attribute].eq(Arel::Nodes::BindParam.new)
+        end
       end
 
       def case_insensitive_comparison(table, attribute, column, value)
         if can_perform_case_insensitive_comparison_for?(column)
-          table[attribute].lower.eq(table.lower(value))
+          table[attribute].lower.eq(table.lower(Arel::Nodes::BindParam.new))
         else
-          case_sensitive_comparison(table, attribute, column, value)
+          table[attribute].eq(Arel::Nodes::BindParam.new)
         end
       end
 
@@ -412,10 +453,6 @@ module ActiveRecord
         true
       end
       private :can_perform_case_insensitive_comparison_for?
-
-      def current_savepoint_name
-        current_transaction.savepoint_name
-      end
 
       # Check the connection back in to the connection pool
       def close
@@ -428,8 +465,8 @@ module ActiveRecord
         end
       end
 
-      def new_column(name, default, sql_type_metadata = nil, null = true, default_function = nil, collation = nil)
-        Column.new(name, default, sql_type_metadata, null, default_function, collation)
+      def new_column(name, default, sql_type_metadata, null, table_name, default_function = nil, collation = nil) # :nodoc:
+        Column.new(name, default, sql_type_metadata, null, table_name, default_function, collation)
       end
 
       def lookup_cast_type(sql_type) # :nodoc:
@@ -438,6 +475,24 @@ module ActiveRecord
 
       def column_name_for_operation(operation, node) # :nodoc:
         visitor.accept(node, collector).value
+      end
+
+      def combine_bind_parameters(
+        from_clause: [],
+        join_clause: [],
+        where_clause: [],
+        having_clause: [],
+        limit: nil,
+        offset: nil
+      ) # :nodoc:
+        result = from_clause + join_clause + where_clause + having_clause
+        if limit
+          result << limit
+        end
+        if offset
+          result << offset
+        end
+        result
       end
 
       protected

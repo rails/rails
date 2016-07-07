@@ -394,7 +394,7 @@ Rails sets up (for the CookieStore) a secret key used for signing the session da
 
 # Make sure the secret is at least 30 characters and all random,
 # no regular words or you'll be exposed to dictionary attacks.
-# You can use `rake secret` to generate a secure secret key.
+# You can use `rails secret` to generate a secure secret key.
 
 # Make sure the secrets in this file are kept private
 # if you're sharing your code publicly.
@@ -700,7 +700,7 @@ class LoginsController < ApplicationController
 end
 ```
 
-Now, the `LoginsController`'s `new` and `create` actions will work as before without requiring the user to be logged in. The `:only` option is used to only skip this filter for these actions, and there is also an `:except` option which works the other way. These options can be used when adding filters too, so you can add a filter which only runs for selected actions in the first place.
+Now, the `LoginsController`'s `new` and `create` actions will work as before without requiring the user to be logged in. The `:only` option is used to skip this filter only for these actions, and there is also an `:except` option which works the other way. These options can be used when adding filters too, so you can add a filter which only runs for selected actions in the first place.
 
 ### After Filters and Around Filters
 
@@ -995,10 +995,6 @@ you would like in a response object. The `ActionController::Live` module allows
 you to create a persistent connection with a browser. Using this module, you will
 be able to send arbitrary data to the browser at specific points in time.
 
-NOTE: The default Rails server (WEBrick) is a buffering web server and does not
-support streaming. In order to use this feature, you'll need to use a non buffering
-server like [Puma](http://puma.io), [Rainbows](http://rainbows.bogomips.org)
-or [Passenger](https://www.phusionpassenger.com).
 
 #### Incorporating Live Streaming
 
@@ -1092,6 +1088,8 @@ You can filter out sensitive request parameters from your log files by appending
 config.filter_parameters << :password
 ```
 
+NOTE: Provided parameters will be filtered out by partial matching regular expression. Rails adds default `:password` in the appropriate initializer (`initializers/filter_parameter_logging.rb`) and cares about typical application parameters `password` and `password_confirmation`.
+
 ### Redirects Filtering
 
 Sometimes it's desirable to filter out from log files some sensitive locations your application is redirecting to.
@@ -1118,7 +1116,7 @@ Rails default exception handling displays a "500 Server Error" message for all e
 
 ### The Default 500 and 404 Templates
 
-By default a production application will render either a 404 or a 500 error message. These messages are contained in static HTML files in the `public` folder, in `404.html` and `500.html` respectively. You can customize these files to add some extra information and style, but remember that they are static HTML; i.e. you can't use ERB, SCSS, CoffeeScript, or layouts for them.
+By default a production application will render either a 404 or a 500 error message, in the development environment all unhandled exceptions are raised. These messages are contained in static HTML files in the `public` folder, in `404.html` and `500.html` respectively. You can customize these files to add some extra information and style, but remember that they are static HTML; i.e. you can't use ERB, SCSS, CoffeeScript, or layouts for them.
 
 ### `rescue_from`
 
@@ -1150,7 +1148,7 @@ class ApplicationController < ActionController::Base
 
     def user_not_authorized
       flash[:error] = "You don't have access to this section."
-      redirect_to :back
+      redirect_back(fallback_location: root_path)
     end
 end
 
@@ -1174,7 +1172,11 @@ end
 
 WARNING: You shouldn't do `rescue_from Exception` or `rescue_from StandardError` unless you have a particular reason as it will cause serious side-effects (e.g. you won't be able to see exception details and tracebacks during development).
 
-NOTE: Certain exceptions are only rescuable from the `ApplicationController` class, as they are raised before the controller gets initialized and the action gets executed. 
+NOTE: When running in the production environment, all
+`ActiveRecord::RecordNotFound` errors render the 404 error page. Unless you need
+a custom behavior you don't need to handle this.
+
+NOTE: Certain exceptions are only rescuable from the `ApplicationController` class, as they are raised before the controller gets initialized and the action gets executed.
 
 Force HTTPS protocol
 --------------------

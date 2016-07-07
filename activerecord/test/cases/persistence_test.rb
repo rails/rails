@@ -19,6 +19,8 @@ require 'models/person'
 require 'models/pet'
 require 'models/ship'
 require 'models/toy'
+require 'models/admin'
+require 'models/admin/user'
 require 'rexml/document'
 
 class PersistenceTest < ActiveRecord::TestCase
@@ -161,10 +163,27 @@ class PersistenceTest < ActiveRecord::TestCase
     assert !company.valid?
     original_errors = company.errors
     client = company.becomes(Client)
-    assert_equal original_errors, client.errors
+    assert_equal original_errors.keys, client.errors.keys
   end
 
-  def test_dupd_becomes_persists_changes_from_the_original
+  def test_becomes_errors_base
+    child_class = Class.new(Admin::User) do
+      store_accessor :settings, :foo
+
+      def self.name; 'Admin::ChildUser'; end
+    end
+
+    admin = Admin::User.new
+    admin.errors.add :token, :invalid
+    child = admin.becomes(child_class)
+
+    assert_equal [:token], child.errors.keys
+    assert_nothing_raised do
+      child.errors.add :foo, :invalid
+    end
+  end
+
+  def test_duped_becomes_persists_changes_from_the_original
     original = topics(:first)
     copy = original.dup.becomes(Reply)
     copy.save!

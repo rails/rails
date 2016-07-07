@@ -11,11 +11,11 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     # Model
-    assert_file "app/models/product_line.rb", /class ProductLine < ActiveRecord::Base/
+    assert_file "app/models/product_line.rb", /class ProductLine < ApplicationRecord/
     assert_file "test/models/product_line_test.rb", /class ProductLineTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/product_lines.yml"
-    assert_migration "db/migrate/create_product_lines.rb", /belongs_to :product, index: true/
-    assert_migration "db/migrate/create_product_lines.rb", /references :user, index: true/
+    assert_migration "db/migrate/create_product_lines.rb", /belongs_to :product/
+    assert_migration "db/migrate/create_product_lines.rb", /references :user/
 
     # Route
     assert_file "config/routes.rb" do |route|
@@ -57,9 +57,9 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "test/controllers/product_lines_controller_test.rb" do |test|
-      assert_match(/class ProductLinesControllerTest < ActionController::TestCase/, test)
-      assert_match(/post :create, params: \{ product_line: \{ product_id: @product_line\.product_id, title: @product_line\.title, user_id: @product_line\.user_id \} \}/, test)
-      assert_match(/patch :update, params: \{ id: @product_line, product_line: \{ product_id: @product_line\.product_id, title: @product_line\.title, user_id: @product_line\.user_id \} \}/, test)
+      assert_match(/class ProductLinesControllerTest < ActionDispatch::IntegrationTest/, test)
+      assert_match(/post product_lines_url, params: \{ product_line: \{ product_id: @product_line\.product_id, title: @product_line\.title, user_id: @product_line\.user_id \} \}/, test)
+      assert_match(/patch product_line_url\(@product_line\), params: \{ product_line: \{ product_id: @product_line\.product_id, title: @product_line\.title, user_id: @product_line\.user_id \} \}/, test)
     end
 
     # Views
@@ -91,11 +91,11 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     run_generator %w(product_line title:string product:belongs_to user:references --api --no-template-engine --no-helper --no-assets)
 
     # Model
-    assert_file "app/models/product_line.rb", /class ProductLine < ActiveRecord::Base/
+    assert_file "app/models/product_line.rb", /class ProductLine < ApplicationRecord/
     assert_file "test/models/product_line_test.rb", /class ProductLineTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/product_lines.yml"
-    assert_migration "db/migrate/create_product_lines.rb", /belongs_to :product, index: true/
-    assert_migration "db/migrate/create_product_lines.rb", /references :user, index: true/
+    assert_migration "db/migrate/create_product_lines.rb", /belongs_to :product/
+    assert_migration "db/migrate/create_product_lines.rb", /references :user/
 
     # Route
     assert_file "config/routes.rb" do |route|
@@ -135,9 +135,9 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "test/controllers/product_lines_controller_test.rb" do |test|
-      assert_match(/class ProductLinesControllerTest < ActionController::TestCase/, test)
-      assert_match(/post :create, params: \{ product_line: \{ product_id: @product_line\.product_id, title: @product_line\.title, user_id: @product_line\.user_id \} \}/, test)
-      assert_match(/patch :update, params: \{ id: @product_line, product_line: \{ product_id: @product_line\.product_id, title: @product_line\.title, user_id: @product_line\.user_id \} \}/, test)
+      assert_match(/class ProductLinesControllerTest < ActionDispatch::IntegrationTest/, test)
+      assert_match(/post product_lines_url, params: \{ product_line: \{ product_id: @product_line\.product_id, title: @product_line\.title, user_id: @product_line\.user_id \} \}/, test)
+      assert_match(/patch product_line_url\(@product_line\), params: \{ product_line: \{ product_id: @product_line\.product_id, title: @product_line\.title, user_id: @product_line\.user_id \} \}/, test)
       assert_no_match(/assert_redirected_to/, test)
     end
 
@@ -161,10 +161,10 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     run_generator ["product_line"]
 
     assert_file "test/controllers/product_lines_controller_test.rb" do |content|
-      assert_match(/class ProductLinesControllerTest < ActionController::TestCase/, content)
+      assert_match(/class ProductLinesControllerTest < ActionDispatch::IntegrationTest/, content)
       assert_match(/test "should get index"/, content)
-      assert_match(/post :create, params: \{ product_line: \{  \} \}/, content)
-      assert_match(/patch :update, params: \{ id: @product_line, product_line: \{  \} \}/, content)
+      assert_match(/post product_lines_url, params: \{ product_line: \{  \} \}/, content)
+      assert_match(/patch product_line_url\(@product_line\), params: \{ product_line: \{  \} \}/, content)
     end
   end
 
@@ -205,7 +205,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Model
     assert_file "app/models/admin.rb", /module Admin/
-    assert_file "app/models/admin/role.rb", /class Admin::Role < ActiveRecord::Base/
+    assert_file "app/models/admin/role.rb", /class Admin::Role < ApplicationRecord/
     assert_file "test/models/admin/role_test.rb", /class Admin::RoleTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/admin/roles.yml"
     assert_migration "db/migrate/create_admin_roles.rb"
@@ -250,7 +250,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "test/controllers/admin/roles_controller_test.rb",
-                /class Admin::RolesControllerTest < ActionController::TestCase/
+                /class Admin::RolesControllerTest < ActionDispatch::IntegrationTest/
 
     # Views
     %w(index edit new show _form).each do |view|
@@ -486,9 +486,9 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     Dir.chdir(engine_path) do
       quietly do
         `bin/rails g scaffold User name:string age:integer;
-        bundle exec rake db:migrate`
+        bin/rails db:migrate`
       end
-      assert_match(/8 runs, 13 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
+      assert_match(/8 runs, 10 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
     end
   end
 
@@ -500,9 +500,9 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     Dir.chdir(engine_path) do
       quietly do
         `bin/rails g scaffold User name:string age:integer;
-        bundle exec rake db:migrate`
+        bin/rails db:migrate`
       end
-      assert_match(/8 runs, 13 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
+      assert_match(/8 runs, 10 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
     end
   end
 
@@ -514,7 +514,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     Dir.chdir(engine_path) do
       quietly do
         `bin/rails g scaffold User name:string age:integer;
-        bundle exec rake db:migrate`
+        bin/rails db:migrate`
       end
       assert_match(/6 runs, 8 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
     end
@@ -528,7 +528,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     Dir.chdir(engine_path) do
       quietly do
         `bin/rails g scaffold User name:string age:integer;
-        bundle exec rake db:migrate`
+        bin/rails db:migrate`
       end
       assert_match(/6 runs, 8 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
     end

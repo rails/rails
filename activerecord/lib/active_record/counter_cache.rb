@@ -97,8 +97,8 @@ module ActiveRecord
       #
       # ==== Examples
       #
-      #   # Increment the post_count column for the record with an id of 5
-      #   DiscussionBoard.increment_counter(:post_count, 5)
+      #   # Increment the posts_count column for the record with an id of 5
+      #   DiscussionBoard.increment_counter(:posts_count, 5)
       def increment_counter(counter_name, id)
         update_counters(id, counter_name => 1)
       end
@@ -115,8 +115,8 @@ module ActiveRecord
       #
       # ==== Examples
       #
-      #   # Decrement the post_count column for the record with an id of 5
-      #   DiscussionBoard.decrement_counter(:post_count, 5)
+      #   # Decrement the posts_count column for the record with an id of 5
+      #   DiscussionBoard.decrement_counter(:posts_count, 5)
       def decrement_counter(counter_name, id)
         update_counters(id, counter_name => -1)
       end

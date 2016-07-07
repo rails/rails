@@ -422,6 +422,11 @@ EXPECTED
     assert_equal '"1999-12-31T19:00:00.000-05:00"', ActiveSupport::JSON.encode(time)
   end
 
+  def test_exception_to_json
+    exception = Exception.new("foo")
+    assert_equal '"foo"', ActiveSupport::JSON.encode(exception)
+  end
+
   protected
 
     def object_keys(json_object)

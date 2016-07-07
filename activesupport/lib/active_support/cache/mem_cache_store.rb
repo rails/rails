@@ -36,13 +36,13 @@ module ActiveSupport
         end
 
         def write_entry(key, entry, options) # :nodoc:
-          retval = super
-          if options[:raw] && local_cache && retval
+          if options[:raw] && local_cache
             raw_entry = Entry.new(entry.value.to_s)
             raw_entry.expires_at = entry.expires_at
-            local_cache.write_entry(key, raw_entry, options)
+            super(key, raw_entry, options)
+          else
+            super
           end
-          retval
         end
       end
 
@@ -96,16 +96,14 @@ module ActiveSupport
         options = names.extract_options!
         options = merged_options(options)
 
-        instrument_multi(:read, names, options) do
-          keys_to_names = Hash[names.map{|name| [normalize_key(name, options), name]}]
-          raw_values = @data.get_multi(keys_to_names.keys, :raw => true)
-          values = {}
-          raw_values.each do |key, value|
-            entry = deserialize_entry(value)
-            values[keys_to_names[key]] = entry.value unless entry.expired?
-          end
-          values
+        keys_to_names = Hash[names.map{|name| [normalize_key(name, options), name]}]
+        raw_values = @data.get_multi(keys_to_names.keys, :raw => true)
+        values = {}
+        raw_values.each do |key, value|
+          entry = deserialize_entry(value)
+          values[keys_to_names[key]] = entry.value unless entry.expired?
         end
+        values
       end
 
       # Increment a cached value. This method uses the memcached incr atomic
@@ -115,11 +113,10 @@ module ActiveSupport
       def increment(name, amount = 1, options = nil) # :nodoc:
         options = merged_options(options)
         instrument(:increment, name, :amount => amount) do
-          @data.incr(normalize_key(name, options), amount)
+          rescue_error_with nil do
+            @data.incr(normalize_key(name, options), amount)
+          end
         end
-      rescue Dalli::DalliError => e
-        logger.error("DalliError (#{e}): #{e.message}") if logger
-        nil
       end
 
       # Decrement a cached value. This method uses the memcached decr atomic
@@ -129,20 +126,16 @@ module ActiveSupport
       def decrement(name, amount = 1, options = nil) # :nodoc:
         options = merged_options(options)
         instrument(:decrement, name, :amount => amount) do
-          @data.decr(normalize_key(name, options), amount)
+          rescue_error_with nil do
+            @data.decr(normalize_key(name, options), amount)
+          end
         end
-      rescue Dalli::DalliError => e
-        logger.error("DalliError (#{e}): #{e.message}") if logger
-        nil
       end
 
       # Clear the entire cache on all memcached servers. This method should
       # be used with care when shared cache is being used.
       def clear(options = nil)
-        @data.flush_all
-      rescue Dalli::DalliError => e
-        logger.error("DalliError (#{e}): #{e.message}") if logger
-        nil
+        rescue_error_with(nil) { @data.flush_all }
       end
 
       # Get the statistics from the memcached servers.
@@ -153,10 +146,7 @@ module ActiveSupport
       protected
         # Read an entry from the cache.
         def read_entry(key, options) # :nodoc:
-          deserialize_entry(@data.get(key, options))
-        rescue Dalli::DalliError => e
-          logger.error("DalliError (#{e}): #{e.message}") if logger
-          nil
+          rescue_error_with(nil) { deserialize_entry(@data.get(key, options)) }
         end
 
         # Write an entry to the cache.
@@ -168,18 +158,14 @@ module ActiveSupport
             # Set the memcache expire a few minutes in the future to support race condition ttls on read
             expires_in += 5.minutes
           end
-          @data.send(method, key, value, expires_in, options)
-        rescue Dalli::DalliError => e
-          logger.error("DalliError (#{e}): #{e.message}") if logger
-          false
+          rescue_error_with false do
+            @data.send(method, key, value, expires_in, options)
+          end
         end
 
         # Delete an entry from the cache.
         def delete_entry(key, options) # :nodoc:
-          @data.delete(key)
-        rescue Dalli::DalliError => e
-          logger.error("DalliError (#{e}): #{e.message}") if logger
-          false
+          rescue_error_with(false) { @data.delete(key) }
         end
 
       private
@@ -207,9 +193,14 @@ module ActiveSupport
           if raw_value
             entry = Marshal.load(raw_value) rescue raw_value
             entry.is_a?(Entry) ? entry : Entry.new(entry)
-          else
-            nil
           end
+        end
+
+        def rescue_error_with(fallback)
+          yield
+        rescue Dalli::DalliError => e
+          logger.error("DalliError (#{e}): #{e.message}") if logger
+          fallback
         end
     end
   end

@@ -1,6 +1,16 @@
 require 'active_record'
 
 db_namespace = namespace :db do
+  desc "Set the environment value for the database"
+  task "environment:set" => [:environment, :load_config] do
+    ActiveRecord::InternalMetadata.create_table
+    ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Migrator.current_environment
+  end
+
+  task :check_protected_environments => [:environment, :load_config] do
+    ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+  end
+
   task :load_config do
     ActiveRecord::Base.configurations       = ActiveRecord::Tasks::DatabaseTasks.database_configuration || {}
     ActiveRecord::Migrator.migrations_paths = ActiveRecord::Tasks::DatabaseTasks.migrations_paths
@@ -12,30 +22,34 @@ db_namespace = namespace :db do
     end
   end
 
-  desc 'Creates the database from DATABASE_URL or config/database.yml for the current RAILS_ENV (use db:create:all to create all databases in the config). Without RAILS_ENV, it defaults to creating the development and test databases.'
+  desc 'Creates the database from DATABASE_URL or config/database.yml for the current RAILS_ENV (use db:create:all to create all databases in the config). Without RAILS_ENV or when RAILS_ENV is development, it defaults to creating the development and test databases.'
   task :create => [:load_config] do
     ActiveRecord::Tasks::DatabaseTasks.create_current
   end
 
   namespace :drop do
-    task :all => :load_config do
+    task :all => [:load_config, :check_protected_environments] do
       ActiveRecord::Tasks::DatabaseTasks.drop_all
     end
   end
 
-  desc 'Drops the database from DATABASE_URL or config/database.yml for the current RAILS_ENV (use db:drop:all to drop all databases in the config). Without RAILS_ENV, it defaults to dropping the development and test databases.'
-  task :drop => [:load_config] do
+  desc 'Drops the database from DATABASE_URL or config/database.yml for the current RAILS_ENV (use db:drop:all to drop all databases in the config). Without RAILS_ENV or when RAILS_ENV is development, it defaults to dropping the development and test databases.'
+  task :drop => [:load_config, :check_protected_environments] do
+    db_namespace["drop:_unsafe"].invoke
+  end
+
+  task "drop:_unsafe" => [:load_config] do
     ActiveRecord::Tasks::DatabaseTasks.drop_current
   end
 
   namespace :purge do
-    task :all => :load_config do
+    task :all => [:load_config, :check_protected_environments] do
       ActiveRecord::Tasks::DatabaseTasks.purge_all
     end
   end
 
   # desc "Empty the database from DATABASE_URL or config/database.yml for the current RAILS_ENV (use db:purge:all to purge all databases in the config). Without RAILS_ENV it defaults to purging the development and test databases."
-  task :purge => [:load_config] do
+  task :purge => [:load_config, :check_protected_environments] do
     ActiveRecord::Tasks::DatabaseTasks.purge_current
   end
 
@@ -169,7 +183,7 @@ db_namespace = namespace :db do
       pending_migrations.each do |pending_migration|
         puts '  %4d %s' % [pending_migration.version, pending_migration.name]
       end
-      abort %{Run `rake db:migrate` to update your database then try again.}
+      abort %{Run `rails db:migrate` to update your database then try again.}
     end
   end
 
@@ -242,7 +256,7 @@ db_namespace = namespace :db do
     end
 
     desc 'Loads a schema.rb file into the database'
-    task :load => [:environment, :load_config] do
+    task :load => [:environment, :load_config, :check_protected_environments] do
       ActiveRecord::Tasks::DatabaseTasks.load_schema_current(:ruby, ENV['SCHEMA'])
     end
 
@@ -264,7 +278,7 @@ db_namespace = namespace :db do
       desc 'Clears a db/schema_cache.dump file.'
       task :clear => [:environment, :load_config] do
         filename = File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "schema_cache.dump")
-        FileUtils.rm(filename) if File.exist?(filename)
+        rm_f filename, verbose: false
       end
     end
 
@@ -288,7 +302,7 @@ db_namespace = namespace :db do
     end
 
     desc "Recreates the databases from the structure.sql file"
-    task :load => [:load_config] do
+    task :load => [:environment, :load_config, :check_protected_environments] do
       ActiveRecord::Tasks::DatabaseTasks.load_schema_current(:sql, ENV['SCHEMA'])
     end
 
@@ -351,7 +365,7 @@ db_namespace = namespace :db do
     task :clone_structure => %w(db:test:deprecated db:structure:dump db:test:load_structure)
 
     # desc "Empty the test database"
-    task :purge => %w(environment load_config) do
+    task :purge => %w(environment load_config check_protected_environments) do
       ActiveRecord::Tasks::DatabaseTasks.purge ActiveRecord::Base.configurations['test']
     end
 

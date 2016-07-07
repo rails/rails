@@ -197,6 +197,16 @@ module ActiveRecord
         @association.forty_two(*args)
       end
 
+      # Same as #first except returns only the third-to-last record.
+      def third_to_last(*args)
+        @association.third_to_last(*args)
+      end
+
+      # Same as #first except returns only the second-to-last record.
+      def second_to_last(*args)
+        @association.second_to_last(*args)
+      end
+
       # Returns the last record, or the last +n+ records, from the collection.
       # If the collection is empty, the first form returns +nil+, and the second
       # form returns an empty array.
@@ -587,7 +597,7 @@ module ActiveRecord
       #   Pet.find(1)
       #   # => ActiveRecord::RecordNotFound: Couldn't find Pet with 'id'=1
       #
-      # You can pass +Fixnum+ or +String+ values, it finds the records
+      # You can pass +Integer+ or +String+ values, it finds the records
       # responding to the +id+ and executes delete on them.
       #
       #   class Person < ActiveRecord::Base
@@ -651,7 +661,7 @@ module ActiveRecord
       #
       #   Pet.find(1, 2, 3) # => ActiveRecord::RecordNotFound: Couldn't find all Pets with 'id': (1, 2, 3)
       #
-      # You can pass +Fixnum+ or +String+ values, it finds the records
+      # You can pass +Integer+ or +String+ values, it finds the records
       # responding to the +id+ and then deletes them from the database.
       #
       #   person.pets.size # => 3
@@ -968,6 +978,10 @@ module ActiveRecord
         load_target.dup
       end
       alias_method :to_a, :to_ary
+
+      def records # :nodoc:
+        load_target
+      end
 
       # Adds one or more +records+ to the collection by setting their foreign keys
       # to the association's primary key. Returns +self+, so several appends may be

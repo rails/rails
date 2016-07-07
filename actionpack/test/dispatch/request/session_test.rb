@@ -7,7 +7,7 @@ module ActionDispatch
       attr_reader :req
 
       def setup
-        @req = ActionDispatch::Request.new({})
+        @req = ActionDispatch::Request.empty
       end
 
       def test_create_adds_itself_to_env
@@ -112,6 +112,32 @@ module ActionDispatch
           def session_exists?(env); true; end
           def delete_session(env, id, options); 123; end
         }.new
+      end
+    end
+
+    class SessionIntegrationTest < ActionDispatch::IntegrationTest
+      class MySessionApp
+        def call(env)
+          request = Rack::Request.new(env)
+          request.session['hello'] = 'Hello from MySessionApp!'
+          [ 200, {}, ['Hello from MySessionApp!'] ]
+        end
+      end
+
+      Router = ActionDispatch::Routing::RouteSet.new
+      Router.draw do
+        get '/mysessionapp' => MySessionApp.new
+      end
+
+      def app
+        @app ||= RoutedRackApp.new(Router)
+      end
+
+      def test_session_follows_rack_api_contract_1
+        get '/mysessionapp'
+        assert_response :ok
+        assert_equal 'Hello from MySessionApp!', @response.body
+        assert_equal 'Hello from MySessionApp!', session['hello']
       end
     end
   end

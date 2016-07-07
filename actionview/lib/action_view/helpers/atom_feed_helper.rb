@@ -51,7 +51,7 @@ module ActionView
       # * <tt>:language</tt>: Defaults to "en-US".
       # * <tt>:root_url</tt>: The HTML alternative that this feed is doubling for. Defaults to / on the current host.
       # * <tt>:url</tt>: The URL for this feed. Defaults to the current URL.
-      # * <tt>:id</tt>: The id for this feed. Defaults to "tag:localhost,2005:/posts", in this case. 
+      # * <tt>:id</tt>: The id for this feed. Defaults to "tag:localhost,2005:/posts", in this case.
       # * <tt>:schema_date</tt>: The date at which the tag scheme for the feed was first used. A good default is the year you
       #   created the feed. See http://feedvalidator.org/docs/error/InvalidTAG.html for more information. If not specified,
       #   2005 is used (as an "I don't care" value).
@@ -132,7 +132,7 @@ module ActionView
         end
 
         private
-          # Delegate to xml builder, first wrapping the element in a xhtml
+          # Delegate to xml builder, first wrapping the element in an xhtml
           # namespaced div element if the method and arguments indicate
           # that an xhtml_block? is desired.
           def method_missing(method, *arguments, &block)

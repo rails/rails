@@ -16,7 +16,7 @@ module Rails
                     :railties_order, :relative_url_root, :secret_key_base, :secret_token,
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
-                    :beginning_of_week, :filter_redirect, :x
+                    :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading
 
       attr_writer :log_level
       attr_reader :encoding, :api_only, :static_cache_control
@@ -24,40 +24,42 @@ module Rails
       def initialize(*)
         super
         self.encoding = "utf-8"
-        @allow_concurrency             = nil
-        @consider_all_requests_local   = false
-        @filter_parameters             = []
-        @filter_redirect               = []
-        @helpers_paths                 = []
-        @public_file_server            = ActiveSupport::OrderedOptions.new
-        @public_file_server.enabled    = true
-        @public_file_server.index_name = "index"
-        @force_ssl                     = false
-        @ssl_options                   = {}
-        @session_store                 = :cookie_store
-        @session_options               = {}
-        @time_zone                     = "UTC"
-        @beginning_of_week             = :monday
-        @log_level                     = nil
-        @generators                    = app_generators
-        @cache_store                   = [ :file_store, "#{root}/tmp/cache/" ]
-        @railties_order                = [:all]
-        @relative_url_root             = ENV["RAILS_RELATIVE_URL_ROOT"]
-        @reload_classes_only_on_change = true
-        @file_watcher                  = file_update_checker
-        @exceptions_app                = nil
-        @autoflush_log                 = true
-        @log_formatter                 = ActiveSupport::Logger::SimpleFormatter.new
-        @eager_load                    = nil
-        @secret_token                  = nil
-        @secret_key_base               = nil
-        @api_only                      = false
-        @x                             = Custom.new
+        @allow_concurrency               = nil
+        @consider_all_requests_local     = false
+        @filter_parameters               = []
+        @filter_redirect                 = []
+        @helpers_paths                   = []
+        @public_file_server              = ActiveSupport::OrderedOptions.new
+        @public_file_server.enabled      = true
+        @public_file_server.index_name   = "index"
+        @force_ssl                       = false
+        @ssl_options                     = {}
+        @session_store                   = :cookie_store
+        @session_options                 = {}
+        @time_zone                       = "UTC"
+        @beginning_of_week               = :monday
+        @log_level                       = nil
+        @generators                      = app_generators
+        @cache_store                     = [ :file_store, "#{root}/tmp/cache/" ]
+        @railties_order                  = [:all]
+        @relative_url_root               = ENV["RAILS_RELATIVE_URL_ROOT"]
+        @reload_classes_only_on_change   = true
+        @file_watcher                    = ActiveSupport::FileUpdateChecker
+        @exceptions_app                  = nil
+        @autoflush_log                   = true
+        @log_formatter                   = ActiveSupport::Logger::SimpleFormatter.new
+        @eager_load                      = nil
+        @secret_token                    = nil
+        @secret_key_base                 = nil
+        @api_only                        = false
+        @debug_exception_response_format = nil
+        @x                               = Custom.new
+        @enable_dependency_loading       = false
       end
 
       def static_cache_control=(value)
         ActiveSupport::Deprecation.warn <<-eow.strip_heredoc
-          `static_cache_control` is deprecated and will be removed in Rails 5.1.
+          `config.static_cache_control` is deprecated and will be removed in Rails 5.1.
           Please use
           `config.public_file_server.headers = { 'Cache-Control' => '#{value}' }`
           instead.
@@ -68,8 +70,8 @@ module Rails
 
       def serve_static_files
         ActiveSupport::Deprecation.warn <<-eow.strip_heredoc
-          `serve_static_files` is deprecated and will be removed in Rails 5.1.
-          Please use `public_file_server.enabled` instead.
+          `config.serve_static_files` is deprecated and will be removed in Rails 5.1.
+          Please use `config.public_file_server.enabled` instead.
         eow
 
         @public_file_server.enabled
@@ -77,8 +79,8 @@ module Rails
 
       def serve_static_files=(value)
         ActiveSupport::Deprecation.warn <<-eow.strip_heredoc
-          `serve_static_files` is deprecated and will be removed in Rails 5.1.
-          Please use `public_file_server.enabled = #{value}` instead.
+          `config.serve_static_files` is deprecated and will be removed in Rails 5.1.
+          Please use `config.public_file_server.enabled = #{value}` instead.
         eow
 
         @public_file_server.enabled = value
@@ -95,6 +97,16 @@ module Rails
       def api_only=(value)
         @api_only = value
         generators.api_only = value
+
+        @debug_exception_response_format ||= :api
+      end
+
+      def debug_exception_response_format
+        @debug_exception_response_format || :default
+      end
+
+      def debug_exception_response_format=(value)
+        @debug_exception_response_format = value
       end
 
       def paths
@@ -180,30 +192,25 @@ module Rails
         SourceAnnotationExtractor::Annotation
       end
 
-      private
-        def file_update_checker
-          if defined?(Listen) && Listen::Adapter.select() != Listen::Adapter::Polling
-            ActiveSupport::FileEventedUpdateChecker
+      class Custom #:nodoc:
+        def initialize
+          @configurations = Hash.new
+        end
+
+        def method_missing(method, *args)
+          if method =~ /=$/
+            @configurations[$`.to_sym] = args.first
           else
-            ActiveSupport::FileUpdateChecker
+            @configurations.fetch(method) {
+              @configurations[method] = ActiveSupport::OrderedOptions.new
+            }
           end
         end
 
-        class Custom #:nodoc:
-          def initialize
-            @configurations = Hash.new
-          end
-
-          def method_missing(method, *args)
-            if method =~ /=$/
-              @configurations[$`.to_sym] = args.first
-            else
-              @configurations.fetch(method) {
-                @configurations[method] = ActiveSupport::OrderedOptions.new
-              }
-            end
-          end
+        def respond_to_missing?(symbol, *)
+          true
         end
+      end
     end
   end
 end

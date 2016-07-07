@@ -28,7 +28,7 @@ class CallbacksTest < ActiveModel::TestCase
       false
     end
 
-    after_create "@callbacks << :final_callback"
+    ActiveSupport::Deprecation.silence { after_create "@callbacks << :final_callback" }
 
     def initialize(options = {})
       @callbacks = []

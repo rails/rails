@@ -1,3 +1,4 @@
+require 'fileutils'
 require 'digest/md5'
 require 'active_support/core_ext/string/strip'
 require 'rails/version' unless defined?(Rails::VERSION)
@@ -26,6 +27,12 @@ module Rails
         class_option :template,           type: :string, aliases: '-m',
                                           desc: "Path to some #{name} template (can be a filesystem path or URL)"
 
+        class_option :database,           type: :string, aliases: '-d', default: 'sqlite3',
+                                          desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
+
+        class_option :javascript,         type: :string, aliases: '-j', default: 'jquery',
+                                          desc: 'Preconfigure for selected JavaScript library'
+
         class_option :skip_gemfile,       type: :boolean, default: false,
                                           desc: "Don't create a Gemfile"
 
@@ -45,26 +52,23 @@ module Rails
         class_option :skip_active_record, type: :boolean, aliases: '-O', default: false,
                                           desc: 'Skip Active Record files'
 
+        class_option :skip_puma,          type: :boolean, aliases: '-P', default: false,
+                                          desc: 'Skip Puma related files'
+
+        class_option :skip_action_cable,  type: :boolean, aliases: '-C', default: false,
+                                          desc: 'Skip Action Cable files'
+
         class_option :skip_sprockets,     type: :boolean, aliases: '-S', default: false,
                                           desc: 'Skip Sprockets files'
 
         class_option :skip_spring,        type: :boolean, default: false,
                                           desc: "Don't install Spring application preloader"
 
-        class_option :database,           type: :string, aliases: '-d', default: 'sqlite3',
-                                          desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
-
-        class_option :javascript,         type: :string, aliases: '-j', default: 'jquery',
-                                          desc: 'Preconfigure for selected JavaScript library'
+        class_option :skip_listen,        type: :boolean, default: false,
+                                          desc: "Don't generate configuration that depends on the listen gem"
 
         class_option :skip_javascript,    type: :boolean, aliases: '-J', default: false,
                                           desc: 'Skip JavaScript files'
-
-        class_option :dev,                type: :boolean, default: false,
-                                          desc: "Setup the #{name} with Gemfile pointing to your Rails checkout"
-
-        class_option :edge,               type: :boolean, default: false,
-                                          desc: "Setup the #{name} with Gemfile pointing to Rails repository"
 
         class_option :skip_turbolinks,    type: :boolean, default: false,
                                           desc: 'Skip turbolinks gem'
@@ -72,7 +76,13 @@ module Rails
         class_option :skip_test,          type: :boolean, aliases: '-T', default: false,
                                           desc: 'Skip test files'
 
-        class_option :rc,                 type: :string, default: false,
+        class_option :dev,                type: :boolean, default: false,
+                                          desc: "Setup the #{name} with Gemfile pointing to your Rails checkout"
+
+        class_option :edge,               type: :boolean, default: false,
+                                          desc: "Setup the #{name} with Gemfile pointing to Rails repository"
+
+        class_option :rc,                 type: :string, default: nil,
                                           desc: "Path to file containing extra configuration options for rails command"
 
         class_option :no_rc,              type: :boolean, default: false,
@@ -110,10 +120,12 @@ module Rails
       def gemfile_entries
         [rails_gemfile_entry,
          database_gemfile_entry,
+         webserver_gemfile_entry,
          assets_gemfile_entry,
          javascript_gemfile_entry,
          jbuilder_gemfile_entry,
          psych_gemfile_entry,
+         cable_gemfile_entry,
          @extra_entries].flatten.find_all(&@gem_filter)
       end
 
@@ -167,8 +179,14 @@ module Rails
                             "Use #{options[:database]} as the database for Active Record"
       end
 
+      def webserver_gemfile_entry
+        return [] if options[:skip_puma]
+        comment = 'Use Puma as the app server'
+        GemfileEntry.new('puma', '~> 3.0', comment)
+      end
+
       def include_all_railties?
-        options.values_at(:skip_active_record, :skip_action_mailer, :skip_test, :skip_sprockets).none?
+        options.values_at(:skip_active_record, :skip_action_mailer, :skip_test, :skip_sprockets, :skip_action_cable).none?
       end
 
       def comment_if(value)
@@ -217,24 +235,33 @@ module Rails
 
       def rails_gemfile_entry
         dev_edge_common = [
-            GemfileEntry.github('sprockets-rails', 'rails/sprockets-rails'),
-            GemfileEntry.github('sprockets', 'rails/sprockets'),
-            GemfileEntry.github('sass-rails', 'rails/sass-rails'),
-            GemfileEntry.github('arel', 'rails/arel'),
-            GemfileEntry.github('rack', 'rack/rack')
-          ]
+        ]
         if options.dev?
           [
             GemfileEntry.path('rails', Rails::Generators::RAILS_DEV_PATH)
           ] + dev_edge_common
         elsif options.edge?
           [
-            GemfileEntry.github('rails', 'rails/rails')
+            GemfileEntry.github('rails', 'rails/rails', '5-0-stable')
           ] + dev_edge_common
         else
           [GemfileEntry.version('rails',
-                            Rails::VERSION::STRING,
+                            rails_version_specifier,
                             "Bundle edge Rails instead: gem 'rails', github: 'rails/rails'")]
+        end
+      end
+
+      def rails_version_specifier(gem_version = Rails.gem_version)
+        if gem_version.prerelease?
+          next_series = gem_version
+          next_series = next_series.bump while next_series.segments.size > 2
+
+          [">= #{gem_version}", "< #{next_series}"]
+        elsif gem_version.segments.size == 3
+          "~> #{gem_version}"
+        else
+          patch = gem_version.segments[0, 3].join(".")
+          ["~> #{patch}", ">= #{gem_version}"]
         end
       end
 
@@ -269,6 +296,8 @@ module Rails
         return [] if options[:skip_sprockets]
 
         gems = []
+        gems << GemfileEntry.version('sass-rails', '~> 5.0',
+                                     'Use SCSS for stylesheets')
 
         gems << GemfileEntry.version('uglifier',
                                    '>= 1.3.0',
@@ -278,23 +307,16 @@ module Rails
       end
 
       def jbuilder_gemfile_entry
-        return [] if options[:api]
-
         comment = 'Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder'
-        GemfileEntry.version('jbuilder', '~> 2.0', comment)
+        GemfileEntry.new 'jbuilder', '~> 2.5', comment, {}, options[:api]
       end
 
       def coffee_gemfile_entry
-        comment = 'Use CoffeeScript for .coffee assets and views'
-        if options.dev? || options.edge?
-          GemfileEntry.github 'coffee-rails', 'rails/coffee-rails', nil, comment
-        else
-          GemfileEntry.version 'coffee-rails', '~> 4.1.0', comment
-        end
+        GemfileEntry.version 'coffee-rails', '~> 4.2', 'Use CoffeeScript for .coffee assets and views'
       end
 
       def javascript_gemfile_entry
-        if options[:skip_javascript]
+        if options[:skip_javascript] || options[:skip_sprockets]
           []
         else
           gems = [coffee_gemfile_entry, javascript_runtime_gemfile_entry]
@@ -302,8 +324,8 @@ module Rails
                                        "Use #{options[:javascript]} as the JavaScript library")
 
           unless options[:skip_turbolinks]
-            gems << GemfileEntry.version("turbolinks", nil,
-             "Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks")
+            gems << GemfileEntry.version("turbolinks", "~> 5",
+             "Turbolinks makes navigating your web application faster. Read more: https://github.com/turbolinks/turbolinks")
           end
 
           gems
@@ -325,6 +347,14 @@ module Rails
         comment = 'Use Psych as the YAML engine, instead of Syck, so serialized ' \
                   'data can be read safely from different rubies (see http://git.io/uuLVag)'
         GemfileEntry.new('psych', '~> 2.0', comment, platforms: :rbx)
+      end
+
+      def cable_gemfile_entry
+        return [] if options[:skip_action_cable]
+        comment = 'Use Redis adapter to run Action Cable in production'
+        gems = []
+        gems << GemfileEntry.new("redis", '~> 3.0', comment, {}, true)
+        gems
       end
 
       def bundle_command(command)
@@ -357,6 +387,14 @@ module Rails
 
       def spring_install?
         !options[:skip_spring] && !options.dev? && Process.respond_to?(:fork) && !RUBY_PLATFORM.include?("cygwin")
+      end
+
+      def depend_on_listen?
+        !options[:skip_listen] && os_supports_listen_out_of_the_box?
+      end
+
+      def os_supports_listen_out_of_the_box?
+        RbConfig::CONFIG['host_os'] =~ /darwin|linux/
       end
 
       def run_bundle

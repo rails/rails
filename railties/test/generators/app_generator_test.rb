@@ -26,6 +26,9 @@ DEFAULT_APP_FILES = %w(
   config/environments
   config/initializers
   config/locales
+  config/cable.yml
+  config/puma.rb
+  config/spring.rb
   db
   lib
   lib/tasks
@@ -62,8 +65,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_assets
     run_generator
 
-    assert_file("app/views/layouts/application.html.erb", /stylesheet_link_tag\s+'application', media: 'all', 'data-turbolinks-track' => true/)
-    assert_file("app/views/layouts/application.html.erb", /javascript_include_tag\s+'application', 'data-turbolinks-track' => true/)
+    assert_file("app/views/layouts/application.html.erb", /stylesheet_link_tag\s+'application', media: 'all', 'data-turbolinks-track': 'reload'/)
+    assert_file("app/views/layouts/application.html.erb", /javascript_include_tag\s+'application', 'data-turbolinks-track': 'reload'/)
     assert_file("app/assets/stylesheets/application.css")
     assert_file("app/assets/javascripts/application.js")
   end
@@ -123,7 +126,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
         # make sure we are in correct dir
         FileUtils.cd(app_moved_root)
 
-        generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true },
+        generator = Rails::Generators::AppGenerator.new ["rails"], [],
                                                                    destination_root: app_moved_root, shell: @shell
         generator.send(:app_const)
         quietly { generator.send(:update_config_files) }
@@ -138,7 +141,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [app_root]
 
     stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true }, destination_root: app_root, shell: @shell
+      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
       assert_file "myapp/config/initializers/session_store.rb", /_myapp_session/
@@ -151,85 +154,95 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file("config/initializers/cookies_serializer.rb", /Rails\.application\.config\.action_dispatch\.cookies_serializer = :json/)
   end
 
+  def test_new_application_not_include_api_initializers
+    run_generator
+
+    assert_no_file 'config/initializers/cors.rb'
+  end
+
   def test_rails_update_keep_the_cookie_serializer_if_it_is_already_configured
     app_root = File.join(destination_root, 'myapp')
     run_generator [app_root]
 
     stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true }, destination_root: app_root, shell: @shell
+      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
       assert_file("#{app_root}/config/initializers/cookies_serializer.rb", /Rails\.application\.config\.action_dispatch\.cookies_serializer = :json/)
     end
   end
 
-  def test_rails_update_does_not_create_callback_terminator_initializer
-    app_root = File.join(destination_root, 'myapp')
-    run_generator [app_root]
-
-    FileUtils.rm("#{app_root}/config/initializers/callback_terminator.rb")
-
-    stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true }, destination_root: app_root, shell: @shell
-      generator.send(:app_const)
-      quietly { generator.send(:update_config_files) }
-      assert_no_file "#{app_root}/config/initializers/callback_terminator.rb"
-    end
-  end
-
-  def test_rails_update_does_not_remove_callback_terminator_initializer_if_already_present
-    app_root = File.join(destination_root, 'myapp')
-    run_generator [app_root]
-
-    FileUtils.touch("#{app_root}/config/initializers/callback_terminator.rb")
-
-    stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true }, destination_root: app_root, shell: @shell
-      generator.send(:app_const)
-      quietly { generator.send(:update_config_files) }
-      assert_file "#{app_root}/config/initializers/callback_terminator.rb"
-    end
-  end
-
-  def test_rails_update_set_the_cookie_serializer_to_marchal_if_it_is_not_already_configured
+  def test_rails_update_set_the_cookie_serializer_to_marshal_if_it_is_not_already_configured
     app_root = File.join(destination_root, 'myapp')
     run_generator [app_root]
 
     FileUtils.rm("#{app_root}/config/initializers/cookies_serializer.rb")
 
     stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true }, destination_root: app_root, shell: @shell
+      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
-      assert_file("#{app_root}/config/initializers/cookies_serializer.rb", /Rails\.application\.config\.action_dispatch\.cookies_serializer = :marshal/)
+      assert_file("#{app_root}/config/initializers/cookies_serializer.rb",
+                  /Valid options are :json, :marshal, and :hybrid\.\nRails\.application\.config\.action_dispatch\.cookies_serializer = :marshal/)
     end
   end
 
-  def test_rails_update_does_not_create_active_record_belongs_to_required_by_default
+  def test_rails_update_dont_set_file_watcher
     app_root = File.join(destination_root, 'myapp')
     run_generator [app_root]
 
-    FileUtils.rm("#{app_root}/config/initializers/active_record_belongs_to_required_by_default.rb")
-
     stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true }, destination_root: app_root, shell: @shell
+      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
-      assert_no_file "#{app_root}/config/initializers/active_record_belongs_to_required_by_default.rb"
+      assert_file "#{app_root}/config/environments/development.rb" do |content|
+        assert_match(/# config.file_watcher/, content)
+      end
     end
   end
 
-  def test_rails_update_does_not_remove_active_record_belongs_to_required_by_default_if_already_present
+  def test_rails_update_does_not_create_new_framework_defaults_by_default
     app_root = File.join(destination_root, 'myapp')
     run_generator [app_root]
 
-    FileUtils.touch("#{app_root}/config/initializers/active_record_belongs_to_required_by_default.rb")
+    FileUtils.rm("#{app_root}/config/initializers/new_framework_defaults.rb")
 
     stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true }, destination_root: app_root, shell: @shell
+      generator = Rails::Generators::AppGenerator.new ["rails"], { update: true }, destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
-      assert_file "#{app_root}/config/initializers/active_record_belongs_to_required_by_default.rb"
+
+      assert_file "#{app_root}/config/initializers/new_framework_defaults.rb" do |content|
+        assert_match(/ActiveSupport\.halt_callback_chains_on_return_false = true/, content)
+        assert_match(/Rails\.application\.config.active_record\.belongs_to_required_by_default = false/, content)
+        assert_no_match(/Rails\.application\.config\.ssl_options/, content)
+      end
+    end
+  end
+
+  def test_rails_update_does_not_create_rack_cors
+    app_root = File.join(destination_root, 'myapp')
+    run_generator [app_root]
+
+    stub_rails_application(app_root) do
+      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
+      generator.send(:app_const)
+      quietly { generator.send(:update_config_files) }
+      assert_no_file "#{app_root}/config/initializers/cors.rb"
+    end
+  end
+
+  def test_rails_update_does_not_remove_rack_cors_if_already_present
+    app_root = File.join(destination_root, 'myapp')
+    run_generator [app_root]
+
+    FileUtils.touch("#{app_root}/config/initializers/cors.rb")
+
+    stub_rails_application(app_root) do
+      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
+      generator.send(:app_const)
+      quietly { generator.send(:update_config_files) }
+      assert_file "#{app_root}/config/initializers/cors.rb"
     end
   end
 
@@ -330,13 +343,30 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_generator_defaults_to_puma_version
+    run_generator [destination_root]
+    assert_gem "puma", "'~> 3.0'"
+  end
+
+  def test_generator_if_skip_puma_is_given
+    run_generator [destination_root, "--skip-puma"]
+    assert_no_file "config/puma.rb"
+    assert_file "Gemfile" do |content|
+      assert_no_match(/puma/, content)
+    end
+  end
+
   def test_generator_if_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
     assert_no_file "config/database.yml"
-    assert_no_file "config/initializers/active_record_belongs_to_required_by_default.rb"
+    assert_no_file "app/models/application_record.rb"
     assert_file "config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
     assert_file "test/test_helper.rb" do |helper_content|
       assert_no_match(/fixtures :all/, helper_content)
+    end
+
+    assert_file "config/initializers/new_framework_defaults.rb" do |initializer_content|
+      assert_no_match(/belongs_to_required_by_default/, initializer_content)
     end
   end
 
@@ -354,6 +384,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_generator_has_assets_gems
+    run_generator
+
+    assert_gem 'sass-rails'
+    assert_gem 'uglifier'
+  end
+
   def test_generator_if_skip_sprockets_is_given
     run_generator [destination_root, "--skip-sprockets"]
     assert_no_file "config/initializers/assets.rb"
@@ -361,9 +398,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match(/#\s+require\s+["']sprockets\/railtie["']/, content)
     end
     assert_file "Gemfile" do |content|
+      assert_no_match(/jquery-rails/, content)
       assert_no_match(/sass-rails/, content)
       assert_no_match(/uglifier/, content)
-      assert_match(/coffee-rails/, content)
+      assert_no_match(/coffee-rails/, content)
     end
     assert_file "config/environments/development.rb" do |content|
       assert_no_match(/config\.assets\.debug = true/, content)
@@ -373,6 +411,22 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/config\.assets\.js_compressor = :uglifier/, content)
       assert_no_match(/config\.assets\.css_compressor = :sass/, content)
     end
+  end
+
+  def test_generator_if_skip_action_cable_is_given
+    run_generator [destination_root, "--skip-action-cable"]
+    assert_file "config/application.rb", /#\s+require\s+["']action_cable\/engine["']/
+    assert_no_file "config/cable.yml"
+    assert_no_file "app/assets/javascripts/cable.js"
+    assert_no_file "app/channels"
+    assert_file "Gemfile" do |content|
+      assert_no_match(/redis/, content)
+    end
+  end
+
+  def test_action_cable_redis_gems
+    run_generator
+    assert_file "Gemfile", /^# gem 'redis'/
   end
 
   def test_inclusion_of_javascript_runtime
@@ -432,6 +486,31 @@ class AppGeneratorTest < Rails::Generators::TestCase
       end
     else
       assert_gem 'byebug'
+    end
+  end
+
+  def test_inclusion_of_listen_related_configuration_by_default
+    run_generator
+    if RbConfig::CONFIG['host_os'] =~ /darwin|linux/
+      assert_listen_related_configuration
+    else
+      assert_no_listen_related_configuration
+    end
+  end
+
+  def test_non_inclusion_of_listen_related_configuration_if_skip_listen
+    run_generator [destination_root, '--skip-listen']
+    assert_no_listen_related_configuration
+  end
+
+  def test_evented_file_update_checker_config
+    run_generator
+    assert_file 'config/environments/development.rb' do |content|
+      if RbConfig::CONFIG['host_os'] =~ /darwin|linux/
+        assert_match(/^\s*config.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
+      else
+        assert_match(/^\s*# config.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
+      end
     end
   end
 
@@ -505,7 +584,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "Gemfile" do |content|
       assert_match(/gem 'web-console',\s+github: 'rails\/web-console'/, content)
-      assert_no_match(/gem 'web-console', '~> 2.0'/, content)
+      assert_no_match(/\Agem 'web-console'\z/, content)
     end
   end
 
@@ -514,8 +593,23 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "Gemfile" do |content|
       assert_match(/gem 'web-console',\s+github: 'rails\/web-console'/, content)
-      assert_no_match(/gem 'web-console', '~> 2.0'/, content)
+      assert_no_match(/\Agem 'web-console'\z/, content)
     end
+  end
+
+  def test_generation_runs_bundle_install
+    assert_generates_with_bundler
+  end
+
+  def test_dev_option
+    assert_generates_with_bundler dev: true
+    rails_path = File.expand_path('../../..', Rails.root)
+    assert_file 'Gemfile', /^gem\s+["']rails["'],\s+path:\s+["']#{Regexp.escape(rails_path)}["']$/
+  end
+
+  def test_edge_option
+    assert_generates_with_bundler edge: true
+    assert_file 'Gemfile', %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']#{Regexp.escape("5-0-stable")}["']$}
   end
 
   def test_spring
@@ -544,7 +638,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_spring_no_fork
     jruby_skip "spring doesn't run on JRuby"
-    assert_called_with(Process, :respond_to?, [:fork], returns: false) do
+    assert_called_with(Process, :respond_to?, [[:fork], [:fork]], returns: false) do
       run_generator
 
       assert_file "Gemfile" do |content|
@@ -556,6 +650,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_skip_spring
     run_generator [destination_root, "--skip-spring"]
 
+    assert_no_file 'config/spring.rb'
     assert_file "Gemfile" do |content|
       assert_no_match(/spring/, content)
     end
@@ -611,8 +706,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator
     folders_with_keep = %w(
       app/assets/images
-      app/mailers
-      app/models
       app/controllers/concerns
       app/models/concerns
       lib/tasks
@@ -657,9 +750,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     sequence = ['install', 'exec spring binstub --all', 'echo ran after_bundle']
-    ensure_bundler_first = -> command do
       @sequence_step ||= 0
-
+    ensure_bundler_first = -> command do
       assert_equal sequence[@sequence_step], command, "commands should be called in sequence #{sequence}"
       @sequence_step += 1
     end
@@ -671,26 +763,67 @@ class AppGeneratorTest < Rails::Generators::TestCase
         end
       end
     end
+
+    assert_equal 3, @sequence_step
   end
 
   protected
 
-  def stub_rails_application(root)
-    Rails.application.config.root = root
-    Rails.application.class.stub(:name, "Myapp") do
-      yield
+    def stub_rails_application(root)
+      Rails.application.config.root = root
+      Rails.application.class.stub(:name, "Myapp") do
+        yield
+      end
     end
-  end
 
-  def action(*args, &block)
-    capture(:stdout) { generator.send(*args, &block) }
-  end
-
-  def assert_gem(gem, constraint = nil)
-    if constraint
-      assert_file "Gemfile", /^\s*gem\s+["']#{gem}["'], #{constraint}$*/
-    else
-      assert_file "Gemfile", /^\s*gem\s+["']#{gem}["']$*/
+    def action(*args, &block)
+      capture(:stdout) { generator.send(*args, &block) }
     end
-  end
+
+    def assert_gem(gem, constraint = nil)
+      if constraint
+        assert_file "Gemfile", /^\s*gem\s+["']#{gem}["'], #{constraint}$*/
+      else
+        assert_file "Gemfile", /^\s*gem\s+["']#{gem}["']$*/
+      end
+    end
+
+    def assert_listen_related_configuration
+      assert_gem 'listen'
+      assert_gem 'spring-watcher-listen'
+
+      assert_file 'config/environments/development.rb' do |content|
+        assert_match(/^\s*config.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
+      end
+    end
+
+    def assert_no_listen_related_configuration
+      assert_file 'Gemfile' do |content|
+        assert_no_match(/listen/, content)
+      end
+
+      assert_file 'config/environments/development.rb' do |content|
+        assert_match(/^\s*# config.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
+      end
+    end
+
+    def assert_generates_with_bundler(options = {})
+      generator([destination_root], options)
+
+      command_check = -> command do
+        @install_called ||= 0
+
+        case command
+        when 'install'
+          @install_called += 1
+          assert_equal 1, @install_called, "install expected to be called once, but was called #{@install_called} times"
+        when 'exec spring binstub --all'
+          # Called when running tests with spring, let through unscathed.
+        end
+      end
+
+      generator.stub :bundle_command, command_check do
+        quietly { generator.invoke_all }
+      end
+    end
 end

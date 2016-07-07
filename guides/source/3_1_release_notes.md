@@ -558,4 +558,4 @@ Credits
 
 See the [full list of contributors to Rails](http://contributors.rubyonrails.org/) for the many people who spent many hours making Rails, the stable and robust framework it is. Kudos to all of them.
 
-Rails 3.1 Release Notes were compiled by [Vijay Dev](https://github.com/vijaydev.)
+Rails 3.1 Release Notes were compiled by [Vijay Dev](https://github.com/vijaydev)

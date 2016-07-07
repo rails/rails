@@ -318,7 +318,7 @@ module ActiveRecord
     #   create_other(attributes={})       |     X      |              |    X
     #   create_other!(attributes={})      |     X      |              |    X
     #
-    # ===Collection associations (one-to-many / many-to-many)
+    # === Collection associations (one-to-many / many-to-many)
     #                                     |       |          | has_many
     #   generated methods                 | habtm | has_many | :through
     #   ----------------------------------+-------+----------+----------
@@ -504,7 +504,7 @@ module ActiveRecord
     #
     # == Customizing the query
     #
-    # \Associations are built from <tt>Relation</tt>s, and you can use the Relation syntax
+    # \Associations are built from <tt>Relation</tt> objects, and you can use the Relation syntax
     # to customize them. For example, to add a condition:
     #
     #   class Blog < ActiveRecord::Base
@@ -1164,6 +1164,7 @@ module ActiveRecord
       #   Adds one or more objects to the collection by setting their foreign keys to the collection's primary key.
       #   Note that this operation instantly fires update SQL without waiting for the save or update call on the
       #   parent object, unless the parent object is a new record.
+      #   This will also run validations and callbacks of associated object(s).
       # [collection.delete(object, ...)]
       #   Removes one or more objects from the collection by setting their foreign keys to +NULL+.
       #   Objects will be in addition destroyed if they're associated with <tt>dependent: :destroy</tt>,
@@ -1181,7 +1182,8 @@ module ActiveRecord
       # [collection=objects]
       #   Replaces the collections content by deleting and adding objects as appropriate. If the <tt>:through</tt>
       #   option is true callbacks in the join models are triggered except destroy callbacks, since deletion is
-      #   direct.
+      #   direct by default. You can specify <tt>dependent: :destroy</tt> or
+      #   <tt>dependent: :nullify</tt> to override this.
       # [collection_singular_ids]
       #   Returns an array of the associated objects' ids
       # [collection_singular_ids=ids]
@@ -1324,7 +1326,8 @@ module ActiveRecord
       #   Specifies type of the source association used by #has_many <tt>:through</tt> queries where the source
       #   association is a polymorphic #belongs_to.
       # [:validate]
-      #   If +false+, don't validate the associated objects when saving the parent object. true by default.
+      #   When set to +true+, validates new objects added to association when saving the parent object. +true+ by default.
+      #   If you want to ensure associated objects are revalidated on every update, use +validates_associated+.
       # [:autosave]
       #   If true, always save the associated objects or destroy them if marked for destruction,
       #   when saving the parent object. If false, never save or destroy the associated objects.
@@ -1454,7 +1457,8 @@ module ActiveRecord
       #   Specifies type of the source association used by #has_one <tt>:through</tt> queries where the source
       #   association is a polymorphic #belongs_to.
       # [:validate]
-      #   If +false+, don't validate the associated object when saving the parent object. +false+ by default.
+      #   When set to +true+, validates new objects added to association when saving the parent object. +false+ by default.
+      #   If you want to ensure associated objects are revalidated on every update, use +validates_associated+.
       # [:autosave]
       #   If true, always save the associated object or destroy it if marked for destruction,
       #   when saving the parent object. If false, never save or destroy the associated object.
@@ -1578,7 +1582,8 @@ module ActiveRecord
       #   Note: If you've enabled the counter cache, then you may want to add the counter cache attribute
       #   to the +attr_readonly+ list in the associated classes (e.g. <tt>class Post; attr_readonly :comments_count; end</tt>).
       # [:validate]
-      #   If +false+, don't validate the associated objects when saving the parent object. +false+ by default.
+      #   When set to +true+, validates new objects added to association when saving the parent object. +false+ by default.
+      #   If you want to ensure associated objects are revalidated on every update, use +validates_associated+.
       # [:autosave]
       #   If true, always save the associated object or destroy it if marked for destruction, when
       #   saving the parent object.
@@ -1591,6 +1596,8 @@ module ActiveRecord
       #   If true, the associated object will be touched (the updated_at/on attributes set to current time)
       #   when this record is either saved or destroyed. If you specify a symbol, that attribute
       #   will be updated with the current time in addition to the updated_at/on attribute.
+      #   Please note that with touching no validation is performed and only the +after_touch+,
+      #   +after_commit+ and +after_rollback+ callbacks are executed.
       # [:inverse_of]
       #   Specifies the name of the #has_one or #has_many association on the associated
       #   object that is the inverse of this #belongs_to association. Does not work in
@@ -1639,7 +1646,7 @@ module ActiveRecord
       # The join table should not have a primary key or a model associated with it. You must manually generate the
       # join table with a migration such as this:
       #
-      #   class CreateDevelopersProjectsJoinTable < ActiveRecord::Migration
+      #   class CreateDevelopersProjectsJoinTable < ActiveRecord::Migration[5.0]
       #     def change
       #       create_join_table :developers, :projects
       #     end
@@ -1762,7 +1769,8 @@ module ActiveRecord
       #   So if a Person class makes a #has_and_belongs_to_many association to Project,
       #   the association will use "project_id" as the default <tt>:association_foreign_key</tt>.
       # [:validate]
-      #   If +false+, don't validate the associated objects when saving the parent object. +true+ by default.
+      #   When set to +true+, validates new objects added to association when saving the parent object. +true+ by default.
+      #   If you want to ensure associated objects are revalidated on every update, use +validates_associated+.
       # [:autosave]
       #   If true, always save the associated objects or destroy them if marked for destruction, when
       #   saving the parent object.

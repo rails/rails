@@ -149,13 +149,10 @@ class Module
   #
   # The target method must be public, otherwise it will raise +NoMethodError+.
   #
-  def delegate(*methods)
-    options = methods.pop
-    unless options.is_a?(Hash) && to = options[:to]
+  def delegate(*methods, to: nil, prefix: nil, allow_nil: nil)
+    unless to
       raise ArgumentError, 'Delegation needs a target. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, to: :greeter).'
     end
-
-    prefix, allow_nil = options.values_at(:prefix, :allow_nil)
 
     if prefix == true && to =~ /^[^a-z_]/
       raise ArgumentError, 'Can only automatically set the delegation prefix when delegating to a method.'
@@ -168,8 +165,8 @@ class Module
         ''
       end
 
-    file, line = caller(1, 1).first.split(':'.freeze, 2)
-    line = line.to_i
+    location = caller_locations(1, 1).first
+    file, line = location.path, location.lineno
 
     to = to.to_s
     to = "self.#{to}" if DELEGATION_RESERVED_METHOD_NAMES.include?(to)

@@ -7,7 +7,7 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   def test_migration
     migration = "change_title_body_from_posts"
     run_generator [migration]
-    assert_migration "db/migrate/#{migration}.rb", /class ChangeTitleBodyFromPosts < ActiveRecord::Migration/
+    assert_migration "db/migrate/#{migration}.rb", /class ChangeTitleBodyFromPosts < ActiveRecord::Migration\[[0-9.]+\]/
   end
 
   def test_migrations_generated_simultaneously
@@ -26,7 +26,7 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   def test_migration_with_class_name
     migration = "ChangeTitleBodyFromPosts"
     run_generator [migration]
-    assert_migration "db/migrate/change_title_body_from_posts.rb", /class #{migration} < ActiveRecord::Migration/
+    assert_migration "db/migrate/change_title_body_from_posts.rb", /class #{migration} < ActiveRecord::Migration\[[0-9.]+\]/
   end
 
   def test_migration_with_invalid_file_name
@@ -79,8 +79,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
-        assert_match(/remove_reference :books, :author, index: true/, change)
-        assert_match(/remove_reference :books, :distributor, polymorphic: true, index: true/, change)
+        assert_match(/remove_reference :books, :author/, change)
+        assert_match(/remove_reference :books, :distributor, polymorphic: true/, change)
       end
     end
   end
@@ -166,8 +166,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
-        assert_match(/add_reference :books, :author, index: true/, change)
-        assert_match(/add_reference :books, :distributor, polymorphic: true, index: true/, change)
+        assert_match(/add_reference :books, :author/, change)
+        assert_match(/add_reference :books, :distributor, polymorphic: true/, change)
       end
     end
   end
@@ -178,8 +178,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
-        assert_match(/add_reference :books, :author, index: true, null: false/, change)
-        assert_match(/add_reference :books, :distributor, polymorphic: true, index: true, null: false/, change)
+        assert_match(/add_reference :books, :author, null: false/, change)
+        assert_match(/add_reference :books, :distributor, polymorphic: true, null: false/, change)
       end
     end
   end

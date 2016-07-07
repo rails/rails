@@ -30,9 +30,9 @@ module ActionDispatch
           controller = controller req
           res        = controller.make_response! req
           dispatch(controller, params[:action], req, res)
-        rescue NameError => e
+        rescue ActionController::RoutingError
           if @raise_on_name_error
-            raise ActionController::RoutingError, e.message, e.backtrace
+            raise
           else
             return [404, {'X-Cascade' => 'pass'}, []]
           end
@@ -42,6 +42,8 @@ module ActionDispatch
 
         def controller(req)
           req.controller_class
+        rescue NameError => e
+          raise ActionController::RoutingError, e.message, e.backtrace
         end
 
         def dispatch(controller, action, req, res)
@@ -279,8 +281,17 @@ module ActionDispatch
           helper = UrlHelper.create(route, opts, route_key, url_strategy)
           mod.module_eval do
             define_method(name) do |*args|
-              options = nil
-              options = args.pop if args.last.is_a? Hash
+              last = args.last
+              options = case last
+                        when Hash
+                          args.pop
+                        when ActionController::Parameters
+                          if last.permitted?
+                            args.pop.to_h
+                          else
+                            raise ArgumentError, ActionDispatch::Routing::INSECURE_URL_PARAMETERS_MESSAGE
+                          end
+                        end
               helper.call self, args, options
             end
           end
@@ -502,6 +513,21 @@ module ActionDispatch
 
         route = @set.add_route(name, mapping)
         named_routes[name] = route if name
+
+        if route.segment_keys.include?(:controller)
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Using a dynamic :controller segment in a route is deprecated and
+            will be removed in Rails 5.1.
+          MSG
+        end
+
+        if route.segment_keys.include?(:action)
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Using a dynamic :action segment in a route is deprecated and
+            will be removed in Rails 5.1.
+          MSG
+        end
+
         route
       end
 
@@ -522,12 +548,10 @@ module ActionDispatch
           @recall      = recall
           @set         = set
 
-          normalize_recall!
           normalize_options!
           normalize_controller_action_id!
           use_relative_controller!
           normalize_controller!
-          normalize_action!
         end
 
         def controller
@@ -544,11 +568,6 @@ module ActionDispatch
               @options[key] = @recall[key]
             end
           end
-        end
-
-        # Set 'index' as default action for recall
-        def normalize_recall!
-          @recall[:action] ||= 'index'
         end
 
         def normalize_options!
@@ -601,13 +620,6 @@ module ActionDispatch
             else
               @options[:controller] = controller
             end
-          end
-        end
-
-        # Move 'index' action from options to recall
-        def normalize_action!
-          if @options[:action] == 'index'.freeze
-            @recall[:action] = @options.delete(:action)
           end
         end
 

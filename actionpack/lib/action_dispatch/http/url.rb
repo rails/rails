@@ -81,7 +81,8 @@ module ActionDispatch
         def add_params(path, params)
           params = { params: params } unless params.is_a?(Hash)
           params.reject! { |_,v| v.to_param.nil? }
-          path << "?#{params.to_query}" unless params.empty?
+          query = params.to_query
+          path << "?#{query}" unless query.empty?
         end
 
         def add_anchor(path, anchor)

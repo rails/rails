@@ -10,7 +10,7 @@ require 'json/encoding_test_cases'
 
 # The AS::JSON encoder requires the BigDecimal core_ext, which, unfortunately,
 # changes the BigDecimal#to_s output, and consequently the JSON gem output. So
-# we need to require this unfront to ensure we don't get a false failure, but
+# we need to require this upfront to ensure we don't get a false failure, but
 # ideally we should just fix the BigDecimal core_ext to not change to_s without
 # arguments.
 require 'active_support/core_ext/big_decimal'

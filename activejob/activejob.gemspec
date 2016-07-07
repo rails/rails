@@ -13,11 +13,11 @@ Gem::Specification.new do |s|
 
   s.author   = 'David Heinemeier Hansson'
   s.email    = 'david@loudthinking.com'
-  s.homepage = 'http://www.rubyonrails.org'
+  s.homepage = 'http://rubyonrails.org'
 
   s.files        = Dir['CHANGELOG.md', 'MIT-LICENSE', 'README.md', 'lib/**/*']
   s.require_path = 'lib'
 
   s.add_dependency 'activesupport', version
-  s.add_dependency 'globalid', '>= 0.3.0'
+  s.add_dependency 'globalid', '>= 0.3.6'
 end

@@ -61,17 +61,19 @@ class LengthValidationTest < ActiveRecord::TestCase
     assert_equal pet_count, Pet.count
   end
 
-  def test_does_not_validate_length_of_if_parent_record_is_validate_false
-    @owner.validates_length_of :name, minimum: 1
-    owner = @owner.new
-    owner.save!(validate: false)
-    assert owner.persisted?
+  def test_validates_length_of_virtual_attribute_on_model
+    repair_validations(Pet) do
+      Pet.send(:attr_accessor, :nickname)
+      Pet.validates_length_of(:name, minimum: 1)
+      Pet.validates_length_of(:nickname, minimum: 1)
 
-    pet = Pet.new(owner_id: owner.id)
-    pet.save!
+      pet = Pet.create!(name: 'Fancy Pants', nickname: 'Fancy')
 
-    assert_equal owner.pets.size, 1
-    assert owner.valid?
-    assert pet.valid?
+      assert pet.valid?
+
+      pet.nickname = ''
+
+      assert pet.invalid?
+    end
   end
 end

@@ -1,6 +1,9 @@
 require 'rake/testtask'
 
 task :default => :test
+
+task :package
+
 Rake::TestTask.new do |t|
   t.libs << 'test'
   t.pattern = 'test/**/file_evented_update_checker_test.rb'

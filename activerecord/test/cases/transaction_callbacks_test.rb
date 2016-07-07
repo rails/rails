@@ -34,10 +34,11 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
     has_many :replies, class_name: "ReplyWithCallbacks", foreign_key: "parent_id"
 
+    before_commit { |record| record.do_before_commit(nil) }
     after_commit { |record| record.do_after_commit(nil) }
-    after_commit(on: :create) { |record| record.do_after_commit(:create) }
-    after_commit(on: :update) { |record| record.do_after_commit(:update) }
-    after_commit(on: :destroy) { |record| record.do_after_commit(:destroy) }
+    after_create_commit { |record| record.do_after_commit(:create) }
+    after_update_commit { |record| record.do_after_commit(:update) }
+    after_destroy_commit { |record| record.do_after_commit(:destroy) }
     after_rollback { |record| record.do_after_rollback(nil) }
     after_rollback(on: :create) { |record| record.do_after_rollback(:create) }
     after_rollback(on: :update) { |record| record.do_after_rollback(:update) }
@@ -45,6 +46,12 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
     def history
       @history ||= []
+    end
+
+    def before_commit_block(on = nil, &block)
+      @before_commit ||= {}
+      @before_commit[on] ||= []
+      @before_commit[on] << block
     end
 
     def after_commit_block(on = nil, &block)
@@ -57,6 +64,11 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
       @after_rollback ||= {}
       @after_rollback[on] ||= []
       @after_rollback[on] << block
+    end
+
+    def do_before_commit(on)
+      blocks = @before_commit[on] if defined?(@before_commit)
+      blocks.each{|b| b.call(self)} if blocks
     end
 
     def do_after_commit(on)
@@ -72,6 +84,20 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
   def setup
     @first = TopicWithCallbacks.find(1)
+  end
+
+  # FIXME: Test behavior, not implementation.
+  def test_before_commit_exception_should_pop_transaction_stack
+    @first.before_commit_block { raise 'better pop this txn from the stack!' }
+
+    original_txn = @first.class.connection.current_transaction
+
+    begin
+      @first.save!
+      fail
+    rescue
+      assert_equal original_txn, @first.class.connection.current_transaction
+    end
   end
 
   def test_call_after_commit_after_transaction_commits

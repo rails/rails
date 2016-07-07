@@ -2,9 +2,23 @@ module ActionDispatch
   module Http
     # Provides access to the request's HTTP headers from the environment.
     #
-    #   env     = { "CONTENT_TYPE" => "text/plain" }
+    #   env     = { "CONTENT_TYPE" => "text/plain", "HTTP_USER_AGENT" => "curl/7.43.0" }
     #   headers = ActionDispatch::Http::Headers.new(env)
     #   headers["Content-Type"] # => "text/plain"
+    #   headers["User-Agent"] # => "curl/7.43.0"
+    #
+    # Also note that when headers are mapped to CGI-like variables by the Rack
+    # server, both dashes and underscores are converted to underscores. This
+    # ambiguity cannot be resolved at this stage anymore. Both underscores and
+    # dashes have to be interpreted as if they were originally sent as dashes.
+    #
+    #   # GET / HTTP/1.1
+    #   # ...
+    #   # User-Agent: curl/7.43.0
+    #   # X_Custom_Header: token
+    #
+    #   headers["X_Custom_Header"] # => nil
+    #   headers["X-Custom-Header"] # => "token"
     class Headers
       CGI_VARIABLES = Set.new(%W[
         AUTH_TYPE
@@ -101,7 +115,7 @@ module ActionDispatch
 
       private
 
-      # Converts a HTTP header name to an environment variable name if it is
+      # Converts an HTTP header name to an environment variable name if it is
       # not contained within the headers hash.
       def env_name(key)
         key = key.to_s

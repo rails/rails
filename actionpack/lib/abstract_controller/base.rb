@@ -1,13 +1,11 @@
 require 'erubis'
+require 'abstract_controller/error'
 require 'active_support/configurable'
 require 'active_support/descendants_tracker'
 require 'active_support/core_ext/module/anonymous'
 require 'active_support/core_ext/module/attr_internal'
 
 module AbstractController
-  class Error < StandardError #:nodoc:
-  end
-
   # Raised when a non-existing controller action is triggered.
   class ActionNotFound < StandardError
   end
@@ -49,7 +47,7 @@ module AbstractController
       # instance methods on that abstract class. Public instance methods of
       # a controller would normally be considered action methods, so methods
       # declared on abstract classes are being removed.
-      # (ActionController::Metal and ActionController::Base are defined as abstract)
+      # (<tt>ActionController::Metal</tt> and ActionController::Base are defined as abstract)
       def internal_methods
         controller = self
 
@@ -78,9 +76,9 @@ module AbstractController
         end
       end
 
-      # action_methods are cached and there is sometimes need to refresh
+      # action_methods are cached and there is sometimes a need to refresh
       # them. ::clear_action_methods! allows you to do that, so next time
-      # you run action_methods, they will be recalculated
+      # you run action_methods, they will be recalculated.
       def clear_action_methods!
         @action_methods = nil
       end
@@ -150,6 +148,13 @@ module AbstractController
     # * <tt>action_name</tt> - The name of an action to be tested
     def available_action?(action_name)
       _find_action_name(action_name)
+    end
+
+    # Tests if a response body is set. Used to determine if the
+    # +process_action+ callback needs to be terminated in
+    # +AbstractController::Callbacks+.
+    def performed?
+      response_body
     end
 
     # Returns true if the given controller is capable of rendering

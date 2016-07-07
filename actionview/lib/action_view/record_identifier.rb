@@ -5,24 +5,25 @@ module ActionView
   # RecordIdentifier encapsulates methods used by various ActionView helpers
   # to associate records with DOM elements.
   #
-  # Consider for example the following code that displays the body of a post:
+  # Consider for example the following code that form of post:
   #
-  #   <%= div_for(post) do %>
-  #     <%= post.body %>
+  #   <%= form_for(post) do |f| %>
+  #     <%= f.text_field :body %>
   #   <% end %>
   #
   # When +post+ is a new, unsaved ActiveRecord::Base instance, the resulting HTML
   # is:
   #
-  #    <div id="new_post" class="post">
-  #    </div>
+  #    <form class="new_post" id="new_post" action="/posts" accept-charset="UTF-8" method="post">
+  #      <input type="text" name="post[body]" id="post_body" />
+  #    </form>
   #
   # When +post+ is a persisted ActiveRecord::Base instance, the resulting HTML
   # is:
   #
-  #   <div id="post_42" class="post">
-  #     What a wonderful world!
-  #   </div>
+  #   <form class="edit_post" id="edit_post_42" action="/posts/42" accept-charset="UTF-8" method="post">
+  #     <input type="text" value="What a wonderful world!" name="post[body]" id="post_body" />
+  #   </form>
   #
   # In both cases, the +id+ and +class+ of the wrapping DOM element are
   # automatically generated, following naming conventions encapsulated by the

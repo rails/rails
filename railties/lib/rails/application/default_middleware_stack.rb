@@ -34,21 +34,9 @@ module Rails
             # handling: presumably their code is not threadsafe
 
             middleware.use ::Rack::Lock
-
-          elsif config.allow_concurrency == :unsafe
-            # Do nothing, even if we know this is dangerous. This is the
-            # historical behaviour for true.
-
-          else
-            # Default concurrency setting: enabled, but safe
-
-            unless config.cache_classes && config.eager_load
-              # Without cache_classes + eager_load, the load interlock
-              # is required for proper operation
-
-              middleware.use ::ActionDispatch::LoadInterlock
-            end
           end
+
+          middleware.use ::ActionDispatch::Executor, app.executor
 
           middleware.use ::Rack::Runtime
           middleware.use ::Rack::MethodOverride unless config.api_only
@@ -57,18 +45,18 @@ module Rails
           # Must come after Rack::MethodOverride to properly log overridden methods
           middleware.use ::Rails::Rack::Logger, config.log_tags
           middleware.use ::ActionDispatch::ShowExceptions, show_exceptions_app
-          middleware.use ::ActionDispatch::DebugExceptions, app
+          middleware.use ::ActionDispatch::DebugExceptions, app, config.debug_exception_response_format
           middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
 
           unless config.cache_classes
-            middleware.use ::ActionDispatch::Reloader, lambda { reload_dependencies? }
+            middleware.use ::ActionDispatch::Reloader, app.reloader
           end
 
           middleware.use ::ActionDispatch::Callbacks
           middleware.use ::ActionDispatch::Cookies unless config.api_only
 
           if !config.api_only && config.session_store
-            if config.force_ssl && !config.session_options.key?(:secure)
+            if config.force_ssl && config.ssl_options.fetch(:secure_cookies, true) && !config.session_options.key?(:secure)
               config.session_options[:secure] = true
             end
             middleware.use config.session_store, config.session_options
@@ -82,10 +70,6 @@ module Rails
       end
 
       private
-
-        def reload_dependencies?
-          config.reload_classes_only_on_change != true || app.reloaders.map(&:updated?).any?
-        end
 
         def load_rack_cache
           rack_cache = config.action_dispatch.rack_cache

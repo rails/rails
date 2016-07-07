@@ -3,8 +3,8 @@
 The Rails Initialization Process
 ================================
 
-This guide explains the internals of the initialization process in Rails
-as of Rails 4. It is an extremely in-depth guide and recommended for advanced Rails developers.
+This guide explains the internals of the initialization process in Rails.
+It is an extremely in-depth guide and recommended for advanced Rails developers.
 
 After reading this guide, you will know:
 
@@ -139,7 +139,8 @@ aliases = {
   "c"  => "console",
   "s"  => "server",
   "db" => "dbconsole",
-  "r"  => "runner"
+  "r"  => "runner",
+  "t"  => "test"
 }
 
 command = ARGV.shift
@@ -156,21 +157,22 @@ snippet.
 If we had used `s` rather than `server`, Rails would have used the `aliases`
 defined here to find the matching command.
 
-### `rails/commands/command_tasks.rb`
+### `rails/commands/commands_tasks.rb`
 
-When one types an incorrect rails command, the `run_command` is responsible for
-throwing an error message. If the command is valid, a method of the same name
-is called.
+When one types a valid Rails command, `run_command!` a method of the same name
+is called. If Rails doesn't recognize the command, it tries to run a Rake task
+of the same name.
 
 ```ruby
 COMMAND_WHITELIST = %w(plugin generate destroy console server dbconsole application runner new version help)
 
 def run_command!(command)
   command = parse_command(command)
+
   if COMMAND_WHITELIST.include?(command)
     send(command)
   else
-    write_error_message(command)
+    run_rake_task(command)
   end
 end
 ```
@@ -354,8 +356,6 @@ private
   def print_boot_information
     ...
     puts "=> Run `rails server -h` for more startup options"
-    ...
-    puts "=> Ctrl-C to shutdown server" unless options[:daemonize]
   end
 
   def create_tmp_directories
@@ -528,16 +528,17 @@ This file is responsible for requiring all the individual frameworks of Rails:
 require "rails"
 
 %w(
-  active_record
-  action_controller
-  action_view
-  action_mailer
-  active_job
-  rails/test_unit
-  sprockets
-).each do |framework|
+  active_record/railtie
+  action_controller/railtie
+  action_view/railtie
+  action_mailer/railtie
+  active_job/railtie
+  action_cable/engine
+  rails/test_unit/railtie
+  sprockets/railtie
+).each do |railtie|
   begin
-    require "#{framework}/railtie"
+    require "#{railtie}"
   rescue LoadError
   end
 end

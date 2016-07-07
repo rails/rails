@@ -104,6 +104,13 @@ class RelationMergingTest < ActiveRecord::TestCase
     post = PostThatLoadsCommentsInAnAfterSaveHook.create!(title: "First Post", body: "Blah blah blah.")
     assert_equal "First comment!", post.comments.where(body: "First comment!").first_or_create.body
   end
+
+  def test_merging_with_from_clause
+    relation = Post.all
+    assert relation.from_clause.empty?
+    relation = relation.merge(Post.from("posts"))
+    refute relation.from_clause.empty?
+  end
 end
 
 class MergingDifferentRelationsTest < ActiveRecord::TestCase

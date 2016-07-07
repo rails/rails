@@ -33,7 +33,7 @@ module ActiveRecord
     # the database).
     #
     #   class Customer < ActiveRecord::Base
-    #     composed_of :balance, class_name: "Money", mapping: %w(balance amount)
+    #     composed_of :balance, class_name: "Money", mapping: %w(amount currency)
     #     composed_of :address, mapping: [ %w(address_street street), %w(address_city city) ]
     #   end
     #
@@ -256,13 +256,14 @@ module ActiveRecord
         def writer_method(name, class_name, mapping, allow_nil, converter)
           define_method("#{name}=") do |part|
             klass = class_name.constantize
-            if part.is_a?(Hash)
-              raise ArgumentError unless part.size == part.keys.max
-              part = klass.new(*part.sort.map(&:last))
-            end
 
             unless part.is_a?(klass) || converter.nil? || part.nil?
               part = converter.respond_to?(:call) ? converter.call(part) : klass.send(converter, part)
+            end
+
+            if part.is_a?(Hash)
+              raise ArgumentError unless part.size == part.keys.max
+              part = klass.new(*part.sort.map(&:last))
             end
 
             if part.nil? && allow_nil

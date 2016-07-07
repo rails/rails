@@ -52,9 +52,11 @@ module ActiveRecord
     end
 
     def test_or_with_incompatible_relations
-      assert_raises ArgumentError do
+      error = assert_raises ArgumentError do
         Post.order('body asc').where('id = 1').or(Post.order('id desc').where(:id => [2, 3])).to_a
       end
+
+      assert_equal "Relation passed to #or must be structurally compatible. Incompatible values: [:order]", error.message
     end
 
     def test_or_when_grouping
@@ -79,6 +81,12 @@ module ActiveRecord
       p.load
       assert_equal p.loaded?, true
       assert_equal expected, p.or(Post.where('id = 2')).to_a
+    end
+
+    def test_or_with_non_relation_object_raises_error
+      assert_raises ArgumentError do
+        Post.where(id: [1, 2, 3]).or(title: 'Rails')
+      end
     end
   end
 end

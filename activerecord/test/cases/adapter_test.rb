@@ -2,6 +2,7 @@ require "cases/helper"
 require "models/book"
 require "models/post"
 require "models/author"
+require "models/event"
 
 module ActiveRecord
   class AdapterTest < ActiveRecord::TestCase
@@ -11,7 +12,8 @@ module ActiveRecord
 
     ##
     # PostgreSQL does not support null bytes in strings
-    unless current_adapter?(:PostgreSQLAdapter)
+    unless current_adapter?(:PostgreSQLAdapter) ||
+        (current_adapter?(:SQLite3Adapter) && !ActiveRecord::Base.connection.prepared_statements)
       def test_update_prepared_statement
         b = Book.create(name: "my \x00 book")
         b.reload
@@ -20,6 +22,12 @@ module ActiveRecord
         b.reload
         assert_equal "my other \x00 book", b.name
       end
+    end
+
+    def test_create_record_with_pk_as_zero
+      Book.create(id: 0)
+      assert_equal 0, Book.find(0).id
+      assert_nothing_raised { Book.destroy(0) }
     end
 
     def test_tables
@@ -79,13 +87,24 @@ module ActiveRecord
       @connection.remove_index(:accounts, :name => idx_name) rescue nil
     end
 
+    def test_remove_index_when_name_and_wrong_column_name_specified
+      index_name = "accounts_idx"
+
+      @connection.add_index :accounts, :firm_id, :name => index_name
+      assert_raises ArgumentError do
+        @connection.remove_index :accounts, :name => index_name, :column => :wrong_column_name
+      end
+    ensure
+      @connection.remove_index(:accounts, :name => index_name)
+    end
+
     def test_current_database
       if @connection.respond_to?(:current_database)
         assert_equal ARTest.connection_config['arunit']['database'], @connection.current_database
       end
     end
 
-    if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+    if current_adapter?(:Mysql2Adapter)
       def test_charset
         assert_not_nil @connection.charset
         assert_not_equal 'character_set_database', @connection.charset
@@ -193,6 +212,14 @@ module ActiveRecord
 
         assert_not_nil error.cause
       end
+
+      def test_value_limit_violations_are_translated_to_specific_exception
+        error = assert_raises(ActiveRecord::ValueTooLong) do
+          Event.create(title: 'abcdefgh')
+        end
+
+        assert_not_nil error.cause
+      end
     end
 
     def test_disable_referential_integrity
@@ -254,7 +281,7 @@ module ActiveRecord
       end
     end
 
-    if current_adapter?(:MysqlAdapter, :Mysql2Adapter, :SQLite3Adapter)
+    if current_adapter?(:Mysql2Adapter, :SQLite3Adapter)
       def test_tables_returning_both_tables_and_views_is_deprecated
         assert_deprecated { @connection.tables }
       end

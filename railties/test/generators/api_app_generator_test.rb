@@ -37,9 +37,8 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/gem 'coffee-rails'/, content)
       assert_no_match(/gem 'jquery-rails'/, content)
       assert_no_match(/gem 'sass-rails'/, content)
-      assert_no_match(/gem 'jbuilder'/, content)
       assert_no_match(/gem 'web-console'/, content)
-      assert_match(/gem 'active_model_serializers'/, content)
+      assert_match(/# gem 'jbuilder'/, content)
     end
 
     assert_file "config/application.rb" do |content|
@@ -53,6 +52,25 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     assert_file "app/controllers/application_controller.rb", /ActionController::API/
   end
 
+  def test_generator_if_skip_action_cable_is_given
+    run_generator [destination_root, "--skip-action-cable"]
+    assert_file "config/application.rb", /#\s+require\s+["']action_cable\/engine["']/
+    assert_no_file "config/cable.yml"
+    assert_no_file "app/channels"
+    assert_file "Gemfile" do |content|
+      assert_no_match(/redis/, content)
+    end
+  end
+
+  def test_generator_skips_per_form_csrf_token_and_origin_check_configs_for_api_apps
+    run_generator
+
+    assert_file "config/initializers/new_framework_defaults.rb" do |initializer_content|
+      assert_no_match(/per_form_csrf_tokens/, initializer_content)
+      assert_no_match(/forgery_protection_origin_check/, initializer_content)
+    end
+  end
+
   private
 
   def default_files
@@ -64,6 +82,8 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
       app/controllers
       app/mailers
       app/models
+      app/views/layouts/mailer.html.erb
+      app/views/layouts/mailer.text.erb
       config/environments
       config/initializers
       config/locales
@@ -85,13 +105,19 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
   def skipped_files
     %w(app/assets
        app/helpers
-       app/views
+       app/views/layouts/application.html.erb
        config/initializers/assets.rb
        config/initializers/cookies_serializer.rb
        config/initializers/session_store.rb
        lib/assets
        vendor/assets
        test/helpers
-       tmp/cache/assets)
+       tmp/cache/assets
+       public/404.html
+       public/422.html
+       public/500.html
+       public/apple-touch-icon-precomposed.png
+       public/apple-touch-icon.png
+       public/favicon.ico)
   end
 end

@@ -51,4 +51,13 @@ class Mysql2CaseSensitivityTest < ActiveRecord::Mysql2TestCase
     cs_uniqueness_query = queries.detect { |q| q.match(/string_cs_column/) }
     assert_no_match(/binary/i, cs_uniqueness_query)
   end
+
+  def test_case_sensitive_comparison_for_binary_column
+    CollationTest.validates_uniqueness_of(:binary_column, case_sensitive: true)
+    CollationTest.create!(binary_column: 'A')
+    invalid = CollationTest.new(binary_column: 'A')
+    queries = assert_sql { invalid.save }
+    bin_uniqueness_query = queries.detect { |q| q.match(/binary_column/) }
+    assert_no_match(/\bBINARY\b/, bin_uniqueness_query)
+  end
 end

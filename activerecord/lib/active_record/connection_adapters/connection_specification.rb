@@ -3,10 +3,10 @@ require 'uri'
 module ActiveRecord
   module ConnectionAdapters
     class ConnectionSpecification #:nodoc:
-      attr_reader :config, :adapter_method
+      attr_reader :name, :config, :adapter_method
 
-      def initialize(config, adapter_method)
-        @config, @adapter_method = config, adapter_method
+      def initialize(name, config, adapter_method)
+        @name, @config, @adapter_method = name, config, adapter_method
       end
 
       def initialize_dup(original)
@@ -33,7 +33,7 @@ module ActiveRecord
         def initialize(url)
           raise "Database URL cannot be empty" if url.blank?
           @uri     = uri_parser.parse(url)
-          @adapter = @uri.scheme.tr('-', '_')
+          @adapter = @uri.scheme && @uri.scheme.tr('-', '_')
           @adapter = "postgresql" if @adapter == "postgres"
 
           if @uri.opaque
@@ -164,7 +164,7 @@ module ActiveRecord
         #   spec.config
         #   # => { "host" => "localhost", "database" => "foo", "adapter" => "sqlite3" }
         #
-        def spec(config)
+        def spec(config, name = nil)
           spec = resolve(config).symbolize_keys
 
           raise(AdapterNotSpecified, "database configuration does not specify adapter") unless spec.key?(:adapter)
@@ -175,11 +175,18 @@ module ActiveRecord
           rescue Gem::LoadError => e
             raise Gem::LoadError, "Specified '#{spec[:adapter]}' for database adapter, but the gem is not loaded. Add `gem '#{e.name}'` to your Gemfile (and ensure its version is at the minimum required by ActiveRecord)."
           rescue LoadError => e
-            raise LoadError, "Could not load '#{path_to_adapter}'. Make sure that the adapter in config/database.yml is valid. If you use an adapter other than 'mysql', 'mysql2', 'postgresql' or 'sqlite3' add the necessary adapter gem to the Gemfile.", e.backtrace
+            raise LoadError, "Could not load '#{path_to_adapter}'. Make sure that the adapter in config/database.yml is valid. If you use an adapter other than 'mysql2', 'postgresql' or 'sqlite3' add the necessary adapter gem to the Gemfile.", e.backtrace
           end
 
           adapter_method = "#{spec[:adapter]}_connection"
-          ConnectionSpecification.new(spec, adapter_method)
+
+          name ||=
+            if config.is_a?(Symbol)
+              config.to_s
+            else
+              "primary"
+            end
+          ConnectionSpecification.new(name, spec, adapter_method)
         end
 
         private

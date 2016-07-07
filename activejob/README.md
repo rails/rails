@@ -20,12 +20,7 @@ switch between them without having to rewrite your jobs.
 
 ## Usage
 
-Set the queue adapter for Active Job:
-
-``` ruby
-ActiveJob::Base.queue_adapter = :inline # default queue adapter
-```
-Note: To learn how to use your preferred queueing backend see its adapter
+To learn how to use your preferred queueing backend see its adapter
 documentation at
 [ActiveJob::QueueAdapters](http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
 
@@ -102,12 +97,12 @@ see the API Documentation for [ActiveJob::QueueAdapters](http://api.rubyonrails.
 The latest version of Active Job can be installed with RubyGems:
 
 ```
-  % gem install activejob
+  $ gem install activejob
 ```
 
 Source code can be downloaded as part of the Rails project on GitHub
 
-* https://github.com/rails/rails/tree/master/activejob
+* https://github.com/rails/rails/tree/5-0-stable/activejob
 
 ## License
 

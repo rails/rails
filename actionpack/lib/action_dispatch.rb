@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2004-2015 David Heinemeier Hansson
+# Copyright (c) 2004-2016 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -50,9 +50,10 @@ module ActionDispatch
     autoload :Callbacks
     autoload :Cookies
     autoload :DebugExceptions
+    autoload :DebugLocks
     autoload :ExceptionWrapper
+    autoload :Executor
     autoload :Flash
-    autoload :LoadInterlock
     autoload :ParamsParser
     autoload :PublicExceptions
     autoload :Reloader
@@ -95,6 +96,7 @@ module ActionDispatch
     autoload :TestProcess
     autoload :TestRequest
     autoload :TestResponse
+    autoload :AssertionResponse
   end
 end
 

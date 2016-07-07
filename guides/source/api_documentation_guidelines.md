@@ -20,7 +20,7 @@ The [Rails API documentation](http://api.rubyonrails.org) is generated with
 in the rails root directory, run `bundle install` and execute:
 
 ```bash
-  bundle exec rake rdoc
+  ./bin/rails rdoc
 ```
 
 Resulting HTML files can be found in the ./doc/rdoc directory.
@@ -120,7 +120,7 @@ On the other hand, big chunks of structured documentation may have a separate "E
 The results of expressions follow them and are introduced by "# => ", vertically aligned:
 
 ```ruby
-# For checking if a fixnum is even or odd.
+# For checking if an integer is even or odd.
 #
 #   1.even? # => false
 #   1.odd?  # => true

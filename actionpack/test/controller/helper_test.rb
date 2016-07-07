@@ -141,20 +141,10 @@ class HelperTest < ActiveSupport::TestCase
   def test_helper_for_nested_controller
     assert_equal 'hello: Iz guuut!',
       call_controller(Fun::GamesController, "render_hello_world").last.body
-    # request  = ActionController::TestRequest.new
-    #
-    # resp = Fun::GamesController.action(:render_hello_world).call(request.env)
-    # assert_equal 'hello: Iz guuut!', resp.last.body
   end
 
   def test_helper_for_acronym_controller
     assert_equal "test: baz", call_controller(Fun::PdfController, "test").last.body
-    #
-    # request  = ActionController::TestRequest.new
-    # response = ActionDispatch::TestResponse.new
-    # request.action = 'test'
-    #
-    # assert_equal 'test: baz', Fun::PdfController.process(request, response).body
   end
 
   def test_default_helpers_only
@@ -215,6 +205,22 @@ class HelperTest < ActiveSupport::TestCase
 
     # fun/pdf_helper.rb
     assert methods.include?(:foobar)
+  end
+
+  def test_helper_proxy_in_instance
+    methods = AllHelpersController.new.helpers.methods
+
+    # Action View
+    assert_includes methods, :pluralize
+
+    # abc_helper.rb
+    assert_includes methods, :bare_a
+
+    # fun/games_helper.rb
+    assert_includes methods, :stratego
+
+    # fun/pdf_helper.rb
+    assert_includes methods, :foobar
   end
 
   def test_helper_proxy_config

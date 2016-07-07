@@ -33,6 +33,7 @@ module ActiveRecord
 
     class NullTransaction #:nodoc:
       def initialize; end
+      def state; end
       def closed?; true; end
       def open?; false; end
       def joinable?; false; end
@@ -166,8 +167,13 @@ module ActiveRecord
 
       def commit_transaction
         transaction = @stack.last
-        transaction.before_commit_records
-        @stack.pop
+
+        begin
+          transaction.before_commit_records
+        ensure
+          @stack.pop
+        end
+
         transaction.commit
         transaction.commit_records
       end
@@ -182,7 +188,10 @@ module ActiveRecord
         transaction = begin_transaction options
         yield
       rescue Exception => error
-        rollback_transaction if transaction
+        if transaction
+          rollback_transaction
+          after_failure_actions(transaction, error)
+        end
         raise
       ensure
         unless error
@@ -208,7 +217,16 @@ module ActiveRecord
       end
 
       private
+
         NULL_TRANSACTION = NullTransaction.new
+
+        # Deallocate invalidated prepared statements outside of the transaction
+        def after_failure_actions(transaction, error)
+          return unless transaction.is_a?(RealTransaction)
+          return unless error.is_a?(ActiveRecord::PreparedStatementCacheExpired)
+          @connection.clear_cache!
+        end
+
     end
   end
 end

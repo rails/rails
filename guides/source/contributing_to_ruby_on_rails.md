@@ -16,7 +16,7 @@ After reading this guide, you will know:
 Ruby on Rails is not "someone else's framework." Over the years, hundreds of people have contributed to Ruby on Rails ranging from a single character to massive architectural changes or significant documentation - all with the goal of making Ruby on Rails better for everyone. Even if you don't feel up to writing code or documentation yet, there are a variety of other ways that you can contribute, from reporting issues to testing patches.
 
 As mentioned in [Rails
-README](https://github.com/rails/rails/blob/master/README.md), everyone interacting in Rails and its sub-projects' codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](https://github.com/rails/rails/blob/master/CODE_OF_CONDUCT.md).
+README](https://github.com/rails/rails/blob/master/README.md), everyone interacting in Rails and its sub-projects' codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](http://rubyonrails.org/conduct/).
 
 --------------------------------------------------------------------------------
 
@@ -105,7 +105,7 @@ $ git checkout -b testing_branch
 Then you can use their remote branch to update your codebase. For example, let's say the GitHub user JohnSmith has forked and pushed to a topic branch "orange" located at https://github.com/JohnSmith/rails.
 
 ```bash
-$ git remote add JohnSmith git://github.com/JohnSmith/rails.git
+$ git remote add JohnSmith https://github.com/JohnSmith/rails.git
 $ git pull JohnSmith orange
 ```
 
@@ -148,6 +148,42 @@ NOTE: To help our CI servers you should add [ci skip] to your documentation comm
 
 WARNING: Docrails has a very strict policy: no code can be touched whatsoever, no matter how trivial or small the change. Only RDoc and guides can be edited via docrails. Also, CHANGELOGs should never be edited in docrails.
 
+Translating Rails Guides
+------------------------
+
+We are happy to have people volunteer to translate the Rails guides into their own language.
+If you want to translate the Rails guides in your own language, follows these steps:
+
+* Fork the project (rails/rails).
+* Add a source folder for your own language, for example: *guides/source/it-IT* for Italian.
+* Copy the contents of *guides/source* into your own language directory and translate them.
+* Do NOT translate the HTML files, as they are automatically generated.
+
+To generate the guides in HTML format cd into the *guides* directory then run (eg. for it-IT):
+
+```bash
+$ bundle install
+$ bundle exec rake guides:generate:html GUIDES_LANGUAGE=it-IT
+```
+
+This will generate the guides in an *output* directory.
+
+NOTE: The instructions are for Rails > 4. The Redcarpet Gem doesn't work with JRuby.
+
+Translation efforts we know about (various versions):
+
+* **Italian**: [https://github.com/rixlabs/docrails](https://github.com/rixlabs/docrails)
+* **Spanish**: [http://wiki.github.com/gramos/docrails](http://wiki.github.com/gramos/docrails)
+* **Polish**: [http://github.com/apohllo/docrails/tree/master](http://github.com/apohllo/docrails/tree/master)
+* **French** : [http://github.com/railsfrance/docrails](http://github.com/railsfrance/docrails)
+* **Czech** : [https://github.com/rubyonrails-cz/docrails/tree/czech](https://github.com/rubyonrails-cz/docrails/tree/czech)
+* **Turkish** : [https://github.com/ujk/docrails/tree/master](https://github.com/ujk/docrails/tree/master)
+* **Korean** : [https://github.com/rorlakr/rails-guides](https://github.com/rorlakr/rails-guides)
+* **Simplified Chinese** : [https://github.com/ruby-china/guides](https://github.com/ruby-china/guides)
+* **Traditional Chinese** : [https://github.com/docrails-tw/guides](https://github.com/docrails-tw/guides)
+* **Russian** : [https://github.com/morsbox/rusrails](https://github.com/morsbox/rusrails)
+* **Japanese** : [https://github.com/yasslab/railsguides.jp](https://github.com/yasslab/railsguides.jp)
+
 Contributing to the Rails Code
 ------------------------------
 
@@ -168,7 +204,7 @@ In case you can't use the Rails development box, see [this other guide](developm
 To be able to contribute code, you need to clone the Rails repository:
 
 ```bash
-$ git clone git://github.com/rails/rails.git
+$ git clone https://github.com/rails/rails.git
 ```
 
 and create a dedicated branch:
@@ -321,7 +357,6 @@ $ bundle exec rake test:sqlite3
 You can now run the tests as you did for `sqlite3`. The tasks are respectively:
 
 ```bash
-test:mysql
 test:mysql2
 test:postgresql
 ```
@@ -332,7 +367,7 @@ Finally,
 $ bundle exec rake test
 ```
 
-will now run the four of them in turn.
+will now run the three of them in turn.
 
 You can also run any single test separately:
 
@@ -471,7 +506,7 @@ Navigate to the Rails [GitHub repository](https://github.com/rails/rails) and pr
 Add the new remote to your local repository on your local machine:
 
 ```bash
-$ git remote add mine git@github.com:<your user name>/rails.git
+$ git remote add mine https://github.com:<your user name>/rails.git
 ```
 
 Push to your remote:
@@ -485,7 +520,7 @@ You might have cloned your forked repository into your machine and might want to
 In the directory you cloned your fork:
 
 ```bash
-$ git remote add rails git://github.com/rails/rails.git
+$ git remote add rails https://github.com/rails/rails.git
 ```
 
 Download new commits and branches from the official repository:

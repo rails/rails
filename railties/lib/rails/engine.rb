@@ -219,7 +219,7 @@ module Rails
   # The next thing that changes in isolated engines is the behavior of routes.
   # Normally, when you namespace your controllers, you also need to namespace
   # the related routes. With an isolated engine, the engine's namespace is
-  # automatically applied, so you don't need to specify it explicity in your
+  # automatically applied, so you don't need to specify it explicitly in your
   # routes:
   #
   #   MyEngine::Engine.routes.draw do

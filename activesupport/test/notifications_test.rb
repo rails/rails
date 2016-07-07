@@ -42,6 +42,21 @@ module Notifications
       ActiveSupport::Notifications.instrument(name)
       assert_equal expected, events
     end
+
+    def test_subsribing_to_instrumentation_while_inside_it
+      # the repro requires that there are no evented subscribers for the "foo" event,
+      # so we have to duplicate some of the setup code
+      old_notifier = ActiveSupport::Notifications.notifier
+      ActiveSupport::Notifications.notifier = ActiveSupport::Notifications::Fanout.new
+
+      ActiveSupport::Notifications.subscribe('foo', TestSubscriber.new)
+
+      ActiveSupport::Notifications.instrument('foo') do
+        ActiveSupport::Notifications.subscribe('foo') {}
+      end
+    ensure
+      ActiveSupport::Notifications.notifier = old_notifier
+    end
   end
 
   class UnsubscribeTest < TestCase
@@ -217,7 +232,7 @@ module Notifications
 
       assert_equal 1, @events.size
       assert_equal Hash[:payload => "notifications",
-        :exception => ["RuntimeError", "FAIL"]], @events.last.payload
+        :exception => ["RuntimeError", "FAIL"], :exception_object => e], @events.last.payload
     end
 
     def test_event_is_pushed_even_without_block

@@ -1,5 +1,3 @@
-require File.expand_path('../../../load_paths', __FILE__)
-
 $:.unshift(File.dirname(__FILE__) + '/lib')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/helpers')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
@@ -20,7 +18,11 @@ rescue LoadError
   puts "'drb/unix' is not available"
 end
 
-PROCESS_COUNT = (ENV['N'] || 4).to_i
+if ENV['TRAVIS']
+  PROCESS_COUNT = 0
+else
+  PROCESS_COUNT = (ENV['N'] || 4).to_i
+end
 
 require 'active_support/testing/autorun'
 require 'abstract_controller'
@@ -65,7 +67,9 @@ FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
 SharedTestRoutes = ActionDispatch::Routing::RouteSet.new
 
 SharedTestRoutes.draw do
-  get ':controller(/:action)'
+  ActiveSupport::Deprecation.silence do
+    get ':controller(/:action)'
+  end
 end
 
 module ActionDispatch
@@ -114,7 +118,9 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
   self.app = build_app
 
   app.routes.draw do
-    get ':controller(/:action)'
+    ActiveSupport::Deprecation.silence do
+      get ':controller(/:action)'
+    end
   end
 
   class DeadEndRoutes < ActionDispatch::Routing::RouteSet
@@ -369,6 +375,12 @@ module RoutingTestHelpers
       Request.new super, url_helpers, @block, strict
     end
   end
+end
+
+class MetalRenderingController < ActionController::Metal
+  include AbstractController::Rendering
+  include ActionController::Rendering
+  include ActionController::Renderers
 end
 
 class ResourcesController < ActionController::Base

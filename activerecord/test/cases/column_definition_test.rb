@@ -38,42 +38,52 @@ module ActiveRecord
           assert_equal %Q{title varchar(20) DEFAULT 'Hello' NOT NULL}, @viz.accept(column_def)
       end
 
-      if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+      if current_adapter?(:Mysql2Adapter)
         def test_should_set_default_for_mysql_binary_data_types
           type = SqlTypeMetadata.new(type: :binary, sql_type: "binary(1)")
-          binary_column = AbstractMysqlAdapter::Column.new("title", "a", type)
+          binary_column = MySQL::Column.new("title", "a", type)
           assert_equal "a", binary_column.default
 
           type = SqlTypeMetadata.new(type: :binary, sql_type: "varbinary")
-          varbinary_column = AbstractMysqlAdapter::Column.new("title", "a", type)
+          varbinary_column = MySQL::Column.new("title", "a", type)
           assert_equal "a", varbinary_column.default
+        end
+
+        def test_should_be_empty_string_default_for_mysql_binary_data_types
+          type = SqlTypeMetadata.new(type: :binary, sql_type: "binary(1)")
+          binary_column = MySQL::Column.new("title", "", type, false)
+          assert_equal "", binary_column.default
+
+          type = SqlTypeMetadata.new(type: :binary, sql_type: "varbinary")
+          varbinary_column = MySQL::Column.new("title", "", type, false)
+          assert_equal "", varbinary_column.default
         end
 
         def test_should_not_set_default_for_blob_and_text_data_types
           assert_raise ArgumentError do
-            AbstractMysqlAdapter::Column.new("title", "a", SqlTypeMetadata.new(sql_type: "blob"))
+            MySQL::Column.new("title", "a", SqlTypeMetadata.new(sql_type: "blob"))
           end
 
-          text_type = AbstractMysqlAdapter::MysqlTypeMetadata.new(
+          text_type = MySQL::TypeMetadata.new(
             SqlTypeMetadata.new(type: :text))
           assert_raise ArgumentError do
-            AbstractMysqlAdapter::Column.new("title", "Hello", text_type)
+            MySQL::Column.new("title", "Hello", text_type)
           end
 
-          text_column = AbstractMysqlAdapter::Column.new("title", nil, text_type)
+          text_column = MySQL::Column.new("title", nil, text_type)
           assert_equal nil, text_column.default
 
-          not_null_text_column = AbstractMysqlAdapter::Column.new("title", nil, text_type, false)
+          not_null_text_column = MySQL::Column.new("title", nil, text_type, false)
           assert_equal "", not_null_text_column.default
         end
 
         def test_has_default_should_return_false_for_blob_and_text_data_types
           binary_type = SqlTypeMetadata.new(sql_type: "blob")
-          blob_column = AbstractMysqlAdapter::Column.new("title", nil, binary_type)
+          blob_column = MySQL::Column.new("title", nil, binary_type)
           assert !blob_column.has_default?
 
           text_type = SqlTypeMetadata.new(type: :text)
-          text_column = AbstractMysqlAdapter::Column.new("title", nil, text_type)
+          text_column = MySQL::Column.new("title", nil, text_type)
           assert !text_column.has_default?
         end
       end

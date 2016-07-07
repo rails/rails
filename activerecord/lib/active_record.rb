@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2004-2015 David Heinemeier Hansson
+# Copyright (c) 2004-2016 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -40,6 +40,7 @@ module ActiveRecord
   autoload :CounterCache
   autoload :DynamicMatchers
   autoload :Enum
+  autoload :InternalMetadata
   autoload :Explain
   autoload :Inheritance
   autoload :Integration
@@ -136,7 +137,6 @@ module ActiveRecord
 
     eager_autoload do
       autoload :AbstractAdapter
-      autoload :ConnectionManagement, "active_record/connection_adapters/abstract/connection_pool"
     end
   end
 

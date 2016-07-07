@@ -16,7 +16,7 @@ like any other source code, rather than stubs that are generated on demand.
 Here's how to upgrade:
 
   bundle config --delete bin    # Turn off Bundler's stub generator
-  rake rails:update:bin         # Use the new Rails 4 executables
+  rails app:update:bin          # Use the new Rails 5 executables
   git add bin                   # Add bin/ to source control
 
 You may need to remove bin/ from your .gitignore as well.

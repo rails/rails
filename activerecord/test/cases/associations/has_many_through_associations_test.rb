@@ -11,7 +11,9 @@ require 'models/tagging'
 require 'models/author'
 require 'models/owner'
 require 'models/pet'
+require 'models/pet_treasure'
 require 'models/toy'
+require 'models/treasure'
 require 'models/contract'
 require 'models/company'
 require 'models/developer'
@@ -884,7 +886,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_collection_singular_ids_setter_raises_exception_when_invalid_ids_set
     company = companies(:rails_core)
     ids =  [Developer.first.id, -9999]
-    assert_raises(ActiveRecord::RecordNotFound) {company.developer_ids= ids}
+    assert_raises(ActiveRecord::AssociationTypeMismatch) {company.developer_ids= ids}
   end
 
   def test_build_a_model_from_hm_through_association_with_where_clause
@@ -1080,6 +1082,18 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     assert person.posts.loaded?, 'person.posts should be loaded'
     assert_equal [], person.posts
+  end
+
+  def test_preloading_empty_through_with_polymorphic_source_association
+    owner = Owner.create!(name: "Rainbow Unicat")
+    pet = Pet.create!(owner: owner)
+    person = Person.create!(first_name: "Gaga")
+    treasure = Treasure.create!(looter: person)
+    non_looted_treasure = Treasure.create!()
+    PetTreasure.create!(pet: pet, treasure: treasure, rainbow_color: "Ultra violet indigo")
+    PetTreasure.create!(pet: pet, treasure: non_looted_treasure, rainbow_color: "Ultra violet indigo")
+
+    assert_equal [person], Owner.where(name: "Rainbow Unicat").includes(pets: :persons).first.persons.to_a
   end
 
   def test_explicitly_joining_join_table

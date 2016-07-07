@@ -136,7 +136,7 @@ module ActionView
         tag(
           "link",
           "rel"   => tag_options[:rel] || "alternate",
-          "type"  => tag_options[:type] || Mime[type].to_s,
+          "type"  => tag_options[:type] || Template::Types[type].to_s,
           "title" => tag_options[:title] || type.to_s.upcase,
           "href"  => url_options.is_a?(Hash) ? url_for(url_options.merge(:only_path => false)) : url_options
         )
@@ -239,7 +239,7 @@ module ActionView
       #   image_alt('underscored_file_name.png')
       #   # => Underscored file name
       def image_alt(src)
-        File.basename(src, '.*'.freeze).sub(/-[[:xdigit:]]{32}\z/, ''.freeze).tr('-_'.freeze, ' '.freeze).capitalize
+        File.basename(src, '.*'.freeze).sub(/-[[:xdigit:]]{32,64}\z/, ''.freeze).tr('-_'.freeze, ' '.freeze).capitalize
       end
 
       # Returns an HTML video tag for the +sources+. If +sources+ is a string,

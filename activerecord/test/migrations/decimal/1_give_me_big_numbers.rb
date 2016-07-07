@@ -1,4 +1,4 @@
-class GiveMeBigNumbers < ActiveRecord::Migration
+class GiveMeBigNumbers < ActiveRecord::Migration::Current
   def self.up
     create_table :big_numbers do |table|
       table.column :bank_balance, :decimal, :precision => 10, :scale => 2

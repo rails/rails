@@ -20,11 +20,9 @@ module ActiveSupport
         data = StringIO.new(data || '')
       end
 
-      char = data.getc
-      if char.nil?
+      if data.eof?
         {}
       else
-        data.ungetc(char)
         silence_warnings { require 'rexml/document' } unless defined?(REXML::Document)
         doc = REXML::Document.new(data)
 

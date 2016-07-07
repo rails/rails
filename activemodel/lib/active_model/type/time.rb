@@ -29,12 +29,16 @@ module ActiveModel
         return value unless value.is_a?(::String)
         return if value.empty?
 
-        dummy_time_value = "2000-01-01 #{value}"
+        if value =~ /^2000-01-01/
+          dummy_time_value = value
+        else
+          dummy_time_value = "2000-01-01 #{value}"
+        end
 
         fast_string_to_time(dummy_time_value) || begin
           time_hash = ::Date._parse(dummy_time_value)
           return if time_hash[:hour].nil?
-          new_time(*time_hash.values_at(:year, :mon, :mday, :hour, :min, :sec, :sec_fraction))
+          new_time(*time_hash.values_at(:year, :mon, :mday, :hour, :min, :sec, :sec_fraction, :offset))
         end
       end
     end

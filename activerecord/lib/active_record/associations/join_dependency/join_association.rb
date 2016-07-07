@@ -54,12 +54,18 @@ module ActiveRecord
             end
             scope_chain_index += 1
 
-            relation = ActiveRecord::Relation.create(
-              klass,
-              table,
-              predicate_builder,
-            )
-            scope_chain_items.concat [klass.send(:build_default_scope, relation)].compact
+            klass_scope =
+              if klass.current_scope
+                klass.current_scope.clone
+              else
+                relation = ActiveRecord::Relation.create(
+                  klass,
+                  table,
+                  predicate_builder,
+                )
+                klass.send(:build_default_scope, relation)
+              end
+            scope_chain_items.concat [klass_scope].compact
 
             rel = scope_chain_items.inject(scope_chain_items.shift) do |left, right|
               left.merge right
@@ -74,9 +80,8 @@ module ActiveRecord
               value = foreign_klass.base_class.name
               column = klass.columns_hash[reflection.type.to_s]
 
-              substitute = klass.connection.substitute_at(column)
               binds << Relation::QueryAttribute.new(column.name, value, klass.type_for_attribute(column.name))
-              constraint = constraint.and table[reflection.type].eq substitute
+              constraint = constraint.and klass.arel_attribute(reflection.type, table).eq(Arel::Nodes::BindParam.new)
             end
 
             joins << table.create_join(table, table.create_on(constraint), join_type)

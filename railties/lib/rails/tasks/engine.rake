@@ -4,8 +4,8 @@ task "load_app" do
   end
   task :environment => "app:environment"
 
-  if !defined?(ENGINE_PATH) || !ENGINE_PATH
-    ENGINE_PATH = find_engine_path(APP_RAKEFILE)
+  if !defined?(ENGINE_ROOT) || !ENGINE_ROOT
+    ENGINE_ROOT = find_engine_path(APP_RAKEFILE)
   end
 end
 

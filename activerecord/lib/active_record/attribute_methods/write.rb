@@ -1,19 +1,6 @@
 module ActiveRecord
   module AttributeMethods
     module Write
-      WriterMethodCache = Class.new(AttributeMethodCache) {
-        private
-
-        def method_body(method_name, const_name)
-          <<-EOMETHOD
-          def #{method_name}(value)
-            name = ::ActiveRecord::AttributeMethods::AttrNames::ATTR_#{const_name}
-            write_attribute(name, value)
-          end
-          EOMETHOD
-        end
-      }.new
-
       extend ActiveSupport::Concern
 
       included do
@@ -39,7 +26,7 @@ module ActiveRecord
       end
 
       # Updates the attribute identified by <tt>attr_name</tt> with the
-      # specified +value+. Empty strings for fixnum and float columns are
+      # specified +value+. Empty strings for Integer and Float columns are
       # turned into +nil+.
       def write_attribute(attr_name, value)
         write_attribute_with_type_cast(attr_name, value, true)

@@ -93,22 +93,22 @@ module ActionView
       #   select_tag "people", options_from_collection_for_select(@people, "id", "name", "1")
       #   # <select id="people" name="people"><option value="1" selected="selected">David</option></select>
       #
-      #   select_tag "people", "<option>David</option>".html_safe
+      #   select_tag "people", raw("<option>David</option>")
       #   # => <select id="people" name="people"><option>David</option></select>
       #
-      #   select_tag "count", "<option>1</option><option>2</option><option>3</option><option>4</option>".html_safe
+      #   select_tag "count", raw("<option>1</option><option>2</option><option>3</option><option>4</option>")
       #   # => <select id="count" name="count"><option>1</option><option>2</option>
       #   #    <option>3</option><option>4</option></select>
       #
-      #   select_tag "colors", "<option>Red</option><option>Green</option><option>Blue</option>".html_safe, multiple: true
+      #   select_tag "colors", raw("<option>Red</option><option>Green</option><option>Blue</option>"), multiple: true
       #   # => <select id="colors" multiple="multiple" name="colors[]"><option>Red</option>
       #   #    <option>Green</option><option>Blue</option></select>
       #
-      #   select_tag "locations", "<option>Home</option><option selected='selected'>Work</option><option>Out</option>".html_safe
+      #   select_tag "locations", raw("<option>Home</option><option selected='selected'>Work</option><option>Out</option>")
       #   # => <select id="locations" name="locations"><option>Home</option><option selected='selected'>Work</option>
       #   #    <option>Out</option></select>
       #
-      #   select_tag "access", "<option>Read</option><option>Write</option>".html_safe, multiple: true, class: 'form_input', id: 'unique_id'
+      #   select_tag "access", raw("<option>Read</option><option>Write</option>"), multiple: true, class: 'form_input', id: 'unique_id'
       #   # => <select class="form_input" id="unique_id" multiple="multiple" name="access[]"><option>Read</option>
       #   #    <option>Write</option></select>
       #
@@ -121,7 +121,7 @@ module ActionView
       #   select_tag "people", options_from_collection_for_select(@people, "id", "name"), prompt: "Select something"
       #   # => <select id="people" name="people"><option value="">Select something</option><option value="1">David</option></select>
       #
-      #   select_tag "destination", "<option>NYC</option><option>Paris</option><option>Rome</option>".html_safe, disabled: true
+      #   select_tag "destination", raw("<option>NYC</option><option>Paris</option><option>Rome</option>"), disabled: true
       #   # => <select disabled="disabled" id="destination" name="destination"><option>NYC</option>
       #   #    <option>Paris</option><option>Rome</option></select>
       #
@@ -134,13 +134,15 @@ module ActionView
 
         if options.include?(:include_blank)
           include_blank = options.delete(:include_blank)
+          options_for_blank_options_tag = { value: '' }
 
           if include_blank == true
             include_blank = ''
+            options_for_blank_options_tag[:label] = ' '
           end
 
           if include_blank
-            option_tags = content_tag("option".freeze, include_blank, value: '').safe_concat(option_tags)
+            option_tags = content_tag("option".freeze, include_blank, options_for_blank_options_tag).safe_concat(option_tags)
           end
         end
 
@@ -447,7 +449,7 @@ module ActionView
           unless tag_options["data-disable-with"] == false || (tag_options["data"] && tag_options["data"][:disable_with] == false)
             disable_with_text = tag_options["data-disable-with"]
             disable_with_text ||= tag_options["data"][:disable_with] if tag_options["data"]
-            disable_with_text ||= value.clone
+            disable_with_text ||= value.to_s.clone
             tag_options.deep_merge!("data" => { "disable_with" => disable_with_text })
           else
             tag_options["data"].delete(:disable_with) if tag_options["data"]
@@ -683,17 +685,6 @@ module ActionView
         text_field_tag(name, value, options.merge(type: :time))
       end
 
-      # Creates a text field of type "datetime".
-      #
-      # === Options
-      # * <tt>:min</tt> - The minimum acceptable value.
-      # * <tt>:max</tt> - The maximum acceptable value.
-      # * <tt>:step</tt> - The acceptable value granularity.
-      # * Otherwise accepts the same options as text_field_tag.
-      def datetime_field_tag(name, value = nil, options = {})
-        text_field_tag(name, value, options.merge(type: :datetime))
-      end
-
       # Creates a text field of type "datetime-local".
       #
       # === Options
@@ -701,9 +692,11 @@ module ActionView
       # * <tt>:max</tt> - The maximum acceptable value.
       # * <tt>:step</tt> - The acceptable value granularity.
       # * Otherwise accepts the same options as text_field_tag.
-      def datetime_local_field_tag(name, value = nil, options = {})
+      def datetime_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.merge(type: 'datetime-local'))
       end
+
+      alias datetime_local_field_tag datetime_field_tag
 
       # Creates a text field of type "month".
       #
@@ -862,18 +855,24 @@ module ActionView
 
         def extra_tags_for_form(html_options)
           authenticity_token = html_options.delete("authenticity_token")
-          method = html_options.delete("method").to_s
+          method = html_options.delete("method").to_s.downcase
 
           method_tag = case method
-            when /^get$/i # must be case-insensitive, but can't use downcase as might be nil
+            when 'get'
               html_options["method"] = "get"
               ''
-            when /^post$/i, "", nil
+            when 'post', ''
               html_options["method"] = "post"
-              token_tag(authenticity_token)
+              token_tag(authenticity_token, form_options: {
+                action: html_options["action"],
+                method: "post"
+              })
             else
               html_options["method"] = "post"
-              method_tag(method) + token_tag(authenticity_token)
+              method_tag(method) + token_tag(authenticity_token, form_options: {
+                action: html_options["action"],
+                method: method
+              })
           end
 
           if html_options.delete("enforce_utf8") { true }

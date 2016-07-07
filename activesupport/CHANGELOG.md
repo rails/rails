@@ -1,19 +1,350 @@
-*   `ActiveSupport::Cache::Store#namespaced_key`, 
-    `ActiveSupport::Cache::MemCachedStore#escape_key`, and 
-    `ActiveSupport::Cache::FileStore#key_file_path` 
+## Rails 5.0.0 (June 30, 2016) ##
+
+*   Support parsing JSON time in ISO8601 local time strings in
+    `ActiveSupport::JSON.decode` when `parse_json_times` is enabled.
+    Strings in the format of `YYYY-MM-DD hh:mm:ss` (without a `Z` at
+    the end) will be parsed in the local timezone (`Time.zone`). In
+    addition, date strings (`YYYY-MM-DD`) are now parsed into `Date`
+    objects.
+
+    *Grzegorz Witek*
+
+*   `Date.to_s` doesn't produce too many spaces. For example, `to_s(:short)`
+    will now produce `01 Feb` instead of ` 1 Feb`.
+
+    Fixes #25251.
+
+    *Sean Griffin*
+
+*   Rescuable: If a handler doesn't match the exception, check for handlers
+    matching the exception's cause.
+
+    *Jeremy Daer*
+
+*   `ActiveSupport::Duration` supports weeks and hours.
+
+        [1.hour.inspect, 1.hour.value, 1.hour.parts]
+        # => ["3600 seconds", 3600, [[:seconds, 3600]]]   # Before
+        # => ["1 hour", 3600, [[:hours, 1]]]              # After
+
+        [1.week.inspect, 1.week.value, 1.week.parts]
+        # => ["7 days", 604800, [[:days, 7]]]             # Before
+        # => ["1 week", 604800, [[:weeks, 1]]]            # After
+
+    This brings us into closer conformance with ISO8601 and relieves some
+    astonishment about getting `1.hour.inspect # => 3600 seconds`.
+
+    Compatibility: The duration's `value` remains the same, so apps using
+    durations are oblivious to the new time periods. Apps, libraries, and
+    plugins that work with the internal `parts` hash will need to broaden
+    their time period handling to cover hours & weeks.
+
+    *Andrey Novikov*
+
+*   Time zones: Ensure that the UTC offset reflects DST changes that occurred
+    since the app started. Removes UTC offset caching, reducing performance,
+    but this is still relatively quick and isn't in any hot paths.
+
+    *Alexey Shein*
+
+*   Make `getlocal` and `getutc` always return instances of `Time` for
+    `ActiveSupport::TimeWithZone` and `DateTime`. This eliminates a possible
+    stack level too deep error in `to_time` where `ActiveSupport::TimeWithZone`
+    was wrapping a `DateTime` instance. As a consequence of this the internal
+    time value in `ActiveSupport::TimeWithZone` is now always an instance of
+    `Time` in the UTC timezone, whether that's as the UTC time directly or
+    a representation of the local time in the timezone. There should be no
+    consequences of this internal change and if there are it's a bug due to
+    leaky abstractions.
+
+    *Andrew White*
+
+*   Add `DateTime#subsec` to return the fraction of a second as a `Rational`.
+
+    *Andrew White*
+
+*   Add additional aliases for `DateTime#utc` to mirror the ones on
+    `ActiveSupport::TimeWithZone` and `Time`.
+
+    *Andrew White*
+
+*   Add `DateTime#localtime` to return an instance of `Time` in the system's
+    local timezone. Also aliased to `getlocal`.
+
+    *Andrew White*, *Yuichiro Kaneko*
+
+*   Add `Time#sec_fraction` to return the fraction of a second as a `Rational`.
+
+    *Andrew White*
+
+*   Add `ActiveSupport.to_time_preserves_timezone` config option to control
+    how `to_time` handles timezones. In Ruby 2.4+ the behavior will change
+    from converting to the local system timezone, to preserving the timezone
+    of the receiver. This config option defaults to false so that apps made
+    with earlier versions of Rails are not affected when upgrading, e.g:
+
+        >> ENV['TZ'] = 'US/Eastern'
+
+        >> "2016-04-23T10:23:12.000Z".to_time
+        => "2016-04-23T06:23:12.000-04:00"
+
+        >> ActiveSupport.to_time_preserves_timezone = true
+
+        >> "2016-04-23T10:23:12.000Z".to_time
+        => "2016-04-23T10:23:12.000Z"
+
+    Fixes #24617.
+
+    *Andrew White*
+
+*   `ActiveSupport::TimeZone.country_zones(country_code)` looks up the
+    country's time zones by its two-letter ISO3166 country code, e.g.
+
+        >> ActiveSupport::TimeZone.country_zones(:jp).map(&:to_s)
+        => ["(GMT+09:00) Osaka"]
+
+        >> ActiveSupport::TimeZone.country_zones(:uy).map(&:to_s)
+        => ["(GMT-03:00) Montevideo"]
+
+    *Andrey Novikov*
+
+*   `Array#sum` compat with Ruby 2.4's native method.
+
+    Ruby 2.4 introduces `Array#sum`, but it only supports numeric elements,
+    breaking our `Enumerable#sum` which supports arbitrary `Object#+`.
+    To fix, override `Array#sum` with our compatible implementation.
+
+    Native Ruby 2.4:
+
+        %w[ a b ].sum
+        # => TypeError: String can't be coerced into Fixnum
+
+    With `Enumerable#sum` shim:
+
+        %w[ a b ].sum
+        # => 'ab'
+
+    We tried shimming the fast path and falling back to the compatible path
+    if it fails, but that ends up slower even in simple cases due to the cost
+    of exception handling. Our only choice is to override the native `Array#sum`
+    with our `Enumerable#sum`.
+
+    *Jeremy Daer*
+
+*   `ActiveSupport::Duration` supports ISO8601 formatting and parsing.
+
+        ActiveSupport::Duration.parse('P3Y6M4DT12H30M5S')
+        # => 3 years, 6 months, 4 days, 12 hours, 30 minutes, and 5 seconds
+
+        (3.years + 3.days).iso8601
+        # => "P3Y3D"
+
+    Inspired by Arnau Siches' [ISO8601 gem](https://github.com/arnau/ISO8601/)
+    and rewritten by Andrey Novikov with suggestions from Andrew White. Test
+    data from the ISO8601 gem redistributed under MIT license.
+
+    (Will be used to support the PostgreSQL interval data type.)
+
+    *Andrey Novikov*, *Arnau Siches*, *Andrew White*
+
+*   `Cache#fetch(key, force: true)` forces a cache miss, so it must be called
+    with a block to provide a new value to cache. Fetching with `force: true`
+    but without a block now raises ArgumentError.
+
+        cache.fetch('key', force: true) # => ArgumentError
+
+    *Santosh Wadghule*
+
+*   Fix behavior of JSON encoding for `Exception`.
+
+    *namusyaka*
+
+*   Make `number_to_phone` format number with regexp pattern.
+
+        number_to_phone(18812345678, pattern: /(\d{3})(\d{4})(\d{4})/)
+        # => 188-1234-5678
+
+    *Pan Gaoyong*
+
+*   Match `String#to_time`'s behaviour to that of ruby's implementation for edge cases.
+
+    `nil` is now returned instead of the current date if the string provided does
+    contain time information, but none that is used to build the `Time` object.
+
+    Fixes #22958.
+
+    *Siim Liiser*
+
+*   Rely on the native DateTime#<=> implementation to handle non-datetime like
+    objects instead of returning `nil` ourselves. This restores the ability
+    of `DateTime` instances to be compared with a `Numeric` that represents an
+    astronomical julian day number.
+
+    Fixes #24228.
+
+    *Andrew White*
+
+*   Add `String#upcase_first` method.
+
+    *Glauco Custódio*, *bogdanvlviv*
+
+*   Prevent `Marshal.load` from looping infinitely when trying to autoload a constant
+    which resolves to a different name.
+
+    *Olek Janiszewski*
+
+*   Deprecate `Module.local_constants`. Please use `Module.constants(false)` instead.
+
+    *Yuichiro Kaneko*
+
+*   Publish `ActiveSupport::Executor` and `ActiveSupport::Reloader` APIs to allow
+    components and libraries to manage, and participate in, the execution of
+    application code, and the application reloading process.
+
+    *Matthew Draper*
+
+*   Deprecate arguments on `assert_nothing_raised`.
+
+    `assert_nothing_raised` does not assert the arguments that have been passed
+    in (usually a specific exception class) since the method only yields the
+    block. So as not to confuse the users that the arguments have meaning, they
+    are being deprecated.
+
+    *Tara Scherner de la Fuente*
+
+*   Make `benchmark('something', silence: true)` actually work.
+
+    *DHH*
+
+*   Add `#on_weekday?` method to `Date`, `Time`, and `DateTime`.
+
+    `#on_weekday?` returns `true` if the receiving date/time does not fall on a Saturday
+    or Sunday.
+
+    *Vipul A M*
+
+*   Add `Array#second_to_last` and `Array#third_to_last` methods.
+
+    *Brian Christian*
+
+*   Fix regression in `Hash#dig` for HashWithIndifferentAccess.
+
+    *Jon Moss*
+
+*   Change `number_to_currency` behavior for checking negativity.
+
+    Used `to_f.negative` instead of using `to_f.phase` for checking negativity
+    of a number in number_to_currency helper.
+    This change works same for all cases except when number is "-0.0".
+
+        -0.0.to_f.negative? => false
+        -0.0.to_f.phase? => 3.14
+
+    This change reverts changes from https://github.com/rails/rails/pull/6512.
+    But it should be acceptable as we could not find any currency which
+    supports negative zeros.
+
+    *Prathamesh Sonpatki*, *Rafael Mendonça França*
+
+*   Match `HashWithIndifferentAccess#default`'s behaviour with `Hash#default`.
+
+    *David Cornu*
+
+*   Adds `:exception_object` key to `ActiveSupport::Notifications::Instrumenter`
+    payload when an exception is raised.
+
+    Adds new key/value pair to payload when an exception is raised:
+    e.g. `:exception_object => #<RuntimeError: FAIL>`.
+
+    *Ryan T. Hosford*
+
+*   Support extended grapheme clusters and UAX 29.
+
+    *Adam Roben*
+
+*   Add petabyte and exabyte numeric conversion.
+
+    *Akshay Vishnoi*
+
+*   Add thread_m/cattr_accessor/reader/writer suite of methods for declaring class and module variables that live per-thread.
+    This makes it easy to declare per-thread globals that are encapsulated. Note: This is a sharp edge. A wild proliferation
+    of globals is A Bad Thing. But like other sharp tools, when it's right, it's right.
+
+    Here's an example of a simple event tracking system where the object being tracked needs not pass a creator that it
+    doesn't need itself along:
+
+        module Current
+          thread_mattr_accessor :account
+          thread_mattr_accessor :user
+
+          def self.reset() self.account = self.user = nil end
+        end
+
+        class ApplicationController < ActionController::Base
+          before_action :set_current
+          after_action { Current.reset }
+
+          private
+            def set_current
+              Current.account = Account.find(params[:account_id])
+              Current.user    = Current.account.users.find(params[:user_id])
+            end
+        end
+
+        class MessagesController < ApplicationController
+          def create
+            @message = Message.create!(message_params)
+          end
+        end
+
+        class Message < ApplicationRecord
+          has_many :events
+          after_create :track_created
+
+          private
+            def track_created
+              events.create! origin: self, action: :create
+            end
+        end
+
+        class Event < ApplicationRecord
+          belongs_to :creator, class_name: 'User'
+          before_validation { self.creator ||= Current.user }
+        end
+
+    *DHH*
+
+
+*   Deprecated `Module#qualified_const_` in favour of the builtin Module#const_
+    methods.
+
+    *Genadi Samokovarov*
+
+*   Deprecate passing string to define callback.
+
+    *Yuichiro Kaneko*
+
+*   `ActiveSupport::Cache::Store#namespaced_key`,
+    `ActiveSupport::Cache::MemCachedStore#escape_key`, and
+    `ActiveSupport::Cache::FileStore#key_file_path`
     are deprecated and replaced with `normalize_key` that now calls `super`.
-    
+
     `ActiveSupport::Cache::LocaleCache#set_cache_value` is deprecated and replaced with `write_cache_value`.
-    
+
     *Michael Grosser*
 
-*   Implements an evented file system monitor to asynchronously detect changes
-    in the application source code, routes, locales, etc.
+*   Implements an evented file watcher to asynchronously detect changes in the
+    application source code, routes, locales, etc.
 
-    To opt-in load the [listen](https://github.com/guard/listen) gem in `Gemfile`:
+    This watcher is disabled by default, applications my enable it in the configuration:
+
+        # config/environments/development.rb
+        config.file_watcher = ActiveSupport::EventedFileUpdateChecker
+
+    This feature depends on the [listen](https://github.com/guard/listen) gem:
 
         group :development do
-          gem 'listen', '~> 3.0.4'
+          gem 'listen', '~> 3.0.5'
         end
 
     *Puneet Agarwal* and *Xavier Noria*
@@ -54,7 +385,7 @@
 
     *Konstantinos Rousis*
 
-*   Handle invalid UTF-8 strings when HTML escaping
+*   Handle invalid UTF-8 strings when HTML escaping.
 
     Use `ActiveSupport::Multibyte::Unicode.tidy_bytes` to handle invalid UTF-8
     strings in `ERB::Util.unwrapped_html_escape` and `ERB::Util.html_escape_once`.
@@ -95,7 +426,7 @@
 
 *   Short-circuit `blank?` on date and time values since they are never blank.
 
-    Fixes #21657
+    Fixes #21657.
 
     *Andrew White*
 
@@ -133,7 +464,7 @@
 *   ActiveSupport::HashWithIndifferentAccess `select` and `reject` will now return
     enumerator if called without block.
 
-    Fixes #20095
+    Fixes #20095.
 
     *Bernard Potocki*
 
@@ -147,11 +478,11 @@
 
     *Simon Eskildsen*
 
-*   Fix setting `default_proc` on `HashWithIndifferentAccess#dup`
+*   Fix setting `default_proc` on `HashWithIndifferentAccess#dup`.
 
     *Simon Eskildsen*
 
-*   Fix a range of values for parameters of the Time#change
+*   Fix a range of values for parameters of the Time#change.
 
     *Nikolay Kondratyev*
 
@@ -163,7 +494,7 @@
     *Kevin Deisz*
 
 *   Add a bang version to `ActiveSupport::OrderedOptions` get methods which will raise
-    an `KeyError` if the value is `.blank?`
+    an `KeyError` if the value is `.blank?`.
 
     Before:
 
@@ -335,6 +666,25 @@
 
     *George Claghorn*
 
+*   Added ability to `TaggedLogging` to allow loggers to be instantiated multiple times
+    so that they don't share tags with each other.
+
+        Rails.logger = Logger.new(STDOUT)
+
+        # Before
+        custom_logger = ActiveSupport::TaggedLogging.new(Rails.logger)
+        custom_logger.push_tags "custom_tag"
+        custom_logger.info "test"  # => "[custom_tag] [custom_tag] test"
+        Rails.logger.info "test"   # => "[custom_tag] [custom_tag] test"
+
+        # After
+        custom_logger = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))
+        custom_logger.push_tags "custom_tag"
+        custom_logger.info "test"  # => "[custom_tag] test"
+        Rails.logger.info "test"   # => "test"
+
+    *Alexander Staubo*
+
 *   Change the default test order from `:sorted` to `:random`.
 
     *Rafael Mendonça França*
@@ -408,6 +758,10 @@
     raised inside the framework.
 
     *Rafael Mendonça França*
+
+*   Remove `Object#itself` as it is implemented in Ruby 2.2.
+
+    *Cristian Bica*
 
 *   Add support for error dispatcher classes in `ActiveSupport::Rescuable`.
     Now it acts closer to Ruby's rescue.

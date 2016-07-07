@@ -6,7 +6,7 @@ module ActionController
     class ResponseTest < ActiveSupport::TestCase
       def setup
         @response = Live::Response.new
-        @response.request = ActionDispatch::Request.new({}) #yolo
+        @response.request = ActionDispatch::Request.empty
       end
 
       def test_header_merge
@@ -65,7 +65,7 @@ module ActionController
         latch = Concurrent::CountDownLatch.new
 
         t = Thread.new {
-          @response.stream.each do
+          @response.each do
             latch.count_down
           end
         }

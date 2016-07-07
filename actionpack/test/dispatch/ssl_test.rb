@@ -7,30 +7,43 @@ class SSLTest < ActionDispatch::IntegrationTest
 
   def build_app(headers: {}, ssl_options: {})
     headers = HEADERS.merge(headers)
-    ActionDispatch::SSL.new lambda { |env| [200, headers, []] }, ssl_options
+    ActionDispatch::SSL.new lambda { |env| [200, headers, []] }, ssl_options.reverse_merge(hsts: { subdomains: true })
   end
 end
 
 class RedirectSSLTest < SSLTest
-  def assert_not_redirected(url, headers: {})
-    self.app = build_app
+
+  def assert_not_redirected(url, headers: {}, redirect: {}, deprecated_host: nil,
+    deprecated_port: nil)
+
+    self.app = build_app ssl_options: { redirect: redirect,
+      host: deprecated_host, port: deprecated_port
+    }
+
     get url, headers: headers
     assert_response :ok
   end
 
-  def assert_redirected(host: nil, port: nil, status: 301, body: [],
-    deprecated_host: nil, deprecated_port: nil,
+  def assert_redirected(redirect: {}, deprecated_host: nil, deprecated_port: nil,
     from: 'http://a/b?c=d', to: from.sub('http', 'https'))
 
-    self.app = build_app ssl_options: {
-      redirect: { host: host, port: port, status: status, body: body },
+    redirect = { status: 301, body: [] }.merge(redirect)
+
+    self.app = build_app ssl_options: { redirect: redirect,
       host: deprecated_host, port: deprecated_port
     }
 
     get from
-    assert_response status
+    assert_response redirect[:status] || 301
     assert_redirected_to to
-    assert_equal body.join, @response.body
+    assert_equal redirect[:body].join, @response.body
+  end
+
+  test 'exclude can avoid redirect' do
+    excluding = { exclude: -> request { request.path =~ /healthcheck/ } }
+
+    assert_not_redirected 'http://example.org/healthcheck', redirect: excluding
+    assert_redirected from: 'http://example.org/', redirect: excluding
   end
 
   test 'https is not redirected' do
@@ -46,31 +59,31 @@ class RedirectSSLTest < SSLTest
   end
 
   test 'redirect with non-301 status' do
-    assert_redirected status: 307
+    assert_redirected redirect: { status: 307 }
   end
 
   test 'redirect with custom body' do
-    assert_redirected body: ['foo']
+    assert_redirected redirect: { body: ['foo'] }
   end
 
   test 'redirect to specific host' do
-    assert_redirected host: 'ssl', to: 'https://ssl/b?c=d'
+    assert_redirected redirect: { host: 'ssl' }, to: 'https://ssl/b?c=d'
   end
 
   test 'redirect to default port' do
-    assert_redirected port: 443
+    assert_redirected redirect: { port: 443 }
   end
 
   test 'redirect to non-default port' do
-    assert_redirected port: 8443, to: 'https://a:8443/b?c=d'
+    assert_redirected redirect: { port: 8443 }, to: 'https://a:8443/b?c=d'
   end
 
   test 'redirect to different host and non-default port' do
-    assert_redirected host: 'ssl', port: 8443, to: 'https://ssl:8443/b?c=d'
+    assert_redirected redirect: { host: 'ssl', port: 8443 }, to: 'https://ssl:8443/b?c=d'
   end
 
   test 'redirect to different host including port' do
-    assert_redirected host: 'ssl:443', to: 'https://ssl:443/b?c=d'
+    assert_redirected redirect: { host: 'ssl:443' }, to: 'https://ssl:443/b?c=d'
   end
 
   test ':host is deprecated, moved within redirect: { host: … }' do
@@ -84,19 +97,24 @@ class RedirectSSLTest < SSLTest
       assert_redirected deprecated_port: 1, to: 'https://a:1/b?c=d'
     end
   end
+
+  test 'no redirect with redirect set to false' do
+    assert_not_redirected 'http://example.org', redirect: false
+  end
 end
 
 class StrictTransportSecurityTest < SSLTest
   EXPECTED = 'max-age=15552000'
+  EXPECTED_WITH_SUBDOMAINS = 'max-age=15552000; includeSubDomains'
 
-  def assert_hsts(expected, url: 'https://example.org', hsts: {}, headers: {})
+  def assert_hsts(expected, url: 'https://example.org', hsts: { subdomains: true }, headers: {})
     self.app = build_app ssl_options: { hsts: hsts }, headers: headers
     get url
     assert_equal expected, response.headers['Strict-Transport-Security']
   end
 
   test 'enabled by default' do
-    assert_hsts EXPECTED
+    assert_hsts EXPECTED_WITH_SUBDOMAINS
   end
 
   test 'not sent with http:// responses' do
@@ -116,11 +134,15 @@ class StrictTransportSecurityTest < SSLTest
   end
 
   test ':expires sets max-age' do
-    assert_hsts 'max-age=500', hsts: { expires: 500 }
+    assert_deprecated do
+      assert_hsts 'max-age=500', hsts: { expires: 500 }
+    end
   end
 
   test ':expires supports AS::Duration arguments' do
-    assert_hsts 'max-age=31557600', hsts: { expires: 1.year }
+    assert_deprecated do
+      assert_hsts 'max-age=31557600', hsts: { expires: 1.year }
+    end
   end
 
   test 'include subdomains' do
@@ -132,11 +154,15 @@ class StrictTransportSecurityTest < SSLTest
   end
 
   test 'opt in to browser preload lists' do
-    assert_hsts "#{EXPECTED}; preload", hsts: { preload: true }
+    assert_deprecated do
+      assert_hsts "#{EXPECTED}; preload", hsts: { preload: true }
+    end
   end
 
   test 'opt out of browser preload lists' do
-    assert_hsts EXPECTED, hsts: { preload: false }
+    assert_deprecated do
+      assert_hsts EXPECTED, hsts: { preload: false }
+    end
   end
 end
 
@@ -185,6 +211,11 @@ class SecureCookiesTest < SSLTest
   def test_flag_cookies_as_secure_with_ignore_case
     get headers: { 'Set-Cookie' => 'problem=def; path=/; Secure; HttpOnly' }
     assert_cookies 'problem=def; path=/; Secure; HttpOnly'
+  end
+
+  def test_cookies_as_not_secure_with_secure_cookies_disabled
+    get headers: { 'Set-Cookie' => DEFAULT }, ssl_options: { secure_cookies: false }
+    assert_cookies(*DEFAULT.split("\n"))
   end
 
   def test_no_cookies

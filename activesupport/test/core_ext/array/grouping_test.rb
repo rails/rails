@@ -3,11 +3,12 @@ require 'active_support/core_ext/array'
 
 class GroupingTest < ActiveSupport::TestCase
   def setup
-    Fixnum.send :private, :/  # test we avoid Integer#/ (redefined by mathn)
+    # In Ruby < 2.4, test we avoid Integer#/ (redefined by mathn)
+    Fixnum.send :private, :/ unless Fixnum == Integer
   end
 
   def teardown
-    Fixnum.send :public, :/
+    Fixnum.send :public, :/ unless Fixnum == Integer
   end
 
   def test_in_groups_of_with_perfect_fit
@@ -122,5 +123,13 @@ class SplitTest < ActiveSupport::TestCase
     assert_equal [[1, 2, 3, 4], []],  a.split(5)
     assert_equal [[], [2, 3, 4], []], a.split { |i| i == 1 || i == 5 }
     assert_equal [1, 2, 3, 4, 5], a
+  end
+
+  def test_split_with_repeated_values
+    a = [1, 2, 3, 5, 5, 3, 4, 6, 2, 1, 3]
+    assert_equal [[1, 2], [5, 5], [4, 6, 2, 1], []], a.split(3)
+    assert_equal [[1, 2, 3], [], [3, 4, 6, 2, 1, 3]], a.split(5)
+    assert_equal [[1, 2], [], [], [], [4, 6, 2, 1], []], a.split { |i| i == 3 || i == 5 }
+    assert_equal [1, 2, 3, 5, 5, 3, 4, 6, 2, 1, 3], a
   end
 end

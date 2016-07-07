@@ -53,7 +53,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_belongs_to_with_primary_key_joins_on_correct_column
     sql = Client.joins(:firm_with_primary_key).to_sql
-    if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+    if current_adapter?(:Mysql2Adapter)
       assert_no_match(/`firm_with_primary_keys_companies`\.`id`/, sql)
       assert_match(/`firm_with_primary_keys_companies`\.`name`/, sql)
     elsif current_adapter?(:OracleAdapter)
@@ -700,6 +700,17 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 17, reply.replies.size
   end
 
+  def test_replace_counter_cache
+    topic = Topic.create(title: "Zoom-zoom-zoom")
+    reply = Reply.create(title: "re: zoom", content: "speedy quick!")
+
+    reply.topic = topic
+    reply.save
+    topic.reload
+
+    assert_equal 1, topic.replies_count
+  end
+
   def test_association_assignment_sticks
     post = Post.first
 
@@ -726,7 +737,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert companies(:first_client).readonly_firm.readonly?
   end
 
-  def test_test_polymorphic_assignment_foreign_key_type_string
+  def test_polymorphic_assignment_foreign_key_type_string
     comment = Comment.first
     comment.author   = Author.first
     comment.resource = Member.first

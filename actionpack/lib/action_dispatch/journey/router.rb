@@ -16,9 +16,6 @@ module ActionDispatch
       class RoutingError < ::StandardError # :nodoc:
       end
 
-      # :nodoc:
-      VERSION = '2.0.0'
-
       attr_accessor :routes
 
       def initialize(routes)

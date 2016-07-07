@@ -37,6 +37,7 @@ curve diving straight into Rails. There are several curated lists of online reso
 for learning Ruby:
 
 * [Official Ruby Programming Language website](https://www.ruby-lang.org/en/documentation/)
+* [List of Free Programming Books](https://github.com/vhf/free-programming-books/blob/master/free-programming-books.md#ruby)
 
 Be aware that some resources, while still excellent, cover versions of Ruby as old as
 1.6, and commonly 1.8, and will not include some syntax that you will see in day-to-day
@@ -92,7 +93,7 @@ current version of Ruby installed:
 
 ```bash
 $ ruby -v
-ruby 2.2.2p95
+ruby 2.3.0p0
 ```
 
 TIP: A number of tools exist to help you quickly install Ruby and Ruby
@@ -173,7 +174,7 @@ of the files and folders that Rails created by default:
 |log/|Application log files.|
 |public/|The only folder seen by the world as-is. Contains static files and compiled assets.|
 |Rakefile|This file locates and loads tasks that can be run from the command line. The task definitions are defined throughout the components of Rails. Rather than changing Rakefile, you should add your own tasks by adding files to the lib/tasks directory of your application.|
-|README.rdoc|This is a brief instruction manual for your application. You should edit this file to tell others what your application does, how to set it up, and so on.|
+|README.md|This is a brief instruction manual for your application. You should edit this file to tell others what your application does, how to set it up, and so on.|
 |test/|Unit tests, fixtures, and other test apparatus. These are covered in [Testing Rails Applications](testing.html).|
 |tmp/|Temporary files (like cache and pid files).|
 |vendor/|A place for all third-party code. In a typical Rails application this includes vendored gems.|
@@ -207,7 +208,7 @@ commented line for new apps and you can uncomment if you need it.
 default to the `Gemfile` in apps generated under JRuby. You can investigate
 all the supported runtimes at [ExecJS](https://github.com/rails/execjs#readme).
 
-This will fire up WEBrick, a web server distributed with Ruby by default. To see
+This will fire up Puma, a web server distributed with Rails by default. To see
 your application in action, open a browser window and navigate to
 <http://localhost:3000>. You should see the Rails default information page:
 
@@ -222,8 +223,7 @@ the server.
 
 The "Welcome aboard" page is the _smoke test_ for a new Rails application: it
 makes sure that you have your software configured correctly enough to serve a
-page. You can also click on the _About your application's environment_ link to
-see a summary of your application's environment.
+page.
 
 ### Say "Hello", Rails
 
@@ -244,11 +244,11 @@ Ruby) which is processed by the request cycle in Rails before being sent to the
 user.
 
 To create a new controller, you will need to run the "controller" generator and
-tell it you want a controller called "welcome" with an action called "index",
+tell it you want a controller called "Welcome" with an action called "index",
 just like this:
 
 ```bash
-$ bin/rails generate controller welcome index
+$ bin/rails generate controller Welcome index
 ```
 
 Rails will create several files and a route for you.
@@ -297,33 +297,30 @@ Open the file `config/routes.rb` in your editor.
 Rails.application.routes.draw do
   get 'welcome/index'
 
-  # The priority is based upon order of creation:
-  # first created -> highest priority.
-  # See how all your routes lay out with "rake routes".
-  #
-  # You can have the root of your site routed with "root"
-  # root 'welcome#index'
-  #
-  # ...
+  # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
+end
 ```
 
 This is your application's _routing file_ which holds entries in a special
 [DSL (domain-specific language)](http://en.wikipedia.org/wiki/Domain-specific_language)
 that tells Rails how to connect incoming requests to
-controllers and actions. This file contains many sample routes on commented
-lines, and one of them actually shows you how to connect the root of your site
-to a specific controller and action. Find the line beginning with `root` and
-uncomment it. It should look something like the following:
+controllers and actions.
+Edit this file by adding the line of code `root 'welcome#index'`.
+It should look something like the following:
 
 ```ruby
-root 'welcome#index'
+Rails.application.routes.draw do
+  get 'welcome/index'
+
+  root 'welcome#index'
+end
 ```
 
 `root 'welcome#index'` tells Rails to map requests to the root of the
 application to the welcome controller's index action and `get 'welcome/index'`
 tells Rails to map requests to <http://localhost:3000/welcome/index> to the
 welcome controller's index action. This was created earlier when you ran the
-controller generator (`bin/rails generate controller welcome index`).
+controller generator (`bin/rails generate controller Welcome index`).
 
 Launch the web server again if you stopped it to generate the controller (`bin/rails
 server`) and navigate to <http://localhost:3000> in your browser. You'll see the
@@ -347,7 +344,7 @@ operations are referred to as _CRUD_ operations.
 
 Rails provides a `resources` method which can be used to declare a standard REST
 resource. You need to add the _article resource_ to the
-`config/routes.rb` as follows:
+`config/routes.rb` so the file will look as follows:
 
 ```ruby
 Rails.application.routes.draw do
@@ -358,13 +355,13 @@ Rails.application.routes.draw do
 end
 ```
 
-If you run `bin/rake routes`, you'll see that it has defined routes for all the
+If you run `bin/rails routes`, you'll see that it has defined routes for all the
 standard RESTful actions.  The meaning of the prefix column (and other columns)
 will be seen later, but for now notice that Rails has inferred the
 singular form `article` and makes meaningful use of the distinction.
 
 ```bash
-$ bin/rake routes
+$ bin/rails routes
       Prefix Verb   URI Pattern                  Controller#Action
     articles GET    /articles(.:format)          articles#index
              POST   /articles(.:format)          articles#create
@@ -402,7 +399,7 @@ a controller called `ArticlesController`. You can do this by running this
 command:
 
 ```bash
-$ bin/rails generate controller articles
+$ bin/rails generate controller Articles
 ```
 
 If you open up the newly generated `app/controllers/articles_controller.rb`
@@ -457,7 +454,7 @@ available, Rails will raise an exception.
 In the above image, the bottom line has been truncated. Let's see what the full
 error message looks like:
 
->Missing template articles/new, application/new with {locale:[:en], formats:[:html], handlers:[:erb, :builder, :coffee]}. Searched in: * "/path/to/blog/app/views"
+>ArticlesController#new is missing a template for this request format and variant. request.formats: ["text/html"] request.variant: [] NOTE! For XHR/Ajax or API requests, this action would normally respond with 204 No Content: an empty white screen. Since you're loading it in a web browser, we assume that you expected to actually render a template, not… nothing, so we're showing an error to be extra-clear. If you expect 204 No Content, carry on. That's what you'll get from an XHR or API request. Give it a shot.
 
 That's quite a lot of text! Let's quickly go through and understand what each
 part of it means.
@@ -476,9 +473,9 @@ us what _template handlers_ could be used to render our template. `:erb` is most
 commonly used for HTML templates, `:builder` is used for XML templates, and
 `:coffee` uses CoffeeScript to build JavaScript templates.
 
-The final part of this message tells us where Rails has looked for the templates.
-Templates within a basic Rails application like this are kept in a single
-location, but in more complex applications it could be many different paths.
+The message also contains `request.formats` which specifies the format of template to be
+served in response. It is set to `text/html` as we requested this page via browser, so Rails
+is looking for an HTML template.
 
 The simplest template that would work in this case would be one located at
 `app/views/articles/new.html.erb`. The extension of this file name is important:
@@ -486,7 +483,9 @@ the first extension is the _format_ of the template, and the second extension
 is the _handler_ that will be used. Rails is attempting to find a template
 called `articles/new` within `app/views` for the application. The format for
 this template can only be `html` and the handler must be one of `erb`,
-`builder` or `coffee`. Because you want to create a new HTML form, you will be
+`builder` or `coffee`. `:erb` is most commonly used for HTML templates, `:builder` is
+used for XML templates, and `:coffee` uses CoffeeScript to build JavaScript templates.
+Because you want to create a new HTML form, you will be
 using the `ERB` language which is designed to embed Ruby in HTML.
 
 Therefore the file should be called `articles/new.html.erb` and needs to be
@@ -558,10 +557,10 @@ this:
 
 In this example, the `articles_path` helper is passed to the `:url` option.
 To see what Rails will do with this, we look back at the output of
-`bin/rake routes`:
+`bin/rails routes`:
 
 ```bash
-$ bin/rake routes
+$ bin/rails routes
       Prefix Verb   URI Pattern                  Controller#Action
     articles GET    /articles(.:format)          articles#index
              POST   /articles(.:format)          articles#create
@@ -606,9 +605,11 @@ class ArticlesController < ApplicationController
 end
 ```
 
-If you re-submit the form now, you'll see another familiar error: a template is
-missing. That's ok, we can ignore that for now. What the `create` action should
-be doing is saving our new article to the database.
+If you re-submit the form now, you may not see any change on the page. Don't worry!
+This is because Rails by default returns `204 No Content` response for an action if
+we don't specify what the response should be. We just added the `create` action
+but didn't specify anything about how the response should be. In this case, the
+`create` action should save our new article to the database.
 
 When a form is submitted, the fields of the form are sent to Rails as
 _parameters_. These parameters can then be referenced inside the controller
@@ -624,7 +625,7 @@ end
 The `render` method here is taking a very simple hash with a key of `:plain` and
 value of `params[:article].inspect`. The `params` method is the object which
 represents the parameters (or fields) coming in from the form. The `params`
-method returns an `ActiveSupport::HashWithIndifferentAccess` object, which
+method returns an `ActionController::Parameters` object, which
 allows you to access the keys of the hash using either strings or symbols. In
 this situation, the only parameters that matter are the ones from the form.
 
@@ -634,7 +635,7 @@ If you re-submit the form one more time you'll now no longer get the missing
 template error. Instead, you'll see something that looks like the following:
 
 ```ruby
-{"title"=>"First article!", "text"=>"This is my first article."}
+<ActionController::Parameters {"title"=>"First Article!", "text"=>"This is my first article."} permitted: false>
 ```
 
 This action is now displaying the parameters for the article that are coming in
@@ -652,7 +653,7 @@ run this command in your terminal:
 $ bin/rails generate model Article title:string text:text
 ```
 
-With that command we told Rails that we want a `Article` model, together
+With that command we told Rails that we want an `Article` model, together
 with a _title_ attribute of type string, and a _text_ attribute
 of type text. Those attributes are automatically added to the `articles`
 table in the database and mapped to the `Article` model.
@@ -679,13 +680,13 @@ If you look in the `db/migrate/YYYYMMDDHHMMSS_create_articles.rb` file
 (remember, yours will have a slightly different name), here's what you'll find:
 
 ```ruby
-class CreateArticles < ActiveRecord::Migration
+class CreateArticles < ActiveRecord::Migration[5.0]
   def change
     create_table :articles do |t|
       t.string :title
       t.text :text
 
-      t.timestamps null: false
+      t.timestamps
     end
   end
 end
@@ -701,10 +702,10 @@ two timestamp fields to allow Rails to track article creation and update times.
 TIP: For more information about migrations, refer to [Rails Database Migrations]
 (migrations.html).
 
-At this point, you can use a rake command to run the migration:
+At this point, you can use a bin/rails command to run the migration:
 
 ```bash
-$ bin/rake db:migrate
+$ bin/rails db:migrate
 ```
 
 Rails will execute this migration command and tell you it created the Articles
@@ -721,7 +722,7 @@ NOTE. Because you're working in the development environment by default, this
 command will apply to the database defined in the `development` section of your
 `config/database.yml` file. If you would like to execute migrations in another
 environment, for instance in production, you must explicitly pass it when
-invoking the command: `bin/rake db:migrate RAILS_ENV=production`.
+invoking the command: `bin/rails db:migrate RAILS_ENV=production`.
 
 ### Saving data in the controller
 
@@ -766,7 +767,7 @@ Why do you have to bother? The ability to grab and automatically assign all
 controller parameters to your model in one shot makes the programmer's job
 easier, but this convenience also allows malicious use. What if a request to
 the server was crafted to look like a new article form submit but also included
-extra fields with values that violated your applications integrity? They would
+extra fields with values that violated your application's integrity? They would
 be 'mass assigned' into your model and then into the database along with the
 good stuff - potentially breaking your application or worse.
 
@@ -808,7 +809,7 @@ If you submit the form again now, Rails will complain about not finding the
 `show` action. That's not very useful though, so let's add the `show` action
 before proceeding.
 
-As we have seen in the output of `bin/rake routes`, the route for `show` action is
+As we have seen in the output of `bin/rails routes`, the route for `show` action is
 as follows:
 
 ```
@@ -870,7 +871,7 @@ Visit <http://localhost:3000/articles/new> and give it a try!
 ### Listing all articles
 
 We still need a way to list all our articles, so let's do that.
-The route for this as per output of `bin/rake routes` is:
+The route for this as per output of `bin/rails routes` is:
 
 ```
 articles GET    /articles(.:format)          articles#index
@@ -990,21 +991,22 @@ and restart the web server when a change is made.
 The model file, `app/models/article.rb` is about as simple as it can get:
 
 ```ruby
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
 end
 ```
 
 There isn't much to this file - but note that the `Article` class inherits from
-`ActiveRecord::Base`. Active Record supplies a great deal of functionality to
-your Rails models for free, including basic database CRUD (Create, Read, Update,
-Destroy) operations, data validation, as well as sophisticated search support
-and the ability to relate multiple models to one another.
+`ApplicationRecord`. `ApplicationRecord` inherits from `ActiveRecord::Base`
+which supplies a great deal of functionality to your Rails models for free,
+including basic database CRUD (Create, Read, Update, Destroy) operations, data
+validation, as well as sophisticated search support and the ability to relate
+multiple models to one another.
 
 Rails includes methods to help you validate the data that you send to models.
 Open the `app/models/article.rb` file and edit it:
 
 ```ruby
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   validates :title, presence: true,
                     length: { minimum: 5 }
 end
@@ -1364,7 +1366,7 @@ Then do the same for the `app/views/articles/edit.html.erb` view:
 
 We're now ready to cover the "D" part of CRUD, deleting articles from the
 database. Following the REST convention, the route for
-deleting articles as per output of `bin/rake routes` is:
+deleting articles as per output of `bin/rails routes` is:
 
 ```ruby
 DELETE /articles/:id(.:format)      articles#destroy
@@ -1529,7 +1531,7 @@ This command will generate four files:
 First, take a look at `app/models/comment.rb`:
 
 ```ruby
-class Comment < ActiveRecord::Base
+class Comment < ApplicationRecord
   belongs_to :article
 end
 ```
@@ -1538,18 +1540,23 @@ This is very similar to the `Article` model that you saw earlier. The difference
 is the line `belongs_to :article`, which sets up an Active Record _association_.
 You'll learn a little about associations in the next section of this guide.
 
+The (`:references`) keyword used in the bash command is a special data type for models.
+It creates a new column on your database table with the provided model name appended with an `_id`
+that can hold integer values. You can get a better understanding after analyzing the
+`db/schema.rb` file below.
+
 In addition to the model, Rails has also made a migration to create the
 corresponding database table:
 
 ```ruby
-class CreateComments < ActiveRecord::Migration
+class CreateComments < ActiveRecord::Migration[5.0]
   def change
     create_table :comments do |t|
       t.string :commenter
       t.text :body
-      t.references :article, index: true, foreign_key: true
+      t.references :article, foreign_key: true
 
-      t.timestamps null: false
+      t.timestamps
     end
   end
 end
@@ -1560,7 +1567,7 @@ for it, and a foreign key constraint that points to the `id` column of the `arti
 table. Go ahead and run the migration:
 
 ```bash
-$ bin/rake db:migrate
+$ bin/rails db:migrate
 ```
 
 Rails is smart enough to only execute the migrations that have not already been
@@ -1587,7 +1594,7 @@ association. You've already seen the line of code inside the `Comment` model
 (app/models/comment.rb) that makes each comment belong to an Article:
 
 ```ruby
-class Comment < ActiveRecord::Base
+class Comment < ApplicationRecord
   belongs_to :article
 end
 ```
@@ -1596,7 +1603,7 @@ You'll need to edit `app/models/article.rb` to add the other side of the
 association:
 
 ```ruby
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   has_many :comments
   validates :title, presence: true,
                     length: { minimum: 5 }
@@ -1962,7 +1969,7 @@ you to use the `dependent` option of an association to achieve this. Modify the
 Article model, `app/models/article.rb`, as follows:
 
 ```ruby
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   has_many :comments, dependent: :destroy
   validates :title, presence: true,
                     length: { minimum: 5 }

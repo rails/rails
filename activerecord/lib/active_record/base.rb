@@ -13,7 +13,6 @@ require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/module/introspection'
 require 'active_support/core_ext/object/duplicable'
 require 'active_support/core_ext/class/subclasses'
-require 'arel'
 require 'active_record/attribute_decorators'
 require 'active_record/errors'
 require 'active_record/log_subscriber'
@@ -132,9 +131,6 @@ module ActiveRecord #:nodoc:
   #     end
   #   end
   #
-  # You can alternatively use <tt>self[:attribute]=(value)</tt> and <tt>self[:attribute]</tt>
-  # or <tt>write_attribute(:attribute, value)</tt> and <tt>read_attribute(:attribute)</tt>.
-  #
   # == Attribute query methods
   #
   # In addition to the basic accessors, query methods are also automatically available on the Active Record object.
@@ -173,7 +169,8 @@ module ActiveRecord #:nodoc:
   # ActiveRecord::RecordNotFound error if they do not return any records,
   # like <tt>Person.find_by_last_name!</tt>.
   #
-  # It's also possible to use multiple attributes in the same find by separating them with "_and_".
+  # It's also possible to use multiple attributes in the same <tt>find_by_</tt> by separating them with
+  # "_and_".
   #
   #  Person.find_by(user_name: user_name, password: password)
   #  Person.find_by_user_name_and_password(user_name, password) # with dynamic finder
@@ -261,7 +258,7 @@ module ActiveRecord #:nodoc:
   #   The +errors+ property of this exception contains an array of
   #   AttributeAssignmentError
   #   objects that should be inspected to determine which attributes triggered the errors.
-  # * RecordInvalid - raised by {ActiveRecord::Base#save}[rdoc-ref:Persistence#save] and
+  # * RecordInvalid - raised by {ActiveRecord::Base#save!}[rdoc-ref:Persistence#save!] and
   #   {ActiveRecord::Base.create!}[rdoc-ref:Persistence::ClassMethods#create!]
   #   when the record is invalid.
   # * RecordNotFound - No record responded to the {ActiveRecord::Base.find}[rdoc-ref:FinderMethods#find] method.

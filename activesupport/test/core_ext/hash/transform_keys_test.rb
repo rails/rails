@@ -43,4 +43,20 @@ class TransformKeysTest < ActiveSupport::TestCase
     original.transform_keys!.with_index { |k, i| [k, i].join.to_sym }
     assert_equal({ a0: 'a', b1: 'b' }, original)
   end
+
+  test "transform_keys returns a Hash instance when self is inherited from Hash" do
+    class HashDescendant < ::Hash
+      def initialize(elements = nil)
+        super(elements)
+        (elements || {}).each_pair{ |key, value| self[key] = value }
+      end
+    end
+
+    original = HashDescendant.new({ a: 'a', b: 'b' })
+    mapped = original.transform_keys { |k| "#{k}!".to_sym }
+
+    assert_equal({ a: 'a', b: 'b' }, original)
+    assert_equal({ a!: 'a', b!: 'b' }, mapped)
+    assert_equal(::Hash, mapped.class)
+  end
 end

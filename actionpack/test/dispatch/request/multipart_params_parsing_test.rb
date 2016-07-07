@@ -159,7 +159,9 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
   test "does not raise EOFError on GET request with multipart content-type" do
     with_routing do |set|
       set.draw do
-        get ':action', controller: 'multipart_params_parsing_test/test'
+        ActiveSupport::Deprecation.silence do
+          get ':action', controller: 'multipart_params_parsing_test/test'
+        end
       end
       headers = { "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x" }
       get "/parse", headers: headers
@@ -188,7 +190,9 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
     def with_test_routing
       with_routing do |set|
         set.draw do
-          post ':action', :controller => 'multipart_params_parsing_test/test'
+          ActiveSupport::Deprecation.silence do
+            post ':action', :controller => 'multipart_params_parsing_test/test'
+          end
         end
         yield
       end

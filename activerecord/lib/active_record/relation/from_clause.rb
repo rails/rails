@@ -25,7 +25,7 @@ module ActiveRecord
       end
 
       def self.empty
-        new(nil, nil)
+        @empty ||= new(nil, nil)
       end
     end
   end

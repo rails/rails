@@ -6,6 +6,7 @@ module ActiveRecord
       module OID # :nodoc:
         class Range < Type::Value # :nodoc:
           attr_reader :subtype, :type
+          delegate :user_input_in_time_zone, to: :subtype
 
           def initialize(subtype, type = :range)
             @subtype = subtype
@@ -18,7 +19,7 @@ module ActiveRecord
 
           def cast_value(value)
             return if value == 'empty'
-            return value if value.is_a?(::Range)
+            return value unless value.is_a?(::String)
 
             extracted = extract_bounds(value)
             from = type_cast_single extracted[:from]
@@ -44,6 +45,12 @@ module ActiveRecord
             other.is_a?(Range) &&
               other.subtype == subtype &&
               other.type == type
+          end
+
+          def map(value) # :nodoc:
+            new_begin = yield(value.begin)
+            new_end = yield(value.end)
+            ::Range.new(new_begin, new_end, value.exclude_end?)
           end
 
           private

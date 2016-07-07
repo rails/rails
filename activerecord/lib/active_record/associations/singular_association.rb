@@ -45,7 +45,7 @@ module ActiveRecord
         end
 
         def get_records
-          return scope.limit(1).to_a if skip_statement_cache?
+          return scope.limit(1).records if skip_statement_cache?
 
           conn = klass.connection
           sc = reflection.association_scope_cache(conn, owner) do

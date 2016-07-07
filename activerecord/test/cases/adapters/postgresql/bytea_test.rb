@@ -1,6 +1,9 @@
 require "cases/helper"
+require 'support/schema_dumping_helper'
 
 class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
+  include SchemaDumpingHelper
+
   class ByteaDataType < ActiveRecord::Base
     self.table_name = 'bytea_data_type'
   end
@@ -121,5 +124,11 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
     obj.save!
     obj.reload
     assert_equal "hello world", obj.serialized
+  end
+
+  def test_schema_dumping
+    output = dump_table_schema("bytea_data_type")
+    assert_match %r{t\.binary\s+"payload"$}, output
+    assert_match %r{t\.binary\s+"serialized"$}, output
   end
 end

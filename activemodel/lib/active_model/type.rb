@@ -47,7 +47,7 @@ module ActiveModel
     register(:binary, Type::Binary)
     register(:boolean, Type::Boolean)
     register(:date, Type::Date)
-    register(:date_time, Type::DateTime)
+    register(:datetime, Type::DateTime)
     register(:decimal, Type::Decimal)
     register(:float, Type::Float)
     register(:immutable_string, Type::ImmutableString)

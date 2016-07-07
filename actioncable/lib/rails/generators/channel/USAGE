@@ -1,0 +1,14 @@
+Description:
+============
+    Stubs out a new cable channel for the server (in Ruby) and client (in CoffeeScript).
+    Pass the channel name, either CamelCased or under_scored, and an optional list of channel actions as arguments.
+
+    Note: Turn on the cable connection in app/assets/javascript/cable.js after generating any channels.
+
+Example:
+========
+    rails generate channel Chat speak
+
+    creates a Chat channel class and CoffeeScript asset:
+        Channel:    app/channels/chat_channel.rb
+        Assets:     app/assets/javascript/channels/chat.coffee

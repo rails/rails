@@ -5,7 +5,7 @@ YAML.add_builtin_type("omap") do |type, val|
 end
 
 module ActiveSupport
-  # <tt>ActiveSupport::OrderedHash</tt> implements a hash that preserves
+  # DEPRECATED: <tt>ActiveSupport::OrderedHash</tt> implements a hash that preserves
   # insertion order.
   #
   #   oh = ActiveSupport::OrderedHash.new

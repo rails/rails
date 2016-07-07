@@ -68,8 +68,10 @@ module ActiveSupport
       end
     end
 
-    def default(key = nil)
-      if key.is_a?(Symbol) && include?(key = key.to_s)
+    def default(*args)
+      arg_key = args.first
+
+      if include?(key = convert_key(arg_key))
         self[key]
       else
         super
@@ -158,6 +160,20 @@ module ActiveSupport
     alias_method :include?, :key?
     alias_method :has_key?, :key?
     alias_method :member?, :key?
+
+
+    # Same as <tt>Hash#[]</tt> where the key passed as argument can be
+    # either a string or a symbol:
+    #
+    #   counters = ActiveSupport::HashWithIndifferentAccess.new
+    #   counters[:foo] = 1
+    #
+    #   counters['foo'] # => 1
+    #   counters[:foo]  # => 1
+    #   counters[:zoo]  # => nil
+    def [](key)
+      super(convert_key(key))
+    end
 
     # Same as <tt>Hash#fetch</tt> where the key passed as argument can be
     # either a string or a symbol:

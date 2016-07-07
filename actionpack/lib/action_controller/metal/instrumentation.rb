@@ -19,9 +19,10 @@ module ActionController
         :controller => self.class.name,
         :action     => self.action_name,
         :params     => request.filtered_parameters,
-        :format     => request.format.try(:ref),
+        :headers    => request.headers,
+        :format     => request.format.ref,
         :method     => request.request_method,
-        :path       => (request.fullpath rescue "unknown")
+        :path       => request.fullpath
       }
 
       ActiveSupport::Notifications.instrument("start_processing.action_controller", raw_payload.dup)
@@ -74,8 +75,8 @@ module ActionController
       ActiveSupport::Notifications.instrument("halted_callback.action_controller", :filter => filter)
     end
 
-    # A hook which allows you to clean up any time taken into account in
-    # views wrongly, like database querying time.
+    # A hook which allows you to clean up any time, wrongly taken into account in
+    # views, like database querying time.
     #
     #   def cleanup_view_runtime
     #     super - time_taken_in_something_expensive

@@ -22,6 +22,12 @@ class Mysql2StoredProcedureTest < ActiveRecord::Mysql2TestCase
     assert @connection.active?, "Bad connection use by 'Mysql2Adapter.select_rows'"
   end
 
+  def test_multi_results_from_select_one
+    row = @connection.select_one('CALL topics(1);')
+    assert_equal 'David', row['author_name']
+    assert @connection.active?, "Bad connection use by 'Mysql2Adapter.select_one'"
+  end
+
   def test_multi_results_from_find_by_sql
     topics = Topic.find_by_sql 'CALL topics(3);'
     assert_equal 3, topics.size

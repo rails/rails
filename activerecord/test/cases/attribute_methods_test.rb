@@ -27,12 +27,31 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     ActiveRecord::Base.send(:attribute_method_matchers).concat(@old_matchers)
   end
 
-  def test_attribute_for_inspect
+  def test_attribute_for_inspect_string
     t = topics(:first)
     t.title = "The First Topic Now Has A Title With\nNewlines And More Than 50 Characters"
 
-    assert_equal %("#{t.written_on.to_s(:db)}"), t.attribute_for_inspect(:written_on)
     assert_equal '"The First Topic Now Has A Title With\nNewlines And ..."', t.attribute_for_inspect(:title)
+  end
+
+  def test_attribute_for_inspect_date
+    t = topics(:first)
+
+    assert_equal %("#{t.written_on.to_s(:db)}"), t.attribute_for_inspect(:written_on)
+  end
+
+  def test_attribute_for_inspect_array
+    t = topics(:first)
+    t.content = [Object.new]
+
+    assert_match %r(\[#<Object:0x[0-9a-f]+>\]), t.attribute_for_inspect(:content)
+  end
+
+  def test_attribute_for_inspect_long_array
+    t = topics(:first)
+    t.content = (1..11).to_a
+
+    assert_equal "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]", t.attribute_for_inspect(:content)
   end
 
   def test_attribute_present
@@ -175,7 +194,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal category_attrs , category.attributes_before_type_cast
   end
 
-  if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+  if current_adapter?(:Mysql2Adapter)
     def test_read_attributes_before_type_cast_on_boolean
       bool = Boolean.create!({ "value" => false })
       if RUBY_PLATFORM =~ /java/
@@ -714,6 +733,13 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_time_zone_aware_attributes_dont_recurse_infinitely_on_invalid_values
+    in_time_zone "Pacific Time (US & Canada)" do
+      record = @target.new(bonus_time: [])
+      assert_equal nil, record.bonus_time
+    end
+  end
+
   def test_setting_time_zone_conversion_for_attributes_should_write_value_on_class_variable
     Topic.skip_time_zone_conversion_for_attributes = [:field_a]
     Minimalistic.skip_time_zone_conversion_for_attributes = [:field_b]
@@ -791,7 +817,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_nil computer.system
   end
 
-  def test_global_methods_are_overwritte_when_subclassing
+  def test_global_methods_are_overwritten_when_subclassing
     klass = Class.new(ActiveRecord::Base) { self.abstract_class = true }
 
     subklass = Class.new(klass) do

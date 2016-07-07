@@ -75,8 +75,14 @@ module ActiveRecord
       hash_rows[idx]
     end
 
+    def first
+      return nil if @rows.empty?
+      Hash[@columns.zip(@rows.first)]
+    end
+
     def last
-      hash_rows.last
+      return nil if @rows.empty?
+      Hash[@columns.zip(@rows.last)]
     end
 
     def cast_values(type_overrides = {}) # :nodoc:

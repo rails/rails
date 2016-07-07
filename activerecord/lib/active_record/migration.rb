@@ -13,7 +13,7 @@ module ActiveRecord
   # For example the following migration is not reversible.
   # Rolling back this migration will raise an ActiveRecord::IrreversibleMigration error.
   #
-  #   class IrreversibleMigrationExample < ActiveRecord::Migration
+  #   class IrreversibleMigrationExample < ActiveRecord::Migration[5.0]
   #     def change
   #       create_table :distributors do |t|
   #         t.string :zipcode
@@ -31,7 +31,7 @@ module ActiveRecord
   #
   # 1. Define <tt>#up</tt> and <tt>#down</tt> methods instead of <tt>#change</tt>:
   #
-  #  class ReversibleMigrationExample < ActiveRecord::Migration
+  #  class ReversibleMigrationExample < ActiveRecord::Migration[5.0]
   #    def up
   #      create_table :distributors do |t|
   #        t.string :zipcode
@@ -56,7 +56,7 @@ module ActiveRecord
   #
   # 2. Use the #reversible method in <tt>#change</tt> method:
   #
-  #   class ReversibleMigrationExample < ActiveRecord::Migration
+  #   class ReversibleMigrationExample < ActiveRecord::Migration[5.0]
   #     def change
   #       create_table :distributors do |t|
   #         t.string :zipcode
@@ -126,9 +126,9 @@ module ActiveRecord
   class PendingMigrationError < MigrationError#:nodoc:
     def initialize(message = nil)
       if !message && defined?(Rails.env)
-        super("Migrations are pending. To resolve this issue, run:\n\n\tbin/rake db:migrate RAILS_ENV=#{::Rails.env}.")
+        super("Migrations are pending. To resolve this issue, run:\n\n\tbin/rails db:migrate RAILS_ENV=#{::Rails.env}")
       elsif !message
-        super("Migrations are pending. To resolve this issue, run:\n\n\tbin/rake db:migrate.")
+        super("Migrations are pending. To resolve this issue, run:\n\n\tbin/rails db:migrate")
       else
         super
       end
@@ -140,6 +140,40 @@ module ActiveRecord
 
     def initialize(message = DEFAULT_MESSAGE)
       super
+    end
+  end
+
+  class NoEnvironmentInSchemaError < MigrationError #:nodoc:
+    def initialize
+      msg = "Environment data not found in the schema. To resolve this issue, run: \n\n\tbin/rails db:environment:set"
+      if defined?(Rails.env)
+        super("#{msg} RAILS_ENV=#{::Rails.env}")
+      else
+        super(msg)
+      end
+    end
+  end
+
+  class ProtectedEnvironmentError < ActiveRecordError #:nodoc:
+    def initialize(env = "production")
+      msg = "You are attempting to run a destructive action against your '#{env}' database.\n"
+      msg << "If you are sure you want to continue, run the same command with the environment variable:\n"
+      msg << "DISABLE_DATABASE_ENVIRONMENT_CHECK=1"
+      super(msg)
+    end
+  end
+
+  class EnvironmentMismatchError < ActiveRecordError
+    def initialize(current: nil, stored: nil)
+      msg =  "You are attempting to modify a database that was last run in `#{ stored }` environment.\n"
+      msg << "You are running in `#{ current }` environment. "
+      msg << "If you are sure you want to continue, first set the environment using:\n\n"
+      msg << "\tbin/rails db:environment:set"
+      if defined?(Rails.env)
+        super("#{msg} RAILS_ENV=#{::Rails.env}\n\n")
+      else
+        super("#{msg}\n\n")
+      end
     end
   end
 
@@ -155,7 +189,7 @@ module ActiveRecord
   #
   # Example of a simple migration:
   #
-  #   class AddSsl < ActiveRecord::Migration
+  #   class AddSsl < ActiveRecord::Migration[5.0]
   #     def up
   #       add_column :accounts, :ssl_enabled, :boolean, default: true
   #     end
@@ -175,7 +209,7 @@ module ActiveRecord
   #
   # Example of a more complex migration that also needs to initialize data:
   #
-  #   class AddSystemSettings < ActiveRecord::Migration
+  #   class AddSystemSettings < ActiveRecord::Migration[5.0]
   #     def up
   #       create_table :system_settings do |t|
   #         t.string  :name
@@ -243,7 +277,7 @@ module ActiveRecord
   # * <tt>change_column(table_name, column_name, type, options)</tt>:  Changes
   #   the column to a different type using the same parameters as add_column.
   # * <tt>change_column_default(table_name, column_name, default)</tt>: Sets a
-  #   default value for +column_name+ definded by +default+ on +table_name+.
+  #   default value for +column_name+ defined by +default+ on +table_name+.
   # * <tt>change_column_null(table_name, column_name, null, default = nil)</tt>:
   #   Sets or removes a +NOT NULL+ constraint on +column_name+. The +null+ flag
   #   indicates whether the value can be +NULL+. See
@@ -301,23 +335,23 @@ module ActiveRecord
   #   rails generate migration add_fieldname_to_tablename fieldname:string
   #
   # This will generate the file <tt>timestamp_add_fieldname_to_tablename.rb</tt>, which will look like this:
-  #   class AddFieldnameToTablename < ActiveRecord::Migration
+  #   class AddFieldnameToTablename < ActiveRecord::Migration[5.0]
   #     def change
   #       add_column :tablenames, :fieldname, :string
   #     end
   #   end
   #
   # To run migrations against the currently configured database, use
-  # <tt>rake db:migrate</tt>. This will update the database by running all of the
+  # <tt>rails db:migrate</tt>. This will update the database by running all of the
   # pending migrations, creating the <tt>schema_migrations</tt> table
   # (see "About the schema_migrations table" section below) if missing. It will also
   # invoke the db:schema:dump task, which will update your db/schema.rb file
   # to match the structure of your database.
   #
   # To roll the database back to a previous migration version, use
-  # <tt>rake db:migrate VERSION=X</tt> where <tt>X</tt> is the version to which
+  # <tt>rails db:migrate VERSION=X</tt> where <tt>X</tt> is the version to which
   # you wish to downgrade. Alternatively, you can also use the STEP option if you
-  # wish to rollback last few migrations. <tt>rake db:migrate STEP=2</tt> will rollback
+  # wish to rollback last few migrations. <tt>rails db:migrate STEP=2</tt> will rollback
   # the latest two migrations.
   #
   # If any of the migrations throw an <tt>ActiveRecord::IrreversibleMigration</tt> exception,
@@ -332,7 +366,7 @@ module ActiveRecord
   #
   # Not all migrations change the schema. Some just fix the data:
   #
-  #   class RemoveEmptyTags < ActiveRecord::Migration
+  #   class RemoveEmptyTags < ActiveRecord::Migration[5.0]
   #     def up
   #       Tag.all.each { |tag| tag.destroy if tag.pages.empty? }
   #     end
@@ -345,7 +379,7 @@ module ActiveRecord
   #
   # Others remove columns when they migrate up instead of down:
   #
-  #   class RemoveUnnecessaryItemAttributes < ActiveRecord::Migration
+  #   class RemoveUnnecessaryItemAttributes < ActiveRecord::Migration[5.0]
   #     def up
   #       remove_column :items, :incomplete_items_count
   #       remove_column :items, :completed_items_count
@@ -359,7 +393,7 @@ module ActiveRecord
   #
   # And sometimes you need to do something in SQL not abstracted directly by migrations:
   #
-  #   class MakeJoinUnique < ActiveRecord::Migration
+  #   class MakeJoinUnique < ActiveRecord::Migration[5.0]
   #     def up
   #       execute "ALTER TABLE `pages_linked_pages` ADD UNIQUE `page_id_linked_page_id` (`page_id`,`linked_page_id`)"
   #     end
@@ -376,7 +410,7 @@ module ActiveRecord
   # <tt>Base#reset_column_information</tt> in order to ensure that the model has the
   # latest column data from after the new column was added. Example:
   #
-  #   class AddPeopleSalary < ActiveRecord::Migration
+  #   class AddPeopleSalary < ActiveRecord::Migration[5.0]
   #     def up
   #       add_column :people, :salary, :integer
   #       Person.reset_column_information
@@ -434,7 +468,7 @@ module ActiveRecord
   # To define a reversible migration, define the +change+ method in your
   # migration like this:
   #
-  #   class TenderloveMigration < ActiveRecord::Migration
+  #   class TenderloveMigration < ActiveRecord::Migration[5.0]
   #     def change
   #       create_table(:horses) do |t|
   #         t.column :content, :text
@@ -464,7 +498,7 @@ module ActiveRecord
   # can't execute inside a transaction though, and for these situations
   # you can turn the automatic transactions off.
   #
-  #   class ChangeEnum < ActiveRecord::Migration
+  #   class ChangeEnum < ActiveRecord::Migration[5.0]
   #     disable_ddl_transaction!
   #
   #     def up
@@ -476,11 +510,31 @@ module ActiveRecord
   # are in a Migration with <tt>self.disable_ddl_transaction!</tt>.
   class Migration
     autoload :CommandRecorder, 'active_record/migration/command_recorder'
+    autoload :Compatibility, 'active_record/migration/compatibility'
+
+    # This must be defined before the inherited hook, below
+    class Current < Migration # :nodoc:
+    end
+
+    def self.inherited(subclass) # :nodoc:
+      super
+      if subclass.superclass == Migration
+        subclass.include Compatibility::Legacy
+      end
+    end
+
+    def self.[](version)
+      Compatibility.find(version)
+    end
+
+    def self.current_version
+      ActiveRecord::VERSION::STRING.to_f
+    end
 
     MigrationFilenameRegexp = /\A([0-9]+)_([_a-z0-9]*)\.?([_a-z0-9]*)?\.rb\z/ # :nodoc:
 
     # This class is used to verify that all migrations have been run before
-    # loading a web page if config.active_record.migration_error is set to :page_load
+    # loading a web page if <tt>config.active_record.migration_error</tt> is set to :page_load
     class CheckPending
       def initialize(app)
         @app = app
@@ -509,6 +563,10 @@ module ActiveRecord
       attr_accessor :delegate # :nodoc:
       attr_accessor :disable_ddl_transaction # :nodoc:
 
+      def nearest_delegate # :nodoc:
+        delegate || superclass.nearest_delegate
+      end
+
       # Raises <tt>ActiveRecord::PendingMigrationError</tt> error if any migrations are pending.
       def check_pending!(connection = Base.connection)
         raise ActiveRecord::PendingMigrationError if ActiveRecord::Migrator.needs_migration?(connection)
@@ -520,7 +578,7 @@ module ActiveRecord
           FileUtils.cd Rails.root do
             current_config = Base.connection_config
             Base.clear_all_connections!
-            system("bin/rake db:test:prepare")
+            system("bin/rails db:test:prepare")
             # Establish a new connection, the old database may be gone (db:test:prepare uses purge)
             Base.establish_connection(current_config)
           end
@@ -535,7 +593,7 @@ module ActiveRecord
       end
 
       def method_missing(name, *args, &block) # :nodoc:
-        (delegate || superclass.delegate).send(name, *args, &block)
+        nearest_delegate.send(name, *args, &block)
       end
 
       def migrate(direction)
@@ -575,7 +633,7 @@ module ActiveRecord
     # and create the table 'apples' on the way up, and the reverse
     # on the way down.
     #
-    #   class FixTLMigration < ActiveRecord::Migration
+    #   class FixTLMigration < ActiveRecord::Migration[5.0]
     #     def change
     #       revert do
     #         create_table(:horses) do |t|
@@ -594,7 +652,7 @@ module ActiveRecord
     #
     #   require_relative '20121212123456_tenderlove_migration'
     #
-    #   class FixupTLMigration < ActiveRecord::Migration
+    #   class FixupTLMigration < ActiveRecord::Migration[5.0]
     #     def change
     #       revert TenderloveMigration
     #
@@ -647,7 +705,7 @@ module ActiveRecord
     # when the three columns 'first_name', 'last_name' and 'full_name' exist,
     # even when migrating down:
     #
-    #    class SplitNameMigration < ActiveRecord::Migration
+    #    class SplitNameMigration < ActiveRecord::Migration[5.0]
     #      def change
     #        add_column :users, :first_name, :string
     #        add_column :users, :last_name, :string
@@ -1048,6 +1106,7 @@ module ActiveRecord
       validate(@migrations)
 
       Base.connection.initialize_schema_migrations_table
+      Base.connection.initialize_internal_metadata_table
     end
 
     def current_version
@@ -1105,45 +1164,58 @@ module ActiveRecord
 
     private
 
+    # Used for running a specific migration.
     def run_without_lock
       migration = migrations.detect { |m| m.version == @target_version }
       raise UnknownMigrationVersionError.new(@target_version) if migration.nil?
-      unless (up? && migrated.include?(migration.version.to_i)) || (down? && !migrated.include?(migration.version.to_i))
-        begin
-          execute_migration_in_transaction(migration, @direction)
-        rescue => e
-          canceled_msg = use_transaction?(migration) ? ", this migration was canceled" : ""
-          raise StandardError, "An error has occurred#{canceled_msg}:\n\n#{e}", e.backtrace
-        end
-      end
+      execute_migration_in_transaction(migration, @direction)
+
+      record_environment
     end
 
+    # Used for running multiple migrations up to or down to a certain value.
     def migrate_without_lock
-      if !target && @target_version && @target_version > 0
+      if invalid_target?
         raise UnknownMigrationVersionError.new(@target_version)
       end
 
       runnable.each do |migration|
-        Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
-
-        begin
-          execute_migration_in_transaction(migration, @direction)
-        rescue => e
-          canceled_msg = use_transaction?(migration) ? "this and " : ""
-          raise StandardError, "An error has occurred, #{canceled_msg}all later migrations canceled:\n\n#{e}", e.backtrace
-        end
+        execute_migration_in_transaction(migration, @direction)
       end
+
+      record_environment
+    end
+
+    # Stores the current environment in the database.
+    def record_environment
+      return if down?
+      ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Migrator.current_environment
     end
 
     def ran?(migration)
       migrated.include?(migration.version.to_i)
     end
 
+    # Return true if a valid version is not provided.
+    def invalid_target?
+      !target && @target_version && @target_version > 0
+    end
+
     def execute_migration_in_transaction(migration, direction)
+      return if down? && !migrated.include?(migration.version.to_i)
+      return if up?   &&  migrated.include?(migration.version.to_i)
+
+      Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
+
       ddl_transaction(migration) do
         migration.migrate(direction)
         record_version_state_after_migrating(migration.version)
       end
+    rescue => e
+      msg = "An error has occurred, "
+      msg << "this and " if use_transaction?(migration)
+      msg << "all later migrations canceled:\n\n#{e}"
+      raise StandardError, msg, e.backtrace
     end
 
     def target
@@ -1172,8 +1244,25 @@ module ActiveRecord
         ActiveRecord::SchemaMigration.where(:version => version.to_s).delete_all
       else
         migrated << version
-        ActiveRecord::SchemaMigration.create!(:version => version.to_s)
+        ActiveRecord::SchemaMigration.create!(version: version.to_s)
       end
+    end
+
+    def self.last_stored_environment
+      return nil if current_version == 0
+      raise NoEnvironmentInSchemaError unless ActiveRecord::InternalMetadata.table_exists?
+
+      environment = ActiveRecord::InternalMetadata[:environment]
+      raise NoEnvironmentInSchemaError unless environment
+      environment
+    end
+
+    def self.current_environment
+      ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+    end
+
+    def self.protected_environment?
+      ActiveRecord::Base.protected_environments.include?(last_stored_environment) if last_stored_environment
     end
 
     def up?

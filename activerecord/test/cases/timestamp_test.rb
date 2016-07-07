@@ -98,8 +98,11 @@ class TimestampTest < ActiveRecord::TestCase
     task = Task.first
     previous_value = task.ending
     task.touch(:ending)
+
+    now = Time.now.change(usec: 0)
+
     assert_not_equal previous_value, task.ending
-    assert_in_delta Time.now, task.ending, 1
+    assert_in_delta now, task.ending, 1
   end
 
   def test_touching_an_attribute_updates_timestamp_with_given_time
@@ -120,10 +123,12 @@ class TimestampTest < ActiveRecord::TestCase
     previous_ending = task.ending
     task.touch(:starting, :ending)
 
+    now = Time.now.change(usec: 0)
+
     assert_not_equal previous_starting, task.starting
     assert_not_equal previous_ending, task.ending
-    assert_in_delta Time.now, task.starting, 1
-    assert_in_delta Time.now, task.ending, 1
+    assert_in_delta now, task.starting, 1
+    assert_in_delta now, task.ending, 1
   end
 
   def test_touching_a_record_without_timestamps_is_unexceptional

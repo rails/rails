@@ -43,11 +43,11 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_simple_format_should_sanitize_input_when_sanitize_option_is_not_false
-    assert_equal "<p><b> test with unsafe string </b></p>", simple_format("<b> test with unsafe string </b><script>code!</script>")
+    assert_equal "<p><b> test with unsafe string </b>code!</p>", simple_format("<b> test with unsafe string </b><script>code!</script>")
   end
 
   def test_simple_format_should_sanitize_input_when_sanitize_option_is_true
-    assert_equal '<p><b> test with unsafe string </b></p>',
+    assert_equal '<p><b> test with unsafe string </b>code!</p>',
       simple_format('<b> test with unsafe string </b><script>code!</script>', {}, sanitize: true)
   end
 
@@ -198,7 +198,7 @@ class TextHelperTest < ActionView::TestCase
 
   def test_highlight_should_sanitize_input
     assert_equal(
-      "This is a <mark>beautiful</mark> morning",
+      "This is a <mark>beautiful</mark> morningcode!",
       highlight("This is a beautiful morning<script>code!</script>", "beautiful")
     )
   end
@@ -379,24 +379,36 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("1.25 counts", pluralize('1.25', "count"))
     assert_equal("1.0 count", pluralize('1.0', "count"))
     assert_equal("1.00 count", pluralize('1.00', "count"))
-    assert_equal("2 counters", pluralize(2, "count", "counters"))
-    assert_equal("0 counters", pluralize(nil, "count", "counters"))
+    assert_equal("2 counters", pluralize(2, "count", plural: "counters"))
+    assert_equal("0 counters", pluralize(nil, "count", plural: "counters"))
     assert_equal("2 people", pluralize(2, "person"))
     assert_equal("10 buffaloes", pluralize(10, "buffalo"))
     assert_equal("1 berry", pluralize(1, "berry"))
     assert_equal("12 berries", pluralize(12, "berry"))
   end
 
-  def test_pluralization_with_locale
-    ActiveSupport::Inflector.inflections(:de) do |inflect|
-      inflect.plural(/(person)$/i, '\1en')
-      inflect.singular(/(person)en$/i, '\1')
+  def test_localized_pluralization
+    old_locale = I18n.locale
+
+    begin
+      I18n.locale = :de
+
+      ActiveSupport::Inflector.inflections(:de) do |inflect|
+        inflect.irregular 'region', 'regionen'
+      end
+
+      assert_equal("1 region",   pluralize(1, "region"))
+      assert_equal("2 regionen", pluralize(2, "region"))
+      assert_equal("2 regions",  pluralize(2, "region", locale: :en))
+    ensure
+      I18n.locale = old_locale
     end
+  end
 
-    assert_equal("2 People", pluralize(2, "Person", locale: :en))
-    assert_equal("2 Personen", pluralize(2, "Person", locale: :de))
-
-    ActiveSupport::Inflector.inflections(:de).clear
+  def test_deprecated_plural_as_positional_argument
+    assert_deprecated do
+      pluralize(2, 'count', 'counters')
+    end
   end
 
   def test_cycle_class

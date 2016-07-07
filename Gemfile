@@ -3,31 +3,22 @@ source 'https://rubygems.org'
 gemspec
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
-gem 'rake', '>= 10.3'
+gem 'rake', '>= 11.1'
 
-# Active Job depends on URI::GID::MissingModelIDError, which isn't released yet.
-gem 'globalid', github: 'rails/globalid', branch: 'master'
-gem 'rack', github: 'rack/rack', branch: 'master'
-
-# This needs to be with require false to ensure correct loading order, as has to
+# This needs to be with require false to ensure correct loading order, as it has to
 # be loaded after loading the test library.
 gem 'mocha', '~> 0.14', require: false
 
 gem 'rack-cache', '~> 1.2'
-gem 'jquery-rails', github: 'rails/jquery-rails', branch: 'master'
-gem 'coffee-rails', '~> 4.1.0'
-gem 'turbolinks', github: 'rails/turbolinks', branch: 'master'
-gem 'arel', github: 'rails/arel', branch: 'master'
-gem 'mail', github: 'mikel/mail', branch: 'master'
-
-gem 'sprockets', '~> 4.0', github: 'rails/sprockets', branch: 'master'
-gem 'sprockets-rails', '~> 3.0.0.beta3', github: 'rails/sprockets-rails', branch: 'master'
-gem 'sass-rails', github: 'rails/sass-rails', branch: 'master'
+gem 'jquery-rails'
+gem 'coffee-rails', '~> 4.2'
+gem 'sass-rails'
+gem 'turbolinks', '~> 5'
 
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)
 # being dependent on a binary library.
-gem 'bcrypt', '~> 3.1.10', require: false
+gem 'bcrypt', '~> 3.1.11', require: false
 
 # This needs to be with require false to avoid it being automatically loaded by
 # sprockets.
@@ -50,7 +41,7 @@ gem 'rb-inotify', github: 'matthewd/rb-inotify', branch: 'close-handling'
 
 # Active Job.
 group :job do
-  gem 'resque', require: false
+  gem 'resque', '< 1.26', require: false
   gem 'resque-scheduler', require: false
   gem 'sidekiq', require: false
   gem 'sucker_punch', require: false
@@ -59,10 +50,23 @@ group :job do
   gem 'sneakers', require: false
   gem 'que', require: false
   gem 'backburner', require: false
-  gem 'qu-rails', github: "bkeepers/qu", branch: "master", require: false
+  #TODO: add qu after it support Rails 5.1
+  # gem 'qu-rails', github: "bkeepers/qu", branch: "master", require: false
   gem 'qu-redis', require: false
   gem 'delayed_job_active_record', require: false
   gem 'sequel', require: false
+end
+
+# Action Cable
+group :cable do
+  gem 'puma', require: false
+
+  gem 'em-hiredis', require: false
+  gem 'hiredis', require: false
+  gem 'redis', require: false
+
+  gem 'faye-websocket', require: false
+  gem 'blade', '~> 0.5.5', require: false
 end
 
 # Add your own local bundler stuff.
@@ -81,8 +85,8 @@ group :test do
   gem 'benchmark-ips'
 end
 
-platforms :ruby do
-  gem 'nokogiri', '>= 1.6.7.rc3'
+platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
+  gem 'nokogiri', '>= 1.6.7.1'
 
   # Needed for compiling the ActionDispatch::Journey parser.
   gem 'racc', '>=1.4.6', require: false
@@ -92,13 +96,11 @@ platforms :ruby do
 
   group :db do
     gem 'pg', '>= 0.18.0'
-    gem 'mysql', '>= 2.9.0'
-    gem 'mysql2', '>= 0.4.0'
+    gem 'mysql2', '>= 0.4.4'
   end
 end
 
 platforms :jruby do
-  gem 'json'
   if ENV['AR_JDBC']
     gem 'activerecord-jdbcsqlite3-adapter', github: 'jruby/activerecord-jdbc-adapter', branch: 'master'
     group :db do
@@ -131,3 +133,4 @@ end
 # A gem necessary for Active Record tests with IBM DB.
 gem 'ibm_db' if ENV['IBM_DB']
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
+gem 'wdm', '>= 0.1.0', platforms: [:mingw, :mswin, :x64_mingw, :mswin64]

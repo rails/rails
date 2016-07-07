@@ -17,11 +17,12 @@ module Enumerable
   # The default sum of an empty list is zero. You can override this default:
   #
   #  [].sum(Payment.new(0)) { |i| i.amount } # => Payment.new(0)
-  def sum(identity = 0, &block)
+  def sum(identity = nil, &block)
     if block_given?
       map(&block).sum(identity)
     else
-      inject(:+) || identity
+      sum = identity ? inject(identity, :+) : inject(:+)
+      sum || identity || 0
     end
   end
 
@@ -91,16 +92,33 @@ end
 class Range #:nodoc:
   # Optimize range sum to use arithmetic progression if a block is not given and
   # we have a range of numeric values.
-  def sum(identity = 0)
+  def sum(identity = nil)
     if block_given? || !(first.is_a?(Integer) && last.is_a?(Integer))
       super
     else
       actual_last = exclude_end? ? (last - 1) : last
       if actual_last >= first
-        (actual_last - first + 1) * (actual_last + first) / 2
+        sum = identity || 0
+        sum + (actual_last - first + 1) * (actual_last + first) / 2
       else
-        identity
+        identity || 0
       end
+    end
+  end
+end
+
+# Array#sum was added in Ruby 2.4 but it only works with Numeric elements.
+#
+# We tried shimming it to attempt the fast native method, rescue TypeError,
+# and fall back to the compatible implementation, but that's much slower than
+# just calling the compat method in the first place.
+if Array.instance_methods(false).include?(:sum) && !(%w[a].sum rescue false)
+  class Array
+    remove_method :sum
+
+    def sum(*args) #:nodoc:
+      # Use Enumerable#sum instead.
+      super
     end
   end
 end

@@ -1,5 +1,6 @@
 require 'active_support/core_ext/module/attribute_accessors'
 require 'action_dispatch/http/filter_redirect'
+require 'action_dispatch/http/cache'
 require 'monitor'
 
 module ActionDispatch # :nodoc:
@@ -67,7 +68,13 @@ module ActionDispatch # :nodoc:
     alias_method :headers,  :header
 
     delegate :[], :[]=, :to => :@header
-    delegate :each, :to => :@stream
+
+    def each(&block)
+      sending!
+      x = @stream.each(&block)
+      sent!
+      x
+    end
 
     CONTENT_TYPE = "Content-Type".freeze
     SET_COOKIE   = "Set-Cookie".freeze
@@ -96,10 +103,10 @@ module ActionDispatch # :nodoc:
 
       def body
         @str_body ||= begin
-                        buf = ''
-                        each { |chunk| buf << chunk }
-                        buf
-                      end
+          buf = ''
+            each { |chunk| buf << chunk }
+          buf
+        end
       end
 
       def write(string)
@@ -111,10 +118,13 @@ module ActionDispatch # :nodoc:
       end
 
       def each(&block)
-        @response.sending!
-        x = @buf.each(&block)
-        @response.sent!
-        x
+        if @str_body
+          return enum_for(:each) unless block_given?
+
+          yield @str_body
+        else
+          each_chunk(&block)
+        end
       end
 
       def abort
@@ -128,6 +138,12 @@ module ActionDispatch # :nodoc:
       def closed?
         @closed
       end
+
+      private
+
+        def each_chunk(&block)
+          @buf.each(&block) # extract into own method
+        end
     end
 
     def self.create(status = 200, header = {}, body = [], default_headers: self.default_headers)
@@ -232,7 +248,7 @@ module ActionDispatch # :nodoc:
     end
 
     # Sets the HTTP character set. In case of nil parameter
-    # it sets the charset to utf-8.
+    # it sets the charset to utf-8.
     #
     #   response.charset = 'utf-16' # => 'utf-16'
     #   response.charset = nil      # => 'utf-8'
@@ -412,6 +428,15 @@ module ActionDispatch # :nodoc:
     end
 
     def before_sending
+      # Normally we've already committed by now, but it's possible
+      # (e.g., if the controller action tries to read back its own
+      # response) to get here before that. In that case, we must force
+      # an "early" commit: we're about to freeze the headers, so this is
+      # our last chance.
+      commit! unless committed?
+
+      headers.freeze
+      request.commit_cookie_jar! unless committed?
     end
 
     def build_buffer(response, body)

@@ -45,9 +45,9 @@ module ActiveRecord
           k.name == primary_key
         }]
 
-        if !primary_key_value && connection.prefetch_primary_key?(klass.table_name)
-          primary_key_value = connection.next_sequence_value(klass.sequence_name)
-          values[klass.arel_table[klass.primary_key]] = primary_key_value
+        if !primary_key_value && klass.prefetch_primary_key?
+          primary_key_value = klass.next_sequence_value
+          values[arel_attribute(klass.primary_key)] = primary_key_value
         end
       end
 
@@ -94,15 +94,19 @@ module ActiveRecord
     end
 
     def substitute_values(values) # :nodoc:
-      binds = values.map do |arel_attr, value|
-        QueryAttribute.new(arel_attr.name, value, klass.type_for_attribute(arel_attr.name))
-      end
+      binds = []
+      substitutes = []
 
-      substitutes = values.map do |(arel_attr, _)|
-        [arel_attr, connection.substitute_at(klass.columns_hash[arel_attr.name])]
+      values.each do |arel_attr, value|
+        binds.push QueryAttribute.new(arel_attr.name, value, klass.type_for_attribute(arel_attr.name))
+        substitutes.push [arel_attr, Arel::Nodes::BindParam.new]
       end
 
       [substitutes, binds]
+    end
+
+    def arel_attribute(name) # :nodoc:
+      klass.arel_attribute(name, table)
     end
 
     # Initializes new record from relation while maintaining the current
@@ -132,7 +136,7 @@ module ActiveRecord
     # ==== Examples
     #
     #   users = User.where(name: 'Oscar')
-    #   users.create # => #<User id: 3, name: "oscar", ...>
+    #   users.create # => #<User id: 3, name: "Oscar", ...>
     #
     #   users.create(name: 'fxn')
     #   users.create # => #<User id: 4, name: "fxn", ...>
@@ -249,17 +253,21 @@ module ActiveRecord
 
     # Converts relation objects to Array.
     def to_a
+      records.dup
+    end
+
+    def records # :nodoc:
       load
       @records
     end
 
     # Serializes the relation objects Array.
     def encode_with(coder)
-      coder.represent_seq(nil, to_a)
+      coder.represent_seq(nil, records)
     end
 
     def as_json(options = nil) #:nodoc:
-      to_a.as_json(options)
+      records.as_json(options)
     end
 
     # Returns size of the records.
@@ -294,13 +302,13 @@ module ActiveRecord
     # Returns true if there is exactly one record.
     def one?
       return super if block_given?
-      limit_value ? to_a.one? : size == 1
+      limit_value ? records.one? : size == 1
     end
 
     # Returns true if there is more than one record.
     def many?
       return super if block_given?
-      limit_value ? to_a.many? : size > 1
+      limit_value ? records.many? : size > 1
     end
 
     # Returns a cache key that can be used to identify the records fetched by
@@ -347,9 +355,8 @@ module ActiveRecord
 
     # Updates all records in the current relation with details given. This method constructs a single SQL UPDATE
     # statement and sends it straight to the database. It does not instantiate the involved models and it does not
-    # trigger Active Record callbacks or validations. Values passed to #update_all will not go through
-    # Active Record's type-casting behavior. It should receive only values that can be passed as-is to the SQL
-    # database.
+    # trigger Active Record callbacks or validations. However, values passed to #update_all will still go through
+    # Active Record's normal type casting and serialization.
     #
     # ==== Parameters
     #
@@ -372,11 +379,11 @@ module ActiveRecord
 
       stmt.set Arel.sql(@klass.send(:sanitize_sql_for_assignment, updates))
       stmt.table(table)
-      stmt.key = table[primary_key]
 
       if joins_values.any?
-        @klass.connection.join_to_update(stmt, arel)
+        @klass.connection.join_to_update(stmt, arel, arel_attribute(primary_key))
       else
+        stmt.key = arel_attribute(primary_key)
         stmt.take(arel.limit)
         stmt.order(*arel.orders)
         stmt.wheres = arel.constraints
@@ -415,13 +422,13 @@ module ActiveRecord
       if id.is_a?(Array)
         id.map.with_index { |one_id, idx| update(one_id, attributes[idx]) }
       elsif id == :all
-        to_a.each { |record| record.update(attributes) }
+        records.each { |record| record.update(attributes) }
       else
         if ActiveRecord::Base === id
           id = id.id
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
             You are passing an instance of ActiveRecord::Base to `update`.
-            Please pass the id of the object by calling `.id`
+            Please pass the id of the object by calling `.id`.
           MSG
         end
         object = find(id)
@@ -450,11 +457,11 @@ module ActiveRecord
       if conditions
         ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
           Passing conditions to destroy_all is deprecated and will be removed in Rails 5.1.
-          To achieve the same use where(conditions).destroy_all
+          To achieve the same use where(conditions).destroy_all.
         MESSAGE
         where(conditions).destroy_all
       else
-        to_a.each(&:destroy).tap { reset }
+        records.each(&:destroy).tap { reset }
       end
     end
 
@@ -520,7 +527,7 @@ module ActiveRecord
       if conditions
         ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
           Passing conditions to delete_all is deprecated and will be removed in Rails 5.1.
-          To achieve the same use where(conditions).delete_all
+          To achieve the same use where(conditions).delete_all.
         MESSAGE
         where(conditions).delete_all
       else
@@ -528,7 +535,7 @@ module ActiveRecord
         stmt.from(table)
 
         if joins_values.any?
-          @klass.connection.join_to_delete(stmt, arel, table[primary_key])
+          @klass.connection.join_to_delete(stmt, arel, arel_attribute(primary_key))
         else
           stmt.wheres = arel.constraints
         end
@@ -584,7 +591,7 @@ module ActiveRecord
     def reset
       @last = @to_sql = @order_clause = @scope_for_create = @arel = @loaded = nil
       @should_eager_load = @join_dependency = nil
-      @records = []
+      @records = [].freeze
       @offsets = {}
       self
     end
@@ -651,21 +658,21 @@ module ActiveRecord
     def ==(other)
       case other
       when Associations::CollectionProxy, AssociationRelation
-        self == other.to_a
+        self == other.records
       when Relation
         other.to_sql == to_sql
       when Array
-        to_a == other
+        records == other
       end
     end
 
     def pretty_print(q)
-      q.pp(self.to_a)
+      q.pp(self.records)
     end
 
     # Returns true if relation is blank.
     def blank?
-      to_a.blank?
+      records.blank?
     end
 
     def values
@@ -673,7 +680,7 @@ module ActiveRecord
     end
 
     def inspect
-      entries = to_a.take([limit_value, 11].compact.min).map!(&:inspect)
+      entries = records.take([limit_value, 11].compact.min).map!(&:inspect)
       entries[10] = '...' if entries.size == 11
 
       "#<#{self.class.name} [#{entries.join(', ')}]>"
@@ -682,14 +689,14 @@ module ActiveRecord
     protected
 
       def load_records(records)
-        @records = records
+        @records = records.freeze
         @loaded = true
       end
 
     private
 
     def exec_queries
-      @records = eager_loading? ? find_with_associations : @klass.find_by_sql(arel, bound_attributes)
+      @records = eager_loading? ? find_with_associations.freeze : @klass.find_by_sql(arel, bound_attributes).freeze
 
       preload = preload_values
       preload +=  includes_values unless eager_loading?

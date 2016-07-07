@@ -1,4 +1,4 @@
-FRAMEWORKS = %w( activesupport activemodel activerecord actionview actionpack activejob actionmailer railties )
+FRAMEWORKS = %w( activesupport activemodel activerecord actionview actionpack activejob actionmailer actioncable railties )
 
 root    = File.expand_path('../../', __FILE__)
 version = File.read("#{root}/RAILS_VERSION").strip
@@ -27,7 +27,7 @@ directory "pkg"
       file = Dir[glob].first
       ruby = File.read(file)
 
-      major, minor, tiny, pre = version.split('.')
+      major, minor, tiny, pre = version.split('.', 4)
       pre = pre ? pre.inspect : "nil"
 
       ruby.gsub!(/^(\s*)MAJOR(\s*)= .*?$/, "\\1MAJOR = #{major}")
@@ -48,19 +48,53 @@ directory "pkg"
     task gem => %w(update_versions pkg) do
       cmd = ""
       cmd << "cd #{framework} && " unless framework == "rails"
+      cmd << "bundle exec rake package && " unless framework == "rails"
       cmd << "gem build #{gemspec} && mv #{framework}-#{version}.gem #{root}/pkg/"
       sh cmd
     end
 
     task :build => [:clean, gem]
     task :install => :build do
-      sh "gem install #{gem}"
+      sh "gem install --pre #{gem}"
     end
-
-    task :prep_release => [:ensure_clean_state, :build]
 
     task :push => :build do
       sh "gem push #{gem}"
+
+      # When running the release task we usually run build first to check that the gem works properly.
+      # NPM will refuse to publish or rebuild the gem if the version is changed when the Rails gem
+      # versions are changed. This then causes the gem push to fail. Because of this we need to update
+      # the version and publish at the same time.
+      if File.exist?("#{framework}/package.json")
+        Dir.chdir("#{framework}") do
+          # This "npm-ifies" the current version
+          # With npm, versions such as "5.0.0.rc1" or "5.0.0.beta1.1" are not compliant with its
+          # versioning system, so they must be transformed to "5.0.0-rc1" and "5.0.0-beta1-1" respectively.
+
+          # In essence, the code below runs through all "."s that appear in the version,
+          # and checks to see if their index in the version string is greater than or equal to 2,
+          # and if so, it will change the "." to a "-".
+
+          # Sample version transformations:
+          # irb(main):001:0> version = "5.0.1.1"
+          # => "5.0.1.1"
+          # irb(main):002:0> version.gsub(/\./).with_index { |s, i| i >= 2 ? '-' : s }
+          # => "5.0.1-1"
+          # irb(main):003:0> version = "5.0.0.rc1"
+          # => "5.0.0.rc1"
+          # irb(main):004:0> version.gsub(/\./).with_index { |s, i| i >= 2 ? '-' : s }
+          # => "5.0.0-rc1"
+          version = version.gsub(/\./).with_index { |s, i| i >= 2 ? '-' : s }
+
+          # Check if npm is installed, and raise an error if not
+          if sh 'which npm'
+            sh "npm version #{version} --no-git-tag-version"
+            sh "npm publish"
+          else
+            raise 'You must have npm installed to release Rails.'
+          end
+        end
+      end
     end
   end
 end
@@ -135,9 +169,11 @@ namespace :all do
   end
 
   task :tag do
-    sh "git tag -m '#{tag} release' #{tag}"
+    sh "git tag -s -m '#{tag} release' #{tag}"
     sh "git push --tags"
   end
+
+  task :prep_release => %w(ensure_clean_state build)
 
   task :release => %w(ensure_clean_state build bundle commit tag push)
 end

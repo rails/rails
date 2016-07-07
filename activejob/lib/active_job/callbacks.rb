@@ -17,6 +17,11 @@ module ActiveJob
     extend  ActiveSupport::Concern
     include ActiveSupport::Callbacks
 
+    class << self
+      include ActiveSupport::Callbacks
+      define_callbacks :execute
+    end
+
     included do
       define_callbacks :perform
       define_callbacks :enqueue

@@ -88,6 +88,11 @@ class ActiveModelI18nTests < ActiveModel::TestCase
     assert_equal 'child model', Child.model_name.human
   end
 
+  def test_translated_model_with_namespace
+    I18n.backend.store_translations 'en', activemodel: { models: { 'person/gender': 'gender model' } }
+    assert_equal 'gender model', Person::Gender.model_name.human
+  end
+
   def test_translated_model_names_with_ancestors_fallback
     I18n.backend.store_translations 'en', activemodel: { models: { person: 'person model' } }
     assert_equal 'person model', Child.model_name.human

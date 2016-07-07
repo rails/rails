@@ -7,6 +7,24 @@ require 'action_controller/template_assertions'
 require 'rails-dom-testing'
 
 module ActionController
+  # :stopdoc:
+  class Metal
+    include Testing::Functional
+  end
+
+  module Live
+    # Disable controller / rendering threads in tests.  User tests can access
+    # the database on the main thread, so they could open a txn, then the
+    # controller thread will open a new connection and try to access data
+    # that's only visible to the main thread's txn.  This is the problem in #23483
+    remove_method :new_controller_thread
+    def new_controller_thread # :nodoc:
+      yield
+    end
+  end
+
+  # ActionController::TestCase will be deprecated and moved to a gem in Rails 5.1.
+  # Please use ActionDispatch::IntegrationTest going forward.
   class TestRequest < ActionDispatch::TestRequest #:nodoc:
     DEFAULT_ENV = ActionDispatch::TestRequest::DEFAULT_ENV.dup
     DEFAULT_ENV.delete 'PATH_INFO'
@@ -34,7 +52,7 @@ module ActionController
       self.session = session
       self.session_options = TestSession::DEFAULT_OPTIONS
       @custom_param_parsers = {
-        Mime[:xml] => lambda { |raw_post| Hash.from_xml(raw_post)['hash'] }
+        xml: lambda { |raw_post| Hash.from_xml(raw_post)['hash'] }
       }
     end
 
@@ -87,7 +105,7 @@ module ActionController
           when :url_encoded_form
             data = non_path_parameters.to_query
           else
-            @custom_param_parsers[content_mime_type] = ->(_) { non_path_parameters }
+            @custom_param_parsers[content_mime_type.symbol] = ->(_) { non_path_parameters }
             data = non_path_parameters.to_query
           end
         end
@@ -410,7 +428,7 @@ module ActionController
       end
       alias xhr :xml_http_request
 
-      # Simulate a HTTP request to +action+ by specifying request method,
+      # Simulate an HTTP request to +action+ by specifying request method,
       # parameters and set/volley the response.
       #
       # - +action+: The controller action to call.
@@ -452,16 +470,16 @@ module ActionController
             parameters = nil
           end
 
-          if parameters.present? || session.present? || flash.present?
+          if parameters || session || flash
             non_kwarg_request_warning
           end
         end
 
-        if body.present?
+        if body
           @request.set_header 'RAW_POST_DATA', body
         end
 
-        if http_method.present?
+        if http_method
           http_method = http_method.to_s.upcase
         else
           http_method = "GET"
@@ -469,15 +487,11 @@ module ActionController
 
         parameters ||= {}
 
-        if format.present?
+        if format
           parameters[:format] = format
         end
 
         @html_document = nil
-
-        unless @controller.respond_to?(:recycle!)
-          @controller.extend(Testing::Functional)
-        end
 
         self.cookies.update @request.cookies
         self.cookies.update_cookies_from_jar
@@ -513,32 +527,37 @@ module ActionController
           @request.set_header k, @controller.config.relative_url_root
         end
 
-        @controller.recycle!
-        @controller.dispatch(action, @request, @response)
-        @request = @controller.request
-        @response = @controller.response
+        begin
+          @controller.recycle!
+          @controller.dispatch(action, @request, @response)
+        ensure
+          @request = @controller.request
+          @response = @controller.response
 
-        @request.delete_header 'HTTP_COOKIE'
+          @request.delete_header 'HTTP_COOKIE'
 
-        if @request.have_cookie_jar?
-          unless @request.cookie_jar.committed?
-            @request.cookie_jar.write(@response)
-            self.cookies.update(@request.cookie_jar.instance_variable_get(:@cookies))
+          if @request.have_cookie_jar?
+            unless @request.cookie_jar.committed?
+              @request.cookie_jar.write(@response)
+              self.cookies.update(@request.cookie_jar.instance_variable_get(:@cookies))
+            end
           end
-        end
-        @response.prepare!
+          @response.prepare!
 
-        if flash_value = @request.flash.to_session_value
-          @request.session['flash'] = flash_value
-        else
-          @request.session.delete('flash')
-        end
+          if flash_value = @request.flash.to_session_value
+            @request.session['flash'] = flash_value
+          else
+            @request.session.delete('flash')
+          end
 
-        if xhr
-          @request.delete_header 'HTTP_X_REQUESTED_WITH'
-          @request.delete_header 'HTTP_ACCEPT'
+          if xhr
+            @request.delete_header 'HTTP_X_REQUESTED_WITH'
+            @request.delete_header 'HTTP_ACCEPT'
+          end
+          @request.query_string = ''
+
+          @response.sent!
         end
-        @request.query_string = ''
 
         @response
       end
@@ -658,4 +677,5 @@ module ActionController
 
     include Behavior
   end
+  # :startdoc:
 end

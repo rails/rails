@@ -99,7 +99,7 @@ module ActiveRecord
         assert_equal 1, foreign_keys.size
 
         fk = foreign_keys.first
-        if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+        if current_adapter?(:Mysql2Adapter)
           # ON DELETE RESTRICT is the default on MySQL
           assert_equal nil, fk.on_delete
         else
@@ -224,7 +224,7 @@ module ActiveRecord
         assert_match %r{\s+add_foreign_key "astronauts",.+on_update: :cascade,.+on_delete: :nullify$}, output
       end
 
-      class CreateCitiesAndHousesMigration < ActiveRecord::Migration
+      class CreateCitiesAndHousesMigration < ActiveRecord::Migration::Current
         def change
           create_table("cities") { |t| }
 
@@ -232,6 +232,10 @@ module ActiveRecord
             t.column :city_id, :integer
           end
           add_foreign_key :houses, :cities, column: "city_id"
+
+          # remove and re-add to test that schema is updated and not accidently cached
+          remove_foreign_key :houses, :cities
+          add_foreign_key :houses, :cities, column: "city_id", on_delete: :cascade
         end
       end
 
@@ -243,7 +247,16 @@ module ActiveRecord
         silence_stream($stdout) { migration.migrate(:down) }
       end
 
-      class CreateSchoolsAndClassesMigration < ActiveRecord::Migration
+      def test_foreign_key_constraint_is_not_cached_incorrectly
+        migration = CreateCitiesAndHousesMigration.new
+        silence_stream($stdout) { migration.migrate(:up) }
+        output = dump_table_schema "houses"
+        assert_match %r{\s+add_foreign_key "houses",.+on_delete: :cascade$}, output
+      ensure
+        silence_stream($stdout) { migration.migrate(:down) }
+      end
+
+      class CreateSchoolsAndClassesMigration < ActiveRecord::Migration::Current
         def change
           create_table(:schools)
 

@@ -1,16 +1,158 @@
+*   Do not run `bundle install` when generating a new plugin.
+
+    Since bundler 1.12.0, the gemspec is validated so the `bundle install`
+    command will fail just after the gem is created causing confusion to the
+    users. This change was a bug fix to correctly validate gemspecs.
+
+    *Rafael Mendonça França*
+
+
+## Rails 5.0.0 (June 30, 2016) ##
+
+*   Ensure `/rails/info` routes match in development for apps with a catch-all globbing route.
+
+    *Nicholas Firth-McCoy*
+
+*   Ensure `/rails/info` routes match in development for apps with a catch-all globbing route.
+
+    *Nicholas Firth-McCoy*
+
+*   Add `config/initializers/to_time_preserves_timezone.rb`, which tells
+    Active Support to preserve the receiver's timezone when calling `to_time`.
+    This matches the new behavior that will be part of Ruby 2.4.
+
+    Fixes #24617.
+
+    *Andrew White*
+
+*   Make `rails restart` command work with Puma by passing the restart command
+    which Puma can use to restart rails server.
+
+    *Prathamesh Sonpatki*
+
+*   The application generator writes a new file `config/spring.rb`, which tells
+    Spring to watch additional common files.
+
+    *Xavier Noria*
+
+*   The tasks in the rails task namespace is deprecated in favor of app namespace.
+    (e.g. `rails:update` and `rails:template` tasks is renamed to `app:update` and `app:template`.)
+
+    *Ryo Hashimoto*
+
+*   Enable HSTS with IncludeSudomains header for new applications.
+
+    *Egor Homakov*, *Prathamesh Sonpatki*
+
+*   Alias `rake` with `rails_command` in the Rails Application Templates API
+    following Rails 5 convention of preferring "rails" to "rake" to run tasks.
+
+    *claudiob*
+
+*   Generate applications with an option to log to STDOUT in production
+    using the environment variable `RAILS_LOG_TO_STDOUT`.
+
+    *Richard Schneeman*
+
+*   Change fail fast of `bin/rails test` interrupts run on error.
+
+    *Yuji Yaginuma*
+
+*   The application generator supports `--skip-listen` to opt-out of features
+    that depend on the listen gem. As of this writing they are the evented file
+    system monitor and the async plugin for spring.
+
+*   The Gemfiles of new applications include spring-watcher-listen on Linux and
+    Mac OS X (unless `--skip-spring`).
+
+    *Xavier Noria*
+
+*   New applications are generated with the evented file system monitor enabled
+    on Linux and Mac OS X.
+
+    *Xavier Noria*
+
+*   Add dummy files for apple-touch-icon.png and apple-touch-icon.png.
+
+    See #23427.
+
+    *Alexey Zabelin*
+
+*   Add `after_bundle` callbacks in Rails plugin templates.  Useful for allowing
+    templates to perform actions that are dependent upon `bundle install`.
+
+    *Ryan Manuel*
+
+*   Bring back `TEST=` env for `rake test` task.
+
+    *Yves Senn*
+
+*   Specify log file names or all logs to clear `rake log:clear`
+
+    Specify which logs to clear when using the `rake log:clear` task, e.g. `rake log:clear LOGS=test,staging`
+
+    Clear all logs from log/*.log e.g. `rake log:clear LOGS=all`
+
+    By default `rake log:clear` clears standard environment log files i.e. 'development,test,production'
+
+    *Pramod Shinde*
+
+*   Fix using `add_source` with a block after using `gem` in a custom generator.
+
+    *Will Fisher*
+
+*   Newly generated plugins get a `README.md` in Markdown.
+
+    *Yuji Yaginuma*
+
+*   The generated config file for the development environment includes a new
+    config line, commented out, showing how to enable the evented file watcher.
+
+    *Xavier Noria*
+
+*   `config.debug_exception_response_format` configures the format used
+    in responses when errors occur in development mode.
+
+    Set `config.debug_exception_response_format` to render an HTML page with
+    debug info (using the value `:default`) or render debug info preserving
+    the response format (using the value `:api`).
+
+    *Jorge Bejar*
+
+*   Fix setting exit status code for rake test tasks. The exit status code
+    was not set when tests were fired with `rake`. Now, it is being set and it matches
+    behavior of running tests via `rails` command (`rails test`), so no matter if
+    `rake test` or `rails test` command is used the exit code will be set.
+
+    *Arkadiusz Fal*
+
+*   Add Command infrastructure to replace rake.
+
+    Also move `rake dev:cache` to new infrastructure. You'll need to use
+    `rails dev:cache` to toggle development caching from now on.
+
+    *Chuck Callebs*
+
+*   Allow use of `minitest-rails` gem with Rails test runner.
+
+    Fixes #22455.
+
+    *Chris Kottom*
+
+*   Add `bin/test` script to rails plugin.
+
+    `bin/test` can use the same API as `bin/rails test`.
+
+    *Yuji Yaginuma*
+
 *   Make `static_index` part of the `config.public_file_server` config and
-    call it `public_file_server.index_name`.
+    call it `config.public_file_server.index_name`.
 
     *Yuki Nishijima*
 
-*   Generated `Gemfile`s for new applications include a new dependency on
-    [listen](https://github.com/guard/listen) commented out.
+*   Deprecate `config.serve_static_files` in favor of `config.public_file_server.enabled`.
 
-    *Puneet Agarwal* and *Xavier Noria*
-
-*   Deprecate `serve_static_files` in favor of `public_file_server.enabled`.
-
-    Unifies the static asset options under `public_file_server`.
+    Unifies the static asset options under `config.public_file_server`.
 
     To upgrade, replace occurrences of:
 
@@ -48,8 +190,8 @@
 
     *Yuki Nishijima*
 
-*   Route generator should be idempotent
-    running generators several times no longer require you to cleanup routes.rb
+*   Route generators are now idempotent.
+    Running generators several times no longer require you to cleanup routes.rb.
 
     *Thiago Pinto*
 
@@ -57,7 +199,7 @@
 
     *Simon Eskildsen*
 
-*   Allow rake:stats to account for rake tasks in lib/tasks
+*   Allow `rake stats` to account for rake tasks in lib/tasks.
 
     *Kevin Deisz*
 
@@ -67,7 +209,7 @@
 
     *James Kerr*
 
-*   Add fail fast to `bin/rails test`
+*   Add fail fast to `bin/rails test`.
 
     Adding `--fail-fast` or `-f` when running tests will interrupt the run on
     the first failure:
@@ -99,7 +241,7 @@
 
     *Kasper Timm Hansen*
 
-*   Add inline output to `bin/rails test`
+*   Add inline output to `bin/rails test`.
 
     Any failures or errors (and skips if running in verbose mode) are output
     during a test run:
@@ -130,7 +272,7 @@
     *Kasper Timm Hansen*
 
 *   Fix displaying mailer previews on non local requests when config
-    `action_mailer.show_previews` is set
+    `config.action_mailer.show_previews` is set.
 
     *Wojciech Wnętrzak*
 
@@ -156,19 +298,19 @@
 *   Fix STATS_DIRECTORIES already defined warning when running rake from within
     the top level directory of an engine that has a test app.
 
-    Fixes #20510
+    Fixes #20510.
 
     *Ersin Akinci*
 
 *   Make enabling or disabling caching in development mode possible with
-    rake dev:cache.
+    `rake dev:cache`.
 
-    Running rake dev:cache will create or remove tmp/caching-dev.txt. When this
-    file exists config.action_controller.perform_caching will be set to true in
+    Running `rake dev:cache` will create or remove tmp/caching-dev.txt. When this
+    file exists `config.action_controller.perform_caching` will be set to true in
     config/environments/development.rb.
 
-    Additionally, a server can be started with either --dev-caching or
-    --no-dev-caching included to toggle caching on startup.
+    Additionally, a server can be started with either `--dev-caching` or
+    `--no-dev-caching` included to toggle caching on startup.
 
     *Jussi Mertanen*, *Chuck Callebs*
 
@@ -181,11 +323,11 @@
 
     *Yuji Yaginuma*
 
-*   Adding support for passing a block to the `add_source` action of a custom generator
+*   Adding support for passing a block to the `add_source` action of a custom generator.
 
     *Mike Dalton*, *Hirofumi Wakasugi*
 
-*   `assert_file` understands paths with special characters
+*   `assert_file` now understands paths with special characters
     (eg. `v0.1.4~alpha+nightly`).
 
     *Diego Carrion*
@@ -204,13 +346,13 @@
     middleware for API apps & generators generates the right files,
     folders and configurations.
 
-    *Santiago Pastorino & Jorge Bejar*
+    *Santiago Pastorino*, *Jorge Bejar*
 
 *   Make generated scaffold functional tests work inside engines.
 
     *Yuji Yaginuma*
 
-*   Generator a `.keep` file in the `tmp` folder by default as many scripts
+*   Generate a `.keep` file in the `tmp` folder by default as many scripts
     assume the existence of this folder and most would fail if it is absent.
 
     See #20299.
@@ -276,7 +418,7 @@
 *   Created rake restart task. Restarts your Rails app by touching the
     `tmp/restart.txt`.
 
-    Fixes #18876.
+    See #18876.
 
     *Hyonjee Joo*
 

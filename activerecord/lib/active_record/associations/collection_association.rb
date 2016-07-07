@@ -72,7 +72,10 @@ module ActiveRecord
         pk_type = reflection.primary_key_type
         ids = Array(ids).reject(&:blank?)
         ids.map! { |i| pk_type.cast(i) }
-        replace(klass.find(ids).index_by(&:id).values_at(*ids))
+        records = klass.where(reflection.association_primary_key => ids).index_by do |r|
+          r.send(reflection.association_primary_key)
+        end.values_at(*ids)
+        replace(records)
       end
 
       def reset
@@ -131,6 +134,14 @@ module ActiveRecord
 
       def forty_two(*args)
         first_nth_or_last(:forty_two, *args)
+      end
+
+      def third_to_last(*args)
+        first_nth_or_last(:third_to_last, *args)
+      end
+
+      def second_to_last(*args)
+        first_nth_or_last(:second_to_last, *args)
       end
 
       def last(*args)
@@ -269,7 +280,7 @@ module ActiveRecord
         _options = records.extract_options!
         dependent = _options[:dependent] || options[:dependent]
 
-        records = find(records) if records.any? { |record| record.kind_of?(Fixnum) || record.kind_of?(String) }
+        records = find(records) if records.any? { |record| record.kind_of?(Integer) || record.kind_of?(String) }
         delete_or_destroy(records, dependent)
       end
 
@@ -280,7 +291,7 @@ module ActiveRecord
       # +:dependent+ option.
       def destroy(*records)
         return if records.empty?
-        records = find(records) if records.any? { |record| record.kind_of?(Fixnum) || record.kind_of?(String) }
+        records = find(records) if records.any? { |record| record.kind_of?(Integer) || record.kind_of?(String) }
         delete_or_destroy(records, :destroy)
       end
 
@@ -414,12 +425,16 @@ module ActiveRecord
 
       def replace_on_target(record, index, skip_callbacks)
         callback(:before_add, record) unless skip_callbacks
+
+        was_loaded = loaded?
         yield(record) if block_given?
 
-        if index
-          @target[index] = record
-        else
-          @target << record
+        unless !was_loaded && loaded?
+          if index
+            @target[index] = record
+          else
+            @target << record
+          end
         end
 
         callback(:after_add, record) unless skip_callbacks

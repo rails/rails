@@ -50,6 +50,10 @@ module ActiveRecord
             "[" + value.map { |v| subtype.type_cast_for_schema(v) }.join(", ") + "]"
           end
 
+          def map(value, &block)
+            value.map(&block)
+          end
+
           private
 
           def type_cast_array(value, method)

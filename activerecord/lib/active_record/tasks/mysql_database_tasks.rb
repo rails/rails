@@ -94,8 +94,6 @@ module ActiveRecord
           ArJdbcMySQL::Error
         elsif defined?(Mysql2)
           Mysql2::Error
-        elsif defined?(Mysql)
-          Mysql::Error
         else
           StandardError
         end
@@ -132,7 +130,7 @@ IDENTIFIED BY '#{configuration['password']}' WITH GRANT OPTION;
           'sslca'     => '--ssl-ca',
           'sslcert'   => '--ssl-cert',
           'sslcapath' => '--ssl-capath',
-          'sslcipher' => '--ssh-cipher',
+          'sslcipher' => '--ssl-cipher',
           'sslkey'    => '--ssl-key'
         }.map { |opt, arg| "#{arg}=#{configuration[opt]}" if configuration[opt] }.compact
 

@@ -1,22 +1,31 @@
 module ActionDispatch
   module Http
     module Parameters
+      extend ActiveSupport::Concern
+
       PARAMETERS_KEY = 'action_dispatch.request.path_parameters'
 
       DEFAULT_PARSERS = {
-        Mime[:json] => lambda { |raw_post|
+        Mime[:json].symbol => -> (raw_post) {
           data = ActiveSupport::JSON.decode(raw_post)
           data.is_a?(Hash) ? data : {:_json => data}
         }
       }
 
-      def self.included(klass)
-        class << klass
-          attr_accessor :parameter_parsers
+      included do
+        class << self
+          attr_reader :parameter_parsers
         end
 
-        klass.parameter_parsers = DEFAULT_PARSERS
+        self.parameter_parsers = DEFAULT_PARSERS
       end
+
+      module ClassMethods
+        def parameter_parsers=(parsers) # :nodoc:
+          @parameter_parsers = parsers.transform_keys { |key| key.respond_to?(:symbol) ? key.symbol : key }
+        end
+      end
+
       # Returns both GET and POST \parameters in a single hash.
       def parameters
         params = get_header("action_dispatch.request.parameters")
@@ -43,7 +52,7 @@ module ActionDispatch
       #
       #   {'action' => 'my_action', 'controller' => 'my_controller'}
       def path_parameters
-        get_header(PARAMETERS_KEY) || {}
+        get_header(PARAMETERS_KEY) || set_header(PARAMETERS_KEY, {})
       end
 
       private
@@ -51,7 +60,7 @@ module ActionDispatch
       def parse_formatted_parameters(parsers)
         return yield if content_length.zero?
 
-        strategy = parsers.fetch(content_mime_type) { return yield }
+        strategy = parsers.fetch(content_mime_type.symbol) { return yield }
 
         begin
           strategy.call(raw_post)

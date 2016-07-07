@@ -31,7 +31,7 @@ class Hash
   #   with +key+ as <tt>:root</tt>, and +key+ singularized as second argument. The
   #   callable can add nodes by using <tt>options[:builder]</tt>.
   #
-  #     'foo'.to_xml(lambda { |options, key| options[:builder].b(key) })
+  #     {foo: lambda { |options, key| options[:builder].b(key) }}.to_xml
   #     # => "<b>foo</b>"
   #
   # * If +value+ responds to +to_xml+ the method is invoked with +key+ as <tt>:root</tt>.
@@ -55,8 +55,7 @@ class Hash
   #
   #     XML_TYPE_NAMES = {
   #       "Symbol"     => "symbol",
-  #       "Fixnum"     => "integer",
-  #       "Bignum"     => "integer",
+  #       "Integer"    => "integer",
   #       "BigDecimal" => "decimal",
   #       "Float"      => "float",
   #       "TrueClass"  => "boolean",
@@ -138,6 +137,8 @@ end
 
 module ActiveSupport
   class XMLConverter # :nodoc:
+    # Raised if the XML contains attributes with type="yaml" or
+    # type="symbol". Read Hash#from_xml for more details.
     class DisallowedType < StandardError
       def initialize(type)
         super "Disallowed type attribute: #{type.inspect}"

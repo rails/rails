@@ -332,7 +332,7 @@ class FormHelperTest < ActionView::TestCase
   def test_label_with_block_and_html
     assert_dom_equal(
       '<label for="post_terms">Accept <a href="/terms">Terms</a>.</label>',
-      label(:post, :terms) { 'Accept <a href="/terms">Terms</a>.'.html_safe }
+      label(:post, :terms) { raw('Accept <a href="/terms">Terms</a>.') }
     )
   end
 
@@ -347,7 +347,7 @@ class FormHelperTest < ActionView::TestCase
     with_locale :label do
       assert_dom_equal(
         '<label for="post_body"><b>Write entire text here</b></label>',
-        label(:post, :body) { |b| "<b>#{b.translation}</b>".html_safe }
+        label(:post, :body) { |b| raw("<b>#{b.translation}</b>") }
       )
     end
   end
@@ -528,33 +528,18 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, text_field(object_name, "title")
   end
 
-  def test_file_field_does_generate_a_hidden_field
-    expected = '<input name="user[avatar]" type="hidden" value="" /><input id="user_avatar" name="user[avatar]" type="file" />'
-    assert_dom_equal expected, file_field("user", "avatar")
-  end
-
-  def test_file_field_does_not_generate_a_hidden_field_if_included_hidden_option_is_false
-    expected = '<input id="user_avatar" name="user[avatar]" type="file" />'
-    assert_dom_equal expected, file_field("user", "avatar", include_hidden: false)
-  end
-
-  def test_file_field_does_not_generate_a_hidden_field_if_included_hidden_option_is_false_with_key_as_string
-    expected = '<input id="user_avatar" name="user[avatar]" type="file" />'
-    assert_dom_equal expected, file_field("user", "avatar", "include_hidden" => false)
-  end
-
   def test_file_field_has_no_size
-    expected = '<input name="user[avatar]" type="hidden" value="" /><input id="user_avatar" name="user[avatar]" type="file" />'
+    expected = '<input id="user_avatar" name="user[avatar]" type="file" />'
     assert_dom_equal expected, file_field("user", "avatar")
   end
 
   def test_file_field_with_multiple_behavior
-    expected = '<input name="import[file][]" type="hidden" value="" /><input id="import_file" multiple="multiple" name="import[file][]" type="file" />'
+    expected = '<input id="import_file" multiple="multiple" name="import[file][]" type="file" />'
     assert_dom_equal expected, file_field("import", "file", :multiple => true)
   end
 
   def test_file_field_with_multiple_behavior_and_explicit_name
-    expected = '<input name="custom" type="hidden" value="" /><input id="import_file" multiple="multiple" name="custom" type="file" />'
+    expected = '<input id="import_file" multiple="multiple" name="custom" type="file" />'
     assert_dom_equal expected, file_field("import", "file", :multiple => true, :name => "custom")
   end
 
@@ -1138,18 +1123,18 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_datetime_field
-    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime" value="2004-06-15T00:00:00.000+0000" />}
+    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T00:00:00" />}
     assert_dom_equal(expected, datetime_field("post", "written_on"))
   end
 
   def test_datetime_field_with_datetime_value
-    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime" value="2004-06-15T01:02:03.000+0000" />}
+    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T01:02:03" />}
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
     assert_dom_equal(expected, datetime_field("post", "written_on"))
   end
 
   def test_datetime_field_with_extra_attrs
-    expected = %{<input id="post_written_on" step="60" max="2010-08-15T10:25:00.000+0000" min="2000-06-15T20:45:30.000+0000" name="post[written_on]" type="datetime" value="2004-06-15T01:02:03.000+0000" />}
+    expected = %{<input id="post_written_on" step="60" max="2010-08-15T10:25:00" min="2000-06-15T20:45:30" name="post[written_on]" type="datetime-local" value="2004-06-15T01:02:03" />}
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
     min_value = DateTime.new(2000, 6, 15, 20, 45, 30)
     max_value = DateTime.new(2010, 8, 15, 10, 25, 00)
@@ -1158,14 +1143,14 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_datetime_field_with_value_attr
-    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime" value="2013-06-29T13:37:00+00:00" />}
+    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2013-06-29T13:37:00+00:00" />}
     value = DateTime.new(2013,6,29,13,37)
     assert_dom_equal(expected, datetime_field("post", "written_on", value: value))
   end
 
   def test_datetime_field_with_timewithzone_value
     previous_time_zone, Time.zone = Time.zone, 'UTC'
-    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime" value="2004-06-15T15:30:45.000+0000" />}
+    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T15:30:45" />}
     @post.written_on = Time.zone.parse('2004-06-15 15:30:45')
     assert_dom_equal(expected, datetime_field("post", "written_on"))
   ensure
@@ -1173,21 +1158,21 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_datetime_field_with_nil_value
-    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime" />}
+    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" />}
     @post.written_on = nil
     assert_dom_equal(expected, datetime_field("post", "written_on"))
   end
 
   def test_datetime_field_with_string_values_for_min_and_max
-    expected = %{<input id="post_written_on" max="2010-08-15T10:25:00.000+0000" min="2000-06-15T20:45:30.000+0000" name="post[written_on]" type="datetime" value="2004-06-15T01:02:03.000+0000" />}
+    expected = %{<input id="post_written_on" max="2010-08-15T10:25:00" min="2000-06-15T20:45:30" name="post[written_on]" type="datetime-local" value="2004-06-15T01:02:03" />}
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
-    min_value = "2000-06-15T20:45:30.000+0000"
-    max_value = "2010-08-15T10:25:00.000+0000"
+    min_value = "2000-06-15T20:45:30"
+    max_value = "2010-08-15T10:25:00"
     assert_dom_equal(expected, datetime_field("post", "written_on", min: min_value, max: max_value))
   end
 
   def test_datetime_field_with_invalid_string_values_for_min_and_max
-    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime" value="2004-06-15T01:02:03.000+0000" />}
+    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T01:02:03" />}
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
     min_value = "foo"
     max_value = "bar"
@@ -1197,52 +1182,6 @@ class FormHelperTest < ActionView::TestCase
   def test_datetime_local_field
     expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T00:00:00" />}
     assert_dom_equal(expected, datetime_local_field("post", "written_on"))
-  end
-
-  def test_datetime_local_field_with_datetime_value
-    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T01:02:03" />}
-    @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
-    assert_dom_equal(expected, datetime_local_field("post", "written_on"))
-  end
-
-  def test_datetime_local_field_with_extra_attrs
-    expected = %{<input id="post_written_on" step="60" max="2010-08-15T10:25:00" min="2000-06-15T20:45:30" name="post[written_on]" type="datetime-local" value="2004-06-15T01:02:03" />}
-    @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
-    min_value = DateTime.new(2000, 6, 15, 20, 45, 30)
-    max_value = DateTime.new(2010, 8, 15, 10, 25, 00)
-    step = 60
-    assert_dom_equal(expected, datetime_local_field("post", "written_on", min: min_value, max: max_value, step: step))
-  end
-
-  def test_datetime_local_field_with_timewithzone_value
-    previous_time_zone, Time.zone = Time.zone, 'UTC'
-    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T15:30:45" />}
-    @post.written_on = Time.zone.parse('2004-06-15 15:30:45')
-    assert_dom_equal(expected, datetime_local_field("post", "written_on"))
-  ensure
-    Time.zone = previous_time_zone
-  end
-
-  def test_datetime_local_field_with_nil_value
-    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" />}
-    @post.written_on = nil
-    assert_dom_equal(expected, datetime_local_field("post", "written_on"))
-  end
-
-  def test_datetime_local_field_with_string_values_for_min_and_max
-    expected = %{<input id="post_written_on" max="2010-08-15T10:25:00" min="2000-06-15T20:45:30" name="post[written_on]" type="datetime-local" value="2004-06-15T01:02:03" />}
-    @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
-    min_value = "2000-06-15T20:45:30"
-    max_value = "2010-08-15T10:25:00"
-    assert_dom_equal(expected, datetime_local_field("post", "written_on", min: min_value, max: max_value))
-  end
-
-  def test_datetime_local_field_with_invalid_string_values_for_min_and_max
-    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T01:02:03" />}
-    @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
-    min_value = "foo"
-    max_value = "bar"
-    assert_dom_equal(expected, datetime_local_field("post", "written_on", min: min_value, max: max_value))
   end
 
   def test_month_field
@@ -1600,11 +1539,11 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
+      "<input type='hidden' name='post[active]' value='' />" +
       "<input id='post_active_true' name='post[active]' type='radio' value='true' />" +
       "<label for='post_active_true'>true</label>" +
       "<input checked='checked' id='post_active_false' name='post[active]' type='radio' value='false' />" +
-      "<label for='post_active_false'>false</label>" +
-      "<input type='hidden' name='post[active][]' value='' />"
+      "<label for='post_active_false'>false</label>"
     end
 
     assert_dom_equal expected, output_buffer
@@ -1622,13 +1561,13 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
+      "<input type='hidden' name='post[active]' value='' />" +
       "<label for='post_active_true'>"+
       "<input id='post_active_true' name='post[active]' type='radio' value='true' />" +
       "true</label>" +
       "<label for='post_active_false'>"+
       "<input checked='checked' id='post_active_false' name='post[active]' type='radio' value='false' />" +
-      "false</label>" +
-      "<input type='hidden' name='post[active][]' value='' />"
+      "false</label>"
     end
 
     assert_dom_equal expected, output_buffer
@@ -1648,13 +1587,13 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts", "new_post_1", "new_post") do
+      "<input type='hidden' name='post[active]' value='' />" +
       "<label for='post_active_true'>"+
       "<input id='post_active_true' name='post[active]' type='radio' value='true' />" +
       "true</label>" +
       "<label for='post_active_false'>"+
       "<input checked='checked' id='post_active_false' name='post[active]' type='radio' value='false' />" +
       "false</label>"+
-      "<input type='hidden' name='post[active][]' value='' />" +
       "<input id='post_id' name='post[id]' type='hidden' value='1' />"
     end
 
@@ -1670,11 +1609,11 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts", "foo_new_post", "new_post") do
+      "<input type='hidden' name='post[active]' value='' />" +
       "<input id='foo_post_active_true' name='post[active]' type='radio' value='true' />" +
       "<label for='foo_post_active_true'>true</label>" +
       "<input checked='checked' id='foo_post_active_false' name='post[active]' type='radio' value='false' />" +
-      "<label for='foo_post_active_false'>false</label>" +
-      "<input type='hidden' name='post[active][]' value='' />"
+      "<label for='foo_post_active_false'>false</label>"
     end
 
     assert_dom_equal expected, output_buffer
@@ -1689,11 +1628,11 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
+      "<input type='hidden' name='post[1][active]' value='' />" +
       "<input id='post_1_active_true' name='post[1][active]' type='radio' value='true' />" +
       "<label for='post_1_active_true'>true</label>" +
       "<input checked='checked' id='post_1_active_false' name='post[1][active]' type='radio' value='false' />" +
-      "<label for='post_1_active_false'>false</label>" +
-      "<input type='hidden' name='post[1][active][]' value='' />"
+      "<label for='post_1_active_false'>false</label>"
     end
 
     assert_dom_equal expected, output_buffer
@@ -1708,13 +1647,13 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
+      "<input name='post[tag_ids][]' type='hidden' value='' />" +
       "<input checked='checked' id='post_tag_ids_1' name='post[tag_ids][]' type='checkbox' value='1' />" +
       "<label for='post_tag_ids_1'>Tag 1</label>" +
       "<input id='post_tag_ids_2' name='post[tag_ids][]' type='checkbox' value='2' />" +
       "<label for='post_tag_ids_2'>Tag 2</label>" +
       "<input checked='checked' id='post_tag_ids_3' name='post[tag_ids][]' type='checkbox' value='3' />" +
-      "<label for='post_tag_ids_3'>Tag 3</label>" +
-      "<input name='post[tag_ids][]' type='hidden' value='' />"
+      "<label for='post_tag_ids_3'>Tag 3</label>"
     end
 
     assert_dom_equal expected, output_buffer
@@ -1732,6 +1671,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
+      "<input name='post[tag_ids][]' type='hidden' value='' />" +
       "<label for='post_tag_ids_1'>" +
       "<input checked='checked' id='post_tag_ids_1' name='post[tag_ids][]' type='checkbox' value='1' />" +
       "Tag 1</label>" +
@@ -1740,8 +1680,7 @@ class FormHelperTest < ActionView::TestCase
       "Tag 2</label>" +
       "<label for='post_tag_ids_3'>" +
       "<input checked='checked' id='post_tag_ids_3' name='post[tag_ids][]' type='checkbox' value='3' />" +
-      "Tag 3</label>" +
-      "<input name='post[tag_ids][]' type='hidden' value='' />"
+      "Tag 3</label>"
     end
 
     assert_dom_equal expected, output_buffer
@@ -1762,6 +1701,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts", "new_post_1", "new_post") do
+      "<input name='post[tag_ids][]' type='hidden' value='' />"+
       "<label for='post_tag_ids_1'>" +
       "<input checked='checked' id='post_tag_ids_1' name='post[tag_ids][]' type='checkbox' value='1' />" +
       "Tag 1</label>" +
@@ -1771,7 +1711,6 @@ class FormHelperTest < ActionView::TestCase
       "<label for='post_tag_ids_3'>" +
       "<input checked='checked' id='post_tag_ids_3' name='post[tag_ids][]' type='checkbox' value='3' />" +
       "Tag 3</label>" +
-      "<input name='post[tag_ids][]' type='hidden' value='' />"+
       "<input id='post_id' name='post[id]' type='hidden' value='1' />"
     end
 
@@ -1788,9 +1727,9 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts", "foo_new_post", "new_post") do
+      "<input name='post[tag_ids][]' type='hidden' value='' />" +
       "<input checked='checked' id='foo_post_tag_ids_1' name='post[tag_ids][]' type='checkbox' value='1' />" +
-      "<label for='foo_post_tag_ids_1'>Tag 1</label>" +
-      "<input name='post[tag_ids][]' type='hidden' value='' />"
+      "<label for='foo_post_tag_ids_1'>Tag 1</label>"
     end
 
     assert_dom_equal expected, output_buffer
@@ -1806,9 +1745,9 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
+      "<input name='post[1][tag_ids][]' type='hidden' value='' />" +
       "<input checked='checked' id='post_1_tag_ids_1' name='post[1][tag_ids][]' type='checkbox' value='1' />" +
-      "<label for='post_1_tag_ids_1'>Tag 1</label>" +
-      "<input name='post[1][tag_ids][]' type='hidden' value='' />"
+      "<label for='post_1_tag_ids_1'>Tag 1</label>"
     end
 
     assert_dom_equal expected, output_buffer
@@ -1822,7 +1761,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts/123", "create-post", "edit_post", method: "patch", multipart: true) do
-      "<input name='post[file]' type='hidden' value='' /><input name='post[file]' type='file' id='post_file' />"
+      "<input name='post[file]' type='file' id='post_file' />"
     end
 
     assert_dom_equal expected, output_buffer
@@ -1838,7 +1777,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch", multipart: true) do
-      "<input name='post[comment][file]' type='hidden' value='' /><input name='post[comment][file]' type='file' id='post_comment_file' />"
+      "<input name='post[comment][file]' type='file' id='post_comment_file' />"
     end
 
     assert_dom_equal expected, output_buffer

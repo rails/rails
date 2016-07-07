@@ -14,6 +14,7 @@ class Book < ActiveRecord::Base
   enum author_visibility: [:visible, :invisible], _prefix: true
   enum illustrator_visibility: [:visible, :invisible], _prefix: true
   enum font_size: [:small, :medium, :large], _prefix: :with, _suffix: true
+  enum cover: { hard: 'hard', soft: 'soft' }
 
   def published!
     super

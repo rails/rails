@@ -12,7 +12,7 @@ class DurationTest < ActiveSupport::TestCase
     assert d.is_a?(ActiveSupport::Duration)
     assert_kind_of ActiveSupport::Duration, d
     assert_kind_of Numeric, d
-    assert_kind_of Fixnum, d
+    assert_kind_of Integer, d
     assert !d.is_a?(Hash)
 
     k = Class.new
@@ -66,8 +66,9 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal '10 years, 2 months, and 1 day',   (10.years + 2.months + 1.day).inspect
     assert_equal '10 years, 2 months, and 1 day',   (10.years + 1.month  + 1.day + 1.month).inspect
     assert_equal '10 years, 2 months, and 1 day',   (1.day + 10.years + 2.months).inspect
-    assert_equal '7 days',                          1.week.inspect
-    assert_equal '14 days',                         1.fortnight.inspect
+    assert_equal '7 days',                          7.days.inspect
+    assert_equal '1 week',                          1.week.inspect
+    assert_equal '2 weeks',                         1.fortnight.inspect
   end
 
   def test_inspect_locale
@@ -85,6 +86,15 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_plus_with_time
     assert_equal 1 + 1.second, 1.second + 1, "Duration + Numeric should == Numeric + Duration"
+  end
+
+  def test_time_plus_duration_returns_same_time_datatype
+    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone['Moscow'] , Time.utc(2016,4,28,00,45))
+    now = Time.now.utc
+    %w( second minute hour day week month year ).each do |unit|
+      assert_equal((now + 1.send(unit)).class, Time, "Time + 1.#{unit} must be Time")
+      assert_equal((twz + 1.send(unit)).class, ActiveSupport::TimeWithZone, "TimeWithZone + 1.#{unit} must be TimeWithZone")
+    end
   end
 
   def test_argument_error
@@ -221,5 +231,90 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal(1, (1.second <=> 0.second))
     assert_equal(1, (1.minute <=> 1.second))
     assert_equal(1, (61 <=> 1.minute))
+  end
+
+  # ISO8601 string examples are taken from ISO8601 gem at https://github.com/arnau/ISO8601/blob/b93d466840/spec/iso8601/duration_spec.rb
+  # published under the conditions of MIT license at https://github.com/arnau/ISO8601/blob/b93d466840/LICENSE
+  #
+  # Copyright (c) 2012-2014 Arnau Siches
+  #
+  # MIT License
+  #
+  # Permission is hereby granted, free of charge, to any person obtaining
+  # a copy of this software and associated documentation files (the
+  # "Software"), to deal in the Software without restriction, including
+  # without limitation the rights to use, copy, modify, merge, publish,
+  # distribute, sublicense, and/or sell copies of the Software, and to
+  # permit persons to whom the Software is furnished to do so, subject to
+  # the following conditions:
+  #
+  # The above copyright notice and this permission notice shall be
+  # included in all copies or substantial portions of the Software.
+  #
+  # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  # NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+  # LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+  # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+  # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+  def test_iso8601_parsing_wrong_patterns_with_raise
+    invalid_patterns = ['', 'P', 'PT', 'P1YT', 'T', 'PW', 'P1Y1W', '~P1Y', '.P1Y', 'P1.5Y0.5M', 'P1.5Y1M', 'P1.5MT10.5S']
+    invalid_patterns.each do |pattern|
+      assert_raise ActiveSupport::Duration::ISO8601Parser::ParsingError, pattern.inspect do
+        ActiveSupport::Duration.parse(pattern)
+      end
+    end
+  end
+
+  def test_iso8601_output
+    expectations = [
+      ['P1Y',           1.year                           ],
+      ['P1W',           1.week                           ],
+      ['P1Y1M',         1.year + 1.month                 ],
+      ['P1Y1M1D',       1.year + 1.month + 1.day         ],
+      ['-P1Y1D',        -1.year - 1.day                  ],
+      ['P1Y-1DT-1S',    1.year - 1.day - 1.second        ], # Parts with different signs are exists in PostgreSQL interval datatype.
+      ['PT1S',          1.second                         ],
+      ['PT1.4S',        (1.4).seconds                    ],
+      ['P1Y1M1DT1H',    1.year + 1.month + 1.day + 1.hour],
+    ]
+    expectations.each do |expected_output, duration|
+      assert_equal expected_output, duration.iso8601, expected_output.inspect
+    end
+  end
+
+  def test_iso8601_output_precision
+    expectations = [
+        [nil, 'P1Y1MT5.55S',  1.year + 1.month + (5.55).seconds ],
+        [0,   'P1Y1MT6S',     1.year + 1.month + (5.55).seconds ],
+        [1,   'P1Y1MT5.5S',   1.year + 1.month + (5.55).seconds ],
+        [2,   'P1Y1MT5.55S',  1.year + 1.month + (5.55).seconds ],
+        [3,   'P1Y1MT5.550S', 1.year + 1.month + (5.55).seconds ],
+        [nil, 'PT1S',         1.second                          ],
+        [2,   'PT1.00S',      1.second                          ],
+        [nil, 'PT1.4S',       (1.4).seconds                     ],
+        [0,   'PT1S',         (1.4).seconds                     ],
+        [1,   'PT1.4S',       (1.4).seconds                     ],
+        [5,   'PT1.40000S',   (1.4).seconds                     ],
+    ]
+    expectations.each do |precision, expected_output, duration|
+      assert_equal expected_output, duration.iso8601(precision: precision), expected_output.inspect
+    end
+  end
+
+  def test_iso8601_output_and_reparsing
+    patterns = %w[
+      P1Y P0.5Y P0,5Y P1Y1M P1Y0.5M P1Y0,5M P1Y1M1D P1Y1M0.5D P1Y1M0,5D P1Y1M1DT1H P1Y1M1DT0.5H P1Y1M1DT0,5H P1W +P1Y -P1Y
+      P1Y1M1DT1H1M P1Y1M1DT1H0.5M P1Y1M1DT1H0,5M P1Y1M1DT1H1M1S P1Y1M1DT1H1M1.0S P1Y1M1DT1H1M1,0S P-1Y-2M3DT-4H-5M-6S
+    ]
+    # That could be weird, but if we parse P1Y1M0.5D and output it to ISO 8601, we'll get P1Y1MT12.0H.
+    # So we check that initially parsed and reparsed duration added to time will result in the same time.
+    time = Time.current
+    patterns.each do |pattern|
+      duration = ActiveSupport::Duration.parse(pattern)
+      assert_equal time+duration, time+ActiveSupport::Duration.parse(duration.iso8601), pattern.inspect
+    end
   end
 end

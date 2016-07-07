@@ -26,7 +26,7 @@ module BareMetalTest
 
     test "response_body value is wrapped in an array when the value is a String" do
       controller = BareController.new
-      controller.set_request!(ActionDispatch::Request.new({}))
+      controller.set_request!(ActionDispatch::Request.empty)
       controller.set_response!(BareController.make_response!(controller.request))
       controller.index
       assert_equal ["Hello world"], controller.response_body
@@ -37,6 +37,22 @@ module BareMetalTest
       controller = BareController.new
       controller.set_request! ActionDispatch::Request.new(env)
       assert controller.request
+    end
+  end
+
+  class BareEmptyController < ActionController::Metal
+    def index
+      self.response_body = nil
+    end
+  end
+
+  class BareEmptyTest < ActiveSupport::TestCase
+    test "response body is nil" do
+      controller = BareEmptyController.new
+      controller.set_request!(ActionDispatch::Request.empty)
+      controller.set_response!(BareController.make_response!(controller.request))
+      controller.index
+      assert_equal nil, controller.response_body
     end
   end
 

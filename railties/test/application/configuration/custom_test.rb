@@ -33,6 +33,13 @@ module ApplicationTests
         assert_nil x.i_do_not_exist.zomg
       end
 
+      test 'custom configuration responds to all messages' do
+        x = Rails.configuration.x
+        assert_equal true, x.respond_to?(:i_do_not_exist)
+        assert_kind_of Method, x.method(:i_do_not_exist)
+        assert_kind_of ActiveSupport::OrderedOptions, x.i_do_not_exist
+      end
+
       private
         def new_app
           File.expand_path("#{app_path}/../new_app")

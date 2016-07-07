@@ -62,12 +62,12 @@ $ bin/rails generate job guests_cleanup --queue urgent
 ```
 
 If you don't want to use a generator, you could create your own file inside of
-`app/jobs`, just make sure that it inherits from `ActiveJob::Base`.
+`app/jobs`, just make sure that it inherits from `ApplicationJob`.
 
 Here's what a job looks like:
 
 ```ruby
-class GuestsCleanupJob < ActiveJob::Base
+class GuestsCleanupJob < ApplicationJob
   queue_as :default
 
   def perform(*guests)
@@ -109,10 +109,12 @@ That's it!
 Job Execution
 -------------
 
-For enqueuing and executing jobs you need to set up a queuing backend, that is to
-say you need to decide for a 3rd-party queuing library that Rails should use.
-Rails itself does not provide a sophisticated queuing system and just executes the
-job immediately if no adapter is set.
+For enqueuing and executing jobs in production you need to set up a queuing backend, 
+that is to say you need to decide for a 3rd-party queuing library that Rails should use.
+Rails itself only provides an in-process queuing system, which only keeps the jobs in RAM.
+If the process crashes or the machine is reset, then all outstanding jobs are lost with the
+default async back-end. This may be fine for smaller apps or non-critical jobs, but most
+production apps will need to pick a persistent backend.
 
 ### Backends
 
@@ -136,6 +138,18 @@ module YourApp
 end
 ```
 
+You can also configure your backend on a per job basis.
+
+```ruby
+class GuestsCleanupJob < ApplicationJob
+  self.queue_adapter = :resque
+  #....
+end
+
+# Now your job will use `resque` as it's backend queue adapter overriding what
+# was configured in `config.active_job.queue_adapter`.
+```
+
 ### Starting the Backend
 
 Since jobs run in parallel to your Rails application, most queuing libraries
@@ -157,7 +171,7 @@ Most of the adapters support multiple queues. With Active Job you can schedule
 the job to run on a specific queue:
 
 ```ruby
-class GuestsCleanupJob < ActiveJob::Base
+class GuestsCleanupJob < ApplicationJob
   queue_as :low_priority
   #....
 end
@@ -174,8 +188,8 @@ module YourApp
   end
 end
 
-# app/jobs/guests_cleanup.rb
-class GuestsCleanupJob < ActiveJob::Base
+# app/jobs/guests_cleanup_job.rb
+class GuestsCleanupJob < ApplicationJob
   queue_as :low_priority
   #....
 end
@@ -197,8 +211,8 @@ module YourApp
   end
 end
 
-# app/jobs/guests_cleanup.rb
-class GuestsCleanupJob < ActiveJob::Base
+# app/jobs/guests_cleanup_job.rb
+class GuestsCleanupJob < ApplicationJob
   queue_as :low_priority
   #....
 end
@@ -220,7 +234,7 @@ block will be executed in the job context (so you can access `self.arguments`)
 and you must return the queue name:
 
 ```ruby
-class ProcessVideoJob < ActiveJob::Base
+class ProcessVideoJob < ApplicationJob
   queue_as do
     video = self.arguments.first
     if video.owner.premium?
@@ -260,7 +274,7 @@ trigger logic during the life cycle of a job.
 ### Usage
 
 ```ruby
-class GuestsCleanupJob < ActiveJob::Base
+class GuestsCleanupJob < ApplicationJob
   queue_as :default
 
   before_enqueue do |job|
@@ -317,7 +331,7 @@ Active Record objects to your job instead of class/id pairs, which you then have
 to manually deserialize. Before, jobs would look like this:
 
 ```ruby
-class TrashableCleanupJob < ActiveJob::Base
+class TrashableCleanupJob < ApplicationJob
   def perform(trashable_class, trashable_id, depth)
     trashable = trashable_class.constantize.find(trashable_id)
     trashable.cleanup(depth)
@@ -328,7 +342,7 @@ end
 Now you can simply do:
 
 ```ruby
-class TrashableCleanupJob < ActiveJob::Base
+class TrashableCleanupJob < ApplicationJob
   def perform(trashable, depth)
     trashable.cleanup(depth)
   end
@@ -346,7 +360,7 @@ Active Job provides a way to catch exceptions raised during the execution of the
 job:
 
 ```ruby
-class GuestsCleanupJob < ActiveJob::Base
+class GuestsCleanupJob < ApplicationJob
   queue_as :default
 
   rescue_from(ActiveRecord::RecordNotFound) do |exception|

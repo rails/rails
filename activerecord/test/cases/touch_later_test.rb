@@ -95,16 +95,14 @@ class TouchLaterTest < ActiveRecord::TestCase
   end
 
   def test_touching_three_deep
-    skip "Pending from #19324"
-
     previous_tree_updated_at        = trees(:root).updated_at
     previous_grandparent_updated_at = nodes(:grandparent).updated_at
     previous_parent_updated_at      = nodes(:parent_a).updated_at
     previous_child_updated_at       = nodes(:child_one_of_a).updated_at
 
-    travel 5.seconds
-
-    Node.create! parent: nodes(:child_one_of_a), tree: trees(:root)
+    travel 5.seconds do
+      Node.create! parent: nodes(:child_one_of_a), tree: trees(:root)
+    end
 
     assert_not_equal nodes(:child_one_of_a).reload.updated_at, previous_child_updated_at
     assert_not_equal nodes(:parent_a).reload.updated_at, previous_parent_updated_at

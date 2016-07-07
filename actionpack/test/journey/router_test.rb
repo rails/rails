@@ -3,7 +3,7 @@ require 'abstract_unit'
 module ActionDispatch
   module Journey
     class TestRouter < ActiveSupport::TestCase
-      attr_reader :routes, :mapper
+      attr_reader :mapper, :routes, :route_set, :router
 
       def setup
         @app       = Routing::RouteSet::Dispatcher.new({})
@@ -15,36 +15,36 @@ module ActionDispatch
       end
 
       def test_dashes
-        mapper.get '/foo-bar-baz', to: 'foo#bar'
+        get '/foo-bar-baz', to: 'foo#bar'
 
         env = rails_env 'PATH_INFO' => '/foo-bar-baz'
         called = false
-        @router.recognize(env) do |r, params|
+        router.recognize(env) do |r, params|
           called = true
         end
         assert called
       end
 
       def test_unicode
-        mapper.get '/ほげ', to: 'foo#bar'
+        get '/ほげ', to: 'foo#bar'
 
         #match the escaped version of /ほげ
         env = rails_env 'PATH_INFO' => '/%E3%81%BB%E3%81%92'
         called = false
-        @router.recognize(env) do |r, params|
+        router.recognize(env) do |r, params|
           called = true
         end
         assert called
       end
 
       def test_regexp_first_precedence
-        mapper.get "/whois/:domain", :domain => /\w+\.[\w\.]+/, to: "foo#bar"
-        mapper.get "/whois/:id(.:format)", to: "foo#baz"
+        get "/whois/:domain", :domain => /\w+\.[\w\.]+/, to: "foo#bar"
+        get "/whois/:id(.:format)", to: "foo#baz"
 
         env = rails_env 'PATH_INFO' => '/whois/example.com'
 
         list = []
-        @router.recognize(env) do |r, params|
+        router.recognize(env) do |r, params|
           list << r
         end
         assert_equal 2, list.length
@@ -55,7 +55,7 @@ module ActionDispatch
       end
 
       def test_required_parts_verified_are_anchored
-        mapper.get "/foo/:id", :id => /\d/, anchor: false, to: "foo#bar"
+        get "/foo/:id", :id => /\d/, anchor: false, to: "foo#bar"
 
         assert_raises(ActionController::UrlGenerationError) do
           @formatter.generate(nil, { :controller => "foo", :action => "bar", :id => '10' }, { })
@@ -63,7 +63,7 @@ module ActionDispatch
       end
 
       def test_required_parts_are_verified_when_building
-        mapper.get "/foo/:id", :id => /\d+/, anchor: false, to: "foo#bar"
+        get "/foo/:id", :id => /\d+/, anchor: false, to: "foo#bar"
 
         path, _ = @formatter.generate(nil, { :controller => "foo", :action => "bar", :id => '10' }, { })
         assert_equal '/foo/10', path
@@ -74,7 +74,7 @@ module ActionDispatch
       end
 
       def test_only_required_parts_are_verified
-        mapper.get "/foo(/:id)", :id => /\d/, :to => "foo#bar"
+        get "/foo(/:id)", :id => /\d/, :to => "foo#bar"
 
         path, _ = @formatter.generate(nil, { :controller => "foo", :action => "bar", :id => '10' }, { })
         assert_equal '/foo/10', path
@@ -88,8 +88,7 @@ module ActionDispatch
 
       def test_knows_what_parts_are_missing_from_named_route
         route_name = "gorby_thunderhorse"
-        mapper = ActionDispatch::Routing::Mapper.new @route_set
-        mapper.get "/foo/:id", :as => route_name, :id => /\d+/, :to => "foo#bar"
+        get "/foo/:id", :as => route_name, :id => /\d+/, :to => "foo#bar"
 
         error = assert_raises(ActionController::UrlGenerationError) do
           @formatter.generate(route_name, { }, { })
@@ -109,19 +108,16 @@ module ActionDispatch
       end
 
       def test_X_Cascade
-        mapper.get "/messages(.:format)", to: "foo#bar"
-        resp = @router.serve(rails_env({ 'REQUEST_METHOD' => 'GET', 'PATH_INFO' => '/lol' }))
+        get "/messages(.:format)", to: "foo#bar"
+        resp = router.serve(rails_env({ 'REQUEST_METHOD' => 'GET', 'PATH_INFO' => '/lol' }))
         assert_equal ['Not Found'], resp.last
         assert_equal 'pass', resp[1]['X-Cascade']
         assert_equal 404, resp.first
       end
 
       def test_clear_trailing_slash_from_script_name_on_root_unanchored_routes
-        route_set = Routing::RouteSet.new
-        mapper = Routing::Mapper.new route_set
-
         app    = lambda { |env| [200, {}, ['success!']] }
-        mapper.get '/weblog', :to => app
+        get '/weblog', :to => app
 
         env  = rack_env('SCRIPT_NAME' => '', 'PATH_INFO' => '/weblog')
         resp = route_set.call env
@@ -130,38 +126,38 @@ module ActionDispatch
       end
 
       def test_defaults_merge_correctly
-        mapper.get '/foo(/:id)', to: "foo#bar", id: nil
+        get '/foo(/:id)', to: "foo#bar", id: nil
 
         env = rails_env 'PATH_INFO' => '/foo/10'
-        @router.recognize(env) do |r, params|
+        router.recognize(env) do |r, params|
           assert_equal({:id => '10', :controller => "foo", :action => "bar"}, params)
         end
 
         env = rails_env 'PATH_INFO' => '/foo'
-        @router.recognize(env) do |r, params|
+        router.recognize(env) do |r, params|
           assert_equal({:id => nil, :controller => "foo", :action => "bar"}, params)
         end
       end
 
       def test_recognize_with_unbound_regexp
-        mapper.get "/foo", anchor: false, to: "foo#bar"
+        get "/foo", anchor: false, to: "foo#bar"
 
         env = rails_env 'PATH_INFO' => '/foo/bar'
 
-        @router.recognize(env) { |*_| }
+        router.recognize(env) { |*_| }
 
         assert_equal '/foo', env.env['SCRIPT_NAME']
         assert_equal '/bar', env.env['PATH_INFO']
       end
 
       def test_bound_regexp_keeps_path_info
-        mapper.get "/foo", to: "foo#bar"
+        get "/foo", to: "foo#bar"
 
         env = rails_env 'PATH_INFO' => '/foo'
 
         before = env.env['SCRIPT_NAME']
 
-        @router.recognize(env) { |*_| }
+        router.recognize(env) { |*_| }
 
         assert_equal before, env.env['SCRIPT_NAME']
         assert_equal '/foo', env.env['PATH_INFO']
@@ -174,41 +170,41 @@ module ActionDispatch
           "/messages/:id/edit(.:format)",
           "/messages/:id(.:format)"
         ].each do |path|
-          mapper.get path, to: "foo#bar"
+          get path, to: "foo#bar"
         end
         env = rails_env 'PATH_INFO' => '/messages/unknown/path'
         yielded = false
 
-        @router.recognize(env) do |*whatever|
+        router.recognize(env) do |*whatever|
           yielded = true
         end
         assert_not yielded
       end
 
       def test_required_part_in_recall
-        mapper.get "/messages/:a/:b", to: "foo#bar"
+        get "/messages/:a/:b", to: "foo#bar"
 
         path, _ = @formatter.generate(nil, { :controller => "foo", :action => "bar", :a => 'a' }, { :b => 'b' })
         assert_equal "/messages/a/b", path
       end
 
       def test_splat_in_recall
-        mapper.get "/*path", to: "foo#bar"
+        get "/*path", to: "foo#bar"
 
         path, _ = @formatter.generate(nil, { :controller => "foo", :action => "bar" }, { :path => 'b' })
         assert_equal "/b", path
       end
 
       def test_recall_should_be_used_when_scoring
-        mapper.get "/messages/:action(/:id(.:format))", to: 'foo#bar'
-        mapper.get "/messages/:id(.:format)", to: 'bar#baz'
+        get "/messages/:action(/:id(.:format))", to: 'foo#bar'
+        get "/messages/:id(.:format)", to: 'bar#baz'
 
         path, _ = @formatter.generate(nil, { :controller => "foo", :id => 10 }, { :action => 'index' })
         assert_equal "/messages/index/10", path
       end
 
       def test_nil_path_parts_are_ignored
-        mapper.get "/:controller(/:action(.:format))", to: "tasks#lol"
+        get "/:controller(/:action(.:format))", to: "tasks#lol"
 
         params = { :controller => "tasks", :format => nil }
         extras = { :action => 'lol' }
@@ -220,14 +216,14 @@ module ActionDispatch
       def test_generate_slash
         params = [ [:controller, "tasks"],
                    [:action, "show"] ]
-        mapper.get "/", Hash[params]
+        get "/", Hash[params]
 
         path, _ = @formatter.generate(nil, Hash[params], {})
         assert_equal '/', path
       end
 
       def test_generate_calls_param_proc
-        mapper.get '/:controller(/:action)', to: "foo#bar"
+        get '/:controller(/:action)', to: "foo#bar"
 
         parameterized = []
         params = [ [:controller, "tasks"],
@@ -243,7 +239,7 @@ module ActionDispatch
       end
 
       def test_generate_id
-        mapper.get '/:controller(/:action)', to: 'foo#bar'
+        get '/:controller(/:action)', to: 'foo#bar'
 
         path, params = @formatter.generate(
           nil, {:id=>1, :controller=>"tasks", :action=>"show"}, {})
@@ -252,7 +248,7 @@ module ActionDispatch
       end
 
       def test_generate_escapes
-        mapper.get '/:controller(/:action)', to: "foo#bar"
+        get '/:controller(/:action)', to: "foo#bar"
 
         path, _ = @formatter.generate(nil,
           { :controller        => "tasks",
@@ -262,7 +258,7 @@ module ActionDispatch
       end
 
       def test_generate_escapes_with_namespaced_controller
-        mapper.get '/:controller(/:action)', to: "foo#bar"
+        get '/:controller(/:action)', to: "foo#bar"
 
         path, _ = @formatter.generate(
           nil, { :controller        => "admin/tasks",
@@ -272,7 +268,7 @@ module ActionDispatch
       end
 
       def test_generate_extra_params
-        mapper.get '/:controller(/:action)', to: "foo#bar"
+        get '/:controller(/:action)', to: "foo#bar"
 
         path, params = @formatter.generate(
           nil, { :id                => 1,
@@ -285,7 +281,7 @@ module ActionDispatch
       end
 
       def test_generate_missing_keys_no_matches_different_format_keys
-        mapper.get '/:controller/:action/:name', to: "foo#bar"
+        get '/:controller/:action/:name', to: "foo#bar"
         primarty_parameters = {
           :id                => 1,
           :controller        => "tasks",
@@ -311,7 +307,7 @@ module ActionDispatch
       end
 
       def test_generate_uses_recall_if_needed
-        mapper.get '/:controller(/:action(/:id))', to: "foo#bar"
+        get '/:controller(/:action(/:id))', to: "foo#bar"
 
         path, params = @formatter.generate(
           nil,
@@ -322,7 +318,7 @@ module ActionDispatch
       end
 
       def test_generate_with_name
-        mapper.get '/:controller(/:action)', to: 'foo#bar', as: 'tasks'
+        get '/:controller(/:action)', to: 'foo#bar', as: 'tasks'
 
         path, params = @formatter.generate(
           "tasks",
@@ -338,13 +334,13 @@ module ActionDispatch
         '/content/show/10'  => { :controller => 'content', :action => 'show', :id => "10" },
       }.each do |request_path, expected|
         define_method("test_recognize_#{expected.keys.map(&:to_s).join('_')}") do
-          mapper.get "/:controller(/:action(/:id))", to: 'foo#bar'
+          get "/:controller(/:action(/:id))", to: 'foo#bar'
           route = @routes.first
 
           env = rails_env 'PATH_INFO' => request_path
           called   = false
 
-          @router.recognize(env) do |r, params|
+          router.recognize(env) do |r, params|
             assert_equal route, r
             assert_equal({ :action => "bar" }.merge(expected), params)
             called = true
@@ -359,13 +355,13 @@ module ActionDispatch
         :splat   => ['/segment/a/b%20c+d', { :segment => 'segment', :splat => 'a/b c+d' }]
       }.each do |name, (request_path, expected)|
         define_method("test_recognize_#{name}") do
-          mapper.get '/:segment/*splat', to: 'foo#bar'
+          get '/:segment/*splat', to: 'foo#bar'
 
           env = rails_env 'PATH_INFO' => request_path
           called   = false
           route = @routes.first
 
-          @router.recognize(env) do |r, params|
+          router.recognize(env) do |r, params|
             assert_equal route, r
             assert_equal(expected.merge(:controller=>"foo", :action=>"bar"), params)
             called = true
@@ -376,7 +372,7 @@ module ActionDispatch
       end
 
       def test_namespaced_controller
-        mapper.get "/:controller(/:action(/:id))", { :controller => /.+?/ }
+        get "/:controller(/:action(/:id))", { :controller => /.+?/ }
         route = @routes.first
 
         env = rails_env 'PATH_INFO' => '/admin/users/show/10'
@@ -387,7 +383,7 @@ module ActionDispatch
           :id         => '10'
         }
 
-        @router.recognize(env) do |r, params|
+        router.recognize(env) do |r, params|
           assert_equal route, r
           assert_equal(expected, params)
           called = true
@@ -396,13 +392,13 @@ module ActionDispatch
       end
 
       def test_recognize_literal
-        mapper.get "/books(/:action(.:format))", controller: "books"
+        get "/books(/:action(.:format))", controller: "books"
         route = @routes.first
 
         env    = rails_env 'PATH_INFO' => '/books/list.rss'
         expected = { :controller => 'books', :action => 'list', :format => 'rss' }
         called = false
-        @router.recognize(env) do |r, params|
+        router.recognize(env) do |r, params|
           assert_equal route, r
           assert_equal(expected, params)
           called = true
@@ -412,7 +408,7 @@ module ActionDispatch
       end
 
       def test_recognize_head_route
-        mapper.match "/books(/:action(.:format))", via: 'head', to: 'foo#bar'
+        match "/books(/:action(.:format))", via: 'head', to: 'foo#bar'
 
         env = rails_env(
           'PATH_INFO' => '/books/list.rss',
@@ -420,7 +416,7 @@ module ActionDispatch
         )
 
         called = false
-        @router.recognize(env) do |r, params|
+        router.recognize(env) do |r, params|
           called = true
         end
 
@@ -428,13 +424,13 @@ module ActionDispatch
       end
 
       def test_recognize_head_request_as_get_route
-        mapper.get "/books(/:action(.:format))", to: 'foo#bar'
+        get "/books(/:action(.:format))", to: 'foo#bar'
 
         env = rails_env 'PATH_INFO' => '/books/list.rss',
                         "REQUEST_METHOD"    => "HEAD"
 
         called = false
-        @router.recognize(env) do |r, params|
+        router.recognize(env) do |r, params|
           called = true
         end
 
@@ -442,13 +438,13 @@ module ActionDispatch
       end
 
       def test_recognize_cares_about_get_verbs
-        mapper.match "/books(/:action(.:format))", to: "foo#bar", via: :get
+        match "/books(/:action(.:format))", to: "foo#bar", via: :get
 
         env = rails_env 'PATH_INFO' => '/books/list.rss',
                         "REQUEST_METHOD" => "POST"
 
         called = false
-        @router.recognize(env) do |r, params|
+        router.recognize(env) do |r, params|
           called = true
         end
 
@@ -456,13 +452,13 @@ module ActionDispatch
       end
 
       def test_recognize_cares_about_post_verbs
-        mapper.match "/books(/:action(.:format))", to: "foo#bar", via: :post
+        match "/books(/:action(.:format))", to: "foo#bar", via: :post
 
         env = rails_env 'PATH_INFO' => '/books/list.rss',
                         "REQUEST_METHOD" => "POST"
 
         called = false
-        @router.recognize(env) do |r, params|
+        router.recognize(env) do |r, params|
           called = true
         end
 
@@ -470,14 +466,14 @@ module ActionDispatch
       end
 
       def test_multi_verb_recognition
-        mapper.match "/books(/:action(.:format))", to: "foo#bar", via: [:post, :get]
+        match "/books(/:action(.:format))", to: "foo#bar", via: [:post, :get]
 
         %w( POST GET ).each do |verb|
           env = rails_env 'PATH_INFO' => '/books/list.rss',
             "REQUEST_METHOD" => verb
 
           called = false
-          @router.recognize(env) do |r, params|
+          router.recognize(env) do |r, params|
             called = true
           end
 
@@ -488,7 +484,7 @@ module ActionDispatch
           "REQUEST_METHOD" => 'PUT'
 
         called = false
-        @router.recognize(env) do |r, params|
+        router.recognize(env) do |r, params|
           called = true
         end
 
@@ -496,6 +492,18 @@ module ActionDispatch
       end
 
       private
+
+      def get *args
+        ActiveSupport::Deprecation.silence do
+          mapper.get(*args)
+        end
+      end
+
+      def match *args
+        ActiveSupport::Deprecation.silence do
+          mapper.match(*args)
+        end
+      end
 
       def rails_env env, klass = ActionDispatch::Request
         klass.new(rack_env(env))

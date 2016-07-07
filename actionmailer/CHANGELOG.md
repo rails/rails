@@ -1,5 +1,43 @@
-*   `config.force_ssl = true` will set
-    `config.action_mailer.default_url_options = { protocol: 'https' }`
+## Rails 5.0.0 (June 30, 2016) ##
+
+*   Exception handling: use `rescue_from` to handle exceptions raised by
+    mailer actions, by message delivery, and by deferred delivery jobs.
+
+    *Jeremy Daer*
+
+*   Disallow calling `#deliver_later` after making local modifications to
+    the message which would be lost when the delivery job is enqueued.
+
+    Prevents a common, hard-to-find bug like:
+
+        message = Notifier.welcome(user, foo)
+        message.message_id = my_generated_message_id
+        message.deliver_later
+
+    The message_id is silently lost! *Only the mailer arguments are passed
+    to the delivery job.*
+
+    This raises an exception now. Make modifications to the message within
+    the mailer method instead, or use a custom Active Job to manage delivery
+    instead of using #deliver_later.
+
+    *Jeremy Daer*
+
+*   Removes `-t` from default Sendmail arguments to match the underlying
+    `Mail::Sendmail` setting.
+
+    *Clayton Liggitt*
+
+*   Add support for fragment caching in Action Mailer views.
+
+    *Stan Lo*
+
+*   Reset `ActionMailer::Base.deliveries` after every test in
+    `ActionDispatch::IntegrationTest`.
+
+    *Yves Senn*
+
+*   `config.action_mailer.default_url_options[:protocol]` is now set to `https` if `config.force_ssl` is set to `true`.
 
     *Andrew Kampjes*
 
@@ -8,7 +46,7 @@
 
     *Chris McGrath*
 
-*   `assert_emails` in block form use the given number as expected value.
+*   `assert_emails` in block form, uses the given number as expected value.
     This makes the error message much easier to understand.
 
     *Yuji Yaginuma*
@@ -58,7 +96,7 @@
 
     *Carlos Souza*
 
-*   Remove deprecate `*_path` helpers in email views.
+*   Remove deprecated `*_path` helpers in email views.
 
     *Rafael Mendonça França*
 

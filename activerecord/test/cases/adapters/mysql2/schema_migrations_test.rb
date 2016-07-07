@@ -12,9 +12,30 @@ class SchemaMigrationsTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_initializes_schema_migrations_for_encoding_utf8mb4
-    smtn = ActiveRecord::Migrator.schema_migrations_table_name
-    connection.drop_table smtn, if_exists: true
+    with_encoding_utf8mb4 do
+      table_name = ActiveRecord::SchemaMigration.table_name
+      connection.drop_table table_name, if_exists: true
 
+      connection.initialize_schema_migrations_table
+
+      assert connection.column_exists?(table_name, :version, :string, collation: 'utf8_general_ci')
+    end
+  end
+
+  def test_initializes_internal_metadata_for_encoding_utf8mb4
+    with_encoding_utf8mb4 do
+      table_name = ActiveRecord::InternalMetadata.table_name
+      connection.drop_table table_name, if_exists: true
+
+      connection.initialize_internal_metadata_table
+
+      assert connection.column_exists?(table_name, :key, :string, collation: 'utf8_general_ci')
+    end
+  end
+
+  private
+
+  def with_encoding_utf8mb4
     database_name = connection.current_database
     database_info = connection.select_one("SELECT * FROM information_schema.schemata WHERE schema_name = '#{database_name}'")
 
@@ -23,15 +44,11 @@ class SchemaMigrationsTest < ActiveRecord::Mysql2TestCase
 
     execute("ALTER DATABASE #{database_name} DEFAULT CHARACTER SET utf8mb4")
 
-    connection.initialize_schema_migrations_table
-
-    limit = ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter::MAX_INDEX_LENGTH_FOR_CHARSETS_OF_4BYTES_MAXLEN
-    assert connection.column_exists?(smtn, :version, :string, limit: limit)
+    yield
   ensure
     execute("ALTER DATABASE #{database_name} DEFAULT CHARACTER SET #{original_charset} COLLATE #{original_collation}")
   end
 
-  private
   def connection
     @connection ||= ActiveRecord::Base.connection
   end

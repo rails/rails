@@ -1,4 +1,5 @@
 require "cases/helper"
+require "active_support/core_ext/hash/indifferent_access"
 require "active_support/hash_with_indifferent_access"
 
 class AttributeAssignmentTest < ActiveModel::TestCase
@@ -23,13 +24,32 @@ class AttributeAssignmentTest < ActiveModel::TestCase
   class ErrorFromAttributeWriter < StandardError
   end
 
-  class ProtectedParams < ActiveSupport::HashWithIndifferentAccess
-    def permit!
-      @permitted = true
+  class ProtectedParams
+    attr_accessor :permitted
+    alias :permitted? :permitted
+
+    delegate :keys, :key?, :has_key?, :empty?, to: :@parameters
+
+    def initialize(attributes)
+      @parameters = attributes.with_indifferent_access
+      @permitted = false
     end
 
-    def permitted?
-      @permitted ||= false
+    def permit!
+      @permitted = true
+      self
+    end
+
+    def [](key)
+      @parameters[key]
+    end
+
+    def to_h
+      @parameters
+    end
+
+    def stringify_keys
+      dup
     end
 
     def dup

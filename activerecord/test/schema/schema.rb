@@ -1,10 +1,4 @@
 ActiveRecord::Schema.define do
-  def except(adapter_names_to_exclude)
-    unless [adapter_names_to_exclude].flatten.include?(adapter_name)
-      yield
-    end
-  end
-
   # ------------------------------------------------------------------- #
   #                                                                     #
   #   Please keep these create table statements in alphabetical order   #
@@ -104,6 +98,7 @@ ActiveRecord::Schema.define do
     t.column :author_visibility, :integer, default: 0
     t.column :illustrator_visibility, :integer, default: 0
     t.column :font_size, :integer, default: 0
+    t.column :cover, :string, default: 'hard'
   end
 
   create_table :booleans, force: true do |t|
@@ -201,11 +196,11 @@ ActiveRecord::Schema.define do
     t.integer :rating, default: 1
     t.integer :account_id
     t.string :description, default: ""
+    t.index [:firm_id, :type, :rating], name: "company_index"
+    t.index [:firm_id, :type], name: "company_partial_index", where: "rating > 10"
+    t.index :name, name: 'company_name_index', using: :btree
+    t.index 'lower(name)', name: "company_expression_index" if supports_expression_index?
   end
-
-  add_index :companies, [:firm_id, :type, :rating], name: "company_index"
-  add_index :companies, [:firm_id, :type], name: "company_partial_index", where: "rating > 10"
-  add_index :companies, :name, name: 'company_name_index', using: :btree
 
   create_table :content, force: true do |t|
     t.string :title
@@ -303,8 +298,8 @@ ActiveRecord::Schema.define do
   create_table :edges, force: true, id: false do |t|
     t.column :source_id, :integer, null: false
     t.column :sink_id,   :integer, null: false
+    t.index [:source_id, :sink_id], unique: true, name: 'unique_edge_index'
   end
-  add_index :edges, [:source_id, :sink_id], unique: true, name: 'unique_edge_index'
 
   create_table :engines, force: true do |t|
     t.integer :car_id
@@ -356,7 +351,7 @@ ActiveRecord::Schema.define do
     t.column :key, :string
   end
 
-  create_table :guitar, force: true do |t|
+  create_table :guitars, force: true do |t|
     t.string :color
   end
 
@@ -414,11 +409,24 @@ ActiveRecord::Schema.define do
     t.references :student
   end
 
+  create_table :students, force: true do |t|
+    t.string :name
+    t.boolean :active
+    t.integer :college_id
+  end
+
+  add_foreign_key :lessons_students, :students, on_delete: :cascade
+
   create_table :lint_models, force: true
 
   create_table :line_items, force: true do |t|
     t.integer :invoice_id
     t.integer :amount
+  end
+
+  create_table :lions, force: true do |t|
+    t.integer :gender
+    t.boolean :is_vegetarian, default: false
   end
 
   create_table :lock_without_defaults, force: true do |t|
@@ -615,6 +623,12 @@ ActiveRecord::Schema.define do
     end
   end
 
+  create_table :pets_treasures, force: true do |t|
+    t.column :treasure_id, :integer
+    t.column :pet_id, :integer
+    t.column :rainbow_color, :string
+  end
+
   create_table :pirates, force: true do |t|
     t.column :catchphrase, :string
     t.column :parrot_id, :integer
@@ -771,18 +785,12 @@ ActiveRecord::Schema.define do
     t.integer    :lock_version, null: false, default: 0
   end
 
-  create_table :students, force: true do |t|
-    t.string :name
-    t.boolean :active
-    t.integer :college_id
-  end
-
   create_table :subscribers, force: true, id: false do |t|
     t.string :nick, null: false
     t.string :name
     t.column :books_count, :integer, null: false, default: 0
+    t.index :nick, unique: true
   end
-  add_index :subscribers, :nick, unique: true
 
   create_table :subscriptions, force: true do |t|
     t.string :subscriber_id
@@ -929,7 +937,7 @@ ActiveRecord::Schema.define do
     t.string :treaty_id
     t.string :name
   end
-  create_table :countries_treaties, force: true, id: false do |t|
+  create_table :countries_treaties, force: true, primary_key: [:country_id, :treaty_id] do |t|
     t.string :country_id, null: false
     t.string :treaty_id, null: false
   end
@@ -975,6 +983,8 @@ ActiveRecord::Schema.define do
     t.integer :employable_id
     t.string :employable_type
     t.integer :department_id
+    t.string :employable_list_type
+    t.integer :employable_list_id
   end
   create_table :recipes, force: true do |t|
     t.integer :chef_id
@@ -984,7 +994,7 @@ ActiveRecord::Schema.define do
   create_table :records, force: true do |t|
   end
 
-  except 'SQLite' do
+  if supports_foreign_keys?
     # fk_test_has_fk should be before fk_test_has_pk
     create_table :fk_test_has_fk, force: true do |t|
       t.integer :fk_id, null: false
@@ -994,7 +1004,6 @@ ActiveRecord::Schema.define do
     end
 
     add_foreign_key :fk_test_has_fk, :fk_test_has_pk, column: "fk_id", name: "fk_name", primary_key: "pk_id"
-    add_foreign_key :lessons_students, :students
   end
 
   create_table :overloaded_types, force: true do |t|

@@ -1,20 +1,14 @@
 require "cases/helper"
+require 'support/schema_dumping_helper'
 require 'models/default'
 require 'models/entrant'
 
 class DefaultTest < ActiveRecord::TestCase
   def test_nil_defaults_for_not_null_columns
-    column_defaults =
-      if current_adapter?(:MysqlAdapter) && (Mysql.client_version < 50051 || (50100..50122).include?(Mysql.client_version))
-        { 'id' => nil, 'name' => '',  'course_id' => nil }
-      else
-        { 'id' => nil, 'name' => nil, 'course_id' => nil }
-      end
-
-    column_defaults.each do |name, default|
+    %w(id name course_id).each do |name|
       column = Entrant.columns_hash[name]
       assert !column.null, "#{name} column should be NOT NULL"
-      assert_equal default, column.default, "#{name} column should be DEFAULT #{default.inspect}"
+      assert_not column.default, "#{name} column should be DEFAULT 'nil'"
     end
   end
 
@@ -87,7 +81,32 @@ class DefaultStringsTest < ActiveRecord::TestCase
   end
 end
 
-if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+if current_adapter?(:PostgreSQLAdapter)
+  class PostgresqlDefaultExpressionTest < ActiveRecord::TestCase
+    include SchemaDumpingHelper
+
+    test "schema dump includes default expression" do
+      output = dump_table_schema("defaults")
+      assert_match %r/t\.date\s+"modified_date",\s+default: -> { "\('now'::text\)::date" }/, output
+      assert_match %r/t\.date\s+"modified_date_function",\s+default: -> { "now\(\)" }/, output
+      assert_match %r/t\.datetime\s+"modified_time",\s+default: -> { "now\(\)" }/, output
+      assert_match %r/t\.datetime\s+"modified_time_function",\s+default: -> { "now\(\)" }/, output
+    end
+  end
+end
+
+if current_adapter?(:Mysql2Adapter)
+  class MysqlDefaultExpressionTest < ActiveRecord::TestCase
+    include SchemaDumpingHelper
+
+    if ActiveRecord::Base.connection.version >= '5.6.0'
+      test "schema dump includes default expression" do
+        output = dump_table_schema("datetime_defaults")
+        assert_match %r/t\.datetime\s+"modified_datetime",\s+default: -> { "CURRENT_TIMESTAMP" }/, output
+      end
+    end
+  end
+
   class DefaultsTestWithoutTransactionalFixtures < ActiveRecord::TestCase
     # ActiveRecord::Base#create! (and #save and other related methods) will
     # open a new transaction. When in transactional tests mode, this will
@@ -182,8 +201,7 @@ if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
 
       assert_equal '0', klass.columns_hash['zero'].default
       assert !klass.columns_hash['zero'].null
-      # 0 in MySQL 4, nil in 5.
-      assert [0, nil].include?(klass.columns_hash['omit'].default)
+      assert_equal nil, klass.columns_hash['omit'].default
       assert !klass.columns_hash['omit'].null
 
       assert_raise(ActiveRecord::StatementInvalid) { klass.create! }

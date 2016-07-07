@@ -4,7 +4,7 @@ require 'rails/code_statistics'
 class CodeStatisticsTest < ActiveSupport::TestCase
   def setup
     @tmp_path = File.expand_path(File.join(File.dirname(__FILE__), 'fixtures', 'tmp'))
-    @dir_js   = File.expand_path(File.join(File.dirname(__FILE__), 'fixtures', 'tmp', 'lib.js'))
+    @dir_js   = File.join(@tmp_path, 'lib.js')
     FileUtils.mkdir_p(@dir_js)
   end
 
@@ -17,4 +17,17 @@ class CodeStatisticsTest < ActiveSupport::TestCase
       @code_statistics = CodeStatistics.new(['tmp dir', @tmp_path])
     end
   end
+
+  test 'ignores hidden files' do
+    File.write File.join(@tmp_path, '.example.rb'), <<-CODE
+      def foo
+        puts 'foo'
+      end
+    CODE
+
+    assert_nothing_raised do
+      CodeStatistics.new(['hidden file', @tmp_path])
+    end
+  end
+
 end

@@ -44,6 +44,19 @@ module ActiveRecord
 
       ##
       # :singleton-method:
+      # Accessor for the name of the internal metadata table. By default, the value is "ar_internal_metadata"
+      class_attribute :internal_metadata_table_name, instance_accessor: false
+      self.internal_metadata_table_name = "ar_internal_metadata"
+
+      ##
+      # :singleton-method:
+      # Accessor for an array of names of environments where destructive actions should be prohibited. By default,
+      # the value is ["production"]
+      class_attribute :protected_environments, instance_accessor: false
+      self.protected_environments = ["production"]
+
+      ##
+      # :singleton-method:
       # Indicates whether table names should be the pluralized versions of the corresponding class names.
       # If true, the default table name for a Product class will be +products+. If false, it would just be +product+.
       # See table_name for the full rules on table/class naming. This is true, by default.
@@ -218,6 +231,18 @@ module ActiveRecord
         @explicit_sequence_name = true
       end
 
+      # Determines if the primary key values should be selected from their
+      # corresponding sequence before the insert statement.
+      def prefetch_primary_key?
+        connection.prefetch_primary_key?(table_name)
+      end
+
+      # Returns the next value that will be used as the primary key on
+      # an insert statement.
+      def next_sequence_value
+        connection.next_sequence_value(sequence_name)
+      end
+
       # Indicates whether the table associated with this class exists
       def table_exists?
         connection.schema_cache.data_source_exists?(table_name)
@@ -242,7 +267,18 @@ module ActiveRecord
         @attribute_types ||= Hash.new(Type::Value.new)
       end
 
-      def type_for_attribute(attr_name) # :nodoc:
+      # Returns the type of the attribute with the given name, after applying
+      # all modifiers. This method is the only valid source of information for
+      # anything related to the types of a model's attributes. This method will
+      # access the database and load the model's schema if it is required.
+      #
+      # The return value of this method will implement the interface described
+      # by ActiveModel::Type::Value (though the object itself may not subclass
+      # it).
+      #
+      # +attr_name+ The name of the attribute to retrieve the type for. Must be
+      # a string
+      def type_for_attribute(attr_name)
         attribute_types[attr_name]
       end
 
@@ -275,7 +311,7 @@ module ActiveRecord
       # when just after creating a table you want to populate it with some default
       # values, eg:
       #
-      #  class CreateJobLevels < ActiveRecord::Migration
+      #  class CreateJobLevels < ActiveRecord::Migration[5.0]
       #    def up
       #      create_table :job_levels do |t|
       #        t.integer :id
@@ -385,7 +421,7 @@ module ActiveRecord
 
             If you'd like the new behavior today, you can add this line:
 
-              attribute :#{column.name}, :rails_5_1_point#{array_arguments}
+              attribute :#{column.name}, :point#{array_arguments}
           WARNING
         end
       end

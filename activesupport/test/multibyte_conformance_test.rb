@@ -5,30 +5,30 @@ require 'fileutils'
 require 'open-uri'
 require 'tmpdir'
 
-class Downloader
-  def self.download(from, to)
-    unless File.exist?(to)
-      unless File.exist?(File.dirname(to))
-        system "mkdir -p #{File.dirname(to)}"
-      end
-      open(from) do |source|
-        File.open(to, 'w') do |target|
-          source.each_line do |l|
-            target.write l
+class MultibyteConformanceTest < ActiveSupport::TestCase
+  class Downloader
+    def self.download(from, to)
+      unless File.exist?(to)
+        unless File.exist?(File.dirname(to))
+          system "mkdir -p #{File.dirname(to)}"
+        end
+        open(from) do |source|
+          File.open(to, 'w') do |target|
+            source.each_line do |l|
+              target.write l
+            end
           end
         end
       end
+      true
     end
-    true
   end
-end
 
-class MultibyteConformanceTest < ActiveSupport::TestCase
   include MultibyteTestHelpers
 
   UNIDATA_URL = "http://www.unicode.org/Public/#{ActiveSupport::Multibyte::Unicode::UNICODE_VERSION}/ucd"
   UNIDATA_FILE = '/NormalizationTest.txt'
-  CACHE_DIR = File.join(Dir.tmpdir, 'cache')
+  CACHE_DIR = "#{Dir.tmpdir}/cache/unicode_conformance"
   FileUtils.mkdir_p(CACHE_DIR)
   RUN_P = begin
             Downloader.download(UNIDATA_URL + UNIDATA_FILE, CACHE_DIR + UNIDATA_FILE)
@@ -104,11 +104,8 @@ class MultibyteConformanceTest < ActiveSupport::TestCase
 
   protected
     def each_line_of_norm_tests(&block)
-      lines = 0
-      max_test_lines = 0 # Don't limit below 38, because that's the header of the testfile
       File.open(File.join(CACHE_DIR, UNIDATA_FILE), 'r') do | f |
-        until f.eof? || (max_test_lines > 38 and lines > max_test_lines)
-          lines += 1
+        until f.eof?
           line = f.gets.chomp!
           next if (line.empty? || line =~ /^\#/)
 

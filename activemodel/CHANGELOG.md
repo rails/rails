@@ -1,3 +1,15 @@
+## Rails 5.0.0 (June 30, 2016) ##
+
+*   Ensure that instances of `ActiveModel::Errors` can be marshalled.
+    Fixes #25165.
+
+    *Sean Griffin*
+
+*   Allow passing record being validated to the message proc to generate
+    customized error messages for that object using I18n helper.
+
+    *Prathamesh Sonpatki*
+
 *   Validate multiple contexts on `valid?` and `invalid?` at once.
 
     Example:
@@ -104,11 +116,13 @@
 
     *Wojciech Wnętrzak*
 
-*   Change validates_acceptance_of to accept true by default.
+*   Change `validates_acceptance_of` to accept `true` by default besides `'1'`.
 
-    The default for validates_acceptance_of is now "1" and true.
-    In the past, only "1" was the default and you were required to add
-    accept: true.
+    The default for `validates_acceptance_of` is now `'1'` and `true`.
+    In the past, only `"1"` was the default and you were required to pass
+    `accept: true` separately.
+
+    *mokhan*
 
 *   Remove deprecated `ActiveModel::Dirty#reset_#{attribute}` and
     `ActiveModel::Dirty#reset_changes`.
@@ -125,5 +139,6 @@
     `ActiveSupport.halt_callback_chains_on_return_false` option, will
     either not work at all or display a deprecation warning.
 
+    *claudiob*
 
 Please check [4-2-stable](https://github.com/rails/rails/blob/4-2-stable/activemodel/CHANGELOG.md) for previous changes.

@@ -86,6 +86,7 @@ module ActionDispatch
         end
         # Load routes.rb if it hasn't been loaded.
 
+        options = options.clone
         generated_path, query_string_keys = @routes.generate_extras(options, defaults)
         found_extras = options.reject { |k, _| ! query_string_keys.include? k }
 
@@ -116,7 +117,7 @@ module ActionDispatch
       #  # Tests a route, providing a defaults hash
       #  assert_routing 'controller/action/9', {id: "9", item: "square"}, {controller: "controller", action: "action"}, {}, {item: "square"}
       #
-      #  # Tests a route with a HTTP method
+      #  # Tests a route with an HTTP method
       #  assert_routing({ method: 'put', path: '/product/321' }, { controller: "product", action: "update", id: "321" })
       def assert_routing(path, options, defaults={}, extras={}, message=nil)
         assert_recognizes(options, path, extras, message)

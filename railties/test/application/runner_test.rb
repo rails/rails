@@ -74,6 +74,16 @@ module ApplicationTests
       assert_match "development", Dir.chdir(app_path) { `bin/rails runner "puts Rails.env"` }
     end
 
+    def test_runner_detects_syntax_errors
+      Dir.chdir(app_path) { `bin/rails runner "puts 'hello world" 2>&1` }
+      refute $?.success? 
+    end
+
+    def test_runner_detects_bad_script_name
+      Dir.chdir(app_path) { `bin/rails runner "iuiqwiourowe" 2>&1` }
+      refute $?.success? 
+    end
+
     def test_environment_with_rails_env
       with_rails_env "production" do
         assert_match "production", Dir.chdir(app_path) { `bin/rails runner "puts Rails.env"` }

@@ -174,7 +174,6 @@ URL fields, email fields, number fields and range fields:
 <%= search_field(:user, :name) %>
 <%= telephone_field(:user, :phone) %>
 <%= date_field(:user, :born_on) %>
-<%= datetime_field(:user, :meeting_time) %>
 <%= datetime_local_field(:user, :graduation_day) %>
 <%= month_field(:user, :birthday_month) %>
 <%= week_field(:user, :birthday_week) %>
@@ -195,7 +194,6 @@ Output:
 <input id="user_name" name="user[name]" type="search" />
 <input id="user_phone" name="user[phone]" type="tel" />
 <input id="user_born_on" name="user[born_on]" type="date" />
-<input id="user_meeting_time" name="user[meeting_time]" type="datetime" />
 <input id="user_graduation_day" name="user[graduation_day]" type="datetime-local" />
 <input id="user_birthday_month" name="user[birthday_month]" type="month" />
 <input id="user_birthday_week" name="user[birthday_week]" type="week" />
@@ -317,7 +315,7 @@ The Article model is directly available to users of the application, so - follow
 resources :articles
 ```
 
-TIP: Declaring a resource has a number of side-affects. See [Rails Routing From the Outside In](routing.html#resource-routing-the-rails-default) for more information on setting up and using resources.
+TIP: Declaring a resource has a number of side effects. See [Rails Routing From the Outside In](routing.html#resource-routing-the-rails-default) for more information on setting up and using resources.
 
 When dealing with RESTful resources, calls to `form_for` can get significantly easier if you rely on **record identification**. In short, you can just pass the model instance and have Rails figure out model name and the rest:
 
@@ -880,12 +878,12 @@ Many apps grow beyond simple forms editing a single object. For example, when cr
 Active Record provides model level support via the `accepts_nested_attributes_for` method:
 
 ```ruby
-class Person < ActiveRecord::Base
+class Person < ApplicationRecord
   has_many :addresses
   accepts_nested_attributes_for :addresses
 end
 
-class Address < ActiveRecord::Base
+class Address < ApplicationRecord
   belongs_to :person
 end
 ```
@@ -973,7 +971,7 @@ private
 You can allow users to delete associated objects by passing `allow_destroy: true` to `accepts_nested_attributes_for`
 
 ```ruby
-class Person < ActiveRecord::Base
+class Person < ApplicationRecord
   has_many :addresses
   accepts_nested_attributes_for :addresses, allow_destroy: true
 end
@@ -1014,7 +1012,7 @@ end
 It is often useful to ignore sets of fields that the user has not filled in. You can control this by passing a `:reject_if` proc to `accepts_nested_attributes_for`. This proc will be called with each hash of attributes submitted by the form. If the proc returns `false` then Active Record will not build an associated object for that hash. The example below only tries to build an address if the `kind` attribute is set.
 
 ```ruby
-class Person < ActiveRecord::Base
+class Person < ApplicationRecord
   has_many :addresses
   accepts_nested_attributes_for :addresses, reject_if: lambda {|attributes| attributes['kind'].blank?}
 end

@@ -3,6 +3,8 @@ require 'abstract_unit'
 require 'active_support/cache'
 require 'dependencies_test_helpers'
 
+require 'pathname'
+
 module ActiveSupport
   module Cache
     module Strategy
@@ -266,6 +268,20 @@ module CacheStoreBehavior
     end
   end
 
+  def test_fetch_with_forced_cache_miss_with_block
+    @cache.write('foo', 'bar')
+    assert_equal 'foo_bar', @cache.fetch('foo', force: true) { 'foo_bar' }
+  end
+
+  def test_fetch_with_forced_cache_miss_without_block
+    @cache.write('foo', 'bar')
+    assert_raises(ArgumentError) do
+      @cache.fetch('foo', force: true)
+    end
+
+    assert_equal 'bar', @cache.read('foo')
+  end
+
   def test_should_read_and_write_hash
     assert @cache.write('foo', {:a => "b"})
     assert_equal({:a => "b"}, @cache.read('foo'))
@@ -493,28 +509,32 @@ module CacheStoreBehavior
 
   def test_cache_hit_instrumentation
     key = "test_key"
-    subscribe_executed = false
-    ActiveSupport::Notifications.subscribe "cache_read.active_support" do |name, start, finish, id, payload|
-      subscribe_executed = true
-      assert_equal :fetch, payload[:super_operation]
-      assert payload[:hit]
+    @events = []
+    ActiveSupport::Notifications.subscribe "cache_read.active_support" do |*args|
+      @events << ActiveSupport::Notifications::Event.new(*args)
     end
     assert @cache.write(key, "1", :raw => true)
     assert @cache.fetch(key) {}
-    assert subscribe_executed
+    assert_equal 1, @events.length
+    assert_equal 'cache_read.active_support', @events[0].name
+    assert_equal :fetch, @events[0].payload[:super_operation]
+    assert @events[0].payload[:hit]
   ensure
     ActiveSupport::Notifications.unsubscribe "cache_read.active_support"
   end
 
   def test_cache_miss_instrumentation
-    subscribe_executed = false
-    ActiveSupport::Notifications.subscribe "cache_read.active_support" do |name, start, finish, id, payload|
-      subscribe_executed = true
-      assert_equal :fetch, payload[:super_operation]
-      assert_not payload[:hit]
+    @events = []
+    ActiveSupport::Notifications.subscribe(/^cache_(.*)\.active_support$/) do |*args|
+      @events << ActiveSupport::Notifications::Event.new(*args)
     end
     assert_not @cache.fetch("bad_key") {}
-    assert subscribe_executed
+    assert_equal 3, @events.length
+    assert_equal 'cache_read.active_support', @events[0].name
+    assert_equal 'cache_generate.active_support', @events[1].name
+    assert_equal 'cache_write.active_support', @events[2].name
+    assert_equal :fetch, @events[0].payload[:super_operation]
+    assert_not @events[0].payload[:hit]
   ensure
     ActiveSupport::Notifications.unsubscribe "cache_read.active_support"
   end
@@ -776,10 +796,12 @@ class FileStoreTest < ActiveSupport::TestCase
   include AutoloadingCacheBehavior
 
   def test_clear
-    filepath = File.join(cache_dir, ".gitkeep")
-    FileUtils.touch(filepath)
+    gitkeep = File.join(cache_dir, ".gitkeep")
+    keep = File.join(cache_dir, ".keep")
+    FileUtils.touch([gitkeep, keep])
     @cache.clear
-    assert File.exist?(filepath)
+    assert File.exist?(gitkeep)
+    assert File.exist?(keep)
   end
 
   def test_clear_without_cache_dir
@@ -830,7 +852,7 @@ class FileStoreTest < ActiveSupport::TestCase
   # If nothing has been stored in the cache, there is a chance the cache directory does not yet exist
   # Ensure delete_matched gracefully handles this case
   def test_delete_matched_when_cache_directory_does_not_exist
-    assert_nothing_raised(Exception) do
+    assert_nothing_raised do
       ActiveSupport::Cache::FileStore.new('/test/cache/directory').delete_matched(/does_not_exist/)
     end
   end
@@ -838,7 +860,7 @@ class FileStoreTest < ActiveSupport::TestCase
   def test_delete_does_not_delete_empty_parent_dir
     sub_cache_dir = File.join(cache_dir, 'subdir/')
     sub_cache_store = ActiveSupport::Cache::FileStore.new(sub_cache_dir)
-    assert_nothing_raised(Exception) do
+    assert_nothing_raised do
       assert sub_cache_store.write('foo', 'bar')
       assert sub_cache_store.delete('foo')
     end
@@ -1144,15 +1166,6 @@ class CacheStoreLoggerTest < ActiveSupport::TestCase
   def test_mute_logging
     @cache.mute { @cache.fetch('foo') { 'bar' } }
     assert @buffer.string.blank?
-  end
-
-  def test_multi_read_loggin
-    @cache.write 'hello', 'goodbye'
-    @cache.write 'world', 'earth'
-
-    @cache.read_multi('hello', 'world')
-
-    assert_match "Caches multi read:\n- hello\n- world", @buffer.string
   end
 end
 

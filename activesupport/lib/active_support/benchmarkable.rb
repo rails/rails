@@ -38,7 +38,7 @@ module ActiveSupport
         options[:level] ||= :info
 
         result = nil
-        ms = Benchmark.ms { result = options[:silence] ? silence { yield } : yield }
+        ms = Benchmark.ms { result = options[:silence] ? logger.silence { yield } : yield }
         logger.send(options[:level], '%s (%.1fms)' % [ message, ms ])
         result
       else

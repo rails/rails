@@ -79,6 +79,24 @@ module ApplicationTests
       end
     end
 
+    test "By default logs tags are not set in development" do
+      restore_default_config
+
+      with_rails_env "development" do
+        app 'development'
+        assert Rails.application.config.log_tags.blank?
+      end
+    end
+
+    test "By default logs are tagged with :request_id in production" do
+      restore_default_config
+
+      with_rails_env "production" do
+        app 'production'
+        assert_equal [:request_id], Rails.application.config.log_tags
+      end
+    end
+
     test "lib dir is on LOAD_PATH during config" do
       app_file 'lib/my_logger.rb', <<-RUBY
         require "logger"
@@ -103,7 +121,7 @@ module ApplicationTests
       RUBY
 
       app_file 'db/migrate/20140708012246_create_user.rb', <<-RUBY
-        class CreateUser < ActiveRecord::Migration
+        class CreateUser < ActiveRecord::Migration::Current
           def change
             create_table :users
           end
@@ -228,6 +246,8 @@ module ApplicationTests
     end
 
     test "the application can be eager loaded even when there are no frameworks" do
+      FileUtils.rm_rf("#{app_path}/app/models/application_record.rb")
+      FileUtils.rm_rf("#{app_path}/app/mailers/application_mailer.rb")
       FileUtils.rm_rf("#{app_path}/config/environments")
       add_to_config <<-RUBY
         config.eager_load = true
@@ -324,6 +344,17 @@ module ApplicationTests
         switch_env "RAILS_SERVE_STATIC_FILES", "1" do
           app 'production'
           assert app.config.public_file_server.enabled
+        end
+      end
+    end
+
+    test "In production mode, STDOUT logging is enabled when RAILS_LOG_TO_STDOUT is set" do
+      restore_default_config
+
+      with_rails_env "production" do
+        switch_env "RAILS_LOG_TO_STDOUT", "1" do
+          app 'production'
+          assert ActiveSupport::Logger.logger_outputs_to?(app.config.logger, STDOUT)
         end
       end
     end
@@ -655,7 +686,7 @@ module ApplicationTests
 
         private
 
-        def form_authenticity_token; token; end # stub the authenticy token
+        def form_authenticity_token(*args); token; end # stub the authenticity token
       end
       RUBY
 
@@ -968,7 +999,7 @@ module ApplicationTests
       app 'development'
 
       post "/posts.json", '{ "title": "foo", "name": "bar" }', "CONTENT_TYPE" => "application/json"
-      assert_equal '{"title"=>"foo"}', last_response.body
+      assert_equal '<ActionController::Parameters {"title"=>"foo"} permitted: false>', last_response.body
     end
 
     test "config.action_controller.permit_all_parameters = true" do
@@ -1306,6 +1337,21 @@ module ApplicationTests
       assert_equal 'custom key', Rails.application.config.my_custom_config['key']
     end
 
+    test "config_for uses the Pathname object if it is provided" do
+      app_file 'config/custom.yml', <<-RUBY
+      development:
+        key: 'custom key'
+      RUBY
+
+      add_to_config <<-RUBY
+        config.my_custom_config = config_for(Pathname.new(Rails.root.join("config/custom.yml")))
+      RUBY
+
+      app 'development'
+
+      assert_equal 'custom key', Rails.application.config.my_custom_config['key']
+    end
+
     test "config_for raises an exception if the file does not exist" do
       add_to_config <<-RUBY
         config.my_custom_config = config_for('custom')
@@ -1392,6 +1438,46 @@ module ApplicationTests
       require "#{app_path}/config/environment"
 
       assert_equal 'unicorn', Rails.application.config.my_custom_config['key']
+    end
+
+    test "api_only is false by default" do
+      app 'development'
+      refute Rails.application.config.api_only
+    end
+
+    test "api_only generator config is set when api_only is set" do
+      add_to_config <<-RUBY
+        config.api_only = true
+      RUBY
+      app 'development'
+
+      Rails.application.load_generators
+      assert Rails.configuration.api_only
+    end
+
+    test "debug_exception_response_format is :api by default if api_only is enabled" do
+      add_to_config <<-RUBY
+        config.api_only = true
+      RUBY
+      app 'development'
+
+      assert_equal :api, Rails.configuration.debug_exception_response_format
+    end
+
+    test "debug_exception_response_format can be overridden" do
+      add_to_config <<-RUBY
+        config.api_only = true
+      RUBY
+
+      app_file 'config/environments/development.rb', <<-RUBY
+      Rails.application.configure do
+        config.debug_exception_response_format = :default
+      end
+      RUBY
+
+      app 'development'
+
+      assert_equal :default, Rails.configuration.debug_exception_response_format
     end
   end
 end

@@ -132,6 +132,13 @@ module ActiveRecord
         end
       end
 
+      if current_adapter?(:PostgreSQLAdapter)
+        def test_create_join_table_with_uuid
+          connection.create_join_table :artists, :musics, column_options: { type: :uuid }
+          assert_equal [:uuid, :uuid], connection.columns(:artists_musics).map(&:type)
+        end
+      end
+
       private
 
         def with_table_cleanup

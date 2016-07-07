@@ -234,6 +234,11 @@ module ApplicationTests
       assert_match "0 failures, 0 errors, 0 skips", run_test_command('')
     end
 
+    def test_generated_controller_works_with_rails_test
+      create_controller
+      assert_match "0 failures, 0 errors, 0 skips", run_test_command('')
+    end
+
     def test_run_multiple_folders
       create_test_file :models, 'account'
       create_test_file :controllers, 'accounts_controller'
@@ -289,6 +294,84 @@ module ApplicationTests
       end
     end
 
+    def test_more_than_one_line_filter
+      app_file 'test/models/post_test.rb', <<-RUBY
+        require 'test_helper'
+
+        class PostTest < ActiveSupport::TestCase
+          test "first filter" do
+            puts 'PostTest:FirstFilter'
+            assert true
+          end
+
+          test "second filter" do
+            puts 'PostTest:SecondFilter'
+            assert true
+          end
+
+          test "test line filter does not run this" do
+            assert true
+          end
+        end
+      RUBY
+
+      run_test_command('test/models/post_test.rb:4:9').tap do |output|
+        assert_match 'PostTest:FirstFilter', output
+        assert_match 'PostTest:SecondFilter', output
+        assert_match '2 runs, 2 assertions', output
+      end
+    end
+
+    def test_more_than_one_line_filter_with_multiple_files
+      app_file 'test/models/account_test.rb', <<-RUBY
+        require 'test_helper'
+
+        class AccountTest < ActiveSupport::TestCase
+          test "first filter" do
+            puts 'AccountTest:FirstFilter'
+            assert true
+          end
+
+          test "second filter" do
+            puts 'AccountTest:SecondFilter'
+            assert true
+          end
+
+          test "line filter does not run this" do
+            assert true
+          end
+        end
+      RUBY
+
+      app_file 'test/models/post_test.rb', <<-RUBY
+        require 'test_helper'
+
+        class PostTest < ActiveSupport::TestCase
+          test "first filter" do
+            puts 'PostTest:FirstFilter'
+            assert true
+          end
+
+          test "second filter" do
+            puts 'PostTest:SecondFilter'
+            assert true
+          end
+
+          test "line filter does not run this" do
+            assert true
+          end
+        end
+      RUBY
+
+      run_test_command('test/models/account_test.rb:4:9 test/models/post_test.rb:4:9').tap do |output|
+        assert_match 'AccountTest:FirstFilter', output
+        assert_match 'AccountTest:SecondFilter', output
+        assert_match 'PostTest:FirstFilter', output
+        assert_match 'PostTest:SecondFilter', output
+        assert_match '4 runs, 4 assertions', output
+      end
+    end
+
     def test_multiple_line_filters
       create_test_file :models, 'account'
       create_test_file :models, 'post'
@@ -299,11 +382,51 @@ module ApplicationTests
       end
     end
 
-    def test_line_filter_without_line_runs_all_tests
-      create_test_file :models, 'account'
+    def test_line_filters_trigger_only_one_runnable
+      app_file 'test/models/post_test.rb', <<-RUBY
+        require 'test_helper'
 
-      run_test_command('test/models/account_test.rb:').tap do |output|
-        assert_match 'AccountTest', output
+        class PostTest < ActiveSupport::TestCase
+          test 'truth' do
+            assert true
+          end
+        end
+
+        class SecondPostTest < ActiveSupport::TestCase
+          test 'truth' do
+            assert false, 'ran second runnable'
+          end
+        end
+      RUBY
+
+      # Pass seed guaranteeing failure.
+      run_test_command('test/models/post_test.rb:4 --seed 30410').tap do |output|
+        assert_no_match 'ran second runnable', output
+        assert_match '1 runs, 1 assertions', output
+      end
+    end
+
+    def test_line_filter_with_minitest_string_filter
+      app_file 'test/models/post_test.rb', <<-RUBY
+        require 'test_helper'
+
+        class PostTest < ActiveSupport::TestCase
+          test 'by line' do
+            puts 'by line'
+            assert true
+          end
+
+          test 'by name' do
+            puts 'by name'
+            assert true
+          end
+        end
+      RUBY
+
+      run_test_command('test/models/post_test.rb:4 -n test_by_name').tap do |output|
+        assert_match 'by line', output
+        assert_match 'by name', output
+        assert_match '2 runs, 2 assertions', output
       end
     end
 
@@ -344,7 +467,8 @@ module ApplicationTests
       create_test_file :models, 'post', pass: false
 
       output = run_test_command('test/models/post_test.rb')
-      assert_match %r{Running:\n\nPostTest\nF\n\nwups!\n\nbin/rails test test/models/post_test.rb:6}, output
+      expect = %r{Running:\n\nPostTest\nF\n\nFailure:\nPostTest#test_truth \[[^\]]+test/models/post_test.rb:6\]:\nwups!\n\nbin/rails test test/models/post_test.rb:4\n\n\n\n}
+      assert_match expect, output
     end
 
     def test_only_inline_failure_output
@@ -364,6 +488,52 @@ module ApplicationTests
     def test_raise_error_when_specified_file_does_not_exist
       error = capture(:stderr) { run_test_command('test/not_exists.rb') }
       assert_match(%r{cannot load such file.+test/not_exists\.rb}, error)
+    end
+
+    def test_pass_TEST_env_on_rake_test
+      create_test_file :models, 'account'
+      create_test_file :models, 'post', pass: false
+      # This specifically verifies TEST for backwards compatibility with rake test
+      # as bin/rails test already supports running tests from a single file more cleanly.
+      output =  Dir.chdir(app_path) { `bin/rake test TEST=test/models/post_test.rb` }
+
+      assert_match "PostTest", output, "passing TEST= should run selected test"
+      assert_no_match "AccountTest", output, "passing TEST= should only run selected test"
+      assert_match '1 runs, 1 assertions', output
+    end
+
+    def test_pass_rake_options
+      create_test_file :models, 'account'
+      output =  Dir.chdir(app_path) { `bin/rake --rakefile Rakefile --trace=stdout test` }
+
+      assert_match '1 runs, 1 assertions', output
+      assert_match 'Execute test', output
+    end
+
+    def test_rails_db_create_all_restores_db_connection
+      create_test_file :models, 'account'
+      output =  Dir.chdir(app_path) { `bin/rails db:create:all db:migrate && echo ".tables" | rails dbconsole` }
+      assert_match "ar_internal_metadata", output, "tables should be dumped"
+    end
+
+    def test_rails_db_create_all_restores_db_connection_after_drop
+      create_test_file :models, 'account'
+      Dir.chdir(app_path) { `bin/rails db:create:all` } # create all to avoid warnings
+      output =  Dir.chdir(app_path) { `bin/rails db:drop:all db:create:all db:migrate && echo ".tables" | rails dbconsole` }
+      assert_match "ar_internal_metadata", output, "tables should be dumped"
+    end
+
+    def test_rake_passes_TESTOPTS_to_minitest
+      create_test_file :models, 'account'
+      output =  Dir.chdir(app_path) { `bin/rake test TESTOPTS=-v` }
+      assert_match "AccountTest#test_truth", output, "passing TEST= should run selected test"
+    end
+
+    def test_rake_passes_multiple_TESTOPTS_to_minitest
+      create_test_file :models, 'account'
+      output =  Dir.chdir(app_path) { `bin/rake test TESTOPTS='-v --seed=1234'` }
+      assert_match "AccountTest#test_truth", output, "passing TEST= should run selected test"
+      assert_match "seed=1234", output, "passing TEST= should run selected test"
     end
 
     private
@@ -448,8 +618,12 @@ module ApplicationTests
         run_migration
       end
 
+      def create_controller
+        script 'generate controller admin/dashboard index'
+      end
+
       def run_migration
-        Dir.chdir(app_path) { `bin/rake db:migrate` }
+        Dir.chdir(app_path) { `bin/rails db:migrate` }
       end
   end
 end

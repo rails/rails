@@ -51,8 +51,12 @@ module ActiveRecord
         end
 
         attrs = args.first
-        if subclass_from_attributes?(attrs)
+        if has_attribute?(inheritance_column)
           subclass = subclass_from_attributes(attrs)
+
+          if subclass.nil? && base_class == self
+            subclass = subclass_from_attributes(column_defaults)
+          end
         end
 
         if subclass && subclass != self
@@ -163,10 +167,11 @@ module ActiveRecord
       end
 
       def using_single_table_inheritance?(record)
-        record[inheritance_column].present? && columns_hash.include?(inheritance_column)
+        record[inheritance_column].present? && has_attribute?(inheritance_column)
       end
 
       def find_sti_class(type_name)
+        type_name = base_class.type_for_attribute(inheritance_column).cast(type_name)
         subclass = begin
           if store_full_sti_class
             ActiveSupport::Dependencies.constantize(type_name)
@@ -187,7 +192,7 @@ module ActiveRecord
       end
 
       def type_condition(table = arel_table)
-        sti_column = table[inheritance_column]
+        sti_column = arel_attribute(inheritance_column, table)
         sti_names  = ([self] + descendants).map(&:sti_name)
 
         sti_column.in(sti_names)
@@ -195,17 +200,14 @@ module ActiveRecord
 
       # Detect the subclass from the inheritance column of attrs. If the inheritance column value
       # is not self or a valid subclass, raises ActiveRecord::SubclassNotFound
-      # If this is a StrongParameters hash, and access to inheritance_column is not permitted,
-      # this will ignore the inheritance column and return nil
-      def subclass_from_attributes?(attrs)
-        attribute_names.include?(inheritance_column) && attrs.is_a?(Hash)
-      end
-
       def subclass_from_attributes(attrs)
-        subclass_name = attrs.with_indifferent_access[inheritance_column]
+        attrs = attrs.to_h if attrs.respond_to?(:permitted?)
+        if attrs.is_a?(Hash)
+          subclass_name = attrs.with_indifferent_access[inheritance_column]
 
-        if subclass_name.present?
-          find_sti_class(subclass_name)
+          if subclass_name.present?
+            find_sti_class(subclass_name)
+          end
         end
       end
     end

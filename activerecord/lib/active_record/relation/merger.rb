@@ -141,6 +141,9 @@ module ActiveRecord
       end
 
       def merge_single_values
+        if relation.from_clause.empty?
+          relation.from_clause = other.from_clause
+        end
         relation.lock_value ||= other.lock_value
 
         unless other.create_with_value.blank?

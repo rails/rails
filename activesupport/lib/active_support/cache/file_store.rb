@@ -17,6 +17,7 @@ module ActiveSupport
       FILENAME_MAX_SIZE = 228 # max filename size on file system is 255, minus room for timestamp and random characters appended by Tempfile (used by atomic write)
       FILEPATH_MAX_SIZE = 900 # max is 1024, plus some room
       EXCLUDED_DIRS = ['.', '..'].freeze
+      GITKEEP_FILES = ['.gitkeep', '.keep'].freeze
 
       def initialize(cache_path, options = nil)
         super(options)
@@ -24,10 +25,10 @@ module ActiveSupport
       end
 
       # Deletes all items from the cache. In this case it deletes all the entries in the specified
-      # file store directory except for .gitkeep. Be careful which directory is specified in your
+      # file store directory except for .keep or .gitkeep. Be careful which directory is specified in your
       # config file when using +FileStore+ because everything in that directory will be deleted.
       def clear(options = nil)
-        root_dirs = Dir.entries(cache_path).reject {|f| (EXCLUDED_DIRS + [".gitkeep"]).include?(f)}
+        root_dirs = exclude_from(cache_path, EXCLUDED_DIRS + GITKEEP_FILES)
         FileUtils.rm_r(root_dirs.collect{|f| File.join(cache_path, f)})
       rescue Errno::ENOENT
       end
@@ -154,7 +155,7 @@ module ActiveSupport
         # Delete empty directories in the cache.
         def delete_empty_directories(dir)
           return if File.realpath(dir) == File.realpath(cache_path)
-          if Dir.entries(dir).reject {|f| EXCLUDED_DIRS.include?(f)}.empty?
+          if exclude_from(dir, EXCLUDED_DIRS).empty?
             Dir.delete(dir) rescue nil
             delete_empty_directories(File.dirname(dir))
           end
@@ -192,6 +193,11 @@ module ActiveSupport
               num
             end
           end
+        end
+
+        # Exclude entries from source directory
+        def exclude_from(source, excludes)
+          Dir.entries(source).reject { |f| excludes.include?(f) }
         end
     end
   end

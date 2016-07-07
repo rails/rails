@@ -31,11 +31,9 @@ module ActiveSupport
       @cache_keys = Concurrent::Map.new
     end
 
-    # Returns a derived key suitable for use.  The default key_size is chosen
-    # to be compatible with the default settings of ActiveSupport::MessageVerifier.
-    # i.e. OpenSSL::Digest::SHA1#block_length
-    def generate_key(salt, key_size=64)
-      @cache_keys["#{salt}#{key_size}"] ||= @key_generator.generate_key(salt, key_size)
+    # Returns a derived key suitable for use.
+    def generate_key(*args)
+      @cache_keys[args.join] ||= @key_generator.generate_key(*args)
     end
   end
 

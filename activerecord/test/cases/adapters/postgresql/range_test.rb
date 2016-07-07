@@ -4,11 +4,13 @@ require 'support/connection_helper'
 if ActiveRecord::Base.connection.respond_to?(:supports_ranges?) && ActiveRecord::Base.connection.supports_ranges?
   class PostgresqlRange < ActiveRecord::Base
     self.table_name = "postgresql_ranges"
+    self.time_zone_aware_types += [:tsrange, :tstzrange]
   end
 
   class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
     self.use_transactional_tests = false
     include ConnectionHelper
+    include InTimeZone
 
     def setup
       @connection = PostgresqlRange.connection
@@ -160,6 +162,26 @@ _SQL
       assert_nil @empty_range.float_range
     end
 
+    def test_timezone_awareness_tzrange
+      tz = "Pacific Time (US & Canada)"
+
+      in_time_zone tz do
+        PostgresqlRange.reset_column_information
+        time_string = Time.current.to_s
+        time = Time.zone.parse(time_string)
+
+        record = PostgresqlRange.new(tstz_range: time_string..time_string)
+        assert_equal time..time, record.tstz_range
+        assert_equal ActiveSupport::TimeZone[tz], record.tstz_range.begin.time_zone
+
+        record.save!
+        record.reload
+
+        assert_equal time..time, record.tstz_range
+        assert_equal ActiveSupport::TimeZone[tz], record.tstz_range.begin.time_zone
+      end
+    end
+
     def test_create_tstzrange
       tstzrange = Time.parse('2010-01-01 14:30:00 +0100')...Time.parse('2011-02-02 14:30:00 CDT')
       round_trip(@new_range, :tstz_range, tstzrange)
@@ -186,6 +208,26 @@ _SQL
                               Time.send(tz, 2010, 1, 1, 14, 30, 0)...Time.send(tz, 2011, 2, 2, 14, 30, 0))
       assert_nil_round_trip(@first_range, :ts_range,
                             Time.send(tz, 2010, 1, 1, 14, 30, 0)...Time.send(tz, 2010, 1, 1, 14, 30, 0))
+    end
+
+    def test_timezone_awareness_tsrange
+      tz = "Pacific Time (US & Canada)"
+
+      in_time_zone tz do
+        PostgresqlRange.reset_column_information
+        time_string = Time.current.to_s
+        time = Time.zone.parse(time_string)
+
+        record = PostgresqlRange.new(ts_range: time_string..time_string)
+        assert_equal time..time, record.ts_range
+        assert_equal ActiveSupport::TimeZone[tz], record.ts_range.begin.time_zone
+
+        record.save!
+        record.reload
+
+        assert_equal time..time, record.ts_range
+        assert_equal ActiveSupport::TimeZone[tz], record.ts_range.begin.time_zone
+      end
     end
 
     def test_create_numrange

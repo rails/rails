@@ -263,3 +263,10 @@ end
 class SerializedPost < ActiveRecord::Base
   serialize :title
 end
+
+class ConditionalStiPost < Post
+  default_scope { where(title: 'Untitled') }
+end
+
+class SubConditionalStiPost < ConditionalStiPost
+end

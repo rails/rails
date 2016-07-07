@@ -18,6 +18,8 @@ require 'models/minivan'
 require 'models/aircraft'
 require "models/possession"
 require "models/reader"
+require "models/categorization"
+require "models/edge"
 
 class RelationTest < ActiveRecord::TestCase
   fixtures :authors, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
@@ -110,13 +112,36 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_loaded_first
     topics = Topic.all.order('id ASC')
+    topics.to_a # force load
 
-    assert_queries(1) do
-      topics.to_a # force load
-      2.times { assert_equal "The First Topic", topics.first.title }
+    assert_no_queries do
+      assert_equal "The First Topic", topics.first.title
     end
 
     assert topics.loaded?
+  end
+
+  def test_loaded_first_with_limit
+    topics = Topic.all.order('id ASC')
+    topics.to_a # force load
+
+    assert_no_queries do
+      assert_equal ["The First Topic",
+                    "The Second Topic of the day"], topics.first(2).map(&:title)
+    end
+
+    assert topics.loaded?
+  end
+
+  def test_first_get_more_than_available
+    topics = Topic.all.order('id ASC')
+    unloaded_first = topics.first(10)
+    topics.to_a # force load
+
+    assert_no_queries do
+      loaded_first = topics.first(10)
+      assert_equal unloaded_first, loaded_first
+    end
   end
 
   def test_reload
@@ -197,6 +222,39 @@ class RelationTest < ActiveRecord::TestCase
     topics = Topic.order(:id => :asc).reverse_order
     assert_equal 5, topics.to_a.size
     assert_equal topics(:fifth).title, topics.first.title
+  end
+
+  def test_reverse_order_with_function
+    topics = Topic.order("length(title)").reverse_order
+    assert_equal topics(:second).title, topics.first.title
+  end
+
+  def test_reverse_order_with_function_other_predicates
+    topics = Topic.order("author_name, length(title), id").reverse_order
+    assert_equal topics(:second).title, topics.first.title
+    topics = Topic.order("length(author_name), id, length(title)").reverse_order
+    assert_equal topics(:fifth).title, topics.first.title
+  end
+
+  def test_reverse_order_with_multiargument_function
+    assert_raises(ActiveRecord::IrreversibleOrderError) do
+      Topic.order("concat(author_name, title)").reverse_order
+    end
+  end
+
+  def test_reverse_order_with_nulls_first_or_last
+    assert_raises(ActiveRecord::IrreversibleOrderError) do
+      Topic.order("title NULLS FIRST").reverse_order
+    end
+    assert_raises(ActiveRecord::IrreversibleOrderError) do
+      Topic.order("title nulls last").reverse_order
+    end
+  end
+
+  def test_default_reverse_order_on_table_without_primary_key
+    assert_raises(ActiveRecord::IrreversibleOrderError) do
+      Edge.all.reverse_order
+    end
   end
 
   def test_order_with_hash_and_symbol_generates_the_same_sql
@@ -300,6 +358,12 @@ class RelationTest < ActiveRecord::TestCase
   def test_finding_with_sanitized_order
     query = Tag.order(["field(id, ?)", [1,3,2]]).to_sql
     assert_match(/field\(id, 1,3,2\)/, query)
+
+    query = Tag.order(["field(id, ?)", []]).to_sql
+    assert_match(/field\(id, NULL\)/, query)
+
+    query = Tag.order(["field(id, ?)", nil]).to_sql
+    assert_match(/field\(id, NULL\)/, query)
   end
 
   def test_finding_with_order_limit_and_offset
@@ -918,6 +982,12 @@ class RelationTest < ActiveRecord::TestCase
     assert authors.exists?(authors(:david).id)
   end
 
+  def test_any_with_scope_on_hash_includes
+    post = authors(:david).posts.first
+    categories = Categorization.includes(author: :posts).where(posts: { id: post.id })
+    assert categories.exists?
+  end
+
   def test_last
     authors = Author.all
     assert_equal authors(:bob), authors.last
@@ -1207,6 +1277,16 @@ class RelationTest < ActiveRecord::TestCase
     end
 
     assert posts.loaded?
+  end
+
+  def test_to_a_should_dup_target
+    posts = Post.all
+
+    original_size = posts.size
+    removed = posts.to_a.pop
+
+    assert_equal original_size, posts.size
+    assert_includes posts.to_a, removed
   end
 
   def test_build
@@ -1908,5 +1988,23 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_relation_join_method
     assert_equal 'Thank you for the welcome,Thank you again for the welcome', Post.first.comments.join(",")
+  end
+
+  def test_connection_adapters_can_reorder_binds
+    posts = Post.limit(1).offset(2)
+
+    stubbed_connection = Post.connection.dup
+    def stubbed_connection.combine_bind_parameters(**kwargs)
+      offset = kwargs[:offset]
+      kwargs[:offset] = kwargs[:limit]
+      kwargs[:limit] = offset
+      super(**kwargs)
+    end
+
+    posts.define_singleton_method(:connection) do
+      stubbed_connection
+    end
+
+    assert_equal 2, posts.to_a.length
   end
 end

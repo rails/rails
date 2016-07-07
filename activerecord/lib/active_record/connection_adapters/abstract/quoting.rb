@@ -82,7 +82,7 @@ module ActiveRecord
 
       # Quotes the column name. Defaults to no quoting.
       def quote_column_name(column_name)
-        column_name
+        column_name.to_s
       end
 
       # Quotes the table name. Defaults to column name quoting.
@@ -93,7 +93,7 @@ module ActiveRecord
       # Override to return the quoted table name for assignment. Defaults to
       # table quoting.
       #
-      # This works for mysql and mysql2 where table.column can be used to
+      # This works for mysql2 where table.column can be used to
       # resolve ambiguity.
       #
       # We override this in the sqlite3 and postgresql adapters to use only
@@ -102,9 +102,13 @@ module ActiveRecord
         quote_table_name("#{table}.#{attr}")
       end
 
-      def quote_default_expression(value, column) #:nodoc:
-        value = lookup_cast_type(column.sql_type).serialize(value)
-        quote(value)
+      def quote_default_expression(value, column) # :nodoc:
+        if value.is_a?(Proc)
+          value.call
+        else
+          value = lookup_cast_type(column.sql_type).serialize(value)
+          quote(value)
+        end
       end
 
       def quoted_true
@@ -142,6 +146,10 @@ module ActiveRecord
         end
       end
 
+      def quoted_time(value) # :nodoc:
+        quoted_date(value).sub(/\A2000-01-01 /, '')
+      end
+
       def prepare_binds_for_database(binds) # :nodoc:
         binds.map(&:value_for_database)
       end
@@ -162,6 +170,7 @@ module ActiveRecord
         # BigDecimals need to be put in a non-normalized form and quoted.
         when BigDecimal then value.to_s('F')
         when Numeric, ActiveSupport::Duration then value.to_s
+        when Type::Time::Value then "'#{quoted_time(value)}'"
         when Date, Time then "'#{quoted_date(value)}'"
         when Symbol     then "'#{quote_string(value.to_s)}'"
         when Class      then "'#{value}'"
@@ -177,6 +186,7 @@ module ActiveRecord
         when false      then unquoted_false
         # BigDecimals need to be put in a non-normalized form and quoted.
         when BigDecimal then value.to_s('F')
+        when Type::Time::Value then quoted_time(value)
         when Date, Time then quoted_date(value)
         when *types_which_need_no_typecasting
           value

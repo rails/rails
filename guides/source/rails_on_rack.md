@@ -93,10 +93,10 @@ NOTE: `ActionDispatch::MiddlewareStack` is Rails equivalent of `Rack::Builder`, 
 
 ### Inspecting Middleware Stack
 
-Rails has a handy rake task for inspecting the middleware stack in use:
+Rails has a handy task for inspecting the middleware stack in use:
 
 ```bash
-$ bin/rake middleware
+$ bin/rails middleware
 ```
 
 For a freshly generated Rails application, this might produce something like:
@@ -104,7 +104,7 @@ For a freshly generated Rails application, this might produce something like:
 ```ruby
 use Rack::Sendfile
 use ActionDispatch::Static
-use Rack::Lock
+use ActionDispatch::Executor
 use #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x000000029a0838>
 use Rack::Runtime
 use Rack::MethodOverride
@@ -171,14 +171,14 @@ Add the following lines to your application configuration:
 
 ```ruby
 # config/application.rb
-config.middleware.delete Rack::Lock
+config.middleware.delete Rack::Runtime
 ```
 
-And now if you inspect the middleware stack, you'll find that `Rack::Lock` is
+And now if you inspect the middleware stack, you'll find that `Rack::Runtime` is
 not a part of it.
 
 ```bash
-$ bin/rake middleware
+$ bin/rails middleware
 (in /Users/lifo/Rails/blog)
 use ActionDispatch::Static
 use #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x00000001c304c8>
@@ -218,6 +218,10 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 **`Rack::Lock`**
 
 * Sets `env["rack.multithread"]` flag to `false` and wraps the application within a Mutex.
+
+**`ActionDispatch::Executor`**
+
+* Used for thread safe code reloading during development.
 
 **`ActiveSupport::Cache::Strategy::LocalCache::Middleware`**
 

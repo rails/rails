@@ -1,4 +1,4 @@
-# MySQL.  Versions 4.1 and 5.0 are recommended.
+# MySQL. Versions 5.0 and up are supported.
 #
 # Install the MySQL driver:
 #   gem install activerecord-jdbcmysql-adapter
