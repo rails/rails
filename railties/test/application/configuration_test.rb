@@ -1088,7 +1088,7 @@ module ApplicationTests
       assert_equal %w( controller action format ), ActionController::Parameters.always_permitted_parameters
     end
 
-    test "config.action_controller.always_permitted_parameters = ['controller','action','format'] does not raise exeception" do
+    test "config.action_controller.always_permitted_parameters = ['controller','action','format'] does not raise exception" do
       app_file 'app/controllers/posts_controller.rb', <<-RUBY
       class PostsController < ActionController::Base
         def create
