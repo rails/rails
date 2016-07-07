@@ -1,3 +1,32 @@
+*   `select_tag`'s and `date`'s `disabled_blank` can generate a blank tag option's with selected and
+    disabled.
+
+    Generation of option:
+
+    ```html
+    <option value="" disabled="disabled" selected="selected"></option>
+    ```
+
+    If it pass a value beyond true it change the title for this value and keep the option's selected and
+    disabled.
+
+    Generation of option:
+
+    ```html
+    <option value="" disabled="disabled" selected="selected">None</option>
+    ```
+
+    If it pass a value to default to come selected option's will only contain the disabled option's.
+
+    Generation of option:
+
+    ```html
+    <option value="" disabled="disabled"></option>
+    <option value="1" selected="selected">1</option>
+    ```
+
+    *Herminio Torres*
+
 *   New syntax for tag helpers. Avoid positional parameters and support HTML5 by default.
     Example usage of tag helpers before:
 

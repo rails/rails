@@ -145,6 +145,15 @@ module ActionView
           if options[:include_blank]
             option_tags = tag_builder.content_tag_string('option', options[:include_blank].kind_of?(String) ? options[:include_blank] : nil, :value => '') + "\n" + option_tags
           end
+          if options[:disabled_blank]
+            if value.present?
+              option_disabled_blank = { value: '', disabled: true }
+            else
+              option_disabled_blank = { value: '', selected: true , disabled: true }
+            end
+
+            option_tags = tag_builder.content_tag_string('option', options[:disabled_blank].kind_of?(String) ? options[:disabled_blank] : nil, option_disabled_blank) + "\n" + option_tags
+          end
           if value.blank? && options[:prompt]
             option_tags = tag_builder.content_tag_string('option', prompt_text(options[:prompt]), :value => '') + "\n" + option_tags
           end

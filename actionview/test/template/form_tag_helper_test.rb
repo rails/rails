@@ -238,6 +238,18 @@ class FormTagHelperTest < ActionView::TestCase
     assert_match VALID_HTML_ID, input_elem['id']
   end
 
+  def test_select_tag_with_disabled_blank
+    actual = select_tag "places", raw("<option>Home</option><option>Work</option><option>Pub</option>"), disabled_blank: true
+    expected = %(<select id="places" name="places"><option value="" label=" " selected="selected" disabled="disabled"></option><option>Home</option><option>Work</option><option>Pub</option></select>)
+    assert_dom_equal expected, actual
+  end
+
+  def test_select_tag_with_disabled_blank_as_string
+    actual = select_tag "places", raw("<option>Home</option><option>Work</option><option>Pub</option>"), disabled_blank: 'None'
+    expected = %(<select id="places" name="places"><option value="" selected="selected" disabled="disabled">None</option><option>Home</option><option>Work</option><option>Pub</option></select>)
+    assert_dom_equal expected, actual
+  end
+
   def test_select_tag_with_include_blank
     actual = select_tag "places", raw("<option>Home</option><option>Work</option><option>Pub</option>"), include_blank: true
     expected = %(<select id="places" name="places"><option value="" label=" "></option><option>Home</option><option>Work</option><option>Pub</option></select>)

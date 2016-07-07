@@ -660,6 +660,20 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_select_with_disabled_blank
+    assert_dom_equal(
+      %(<select id="post_category" name="post[category]"><option value="" selected="selected" disabled="disabled"></option>\n<option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>),
+      select("post", "category", %w( abe mus hest), disabled_blank: true)
+    )
+  end
+
+  def test_select_with_disabled_blank_as_string
+    assert_dom_equal(
+      %(<select id="post_category" name="post[category]"><option value="" selected="selected" disabled="disabled">None</option>\n<option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>),
+      select("post", "category", %w( abe mus hest), disabled_blank: 'None')
+    )
+  end
+
   def test_select_with_blank
     @post = Post.new
     @post.category = "<mus>"
@@ -958,6 +972,36 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_collection_select_with_disabled_blank_and_style
+    @post = Post.new
+    @post.author_name = "Babe"
+
+    assert_dom_equal(
+      "<select id=\"post_author_name\" name=\"post[author_name]\" style=\"width: 200px\"><option value=\"\" disabled=\"disabled\"></option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>",
+      collection_select("post", "author_name", dummy_posts, "author_name", "author_name", { disabled_blank: true }, "style" => "width: 200px")
+    )
+  end
+
+  def test_collection_select_with_disabled_blank_and_style_as_string
+    @post = Post.new
+    @post.author_name = "Babe"
+
+    assert_dom_equal(
+      "<select id=\"post_author_name\" name=\"post[author_name]\" style=\"width: 200px\"><option value=\"\" disabled=\"disabled\">None</option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>",
+      collection_select("post", "author_name", dummy_posts, "author_name", "author_name", { disabled_blank: 'None' }, "style" => "width: 200px")
+    )
+  end
+
+  def test_collection_select_with_disabled_blank_and_selected
+    @post = Post.new
+    @post.author_name = "Babe"
+
+    assert_dom_equal(
+      %{<select id="post_author_name" name="post[author_name]"><option value="" disabled="disabled"></option>\n<option value="&lt;Abe&gt;" selected="selected">&lt;Abe&gt;</option>\n<option value="Babe">Babe</option>\n<option value="Cabe">Cabe</option></select>},
+      collection_select("post", "author_name", dummy_posts, "author_name", "author_name", { disabled_blank: true, selected: "<Abe>" })
+    )
+  end
+
   def test_collection_select_with_blank_and_style
     @post = Post.new
     @post.author_name = "Babe"
@@ -1098,6 +1142,34 @@ class FormOptionsHelperTest < ActionView::TestCase
       "</select>",
       output_buffer
     )
+  end
+
+  def test_time_zone_select_with_disabled_blank
+    @firm = Firm.new("D")
+    html = time_zone_select("firm", "time_zone", nil, disabled_blank: true)
+    assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
+                 "<option value=\"\" disabled=\"disabled\"></option>\n" +
+                 "<option value=\"A\">A</option>\n" +
+                 "<option value=\"B\">B</option>\n" +
+                 "<option value=\"C\">C</option>\n" +
+                 "<option value=\"D\" selected=\"selected\">D</option>\n" +
+                 "<option value=\"E\">E</option>" +
+                 "</select>",
+                 html
+  end
+
+  def test_time_zone_select_with_disabled_blank_as_string
+    @firm = Firm.new("D")
+    html = time_zone_select("firm", "time_zone", nil, disabled_blank: 'None')
+    assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
+                 "<option value=\"\" disabled=\"disabled\">None</option>\n" +
+                 "<option value=\"A\">A</option>\n" +
+                 "<option value=\"B\">B</option>\n" +
+                 "<option value=\"C\">C</option>\n" +
+                 "<option value=\"D\" selected=\"selected\">D</option>\n" +
+                 "<option value=\"E\">E</option>" +
+                 "</select>",
+                 html
   end
 
   def test_time_zone_select_with_blank

@@ -16,6 +16,7 @@ module ActionView
     # * <tt>:prefix</tt> - overwrites the default prefix of "date" used for the select names. So specifying "birthday"
     #   would give \birthday[month] instead of \date[month] if passed to the <tt>select_month</tt> method.
     # * <tt>:include_blank</tt> - set to true if it should be possible to set an empty date.
+    # * <tt>:disabled_blank</tt> - set to true if it should be possible to set an empty date.
     # * <tt>:discard_type</tt> - set to true if you want to discard the type part of the select name. If set to true,
     #   the <tt>select_month</tt> method would use simply "date" (which can be overwritten using <tt>:prefix</tt>) instead
     #   of \date[month].
@@ -219,6 +220,8 @@ module ActionView
       #   select will not be shown (like when you set <tt>discard_xxx: true</tt>. Defaults to the order defined in
       #   the respective locale (e.g. [:year, :month, :day] in the en locale that ships with Rails).
       # * <tt>:include_blank</tt>     - Include a blank option in every select field so it's possible to set empty
+      #   dates.
+      # * <tt>:disabled_blank</tt>    - Include a blank, disabled and selected option in every select field so it's possible to set empty
       #   dates.
       # * <tt>:default</tt>           - Set a default date if the affected date isn't set or is nil.
       # * <tt>:selected</tt>          - Set a date that overrides the actual value.
@@ -1001,6 +1004,7 @@ module ActionView
 
           select_html = "\n"
           select_html << content_tag("option".freeze, '', :value => '') + "\n" if @options[:include_blank]
+          select_html << content_tag("option".freeze, '', value: '', disabled: true) + "\n" if @options[:disabled_blank]
           select_html << prompt_option_tag(type, @options[:prompt]) + "\n" if @options[:prompt]
           select_html << select_options_as_html
 

@@ -83,6 +83,7 @@ module ActionView
       # * <tt>:multiple</tt> - If set to true, the selection will allow multiple choices.
       # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
       # * <tt>:include_blank</tt> - If set to true, an empty option will be created. If set to a string, the string will be used as the option's content and the value will be empty.
+      # * <tt>:disabled_blank</tt> - If set to true, an empty option will be created. If set to a string, the string will be used as the option's content and the value will be empty. The option's will come selected by default. It just will not come selected if you pass an option's selection.
       # * <tt>:prompt</tt> - Create a prompt option with blank value and the text asking user to select something.
       # * Any other key creates standard HTML attributes for the tag.
       #
@@ -118,6 +119,17 @@ module ActionView
       #   select_tag "people", options_from_collection_for_select(@people, "id", "name"), include_blank: "All"
       #   # => <select id="people" name="people"><option value="">All</option><option value="1">David</option></select>
       #
+      #   select_tag "people", options_from_collection_for_select(@people, "id", "name"), disabled_blank: true
+      #   # => <select id="people" name="people"><option value="" disabled='disabled' selected='selected'></option><option value="1">David</option></select>
+      #
+      #   select_tag "people", options_from_collection_for_select(@people, "id", "name"), disabled_blank: "All"
+      #   # => <select id="people" name="people"><option value="" disabled='disabled' selected='selected'>All</option><option value="1">David</option></select>
+      #
+      #   select_tag "credit_card", options_for_select([ "VISA", "MasterCard" ], "MasterCard"), disabled_blank: true
+      #   # => <select id="credit_card" name="credit_card"><option value="" disabled='disabled'>
+      #   #    </option><option>VISA</option>
+      #   #    <option selected="selected">MasterCard</option></select>
+      #
       #   select_tag "people", options_from_collection_for_select(@people, "id", "name"), prompt: "Select something"
       #   # => <select id="people" name="people"><option value="">Select something</option><option value="1">David</option></select>
       #
@@ -143,6 +155,20 @@ module ActionView
 
           if include_blank
             option_tags = content_tag("option".freeze, include_blank, options_for_blank_options_tag).safe_concat(option_tags)
+          end
+        end
+
+        if options.include?(:disabled_blank)
+          disabled_blank = options.delete(:disabled_blank)
+          options_for_disabled_blank_options_tag = { value: '', disabled: true, selected: true }
+
+          if disabled_blank == true
+            disabled_blank = ''
+            options_for_disabled_blank_options_tag[:label] = ' '
+          end
+
+          if disabled_blank
+            option_tags = content_tag("option".freeze, disabled_blank, options_for_disabled_blank_options_tag).safe_concat(option_tags)
           end
         end
 
