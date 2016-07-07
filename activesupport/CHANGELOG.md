@@ -1,3 +1,8 @@
+*    Simplified and sped up the generation of `SecureRandom.base58` strings by
+     removing a conditional extra call to generate a random number.
+
+     *Bart de Water*
+
 *   `travel/travel_to` travel time helpers, now raise on nested calls, 
      as this can lead to confusing time stubbing.
        
