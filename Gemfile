@@ -37,7 +37,9 @@ end
 # Active Support.
 gem 'dalli', '>= 2.2.1'
 gem 'listen', '~> 3.0.5', require: false
-gem 'rb-inotify', github: 'matthewd/rb-inotify', branch: 'close-handling'
+if ENV['FIX'] == '1'
+  gem 'rb-inotify', github: 'matthewd/rb-inotify', branch: 'close-handling'
+end
 
 # Active Job.
 group :job do

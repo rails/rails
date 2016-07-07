@@ -28,39 +28,28 @@ script: 'ci/travis.rb'
 
 env:
   matrix:
-    - "GEM=railties"
-    - "GEM=ap"
-    - "GEM=ac"
-    - "GEM=ac FAYE=1"
-    - "GEM=am,amo,as,av,aj"
-    - "GEM=as PRESERVE_TIMEZONES=1"
-    - "GEM=ar:mysql2"
-    - "GEM=ar:sqlite3"
-    - "GEM=ar:postgresql"
-    - "GEM=aj:integration"
-    - "GEM=guides"
+    - "Z=1 FIX=1 GEM=as"
+    - "Z=2 FIX=1 GEM=as"
+    - "Z=3 FIX=1 GEM=as"
+    - "Z=4 FIX=1 GEM=as"
+    - "Z=1 FIX=1 GEM=as PRESERVE_TIMEZONES=1"
+    - "Z=2 FIX=1 GEM=as PRESERVE_TIMEZONES=1"
+    - "Z=3 FIX=1 GEM=as PRESERVE_TIMEZONES=1"
+    - "Z=4 FIX=1 GEM=as PRESERVE_TIMEZONES=1"
+    - "Z=1 GEM=as"
+    - "Z=2 GEM=as"
+    - "Z=3 GEM=as"
+    - "Z=4 GEM=as"
+    - "Z=1 GEM=as PRESERVE_TIMEZONES=1"
+    - "Z=2 GEM=as PRESERVE_TIMEZONES=1"
+    - "Z=3 GEM=as PRESERVE_TIMEZONES=1"
+    - "Z=4 GEM=as PRESERVE_TIMEZONES=1"
 
 rvm:
   - 2.2.5
   - 2.3.1
-  - ruby-head
 
 matrix:
-  include:
-    # Latest compiled version in http://rubies.travis-ci.org
-    - rvm: 2.3.1
-      env:
-        - "GEM=ar:mysql2"
-      addons:
-        mariadb: 10.0
-    - rvm: jruby-9.0.5.0
-      jdk: oraclejdk8
-      env:
-        - "JRUBY_OPTS='--dev -J-Xmx1024M'"
-        - "GEM='ap'"
-  allow_failures:
-    - rvm: ruby-head
-    - rvm: jruby-9.0.5.0
   fast_finish: true
 
 notifications:
