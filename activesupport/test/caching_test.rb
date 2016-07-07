@@ -3,6 +3,8 @@ require 'abstract_unit'
 require 'active_support/cache'
 require 'dependencies_test_helpers'
 
+require 'pathname'
+
 module ActiveSupport
   module Cache
     module Strategy
