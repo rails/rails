@@ -783,6 +783,11 @@ module ActionController
           end
         end
       end
+
+      def initialize_copy(source)
+        super
+        @parameters = source.instance_variable_get(:@parameters).dup
+      end
   end
 
   # == Strong \Parameters
