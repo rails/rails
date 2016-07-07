@@ -64,7 +64,7 @@ module ActionDispatch
     # <tt>:httponly</tt>.
     class CookieStore < AbstractStore
       def initialize(app, options={})
-        super(app, options.merge!(:cookie_only => true))
+        super(app, options.merge!(cookie_only: true))
       end
 
       def delete_session(req, session_id, options)
