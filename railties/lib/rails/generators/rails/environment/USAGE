@@ -1,0 +1,9 @@
+Description:
+    Creates a new environment, take new name as parameter
+
+Example:
+    `rails generate environment abcd`
+
+      append  config/database.yml
+      create  config/environments/abcd.rb
+      append  config/secrets.yml
