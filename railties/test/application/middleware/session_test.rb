@@ -373,5 +373,11 @@ module ApplicationTests
 
       refute Rails.application.middleware.include?(ActionDispatch::Flash)
     end
+
+    test "cookie_only is set to true even if user tries to overwrite it" do
+      add_to_config "config.session_store :cookie_store, key: '_myapp_session', cookie_only: false"
+      require "#{app_path}/config/environment"
+      assert app.config.session_options[:cookie_only], "Expected cookie_only to be set to true"
+    end
   end
 end
