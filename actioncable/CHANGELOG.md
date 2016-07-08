@@ -1,17 +1,17 @@
-*  Protect against concurrent writes to a websocket connection from
-   multiple threads; the underlying OS write is not always threadsafe.
+*   Protect against concurrent writes to a websocket connection from
+    multiple threads; the underlying OS write is not always threadsafe.
 
-   *Tinco Andringa*
+    *Tinco Andringa*
 
-*  Add ActiveSupport::Notifications hook to Broadcaster#broadcast
+*   Add ActiveSupport::Notifications hook to Broadcaster#broadcast
 
-   *Matthew Wear*
+    *Matthew Wear*
 
-*  Close hijacked socket when connection is shut down.
+*   Close hijacked socket when connection is shut down.
 
-   Fixes #25613.
+    Fixes #25613.
 
-   *Tinco Andringa*
+    *Tinco Andringa*
 
 
 Please check [5-0-stable](https://github.com/rails/rails/blob/5-0-stable/actioncable/CHANGELOG.md) for previous changes.
