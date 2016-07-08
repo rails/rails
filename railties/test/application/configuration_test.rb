@@ -51,7 +51,6 @@ module ApplicationTests
 
     def setup
       build_app
-      boot_rails
       supress_default_config
     end
 
@@ -570,7 +569,7 @@ module ApplicationTests
       app_file 'config/secrets.yml', <<-YAML
         shared:
           api_key: 3b7cd727
-        
+
         development:
           api_key: abc12345
       YAML

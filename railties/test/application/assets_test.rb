@@ -9,7 +9,6 @@ module ApplicationTests
 
     def setup
       build_app(initializers: true)
-      boot_rails
     end
 
     def teardown

@@ -161,7 +161,6 @@ module ApplicationTests
       end
 
       def boot_rails
-        super
         require "#{app_path}/config/environment"
       end
     end

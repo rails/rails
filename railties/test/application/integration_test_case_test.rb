@@ -6,7 +6,6 @@ module ApplicationTests
 
     setup do
       build_app
-      boot_rails
     end
 
     teardown do

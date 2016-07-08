@@ -6,7 +6,6 @@ module ApplicationTests
 
     def setup
       build_app
-      boot_rails
       require 'rack/test'
       extend Rack::Test::Methods
     end
