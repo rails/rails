@@ -461,6 +461,14 @@ module ActionController
 
         if kwarg_request?(args)
           parameters, session, body, flash, http_method, format, xhr = args[0].values_at(:params, :session, :body, :flash, :method, :format, :xhr)
+
+          unexpected_args = (args[0].keys - %i(params session body flash method format xhr))
+          if unexpected_args.any?
+            msg = "unknown keywords received: #{unexpected_args.join(', ')}. " \
+                  "These keyword arguments can be safely removed from your " \
+                  "test: in previous Rails versions they were silently ignored."
+            raise ArgumentError, msg
+          end
         else
           http_method, parameters, session, flash = args
           format = nil

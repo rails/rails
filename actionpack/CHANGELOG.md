@@ -1,3 +1,10 @@
+*   Raise ArgumentError when ActionController::TestCase receives unknown params
+
+    Previously, unknown parameters passed to `ActionController::TestCase` methods
+    were silently ignored. Now they will raise, with a helpful error message.
+
+    *Grey Baker*
+
 *   Check `request.path_parameters` encoding at the point they're set
 
     Check for any non-UTF8 characters in path parameters at the point they're
