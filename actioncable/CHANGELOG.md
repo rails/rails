@@ -3,6 +3,12 @@
 
     *Tinco Andringa*
 
+*   Close hijacked socket when connection is shut down.
+
+    Fixes #25613.
+
+    *Tinco Andringa*
+
 
 ## Rails 5.0.0 (June 30, 2016) ##
 
