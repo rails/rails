@@ -179,7 +179,7 @@ module ActiveRecord
       #   A Symbol can be used to specify the type of the generated primary key column.
       # [<tt>:primary_key</tt>]
       #   The name of the primary key, if one is to be added automatically.
-      #   Defaults to +id+. If <tt>:id</tt> is false this option is ignored.
+      #   Defaults to +id+. If <tt>:id</tt> is false, then this option is ignored.
       #
       #   Note that Active Record models will automatically detect their
       #   primary key. This can be avoided by using
@@ -305,9 +305,9 @@ module ActiveRecord
       #   # Creates a table called 'assemblies_parts' with no id.
       #   create_join_table(:assemblies, :parts)
       #
-      # You can pass a +options+ hash can include the following keys:
+      # You can pass an +options+ hash which can include the following keys:
       # [<tt>:table_name</tt>]
-      #   Sets the table name overriding the default
+      #   Sets the table name, overriding the default.
       # [<tt>:column_options</tt>]
       #   Any extra options you want appended to the columns definition.
       # [<tt>:options</tt>]
@@ -433,7 +433,7 @@ module ActiveRecord
       #    t.remove_index :company_id
       #  end
       #
-      # See also Table for details on all of the various column transformation.
+      # See also Table for details on all of the various column transformations.
       def change_table(table_name, options = {})
         if supports_bulk_alter? && options[:bulk]
           recorder = ActiveRecord::Migration::CommandRecorder.new(self)
@@ -483,10 +483,10 @@ module ActiveRecord
       #
       # Available options are (none of these exists by default):
       # * <tt>:limit</tt> -
-      #   Requests a maximum column length. This is number of characters for a <tt>:string</tt> column
+      #   Requests a maximum column length. This is the number of characters for a <tt>:string</tt> column
       #   and number of bytes for <tt>:text</tt>, <tt>:binary</tt> and <tt>:integer</tt> columns.
       # * <tt>:default</tt> -
-      #   The column's default value. Use nil for NULL.
+      #   The column's default value. Use +nil+ for +NULL+.
       # * <tt>:null</tt> -
       #   Allows or disallows +NULL+ values in the column. This option could
       #   have been named <tt>:null_allowed</tt>.
@@ -495,7 +495,7 @@ module ActiveRecord
       # * <tt>:scale</tt> -
       #   Specifies the scale for the <tt>:decimal</tt> and <tt>:numeric</tt> columns.
       #
-      # Note: The precision is the total number of significant digits
+      # Note: The precision is the total number of significant digits,
       # and the scale is the number of digits that can be stored following
       # the decimal point. For example, the number 123.45 has a precision of 5
       # and a scale of 2. A decimal with a precision of 5 and a scale of 2 can
@@ -564,7 +564,7 @@ module ActiveRecord
       #
       # The +type+ and +options+ parameters will be ignored if present. It can be helpful
       # to provide these in a migration's +change+ method so it can be reverted.
-      # In that case, +type+ and +options+ will be used by add_column.
+      # In that case, +type+ and +options+ will be used by #add_column.
       def remove_column(table_name, column_name, type = nil, options = {})
         execute "ALTER TABLE #{quote_table_name(table_name)} DROP #{quote_column_name(column_name)}"
       end
@@ -952,13 +952,13 @@ module ActiveRecord
 
       # Checks to see if a foreign key exists on a table for a given foreign key definition.
       #
-      #   # Check a foreign key exists
+      #   # Checks to see if a foreign key exists.
       #   foreign_key_exists?(:accounts, :branches)
       #
-      #   # Check a foreign key on a specified column exists
+      #   # Checks to see if a foreign key on a specified column exists.
       #   foreign_key_exists?(:accounts, column: :owner_id)
       #
-      #   # Check a foreign key with a custom name exists
+      #   # Checks to see if a foreign key with a custom name exists.
       #   foreign_key_exists?(:accounts, name: "special_fk_name")
       #
       def foreign_key_exists?(from_table, options_or_to_table = {})
@@ -1081,7 +1081,7 @@ module ActiveRecord
       end
 
       # Given a set of columns and an ORDER BY clause, returns the columns for a SELECT DISTINCT.
-      # PostgreSQL, MySQL, and Oracle overrides this for custom DISTINCT syntax - they
+      # PostgreSQL, MySQL, and Oracle override this for custom DISTINCT syntax - they
       # require the order columns appear in the SELECT.
       #
       #   columns_for_distinct("posts.id", ["posts.created_at desc"])
