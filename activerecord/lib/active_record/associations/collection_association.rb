@@ -587,7 +587,7 @@ module ActiveRecord
           records.each do |record|
             raise_on_type_mismatch!(record)
             add_to_target(record) do |rec|
-              result &&= insert_record(rec, true, should_raise) unless owner.new_record?
+              result &&= insert_record(rec, reflection.validate?, should_raise) unless owner.new_record?
             end
           end
 
