@@ -1,3 +1,14 @@
+*   Fix the generated `#to_param` method to use `omission:''` so that
+    the resulting output is actually up to 20 characters, not
+    effectively 17 to leave room for the default "...".
+    Also call `#parameterize` before `#truncate` and make the
+    `separator: /-/` to maximize the information included in the
+    output.
+
+    Fixes #23635
+
+    *Rob Biedenharn*
+
 *   Ensure concurrent invocations of the connection reaper cannot allocate the
     same connection to two threads.
 

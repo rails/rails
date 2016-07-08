@@ -29,10 +29,30 @@ class IntegrationTest < ActiveRecord::TestCase
     assert_equal '4-flamboyant-software', firm.to_param
   end
 
+  def test_to_param_class_method_truncates_words_properly
+    firm = Firm.find(4)
+    firm.name << ', Inc.'
+    assert_equal '4-flamboyant-software', firm.to_param
+  end
+
+  def test_to_param_class_method_truncates_after_parameterize
+    firm = Firm.find(4)
+    firm.name = "Huey, Dewey, & Louie LLC"
+    #               123456789T123456789v
+    assert_equal '4-huey-dewey-louie-llc', firm.to_param
+  end
+
+  def test_to_param_class_method_truncates_after_parameterize_with_hyphens
+    firm = Firm.find(4)
+    firm.name = "Door-to-Door Wash-n-Fold Service"
+    #               123456789T123456789v
+    assert_equal '4-door-to-door-wash-n', firm.to_param
+  end
+
   def test_to_param_class_method_truncates
     firm = Firm.find(4)
     firm.name = 'a ' * 100
-    assert_equal '4-a-a-a-a-a-a-a-a-a', firm.to_param
+    assert_equal '4-a-a-a-a-a-a-a-a-a-a', firm.to_param
   end
 
   def test_to_param_class_method_truncates_edge_case
@@ -41,10 +61,16 @@ class IntegrationTest < ActiveRecord::TestCase
     assert_equal '4-david', firm.to_param
   end
 
+  def test_to_param_class_method_truncates_case_shown_in_doc
+    firm = Firm.find(4)
+    firm.name = 'David Heinemeier Hansson'
+    assert_equal '4-david-heinemeier', firm.to_param
+  end
+
   def test_to_param_class_method_squishes
     firm = Firm.find(4)
     firm.name = "ab \n" * 100
-    assert_equal '4-ab-ab-ab-ab-ab-ab', firm.to_param
+    assert_equal '4-ab-ab-ab-ab-ab-ab-ab', firm.to_param
   end
 
   def test_to_param_class_method_multibyte_character
