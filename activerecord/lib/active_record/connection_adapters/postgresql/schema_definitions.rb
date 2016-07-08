@@ -11,11 +11,12 @@ module ActiveRecord
         #     t.timestamps
         #   end
         #
-        # By default, this will use the +uuid_generate_v4()+ function from the
-        # +uuid-ossp+ extension, which MUST be enabled on your database. To enable
-        # the +uuid-ossp+ extension, you can use the +enable_extension+ method in your
-        # migrations. To use a UUID primary key without +uuid-ossp+ enabled, you can
-        # set the +:default+ option to +nil+:
+        # By default, this will use the +gen_random_uuid()+ function from the
+        # +pgcrypto+ extension (only PostgreSQL >= 9.4), or +uuid_generate_v4()+
+        # function from the +uuid-ossp+ extension. To enable the appropriate
+        # extension, which is a requirement, you can use the +enable_extension+
+        # method in your migrations. To use a UUID primary key without any of
+        # of extensions, you can set the +:default+ option to +nil+:
         #
         #   create_table :stuffs, id: false do |t|
         #     t.primary_key :id, :uuid, default: nil
@@ -23,15 +24,15 @@ module ActiveRecord
         #     t.timestamps
         #   end
         #
-        # You may also pass a different UUID generation function from +uuid-ossp+
-        # or another library.
+        # You may also pass a custom stored procedure that returns a UUID or use a
+        # different UUID generation function from another library.
         #
         # Note that setting the UUID primary key default value to +nil+ will
         # require you to assure that you always provide a UUID value before saving
         # a record (as primary keys cannot be +nil+). This might be done via the
         # +SecureRandom.uuid+ method and a +before_save+ callback, for instance.
         def primary_key(name, type = :primary_key, **options)
-          options[:default] = options.fetch(:default, "uuid_generate_v4()") if type == :uuid
+          options[:default] = options.fetch(:default, "gen_random_uuid()") if type == :uuid
           super
         end
 
