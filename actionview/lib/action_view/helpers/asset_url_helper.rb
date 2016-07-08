@@ -168,13 +168,7 @@ module ActionView
       #   asset_url "application.js", host: "http://cdn.example.com" # => http://cdn.example.com/assets/application.js
       #
       def asset_url(source, options = {})
-        default_proto = if defined? config.default_asset_host_protocol
-          config.default_asset_host_protocol || :request
-        else
-          :request
-        end
-
-        path_to_asset(source, { protocol: default_proto }.merge(options))
+        path_to_asset(source, { protocol: default_asset_protocol }.merge(options))
       end
       alias_method :url_to_asset, :asset_url # aliased to avoid conflicts with an asset_url named route
 
@@ -234,7 +228,7 @@ module ActionView
         if host =~ URI_REGEXP
           host
         else
-          protocol = options[:protocol] || config.default_asset_host_protocol || (request ? :request : :relative)
+          protocol = options[:protocol] || default_asset_protocol(!!request)
           case protocol
           when :relative
             "//#{host}"
@@ -243,6 +237,15 @@ module ActionView
           else
             "#{protocol}://#{host}"
           end
+        end
+      end
+
+      def default_asset_protocol(assume_request = true)
+        unconfigured_default = assume_request ? :request : :relative
+        if defined? config.default_asset_host_protocol
+          config.default_asset_host_protocol || unconfigured_default
+        else
+          unconfigured_default
         end
       end
 
