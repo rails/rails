@@ -1,3 +1,9 @@
+*   Protect against concurrent writes to a websocket connection from
+    multiple threads; the underlying OS write is not always threadsafe.
+
+    *Tinco Andringa*
+
+
 ## Rails 5.0.0 (June 30, 2016) ##
 
 *   Fix development reloading support: new cable connections are now correctly

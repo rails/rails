@@ -1,3 +1,5 @@
+require 'thread'
+
 module ActionCable
   module Connection
     #--
@@ -11,6 +13,7 @@ module ActionCable
         @stream_send   = socket.env['stream.send']
 
         @rack_hijack_io = nil
+        @write_lock = Mutex.new
       end
 
       def each(&callback)
@@ -27,8 +30,10 @@ module ActionCable
       end
 
       def write(data)
-        return @rack_hijack_io.write(data) if @rack_hijack_io
-        return @stream_send.call(data) if @stream_send
+        @write_lock.synchronize do
+          return @rack_hijack_io.write(data) if @rack_hijack_io
+          return @stream_send.call(data) if @stream_send
+        end
       rescue EOFError, Errno::ECONNRESET
         @socket_object.client_gone
       end
