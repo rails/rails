@@ -1,3 +1,8 @@
+*  Protect against concurrent writes to a websocket connection from
+   multiple threads; the underlying OS write is not always threadsafe.
+
+   *Tinco Andringa*
+
 *  Add ActiveSupport::Notifications hook to Broadcaster#broadcast
 
    *Matthew Wear*
