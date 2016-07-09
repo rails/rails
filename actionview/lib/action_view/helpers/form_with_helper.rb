@@ -2,8 +2,6 @@ module ActionView
   module Helpers
     module FormWithHelper
 
-      DEFAULT_SCOPE = "form"
-
       class FormWithBuilder < FormBuilder
 
         FIELD_HELPERS = [:fields_for, :label, :text_field, :password_field,
@@ -23,28 +21,37 @@ module ActionView
                 #{selector.inspect},                   #     "text_field",
                 @object_name,                          #     @object_name,
                 method,                                #     method,
-                prepare_options(args, options))        #     prepare_options(args, options))
+                prepare_options(options, args[0]))     #     prepare_options(args[0], options))
             end                                        # end
           RUBY_EVAL
         end
 
         def check_box(method, *args, on: "1", off: "0", **options)
-          @template.check_box(@object_name, method, prepare_options(args, options), on, off)
+          @template.check_box(@object_name, method, prepare_options(options), on, off)
         end
 
         private
 
-          def prepare_options(args, options)
+          def prepare_options(options, value = nil)
+            options[:scope] = nil if @object_name.nil?
             options = {id: nil}.merge(options)
-            options[:value] = args[0] if args.size > 0
+            options[:value] = value if value
             objectify_options(options)
+          end
+
+          def submit_default_value
+            if @object_name
+              super
+            else
+              I18n.t("helpers.submit.no_model")
+            end
           end
 
       end
 
       def form_with(model: nil, scope: nil, url: nil, remote: true, **options, &block)
         if model.nil?
-          model_name = scope || DEFAULT_SCOPE
+          model_name = scope
         else
           model_name = model_name_from_record_or_class(model).param_key
           url = url || polymorphic_path(model, {})

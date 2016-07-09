@@ -18,10 +18,18 @@ class FormWithHelperTest < ActionView::TestCase
 
   def test_form_with_url
     expected = whole_form('/posts', remote: true) do
-      "<label for='form_title'>The Title</label>"
+      #TODO: label
+      # "<label for='title'>The Title</label>" +
+      "<input type='text' name='title' />" +
+      "<textarea name='body'>\n</textarea>" +
+      "<input name='commit' value='Submit' data-disable-with='Submit' type='submit' />"      
     end
     actual = form_with(url: '/posts') do |f|
-      f.label(:title, "The Title")
+      #TODO: label
+      # concat f.label(:title, "The Title")
+      concat f.text_field :title
+      concat f.text_area :body
+      concat f.submit
     end
     assert_dom_equal expected, actual
   end
