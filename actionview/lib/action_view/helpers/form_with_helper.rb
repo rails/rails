@@ -32,6 +32,15 @@ module ActionView
           Tags::CheckBox.new(@object_name, method, @template, on, off, prepare_options(options)).render
         end
 
+        def select(method, choices = nil, include_blank: :undefined, prompt: nil, index: :undefined, disabled: nil, **html_options, &block)
+          options = {}
+          options[:include_blank] = include_blank unless include_blank == :undefined
+          options[:prompt] = prompt if prompt
+          options[:disabled] = disabled if disabled
+          html_options[:index] = index unless index == :undefined
+          Tags::Select.new(@object_name, method, @template, choices, options, prepare_options(html_options), &block).render
+        end
+
         private
 
           def prepare_options(options, value = nil)

@@ -34,6 +34,22 @@ class FormWithHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_form_with_url_and_select
+    expected = whole_form('/posts', remote: true) do
+      "<select name='category'>" +
+        "<option value='volvo'>Volvo</option>\n" +
+        "<option value='saab'>Saab</option>\n" +
+        "<option value='mercedes'>Mercedes</option>\n" +
+        "<option value='audi'>Audi</option>" +
+      "</select>"
+    end
+    categories = [%w(Volvo volvo), %w(Saab saab), %w(Mercedes mercedes), %w(Audi audi)]
+    actual = form_with(url: '/posts') do |f|
+      concat f.select :category, categories
+    end
+    assert_dom_equal expected, actual
+  end
+
   def test_form_with_url_and_scope
     expected = whole_form('/posts', remote: true) do
       "<label for='post_title'>The Title</label>" +
