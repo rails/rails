@@ -14,7 +14,7 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     [ 1, 'a' ],
     { 'a' => 1 }
   ].each do |arg|
-    test "serializes #{arg.class} verbatim" do
+    test "serializes #{arg.class} - #{arg} verbatim" do
       assert_arguments_unchanged arg
     end
   end
