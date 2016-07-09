@@ -145,6 +145,26 @@ class ResponseTest < ActiveSupport::TestCase
     }, headers)
   end
 
+  test "content length" do
+    [100, 101, 102, 204].each do |c|
+      @response = ActionDispatch::Response.new
+      @response.status = c.to_s
+      @response.set_header "Content-Length", "0"
+      _, headers, _ = @response.to_a
+      assert !headers.has_key?("Content-Length"), "#{c} must not have a Content-Length header field"
+    end
+  end
+
+  test "does not contain a message-body" do
+    [100, 101, 102, 204, 304].each do |c|
+      @response = ActionDispatch::Response.new
+      @response.status = c.to_s
+      @response.body = "Body must not be included"
+      _, _, body = @response.to_a
+      assert_empty body, "#{c} must not have a message-body but actually contains #{body}"
+    end
+  end
+
   test "content type" do
     [204, 304].each do |c|
       @response = ActionDispatch::Response.new
