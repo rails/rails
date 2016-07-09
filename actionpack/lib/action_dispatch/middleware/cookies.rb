@@ -567,17 +567,19 @@ module ActionDispatch
 
     class EncryptedCookieJar < AbstractCookieJar # :nodoc:
       include SerializedCookieJars
+      DEFAULT_CIPHER = 'aes-256-cbc'
 
-      def initialize(parent_jar)
-        super
+      def initialize(parent_jar, cipher: DEFAULT_CIPHER)
+        super(parent_jar)
 
         if ActiveSupport::LegacyKeyGenerator === key_generator
           raise "You didn't set secrets.secret_key_base, which is required for this cookie jar. " +
             "Read the upgrade documentation to learn more about this new config option."
         end
 
-        secret = key_generator.generate_key(request.encrypted_cookie_salt || "")
-        sign_secret = key_generator.generate_key(request.encrypted_signed_cookie_salt || "")
+        key_len = OpenSSL::Cipher.new(cipher).key_len
+        secret = key_generator.generate_key(request.encrypted_cookie_salt || '')[0, key_len]
+        sign_secret = key_generator.generate_key(request.encrypted_signed_cookie_salt || '')
         @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, digest: digest, serializer: ActiveSupport::MessageEncryptor::NullSerializer)
       end
 
