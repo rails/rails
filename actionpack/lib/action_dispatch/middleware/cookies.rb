@@ -372,7 +372,7 @@ module ActionDispatch
 
         handle_options(options)
 
-        if @cookies[name.to_s] != value or options[:expires]
+        if @cookies[name.to_s] != value || options[:expires]
           @cookies[name.to_s] = value
           @set_cookies[name.to_s] = options
           @delete_cookies.delete(name.to_s)
@@ -567,19 +567,17 @@ module ActionDispatch
 
     class EncryptedCookieJar < AbstractCookieJar # :nodoc:
       include SerializedCookieJars
-      DEFAULT_CIPHER = 'aes-256-cbc'
 
-      def initialize(parent_jar, cipher: DEFAULT_CIPHER)
-        super(parent_jar)
+      def initialize(parent_jar)
+        super
 
         if ActiveSupport::LegacyKeyGenerator === key_generator
           raise "You didn't set secrets.secret_key_base, which is required for this cookie jar. " +
             "Read the upgrade documentation to learn more about this new config option."
         end
 
-        key_len = OpenSSL::Cipher.new(cipher).key_len
-        secret = key_generator.generate_key(request.encrypted_cookie_salt || '')[0, key_len]
-        sign_secret = key_generator.generate_key(request.encrypted_signed_cookie_salt || '')
+        secret = key_generator.generate_key(request.encrypted_cookie_salt || "")[0, ActiveSupport::MessageEncryptor.key_len]
+        sign_secret = key_generator.generate_key(request.encrypted_signed_cookie_salt || "")
         @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, digest: digest, serializer: ActiveSupport::MessageEncryptor::NullSerializer)
       end
 
