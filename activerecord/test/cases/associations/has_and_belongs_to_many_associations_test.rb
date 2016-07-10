@@ -19,6 +19,7 @@ require 'models/professor'
 require 'models/treasure'
 require 'models/price_estimate'
 require 'models/club'
+require 'models/user'
 require 'models/member'
 require 'models/membership'
 require 'models/sponsor'
@@ -994,5 +995,10 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_difference "Project.first.developers_required_by_default.size", 1 do
       Project.first.developers_required_by_default.create!(name: "Sean", salary: 50000)
     end
+  end
+
+  def test_association_name_is_the_same_as_join_table_name
+    user = User.create!
+    assert_nothing_raised { user.jobs_pool.clear }
   end
 end
