@@ -497,7 +497,13 @@ app/models/article.rb:
 
 NOTE. When using specific annotations and custom annotations, the annotation name (FIXME, BUG etc) is not displayed in the output lines.
 
-By default, `rails notes` will look in the `app`, `config`, `db`, `lib` and `test` directories. If you would like to search other directories, you can provide them as a comma separated list in an environment variable `SOURCE_ANNOTATION_DIRECTORIES`.
+By default, `rails notes` will look in the `app`, `config`, `db`, `lib` and `test` directories. If you would like to search other directories, you can configure them using `config.annotations.register_directories` option.
+
+```ruby
+config.annotations.register_directories("spec", "vendor")
+```
+
+You can also provide them as a comma separated list in the environment variable `SOURCE_ANNOTATION_DIRECTORIES`.
 
 ```bash
 $ export SOURCE_ANNOTATION_DIRECTORIES='spec,vendor'
