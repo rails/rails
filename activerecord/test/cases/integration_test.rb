@@ -2,6 +2,7 @@
 require 'cases/helper'
 require 'models/company'
 require 'models/developer'
+require 'models/ship'
 require 'models/computer'
 require 'models/owner'
 require 'models/pet'
@@ -126,6 +127,18 @@ class IntegrationTest < ActiveRecord::TestCase
       assert pet.touch
     end
     assert_not_equal key, owner.reload.cache_key
+  end
+
+  def test_cache_key_changes_when_target_of_delegated_method_touched
+    dev = Developer.first
+    ship = Ship.create!(name: 'mcboatface', developer: dev, updated_at: Time.now)
+    key = ship.cache_key
+    travel(1.second) do
+      assert dev.touch
+    end
+
+    assert_equal dev.reload.cache_key.last(20), ship.reload.cache_key.last(20)
+    assert_not_equal key, ship.reload.cache_key
   end
 
   def test_cache_key_format_for_existing_record_with_nil_updated_timestamps

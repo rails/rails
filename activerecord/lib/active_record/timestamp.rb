@@ -109,12 +109,22 @@ module ActiveRecord
       timestamp_attributes_for_create + timestamp_attributes_for_update
     end
 
-    def max_updated_column_timestamp(timestamp_names = timestamp_attributes_for_update)
+    def max_updated_column_timestamp(models_checked = [], timestamp_names = timestamp_attributes_for_update)
       timestamp_names
         .map { |attr| self[attr] }
+        .concat(max_updated_column_from_delegation_targets(models_checked))
         .compact
         .map(&:to_time)
         .max
+    end
+
+    def max_updated_column_from_delegation_targets(models_checked)
+      self.class.delegation_targets.try(:map) do |key|
+        next if models_checked.include?(key.to_sym)
+        association = try(key)
+        next if !association || !association.respond_to?(:max_updated_column_timestamp, true)
+        association.send(:max_updated_column_timestamp, models_checked << self.class.name.downcase.to_sym)
+      end || []
     end
 
     def current_time_from_proper_timezone

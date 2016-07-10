@@ -64,6 +64,9 @@ class Developer < ActiveRecord::Base
   validates_inclusion_of :salary, :in => 50000..200000
   validates_length_of    :name, :within => 3..20
 
+  delegate :treasures_count, to: :ship
+  delegate :count, :to => :class
+
   before_create do |developer|
     developer.audit_logs.build :message => "Computer created"
   end

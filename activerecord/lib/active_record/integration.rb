@@ -57,7 +57,7 @@ module ActiveRecord
       when new_record?
         "#{model_name.cache_key}/new"
       when timestamp_names.any?
-        timestamp = max_updated_column_timestamp(timestamp_names)
+        timestamp = max_updated_column_timestamp([], timestamp_names)
         timestamp = timestamp.utc.to_s(cache_timestamp_format)
         "#{model_name.cache_key}/#{id}-#{timestamp}"
       when timestamp = max_updated_column_timestamp
