@@ -1,4 +1,4 @@
-*   Check `request.path_parameters` encoding at the point they're set
+*   Check `request.path_parameters` encoding at the point they're set.
 
     Check for any non-UTF8 characters in path parameters at the point they're
     set in `env`. Previously they were checked for when used to get a controller
