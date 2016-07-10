@@ -1,3 +1,5 @@
+require 'action_dispatch/testing/request_encoder'
+
 module ActionDispatch
   # Integration test methods such as ActionDispatch::Integration::Session#get
   # and ActionDispatch::Integration::Session#post return objects of class
@@ -10,6 +12,11 @@ module ActionDispatch
       new response.status, response.headers, response.body
     end
 
+    def initialize(*) # :nodoc:
+      super
+      @response_parser = RequestEncoder.parser(content_type)
+    end
+
     # Was the response successful?
     alias_method :success?, :successful?
 
@@ -18,8 +25,6 @@ module ActionDispatch
 
     # Was there a server-side error?
     alias_method :error?, :server_error?
-
-    attr_writer :response_parser # :nodoc:
 
     def parsed_body
       @parsed_body ||= @response_parser.call(body)
