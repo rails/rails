@@ -1,11 +1,11 @@
-*   Fix the generated `#to_param` method to use `omission:''` so that
+*   Fix the generated `#to_param` method to use `omission: ''` so that
     the resulting output is actually up to 20 characters, not
     effectively 17 to leave room for the default "...".
     Also call `#parameterize` before `#truncate` and make the
     `separator: /-/` to maximize the information included in the
     output.
 
-    Fixes #23635
+    Fixes #23635.
 
     *Rob Biedenharn*
 
@@ -23,7 +23,7 @@
     *Kevin McPhillips*
 
 *   Removed the unused methods `ActiveRecord::Base.connection_id` and
-    `ActiveRecord::Base.connection_id=`
+    `ActiveRecord::Base.connection_id=`.
 
     *Sean Griffin*
 
@@ -42,15 +42,15 @@
 
     *Johannes Opper*
 
-*   Introduce ActiveRecord::TransactionSerializationError for catching
+*   Introduce `ActiveRecord::TransactionSerializationError` for catching
     transaction serialization failures or deadlocks.
 
     *Erol Fornoles*
 
-*   PostgreSQL: Fix db:structure:load silent failure on SQL error
+*   PostgreSQL: Fix db:structure:load silent failure on SQL error.
 
-    The command line flag "-v ON_ERROR_STOP=1" should be used
-    when invoking psql to make sure errors are not suppressed.
+    The command line flag `-v ON_ERROR_STOP=1` should be used
+    when invoking `psql` to make sure errors are not suppressed.
 
     Example:
 

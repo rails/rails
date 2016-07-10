@@ -1,3 +1,7 @@
+*   Set the server host using the `HOST` environment variable.
+
+    *mahnunchik*
+
 *   Add public API to register new folders for `rake notes`:
 
         config.annotations.register_directories('spec', 'features')
@@ -13,7 +17,7 @@
     *Rafael Mendonça França*
 
 *   Default `config.assets.quiet = true` in the development environment. Suppress
-    logging of `sprockets-rails` requests by default.
+    logging of assets requests by default.
 
     *Kevin McPhillips*
 
