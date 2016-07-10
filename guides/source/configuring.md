@@ -181,6 +181,8 @@ pipeline is enabled. It is set to `true` by default.
 
 * `config.assets.logger` accepts a logger conforming to the interface of Log4r or the default Ruby `Logger` class. Defaults to the same configured at `config.logger`. Setting `config.assets.logger` to `false` will turn off served assets logging.
 
+* `config.assets.quiet` disables logging of assets requests. Set to `true` by default in `development.rb`.
+
 ### Configuring Generators
 
 Rails allows you to alter what generators are used with the `config.generators` method. This method takes a block:
