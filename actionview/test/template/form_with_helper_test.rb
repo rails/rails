@@ -34,7 +34,7 @@ class FormWithHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
-  def test_form_with_url_and_select_choices_as_pairs
+  def test_form_with_select_choices_as_pairs
     expected = whole_form('/posts', remote: true) do
       "<select name='category'>" +
         "<option value='volvo'>Volvo</option>\n" +
@@ -44,15 +44,15 @@ class FormWithHelperTest < ActionView::TestCase
     end
     categories = [%w(Volvo volvo), %w(Saab saab), %w(Mercedes mercedes)]
     actual = form_with(url: '/posts') do |f|
-      concat f.select :category, categories
+      f.select :category, categories
     end
     assert_dom_equal expected, actual
   end
 
-  def test_form_with_url_and_select_choices_as_array
+  def test_form_with_select_choices_as_array
     expected = whole_form('/posts', remote: true) do
       "<select name='category'>" +
-        "<option value=""></option>\n" + 
+        "<option value=''></option>\n" +
         "<option value='volvo'>volvo</option>\n" +
         "<option value='saab'>saab</option>\n" +
         "<option value='mercedes'>mercedes</option>" +
@@ -60,11 +60,38 @@ class FormWithHelperTest < ActionView::TestCase
     end
     categories = %w(volvo saab mercedes)
     actual = form_with(url: '/posts') do |f|
-      concat f.select :category, categories, blank: true
+      f.select :category, categories, blank: true
     end
     assert_dom_equal expected, actual
   end
 
+  def test_form_with_url_and_collection_select
+    expected = whole_form('/posts', remote: true) do
+      "<select name='author_name'>" +
+        "<option value='&lt;Abe&gt;'>&lt;Abe&gt;</option>\n" +
+        "<option value='Babe'>Babe</option>\n" +
+        "<option value='Cabe'>Cabe</option>" +
+      "</select>"
+    end
+    actual = form_with(url: '/posts') do |f|
+      f.collection_select("author_name", dummy_posts, "author_name", "author_name")
+    end
+    assert_dom_equal expected, actual
+  end
+
+  def test_form_with_model_and_collection_select
+    expected = whole_form('/posts', remote: true) do
+      "<select name='post[author_name]'>" +
+        "<option value='&lt;Abe&gt;'>&lt;Abe&gt;</option>\n" +
+        "<option value='Babe'>Babe</option>\n" +
+        "<option value='Cabe'>Cabe</option>" +
+      "</select>"
+    end
+    actual = form_with(model: @post) do |f|
+      f.collection_select("author_name", dummy_posts, "author_name", "author_name")
+    end
+    assert_dom_equal expected, actual
+  end
 
   def test_form_with_url_and_scope
     expected = whole_form('/posts', remote: true) do
@@ -177,5 +204,12 @@ class FormWithHelperTest < ActionView::TestCase
       form_tag = form_text(action, remote: remote, multipart: multipart, method: method, **options)
       form_tag + hidden_fields(options.slice :method, :enforce_utf8) + contents + "</form>"
     end
+
+    def dummy_posts
+      [ Post.new("<Abe> went home", "<Abe>", "To a little house", "shh!"),
+        Post.new("Babe went home", "Babe", "To a little house", "shh!"),
+        Post.new("Cabe went home", "Cabe", "To a little house", "shh!") ]
+    end
+
 
 end

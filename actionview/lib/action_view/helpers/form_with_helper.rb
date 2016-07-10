@@ -33,15 +33,27 @@ module ActionView
         end
 
         def select(method, choices = nil, blank: nil, prompt: nil, index: :undefined, disabled: nil, **html_options, &block)
-          options = {}
-          options[:include_blank] = blank if blank
-          options[:prompt] = prompt if prompt
-          options[:disabled] = disabled if disabled
-          html_options[:index] = index unless index == :undefined
+          options = prepare_select_options(html_options, blank, prompt, index, disabled)
           Tags::Select.new(@object_name, method, @template, choices, options, prepare_options(html_options), &block).render
         end
 
+        def collection_select(method, collection, value_method, text_method, blank: nil, prompt: nil, index: :undefined, disabled: nil, **html_options)
+          options = prepare_select_options(html_options, blank, prompt, index, disabled)
+          html_options = prepare_options(html_options)
+          html_options.delete(:object)
+          Tags::CollectionSelect.new(@object_name, method, @template, collection, value_method, text_method, options, html_options).render
+        end
+
         private
+
+          def prepare_select_options(html_options, blank, prompt, index, disabled)
+            options = {}
+            options[:include_blank] = blank if blank 
+            options[:prompt] = prompt if prompt
+            options[:disabled] = disabled if disabled
+            html_options[:index] = index unless index == :undefined
+            options
+          end
 
           def prepare_options(options, value = nil)
             options[:scope] = nil if @object_name.nil?
