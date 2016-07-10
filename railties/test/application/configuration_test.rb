@@ -778,7 +778,7 @@ module ApplicationTests
       require "mail"
       _ = ActionMailer::Base
 
-      assert_equal [::MyMailInterceptor], ::Mail.send(:class_variable_get, "@@delivery_interceptors")
+      assert_equal [::MyMailInterceptor], ::Mail.class_variable_get(:@@delivery_interceptors)
     end
 
     test "registers multiple interceptors with ActionMailer" do
@@ -791,7 +791,7 @@ module ApplicationTests
       require "mail"
       _ = ActionMailer::Base
 
-      assert_equal [::MyMailInterceptor, ::MyOtherMailInterceptor], ::Mail.send(:class_variable_get, "@@delivery_interceptors")
+      assert_equal [::MyMailInterceptor, ::MyOtherMailInterceptor], ::Mail.class_variable_get(:@@delivery_interceptors)
     end
 
     test "registers preview interceptors with ActionMailer" do
@@ -843,7 +843,7 @@ module ApplicationTests
       require "mail"
       _ = ActionMailer::Base
 
-      assert_equal [::MyMailObserver], ::Mail.send(:class_variable_get, "@@delivery_notification_observers")
+      assert_equal [::MyMailObserver], ::Mail.class_variable_get(:@@delivery_notification_observers)
     end
 
     test "registers multiple observers with ActionMailer" do
@@ -856,7 +856,7 @@ module ApplicationTests
       require "mail"
       _ = ActionMailer::Base
 
-      assert_equal [::MyMailObserver, ::MyOtherMailObserver], ::Mail.send(:class_variable_get, "@@delivery_notification_observers")
+      assert_equal [::MyMailObserver, ::MyOtherMailObserver], ::Mail.class_variable_get(:@@delivery_notification_observers)
     end
 
     test "allows setting the queue name for the ActionMailer::DeliveryJob" do
@@ -869,7 +869,7 @@ module ApplicationTests
       require "mail"
       _ = ActionMailer::Base
 
-      assert_equal 'test_default', ActionMailer::Base.send(:class_variable_get, "@@deliver_later_queue_name")
+      assert_equal 'test_default', ActionMailer::Base.class_variable_get(:@@deliver_later_queue_name)
     end
 
     test "valid timezone is setup correctly" do
