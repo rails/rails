@@ -368,7 +368,7 @@ account.to_query('company[name]')
 
 so its output is ready to be used in a query string.
 
-Arrays return the result of applying `to_query` to each element with `_key_[]` as key, and join the result with "&":
+Arrays return the result of applying `to_query` to each element with `key[]` as key, and join the result with "&":
 
 ```ruby
 [3.4, -45.6].to_query('sample')
