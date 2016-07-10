@@ -12,6 +12,8 @@ class Module
        yield)
   ).freeze
 
+  attr_reader :delegation_targets
+
   # Provides a +delegate+ class method to easily expose contained objects'
   # public methods as your own.
   #
@@ -83,6 +85,15 @@ class Module
   #   end
   #
   #   Foo.new.hello # => "world"
+  #
+  # Delegation targets are accessible through +delegation_targets+ class method:
+  #
+  #   class Foo < ActiveRecord::Base
+  #     belongs_to :greeter
+  #     delegate :hello, to: :greeter
+  #   end
+  #
+  #   Foo.delegation_targets #=> [:greeter]
   #
   # Delegates can optionally be prefixed using the <tt>:prefix</tt> option. If the value
   # is <tt>true</tt>, the delegate methods are prefixed with the name of the object being
@@ -207,6 +218,11 @@ class Module
           "end"
         ].join ';'
       end
+
+      @delegation_targets ||= []
+      delegation_target = to.to_s.split('.', 2).first.to_sym
+
+      @delegation_targets << delegation_target unless @delegation_targets.index(delegation_target)
 
       module_eval(method_def, file, line)
     end

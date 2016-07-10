@@ -154,6 +154,13 @@ class ModuleTest < ActiveSupport::TestCase
     assert_equal "Chicago", @david.city
   end
 
+  def test_delegate_keeps_track_of_delegated_methods
+    someone_delegation_targets = [:place, :self]
+    invoice_delegation_targets = [:client]
+    assert_equal Someone.delegation_targets, someone_delegation_targets
+    assert_equal Invoice.delegation_targets, invoice_delegation_targets
+  end
+
   def test_delegation_to_assignment_method
     @david.place_name = "Fred"
     assert_equal "Fred", @david.place.name
