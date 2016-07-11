@@ -282,8 +282,12 @@ module ActiveRecord
       #
       # +attr_name+ The name of the attribute to retrieve the type for. Must be
       # a string
-      def type_for_attribute(attr_name)
-        attribute_types[attr_name]
+      def type_for_attribute(attr_name, &block)
+        if block
+          attribute_types.fetch(attr_name, &block)
+        else
+          attribute_types[attr_name]
+        end
       end
 
       # Returns a hash where the keys are column names and the values are

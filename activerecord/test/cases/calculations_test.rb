@@ -1,4 +1,5 @@
 require "cases/helper"
+require "models/book"
 require 'models/club'
 require 'models/company'
 require "models/contract"
@@ -792,5 +793,10 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 50, result[0].credit_limit
     assert_equal 50, result[1].credit_limit
     assert_equal 50, result[2].credit_limit
+  end
+
+  def test_group_by_attribute_with_custom_type
+    Book.create!(status: :published)
+    assert_equal({ "published" => 1 }, Book.group(:status).count)
   end
 end

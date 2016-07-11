@@ -1,3 +1,8 @@
+*   Using `group` with an attribute that has a custom type will properly cast
+    the hash keys after calling a calculation method like `count`. Fixes #25595.
+
+    *Sean Griffin*
+
 *   Fix the generated `#to_param` method to use `omission: ''` so that
     the resulting output is actually up to 20 characters, not
     effectively 17 to leave room for the default "...".
