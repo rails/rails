@@ -373,10 +373,7 @@ module ActiveRecord
       end
 
       def distinct
-        seen = {}
-        load_target.find_all do |record|
-          seen[record.id] = true unless seen.key?(record.id)
-        end
+        @association_scope.distinct
       end
       alias uniq distinct
 
