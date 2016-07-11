@@ -26,7 +26,7 @@ class NumericData < ActiveRecord::Base
 end
 
 class CalculationsTest < ActiveRecord::TestCase
-  fixtures :companies, :accounts, :topics, :speedometers, :minivans
+  fixtures :companies, :accounts, :topics, :speedometers, :minivans, :books
 
   def test_should_sum_field
     assert_equal 318, Account.sum(:credit_limit)
@@ -796,7 +796,6 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_group_by_attribute_with_custom_type
-    Book.create!(status: :published)
-    assert_equal({ "published" => 1 }, Book.group(:status).count)
+    assert_equal({ "proposed" => 2, "published" => 2 }, Book.group(:status).count)
   end
 end
