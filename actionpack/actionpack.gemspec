@@ -28,4 +28,5 @@ Gem::Specification.new do |s|
   s.add_dependency 'actionview', version
 
   s.add_development_dependency 'activemodel', version
+  s.add_development_dependency 'railties', version
 end
