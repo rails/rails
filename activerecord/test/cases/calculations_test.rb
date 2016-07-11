@@ -1,4 +1,5 @@
 require "cases/helper"
+require "models/book"
 require 'models/club'
 require 'models/company'
 require "models/contract"
@@ -25,7 +26,7 @@ class NumericData < ActiveRecord::Base
 end
 
 class CalculationsTest < ActiveRecord::TestCase
-  fixtures :companies, :accounts, :topics, :speedometers, :minivans
+  fixtures :companies, :accounts, :topics, :speedometers, :minivans, :books
 
   def test_should_sum_field
     assert_equal 318, Account.sum(:credit_limit)
@@ -788,5 +789,9 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 50, result[0].credit_limit
     assert_equal 50, result[1].credit_limit
     assert_equal 50, result[2].credit_limit
+  end
+
+  def test_group_by_attribute_with_custom_type
+    assert_equal({ "proposed" => 2, "published" => 2 }, Book.group(:status).count)
   end
 end
