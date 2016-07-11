@@ -1,3 +1,8 @@
+*   Using `group` with an attribute that has a custom type will properly cast
+    the hash keys after calling a calculation method like `count`. Fixes #25595.
+
+    *Sean Griffin*
+
 *   Ensure concurrent invocations of the connection reaper cannot allocate the
     same connection to two threads.
 
