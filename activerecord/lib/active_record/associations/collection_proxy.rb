@@ -34,7 +34,18 @@ module ActiveRecord
       def initialize(klass, association) #:nodoc:
         @association = association
         super klass, klass.arel_table, klass.predicate_builder
-        merge! association.scope(nullify: false)
+        @merged = false
+      end
+
+      # methods might be defined on the association ... so get them
+      def method_missing(name, *args, &block)
+        if @merged
+          super
+        else
+          @merged = true
+          merge! @association.scope(nullify: false)
+          send(name, *args, &block)
+        end
       end
 
       def target
@@ -1074,6 +1085,19 @@ module ActiveRecord
         proxy_association.reset_scope
         self
       end
+    end
+  end
+end
+
+ActiveRecord::Associations::CollectionProxy.class_eval do
+  needs_merge = (instance_methods - instance_methods(false))
+  needs_merge.each do |m|
+    define_method(m) do |*args, &block|
+      unless @merged
+        @merged = true
+        merge! @association.scope(nullify: false)
+      end
+      super(*args, &block)
     end
   end
 end
