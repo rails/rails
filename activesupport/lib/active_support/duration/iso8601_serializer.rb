@@ -12,8 +12,10 @@ module ActiveSupport
 
       # Builds and returns output string.
       def serialize
-        output = 'P'
         parts, sign = normalize
+        return "PT0S".freeze if parts.empty?
+
+        output = 'P'
         output << "#{parts[:years]}Y"   if parts.key?(:years)
         output << "#{parts[:months]}M"  if parts.key?(:months)
         output << "#{parts[:weeks]}W"   if parts.key?(:weeks)
