@@ -439,6 +439,26 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal person, person.readers.first.person
   end
 
+  def test_update_all_respects_association_scope
+    person = Person.new
+    person.first_name = 'Naruto'
+    person.references << Reference.new
+    person.id = 10
+    person.references
+    person.save!
+    assert_equal 1, person.references.update_all(favourite: true)
+  end
+
+  def test_exists_respects_association_scope
+    person = Person.new
+    person.first_name = 'Sasuke'
+    person.references << Reference.new
+    person.id = 10
+    person.references
+    person.save!
+    assert_predicate person.references, :exists?
+  end
+
   def force_signal37_to_load_all_clients_of_firm
     companies(:first_firm).clients_of_firm.each {|f| }
   end

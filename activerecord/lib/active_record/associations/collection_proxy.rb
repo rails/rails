@@ -29,7 +29,7 @@ module ActiveRecord
     # instantiation of the actual post records.
     class CollectionProxy < Relation
       delegate(*(ActiveRecord::Calculations.public_instance_methods - [:count]), to: :scope)
-      delegate :find_nth, to: :scope
+      delegate :find_nth, :exists?, :update_all, :arel, to: :scope
 
       def initialize(klass, association) #:nodoc:
         @association = association
@@ -895,10 +895,6 @@ module ActiveRecord
       #   person.pets.include?(Pet.find(21)) # => false
       def include?(record)
         !!@association.include?(record)
-      end
-
-      def arel #:nodoc:
-        scope.arel
       end
 
       def proxy_association
