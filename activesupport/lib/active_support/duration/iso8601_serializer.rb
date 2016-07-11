@@ -42,7 +42,7 @@ module ActiveSupport
           end
           # If all parts are negative - let's make a negative duration
           sign = ''
-          if !parts.empty? && parts.values.all? { |v| v < 0 }
+          if parts.values.all? { |v| v < 0 }
             sign = '-'
             parts.transform_values!(&:-@)
           end
