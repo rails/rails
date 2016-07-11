@@ -27,7 +27,7 @@ class Class
   # This matches normal Ruby method inheritance: think of writing an attribute
   # on a subclass as overriding the reader method. However, you need to be aware
   # when using +class_attribute+ with mutable structures as +Array+ or +Hash+.
-  # In such cases, you don't want to do changes in places but use setters:
+  # In such cases, you don't want to do changes in place. Instead use setters:
   #
   #   Base.setting = []
   #   Base.setting                # => []
