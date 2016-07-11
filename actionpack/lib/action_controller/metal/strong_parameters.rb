@@ -572,20 +572,6 @@ module ActionController
       convert_value_to_parameters(@parameters.values_at(*keys))
     end
 
-    # Returns an exact copy of the <tt>ActionController::Parameters</tt>
-    # instance. +permitted+ state is kept on the duped object.
-    #
-    #   params = ActionController::Parameters.new(a: 1)
-    #   params.permit!
-    #   params.permitted?        # => true
-    #   copy_params = params.dup # => {"a"=>1}
-    #   copy_params.permitted?   # => true
-    def dup
-      super.tap do |duplicate|
-        duplicate.permitted = @permitted
-      end
-    end
-
     # Returns a new <tt>ActionController::Parameters</tt> with all keys from
     # +other_hash+ merges into current hash.
     def merge(other_hash)
@@ -809,6 +795,11 @@ module ActionController
             end
           end
         end
+      end
+
+      def initialize_copy(source)
+        super
+        @parameters = @parameters.dup
       end
   end
 
