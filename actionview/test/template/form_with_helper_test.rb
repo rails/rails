@@ -96,8 +96,8 @@ class FormWithHelperTest < ActionView::TestCase
   def test_form_with_url_and_scope
     expected = whole_form('/posts', remote: true) do
       "<label for='post_title'>The Title</label>" +
-      "<input type='text' name='post[title]' value='Catch 22' />" +
-      "<textarea name='post[body]'>\nThe plotline follows the airmen of the 256th Squadron...</textarea>" +
+      "<input type='text' name='post[title]' />" +
+      "<textarea name='post[body]'>\n</textarea>" +
       "<input name='commit' value='Save Post' data-disable-with='Save Post' type='submit' />"
     end
 

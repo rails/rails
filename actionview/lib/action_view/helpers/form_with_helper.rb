@@ -1,32 +1,43 @@
 module ActionView
   module Helpers
     module FormWithHelper
-
       class FormWithBuilder < FormBuilder
 
+        include ActionView::Helpers::TagHelper
+
         FIELD_HELPERS = [:fields_for, :label, :check_box, :radio_button,
-                        :hidden_field, :file_field, :text_area, :text_field,
+                        :hidden_field, :file_field, :text_field,
                         :password_field, :color_field, :search_field,
                         :telephone_field, :phone_field, :date_field,
                         :time_field, :datetime_field, :datetime_local_field,
                         :month_field, :week_field, :url_field, :email_field,
                         :number_field, :range_field]
 
-        GENERATED_FIELD_HELPERS = FIELD_HELPERS - [:label, :check_box, :radio_button, :fields_for, :hidden_field, :file_field]
+        GENERATED_FIELD_HELPERS = FIELD_HELPERS - [:label, :check_box, :radio_button, :fields_for, :hidden_field, :file_field, :text_area]
 
         GENERATED_FIELD_HELPERS.each do |selector|
-          tag_class_name = selector.to_s.camelize
           class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-            def #{selector}(method, *args, **options)  # def text_field(method, *args, **options)
-              Tags::#{tag_class_name}.new(             #   @template.send(
-                @object_name,                          #     "text_field",
-                method,                                #     @object_name,
-                @template,                             #     method,
-                prepare_options(options, args[0]))     #     prepare_options(args[0], options))
-              .render                                  #   @template.send(
-            end                                        # end
+            def #{selector}(method, *args, **options)                   # def text_field(method, *args, **options)
+              tag.input options_for_field(method, args, options)  #   tag.input options_for_field(method, args, options)
+            end                                                         # end
           RUBY_EVAL
         end
+
+        alias_method :textarea, :text_area
+
+        def text_area(method, *args, **options)
+          options = options_for(method, args, options)
+          content = object.send(method) if object
+          content = args[0] if args.size > 0
+          content.nil? ? tag.textarea(options) : tag.textarea(content, options)
+        end
+
+        def label(method, content, **options)
+          options = options.dup
+          scope = options.delete(:scope) { object_name }
+          tag.label content, options.reverse_merge(for: id_for(method, scope, options))
+        end
+
 
         def check_box(method, *args, on: "1", off: "0", **options)
           Tags::CheckBox.new(@object_name, method, @template, on, off, prepare_options(options)).render
@@ -68,6 +79,31 @@ module ActionView
             else
               I18n.t("helpers.submit.no_model")
             end
+          end
+
+          def name_for(method, scope, **options)
+            scope.nil? ? method : "#{scope}[#{method}]"
+          end
+
+          def id_for(method, scope, **options)
+            scope.nil? ? method : "#{scope}_#{method}"
+          end
+
+          def options_for(method, args, options)
+            options = options.dup
+            scope = options.delete(:scope) { object_name }
+            options.reverse_merge!(name: name_for(method, scope, options))
+          end
+
+          def options_for_field(method, args, options)
+            options = options_for(method, args, options)
+            options.merge!(value: object.send(method)) if object
+            options.merge!(value: args[0]) if args.size > 0
+            options.merge!(type: 'text')
+          end
+
+          def initialize(object_name, object, template, options)
+            super
           end
 
       end
