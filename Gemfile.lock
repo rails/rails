@@ -215,7 +215,7 @@ GEM
       mime-types-data (~> 3.2015)
     mime-types-data (3.2016.0521)
     mini_portile2 (2.1.0)
-    minitest (5.3.3)
+    minitest (5.9.0)
     mocha (0.14.0)
       metaclass (~> 0.0.1)
     mono_logger (1.1.0)
@@ -396,7 +396,6 @@ DEPENDENCIES
   kindlerb (~> 1.2.0)
   libxml-ruby
   listen (>= 3.0.5, < 3.2)
-  minitest (< 5.3.4)
   mocha (~> 0.14)
   mysql2 (>= 0.4.4)
   nokogiri (>= 1.6.8)
