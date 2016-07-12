@@ -388,6 +388,13 @@ class TimeZoneTest < ActiveSupport::TestCase
     end
   end
 
+  def test_strptime_with_malformed_string
+    with_env_tz 'US/Eastern' do
+      zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+      assert_raise(ArgumentError) { zone.strptime('1999-12-31', '%Y/%m/%d') }
+    end
+  end
+
   def test_utc_offset_lazy_loaded_from_tzinfo_when_not_passed_in_to_initialize
     tzinfo = TZInfo::Timezone.get('America/New_York')
     zone = ActiveSupport::TimeZone.create(tzinfo.name, nil, tzinfo)
