@@ -46,7 +46,7 @@ module ActionDispatch
     end
 
     def call(env)
-      serve ActionDispatch::Request.new env
+      serve(Rack::Request.new(env))
     end
 
     def serve(request)
@@ -82,7 +82,7 @@ module ActionDispatch
       end
 
       def gzip_encoding_accepted?(request)
-        request.accept_encoding =~ /\bgzip\b/i
+        request.accept_encoding.any? { |enc, quality| enc =~ /\bgzip\b/i }
       end
 
       def gzip_file_path(path)
@@ -119,7 +119,7 @@ module ActionDispatch
     end
 
     def call(env)
-      req = ActionDispatch::Request.new env
+      req = Rack::Request.new env
 
       if req.get? || req.head?
         path = req.path_info.chomp('/'.freeze)
