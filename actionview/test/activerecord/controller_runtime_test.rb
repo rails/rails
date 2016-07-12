@@ -38,8 +38,8 @@ class ControllerRuntimeLogSubscriberTest < ActionController::TestCase
   tests LogSubscriberController
 
   def setup
-    super
     @old_logger = ActionController::Base.logger
+    super
     ActionController::LogSubscriber.attach_to :action_controller
   end
 
