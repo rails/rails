@@ -3,18 +3,18 @@ require 'active_support/core_ext/date_time'
 require 'active_support/core_ext/numeric/time'
 
 class TimeTravelTest < ActiveSupport::TestCase
-  teardown do
-    travel_back
-  end
-
   def test_time_helper_travel
     Time.stub(:now, Time.now) do
-      expected_time = Time.now + 1.day
-      travel 1.day
+      begin
+        expected_time = Time.now + 1.day
+        travel 1.day
 
-      assert_equal expected_time.to_s(:db), Time.now.to_s(:db)
-      assert_equal expected_time.to_date, Date.today
-      assert_equal expected_time.to_datetime.to_s(:db), DateTime.now.to_s(:db)
+        assert_equal expected_time.to_s(:db), Time.now.to_s(:db)
+        assert_equal expected_time.to_date, Date.today
+        assert_equal expected_time.to_datetime.to_s(:db), DateTime.now.to_s(:db)
+      ensure
+        travel_back
+      end
     end
   end
 
@@ -36,12 +36,16 @@ class TimeTravelTest < ActiveSupport::TestCase
 
   def test_time_helper_travel_to
     Time.stub(:now, Time.now) do
-      expected_time = Time.new(2004, 11, 24, 01, 04, 44)
-      travel_to expected_time
+      begin
+        expected_time = Time.new(2004, 11, 24, 01, 04, 44)
+        travel_to expected_time
 
-      assert_equal expected_time, Time.now
-      assert_equal Date.new(2004, 11, 24), Date.today
-      assert_equal expected_time.to_datetime, DateTime.now
+        assert_equal expected_time, Time.now
+        assert_equal Date.new(2004, 11, 24), Date.today
+        assert_equal expected_time.to_datetime, DateTime.now
+      ensure
+        travel_back
+      end
     end
   end
 
@@ -63,17 +67,21 @@ class TimeTravelTest < ActiveSupport::TestCase
 
   def test_time_helper_travel_back
     Time.stub(:now, Time.now) do
-      expected_time = Time.new(2004, 11, 24, 01, 04, 44)
+      begin
+        expected_time = Time.new(2004, 11, 24, 01, 04, 44)
 
-      travel_to expected_time
-      assert_equal expected_time, Time.now
-      assert_equal Date.new(2004, 11, 24), Date.today
-      assert_equal expected_time.to_datetime, DateTime.now
-      travel_back
+        travel_to expected_time
+        assert_equal expected_time, Time.now
+        assert_equal Date.new(2004, 11, 24), Date.today
+        assert_equal expected_time.to_datetime, DateTime.now
+        travel_back
 
-      assert_not_equal expected_time, Time.now
-      assert_not_equal Date.new(2004, 11, 24), Date.today
-      assert_not_equal expected_time.to_datetime, DateTime.now
+        assert_not_equal expected_time, Time.now
+        assert_not_equal Date.new(2004, 11, 24), Date.today
+        assert_not_equal expected_time.to_datetime, DateTime.now
+      ensure
+        travel_back
+      end
     end
   end
 
