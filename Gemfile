@@ -94,6 +94,8 @@ local_gemfile = File.dirname(__FILE__) + "/.Gemfile"
 instance_eval File.read local_gemfile if File.exist? local_gemfile
 
 group :test do
+  gem 'minitest-bisect'
+
   platforms :mri do
     gem "stackprof"
     gem "byebug"
