@@ -492,7 +492,11 @@ module ActionDispatch
             include app.routes.mounted_helpers
           end
         }
-        klass.new(app).tap {|instance| instance.fixture_path = fixture_path }
+        klass.new(app).tap {|instance|
+          if self.class.respond_to?(:fixture_path)
+            instance.fixture_path = self.class.fixture_path
+          end
+        }
       end
 
       def remove! # :nodoc:
