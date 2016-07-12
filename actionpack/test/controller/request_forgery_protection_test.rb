@@ -509,15 +509,6 @@ end
 class RequestForgeryProtectionControllerUsingResetSessionTest < ActionController::TestCase
   include RequestForgeryProtectionTests
 
-  setup do
-    @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
-    ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
-  end
-
-  teardown do
-    ActionController::Base.request_forgery_protection_token = @old_request_forgery_protection_token
-  end
-
   test 'should emit a csrf-param meta tag and a csrf-token meta tag' do
     @controller.stub :form_authenticity_token, @token + '<=?' do
       get :meta
@@ -677,6 +668,15 @@ class CustomAuthenticityParamControllerTest < ActionController::TestCase
 end
 
 class PerFormTokensControllerTest < ActionController::TestCase
+  def setup
+    @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
+    ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
+  end
+
+  def teardown
+    ActionController::Base.request_forgery_protection_token = @old_request_forgery_protection_token
+  end
+
   def test_per_form_token_is_same_size_as_global_token
     get :index
     expected = ActionController::RequestForgeryProtection::AUTHENTICITY_TOKEN_LENGTH
