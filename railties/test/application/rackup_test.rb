@@ -18,7 +18,7 @@ module ApplicationTests
       teardown_app
     end
 
-    test "rails app is present" do
+    test "Rails app is present" do
       assert File.exist?(app_path("config"))
     end
 
