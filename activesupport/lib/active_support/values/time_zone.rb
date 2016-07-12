@@ -447,6 +447,7 @@ module ActiveSupport
 
     private
       def parts_to_time(parts, now)
+        raise ArgumentError, "invalid date" if parts.nil?
         return if parts.empty?
 
         time = Time.new(

@@ -1,3 +1,12 @@
+*   Fix `ActiveSupport::TimeZone#strptime`. Now raises `ArgumentError` when the
+    given time doesn't match the format. The error is the same as the one given
+    by Ruby's `Date.strptime`. Previously it raised
+    `NoMethodError: undefined method empty? for nil:NilClass.` due to a bug.
+
+    Fixes #25701.
+
+    *John Gesimondo*
+
 *   `travel/travel_to` travel time helpers, now raise on nested calls, 
      as this can lead to confusing time stubbing.
        
