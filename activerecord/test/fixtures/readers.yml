@@ -1,9 +1,9 @@
 michael_welcome:
   post_id: 1
-  person_id: 1
+  person: michael
   first_post_id: 2
 
 michael_authorless:
   post_id: 3
-  person_id: 1
+  person: michael
   first_post_id: 3
