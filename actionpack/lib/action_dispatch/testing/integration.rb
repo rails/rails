@@ -214,6 +214,9 @@ module ActionDispatch
       # A reference to the response instance used by the last request.
       attr_reader :response
 
+      # A reference to the TestCase path to be used by fixture_file_upload.
+      attr_accessor :fixture_path
+
       # A running counter of the number of requests processed.
       attr_accessor :request_count
 
@@ -489,7 +492,7 @@ module ActionDispatch
             include app.routes.mounted_helpers
           end
         }
-        klass.new(app)
+        klass.new(app).tap {|instance| instance.fixture_path = fixture_path }
       end
 
       def remove! # :nodoc:
