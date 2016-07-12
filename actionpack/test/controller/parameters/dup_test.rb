@@ -35,7 +35,7 @@ class ParametersDupTest < ActiveSupport::TestCase
     assert_not_equal @params, dupped_params
   end
 
-  test "changes tp a duplicate's permitted status do not affect the original" do
+  test "changes to a duplicate's permitted status do not affect the original" do
     dupped_params = @params.dup
     dupped_params.permit!
     assert_not_equal @params, dupped_params

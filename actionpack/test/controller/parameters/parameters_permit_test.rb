@@ -245,11 +245,6 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_equal "Jonas", @params[:person][:family][:brother]
   end
 
-  test "permit state is kept on a dup" do
-    @params.permit!
-    assert_equal @params.permitted?, @params.dup.permitted?
-  end
-
   test "permit is recursive" do
     @params.permit!
     assert @params.permitted?
