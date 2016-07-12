@@ -34,7 +34,7 @@ Documentation
 The internal documentation of Rails, in the form of code comments, has been improved in numerous places. In addition, the [Ruby on Rails Guides](http://guides.rubyonrails.org/) project is the definitive source for information on major Rails components. In its first official release, the Guides page includes:
 
 * [Getting Started with Rails](getting_started.html)
-* [Rails Database Migrations](migrations.html)
+* [Rails Database Migrations](active_record_migrations.html)
 * [Active Record Associations](association_basics.html)
 * [Active Record Query Interface](active_record_querying.html)
 * [Layouts and Rendering in Rails](layouts_and_rendering.html)

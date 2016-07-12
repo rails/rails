@@ -700,8 +700,8 @@ in case you want to reverse it later. When you run this migration it will create
 an `articles` table with one string column and a text column. It also creates
 two timestamp fields to allow Rails to track article creation and update times.
 
-TIP: For more information about migrations, refer to [Rails Database Migrations]
-(migrations.html).
+TIP: For more information about migrations, refer to [Active Record Migrations]
+(active_record_migrations.html).
 
 At this point, you can use a bin/rails command to run the migration:
 
