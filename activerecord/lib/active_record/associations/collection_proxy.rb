@@ -1090,7 +1090,15 @@ module ActiveRecord
 end
 
 ActiveRecord::Associations::CollectionProxy.class_eval do
-  needs_merge = (instance_methods - instance_methods(false))
+  # all values that are modified by lib/active_record/relation/merger.rb
+  # will merge on demand when accessed
+
+  needs_merge = (ActiveRecord::Relation::Merger::NORMAL_VALUES - [:readonly, :limit, :offset, :distinct, :join]).map { |v| :"#{v}_values" }
+  needs_merge.concat([:readonly_value, :limit_value, :offset_value, :distinct_value, :order_values, :joins_values, :includes_values, :preload_values, :create_with_value, :lock_value])
+  needs_merge.concat(ActiveRecord::Relation::CLAUSE_METHODS.map { |c| :"#{c}_clause" })
+  bad = (needs_merge - instance_methods)
+  raise "Unnecessary overrides: #{bad}" if bad.any?
+
   needs_merge.each do |m|
     define_method(m) do |*args, &block|
       unless @merged
