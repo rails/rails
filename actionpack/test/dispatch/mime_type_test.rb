@@ -44,14 +44,14 @@ class MimeTypeTest < ActiveSupport::TestCase
     accept = "text/*"
     expect = [Mime[:html], Mime[:text], Mime[:js], Mime[:css], Mime[:ics], Mime[:csv], Mime[:vcf], Mime[:xml], Mime[:yaml], Mime[:json]]
     parsed = Mime::Type.parse(accept)
-    assert_equal expect, parsed
+    assert_equal expect.map(&:to_s).sort!, parsed.map(&:to_s).sort!
   end
 
   test "parse application with trailing star" do
     accept = "application/*"
     expect = [Mime[:html], Mime[:js], Mime[:xml], Mime[:rss], Mime[:atom], Mime[:yaml], Mime[:url_encoded_form], Mime[:json], Mime[:pdf], Mime[:zip], Mime[:gzip]]
     parsed = Mime::Type.parse(accept)
-    assert_equal expect, parsed
+    assert_equal expect.map(&:to_s).sort!, parsed.map(&:to_s).sort!
   end
 
   test "parse without q" do
