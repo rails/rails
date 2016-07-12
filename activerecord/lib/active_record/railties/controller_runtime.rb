@@ -19,7 +19,7 @@ module ActiveRecord
       end
 
       def cleanup_view_runtime
-        if logger.info? && ActiveRecord::Base.connected?
+        if logger && logger.info? && ActiveRecord::Base.connected?
           db_rt_before_render = ActiveRecord::LogSubscriber.reset_runtime
           self.db_runtime = (db_runtime || 0) + db_rt_before_render
           runtime = super
