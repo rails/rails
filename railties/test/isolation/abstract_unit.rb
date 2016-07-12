@@ -1,7 +1,7 @@
 # Note:
 # It is important to keep this file as light as possible
 # the goal for tests that require this is to test booting up
-# rails from an empty state, so anything added here could
+# Rails from an empty state, so anything added here could
 # hide potential failures
 #
 # It is also good to know what is the bare minimum to get

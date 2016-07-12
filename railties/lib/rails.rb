@@ -52,7 +52,7 @@ module Rails
       end
     end
 
-    # Returns a Pathname object of the current rails project,
+    # Returns a Pathname object of the current Rails project,
     # otherwise it returns nil if there is no project:
     #
     #   Rails.root
@@ -77,7 +77,7 @@ module Rails
       @_env = ActiveSupport::StringInquirer.new(environment)
     end
 
-    # Returns all rails groups for loading based on:
+    # Returns all Rails groups for loading based on:
     #
     # * The Rails environment;
     # * The environment variable RAILS_GROUPS;
@@ -100,7 +100,7 @@ module Rails
     end
 
     # Returns a Pathname object of the public folder of the current
-    # rails project, otherwise it returns nil if there is no project:
+    # Rails project, otherwise it returns nil if there is no project:
     #
     #   Rails.public_path
     #     # => #<Pathname:/Users/someuser/some/path/project/public>
