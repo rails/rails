@@ -20,7 +20,7 @@ module LoggerSilence
   end
 
   def level
-    local_levels[local_log_id] || super
+    local_levels && local_levels[local_log_id] || super
   end
 
   # Silences the logger for the duration of the block.
