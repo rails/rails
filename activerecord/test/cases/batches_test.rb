@@ -68,10 +68,26 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
-  def test_warn_if_limit_scope_is_set
-    assert_called(ActiveRecord::Base.logger, :warn) do
-      Post.limit(1).find_each { |post| post }
+  test 'find_each should honor limit if passed a block' do
+    limit = @total - 1
+    total = 0
+
+    Post.limit(limit).find_each do |post|
+      total += 1
     end
+
+    assert_equal limit, total
+  end
+
+  test 'find_each should honor limit if no block is passed' do
+    limit = @total - 1
+    total = 0
+
+    Post.limit(limit).find_each.each do |post|
+      total += 1
+    end
+
+    assert_equal limit, total
   end
 
   def test_warn_if_order_scope_is_set
@@ -84,7 +100,7 @@ class EachTest < ActiveRecord::TestCase
     previous_logger = ActiveRecord::Base.logger
     ActiveRecord::Base.logger = nil
     assert_nothing_raised do
-      Post.limit(1).find_each { |post| post }
+      Post.order('comments_count DESC').find_each { |post| post }
     end
   ensure
     ActiveRecord::Base.logger = previous_logger
@@ -172,26 +188,26 @@ class EachTest < ActiveRecord::TestCase
 
   def test_find_in_batches_should_not_error_if_config_overridden
     # Set the config option which will be overridden
-    prev = ActiveRecord::Base.error_on_ignored_order_or_limit
-    ActiveRecord::Base.error_on_ignored_order_or_limit = true
+    prev = ActiveRecord::Base.error_on_ignored_order
+    ActiveRecord::Base.error_on_ignored_order = true
     assert_nothing_raised do
       PostWithDefaultScope.find_in_batches(error_on_ignore: false){}
     end
   ensure
     # Set back to default
-    ActiveRecord::Base.error_on_ignored_order_or_limit = prev
+    ActiveRecord::Base.error_on_ignored_order = prev
   end
 
   def test_find_in_batches_should_error_on_config_specified_to_error
     # Set the config option
-    prev = ActiveRecord::Base.error_on_ignored_order_or_limit
-    ActiveRecord::Base.error_on_ignored_order_or_limit = true
+    prev = ActiveRecord::Base.error_on_ignored_order
+    ActiveRecord::Base.error_on_ignored_order = true
     assert_raise(ArgumentError) do
       PostWithDefaultScope.find_in_batches(){}
     end
   ensure
     # Set back to default
-    ActiveRecord::Base.error_on_ignored_order_or_limit = prev
+    ActiveRecord::Base.error_on_ignored_order = prev
   end
 
   def test_find_in_batches_should_not_error_by_default
@@ -247,6 +263,28 @@ class EachTest < ActiveRecord::TestCase
         assert_kind_of Post, batch.first
       end
     end
+  end
+
+  test 'find_in_batches should honor limit if passed a block' do
+    limit = @total - 1
+    total = 0
+
+    Post.limit(limit).find_in_batches do |batch|
+      total += batch.size
+    end
+
+    assert_equal limit, total
+  end
+
+  test 'find_in_batches should honor limit if no block is passed' do
+    limit = @total - 1
+    total = 0
+
+    Post.limit(limit).find_in_batches.each do |batch|
+      total += batch.size
+    end
+
+    assert_equal limit, total
   end
 
   def test_in_batches_should_not_execute_any_query
@@ -484,6 +522,80 @@ class EachTest < ActiveRecord::TestCase
       assert_equal 4, Post.find_in_batches(batch_size: 2, start: 4).size
       assert_equal 4, Post.find_in_batches(:batch_size => 3).size
       assert_equal 1, Post.find_in_batches(:batch_size => 10_000).size
+    end
+  end
+
+  [true, false].each do |load|
+    test "in_batches should return limit records when limit is less than batch size and load is #{load}" do
+      limit      = 3
+      batch_size = 5
+      total      = 0
+
+      Post.limit(limit).in_batches(of: batch_size, load: load) do |batch|
+        total += batch.count
+      end
+
+      assert_equal limit, total
+    end
+
+    test "in_batches should return limit records when limit is greater than batch size and load is #{load}" do
+      limit      = 5
+      batch_size = 3
+      total      = 0
+
+      Post.limit(limit).in_batches(of: batch_size, load: load) do |batch|
+        total += batch.count
+      end
+
+      assert_equal limit, total
+    end
+
+    test "in_batches should return limit records when limit is a multiple of the batch size and load is #{load}" do
+      limit      = 6
+      batch_size = 3
+      total      = 0
+
+      Post.limit(limit).in_batches(of: batch_size, load: load) do |batch|
+        total += batch.count
+      end
+
+      assert_equal limit, total
+    end
+
+    test "in_batches should return no records if the limit is 0 and load is #{load}" do
+      limit      = 0
+      batch_size = 1
+      total      = 0
+
+      Post.limit(limit).in_batches(of: batch_size, load: load) do |batch|
+        total += batch.count
+      end
+
+      assert_equal limit, total
+    end
+
+    test "in_batches should return all if the limit is greater than the number of records when load is #{load}" do
+      limit      = @total + 1
+      batch_size = 1
+      total      = 0
+
+      Post.limit(limit).in_batches(of: batch_size, load: load) do |batch|
+        total += batch.count
+      end
+
+      assert_equal @total, total
+    end
+  end
+
+  test 'error_on_ignored_order_or_limit= is deprecated' do
+    begin
+      prev = ActiveRecord::Base.error_on_ignored_order
+      assert_deprecated 'Please use error_on_ignored_order= instead.' do
+        ActiveRecord::Base.error_on_ignored_order_or_limit = true
+      end
+      assert ActiveRecord::Base.error_on_ignored_order
+    ensure
+      ActiveRecord::Base.error_on_ignored_order = prev
     end
   end
 end

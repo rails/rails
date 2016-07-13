@@ -1,3 +1,18 @@
+*   The flag `error_on_ignored_order_or_limit` has been deprecated in favor of
+    the current `error_on_ignored_order`.
+
+    *Xavier Noria*
+
+*   Batch processing methods support `limit`:
+
+        Post.limit(10_000).find_each do |post|
+          # ...
+        end
+
+    It also works in `find_in_batches` and `in_batches`.
+
+    *Xavier Noria*
+
 *   Using `group` with an attribute that has a custom type will properly cast
     the hash keys after calling a calculation method like `count`. Fixes #25595.
 

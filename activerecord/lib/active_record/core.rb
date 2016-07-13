@@ -72,11 +72,20 @@ module ActiveRecord
 
       ##
       # :singleton-method:
-      # Specifies if an error should be raised on query limit or order being
+      # Specifies if an error should be raised if the query has an order being
       # ignored when doing batch queries. Useful in applications where the
-      # limit or scope being ignored is error-worthy, rather than a warning.
+      # scope being ignored is error-worthy, rather than a warning.
+      mattr_accessor :error_on_ignored_order, instance_writer: false
+      self.error_on_ignored_order = false
+
       mattr_accessor :error_on_ignored_order_or_limit, instance_writer: false
-      self.error_on_ignored_order_or_limit = false
+      def self.error_on_ignored_order_or_limit=(value)
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          The flag error_on_ignored_order_or_limit is deprecated. Limits are
+          now supported. Please use error_on_ignored_order= instead.
+        MSG
+        self.error_on_ignored_order = value
+      end
 
       ##
       # :singleton-method:
