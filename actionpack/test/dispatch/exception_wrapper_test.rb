@@ -57,6 +57,12 @@ module ActionDispatch
       assert_equal [ "lib/file.rb:42:in `index'" ], wrapper.application_trace
     end
 
+    test '#status_code returns 400 for Rack::Utils::ParameterTypeError' do
+      exception = Rack::Utils::ParameterTypeError.new
+      wrapper = ExceptionWrapper.new(@cleaner, exception)
+      assert_equal 400, wrapper.status_code
+    end
+
     test '#application_trace cannot be nil' do
       nil_backtrace_wrapper = ExceptionWrapper.new(@cleaner, BadlyDefinedError.new)
       nil_cleaner_wrapper = ExceptionWrapper.new(nil, BadlyDefinedError.new)
