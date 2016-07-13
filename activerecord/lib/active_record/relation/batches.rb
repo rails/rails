@@ -214,7 +214,7 @@ module ActiveRecord
       loop do
         if load
           records = batch_relation.records
-          ids = records.map(&:id)
+          ids = records.map(&primary_key.to_sym)
           yielded_relation = where(primary_key => ids)
           yielded_relation.load_records(records)
         else
