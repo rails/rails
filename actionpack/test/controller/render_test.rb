@@ -42,6 +42,14 @@ class ImplicitRenderTestController < ActionController::Base
   end
 end
 
+module Namespaced
+  class ImplicitRenderTestController < ActionController::Base
+    def hello_world
+      fresh_when(etag: 'abc')
+    end
+  end
+end
+
 class TestController < ActionController::Base
   protect_from_forgery
 
@@ -255,6 +263,19 @@ class TestController < ActionController::Base
         when "render_implicit_html_template_from_xhr_request"
           (request.xhr? ? 'layouts/xhr' : 'layouts/standard')
       end
+    end
+end
+
+module TemplateModificationHelper
+  private
+    def modify_template(name)
+      path = File.expand_path("../../fixtures/#{name}.erb", __FILE__)
+      original = File.read(path)
+      File.write(path, "#{original} Modified!")
+      ActionView::LookupContext::DetailsKey.clear
+      yield
+    ensure
+      File.write(path, original)
     end
 end
 
@@ -487,6 +508,7 @@ end
 
 class EtagRenderTest < ActionController::TestCase
   tests TestControllerWithExtraEtags
+  include TemplateModificationHelper
 
   def test_strong_etag
     @request.if_none_match = strong_etag(['strong', 'ab', :cde, [:f]])
@@ -535,7 +557,7 @@ class EtagRenderTest < ActionController::TestCase
     get :with_template
     assert_response :not_modified
 
-    modify_template(:hello_world) do
+    modify_template("test/hello_world") do
       request.if_none_match = etag
       get :with_template
       assert_response :ok
@@ -552,7 +574,7 @@ class EtagRenderTest < ActionController::TestCase
     get :with_implicit_template
     assert_response :not_modified
 
-    modify_template(:with_implicit_template) do
+    modify_template("test/with_implicit_template") do
       request.if_none_match = etag
       get :with_implicit_template
       assert_response :ok
@@ -568,16 +590,28 @@ class EtagRenderTest < ActionController::TestCase
     def strong_etag(record)
       %("#{Digest::MD5.hexdigest(ActiveSupport::Cache.expand_cache_key(record))}")
     end
+end
 
-    def modify_template(name)
-      path = File.expand_path("../../fixtures/test/#{name}.erb", __FILE__)
-      original = File.read(path)
-      File.write(path, "#{original} Modified!")
-      ActionView::LookupContext::DetailsKey.clear
-      yield
-    ensure
-      File.write(path, original)
+class NamespacedEtagRenderTest < ActionController::TestCase
+  tests Namespaced::ImplicitRenderTestController
+  include TemplateModificationHelper
+
+  def test_etag_reflects_template_digest
+    get :hello_world
+    assert_response :ok
+    assert_not_nil etag = @response.etag
+
+    request.if_none_match = etag
+    get :hello_world
+    assert_response :not_modified
+
+    modify_template("namespaced/implicit_render_test/hello_world") do
+      request.if_none_match = etag
+      get :hello_world
+      assert_response :ok
+      assert_not_equal etag, @response.etag
     end
+  end
 end
 
 class MetalRenderTest < ActionController::TestCase
