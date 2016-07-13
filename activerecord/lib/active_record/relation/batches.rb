@@ -205,7 +205,6 @@ module ActiveRecord
       if limit_value
         remaining   = limit_value
         batch_limit = remaining if remaining < batch_limit
-        relation    = relation.limit(nil) # new relation without the limit
       end
 
       relation = relation.reorder(batch_order).limit(batch_limit)
