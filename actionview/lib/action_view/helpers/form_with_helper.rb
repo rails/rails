@@ -1,7 +1,7 @@
 module ActionView
   module Helpers
     module FormWithHelper
-      class FormWithBuilder < FormBuilder
+      class FormWithBuilder
 
         include ActionView::Helpers::TagHelper
 
@@ -15,6 +15,8 @@ module ActionView
 
         GENERATED_FIELD_HELPERS = FIELD_HELPERS - [:label, :check_box, :radio_button, :fields_for, :hidden_field, :file_field, :text_area]
 
+        attr_accessor :model, :scope, :url, :remote
+
         GENERATED_FIELD_HELPERS.each do |selector|
           class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
             def #{selector}(method, *args, **options)                   # def text_field(method, *args, **options)
@@ -23,16 +25,20 @@ module ActionView
           RUBY_EVAL
         end
 
+        def submit
+          tag.input value: submit_default_value, "data-disable-with": submit_default_value, type: 'submit', name: 'commit'
+        end
+
         def text_area(method, *args, **options)
           options = options_for(method, options)
-          content = object.send(method) if object
+          content = model.send(method) if model
           content = args[0] if args.size > 0
           content.nil? ? tag.textarea(options) : tag.textarea(content, options)
         end
 
         def label(method, content, **options)
           options = options.dup
-          scope = options.delete(:scope) { object_name }
+          scope = options.delete(:scope) { @scope }
           tag.label content, options.reverse_merge(for: id_for(method, scope, options))
         end
 
@@ -68,8 +74,20 @@ module ActionView
         private
 
           def submit_default_value
-            if @object_name
-              super
+            if scope
+              key    = model ? (model.persisted? ? :update : :create) : :submit
+              model_name = if model.respond_to?(:model_name)
+                model.model_name.human
+              else
+                scope.to_s.humanize
+              end
+
+              defaults = []
+              defaults << :"helpers.submit.#{scope}.#{key}"
+              defaults << :"helpers.submit.#{key}"
+              defaults << "#{key.to_s.humanize} #{model_name}"
+
+              I18n.t(defaults.shift, model: model_name, default: defaults)
             else
               I18n.t("helpers.submit.no_model")
             end
@@ -85,36 +103,37 @@ module ActionView
 
           def options_for(method, options)
             options = options.dup
-            scope = options.delete(:scope) { object_name }
+            scope = options.delete(:scope) { @scope }
             options.reverse_merge!(name: name_for(method, scope, options))
           end
 
           def options_for_field(method, args, options)
             options = options_for(method, options)
-            options.merge!(value: object.send(method)) if object
+            options.merge!(value: model.send(method)) if model
             options.merge!(value: args[0]) if args.size > 0
             options.merge!(type: 'text')
           end
 
-          def initialize(object_name, object, template, options)
-            super
+          def initialize(template, model, scope, url, remote, options)
+            @template = template
+            @model = model
+            @scope = scope
+            @url = url
+            @remote = remote
           end
 
       end
 
-      def form_with(model: nil, scope: nil, url: nil, remote: true, **options, &block)
-        if model.nil?
-          model_name = scope
-        else
-          model_name = model_name_from_record_or_class(model).param_key
-          url = url || polymorphic_path(model, {})
+      def form_with(model: nil, scope: nil, url: nil, remote: true, method: 'post', **options, &block)
+        if model
+          scope ||= model_name_from_record_or_class(model).param_key
         end
-
-        opts = {remote: remote}.merge(options)
-        builder = FormWithBuilder.new(model_name, model, self, options)
-        output  = capture(builder, &block)
-        html_options = html_options_for_form(url || {}, options.merge(opts))
-        form_tag_with_body(html_options, output)
+        url ||= polymorphic_path(model, {})
+        builder = FormWithBuilder.new(self, model, scope, url, remote, options)
+        coding_tag = tag.input name: "utf8", type: "hidden", value: "&#x2713;", escape_attributes: false
+        output  =  capture(builder, &block)
+        options = options.merge(action: url, "data-remote": remote, "accept-charset": "UTF-8", method: method)
+        tag.form coding_tag + output, options
       end
 
     end
