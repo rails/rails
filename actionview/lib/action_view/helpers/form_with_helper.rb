@@ -18,15 +18,13 @@ module ActionView
         GENERATED_FIELD_HELPERS.each do |selector|
           class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
             def #{selector}(method, *args, **options)                   # def text_field(method, *args, **options)
-              tag.input options_for_field(method, args, options)  #   tag.input options_for_field(method, args, options)
+              tag.input options_for_field(method, args, options)        #   tag.input options_for_field(method, args, options)
             end                                                         # end
           RUBY_EVAL
         end
 
-        alias_method :textarea, :text_area
-
         def text_area(method, *args, **options)
-          options = options_for(method, args, options)
+          options = options_for(method, options)
           content = object.send(method) if object
           content = args[0] if args.size > 0
           content.nil? ? tag.textarea(options) : tag.textarea(content, options)
@@ -38,14 +36,12 @@ module ActionView
           tag.label content, options.reverse_merge(for: id_for(method, scope, options))
         end
 
-
         def check_box(method, *args, on: "1", off: "0", **options)
           Tags::CheckBox.new(@object_name, method, @template, on, off, prepare_options(options)).render
         end
 
-        def select(method, choices = nil, blank: nil, prompt: nil, index: :undefined, disabled: nil, **html_options, &block)
-          options = prepare_select_options(html_options, blank, prompt, index, disabled)
-          Tags::Select.new(@object_name, method, @template, choices, options, prepare_options(html_options), &block).render
+        def select(method, choices = nil, blank: nil, prompt: nil, index: :undefined, disabled: nil, **options, &block)
+          tag.select option_tags_for_select(choices, blank: blank), options_for(method, options)
         end
 
         def collection_select(method, collection, value_method, text_method, blank: nil, prompt: nil, index: :undefined, disabled: nil, **html_options)
@@ -53,6 +49,18 @@ module ActionView
           html_options = prepare_options(html_options)
           html_options.delete(:object)
           Tags::CollectionSelect.new(@object_name, method, @template, collection, value_method, text_method, options, html_options).render
+        end
+
+        def option_tags_for_select(choices, blank: false)
+          result = (blank ? tag.option("", value: "") : "").html_safe
+          result += choices.map do |choice|
+            if choice.is_a? Array
+              tag.option choice[0], value: choice[1]
+            else
+              tag.option choice, value: choice
+            end
+          end.join("\n").html_safe
+          result
         end
 
         private
@@ -89,14 +97,14 @@ module ActionView
             scope.nil? ? method : "#{scope}_#{method}"
           end
 
-          def options_for(method, args, options)
+          def options_for(method, options)
             options = options.dup
             scope = options.delete(:scope) { object_name }
             options.reverse_merge!(name: name_for(method, scope, options))
           end
 
           def options_for_field(method, args, options)
-            options = options_for(method, args, options)
+            options = options_for(method, options)
             options.merge!(value: object.send(method)) if object
             options.merge!(value: args[0]) if args.size > 0
             options.merge!(type: 'text')

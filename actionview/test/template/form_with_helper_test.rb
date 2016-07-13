@@ -52,7 +52,7 @@ class FormWithHelperTest < ActionView::TestCase
   def test_form_with_select_choices_as_array
     expected = whole_form('/posts', remote: true) do
       "<select name='category'>" +
-        "<option value=''></option>\n" +
+        "<option value=''></option>" +
         "<option value='volvo'>volvo</option>\n" +
         "<option value='saab'>saab</option>\n" +
         "<option value='mercedes'>mercedes</option>" +
