@@ -1018,17 +1018,13 @@ class RequestParameters < BaseRequestTest
   end
 
   test "path parameters with invalid UTF8 encoding" do
-    request = stub_request(
-      "action_dispatch.request.path_parameters" => { foo: "\xBE" }
-    )
+    request = stub_request
 
     err = assert_raises(ActionController::BadRequest) do
-      request.check_path_parameters!
+      request.path_parameters = { foo: "\xBE" }
     end
 
-    assert_match "Invalid parameter encoding", err.message
-    assert_match "foo", err.message
-    assert_match "\\xBE", err.message
+    assert_equal "Invalid path parameters: Non UTF-8 value: \xBE", err.message
   end
 
   test "parameters not accessible after rack parse error of invalid UTF8 character" do

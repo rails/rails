@@ -1,3 +1,13 @@
+*   Check `request.path_parameters` encoding at the point they're set
+
+    Check for any non-UTF8 characters in path parameters at the point they're
+    set in `env`. Previously they were checked for when used to get a controller
+    class, but this meant routes that went directly to a Rack app, or skipped
+    controller instantiation for some other reason, had to defend against
+    non-UTF8 characters themselves.
+
+    *Grey Baker*
+
 *   Don't raise ActionController::UnknownHttpMethod from ActionDispatch::Static
 
     Pass `Rack::Request` objects to `ActionDispatch::FileHandler` to avoid it

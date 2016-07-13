@@ -22,7 +22,6 @@ module ActionDispatch
       end
 
       def serve(req)
-        req.check_path_parameters!
         uri = URI.parse(path(req.path_parameters, req))
 
         unless uri.host
