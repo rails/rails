@@ -998,8 +998,8 @@ module ActiveRecord
         sm_table = ActiveRecord::Migrator.schema_migrations_table_name
 
         if supports_multi_insert?
-          sql = "INSERT INTO #{sm_table} (version) VALUES "
-          sql << versions.map {|v| "('#{v}')" }.join(', ')
+          sql = "INSERT INTO #{sm_table} (version) VALUES\n"
+          sql << versions.map {|v| "('#{v}')" }.join(",\n")
           sql << ";\n\n"
           sql
         else
