@@ -30,59 +30,59 @@ class MimeTypeTest < ActiveSupport::TestCase
     accept = "text/*, text/html, application/json, multipart/form-data"
     expect = [Mime[:html], Mime[:text], Mime[:js], Mime[:css], Mime[:ics], Mime[:csv], Mime[:vcf], Mime[:xml], Mime[:yaml], Mime[:json], Mime[:multipart_form]]
     parsed = Mime::Type.parse(accept)
-    assert_equal expect, parsed
+    assert_mime_types_equal expect, parsed
   end
 
   test "parse text with trailing star in the end" do
     accept = "text/html, application/json, multipart/form-data, text/*"
     expect = [Mime[:html], Mime[:json], Mime[:multipart_form], Mime[:text], Mime[:js], Mime[:css], Mime[:ics], Mime[:csv], Mime[:vcf], Mime[:xml], Mime[:yaml]]
     parsed = Mime::Type.parse(accept)
-    assert_equal expect, parsed
+    assert_mime_types_equal expect, parsed
   end
 
   test "parse text with trailing star" do
     accept = "text/*"
     expect = [Mime[:html], Mime[:text], Mime[:js], Mime[:css], Mime[:ics], Mime[:csv], Mime[:vcf], Mime[:xml], Mime[:yaml], Mime[:json]]
     parsed = Mime::Type.parse(accept)
-    assert_equal expect, parsed
+    assert_mime_types_equal expect, parsed
   end
 
   test "parse application with trailing star" do
     accept = "application/*"
     expect = [Mime[:html], Mime[:js], Mime[:xml], Mime[:rss], Mime[:atom], Mime[:yaml], Mime[:url_encoded_form], Mime[:json], Mime[:pdf], Mime[:zip], Mime[:gzip]]
     parsed = Mime::Type.parse(accept)
-    assert_equal expect, parsed
+    assert_mime_types_equal expect, parsed
   end
 
   test "parse without q" do
     accept = "text/xml,application/xhtml+xml,text/yaml,application/xml,text/html,image/png,text/plain,application/pdf,*/*"
     expect = [Mime[:html], Mime[:xml], Mime[:yaml], Mime[:png], Mime[:text], Mime[:pdf], '*/*']
-    assert_equal expect.map(&:to_s), Mime::Type.parse(accept).map(&:to_s)
+    assert_mime_types_equal expect, Mime::Type.parse(accept)
   end
 
   test "parse with q" do
     accept = "text/xml,application/xhtml+xml,text/yaml; q=0.3,application/xml,text/html; q=0.8,image/png,text/plain; q=0.5,application/pdf,*/*; q=0.2"
     expect = [Mime[:html], Mime[:xml], Mime[:png], Mime[:pdf], Mime[:text], Mime[:yaml], '*/*']
-    assert_equal expect.map(&:to_s), Mime::Type.parse(accept).map(&:to_s)
+    assert_mime_types_equal expect, Mime::Type.parse(accept)
   end
 
   test "parse single media range with q" do
     accept = "text/html;q=0.9"
     expect = [Mime[:html]]
-    assert_equal expect, Mime::Type.parse(accept)
+    assert_mime_types_equal expect, Mime::Type.parse(accept)
   end
 
   test "parse arbitrary media type parameters" do
     accept = 'multipart/form-data; boundary="simple boundary"'
     expect = [Mime[:multipart_form]]
-    assert_equal expect, Mime::Type.parse(accept)
+    assert_mime_types_equal expect, Mime::Type.parse(accept)
   end
 
   # Accept header send with user HTTP_USER_AGENT: Sunrise/0.42j (Windows XP)
   test "parse broken acceptlines" do
     accept = "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/*,,*/*;q=0.5"
     expect = [Mime[:html], Mime[:xml], "image/*", Mime[:text], '*/*']
-    assert_equal expect.map(&:to_s), Mime::Type.parse(accept).map(&:to_s)
+    assert_mime_types_equal expect, Mime::Type.parse(accept)
   end
 
   # Accept header send with user HTTP_USER_AGENT: Mozilla/4.0
@@ -90,7 +90,7 @@ class MimeTypeTest < ActiveSupport::TestCase
   test "parse other broken acceptlines" do
     accept = "image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, application/x-shockwave-flash, application/vnd.ms-excel, application/vnd.ms-powerpoint, application/msword,  , pronto/1.00.00, sslvpn/1.00.00.00, */*"
     expect = ['image/gif', 'image/x-xbitmap', 'image/jpeg','image/pjpeg', 'application/x-shockwave-flash', 'application/vnd.ms-excel', 'application/vnd.ms-powerpoint', 'application/msword', 'pronto/1.00.00', 'sslvpn/1.00.00.00', '*/*']
-    assert_equal expect.map(&:to_s), Mime::Type.parse(accept).map(&:to_s)
+    assert_mime_types_equal expect, Mime::Type.parse(accept)
   end
 
   test "custom type" do
@@ -194,4 +194,9 @@ class MimeTypeTest < ActiveSupport::TestCase
     assert !(Mime[:js] !~ "application/javascript")
     assert Mime[:html] =~ 'application/xhtml+xml'
   end
+
+  private
+    def assert_mime_types_equal(expected_types, actual_types)
+      assert_equal expected_types.map(&:to_s).sort!, actual_types.map(&:to_s).sort!
+    end
 end
