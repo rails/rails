@@ -1,4 +1,4 @@
-## Rails 4.2.7.rc1 (June 30, 2016) ##
+## Rails 4.2.7 (July 12, 2016) ##
 
 *   Inspecting an object with an associated array of over 10 elements no longer
     truncates the array, preventing `inspect` from looping infinitely in some
