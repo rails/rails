@@ -1,3 +1,11 @@
+*   Handle `Rack::QueryParser` errors in `ActionDispatch::ExceptionWrapper`
+
+    Updated `ActionDispatch::ExceptionWrapper` to handle the Rack 2.0 namespace
+    for `ParameterTypeError` and `InvalidParameterError` errors.
+
+    *Grey Baker*
+
+
 ## Rails 5.0.0 (June 30, 2016) ##
 
 *   Add `ActionController#helpers` to get access to the view context at the controller
