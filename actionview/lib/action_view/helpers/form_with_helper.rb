@@ -44,11 +44,11 @@ module ActionView
           tag.select option_tags_for_select(choices, blank: blank), options_for(method, options)
         end
 
-        def collection_select(method, collection, value_method, text_method, blank: nil, prompt: nil, index: :undefined, disabled: nil, **html_options)
-          options = prepare_select_options(html_options, blank, prompt, index, disabled)
-          html_options = prepare_options(html_options)
-          html_options.delete(:object)
-          Tags::CollectionSelect.new(@object_name, method, @template, collection, value_method, text_method, options, html_options).render
+        def collection_select(method, collection, value_method, text_method, blank: nil, prompt: nil, index: :undefined, disabled: nil, **options)
+          choices = collection.map do |object|
+            [object.send(value_method), object.send(text_method)]
+          end
+          select(method, choices, options)
         end
 
         def option_tags_for_select(choices, blank: false)
@@ -64,15 +64,6 @@ module ActionView
         end
 
         private
-
-          def prepare_select_options(html_options, blank, prompt, index, disabled)
-            options = {}
-            options[:include_blank] = blank if blank 
-            options[:prompt] = prompt if prompt
-            options[:disabled] = disabled if disabled
-            html_options[:index] = index unless index == :undefined
-            options
-          end
 
           def prepare_options(options, value = nil)
             options[:scope] = nil if @object_name.nil?
