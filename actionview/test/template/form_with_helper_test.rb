@@ -145,9 +145,11 @@ class FormWithHelperTest < ActionView::TestCase
   end
 
   def test_form_with_checkbox
-    assert_tag_equals("<input name='post[secret]' type='hidden' value='0' /><input name='post[secret]' checked='checked' type='checkbox' value='1' />") do |f|
+    assert_tag_equals("<input name='post[secret]' type='hidden' value='0' /><input name='post[secret]' type='checkbox' value='1' />") do |f|
       f.check_box(:secret)
     end
+  end
+  def test_form_with_checkbox_custom_on_off
     assert_tag_equals("<input name='post[secret]' type='hidden' value='noo' /><input name='post[secret]' type='checkbox' value='yees' />") do |f|
       f.check_box(:secret, on: 'yees', off: 'noo')
     end

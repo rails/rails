@@ -37,7 +37,9 @@ module ActionView
         end
 
         def check_box(method, *args, on: "1", off: "0", **options)
-          Tags::CheckBox.new(@object_name, method, @template, on, off, prepare_options(options)).render
+          options = options_for(method, options)
+          tag.input(options.merge(type: 'hidden', value: off)).html_safe +
+          tag.input(options.merge(type: 'checkbox', value: on)).html_safe
         end
 
         def select(method, choices = nil, blank: nil, prompt: nil, index: :undefined, disabled: nil, **options, &block)
@@ -64,13 +66,6 @@ module ActionView
         end
 
         private
-
-          def prepare_options(options, value = nil)
-            options[:scope] = nil if @object_name.nil?
-            options = {id: nil}.merge(options)
-            options[:value] = value if value
-            objectify_options(options)
-          end
 
           def submit_default_value
             if @object_name
