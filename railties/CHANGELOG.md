@@ -1,3 +1,5 @@
+## Rails 4.2.7 (July 12, 2016) ##
+
 *   Do not run `bundle install` when generating a new plugin.
 
     Since bundler 1.12.0, the gemspec is validated so the `bundle install`
@@ -5,11 +7,6 @@
     users. This change was a bug fix to correctly validate gemspecs.
 
     *Rafael Mendonça França*
-
-
-## Rails 4.2.7.rc1 (June 30, 2016) ##
-
-*   No changes.
 
 
 ## Rails 4.2.6 (March 07, 2016) ##
