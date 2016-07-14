@@ -1,3 +1,7 @@
+*   Support calling the method `merge` in `scope`'s lambda.
+
+    *Yasuhiro Sugino*
+
 *   Add newline between each migration in `structure.sql`.
 
     Keeps schema migration inserts as a single commit, but allows for easier

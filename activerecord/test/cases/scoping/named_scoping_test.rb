@@ -46,6 +46,13 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_equal Topic.average(:replies_count), Topic.base.average(:replies_count)
   end
 
+  def test_calling_merge_at_first_in_scope
+    Topic.class_eval do
+      scope :calling_merge_at_first_in_scope, Proc.new { merge(Topic.replied) }
+    end
+    assert_equal Topic.calling_merge_at_first_in_scope.to_a, Topic.replied.to_a
+  end
+
   def test_method_missing_priority_when_delegating
     klazz = Class.new(ActiveRecord::Base) do
       self.table_name = "topics"
