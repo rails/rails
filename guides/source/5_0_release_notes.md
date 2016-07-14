@@ -91,9 +91,9 @@ without having to rely on implementation details or monkey patching.
 
 Some things that you can achieve with this:
 
-* The type detected by Active Record can be overridden.
-* A default can also be provided.
-* Attributes do not need to be backed by a database column.
+- The type detected by Active Record can be overridden.
+- A default can also be provided.
+- Attributes do not need to be backed by a database column.
 
 ```ruby
 
