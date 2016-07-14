@@ -34,7 +34,7 @@ module ActiveRecord
     # * <tt>:start</tt> - Specifies the primary key value to start from, inclusive of the value.
     # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
     # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
-    #                               the order has to be ignored due to batching.
+    #                               an order is present in the relation.
     #
     # Limits are honored, and if present there is no requirement for the batch
     # size, it can be less than, equal, or greater than the limit.
@@ -93,7 +93,7 @@ module ActiveRecord
     # * <tt>:start</tt> - Specifies the primary key value to start from, inclusive of the value.
     # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
     # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
-    #                               the order has to be ignored due to batching.
+    #                               an order is present in the relation.
     #
     # Limits are honored, and if present there is no requirement for the batch
     # size, it can be less than, equal, or greater than the limit.
@@ -157,7 +157,7 @@ module ActiveRecord
     # * <tt>:start</tt> - Specifies the primary key value to start from, inclusive of the value.
     # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
     # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
-    #                               the order has to be ignored due to batching.
+    #                               an order is present in the relation.
     #
     # Limits are honored, and if present there is no requirement for the batch
     # size, it can be less than, equal, or greater than the limit.
