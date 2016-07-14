@@ -184,6 +184,7 @@ class FunctionalFragmentCachingTest < ActionController::TestCase
     @controller = FunctionalCachingController.new
     @controller.perform_caching = true
     @controller.cache_store = @store
+    @controller.enable_fragment_cache_logging = true
   end
 
   def test_fragment_caching

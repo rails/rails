@@ -92,6 +92,7 @@ class ACLogSubscriberTest < ActionController::TestCase
 
   def setup
     super
+    @controller.enable_fragment_cache_logging = true
 
     @old_logger = ActionController::Base.logger
 
@@ -105,6 +106,7 @@ class ACLogSubscriberTest < ActionController::TestCase
     ActiveSupport::LogSubscriber.log_subscribers.clear
     FileUtils.rm_rf(@cache_path)
     ActionController::Base.logger = @old_logger
+    ActionController::Base.enable_fragment_cache_logging = true
   end
 
   def set_logger(logger)
@@ -256,6 +258,20 @@ class ACLogSubscriberTest < ActionController::TestCase
     assert_match(/Write fragment views\/foo/, logs[2])
   ensure
     @controller.config.perform_caching = true
+  end
+
+  def test_with_fragment_cache_when_log_disabled
+    @controller.config.perform_caching = true
+    ActionController::Base.enable_fragment_cache_logging = false
+    get :with_fragment_cache
+    wait
+
+    assert_equal 2, logs.size
+    assert_equal "Processing by Another::LogSubscribersController#with_fragment_cache as HTML", logs[0]
+    assert_match(/Completed 200 OK in \d+ms/, logs[1])
+  ensure
+    @controller.config.perform_caching = true
+    ActionController::Base.enable_fragment_cache_logging = true
   end
 
   def test_with_fragment_cache_if_with_true

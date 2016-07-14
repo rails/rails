@@ -516,6 +516,14 @@ encrypted cookies salt value. Defaults to `'signed encrypted cookie'`.
 
 * `config.action_view.debug_missing_translation` determines whether to wrap the missing translations key in a `<span>` tag or not. This defaults to `true`.
 
+* `config.action_view.enable_fragment_cache_logging` determines whether to log fragment cache reads and writes like:
+
+    ```
+    Read fragment views/v1/2914079/v1/2914079/recordings/70182313-20160225015037000000/d0bdf2974e1ef6d31685c3b392ad0b74 (0.6ms)
+    ```
+
+  Default value is false.
+
 ### Configuring Action Mailer
 
 There are a number of settings available on `config.action_mailer`:

@@ -308,9 +308,7 @@ module ActionView
       if @collection
         render_collection
       else
-        instrument(:partial) do
-          render_partial
-        end
+        render_partial
       end
     end
 
@@ -331,22 +329,26 @@ module ActionView
       end
 
       def render_partial
-        view, locals, block = @view, @locals, @block
-        object, as = @object, @variable
+        instrument(:partial) do |payload|
+          view, locals, block = @view, @locals, @block
+          object, as = @object, @variable
 
-        if !block && (layout = @options[:layout])
-          layout = find_template(layout.to_s, @template_keys)
+          view.instance_variable_set(:@log_payload_for_partial_render, payload)
+
+          if !block && (layout = @options[:layout])
+            layout = find_template(layout.to_s, @template_keys)
+          end
+
+          object = locals[as] if object.nil? # Respect object when object is false
+          locals[as] = object if @has_object
+
+          content = @template.render(view, locals) do |*name|
+            view._layout_for(*name, &block)
+          end
+
+          content = layout.render(view, locals){ content } if layout
+          content
         end
-
-        object = locals[as] if object.nil? # Respect object when object is false
-        locals[as] = object if @has_object
-
-        content = @template.render(view, locals) do |*name|
-          view._layout_for(*name, &block)
-        end
-
-        content = layout.render(view, locals){ content } if layout
-        content
       end
 
     # Sets up instance variables needed for rendering a partial. This method

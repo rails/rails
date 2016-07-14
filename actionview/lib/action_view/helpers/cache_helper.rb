@@ -226,7 +226,13 @@ module ActionView
 
       # TODO: Create an object that has caching read/write on it
       def fragment_for(name = {}, options = nil, &block) #:nodoc:
-        read_fragment_for(name, options) || write_fragment_for(name, options, &block)
+        if content = read_fragment_for(name, options)
+          @log_payload_for_partial_render[:cache_hit] = true if defined?(@log_payload_for_partial_render)
+          content
+        else
+          @log_payload_for_partial_render[:cache_hit] = false if defined?(@log_payload_for_partial_render)
+          write_fragment_for(name, options, &block)
+        end
       end
 
       def read_fragment_for(name, options) #:nodoc:
