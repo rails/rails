@@ -206,7 +206,7 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 *   Deprecated `config.static_cache_control` in favor of
     `config.public_file_server.headers`.
-    ([Pull Request](https://github.com/rails/rails/pull/22173))
+    ([Pull Request](https://github.com/rails/rails/pull/19135))
 
 *   Deprecated `config.serve_static_files` in favor of `config.public_file_server.enabled`.
     ([Pull Request](https://github.com/rails/rails/pull/22173))
