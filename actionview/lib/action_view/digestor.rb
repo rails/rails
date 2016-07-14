@@ -41,8 +41,7 @@ module ActionView
         options = {}
         options[:formats] = [finder.rendered_format] if finder.rendered_format
 
-        if finder.disable_cache { finder.exists?(logical_name, [], partial, [], options) }
-          template = finder.disable_cache { finder.find(logical_name, [], partial, [], options) }
+        if template = finder.disable_cache { finder.find_all(logical_name, [], partial, [], options).first }
           finder.rendered_format ||= template.formats.first
 
           if node = seen[template.identifier] # handle cycles in the tree
