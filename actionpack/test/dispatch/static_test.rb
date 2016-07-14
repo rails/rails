@@ -160,6 +160,9 @@ module StaticTests
     response  = get(file_name, 'HTTP_ACCEPT_ENCODING' => 'GZIP')
     assert_gzip  file_name, response
 
+    response  = get(file_name, 'HTTP_ACCEPT_ENCODING' => 'compress;q=0.5, gzip;q=1.0')
+    assert_gzip  file_name, response
+
     response  = get(file_name, 'HTTP_ACCEPT_ENCODING' => '')
     assert_not_equal 'gzip', response.headers["Content-Encoding"]
   end
@@ -203,6 +206,12 @@ module StaticTests
     assert_equal 'http://rubyonrails.org', response.headers["Access-Control-Allow-Origin"]
     assert_equal 'public, max-age=60',     response.headers["Cache-Control"]
     assert_equal "I'm a teapot",           response.headers["X-Custom-Header"]
+  end
+
+  def test_ignores_unknown_http_methods
+    app = ActionDispatch::Static.new(DummyApp, @root)
+
+    assert_nothing_raised { Rack::MockRequest.new(app).request("BAD_METHOD", "/foo/bar.html") }
   end
 
   # Windows doesn't allow \ / : * ? " < > | in filenames
