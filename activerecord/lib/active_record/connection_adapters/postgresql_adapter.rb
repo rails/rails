@@ -180,15 +180,10 @@ module ActiveRecord
         def initialize(connection, max)
           super(max)
           @connection = connection
-          @counter = 0
         end
 
         def next_key
-          "a#{@counter + 1}"
-        end
-
-        def []=(sql, key)
-          super.tap { @counter += 1 }
+          "a" + SecureRandom.uuid.delete("-")
         end
 
         private
