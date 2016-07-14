@@ -204,7 +204,7 @@ The SQL equivalent of the above is:
 SELECT * FROM clients ORDER BY clients.id ASC LIMIT 3
 ```
 
-On a collection that is ordered using `order`, `first` will return the first record ordered by the specified attribute for `order`. 
+On a collection that is ordered using `order`, `first` will return the first record ordered by the specified attribute for `order`.
 
 ```ruby
 client = Client.order(:first_name).first
@@ -255,7 +255,7 @@ The SQL equivalent of the above is:
 SELECT * FROM clients ORDER BY clients.id DESC LIMIT 3
 ```
 
-On a collection that is ordered using `order`, `last` will return the last record ordered by the specified attribute for `order`. 
+On a collection that is ordered using `order`, `last` will return the last record ordered by the specified attribute for `order`.
 
 ```ruby
 client = Client.order(:first_name).last
@@ -314,7 +314,7 @@ We often need to iterate over a large set of records, as when we send a newslett
 This may appear straightforward:
 
 ```ruby
-# This is very inefficient when the users table has thousands of rows.
+# This may consume too much memory if the table is big.
 User.all.each do |user|
   NewsMailer.weekly(user).deliver_now
 end
@@ -328,7 +328,7 @@ TIP: The `find_each` and `find_in_batches` methods are intended for use in the b
 
 #### `find_each`
 
-The `find_each` method retrieves a batch of records and then yields _each_ record to the block individually as a model. In the following example, `find_each` will retrieve 1000 records (the current default for both `find_each` and `find_in_batches`) and then yield each record individually to the block as a model. This process is repeated until all of the records have been processed:
+The `find_each` method retrieves records in batches and then yields _each_ one to the block. In the following example, `find_each` retrieves users in batches of 1000 and yields them to the block one by one:
 
 ```ruby
 User.find_each do |user|
@@ -336,7 +336,9 @@ User.find_each do |user|
 end
 ```
 
-To add conditions to a `find_each` operation you can chain other Active Record methods such as `where`:
+This process is repeated, fetching more batches as needed, until all of the records have been processed.
+
+`find_each` works on model classes, as seen above, and also on relations:
 
 ```ruby
 User.where(weekly_subscriber: true).find_each do |user|
@@ -344,11 +346,16 @@ User.where(weekly_subscriber: true).find_each do |user|
 end
 ```
 
+as long as they have no ordering, since the method needs to force an order
+internally to iterate.
+
+If an order is present in the receiver the behaviour depends on the flag
+`config.active_record.error_on_ignored_order`. If true, `ArgumentError` is
+raised, otherwise the order is ignored and a warning issued, which is the
+default. This can be overridden with the option `:error_on_ignore`, explained
+below.
+
 ##### Options for `find_each`
-
-The `find_each` method accepts most of the options allowed by the regular `find` method, except for `:order` and `:limit`, which are reserved for internal use by `find_each`.
-
-Three additional options, `:batch_size`, `:start` and `:finish`, are available as well.
 
 **`:batch_size`**
 
@@ -364,10 +371,10 @@ end
 
 By default, records are fetched in ascending order of the primary key, which must be an integer. The `:start` option allows you to configure the first ID of the sequence whenever the lowest ID is not the one you need. This would be useful, for example, if you wanted to resume an interrupted batch process, provided you saved the last processed ID as a checkpoint.
 
-For example, to send newsletters only to users with the primary key starting from 2000, and to retrieve them in batches of 5000:
+For example, to send newsletters only to users with the primary key starting from 2000:
 
 ```ruby
-User.find_each(start: 2000, batch_size: 5000) do |user|
+User.find_each(start: 2000) do |user|
   NewsMailer.weekly(user).deliver_now
 end
 ```
@@ -375,12 +382,12 @@ end
 **`:finish`**
 
 Similar to the `:start` option, `:finish` allows you to configure the last ID of the sequence whenever the highest ID is not the one you need.
-This would be useful, for example, if you wanted to run a batch process, using a subset of records based on `:start` and `:finish`
+This would be useful, for example, if you wanted to run a batch process using a subset of records based on `:start` and `:finish`.
 
-For example, to send newsletters only to users with the primary key starting from 2000 up to 10000 and to retrieve them in batches of 5000:
+For example, to send newsletters only to users with the primary key starting from 2000 up to 10000:
 
 ```ruby
-User.find_each(start: 2000, finish: 10000, batch_size: 5000) do |user|
+User.find_each(start: 2000, finish: 10000) do |user|
   NewsMailer.weekly(user).deliver_now
 end
 ```
@@ -389,20 +396,36 @@ Another example would be if you wanted multiple workers handling the same
 processing queue. You could have each worker handle 10000 records by setting the
 appropriate `:start` and `:finish` options on each worker.
 
+**`:error_on_ignore`**
+
+Overrides the application config to specify if an error should be raised when an
+order is present in the relation.
+
 #### `find_in_batches`
 
 The `find_in_batches` method is similar to `find_each`, since both retrieve batches of records. The difference is that `find_in_batches` yields _batches_ to the block as an array of models, instead of individually. The following example will yield to the supplied block an array of up to 1000 invoices at a time, with the final block containing any remaining invoices:
 
 ```ruby
-# Give add_invoices an array of 1000 invoices at a time
+# Give add_invoices an array of 1000 invoices at a time.
 Invoice.find_in_batches do |invoices|
   export.add_invoices(invoices)
 end
 ```
 
+`find_in_batches` works on model classes, as seen above, and also on relations:
+
+```ruby
+Invoice.pending.find_in_batches do |invoice|
+  pending_invoices_export.add_invoices(invoices)
+end
+```
+
+as long as they have no ordering, since the method needs to force an order
+internally to iterate.
+
 ##### Options for `find_in_batches`
 
-The `find_in_batches` method accepts the same `:batch_size`, `:start` and `:finish` options as `find_each`.
+The `find_in_batches` method accepts the same options as `find_each`.
 
 Conditions
 ----------
