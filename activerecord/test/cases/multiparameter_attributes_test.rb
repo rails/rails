@@ -202,6 +202,20 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
     Topic.reset_column_information
   end
 
+  def test_multiparameter_attributes_on_time_with_time_zone_aware_attributes_and_invalid_time_params
+    with_timezone_config aware_attributes: true do
+      Topic.reset_column_information
+      attributes = {
+        "written_on(1i)" => "2004", "written_on(2i)" => "", "written_on(3i)" => ""
+      }
+      topic = Topic.find(1)
+      topic.attributes = attributes
+      assert_nil topic.written_on
+    end
+  ensure
+    Topic.reset_column_information
+  end
+
   def test_multiparameter_attributes_on_time_with_time_zone_aware_attributes_false
     with_timezone_config default: :local, aware_attributes: false, zone: -28800 do
       attributes = {
