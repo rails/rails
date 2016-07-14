@@ -128,6 +128,16 @@ class CacheKeyTest < ActiveSupport::TestCase
 end
 
 class CacheStoreSettingTest < ActiveSupport::TestCase
+  def test_memory_store_gets_created_if_no_arguments_passed_to_lookup_store_method
+    store = ActiveSupport::Cache.lookup_store
+    assert_kind_of(ActiveSupport::Cache::MemoryStore, store)
+  end
+
+  def test_memory_store
+    store = ActiveSupport::Cache.lookup_store :memory_store
+    assert_kind_of(ActiveSupport::Cache::MemoryStore, store)
+  end
+
   def test_file_fragment_cache_store
     store = ActiveSupport::Cache.lookup_store :file_store, "/path/to/cache/directory"
     assert_kind_of(ActiveSupport::Cache::FileStore, store)
