@@ -44,7 +44,14 @@ module ActionDispatch
 
       def path_parameters=(parameters) #:nodoc:
         delete_header('action_dispatch.request.parameters')
+
+        # If any of the path parameters has an invalid encoding then
+        # raise since it's likely to trigger errors further on.
+        Request::Utils.check_param_encoding(parameters)
+
         set_header PARAMETERS_KEY, parameters
+      rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e
+        raise ActionController::BadRequest.new("Invalid path parameters: #{e.message}")
       end
 
       # Returns a hash with the \parameters used to form the \path of the request.

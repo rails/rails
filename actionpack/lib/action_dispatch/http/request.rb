@@ -66,24 +66,12 @@ module ActionDispatch
     def commit_cookie_jar! # :nodoc:
     end
 
-    def check_path_parameters!
-      # If any of the path parameters has an invalid encoding then
-      # raise since it's likely to trigger errors further on.
-      path_parameters.each do |key, value|
-        next unless value.respond_to?(:valid_encoding?)
-        unless value.valid_encoding?
-          raise ActionController::BadRequest, "Invalid parameter encoding: #{key} => #{value.inspect}"
-        end
-      end
-    end
-
     PASS_NOT_FOUND = Class.new { # :nodoc:
       def self.action(_); self; end
       def self.call(_); [404, {'X-Cascade' => 'pass'}, []]; end
     }
 
     def controller_class
-      check_path_parameters!
       params = path_parameters
 
       if params.key?(:controller)

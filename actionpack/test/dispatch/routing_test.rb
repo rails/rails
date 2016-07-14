@@ -4360,15 +4360,16 @@ class TestInvalidUrls < ActionDispatch::IntegrationTest
 
   test "invalid UTF-8 encoding returns a 400 Bad Request" do
     with_routing do |set|
-      ActiveSupport::Deprecation.silence do
-        set.draw do
-          get "/bar/:id", :to => redirect("/foo/show/%{id}")
-          get "/foo/show(/:id)", :to => "test_invalid_urls/foo#show"
+      set.draw do
+        get "/bar/:id", :to => redirect("/foo/show/%{id}")
+        get "/foo/show(/:id)", :to => "test_invalid_urls/foo#show"
 
-          ActiveSupport::Deprecation.silence do
-            get "/foo(/:action(/:id))", :controller => "test_invalid_urls/foo"
-            get "/:controller(/:action(/:id))"
-          end
+        ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
+        get '/foobar/:id', to: ok
+
+        ActiveSupport::Deprecation.silence do
+          get "/foo(/:action(/:id))", :controller => "test_invalid_urls/foo"
+          get "/:controller(/:action(/:id))"
         end
       end
 
@@ -4382,6 +4383,9 @@ class TestInvalidUrls < ActionDispatch::IntegrationTest
       assert_response :bad_request
 
       get "/bar/%E2%EF%BF%BD%A6"
+      assert_response :bad_request
+
+      get "/foobar/%E2%EF%BF%BD%A6"
       assert_response :bad_request
     end
   end
@@ -4803,7 +4807,9 @@ class TestPathParameters < ActionDispatch::IntegrationTest
         end
       end
 
-      get ':controller(/:action/(:id))'
+      ActiveSupport::Deprecation.silence do
+        get ':controller(/:action/(:id))'
+      end
     end
   end
 
