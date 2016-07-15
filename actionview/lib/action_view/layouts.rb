@@ -248,11 +248,14 @@ module ActionView
       #
       # If the specified layout is a:
       # String:: the String is the template name
-      # Symbol:: call the method specified by the symbol, which will return the template name
+      # Symbol:: call the method specified by the symbol
+      # Proc::   call the passed Proc
       # false::  There is no layout
       # true::   raise an ArgumentError
       # nil::    Force default layout behavior with inheritance
       #
+      # Return value of Proc & Symbol arguments should be String, false, true or nil
+      # with the meaning as described above.
       # ==== Parameters
       # * <tt>layout</tt> - The layout to use.
       #
