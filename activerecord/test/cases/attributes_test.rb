@@ -3,7 +3,7 @@ require 'cases/helper'
 class OverloadedType < ActiveRecord::Base
   attribute :overloaded_float, :integer
   attribute :overloaded_string_with_limit, :string, limit: 50
-  attribute :non_existent_decimal, :decimal
+  attribute :non_existent_decimal, :decimal, default: 0
   attribute :string_with_default, :string, default: 'the overloaded default'
 end
 
@@ -61,7 +61,7 @@ module ActiveRecord
       assert_nothing_raised do
         data.save!
         data = OverloadedType.find(data.id)
-        assert_nil data.non_existent_decimal
+        assert_equal BigDecimal.new(0), data.non_existent_decimal
       end
       assert_raise ActiveRecord::UnknownAttributeError do
         UnoverloadedType.new(non_existent_decimal: 1)
