@@ -205,8 +205,9 @@ module ActiveRecord
       # * <tt>:converter</tt> - A symbol specifying the name of a class method of <tt>:class_name</tt>
       #   or a Proc that is called when a new value is assigned to the value object. The converter is
       #   passed the single value that is used in the assignment and is only called if the new value is
-      #   not an instance of <tt>:class_name</tt>. If <tt>:allow_nil</tt> is set to true, the converter
-      #   can return nil to skip the assignment.
+      #   not an instance of <tt>:class_name</tt>. If <tt>:allow_nil</tt> is set to true and assigned value is nil,
+      #   the converter can return nil to skip the assignment. If <tt>:allow_nil</tt> is set to false,
+      #   the converter is executed.
       #
       # Option examples:
       #   composed_of :temperature, mapping: %w(reading celsius)
@@ -257,7 +258,7 @@ module ActiveRecord
           define_method("#{name}=") do |part|
             klass = class_name.constantize
 
-            unless part.is_a?(klass) || converter.nil? || part.nil?
+            unless part.is_a?(klass) || converter.nil? || (part.nil? && allow_nil)
               part = converter.respond_to?(:call) ? converter.call(part) : klass.send(converter, part)
             end
 
