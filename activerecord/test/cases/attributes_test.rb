@@ -58,6 +58,11 @@ module ActiveRecord
       data = OverloadedType.new(non_existent_decimal: 1)
 
       assert_equal BigDecimal.new(1), data.non_existent_decimal
+      assert_nothing_raised do
+        data.save!
+        data = OverloadedType.find(data.id)
+        assert_nil data.non_existent_decimal
+      end
       assert_raise ActiveRecord::UnknownAttributeError do
         UnoverloadedType.new(non_existent_decimal: 1)
       end
