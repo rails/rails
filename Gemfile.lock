@@ -8,13 +8,29 @@ GIT
 
 GIT
   remote: git://github.com/sass/sass.git
-  revision: 64c5c111c04feaa91428e7d03eb6d4284e6a2d64
+  revision: 7716e67f3507c6f65878c69aa49ec358ebf675c7
   branch: stable
   specs:
     sass (3.4.22)
 
 PATH
   remote: .
+  specs:
+    rails (5.0.0)
+      actioncable (= 5.0.0)
+      actionmailer (= 5.0.0)
+      actionpack (= 5.0.0)
+      actionview (= 5.0.0)
+      activejob (= 5.0.0)
+      activemodel (= 5.0.0)
+      activerecord (= 5.0.0)
+      activesupport (= 5.0.0)
+      bundler (>= 1.3.0, < 2.0)
+      railties (= 5.0.0)
+      sprockets-rails (>= 2.0.0)
+
+GEM
+  remote: https://rubygems.org/
   specs:
     actioncable (5.0.0)
       actionpack (= 5.0.0)
@@ -53,28 +69,6 @@ PATH
       i18n (~> 0.7)
       minitest (~> 5.1)
       tzinfo (~> 1.1)
-    rails (5.0.0)
-      actioncable (= 5.0.0)
-      actionmailer (= 5.0.0)
-      actionpack (= 5.0.0)
-      actionview (= 5.0.0)
-      activejob (= 5.0.0)
-      activemodel (= 5.0.0)
-      activerecord (= 5.0.0)
-      activesupport (= 5.0.0)
-      bundler (>= 1.3.0, < 2.0)
-      railties (= 5.0.0)
-      sprockets-rails (>= 2.0.0)
-    railties (5.0.0)
-      actionpack (= 5.0.0)
-      activesupport (= 5.0.0)
-      method_source
-      rake (>= 0.8.7)
-      thor (>= 0.18.1, < 2.0)
-
-GEM
-  remote: https://rubygems.org/
-  specs:
     addressable (2.4.0)
     amq-protocol (2.0.1)
     arel (7.0.0)
@@ -86,7 +80,7 @@ GEM
     bcrypt (3.1.11-x86-mingw32)
     beaneater (1.0.0)
     benchmark-ips (2.6.1)
-    blade (0.5.5)
+    blade (0.5.6)
       activesupport (>= 3.0.0)
       blade-qunit_adapter (~> 1.20.0)
       coffee-script
@@ -96,7 +90,7 @@ GEM
       faye
       sprockets (>= 3.0)
       sprockets-export (~> 0.9.1)
-      thin (~> 1.6.0)
+      thin (>= 1.6.0)
       thor (~> 0.19.1)
       useragent (~> 0.16.7)
     blade-qunit_adapter (1.20.0)
@@ -113,7 +107,7 @@ GEM
     coffee-script-source (1.10.0)
     concurrent-ruby (1.0.2)
     connection_pool (2.2.0)
-    cookiejar (0.3.0)
+    cookiejar (0.3.3)
     curses (1.0.2)
     daemons (1.2.3)
     dalli (2.7.6)
@@ -126,9 +120,9 @@ GEM
     em-hiredis (0.3.1)
       eventmachine (~> 1.0)
       hiredis (~> 0.6.0)
-    em-http-request (1.1.3)
+    em-http-request (1.1.5)
       addressable (>= 2.3.4)
-      cookiejar (<= 0.3.0)
+      cookiejar (!= 0.3.1)
       em-socksify (>= 0.3)
       eventmachine (>= 1.0.3)
       http_parser.rb (>= 0.6.0)
@@ -139,7 +133,7 @@ GEM
     eventmachine (1.2.0.1-x64-mingw32)
     eventmachine (1.2.0.1-x86-mingw32)
     execjs (2.7.0)
-    faye (1.1.2)
+    faye (1.2.1)
       cookiejar (>= 0.3.0)
       em-http-request (>= 0.3.0)
       eventmachine (>= 0.12.0)
@@ -150,9 +144,9 @@ GEM
     faye-websocket (0.10.4)
       eventmachine (>= 0.12.0)
       websocket-driver (>= 0.5.1)
-    ffi (1.9.10)
-    ffi (1.9.10-x64-mingw32)
-    ffi (1.9.10-x86-mingw32)
+    ffi (1.9.14)
+    ffi (1.9.14-x64-mingw32)
+    ffi (1.9.14-x86-mingw32)
     globalid (0.3.6)
       activesupport (>= 4.1.0)
     hiredis (0.6.1)
@@ -210,7 +204,7 @@ GEM
       qu (= 0.2.0)
       redis-namespace
       simple_uuid
-    que (0.11.5)
+    que (0.11.6)
     racc (1.4.14)
     rack (2.0.1)
     rack-cache (1.6.1)
@@ -222,6 +216,12 @@ GEM
       nokogiri (~> 1.6.0)
     rails-html-sanitizer (1.0.3)
       loofah (~> 2.0)
+    railties (5.0.0)
+      actionpack (= 5.0.0)
+      activesupport (= 5.0.0)
+      method_source
+      rake (>= 0.8.7)
+      thor (>= 0.18.1, < 2.0)
     rake (11.2.2)
     rb-fsevent (0.9.7)
     rb-inotify (0.9.7)
@@ -253,7 +253,7 @@ GEM
     sdoc (0.4.1)
       json (~> 1.7, >= 1.7.7)
       rdoc (~> 4.0)
-    sequel (4.35.0)
+    sequel (4.36.0)
     serverengine (1.5.11)
       sigdump (~> 0.2.2)
     sidekiq (4.1.2)
@@ -269,7 +269,7 @@ GEM
       serverengine (~> 1.5.11)
       thor
       thread (~> 0.1.7)
-    sprockets (3.6.2)
+    sprockets (3.6.3)
       concurrent-ruby (~> 1.0)
       rack (> 1, < 3)
     sprockets-export (0.9.1)
@@ -283,10 +283,10 @@ GEM
     stackprof (0.2.9)
     sucker_punch (2.0.2)
       concurrent-ruby (~> 1.0.0)
-    thin (1.6.2)
-      daemons (>= 1.0.9)
-      eventmachine (>= 1.0.0)
-      rack (>= 1.0.0)
+    thin (1.7.0)
+      daemons (~> 1.0, >= 1.0.9)
+      eventmachine (~> 1.0, >= 1.0.4)
+      rack (>= 1, < 3)
     thor (0.19.1)
     thread (0.1.7)
     thread_safe (0.3.5)
@@ -296,7 +296,7 @@ GEM
     turbolinks-source (5.0.0)
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
-    tzinfo-data (1.2016.5)
+    tzinfo-data (1.2016.6)
       tzinfo (>= 1.0.0)
     uglifier (3.0.0)
       execjs (>= 0.3.0, < 3)
