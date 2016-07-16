@@ -174,7 +174,7 @@ class FormWithHelperTest < ActionView::TestCase
   protected
 
     def assert_tag_equals(expected, &actual)
-      assert_dom_equal whole_form('/posts', remote: true) { expected }, form_with(model: @post, &actual)
+      assert_dom_equal expected, fields_with(model: @post, &actual)
     end
 
     def hidden_fields(method: nil, enforce_utf8: true, **options)

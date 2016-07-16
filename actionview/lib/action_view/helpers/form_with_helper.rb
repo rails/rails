@@ -126,9 +126,18 @@ module ActionView
         url ||= polymorphic_path(model, {})
         builder = FormWithBuilder.new(self, model, scope, url, remote, options)
         coding_tag = tag.input name: "utf8", type: "hidden", value: "&#x2713;", escape_attributes: false
-        output  =  capture(builder, &block)
+        output  = capture(builder, &block)
         options = options.merge(action: url, "data-remote": remote, "accept-charset": "UTF-8", method: method)
         tag.form coding_tag + output, options
+      end
+
+      def fields_with(model: nil, scope: nil, remote: true, **options, &block)
+        if model
+          scope ||= model_name_from_record_or_class(model).param_key
+        end
+        builder = FormWithBuilder.new(self, model, scope, nil, remote, options)
+        output  = capture(builder, &block)
+        output
       end
 
     end
