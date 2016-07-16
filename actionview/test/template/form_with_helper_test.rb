@@ -20,9 +20,9 @@ class FormWithHelperTest < ActionView::TestCase
     expected = whole_form('/posts', remote: true) do
       #TODO: label
       # "<label for='title'>The Title</label>" +
-      "<input type='text' name='title' />" +
+      "<input type='text' name='title'>" +
       "<textarea name='body'>\n</textarea>" +
-      "<input name='commit' value='Submit' data-disable-with='Submit' type='submit' />"      
+      "<input name='commit' value='Submit' data-disable-with='Submit' type='submit'>"      
     end
     actual = form_with(url: '/posts') do |f|
       #TODO: label
@@ -96,9 +96,9 @@ class FormWithHelperTest < ActionView::TestCase
   def test_form_with_url_and_scope
     expected = whole_form('/posts', remote: true) do
       "<label for='post_title'>The Title</label>" +
-      "<input type='text' name='post[title]' />" +
+      "<input type='text' name='post[title]'>" +
       "<textarea name='post[body]'>\n</textarea>" +
-      "<input name='commit' value='Save Post' data-disable-with='Save Post' type='submit' />"
+      "<input name='commit' value='Save Post' data-disable-with='Save Post' type='submit'>"
     end
 
     actual = form_with(url: '/posts', scope: :post) do |f|
@@ -114,9 +114,9 @@ class FormWithHelperTest < ActionView::TestCase
   def test_form_with_model
     expected = whole_form('/posts', remote: true) do
       "<label for='post_title'>The Title</label>" +
-      "<input type='text' name='post[title]' value='Catch 22' />" +
+      "<input type='text' name='post[title]' value='Catch 22'>" +
       "<textarea name='post[body]'>\nThe plotline follows the airmen of the 256th Squadron...</textarea>" +
-      "<input name='commit' value='Create Post' data-disable-with='Create Post' type='submit' />"
+      "<input name='commit' value='Create Post' data-disable-with='Create Post' type='submit'>"
     end
 
     actual = form_with(model: @post) do |f|
@@ -130,27 +130,27 @@ class FormWithHelperTest < ActionView::TestCase
   end
 
   def test_form_with_text_field_with_custom_scope
-    assert_tag_equals("<input type='text' name='custom[title]' value='Catch 22' />") { |f| f.text_field :title, scope: 'custom' }
+    assert_tag_equals("<input type='text' name='custom[title]' value='Catch 22'>") { |f| f.text_field :title, scope: 'custom' }
   end
 
   def test_form_with_text_field_with_nil_scope
-    assert_tag_equals("<input type='text' name='title' value='Catch 22' />") { |f| f.text_field :title, scope: nil }
+    assert_tag_equals("<input type='text' name='title' value='Catch 22'>") { |f| f.text_field :title, scope: nil }
   end
 
   def test_form_with_text_field_with_id
-    assert_tag_equals("<input type='text' name='post[title]' value='Catch 22' id='this_is_post_title'/>") { |f| f.text_field :title, id: 'this_is_post_title' }
+    assert_tag_equals("<input type='text' name='post[title]' value='Catch 22' id='this_is_post_title'>") { |f| f.text_field :title, id: 'this_is_post_title' }
   end
   def test_form_with_text_field_with_value
-    assert_tag_equals("<input type='text' name='post[title]' value='Closing Time' />") { |f| f.text_field :title, 'Closing Time' }
+    assert_tag_equals("<input type='text' name='post[title]' value='Closing Time'>") { |f| f.text_field :title, 'Closing Time' }
   end
 
   def test_form_with_checkbox
-    assert_tag_equals("<input name='post[secret]' type='hidden' value='0' /><input name='post[secret]' type='checkbox' value='1' />") do |f|
+    assert_tag_equals("<input name='post[secret]' type='hidden' value='0'><input name='post[secret]' type='checkbox' value='1' >") do |f|
       f.check_box(:secret)
     end
   end
   def test_form_with_checkbox_custom_on_off
-    assert_tag_equals("<input name='post[secret]' type='hidden' value='noo' /><input name='post[secret]' type='checkbox' value='yees' />") do |f|
+    assert_tag_equals("<input name='post[secret]' type='hidden' value='noo'><input name='post[secret]' type='checkbox' value='yees'>") do |f|
       f.check_box(:secret, on: 'yees', off: 'noo')
     end
   end
@@ -179,13 +179,13 @@ class FormWithHelperTest < ActionView::TestCase
 
     def hidden_fields(method: nil, enforce_utf8: true, **options)
       if enforce_utf8
-        txt = %{<input name="utf8" type="hidden" value="&#x2713;" />}
+        txt = %{<input name="utf8" type="hidden" value="&#x2713;">}
       else
         txt = ''
       end
 
       if method && !%w(get post).include?(method.to_s)
-        txt << %{<input name="_method" type="hidden" value="#{method}" />}
+        txt << %{<input name="_method" type="hidden" value="#{method}">}
       end
 
       txt

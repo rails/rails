@@ -81,12 +81,7 @@ module ActionView
               else
                 scope.to_s.humanize
               end
-
-              defaults = []
-              defaults << :"helpers.submit.#{scope}.#{key}"
-              defaults << :"helpers.submit.#{key}"
-              defaults << "#{key.to_s.humanize} #{model_name}"
-
+              defaults = [:"helpers.submit.#{scope}.#{key}", :"helpers.submit.#{key}", :"#{key.to_s.humanize} #{model_name}"]
               I18n.t(defaults.shift, model: model_name, default: defaults)
             else
               I18n.t("helpers.submit.no_model")
