@@ -1,3 +1,10 @@
+*   Add newline between each migration in `structure.sql`
+
+    Keeps schema migration inserts as a single commit, but allows for easier
+    git diff-ing. Fixes #25504.
+
+    *Grey Baker*, *Norberto Lopes*
+
 *   Using `group` with an attribute that has a custom type will properly cast
     the hash keys after calling a calculation method like `count`. Fixes #25595.
 
