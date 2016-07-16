@@ -1,9 +1,11 @@
 michael_welcome:
+  id: 1
   post_id: 1
-  person: michael
+  person_id: 1
   first_post_id: 2
 
 michael_authorless:
+  id: 2
   post_id: 3
-  person: michael
+  person_id: 1
   first_post_id: 3

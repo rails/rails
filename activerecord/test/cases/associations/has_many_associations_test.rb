@@ -456,7 +456,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_create_resets_cached_counters
+    Reader.delete_all
+
     person = Person.create!(first_name: "tenderlove")
+
     post   = Post.first
 
     assert_equal [], person.readers
