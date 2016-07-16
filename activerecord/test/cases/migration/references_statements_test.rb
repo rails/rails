@@ -35,7 +35,7 @@ module ActiveRecord
         assert_not index_exists?(table_name, :user_id)
       end
 
-      def test_create_reference_id_index_even_if_index_option_is_passed
+      def test_create_reference_id_index_even_if_index_option_is_not_passed
         add_reference table_name, :user
         assert index_exists?(table_name, :user_id)
       end
