@@ -1,3 +1,10 @@
+*   Add newline between each migration in `structure.sql`
+
+    Keeps schema migration inserts as a single commit, but allows for easier
+    git diff-ing. Fixes #25504.
+
+    *Grey Baker*, *Norberto Lopes*
+
 *   The flag `error_on_ignored_order_or_limit` has been deprecated in favor of
     the current `error_on_ignored_order`.
 
