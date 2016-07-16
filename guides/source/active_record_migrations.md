@@ -241,7 +241,7 @@ generates
 ```ruby
 class AddUserRefToProducts < ActiveRecord::Migration[5.0]
   def change
-    add_reference :products, :user, index: true, foreign_key: true
+    add_reference :products, :user, foreign_key: true
   end
 end
 ```
@@ -313,7 +313,7 @@ will produce a migration that looks like this
 class AddDetailsToProducts < ActiveRecord::Migration[5.0]
   def change
     add_column :products, :price, :decimal, precision: 5, scale: 2
-    add_reference :products, :supplier, polymorphic: true, index: true
+    add_reference :products, :supplier, polymorphic: true
   end
 end
 ```
