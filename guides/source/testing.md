@@ -879,10 +879,10 @@ can be passed as headers:
 
 ```ruby
 # setting an HTTP Header
-get articles_url, headers: "Content-Type" => "text/plain" # simulate the request with custom header
+get articles_url, headers: { "Content-Type": "text/plain" } # simulate the request with custom header
 
 # setting a CGI variable
-get articles_url, headers: "HTTP_REFERER" => "http://example.com/home" # simulate the request with custom env variable
+get articles_url, headers: { "HTTP_REFERER": "http://example.com/home" } # simulate the request with custom env variable
 ```
 
 ### Testing `flash` notices
