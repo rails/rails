@@ -622,6 +622,46 @@ class TransactionalFixturesOnCustomConnectionTest < ActiveRecord::TestCase
   end
 end
 
+class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
+  self.use_transactional_tests = true
+  self.use_instantiated_fixtures = false
+
+  def test_transaction_created_on_connection_notification
+    connection = stub(:transaction_open? => false)
+    connection.expects(:begin_transaction).with(joinable: false)
+    fire_connection_notification(connection)
+  end
+
+  def test_notification_established_transactions_are_rolled_back
+    # Mocha is not thread-safe so define our own stub to test
+    connection = Class.new do
+      attr_accessor :rollback_transaction_called
+      def transaction_open?; true; end
+      def begin_transaction(*args); end
+      def rollback_transaction(*args)
+        @rollback_transaction_called = true
+      end
+    end.new
+    fire_connection_notification(connection)
+    teardown_fixtures
+    assert(connection.rollback_transaction_called, "Expected <mock connection>#rollback_transaction to be called but was not")
+  end
+
+  private
+
+    def fire_connection_notification(connection)
+      ActiveRecord::Base.connection_handler.stubs(:retrieve_connection).with(Book).returns(connection)
+      message_bus = ActiveSupport::Notifications.instrumenter
+      payload = {
+        class_name: 'Book',
+        config: nil,
+        connection_id: connection.object_id
+      }
+
+      message_bus.instrument('!connection.active_record', payload) {}
+    end
+end
+
 class InvalidTableNameFixturesTest < ActiveRecord::TestCase
   fixtures :funny_jokes
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
