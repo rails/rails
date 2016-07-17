@@ -1186,6 +1186,22 @@ module ApplicationTests
       end
     end
 
+    test "default session store initializer does not overwrite the user defined session store even if it is disabled" do
+      make_basic_app do |application|
+        application.config.session_store :disabled
+      end
+
+      assert_equal nil, app.config.session_store
+    end
+
+    test "default session store initializer sets session store to cookie store" do
+      session_options = { key: "_myapp_session", cookie_only: true }
+      make_basic_app
+
+      assert_equal ActionDispatch::Session::CookieStore, app.config.session_store
+      assert_equal session_options, app.config.session_options
+    end
+
     test "config.log_level with custom logger" do
       make_basic_app do |application|
         application.config.logger = Logger.new(STDOUT)

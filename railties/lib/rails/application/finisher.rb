@@ -33,6 +33,14 @@ module Rails
         end
       end
 
+      # Setup default session store if not already set in config/application.rb
+      initializer :setup_default_session_store, before: :build_middleware_stack do |app|
+        unless app.config.session_store?
+          app_name = app.class.name ? app.railtie_name.chomp('_application') : ''
+          app.config.session_store :cookie_store, key: "_#{app_name}_session"
+        end
+      end
+
       initializer :build_middleware_stack do
         build_middleware_stack
       end

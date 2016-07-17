@@ -131,7 +131,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
         generator.send(:app_const)
         quietly { generator.send(:update_config_files) }
         assert_file "myapp_moved/config/environment.rb", /Rails\.application\.initialize!/
-        assert_file "myapp_moved/config/initializers/session_store.rb", /_myapp_session/
       end
     end
   end
@@ -144,7 +143,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
-      assert_file "myapp/config/initializers/session_store.rb", /_myapp_session/
     end
   end
 
@@ -552,13 +550,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "config/application.rb", /\s+require\s+["']active_job\/railtie["']/
   end
 
-  def test_new_hash_style
-    run_generator
-    assert_file "config/initializers/session_store.rb" do |file|
-      assert_match(/config.session_store :cookie_store, key: '_.+_session'/, file)
-    end
-  end
-
   def test_pretend_option
     output = run_generator [File.join(destination_root, "myapp"), "--pretend"]
     assert_no_match(/run  bundle install/, output)
@@ -571,7 +562,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [path, "-d", 'postgresql']
 
     assert_file "foo bar/config/database.yml", /database: foo_bar_development/
-    assert_file "foo bar/config/initializers/session_store.rb", /key: '_foo_bar/
   end
 
   def test_web_console

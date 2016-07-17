@@ -337,7 +337,6 @@ module Rails
 
       def delete_non_api_initializers_if_api_option
         if options[:api]
-          remove_file 'config/initializers/session_store.rb'
           remove_file 'config/initializers/cookies_serializer.rb'
         end
       end
