@@ -8,8 +8,8 @@
 
     *John Meehan*
 
-*   Display name of the class defining the initializer also in the output
-    of `rails initializers`.
+*   Display name of the class defining the initializer along with the initializer 
+    name in the output of `rails initializers`.
 
     Before:
         disable_dependency_loading
