@@ -8,6 +8,17 @@
 
     *John Meehan*
 
+*   Display name of the class defining the initializer also in the output
+    of `rails initializers`.
+
+    Before:
+        disable_dependency_loading
+
+    After:
+        DemoApp::Application.disable_dependency_loading
+
+    *ta1kt0me*
+
 *   Do not run `bundle install` when generating a new plugin.
 
     Since bundler 1.12.0, the gemspec is validated so the `bundle install`
