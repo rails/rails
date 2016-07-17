@@ -86,6 +86,11 @@ class FormWithHelperTest < ActionView::TestCase
     end
   end
 
+  def test_text_field
+    assert_tag_equals('<input name="post[title]" type="text" value="Catch 22" />') { |f| f.text_field("title") }
+    assert_tag_equals('<input name="post[title]" type="password" value="Catch 22" />') { |f| f.password_field("title", value: @post.title) }
+    assert_tag_equals('<input name="post[title]" type="password" />') { |f| f.password_field("title") }
+  end
 
   def test_form_with_url
     expected = whole_form('/posts', remote: true) do

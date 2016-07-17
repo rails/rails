@@ -19,9 +19,9 @@ module ActionView
 
         GENERATED_FIELD_HELPERS.each do |selector|
           class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-            def #{selector}(method, *args, **options)                   # def text_field(method, *args, **options)
-              tag.input options_for_field(method, args, options)        #   tag.input options_for_field(method, args, options)
-            end                                                         # end
+            def #{selector}(method, *args, **options)                             # def text_field(method, *args, **options)
+              tag.input options_for_field('#{selector}', method, args, options)   #   tag.input options_for_field(selector, method, args, options)
+            end                                                                   # end
           RUBY_EVAL
         end
 
@@ -102,14 +102,15 @@ module ActionView
             options.reverse_merge!(name: name_for(method, scope, options))
           end
 
-          def options_for_field(method, args, options)
+          def options_for_field(selector, method, args, options)
+            type = selector.split("_").first
             options = options_for(method, options)
-            options.merge!(value: model.send(method)) if model
+            options.merge!(value: model.send(method)) if model && type != 'password'
             options.merge!(value: args[0]) if args.size > 0
             if placeholder = placeholder(options.delete(:placeholder), method)
               options.merge!(placeholder: placeholder)
             end
-            options.merge!(type: 'text')
+            options.merge!(type: type)
           end
 
           def placeholder(tag_value, method)
