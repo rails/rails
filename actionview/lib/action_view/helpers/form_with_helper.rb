@@ -107,6 +107,7 @@ module ActionView
             options = options_for(method, options)
             options.merge!(value: model.send(method)) if model && type != 'password'
             options.merge!(value: args[0]) if args.size > 0
+            options[:size] = options[:maxlength] unless options.key?(:size)
             if placeholder = placeholder(options.delete(:placeholder), method)
               options.merge!(placeholder: placeholder)
             end

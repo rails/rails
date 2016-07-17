@@ -92,13 +92,43 @@ class FormWithHelperTest < ActionView::TestCase
     assert_tag_equals('<input name="post[title]" type="password" />') { |f| f.password_field("title") }
   end
 
+  def test_text_field_with_escapes
+    @post.title = "<b>Hello World</b>"
+    assert_tag_equals('<input name="post[title]" type="text" value="&lt;b&gt;Hello World&lt;/b&gt;" />') { |f| f.text_field("title") }
+  end
+
+  def test_text_field_with_html_entities
+    @post.title = "The HTML Entity for & is &amp;"
+    assert_tag_equals('<input name="post[title]" type="text" value="The HTML Entity for &amp; is &amp;amp;" />') { |f| f.text_field("title") }
+  end
+
+  def test_text_field_with_options
+    assert_tag_equals('<input name="post[title]" size="35" type="text" value="Catch 22" />') { |f| f.text_field("title", size: 35) }
+  end
+
+  def test_text_field_assuming_size
+    assert_tag_equals('<input maxlength="35" name="post[title]" size="35" type="text" value="Catch 22" />') { |f| f.text_field("title", maxlength: 35) }
+  end
+
+  def test_text_field_removing_size
+    assert_tag_equals('<input maxlength="35" name="post[title]" type="text" value="Catch 22" />') { |f| f.text_field("title", maxlength: 35, size: nil) }
+  end
+
+  def test_text_field_with_nil_value
+    assert_tag_equals('<input name="post[title]" type="text" />') { |f| f.text_field("title", nil) }
+  end
+
+  def test_text_field_with_nil_name
+    assert_tag_equals('<input type="text" value="Catch 22" />') { |f| f.text_field("title", name: nil) }
+  end
+
   def test_form_with_url
     expected = whole_form('/posts', remote: true) do
       #TODO: label
       # "<label for='title'>The Title</label>" +
       "<input type='text' name='title'>" +
       "<textarea name='body'>\n</textarea>" +
-      "<input name='commit' value='Submit' data-disable-with='Submit' type='submit'>"      
+      "<input name='commit' value='Save changes' data-disable-with='Save changes' type='submit'>"
     end
     actual = form_with(url: '/posts') do |f|
       #TODO: label
