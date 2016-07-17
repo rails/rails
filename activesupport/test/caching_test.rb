@@ -809,11 +809,6 @@ class FileStoreTest < ActiveSupport::TestCase
     @cache.clear
   end
 
-  def test_long_keys
-    @cache.write("a"*10000, 1)
-    assert_equal 1, @cache.read("a"*10000)
-  end
-
   def test_long_uri_encoded_keys
     @cache.write("%"*870, 1)
     assert_equal 1, @cache.read("%"*870)
