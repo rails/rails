@@ -1,3 +1,9 @@
+*   Add `:fallback_string` option to `Array#to_sentence`. If an empty array
+    calls the function and a fallback string option is set then it returns the
+    fallback string other than an empty string.
+
+    *Mohamed Osama*
+
 *   Fix `ActiveSupport::TimeZone#strptime`. Now raises `ArgumentError` when the
     given time doesn't match the format. The error is the same as the one given
     by Ruby's `Date.strptime`. Previously it raised

@@ -40,6 +40,12 @@ class Array
   #   ['one', 'two', 'three'].to_sentence(words_connector: ' or ', last_word_connector: ' or at least ')
   #   # => "one or two or at least three"
   #
+  #   [].to_sentence(fallback_string: 'none')
+  #   # => "none"
+  #
+  #   ['one', 'two'].to_sentence(fallback_string: 'none')
+  #   # => "one and two"
+  #
   # Using <tt>:locale</tt> option:
   #
   #   # Given this locale dictionary:
@@ -57,7 +63,7 @@ class Array
   #   ['uno', 'dos', 'tres'].to_sentence(locale: :es)
   #   # => "uno o dos o al menos tres"
   def to_sentence(options = {})
-    options.assert_valid_keys(:words_connector, :two_words_connector, :last_word_connector, :locale)
+    options.assert_valid_keys(:words_connector, :two_words_connector, :last_word_connector, :locale, :fallback_string)
 
     default_connectors = {
       :words_connector     => ', ',
@@ -72,7 +78,7 @@ class Array
 
     case length
     when 0
-      ''
+      "#{options[:fallback_string] || ''}"
     when 1
       "#{self[0]}"
     when 2
