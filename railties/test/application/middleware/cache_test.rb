@@ -19,7 +19,7 @@ module ApplicationTests
         class ExpiresController < ApplicationController
           def expires_header
             expires_in 10, public: !params[:private]
-            render text: SecureRandom.hex(16)
+            render plain: SecureRandom.hex(16)
           end
 
           def expires_etag
@@ -32,12 +32,12 @@ module ApplicationTests
           end
 
           def keeps_if_modified_since
-            render :text => request.headers['If-Modified-Since']
+            render plain: request.headers['If-Modified-Since']
           end
         private
           def render_conditionally(headers)
             if stale?(headers.merge(public: !params[:private]))
-              render text: SecureRandom.hex(16)
+              render plain: SecureRandom.hex(16)
             end
           end
         end
