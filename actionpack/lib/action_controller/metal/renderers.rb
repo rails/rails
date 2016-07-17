@@ -94,7 +94,6 @@ module ActionController
     end
 
     module ClassMethods
-
       # Adds, by name, a renderer or renderers to the +_renderers+ available
       # to call within controller actions.
       #
@@ -177,7 +176,13 @@ module ActionController
 
     add :xml do |xml, options|
       self.content_type ||= Mime[:xml]
-      xml.respond_to?(:to_xml) ? xml.to_xml(options) : xml
+      if !xml.respond_to?(:to_xml)
+        xml
+      elsif xml.method(:to_xml).arity == 0
+        xml.to_xml
+      else
+        xml.to_xml(options)
+      end
     end
   end
 end

@@ -10,6 +10,12 @@ class RenderXmlTest < ActionController::TestCase
     end
   end
 
+  class XmlRenderableWithoutOptions
+    def to_xml
+      '<i-am-xml-without-options/>'
+    end
+  end
+
   class TestController < ActionController::Base
     protect_from_forgery
 
@@ -28,6 +34,10 @@ class RenderXmlTest < ActionController::TestCase
 
     def render_with_to_xml
       render :xml => XmlRenderable.new
+    end
+
+    def render_with_to_xml_without_options
+      render :xml => XmlRenderableWithoutOptions.new
     end
 
     def formatted_xml_erb
@@ -66,6 +76,11 @@ class RenderXmlTest < ActionController::TestCase
   def test_rendering_xml_should_call_to_xml_with_extra_options
     get :render_xml_with_custom_options
     assert_equal "<i-am-THE-xml/>", @response.body
+  end
+
+  def test_rendering_xml_without_options
+    get :render_with_to_xml_without_options
+    assert_equal "<i-am-xml-without-options/>", @response.body
   end
 
   def test_rendering_with_object_location_should_set_header_with_url_for
