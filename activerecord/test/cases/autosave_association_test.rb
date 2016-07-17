@@ -1370,7 +1370,7 @@ module AutosaveAssociationOnACollectionAssociationTests
     @pirate.send(@association_name).each_with_index { |child, i| child.name = new_names[i] }
 
     @pirate.save
-    assert_equal new_names, @pirate.reload.send(@association_name).map(&:name)
+    assert_equal new_names.sort, @pirate.reload.send(@association_name).map(&:name).sort
   end
 
   def test_should_automatically_save_bang_the_associated_models
@@ -1378,7 +1378,7 @@ module AutosaveAssociationOnACollectionAssociationTests
     @pirate.send(@association_name).each_with_index { |child, i| child.name = new_names[i] }
 
     @pirate.save!
-    assert_equal new_names, @pirate.reload.send(@association_name).map(&:name)
+    assert_equal new_names.sort, @pirate.reload.send(@association_name).map(&:name).sort
   end
 
   def test_should_update_children_when_autosave_is_true_and_parent_is_new_but_child_is_not
