@@ -44,8 +44,8 @@ module ActiveRecord
     end
 
     test "#_select!" do
-      assert relation.public_send("_select!", :foo).equal?(relation)
-      assert_equal [:foo], relation.public_send("select_values")
+      assert relation._select!(:foo).equal?(relation)
+      assert_equal [:foo], relation.select_values
     end
 
     test '#order!' do
