@@ -425,6 +425,7 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Migrator.migrations_paths = old_path
     ENV["RAILS_ENV"] = original_rails_env
     ENV["RACK_ENV"]  = original_rack_env
+    ActiveRecord::Migrator.up(migrations_path)
   end
 
   def test_internal_metadata_stores_environment_when_other_data_exists
