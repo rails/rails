@@ -78,7 +78,14 @@ module ActiveRecord
       mattr_accessor :error_on_ignored_order, instance_writer: false
       self.error_on_ignored_order = false
 
-      mattr_accessor :error_on_ignored_order_or_limit, instance_writer: false
+      def self.error_on_ignored_order_or_limit
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          The flag error_on_ignored_order_or_limit is deprecated. Limits are
+          now supported. Please use error_on_ignored_order instead.
+        MSG
+        self.error_on_ignored_order
+      end
+
       def self.error_on_ignored_order_or_limit=(value)
         ActiveSupport::Deprecation.warn(<<-MSG.squish)
           The flag error_on_ignored_order_or_limit is deprecated. Limits are
