@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object/duplicable'
+
 module ActionDispatch
   module Http
     class ParameterFilter
