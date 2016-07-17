@@ -10,7 +10,6 @@ module ActionView
         def initialize(object_name, method_name, template_object, options = {})
           @object_name, @method_name = object_name.to_s.dup, method_name.to_s.dup
           @template_object = template_object
-
           @object_name.sub!(/\[\]$/,"") || @object_name.sub!(/\[\]\]$/,"]")
           @object = retrieve_object(options.delete(:object))
           @options = options

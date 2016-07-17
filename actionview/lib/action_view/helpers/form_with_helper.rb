@@ -106,7 +106,19 @@ module ActionView
             options = options_for(method, options)
             options.merge!(value: model.send(method)) if model
             options.merge!(value: args[0]) if args.size > 0
+            if placeholder = placeholder(options.delete(:placeholder), method)
+              options.merge!(placeholder: placeholder)
+            end
             options.merge!(type: 'text')
+          end
+
+          def placeholder(tag_value, method)
+            if tag_value
+              placeholder = tag_value if tag_value.is_a?(String)
+              method_and_value = tag_value.is_a?(TrueClass) ? method : "#{method}.#{tag_value}"
+              placeholder ||= Tags::Translator.new(model, scope, method_and_value, scope: "helpers.placeholder").translate
+              placeholder ||= method.humanize
+            end
           end
 
           def initialize(template, model, scope, url, remote, options)

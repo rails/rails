@@ -6,7 +6,29 @@ class FormWithHelperTest < ActionView::TestCase
   tests ActionView::Helpers::FormTagHelper
 
   setup do
-    @post = Post.new("Catch 22", "Joseph Heller", "The plotline follows the airmen of the 256th Squadron...", 1)
+    @post = Post.new("Catch 22", "Joseph Heller", "The plotline follows...", 1, false, Date.new(2004, 6, 15))
+    I18n.backend.store_translations 'placeholder', {
+      activemodel: {
+        attributes: {
+          post: {
+            cost: "Total cost"
+          },
+          :"post/cost" => {
+            uk: "Pounds"
+          }
+        }
+      },
+      helpers: {
+        placeholder: {
+          post: {
+            title: "What is this about?",
+            written_on: {
+              spanish: "Escrito en"
+            },
+          }
+        }
+      }
+    }
   end
 
   Routes = ActionDispatch::Routing::RouteSet.new
@@ -15,6 +37,55 @@ class FormWithHelperTest < ActionView::TestCase
   end
 
   include Routes.url_helpers
+
+  def test_text_field_placeholder_without_locales
+    I18n.with_locale :placeholder do
+      assert_tag_equals('<input name="post[body]" placeholder="Body" type="text" value="The plotline follows..." />') do |f|
+        f.text_field(:body, placeholder: true)
+      end
+    end
+  end
+
+  def test_text_field_placeholder_with_locales
+    I18n.with_locale :placeholder do
+      assert_tag_equals('<input name="post[title]" placeholder="What is this about?" type="text" value="Catch 22" />') do |f|
+        f.text_field(:title, placeholder: true) 
+      end
+    end
+  end
+
+  def test_text_field_placeholder_with_human_attribute_name
+    I18n.with_locale :placeholder do
+      assert_tag_equals('<input name="post[cost]" placeholder="Total cost" type="text" />') do |f|
+         f.text_field(:cost, placeholder: true)
+       end
+    end
+  end
+
+  def test_text_field_placeholder_with_string_value
+    I18n.with_locale :placeholder do
+      assert_tag_equals('<input id="post_cost" name="post[cost]" placeholder="HOW MUCH?" type="text" />') do |f| 
+        text_field(:post, :cost, placeholder: "HOW MUCH?")
+      end
+    end
+  end
+
+  def test_text_field_placeholder_with_human_attribute_name_and_value
+    I18n.with_locale :placeholder do
+      assert_tag_equals('<input name="post[cost]" placeholder="Pounds" type="text" />') do |f|
+        f.text_field(:cost, placeholder: :uk)
+      end
+    end
+  end
+
+  def test_text_field_placeholder_with_locales_and_value
+    I18n.with_locale :placeholder do
+      assert_tag_equals('<input name="post[written_on]" placeholder="Escrito en" type="text" value="2004-06-15" />') do |f|
+         f.text_field(:written_on, placeholder: :spanish)
+       end
+    end
+  end
+
 
   def test_form_with_url
     expected = whole_form('/posts', remote: true) do
@@ -115,7 +186,7 @@ class FormWithHelperTest < ActionView::TestCase
     expected = whole_form('/posts', remote: true) do
       "<label for='post_title'>The Title</label>" +
       "<input type='text' name='post[title]' value='Catch 22'>" +
-      "<textarea name='post[body]'>\nThe plotline follows the airmen of the 256th Squadron...</textarea>" +
+      "<textarea name='post[body]'>\nThe plotline follows...</textarea>" +
       "<input name='commit' value='Create Post' data-disable-with='Create Post' type='submit'>"
     end
 
