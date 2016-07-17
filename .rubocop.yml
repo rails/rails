@@ -25,3 +25,16 @@ Style/AndOr:
 # Use my_method(my_arg) not my_method( my_arg ) or my_method my_arg.
 Lint/RequireParentheses:
   enabled: true
+
+Style/BracesAroundHashParameters:
+  enabled: true
+
+Style/IndentationConsistency:
+  enabled: true
+  EnforcedStyle: rails
+
+Style/EmptyLinesAroundClassBody:
+  enabled: true
+
+Style/EmptyLinesAroundModuleBody:
+  enabled: true
