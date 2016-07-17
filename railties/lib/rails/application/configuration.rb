@@ -165,26 +165,31 @@ module Rails
         self.generators.colorize_logging = val
       end
 
-      def session_store(*args)
-        if args.empty?
-          case @session_store
-          when :disabled
-            nil
-          when :active_record_store
+      def session_store(new_session_store = nil, **options)
+        if new_session_store
+
+          if new_session_store == :active_record_store
             begin
               ActionDispatch::Session::ActiveRecordStore
             rescue NameError
               raise "`ActiveRecord::SessionStore` is extracted out of Rails into a gem. " \
                 "Please add `activerecord-session_store` to your Gemfile to use it."
             end
+          end
+
+          @session_store = new_session_store
+          @session_options = options || {}
+        else
+          case @session_store
+          when :disabled
+            nil
+          when :active_record_store
+            ActionDispatch::Session::ActiveRecordStore
           when Symbol
             ActionDispatch::Session.const_get(@session_store.to_s.camelize)
           else
             @session_store
           end
-        else
-          @session_store = args.shift
-          @session_options = args.shift || {}
         end
       end
 
