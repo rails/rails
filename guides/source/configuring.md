@@ -163,7 +163,7 @@ pipeline is enabled. It is set to `true` by default.
 
 * `config.assets.js_compressor` defines the JavaScript compressor to use. Possible values are `:closure`, `:uglifier` and `:yui` which require the use of the `closure-compiler`, `uglifier` or `yui-compressor` gems respectively.
 
-* `config.assets.gzip` a flag that enables the creation of gzipped version of compiled assets, along with non-gzipped assets. Set to `true` by default.  
+* `config.assets.gzip` a flag that enables the creation of gzipped version of compiled assets, along with non-gzipped assets. Set to `true` by default.
 
 * `config.assets.paths` contains the paths which are used to look for assets. Appending paths to this configuration option will cause those paths to be used in the search for assets.
 
@@ -297,7 +297,7 @@ All these configuration options are delegated to the `I18n` library.
   * Or you can set different fallbacks for locales individually. For example, if you want to use `:tr` for `:az` and `:de`, `:en` for `:da` as fallbacks, you can do it, like so:
 
     ```ruby
-    config.i18n.fallbacks = { az: :tr, da: [:de, :en] } 
+    config.i18n.fallbacks = { az: :tr, da: [:de, :en] }
     #or
     config.i18n.fallbacks.map = { az: :tr, da: [:de, :en] }
     ```
@@ -324,7 +324,7 @@ All these configuration options are delegated to the `I18n` library.
 
 * `config.active_record.schema_format` controls the format for dumping the database schema to a file. The options are `:ruby` (the default) for a database-independent version that depends on migrations, or `:sql` for a set of (potentially database-dependent) SQL statements.
 
-* `config.active_record.error_on_ignored_order_or_limit` specifies if an error should be raised if the order or limit of a query is ignored during a batch query. The options are `true` (raise error) or `false` (warn). Default is `false`.
+* `config.active_record.error_on_ignored_order` specifies if an error should be raised if the order of a query is ignored during a batch query. The options are `true` (raise error) or `false` (warn). Default is `false`.
 
 * `config.active_record.timestamped_migrations` controls whether migrations are numbered with serial integers or with timestamps. The default is `true`, to use timestamps, which are preferred if there are multiple developers working on the same application.
 
@@ -529,7 +529,7 @@ There are a number of settings available on `config.action_mailer`:
     * `:authentication` - If your mail server requires authentication, you need to specify the authentication type here. This is a symbol and one of `:plain`, `:login`, `:cram_md5`.
     * `:enable_starttls_auto` - Detects if STARTTLS is enabled in your SMTP server and starts to use it. It defaults to `true`.
     * `:openssl_verify_mode` - When using TLS, you can set how OpenSSL checks the certificate. This is useful if you need to validate a self-signed and/or a wildcard certificate. This can be one of the OpenSSL verify constants, `:none` or `:peer` -- or the constant directly `OpenSSL::SSL::VERIFY_NONE` or `OpenSSL::SSL::VERIFY_PEER`, respectively.
-    * `:ssl/:tls` - Enables the SMTP connection to use SMTP/TLS (SMTPS: SMTP over direct TLS connection).                                  
+    * `:ssl/:tls` - Enables the SMTP connection to use SMTP/TLS (SMTPS: SMTP over direct TLS connection).
 
 * `config.action_mailer.sendmail_settings` allows detailed configuration for the `sendmail` delivery method. It accepts a hash of options, which can include any of these options:
     * `:location` - The location of the sendmail executable. Defaults to `/usr/sbin/sendmail`.
