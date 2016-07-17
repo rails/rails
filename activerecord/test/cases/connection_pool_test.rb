@@ -347,8 +347,8 @@ module ActiveRecord
           payloads << payload
         end
         ActiveRecord::Base.establish_connection :arunit
-        assert_equal [:class_name, :config, :connection_id], payloads[0].keys.sort
-        assert_equal 'primary', payloads[0][:class_name]
+        assert_equal [:config, :connection_id, :spec_name], payloads[0].keys.sort
+        assert_equal 'primary', payloads[0][:spec_name]
       ensure
         ActiveSupport::Notifications.unsubscribe(subscription) if subscription
       end

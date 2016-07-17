@@ -855,7 +855,7 @@ module ActiveRecord
           connection_id: object_id
         }
         if spec
-          payload[:class_name] = spec.name
+          payload[:spec_name] = spec.name
           payload[:config] = spec.config
         end
 
