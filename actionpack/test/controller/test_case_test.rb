@@ -336,6 +336,10 @@ XML
     assert_equal 'baz', session[:bar]
   end
 
+  def test_process_with_unknown_kwarg
+    assert_raises(ArgumentError) { process :no_op, method: "GET", foo: "bar" }
+  end
+
   def test_process_merges_session_arg
     session[:foo] = 'bar'
     get :no_op, session: { bar: 'baz' }
