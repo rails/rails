@@ -188,6 +188,10 @@ module Rails
         end
       end
 
+      def session_store? #:nodoc:
+        @session_store
+      end
+
       def annotations
         SourceAnnotationExtractor::Annotation
       end
