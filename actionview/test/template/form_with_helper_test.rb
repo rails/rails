@@ -33,10 +33,62 @@ class FormWithHelperTest < ActionView::TestCase
 
   Routes = ActionDispatch::Routing::RouteSet.new
   Routes.draw do
+    resources :customers
     resources :posts
   end
 
   include Routes.url_helpers
+
+  def test_text_field
+    assert_tag_equals('<input name="post[title]" type="text" value="Catch 22" />') { |f| f.text_field("title") }
+    assert_tag_equals('<input name="post[title]" type="password" value="Catch 22" />') { |f| f.password_field("title", value: @post.title) }
+    assert_tag_equals('<input name="post[title]" type="password" />') { |f| f.password_field("title") }
+  end
+
+  def test_text_field_with_escapes
+    @post.title = "<b>Hello World</b>"
+    assert_tag_equals('<input name="post[title]" type="text" value="&lt;b&gt;Hello World&lt;/b&gt;" />') { |f| f.text_field("title") }
+  end
+
+  def test_text_field_with_html_entities
+    @post.title = "The HTML Entity for & is &amp;"
+    assert_tag_equals('<input name="post[title]" type="text" value="The HTML Entity for &amp; is &amp;amp;" />') { |f| f.text_field("title") }
+  end
+
+  def test_text_field_with_options
+    assert_tag_equals('<input name="post[title]" size="35" type="text" value="Catch 22" />') { |f| f.text_field("title", size: 35) }
+  end
+
+  def test_text_field_assuming_size
+    assert_tag_equals('<input maxlength="35" name="post[title]" size="35" type="text" value="Catch 22" />') { |f| f.text_field("title", maxlength: 35) }
+  end
+
+  def test_text_field_removing_size
+    assert_tag_equals('<input maxlength="35" name="post[title]" type="text" value="Catch 22" />') { |f| f.text_field("title", maxlength: 35, size: nil) }
+  end
+
+  def test_text_field_with_nil_value
+    assert_tag_equals('<input name="post[title]" type="text" />') { |f| f.text_field("title", nil) }
+  end
+
+  def test_text_field_with_nil_name
+    assert_tag_equals('<input type="text" value="Catch 22" />') { |f| f.text_field("title", name: nil) }
+  end
+
+  def test_text_field_with_custom_scope
+    assert_tag_equals("<input type='text' name='custom[title]' value='Catch 22'>") { |f| f.text_field :title, scope: 'custom' }
+  end
+
+  def test_text_field_with_nil_scope
+    assert_tag_equals("<input type='text' name='title' value='Catch 22'>") { |f| f.text_field :title, scope: nil }
+  end
+
+  def test_text_field_with_id
+    assert_tag_equals("<input type='text' name='post[title]' value='Catch 22' id='this_is_post_title'>") { |f| f.text_field :title, id: 'this_is_post_title' }
+  end
+  def test_text_field_with_value
+    assert_tag_equals("<input type='text' name='post[title]' value='Closing Time'>") { |f| f.text_field :title, 'Closing Time' }
+  end
 
   def test_text_field_placeholder_without_locales
     I18n.with_locale :placeholder do
@@ -86,40 +138,49 @@ class FormWithHelperTest < ActionView::TestCase
     end
   end
 
-  def test_text_field
-    assert_tag_equals('<input name="post[title]" type="text" value="Catch 22" />') { |f| f.text_field("title") }
-    assert_tag_equals('<input name="post[title]" type="password" value="Catch 22" />') { |f| f.password_field("title", value: @post.title) }
-    assert_tag_equals('<input name="post[title]" type="password" />') { |f| f.password_field("title") }
+  def test_checkbox
+    assert_tag_equals("<input name='post[secret]' type='hidden' value='0'><input name='post[secret]' type='checkbox' value='1' >") do |f|
+      f.check_box(:secret)
+    end
   end
 
-  def test_text_field_with_escapes
-    @post.title = "<b>Hello World</b>"
-    assert_tag_equals('<input name="post[title]" type="text" value="&lt;b&gt;Hello World&lt;/b&gt;" />') { |f| f.text_field("title") }
+  def test_checkbox_with_custom_on_off
+    assert_tag_equals("<input name='post[secret]' type='hidden' value='noo'><input name='post[secret]' type='checkbox' value='yees'>") do |f|
+      f.check_box(:secret, on: 'yees', off: 'noo')
+    end
   end
 
-  def test_text_field_with_html_entities
-    @post.title = "The HTML Entity for & is &amp;"
-    assert_tag_equals('<input name="post[title]" type="text" value="The HTML Entity for &amp; is &amp;amp;" />') { |f| f.text_field("title") }
+  def test_select_with_choices_as_pairs
+    categories = [%w(Volvo volvo), %w(Saab saab), %w(Mercedes mercedes)]
+    expected = "<select name='post[category]'>" +
+        "<option value='volvo'>Volvo</option>\n" +
+        "<option value='saab'>Saab</option>\n" +
+        "<option value='mercedes'>Mercedes</option>" +
+      "</select>"
+    assert_tag_equals(expected) { |f| f.select :category, categories }
+    assert_tag_equals(expected) { |f| f.select "category", categories }
   end
 
-  def test_text_field_with_options
-    assert_tag_equals('<input name="post[title]" size="35" type="text" value="Catch 22" />') { |f| f.text_field("title", size: 35) }
+  def test_select_choices_as_array
+    categories = %w(volvo saab mercedes)
+    expected = "<select name='post[category]'>" +
+        "<option value=''></option>" +
+        "<option value='volvo'>volvo</option>\n" +
+        "<option value='saab'>saab</option>\n" +
+        "<option value='mercedes'>mercedes</option>" +
+      "</select>"
+    assert_tag_equals(expected) { |f| f.select :category, categories, blank: true }
+    assert_tag_equals(expected) { |f| f.select "category", categories, blank: true }
   end
 
-  def test_text_field_assuming_size
-    assert_tag_equals('<input maxlength="35" name="post[title]" size="35" type="text" value="Catch 22" />') { |f| f.text_field("title", maxlength: 35) }
-  end
-
-  def test_text_field_removing_size
-    assert_tag_equals('<input maxlength="35" name="post[title]" type="text" value="Catch 22" />') { |f| f.text_field("title", maxlength: 35, size: nil) }
-  end
-
-  def test_text_field_with_nil_value
-    assert_tag_equals('<input name="post[title]" type="text" />') { |f| f.text_field("title", nil) }
-  end
-
-  def test_text_field_with_nil_name
-    assert_tag_equals('<input type="text" value="Catch 22" />') { |f| f.text_field("title", name: nil) }
+  def test_collection_select
+    expected = "<select name='post[author_name]'>" +
+        "<option value='&lt;Abe&gt;'>&lt;Abe&gt;</option>\n" +
+        "<option value='Babe'>Babe</option>\n" +
+        "<option value='Cabe'>Cabe</option>" +
+      "</select>"
+    assert_tag_equals(expected) { |f| f.collection_select(:author_name, dummy_posts, :author_name, :author_name) }
+    assert_tag_equals(expected) { |f| f.collection_select("author_name", dummy_posts, "author_name", "author_name") }
   end
 
   def test_form_with_url
@@ -136,65 +197,6 @@ class FormWithHelperTest < ActionView::TestCase
       concat f.text_field :title
       concat f.text_area :body
       concat f.submit
-    end
-    assert_dom_equal expected, actual
-  end
-
-  def test_form_with_select_choices_as_pairs
-    expected = whole_form('/posts', remote: true) do
-      "<select name='category'>" +
-        "<option value='volvo'>Volvo</option>\n" +
-        "<option value='saab'>Saab</option>\n" +
-        "<option value='mercedes'>Mercedes</option>" +
-      "</select>"
-    end
-    categories = [%w(Volvo volvo), %w(Saab saab), %w(Mercedes mercedes)]
-    actual = form_with(url: '/posts') do |f|
-      f.select :category, categories
-    end
-    assert_dom_equal expected, actual
-  end
-
-  def test_form_with_select_choices_as_array
-    expected = whole_form('/posts', remote: true) do
-      "<select name='category'>" +
-        "<option value=''></option>" +
-        "<option value='volvo'>volvo</option>\n" +
-        "<option value='saab'>saab</option>\n" +
-        "<option value='mercedes'>mercedes</option>" +
-      "</select>"
-    end
-    categories = %w(volvo saab mercedes)
-    actual = form_with(url: '/posts') do |f|
-      f.select :category, categories, blank: true
-    end
-    assert_dom_equal expected, actual
-  end
-
-  def test_form_with_url_and_collection_select
-    expected = whole_form('/posts', remote: true) do
-      "<select name='author_name'>" +
-        "<option value='&lt;Abe&gt;'>&lt;Abe&gt;</option>\n" +
-        "<option value='Babe'>Babe</option>\n" +
-        "<option value='Cabe'>Cabe</option>" +
-      "</select>"
-    end
-    actual = form_with(url: '/posts') do |f|
-      f.collection_select("author_name", dummy_posts, "author_name", "author_name")
-    end
-    assert_dom_equal expected, actual
-  end
-
-  def test_form_with_model_and_collection_select
-    expected = whole_form('/posts', remote: true) do
-      "<select name='post[author_name]'>" +
-        "<option value='&lt;Abe&gt;'>&lt;Abe&gt;</option>\n" +
-        "<option value='Babe'>Babe</option>\n" +
-        "<option value='Cabe'>Cabe</option>" +
-      "</select>"
-    end
-    actual = form_with(model: @post) do |f|
-      f.collection_select("author_name", dummy_posts, "author_name", "author_name")
     end
     assert_dom_equal expected, actual
   end
@@ -235,52 +237,40 @@ class FormWithHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
-  def test_form_with_text_field_with_custom_scope
-    assert_tag_equals("<input type='text' name='custom[title]' value='Catch 22'>") { |f| f.text_field :title, scope: 'custom' }
+  def test_form_with_non_persisted_model
+    customer = Customer.new("John")
+    expected = whole_form('/customers', method: 'post')
+    actual = form_with(model: customer)
+    assert_dom_equal expected, actual
   end
 
-  def test_form_with_text_field_with_nil_scope
-    assert_tag_equals("<input type='text' name='title' value='Catch 22'>") { |f| f.text_field :title, scope: nil }
+  def test_form_with_persisted_model
+    customer = Customer.new("John", 123)
+    expected = whole_form('/customers/123', method: 'post')
+    actual = form_with(model: customer)
+    assert_dom_equal expected, actual
   end
 
-  def test_form_with_text_field_with_id
-    assert_tag_equals("<input type='text' name='post[title]' value='Catch 22' id='this_is_post_title'>") { |f| f.text_field :title, id: 'this_is_post_title' }
-  end
-  def test_form_with_text_field_with_value
-    assert_tag_equals("<input type='text' name='post[title]' value='Closing Time'>") { |f| f.text_field :title, 'Closing Time' }
-  end
-
-  def test_form_with_checkbox
-    assert_tag_equals("<input name='post[secret]' type='hidden' value='0'><input name='post[secret]' type='checkbox' value='1' >") do |f|
-      f.check_box(:secret)
-    end
-  end
-  def test_form_with_checkbox_custom_on_off
-    assert_tag_equals("<input name='post[secret]' type='hidden' value='noo'><input name='post[secret]' type='checkbox' value='yees'>") do |f|
-      f.check_box(:secret, on: 'yees', off: 'noo')
-    end
-  end
-
-  def test_form_with_id_and_class
+  def test_form_with_custom_id_and_class
     expected = whole_form('/posts', remote: true, id: "post_id", class: "post_class")
-    assert_dom_equal expected, form_with(model: @post, class: "post_class", id: "post_id") {}
+    assert_dom_equal expected, form_with(model: @post, class: "post_class", id: "post_id")
   end
 
   def test_form_with_custom_attribute
     expected = whole_form('/posts', remote: true, autocomplete: "on")
-    assert_dom_equal expected, form_with(model: @post, autocomplete: "on") {}
+    assert_dom_equal expected, form_with(model: @post, autocomplete: "on")
   end
 
   def test_form_with_data_attributes
     expected = whole_form('/posts', remote: true, "data-test": "test")
-    assert_dom_equal expected, form_with(model: @post, "data-test": "test") {}
-    assert_dom_equal expected, form_with(model: @post, data: {test: "test"} ) {}    
+    assert_dom_equal expected, form_with(model: @post, "data-test": "test")
+    assert_dom_equal expected, form_with(model: @post, data: {test: "test"} )
   end
 
   protected
 
-    def assert_tag_equals(expected, &actual)
-      assert_dom_equal expected, fields_with(model: @post, &actual)
+    def assert_tag_equals(expected, model: @post, &actual)
+      assert_dom_equal expected, fields_with(model: model, &actual)
     end
 
     def hidden_fields(method: nil, enforce_utf8: true, **options)
@@ -307,7 +297,7 @@ class FormWithHelperTest < ActionView::TestCase
       txt << %{ method="#{method}">}
     end
 
-    def whole_form(action = "/", method: "post", remote: nil, multipart: nil, **options, &block)
+    def whole_form(action = "/", method: "post", remote: true, multipart: nil, **options, &block)
       contents = block_given? ? yield : ""
       form_tag = form_text(action, remote: remote, multipart: multipart, method: method, **options)
       form_tag + hidden_fields(options.slice :method, :enforce_utf8) + contents + "</form>"

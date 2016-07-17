@@ -119,7 +119,7 @@ module ActionView
               placeholder = tag_value if tag_value.is_a?(String)
               method_and_value = tag_value.is_a?(TrueClass) ? method : "#{method}.#{tag_value}"
               placeholder ||= Tags::Translator.new(model, scope, method_and_value, scope: "helpers.placeholder").translate
-              placeholder ||= method.humanize
+              placeholder ||= method.to_s.humanize
             end
           end
 
@@ -140,7 +140,7 @@ module ActionView
         url ||= polymorphic_path(model, {})
         builder = FormWithBuilder.new(self, model, scope, url, remote, options)
         coding_tag = tag.input name: "utf8", type: "hidden", value: "&#x2713;", escape_attributes: false
-        output  = capture(builder, &block)
+        output  = block_given? ? capture(builder, &block) : ""
         options = options.merge(action: url, "data-remote": remote, "accept-charset": "UTF-8", method: method)
         tag.form coding_tag + output, options
       end
