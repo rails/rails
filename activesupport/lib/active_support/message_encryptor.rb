@@ -1,6 +1,7 @@
 require 'openssl'
 require 'base64'
 require 'active_support/core_ext/array/extract_options'
+require 'active_support/message_verifier'
 
 module ActiveSupport
   # MessageEncryptor is a simple way to encrypt values which get stored
@@ -18,12 +19,24 @@ module ActiveSupport
   #   encrypted_data = crypt.encrypt_and_sign('my secret data')              # => "NlFBTTMwOUV5UlA1QlNEN2xkY2d6eThYWWh..."
   #   crypt.decrypt_and_verify(encrypted_data)                               # => "my secret data"
   class MessageEncryptor
+    AEAD_MODES = %w(ccm ocb eax gcm poly1305)
+
     module NullSerializer #:nodoc:
       def self.load(value)
         value
       end
 
       def self.dump(value)
+        value
+      end
+    end
+
+    module AeadVerifier #:nodoc:
+      def self.verify(value)
+        value
+      end
+
+      def self.generate(value)
         value
       end
     end
@@ -40,7 +53,8 @@ module ActiveSupport
     # Options:
     # * <tt>:cipher</tt>     - Cipher to use. Can be any cipher returned by
     #   <tt>OpenSSL::Cipher.ciphers</tt>. Default is 'aes-256-cbc'.
-    # * <tt>:digest</tt> - String of digest to use for signing. Default is +SHA1+.
+    # * <tt>:digest</tt> - String of digest to use for signing. Default is
+    #   +SHA1+. Ignored when using an AEAD cipher like 'aes-256-gcm'.
     # * <tt>:serializer</tt> - Object serializer to use. Default is +Marshal+.
     def initialize(secret, *signature_key_or_options)
       options = signature_key_or_options.extract_options!
@@ -48,7 +62,8 @@ module ActiveSupport
       @secret = secret
       @sign_secret = sign_secret
       @cipher = options[:cipher] || 'aes-256-cbc'
-      @verifier = MessageVerifier.new(@sign_secret || @secret, digest: options[:digest] || 'SHA1', serializer: NullSerializer)
+      @digest = options[:digest] || 'SHA1' unless aead_mode?
+      @verifier = resolve_verifier
       @serializer = options[:serializer] || Marshal
     end
 
@@ -73,20 +88,27 @@ module ActiveSupport
 
       # Rely on OpenSSL for the initialization vector
       iv = cipher.random_iv
+      cipher.auth_data = "" if aead_mode?
 
       encrypted_data = cipher.update(@serializer.dump(value))
       encrypted_data << cipher.final
 
-      "#{::Base64.strict_encode64 encrypted_data}--#{::Base64.strict_encode64 iv}"
+      blob = "#{::Base64.strict_encode64 encrypted_data}--#{::Base64.strict_encode64 iv}"
+      blob << "--#{::Base64.strict_encode64 cipher.auth_tag}" if aead_mode?
+      blob
     end
 
     def _decrypt(encrypted_message)
       cipher = new_cipher
-      encrypted_data, iv = encrypted_message.split("--".freeze).map {|v| ::Base64.strict_decode64(v)}
+      encrypted_data, iv, auth_tag = encrypted_message.split("--".freeze).map {|v| ::Base64.strict_decode64(v)}
 
       cipher.decrypt
       cipher.key = @secret
       cipher.iv  = iv
+      if aead_mode?
+        cipher.auth_tag = auth_tag
+        cipher.auth_data = ""
+      end
 
       decrypted_data = cipher.update(encrypted_data)
       decrypted_data << cipher.final
@@ -102,6 +124,21 @@ module ActiveSupport
 
     def verifier
       @verifier
+    end
+
+    def aead_mode?
+      @aead_mode ||= begin
+        cipher_mode = @cipher.split('-'.freeze).last
+        AEAD_MODES.include?(cipher_mode)
+      end
+    end
+
+    def resolve_verifier
+      if aead_mode?
+        AeadVerifier
+      else
+        MessageVerifier.new(@sign_secret || @secret, digest: @digest, serializer: NullSerializer)
+      end
     end
   end
 end
