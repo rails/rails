@@ -28,7 +28,7 @@ module ActiveRecord
           "<#{attribute.value.bytesize} bytes of binary data>"
         end
       else
-        attribute.value_for_database
+        type_cast(attribute.value_for_database)
       end
 
       [attribute.name, value]
@@ -90,6 +90,10 @@ module ActiveRecord
 
     def logger
       ActiveRecord::Base.logger
+    end
+
+    def type_cast(value)
+      ActiveRecord::Base.connection.type_cast(value)
     end
   end
 end
