@@ -955,9 +955,8 @@ module ActiveRecord
 
       # Returns a <tt>Relation</tt> object for the records in this association
       def scope
-        @association.scope
+        @scope ||= @association.scope
       end
-      alias spawn scope
 
       # Equivalent to <tt>Array#==</tt>. Returns +true+ if the two arrays
       # contain the same number of elements and if each element is equal
@@ -1089,6 +1088,7 @@ module ActiveRecord
       #   person.pets(true)  # fetches pets from the database
       #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
       def reload
+        @scope = nil
         proxy_association.reload
         self
       end
@@ -1110,6 +1110,7 @@ module ActiveRecord
       #   person.pets  # fetches pets from the database
       #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
       def reset
+        @scope = nil
         proxy_association.reset
         proxy_association.reset_scope
         self
