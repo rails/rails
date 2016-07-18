@@ -88,7 +88,7 @@ module ActiveRecord
       end
 
       def env
-        @env ||= Rails.env
+        @env ||= Rails.env if defined?(Rails.env)
       end
 
       def seed_loader
@@ -117,11 +117,8 @@ module ActiveRecord
       end
 
       def create_all
-        old_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(ActiveRecord::Base.connection_specification_name)
         each_local_configuration { |configuration| create configuration }
-        if old_pool
-          ActiveRecord::Base.connection_handler.establish_connection(old_pool.spec.to_hash)
-        end
+        ActiveRecord::Base.establish_connection(env.to_sym) if env
       end
 
       def create_current(environment = env)

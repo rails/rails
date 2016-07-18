@@ -204,6 +204,44 @@ module TestHelpers
       RUBY
     end
 
+    def use_postgresql
+      File.open("#{app_path}/config/database.yml", "w") do |f|
+        f.puts <<-YAML
+        default: &default
+          adapter: postgresql
+          pool: 5
+        development:
+          <<: *default
+          database: railties_development
+        test:
+          <<: *default
+          database: railties_test
+        production:
+          <<: *default
+          database: railties_production
+        YAML
+      end
+    end
+
+    def use_mysql
+      File.open("#{app_path}/config/database.yml", "w") do |f|
+        f.puts <<-YAML
+        default: &default
+          adapter: mysql2
+          pool: 5
+        development:
+          <<: *default
+          database: railties_development
+        test:
+          <<: *default
+          database: railties_test
+        production:
+          <<: *default
+          database: railties_production
+        YAML
+      end
+    end
+
     class Bukkit
       attr_reader :path
 
