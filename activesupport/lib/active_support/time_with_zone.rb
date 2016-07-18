@@ -84,6 +84,12 @@ module ActiveSupport
     end
     alias_method :getlocal, :localtime
 
+    def to_time_with_caching
+      @to_time ||= to_time_without_caching
+    end
+    alias_method :to_time_without_caching, :to_time
+    alias_method :to_time, :to_time_with_caching
+
     # Returns true if the current time is within Daylight Savings Time for the
     # specified time zone.
     #
