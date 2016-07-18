@@ -598,4 +598,12 @@ class EachTest < ActiveRecord::TestCase
       ActiveRecord::Base.error_on_ignored_order = prev
     end
   end
+
+  test 'error_on_ignored_order_or_limit is deprecated' do
+    expected = ActiveRecord::Base.error_on_ignored_order
+    actual = assert_deprecated 'Please use error_on_ignored_order instead.' do
+      ActiveRecord::Base.error_on_ignored_order_or_limit
+    end
+    assert_equal expected, actual
+  end
 end
