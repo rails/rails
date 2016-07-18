@@ -1,3 +1,7 @@
+*   Deprecate locking records with unpersisted changes.
+
+    *Marc Schütz*
+
 *   Deprecate `ColumnDumper#migration_keys`.
 
     *Ryuta Kamizono*

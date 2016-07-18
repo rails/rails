@@ -59,7 +59,16 @@ module ActiveRecord
       # or pass true for "FOR UPDATE" (the default, an exclusive row lock). Returns
       # the locked record.
       def lock!(lock = true)
-        reload(lock: lock) if persisted?
+        if persisted?
+          if changed?
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              Locking a record with unpersisted changes is deprecated and will raise an
+              exception in Rails 5.2. Use `save` to persist the changes, or `reload` to
+              discard them explicitly.
+            MSG
+          end
+          reload(lock: lock)
+        end
         self
       end
 
