@@ -11,6 +11,24 @@ class FormWithHelperTest < ActionView::TestCase
     @post.comments = []
     @post.comments << @comment
     def @post.to_param; "77"; end
+
+    I18n.backend.store_translations 'label', {
+      activemodel: {
+        attributes: {
+          post: {
+            cost: "Total cost"
+          }
+        }
+      },
+      helpers: {
+        label: {
+          post: {
+            body: "Write entire text here",
+          },
+        }
+      }
+    }
+
     I18n.backend.store_translations 'placeholder', {
       activemodel: {
         attributes: {
@@ -44,6 +62,31 @@ class FormWithHelperTest < ActionView::TestCase
   end
 
   include Routes.url_helpers
+
+  def test_label
+    assert_tag_equals('<label>Title</label>') { |f| f.label("title") }
+    assert_tag_equals('<label>The title goes here</label>') { |f| f.label("title", "The title goes here") }
+    assert_tag_equals('<label for="title_label">Title</label>') { |f| f.label("title", for: 'title_label') }
+    assert_tag_equals('<label class="title_label">Title</label>') { |f| f.label("title", class: 'title_label') }
+    assert_tag_equals('<label>Secret?</label>') { |f| f.label("secret?") }
+  end
+
+  def test_label_with_symbols
+    assert_tag_equals('<label>Title</label>') { |f| f.label(:title) }
+    assert_tag_equals('<label>Secret?</label>') { |f| f.label(:"secret?") }
+  end
+
+  def test_label_with_locales_strings
+    I18n.with_locale :label do
+      assert_tag_equals('<label>Write entire text here</label>') { |f| f.label("body") }
+    end
+  end
+
+  def test_label_with_human_attribute_name
+    I18n.with_locale :label do
+      assert_tag_equals('<label>Total cost</label>') { |f| f.label(:cost) }
+    end
+  end
 
   def test_text_field
     assert_tag_equals('<input name="post[title]" type="text" value="Catch 22" />') { |f| f.text_field("title") }
@@ -92,6 +135,7 @@ class FormWithHelperTest < ActionView::TestCase
   def test_text_field_with_id
     assert_tag_equals("<input type='text' name='post[title]' value='Catch 22' id='this_is_post_title'>") { |f| f.text_field :title, id: 'this_is_post_title' }
   end
+
   def test_text_field_with_value
     assert_tag_equals("<input type='text' name='post[title]' value='Closing Time'>") { |f| f.text_field :title, 'Closing Time' }
   end
@@ -191,15 +235,13 @@ class FormWithHelperTest < ActionView::TestCase
 
   def test_form_with_url
     expected = whole_form('/posts', remote: true) do
-      #TODO: label
-      # "<label for='title'>The Title</label>" +
+      "<label>The Title</label>" +
       "<input type='text' name='title'>" +
       "<textarea name='body'>\n</textarea>" +
       "<input name='commit' value='Save changes' data-disable-with='Save changes' type='submit'>"
     end
     actual = form_with(url: '/posts') do |f|
-      #TODO: label
-      # concat f.label(:title, "The Title")
+      concat f.label(:title, "The Title")
       concat f.text_field :title
       concat f.text_area :body
       concat f.submit
@@ -209,7 +251,7 @@ class FormWithHelperTest < ActionView::TestCase
 
   def test_form_with_url_and_scope
     expected = whole_form('/posts', remote: true) do
-      "<label for='post_title'>The Title</label>" +
+      "<label>The Title</label>" +
       "<input type='text' name='post[title]'>" +
       "<textarea name='post[body]'>\n</textarea>" +
       "<input name='commit' value='Save Post' data-disable-with='Save Post' type='submit'>"
@@ -227,7 +269,7 @@ class FormWithHelperTest < ActionView::TestCase
 
   def test_form_with_model
     expected = whole_form('/posts', remote: true) do
-      "<label for='post_title'>The Title</label>" +
+      "<label>The Title</label>" +
       "<input type='text' name='post[title]' value='Catch 22'>" +
       "<textarea name='post[body]'>\nThe plotline follows...</textarea>" +
       "<input name='commit' value='Create Post' data-disable-with='Create Post' type='submit'>"
@@ -284,6 +326,11 @@ class FormWithHelperTest < ActionView::TestCase
     expected = whole_form('/posts', remote: true, "data-test": "test")
     assert_dom_equal expected, form_with(model: @post, "data-test": "test")
     assert_dom_equal expected, form_with(model: @post, data: {test: "test"} )
+  end
+
+  def test_fields_for_returns_block_result
+    output = fields_with(model: Post.new) { |f| "fields" }
+    assert_equal "fields", output
   end
 
   protected

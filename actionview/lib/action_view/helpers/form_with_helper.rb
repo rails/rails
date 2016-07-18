@@ -36,10 +36,15 @@ module ActionView
           content.nil? ? tag.textarea(options) : tag.textarea(content, options)
         end
 
-        def label(method, content, **options)
-          options = options.dup
-          scope = options.delete(:scope) { @scope }
-          tag.label content, options.reverse_merge(for: id_for(method, scope, options))
+        def label(method, *args, **options)
+          if model && model.class.respond_to?(:human_attribute_name)
+            default = model.class.human_attribute_name(method) 
+          else
+            default = method.to_s.humanize
+          end
+          content = I18n.t("#{scope}.#{method}", default: default, scope: "helpers.label")
+          content = args[0] if args.size > 0
+          tag.label content, options
         end
 
         def check_box(method, *args, on: "1", off: "0", **options)
