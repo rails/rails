@@ -116,7 +116,17 @@ module ActiveRecord
       def sanitize_sql_hash_for_assignment(attrs, table)
         c = connection
         attrs.map do |attr, value|
-          value = type_for_attribute(attr.to_s).serialize(value)
+          if value.is_a?(Base)
+            require "active_support/core_ext/string/filters"
+            ActiveSupport::Deprecation.warn(<<-WARNING.squish)
+              Passing `ActiveRecord::Base` objects to
+              `sanitize_sql_hash_for_assignment` (or methods which call it,
+              such as `update_all`) is deprecated. Please pass the id directly,
+              instead.
+            WARNING
+          else
+            value = type_for_attribute(attr.to_s).serialize(value)
+          end
           "#{c.quote_table_name_for_assignment(table, attr)} = #{c.quote(value)}"
         end.join(', ')
       end
