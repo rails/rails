@@ -2007,4 +2007,11 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_equal 2, posts.to_a.length
   end
+
+  def test_update_all_can_receive_active_record_objects
+    assert_deprecated do
+      Comment.update_all(post_id: Post.first)
+      assert(Comment.all.all? { |c| c.post_id == Post.first.id })
+    end
+  end
 end
