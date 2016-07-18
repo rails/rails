@@ -362,7 +362,7 @@ module ActiveRecord
     #     end
     #   end
     #
-    # If your model class is <tt>Project</tt>, the module is
+    # If your model class is <tt>Project</tt>, then the module is
     # named <tt>Project::GeneratedAssociationMethods</tt>. The +GeneratedAssociationMethods+ module is
     # included in the model class immediately after the (anonymous) generated attributes methods
     # module, meaning an association will override the methods for an attribute with the same name.
@@ -845,8 +845,8 @@ module ActiveRecord
     #   Post.includes(:author).each do |post|
     #
     # This references the name of the #belongs_to association that also used the <tt>:author</tt>
-    # symbol. After loading the posts, find will collect the +author_id+ from each one and load
-    # all the referenced authors with one query. Doing so will cut down the number of queries
+    # symbol. After loading the posts, +find+ will collect the +author_id+ from each one and load
+    # all of the referenced authors with one query. Doing so will cut down the number of queries
     # from 201 to 102.
     #
     # We can improve upon the situation further by referencing both associations in the finder with:
@@ -873,7 +873,7 @@ module ActiveRecord
     #
     # Since only one table is loaded at a time, conditions or orders cannot reference tables
     # other than the main one. If this is the case, Active Record falls back to the previously
-    # used LEFT OUTER JOIN based strategy. For example:
+    # used <tt>LEFT OUTER JOIN</tt> based strategy. For example:
     #
     #   Post.includes([:author, :comments]).where(['comments.approved = ?', true])
     #
@@ -881,18 +881,18 @@ module ActiveRecord
     # <tt>LEFT OUTER JOIN comments ON comments.post_id = posts.id</tt> and
     # <tt>LEFT OUTER JOIN authors ON authors.id = posts.author_id</tt>. Note that using conditions
     # like this can have unintended consequences.
-    # In the above example posts with no approved comments are not returned at all, because
+    # In the above example, posts with no approved comments are not returned at all because
     # the conditions apply to the SQL statement as a whole and not just to the association.
     #
     # You must disambiguate column references for this fallback to happen, for example
     # <tt>order: "author.name DESC"</tt> will work but <tt>order: "name DESC"</tt> will not.
     #
-    # If you want to load all posts (including posts with no approved comments) then write
-    # your own LEFT OUTER JOIN query using ON
+    # If you want to load all posts (including posts with no approved comments), then write
+    # your own <tt>LEFT OUTER JOIN</tt> query using <tt>ON</tt>:
     #
     #   Post.joins("LEFT OUTER JOIN comments ON comments.post_id = posts.id AND comments.approved = '1'")
     #
-    # In this case it is usually more natural to include an association which has conditions defined on it:
+    # In this case, it is usually more natural to include an association which has conditions defined on it:
     #
     #   class Post < ActiveRecord::Base
     #     has_many :approved_comments, -> { where(approved: true) }, class_name: 'Comment'
@@ -924,7 +924,7 @@ module ActiveRecord
     #
     # This will execute one query to load the addresses and load the addressables with one
     # query per addressable type.
-    # For example if all the addressables are either of class Person or Company then a total
+    # For example, if all the addressables are either of class Person or Company, then a total
     # of 3 queries will be executed. The list of addressable types to load is determined on
     # the back of the addresses loaded. This is not supported if Active Record has to fallback
     # to the previous implementation of eager loading and will raise ActiveRecord::EagerLoadPolymorphicError.
@@ -1015,7 +1015,7 @@ module ActiveRecord
     #
     # == Bi-directional associations
     #
-    # When you specify an association there is usually an association on the associated model
+    # When you specify an association, there is usually an association on the associated model
     # that specifies the same relationship in reverse. For example, with the following models:
     #
     #    class Dungeon < ActiveRecord::Base
@@ -1032,7 +1032,7 @@ module ActiveRecord
     #    end
     #
     # The +traps+ association on +Dungeon+ and the +dungeon+ association on +Trap+ are
-    # the inverse of each other and the inverse of the +dungeon+ association on +EvilWizard+
+    # the inverse of each other, and the inverse of the +dungeon+ association on +EvilWizard+
     # is the +evil_wizard+ association on +Dungeon+ (and vice-versa). By default,
     # Active Record can guess the inverse of the association based on the name
     # of the class. The result is the following:
@@ -1062,7 +1062,7 @@ module ActiveRecord
     #
     # * does not work with <tt>:through</tt> associations.
     # * does not work with <tt>:polymorphic</tt> associations.
-    # * for #belongs_to associations #has_many inverse associations are ignored.
+    # * inverse associations for #belongs_to associations #has_many are ignored.
     #
     # For more information, see the documentation for the +:inverse_of+ option.
     #
@@ -1070,7 +1070,7 @@ module ActiveRecord
     #
     # === Dependent associations
     #
-    # #has_many, #has_one and #belongs_to associations support the <tt>:dependent</tt> option.
+    # #has_many, #has_one, and #belongs_to associations support the <tt>:dependent</tt> option.
     # This allows you to specify that associated records should be deleted when the owner is
     # deleted.
     #
