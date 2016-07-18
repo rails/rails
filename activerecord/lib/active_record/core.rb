@@ -86,6 +86,10 @@ module ActiveRecord
         self.error_on_ignored_order
       end
 
+      def error_on_ignored_order_or_limit
+        self.class.error_on_ignored_order_or_limit
+      end
+
       def self.error_on_ignored_order_or_limit=(value)
         ActiveSupport::Deprecation.warn(<<-MSG.squish)
           The flag error_on_ignored_order_or_limit is deprecated. Limits are
