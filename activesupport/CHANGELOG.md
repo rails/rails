@@ -1,3 +1,12 @@
+*   Allow MessageEncryptor to take advantage of authenticated encryption modes.
+
+    AEAD modes like `aes-256-gcm` provide both confidentiality and data
+    authenticity, eliminating the need to use MessageVerifier to check if the
+    encrypted data has been tampered with. This speeds up encryption/decryption
+    and results in shorter cipher text.
+
+    *Bart de Water*
+
 *   Introduce `assert_changes` and `assert_no_changes`.
 
     `assert_changes` is a more general `assert_difference` that works with any
