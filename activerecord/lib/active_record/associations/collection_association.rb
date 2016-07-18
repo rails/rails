@@ -313,9 +313,9 @@ module ActiveRecord
         record
       end
 
-      def scope(opts = {})
-        scope = super()
-        scope.none! if opts.fetch(:nullify, true) && null_scope?
+      def scope
+        scope = super
+        scope.none! if null_scope?
         scope
       end
 
