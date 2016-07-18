@@ -130,19 +130,20 @@ module ActionView
             @url = url
             @remote = remote
           end
-
       end
 
       def form_with(model: nil, scope: nil, url: nil, remote: true, method: 'post', **options, &block)
+        url ||= polymorphic_path(model, {})
+        model = model.last if model.is_a?(Array)
         if model
           scope ||= model_name_from_record_or_class(model).param_key
         end
-        url ||= polymorphic_path(model, {})
         builder = FormWithBuilder.new(self, model, scope, url, remote, options)
-        coding_tag = tag.input name: "utf8", type: "hidden", value: "&#x2713;", escape_attributes: false
+        inner_tags = tag.input name: "utf8", type: "hidden", value: "&#x2713;", escape_attributes: false
+        inner_tags += tag.input name: "_method", type: "hidden", value: "patch" if model && model.persisted?
         output  = block_given? ? capture(builder, &block) : ""
         options = options.merge(action: url, "data-remote": remote, "accept-charset": "UTF-8", method: method)
-        tag.form coding_tag + output, options
+        tag.form inner_tags + output, options
       end
 
       def fields_with(model: nil, scope: nil, remote: true, **options, &block)

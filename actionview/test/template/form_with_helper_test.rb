@@ -7,6 +7,10 @@ class FormWithHelperTest < ActionView::TestCase
 
   setup do
     @post = Post.new("Catch 22", "Joseph Heller", "The plotline follows...", 1, false, Date.new(2004, 6, 15))
+    @comment = Comment.new
+    @post.comments = []
+    @post.comments << @comment
+    def @post.to_param; "77"; end
     I18n.backend.store_translations 'placeholder', {
       activemodel: {
         attributes: {
@@ -34,7 +38,9 @@ class FormWithHelperTest < ActionView::TestCase
   Routes = ActionDispatch::Routing::RouteSet.new
   Routes.draw do
     resources :customers
-    resources :posts
+    resources :posts do
+      resources :comments
+    end
   end
 
   include Routes.url_helpers
@@ -246,8 +252,21 @@ class FormWithHelperTest < ActionView::TestCase
 
   def test_form_with_persisted_model
     customer = Customer.new("John", 123)
-    expected = whole_form('/customers/123', method: 'post')
+    expected = whole_form('/customers/123', method: 'patch')
     actual = form_with(model: customer)
+    assert_dom_equal expected, actual
+  end
+
+  def test_form_with_nested_persisted
+    comment = Comment.new.tap { |c| c.save }
+    expected = whole_form('/posts/77/comments/1', method: 'patch')
+    actual = form_with(model: [@post, comment])
+    assert_dom_equal expected, actual
+  end
+
+  def test_form_with_nested_non_persisted
+    expected = whole_form('/posts/77/comments', method: 'post')
+    actual = form_with(model: [@post, @comment])
     assert_dom_equal expected, actual
   end
 
@@ -279,11 +298,9 @@ class FormWithHelperTest < ActionView::TestCase
       else
         txt = ''
       end
-
       if method && !%w(get post).include?(method.to_s)
         txt << %{<input name="_method" type="hidden" value="#{method}">}
       end
-
       txt
     end
 
@@ -294,13 +311,14 @@ class FormWithHelperTest < ActionView::TestCase
       options.each do |attr, value|
         txt << %{ #{attr}="#{value}"}
       end
+      method = method.to_s == "get" ? "get" : "post"
       txt << %{ method="#{method}">}
     end
 
     def whole_form(action = "/", method: "post", remote: true, multipart: nil, **options, &block)
       contents = block_given? ? yield : ""
       form_tag = form_text(action, remote: remote, multipart: multipart, method: method, **options)
-      form_tag + hidden_fields(options.slice :method, :enforce_utf8) + contents + "</form>"
+      form_tag + hidden_fields(method: method) + contents + "</form>"
     end
 
     def dummy_posts
