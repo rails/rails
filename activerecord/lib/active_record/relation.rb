@@ -1,5 +1,3 @@
-require "arel/collectors/bind"
-
 module ActiveRecord
   # = Active Record \Relation
   class Relation
@@ -597,19 +595,16 @@ module ActiveRecord
     #   # => SELECT "users".* FROM "users"  WHERE "users"."name" = 'Oscar'
     def to_sql
       @to_sql ||= begin
-                    relation   = self
-                    connection = klass.connection
-                    visitor    = connection.visitor
+                    relation = self
 
                     if eager_loading?
                       find_with_associations { |rel| relation = rel }
                     end
 
-                    binds = relation.bound_attributes
-                    binds = connection.prepare_binds_for_database(binds)
-                    binds.map! { |value| connection.quote(value) }
-                    collect = visitor.accept(relation.arel.ast, Arel::Collectors::Bind.new)
-                    collect.substitute_binds(binds).join
+                    conn = klass.connection
+                    conn.unprepared_statement {
+                      conn.to_sql(relation.arel, relation.bound_attributes)
+                    }
                   end
     end
 
