@@ -6,7 +6,7 @@ class EachTest < ActiveRecord::TestCase
   fixtures :posts, :subscribers
 
   def setup
-    @posts = Post.order("id asc")
+    @posts = Post.order('id ASC')
     @total = Post.count
     Post.count('id') # preheat arel's table cache
   end
@@ -54,10 +54,20 @@ class EachTest < ActiveRecord::TestCase
 
   def test_each_should_raise_if_select_is_set_without_id
     assert_raise(ArgumentError) do
-      Post.select(:title).find_each(batch_size: 1) { |post|
+      Post.select(:title).find_each(batch_size: 1) do |post|
         flunk "should not call this block"
-      }
+      end
     end
+  end
+
+  def test_each_should_not_raise_if_select_is_set_primary_key
+    Post.primary_key = 'title'
+
+    assert_nothing_raised do
+      Post.select(:title).find_each(batch_size: 1) { |post| }
+    end
+  ensure
+    Post.primary_key = 'id'
   end
 
   def test_each_should_execute_if_id_is_in_select
@@ -364,6 +374,30 @@ class EachTest < ActiveRecord::TestCase
     Post.in_batches(of: 1, load: true) do |relation|
       assert relation.loaded?
     end
+  end
+
+  def test_in_batches_should_not_be_loaded_when_primary_key_is_title
+    Post.primary_key = 'title'
+
+    Post.in_batches(of: 1) do |relation|
+      assert_not relation.loaded?
+    end
+
+    Post.in_batches(of: 1, load: false) do |relation|
+      assert_not relation.loaded?
+    end
+  ensure
+    Post.primary_key = 'id'
+  end
+
+  def test_in_batches_should_be_loaded_when_primary_key_is_title
+    Post.primary_key = 'title'
+
+    Post.in_batches(of: 1, load: true) do |relation|
+      assert relation.loaded?
+    end
+  ensure
+    Post.primary_key = 'id'
   end
 
   def test_in_batches_if_not_loaded_executes_more_queries

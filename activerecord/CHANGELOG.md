@@ -1,3 +1,16 @@
+*   Fix bug in method `ActiveRecord::Relation#in_batches`.
+
+    Method does not work if `primary_key` is not 'id'.
+
+    Example:
+
+        Post.primary_key = 'title'
+        Post.in_batches(of: 1, load: true) do |relation|
+          # uninterrupted cycle
+        end
+
+    *bogdanvlviv*
+
 *   Add newline between each migration in `structure.sql`.
 
     Keeps schema migration inserts as a single commit, but allows for easier
