@@ -46,11 +46,8 @@ if ActiveRecord::Base.connection.supports_explain?
     end
 
     def test_exec_explain_with_binds
-      object = Struct.new(:name)
-      cols = [object.new('wadus'), object.new('chaflan')]
-
       sqls    = %w(foo bar)
-      binds   = [[[cols[0], 1]], [[cols[1], 2]]]
+      binds   = [[bind_param('wadus', 1)], [bind_param('chaflan', 2)]]
       queries = sqls.zip(binds)
 
       stub_explain_for_query_plans(["query plan foo\n", "query plan bar\n"]) do
@@ -83,5 +80,8 @@ if ActiveRecord::Base.connection.supports_explain?
         end
       end
 
+      def bind_param(name, value)
+        ActiveRecord::Relation::QueryAttribute.new(name, value, ActiveRecord::Type::Value.new)
+      end
   end
 end
