@@ -190,7 +190,7 @@ module ActiveRecord
       def exec_query(sql, name = nil, binds = [], prepare: false)
         type_casted_binds = binds.map { |attr| type_cast(attr.value_for_database) }
 
-        log(sql, name, binds) do
+        log(sql, name, binds, type_casted_binds) do
           # Don't cache statements if they are not prepared
           unless prepare
             stmt    = @connection.prepare(sql)

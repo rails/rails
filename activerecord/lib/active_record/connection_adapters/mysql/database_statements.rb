@@ -79,7 +79,7 @@ module ActiveRecord
 
           type_casted_binds = binds.map { |attr| type_cast(attr.value_for_database) }
 
-          log(sql, name, binds) do
+          log(sql, name, binds, type_casted_binds) do
             if cache_stmt
               cache = @statements[sql] ||= {
                 stmt: @connection.prepare(sql)

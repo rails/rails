@@ -20,18 +20,14 @@ module ActiveRecord
       @odd = false
     end
 
-    def render_bind(attribute)
-      value = if attribute.type.binary? && attribute.value
-        if attribute.value.is_a?(Hash)
-          "<#{attribute.value_for_database.to_s.bytesize} bytes of binary data>"
-        else
-          "<#{attribute.value.bytesize} bytes of binary data>"
-        end
+    def render_bind(attr, type_casted_value)
+      value = if attr.type.binary? && attr.value
+        "<#{attr.value_for_database.to_s.bytesize} bytes of binary data>"
       else
-        type_cast(attribute.value_for_database)
+        type_casted_value
       end
 
-      [attribute.name, value]
+      [attr.name, value]
     end
 
     def sql(event)
@@ -48,7 +44,9 @@ module ActiveRecord
       binds = nil
 
       unless (payload[:binds] || []).empty?
-        binds = "  " + payload[:binds].map { |attr| render_bind(attr) }.inspect
+        binds = "  " + payload[:binds].zip(payload[:type_casted_binds]).map { |attr, value|
+          render_bind(attr, value)
+        }.inspect
       end
 
       name = colorize_payload_name(name, payload[:name])
@@ -90,10 +88,6 @@ module ActiveRecord
 
     def logger
       ActiveRecord::Base.logger
-    end
-
-    def type_cast(value)
-      ActiveRecord::Base.connection.type_cast(value)
     end
   end
 end

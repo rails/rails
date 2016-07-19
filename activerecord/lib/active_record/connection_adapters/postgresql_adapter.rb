@@ -598,14 +598,14 @@ module ActiveRecord
 
         def exec_no_cache(sql, name, binds)
           type_casted_binds = binds.map { |attr| type_cast(attr.value_for_database) }
-          log(sql, name, binds) { @connection.async_exec(sql, type_casted_binds) }
+          log(sql, name, binds, type_casted_binds) { @connection.async_exec(sql, type_casted_binds) }
         end
 
         def exec_cache(sql, name, binds)
           stmt_key = prepare_statement(sql)
           type_casted_binds = binds.map { |attr| type_cast(attr.value_for_database) }
 
-          log(sql, name, binds, stmt_key) do
+          log(sql, name, binds, type_casted_binds, stmt_key) do
             @connection.exec_prepared(stmt_key, type_casted_binds)
           end
         rescue ActiveRecord::StatementInvalid => e

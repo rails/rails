@@ -579,14 +579,15 @@ module ActiveRecord
         exception
       end
 
-      def log(sql, name = "SQL", binds = [], statement_name = nil)
+      def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil)
         @instrumenter.instrument(
           "sql.active_record",
-          :sql            => sql,
-          :name           => name,
-          :connection_id  => object_id,
-          :statement_name => statement_name,
-          :binds          => binds) { yield }
+          sql:               sql,
+          name:              name,
+          binds:             binds,
+          type_casted_binds: type_casted_binds,
+          statement_name:    statement_name,
+          connection_id:     object_id) { yield }
       rescue => e
         raise translate_exception_class(e, sql)
       end
