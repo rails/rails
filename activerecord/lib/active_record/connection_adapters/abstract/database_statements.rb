@@ -10,7 +10,7 @@ module ActiveRecord
       def to_sql(arel, binds = [])
         if arel.respond_to?(:ast)
           collected = visitor.accept(arel.ast, collector)
-          collected.compile(binds.dup, self)
+          collected.compile(binds, self)
         else
           arel
         end
