@@ -57,10 +57,13 @@ module ActiveRecord
       end
 
       def test_logs_bind_vars_after_type_cast
+        binds = [Relation::QueryAttribute.new("id", "10", Type::Integer.new)]
+        type_casted_binds = binds.map { |attr| type_cast(attr.value_for_database) }
         payload = {
           :name  => 'SQL',
           :sql   => 'select * from topics where id = ?',
-          :binds => [Relation::QueryAttribute.new("id", "10", Type::Integer.new)]
+          :binds => binds,
+          :type_casted_binds => type_casted_binds
         }
         event  = ActiveSupport::Notifications::Event.new(
           'foo',
@@ -83,6 +86,12 @@ module ActiveRecord
 
         logger.sql event
         assert_match([[@pk.name, 10]].inspect, logger.debugs.first)
+      end
+
+      private
+
+      def type_cast(value)
+        ActiveRecord::Base.connection.type_cast(value)
       end
     end
   end
