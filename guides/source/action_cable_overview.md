@@ -333,7 +333,7 @@ class ChatChannel < ApplicationCable::Channel
   end
 
   def receive(data)
-    ChatChannel.broadcast_to("chat_#{params[:room]}", data)
+    ActionCable.server.broadcast("chat_#{params[:room]}", data)
   end
 end
 ```
