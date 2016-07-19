@@ -651,12 +651,12 @@ module ActionView
       # The HTML specification says when nothing is select on a collection of radio buttons
       # web browsers do not send any value to server.
       # Unfortunately this introduces a gotcha:
-      # if a +User+ model has a +category_id+ field, and in the form none category is selected no +category_id+ parameter is sent. So,
-      # any strong parameters idiom like
+      # if a +User+ model has a +category_id+ field and in the form no category is selected, no +category_id+ parameter is sent. So,
+      # any strong parameters idiom like:
       #
       #   params.require(:user).permit(...)
       #
-      # will raise an error since no +{user: ...}+ will be present.
+      # will raise an error since no <tt>{user: ...}</tt> will be present.
       #
       # To prevent this the helper generates an auxiliary hidden field before
       # every collection of radio buttons. The hidden field has the same name as collection radio button and blank value.
