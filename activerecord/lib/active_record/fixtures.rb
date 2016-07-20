@@ -987,16 +987,11 @@ module ActiveRecord
 
         # When connections are established in the future, begin a transaction too
         @connection_subscriber = ActiveSupport::Notifications.subscribe('!connection.active_record') do |_, _, _, _, payload|
-          model_class = nil
-          begin
-            model_class = payload[:class_name].constantize if payload[:class_name]
-          rescue NameError
-            model_class = nil
-          end
+          spec_name = payload[:spec_name] if payload.key?(:spec_name)
 
-          if model_class
+          if spec_name
             begin
-              connection = ActiveRecord::Base.connection_handler.retrieve_connection(model_class)
+              connection = ActiveRecord::Base.connection_handler.retrieve_connection(spec_name)
             rescue ConnectionNotEstablished
               connection = nil
             end

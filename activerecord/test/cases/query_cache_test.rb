@@ -6,6 +6,8 @@ require 'models/post'
 require 'rack'
 
 class QueryCacheTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
   fixtures :tasks, :topics, :categories, :posts, :categories_posts
 
   teardown do
