@@ -85,6 +85,7 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     assert_not_decrypted([text, iv, munge(auth_tag)] * "--")
     assert_not_decrypted([munge(text), munge(iv), munge(auth_tag)] * "--")
     assert_not_decrypted([text, iv] * "--")
+    assert_not_decrypted([text, iv, auth_tag[0..14]] * "--")
   end
 
   private

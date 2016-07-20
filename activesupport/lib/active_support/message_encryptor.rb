@@ -99,6 +99,7 @@ module ActiveSupport
     def _decrypt(encrypted_message)
       cipher = new_cipher
       encrypted_data, iv, auth_tag = encrypted_message.split("--".freeze).map {|v| ::Base64.strict_decode64(v)}
+      raise InvalidMessage if aead_mode? && auth_tag.bytes.length != 16
 
       cipher.decrypt
       cipher.key = @secret
