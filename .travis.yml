@@ -22,6 +22,7 @@ matrix:
     - rvm: jruby-9.0.5.0
     - rvm: jruby-head
     - rvm: ruby-head
+    - rvm: jruby-head
 bundler_args: --jobs 3 --retry 3
 notifications:
   email: false
