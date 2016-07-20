@@ -129,14 +129,9 @@ module ActiveRecord
 
       # Returns just a table's primary key
       def primary_key(table_name)
-        pks = primary_keys(table_name)
-        warn <<-WARNING.strip_heredoc if pks.count > 1
-          WARNING: Rails does not support composite primary key.
-
-          #{table_name} has composite primary key. Composite primary key is ignored.
-        WARNING
-
-        pks.first if pks.one?
+        pk = primary_keys(table_name)
+        pk = pk.first unless pk.size > 1
+        pk
       end
 
       # Creates a new table with the name +table_name+. +table_name+ may either

@@ -156,7 +156,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     warning = capture(:stderr) do
       country.treaties << treaty
     end
-    assert_no_match(/WARNING: Rails does not support composite primary key\./, warning)
+    assert_no_match(/WARNING: Active Record does not support composite primary key\./, warning)
   end
 
   def test_has_and_belongs_to_many

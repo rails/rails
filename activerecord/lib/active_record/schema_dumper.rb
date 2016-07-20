@@ -105,12 +105,7 @@ HEADER
           tbl = StringIO.new
 
           # first dump primary key column
-          if @connection.respond_to?(:primary_keys)
-            pk = @connection.primary_keys(table)
-            pk = pk.first unless pk.size > 1
-          else
-            pk = @connection.primary_key(table)
-          end
+          pk = @connection.primary_key(table)
 
           tbl.print "  create_table #{remove_prefix_and_suffix(table).inspect}"
 

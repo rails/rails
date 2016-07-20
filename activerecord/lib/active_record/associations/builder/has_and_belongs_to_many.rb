@@ -76,8 +76,10 @@ module ActiveRecord::Associations::Builder # :nodoc:
           left_model.retrieve_connection
         end
 
-        def self.primary_key
-          false
+        private
+
+        def self.suppress_composite_primary_key(pk)
+          pk unless pk.is_a?(Array)
         end
       }
 

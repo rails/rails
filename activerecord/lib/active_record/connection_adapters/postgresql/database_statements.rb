@@ -124,6 +124,8 @@ module ActiveRecord
             pk = primary_key(table_ref) if table_ref
           end
 
+          pk = suppress_composite_primary_key(pk)
+
           if pk && use_insert_returning?
             sql = "#{sql} RETURNING #{quote_column_name(pk)}"
           end
@@ -163,6 +165,12 @@ module ActiveRecord
         # Aborts a transaction.
         def exec_rollback_db_transaction
           execute "ROLLBACK"
+        end
+
+        private
+
+        def suppress_composite_primary_key(pk)
+          pk unless pk.is_a?(Array)
         end
       end
     end
