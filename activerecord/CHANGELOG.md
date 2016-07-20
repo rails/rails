@@ -1,3 +1,7 @@
+*   Support calling the method `merge` in `scope`'s lambda.
+
+    *Yasuhiro Sugino*
+
 *   Fixes multi-parameter attributes conversion with invalid params.
 
     *Hiroyuki Ishii*
