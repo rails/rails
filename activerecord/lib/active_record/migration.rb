@@ -126,9 +126,9 @@ module ActiveRecord
   class PendingMigrationError < MigrationError#:nodoc:
     def initialize(message = nil)
       if !message && defined?(Rails.env)
-        super("Migrations are pending. To resolve this issue, run:\n\n\tbin/rails db:migrate RAILS_ENV=#{::Rails.env}")
+        super("Migrations are pending. To resolve this issue, run:\n\n        bin/rails db:migrate RAILS_ENV=#{::Rails.env}")
       elsif !message
-        super("Migrations are pending. To resolve this issue, run:\n\n\tbin/rails db:migrate")
+        super("Migrations are pending. To resolve this issue, run:\n\n        bin/rails db:migrate")
       else
         super
       end
@@ -145,7 +145,7 @@ module ActiveRecord
 
   class NoEnvironmentInSchemaError < MigrationError #:nodoc:
     def initialize
-      msg = "Environment data not found in the schema. To resolve this issue, run: \n\n\tbin/rails db:environment:set"
+      msg = "Environment data not found in the schema. To resolve this issue, run: \n\n        bin/rails db:environment:set"
       if defined?(Rails.env)
         super("#{msg} RAILS_ENV=#{::Rails.env}")
       else
@@ -168,7 +168,7 @@ module ActiveRecord
       msg =  "You are attempting to modify a database that was last run in `#{ stored }` environment.\n"
       msg << "You are running in `#{ current }` environment. "
       msg << "If you are sure you want to continue, first set the environment using:\n\n"
-      msg << "\tbin/rails db:environment:set"
+      msg << "        bin/rails db:environment:set"
       if defined?(Rails.env)
         super("#{msg} RAILS_ENV=#{::Rails.env}\n\n")
       else
