@@ -1,8 +1,10 @@
-=== 7.0.1 / unreleased
+=== 7.1.0 / 2016-07-19
 
 * Enhancements
 
   * Support Ruby 2.4 unified Integer class
+  * Implement `CASE` conditional expression
+  * Support for Bitwise Operations as `InfixOperations`
 
 === 7.0.0 / 2015-12-17
 

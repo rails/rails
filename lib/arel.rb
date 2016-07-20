@@ -21,7 +21,7 @@ require 'arel/delete_manager'
 require 'arel/nodes'
 
 module Arel
-  VERSION = '7.0.1.pre'
+  VERSION = '7.1.0'
 
   def self.sql raw_sql
     Arel::Nodes::SqlLiteral.new raw_sql
