@@ -18,6 +18,13 @@ module Arel
         node = Nodes::Lock.new(Arel.sql('FOR UPDATE'))
         assert_equal '', @visitor.accept(node, Collectors::SQLString.new).value
       end
+
+      it 'does not support boolean' do
+        node = Nodes::True.new()
+        assert_equal '1', @visitor.accept(node, Collectors::SQLString.new).value
+        node = Nodes::False.new()
+        assert_equal '0', @visitor.accept(node, Collectors::SQLString.new).value
+      end
     end
   end
 end
