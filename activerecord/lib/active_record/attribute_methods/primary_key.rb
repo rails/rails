@@ -1,5 +1,3 @@
-require 'set'
-
 module ActiveRecord
   module AttributeMethods
     module PrimaryKey
