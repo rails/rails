@@ -24,6 +24,11 @@
 
 ## Rails 5.0.0 (June 30, 2016) ##
 
+*   AM::Dirty's changed? methods now return an actual boolean, never `nil`, as in 4.2.
+    https://github.com/rails/rails/pull/24515
+   
+    *Sen-Zhang*
+
 *   Inspecting an object with an associated array of over 10 elements no longer
     truncates the array, preventing `inspect` from looping infinitely in some
     cases.
