@@ -156,14 +156,7 @@ module ActiveRecord
           assert_equal String, bob.bio.class
           assert_kind_of Integer, bob.age
           assert_equal Time, bob.birthday.class
-
-          if current_adapter?(:OracleAdapter)
-            # Oracle doesn't differentiate between date/time
-            assert_equal Time, bob.favorite_day.class
-          else
-            assert_equal Date, bob.favorite_day.class
-          end
-
+          assert_equal Date, bob.favorite_day.class
           assert_instance_of TrueClass, bob.male?
           assert_kind_of BigDecimal, bob.wealth
         end
