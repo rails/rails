@@ -4,37 +4,40 @@ AllCops:
 
 # Two spaces, no tabs (for indentation).
 Style/IndentationWidth:
-  enabled: true
+  Enabled: true
 
 # No trailing whitespace.
 Style/TrailingWhitespace:
-  enabled: true
+  Enabled: true
 
 # Blank lines should not have any spaces.
 Style/TrailingBlankLines:
-  enabled: true
+  Enabled: true
 
 # Use Ruby >= 1.9 syntax for hashes. Prefer { a: :b } over { :a => :b }.
 Style/HashSyntax:
-  enabled: true
+  Enabled: true
 
 # Prefer &&/|| over and/or.
 Style/AndOr:
-  enabled: true
+  Enabled: true
 
 # Use my_method(my_arg) not my_method( my_arg ) or my_method my_arg.
 Lint/RequireParentheses:
-  enabled: true
+  Enabled: true
 
 Style/BracesAroundHashParameters:
-  enabled: true
+  Enabled: true
 
 Style/IndentationConsistency:
-  enabled: true
+  Enabled: true
   EnforcedStyle: rails
 
 Style/EmptyLinesAroundClassBody:
-  enabled: true
+  Enabled: true
 
 Style/EmptyLinesAroundModuleBody:
-  enabled: true
+  Enabled: true
+
+Lint/EndAlignment:
+  AlignWith: variable
