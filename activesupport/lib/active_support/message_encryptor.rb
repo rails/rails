@@ -19,8 +19,6 @@ module ActiveSupport
   #   encrypted_data = crypt.encrypt_and_sign('my secret data')              # => "NlFBTTMwOUV5UlA1QlNEN2xkY2d6eThYWWh..."
   #   crypt.decrypt_and_verify(encrypted_data)                               # => "my secret data"
   class MessageEncryptor
-    AEAD_MODES = %w(ccm ocb eax gcm poly1305)
-
     module NullSerializer #:nodoc:
       def self.load(value)
         value
@@ -127,10 +125,7 @@ module ActiveSupport
     end
 
     def aead_mode?
-      @aead_mode ||= begin
-        cipher_mode = @cipher.split('-'.freeze).last
-        AEAD_MODES.include?(cipher_mode)
-      end
+      @aead_mode ||= new_cipher.authenticated?
     end
 
     def resolve_verifier
