@@ -1124,7 +1124,7 @@ module ActiveRecord
           if does_not_support_reverse?(o)
             raise IrreversibleOrderError, "Order #{o.inspect} can not be reversed automatically"
           end
-          o.split(',').map! do |s|
+          o.scan(/((?>[^,()]+|\((?:[^)(]+|\g<-1>)*\))+)/).flatten.map! do |s|
             s.strip!
             s.gsub!(/\sasc\Z/i, ' DESC') || s.gsub!(/\sdesc\Z/i, ' ASC') || s.concat(' DESC')
           end

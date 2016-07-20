@@ -125,18 +125,19 @@ module ActiveRecord
     end
 
     test 'reverse_order!' do
-      @relation = Post.order('title ASC, comments_count DESC')
+      @relation = Post.order("title ASC, comments_count DESC, pgp_sym_decrypt(bytea(author_name), 'key') DESC")
 
       relation.reverse_order!
 
-      assert_equal 'title DESC', relation.order_values.first
-      assert_equal 'comments_count ASC', relation.order_values.last
-
+      assert_equal 'title DESC', relation.order_values[0]
+      assert_equal 'comments_count ASC', relation.order_values[1]
+      assert_equal "pgp_sym_decrypt(bytea(author_name), 'key') ASC", relation.order_values[2]
 
       relation.reverse_order!
 
-      assert_equal 'title ASC', relation.order_values.first
-      assert_equal 'comments_count DESC', relation.order_values.last
+      assert_equal 'title ASC', relation.order_values[0]
+      assert_equal 'comments_count DESC', relation.order_values[1]
+      assert_equal "pgp_sym_decrypt(bytea(author_name), 'key') DESC", relation.order_values[2]
     end
 
     test 'create_with!' do
