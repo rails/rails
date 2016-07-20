@@ -896,7 +896,7 @@ module ActiveRecord
       # for (not necessarily the current class).
       def retrieve_connection(spec_name) #:nodoc:
         pool = retrieve_connection_pool(spec_name)
-        raise ConnectionNotEstablished, "No connection pool with id '#{spec_name}' found." unless pool
+        raise ConnectionNotEstablished, "No connection pool with '#{spec_name}' found." unless pool
         conn = pool.connection
         raise ConnectionNotEstablished, "No connection for '#{spec_name}' in connection pool" unless conn
         conn
