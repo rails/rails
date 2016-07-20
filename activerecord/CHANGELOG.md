@@ -1,3 +1,7 @@
+*   Fixes multi-parameter attributes conversion with invalid params.
+
+    *Hiroyuki Ishii*
+
 *   Add newline between each migration in `structure.sql`.
 
     Keeps schema migration inserts as a single commit, but allows for easier
