@@ -25,6 +25,18 @@ module ActiveSupport
             assert_nil LocalCacheRegistry.cache_for(key)
           end
 
+          def test_local_cache_cleared_and_response_should_be_present_on_invalid_parameters_error
+            key = "super awesome key"
+            assert_nil LocalCacheRegistry.cache_for key
+            middleware = Middleware.new('<3', key).new(->(env) {
+              assert LocalCacheRegistry.cache_for(key), 'should have a cache'
+              raise Rack::Utils::InvalidParameterError
+            })
+            response = middleware.call({})
+            assert response, 'response should exist'
+            assert_nil LocalCacheRegistry.cache_for(key)
+          end
+
           def test_local_cache_cleared_on_exception
             key = "super awesome key"
             assert_nil LocalCacheRegistry.cache_for key
