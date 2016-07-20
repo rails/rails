@@ -244,8 +244,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_do_not_call_callbacks_for_delete_all
     car = Car.create(:name => 'honda')
     car.funky_bulbs.create!
+    assert_equal 1, car.funky_bulbs.count
     assert_nothing_raised { car.reload.funky_bulbs.delete_all }
-    assert_equal 0, Bulb.count, "bulbs should have been deleted using :delete_all strategy"
+    assert_equal 0, car.funky_bulbs.count, "bulbs should have been deleted using :delete_all strategy"
   end
 
   def test_delete_all_on_association_is_the_same_as_not_loaded
