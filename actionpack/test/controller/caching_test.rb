@@ -393,9 +393,14 @@ class CollectionCacheController < ActionController::Base
     @customers = [Customer.new('david', 1)]
     render partial: 'customers/commented_customer', collection: @customers, as: :customer, cached: true
   end
+
+  def index_with_callable_cache_key
+    @customers = [Customer.new('david', 1)]
+    render partial: 'customers/customer', collection: @customers, cached: -> customer { 'cached_david' }
+  end
 end
 
-class AutomaticCollectionCacheTest < ActionController::TestCase
+class CollectionCacheTest < ActionController::TestCase
   def setup
     super
     @controller = CollectionCacheController.new
@@ -436,6 +441,11 @@ class AutomaticCollectionCacheTest < ActionController::TestCase
 
     get :index_with_comment
     assert_equal 1, @controller.partial_rendered_times
+  end
+
+  def test_caching_with_callable_cache_key
+    get :index_with_callable_cache_key
+    assert_customer_cached 'cached_david', 'david, 1'
   end
 
   private
