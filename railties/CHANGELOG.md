@@ -1,3 +1,8 @@
+*   Set session store to cookie store internally and remove the initializer from
+    the generated app.
+
+    *Prathamesh Sonpatki*
+
 *   Set the server host using the `HOST` environment variable.
 
     *mahnunchik*
