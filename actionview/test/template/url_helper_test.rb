@@ -503,6 +503,12 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert current_page?(controller: 'foo', action: 'category', category: 'administração', callback_url: 'http://example.com/foo')
   end
 
+  def test_current_page_with_trailing_slash
+    @request = request_for_url("/posts")
+
+    assert current_page?("/posts/")
+  end
+
   def test_link_unless_current
     @request = request_for_url("/")
 

@@ -548,6 +548,8 @@ module ActionView
         request_uri = url_string.index("?") ? request.fullpath : request.path
         request_uri = URI.parser.unescape(request_uri).force_encoding(Encoding::BINARY)
 
+        url_string.chomp!("/") if url_string.start_with?("/") && url_string != "/"
+
         if url_string =~ /^\w+:\/\//
           url_string == "#{request.protocol}#{request.host_with_port}#{request_uri}"
         else
