@@ -299,9 +299,11 @@ module Rails
         gems << GemfileEntry.github('sass-rails', 'rails/sass-rails', nil,
                                      'Use SCSS for stylesheets')
 
-        gems << GemfileEntry.version('uglifier',
-                                   '>= 1.3.0',
-                                   'Use Uglifier as compressor for JavaScript assets')
+        if !options[:skip_javascript]
+          gems << GemfileEntry.version('uglifier',
+                                     '>= 1.3.0',
+                                     'Use Uglifier as compressor for JavaScript assets')
+        end
 
         gems
       end
