@@ -309,6 +309,14 @@ module RenderTestCases
     assert_nil @view.render(:partial => "test/customer", :collection => nil)
   end
 
+  def test_render_partial_collection_for_non_array
+    customers = Enumerator.new do |y|
+      y.yield(Customer.new("david"))
+      y.yield(Customer.new("mary"))
+    end
+    assert_equal "Hello: davidHello: mary", @view.render(:partial => "test/customer", collection: customers)
+  end
+
   def test_render_partial_without_object_does_not_put_partial_name_to_local_assigns
     assert_equal 'false', @view.render(partial: 'test/partial_name_in_local_assigns')
   end
