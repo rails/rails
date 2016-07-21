@@ -314,7 +314,7 @@
 
     *Takashi Kokubun*
 
-*   Add ActiveRecord `#second_to_last` and `#third_to_last` methods.
+*   Add `#second_to_last` and `#third_to_last` finder methods.
 
     *Brian Christian*
 
@@ -1055,7 +1055,7 @@
 
     *Mehmet Emin İNAÇ*
 
-*   Add `cache_key` to ActiveRecord::Relation.
+*   Add `cache_key` to `ActiveRecord::Relation`.
 
     Example:
 
