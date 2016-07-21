@@ -26,18 +26,26 @@ Style/AndOr:
 Lint/RequireParentheses:
   Enabled: true
 
+# Do not use braces for hash literals when they are the last argument of a
+# method call.
 Style/BracesAroundHashParameters:
   Enabled: true
 
+# Method definitions after `private` or `protected` isolated calls need one
+# extra level of indentation.
 Style/IndentationConsistency:
   Enabled: true
   EnforcedStyle: rails
 
+# In a regular class definition, no empty lines around the body.
 Style/EmptyLinesAroundClassBody:
   Enabled: true
 
+# In a regular module definition, no empty lines around the body.
 Style/EmptyLinesAroundModuleBody:
   Enabled: true
 
+# Align `end` with the matching keyword or starting expression except for
+# assignments, where it should be aligned with the LHS.
 Lint/EndAlignment:
   AlignWith: variable
