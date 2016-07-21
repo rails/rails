@@ -1923,7 +1923,14 @@ to this:
 
         def match_root_route(options)
           name = has_named_route?(:root) ? nil : :root
-          match '/', { :as => name, :via => :get }.merge!(options)
+          defaults_option = options.delete(:defaults)
+          args = ['/', { :as => name, :via => :get }.merge!(options)]
+
+          if defaults_option
+            defaults(defaults_option) { match(*args) }
+          else
+            match(*args)
+          end
         end
       end
 
