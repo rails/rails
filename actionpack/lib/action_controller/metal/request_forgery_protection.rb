@@ -109,10 +109,10 @@ module ActionController #:nodoc:
       # * <tt>:only/:except</tt> - Only apply forgery protection to a subset of actions. For example <tt>only: [ :create, :create_all ]</tt>.
       # * <tt>:if/:unless</tt> - Turn off the forgery protection entirely depending on the passed Proc or method reference.
       # * <tt>:prepend</tt> - By default, the verification of the authentication token will be added at the position of the
-      #    protect_from_forgery call in your application. This means any callbacks added before are run first. This is useful
-      #    when you want your forgery protection to depend on other callbacks, like authentication methods (Oauth vs Cookie auth).
+      #   protect_from_forgery call in your application. This means any callbacks added before are run first. This is useful
+      #   when you want your forgery protection to depend on other callbacks, like authentication methods (Oauth vs Cookie auth).
       #
-      #    If you need to add verification to the beginning of the callback chain, use <tt>prepend: true</tt>.
+      #   If you need to add verification to the beginning of the callback chain, use <tt>prepend: true</tt>.
       # * <tt>:with</tt> - Set the method to handle unverified request.
       #
       # Valid unverified request handling methods are:
