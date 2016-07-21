@@ -69,11 +69,11 @@ module ActionView
       #   render 'comments/comments'
       #   render('comments/comments')
       #
-      #   render "header" => render("comments/header")
+      #   render "header" translates to render("comments/header")
       #
-      #   render(@topic)         => render("topics/topic")
-      #   render(topics)         => render("topics/topic")
-      #   render(message.topics) => render("topics/topic")
+      #   render(@topic)         translates to render("topics/topic")
+      #   render(topics)         translates to render("topics/topic")
+      #   render(message.topics) translates to render("topics/topic")
       #
       # It's not possible to derive all render calls like that, though.
       # Here are a few examples of things that can't be derived:
