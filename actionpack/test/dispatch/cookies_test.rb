@@ -423,7 +423,7 @@ class CookiesTest < ActionController::TestCase
     signed_cookie_salt = @request.env["action_dispatch.signed_cookie_salt"]
     secret = key_generator.generate_key(signed_cookie_salt)
 
-    verifier = ActiveSupport::MessageVerifier.new(secret, serializer: Marshal, digest: 'SHA1')
+    verifier = ActiveSupport::MessageVerifier.new(secret, serializer: Marshal, digest: 'SHA256')
     assert_equal verifier.generate(45), cookies[:user_id]
   end
 
