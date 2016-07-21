@@ -1,5 +1,5 @@
 *   Defines `Regexp.match?` for Ruby versions prior to 2.4. The predicate
-    has the same interface, but it does not have the performance boost. It's
+    has the same interface, but it does not have the performance boost. Its
     purpose is to be able to write 2.4 compatible code.
 
     *Xavier Noria*
