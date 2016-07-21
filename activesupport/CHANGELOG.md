@@ -1,3 +1,9 @@
+*   Defines `Regexp.match?` for Ruby versions prior to 2.4. The predicate
+    has the same interface, but it does not have the performance boost. It's
+    purpose is to be able to write 2.4 compatible code.
+
+    *Xavier Noria*
+
 *   Allow MessageEncryptor to take advantage of authenticated encryption modes.
 
     AEAD modes like `aes-256-gcm` provide both confidentiality and data
@@ -55,7 +61,7 @@
 
     *John Gesimondo*
 
-*   `travel/travel_to` travel time helpers, now raise on nested calls, 
+*   `travel/travel_to` travel time helpers, now raise on nested calls,
      as this can lead to confusing time stubbing.
 
      Instead of:
@@ -69,7 +75,7 @@
 
      preferred way to achieve above is:
 
-         travel 2.days do 
+         travel 2.days do
            # 2 days from today
          end
 
