@@ -4,6 +4,6 @@ class Regexp #:nodoc:
   end
 
   def match?(string, pos=0)
-    !! match(string, pos)
+    !!match(string, pos)
   end unless //.respond_to?(:match?)
 end
