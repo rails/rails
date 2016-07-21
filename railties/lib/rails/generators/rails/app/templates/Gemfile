@@ -35,7 +35,7 @@ group :development do
   <%- if options.dev? || options.edge? -%>
   gem 'web-console', github: 'rails/web-console'
   <%- else -%>
-  gem 'web-console'
+  gem 'web-console', '>= 3.3.0'
   <%- end -%>
 <%- end -%>
 <% if depend_on_listen? -%>
