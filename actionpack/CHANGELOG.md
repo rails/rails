@@ -1,3 +1,10 @@
+*   Fix 'defaults' option for root route
+
+    A regression from some refactoring for the 5.0 release, this change
+    fixes the use of 'defaults' (default parameters) in the 'root' routing method
+
+    *Chris Arcand*
+
 *   Check `request.path_parameters` encoding at the point they're set.
 
     Check for any non-UTF8 characters in path parameters at the point they're
