@@ -314,7 +314,7 @@ module RenderTestCases
       y.yield(Customer.new("david"))
       y.yield(Customer.new("mary"))
     end
-    assert_equal "Hello: davidHello: mary", @view.render(:partial => "test/customer", collection: customers)
+    assert_equal "Hello: davidHello: mary", @view.render(partial: "test/customer", collection: customers)
   end
 
   def test_render_partial_without_object_does_not_put_partial_name_to_local_assigns
