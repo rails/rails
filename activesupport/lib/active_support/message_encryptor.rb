@@ -29,7 +29,7 @@ module ActiveSupport
       end
     end
 
-    module AeadVerifier #:nodoc:
+    module NullVerifier #:nodoc:
       def self.verify(value)
         value
       end
@@ -131,7 +131,7 @@ module ActiveSupport
 
     def resolve_verifier
       if aead_mode?
-        AeadVerifier
+        NullVerifier
       else
         MessageVerifier.new(@sign_secret || @secret, digest: @digest, serializer: NullSerializer)
       end

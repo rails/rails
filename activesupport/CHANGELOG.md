@@ -1,4 +1,4 @@
-*   Allow MessageEncryptor to take advantage authenticated encryption modes.
+*   Allow MessageEncryptor to take advantage of authenticated encryption modes.
 
     AEAD modes like `aes-256-gcm` provide both confidentiality and data
     authenticity, eliminating the need to use MessageVerifier to check if the
