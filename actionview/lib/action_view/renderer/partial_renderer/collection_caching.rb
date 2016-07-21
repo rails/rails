@@ -25,9 +25,15 @@ module ActionView
         end
       end
 
+      def callable_cache_key?
+        @options[:cached].respond_to?(:call)
+      end
+
       def collection_by_cache_keys
+        seed = callable_cache_key? ? @options[:cached] : ->(i) { i }
+
         @collection.each_with_object({}) do |item, hash|
-          hash[expanded_cache_key(item)] = item
+          hash[expanded_cache_key(seed.call(item))] = item
         end
       end
 
