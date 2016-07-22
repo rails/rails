@@ -314,7 +314,7 @@ module ActiveSupport
       raise if e.name && !(camel_cased_word.to_s.split("::").include?(e.name.to_s) ||
         e.name.to_s == camel_cased_word.to_s)
     rescue ArgumentError => e
-      raise unless /not missing constant #{const_regexp(camel_cased_word)}\!$/.match?(e.message)
+      raise unless /not missing constant #{const_regexp(camel_cased_word)}!$/.match?(e.message)
     end
 
     # Returns the suffix that should be added to a number to denote the position
