@@ -80,3 +80,10 @@ other_by_mary:
   title: other post by mary
   body: hello
   type: Post
+
+with_sti_name:
+  id: 12
+  author_id: 2
+  title: post with a non-standard STI name
+  body: hello
+  sti_type: post_with_sti_name

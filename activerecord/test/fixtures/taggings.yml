@@ -76,3 +76,9 @@ normal_comment_rating:
   id: 13
   taggable_id: 1
   taggable_type: Rating
+
+sti_name:
+  id: 14
+  tag_id: 1
+  taggable_id: 1
+  taggable_type: post_with_sti_name

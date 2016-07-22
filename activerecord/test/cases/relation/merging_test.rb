@@ -161,10 +161,10 @@ class MergingDifferentRelationsTest < ActiveRecord::TestCase
   end
 
   test "merging order relations (using a hash argument)" do
-    posts_by_author_name = Post.limit(4).joins(:author).
+    posts_by_author_name = Post.limit(5).joins(:author).
       merge(Author.order(name: :desc)).pluck("authors.name")
 
-    assert_equal ["Mary", "Mary", "Mary", "David"], posts_by_author_name
+    assert_equal ["Mary", "Mary", "Mary", "Eddie", "David"], posts_by_author_name
   end
 
   test "relation merging (using a proc  argument)" do

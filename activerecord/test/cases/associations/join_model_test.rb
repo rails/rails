@@ -368,7 +368,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
       # added sort by ID as otherwise test using JRuby was failing as array elements were in different order
       assert_equal desired.sort_by(&:id), tag_with_include.tagged_posts.sort_by(&:id)
     end
-    assert_equal 5, tag_with_include.taggings.length
+    assert_equal 6, tag_with_include.taggings.length
   end
 
   def test_has_many_through_has_many_find_all
@@ -659,7 +659,9 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_preload_polymorph_many_types
-    taggings = Tagging.all.merge!(:includes => :taggable, :where => ['taggable_type != ?', 'FakeModel']).to_a
+    taggings = Tagging.all.merge!(:includes => :taggable,
+        :where => ['taggable_type NOT IN (?)', ['FakeModel', 'post_with_sti_name']]
+    ).to_a
     assert_no_queries do
       taggings.first.taggable.id
       taggings[1].taggable.id
