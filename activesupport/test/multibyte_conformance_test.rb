@@ -87,7 +87,7 @@ class MultibyteConformanceTest < ActiveSupport::TestCase
       File.open(File.join(CACHE_DIR, UNIDATA_FILE), 'r') do | f |
         until f.eof?
           line = f.gets.chomp!
-          next if (line.empty? || line =~ /^\#/)
+          next if line.empty? || line.start_with?('#')
 
           cols, comment = line.split("#")
           cols = cols.split(";").map(&:strip).reject(&:empty?)

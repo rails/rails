@@ -1,4 +1,5 @@
 require 'active_support/inflections'
+require 'active_support/core_ext/regexp'
 
 module ActiveSupport
   # The Inflector transforms words from singular to plural, class names to table
@@ -87,7 +88,7 @@ module ActiveSupport
     #
     #   camelize(underscore('SSLError'))  # => "SslError"
     def underscore(camel_cased_word)
-      return camel_cased_word unless camel_cased_word =~ /[A-Z-]|::/
+      return camel_cased_word unless /[A-Z-]|::/.match?(camel_cased_word)
       word = camel_cased_word.to_s.gsub('::'.freeze, '/'.freeze)
       word.gsub!(/(?:(?<=([A-Za-z\d]))|\b)(#{inflections.acronym_regex})(?=\b|[^a-z])/) { "#{$1 && '_'.freeze }#{$2.downcase}" }
       word.gsub!(/([A-Z\d]+)([A-Z][a-z])/, '\1_\2'.freeze)
@@ -313,7 +314,7 @@ module ActiveSupport
       raise if e.name && !(camel_cased_word.to_s.split("::").include?(e.name.to_s) ||
         e.name.to_s == camel_cased_word.to_s)
     rescue ArgumentError => e
-      raise unless e.message =~ /not missing constant #{const_regexp(camel_cased_word)}\!$/
+      raise unless /not missing constant #{const_regexp(camel_cased_word)}\!$/.match?(e.message)
     end
 
     # Returns the suffix that should be added to a number to denote the position

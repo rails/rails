@@ -36,7 +36,7 @@ class MultibyteGraphemeBreakConformanceTest < ActiveSupport::TestCase
         until f.eof? || (max_test_lines > 21 and lines > max_test_lines)
           lines += 1
           line = f.gets.chomp!
-          next if (line.empty? || line =~ /^\#/)
+          next if line.empty? || line.start_with?('#')
 
           cols, comment = line.split("#")
           # Cluster breaks are represented by ÷

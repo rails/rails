@@ -1,4 +1,5 @@
 require 'active_support/deprecation'
+require 'active_support/core_ext/regexp'
 
 module ActiveSupport
   module Testing
@@ -8,7 +9,7 @@ module ActiveSupport
         assert !warnings.empty?, "Expected a deprecation warning within the block but received none"
         if match
           match = Regexp.new(Regexp.escape(match)) unless match.is_a?(Regexp)
-          assert warnings.any? { |w| w =~ match }, "No deprecation warning matched #{match}: #{warnings.join(', ')}"
+          assert warnings.any? { |w| match.match?(w) }, "No deprecation warning matched #{match}: #{warnings.join(', ')}"
         end
         result
       end

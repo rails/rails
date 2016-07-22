@@ -1,4 +1,5 @@
 require 'active_support/inflector/methods'
+require 'active_support/core_ext/regexp'
 
 module ActiveSupport
   class Deprecation
@@ -10,7 +11,7 @@ module ActiveSupport
         super
       end
 
-      instance_methods.each { |m| undef_method m unless m =~ /^__|^object_id$/ }
+      instance_methods.each { |m| undef_method m unless /^__|^object_id$/.match?(m) }
 
       # Don't give a deprecation warning on inspect since test/unit and error
       # logs rely on it for diagnostics.

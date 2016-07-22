@@ -2,6 +2,7 @@ require 'active_support/json'
 require 'active_support/core_ext/string/access'
 require 'active_support/core_ext/string/behavior'
 require 'active_support/core_ext/module/delegation'
+require 'active_support/core_ext/regexp'
 
 module ActiveSupport #:nodoc:
   module Multibyte #:nodoc:
@@ -56,7 +57,7 @@ module ActiveSupport #:nodoc:
       # Forward all undefined methods to the wrapped string.
       def method_missing(method, *args, &block)
         result = @wrapped_string.__send__(method, *args, &block)
-        if method.to_s =~ /!$/
+        if /!$/.match?(method)
           self if result
         else
           result.kind_of?(String) ? chars(result) : result

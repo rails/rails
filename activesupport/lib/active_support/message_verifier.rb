@@ -83,7 +83,7 @@ module ActiveSupport
           data = signed_message.split("--".freeze)[0]
           @serializer.load(decode(data))
         rescue ArgumentError => argument_error
-          return if argument_error.message =~ %r{invalid base64}
+          return if argument_error.message.include?('invalid base64')
           raise
         end
       end

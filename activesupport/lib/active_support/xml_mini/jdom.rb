@@ -1,4 +1,4 @@
-raise "JRuby is required to use the JDOM backend for XmlMini" unless RUBY_PLATFORM =~ /java/
+raise "JRuby is required to use the JDOM backend for XmlMini" unless RUBY_PLATFORM.include?('java')
 
 require 'jruby'
 include Java

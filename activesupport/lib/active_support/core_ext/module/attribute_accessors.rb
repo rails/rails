@@ -1,4 +1,5 @@
 require 'active_support/core_ext/array/extract_options'
+require 'active_support/core_ext/regexp'
 
 # Extends the module object with class/module and instance accessors for
 # class/module attributes, just like the native attr* accessors for instance
@@ -53,7 +54,7 @@ class Module
   def mattr_reader(*syms)
     options = syms.extract_options!
     syms.each do |sym|
-      raise NameError.new("invalid attribute name: #{sym}") unless sym =~ /\A[_A-Za-z]\w*\z/
+      raise NameError.new("invalid attribute name: #{sym}") unless /\A[_A-Za-z]\w*\z/.match?(sym)
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         @@#{sym} = nil unless defined? @@#{sym}
 
@@ -119,7 +120,7 @@ class Module
   def mattr_writer(*syms)
     options = syms.extract_options!
     syms.each do |sym|
-      raise NameError.new("invalid attribute name: #{sym}") unless sym =~ /\A[_A-Za-z]\w*\z/
+      raise NameError.new("invalid attribute name: #{sym}") unless /\A[_A-Za-z]\w*\z/.match?(sym)
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         @@#{sym} = nil unless defined? @@#{sym}
 

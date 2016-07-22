@@ -1,9 +1,10 @@
 require 'active_support/core_ext/array/extract_options'
+require 'active_support/core_ext/regexp'
 
 # Extends the module object with class/module and instance accessors for
 # class/module attributes, just like the native attr* accessors for instance
 # attributes, but does so on a per-thread basis.
-# 
+#
 # So the values are scoped within the Thread.current space under the class name
 # of the module.
 class Module
@@ -37,7 +38,7 @@ class Module
     options = syms.extract_options!
 
     syms.each do |sym|
-      raise NameError.new("invalid attribute name: #{sym}") unless sym =~ /^[_A-Za-z]\w*$/
+      raise NameError.new("invalid attribute name: #{sym}") unless /^[_A-Za-z]\w*$/.match?(sym)
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         def self.#{sym}
           Thread.current[:"attr_#{name}_#{sym}"]
@@ -76,7 +77,7 @@ class Module
   def thread_mattr_writer(*syms)
     options = syms.extract_options!
     syms.each do |sym|
-      raise NameError.new("invalid attribute name: #{sym}") unless sym =~ /^[_A-Za-z]\w*$/
+      raise NameError.new("invalid attribute name: #{sym}") unless /^[_A-Za-z]\w*$/.match?(sym)
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         def self.#{sym}=(obj)
           Thread.current[:"attr_#{name}_#{sym}"] = obj
