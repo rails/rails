@@ -228,7 +228,7 @@ module ActiveRecord
         super
         @collection = [:has_many, :has_and_belongs_to_many].include?(macro)
         @automatic_inverse_of = nil
-        @type         = options[:as] && "#{options[:as]}_type"
+        @type         = options[:as] && (options[:foreign_type] || "#{options[:as]}_type")
         @foreign_type = options[:foreign_type] || "#{name}_type"
         @constructable = calculate_constructable(macro, options)
       end

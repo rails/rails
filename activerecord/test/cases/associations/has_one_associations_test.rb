@@ -7,6 +7,7 @@ require 'models/pirate'
 require 'models/car'
 require 'models/bulb'
 require 'models/author'
+require 'models/image'
 require 'models/post'
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
@@ -563,6 +564,16 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
         has_one :thing, counter_cache: true
       end
     end
+  end
+
+  def test_with_polymorphic_has_one_with_custom_columns_name
+    post = Post.create! :title => 'foo', :body => 'bar'
+    image = Image.create!
+
+    post.main_image = image
+    post.reload
+
+    assert_equal image, post.main_image
   end
 
   test 'dangerous association name raises ArgumentError' do
