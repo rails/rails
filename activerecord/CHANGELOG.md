@@ -24,11 +24,6 @@
 
 ## Rails 5.0.0 (June 30, 2016) ##
 
-*   `ActiveModel::Dirty`'s `*_changed?` methods now return an actual singleton, never `nil`, as in 4.2.
-    Fixes #24220.
-
-    *Sen-Zhang*
-
 *   Inspecting an object with an associated array of over 10 elements no longer
     truncates the array, preventing `inspect` from looping infinitely in some
     cases.
