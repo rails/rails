@@ -1,3 +1,15 @@
+*   Introduce `not_in?` on `Object`.
+
+    As an opposite method for `in?`, `not_in?` provides equivalent support for exclusion. This turns this:
+
+        [1,2].exclude?(user_id)
+
+    ...into this:
+
+        user_id.not_in?([1,2])
+
+    *Jon McCartie*
+
 *   Defines `Regexp.match?` for Ruby versions prior to 2.4. The predicate
     has the same interface, but it does not have the performance boost. Its
     purpose is to be able to write 2.4 compatible code.
