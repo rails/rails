@@ -717,7 +717,7 @@ module ActionDispatch
 
       module ClassMethods
         def app
-          @app.nil? ? ActionDispatch.test_app : @@app
+          @@app.nil? ? ActionDispatch.test_app : @@app
         end
 
         def app=(app)
