@@ -90,7 +90,7 @@ module ActiveRecord
       end
 
       def error_class
-        if configuration['adapter'] =~ /jdbc/
+        if configuration['adapter'].include?('jdbc')
           require 'active_record/railties/jdbcmysql_error'
           ArJdbcMySQL::Error
         elsif defined?(Mysql2)

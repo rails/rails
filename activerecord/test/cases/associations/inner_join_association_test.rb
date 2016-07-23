@@ -86,7 +86,7 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
   end
 
   def test_calculate_honors_implicit_inner_joins_and_distinct_and_conditions
-    real_count = Author.all.to_a.select {|a| a.posts.any? {|p| p.title =~ /^Welcome/} }.length
+    real_count = Author.all.to_a.select {|a| a.posts.any? {|p| p.title.start_with?('Welcome')} }.length
     authors_with_welcoming_post_titles = Author.all.merge!(joins: :posts, where: "posts.title like 'Welcome%'").distinct.calculate(:count, 'authors.id')
     assert_equal real_count, authors_with_welcoming_post_titles, "inner join and conditions should have only returned authors posting titles starting with 'Welcome'"
   end
