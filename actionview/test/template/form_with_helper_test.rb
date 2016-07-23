@@ -107,6 +107,32 @@ class FormWithHelperTest < ActionView::TestCase
     assert_tag_equal('<label>Title</label>') { |f| f.label(:title, class: nil) }
   end
 
+  def test_label_with_attributes
+    assert_tag_equal('<label id="my_id">Title</label>') { |f| f.label(:title, id: "my_id") }
+    assert_tag_equal('<label id="my_id">Title</label>') { |f| f.label(:title, "id": "my_id") }
+    assert_tag_equal('<label for="my_for" id="my_id">Title</label>') { |f| f.label(:title, for: "my_for", id: "my_id") }
+    assert_tag_equal('<label for="my_for" id="my_id">Title</label>') { |f| f.label(:title, "for": "my_for", "id": "my_id") }
+  end
+
+  def test_label_with_block
+    assert_tag_equal('<label>The title, please:</label>') { |f| f.label(:title) { "The title, please:" } }
+  end
+
+  def test_label_with_block_and_html
+    assert_tag_equal('<label>Accept <a href="/terms">Terms</a>.</label>') { |f| f.label(:terms) { raw('Accept <a href="/terms">Terms</a>.') } }
+  end
+
+  def test_label_with_block_and_options
+    assert_tag_equal('<label for="my_for">The title, please:</label>') { |f| f.label(:title, for: "my_for") { "The title, please:" } }
+    assert_tag_equal('<label for="my_for">The title, please:</label>') { |f| f.label(:title, "for": "my_for") { "The title, please:" } }
+  end
+
+  def ignore_test_label_with_block_and_builder
+    I18n.with_locale :label do
+      assert_tag_equal('<label><input type="text"></label>') { |f| f.label(:body) { |b| b.text_field :title } }
+    end
+  end
+
   def test_text_field
     assert_tag_equal('<input name="post[title]" type="text" value="Catch 22" />') { |f| f.text_field("title") }
     assert_tag_equal('<input name="post[title]" type="password" value="Catch 22" />') { |f| f.password_field("title", value: @post.title) }

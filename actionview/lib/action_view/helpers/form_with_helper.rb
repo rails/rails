@@ -36,8 +36,9 @@ module ActionView
           content.nil? ? tag.textarea(options) : tag.textarea(content, options)
         end
 
-        def label(method, *args, **options)
-          content = args[0] if args.size > 0
+        def label(method, *args, **options, &block)
+          content ||= yield(self) if block_given?
+          content ||= args[0] if args.size > 0
           content ||= I18n.t("#{model.model_name.i18n_key}.#{method}", default: "", scope: "helpers.label").presence if model && model.model_name
           content ||= translate_with_human_attribute_name(method) 
           content ||= method.to_s.humanize
