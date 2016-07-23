@@ -51,11 +51,12 @@ module ActiveRecord
         options[:primary_key] != default_primary_key
       end
 
-      def defined_for?(options_or_to_table = {})
-        if options_or_to_table.is_a?(Hash)
-          options_or_to_table.all? {|key, value| options[key].to_s == value.to_s }
+      def defined_for?(to_table_ord = nil, to_table: nil, **options)
+        if to_table_ord
+          self.to_table == to_table_ord.to_s
         else
-          to_table == options_or_to_table.to_s
+          (to_table.nil? || to_table.to_s == self.to_table) &&
+            options.all? { |k, v| self.options[k].to_s == v.to_s }
         end
       end
 
