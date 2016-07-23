@@ -88,7 +88,7 @@ _SQL
       FOR EACH ROW EXECUTE PROCEDURE partitioned_insert_trigger();
 _SQL
   rescue ActiveRecord::StatementInvalid => e
-    if e.message =~ /language "plpgsql" does not exist/
+    if e.message.include?('language "plpgsql" does not exist')
       execute "CREATE LANGUAGE 'plpgsql';"
       retry
     else

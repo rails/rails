@@ -1057,7 +1057,7 @@ module ActiveRecord
       end
 
       def match_to_migration_filename?(filename) # :nodoc:
-        File.basename(filename) =~ Migration::MigrationFilenameRegexp
+        Migration::MigrationFilenameRegexp.match?(File.basename(filename))
       end
 
       def parse_migration_filename(filename) # :nodoc:

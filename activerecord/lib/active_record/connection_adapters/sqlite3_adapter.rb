@@ -548,7 +548,7 @@ module ActiveRecord
             columns_string.split(',').each do |column_string|
               # This regex will match the column name and collation type and will save
               # the value in $1 and $2 respectively.
-              collation_hash[$1] = $2 if (COLLATE_REGEX =~ column_string)
+              collation_hash[$1] = $2 if COLLATE_REGEX =~ column_string
             end
 
             basic_structure.map! do |column|

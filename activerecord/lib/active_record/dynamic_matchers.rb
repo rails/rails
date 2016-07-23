@@ -29,7 +29,7 @@ module ActiveRecord
         attr_reader :matchers
 
         def match(model, name)
-          klass = matchers.find { |k| name =~ k.pattern }
+          klass = matchers.find { |k| k.pattern.match?(name) }
           klass.new(model, name) if klass
         end
 

@@ -197,7 +197,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   if current_adapter?(:Mysql2Adapter)
     def test_read_attributes_before_type_cast_on_boolean
       bool = Boolean.create!({ "value" => false })
-      if RUBY_PLATFORM =~ /java/
+      if RUBY_PLATFORM.include?('java')
         # JRuby will return the value before typecast as string
         assert_equal "0", bool.reload.attributes_before_type_cast["value"]
       else

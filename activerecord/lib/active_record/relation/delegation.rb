@@ -58,7 +58,7 @@ module ActiveRecord
           @delegation_mutex.synchronize do
             return if method_defined?(method)
 
-            if method.to_s =~ /\A[a-zA-Z_]\w*[!?]?\z/
+            if /\A[a-zA-Z_]\w*[!?]?\z/.match?(method)
               module_eval <<-RUBY, __FILE__, __LINE__ + 1
                 def #{method}(*args, &block)
                   scoping { @klass.#{method}(*args, &block) }

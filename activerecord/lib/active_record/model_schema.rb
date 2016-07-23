@@ -309,7 +309,12 @@ module ActiveRecord
       # Returns an array of column objects where the primary id, all columns ending in "_id" or "_count",
       # and columns used for single table inheritance have been removed.
       def content_columns
-        @content_columns ||= columns.reject { |c| c.name == primary_key || c.name =~ /(_id|_count)$/ || c.name == inheritance_column }
+        @content_columns ||= columns.reject do |c|
+          c.name == primary_key ||
+          c.name == inheritance_column ||
+          c.name.end_with?('_id') ||
+          c.name.end_with?('_count')
+        end
       end
 
       # Resets all the cached information about columns, which will cause them

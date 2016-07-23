@@ -58,7 +58,7 @@ module ActiveRecord
         def quote_default_expression(value, column) # :nodoc:
           if value.is_a?(Proc)
             value.call
-          elsif column.type == :uuid && value =~ /\(\)/
+          elsif column.type == :uuid && value.include?('()')
             value # Does not quote function default values for UUID columns
           elsif column.respond_to?(:array?)
             value = type_cast_from_column(column, value)
