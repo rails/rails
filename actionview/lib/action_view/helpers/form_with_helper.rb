@@ -13,7 +13,7 @@ module ActionView
                         :month_field, :week_field, :url_field, :email_field,
                         :number_field, :range_field]
 
-        GENERATED_FIELD_HELPERS = FIELD_HELPERS - [:label, :check_box, :radio_button, :fields_for, :hidden_field, :file_field, :text_area]
+        GENERATED_FIELD_HELPERS = FIELD_HELPERS - [:label, :check_box, :radio_button, :fields_for, :file_field, :text_area]
 
         attr_accessor :model, :scope, :url, :remote
 
@@ -99,7 +99,8 @@ module ActionView
           end
 
           def name_for(method, scope, **options)
-            name = scope.nil? ? method.to_s : "#{scope}[#{method}]"
+            method = method.to_s.chomp("?")
+            name = scope.nil? ? method : "#{scope}[#{method}]"
             name + (options[:multiple] ? "[]" : "")
           end
 
@@ -122,7 +123,7 @@ module ActionView
             if placeholder = placeholder(options.delete(:placeholder), method)
               options.merge!(placeholder: placeholder)
             end
-            options.merge!(type: type)
+            options.reverse_merge!(type: type)
           end
 
           def placeholder(tag_value, method)

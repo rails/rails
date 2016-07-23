@@ -133,19 +133,6 @@ class FormWithHelperTest < ActionView::TestCase
     end
   end
 
-  def test_file_field_has_no_size
-    assert_tag_equal('<input name="post[title]" type="file" />') { |f| f.file_field(:title) }
-  end
-
-  def test_file_field_with_multiple_behavior
-    assert_tag_equal('<input multiple="multiple" name="post[attachment][]" type="file" />') { |f| f.file_field(:attachment, "file", multiple: true) }
-  end
-
-  def test_file_field_with_multiple_behavior_and_explicit_name
-    assert_tag_equal('<input multiple="multiple" name="custom" type="file" />') { |f| f.file_field(:blah, multiple: true, name: "custom") }
-    assert_tag_equal('<input multiple="multiple" name="custom[]" type="file" />') { |f| f.file_field(:custom, multiple: true, scope: nil) }
-  end
-
   def test_label_with_block_in_erb
     assert_dom_equal(
       %{\n<label>\n<input name="post[title]" type="text" value="Babe went home">\n</label>},
@@ -153,40 +140,75 @@ class FormWithHelperTest < ActionView::TestCase
     )
   end
 
+  def test_file_field_has_no_size
+    assert_tag_equal('<input name="post[title]" type="file">') { |f| f.file_field(:title) }
+  end
+
+  def test_file_field_with_multiple_behavior
+    assert_tag_equal('<input multiple="multiple" name="post[attachment][]" type="file">') { |f| f.file_field(:attachment, "file", multiple: true) }
+  end
+
+  def test_file_field_with_multiple_behavior_and_explicit_name
+    assert_tag_equal('<input multiple="multiple" name="custom" type="file">') { |f| f.file_field(:blah, multiple: true, name: "custom") }
+    assert_tag_equal('<input multiple="multiple" name="custom[]" type="file">') { |f| f.file_field(:custom, multiple: true, scope: nil) }
+  end
+
+  def test_hidden_field
+    assert_tag_equal('<input name="post[title]" type="hidden" value="Catch 22">') { |f| f.hidden_field("title") }
+    assert_tag_equal('<input name="post[secret]" type="hidden" value="1">') { |f| f.hidden_field("secret?") }
+  end
+
+  def test_hidden_field_with_escapes
+    @post.title = "<b>Hello World</b>"
+    assert_tag_equal('<input name="post[title]" type="hidden" value="&lt;b&gt;Hello World&lt;/b&gt;">') { |f| f.hidden_field(:title) }
+  end
+
+  def test_hidden_field_with_nil_value
+    assert_tag_equal('<input name="post[title]" type="hidden">') { |f| f.hidden_field("title", nil) }
+  end
+
+  def test_hidden_field_with_options
+    assert_tag_equal('<input name="post[title]" type="hidden" value="Something Else">') { |f| f.hidden_field("title", "Something Else") }
+  end
+
+  def test_text_field_with_custom_type
+    assert_tag_equal('<input name="post[title]" type="email">') { |f| f.text_field(:title, nil, type: "email") }
+  end
+
   def test_text_field
-    assert_tag_equal('<input name="post[title]" type="text" value="Catch 22" />') { |f| f.text_field("title") }
-    assert_tag_equal('<input name="post[title]" type="password" value="Catch 22" />') { |f| f.password_field("title", value: @post.title) }
-    assert_tag_equal('<input name="post[title]" type="password" />') { |f| f.password_field("title") }
+    assert_tag_equal('<input name="post[title]" type="text" value="Catch 22">') { |f| f.text_field("title") }
+    assert_tag_equal('<input name="post[title]" type="password" value="Catch 22">') { |f| f.password_field("title", value: @post.title) }
+    assert_tag_equal('<input name="post[title]" type="password">') { |f| f.password_field("title") }
   end
 
   def test_text_field_with_escapes
     @post.title = "<b>Hello World</b>"
-    assert_tag_equal('<input name="post[title]" type="text" value="&lt;b&gt;Hello World&lt;/b&gt;" />') { |f| f.text_field("title") }
+    assert_tag_equal('<input name="post[title]" type="text" value="&lt;b&gt;Hello World&lt;/b&gt;">') { |f| f.text_field("title") }
   end
 
   def test_text_field_with_html_entities
     @post.title = "The HTML Entity for & is &amp;"
-    assert_tag_equal('<input name="post[title]" type="text" value="The HTML Entity for &amp; is &amp;amp;" />') { |f| f.text_field("title") }
+    assert_tag_equal('<input name="post[title]" type="text" value="The HTML Entity for &amp; is &amp;amp;" ">') { |f| f.text_field("title") }
   end
 
   def test_text_field_with_options
-    assert_tag_equal('<input name="post[title]" size="35" type="text" value="Catch 22" />') { |f| f.text_field("title", size: 35) }
+    assert_tag_equal('<input name="post[title]" size="35" type="text" value="Catch 22">') { |f| f.text_field("title", size: 35) }
   end
 
   def test_text_field_assuming_size
-    assert_tag_equal('<input maxlength="35" name="post[title]" size="35" type="text" value="Catch 22" />') { |f| f.text_field("title", maxlength: 35) }
+    assert_tag_equal('<input maxlength="35" name="post[title]" size="35" type="text" value="Catch 22">') { |f| f.text_field("title", maxlength: 35) }
   end
 
   def test_text_field_removing_size
-    assert_tag_equal('<input maxlength="35" name="post[title]" type="text" value="Catch 22" />') { |f| f.text_field("title", maxlength: 35, size: nil) }
+    assert_tag_equal('<input maxlength="35" name="post[title]" type="text" value="Catch 22">') { |f| f.text_field("title", maxlength: 35, size: nil) }
   end
 
   def test_text_field_with_nil_value
-    assert_tag_equal('<input name="post[title]" type="text" />') { |f| f.text_field("title", nil) }
+    assert_tag_equal('<input name="post[title]" type="text">') { |f| f.text_field("title", nil) }
   end
 
   def test_text_field_with_nil_name
-    assert_tag_equal('<input type="text" value="Catch 22" />') { |f| f.text_field("title", name: nil) }
+    assert_tag_equal('<input type="text" value="Catch 22">') { |f| f.text_field("title", name: nil) }
   end
 
   def test_text_field_with_custom_scope
@@ -207,7 +229,7 @@ class FormWithHelperTest < ActionView::TestCase
 
   def test_text_field_placeholder_without_locales
     I18n.with_locale :placeholder do
-      assert_tag_equal('<input name="post[body]" placeholder="Body" type="text" value="The plotline follows..." />') do |f|
+      assert_tag_equal('<input name="post[body]" placeholder="Body" type="text" value="The plotline follows...">') do |f|
         f.text_field(:body, placeholder: true)
       end
     end
@@ -215,7 +237,7 @@ class FormWithHelperTest < ActionView::TestCase
 
   def test_text_field_placeholder_with_locales
     I18n.with_locale :placeholder do
-      assert_tag_equal('<input name="post[title]" placeholder="What is this about?" type="text" value="Catch 22" />') do |f|
+      assert_tag_equal('<input name="post[title]" placeholder="What is this about?" type="text" value="Catch 22">') do |f|
         f.text_field(:title, placeholder: true) 
       end
     end
@@ -223,7 +245,7 @@ class FormWithHelperTest < ActionView::TestCase
 
   def test_text_field_placeholder_with_human_attribute_name
     I18n.with_locale :placeholder do
-      assert_tag_equal('<input name="post[cost]" placeholder="Total cost" type="text" />') do |f|
+      assert_tag_equal('<input name="post[cost]" placeholder="Total cost" type="text">') do |f|
          f.text_field(:cost, placeholder: true)
        end
     end
@@ -231,7 +253,7 @@ class FormWithHelperTest < ActionView::TestCase
 
   def test_text_field_placeholder_with_string_value
     I18n.with_locale :placeholder do
-      assert_tag_equal('<input id="post_cost" name="post[cost]" placeholder="HOW MUCH?" type="text" />') do |f| 
+      assert_tag_equal('<input id="post_cost" name="post[cost]" placeholder="HOW MUCH?" type="text">') do |f| 
         text_field(:post, :cost, placeholder: "HOW MUCH?")
       end
     end
@@ -239,7 +261,7 @@ class FormWithHelperTest < ActionView::TestCase
 
   def test_text_field_placeholder_with_human_attribute_name_and_value
     I18n.with_locale :placeholder do
-      assert_tag_equal('<input name="post[cost]" placeholder="Pounds" type="text" />') do |f|
+      assert_tag_equal('<input name="post[cost]" placeholder="Pounds" type="text">') do |f|
         f.text_field(:cost, placeholder: :uk)
       end
     end
@@ -247,7 +269,7 @@ class FormWithHelperTest < ActionView::TestCase
 
   def test_text_field_placeholder_with_locales_and_value
     I18n.with_locale :placeholder do
-      assert_tag_equal('<input name="post[written_on]" placeholder="Escrito en" type="text" value="2004-06-15" />') do |f|
+      assert_tag_equal('<input name="post[written_on]" placeholder="Escrito en" type="text" value="2004-06-15">') do |f|
          f.text_field(:written_on, placeholder: :spanish)
        end
     end
