@@ -258,7 +258,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   test 'update array content' do
-    content =
     topic = Topic.new
     topic.content = %w( one two three )
 
