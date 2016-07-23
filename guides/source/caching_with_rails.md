@@ -198,11 +198,11 @@ render "comments/comments"
 render 'comments/comments'
 render('comments/comments')
 
-render "header" => render("comments/header")
+render "header" translates to render("comments/header")
 
-render(@topic)         => render("topics/topic")
-render(topics)         => render("topics/topic")
-render(message.topics) => render("topics/topic")
+render(@topic)         translates to render("topics/topic")
+render(topics)         translates to render("topics/topic")
+render(message.topics) translates to render("topics/topic")
 ```
 
 On the other hand, some calls need to be changed to make caching work properly.
