@@ -1,0 +1,5 @@
+<%= fields_with(model: Post.new("Babe went home", "Babe", "To a little house", "shh!")) do |f| %>
+<%= f.label(:title) do %>
+<%= f.text_field :title %>
+<% end %>
+<% end %>

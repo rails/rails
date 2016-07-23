@@ -127,10 +127,17 @@ class FormWithHelperTest < ActionView::TestCase
     assert_tag_equal('<label for="my_for">The title, please:</label>') { |f| f.label(:title, "for": "my_for") { "The title, please:" } }
   end
 
-  def ignore_test_label_with_block_and_builder
+  def test_label_with_block_and_argument
     I18n.with_locale :label do
-      assert_tag_equal('<label><input type="text"></label>') { |f| f.label(:body) { |b| b.text_field :title } }
+      assert_tag_equal('<label>Title</label>') { |f| f.label(:title) { |t| t } }
     end
+  end
+
+  def test_label_with_block_in_erb
+    assert_dom_equal(
+      %{\n<label>\n<input name="post[title]" type="text" value="Babe went home">\n</label>},
+      view.render("test/field_with_label_with_block")
+    )
   end
 
   def test_text_field
