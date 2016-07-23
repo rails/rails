@@ -717,7 +717,11 @@ module ActionDispatch
 
       module ClassMethods
         def app
-          @@app.nil? ? ActionDispatch.test_app : @@app
+          if defined(@@app) && !@@app.nil?
+            @@app
+          else
+            ActionDispatch.test_app
+          end
         end
 
         def app=(app)
