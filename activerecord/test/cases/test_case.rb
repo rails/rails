@@ -115,7 +115,7 @@ module ActiveRecord
       return if 'CACHE' == values[:name]
 
       self.class.log_all << sql
-      self.class.log << sql unless ignore =~ sql
+      self.class.log << sql unless ignore.match?(sql)
     end
   end
 

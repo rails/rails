@@ -20,7 +20,7 @@ module ActiveRecord
 
       def load(yaml)
         return object_class.new if object_class != Object && yaml.nil?
-        return yaml unless yaml.is_a?(String) && yaml =~ /^---/
+        return yaml unless yaml.is_a?(String) && /^---/.match?(yaml)
         obj = YAML.load(yaml)
 
         assert_valid_value(obj)
