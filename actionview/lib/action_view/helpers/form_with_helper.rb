@@ -25,6 +25,10 @@ module ActionView
           RUBY_EVAL
         end
 
+        def file_field(method, *args, **options)
+          tag.input options_for(method, options).merge!(type: "file")
+        end
+
         def submit
           tag.input value: submit_default_value, "data-disable-with": submit_default_value, type: 'submit', name: 'commit'
         end
@@ -95,7 +99,8 @@ module ActionView
           end
 
           def name_for(method, scope, **options)
-            scope.nil? ? method : "#{scope}[#{method}]"
+            name = scope.nil? ? method.to_s : "#{scope}[#{method}]"
+            name + (options[:multiple] ? "[]" : "")
           end
 
           def id_for(method, scope, **options)

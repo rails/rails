@@ -133,6 +133,19 @@ class FormWithHelperTest < ActionView::TestCase
     end
   end
 
+  def test_file_field_has_no_size
+    assert_tag_equal('<input name="post[title]" type="file" />') { |f| f.file_field(:title) }
+  end
+
+  def test_file_field_with_multiple_behavior
+    assert_tag_equal('<input multiple="multiple" name="post[attachment][]" type="file" />') { |f| f.file_field(:attachment, "file", multiple: true) }
+  end
+
+  def test_file_field_with_multiple_behavior_and_explicit_name
+    assert_tag_equal('<input multiple="multiple" name="custom" type="file" />') { |f| f.file_field(:blah, multiple: true, name: "custom") }
+    assert_tag_equal('<input multiple="multiple" name="custom[]" type="file" />') { |f| f.file_field(:custom, multiple: true, scope: nil) }
+  end
+
   def test_label_with_block_in_erb
     assert_dom_equal(
       %{\n<label>\n<input name="post[title]" type="text" value="Babe went home">\n</label>},
