@@ -307,6 +307,51 @@ module ApplicationTests
           ENV["RACK_ENV"] = @old_rack_env
         end
       end
+
+      def test_rails_db_create_all_restores_db_connection
+        output =  Dir.chdir(app_path) { `bin/rails db:create:all db:migrate && echo ".tables" | rails dbconsole` }
+        assert_match "ar_internal_metadata", output, "tables should be dumped"
+      end
+
+      def test_rails_db_create_all_restores_db_connection_after_drop
+        Dir.chdir(app_path) { `bin/rails db:create:all` } # create all to avoid warnings
+        output =  Dir.chdir(app_path) { `bin/rails db:drop:all db:create:all db:migrate && echo ".tables" | rails dbconsole` }
+        assert_match "ar_internal_metadata", output, "tables should be dumped"
+      end
+
+      def test_rails_db_create_all_restores_db_connection_with_postgresql
+        use_postgresql
+        output =  Dir.chdir(app_path) { `bin/rails db:create:all db:migrate && echo "\\d+" | rails dbconsole` }
+        assert_match "ar_internal_metadata", output, "tables should be dumped"
+      ensure
+        Dir.chdir(app_path) { `bin/rails db:drop:all` }
+      end
+
+      def test_rails_db_create_all_restores_db_connection_after_drop_with_postgresql
+        use_postgresql
+        Dir.chdir(app_path) { `bin/rails db:create:all` } # create all to avoid warnings
+        output =  Dir.chdir(app_path) { `bin/rails db:drop:all db:create:all db:migrate && echo "\\d+" | rails dbconsole` }
+        assert_match "ar_internal_metadata", output, "tables should be dumped"
+      ensure
+        Dir.chdir(app_path) { `bin/rails db:drop:all` }
+      end
+
+      def test_rails_db_create_all_restores_db_connection_with_mysql
+        use_mysql
+        output =  Dir.chdir(app_path) { `bin/rails db:create:all db:migrate && echo "show tables" | rails dbconsole` }
+        assert_match "ar_internal_metadata", output, "tables should be dumped"
+      ensure
+        Dir.chdir(app_path) { `bin/rails db:drop:all` }
+      end
+
+      def test_rails_db_create_all_restores_db_connection_after_drop_with_mysql
+        use_mysql
+        Dir.chdir(app_path) { `bin/rails db:create:all` } # create all to avoid warnings
+        output =  Dir.chdir(app_path) { `bin/rails db:drop:all db:create:all db:migrate && echo "show tables" | rails dbconsole` }
+        assert_match "ar_internal_metadata", output, "tables should be dumped"
+      ensure
+        Dir.chdir(app_path) { `bin/rails db:drop:all` }
+      end
     end
   end
 end
