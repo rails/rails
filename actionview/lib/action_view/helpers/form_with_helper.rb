@@ -37,13 +37,10 @@ module ActionView
         end
 
         def label(method, *args, **options)
-          if model && model.class.respond_to?(:human_attribute_name)
-            default = model.class.human_attribute_name(method) 
-          else
-            default = method.to_s.humanize
-          end
-          content = I18n.t("#{scope}.#{method}", default: default, scope: "helpers.label")
           content = args[0] if args.size > 0
+          content ||= I18n.t("#{model.model_name.i18n_key}.#{method}", default: "", scope: "helpers.label").presence if model && model.model_name
+          content ||= translate_with_human_attribute_name(method) 
+          content ||= method.to_s.humanize
           tag.label content, options
         end
 
@@ -77,6 +74,9 @@ module ActionView
         end
 
         private
+          def translate_with_human_attribute_name(method)
+            model && model.class.respond_to?(:human_attribute_name) ? model.class.human_attribute_name(method) : nil
+          end
 
           def submit_default_value
             if scope

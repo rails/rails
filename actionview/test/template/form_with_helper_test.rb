@@ -74,11 +74,13 @@ class FormWithHelperTest < ActionView::TestCase
   def test_label_with_symbols
     assert_tag_equal('<label>Title</label>') { |f| f.label(:title) }
     assert_tag_equal('<label>Secret?</label>') { |f| f.label(:"secret?") }
+    assert_tag_equal('<label for="my_for">Title</label>') { |f| f.label(:title, for: :"my_for") }
   end
 
-  def test_label_with_locales_strings
+  def test_label_with_locales
     I18n.with_locale :label do
       assert_tag_equal('<label>Write entire text here</label>') { |f| f.label("body") }
+      assert_tag_equal('<label>Write entire text here</label>') { |f| f.label(:body) }
     end
   end
 
@@ -86,6 +88,23 @@ class FormWithHelperTest < ActionView::TestCase
     I18n.with_locale :label do
       assert_tag_equal('<label>Total cost</label>') { |f| f.label(:cost) }
     end
+  end
+
+  def test_label_with_locales_and_options
+    I18n.with_locale :label do
+      assert_tag_equal('<label class="post_body">Write entire text here</label>') { |f| f.label(:body, class: "post_body") }
+    end
+  end
+
+  def test_label_with_non_active_record_object
+    actual = form_with(model: OpenStruct.new(name:'ok'), url: 'an_url', scope: 'person') { |f| f.label(:name) }
+    expected = whole_form("an_url", method: "post") { '<label>Name</label>' }
+    assert_dom_equal expected, actual
+  end
+
+  def test_label_does_not_generate_for_attribute_when_given_nil
+    assert_tag_equal('<label>Title</label>') { |f| f.label(:title, for: nil) }
+    assert_tag_equal('<label>Title</label>') { |f| f.label(:title, class: nil) }
   end
 
   def test_text_field
