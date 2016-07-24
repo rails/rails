@@ -316,7 +316,7 @@ module ActiveRecord
           end
         end
         key_list = fixture.keys.map { |name| quote_column_name(name) }
-        value_list = prepare_binds_for_database(binds).map do |value|
+        value_list = binds.map(&:value_for_database).map do |value|
           begin
             quote(value)
           rescue TypeError

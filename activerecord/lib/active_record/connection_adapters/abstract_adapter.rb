@@ -130,7 +130,7 @@ module ActiveRecord
 
       class BindCollector < Arel::Collectors::Bind
         def compile(bvs, conn)
-          casted_binds = conn.prepare_binds_for_database(bvs)
+          casted_binds = bvs.map(&:value_for_database)
           super(casted_binds.map { |value| conn.quote(value) })
         end
       end
