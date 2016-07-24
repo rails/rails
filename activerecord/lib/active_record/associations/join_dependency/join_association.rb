@@ -61,7 +61,7 @@ module ActiveRecord
             end
 
             if reflection.type
-              constraint = constraint.and table[reflection.type].eq foreign_klass.base_class.name
+              constraint = constraint.and table[reflection.type].eq foreign_klass.base_class.sti_name
             end
 
             if rel && !rel.arel.constraints.empty?

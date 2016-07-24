@@ -87,7 +87,7 @@ module ActiveRecord
             scope    = scope.where(table[key].eq(bind_val))
 
             if reflection.type
-              value    = owner.class.base_class.name
+              value    = owner.class.base_class.sti_name
               bind_val = bind scope, table.table_name, reflection.type.to_s, value, tracker
               scope    = scope.where(table[reflection.type].eq(bind_val))
             end
@@ -95,7 +95,7 @@ module ActiveRecord
             constraint = table[key].eq(foreign_table[foreign_key])
 
             if reflection.type
-              value    = chain[i + 1].klass.base_class.name
+              value    = chain[i + 1].klass.base_class.sti_name
               bind_val = bind scope, table.table_name, reflection.type.to_s, value, tracker
               scope    = scope.where(table[reflection.type].eq(bind_val))
             end
