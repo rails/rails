@@ -29,7 +29,7 @@ module ActiveRecord
     # instantiation of the actual post records.
     class CollectionProxy < Relation
       delegate(*(ActiveRecord::Calculations.public_instance_methods - [:count]), to: :scope)
-      delegate :find_nth, :exists?, :update_all, :arel, to: :scope
+      delegate :exists?, :update_all, :arel, to: :scope
 
       def initialize(klass, association) #:nodoc:
         @association = association
