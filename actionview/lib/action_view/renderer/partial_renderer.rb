@@ -1,5 +1,6 @@
-require 'action_view/renderer/partial_renderer/collection_caching'
 require 'concurrent/map'
+require 'active_support/core_ext/regexp'
+require 'action_view/renderer/partial_renderer/collection_caching'
 
 module ActionView
   class PartialIteration
@@ -386,7 +387,7 @@ module ActionView
       end
 
       if as = options[:as]
-        raise_invalid_option_as(as) unless as.to_s =~ /\A[a-z_]\w*\z/
+        raise_invalid_option_as(as) unless /\A[a-z_]\w*\z/.match?(as.to_s)
         as = as.to_sym
       end
 

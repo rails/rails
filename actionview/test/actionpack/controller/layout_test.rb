@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'active_support/core_ext/array/extract_options'
+require 'active_support/core_ext/regexp'
 
 # The view_paths array must be set on Base and not LayoutTest so that LayoutTest's inherited
 # method has access to the view_paths array when looking for a layout to automatically assign.
@@ -252,7 +253,7 @@ class LayoutStatusIsRenderedTest < ActionController::TestCase
   end
 end
 
-unless RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
+unless /mswin|mingw/.match?(RbConfig::CONFIG['host_os'])
   class LayoutSymlinkedTest < LayoutTest
     layout "symlinked/symlinked_layout"
   end

@@ -1,3 +1,4 @@
+require 'active_support/core_ext/regexp'
 require 'action_view/template/resolver'
 
 module ActionView #:nodoc:
@@ -29,7 +30,7 @@ module ActionView #:nodoc:
       templates = []
       @hash.each do |_path, array|
         source, updated_at = array
-        next unless _path =~ query
+        next unless query.match?(_path)
         handler, format, variant = extract_handler_and_format_and_variant(_path, formats)
         templates << Template.new(source, _path, handler,
           :virtual_path => path.virtual,
@@ -50,4 +51,3 @@ module ActionView #:nodoc:
     end
   end
 end
-

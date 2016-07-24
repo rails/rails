@@ -1,4 +1,5 @@
 require "active_support/core_ext/enumerable"
+require 'active_support/core_ext/regexp'
 
 module ActionView
   # = Action View Errors
@@ -35,7 +36,7 @@ module ActionView
       prefixes = Array(prefixes)
       template_type = if partial
         "partial"
-      elsif path =~ /layouts/i
+      elsif /layouts/i.match?(path)
         'layout'
       else
         'template'

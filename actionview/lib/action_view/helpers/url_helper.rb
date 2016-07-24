@@ -2,6 +2,7 @@ require 'action_view/helpers/javascript_helper'
 require 'active_support/core_ext/array/access'
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/string/output_safety'
+require 'active_support/core_ext/regexp'
 
 module ActionView
   # = Action View URL Helpers
@@ -550,7 +551,7 @@ module ActionView
 
         url_string.chomp!("/") if url_string.start_with?("/") && url_string != "/"
 
-        if url_string =~ /^\w+:\/\//
+        if %r{^\w+://}.match?(url_string)
           url_string == "#{request.protocol}#{request.host_with_port}#{request_uri}"
         else
           url_string == request_uri

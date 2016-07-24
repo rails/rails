@@ -1,5 +1,6 @@
 require 'action_view/helpers/tag_helper'
 require 'active_support/core_ext/string/access'
+require 'active_support/core_ext/regexp'
 require 'i18n/exceptions'
 
 module ActionView
@@ -133,7 +134,7 @@ module ActionView
         end
 
         def html_safe_translation_key?(key)
-          key.to_s =~ /(\b|_|\.)html$/
+          /(\b|_|\.)html$/.match?(key.to_s)
         end
     end
   end

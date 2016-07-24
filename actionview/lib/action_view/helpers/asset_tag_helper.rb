@@ -1,5 +1,6 @@
 require 'active_support/core_ext/array/extract_options'
 require 'active_support/core_ext/hash/keys'
+require 'active_support/core_ext/regexp'
 require 'action_view/helpers/asset_url_helper'
 require 'action_view/helpers/tag_helper'
 
@@ -213,8 +214,8 @@ module ActionView
 
         src = options[:src] = path_to_image(source)
 
-        unless src =~ /^(?:cid|data):/ || src.blank?
-          options[:alt] = options.fetch(:alt){ image_alt(src) }
+        unless src.start_with?('cid:') || src.start_with?('data:') || src.blank?
+          options[:alt] = options.fetch(:alt) { image_alt(src) }
         end
 
         options[:width], options[:height] = extract_dimensions(options.delete(:size)) if options[:size]
@@ -322,9 +323,9 @@ module ActionView
 
         def extract_dimensions(size)
           size = size.to_s
-          if size =~ %r{\A\d+x\d+\z}
+          if /\A\d+x\d+\z/.match?(size)
             size.split('x')
-          elsif size =~ %r{\A\d+\z}
+          elsif /\A\d+\z/.match?(size)
             [size, size]
           end
         end

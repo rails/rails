@@ -1,4 +1,5 @@
 require 'erubis'
+require 'active_support/core_ext/regexp'
 
 module ActionView
   class Template
@@ -39,7 +40,7 @@ module ActionView
 
         def add_expr_literal(src, code)
           flush_newline_if_pending(src)
-          if code =~ BLOCK_EXPR
+          if BLOCK_EXPR.match?(code)
             src << '@output_buffer.append= ' << code
           else
             src << '@output_buffer.append=(' << code << ');'
@@ -48,7 +49,7 @@ module ActionView
 
         def add_expr_escaped(src, code)
           flush_newline_if_pending(src)
-          if code =~ BLOCK_EXPR
+          if BLOCK_EXPR.match?(code)
             src << "@output_buffer.safe_expr_append= " << code
           else
             src << "@output_buffer.safe_expr_append=(" << code << ");"

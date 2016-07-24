@@ -1,5 +1,6 @@
-require "action_view/rendering"
-require "active_support/core_ext/module/remove_method"
+require 'action_view/rendering'
+require 'active_support/core_ext/module/remove_method'
+require 'active_support/core_ext/regexp'
 
 module ActionView
   # Layouts reverse the common pattern of including shared headers and footers in many templates to isolate changes in
@@ -279,7 +280,7 @@ module ActionView
       def _write_layout_method # :nodoc:
         remove_possible_method(:_layout)
 
-        prefixes    = _implied_layout_name =~ /\blayouts/ ? [] : ["layouts"]
+        prefixes = /\blayouts/.match?(_implied_layout_name) ? [] : ["layouts"]
         default_behavior = "lookup_context.find_all('#{_implied_layout_name}', #{prefixes.inspect}, false, [], { formats: formats }).first || super"
         name_clause = if name
           default_behavior
