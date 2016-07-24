@@ -1,3 +1,5 @@
+require 'active_support/core_ext/regexp'
+
 module ActiveRecord
   module Sanitization
     extend ActiveSupport::Concern

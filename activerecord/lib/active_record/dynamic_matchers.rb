@@ -1,3 +1,5 @@
+require 'active_support/core_ext/regexp'
+
 module ActiveRecord
   module DynamicMatchers #:nodoc:
     def respond_to?(name, include_private = false)

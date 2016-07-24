@@ -9,6 +9,7 @@ require 'active_record/connection_adapters/mysql/schema_dumper'
 require 'active_record/connection_adapters/mysql/type_metadata'
 
 require 'active_support/core_ext/string/strip'
+require 'active_support/core_ext/regexp'
 
 module ActiveRecord
   module ConnectionAdapters

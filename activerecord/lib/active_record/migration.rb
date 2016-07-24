@@ -1,5 +1,6 @@
-require "active_support/core_ext/module/attribute_accessors"
 require 'set'
+require "active_support/core_ext/module/attribute_accessors"
+require 'active_support/core_ext/regexp'
 
 module ActiveRecord
   class MigrationError < ActiveRecordError#:nodoc:

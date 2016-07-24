@@ -1,5 +1,6 @@
 require 'active_support/test_case'
 require 'active_support/testing/stream'
+require 'active_support/core_ext/regexp'
 
 module ActiveRecord
   # = Active Record Test Case
