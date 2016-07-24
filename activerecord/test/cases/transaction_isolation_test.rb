@@ -102,5 +102,21 @@ if ActiveRecord::Base.connection.supports_transaction_isolation?
         end
       end
     end
+
+    if ARTest.connection_name == 'postgresql'
+      test "can start a read-only deferrable serializable transaction" do
+        Tag.transaction(isolation: { level: :serializable, read_only: true, deferrable: true }) do
+          assert_raises(ActiveRecord::StatementInvalid) do
+            Tag.create
+          end
+        end
+      end
+
+      test "can start a read-write serializable transaction" do
+        Tag.transaction(isolation: { level: :serializable, read_only: false }) do
+          Tag.create
+        end
+      end
+    end
   end
 end
