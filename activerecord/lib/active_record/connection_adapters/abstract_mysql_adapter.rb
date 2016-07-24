@@ -567,8 +567,10 @@ module ActiveRecord
 
       # SHOW VARIABLES LIKE 'name'
       def show_variable(name)
-        variables = select_all("SHOW VARIABLES LIKE '#{name}'", 'SCHEMA')
+        variables = select_all("select @@#{name} as 'Value'", 'SCHEMA')
         variables.first['Value'] unless variables.empty?
+      rescue ActiveRecord::StatementInvalid
+        nil
       end
 
       # Returns a table's primary key and belonging sequence.
@@ -602,6 +604,21 @@ module ActiveRecord
         end
       end
 
+      # In MySQL 5.7.5 and up, ONLY_FULL_GROUP_BY affects handling of queries that use
+      # DISTINCT and ORDER BY. It requires the ORDER BY columns in the select list for
+      # distinct queries, and requires that the ORDER BY include the distinct column.
+      # See https://dev.mysql.com/doc/refman/5.7/en/group-by-handling.html
+      def columns_for_distinct(columns, orders) # :nodoc:
+        order_columns = orders.reject(&:blank?).map { |s|
+          # Convert Arel node to string
+          s = s.to_sql unless s.is_a?(String)
+          # Remove any ASC/DESC modifiers
+          s.gsub(/\s+(?:ASC|DESC)\b/i, '')
+        }.reject(&:blank?).map.with_index { |column, i| "#{column} AS alias_#{i}" }
+
+        [super, *order_columns].join(', ')
+      end
+
       def limited_update_conditions(where_sql, quoted_table_name, quoted_primary_key)
         where_sql
       end
@@ -621,6 +638,10 @@ module ActiveRecord
       def subquery_for(key, select)
         subsubselect = select.clone
         subsubselect.projections = [key]
+
+        # Materialize subquery by adding distinct
+        # to work with MySQL 5.7.6 which sets optimizer_switch='derived_merge=on'
+        subsubselect.distinct unless select.limit || select.offset || select.orders.any?
 
         subselect = Arel::SelectManager.new(select.engine)
         subselect.project Arel.sql(key.name)
