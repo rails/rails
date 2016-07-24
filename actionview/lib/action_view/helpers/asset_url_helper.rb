@@ -115,7 +115,7 @@ module ActionView
     #   )
     #
     module AssetUrlHelper
-      URI_REGEXP = %r{^[-a-z]+://|^(?:cid|data):|^//}i
+      URI_REGEXP = %r{^(?:[-a-z]+://|cid:|data:|//)}i
 
       # Computes the path to asset in public directory. If :type
       # options is set, a file extension will be appended and scoped
@@ -131,10 +131,12 @@ module ActionView
         raise ArgumentError, "nil is not a valid asset source" if source.nil?
 
         source = source.to_s
-        return "" unless source.present?
-        return source if source =~ URI_REGEXP
+        return "" if source.empty?
+        return source if URI_REGEXP === source
 
-        tail, source = source[/([\?#].+)$/], source.sub(/([\?#].+)$/, ''.freeze)
+        if index = source.index(/[?#]/)
+          source, tail = source[0, index], source[index..-1]
+        end
 
         if extname = compute_asset_extname(source, options)
           source = "#{source}#{extname}"
