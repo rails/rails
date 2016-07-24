@@ -1,5 +1,6 @@
-module ActiveModel
+require 'active_support/core_ext/regexp'
 
+module ActiveModel
   module Validations
     class FormatValidator < EachValidator # :nodoc:
       def validate_each(record, attribute, value)
@@ -8,7 +9,7 @@ module ActiveModel
           record_error(record, attribute, :with, value) if value.to_s !~ regexp
         elsif options[:without]
           regexp = option_call(record, :without)
-          record_error(record, attribute, :without, value) if value.to_s =~ regexp
+          record_error(record, attribute, :without, value) if regexp.match?(value.to_s)
         end
       end
 

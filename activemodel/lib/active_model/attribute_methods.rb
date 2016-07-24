@@ -1,5 +1,6 @@
 require 'concurrent/map'
 require 'mutex_m'
+require 'active_support/core_ext/regexp'
 
 module ActiveModel
   # Raised when an attribute is not defined.
@@ -366,7 +367,7 @@ module ActiveModel
         # using the given `extra` args. This falls back on `define_method`
         # and `send` if the given names cannot be compiled.
         def define_proxy_call(include_private, mod, name, send, *extra) #:nodoc:
-          defn = if name =~ NAME_COMPILABLE_REGEXP
+          defn = if NAME_COMPILABLE_REGEXP.match?(name)
             "def #{name}(*args)"
           else
             "define_method(:'#{name}') do |*args|"
@@ -374,7 +375,7 @@ module ActiveModel
 
           extra = (extra.map!(&:inspect) << "*args").join(", ".freeze)
 
-          target = if send =~ CALL_COMPILABLE_REGEXP
+          target = if CALL_COMPILABLE_REGEXP.match?(send)
             "#{"self." unless include_private}#{send}(#{extra})"
           else
             "send(:'#{send}', #{extra})"
