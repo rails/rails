@@ -90,6 +90,14 @@ module ActiveRecord
       @materialized = true
     end
 
+    def encode_with(coder)
+      coder["delegate_hash"] = materialize
+    end
+
+    def init_with(coder)
+      marshal_load(coder["delegate_hash"])
+    end
+
     protected
 
     attr_reader :types, :values, :additional_types, :delegate_hash, :default
