@@ -1,3 +1,7 @@
+*   Fix the SELECT statement in `#table_comment` for MySQL.
+
+    *Takeshi Akima*
+
 *   Support calling the method `merge` in `scope`'s lambda.
 
     *Yasuhiro Sugino*

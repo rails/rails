@@ -413,7 +413,8 @@ module ActiveRecord
         select_value(<<-SQL.strip_heredoc, 'SCHEMA')
           SELECT table_comment
           FROM information_schema.tables
-          WHERE table_name=#{quote(table_name)}
+          WHERE table_schema=#{quote(current_database)}
+            AND table_name=#{quote(table_name)}
         SQL
       end
 
