@@ -195,6 +195,9 @@ module ActiveSupport
           assert_equal "9775.0000000000000000", number_helper.number_to_rounded("9775", :precision => 20, :significant => true )
           assert_equal "9775." + "0"*96, number_helper.number_to_rounded("9775", :precision => 100, :significant => true )
           assert_equal("97.7", number_helper.number_to_rounded(Rational(9772, 100), :precision => 3, :significant => true))
+
+          assert_equal("Inf", number_helper.number_to_rounded(Float::INFINITY, precision: 1, significant: true))
+          assert_equal("NaN", number_helper.number_to_rounded(Float::NAN, precision: 1, significant: true))
         end
       end
 
@@ -311,6 +314,8 @@ module ActiveSupport
           assert_equal '1 Million', number_helper.number_to_human(1234567, :precision => 0, :significant => true, :separator => ',') #significant forced to false
           assert_equal '1 Million', number_helper.number_to_human(999999)
           assert_equal '1 Billion', number_helper.number_to_human(999999999)
+          assert_equal 'Inf', number_helper.number_to_human(Float::INFINITY)
+          assert_equal 'NaN', number_helper.number_to_human(Float::NAN)
         end
       end
 

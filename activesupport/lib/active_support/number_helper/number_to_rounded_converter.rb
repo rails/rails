@@ -17,7 +17,7 @@ module ActiveSupport
             @number = number.to_d
           end
 
-          if options.delete(:significant) && precision > 0
+          if options.delete(:significant) && precision > 0 && !infinity_or_nan?
             digits, rounded_number = digits_and_rounded_number(precision)
             precision -= digits
             precision = 0 if precision < 0 # don't let it be negative

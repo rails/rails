@@ -177,6 +177,10 @@ module ActiveSupport
         rescue ArgumentError, TypeError
           false
         end
+
+        def infinity_or_nan?
+          number.infinite? || number.nan?
+        end
     end
   end
 end

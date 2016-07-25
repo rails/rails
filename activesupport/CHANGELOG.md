@@ -1,3 +1,19 @@
+*   Fix behavior of number helpers (`number_to_rounded`, `number_to_human`) 
+    with `Float::INFINITY` and `Float::NAN` arguments and `significant: true`
+    option.
+    
+    Previously, following examples would raise `FloatDomainError`:
+        
+        number_to_rounded(Float::INFINITY, precision: 1, significant: true)
+        number_to_rounded(Float::NAN, precision: 1, significant: true)
+        number_to_human(Float::INFINITY)
+        number_to_human(Float::NAN)
+        
+    Now `number_to_rounded` ignores `significant` option if argument is Infinity or NaN,
+    and `number_to_human` returns `'Inf'` or `'NaN'` if argument is Infinity or NaN.
+    
+    *Murad Yusufov*
+    
 *   Since weeks are no longer converted to days, add `:weeks` to the list of
     parts that `ActiveSupport::TimeWithZone` will recognize as possibly being
     of variable duration to take account of DST transitions.
