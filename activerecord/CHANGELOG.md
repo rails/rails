@@ -1,3 +1,8 @@
+*   Virtual attributes will no longer raise when read on models loaded from the
+    database
+
+    *Sean Griffin*
+
 *   Fixes multi-parameter attributes conversion with invalid params.
 
     *Hiroyuki Ishii*
