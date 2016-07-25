@@ -79,6 +79,13 @@ module RailtiesTest
       assert_equal app_path, $before_configuration
     end
 
+    test "before_configuration callbacks run as soon as the application constant inherits from Rails::Application" do
+      $before_configuration = false
+      class Foo < Rails::Railtie ; config.before_configuration { $before_configuration = true } ; end
+      class Application < Rails::Application ; end
+      assert $before_configuration
+    end
+
     test "railtie can add after_initialize callbacks" do
       $after_initialize = false
       class Foo < Rails::Railtie ; config.after_initialize { $after_initialize = true } ; end

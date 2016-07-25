@@ -1,3 +1,10 @@
+*   Run `before_configuration` callbacks as soon as application constant
+    inherits from `Rails::Application`.
+
+    Fixes #19880.
+
+    *Yuji Yaginuma*
+
 *   A generated app should not include Uglifier with `--skip-javascript` option.
 
     *Ben Pickles*
@@ -17,7 +24,7 @@
 
     *John Meehan*
 
-*   Display name of the class defining the initializer along with the initializer 
+*   Display name of the class defining the initializer along with the initializer
     name in the output of `rails initializers`.
 
     Before:
