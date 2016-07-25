@@ -5,11 +5,36 @@ module ActiveRecord
         ::Time
       end
 
+      def type_cast_for_database(value)
+        value = apply_seconds_precision(value)
+
+        if value.acts_like?(:time)
+          zone_conversion_method = is_utc? ? :getutc : :getlocal
+
+          if value.respond_to?(zone_conversion_method)
+            value = value.send(zone_conversion_method)
+          end
+        end
+
+        value
+      end
+
       def type_cast_for_schema(value)
         "'#{value.to_s(:db)}'"
       end
 
       private
+
+      def is_utc?
+        ::Time.zone_default.nil? || ::Time.zone_default =~ 'UTC'
+      end
+
+      def apply_seconds_precision(value)
+        return value unless precision && value.respond_to?(:usec)
+        number_of_insignificant_digits = 6 - precision
+        round_power = 10 ** number_of_insignificant_digits
+        value.change(usec: value.usec / round_power * round_power)
+      end
 
       def new_time(year, mon, mday, hour, min, sec, microsec, offset = nil)
         # Treat 0000-00-00 00:00:00 as nil.
