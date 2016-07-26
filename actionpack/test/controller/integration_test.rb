@@ -397,6 +397,25 @@ class IntegrationTestUsesCorrectClass < ActionDispatch::IntegrationTest
   end
 end
 
+class IntegrationTestDefaultApp < ActionDispatch::IntegrationTest
+  def setup
+    @app = self.class.app
+    self.class.app = nil
+
+    @test_app = ActionDispatch.test_app
+    ActionDispatch.test_app = 'fake_app'
+  end
+
+  def teardown
+    self.class.app = @app
+    ActionDispatch.test_app = @test_app
+  end
+
+  def test_class_app_returns_ad_test_app_by_default
+    assert_equal ActionDispatch.test_app, self.class.app
+  end
+end
+
 class IntegrationProcessTest < ActionDispatch::IntegrationTest
   class IntegrationController < ActionController::Base
     def get
