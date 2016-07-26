@@ -4,12 +4,17 @@ module ActiveSupport
   #   module M
   #     def self.included(base)
   #       base.extend ClassMethods
+  #       base.send(:include, InstanceMethods)
   #       base.class_eval do
   #         scope :disabled, -> { where(disabled: true) }
   #       end
   #     end
   #
   #     module ClassMethods
+  #       ...
+  #     end
+  #
+  #     module InstanceMethods
   #       ...
   #     end
   #   end
@@ -27,6 +32,10 @@ module ActiveSupport
   #     end
   #
   #     class_methods do
+  #       ...
+  #     end
+  #
+  #     instance_methods do
   #       ...
   #     end
   #   end
