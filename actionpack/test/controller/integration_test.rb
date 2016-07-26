@@ -412,7 +412,7 @@ class IntegrationTestDefaultApp < ActionDispatch::IntegrationTest
   end
 
   def test_class_app_returns_ad_test_app_by_default
-    assert_equal ActionDispatch.test_app, self.class.app
+    assert_equal 'fake_app', self.class.app
   end
 end
 
