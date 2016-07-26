@@ -156,6 +156,10 @@ module ActiveRecord
 
       private
 
+      def type_casted_binds(binds)
+        binds.map { |attr| type_cast(attr.value_for_database) }
+      end
+
       def types_which_need_no_typecasting
         [nil, Numeric, String]
       end
