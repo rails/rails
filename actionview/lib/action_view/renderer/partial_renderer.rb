@@ -403,9 +403,8 @@ module ActionView
 
     def collection_from_options
       if @options.key?(:collection)
-        collection = @options[:collection] || []
-        collection = collection.to_ary if collection.respond_to?(:to_ary)
-        collection
+        collection = @options[:collection]
+        collection ? collection.to_a : []
       end
     end
 
