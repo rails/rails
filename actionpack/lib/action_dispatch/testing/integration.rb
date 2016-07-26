@@ -717,7 +717,7 @@ module ActionDispatch
 
       module ClassMethods
         def app
-          defined?(@@app) ? @@app : ActionDispatch.test_app
+          @@app || ActionDispatch.test_app
         end
 
         def app=(app)
