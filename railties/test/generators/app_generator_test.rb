@@ -468,6 +468,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile" do |content|
       assert_no_match(/coffee-rails/, content)
       assert_no_match(/jquery-rails/, content)
+      assert_no_match(/uglifier/, content)
+    end
+
+    assert_file "config/environments/production.rb" do |content|
+      assert_no_match(/config\.assets\.js_compressor = :uglifier/, content)
     end
   end
 
