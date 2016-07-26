@@ -1,5 +1,16 @@
 ## Rails 5.0.0 (June 30, 2016) ##
 
+*   Changed partial rendering with a collection to allow collections which
+    implement `to_a`.
+
+    Extracting the collection option had an optimization to avoid unnecessary
+    queries of ActiveRecord Relations by calling `#to_ary` on the given
+    collection. Instances of `Enumerator` or `Enumerable` are valid
+    collections, but they do not implement `#to_ary`. By changing this to
+    `#to_a`, they will now be extracted and rendered as expected.
+
+    *Steven Harman*
+
 *   Change `datetime_field` and `datetime_field_tag` to generate `datetime-local` fields.
 
     As a new specification of the HTML 5 the text field type `datetime` will no longer exist
