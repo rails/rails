@@ -65,7 +65,7 @@ module ActionDispatch
       private
 
       def parse_formatted_parameters(parsers)
-        return yield if content_length.zero?
+        return yield if content_length.zero? || content_mime_type.nil?
 
         strategy = parsers.fetch(content_mime_type.symbol) { return yield }
 

@@ -253,7 +253,7 @@ module ActiveRecord
             name,
             value,
             type,
-            _default_attributes[name],
+            _default_attributes.fetch(name.to_s) { nil },
           )
         else
           default_attribute = Attribute.from_database(name, value, type)

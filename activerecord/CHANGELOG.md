@@ -2,6 +2,11 @@
 
     *Takeshi Akima*
 
+*   Virtual attributes will no longer raise when read on models loaded from the
+    database
+
+    *Sean Griffin*
+
 *   Support calling the method `merge` in `scope`'s lambda.
 
     *Yasuhiro Sugino*

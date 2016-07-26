@@ -205,5 +205,49 @@ module ActiveRecord
 
       assert_equal(:bar, child.new(foo: :bar).foo)
     end
+
+    test "attributes not backed by database columns are not dirty when unchanged" do
+      refute OverloadedType.new.non_existent_decimal_changed?
+    end
+
+    test "attributes not backed by database columns are always initialized" do
+      OverloadedType.create!
+      model = OverloadedType.first
+
+      assert_nil model.non_existent_decimal
+      model.non_existent_decimal = "123"
+      assert_equal 123, model.non_existent_decimal
+    end
+
+    test "attributes not backed by database columns return the default on models loaded from database" do
+      child = Class.new(OverloadedType) do
+        attribute :non_existent_decimal, :decimal, default: 123
+      end
+      child.create!
+      model = child.first
+
+      assert_equal 123, model.non_existent_decimal
+    end
+
+    test "attributes not backed by database columns properly interact with mutation and dirty" do
+      child = Class.new(ActiveRecord::Base) do
+        self.table_name = "topics"
+        attribute :foo, :string, default: "lol"
+      end
+      child.create!
+      model = child.first
+
+      assert_equal "lol", model.foo
+
+      model.foo << "asdf"
+      assert_equal "lolasdf", model.foo
+      assert model.foo_changed?
+
+      model.reload
+      assert_equal "lol", model.foo
+
+      model.foo = "lol"
+      refute model.changed?
+    end
   end
 end
