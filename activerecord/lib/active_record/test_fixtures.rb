@@ -168,6 +168,9 @@ module ActiveRecord
         end
         @fixture_connections.clear
       else
+        # It's impossible to know which fixtures were modified or not,
+        # so the only safe thing to do is to invalidate them all.
+        @@already_loaded_fixtures.clear
         ActiveRecord::FixtureSet.reset_cache
       end
 
