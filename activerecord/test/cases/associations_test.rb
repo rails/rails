@@ -45,7 +45,6 @@ class AssociationsTest < ActiveRecord::TestCase
     ship = Ship.create!(:name => "The good ship Dollypop")
     part = ship.parts.create!(:name => "Mast")
     part.mark_for_destruction
-    ship.parts.send(:load_target)
     assert ship.parts[0].marked_for_destruction?
   end
 
@@ -54,7 +53,6 @@ class AssociationsTest < ActiveRecord::TestCase
     part = ship.parts.create!(:name => "Mast")
     part.mark_for_destruction
     ShipPart.find(part.id).update_columns(name: 'Deck')
-    ship.parts.send(:load_target)
     assert_equal 'Deck', ship.parts[0].name
   end
 

@@ -459,10 +459,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_predicate person.references, :exists?
   end
 
-  def force_signal37_to_load_all_clients_of_firm
-    companies(:first_firm).clients_of_firm.each {|f| }
-  end
-
   # sometimes tests on Oracle fail if ORDER BY is not provided therefore add always :order with :first
   def test_counting_with_counter_sql
     assert_equal 3, Firm.all.merge!(:order => "id").first.clients.count
@@ -2428,4 +2424,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [bulb.id], car.bulb_ids
     assert_no_queries { car.bulb_ids }
   end
+
+  private
+
+    def force_signal37_to_load_all_clients_of_firm
+      companies(:first_firm).clients_of_firm.load_target
+    end
 end

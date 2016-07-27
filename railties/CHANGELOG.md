@@ -1,3 +1,7 @@
+*   A generated app should not include Uglifier with `--skip-javascript` option.
+
+    *Ben Pickles*
+
 *   Set session store to cookie store internally and remove the initializer from
     the generated app.
 
