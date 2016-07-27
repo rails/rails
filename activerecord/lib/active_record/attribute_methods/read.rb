@@ -28,12 +28,18 @@ module ActiveRecord
           safe_name = name.unpack('h*'.freeze).first
           temp_method = "__temp__#{safe_name}"
 
+          default = if columns_hash[name]
+            'missing_attribute(n, caller)'
+          else
+            'self.class.column_defaults[n]'
+          end
+
           ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
 
           generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
             def #{temp_method}
               name = ::ActiveRecord::AttributeMethods::AttrNames::ATTR_#{safe_name}
-              _read_attribute(name) { |n| missing_attribute(n, caller) }
+              _read_attribute(name) { |n| #{default} }
             end
           STR
 
