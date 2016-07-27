@@ -767,6 +767,32 @@ class DirtyTest < ActiveRecord::TestCase
     assert_equal({"catchphrase" => nil}, pirate_clone.changed_attributes)
   end
 
+  test "duplicating a record does not cause default values to be shared across instances" do
+    serializer = Module.new do
+      def self.load(value)
+        ["hello"]
+      end
+
+      def self.dump(value)
+        value
+      end
+    end
+
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+
+      serialize :content, serializer
+    end
+
+    assert_equal ["hello"], klass.new.content
+
+    klass.new.dup
+
+    klass.new.content.first << "world"
+
+    assert_equal ["hello"], klass.new.content
+  end
+
   private
     def with_partial_writes(klass, on = true)
       old = klass.partial_writes?
