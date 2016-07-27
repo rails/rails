@@ -227,9 +227,9 @@ module ApplicationTests
       class ::OmgController < ActionController::Base
         def index
           if params[:nothing]
-            render text: ""
+            render html: ""
           else
-            render text: "OMG"
+            render html: "OMG"
           end
         end
       end
