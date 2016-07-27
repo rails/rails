@@ -1,4 +1,4 @@
-require 'active_support/deprecation/proxy_wrappers'
+require 'active_support/deprecation'
 
 class LoadError
   REGEXPS = [
