@@ -702,7 +702,7 @@ for detailed changes.
   `Time.zone.tomorrow`. ([Pull Request](https://github.com/rails/rails/pull/12822))
 
 * Added `String#remove(pattern)` as a short-hand for the common pattern of
-  `String#gsub(pattern,'')`. ([Commit](https://github.com/rails/rails/commit/5da23a3f921f0a4a3139495d2779ab0d3bd4cb5f))
+  `String#gsub(pattern, '')`. ([Commit](https://github.com/rails/rails/commit/5da23a3f921f0a4a3139495d2779ab0d3bd4cb5f))
 
 * Added `Hash#compact` and `Hash#compact!` for removing items with nil value
   from hash. ([Pull Request](https://github.com/rails/rails/pull/13632))

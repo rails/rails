@@ -342,11 +342,11 @@ vehemence of any carnal pleasure.
 EXPECTED
 
       parser = @parsing['base64Binary']
-      assert_equal expected_base64.gsub(/\n/," ").strip, parser.call(base64)
+      assert_equal expected_base64.gsub(/\n/, " ").strip, parser.call(base64)
       parser.call("NON BASE64 INPUT")
 
       parser = @parsing['binary']
-      assert_equal expected_base64.gsub(/\n/," ").strip, parser.call(base64, 'encoding' => 'base64')
+      assert_equal expected_base64.gsub(/\n/, " ").strip, parser.call(base64, 'encoding' => 'base64')
       assert_equal "IGNORED INPUT", parser.call("IGNORED INPUT", {})
     end
   end
