@@ -1,3 +1,7 @@
+*   Support calling `render xml:` where `#to_xml` does not accept options
+
+    *Ben Woosley*
+
 *   Check `request.path_parameters` encoding at the point they're set.
 
     Check for any non-UTF8 characters in path parameters at the point they're
