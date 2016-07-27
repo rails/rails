@@ -1,3 +1,9 @@
+=== 7.1.1 / 2016-07-27
+
+* Bug Fixes
+
+  * Fix warning in `Casted#hash`
+
 === 7.1.0 / 2016-07-19
 
 * Enhancements
