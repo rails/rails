@@ -148,16 +148,25 @@ class SessionTest < ActiveSupport::TestCase
   def test_post
     path = "/index"; params = "blah"; headers = { location: 'blah' }
     assert_called_with @session, :process, [:post, path, params: params, headers: headers] do
-      assert_deprecated {
-        @session.post(path, params, headers)
-      }
+      @session.post(path, params: params, headers: headers)
     end
   end
 
   def test_deprecated_post
     path = "/index"; params = "blah"; headers = { location: 'blah' }
     assert_called_with @session, :process, [:post, path, params: params, headers: headers] do
-      @session.post(path, params: params, headers: headers)
+      assert_deprecated {
+        @session.post(path, params, headers)
+      }
+    end
+  end
+
+  def test_unsupported_kwarg_post
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    assert_called_with @session, :process, [:post, path, params: params, headers: headers, foo: "bar"] do
+      assert_deprecated {
+        @session.post(path, params: params, headers: headers, foo: "bar")
+      }
     end
   end
 

@@ -295,6 +295,7 @@ module ActionDispatch
 
         def process_with_kwargs(http_method, path, *args)
           if kwarg_request?(args)
+            unsupported_kwarg_request_warning if unsupported_kwargs?(args)
             process(http_method, path, *args)
           else
             non_kwarg_request_warning if args.any?
@@ -305,6 +306,10 @@ module ActionDispatch
         REQUEST_KWARGS = %i(params headers env xhr as)
         def kwarg_request?(args)
           args[0].respond_to?(:keys) && args[0].keys.any? { |k| REQUEST_KWARGS.include?(k) }
+        end
+
+        def unsupported_kwargs?(args)
+          args[0].keys.any? { |k| !REQUEST_KWARGS.include?(k) }
         end
 
         def non_kwarg_request_warning
@@ -323,6 +328,7 @@ module ActionDispatch
               as: :json
           MSG
         end
+        alias :unsupported_kwarg_request_warning :non_kwarg_request_warning
 
         # Performs the actual request.
         def process(method, path, params: nil, headers: nil, env: nil, xhr: false, as: nil)
