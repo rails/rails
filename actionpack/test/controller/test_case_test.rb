@@ -854,6 +854,14 @@ XML
     assert_nil cookies['foo']
   end
 
+  def test_multiple_mixed_method_process_should_scrub_rack_input
+    post :test_params, params: { id: 1, foo: 'an foo' }
+    assert_equal({"id"=>"1", "foo" => "an foo", "controller"=>"test_case_test/test", "action"=>"test_params"}, ::JSON.parse(@response.body))
+
+    get :test_params, params: { bar: 'an bar' }
+    assert_equal({"bar"=>"an bar", "controller"=>"test_case_test/test", "action"=>"test_params"}, ::JSON.parse(@response.body))
+  end
+
   %w(controller response request).each do |variable|
     %w(get post put delete head process).each do |method|
       define_method("test_#{variable}_missing_for_#{method}_raises_error") do
