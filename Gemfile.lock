@@ -103,7 +103,7 @@ GEM
   specs:
     addressable (2.4.0)
     amq-protocol (2.0.1)
-    arel (7.1.0)
+    arel (7.1.1)
     backburner (1.3.0)
       beaneater (~> 1.0)
       dante (> 0.1.5)
@@ -401,4 +401,4 @@ DEPENDENCIES
   wdm (>= 0.1.0)
 
 BUNDLED WITH
-   1.11.2
+   1.12.5
