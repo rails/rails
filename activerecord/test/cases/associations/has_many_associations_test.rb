@@ -619,8 +619,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_ids_and_inverse_of
-    force_signal37_to_load_all_clients_of_firm
-
     firm = companies(:first_firm)
     client = firm.clients_of_firm.find(3)
     assert_kind_of Client, client
@@ -744,7 +742,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_adding
-    force_signal37_to_load_all_clients_of_firm
     natural = Client.new("name" => "Natural Company")
     companies(:first_firm).clients_of_firm << natural
     assert_equal 3, companies(:first_firm).clients_of_firm.size # checking via the collection
@@ -800,7 +797,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_adding_a_collection
-    force_signal37_to_load_all_clients_of_firm
     companies(:first_firm).clients_of_firm.concat([Client.new("name" => "Natural Company"), Client.new("name" => "Apple")])
     assert_equal 4, companies(:first_firm).clients_of_firm.size
     assert_equal 4, companies(:first_firm).clients_of_firm.reload.size
@@ -943,7 +939,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_create
-    force_signal37_to_load_all_clients_of_firm
     new_client = companies(:first_firm).clients_of_firm.create("name" => "Another Client")
     assert new_client.persisted?
     assert_equal new_client, companies(:first_firm).clients_of_firm.last
@@ -962,7 +957,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_deleting
-    force_signal37_to_load_all_clients_of_firm
     companies(:first_firm).clients_of_firm.delete(companies(:first_firm).clients_of_firm.first)
     assert_equal 1, companies(:first_firm).clients_of_firm.size
     assert_equal 1, companies(:first_firm).clients_of_firm.reload.size
@@ -1116,7 +1110,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_deleting_a_collection
-    force_signal37_to_load_all_clients_of_firm
     companies(:first_firm).clients_of_firm.create("name" => "Another Client")
     assert_equal 3, companies(:first_firm).clients_of_firm.size
     companies(:first_firm).clients_of_firm.delete([companies(:first_firm).clients_of_firm[0], companies(:first_firm).clients_of_firm[1], companies(:first_firm).clients_of_firm[2]])
@@ -1125,7 +1118,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_delete_all
-    force_signal37_to_load_all_clients_of_firm
     companies(:first_firm).dependent_clients_of_firm.create("name" => "Another Client")
     clients = companies(:first_firm).dependent_clients_of_firm.to_a
     assert_equal 3, clients.count
@@ -1136,7 +1128,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_delete_all_with_not_yet_loaded_association_collection
-    force_signal37_to_load_all_clients_of_firm
     companies(:first_firm).clients_of_firm.create("name" => "Another Client")
     assert_equal 3, companies(:first_firm).clients_of_firm.size
     companies(:first_firm).clients_of_firm.reset
@@ -1324,7 +1315,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_deleting_a_item_which_is_not_in_the_collection
-    force_signal37_to_load_all_clients_of_firm
     summit = Client.find_by_name('Summit')
     companies(:first_firm).clients_of_firm.delete(summit)
     assert_equal 2, companies(:first_firm).clients_of_firm.size
@@ -1359,8 +1349,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_destroying
-    force_signal37_to_load_all_clients_of_firm
-
     assert_difference "Client.count", -1 do
       companies(:first_firm).clients_of_firm.destroy(companies(:first_firm).clients_of_firm.first)
     end
@@ -1370,8 +1358,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_destroying_by_integer_id
-    force_signal37_to_load_all_clients_of_firm
-
     assert_difference "Client.count", -1 do
       companies(:first_firm).clients_of_firm.destroy(companies(:first_firm).clients_of_firm.first.id)
     end
@@ -1381,8 +1367,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_destroying_by_string_id
-    force_signal37_to_load_all_clients_of_firm
-
     assert_difference "Client.count", -1 do
       companies(:first_firm).clients_of_firm.destroy(companies(:first_firm).clients_of_firm.first.id.to_s)
     end
@@ -1392,7 +1376,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_destroying_a_collection
-    force_signal37_to_load_all_clients_of_firm
     companies(:first_firm).clients_of_firm.create("name" => "Another Client")
     assert_equal 3, companies(:first_firm).clients_of_firm.size
 
@@ -1405,7 +1388,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_destroy_all
-    force_signal37_to_load_all_clients_of_firm
     clients = companies(:first_firm).clients_of_firm.to_a
     assert !clients.empty?, "37signals has clients after load"
     destroyed = companies(:first_firm).clients_of_firm.destroy_all
