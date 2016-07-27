@@ -1,7 +1,8 @@
-require 'set'
-require 'thread'
 require 'concurrent/map'
 require 'pathname'
+require 'set'
+require 'thread'
+
 require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/module/introspection'

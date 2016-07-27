@@ -1,6 +1,5 @@
-require 'set'
-require 'pathname'
 require 'concurrent/atomic/atomic_boolean'
+require 'pathname'
 
 module ActiveSupport
   # Allows you to "listen" to changes in a file system.
