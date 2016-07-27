@@ -717,7 +717,11 @@ module ActionDispatch
 
       module ClassMethods
         def app
-          @@app || ActionDispatch.test_app
+          if defined?(@@app) && @@app
+            @@app
+          else
+            ActionDispatch.test_app
+          end
         end
 
         def app=(app)
