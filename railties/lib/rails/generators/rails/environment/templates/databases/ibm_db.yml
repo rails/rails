@@ -1,0 +1,3 @@
+development:
+  <<: *default
+  database: <%= app_name[0,4] %>_<%= name[0,3] %>

@@ -1,0 +1,5 @@
+
+<%= name %>:
+  <<: *default
+  database: db/<%= name %>.sqlite3
+

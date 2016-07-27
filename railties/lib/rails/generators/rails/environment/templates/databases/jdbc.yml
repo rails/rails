@@ -1,0 +1,3 @@
+<%= name %>:
+  <<: *default
+  url: jdbc:db://localhost/<%= app_name %>_<%= name %>

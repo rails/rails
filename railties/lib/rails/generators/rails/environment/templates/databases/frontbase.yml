@@ -1,0 +1,3 @@
+<%= name %>:
+  <<: *default
+  database: <%= app_name %>_<%= name %>
