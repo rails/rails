@@ -40,7 +40,7 @@ module ActiveRecord
     end
 
     class PartialQuery < Query # :nodoc:
-      def initialize values
+      def initialize(values)
         @values = values
         @indexes = values.each_with_index.find_all { |thing,i|
           Arel::Nodes::BindParam === thing
@@ -55,13 +55,12 @@ module ActiveRecord
       end
     end
 
-    def self.query(visitor, ast)
-      Query.new visitor.accept(ast, Arel::Collectors::SQLString.new).value
+    def self.query(sql)
+      Query.new(sql)
     end
 
-    def self.partial_query(visitor, ast, collector)
-      collected = visitor.accept(ast, collector).value
-      PartialQuery.new collected
+    def self.partial_query(values)
+      PartialQuery.new(values)
     end
 
     class Params # :nodoc:
@@ -92,7 +91,7 @@ module ActiveRecord
     def self.create(connection, block = Proc.new)
       relation      = block.call Params.new
       bind_map      = BindMap.new relation.bound_attributes
-      query_builder = connection.cacheable_query relation.arel
+      query_builder = connection.cacheable_query(self, relation.arel)
       new query_builder, bind_map
     end
 
