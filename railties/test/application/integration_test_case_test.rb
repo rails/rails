@@ -42,4 +42,32 @@ module ApplicationTests
       assert_match(/0 failures, 0 errors/, output)
     end
   end
+
+  class IntegrationTestDefaultApp < ActiveSupport::TestCase
+    include ActiveSupport::Testing::Isolation
+
+    setup do
+      build_app
+    end
+
+    teardown do
+      teardown_app
+    end
+
+    test "app method of integration tests returns test_app by default" do
+      app_file 'test/integration/default_app_test.rb', <<-RUBY
+        require 'test_helper'
+
+        class DefaultAppIntegrationTest < ActionDispatch::IntegrationTest
+          def test_app_returns_action_dispatch_test_app_by_default
+            assert_equal ActionDispatch.test_app, app
+          end
+        end
+      RUBY
+
+      output = Dir.chdir(app_path) { `bin/rails test 2>&1` }
+      assert_equal 0, $?.to_i, output
+      assert_match(/0 failures, 0 errors/, output)
+    end
+  end
 end
