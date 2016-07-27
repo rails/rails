@@ -149,5 +149,21 @@ module ActiveRecord
         assert_equal "1800", @quoter.quote(30.minutes)
       end
     end
+
+    class QuoteBooleanTest < ActiveRecord::TestCase
+      def setup
+        @connection = ActiveRecord::Base.connection
+      end
+
+      def test_quote_returns_frozen_string
+        assert_predicate @connection.quote(true), :frozen?
+        assert_predicate @connection.quote(false), :frozen?
+      end
+
+      def test_type_cast_returns_frozen_value
+        assert_predicate @connection.type_cast(true), :frozen?
+        assert_predicate @connection.type_cast(false), :frozen?
+      end
+    end
   end
 end
