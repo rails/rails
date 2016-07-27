@@ -620,6 +620,7 @@ module ActionController
         env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
         env.delete 'action_dispatch.request.query_parameters'
         env.delete 'action_dispatch.request.request_parameters'
+        env['rack.input'] = StringIO.new
         env
       end
 
