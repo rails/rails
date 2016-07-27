@@ -29,6 +29,9 @@ require 'models/publisher'
 require 'models/publisher/article'
 require 'models/publisher/magazine'
 require 'active_support/core_ext/string/conversions'
+require 'models/organization'
+require 'models/organizer'
+require 'models/genre'
 
 class ProjectWithAfterCreateHook < ActiveRecord::Base
   self.table_name = 'projects'
@@ -994,5 +997,14 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_difference "Project.first.developers_required_by_default.size", 1 do
       Project.first.developers_required_by_default.create!(name: "Sean", salary: 50000)
     end
+  end
+
+  def test_habtm_associations_does_not_duplicate_join_records
+    organizer = Organizer.new
+    organizer.organization = Organization.new
+    organizer.genres << Genre.new(name: 'R&B')
+    organizer.save!
+
+    assert_equal 1, organizer.reload.genres.count
   end
 end
