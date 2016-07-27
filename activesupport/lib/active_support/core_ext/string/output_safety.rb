@@ -27,7 +27,7 @@ class ERB
 
     module_function :h
 
-    singleton_class.send(:remove_method, :html_escape)
+    singleton_class.remove_method(:html_escape)
     module_function :html_escape
 
     # HTML escapes strings but doesn't wrap them with an ActiveSupport::SafeBuffer.

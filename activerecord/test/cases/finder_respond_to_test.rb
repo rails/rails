@@ -14,7 +14,7 @@ class FinderRespondToTest < ActiveRecord::TestCase
     class << Topic; self; end.send(:define_method, :method_added_for_finder_respond_to_test) { }
     assert_respond_to Topic, :method_added_for_finder_respond_to_test
   ensure
-    class << Topic; self; end.send(:remove_method, :method_added_for_finder_respond_to_test)
+    class << Topic; self; end.remove_method(:method_added_for_finder_respond_to_test)
   end
 
   def test_should_preserve_normal_respond_to_behaviour_and_respond_to_standard_object_method
@@ -55,6 +55,6 @@ class FinderRespondToTest < ActiveRecord::TestCase
   private
 
   def ensure_topic_method_is_not_cached(method_id)
-    class << Topic; self; end.send(:remove_method, method_id) if Topic.public_methods.include? method_id
+    class << Topic; self; end.remove_method(method_id) if Topic.public_methods.include? method_id
   end
 end

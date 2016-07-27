@@ -212,7 +212,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
     invalid!([3, 4])
     valid!([5, 6])
   ensure
-    Topic.send(:remove_method, :min_approved)
+    Topic.remove_method(:min_approved)
   end
 
   def test_validates_numericality_with_symbol
@@ -222,7 +222,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
     invalid!([6])
     valid!([4, 5])
   ensure
-    Topic.send(:remove_method, :max_approved)
+    Topic.remove_method(:max_approved)
   end
 
   def test_validates_numericality_with_numeric_message
