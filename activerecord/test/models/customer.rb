@@ -7,6 +7,11 @@ class Customer < ActiveRecord::Base
   composed_of :non_blank_gps_location, :class_name => "GpsLocation", :allow_nil => true, :mapping => %w(gps_location gps_location),
               :converter => lambda { |gps| self.gps_conversion_was_run = true; gps.blank? ? nil : GpsLocation.new(gps)}
   composed_of :fullname, :mapping => %w(name to_s), :constructor => Proc.new { |name| Fullname.parse(name) }, :converter => :parse
+  composed_of :null_gps_location,
+              class_name: "NullGpsLocation",
+              mapping: %w(gps_location gps_location),
+              allow_nil: false,
+              converter: lambda { |gps| self.gps_conversion_was_run = true; NullGpsLocation.new(gps) }
 end
 
 class Address
@@ -56,6 +61,16 @@ class GpsLocation
 
   def ==(other)
     self.latitude == other.latitude && self.longitude == other.longitude
+  end
+end
+
+class NullGpsLocation < GpsLocation
+  def latitude
+    nil
+  end
+
+  def longitude
+    nil
   end
 end
 

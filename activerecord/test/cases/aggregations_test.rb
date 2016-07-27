@@ -128,6 +128,18 @@ class AggregationsTest < ActiveRecord::TestCase
     assert_nil Customer.gps_conversion_was_run
   end
 
+  def test_do_run_the_converter_when_nil_was_set_and_allow_nil_is_false
+    customers(:david).null_gps_location = nil
+    assert_not_nil Customer.gps_conversion_was_run
+    assert_kind_of NullGpsLocation, customers(:david).null_gps_location
+  ensure
+    Customer.gps_conversion_was_run = nil
+  end
+
+  def test_do_run_the_constructor_when_nil_was_set_and_allow_nil_is_false
+    assert_kind_of NullGpsLocation, customers(:zaphod).null_gps_location
+  end
+
   def test_custom_constructor
     assert_equal 'Barney GUMBLE', customers(:barney).fullname.to_s
     assert_kind_of Fullname, customers(:barney).fullname
