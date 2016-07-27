@@ -132,7 +132,7 @@ module ActiveRecord
     end
 
     def _original_value_for_database
-      value_for_database
+      type.serialize(original_value)
     end
 
     class FromDatabase < Attribute # :nodoc:
@@ -160,7 +160,7 @@ module ActiveRecord
         value
       end
 
-      def changed_in_place_from?(old_value)
+      def changed_in_place?
         false
       end
     end
