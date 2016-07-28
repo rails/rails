@@ -7,6 +7,14 @@ GIT
       pg (>= 0.17, < 0.19)
 
 GIT
+  remote: git://github.com/matthewd/rb-inotify.git
+  revision: 90553518d1fb79aedc98a3036c59bd2b6731ac40
+  branch: close-handling
+  specs:
+    rb-inotify (0.9.7)
+      ffi (>= 0.5.0)
+
+GIT
   remote: git://github.com/sass/sass.git
   revision: 7716e67f3507c6f65878c69aa49ec358ebf675c7
   branch: stable
@@ -224,8 +232,6 @@ GEM
       thor (>= 0.18.1, < 2.0)
     rake (11.2.2)
     rb-fsevent (0.9.7)
-    rb-inotify (0.9.7)
-      ffi (>= 0.5.0)
     rdoc (4.2.2)
       json (~> 1.4)
     redcarpet (3.2.3)
@@ -349,6 +355,7 @@ DEPENDENCIES
   rack-cache (~> 1.2)
   rails!
   rake (>= 11.1)
+  rb-inotify!
   redcarpet (~> 3.2.3)
   redis
   resque (< 1.26)
