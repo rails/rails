@@ -547,7 +547,9 @@ module ActiveRecord
         end
       end
 
-      def table_options(table_name)
+      def table_options(table_name) # :nodoc:
+        table_options = {}
+
         create_table_info = create_table_info(table_name)
 
         # strip create_definitions and partition_options
@@ -556,10 +558,14 @@ module ActiveRecord
         # strip AUTO_INCREMENT
         raw_table_options.sub!(/(ENGINE=\w+)(?: AUTO_INCREMENT=\d+)/, '\1')
 
-        # strip COMMENT
-        raw_table_options.sub!(/ COMMENT='.+'/, '')
+        table_options[:options] = raw_table_options
 
-        raw_table_options
+        # strip COMMENT
+        if raw_table_options.sub!(/ COMMENT='.+'/, '')
+          table_options[:comment] = table_comment(table_name)
+        end
+
+        table_options
       end
 
       # Maps logical Rails types to MySQL-specific data types.
