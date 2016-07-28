@@ -22,6 +22,14 @@ GIT
       delayed_job (>= 3.0, < 5)
 
 GIT
+  remote: git://github.com/matthewd/rb-inotify.git
+  revision: 90553518d1fb79aedc98a3036c59bd2b6731ac40
+  branch: close-handling
+  specs:
+    rb-inotify (0.9.7)
+      ffi (>= 0.5.0)
+
+GIT
   remote: git://github.com/resque/resque.git
   revision: 06036388ec61e573c761ac5a25a2ef3c76537ec7
   specs:
@@ -254,8 +262,6 @@ GEM
       loofah (~> 2.0)
     rake (11.1.2)
     rb-fsevent (0.9.7)
-    rb-inotify (0.9.7)
-      ffi (>= 0.5.0)
     rdoc (4.2.2)
       json (~> 1.4)
     redcarpet (3.2.3)
@@ -381,6 +387,7 @@ DEPENDENCIES
   rack-cache (~> 1.2)
   rails!
   rake (>= 11.1)
+  rb-inotify!
   redcarpet (~> 3.2.3)
   redis
   resque!
