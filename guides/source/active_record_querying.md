@@ -601,6 +601,7 @@ If you want to call `order` multiple times, subsequent orders will be appended t
 Client.order("orders_count ASC").order("created_at DESC")
 # SELECT * FROM clients ORDER BY orders_count ASC, created_at DESC
 ```
+WARNING: If you are using **MySQL 5.7.5** and above, then on selecting fields from a result set using methods like `select`, `pluck` and `ids`; the `order` method will raise an `ActiveRecord::StatementInvalid` exception unless the field(s) used in `order` clause are included in the select list. See the next section for selecting fields from the result set.
 
 Selecting Specific Fields
 -------------------------
