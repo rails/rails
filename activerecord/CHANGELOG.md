@@ -1,3 +1,7 @@
+*   Fix the SELECT statement in `#table_comment` for MySQL.
+
+    *Takeshi Akima*
+
 *   Virtual attributes will no longer raise when read on models loaded from the
     database
 
