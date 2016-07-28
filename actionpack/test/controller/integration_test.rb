@@ -625,6 +625,20 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_post_then_get_with_parameters_do_not_leak_across_requests
+    with_test_route_set do
+      post '/post', params: { leaks: "does-leak?" }
+
+      get '/get_with_params', params: { foo: "bar" }
+
+      assert request.env['rack.input'].string.empty?
+      assert_equal 'foo=bar', request.env["QUERY_STRING"]
+      assert_equal 'foo=bar', request.query_string
+      assert_equal 'bar', request.parameters['foo']
+      assert request.parameters['leaks'].nil?
+    end
+  end
+
   def test_head
     with_test_route_set do
       head '/get'
