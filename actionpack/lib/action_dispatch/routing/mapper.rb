@@ -1840,18 +1840,7 @@ module ActionDispatch
             path_types.fetch(String, []).each do |_path|
               route_options = options.dup
               if _path && option_path
-                ActiveSupport::Deprecation.warn <<-eowarn
-Specifying strings for both :path and the route path is deprecated. Change things like this:
-
-  match #{_path.inspect}, :path => #{option_path.inspect}
-
-to this:
-
-  match #{option_path.inspect}, :as => #{_path.inspect}, :action => #{_path.inspect}
-                eowarn
-                route_options[:action] = _path
-                route_options[:as] = _path
-                _path = option_path
+                raise ArgumentError, "Ambigous route definition. Both :path and the route path where specified as strings."
               end
               to = get_to_from_path(_path, to, route_options[:action])
               decomposed_match(_path, controller, route_options, _path, to, via, formatted, anchor, options_constraints)
