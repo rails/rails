@@ -390,6 +390,11 @@ ActiveRecord::Schema.define do
     t.integer :ideal_reference_id
   end
 
+  create_table :jobs_pool, force: true, id: false do |t|
+    t.references :job, null: false, index: true
+    t.references :user, null: false, index: true
+  end
+
   create_table :keyboards, force: true, id: false do |t|
     t.primary_key :key_number
     t.string      :name
