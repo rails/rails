@@ -514,7 +514,7 @@ module ActiveRecord
 
     def find_take
       if loaded?
-        @records.first
+        records.first
       else
         @take ||= limit(1).records.first
       end
@@ -531,7 +531,7 @@ module ActiveRecord
         MSG
       end
       if loaded?
-        @records[index]
+        records[index]
       else
         offset ||= offset_index
         @offsets[offset + index] ||= find_nth_with_limit_and_offset(index, 1, offset: offset).first
@@ -557,7 +557,7 @@ module ActiveRecord
 
     def find_nth_from_last(index)
       if loaded?
-        @records[-index]
+        records[-index]
       else
         relation = if order_values.empty? && primary_key
                      order(arel_attribute(primary_key).asc)
@@ -578,7 +578,7 @@ module ActiveRecord
 
     def find_nth_with_limit_and_offset(index, limit, offset:) # :nodoc:
       if loaded?
-        @records[index, limit]
+        records[index, limit]
       else
         index += offset
         find_nth_with_limit(index, limit)

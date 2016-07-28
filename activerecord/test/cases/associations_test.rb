@@ -254,6 +254,8 @@ class AssociationProxyTest < ActiveRecord::TestCase
   test "first! works on loaded associations" do
     david = authors(:david)
     assert_equal david.posts.first, david.posts.reload.first!
+    assert david.posts.loaded?
+    assert_no_queries { david.posts.first! }
   end
 
   def test_reset_unloads_target
