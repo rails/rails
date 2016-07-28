@@ -37,7 +37,7 @@ module ActiveJob
         include Sidekiq::Worker
 
         def perform(job_data)
-          Base.execute job_data
+          Base.execute job_data.merge('provider_job_id' => jid)
         end
       end
     end

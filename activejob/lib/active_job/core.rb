@@ -105,6 +105,7 @@ module ActiveJob
     #    end
     def deserialize(job_data)
       self.job_id               = job_data['job_id']
+      self.provider_job_id      = job_data['provider_job_id']
       self.queue_name           = job_data['queue_name']
       self.priority             = job_data['priority']
       self.serialized_arguments = job_data['arguments']

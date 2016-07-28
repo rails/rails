@@ -1,6 +1,7 @@
 require 'helper'
 require 'jobs/logging_job'
 require 'jobs/hello_job'
+require 'jobs/provider_jid_job'
 require 'active_support/core_ext/numeric/time'
 
 class QueuingTest < ActiveSupport::TestCase
@@ -31,6 +32,14 @@ class QueuingTest < ActiveSupport::TestCase
       hash = ActiveJob::QueueAdapters::SidekiqAdapter::JobWrapper.jobs.first
       assert_equal "ActiveJob::QueueAdapters::SidekiqAdapter::JobWrapper", hash['class']
       assert_equal "HelloJob", hash['wrapped']
+    end
+  end
+
+  test 'should access provider_job_id inside Sidekiq job' do
+    skip unless adapter_is?(:sidekiq)
+    Sidekiq::Testing.inline! do
+      job = ::ProviderJidJob.perform_later
+      assert_equal "Provider Job ID: #{job.provider_job_id}", JobBuffer.last_value
     end
   end
 
