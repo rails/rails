@@ -141,19 +141,26 @@ module ActionView
                   unless v.is_a?(String) || v.is_a?(Symbol) || v.is_a?(BigDecimal)
                     v = v.to_json
                   end
-                  v = ERB::Util.html_escape(v) if escape
-                  attrs << %(data-#{k.to_s.dasherize}="#{v}")
+                  attrs << tag_option("data-#{k.to_s.dasherize}", v, escape)
                 end
               elsif BOOLEAN_ATTRIBUTES.include?(key)
                 attrs << %(#{key}="#{key}") if value
               elsif !value.nil?
                 final_value = value.is_a?(Array) ? value.join(" ") : value
-                final_value = ERB::Util.html_escape(final_value) if escape
-                attrs << %(#{key}="#{final_value}")
+                attrs << tag_option(key, value, escape)
               end
             end
             " #{attrs.sort * ' '}".html_safe unless attrs.empty?
           end
+        end
+
+        def tag_option(key, value, escape)
+          if value.is_a?(Array)
+            value = escape ? safe_join(value, " ") : value.join(" ")
+          else
+            value = escape ? ERB::Util.html_escape(value) : value
+          end
+          %(#{key}="#{value.gsub(/"/, '&quot;'.freeze)}")
         end
     end
   end
