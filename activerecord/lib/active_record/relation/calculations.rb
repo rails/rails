@@ -160,7 +160,7 @@ module ActiveRecord
     #
     def pluck(*column_names)
       if loaded? && (column_names.map(&:to_s) - @klass.attribute_names - @klass.attribute_aliases.keys).empty?
-        return @records.pluck(*column_names)
+        return records.pluck(*column_names)
       end
 
       if has_include?(column_names.first)

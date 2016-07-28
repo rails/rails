@@ -258,6 +258,13 @@ class AssociationProxyTest < ActiveRecord::TestCase
     assert_no_queries { david.posts.first! }
   end
 
+  def test_pluck_uses_loaded_target
+    david = authors(:david)
+    assert_equal david.posts.pluck(:title), david.posts.load.pluck(:title)
+    assert david.posts.loaded?
+    assert_no_queries { david.posts.pluck(:title) }
+  end
+
   def test_reset_unloads_target
     david = authors(:david)
     david.posts.reload
