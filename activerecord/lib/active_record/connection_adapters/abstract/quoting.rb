@@ -150,10 +150,6 @@ module ActiveRecord
         quoted_date(value).sub(/\A2000-01-01 /, '')
       end
 
-      def prepare_binds_for_database(binds) # :nodoc:
-        binds.map(&:value_for_database)
-      end
-
       private
 
       def type_casted_binds(binds)
