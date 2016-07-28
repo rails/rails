@@ -556,5 +556,4 @@ class FormWithHelperTest < ActionView::TestCase
         Post.new("Babe went home", "Babe", "To a little house", "shh!"),
         Post.new("Cabe went home", "Cabe", "To a little house", "shh!") ]
     end
-
 end
