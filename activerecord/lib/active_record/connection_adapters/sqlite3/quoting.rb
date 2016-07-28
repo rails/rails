@@ -11,7 +11,7 @@ module ActiveRecord
         end
 
         def quote_column_name(name)
-          @quoted_column_names[name] ||= %Q("#{super.gsub('"', '""')}")
+          @quoted_column_names[name] ||= %Q("#{super.gsub('"', '""')}").freeze
         end
 
         def quoted_time(value)
