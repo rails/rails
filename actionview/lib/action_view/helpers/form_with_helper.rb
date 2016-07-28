@@ -2,7 +2,6 @@ module ActionView
   module Helpers
     module FormWithHelper
       class FormWithBuilder
-
         include ActionView::Helpers::TagHelper
 
         FIELD_HELPERS = [:fields_for, :label, :check_box, :radio_button,
@@ -26,7 +25,10 @@ module ActionView
         end
 
         def file_field(method, *args, **options)
-          tag.input options_for(method, options).merge!(type: "file")
+          multiple = options.slice(:multiple)
+          options = options_for(method, options).merge!(type: "file")
+          options.merge!(multiple)
+          tag.input options
         end
 
         def submit
@@ -43,16 +45,24 @@ module ActionView
         def label(method, *args, **options, &block)
           content ||= args[0] if args.size > 0
           content ||= I18n.t("#{model.model_name.i18n_key}.#{method}", default: "", scope: "helpers.label").presence if model && model.model_name
-          content ||= translate_with_human_attribute_name(method) 
+          content ||= translate_with_human_attribute_name(method)
           content ||= method.to_s.humanize
           content = @template.capture(content, &block) if block_given?
           tag.label content, options
         end
 
-        def check_box(method, *args, on: "1", off: "0", **options)
+        def check_box(method, include_hidden: true, on: "1", off: "0", **options)
+          hidden = "".html_safe
           options = options_for(method, options)
-          tag.input(options.merge(type: 'hidden', value: off)).html_safe +
-          tag.input(options.merge(type: 'checkbox', value: on)).html_safe
+          checkbox_options = options.merge(type: 'checkbox', value: on)
+          checkbox_options.merge!(checked: "checked") if model && checked?(on, model.send(method))
+          include_hidden = false if off.nil?
+          if include_hidden
+            hidden_options = options.merge(type: 'hidden', value: off)
+            hidden_options.delete(:checked)
+            hidden = tag.input(hidden_options).html_safe
+          end
+          hidden + tag.input(checkbox_options).html_safe
         end
 
         def select(method, choices = nil, blank: nil, prompt: nil, index: :undefined, disabled: nil, **options, &block)
@@ -79,6 +89,23 @@ module ActionView
         end
 
         private
+          def checked?(on_value, value)
+            case value
+            when TrueClass, FalseClass
+              value == !!on_value
+            when NilClass
+              false
+            when String
+              value == on_value
+            else
+              if value.respond_to?(:include?)
+                value.include?(on_value)
+              else
+                value.to_i == on_value.to_i
+              end
+            end
+          end
+
           def translate_with_human_attribute_name(method)
             model && model.class.respond_to?(:human_attribute_name) ? model.class.human_attribute_name(method) : nil
           end
@@ -98,20 +125,22 @@ module ActionView
             end
           end
 
-          def name_for(method, scope, **options)
+          def name_for(method, options)
+            scope = options.delete(:scope) { @scope }
+            index = options.delete(:index)
             method = method.to_s.chomp("?")
-            name = scope.nil? ? method : "#{scope}[#{method}]"
-            name + (options[:multiple] ? "[]" : "")
+            name = scope.to_s
+            name += index ? "[#{index}]" : ""
+            name += scope.nil? ? method : "[#{method}]"
+            name += options.delete(:multiple) ? "[]" : "" #exception => file_field
           end
 
           def id_for(method, scope, **options)
             scope.nil? ? method : "#{scope}_#{method}"
           end
 
-          def options_for(method, options)
-            options = options.dup
-            scope = options.delete(:scope) { @scope }
-            options.reverse_merge!(name: name_for(method, scope, options))
+          def options_for(method, options) 
+            options.reverse_merge!(name: name_for(method, options))
           end
 
           def options_for_field(selector, method, args, options)
@@ -166,7 +195,6 @@ module ActionView
         output  = capture(builder, &block)
         output
       end
-
     end
   end
 end

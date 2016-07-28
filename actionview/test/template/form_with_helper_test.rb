@@ -276,15 +276,114 @@ class FormWithHelperTest < ActionView::TestCase
   end
 
   def test_checkbox
-    assert_tag_equal("<input name='post[secret]' type='hidden' value='0'><input name='post[secret]' type='checkbox' value='1' >") do |f|
+    assert_tag_equal("<input name='post[secret]' type='hidden' value='0'><input name='post[secret]' type='checkbox' checked='checked' value='1' >") do |f|
       f.check_box(:secret)
     end
   end
 
-  def test_checkbox_with_custom_on_off
-    assert_tag_equal("<input name='post[secret]' type='hidden' value='noo'><input name='post[secret]' type='checkbox' value='yees'>") do |f|
-      f.check_box(:secret, on: 'yees', off: 'noo')
-    end
+  def test_check_box_is_html_safe
+    fields_with(model: @post) { |f| assert f.check_box("secret").html_safe? }
+  end
+
+  def test_check_box_checked_if_object_value_is_same_that_check_value
+    assert_tag_equal('<input name="post[secret]" type="hidden" value="0"><input checked="checked" name="post[secret]" type="checkbox" value="1">') { |f| f.check_box("secret") }
+  end
+
+  def test_check_box_not_checked_if_object_value_is_same_that_unchecked_value
+    @post.secret = 0
+    assert_tag_equal('<input name="post[secret]" type="hidden" value="0"><input name="post[secret]" type="checkbox" value="1">') { |f| f.check_box("secret") }
+  end
+
+  def test_check_box_checked_if_option_checked_is_present
+    assert_tag_equal('<input name="post[secret]" type="hidden" value="0"><input checked="checked" name="post[secret]" type="checkbox" value="1">') { |f| f.check_box("secret", checked: "checked") }
+  end
+  def test_check_box_checked_if_object_value_is_true
+    @post.secret = true
+    expected = '<input name="post[secret]" type="hidden" value="0"><input checked="checked" name="post[secret]" type="checkbox" value="1">'
+    assert_tag_equal(expected) { |f| f.check_box(:secret) }
+    assert_tag_equal(expected) { |f| f.check_box("secret") }
+    assert_tag_equal(expected) { |f| f.check_box(:"secret?") }
+    assert_tag_equal(expected) { |f| f.check_box("secret?") }
+  end
+
+  def test_check_box_with_include_hidden_false
+    @post.secret = false
+    assert_tag_equal('<input name="post[secret]" type="checkbox" value="1">') { |f| f.check_box("secret", include_hidden: false) }
+  end
+
+  def test_check_box_with_explicit_checked_and_unchecked_values_when_object_value_is_string
+    @post.secret = "on"
+    assert_tag_equal('<input name="post[secret]" type="hidden" value="off"><input checked="checked" name="post[secret]" type="checkbox" value="on">') { |f| f.check_box(:secret, on: "on", off: "off") }
+    @post.secret = "off"
+    assert_tag_equal('<input name="post[secret]" type="hidden" value="off"><input name="post[secret]" type="checkbox" value="on">') { |f| f.check_box(:secret, on: "on", off: "off") }
+  end
+
+  def test_check_box_with_explicit_checked_and_unchecked_values_when_object_value_is_boolean
+    @post.secret = false
+    assert_tag_equal('<input name="post[secret]" type="hidden" value="true"><input checked="checked" name="post[secret]" type="checkbox" value="false">') { |f| f.check_box(:secret,  on: false, off: true) }
+
+    @post.secret = true
+    assert_tag_equal('<input name="post[secret]" type="hidden" value="true"><input name="post[secret]" type="checkbox" value="false">') { |f| f.check_box(:secret, on: false, off: true) }
+  end
+
+  def test_check_box_with_explicit_checked_and_unchecked_values_when_object_value_is_integer
+    @post.secret = 0
+    assert_tag_equal('<input name="post[secret]" type="hidden" value="1"><input checked="checked" name="post[secret]" type="checkbox" value="0">') { |f| f.check_box(:secret, on: 0, off: 1) }
+    @post.secret = 1
+    assert_tag_equal('<input name="post[secret]" type="hidden" value="1"><input name="post[secret]" type="checkbox" value="0">') { |f| f.check_box(:secret, on: 0, off: 1) }
+    @post.secret = 2
+    assert_tag_equal('<input name="post[secret]" type="hidden" value="1"><input name="post[secret]" type="checkbox" value="0">') { |f| f.check_box(:secret, on: 0, off: 1) }
+  end
+
+  def test_check_box_with_explicit_checked_and_unchecked_values_when_object_value_is_float
+    @post.secret = 0.0
+    assert_tag_equal('<input name="post[secret]" type="hidden" value="1"><input checked="checked" name="post[secret]" type="checkbox" value="0">') { |f| f.check_box(:secret,on: 0, off: 1) }
+
+    @post.secret = 1.1
+    assert_tag_equal('<input name="post[secret]" type="hidden" value="1"><input name="post[secret]" type="checkbox" value="0">') { |f| f.check_box(:secret, on: 0, off: 1) }
+
+    @post.secret = 2.2
+    assert_tag_equal('<input name="post[secret]" type="hidden" value="1"><input name="post[secret]" type="checkbox" value="0">') { |f| f.check_box(:secret, on: 0, off:1) }
+  end
+
+  def test_check_box_with_explicit_checked_and_unchecked_values_when_object_value_is_big_decimal
+    @post.secret = BigDecimal.new(0)
+    assert_tag_equal('<input name="post[secret]" type="hidden" value="1"><input checked="checked" name="post[secret]" type="checkbox" value="0">') { |f| f.check_box(:secret, on: 0, off: 1) }
+
+    @post.secret = BigDecimal.new(1)
+    assert_tag_equal('<input name="post[secret]" type="hidden" value="1"><input name="post[secret]" type="checkbox" value="0">') { |f| f.check_box("secret", on: 0, off: 1) }
+
+    @post.secret = BigDecimal.new(2.2, 1)
+    assert_tag_equal('<input name="post[secret]" type="hidden" value="1"><input name="post[secret]" type="checkbox" value="0">') { |f| f.check_box(:secret, on: 0, off: 1)}
+  end
+
+  def test_check_box_with_nil_unchecked_value
+    @post.secret = "on"
+    assert_tag_equal('<input checked="checked" name="post[secret]" type="checkbox" value="on">') { |f| f.check_box(:secret, on: "on", off: nil) }
+  end
+
+  def test_check_box_with_nil_unchecked_value_is_html_safe
+    fields_with(model: @post) { |f| assert f.check_box(:secret, on: "on", off: nil).html_safe? }
+  end
+
+  def test_check_box_with_multiple_behavior
+    @post.comment_ids = [2,3]
+    assert_tag_equal('<input name="post[comment_ids][]" type="hidden" value="0"><input name="post[comment_ids][]" type="checkbox" value="1">') { |f| f.check_box(:comment_ids, on: 1, multiple: true) }
+    assert_tag_equal('<input name="post[comment_ids][]" type="hidden" value="0"><input checked="checked" name="post[comment_ids][]" type="checkbox" value="3">') { |f| f.check_box(:comment_ids, on: 3, multiple: true) }
+  end
+
+  def test_check_box_with_multiple_behavior_and_index
+    @post.comment_ids = [2,3]
+    assert_tag_equal('<input name="post[foo][comment_ids][]" type="hidden" value="0"><input name="post[foo][comment_ids][]" type="checkbox" value="1">') { |f| f.check_box(:comment_ids, on: 1, multiple: true, index: "foo") }
+    assert_tag_equal('<input name="post[bar][comment_ids][]" type="hidden" value="0"><input checked="checked" name="post[bar][comment_ids][]" type="checkbox" value="3">') { |f| f.check_box(:comment_ids, on: 3, multiple: true, index: "bar") }
+  end
+
+  def test_checkbox_disabled_disables_hidden_field
+    assert_tag_equal('<input name="post[secret]" type="hidden" value="0" disabled="disabled"><input checked="checked" disabled="disabled" name="post[secret]" type="checkbox" value="1">') { |f| f.check_box(:secret, disabled: true) }
+  end
+
+  def test_checkbox_form_html5_attribute
+    assert_tag_equal('<input form="new_form" name="post[secret]" type="hidden" value="0" /><input checked="checked" form="new_form" name="post[secret]" type="checkbox" value="1" />') { |f| f.check_box(:secret, form: "new_form") }
   end
 
   def test_select_with_choices_as_pairs
