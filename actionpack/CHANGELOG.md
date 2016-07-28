@@ -1,3 +1,7 @@
+*   Remove deprecated `ActionDispatch::IntegrationTest#xml_http_request`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support for passing `:path` and route path as stings in `ActionDispatch::Routing::Mapper#match`.
 
     *Rafael Mendonça França*

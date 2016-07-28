@@ -72,38 +72,6 @@ module ActionDispatch
         process_with_kwargs(:head, path, *args)
       end
 
-      # Performs an XMLHttpRequest request with the given parameters, mirroring
-      # an AJAX request made from JavaScript.
-      #
-      # The request_method is +:get+, +:post+, +:patch+, +:put+, +:delete+ or
-      # +:head+; the parameters are +nil+, a hash, or a url-encoded or multipart
-      # string; the headers are a hash.
-      #
-      # Example:
-      #
-      #   xhr :get, '/feed', params: { since: 201501011400 }
-      def xml_http_request(request_method, path, *args)
-        if kwarg_request?(args)
-          params, headers, env = args.first.values_at(:params, :headers, :env)
-        else
-          params = args[0]
-          headers = args[1]
-          env = {}
-
-          if params.present? || headers.present?
-            non_kwarg_request_warning
-          end
-        end
-
-        ActiveSupport::Deprecation.warn(<<-MSG.strip_heredoc)
-          xhr and xml_http_request methods are deprecated in favor of
-          `get "/posts", xhr: true` and `post "/posts/1", xhr: true`.
-        MSG
-
-        process(request_method, path, params: params, headers: headers, xhr: true)
-      end
-      alias xhr :xml_http_request
-
       # Follow a single redirect response. If the last response was not a
       # redirect, an exception will be raised. Otherwise, the redirect is
       # performed on the location header.

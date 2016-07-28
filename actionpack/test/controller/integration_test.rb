@@ -145,7 +145,7 @@ class SessionTest < ActiveSupport::TestCase
     end
   end
 
-  def test_post
+  def test_deprecated_post
     path = "/index"; params = "blah"; headers = { location: "blah" }
     assert_called_with @session, :process, [:post, path, params: params, headers: headers] do
       assert_deprecated {
@@ -154,7 +154,7 @@ class SessionTest < ActiveSupport::TestCase
     end
   end
 
-  def test_deprecated_post
+  def test_post
     path = "/index"; params = "blah"; headers = { location: "blah" }
     assert_called_with @session, :process, [:post, path, params: params, headers: headers] do
       @session.post(path, params: params, headers: headers)
@@ -193,7 +193,7 @@ class SessionTest < ActiveSupport::TestCase
     end
   end
 
-  def test_delete
+  def test_deprecated_delete
     path = "/index"; params = "blah"; headers = { location: "blah" }
     assert_called_with @session, :process, [:delete, path, params: params, headers: headers] do
       assert_deprecated {
@@ -202,7 +202,7 @@ class SessionTest < ActiveSupport::TestCase
     end
   end
 
-  def test_deprecated_delete
+  def test_delete
     path = "/index"; params = "blah"; headers = { location: "blah" }
     assert_called_with @session, :process, [:delete, path, params: params, headers: headers] do
       @session.delete(path, params: params, headers: headers)
@@ -232,40 +232,10 @@ class SessionTest < ActiveSupport::TestCase
     end
   end
 
-  def test_deprecated_xml_http_request_get
-    path = "/index"; params = "blah"; headers = { location: "blah" }
-    assert_called_with @session, :process, [:get, path, params: params, headers: headers, xhr: true] do
-      @session.get(path, params: params, headers: headers, xhr: true)
-    end
-  end
-
-  def test_deprecated_args_xml_http_request_get
-    path = "/index"; params = "blah"; headers = { location: "blah" }
-    assert_called_with @session, :process, [:get, path, params: params, headers: headers, xhr: true] do
-      assert_deprecated(/xml_http_request/) {
-        @session.xml_http_request(:get, path, params, headers)
-      }
-    end
-  end
-
   def test_xml_http_request_post
     path = "/index"; params = "blah"; headers = { location: "blah" }
     assert_called_with @session, :process, [:post, path, params: params, headers: headers, xhr: true] do
       @session.post(path, params: params, headers: headers, xhr: true)
-    end
-  end
-
-  def test_deprecated_xml_http_request_post
-    path = "/index"; params = "blah"; headers = { location: "blah" }
-    assert_called_with @session, :process, [:post, path, params: params, headers: headers, xhr: true] do
-      @session.post(path, params: params, headers: headers, xhr: true)
-    end
-  end
-
-  def test_deprecated_args_xml_http_request_post
-    path = "/index"; params = "blah"; headers = { location: "blah" }
-    assert_called_with @session, :process, [:post, path, params: params, headers: headers, xhr: true] do
-      assert_deprecated(/xml_http_request/) { @session.xml_http_request(:post,path,params,headers) }
     end
   end
 
@@ -276,38 +246,10 @@ class SessionTest < ActiveSupport::TestCase
     end
   end
 
-  def test_deprecated_xml_http_request_patch
-    path = "/index"; params = "blah"; headers = { location: "blah" }
-    assert_called_with @session, :process, [:patch, path, params: params, headers: headers, xhr: true] do
-      @session.patch(path, params: params, headers: headers, xhr: true)
-    end
-  end
-
-  def test_deprecated_args_xml_http_request_patch
-    path = "/index"; params = "blah"; headers = { location: "blah" }
-    assert_called_with @session, :process, [:patch, path, params: params, headers: headers, xhr: true] do
-      assert_deprecated(/xml_http_request/) { @session.xml_http_request(:patch,path,params,headers) }
-    end
-  end
-
   def test_xml_http_request_put
     path = "/index"; params = "blah"; headers = { location: "blah" }
     assert_called_with @session, :process, [:put, path, params: params, headers: headers, xhr: true] do
       @session.put(path, params: params, headers: headers, xhr: true)
-    end
-  end
-
-  def test_deprecated_xml_http_request_put
-    path = "/index"; params = "blah"; headers = { location: "blah" }
-    assert_called_with @session, :process, [:put, path, params: params, headers: headers, xhr: true] do
-      @session.put(path, params: params, headers: headers, xhr: true)
-    end
-  end
-
-  def test_deprecated_args_xml_http_request_put
-    path = "/index"; params = "blah"; headers = { location: "blah" }
-    assert_called_with @session, :process, [:put, path, params: params, headers: headers, xhr: true] do
-      assert_deprecated(/xml_http_request/) { @session.xml_http_request(:put, path, params, headers) }
     end
   end
 
@@ -318,38 +260,10 @@ class SessionTest < ActiveSupport::TestCase
     end
   end
 
-  def test_deprecated_xml_http_request_delete
-    path = "/index"; params = "blah"; headers = { location: "blah" }
-    assert_called_with @session, :process, [:delete, path, params: params, headers: headers, xhr: true] do
-      assert_deprecated { @session.xml_http_request(:delete, path, params: params, headers: headers) }
-    end
-  end
-
-  def test_deprecated_args_xml_http_request_delete
-    path = "/index"; params = "blah"; headers = { location: "blah" }
-    assert_called_with @session, :process, [:delete, path, params: params, headers: headers, xhr: true] do
-      assert_deprecated(/xml_http_request/) { @session.xml_http_request(:delete, path, params, headers) }
-    end
-  end
-
   def test_xml_http_request_head
     path = "/index"; params = "blah"; headers = { location: "blah" }
     assert_called_with @session, :process, [:head, path, params: params, headers: headers, xhr: true] do
       @session.head(path, params: params, headers: headers, xhr: true)
-    end
-  end
-
-  def test_deprecated_xml_http_request_head
-    path = "/index"; params = "blah"; headers = { location: "blah" }
-    assert_called_with @session, :process, [:head, path, params: params, headers: headers, xhr: true] do
-      assert_deprecated(/xml_http_request/) { @session.xml_http_request(:head, path, params: params, headers: headers) }
-    end
-  end
-
-  def test_deprecated_args_xml_http_request_head
-    path = "/index"; params = "blah"; headers = { location: "blah" }
-    assert_called_with @session, :process, [:head, path, params: params, headers: headers, xhr: true] do
-      assert_deprecated { @session.xml_http_request(:head, path, params, headers) }
     end
   end
 end
@@ -576,18 +490,6 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
   def test_xml_http_request_get
     with_test_route_set do
       get "/get", xhr: true
-      assert_equal 200, status
-      assert_equal "OK", status_message
-      assert_response 200
-      assert_response :success
-      assert_response :ok
-      assert_equal "JS OK", response.body
-    end
-  end
-
-  def test_deprecated_xml_http_request_get
-    with_test_route_set do
-      assert_deprecated { xhr :get, "/get" }
       assert_equal 200, status
       assert_equal "OK", status_message
       assert_response 200
