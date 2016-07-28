@@ -139,7 +139,7 @@ module ActionView
             scope.nil? ? method : "#{scope}_#{method}"
           end
 
-          def options_for(method, options) 
+          def options_for(method, options)
             options.reverse_merge!(name: name_for(method, options))
           end
 

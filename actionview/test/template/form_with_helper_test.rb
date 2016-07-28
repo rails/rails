@@ -2,7 +2,6 @@ require 'abstract_unit'
 require 'controller/fake_models'
 
 class FormWithHelperTest < ActionView::TestCase
-
   tests ActionView::Helpers::FormTagHelper
 
   setup do
@@ -12,7 +11,7 @@ class FormWithHelperTest < ActionView::TestCase
     @post.comments << @comment
     def @post.to_param; "77"; end
 
-    I18n.backend.store_translations 'label', {
+    I18n.backend.store_translations 'label',
       activemodel: {
         attributes: {
           post: {
@@ -27,15 +26,14 @@ class FormWithHelperTest < ActionView::TestCase
           },
         }
       }
-    }
 
-    I18n.backend.store_translations 'placeholder', {
+    I18n.backend.store_translations 'placeholder',
       activemodel: {
         attributes: {
           post: {
             cost: "Total cost"
           },
-          :"post/cost" => {
+          "post/cost": {
             uk: "Pounds"
           }
         }
@@ -50,7 +48,6 @@ class FormWithHelperTest < ActionView::TestCase
           }
         }
       }
-    }
   end
 
   Routes = ActionDispatch::Routing::RouteSet.new
@@ -238,7 +235,7 @@ class FormWithHelperTest < ActionView::TestCase
   def test_text_field_placeholder_with_locales
     I18n.with_locale :placeholder do
       assert_tag_equal('<input name="post[title]" placeholder="What is this about?" type="text" value="Catch 22">') do |f|
-        f.text_field(:title, placeholder: true) 
+        f.text_field(:title, placeholder: true)
       end
     end
   end
@@ -253,7 +250,7 @@ class FormWithHelperTest < ActionView::TestCase
 
   def test_text_field_placeholder_with_string_value
     I18n.with_locale :placeholder do
-      assert_tag_equal('<input id="post_cost" name="post[cost]" placeholder="HOW MUCH?" type="text">') do |f| 
+      assert_tag_equal('<input id="post_cost" name="post[cost]" placeholder="HOW MUCH?" type="text">') do |f|
         text_field(:post, :cost, placeholder: "HOW MUCH?")
       end
     end
@@ -559,6 +556,5 @@ class FormWithHelperTest < ActionView::TestCase
         Post.new("Babe went home", "Babe", "To a little house", "shh!"),
         Post.new("Cabe went home", "Cabe", "To a little house", "shh!") ]
     end
-
 
 end
