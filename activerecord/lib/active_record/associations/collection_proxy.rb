@@ -1070,6 +1070,12 @@ module ActiveRecord
         proxy_association.reset_scope
         self
       end
+
+      private
+
+        def exec_queries
+          load_target
+        end
     end
   end
 end

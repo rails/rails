@@ -181,6 +181,14 @@ class AssociationProxyTest < ActiveRecord::TestCase
     assert !david.projects.loaded?
   end
 
+  def test_load_does_load_target
+    david = developers(:david)
+
+    assert !david.projects.loaded?
+    david.projects.load
+    assert david.projects.loaded?
+  end
+
   def test_inspect_does_not_reload_a_not_yet_loaded_target
     andreas = Developer.new :name => 'Andreas', :log => 'new developer added'
     assert !andreas.audit_logs.loaded?
