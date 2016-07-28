@@ -1,3 +1,7 @@
+*   Remove deprecated `ActionDispatch::IntegrationTest#*_via_redirect`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActionDispatch::IntegrationTest#xml_http_request`.
 
     *Rafael Mendonça França*
