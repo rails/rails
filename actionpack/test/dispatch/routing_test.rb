@@ -373,9 +373,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         post "create", as: ""
         put  "update"
         get  "remove", action: :destroy, as: :remove
-        tc.assert_deprecated do
-          get action: :show, as: :show
-        end
+        get "", action: :show, as: :show
       end
     end
 

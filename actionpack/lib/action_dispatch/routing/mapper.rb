@@ -1558,11 +1558,7 @@ module ActionDispatch
             options  = path
             path, to = options.find { |name, _value| name.is_a?(String) }
 
-            if path.nil?
-              ActiveSupport::Deprecation.warn "Omitting the route path is deprecated. "\
-                "Specify the path with a String or a Symbol instead."
-              path = ""
-            end
+            raise ArgumentError, "Route path not specified" if path.nil?
 
             case to
             when Symbol

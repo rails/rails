@@ -1,3 +1,7 @@
+*   Remove deprecated support passing path as `nil` in `ActionDispatch::Routing::Mapper#match`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `cache_control` argument from `ActionDispatch::Static#initialize`.
 
     *Rafael Mendonça França*
