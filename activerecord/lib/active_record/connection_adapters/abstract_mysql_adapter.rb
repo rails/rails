@@ -410,11 +410,13 @@ module ActiveRecord
       end
 
       def table_comment(table_name) # :nodoc:
+        schema, name = extract_schema_qualified_name(table_name)
+
         select_value(<<-SQL.strip_heredoc, 'SCHEMA')
           SELECT table_comment
           FROM information_schema.tables
-          WHERE table_schema=#{quote(current_database)}
-            AND table_name=#{quote(table_name)}
+          WHERE table_schema = #{quote(schema)}
+            AND table_name = #{quote(name)}
         SQL
       end
 
