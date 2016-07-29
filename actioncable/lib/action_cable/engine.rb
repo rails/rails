@@ -22,7 +22,12 @@ module ActionCable
 
     initializer "action_cable.set_configs" do |app|
       options = app.config.action_cable
-      options.allowed_request_origins ||= /https?:\/\/localhost:\d+/ if ::Rails.env.development?
+      if ::Rails.env.development? && options.allowed_request_origins.nil?
+        local_ips = ["localhost"] + Socket.ip_address_list.select{|ip| ip.ipv4?}.map do |ip|
+          ip.ip_address
+        end
+        options.allowed_request_origins = local_ips.map {|ip| Regexp.new("https?:\/\/#{ip}:\\d+")}
+      end
 
       app.paths.add "config/cable", with: "config/cable.yml"
 

@@ -1,3 +1,14 @@
+*   Set ActionCable's allowed_request_origins to include IP addresses during development
+
+    By default when in development, Action Cable's allowed_request_origins
+    includes http://localhost:3000.  Because it is compelling to experiment
+    with Action Cable applications using multiple machines, when running in
+    development this update finds all IPv4 addresses and adds them into
+    allowed_request_origins.  It does not affect test and production
+    environments at all.
+
+    *Lorin Thwaits*
+
 *   A generated app should not include Uglifier with `--skip-javascript` option.
 
     *Ben Pickles*

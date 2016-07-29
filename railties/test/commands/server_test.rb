@@ -1,9 +1,12 @@
 require 'abstract_unit'
 require 'env_helpers'
+require 'server_helpers'
 require 'rails/commands/server'
 
+ActiveSupport::TestCase.test_order = :sorted
+
 class Rails::ServerTest < ActiveSupport::TestCase
-  include EnvHelpers
+  include EnvHelpers, ServerHelpers
 
   def test_environment_with_server_option
     args    = ["thin", "-e", "production"]
@@ -55,6 +58,41 @@ class Rails::ServerTest < ActiveSupport::TestCase
     switch_env "HOST", "1.2.3.4" do
       server = Rails::Server.new
       assert_equal "1.2.3.4", server.options[:Host]
+    end
+  end
+
+  def test_actioncable_allowed_request_origins_get_set_properly_during_development
+    begin
+      primary_ip = "1.2.3.4"
+      server = Rails::Server.new
+      with_rack_env 'development' do
+        switch_env "HOST", primary_ip do
+          initialize_app_for(server, primary_ip)
+
+          allowed_request_origins = server.app.config.action_cable.allowed_request_origins
+          assert_includes allowed_request_origins, Regexp.new("https?:\/\/localhost:\\d+")
+          assert_includes allowed_request_origins, Regexp.new("https?:\/\/127.0.0.1:\\d+")
+          assert_includes allowed_request_origins, Regexp.new("https?:\/\/#{primary_ip}:\\d+")
+        end
+      end
+    ensure
+      teardown_app_for(server)
+    end
+  end
+
+  def test_actioncable_allowed_request_origins_are_not_set_during_production
+    begin
+      primary_ip = "1.2.3.4"
+      server = Rails::Server.new
+      with_rack_env 'production' do
+        switch_env "HOST", primary_ip do
+          initialize_app_for(server, primary_ip)
+
+          assert_equal nil, server.app.config.action_cable.allowed_request_origins
+        end
+      end
+    ensure
+      teardown_app_for(server)
     end
   end
 
