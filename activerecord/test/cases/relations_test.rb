@@ -240,6 +240,15 @@ class RelationTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::IrreversibleOrderError) do
       Topic.order("concat(author_name, title)").reverse_order
     end
+    assert_raises(ActiveRecord::IrreversibleOrderError) do
+      Topic.order("concat(lower(author_name), title)").reverse_order
+    end
+    assert_raises(ActiveRecord::IrreversibleOrderError) do
+      Topic.order("concat(author_name, lower(title))").reverse_order
+    end
+    assert_raises(ActiveRecord::IrreversibleOrderError) do
+      Topic.order("concat(lower(author_name), title, length(title)").reverse_order
+    end
   end
 
   def test_reverse_order_with_nulls_first_or_last
