@@ -1137,7 +1137,7 @@ module ActiveRecord
 
     def does_not_support_reverse?(order)
       # Uses SQL function with multiple arguments.
-      order.split(',').find { |section| section.count('(') != section.count(')')}   ||
+      (order.include?(',') && order.split(',').find { |section| section.count('(') != section.count(')')})   ||
       # Uses "nulls first" like construction.
       /nulls (first|last)\Z/i.match?(order)
     end
