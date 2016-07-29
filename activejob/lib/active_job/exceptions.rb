@@ -28,8 +28,12 @@ module ActiveJob
       #  end
       def retry_on(exception, wait: 3.seconds, attempts: 5, queue: nil, priority: nil)
         rescue_from exception do |error|
-          logger.error "Retrying #{self.class} in #{wait} seconds, due to a #{exception}. The original exception was #{error.cause.inspect}."
-          retry_job wait: wait, queue: queue, priority: priority if executions < attempts
+          if executions < attempts
+            logger.error "Retrying #{self.class} in #{wait} seconds, due to a #{exception}. The original exception was #{error.cause.inspect}."
+            retry_job wait: wait, queue: queue, priority: priority
+          else
+            logger.error "Discarded #{self.class} due to a #{exception} which reoccurred on #{executions} attempts. The original exception was #{error.cause.inspect}."
+          end
         end
       end
 
