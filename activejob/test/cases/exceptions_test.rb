@@ -8,9 +8,9 @@ class ExceptionsTest < ActiveSupport::TestCase
 
   test "successfully retry job throwing exception against defaults" do
     RetryJob.perform_later 'SeriousError', 5
-    
-    assert_equal [ 
-      "Raised SeriousError for the 1st time", 
+
+    assert_equal [
+      "Raised SeriousError for the 1st time",
       "Raised SeriousError for the 2nd time",
       "Raised SeriousError for the 3rd time",
       "Raised SeriousError for the 4th time",
@@ -21,7 +21,7 @@ class ExceptionsTest < ActiveSupport::TestCase
     RetryJob.perform_later 'VerySeriousError', 9
     assert_equal 9, JobBuffer.values.count
   end
-  
+
   test "failed retry job when exception kept occurring against defaults" do
     begin
       RetryJob.perform_later 'SeriousError', 6

@@ -5,8 +5,8 @@ module ActiveJob
 
     module ClassMethods
       # Catch the exception and reschedule job for re-execution after so many seconds, for a specific number of attempts.
-      # If the exception keeps getting raised beyond the specified number of attempts, the exception is allowed to 
-      # bubble up to the underlying queuing system, which may have its own retry mechanism or place it in a 
+      # If the exception keeps getting raised beyond the specified number of attempts, the exception is allowed to
+      # bubble up to the underlying queuing system, which may have its own retry mechanism or place it in a
       # holding queue for inspection.
       #
       # ==== Options
