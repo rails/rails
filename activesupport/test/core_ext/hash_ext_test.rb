@@ -967,6 +967,12 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal({}, h.compact!)
     assert_equal({}, h)
   end
+
+  def test_new_with_to_hash_conversion
+    hash = HashWithIndifferentAccess.new(HashByConversion.new(a: 1))
+    assert hash.key?('a')
+    assert_equal 1, hash[:a]
+  end
 end
 
 class IWriteMyOwnXML
@@ -1496,6 +1502,15 @@ class HashToXmlTest < ActiveSupport::TestCase
     hash_wia = HashWithIndifferentAccess.new
     assert_equal hash_wia, hash_wia.with_indifferent_access
     assert_not_same hash_wia, hash_wia.with_indifferent_access
+  end
+
+   def test_dup_should_only_modify_the_copy
+    hash = ActiveSupport::HashWithIndifferentAccess.new({ a: { b: 'b' } })
+    dup  = hash.dup
+    dup[:a][:c] = 'c'
+
+    assert_nil hash[:a][:c]
+    assert_equal dup[:a][:c], "c"
   end
 
   def test_should_copy_the_default_value_when_converting_to_hash_with_indifferent_access
