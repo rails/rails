@@ -1,9 +1,5 @@
 module ActiveRecord
   module NullRelation # :nodoc:
-    def exec_queries
-      @records = [].freeze
-    end
-
     def pluck(*column_names)
       []
     end
@@ -18,10 +14,6 @@ module ActiveRecord
 
     def delete(_id_or_array)
       0
-    end
-
-    def size
-      calculate :size, nil
     end
 
     def empty?
@@ -48,28 +40,8 @@ module ActiveRecord
       ""
     end
 
-    def count(*)
-      calculate :count, nil
-    end
-
-    def sum(*)
-      calculate :sum, nil
-    end
-
-    def average(*)
-      calculate :average, nil
-    end
-
-    def minimum(*)
-      calculate :minimum, nil
-    end
-
-    def maximum(*)
-      calculate :maximum, nil
-    end
-
     def calculate(operation, _column_name)
-      if [:count, :sum, :size].include? operation
+      if [:count, :sum].include? operation
         group_values.any? ? Hash.new : 0
       elsif [:average, :minimum, :maximum].include?(operation) && group_values.any?
         Hash.new
@@ -85,5 +57,11 @@ module ActiveRecord
     def or(other)
       other.spawn
     end
+
+    private
+
+      def exec_queries
+        @records = [].freeze
+      end
   end
 end
