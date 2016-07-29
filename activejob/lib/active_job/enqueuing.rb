@@ -1,7 +1,7 @@
 require 'active_job/arguments'
 
 module ActiveJob
-  # Provides behavior for enqueuing and retrying jobs.
+  # Provides behavior for enqueuing jobs.
   module Enqueuing
     extend ActiveSupport::Concern
 
@@ -22,31 +22,6 @@ module ActiveJob
         def job_or_instantiate(*args)
           args.first.is_a?(self) ? args.first : new(*args)
         end
-    end
-
-    # Reschedules the job to be re-executed. This is useful in combination
-    # with the +rescue_from+ option. When you rescue an exception from your job
-    # you can ask Active Job to retry performing your job.
-    #
-    # ==== Options
-    # * <tt>:wait</tt> - Enqueues the job with the specified delay
-    # * <tt>:wait_until</tt> - Enqueues the job at the time specified
-    # * <tt>:queue</tt> - Enqueues the job on the specified queue
-    # * <tt>:priority</tt> - Enqueues the job with the specified priority
-    #
-    # ==== Examples
-    #
-    #  class SiteScraperJob < ActiveJob::Base
-    #    rescue_from(ErrorLoadingSite) do
-    #      retry_job queue: :low_priority
-    #    end
-    #
-    #    def perform(*args)
-    #      # raise ErrorLoadingSite if cannot scrape
-    #    end
-    #  end
-    def retry_job(options={})
-      enqueue options
     end
 
     # Enqueues the job to be performed by the queue adapter.
