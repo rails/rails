@@ -14,6 +14,8 @@ module ActiveJob
       # ==== Options
       # * <tt>:wait</tt> - Re-enqueues the job with the specified delay in seconds (default: 3 seconds)
       # * <tt>:attempts</tt> - Re-enqueues the job the specified number of times (default: 5 attempts)
+      # * <tt>:queue</tt> - Re-enqueues the job on a different queue
+      # * <tt>:priority</tt> - Re-enqueues the job with a different priority
       #
       # ==== Examples
       #
@@ -24,10 +26,10 @@ module ActiveJob
       #      # Might raise Net::OpenTimeout when the remote service is down
       #    end
       #  end
-      def retry_on(exception, wait: 3.seconds, attempts: 5)
+      def retry_on(exception, wait: 3.seconds, attempts: 5, queue: nil, priority: nil)
         rescue_from exception do |error|
           logger.error "Retrying #{self.class} in #{wait} seconds, due to a #{exception}. The original exception was #{error.cause.inspect}."
-          retry_job wait: wait if executions < attempts
+          retry_job wait: wait, queue: queue, priority: priority if executions < attempts
         end
       end
 
