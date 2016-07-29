@@ -1,5 +1,3 @@
-require 'active_job/arguments'
-
 module ActiveJob
   # Provides behavior for retrying and discarding jobs on exceptions.
   module Exceptions
