@@ -35,7 +35,7 @@ class ExceptionsTest < ActiveSupport::TestCase
     begin
       RetryJob.perform_later 'VerySeriousError', 11
       assert_equal "Raised VerySeriousError for the 10th time", JobBuffer.last_value
-    rescue SeriousError
+    rescue VerySeriousError
       pass
     end
   end

@@ -32,7 +32,8 @@ module ActiveJob
             logger.error "Retrying #{self.class} in #{wait} seconds, due to a #{exception}. The original exception was #{error.cause.inspect}."
             retry_job wait: wait, queue: queue, priority: priority
           else
-            logger.error "Discarded #{self.class} due to a #{exception} which reoccurred on #{executions} attempts. The original exception was #{error.cause.inspect}."
+            logger.error "Stopped retrying #{self.class} due to a #{exception}, which reoccurred on #{executions} attempts. The original exception was #{error.cause.inspect}."
+            raise error
           end
         end
       end
