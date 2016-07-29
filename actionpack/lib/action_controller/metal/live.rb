@@ -217,7 +217,7 @@ module ActionController
 
       def before_committed
         super
-        jar = request.cookie_jar
+        return unless jar = request.cookie_jar
         # The response can be committed multiple times
         jar.write self unless committed?
       end
