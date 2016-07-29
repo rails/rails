@@ -10,8 +10,8 @@ module ActiveJob
       # holding queue for inspection.
       #
       # ==== Options
-      # * <tt>:wait</tt> - Re-enqueues the job with the specified delay in seconds
-      # * <tt>:attempts</tt> - Re-enqueues the job the specified number of times
+      # * <tt>:wait</tt> - Re-enqueues the job with the specified delay in seconds (default: 3 seconds)
+      # * <tt>:attempts</tt> - Re-enqueues the job the specified number of times (default: 5 attempts)
       #
       # ==== Examples
       #
