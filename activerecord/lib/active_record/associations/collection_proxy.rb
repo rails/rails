@@ -562,7 +562,7 @@ module ActiveRecord
       #   Pet.find(1)
       #   # => ActiveRecord::RecordNotFound: Couldn't find Pet with id=1
       #
-      # You can pass +Fixnum+ or +String+ values, it finds the records
+      # You can pass +Integer+ or +String+ values, it finds the records
       # responding to the +id+ and executes delete on them.
       #
       #   class Person < ActiveRecord::Base
@@ -626,7 +626,7 @@ module ActiveRecord
       #
       #   Pet.find(1, 2, 3) # => ActiveRecord::RecordNotFound: Couldn't find all Pets with IDs (1, 2, 3)
       #
-      # You can pass +Fixnum+ or +String+ values, it finds the records
+      # You can pass +Integer+ or +String+ values, it finds the records
       # responding to the +id+ and then deletes them from the database.
       #
       #   person.pets.size # => 3

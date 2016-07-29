@@ -25,7 +25,7 @@ module ActionDispatch
         end
       end
 
-      def test_assert_response_fixnum
+      def test_assert_response_integer
         @response = FakeResponse.new 400
         assert_response 400
 

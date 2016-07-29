@@ -1,5 +1,5 @@
 class String
-  # If you pass a single Fixnum, returns a substring of one character at that
+  # If you pass a single integer, returns a substring of one character at that
   # position. The first character of the string is at position 0, the next at
   # position 1, and so on. If a range is supplied, a substring containing
   # characters at offsets given by the range is returned. In both cases, if an
