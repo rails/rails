@@ -3,6 +3,8 @@ require 'env_helpers'
 require 'server_helpers'
 require 'rails/commands/server'
 
+ActiveSupport::TestCase.test_order = :sorted
+
 class Rails::ServerTest < ActiveSupport::TestCase
   include EnvHelpers, ServerHelpers
 
