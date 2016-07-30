@@ -407,7 +407,7 @@ module ActiveRecord
         relation = relation.except(:includes, :eager_load, :preload)
         relation = relation.joins join_dependency
 
-        if using_limitable_reflections?(join_dependency.reflections)
+        if using_limitable_reflections?(join_dependency.reflections) || relation.having_clause.any?
           relation
         else
           if relation.limit_value
