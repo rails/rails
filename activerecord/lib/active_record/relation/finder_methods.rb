@@ -348,15 +348,17 @@ module ActiveRecord
     def raise_record_not_found_exception!(ids, result_size, expected_size) #:nodoc:
       conditions = arel.where_sql(@klass.arel_engine)
       conditions = " [#{conditions}]" if conditions
+      name = @klass.name
 
       if Array(ids).size == 1
-        error = "Couldn't find #{@klass.name} with '#{primary_key}'=#{ids}#{conditions}"
+        error = "Couldn't find #{name} with '#{primary_key}'=#{ids}#{conditions}"
+        raise RecordNotFound.new(error, name, primary_key, ids)
       else
-        error = "Couldn't find all #{@klass.name.pluralize} with '#{primary_key}': "
+        error = "Couldn't find all #{name.pluralize} with '#{primary_key}': "
         error << "(#{ids.join(", ")})#{conditions} (found #{result_size} results, but was looking for #{expected_size})"
-      end
 
-      raise RecordNotFound, error
+        raise RecordNotFound, error
+      end
     end
 
     private
