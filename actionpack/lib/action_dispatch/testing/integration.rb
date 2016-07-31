@@ -366,14 +366,17 @@ module ActionDispatch
             "HTTP_ACCEPT"    => accept
           }
 
+          wrapped_headers = Http::Headers.from_hash({})
+          wrapped_headers.merge!(headers) if headers
+
           if xhr
-            headers["HTTP_X_REQUESTED_WITH"] = "XMLHttpRequest"
-            headers["HTTP_ACCEPT"] ||= [Mime[:js], Mime[:html], Mime[:xml], "text/xml", "*/*"].join(", ")
+            wrapped_headers["HTTP_X_REQUESTED_WITH"] = "XMLHttpRequest"
+            wrapped_headers["HTTP_ACCEPT"] ||= [Mime[:js], Mime[:html], Mime[:xml], "text/xml", "*/*"].join(", ")
           end
 
           # this modifies the passed request_env directly
-          if headers.present?
-            Http::Headers.from_hash(request_env).merge!(headers)
+          if wrapped_headers.present?
+            Http::Headers.from_hash(request_env).merge!(wrapped_headers)
           end
           if env.present?
             Http::Headers.from_hash(request_env).merge!(env)

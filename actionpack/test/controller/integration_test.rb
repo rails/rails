@@ -403,6 +403,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       respond_to do |format|
         format.html { render plain: "OK", status: 200 }
         format.js { render plain: "JS OK", status: 200 }
+        format.json { render json: "JSON OK", status: 200 }
         format.xml { render xml: "<root></root>", status: 200 }
         format.rss { render xml: "<root></root>", status: 200 }
         format.atom { render xml: "<root></root>", status: 200 }
@@ -725,6 +726,18 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     assert_not_includes @response.headers, "a", "Response should not include default header removed by the controller action"
     assert_includes @response.headers, "b"
     assert_includes @response.headers, "c"
+  end
+
+  def test_accept_not_overriden_when_xhr_true
+    with_test_route_set do
+      get "/get", headers: { "Accept" => "application/json" }, xhr: true
+      assert_equal "application/json", request.accept
+      assert_equal "application/json", response.content_type
+
+      get "/get", headers: { "HTTP_ACCEPT" => "application/json" }, xhr: true
+      assert_equal "application/json", request.accept
+      assert_equal "application/json", response.content_type
+    end
   end
 
   private
