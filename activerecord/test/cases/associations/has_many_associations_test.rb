@@ -380,47 +380,38 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_no_queries do
       bulbs.first()
-      bulbs.first({})
     end
 
     assert_no_queries do
       bulbs.second()
-      bulbs.second({})
     end
 
     assert_no_queries do
       bulbs.third()
-      bulbs.third({})
     end
 
     assert_no_queries do
       bulbs.fourth()
-      bulbs.fourth({})
     end
 
     assert_no_queries do
       bulbs.fifth()
-      bulbs.fifth({})
     end
 
     assert_no_queries do
       bulbs.forty_two()
-      bulbs.forty_two({})
     end
 
     assert_no_queries do
       bulbs.third_to_last()
-      bulbs.third_to_last({})
     end
 
     assert_no_queries do
       bulbs.second_to_last()
-      bulbs.second_to_last({})
     end
 
     assert_no_queries do
       bulbs.last()
-      bulbs.last({})
     end
   end
 

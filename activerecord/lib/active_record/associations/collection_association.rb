@@ -111,40 +111,40 @@ module ActiveRecord
         end
       end
 
-      def first(*args)
-        first_nth_or_last(:first, *args)
+      def first(limit = nil)
+        find_nth_or_last(:first, limit)
       end
 
-      def second(*args)
-        first_nth_or_last(:second, *args)
+      def second
+        find_nth_or_last(:second)
       end
 
-      def third(*args)
-        first_nth_or_last(:third, *args)
+      def third
+        find_nth_or_last(:third)
       end
 
-      def fourth(*args)
-        first_nth_or_last(:fourth, *args)
+      def fourth
+        find_nth_or_last(:fourth)
       end
 
-      def fifth(*args)
-        first_nth_or_last(:fifth, *args)
+      def fifth
+        find_nth_or_last(:fifth)
       end
 
-      def forty_two(*args)
-        first_nth_or_last(:forty_two, *args)
+      def forty_two
+        find_nth_or_last(:forty_two)
       end
 
-      def third_to_last(*args)
-        first_nth_or_last(:third_to_last, *args)
+      def third_to_last
+        find_nth_or_last(:third_to_last)
       end
 
-      def second_to_last(*args)
-        first_nth_or_last(:second_to_last, *args)
+      def second_to_last
+        find_nth_or_last(:second_to_last)
       end
 
-      def last(*args)
-        first_nth_or_last(:last, *args)
+      def last(limit = nil)
+        find_nth_or_last(:last, limit)
       end
 
       def take(limit = nil)
@@ -642,11 +642,9 @@ module ActiveRecord
         end
 
         # Fetches the first/last using SQL if possible, otherwise from the target array.
-        def first_nth_or_last(type, *args)
-          args.shift if args.first.is_a?(Hash) && args.first.empty?
-
+        def find_nth_or_last(ordinal, limit = nil)
           collection = find_from_target? ? load_target : scope
-          collection.send(type, *args)
+          limit ? collection.send(ordinal, limit) : collection.send(ordinal)
         end
     end
   end

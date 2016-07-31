@@ -167,44 +167,44 @@ module ActiveRecord
       #   another_person_without.pets          # => []
       #   another_person_without.pets.first    # => nil
       #   another_person_without.pets.first(3) # => []
-      def first(*args)
-        @association.first(*args)
+      def first(limit = nil)
+        @association.first(limit)
       end
 
       # Same as #first except returns only the second record.
-      def second(*args)
-        @association.second(*args)
+      def second
+        @association.second
       end
 
       # Same as #first except returns only the third record.
-      def third(*args)
-        @association.third(*args)
+      def third
+        @association.third
       end
 
       # Same as #first except returns only the fourth record.
-      def fourth(*args)
-        @association.fourth(*args)
+      def fourth
+        @association.fourth
       end
 
       # Same as #first except returns only the fifth record.
-      def fifth(*args)
-        @association.fifth(*args)
+      def fifth
+        @association.fifth
       end
 
       # Same as #first except returns only the forty second record.
       # Also known as accessing "the reddit".
-      def forty_two(*args)
-        @association.forty_two(*args)
+      def forty_two
+        @association.forty_two
       end
 
       # Same as #first except returns only the third-to-last record.
-      def third_to_last(*args)
-        @association.third_to_last(*args)
+      def third_to_last
+        @association.third_to_last
       end
 
       # Same as #first except returns only the second-to-last record.
-      def second_to_last(*args)
-        @association.second_to_last(*args)
+      def second_to_last
+        @association.second_to_last
       end
 
       # Returns the last record, or the last +n+ records, from the collection.
@@ -233,8 +233,8 @@ module ActiveRecord
       #   another_person_without.pets         # => []
       #   another_person_without.pets.last    # => nil
       #   another_person_without.pets.last(3) # => []
-      def last(*args)
-        @association.last(*args)
+      def last(limit = nil)
+        @association.last(limit)
       end
 
       # Gives a record (or N records if a parameter is supplied) from the collection
