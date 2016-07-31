@@ -239,6 +239,5 @@ module ActiveRecord
     def batch_order
       "#{quoted_table_name}.#{quoted_primary_key} ASC"
     end
-
   end
 end
