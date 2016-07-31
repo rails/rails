@@ -1,3 +1,7 @@
+*   Deprecate `sanitize_conditions`. Use `sanitize_sql` instead.
+
+    *Ryuta Kamizono*
+
 *   Doing count on relations that contain LEFT OUTER JOIN Arel node no longer
     force a DISTINCT. This solves issues when using count after a left_joins.
 
