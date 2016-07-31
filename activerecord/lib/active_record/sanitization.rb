@@ -5,13 +5,6 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     module ClassMethods
-      # Used to sanitize objects before they're used in an SQL SELECT statement.
-      # Delegates to {connection.quote}[rdoc-ref:ConnectionAdapters::Quoting#quote].
-      def sanitize(object) # :nodoc:
-        connection.quote(object)
-      end
-      alias_method :quote_value, :sanitize
-
       protected
 
       # Accepts an array or string of SQL conditions and sanitizes
@@ -216,7 +209,7 @@ module ActiveRecord
 
     # TODO: Deprecate this
     def quoted_id # :nodoc:
-      self.class.quote_value(@attributes[self.class.primary_key].value_for_database)
+      self.class.connection.quote(@attributes[self.class.primary_key].value_for_database)
     end
   end
 end
