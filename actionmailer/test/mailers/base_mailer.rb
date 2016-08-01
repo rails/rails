@@ -3,7 +3,8 @@ class BaseMailer < ActionMailer::Base
 
   default to: 'system@test.lindsaar.net',
           from: 'jose@test.plataformatec.com',
-          reply_to: 'mikel@test.lindsaar.net'
+          reply_to: 'mikel@test.lindsaar.net',
+          'X-Random-Default' => 'default'
 
   def welcome(hash = {})
     headers['X-SPAM'] = "Not SPAM"
