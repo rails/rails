@@ -196,6 +196,7 @@ ActiveRecord::Schema.define do
     t.integer :rating, default: 1
     t.integer :account_id
     t.string :description, default: ""
+    t.text :features
     t.index [:firm_id, :type, :rating], name: "company_index"
     t.index [:firm_id, :type], name: "company_partial_index", where: "rating > 10"
     t.index :name, name: 'company_name_index', using: :btree
