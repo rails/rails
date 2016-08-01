@@ -127,7 +127,7 @@ class FinderTest < ActiveRecord::TestCase
     gc_disabled = GC.disable
     Post.where("author_id" => nil)  # warm up
     x = Symbol.all_symbols.count
-    Post.where("title" => {"xxxqqqq" => "bar"})
+    Post.where("title" => "xxxqqqq")
     assert_equal x, Symbol.all_symbols.count
   ensure
     GC.enable if gc_disabled == false
