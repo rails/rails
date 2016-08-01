@@ -1,17 +1,15 @@
-# This is private interface.
-#
 # Rails components cherry pick from Active Support as needed, but there are a
-# few features that are used for sure in some way or another and it is not worth
-# putting individual requires absolutely everywhere. Think blank? for example.
+# number of features that are regularly needed (ex: blank?), and this serves as
+# a way to reduce the total number of requires.
 #
 # This file is loaded by every Rails component except Active Support itself,
-# but it does not belong to the Rails public interface. It is internal to
+# but it isn't part of Rails' public API -- it is internal to
 # Rails and can change anytime.
 
 # Defines Object#blank? and Object#present?.
 require 'active_support/core_ext/object/blank'
 
-# Rails own autoload, eager_load, etc.
+# Rails' own autoload, eager_load, etc.
 require 'active_support/dependencies/autoload'
 
 # Support for ClassMethods and the included macro.
