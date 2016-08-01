@@ -20,11 +20,11 @@ module ActiveRecord
     alias :loaded? :loaded
 
     def initialize(klass, table, predicate_builder, values = {})
-      @klass  = klass
-      @table  = table
-      @values = values
+      @klass   = klass
+      @table   = table
+      @values  = values
       @offsets = {}
-      @loaded = false
+      @loaded  = false
       @predicate_builder = predicate_builder
     end
 
@@ -689,7 +689,7 @@ module ActiveRecord
       @records = eager_loading? ? find_with_associations.freeze : @klass.find_by_sql(arel, bound_attributes).freeze
 
       preload = preload_values
-      preload +=  includes_values unless eager_loading?
+      preload += includes_values unless eager_loading?
       preloader = build_preloader
       preload.each do |associations|
         preloader.preload @records, associations
