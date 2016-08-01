@@ -57,10 +57,11 @@ module RailsGuides
       level_hash
     end
 
-    def title_to_idx(title)
-      idx = title.strip.parameterize.sub(/^\d+/, '')
-      if warnings && idx.blank?
-        puts "BLANK ID: please put an explicit ID for section #{title}, as in h5(#my-id)"
+   def title_to_idx(title)
+      idx = title=~/[^\u0000-\u007F]/ ? ("id-"+Digest::MD5.hexdigest(title.strip)) : title.strip
+      idx = idx.parameterize.sub(/^\d+/, '')
+      if idx.blank?
+        puts "BLANK ID: please put an explicit ID for section #{title}, as in h5(#my-id)" if warnings
       end
       idx
     end
