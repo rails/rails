@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require 'abstract_unit'
 
 module ActionDispatch
