@@ -44,7 +44,7 @@ module ActiveModel
       # any of the possible implementation strategies on the implementer.
       def test_to_param
         assert model.respond_to?(:to_param), "The model should respond to to_param"
-        def model.to_key() [1] end
+        def model.to_key() 1 end
         def model.persisted?() false end
         assert model.to_param.nil?, "to_param should return nil when `persisted?` returns false"
       end

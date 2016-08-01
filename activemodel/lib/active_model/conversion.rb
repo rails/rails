@@ -49,10 +49,10 @@ module ActiveModel
     #   end
     #
     #   person = Person.create(id: 1)
-    #   person.to_key # => [1]
+    #   person.to_key # => 1
     def to_key
       key = respond_to?(:id) && id
-      key ? [key] : nil
+      key if key
     end
 
     # Returns a +string+ representing the object's key suitable for use in URLs,
@@ -69,7 +69,7 @@ module ActiveModel
     #   person = Person.create(id: 1)
     #   person.to_param # => "1"
     def to_param
-      (persisted? && key = to_key) ? key.join('-') : nil
+      (persisted? && key = to_key) ? key.to_s : nil
     end
 
     # Returns a +string+ identifying the path associated with the object.
