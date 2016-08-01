@@ -188,6 +188,7 @@ module ActionDispatch
 
         def self.polymorphic_method(recipient, record_or_hash_or_array, action, type, options)
           builder = get action, type
+          builder.recipient = recipient
 
           case record_or_hash_or_array
           when Array
@@ -220,6 +221,7 @@ module ActionDispatch
         end
 
         attr_reader :suffix, :prefix
+        attr_accessor :recipient
 
         def initialize(key_strategy, prefix, suffix)
           @key_strategy = key_strategy
@@ -254,10 +256,15 @@ module ActionDispatch
                           get_method_for_class model
                         end
 
-          [named_route, args]
+          if self.recipient.respond_to?(named_route.to_sym)
+            [named_route, args]
+          else
+            [get_method_for_class(model, true), args]
+          end
         end
 
         def handle_model_call(target, model)
+          self.recipient = target
           method, args = handle_model model
           target.send(method, *args)
         end
@@ -305,8 +312,9 @@ module ActionDispatch
 
         private
 
-        def get_method_for_class(klass)
-          name   = @key_strategy.call klass.model_name
+        def get_method_for_class(klass, singular = false)
+          name = @key_strategy.call klass.model_name
+          name = name.singularize if singular == true
           get_method_for_string name
         end
 
