@@ -158,12 +158,11 @@ class Module
       raise ArgumentError, 'Can only automatically set the delegation prefix when delegating to a method.'
     end
 
-    method_prefix = \
-      if prefix
-        "#{prefix == true ? to : prefix}_"
-      else
-        ''
-      end
+    method_prefix = if prefix
+                      "#{prefix == true ? to : prefix}_"
+                    else
+                      ''
+                    end
 
     location = caller_locations(1, 1).first
     file, line = location.path, location.lineno
