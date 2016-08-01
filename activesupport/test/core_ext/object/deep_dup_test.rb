@@ -56,4 +56,9 @@ class DeepDupTest < ActiveSupport::TestCase
     assert_equal 1, dup.keys.length
   end
 
+  def test_deep_dup_skips_string_class
+    hash = { foo: String }
+    dup = hash.deep_dup
+    assert_equal hash, dup
+  end
 end
