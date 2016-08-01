@@ -142,6 +142,32 @@ module ActiveRecord
     end
   end
 
+  class DatabaseTasksLoadSchemaCurrentTest < ActiveRecord::TestCase
+    def setup
+      @configurations = {
+        'development' => {'database' => 'dev-db'},
+        'test'        => {'database' => 'test-db'},
+        'production'  => {'database' => 'prod-db'}
+      }
+
+      ActiveRecord::Base.stubs(:configurations).returns(@configurations)
+      ActiveRecord::Base.stubs(:establish_connection).returns(true)
+      ActiveRecord::Tasks::DatabaseTasks.stubs(:load_schema_for).returns(true)
+    end
+
+    def test_establishes_connection_for_the_given_environment
+      ActiveRecord::Tasks::DatabaseTasks.stubs(:create).returns true
+
+      ActiveRecord::Base.expects(:establish_connection).with(:development)
+
+      ActiveRecord::Tasks::DatabaseTasks.load_schema_current(
+        ActiveRecord::Base.schema_format,
+        nil,
+        ActiveSupport::StringInquirer.new('development')
+      )
+    end
+  end
+
   class DatabaseTasksCreateCurrentTest < ActiveRecord::TestCase
     def setup
       @configurations = {
@@ -189,15 +215,15 @@ module ActiveRecord
       ENV['RAILS_ENV'] = old_env
     end
 
-    def test_establishes_connection_for_the_given_environment
-      ActiveRecord::Tasks::DatabaseTasks.stubs(:create).returns true
+    # def test_establishes_connection_for_the_given_environment
+    #   ActiveRecord::Tasks::DatabaseTasks.stubs(:create).returns true
 
-      ActiveRecord::Base.expects(:establish_connection).with(:development)
+    #   ActiveRecord::Base.expects(:establish_connection).with(:development)
 
-      ActiveRecord::Tasks::DatabaseTasks.create_current(
-        ActiveSupport::StringInquirer.new('development')
-      )
-    end
+    #   ActiveRecord::Tasks::DatabaseTasks.create_current(
+    #     ActiveSupport::StringInquirer.new('development')
+    #   )
+    # end
   end
 
   class DatabaseTasksDropTest < ActiveRecord::TestCase
@@ -277,6 +303,7 @@ module ActiveRecord
       }
 
       ActiveRecord::Base.stubs(:configurations).returns(@configurations)
+      ActiveRecord::Base.stubs(:establish_connection).returns(true)
     end
 
     def test_drops_current_environment_database
@@ -312,6 +339,16 @@ module ActiveRecord
       )
     ensure
       ENV['RAILS_ENV'] = old_env
+    end
+
+    def test_establishes_connection_for_the_given_environment
+      ActiveRecord::Tasks::DatabaseTasks.stubs(:drop).returns true
+
+      ActiveRecord::Base.expects(:establish_connection).with(:development)
+
+      ActiveRecord::Tasks::DatabaseTasks.drop_current(
+        ActiveSupport::StringInquirer.new('development')
+      )
     end
   end
 
@@ -356,19 +393,30 @@ module ActiveRecord
   end
 
   class DatabaseTasksPurgeCurrentTest < ActiveRecord::TestCase
-    def test_purges_current_environment_database
-      configurations = {
+    def setup
+      @configurations = {
         'development' => {'database' => 'dev-db'},
         'test'        => {'database' => 'test-db'},
         'production'  => {'database' => 'prod-db'}
       }
-      ActiveRecord::Base.stubs(:configurations).returns(configurations)
 
+      ActiveRecord::Base.stubs(:configurations).returns(@configurations)
+      ActiveRecord::Base.stubs(:establish_connection).returns(true)
+      ActiveRecord::Tasks::DatabaseTasks.stubs(:load_schema_for).returns(true)
+    end
+
+    def test_purges_current_environment_database
       ActiveRecord::Tasks::DatabaseTasks.expects(:purge).
         with('database' => 'prod-db')
       ActiveRecord::Base.expects(:establish_connection).with(:production)
 
       ActiveRecord::Tasks::DatabaseTasks.purge_current('production')
+    end
+
+    def test_establishes_connection_for_the_given_environment
+      ActiveRecord::Tasks::DatabaseTasks.stubs(:purge).returns true
+      ActiveRecord::Base.expects(:establish_connection).with(:development)
+      ActiveRecord::Tasks::DatabaseTasks.purge_current('development')
     end
   end
 

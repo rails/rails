@@ -151,6 +151,7 @@ module ActiveRecord
         each_current_configuration(environment) { |configuration|
           drop configuration
         }
+        ActiveRecord::Base.establish_connection(environment.to_sym)
       end
 
       def migrate
