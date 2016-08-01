@@ -162,14 +162,14 @@ module ActionView
       #   # => <link href="/assets/favicon.ico" rel="shortcut icon" type="image/x-icon" />
       #
       #   favicon_link_tag 'myicon.ico'
-      #   # => <link href="/assets/myicon.ico" rel="shortcut icon" type="image/x-icon" />
+      #   # => <link href="/images/myicon.ico" rel="shortcut icon" type="image/x-icon" />
       #
       # Mobile Safari looks for a different link tag, pointing to an image that
       # will be used if you add the page to the home screen of an iOS device.
       # The following call would generate such a tag:
       #
       #   favicon_link_tag 'mb-icon.png', rel: 'apple-touch-icon', type: 'image/png'
-      #   # => <link href="/assets/mb-icon.png" rel="apple-touch-icon" type="image/png" />
+      #   # => <link href="/images/mb-icon.png" rel="apple-touch-icon" type="image/png" />
       def favicon_link_tag(source='favicon.ico', options={})
         tag('link', {
           :rel  => 'shortcut icon',
