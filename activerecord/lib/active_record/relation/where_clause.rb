@@ -16,13 +16,7 @@ module ActiveRecord
           binds + other.binds,
         )
       end
-
-      def merge(other)
-        WhereClause.new(
-          predicates_unreferenced_by(other) + other.predicates,
-          non_conflicting_binds(other) + other.binds,
-        )
-      end
+      alias :merge :+
 
       def except(*columns)
         WhereClause.new(
@@ -97,20 +91,8 @@ module ActiveRecord
 
       private
 
-      def predicates_unreferenced_by(other)
-        predicates.reject do |n|
-          equality_node?(n) && other.referenced_columns.include?(n.left)
-        end
-      end
-
       def equality_node?(node)
         node.respond_to?(:operator) && node.operator == :==
-      end
-
-      def non_conflicting_binds(other)
-        conflicts = referenced_columns & other.referenced_columns
-        conflicts.map! { |node| node.name.to_s }
-        binds.reject { |attr| conflicts.include?(attr.name) }
       end
 
       def inverted_predicates
