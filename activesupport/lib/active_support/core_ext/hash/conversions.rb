@@ -146,6 +146,7 @@ module ActiveSupport
     end
 
     DISALLOWED_TYPES = %w(symbol yaml)
+    RESERVED_TAG_ATTRIBUTES = [["type", "encoding", "__content__"], ["type", "__content__"], ["__content__"]]
 
     def initialize(xml, disallowed_types = nil)
       @xml = normalize_keys(XmlMini.parse(xml))
@@ -215,7 +216,7 @@ module ActiveSupport
       end
 
       def become_content?(value)
-        value['type'] == 'file' || (value['__content__'] && (value.keys.size == 1 || value['__content__'].present?))
+        value['type'] == 'file' || RESERVED_TAG_ATTRIBUTES.include?(value.keys)
       end
 
       def become_array?(value)
