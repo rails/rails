@@ -12,8 +12,11 @@ module ActiveRecord
             @subtype = subtype
             @delimiter = delimiter
 
-            @pg_encoder = PG::TextEncoder::Array.new name: "#{type}[]", delimiter: delimiter
-            @pg_decoder = PG::TextDecoder::Array.new name: "#{type}[]", delimiter: delimiter
+            encoder = PG::TextEncoder::const_get(type.to_s.capitalize).new rescue nil
+            @pg_encoder = PG::TextEncoder::Array.new name: "#{type}[]", delimiter: delimiter, elements_type: encoder
+
+            decoder = PG::TextDecoder::const_get(type.to_s.capitalize).new rescue nil
+            @pg_decoder = PG::TextDecoder::Array.new name: "#{type}[]", delimiter: delimiter, elements_type: decoder
           end
 
           def deserialize(value)
