@@ -10,7 +10,7 @@ module ActiveSupport
     # data::
     #   XML Document string or IO to parse
     def parse(data)
-      if !data.respond_to?(:read)
+      unless data.respond_to?(:read)
         data = StringIO.new(data || '')
       end
 
