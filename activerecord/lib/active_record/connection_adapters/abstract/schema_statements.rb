@@ -999,8 +999,8 @@ module ActiveRecord
           sql
         else
           versions.map { |version|
-            "INSERT INTO #{sm_table} (version) VALUES ('#{version}');"
-          }.join "\n\n"
+            "INSERT INTO #{sm_table} (version) VALUES ('#{version}');\n\n"
+          }.join ""
         end
       end
 
@@ -1024,7 +1024,8 @@ module ActiveRecord
         sm_table = quote_table_name(ActiveRecord::Migrator.schema_migrations_table_name)
 
         migrated = select_values("SELECT version FROM #{sm_table}").map(&:to_i)
-        paths = migrations_paths.map {|p| "#{p}/[0-9]*_*.rb" }
+
+        paths = migrations_paths.map {|p| ActiveRecord::Migrator.migration_paths_regex(p) }
         versions = Dir[*paths].map do |filename|
           filename.split('/').last.split('_').first.to_i
         end
@@ -1038,7 +1039,12 @@ module ActiveRecord
           if (duplicate = inserting.detect {|v| inserting.count(v) > 1})
             raise "Duplicate migration #{duplicate}. Please renumber your migrations to resolve the conflict."
           end
-          execute insert_versions_sql(inserting)
+
+          sql = insert_versions_sql(inserting)
+          statements = sql.split(';').select{|i| i.present? } # Splitting up because old versions of sqlite3 can't string sql commands properly
+          statements.each do |statement|
+            execute "#{statement};"
+          end
         end
       end
 

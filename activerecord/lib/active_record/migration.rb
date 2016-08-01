@@ -1068,7 +1068,7 @@ module ActiveRecord
       def migrations(paths)
         paths = Array(paths)
 
-        files = Dir[*paths.map { |p| "#{p}/**/[0-9]*_*.rb" }]
+        files = Dir[*paths.map { |p| migration_paths_regex(p) }]
 
         migrations = files.map do |file|
           version, name, scope = parse_migration_filename(file)
@@ -1080,6 +1080,10 @@ module ActiveRecord
         end
 
         migrations.sort_by(&:version)
+      end
+
+      def migration_paths_regex(p)
+        "#{p}/**/[0-9]*_*.rb"
       end
 
       private
