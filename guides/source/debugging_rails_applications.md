@@ -946,6 +946,8 @@ development that will end your tailing of development.log. Have all information
 about your Rails app requests in the browser — in the Developer Tools panel.
 Provides insight to db/rendering/total times, parameter list, rendered views and
 more.
+* [PartiallyUseful](https://github.com/phoet/partially_useful) Extends Rails partial 
+rendering by adding HTML comments and meta information to generated HTML source code.
 
 References
 ----------
