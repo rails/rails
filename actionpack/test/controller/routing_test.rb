@@ -231,7 +231,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
   def test_lambda_constraints
     rs.draw do
       get '/', :constraints => lambda { |req|
-        req.subdomain.present? and req.subdomain != "clients" },
+        req.subdomain.present? && req.subdomain != "clients" },
                  :to          => lambda { |env| [200, {}, %w{default}] }
 
       get '/', :constraints => lambda { |req|
