@@ -12,6 +12,7 @@ class JobSerializationTest < ActiveSupport::TestCase
 
   test 'serialize job with gid' do
     GidJob.perform_later @person
+    sleep 0.01
     assert_equal "Person with ID: 5", JobBuffer.last_value
   end
 

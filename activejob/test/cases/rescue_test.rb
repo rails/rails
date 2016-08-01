@@ -10,6 +10,7 @@ class RescueTest < ActiveSupport::TestCase
   test 'rescue perform exception with retry' do
     job = RescueJob.new("david")
     job.perform_now
+    sleep 0.01
     assert_equal [ "rescued from ArgumentError", "performed beautifully" ], JobBuffer.values
   end
 
@@ -22,6 +23,7 @@ class RescueTest < ActiveSupport::TestCase
 
   test 'rescue from deserialization errors' do
     RescueJob.perform_later Person.new(404)
+    sleep 0.01
     assert_includes JobBuffer.values, 'rescued from DeserializationError'
     assert_includes JobBuffer.values, 'DeserializationError original exception was Person::RecordNotFound'
     assert_not_includes JobBuffer.values, 'performed beautifully'
@@ -29,6 +31,7 @@ class RescueTest < ActiveSupport::TestCase
 
   test "should not wrap DeserializationError in DeserializationError" do
     RescueJob.perform_later [Person.new(404)]
+    sleep 0.01
     assert_includes JobBuffer.values, 'DeserializationError original exception was Person::RecordNotFound'
   end
 end
