@@ -1,3 +1,5 @@
+require 'active_support/deprecation'
+
 module ActiveSupport
   module NumberHelper
     class NumberToHumanSizeConverter < NumberConverter #:nodoc:

@@ -8,6 +8,8 @@ end
 require 'digest/md5'
 require 'active_support/core_ext/marshal'
 require 'active_support/core_ext/array/extract_options'
+require 'active_support/deprecation'
+require 'active_support/core_ext/string/strip'
 
 module ActiveSupport
   module Cache

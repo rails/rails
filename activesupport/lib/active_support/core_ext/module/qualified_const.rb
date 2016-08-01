@@ -1,4 +1,6 @@
 require 'active_support/core_ext/string/inflections'
+require 'active_support/deprecation'
+require 'active_support/core_ext/string/filters'
 
 #--
 # Allows code reuse in the methods below without polluting Module.

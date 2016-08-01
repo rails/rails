@@ -1,4 +1,6 @@
 require 'active_support/inflector'
+require 'active_support/deprecation'
+require 'active_support/core_ext/string/filters'
 
 class Module
   # Returns the name of the module containing this one.

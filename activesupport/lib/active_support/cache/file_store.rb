@@ -2,6 +2,8 @@ require 'active_support/core_ext/marshal'
 require 'active_support/core_ext/file/atomic'
 require 'active_support/core_ext/string/conversions'
 require 'uri/common'
+require 'active_support/deprecation'
+require 'active_support/core_ext/string/strip'
 
 module ActiveSupport
   module Cache
