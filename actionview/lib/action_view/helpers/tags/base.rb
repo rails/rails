@@ -32,11 +32,13 @@ module ActionView
           unless object.nil?
             method_before_type_cast = @method_name + "_before_type_cast"
 
-            if value_came_from_user?(object) && object.respond_to?(method_before_type_cast)
-              object.public_send(method_before_type_cast)
-            else
-              value(object)
-            end
+            value = if value_came_from_user?(object) && object.respond_to?(method_before_type_cast)
+                      object.public_send(method_before_type_cast)
+                    else
+                      value(object)
+                    end
+
+            value.kind_of?(Proc) ? value.call : value
           end
         end
 
