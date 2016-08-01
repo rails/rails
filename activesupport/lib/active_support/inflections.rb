@@ -15,7 +15,7 @@ module ActiveSupport
     inflect.plural(/(octop|vir)i$/i, '\1i')
     inflect.plural(/(alias|status)$/i, '\1es')
     inflect.plural(/(bu)s$/i, '\1ses')
-    inflect.plural(/(buffal|tomat)o$/i, '\1oes')
+    inflect.plural(/(buffal|tomat|potat|her)o$/i, '\1oes')
     inflect.plural(/([ti])um$/i, '\1a')
     inflect.plural(/([ti])a$/i, '\1a')
     inflect.plural(/sis$/i, 'ses')
@@ -64,6 +64,8 @@ module ActiveSupport
     inflect.irregular('sex', 'sexes')
     inflect.irregular('move', 'moves')
     inflect.irregular('zombie', 'zombies')
+    inflect.irregular('foot', 'feet')
+    inflect.irregular('tooth', 'teeth')
 
     inflect.uncountable(%w(equipment information rice money species series fish sheep jeans police))
   end
