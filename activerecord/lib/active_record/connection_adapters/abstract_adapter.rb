@@ -594,7 +594,7 @@ module ActiveRecord
 
       def translate_exception(exception, message)
         # override in derived class
-        ActiveRecord::StatementInvalid.new(message)
+        ActiveRecord::WrappedDatabaseException.new(message,e)
       end
 
       def without_prepared_statement?(binds)
