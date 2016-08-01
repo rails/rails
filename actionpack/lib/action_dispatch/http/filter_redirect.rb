@@ -3,12 +3,13 @@ module ActionDispatch
     module FilterRedirect
 
       FILTERED = '[FILTERED]'.freeze # :nodoc:
+      NULL_PARAM_FILTER = ParameterFilter.new # :nodoc:
 
       def filtered_location # :nodoc:
         if location_filter_match?
           FILTERED
         else
-          location
+          parameter_filtered_location
         end
       end
 
@@ -29,6 +30,21 @@ module ActionDispatch
           elsif Regexp === filter
             location =~ filter
           end
+        end
+      end
+
+
+      def parameter_filter
+        ParameterFilter.new request.env.fetch("action_dispatch.parameter_filter") {
+          return NULL_PARAM_FILTER
+        }
+      end
+
+      KV_RE   = '[^&;=]+'
+      PAIR_RE = %r{(#{KV_RE})=(#{KV_RE})}
+      def parameter_filtered_location
+        location.gsub(PAIR_RE) do |_|
+          parameter_filter.filter([[$1, $2]]).first.join("=")
         end
       end
 
