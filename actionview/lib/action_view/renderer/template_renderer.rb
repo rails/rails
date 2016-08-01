@@ -18,7 +18,7 @@ module ActionView
 
     # Determine the template to be rendered using the given options.
     def determine_template(options)
-      keys = options.has_key?(:locals) ? options[:locals].keys : []
+      keys = options[:locals].present? ? options[:locals].keys : []
 
       if options.key?(:body)
         Template::Text.new(options[:body])
