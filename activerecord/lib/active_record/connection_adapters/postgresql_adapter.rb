@@ -380,11 +380,6 @@ module ActiveRecord
         PostgreSQL::Table.new(table_name, base)
       end
 
-      def lookup_cast_type(sql_type) # :nodoc:
-        oid = execute("SELECT #{quote(sql_type)}::regtype::oid", "SCHEMA").first['oid'].to_i
-        super(oid)
-      end
-
       def column_name_for_operation(operation, node) # :nodoc:
         OPERATION_ALIASES.fetch(operation) { operation.downcase }
       end
@@ -438,6 +433,11 @@ module ActiveRecord
               type_map.register_type(oid, cast_type)
             end
           }
+        end
+
+        def lookup_cast_type(sql_type) # :nodoc:
+          oid = execute("SELECT #{quote(sql_type)}::regtype::oid", "SCHEMA").first['oid'].to_i
+          super(oid)
         end
 
         def initialize_type_map(m) # :nodoc:
