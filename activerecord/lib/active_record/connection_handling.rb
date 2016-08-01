@@ -134,7 +134,9 @@ module ActiveRecord
     end
 
     def clear_cache! # :nodoc:
-      connection.schema_cache.clear!
+      direct_descendants.each do |descendant|
+        descendant.send(:reset_column_information)
+      end
     end
 
     delegate :clear_active_connections!, :clear_reloadable_connections!,
