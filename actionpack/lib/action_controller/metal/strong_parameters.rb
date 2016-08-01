@@ -7,6 +7,12 @@ require 'action_dispatch/http/upload'
 require 'rack/test'
 require 'stringio'
 require 'set'
+require 'yaml'
+
+# Wire up YAML format compatibility with Rails 4.2. Makes the YAML parser call
+# `init_with` when it encounters `!ruby/hash-with-ivars:ActionController::Parameters`,
+# instead of trying to parse it as a regular hash subclass.
+YAML.load_tags['!ruby/hash-with-ivars:ActionController::Parameters'] = 'ActionController::Parameters'
 
 module ActionController
   # Raised when a required parameter is missing.
@@ -589,6 +595,19 @@ module ActionController
 
     def inspect
       "<#{self.class} #{@parameters} permitted: #{@permitted}>"
+    end
+
+    def init_with(coder) # :nodoc:
+      if coder.map['elements']
+        # YAML's Hash subclass format from Rails 4.2, where keys and values
+        # were stored under an elements hash and `permitted` within an ivars hash.
+        @parameters = coder.map['elements'].with_indifferent_access
+        @permitted  = coder.map['ivars'][:@permitted]
+      else
+        # YAML's Object format. Only needed because of the format
+        # backwardscompability above, otherwise equivalent to YAML's initialization.
+        @parameters, @permitted = coder.map['parameters'], coder.map['permitted']
+      end
     end
 
     def method_missing(method_sym, *args, &block)
