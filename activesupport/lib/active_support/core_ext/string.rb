@@ -1,6 +1,7 @@
 require 'active_support/core_ext/string/conversions'
 require 'active_support/core_ext/string/filters'
 require 'active_support/core_ext/string/multibyte'
+require 'active_support/core_ext/string/numeric'
 require 'active_support/core_ext/string/starts_ends_with'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/string/access'
