@@ -41,7 +41,7 @@ module ActionDispatch
         SERVER_SOFTWARE
       ]).freeze
 
-      HTTP_HEADER = /\A[A-Za-z0-9-]+\z/
+      HTTP_HEADER = /\AHTTP_[A-Z0-9!\#$%&'*+\-^_`|~]+\z/
 
       include Enumerable
 
@@ -119,7 +119,7 @@ module ActionDispatch
       # not contained within the headers hash.
       def env_name(key)
         key = key.to_s
-        if key =~ HTTP_HEADER
+        unless key =~ HTTP_HEADER || key.include?('.')
           key = key.upcase.tr('-', '_')
           key = "HTTP_" + key unless CGI_VARIABLES.include?(key)
         end
