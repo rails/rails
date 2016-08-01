@@ -667,6 +667,7 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_on_combined_explicit_and_hashed_table_names
     assert Topic.where('topics.approved' => false, topics: { author_name: "David" }).find(1)
+    assert Topic.where('topics.approved': false, topics: { author_name: "David" }).find(1)
     assert_raise(ActiveRecord::RecordNotFound) { Topic.where('topics.approved' => true, topics: { author_name: "David" }).find(1) }
     assert_raise(ActiveRecord::RecordNotFound) { Topic.where('topics.approved' => false, topics: { author_name: "Melanie" }).find(1) }
   end
