@@ -3,7 +3,7 @@ module ActiveRecord
   module Transactions
     extend ActiveSupport::Concern
     #:nodoc:
-    ACTIONS = [:create, :destroy, :update]
+    ACTIONS = [:create, :destroy, :update].freeze
 
     included do
       define_callbacks :commit, :rollback,
@@ -415,7 +415,7 @@ module ActiveRecord
       @_start_transaction_state.reverse_merge!(
         new_record: @new_record,
         destroyed: @destroyed,
-        frozen?: frozen?,
+        frozen?: frozen?
       )
       @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) + 1
     end
