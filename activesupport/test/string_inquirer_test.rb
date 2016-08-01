@@ -13,6 +13,18 @@ class StringInquirerTest < ActiveSupport::TestCase
     assert_not @string_inquirer.development?
   end
 
+  def test_negated_match
+    assert_not @string_inquirer.not.production?
+  end
+
+  def test_negated_miss
+    assert @string_inquirer.not.development?
+  end
+
+  def test_idempotence
+    assert @string_inquirer.not.production? == @string_inquirer.not.production?
+  end
+
   def test_missing_question_mark
     assert_raise(NoMethodError) { @string_inquirer.production }
   end
