@@ -8,7 +8,3 @@ class User < ActiveRecord::Base
     class_name: Job,
     join_table: 'jobs_pool'
 end
-
-class UserWithNotification < User
-  after_create -> { Notification.create! message: "A new user has been created." }
-end
