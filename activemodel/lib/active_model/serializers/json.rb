@@ -97,7 +97,7 @@ module ActiveModel
           { root => serializable_hash(options) }
         else
           serializable_hash(options)
-        end
+        end.as_json
       end
 
       # Sets the model +attributes+ from a JSON string. Returns +self+.
