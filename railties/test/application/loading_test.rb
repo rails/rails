@@ -298,7 +298,7 @@ class LoadingTest < ActiveSupport::TestCase
       end
     MIGRATION
 
-    Dir.chdir(app_path) { `rake db:migrate`}
+    Dir.chdir(app_path) { `rails db:migrate`}
     require "#{rails_root}/config/environment"
 
     get "/title"
@@ -312,7 +312,7 @@ class LoadingTest < ActiveSupport::TestCase
       end
     MIGRATION
 
-    Dir.chdir(app_path) { `rake db:migrate` }
+    Dir.chdir(app_path) { `rails db:migrate` }
 
     get "/body"
     assert_equal "BODY", last_response.body
