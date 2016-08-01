@@ -454,6 +454,25 @@ module ActionView
         form_tag_with_body(html_options, output)
       end
 
+      def build_form_url(action, method, record, format = '', options)
+        # First, try and build the route normally
+        begin
+          path = polymorphic_path(record, { format: format })
+        # If a NoMethodError is raised, this means that the resource is singular.
+        rescue NoMethodError
+          path = if action == :edit
+                   edit_polymorphic_path(record, { format: format })
+                 elsif action == :new
+                   new_polymorphic_path(record, { format: format })
+                 else
+                   polymorphic_path(record, { format: format })
+                 end
+        end
+
+        path
+      end
+      private :build_form_url
+
       def apply_form_for_options!(record, object, options) #:nodoc:
         object = convert_to_model(object)
 
@@ -466,11 +485,7 @@ module ActionView
           method: method
         )
 
-        options[:url] ||= if options.key?(:format)
-                            polymorphic_path(record, format: options.delete(:format))
-                          else
-                            polymorphic_path(record, {})
-                          end
+        options[:url] ||= build_form_url(action, method, record, options.delete(:format), options)
       end
       private :apply_form_for_options!
 
