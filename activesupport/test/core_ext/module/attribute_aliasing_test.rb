@@ -56,4 +56,18 @@ class AttributeAliasingTest < ActiveSupport::TestCase
     assert_equal "Uppercased methods are teh suck", e.body
     assert e.body?
   end
+
+  def test_should_raise_name_error_if_attribute_name_is_invalid
+    assert_raises NameError do
+      Class.new do
+        alias_attribute "invalid attribute name", "valid_name"
+      end
+    end
+
+    assert_raises NameError do
+      Class.new do
+        alias_attribute "valid_name", "invalid attribute name"
+      end
+    end
+  end
 end
