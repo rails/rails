@@ -134,6 +134,20 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal [companies(:first_firm).id], Account.destroyed_account_ids[companies(:first_firm).id]
   end
 
+  def test_association_change_does_not_affect_old_records
+    firm = companies(:first_firm)
+    old_account = companies(:first_firm).account_with_multiple_support
+    new_account = Account.new(:credit_limit => 5)
+
+    firm.account_with_multiple_support = new_account
+
+    # association has option :multiple => true, so don't update old account
+    assert_equal firm.id, old_account.reload.firm_id
+
+    # new account still gets associated correctly
+    assert_equal firm.account_with_multiple_support, new_account.reload
+  end
+
   def test_natural_assignment_to_already_associated_record
     company = companies(:first_firm)
     account = accounts(:signals37)
