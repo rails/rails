@@ -83,7 +83,7 @@ module ActiveJob
         'queue_name' => queue_name,
         'priority'   => priority,
         'arguments'  => serialize_arguments(arguments),
-        'executions' => executions + 1,
+        'executions' => executions,
         'locale'     => I18n.locale.to_s
       }
     end

@@ -31,6 +31,7 @@ module ActiveJob
     def perform_now
       deserialize_arguments_if_needed
       run_callbacks :perform do
+        self.executions = executions + 1
         perform(*arguments)
       end
     rescue => exception
