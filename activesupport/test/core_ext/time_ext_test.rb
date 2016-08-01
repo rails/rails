@@ -16,7 +16,8 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal 60,Time.local(2005,1,1,0,1,0).seconds_since_midnight
     assert_equal 3660,Time.local(2005,1,1,1,1,0).seconds_since_midnight
     assert_equal 86399,Time.local(2005,1,1,23,59,59).seconds_since_midnight
-    assert_equal 60.00001,Time.local(2005,1,1,0,1,0,10).seconds_since_midnight
+    assert_equal 60,Time.local(2005,1,1,0,1,0,10).seconds_since_midnight
+    assert_not_equal 60.00001,Time.local(2005,1,1,0,1,0,10).seconds_since_midnight
   end
 
   def test_seconds_since_midnight_at_daylight_savings_time_start
