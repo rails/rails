@@ -1882,7 +1882,8 @@ module ActionView
           defaults << :"helpers.submit.#{key}"
           defaults << "#{key.to_s.humanize} #{model}"
 
-          I18n.t(defaults.shift, model: model, default: defaults)
+          value = I18n.t(defaults.shift, model: model, default: defaults)
+          value.capitalize
         end
 
         def nested_attributes_association?(association_name)
