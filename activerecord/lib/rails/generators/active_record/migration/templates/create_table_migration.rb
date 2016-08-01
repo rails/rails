@@ -7,7 +7,7 @@ class <%= migration_class_name %> < ActiveRecord::Migration[<%= ActiveRecord::Mi
 <% elsif attribute.token? -%>
       t.string :<%= attribute.name %><%= attribute.inject_options %>
 <% else -%>
-      t.<%= attribute.type %> :<%= attribute.name %><%= attribute.inject_options %>
+      t.<%= attribute.type -%> :<%= attribute.name %><%= attribute.inject_options -%><% if attribute.has_default? %>, :default => <%= attribute.assigned_default %><%- end %>
 <% end -%>
 <% end -%>
 <% if options[:timestamps] %>
