@@ -5,6 +5,9 @@ require 'models/reply'
 require 'models/person'
 
 class AcceptanceValidationTest < ActiveModel::TestCase
+  class TopicWrapper < SimpleDelegator
+    include ActiveModel::Validations
+  end
 
   def teardown
     Topic.clear_validators!
@@ -26,6 +29,15 @@ class AcceptanceValidationTest < ActiveModel::TestCase
 
     t.terms_of_service = "1"
     assert t.valid?
+  end
+
+  def test_terms_of_service_agreement_no_acceptance_with_accessor
+    TopicWrapper.validates_acceptance_of(:approved, already_accessible: true)
+
+    t = Topic.new("title" => "We should be confirmed", "approved" => "")
+    wrapper = TopicWrapper.new(t)
+
+    assert wrapper.invalid?
   end
 
   def test_eula
