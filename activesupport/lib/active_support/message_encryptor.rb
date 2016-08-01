@@ -84,7 +84,7 @@ module ActiveSupport
       cipher.encrypt
       cipher.key = @secret
 
-      # Rely on OpenSSL for the initialization vector
+      # Rely on OpenSSL for the initialization vector.
       iv = cipher.random_iv
       cipher.auth_data = "" if aead_mode?
 
