@@ -104,21 +104,9 @@ module ActiveSupport::NumericWithFormat
     format, options = args
     options ||= {}
 
-    case format
-    when :phone
-      return ActiveSupport::NumberHelper.number_to_phone(self, options)
-    when :currency
-      return ActiveSupport::NumberHelper.number_to_currency(self, options)
-    when :percentage
-      return ActiveSupport::NumberHelper.number_to_percentage(self, options)
-    when :delimited
-      return ActiveSupport::NumberHelper.number_to_delimited(self, options)
-    when :rounded
-      return ActiveSupport::NumberHelper.number_to_rounded(self, options)
-    when :human
-      return ActiveSupport::NumberHelper.number_to_human(self, options)
-    when :human_size
-      return ActiveSupport::NumberHelper.number_to_human_size(self, options)
+    if format == :phone || :currency || :percentage || :delimited ||
+      :rounded || :human || :human_size
+      ActiveSupport::NumberHelper.send("number_to_#{format}", self, options)
     else
       if is_a?(Float) || format.is_a?(Symbol)
         super()

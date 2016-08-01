@@ -157,11 +157,12 @@ module ActiveSupport
       def sum(sign, time = ::Time.current) #:nodoc:
         parts.inject(time) do |t,(type,number)|
           if t.acts_like?(:time) || t.acts_like?(:date)
-            if type == :seconds
+            case type
+            when :seconds
               t.since(sign * number)
-            elsif type == :minutes
+            when :minutes
               t.since(sign * number * 60)
-            elsif type == :hours
+            when :hours
               t.since(sign * number * 3600)
             else
               t.advance(type => sign * number)

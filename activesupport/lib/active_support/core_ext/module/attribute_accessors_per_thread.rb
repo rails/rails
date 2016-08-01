@@ -40,16 +40,16 @@ class Module
     syms.each do |sym|
       raise NameError.new("invalid attribute name: #{sym}") unless /^[_A-Za-z]\w*$/.match?(sym)
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
-        def self.#{sym}
-          Thread.current[:"attr_#{name}_#{sym}"]
-        end
+        def self.#{sym}                           # def self.name
+          Thread.current[:"attr_#{name}_#{sym}"]  #   Thread.current[:"attr_Current_user"]
+        end                                       # end
       EOS
 
       unless options[:instance_reader] == false || options[:instance_accessor] == false
         class_eval(<<-EOS, __FILE__, __LINE__ + 1)
-          def #{sym}
-            Thread.current[:"attr_#{name}_#{sym}"]
-          end
+          def #{sym}                                # def name
+            Thread.current[:"attr_#{name}_#{sym}"]  #   Thread.current[:"attr_Current_user"]
+          end                                       # end
         EOS
       end
     end
@@ -79,16 +79,16 @@ class Module
     syms.each do |sym|
       raise NameError.new("invalid attribute name: #{sym}") unless /^[_A-Za-z]\w*$/.match?(sym)
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
-        def self.#{sym}=(obj)
-          Thread.current[:"attr_#{name}_#{sym}"] = obj
-        end
+        def self.#{sym}=(obj)                           # def self.name=(obj)
+          Thread.current[:"attr_#{name}_#{sym}"] = obj  #   Thread.current[:"attr_Current_name"] = obj
+        end                                             # end
       EOS
 
       unless options[:instance_writer] == false || options[:instance_accessor] == false
         class_eval(<<-EOS, __FILE__, __LINE__ + 1)
-          def #{sym}=(obj)
-            Thread.current[:"attr_#{name}_#{sym}"] = obj
-          end
+          def #{sym}=(obj)                                # def name=(obj)
+            Thread.current[:"attr_#{name}_#{sym}"] = obj  #   Thread.current[:"attr_Current_name"] = obj
+          end                                             # end
         EOS
       end
     end
