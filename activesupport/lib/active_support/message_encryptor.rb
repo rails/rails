@@ -56,9 +56,8 @@ module ActiveSupport
     # * <tt>:serializer</tt> - Object serializer to use. Default is +Marshal+.
     def initialize(secret, *signature_key_or_options)
       options = signature_key_or_options.extract_options!
-      sign_secret = signature_key_or_options.first
       @secret = secret
-      @sign_secret = sign_secret
+      @sign_secret = signature_key_or_options.first
       @cipher = options[:cipher] || 'aes-256-cbc'
       @digest = options[:digest] || 'SHA1' unless aead_mode?
       @verifier = resolve_verifier
