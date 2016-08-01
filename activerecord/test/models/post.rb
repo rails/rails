@@ -118,7 +118,7 @@ class Post < ActiveRecord::Base
   has_many :invalid_taggings, -> { where 'taggings.id < 0' }, :as => :taggable, :class_name => "Tagging"
   has_many :invalid_tags, :through => :invalid_taggings, :source => :tag
 
-  has_many :categorizations, :foreign_key => :category_id
+  has_many :categorizations
   has_many :authors, :through => :categorizations
 
   has_many :categorizations_using_author_id, :primary_key => :author_id, :foreign_key => :post_id, :class_name => 'Categorization'
