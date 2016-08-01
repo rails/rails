@@ -37,12 +37,30 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     assert pirate.birds_with_reject_all_blank.empty?
   end
 
+  def test_should_not_build_a_new_record_using_nested_reject_all_even_if_destroy_is_given
+    pirate = Pirate.create!(:catchphrase => "Don' botharrr talkin' like one, savvy?")
+    pirate.ship_with_reject_nested_all_blank_attributes = {:name => '', :color => '', :_destroy => '0',
+      :parts_attributes => {"1" => {:name => '', :_destroy => '0'}}}
+    pirate.save!
+
+    assert pirate.ship_with_reject_nested_all_blank.blank?
+  end
+
   def test_should_not_build_a_new_record_if_reject_all_blank_returns_false
     pirate = Pirate.create!(:catchphrase => "Don' botharrr talkin' like one, savvy?")
     pirate.birds_with_reject_all_blank_attributes = [{:name => '', :color => ''}]
     pirate.save!
 
     assert pirate.birds_with_reject_all_blank.empty?
+  end
+
+  def test_should_not_build_a_new_record_if_nested_reject_all_blank_returns_false
+    pirate = Pirate.create!(:catchphrase => "Don' botharrr talkin' like one, savvy?")
+    pirate.ship_with_reject_nested_all_blank_attributes = {:name => '', :color => '',
+      :parts_attributes => {"1" => { :name => '' }}}
+    pirate.save!
+
+    assert pirate.ship_with_reject_nested_all_blank.blank?
   end
 
   def test_should_build_a_new_record_if_reject_all_blank_does_not_return_false
@@ -52,6 +70,17 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
 
     assert_equal 1, pirate.birds_with_reject_all_blank.count
     assert_equal 'Tweetie', pirate.birds_with_reject_all_blank.first.name
+  end
+
+  def test_should_build_a_new_record_if_nested_reject_all_blank_does_not_return_false
+    pirate = Pirate.create!(:catchphrase => "Don' botharrr talkin' like one, savvy?")
+    pirate.ship_with_reject_nested_all_blank_attributes = {:name => 'The Smashing',
+      :parts_attributes => {"1" => {:name => 'Argh The First Part'}}}
+    pirate.save!
+
+    assert_equal 'The Smashing', pirate.ship_with_reject_nested_all_blank.name
+    assert_equal 1, pirate.ship_with_reject_nested_all_blank.parts.count
+    assert_equal 'Argh The First Part', pirate.ship_with_reject_nested_all_blank.parts.first.name
   end
 
   def test_should_raise_an_ArgumentError_for_non_existing_associations
