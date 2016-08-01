@@ -328,7 +328,7 @@ module RailtiesTest
       controller "foo", <<-RUBY
         class FooController < ActionController::Base
           def index
-            render :text => "foo"
+            render :plain => "foo"
           end
         end
       RUBY
@@ -342,7 +342,7 @@ module RailtiesTest
       @plugin.write "app/controllers/bar_controller.rb", <<-RUBY
         class BarController < ActionController::Base
           def index
-            render :text => "bar"
+            render :plain => "bar"
           end
         end
       RUBY
@@ -437,7 +437,7 @@ YAML
       @plugin.write "app/controllers/admin/foo/bar_controller.rb", <<-RUBY
         class Admin::Foo::BarController < ApplicationController
           def index
-            render text: "Rendered from namespace"
+            render plain: "Rendered from namespace"
           end
         end
       RUBY
@@ -537,7 +537,7 @@ YAML
       controller "foo", <<-RUBY
         class FooController < ActionController::Base
           def index
-            render text: params[:username]
+            render plain: params[:username]
           end
         end
       RUBY
@@ -701,7 +701,7 @@ YAML
           end
 
           def show
-            render text: foo_path
+            render plain: foo_path
           end
 
           def from_app
@@ -713,7 +713,7 @@ YAML
           end
 
           def polymorphic_path_without_namespace
-            render text: polymorphic_path(Post.new)
+            render plain: polymorphic_path(Post.new)
           end
         end
       RUBY
@@ -836,7 +836,7 @@ YAML
       @plugin.write "app/controllers/bukkits/awesome/foo_controller.rb", <<-RUBY
         class Bukkits::Awesome::FooController < ActionController::Base
           def index
-            render :text => "ok"
+            render :plain => "ok"
           end
         end
       RUBY
@@ -1221,7 +1221,7 @@ YAML
                 fullpath: \#{request.fullpath}
                 path: \#{request.path}
               TEXT
-              render text: text
+              render plain: text
             end
           end
         end
@@ -1259,7 +1259,7 @@ YAML
       app_file "app/controllers/bar_controller.rb", <<-RUBY
         class BarController < ApplicationController
           def index
-            render text: bukkits.bukkit_path
+            render plain: bukkits.bukkit_path
           end
         end
       RUBY
@@ -1281,7 +1281,7 @@ YAML
       @plugin.write "app/controllers/bukkits/bukkit_controller.rb", <<-RUBY
         class Bukkits::BukkitController < ActionController::Base
           def index
-            render text: main_app.bar_path
+            render plain: main_app.bar_path
           end
         end
       RUBY
@@ -1309,7 +1309,7 @@ YAML
       app_file "app/controllers/bar_controller.rb", <<-RUBY
         class BarController < ApplicationController
           def index
-            render text: bukkits.bukkit_path
+            render plain: bukkits.bukkit_path
           end
         end
       RUBY
@@ -1330,7 +1330,7 @@ YAML
       @plugin.write "app/controllers/bukkits/bukkit_controller.rb", <<-RUBY
         class Bukkits::BukkitController < ActionController::Base
           def index
-            render text: main_app.bar_path
+            render plain: main_app.bar_path
           end
         end
       RUBY
