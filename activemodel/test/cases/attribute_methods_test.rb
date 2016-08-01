@@ -201,6 +201,15 @@ class AttributeMethodsTest < ActiveModel::TestCase
     end
   end
 
+  test '#alias_attribute raises NameError for invalid attribute name' do
+    klass = Class.new(ModelWithAttributes) do
+      define_attribute_methods :active
+    end
+    assert_raise NameError do
+      klass.alias_attribute :active?, :active
+    end
+  end
+
   test '#alias_attribute works with attributes named as a ruby keyword' do
     begin
       ModelWithRubyKeywordNamedAttributes.define_attribute_methods([:begin, :end])
