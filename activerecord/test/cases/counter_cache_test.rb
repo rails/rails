@@ -144,6 +144,9 @@ class CounterCacheTest < ActiveRecord::TestCase
     david, joanna = dog_lovers(:david, :joanna)
     joanna = joanna # squelch a warning
 
+    # Avoid assigned but unused variable warning
+    joanna = joanna
+
     assert_difference 'joanna.reload.dogs_count', -1 do
       david.destroy
     end
