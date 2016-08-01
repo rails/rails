@@ -6,7 +6,7 @@ task :package
 
 Rake::TestTask.new do |t|
   t.libs << 'test'
-  t.pattern = 'test/**/*_test.rb'
+  t.test_files = Dir.glob("#{File.dirname(__FILE__)}/test/**/*_test.rb").sort
   t.warning = true
   t.verbose = true
   t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
