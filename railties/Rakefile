@@ -11,16 +11,37 @@ namespace :test do
   task :isolated do
     dirs = (ENV["TEST_DIR"] || ENV["TEST_DIRS"] || "**").split(",")
     test_files = dirs.map { |dir| "test/#{dir}/*_test.rb" }
-    Dir[*test_files].each do |file|
-      next true if file.include?("fixtures")
-      dash_i = [
-        'test',
-        'lib',
-        "#{File.dirname(__FILE__)}/../activesupport/lib",
-        "#{File.dirname(__FILE__)}/../actionpack/lib",
-        "#{File.dirname(__FILE__)}/../activemodel/lib"
-      ]
-      ruby "-w", "-I#{dash_i.join ':'}", file
+    test_files = Dir[*test_files]
+    test_files.reject!{|f|
+      f.include?("fixtures")
+    }
+
+    dash_i = [
+      'test',
+      'lib',
+      "#{File.dirname(__FILE__)}/../activesupport/lib",
+      "#{File.dirname(__FILE__)}/../actionpack/lib",
+      "#{File.dirname(__FILE__)}/../activemodel/lib",
+    ]
+
+    if Process.respond_to?(:fork)
+      require "#{File.dirname(__FILE__)}../../load_paths"
+
+      dash_i.each do |path|
+        $LOAD_PATH << path
+      end
+
+      test_files.each do |file|
+        Process.wait(Process.fork {
+          puts "Running #{file}"
+          require "./#{file}"
+        })
+        exit $?.exitstatus if $?.exitstatus != 0
+      end
+    else
+      test_files.each do |file|
+        ruby "-w", "-I#{dash_i.join ':'}", file
+      end
     end
   end
 end
