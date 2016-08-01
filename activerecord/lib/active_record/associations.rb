@@ -1357,6 +1357,7 @@ module ActiveRecord
       #   has_many :reports, -> { readonly }
       #   has_many :subscribers, through: :subscriptions, source: :user
       def has_many(name, scope = nil, options = {}, &extension)
+        options, scope = scope, nil if scope.is_a?(Hash)
         reflection = Builder::HasMany.build(self, name, scope, options, &extension)
         Reflection.add_reflection self, name, reflection
       end
@@ -1488,6 +1489,7 @@ module ActiveRecord
       #   has_one :primary_address, -> { where(primary: true) }, through: :addressables, source: :addressable
       #   has_one :credit_card, required: true
       def has_one(name, scope = nil, options = {})
+        options, scope = scope, nil if scope.is_a?(Hash)
         reflection = Builder::HasOne.build(self, name, scope, options)
         Reflection.add_reflection self, name, reflection
       end
@@ -1625,6 +1627,7 @@ module ActiveRecord
       #   belongs_to :company, touch: :employees_last_updated_at
       #   belongs_to :user, optional: true
       def belongs_to(name, scope = nil, options = {})
+        options, scope = scope, nil if scope.is_a?(Hash)
         reflection = Builder::BelongsTo.build(self, name, scope, options)
         Reflection.add_reflection self, name, reflection
       end
@@ -1787,10 +1790,7 @@ module ActiveRecord
       #   has_and_belongs_to_many :categories, join_table: "prods_cats"
       #   has_and_belongs_to_many :categories, -> { readonly }
       def has_and_belongs_to_many(name, scope = nil, options = {}, &extension)
-        if scope.is_a?(Hash)
-          options = scope
-          scope   = nil
-        end
+        options, scope = scope, nil if scope.is_a?(Hash)
 
         habtm_reflection = ActiveRecord::Reflection::HasAndBelongsToManyReflection.new(name, scope, options, self)
 
