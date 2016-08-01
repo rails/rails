@@ -244,7 +244,7 @@ module ActionCable
         end
 
         def extract_action(data)
-          (data['action'].presence || :receive).to_sym
+          data['action'].presence.to_sym || :receive
         end
 
         def processable_action?(action)
