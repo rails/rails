@@ -197,7 +197,7 @@ module ActiveRecord
       distinct = self.distinct_value
 
       if operation == "count"
-        column_name ||= select_for_count
+        column_name ||= (select_for_count || :all)
 
         unless arel.ast.grep(Arel::Nodes::OuterJoin).empty?
           distinct = true
