@@ -370,7 +370,15 @@ module Rails
       end
 
       def app_name
-        @app_name ||= (defined_app_const_base? ? defined_app_name : File.basename(destination_root)).tr('\\', '').tr(". ", "_")
+        @app_name ||= if defined_app_const_base?
+          defined_app_name
+        elsif options[:class]
+          name = options[:class]
+          name[0] = name[0].capitalize
+          name
+        else
+          File.basename(destination_root).tr('\\', '').tr(". ", "_")
+        end
       end
 
       def defined_app_name
