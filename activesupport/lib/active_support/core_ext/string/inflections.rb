@@ -11,6 +11,7 @@ class String
   #
   # If the optional parameter +count+ is specified,
   # the singular form will be returned if <tt>count == 1</tt>.
+  # or <tt>count == false</tt>.
   # For any other value of +count+ the plural will be returned.
   #
   # If the optional parameter +locale+ is specified,
@@ -26,11 +27,13 @@ class String
   #   'CamelOctopus'.pluralize     # => "CamelOctopi"
   #   'apple'.pluralize(1)         # => "apple"
   #   'apple'.pluralize(2)         # => "apples"
+  #   'apple'.pluralize(false)     # => "apple"
+  #   'apple'.pluralize(true)      # => "apples"
   #   'ley'.pluralize(:es)         # => "leyes"
   #   'ley'.pluralize(1, :es)      # => "ley"
   def pluralize(count = nil, locale = :en)
     locale = count if count.is_a?(Symbol)
-    if count == 1
+    if count == 1 or count.is_a?(FalseClass)
       self.dup
     else
       ActiveSupport::Inflector.pluralize(self, locale)
