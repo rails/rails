@@ -15,7 +15,7 @@ module ActionView
       @lookup_context = lookup_context
     end
 
-    # Main render entry point shared by Action View and Action Controller.
+    # Main render entry point
     def render(context, options)
       if options.key?(:partial)
         render_partial(context, options)

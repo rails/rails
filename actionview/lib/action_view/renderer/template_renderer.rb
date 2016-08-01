@@ -47,11 +47,11 @@ module ActionView
     # Renders the given template. A string representing the layout can be
     # supplied as well.
     def render_template(template, layout_name = nil, locals = nil) #:nodoc:
-      view, locals = @view, locals || {}
+      locals = locals || {}
 
       render_with_layout(layout_name, locals) do |layout|
         instrument(:template, :identifier => template.identifier, :layout => layout.try(:virtual_path)) do
-          template.render(view, locals) { |*name| view._layout_for(*name) }
+          template.render(@view, locals) { |*name| @view._layout_for(*name) }
         end
       end
     end
@@ -61,9 +61,8 @@ module ActionView
       content = yield(layout)
 
       if layout
-        view = @view
-        view.view_flow.set(:layout, content)
-        layout.render(view, locals){ |*name| view._layout_for(*name) }
+        @view.view_flow.set(:layout, content)
+        layout.render(@view, locals){ |*name| @view._layout_for(*name) }
       else
         content
       end
