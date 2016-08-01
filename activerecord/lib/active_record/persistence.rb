@@ -69,6 +69,15 @@ module ActiveRecord
         klass.allocate.init_with('attributes' => attributes, 'new_record' => false)
       end
 
+      def upsert(attributes, &block)
+        if attributes.is_a?(Array)
+          attributes.collect { |attr| upsert(attr, &block) }
+        else
+          new(attributes, &block).upsert
+        end
+      end
+
+
       private
         # Called by +instantiate+ to decide which class to use for a new
         # record instance.
@@ -123,6 +132,19 @@ module ActiveRecord
     # being updated.
     def save(*args)
       create_or_update(*args)
+    rescue ActiveRecord::RecordInvalid
+      false
+    end
+
+    def upsert(*args)
+      raise ReadOnlyRecord, "#{self.class} is marked as readonly" if readonly?
+      values = run_callbacks(:save) {
+        run_callbacks(:create) {
+          _upsert_record(*args)
+        }
+      }
+      assign_attributes(values.first.to_h)
+      self
     rescue ActiveRecord::RecordInvalid
       false
     end
@@ -561,6 +583,16 @@ module ActiveRecord
 
       @new_record = false
       id
+    end
+
+    def _upsert_record(attribute_names = self.attribute_names)
+      attributes_values = arel_attributes_with_values_for_create(attribute_names)
+
+      values = self.class.unscoped.upsert attributes_values
+
+      @new_record = false
+
+      values
     end
 
     def verify_readonly_attribute(name)

@@ -133,6 +133,11 @@ module ActiveRecord
           super
         end
 
+        def sql_for_upsert(sql, pk, id_value, sequence_name, binds)
+          sql = "#{sql} RETURNING *"
+          super
+        end
+
         def exec_insert(sql, name, binds, pk = nil, sequence_name = nil)
           val = exec_query(sql, name, binds)
           if !use_insert_returning? && pk
@@ -145,6 +150,10 @@ module ActiveRecord
           else
             val
           end
+        end
+
+        def exec_upsert(sql, name, binds, pk)
+          exec_query(sql, name, binds)
         end
 
         # Begins a transaction.

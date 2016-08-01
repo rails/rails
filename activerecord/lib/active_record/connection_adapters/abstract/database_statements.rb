@@ -100,6 +100,10 @@ module ActiveRecord
         exec_query(sql, name, binds)
       end
 
+      def exec_upsert(_sql, _name, _binds, _pk)
+        raise NotImplementedError
+      end
+
       # Executes the truncate statement.
       def truncate(table_name, name = nil)
         raise NotImplementedError
@@ -128,6 +132,11 @@ module ActiveRecord
       alias create insert
       alias insert_sql insert
       deprecate insert_sql: :insert
+
+      def upsert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [])
+        sql, binds, pk, _sequence_name = sql_for_upsert(to_sql(arel, binds), pk, id_value, sequence_name, binds)
+        exec_upsert(sql, name, binds, pk)
+      end
 
       # Executes the update statement and returns the number of rows affected.
       def update(arel, name = nil, binds = [])
@@ -379,6 +388,10 @@ module ActiveRecord
         end
 
         def sql_for_insert(sql, pk, id_value, sequence_name, binds)
+          [sql, binds, pk, sequence_name]
+        end
+
+        def sql_for_upsert(sql, pk, id_value, sequence_name, binds)
           [sql, binds, pk, sequence_name]
         end
 
