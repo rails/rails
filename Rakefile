@@ -14,7 +14,7 @@ desc "Release all gems to rubygems and create a tag"
 task :release => "all:release"
 
 desc 'Run all tests by default'
-task :default => %w(test test:isolated)
+task :default => %w(test test:isolated travis_lint)
 
 %w(test test:isolated package gem).each do |task_name|
   desc "Run #{task_name} task for all projects"
@@ -37,6 +37,11 @@ task :smoke do
   end
   system %(cd activerecord && #{$0} sqlite3:isolated_test --trace)
   system %(cd actioncable && env FAYE=1 #{$0} test:isolated --trace)
+end
+
+desc "Check .travis.yml for errors"
+task :travis_lint do
+  sh 'travis-lint'
 end
 
 desc "Install gems for all projects."
