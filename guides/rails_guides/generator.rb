@@ -51,6 +51,7 @@
 
 require 'set'
 require 'fileutils'
+require 'rack/test'
 
 require 'active_support/core_ext/string/output_safety'
 require 'active_support/core_ext/object/blank'
