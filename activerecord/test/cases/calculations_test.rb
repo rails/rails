@@ -427,6 +427,16 @@ class CalculationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_count_with_distinct_statement
+    assert_sql(/\ASELECT COUNT\(DISTINCT.*\) FROM/) do
+      Account.select(:credit_limit).distinct.count
+    end
+
+    assert_sql(/\ASELECT COUNT\(DISTINCT.*\) FROM/) do
+      Account.select(:credit_limit).uniq.count
+    end
+  end
+
   def test_count_with_aliased_attribute
     assert_equal 6, Account.count(:available_credit)
   end
