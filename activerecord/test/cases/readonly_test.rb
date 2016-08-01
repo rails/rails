@@ -8,6 +8,9 @@ require 'models/project'
 require 'models/reader'
 require 'models/person'
 require 'models/ship'
+require 'models/club'
+require 'models/member'
+require 'models/membership'
 
 class ReadOnlyTest < ActiveRecord::TestCase
   fixtures :authors, :posts, :comments, :developers, :projects, :developers_projects, :people, :readers
@@ -74,6 +77,15 @@ class ReadOnlyTest < ActiveRecord::TestCase
 
   def test_has_many_with_through_is_not_implicitly_marked_readonly_while_finding_last
     assert !posts(:welcome).people.last.readonly?
+  end
+
+  def test_insert_records_via_has_many_through_association_with_readonly
+    club = Club.create!
+    member = Member.create!
+    member.readonly!
+
+    club.members << member
+    assert_equal [member], club.members
   end
 
   def test_readonly_scoping
