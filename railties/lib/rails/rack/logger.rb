@@ -13,8 +13,8 @@ module Rails
     # an instance of the +request+ object.
     class Logger < ActiveSupport::LogSubscriber
       def initialize(app, taggers = nil)
-        @app          = app
-        @taggers      = taggers || []
+        @app     = app
+        @taggers = taggers || []
       end
 
       def call(env)
@@ -30,14 +30,13 @@ module Rails
     protected
 
       def call_app(request, env)
-        instrumenter = ActiveSupport::Notifications.instrumenter
-        instrumenter.start 'request.action_dispatch', request: request
+        announce_start(request)
         logger.info { started_request_message(request) }
         resp = @app.call(env)
-        resp[2] = ::Rack::BodyProxy.new(resp[2]) { finish(request) }
+        resp[2] = ::Rack::BodyProxy.new(resp[2]) { announce_finish(request) }
         resp
       rescue Exception
-        finish(request)
+        announce_finish(request)
         raise
       ensure
         ActiveSupport::LogSubscriber.flush_all!
@@ -67,7 +66,12 @@ module Rails
 
       private
 
-      def finish(request)
+      def announce_start(request)
+        instrumenter = ActiveSupport::Notifications.instrumenter
+        instrumenter.start 'request.action_dispatch', request: request
+      end
+
+      def announce_finish(request)
         instrumenter = ActiveSupport::Notifications.instrumenter
         instrumenter.finish 'request.action_dispatch', request: request
       end
