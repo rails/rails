@@ -1242,7 +1242,7 @@ module ActiveRecord
     def record_version_state_after_migrating(version)
       if down?
         migrated.delete(version)
-        ActiveRecord::SchemaMigration.where(:version => version.to_s).delete_all
+        ActiveRecord::SchemaMigration.where(version: version.to_s).delete_all
       else
         migrated << version
         ActiveRecord::SchemaMigration.create!(version: version.to_s)
