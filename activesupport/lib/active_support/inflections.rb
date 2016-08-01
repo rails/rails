@@ -58,6 +58,7 @@ module ActiveSupport
     inflect.singular(/(quiz)zes$/i, '\1')
     inflect.singular(/(database)s$/i, '\1')
 
+    inflect.irregular('campus', 'campuses')
     inflect.irregular('person', 'people')
     inflect.irregular('man', 'men')
     inflect.irregular('child', 'children')
