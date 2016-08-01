@@ -107,7 +107,7 @@ class ValidatesTest < ActiveModel::TestCase
     Person.validates :karma, length: 6..20
     person = Person.new
     assert person.invalid?
-    assert_equal ['is too short (minimum is 6 characters)'], person.errors[:karma]
+    assert_equal ['is too short (minimum is 6)'], person.errors[:karma]
     person.karma = 'something'
     assert person.valid?
   end
