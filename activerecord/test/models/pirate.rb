@@ -21,7 +21,7 @@ class Pirate < ActiveRecord::Base
   has_one :ship
   has_one :update_only_ship, :class_name => 'Ship'
   has_one :non_validated_ship, :class_name => 'Ship'
-  has_many :birds, -> { order('birds.id ASC') }
+  has_many :birds, -> { order('birds.id ASC') }, :inverse_of => :pirate
   has_many :birds_with_method_callbacks, :class_name => "Bird",
     :before_add    => :log_before_add,
     :after_add     => :log_after_add,
