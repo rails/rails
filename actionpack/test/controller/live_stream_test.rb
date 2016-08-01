@@ -405,7 +405,7 @@ module ActionController
         (Thread.list - current_threads).each(&:join)
 
         assert_equal %(data: "500 Internal Server Error"\n\n), response.body
-        assert_match 'An exception occurred...', output.rewind && output.read
+        assert_match 'Completed 500 Internal Server Error', output.rewind && output.read
         assert_stream_closed
       end
     end
