@@ -36,6 +36,7 @@
       almost_x_years:
         one:   "almost 1 year"
         other: "almost %{count} years"
+      none: "none"
     prompts:
       year:   "Year"
       month:  "Month"

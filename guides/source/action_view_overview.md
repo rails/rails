@@ -685,6 +685,7 @@ datetime_select("article", "published_on")
 Reports the approximate distance in time between two Time or Date objects or integers as seconds. Set `include_seconds` to true if you want more detailed approximations.
 
 ```ruby
+distance_of_time_in_words(nil)   # => none
 distance_of_time_in_words(Time.now, Time.now + 15.seconds)        # => less than a minute
 distance_of_time_in_words(Time.now, Time.now + 15.seconds, include_seconds: true)  # => less than 20 seconds
 ```
@@ -787,6 +788,7 @@ select_year(Date.today, start_year: 1900, end_year: 2009)
 Like `distance_of_time_in_words`, but where `to_time` is fixed to `Time.now`.
 
 ```ruby
+time_ago_in_words(nil)  # => none
 time_ago_in_words(3.minutes.from_now)  # => 3 minutes
 ```
 
