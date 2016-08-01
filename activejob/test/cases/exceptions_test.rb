@@ -1,5 +1,6 @@
 require 'helper'
 require 'jobs/retry_job'
+require 'byebug'
 
 class ExceptionsTest < ActiveSupport::TestCase
   setup do
@@ -43,5 +44,43 @@ class ExceptionsTest < ActiveSupport::TestCase
   test "discard job" do
     RetryJob.perform_later 'DiscardableError', 2
     assert_equal "Raised DiscardableError for the 1st time", JobBuffer.last_value
+  end
+end
+
+class ExponentiallyBackoffExceptionsTest < ActiveJob::TestCase
+  setup do
+    JobBuffer.clear
+  end
+
+  test "exponentially retrying job" do
+    travel_to Time.now
+
+    perform_enqueued_jobs do
+      assert_performed_with at: (Time.now + 3.seconds).to_i do
+      assert_performed_with at: (Time.now + 18.seconds).to_i do
+      assert_performed_with at: (Time.now + 83.seconds).to_i do
+      assert_performed_with at: (Time.now + 258.seconds).to_i do
+        RetryJob.perform_later 'ExponentialWaitTenAttemptsError', 5
+      end
+      end
+      end
+      end
+    end
+  end
+
+  test "custom wait retrying job" do
+    travel_to Time.now
+
+    perform_enqueued_jobs do
+      assert_performed_with at: (Time.now + 2.seconds).to_i do
+      assert_performed_with at: (Time.now + 4.seconds).to_i do
+      assert_performed_with at: (Time.now + 6.seconds).to_i do
+      assert_performed_with at: (Time.now + 8.seconds).to_i do
+        RetryJob.perform_later 'CustomWaitTenAttemptsError', 5
+      end
+      end
+      end
+      end
+    end
   end
 end
