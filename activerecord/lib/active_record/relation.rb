@@ -552,7 +552,7 @@ module ActiveRecord
     #   # Delete multiple rows
     #   Todo.delete([2,3,4])
     def delete(id_or_array)
-      where(primary_key => id_or_array).delete_all
+      unscoped.where(primary_key => id_or_array).delete_all
     end
 
     # Causes the records to be loaded from the database if they have not

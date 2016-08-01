@@ -498,4 +498,13 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_match vegetarian_pattern, Lion.all.to_sql
     assert_match gender_pattern, Lion.female.to_sql
   end
+
+  def test_delete_record_that_is_not_in_default_scope
+    comment_id = CommentWithDefaultScopePostId.create!(post_id: 2, body: 'Test').id
+    comment = CommentWithDefaultScopePostId.unscoped.find(comment_id)
+    assert comment.persisted?
+    comment.delete
+    assert !comment.persisted?
+    assert_nil CommentWithDefaultScopePostId.unscoped.find_by(id: comment_id)
+  end
 end
