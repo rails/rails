@@ -1,4 +1,5 @@
 require 'active_support/core_ext/object/deep_dup'
+require 'active_support/hash_with_indifferent_access'
 
 module ActiveRecord
   # Declare an enum attribute where the values map to integers in the database,
