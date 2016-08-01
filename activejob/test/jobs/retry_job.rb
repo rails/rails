@@ -5,6 +5,7 @@ class DefaultsError < StandardError; end
 class ShortWaitTenAttemptsError < StandardError; end
 class ExponentialWaitTenAttemptsError < StandardError; end
 class CustomWaitTenAttemptsError < StandardError; end
+class CustomCatchError < StandardError; end
 class DiscardableError < StandardError; end
 
 class RetryJob < ActiveJob::Base
@@ -12,6 +13,7 @@ class RetryJob < ActiveJob::Base
   retry_on ShortWaitTenAttemptsError, wait: 1.second, attempts: 10
   retry_on ExponentialWaitTenAttemptsError, wait: :exponentially_longer, attempts: 10
   retry_on CustomWaitTenAttemptsError, wait: ->(executions) { executions * 2 }, attempts: 10
+  retry_on(CustomCatchError) { |exception| JobBuffer.add("Dealt with a job that failed to retry in a custom way") }
   discard_on DiscardableError
 
   def perform(raising, attempts)

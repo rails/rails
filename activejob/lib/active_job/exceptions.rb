@@ -11,6 +11,9 @@ module ActiveJob
       # bubble up to the underlying queuing system, which may have its own retry mechanism or place it in a
       # holding queue for inspection.
       #
+      # You can also pass a block that'll be invoked if the retry attempts fail for custom logic rather than letting
+      # the exception bubble up.
+      #
       # ==== Options
       # * <tt>:wait</tt> - Re-enqueues the job with a delay specified either in seconds (default: 3 seconds), 
       #   as a computing proc that the number of executions so far as an argument, or as a symbol reference of
@@ -25,11 +28,14 @@ module ActiveJob
       #  class RemoteServiceJob < ActiveJob::Base
       #    retry_on CustomAppException # defaults to 3s wait, 5 attempts
       #    retry_on AnotherCustomAppException, wait: ->(executions) { executions * 2 }
+      #    retry_on(YetAnotherCustomAppException) do |exception|
+      #      ExceptionNotifier.caught(exception)
+      #    end
       #    retry_on ActiveRecord::StatementInvalid, wait: 5.seconds, attempts: 3
       #    retry_on Net::OpenTimeout, wait: :exponentially_longer, attempts: 10
       #
       #    def perform(*args)
-      #      # Might raise CustomAppException or AnotherCustomAppException for something domain specific
+      #      # Might raise CustomAppException, AnotherCustomAppException, or YetAnotherCustomAppException for something domain specific
       #      # Might raise ActiveRecord::StatementInvalid when a local db deadlock is detected
       #      # Might raise Net::OpenTimeout when the remote service is down
       #    end
@@ -39,9 +45,13 @@ module ActiveJob
           if executions < attempts
             logger.error "Retrying #{self.class} in #{wait} seconds, due to a #{exception}. The original exception was #{error.cause.inspect}."
             retry_job wait: determine_delay(wait), queue: queue, priority: priority
-          else
-            logger.error "Stopped retrying #{self.class} due to a #{exception}, which reoccurred on #{executions} attempts. The original exception was #{error.cause.inspect}."
-            raise error
+          else          
+            if block_given?
+              yield exception
+            else
+              logger.error "Stopped retrying #{self.class} due to a #{exception}, which reoccurred on #{executions} attempts. The original exception was #{error.cause.inspect}."
+              raise error
+            end
           end
         end
       end
