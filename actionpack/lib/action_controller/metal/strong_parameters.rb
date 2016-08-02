@@ -9,14 +9,6 @@ require 'stringio'
 require 'set'
 require 'yaml'
 
-# Wire up YAML format compatibility with Rails 4.2. Makes the YAML parser call
-# `init_with` when it encounters `!ruby/hash-with-ivars:ActionController::Parameters`,
-# instead of trying to parse it as a regular hash subclass.
-# Second `load_tags` is for compatibility with Psych prior to 2.0.9 where hashes
-# were dumped without instance variables.
-YAML.load_tags['!ruby/hash-with-ivars:ActionController::Parameters'] = 'ActionController::Parameters'
-YAML.load_tags['!ruby/hash:ActionController::Parameters'] = 'ActionController::Parameters'
-
 module ActionController
   # Raised when a required parameter is missing.
   #
@@ -599,6 +591,15 @@ module ActionController
     def inspect
       "<#{self.class} #{@parameters} permitted: #{@permitted}>"
     end
+
+    def self.hook_into_yaml_loading # :nodoc:
+      # Wire up YAML format compatibility with Rails 4.2 and Psych 2.0.8 and 2.0.9+.
+      # Makes the YAML parser call `init_with` when it encounters the keys below
+      # instead of trying its own parsing routines.
+      YAML.load_tags['!ruby/hash-with-ivars:ActionController::Parameters'] = name
+      YAML.load_tags['!ruby/hash:ActionController::Parameters'] = name
+    end
+    hook_into_yaml_loading
 
     def init_with(coder) # :nodoc:
       case coder.tag
