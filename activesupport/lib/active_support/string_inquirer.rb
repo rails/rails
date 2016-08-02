@@ -1,13 +1,23 @@
 module ActiveSupport
   # Wrapping a string in this class gives you a prettier way to test
-  # for equality. The value returned by <tt>Rails.env</tt> is wrapped
+  # for equality.
+  # It overrides method_missing to respond to every predicate methods called on
+  # it, evaluating each time if method name is equal to value of StringInquirer
+  # object on which predicate method was called.
+  #
+  # vehicle = ActiveSupport::StringInquirer.new('car')
+  #
+  # vehicle.car?   => true
+  # vehicle.bike?  => false
+  #
+  # The value returned by <tt>Rails.env</tt> is wrapped
   # in a StringInquirer object, so instead of calling this:
   #
-  #   Rails.env == 'production'
+  # Rails.env == 'production'
   #
   # you can call this:
   #
-  #   Rails.env.production?
+  # Rails.env.production?
   class StringInquirer < String
     private
 
