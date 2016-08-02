@@ -112,12 +112,8 @@ module ActionView
 
           def submit_default_value
             if scope
-              key    = model ? (model.persisted? ? :update : :create) : :submit
-              model_name = if model.respond_to?(:model_name)
-                model.model_name.human
-              else
-                scope.to_s.humanize
-              end
+              key = model ? (model.persisted? ? :update : :create) : :submit
+              model_name = model.respond_to?(:model_name) ? model.model_name.human : scope.to_s.humanize
               defaults = [:"helpers.submit.#{scope}.#{key}", :"helpers.submit.#{key}", :"#{key.to_s.humanize} #{model_name}"]
               I18n.t(defaults.shift, model: model_name, default: defaults)
             else
