@@ -287,19 +287,23 @@ module ActiveRecord
       end
 
       module ColumnMethods
-        def unsigned_integer(*args, **options)
+        def unsigned_integer(*args)
+          options = args.last.is_a?( Hash ) ? args.pop : {}
           args.each { |name| column(name, :unsigned_integer, options) }
         end
 
-        def unsigned_bigint(*args, **options)
+        def unsigned_bigint(*args)
+          options = args.last.is_a?( Hash ) ? args.pop : {}
           args.each { |name| column(name, :unsigned_bigint, options) }
         end
 
-        def unsigned_float(*args, **options)
+        def unsigned_float(*args)
+          options = args.last.is_a?( Hash ) ? args.pop : {}
           args.each { |name| column(name, :unsigned_float, options) }
         end
 
-        def unsigned_decimal(*args, **options)
+        def unsigned_decimal(*args)
+          options = args.last.is_a?( Hash ) ? args.pop : {}
           args.each { |name| column(name, :unsigned_decimal, options) }
         end
       end
