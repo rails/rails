@@ -44,7 +44,7 @@ class ExceptionsTest < ActiveSupport::TestCase
     RetryJob.perform_later 'DiscardableError', 2
     assert_equal "Raised DiscardableError for the 1st time", JobBuffer.last_value
   end
-  
+
   test "custom handling of job that exceeds retry attempts" do
     RetryJob.perform_later 'CustomCatchError', 6
     assert_equal "Dealt with a job that failed to retry in a custom way", JobBuffer.last_value

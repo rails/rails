@@ -15,7 +15,7 @@ module ActiveJob
       # the exception bubble up.
       #
       # ==== Options
-      # * <tt>:wait</tt> - Re-enqueues the job with a delay specified either in seconds (default: 3 seconds), 
+      # * <tt>:wait</tt> - Re-enqueues the job with a delay specified either in seconds (default: 3 seconds),
       #   as a computing proc that the number of executions so far as an argument, or as a symbol reference of
       #   <tt>:exponentially_longer<>, which applies the wait algorithm of <tt>(executions ** 4) + 2</tt>
       #   (first wait 3s, then 18s, then 83s, etc)
@@ -45,7 +45,7 @@ module ActiveJob
           if executions < attempts
             logger.error "Retrying #{self.class} in #{wait} seconds, due to a #{exception}. The original exception was #{error.cause.inspect}."
             retry_job wait: determine_delay(wait), queue: queue, priority: priority
-          else          
+          else
             if block_given?
               yield exception
             else
@@ -112,6 +112,6 @@ module ActiveJob
           algorithm = seconds_or_algorithm
           algorithm.call(executions)
         end
-      end  
+      end
   end
 end
