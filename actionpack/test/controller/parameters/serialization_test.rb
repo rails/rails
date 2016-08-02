@@ -20,13 +20,26 @@ class ParametersSerializationTest < ActiveSupport::TestCase
     assert_not roundtripped.permitted?
   end
 
-  test 'yaml backwardscompatible with hash inheriting parameters' do
-    assert_equal ActionController::Parameters.new(key: :value), YAML.load(<<-end_of_yaml.strip_heredoc)
+  test 'yaml backwardscompatible with psych 2.0.8 format' do
+    params = YAML.load <<-end_of_yaml.strip_heredoc
+      --- !ruby/hash:ActionController::Parameters
+      key: :value
+    end_of_yaml
+
+    assert_equal :value, params[:key]
+    assert_not params.permitted?
+  end
+
+  test 'yaml backwardscompatible with psych 2.0.9+ format' do
+    params = YAML.load(<<-end_of_yaml.strip_heredoc)
       --- !ruby/hash-with-ivars:ActionController::Parameters
       elements:
         key: :value
       ivars:
         :@permitted: false
     end_of_yaml
+
+    assert_equal :value, params[:key]
+    assert_not params.permitted?
   end
 end
