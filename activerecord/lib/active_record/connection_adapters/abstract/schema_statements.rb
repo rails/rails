@@ -278,7 +278,7 @@ module ActiveRecord
         result = execute schema_creation.accept td
 
         unless supports_indexes_in_create?
-          td.indexes.each_pair do |column_name, index_options|
+          td.indexes.each do |column_name, index_options|
             add_index(table_name, column_name, index_options)
           end
         end
