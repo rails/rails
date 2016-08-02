@@ -24,6 +24,9 @@ module ActiveJob
       # ID optionally provided by adapter
       attr_accessor :provider_job_id
 
+      # Number of times this job has been executed (which increments on every retry, like after an exception).
+      attr_accessor :executions
+
       # I18n.locale to be used during the job.
       attr_accessor :locale
     end
@@ -68,6 +71,7 @@ module ActiveJob
       @job_id     = SecureRandom.uuid
       @queue_name = self.class.queue_name
       @priority   = self.class.priority
+      @executions = 0
     end
 
     # Returns a hash with the job data that can safely be passed to the
@@ -79,6 +83,7 @@ module ActiveJob
         'queue_name' => queue_name,
         'priority'   => priority,
         'arguments'  => serialize_arguments(arguments),
+        'executions' => executions,
         'locale'     => I18n.locale.to_s
       }
     end
@@ -109,6 +114,7 @@ module ActiveJob
       self.queue_name           = job_data['queue_name']
       self.priority             = job_data['priority']
       self.serialized_arguments = job_data['arguments']
+      self.executions           = job_data['executions']
       self.locale               = job_data['locale'] || I18n.locale.to_s
     end
 
