@@ -601,19 +601,20 @@ module ActionController
     end
 
     def init_with(coder) # :nodoc:
-      if coder.map['elements']
-        # YAML 2.0.9's Hash subclass format from Rails 4.2, where keys and values
-        # were stored under an elements hash and `permitted` within an ivars hash.
-        @parameters = coder.map['elements'].with_indifferent_access
-        @permitted  = coder.map['ivars'][:@permitted]
-      elsif coder.map['parameters']
-        # YAML's Object format. Only needed because of the format
-        # backwardscompability above, otherwise equivalent to YAML's initialization.
-        @parameters, @permitted = coder.map['parameters'], coder.map['permitted']
-      else
+      case coder.tag
+      when '!ruby/hash:ActionController::Parameters'
         # YAML 2.0.8's format where hash instance variables weren't stored.
         @parameters = coder.map.with_indifferent_access
         @permitted  = false
+      when '!ruby/hash-with-ivars:ActionController::Parameters'
+        # YAML 2.0.9's Hash subclass format where keys and values
+        # were stored under an elements hash and `permitted` within an ivars hash.
+        @parameters = coder.map['elements'].with_indifferent_access
+        @permitted  = coder.map['ivars'][:@permitted]
+      when '!ruby/object:ActionController::Parameters'
+        # YAML's Object format. Only needed because of the format
+        # backwardscompability above, otherwise equivalent to YAML's initialization.
+        @parameters, @permitted = coder.map['parameters'], coder.map['permitted']
       end
     end
 
