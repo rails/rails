@@ -4,16 +4,17 @@ require 'active_support/core_ext/string/strip'
 
 class ParametersSerializationTest < ActiveSupport::TestCase
   setup do
-    @old_permitted_parameters = ActionController::Parameters.always_permitted_parameters
-    ActionController::Parameters.always_permitted_parameters = true
+    @old_permitted_parameters = ActionController::Parameters.permit_all_parameters
+    ActionController::Parameters.permit_all_parameters = false
   end
 
   teardown do
-    ActionController::Parameters.always_permitted_parameters = @old_permitted_parameters
+    ActionController::Parameters.permit_all_parameters = @old_permitted_parameters
   end
 
   test 'yaml serialization' do
-    assert_equal <<-end_of_yaml.strip_heredoc, YAML.dump(ActionController::Parameters.new(key: :value))
+    params = ActionController::Parameters.new(key: :value)
+    assert_equal <<-end_of_yaml.strip_heredoc, YAML.dump(params)
       --- !ruby/object:ActionController::Parameters
       parameters: !ruby/hash:ActiveSupport::HashWithIndifferentAccess
         key: :value
