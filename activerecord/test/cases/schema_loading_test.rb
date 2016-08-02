@@ -1,52 +1,44 @@
 require "cases/helper"
 
-module SchemaLoadCounter
-  extend ActiveSupport::Concern
-
-  module ClassMethods
-    attr_accessor :load_schema_calls
-
-    def load_schema!
-      self.load_schema_calls ||= 0
-      self.load_schema_calls +=1
-      super
-    end
-  end
-end
-
 class SchemaLoadingTest < ActiveRecord::TestCase
-  def test_basic_model_is_loaded_once
-    klass = define_model
-    klass.new
-    assert_equal 1, klass.load_schema_calls
+  self.use_transactional_tests = false
+
+  setup do
+    ActiveRecord::SchemaMigration.drop_table
+    ActiveRecord::SchemaMigration.create_table
   end
 
-  def test_model_with_custom_lock_is_loaded_once
-    klass = define_model do |c|
-      c.table_name = :lock_without_defaults_cust
-      c.locking_column = :custom_lock_version
-    end
-    klass.new
-    assert_equal 1, klass.load_schema_calls
+  teardown do
+    ActiveRecord::SchemaMigration.drop_table
   end
 
-  def test_model_with_changed_custom_lock_is_loaded_twice
-    klass = define_model do |c|
-      c.table_name = :lock_without_defaults_cust
-    end
-    klass.new
-    klass.locking_column = :custom_lock_version
-    klass.new
-    assert_equal 2, klass.load_schema_calls
+  def test_assume_migrated_upto_version_gets_all_versions
+    migrations_path = MIGRATIONS_ROOT + "/valid_with_subdirectories"
+
+    ActiveRecord::Base.connection.assume_migrated_upto_version(3, migrations_path)
+    assert_equal 3, ActiveRecord::Migrator.current_version
+
+    sm_table = ActiveRecord::Migrator.schema_migrations_table_name
+    migrated = ActiveRecord::Base.connection.select_values("SELECT version FROM #{sm_table}").map(&:to_i)
+    assert_equal [1,2,3], migrated.sort
   end
 
-  private
+  if current_adapter?(:SQLite3Adapter)
+    %w{3.7.8 3.7.11 3.7.12}.each do |version_string|
+      test "sql insertion for sqlite version #{version_string}" do
+        version = ActiveRecord::ConnectionAdapters::SQLite3Adapter::Version.new(version_string)
+        ActiveRecord::Base.connection.stubs(:sqlite_version).returns(version)
 
-    def define_model
-      Class.new(ActiveRecord::Base) do
-        include SchemaLoadCounter
-        self.table_name = :lock_without_defaults
-        yield self if block_given?
+        sm_table = ActiveRecord::Migrator.schema_migrations_table_name
+        connection = ActiveRecord::Base.connection
+
+        versions = [20160101010101, 20160201010101, 20160301010101]
+        sql = connection.insert_versions_sql versions
+        connection.execute_multi_insert sql
+
+        inserted = connection.select_values("SELECT version FROM #{sm_table}").map(&:to_i)
+        assert_equal versions.sort, inserted.sort
       end
     end
+  end
 end
