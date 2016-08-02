@@ -292,7 +292,7 @@ module ActiveRecord
   #
   # * http://www.postgresql.org/docs/current/static/transaction-iso.html
   # * https://dev.mysql.com/doc/refman/5.7/en/error-messages-server.html#error_er_lock_deadlock
-  class TransactionSerializationError < ActiveRecordError
+  class TransactionSerializationError < StatementInvalid
   end
 
   # IrreversibleOrderError is raised when a relation's order is too complex for
