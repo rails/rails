@@ -278,9 +278,8 @@ module ActiveRecord
       # provided by descendants. Note this method does not imply the records
       # are actually removed from the database, that depends precisely on
       # +delete_records+. They are in any case removed from the collection.
-      def delete(*records)
+      def delete(*records, **_options)
         return if records.empty?
-        _options = records.extract_options!
         dependent = _options[:dependent] || options[:dependent]
 
         records = find(records) if records.any? { |record| record.kind_of?(Integer) || record.kind_of?(String) }
