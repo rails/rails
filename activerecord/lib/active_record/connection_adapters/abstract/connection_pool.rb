@@ -848,7 +848,6 @@ module ActiveRecord
         spec = resolver.spec(config)
 
         remove_connection(spec.name)
-        owner_to_pool[spec.name] = ConnectionAdapters::ConnectionPool.new(spec)
 
         message_bus = ActiveSupport::Notifications.instrumenter
         payload = {

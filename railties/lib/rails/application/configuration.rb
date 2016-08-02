@@ -34,6 +34,7 @@ module Rails
         @public_file_server.index_name   = "index"
         @force_ssl                       = false
         @ssl_options                     = {}
+        @session_store                   = nil
         @time_zone                       = "UTC"
         @beginning_of_week               = :monday
         @log_level                       = nil

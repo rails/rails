@@ -36,8 +36,6 @@ module RailtiesTest
       add_to_env_config "development", "config.assets.digest = false"
 
       boot_rails
-      require 'rack/test'
-      extend Rack::Test::Methods
 
       get "/assets/engine.js"
       assert_match "alert()", last_response.body
@@ -321,8 +319,6 @@ module RailtiesTest
       RUBY
 
       boot_rails
-      require 'rack/test'
-      extend Rack::Test::Methods
 
       get "/sprokkit"
       assert_equal "I am a Sprokkit", last_response.body
@@ -359,8 +355,6 @@ module RailtiesTest
       RUBY
 
       boot_rails
-      require 'rack/test'
-      extend Rack::Test::Methods
 
       get '/foo'
       assert_equal 'foo', last_response.body
@@ -449,8 +443,6 @@ YAML
       RUBY
 
       boot_rails
-      require 'rack/test'
-      extend Rack::Test::Methods
 
       get "/admin/foo/bar"
       assert_equal 200, last_response.status
