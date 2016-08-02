@@ -12,7 +12,10 @@ require 'yaml'
 # Wire up YAML format compatibility with Rails 4.2. Makes the YAML parser call
 # `init_with` when it encounters `!ruby/hash-with-ivars:ActionController::Parameters`,
 # instead of trying to parse it as a regular hash subclass.
+# Second `load_tags` is for compatibility with Psych prior to 2.0.9 where hashes
+# were dumped without instance variables.
 YAML.load_tags['!ruby/hash-with-ivars:ActionController::Parameters'] = 'ActionController::Parameters'
+YAML.load_tags['!ruby/hash:ActionController::Parameters'] = 'ActionController::Parameters'
 
 module ActionController
   # Raised when a required parameter is missing.
@@ -599,14 +602,18 @@ module ActionController
 
     def init_with(coder) # :nodoc:
       if coder.map['elements']
-        # YAML's Hash subclass format from Rails 4.2, where keys and values
+        # YAML 2.0.9's Hash subclass format from Rails 4.2, where keys and values
         # were stored under an elements hash and `permitted` within an ivars hash.
         @parameters = coder.map['elements'].with_indifferent_access
         @permitted  = coder.map['ivars'][:@permitted]
-      else
+      elsif coder.map['parameters']
         # YAML's Object format. Only needed because of the format
         # backwardscompability above, otherwise equivalent to YAML's initialization.
         @parameters, @permitted = coder.map['parameters'], coder.map['permitted']
+      else
+        # YAML 2.0.8's format where hash instance variables weren't stored.
+        @parameters = coder.map.with_indifferent_access
+        @permitted  = false
       end
     end
 
