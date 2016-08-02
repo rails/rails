@@ -1,6 +1,5 @@
 require 'helper'
 require 'jobs/retry_job'
-require 'byebug'
 
 class ExceptionsTest < ActiveSupport::TestCase
   setup do
