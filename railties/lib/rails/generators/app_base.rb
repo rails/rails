@@ -10,7 +10,7 @@ require 'active_support/core_ext/array/extract_options'
 module Rails
   module Generators
     class AppBase < Base # :nodoc:
-      DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db sqlserver )
+      DATABASES = %w( mysql postgresql sqlite3 oracle frontbase ibm_db sqlserver )
       JDBC_DATABASES = %w( jdbcmysql jdbcsqlite3 jdbcpostgresql jdbc )
       DATABASES.concat(JDBC_DATABASES)
 
@@ -266,12 +266,12 @@ module Rails
       end
 
       def gem_for_database
-        # %w( mysql oracle postgresql sqlite3 frontbase ibm_db sqlserver jdbcmysql jdbcsqlite3 jdbcpostgresql )
+        # %w( mysql postgresql sqlite3 oracle frontbase ibm_db sqlserver jdbcmysql jdbcsqlite3 jdbcpostgresql )
         case options[:database]
-        when "oracle"         then ["ruby-oci8", nil]
-        when "postgresql"     then ["pg", ["~> 0.18"]]
-        when "frontbase"      then ["ruby-frontbase", nil]
         when "mysql"          then ["mysql2", [">= 0.3.18", "< 0.5"]]
+        when "postgresql"     then ["pg", ["~> 0.18"]]
+        when "oracle"         then ["ruby-oci8", nil]
+        when "frontbase"      then ["ruby-frontbase", nil]
         when "sqlserver"      then ["activerecord-sqlserver-adapter", nil]
         when "jdbcmysql"      then ["activerecord-jdbcmysql-adapter", nil]
         when "jdbcsqlite3"    then ["activerecord-jdbcsqlite3-adapter", nil]
@@ -284,9 +284,9 @@ module Rails
       def convert_database_option_for_jruby
         if defined?(JRUBY_VERSION)
           case options[:database]
-          when "oracle"     then options[:database].replace "jdbc"
           when "postgresql" then options[:database].replace "jdbcpostgresql"
           when "mysql"      then options[:database].replace "jdbcmysql"
+          when "oracle"     then options[:database].replace "jdbc"
           when "sqlite3"    then options[:database].replace "jdbcsqlite3"
           end
         end
