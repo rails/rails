@@ -76,8 +76,12 @@ module ActiveRecord
             @conn.quote_table_name name
           end
 
-          def type_to_sql(type, limit, precision, scale)
-            @conn.type_to_sql type.to_sym, limit, precision, scale
+          def type_to_sql(type, limit, precision, scale, unsigned = nil)
+            if unsigned.nil?
+              @conn.type_to_sql type.to_sym, limit, precision, scale
+            else
+              @conn.type_to_sql type.to_sym, limit, precision, scale, unsigned
+            end
           end
 
           def add_column_options!(sql, options)
