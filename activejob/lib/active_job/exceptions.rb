@@ -101,16 +101,21 @@ module ActiveJob
     end
 
     private
-      def determine_delay(seconds_or_algorithm)
-        case seconds_or_algorithm
+      def determine_delay(seconds_or_duration_or_algorithm)
+        case seconds_or_duration_or_algorithm
         when :exponentially_longer
           (executions ** 4) + 2
+        when ActiveSupport::Duration
+          duration = seconds_or_duration_or_algorithm
+          duration.to_i
         when Integer
-          seconds = seconds_or_algorithm
+          seconds = seconds_or_duration_or_algorithm
           seconds
         when Proc
-          algorithm = seconds_or_algorithm
+          algorithm = seconds_or_duration_or_algorithm
           algorithm.call(executions)
+        else
+          raise "Couldn't determine a delay based on #{seconds_or_duration_or_algorithm.inspect}"
         end
       end
   end
