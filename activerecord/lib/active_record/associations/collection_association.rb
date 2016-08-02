@@ -152,9 +152,7 @@ module ActiveRecord
         if loaded?
           n ? target.take(n) : target.first
         else
-          scope.take(n).tap do |record|
-            set_inverse_instance record if record.is_a? ActiveRecord::Base
-          end
+          scope.take(n)
         end
       end
 
@@ -656,9 +654,7 @@ module ActiveRecord
           args.shift if args.first.is_a?(Hash) && args.first.empty?
 
           collection = fetch_first_nth_or_last_using_find?(args) ? scope : load_target
-          collection.send(type, *args).tap do |record|
-            set_inverse_instance record if record.is_a? ActiveRecord::Base
-          end
+          collection.send(type, *args)
         end
     end
   end
