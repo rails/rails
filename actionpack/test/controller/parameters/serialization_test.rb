@@ -3,6 +3,15 @@ require 'action_controller/metal/strong_parameters'
 require 'active_support/core_ext/string/strip'
 
 class ParametersSerializationTest < ActiveSupport::TestCase
+  setup do
+    @old_permitted_parameters = ActionController::Parameters.always_permitted_parameters
+    ActionController::Parameters.always_permitted_parameters = true
+  end
+
+  teardown do
+    ActionController::Parameters.always_permitted_parameters = @old_permitted_parameters
+  end
+
   test 'yaml serialization' do
     assert_equal <<-end_of_yaml.strip_heredoc, YAML.dump(ActionController::Parameters.new(key: :value))
       --- !ruby/object:ActionController::Parameters
