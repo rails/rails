@@ -455,23 +455,20 @@ module ActiveRecord
       end
 
       private
-      def get_records
-        return scope.to_a if skip_statement_cache?
-
-        conn = klass.connection
-        sc = reflection.association_scope_cache(conn, owner) do
-          StatementCache.create(conn) { |params|
-            as = AssociationScope.create { params.bind }
-            target_scope.merge as.scope(self, conn)
-          }
-        end
-
-        binds = AssociationScope.get_bind_values(owner, reflection.chain)
-        sc.execute binds, klass, klass.connection
-      end
 
         def find_target
-          records = get_records
+          return scope.to_a if skip_statement_cache?
+
+          conn = klass.connection
+          sc = reflection.association_scope_cache(conn, owner) do
+            StatementCache.create(conn) { |params|
+              as = AssociationScope.create { params.bind }
+              target_scope.merge as.scope(self, conn)
+            }
+          end
+
+          binds = AssociationScope.get_bind_values(owner, reflection.chain)
+          records = sc.execute(binds, klass, conn)
           records.each { |record| set_inverse_instance(record) }
           records
         end
