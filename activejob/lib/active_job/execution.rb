@@ -31,7 +31,9 @@ module ActiveJob
     def perform_now
       deserialize_arguments_if_needed
       run_callbacks :perform do
-        self.executions = executions + 1
+        # Guard against jobs that were persisted before we started counting executions by zeroing out nil counters
+        self.executions = (executions || 0) + 1
+
         perform(*arguments)
       end
     rescue => exception
