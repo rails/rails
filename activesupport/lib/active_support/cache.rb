@@ -443,7 +443,7 @@ module ActiveSupport
             write(key, result, options) if result || (options && options[:force])
           end
         elsif options && options[:force]
-          raise ArgumentError, 'Missing block: Calling `Cache#cache_if_true` with `force: true` requires a block.'
+          raise ArgumentError, 'Missing block: Calling `Cache#cache_if_truthy` with `force: true` requires a block.'
         else
           result = read(name, options)
         end
