@@ -1,3 +1,11 @@
+*   Since weeks are no longer converted to days, add `:weeks` to the list of
+    parts that `ActiveSupport::TimeWithZone` will recognize as possibly being
+    of variable duration to take account of DST transitions.
+
+    Fixes #26039.
+
+    *Andrew White*
+
 *   Fix `ActiveSupport::TimeZone#strptime`. Now raises `ArgumentError` when the
     given time doesn't match the format. The error is the same as the one given
     by Ruby's `Date.strptime`. Previously it raised
