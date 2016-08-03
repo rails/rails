@@ -834,6 +834,38 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal "Sat, 28 Oct 2006 10:30:00 EDT -04:00", twz.advance(:hours => -24).inspect
   end
 
+  def test_advance_1_week_across_spring_dst_transition
+    twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006,4,1,10,30))
+    assert_equal "Sat, 08 Apr 2006 10:30:00 EDT -04:00", twz.advance(:weeks => 1).inspect
+    assert_equal "Sat, 08 Apr 2006 10:30:00 EDT -04:00", twz.weeks_since(1).inspect
+    assert_equal "Sat, 08 Apr 2006 10:30:00 EDT -04:00", twz.since(1.week).inspect
+    assert_equal "Sat, 08 Apr 2006 10:30:00 EDT -04:00", (twz + 1.week).inspect
+  end
+
+  def test_advance_1_week_across_spring_dst_transition_backwards
+    twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006,4,8,10,30))
+    assert_equal "Sat, 01 Apr 2006 10:30:00 EST -05:00", twz.advance(:weeks => -1).inspect
+    assert_equal "Sat, 01 Apr 2006 10:30:00 EST -05:00", twz.weeks_ago(1).inspect
+    assert_equal "Sat, 01 Apr 2006 10:30:00 EST -05:00", twz.ago(1.week).inspect
+    assert_equal "Sat, 01 Apr 2006 10:30:00 EST -05:00", (twz - 1.week).inspect
+  end
+
+  def test_advance_1_week_across_fall_dst_transition
+    twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006,10,28,10,30))
+    assert_equal "Sat, 04 Nov 2006 10:30:00 EST -05:00", twz.advance(:weeks => 1).inspect
+    assert_equal "Sat, 04 Nov 2006 10:30:00 EST -05:00", twz.weeks_since(1).inspect
+    assert_equal "Sat, 04 Nov 2006 10:30:00 EST -05:00", twz.since(1.week).inspect
+    assert_equal "Sat, 04 Nov 2006 10:30:00 EST -05:00", (twz + 1.week).inspect
+  end
+
+  def test_advance_1_week_across_fall_dst_transition_backwards
+    twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006,11,4,10,30))
+    assert_equal "Sat, 28 Oct 2006 10:30:00 EDT -04:00", twz.advance(:weeks => -1).inspect
+    assert_equal "Sat, 28 Oct 2006 10:30:00 EDT -04:00", twz.weeks_ago(1).inspect
+    assert_equal "Sat, 28 Oct 2006 10:30:00 EDT -04:00", twz.ago(1.week).inspect
+    assert_equal "Sat, 28 Oct 2006 10:30:00 EDT -04:00", (twz - 1.week).inspect
+  end
+
   def test_advance_1_month_across_spring_dst_transition
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2006,4,1,10,30))
     assert_equal "Mon, 01 May 2006 10:30:00 EDT -04:00", twz.advance(:months => 1).inspect

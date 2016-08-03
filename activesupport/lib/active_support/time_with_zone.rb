@@ -481,7 +481,7 @@ module ActiveSupport
       end
 
       def duration_of_variable_length?(obj)
-        ActiveSupport::Duration === obj && obj.parts.any? {|p| [:years, :months, :days].include?(p[0]) }
+        ActiveSupport::Duration === obj && obj.parts.any? {|p| [:years, :months, :weeks, :days].include?(p[0]) }
       end
 
       def wrap_with_time_zone(time)
