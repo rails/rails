@@ -72,8 +72,8 @@ group :cable do
   # Lock to 1.1.1 until the fix for https://github.com/faye/faye/issues/394 is released
   gem 'faye', '1.1.1', require: false
 
-  gem 'blade', require: false
-  gem 'blade-sauce_labs_plugin', require: false
+  gem 'blade', require: false, platforms: [:ruby]
+  gem 'blade-sauce_labs_plugin', require: false, platforms: [:ruby]
 end
 
 # Add your own local bundler stuff.
