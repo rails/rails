@@ -58,8 +58,7 @@ module ApplicationTests
         routes_reloader:  Rails.application.routes_reloader,
         reloaders:        Rails.application.reloaders,
         routes:           Rails.application.routes,
-        helpers:          Rails.application.helpers,
-        app_env_config:   Rails.application.env_config
+        helpers:          Rails.application.helpers
       )
 
       assert_equal Rails.application.config, application1.config
