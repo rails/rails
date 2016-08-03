@@ -44,8 +44,8 @@ module ActiveRecord
           scope.scope_for_create.stringify_keys.except(klass.primary_key)
         end
 
-        def get_records
-          return scope.limit(1).records if skip_statement_cache?
+        def find_target
+          return scope.take if skip_statement_cache?
 
           conn = klass.connection
           sc = reflection.association_scope_cache(conn, owner) do
@@ -56,11 +56,7 @@ module ActiveRecord
           end
 
           binds = AssociationScope.get_bind_values(owner, reflection.chain)
-          sc.execute binds, klass, klass.connection
-        end
-
-        def find_target
-          if record = get_records.first
+          if record = sc.execute(binds, klass, conn).first
             set_inverse_instance record
           end
         end
