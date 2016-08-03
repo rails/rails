@@ -123,7 +123,6 @@ module Rails
       @initialized       = false
       @reloaders         = []
       @routes_reloader   = nil
-      @app_env_config    = nil
       @ordered_railties  = nil
       @railties          = nil
       @message_verifiers = {}
@@ -239,30 +238,27 @@ module Rails
         "Error: #{e.message}"
     end
 
-    # Stores some of the Rails initial environment parameters which
-    # will be used by middlewares and engines to configure themselves.
+    # used by tests and ActionCable
     def env_config
-      @app_env_config ||= begin
-        validate_secret_key_config!
+      validate_secret_key_config!
 
-        super.merge(
-          "action_dispatch.parameter_filter" => config.filter_parameters,
-          "action_dispatch.redirect_filter" => config.filter_redirect,
-          "action_dispatch.secret_token" => secrets.secret_token,
-          "action_dispatch.secret_key_base" => secrets.secret_key_base,
-          "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions,
-          "action_dispatch.show_detailed_exceptions" => config.consider_all_requests_local,
-          "action_dispatch.logger" => Rails.logger,
-          "action_dispatch.backtrace_cleaner" => Rails.backtrace_cleaner,
-          "action_dispatch.key_generator" => key_generator,
-          "action_dispatch.http_auth_salt" => config.action_dispatch.http_auth_salt,
-          "action_dispatch.signed_cookie_salt" => config.action_dispatch.signed_cookie_salt,
-          "action_dispatch.encrypted_cookie_salt" => config.action_dispatch.encrypted_cookie_salt,
-          "action_dispatch.encrypted_signed_cookie_salt" => config.action_dispatch.encrypted_signed_cookie_salt,
-          "action_dispatch.cookies_serializer" => config.action_dispatch.cookies_serializer,
-          "action_dispatch.cookies_digest" => config.action_dispatch.cookies_digest
-        )
-      end
+      super.merge(
+        "action_dispatch.parameter_filter" => config.filter_parameters,
+        "action_dispatch.redirect_filter" => config.filter_redirect,
+        "action_dispatch.secret_token" => secrets.secret_token,
+        "action_dispatch.secret_key_base" => secrets.secret_key_base,
+        "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions,
+        "action_dispatch.show_detailed_exceptions" => config.consider_all_requests_local,
+        "action_dispatch.logger" => Rails.logger,
+        "action_dispatch.backtrace_cleaner" => Rails.backtrace_cleaner,
+        "action_dispatch.key_generator" => key_generator,
+        "action_dispatch.http_auth_salt" => config.action_dispatch.http_auth_salt,
+        "action_dispatch.signed_cookie_salt" => config.action_dispatch.signed_cookie_salt,
+        "action_dispatch.encrypted_cookie_salt" => config.action_dispatch.encrypted_cookie_salt,
+        "action_dispatch.encrypted_signed_cookie_salt" => config.action_dispatch.encrypted_signed_cookie_salt,
+        "action_dispatch.cookies_serializer" => config.action_dispatch.cookies_serializer,
+        "action_dispatch.cookies_digest" => config.action_dispatch.cookies_digest
+      )
     end
 
     # If you try to define a set of rake tasks on the instance, these will get
