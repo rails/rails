@@ -27,32 +27,25 @@ module ActiveRecord
       @connection.drop_table 'samples', if_exists: true
     end
 
-    test "raises error when a serialization failure occurs" do
-      assert_raises(ActiveRecord::TransactionSerializationError) do
+    test "raises DeadlockDetected when a deadlock is encountered" do
+      assert_raises(ActiveRecord::DeadlockDetected) do
+        s1 = Sample.create value: 1
+        s2 = Sample.create value: 2
+
         thread = Thread.new do
-          Sample.transaction isolation: :serializable do
-            Sample.delete_all
-
-            10.times do |i|
-              sleep 0.1
-
-              Sample.create value: i
-            end
+          Sample.transaction do
+            s1.lock!
+            sleep 1
+            s2.update_attributes value: 1
           end
         end
 
-        sleep 0.1
+        sleep 0.5
 
-        Sample.transaction isolation: :serializable do
-          Sample.delete_all
-
-          10.times do |i|
-            sleep 0.1
-
-            Sample.create value: i
-          end
-
+        Sample.transaction do
+          s2.lock!
           sleep 1
+          s1.update_attributes value: 2
         end
 
         thread.join

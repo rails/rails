@@ -407,6 +407,7 @@ module ActiveRecord
         FOREIGN_KEY_VIOLATION = "23503"
         UNIQUE_VIOLATION      = "23505"
         SERIALIZATION_FAILURE = "40001"
+        DEADLOCK_DETECTED     = "40P01"
 
         def translate_exception(exception, message)
           return exception unless exception.respond_to?(:result)
@@ -419,7 +420,9 @@ module ActiveRecord
           when VALUE_LIMIT_VIOLATION
             ValueTooLong.new(message)
           when SERIALIZATION_FAILURE
-            TransactionSerializationError.new(message)
+            SerializationFailure.new(message)
+          when DEADLOCK_DETECTED
+            DeadlockDetected.new(message)
           else
             super
           end
