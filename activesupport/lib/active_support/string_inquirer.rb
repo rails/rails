@@ -8,6 +8,12 @@ module ActiveSupport
   # you can call this:
   #
   #   Rails.env.production?
+  #
+  # == Instantiating a new StringInquirer
+  #
+  #   vehicle = ActiveSupport::StringInquirer.new('car')
+  #   vehicle.car?   # => true
+  #   vehicle.bike?  # => false
   class StringInquirer < String
     private
 
