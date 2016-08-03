@@ -116,7 +116,7 @@ module Rails
     delegate :default_url_options, :default_url_options=, to: :routes
 
     INITIAL_VARIABLES = [:config, :railties, :routes_reloader, :reloaders,
-                         :routes, :helpers, :secrets] # :nodoc:
+                         :routes, :helpers, :caching_key_generator, :secrets] # :nodoc:
 
     def initialize(initial_variable_values = {}, &block)
       super()
