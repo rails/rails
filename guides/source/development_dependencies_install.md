@@ -232,48 +232,21 @@ $ bundle install
 
 First, we need to delete `.bundle/config` because Bundler remembers in that file that we didn't want to install the "db" group (alternatively you can edit the file).
 
-In order to be able to run the test suite against MySQL you need to create a user named `rails` with privileges on the test databases:
-
-```bash
-$ mysql -uroot -p
-
-mysql> CREATE USER 'rails'@'localhost';
-mysql> GRANT ALL PRIVILEGES ON activerecord_unittest.*
-       to 'rails'@'localhost';
-mysql> GRANT ALL PRIVILEGES ON activerecord_unittest2.*
-       to 'rails'@'localhost';
-mysql> GRANT ALL PRIVILEGES ON inexistent_activerecord_unittest.*
-       to 'rails'@'localhost';
-```
-
-and create the test databases:
+In order to create the test databases for MySQL:
 
 ```bash
 $ cd activerecord
 $ bundle exec rake db:mysql:build
 ```
 
-PostgreSQL's authentication works differently. To setup the development environment
-with your development account, on Linux or BSD, you just have to run:
-
-```bash
-$ sudo -u postgres createuser --superuser $USER
-```
-
-and for OS X:
-
-```bash
-$ createuser --superuser $USER
-```
-
-Then you need to create the test databases with
+In order to create the test databases for PostgreSQL:
 
 ```bash
 $ cd activerecord
 $ bundle exec rake db:postgresql:build
 ```
 
-It is possible to build databases for both PostgreSQL and MySQL with
+It is possible to create the databases for both MySQL and PostgreSQL with
 
 ```bash
 $ cd activerecord
@@ -281,6 +254,13 @@ $ bundle exec rake db:create
 ```
 
 You can cleanup the databases using
+```bash
+$ cd activerecord
+$ bundle exec rake db:mysql:drop
+$ bundle exec rake db:postgresql:drop
+```
+
+or same
 
 ```bash
 $ cd activerecord
@@ -291,7 +271,7 @@ NOTE: Using the rake task to create the test databases ensures they have the cor
 
 NOTE: You'll see the following warning (or localized warning) during activating HStore extension in PostgreSQL 9.1.x or earlier: "WARNING: => is deprecated as an operator".
 
-If you're using another database, check the file `activerecord/test/config.yml` or `activerecord/test/config.example.yml` for default connection information. You can edit `activerecord/test/config.yml` to provide different credentials on your machine if you must, but obviously you should not push any such changes back to Rails.
+NOTE: Check the file `activerecord/test/config.yml` or `activerecord/test/config.example.yml` for default connection information. You can edit `activerecord/test/config.yml` to provide different credentials on your machine if you must, but obviously you should not push any such changes back to Rails.
 
 ### Action Cable Setup
 

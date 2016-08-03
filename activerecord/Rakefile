@@ -45,7 +45,7 @@ namespace :db do
   task drop: ["db:mysql:drop", "db:postgresql:drop"]
 end
 
-%w( mysql2 postgresql sqlite3 sqlite3_mem db2 oracle jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb ).each do |adapter|
+%w(mysql2 postgresql sqlite3 sqlite3_mem db2 oracle jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb).each do |adapter|
   namespace :test do
     Rake::TestTask.new(adapter => "#{adapter}:env") { |t|
       adapter_short = adapter == "db2" ? adapter : adapter[/^[a-z0-9]+/]
@@ -90,15 +90,33 @@ namespace :db do
     desc "Build the MySQL test databases"
     task :build do
       config = ARTest.config["connections"]["mysql2"]
-      %x( mysql --user=#{config["arunit"]["username"]} --password=#{config["arunit"]["password"]} -e "create DATABASE #{config["arunit"]["database"]} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci ")
-      %x( mysql --user=#{config["arunit2"]["username"]} --password=#{config["arunit2"]["password"]} -e "create DATABASE #{config["arunit2"]["database"]} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci ")
+
+      if ENV["TRAVIS"]
+        %x(mysql --user=#{config["arunit"]["username"]} -e "create DATABASE #{config["arunit"]["database"]} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci")
+        %x(mysql --user=#{config["arunit2"]["username"]} -e "create DATABASE #{config["arunit2"]["database"]} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci")
+      else
+        puts "\nCreating database '#{config['arunit']['database']}' as MySQL user '#{config['arunit']['username']}'"
+        %x(mysql --user=#{config["arunit"]["username"]} --password -e "create DATABASE #{config["arunit"]["database"]} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci")
+
+        puts "\nCreating database '#{config['arunit2']['database']}' as MySQL user '#{config['arunit2']['username']}'"
+        %x(mysql --user=#{config["arunit2"]["username"]} --password -e "create DATABASE #{config["arunit2"]["database"]} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci")
+      end
     end
 
     desc "Drop the MySQL test databases"
     task :drop do
       config = ARTest.config["connections"]["mysql2"]
-      %x( mysqladmin --user=#{config["arunit"]["username"]} --password=#{config["arunit"]["password"]} -f drop #{config["arunit"]["database"]} )
-      %x( mysqladmin --user=#{config["arunit2"]["username"]} --password=#{config["arunit2"]["password"]} -f drop #{config["arunit2"]["database"]} )
+
+      if ENV["TRAVIS"]
+        %x(mysqladmin --user=#{config["arunit"]["username"]} -f drop #{config["arunit"]["database"]})
+        %x(mysqladmin --user=#{config["arunit2"]["username"]} -f drop #{config["arunit2"]["database"]})
+      else
+        puts "\nDropping database '#{config['arunit']['database']}' as MySQL user '#{config['arunit']['username']}'"
+        %x(mysqladmin --user=#{config["arunit"]["username"]} --password -f drop #{config["arunit"]["database"]})
+
+        puts "\nDropping database '#{config['arunit2']['database']}' as MySQL user '#{config['arunit2']['username']}'"
+        %x(mysqladmin --user=#{config["arunit2"]["username"]} --password -f drop #{config["arunit2"]["database"]})
+      end
     end
 
     desc "Rebuild the MySQL test databases"
@@ -109,15 +127,38 @@ namespace :db do
     desc "Build the PostgreSQL test databases"
     task :build do
       config = ARTest.config["connections"]["postgresql"]
-      %x( createdb -E UTF8 -T template0 #{config["arunit"]["database"]} )
-      %x( createdb -E UTF8 -T template0 #{config["arunit2"]["database"]} )
+
+      if ENV["TRAVIS"]
+        %x(createdb -E UTF8 -T template0 #{config["arunit"]["database"]})
+        %x(createdb -E UTF8 -T template0 #{config["arunit2"]["database"]})
+      else
+        puts "\nCreating database '#{config['arunit']['database']}' as PostgreSQL user '#{config['arunit']['username']}'"
+        %x(createdb -E UTF8 -T template0 --host=#{config["arunit"]["host"]} --username=#{config["arunit"]["username"]} --password #{config["arunit"]["database"]})
+
+        puts "\nCreating database '#{config['arunit2']['database']}' as PostgreSQL user '#{config['arunit2']['username']}'"
+        %x(createdb -E UTF8 -T template0 --host=#{config["arunit2"]["host"]} --username=#{config["arunit2"]["username"]} --password #{config["arunit2"]["database"]})
+      end
+
+      # prepare hstore
+      if %x(createdb --version).strip.gsub(/(.*)(\d\.\d\.\d)$/, "\\2") < "9.1.0"
+        puts "Please prepare hstore data type. See http://www.postgresql.org/docs/current/static/hstore.html"
+      end
     end
 
     desc "Drop the PostgreSQL test databases"
     task :drop do
       config = ARTest.config["connections"]["postgresql"]
-      %x( dropdb #{config["arunit"]["database"]} )
-      %x( dropdb #{config["arunit2"]["database"]} )
+
+      if ENV["TRAVIS"]
+        %x(dropdb #{config["arunit"]["database"]})
+        %x(dropdb #{config["arunit2"]["database"]})
+      else
+        puts "\nDropping database '#{config['arunit']['database']}' as PostgreSQL user '#{config['arunit']['username']}'"
+        %x(dropdb --host=#{config["arunit"]["host"]} --username=#{config["arunit"]["username"]} --password #{config["arunit"]["database"]})
+
+        puts "\nDropping database '#{config['arunit2']['database']}' as PostgreSQL user '#{config['arunit2']['username']}'"
+        %x(dropdb --host=#{config["arunit2"]["host"]} --username=#{config["arunit2"]["username"]} --password #{config["arunit2"]["database"]})
+      end
     end
 
     desc "Rebuild the PostgreSQL test databases"

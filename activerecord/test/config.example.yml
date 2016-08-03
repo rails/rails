@@ -76,11 +76,15 @@ connections:
 
   postgresql:
     arunit:
+      host: localhost
+      username: rails
       min_messages: warning
     arunit_without_prepared_statements:
       min_messages: warning
       prepared_statements: false
     arunit2:
+      host: localhost
+      username: rails
       min_messages: warning
 
   sqlite3:
