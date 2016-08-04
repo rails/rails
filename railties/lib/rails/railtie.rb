@@ -132,19 +132,19 @@ module Rails
       end
 
       def rake_tasks(&blk)
-        register_block_for(@rake_tasks ||= [], &blk)
+        register_block_for(:rake_tasks, &blk)
       end
 
       def console(&blk)
-        register_block_for(@load_console ||= [], &blk)
+        register_block_for(:load_console, &blk)
       end
 
       def runner(&blk)
-        register_block_for(@runner ||= [], &blk)
+        register_block_for(:runner, &blk)
       end
 
       def generators(&blk)
-        register_block_for(@generators ||= [], &blk)
+        register_block_for(:generators, &blk)
       end
 
       def abstract_railtie?
@@ -178,13 +178,14 @@ module Rails
           ActiveSupport::Inflector.underscore(string).tr("/", "_")
         end
 
-        # receives an array-like instance variable as *reference* and append
-        # given block to array result set, which will be used later in
+        # receives an instance variable identifier, set the variable value if is
+        # blank and append given block to value, which will be used later in
         # `#each_registered_block(type, &block)`
-        def register_block_for(variable, &blk)
-          variable ||= []
-          variable << blk if blk
-          variable
+        def register_block_for(type, &blk)
+          var_name = "@#{type}"
+          blocks = instance_variable_get(var_name) || instance_variable_set(var_name, [])
+          blocks << blk if blk
+          blocks
         end
 
 
