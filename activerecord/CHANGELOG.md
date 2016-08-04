@@ -1,3 +1,9 @@
+*   Fixed: Optimistic locking does not work well with null in the database.
+
+    Fixes #26024
+
+    *bogdanvlviv*
+
 *   Fixed support for case insensitive comparisons of `text` columns in
     PostgreSQL.
 
