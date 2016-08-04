@@ -300,9 +300,9 @@ module ActiveRecord
   class SerializationFailure < TransactionRollbackError
   end
 
-  # DeadlockDetected will be raised when a transaction is rolled
+  # Deadlocked will be raised when a transaction is rolled
   # back by the database when a deadlock is encountered.
-  class DeadlockDetected < TransactionRollbackError
+  class Deadlocked < TransactionRollbackError
   end
 
   # IrreversibleOrderError is raised when a relation's order is too complex for

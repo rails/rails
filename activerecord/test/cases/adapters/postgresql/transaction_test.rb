@@ -58,9 +58,9 @@ module ActiveRecord
       end
     end
 
-    test "raises DeadlockDetected when a deadlock is encountered" do
+    test "raises Deadlocked when a deadlock is encountered" do
       with_warning_suppression do
-        assert_raises(ActiveRecord::DeadlockDetected) do
+        assert_raises(ActiveRecord::Deadlocked) do
           s1 = Sample.create value: 1
           s2 = Sample.create value: 2
 
