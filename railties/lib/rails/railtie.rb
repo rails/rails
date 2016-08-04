@@ -132,19 +132,19 @@ module Rails
       end
 
       def rake_tasks(&blk)
-        register_block_for(@rake_tasks, &blk)
+        register_block_for(@rake_tasks ||= [], &blk)
       end
 
       def console(&blk)
-        register_block_for(@load_console, &blk)
+        register_block_for(@load_console ||= [], &blk)
       end
 
       def runner(&blk)
-        register_block_for(@runner, &blk)
+        register_block_for(@runner ||= [], &blk)
       end
 
       def generators(&blk)
-        register_block_for(@generators, &blk)
+        register_block_for(@generators ||= [], &blk)
       end
 
       def abstract_railtie?
