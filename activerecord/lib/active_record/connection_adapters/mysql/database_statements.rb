@@ -45,7 +45,7 @@ module ActiveRecord
           end
         end
 
-        def exec_delete(sql, name, binds)
+        def exec_delete(sql, name = nil, binds = [])
           if without_prepared_statement?(binds)
             execute_and_free(sql, name) { @connection.affected_rows }
           else
