@@ -14,7 +14,8 @@ module ActiveRecord
             it for 'IN' conditions.
           MSG
 
-          values = values.flatten
+          flat_values = values.flatten
+          values = flat_values unless flat_values.include?(nil)
         end
 
         return attribute.in([]) if values.empty? && nils.empty?
