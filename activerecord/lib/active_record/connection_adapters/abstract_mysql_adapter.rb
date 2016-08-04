@@ -753,7 +753,7 @@ module ActiveRecord
         when ER_DATA_TOO_LONG
           ValueTooLong.new(message)
         when ER_LOCK_DEADLOCK
-          DeadlockDetected.new(message)
+          Deadlocked.new(message)
         else
           super
         end

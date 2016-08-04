@@ -422,7 +422,7 @@ module ActiveRecord
           when SERIALIZATION_FAILURE
             SerializationFailure.new(message)
           when DEADLOCK_DETECTED
-            DeadlockDetected.new(message)
+            Deadlocked.new(message)
           else
             super
           end
