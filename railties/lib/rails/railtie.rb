@@ -144,7 +144,7 @@ module Rails
       end
 
       def generators(&blk)
-        register_block_for(@generators ||= [], &blk)
+        register_block_for(@generators, &blk)
       end
 
       def abstract_railtie?
