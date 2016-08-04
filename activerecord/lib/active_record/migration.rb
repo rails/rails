@@ -732,8 +732,7 @@ module ActiveRecord
     # Last argument can specify options:
     # - :direction (default is :up)
     # - :revert (default is false)
-    def run(*migration_classes)
-      opts = migration_classes.extract_options!
+    def run(*migration_classes, **opts)
       dir = opts[:direction] || :up
       dir = (dir == :down ? :up : :down) if opts[:revert]
       if reverting?

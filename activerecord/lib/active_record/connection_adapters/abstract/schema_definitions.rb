@@ -342,9 +342,7 @@ module ActiveRecord
       # <tt>:updated_at</tt> to the table. See {connection.add_timestamps}[rdoc-ref:SchemaStatements#add_timestamps]
       #
       #   t.timestamps null: false
-      def timestamps(*args)
-        options = args.extract_options!
-
+      def timestamps(*, **options)
         options[:null] = false if options[:null].nil?
 
         column(:created_at, :datetime, options)
@@ -592,8 +590,7 @@ module ActiveRecord
       #  t.belongs_to(:supplier, foreign_key: true)
       #
       # See {connection.add_reference}[rdoc-ref:SchemaStatements#add_reference] for details of the options you can use.
-      def references(*args)
-        options = args.extract_options!
+      def references(*args, **options)
         args.each do |ref_name|
           @base.add_reference(name, ref_name, options)
         end
@@ -606,8 +603,7 @@ module ActiveRecord
       #  t.remove_belongs_to(:supplier, polymorphic: true)
       #
       # See {connection.remove_reference}[rdoc-ref:SchemaStatements#remove_reference]
-      def remove_references(*args)
-        options = args.extract_options!
+      def remove_references(*args, **options)
         args.each do |ref_name|
           @base.remove_reference(name, ref_name, options)
         end
