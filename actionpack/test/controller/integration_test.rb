@@ -1238,6 +1238,22 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_get_request_with_json_uses_method_override_and_sends_a_post_request
+    with_routing do |routes|
+      routes.draw do
+        ActiveSupport::Deprecation.silence do
+          get ':action' => FooController
+        end
+      end
+
+      get '/foos_json', params: { foo: 'heyo' }, as: :json
+
+      assert_equal 'POST', request.method
+      assert_equal 'GET', request.headers['X-Http-Method-Override']
+      assert_equal({ 'foo' => 'heyo' }, response.parsed_body)
+    end
+  end
+
   private
     def post_to_foos(as:)
       with_routing do |routes|
