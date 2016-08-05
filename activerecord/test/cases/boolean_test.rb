@@ -30,4 +30,14 @@ class BooleanTest < ActiveRecord::TestCase
     assert !Boolean.find(b_false.id).value?
     assert Boolean.find(b_true.id).value?
   end
+
+  def test_find_by_boolean
+    b_nil   = Boolean.create!(value: nil)
+    b_false = Boolean.create!(value: false)
+    b_true  = Boolean.create!(value: true)
+
+    assert_nil Boolean.find_by(value: b_nil.value).value
+    assert !Boolean.find_by(value: b_false.value).value?
+    assert Boolean.find_by(value: b_true.value).value?
+  end
 end
