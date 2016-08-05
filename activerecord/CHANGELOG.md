@@ -1,3 +1,11 @@
+*   Hashes can once again be passed to setters of `composed_of`, if all of the
+    mapping methods are methods implemented on `Hash`.
+
+    Fixes #25978.
+
+    *Sean Griffin*
+
+
 ## Rails 4.2.7 (July 12, 2016) ##
 
 *   Inspecting an object with an associated array of over 10 elements no longer
