@@ -327,6 +327,12 @@ module ActionDispatch
         # Performs the actual request.
         def process(method, path, params: nil, headers: nil, env: nil, xhr: false, as: nil)
           request_encoder = RequestEncoder.encoder(as)
+          headers ||= {}
+
+          if method == :get && as == :json && params
+            headers['X-Http-Method-Override'] = 'GET'
+            method = :post
+          end
 
           if path =~ %r{://}
             location = URI.parse(path)
@@ -363,7 +369,6 @@ module ActionDispatch
           }
 
           if xhr
-            headers ||= {}
             headers['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
             headers['HTTP_ACCEPT'] ||= [Mime[:js], Mime[:html], Mime[:xml], 'text/xml', '*/*'].join(', ')
           end
