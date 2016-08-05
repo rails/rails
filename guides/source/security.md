@@ -141,7 +141,7 @@ NOTE: _Apart from stealing a user's session ID, the attacker may fix a session I
 
 ![Session fixation](images/session_fixation.png)
 
-This attack focuses on fixing a user's session ID known to the attacker, and forcing the user's browser into using this ID. It is therefore not necessary for the attacker to steal the session ID afterwards. Here is how this attack works:
+This attack focuses on fixing a user's session ID known to the attacker, and forcing the user's browser into using this ID. It is therefore not necessary for the attacker to steal the session ID afterwards. This usually does not affect `CookieStore` unless a session ID is generated and persisted on the server. Here is how this attack works:
 
 * The attacker creates a valid session ID: They load the login page of the web application where they want to fix the session, and take the session ID in the cookie from the response (see number 1 and 2 in the image).
 * They maintain the session by accessing the web application periodically in order to keep an expiring session alive.
@@ -265,16 +265,6 @@ another library to make Ajax calls, it is necessary to add the security token as
 a default header for Ajax calls in your library. To get the token, have a look at
 `<meta name='csrf-token' content='THE-TOKEN'>` tag printed by
 `<%= csrf_meta_tags %>` in your application view.
-
-It is common to use persistent cookies to store user information, with `cookies.permanent` for example. In this case, the cookies will not be cleared and the out of the box CSRF protection will not be effective. If you are using a different cookie store than the session for this information, you must handle what to do with it yourself:
-
-```ruby
-rescue_from ActionController::InvalidAuthenticityToken do |exception|
-  sign_out_user # Example method that will destroy the user cookies
-end
-```
-
-The above method can be placed in the `ApplicationController` and will be called when a CSRF token is not present or is incorrect on a non-GET request.
 
 Note that _cross-site scripting (XSS) vulnerabilities bypass all CSRF protections_. XSS gives the attacker access to all elements on a page, so they can read the CSRF security token from a form or directly submit the form. Read [more about XSS](#cross-site-scripting-xss) later.
 
