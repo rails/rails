@@ -82,6 +82,9 @@ module Rails
         class_option :skip_test,          type: :boolean, aliases: "-T", default: false,
                                           desc: "Skip test files"
 
+        class_option :skip_system_test,   type: :boolean, default: false,
+                                          desc: "Skip system test files"
+
         class_option :dev,                type: :boolean, default: false,
                                           desc: "Setup the #{name} with Gemfile pointing to your Rails checkout"
 

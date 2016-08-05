@@ -150,6 +150,10 @@ module Rails
       template "test/test_helper.rb"
     end
 
+    def system_test
+      empty_directory_with_keep_file "test/system"
+    end
+
     def tmp
       empty_directory_with_keep_file "tmp"
       empty_directory "tmp/cache"
@@ -260,6 +264,10 @@ module Rails
 
       def create_test_files
         build(:test) unless options[:skip_test]
+      end
+
+      def create_system_test_files
+        build(:system_test) unless options[:skip_system_test] || options[:skip_test] || options[:api]
       end
 
       def create_tmp_files

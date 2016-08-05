@@ -11,6 +11,7 @@ require "action_view/railtie"
 require "active_job/railtie"
 <%= comment_if :skip_action_cable %>require "action_cable/engine"
 <%= comment_if :skip_test %>require "rails/test_unit/railtie"
+<%= comment_if :skip_system_test %>require "system_testing/railtie"
 <%= comment_if :skip_sprockets %>require "sprockets/railtie"
 <% end -%>
 

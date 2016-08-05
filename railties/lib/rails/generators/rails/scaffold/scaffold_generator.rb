@@ -19,6 +19,8 @@ module Rails
 
       hook_for :scaffold_controller, required: true
 
+      hook_for :system_tool, as: :system
+
       hook_for :assets do |assets|
         invoke assets, [controller_name]
       end
