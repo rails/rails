@@ -1,3 +1,10 @@
+*   Hashes can once again be passed to setters of `composed_of`, if all of the
+    mapping methods are methods implemented on `Hash`.
+
+    Fixes #25978.
+
+    *Sean Griffin*
+
 *   Fix the SELECT statement in `#table_comment` for MySQL.
 
     *Takeshi Akima*
