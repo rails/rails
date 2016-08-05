@@ -1,3 +1,15 @@
+*   Action Cable should set allowed_request_origins with static IPs if rails s
+    is run with -b 0.0.0.0 or -b <static IP>.
+
+    Action Cable should not modify allowed_request_origins if rails s is run
+    in test or production.
+
+    railties/test/server_helpers.rb is added as a convenience for testing.
+    It allows Rails::Server objects to go through server.app.initialize!
+    and then be torn back down enough to have initialize! called again.
+
+    *Lorin Thwaits*
+
 *   A generated app should not include Uglifier with `--skip-javascript` option.
 
     *Ben Pickles*

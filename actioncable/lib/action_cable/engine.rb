@@ -22,7 +22,56 @@ module ActionCable
 
     initializer "action_cable.set_configs" do |app|
       options = app.config.action_cable
-      options.allowed_request_origins ||= /https?:\/\/localhost:\d+/ if ::Rails.env.development?
+
+      @@previous_servers ||= []
+
+      # Automatically set appropriate allowed_request_origins when running `rails s` in development
+      if defined?(Rails::Server) && ::Rails.env.development? && options.allowed_request_origins.nil?
+        begin
+          local_ips = ["localhost"]
+
+          # Find the server object our app is running under
+          rails_servers = ObjectSpace.each_object(Rails::Server)
+          servers = rails_servers.select { |rails_server| rails_server.instance_variable_get(:@app) == app }
+          servers = rails_servers.to_a if servers.empty?
+          servers.reject! { |srv| @@previous_servers.include?(srv) }
+          server = servers.last
+
+          # In case other recently-used server objects haven't been GC'd yet, keep track of what is current
+          @@previous_servers << server
+
+          # Get any binding that was specified
+          server_binding = server.instance_variable_get(:@options)[:Host]
+
+          if server_binding != nil
+            if server_binding == "0.0.0.0"
+              # Filter to include only private IPv4 addresses (those not routable on the Internet)
+              local_prefixes = ["10.", "127.", "172.16.", "172.17.", "172.18.", "172.19.",
+                "172.20.", "172.21.", "172.22.", "172.23.", "172.24.", "172.25.", "172.26.",
+                "172.27.", "172.28.", "172.29.", "172.30.", "172.31.", "169.254.", "192.168."]
+              local_addresses = Socket.ip_address_list.select do |addr|
+                addr.ipv4? && local_prefixes.inject(false) do |is_routable, prefix|
+                  is_routable || addr.ip_address.starts_with?(prefix)
+                end
+              end
+              local_ips += local_addresses.map(&:ip_address)
+            else
+              # rails s -b with a static IP address
+              local_ips = [server_binding]
+            end
+            if local_ips.length > 0
+              puts "Setting Action Cable allowed_request_origins for #{local_ips.length > 1 ? "these addresses:" : local_ips.first}"
+              puts "  #{local_ips.join("\n  ")}" if local_ips.length > 1
+            end
+          end
+        rescue => e
+          puts "Unable to automatically set allowed_request_origins."
+          Rails.logger.warn "Unable to automatically set allowed_request_origins:"
+          Rails.logger.warn "  #{e}"
+        ensure
+          options.allowed_request_origins = local_ips.map { |ip| Regexp.new("https?:\/\/#{ip}:\\d+") }
+        end
+      end
 
       app.paths.add "config/cable", with: "config/cable.yml"
 
