@@ -7,6 +7,7 @@ class Customer < ActiveRecord::Base
   composed_of :non_blank_gps_location, :class_name => "GpsLocation", :allow_nil => true, :mapping => %w(gps_location gps_location),
               :converter => lambda { |gps| self.gps_conversion_was_run = true; gps.blank? ? nil : GpsLocation.new(gps)}
   composed_of :fullname, :mapping => %w(name to_s), :constructor => Proc.new { |name| Fullname.parse(name) }, :converter => :parse
+  composed_of :fullname_no_converter, :mapping => %w(name to_s), class_name: "Fullname"
 end
 
 class Address
