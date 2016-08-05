@@ -303,7 +303,7 @@
 
     *Todd Bealmear*
 
-*   Allow to pass a string value to `size` option in `image_tag` and `video_tag`.
+*   Allow to pass an integer value to `size` option in `image_tag` and `video_tag`.
 
     This makes the behavior more consistent with `width` or `height` options.
 
