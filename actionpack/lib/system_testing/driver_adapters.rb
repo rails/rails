@@ -3,6 +3,7 @@ module SystemTesting
     extend ActiveSupport::Autoload
 
     autoload :CapybaraRackTestDriver
+    autoload :CapybaraSeleniumDriver
 
     class << self
       def lookup(name)
