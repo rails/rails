@@ -148,6 +148,10 @@ This will create a Rails application called Blog in a `blog` directory and
 install the gem dependencies that are already mentioned in `Gemfile` using
 `bundle install`.
 
+NOTE: If you're using Windows Subsystem for Linux then there are currently some
+limitations on file system notifications that mean you should disable the `spring`
+and `listen` gems which you can do by running `rails new blog --skip-spring --skip-listen`.
+
 TIP: You can see all of the command line options that the Rails application
 builder accepts by running `rails new -h`.
 
