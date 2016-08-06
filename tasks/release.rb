@@ -1,12 +1,12 @@
 FRAMEWORKS = %w( activesupport activemodel activerecord actionview actionpack activejob actionmailer actioncable railties )
 
-root    = File.expand_path('../../', __FILE__)
+root    = File.expand_path("../../", __FILE__)
 version = File.read("#{root}/RAILS_VERSION").strip
 tag     = "v#{version}"
 
 directory "pkg"
 
-(FRAMEWORKS + ['rails']).each do |framework|
+(FRAMEWORKS + ["rails"]).each do |framework|
   namespace framework do
     gem     = "pkg/#{framework}-#{version}.gem"
     gemspec = "#{framework}.gemspec"
@@ -27,7 +27,7 @@ directory "pkg"
       file = Dir[glob].first
       ruby = File.read(file)
 
-      major, minor, tiny, pre = version.split('.', 4)
+      major, minor, tiny, pre = version.split(".", 4)
       pre = pre ? pre.inspect : "nil"
 
       ruby.gsub!(/^(\s*)MAJOR(\s*)= .*?$/, "\\1MAJOR = #{major}")
@@ -42,7 +42,7 @@ directory "pkg"
       ruby.gsub!(/^(\s*)PRE(\s*)= .*?$/, "\\1PRE   = #{pre}")
       raise "Could not insert PRE in #{file}" unless $1
 
-      File.open(file, 'w') { |f| f.write ruby }
+      File.open(file, "w") { |f| f.write ruby }
     end
 
     task gem => %w(update_versions pkg) do
@@ -84,14 +84,14 @@ directory "pkg"
           # => "5.0.0.rc1"
           # irb(main):004:0> version.gsub(/\./).with_index { |s, i| i >= 2 ? '-' : s }
           # => "5.0.0-rc1"
-          version = version.gsub(/\./).with_index { |s, i| i >= 2 ? '-' : s }
+          version = version.gsub(/\./).with_index { |s, i| i >= 2 ? "-" : s }
 
           # Check if npm is installed, and raise an error if not
-          if sh 'which npm'
+          if sh "which npm"
             sh "npm version #{version} --no-git-tag-version"
             sh "npm publish"
           else
-            raise 'You must have npm installed to release Rails.'
+            raise "You must have npm installed to release Rails."
           end
         end
       end
@@ -101,31 +101,31 @@ end
 
 namespace :changelog do
   task :header do
-    (FRAMEWORKS + ['guides']).each do |fw|
-      require 'date'
-      fname = File.join fw, 'CHANGELOG.md'
+    (FRAMEWORKS + ["guides"]).each do |fw|
+      require "date"
+      fname = File.join fw, "CHANGELOG.md"
 
       header = "## Rails #{version} (#{Date.today.strftime('%B %d, %Y')}) ##\n\n*   No changes.\n\n\n"
       contents = header + File.read(fname)
-      File.open(fname, 'wb') { |f| f.write contents }
+      File.open(fname, "wb") { |f| f.write contents }
     end
   end
 
   task :release_date do
-    (FRAMEWORKS + ['guides']).each do |fw|
-      require 'date'
+    (FRAMEWORKS + ["guides"]).each do |fw|
+      require "date"
       replace = "## Rails #{version} (#{Date.today.strftime('%B %d, %Y')}) ##\n"
-      fname = File.join fw, 'CHANGELOG.md'
+      fname = File.join fw, "CHANGELOG.md"
 
       contents = File.read(fname).sub(/^(## Rails .*)\n/, replace)
-      File.open(fname, 'wb') { |f| f.write contents }
+      File.open(fname, "wb") { |f| f.write contents }
     end
   end
 
   task :release_summary do
-    (FRAMEWORKS + ['guides']).each do |fw|
+    (FRAMEWORKS + ["guides"]).each do |fw|
       puts "## #{fw}"
-      fname    = File.join fw, 'CHANGELOG.md'
+      fname    = File.join fw, "CHANGELOG.md"
       contents = File.readlines fname
       contents.shift
       changes = []
@@ -137,28 +137,28 @@ namespace :changelog do
 end
 
 namespace :all do
-  task :build           => FRAMEWORKS.map { |f| "#{f}:build"           } + ['rails:build']
-  task :update_versions => FRAMEWORKS.map { |f| "#{f}:update_versions" } + ['rails:update_versions']
-  task :install         => FRAMEWORKS.map { |f| "#{f}:install"         } + ['rails:install']
-  task :push            => FRAMEWORKS.map { |f| "#{f}:push"            } + ['rails:push']
+  task :build           => FRAMEWORKS.map { |f| "#{f}:build"           } + ["rails:build"]
+  task :update_versions => FRAMEWORKS.map { |f| "#{f}:update_versions" } + ["rails:update_versions"]
+  task :install         => FRAMEWORKS.map { |f| "#{f}:install"         } + ["rails:install"]
+  task :push            => FRAMEWORKS.map { |f| "#{f}:push"            } + ["rails:push"]
 
   task :ensure_clean_state do
     unless `git status -s | grep -v 'RAILS_VERSION\\|CHANGELOG\\|Gemfile.lock'`.strip.empty?
       abort "[ABORTING] `git status` reports a dirty tree. Make sure all changes are committed"
     end
 
-    unless ENV['SKIP_TAG'] || `git tag | grep '^#{tag}$'`.strip.empty?
+    unless ENV["SKIP_TAG"] || `git tag | grep '^#{tag}$'`.strip.empty?
       abort "[ABORTING] `git tag` shows that #{tag} already exists. Has this version already\n"\
             "           been released? Git tagging can be skipped by setting SKIP_TAG=1"
     end
   end
 
   task :bundle do
-    sh 'bundle check'
+    sh "bundle check"
   end
 
   task :commit do
-    File.open('pkg/commit_message.txt', 'w') do |f|
+    File.open("pkg/commit_message.txt", "w") do |f|
       f.puts "# Preparing for #{version} release\n"
       f.puts
       f.puts "# UNCOMMENT THE LINE ABOVE TO APPROVE THIS COMMIT"
