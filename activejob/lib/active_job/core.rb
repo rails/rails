@@ -36,7 +36,7 @@ module ActiveJob
     module ClassMethods
       # Creates a new job instance from a hash created with +serialize+
       def deserialize(job_data)
-        job = job_data['job_class'].constantize.new
+        job = job_data["job_class"].constantize.new
         job.deserialize(job_data)
         job
       end
@@ -78,13 +78,13 @@ module ActiveJob
     # queueing adapter.
     def serialize
       {
-        'job_class'  => self.class.name,
-        'job_id'     => job_id,
-        'queue_name' => queue_name,
-        'priority'   => priority,
-        'arguments'  => serialize_arguments(arguments),
-        'executions' => executions,
-        'locale'     => I18n.locale.to_s
+        "job_class"  => self.class.name,
+        "job_id"     => job_id,
+        "queue_name" => queue_name,
+        "priority"   => priority,
+        "arguments"  => serialize_arguments(arguments),
+        "executions" => executions,
+        "locale"     => I18n.locale.to_s
       }
     end
 
@@ -109,13 +109,13 @@ module ActiveJob
     #      end
     #    end
     def deserialize(job_data)
-      self.job_id               = job_data['job_id']
-      self.provider_job_id      = job_data['provider_job_id']
-      self.queue_name           = job_data['queue_name']
-      self.priority             = job_data['priority']
-      self.serialized_arguments = job_data['arguments']
-      self.executions           = job_data['executions']
-      self.locale               = job_data['locale'] || I18n.locale.to_s
+      self.job_id               = job_data["job_id"]
+      self.provider_job_id      = job_data["provider_job_id"]
+      self.queue_name           = job_data["queue_name"]
+      self.priority             = job_data["priority"]
+      self.serialized_arguments = job_data["arguments"]
+      self.executions           = job_data["executions"]
+      self.locale               = job_data["locale"] || I18n.locale.to_s
     end
 
     private

@@ -1,7 +1,7 @@
-require 'active_support/core_ext/hash/transform_values'
-require 'active_support/core_ext/string/filters'
-require 'active_support/tagged_logging'
-require 'active_support/logger'
+require "active_support/core_ext/hash/transform_values"
+require "active_support/core_ext/string/filters"
+require "active_support/tagged_logging"
+require "active_support/logger"
 
 module ActiveJob
   module Logging #:nodoc:
@@ -82,15 +82,15 @@ module ActiveJob
 
       private
         def queue_name(event)
-          event.payload[:adapter].class.name.demodulize.remove('Adapter') + "(#{event.payload[:job].queue_name})"
+          event.payload[:adapter].class.name.demodulize.remove("Adapter") + "(#{event.payload[:job].queue_name})"
         end
 
         def args_info(job)
           if job.arguments.any?
-            ' with arguments: ' +
-              job.arguments.map { |arg| format(arg).inspect }.join(', ')
+            " with arguments: " +
+              job.arguments.map { |arg| format(arg).inspect }.join(", ")
           else
-            ''
+            ""
           end
         end
 

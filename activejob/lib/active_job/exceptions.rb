@@ -1,4 +1,4 @@
-require 'active_support/core_ext/numeric/time'
+require "active_support/core_ext/numeric/time"
 
 module ActiveJob
   # Provides behavior for retrying and discarding jobs on exceptions.

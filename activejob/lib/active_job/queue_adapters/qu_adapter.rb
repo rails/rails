@@ -1,4 +1,4 @@
-require 'qu'
+require "qu"
 
 module ActiveJob
   module QueueAdapters

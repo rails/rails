@@ -1,4 +1,4 @@
-require 'active_job/arguments'
+require "active_job/arguments"
 
 module ActiveJob
   # Provides behavior for enqueuing jobs.
