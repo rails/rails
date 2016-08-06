@@ -2,7 +2,7 @@ require "rake/testtask"
 
 dir = File.dirname(__FILE__)
 
-task :default => :test
+task default: :test
 
 task :package
 

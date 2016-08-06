@@ -53,7 +53,7 @@ class ValidatesTest < ActiveModel::TestCase
   end
 
   def test_validates_with_namespaced_validator_class
-    Person.validates :karma, :'namespace/email' => true
+    Person.validates :karma, 'namespace/email': true
     person = Person.new
     person.valid?
     assert_equal ["is not an email"], person.errors[:karma]

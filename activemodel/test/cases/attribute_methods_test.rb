@@ -48,7 +48,7 @@ class ModelWithAttributesWithSpaces
   include ActiveModel::AttributeMethods
 
   def attributes
-    { :'foo bar' => "value of foo bar"}
+    { 'foo bar': "value of foo bar"}
   end
 
 private
@@ -67,7 +67,7 @@ class ModelWithWeirdNamesAttributes
   end
 
   def attributes
-    { :'a?b' => "value of a?b" }
+    { 'a?b': "value of a?b" }
   end
 
 private
