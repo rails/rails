@@ -1,34 +1,34 @@
-version = File.read(File.expand_path('../../RAILS_VERSION', __FILE__)).strip
+version = File.read(File.expand_path("../../RAILS_VERSION", __FILE__)).strip
 
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
-  s.name        = 'railties'
+  s.name        = "railties"
   s.version     = version
-  s.summary     = 'Tools for creating, working with, and running Rails applications.'
-  s.description = 'Rails internals: application bootup, plugins, generators, and rake tasks.'
+  s.summary     = "Tools for creating, working with, and running Rails applications."
+  s.description = "Rails internals: application bootup, plugins, generators, and rake tasks."
 
-  s.required_ruby_version = '>= 2.2.2'
+  s.required_ruby_version = ">= 2.2.2"
 
-  s.license = 'MIT'
+  s.license = "MIT"
 
-  s.author   = 'David Heinemeier Hansson'
-  s.email    = 'david@loudthinking.com'
-  s.homepage = 'http://rubyonrails.org'
+  s.author   = "David Heinemeier Hansson"
+  s.email    = "david@loudthinking.com"
+  s.homepage = "http://rubyonrails.org"
 
-  s.files        = Dir['CHANGELOG.md', 'README.rdoc', 'MIT-LICENSE', 'RDOC_MAIN.rdoc', 'exe/**/*', 'lib/**/{*,.[a-z]*}']
-  s.require_path = 'lib'
+  s.files        = Dir["CHANGELOG.md", "README.rdoc", "MIT-LICENSE", "RDOC_MAIN.rdoc", "exe/**/*", "lib/**/{*,.[a-z]*}"]
+  s.require_path = "lib"
 
-  s.bindir      = 'exe'
-  s.executables = ['rails']
+  s.bindir      = "exe"
+  s.executables = ["rails"]
 
-  s.rdoc_options << '--exclude' << '.'
+  s.rdoc_options << "--exclude" << "."
 
-  s.add_dependency 'activesupport', version
-  s.add_dependency 'actionpack',    version
+  s.add_dependency "activesupport", version
+  s.add_dependency "actionpack",    version
 
-  s.add_dependency 'rake', '>= 0.8.7'
-  s.add_dependency 'thor', '>= 0.18.1', '< 2.0'
-  s.add_dependency 'method_source'
+  s.add_dependency "rake", ">= 0.8.7"
+  s.add_dependency "thor", ">= 0.18.1", "< 2.0"
+  s.add_dependency "method_source"
 
-  s.add_development_dependency 'actionview', version
+  s.add_development_dependency "actionview", version
 end
