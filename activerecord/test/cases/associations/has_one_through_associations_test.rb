@@ -380,4 +380,9 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   ensure
     CustomerCarrier.current_customer = nil
   end
+
+  def test_saving_record_does_not_save_has_one_through_has_one_association
+    @member.club.expects(:save).never
+    @member.save
+  end
 end
