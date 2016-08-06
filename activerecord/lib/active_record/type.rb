@@ -49,7 +49,6 @@ module ActiveRecord
     Binary = ActiveModel::Type::Binary
     Boolean = ActiveModel::Type::Boolean
     Decimal = ActiveModel::Type::Decimal
-    DecimalWithoutScale = ActiveModel::Type::DecimalWithoutScale
     Float = ActiveModel::Type::Float
     Integer = ActiveModel::Type::Integer
     String = ActiveModel::Type::String
