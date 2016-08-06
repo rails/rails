@@ -1,3 +1,7 @@
+*   Deprecate `Type::UnsignedInteger`. Use `Type::Integer` instead.
+
+    *Ryuta Kamizono*
+
 *   Deprecate `Type::BigInteger`. Use `Type::Integer` instead.
 
     *Ryuta Kamizono*

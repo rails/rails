@@ -54,6 +54,7 @@ module ActiveModel
 
       test "deprecated integer types" do
         assert_deprecated { Type::BigInteger.new }
+        assert_deprecated { Type::UnsignedInteger.new }
       end
     end
   end
