@@ -1,4 +1,4 @@
-require 'isolation/abstract_unit'
+require "isolation/abstract_unit"
 
 module ApplicationTests
   class CacheTest < ActiveSupport::TestCase
@@ -6,7 +6,7 @@ module ApplicationTests
 
     def setup
       build_app
-      require 'rack/test'
+      require "rack/test"
       extend Rack::Test::Methods
     end
 
@@ -43,7 +43,7 @@ module ApplicationTests
         end
       RUBY
 
-      app_file 'config/routes.rb', <<-RUBY
+      app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get ':controller(/:action)'
         end
@@ -65,12 +65,12 @@ module ApplicationTests
       app("development")
 
       get "/expires/expires_header"
-      assert_nil last_response.headers['X-Rack-Cache']
+      assert_nil last_response.headers["X-Rack-Cache"]
 
       body = last_response.body
 
       get "/expires/expires_header"
-      assert_nil last_response.headers['X-Rack-Cache']
+      assert_nil last_response.headers["X-Rack-Cache"]
       assert_not_equal body, last_response.body
     end
 

@@ -1,6 +1,6 @@
-require 'generators/generators_test_helper'
-require 'rails/generators/rails/model/model_generator'
-require 'rails/generators/test_unit/model/model_generator'
+require "generators/generators_test_helper"
+require "rails/generators/rails/model/model_generator"
+require "rails/generators/test_unit/model/model_generator"
 
 class GeneratorsTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -15,7 +15,7 @@ class GeneratorsTest < Rails::Generators::TestCase
   end
 
   def test_simple_invoke
-    assert File.exist?(File.join(@path, 'generators', 'model_generator.rb'))
+    assert File.exist?(File.join(@path, "generators", "model_generator.rb"))
     assert_called_with(TestUnit::Generators::ModelGenerator, :start, [["Account"], {}]) do
       Rails::Generators.invoke("test_unit:model", ["Account"])
     end
@@ -46,7 +46,7 @@ class GeneratorsTest < Rails::Generators::TestCase
   end
 
   def test_should_give_higher_preference_to_rails_generators
-    assert File.exist?(File.join(@path, 'generators', 'model_generator.rb'))
+    assert File.exist?(File.join(@path, "generators", "model_generator.rb"))
     assert_called_with(Rails::Generators::ModelGenerator, :start, [["Account"], {}]) do
       warnings = capture(:stderr){ Rails::Generators.invoke :model, ["Account"] }
       assert warnings.empty?
@@ -108,8 +108,8 @@ class GeneratorsTest < Rails::Generators::TestCase
   def test_invoke_with_nested_namespaces
     model_generator = Minitest::Mock.new
     model_generator.expect(:start, nil, [["Account"], {}])
-    assert_called_with(Rails::Generators, :find_by_namespace, ['namespace', 'my:awesome'], returns: model_generator) do
-      Rails::Generators.invoke 'my:awesome:namespace', ["Account"]
+    assert_called_with(Rails::Generators, :find_by_namespace, ["namespace", "my:awesome"], returns: model_generator) do
+      Rails::Generators.invoke "my:awesome:namespace", ["Account"]
     end
     model_generator.verify
   end
@@ -214,7 +214,7 @@ class GeneratorsTest < Rails::Generators::TestCase
 
     # Create template
     mkdir_p(File.dirname(template))
-    File.open(template, 'w'){ |f| f.write "empty" }
+    File.open(template, "w"){ |f| f.write "empty" }
 
     capture(:stdout) do
       Rails::Generators.invoke :model, ["user"], destination_root: destination_root
@@ -234,7 +234,7 @@ class GeneratorsTest < Rails::Generators::TestCase
 
   def test_usage_with_embedded_ruby
     require File.expand_path("fixtures/lib/generators/usage_template/usage_template_generator", File.dirname(__FILE__))
-    output = capture(:stdout) { Rails::Generators.invoke :usage_template, ['--help'] }
+    output = capture(:stdout) { Rails::Generators.invoke :usage_template, ["--help"] }
     assert_match(/:: 2 ::/, output)
   end
 

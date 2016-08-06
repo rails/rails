@@ -1,10 +1,10 @@
-require 'abstract_unit'
-require 'rails/code_statistics'
+require "abstract_unit"
+require "rails/code_statistics"
 
 class CodeStatisticsTest < ActiveSupport::TestCase
   def setup
-    @tmp_path = File.expand_path(File.join(File.dirname(__FILE__), 'fixtures', 'tmp'))
-    @dir_js   = File.join(@tmp_path, 'lib.js')
+    @tmp_path = File.expand_path(File.join(File.dirname(__FILE__), "fixtures", "tmp"))
+    @dir_js   = File.join(@tmp_path, "lib.js")
     FileUtils.mkdir_p(@dir_js)
   end
 
@@ -12,21 +12,21 @@ class CodeStatisticsTest < ActiveSupport::TestCase
     FileUtils.rm_rf(@tmp_path)
   end
 
-  test 'ignores directories that happen to have source files extensions' do
+  test "ignores directories that happen to have source files extensions" do
     assert_nothing_raised do
-      @code_statistics = CodeStatistics.new(['tmp dir', @tmp_path])
+      @code_statistics = CodeStatistics.new(["tmp dir", @tmp_path])
     end
   end
 
-  test 'ignores hidden files' do
-    File.write File.join(@tmp_path, '.example.rb'), <<-CODE
+  test "ignores hidden files" do
+    File.write File.join(@tmp_path, ".example.rb"), <<-CODE
       def foo
         puts 'foo'
       end
     CODE
 
     assert_nothing_raised do
-      CodeStatistics.new(['hidden file', @tmp_path])
+      CodeStatistics.new(["hidden file", @tmp_path])
     end
   end
 

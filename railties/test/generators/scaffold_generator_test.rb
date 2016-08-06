@@ -1,5 +1,5 @@
-require 'generators/generators_test_helper'
-require 'rails/generators/rails/scaffold/scaffold_generator'
+require "generators/generators_test_helper"
+require "rails/generators/rails/scaffold/scaffold_generator"
 
 class ScaffoldGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -74,8 +74,8 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "app/views/product_lines/_form.html.erb" do |test|
-      assert_match 'product_line', test
-      assert_no_match '@product_line', test
+      assert_match "product_line", test
+      assert_no_match "@product_line", test
     end
 
     # Helpers
@@ -322,8 +322,8 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     content = File.read(route_path)
 
     # Remove all of the comments and blank lines from the routes file
-    content.gsub!(/^  \#.*\n/, '')
-    content.gsub!(/^\n/, '')
+    content.gsub!(/^  \#.*\n/, "")
+    content.gsub!(/^\n/, "")
 
     File.open(route_path, "wb") { |file| file.write(content) }
     assert_file "config/routes.rb", /\.routes\.draw do\n  resources :product_lines\nend\n\z/

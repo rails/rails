@@ -1,6 +1,6 @@
-require 'generators/generators_test_helper'
-require 'rails/generators/rails/model/model_generator'
-require 'active_support/core_ext/string/strip'
+require "generators/generators_test_helper"
+require "rails/generators/rails/model/model_generator"
+require "active_support/core_ext/string/strip"
 
 class ModelGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper

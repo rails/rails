@@ -1,5 +1,5 @@
-require 'isolation/abstract_unit'
-require 'rack/test'
+require "isolation/abstract_unit"
+require "rack/test"
 
 module ApplicationTests
   class MiddlewareExceptionsTest < ActiveSupport::TestCase
@@ -69,7 +69,7 @@ module ApplicationTests
 
       app.config.action_dispatch.show_exceptions = true
 
-      get '/foo'
+      get "/foo"
       assert_equal 500, last_response.status
     end
 
@@ -77,7 +77,7 @@ module ApplicationTests
       app.config.action_dispatch.show_exceptions = false
 
       assert_raise(ActionController::RoutingError) do
-        get '/foo'
+        get "/foo"
       end
     end
 
@@ -85,7 +85,7 @@ module ApplicationTests
       app.config.action_dispatch.show_exceptions = true
 
       assert_nothing_raised do
-        get '/foo'
+        get "/foo"
         assert_match "The page you were looking for doesn't exist.", last_response.body
       end
     end
@@ -95,7 +95,7 @@ module ApplicationTests
       app.config.consider_all_requests_local = true
 
       assert_nothing_raised do
-        get '/foo'
+        get "/foo"
         assert_match "No route matches", last_response.body
       end
     end
@@ -111,12 +111,12 @@ module ApplicationTests
       app.config.action_dispatch.show_exceptions = true
       app.config.consider_all_requests_local = true
 
-      app_file 'app/views/foo/index.html.erb', <<-ERB
+      app_file "app/views/foo/index.html.erb", <<-ERB
         <% raise 'boooom' %>
         ✓測試テスト시험
       ERB
 
-      get '/foo', :utf8 => '✓'
+      get "/foo", :utf8 => "✓"
       assert_match(/boooom/, last_response.body)
       assert_match(/測試テスト시험/, last_response.body)
     end

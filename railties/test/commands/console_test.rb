@@ -1,6 +1,6 @@
-require 'abstract_unit'
-require 'env_helpers'
-require 'rails/commands/console'
+require "abstract_unit"
+require "env_helpers"
+require "rails/commands/console"
 
 class Rails::ConsoleTest < ActiveSupport::TestCase
   include EnvHelpers
@@ -64,52 +64,52 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
   end
 
   def test_default_environment_with_rails_env
-    with_rails_env 'special-production' do
+    with_rails_env "special-production" do
       start
       assert_match(/\sspecial-production\s/, output)
     end
   end
 
   def test_default_environment_with_rack_env
-    with_rack_env 'production' do
+    with_rack_env "production" do
       start
       assert_match(/\sproduction\s/, output)
     end
   end
 
   def test_e_option
-    start ['-e', 'special-production']
+    start ["-e", "special-production"]
     assert_match(/\sspecial-production\s/, output)
   end
 
   def test_environment_option
-    start ['--environment=special-production']
+    start ["--environment=special-production"]
     assert_match(/\sspecial-production\s/, output)
   end
 
   def test_rails_env_is_production_when_first_argument_is_p
-    start ['p']
+    start ["p"]
     assert_match(/\sproduction\s/, output)
   end
 
   def test_rails_env_is_test_when_first_argument_is_t
-    start ['t']
+    start ["t"]
     assert_match(/\stest\s/, output)
   end
 
   def test_rails_env_is_development_when_argument_is_d
-    start ['d']
+    start ["d"]
     assert_match(/\sdevelopment\s/, output)
   end
 
   def test_rails_env_is_dev_when_argument_is_dev_and_dev_env_is_present
     stubbed_console = Class.new(Rails::Console) do
       def available_environments
-        ['dev']
+        ["dev"]
       end
     end
-    options = stubbed_console.parse_arguments(['dev'])
-    assert_match('dev', options[:environment])
+    options = stubbed_console.parse_arguments(["dev"])
+    assert_match("dev", options[:environment])
   end
 
   attr_reader :output

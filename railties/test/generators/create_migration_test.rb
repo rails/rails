@@ -1,5 +1,5 @@
-require 'generators/generators_test_helper'
-require 'rails/generators/rails/migration/migration_generator'
+require "generators/generators_test_helper"
+require "rails/generators/rails/migration/migration_generator"
 
 class CreateMigrationTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -19,12 +19,12 @@ class CreateMigrationTest < Rails::Generators::TestCase
   end
 
   def create_migration(destination_path = default_destination_path, config = {}, generator_options = {}, &block)
-    migration_name = File.basename(destination_path, '.rb')
+    migration_name = File.basename(destination_path, ".rb")
     generator([migration_name], generator_options)
     generator.set_migration_assigns!(destination_path)
 
     dir, base = File.split(destination_path)
-    timestamped_destination_path = File.join(dir, ["%migration_number%", base].join('_'))
+    timestamped_destination_path = File.join(dir, ["%migration_number%", base].join("_"))
 
     @migration = Rails::Generators::Actions::CreateMigration.new(generator, timestamped_destination_path, block || "contents", config)
   end

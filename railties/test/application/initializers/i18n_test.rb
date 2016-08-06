@@ -76,19 +76,19 @@ en:
   foo: "1"
       YAML
 
-      app_file 'app/models/foo.rb', <<-RUBY
+      app_file "app/models/foo.rb", <<-RUBY
         class Foo < ActiveRecord::Base
           @foo = I18n.t(:foo)
         end
       RUBY
 
-      app_file 'config/routes.rb', <<-RUBY
+      app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get '/i18n',   :to => lambda { |env| [200, {}, [Foo.instance_variable_get('@foo')]] }
         end
       RUBY
 
-      require 'rack/test'
+      require "rack/test"
       extend Rack::Test::Methods
       load_app
 
@@ -106,13 +106,13 @@ en:
   foo: "1"
       YAML
 
-      app_file 'config/routes.rb', <<-RUBY
+      app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get '/i18n',   :to => lambda { |env| [200, {}, [I18n.t(:foo)]] }
         end
       RUBY
 
-      require 'rack/test'
+      require "rack/test"
       extend Rack::Test::Methods
       load_app
 
@@ -141,13 +141,13 @@ en:
   foo: "1"
       YAML
 
-      app_file 'config/routes.rb', <<-RUBY
+      app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get '/i18n',   :to => lambda { |env| [200, {}, [I18n.t(:foo)]] }
         end
       RUBY
 
-      require 'rack/test'
+      require "rack/test"
       extend Rack::Test::Methods
       load_app
 
@@ -177,13 +177,13 @@ en:
   foo: "1"
       YAML
 
-      app_file 'config/routes.rb', <<-RUBY
+      app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get '/i18n',   :to => lambda { |env| [200, {}, [I18n.load_path.inspect]] }
         end
       RUBY
 
-      require 'rack/test'
+      require "rack/test"
       extend Rack::Test::Methods
       load_app
 

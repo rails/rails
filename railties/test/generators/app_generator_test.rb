@@ -1,6 +1,6 @@
-require 'generators/generators_test_helper'
-require 'rails/generators/rails/app/app_generator'
-require 'generators/shared_generator_tests'
+require "generators/generators_test_helper"
+require "rails/generators/rails/app/app_generator"
+require "generators/shared_generator_tests"
 
 DEFAULT_APP_FILES = %w(
   .gitignore
@@ -88,12 +88,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_application_new_exits_with_non_zero_code_on_invalid_application_name
-    quietly { system 'rails new test --no-rc' }
+    quietly { system "rails new test --no-rc" }
     assert_equal false, $?.success?
   end
 
   def test_application_new_exits_with_message_and_non_zero_code_when_generating_inside_existing_rails_directory
-    app_root = File.join(destination_root, 'myfirstapp')
+    app_root = File.join(destination_root, "myfirstapp")
     run_generator [app_root]
     output = nil
     Dir.chdir(app_root) do
@@ -104,7 +104,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_application_new_show_help_message_inside_existing_rails_directory
-    app_root = File.join(destination_root, 'myfirstapp')
+    app_root = File.join(destination_root, "myfirstapp")
     run_generator [app_root]
     output = Dir.chdir(app_root) do
       `rails new --help`
@@ -136,7 +136,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_rails_update_generates_correct_session_key
-    app_root = File.join(destination_root, 'myapp')
+    app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
 
     stub_rails_application(app_root) do
@@ -155,11 +155,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_new_application_not_include_api_initializers
     run_generator
 
-    assert_no_file 'config/initializers/cors.rb'
+    assert_no_file "config/initializers/cors.rb"
   end
 
   def test_rails_update_keep_the_cookie_serializer_if_it_is_already_configured
-    app_root = File.join(destination_root, 'myapp')
+    app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
 
     stub_rails_application(app_root) do
@@ -171,7 +171,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_rails_update_set_the_cookie_serializer_to_marshal_if_it_is_not_already_configured
-    app_root = File.join(destination_root, 'myapp')
+    app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
 
     FileUtils.rm("#{app_root}/config/initializers/cookies_serializer.rb")
@@ -186,7 +186,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_rails_update_dont_set_file_watcher
-    app_root = File.join(destination_root, 'myapp')
+    app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
 
     stub_rails_application(app_root) do
@@ -200,7 +200,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_rails_update_does_not_create_new_framework_defaults_by_default
-    app_root = File.join(destination_root, 'myapp')
+    app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
 
     FileUtils.rm("#{app_root}/config/initializers/new_framework_defaults.rb")
@@ -219,7 +219,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_rails_update_does_not_create_rack_cors
-    app_root = File.join(destination_root, 'myapp')
+    app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
 
     stub_rails_application(app_root) do
@@ -231,7 +231,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_rails_update_does_not_remove_rack_cors_if_already_present
-    app_root = File.join(destination_root, 'myapp')
+    app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
 
     FileUtils.touch("#{app_root}/config/initializers/cors.rb")
@@ -252,7 +252,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_gemfile_has_no_whitespace_errors
     run_generator
     absolute = File.expand_path("Gemfile", destination_root)
-    File.open(absolute, 'r') do |f|
+    File.open(absolute, "r") do |f|
       f.each_line do |line|
         assert_no_match %r{/^[ \t]+$/}, line
       end
@@ -385,8 +385,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_generator_has_assets_gems
     run_generator
 
-    assert_gem 'sass-rails'
-    assert_gem 'uglifier'
+    assert_gem "sass-rails"
+    assert_gem "uglifier"
   end
 
   def test_generator_if_skip_sprockets_is_given
@@ -446,7 +446,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_other_javascript_libraries
-    run_generator [destination_root, '-j', 'prototype']
+    run_generator [destination_root, "-j", "prototype"]
     assert_file "app/assets/javascripts/application.js" do |contents|
       assert_match %r{^//= require prototype}, contents
       assert_match %r{^//= require prototype_ujs}, contents
@@ -478,7 +478,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_inclusion_of_jbuilder
     run_generator
-    assert_gem 'jbuilder'
+    assert_gem "jbuilder"
   end
 
   def test_inclusion_of_a_debugger
@@ -488,13 +488,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
         assert_no_match(/byebug/, content)
       end
     else
-      assert_gem 'byebug'
+      assert_gem "byebug"
     end
   end
 
   def test_inclusion_of_listen_related_configuration_by_default
     run_generator
-    if RbConfig::CONFIG['host_os'] =~ /darwin|linux/
+    if RbConfig::CONFIG["host_os"] =~ /darwin|linux/
       assert_listen_related_configuration
     else
       assert_no_listen_related_configuration
@@ -502,14 +502,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_non_inclusion_of_listen_related_configuration_if_skip_listen
-    run_generator [destination_root, '--skip-listen']
+    run_generator [destination_root, "--skip-listen"]
     assert_no_listen_related_configuration
   end
 
   def test_evented_file_update_checker_config
     run_generator
-    assert_file 'config/environments/development.rb' do |content|
-      if RbConfig::CONFIG['host_os'] =~ /darwin|linux/
+    assert_file "config/environments/development.rb" do |content|
+      if RbConfig::CONFIG["host_os"] =~ /darwin|linux/
         assert_match(/^\s*config.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
       else
         assert_match(/^\s*# config.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
@@ -539,8 +539,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_file_is_added_for_backwards_compatibility
-    action :file, 'lib/test_file.rb', 'heres test data'
-    assert_file 'lib/test_file.rb', 'heres test data'
+    action :file, "lib/test_file.rb", "heres test data"
+    assert_file "lib/test_file.rb", "heres test data"
   end
 
   def test_tests_are_removed_from_frameworks_if_skip_test_is_given
@@ -564,14 +564,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     path = File.join(destination_root, "foo bar")
 
     # This also applies to MySQL apps but not with SQLite
-    run_generator [path, "-d", 'postgresql']
+    run_generator [path, "-d", "postgresql"]
 
     assert_file "foo bar/config/database.yml", /database: foo_bar_development/
   end
 
   def test_web_console
     run_generator
-    assert_gem 'web-console'
+    assert_gem "web-console"
   end
 
   def test_web_console_with_dev_option
@@ -598,18 +598,18 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_dev_option
     assert_generates_with_bundler dev: true
-    rails_path = File.expand_path('../../..', Rails.root)
-    assert_file 'Gemfile', /^gem\s+["']rails["'],\s+path:\s+["']#{Regexp.escape(rails_path)}["']$/
+    rails_path = File.expand_path("../../..", Rails.root)
+    assert_file "Gemfile", /^gem\s+["']rails["'],\s+path:\s+["']#{Regexp.escape(rails_path)}["']$/
   end
 
   def test_edge_option
     assert_generates_with_bundler edge: true
-    assert_file 'Gemfile', %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']#{Regexp.escape("5-0-stable")}["']$}
+    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']#{Regexp.escape("5-0-stable")}["']$}
   end
 
   def test_spring
     run_generator
-    assert_gem 'spring'
+    assert_gem "spring"
   end
 
   def test_spring_binstubs
@@ -618,9 +618,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
       @binstub_called ||= 0
 
       case command
-      when 'install'
+      when "install"
         # Called when running bundle, we just want to stub it so nothing to do here.
-      when 'exec spring binstub --all'
+      when "exec spring binstub --all"
         @binstub_called += 1
         assert_equal 1, @binstub_called, "exec spring binstub --all expected to be called once, but was called #{@install_called} times."
       end
@@ -645,7 +645,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_skip_spring
     run_generator [destination_root, "--skip-spring"]
 
-    assert_no_file 'config/spring.rb'
+    assert_no_file "config/spring.rb"
     assert_file "Gemfile" do |content|
       assert_no_match(/spring/, content)
     end
@@ -676,15 +676,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_gitignore_when_sqlite3
     run_generator
 
-    assert_file '.gitignore' do |content|
+    assert_file ".gitignore" do |content|
       assert_match(/sqlite3/, content)
     end
   end
 
   def test_gitignore_when_no_active_record
-    run_generator [destination_root, '--skip-active-record']
+    run_generator [destination_root, "--skip-active-record"]
 
-    assert_file '.gitignore' do |content|
+    assert_file ".gitignore" do |content|
       assert_no_match(/sqlite/i, content)
     end
   end
@@ -692,7 +692,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_gitignore_when_non_sqlite3_db
     run_generator([destination_root, "-d", "mysql"])
 
-    assert_file '.gitignore' do |content|
+    assert_file ".gitignore" do |content|
       assert_no_match(/sqlite/i, content)
     end
   end
@@ -735,16 +735,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_after_bundle_callback
-    path = 'http://example.org/rails_template'
+    path = "http://example.org/rails_template"
     template = %{ after_bundle { run 'echo ran after_bundle' } }
     template.instance_eval "def read; self; end" # Make the string respond to read
 
     check_open = -> *args do
-      assert_equal [ path, 'Accept' => 'application/x-thor-template' ], args
+      assert_equal [ path, "Accept" => "application/x-thor-template" ], args
       template
     end
 
-    sequence = ['install', 'exec spring binstub --all', 'echo ran after_bundle']
+    sequence = ["install", "exec spring binstub --all", "echo ran after_bundle"]
       @sequence_step ||= 0
     ensure_bundler_first = -> command do
       assert_equal sequence[@sequence_step], command, "commands should be called in sequence #{sequence}"
@@ -784,20 +784,20 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     def assert_listen_related_configuration
-      assert_gem 'listen'
-      assert_gem 'spring-watcher-listen'
+      assert_gem "listen"
+      assert_gem "spring-watcher-listen"
 
-      assert_file 'config/environments/development.rb' do |content|
+      assert_file "config/environments/development.rb" do |content|
         assert_match(/^\s*config.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
       end
     end
 
     def assert_no_listen_related_configuration
-      assert_file 'Gemfile' do |content|
+      assert_file "Gemfile" do |content|
         assert_no_match(/listen/, content)
       end
 
-      assert_file 'config/environments/development.rb' do |content|
+      assert_file "config/environments/development.rb" do |content|
         assert_match(/^\s*# config.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
       end
     end
@@ -809,10 +809,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
         @install_called ||= 0
 
         case command
-        when 'install'
+        when "install"
           @install_called += 1
           assert_equal 1, @install_called, "install expected to be called once, but was called #{@install_called} times"
-        when 'exec spring binstub --all'
+        when "exec spring binstub --all"
           # Called when running tests with spring, let through unscathed.
         end
       end

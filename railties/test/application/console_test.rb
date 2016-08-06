@@ -1,4 +1,4 @@
-require 'isolation/abstract_unit'
+require "isolation/abstract_unit"
 
 class ConsoleTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation
@@ -29,7 +29,7 @@ class ConsoleTest < ActiveSupport::TestCase
   end
 
   def test_app_can_access_path_helper_method
-    app_file 'config/routes.rb', <<-RUBY
+    app_file "config/routes.rb", <<-RUBY
       Rails.application.routes.draw do
         get 'foo', to: 'foo#index'
       end
@@ -37,7 +37,7 @@ class ConsoleTest < ActiveSupport::TestCase
 
     load_environment
     console_session = irb_context.app
-    assert_equal '/foo', console_session.foo_path
+    assert_equal "/foo", console_session.foo_path
   end
 
   def test_new_session_should_return_integration_session
@@ -88,8 +88,8 @@ class ConsoleTest < ActiveSupport::TestCase
     helper = irb_context.helper
     assert_not_nil helper
     assert_instance_of ActionView::Base, helper
-    assert_equal 'Once upon a time in a world...',
-      helper.truncate('Once upon a time in a world far far away')
+    assert_equal "Once upon a time in a world...",
+      helper.truncate("Once upon a time in a world far far away")
   end
 end
 
@@ -103,7 +103,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     skip "PTY unavailable" unless defined?(PTY) && PTY.respond_to?(:open)
 
     build_app
-    app_file 'app/models/post.rb', <<-CODE
+    app_file "app/models/post.rb", <<-CODE
       class Post < ActiveRecord::Base
       end
     CODE

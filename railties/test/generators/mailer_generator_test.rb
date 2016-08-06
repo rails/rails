@@ -1,5 +1,5 @@
-require 'generators/generators_test_helper'
-require 'rails/generators/mailer/mailer_generator'
+require "generators/generators_test_helper"
+require "rails/generators/mailer/mailer_generator"
 
 class MailerGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -13,7 +13,7 @@ class MailerGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/layout :mailer_notifier/, mailer)
     end
 
-    assert_file 'app/mailers/application_mailer.rb' do |mailer|
+    assert_file "app/mailers/application_mailer.rb" do |mailer|
       assert_match(/class ApplicationMailer < ActionMailer::Base/, mailer)
       assert_match(/default from: 'from@example.com'/, mailer)
       assert_match(/layout 'mailer'/, mailer)

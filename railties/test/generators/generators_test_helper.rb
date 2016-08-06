@@ -1,15 +1,15 @@
-require 'abstract_unit'
-require 'active_support/core_ext/module/remove_method'
-require 'active_support/testing/stream'
-require 'active_support/testing/method_call_assertions'
-require 'rails/generators'
-require 'rails/generators/test_case'
+require "abstract_unit"
+require "active_support/core_ext/module/remove_method"
+require "active_support/testing/stream"
+require "active_support/testing/method_call_assertions"
+require "rails/generators"
+require "rails/generators/test_case"
 
 module Rails
   class << self
     remove_possible_method :root
     def root
-      @root ||= Pathname.new(File.expand_path('../../fixtures', __FILE__))
+      @root ||= Pathname.new(File.expand_path("../../fixtures", __FILE__))
     end
   end
 end
@@ -20,9 +20,9 @@ Rails.application.config.generators.templates = [File.join(Rails.root, "lib", "t
 # Rails.application.config.generators to Rails::Generators
 Rails.application.load_generators
 
-require 'active_record'
-require 'action_dispatch'
-require 'action_view'
+require "active_record"
+require "action_dispatch"
+require "action_view"
 
 module GeneratorsTestHelper
   include ActiveSupport::Testing::Stream
@@ -34,7 +34,7 @@ module GeneratorsTestHelper
       setup :prepare_destination
 
       begin
-        base.tests Rails::Generators.const_get(base.name.sub(/Test$/, ''))
+        base.tests Rails::Generators.const_get(base.name.sub(/Test$/, ""))
       rescue
       end
     end

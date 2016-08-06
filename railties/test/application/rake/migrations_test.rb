@@ -12,7 +12,7 @@ module ApplicationTests
         teardown_app
       end
 
-      test 'running migrations with given scope' do
+      test "running migrations with given scope" do
         Dir.chdir(app_path) do
           `bin/rails generate model user username:string password:string`
 
@@ -37,7 +37,7 @@ module ApplicationTests
         end
       end
 
-      test 'model and migration generator with change syntax' do
+      test "model and migration generator with change syntax" do
         Dir.chdir(app_path) do
           `bin/rails generate model user username:string password:string;
            bin/rails generate migration add_email_to_users email:string`
@@ -56,12 +56,12 @@ module ApplicationTests
         end
       end
 
-      test 'migration status when schema migrations table is not present' do
+      test "migration status when schema migrations table is not present" do
         output = Dir.chdir(app_path){ `bin/rails db:migrate:status 2>&1` }
         assert_equal "Schema migrations table does not exist yet.\n", output
       end
 
-      test 'test migration status' do
+      test "test migration status" do
         Dir.chdir(app_path) do
           `bin/rails generate model user username:string password:string;
            bin/rails generate migration add_email_to_users email:string;
@@ -80,8 +80,8 @@ module ApplicationTests
         end
       end
 
-      test 'migration status without timestamps' do
-        add_to_config('config.active_record.timestamped_migrations = false')
+      test "migration status without timestamps" do
+        add_to_config("config.active_record.timestamped_migrations = false")
 
         Dir.chdir(app_path) do
           `bin/rails generate model user username:string password:string;
@@ -101,7 +101,7 @@ module ApplicationTests
         end
       end
 
-      test 'test migration status after rollback and redo' do
+      test "test migration status after rollback and redo" do
         Dir.chdir(app_path) do
           `bin/rails generate model user username:string password:string;
            bin/rails generate migration add_email_to_users email:string;
@@ -126,8 +126,8 @@ module ApplicationTests
         end
       end
 
-      test 'migration status after rollback and redo without timestamps' do
-        add_to_config('config.active_record.timestamped_migrations = false')
+      test "migration status after rollback and redo without timestamps" do
+        add_to_config("config.active_record.timestamped_migrations = false")
 
         Dir.chdir(app_path) do
           `bin/rails generate model user username:string password:string;
@@ -153,7 +153,7 @@ module ApplicationTests
         end
       end
 
-      test 'running migrations with not timestamp head migration files' do
+      test "running migrations with not timestamp head migration files" do
         Dir.chdir(app_path) do
 
           app_file "db/migrate/1_one_migration.rb", <<-MIGRATION
@@ -175,8 +175,8 @@ module ApplicationTests
         end
       end
 
-      test 'schema generation when dump_schema_after_migration is set' do
-        add_to_config('config.active_record.dump_schema_after_migration = false')
+      test "schema generation when dump_schema_after_migration is set" do
+        add_to_config("config.active_record.dump_schema_after_migration = false")
 
         Dir.chdir(app_path) do
           `bin/rails generate model book title:string`
@@ -187,7 +187,7 @@ module ApplicationTests
           assert !File.exist?("db/schema.rb"), "should not dump schema when configured not to"
         end
 
-        add_to_config('config.active_record.dump_schema_after_migration = true')
+        add_to_config("config.active_record.dump_schema_after_migration = true")
 
         Dir.chdir(app_path) do
           `bin/rails generate model reviews book_id:integer`
@@ -198,7 +198,7 @@ module ApplicationTests
         end
       end
 
-      test 'default schema generation after migration' do
+      test "default schema generation after migration" do
         Dir.chdir(app_path) do
           `bin/rails generate model book title:string;
            bin/rails db:migrate`
@@ -208,7 +208,7 @@ module ApplicationTests
         end
       end
 
-      test 'test migration status migrated file is deleted' do
+      test "test migration status migrated file is deleted" do
         Dir.chdir(app_path) do
           `bin/rails generate model user username:string password:string;
            bin/rails generate migration add_email_to_users email:string;
@@ -216,7 +216,7 @@ module ApplicationTests
            rm db/migrate/*email*.rb`
 
           output = `bin/rails db:migrate:status`
-          File.write('test.txt', output)
+          File.write("test.txt", output)
 
           assert_match(/up\s+\d{14}\s+Create users/, output)
           assert_match(/up\s+\d{14}\s+\** NO FILE \**/, output)

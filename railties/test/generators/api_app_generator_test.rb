@@ -1,11 +1,11 @@
-require 'generators/generators_test_helper'
-require 'rails/generators/rails/app/app_generator'
+require "generators/generators_test_helper"
+require "rails/generators/rails/app/app_generator"
 
 class ApiAppGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
   tests Rails::Generators::AppGenerator
 
-  arguments [destination_root, '--api']
+  arguments [destination_root, "--api"]
 
   def setup
     Rails.application = TestApp::Application

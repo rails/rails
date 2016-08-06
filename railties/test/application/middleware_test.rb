@@ -1,4 +1,4 @@
-require 'isolation/abstract_unit'
+require "isolation/abstract_unit"
 
 module ApplicationTests
   class MiddlewareTest < ActiveSupport::TestCase
@@ -103,7 +103,7 @@ module ApplicationTests
       add_to_config "config.ssl_options = { host: 'example.com' }"
       boot!
 
-      assert_equal [{host: 'example.com'}], Rails.application.middleware.first.args
+      assert_equal [{host: "example.com"}], Rails.application.middleware.first.args
     end
 
     test "removing Active Record omits its middleware" do
@@ -190,10 +190,10 @@ module ApplicationTests
       assert_equal "Rack::Config", middleware.second
     end
 
-    test 'unshift middleware' do
-      add_to_config 'config.middleware.unshift Rack::Config'
+    test "unshift middleware" do
+      add_to_config "config.middleware.unshift Rack::Config"
       boot!
-      assert_equal 'Rack::Config', middleware.first
+      assert_equal "Rack::Config", middleware.first
     end
 
     test "Rails.cache does not respond to middleware" do

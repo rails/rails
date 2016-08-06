@@ -1,4 +1,4 @@
-require 'isolation/abstract_unit'
+require "isolation/abstract_unit"
 
 module ApplicationTests
   class IntegrationTestCaseTest < ActiveSupport::TestCase
@@ -13,9 +13,9 @@ module ApplicationTests
     end
 
     test "resets Action Mailer test deliveries" do
-      script('generate mailer BaseMailer welcome')
+      script("generate mailer BaseMailer welcome")
 
-      app_file 'test/integration/mailer_integration_test.rb', <<-RUBY
+      app_file "test/integration/mailer_integration_test.rb", <<-RUBY
         require 'test_helper'
 
         class MailerIntegrationTest < ActionDispatch::IntegrationTest
@@ -55,7 +55,7 @@ module ApplicationTests
     end
 
     test "app method of integration tests returns test_app by default" do
-      app_file 'test/integration/default_app_test.rb', <<-RUBY
+      app_file "test/integration/default_app_test.rb", <<-RUBY
         require 'test_helper'
 
         class DefaultAppIntegrationTest < ActionDispatch::IntegrationTest
