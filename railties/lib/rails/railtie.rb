@@ -132,27 +132,19 @@ module Rails
       end
 
       def rake_tasks(&blk)
-        @rake_tasks ||= []
-        @rake_tasks << blk if blk
-        @rake_tasks
+        register_block_for(:rake_tasks, &blk)
       end
 
       def console(&blk)
-        @load_console ||= []
-        @load_console << blk if blk
-        @load_console
+        register_block_for(:load_console, &blk)
       end
 
       def runner(&blk)
-        @load_runner ||= []
-        @load_runner << blk if blk
-        @load_runner
+        register_block_for(:runner, &blk)
       end
 
       def generators(&blk)
-        @generators ||= []
-        @generators << blk if blk
-        @generators
+        register_block_for(:generators, &blk)
       end
 
       def abstract_railtie?
@@ -185,6 +177,17 @@ module Rails
         def generate_railtie_name(string) #:nodoc:
           ActiveSupport::Inflector.underscore(string).tr("/", "_")
         end
+
+        # receives an instance variable identifier, set the variable value if is
+        # blank and append given block to value, which will be used later in
+        # `#each_registered_block(type, &block)`
+        def register_block_for(type, &blk)
+          var_name = "@#{type}"
+          blocks = instance_variable_get(var_name) || instance_variable_set(var_name, [])
+          blocks << blk if blk
+          blocks
+        end
+
 
         # If the class method does not have a method, then send the method call
         # to the Railtie instance.
@@ -241,6 +244,7 @@ module Rails
 
     private
 
+    # run `&block` in every registered block in `#register_block_for`
     def each_registered_block(type, &block)
       klass = self.class
       while klass.respond_to?(type)
