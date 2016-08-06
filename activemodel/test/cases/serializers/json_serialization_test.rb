@@ -74,7 +74,7 @@ class JsonSerializationTest < ActiveModel::TestCase
   end
 
   test "should allow attribute filtering with only" do
-    json = @contact.to_json(only: [:name, :age])
+    json = @contact.to_json(only: ['name', 'age'])
 
     assert_match %r{"name":"Konata Izumi"}, json
     assert_match %r{"age":16}, json
@@ -84,7 +84,7 @@ class JsonSerializationTest < ActiveModel::TestCase
   end
 
   test "should allow attribute filtering with except" do
-    json = @contact.to_json(except: [:name, :age])
+    json = @contact.to_json(except: ['name', 'age'])
 
     assert_no_match %r{"name":"Konata Izumi"}, json
     assert_no_match %r{"age":16}, json
@@ -99,10 +99,10 @@ class JsonSerializationTest < ActiveModel::TestCase
     def @contact.favorite_quote; "Constraints are liberating"; end
 
     # Single method.
-    assert_match %r{"label":"Has cheezburger"}, @contact.to_json(only: :name, methods: :label)
+    assert_match %r{"label":"Has cheezburger"}, @contact.to_json(only: 'name', methods: :label)
 
     # Both methods.
-    methods_json = @contact.to_json(only: :name, methods: [:label, :favorite_quote])
+    methods_json = @contact.to_json(only: 'name', methods: [:label, :favorite_quote])
     assert_match %r{"label":"Has cheezburger"}, methods_json
     assert_match %r{"favorite_quote":"Constraints are liberating"}, methods_json
   end
@@ -120,11 +120,11 @@ class JsonSerializationTest < ActiveModel::TestCase
   end
 
   test "serializable_hash should not modify options passed in argument" do
-    options = { except: :name }
+    options = { except: 'name' }
     @contact.serializable_hash(options)
 
     assert_nil options[:only]
-    assert_equal :name, options[:except]
+    assert_equal 'name', options[:except]
   end
 
   test "as_json should return a hash if include_root_in_json is true" do
@@ -187,7 +187,7 @@ class JsonSerializationTest < ActiveModel::TestCase
   end
 
   test "custom as_json options should be extensible" do
-    def @contact.as_json(options = {}); super(options.merge(only: [:name])); end
+    def @contact.as_json(options = {}); super(options.merge(only: ['name'])); end
     json = @contact.to_json
 
     assert_match %r{"name":"Konata Izumi"}, json

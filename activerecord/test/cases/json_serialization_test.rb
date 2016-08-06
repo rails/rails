@@ -68,7 +68,7 @@ class JsonSerializationTest < ActiveRecord::TestCase
   end
 
   def test_should_allow_attribute_filtering_with_only
-    json = @contact.to_json(:only => [:name, :age])
+    json = @contact.to_json(:only => ['name', 'age'])
 
     assert_match %r{"name":"Konata Izumi"}, json
     assert_match %r{"age":16}, json
@@ -78,7 +78,7 @@ class JsonSerializationTest < ActiveRecord::TestCase
   end
 
   def test_should_allow_attribute_filtering_with_except
-    json = @contact.to_json(:except => [:name, :age])
+    json = @contact.to_json(:except => ['name', 'age'])
 
     assert_no_match %r{"name":"Konata Izumi"}, json
     assert_no_match %r{"age":16}, json
@@ -183,7 +183,7 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
   end
 
   def test_includes_uses_association_name_and_applies_attribute_filters
-    json = @david.to_json(:include => { :posts => { :only => :title } })
+    json = @david.to_json(:include => { :posts => { :only => 'title' } })
 
     assert_match %r{"name":"David"}, json
     assert_match %r{"posts":\[}, json
@@ -196,7 +196,7 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
   end
 
   def test_includes_fetches_second_level_associations
-    json = @david.to_json(:include => { :posts => { :include => { :comments => { :only => :body } } } })
+    json = @david.to_json(:include => { :posts => { :include => { :comments => { :only => 'body' } } } })
 
     assert_match %r{"name":"David"}, json
     assert_match %r{"posts":\[}, json
@@ -214,7 +214,7 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
           :include => {
             :taggings => {
               :include => {
-                :tag => { :only => :name }
+                :tag => { :only => 'name' }
               }
             }
           }
@@ -249,7 +249,7 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
   def test_should_allow_only_option_for_list_of_authors
     set_include_root_in_json(false) do
       authors = [@david, @mary]
-      assert_equal %([{"name":"David"},{"name":"Mary"}]), ActiveSupport::JSON.encode(authors, only: :name)
+      assert_equal %([{"name":"David"},{"name":"Mary"}]), ActiveSupport::JSON.encode(authors, only: 'name')
     end
   end
 
@@ -267,9 +267,9 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
   def test_should_allow_includes_for_list_of_authors
     authors = [@david, @mary]
     json = ActiveSupport::JSON.encode(authors,
-      :only => :name,
+      :only => 'name',
       :include => {
-        :posts => { :only => :id }
+        :posts => { :only => 'id' }
       }
     )
 
@@ -285,7 +285,7 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
         1 => @david,
         2 => @mary
       }
-      assert_equal %({"1":{"author":{"name":"David"}}}), ActiveSupport::JSON.encode(authors_hash, only: [1, :name])
+      assert_equal %({"1":{"author":{"name":"David"}}}), ActiveSupport::JSON.encode(authors_hash, only: [1, 'name'])
     end
   end
 
@@ -293,7 +293,7 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
     set_include_root_in_json(true) do
       authors_relation = Author.where(id: [@david.id, @mary.id])
 
-      json = ActiveSupport::JSON.encode authors_relation, only: :name
+      json = ActiveSupport::JSON.encode authors_relation, only: 'name'
       assert_equal '[{"author":{"name":"David"}},{"author":{"name":"Mary"}}]', json
     end
   end

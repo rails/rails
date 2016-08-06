@@ -1,5 +1,6 @@
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/hash/slice'
+require 'active_support/core_ext/hash/indifferent_access'
 
 module ActiveModel
   # == Active \Model \Serialization
@@ -26,7 +27,7 @@ module ActiveModel
   #   person.serializable_hash   # => {"name"=>"Bob"}
   #
   # An +attributes+ hash must be defined and should contain any attributes you
-  # need to be serialized. Attributes must be strings, not symbols.
+  # need to be serialized.
   # When called, serializable hash will use instance methods that match the name
   # of the attributes hash's keys. In order to override this behavior, take a look
   # at the private method +read_attribute_for_serialization+.
@@ -126,12 +127,12 @@ module ActiveModel
 
       attribute_names = attributes.keys
       if only = options[:only]
-        attribute_names &= Array(only).map(&:to_s)
+        attribute_names &= Array(only)
       elsif except = options[:except]
-        attribute_names -= Array(except).map(&:to_s)
+        attribute_names -= Array(except)
       end
 
-      hash = {}
+      hash = HashWithIndifferentAccess.new
       attribute_names.each { |n| hash[n] = read_attribute_for_serialization(n) }
 
       Array(options[:methods]).each { |m| hash[m.to_s] = send(m) }
