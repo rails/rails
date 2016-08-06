@@ -252,7 +252,7 @@ module ActionView
 
     def inside_path?(path, filename)
       filename = File.expand_path(filename)
-      path = File.join(path, '')
+      path = File.join(path, "")
       filename.start_with?(path)
     end
 
@@ -260,7 +260,7 @@ module ActionView
     def build_query(path, details)
       query = @pattern.dup
 
-      prefix = path.prefix.empty? ? '' : "#{escape_entry(path.prefix)}\\1"
+      prefix = path.prefix.empty? ? "" : "#{escape_entry(path.prefix)}\\1"
       query.gsub!(/:prefix(\/)?/, prefix)
 
       partial = escape_entry(path.partial? ? "_#{path.name}" : path.name)
@@ -290,7 +290,7 @@ module ActionView
     # from the path, or the handler, we should return the array of formats given
     # to the resolver.
     def extract_handler_and_format_and_variant(path, default_formats)
-      pieces = File.basename(path).split('.'.freeze)
+      pieces = File.basename(path).split(".".freeze)
       pieces.shift
 
       extension = pieces.pop

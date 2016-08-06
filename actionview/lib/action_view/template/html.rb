@@ -11,11 +11,11 @@ module ActionView #:nodoc:
       end
 
       def identifier
-        'html template'
+        "html template"
       end
 
       def inspect
-        'html template'
+        "html template"
       end
 
       def to_str

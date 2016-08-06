@@ -1,6 +1,6 @@
-require 'concurrent/map'
-require 'action_view/dependency_tracker'
-require 'monitor'
+require "concurrent/map"
+require "action_view/dependency_tracker"
+require "monitor"
 
 module ActionView
   class Digestor
@@ -14,7 +14,7 @@ module ActionView
       # * <tt>dependencies</tt>  - An array of dependent views
       def digest(name:, finder:, dependencies: [])
         dependencies ||= []
-        cache_key = [ name, finder.rendered_format, dependencies ].flatten.compact.join('.')
+        cache_key = [ name, finder.rendered_format, dependencies ].flatten.compact.join(".")
 
         # this is a correctly done double-checked locking idiom
         # (Concurrent::Map's lookups have volatile semantics)
@@ -103,7 +103,7 @@ module ActionView
     class Partial < Node; end
 
     class Missing < Node
-      def digest(finder, _ = []) '' end
+      def digest(finder, _ = []) "" end
     end
 
     class Injected < Node

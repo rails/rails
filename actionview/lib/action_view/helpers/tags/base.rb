@@ -83,7 +83,7 @@ module ActionView
           options["name"] = options.fetch("name"){ tag_name(options["multiple"], index) }
           options["id"] = options.fetch("id"){ tag_id(index) }
           if namespace = options.delete("namespace")
-            options['id'] = options['id'] ? "#{namespace}_#{options['id']}" : namespace
+            options["id"] = options["id"] ? "#{namespace}_#{options['id']}" : namespace
           end
         end
 
@@ -143,10 +143,10 @@ module ActionView
 
         def add_options(option_tags, options, value = nil)
           if options[:include_blank]
-            option_tags = tag_builder.content_tag_string('option', options[:include_blank].kind_of?(String) ? options[:include_blank] : nil, :value => '') + "\n" + option_tags
+            option_tags = tag_builder.content_tag_string("option", options[:include_blank].kind_of?(String) ? options[:include_blank] : nil, :value => "") + "\n" + option_tags
           end
           if value.blank? && options[:prompt]
-            option_tags = tag_builder.content_tag_string('option', prompt_text(options[:prompt]), :value => '') + "\n" + option_tags
+            option_tags = tag_builder.content_tag_string("option", prompt_text(options[:prompt]), :value => "") + "\n" + option_tags
           end
           option_tags
         end

@@ -1,4 +1,4 @@
-require 'active_support/core_ext/time/calculations'
+require "active_support/core_ext/time/calculations"
 
 module ActionView
   module Helpers

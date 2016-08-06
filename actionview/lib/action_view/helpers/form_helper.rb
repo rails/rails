@@ -1,14 +1,14 @@
-require 'cgi'
-require 'action_view/helpers/date_helper'
-require 'action_view/helpers/tag_helper'
-require 'action_view/helpers/form_tag_helper'
-require 'action_view/helpers/active_model_helper'
-require 'action_view/model_naming'
-require 'action_view/record_identifier'
-require 'active_support/core_ext/module/attribute_accessors'
-require 'active_support/core_ext/hash/slice'
-require 'active_support/core_ext/string/output_safety'
-require 'active_support/core_ext/string/inflections'
+require "cgi"
+require "action_view/helpers/date_helper"
+require "action_view/helpers/tag_helper"
+require "action_view/helpers/form_tag_helper"
+require "action_view/helpers/active_model_helper"
+require "action_view/model_naming"
+require "action_view/record_identifier"
+require "active_support/core_ext/module/attribute_accessors"
+require "active_support/core_ext/hash/slice"
+require "active_support/core_ext/string/output_safety"
+require "active_support/core_ext/string/inflections"
 
 module ActionView
   # = Action View Form Helpers
@@ -1270,7 +1270,7 @@ module ActionView
       end
 
       def self._to_partial_path
-        @_to_partial_path ||= name.demodulize.underscore.sub!(/_builder$/, '')
+        @_to_partial_path ||= name.demodulize.underscore.sub!(/_builder$/, "")
       end
 
       def to_partial_path
@@ -1574,7 +1574,7 @@ module ActionView
 
         record_name = if index
                         "#{object_name}[#{index}][#{record_name}]"
-                      elsif record_name.to_s.end_with?('[]')
+                      elsif record_name.to_s.end_with?("[]")
                         record_name = record_name.to_s.sub(/(.*)\[\]$/, "[\\1][#{record_object.id}]")
                         "#{object_name}#{record_name}"
                       else

@@ -1,4 +1,4 @@
-require 'active_support/log_subscriber'
+require "active_support/log_subscriber"
 
 module ActionView
   # = Action View Log Subscriber
@@ -22,7 +22,7 @@ module ActionView
     alias :render_partial :render_template
 
     def render_collection(event)
-      identifier = event.payload[:identifier] || 'templates'
+      identifier = event.payload[:identifier] || "templates"
 
       info do
         "  Rendered collection of #{from_rails_root(identifier)}" \
@@ -44,7 +44,7 @@ module ActionView
 
   protected
 
-    EMPTY = ''
+    EMPTY = ""
     def from_rails_root(string)
       string = string.sub(rails_root, EMPTY)
       string.sub!(VIEWS_PATTERN, EMPTY)

@@ -1,10 +1,10 @@
-require 'date'
-require 'action_view/helpers/tag_helper'
-require 'active_support/core_ext/array/extract_options'
-require 'active_support/core_ext/date/conversions'
-require 'active_support/core_ext/hash/slice'
-require 'active_support/core_ext/object/acts_like'
-require 'active_support/core_ext/object/with_options'
+require "date"
+require "action_view/helpers/tag_helper"
+require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/date/conversions"
+require "active_support/core_ext/hash/slice"
+require "active_support/core_ext/object/acts_like"
+require "active_support/core_ext/object/with_options"
 
 module ActionView
   module Helpers
@@ -692,7 +692,7 @@ module ActionView
     class DateTimeSelector #:nodoc:
       include ActionView::Helpers::TagHelper
 
-      DEFAULT_PREFIX = 'date'.freeze
+      DEFAULT_PREFIX = "date".freeze
       POSITION = {
         :year => 1, :month => 2, :day => 3, :hour => 4, :minute => 5, :second => 6
       }.freeze
@@ -710,8 +710,8 @@ module ActionView
         @options      = options.dup
         @html_options = html_options.dup
         @datetime     = datetime
-        @options[:datetime_separator] ||= ' &mdash; '
-        @options[:time_separator]     ||= ' : '
+        @options[:datetime_separator] ||= " &mdash; "
+        @options[:time_separator]     ||= " : "
       end
 
       def select_datetime
@@ -821,7 +821,7 @@ module ActionView
 
       def select_year
         if !@datetime || @datetime == 0
-          val = '1'
+          val = "1"
           middle_year = Date.today.year
         else
           val = middle_year = year
@@ -914,7 +914,7 @@ module ActionView
           if @options[:use_month_numbers]
             number
           elsif @options[:use_two_digit_numbers]
-            '%02d' % number
+            "%02d" % number
           elsif @options[:add_month_numbers]
             "#{number} - #{month_names[number]}"
           elsif format_string = @options[:month_format_string]
@@ -996,11 +996,11 @@ module ActionView
             :id => input_id_from_type(type),
             :name => input_name_from_type(type)
           }.merge!(@html_options)
-          select_options[:disabled] = 'disabled' if @options[:disabled]
+          select_options[:disabled] = "disabled" if @options[:disabled]
           select_options[:class] = css_class_attribute(type, select_options[:class], @options[:with_css_classes]) if @options[:with_css_classes]
 
           select_html = "\n"
-          select_html << content_tag("option".freeze, '', :value => '') + "\n" if @options[:include_blank]
+          select_html << content_tag("option".freeze, "", :value => "") + "\n" if @options[:include_blank]
           select_html << prompt_option_tag(type, @options[:prompt]) + "\n" if @options[:prompt]
           select_html << select_options_as_html
 
@@ -1018,7 +1018,7 @@ module ActionView
                         type
                       end
 
-          [html_options_class, css_class].compact.join(' ')
+          [html_options_class, css_class].compact.join(" ")
         end
 
         # Builds a prompt option tag with supplied options or from default options.
@@ -1035,7 +1035,7 @@ module ActionView
               I18n.translate(:"datetime.prompts.#{type}", :locale => @options[:locale])
           end
 
-          prompt ? content_tag("option".freeze, prompt, :value => '') : ''
+          prompt ? content_tag("option".freeze, prompt, :value => "") : ""
         end
 
         # Builds hidden input tag for date part and value.
@@ -1048,7 +1048,7 @@ module ActionView
             :name => input_name_from_type(type),
             :value => value
           }.merge!(@html_options.slice(:disabled))
-          select_options[:disabled] = 'disabled' if @options[:disabled]
+          select_options[:disabled] = "disabled" if @options[:disabled]
 
           tag(:input, select_options) + "\n".html_safe
         end
@@ -1070,8 +1070,8 @@ module ActionView
         # Returns the id attribute for the input tag.
         #  => "post_written_on_1i"
         def input_id_from_type(type)
-          id = input_name_from_type(type).gsub(/([\[\(])|(\]\[)/, '_').gsub(/[\]\)]/, '')
-          id = @options[:namespace] + '_' + id if @options[:namespace]
+          id = input_name_from_type(type).gsub(/([\[\(])|(\]\[)/, "_").gsub(/[\]\)]/, "")
+          id = @options[:namespace] + "_" + id if @options[:namespace]
 
           id
         end
@@ -1079,7 +1079,7 @@ module ActionView
         # Given an ordering of datetime components, create the selection HTML
         # and join them with their appropriate separators.
         def build_selects_from_types(order)
-          select = ''
+          select = ""
           first_visible = order.find { |type| !@options[:"discard_#{type}"] }
           order.reverse_each do |type|
             separator = separator(type) unless type == first_visible # don't add before first visible field

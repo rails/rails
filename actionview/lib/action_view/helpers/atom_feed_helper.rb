@@ -1,4 +1,4 @@
-require 'set'
+require "set"
 
 module ActionView
   # = Action View Atom Feed Helpers
@@ -112,13 +112,13 @@ module ActionView
           end
         end
 
-        feed_opts = {"xml:lang" => options[:language] || "en-US", "xmlns" => 'http://www.w3.org/2005/Atom'}
+        feed_opts = {"xml:lang" => options[:language] || "en-US", "xmlns" => "http://www.w3.org/2005/Atom"}
         feed_opts.merge!(options).reject!{|k,v| !k.to_s.match(/^xml/)}
 
         xml.feed(feed_opts) do
           xml.id(options[:id] || "tag:#{request.host},#{options[:schema_date]}:#{request.fullpath.split(".")[0]}")
-          xml.link(:rel => 'alternate', :type => 'text/html', :href => options[:root_url] || (request.protocol + request.host_with_port))
-          xml.link(:rel => 'self', :type => 'application/atom+xml', :href => options[:url] || request.url)
+          xml.link(:rel => "alternate", :type => "text/html", :href => options[:root_url] || (request.protocol + request.host_with_port))
+          xml.link(:rel => "self", :type => "application/atom+xml", :href => options[:url] || request.url)
 
           yield AtomFeedBuilder.new(xml, self, options)
         end
@@ -138,7 +138,7 @@ module ActionView
           def method_missing(method, *arguments, &block)
             if xhtml_block?(method, arguments)
               @xml.__send__(method, *arguments) do
-                @xml.div(:xmlns => 'http://www.w3.org/1999/xhtml') do |xhtml|
+                @xml.div(:xmlns => "http://www.w3.org/1999/xhtml") do |xhtml|
                   block.call(xhtml)
                 end
               end
@@ -153,7 +153,7 @@ module ActionView
           def xhtml_block?(method, arguments)
             if XHTML_TAG_NAMES.include?(method.to_s)
               last = arguments.last
-              last.is_a?(Hash) && last[:type].to_s == 'xhtml'
+              last.is_a?(Hash) && last[:type].to_s == "xhtml"
             end
           end
       end
@@ -189,10 +189,10 @@ module ActionView
               @xml.updated((options[:updated] || record.updated_at).xmlschema)
             end
 
-            type = options.fetch(:type, 'text/html')
+            type = options.fetch(:type, "text/html")
 
             url = options.fetch(:url) { @view.polymorphic_url(record) }
-            @xml.link(:rel => 'alternate', :type => type, :href => url) if url
+            @xml.link(:rel => "alternate", :type => type, :href => url) if url
 
             yield AtomBuilder.new(@xml)
           end

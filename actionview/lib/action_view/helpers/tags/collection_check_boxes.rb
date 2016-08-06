@@ -1,4 +1,4 @@
-require 'action_view/helpers/tags/collection_helpers'
+require "action_view/helpers/tags/collection_helpers"
 
 module ActionView
   module Helpers

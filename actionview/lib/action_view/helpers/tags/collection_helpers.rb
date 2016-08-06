@@ -96,7 +96,7 @@ module ActionView
 
           # Prepend a hidden field to make sure something will be sent back to the
           # server if all radio buttons are unchecked.
-          if options.fetch('include_hidden', true)
+          if options.fetch("include_hidden", true)
             hidden_field + rendered_collection
           else
             rendered_collection

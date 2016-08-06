@@ -1,4 +1,4 @@
-require 'action_view/helpers/tags/checkable'
+require "action_view/helpers/tags/checkable"
 
 module ActionView
   module Helpers

@@ -1,5 +1,5 @@
-require 'active_support/core_ext/regexp'
-require 'action_view/template/resolver'
+require "active_support/core_ext/regexp"
+require "action_view/template/resolver"
 
 module ActionView #:nodoc:
   # Use FixtureResolver in your tests to simulate the presence of files on the
@@ -15,7 +15,7 @@ module ActionView #:nodoc:
     end
 
     def to_s
-      @hash.keys.join(', ')
+      @hash.keys.join(", ")
     end
 
   private
@@ -23,7 +23,7 @@ module ActionView #:nodoc:
     def query(path, exts, formats, _)
       query = ""
       EXTENSIONS.each_key do |ext|
-        query << '(' << exts[ext].map {|e| e && Regexp.escape(".#{e}") }.join('|') << '|)'
+        query << "(" << exts[ext].map {|e| e && Regexp.escape(".#{e}") }.join("|") << "|)"
       end
       query = /^(#{Regexp.escape(path)})#{query}$/
 

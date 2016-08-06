@@ -1,5 +1,5 @@
-require 'active_support/core_ext/string/filters'
-require 'active_support/core_ext/array/extract_options'
+require "active_support/core_ext/string/filters"
+require "active_support/core_ext/array/extract_options"
 
 module ActionView
   # = Action View Text Helpers
@@ -135,7 +135,7 @@ module ActionView
         else
           match = Array(phrases).map do |p|
             Regexp === p ? p.to_s : Regexp.escape(p)
-          end.join('|')
+          end.join("|")
 
           if block_given?
             text.gsub(/(#{match})(?![^<]*?>)/i) { |found| yield found }
@@ -358,7 +358,7 @@ module ActionView
       #  <% end %>
       def cycle(first_value, *values)
         options = values.extract_options!
-        name = options.fetch(:name, 'default')
+        name = options.fetch(:name, "default")
 
         values.unshift(*first_value)
 

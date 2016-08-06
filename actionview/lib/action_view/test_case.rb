@@ -1,9 +1,9 @@
-require 'active_support/core_ext/module/remove_method'
-require 'action_controller'
-require 'action_controller/test_case'
-require 'action_view'
+require "active_support/core_ext/module/remove_method"
+require "action_controller"
+require "action_controller/test_case"
+require "action_view"
 
-require 'rails-dom-testing'
+require "rails-dom-testing"
 
 module ActionView
   # = Action View Test Case
@@ -27,7 +27,7 @@ module ActionView
         @request = ActionController::TestRequest.create
         @response = ActionDispatch::TestResponse.new
 
-        @request.env.delete('PATH_INFO')
+        @request.env.delete("PATH_INFO")
         @params = ActionController::Parameters.new
       end
     end
@@ -104,8 +104,8 @@ module ActionView
         @request = @controller.request
         # empty string ensures buffer has UTF-8 encoding as
         # new without arguments returns ASCII-8BIT encoded buffer like String#new
-        @output_buffer = ActiveSupport::SafeBuffer.new ''
-        @rendered = ''
+        @output_buffer = ActiveSupport::SafeBuffer.new ""
+        @rendered = ""
 
         make_test_case_available_to_view!
         say_no_to_protect_against_forgery!

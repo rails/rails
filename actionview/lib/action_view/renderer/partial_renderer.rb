@@ -1,6 +1,6 @@
-require 'concurrent/map'
-require 'active_support/core_ext/regexp'
-require 'action_view/renderer/partial_renderer/collection_caching'
+require "concurrent/map"
+require "active_support/core_ext/regexp"
+require "action_view/renderer/partial_renderer/collection_caching"
 
 module ActionView
   class PartialIteration
@@ -495,8 +495,8 @@ module ActionView
     def merge_prefix_into_object_path(prefix, object_path)
       if prefix.include?(?/) && object_path.include?(?/)
         prefixes = []
-        prefix_array = File.dirname(prefix).split('/')
-        object_path_array = object_path.split('/')[0..-3] # skip model dir & partial
+        prefix_array = File.dirname(prefix).split("/")
+        object_path_array = object_path.split("/")[0..-3] # skip model dir & partial
 
         prefix_array.each_with_index do |dir, index|
           break if dir == object_path_array[index]

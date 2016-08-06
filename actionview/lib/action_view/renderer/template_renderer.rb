@@ -1,4 +1,4 @@
-require 'active_support/core_ext/object/try'
+require "active_support/core_ext/object/try"
 
 module ActionView
   class TemplateRenderer < AbstractRenderer #:nodoc:
@@ -83,7 +83,7 @@ module ActionView
       case layout
       when String
         begin
-          if layout.start_with?('/')
+          if layout.start_with?("/")
             with_fallbacks { find_template(layout, nil, false, [], details) }
           else
             find_template(layout, nil, false, [], details)

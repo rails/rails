@@ -1,5 +1,5 @@
-require 'concurrent/map'
-require 'action_view/path_set'
+require "concurrent/map"
+require "action_view/path_set"
 
 module ActionView
   class DependencyTracker # :nodoc:
@@ -142,7 +142,7 @@ module ActionView
 
         def add_static_dependency(dependencies, dependency)
           if dependency
-            if dependency.include?('/')
+            if dependency.include?("/")
               dependencies << dependency
             else
               dependencies << "#{directory}/#{dependency}"
@@ -163,7 +163,7 @@ module ActionView
         def explicit_dependencies
           dependencies = source.scan(EXPLICIT_DEPENDENCY).flatten.uniq
 
-          wildcards, explicits = dependencies.partition { |dependency| dependency[-1] == '*' }
+          wildcards, explicits = dependencies.partition { |dependency| dependency[-1] == "*" }
 
           (explicits + resolve_directories(wildcards)).uniq
         end

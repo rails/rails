@@ -1,7 +1,7 @@
-require 'concurrent/map'
-require 'active_support/core_ext/module/remove_method'
-require 'active_support/core_ext/module/attribute_accessors'
-require 'action_view/template/resolver'
+require "concurrent/map"
+require "active_support/core_ext/module/remove_method"
+require "active_support/core_ext/module/attribute_accessors"
+require "action_view/template/resolver"
 
 module ActionView
   # = Action View Lookup Context
@@ -202,13 +202,13 @@ module ActionView
       # name instead of the prefix.
       def normalize_name(name, prefixes) #:nodoc:
         prefixes = prefixes.presence
-        parts    = name.to_s.split('/'.freeze)
+        parts    = name.to_s.split("/".freeze)
         parts.shift if parts.first.empty?
         name     = parts.pop
 
         return name, prefixes || [""] if parts.empty?
 
-        parts    = parts.join('/'.freeze)
+        parts    = parts.join("/".freeze)
         prefixes = prefixes ? prefixes.map { |p| "#{p}/#{parts}" } : [parts]
 
         return name, prefixes

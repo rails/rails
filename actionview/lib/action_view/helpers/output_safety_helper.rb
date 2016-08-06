@@ -1,4 +1,4 @@
-require 'active_support/core_ext/string/output_safety'
+require "active_support/core_ext/string/output_safety"
 
 module ActionView #:nodoc:
   # = Action View Raw Output Helper
@@ -42,9 +42,9 @@ module ActionView #:nodoc:
         options.assert_valid_keys(:words_connector, :two_words_connector, :last_word_connector, :locale)
 
         default_connectors = {
-          :words_connector     => ', ',
-          :two_words_connector => ' and ',
-          :last_word_connector => ', and '
+          :words_connector     => ", ",
+          :two_words_connector => " and ",
+          :last_word_connector => ", and "
         }
         if defined?(I18n)
           i18n_connectors = I18n.translate(:'support.array', locale: options[:locale], default: {})
@@ -54,7 +54,7 @@ module ActionView #:nodoc:
 
         case array.length
         when 0
-          ''.html_safe
+          "".html_safe
         when 1
           ERB::Util.html_escape(array[0])
         when 2
