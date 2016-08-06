@@ -1,4 +1,4 @@
-require 'helper'
+require "helper"
 
 module ActiveJob
   module QueueAdapters
@@ -15,15 +15,15 @@ module ActiveJob
 end
 
 class QueueAdapterTest < ActiveJob::TestCase
-  test 'should forbid nonsense arguments' do
+  test "should forbid nonsense arguments" do
     assert_raises(ArgumentError) { ActiveJob::Base.queue_adapter = Mutex }
     assert_raises(ArgumentError) { ActiveJob::Base.queue_adapter = Mutex.new }
   end
 
-  test 'should warn on passing an adapter class' do
+  test "should warn on passing an adapter class" do
     klass = Class.new do
       def self.name
-        'fake'
+        "fake"
       end
 
       def enqueue(*); end
@@ -33,7 +33,7 @@ class QueueAdapterTest < ActiveJob::TestCase
     assert_deprecated { ActiveJob::Base.queue_adapter = klass }
   end
 
-  test 'should allow overriding the queue_adapter at the child class level without affecting the parent or its sibling' do
+  test "should allow overriding the queue_adapter at the child class level without affecting the parent or its sibling" do
     base_queue_adapter = ActiveJob::Base.queue_adapter
 
     child_job_one = Class.new(ActiveJob::Base)

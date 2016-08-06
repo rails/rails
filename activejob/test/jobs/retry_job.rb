@@ -1,5 +1,5 @@
-require_relative '../support/job_buffer'
-require 'active_support/core_ext/integer/inflections'
+require_relative "../support/job_buffer"
+require "active_support/core_ext/integer/inflections"
 
 class DefaultsError < StandardError; end
 class LongWaitError < StandardError; end

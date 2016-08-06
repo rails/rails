@@ -1,6 +1,6 @@
-require 'sidekiq/api'
+require "sidekiq/api"
 
-require 'sidekiq/testing'
+require "sidekiq/testing"
 Sidekiq::Testing.disable!
 
 module SidekiqJobsManager
@@ -29,7 +29,7 @@ module SidekiqJobsManager
       # Sidekiq is not warning-clean :(
       $VERBOSE = false
 
-      $stdin.reopen('/dev/null')
+      $stdin.reopen("/dev/null")
       $stdout.sync = true
       $stderr.sync = true
 
@@ -49,7 +49,7 @@ module SidekiqJobsManager
         self_write.puts("TERM")
       end
 
-      require 'sidekiq/launcher'
+      require "sidekiq/launcher"
       sidekiq = Sidekiq::Launcher.new({queues: ["integration_tests"],
                                        environment: "test",
                                        concurrency: 1,
@@ -79,7 +79,7 @@ module SidekiqJobsManager
 
   def stop_workers
     if @pid
-      Process.kill 'TERM', @pid
+      Process.kill "TERM", @pid
       Process.wait @pid
     end
   end

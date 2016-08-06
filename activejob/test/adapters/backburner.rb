@@ -1,3 +1,3 @@
-require 'support/backburner/inline'
+require "support/backburner/inline"
 
 ActiveJob::Base.queue_adapter = :backburner

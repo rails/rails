@@ -1,4 +1,4 @@
-require_relative '../support/job_buffer'
+require_relative "../support/job_buffer"
 
 class GidJob < ActiveJob::Base
   def perform(person)

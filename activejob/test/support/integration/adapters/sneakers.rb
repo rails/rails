@@ -1,6 +1,6 @@
-require 'sneakers/runner'
-require 'sneakers/publisher'
-require 'timeout'
+require "sneakers/runner"
+require "sneakers/publisher"
+require "timeout"
 
 module Sneakers
   class Publisher
@@ -17,9 +17,9 @@ module SneakersJobsManager
   def setup
     ActiveJob::Base.queue_adapter = :sneakers
     Sneakers.configure  :heartbeat => 2,
-                        :amqp => 'amqp://guest:guest@localhost:5672',
-                        :vhost => '/',
-                        :exchange => 'active_jobs_sneakers_int_test',
+                        :amqp => "amqp://guest:guest@localhost:5672",
+                        :vhost => "/",
+                        :exchange => "active_jobs_sneakers_int_test",
                         :exchange_type => :direct,
                         :daemonize => true,
                         :threads => 1,
@@ -60,8 +60,8 @@ module SneakersJobsManager
   end
 
   def stop_workers
-    Process.kill 'TERM', @pid
-    Process.kill 'TERM', File.open(Rails.root.join("tmp/sneakers.pid").to_s).read.to_i
+    Process.kill "TERM", @pid
+    Process.kill "TERM", File.open(Rails.root.join("tmp/sneakers.pid").to_s).read.to_i
   rescue
   end
 
