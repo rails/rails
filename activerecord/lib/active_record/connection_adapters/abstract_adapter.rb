@@ -434,11 +434,7 @@ module ActiveRecord
       end
 
       def case_sensitive_comparison(table, attribute, column, value)
-        if value.nil?
-          table[attribute].eq(value)
-        else
-          table[attribute].eq(Arel::Nodes::BindParam.new)
-        end
+        table[attribute].eq(Arel::Nodes::BindParam.new)
       end
 
       def case_insensitive_comparison(table, attribute, column, value)
