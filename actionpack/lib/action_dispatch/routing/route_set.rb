@@ -731,7 +731,7 @@ module ActionDispatch
         extras = environment[:extras] || {}
 
         begin
-          env = Rack::MockRequest.env_for(path, {method: method})
+          env = Rack::MockRequest.env_for(path, method: method)
         rescue URI::InvalidURIError => e
           raise ActionController::RoutingError, e.message
         end

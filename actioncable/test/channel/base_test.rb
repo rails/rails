@@ -74,7 +74,7 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
   setup do
     @user = User.new "lifo"
     @connection = TestConnection.new(@user)
-    @channel = ChatChannel.new @connection, "{id: 1}", { id: 1 }
+    @channel = ChatChannel.new @connection, "{id: 1}", id: 1
   end
 
   test "should subscribe to a channel on initialize" do

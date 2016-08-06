@@ -30,7 +30,7 @@ module ApplicationTests
     test "/rails/mailers is accessible with correct configuration" do
       add_to_config "config.action_mailer.show_previews = true"
       app("production")
-      get "/rails/mailers", {}, {"REMOTE_ADDR" => "4.2.42.42"}
+      get "/rails/mailers", {}, "REMOTE_ADDR" => "4.2.42.42"
       assert_equal 200, last_response.status
     end
 

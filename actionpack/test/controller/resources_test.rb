@@ -1067,7 +1067,7 @@ class ResourcesTest < ActionController::TestCase
         match "/products", to: "products#show", via: :all
       end
 
-      assert_routing({ method: "all", path: "/products" }, { controller: "products", action: "show" })
+      assert_routing({ method: "all", path: "/products" }, controller: "products", action: "show")
     end
   end
 
@@ -1078,7 +1078,7 @@ class ResourcesTest < ActionController::TestCase
       end
 
       assert_raises(Minitest::Assertion) do
-        assert_routing({ method: "all", path: "/products" }, { controller: "products", action: "show" })
+        assert_routing({ method: "all", path: "/products" }, controller: "products", action: "show")
       end
     end
   end

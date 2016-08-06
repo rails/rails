@@ -119,7 +119,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     Pirate.accepts_nested_attributes_for :ship, reject_if: proc {|attributes| true }
     pirate = Pirate.new(catchphrase: "Stop wastin' me time")
     ship = pirate.create_ship(name: "s1")
-    pirate.update({ship_attributes: { name: "s2", id: ship.id } })
+    pirate.update(ship_attributes: { name: "s2", id: ship.id })
     assert_equal "s1", ship.reload.name
   end
 
@@ -141,7 +141,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     Man.accepts_nested_attributes_for :interests, reject_if: proc {|attributes| true }
     man = Man.create(name: "John")
     interest = man.interests.create(topic: "photography")
-    man.update({interests_attributes: { topic: "gardening", id: interest.id } })
+    man.update(interests_attributes: { topic: "gardening", id: interest.id })
     assert_equal "photography", interest.reload.topic
   end
 
@@ -149,7 +149,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     Man.accepts_nested_attributes_for :interests, reject_if: proc {|attributes| true }, allow_destroy: true
     man = Man.create(name: "Jon")
     interest = man.interests.create(topic: "the ladies")
-    man.update({interests_attributes: { _destroy: "1", id: interest.id } })
+    man.update(interests_attributes: { _destroy: "1", id: interest.id })
     assert man.reload.interests.empty?
   end
 
@@ -170,7 +170,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     Man.accepts_nested_attributes_for(:interests)
     man = Man.create(name: "John")
     interest = man.interests.create(topic: "photography")
-    man.update({interests_attributes: {topic: "gardening", id: interest.id}})
+    man.update(interests_attributes: {topic: "gardening", id: interest.id})
     assert_equal "gardening", interest.reload.topic
   end
 
@@ -338,7 +338,7 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
   end
 
   def test_should_work_with_update_as_well
-    @pirate.update({ catchphrase: "Arr", ship_attributes: { id: @ship.id, name: "Mister Pablo" } })
+    @pirate.update(catchphrase: "Arr", ship_attributes: { id: @ship.id, name: "Mister Pablo" })
     @pirate.reload
 
     assert_equal "Arr", @pirate.catchphrase
@@ -525,7 +525,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
   end
 
   def test_should_work_with_update_as_well
-    @ship.update({ name: "Mister Pablo", pirate_attributes: { catchphrase: "Arr" } })
+    @ship.update(name: "Mister Pablo", pirate_attributes: { catchphrase: "Arr" })
     @ship.reload
 
     assert_equal "Mister Pablo", @ship.name
@@ -597,10 +597,8 @@ module NestedAttributesOnACollectionAssociationTests
   end
 
   def test_should_save_only_one_association_on_create
-    pirate = Pirate.create!({
-      :catchphrase => "Arr",
-      association_getter => { "foo" => { name: "Grace OMalley" } }
-    })
+    pirate = Pirate.create!(      :catchphrase => "Arr",
+      association_getter => { "foo" => { name: "Grace OMalley" } })
 
     assert_equal 1, pirate.reload.send(@association_name).count
   end
@@ -714,7 +712,7 @@ module NestedAttributesOnACollectionAssociationTests
 
   def test_should_not_assign_destroy_key_to_a_record
     assert_nothing_raised do
-      @pirate.send(association_setter, { "foo" => { "_destroy" => "0" }})
+      @pirate.send(association_setter, "foo" => { "_destroy" => "0" })
     end
   end
 
@@ -835,7 +833,7 @@ module NestedAttributesOnACollectionAssociationTests
       man = Man.create(name: "John")
       interest = man.interests.create(topic: "bar", zine_id: 0)
       assert interest.save
-      assert !man.update({interests_attributes: { id: interest.id, zine_id: "foo" }})
+      assert !man.update(interests_attributes: { id: interest.id, zine_id: "foo" })
     end
   end
 

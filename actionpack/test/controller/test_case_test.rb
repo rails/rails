@@ -273,7 +273,7 @@ XML
   end
 
   def test_deprecated_process_with_flash
-    assert_deprecated { process :set_flash, "GET", nil, nil, { "test" => "value" } }
+    assert_deprecated { process :set_flash, "GET", nil, nil, "test" => "value" }
     assert_equal ">value<", flash["test"]
   end
 
@@ -285,7 +285,7 @@ XML
   end
 
   def test_deprecated_process_with_flash_now
-    assert_deprecated { process :set_flash_now, "GET", nil, nil, { "test_now" => "value_now" } }
+    assert_deprecated { process :set_flash_now, "GET", nil, nil, "test_now" => "value_now" }
     assert_equal ">value_now<", flash["test_now"]
   end
 
@@ -312,7 +312,7 @@ XML
   end
 
   def test_process_with_session_arg
-    assert_deprecated { process :no_op, "GET", nil, { "string" => "value1", symbol: "value2" } }
+    assert_deprecated { process :no_op, "GET", nil, "string" => "value1", symbol: "value2" }
     assert_equal "value1", session["string"]
     assert_equal "value1", session[:string]
     assert_equal "value2", session["symbol"]
@@ -330,7 +330,7 @@ XML
   def test_deprecated_process_merges_session_arg
     session[:foo] = "bar"
     assert_deprecated {
-      get :no_op, nil, { bar: "baz" }
+      get :no_op, nil, bar: "baz"
     }
     assert_equal "bar", session[:foo]
     assert_equal "baz", session[:bar]
@@ -345,7 +345,7 @@ XML
 
   def test_deprecated_merged_session_arg_is_retained_across_requests
     assert_deprecated {
-      get :no_op, nil, { foo: "bar" }
+      get :no_op, nil, foo: "bar"
     }
     assert_equal "bar", session[:foo]
     get :no_op
@@ -455,9 +455,9 @@ XML
 
   def test_assert_generates
     assert_generates "controller/action/5", controller: "controller", action: "action", id: "5"
-    assert_generates "controller/action/7", { id: "7" }, { controller: "controller", action: "action" }
-    assert_generates "controller/action/5", { controller: "controller", action: "action", id: "5", name: "bob" }, {}, { name: "bob" }
-    assert_generates "controller/action/7", { id: "7", name: "bob" }, { controller: "controller", action: "action" }, { name: "bob" }
+    assert_generates "controller/action/7", { id: "7" }, controller: "controller", action: "action"
+    assert_generates "controller/action/5", { controller: "controller", action: "action", id: "5", name: "bob" }, {}, name: "bob"
+    assert_generates "controller/action/7", { id: "7", name: "bob" }, { controller: "controller", action: "action" }, name: "bob"
     assert_generates "controller/action/7", { id: "7" }, { controller: "controller", action: "action", name: "bob" }, {}
   end
 
@@ -468,7 +468,7 @@ XML
   def test_assert_routing_with_method
     with_routing do |set|
       set.draw { resources(:content) }
-      assert_routing({ method: "post", path: "content" }, { controller: "content", action: "create" })
+      assert_routing({ method: "post", path: "content" }, controller: "content", action: "create")
     end
   end
 
@@ -487,7 +487,7 @@ XML
   def test_assert_routing_with_glob
     with_routing do |set|
       set.draw { get("*path" => "pages#show") }
-      assert_routing("/company/about", { controller: "pages", action: "show", path: "company/about" })
+      assert_routing("/company/about", controller: "pages", action: "show", path: "company/about")
     end
   end
 

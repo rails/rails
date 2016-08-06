@@ -11,7 +11,7 @@ module ActionController
         response.headers["Content-Type"] = "text/event-stream"
         sse = SSE.new(response.stream)
         sse.write("{\"name\":\"John\"}")
-        sse.write({ name: "Ryan" })
+        sse.write(name: "Ryan")
       ensure
         sse.close
       end
@@ -19,7 +19,7 @@ module ActionController
       def sse_with_event
         sse = SSE.new(response.stream, event: "send-name")
         sse.write("{\"name\":\"John\"}")
-        sse.write({ name: "Ryan" })
+        sse.write(name: "Ryan")
       ensure
         sse.close
       end
@@ -459,7 +459,7 @@ class LiveStreamRouterTest < ActionDispatch::IntegrationTest
       response.headers["Content-Type"] = "text/event-stream"
       sse = SSE.new(response.stream)
       sse.write("{\"name\":\"John\"}")
-      sse.write({ name: "Ryan" })
+      sse.write(name: "Ryan")
     ensure
       sse.close
     end

@@ -109,7 +109,7 @@ module ActionDispatch
 
       def test_X_Cascade
         get "/messages(.:format)", to: "foo#bar"
-        resp = router.serve(rails_env({ "REQUEST_METHOD" => "GET", "PATH_INFO" => "/lol" }))
+        resp = router.serve(rails_env("REQUEST_METHOD" => "GET", "PATH_INFO" => "/lol"))
         assert_equal ["Not Found"], resp.last
         assert_equal "pass", resp[1]["X-Cascade"]
         assert_equal 404, resp.first
@@ -184,14 +184,14 @@ module ActionDispatch
       def test_required_part_in_recall
         get "/messages/:a/:b", to: "foo#bar"
 
-        path, _ = @formatter.generate(nil, { controller: "foo", action: "bar", a: "a" }, { b: "b" })
+        path, _ = @formatter.generate(nil, { controller: "foo", action: "bar", a: "a" }, b: "b")
         assert_equal "/messages/a/b", path
       end
 
       def test_splat_in_recall
         get "/*path", to: "foo#bar"
 
-        path, _ = @formatter.generate(nil, { controller: "foo", action: "bar" }, { path: "b" })
+        path, _ = @formatter.generate(nil, { controller: "foo", action: "bar" }, path: "b")
         assert_equal "/b", path
       end
 
@@ -199,7 +199,7 @@ module ActionDispatch
         get "/messages/:action(/:id(.:format))", to: "foo#bar"
         get "/messages/:id(.:format)", to: "bar#baz"
 
-        path, _ = @formatter.generate(nil, { controller: "foo", id: 10 }, { action: "index" })
+        path, _ = @formatter.generate(nil, { controller: "foo", id: 10 }, action: "index")
         assert_equal "/messages/index/10", path
       end
 
@@ -312,7 +312,7 @@ module ActionDispatch
         path, params = @formatter.generate(
           nil,
           {controller: "tasks", id: 10},
-          {action: "index"})
+          action: "index")
         assert_equal "/tasks/index/10", path
         assert_equal({}, params)
       end
@@ -323,7 +323,7 @@ module ActionDispatch
         path, params = @formatter.generate(
           "tasks",
           {controller: "tasks"},
-          {controller: "tasks", action: "index"})
+          controller: "tasks", action: "index")
         assert_equal "/tasks", path
         assert_equal({}, params)
       end
@@ -372,7 +372,7 @@ module ActionDispatch
       end
 
       def test_namespaced_controller
-        get "/:controller(/:action(/:id))", { controller: /.+?/ }
+        get "/:controller(/:action(/:id))", controller: /.+?/
         route = @routes.first
 
         env = rails_env "PATH_INFO" => "/admin/users/show/10"

@@ -97,9 +97,9 @@ class SanitizeTest < ActiveRecord::TestCase
   end
 
   def test_named_bind_arity
-    assert_nothing_raised                                { bind "name = :name", { name: "37signals" } }
-    assert_nothing_raised                                { bind "name = :name", { name: "37signals", id: 1 } }
-    assert_raise(ActiveRecord::PreparedStatementInvalid) { bind "name = :name", { id: 1 } }
+    assert_nothing_raised                                { bind "name = :name", name: "37signals" }
+    assert_nothing_raised                                { bind "name = :name", name: "37signals", id: 1 }
+    assert_raise(ActiveRecord::PreparedStatementInvalid) { bind "name = :name", id: 1 }
   end
 
   class SimpleEnumerable

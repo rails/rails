@@ -2122,7 +2122,7 @@ to this:
 
       def initialize(set) #:nodoc:
         @set = set
-        @scope = Scope.new({ path_names: @set.resources_path_names })
+        @scope = Scope.new(path_names: @set.resources_path_names)
         @concerns = {}
       end
 

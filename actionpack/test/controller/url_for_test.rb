@@ -29,9 +29,9 @@ module AbstractController
           self.default_url_options[:host] = "example.com"
         }
 
-        path = klass.new.fun_path({controller: :articles,
+        path = klass.new.fun_path(controller: :articles,
                                    baz: "baz",
-                                   zot: "zot"})
+                                   zot: "zot")
         # :bar key isn't provided
         assert_equal "/foo/zot", path
       end
@@ -230,21 +230,21 @@ module AbstractController
         add_host!
         options = { trailing_slash: true,protocol: "https", controller: "foo", action: "bar", id: "33"}
         assert_equal("https://www.basecamphq.com/foo/bar/33/", W.new.url_for(options) )
-        assert_equal "https://www.basecamphq.com/foo/bar/33/?query=string", W.new.url_for(options.merge({query: "string"}))
+        assert_equal "https://www.basecamphq.com/foo/bar/33/?query=string", W.new.url_for(options.merge(query: "string"))
       end
 
       def test_trailing_slash_with_only_path
         options = {controller: "foo", trailing_slash: true}
-        assert_equal "/foo/", W.new.url_for(options.merge({only_path: true}))
-        options.update({action: "bar", id: "33"})
-        assert_equal "/foo/bar/33/", W.new.url_for(options.merge({only_path: true}))
-        assert_equal "/foo/bar/33/?query=string", W.new.url_for(options.merge({query: "string",only_path: true}))
+        assert_equal "/foo/", W.new.url_for(options.merge(only_path: true))
+        options.update(action: "bar", id: "33")
+        assert_equal "/foo/bar/33/", W.new.url_for(options.merge(only_path: true))
+        assert_equal "/foo/bar/33/?query=string", W.new.url_for(options.merge(query: "string",only_path: true))
       end
 
       def test_trailing_slash_with_anchor
         options = {trailing_slash: true, controller: "foo", action: "bar", id: "33", only_path: true, anchor: "chapter7"}
         assert_equal "/foo/bar/33/#chapter7", W.new.url_for(options)
-        assert_equal "/foo/bar/33/?query=string#chapter7", W.new.url_for(options.merge({query: "string"}))
+        assert_equal "/foo/bar/33/?query=string#chapter7", W.new.url_for(options.merge(query: "string"))
       end
 
       def test_trailing_slash_with_params

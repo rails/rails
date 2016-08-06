@@ -102,13 +102,13 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
 
   def test_create_mysql_database_with_encoding
     assert_equal "CREATE DATABASE `matt` DEFAULT CHARACTER SET `utf8`", create_database(:matt)
-    assert_equal "CREATE DATABASE `aimonetti` DEFAULT CHARACTER SET `latin1`", create_database(:aimonetti, {charset: "latin1"})
-    assert_equal "CREATE DATABASE `matt_aimonetti` DEFAULT CHARACTER SET `big5` COLLATE `big5_chinese_ci`", create_database(:matt_aimonetti, {charset: :big5, collation: :big5_chinese_ci})
+    assert_equal "CREATE DATABASE `aimonetti` DEFAULT CHARACTER SET `latin1`", create_database(:aimonetti, charset: "latin1")
+    assert_equal "CREATE DATABASE `matt_aimonetti` DEFAULT CHARACTER SET `big5` COLLATE `big5_chinese_ci`", create_database(:matt_aimonetti, charset: :big5, collation: :big5_chinese_ci)
   end
 
   def test_recreate_mysql_database_with_encoding
-    create_database(:luca, {charset: "latin1"})
-    assert_equal "CREATE DATABASE `luca` DEFAULT CHARACTER SET `latin1`", recreate_database(:luca, {charset: "latin1"})
+    create_database(:luca, charset: "latin1")
+    assert_equal "CREATE DATABASE `luca` DEFAULT CHARACTER SET `latin1`", recreate_database(:luca, charset: "latin1")
   end
 
   def test_add_column
@@ -142,7 +142,7 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
         ActiveRecord::Base.connection.create_table :delete_me do |t|
           t.timestamps null: true
         end
-        ActiveRecord::Base.connection.remove_timestamps :delete_me, { null: true }
+        ActiveRecord::Base.connection.remove_timestamps :delete_me, null: true
         assert !column_present?("delete_me", "updated_at", "datetime")
         assert !column_present?("delete_me", "created_at", "datetime")
       ensure

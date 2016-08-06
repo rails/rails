@@ -1044,7 +1044,7 @@ module ApplicationTests
 
       app "development"
 
-      post "/posts", {post: {"title" =>"zomg"}}
+      post "/posts", post: {"title" =>"zomg"}
       assert_equal "permitted", last_response.body
     end
 
@@ -1068,7 +1068,7 @@ module ApplicationTests
 
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
 
-      post "/posts", {post: {"title" =>"zomg"}}
+      post "/posts", post: {"title" =>"zomg"}
       assert_match "We're sorry, but something went wrong", last_response.body
     end
 
@@ -1108,7 +1108,7 @@ module ApplicationTests
 
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
 
-      post "/posts", {post: {"title" =>"zomg"}, format: "json"}
+      post "/posts", post: {"title" =>"zomg"}, format: "json"
       assert_equal 200, last_response.status
     end
 

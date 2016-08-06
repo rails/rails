@@ -260,11 +260,9 @@ end
 
 module RenderActionWithBothLayouts
   class BasicController < ActionController::Base
-    self.view_paths = [ActionView::FixtureResolver.new({
-      "render_action_with_both_layouts/basic/hello_world.html.erb" => "Hello World!",
+    self.view_paths = [ActionView::FixtureResolver.new(      "render_action_with_both_layouts/basic/hello_world.html.erb" => "Hello World!",
       "layouts/application.html.erb"                                => "Oh Hi <%= yield %> Bye",
-      "layouts/render_action_with_both_layouts/basic.html.erb"      => "With Controller Layout! <%= yield %> Bye"
-    })]
+      "layouts/render_action_with_both_layouts/basic.html.erb"      => "With Controller Layout! <%= yield %> Bye")]
 
     def hello_world
       render action: "hello_world"

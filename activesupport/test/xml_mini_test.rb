@@ -322,7 +322,7 @@ YAML
       }
       parser = @parsing["yaml"]
       assert_equal(expected, parser.call(yaml))
-      assert_equal({1 => "test"}, parser.call({1 => "test"}))
+      assert_equal({1 => "test"}, parser.call(1 => "test"))
       assert_equal({"1 => 'test'"=>nil}, parser.call("{1 => 'test'}"))
     end
 

@@ -88,7 +88,7 @@ class RendererTest < ActiveSupport::TestCase
   end
 
   test "rendering with user specified defaults" do
-    ApplicationController.renderer.defaults.merge!({ hello: "hello", https: true })
+    ApplicationController.renderer.defaults.merge!(hello: "hello", https: true)
     renderer = ApplicationController.renderer.new
     content = renderer.render inline: "<%= request.ssl? %>"
 

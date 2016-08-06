@@ -29,11 +29,11 @@ class RedirectController < ActionController::Base
   end
 
   def redirect_with_status
-    redirect_to({action: "hello_world", status: 301})
+    redirect_to(action: "hello_world", status: 301)
   end
 
   def redirect_with_status_hash
-    redirect_to({action: "hello_world"}, {status: 301})
+    redirect_to({action: "hello_world"}, status: 301)
   end
 
   def redirect_with_protocol
@@ -45,7 +45,7 @@ class RedirectController < ActionController::Base
   end
 
   def url_redirect_with_status_hash
-    redirect_to("http://www.example.com", {status: 301})
+    redirect_to("http://www.example.com", status: 301)
   end
 
   def relative_url_redirect_with_status
@@ -53,7 +53,7 @@ class RedirectController < ActionController::Base
   end
 
   def relative_url_redirect_with_status_hash
-    redirect_to("/things/stuff", {status: 301})
+    redirect_to("/things/stuff", status: 301)
   end
 
   def redirect_to_back_with_status

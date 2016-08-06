@@ -305,7 +305,7 @@ module CacheStoreBehavior
   end
 
   def test_should_read_and_write_hash
-    assert @cache.write("foo", {a: "b"})
+    assert @cache.write("foo", a: "b")
     assert_equal({a: "b"}, @cache.read("foo"))
   end
 
@@ -1173,7 +1173,7 @@ class CacheStoreLoggerTest < ActiveSupport::TestCase
   end
 
   def test_log_with_string_namespace
-    @cache.fetch("foo", {namespace: "string_namespace"}) { "bar" }
+    @cache.fetch("foo", namespace: "string_namespace") { "bar" }
     assert_match %r{string_namespace:foo}, @buffer.string
   end
 
@@ -1181,7 +1181,7 @@ class CacheStoreLoggerTest < ActiveSupport::TestCase
     proc = Proc.new do
       "proc_namespace"
     end
-    @cache.fetch("foo", {namespace: proc}) { "bar" }
+    @cache.fetch("foo", namespace: proc) { "bar" }
     assert_match %r{proc_namespace:foo}, @buffer.string
   end
 

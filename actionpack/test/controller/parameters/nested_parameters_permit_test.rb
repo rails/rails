@@ -7,8 +7,7 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "permitted nested parameters" do
-    params = ActionController::Parameters.new({
-      book: {
+    params = ActionController::Parameters.new(      book: {
         title: "Romeo and Juliet",
         authors: [{
           name: "William Shakespeare",
@@ -26,8 +25,7 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
           isbn: "x"
         }
       },
-      magazine: "Mjallo!"
-    })
+      magazine: "Mjallo!")
 
     permitted = params.permit book: [ :title, { authors: [ :name ] }, { details: :pages }, :id ]
 
@@ -45,14 +43,12 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "permitted nested parameters with a string or a symbol as a key" do
-    params = ActionController::Parameters.new({
-      book: {
+    params = ActionController::Parameters.new(      book: {
         "authors" => [
           { name: "William Shakespeare", born: "1564-04-26" },
           { name: "Christopher Marlowe" }
         ]
-      }
-    })
+      })
 
     permitted = params.permit book: [ { "authors" => [ :name ] } ]
 
@@ -70,24 +66,20 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "nested arrays with strings" do
-    params = ActionController::Parameters.new({
-      book: {
+    params = ActionController::Parameters.new(      book: {
         genres: ["Tragedy"]
-      }
-    })
+      })
 
     permitted = params.permit book: {genres: []}
     assert_equal ["Tragedy"], permitted[:book][:genres]
   end
 
   test "permit may specify symbols or strings" do
-    params = ActionController::Parameters.new({
-      book: {
+    params = ActionController::Parameters.new(      book: {
         title: "Romeo and Juliet",
         author: "William Shakespeare"
       },
-      magazine: "Shakespeare Today"
-    })
+      magazine: "Shakespeare Today")
 
     permitted = params.permit({book: ["title", :author]}, "magazine")
     assert_equal "Romeo and Juliet", permitted[:book][:title]
@@ -96,23 +88,19 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "nested array with strings that should be hashes" do
-    params = ActionController::Parameters.new({
-      book: {
+    params = ActionController::Parameters.new(      book: {
         genres: ["Tragedy"]
-      }
-    })
+      })
 
     permitted = params.permit book: { genres: :type }
     assert_empty permitted[:book][:genres]
   end
 
   test "nested array with strings that should be hashes and additional values" do
-    params = ActionController::Parameters.new({
-      book: {
+    params = ActionController::Parameters.new(      book: {
         title: "Romeo and Juliet",
         genres: ["Tragedy"]
-      }
-    })
+      })
 
     permitted = params.permit book: [ :title, { genres: :type } ]
     assert_equal "Romeo and Juliet", permitted[:book][:title]
@@ -120,26 +108,22 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "nested string that should be a hash" do
-    params = ActionController::Parameters.new({
-      book: {
+    params = ActionController::Parameters.new(      book: {
         genre: "Tragedy"
-      }
-    })
+      })
 
     permitted = params.permit book: { genre: :type }
     assert_nil permitted[:book][:genre]
   end
 
   test "fields_for-style nested params" do
-    params = ActionController::Parameters.new({
-      book: {
+    params = ActionController::Parameters.new(      book: {
         authors_attributes: {
           '0': { name: "William Shakespeare", age_of_death: "52" },
           '1': { name: "Unattributed Assistant" },
           '2': { name: %w(injected names) }
         }
-      }
-    })
+      })
     permitted = params.permit book: { authors_attributes: [ :name ] }
 
     assert_not_nil permitted[:book][:authors_attributes]["0"]
@@ -152,14 +136,12 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "fields_for-style nested params with negative numbers" do
-    params = ActionController::Parameters.new({
-      book: {
+    params = ActionController::Parameters.new(      book: {
         authors_attributes: {
           '-1': { name: "William Shakespeare", age_of_death: "52" },
           '-2': { name: "Unattributed Assistant" }
         }
-      }
-    })
+      })
     permitted = params.permit book: { authors_attributes: [:name] }
 
     assert_not_nil permitted[:book][:authors_attributes]["-1"]
@@ -171,14 +153,12 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "nested number as key" do
-    params = ActionController::Parameters.new({
-      product: {
+    params = ActionController::Parameters.new(      product: {
         properties: {
           "0" => "prop0",
           "1" => "prop1"
         }
-      }
-    })
+      })
     params = params.require(:product).permit(properties: ["0"])
     assert_not_nil        params[:properties]["0"]
     assert_nil            params[:properties]["1"]

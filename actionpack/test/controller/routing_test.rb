@@ -29,12 +29,10 @@ class UriReservedCharactersRoutingTest < ActiveSupport::TestCase
 
   def test_route_generation_escapes_unsafe_path_characters
     assert_equal "/content/act#{@escaped}ion/var#{@escaped}iable/add#{@escaped}itional-1/add#{@escaped}itional-2",
-      url_for(@set, {
-        controller: "content",
+      url_for(@set,         controller: "content",
         action: "act#{@segment}ion",
         variable: "var#{@segment}iable",
-        additional: ["add#{@segment}itional-1", "add#{@segment}itional-2"]
-      })
+        additional: ["add#{@segment}itional-1", "add#{@segment}itional-2"])
   end
 
   def test_route_recognition_unescapes_path_components
@@ -47,12 +45,10 @@ class UriReservedCharactersRoutingTest < ActiveSupport::TestCase
 
   def test_route_generation_allows_passing_non_string_values_to_generated_helper
     assert_equal "/content/action/variable/1/2",
-      url_for(@set, {
-        controller: "content",
+      url_for(@set,         controller: "content",
         action: "action",
         variable: "variable",
-        additional: [1, 2]
-      })
+        additional: [1, 2])
   end
 end
 
@@ -309,18 +305,18 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
     assert_equal({controller: "admin/user", action: "show", id: "10"}, rs.recognize_path("/admin/user/show/10"))
 
-    assert_equal "/admin/user/show/10", url_for(rs, { controller: "admin/user", action: "show", id: 10 })
+    assert_equal "/admin/user/show/10", url_for(rs, controller: "admin/user", action: "show", id: 10)
 
     get URI("http://test.host/admin/user/list/10")
 
     assert_equal({ controller: "admin/user", action: "list", id: "10" },
                  controller.request.path_parameters)
 
-    assert_equal "/admin/user/show",    controller.url_for({ action: "show", only_path: true })
-    assert_equal "/admin/user/list/10", controller.url_for({only_path: true})
+    assert_equal "/admin/user/show",    controller.url_for(action: "show", only_path: true)
+    assert_equal "/admin/user/list/10", controller.url_for(only_path: true)
 
-    assert_equal "/admin/stuff", controller.url_for({ controller: "stuff", only_path: true })
-    assert_equal "/stuff", controller.url_for({ controller: "/stuff", only_path: true })
+    assert_equal "/admin/stuff", controller.url_for(controller: "stuff", only_path: true)
+    assert_equal "/stuff", controller.url_for(controller: "/stuff", only_path: true)
   end
 
   def test_route_with_colon_first
@@ -341,8 +337,8 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     assert_equal({ action: "auth_google", controller: "content" }, rs.recognize_path("/content/auth_google"))
     assert_equal({ action: "auth-facebook", controller: "content" }, rs.recognize_path("/content/auth-facebook"))
 
-    assert_equal "/content/auth_google", url_for(rs, { controller: "content", action: "auth_google" })
-    assert_equal "/content/auth-facebook", url_for(rs, { controller: "content", action: "auth-facebook" })
+    assert_equal "/content/auth_google", url_for(rs, controller: "content", action: "auth_google")
+    assert_equal "/content/auth-facebook", url_for(rs, controller: "content", action: "auth-facebook")
   end
 
   def test_route_with_regexp_for_controller
@@ -358,8 +354,8 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     assert_equal({controller: "content", action: "foo"},
         rs.recognize_path("/content/foo"))
 
-    assert_equal "/admin/user/foo", url_for(rs, { controller: "admin/user", admintoken: "foo", action: "index" })
-    assert_equal "/content/foo",    url_for(rs, { controller: "content", action: "foo" })
+    assert_equal "/admin/user/foo", url_for(rs, controller: "admin/user", admintoken: "foo", action: "index")
+    assert_equal "/content/foo",    url_for(rs, controller: "content", action: "foo")
   end
 
   def test_route_with_regexp_and_captures_for_controller
@@ -385,14 +381,14 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     end
     # Without a file extension
     assert_equal "/user/download/file",
-      url_for(rs, { controller: "user", action: "download", file: "file" })
+      url_for(rs, controller: "user", action: "download", file: "file")
 
     assert_equal({controller: "user", action: "download", file: "file"},
       rs.recognize_path("/user/download/file"))
 
     # Now, let's try a file with an extension, really a dot (.)
     assert_equal "/user/download/file.jpg",
-      url_for(rs, { controller: "user", action: "download", file: "file.jpg" })
+      url_for(rs, controller: "user", action: "download", file: "file.jpg")
 
     assert_equal({controller: "user", action: "download", file: "file.jpg"},
       rs.recognize_path("/user/download/file.jpg"))
@@ -540,7 +536,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     get URI("http://test.host/admin/user/index/10")
 
     assert_equal "/admin/stuff/show/10",
-        controller.url_for({controller: "stuff", action: "show", id: 10, only_path: true})
+        controller.url_for(controller: "stuff", action: "show", id: 10, only_path: true)
   end
 
   def test_paths_escaped
@@ -586,7 +582,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
       get "post/:id" => "post#show", :constraints => { id: /\d+/ }, :as => "post"
     end
     assert_raise(ActionController::UrlGenerationError) do
-      url_for(rs, { controller: "post", action: "show", bad_param: "foo", use_route: "post" })
+      url_for(rs, controller: "post", action: "show", bad_param: "foo", use_route: "post")
     end
   end
 
@@ -596,7 +592,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     end
 
     assert_equal "/pages/boo",
-        url_for(rs, { controller: "content", action: "show_file", path: %w(pages boo) })
+        url_for(rs, controller: "content", action: "show_file", path: %w(pages boo))
   end
 
   def test_dynamic_recall_paths_allowed
@@ -621,9 +617,9 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     end
 
     get URI("http://test.host/pages/show")
-    assert_equal "/page/20",   controller.url_for({ id: 20, only_path: true })
-    assert_equal "/page/20",   url_for(rs, { controller: "pages", id: 20, action: "show" })
-    assert_equal "/pages/boo", url_for(rs, { controller: "pages", action: "boo" })
+    assert_equal "/page/20",   controller.url_for(id: 20, only_path: true)
+    assert_equal "/page/20",   url_for(rs, controller: "pages", id: 20, action: "show")
+    assert_equal "/pages/boo", url_for(rs, controller: "pages", action: "boo")
   end
 
   def test_route_with_integer_default
@@ -635,10 +631,10 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
       end
     end
 
-    assert_equal "/page",    url_for(rs, { controller: "content", action: "show_page" })
-    assert_equal "/page",    url_for(rs, { controller: "content", action: "show_page", id: 1 })
-    assert_equal "/page",    url_for(rs, { controller: "content", action: "show_page", id: "1" })
-    assert_equal "/page/10", url_for(rs, { controller: "content", action: "show_page", id: 10 })
+    assert_equal "/page",    url_for(rs, controller: "content", action: "show_page")
+    assert_equal "/page",    url_for(rs, controller: "content", action: "show_page", id: 1)
+    assert_equal "/page",    url_for(rs, controller: "content", action: "show_page", id: "1")
+    assert_equal "/page/10", url_for(rs, controller: "content", action: "show_page", id: 10)
 
     assert_equal({controller: "content", action: "show_page", id: 1 }, rs.recognize_path("/page"))
     assert_equal({controller: "content", action: "show_page", id: "1"}, rs.recognize_path("/page/1"))
@@ -655,14 +651,14 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
       end
     end
 
-    assert_equal "/page/foo", url_for(rs, { controller: "content", action: "show_page", id: "foo" })
+    assert_equal "/page/foo", url_for(rs, controller: "content", action: "show_page", id: "foo")
     assert_equal({ controller: "content", action: "show_page", id: "foo" }, rs.recognize_path("/page/foo"))
 
     token = "\321\202\320\265\320\272\321\201\321\202" # 'text' in Russian
     token.force_encoding(Encoding::BINARY)
     escaped_token = CGI::escape(token)
 
-    assert_equal "/page/" + escaped_token, url_for(rs, { controller: "content", action: "show_page", id: token })
+    assert_equal "/page/" + escaped_token, url_for(rs, controller: "content", action: "show_page", id: token)
     assert_equal({ controller: "content", action: "show_page", id: token }, rs.recognize_path("/page/#{escaped_token}"))
   end
 
@@ -677,10 +673,10 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
       get "post/:id" => "post#show", :constraints => {id: /\d+/}, :as => "post"
     end
 
-    assert_equal "/post/10", url_for(rs, { controller: "post", action: "show", id: 10 })
+    assert_equal "/post/10", url_for(rs, controller: "post", action: "show", id: 10)
 
     assert_raise(ActionController::UrlGenerationError) do
-      url_for(rs, { controller: "post", action: "show" })
+      url_for(rs, controller: "post", action: "show")
     end
   end
 
@@ -696,8 +692,8 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
       end
     end
 
-    assert_equal "/test", url_for(rs, { controller: "post", action: "show" })
-    assert_equal "/test", url_for(rs, { controller: "post", action: "show", year: nil })
+    assert_equal "/test", url_for(rs, controller: "post", action: "show")
+    assert_equal "/test", url_for(rs, controller: "post", action: "show", year: nil)
 
     assert_equal("http://test.host/test", setup_for_named_route.send(:blog_url))
   end
@@ -712,24 +708,24 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     end
 
     assert_equal "/pages/2005",
-      url_for(rs, { controller: "content", action: "list_pages", year: 2005 })
+      url_for(rs, controller: "content", action: "list_pages", year: 2005)
     assert_equal "/pages/2005/6",
-      url_for(rs, { controller: "content", action: "list_pages", year: 2005, month: 6 })
+      url_for(rs, controller: "content", action: "list_pages", year: 2005, month: 6)
     assert_equal "/pages/2005/6/12",
-      url_for(rs, { controller: "content", action: "list_pages", year: 2005, month: 6, day: 12 })
+      url_for(rs, controller: "content", action: "list_pages", year: 2005, month: 6, day: 12)
 
     get URI("http://test.host/pages/2005/6/12")
     assert_equal({ controller: "content", action: "list_pages", year: "2005", month: "6", day: "12" },
                 controller.request.path_parameters)
 
     assert_equal "/pages/2005/6/4",
-      controller.url_for({ day: 4, only_path: true })
+      controller.url_for(day: 4, only_path: true)
 
     assert_equal "/pages/2005/6",
-      controller.url_for({ day: nil, only_path: true })
+      controller.url_for(day: nil, only_path: true)
 
     assert_equal "/pages/2005",
-      controller.url_for({ day: nil, month: nil, only_path: true })
+      controller.url_for(day: nil, month: nil, only_path: true)
   end
 
   def test_root_url_generation_with_controller_and_action
@@ -737,8 +733,8 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
       root to: "content#index"
     end
 
-    assert_equal "/", url_for(rs, { controller: "content", action: "index" })
-    assert_equal "/", url_for(rs, { controller: "content" })
+    assert_equal "/", url_for(rs, controller: "content", action: "index")
+    assert_equal "/", url_for(rs, controller: "content")
   end
 
   def test_named_root_url_generation_with_controller_and_action
@@ -746,8 +742,8 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
        root to: "content#index", as: "home"
     end
 
-    assert_equal "/", url_for(rs, { controller: "content", action: "index" })
-    assert_equal "/", url_for(rs, { controller: "content" })
+    assert_equal "/", url_for(rs, controller: "content", action: "index")
+    assert_equal "/", url_for(rs, controller: "content")
 
     assert_equal("http://test.host/", setup_for_named_route.send(:home_url))
   end
@@ -761,8 +757,8 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
       end
     end
 
-    assert_equal "/categories", url_for(rs, { controller: "content", action: "categories" })
-    assert_equal "/content/hi", url_for(rs, { controller: "content", action: "hi" })
+    assert_equal "/categories", url_for(rs, controller: "content", action: "categories")
+    assert_equal "/content/hi", url_for(rs, controller: "content", action: "hi")
   end
 
   def test_named_routes_array
@@ -780,12 +776,10 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
       end
     end
 
-    assert_equal "/journal", url_for(rs, {
-      controller: "content",
+    assert_equal "/journal", url_for(rs,       controller: "content",
       action: "list_journal",
       date: nil,
-      user_id: nil
-    })
+      user_id: nil)
   end
 
   def setup_request_method_routes_for(method)
@@ -851,9 +845,9 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
       end
     end
 
-    assert_equal "/books/7/edit",      url_for(rs, { controller: "subpath_books", id: 7, action: "edit" })
-    assert_equal "/items/15/complete", url_for(rs, { controller: "subpath_books", id: 15, action: "complete" })
-    assert_equal "/posts/new/preview", url_for(rs, { controller: "subpath_books", action: "preview" })
+    assert_equal "/books/7/edit",      url_for(rs, controller: "subpath_books", id: 7, action: "edit")
+    assert_equal "/items/15/complete", url_for(rs, controller: "subpath_books", id: 15, action: "complete")
+    assert_equal "/posts/new/preview", url_for(rs, controller: "subpath_books", action: "preview")
   end
 
   def test_failed_constraints_raises_exception_with_violated_constraints
@@ -964,7 +958,7 @@ class RouteSetTest < ActiveSupport::TestCase
       end
     end
     assert_equal "/foo/bar/15?this=hello",
-        url_for(set, { controller: "foo", action: "bar", id: 15, this: "hello" })
+        url_for(set, controller: "foo", action: "bar", id: 15, this: "hello")
   end
 
   def test_extra_keys_not_first
@@ -1111,8 +1105,8 @@ class RouteSetTest < ActiveSupport::TestCase
 
     assert_equal 1, set.routes.size
 
-    assert_equal "/users/show/10",  url_for(set, { controller: "users", action: "show", id: 10 })
-    assert_equal "/users/index/10", url_for(set, { controller: "users", id: 10 })
+    assert_equal "/users/show/10",  url_for(set, controller: "users", action: "show", id: 10)
+    assert_equal "/users/index/10", url_for(set, controller: "users", id: 10)
 
     assert_equal({controller: "users", action: "index", id: "10"}, set.recognize_path("/users/index/10"))
     assert_equal({controller: "users", action: "index", id: "10"}, set.recognize_path("/users/index/10/"))
@@ -1313,7 +1307,7 @@ class RouteSetTest < ActiveSupport::TestCase
       get "/people/list", controller: "people", action: "list"
     end
 
-    url = url_for(set, { controller: "people", action: "list" })
+    url = url_for(set, controller: "people", action: "list")
     assert_equal "/people/list", url
   end
 
@@ -1456,11 +1450,11 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal({ controller: "connection/manage",
                    action: "index", }, request_path_params("/connection/manage"))
 
-    url = controller.url_for({ controller: "connection", only_path: true })
+    url = controller.url_for(controller: "connection", only_path: true)
     assert_equal "/connection/connection", url
 
-    url = controller.url_for({ use_route: "family_connection",
-                               controller: "connection", only_path: true })
+    url = controller.url_for(use_route: "family_connection",
+                               controller: "connection", only_path: true)
     assert_equal "/connection", url
   end
 
@@ -1494,7 +1488,7 @@ class RouteSetTest < ActiveSupport::TestCase
     get URI("http://test.host/weblog/show/1")
 
     assert_equal "/weblog/edit?parameter=1", controller.url_for(
-      {action: "edit", parameter: 1, only_path: true})
+      action: "edit", parameter: 1, only_path: true)
   end
 
   def test_format_is_not_inherit
@@ -1507,10 +1501,10 @@ class RouteSetTest < ActiveSupport::TestCase
                  controller.request.path_parameters)
 
     assert_equal "/posts", controller.url_for(
-      {controller: "posts", only_path: true})
+      controller: "posts", only_path: true)
 
     assert_equal "/posts.xml", controller.url_for(
-      {controller: "posts", format: "xml", only_path: true})
+      controller: "posts", format: "xml", only_path: true)
   end
 
   def test_expiry_determination_should_consider_values_with_to_param
@@ -1525,7 +1519,7 @@ class RouteSetTest < ActiveSupport::TestCase
       controller.request.path_parameters)
 
     assert_equal "/projects/1/weblog/show",
-      controller.url_for({ action: "show", project_id: 1, only_path: true })
+      controller.url_for(action: "show", project_id: 1, only_path: true)
   end
 
   def test_named_route_in_nested_resource
@@ -1622,12 +1616,12 @@ class RouteSetTest < ActiveSupport::TestCase
         :constraints => {name: /(david|jamis)/i}
     end
 
-    url = url_for(set, { controller: "pages", action: "show", name: "david" })
+    url = url_for(set, controller: "pages", action: "show", name: "david")
     assert_equal "/page/david", url
     assert_raise(ActionController::UrlGenerationError) do
-      url_for(set, { controller: "pages", action: "show", name: "davidjamis" })
+      url_for(set, controller: "pages", action: "show", name: "davidjamis")
     end
-    url = url_for(set, { controller: "pages", action: "show", name: "JAMIS" })
+    url = url_for(set, controller: "pages", action: "show", name: "JAMIS")
     assert_equal "/page/JAMIS", url
   end
 
@@ -1666,7 +1660,7 @@ class RouteSetTest < ActiveSupport::TestCase
         set.recognize_path("/page/JAMIS"))
 
     assert_equal "/page/JAMIS",
-        url_for(set, { controller: "pages", action: "show", name: "JAMIS" })
+        url_for(set, controller: "pages", action: "show", name: "JAMIS")
   end
 
   def test_routes_with_symbols
@@ -1684,8 +1678,8 @@ class RouteSetTest < ActiveSupport::TestCase
       get "/hello" => "bar#index"
     end
 
-    assert_equal "/",      url_for(set, { controller: "foo" })
-    assert_equal "/hello", url_for(set, { controller: "bar" })
+    assert_equal "/",      url_for(set, controller: "foo")
+    assert_equal "/hello", url_for(set, controller: "bar")
 
     assert_equal({controller: "foo", action: "index"}, set.recognize_path("/"))
     assert_equal({controller: "bar", action: "index"}, set.recognize_path("/hello"))
@@ -1698,7 +1692,7 @@ class RouteSetTest < ActiveSupport::TestCase
       end
     end
 
-    assert_equal "/cars/buy/1/2", url_for(set, { controller: "cars", action: "buy", person: "1", car: "2" })
+    assert_equal "/cars/buy/1/2", url_for(set, controller: "cars", action: "buy", person: "1", car: "2")
 
     assert_equal({controller: "cars", action: "buy", person: "1", car: "2"}, set.recognize_path("/cars/buy/1/2"))
   end
@@ -1710,7 +1704,7 @@ class RouteSetTest < ActiveSupport::TestCase
       end
     end
 
-    assert_equal "/books/list.rss", url_for(set, { controller: "books", action: "list" })
+    assert_equal "/books/list.rss", url_for(set, controller: "books", action: "list")
 
     assert_equal({controller: "books", action: "list"}, set.recognize_path("/books/list.rss"))
   end
@@ -1722,10 +1716,10 @@ class RouteSetTest < ActiveSupport::TestCase
       end
     end
 
-    assert_equal "/books/list.rss", url_for(set, { controller: "books", action: "list", format: "rss" })
-    assert_equal "/books/list.xml", url_for(set, { controller: "books", action: "list", format: "xml" })
-    assert_equal "/books/list",     url_for(set, { controller: "books", action: "list" })
-    assert_equal "/books",          url_for(set, { controller: "books", action: "index" })
+    assert_equal "/books/list.rss", url_for(set, controller: "books", action: "list", format: "rss")
+    assert_equal "/books/list.xml", url_for(set, controller: "books", action: "list", format: "xml")
+    assert_equal "/books/list",     url_for(set, controller: "books", action: "list")
+    assert_equal "/books",          url_for(set, controller: "books", action: "index")
 
     assert_equal({controller: "books", action: "list", format: "rss"}, set.recognize_path("/books/list.rss"))
     assert_equal({controller: "books", action: "list", format: "xml"}, set.recognize_path("/books/list.xml"))
@@ -1736,9 +1730,9 @@ class RouteSetTest < ActiveSupport::TestCase
   def test_slashes_are_implied
     set.draw { ActiveSupport::Deprecation.silence { get("/:controller(/:action(/:id))") } }
 
-    assert_equal "/content",        url_for(set, { controller: "content", action: "index" })
-    assert_equal "/content/list",   url_for(set, { controller: "content", action: "list" })
-    assert_equal "/content/show/1", url_for(set, { controller: "content", action: "show", id: "1" })
+    assert_equal "/content",        url_for(set, controller: "content", action: "index")
+    assert_equal "/content/list",   url_for(set, controller: "content", action: "list")
+    assert_equal "/content/show/1", url_for(set, controller: "content", action: "show", id: "1")
 
     assert_equal({controller: "content", action: "index"}, set.recognize_path("/content"))
     assert_equal({controller: "content", action: "index"}, set.recognize_path("/content/index"))
@@ -1767,15 +1761,15 @@ class RouteSetTest < ActiveSupport::TestCase
   end
 
   def test_default_route_should_omit_default_action
-    assert_equal "/accounts", url_for(default_route_set, { controller: "accounts", action: "index" })
+    assert_equal "/accounts", url_for(default_route_set, controller: "accounts", action: "index")
   end
 
   def test_default_route_should_include_default_action_when_id_present
-    assert_equal "/accounts/index/20", url_for(default_route_set, { controller: "accounts", action: "index", id: "20" })
+    assert_equal "/accounts/index/20", url_for(default_route_set, controller: "accounts", action: "index", id: "20")
   end
 
   def test_default_route_should_work_with_action_but_no_id
-    assert_equal "/accounts/list_all", url_for(default_route_set, { controller: "accounts", action: "list_all" })
+    assert_equal "/accounts/list_all", url_for(default_route_set, controller: "accounts", action: "list_all")
   end
 
   def test_default_route_should_uri_escape_pluses
@@ -1790,31 +1784,31 @@ class RouteSetTest < ActiveSupport::TestCase
   end
 
   def test_build_empty_query_string
-    assert_uri_equal "/foo", url_for(default_route_set, { controller: "foo" })
+    assert_uri_equal "/foo", url_for(default_route_set, controller: "foo")
   end
 
   def test_build_query_string_with_nil_value
-    assert_uri_equal "/foo", url_for(default_route_set, { controller: "foo", x: nil })
+    assert_uri_equal "/foo", url_for(default_route_set, controller: "foo", x: nil)
   end
 
   def test_simple_build_query_string
-    assert_uri_equal "/foo?x=1&y=2", url_for(default_route_set, { controller: "foo", x: "1", y: "2" })
+    assert_uri_equal "/foo?x=1&y=2", url_for(default_route_set, controller: "foo", x: "1", y: "2")
   end
 
   def test_convert_ints_build_query_string
-    assert_uri_equal "/foo?x=1&y=2", url_for(default_route_set, { controller: "foo", x: 1, y: 2 })
+    assert_uri_equal "/foo?x=1&y=2", url_for(default_route_set, controller: "foo", x: 1, y: 2)
   end
 
   def test_escape_spaces_build_query_string
-    assert_uri_equal "/foo?x=hello+world&y=goodbye+world", url_for(default_route_set, { controller: "foo", x: "hello world", y: "goodbye world" })
+    assert_uri_equal "/foo?x=hello+world&y=goodbye+world", url_for(default_route_set, controller: "foo", x: "hello world", y: "goodbye world")
   end
 
   def test_expand_array_build_query_string
-    assert_uri_equal "/foo?x%5B%5D=1&x%5B%5D=2", url_for(default_route_set, { controller: "foo", x: [1, 2] })
+    assert_uri_equal "/foo?x%5B%5D=1&x%5B%5D=2", url_for(default_route_set, controller: "foo", x: [1, 2])
   end
 
   def test_escape_spaces_build_query_string_selected_keys
-    assert_uri_equal "/foo?x=hello+world", url_for(default_route_set, { controller: "foo", x: "hello world" })
+    assert_uri_equal "/foo?x=hello+world", url_for(default_route_set, controller: "foo", x: "hello world")
   end
 
   def test_generate_with_default_params
@@ -1830,7 +1824,7 @@ class RouteSetTest < ActiveSupport::TestCase
       end
     end
 
-    assert_equal "/ibocorp", url_for(set, { controller: "ibocorp", action: "show", page: 1 })
+    assert_equal "/ibocorp", url_for(set, controller: "ibocorp", action: "show", page: 1)
   end
 
   include ActionDispatch::RoutingVerbs
@@ -1876,11 +1870,11 @@ class RouteSetTest < ActiveSupport::TestCase
     get URI("http://example.org/blog/2006/07/28")
 
     assert_equal({controller: "blog",  action: "show_date", year: "2006", month: "07", day: "28"}, controller.request.path_parameters)
-    assert_equal("/blog/2006/07/25", controller.url_for({ day: 25, only_path: true }))
-    assert_equal("/blog/2005",       controller.url_for({ year: 2005, only_path: true }))
-    assert_equal("/blog/show/123",   controller.url_for({ action: "show" , id: 123, only_path: true }))
-    assert_equal("/blog/2006",       controller.url_for({ year: 2006, only_path: true }))
-    assert_equal("/blog/2006",       controller.url_for({ year: 2006, month: nil, only_path: true }))
+    assert_equal("/blog/2006/07/25", controller.url_for(day: 25, only_path: true))
+    assert_equal("/blog/2005",       controller.url_for(year: 2005, only_path: true))
+    assert_equal("/blog/show/123",   controller.url_for(action: "show" , id: 123, only_path: true))
+    assert_equal("/blog/2006",       controller.url_for(year: 2006, only_path: true))
+    assert_equal("/blog/2006",       controller.url_for(year: 2006, month: nil, only_path: true))
   end
 
   private

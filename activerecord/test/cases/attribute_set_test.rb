@@ -14,7 +14,7 @@ module ActiveRecord
 
     test "building with custom types" do
       builder = AttributeSet::Builder.new(foo: Type::Float.new)
-      attributes = builder.build_from_database({ foo: "3.3", bar: "4.4" }, { bar: Type::Integer.new })
+      attributes = builder.build_from_database({ foo: "3.3", bar: "4.4" }, bar: Type::Integer.new)
 
       assert_equal 3.3, attributes[:foo].value
       assert_equal 4, attributes[:bar].value

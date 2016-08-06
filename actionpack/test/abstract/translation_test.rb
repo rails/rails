@@ -9,8 +9,7 @@ module AbstractController
     class TranslationControllerTest < ActiveSupport::TestCase
       def setup
         @controller = TranslationController.new
-        I18n.backend.store_translations(:en, {
-          one: {
+        I18n.backend.store_translations(:en,           one: {
             two: "bar",
           },
           abstract_controller: {
@@ -22,8 +21,7 @@ module AbstractController
                 no_action: "no_action_tr",
               },
             },
-          },
-        })
+          })
       end
 
       def test_action_controller_base_responds_to_translate

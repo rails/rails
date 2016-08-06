@@ -179,7 +179,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
   def test_with_nil_id
     with_test_routes do
       exception = assert_raise ArgumentError do
-        polymorphic_url({ id: nil })
+        polymorphic_url(id: nil)
       end
       assert_equal "Nil location provided. Can't build URI.", exception.message
     end
@@ -233,8 +233,8 @@ class PolymorphicRoutesTest < ActionController::TestCase
 
   def test_class_with_options
     with_test_routes do
-      assert_equal "http://example.com/projects?foo=bar", polymorphic_url(@project.class, { foo: :bar })
-      assert_equal "/projects?foo=bar", polymorphic_path(@project.class, { foo: :bar })
+      assert_equal "http://example.com/projects?foo=bar", polymorphic_url(@project.class, foo: :bar)
+      assert_equal "/projects?foo=bar", polymorphic_path(@project.class, foo: :bar)
     end
   end
 

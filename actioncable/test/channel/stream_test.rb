@@ -52,7 +52,7 @@ module ActionCable::StreamTests
       run_in_eventmachine do
         connection = TestConnection.new
         connection.expects(:pubsub).returns mock().tap { |m| m.expects(:subscribe).with("test_room_1", kind_of(Proc), kind_of(Proc)).returns stub_everything(:pubsub) }
-        channel = ChatChannel.new connection, "{id: 1}", { id: 1 }
+        channel = ChatChannel.new connection, "{id: 1}", id: 1
 
         connection.expects(:pubsub).returns mock().tap { |m| m.expects(:unsubscribe) }
         channel.unsubscribe_from_channel
@@ -84,7 +84,7 @@ module ActionCable::StreamTests
       run_in_eventmachine do
         connection = TestConnection.new
 
-        ChatChannel.new connection, "{id: 1}", { id: 1 }
+        ChatChannel.new connection, "{id: 1}", id: 1
         assert_nil connection.last_transmission
 
         wait_for_async

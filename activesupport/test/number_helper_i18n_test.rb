@@ -60,7 +60,7 @@ module ActiveSupport
 
     def test_locale_default_format_has_precedence_over_helper_defaults
       I18n.backend.store_translations "ts",
-        { number: { format: { separator: ";" } } }
+        number: { format: { separator: ";" } }
 
       assert_equal("&$ - 10;00", number_to_currency(10, locale: "ts"))
     end

@@ -103,7 +103,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
       logger.sql(event.new(0, sql: verb.to_s))
       assert_match(/#{REGEXP_BOLD}#{REGEXP_MAGENTA} \(0.0ms\)#{REGEXP_CLEAR}/i, logger.debugs.last)
 
-      logger.sql(event.new(0, {sql: verb.to_s, name: "SQL"}))
+      logger.sql(event.new(0, sql: verb.to_s, name: "SQL"))
       assert_match(/#{REGEXP_BOLD}#{REGEXP_MAGENTA}SQL \(0.0ms\)#{REGEXP_CLEAR}/i, logger.debugs.last)
     end
   end
@@ -113,13 +113,13 @@ class LogSubscriberTest < ActiveRecord::TestCase
     logger = TestDebugLogSubscriber.new
     logger.colorize_logging = true
     SQL_COLORINGS.each do |verb, _|
-      logger.sql(event.new(0, {sql: verb.to_s, name: "Model Load"}))
+      logger.sql(event.new(0, sql: verb.to_s, name: "Model Load"))
       assert_match(/#{REGEXP_BOLD}#{REGEXP_CYAN}Model Load \(0.0ms\)#{REGEXP_CLEAR}/i, logger.debugs.last)
 
-      logger.sql(event.new(0, {sql: verb.to_s, name: "Model Exists"}))
+      logger.sql(event.new(0, sql: verb.to_s, name: "Model Exists"))
       assert_match(/#{REGEXP_BOLD}#{REGEXP_CYAN}Model Exists \(0.0ms\)#{REGEXP_CLEAR}/i, logger.debugs.last)
 
-      logger.sql(event.new(0, {sql: verb.to_s, name: "ANY SPECIFIC NAME"}))
+      logger.sql(event.new(0, sql: verb.to_s, name: "ANY SPECIFIC NAME"))
       assert_match(/#{REGEXP_BOLD}#{REGEXP_CYAN}ANY SPECIFIC NAME \(0.0ms\)#{REGEXP_CLEAR}/i, logger.debugs.last)
     end
   end

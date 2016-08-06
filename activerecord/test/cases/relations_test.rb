@@ -510,7 +510,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_finding_with_hash_conditions_on_joined_table
-    firms = DependentFirm.joins(:account).where({name: "RailsCore", accounts: { credit_limit: 55..60 }}).to_a
+    firms = DependentFirm.joins(:account).where(name: "RailsCore", accounts: { credit_limit: 55..60 }).to_a
     assert_equal 1, firms.size
     assert_equal companies(:rails_core), firms.first
   end
@@ -526,7 +526,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_find_on_hash_conditions
-    assert_equal Topic.all.merge!(where: {approved: false}).to_a, Topic.where({ approved: false }).to_a
+    assert_equal Topic.all.merge!(where: {approved: false}).to_a, Topic.where(approved: false).to_a
   end
 
   def test_joins_with_string_array

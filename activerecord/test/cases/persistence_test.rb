@@ -622,7 +622,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_update_columns
     topic = Topic.find(1)
-    topic.update_columns({ "approved" => true, title: "Sebastian Topic" })
+    topic.update_columns("approved" => true, title: "Sebastian Topic")
     assert topic.approved?
     assert_equal "Sebastian Topic", topic.title
     topic.reload
@@ -643,19 +643,19 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_update_columns_should_raise_exception_if_new_record
     topic = Topic.new
-    assert_raises(ActiveRecord::ActiveRecordError) { topic.update_columns({ approved: false }) }
+    assert_raises(ActiveRecord::ActiveRecordError) { topic.update_columns(approved: false) }
   end
 
   def test_update_columns_should_not_leave_the_object_dirty
     topic = Topic.find(1)
-    topic.update({ "content" => "--- Have a nice day\n...\n", :author_name => "Jose" })
+    topic.update("content" => "--- Have a nice day\n...\n", :author_name => "Jose")
 
     topic.reload
-    topic.update_columns({ content: "--- You too\n...\n", "author_name" => "Sebastian" })
+    topic.update_columns(content: "--- You too\n...\n", "author_name" => "Sebastian")
     assert_equal [], topic.changed
 
     topic.reload
-    topic.update_columns({ content: "--- Have a nice day\n...\n", author_name: "Jose" })
+    topic.update_columns(content: "--- Have a nice day\n...\n", author_name: "Jose")
     assert_equal [], topic.changed
   end
 
@@ -671,7 +671,7 @@ class PersistenceTest < ActiveRecord::TestCase
     minivan = Minivan.find("m1")
     prev_color = minivan.color
     prev_name = minivan.name
-    assert_raises(ActiveRecord::ActiveRecordError) { minivan.update_columns({ name: "My old minivan", color: "black" }) }
+    assert_raises(ActiveRecord::ActiveRecordError) { minivan.update_columns(name: "My old minivan", color: "black") }
     assert_equal prev_color, minivan.color
     assert_equal prev_name, minivan.name
 
@@ -967,11 +967,9 @@ class PersistenceTest < ActiveRecord::TestCase
         self.table_name = :widgets
       end
 
-      instance  = widget.create!({
-        name: "Bob",
+      instance  = widget.create!(        name: "Bob",
         created_at: 1.day.ago,
-        updated_at: 1.day.ago
-      })
+        updated_at: 1.day.ago)
 
       created_at = instance.created_at
       updated_at = instance.updated_at

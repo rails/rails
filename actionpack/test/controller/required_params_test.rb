@@ -75,7 +75,7 @@ class ParametersRequireTest < ActiveSupport::TestCase
 
   test "Deprecated methods are deprecated" do
     assert_deprecated do
-      ActionController::Parameters.new(foo: "bar").merge!({bar: "foo"})
+      ActionController::Parameters.new(foo: "bar").merge!(bar: "foo")
     end
   end
 end

@@ -211,7 +211,7 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_content_tag_with_empty_array_class
-    str = content_tag("p", "limelight", {class: []})
+    str = content_tag("p", "limelight", class: [])
     assert_equal '<p class="">limelight</p>', str
   end
 
@@ -296,7 +296,7 @@ class TagHelperTest < ActionView::TestCase
   def test_data_attributes
     ["data", :data].each { |data|
       assert_dom_equal '<a data-a-float="3.14" data-a-big-decimal="-123.456" data-a-number="1" data-array="[1,2,3]" data-hash="{&quot;key&quot;:&quot;value&quot;}" data-string-with-quotes="double&quot;quote&quot;party&quot;" data-string="hello" data-symbol="foo" />',
-        tag("a", { data => { a_float: 3.14, a_big_decimal: BigDecimal.new("-123.456"), a_number: 1, string: "hello", symbol: :foo, array: [1, 2, 3], hash: { key: "value"}, string_with_quotes: 'double"quote"party"' } })
+        tag("a", data => { a_float: 3.14, a_big_decimal: BigDecimal.new("-123.456"), a_number: 1, string: "hello", symbol: :foo, array: [1, 2, 3], hash: { key: "value"}, string_with_quotes: 'double"quote"party"' })
       assert_dom_equal '<a data-a-float="3.14" data-a-big-decimal="-123.456" data-a-number="1" data-array="[1,2,3]" data-hash="{&quot;key&quot;:&quot;value&quot;}" data-string-with-quotes="double&quot;quote&quot;party&quot;" data-string="hello" data-symbol="foo" />',
         tag.a(data: { a_float: 3.14, a_big_decimal: BigDecimal.new("-123.456"), a_number: 1, string: "hello", symbol: :foo, array: [1, 2, 3], hash: { key: "value"}, string_with_quotes: 'double"quote"party"' })
     }
@@ -305,21 +305,21 @@ class TagHelperTest < ActionView::TestCase
   def test_aria_attributes
     ["aria", :aria].each { |aria|
       assert_dom_equal '<a aria-a-float="3.14" aria-a-big-decimal="-123.456" aria-a-number="1" aria-array="[1,2,3]" aria-hash="{&quot;key&quot;:&quot;value&quot;}" aria-string-with-quotes="double&quot;quote&quot;party&quot;" aria-string="hello" aria-symbol="foo" />',
-        tag("a", { aria => { a_float: 3.14, a_big_decimal: BigDecimal.new("-123.456"), a_number: 1, string: "hello", symbol: :foo, array: [1, 2, 3], hash: { key: "value"}, string_with_quotes: 'double"quote"party"' } })
+        tag("a", aria => { a_float: 3.14, a_big_decimal: BigDecimal.new("-123.456"), a_number: 1, string: "hello", symbol: :foo, array: [1, 2, 3], hash: { key: "value"}, string_with_quotes: 'double"quote"party"' })
       assert_dom_equal '<a aria-a-float="3.14" aria-a-big-decimal="-123.456" aria-a-number="1" aria-array="[1,2,3]" aria-hash="{&quot;key&quot;:&quot;value&quot;}" aria-string-with-quotes="double&quot;quote&quot;party&quot;" aria-string="hello" aria-symbol="foo" />',
         tag.a(aria: { a_float: 3.14, a_big_decimal: BigDecimal.new("-123.456"), a_number: 1, string: "hello", symbol: :foo, array: [1, 2, 3], hash: { key: "value"}, string_with_quotes: 'double"quote"party"' })
     }
   end
 
   def test_link_to_data_nil_equal
-    div_type1 = content_tag(:div, "test", { "data-tooltip" => nil })
-    div_type2 = content_tag(:div, "test", { data: {tooltip: nil} })
+    div_type1 = content_tag(:div, "test", "data-tooltip" => nil)
+    div_type2 = content_tag(:div, "test", data: {tooltip: nil})
     assert_dom_equal div_type1, div_type2 
   end
 
   def test_tag_builder_link_to_data_nil_equal
-    div_type1 = tag.div "test", { 'data-tooltip': nil }
-    div_type2 = tag.div "test", { data: {tooltip: nil} }
+    div_type1 = tag.div "test", 'data-tooltip': nil
+    div_type2 = tag.div "test", data: {tooltip: nil}
     assert_dom_equal div_type1, div_type2
   end
 

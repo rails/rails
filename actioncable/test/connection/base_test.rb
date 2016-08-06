@@ -119,8 +119,8 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
 
       env = Rack::MockRequest.env_for(
         "/test",
-        { "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket",
-          "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.org", "rack.hijack" => CallMeMaybe.new }
+        "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket",
+          "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.org", "rack.hijack" => CallMeMaybe.new
       )
 
       connection = ActionCable::Connection::Base.new(@server, env)

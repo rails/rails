@@ -166,19 +166,19 @@ if ActiveRecord::Base.connection.supports_extensions?
     end
 
     def test_gen1
-      assert_equal(%q(" "=>""), @type.serialize({" "=>""}))
+      assert_equal(%q(" "=>""), @type.serialize(" "=>""))
     end
 
     def test_gen2
-      assert_equal(%q(","=>""), @type.serialize({","=>""}))
+      assert_equal(%q(","=>""), @type.serialize(","=>""))
     end
 
     def test_gen3
-      assert_equal(%q("="=>""), @type.serialize({"="=>""}))
+      assert_equal(%q("="=>""), @type.serialize("="=>""))
     end
 
     def test_gen4
-      assert_equal(%q(">"=>""), @type.serialize({">"=>""}))
+      assert_equal(%q(">"=>""), @type.serialize(">"=>""))
     end
 
     def test_parse1
@@ -300,7 +300,7 @@ if ActiveRecord::Base.connection.supports_extensions?
     end
 
     def test_hstore_with_serialized_attributes
-      HstoreWithSerialize.create! tags: TagCollection.new({"one" => "two"})
+      HstoreWithSerialize.create! tags: TagCollection.new("one" => "two")
       record = HstoreWithSerialize.first
       assert_instance_of TagCollection, record.tags
       assert_equal({"one" => "two"}, record.tags.to_hash)
@@ -310,7 +310,7 @@ if ActiveRecord::Base.connection.supports_extensions?
     end
 
     def test_clone_hstore_with_serialized_attributes
-      HstoreWithSerialize.create! tags: TagCollection.new({"one" => "two"})
+      HstoreWithSerialize.create! tags: TagCollection.new("one" => "two")
       record = HstoreWithSerialize.first
       dupe = record.dup
       assert_equal({"one" => "two"}, dupe.tags.to_hash)

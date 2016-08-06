@@ -283,11 +283,9 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_habtm_collection_size_from_params
-    devel = Developer.new({
-      projects_attributes: {
+    devel = Developer.new(      projects_attributes: {
         "0" => {}
-      }
-    })
+      })
 
     assert_equal 1, devel.projects.size
   end

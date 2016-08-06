@@ -279,16 +279,14 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_initialize_with_attributes
-    topic = Topic.new({
-      "title" => "initialized from attributes", "written_on" => "2003-12-12 23:23"
-    })
+    topic = Topic.new(      "title" => "initialized from attributes", "written_on" => "2003-12-12 23:23")
 
     assert_equal("initialized from attributes", topic.title)
   end
 
   def test_initialize_with_invalid_attribute
-    Topic.new({ "title" => "test",
-      "last_read(1i)" => "2005", "last_read(2i)" => "2", "last_read(3i)" => "31"})
+    Topic.new("title" => "test",
+      "last_read(1i)" => "2005", "last_read(2i)" => "2", "last_read(3i)" => "31")
   rescue ActiveRecord::MultiparameterAssignmentErrors => ex
     assert_equal(1, ex.errors.size)
     assert_equal("last_read", ex.errors[0].attribute)
@@ -710,11 +708,11 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_boolean
-    b_nil = Boolean.create({ "value" => nil })
+    b_nil = Boolean.create("value" => nil)
     nil_id = b_nil.id
-    b_false = Boolean.create({ "value" => false })
+    b_false = Boolean.create("value" => false)
     false_id = b_false.id
-    b_true = Boolean.create({ "value" => true })
+    b_true = Boolean.create("value" => true)
     true_id = b_true.id
 
     b_nil = Boolean.find(nil_id)
@@ -726,7 +724,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_boolean_without_questionmark
-    b_true = Boolean.create({ "value" => true })
+    b_true = Boolean.create("value" => true)
     true_id = b_true.id
 
     subclass   = Class.new(Boolean).find true_id
@@ -736,11 +734,11 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_boolean_cast_from_string
-    b_blank = Boolean.create({ "value" => "" })
+    b_blank = Boolean.create("value" => "")
     blank_id = b_blank.id
-    b_false = Boolean.create({ "value" => "0" })
+    b_false = Boolean.create("value" => "0")
     false_id = b_false.id
-    b_true = Boolean.create({ "value" => "1" })
+    b_true = Boolean.create("value" => "1")
     true_id = b_true.id
 
     b_blank = Boolean.find(blank_id)

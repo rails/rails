@@ -111,7 +111,7 @@ class HashExtTest < ActiveSupport::TestCase
     transformed_hash = @mixed.dup
     transformed_hash.transform_keys!{ |key| key.to_s.upcase }
     assert_equal @upcase_strings, transformed_hash
-    assert_equal @mixed, { :a => 1, "b" => 2 }
+    assert_equal @mixed, :a => 1, "b" => 2
   end
 
   def test_deep_transform_keys!
@@ -127,7 +127,7 @@ class HashExtTest < ActiveSupport::TestCase
     transformed_hash = @nested_mixed.deep_dup
     transformed_hash.deep_transform_keys!{ |key| key.to_s.upcase }
     assert_equal @nested_upcase_strings, transformed_hash
-    assert_equal @nested_mixed, { "a" => { b: { "c" => 3 } } }
+    assert_equal @nested_mixed, "a" => { b: { "c" => 3 } }
   end
 
   def test_symbolize_keys
@@ -167,7 +167,7 @@ class HashExtTest < ActiveSupport::TestCase
     transformed_hash = @mixed.dup
     transformed_hash.deep_symbolize_keys!
     assert_equal @symbols, transformed_hash
-    assert_equal @mixed, { :a => 1, "b" => 2 }
+    assert_equal @mixed, :a => 1, "b" => 2
   end
 
   def test_deep_symbolize_keys!
@@ -183,7 +183,7 @@ class HashExtTest < ActiveSupport::TestCase
     transformed_hash = @nested_mixed.deep_dup
     transformed_hash.deep_symbolize_keys!
     assert_equal @nested_symbols, transformed_hash
-    assert_equal @nested_mixed, { "a" => { b: { "c" => 3 } } }
+    assert_equal @nested_mixed, "a" => { b: { "c" => 3 } }
   end
 
   def test_symbolize_keys_preserves_keys_that_cant_be_symbolized
@@ -243,7 +243,7 @@ class HashExtTest < ActiveSupport::TestCase
     transformed_hash = @mixed.dup
     transformed_hash.stringify_keys!
     assert_equal @strings, transformed_hash
-    assert_equal @mixed, { :a => 1, "b" => 2 }
+    assert_equal @mixed, :a => 1, "b" => 2
   end
 
   def test_deep_stringify_keys!
@@ -259,7 +259,7 @@ class HashExtTest < ActiveSupport::TestCase
     transformed_hash = @nested_mixed.deep_dup
     transformed_hash.deep_stringify_keys!
     assert_equal @nested_strings, transformed_hash
-    assert_equal @nested_mixed, { "a" => { b: { "c" => 3 } } }
+    assert_equal @nested_mixed, "a" => { b: { "c" => 3 } }
   end
 
   def test_symbolize_keys_for_hash_with_indifferent_access
@@ -447,7 +447,7 @@ class HashExtTest < ActiveSupport::TestCase
 
   def test_update_with_to_hash_conversion
     hash = HashWithIndifferentAccess.new
-    hash.update HashByConversion.new({ a: 1 })
+    hash.update HashByConversion.new(a: 1)
     assert_equal hash["a"], 1
   end
 
@@ -472,7 +472,7 @@ class HashExtTest < ActiveSupport::TestCase
 
   def test_merge_with_to_hash_conversion
     hash = HashWithIndifferentAccess.new
-    merged = hash.merge HashByConversion.new({ a: 1 })
+    merged = hash.merge HashByConversion.new(a: 1)
     assert_equal merged["a"], 1
   end
 
@@ -676,7 +676,7 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_to_options_on_indifferent_preserves_works_as_hash_with_dup
-    h = HashWithIndifferentAccess.new({ a: { b: "b" } })
+    h = HashWithIndifferentAccess.new(a: { b: "b" })
     dup = h.dup
 
     dup[:a][:c] = "c"
@@ -777,8 +777,8 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_deep_merge_on_indifferent_access
-    hash_1 = HashWithIndifferentAccess.new({ a: "a", b: "b", c: { c1: "c1", c2: "c2", c3: { d1: "d1" } } })
-    hash_2 = HashWithIndifferentAccess.new({ a: 1, c: { c1: 2, c3: { d2: "d2" } } })
+    hash_1 = HashWithIndifferentAccess.new(a: "a", b: "b", c: { c1: "c1", c2: "c2", c3: { d1: "d1" } })
+    hash_2 = HashWithIndifferentAccess.new(a: 1, c: { c1: 2, c3: { d2: "d2" } })
     hash_3 = { a: 1, c: { c1: 2, c3: { d2: "d2" } } }
     expected = { "a" => 1, "b" => "b", "c" => { "c1" => 2, "c2" => "c2", "c3" => { "d1" => "d1", "d2" => "d2" } } }
     assert_equal expected, hash_1.deep_merge(hash_2)

@@ -103,7 +103,7 @@ class WebServiceTest < ActionDispatch::IntegrationTest
       end
 
       def content_length; get_header("rack.input").length; end
-    end.new({ "rack.input" => StringIO.new('{"title":"JSON"}}'), "CONTENT_TYPE" => "application/json" })
+    end.new("rack.input" => StringIO.new('{"title":"JSON"}}'), "CONTENT_TYPE" => "application/json")
 
     assert_raises(Interrupt) do
       req.request_parameters

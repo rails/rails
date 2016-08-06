@@ -388,7 +388,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_optgroups_with_with_options_with_hash
     assert_dom_equal(
        "<optgroup label=\"North America\"><option value=\"United States\">United States</option>\n<option value=\"Canada\">Canada</option></optgroup><optgroup label=\"Europe\"><option value=\"Denmark\">Denmark</option>\n<option value=\"Germany\">Germany</option></optgroup>",
-       grouped_options_for_select({"North America" => ["United States","Canada"], "Europe" => ["Denmark","Germany"]})
+       grouped_options_for_select("North America" => ["United States","Canada"], "Europe" => ["Denmark","Germany"])
     )
   end
 
@@ -752,7 +752,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post.category = ""
     assert_dom_equal(
         "<select class=\"disabled\" disabled=\"disabled\" name=\"post[category]\" id=\"post_category\"><option value=\"\">Please select</option>\n<option value=\"\"></option>\n</select>",
-        select("post", "category", [], { prompt: true, include_blank: true }, { class: "disabled", disabled: true })
+        select("post", "category", [], { prompt: true, include_blank: true }, class: "disabled", disabled: true)
     )
   end
 
@@ -842,7 +842,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
     assert_dom_equal(
       expected,
-      select("album[]", "genre", %w[rap rock country], {}, { index: nil })
+      select("album[]", "genre", %w[rap rock country], {}, index: nil)
     )
   end
 
@@ -997,7 +997,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
     assert_dom_equal(
       %{<select id="post_author_name" name="post[author_name]"><option value=""></option>\n<option value="&lt;Abe&gt;" selected="selected">&lt;Abe&gt;</option>\n<option value="Babe">Babe</option>\n<option value="Cabe">Cabe</option></select>},
-      collection_select("post", "author_name", dummy_posts, "author_name", "author_name", {include_blank: true, selected: "<Abe>"})
+      collection_select("post", "author_name", dummy_posts, "author_name", "author_name", include_blank: true, selected: "<Abe>")
     )
   end
 

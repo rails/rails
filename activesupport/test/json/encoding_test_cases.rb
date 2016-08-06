@@ -70,7 +70,7 @@ module JSONTest
                      [ Custom.new(nil), "null" ],
                      [ Custom.new(:a), '"a"' ],
                      [ Custom.new([ :foo, "bar" ]), '["foo","bar"]' ],
-                     [ Custom.new({ foo: "hello", bar: "world" }), '{"bar":"world","foo":"hello"}' ],
+                     [ Custom.new(foo: "hello", bar: "world"), '{"bar":"world","foo":"hello"}' ],
                      [ Custom.new(Hashlike.new), '{"bar":"world","foo":"hello"}' ],
                      [ Custom.new(Custom.new(Custom.new(:a))), '"a"' ]]
 

@@ -4,7 +4,7 @@ module Admin; class User; end; end
 
 module ParamsWrapperTestHelp
   def with_default_wrapper_options(&block)
-    @controller.class._set_wrapper_options({format: [:json]})
+    @controller.class._set_wrapper_options(format: [:json])
     @controller.class.inherited(@controller.class)
     yield
   end
@@ -50,7 +50,7 @@ class ParamsWrapperTest < ActionController::TestCase
     with_default_wrapper_options do
       @request.env["CONTENT_TYPE"] = "application/json"
       post :parse, params: { "username" => "sikachu" }
-      assert_equal @request.filtered_parameters, { "controller" => "params_wrapper_test/users", "action" => "parse", "username" => "sikachu", "user" => { "username" => "sikachu" } }
+      assert_equal @request.filtered_parameters, "controller" => "params_wrapper_test/users", "action" => "parse", "username" => "sikachu", "user" => { "username" => "sikachu" }
     end
   end
 
@@ -58,7 +58,7 @@ class ParamsWrapperTest < ActionController::TestCase
     with_default_wrapper_options do
       @request.env["CONTENT_TYPE"] = "application/json"
       post :parse, params: { "username" => "sikachu" }
-      assert_parameters({ "username" => "sikachu", "user" => { "username" => "sikachu" }})
+      assert_parameters("username" => "sikachu", "user" => { "username" => "sikachu" })
     end
   end
 
@@ -68,7 +68,7 @@ class ParamsWrapperTest < ActionController::TestCase
 
       @request.env["CONTENT_TYPE"] = "application/json"
       post :parse, params: { "username" => "sikachu" }
-      assert_parameters({ "username" => "sikachu", "person" => { "username" => "sikachu" }})
+      assert_parameters("username" => "sikachu", "person" => { "username" => "sikachu" })
     end
   end
 
@@ -78,7 +78,7 @@ class ParamsWrapperTest < ActionController::TestCase
 
       @request.env["CONTENT_TYPE"] = "application/json"
       post :parse, params: { "username" => "sikachu" }
-      assert_parameters({ "username" => "sikachu", "person" => { "username" => "sikachu" }})
+      assert_parameters("username" => "sikachu", "person" => { "username" => "sikachu" })
     end
   end
 
@@ -88,7 +88,7 @@ class ParamsWrapperTest < ActionController::TestCase
 
       @request.env["CONTENT_TYPE"] = "application/json"
       post :parse, params: { "username" => "sikachu", "title" => "Developer" }
-      assert_parameters({ "username" => "sikachu", "title" => "Developer", "user" => { "username" => "sikachu" }})
+      assert_parameters("username" => "sikachu", "title" => "Developer", "user" => { "username" => "sikachu" })
     end
   end
 
@@ -98,7 +98,7 @@ class ParamsWrapperTest < ActionController::TestCase
 
       @request.env["CONTENT_TYPE"] = "application/json"
       post :parse, params: { "username" => "sikachu", "title" => "Developer" }
-      assert_parameters({ "username" => "sikachu", "title" => "Developer", "user" => { "username" => "sikachu" }})
+      assert_parameters("username" => "sikachu", "title" => "Developer", "user" => { "username" => "sikachu" })
     end
   end
 
@@ -108,7 +108,7 @@ class ParamsWrapperTest < ActionController::TestCase
 
       @request.env["CONTENT_TYPE"] = "application/json"
       post :parse, params: { "username" => "sikachu", "title" => "Developer" }
-      assert_parameters({ "username" => "sikachu", "title" => "Developer", "person" => { "username" => "sikachu" }})
+      assert_parameters("username" => "sikachu", "title" => "Developer", "person" => { "username" => "sikachu" })
     end
   end
 
@@ -116,7 +116,7 @@ class ParamsWrapperTest < ActionController::TestCase
     with_default_wrapper_options do
       @request.env["CONTENT_TYPE"] = "application/xml"
       post :parse, params: { "username" => "sikachu", "title" => "Developer" }
-      assert_parameters({ "username" => "sikachu", "title" => "Developer" })
+      assert_parameters("username" => "sikachu", "title" => "Developer")
     end
   end
 
@@ -125,7 +125,7 @@ class ParamsWrapperTest < ActionController::TestCase
       UsersController.wrap_parameters false
       @request.env["CONTENT_TYPE"] = "application/json"
       post :parse, params: { "username" => "sikachu", "title" => "Developer" }
-      assert_parameters({ "username" => "sikachu", "title" => "Developer" })
+      assert_parameters("username" => "sikachu", "title" => "Developer")
     end
   end
 
@@ -135,7 +135,7 @@ class ParamsWrapperTest < ActionController::TestCase
 
       @request.env["CONTENT_TYPE"] = "application/xml"
       post :parse, params: { "username" => "sikachu", "title" => "Developer" }
-      assert_parameters({ "username" => "sikachu", "title" => "Developer", "user" => { "username" => "sikachu", "title" => "Developer" }})
+      assert_parameters("username" => "sikachu", "title" => "Developer", "user" => { "username" => "sikachu", "title" => "Developer" })
     end
   end
 
@@ -143,7 +143,7 @@ class ParamsWrapperTest < ActionController::TestCase
     with_default_wrapper_options do
       @request.env["CONTENT_TYPE"] = "application/json"
       post :parse, params: { "authenticity_token" => "pwned", "_method" => "put", "utf8" => "&#9731;", "username" => "sikachu" }
-      assert_parameters({ "authenticity_token" => "pwned", "_method" => "put", "utf8" => "&#9731;", "username" => "sikachu", "user" => { "username" => "sikachu" }})
+      assert_parameters("authenticity_token" => "pwned", "_method" => "put", "utf8" => "&#9731;", "username" => "sikachu", "user" => { "username" => "sikachu" })
     end
   end
 
@@ -151,7 +151,7 @@ class ParamsWrapperTest < ActionController::TestCase
     with_default_wrapper_options do
       @request.env["CONTENT_TYPE"] = "application/json"
       post :parse, params: { "user" => { "username" => "sikachu" }}
-      assert_parameters({ "user" => { "username" => "sikachu" }})
+      assert_parameters("user" => { "username" => "sikachu" })
     end
   end
 
@@ -159,7 +159,7 @@ class ParamsWrapperTest < ActionController::TestCase
     with_default_wrapper_options do
       @request.env["CONTENT_TYPE"] = "application/json"
       post :parse, params: { "person" => { "username" => "sikachu" }}
-      assert_parameters({ "person" => { "username" => "sikachu" }, "user" => {"person" => { "username" => "sikachu" }}})
+      assert_parameters("person" => { "username" => "sikachu" }, "user" => {"person" => { "username" => "sikachu" }})
     end
   end
 
@@ -168,7 +168,7 @@ class ParamsWrapperTest < ActionController::TestCase
       with_default_wrapper_options do
         @request.env["CONTENT_TYPE"] = "application/json"
         post :parse, params: { "username" => "sikachu", "title" => "Developer" }
-        assert_parameters({ "username" => "sikachu", "title" => "Developer", "user" => { "username" => "sikachu" }})
+        assert_parameters("username" => "sikachu", "title" => "Developer", "user" => { "username" => "sikachu" })
       end
     end
   end
@@ -180,7 +180,7 @@ class ParamsWrapperTest < ActionController::TestCase
 
         @request.env["CONTENT_TYPE"] = "application/json"
         post :parse, params: { "username" => "sikachu", "title" => "Developer" }
-        assert_parameters({ "username" => "sikachu", "title" => "Developer", "person" => { "username" => "sikachu" }})
+        assert_parameters("username" => "sikachu", "title" => "Developer", "person" => { "username" => "sikachu" })
       end
     end
   end
@@ -189,7 +189,7 @@ class ParamsWrapperTest < ActionController::TestCase
     with_default_wrapper_options do
       @request.env["CONTENT_TYPE"] = "application/json"
       post :parse, params: { "username" => "sikachu", "title" => "Developer" }
-      assert_parameters({ "username" => "sikachu", "title" => "Developer", "user" => { "username" => "sikachu", "title" => "Developer" }})
+      assert_parameters("username" => "sikachu", "title" => "Developer", "user" => { "username" => "sikachu", "title" => "Developer" })
     end
   end
 
@@ -198,7 +198,7 @@ class ParamsWrapperTest < ActionController::TestCase
       @request.env["CONTENT_TYPE"] = "application/json"
       get :parse, params: { "user" => { "username" => "nixon" } }
       assert_parameters(
-        {"user" => { "username" => "nixon" } }
+        "user" => { "username" => "nixon" }
       )
     end
   end
@@ -208,7 +208,7 @@ class ParamsWrapperTest < ActionController::TestCase
       @request.env["CONTENT_TYPE"] = "application/json"
       post :parse, params: {}
       assert_parameters(
-        {"user" => { } }
+        "user" => { }
       )
     end
   end
@@ -254,7 +254,7 @@ class NamespacedParamsWrapperTest < ActionController::TestCase
     with_default_wrapper_options do
       @request.env["CONTENT_TYPE"] = "application/json"
       post :parse, params: { "username" => "sikachu" }
-      assert_parameters({"username" => "sikachu", "user" => { "username" => "sikachu" }})
+      assert_parameters("username" => "sikachu", "user" => { "username" => "sikachu" })
     end
   end
 
@@ -264,7 +264,7 @@ class NamespacedParamsWrapperTest < ActionController::TestCase
       with_default_wrapper_options do
         @request.env["CONTENT_TYPE"] = "application/json"
         post :parse, params: { "username" => "sikachu", "title" => "Developer" }
-        assert_parameters({ "username" => "sikachu", "title" => "Developer", "user" => { "username" => "sikachu" }})
+        assert_parameters("username" => "sikachu", "title" => "Developer", "user" => { "username" => "sikachu" })
       end
     ensure
       Admin.send :remove_const, :User
@@ -277,7 +277,7 @@ class NamespacedParamsWrapperTest < ActionController::TestCase
       with_default_wrapper_options do
         @request.env["CONTENT_TYPE"] = "application/json"
         post :parse, params: { "username" => "sikachu", "title" => "Developer" }
-        assert_parameters({ "username" => "sikachu", "title" => "Developer", "user" => { "title" => "Developer" }})
+        assert_parameters("username" => "sikachu", "title" => "Developer", "user" => { "title" => "Developer" })
       end
     ensure
       Object.send :remove_const, :User
@@ -304,7 +304,7 @@ class AnonymousControllerParamsWrapperTest < ActionController::TestCase
     with_default_wrapper_options do
       @request.env["CONTENT_TYPE"] = "application/json"
       post :parse, params: { "username" => "sikachu" }
-      assert_parameters({ "username" => "sikachu" })
+      assert_parameters("username" => "sikachu")
     end
   end
 
@@ -313,7 +313,7 @@ class AnonymousControllerParamsWrapperTest < ActionController::TestCase
       @controller.class.wrap_parameters(name: "guest")
       @request.env["CONTENT_TYPE"] = "application/json"
       post :parse, params: { "username" => "sikachu" }
-      assert_parameters({ "username" => "sikachu", "guest" => { "username" => "sikachu" }})
+      assert_parameters("username" => "sikachu", "guest" => { "username" => "sikachu" })
     end
   end
 end
@@ -349,7 +349,7 @@ class IrregularInflectionParamsWrapperTest < ActionController::TestCase
       with_default_wrapper_options do
         @request.env["CONTENT_TYPE"] = "application/json"
         post :parse, params: { "username" => "sikachu", "test_attr" => "test_value" }
-        assert_parameters({ "username" => "sikachu", "test_attr" => "test_value", "paramswrappernews_item" => { "test_attr" => "test_value" }})
+        assert_parameters("username" => "sikachu", "test_attr" => "test_value", "paramswrappernews_item" => { "test_attr" => "test_value" })
       end
     end
   end

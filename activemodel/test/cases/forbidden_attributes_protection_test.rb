@@ -25,14 +25,14 @@ end
 
 class ActiveModelMassUpdateProtectionTest < ActiveSupport::TestCase
   test "forbidden attributes cannot be used for mass updating" do
-    params = ProtectedParams.new({ "a" => "b" })
+    params = ProtectedParams.new("a" => "b")
     assert_raises(ActiveModel::ForbiddenAttributesError) do
       Account.new.sanitize_for_mass_assignment(params)
     end
   end
 
   test "permitted attributes can be used for mass updating" do
-    params = ProtectedParams.new({ "a" => "b" }).permit!
+    params = ProtectedParams.new("a" => "b").permit!
     assert_equal({ "a" => "b" }, Account.new.sanitize_for_mass_assignment(params))
   end
 

@@ -32,7 +32,7 @@ module ActionDispatch
           def self.verb; ""; end
         end
 
-        VERB_TO_CLASS = VERBS.each_with_object({ all: All }) do |verb, hash|
+        VERB_TO_CLASS = VERBS.each_with_object(all: All) do |verb, hash|
           klass = const_get verb
           hash[verb]                 = klass
           hash[verb.downcase]        = klass

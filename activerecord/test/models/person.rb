@@ -116,7 +116,7 @@ class NestedPerson < ActiveRecord::Base
   end
 
   def best_friend_first_name=(new_name)
-    assign_attributes({ best_friend_attributes: { first_name: new_name } })
+    assign_attributes(best_friend_attributes: { first_name: new_name })
   end
 end
 

@@ -52,7 +52,7 @@ class TransformKeysTest < ActiveSupport::TestCase
       end
     end
 
-    original = HashDescendant.new({ a: "a", b: "b" })
+    original = HashDescendant.new(a: "a", b: "b")
     mapped = original.transform_keys { |k| "#{k}!".to_sym }
 
     assert_equal({ a: "a", b: "b" }, original)

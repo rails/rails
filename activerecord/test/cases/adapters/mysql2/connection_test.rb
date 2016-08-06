@@ -100,21 +100,21 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
 
   def test_passing_arbitary_flags_to_adapter
     run_without_connection do |orig_connection|
-      ActiveRecord::Base.establish_connection(orig_connection.merge({flags: Mysql2::Client::COMPRESS}))
+      ActiveRecord::Base.establish_connection(orig_connection.merge(flags: Mysql2::Client::COMPRESS))
       assert_equal (Mysql2::Client::COMPRESS |  Mysql2::Client::FOUND_ROWS), ActiveRecord::Base.connection.raw_connection.query_options[:flags]
     end
   end
 
   def test_passing_flags_by_array_to_adapter
     run_without_connection do |orig_connection|
-      ActiveRecord::Base.establish_connection(orig_connection.merge({flags: ["COMPRESS"] }))
+      ActiveRecord::Base.establish_connection(orig_connection.merge(flags: ["COMPRESS"]))
       assert_equal ["COMPRESS", "FOUND_ROWS"], ActiveRecord::Base.connection.raw_connection.query_options[:flags]
     end
   end
 
   def test_mysql_set_session_variable
     run_without_connection do |orig_connection|
-      ActiveRecord::Base.establish_connection(orig_connection.deep_merge({variables: {default_week_format: 3}}))
+      ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: {default_week_format: 3}))
       session_mode = ActiveRecord::Base.connection.exec_query "SELECT @@SESSION.DEFAULT_WEEK_FORMAT"
       assert_equal 3, session_mode.rows.first.first.to_i
     end
@@ -122,7 +122,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
 
   def test_mysql_set_session_variable_to_default
     run_without_connection do |orig_connection|
-      ActiveRecord::Base.establish_connection(orig_connection.deep_merge({variables: {default_week_format: :default}}))
+      ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: {default_week_format: :default}))
       global_mode = ActiveRecord::Base.connection.exec_query "SELECT @@GLOBAL.DEFAULT_WEEK_FORMAT"
       session_mode = ActiveRecord::Base.connection.exec_query "SELECT @@SESSION.DEFAULT_WEEK_FORMAT"
       assert_equal global_mode.rows, session_mode.rows

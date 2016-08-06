@@ -54,14 +54,12 @@ module RailsGuides
       end
 
       def engine
-        @engine ||= Redcarpet::Markdown.new(Renderer, {
-          no_intra_emphasis: true,
+        @engine ||= Redcarpet::Markdown.new(Renderer,           no_intra_emphasis: true,
           fenced_code_blocks: true,
           autolink: true,
           strikethrough: true,
           superscript: true,
-          tables: true
-        })
+          tables: true)
       end
 
       def extract_raw_header_and_body

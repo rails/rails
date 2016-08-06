@@ -141,7 +141,7 @@ module ActionDispatch
 
     def test_update_sweep
       @hash["hello"] = "world"
-      @hash.update({"hi" => "mom"})
+      @hash.update("hi" => "mom")
 
       @hash.sweep
       assert_equal({"hello" => "world", "hi" => "mom"}, @hash.to_hash)
@@ -150,7 +150,7 @@ module ActionDispatch
     def test_update_delete_sweep
       @hash["hello"] = "world"
       @hash.delete "hello"
-      @hash.update({"hello" => "mom"})
+      @hash.update("hello" => "mom")
 
       @hash.sweep
       assert_equal({"hello" => "mom"}, @hash.to_hash)
@@ -175,7 +175,7 @@ module ActionDispatch
 
     def test_replace_sweep
       @hash["hello"] = "world"
-      @hash.replace({"hi" => "mom"})
+      @hash.replace("hi" => "mom")
 
       @hash.sweep
       assert_equal({"hi" => "mom"}, @hash.to_hash)

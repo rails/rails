@@ -682,7 +682,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm = Firm.all.merge!(order: "id").first
     summit = firm.clients.where("name = 'Summit'").to_a
     assert_equal summit, firm.clients.where("name = ?", "Summit").to_a
-    assert_equal summit, firm.clients.where("name = :name", { name: "Summit" }).to_a
+    assert_equal summit, firm.clients.where("name = :name", name: "Summit").to_a
   end
 
   def test_find_first
@@ -1978,8 +1978,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     old = ActiveRecord::Base.store_full_sti_class
     ActiveRecord::Base.store_full_sti_class = true
 
-    firm = Namespaced::Firm.create({ name: "Some Company" })
-    firm.clients.create({ name: "Some Client" })
+    firm = Namespaced::Firm.create(name: "Some Company")
+    firm.clients.create(name: "Some Client")
 
     stats = Namespaced::Firm.all.merge!(
       select: "#{Namespaced::Firm.table_name}.id, COUNT(#{Namespaced::Client.table_name}.id) AS num_clients",

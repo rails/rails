@@ -918,7 +918,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     @migrations_path = MIGRATIONS_ROOT + "/valid"
     @existing_migrations = Dir[@migrations_path + "/*.rb"]
 
-    copied = ActiveRecord::Migration.copy(@migrations_path, {bukkits: MIGRATIONS_ROOT + "/to_copy"})
+    copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/to_copy")
     assert File.exist?(@migrations_path + "/4_people_have_hobbies.bukkits.rb")
     assert File.exist?(@migrations_path + "/5_people_have_descriptions.bukkits.rb")
     assert_equal [@migrations_path + "/4_people_have_hobbies.bukkits.rb", @migrations_path + "/5_people_have_descriptions.bukkits.rb"], copied.map(&:filename)
@@ -927,7 +927,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     assert_equal expected, IO.readlines(@migrations_path + "/4_people_have_hobbies.bukkits.rb")[0].chomp
 
     files_count = Dir[@migrations_path + "/*.rb"].length
-    copied = ActiveRecord::Migration.copy(@migrations_path, {bukkits: MIGRATIONS_ROOT + "/to_copy"})
+    copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/to_copy")
     assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
     assert copied.empty?
   ensure
@@ -960,7 +960,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     @existing_migrations = Dir[@migrations_path + "/*.rb"]
 
     travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
-      copied = ActiveRecord::Migration.copy(@migrations_path, {bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
+      copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps")
       assert File.exist?(@migrations_path + "/20100726101010_people_have_hobbies.bukkits.rb")
       assert File.exist?(@migrations_path + "/20100726101011_people_have_descriptions.bukkits.rb")
       expected = [@migrations_path + "/20100726101010_people_have_hobbies.bukkits.rb",
@@ -968,7 +968,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
       assert_equal expected, copied.map(&:filename)
 
       files_count = Dir[@migrations_path + "/*.rb"].length
-      copied = ActiveRecord::Migration.copy(@migrations_path, {bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
+      copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps")
       assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
       assert copied.empty?
     end
@@ -1005,12 +1005,12 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     @existing_migrations = Dir[@migrations_path + "/*.rb"]
 
     travel_to(Time.utc(2010, 2, 20, 10, 10, 10)) do
-      ActiveRecord::Migration.copy(@migrations_path, {bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
+      ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps")
       assert File.exist?(@migrations_path + "/20100301010102_people_have_hobbies.bukkits.rb")
       assert File.exist?(@migrations_path + "/20100301010103_people_have_descriptions.bukkits.rb")
 
       files_count = Dir[@migrations_path + "/*.rb"].length
-      copied = ActiveRecord::Migration.copy(@migrations_path, {bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
+      copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps")
       assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
       assert copied.empty?
     end
@@ -1023,7 +1023,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     @migrations_path = MIGRATIONS_ROOT + "/valid"
     @existing_migrations = Dir[@migrations_path + "/*.rb"]
 
-    copied = ActiveRecord::Migration.copy(@migrations_path, {bukkits: MIGRATIONS_ROOT + "/magic"})
+    copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/magic")
     assert File.exist?(@migrations_path + "/4_currencies_have_symbols.bukkits.rb")
     assert_equal [@migrations_path + "/4_currencies_have_symbols.bukkits.rb"], copied.map(&:filename)
 
@@ -1031,7 +1031,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     assert_equal expected, IO.readlines(@migrations_path + "/4_currencies_have_symbols.bukkits.rb")[0..1].join.chomp
 
     files_count = Dir[@migrations_path + "/*.rb"].length
-    copied = ActiveRecord::Migration.copy(@migrations_path, {bukkits: MIGRATIONS_ROOT + "/magic"})
+    copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/magic")
     assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
     assert copied.empty?
   ensure
@@ -1080,7 +1080,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     @existing_migrations = []
 
     travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
-      copied = ActiveRecord::Migration.copy(@migrations_path, {bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
+      copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps")
       assert File.exist?(@migrations_path + "/20100726101010_people_have_hobbies.bukkits.rb")
       assert File.exist?(@migrations_path + "/20100726101011_people_have_descriptions.bukkits.rb")
       assert_equal 2, copied.length
@@ -1095,7 +1095,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     @existing_migrations = []
 
     travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
-      copied = ActiveRecord::Migration.copy(@migrations_path, {bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
+      copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps")
       assert File.exist?(@migrations_path + "/20100726101010_people_have_hobbies.bukkits.rb")
       assert File.exist?(@migrations_path + "/20100726101011_people_have_descriptions.bukkits.rb")
       assert_equal 2, copied.length

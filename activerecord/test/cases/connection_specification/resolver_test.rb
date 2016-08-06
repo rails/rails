@@ -126,7 +126,7 @@ module ActiveRecord
         end
 
         def test_spec_name_with_inline_config
-          spec = spec({"adapter" => "sqlite3"})
+          spec = spec("adapter" => "sqlite3")
           assert_equal "primary", spec.name, "should default to primary id"
         end
       end

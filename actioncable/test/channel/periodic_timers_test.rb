@@ -60,7 +60,7 @@ class ActionCable::Channel::PeriodicTimersTest < ActiveSupport::TestCase
 
   test "timer start and stop" do
     @connection.server.event_loop.expects(:timer).times(3).returns(stub(shutdown: nil))
-    channel = ChatChannel.new @connection, "{id: 1}", { id: 1 }
+    channel = ChatChannel.new @connection, "{id: 1}", id: 1
 
     channel.unsubscribe_from_channel
     assert_equal [], channel.send(:active_periodic_timers)

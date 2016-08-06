@@ -120,7 +120,7 @@ class ExecutorTest < ActiveSupport::TestCase
   private
     def call_and_return_body(&block)
       app = middleware(block || proc { [200, {}, "response"] })
-      _, _, body = app.call({"rack.input" => StringIO.new("")})
+      _, _, body = app.call("rack.input" => StringIO.new(""))
       body
     end
 

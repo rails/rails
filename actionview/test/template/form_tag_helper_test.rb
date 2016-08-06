@@ -88,25 +88,25 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_form_tag_multipart
-    actual = form_tag({}, { "multipart" => true })
+    actual = form_tag({}, "multipart" => true)
     expected = whole_form("http://www.example.com", enctype: true)
     assert_dom_equal expected, actual
   end
 
   def test_form_tag_with_method_patch
-    actual = form_tag({}, { method: :patch })
+    actual = form_tag({}, method: :patch)
     expected = whole_form("http://www.example.com", method: :patch)
     assert_dom_equal expected, actual
   end
 
   def test_form_tag_with_method_put
-    actual = form_tag({}, { method: :put })
+    actual = form_tag({}, method: :put)
     expected = whole_form("http://www.example.com", method: :put)
     assert_dom_equal expected, actual
   end
 
   def test_form_tag_with_method_delete
-    actual = form_tag({}, { method: :delete })
+    actual = form_tag({}, method: :delete)
 
     expected = whole_form("http://www.example.com", method: :delete)
     assert_dom_equal expected, actual
@@ -127,14 +127,14 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_form_tag_enforce_utf8_true
-    actual = form_tag({}, { enforce_utf8: true })
+    actual = form_tag({}, enforce_utf8: true)
     expected = whole_form("http://www.example.com", enforce_utf8: true)
     assert_dom_equal expected, actual
     assert actual.html_safe?
   end
 
   def test_form_tag_enforce_utf8_false
-    actual = form_tag({}, { enforce_utf8: false })
+    actual = form_tag({}, enforce_utf8: false)
     expected = whole_form("http://www.example.com", enforce_utf8: false)
     assert_dom_equal expected, actual
     assert actual.html_safe?
@@ -471,21 +471,21 @@ class FormTagHelperTest < ActionView::TestCase
   def test_submit_tag_having_data_disable_with_string
     assert_dom_equal(
       %(<input data-disable-with="Processing..." data-confirm="Are you sure?" name='commit' type="submit" value="Save" />),
-      submit_tag("Save", { "data-disable-with" => "Processing...", "data-confirm" => "Are you sure?" })
+      submit_tag("Save", "data-disable-with" => "Processing...", "data-confirm" => "Are you sure?")
     )
   end
 
   def test_submit_tag_having_data_disable_with_boolean
     assert_dom_equal(
       %(<input data-confirm="Are you sure?" name='commit' type="submit" value="Save" />),
-      submit_tag("Save", { "data-disable-with" => false, "data-confirm" => "Are you sure?" })
+      submit_tag("Save", "data-disable-with" => false, "data-confirm" => "Are you sure?")
     )
   end
 
   def test_submit_tag_having_data_hash_disable_with_boolean
     assert_dom_equal(
       %(<input data-confirm="Are you sure?" name='commit' type="submit" value="Save" />),
-      submit_tag("Save", { data: { confirm: "Are you sure?", disable_with: false } })
+      submit_tag("Save", data: { confirm: "Are you sure?", disable_with: false })
     )
   end
 
@@ -506,7 +506,7 @@ class FormTagHelperTest < ActionView::TestCase
   def test_submit_tag_doesnt_have_data_disable_with_twice
     assert_equal(
       %(<input type="submit" name="commit" value="Save" data-confirm="Are you sure?" data-disable-with="Processing..." />),
-      submit_tag("Save", { "data-disable-with" => "Processing...", "data-confirm" => "Are you sure?" })
+      submit_tag("Save", "data-disable-with" => "Processing...", "data-confirm" => "Are you sure?")
     )
   end
 
@@ -695,31 +695,31 @@ class FormTagHelperTest < ActionView::TestCase
   def test_text_area_tag_options_symbolize_keys_side_effects
     options = { option: "random_option" }
     text_area_tag "body", "hello world", options
-    assert_equal options, { option: "random_option" }
+    assert_equal options, option: "random_option"
   end
 
   def test_submit_tag_options_symbolize_keys_side_effects
     options = { option: "random_option" }
     submit_tag "submit value", options
-    assert_equal options, { option: "random_option" }
+    assert_equal options, option: "random_option"
   end
 
   def test_button_tag_options_symbolize_keys_side_effects
     options = { option: "random_option" }
     button_tag "button value", options
-    assert_equal options, { option: "random_option" }
+    assert_equal options, option: "random_option"
   end
 
   def test_image_submit_tag_options_symbolize_keys_side_effects
     options = { option: "random_option" }
     image_submit_tag "submit source", options
-    assert_equal options, { option: "random_option" }
+    assert_equal options, option: "random_option"
   end
 
   def test_image_label_tag_options_symbolize_keys_side_effects
     options = { option: "random_option" }
     label_tag "submit source", "title", options
-    assert_equal options, { option: "random_option" }
+    assert_equal options, option: "random_option"
   end
 
   def protect_against_forgery?

@@ -291,7 +291,7 @@ class ResponseTest < ActiveSupport::TestCase
   test "read content type with default charset utf-8" do
     original = ActionDispatch::Response.default_charset
     begin
-      resp = ActionDispatch::Response.new(200, { "Content-Type" => "text/xml" })
+      resp = ActionDispatch::Response.new(200, "Content-Type" => "text/xml")
       assert_equal("utf-8", resp.charset)
     ensure
       ActionDispatch::Response.default_charset = original
@@ -302,7 +302,7 @@ class ResponseTest < ActiveSupport::TestCase
     original = ActionDispatch::Response.default_charset
     begin
       ActionDispatch::Response.default_charset = "utf-16"
-      resp = ActionDispatch::Response.new(200, { "Content-Type" => "text/xml" })
+      resp = ActionDispatch::Response.new(200, "Content-Type" => "text/xml")
       assert_equal("utf-16", resp.charset)
     ensure
       ActionDispatch::Response.default_charset = original

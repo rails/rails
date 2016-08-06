@@ -107,7 +107,7 @@ class ValidationsTest < ActiveRecord::TestCase
 
   def test_exception_on_create_bang_with_block
     assert_raise(ActiveRecord::RecordInvalid) do
-      WrongReply.create!({ "title" => "OK" }) do |r|
+      WrongReply.create!("title" => "OK") do |r|
         r.content = nil
       end
     end
