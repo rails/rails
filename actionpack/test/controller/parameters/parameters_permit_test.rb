@@ -27,7 +27,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
     end
   end
 
-  def walk_permitted params
+  def walk_permitted(params)
     params.each do |k,v|
       case v
       when ActionController::Parameters

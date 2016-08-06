@@ -3,8 +3,6 @@ require "minitest/mock"
 require "rails/commands/dbconsole"
 
 class Rails::DBConsoleTest < ActiveSupport::TestCase
-
-
   def setup
     Rails::DBConsole.const_set("APP_PATH", "rails/all")
   end
@@ -260,5 +258,4 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
         end
       end
     end
-
 end

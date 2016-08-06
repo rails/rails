@@ -61,7 +61,7 @@ module ActionDispatch
         end
 
         private
-          def tt string
+          def tt(string)
             ast     = @parser.parse string
             builder = Builder.new ast
             builder.transition_table

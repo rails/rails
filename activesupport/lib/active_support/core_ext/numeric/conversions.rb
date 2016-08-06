@@ -3,7 +3,6 @@ require "active_support/number_helper"
 require "active_support/core_ext/module/deprecation"
 
 module ActiveSupport::NumericWithFormat
-
   # Provides options for converting numbers into formatted strings.
   # Options are provided for phone numbers, currency, percentage,
   # precision, positional notation, file size and pretty printing.

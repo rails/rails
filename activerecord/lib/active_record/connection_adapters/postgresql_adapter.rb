@@ -526,26 +526,26 @@ module ActiveRecord
         def extract_value_from_default(default) # :nodoc:
           case default
             # Quoted types
-            when /\A[\(B]?'(.*)'.*::"?([\w. ]+)"?(?:\[\])?\z/m
+          when /\A[\(B]?'(.*)'.*::"?([\w. ]+)"?(?:\[\])?\z/m
               # The default 'now'::date is CURRENT_DATE
-              if $1 == "now".freeze && $2 == "date".freeze
-                nil
-              else
-                $1.gsub("''".freeze, "'".freeze)
-              end
+            if $1 == "now".freeze && $2 == "date".freeze
+              nil
+            else
+              $1.gsub("''".freeze, "'".freeze)
+            end
             # Boolean types
-            when "true".freeze, "false".freeze
-              default
+          when "true".freeze, "false".freeze
+            default
             # Numeric types
-            when /\A\(?(-?\d+(\.\d*)?)\)?(::bigint)?\z/
-              $1
+          when /\A\(?(-?\d+(\.\d*)?)\)?(::bigint)?\z/
+            $1
             # Object identifier types
-            when /\A-?\d+\z/
-              $1
+          when /\A-?\d+\z/
+            $1
             else
               # Anything else is blank, some user type, or some function
               # and we can't know the value of that, so return nil.
-              nil
+            nil
           end
         end
 

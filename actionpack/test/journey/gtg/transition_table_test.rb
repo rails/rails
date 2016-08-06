@@ -91,7 +91,7 @@ module ActionDispatch
         end
 
         private
-          def asts paths
+          def asts(paths)
             parser  = Journey::Parser.new
             paths.map { |x|
               ast = parser.parse x
@@ -100,13 +100,13 @@ module ActionDispatch
             }
           end
 
-          def tt paths
+          def tt(paths)
             x = asts paths
             builder = GTG::Builder.new Nodes::Or.new x
             builder.transition_table
           end
 
-          def simulator_for paths
+          def simulator_for(paths)
             GTG::Simulator.new tt(paths)
           end
       end

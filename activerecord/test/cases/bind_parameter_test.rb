@@ -79,7 +79,7 @@ module ActiveRecord
             @debugs = []
           end
 
-          def debug str
+          def debug(str)
             @debugs << str
           end
         }.new

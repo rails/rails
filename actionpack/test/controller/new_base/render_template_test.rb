@@ -2,7 +2,6 @@ require "abstract_unit"
 
 module RenderTemplate
   class WithoutLayoutController < ActionController::Base
-
     self.view_paths = [ActionView::FixtureResolver.new(
       "test/basic.html.erb"        => "Hello from basic.html.erb",
       "shared.html.erb"            => "Elastica",

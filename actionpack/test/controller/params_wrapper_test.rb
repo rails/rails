@@ -283,7 +283,6 @@ class NamespacedParamsWrapperTest < ActionController::TestCase
       Object.send :remove_const, :User
     end
   end
-
 end
 
 class AnonymousControllerParamsWrapperTest < ActionController::TestCase

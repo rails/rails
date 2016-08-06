@@ -103,7 +103,6 @@ module Rails
             dirname, file_name = File.dirname(absolute), File.basename(absolute).sub(/\.rb$/, "")
             Dir.glob("#{dirname}/[0-9]*_*.rb").grep(/\d+_#{file_name}.rb$/).first
           end
-
       end
     end
   end

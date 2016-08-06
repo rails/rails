@@ -1,5 +1,4 @@
 module ActiveModel
-
   module Validations
     class NumericalityValidator < EachValidator # :nodoc:
       CHECKS = { greater_than: :>, greater_than_or_equal_to: :>=,

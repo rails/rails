@@ -502,7 +502,6 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
 end
 
 class InheritanceAttributeTest < ActiveRecord::TestCase
-
   class Company < ActiveRecord::Base
     self.table_name = "companies"
     attribute :type, :string, default: "InheritanceAttributeTest::Startup"

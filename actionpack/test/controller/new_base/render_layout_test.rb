@@ -55,7 +55,6 @@ module ControllerLayouts
       get "/controller_layouts/implicit/override"
       assert_body "Override! Hello world!"
     end
-
   end
 
   class LayoutOptionsTest < Rack::TestCase

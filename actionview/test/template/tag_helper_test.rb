@@ -334,5 +334,4 @@ class TagHelperTest < ActionView::TestCase
   def test_respond_to
     assert_respond_to tag, :any_tag
   end
-
 end

@@ -324,7 +324,6 @@ module ActionController
       def opaque(secret_key)
         ::Digest::MD5.hexdigest(secret_key)
       end
-
     end
 
     # Makes it dead easy to do HTTP Token authentication.

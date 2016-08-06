@@ -2,7 +2,6 @@ require "abstract_unit"
 
 module AbstractController
   module Testing
-
     class ControllerWithCallbacks < AbstractController::Base
       include AbstractController::Callbacks
     end

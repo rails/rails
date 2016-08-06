@@ -21,7 +21,6 @@ module Rails
             File.join("lib", "generators", regular_class_path)
           end
         end
-
     end
   end
 end

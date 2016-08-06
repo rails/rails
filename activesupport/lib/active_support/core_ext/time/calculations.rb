@@ -281,5 +281,4 @@ class Time
   end
   alias_method :eql_without_coercion, :eql?
   alias_method :eql?, :eql_with_coercion
-
 end

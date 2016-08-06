@@ -40,36 +40,36 @@ module ActiveSupport
       def parse!
         while !finished?
           case mode
-            when :start
-              if scan(SIGN_MARKER)
-                self.sign = (scanner.matched == "-") ? -1 : 1
-                self.mode = :sign
-              else
-                raise_parsing_error
-              end
+          when :start
+            if scan(SIGN_MARKER)
+              self.sign = (scanner.matched == "-") ? -1 : 1
+              self.mode = :sign
+            else
+              raise_parsing_error
+            end
 
-            when :sign
-              if scan(DATE_MARKER)
-                self.mode = :date
-              else
-                raise_parsing_error
-              end
+          when :sign
+            if scan(DATE_MARKER)
+              self.mode = :date
+            else
+              raise_parsing_error
+            end
 
-            when :date
-              if scan(TIME_MARKER)
-                self.mode = :time
-              elsif scan(DATE_COMPONENT)
-                parts[DATE_TO_PART[scanner[2]]] = number * sign
-              else
-                raise_parsing_error
-              end
+          when :date
+            if scan(TIME_MARKER)
+              self.mode = :time
+            elsif scan(DATE_COMPONENT)
+              parts[DATE_TO_PART[scanner[2]]] = number * sign
+            else
+              raise_parsing_error
+            end
 
-            when :time
-              if scan(TIME_COMPONENT)
-                parts[TIME_TO_PART[scanner[2]]] = number * sign
-              else
-                raise_parsing_error
-              end
+          when :time
+            if scan(TIME_COMPONENT)
+              parts[TIME_TO_PART[scanner[2]]] = number * sign
+            else
+              raise_parsing_error
+            end
 
           end
         end

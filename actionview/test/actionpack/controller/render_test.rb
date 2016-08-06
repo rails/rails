@@ -642,7 +642,7 @@ class TestController < ApplicationController
 
     def determine_layout
       case action_name
-        when "hello_world", "layout_test", "rendering_without_layout",
+      when "hello_world", "layout_test", "rendering_without_layout",
              "rendering_nothing_on_layout", "render_text_hello_world",
              "render_text_hello_world_with_layout",
              "hello_world_with_layout_false",
@@ -652,11 +652,11 @@ class TestController < ApplicationController
              "render_with_explicit_string_template",
              "update_page", "update_page_with_instance_variables"
 
-          "layouts/standard"
-        when "action_talk_to_layout", "layout_overriding_layout"
-          "layouts/talk_from_action"
-        when "render_implicit_html_template_from_xhr_request"
-          (request.xhr? ? "layouts/xhr" : "layouts/standard")
+        "layouts/standard"
+      when "action_talk_to_layout", "layout_overriding_layout"
+        "layouts/talk_from_action"
+      when "render_implicit_html_template_from_xhr_request"
+        (request.xhr? ? "layouts/xhr" : "layouts/standard")
       end
     end
 end

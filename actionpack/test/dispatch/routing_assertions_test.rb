@@ -6,7 +6,6 @@ class BlockArticlesController < ArticlesController; end
 class QueryArticlesController < ArticlesController; end
 
 class RoutingAssertionsTest < ActionController::TestCase
-
   def setup
     @routes = ActionDispatch::Routing::RouteSet.new
     @routes.draw do

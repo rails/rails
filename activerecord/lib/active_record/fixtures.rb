@@ -799,7 +799,6 @@ module ActiveRecord
       def yaml_file_path(path)
         "#{path}.yml"
       end
-
   end
 
   class Fixture #:nodoc:

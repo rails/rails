@@ -148,5 +148,4 @@ class Mysql2ReservedWordTest < ActiveRecord::Mysql2TestCase
         connection.execute("CREATE TABLE `#{table_name}` ( #{column_properties} )")
       end
     end
-
 end

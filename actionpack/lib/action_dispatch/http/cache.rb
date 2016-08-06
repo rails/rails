@@ -2,7 +2,6 @@ module ActionDispatch
   module Http
     module Cache
       module Request
-
         HTTP_IF_MODIFIED_SINCE = "HTTP_IF_MODIFIED_SINCE".freeze
         HTTP_IF_NONE_MATCH     = "HTTP_IF_NONE_MATCH".freeze
 

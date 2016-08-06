@@ -333,9 +333,9 @@ module ActiveSupport
         "th"
       else
         case abs_number % 10
-          when 1; "st"
-          when 2; "nd"
-          when 3; "rd"
+        when 1; "st"
+        when 2; "nd"
+        when 3; "rd"
           else    "th"
         end
       end

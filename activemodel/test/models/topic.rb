@@ -40,5 +40,4 @@ class Topic
   def my_word_tokenizer(str)
     str.scan(/\w+/)
   end
-
 end

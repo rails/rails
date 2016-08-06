@@ -83,7 +83,6 @@ class Developer < ActiveRecord::Base
     self.class.instance_count += 1
   end
   private :track_instance_count
-
 end
 
 class AuditLog < ActiveRecord::Base

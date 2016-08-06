@@ -4,7 +4,6 @@ require "active_support/core_ext/regexp"
 module ActiveRecord
   module Coders # :nodoc:
     class YAMLColumn # :nodoc:
-
       attr_accessor :object_class
 
       def initialize(object_class = Object)

@@ -32,7 +32,6 @@ class ActionControllerRequiredParamsTest < ActionController::TestCase
 end
 
 class ParametersRequireTest < ActiveSupport::TestCase
-
   test "required parameters should accept and return false value" do
     assert_equal(false, ActionController::Parameters.new(person: false).require(:person))
   end

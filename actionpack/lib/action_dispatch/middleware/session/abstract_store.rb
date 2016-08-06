@@ -7,7 +7,6 @@ require "action_dispatch/request/session"
 module ActionDispatch
   module Session
     class SessionRestoreError < StandardError #:nodoc:
-
       def initialize(const_error = nil)
         if const_error
           ActiveSupport::Deprecation.warn("Passing #original_exception is deprecated and has no effect. " \

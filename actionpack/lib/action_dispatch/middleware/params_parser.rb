@@ -10,7 +10,6 @@ module ActionDispatch
     # Raised when raw data from the request cannot be parsed by the parser
     # defined for request's content mime type.
     class ParseError < StandardError
-
       def initialize(message = nil, original_exception = nil)
         if message
           ActiveSupport::Deprecation.warn("Passing #message is deprecated and has no effect. " \

@@ -284,5 +284,4 @@ class TestMissingTemplate < ActiveSupport::TestCase
     end
     assert_match %r{Missing partial parent/_foo with .* Searched in:\n  \* "/Path/to/views"\n}, e.message
   end
-
 end

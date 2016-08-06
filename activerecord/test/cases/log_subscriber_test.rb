@@ -30,7 +30,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
       super
     end
 
-    def debug message
+    def debug(message)
       @debugs << message
     end
   end

@@ -86,7 +86,7 @@ module ActionDispatch
           assert_equal [asts.first], md.memos
         end
 
-        def simulator_for paths
+        def simulator_for(paths)
           parser  = Journey::Parser.new
           asts    = paths.map { |x| parser.parse x }
           builder = Builder.new Nodes::Or.new asts

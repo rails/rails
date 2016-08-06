@@ -4,7 +4,6 @@ require "rack/test"
 
 module RailtiesTest
   class EngineTest < ActiveSupport::TestCase
-
     include ActiveSupport::Testing::Isolation
     include Rack::Test::Methods
 

@@ -451,7 +451,6 @@ end
 
 
 class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
-
   class TopicWithoutTransactionalEnrollmentCallbacks < ActiveRecord::Base
     self.table_name = :topics
 

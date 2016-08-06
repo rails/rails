@@ -35,10 +35,10 @@ module ActionMailer
       # string is passed in it will be <tt>constantize</tt>d.
       def register_preview_interceptor(interceptor)
         preview_interceptor = case interceptor
-          when String, Symbol
-            interceptor.to_s.camelize.constantize
+                              when String, Symbol
+                                interceptor.to_s.camelize.constantize
           else
-            interceptor
+                                interceptor
           end
 
         unless preview_interceptors.include?(preview_interceptor)

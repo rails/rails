@@ -4,7 +4,6 @@ module ActionView
   # Provides a set of methods for making it easier to debug Rails objects.
   module Helpers
     module DebugHelper
-
       include TagHelper
 
       # Returns a YAML representation of +object+ wrapped with <pre> and </pre>.

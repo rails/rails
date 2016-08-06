@@ -303,7 +303,6 @@ class StaticTest < ActiveSupport::TestCase
     assert_html "/foo/other-index.html", get("/foo/")
     assert_html "/foo/other-index.html", get("/foo")
   end
-
 end
 
 class StaticEncodingTest < StaticTest

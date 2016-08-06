@@ -323,10 +323,10 @@ db_namespace = namespace :db do
     # desc "Recreate the test database from the current schema"
     task load: %w(db:test:purge) do
       case ActiveRecord::Base.schema_format
-        when :ruby
-          db_namespace["test:load_schema"].invoke
-        when :sql
-          db_namespace["test:load_structure"].invoke
+      when :ruby
+        db_namespace["test:load_schema"].invoke
+      when :sql
+        db_namespace["test:load_structure"].invoke
       end
     end
 
@@ -351,10 +351,10 @@ db_namespace = namespace :db do
     # desc "Recreate the test database from a fresh schema"
     task clone: %w(db:test:deprecated environment) do
       case ActiveRecord::Base.schema_format
-        when :ruby
-          db_namespace["test:clone_schema"].invoke
-        when :sql
-          db_namespace["test:clone_structure"].invoke
+      when :ruby
+        db_namespace["test:clone_schema"].invoke
+      when :sql
+        db_namespace["test:clone_structure"].invoke
       end
     end
 

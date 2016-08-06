@@ -41,5 +41,4 @@ class REXMLEngineTest < ActiveSupport::TestCase
     xml_string = "<root></root>".freeze
     assert_equal({"root" => {}}, ActiveSupport::XmlMini.parse(xml_string))
   end
-
 end

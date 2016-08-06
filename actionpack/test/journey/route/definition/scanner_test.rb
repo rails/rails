@@ -56,7 +56,7 @@ module ActionDispatch
           end
         end
 
-        def assert_tokens tokens, scanner
+        def assert_tokens(tokens, scanner)
           toks = []
           while tok = scanner.next_token
             toks << tok

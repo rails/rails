@@ -4,7 +4,6 @@ require "models/topic"
 require "models/person"
 
 class PresenceValidationTest < ActiveModel::TestCase
-
   def teardown
     Topic.clear_validators!
   end

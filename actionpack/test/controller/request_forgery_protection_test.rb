@@ -52,7 +52,6 @@ module RequestForgeryProtectionActions
   def negotiate_cross_origin
     negotiate_same_origin
   end
-
 end
 
 # sample controllers

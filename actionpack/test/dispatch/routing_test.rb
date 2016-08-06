@@ -4071,7 +4071,6 @@ class TestTildeAndMinusPaths < ActionDispatch::IntegrationTest
     get "/young-and-fine"
     assert_equal "200", @response.code
   end
-
 end
 
 class TestRedirectInterpolation < ActionDispatch::IntegrationTest

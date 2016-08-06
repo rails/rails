@@ -290,5 +290,4 @@ class PostgresqlUUIDTestInverseOf < ActiveRecord::PostgreSQLTestCase
       assert_nil UuidPost.find_by(id: 789)
     end
   end
-
 end

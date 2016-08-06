@@ -3,7 +3,6 @@ require "concurrent/atomic/count_down_latch"
 module ActiveSupport
   module Concurrency
     class Latch
-
       def initialize(count = 1)
         if count == 1
           ActiveSupport::Deprecation.warn("ActiveSupport::Concurrency::Latch is deprecated. Please use Concurrent::Event instead.")

@@ -177,7 +177,7 @@ module ActionDispatch
 
         assert_equal [
           "Prefix Verb URI Pattern           Controller#Action",
-          %Q[       GET  /photos/:id(.:format) photos#show {:format=>"jpg"}]
+          '       GET  /photos/:id(.:format) photos#show {:format=>"jpg"}'
         ], output
       end
 
@@ -419,7 +419,6 @@ module ActionDispatch
           "custom_assets GET  /custom/assets(.:format) custom_assets#show",
         ], output
       end
-
     end
   end
 end

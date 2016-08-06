@@ -306,7 +306,7 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
   end
 
   private
-    def assert_cycle field, array
+    def assert_cycle(field, array)
       # test creation
       x = PgArray.create!(field => array)
       x.reload

@@ -494,7 +494,6 @@ class FilterTest < ActionController::TestCase
   end
 
   class NonYieldingAroundFilterController < ActionController::Base
-
     before_action :filter_one
     around_action :non_yielding_action
     before_action :action_two
@@ -522,7 +521,6 @@ class FilterTest < ActionController::TestCase
       def action_three
         @filters  << "action_three"
       end
-
   end
 
   class ImplicitActionsController < ActionController::Base

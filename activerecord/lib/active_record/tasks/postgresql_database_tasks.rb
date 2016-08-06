@@ -47,12 +47,12 @@ module ActiveRecord
         set_psql_env
 
         search_path = case ActiveRecord::Base.dump_schemas
-        when :schema_search_path
-          configuration["schema_search_path"]
-        when :all
-          nil
-        when String
-          ActiveRecord::Base.dump_schemas
+                      when :schema_search_path
+                        configuration["schema_search_path"]
+                      when :all
+                        nil
+                      when String
+                        ActiveRecord::Base.dump_schemas
         end
 
         args = ["-s", "-x", "-O", "-f", filename]

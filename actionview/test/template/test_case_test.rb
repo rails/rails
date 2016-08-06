@@ -2,7 +2,6 @@ require "abstract_unit"
 require "rails/engine"
 
 module ActionView
-
   module ATestHelper
   end
 
@@ -193,7 +192,6 @@ module ActionView
     test "protect_from_forgery? in any helpers returns false" do
       assert !view.help_me
     end
-
   end
 
   class ATestHelperTest < ActionView::TestCase
@@ -282,7 +280,6 @@ module ActionView
       @customers = [DeveloperStruct.new("Eloy"), DeveloperStruct.new("Manfred")]
       assert_match(/Hello: EloyHello: Manfred/, render(file: "test/list"))
     end
-
   end
 
   class AssertionsTest < ActionView::TestCase

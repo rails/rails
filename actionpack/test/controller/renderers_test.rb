@@ -26,7 +26,6 @@ class RenderersTest < ActionController::TestCase
     end
   end
   class TestController < ActionController::Base
-
     def render_simon_says
       render simon: "foo"
     end

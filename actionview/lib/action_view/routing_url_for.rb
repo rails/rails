@@ -2,7 +2,6 @@ require "action_dispatch/routing/polymorphic_routes"
 
 module ActionView
   module RoutingUrlFor
-
     # Returns the URL for the set of +options+ provided. This takes the
     # same options as +url_for+ in Action Controller (see the
     # documentation for <tt>ActionController::Base#url_for</tt>). Note that by default

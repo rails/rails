@@ -14,5 +14,4 @@ class RelationCacheTest <  ActionView::TestCase
   end
 
   def view_cache_dependencies; end
-
 end

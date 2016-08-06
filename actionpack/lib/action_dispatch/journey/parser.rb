@@ -192,7 +192,6 @@ module ActionDispatch
       def _reduce_none(val, _values)
         val[0]
       end
-
     end   # class Parser
     end   # module Journey
   end   # module ActionDispatch

@@ -46,6 +46,5 @@ module ActiveJob
       end
       @queue_name
     end
-
   end
 end

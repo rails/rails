@@ -39,6 +39,5 @@ module ActiveJob
       end
       @priority
     end
-
   end
 end

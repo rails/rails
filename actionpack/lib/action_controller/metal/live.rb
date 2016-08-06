@@ -84,7 +84,6 @@ module ActionController
     # Note: SSEs are not currently supported by IE. However, they are supported
     # by Chrome, Firefox, Opera, and Safari.
     class SSE
-
       WHITELISTED_OPTIONS = %w( retry event id )
 
       def initialize(stream, options = {})

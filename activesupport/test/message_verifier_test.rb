@@ -4,7 +4,6 @@ require "active_support/time"
 require "active_support/json"
 
 class MessageVerifierTest < ActiveSupport::TestCase
-
   class JSONSerializer
     def dump(value)
       ActiveSupport::JSON.encode(value)

@@ -4,7 +4,6 @@ require "sidekiq/testing"
 Sidekiq::Testing.disable!
 
 module SidekiqJobsManager
-
   def setup
     ActiveJob::Base.queue_adapter = :sidekiq
     unless can_run?

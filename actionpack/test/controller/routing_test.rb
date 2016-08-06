@@ -208,7 +208,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
   def test_class_and_lambda_constraints
     subdomain = Class.new {
-      def matches? request
+      def matches?(request)
         request.subdomain.present? and request.subdomain != "clients"
       end
     }

@@ -42,7 +42,6 @@ module RenderAction
     def hello_world_with_custom_layout
       render action: "hello_world", layout: "greetings"
     end
-
   end
 
   class RenderActionTest < Rack::TestCase
@@ -196,7 +195,6 @@ module RenderActionWithApplicationLayout
       assert_response "<html>\n<p>Hello</p>\n</html>\n"
     end
   end
-
 end
 
 module RenderActionWithControllerLayout

@@ -57,7 +57,7 @@ module ActionDispatch
 
         private
 
-          def visit node
+          def visit(node)
             send(DISPATCH_CACHE[node.type], node)
           end
 
@@ -97,7 +97,7 @@ module ActionDispatch
           visit(node, seed)
         end
 
-        def visit node, seed
+        def visit(node, seed)
           send(DISPATCH_CACHE[node.type], node, seed)
         end
 

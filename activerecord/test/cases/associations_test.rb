@@ -122,7 +122,6 @@ class AssociationsTest < ActiveRecord::TestCase
     firm = companies(:first_firm)
     assert_includes firm.association_with_references.references_values, "foo"
   end
-
 end
 
 class AssociationProxyTest < ActiveRecord::TestCase

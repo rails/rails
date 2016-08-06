@@ -19,7 +19,6 @@ module ActiveRecord
 
       # Expands a connection string into a hash.
       class ConnectionUrlResolver # :nodoc:
-
         # == Example
         #
         #   url = "postgresql://foo:bar@localhost:9000/foo_test?pool=5&timeout=3000"

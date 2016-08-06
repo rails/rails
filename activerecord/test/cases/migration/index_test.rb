@@ -212,7 +212,6 @@ module ActiveRecord
         def good_index_name
           "x" * connection.allowed_index_name_length
         end
-
     end
   end
 end

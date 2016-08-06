@@ -2,7 +2,6 @@ require "abstract_unit"
 require "active_support/core_ext/object"
 
 class DeepDupTest < ActiveSupport::TestCase
-
   def test_array_deep_dup
     array = [1, [2, 3]]
     dup = array.deep_dup
@@ -55,5 +54,4 @@ class DeepDupTest < ActiveSupport::TestCase
     dup = hash.deep_dup
     assert_equal 1, dup.keys.length
   end
-
 end

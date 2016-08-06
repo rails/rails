@@ -374,5 +374,4 @@ F
     def action(*args, &block)
       capture(:stdout){ generator.send(*args, &block) }
     end
-
 end

@@ -159,25 +159,25 @@ module ActiveSupport
     private
       def normalize_keys(params)
         case params
-          when Hash
-            Hash[params.map { |k,v| [k.to_s.tr("-", "_"), normalize_keys(v)] } ]
-          when Array
-            params.map { |v| normalize_keys(v) }
+        when Hash
+          Hash[params.map { |k,v| [k.to_s.tr("-", "_"), normalize_keys(v)] } ]
+        when Array
+          params.map { |v| normalize_keys(v) }
           else
-            params
+          params
         end
       end
 
       def deep_to_h(value)
         case value
-          when Hash
-            process_hash(value)
-          when Array
-            process_array(value)
-          when String
-            value
+        when Hash
+          process_hash(value)
+        when Array
+          process_array(value)
+        when String
+          value
           else
-            raise "can't typecast #{value.class.name} - #{value.inspect}"
+          raise "can't typecast #{value.class.name} - #{value.inspect}"
         end
       end
 
@@ -257,6 +257,5 @@ module ActiveSupport
         value.map! { |i| deep_to_h(i) }
         value.length > 1 ? value : value.first
       end
-
   end
 end

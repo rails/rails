@@ -296,7 +296,6 @@ CACHED
 end
 
 class CacheHelperOutputBufferTest < ActionController::TestCase
-
   class MockController
     def read_fragment(name, options)
       return false

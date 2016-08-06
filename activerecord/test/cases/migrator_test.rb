@@ -9,7 +9,7 @@ class MigratorTest < ActiveRecord::TestCase
   class Sensor < ActiveRecord::Migration::Current
     attr_reader :went_up, :went_down
 
-    def initialize name = self.class.name, version = nil
+    def initialize(name = self.class.name, version = nil)
       super
       @went_up  = false
       @went_down = false

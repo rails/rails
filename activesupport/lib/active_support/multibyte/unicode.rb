@@ -1,7 +1,6 @@
 module ActiveSupport
   module Multibyte
     module Unicode
-
       extend self
 
       # A list of all available normalization forms.
@@ -287,16 +286,16 @@ module ActiveSupport
         # See http://www.unicode.org/reports/tr15, Table 1
         codepoints = string.codepoints.to_a
         case form
-          when :d
-            reorder_characters(decompose(:canonical, codepoints))
-          when :c
-            compose(reorder_characters(decompose(:canonical, codepoints)))
-          when :kd
-            reorder_characters(decompose(:compatibility, codepoints))
-          when :kc
-            compose(reorder_characters(decompose(:compatibility, codepoints)))
+        when :d
+          reorder_characters(decompose(:canonical, codepoints))
+        when :c
+          compose(reorder_characters(decompose(:canonical, codepoints)))
+        when :kd
+          reorder_characters(decompose(:compatibility, codepoints))
+        when :kc
+          compose(reorder_characters(decompose(:compatibility, codepoints)))
           else
-            raise ArgumentError, "#{form} is not a valid normalization variant", caller
+          raise ArgumentError, "#{form} is not a valid normalization variant", caller
         end.pack("U*".freeze)
       end
 

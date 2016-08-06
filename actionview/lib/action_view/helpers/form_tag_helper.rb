@@ -858,21 +858,21 @@ module ActionView
           method = html_options.delete("method").to_s.downcase
 
           method_tag = case method
-            when "get"
-              html_options["method"] = "get"
-              ""
-            when "post", ""
-              html_options["method"] = "post"
-              token_tag(authenticity_token, form_options: {
-                action: html_options["action"],
-                method: "post"
-              })
+                       when "get"
+                         html_options["method"] = "get"
+                         ""
+                       when "post", ""
+                         html_options["method"] = "post"
+                         token_tag(authenticity_token, form_options: {
+                           action: html_options["action"],
+                           method: "post"
+                         })
             else
-              html_options["method"] = "post"
-              method_tag(method) + token_tag(authenticity_token, form_options: {
-                action: html_options["action"],
-                method: method
-              })
+                         html_options["method"] = "post"
+                         method_tag(method) + token_tag(authenticity_token, form_options: {
+                           action: html_options["action"],
+                           method: method
+                         })
           end
 
           if html_options.delete("enforce_utf8") { true }

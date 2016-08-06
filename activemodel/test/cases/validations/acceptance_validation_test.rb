@@ -5,7 +5,6 @@ require "models/reply"
 require "models/person"
 
 class AcceptanceValidationTest < ActiveModel::TestCase
-
   def teardown
     Topic.clear_validators!
   end

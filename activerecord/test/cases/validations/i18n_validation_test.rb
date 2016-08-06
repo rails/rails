@@ -80,5 +80,4 @@ class I18nValidationTest < ActiveRecord::TestCase
     replied_topic.valid?
     assert_equal ["global message"], replied_topic.errors[:replies]
   end
-
 end

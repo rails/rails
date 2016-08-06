@@ -159,6 +159,5 @@ module ActiveRecord
           yield association(name.to_sym) if reflection.belongs_to? && reflection.counter_cache_column
         end
       end
-
   end
 end

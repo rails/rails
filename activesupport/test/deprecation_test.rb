@@ -370,5 +370,4 @@ class DeprecationTest < ActiveSupport::TestCase
       end
       deprecator
     end
-
 end

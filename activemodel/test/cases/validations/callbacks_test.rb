@@ -73,7 +73,6 @@ end
 
 
 class CallbacksWithMethodNamesShouldBeCalled < ActiveModel::TestCase
-
   def test_if_condition_is_respected_for_before_validation
     d = DogValidatorWithIfCondition.new
     d.valid?
@@ -144,5 +143,4 @@ class CallbacksWithMethodNamesShouldBeCalled < ActiveModel::TestCase
     assert_equal ["before_validation_marker"], d.history
     assert_equal false, output
   end
-
 end

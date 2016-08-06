@@ -36,7 +36,6 @@ module ActiveSupport
   #   t.is_a?(Time)                         # => true
   #   t.is_a?(ActiveSupport::TimeWithZone)  # => true
   class TimeWithZone
-
     # Report class name as 'Time' to thwart type checking.
     def self.name
       "Time"

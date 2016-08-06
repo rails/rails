@@ -86,5 +86,4 @@ module SneakersJobsManager
     def bunny_queue
       @queue ||= bunny_publisher.exchange.channel.queue "integration_tests", durable: true
     end
-
 end

@@ -835,7 +835,6 @@ class MetalIntegrationTest < ActionDispatch::IntegrationTest
     get "https://test.com:80"
     assert_equal "test.com:80", @request.env["HTTP_HOST"]
   end
-
 end
 
 class ApplicationIntegrationTest < ActionDispatch::IntegrationTest

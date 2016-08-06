@@ -13,5 +13,4 @@ class ProcMailer < ActionMailer::Base
     def give_a_greeting
       "Thanks for signing up this afternoon"
     end
-
 end

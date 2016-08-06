@@ -8,7 +8,7 @@ module ActiveRecord
 
       Migration = Struct.new(:name, :version) do
         def disable_ddl_transaction; false end
-        def migrate direction
+        def migrate(direction)
           # do nothing
         end
       end

@@ -195,7 +195,6 @@ class FunctionalFragmentCachingTest < BaseCachingTest
 end
 
 class CacheHelperOutputBufferTest < BaseCachingTest
-
   class MockController
     def read_fragment(name, options)
       return false

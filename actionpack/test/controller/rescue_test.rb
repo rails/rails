@@ -160,7 +160,6 @@ class RescueController < ActionController::Base
 end
 
 class ExceptionInheritanceRescueController < ActionController::Base
-
   class ParentException < StandardError
   end
 

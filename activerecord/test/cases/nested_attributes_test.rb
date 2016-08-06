@@ -405,7 +405,6 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
 
     Pirate.accepts_nested_attributes_for :update_only_ship, update_only: true, allow_destroy: false
   end
-
 end
 
 class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
@@ -978,7 +977,6 @@ class TestNestedAttributesWithNonStandardPrimaryKeys < ActiveRecord::TestCase
     @owner.update(attributes)
     assert_equal "John", Pet.after_destroy_output
   end
-
 end
 
 class TestHasOneAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveRecord::TestCase

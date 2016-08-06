@@ -79,6 +79,5 @@ if subsecond_precision_supported?
         assert_match %r{t\.time\s+"finish",\s+precision: 0$}, output
       end
     end
-
   end
 end

@@ -46,5 +46,4 @@ module GeneratorsTestHelper
     FileUtils.mkdir_p(destination)
     FileUtils.cp routes, destination
   end
-
 end

@@ -12,7 +12,6 @@ require "tmpdir"
 module ActiveSupport
   module Multibyte
     module Unicode
-
       class UnicodeDatabase
         def load; end
       end

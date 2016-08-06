@@ -373,7 +373,6 @@ module Rails
           path = File.expand_path(File.join(base_name, generator_name), base_root)
           path if File.exist?(path)
         end
-
     end
   end
 end

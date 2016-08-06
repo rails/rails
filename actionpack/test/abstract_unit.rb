@@ -141,7 +141,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
       end
     end
 
-    def make_request env
+    def make_request(env)
       NullControllerRequest.new super
     end
   end
@@ -382,18 +382,18 @@ class ForkingExecutor
       @queue = Queue.new
     end
 
-    def record reporter, result
+    def record(reporter, result)
       reporter.record result
     end
 
-    def << o
+    def <<(o)
       o[2] = DRbObject.new(o[2]) if o
       @queue << o
     end
     def pop; @queue.pop; end
   end
 
-  def initialize size
+  def initialize(size)
     @size  = size
     @queue = Server.new
     file   = File.join Dir.tmpdir, Dir::Tmpname.make_tmpname("rails-tests", "fd")
@@ -402,7 +402,7 @@ class ForkingExecutor
     DRb.start_service @url, @queue
   end
 
-  def << work; @queue << work; end
+  def <<(work); @queue << work; end
 
   def shutdown
     pool = @size.times.map {

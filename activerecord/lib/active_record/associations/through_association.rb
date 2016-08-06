@@ -2,7 +2,6 @@ module ActiveRecord
   # = Active Record Through Association
   module Associations
     module ThroughAssociation #:nodoc:
-
       delegate :source_reflection, :through_reflection, to: :reflection
 
       protected

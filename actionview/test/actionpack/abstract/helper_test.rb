@@ -4,7 +4,6 @@ ActionController::Base.helpers_path = File.expand_path("../../../fixtures/helper
 
 module AbstractController
   module Testing
-
     class ControllerWithHelpers < AbstractController::Base
       include AbstractController::Helpers
       include AbstractController::Rendering

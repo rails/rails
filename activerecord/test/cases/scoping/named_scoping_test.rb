@@ -564,5 +564,4 @@ class NamedScopingTest < ActiveRecord::TestCase
     Topic.create!
     assert Topic.one?
   end
-
 end

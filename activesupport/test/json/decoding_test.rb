@@ -46,10 +46,10 @@ class TestJSONDecoding < ActiveSupport::TestCase
     %({"a": null})  => {"a" => nil},
     %({"a": true})  => {"a" => true},
     %({"a": false}) => {"a" => false},
-    %q({"bad":"\\\\","trailing":""}) => {"bad" => "\\", "trailing" => ""},
+    '{"bad":"\\\\","trailing":""}' => {"bad" => "\\", "trailing" => ""},
     %q({"a": "http:\/\/test.host\/posts\/1"}) => {"a" => "http://test.host/posts/1"},
     %q({"a": "\u003cunicode\u0020escape\u003e"}) => {"a" => "<unicode escape>"},
-    %q({"a": "\\\\u0020skip double backslashes"}) => {"a" => "\\u0020skip double backslashes"},
+    '{"a": "\\\\u0020skip double backslashes"}' => {"a" => "\\u0020skip double backslashes"},
     %q({"a": "\u003cbr /\u003e"}) => {"a" => "<br />"},
     %q({"b":["\u003ci\u003e","\u003cb\u003e","\u003cu\u003e"]}) => {"b" => ["<i>","<b>","<u>"]},
     # test combination of dates and escaped or unicode encoded data in arrays
@@ -63,15 +63,15 @@ class TestJSONDecoding < ActiveSupport::TestCase
     %q({"a":"\u000a"}) => {"a"=>"\n"},
     %q({"a":"Line1\u000aLine2"}) => {"a"=>"Line1\nLine2"},
     # prevent json unmarshalling
-    %q({"json_class":"TestJSONDecoding::Foo"}) => {"json_class"=>"TestJSONDecoding::Foo"},
+    '{"json_class":"TestJSONDecoding::Foo"}' => {"json_class"=>"TestJSONDecoding::Foo"},
     # json "fragments" - these are invalid JSON, but ActionPack relies on this
-    %q("a string") => "a string",
-    %q(1.1) => 1.1,
-    %q(1) => 1,
-    %q(-1) => -1,
-    %q(true) => true,
-    %q(false) => false,
-    %q(null) => nil
+    '"a string"' => "a string",
+    "1.1" => 1.1,
+    "1" => 1,
+    "-1" => -1,
+    "true" => true,
+    "false" => false,
+    "null" => nil
   }
 
   TESTS.each_with_index do |(json, expected), index|

@@ -135,6 +135,5 @@ module TestUrlGeneration
         format: "json"
       )
     end
-
   end
 end

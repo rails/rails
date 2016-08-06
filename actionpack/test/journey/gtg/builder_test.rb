@@ -59,7 +59,7 @@ module ActionDispatch
         end
 
         private
-          def ast strings
+          def ast(strings)
             parser = Journey::Parser.new
             asts   = strings.map { |string|
               memo = Object.new
@@ -70,7 +70,7 @@ module ActionDispatch
             Nodes::Or.new asts
           end
 
-          def tt strings
+          def tt(strings)
             Builder.new(ast(strings)).transition_table
           end
       end

@@ -5,7 +5,6 @@ require "active_support/core_ext/string/output_safety"
 module ActiveSupport
   module NumberHelper
     class NumberHelperTest < ActiveSupport::TestCase
-
       class TestClassWithInstanceNumberHelpers
         include ActiveSupport::NumberHelper
       end
@@ -416,7 +415,6 @@ module ActiveSupport
           assert_equal "x", number_helper.number_to_human("x")
         end
       end
-
     end
   end
 end

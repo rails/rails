@@ -5,5 +5,4 @@ class Minivan < ActiveRecord::Base
   has_one :dashboard, through: :speedometer
 
   attr_readonly :color
-
 end

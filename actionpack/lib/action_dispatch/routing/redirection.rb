@@ -133,7 +133,6 @@ module ActionDispatch
     end
 
     module Redirection
-
       # Redirect any path to another path:
       #
       #   get "/stories" => redirect("/posts")

@@ -12,7 +12,6 @@ class SSLTest < ActionDispatch::IntegrationTest
 end
 
 class RedirectSSLTest < SSLTest
-
   def assert_not_redirected(url, headers: {}, redirect: {}, deprecated_host: nil,
     deprecated_port: nil)
 

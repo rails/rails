@@ -20,7 +20,6 @@ class BacktraceCleanerFilterTest < ActiveSupport::TestCase
   test "backtrace should contain unaltered lines if they dont match a filter" do
     assert_equal "/my/other_prefix/my/class.rb", @bc.clean([ "/my/other_prefix/my/class.rb" ]).first
   end
-
 end
 
 class BacktraceCleanerSilencerTest < ActiveSupport::TestCase

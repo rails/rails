@@ -493,23 +493,23 @@ module ActionDispatch
 
       private
 
-        def get *args
+        def get(*args)
           ActiveSupport::Deprecation.silence do
             mapper.get(*args)
           end
         end
 
-        def match *args
+        def match(*args)
           ActiveSupport::Deprecation.silence do
             mapper.match(*args)
           end
         end
 
-        def rails_env env, klass = ActionDispatch::Request
+        def rails_env(env, klass = ActionDispatch::Request)
           klass.new(rack_env(env))
         end
 
-        def rack_env env
+        def rack_env(env)
           {
             "rack.version"      => [1, 1],
             "rack.input"        => StringIO.new,

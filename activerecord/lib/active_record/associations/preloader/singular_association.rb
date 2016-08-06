@@ -2,7 +2,6 @@ module ActiveRecord
   module Associations
     class Preloader
       class SingularAssociation < Association #:nodoc:
-
         private
 
           def preload(preloader)
@@ -14,7 +13,6 @@ module ActiveRecord
               association.set_inverse_instance(record) if record
             end
           end
-
       end
     end
   end

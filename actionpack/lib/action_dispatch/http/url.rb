@@ -302,7 +302,7 @@ module ActionDispatch
       #   req.standard_port # => 80
       def standard_port
         case protocol
-          when "https://" then 443
+        when "https://" then 443
           else 80
         end
       end

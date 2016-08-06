@@ -4,7 +4,7 @@ module ActionDispatch
       class Pattern # :nodoc:
         attr_reader :spec, :requirements, :anchored
 
-        def self.from_string string
+        def self.from_string(string)
           build(string, {}, "/.?", true)
         end
 

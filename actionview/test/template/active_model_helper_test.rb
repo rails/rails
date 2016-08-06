@@ -95,5 +95,4 @@ class ActiveModelHelperTest < ActionView::TestCase
   ensure
     ActionView::Base.field_error_proc = old_proc if old_proc
   end
-
 end

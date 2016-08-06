@@ -361,7 +361,6 @@ module CallbacksTest
   end
 
   class ExtendCallbacks
-
     include ActiveSupport::Callbacks
 
     define_callbacks :save
@@ -453,7 +452,6 @@ module CallbacksTest
   end
 
   class CallbacksTest < ActiveSupport::TestCase
-
     def test_save_person
       person = Person.new
       assert_equal [], person.history

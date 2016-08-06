@@ -1,5 +1,4 @@
 module ActiveRecord
-
   # = Active Record Errors
   #
   # Generic Active Record exception class.
@@ -96,7 +95,6 @@ module ActiveRecord
   #
   # Wraps the underlying database error as +cause+.
   class StatementInvalid < ActiveRecordError
-
     def initialize(message = nil, original_exception = nil)
       if original_exception
         ActiveSupport::Deprecation.warn("Passing #original_exception is deprecated and has no effect. " \
@@ -166,7 +164,6 @@ module ActiveRecord
         super("Stale object error.")
       end
     end
-
   end
 
   # Raised when association is being configured improperly or user tries to use

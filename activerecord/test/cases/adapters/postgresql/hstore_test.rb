@@ -166,19 +166,19 @@ if ActiveRecord::Base.connection.supports_extensions?
     end
 
     def test_gen1
-      assert_equal(%q(" "=>""), @type.serialize(" "=>""))
+      assert_equal('" "=>""', @type.serialize(" "=>""))
     end
 
     def test_gen2
-      assert_equal(%q(","=>""), @type.serialize(","=>""))
+      assert_equal('","=>""', @type.serialize(","=>""))
     end
 
     def test_gen3
-      assert_equal(%q("="=>""), @type.serialize("="=>""))
+      assert_equal('"="=>""', @type.serialize("="=>""))
     end
 
     def test_gen4
-      assert_equal(%q(">"=>""), @type.serialize(">"=>""))
+      assert_equal('">"=>""', @type.serialize(">"=>""))
     end
 
     def test_parse1

@@ -215,10 +215,10 @@ module ActiveSupport
       #   clear :plurals
       def clear(scope = :all)
         case scope
-          when :all
-            @plurals, @singulars, @uncountables, @humans = [], [], Uncountables.new, []
+        when :all
+          @plurals, @singulars, @uncountables, @humans = [], [], Uncountables.new, []
           else
-            instance_variable_set "@#{scope}", []
+          instance_variable_set "@#{scope}", []
         end
       end
     end

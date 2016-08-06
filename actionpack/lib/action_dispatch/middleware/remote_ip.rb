@@ -176,8 +176,6 @@ module ActionDispatch
           @proxies.any? { |proxy| proxy === ip }
         end
       end
-
     end
-
   end
 end

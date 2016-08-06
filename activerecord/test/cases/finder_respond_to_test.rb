@@ -2,7 +2,6 @@ require "cases/helper"
 require "models/topic"
 
 class FinderRespondToTest < ActiveRecord::TestCase
-
   fixtures :topics
 
   def test_should_preserve_normal_respond_to_behaviour_on_base

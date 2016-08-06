@@ -40,22 +40,22 @@ module ActiveRecord
 
           option_string = options.inject("") do |memo, (key, value)|
             memo += case key
-            when :owner
-              " OWNER = \"#{value}\""
-            when :template
-              " TEMPLATE = \"#{value}\""
-            when :encoding
-              " ENCODING = '#{value}'"
-            when :collation
-              " LC_COLLATE = '#{value}'"
-            when :ctype
-              " LC_CTYPE = '#{value}'"
-            when :tablespace
-              " TABLESPACE = \"#{value}\""
-            when :connection_limit
-              " CONNECTION LIMIT = #{value}"
+                    when :owner
+                      " OWNER = \"#{value}\""
+                    when :template
+                      " TEMPLATE = \"#{value}\""
+                    when :encoding
+                      " ENCODING = '#{value}'"
+                    when :collation
+                      " LC_COLLATE = '#{value}'"
+                    when :ctype
+                      " LC_CTYPE = '#{value}'"
+                    when :tablespace
+                      " TABLESPACE = \"#{value}\""
+                    when :connection_limit
+                      " CONNECTION LIMIT = #{value}"
             else
-              ""
+                      ""
             end
           end
 
@@ -294,7 +294,7 @@ module ActiveRecord
         end
 
         # Creates a schema for the given schema name.
-        def create_schema schema_name
+        def create_schema(schema_name)
           execute "CREATE SCHEMA #{quote_schema_name(schema_name)}"
         end
 
@@ -626,29 +626,29 @@ module ActiveRecord
         # Maps logical Rails types to PostgreSQL-specific data types.
         def type_to_sql(type, limit = nil, precision = nil, scale = nil, array = nil)
           sql = case type.to_s
-          when "binary"
+                when "binary"
             # PostgreSQL doesn't support limits on binary (bytea) columns.
             # The hard limit is 1GB, because of a 32-bit size field, and TOAST.
-            case limit
-            when nil, 0..0x3fffffff; super(type)
-            else raise(ActiveRecordError, "No binary type has byte size #{limit}.")
-            end
-          when "text"
+                  case limit
+                  when nil, 0..0x3fffffff; super(type)
+                  else raise(ActiveRecordError, "No binary type has byte size #{limit}.")
+                  end
+                when "text"
             # PostgreSQL doesn't support limits on text columns.
             # The hard limit is 1GB, according to section 8.3 in the manual.
-            case limit
-            when nil, 0..0x3fffffff; super(type)
-            else raise(ActiveRecordError, "The limit on text can be at most 1GB - 1byte.")
-            end
-          when "integer"
-            case limit
-            when 1, 2; "smallint"
-            when nil, 3, 4; "integer"
-            when 5..8; "bigint"
-            else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a numeric with scale 0 instead.")
-            end
+                  case limit
+                  when nil, 0..0x3fffffff; super(type)
+                  else raise(ActiveRecordError, "The limit on text can be at most 1GB - 1byte.")
+                  end
+                when "integer"
+                  case limit
+                  when 1, 2; "smallint"
+                  when nil, 3, 4; "integer"
+                  when 5..8; "bigint"
+                  else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a numeric with scale 0 instead.")
+                  end
           else
-            super(type, limit, precision, scale)
+                  super(type, limit, precision, scale)
           end
 
           sql << "[]" if array && type != :primary_key

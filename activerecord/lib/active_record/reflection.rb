@@ -978,7 +978,6 @@ module ActiveRecord
           public_instance_methods
 
         delegate(*delegate_methods, to: :delegate_reflection)
-
     end
 
     class PolymorphicReflection < ThroughReflection # :nodoc:

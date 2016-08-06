@@ -69,7 +69,6 @@ module ActiveRecord
 
       alias :attribute :_read_attribute
       private :attribute
-
     end
   end
 end

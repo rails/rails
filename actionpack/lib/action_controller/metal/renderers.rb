@@ -94,7 +94,6 @@ module ActionController
     end
 
     module ClassMethods
-
       # Adds, by name, a renderer or renderers to the +_renderers+ available
       # to call within controller actions.
       #

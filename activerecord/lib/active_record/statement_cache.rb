@@ -1,5 +1,4 @@
 module ActiveRecord
-
   # Statement cache is used to cache a single statement in order to avoid creating the AST again.
   # Initializing the cache is done by passing the statement in the create block:
   #

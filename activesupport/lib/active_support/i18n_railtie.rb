@@ -84,12 +84,12 @@ module I18n
       include_fallbacks_module
 
       args = case fallbacks
-      when ActiveSupport::OrderedOptions
-        [*(fallbacks[:defaults] || []) << fallbacks[:map]].compact
-      when Hash, Array
-        Array.wrap(fallbacks)
+             when ActiveSupport::OrderedOptions
+               [*(fallbacks[:defaults] || []) << fallbacks[:map]].compact
+             when Hash, Array
+               Array.wrap(fallbacks)
       else # TrueClass
-        []
+               []
       end
 
       I18n.fallbacks = I18n::Locale::Fallbacks.new(*args)

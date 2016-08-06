@@ -10,7 +10,6 @@ module Namespaced
 end
 
 class EagerLoadIncludeFullStiClassNamesTest < ActiveRecord::TestCase
-
   def setup
     generate_test_objects
   end

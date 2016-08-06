@@ -31,7 +31,6 @@ include W3CValidators
 
 module RailsGuides
   class Validator
-
     def validate
       validator = MarkupValidator.new
       STDOUT.sync = true
@@ -90,7 +89,6 @@ module RailsGuides
           puts "\nHere are the detailed errors for each guide:" + error_detail
         end
       end
-
   end
 end
 

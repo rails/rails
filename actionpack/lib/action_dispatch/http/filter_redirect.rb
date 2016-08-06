@@ -1,7 +1,6 @@
 module ActionDispatch
   module Http
     module FilterRedirect
-
       FILTERED = "[FILTERED]".freeze # :nodoc:
 
       def filtered_location # :nodoc:
@@ -31,7 +30,6 @@ module ActionDispatch
           end
         end
       end
-
     end
   end
 end

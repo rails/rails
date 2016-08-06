@@ -279,7 +279,7 @@ module Rails
 
       # This code is based directly on the Text gem implementation
       # Returns a value representing the "cost" of transforming str1 into str2
-      def self.levenshtein_distance str1, str2
+      def self.levenshtein_distance(str1, str2)
         s = str1
         t = str2
         n = s.length

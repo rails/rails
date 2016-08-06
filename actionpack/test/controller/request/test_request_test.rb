@@ -2,7 +2,6 @@ require "abstract_unit"
 require "stringio"
 
 class ActionController::TestRequestTest < ActionController::TestCase
-
   def test_test_request_has_session_options_initialized
     assert @request.session_options
   end
@@ -19,5 +18,4 @@ class ActionController::TestRequestTest < ActionController::TestCase
                    "Missing rack session option #{option} in request.session_options")
     end
   end
-
 end

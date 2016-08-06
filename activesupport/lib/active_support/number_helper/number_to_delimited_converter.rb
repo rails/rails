@@ -22,7 +22,6 @@ module ActiveSupport
         def delimiter_pattern
           options.fetch(:delimiter_pattern, DEFAULT_DELIMITER_REGEX)
         end
-
     end
   end
 end

@@ -21,5 +21,4 @@ class ActionCable::Channel::RejectionTest < ActiveSupport::TestCase
     expected = { "identifier" => "{id: 1}", "type" => "reject_subscription" }
     assert_equal expected, @connection.last_transmission
   end
-
 end

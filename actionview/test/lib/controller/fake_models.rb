@@ -108,7 +108,6 @@ class Tag
 
   attr_accessor :relevances
   def relevances_attributes=(attributes); end
-
 end
 
 class CommentRelevance

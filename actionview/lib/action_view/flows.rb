@@ -23,7 +23,6 @@ module ActionView
       @content[key] << value
     end
     alias_method :append!, :append
-
   end
 
   class StreamingFlow < OutputFlow #:nodoc:

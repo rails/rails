@@ -30,7 +30,7 @@ class PostgresqlXMLTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_null_xml
-    @connection.execute %q|insert into xml_data_type (payload) VALUES(null)|
+    @connection.execute "insert into xml_data_type (payload) VALUES(null)"
     assert_nil XmlDataType.first.payload
   end
 

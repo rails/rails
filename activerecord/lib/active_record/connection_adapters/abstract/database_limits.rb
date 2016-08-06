@@ -1,7 +1,6 @@
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module DatabaseLimits
-
       # Returns the maximum length of a table alias.
       def table_alias_length
         255
@@ -61,7 +60,6 @@ module ActiveRecord
       def joins_per_query
         256
       end
-
     end
   end
 end

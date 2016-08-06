@@ -96,7 +96,6 @@ module ActionView
           helper(helper_class) if helper_class
           include _helpers
         end
-
       end
 
       def setup_with_controller

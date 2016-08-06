@@ -61,7 +61,6 @@ class ParentDeveloper < ActiveRecord::Base
 end
 
 class ChildDeveloper < ParentDeveloper
-
 end
 
 class ImmutableDeveloper < ActiveRecord::Base
@@ -632,5 +631,4 @@ class CallbacksTest < ActiveRecord::TestCase
     child.save
     assert child.after_save_called
   end
-
 end

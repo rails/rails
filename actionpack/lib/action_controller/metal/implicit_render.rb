@@ -27,7 +27,6 @@ module ActionController
   # Finally, if we DON'T find a template AND the request isn't a browser page
   # load, then we implicitly respond with 204 No Content.
   module ImplicitRender
-
     # :stopdoc:
     include BasicImplicitRender
 

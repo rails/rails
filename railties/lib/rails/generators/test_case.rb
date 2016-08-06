@@ -30,7 +30,6 @@ module Rails
       include Rails::Generators::Testing::SetupAndTeardown
       include Rails::Generators::Testing::Assertions
       include FileUtils
-
     end
   end
 end

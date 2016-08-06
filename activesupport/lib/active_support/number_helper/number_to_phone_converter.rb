@@ -51,7 +51,6 @@ module ActiveSupport
         def regexp_pattern(default_pattern)
           opts.fetch :pattern, default_pattern
         end
-
     end
   end
 end

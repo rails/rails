@@ -17,16 +17,16 @@ module ActiveModel
 
         def cast_value(value)
           casted_value = case value
-          when ::Float
-            convert_float_to_big_decimal(value)
-          when ::Numeric, ::String
-            BigDecimal(value, precision.to_i)
+                         when ::Float
+                           convert_float_to_big_decimal(value)
+                         when ::Numeric, ::String
+                           BigDecimal(value, precision.to_i)
           else
-            if value.respond_to?(:to_d)
-              value.to_d
-            else
-              cast_value(value.to_s)
-            end
+                           if value.respond_to?(:to_d)
+                             value.to_d
+                           else
+                             cast_value(value.to_s)
+                           end
           end
 
           apply_scale(casted_value)

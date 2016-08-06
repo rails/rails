@@ -109,7 +109,7 @@ class SchemaAuthorizationTest < ActiveRecord::PostgreSQLTestCase
   end
 
   private
-    def set_session_auth auth = nil
+    def set_session_auth(auth = nil)
       @connection.session_auth =  auth || "default"
     end
 

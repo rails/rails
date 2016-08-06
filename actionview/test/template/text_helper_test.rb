@@ -38,7 +38,7 @@ class TextHelperTest < ActionView::TestCase
     text = "A\r\n  \nB\n\n\r\n\t\nC\nD".freeze
     assert_equal "<p>A\n<br />  \n<br />B</p>\n\n<p>\t\n<br />C\n<br />D</p>", simple_format(text)
 
-    assert_equal %q(<p class="test">This is a classy test</p>), simple_format("This is a classy test", class: "test")
+    assert_equal '<p class="test">This is a classy test</p>', simple_format("This is a classy test", class: "test")
     assert_equal %Q(<p class="test">para 1</p>\n\n<p class="test">para 2</p>), simple_format("para 1\n\npara 2", class: "test")
   end
 

@@ -38,7 +38,6 @@ module ActionDispatch
           hash[verb.downcase]        = klass
           hash[verb.downcase.to_sym] = klass
         end
-
       end
 
       def self.verb_matcher(verb)

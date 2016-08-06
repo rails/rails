@@ -520,12 +520,12 @@ module ActiveRecord
       def check_record_limit!(limit, attributes_collection)
         if limit
           limit = case limit
-          when Symbol
-            send(limit)
-          when Proc
-            limit.call
+                  when Symbol
+                    send(limit)
+                  when Proc
+                    limit.call
           else
-            limit
+                    limit
           end
 
           if limit && attributes_collection.size > limit

@@ -14,7 +14,6 @@ class RecordTagPost
 end
 
 class RecordTagHelperTest < ActionView::TestCase
-
   tests ActionView::Helpers::RecordTagHelper
 
   def setup

@@ -495,9 +495,9 @@ class FormOptionsHelperTest < ActionView::TestCase
 
     assert_dom_equal(
       [
-        %Q{<select id="post_origin" name="post[origin]"><optgroup label="&lt;Africa&gt;"><option value="&lt;sa&gt;">&lt;South Africa&gt;</option>},
-        %Q{<option value="so">Somalia</option></optgroup><optgroup label="Europe"><option value="dk">Denmark</option>},
-        %Q{<option value="ie">Ireland</option></optgroup></select>},
+        '<select id="post_origin" name="post[origin]"><optgroup label="&lt;Africa&gt;"><option value="&lt;sa&gt;">&lt;South Africa&gt;</option>',
+        '<option value="so">Somalia</option></optgroup><optgroup label="Europe"><option value="dk">Denmark</option>',
+        '<option value="ie">Ireland</option></optgroup></select>',
       ].join("\n"),
       select("post", "origin", countries_by_continent)
     )
@@ -513,9 +513,9 @@ class FormOptionsHelperTest < ActionView::TestCase
 
     assert_dom_equal(
       [
-        %Q{<select id="post_origin" name="post[origin]"><optgroup label="&lt;Africa&gt;"><option value="&lt;sa&gt;">&lt;South Africa&gt;</option>},
-        %Q{<option value="so">Somalia</option></optgroup><optgroup label="Europe"><option value="dk">Denmark</option>},
-        %Q{<option value="ie">Ireland</option></optgroup></select>},
+        '<select id="post_origin" name="post[origin]"><optgroup label="&lt;Africa&gt;"><option value="&lt;sa&gt;">&lt;South Africa&gt;</option>',
+        '<option value="so">Somalia</option></optgroup><optgroup label="Europe"><option value="dk">Denmark</option>',
+        '<option value="ie">Ireland</option></optgroup></select>',
       ].join("\n"),
       select("post", "origin", countries_by_continent)
     )

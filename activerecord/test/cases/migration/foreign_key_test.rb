@@ -286,7 +286,6 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           silence_stream($stdout) { migration.migrate(:down) }
           ActiveRecord::Base.table_name_suffix = nil
         end
-
       end
     end
   end

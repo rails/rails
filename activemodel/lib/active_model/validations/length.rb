@@ -97,7 +97,6 @@ module ActiveModel
     end
 
     module HelperMethods
-
       # Validates that the specified attributes match the length restrictions
       # supplied. Only one constraint option can be used at a time apart from
       # +:minimum+ and +:maximum+ that can be combined together:

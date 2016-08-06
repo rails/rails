@@ -3,7 +3,6 @@ require "models/topic"
 require "models/reply"
 
 class ActiveRecordI18nTests < ActiveRecord::TestCase
-
   def setup
     I18n.backend = I18n::Backend::Simple.new
   end

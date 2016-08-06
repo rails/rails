@@ -565,7 +565,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_respond_to_delegates_to_relation
     relation = Topic.all
     fake_arel = Struct.new(:responds) {
-      def respond_to? method, access = false
+      def respond_to?(method, access = false)
         responds << [method, access]
       end
     }.new []

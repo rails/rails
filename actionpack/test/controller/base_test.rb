@@ -58,7 +58,6 @@ class ActionMissingController < ActionController::Base
 end
 
 class ControllerClassTests < ActiveSupport::TestCase
-
   def test_controller_path
     assert_equal "empty", EmptyController.controller_path
     assert_equal EmptyController.controller_path, EmptyController.new.controller_path

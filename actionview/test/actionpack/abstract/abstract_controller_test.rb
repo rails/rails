@@ -3,7 +3,6 @@ require "set"
 
 module AbstractController
   module Testing
-
     # Test basic dispatching.
     # ====
     # * Call process
@@ -248,7 +247,6 @@ module AbstractController
     end
 
     class TestRespondToAction < ActiveSupport::TestCase
-
       def assert_dispatch(klass, body = "success", action = :index)
         controller = klass.new
         controller.process(action)
@@ -284,11 +282,9 @@ module AbstractController
     end
 
     class TestActionMethodsReloading < ActiveSupport::TestCase
-
       test "action_methods should be reloaded after defining a new method" do
         assert_equal Set.new(["index"]), Me6.action_methods
       end
     end
-
   end
 end

@@ -108,7 +108,7 @@ module PostgresqlJSONSharedTestCases
   end
 
   def test_null_json
-    @connection.execute %q|insert into json_data_type (payload) VALUES(null)|
+    @connection.execute "insert into json_data_type (payload) VALUES(null)"
     x = JsonDataType.first
     assert_equal(nil, x.payload)
   end

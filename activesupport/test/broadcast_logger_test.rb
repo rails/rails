@@ -138,7 +138,7 @@ module ActiveSupport
         add(::Logger::UNKNOWN, message, &block)
       end
 
-      def << x
+      def <<(x)
         @chevrons << x
       end
 

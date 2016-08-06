@@ -6,7 +6,6 @@ module Rails
     # Deal with controller names on scaffold and add some helpers to deal with
     # ActiveModel.
     module ResourceHelpers # :nodoc:
-
       def self.included(base) #:nodoc:
         base.include(Rails::Generators::ModelHelpers)
         base.class_option :model_name, type: :string, desc: "ModelName to be used"

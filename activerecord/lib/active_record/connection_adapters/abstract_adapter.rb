@@ -549,8 +549,8 @@ module ActiveRecord
 
         def extract_scale(sql_type) # :nodoc:
           case sql_type
-            when /\((\d+)\)/ then 0
-            when /\((\d+)(,(\d+))\)/ then $3.to_i
+          when /\((\d+)\)/ then 0
+          when /\((\d+)(,(\d+))\)/ then $3.to_i
           end
         end
 

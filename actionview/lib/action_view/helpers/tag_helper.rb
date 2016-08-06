@@ -109,7 +109,6 @@ module ActionView
           def method_missing(called, *args, &block)
             tag_string(called, *args, &block)
           end
-
       end
 
       # Returns an HTML tag.

@@ -382,6 +382,5 @@ module ActiveRecord
               "horses_index_named index should not exist"
       end
     end
-
   end
 end

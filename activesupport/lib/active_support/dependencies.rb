@@ -675,11 +675,11 @@ module ActiveSupport #:nodoc:
     # A module, class, symbol, or string may be provided.
     def to_constant_name(desc) #:nodoc:
       case desc
-        when String then desc.sub(/^::/, "")
-        when Symbol then desc.to_s
-        when Module
-          desc.name ||
-            raise(ArgumentError, "Anonymous modules have no name to be referenced by")
+      when String then desc.sub(/^::/, "")
+      when Symbol then desc.to_s
+      when Module
+        desc.name ||
+          raise(ArgumentError, "Anonymous modules have no name to be referenced by")
         else raise TypeError, "Not a valid constant descriptor: #{desc.inspect}"
       end
     end

@@ -360,5 +360,4 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
         yield
       end
     end
-
 end

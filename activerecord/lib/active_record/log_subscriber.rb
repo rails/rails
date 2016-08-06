@@ -67,22 +67,22 @@ module ActiveRecord
 
       def sql_color(sql)
         case sql
-          when /\A\s*rollback/mi
-            RED
-          when /select .*for update/mi, /\A\s*lock/mi
-            WHITE
-          when /\A\s*select/i
-            BLUE
-          when /\A\s*insert/i
-            GREEN
-          when /\A\s*update/i
-            YELLOW
-          when /\A\s*delete/i
-            RED
-          when /transaction\s*\Z/i
-            CYAN
+        when /\A\s*rollback/mi
+          RED
+        when /select .*for update/mi, /\A\s*lock/mi
+          WHITE
+        when /\A\s*select/i
+          BLUE
+        when /\A\s*insert/i
+          GREEN
+        when /\A\s*update/i
+          YELLOW
+        when /\A\s*delete/i
+          RED
+        when /transaction\s*\Z/i
+          CYAN
           else
-            MAGENTA
+          MAGENTA
         end
       end
 

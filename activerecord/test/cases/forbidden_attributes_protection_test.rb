@@ -161,5 +161,4 @@ class ForbiddenAttributesProtectionTest < ActiveRecord::TestCase
     assert_equal "Necklace", part.trinkets[0].name
     assert_equal "Spoon", part.trinkets[1].name
   end
-
 end

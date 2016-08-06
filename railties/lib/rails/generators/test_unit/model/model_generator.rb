@@ -3,7 +3,6 @@ require "rails/generators/test_unit"
 module TestUnit # :nodoc:
   module Generators # :nodoc:
     class ModelGenerator < Base # :nodoc:
-
       RESERVED_YAML_KEYWORDS = %w(y yes n no true false on off null)
 
       argument :attributes, type: :array, default: [], banner: "field:type field:type"

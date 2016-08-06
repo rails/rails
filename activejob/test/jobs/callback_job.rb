@@ -25,5 +25,4 @@ class CallbackJob < ActiveJob::Base
   def history
     @history ||= []
   end
-
 end

@@ -60,5 +60,4 @@ class DispatcherTest < ActiveSupport::TestCase
         "rack.input" => StringIO.new("")
       )
     end
-
 end

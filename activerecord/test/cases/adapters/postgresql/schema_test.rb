@@ -29,7 +29,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
   INDEX_A_COLUMN = "name"
   INDEX_B_COLUMN_S1 = "email"
   INDEX_B_COLUMN_S2 = "moment"
-  INDEX_C_COLUMN = %q{(to_tsvector('english', coalesce(things.name, '')))}
+  INDEX_C_COLUMN = "(to_tsvector('english', coalesce(things.name, '')))"
   INDEX_D_COLUMN = "description"
   INDEX_E_COLUMN = "name_vector"
   COLUMNS = [

@@ -2,7 +2,6 @@ require "abstract_unit"
 require "controller/fake_controllers"
 
 class ActionPackAssertionsController < ActionController::Base
-
   def nothing() head :ok end
 
   def hello_xml_world() render template: "test/hello_xml_world"; end
@@ -130,7 +129,6 @@ module Admin
 end
 
 class ActionPackAssertionsControllerTest < ActionController::TestCase
-
   def test_render_file_absolute_path
     get :render_file_absolute_path
     assert_match(/\A= Action Pack/, @response.body)

@@ -934,7 +934,6 @@ module ActiveRecord
   # MigrationProxy is used to defer loading of the actual migration classes
   # until they are needed
   class MigrationProxy < Struct.new(:name, :version, :filename, :scope)
-
     def initialize(name, version, filename, scope)
       super
       @migration = nil
@@ -960,7 +959,6 @@ module ActiveRecord
         require(File.expand_path(filename))
         name.constantize.new(name, version)
       end
-
   end
 
   class NullMigration < MigrationProxy #:nodoc:

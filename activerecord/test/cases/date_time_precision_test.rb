@@ -83,6 +83,5 @@ if subsecond_precision_supported?
         assert_match %r{t\.datetime\s+"updated_at",\s+precision: 0,\s+null: false$}, output
       end
     end
-
   end
 end

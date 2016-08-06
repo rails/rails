@@ -29,5 +29,4 @@ class CodeStatisticsTest < ActiveSupport::TestCase
       CodeStatistics.new(["hidden file", @tmp_path])
     end
   end
-
 end

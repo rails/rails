@@ -11,7 +11,6 @@ module ActiveRecord
     # +columns+ attribute of said TableDefinition object, in order to be used
     # for generating a number of table creation or table changing SQL statements.
     class ColumnDefinition < Struct.new(:name, :type, :limit, :precision, :scale, :default, :null, :first, :after, :auto_increment, :primary_key, :collation, :sql_type, :comment) #:nodoc:
-
       def primary_key?
         primary_key || type.to_sym == :primary_key
       end

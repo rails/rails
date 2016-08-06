@@ -2,7 +2,6 @@ require "abstract_unit"
 
 module AbstractController
   module Testing
-
     class ControllerRenderer < AbstractController::Base
       include AbstractController::Rendering
       include ActionView::Rendering
@@ -54,7 +53,6 @@ module AbstractController
     end
 
     class TestRenderer < ActiveSupport::TestCase
-
       def setup
         @controller = ControllerRenderer.new
       end

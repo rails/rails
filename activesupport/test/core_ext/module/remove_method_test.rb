@@ -26,7 +26,6 @@ module RemoveMethodTests
 end
 
 class RemoveMethodTest < ActiveSupport::TestCase
-
   def test_remove_method_from_an_object
     RemoveMethodTests::A.class_eval{
       self.remove_possible_method(:do_something)
@@ -55,5 +54,4 @@ class RemoveMethodTest < ActiveSupport::TestCase
     assert RemoveMethodTests::A.protected_method_defined? :do_something_protected
     assert RemoveMethodTests::A.private_method_defined? :do_something_private
   end
-
 end

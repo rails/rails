@@ -320,7 +320,6 @@ module ActionController
       attr_reader :response, :request
 
       module ClassMethods
-
         # Sets the controller class name. Useful if the name can't be inferred from test class.
         # Normalizes +controller_class+ before using.
         #
