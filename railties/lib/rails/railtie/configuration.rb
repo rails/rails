@@ -1,4 +1,4 @@
-require 'rails/configuration'
+require "rails/configuration"
 
 module Rails
   class Railtie

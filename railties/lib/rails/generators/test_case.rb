@@ -1,8 +1,8 @@
-require 'rails/generators'
-require 'rails/generators/testing/behaviour'
-require 'rails/generators/testing/setup_and_teardown'
-require 'rails/generators/testing/assertions'
-require 'fileutils'
+require "rails/generators"
+require "rails/generators/testing/behaviour"
+require "rails/generators/testing/setup_and_teardown"
+require "rails/generators/testing/assertions"
+require "fileutils"
 
 module Rails
   module Generators

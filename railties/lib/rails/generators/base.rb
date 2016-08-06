@@ -1,5 +1,5 @@
 begin
-  require 'thor/group'
+  require "thor/group"
 rescue LoadError
   puts "Thor is not available.\nIf you ran this command from a git checkout " \
        "of Rails, please make sure thor is installed,\nand run this command " \
@@ -42,7 +42,7 @@ module Rails
       # is removed.
       def self.namespace(name=nil)
         return super if name
-        @namespace ||= super.sub(/_generator$/, '').sub(/:generators:/, ':')
+        @namespace ||= super.sub(/_generator$/, "").sub(/:generators:/, ":")
       end
 
       # Convenience method to hide this generator from the available ones when
@@ -208,7 +208,7 @@ module Rails
       def self.default_source_root
         return unless base_name && generator_name
         return unless default_generator_root
-        path = File.join(default_generator_root, 'templates')
+        path = File.join(default_generator_root, "templates")
         path if File.exist?(path)
       end
 
@@ -230,7 +230,7 @@ module Rails
           Rails::Generators.subclasses << base
 
           Rails::Generators.templates_path.each do |path|
-            if base.name.include?('::')
+            if base.name.include?("::")
               base.source_paths << File.join(path, base.base_name, base.generator_name)
             else
               base.source_paths << File.join(path, base.generator_name)
@@ -251,7 +251,7 @@ module Rails
             next if class_name.strip.empty?
 
             # Split the class from its module nesting
-            nesting = class_name.split('::')
+            nesting = class_name.split("::")
             last_name = nesting.pop
             last = extract_last_module(nesting)
 
@@ -273,13 +273,13 @@ module Rails
 
         # Use Rails default banner.
         def self.banner
-          "rails generate #{namespace.sub(/^rails:/,'')} #{self.arguments.map(&:usage).join(' ')} [options]".gsub(/\s+/, ' ')
+          "rails generate #{namespace.sub(/^rails:/,'')} #{self.arguments.map(&:usage).join(' ')} [options]".gsub(/\s+/, " ")
         end
 
         # Sets the base_name taking into account the current class namespace.
         def self.base_name
           @base_name ||= begin
-            if base = name.to_s.split('::').first
+            if base = name.to_s.split("::").first
               base.underscore
             end
           end
@@ -289,8 +289,8 @@ module Rails
         # Rails::Generators::ModelGenerator will return "model" as generator name.
         def self.generator_name
           @generator_name ||= begin
-            if generator = name.to_s.split('::').last
-              generator.sub!(/Generator$/, '')
+            if generator = name.to_s.split("::").last
+              generator.sub!(/Generator$/, "")
               generator.underscore
             end
           end

@@ -1,4 +1,4 @@
-require 'rails/commands/rake_proxy'
+require "rails/commands/rake_proxy"
 
 module Rails
   class Engine
@@ -53,7 +53,7 @@ In addition to those commands, there are:
       end
 
       def version
-        argv.unshift '--version'
+        argv.unshift "--version"
         require_command!("application")
       end
 
@@ -74,7 +74,7 @@ In addition to those commands, there are:
         end
 
         def load_generators
-          require 'rails/generators'
+          require "rails/generators"
           require ENGINE_PATH
 
           engine = ::Rails::Engine.find(ENGINE_ROOT)
@@ -93,10 +93,10 @@ In addition to those commands, there are:
 
         def parse_command(command)
           case command
-          when '--version', '-v'
-            'version'
-          when '--help', '-h'
-            'help'
+          when "--version", "-v"
+            "version"
+          when "--help", "-h"
+            "help"
           else
             command
           end
@@ -107,7 +107,7 @@ In addition to those commands, there are:
 
           load_generators
           Rake::TaskManager.record_task_metadata = true
-          Rake.application.init('rails')
+          Rake.application.init("rails")
           Rake.application.load_rakefile
           @rake_tasks = Rake.application.tasks.select(&:comment)
         end

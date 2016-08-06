@@ -1,6 +1,6 @@
-require 'rails/engine/commands_tasks'
+require "rails/engine/commands_tasks"
 
-ARGV << '--help' if ARGV.empty?
+ARGV << "--help" if ARGV.empty?
 
 aliases = {
   "g" => "generate",

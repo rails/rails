@@ -1,8 +1,8 @@
-require 'optparse'
+require "optparse"
 
-options = { environment: (ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development").dup }
+options = { environment: (ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development").dup }
 code_or_file = nil
-command = 'bin/rails runner'
+command = "bin/rails runner"
 
 if ARGV.first.nil?
   ARGV.push "-h"
@@ -31,7 +31,7 @@ ARGV.clone.options do |opts|
     opts.separator "    rails runner path/to/filename.rb"
     opts.separator "        This runs the Ruby file located at `path/to/filename.rb` after loading the app"
 
-  if RbConfig::CONFIG['host_os'] !~ /mswin|mingw/
+  if RbConfig::CONFIG["host_os"] !~ /mswin|mingw/
     opts.separator ""
     opts.separator "You can also use runner as a shebang line for your executables:"
     opts.separator "    -------------------------------------------------------------"

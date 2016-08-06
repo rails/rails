@@ -50,7 +50,7 @@ module Rails
     end
 
     def relative_path_for(file)
-      file.sub(/^#{app_root}\/?/, '')
+      file.sub(/^#{app_root}\/?/, "")
     end
 
     private

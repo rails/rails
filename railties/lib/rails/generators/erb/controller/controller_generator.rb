@@ -1,4 +1,4 @@
-require 'rails/generators/erb'
+require "rails/generators/erb"
 
 module Erb # :nodoc:
   module Generators # :nodoc:

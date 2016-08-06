@@ -1,32 +1,32 @@
-require 'rdoc/task'
+require "rdoc/task"
 
 module Rails
   module API
     class Task < RDoc::Task
       RDOC_FILES = {
-        'activesupport' => {
+        "activesupport" => {
           :include => %w(
             README.rdoc
             lib/active_support/**/*.rb
           ),
-          :exclude => 'lib/active_support/vendor/*'
+          :exclude => "lib/active_support/vendor/*"
         },
 
-        'activerecord' => {
+        "activerecord" => {
           :include => %w(
             README.rdoc
             lib/active_record/**/*.rb
           )
         },
 
-        'activemodel' => {
+        "activemodel" => {
           :include => %w(
             README.rdoc
             lib/active_model/**/*.rb
           )
         },
 
-        'actionpack' => {
+        "actionpack" => {
           :include => %w(
             README.rdoc
             lib/abstract_controller/**/*.rb
@@ -35,41 +35,41 @@ module Rails
           )
         },
 
-        'actionview' => {
+        "actionview" => {
           :include => %w(
             README.rdoc
             lib/action_view/**/*.rb
           ),
-          :exclude => 'lib/action_view/vendor/*'
+          :exclude => "lib/action_view/vendor/*"
         },
 
-        'actionmailer' => {
+        "actionmailer" => {
           :include => %w(
             README.rdoc
             lib/action_mailer/**/*.rb
           )
         },
 
-        'activejob' => {
+        "activejob" => {
           :include => %w(
             README.md
             lib/active_job/**/*.rb
           )
         },
 
-        'actioncable' => {
+        "actioncable" => {
           :include => %w(
             README.md
             lib/action_cable/**/*.rb
           )
         },
 
-        'railties' => {
+        "railties" => {
           :include => %w(
             README.rdoc
             lib/**/*.rb
           ),
-          :exclude => 'lib/rails/generators/rails/**/templates/**/*.rb'
+          :exclude => "lib/rails/generators/rails/**/templates/**/*.rb"
         }
       }
 
@@ -92,16 +92,16 @@ module Rails
       end
 
       def load_and_configure_sdoc
-        require 'sdoc'
+        require "sdoc"
 
-        self.title    = 'Ruby on Rails API'
+        self.title    = "Ruby on Rails API"
         self.rdoc_dir = api_dir
 
-        options << '-m'  << api_main
-        options << '-e'  << 'UTF-8'
+        options << "-m"  << api_main
+        options << "-e"  << "UTF-8"
 
-        options << '-f'  << 'sdoc'
-        options << '-T'  << 'rails'
+        options << "-f"  << "sdoc"
+        options << "-T"  << "rails"
       rescue LoadError
         $stderr.puts %(Unable to load SDoc, please add\n\n    gem 'sdoc', require: false\n\nto the Gemfile.)
         exit 1
@@ -124,8 +124,8 @@ module Rails
 
         # Only generate documentation for files that have been
         # changed since the API was generated.
-        if Dir.exist?('doc/rdoc') && !ENV['ALL']
-          last_generation = DateTime.rfc2822(File.open('doc/rdoc/created.rid', &:readline))
+        if Dir.exist?("doc/rdoc") && !ENV["ALL"]
+          last_generation = DateTime.rfc2822(File.open("doc/rdoc/created.rid", &:readline))
 
           rdoc_files.keep_if do |file|
             File.mtime(file).to_datetime > last_generation
@@ -137,19 +137,19 @@ module Rails
       end
 
       def setup_horo_variables
-        ENV['HORO_PROJECT_NAME']    = 'Ruby on Rails'
-        ENV['HORO_PROJECT_VERSION'] = rails_version
+        ENV["HORO_PROJECT_NAME"]    = "Ruby on Rails"
+        ENV["HORO_PROJECT_VERSION"] = rails_version
       end
 
       def api_main
-        component_root_dir('railties') + '/RDOC_MAIN.rdoc'
+        component_root_dir("railties") + "/RDOC_MAIN.rdoc"
       end
     end
 
     class RepoTask < Task
       def load_and_configure_sdoc
         super
-        options << '-g' # link to GitHub, SDoc flag
+        options << "-g" # link to GitHub, SDoc flag
       end
 
       def component_root_dir(component)
@@ -157,7 +157,7 @@ module Rails
       end
 
       def api_dir
-        'doc/rdoc'
+        "doc/rdoc"
       end
     end
 
@@ -169,7 +169,7 @@ module Rails
 
     class StableTask < RepoTask
       def rails_version
-        File.read('RAILS_VERSION').strip
+        File.read("RAILS_VERSION").strip
       end
     end
   end

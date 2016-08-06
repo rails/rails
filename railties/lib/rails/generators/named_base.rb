@@ -1,6 +1,6 @@
-require 'active_support/core_ext/module/introspection'
-require 'rails/generators/base'
-require 'rails/generators/generated_attribute'
+require "active_support/core_ext/module/introspection"
+require "rails/generators/base"
+require "rails/generators/generated_attribute"
 
 module Rails
   module Generators
@@ -28,7 +28,7 @@ module Rails
         end
 
         def js_template(source, destination)
-          template(source + '.js', destination + '.js')
+          template(source + ".js", destination + ".js")
         end
       end
 
@@ -79,7 +79,7 @@ module Rails
         end
 
         def file_path
-          @file_path ||= (class_path + [file_name]).join('/')
+          @file_path ||= (class_path + [file_name]).join("/")
         end
 
         def class_path
@@ -103,7 +103,7 @@ module Rails
         end
 
         def class_name
-          (class_path + [file_name]).map!(&:camelize).join('::')
+          (class_path + [file_name]).map!(&:camelize).join("::")
         end
 
         def human_name
@@ -115,13 +115,13 @@ module Rails
         end
 
         def i18n_scope
-          @i18n_scope ||= file_path.tr('/', '.')
+          @i18n_scope ||= file_path.tr("/", ".")
         end
 
         def table_name
           @table_name ||= begin
             base = pluralize_table_names? ? plural_name : singular_name
-            (class_path + [base]).join('_')
+            (class_path + [base]).join("_")
           end
         end
 
@@ -166,20 +166,20 @@ module Rails
         end
 
         def url_helper_prefix
-          @url_helper_prefix ||= (class_path + [file_name]).join('_')
+          @url_helper_prefix ||= (class_path + [file_name]).join("_")
         end
 
         # Tries to retrieve the application name or simply return application.
         def application_name
           if defined?(Rails) && Rails.application
-            Rails.application.class.name.split('::').first.underscore
+            Rails.application.class.name.split("::").first.underscore
           else
             "application"
           end
         end
 
         def assign_names!(name) #:nodoc:
-          @class_path = name.include?('/') ? name.split('/') : name.split('::')
+          @class_path = name.include?("/") ? name.split("/") : name.split("::")
           @class_path.map!(&:underscore)
           @file_name = @class_path.pop
         end
@@ -194,7 +194,7 @@ module Rails
         def attributes_names
           @attributes_names ||= attributes.each_with_object([]) do |a, names|
             names << a.column_name
-            names << 'password_confirmation' if a.password_digest?
+            names << "password_confirmation" if a.password_digest?
             names << "#{a.name}_type" if a.polymorphic?
           end
         end

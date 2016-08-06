@@ -38,7 +38,7 @@ module Rails
       alias inspect to_s
 
       def to_html
-        '<table>'.tap do |table|
+        "<table>".tap do |table|
           properties.each do |(name, value)|
             table << %(<tr><td class="name">#{CGI.escapeHTML(name.to_s)}</td>)
             formatted_value = if value.kind_of?(Array)
@@ -48,54 +48,54 @@ module Rails
                 end
             table << %(<td class="value">#{formatted_value}</td></tr>)
           end
-          table << '</table>'
+          table << "</table>"
         end
       end
     end
 
     # The Rails version.
-    property 'Rails version' do
+    property "Rails version" do
       Rails.version.to_s
     end
 
     # The Ruby version and platform, e.g. "2.0.0-p247 (x86_64-darwin12.4.0)".
-    property 'Ruby version' do
+    property "Ruby version" do
       "#{RUBY_VERSION}-p#{RUBY_PATCHLEVEL} (#{RUBY_PLATFORM})"
     end
 
     # The RubyGems version, if it's installed.
-    property 'RubyGems version' do
+    property "RubyGems version" do
       Gem::RubyGemsVersion
     end
 
-    property 'Rack version' do
+    property "Rack version" do
       ::Rack.release
     end
 
-    property 'JavaScript Runtime' do
+    property "JavaScript Runtime" do
       ExecJS.runtime.name
     end
 
-    property 'Middleware' do
+    property "Middleware" do
       Rails.configuration.middleware.map(&:inspect)
     end
 
     # The application's location on the filesystem.
-    property 'Application root' do
+    property "Application root" do
       File.expand_path(Rails.root)
     end
 
     # The current Rails environment (development, test, or production).
-    property 'Environment' do
+    property "Environment" do
       Rails.env
     end
 
     # The name of the database adapter for the current environment.
-    property 'Database adapter' do
-      ActiveRecord::Base.configurations[Rails.env]['adapter']
+    property "Database adapter" do
+      ActiveRecord::Base.configurations[Rails.env]["adapter"]
     end
 
-    property 'Database schema version' do
+    property "Database schema version" do
       ActiveRecord::Migrator.current_version rescue nil
     end
   end

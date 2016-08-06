@@ -1,10 +1,10 @@
-require 'active_support/core_ext/class/attribute'
-require 'active_support/core_ext/module/delegation'
-require 'active_support/core_ext/hash/reverse_merge'
-require 'active_support/core_ext/kernel/reporting'
-require 'active_support/testing/stream'
-require 'active_support/concern'
-require 'rails/generators'
+require "active_support/core_ext/class/attribute"
+require "active_support/core_ext/module/delegation"
+require "active_support/core_ext/hash/reverse_merge"
+require "active_support/core_ext/kernel/reporting"
+require "active_support/testing/stream"
+require "active_support/concern"
+require "rails/generators"
 
 module Rails
   module Generators
@@ -64,7 +64,7 @@ module Rails
         # printed by the generator.
         def run_generator(args=self.default_arguments, config={})
           capture(:stdout) do
-            args += ['--skip-bundle'] unless args.include? '--dev'
+            args += ["--skip-bundle"] unless args.include? "--dev"
             self.generator_class.start(args, config.reverse_merge(destination_root: destination_root))
           end
         end
@@ -78,8 +78,8 @@ module Rails
         # attribute type and, optionally, the attribute name:
         #
         #   create_generated_attribute(:string, 'name')
-        def create_generated_attribute(attribute_type, name = 'test', index = nil)
-          Rails::Generators::GeneratedAttribute.parse([name, attribute_type, index].compact.join(':'))
+        def create_generated_attribute(attribute_type, name = "test", index = nil)
+          Rails::Generators::GeneratedAttribute.parse([name, attribute_type, index].compact.join(":"))
         end
 
         protected
@@ -100,7 +100,7 @@ module Rails
 
           def migration_file_name(relative) # :nodoc:
             absolute = File.expand_path(relative, destination_root)
-            dirname, file_name = File.dirname(absolute), File.basename(absolute).sub(/\.rb$/, '')
+            dirname, file_name = File.dirname(absolute), File.basename(absolute).sub(/\.rb$/, "")
             Dir.glob("#{dirname}/[0-9]*_*.rb").grep(/\d+_#{file_name}.rb$/).first
           end
 

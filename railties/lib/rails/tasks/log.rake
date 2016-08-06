@@ -14,17 +14,17 @@ namespace :log do
   end
 
   def log_files
-    if ENV['LOGS'] == 'all'
+    if ENV["LOGS"] == "all"
       FileList["log/*.log"]
-    elsif ENV['LOGS']
-      log_files_to_truncate(ENV['LOGS'])
+    elsif ENV["LOGS"]
+      log_files_to_truncate(ENV["LOGS"])
     else
       log_files_to_truncate("development,test,production")
     end
   end
 
   def log_files_to_truncate(envs)
-    envs.split(',')
+    envs.split(",")
         .map    { |file| "log/#{file.strip}.log" }
         .select { |file| File.exist?(file) }
   end

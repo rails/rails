@@ -15,7 +15,7 @@
 class SourceAnnotationExtractor
   class Annotation < Struct.new(:line, :tag, :text)
     def self.directories
-      @@directories ||= %w(app config db lib test) + (ENV['SOURCE_ANNOTATION_DIRECTORIES'] || '').split(',')
+      @@directories ||= %w(app config db lib test) + (ENV["SOURCE_ANNOTATION_DIRECTORIES"] || "").split(",")
     end
 
     # Registers additional directories to be included

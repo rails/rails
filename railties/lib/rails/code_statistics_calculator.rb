@@ -77,10 +77,10 @@ class CodeStatisticsCalculator #:nodoc:
 
   private
     def file_type(file_path)
-      if file_path.end_with? '_test.rb'
+      if file_path.end_with? "_test.rb"
         :minitest
       else
-        File.extname(file_path).sub(/\A\./, '').downcase.to_sym
+        File.extname(file_path).sub(/\A\./, "").downcase.to_sym
       end
     end
 end

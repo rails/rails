@@ -1,16 +1,16 @@
-require 'rails/code_statistics_calculator'
-require 'active_support/core_ext/enumerable'
+require "rails/code_statistics_calculator"
+require "active_support/core_ext/enumerable"
 
 class CodeStatistics #:nodoc:
 
-  TEST_TYPES = ['Controller tests',
-                'Helper tests',
-                'Model tests',
-                'Mailer tests',
-                'Job tests',
-                'Integration tests']
+  TEST_TYPES = ["Controller tests",
+                "Helper tests",
+                "Model tests",
+                "Mailer tests",
+                "Job tests",
+                "Integration tests"]
 
-  HEADERS = {lines: ' Lines', code_lines: '   LOC', classes: 'Classes', methods: 'Methods'}
+  HEADERS = {lines: " Lines", code_lines: "   LOC", classes: "Classes", methods: "Methods"}
 
   def initialize(*pairs)
     @pairs      = pairs
@@ -76,20 +76,20 @@ class CodeStatistics #:nodoc:
 
     def print_header
       print_splitter
-      print '| Name                '
+      print "| Name                "
       HEADERS.each do |k, v|
         print " | #{v.rjust(width_for(k))}"
       end
-      puts ' | M/C | LOC/M |'
+      puts " | M/C | LOC/M |"
       print_splitter
     end
 
     def print_splitter
-      print '+----------------------'
+      print "+----------------------"
       HEADERS.each_key do |k|
         print "+#{'-' * (width_for(k) + 2)}"
       end
-      puts '+-----+-------+'
+      puts "+-----+-------+"
     end
 
     def print_line(name, statistics)

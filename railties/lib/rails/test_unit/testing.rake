@@ -1,14 +1,14 @@
-gem 'minitest'
-require 'minitest'
-require 'rails/test_unit/minitest_plugin'
+gem "minitest"
+require "minitest"
+require "rails/test_unit/minitest_plugin"
 
 task default: :test
 
 desc "Runs all tests in test folder"
 task :test do
   $: << "test"
-  pattern = if ENV.key?('TEST')
-               ENV['TEST']
+  pattern = if ENV.key?("TEST")
+               ENV["TEST"]
              else
                "test"
              end

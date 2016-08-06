@@ -1,4 +1,4 @@
-require 'active_support/time'
+require "active_support/time"
 
 module Rails
   module Generators
@@ -12,7 +12,7 @@ module Rails
 
       class << self
         def parse(column_definition)
-          name, type, has_index = column_definition.split(':')
+          name, type, has_index = column_definition.split(":")
 
           # if user provided "name:index" instead of "name:string:index"
           # type should be set blank so GeneratedAttribute's constructor
@@ -95,11 +95,11 @@ module Rails
       end
 
       def plural_name
-        name.sub(/_id$/, '').pluralize
+        name.sub(/_id$/, "").pluralize
       end
 
       def singular_name
-        name.sub(/_id$/, '').singularize
+        name.sub(/_id$/, "").singularize
       end
 
       def human_name
@@ -143,7 +143,7 @@ module Rails
       end
 
       def password_digest?
-        name == 'password' && type == :digest
+        name == "password" && type == :digest
       end
 
       def token?

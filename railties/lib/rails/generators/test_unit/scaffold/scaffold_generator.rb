@@ -1,5 +1,5 @@
-require 'rails/generators/test_unit'
-require 'rails/generators/resource_helpers'
+require "rails/generators/test_unit"
+require "rails/generators/resource_helpers"
 
 module TestUnit # :nodoc:
   module Generators # :nodoc:
@@ -39,7 +39,7 @@ module TestUnit # :nodoc:
             else
               "#{name}: @#{singular_table_name}.#{name}"
             end
-          end.sort.join(', ')
+          end.sort.join(", ")
         end
     end
   end

@@ -1,4 +1,4 @@
-require 'rails/generators/named_base'
+require "rails/generators/named_base"
 
 module Erb # :nodoc:
   module Generators # :nodoc:

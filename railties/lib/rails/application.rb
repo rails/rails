@@ -1,9 +1,9 @@
-require 'yaml'
-require 'active_support/core_ext/hash/keys'
-require 'active_support/core_ext/object/blank'
-require 'active_support/key_generator'
-require 'active_support/message_verifier'
-require 'rails/engine'
+require "yaml"
+require "active_support/core_ext/hash/keys"
+require "active_support/core_ext/object/blank"
+require "active_support/key_generator"
+require "active_support/message_verifier"
+require "rails/engine"
 
 module Rails
   # An Engine with the responsibility of coordinating the whole boot process.
@@ -75,12 +75,12 @@ module Rails
   # If you decide to define rake tasks, runners, or initializers in an
   # application other than +Rails.application+, then you must run them manually.
   class Application < Engine
-    autoload :Bootstrap,              'rails/application/bootstrap'
-    autoload :Configuration,          'rails/application/configuration'
-    autoload :DefaultMiddlewareStack, 'rails/application/default_middleware_stack'
-    autoload :Finisher,               'rails/application/finisher'
-    autoload :Railties,               'rails/engine/railties'
-    autoload :RoutesReloader,         'rails/application/routes_reloader'
+    autoload :Bootstrap,              "rails/application/bootstrap"
+    autoload :Configuration,          "rails/application/configuration"
+    autoload :DefaultMiddlewareStack, "rails/application/default_middleware_stack"
+    autoload :Finisher,               "rails/application/finisher"
+    autoload :Railties,               "rails/engine/railties"
+    autoload :RoutesReloader,         "rails/application/routes_reloader"
 
     class << self
       def inherited(base)
@@ -317,7 +317,7 @@ module Rails
     # Rails application, you will need to add lib to $LOAD_PATH on your own in case
     # you need to load files in lib/ during the application configuration as well.
     def self.add_lib_to_load_path!(root) #:nodoc:
-      path = File.join root, 'lib'
+      path = File.join root, "lib"
       if File.exist?(path) && !$LOAD_PATH.include?(path)
         $LOAD_PATH.unshift(path)
       end
@@ -391,7 +391,7 @@ module Rails
           require "erb"
 
           all_secrets    = YAML.load(ERB.new(IO.read(yaml)).result) || {}
-          shared_secrets = all_secrets['shared']
+          shared_secrets = all_secrets["shared"]
           env_secrets    = all_secrets[Rails.env]
 
           secrets.merge!(shared_secrets.symbolize_keys) if shared_secrets

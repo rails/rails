@@ -103,7 +103,7 @@ module Rails
 
         in_root do
           if options[:env].nil?
-            inject_into_file 'config/application.rb', "\n    #{data}", after: sentinel, verbose: false
+            inject_into_file "config/application.rb", "\n    #{data}", after: sentinel, verbose: false
           else
             Array(options[:env]).each do |env|
               inject_into_file "config/environments/#{env}.rb", "\n  #{data}", after: env_file_sentinel, verbose: false
@@ -239,7 +239,7 @@ module Rails
         sentinel = /\.routes\.draw do\s*\n/m
 
         in_root do
-          inject_into_file 'config/routes.rb', "  #{routing_code}\n", { after: sentinel, verbose: false, force: false }
+          inject_into_file "config/routes.rb", "  #{routing_code}\n", { after: sentinel, verbose: false, force: false }
         end
       end
 
@@ -279,14 +279,14 @@ module Rails
         # based on the executor parameter provided.
         def execute_command(executor, command, options={})
           log executor, command
-          env  = options[:env] || ENV["RAILS_ENV"] || 'development'
-          sudo = options[:sudo] && RbConfig::CONFIG['host_os'] !~ /mswin|mingw/ ? 'sudo ' : ''
+          env  = options[:env] || ENV["RAILS_ENV"] || "development"
+          sudo = options[:sudo] && RbConfig::CONFIG["host_os"] !~ /mswin|mingw/ ? "sudo " : ""
           in_root { run("#{sudo}#{extify(executor)} #{command} RAILS_ENV=#{env}", verbose: false) }
         end
 
         # Add an extension to the given name based on the platform.
         def extify(name)
-          if RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
+          if RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
             "#{name}.bat"
           else
             name

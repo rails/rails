@@ -1,6 +1,6 @@
-require 'active_support/core_ext/hash/slice'
+require "active_support/core_ext/hash/slice"
 require "rails/generators/rails/app/app_generator"
-require 'date'
+require "date"
 
 module Rails
   # The plugin builder allows you to override elements of the plugin
@@ -18,20 +18,20 @@ module Rails
     def app
       if mountable?
         if api?
-          directory 'app', exclude_pattern: %r{app/(views|helpers)}
+          directory "app", exclude_pattern: %r{app/(views|helpers)}
         else
-          directory 'app'
+          directory "app"
           empty_directory_with_keep_file "app/assets/images/#{namespaced_name}"
         end
       elsif full?
-        empty_directory_with_keep_file 'app/models'
-        empty_directory_with_keep_file 'app/controllers'
-        empty_directory_with_keep_file 'app/mailers'
+        empty_directory_with_keep_file "app/models"
+        empty_directory_with_keep_file "app/controllers"
+        empty_directory_with_keep_file "app/mailers"
 
         unless api?
           empty_directory_with_keep_file "app/assets/images/#{namespaced_name}"
-          empty_directory_with_keep_file 'app/helpers'
-          empty_directory_with_keep_file 'app/views'
+          empty_directory_with_keep_file "app/helpers"
+          empty_directory_with_keep_file "app/views"
         end
       end
     end
@@ -149,7 +149,7 @@ task default: :test
     end
 
     def bin(force = false)
-      bin_file = engine? ? 'bin/rails.tt' : 'bin/test.tt'
+      bin_file = engine? ? "bin/rails.tt" : "bin/test.tt"
       template bin_file, force: force do |content|
         "#{shebang}\n" + content
       end
@@ -283,7 +283,7 @@ task default: :test
       end
 
       def namespaced_name
-        @namespaced_name ||= name.gsub('-', '/')
+        @namespaced_name ||= name.gsub("-", "/")
       end
 
     protected
@@ -320,7 +320,7 @@ task default: :test
       end
 
       def with_dummy_app?
-        options[:skip_test].blank? || options[:dummy_path] != 'test/dummy'
+        options[:skip_test].blank? || options[:dummy_path] != "test/dummy"
       end
 
       def api?
@@ -340,7 +340,7 @@ task default: :test
       end
 
       def wrap_in_modules(unwrapped_code)
-        unwrapped_code = "#{unwrapped_code}".strip.gsub(/\s$\n/, '')
+        unwrapped_code = "#{unwrapped_code}".strip.gsub(/\s$\n/, "")
         modules.reverse.inject(unwrapped_code) do |content, mod|
           str = "module #{mod}\n"
           str += content.lines.map { |line| "  #{line}" }.join
@@ -357,7 +357,7 @@ task default: :test
       end
 
       def camelized
-        @camelized ||= name.gsub(/\W/, '_').squeeze('_').camelize
+        @camelized ||= name.gsub(/\W/, "_").squeeze("_").camelize
       end
 
       def author
@@ -442,7 +442,7 @@ end
 
       def relative_path
         return unless inside_application?
-        app_path.sub(/^#{rails_app_path}\//, '')
+        app_path.sub(/^#{rails_app_path}\//, "")
       end
     end
   end

@@ -1,4 +1,4 @@
-require 'active_support/concern'
+require "active_support/concern"
 
 module Rails
   module ConsoleHelper # :nodoc:
@@ -11,7 +11,7 @@ module Rails
       
       private
         def set_options_env(arguments, options)
-          if arguments.first && arguments.first[0] != '-'
+          if arguments.first && arguments.first[0] != "-"
             env = arguments.first
             if available_environments.include? env
               options[:environment] = env
@@ -23,7 +23,7 @@ module Rails
         end
 
         def available_environments
-          Dir['config/environments/*.rb'].map { |fname| File.basename(fname, '.*') }
+          Dir["config/environments/*.rb"].map { |fname| File.basename(fname, ".*") }
         end  
     end
 

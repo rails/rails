@@ -1,7 +1,7 @@
-require 'erb'
-require 'yaml'
-require 'optparse'
-require 'rails/commands/console_helper'
+require "erb"
+require "yaml"
+require "optparse"
+require "rails/commands/console_helper"
 
 module Rails
   class DBConsole
@@ -16,16 +16,16 @@ module Rails
         OptionParser.new do |opt|
           opt.banner = "Usage: rails dbconsole [environment] [options]"
           opt.on("-p", "--include-password", "Automatically provide the password from database.yml") do |v|
-            options['include_password'] = true
+            options["include_password"] = true
           end
 
-          opt.on("--mode [MODE]", ['html', 'list', 'line', 'column'],
+          opt.on("--mode [MODE]", ["html", "list", "line", "column"],
             "Automatically put the sqlite3 database in the specified mode (html, list, line, column).") do |mode|
-              options['mode'] = mode
+              options["mode"] = mode
           end
 
           opt.on("--header") do |h|
-            options['header'] = h
+            options["header"] = h
           end
 
           opt.on("-h", "--help", "Show this help message.") do
@@ -52,70 +52,70 @@ module Rails
 
     def start
       options = self.class.parse_arguments(arguments)
-      ENV['RAILS_ENV'] = options[:environment] || environment
+      ENV["RAILS_ENV"] = options[:environment] || environment
 
       case config["adapter"]
       when /^(jdbc)?mysql/
         args = {
-          'host'      => '--host',
-          'port'      => '--port',
-          'socket'    => '--socket',
-          'username'  => '--user',
-          'encoding'  => '--default-character-set',
-          'sslca'     => '--ssl-ca',
-          'sslcert'   => '--ssl-cert',
-          'sslcapath' => '--ssl-capath',
-          'sslcipher' => '--ssl-cipher',
-          'sslkey'    => '--ssl-key'
+          "host"      => "--host",
+          "port"      => "--port",
+          "socket"    => "--socket",
+          "username"  => "--user",
+          "encoding"  => "--default-character-set",
+          "sslca"     => "--ssl-ca",
+          "sslcert"   => "--ssl-cert",
+          "sslcapath" => "--ssl-capath",
+          "sslcipher" => "--ssl-cipher",
+          "sslkey"    => "--ssl-key"
         }.map { |opt, arg| "#{arg}=#{config[opt]}" if config[opt] }.compact
 
-        if config['password'] && options['include_password']
+        if config["password"] && options["include_password"]
           args << "--password=#{config['password']}"
-        elsif config['password'] && !config['password'].to_s.empty?
+        elsif config["password"] && !config["password"].to_s.empty?
           args << "-p"
         end
 
-        args << config['database']
+        args << config["database"]
 
-        find_cmd_and_exec(['mysql', 'mysql5'], *args)
+        find_cmd_and_exec(["mysql", "mysql5"], *args)
 
       when /^postgres|^postgis/
-        ENV['PGUSER']     = config["username"] if config["username"]
-        ENV['PGHOST']     = config["host"] if config["host"]
-        ENV['PGPORT']     = config["port"].to_s if config["port"]
-        ENV['PGPASSWORD'] = config["password"].to_s if config["password"] && options['include_password']
-        find_cmd_and_exec('psql', config["database"])
+        ENV["PGUSER"]     = config["username"] if config["username"]
+        ENV["PGHOST"]     = config["host"] if config["host"]
+        ENV["PGPORT"]     = config["port"].to_s if config["port"]
+        ENV["PGPASSWORD"] = config["password"].to_s if config["password"] && options["include_password"]
+        find_cmd_and_exec("psql", config["database"])
 
       when "sqlite3"
         args = []
 
-        args << "-#{options['mode']}" if options['mode']
-        args << "-header" if options['header']
-        args << File.expand_path(config['database'], Rails.respond_to?(:root) ? Rails.root : nil)
+        args << "-#{options['mode']}" if options["mode"]
+        args << "-header" if options["header"]
+        args << File.expand_path(config["database"], Rails.respond_to?(:root) ? Rails.root : nil)
 
-        find_cmd_and_exec('sqlite3', *args)
+        find_cmd_and_exec("sqlite3", *args)
 
       when "oracle", "oracle_enhanced"
         logon = ""
 
-        if config['username']
-          logon = config['username']
-          logon << "/#{config['password']}" if config['password'] && options['include_password']
-          logon << "@#{config['database']}" if config['database']
+        if config["username"]
+          logon = config["username"]
+          logon << "/#{config['password']}" if config["password"] && options["include_password"]
+          logon << "@#{config['database']}" if config["database"]
         end
 
-        find_cmd_and_exec('sqlplus', logon)
+        find_cmd_and_exec("sqlplus", logon)
 
       when "sqlserver"
         args = []
 
-        args += ["-D", "#{config['database']}"] if config['database']
-        args += ["-U", "#{config['username']}"] if config['username']
-        args += ["-P", "#{config['password']}"] if config['password']
+        args += ["-D", "#{config['database']}"] if config["database"]
+        args += ["-U", "#{config['username']}"] if config["username"]
+        args += ["-P", "#{config['password']}"] if config["password"]
 
-        if config['host']
+        if config["host"]
           host_arg = "#{config['host']}"
-          host_arg << ":#{config['port']}" if config['port']
+          host_arg << ":#{config['port']}" if config["port"]
           args += ["-S", host_arg]
         end
 
@@ -150,8 +150,8 @@ module Rails
       def find_cmd_and_exec(commands, *args)
         commands = Array(commands)
 
-        dirs_on_path = ENV['PATH'].to_s.split(File::PATH_SEPARATOR)
-        unless (ext = RbConfig::CONFIG['EXEEXT']).empty?
+        dirs_on_path = ENV["PATH"].to_s.split(File::PATH_SEPARATOR)
+        unless (ext = RbConfig::CONFIG["EXEEXT"]).empty?
           commands = commands.map{|cmd| "#{cmd}#{ext}"}
         end
 

@@ -180,7 +180,7 @@ module Rails
       end
 
       def extensions # :nodoc:
-        $1.split(',') if @glob =~ /\{([\S]+)\}/
+        $1.split(",") if @glob =~ /\{([\S]+)\}/
       end
 
       # Expands all paths against the root and return all unique values.

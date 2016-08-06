@@ -1,8 +1,8 @@
-require 'rails/railtie'
-require 'rails/engine/railties'
-require 'active_support/core_ext/module/delegation'
-require 'pathname'
-require 'thread'
+require "rails/railtie"
+require "rails/engine/railties"
+require "active_support/core_ext/module/delegation"
+require "pathname"
+require "thread"
 
 module Rails
   # <tt>Rails::Engine</tt> allows you to wrap a specific Rails application or subset of
@@ -644,7 +644,7 @@ module Rails
     protected
 
     def load_config_initializer(initializer)
-      ActiveSupport::Notifications.instrument('load_config_initializer.railties', initializer: initializer) do
+      ActiveSupport::Notifications.instrument("load_config_initializer.railties", initializer: initializer) do
         load(initializer)
       end
     end

@@ -1,8 +1,8 @@
-require 'fileutils'
-require 'optparse'
-require 'action_dispatch'
-require 'rails'
-require 'rails/dev_caching'
+require "fileutils"
+require "optparse"
+require "action_dispatch"
+require "rails"
+require "rails/dev_caching"
 
 module Rails
   class Server < ::Rack::Server
@@ -80,7 +80,7 @@ module Rails
     ensure
       # The '-h' option calls exit before @options is set.
       # If we call 'options' with it unset, we get double help banners.
-      puts 'Exiting' unless @options && options[:daemonize]
+      puts "Exiting" unless @options && options[:daemonize]
     end
 
     def middleware
@@ -89,10 +89,10 @@ module Rails
 
     def default_options
       super.merge({
-        Port:               ENV.fetch('PORT', 3000).to_i,
-        Host:               ENV.fetch('HOST', 'localhost').dup,
+        Port:               ENV.fetch("PORT", 3000).to_i,
+        Host:               ENV.fetch("HOST", "localhost").dup,
         DoNotReverseLookup: true,
-        environment:        (ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development").dup,
+        environment:        (ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development").dup,
         daemonize:          false,
         caching:            nil,
         pid:                Options::DEFAULT_PID_PATH,
@@ -117,7 +117,7 @@ module Rails
 
       def create_tmp_directories
         %w(cache pids sockets).each do |dir_to_make|
-          FileUtils.mkdir_p(File.join(Rails.root, 'tmp', dir_to_make))
+          FileUtils.mkdir_p(File.join(Rails.root, "tmp", dir_to_make))
         end
       end
 

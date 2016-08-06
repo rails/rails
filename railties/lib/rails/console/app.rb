@@ -1,5 +1,5 @@
-require 'active_support/all'
-require 'action_controller'
+require "active_support/all"
+require "action_controller"
 
 module Rails
   module ConsoleMethods

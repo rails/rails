@@ -1,5 +1,5 @@
-require 'fileutils'
-require 'thor/actions'
+require "fileutils"
+require "thor/actions"
 
 module Rails
   module Generators

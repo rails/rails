@@ -1,7 +1,7 @@
-require 'rails/initializable'
-require 'active_support/inflector'
-require 'active_support/core_ext/module/introspection'
-require 'active_support/core_ext/module/delegation'
+require "rails/initializable"
+require "active_support/inflector"
+require "active_support/core_ext/module/introspection"
+require "active_support/core_ext/module/delegation"
 
 module Rails
   # <tt>Rails::Railtie</tt> is the core of the Rails framework and provides
@@ -111,7 +111,7 @@ module Rails
   #
   # Be sure to look at the documentation of those specific classes for more information.
   class Railtie
-    autoload :Configuration, 'rails/railtie/configuration'
+    autoload :Configuration, "rails/railtie/configuration"
 
     include Initializable
 

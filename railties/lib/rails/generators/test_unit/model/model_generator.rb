@@ -1,4 +1,4 @@
-require 'rails/generators/test_unit'
+require "rails/generators/test_unit"
 
 module TestUnit # :nodoc:
   module Generators # :nodoc:
@@ -12,14 +12,14 @@ module TestUnit # :nodoc:
       check_class_collision suffix: "Test"
 
       def create_test_file
-        template 'unit_test.rb', File.join('test/models', class_path, "#{file_name}_test.rb")
+        template "unit_test.rb", File.join("test/models", class_path, "#{file_name}_test.rb")
       end
 
       hook_for :fixture_replacement
 
       def create_fixture_file
         if options[:fixture] && options[:fixture_replacement].nil?
-          template 'fixtures.yml', File.join('test/fixtures', class_path, "#{fixture_file_name}.yml")
+          template "fixtures.yml", File.join("test/fixtures", class_path, "#{fixture_file_name}.yml")
         end
       end
 

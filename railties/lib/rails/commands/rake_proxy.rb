@@ -1,5 +1,5 @@
-require 'rake'
-require 'active_support'
+require "rake"
+require "active_support"
 
 module Rails
   module RakeProxy #:nodoc:
@@ -8,7 +8,7 @@ module Rails
         ARGV.unshift(command) # Prepend the command, so Rake knows how to run it.
 
         Rake.application.standard_exception_handling do
-          Rake.application.init('rails')
+          Rake.application.init("rails")
           Rake.application.load_rakefile
           Rake.application.top_level
         end
@@ -22,7 +22,7 @@ module Rails
         end
 
         Rake::TaskManager.record_task_metadata = true
-        Rake.application.instance_variable_set(:@name, 'rails')
+        Rake.application.instance_variable_set(:@name, "rails")
         Rails.application.load_tasks
         @rake_tasks = Rake.application.tasks.select(&:comment)
       end
