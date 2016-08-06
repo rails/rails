@@ -1,5 +1,5 @@
-require 'abstract_unit'
-require 'action_dispatch/http/rack_cache'
+require "abstract_unit"
+require "action_dispatch/http/rack_cache"
 
 class RackCacheMetaStoreTest < ActiveSupport::TestCase
   class ReadWriteHash < ::Hash

@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 module ActionDispatch
   module Journey
@@ -11,44 +11,44 @@ module ActionDispatch
         # /page/:id(/:action)(.:format)
         def test_tokens
           [
-            ['/',       [[:SLASH, '/']]],
-            ['*omg',    [[:STAR, '*omg']]],
-            ['/page',   [[:SLASH, '/'], [:LITERAL, 'page']]],
-            ['/page!',  [[:SLASH, '/'], [:LITERAL, 'page!']]],
-            ['/page$',  [[:SLASH, '/'], [:LITERAL, 'page$']]],
-            ['/page&',  [[:SLASH, '/'], [:LITERAL, 'page&']]],
-            ["/page'",  [[:SLASH, '/'], [:LITERAL, "page'"]]],
-            ['/page*',  [[:SLASH, '/'], [:LITERAL, 'page*']]],
-            ['/page+',  [[:SLASH, '/'], [:LITERAL, 'page+']]],
-            ['/page,',  [[:SLASH, '/'], [:LITERAL, 'page,']]],
-            ['/page;',  [[:SLASH, '/'], [:LITERAL, 'page;']]],
-            ['/page=',  [[:SLASH, '/'], [:LITERAL, 'page=']]],
-            ['/page@',  [[:SLASH, '/'], [:LITERAL, 'page@']]],
-            ['/page\:', [[:SLASH, '/'], [:LITERAL, 'page:']]],
-            ['/page\(', [[:SLASH, '/'], [:LITERAL, 'page(']]],
-            ['/page\)', [[:SLASH, '/'], [:LITERAL, 'page)']]],
-            ['/~page',  [[:SLASH, '/'], [:LITERAL, '~page']]],
-            ['/pa-ge',  [[:SLASH, '/'], [:LITERAL, 'pa-ge']]],
-            ['/:page',  [[:SLASH, '/'], [:SYMBOL, ':page']]],
-            ['/(:page)', [
-                          [:SLASH, '/'],
-                          [:LPAREN, '('],
-                          [:SYMBOL, ':page'],
-                          [:RPAREN, ')'],
+            ["/",       [[:SLASH, "/"]]],
+            ["*omg",    [[:STAR, "*omg"]]],
+            ["/page",   [[:SLASH, "/"], [:LITERAL, "page"]]],
+            ["/page!",  [[:SLASH, "/"], [:LITERAL, "page!"]]],
+            ["/page$",  [[:SLASH, "/"], [:LITERAL, "page$"]]],
+            ["/page&",  [[:SLASH, "/"], [:LITERAL, "page&"]]],
+            ["/page'",  [[:SLASH, "/"], [:LITERAL, "page'"]]],
+            ["/page*",  [[:SLASH, "/"], [:LITERAL, "page*"]]],
+            ["/page+",  [[:SLASH, "/"], [:LITERAL, "page+"]]],
+            ["/page,",  [[:SLASH, "/"], [:LITERAL, "page,"]]],
+            ["/page;",  [[:SLASH, "/"], [:LITERAL, "page;"]]],
+            ["/page=",  [[:SLASH, "/"], [:LITERAL, "page="]]],
+            ["/page@",  [[:SLASH, "/"], [:LITERAL, "page@"]]],
+            ['/page\:', [[:SLASH, "/"], [:LITERAL, "page:"]]],
+            ['/page\(', [[:SLASH, "/"], [:LITERAL, "page("]]],
+            ['/page\)', [[:SLASH, "/"], [:LITERAL, "page)"]]],
+            ["/~page",  [[:SLASH, "/"], [:LITERAL, "~page"]]],
+            ["/pa-ge",  [[:SLASH, "/"], [:LITERAL, "pa-ge"]]],
+            ["/:page",  [[:SLASH, "/"], [:SYMBOL, ":page"]]],
+            ["/(:page)", [
+                          [:SLASH, "/"],
+                          [:LPAREN, "("],
+                          [:SYMBOL, ":page"],
+                          [:RPAREN, ")"],
                         ]],
-            ['(/:action)', [
-                            [:LPAREN, '('],
-                            [:SLASH, '/'],
-                            [:SYMBOL, ':action'],
-                            [:RPAREN, ')'],
+            ["(/:action)", [
+                            [:LPAREN, "("],
+                            [:SLASH, "/"],
+                            [:SYMBOL, ":action"],
+                            [:RPAREN, ")"],
                            ]],
-            ['(())', [[:LPAREN, '('],
-                     [:LPAREN, '('], [:RPAREN, ')'], [:RPAREN, ')']]],
-            ['(.:format)', [
-                            [:LPAREN, '('],
-                            [:DOT, '.'],
-                            [:SYMBOL, ':format'],
-                            [:RPAREN, ')'],
+            ["(())", [[:LPAREN, "("],
+                     [:LPAREN, "("], [:RPAREN, ")"], [:RPAREN, ")"]]],
+            ["(.:format)", [
+                            [:LPAREN, "("],
+                            [:DOT, "."],
+                            [:SYMBOL, ":format"],
+                            [:RPAREN, ")"],
                           ]],
           ].each do |str, expected|
             @scanner.scan_setup str

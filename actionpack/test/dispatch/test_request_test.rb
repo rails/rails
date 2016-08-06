@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class TestRequestTest < ActiveSupport::TestCase
   test "sane defaults" do
@@ -60,59 +60,59 @@ class TestRequestTest < ActiveSupport::TestCase
 
   test "default remote address is 0.0.0.0" do
     req = ActionDispatch::TestRequest.create({})
-    assert_equal '0.0.0.0', req.remote_addr
+    assert_equal "0.0.0.0", req.remote_addr
   end
 
   test "allows remote address to be overridden" do
-    req = ActionDispatch::TestRequest.create('REMOTE_ADDR' => '127.0.0.1')
-    assert_equal '127.0.0.1', req.remote_addr
+    req = ActionDispatch::TestRequest.create("REMOTE_ADDR" => "127.0.0.1")
+    assert_equal "127.0.0.1", req.remote_addr
   end
 
   test "default host is test.host" do
     req = ActionDispatch::TestRequest.create({})
-    assert_equal 'test.host', req.host
+    assert_equal "test.host", req.host
   end
 
   test "allows host to be overridden" do
-    req = ActionDispatch::TestRequest.create('HTTP_HOST' => 'www.example.com')
-    assert_equal 'www.example.com', req.host
+    req = ActionDispatch::TestRequest.create("HTTP_HOST" => "www.example.com")
+    assert_equal "www.example.com", req.host
   end
 
   test "default user agent is 'Rails Testing'" do
     req = ActionDispatch::TestRequest.create({})
-    assert_equal 'Rails Testing', req.user_agent
+    assert_equal "Rails Testing", req.user_agent
   end
 
   test "allows user agent to be overridden" do
-    req = ActionDispatch::TestRequest.create('HTTP_USER_AGENT' => 'GoogleBot')
-    assert_equal 'GoogleBot', req.user_agent
+    req = ActionDispatch::TestRequest.create("HTTP_USER_AGENT" => "GoogleBot")
+    assert_equal "GoogleBot", req.user_agent
   end
 
   test "setter methods" do
     req = ActionDispatch::TestRequest.create({})
-    get = 'GET'
+    get = "GET"
 
     [
-      'request_method=', 'host=', 'request_uri=', 'path=', 'if_modified_since=', 'if_none_match=',
-      'remote_addr=', 'user_agent=', 'accept='
+      "request_method=", "host=", "request_uri=", "path=", "if_modified_since=", "if_none_match=",
+      "remote_addr=", "user_agent=", "accept="
     ].each do |method|
       req.send(method, get)
     end
 
     req.port = 8080
-    req.accept = 'hello goodbye'
+    req.accept = "hello goodbye"
 
-    assert_equal(get, req.get_header('REQUEST_METHOD'))
-    assert_equal(get, req.get_header('HTTP_HOST'))
-    assert_equal(8080, req.get_header('SERVER_PORT'))
-    assert_equal(get, req.get_header('REQUEST_URI'))
-    assert_equal(get, req.get_header('PATH_INFO'))
-    assert_equal(get, req.get_header('HTTP_IF_MODIFIED_SINCE'))
-    assert_equal(get, req.get_header('HTTP_IF_NONE_MATCH'))
-    assert_equal(get, req.get_header('REMOTE_ADDR'))
-    assert_equal(get, req.get_header('HTTP_USER_AGENT'))
-    assert_nil(req.get_header('action_dispatch.request.accepts'))
-    assert_equal('hello goodbye', req.get_header('HTTP_ACCEPT'))
+    assert_equal(get, req.get_header("REQUEST_METHOD"))
+    assert_equal(get, req.get_header("HTTP_HOST"))
+    assert_equal(8080, req.get_header("SERVER_PORT"))
+    assert_equal(get, req.get_header("REQUEST_URI"))
+    assert_equal(get, req.get_header("PATH_INFO"))
+    assert_equal(get, req.get_header("HTTP_IF_MODIFIED_SINCE"))
+    assert_equal(get, req.get_header("HTTP_IF_NONE_MATCH"))
+    assert_equal(get, req.get_header("REMOTE_ADDR"))
+    assert_equal(get, req.get_header("HTTP_USER_AGENT"))
+    assert_nil(req.get_header("action_dispatch.request.accepts"))
+    assert_equal("hello goodbye", req.get_header("HTTP_ACCEPT"))
   end
 
   private

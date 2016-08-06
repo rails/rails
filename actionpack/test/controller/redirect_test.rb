@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class Workshop
   extend ActiveModel::Naming
@@ -21,8 +21,8 @@ end
 class RedirectController < ActionController::Base
   # empty method not used anywhere to ensure methods like
   # `status` and `location` aren't called on `redirect_to` calls
-  def status; render plain: 'called status'; end
-  def location; render plain: 'called location'; end
+  def status; render plain: "called status"; end
+  def location; render plain: "called location"; end
 
   def simple_redirect
     redirect_to :action => "hello_world"
@@ -65,11 +65,11 @@ class RedirectController < ActionController::Base
   end
 
   def host_redirect
-    redirect_to :action => "other_host", :only_path => false, :host => 'other.test.host'
+    redirect_to :action => "other_host", :only_path => false, :host => "other.test.host"
   end
 
   def module_redirect
-    redirect_to :controller => 'module_test/module_redirect', :action => "hello_world"
+    redirect_to :controller => "module_test/module_redirect", :action => "hello_world"
   end
 
   def redirect_to_url
@@ -105,7 +105,7 @@ class RedirectController < ActionController::Base
   end
 
   def redirect_to_params
-    redirect_to ActionController::Parameters.new(status: 200, protocol: 'javascript', f: '%0Aeval(name)')
+    redirect_to ActionController::Parameters.new(status: 200, protocol: "javascript", f: "%0Aeval(name)")
   end
 
   def redirect_to_with_block
@@ -220,7 +220,7 @@ class RedirectTest < ActionController::TestCase
   def test_simple_redirect_using_options
     get :host_redirect
     assert_response :redirect
-    assert_redirected_to :action => "other_host", :only_path => false, :host => 'other.test.host'
+    assert_redirected_to :action => "other_host", :only_path => false, :host => "other.test.host"
   end
 
   def test_module_redirect
@@ -232,7 +232,7 @@ class RedirectTest < ActionController::TestCase
   def test_module_redirect_using_options
     get :module_redirect
     assert_response :redirect
-    assert_redirected_to :controller => 'module_test/module_redirect', :action => 'hello_world'
+    assert_redirected_to :controller => "module_test/module_redirect", :action => "hello_world"
   end
 
   def test_redirect_to_url
@@ -305,7 +305,7 @@ class RedirectTest < ActionController::TestCase
         resources :workshops
 
         ActiveSupport::Deprecation.silence do
-          get ':controller/:action'
+          get ":controller/:action"
         end
       end
 
@@ -349,7 +349,7 @@ class RedirectTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         ActiveSupport::Deprecation.silence do
-          get ':controller/:action'
+          get ":controller/:action"
         end
       end
 
@@ -364,7 +364,7 @@ end
 module ModuleTest
   class ModuleRedirectController < ::RedirectController
     def module_redirect
-      redirect_to :controller => '/redirect', :action => "hello_world"
+      redirect_to :controller => "/redirect", :action => "hello_world"
     end
   end
 
@@ -380,7 +380,7 @@ module ModuleTest
     def test_simple_redirect_using_options
       get :host_redirect
       assert_response :redirect
-      assert_redirected_to :action => "other_host", :only_path => false, :host => 'other.test.host'
+      assert_redirected_to :action => "other_host", :only_path => false, :host => "other.test.host"
     end
 
     def test_module_redirect
@@ -392,7 +392,7 @@ module ModuleTest
     def test_module_redirect_using_options
       get :module_redirect
       assert_response :redirect
-      assert_redirected_to :controller => '/redirect', :action => "hello_world"
+      assert_redirected_to :controller => "/redirect", :action => "hello_world"
     end
   end
 end

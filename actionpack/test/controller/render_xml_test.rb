@@ -1,6 +1,6 @@
-require 'abstract_unit'
-require 'controller/fake_models'
-require 'pathname'
+require "abstract_unit"
+require "controller/fake_models"
+require "pathname"
 
 class RenderXmlTest < ActionController::TestCase
   class XmlRenderable
@@ -14,7 +14,7 @@ class RenderXmlTest < ActionController::TestCase
     protect_from_forgery
 
     def self.controller_path
-      'test'
+      "test"
     end
 
     def render_with_location
@@ -74,7 +74,7 @@ class RenderXmlTest < ActionController::TestCase
         resources :customers
 
         ActiveSupport::Deprecation.silence do
-          get ':controller/:action'
+          get ":controller/:action"
         end
       end
 
@@ -85,7 +85,7 @@ class RenderXmlTest < ActionController::TestCase
 
   def test_should_render_formatted_xml_erb_template
     get :formatted_xml_erb, format: :xml
-    assert_equal '<test>passed formatted xml erb</test>', @response.body
+    assert_equal "<test>passed formatted xml erb</test>", @response.body
   end
 
   def test_should_render_xml_but_keep_custom_content_type
@@ -94,7 +94,7 @@ class RenderXmlTest < ActionController::TestCase
   end
 
   def test_should_use_implicit_content_type
-    get :implicit_content_type, format: 'atom'
+    get :implicit_content_type, format: "atom"
     assert_equal Mime[:atom], @response.content_type
   end
 end

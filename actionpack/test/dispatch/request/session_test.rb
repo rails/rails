@@ -1,5 +1,5 @@
-require 'abstract_unit'
-require 'action_dispatch/middleware/session/abstract_store'
+require "abstract_unit"
+require "action_dispatch/middleware/session/abstract_store"
 
 module ActionDispatch
   class Request
@@ -17,18 +17,18 @@ module ActionDispatch
 
       def test_to_hash
         s = Session.create(store, req, {})
-        s['foo'] = 'bar'
-        assert_equal 'bar', s['foo']
-        assert_equal({'foo' => 'bar'}, s.to_hash)
+        s["foo"] = "bar"
+        assert_equal "bar", s["foo"]
+        assert_equal({"foo" => "bar"}, s.to_hash)
       end
 
       def test_create_merges_old
         s = Session.create(store, req, {})
-        s['foo'] = 'bar'
+        s["foo"] = "bar"
 
         s1 = Session.create(store, req, {})
         assert_not_equal s, s1
-        assert_equal 'bar', s1['foo']
+        assert_equal "bar", s1["foo"]
       end
 
       def test_find
@@ -40,7 +40,7 @@ module ActionDispatch
 
       def test_destroy
         s = Session.create(store, req, {})
-        s['rails'] = 'ftw'
+        s["rails"] = "ftw"
 
         s.destroy
 
@@ -49,22 +49,22 @@ module ActionDispatch
 
       def test_keys
         s = Session.create(store, req, {})
-        s['rails'] = 'ftw'
-        s['adequate'] = 'awesome'
+        s["rails"] = "ftw"
+        s["adequate"] = "awesome"
         assert_equal %w[rails adequate], s.keys
       end
 
       def test_values
         s = Session.create(store, req, {})
-        s['rails'] = 'ftw'
-        s['adequate'] = 'awesome'
+        s["rails"] = "ftw"
+        s["adequate"] = "awesome"
         assert_equal %w[ftw awesome], s.values
       end
 
       def test_clear
         s = Session.create(store, req, {})
-        s['rails'] = 'ftw'
-        s['adequate'] = 'awesome'
+        s["rails"] = "ftw"
+        s["adequate"] = "awesome"
 
         s.clear
         assert_empty(s.values)
@@ -72,19 +72,19 @@ module ActionDispatch
 
       def test_update
         s = Session.create(store, req, {})
-        s['rails'] = 'ftw'
+        s["rails"] = "ftw"
 
-        s.update(:rails => 'awesome')
+        s.update(:rails => "awesome")
 
-        assert_equal(['rails'], s.keys)
-        assert_equal('awesome', s['rails'])
+        assert_equal(["rails"], s.keys)
+        assert_equal("awesome", s["rails"])
       end
 
       def test_delete
         s = Session.create(store, req, {})
-        s['rails'] = 'ftw'
+        s["rails"] = "ftw"
 
-        s.delete('rails')
+        s.delete("rails")
 
         assert_empty(s.keys)
       end
@@ -92,13 +92,13 @@ module ActionDispatch
       def test_fetch
         session = Session.create(store, req, {})
 
-        session['one'] = '1'
-        assert_equal '1', session.fetch(:one)
+        session["one"] = "1"
+        assert_equal "1", session.fetch(:one)
 
-        assert_equal '2', session.fetch(:two, '2')
+        assert_equal "2", session.fetch(:two, "2")
         assert_nil session.fetch(:two, nil)
 
-        assert_equal 'three', session.fetch(:three) {|el| el.to_s }
+        assert_equal "three", session.fetch(:three) {|el| el.to_s }
 
         assert_raise KeyError do
           session.fetch(:three)
@@ -119,14 +119,14 @@ module ActionDispatch
       class MySessionApp
         def call(env)
           request = Rack::Request.new(env)
-          request.session['hello'] = 'Hello from MySessionApp!'
-          [ 200, {}, ['Hello from MySessionApp!'] ]
+          request.session["hello"] = "Hello from MySessionApp!"
+          [ 200, {}, ["Hello from MySessionApp!"] ]
         end
       end
 
       Router = ActionDispatch::Routing::RouteSet.new
       Router.draw do
-        get '/mysessionapp' => MySessionApp.new
+        get "/mysessionapp" => MySessionApp.new
       end
 
       def app
@@ -134,10 +134,10 @@ module ActionDispatch
       end
 
       def test_session_follows_rack_api_contract_1
-        get '/mysessionapp'
+        get "/mysessionapp"
         assert_response :ok
-        assert_equal 'Hello from MySessionApp!', @response.body
-        assert_equal 'Hello from MySessionApp!', session['hello']
+        assert_equal "Hello from MySessionApp!", @response.body
+        assert_equal "Hello from MySessionApp!", session["hello"]
       end
     end
   end

@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 module TestUrlGeneration
   class WithMountPoint < ActionDispatch::IntegrationTest
@@ -17,7 +17,7 @@ module TestUrlGeneration
 
       resources :bars
 
-      mount MyRouteGeneratingController.action(:index), at: '/bar'
+      mount MyRouteGeneratingController.action(:index), at: "/bar"
     end
 
     APP = build_app Routes
@@ -39,12 +39,12 @@ module TestUrlGeneration
     end
 
     test "the request's SCRIPT_NAME takes precedence over the route" do
-      get "/foo", headers: { 'SCRIPT_NAME' => "/new", 'action_dispatch.routes' => Routes }
+      get "/foo", headers: { "SCRIPT_NAME" => "/new", "action_dispatch.routes" => Routes }
       assert_equal "/new/foo", response.body
     end
 
     test "the request's SCRIPT_NAME wraps the mounted app's" do
-      get '/new/bar/foo', headers: { 'SCRIPT_NAME' => '/new', 'PATH_INFO' => '/bar/foo', 'action_dispatch.routes' => Routes }
+      get "/new/bar/foo", headers: { "SCRIPT_NAME" => "/new", "PATH_INFO" => "/bar/foo", "action_dispatch.routes" => Routes }
       assert_equal "/new/bar/foo", response.body
     end
 
@@ -117,22 +117,22 @@ module TestUrlGeneration
     test "generating URLs with trailing slashes" do
       assert_equal "/bars.json", bars_path(
         trailing_slash: true,
-        format: 'json'
+        format: "json"
       )
     end
 
     test "generating URLS with querystring and trailing slashes" do
       assert_equal "/bars.json?a=b", bars_path(
         trailing_slash: true,
-        a: 'b',
-        format: 'json'
+        a: "b",
+        format: "json"
       )
     end
 
     test "generating URLS with empty querystring" do
       assert_equal "/bars.json", bars_path(
         a: {},
-        format: 'json'
+        format: "json"
       )
     end
 

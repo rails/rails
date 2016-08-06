@@ -1,6 +1,6 @@
-require 'abstract_unit'
-require 'rack/test'
-require 'rails/engine'
+require "abstract_unit"
+require "rack/test"
+require "rails/engine"
 
 module TestGenerationPrefix
   class Post
@@ -362,7 +362,7 @@ module TestGenerationPrefix
       end
 
       def self.call(env)
-        env['action_dispatch.routes'] = routes
+        env["action_dispatch.routes"] = routes
         routes.call(env)
       end
     end

@@ -1,28 +1,28 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 module ActionDispatch
   module Journey
     module GTG
       class TestBuilder < ActiveSupport::TestCase
         def test_following_states_multi
-          table  = tt ['a|a']
-          assert_equal 1, table.move([0], 'a').length
+          table  = tt ["a|a"]
+          assert_equal 1, table.move([0], "a").length
         end
 
         def test_following_states_multi_regexp
-          table  = tt [':a|b']
-          assert_equal 1, table.move([0], 'fooo').length
-          assert_equal 2, table.move([0], 'b').length
+          table  = tt [":a|b"]
+          assert_equal 1, table.move([0], "fooo").length
+          assert_equal 2, table.move([0], "b").length
         end
 
         def test_multi_path
-          table  = tt ['/:a/d', '/b/c']
+          table  = tt ["/:a/d", "/b/c"]
 
           [
-            [1, '/'],
-            [2, 'b'],
-            [2, '/'],
-            [1, 'c'],
+            [1, "/"],
+            [2, "b"],
+            [2, "/"],
+            [1, "c"],
           ].inject([0]) { |state, (exp, sym)|
             new = table.move(state, sym)
             assert_equal exp, new.length
@@ -40,7 +40,7 @@ module ActionDispatch
 
           sim     = NFA::Simulator.new table
 
-          match = sim.match '/articles/new'
+          match = sim.match "/articles/new"
           assert_equal 2, match.memos.length
         end
 
@@ -54,7 +54,7 @@ module ActionDispatch
 
           sim     = NFA::Simulator.new table
 
-          match = sim.match '/articles/new'
+          match = sim.match "/articles/new"
           assert_equal 2, match.memos.length
         end
 

@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 module RenderTemplate
   class WithoutLayoutController < ActionController::Base
@@ -30,23 +30,23 @@ module RenderTemplate
     end
 
     def in_top_directory
-      render :template => 'shared'
+      render :template => "shared"
     end
 
     def in_top_directory_with_slash
-      render :template => '/shared'
+      render :template => "/shared"
     end
 
     def in_top_directory_with_slash_without_key
-      render '/shared'
+      render "/shared"
     end
 
     def with_locals
-      render :template => "locals", :locals => { :secret => 'area51' }
+      render :template => "locals", :locals => { :secret => "area51" }
     end
 
     def with_locals_without_key
-      render "locals", :locals => { :secret => 'area51' }
+      render "locals", :locals => { :secret => "area51" }
     end
 
     def builder_template
@@ -126,7 +126,7 @@ module RenderTemplate
       assert_body "Hello <strong>this is also raw</strong> in an html template"
       assert_status 200
 
-      get :with_implicit_raw, params: { format: 'text' }
+      get :with_implicit_raw, params: { format: "text" }
 
       assert_body "Hello <strong>this is also raw</strong> in a text template"
       assert_status 200
@@ -177,7 +177,7 @@ module RenderTemplate
   class TestWithLayout < Rack::TestCase
     test "rendering with implicit layout" do
       with_routing do |set|
-        set.draw { ActiveSupport::Deprecation.silence { get ':controller', :action => :index } }
+        set.draw { ActiveSupport::Deprecation.silence { get ":controller", :action => :index } }
 
         get "/render_template/with_layout"
 

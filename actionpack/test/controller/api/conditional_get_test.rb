@@ -1,6 +1,6 @@
-require 'abstract_unit'
-require 'active_support/core_ext/integer/time'
-require 'active_support/core_ext/numeric/time'
+require "abstract_unit"
+require "active_support/core_ext/integer/time"
+require "active_support/core_ext/numeric/time"
 
 class ConditionalGetApiController < ActionController::API
   before_action :handle_last_modified_and_etags, only: :two
@@ -31,7 +31,7 @@ class ConditionalGetApiTest < ActionController::TestCase
 
   def test_request_gets_last_modified
     get :two
-    assert_equal @last_modified, @response.headers['Last-Modified']
+    assert_equal @last_modified, @response.headers["Last-Modified"]
     assert_response :success
   end
 
@@ -52,6 +52,6 @@ class ConditionalGetApiTest < ActionController::TestCase
     get :one
     assert_equal 304, @response.status.to_i
     assert @response.body.blank?
-    assert_equal @last_modified, @response.headers['Last-Modified']
+    assert_equal @last_modified, @response.headers["Last-Modified"]
   end
 end

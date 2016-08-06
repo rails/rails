@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class QueryStringParsingTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
@@ -36,36 +36,36 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
 
   test "deep query string" do
     assert_parses(
-      {'x' => {'y' => {'z' => '10'}}},
+      {"x" => {"y" => {"z" => "10"}}},
       "x[y][z]=10"
     )
   end
 
   test "deep query string with array" do
-    assert_parses({'x' => {'y' => {'z' => ['10']}}}, 'x[y][z][]=10')
-    assert_parses({'x' => {'y' => {'z' => ['10', '5']}}}, 'x[y][z][]=10&x[y][z][]=5')
+    assert_parses({"x" => {"y" => {"z" => ["10"]}}}, "x[y][z][]=10")
+    assert_parses({"x" => {"y" => {"z" => ["10", "5"]}}}, "x[y][z][]=10&x[y][z][]=5")
   end
 
   test "deep query string with array of hash" do
-    assert_parses({'x' => {'y' => [{'z' => '10'}]}}, 'x[y][][z]=10')
-    assert_parses({'x' => {'y' => [{'z' => '10', 'w' => '10'}]}}, 'x[y][][z]=10&x[y][][w]=10')
-    assert_parses({'x' => {'y' => [{'z' => '10', 'v' => {'w' => '10'}}]}}, 'x[y][][z]=10&x[y][][v][w]=10')
+    assert_parses({"x" => {"y" => [{"z" => "10"}]}}, "x[y][][z]=10")
+    assert_parses({"x" => {"y" => [{"z" => "10", "w" => "10"}]}}, "x[y][][z]=10&x[y][][w]=10")
+    assert_parses({"x" => {"y" => [{"z" => "10", "v" => {"w" => "10"}}]}}, "x[y][][z]=10&x[y][][v][w]=10")
   end
 
   test "deep query string with array of hashes with one pair" do
-    assert_parses({'x' => {'y' => [{'z' => '10'}, {'z' => '20'}]}}, 'x[y][][z]=10&x[y][][z]=20')
+    assert_parses({"x" => {"y" => [{"z" => "10"}, {"z" => "20"}]}}, "x[y][][z]=10&x[y][][z]=20")
   end
 
   test "deep query string with array of hashes with multiple pairs" do
     assert_parses(
-      {'x' => {'y' => [{'z' => '10', 'w' => 'a'}, {'z' => '20', 'w' => 'b'}]}},
-      'x[y][][z]=10&x[y][][w]=a&x[y][][z]=20&x[y][][w]=b'
+      {"x" => {"y" => [{"z" => "10", "w" => "a"}, {"z" => "20", "w" => "b"}]}},
+      "x[y][][z]=10&x[y][][w]=a&x[y][][z]=20&x[y][][w]=b"
     )
   end
 
   test "query string with nil" do
     assert_parses(
-      { "action" => "create_customer", "full_name" => ''},
+      { "action" => "create_customer", "full_name" => ""},
       "action=create_customer&full_name="
     )
   end
@@ -101,7 +101,7 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
   end
 
   def test_array_parses_without_nil
-    assert_parses({"action" => ['1']}, "action[]=1&action[]")
+    assert_parses({"action" => ["1"]}, "action[]=1&action[]")
   end
 
   test "perform_deep_munge" do
@@ -114,7 +114,7 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
       assert_parses({"action" => {"foo" => {"bar" => [nil]}}}, "action[foo][bar][]")
       assert_parses({"action" => {"foo" => [nil]}}, "action[foo][]")
       assert_parses({"action" => {"foo" => [{"bar" => nil}]}}, "action[foo][][bar]")
-      assert_parses({"action" => ['1',nil]}, "action[]=1&action[]")
+      assert_parses({"action" => ["1",nil]}, "action[]=1&action[]")
     ensure
       ActionDispatch::Request::Utils.perform_deep_munge = old_perform_deep_munge
     end
@@ -136,7 +136,7 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
 
   test "unbalanced query string with array" do
     assert_parses(
-      {'location' => ["1", "2"], 'age_group' => ["2"]},
+      {"location" => ["1", "2"], "age_group" => ["2"]},
       "location[]=1&location[]=2&age_group[]=2"
     )
   end
@@ -145,7 +145,7 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
     with_routing do |set|
       set.draw do
         ActiveSupport::Deprecation.silence do
-          get ':action', :to => ::QueryStringParsingTest::TestController
+          get ":action", :to => ::QueryStringParsingTest::TestController
         end
       end
 
@@ -159,7 +159,7 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
       with_routing do |set|
         set.draw do
           ActiveSupport::Deprecation.silence do
-            get ':action', :to => ::QueryStringParsingTest::TestController
+            get ":action", :to => ::QueryStringParsingTest::TestController
           end
         end
         @app = self.class.build_app(set) do |middleware|

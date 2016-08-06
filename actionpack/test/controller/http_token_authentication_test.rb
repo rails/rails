@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class HttpTokenAuthenticationTest < ActionController::TestCase
   class DummyController < ActionController::Base
@@ -11,23 +11,23 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     end
 
     def display
-      render plain: 'Definitely Maybe'
+      render plain: "Definitely Maybe"
     end
 
     def show
-      render plain: 'Only for loooooong credentials'
+      render plain: "Only for loooooong credentials"
     end
 
     private
 
     def authenticate
       authenticate_or_request_with_http_token do |token, _|
-        token == 'lifo'
+        token == "lifo"
       end
     end
 
     def authenticate_with_request
-      if authenticate_with_http_token { |token, options| token == '"quote" pretty' && options[:algorithm] == 'test' }
+      if authenticate_with_http_token { |token, options| token == '"quote" pretty' && options[:algorithm] == "test" }
         @logged_in = true
       else
         request_http_token_authentication("SuperSecret", "Authentication Failed\n")
@@ -36,42 +36,42 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
 
     def authenticate_long_credentials
       authenticate_or_request_with_http_token do |token, options|
-        token == '1234567890123456789012345678901234567890' && options[:algorithm] == 'test'
+        token == "1234567890123456789012345678901234567890" && options[:algorithm] == "test"
       end
     end
   end
 
-  AUTH_HEADERS = ['HTTP_AUTHORIZATION', 'X-HTTP_AUTHORIZATION', 'X_HTTP_AUTHORIZATION', 'REDIRECT_X_HTTP_AUTHORIZATION']
+  AUTH_HEADERS = ["HTTP_AUTHORIZATION", "X-HTTP_AUTHORIZATION", "X_HTTP_AUTHORIZATION", "REDIRECT_X_HTTP_AUTHORIZATION"]
 
   tests DummyController
 
   AUTH_HEADERS.each do |header|
     test "successful authentication with #{header.downcase}" do
-      @request.env[header] = encode_credentials('lifo')
+      @request.env[header] = encode_credentials("lifo")
       get :index
 
       assert_response :success
-      assert_equal 'Hello Secret', @response.body, "Authentication failed for request header #{header}"
+      assert_equal "Hello Secret", @response.body, "Authentication failed for request header #{header}"
     end
     test "successful authentication with #{header.downcase} and long credentials" do
-      @request.env[header] = encode_credentials('1234567890123456789012345678901234567890', :algorithm => 'test')
+      @request.env[header] = encode_credentials("1234567890123456789012345678901234567890", :algorithm => "test")
       get :show
 
       assert_response :success
-      assert_equal 'Only for loooooong credentials', @response.body, "Authentication failed for request header #{header} and long credentials"
+      assert_equal "Only for loooooong credentials", @response.body, "Authentication failed for request header #{header} and long credentials"
     end
   end
 
   AUTH_HEADERS.each do |header|
     test "unsuccessful authentication with #{header.downcase}" do
-      @request.env[header] = encode_credentials('h4x0r')
+      @request.env[header] = encode_credentials("h4x0r")
       get :index
 
       assert_response :unauthorized
       assert_equal "HTTP Token: Access denied.\n", @response.body, "Authentication didn't fail for request header #{header}"
     end
     test "unsuccessful authentication with #{header.downcase} and long credentials" do
-      @request.env[header] = encode_credentials('h4x0rh4x0rh4x0rh4x0rh4x0rh4x0rh4x0rh4x0r')
+      @request.env[header] = encode_credentials("h4x0rh4x0rh4x0rh4x0rh4x0rh4x0rh4x0rh4x0r")
       get :show
 
       assert_response :unauthorized
@@ -80,7 +80,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
   end
 
   test "authentication request with badly formatted header" do
-    @request.env['HTTP_AUTHORIZATION'] = 'Token token$"lifo"'
+    @request.env["HTTP_AUTHORIZATION"] = 'Token token$"lifo"'
     get :index
 
     assert_response :unauthorized
@@ -88,18 +88,18 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
   end
 
   test "successful authentication request with Bearer instead of Token" do
-    @request.env['HTTP_AUTHORIZATION'] = 'Bearer lifo'
+    @request.env["HTTP_AUTHORIZATION"] = "Bearer lifo"
     get :index
 
     assert_response :success
   end
 
   test "authentication request with tab in header" do
-    @request.env['HTTP_AUTHORIZATION'] = "Token\ttoken=\"lifo\""
+    @request.env["HTTP_AUTHORIZATION"] = "Token\ttoken=\"lifo\""
     get :index
 
     assert_response :success
-    assert_equal 'Hello Secret', @response.body
+    assert_equal "Hello Secret", @response.body
   end
 
   test "authentication request without credential" do
@@ -107,16 +107,16 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
 
     assert_response :unauthorized
     assert_equal "Authentication Failed\n", @response.body
-    assert_equal 'Token realm="SuperSecret"', @response.headers['WWW-Authenticate']
+    assert_equal 'Token realm="SuperSecret"', @response.headers["WWW-Authenticate"]
   end
 
   test "authentication request with invalid credential" do
-    @request.env['HTTP_AUTHORIZATION'] = encode_credentials('"quote" pretty')
+    @request.env["HTTP_AUTHORIZATION"] = encode_credentials('"quote" pretty')
     get :display
 
     assert_response :unauthorized
     assert_equal "Authentication Failed\n", @response.body
-    assert_equal 'Token realm="SuperSecret"', @response.headers['WWW-Authenticate']
+    assert_equal 'Token realm="SuperSecret"', @response.headers["WWW-Authenticate"]
   end
 
   test "token_and_options returns correct token" do
@@ -127,7 +127,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
   end
 
   test "token_and_options returns correct token with value after the equal sign" do
-    token = 'rcHu+=HzSFw89Ypyhn/896A==f34'
+    token = "rcHu+=HzSFw89Ypyhn/896A==f34"
     actual = ActionController::HttpAuthentication::Token.token_and_options(sample_request(token)).first
     expected = token
     assert_equal(expected, actual)
@@ -148,7 +148,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
   end
 
   test "token_and_options returns empty string with empty token" do
-    token = ''
+    token = ""
     actual = ActionController::HttpAuthentication::Token.token_and_options(sample_request(token)).first
     expected = token
     assert_equal(expected, actual)

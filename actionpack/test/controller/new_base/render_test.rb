@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 module Render
   class BlankRenderController < ActionController::Base
@@ -58,7 +58,7 @@ module Render
       with_routing do |set|
         set.draw do
           ActiveSupport::Deprecation.silence do
-            get ":controller", :action => 'index'
+            get ":controller", :action => "index"
           end
         end
 
@@ -73,7 +73,7 @@ module Render
       with_routing do |set|
         set.draw do
           ActiveSupport::Deprecation.silence do
-            get ":controller", :action => 'index'
+            get ":controller", :action => "index"
           end
         end
 

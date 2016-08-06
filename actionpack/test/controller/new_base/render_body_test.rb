@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 module RenderBody
   class MinimalController < ActionController::Metal
@@ -66,7 +66,7 @@ module RenderBody
     end
 
     def with_custom_content_type
-      response.headers['Content-Type'] = 'application/json'
+      response.headers["Content-Type"] = "application/json"
       render body: '["troll","face"]'
     end
 
@@ -85,7 +85,7 @@ module RenderBody
 
     test "rendering body from an action with default options renders the body with the layout" do
       with_routing do |set|
-        set.draw { ActiveSupport::Deprecation.silence { get ':controller', action: 'index' } }
+        set.draw { ActiveSupport::Deprecation.silence { get ":controller", action: "index" } }
 
         get "/render_body/simple"
         assert_body "hello david"
@@ -95,7 +95,7 @@ module RenderBody
 
     test "rendering body from an action with default options renders the body without the layout" do
       with_routing do |set|
-        set.draw { ActiveSupport::Deprecation.silence { get ':controller', action: 'index' } }
+        set.draw { ActiveSupport::Deprecation.silence { get ":controller", action: "index" } }
 
         get "/render_body/with_layout"
 
@@ -150,7 +150,7 @@ module RenderBody
       get "/render_body/with_layout/with_custom_content_type"
 
       assert_equal %w{ troll face }, JSON.parse(response.body)
-      assert_equal 'application/json', response.headers['Content-Type']
+      assert_equal "application/json", response.headers["Content-Type"]
     end
 
     test "rendering body with layout: false" do

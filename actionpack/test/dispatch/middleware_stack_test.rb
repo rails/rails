@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class MiddlewareStackTest < ActiveSupport::TestCase
   class FooMiddleware; end
@@ -102,7 +102,7 @@ class MiddlewareStackTest < ActiveSupport::TestCase
 
   test "swaps one middleware out for same middleware class" do
     assert_equal FooMiddleware, @stack[0].klass
-    @stack.swap(FooMiddleware, FooMiddleware, Proc.new { |env| [500, {}, ['error!']] })
+    @stack.swap(FooMiddleware, FooMiddleware, Proc.new { |env| [500, {}, ["error!"]] })
     assert_equal FooMiddleware, @stack[0].klass
   end
 

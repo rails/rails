@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class ForceSSLController < ActionController::Base
   def banana
@@ -17,13 +17,13 @@ end
 class ForceSSLCustomOptions < ForceSSLController
   force_ssl :host => "secure.example.com", :only => :redirect_host
   force_ssl :port => 8443, :only => :redirect_port
-  force_ssl :subdomain => 'secure', :only => :redirect_subdomain
-  force_ssl :domain => 'secure.com', :only => :redirect_domain
-  force_ssl :path => '/foo', :only => :redirect_path
+  force_ssl :subdomain => "secure", :only => :redirect_subdomain
+  force_ssl :domain => "secure.com", :only => :redirect_domain
+  force_ssl :path => "/foo", :only => :redirect_path
   force_ssl :status => :found, :only => :redirect_status
-  force_ssl :flash => { :message => 'Foo, Bar!' }, :only => :redirect_flash
-  force_ssl :alert => 'Foo, Bar!', :only => :redirect_alert
-  force_ssl :notice => 'Foo, Bar!', :only => :redirect_notice
+  force_ssl :flash => { :message => "Foo, Bar!" }, :only => :redirect_flash
+  force_ssl :alert => "Foo, Bar!", :only => :redirect_alert
+  force_ssl :notice => "Foo, Bar!", :only => :redirect_notice
 
   def force_ssl_action
     render plain: action_name
@@ -64,7 +64,7 @@ class ForceSSLIfCondition < ForceSSLController
   force_ssl :if => :use_force_ssl?
 
   def use_force_ssl?
-    action_name == 'cheeseburger'
+    action_name == "cheeseburger"
   end
 end
 
@@ -73,7 +73,7 @@ class ForceSSLFlash < ForceSSLController
 
   def set_flash
     flash["that"] = "hello"
-    redirect_to '/force_ssl_flash/cheeseburger'
+    redirect_to "/force_ssl_flash/cheeseburger"
   end
 
   def use_flash
@@ -85,10 +85,10 @@ end
 
 class RedirectToSSL < ForceSSLController
   def banana
-    force_ssl_redirect || render(plain: 'monkey')
+    force_ssl_redirect || render(plain: "monkey")
   end
   def cheeseburger
-    force_ssl_redirect('secure.cheeseburger.host') || render(plain: 'ihaz')
+    force_ssl_redirect("secure.cheeseburger.host") || render(plain: "ihaz")
   end
 end
 
@@ -114,7 +114,7 @@ end
 
 class ForceSSLCustomOptionsTest < ActionController::TestCase
   def setup
-    @request.env['HTTP_HOST'] = 'www.example.com:80'
+    @request.env["HTTP_HOST"] = "www.example.com:80"
   end
 
   def test_redirect_to_custom_host
@@ -230,14 +230,14 @@ class ForceSSLFlashTest < ActionController::TestCase
     assert_equal "http://test.host/force_ssl_flash/cheeseburger", redirect_to_url
 
     # FIXME: AC::TestCase#build_request_uri doesn't build a new uri if PATH_INFO exists
-    @request.env.delete('PATH_INFO')
+    @request.env.delete("PATH_INFO")
 
     get :cheeseburger
     assert_response 301
     assert_equal "https://test.host/force_ssl_flash/cheeseburger", redirect_to_url
 
     # FIXME: AC::TestCase#build_request_uri doesn't build a new uri if PATH_INFO exists
-    @request.env.delete('PATH_INFO')
+    @request.env.delete("PATH_INFO")
 
     get :use_flash
     assert_equal "hello", @controller.instance_variable_get("@flash_copy")["that"]
@@ -251,15 +251,15 @@ class ForceSSLDuplicateRoutesTest < ActionController::TestCase
   def test_force_ssl_redirects_to_same_path
     with_routing do |set|
       set.draw do
-        get '/foo', :to => 'force_ssl_controller_level#banana'
-        get '/bar', :to => 'force_ssl_controller_level#banana'
+        get "/foo", :to => "force_ssl_controller_level#banana"
+        get "/bar", :to => "force_ssl_controller_level#banana"
       end
 
-      @request.env['PATH_INFO'] = '/bar'
+      @request.env["PATH_INFO"] = "/bar"
 
       get :banana
       assert_response 301
-      assert_equal 'https://test.host/bar', redirect_to_url
+      assert_equal "https://test.host/bar", redirect_to_url
     end
   end
 end
@@ -270,12 +270,12 @@ class ForceSSLFormatTest < ActionController::TestCase
   def test_force_ssl_redirects_to_same_format
     with_routing do |set|
       set.draw do
-        get '/foo', :to => 'force_ssl_controller_level#banana'
+        get "/foo", :to => "force_ssl_controller_level#banana"
       end
 
       get :banana, format: :json
       assert_response 301
-      assert_equal 'https://test.host/foo.json', redirect_to_url
+      assert_equal "https://test.host/foo.json", redirect_to_url
     end
   end
 end
@@ -286,18 +286,18 @@ class ForceSSLOptionalSegmentsTest < ActionController::TestCase
   def test_force_ssl_redirects_to_same_format
     with_routing do |set|
       set.draw do
-        scope '(:locale)' do
-          defaults :locale => 'en' do
-            get '/foo', :to => 'force_ssl_controller_level#banana'
+        scope "(:locale)" do
+          defaults :locale => "en" do
+            get "/foo", :to => "force_ssl_controller_level#banana"
           end
         end
       end
 
-      @request.env['PATH_INFO'] = '/en/foo'
-      get :banana, params: { locale: 'en' }
-      assert_equal 'en',  @controller.params[:locale]
+      @request.env["PATH_INFO"] = "/en/foo"
+      get :banana, params: { locale: "en" }
+      assert_equal "en",  @controller.params[:locale]
       assert_response 301
-      assert_equal 'https://test.host/en/foo', redirect_to_url
+      assert_equal "https://test.host/en/foo", redirect_to_url
     end
   end
 end
@@ -316,17 +316,17 @@ class RedirectToSSLTest < ActionController::TestCase
   end
 
   def test_cheeseburgers_does_not_redirect_if_already_https
-    request.env['HTTPS'] = 'on'
+    request.env["HTTPS"] = "on"
     get :cheeseburger
     assert_response 200
-    assert_equal 'ihaz', response.body
+    assert_equal "ihaz", response.body
   end
 end
 
 class ForceSSLControllerLevelTest < ActionController::TestCase
   def test_no_redirect_websocket_ssl_request
-    request.env['rack.url_scheme'] = 'wss'
-    request.env['Upgrade'] = 'websocket'
+    request.env["rack.url_scheme"] = "wss"
+    request.env["Upgrade"] = "websocket"
     get :cheeseburger
     assert_response 200
   end

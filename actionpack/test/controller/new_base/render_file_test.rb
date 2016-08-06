@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 module RenderFile
   class BasicController < ActionController::Base
@@ -9,28 +9,28 @@ module RenderFile
     end
 
     def with_instance_variables
-      @secret = 'in the sauce'
-      render :file => File.join(File.dirname(__FILE__), '../../fixtures/test/render_file_with_ivar')
+      @secret = "in the sauce"
+      render :file => File.join(File.dirname(__FILE__), "../../fixtures/test/render_file_with_ivar")
     end
 
     def relative_path
-      @secret = 'in the sauce'
-      render :file => '../../fixtures/test/render_file_with_ivar'
+      @secret = "in the sauce"
+      render :file => "../../fixtures/test/render_file_with_ivar"
     end
 
     def relative_path_with_dot
-      @secret = 'in the sauce'
-      render :file => '../../fixtures/test/dot.directory/render_file_with_ivar'
+      @secret = "in the sauce"
+      render :file => "../../fixtures/test/dot.directory/render_file_with_ivar"
     end
 
     def pathname
-      @secret = 'in the sauce'
+      @secret = "in the sauce"
       render :file => Pathname.new(File.dirname(__FILE__)).join(*%w[.. .. fixtures test dot.directory render_file_with_ivar])
     end
 
     def with_locals
-      path = File.join(File.dirname(__FILE__), '../../fixtures/test/render_file_with_locals')
-      render :file => path, :locals => {:secret => 'in the sauce'}
+      path = File.join(File.dirname(__FILE__), "../../fixtures/test/render_file_with_locals")
+      render :file => path, :locals => {:secret => "in the sauce"}
     end
   end
 

@@ -1,8 +1,8 @@
-$:.unshift(File.dirname(__FILE__) + '/lib')
-$:.unshift(File.dirname(__FILE__) + '/fixtures/helpers')
-$:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
+$:.unshift(File.dirname(__FILE__) + "/lib")
+$:.unshift(File.dirname(__FILE__) + "/fixtures/helpers")
+$:.unshift(File.dirname(__FILE__) + "/fixtures/alternate_helpers")
 
-require 'active_support/core_ext/kernel/reporting'
+require "active_support/core_ext/kernel/reporting"
 
 # These are the normal settings that will be set up by Railties
 # TODO: Have these tests support other combinations of these values
@@ -11,30 +11,30 @@ silence_warnings do
   Encoding.default_external = "UTF-8"
 end
 
-require 'drb'
+require "drb"
 begin
-  require 'drb/unix'
+  require "drb/unix"
 rescue LoadError
   puts "'drb/unix' is not available"
 end
 
-if ENV['TRAVIS']
+if ENV["TRAVIS"]
   PROCESS_COUNT = 0
 else
-  PROCESS_COUNT = (ENV['N'] || 4).to_i
+  PROCESS_COUNT = (ENV["N"] || 4).to_i
 end
 
-require 'active_support/testing/autorun'
-require 'abstract_controller'
-require 'abstract_controller/railties/routes_helpers'
-require 'action_controller'
-require 'action_view'
-require 'action_view/testing/resolvers'
-require 'action_dispatch'
-require 'active_support/dependencies'
-require 'active_model'
+require "active_support/testing/autorun"
+require "abstract_controller"
+require "abstract_controller/railties/routes_helpers"
+require "action_controller"
+require "action_view"
+require "action_view/testing/resolvers"
+require "action_dispatch"
+require "active_support/dependencies"
+require "active_model"
 
-require 'pp' # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
+require "pp" # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
 
 module Rails
   class << self
@@ -56,13 +56,13 @@ ActiveSupport::Deprecation.debug = true
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false
 
-FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
+FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), "fixtures")
 
 SharedTestRoutes = ActionDispatch::Routing::RouteSet.new
 
 SharedTestRoutes.draw do
   ActiveSupport::Deprecation.silence do
-    get ':controller(/:action)'
+    get ":controller(/:action)"
   end
 end
 
@@ -114,7 +114,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
 
   app.routes.draw do
     ActiveSupport::Deprecation.silence do
-      get ':controller(/:action)'
+      get ":controller(/:action)"
     end
   end
 
@@ -131,7 +131,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
       end
 
       def dispatch(action, req, res)
-        [200, {'Content-Type' => 'text/html'}, ["#{@controller}##{action}"]]
+        [200, {"Content-Type" => "text/html"}, ["#{@controller}##{action}"]]
       end
     end
 
@@ -183,7 +183,7 @@ end
 class Rack::TestCase < ActionDispatch::IntegrationTest
   def self.testing(klass = nil)
     if klass
-      @testing = "/#{klass.name.underscore}".sub!(/_controller$/, '')
+      @testing = "/#{klass.name.underscore}".sub!(/_controller$/, "")
     else
       @testing
     end
@@ -268,16 +268,16 @@ module ActionDispatch
       host = uri_or_host.host unless path
       path ||= uri_or_host.path
 
-      params = {'PATH_INFO'      => path,
-                'REQUEST_METHOD' => method,
-                'HTTP_HOST'      => host}
+      params = {"PATH_INFO"      => path,
+                "REQUEST_METHOD" => method,
+                "HTTP_HOST"      => host}
 
       routes.call(params)
     end
 
     def request_path_params(path, options = {})
-      method = options[:method] || 'GET'
-      resp = send_request URI('http://localhost' + path), method.to_s.upcase, nil
+      method = options[:method] || "GET"
+      resp = send_request URI("http://localhost" + path), method.to_s.upcase, nil
       status = resp.first
       if status == 404
         raise ActionController::RoutingError, "No route matches #{path.inspect}"
@@ -286,23 +286,23 @@ module ActionDispatch
     end
 
     def get(uri_or_host, path = nil)
-      send_request(uri_or_host, 'GET', path)[2].join
+      send_request(uri_or_host, "GET", path)[2].join
     end
 
     def post(uri_or_host, path = nil)
-      send_request(uri_or_host, 'POST', path)[2].join
+      send_request(uri_or_host, "POST", path)[2].join
     end
 
     def put(uri_or_host, path = nil)
-      send_request(uri_or_host, 'PUT', path)[2].join
+      send_request(uri_or_host, "PUT", path)[2].join
     end
 
     def delete(uri_or_host, path = nil)
-      send_request(uri_or_host, 'DELETE', path)[2].join
+      send_request(uri_or_host, "DELETE", path)[2].join
     end
 
     def patch(uri_or_host, path = nil)
-      send_request(uri_or_host, 'PATCH', path)[2].join
+      send_request(uri_or_host, "PATCH", path)[2].join
     end
   end
 end
@@ -364,15 +364,15 @@ class AccountsController <  ResourcesController; end
 class ImagesController < ResourcesController; end
 
 # Skips the current run on Rubinius using Minitest::Assertions#skip
-def rubinius_skip(message = '')
-  skip message if RUBY_ENGINE == 'rbx'
+def rubinius_skip(message = "")
+  skip message if RUBY_ENGINE == "rbx"
 end
 # Skips the current run on JRuby using Minitest::Assertions#skip
-def jruby_skip(message = '')
+def jruby_skip(message = "")
   skip message if defined?(JRUBY_VERSION)
 end
 
-require 'active_support/testing/method_call_assertions'
+require "active_support/testing/method_call_assertions"
 
 class ForkingExecutor
   class Server
@@ -396,7 +396,7 @@ class ForkingExecutor
   def initialize size
     @size  = size
     @queue = Server.new
-    file   = File.join Dir.tmpdir, Dir::Tmpname.make_tmpname('rails-tests', 'fd')
+    file   = File.join Dir.tmpdir, Dir::Tmpname.make_tmpname("rails-tests", "fd")
     @url   = "drbunix://#{file}"
     @pool  = nil
     DRb.start_service @url, @queue

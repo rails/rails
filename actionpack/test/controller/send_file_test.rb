@@ -1,9 +1,9 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 module TestFileUtils
   def file_name() File.basename(__FILE__) end
   def file_path() File.expand_path(__FILE__) end
-  def file_data() @data ||= File.open(file_path, 'rb') { |f| f.read } end
+  def file_data() @data ||= File.open(file_path, "rb") { |f| f.read } end
 end
 
 class SendFileController < ActionController::Base
@@ -23,14 +23,14 @@ class SendFileController < ActionController::Base
   end
 
   def file_from_before_action
-    raise 'No file sent from before action.'
+    raise "No file sent from before action."
   end
 
   def test_send_file_headers_bang
     options = {
       :type => Mime[:png],
-      :disposition => 'disposition',
-      :filename => 'filename'
+      :disposition => "disposition",
+      :filename => "filename"
     }
 
     send_data "foo", options
@@ -40,7 +40,7 @@ class SendFileController < ActionController::Base
     options = {
       :type => Mime[:png],
       :disposition => :disposition,
-      :filename => 'filename'
+      :filename => "filename"
     }
 
     send_data "foo", options
@@ -86,7 +86,7 @@ class SendFileTest < ActionController::TestCase
   def test_file_nostream
     @controller.options = { :stream => false }
     response = nil
-    assert_nothing_raised { response = process('file') }
+    assert_nothing_raised { response = process("file") }
     assert_not_nil response
     body = response.body
     assert_kind_of String, body
@@ -95,12 +95,12 @@ class SendFileTest < ActionController::TestCase
 
   def test_file_stream
     response = nil
-    assert_nothing_raised { response = process('file') }
+    assert_nothing_raised { response = process("file") }
     assert_not_nil response
     assert_respond_to response.stream, :each
     assert_respond_to response.stream, :to_path
 
-    require 'stringio'
+    require "stringio"
     output = StringIO.new
     output.binmode
     output.string.force_encoding(file_data.encoding)
@@ -111,14 +111,14 @@ class SendFileTest < ActionController::TestCase
   def test_file_url_based_filename
     @controller.options = { :url_based_filename => true }
     response = nil
-    assert_nothing_raised { response = process('file') }
+    assert_nothing_raised { response = process("file") }
     assert_not_nil response
     assert_equal "attachment", response.headers["Content-Disposition"]
   end
 
   def test_data
     response = nil
-    assert_nothing_raised { response = process('data') }
+    assert_nothing_raised { response = process("data") }
     assert_not_nil response
 
     assert_kind_of String, response.body
@@ -126,10 +126,10 @@ class SendFileTest < ActionController::TestCase
   end
 
   def test_headers_after_send_shouldnt_include_charset
-    response = process('data')
+    response = process("data")
     assert_equal "application/octet-stream", response.headers["Content-Type"]
 
-    response = process('file')
+    response = process("file")
     assert_equal "application/octet-stream", response.headers["Content-Type"]
   end
 
@@ -141,22 +141,22 @@ class SendFileTest < ActionController::TestCase
     5.times do
       get :test_send_file_headers_bang
 
-      assert_equal 'image/png', response.content_type
-      assert_equal 'disposition; filename="filename"', response.get_header('Content-Disposition')
-      assert_equal 'binary', response.get_header('Content-Transfer-Encoding')
-      assert_equal 'private', response.get_header('Cache-Control')
+      assert_equal "image/png", response.content_type
+      assert_equal 'disposition; filename="filename"', response.get_header("Content-Disposition")
+      assert_equal "binary", response.get_header("Content-Transfer-Encoding")
+      assert_equal "private", response.get_header("Cache-Control")
     end
   end
 
   def test_send_file_headers_with_disposition_as_a_symbol
     get :test_send_file_headers_with_disposition_as_a_symbol
 
-    assert_equal 'disposition; filename="filename"', response.get_header('Content-Disposition')
+    assert_equal 'disposition; filename="filename"', response.get_header("Content-Disposition")
   end
 
   def test_send_file_headers_with_mime_lookup_with_symbol
     get __method__
-    assert_equal 'image/png', response.content_type
+    assert_equal "image/png", response.content_type
   end
 
 
@@ -172,15 +172,15 @@ class SendFileTest < ActionController::TestCase
 
   def test_send_file_headers_guess_type_from_extension
     {
-      'image.png' => 'image/png',
-      'image.jpeg' => 'image/jpeg',
-      'image.jpg' => 'image/jpeg',
-      'image.tif' => 'image/tiff',
-      'image.gif' => 'image/gif',
-      'movie.mpg' => 'video/mpeg',
-      'file.zip' => 'application/zip',
-      'file.unk' => 'application/octet-stream',
-      'zip' => 'application/octet-stream'
+      "image.png" => "image/png",
+      "image.jpeg" => "image/jpeg",
+      "image.jpg" => "image/jpeg",
+      "image.tif" => "image/tiff",
+      "image.gif" => "image/gif",
+      "movie.mpg" => "video/mpeg",
+      "file.zip" => "application/zip",
+      "file.unk" => "application/octet-stream",
+      "zip" => "application/octet-stream"
     }.each do |filename,expected_type|
       get __method__, params: { filename: filename }
       assert_equal expected_type, response.content_type
@@ -188,19 +188,19 @@ class SendFileTest < ActionController::TestCase
   end
 
   def test_send_file_with_default_content_disposition_header
-    process('data')
-    assert_equal 'attachment', @controller.headers['Content-Disposition']
+    process("data")
+    assert_equal "attachment", @controller.headers["Content-Disposition"]
   end
 
   def test_send_file_without_content_disposition_header
     @controller.options = {:disposition => nil}
-    process('data')
-    assert_nil @controller.headers['Content-Disposition']
+    process("data")
+    assert_nil @controller.headers["Content-Disposition"]
   end
 
   def test_send_file_from_before_action
     response = nil
-    assert_nothing_raised { response = process('file_from_before_action') }
+    assert_nothing_raised { response = process("file_from_before_action") }
     assert_not_nil response
 
     assert_kind_of String, response.body
@@ -231,7 +231,7 @@ class SendFileTest < ActionController::TestCase
     @controller = SendFileWithActionControllerLive.new
     @controller.options = { :content_type => "application/x-ruby" }
 
-    response = process('file')
+    response = process("file")
     assert_equal 200, response.status
   end
 end

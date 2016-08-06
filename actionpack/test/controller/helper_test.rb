@@ -1,6 +1,6 @@
-require 'abstract_unit'
+require "abstract_unit"
 
-ActionController::Base.helpers_path = File.expand_path('../../fixtures/helpers', __FILE__)
+ActionController::Base.helpers_path = File.expand_path("../../fixtures/helpers", __FILE__)
 
 module Fun
   class GamesController < ActionController::Base
@@ -39,7 +39,7 @@ class JustMeController < ActionController::Base
   end
 
   def lib
-    render :inline => '<%= useful_function %>'
+    render :inline => "<%= useful_function %>"
   end
 end
 
@@ -48,7 +48,7 @@ end
 
 class HelpersPathsController < ActionController::Base
   paths = ["helpers2_pack", "helpers1_pack"].map do |path|
-    File.join(File.expand_path('../../fixtures', __FILE__), path)
+    File.join(File.expand_path("../../fixtures", __FILE__), path)
   end
   $:.unshift(*paths)
 
@@ -61,7 +61,7 @@ class HelpersPathsController < ActionController::Base
 end
 
 class HelpersTypoController < ActionController::Base
-  path = File.expand_path('../../fixtures/helpers_typo', __FILE__)
+  path = File.expand_path("../../fixtures/helpers_typo", __FILE__)
   $:.unshift(path)
   self.helpers_path = path
 end
@@ -89,7 +89,7 @@ class HelpersTypoControllerTest < ActiveSupport::TestCase
   end
 
   def test_helper_typo_error_message
-    e = assert_raise(NameError) { HelpersTypoController.helper 'admin/users' }
+    e = assert_raise(NameError) { HelpersTypoController.helper "admin/users" }
     assert_equal "Couldn't find Admin::UsersHelper, expected it to be defined in helpers/admin/users_helper.rb", e.message
   end
 
@@ -106,7 +106,7 @@ class HelperTest < ActiveSupport::TestCase
 
   def setup
     # Increment symbol counter.
-    @symbol = (@@counter ||= 'A0').succ!.dup
+    @symbol = (@@counter ||= "A0").succ!.dup
 
     # Generate new controller class.
     controller_class_name = "Helper#{@symbol}Controller"
@@ -139,7 +139,7 @@ class HelperTest < ActiveSupport::TestCase
   end
 
   def test_helper_for_nested_controller
-    assert_equal 'hello: Iz guuut!',
+    assert_equal "hello: Iz guuut!",
       call_controller(Fun::GamesController, "render_hello_world").last.body
   end
 
@@ -178,7 +178,7 @@ class HelperTest < ActiveSupport::TestCase
   end
 
   def test_all_helpers_with_alternate_helper_dir
-    @controller_class.helpers_path = File.expand_path('../../fixtures/alternate_helpers', __FILE__)
+    @controller_class.helpers_path = File.expand_path("../../fixtures/alternate_helpers", __FILE__)
 
     # Reload helpers
     @controller_class._helpers = Module.new
@@ -224,9 +224,9 @@ class HelperTest < ActiveSupport::TestCase
   end
 
   def test_helper_proxy_config
-    AllHelpersController.config.my_var = 'smth'
+    AllHelpersController.config.my_var = "smth"
 
-    assert_equal 'smth', AllHelpersController.helpers.config.my_var
+    assert_equal "smth", AllHelpersController.helpers.config.my_var
   end
 
   private
@@ -243,7 +243,7 @@ class HelperTest < ActiveSupport::TestCase
     end
 
     def test_helper=(helper_module)
-      silence_warnings { self.class.const_set('TestHelper', helper_module) }
+      silence_warnings { self.class.const_set("TestHelper", helper_module) }
     end
 end
 
@@ -251,23 +251,23 @@ end
 class IsolatedHelpersTest < ActionController::TestCase
   class A < ActionController::Base
     def index
-      render :inline => '<%= shout %>'
+      render :inline => "<%= shout %>"
     end
   end
 
   class B < A
-    helper { def shout; 'B' end }
+    helper { def shout; "B" end }
 
     def index
-      render :inline => '<%= shout %>'
+      render :inline => "<%= shout %>"
     end
   end
 
   class C < A
-    helper { def shout; 'C' end }
+    helper { def shout; "C" end }
 
     def index
-      render :inline => '<%= shout %>'
+      render :inline => "<%= shout %>"
     end
   end
 
@@ -277,7 +277,7 @@ class IsolatedHelpersTest < ActionController::TestCase
 
   def setup
     super
-    @request.action = 'index'
+    @request.action = "index"
   end
 
   def test_helper_in_a
@@ -285,10 +285,10 @@ class IsolatedHelpersTest < ActionController::TestCase
   end
 
   def test_helper_in_b
-    assert_equal 'B', call_controller(B, "index").last.body
+    assert_equal "B", call_controller(B, "index").last.body
   end
 
   def test_helper_in_c
-    assert_equal 'C', call_controller(C, "index").last.body
+    assert_equal "C", call_controller(C, "index").last.body
   end
 end

@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class RescueController < ActionController::Base
   class NotAuthorized < StandardError
@@ -35,46 +35,46 @@ class RescueController < ActionController::Base
   # name in some other to test correct handling of both cases.
 
   rescue_from NotAuthorized, :with => :deny_access
-  rescue_from 'RescueController::NotAuthorizedToRescueAsString', :with => :deny_access
+  rescue_from "RescueController::NotAuthorizedToRescueAsString", :with => :deny_access
 
   rescue_from RecordInvalid, :with => :show_errors
-  rescue_from 'RescueController::RecordInvalidToRescueAsString', :with => :show_errors
+  rescue_from "RescueController::RecordInvalidToRescueAsString", :with => :show_errors
 
   rescue_from NotAllowed, :with => proc { head :forbidden }
-  rescue_from 'RescueController::NotAllowedToRescueAsString', :with => proc { head :forbidden }
+  rescue_from "RescueController::NotAllowedToRescueAsString", :with => proc { head :forbidden }
 
   rescue_from InvalidRequest, with: proc { |exception| render plain: exception.message }
-  rescue_from 'InvalidRequestToRescueAsString', with: proc { |exception| render plain: exception.message }
+  rescue_from "InvalidRequestToRescueAsString", with: proc { |exception| render plain: exception.message }
 
   rescue_from BadGateway do
     head 502
   end
-  rescue_from 'BadGatewayToRescueAsString' do
+  rescue_from "BadGatewayToRescueAsString" do
     head 502
   end
 
   rescue_from ResourceUnavailable do |exception|
     render plain: exception.message
   end
-  rescue_from 'ResourceUnavailableToRescueAsString' do |exception|
+  rescue_from "ResourceUnavailableToRescueAsString" do |exception|
     render plain: exception.message
   end
 
   rescue_from ActionView::TemplateError do
-    render plain: 'action_view templater error'
+    render plain: "action_view templater error"
   end
 
   rescue_from IOError do
-    render plain: 'io error'
+    render plain: "io error"
   end
 
-  before_action(only: :before_action_raises) { raise 'umm nice' }
+  before_action(only: :before_action_raises) { raise "umm nice" }
 
   def before_action_raises
   end
 
   def raises
-    render plain: 'already rendered'
+    render plain: "already rendered"
     raise "don't panic!"
   end
 
@@ -206,7 +206,7 @@ class ControllerInheritanceRescueController < ExceptionInheritanceRescueControll
   class SecondExceptionInChildController < StandardError
   end
 
-  rescue_from FirstExceptionInChildController, 'SecondExceptionInChildController', :with => lambda { head :gone }
+  rescue_from FirstExceptionInChildController, "SecondExceptionInChildController", :with => lambda { head :gone }
 
   def raise_first_exception_in_child_controller
     raise FirstExceptionInChildController
@@ -291,17 +291,17 @@ class RescueControllerTest < ActionController::TestCase
     assert_equal "RescueController::ResourceUnavailableToRescueAsString", @response.body
   end
 
-  test 'rescue when wrapper has more specific handler than cause' do
+  test "rescue when wrapper has more specific handler than cause" do
     get :exception_with_more_specific_handler_for_wrapper
     assert_response :forbidden
   end
 
-  test 'rescue when cause has more specific handler than wrapper' do
+  test "rescue when cause has more specific handler than wrapper" do
     get :exception_with_more_specific_handler_for_cause
     assert_response :unprocessable_entity
   end
 
-  test 'rescue when cause has handler, but wrapper doesnt' do
+  test "rescue when cause has handler, but wrapper doesnt" do
     get :exception_with_no_handler_for_wrapper
     assert_response :unprocessable_entity
   end
@@ -311,7 +311,7 @@ class RescueTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
     class RecordInvalid < StandardError
       def message
-        'invalid'
+        "invalid"
       end
     end
     rescue_from RecordInvalid, :with => :show_errors
@@ -325,7 +325,7 @@ class RescueTest < ActionDispatch::IntegrationTest
     end
 
     def b00m
-      raise 'b00m'
+      raise "b00m"
     end
 
     protected
@@ -334,17 +334,17 @@ class RescueTest < ActionDispatch::IntegrationTest
       end
   end
 
-  test 'normal request' do
+  test "normal request" do
     with_test_routing do
-      get '/foo'
-      assert_equal 'foo', response.body
+      get "/foo"
+      assert_equal "foo", response.body
     end
   end
 
-  test 'rescue exceptions inside controller' do
+  test "rescue exceptions inside controller" do
     with_test_routing do
-      get '/invalid'
-      assert_equal 'invalid', response.body
+      get "/invalid"
+      assert_equal "invalid", response.body
     end
   end
 
@@ -353,9 +353,9 @@ class RescueTest < ActionDispatch::IntegrationTest
     def with_test_routing
       with_routing do |set|
         set.draw do
-          get 'foo', :to => ::RescueTest::TestController.action(:foo)
-          get 'invalid', :to => ::RescueTest::TestController.action(:invalid)
-          get 'b00m', :to => ::RescueTest::TestController.action(:b00m)
+          get "foo", :to => ::RescueTest::TestController.action(:foo)
+          get "invalid", :to => ::RescueTest::TestController.action(:invalid)
+          get "b00m", :to => ::RescueTest::TestController.action(:b00m)
         end
         yield
       end

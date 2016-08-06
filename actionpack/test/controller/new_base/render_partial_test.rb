@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 module RenderPartial
 
@@ -20,12 +20,12 @@ module RenderPartial
     end
 
     def changing
-      @test_unchanged = 'hello'
+      @test_unchanged = "hello"
       render :action => "basic"
     end
 
     def overridden
-      @test_unchanged = 'hello'
+      @test_unchanged = "hello"
     end
   end
 

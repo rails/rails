@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class ActionController::Base
   class << self
@@ -114,7 +114,7 @@ class FilterTest < ActionController::TestCase
       def before_action_redirects
         @ran_filter ||= []
         @ran_filter << "before_action_redirects"
-        redirect_to(:action => 'target_of_redirection')
+        redirect_to(:action => "target_of_redirection")
       end
 
       def unreached_after_action
@@ -222,7 +222,7 @@ class FilterTest < ActionController::TestCase
     skip_before_action :clean_up_tmp, only: :login, if: -> { true }
 
     def login
-      render plain: 'ok'
+      render plain: "ok"
     end
   end
 
@@ -234,7 +234,7 @@ class FilterTest < ActionController::TestCase
     skip_before_action :clean_up_tmp, if: -> { true }, except: :login
 
     def login
-      render plain: 'ok'
+      render plain: "ok"
     end
   end
 
@@ -258,11 +258,11 @@ class FilterTest < ActionController::TestCase
     before_action :ensure_login, :only => :index
 
     def index
-      render plain: 'ok'
+      render plain: "ok"
     end
 
     def public
-      render plain: 'ok'
+      render plain: "ok"
     end
   end
 
@@ -272,7 +272,7 @@ class FilterTest < ActionController::TestCase
     before_action :ensure_login
 
     def index
-      render plain: 'ok'
+      render plain: "ok"
     end
 
     private
@@ -311,12 +311,12 @@ class FilterTest < ActionController::TestCase
 
       def conditional_in_parent_before
         @ran_filter ||= []
-        @ran_filter << 'conditional_in_parent_before'
+        @ran_filter << "conditional_in_parent_before"
       end
 
       def conditional_in_parent_after
         @ran_filter ||= []
-        @ran_filter << 'conditional_in_parent_after'
+        @ran_filter << "conditional_in_parent_after"
       end
   end
 
@@ -421,11 +421,11 @@ class FilterTest < ActionController::TestCase
     before_action :second, :only => :foo
 
     def foo
-      render plain: 'foo'
+      render plain: "foo"
     end
 
     def bar
-      render plain: 'bar'
+      render plain: "bar"
     end
 
     protected
@@ -458,20 +458,20 @@ class FilterTest < ActionController::TestCase
 
     def before_all
       @ran_filter ||= []
-      @ran_filter << 'before_all'
+      @ran_filter << "before_all"
     end
 
     def after_all
       @ran_filter ||= []
-      @ran_filter << 'after_all'
+      @ran_filter << "after_all"
     end
 
     def between_before_all_and_after_all
       @ran_filter ||= []
-      @ran_filter << 'between_before_all_and_after_all'
+      @ran_filter << "between_before_all_and_after_all"
     end
     def show
-      render plain: 'hello'
+      render plain: "hello"
     end
   end
 
@@ -532,11 +532,11 @@ class FilterTest < ActionController::TestCase
     private
 
     def find_only
-      @only = 'Only'
+      @only = "Only"
     end
 
     def find_except
-      @except = 'Except'
+      @except = "Except"
     end
   end
 
@@ -611,12 +611,12 @@ class FilterTest < ActionController::TestCase
   end
 
   def test_if_is_ignored_when_used_with_only
-    test_process(SkipFilterUsingOnlyAndIf, 'login')
+    test_process(SkipFilterUsingOnlyAndIf, "login")
     assert_not @controller.instance_variable_defined?(:@ran_filter)
   end
 
   def test_except_is_ignored_when_used_with_if
-    test_process(SkipFilterUsingIfAndExcept, 'login')
+    test_process(SkipFilterUsingIfAndExcept, "login")
     assert_equal %w(ensure_login), @controller.instance_variable_get(:@ran_filter)
   end
 
@@ -745,13 +745,13 @@ class FilterTest < ActionController::TestCase
 
   def test_actions_with_mixed_specialization_run_in_order
     assert_nothing_raised do
-      response = test_process(MixedSpecializationController, 'bar')
-      assert_equal 'bar', response.body
+      response = test_process(MixedSpecializationController, "bar")
+      assert_equal "bar", response.body
     end
 
     assert_nothing_raised do
-      response = test_process(MixedSpecializationController, 'foo')
-      assert_equal 'foo', response.body
+      response = test_process(MixedSpecializationController, "foo")
+      assert_equal "foo", response.body
     end
   end
 
@@ -795,7 +795,7 @@ class FilterTest < ActionController::TestCase
   def test_conditional_skipping_of_actions_when_parent_action_is_also_conditional
     test_process(ChildOfConditionalParentController)
     assert_equal %w( conditional_in_parent_before conditional_in_parent_after ), @controller.instance_variable_get(:@ran_filter)
-    test_process(ChildOfConditionalParentController, 'another_action')
+    test_process(ChildOfConditionalParentController, "another_action")
     assert_not @controller.instance_variable_defined?(:@ran_filter)
   end
 
@@ -824,15 +824,15 @@ class FilterTest < ActionController::TestCase
   end
 
   def test_actions_obey_only_and_except_for_implicit_actions
-    test_process(ImplicitActionsController, 'show')
-    assert_equal 'Except', @controller.instance_variable_get(:@except)
+    test_process(ImplicitActionsController, "show")
+    assert_equal "Except", @controller.instance_variable_get(:@except)
     assert_not @controller.instance_variable_defined?(:@only)
-    assert_equal 'show', response.body
+    assert_equal "show", response.body
 
-    test_process(ImplicitActionsController, 'edit')
-    assert_equal 'Only', @controller.instance_variable_get(:@only)
+    test_process(ImplicitActionsController, "edit")
+    assert_equal "Only", @controller.instance_variable_get(:@only)
     assert_not @controller.instance_variable_defined?(:@except)
-    assert_equal 'edit', response.body
+    assert_equal "edit", response.body
   end
 
   private
@@ -933,23 +933,23 @@ class ControllerWithAllTypesOfFilters < PostsController
   private
   def before
     @ran_filter ||= []
-    @ran_filter << 'before'
+    @ran_filter << "before"
   end
 
   def around
-    @ran_filter << 'around (before yield)'
+    @ran_filter << "around (before yield)"
     yield
-    @ran_filter << 'around (after yield)'
+    @ran_filter << "around (after yield)"
   end
 
   def after
-    @ran_filter << 'after'
+    @ran_filter << "after"
   end
 
   def around_again
-    @ran_filter << 'around_again (before yield)'
+    @ran_filter << "around_again (before yield)"
     yield
-    @ran_filter << 'around_again (after yield)'
+    @ran_filter << "around_again (after yield)"
   end
 end
 
@@ -970,34 +970,34 @@ class YieldingAroundFiltersTest < ActionController::TestCase
 
   def test_base
     controller = PostsController
-    assert_nothing_raised { test_process(controller,'no_raise') }
-    assert_nothing_raised { test_process(controller,'raises_before') }
-    assert_nothing_raised { test_process(controller,'raises_after') }
-    assert_nothing_raised { test_process(controller,'no_action') }
+    assert_nothing_raised { test_process(controller,"no_raise") }
+    assert_nothing_raised { test_process(controller,"raises_before") }
+    assert_nothing_raised { test_process(controller,"raises_after") }
+    assert_nothing_raised { test_process(controller,"no_action") }
   end
 
   def test_with_symbol
     controller = ControllerWithSymbolAsFilter
-    assert_nothing_raised { test_process(controller,'no_raise') }
-    assert_raise(Before) { test_process(controller,'raises_before') }
-    assert_raise(After) { test_process(controller,'raises_after') }
-    assert_nothing_raised { test_process(controller,'no_raise') }
+    assert_nothing_raised { test_process(controller,"no_raise") }
+    assert_raise(Before) { test_process(controller,"raises_before") }
+    assert_raise(After) { test_process(controller,"raises_after") }
+    assert_nothing_raised { test_process(controller,"no_raise") }
   end
 
   def test_with_class
     controller = ControllerWithFilterClass
-    assert_nothing_raised { test_process(controller,'no_raise') }
-    assert_raise(After) { test_process(controller,'raises_after') }
+    assert_nothing_raised { test_process(controller,"no_raise") }
+    assert_raise(After) { test_process(controller,"raises_after") }
   end
 
   def test_with_instance
     controller = ControllerWithFilterInstance
-    assert_nothing_raised { test_process(controller,'no_raise') }
-    assert_raise(After) { test_process(controller,'raises_after') }
+    assert_nothing_raised { test_process(controller,"no_raise") }
+    assert_raise(After) { test_process(controller,"raises_after") }
   end
 
   def test_with_proc
-    test_process(ControllerWithProcFilter,'no_raise')
+    test_process(ControllerWithProcFilter,"no_raise")
     assert @controller.instance_variable_get(:@before)
     assert @controller.instance_variable_get(:@after)
   end
@@ -1006,52 +1006,52 @@ class YieldingAroundFiltersTest < ActionController::TestCase
     controller = ControllerWithNestedFilters
     assert_nothing_raised do
       begin
-        test_process(controller,'raises_both')
+        test_process(controller,"raises_both")
       rescue Before, After
       end
     end
     assert_raise Before do
       begin
-        test_process(controller,'raises_both')
+        test_process(controller,"raises_both")
       rescue After
       end
     end
   end
 
   def test_action_order_with_all_action_types
-    test_process(ControllerWithAllTypesOfFilters,'no_raise')
-    assert_equal 'before around (before yield) around_again (before yield) around_again (after yield) after around (after yield)', @controller.instance_variable_get(:@ran_filter).join(' ')
+    test_process(ControllerWithAllTypesOfFilters,"no_raise")
+    assert_equal "before around (before yield) around_again (before yield) around_again (after yield) after around (after yield)", @controller.instance_variable_get(:@ran_filter).join(" ")
   end
 
   def test_action_order_with_skip_action_method
-    test_process(ControllerWithTwoLessFilters,'no_raise')
-    assert_equal 'before around (before yield) around (after yield)', @controller.instance_variable_get(:@ran_filter).join(' ')
+    test_process(ControllerWithTwoLessFilters,"no_raise")
+    assert_equal "before around (before yield) around (after yield)", @controller.instance_variable_get(:@ran_filter).join(" ")
   end
 
   def test_first_action_in_multiple_before_action_chain_halts
     controller = ::FilterTest::TestMultipleFiltersController.new
-    response = test_process(controller, 'fail_1')
-    assert_equal '', response.body
+    response = test_process(controller, "fail_1")
+    assert_equal "", response.body
     assert_equal 1, controller.instance_variable_get(:@try)
   end
 
   def test_second_action_in_multiple_before_action_chain_halts
     controller = ::FilterTest::TestMultipleFiltersController.new
-    response = test_process(controller, 'fail_2')
-    assert_equal '', response.body
+    response = test_process(controller, "fail_2")
+    assert_equal "", response.body
     assert_equal 2, controller.instance_variable_get(:@try)
   end
 
   def test_last_action_in_multiple_before_action_chain_halts
     controller = ::FilterTest::TestMultipleFiltersController.new
-    response = test_process(controller, 'fail_3')
-    assert_equal '', response.body
+    response = test_process(controller, "fail_3")
+    assert_equal "", response.body
     assert_equal 3, controller.instance_variable_get(:@try)
   end
 
   def test_skipping_with_skip_action_callback
-    test_process(SkipFilterUsingSkipActionCallback,'no_raise')
-    assert_equal 'before around (before yield) around (after yield)', @controller.instance_variable_get(:@ran_filter).join(' ')
+    test_process(SkipFilterUsingSkipActionCallback,"no_raise")
+    assert_equal "before around (before yield) around (after yield)", @controller.instance_variable_get(:@ran_filter).join(" ")
   end
 
   def test_deprecated_skip_action_callback

@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 require "active_support/log_subscriber/test_helper"
 
 # common controller actions
@@ -12,7 +12,7 @@ module RequestForgeryProtectionActions
   end
 
   def unsafe
-    render plain: 'pwn'
+    render plain: "pwn"
   end
 
   def meta
@@ -36,7 +36,7 @@ module RequestForgeryProtectionActions
   end
 
   def same_origin_js
-    render js: 'foo();'
+    render js: "foo();"
   end
 
   def negotiate_same_origin
@@ -70,12 +70,12 @@ class RequestForgeryProtectionControllerUsingNullSession < ActionController::Bas
   protect_from_forgery :with => :null_session
 
   def signed
-    cookies.signed[:foo] = 'bar'
+    cookies.signed[:foo] = "bar"
     head :ok
   end
 
   def encrypted
-    cookies.encrypted[:foo] = 'bar'
+    cookies.encrypted[:foo] = "bar"
     head :ok
   end
 
@@ -90,7 +90,7 @@ class PrependProtectForgeryBaseController < ActionController::Base
   attr_accessor :called_callbacks
 
   def index
-    render inline: 'OK'
+    render inline: "OK"
   end
 
   protected
@@ -124,7 +124,7 @@ end
 
 class CustomAuthenticityParamController < RequestForgeryProtectionControllerUsingResetSession
   def form_authenticity_param
-    'foobar'
+    "foobar"
   end
 end
 
@@ -141,18 +141,18 @@ class PerFormTokensController < ActionController::Base
   end
 
   def post_one
-    render plain: ''
+    render plain: ""
   end
 
   def post_two
-    render plain: ''
+    render plain: ""
   end
 end
 
 # common test methods
 module RequestForgeryProtectionTests
   def setup
-    @token = Base64.strict_encode64('railstestrailstestrailstestrails')
+    @token = Base64.strict_encode64("railstestrailstestrailstestrails")
     @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
     ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
   end
@@ -166,7 +166,7 @@ module RequestForgeryProtectionTests
       assert_not_blocked do
         get :index
       end
-      assert_select 'form>input[name=?][value=?]', 'custom_authenticity_token', @token
+      assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token
     end
   end
 
@@ -175,7 +175,7 @@ module RequestForgeryProtectionTests
       assert_not_blocked do
         get :show_button
       end
-      assert_select 'form>input[name=?][value=?]', 'custom_authenticity_token', @token
+      assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token
     end
   end
 
@@ -206,7 +206,7 @@ module RequestForgeryProtectionTests
       assert_not_blocked do
         get :form_for_remote_with_external_token
       end
-      assert_select 'form>input[name=?][value=?]', 'custom_authenticity_token', 'external_token'
+      assert_select "form>input[name=?][value=?]", "custom_authenticity_token", "external_token"
     ensure
       ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = original
     end
@@ -216,7 +216,7 @@ module RequestForgeryProtectionTests
     assert_not_blocked do
       get :form_for_remote_with_external_token
     end
-    assert_select 'form>input[name=?][value=?]', 'custom_authenticity_token', 'external_token'
+    assert_select "form>input[name=?][value=?]", "custom_authenticity_token", "external_token"
   end
 
   def test_should_render_form_with_token_tag_if_remote_and_authenticity_token_requested
@@ -224,7 +224,7 @@ module RequestForgeryProtectionTests
       assert_not_blocked do
         get :form_for_remote_with_token
       end
-      assert_select 'form>input[name=?][value=?]', 'custom_authenticity_token', @token
+      assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token
     end
   end
 
@@ -233,7 +233,7 @@ module RequestForgeryProtectionTests
       assert_not_blocked do
         get :form_for_with_token
       end
-      assert_select 'form>input[name=?][value=?]', 'custom_authenticity_token', @token
+      assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token
     end
   end
 
@@ -254,7 +254,7 @@ module RequestForgeryProtectionTests
   end
 
   def test_should_not_allow_post_without_token_irrespective_of_format
-    assert_blocked { post :index, format: 'xml' }
+    assert_blocked { post :index, format: "xml" }
   end
 
   def test_should_not_allow_patch_without_token
@@ -303,25 +303,25 @@ module RequestForgeryProtectionTests
 
   def test_should_allow_post_with_token_in_header
     session[:_csrf_token] = @token
-    @request.env['HTTP_X_CSRF_TOKEN'] = @token
+    @request.env["HTTP_X_CSRF_TOKEN"] = @token
     assert_not_blocked { post :index }
   end
 
   def test_should_allow_delete_with_token_in_header
     session[:_csrf_token] = @token
-    @request.env['HTTP_X_CSRF_TOKEN'] = @token
+    @request.env["HTTP_X_CSRF_TOKEN"] = @token
     assert_not_blocked { delete :index }
   end
 
   def test_should_allow_patch_with_token_in_header
     session[:_csrf_token] = @token
-    @request.env['HTTP_X_CSRF_TOKEN'] = @token
+    @request.env["HTTP_X_CSRF_TOKEN"] = @token
     assert_not_blocked { patch :index }
   end
 
   def test_should_allow_put_with_token_in_header
     session[:_csrf_token] = @token
-    @request.env['HTTP_X_CSRF_TOKEN'] = @token
+    @request.env["HTTP_X_CSRF_TOKEN"] = @token
     assert_not_blocked { put :index }
   end
 
@@ -330,7 +330,7 @@ module RequestForgeryProtectionTests
       session[:_csrf_token] = @token
       @controller.stub :form_authenticity_token, @token do
         assert_not_blocked do
-          @request.set_header 'HTTP_ORIGIN', 'http://test.host'
+          @request.set_header "HTTP_ORIGIN", "http://test.host"
           post :index, params: { custom_authenticity_token: @token }
         end
       end
@@ -353,7 +353,7 @@ module RequestForgeryProtectionTests
       session[:_csrf_token] = @token
       @controller.stub :form_authenticity_token, @token do
         assert_blocked do
-          @request.set_header 'HTTP_ORIGIN', 'http://bad.host'
+          @request.set_header "HTTP_ORIGIN", "http://bad.host"
           post :index, params: { custom_authenticity_token: @token }
         end
       end
@@ -393,16 +393,16 @@ module RequestForgeryProtectionTests
 
   def test_should_only_allow_same_origin_js_get_with_xhr_header
     assert_cross_origin_blocked { get :same_origin_js }
-    assert_cross_origin_blocked { get :same_origin_js, format: 'js' }
+    assert_cross_origin_blocked { get :same_origin_js, format: "js" }
     assert_cross_origin_blocked do
-      @request.accept = 'text/javascript'
+      @request.accept = "text/javascript"
       get :negotiate_same_origin
     end
 
     assert_cross_origin_not_blocked { get :same_origin_js, xhr: true }
-    assert_cross_origin_not_blocked { get :same_origin_js, xhr: true, format: 'js'}
+    assert_cross_origin_not_blocked { get :same_origin_js, xhr: true, format: "js"}
     assert_cross_origin_not_blocked do
-      @request.accept = 'text/javascript'
+      @request.accept = "text/javascript"
       get :negotiate_same_origin, xhr: true
     end
   end
@@ -442,32 +442,32 @@ module RequestForgeryProtectionTests
   def test_should_allow_non_get_js_without_xhr_header
     session[:_csrf_token] = @token
     assert_cross_origin_not_blocked { post :same_origin_js, params: { custom_authenticity_token: @token } }
-    assert_cross_origin_not_blocked { post :same_origin_js, params: { format: 'js', custom_authenticity_token: @token } }
+    assert_cross_origin_not_blocked { post :same_origin_js, params: { format: "js", custom_authenticity_token: @token } }
     assert_cross_origin_not_blocked do
-      @request.accept = 'text/javascript'
+      @request.accept = "text/javascript"
       post :negotiate_same_origin, params: { custom_authenticity_token: @token}
     end
   end
 
   def test_should_only_allow_cross_origin_js_get_without_xhr_header_if_protection_disabled
     assert_cross_origin_not_blocked { get :cross_origin_js }
-    assert_cross_origin_not_blocked { get :cross_origin_js, format: 'js' }
+    assert_cross_origin_not_blocked { get :cross_origin_js, format: "js" }
     assert_cross_origin_not_blocked do
-      @request.accept = 'text/javascript'
+      @request.accept = "text/javascript"
       get :negotiate_cross_origin
     end
 
     assert_cross_origin_not_blocked { get :cross_origin_js, xhr: true }
-    assert_cross_origin_not_blocked { get :cross_origin_js, xhr: true, format: 'js' }
+    assert_cross_origin_not_blocked { get :cross_origin_js, xhr: true, format: "js" }
     assert_cross_origin_not_blocked do
-      @request.accept = 'text/javascript'
+      @request.accept = "text/javascript"
       get :negotiate_cross_origin, xhr: true
     end
   end
 
   def test_should_not_raise_error_if_token_is_not_a_string
     assert_blocked do
-      patch :index, params: { custom_authenticity_token: { foo: 'bar' } }
+      patch :index, params: { custom_authenticity_token: { foo: "bar" } }
     end
   end
 
@@ -509,11 +509,11 @@ end
 class RequestForgeryProtectionControllerUsingResetSessionTest < ActionController::TestCase
   include RequestForgeryProtectionTests
 
-  test 'should emit a csrf-param meta tag and a csrf-token meta tag' do
-    @controller.stub :form_authenticity_token, @token + '<=?' do
+  test "should emit a csrf-param meta tag and a csrf-token meta tag" do
+    @controller.stub :form_authenticity_token, @token + "<=?" do
       get :meta
-      assert_select 'meta[name=?][content=?]', 'csrf-param', 'custom_authenticity_token'
-      assert_select 'meta[name=?]', 'csrf-token'
+      assert_select "meta[name=?][content=?]", "csrf-param", "custom_authenticity_token"
+      assert_select "meta[name=?]", "csrf-token"
       regexp = "#{@token}&lt;=\?"
       assert_match(/#{regexp}/, @response.body)
     end
@@ -523,7 +523,7 @@ end
 class RequestForgeryProtectionControllerUsingNullSessionTest < ActionController::TestCase
   class NullSessionDummyKeyGenerator
     def generate_key(secret)
-      '03312270731a2ed0d11ed091c2338a06'
+      "03312270731a2ed0d11ed091c2338a06"
     end
   end
 
@@ -531,17 +531,17 @@ class RequestForgeryProtectionControllerUsingNullSessionTest < ActionController:
     @request.env[ActionDispatch::Cookies::GENERATOR_KEY] = NullSessionDummyKeyGenerator.new
   end
 
-  test 'should allow to set signed cookies' do
+  test "should allow to set signed cookies" do
     post :signed
     assert_response :ok
   end
 
-  test 'should allow to set encrypted cookies' do
+  test "should allow to set encrypted cookies" do
     post :encrypted
     assert_response :ok
   end
 
-  test 'should allow reset_session' do
+  test "should allow reset_session" do
     post :try_to_reset_session
     assert_response :ok
   end
@@ -601,14 +601,14 @@ class FreeCookieControllerTest < ActionController::TestCase
   def test_should_not_render_form_with_token_tag
     SecureRandom.stub :base64, @token do
       get :index
-      assert_select 'form>div>input[name=?][value=?]', 'authenticity_token', @token, false
+      assert_select "form>div>input[name=?][value=?]", "authenticity_token", @token, false
     end
   end
 
   def test_should_not_render_button_to_with_token_tag
     SecureRandom.stub :base64, @token do
       get :show_button
-      assert_select 'form>div>input[name=?][value=?]', 'authenticity_token', @token, false
+      assert_select "form>div>input[name=?][value=?]", "authenticity_token", @token, false
     end
   end
 
@@ -620,7 +620,7 @@ class FreeCookieControllerTest < ActionController::TestCase
     end
   end
 
-  test 'should not emit a csrf-token meta tag' do
+  test "should not emit a csrf-token meta tag" do
     SecureRandom.stub :base64, @token do
       get :meta
       assert @response.body.blank?
@@ -647,7 +647,7 @@ class CustomAuthenticityParamControllerTest < ActionController::TestCase
     ActionController::Base.logger = @logger
     begin
       @controller.stub :valid_authenticity_token?, :true do
-        post :index, params: { custom_token_name: 'foobar' }
+        post :index, params: { custom_token_name: "foobar" }
         assert_equal 0, @logger.logged(:warn).size
       end
     ensure
@@ -659,7 +659,7 @@ class CustomAuthenticityParamControllerTest < ActionController::TestCase
     ActionController::Base.logger = @logger
 
     begin
-      post :index, params: { custom_token_name: 'bazqux' }
+      post :index, params: { custom_token_name: "bazqux" }
       assert_equal 1, @logger.logged(:warn).size
     ensure
       ActionController::Base.logger = @old_logger
@@ -680,7 +680,7 @@ class PerFormTokensControllerTest < ActionController::TestCase
   def test_per_form_token_is_same_size_as_global_token
     get :index
     expected = ActionController::RequestForgeryProtection::AUTHENTICITY_TOKEN_LENGTH
-    actual = @controller.send(:per_form_csrf_token, session, '/path', 'post').size
+    actual = @controller.send(:per_form_csrf_token, session, "/path", "post").size
     assert_equal expected, actual
   end
 
@@ -692,7 +692,7 @@ class PerFormTokensControllerTest < ActionController::TestCase
     assert_matches_session_token_on_server form_token
 
     # This is required because PATH_INFO isn't reset between requests.
-    @request.env['PATH_INFO'] = '/per_form_tokens/post_one'
+    @request.env["PATH_INFO"] = "/per_form_tokens/post_one"
     assert_nothing_raised do
       post :post_one, params: {custom_authenticity_token: form_token}
     end
@@ -707,7 +707,7 @@ class PerFormTokensControllerTest < ActionController::TestCase
     assert_matches_session_token_on_server form_token
 
     # This is required because PATH_INFO isn't reset between requests.
-    @request.env['PATH_INFO'] = '/per_form_tokens/post_two'
+    @request.env["PATH_INFO"] = "/per_form_tokens/post_two"
     assert_raises(ActionController::InvalidAuthenticityToken) do
       post :post_two, params: {custom_authenticity_token: form_token}
     end
@@ -721,21 +721,21 @@ class PerFormTokensControllerTest < ActionController::TestCase
     assert_matches_session_token_on_server form_token
 
     # This is required because PATH_INFO isn't reset between requests.
-    @request.env['PATH_INFO'] = '/per_form_tokens/post_one'
+    @request.env["PATH_INFO"] = "/per_form_tokens/post_one"
     assert_raises(ActionController::InvalidAuthenticityToken) do
       patch :post_one, params: {custom_authenticity_token: form_token}
     end
   end
 
   def test_rejects_token_for_incorrect_method_button_to
-    get :button_to, params: { form_method: 'delete' }
+    get :button_to, params: { form_method: "delete" }
 
     form_token = assert_presence_and_fetch_form_csrf_token
 
-    assert_matches_session_token_on_server form_token, 'delete'
+    assert_matches_session_token_on_server form_token, "delete"
 
     # This is required because PATH_INFO isn't reset between requests.
-    @request.env['PATH_INFO'] = '/per_form_tokens/post_one'
+    @request.env["PATH_INFO"] = "/per_form_tokens/post_one"
     assert_raises(ActionController::InvalidAuthenticityToken) do
       patch :post_one, params: { custom_authenticity_token: form_token }
     end
@@ -746,10 +746,10 @@ class PerFormTokensControllerTest < ActionController::TestCase
 
     form_token = assert_presence_and_fetch_form_csrf_token
 
-    assert_matches_session_token_on_server form_token, 'post'
+    assert_matches_session_token_on_server form_token, "post"
 
     # This is required because PATH_INFO isn't reset between requests.
-    @request.env['PATH_INFO'] = '/per_form_tokens/post_one'
+    @request.env["PATH_INFO"] = "/per_form_tokens/post_one"
     assert_nothing_raised do
       post :post_one, params: { custom_authenticity_token: form_token }
     end
@@ -764,7 +764,7 @@ class PerFormTokensControllerTest < ActionController::TestCase
       assert_matches_session_token_on_server form_token, verb
 
       # This is required because PATH_INFO isn't reset between requests.
-      @request.env['PATH_INFO'] = '/per_form_tokens/post_one'
+      @request.env["PATH_INFO"] = "/per_form_tokens/post_one"
       assert_nothing_raised do
         send verb, :post_one, params: { custom_authenticity_token: form_token }
       end
@@ -777,7 +777,7 @@ class PerFormTokensControllerTest < ActionController::TestCase
     token = @controller.send(:form_authenticity_token)
 
     # This is required because PATH_INFO isn't reset between requests.
-    @request.env['PATH_INFO'] = '/per_form_tokens/post_one'
+    @request.env["PATH_INFO"] = "/per_form_tokens/post_one"
     assert_nothing_raised do
       post :post_one, params: {custom_authenticity_token: token}
     end
@@ -785,27 +785,27 @@ class PerFormTokensControllerTest < ActionController::TestCase
   end
 
   def test_ignores_params
-    get :index, params: {form_path: '/per_form_tokens/post_one?foo=bar'}
+    get :index, params: {form_path: "/per_form_tokens/post_one?foo=bar"}
 
     form_token = assert_presence_and_fetch_form_csrf_token
 
     assert_matches_session_token_on_server form_token
 
     # This is required because PATH_INFO isn't reset between requests.
-    @request.env['PATH_INFO'] = '/per_form_tokens/post_one?foo=baz'
+    @request.env["PATH_INFO"] = "/per_form_tokens/post_one?foo=baz"
     assert_nothing_raised do
-      post :post_one, params: {custom_authenticity_token: form_token, baz: 'foo'}
+      post :post_one, params: {custom_authenticity_token: form_token, baz: "foo"}
     end
     assert_response :success
   end
 
   def test_ignores_trailing_slash_during_generation
-    get :index, params: {form_path: '/per_form_tokens/post_one/'}
+    get :index, params: {form_path: "/per_form_tokens/post_one/"}
 
     form_token = assert_presence_and_fetch_form_csrf_token
 
     # This is required because PATH_INFO isn't reset between requests.
-    @request.env['PATH_INFO'] = '/per_form_tokens/post_one'
+    @request.env["PATH_INFO"] = "/per_form_tokens/post_one"
     assert_nothing_raised do
       post :post_one, params: {custom_authenticity_token: form_token}
     end
@@ -813,12 +813,12 @@ class PerFormTokensControllerTest < ActionController::TestCase
   end
 
   def test_ignores_origin_during_generation
-    get :index, params: {form_path: 'https://example.com/per_form_tokens/post_one/'}
+    get :index, params: {form_path: "https://example.com/per_form_tokens/post_one/"}
 
     form_token = assert_presence_and_fetch_form_csrf_token
 
     # This is required because PATH_INFO isn't reset between requests.
-    @request.env['PATH_INFO'] = '/per_form_tokens/post_one'
+    @request.env["PATH_INFO"] = "/per_form_tokens/post_one"
     assert_nothing_raised do
       post :post_one, params: {custom_authenticity_token: form_token}
     end
@@ -831,7 +831,7 @@ class PerFormTokensControllerTest < ActionController::TestCase
     form_token = assert_presence_and_fetch_form_csrf_token
 
     # This is required because PATH_INFO isn't reset between requests.
-    @request.env['PATH_INFO'] = '/per_form_tokens/post_one/'
+    @request.env["PATH_INFO"] = "/per_form_tokens/post_one/"
     assert_nothing_raised do
       post :post_one, params: {custom_authenticity_token: form_token}
     end
@@ -843,7 +843,7 @@ class PerFormTokensControllerTest < ActionController::TestCase
 
     form_token = assert_presence_and_fetch_form_csrf_token
     # This is required because PATH_INFO isn't reset between requests.
-    @request.env['PATH_INFO'] = '/per_form_tokens/post_one/'
+    @request.env["PATH_INFO"] = "/per_form_tokens/post_one/"
     assert_nothing_raised do
       post :post_one, params: {custom_authenticity_token: form_token}
     end
@@ -853,15 +853,15 @@ class PerFormTokensControllerTest < ActionController::TestCase
   private
     def assert_presence_and_fetch_form_csrf_token
       assert_select 'input[name="custom_authenticity_token"]' do |input|
-        form_csrf_token = input.first['value']
+        form_csrf_token = input.first["value"]
         assert_not_nil form_csrf_token
         return form_csrf_token
       end
     end
 
-    def assert_matches_session_token_on_server(form_token, method = 'post')
+    def assert_matches_session_token_on_server(form_token, method = "post")
       actual = @controller.send(:unmask_token, Base64.strict_decode64(form_token))
-      expected = @controller.send(:per_form_csrf_token, session, '/per_form_tokens/post_one', method)
+      expected = @controller.send(:per_form_csrf_token, session, "/per_form_tokens/post_one", method)
       assert_equal expected, actual
     end
 end

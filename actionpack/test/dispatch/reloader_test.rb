@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class ReloaderTest < ActiveSupport::TestCase
   Reloader = ActionDispatch::Reloader
@@ -196,8 +196,8 @@ class ReloaderTest < ActiveSupport::TestCase
       x = Class.new(ActiveSupport::Reloader)
       x.check = lambda { true }
 
-      @response ||= 'response'
+      @response ||= "response"
       @reloader ||= Reloader.new(block || proc {[200, {}, @response]}, x)
-      @reloader.call({'rack.input' => StringIO.new('')})[2]
+      @reloader.call({"rack.input" => StringIO.new("")})[2]
     end
 end

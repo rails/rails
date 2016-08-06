@@ -1,5 +1,5 @@
-require 'abstract_unit'
-require 'active_support/key_generator'
+require "abstract_unit"
+require "active_support/key_generator"
 
 class FlashTest < ActionController::TestCase
   class TestController < ActionController::Base
@@ -53,7 +53,7 @@ class FlashTest < ActionController::TestCase
     end
 
     # methods for test_sweep_after_halted_action_chain
-    before_action :halt_and_redir, only: 'filter_halting_action'
+    before_action :halt_and_redir, only: "filter_halting_action"
 
     def std_action
       @flash_copy = {}.update(flash)
@@ -71,11 +71,11 @@ class FlashTest < ActionController::TestCase
     end
 
     def redirect_with_alert
-      redirect_to '/nowhere', :alert => "Beware the nowheres!"
+      redirect_to "/nowhere", :alert => "Beware the nowheres!"
     end
 
     def redirect_with_notice
-      redirect_to '/somewhere', :notice => "Good luck in the somewheres!"
+      redirect_to "/somewhere", :notice => "Good luck in the somewheres!"
     end
 
     def render_with_flash_now_alert
@@ -89,11 +89,11 @@ class FlashTest < ActionController::TestCase
     end
 
     def redirect_with_other_flashes
-      redirect_to '/wonderland', :flash => { :joyride => "Horses!" }
+      redirect_to "/wonderland", :flash => { :joyride => "Horses!" }
     end
 
     def redirect_with_foo_flash
-      redirect_to "/wonderland", :foo => 'for great justice'
+      redirect_to "/wonderland", :foo => "for great justice"
     end
   end
 
@@ -239,8 +239,8 @@ class FlashTest < ActionController::TestCase
 end
 
 class FlashIntegrationTest < ActionDispatch::IntegrationTest
-  SessionKey = '_myapp_session'
-  Generator  = ActiveSupport::LegacyKeyGenerator.new('b3c631c314c0bbca50c1b2843150fe33')
+  SessionKey = "_myapp_session"
+  Generator  = ActiveSupport::LegacyKeyGenerator.new("b3c631c314c0bbca50c1b2843150fe33")
 
   class TestController < ActionController::Base
     add_flash_types :bar
@@ -267,11 +267,11 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
 
   def test_flash
     with_test_route_set do
-      get '/set_flash'
+      get "/set_flash"
       assert_response :success
       assert_equal "hello", @request.flash["that"]
 
-      get '/use_flash'
+      get "/use_flash"
       assert_response :success
       assert_equal "flash: hello", @response.body
     end
@@ -279,7 +279,7 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
 
   def test_just_using_flash_does_not_stream_a_cookie_back
     with_test_route_set do
-      get '/use_flash'
+      get "/use_flash"
       assert_response :success
       assert_nil @response.headers["Set-Cookie"]
       assert_equal "flash: ", @response.body
@@ -288,25 +288,25 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
 
   def test_setting_flash_does_not_raise_in_following_requests
     with_test_route_set do
-      env = { 'action_dispatch.request.flash_hash' => ActionDispatch::Flash::FlashHash.new }
-      get '/set_flash', env: env
-      get '/set_flash', env: env
+      env = { "action_dispatch.request.flash_hash" => ActionDispatch::Flash::FlashHash.new }
+      get "/set_flash", env: env
+      get "/set_flash", env: env
     end
   end
 
   def test_setting_flash_now_does_not_raise_in_following_requests
     with_test_route_set do
-      env = { 'action_dispatch.request.flash_hash' => ActionDispatch::Flash::FlashHash.new }
-      get '/set_flash_now', env: env
-      get '/set_flash_now', env: env
+      env = { "action_dispatch.request.flash_hash" => ActionDispatch::Flash::FlashHash.new }
+      get "/set_flash_now", env: env
+      get "/set_flash_now", env: env
     end
   end
 
   def test_added_flash_types_method
     with_test_route_set do
-      get '/set_bar'
+      get "/set_bar"
       assert_response :success
-      assert_equal 'for great justice', @controller.bar
+      assert_equal "for great justice", @controller.bar
     end
   end
 
@@ -324,7 +324,7 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
       with_routing do |set|
         set.draw do
           ActiveSupport::Deprecation.silence do
-            get ':action', :to => FlashIntegrationTest::TestController
+            get ":action", :to => FlashIntegrationTest::TestController
           end
         end
 

@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class DispatcherTest < ActiveSupport::TestCase
   class Foo
@@ -7,7 +7,7 @@ class DispatcherTest < ActiveSupport::TestCase
 
   class DummyApp
     def call(env)
-      [200, {}, 'response']
+      [200, {}, "response"]
     end
   end
 
@@ -57,7 +57,7 @@ class DispatcherTest < ActiveSupport::TestCase
 
     def dispatch(&block)
       ActionDispatch::Callbacks.new(block || DummyApp.new).call(
-        {'rack.input' => StringIO.new('')}
+        {"rack.input" => StringIO.new("")}
       )
     end
 

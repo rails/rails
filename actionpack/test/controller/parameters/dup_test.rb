@@ -1,5 +1,5 @@
-require 'abstract_unit'
-require 'action_controller/metal/strong_parameters'
+require "abstract_unit"
+require "action_controller/metal/strong_parameters"
 
 class ParametersDupTest < ActiveSupport::TestCase
   setup do
@@ -7,12 +7,12 @@ class ParametersDupTest < ActiveSupport::TestCase
 
     @params = ActionController::Parameters.new(
       person: {
-        age: '32',
+        age: "32",
         name: {
-          first: 'David',
-          last: 'Heinemeier Hansson'
+          first: "David",
+          last: "Heinemeier Hansson"
         },
-        addresses: [{city: 'Chicago', state: 'Illinois'}]
+        addresses: [{city: "Chicago", state: "Illinois"}]
       }
     )
   end

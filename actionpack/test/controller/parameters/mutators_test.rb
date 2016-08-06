@@ -1,17 +1,17 @@
-require 'abstract_unit'
-require 'action_controller/metal/strong_parameters'
-require 'active_support/core_ext/hash/transform_values'
+require "abstract_unit"
+require "action_controller/metal/strong_parameters"
+require "active_support/core_ext/hash/transform_values"
 
 class ParametersMutatorsTest < ActiveSupport::TestCase
   setup do
     @params = ActionController::Parameters.new(
       person: {
-        age: '32',
+        age: "32",
         name: {
-          first: 'David',
-          last: 'Heinemeier Hansson'
+          first: "David",
+          last: "Heinemeier Hansson"
         },
-        addresses: [{city: 'Chicago', state: 'Illinois'}]
+        addresses: [{city: "Chicago", state: "Illinois"}]
       }
     )
   end

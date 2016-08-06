@@ -1,5 +1,5 @@
-require 'abstract_unit'
-require 'active_support/json/decoding'
+require "abstract_unit"
+require "active_support/json/decoding"
 
 module ActionDispatch
   module Journey
@@ -14,9 +14,9 @@ module ActionDispatch
           }
 
           json = ActiveSupport::JSON.decode table.to_json
-          assert json['regexp_states']
-          assert json['string_states']
-          assert json['accepting']
+          assert json["regexp_states"]
+          assert json["string_states"]
+          assert json["accepting"]
         end
 
         if system("dot -V 2>/dev/null")
@@ -34,26 +34,26 @@ module ActionDispatch
         end
 
         def test_simulate_gt
-          sim = simulator_for ['/foo', '/bar']
-          assert_match sim, '/foo'
+          sim = simulator_for ["/foo", "/bar"]
+          assert_match sim, "/foo"
         end
 
         def test_simulate_gt_regexp
-          sim = simulator_for [':foo']
-          assert_match sim, 'foo'
+          sim = simulator_for [":foo"]
+          assert_match sim, "foo"
         end
 
         def test_simulate_gt_regexp_mix
-          sim = simulator_for ['/get', '/:method/foo']
-          assert_match sim, '/get'
-          assert_match sim, '/get/foo'
+          sim = simulator_for ["/get", "/:method/foo"]
+          assert_match sim, "/get"
+          assert_match sim, "/get/foo"
         end
 
         def test_simulate_optional
-          sim = simulator_for ['/foo(/bar)']
-          assert_match sim, '/foo'
-          assert_match sim, '/foo/bar'
-          assert_no_match sim, '/foo/'
+          sim = simulator_for ["/foo(/bar)"]
+          assert_match sim, "/foo"
+          assert_match sim, "/foo/bar"
+          assert_no_match sim, "/foo/"
         end
 
         def test_match_data
@@ -65,10 +65,10 @@ module ActionDispatch
 
           sim = GTG::Simulator.new tt
 
-          match = sim.match '/get'
+          match = sim.match "/get"
           assert_equal [paths.first], match.memos
 
-          match = sim.match '/get/foo'
+          match = sim.match "/get/foo"
           assert_equal [paths.last], match.memos
         end
 
@@ -86,7 +86,7 @@ module ActionDispatch
           builder = GTG::Builder.new ast
           sim     = GTG::Simulator.new builder.transition_table
 
-          match = sim.match '/articles/new'
+          match = sim.match "/articles/new"
           assert_equal [paths[1], paths[3]], match.memos
         end
 

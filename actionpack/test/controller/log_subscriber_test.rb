@@ -95,7 +95,7 @@ class ACLogSubscriberTest < ActionController::TestCase
 
     @old_logger = ActionController::Base.logger
 
-    @cache_path = File.join Dir.tmpdir, Dir::Tmpname.make_tmpname('tmp', 'cache')
+    @cache_path = File.join Dir.tmpdir, Dir::Tmpname.make_tmpname("tmp", "cache")
     @controller.cache_store = :file_store, @cache_path
     ActionController::LogSubscriber.attach_to :action_controller
   end
@@ -140,7 +140,7 @@ class ACLogSubscriberTest < ActionController::TestCase
   end
 
   def test_process_action_with_parameters
-    get :show, params: { id: '10' }
+    get :show, params: { id: "10" }
     wait
 
     assert_equal 3, logs.size
@@ -148,8 +148,8 @@ class ACLogSubscriberTest < ActionController::TestCase
   end
 
   def test_multiple_process_with_parameters
-    get :show, params: { id: '10' }
-    get :show, params: { id: '20' }
+    get :show, params: { id: "10" }
+    get :show, params: { id: "20" }
 
     wait
 
@@ -159,8 +159,8 @@ class ACLogSubscriberTest < ActionController::TestCase
   end
 
   def test_process_action_with_wrapped_parameters
-    @request.env['CONTENT_TYPE'] = 'application/json'
-    post :show, params: { id: '10', name: 'jose' }
+    @request.env["CONTENT_TYPE"] = "application/json"
+    post :show, params: { id: "10", name: "jose" }
     wait
 
     assert_equal 3, logs.size
@@ -186,14 +186,14 @@ class ACLogSubscriberTest < ActionController::TestCase
   def test_process_action_headers
     get :show
     wait
-    assert_equal "Rails Testing", @controller.last_payload[:headers]['User-Agent']
+    assert_equal "Rails Testing", @controller.last_payload[:headers]["User-Agent"]
   end
 
   def test_process_action_with_filter_parameters
     @request.env["action_dispatch.parameter_filter"] = [:lifo, :amount]
 
     get :show, params: {
-      lifo: 'Pratik', amount: '420', step: '1'
+      lifo: "Pratik", amount: "420", step: "1"
     }
     wait
 
@@ -212,7 +212,7 @@ class ACLogSubscriberTest < ActionController::TestCase
   end
 
   def test_filter_redirect_url_by_string
-    @request.env['action_dispatch.redirect_filter'] = ['secret']
+    @request.env["action_dispatch.redirect_filter"] = ["secret"]
     get :filterable_redirector
     wait
 
@@ -221,7 +221,7 @@ class ACLogSubscriberTest < ActionController::TestCase
   end
 
   def test_filter_redirect_url_by_regexp
-    @request.env['action_dispatch.redirect_filter'] = [/secret\.foo.+/]
+    @request.env["action_dispatch.redirect_filter"] = [/secret\.foo.+/]
     get :filterable_redirector
     wait
 

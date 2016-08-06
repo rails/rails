@@ -1,5 +1,5 @@
-require 'abstract_unit'
-require 'stringio'
+require "abstract_unit"
+require "stringio"
 
 class ActionController::TestRequestTest < ActionController::TestCase
 

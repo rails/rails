@@ -1,5 +1,5 @@
-require 'abstract_unit'
-require 'action_controller/metal/strong_parameters'
+require "abstract_unit"
+require "action_controller/metal/strong_parameters"
 
 class AlwaysPermittedParametersTest < ActiveSupport::TestCase
   def setup
