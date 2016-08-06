@@ -345,6 +345,9 @@ module ActiveSupport
           #Spaces are stripped from the resulting string
           assert_equal '4', number_helper.number_to_human(4, :units => {:unit => "", :ten => 'tens '})
           assert_equal '4.5  tens', number_helper.number_to_human(45, :units => {:unit => "", :ten => ' tens   '})
+
+          #Uses only the provided units and does not try to use larger ones
+          assert_equal "1000 kilometers", number_helper.number_to_human(1_000_000, :units => {:unit => "meter", :thousand => "kilometers"})
         end
       end
 
