@@ -1,21 +1,21 @@
 require "cases/helper"
-require 'support/connection_helper'
+require "support/connection_helper"
 
 module ActiveRecord
   class PostgresqlTransactionTest < ActiveRecord::PostgreSQLTestCase
     self.use_transactional_tests = false
 
     class Sample < ActiveRecord::Base
-      self.table_name = 'samples'
+      self.table_name = "samples"
     end
 
     setup do
       @connection = ActiveRecord::Base.connection
 
       @connection.transaction do
-        @connection.drop_table 'samples', if_exists: true
-        @connection.create_table('samples') do |t|
-          t.integer 'value'
+        @connection.drop_table "samples", if_exists: true
+        @connection.create_table("samples") do |t|
+          t.integer "value"
         end
       end
 
@@ -23,7 +23,7 @@ module ActiveRecord
     end
 
     teardown do
-      @connection.drop_table 'samples', if_exists: true
+      @connection.drop_table "samples", if_exists: true
     end
 
     test "raises SerializationFailure when a serialization failure occurs" do
@@ -89,7 +89,7 @@ module ActiveRecord
 
     def with_warning_suppression
       log_level = @connection.client_min_messages
-      @connection.client_min_messages = 'error'
+      @connection.client_min_messages = "error"
       yield
       @connection.client_min_messages = log_level
     end

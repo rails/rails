@@ -1,5 +1,5 @@
-require 'cases/helper'
-require 'support/connection_helper'
+require "cases/helper"
+require "support/connection_helper"
 
 class HotCompatibilityTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
@@ -12,7 +12,7 @@ class HotCompatibilityTest < ActiveRecord::TestCase
         t.string :bar
       end
 
-      def self.name; 'HotCompatibility'; end
+      def self.name; "HotCompatibility"; end
     end
   end
 
@@ -35,29 +35,29 @@ class HotCompatibilityTest < ActiveRecord::TestCase
 
     # but we can successfully create a record so long as we don't
     # reference the removed column
-    record = @klass.create! foo: 'foo'
+    record = @klass.create! foo: "foo"
     record.reload
-    assert_equal 'foo', record.foo
+    assert_equal "foo", record.foo
   end
 
   test "update after remove_column" do
-    record = @klass.create! foo: 'foo'
+    record = @klass.create! foo: "foo"
     assert_equal 3, @klass.columns.length
     @klass.connection.remove_column :hot_compatibilities, :bar
     assert_equal 3, @klass.columns.length
 
     record.reload
-    assert_equal 'foo', record.foo
-    record.foo = 'bar'
+    assert_equal "foo", record.foo
+    record.foo = "bar"
     record.save!
     record.reload
-    assert_equal 'bar', record.foo
+    assert_equal "bar", record.foo
   end
 
   if current_adapter?(:PostgreSQLAdapter)
     test "cleans up after prepared statement failure in a transaction" do
       with_two_connections do |original_connection, ddl_connection|
-        record = @klass.create! bar: 'bar'
+        record = @klass.create! bar: "bar"
 
         # prepare the reload statement in a transaction
         @klass.transaction do
@@ -83,7 +83,7 @@ class HotCompatibilityTest < ActiveRecord::TestCase
 
     test "cleans up after prepared statement failure in nested transactions" do
       with_two_connections do |original_connection, ddl_connection|
-        record = @klass.create! bar: 'bar'
+        record = @klass.create! bar: "bar"
 
         # prepare the reload statement in a transaction
         @klass.transaction do

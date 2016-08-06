@@ -13,7 +13,7 @@ class Company < AbstractCompany
 
   scope :of_first_firm, lambda {
     joins(:account => :firm).
-    where('firms.id' => 1)
+    where("firms.id" => 1)
   }
 
   def arbitrary_method
@@ -35,7 +35,7 @@ module Namespaced
   end
 
   class Firm < ::Company
-    has_many :clients, :class_name => 'Namespaced::Client'
+    has_many :clients, :class_name => "Namespaced::Client"
   end
 
   class Client < ::Company
@@ -57,33 +57,33 @@ class Firm < Company
   has_many :limited_clients, -> { limit 1 }, :class_name => "Client"
   has_many :clients_with_interpolated_conditions, ->(firm) { where "rating > #{firm.rating}" }, :class_name => "Client"
   has_many :clients_like_ms, -> { where("name = 'Microsoft'").order("id") }, :class_name => "Client"
-  has_many :clients_like_ms_with_hash_conditions, -> { where(:name => 'Microsoft').order("id") }, :class_name => "Client"
-  has_many :plain_clients, :class_name => 'Client'
-  has_many :clients_using_primary_key, :class_name => 'Client',
-           :primary_key => 'name', :foreign_key => 'firm_name'
-  has_many :clients_using_primary_key_with_delete_all, :class_name => 'Client',
-           :primary_key => 'name', :foreign_key => 'firm_name', :dependent => :delete_all
+  has_many :clients_like_ms_with_hash_conditions, -> { where(:name => "Microsoft").order("id") }, :class_name => "Client"
+  has_many :plain_clients, :class_name => "Client"
+  has_many :clients_using_primary_key, :class_name => "Client",
+           :primary_key => "name", :foreign_key => "firm_name"
+  has_many :clients_using_primary_key_with_delete_all, :class_name => "Client",
+           :primary_key => "name", :foreign_key => "firm_name", :dependent => :delete_all
   has_many :clients_grouped_by_firm_id, -> { group("firm_id").select("firm_id") }, :class_name => "Client"
   has_many :clients_grouped_by_name, -> { group("name").select("name") }, :class_name => "Client"
 
   has_one :account, :foreign_key => "firm_id", :dependent => :destroy, :validate => true
-  has_one :unvalidated_account, :foreign_key => "firm_id", :class_name => 'Account', :validate => false
-  has_one :account_with_select, -> { select("id, firm_id") }, :foreign_key => "firm_id", :class_name=>'Account'
+  has_one :unvalidated_account, :foreign_key => "firm_id", :class_name => "Account", :validate => false
+  has_one :account_with_select, -> { select("id, firm_id") }, :foreign_key => "firm_id", :class_name=>"Account"
   has_one :readonly_account, -> { readonly }, :foreign_key => "firm_id", :class_name => "Account"
   # added order by id as in fixtures there are two accounts for Rails Core
   # Oracle tests were failing because of that as the second fixture was selected
-  has_one :account_using_primary_key, -> { order('id') }, :primary_key => "firm_id", :class_name => "Account"
+  has_one :account_using_primary_key, -> { order("id") }, :primary_key => "firm_id", :class_name => "Account"
   has_one :account_using_foreign_and_primary_keys, :foreign_key => "firm_name", :primary_key => "name", :class_name => "Account"
-  has_one :account_with_inexistent_foreign_key, class_name: 'Account', foreign_key: "inexistent"
+  has_one :account_with_inexistent_foreign_key, class_name: "Account", foreign_key: "inexistent"
   has_one :deletable_account, :foreign_key => "firm_id", :class_name => "Account", :dependent => :delete
 
   has_one :account_limit_500_with_hash_conditions, -> { where :credit_limit => 500 }, :foreign_key => "firm_id", :class_name => "Account"
 
-  has_one :unautosaved_account, :foreign_key => "firm_id", :class_name => 'Account', :autosave => false
+  has_one :unautosaved_account, :foreign_key => "firm_id", :class_name => "Account", :autosave => false
   has_many :accounts
-  has_many :unautosaved_accounts, :foreign_key => "firm_id", :class_name => 'Account', :autosave => false
+  has_many :unautosaved_accounts, :foreign_key => "firm_id", :class_name => "Account", :autosave => false
 
-  has_many :association_with_references, -> { references(:foo) }, :class_name => 'Client'
+  has_many :association_with_references, -> { references(:foo) }, :class_name => "Client"
 
   has_one :lead_developer, class_name: "Developer"
   has_many :projects
@@ -104,18 +104,18 @@ end
 
 class DependentFirm < Company
   has_one :account, :foreign_key => "firm_id", :dependent => :nullify
-  has_many :companies, :foreign_key => 'client_of', :dependent => :nullify
-  has_one :company, :foreign_key => 'client_of', :dependent => :nullify
+  has_many :companies, :foreign_key => "client_of", :dependent => :nullify
+  has_one :company, :foreign_key => "client_of", :dependent => :nullify
 end
 
 class RestrictedWithExceptionFirm < Company
   has_one :account, -> { order("id") }, :foreign_key => "firm_id", :dependent => :restrict_with_exception
-  has_many :companies, -> { order("id") }, :foreign_key => 'client_of', :dependent => :restrict_with_exception
+  has_many :companies, -> { order("id") }, :foreign_key => "client_of", :dependent => :restrict_with_exception
 end
 
 class RestrictedWithErrorFirm < Company
   has_one :account, -> { order("id") }, :foreign_key => "firm_id", :dependent => :restrict_with_error
-  has_many :companies, -> { order("id") }, :foreign_key => 'client_of', :dependent => :restrict_with_error
+  has_many :companies, -> { order("id") }, :foreign_key => "client_of", :dependent => :restrict_with_error
 end
 
 class Client < Company
@@ -183,7 +183,7 @@ end
 class ExclusivelyDependentFirm < Company
   has_one :account, :foreign_key => "firm_id", :dependent => :delete
   has_many :dependent_sanitized_conditional_clients_of_firm, -> { order("id").where("name = 'BigShot Inc.'") }, :foreign_key => "client_of", :class_name => "Client", :dependent => :delete_all
-  has_many :dependent_conditional_clients_of_firm, -> { order("id").where("name = ?", 'BigShot Inc.') }, :foreign_key => "client_of", :class_name => "Client", :dependent => :delete_all
+  has_many :dependent_conditional_clients_of_firm, -> { order("id").where("name = ?", "BigShot Inc.") }, :foreign_key => "client_of", :class_name => "Client", :dependent => :delete_all
 end
 
 class SpecialClient < Client
@@ -193,7 +193,7 @@ class VerySpecialClient < SpecialClient
 end
 
 class Account < ActiveRecord::Base
-  belongs_to :firm, :class_name => 'Company'
+  belongs_to :firm, :class_name => "Company"
   belongs_to :unautosaved_firm, :foreign_key => "firm_id", :class_name => "Firm", :autosave => false
 
   alias_attribute :available_credit, :credit_limit
@@ -204,7 +204,7 @@ class Account < ActiveRecord::Base
 
   # Test private kernel method through collection proxy using has_many.
   def self.open
-    where('firm_name = ?', '37signals')
+    where("firm_name = ?", "37signals")
   end
 
   before_destroy do |account|

@@ -140,7 +140,7 @@ class ActiveRecord::Relation
 
     test "ast removes any empty strings" do
       where_clause = WhereClause.new([table["id"].in([1, 2, 3])], [])
-      where_clause_with_empty = WhereClause.new([table["id"].in([1, 2, 3]), ''], [])
+      where_clause_with_empty = WhereClause.new([table["id"].in([1, 2, 3]), ""], [])
 
       assert_equal where_clause.ast, where_clause_with_empty.ast
     end

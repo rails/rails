@@ -1,5 +1,5 @@
 require "cases/helper"
-require 'support/connection_helper'
+require "support/connection_helper"
 
 class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
   include ConnectionHelper
@@ -102,13 +102,13 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
 
   def test_create_mysql_database_with_encoding
     assert_equal "CREATE DATABASE `matt` DEFAULT CHARACTER SET `utf8`", create_database(:matt)
-    assert_equal "CREATE DATABASE `aimonetti` DEFAULT CHARACTER SET `latin1`", create_database(:aimonetti, {:charset => 'latin1'})
+    assert_equal "CREATE DATABASE `aimonetti` DEFAULT CHARACTER SET `latin1`", create_database(:aimonetti, {:charset => "latin1"})
     assert_equal "CREATE DATABASE `matt_aimonetti` DEFAULT CHARACTER SET `big5` COLLATE `big5_chinese_ci`", create_database(:matt_aimonetti, {:charset => :big5, :collation => :big5_chinese_ci})
   end
 
   def test_recreate_mysql_database_with_encoding
-    create_database(:luca, {:charset => 'latin1'})
-    assert_equal "CREATE DATABASE `luca` DEFAULT CHARACTER SET `latin1`", recreate_database(:luca, {:charset => 'latin1'})
+    create_database(:luca, {:charset => "latin1"})
+    assert_equal "CREATE DATABASE `luca` DEFAULT CHARACTER SET `latin1`", recreate_database(:luca, {:charset => "latin1"})
   end
 
   def test_add_column
@@ -120,7 +120,7 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_drop_table_with_specific_database
-    assert_equal "DROP TABLE `otherdb`.`people`", drop_table('otherdb.people')
+    assert_equal "DROP TABLE `otherdb`.`people`", drop_table("otherdb.people")
   end
 
   def test_add_timestamps
@@ -128,8 +128,8 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
       begin
         ActiveRecord::Base.connection.create_table :delete_me
         ActiveRecord::Base.connection.add_timestamps :delete_me, null: true
-        assert column_present?('delete_me', 'updated_at', 'datetime')
-        assert column_present?('delete_me', 'created_at', 'datetime')
+        assert column_present?("delete_me", "updated_at", "datetime")
+        assert column_present?("delete_me", "created_at", "datetime")
       ensure
         ActiveRecord::Base.connection.drop_table :delete_me rescue nil
       end
@@ -143,8 +143,8 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
           t.timestamps null: true
         end
         ActiveRecord::Base.connection.remove_timestamps :delete_me, { null: true }
-        assert !column_present?('delete_me', 'updated_at', 'datetime')
-        assert !column_present?('delete_me', 'created_at', 'datetime')
+        assert !column_present?("delete_me", "updated_at", "datetime")
+        assert !column_present?("delete_me", "created_at", "datetime")
       ensure
         ActiveRecord::Base.connection.drop_table :delete_me rescue nil
       end
@@ -185,6 +185,6 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
 
     def column_present?(table_name, column_name, type)
       results = ActiveRecord::Base.connection.select_all("SHOW FIELDS FROM #{table_name} LIKE '#{column_name}'")
-      results.first && results.first['Type'] == type
+      results.first && results.first["Type"] == type
     end
 end

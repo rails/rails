@@ -1,6 +1,6 @@
-require 'cases/helper'
-require 'support/ddl_helper'
-require 'support/schema_dumping_helper'
+require "cases/helper"
+require "support/ddl_helper"
+require "support/schema_dumping_helper"
 
 if ActiveRecord::Base.connection.supports_foreign_keys?
 module ActiveRecord
@@ -268,7 +268,7 @@ module ActiveRecord
       end
 
       def test_add_foreign_key_with_prefix
-        ActiveRecord::Base.table_name_prefix = 'p_'
+        ActiveRecord::Base.table_name_prefix = "p_"
         migration = CreateSchoolsAndClassesMigration.new
         silence_stream($stdout) { migration.migrate(:up) }
         assert_equal 1, @connection.foreign_keys("p_classes").size
@@ -278,7 +278,7 @@ module ActiveRecord
       end
 
       def test_add_foreign_key_with_suffix
-        ActiveRecord::Base.table_name_suffix = '_s'
+        ActiveRecord::Base.table_name_suffix = "_s"
         migration = CreateSchoolsAndClassesMigration.new
         silence_stream($stdout) { migration.migrate(:up) }
         assert_equal 1, @connection.foreign_keys("classes_s").size

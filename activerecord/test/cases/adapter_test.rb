@@ -100,31 +100,31 @@ module ActiveRecord
 
     def test_current_database
       if @connection.respond_to?(:current_database)
-        assert_equal ARTest.connection_config['arunit']['database'], @connection.current_database
+        assert_equal ARTest.connection_config["arunit"]["database"], @connection.current_database
       end
     end
 
     if current_adapter?(:Mysql2Adapter)
       def test_charset
         assert_not_nil @connection.charset
-        assert_not_equal 'character_set_database', @connection.charset
-        assert_equal @connection.show_variable('character_set_database'), @connection.charset
+        assert_not_equal "character_set_database", @connection.charset
+        assert_equal @connection.show_variable("character_set_database"), @connection.charset
       end
 
       def test_collation
         assert_not_nil @connection.collation
-        assert_not_equal 'collation_database', @connection.collation
-        assert_equal @connection.show_variable('collation_database'), @connection.collation
+        assert_not_equal "collation_database", @connection.collation
+        assert_equal @connection.show_variable("collation_database"), @connection.collation
       end
 
       def test_show_nonexistent_variable_returns_nil
-        assert_nil @connection.show_variable('foo_bar_baz')
+        assert_nil @connection.show_variable("foo_bar_baz")
       end
 
       def test_not_specifying_database_name_for_cross_database_selects
         begin
           assert_nothing_raised do
-            ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations['arunit'].except(:database))
+            ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["arunit"].except(:database))
 
             config = ARTest.connection_config
             ActiveRecord::Base.connection.execute(
@@ -145,9 +145,9 @@ module ActiveRecord
         alias_method :table_alias_length,     :test_table_alias_length
       end
 
-      assert_equal 'posts',      @connection.table_alias_for('posts')
-      assert_equal 'posts_comm', @connection.table_alias_for('posts_comments')
-      assert_equal 'dbo_posts',  @connection.table_alias_for('dbo.posts')
+      assert_equal "posts",      @connection.table_alias_for("posts")
+      assert_equal "posts_comm", @connection.table_alias_for("posts_comments")
+      assert_equal "dbo_posts",  @connection.table_alias_for("dbo.posts")
 
       class << @connection
         remove_method :table_alias_length
@@ -157,20 +157,20 @@ module ActiveRecord
 
     # test resetting sequences in odd tables in PostgreSQL
     if ActiveRecord::Base.connection.respond_to?(:reset_pk_sequence!)
-      require 'models/movie'
-      require 'models/subscriber'
+      require "models/movie"
+      require "models/subscriber"
 
       def test_reset_empty_table_with_custom_pk
         Movie.delete_all
-        Movie.connection.reset_pk_sequence! 'movies'
-        assert_equal 1, Movie.create(:name => 'fight club').id
+        Movie.connection.reset_pk_sequence! "movies"
+        assert_equal 1, Movie.create(:name => "fight club").id
       end
 
       def test_reset_table_with_non_integer_pk
         Subscriber.delete_all
-        Subscriber.connection.reset_pk_sequence! 'subscribers'
-        sub = Subscriber.new(:name => 'robert drake')
-        sub.id = 'bob drake'
+        Subscriber.connection.reset_pk_sequence! "subscribers"
+        sub = Subscriber.new(:name => "robert drake")
+        sub.id = "bob drake"
         assert_nothing_raised { sub.save! }
       end
     end
@@ -201,7 +201,7 @@ module ActiveRecord
 
       def test_foreign_key_violations_are_translated_to_specific_exception_with_validate_false
         klass_has_fk = Class.new(ActiveRecord::Base) do
-          self.table_name = 'fk_test_has_fk'
+          self.table_name = "fk_test_has_fk"
         end
 
         error = assert_raises(ActiveRecord::InvalidForeignKey) do
@@ -215,7 +215,7 @@ module ActiveRecord
 
       def test_value_limit_violations_are_translated_to_specific_exception
         error = assert_raises(ActiveRecord::ValueTooLong) do
-          Event.create(title: 'abcdefgh')
+          Event.create(title: "abcdefgh")
         end
 
         assert_not_nil error.cause
@@ -245,9 +245,9 @@ module ActiveRecord
     end
 
     def test_select_methods_passing_a_association_relation
-      author = Author.create!(name: 'john')
-      Post.create!(author: author, title: 'foo', body: 'bar')
-      query = author.posts.where(title: 'foo').select(:title)
+      author = Author.create!(name: "john")
+      Post.create!(author: author, title: "foo", body: "bar")
+      query = author.posts.where(title: "foo").select(:title)
       assert_equal({"title" => "foo"}, @connection.select_one(query.arel, nil, query.bound_attributes))
       assert_equal({"title" => "foo"}, @connection.select_one(query))
       assert @connection.select_all(query).is_a?(ActiveRecord::Result)
@@ -256,8 +256,8 @@ module ActiveRecord
     end
 
     def test_select_methods_passing_a_relation
-      Post.create!(title: 'foo', body: 'bar')
-      query = Post.where(title: 'foo').select(:title)
+      Post.create!(title: "foo", body: "bar")
+      query = Post.where(title: "foo").select(:title)
       assert_equal({"title" => "foo"}, @connection.select_one(query.arel, nil, query.bound_attributes))
       assert_equal({"title" => "foo"}, @connection.select_one(query))
       assert @connection.select_all(query).is_a?(ActiveRecord::Result)
@@ -273,7 +273,7 @@ module ActiveRecord
       def test_log_invalid_encoding
         error = assert_raise ActiveRecord::StatementInvalid do
           @connection.send :log, "SELECT 'ы' FROM DUAL" do
-            raise 'ы'.force_encoding(Encoding::ASCII_8BIT)
+            raise "ы".force_encoding(Encoding::ASCII_8BIT)
           end
         end
 

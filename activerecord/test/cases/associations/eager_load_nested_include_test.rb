@@ -1,11 +1,11 @@
-require 'cases/helper'
-require 'models/post'
-require 'models/tag'
-require 'models/author'
-require 'models/comment'
-require 'models/category'
-require 'models/categorization'
-require 'models/tagging'
+require "cases/helper"
+require "models/post"
+require "models/tag"
+require "models/author"
+require "models/comment"
+require "models/category"
+require "models/categorization"
+require "models/tagging"
 
 module Remembered
   extend ActiveSupport::Concern
@@ -103,9 +103,9 @@ end
 
 class EagerLoadNestedIncludeWithMissingDataTest < ActiveRecord::TestCase
   def setup
-    @davey_mcdave = Author.create(:name => 'Davey McDave')
-    @first_post = @davey_mcdave.posts.create(:title => 'Davey Speaks', :body => 'Expressive wordage')
-    @first_comment = @first_post.comments.create(:body => 'Inflamatory doublespeak')
+    @davey_mcdave = Author.create(:name => "Davey McDave")
+    @first_post = @davey_mcdave.posts.create(:title => "Davey Speaks", :body => "Expressive wordage")
+    @first_comment = @first_post.comments.create(:body => "Inflamatory doublespeak")
     @first_categorization = @davey_mcdave.categorizations.create(:category => Category.first, :post => @first_post)
   end
 
@@ -120,7 +120,7 @@ class EagerLoadNestedIncludeWithMissingDataTest < ActiveRecord::TestCase
     assert_nothing_raised do
       # @davey_mcdave doesn't have any author_favorites
       includes = {:posts => :comments, :categorizations => :category, :author_favorites => :favorite_author }
-      Author.all.merge!(:includes => includes, :where => {:authors => {:name => @davey_mcdave.name}}, :order => 'categories.name').to_a
+      Author.all.merge!(:includes => includes, :where => {:authors => {:name => @davey_mcdave.name}}, :order => "categories.name").to_a
     end
   end
 end

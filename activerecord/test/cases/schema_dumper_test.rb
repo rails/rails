@@ -1,5 +1,5 @@
 require "cases/helper"
-require 'support/schema_dumping_helper'
+require "support/schema_dumping_helper"
 
 class SchemaDumperTest < ActiveRecord::TestCase
   include SchemaDumpingHelper
@@ -169,7 +169,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
   end
 
   def test_schema_dump_with_string_ignored_table
-    output = dump_all_table_schema(['accounts'])
+    output = dump_all_table_schema(["accounts"])
     assert_no_match %r{create_table "accounts"}, output
     assert_match %r{create_table "authors"}, output
     assert_no_match %r{create_table "schema_migrations"}, output
@@ -289,7 +289,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
       def test_schema_dump_includes_extensions
         connection = ActiveRecord::Base.connection
 
-        connection.stubs(:extensions).returns(['hstore'])
+        connection.stubs(:extensions).returns(["hstore"])
         output = perform_schema_dump
         assert_match "# These are extensions that must be enabled", output
         assert_match %r{enable_extension "hstore"}, output
@@ -359,8 +359,8 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_schema_dump_with_table_name_prefix_and_suffix
     original, $stdout = $stdout, StringIO.new
-    ActiveRecord::Base.table_name_prefix = 'foo_'
-    ActiveRecord::Base.table_name_suffix = '_bar'
+    ActiveRecord::Base.table_name_prefix = "foo_"
+    ActiveRecord::Base.table_name_suffix = "_bar"
 
     migration = CreateDogMigration.new
     migration.migrate(:up)
@@ -378,7 +378,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
   ensure
     migration.migrate(:down)
 
-    ActiveRecord::Base.table_name_suffix = ActiveRecord::Base.table_name_prefix = ''
+    ActiveRecord::Base.table_name_suffix = ActiveRecord::Base.table_name_prefix = ""
     $stdout = original
   end
 
@@ -396,7 +396,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
     original_table_name_prefix = ActiveRecord::Base.table_name_prefix
     original_schema_dumper_ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
-    ActiveRecord::Base.table_name_prefix = 'omg_'
+    ActiveRecord::Base.table_name_prefix = "omg_"
     ActiveRecord::SchemaDumper.ignore_tables = ["cats"]
     migration = create_cat_migration.new
     migration.migrate(:up)
@@ -422,7 +422,7 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
     @connection = ActiveRecord::Base.connection
     @connection.create_table :defaults, force: true do |t|
       t.string   :string_with_default,   default: "Hello!"
-      t.date     :date_with_default,     default: '2014-06-05'
+      t.date     :date_with_default,     default: "2014-06-05"
       t.datetime :datetime_with_default, default: "2014-06-05 07:17:04"
       t.time     :time_with_default,     default: "07:17:04"
     end
@@ -430,11 +430,11 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
 
   teardown do
     return unless @connection
-    @connection.drop_table 'defaults', if_exists: true
+    @connection.drop_table "defaults", if_exists: true
   end
 
   def test_schema_dump_defaults_with_universally_supported_types
-    output = dump_table_schema('defaults')
+    output = dump_table_schema("defaults")
 
     assert_match %r{t\.string\s+"string_with_default",.*?default: "Hello!"}, output
     assert_match %r{t\.date\s+"date_with_default",\s+default: '2014-06-05'}, output

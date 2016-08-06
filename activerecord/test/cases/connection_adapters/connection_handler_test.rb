@@ -6,18 +6,18 @@ module ActiveRecord
       def setup
         @handler = ConnectionHandler.new
         @spec_name = "primary"
-        @pool    = @handler.establish_connection(ActiveRecord::Base.configurations['arunit'])
+        @pool    = @handler.establish_connection(ActiveRecord::Base.configurations["arunit"])
       end
 
       def test_establish_connection_uses_spec_name
-        config = {"readonly" => {"adapter" => 'sqlite3'}}
+        config = {"readonly" => {"adapter" => "sqlite3"}}
         resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(config)
         spec =   resolver.spec(:readonly)
         @handler.establish_connection(spec.to_hash)
 
-        assert_not_nil @handler.retrieve_connection_pool('readonly')
+        assert_not_nil @handler.retrieve_connection_pool("readonly")
       ensure
-        @handler.remove_connection('readonly')
+        @handler.remove_connection("readonly")
       end
 
       def test_retrieve_connection
@@ -68,7 +68,7 @@ module ActiveRecord
 
         def test_retrieve_connection_pool_copies_schema_cache_from_ancestor_pool
           @pool.schema_cache = @pool.connection.schema_cache
-          @pool.schema_cache.add('posts')
+          @pool.schema_cache.add("posts")
 
           rd, wr = IO.pipe
           rd.binmode
@@ -90,7 +90,7 @@ module ActiveRecord
         end
 
         def test_a_class_using_custom_pool_and_switching_back_to_primary
-          klass2 = Class.new(Base) { def self.name; 'klass2'; end }
+          klass2 = Class.new(Base) { def self.name; "klass2"; end }
 
           assert_equal klass2.connection.object_id, ActiveRecord::Base.connection.object_id
 
@@ -113,7 +113,7 @@ module ActiveRecord
         end
 
         def test_remove_connection_should_not_remove_parent
-          klass2 = Class.new(Base) { def self.name; 'klass2'; end }
+          klass2 = Class.new(Base) { def self.name; "klass2"; end }
           klass2.remove_connection
           refute_nil ActiveRecord::Base.connection.object_id
           assert_equal klass2.connection.object_id, ActiveRecord::Base.connection.object_id

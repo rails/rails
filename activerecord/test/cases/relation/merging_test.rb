@@ -1,20 +1,20 @@
-require 'cases/helper'
-require 'models/author'
-require 'models/comment'
-require 'models/developer'
-require 'models/computer'
-require 'models/post'
-require 'models/project'
-require 'models/rating'
+require "cases/helper"
+require "models/author"
+require "models/comment"
+require "models/developer"
+require "models/computer"
+require "models/post"
+require "models/project"
+require "models/rating"
 
 class RelationMergingTest < ActiveRecord::TestCase
   fixtures :developers, :comments, :authors, :posts
 
   def test_relation_merging
-    devs = Developer.where("salary >= 80000").merge(Developer.limit(2)).merge(Developer.order('id ASC').where("id < 3"))
+    devs = Developer.where("salary >= 80000").merge(Developer.limit(2)).merge(Developer.order("id ASC").where("id < 3"))
     assert_equal [developers(:david), developers(:jamis)], devs.to_a
 
-    dev_with_count = Developer.limit(1).merge(Developer.order('id DESC')).merge(Developer.select('developers.*'))
+    dev_with_count = Developer.limit(1).merge(Developer.order("id DESC")).merge(Developer.select("developers.*"))
     assert_equal [developers(:poor_jamis)], dev_with_count.to_a
   end
 
@@ -34,10 +34,10 @@ class RelationMergingTest < ActiveRecord::TestCase
   def test_relation_merging_with_arel_equalities_keeps_last_equality_with_non_attribute_left_hand
     salary_attr = Developer.arel_table[:salary]
     devs = Developer.where(
-      Arel::Nodes::NamedFunction.new('abs', [salary_attr]).eq(80000)
+      Arel::Nodes::NamedFunction.new("abs", [salary_attr]).eq(80000)
     ).merge(
       Developer.where(
-        Arel::Nodes::NamedFunction.new('abs', [salary_attr]).eq(9000)
+        Arel::Nodes::NamedFunction.new("abs", [salary_attr]).eq(9000)
       )
     )
     assert_equal [developers(:poor_jamis)], devs.to_a
@@ -45,8 +45,8 @@ class RelationMergingTest < ActiveRecord::TestCase
 
   def test_relation_merging_with_eager_load
     relations = []
-    relations << Post.order('comments.id DESC').merge(Post.eager_load(:last_comment)).merge(Post.all)
-    relations << Post.eager_load(:last_comment).merge(Post.order('comments.id DESC')).merge(Post.all)
+    relations << Post.order("comments.id DESC").merge(Post.eager_load(:last_comment)).merge(Post.all)
+    relations << Post.eager_load(:last_comment).merge(Post.order("comments.id DESC")).merge(Post.all)
 
     relations.each do |posts|
       post = posts.find { |p| p.id == 1 }
@@ -66,14 +66,14 @@ class RelationMergingTest < ActiveRecord::TestCase
   end
 
   def test_relation_merging_with_joins
-    comments = Comment.joins(:post).where(:body => 'Thank you for the welcome').merge(Post.where(:body => 'Such a lovely day'))
+    comments = Comment.joins(:post).where(:body => "Thank you for the welcome").merge(Post.where(:body => "Such a lovely day"))
     assert_equal 1, comments.count
   end
 
   def test_relation_merging_with_association
     assert_queries(2) do  # one for loading post, and another one merged query
-      post = Post.where(:body => 'Such a lovely day').first
-      comments = Comment.where(:body => 'Thank you for the welcome').merge(post.comments)
+      post = Post.where(:body => "Such a lovely day").first
+      comments = Comment.where(:body => "Thank you for the welcome").merge(post.comments)
       assert_equal 1, comments.count
     end
   end

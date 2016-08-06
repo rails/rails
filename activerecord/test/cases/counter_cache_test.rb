@@ -1,30 +1,30 @@
-require 'cases/helper'
-require 'models/topic'
-require 'models/car'
-require 'models/aircraft'
-require 'models/wheel'
-require 'models/engine'
-require 'models/reply'
-require 'models/category'
-require 'models/categorization'
-require 'models/dog'
-require 'models/dog_lover'
-require 'models/person'
-require 'models/friendship'
-require 'models/subscriber'
-require 'models/subscription'
-require 'models/book'
+require "cases/helper"
+require "models/topic"
+require "models/car"
+require "models/aircraft"
+require "models/wheel"
+require "models/engine"
+require "models/reply"
+require "models/category"
+require "models/categorization"
+require "models/dog"
+require "models/dog_lover"
+require "models/person"
+require "models/friendship"
+require "models/subscriber"
+require "models/subscription"
+require "models/book"
 
 class CounterCacheTest < ActiveRecord::TestCase
   fixtures :topics, :categories, :categorizations, :cars, :dogs, :dog_lovers, :people, :friendships, :subscribers, :subscriptions, :books
 
   class ::SpecialTopic < ::Topic
-    has_many :special_replies, :foreign_key => 'parent_id'
-    has_many :lightweight_special_replies, -> { select('topics.id, topics.title') }, :foreign_key => 'parent_id', :class_name => 'SpecialReply'
+    has_many :special_replies, :foreign_key => "parent_id"
+    has_many :lightweight_special_replies, -> { select("topics.id, topics.title") }, :foreign_key => "parent_id", :class_name => "SpecialReply"
   end
 
   class ::SpecialReply < ::Reply
-    belongs_to :special_topic, :foreign_key => 'parent_id', :counter_cache => 'replies_count'
+    belongs_to :special_topic, :foreign_key => "parent_id", :counter_cache => "replies_count"
   end
 
   setup do
@@ -32,13 +32,13 @@ class CounterCacheTest < ActiveRecord::TestCase
   end
 
   test "increment counter" do
-    assert_difference '@topic.reload.replies_count' do
+    assert_difference "@topic.reload.replies_count" do
       Topic.increment_counter(:replies_count, @topic.id)
     end
   end
 
   test "decrement counter" do
-    assert_difference '@topic.reload.replies_count', -1 do
+    assert_difference "@topic.reload.replies_count", -1 do
       Topic.decrement_counter(:replies_count, @topic.id)
     end
   end
@@ -48,7 +48,7 @@ class CounterCacheTest < ActiveRecord::TestCase
     Topic.increment_counter(:replies_count, @topic.id)
 
     # check that it gets reset
-    assert_difference '@topic.reload.replies_count', -1 do
+    assert_difference "@topic.reload.replies_count", -1 do
       Topic.reset_counters(@topic.id, :replies)
     end
   end
@@ -58,31 +58,31 @@ class CounterCacheTest < ActiveRecord::TestCase
     Topic.increment_counter(:replies_count, @topic.id)
 
     # check that it gets reset
-    assert_difference '@topic.reload.replies_count', -1 do
+    assert_difference "@topic.reload.replies_count", -1 do
       Topic.reset_counters(@topic.id, :replies_count)
     end
   end
 
-  test 'reset multiple counters' do
+  test "reset multiple counters" do
     Topic.update_counters @topic.id, replies_count: 1, unique_replies_count: 1
-    assert_difference ['@topic.reload.replies_count', '@topic.reload.unique_replies_count'], -1 do
+    assert_difference ["@topic.reload.replies_count", "@topic.reload.unique_replies_count"], -1 do
       Topic.reset_counters(@topic.id, :replies, :unique_replies)
     end
   end
 
   test "reset counters with string argument" do
-    Topic.increment_counter('replies_count', @topic.id)
+    Topic.increment_counter("replies_count", @topic.id)
 
-    assert_difference '@topic.reload.replies_count', -1 do
-      Topic.reset_counters(@topic.id, 'replies')
+    assert_difference "@topic.reload.replies_count", -1 do
+      Topic.reset_counters(@topic.id, "replies")
     end
   end
 
   test "reset counters with modularized and camelized classnames" do
-    special = SpecialTopic.create!(:title => 'Special')
+    special = SpecialTopic.create!(:title => "Special")
     SpecialTopic.increment_counter(:replies_count, special.id)
 
-    assert_difference 'special.reload.replies_count', -1 do
+    assert_difference "special.reload.replies_count", -1 do
       SpecialTopic.reset_counters(special.id, :special_replies)
     end
   end
@@ -103,10 +103,10 @@ class CounterCacheTest < ActiveRecord::TestCase
     DogLover.increment_counter(:bred_dogs_count, david.id)
     DogLover.increment_counter(:trained_dogs_count, david.id)
 
-    assert_difference 'david.reload.bred_dogs_count', -1 do
+    assert_difference "david.reload.bred_dogs_count", -1 do
       DogLover.reset_counters(david.id, :bred_dogs)
     end
-    assert_difference 'david.reload.trained_dogs_count', -1 do
+    assert_difference "david.reload.trained_dogs_count", -1 do
       DogLover.reset_counters(david.id, :trained_dogs)
     end
   end
@@ -121,7 +121,7 @@ class CounterCacheTest < ActiveRecord::TestCase
   end
 
   test "update counter for decrement" do
-    assert_difference '@topic.reload.replies_count', -3 do
+    assert_difference "@topic.reload.replies_count", -3 do
       Topic.update_counters(@topic.id, :replies_count => -3)
     end
   end
@@ -129,13 +129,13 @@ class CounterCacheTest < ActiveRecord::TestCase
   test "update counters of multiple records" do
     t1, t2 = topics(:first, :second)
 
-    assert_difference ['t1.reload.replies_count', 't2.reload.replies_count'], 2 do
+    assert_difference ["t1.reload.replies_count", "t2.reload.replies_count"], 2 do
       Topic.update_counters([t1.id, t2.id], :replies_count => 2)
     end
   end
 
-  test 'update multiple counters' do
-    assert_difference ['@topic.reload.replies_count', '@topic.reload.unique_replies_count'], 2 do
+  test "update multiple counters" do
+    assert_difference ["@topic.reload.replies_count", "@topic.reload.unique_replies_count"], 2 do
       Topic.update_counters @topic.id, replies_count: 2, unique_replies_count: 2
     end
   end
@@ -144,7 +144,7 @@ class CounterCacheTest < ActiveRecord::TestCase
     david, joanna = dog_lovers(:david, :joanna)
     joanna = joanna # squelch a warning
 
-    assert_difference 'joanna.reload.dogs_count', -1 do
+    assert_difference "joanna.reload.dogs_count", -1 do
       david.destroy
     end
   end
@@ -157,12 +157,12 @@ class CounterCacheTest < ActiveRecord::TestCase
   end
 
   test "reset counter of has_many :through association" do
-    subscriber = subscribers('second')
-    Subscriber.reset_counters(subscriber.id, 'books')
-    Subscriber.increment_counter('books_count', subscriber.id)
+    subscriber = subscribers("second")
+    Subscriber.reset_counters(subscriber.id, "books")
+    Subscriber.increment_counter("books_count", subscriber.id)
 
-    assert_difference 'subscriber.reload.books_count', -1 do
-      Subscriber.reset_counters(subscriber.id, 'books')
+    assert_difference "subscriber.reload.books_count", -1 do
+      Subscriber.reset_counters(subscriber.id, "books")
     end
   end
 
@@ -174,10 +174,10 @@ class CounterCacheTest < ActiveRecord::TestCase
   end
 
   test "reset counter works with select declared on association" do
-    special = SpecialTopic.create!(:title => 'Special')
+    special = SpecialTopic.create!(:title => "Special")
     SpecialTopic.increment_counter(:replies_count, special.id)
 
-    assert_difference 'special.reload.replies_count', -1 do
+    assert_difference "special.reload.replies_count", -1 do
       SpecialTopic.reset_counters(special.id, :lightweight_special_replies)
     end
   end
@@ -203,11 +203,11 @@ class CounterCacheTest < ActiveRecord::TestCase
   test "update counters in a polymorphic relationship" do
     aircraft = Aircraft.create!
 
-    assert_difference 'aircraft.reload.wheels_count' do
+    assert_difference "aircraft.reload.wheels_count" do
       aircraft.wheels << Wheel.create!
     end
 
-    assert_difference 'aircraft.reload.wheels_count', -1 do
+    assert_difference "aircraft.reload.wheels_count", -1 do
       aircraft.wheels.first.destroy
     end
   end

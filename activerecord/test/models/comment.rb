@@ -16,11 +16,11 @@ class Comment < ActiveRecord::Base
   belongs_to :first_post, :foreign_key => :post_id
   belongs_to :special_post_with_default_scope, foreign_key: :post_id
 
-  has_many :children, :class_name => 'Comment', :foreign_key => :parent_id
-  belongs_to :parent, :class_name => 'Comment', :counter_cache => :children_count
+  has_many :children, :class_name => "Comment", :foreign_key => :parent_id
+  belongs_to :parent, :class_name => "Comment", :counter_cache => :children_count
 
   def self.what_are_you
-    'a comment...'
+    "a comment..."
   end
 
   def self.search_by_type(q)
@@ -55,6 +55,6 @@ class CommentThatAutomaticallyAltersPostBody < Comment
 end
 
 class CommentWithDefaultScopeReferencesAssociation < Comment
-  default_scope ->{ includes(:developer).order('developers.name').references(:developer) }
+  default_scope ->{ includes(:developer).order("developers.name").references(:developer) }
   belongs_to :developer
 end

@@ -1,28 +1,28 @@
-require 'cases/helper'
-require 'models/developer'
-require 'models/project'
-require 'models/company'
-require 'models/topic'
-require 'models/reply'
-require 'models/computer'
-require 'models/post'
-require 'models/author'
-require 'models/tag'
-require 'models/tagging'
-require 'models/comment'
-require 'models/sponsor'
-require 'models/member'
-require 'models/essay'
-require 'models/toy'
-require 'models/invoice'
-require 'models/line_item'
-require 'models/column'
-require 'models/record'
-require 'models/admin'
-require 'models/admin/user'
-require 'models/ship'
-require 'models/treasure'
-require 'models/parrot'
+require "cases/helper"
+require "models/developer"
+require "models/project"
+require "models/company"
+require "models/topic"
+require "models/reply"
+require "models/computer"
+require "models/post"
+require "models/author"
+require "models/tag"
+require "models/tagging"
+require "models/comment"
+require "models/sponsor"
+require "models/member"
+require "models/essay"
+require "models/toy"
+require "models/invoice"
+require "models/line_item"
+require "models/column"
+require "models/record"
+require "models/admin"
+require "models/admin/user"
+require "models/ship"
+require "models/treasure"
+require "models/parrot"
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -43,7 +43,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     ActiveRecord::SQLCounter.clear_log
     Client.find(3).firm
   ensure
-    assert ActiveRecord::SQLCounter.log_all.all? { |sql| /order by/i !~ sql }, 'ORDER BY was used in the query'
+    assert ActiveRecord::SQLCounter.log_all.all? { |sql| /order by/i !~ sql }, "ORDER BY was used in the query"
   end
 
   def test_belongs_to_with_primary_key
@@ -120,12 +120,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     counter = 0
 
     comments = Class.new(ActiveRecord::Base) {
-      self.table_name = 'comments'
-      self.inheritance_column = 'not_there'
+      self.table_name = "comments"
+      self.inheritance_column = "not_there"
 
       posts = Class.new(ActiveRecord::Base) {
-        self.table_name = 'posts'
-        self.inheritance_column = 'not_there'
+        self.table_name = "posts"
+        self.inheritance_column = "not_there"
 
         default_scope -> {
           counter += 1
@@ -166,7 +166,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     Admin.const_set "Region", Class.new(ActiveRecord::Base)
 
     e = assert_raise(ActiveRecord::AssociationTypeMismatch) {
-      Admin::RegionalUser.new(region: 'wrong value')
+      Admin::RegionalUser.new(region: "wrong value")
     }
     assert_match(/^Region\([^)]+\) expected, got "wrong value" which is an instance of String\([^)]+\)$/, e.message)
   ensure
@@ -325,7 +325,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     sponsor.association(:sponsorable).reload
     assert_nil sponsor.sponsorable
 
-    sponsor.sponsorable_type = '' # the column doesn't have to be declared NOT NULL
+    sponsor.sponsorable_type = "" # the column doesn't have to be declared NOT NULL
     assert_nil sponsor.association(:sponsorable).send(:klass)
     sponsor.association(:sponsorable).reload
     assert_nil sponsor.sponsorable
@@ -352,10 +352,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_belongs_to_without_counter_cache_option
     # Ship has a conventionally named `treasures_count` column, but the counter_cache
     # option is not given on the association.
-    ship = Ship.create(name: 'Countless')
+    ship = Ship.create(name: "Countless")
 
     assert_no_difference lambda { ship.reload.treasures_count }, "treasures_count should not be changed unless counter_cache is given on the relation" do
-      treasure = Treasure.new(name: 'Gold', ship: ship)
+      treasure = Treasure.new(name: "Gold", ship: ship)
       treasure.save
     end
 
@@ -820,7 +820,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_nil essay.writer_type
 
     essay.writer_id = 1
-    essay.writer_type = 'Author'
+    essay.writer_type = "Author"
 
     essay.writer = nil
     assert_nil essay.writer_id
@@ -872,11 +872,11 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     error = assert_raise ArgumentError do
       Class.new(Author).belongs_to :special_author_address, :dependent => :nullify
     end
-    assert_equal error.message, 'The :dependent option must be one of [:destroy, :delete], but is :nullify'
+    assert_equal error.message, "The :dependent option must be one of [:destroy, :delete], but is :nullify"
   end
 
   def test_attributes_are_being_set_when_initialized_from_belongs_to_association_with_where_clause
-    new_firm = accounts(:signals37).build_firm(:name => 'Apple')
+    new_firm = accounts(:signals37).build_firm(:name => "Apple")
     assert_equal new_firm.name, "Apple"
   end
 
@@ -930,7 +930,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert !proxy.stale_target?
     assert_equal members(:groucho), sponsor.sponsorable
 
-    sponsor.sponsorable_type = 'Firm'
+    sponsor.sponsorable_type = "Firm"
 
     assert proxy.stale_target?
     assert_equal companies(:first_firm), sponsor.sponsorable
@@ -955,7 +955,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     comment = comments(:greetings)
 
     assert_difference lambda { post.reload.tags_count }, -1 do
-      assert_difference 'comment.reload.tags_count', +1 do
+      assert_difference "comment.reload.tags_count", +1 do
         tagging.taggable = comment
       end
     end
@@ -1002,24 +1002,24 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_build_with_block
-    client = Client.create(:name => 'Client Company')
+    client = Client.create(:name => "Client Company")
 
-    firm = client.build_firm{ |f| f.name = 'Agency Company' }
-    assert_equal 'Agency Company', firm.name
+    firm = client.build_firm{ |f| f.name = "Agency Company" }
+    assert_equal "Agency Company", firm.name
   end
 
   def test_create_with_block
-    client = Client.create(:name => 'Client Company')
+    client = Client.create(:name => "Client Company")
 
-    firm = client.create_firm{ |f| f.name = 'Agency Company' }
-    assert_equal 'Agency Company', firm.name
+    firm = client.create_firm{ |f| f.name = "Agency Company" }
+    assert_equal "Agency Company", firm.name
   end
 
   def test_create_bang_with_block
-    client = Client.create(:name => 'Client Company')
+    client = Client.create(:name => "Client Company")
 
-    firm = client.create_firm!{ |f| f.name = 'Agency Company' }
-    assert_equal 'Agency Company', firm.name
+    firm = client.create_firm!{ |f| f.name = "Agency Company" }
+    assert_equal "Agency Company", firm.name
   end
 
   def test_should_set_foreign_key_on_create_association
@@ -1086,8 +1086,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal post.author_id, author2.id
   end
 
-  test 'dangerous association name raises ArgumentError' do
-    [:errors, 'errors', :save, 'save'].each do |name|
+  test "dangerous association name raises ArgumentError" do
+    [:errors, "errors", :save, "save"].each do |name|
       assert_raises(ArgumentError, "Association #{name} should not be allowed") do
         Class.new(ActiveRecord::Base) do
           belongs_to name
@@ -1096,7 +1096,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     end
   end
 
-  test 'belongs_to works with model called Record' do
+  test "belongs_to works with model called Record" do
     record = Record.create!
     Column.create! record: record
     assert_equal 1, Column.count

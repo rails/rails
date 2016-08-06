@@ -19,7 +19,7 @@ module ActiveRecord
 
     def test_where_copies_bind_params
       author = authors(:david)
-      posts  = author.posts.where('posts.id != 1')
+      posts  = author.posts.where("posts.id != 1")
       joined = Post.where(id: posts)
 
       assert_operator joined.length, :>, 0
@@ -49,7 +49,7 @@ module ActiveRecord
     end
 
     def test_rewhere_on_root
-      assert_equal posts(:welcome), Post.rewhere(title: 'Welcome to the weblog').first
+      assert_equal posts(:welcome), Post.rewhere(title: "Welcome to the weblog").first
     end
 
     def test_belongs_to_shallow_where
@@ -97,7 +97,7 @@ module ActiveRecord
       treasure = Treasure.new
       treasure.id = 1
 
-      expected = PriceEstimate.where(estimate_of_type: 'Treasure', estimate_of_id: 1)
+      expected = PriceEstimate.where(estimate_of_type: "Treasure", estimate_of_id: 1)
       actual   = PriceEstimate.where(estimate_of: treasure)
 
       assert_equal expected.to_sql, actual.to_sql
@@ -109,7 +109,7 @@ module ActiveRecord
       hidden = HiddenTreasure.new
       hidden.id = 2
 
-      expected = PriceEstimate.where(estimate_of_type: 'Treasure', estimate_of_id: [treasure, hidden])
+      expected = PriceEstimate.where(estimate_of_type: "Treasure", estimate_of_id: [treasure, hidden])
       actual   = PriceEstimate.where(estimate_of: [treasure, hidden])
 
       assert_equal expected.to_sql, actual.to_sql
@@ -127,7 +127,7 @@ module ActiveRecord
     end
 
     def test_polymorphic_nested_relation_where
-      expected = PriceEstimate.where(estimate_of_type: 'Treasure', estimate_of_id: Treasure.where(id: [1,2]))
+      expected = PriceEstimate.where(estimate_of_type: "Treasure", estimate_of_id: Treasure.where(id: [1,2]))
       actual   = PriceEstimate.where(estimate_of: Treasure.where(id: [1,2]))
 
       assert_equal expected.to_sql, actual.to_sql
@@ -137,7 +137,7 @@ module ActiveRecord
       treasure = HiddenTreasure.new
       treasure.id = 1
 
-      expected = PriceEstimate.where(estimate_of_type: 'Treasure', estimate_of_id: 1)
+      expected = PriceEstimate.where(estimate_of_type: "Treasure", estimate_of_id: 1)
       actual   = PriceEstimate.where(estimate_of: treasure)
 
       assert_equal expected.to_sql, actual.to_sql
@@ -147,7 +147,7 @@ module ActiveRecord
       thing = Post.new
       thing.id = 1
 
-      expected = Treasure.where(price_estimates: { thing_type: 'Post', thing_id: 1 }).joins(:price_estimates)
+      expected = Treasure.where(price_estimates: { thing_type: "Post", thing_id: 1 }).joins(:price_estimates)
       actual   = Treasure.where(price_estimates: { thing: thing }).joins(:price_estimates)
 
       assert_equal expected.to_sql, actual.to_sql
@@ -157,7 +157,7 @@ module ActiveRecord
       treasure = HiddenTreasure.new
       treasure.id = 1
 
-      expected = Treasure.where(price_estimates: { estimate_of_type: 'Treasure', estimate_of_id: 1 }).joins(:price_estimates)
+      expected = Treasure.where(price_estimates: { estimate_of_type: "Treasure", estimate_of_id: 1 }).joins(:price_estimates)
       actual   = Treasure.where(price_estimates: { estimate_of: treasure }).joins(:price_estimates)
 
       assert_equal expected.to_sql, actual.to_sql
@@ -182,28 +182,28 @@ module ActiveRecord
       treasure.id = 1
       decorated_treasure = treasure_decorator.new(treasure)
 
-      expected = PriceEstimate.where(estimate_of_type: 'Treasure', estimate_of_id: 1)
+      expected = PriceEstimate.where(estimate_of_type: "Treasure", estimate_of_id: 1)
       actual   = PriceEstimate.where(estimate_of: decorated_treasure)
 
       assert_equal expected.to_sql, actual.to_sql
     end
 
     def test_aliased_attribute
-      expected = Topic.where(heading: 'The First Topic')
-      actual   = Topic.where(title: 'The First Topic')
+      expected = Topic.where(heading: "The First Topic")
+      actual   = Topic.where(title: "The First Topic")
 
       assert_equal expected.to_sql, actual.to_sql
     end
 
     def test_where_error
       assert_raises(ActiveRecord::StatementInvalid) do
-        Post.where(:id => { 'posts.author_id' => 10 }).first
+        Post.where(:id => { "posts.author_id" => 10 }).first
       end
     end
 
     def test_where_with_table_name
       post = Post.first
-      assert_equal post, Post.where(:posts => { 'id' => post.id }).first
+      assert_equal post, Post.where(:posts => { "id" => post.id }).first
     end
 
     def test_where_with_table_name_and_empty_hash

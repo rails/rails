@@ -10,8 +10,8 @@ module ActiveRecord
 
       def test_boolean_types
         emulate_booleans(true) do
-          assert_lookup_type :boolean, 'tinyint(1)'
-          assert_lookup_type :boolean, 'TINYINT(1)'
+          assert_lookup_type :boolean, "tinyint(1)"
+          assert_lookup_type :boolean, "TINYINT(1)"
         end
       end
 
@@ -31,16 +31,16 @@ module ActiveRecord
       end
 
       def test_binary_types
-        assert_lookup_type :binary, 'bit'
-        assert_lookup_type :binary, 'BIT'
+        assert_lookup_type :binary, "bit"
+        assert_lookup_type :binary, "BIT"
       end
 
       def test_integer_types
         emulate_booleans(false) do
-          assert_lookup_type :integer, 'tinyint(1)'
-          assert_lookup_type :integer, 'TINYINT(1)'
-          assert_lookup_type :integer, 'year'
-          assert_lookup_type :integer, 'YEAR'
+          assert_lookup_type :integer, "tinyint(1)"
+          assert_lookup_type :integer, "TINYINT(1)"
+          assert_lookup_type :integer, "year"
+          assert_lookup_type :integer, "YEAR"
         end
       end
 

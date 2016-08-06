@@ -18,6 +18,6 @@ end
 class SuperClub < ActiveRecord::Base
   self.table_name = "clubs"
 
-  has_many :memberships, class_name: 'SuperMembership', foreign_key: 'club_id'
+  has_many :memberships, class_name: "SuperMembership", foreign_key: "club_id"
   has_many :members, through: :memberships
 end

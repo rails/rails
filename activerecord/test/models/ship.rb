@@ -2,9 +2,9 @@ class Ship < ActiveRecord::Base
   self.record_timestamps = false
 
   belongs_to :pirate
-  belongs_to :update_only_pirate, :class_name => 'Pirate'
+  belongs_to :update_only_pirate, :class_name => "Pirate"
   belongs_to :developer, dependent: :destroy
-  has_many :parts, :class_name => 'ShipPart'
+  has_many :parts, :class_name => "ShipPart"
   has_many :treasures
 
   accepts_nested_attributes_for :parts, :allow_destroy => true
@@ -33,7 +33,7 @@ class Prisoner < ActiveRecord::Base
 end
 
 class FamousShip < ActiveRecord::Base
-  self.table_name = 'ships'
+  self.table_name = "ships"
   belongs_to :famous_pirate
   validates_presence_of :name, on: :conference
 end

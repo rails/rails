@@ -14,7 +14,7 @@ module ActiveRecord
 
         def test_url_invalid_adapter
           error = assert_raises(LoadError) do
-            spec 'ridiculous://foo?encoding=utf8'
+            spec "ridiculous://foo?encoding=utf8"
           end
 
           assert_match "Could not load 'active_record/connection_adapters/ridiculous_adapter'", error.message
@@ -24,7 +24,7 @@ module ActiveRecord
         # checks that the adapter file can be required in.
 
         def test_url_from_environment
-          spec = resolve :production, 'production' => 'abstract://foo?encoding=utf8'
+          spec = resolve :production, "production" => "abstract://foo?encoding=utf8"
           assert_equal({
             "adapter"  =>  "abstract",
             "host"     =>  "foo",
@@ -33,7 +33,7 @@ module ActiveRecord
         end
 
         def test_url_sub_key
-          spec = resolve :production, 'production' => {"url" => 'abstract://foo?encoding=utf8'}
+          spec = resolve :production, "production" => {"url" => "abstract://foo?encoding=utf8"}
           assert_equal({
             "adapter"  => "abstract",
             "host"     => "foo",
@@ -42,8 +42,8 @@ module ActiveRecord
         end
 
         def test_url_sub_key_merges_correctly
-          hash = {"url" => 'abstract://foo?encoding=utf8&', "adapter" => "sqlite3", "host" => "bar", "pool" => "3"}
-          spec = resolve :production, 'production' => hash
+          hash = {"url" => "abstract://foo?encoding=utf8&", "adapter" => "sqlite3", "host" => "bar", "pool" => "3"}
+          spec = resolve :production, "production" => hash
           assert_equal({
             "adapter"  => "abstract",
             "host"     => "foo",
@@ -53,7 +53,7 @@ module ActiveRecord
         end
 
         def test_url_host_no_db
-          spec = resolve 'abstract://foo?encoding=utf8'
+          spec = resolve "abstract://foo?encoding=utf8"
           assert_equal({
             "adapter"  => "abstract",
             "host"     => "foo",
@@ -61,13 +61,13 @@ module ActiveRecord
         end
 
         def test_url_missing_scheme
-          spec = resolve 'foo'
+          spec = resolve "foo"
           assert_equal({
             "database" => "foo" }, spec)
         end
 
         def test_url_host_db
-          spec = resolve 'abstract://foo/bar?encoding=utf8'
+          spec = resolve "abstract://foo/bar?encoding=utf8"
           assert_equal({
             "adapter"  => "abstract",
             "database" => "bar",
@@ -76,7 +76,7 @@ module ActiveRecord
         end
 
         def test_url_port
-          spec = resolve 'abstract://foo:123?encoding=utf8'
+          spec = resolve "abstract://foo:123?encoding=utf8"
           assert_equal({
             "adapter"  => "abstract",
             "port"     => 123,
@@ -85,34 +85,34 @@ module ActiveRecord
         end
 
         def test_encoded_password
-          password = 'am@z1ng_p@ssw0rd#!'
+          password = "am@z1ng_p@ssw0rd#!"
           encoded_password = URI.encode_www_form_component(password)
           spec = resolve "abstract://foo:#{encoded_password}@localhost/bar"
           assert_equal password, spec["password"]
         end
 
         def test_url_with_authority_for_sqlite3
-          spec = resolve 'sqlite3:///foo_test'
-          assert_equal('/foo_test', spec["database"])
+          spec = resolve "sqlite3:///foo_test"
+          assert_equal("/foo_test", spec["database"])
         end
 
         def test_url_absolute_path_for_sqlite3
-          spec = resolve 'sqlite3:/foo_test'
-          assert_equal('/foo_test', spec["database"])
+          spec = resolve "sqlite3:/foo_test"
+          assert_equal("/foo_test", spec["database"])
         end
 
         def test_url_relative_path_for_sqlite3
-          spec = resolve 'sqlite3:foo_test'
-          assert_equal('foo_test', spec["database"])
+          spec = resolve "sqlite3:foo_test"
+          assert_equal("foo_test", spec["database"])
         end
 
         def test_url_memory_db_for_sqlite3
-          spec = resolve 'sqlite3::memory:'
-          assert_equal(':memory:', spec["database"])
+          spec = resolve "sqlite3::memory:"
+          assert_equal(":memory:", spec["database"])
         end
 
         def test_url_sub_key_for_sqlite3
-          spec = resolve :production, 'production' => {"url" => 'sqlite3:foo?encoding=utf8'}
+          spec = resolve :production, "production" => {"url" => "sqlite3:foo?encoding=utf8"}
           assert_equal({
             "adapter"  => "sqlite3",
             "database" => "foo",
@@ -121,12 +121,12 @@ module ActiveRecord
         end
 
         def test_spec_name_on_key_lookup
-          spec = spec(:readonly, 'readonly' => {'adapter' => 'sqlite3'})
+          spec = spec(:readonly, "readonly" => {"adapter" => "sqlite3"})
           assert_equal "readonly", spec.name
         end
 
         def test_spec_name_with_inline_config
-          spec = spec({'adapter' => 'sqlite3'})
+          spec = spec({"adapter" => "sqlite3"})
           assert_equal "primary", spec.name, "should default to primary id"
         end
       end

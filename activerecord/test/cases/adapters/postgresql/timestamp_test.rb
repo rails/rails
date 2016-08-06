@@ -1,6 +1,6 @@
-require 'cases/helper'
-require 'models/developer'
-require 'models/topic'
+require "cases/helper"
+require "models/developer"
+require "models/topic"
 
 class PostgresqlTimestampTest < ActiveRecord::PostgreSQLTestCase
   class PostgresqlTimestampWithZone < ActiveRecord::Base; end
@@ -32,7 +32,7 @@ class PostgresqlTimestampTest < ActiveRecord::PostgreSQLTestCase
     with_timezone_config default: :local, aware_attributes: false do
       @connection.reconnect!
       # make sure to use a non-UTC time zone
-      @connection.execute("SET time zone 'America/Jamaica'", 'SCHEMA')
+      @connection.execute("SET time zone 'America/Jamaica'", "SCHEMA")
 
       timestamp = PostgresqlTimestampWithZone.find(1)
       assert_equal Time.utc(2010,1,1, 11,0,0), timestamp.time
@@ -54,19 +54,19 @@ class PostgresqlTimestampFixtureTest < ActiveRecord::PostgreSQLTestCase
 
   def test_load_infinity_and_beyond
     d = Developer.find_by_sql("select 'infinity'::timestamp as updated_at")
-    assert d.first.updated_at.infinite?, 'timestamp should be infinite'
+    assert d.first.updated_at.infinite?, "timestamp should be infinite"
 
     d = Developer.find_by_sql("select '-infinity'::timestamp as updated_at")
     time = d.first.updated_at
-    assert time.infinite?, 'timestamp should be infinite'
+    assert time.infinite?, "timestamp should be infinite"
     assert_operator time, :<, 0
   end
 
   def test_save_infinity_and_beyond
-    d = Developer.create!(:name => 'aaron', :updated_at => 1.0 / 0.0)
+    d = Developer.create!(:name => "aaron", :updated_at => 1.0 / 0.0)
     assert_equal(1.0 / 0.0, d.updated_at)
 
-    d = Developer.create!(:name => 'aaron', :updated_at => -1.0 / 0.0)
+    d = Developer.create!(:name => "aaron", :updated_at => -1.0 / 0.0)
     assert_equal(-1.0 / 0.0, d.updated_at)
   end
 

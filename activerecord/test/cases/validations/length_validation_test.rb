@@ -1,47 +1,47 @@
 require "cases/helper"
-require 'models/owner'
-require 'models/pet'
-require 'models/person'
+require "models/owner"
+require "models/pet"
+require "models/person"
 
 class LengthValidationTest < ActiveRecord::TestCase
   fixtures :owners
 
   setup do
     @owner = Class.new(Owner) do
-      def self.name; 'Owner'; end
+      def self.name; "Owner"; end
     end
   end
 
 
   def test_validates_size_of_association
     assert_nothing_raised { @owner.validates_size_of :pets, minimum: 1 }
-    o = @owner.new('name' => 'nopets')
+    o = @owner.new("name" => "nopets")
     assert !o.save
     assert o.errors[:pets].any?
-    o.pets.build('name' => 'apet')
+    o.pets.build("name" => "apet")
     assert o.valid?
   end
 
   def test_validates_size_of_association_using_within
     assert_nothing_raised { @owner.validates_size_of :pets, within: 1..2 }
-    o = @owner.new('name' => 'nopets')
+    o = @owner.new("name" => "nopets")
     assert !o.save
     assert o.errors[:pets].any?
 
-    o.pets.build('name' => 'apet')
+    o.pets.build("name" => "apet")
     assert o.valid?
 
-    2.times { o.pets.build('name' => 'apet') }
+    2.times { o.pets.build("name" => "apet") }
     assert !o.save
     assert o.errors[:pets].any?
   end
 
   def test_validates_size_of_association_utf8
     @owner.validates_size_of :pets, minimum: 1
-    o = @owner.new('name' => 'あいうえおかきくけこ')
+    o = @owner.new("name" => "あいうえおかきくけこ")
     assert !o.save
     assert o.errors[:pets].any?
-    o.pets.build('name' => 'あいうえおかきくけこ')
+    o.pets.build("name" => "あいうえおかきくけこ")
     assert o.valid?
   end
 
@@ -67,11 +67,11 @@ class LengthValidationTest < ActiveRecord::TestCase
       Pet.validates_length_of(:name, minimum: 1)
       Pet.validates_length_of(:nickname, minimum: 1)
 
-      pet = Pet.create!(name: 'Fancy Pants', nickname: 'Fancy')
+      pet = Pet.create!(name: "Fancy Pants", nickname: "Fancy")
 
       assert pet.valid?
 
-      pet.nickname = ''
+      pet.nickname = ""
 
       assert pet.invalid?
     end

@@ -1,10 +1,10 @@
 require "cases/helper"
-require 'models/post'
-require 'models/author'
-require 'models/project'
-require 'models/developer'
-require 'models/computer'
-require 'models/company'
+require "models/post"
+require "models/author"
+require "models/project"
+require "models/developer"
+require "models/computer"
+require "models/company"
 
 class AssociationCallbacksTest < ActiveRecord::TestCase
   fixtures :posts, :authors, :projects, :developers
@@ -115,7 +115,7 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
       }
     end
     rec = klass.create!
-    alice = Developer.new(:name => 'alice')
+    alice = Developer.new(:name => "alice")
     rec.developers_with_callbacks << alice
     assert_equal alice, dev
     assert_not_nil new_dev
@@ -126,14 +126,14 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
   def test_has_and_belongs_to_many_after_add_called_after_save
     ar = projects(:active_record)
     assert ar.developers_log.empty?
-    alice = Developer.new(:name => 'alice')
+    alice = Developer.new(:name => "alice")
     ar.developers_with_callbacks << alice
     assert_equal"after_adding#{alice.id}", ar.developers_log.last
 
-    bob = ar.developers_with_callbacks.create(:name => 'bob')
+    bob = ar.developers_with_callbacks.create(:name => "bob")
     assert_equal "after_adding#{bob.id}", ar.developers_log.last
 
-    ar.developers_with_callbacks.build(:name => 'charlie')
+    ar.developers_with_callbacks.build(:name => "charlie")
     assert_equal "after_adding<new>", ar.developers_log.last
   end
 

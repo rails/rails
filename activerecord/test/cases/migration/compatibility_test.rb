@@ -1,4 +1,4 @@
-require 'cases/helper'
+require "cases/helper"
 
 module ActiveRecord
   class Migration
@@ -83,8 +83,8 @@ module ActiveRecord
 
         ActiveRecord::Migrator.new(:up, [migration]).migrate
 
-        assert connection.columns(:more_testings).find { |c| c.name == 'created_at' }.null
-        assert connection.columns(:more_testings).find { |c| c.name == 'updated_at' }.null
+        assert connection.columns(:more_testings).find { |c| c.name == "created_at" }.null
+        assert connection.columns(:more_testings).find { |c| c.name == "updated_at" }.null
       ensure
         connection.drop_table :more_testings rescue nil
       end
@@ -98,8 +98,8 @@ module ActiveRecord
 
         ActiveRecord::Migrator.new(:up, [migration]).migrate
 
-        assert connection.columns(:testings).find { |c| c.name == 'created_at' }.null
-        assert connection.columns(:testings).find { |c| c.name == 'updated_at' }.null
+        assert connection.columns(:testings).find { |c| c.name == "created_at" }.null
+        assert connection.columns(:testings).find { |c| c.name == "updated_at" }.null
       end
 
       def test_legacy_migrations_get_deprecation_warning_when_run

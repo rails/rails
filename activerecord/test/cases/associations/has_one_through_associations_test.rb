@@ -1,25 +1,25 @@
 require "cases/helper"
-require 'models/club'
-require 'models/member_type'
-require 'models/member'
-require 'models/membership'
-require 'models/sponsor'
-require 'models/organization'
-require 'models/member_detail'
-require 'models/minivan'
-require 'models/dashboard'
-require 'models/speedometer'
-require 'models/category'
-require 'models/author'
-require 'models/essay'
-require 'models/owner'
-require 'models/post'
-require 'models/comment'
-require 'models/categorization'
-require 'models/customer'
-require 'models/carrier'
-require 'models/shop_account'
-require 'models/customer_carrier'
+require "models/club"
+require "models/member_type"
+require "models/member"
+require "models/membership"
+require "models/sponsor"
+require "models/organization"
+require "models/member_detail"
+require "models/minivan"
+require "models/dashboard"
+require "models/speedometer"
+require "models/category"
+require "models/author"
+require "models/essay"
+require "models/owner"
+require "models/post"
+require "models/comment"
+require "models/categorization"
+require "models/customer"
+require "models/carrier"
+require "models/shop_account"
+require "models/customer_carrier"
 
 class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :member_types, :members, :clubs, :memberships, :sponsors, :organizations, :minivans,
@@ -51,8 +51,8 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_creating_association_sets_both_parent_ids_for_new
-    member = Member.new(name: 'Sean Griffin')
-    club = Club.new(name: 'Da Club')
+    member = Member.new(name: "Sean Griffin")
+    club = Club.new(name: "Da Club")
 
     member.club = club
 
@@ -130,7 +130,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_one_through_nonpreload_eagerloading
     members = assert_queries(1) do
-      Member.all.merge!(:includes => :club, :where => ["members.name = ?", "Groucho Marx"], :order => 'clubs.name').to_a #force fallback
+      Member.all.merge!(:includes => :club, :where => ["members.name = ?", "Groucho Marx"], :order => "clubs.name").to_a #force fallback
     end
     assert_equal 1, members.size
     assert_not_nil assert_no_queries {members[0].club}
@@ -138,7 +138,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_one_through_nonpreload_eager_loading_through_polymorphic
     members = assert_queries(1) do
-      Member.all.merge!(:includes => :sponsor_club, :where => ["members.name = ?", "Groucho Marx"], :order => 'clubs.name').to_a #force fallback
+      Member.all.merge!(:includes => :sponsor_club, :where => ["members.name = ?", "Groucho Marx"], :order => "clubs.name").to_a #force fallback
     end
     assert_equal 1, members.size
     assert_not_nil assert_no_queries {members[0].sponsor_club}
@@ -147,7 +147,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   def test_has_one_through_nonpreload_eager_loading_through_polymorphic_with_more_than_one_through_record
     Sponsor.new(:sponsor_club => clubs(:crazy_club), :sponsorable => members(:groucho)).save!
     members = assert_queries(1) do
-      Member.all.merge!(:includes => :sponsor_club, :where => ["members.name = ?", "Groucho Marx"], :order => 'clubs.name DESC').to_a #force fallback
+      Member.all.merge!(:includes => :sponsor_club, :where => ["members.name = ?", "Groucho Marx"], :order => "clubs.name DESC").to_a #force fallback
     end
     assert_equal 1, members.size
     assert_not_nil assert_no_queries { members[0].sponsor_club }
@@ -176,35 +176,35 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_assigning_to_has_one_through_preserves_decorated_join_record
     @organization = organizations(:nsa)
-    assert_difference 'MemberDetail.count', 1 do
-      @member_detail = MemberDetail.new(:extra_data => 'Extra')
+    assert_difference "MemberDetail.count", 1 do
+      @member_detail = MemberDetail.new(:extra_data => "Extra")
       @member.member_detail = @member_detail
       @member.organization = @organization
     end
     assert_equal @organization, @member.organization
     assert @organization.members.include?(@member)
-    assert_equal 'Extra', @member.member_detail.extra_data
+    assert_equal "Extra", @member.member_detail.extra_data
   end
 
   def test_reassigning_has_one_through
     @organization = organizations(:nsa)
     @new_organization = organizations(:discordians)
 
-    assert_difference 'MemberDetail.count', 1 do
-      @member_detail = MemberDetail.new(:extra_data => 'Extra')
+    assert_difference "MemberDetail.count", 1 do
+      @member_detail = MemberDetail.new(:extra_data => "Extra")
       @member.member_detail = @member_detail
       @member.organization = @organization
     end
     assert_equal @organization, @member.organization
-    assert_equal 'Extra', @member.member_detail.extra_data
+    assert_equal "Extra", @member.member_detail.extra_data
     assert @organization.members.include?(@member)
     assert !@new_organization.members.include?(@member)
 
-    assert_no_difference 'MemberDetail.count' do
+    assert_no_difference "MemberDetail.count" do
       @member.organization = @new_organization
     end
     assert_equal @new_organization, @member.organization
-    assert_equal 'Extra', @member.member_detail.extra_data
+    assert_equal "Extra", @member.member_detail.extra_data
     assert !@organization.members.include?(@member)
     assert @new_organization.members.include?(@member)
   end
@@ -242,7 +242,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_through_belongs_to_after_destroy
-    @member_detail = MemberDetail.new(:extra_data => 'Extra')
+    @member_detail = MemberDetail.new(:extra_data => "Extra")
     @member.member_detail = @member_detail
     @member.save!
 
@@ -261,7 +261,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_value_is_properly_quoted
-    minivan = Minivan.find('m1')
+    minivan = Minivan.find("m1")
     assert_nothing_raised do
       minivan.dashboard
     end
@@ -270,7 +270,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   def test_has_one_through_polymorphic_with_primary_key_option
     assert_equal categories(:general), authors(:david).essay_category
 
-    authors = Author.joins(:essay_category).where('categories.id' => categories(:general).id)
+    authors = Author.joins(:essay_category).where("categories.id" => categories(:general).id)
     assert_equal authors(:david), authors.first
 
     assert_equal owners(:blackbeard), authors(:david).essay_owner
@@ -282,12 +282,12 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   def test_has_one_through_with_primary_key_option
     assert_equal categories(:general), authors(:david).essay_category_2
 
-    authors = Author.joins(:essay_category_2).where('categories.id' => categories(:general).id)
+    authors = Author.joins(:essay_category_2).where("categories.id" => categories(:general).id)
     assert_equal authors(:david), authors.first
   end
 
   def test_has_one_through_with_default_scope_on_join_model
-    assert_equal posts(:welcome).comments.order('id').first, authors(:david).comment_on_first_post
+    assert_equal posts(:welcome).comments.order("id").first, authors(:david).comment_on_first_post
   end
 
   def test_has_one_through_many_raises_exception

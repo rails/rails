@@ -1,6 +1,6 @@
-require 'cases/helper'
-require 'models/post'
-require 'models/subscriber'
+require "cases/helper"
+require "models/post"
+require "models/subscriber"
 
 class EachTest < ActiveRecord::TestCase
   fixtures :posts, :subscribers
@@ -8,7 +8,7 @@ class EachTest < ActiveRecord::TestCase
   def setup
     @posts = Post.order("id asc")
     @total = Post.count
-    Post.count('id') # preheat arel's table cache
+    Post.count("id") # preheat arel's table cache
   end
 
   def test_each_should_execute_one_query_per_batch
@@ -68,7 +68,7 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
-  test 'find_each should honor limit if passed a block' do
+  test "find_each should honor limit if passed a block" do
     limit = @total - 1
     total = 0
 
@@ -79,7 +79,7 @@ class EachTest < ActiveRecord::TestCase
     assert_equal limit, total
   end
 
-  test 'find_each should honor limit if no block is passed' do
+  test "find_each should honor limit if no block is passed" do
     limit = @total - 1
     total = 0
 
@@ -100,7 +100,7 @@ class EachTest < ActiveRecord::TestCase
     previous_logger = ActiveRecord::Base.logger
     ActiveRecord::Base.logger = nil
     assert_nothing_raised do
-      Post.order('comments_count DESC').find_each { |post| post }
+      Post.order("comments_count DESC").find_each { |post| post }
     end
   ensure
     ActiveRecord::Base.logger = previous_logger
@@ -232,7 +232,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_find_in_batches_should_use_any_column_as_primary_key
-    nick_order_subscribers = Subscriber.order('nick asc')
+    nick_order_subscribers = Subscriber.order("nick asc")
     start_nick = nick_order_subscribers.second.nick
 
     subscribers = []
@@ -265,7 +265,7 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
-  test 'find_in_batches should honor limit if passed a block' do
+  test "find_in_batches should honor limit if passed a block" do
     limit = @total - 1
     total = 0
 
@@ -276,7 +276,7 @@ class EachTest < ActiveRecord::TestCase
     assert_equal limit, total
   end
 
-  test 'find_in_batches should honor limit if no block is passed' do
+  test "find_in_batches should honor limit if no block is passed" do
     limit = @total - 1
     total = 0
 
@@ -328,7 +328,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_each_record_should_be_ordered_by_id
-    ids = Post.order('id ASC').pluck(:id)
+    ids = Post.order("id ASC").pluck(:id)
     assert_queries(6) do
       Post.in_batches(of: 2).each_record.with_index do |post, i|
         assert_equal ids[i], post.id
@@ -344,9 +344,9 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_delete_all_should_not_delete_records_in_other_batches
-    not_deleted_count = Post.where('id <= 2').count
-    Post.where('id > 2').in_batches(of: 2).delete_all
-    assert_equal 0, Post.where('id > 2').count
+    not_deleted_count = Post.where("id <= 2").count
+    Post.where("id > 2").in_batches(of: 2).delete_all
+    assert_equal 0, Post.where("id > 2").count
     assert_equal not_deleted_count, Post.count
   end
 
@@ -383,7 +383,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_should_start_from_the_start_option
-    post = Post.order('id ASC').where('id >= ?', 2).first
+    post = Post.order("id ASC").where("id >= ?", 2).first
     assert_queries(2) do
       relation = Post.in_batches(of: 1, start: 2).first
       assert_equal post, relation.first
@@ -391,7 +391,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_should_end_at_the_finish_option
-    post = Post.order('id DESC').where('id <= ?', 5).first
+    post = Post.order("id DESC").where("id <= ?", 5).first
     assert_queries(7) do
       relation = Post.in_batches(of: 1, finish: 5, load: true).reverse_each.first
       assert_equal post, relation.last
@@ -450,7 +450,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_should_use_any_column_as_primary_key
-    nick_order_subscribers = Subscriber.order('nick asc')
+    nick_order_subscribers = Subscriber.order("nick asc")
     start_nick = nick_order_subscribers.second.nick
 
     subscribers = []
@@ -510,7 +510,7 @@ class EachTest < ActiveRecord::TestCase
     person.update_attributes(author_id: 1)
 
     Post.in_batches(of: 2) do |batch|
-      batch.where('author_id >= 1').update_all('author_id = author_id + 1')
+      batch.where("author_id >= 1").update_all("author_id = author_id + 1")
     end
     assert_equal 2, person.reload.author_id # incremented only once
   end
@@ -587,10 +587,10 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
-  test '.error_on_ignored_order_or_limit= is deprecated' do
+  test ".error_on_ignored_order_or_limit= is deprecated" do
     begin
       prev = ActiveRecord::Base.error_on_ignored_order
-      assert_deprecated 'Please use error_on_ignored_order= instead.' do
+      assert_deprecated "Please use error_on_ignored_order= instead." do
         ActiveRecord::Base.error_on_ignored_order_or_limit = true
       end
       assert ActiveRecord::Base.error_on_ignored_order
@@ -599,17 +599,17 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
-  test '.error_on_ignored_order_or_limit is deprecated' do
+  test ".error_on_ignored_order_or_limit is deprecated" do
     expected = ActiveRecord::Base.error_on_ignored_order
-    actual = assert_deprecated 'Please use error_on_ignored_order instead.' do
+    actual = assert_deprecated "Please use error_on_ignored_order instead." do
       ActiveRecord::Base.error_on_ignored_order_or_limit
     end
     assert_equal expected, actual
   end
 
-  test '#error_on_ignored_order_or_limit is deprecated' do
+  test "#error_on_ignored_order_or_limit is deprecated" do
     expected = ActiveRecord::Base.error_on_ignored_order
-    actual = assert_deprecated 'Please use error_on_ignored_order instead.' do
+    actual = assert_deprecated "Please use error_on_ignored_order instead." do
       Post.new.error_on_ignored_order_or_limit
     end
     assert_equal expected, actual

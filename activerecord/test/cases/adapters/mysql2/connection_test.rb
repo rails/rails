@@ -1,5 +1,5 @@
 require "cases/helper"
-require 'support/connection_helper'
+require "support/connection_helper"
 
 class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   include ConnectionHelper
@@ -9,7 +9,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   def setup
     super
     @subscriber = SQLSubscriber.new
-    @subscription = ActiveSupport::Notifications.subscribe('sql.active_record', @subscriber)
+    @subscription = ActiveSupport::Notifications.subscribe("sql.active_record", @subscriber)
     @connection = ActiveRecord::Base.connection
   end
 
@@ -20,9 +20,9 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
 
   def test_bad_connection
     assert_raise ActiveRecord::NoDatabaseError do
-      configuration = ActiveRecord::Base.configurations['arunit'].merge(database: 'inexistent_activerecord_unittest')
+      configuration = ActiveRecord::Base.configurations["arunit"].merge(database: "inexistent_activerecord_unittest")
       connection = ActiveRecord::Base.mysql2_connection(configuration)
-      connection.drop_table 'ex', if_exists: true
+      connection.drop_table "ex", if_exists: true
     end
   end
 
@@ -39,7 +39,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
 
   def test_no_automatic_reconnection_after_timeout
     assert @connection.active?
-    @connection.update('set @@wait_timeout=1')
+    @connection.update("set @@wait_timeout=1")
     sleep 2
     assert !@connection.active?
 
@@ -49,7 +49,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
 
   def test_successful_reconnection_after_timeout_with_manual_reconnect
     assert @connection.active?
-    @connection.update('set @@wait_timeout=1')
+    @connection.update("set @@wait_timeout=1")
     sleep 2
     @connection.reconnect!
     assert @connection.active?
@@ -57,15 +57,15 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
 
   def test_successful_reconnection_after_timeout_with_verify
     assert @connection.active?
-    @connection.update('set @@wait_timeout=1')
+    @connection.update("set @@wait_timeout=1")
     sleep 2
     @connection.verify!
     assert @connection.active?
   end
 
   def test_mysql_connection_collation_is_configured
-    assert_equal 'utf8_unicode_ci', @connection.show_variable('collation_connection')
-    assert_equal 'utf8_general_ci', ARUnit2Model.connection.show_variable('collation_connection')
+    assert_equal "utf8_unicode_ci", @connection.show_variable("collation_connection")
+    assert_equal "utf8_general_ci", ARUnit2Model.connection.show_variable("collation_connection")
   end
 
   def test_mysql_default_in_strict_mode
@@ -92,8 +92,8 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
 
   def test_mysql_sql_mode_variable_overrides_strict_mode
     run_without_connection do |orig_connection|
-      ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { 'sql_mode' => 'ansi' }))
-      result = ActiveRecord::Base.connection.select_value('SELECT @@SESSION.sql_mode')
+      ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { "sql_mode" => "ansi" }))
+      result = ActiveRecord::Base.connection.select_value("SELECT @@SESSION.sql_mode")
       assert_no_match %r(STRICT_ALL_TABLES), result
     end
   end
@@ -107,7 +107,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
 
   def test_passing_flags_by_array_to_adapter
     run_without_connection do |orig_connection|
-      ActiveRecord::Base.establish_connection(orig_connection.merge({flags: ['COMPRESS'] }))
+      ActiveRecord::Base.establish_connection(orig_connection.merge({flags: ["COMPRESS"] }))
       assert_equal ["COMPRESS", "FOUND_ROWS"], ActiveRecord::Base.connection.raw_connection.query_options[:flags]
     end
   end
@@ -130,14 +130,14 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_logs_name_show_variable
-    @connection.show_variable 'foo'
+    @connection.show_variable "foo"
     assert_equal "SCHEMA", @subscriber.logged[0][1]
   end
 
   def test_logs_name_rename_column_sql
     @connection.execute "CREATE TABLE `bar_baz` (`foo` varchar(255))"
     @subscriber.logged.clear
-    @connection.send(:rename_column_sql, 'bar_baz', 'foo', 'foo2')
+    @connection.send(:rename_column_sql, "bar_baz", "foo", "foo2")
     assert_equal "SCHEMA", @subscriber.logged[0][1]
   ensure
     @connection.execute "DROP TABLE `bar_baz`"
@@ -155,14 +155,14 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     released_lock = @connection.release_advisory_lock(lock_name)
     assert released_lock, "expected release_advisory_lock to return true but it didn't"
 
-    assert test_lock_free(lock_name), 'expected the test lock to be available after releasing'
+    assert test_lock_free(lock_name), "expected the test lock to be available after releasing"
   end
 
   def test_release_non_existent_advisory_lock
     lock_name = "fake lock'n'name"
     released_non_existent_lock = @connection.release_advisory_lock(lock_name)
     assert_equal released_non_existent_lock, false,
-      'expected release_advisory_lock to return false when there was no lock to release'
+      "expected release_advisory_lock to return false when there was no lock to release"
   end
 
   protected

@@ -1,12 +1,12 @@
 require "cases/helper"
-require 'support/connection_helper'
+require "support/connection_helper"
 
 module ActiveRecord
   class Mysql2TransactionTest < ActiveRecord::Mysql2TestCase
     self.use_transactional_tests = false
 
     class Sample < ActiveRecord::Base
-      self.table_name = 'samples'
+      self.table_name = "samples"
     end
 
     setup do
@@ -14,9 +14,9 @@ module ActiveRecord
       @connection.clear_cache!
 
       @connection.transaction do
-        @connection.drop_table 'samples', if_exists: true
-        @connection.create_table('samples') do |t|
-          t.integer 'value'
+        @connection.drop_table "samples", if_exists: true
+        @connection.create_table("samples") do |t|
+          t.integer "value"
         end
       end
 
@@ -24,7 +24,7 @@ module ActiveRecord
     end
 
     teardown do
-      @connection.drop_table 'samples', if_exists: true
+      @connection.drop_table "samples", if_exists: true
     end
 
     test "raises Deadlocked when a deadlock is encountered" do

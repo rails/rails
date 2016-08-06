@@ -1,4 +1,4 @@
-require 'cases/helper'
+require "cases/helper"
 
 module ActiveRecord
   class Migration
@@ -31,13 +31,13 @@ module ActiveRecord
       end
 
       def test_create_join_table_with_strings
-        connection.create_join_table 'artists', 'musics'
+        connection.create_join_table "artists", "musics"
 
         assert_equal %w(artist_id music_id), connection.columns(:artists_musics).map(&:name).sort
       end
 
       def test_create_join_table_with_symbol_and_string
-        connection.create_join_table :artists, 'musics'
+        connection.create_join_table :artists, "musics"
 
         assert_equal %w(artist_id music_id), connection.columns(:artists_musics).map(&:name).sort
       end
@@ -55,7 +55,7 @@ module ActiveRecord
       end
 
       def test_create_join_table_with_the_table_name_as_string
-        connection.create_join_table :artists, :musics, table_name: 'catalog'
+        connection.create_join_table :artists, :musics, table_name: "catalog"
 
         assert_equal %w(artist_id music_id), connection.columns(:catalog).map(&:name).sort
       end
@@ -84,51 +84,51 @@ module ActiveRecord
         connection.create_join_table :artists, :musics
         connection.drop_join_table :artists, :musics
 
-        ActiveSupport::Deprecation.silence { assert !connection.table_exists?('artists_musics') }
+        ActiveSupport::Deprecation.silence { assert !connection.table_exists?("artists_musics") }
       end
 
       def test_drop_join_table_with_strings
         connection.create_join_table :artists, :musics
-        connection.drop_join_table 'artists', 'musics'
+        connection.drop_join_table "artists", "musics"
 
-        ActiveSupport::Deprecation.silence { assert !connection.table_exists?('artists_musics') }
+        ActiveSupport::Deprecation.silence { assert !connection.table_exists?("artists_musics") }
       end
 
       def test_drop_join_table_with_the_proper_order
         connection.create_join_table :videos, :musics
         connection.drop_join_table :videos, :musics
 
-        ActiveSupport::Deprecation.silence { assert !connection.table_exists?('musics_videos') }
+        ActiveSupport::Deprecation.silence { assert !connection.table_exists?("musics_videos") }
       end
 
       def test_drop_join_table_with_the_table_name
         connection.create_join_table :artists, :musics, table_name: :catalog
         connection.drop_join_table :artists, :musics, table_name: :catalog
 
-        ActiveSupport::Deprecation.silence { assert !connection.table_exists?('catalog') }
+        ActiveSupport::Deprecation.silence { assert !connection.table_exists?("catalog") }
       end
 
       def test_drop_join_table_with_the_table_name_as_string
-        connection.create_join_table :artists, :musics, table_name: 'catalog'
-        connection.drop_join_table :artists, :musics, table_name: 'catalog'
+        connection.create_join_table :artists, :musics, table_name: "catalog"
+        connection.drop_join_table :artists, :musics, table_name: "catalog"
 
-        ActiveSupport::Deprecation.silence { assert !connection.table_exists?('catalog') }
+        ActiveSupport::Deprecation.silence { assert !connection.table_exists?("catalog") }
       end
 
       def test_drop_join_table_with_column_options
         connection.create_join_table :artists, :musics, column_options: {null: true}
         connection.drop_join_table :artists, :musics, column_options: {null: true}
 
-        ActiveSupport::Deprecation.silence { assert !connection.table_exists?('artists_musics') }
+        ActiveSupport::Deprecation.silence { assert !connection.table_exists?("artists_musics") }
       end
 
       def test_create_and_drop_join_table_with_common_prefix
         with_table_cleanup do
-          connection.create_join_table 'audio_artists', 'audio_musics'
-          ActiveSupport::Deprecation.silence { assert connection.table_exists?('audio_artists_musics') }
+          connection.create_join_table "audio_artists", "audio_musics"
+          ActiveSupport::Deprecation.silence { assert connection.table_exists?("audio_artists_musics") }
 
-          connection.drop_join_table 'audio_artists', 'audio_musics'
-          ActiveSupport::Deprecation.silence { assert !connection.table_exists?('audio_artists_musics'), "Should have dropped join table, but didn't" }
+          connection.drop_join_table "audio_artists", "audio_musics"
+          ActiveSupport::Deprecation.silence { assert !connection.table_exists?("audio_artists_musics"), "Should have dropped join table, but didn't" }
         end
       end
 

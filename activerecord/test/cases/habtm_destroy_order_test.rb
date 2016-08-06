@@ -9,14 +9,14 @@ class HabtmDestroyOrderTest < ActiveRecord::TestCase
     sicp.students << ben
     sicp.save!
     assert_raises LessonError do
-      assert_no_difference('Lesson.count') do
+      assert_no_difference("Lesson.count") do
         sicp.destroy
       end
     end
     assert !sicp.destroyed?
   end
 
-  test 'should not raise error if have foreign key in the join table' do
+  test "should not raise error if have foreign key in the join table" do
     student = Student.new(:name => "Ben Bitdiddle")
     lesson = Lesson.new(:name => "SICP")
     lesson.students << student

@@ -1,10 +1,10 @@
 require "cases/helper"
-require 'models/contact'
-require 'models/post'
-require 'models/author'
-require 'models/tagging'
-require 'models/tag'
-require 'models/comment'
+require "models/contact"
+require "models/post"
+require "models/author"
+require "models/tagging"
+require "models/tag"
+require "models/comment"
 
 module JsonSerializationHelpers
   private
@@ -27,18 +27,18 @@ class JsonSerializationTest < ActiveRecord::TestCase
 
   def setup
     @contact = Contact.new(
-      :name        => 'Konata Izumi',
+      :name        => "Konata Izumi",
       :age         => 16,
-      :avatar      => 'binarydata',
+      :avatar      => "binarydata",
       :created_at  => Time.utc(2006, 8, 1),
       :awesome     => true,
-      :preferences => { :shows => 'anime' }
+      :preferences => { :shows => "anime" }
     )
   end
 
   def test_should_demodulize_root_in_json
     set_include_root_in_json(true) do
-      @contact = NamespacedContact.new name: 'whatever'
+      @contact = NamespacedContact.new name: "whatever"
       json = @contact.to_json
       assert_match %r{^\{"namespaced_contact":\{}, json
     end
@@ -125,7 +125,7 @@ class JsonSerializationTest < ActiveRecord::TestCase
 
   def test_does_not_include_inheritance_column_from_sti
     @contact = ContactSti.new(@contact.attributes)
-    assert_equal 'ContactSti', @contact.type
+    assert_equal "ContactSti", @contact.type
 
     json = @contact.to_json
     assert_match %r{"name":"Konata Izumi"}, json
@@ -135,7 +135,7 @@ class JsonSerializationTest < ActiveRecord::TestCase
 
   def test_serializable_hash_with_default_except_option_and_excluding_inheritance_column_from_sti
     @contact = ContactSti.new(@contact.attributes)
-    assert_equal 'ContactSti', @contact.type
+    assert_equal "ContactSti", @contact.type
 
     def @contact.serializable_hash(options={})
       super({ except: %w(age) }.merge!(options))

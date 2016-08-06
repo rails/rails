@@ -1,8 +1,8 @@
 require "cases/helper"
-require 'models/post'
-require 'models/comment'
-require 'models/author'
-require 'models/rating'
+require "models/post"
+require "models/comment"
+require "models/author"
+require "models/rating"
 
 module ActiveRecord
   class RelationTest < ActiveRecord::TestCase
@@ -18,7 +18,7 @@ module ActiveRecord
       end
 
       def self.table_name
-        'fake_table'
+        "fake_table"
       end
 
       def self.sanitize_sql_for_order(sql)
@@ -30,7 +30,7 @@ module ActiveRecord
       relation = Relation.new(FakeKlass, :b, nil)
       assert_equal FakeKlass, relation.klass
       assert_equal :b, relation.table
-      assert !relation.loaded, 'relation is not loaded'
+      assert !relation.loaded, "relation is not loaded"
     end
 
     def test_responds_to_model_and_returns_klass
@@ -89,8 +89,8 @@ module ActiveRecord
     end
 
     def test_table_name_delegates_to_klass
-      relation = Relation.new(FakeKlass.new('posts'), :b, Post.predicate_builder)
-      assert_equal 'posts', relation.table_name
+      relation = Relation.new(FakeKlass.new("posts"), :b, Post.predicate_builder)
+      assert_equal "posts", relation.table_name
     end
 
     def test_scope_for_create
@@ -100,7 +100,7 @@ module ActiveRecord
 
     def test_create_with_value
       relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
-      hash = { :hello => 'world' }
+      hash = { :hello => "world" }
       relation.create_with_value = hash
       assert_equal hash, relation.scope_for_create
     end
@@ -108,8 +108,8 @@ module ActiveRecord
     def test_create_with_value_with_wheres
       relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
       relation.where! relation.table[:id].eq(10)
-      relation.create_with_value = {:hello => 'world'}
-      assert_equal({:hello => 'world', :id => 10}, relation.scope_for_create)
+      relation.create_with_value = {:hello => "world"}
+      assert_equal({:hello => "world", :id => 10}, relation.scope_for_create)
     end
 
     # FIXME: is this really wanted or expected behavior?
@@ -120,7 +120,7 @@ module ActiveRecord
       relation.where! relation.table[:id].eq(10)
       assert_equal({}, relation.scope_for_create)
 
-      relation.create_with_value = {:hello => 'world'}
+      relation.create_with_value = {:hello => "world"}
       assert_equal({}, relation.scope_for_create)
     end
 
@@ -145,16 +145,16 @@ module ActiveRecord
       relation = Relation.new(FakeKlass, :b, nil)
       assert_equal [], relation.references_values
       relation = relation.references(:foo).references(:omg, :lol)
-      assert_equal ['foo', 'omg', 'lol'], relation.references_values
+      assert_equal ["foo", "omg", "lol"], relation.references_values
     end
 
     def test_references_values_dont_duplicate
       relation = Relation.new(FakeKlass, :b, nil)
       relation = relation.references(:foo).references(:foo)
-      assert_equal ['foo'], relation.references_values
+      assert_equal ["foo"], relation.references_values
     end
 
-    test 'merging a hash into a relation' do
+    test "merging a hash into a relation" do
       relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
       relation = relation.merge where: {name: :lol}, readonly: true
 
@@ -162,31 +162,31 @@ module ActiveRecord
       assert_equal true, relation.readonly_value
     end
 
-    test 'merging an empty hash into a relation' do
+    test "merging an empty hash into a relation" do
       assert_equal Relation::WhereClause.empty, Relation.new(FakeKlass, :b, nil).merge({}).where_clause
     end
 
-    test 'merging a hash with unknown keys raises' do
-      assert_raises(ArgumentError) { Relation::HashMerger.new(nil, omg: 'lol') }
+    test "merging a hash with unknown keys raises" do
+      assert_raises(ArgumentError) { Relation::HashMerger.new(nil, omg: "lol") }
     end
 
-    test 'merging nil or false raises' do
+    test "merging nil or false raises" do
       relation = Relation.new(FakeKlass, :b, nil)
 
       e = assert_raises(ArgumentError) do
         relation = relation.merge nil
       end
 
-      assert_equal 'invalid argument: nil.', e.message
+      assert_equal "invalid argument: nil.", e.message
 
       e = assert_raises(ArgumentError) do
         relation = relation.merge false
       end
 
-      assert_equal 'invalid argument: false.', e.message
+      assert_equal "invalid argument: false.", e.message
     end
 
-    test '#values returns a dup of the values' do
+    test "#values returns a dup of the values" do
       relation = Relation.new(Post, Post.arel_table, Post.predicate_builder).where!(name: :foo)
       values   = relation.values
 
@@ -194,22 +194,22 @@ module ActiveRecord
       assert_not_nil relation.where_clause
     end
 
-    test 'relations can be created with a values hash' do
+    test "relations can be created with a values hash" do
       relation = Relation.new(FakeKlass, :b, nil, select: [:foo])
       assert_equal [:foo], relation.select_values
     end
 
-    test 'merging a hash interpolates conditions' do
+    test "merging a hash interpolates conditions" do
       klass = Class.new(FakeKlass) do
         def self.sanitize_sql(args)
-          raise unless args == ['foo = ?', 'bar']
-          'foo = bar'
+          raise unless args == ["foo = ?", "bar"]
+          "foo = bar"
         end
       end
 
       relation = Relation.new(klass, :b, nil)
-      relation.merge!(where: ['foo = ?', 'bar'])
-      assert_equal Relation::WhereClause.new(['foo = bar'], []), relation.where_clause
+      relation.merge!(where: ["foo = ?", "bar"])
+      assert_equal Relation::WhereClause.new(["foo = bar"], []), relation.where_clause
     end
 
     def test_merging_readonly_false
@@ -293,7 +293,7 @@ module ActiveRecord
     end
 
     class UpdateAllTestModel < ActiveRecord::Base
-      self.table_name = 'posts'
+      self.table_name = "posts"
 
       attribute :body, EnsureRoundTripTypeCasting.new
     end

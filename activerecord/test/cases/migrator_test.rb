@@ -46,21 +46,21 @@ class MigratorTest < ActiveRecord::TestCase
 
   def test_migrator_with_duplicate_names
     assert_raises(ActiveRecord::DuplicateMigrationNameError, "Multiple migrations have the name Chunky") do
-      list = [ActiveRecord::Migration.new('Chunky'), ActiveRecord::Migration.new('Chunky')]
+      list = [ActiveRecord::Migration.new("Chunky"), ActiveRecord::Migration.new("Chunky")]
       ActiveRecord::Migrator.new(:up, list)
     end
   end
 
   def test_migrator_with_duplicate_versions
     assert_raises(ActiveRecord::DuplicateMigrationVersionError) do
-      list = [ActiveRecord::Migration.new('Foo', 1), ActiveRecord::Migration.new('Bar', 1)]
+      list = [ActiveRecord::Migration.new("Foo", 1), ActiveRecord::Migration.new("Bar", 1)]
       ActiveRecord::Migrator.new(:up, list)
     end
   end
 
   def test_migrator_with_missing_version_numbers
     assert_raises(ActiveRecord::UnknownMigrationVersionError) do
-      list = [ActiveRecord::Migration.new('Foo', 1), ActiveRecord::Migration.new('Bar', 2)]
+      list = [ActiveRecord::Migration.new("Foo", 1), ActiveRecord::Migration.new("Bar", 2)]
       ActiveRecord::Migrator.new(:up, list, 3).run
     end
   end
@@ -68,7 +68,7 @@ class MigratorTest < ActiveRecord::TestCase
   def test_finds_migrations
     migrations = ActiveRecord::Migrator.migrations(MIGRATIONS_ROOT + "/valid")
 
-    [[1, 'ValidPeopleHaveLastNames'], [2, 'WeNeedReminders'], [3, 'InnocentJointable']].each_with_index do |pair, i|
+    [[1, "ValidPeopleHaveLastNames"], [2, "WeNeedReminders"], [3, "InnocentJointable"]].each_with_index do |pair, i|
       assert_equal migrations[i].version, pair.first
       assert_equal migrations[i].name, pair.last
     end
@@ -77,14 +77,14 @@ class MigratorTest < ActiveRecord::TestCase
   def test_finds_migrations_in_subdirectories
     migrations = ActiveRecord::Migrator.migrations(MIGRATIONS_ROOT + "/valid_with_subdirectories")
 
-    [[1, 'ValidPeopleHaveLastNames'], [2, 'WeNeedReminders'], [3, 'InnocentJointable']].each_with_index do |pair, i|
+    [[1, "ValidPeopleHaveLastNames"], [2, "WeNeedReminders"], [3, "InnocentJointable"]].each_with_index do |pair, i|
       assert_equal migrations[i].version, pair.first
       assert_equal migrations[i].name, pair.last
     end
   end
 
   def test_finds_migrations_from_two_directories
-    directories = [MIGRATIONS_ROOT + '/valid_with_timestamps', MIGRATIONS_ROOT + '/to_copy_with_timestamps']
+    directories = [MIGRATIONS_ROOT + "/valid_with_timestamps", MIGRATIONS_ROOT + "/to_copy_with_timestamps"]
     migrations = ActiveRecord::Migrator.migrations directories
 
     [[20090101010101, "PeopleHaveHobbies"],
@@ -98,9 +98,9 @@ class MigratorTest < ActiveRecord::TestCase
   end
 
   def test_finds_migrations_in_numbered_directory
-    migrations = ActiveRecord::Migrator.migrations [MIGRATIONS_ROOT + '/10_urban']
+    migrations = ActiveRecord::Migrator.migrations [MIGRATIONS_ROOT + "/10_urban"]
     assert_equal 9, migrations[0].version
-    assert_equal 'AddExpressions', migrations[0].name
+    assert_equal "AddExpressions", migrations[0].name
   end
 
   def test_relative_migrations
@@ -109,14 +109,14 @@ class MigratorTest < ActiveRecord::TestCase
     end
 
     migration_proxy = list.find { |item|
-      item.name == 'ValidPeopleHaveLastNames'
+      item.name == "ValidPeopleHaveLastNames"
     }
-    assert migration_proxy, 'should find pending migration'
+    assert migration_proxy, "should find pending migration"
   end
 
   def test_finds_pending_migrations
-    ActiveRecord::SchemaMigration.create!(:version => '1')
-    migration_list = [ActiveRecord::Migration.new('foo', 1), ActiveRecord::Migration.new('bar', 3)]
+    ActiveRecord::SchemaMigration.create!(:version => "1")
+    migration_list = [ActiveRecord::Migration.new("foo", 1), ActiveRecord::Migration.new("bar", 3)]
     migrations = ActiveRecord::Migrator.new(:up, migration_list).pending_migrations
 
     assert_equal 1, migrations.size
@@ -124,21 +124,21 @@ class MigratorTest < ActiveRecord::TestCase
   end
 
   def test_migrator_interleaved_migrations
-    pass_one = [Sensor.new('One', 1)]
+    pass_one = [Sensor.new("One", 1)]
 
     ActiveRecord::Migrator.new(:up, pass_one).migrate
     assert pass_one.first.went_up
     assert_not pass_one.first.went_down
 
-    pass_two = [Sensor.new('One', 1), Sensor.new('Three', 3)]
+    pass_two = [Sensor.new("One", 1), Sensor.new("Three", 3)]
     ActiveRecord::Migrator.new(:up, pass_two).migrate
     assert_not pass_two[0].went_up
     assert pass_two[1].went_up
     assert pass_two.all? { |x| !x.went_down }
 
-    pass_three = [Sensor.new('One', 1),
-                  Sensor.new('Two', 2),
-                  Sensor.new('Three', 3)]
+    pass_three = [Sensor.new("One", 1),
+                  Sensor.new("Two", 2),
+                  Sensor.new("Three", 3)]
 
     ActiveRecord::Migrator.new(:down, pass_three).migrate
     assert pass_three[0].went_down
@@ -165,7 +165,7 @@ class MigratorTest < ActiveRecord::TestCase
   end
 
   def test_current_version
-    ActiveRecord::SchemaMigration.create!(:version => '1000')
+    ActiveRecord::SchemaMigration.create!(:version => "1000")
     assert_equal 1000, ActiveRecord::Migrator.current_version
   end
 
@@ -313,9 +313,9 @@ class MigratorTest < ActiveRecord::TestCase
     _, migrator = migrator_class(3)
 
     ActiveRecord::Base.connection.drop_table "schema_migrations", if_exists: true
-    ActiveSupport::Deprecation.silence { assert_not ActiveRecord::Base.connection.table_exists?('schema_migrations') }
+    ActiveSupport::Deprecation.silence { assert_not ActiveRecord::Base.connection.table_exists?("schema_migrations") }
     migrator.migrate("valid", 1)
-    ActiveSupport::Deprecation.silence { assert ActiveRecord::Base.connection.table_exists?('schema_migrations') }
+    ActiveSupport::Deprecation.silence { assert ActiveRecord::Base.connection.table_exists?("schema_migrations") }
   end
 
   def test_migrator_forward
@@ -332,7 +332,7 @@ class MigratorTest < ActiveRecord::TestCase
 
   def test_only_loads_pending_migrations
     # migrate up to 1
-    ActiveRecord::SchemaMigration.create!(:version => '1')
+    ActiveRecord::SchemaMigration.create!(:version => "1")
 
     calls, migrator = migrator_class(3)
     migrator.migrate("valid", nil)

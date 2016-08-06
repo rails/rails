@@ -21,7 +21,7 @@ class NestedAttributesWithCallbacksTest < ActiveRecord::TestCase
     @@add_callback_called = []
     @pirate = Pirate.new.tap do |pirate|
       pirate.catchphrase = "Don't call me!"
-      pirate.birds_attributes = [{:name => 'Bird1'},{:name => 'Bird2'}]
+      pirate.birds_attributes = [{:name => "Bird1"},{:name => "Bird2"}]
       pirate.save!
     end
     @birds = @pirate.birds.to_a
@@ -46,17 +46,17 @@ class NestedAttributesWithCallbacksTest < ActiveRecord::TestCase
   end
 
   def new_bird_attributes
-     [{'name' => "New Bird"}]
+     [{"name" => "New Bird"}]
   end
 
   def destroy_bird_attributes
-    [{'id' => bird_to_destroy.id.to_s, "_destroy" => true}]
+    [{"id" => bird_to_destroy.id.to_s, "_destroy" => true}]
   end
 
   def update_new_and_destroy_bird_attributes
-    [{'id' => @birds[0].id.to_s, 'name' => 'New Name'},
-     {'name' => "New Bird"},
-     {'id' => bird_to_destroy.id.to_s, "_destroy" => true}]
+    [{"id" => @birds[0].id.to_s, "name" => "New Name"},
+     {"name" => "New Bird"},
+     {"id" => bird_to_destroy.id.to_s, "_destroy" => true}]
   end
 
   # Characterizing when :before_add callback is called
@@ -137,8 +137,8 @@ class NestedAttributesWithCallbacksTest < ActiveRecord::TestCase
   def assert_assignment_affects_records_in_target(association_name)
     association = @pirate.send(association_name)
     assert association.detect {|b| b == bird_to_update }.name_changed?,
-      'Update record not updated'
+      "Update record not updated"
     assert association.detect {|b| b == bird_to_destroy }.marked_for_destruction?,
-      'Destroy record not marked for destruction'
+      "Destroy record not marked for destruction"
   end
 end

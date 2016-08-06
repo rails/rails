@@ -1,5 +1,5 @@
-require 'cases/helper'
-require 'support/schema_dumping_helper'
+require "cases/helper"
+require "support/schema_dumping_helper"
 
 if subsecond_precision_supported?
 class DateTimePrecisionTest < ActiveRecord::TestCase
@@ -21,24 +21,24 @@ class DateTimePrecisionTest < ActiveRecord::TestCase
     @connection.create_table(:foos, force: true)
     @connection.add_column :foos, :created_at, :datetime, precision: 0
     @connection.add_column :foos, :updated_at, :datetime, precision: 5
-    assert_equal 0, Foo.columns_hash['created_at'].precision
-    assert_equal 5, Foo.columns_hash['updated_at'].precision
+    assert_equal 0, Foo.columns_hash["created_at"].precision
+    assert_equal 5, Foo.columns_hash["updated_at"].precision
   end
 
   def test_timestamps_helper_with_custom_precision
     @connection.create_table(:foos, force: true) do |t|
       t.timestamps precision: 4
     end
-    assert_equal 4, Foo.columns_hash['created_at'].precision
-    assert_equal 4, Foo.columns_hash['updated_at'].precision
+    assert_equal 4, Foo.columns_hash["created_at"].precision
+    assert_equal 4, Foo.columns_hash["updated_at"].precision
   end
 
   def test_passing_precision_to_datetime_does_not_set_limit
     @connection.create_table(:foos, force: true) do |t|
       t.timestamps precision: 4
     end
-    assert_nil Foo.columns_hash['created_at'].limit
-    assert_nil Foo.columns_hash['updated_at'].limit
+    assert_nil Foo.columns_hash["created_at"].limit
+    assert_nil Foo.columns_hash["updated_at"].limit
   end
 
   def test_invalid_datetime_precision_raises_error

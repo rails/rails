@@ -1,6 +1,6 @@
 require "cases/helper"
-require 'models/reply'
-require 'models/topic'
+require "models/reply"
+require "models/topic"
 
 module ActiveRecord
   class DupTest < ActiveRecord::TestCase
@@ -14,7 +14,7 @@ module ActiveRecord
       topic = Topic.first
 
       duped = topic.dup
-      assert !duped.readonly?, 'should not be readonly'
+      assert !duped.readonly?, "should not be readonly"
     end
 
     def test_is_readonly
@@ -22,15 +22,15 @@ module ActiveRecord
       topic.readonly!
 
       duped = topic.dup
-      assert duped.readonly?, 'should be readonly'
+      assert duped.readonly?, "should be readonly"
     end
 
     def test_dup_not_persisted
       topic = Topic.first
       duped = topic.dup
 
-      assert !duped.persisted?, 'topic not persisted'
-      assert duped.new_record?, 'topic is new'
+      assert !duped.persisted?, "topic not persisted"
+      assert duped.new_record?, "topic is new"
     end
 
     def test_dup_not_destroyed
@@ -49,9 +49,9 @@ module ActiveRecord
 
     def test_dup_with_modified_attributes
       topic = Topic.first
-      topic.author_name = 'Aaron'
+      topic.author_name = "Aaron"
       duped = topic.dup
-      assert_equal 'Aaron', duped.author_name
+      assert_equal "Aaron", duped.author_name
     end
 
     def test_dup_with_changes
@@ -71,10 +71,10 @@ module ActiveRecord
 
     def test_dup_topics_are_independent
       topic = Topic.first
-      topic.author_name = 'Aaron'
+      topic.author_name = "Aaron"
       duped = topic.dup
 
-      duped.author_name = 'meow'
+      duped.author_name = "meow"
 
       assert_not_equal topic.changes, duped.changes
     end
@@ -83,11 +83,11 @@ module ActiveRecord
       topic = Topic.first
       duped = topic.dup
 
-      duped.author_name = 'meow'
-      topic.author_name = 'Aaron'
+      duped.author_name = "meow"
+      topic.author_name = "Aaron"
 
-      assert_equal 'Aaron', topic.author_name
-      assert_equal 'meow', duped.author_name
+      assert_equal "Aaron", topic.author_name
+      assert_equal "meow", duped.author_name
     end
 
     def test_dup_timestamps_are_cleared
@@ -127,7 +127,7 @@ module ActiveRecord
         assert duped.invalid?
 
         topic.title = nil
-        duped.title = 'Mathematics'
+        duped.title = "Mathematics"
         assert topic.invalid?
         assert duped.valid?
       end
@@ -144,7 +144,7 @@ module ActiveRecord
 
     def test_dup_without_primary_key
       klass = Class.new(ActiveRecord::Base) do
-        self.table_name = 'parrots_pirates'
+        self.table_name = "parrots_pirates"
       end
 
       record = klass.create!

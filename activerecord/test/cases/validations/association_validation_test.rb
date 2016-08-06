@@ -1,8 +1,8 @@
 require "cases/helper"
-require 'models/topic'
-require 'models/reply'
-require 'models/man'
-require 'models/interest'
+require "models/topic"
+require "models/reply"
+require "models/man"
+require "models/interest"
 
 class AssociationValidationTest < ActiveRecord::TestCase
   fixtures :topics
@@ -80,8 +80,8 @@ class AssociationValidationTest < ActiveRecord::TestCase
     repair_validations(Interest) do
       # Note that Interest and Man have the :inverse_of option set
       Interest.validates_presence_of(:man)
-      man = Man.new(:name => 'John')
-      interest = man.interests.build(:topic => 'Airplanes')
+      man = Man.new(:name => "John")
+      interest = man.interests.build(:topic => "Airplanes")
       assert interest.valid?, "Expected interest to be valid, but was not. Interest should have a man object associated"
     end
   end
@@ -89,8 +89,8 @@ class AssociationValidationTest < ActiveRecord::TestCase
   def test_validates_presence_of_belongs_to_association__existing_parent
     repair_validations(Interest) do
       Interest.validates_presence_of(:man)
-      man = Man.create!(:name => 'John')
-      interest = man.interests.build(:topic => 'Airplanes')
+      man = Man.create!(:name => "John")
+      interest = man.interests.build(:topic => "Airplanes")
       assert interest.valid?, "Expected interest to be valid, but was not. Interest should have a man object associated"
     end
   end

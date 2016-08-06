@@ -1,6 +1,6 @@
 require "cases/helper"
-require 'models/topic'
-require 'models/customer'
+require "models/topic"
+require "models/customer"
 
 class MultiParameterAttributeTest < ActiveRecord::TestCase
   fixtures :topics

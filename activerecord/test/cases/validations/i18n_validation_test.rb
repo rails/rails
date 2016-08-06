@@ -1,6 +1,6 @@
 require "cases/helper"
-require 'models/topic'
-require 'models/reply'
+require "models/topic"
+require "models/reply"
 
 class I18nValidationTest < ActiveRecord::TestCase
   repair_validations(Topic, Reply)
@@ -12,7 +12,7 @@ class I18nValidationTest < ActiveRecord::TestCase
     @old_load_path, @old_backend = I18n.load_path.dup, I18n.backend
     I18n.load_path.clear
     I18n.backend = I18n::Backend::Simple.new
-    I18n.backend.store_translations('en', :errors => {:messages => {:custom => nil}})
+    I18n.backend.store_translations("en", :errors => {:messages => {:custom => nil}})
   end
 
   teardown do
@@ -21,7 +21,7 @@ class I18nValidationTest < ActiveRecord::TestCase
   end
 
   def unique_topic
-    @unique ||= Topic.create :title => 'unique!'
+    @unique ||= Topic.create :title => "unique!"
   end
 
   def replied_topic
@@ -49,7 +49,7 @@ class I18nValidationTest < ActiveRecord::TestCase
     test "validates_uniqueness_of on generated message #{name}" do
       Topic.validates_uniqueness_of :title, validation_options
       @topic.title = unique_topic.title
-      assert_called_with(@topic.errors, :generate_message, [:title, :taken, generate_message_options.merge(:value => 'unique!')]) do
+      assert_called_with(@topic.errors, :generate_message, [:title, :taken, generate_message_options.merge(:value => "unique!")]) do
         @topic.valid?
       end
     end
@@ -65,20 +65,20 @@ class I18nValidationTest < ActiveRecord::TestCase
   end
 
   def test_validates_associated_finds_custom_model_key_translation
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:models => {:topic => {:attributes => {:replies => {:invalid => 'custom message'}}}}}}
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:invalid => 'global message'}}}
+    I18n.backend.store_translations "en", :activerecord => {:errors => {:models => {:topic => {:attributes => {:replies => {:invalid => "custom message"}}}}}}
+    I18n.backend.store_translations "en", :activerecord => {:errors => {:messages => {:invalid => "global message"}}}
 
     Topic.validates_associated :replies
     replied_topic.valid?
-    assert_equal ['custom message'], replied_topic.errors[:replies].uniq
+    assert_equal ["custom message"], replied_topic.errors[:replies].uniq
   end
 
   def test_validates_associated_finds_global_default_translation
-    I18n.backend.store_translations 'en', :activerecord => {:errors => {:messages => {:invalid => 'global message'}}}
+    I18n.backend.store_translations "en", :activerecord => {:errors => {:messages => {:invalid => "global message"}}}
 
     Topic.validates_associated :replies
     replied_topic.valid?
-    assert_equal ['global message'], replied_topic.errors[:replies]
+    assert_equal ["global message"], replied_topic.errors[:replies]
   end
 
 end

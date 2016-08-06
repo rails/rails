@@ -1,5 +1,5 @@
 require "cases/helper"
-require 'thread'
+require "thread"
 
 module ActiveRecord
   module AttributeMethods

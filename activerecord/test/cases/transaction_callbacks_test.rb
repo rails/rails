@@ -1,7 +1,7 @@
 require "cases/helper"
-require 'models/owner'
-require 'models/pet'
-require 'models/topic'
+require "models/owner"
+require "models/pet"
+require "models/topic"
 
 class TransactionCallbacksTest < ActiveRecord::TestCase
   fixtures :topics, :owners, :pets
@@ -88,7 +88,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
   # FIXME: Test behavior, not implementation.
   def test_before_commit_exception_should_pop_transaction_stack
-    @first.before_commit_block { raise 'better pop this txn from the stack!' }
+    @first.before_commit_block { raise "better pop this txn from the stack!" }
 
     original_txn = @first.class.connection.current_transaction
 
@@ -138,10 +138,10 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_only_call_after_commit_on_create_and_doesnt_leaky
-    r = ReplyWithCallbacks.new(content: 'foo')
+    r = ReplyWithCallbacks.new(content: "foo")
     r.save_on_after_create = true
     r.save!
-    r.content = 'bar'
+    r.content = "bar"
     r.save!
     r.save!
     assert_equal [:commit_on_create], r.history
@@ -355,13 +355,13 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
   def test_after_rollback_callbacks_should_validate_on_condition
     assert_raise(ArgumentError) { Topic.after_rollback(on: :save) }
-    e = assert_raise(ArgumentError) { Topic.after_rollback(on: 'create') }
+    e = assert_raise(ArgumentError) { Topic.after_rollback(on: "create") }
     assert_match(/:on conditions for after_commit and after_rollback callbacks have to be one of \[:create, :destroy, :update\]/, e.message)
   end
 
   def test_after_commit_callbacks_should_validate_on_condition
     assert_raise(ArgumentError) { Topic.after_commit(on: :save) }
-    e = assert_raise(ArgumentError) { Topic.after_commit(on: 'create') }
+    e = assert_raise(ArgumentError) { Topic.after_commit(on: "create") }
     assert_match(/:on conditions for after_commit and after_rollback callbacks have to be one of \[:create, :destroy, :update\]/, e.message)
   end
 
@@ -470,7 +470,7 @@ class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
 
   def test_commit_does_not_run_transactions_callbacks_without_enrollment
     @topic.transaction do
-      @topic.content = 'foo'
+      @topic.content = "foo"
       @topic.save!
     end
     assert @topic.history.empty?
@@ -479,7 +479,7 @@ class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
   def test_commit_run_transactions_callbacks_with_explicit_enrollment
     @topic.transaction do
       2.times do
-        @topic.content = 'foo'
+        @topic.content = "foo"
         @topic.save!
       end
       @topic.class.connection.add_transaction_record(@topic)
@@ -489,7 +489,7 @@ class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
 
   def test_rollback_does_not_run_transactions_callbacks_without_enrollment
     @topic.transaction do
-      @topic.content = 'foo'
+      @topic.content = "foo"
       @topic.save!
       raise ActiveRecord::Rollback
     end
@@ -499,7 +499,7 @@ class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
   def test_rollback_run_transactions_callbacks_with_explicit_enrollment
     @topic.transaction do
       2.times do
-        @topic.content = 'foo'
+        @topic.content = "foo"
         @topic.save!
       end
       @topic.class.connection.add_transaction_record(@topic)

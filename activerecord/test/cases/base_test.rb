@@ -1,30 +1,30 @@
 require "cases/helper"
-require 'models/post'
-require 'models/author'
-require 'models/topic'
-require 'models/reply'
-require 'models/category'
-require 'models/company'
-require 'models/customer'
-require 'models/developer'
-require 'models/computer'
-require 'models/project'
-require 'models/default'
-require 'models/auto_id'
-require 'models/boolean'
-require 'models/column_name'
-require 'models/subscriber'
-require 'models/comment'
-require 'models/minimalistic'
-require 'models/warehouse_thing'
-require 'models/parrot'
-require 'models/person'
-require 'models/edge'
-require 'models/joke'
-require 'models/bird'
-require 'models/car'
-require 'models/bulb'
-require 'concurrent/atomic/count_down_latch'
+require "models/post"
+require "models/author"
+require "models/topic"
+require "models/reply"
+require "models/category"
+require "models/company"
+require "models/customer"
+require "models/developer"
+require "models/computer"
+require "models/project"
+require "models/default"
+require "models/auto_id"
+require "models/boolean"
+require "models/column_name"
+require "models/subscriber"
+require "models/comment"
+require "models/minimalistic"
+require "models/warehouse_thing"
+require "models/parrot"
+require "models/person"
+require "models/edge"
+require "models/joke"
+require "models/bird"
+require "models/car"
+require "models/bulb"
+require "concurrent/atomic/count_down_latch"
 
 class FirstAbstractClass < ActiveRecord::Base
   self.abstract_class = true
@@ -73,17 +73,17 @@ class LintTest < ActiveRecord::TestCase
 end
 
 class BasicsTest < ActiveRecord::TestCase
-  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts
+  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, "warehouse-things", :authors, :categorizations, :categories, :posts
 
   def test_column_names_are_escaped
     conn      = ActiveRecord::Base.connection
     classname = conn.class.name[/[^:]*$/]
     badchar   = {
-      'SQLite3Adapter'    => '"',
-      'Mysql2Adapter'     => '`',
-      'PostgreSQLAdapter' => '"',
-      'OracleAdapter'     => '"',
-      'FbAdapter'         => '"'
+      "SQLite3Adapter"    => '"',
+      "Mysql2Adapter"     => "`",
+      "PostgreSQLAdapter" => '"',
+      "OracleAdapter"     => '"',
+      "FbAdapter"         => '"'
     }.fetch(classname) {
       raise "need a bad char for #{classname}"
     }
@@ -100,7 +100,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_columns_should_obey_set_primary_key
     pk = Subscriber.columns_hash[Subscriber.primary_key]
-    assert_equal 'nick', pk.name, 'nick should be primary key'
+    assert_equal "nick", pk.name, "nick should be primary key"
   end
 
   def test_primary_key_with_no_id
@@ -164,17 +164,17 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_previously_changed
     topic = Topic.first
-    topic.title = '<3<3<3'
+    topic.title = "<3<3<3"
     assert_equal({}, topic.previous_changes)
 
     topic.save!
     expected = ["The First Topic", "<3<3<3"]
-    assert_equal(expected, topic.previous_changes['title'])
+    assert_equal(expected, topic.previous_changes["title"])
   end
 
   def test_previously_changed_dup
     topic = Topic.first
-    topic.title = '<3<3<3'
+    topic.title = "<3<3<3"
     topic.save!
 
     t2 = topic.dup
@@ -211,7 +211,7 @@ class BasicsTest < ActiveRecord::TestCase
     with_env_tz eastern_time_zone do
       with_timezone_config default: :utc do
         time = Time.local(2000)
-        topic = Topic.create('written_on' => time)
+        topic = Topic.create("written_on" => time)
         saved_time = Topic.find(topic.id).reload.written_on
         assert_equal time, saved_time
         assert_equal [0, 0, 0, 1, 1, 2000, 6, 1, false, "EST"], time.to_a
@@ -223,9 +223,9 @@ class BasicsTest < ActiveRecord::TestCase
   def test_preserving_time_objects_with_time_with_zone_conversion_to_default_timezone_utc
     with_env_tz eastern_time_zone do
       with_timezone_config default: :utc do
-        Time.use_zone 'Central Time (US & Canada)' do
+        Time.use_zone "Central Time (US & Canada)" do
           time = Time.zone.local(2000)
-          topic = Topic.create('written_on' => time)
+          topic = Topic.create("written_on" => time)
           saved_time = Topic.find(topic.id).reload.written_on
           assert_equal time, saved_time
           assert_equal [0, 0, 0, 1, 1, 2000, 6, 1, false, "CST"], time.to_a
@@ -239,7 +239,7 @@ class BasicsTest < ActiveRecord::TestCase
     with_env_tz eastern_time_zone do
       with_timezone_config default: :local do
         time = Time.utc(2000)
-        topic = Topic.create('written_on' => time)
+        topic = Topic.create("written_on" => time)
         saved_time = Topic.find(topic.id).reload.written_on
         assert_equal time, saved_time
         assert_equal [0, 0, 0, 1, 1, 2000, 6, 1, false, "UTC"], time.to_a
@@ -251,9 +251,9 @@ class BasicsTest < ActiveRecord::TestCase
   def test_preserving_time_objects_with_time_with_zone_conversion_to_default_timezone_local
     with_env_tz eastern_time_zone do
       with_timezone_config default: :local do
-        Time.use_zone 'Central Time (US & Canada)' do
+        Time.use_zone "Central Time (US & Canada)" do
           time = Time.zone.local(2000)
-          topic = Topic.create('written_on' => time)
+          topic = Topic.create("written_on" => time)
           saved_time = Topic.find(topic.id).reload.written_on
           assert_equal time, saved_time
           assert_equal [0, 0, 0, 1, 1, 2000, 6, 1, false, "CST"], time.to_a
@@ -295,27 +295,27 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_create_after_initialize_without_block
-    cb = CustomBulb.create(:name => 'Dude')
-    assert_equal('Dude', cb.name)
+    cb = CustomBulb.create(:name => "Dude")
+    assert_equal("Dude", cb.name)
     assert_equal(true, cb.frickinawesome)
   end
 
   def test_create_after_initialize_with_block
-    cb = CustomBulb.create {|c| c.name = 'Dude' }
-    assert_equal('Dude', cb.name)
+    cb = CustomBulb.create {|c| c.name = "Dude" }
+    assert_equal("Dude", cb.name)
     assert_equal(true, cb.frickinawesome)
   end
 
   def test_create_after_initialize_with_array_param
-    cbs = CustomBulb.create([{ name: 'Dude' }, { name: 'Bob' }])
-    assert_equal 'Dude', cbs[0].name
-    assert_equal 'Bob', cbs[1].name
+    cbs = CustomBulb.create([{ name: "Dude" }, { name: "Bob" }])
+    assert_equal "Dude", cbs[0].name
+    assert_equal "Bob", cbs[1].name
     assert cbs[0].frickinawesome
     assert !cbs[1].frickinawesome
   end
 
   def test_load
-    topics = Topic.all.merge!(:order => 'id').to_a
+    topics = Topic.all.merge!(:order => "id").to_a
     assert_equal(5, topics.size)
     assert_equal(topics(:first).title, topics.first.title)
   end
@@ -443,7 +443,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   if current_adapter?(:Mysql2Adapter)
     def test_update_all_with_order_and_limit
-      assert_equal 1, Topic.limit(1).order('id DESC').update_all(:content => 'bulk updated!')
+      assert_equal 1, Topic.limit(1).order("id DESC").update_all(:content => "bulk updated!")
     end
   end
 
@@ -518,16 +518,16 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_find_by_slug
-    assert_equal Topic.find('1-meowmeow'), Topic.find(1)
+    assert_equal Topic.find("1-meowmeow"), Topic.find(1)
   end
 
   def test_find_by_slug_with_array
-    assert_equal Topic.find([1, 2]), Topic.find(['1-meowmeow', '2-hello'])
-    assert_equal 'The Second Topic of the day', Topic.find(['2-hello', '1-meowmeow']).first.title
+    assert_equal Topic.find([1, 2]), Topic.find(["1-meowmeow", "2-hello"])
+    assert_equal "The Second Topic of the day", Topic.find(["2-hello", "1-meowmeow"]).first.title
   end
 
   def test_find_by_slug_with_range
-    assert_equal Topic.where(id: '1-meowmeow'..'2-hello'), Topic.where(id: 1..2)
+    assert_equal Topic.where(id: "1-meowmeow".."2-hello"), Topic.where(id: 1..2)
   end
 
   def test_equality_of_new_records
@@ -536,7 +536,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_equality_of_destroyed_records
-    topic_1 = Topic.new(:title => 'test_1')
+    topic_1 = Topic.new(:title => "test_1")
     topic_1.save
     topic_2 = Topic.find(topic_1.id)
     topic_1.destroy
@@ -545,8 +545,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_equality_with_blank_ids
-    one = Subscriber.new(:id => '')
-    two = Subscriber.new(:id => '')
+    one = Subscriber.new(:id => "")
+    two = Subscriber.new(:id => "")
     assert_equal one, two
   end
 
@@ -555,8 +555,8 @@ class BasicsTest < ActiveRecord::TestCase
     car.bulbs.build
     car.save
 
-    assert car.bulbs == Bulb.where(car_id: car.id), 'CollectionProxy should be comparable with Relation'
-    assert Bulb.where(car_id: car.id) == car.bulbs, 'Relation should be comparable with CollectionProxy'
+    assert car.bulbs == Bulb.where(car_id: car.id), "CollectionProxy should be comparable with Relation"
+    assert Bulb.where(car_id: car.id) == car.bulbs, "Relation should be comparable with CollectionProxy"
   end
 
   def test_equality_of_relation_and_array
@@ -564,7 +564,7 @@ class BasicsTest < ActiveRecord::TestCase
     car.bulbs.build
     car.save
 
-    assert Bulb.where(car_id: car.id) == car.bulbs.to_a, 'Relation should be comparable with Array'
+    assert Bulb.where(car_id: car.id) == car.bulbs.to_a, "Relation should be comparable with Array"
   end
 
   def test_equality_of_relation_and_association_relation
@@ -572,8 +572,8 @@ class BasicsTest < ActiveRecord::TestCase
     car.bulbs.build
     car.save
 
-    assert_equal Bulb.where(car_id: car.id), car.bulbs.includes(:car), 'Relation should be comparable with AssociationRelation'
-    assert_equal car.bulbs.includes(:car), Bulb.where(car_id: car.id), 'AssociationRelation should be comparable with Relation'
+    assert_equal Bulb.where(car_id: car.id), car.bulbs.includes(:car), "Relation should be comparable with AssociationRelation"
+    assert_equal car.bulbs.includes(:car), Bulb.where(car_id: car.id), "AssociationRelation should be comparable with Relation"
   end
 
   def test_equality_of_collection_proxy_and_association_relation
@@ -581,8 +581,8 @@ class BasicsTest < ActiveRecord::TestCase
     car.bulbs.build
     car.save
 
-    assert_equal car.bulbs, car.bulbs.includes(:car), 'CollectionProxy should be comparable with AssociationRelation'
-    assert_equal car.bulbs.includes(:car), car.bulbs, 'AssociationRelation should be comparable with CollectionProxy'
+    assert_equal car.bulbs, car.bulbs.includes(:car), "CollectionProxy should be comparable with AssociationRelation"
+    assert_equal car.bulbs.includes(:car), car.bulbs, "AssociationRelation should be comparable with CollectionProxy"
   end
 
   def test_hashing
@@ -604,14 +604,14 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_create_without_prepared_statement
     topic = Topic.connection.unprepared_statement do
-      Topic.create(:title => 'foo')
+      Topic.create(:title => "foo")
     end
 
     assert_equal topic, Topic.find(topic.id)
   end
 
   def test_destroy_without_prepared_statement
-    topic = Topic.create(title: 'foo')
+    topic = Topic.create(title: "foo")
     Topic.connection.unprepared_statement do
       Topic.find(topic.id).destroy
     end
@@ -633,7 +633,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_readonly_attributes
-    assert_equal Set.new([ 'title' , 'comments_count' ]), ReadonlyTitlePost.readonly_attributes
+    assert_equal Set.new([ "title" , "comments_count" ]), ReadonlyTitlePost.readonly_attributes
 
     post = ReadonlyTitlePost.create(:title => "cannot change this", :body => "changeable")
     post.reload
@@ -647,8 +647,8 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_unicode_column_name
     Weird.reset_column_information
-    weird = Weird.create(:なまえ => 'たこ焼き仮面')
-    assert_equal 'たこ焼き仮面', weird.なまえ
+    weird = Weird.create(:なまえ => "たこ焼き仮面")
+    assert_equal "たこ焼き仮面", weird.なまえ
   end
 
   unless current_adapter?(:PostgreSQLAdapter)
@@ -666,21 +666,21 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_non_valid_identifier_column_name
-    weird = Weird.create('a$b' => 'value')
+    weird = Weird.create("a$b" => "value")
     weird.reload
-    assert_equal 'value', weird.send('a$b')
-    assert_equal 'value', weird.read_attribute('a$b')
+    assert_equal "value", weird.send("a$b")
+    assert_equal "value", weird.read_attribute("a$b")
 
-    weird.update_columns('a$b' => 'value2')
+    weird.update_columns("a$b" => "value2")
     weird.reload
-    assert_equal 'value2', weird.send('a$b')
-    assert_equal 'value2', weird.read_attribute('a$b')
+    assert_equal "value2", weird.send("a$b")
+    assert_equal "value2", weird.read_attribute("a$b")
   end
 
   def test_group_weirds_by_from
-    Weird.create('a$b' => 'value', :from => 'aaron')
+    Weird.create("a$b" => "value", :from => "aaron")
     count = Weird.group(Weird.arel_table[:from]).count
-    assert_equal 1, count['aaron']
+    assert_equal 1, count["aaron"]
   end
 
   def test_attributes_on_dummy_time
@@ -789,8 +789,8 @@ class BasicsTest < ActiveRecord::TestCase
   DeveloperSalary = Struct.new(:amount)
   def test_dup_with_aggregate_of_same_name_as_attribute
     developer_with_aggregate = Class.new(ActiveRecord::Base) do
-      self.table_name = 'developers'
-      composed_of :salary, :class_name => 'BasicsTest::DeveloperSalary', :mapping => [%w(salary amount)]
+      self.table_name = "developers"
+      composed_of :salary, :class_name => "BasicsTest::DeveloperSalary", :mapping => [%w(salary amount)]
     end
 
     dev = developer_with_aggregate.find(1)
@@ -837,7 +837,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_clone_of_new_object_marks_attributes_as_dirty
-    developer = Developer.new :name => 'Bjorn', :salary => 100000
+    developer = Developer.new :name => "Bjorn", :salary => 100000
     assert developer.name_changed?
     assert developer.salary_changed?
 
@@ -847,7 +847,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_clone_of_new_object_marks_as_dirty_only_changed_attributes
-    developer = Developer.new :name => 'Bjorn'
+    developer = Developer.new :name => "Bjorn"
     assert developer.name_changed?            # obviously
     assert !developer.salary_changed?         # attribute has non-nil default value, so treated as not changed
 
@@ -857,7 +857,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_dup_of_saved_object_marks_attributes_as_dirty
-    developer = Developer.create! :name => 'Bjorn', :salary => 100000
+    developer = Developer.create! :name => "Bjorn", :salary => 100000
     assert !developer.name_changed?
     assert !developer.salary_changed?
 
@@ -867,7 +867,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_dup_of_saved_object_marks_as_dirty_only_changed_attributes
-    developer = Developer.create! :name => 'Bjorn'
+    developer = Developer.create! :name => "Bjorn"
     assert !developer.name_changed?           # both attributes of saved object should be treated as not changed
     assert !developer.salary_changed?
 
@@ -895,15 +895,15 @@ class BasicsTest < ActiveRecord::TestCase
         assert_equal Time.local(2004, 1,1,0,0,0,0), default.fixed_time
 
         # char types
-        assert_equal 'Y', default.char1
-        assert_equal 'a varchar field', default.char2
-        assert_equal 'a text field', default.char3
+        assert_equal "Y", default.char1
+        assert_equal "a varchar field", default.char2
+        assert_equal "a text field", default.char3
       end
     end
   end
 
   class NumericData < ActiveRecord::Base
-    self.table_name = 'numeric_data'
+    self.table_name = "numeric_data"
 
     attribute :my_house_population, :integer
     attribute :atoms_in_universe, :integer
@@ -1008,7 +1008,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_quote
     author_name = "\\ \001 ' \n \\n \""
-    topic = Topic.create('author_name' => author_name)
+    topic = Topic.create("author_name" => author_name)
     assert_equal author_name, Topic.find(topic.id).author_name
   end
 
@@ -1087,7 +1087,7 @@ class BasicsTest < ActiveRecord::TestCase
   def test_set_table_name_symbol_converted_to_string
     k = Class.new(Joke)
     k.table_name = :cold_jokes
-    assert_equal 'cold_jokes', k.table_name
+    assert_equal "cold_jokes", k.table_name
   end
 
   def test_quoted_table_name_after_set_table_name
@@ -1155,11 +1155,11 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_find_last
     last  = Developer.last
-    assert_equal last, Developer.all.merge!(:order => 'id desc').first
+    assert_equal last, Developer.all.merge!(:order => "id desc").first
   end
 
   def test_last
-    assert_equal Developer.all.merge!(:order => 'id desc').first, Developer.last
+    assert_equal Developer.all.merge!(:order => "id desc").first, Developer.last
   end
 
   def test_all
@@ -1169,32 +1169,32 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_all_with_conditions
-    assert_equal Developer.all.merge!(:order => 'id desc').to_a, Developer.order('id desc').to_a
+    assert_equal Developer.all.merge!(:order => "id desc").to_a, Developer.order("id desc").to_a
   end
 
   def test_find_ordered_last
-    last  = Developer.all.merge!(:order => 'developers.salary ASC').last
-    assert_equal last, Developer.all.merge!(:order => 'developers.salary ASC').to_a.last
+    last  = Developer.all.merge!(:order => "developers.salary ASC").last
+    assert_equal last, Developer.all.merge!(:order => "developers.salary ASC").to_a.last
   end
 
   def test_find_reverse_ordered_last
-    last  = Developer.all.merge!(:order => 'developers.salary DESC').last
-    assert_equal last, Developer.all.merge!(:order => 'developers.salary DESC').to_a.last
+    last  = Developer.all.merge!(:order => "developers.salary DESC").last
+    assert_equal last, Developer.all.merge!(:order => "developers.salary DESC").to_a.last
   end
 
   def test_find_multiple_ordered_last
-    last  = Developer.all.merge!(:order => 'developers.name, developers.salary DESC').last
-    assert_equal last, Developer.all.merge!(:order => 'developers.name, developers.salary DESC').to_a.last
+    last  = Developer.all.merge!(:order => "developers.name, developers.salary DESC").last
+    assert_equal last, Developer.all.merge!(:order => "developers.name, developers.salary DESC").to_a.last
   end
 
   def test_find_keeps_multiple_order_values
-    combined = Developer.all.merge!(:order => 'developers.name, developers.salary').to_a
-    assert_equal combined, Developer.all.merge!(:order => ['developers.name', 'developers.salary']).to_a
+    combined = Developer.all.merge!(:order => "developers.name, developers.salary").to_a
+    assert_equal combined, Developer.all.merge!(:order => ["developers.name", "developers.salary"]).to_a
   end
 
   def test_find_keeps_multiple_group_values
-    combined = Developer.all.merge!(:group => 'developers.name, developers.salary, developers.id, developers.created_at, developers.updated_at, developers.created_on, developers.updated_on').to_a
-    assert_equal combined, Developer.all.merge!(:group => ['developers.name', 'developers.salary', 'developers.id', 'developers.created_at', 'developers.updated_at', 'developers.created_on', 'developers.updated_on']).to_a
+    combined = Developer.all.merge!(:group => "developers.name, developers.salary, developers.id, developers.created_at, developers.updated_at, developers.created_on, developers.updated_on").to_a
+    assert_equal combined, Developer.all.merge!(:group => ["developers.name", "developers.salary", "developers.id", "developers.created_at", "developers.updated_at", "developers.created_on", "developers.updated_on"]).to_a
   end
 
   def test_find_symbol_ordered_last
@@ -1210,7 +1210,7 @@ class BasicsTest < ActiveRecord::TestCase
     old_class = LooseDescendant
     Object.send :remove_const, :LooseDescendant
 
-    descendant = old_class.create! :first_name => 'bob'
+    descendant = old_class.create! :first_name => "bob"
     assert_not_nil LoosePerson.find(descendant.id), "Should have found instance of LooseDescendant when finding abstract LoosePerson: #{descendant.inspect}"
   ensure
     unless Object.const_defined?(:LooseDescendant)
@@ -1219,7 +1219,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_assert_queries
-    query = lambda { ActiveRecord::Base.connection.execute 'select count(*) from developers' }
+    query = lambda { ActiveRecord::Base.connection.execute "select count(*) from developers" }
     assert_queries(2) { 2.times { query.call } }
     assert_queries 1, &query
     assert_no_queries { assert true }
@@ -1253,9 +1253,9 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_clear_cache!
     # preheat cache
-    c1 = Post.connection.schema_cache.columns('posts')
+    c1 = Post.connection.schema_cache.columns("posts")
     ActiveRecord::Base.clear_cache!
-    c2 = Post.connection.schema_cache.columns('posts')
+    c2 = Post.connection.schema_cache.columns("posts")
     c1.each_with_index do |v, i|
       assert_not_same v, c2[i]
     end
@@ -1346,11 +1346,11 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_has_attribute
-    assert Company.has_attribute?('id')
-    assert Company.has_attribute?('type')
-    assert Company.has_attribute?('name')
-    assert_not Company.has_attribute?('lastname')
-    assert_not Company.has_attribute?('age')
+    assert Company.has_attribute?("id")
+    assert Company.has_attribute?("type")
+    assert Company.has_attribute?("name")
+    assert_not Company.has_attribute?("lastname")
+    assert_not Company.has_attribute?("age")
   end
 
   def test_has_attribute_with_symbol
@@ -1389,10 +1389,10 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_column_types_typecast
     topic = Topic.first
-    assert_not_equal 't.lo', topic.author_name
+    assert_not_equal "t.lo", topic.author_name
 
     attrs = topic.attributes.dup
-    attrs.delete 'id'
+    attrs.delete "id"
 
     typecast = Class.new(ActiveRecord::Type::Value) {
       def cast value
@@ -1400,26 +1400,26 @@ class BasicsTest < ActiveRecord::TestCase
       end
     }
 
-    types = { 'author_name' => typecast.new }
+    types = { "author_name" => typecast.new }
     topic = Topic.instantiate(attrs, types)
 
-    assert_equal 't.lo', topic.author_name
+    assert_equal "t.lo", topic.author_name
   end
 
   def test_typecasting_aliases
-    assert_equal 10, Topic.select('10 as tenderlove').first.tenderlove
+    assert_equal 10, Topic.select("10 as tenderlove").first.tenderlove
   end
 
   def test_slice
     company = Company.new(:rating => 1, :name => "37signals", :firm_name => "37signals")
     hash = company.slice(:name, :rating, "arbitrary_method")
     assert_equal hash[:name], company.name
-    assert_equal hash['name'], company.name
+    assert_equal hash["name"], company.name
     assert_equal hash[:rating], company.rating
-    assert_equal hash['arbitrary_method'], company.arbitrary_method
+    assert_equal hash["arbitrary_method"], company.arbitrary_method
     assert_equal hash[:arbitrary_method], company.arbitrary_method
     assert_nil hash[:firm_name]
-    assert_nil hash['firm_name']
+    assert_nil hash["firm_name"]
   end
 
   def test_default_values_are_deeply_dupped
@@ -1430,7 +1430,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   test "scoped can take a values hash" do
     klass = Class.new(ActiveRecord::Base)
-    assert_equal ['foo'], klass.all.merge!(select: 'foo').select_values
+    assert_equal ["foo"], klass.all.merge!(select: "foo").select_values
   end
 
   test "connection_handler can be overridden" do
@@ -1512,8 +1512,8 @@ class BasicsTest < ActiveRecord::TestCase
 
   test "ignored columns are not present in columns_hash" do
     cache_columns = Developer.connection.schema_cache.columns_hash(Developer.table_name)
-    assert_includes cache_columns.keys, 'first_name'
-    refute_includes Developer.columns_hash.keys, 'first_name'
+    assert_includes cache_columns.keys, "first_name"
+    refute_includes Developer.columns_hash.keys, "first_name"
   end
 
   test "ignored columns have no attribute methods" do

@@ -1,6 +1,6 @@
-require 'active_support/test_case'
-require 'active_support/testing/stream'
-require 'active_support/core_ext/regexp'
+require "active_support/test_case"
+require "active_support/testing/stream"
+require "active_support/core_ext/regexp"
 
 module ActiveRecord
   # = Active Record Test Case
@@ -113,12 +113,12 @@ module ActiveRecord
 
       # FIXME: this seems bad. we should probably have a better way to indicate
       # the query was cached
-      return if 'CACHE' == values[:name]
+      return if "CACHE" == values[:name]
 
       self.class.log_all << sql
       self.class.log << sql unless ignore.match?(sql)
     end
   end
 
-  ActiveSupport::Notifications.subscribe('sql.active_record', SQLCounter.new)
+  ActiveSupport::Notifications.subscribe("sql.active_record", SQLCounter.new)
 end

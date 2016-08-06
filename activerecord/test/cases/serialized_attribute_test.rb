@@ -1,10 +1,10 @@
-require 'cases/helper'
-require 'models/topic'
-require 'models/reply'
-require 'models/person'
-require 'models/traffic_light'
-require 'models/post'
-require 'bcrypt'
+require "cases/helper"
+require "models/topic"
+require "models/reply"
+require "models/person"
+require "models/traffic_light"
+require "models/post"
+require "bcrypt"
 
 class SerializedAttributeTest < ActiveRecord::TestCase
   fixtures :topics, :posts
@@ -25,7 +25,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   def test_serialized_attribute
     Topic.serialize("content", MyObject)
 
-    myobj = MyObject.new('value1', 'value2')
+    myobj = MyObject.new("value1", "value2")
     topic = Topic.create("content" => myobj)
     assert_equal(myobj, topic.content)
 
@@ -36,7 +36,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   def test_serialized_attribute_in_base_class
     Topic.serialize("content", Hash)
 
-    hash = { 'content1' => 'value1', 'content2' => 'value2' }
+    hash = { "content1" => "value1", "content2" => "value2" }
     important_topic = ImportantTopic.create("content" => hash)
     assert_equal(hash, important_topic.content)
 
@@ -97,7 +97,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_serialized_attribute_declared_in_subclass
-    hash = { 'important1' => 'value1', 'important2' => 'value2' }
+    hash = { "important1" => "value1", "important2" => "value2" }
     important_topic = ImportantTopic.create("important" => hash)
     assert_equal(hash, important_topic.important)
 
@@ -137,12 +137,12 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   def test_serialized_attribute_should_raise_exception_on_assignment_with_wrong_type
     Topic.serialize(:content, Hash)
     assert_raise(ActiveRecord::SerializationTypeMismatch) do
-      Topic.new(content: 'string')
+      Topic.new(content: "string")
     end
   end
 
   def test_should_raise_exception_on_serialized_attribute_with_type_mismatch
-    myobj = MyObject.new('value1', 'value2')
+    myobj = MyObject.new("value1", "value2")
     topic = Topic.new(:content => myobj)
     assert topic.save
     Topic.serialize(:content, Hash)
@@ -200,18 +200,18 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     end
 
     Topic.serialize(:content, some_class)
-    topic = Topic.new(:content => some_class.new('my value'))
+    topic = Topic.new(:content => some_class.new("my value"))
     topic.save!
     topic.reload
     assert_kind_of some_class, topic.content
-    assert_equal topic.content, some_class.new('my value')
+    assert_equal topic.content, some_class.new("my value")
   end
 
   def test_serialize_attribute_via_select_method_when_time_zone_available
     with_timezone_config aware_attributes: true do
       Topic.serialize(:content, MyObject)
 
-      myobj = MyObject.new('value1', 'value2')
+      myobj = MyObject.new("value1", "value2")
       topic = Topic.create(content: myobj)
 
       assert_equal(myobj, Topic.select(:content).find(topic.id).content)
@@ -220,8 +220,8 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_serialize_attribute_can_be_serialized_in_an_integer_column
-    insures = ['life']
-    person = SerializedPerson.new(first_name: 'David', insures: insures)
+    insures = ["life"]
+    person = SerializedPerson.new(first_name: "David", insures: insures)
     assert person.save
     person = person.reload
     assert_equal(insures, person.insures)

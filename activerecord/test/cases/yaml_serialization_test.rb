@@ -1,8 +1,8 @@
-require 'cases/helper'
-require 'models/topic'
-require 'models/reply'
-require 'models/post'
-require 'models/author'
+require "cases/helper"
+require "models/topic"
+require "models/reply"
+require "models/post"
+require "models/author"
 
 class YamlSerializationTest < ActiveRecord::TestCase
   fixtures :topics, :authors, :posts
@@ -67,16 +67,16 @@ class YamlSerializationTest < ActiveRecord::TestCase
     assert_not topic.new_record?, "Saved records are not new"
     assert_not YAML.load(YAML.dump(topic)).new_record?, "Saved record should not be new after deserialization"
 
-    topic = Topic.select('title').last
+    topic = Topic.select("title").last
 
     assert_not topic.new_record?, "Loaded records without ID are not new"
     assert_not YAML.load(YAML.dump(topic)).new_record?, "Record should not be new after deserialization"
   end
 
   def test_types_of_virtual_columns_are_not_changed_on_round_trip
-    author = Author.select('authors.*, count(posts.id) as posts_count')
+    author = Author.select("authors.*, count(posts.id) as posts_count")
       .joins(:posts)
-      .group('authors.id')
+      .group("authors.id")
       .first
     dumped = YAML.load(YAML.dump(author))
 
@@ -88,7 +88,7 @@ class YamlSerializationTest < ActiveRecord::TestCase
     coder = {}
     Topic.first.encode_with(coder)
 
-    assert coder['active_record_yaml_version']
+    assert coder["active_record_yaml_version"]
   end
 
   def test_deserializing_rails_41_yaml

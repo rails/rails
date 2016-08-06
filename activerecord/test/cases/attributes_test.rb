@@ -1,10 +1,10 @@
-require 'cases/helper'
+require "cases/helper"
 
 class OverloadedType < ActiveRecord::Base
   attribute :overloaded_float, :integer
   attribute :overloaded_string_with_limit, :string, limit: 50
   attribute :non_existent_decimal, :decimal
-  attribute :string_with_default, :string, default: 'the overloaded default'
+  attribute :string_with_default, :string, default: "the overloaded default"
 end
 
 class ChildOfOverloadedType < OverloadedType
@@ -15,7 +15,7 @@ class GrandchildOfOverloadedType < ChildOfOverloadedType
 end
 
 class UnoverloadedType < ActiveRecord::Base
-  self.table_name = 'overloaded_types'
+  self.table_name = "overloaded_types"
 end
 
 module ActiveRecord
@@ -44,14 +44,14 @@ module ActiveRecord
     end
 
     test "properties assigned in constructor" do
-      data = OverloadedType.new(overloaded_float: '3.3')
+      data = OverloadedType.new(overloaded_float: "3.3")
 
       assert_equal 3, data.overloaded_float
     end
 
     test "overloaded properties with limit" do
-      assert_equal 50, OverloadedType.type_for_attribute('overloaded_string_with_limit').limit
-      assert_equal 255, UnoverloadedType.type_for_attribute('overloaded_string_with_limit').limit
+      assert_equal 50, OverloadedType.type_for_attribute("overloaded_string_with_limit").limit
+      assert_equal 255, UnoverloadedType.type_for_attribute("overloaded_string_with_limit").limit
     end
 
     test "nonexistent attribute" do
@@ -65,7 +65,7 @@ module ActiveRecord
 
     test "model with nonexistent attribute with default value can be saved" do
       klass = Class.new(OverloadedType) do
-        attribute :non_existent_string_with_default, :string, default: 'nonexistent'
+        attribute :non_existent_string_with_default, :string, default: "nonexistent"
       end
 
       model = klass.new
@@ -76,22 +76,22 @@ module ActiveRecord
       data = OverloadedType.new
       unoverloaded_data = UnoverloadedType.new
 
-      assert_equal 'the overloaded default', data.string_with_default
-      assert_equal 'the original default', unoverloaded_data.string_with_default
+      assert_equal "the overloaded default", data.string_with_default
+      assert_equal "the original default", unoverloaded_data.string_with_default
     end
 
     test "defaults are not touched on the columns" do
-      assert_equal 'the original default', OverloadedType.columns_hash['string_with_default'].default
+      assert_equal "the original default", OverloadedType.columns_hash["string_with_default"].default
     end
 
     test "children inherit custom properties" do
-      data = ChildOfOverloadedType.new(overloaded_float: '4.4')
+      data = ChildOfOverloadedType.new(overloaded_float: "4.4")
 
       assert_equal 4, data.overloaded_float
     end
 
     test "children can override parents" do
-      data = GrandchildOfOverloadedType.new(overloaded_float: '4.4')
+      data = GrandchildOfOverloadedType.new(overloaded_float: "4.4")
 
       assert_equal 4.4, data.overloaded_float
     end
@@ -106,13 +106,13 @@ module ActiveRecord
 
       assert_equal 6, klass.attribute_types.length
       assert_equal 6, klass.column_defaults.length
-      assert_not klass.attribute_types.include?('wibble')
+      assert_not klass.attribute_types.include?("wibble")
 
       klass.attribute :wibble, Type::Value.new
 
       assert_equal 7, klass.attribute_types.length
       assert_equal 7, klass.column_defaults.length
-      assert klass.attribute_types.include?('wibble')
+      assert klass.attribute_types.include?("wibble")
     end
 
     test "the given default value is cast from user" do

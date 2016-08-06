@@ -1,5 +1,5 @@
-require 'cases/helper'
-require 'active_record/tasks/database_tasks'
+require "cases/helper"
+require "active_record/tasks/database_tasks"
 
 if current_adapter?(:PostgreSQLAdapter)
 module ActiveRecord
@@ -7,8 +7,8 @@ module ActiveRecord
     def setup
       @connection    = stub(:create_database => true)
       @configuration = {
-        'adapter'  => 'postgresql',
-        'database' => 'my-app-db'
+        "adapter"  => "postgresql",
+        "database" => "my-app-db"
       }
 
       ActiveRecord::Base.stubs(:connection).returns(@connection)
@@ -24,9 +24,9 @@ module ActiveRecord
 
     def test_establishes_connection_to_postgresql_database
       ActiveRecord::Base.expects(:establish_connection).with(
-        'adapter'            => 'postgresql',
-        'database'           => 'postgres',
-        'schema_search_path' => 'public'
+        "adapter"            => "postgresql",
+        "database"           => "postgres",
+        "schema_search_path" => "public"
       )
 
       ActiveRecord::Tasks::DatabaseTasks.create @configuration
@@ -34,25 +34,25 @@ module ActiveRecord
 
     def test_creates_database_with_default_encoding
       @connection.expects(:create_database).
-        with('my-app-db', @configuration.merge('encoding' => 'utf8'))
+        with("my-app-db", @configuration.merge("encoding" => "utf8"))
 
       ActiveRecord::Tasks::DatabaseTasks.create @configuration
     end
 
     def test_creates_database_with_given_encoding
       @connection.expects(:create_database).
-        with('my-app-db', @configuration.merge('encoding' => 'latin'))
+        with("my-app-db", @configuration.merge("encoding" => "latin"))
 
       ActiveRecord::Tasks::DatabaseTasks.create @configuration.
-        merge('encoding' => 'latin')
+        merge("encoding" => "latin")
     end
 
     def test_creates_database_with_given_collation_and_ctype
       @connection.expects(:create_database).
-        with('my-app-db', @configuration.merge('encoding' => 'utf8', 'collation' => 'ja_JP.UTF8', 'ctype' => 'ja_JP.UTF8'))
+        with("my-app-db", @configuration.merge("encoding" => "utf8", "collation" => "ja_JP.UTF8", "ctype" => "ja_JP.UTF8"))
 
       ActiveRecord::Tasks::DatabaseTasks.create @configuration.
-        merge('collation' => 'ja_JP.UTF8', 'ctype' => 'ja_JP.UTF8')
+        merge("collation" => "ja_JP.UTF8", "ctype" => "ja_JP.UTF8")
     end
 
     def test_establishes_connection_to_new_database
@@ -92,8 +92,8 @@ module ActiveRecord
     def setup
       @connection    = stub(:drop_database => true)
       @configuration = {
-        'adapter'  => 'postgresql',
-        'database' => 'my-app-db'
+        "adapter"  => "postgresql",
+        "database" => "my-app-db"
       }
 
       ActiveRecord::Base.stubs(:connection).returns(@connection)
@@ -109,16 +109,16 @@ module ActiveRecord
 
     def test_establishes_connection_to_postgresql_database
       ActiveRecord::Base.expects(:establish_connection).with(
-        'adapter'            => 'postgresql',
-        'database'           => 'postgres',
-        'schema_search_path' => 'public'
+        "adapter"            => "postgresql",
+        "database"           => "postgres",
+        "schema_search_path" => "public"
       )
 
       ActiveRecord::Tasks::DatabaseTasks.drop @configuration
     end
 
     def test_drops_database
-      @connection.expects(:drop_database).with('my-app-db')
+      @connection.expects(:drop_database).with("my-app-db")
 
       ActiveRecord::Tasks::DatabaseTasks.drop @configuration
     end
@@ -134,8 +134,8 @@ module ActiveRecord
     def setup
       @connection    = stub(:create_database => true, :drop_database => true)
       @configuration = {
-        'adapter'  => 'postgresql',
-        'database' => 'my-app-db'
+        "adapter"  => "postgresql",
+        "database" => "my-app-db"
       }
 
       ActiveRecord::Base.stubs(:connection).returns(@connection)
@@ -151,23 +151,23 @@ module ActiveRecord
 
     def test_establishes_connection_to_postgresql_database
       ActiveRecord::Base.expects(:establish_connection).with(
-        'adapter'            => 'postgresql',
-        'database'           => 'postgres',
-        'schema_search_path' => 'public'
+        "adapter"            => "postgresql",
+        "database"           => "postgres",
+        "schema_search_path" => "public"
       )
 
       ActiveRecord::Tasks::DatabaseTasks.purge @configuration
     end
 
     def test_drops_database
-      @connection.expects(:drop_database).with('my-app-db')
+      @connection.expects(:drop_database).with("my-app-db")
 
       ActiveRecord::Tasks::DatabaseTasks.purge @configuration
     end
 
     def test_creates_database
       @connection.expects(:create_database).
-        with('my-app-db', @configuration.merge('encoding' => 'utf8'))
+        with("my-app-db", @configuration.merge("encoding" => "utf8"))
 
       ActiveRecord::Tasks::DatabaseTasks.purge @configuration
     end
@@ -183,8 +183,8 @@ module ActiveRecord
     def setup
       @connection    = stub(:create_database => true)
       @configuration = {
-        'adapter'  => 'postgresql',
-        'database' => 'my-app-db'
+        "adapter"  => "postgresql",
+        "database" => "my-app-db"
       }
 
       ActiveRecord::Base.stubs(:connection).returns(@connection)
@@ -201,8 +201,8 @@ module ActiveRecord
     def setup
       @connection    = stub(:create_database => true)
       @configuration = {
-        'adapter'  => 'postgresql',
-        'database' => 'my-app-db'
+        "adapter"  => "postgresql",
+        "database" => "my-app-db"
       }
 
       ActiveRecord::Base.stubs(:connection).returns(@connection)
@@ -219,8 +219,8 @@ module ActiveRecord
     def setup
       @connection    = stub(:structure_dump => true)
       @configuration = {
-        'adapter'  => 'postgresql',
-        'database' => 'my-app-db'
+        "adapter"  => "postgresql",
+        "database" => "my-app-db"
       }
       @filename = "awesome-file.sql"
 
@@ -231,23 +231,23 @@ module ActiveRecord
     end
 
     def test_structure_dump
-      Kernel.expects(:system).with('pg_dump', '-s', '-x', '-O', '-f', @filename, 'my-app-db').returns(true)
+      Kernel.expects(:system).with("pg_dump", "-s", "-x", "-O", "-f", @filename, "my-app-db").returns(true)
 
       ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
     end
 
     def test_structure_dump_with_schema_search_path
-      @configuration['schema_search_path'] = 'foo,bar'
+      @configuration["schema_search_path"] = "foo,bar"
 
-      Kernel.expects(:system).with('pg_dump', '-s', '-x', '-O', '-f', @filename, '--schema=foo', '--schema=bar', 'my-app-db').returns(true)
+      Kernel.expects(:system).with("pg_dump", "-s", "-x", "-O", "-f", @filename, "--schema=foo", "--schema=bar", "my-app-db").returns(true)
 
       ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
     end
 
     def test_structure_dump_with_schema_search_path_and_dump_schemas_all
-      @configuration['schema_search_path'] = 'foo,bar'
+      @configuration["schema_search_path"] = "foo,bar"
 
-      Kernel.expects(:system).with("pg_dump", '-s', '-x', '-O', '-f', @filename,  'my-app-db').returns(true)
+      Kernel.expects(:system).with("pg_dump", "-s", "-x", "-O", "-f", @filename,  "my-app-db").returns(true)
 
       with_dump_schemas(:all) do
         ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
@@ -255,9 +255,9 @@ module ActiveRecord
     end
 
     def test_structure_dump_with_dump_schemas_string
-      Kernel.expects(:system).with("pg_dump", '-s', '-x', '-O', '-f', @filename, '--schema=foo', '--schema=bar', "my-app-db").returns(true)
+      Kernel.expects(:system).with("pg_dump", "-s", "-x", "-O", "-f", @filename, "--schema=foo", "--schema=bar", "my-app-db").returns(true)
 
-      with_dump_schemas('foo,bar') do
+      with_dump_schemas("foo,bar") do
         ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
       end
     end
@@ -277,8 +277,8 @@ module ActiveRecord
     def setup
       @connection    = stub
       @configuration = {
-        'adapter'  => 'postgresql',
-        'database' => 'my-app-db'
+        "adapter"  => "postgresql",
+        "database" => "my-app-db"
       }
 
       ActiveRecord::Base.stubs(:connection).returns(@connection)
@@ -288,14 +288,14 @@ module ActiveRecord
 
     def test_structure_load
       filename = "awesome-file.sql"
-      Kernel.expects(:system).with('psql', '-v', 'ON_ERROR_STOP=1', '-q', '-f', filename, @configuration['database']).returns(true)
+      Kernel.expects(:system).with("psql", "-v", "ON_ERROR_STOP=1", "-q", "-f", filename, @configuration["database"]).returns(true)
 
       ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
     end
 
     def test_structure_load_accepts_path_with_spaces
       filename = "awesome file.sql"
-      Kernel.expects(:system).with('psql', '-v', 'ON_ERROR_STOP=1', '-q', '-f', filename, @configuration['database']).returns(true)
+      Kernel.expects(:system).with("psql", "-v", "ON_ERROR_STOP=1", "-q", "-f", filename, @configuration["database"]).returns(true)
 
       ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
     end

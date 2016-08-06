@@ -100,8 +100,8 @@ if ActiveRecord::Base.connection.supports_migrations?
         end
       end
 
-      assert !@connection.columns(:has_timestamps).find { |c| c.name == 'created_at' }.null
-      assert !@connection.columns(:has_timestamps).find { |c| c.name == 'updated_at' }.null
+      assert !@connection.columns(:has_timestamps).find { |c| c.name == "created_at" }.null
+      assert !@connection.columns(:has_timestamps).find { |c| c.name == "updated_at" }.null
     end
 
     def test_timestamps_without_null_set_null_to_false_on_change_table
@@ -113,8 +113,8 @@ if ActiveRecord::Base.connection.supports_migrations?
         end
       end
 
-      assert !@connection.columns(:has_timestamps).find { |c| c.name == 'created_at' }.null
-      assert !@connection.columns(:has_timestamps).find { |c| c.name == 'updated_at' }.null
+      assert !@connection.columns(:has_timestamps).find { |c| c.name == "created_at" }.null
+      assert !@connection.columns(:has_timestamps).find { |c| c.name == "updated_at" }.null
     end
 
     def test_timestamps_without_null_set_null_to_false_on_add_timestamps
@@ -123,8 +123,8 @@ if ActiveRecord::Base.connection.supports_migrations?
         add_timestamps :has_timestamps, default: Time.now
       end
 
-      assert !@connection.columns(:has_timestamps).find { |c| c.name == 'created_at' }.null
-      assert !@connection.columns(:has_timestamps).find { |c| c.name == 'updated_at' }.null
+      assert !@connection.columns(:has_timestamps).find { |c| c.name == "created_at" }.null
+      assert !@connection.columns(:has_timestamps).find { |c| c.name == "updated_at" }.null
     end
   end
 end

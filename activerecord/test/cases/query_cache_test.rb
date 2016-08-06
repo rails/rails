@@ -1,9 +1,9 @@
 require "cases/helper"
-require 'models/topic'
-require 'models/task'
-require 'models/category'
-require 'models/post'
-require 'rack'
+require "models/topic"
+require "models/task"
+require "models/category"
+require "models/post"
+require "rack"
 
 class QueryCacheTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
@@ -16,7 +16,7 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   def test_exceptional_middleware_clears_and_disables_cache_on_error
-    assert !ActiveRecord::Base.connection.query_cache_enabled, 'cache off'
+    assert !ActiveRecord::Base.connection.query_cache_enabled, "cache off"
 
     mw = middleware { |env|
       Task.find 1
@@ -27,7 +27,7 @@ class QueryCacheTest < ActiveRecord::TestCase
     assert_raises(RuntimeError) { mw.call({}) }
 
     assert_equal 0, ActiveRecord::Base.connection.query_cache.length
-    assert !ActiveRecord::Base.connection.query_cache_enabled, 'cache off'
+    assert !ActiveRecord::Base.connection.query_cache_enabled, "cache off"
   end
 
   def test_exceptional_middleware_leaves_enabled_cache_alone
@@ -38,7 +38,7 @@ class QueryCacheTest < ActiveRecord::TestCase
     }
     assert_raises(RuntimeError) { mw.call({}) }
 
-    assert ActiveRecord::Base.connection.query_cache_enabled, 'cache on'
+    assert ActiveRecord::Base.connection.query_cache_enabled, "cache on"
   end
 
   def test_middleware_delegates
@@ -48,7 +48,7 @@ class QueryCacheTest < ActiveRecord::TestCase
       [200, {}, nil]
     }
     mw.call({})
-    assert called, 'middleware should delegate'
+    assert called, "middleware should delegate"
   end
 
   def test_middleware_caches
@@ -62,10 +62,10 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   def test_cache_enabled_during_call
-    assert !ActiveRecord::Base.connection.query_cache_enabled, 'cache off'
+    assert !ActiveRecord::Base.connection.query_cache_enabled, "cache off"
 
     mw = middleware { |env|
-      assert ActiveRecord::Base.connection.query_cache_enabled, 'cache on'
+      assert ActiveRecord::Base.connection.query_cache_enabled, "cache on"
       [200, {}, nil]
     }
     mw.call({})
@@ -166,7 +166,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   def test_cache_is_not_available_when_using_a_not_connected_connection
     spec_name = Task.connection_specification_name
-    conf = ActiveRecord::Base.configurations['arunit'].merge('name' => 'test2')
+    conf = ActiveRecord::Base.configurations["arunit"].merge("name" => "test2")
     ActiveRecord::Base.connection_handler.establish_connection(conf)
     Task.connection_specification_name = "test2"
     refute Task.connected?
@@ -185,30 +185,30 @@ class QueryCacheTest < ActiveRecord::TestCase
     post = Post.first
 
     Post.transaction do
-      post.update_attributes(title: 'rollback')
-      assert_equal 1, Post.where(title: 'rollback').to_a.count
+      post.update_attributes(title: "rollback")
+      assert_equal 1, Post.where(title: "rollback").to_a.count
       raise ActiveRecord::Rollback
     end
 
-    assert_equal 0, Post.where(title: 'rollback').to_a.count
+    assert_equal 0, Post.where(title: "rollback").to_a.count
 
     ActiveRecord::Base.connection.uncached do
-      assert_equal 0, Post.where(title: 'rollback').to_a.count
+      assert_equal 0, Post.where(title: "rollback").to_a.count
     end
 
     begin
       Post.transaction do
-        post.update_attributes(title: 'rollback')
-        assert_equal 1, Post.where(title: 'rollback').to_a.count
-        raise 'broken'
+        post.update_attributes(title: "rollback")
+        assert_equal 1, Post.where(title: "rollback").to_a.count
+        raise "broken"
       end
     rescue Exception
     end
 
-    assert_equal 0, Post.where(title: 'rollback').to_a.count
+    assert_equal 0, Post.where(title: "rollback").to_a.count
 
     ActiveRecord::Base.connection.uncached do
-      assert_equal 0, Post.where(title: 'rollback').to_a.count
+      assert_equal 0, Post.where(title: "rollback").to_a.count
     end
   end
 

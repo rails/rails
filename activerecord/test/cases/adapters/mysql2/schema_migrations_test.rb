@@ -18,7 +18,7 @@ class SchemaMigrationsTest < ActiveRecord::Mysql2TestCase
 
       connection.initialize_schema_migrations_table
 
-      assert connection.column_exists?(table_name, :version, :string, collation: 'utf8_general_ci')
+      assert connection.column_exists?(table_name, :version, :string, collation: "utf8_general_ci")
     end
   end
 
@@ -29,7 +29,7 @@ class SchemaMigrationsTest < ActiveRecord::Mysql2TestCase
 
       connection.initialize_internal_metadata_table
 
-      assert connection.column_exists?(table_name, :key, :string, collation: 'utf8_general_ci')
+      assert connection.column_exists?(table_name, :key, :string, collation: "utf8_general_ci")
     end
   end
 

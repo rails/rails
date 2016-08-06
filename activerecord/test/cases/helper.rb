@@ -1,17 +1,17 @@
-require 'config'
+require "config"
 
-require 'active_support/testing/autorun'
-require 'active_support/testing/method_call_assertions'
-require 'stringio'
+require "active_support/testing/autorun"
+require "active_support/testing/method_call_assertions"
+require "stringio"
 
-require 'active_record'
-require 'cases/test_case'
-require 'active_support/dependencies'
-require 'active_support/logger'
-require 'active_support/core_ext/string/strip'
+require "active_record"
+require "cases/test_case"
+require "active_support/dependencies"
+require "active_support/logger"
+require "active_support/core_ext/string/strip"
 
-require 'support/config'
-require 'support/connection'
+require "support/config"
+require "support/connection"
 
 # TODO: Move all these random hacks into the ARTest namespace and into the support/ dir
 
@@ -27,7 +27,7 @@ I18n.enforce_available_locales = false
 ARTest.connect
 
 # Quote "type" if it's a reserved word for the current connection.
-QUOTED_TYPE = ActiveRecord::Base.connection.quote_column_name('type')
+QUOTED_TYPE = ActiveRecord::Base.connection.quote_column_name("type")
 
 # FIXME: Remove this when the deprecation cycle on TZ aware types by default ends.
 ActiveRecord::Base.time_zone_aware_types << :time
@@ -49,18 +49,18 @@ def subsecond_precision_supported?
 end
 
 def mysql_enforcing_gtid_consistency?
-  current_adapter?(:Mysql2Adapter) && 'ON' == ActiveRecord::Base.connection.show_variable('enforce_gtid_consistency')
+  current_adapter?(:Mysql2Adapter) && "ON" == ActiveRecord::Base.connection.show_variable("enforce_gtid_consistency")
 end
 
 def supports_savepoints?
   ActiveRecord::Base.connection.supports_savepoints?
 end
 
-def with_env_tz(new_tz = 'US/Eastern')
-  old_tz, ENV['TZ'] = ENV['TZ'], new_tz
+def with_env_tz(new_tz = "US/Eastern")
+  old_tz, ENV["TZ"] = ENV["TZ"], new_tz
   yield
 ensure
-  old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
+  old_tz ? ENV["TZ"] = old_tz : ENV.delete("TZ")
 end
 
 def with_timezone_config(cfg)
@@ -201,4 +201,4 @@ module InTimeZone
   end
 end
 
-require 'mocha/setup' # FIXME: stop using mocha
+require "mocha/setup" # FIXME: stop using mocha

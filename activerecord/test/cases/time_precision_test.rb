@@ -1,5 +1,5 @@
-require 'cases/helper'
-require 'support/schema_dumping_helper'
+require "cases/helper"
+require "support/schema_dumping_helper"
 
 if subsecond_precision_supported?
 class TimePrecisionTest < ActiveRecord::TestCase
@@ -21,8 +21,8 @@ class TimePrecisionTest < ActiveRecord::TestCase
     @connection.create_table(:foos, force: true)
     @connection.add_column :foos, :start,  :time, precision: 3
     @connection.add_column :foos, :finish, :time, precision: 6
-    assert_equal 3, Foo.columns_hash['start'].precision
-    assert_equal 6, Foo.columns_hash['finish'].precision
+    assert_equal 3, Foo.columns_hash["start"].precision
+    assert_equal 6, Foo.columns_hash["finish"].precision
   end
 
   def test_passing_precision_to_time_does_not_set_limit
@@ -30,8 +30,8 @@ class TimePrecisionTest < ActiveRecord::TestCase
       t.time :start,  precision: 3
       t.time :finish, precision: 6
     end
-    assert_nil Foo.columns_hash['start'].limit
-    assert_nil Foo.columns_hash['finish'].limit
+    assert_nil Foo.columns_hash["start"].limit
+    assert_nil Foo.columns_hash["finish"].limit
   end
 
   def test_invalid_time_precision_raises_error

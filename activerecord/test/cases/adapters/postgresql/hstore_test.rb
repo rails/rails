@@ -1,11 +1,11 @@
 require "cases/helper"
-require 'support/schema_dumping_helper'
+require "support/schema_dumping_helper"
 
 if ActiveRecord::Base.connection.supports_extensions?
   class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
     include SchemaDumpingHelper
     class Hstore < ActiveRecord::Base
-      self.table_name = 'hstores'
+      self.table_name = "hstores"
 
       store_accessor :settings, :language, :timezone
     end
@@ -13,40 +13,40 @@ if ActiveRecord::Base.connection.supports_extensions?
     def setup
       @connection = ActiveRecord::Base.connection
 
-      unless @connection.extension_enabled?('hstore')
-        @connection.enable_extension 'hstore'
+      unless @connection.extension_enabled?("hstore")
+        @connection.enable_extension "hstore"
         @connection.commit_db_transaction
       end
 
       @connection.reconnect!
 
       @connection.transaction do
-        @connection.create_table('hstores') do |t|
-          t.hstore 'tags', :default => ''
-          t.hstore 'payload', array: true
-          t.hstore 'settings'
+        @connection.create_table("hstores") do |t|
+          t.hstore "tags", :default => ""
+          t.hstore "payload", array: true
+          t.hstore "settings"
         end
       end
       Hstore.reset_column_information
-      @column = Hstore.columns_hash['tags']
+      @column = Hstore.columns_hash["tags"]
       @type = Hstore.type_for_attribute("tags")
     end
 
     teardown do
-      @connection.drop_table 'hstores', if_exists: true
+      @connection.drop_table "hstores", if_exists: true
     end
 
     def test_hstore_included_in_extensions
       assert @connection.respond_to?(:extensions), "connection should have a list of extensions"
-      assert @connection.extensions.include?('hstore'), "extension list should include hstore"
+      assert @connection.extensions.include?("hstore"), "extension list should include hstore"
     end
 
     def test_disable_enable_hstore
-      assert @connection.extension_enabled?('hstore')
-      @connection.disable_extension 'hstore'
-      assert_not @connection.extension_enabled?('hstore')
-      @connection.enable_extension 'hstore'
-      assert @connection.extension_enabled?('hstore')
+      assert @connection.extension_enabled?("hstore")
+      @connection.disable_extension "hstore"
+      assert_not @connection.extension_enabled?("hstore")
+      @connection.enable_extension "hstore"
+      assert @connection.extension_enabled?("hstore")
     ensure
       # Restore column(s) dropped by `drop extension hstore cascade;`
       load_schema
@@ -61,10 +61,10 @@ if ActiveRecord::Base.connection.supports_extensions?
     end
 
     def test_default
-      @connection.add_column 'hstores', 'permissions', :hstore, default: '"users"=>"read", "articles"=>"write"'
+      @connection.add_column "hstores", "permissions", :hstore, default: '"users"=>"read", "articles"=>"write"'
       Hstore.reset_column_information
 
-      assert_equal({"users"=>"read", "articles"=>"write"}, Hstore.column_defaults['permissions'])
+      assert_equal({"users"=>"read", "articles"=>"write"}, Hstore.column_defaults["permissions"])
       assert_equal({"users"=>"read", "articles"=>"write"}, Hstore.new.permissions)
     ensure
       Hstore.reset_column_information
@@ -72,11 +72,11 @@ if ActiveRecord::Base.connection.supports_extensions?
 
     def test_change_table_supports_hstore
       @connection.transaction do
-        @connection.change_table('hstores') do |t|
-          t.hstore 'users', default: ''
+        @connection.change_table("hstores") do |t|
+          t.hstore "users", default: ""
         end
         Hstore.reset_column_information
-        column = Hstore.columns_hash['users']
+        column = Hstore.columns_hash["users"]
         assert_equal :hstore, column.type
 
         raise ActiveRecord::Rollback # reset the schema change
@@ -111,10 +111,10 @@ if ActiveRecord::Base.connection.supports_extensions?
     end
 
     def test_type_cast_hstore
-      assert_equal({'1' => '2'}, @type.deserialize("\"1\"=>\"2\""))
+      assert_equal({"1" => "2"}, @type.deserialize("\"1\"=>\"2\""))
       assert_equal({}, @type.deserialize(""))
-      assert_equal({'key'=>nil}, @type.deserialize('key => NULL'))
-      assert_equal({'c'=>'}','"a"'=>'b "a b'}, @type.deserialize(%q(c=>"}", "\"a\""=>"b \"a b")))
+      assert_equal({"key"=>nil}, @type.deserialize("key => NULL"))
+      assert_equal({"c"=>"}",'"a"'=>'b "a b'}, @type.deserialize(%q(c=>"}", "\"a\""=>"b \"a b")))
     end
 
     def test_with_store_accessors
@@ -156,33 +156,33 @@ if ActiveRecord::Base.connection.supports_extensions?
     end
 
     def test_changes_in_place
-      hstore = Hstore.create!(settings: { 'one' => 'two' })
-      hstore.settings['three'] = 'four'
+      hstore = Hstore.create!(settings: { "one" => "two" })
+      hstore.settings["three"] = "four"
       hstore.save!
       hstore.reload
 
-      assert_equal 'four', hstore.settings['three']
+      assert_equal "four", hstore.settings["three"]
       assert_not hstore.changed?
     end
 
     def test_gen1
-      assert_equal(%q(" "=>""), @type.serialize({' '=>''}))
+      assert_equal(%q(" "=>""), @type.serialize({" "=>""}))
     end
 
     def test_gen2
-      assert_equal(%q(","=>""), @type.serialize({','=>''}))
+      assert_equal(%q(","=>""), @type.serialize({","=>""}))
     end
 
     def test_gen3
-      assert_equal(%q("="=>""), @type.serialize({'='=>''}))
+      assert_equal(%q("="=>""), @type.serialize({"="=>""}))
     end
 
     def test_gen4
-      assert_equal(%q(">"=>""), @type.serialize({'>'=>''}))
+      assert_equal(%q(">"=>""), @type.serialize({">"=>""}))
     end
 
     def test_parse1
-      assert_equal({'a'=>nil,'b'=>nil,'c'=>'NuLl','null'=>'c'}, @type.deserialize('a=>null,b=>NuLl,c=>"NuLl",null=>c'))
+      assert_equal({"a"=>nil,"b"=>nil,"c"=>"NuLl","null"=>"c"}, @type.deserialize('a=>null,b=>NuLl,c=>"NuLl",null=>c'))
     end
 
     def test_parse2
@@ -212,14 +212,14 @@ if ActiveRecord::Base.connection.supports_extensions?
     def test_rewrite
       @connection.execute "insert into hstores (tags) VALUES ('1=>2')"
       x = Hstore.first
-      x.tags = { '"a\'' => 'b' }
+      x.tags = { '"a\'' => "b" }
       assert x.save!
     end
 
     def test_select
       @connection.execute "insert into hstores (tags) VALUES ('1=>2')"
       x = Hstore.first
-      assert_equal({'1' => '2'}, x.tags)
+      assert_equal({"1" => "2"}, x.tags)
     end
 
     def test_array_cycle
@@ -227,61 +227,61 @@ if ActiveRecord::Base.connection.supports_extensions?
     end
 
     def test_array_strings_with_quotes
-      assert_array_cycle([{'this has' => 'some "s that need to be escaped"'}])
+      assert_array_cycle([{"this has" => 'some "s that need to be escaped"'}])
     end
 
     def test_array_strings_with_commas
-      assert_array_cycle([{'this,has' => 'many,values'}])
+      assert_array_cycle([{"this,has" => "many,values"}])
     end
 
     def test_array_strings_with_array_delimiters
-      assert_array_cycle(['{' => '}'])
+      assert_array_cycle(["{" => "}"])
     end
 
     def test_array_strings_with_null_strings
-      assert_array_cycle([{'NULL' => 'NULL'}])
+      assert_array_cycle([{"NULL" => "NULL"}])
     end
 
     def test_contains_nils
-      assert_array_cycle([{'NULL' => nil}])
+      assert_array_cycle([{"NULL" => nil}])
     end
 
     def test_select_multikey
       @connection.execute "insert into hstores (tags) VALUES ('1=>2,2=>3')"
       x = Hstore.first
-      assert_equal({'1' => '2', '2' => '3'}, x.tags)
+      assert_equal({"1" => "2", "2" => "3"}, x.tags)
     end
 
     def test_create
-      assert_cycle('a' => 'b', '1' => '2')
+      assert_cycle("a" => "b", "1" => "2")
     end
 
     def test_nil
-      assert_cycle('a' => nil)
+      assert_cycle("a" => nil)
     end
 
     def test_quotes
-      assert_cycle('a' => 'b"ar', '1"foo' => '2')
+      assert_cycle("a" => 'b"ar', '1"foo' => "2")
     end
 
     def test_whitespace
-      assert_cycle('a b' => 'b ar', '1"foo' => '2')
+      assert_cycle("a b" => "b ar", '1"foo' => "2")
     end
 
     def test_backslash
-      assert_cycle('a\\b' => 'b\\ar', '1"foo' => '2')
+      assert_cycle('a\\b' => 'b\\ar', '1"foo' => "2")
     end
 
     def test_comma
-      assert_cycle('a, b' => 'bar', '1"foo' => '2')
+      assert_cycle("a, b" => "bar", '1"foo' => "2")
     end
 
     def test_arrow
-      assert_cycle('a=>b' => 'bar', '1"foo' => '2')
+      assert_cycle("a=>b" => "bar", '1"foo' => "2")
     end
 
     def test_quoting_special_characters
-      assert_cycle('ca' => 'cà', 'ac' => 'àc')
+      assert_cycle("ca" => "cà", "ac" => "àc")
     end
 
     def test_multiline

@@ -1,5 +1,5 @@
 require "cases/helper"
-require 'support/connection_helper'
+require "support/connection_helper"
 
 module ActiveRecord
   class PostgresqlConnectionTest < ActiveRecord::PostgreSQLTestCase
@@ -13,7 +13,7 @@ module ActiveRecord
     def setup
       super
       @subscriber = SQLSubscriber.new
-      @subscription = ActiveSupport::Notifications.subscribe('sql.active_record', @subscriber)
+      @subscription = ActiveSupport::Notifications.subscribe("sql.active_record", @subscriber)
       @connection = ActiveRecord::Base.connection
     end
 
@@ -23,10 +23,10 @@ module ActiveRecord
     end
 
     def test_truncate
-      count = ActiveRecord::Base.connection.execute("select count(*) from comments").first['count'].to_i
+      count = ActiveRecord::Base.connection.execute("select count(*) from comments").first["count"].to_i
       assert_operator count, :>, 0
       ActiveRecord::Base.connection.truncate("comments")
-      count = ActiveRecord::Base.connection.execute("select count(*) from comments").first['count'].to_i
+      count = ActiveRecord::Base.connection.execute("select count(*) from comments").first["count"].to_i
       assert_equal 0, count
     end
 
@@ -54,85 +54,85 @@ module ActiveRecord
       NonExistentTable.establish_connection(params)
 
       # Verify the connection param has been applied.
-      expect = NonExistentTable.connection.query('show geqo').first.first
-      assert_equal 'off', expect
+      expect = NonExistentTable.connection.query("show geqo").first.first
+      assert_equal "off", expect
     end
 
     def test_reset
-      @connection.query('ROLLBACK')
-      @connection.query('SET geqo TO off')
+      @connection.query("ROLLBACK")
+      @connection.query("SET geqo TO off")
 
       # Verify the setting has been applied.
-      expect = @connection.query('show geqo').first.first
-      assert_equal 'off', expect
+      expect = @connection.query("show geqo").first.first
+      assert_equal "off", expect
 
       @connection.reset!
 
       # Verify the setting has been cleared.
-      expect = @connection.query('show geqo').first.first
-      assert_equal 'on', expect
+      expect = @connection.query("show geqo").first.first
+      assert_equal "on", expect
     end
 
     def test_reset_with_transaction
-      @connection.query('ROLLBACK')
-      @connection.query('SET geqo TO off')
+      @connection.query("ROLLBACK")
+      @connection.query("SET geqo TO off")
 
       # Verify the setting has been applied.
-      expect = @connection.query('show geqo').first.first
-      assert_equal 'off', expect
+      expect = @connection.query("show geqo").first.first
+      assert_equal "off", expect
 
-      @connection.query('BEGIN')
+      @connection.query("BEGIN")
       @connection.reset!
 
       # Verify the setting has been cleared.
-      expect = @connection.query('show geqo').first.first
-      assert_equal 'on', expect
+      expect = @connection.query("show geqo").first.first
+      assert_equal "on", expect
     end
 
     def test_tables_logs_name
-      ActiveSupport::Deprecation.silence { @connection.tables('hello') }
-      assert_equal 'SCHEMA', @subscriber.logged[0][1]
+      ActiveSupport::Deprecation.silence { @connection.tables("hello") }
+      assert_equal "SCHEMA", @subscriber.logged[0][1]
     end
 
     def test_indexes_logs_name
-      @connection.indexes('items', 'hello')
-      assert_equal 'SCHEMA', @subscriber.logged[0][1]
+      @connection.indexes("items", "hello")
+      assert_equal "SCHEMA", @subscriber.logged[0][1]
     end
 
     def test_table_exists_logs_name
-      ActiveSupport::Deprecation.silence { @connection.table_exists?('items') }
-      assert_equal 'SCHEMA', @subscriber.logged[0][1]
+      ActiveSupport::Deprecation.silence { @connection.table_exists?("items") }
+      assert_equal "SCHEMA", @subscriber.logged[0][1]
     end
 
     def test_table_alias_length_logs_name
       @connection.instance_variable_set("@table_alias_length", nil)
       @connection.table_alias_length
-      assert_equal 'SCHEMA', @subscriber.logged[0][1]
+      assert_equal "SCHEMA", @subscriber.logged[0][1]
     end
 
     def test_current_database_logs_name
       @connection.current_database
-      assert_equal 'SCHEMA', @subscriber.logged[0][1]
+      assert_equal "SCHEMA", @subscriber.logged[0][1]
     end
 
     def test_encoding_logs_name
       @connection.encoding
-      assert_equal 'SCHEMA', @subscriber.logged[0][1]
+      assert_equal "SCHEMA", @subscriber.logged[0][1]
     end
 
     def test_schema_names_logs_name
       @connection.schema_names
-      assert_equal 'SCHEMA', @subscriber.logged[0][1]
+      assert_equal "SCHEMA", @subscriber.logged[0][1]
     end
 
     if ActiveRecord::Base.connection.prepared_statements
       def test_statement_key_is_logged
         bind = Relation::QueryAttribute.new(nil, 1, Type::Value.new)
-        @connection.exec_query('SELECT $1::integer', 'SQL', [bind], prepare: true)
+        @connection.exec_query("SELECT $1::integer", "SQL", [bind], prepare: true)
         name = @subscriber.payloads.last[:statement_name]
         assert name
         res = @connection.exec_query("EXPLAIN (FORMAT JSON) EXECUTE #{name}(1)")
-        plan = res.column_types['QUERY PLAN'].deserialize res.rows.first.first
+        plan = res.column_types["QUERY PLAN"].deserialize res.rows.first.first
         assert_operator plan.length, :>, 0
       end
     end
@@ -146,7 +146,7 @@ module ActiveRecord
     # To restart PostgreSQL 9.1 on OS X, installed via MacPorts, ...
     # sudo su postgres -c "pg_ctl restart -D /opt/local/var/db/postgresql91/defaultdb/ -m fast"
     def test_reconnection_after_actual_disconnection_with_verify
-      original_connection_pid = @connection.query('select pg_backend_pid()')
+      original_connection_pid = @connection.query("select pg_backend_pid()")
 
       # Sanity check.
       assert @connection.active?
@@ -155,8 +155,8 @@ module ActiveRecord
         secondary_connection = ActiveRecord::Base.connection_pool.checkout
         secondary_connection.query("select pg_terminate_backend(#{original_connection_pid.first.first})")
         ActiveRecord::Base.connection_pool.checkin(secondary_connection)
-      elsif ARTest.config['with_manual_interventions']
-        puts 'Kill the connection now (e.g. by restarting the PostgreSQL ' +
+      elsif ARTest.config["with_manual_interventions"]
+        puts "Kill the connection now (e.g. by restarting the PostgreSQL " +
           'server with the "-m fast" option) and then press enter.'
         $stdin.gets
       else
@@ -172,7 +172,7 @@ module ActiveRecord
 
       # If we get no exception here, then either we re-connected successfully, or
       # we never actually got disconnected.
-      new_connection_pid = @connection.query('select pg_backend_pid()')
+      new_connection_pid = @connection.query("select pg_backend_pid()")
 
       assert_not_equal original_connection_pid, new_connection_pid,
         "umm -- looks like you didn't break the connection, because we're still " +
@@ -241,7 +241,7 @@ module ActiveRecord
       with_warning_suppression do
         released_non_existent_lock = @connection.release_advisory_lock(fake_lock_id)
         assert_equal released_non_existent_lock, false,
-          'expected release_advisory_lock to return false when there was no lock to release'
+          "expected release_advisory_lock to return false when there was no lock to release"
       end
     end
 
@@ -249,7 +249,7 @@ module ActiveRecord
 
     def with_warning_suppression
       log_level = @connection.client_min_messages
-      @connection.client_min_messages = 'error'
+      @connection.client_min_messages = "error"
       yield
       @connection.client_min_messages = log_level
     end

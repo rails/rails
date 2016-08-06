@@ -17,6 +17,6 @@ class Reference < ActiveRecord::Base
 end
 
 class BadReference < ActiveRecord::Base
-  self.table_name = 'references'
+  self.table_name = "references"
   default_scope { where(:favourite => false) }
 end

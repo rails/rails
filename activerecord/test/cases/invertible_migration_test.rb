@@ -6,7 +6,7 @@ end
 module ActiveRecord
   class InvertibleMigrationTest < ActiveRecord::TestCase
     class SilentMigration < ActiveRecord::Migration::Current
-      def write(text = '')
+      def write(text = "")
         # sssshhhhh!!
       end
     end
@@ -291,16 +291,16 @@ module ActiveRecord
 
         migration1.migrate(:up)
         migration2.migrate(:up)
-        assert_equal true, Horse.connection.extension_enabled?('hstore')
+        assert_equal true, Horse.connection.extension_enabled?("hstore")
 
         migration3.migrate(:up)
-        assert_equal false, Horse.connection.extension_enabled?('hstore')
+        assert_equal false, Horse.connection.extension_enabled?("hstore")
 
         migration3.migrate(:down)
-        assert_equal true, Horse.connection.extension_enabled?('hstore')
+        assert_equal true, Horse.connection.extension_enabled?("hstore")
 
         migration2.migrate(:down)
-        assert_equal false, Horse.connection.extension_enabled?('hstore')
+        assert_equal false, Horse.connection.extension_enabled?("hstore")
       end
     end
 
@@ -351,14 +351,14 @@ module ActiveRecord
     end
 
     def test_migrate_down_with_table_name_prefix
-      ActiveRecord::Base.table_name_prefix = 'p_'
-      ActiveRecord::Base.table_name_suffix = '_s'
+      ActiveRecord::Base.table_name_prefix = "p_"
+      ActiveRecord::Base.table_name_suffix = "_s"
       migration = InvertibleMigration.new
       migration.migrate(:up)
       assert_nothing_raised { migration.migrate(:down) }
       ActiveSupport::Deprecation.silence { assert !ActiveRecord::Base.connection.table_exists?("p_horses_s"), "p_horses_s should not exist" }
     ensure
-      ActiveRecord::Base.table_name_prefix = ActiveRecord::Base.table_name_suffix = ''
+      ActiveRecord::Base.table_name_prefix = ActiveRecord::Base.table_name_suffix = ""
     end
 
     def test_migrations_can_handle_foreign_keys_to_specific_tables

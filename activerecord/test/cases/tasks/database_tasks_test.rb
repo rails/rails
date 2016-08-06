@@ -1,5 +1,5 @@
-require 'cases/helper'
-require 'active_record/tasks/database_tasks'
+require "cases/helper"
+require "active_record/tasks/database_tasks"
 
 module ActiveRecord
   module DatabaseTasksSetupper
@@ -64,12 +64,12 @@ module ActiveRecord
       instance.expects(:structure_dump).with("awesome-file.sql")
 
       ActiveRecord::Tasks::DatabaseTasks.register_task(/foo/, klazz)
-      ActiveRecord::Tasks::DatabaseTasks.structure_dump({'adapter' => :foo}, "awesome-file.sql")
+      ActiveRecord::Tasks::DatabaseTasks.structure_dump({"adapter" => :foo}, "awesome-file.sql")
     end
 
     def test_unregistered_task
       assert_raise(ActiveRecord::Tasks::DatabaseNotSupported) do
-        ActiveRecord::Tasks::DatabaseTasks.structure_dump({'adapter' => :bar}, "awesome-file.sql")
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump({"adapter" => :bar}, "awesome-file.sql")
       end
     end
   end
@@ -80,20 +80,20 @@ module ActiveRecord
     ADAPTERS_TASKS.each do |k, v|
       define_method("test_#{k}_create") do
         eval("@#{v}").expects(:create)
-        ActiveRecord::Tasks::DatabaseTasks.create 'adapter' => k
+        ActiveRecord::Tasks::DatabaseTasks.create "adapter" => k
       end
     end
   end
 
   class DatabaseTasksCreateAllTest < ActiveRecord::TestCase
     def setup
-      @configurations = {'development' => {'database' => 'my-db'}}
+      @configurations = {"development" => {"database" => "my-db"}}
 
       ActiveRecord::Base.stubs(:configurations).returns(@configurations)
     end
 
     def test_ignores_configurations_without_databases
-      @configurations['development'].merge!('database' => nil)
+      @configurations["development"].merge!("database" => nil)
 
       ActiveRecord::Tasks::DatabaseTasks.expects(:create).never
 
@@ -101,7 +101,7 @@ module ActiveRecord
     end
 
     def test_ignores_remote_databases
-      @configurations['development'].merge!('host' => 'my.server.tld')
+      @configurations["development"].merge!("host" => "my.server.tld")
       $stderr.stubs(:puts).returns(nil)
 
       ActiveRecord::Tasks::DatabaseTasks.expects(:create).never
@@ -110,15 +110,15 @@ module ActiveRecord
     end
 
     def test_warning_for_remote_databases
-      @configurations['development'].merge!('host' => 'my.server.tld')
+      @configurations["development"].merge!("host" => "my.server.tld")
 
-      $stderr.expects(:puts).with('This task only modifies local databases. my-db is on a remote host.')
+      $stderr.expects(:puts).with("This task only modifies local databases. my-db is on a remote host.")
 
       ActiveRecord::Tasks::DatabaseTasks.create_all
     end
 
     def test_creates_configurations_with_local_ip
-      @configurations['development'].merge!('host' => '127.0.0.1')
+      @configurations["development"].merge!("host" => "127.0.0.1")
 
       ActiveRecord::Tasks::DatabaseTasks.expects(:create)
 
@@ -126,7 +126,7 @@ module ActiveRecord
     end
 
     def test_creates_configurations_with_local_host
-      @configurations['development'].merge!('host' => 'localhost')
+      @configurations["development"].merge!("host" => "localhost")
 
       ActiveRecord::Tasks::DatabaseTasks.expects(:create)
 
@@ -134,7 +134,7 @@ module ActiveRecord
     end
 
     def test_creates_configurations_with_blank_hosts
-      @configurations['development'].merge!('host' => nil)
+      @configurations["development"].merge!("host" => nil)
 
       ActiveRecord::Tasks::DatabaseTasks.expects(:create)
 
@@ -145,9 +145,9 @@ module ActiveRecord
   class DatabaseTasksCreateCurrentTest < ActiveRecord::TestCase
     def setup
       @configurations = {
-        'development' => {'database' => 'dev-db'},
-        'test'        => {'database' => 'test-db'},
-        'production'  => {'database' => 'prod-db'}
+        "development" => {"database" => "dev-db"},
+        "test"        => {"database" => "test-db"},
+        "production"  => {"database" => "prod-db"}
       }
 
       ActiveRecord::Base.stubs(:configurations).returns(@configurations)
@@ -156,37 +156,37 @@ module ActiveRecord
 
     def test_creates_current_environment_database
       ActiveRecord::Tasks::DatabaseTasks.expects(:create).
-        with('database' => 'prod-db')
+        with("database" => "prod-db")
 
       ActiveRecord::Tasks::DatabaseTasks.create_current(
-        ActiveSupport::StringInquirer.new('production')
+        ActiveSupport::StringInquirer.new("production")
       )
     end
 
     def test_creates_test_and_development_databases_when_env_was_not_specified
       ActiveRecord::Tasks::DatabaseTasks.expects(:create).
-        with('database' => 'dev-db')
+        with("database" => "dev-db")
       ActiveRecord::Tasks::DatabaseTasks.expects(:create).
-        with('database' => 'test-db')
+        with("database" => "test-db")
 
       ActiveRecord::Tasks::DatabaseTasks.create_current(
-        ActiveSupport::StringInquirer.new('development')
+        ActiveSupport::StringInquirer.new("development")
       )
     end
 
     def test_creates_test_and_development_databases_when_rails_env_is_development
-      old_env = ENV['RAILS_ENV']
-      ENV['RAILS_ENV'] = 'development'
+      old_env = ENV["RAILS_ENV"]
+      ENV["RAILS_ENV"] = "development"
       ActiveRecord::Tasks::DatabaseTasks.expects(:create).
-        with('database' => 'dev-db')
+        with("database" => "dev-db")
       ActiveRecord::Tasks::DatabaseTasks.expects(:create).
-        with('database' => 'test-db')
+        with("database" => "test-db")
 
       ActiveRecord::Tasks::DatabaseTasks.create_current(
-        ActiveSupport::StringInquirer.new('development')
+        ActiveSupport::StringInquirer.new("development")
       )
     ensure
-      ENV['RAILS_ENV'] = old_env
+      ENV["RAILS_ENV"] = old_env
     end
 
     def test_establishes_connection_for_the_given_environment
@@ -195,7 +195,7 @@ module ActiveRecord
       ActiveRecord::Base.expects(:establish_connection).with(:development)
 
       ActiveRecord::Tasks::DatabaseTasks.create_current(
-        ActiveSupport::StringInquirer.new('development')
+        ActiveSupport::StringInquirer.new("development")
       )
     end
   end
@@ -206,20 +206,20 @@ module ActiveRecord
     ADAPTERS_TASKS.each do |k, v|
       define_method("test_#{k}_drop") do
         eval("@#{v}").expects(:drop)
-        ActiveRecord::Tasks::DatabaseTasks.drop 'adapter' => k
+        ActiveRecord::Tasks::DatabaseTasks.drop "adapter" => k
       end
     end
   end
 
   class DatabaseTasksDropAllTest < ActiveRecord::TestCase
     def setup
-      @configurations = {:development => {'database' => 'my-db'}}
+      @configurations = {:development => {"database" => "my-db"}}
 
       ActiveRecord::Base.stubs(:configurations).returns(@configurations)
     end
 
     def test_ignores_configurations_without_databases
-      @configurations[:development].merge!('database' => nil)
+      @configurations[:development].merge!("database" => nil)
 
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).never
 
@@ -227,7 +227,7 @@ module ActiveRecord
     end
 
     def test_ignores_remote_databases
-      @configurations[:development].merge!('host' => 'my.server.tld')
+      @configurations[:development].merge!("host" => "my.server.tld")
       $stderr.stubs(:puts).returns(nil)
 
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).never
@@ -236,15 +236,15 @@ module ActiveRecord
     end
 
     def test_warning_for_remote_databases
-      @configurations[:development].merge!('host' => 'my.server.tld')
+      @configurations[:development].merge!("host" => "my.server.tld")
 
-      $stderr.expects(:puts).with('This task only modifies local databases. my-db is on a remote host.')
+      $stderr.expects(:puts).with("This task only modifies local databases. my-db is on a remote host.")
 
       ActiveRecord::Tasks::DatabaseTasks.drop_all
     end
 
     def test_drops_configurations_with_local_ip
-      @configurations[:development].merge!('host' => '127.0.0.1')
+      @configurations[:development].merge!("host" => "127.0.0.1")
 
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop)
 
@@ -252,7 +252,7 @@ module ActiveRecord
     end
 
     def test_drops_configurations_with_local_host
-      @configurations[:development].merge!('host' => 'localhost')
+      @configurations[:development].merge!("host" => "localhost")
 
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop)
 
@@ -260,7 +260,7 @@ module ActiveRecord
     end
 
     def test_drops_configurations_with_blank_hosts
-      @configurations[:development].merge!('host' => nil)
+      @configurations[:development].merge!("host" => nil)
 
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop)
 
@@ -271,9 +271,9 @@ module ActiveRecord
   class DatabaseTasksDropCurrentTest < ActiveRecord::TestCase
     def setup
       @configurations = {
-        'development' => {'database' => 'dev-db'},
-        'test'        => {'database' => 'test-db'},
-        'production'  => {'database' => 'prod-db'}
+        "development" => {"database" => "dev-db"},
+        "test"        => {"database" => "test-db"},
+        "production"  => {"database" => "prod-db"}
       }
 
       ActiveRecord::Base.stubs(:configurations).returns(@configurations)
@@ -281,37 +281,37 @@ module ActiveRecord
 
     def test_drops_current_environment_database
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
-        with('database' => 'prod-db')
+        with("database" => "prod-db")
 
       ActiveRecord::Tasks::DatabaseTasks.drop_current(
-        ActiveSupport::StringInquirer.new('production')
+        ActiveSupport::StringInquirer.new("production")
       )
     end
 
     def test_drops_test_and_development_databases_when_env_was_not_specified
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
-        with('database' => 'dev-db')
+        with("database" => "dev-db")
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
-        with('database' => 'test-db')
+        with("database" => "test-db")
 
       ActiveRecord::Tasks::DatabaseTasks.drop_current(
-        ActiveSupport::StringInquirer.new('development')
+        ActiveSupport::StringInquirer.new("development")
       )
     end
 
     def test_drops_testand_development_databases_when_rails_env_is_development
-      old_env = ENV['RAILS_ENV']
-      ENV['RAILS_ENV'] = 'development'
+      old_env = ENV["RAILS_ENV"]
+      ENV["RAILS_ENV"] = "development"
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
-        with('database' => 'dev-db')
+        with("database" => "dev-db")
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
-        with('database' => 'test-db')
+        with("database" => "test-db")
 
       ActiveRecord::Tasks::DatabaseTasks.drop_current(
-        ActiveSupport::StringInquirer.new('development')
+        ActiveSupport::StringInquirer.new("development")
       )
     ensure
-      ENV['RAILS_ENV'] = old_env
+      ENV["RAILS_ENV"] = old_env
     end
   end
 
@@ -319,7 +319,7 @@ module ActiveRecord
     self.use_transactional_tests = false
 
     def setup
-      ActiveRecord::Tasks::DatabaseTasks.migrations_paths = 'custom/path'
+      ActiveRecord::Tasks::DatabaseTasks.migrations_paths = "custom/path"
     end
 
     def teardown
@@ -327,15 +327,15 @@ module ActiveRecord
     end
 
     def test_migrate_receives_correct_env_vars
-      verbose, version = ENV['VERBOSE'], ENV['VERSION']
+      verbose, version = ENV["VERBOSE"], ENV["VERSION"]
 
-      ENV['VERBOSE'] = 'false'
-      ENV['VERSION'] = '4'
+      ENV["VERBOSE"] = "false"
+      ENV["VERSION"] = "4"
 
-      ActiveRecord::Migrator.expects(:migrate).with('custom/path', 4)
+      ActiveRecord::Migrator.expects(:migrate).with("custom/path", 4)
       ActiveRecord::Tasks::DatabaseTasks.migrate
     ensure
-      ENV['VERBOSE'], ENV['VERSION'] = verbose, version
+      ENV["VERBOSE"], ENV["VERSION"] = verbose, version
     end
 
     def test_migrate_clears_schema_cache_afterward
@@ -350,7 +350,7 @@ module ActiveRecord
     ADAPTERS_TASKS.each do |k, v|
       define_method("test_#{k}_purge") do
         eval("@#{v}").expects(:purge)
-        ActiveRecord::Tasks::DatabaseTasks.purge 'adapter' => k
+        ActiveRecord::Tasks::DatabaseTasks.purge "adapter" => k
       end
     end
   end
@@ -358,27 +358,27 @@ module ActiveRecord
   class DatabaseTasksPurgeCurrentTest < ActiveRecord::TestCase
     def test_purges_current_environment_database
       configurations = {
-        'development' => {'database' => 'dev-db'},
-        'test'        => {'database' => 'test-db'},
-        'production'  => {'database' => 'prod-db'}
+        "development" => {"database" => "dev-db"},
+        "test"        => {"database" => "test-db"},
+        "production"  => {"database" => "prod-db"}
       }
       ActiveRecord::Base.stubs(:configurations).returns(configurations)
 
       ActiveRecord::Tasks::DatabaseTasks.expects(:purge).
-        with('database' => 'prod-db')
+        with("database" => "prod-db")
       ActiveRecord::Base.expects(:establish_connection).with(:production)
 
-      ActiveRecord::Tasks::DatabaseTasks.purge_current('production')
+      ActiveRecord::Tasks::DatabaseTasks.purge_current("production")
     end
   end
 
   class DatabaseTasksPurgeAllTest < ActiveRecord::TestCase
     def test_purge_all_local_configurations
-      configurations = {:development => {'database' => 'my-db'}}
+      configurations = {:development => {"database" => "my-db"}}
       ActiveRecord::Base.stubs(:configurations).returns(configurations)
 
       ActiveRecord::Tasks::DatabaseTasks.expects(:purge).
-        with('database' => 'my-db')
+        with("database" => "my-db")
 
       ActiveRecord::Tasks::DatabaseTasks.purge_all
     end
@@ -390,7 +390,7 @@ module ActiveRecord
     ADAPTERS_TASKS.each do |k, v|
       define_method("test_#{k}_charset") do
         eval("@#{v}").expects(:charset)
-        ActiveRecord::Tasks::DatabaseTasks.charset 'adapter' => k
+        ActiveRecord::Tasks::DatabaseTasks.charset "adapter" => k
       end
     end
   end
@@ -401,7 +401,7 @@ module ActiveRecord
     ADAPTERS_TASKS.each do |k, v|
       define_method("test_#{k}_collation") do
         eval("@#{v}").expects(:collation)
-        ActiveRecord::Tasks::DatabaseTasks.collation 'adapter' => k
+        ActiveRecord::Tasks::DatabaseTasks.collation "adapter" => k
       end
     end
   end
@@ -412,7 +412,7 @@ module ActiveRecord
     ADAPTERS_TASKS.each do |k, v|
       define_method("test_#{k}_structure_dump") do
         eval("@#{v}").expects(:structure_dump).with("awesome-file.sql")
-        ActiveRecord::Tasks::DatabaseTasks.structure_dump({'adapter' => k}, "awesome-file.sql")
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump({"adapter" => k}, "awesome-file.sql")
       end
     end
   end
@@ -423,7 +423,7 @@ module ActiveRecord
     ADAPTERS_TASKS.each do |k, v|
       define_method("test_#{k}_structure_load") do
         eval("@#{v}").expects(:structure_load).with("awesome-file.sql")
-        ActiveRecord::Tasks::DatabaseTasks.structure_load({'adapter' => k}, "awesome-file.sql")
+        ActiveRecord::Tasks::DatabaseTasks.structure_load({"adapter" => k}, "awesome-file.sql")
       end
     end
   end
@@ -437,15 +437,15 @@ module ActiveRecord
 
   class DatabaseTasksCheckSchemaFileDefaultsTest < ActiveRecord::TestCase
     def test_check_schema_file_defaults
-      ActiveRecord::Tasks::DatabaseTasks.stubs(:db_dir).returns('/tmp')
-      assert_equal '/tmp/schema.rb', ActiveRecord::Tasks::DatabaseTasks.schema_file
+      ActiveRecord::Tasks::DatabaseTasks.stubs(:db_dir).returns("/tmp")
+      assert_equal "/tmp/schema.rb", ActiveRecord::Tasks::DatabaseTasks.schema_file
     end
   end
 
   class DatabaseTasksCheckSchemaFileSpecifiedFormatsTest < ActiveRecord::TestCase
-    {ruby: 'schema.rb', sql: 'structure.sql'}.each_pair do |fmt, filename|
+    {ruby: "schema.rb", sql: "structure.sql"}.each_pair do |fmt, filename|
       define_method("test_check_schema_file_for_#{fmt}_format") do
-        ActiveRecord::Tasks::DatabaseTasks.stubs(:db_dir).returns('/tmp')
+        ActiveRecord::Tasks::DatabaseTasks.stubs(:db_dir).returns("/tmp")
         assert_equal "/tmp/#{filename}", ActiveRecord::Tasks::DatabaseTasks.schema_file(fmt)
       end
     end

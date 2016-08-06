@@ -1,4 +1,4 @@
-require 'cases/helper'
+require "cases/helper"
 
 if ActiveRecord::Base.connection.supports_foreign_keys?
 module ActiveRecord
@@ -156,7 +156,7 @@ module ActiveRecord
       end
 
       def test_references_foreign_key_with_prefix
-        ActiveRecord::Base.table_name_prefix = 'p_'
+        ActiveRecord::Base.table_name_prefix = "p_"
         migration = CreateDogsMigration.new
         silence_stream($stdout) { migration.migrate(:up) }
         assert_equal 1, @connection.foreign_keys("p_dogs").size
@@ -166,7 +166,7 @@ module ActiveRecord
       end
 
       def test_references_foreign_key_with_suffix
-        ActiveRecord::Base.table_name_suffix = '_s'
+        ActiveRecord::Base.table_name_suffix = "_s"
         migration = CreateDogsMigration.new
         silence_stream($stdout) { migration.migrate(:up) }
         assert_equal 1, @connection.foreign_keys("dogs_s").size

@@ -1,5 +1,5 @@
-require 'cases/helper'
-require 'support/schema_dumping_helper'
+require "cases/helper"
+require "support/schema_dumping_helper"
 
 if ActiveRecord::Base.connection.supports_json?
 class Mysql2JSONTest < ActiveRecord::Mysql2TestCase
@@ -7,7 +7,7 @@ class Mysql2JSONTest < ActiveRecord::Mysql2TestCase
   self.use_transactional_tests = false
 
   class JsonDataType < ActiveRecord::Base
-    self.table_name = 'json_data_type'
+    self.table_name = "json_data_type"
 
     store_accessor :settings, :resolution
   end
@@ -15,9 +15,9 @@ class Mysql2JSONTest < ActiveRecord::Mysql2TestCase
   def setup
     @connection = ActiveRecord::Base.connection
     begin
-      @connection.create_table('json_data_type') do |t|
-        t.json 'payload'
-        t.json 'settings'
+      @connection.create_table("json_data_type") do |t|
+        t.json "payload"
+        t.json "settings"
       end
     end
   end
@@ -30,18 +30,18 @@ class Mysql2JSONTest < ActiveRecord::Mysql2TestCase
   def test_column
     column = JsonDataType.columns_hash["payload"]
     assert_equal :json, column.type
-    assert_equal 'json', column.sql_type
+    assert_equal "json", column.sql_type
 
     type = JsonDataType.type_for_attribute("payload")
     assert_not type.binary?
   end
 
   def test_change_table_supports_json
-    @connection.change_table('json_data_type') do |t|
-      t.json 'users'
+    @connection.change_table("json_data_type") do |t|
+      t.json "users"
     end
     JsonDataType.reset_column_information
-    column = JsonDataType.columns_hash['users']
+    column = JsonDataType.columns_hash["users"]
     assert_equal :json, column.type
   end
 
@@ -63,31 +63,31 @@ class Mysql2JSONTest < ActiveRecord::Mysql2TestCase
 
     data = "{\"a_key\":\"a_value\"}"
     hash = type.deserialize(data)
-    assert_equal({'a_key' => 'a_value'}, hash)
-    assert_equal({'a_key' => 'a_value'}, type.deserialize(data))
+    assert_equal({"a_key" => "a_value"}, hash)
+    assert_equal({"a_key" => "a_value"}, type.deserialize(data))
 
     assert_equal({}, type.deserialize("{}"))
-    assert_equal({'key'=>nil}, type.deserialize('{"key": null}'))
-    assert_equal({'c'=>'}','"a"'=>'b "a b'}, type.deserialize(%q({"c":"}", "\"a\"":"b \"a b"})))
+    assert_equal({"key"=>nil}, type.deserialize('{"key": null}'))
+    assert_equal({"c"=>"}",'"a"'=>'b "a b'}, type.deserialize(%q({"c":"}", "\"a\"":"b \"a b"})))
   end
 
   def test_rewrite
     @connection.execute "insert into json_data_type (payload) VALUES ('{\"k\":\"v\"}')"
     x = JsonDataType.first
-    x.payload = { '"a\'' => 'b' }
+    x.payload = { '"a\'' => "b" }
     assert x.save!
   end
 
   def test_select
     @connection.execute "insert into json_data_type (payload) VALUES ('{\"k\":\"v\"}')"
     x = JsonDataType.first
-    assert_equal({'k' => 'v'}, x.payload)
+    assert_equal({"k" => "v"}, x.payload)
   end
 
   def test_select_multikey
     @connection.execute %q|insert into json_data_type (payload) VALUES ('{"k1":"v1", "k2":"v2", "k3":[1,2,3]}')|
     x = JsonDataType.first
-    assert_equal({'k1' => 'v1', 'k2' => 'v2', 'k3' => [1,2,3]}, x.payload)
+    assert_equal({"k1" => "v1", "k2" => "v2", "k3" => [1,2,3]}, x.payload)
   end
 
   def test_null_json
@@ -99,13 +99,13 @@ class Mysql2JSONTest < ActiveRecord::Mysql2TestCase
   def test_select_array_json_value
     @connection.execute %q|insert into json_data_type (payload) VALUES ('["v0",{"k1":"v1"}]')|
     x = JsonDataType.first
-    assert_equal(['v0', {'k1' => 'v1'}], x.payload)
+    assert_equal(["v0", {"k1" => "v1"}], x.payload)
   end
 
   def test_rewrite_array_json_value
     @connection.execute %q|insert into json_data_type (payload) VALUES ('["v0",{"k1":"v1"}]')|
     x = JsonDataType.first
-    x.payload = ['v1', {'k2' => 'v2'}, 'v3']
+    x.payload = ["v1", {"k2" => "v2"}, "v3"]
     assert x.save!
   end
 
@@ -144,20 +144,20 @@ class Mysql2JSONTest < ActiveRecord::Mysql2TestCase
     json = JsonDataType.new
     assert_not json.changed?
 
-    json.payload = { 'one' => 'two' }
+    json.payload = { "one" => "two" }
     assert json.changed?
     assert json.payload_changed?
 
     json.save!
     assert_not json.changed?
 
-    json.payload['three'] = 'four'
+    json.payload["three"] = "four"
     assert json.payload_changed?
 
     json.save!
     json.reload
 
-    assert_equal({ 'one' => 'two', 'three' => 'four' }, json.payload)
+    assert_equal({ "one" => "two", "three" => "four" }, json.payload)
     assert_not json.changed?
   end
 

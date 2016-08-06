@@ -1,11 +1,11 @@
 module ContactFakeColumns
   def self.extended(base)
     base.class_eval do
-      establish_connection(:adapter => 'fake')
+      establish_connection(:adapter => "fake")
 
       connection.data_sources = [table_name]
       connection.primary_keys = {
-        table_name => 'id'
+        table_name => "id"
       }
 
       column :id,             :integer
@@ -19,7 +19,7 @@ module ContactFakeColumns
 
       serialize :preferences
 
-      belongs_to :alternative, :class_name => 'Contact'
+      belongs_to :alternative, :class_name => "Contact"
     end
   end
 
@@ -37,5 +37,5 @@ class ContactSti < ActiveRecord::Base
   extend ContactFakeColumns
   column :type, :string
 
-  def type; 'ContactSti' end
+  def type; "ContactSti" end
 end

@@ -1,5 +1,5 @@
-require 'cases/helper'
-require 'models/book'
+require "cases/helper"
+require "models/book"
 
 class EnumTest < ActiveRecord::TestCase
   fixtures :books
@@ -122,8 +122,8 @@ class EnumTest < ActiveRecord::TestCase
     old_language = @book.language
     @book.status = :proposed
     @book.language = :spanish
-    assert_equal [old_status, 'proposed'], @book.changes[:status]
-    assert_equal [old_language, 'spanish'], @book.changes[:language]
+    assert_equal [old_status, "proposed"], @book.changes[:status]
+    assert_equal [old_language, "spanish"], @book.changes[:language]
   end
 
   test "enum attribute was" do
@@ -145,8 +145,8 @@ class EnumTest < ActiveRecord::TestCase
   test "enum attribute changed to" do
     @book.status = :proposed
     @book.language = :french
-    assert @book.attribute_changed?(:status, to: 'proposed')
-    assert @book.attribute_changed?(:language, to: 'french')
+    assert @book.attribute_changed?(:status, to: "proposed")
+    assert @book.attribute_changed?(:language, to: "french")
   end
 
   test "enum attribute changed from" do
@@ -163,8 +163,8 @@ class EnumTest < ActiveRecord::TestCase
     old_language = @book.language
     @book.status = :proposed
     @book.language = :french
-    assert @book.attribute_changed?(:status, from: old_status, to: 'proposed')
-    assert @book.attribute_changed?(:language, from: old_language, to: 'french')
+    assert @book.attribute_changed?(:status, from: old_status, to: "proposed")
+    assert @book.attribute_changed?(:language, from: old_language, to: "french")
   end
 
   test "enum didn't change" do
@@ -216,12 +216,12 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "assign empty string value" do
-    @book.status = ''
+    @book.status = ""
     assert_nil @book.status
   end
 
   test "assign long empty string value" do
-    @book.status = '   '
+    @book.status = "   "
     assert_nil @book.status
   end
 
@@ -318,7 +318,7 @@ class EnumTest < ActiveRecord::TestCase
 
   test "validate uniqueness" do
     klass = Class.new(ActiveRecord::Base) do
-      def self.name; 'Book'; end
+      def self.name; "Book"; end
       enum status: [:proposed, :written]
       validates_uniqueness_of :status
     end
@@ -332,7 +332,7 @@ class EnumTest < ActiveRecord::TestCase
 
   test "validate inclusion of value in array" do
     klass = Class.new(ActiveRecord::Base) do
-      def self.name; 'Book'; end
+      def self.name; "Book"; end
       enum status: [:proposed, :written]
       validates_inclusion_of :status, in: ["written"]
     end
@@ -356,11 +356,11 @@ class EnumTest < ActiveRecord::TestCase
 
     book1 = klass1.proposed.create!
     book1.status = :written
-    assert_equal ['proposed', 'written'], book1.status_change
+    assert_equal ["proposed", "written"], book1.status_change
 
     book2 = klass2.drafted.create!
     book2.status = :uploaded
-    assert_equal ['drafted', 'uploaded'], book2.status_change
+    assert_equal ["drafted", "uploaded"], book2.status_change
   end
 
   test "enums are inheritable" do
@@ -372,11 +372,11 @@ class EnumTest < ActiveRecord::TestCase
 
     book1 = subklass1.proposed.create!
     book1.status = :written
-    assert_equal ['proposed', 'written'], book1.status_change
+    assert_equal ["proposed", "written"], book1.status_change
 
     book2 = subklass2.drafted.create!
     book2.status = :uploaded
-    assert_equal ['drafted', 'uploaded'], book2.status_change
+    assert_equal ["drafted", "uploaded"], book2.status_change
   end
 
   test "declare multiple enums at a time" do
@@ -402,11 +402,11 @@ class EnumTest < ActiveRecord::TestCase
 
     book = klass.proposed.create!
     assert book.proposed?
-    assert_equal 'proposed', book.aliased_status
+    assert_equal "proposed", book.aliased_status
 
     book = klass.find(book.id)
     assert book.proposed?
-    assert_equal 'proposed', book.aliased_status
+    assert_equal "proposed", book.aliased_status
   end
 
   test "query state by predicate with prefix" do
@@ -439,6 +439,6 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "data type of Enum type" do
-    assert_equal :integer, Book.type_for_attribute('status').type
+    assert_equal :integer, Book.type_for_attribute("status").type
   end
 end

@@ -1,5 +1,5 @@
 require "cases/helper"
-require 'ipaddr'
+require "ipaddr"
 
 module ActiveRecord
   module ConnectionAdapters
@@ -10,11 +10,11 @@ module ActiveRecord
         end
 
         def test_type_cast_true
-          assert_equal 't', @conn.type_cast(true)
+          assert_equal "t", @conn.type_cast(true)
         end
 
         def test_type_cast_false
-          assert_equal 'f', @conn.type_cast(false)
+          assert_equal "f", @conn.type_cast(false)
         end
 
         def test_quote_float_nan

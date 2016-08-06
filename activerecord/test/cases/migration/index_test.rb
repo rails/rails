@@ -1,4 +1,4 @@
-require 'cases/helper'
+require "cases/helper"
 
 module ActiveRecord
   class Migration
@@ -28,32 +28,32 @@ module ActiveRecord
 
       def test_rename_index
         # keep the names short to make Oracle and similar behave
-        connection.add_index(table_name, [:foo], :name => 'old_idx')
-        connection.rename_index(table_name, 'old_idx', 'new_idx')
+        connection.add_index(table_name, [:foo], :name => "old_idx")
+        connection.rename_index(table_name, "old_idx", "new_idx")
 
         # if the adapter doesn't support the indexes call, pick defaults that let the test pass
-        assert_not connection.index_name_exists?(table_name, 'old_idx', false)
-        assert connection.index_name_exists?(table_name, 'new_idx', true)
+        assert_not connection.index_name_exists?(table_name, "old_idx", false)
+        assert connection.index_name_exists?(table_name, "new_idx", true)
       end
 
       def test_rename_index_too_long
-        too_long_index_name = good_index_name + 'x'
+        too_long_index_name = good_index_name + "x"
         # keep the names short to make Oracle and similar behave
-        connection.add_index(table_name, [:foo], :name => 'old_idx')
+        connection.add_index(table_name, [:foo], :name => "old_idx")
         e = assert_raises(ArgumentError) {
-          connection.rename_index(table_name, 'old_idx', too_long_index_name)
+          connection.rename_index(table_name, "old_idx", too_long_index_name)
         }
         assert_match(/too long; the limit is #{connection.allowed_index_name_length} characters/, e.message)
 
         # if the adapter doesn't support the indexes call, pick defaults that let the test pass
-        assert connection.index_name_exists?(table_name, 'old_idx', false)
+        assert connection.index_name_exists?(table_name, "old_idx", false)
       end
 
 
       def test_double_add_index
-        connection.add_index(table_name, [:foo], :name => 'some_idx')
+        connection.add_index(table_name, [:foo], :name => "some_idx")
         assert_raises(ArgumentError) {
-          connection.add_index(table_name, [:foo], :name => 'some_idx')
+          connection.add_index(table_name, [:foo], :name => "some_idx")
         }
       end
 
@@ -69,7 +69,7 @@ module ActiveRecord
       end
 
       def test_add_index_does_not_accept_too_long_index_names
-        too_long_index_name = good_index_name + 'x'
+        too_long_index_name = good_index_name + "x"
 
         e = assert_raises(ArgumentError) {
           connection.add_index(table_name, "foo", name: too_long_index_name)
@@ -81,7 +81,7 @@ module ActiveRecord
       end
 
       def test_internal_index_with_name_matching_database_limit
-        good_index_name = 'x' * connection.index_name_length
+        good_index_name = "x" * connection.index_name_length
         connection.add_index(table_name, "foo", name: good_index_name, internal: true)
 
         assert connection.index_name_exists?(table_name, good_index_name, false)
@@ -210,7 +210,7 @@ module ActiveRecord
 
       private
         def good_index_name
-          'x' * connection.allowed_index_name_length
+          "x" * connection.allowed_index_name_length
         end
 
     end

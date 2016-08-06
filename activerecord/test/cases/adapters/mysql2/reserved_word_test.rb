@@ -4,22 +4,22 @@ require "cases/helper"
 # reserved word names (ie: group, order, values, etc...)
 class Mysql2ReservedWordTest < ActiveRecord::Mysql2TestCase
   class Group < ActiveRecord::Base
-    Group.table_name = 'group'
+    Group.table_name = "group"
     belongs_to :select
     has_one :values
   end
 
   class Select < ActiveRecord::Base
-    Select.table_name = 'select'
+    Select.table_name = "select"
     has_many :groups
   end
 
   class Values < ActiveRecord::Base
-    Values.table_name = 'values'
+    Values.table_name = "values"
   end
 
   class Distinct < ActiveRecord::Base
-    Distinct.table_name = 'distinct'
+    Distinct.table_name = "distinct"
     has_and_belongs_to_many :selects
     has_many :values, :through => :groups
   end
@@ -30,15 +30,15 @@ class Mysql2ReservedWordTest < ActiveRecord::Mysql2TestCase
     # we call execute directly here (and do similar below) because ActiveRecord::Base#create_table()
     # will fail with these table names if these test cases fail
 
-    create_tables_directly 'group'=>'id int auto_increment primary key, `order` varchar(255), select_id int',
-      'select'=>'id int auto_increment primary key',
-      'values'=>'id int auto_increment primary key, group_id int',
-      'distinct'=>'id int auto_increment primary key',
-      'distinct_select'=>'distinct_id int, select_id int'
+    create_tables_directly "group"=>"id int auto_increment primary key, `order` varchar(255), select_id int",
+      "select"=>"id int auto_increment primary key",
+      "values"=>"id int auto_increment primary key, group_id int",
+      "distinct"=>"id int auto_increment primary key",
+      "distinct_select"=>"distinct_id int, select_id int"
   end
 
   teardown do
-    drop_tables_directly ['group', 'select', 'values', 'distinct', 'distinct_select', 'order']
+    drop_tables_directly ["group", "select", "values", "distinct", "distinct_select", "order"]
   end
 
   # create tables with reserved-word names and columns
@@ -57,9 +57,9 @@ class Mysql2ReservedWordTest < ActiveRecord::Mysql2TestCase
 
   # alter column with a reserved-word name in a table with a reserved-word name
   def test_change_columns
-    assert_nothing_raised { @connection.change_column_default(:group, :order, 'whatever') }
+    assert_nothing_raised { @connection.change_column_default(:group, :order, "whatever") }
     #the quoting here will reveal any double quoting issues in change_column's interaction with the column method in the adapter
-    assert_nothing_raised { @connection.change_column('group', 'order', :Int, :default => 0) }
+    assert_nothing_raised { @connection.change_column("group", "order", :Int, :default => 0) }
     assert_nothing_raised { @connection.rename_column(:group, :order, :values) }
   end
 
@@ -78,11 +78,11 @@ class Mysql2ReservedWordTest < ActiveRecord::Mysql2TestCase
     create_test_fixtures :select, :distinct, :group, :values, :distinct_select
     x = nil
     assert_nothing_raised { x = Group.new }
-    x.order = 'x'
+    x.order = "x"
     assert_nothing_raised { x.save }
-    x.order = 'y'
+    x.order = "y"
     assert_nothing_raised { x.save }
-    assert_nothing_raised { Group.find_by_order('y') }
+    assert_nothing_raised { Group.find_by_order("y") }
     assert_nothing_raised { Group.find(1) }
   end
 

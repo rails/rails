@@ -1,5 +1,5 @@
-require 'cases/helper'
-require 'active_record/tasks/database_tasks'
+require "cases/helper"
+require "active_record/tasks/database_tasks"
 
 if current_adapter?(:Mysql2Adapter)
 module ActiveRecord
@@ -7,8 +7,8 @@ module ActiveRecord
     def setup
       @connection    = stub(:create_database => true)
       @configuration = {
-        'adapter'  => 'mysql2',
-        'database' => 'my-app-db'
+        "adapter"  => "mysql2",
+        "database" => "my-app-db"
       }
 
       ActiveRecord::Base.stubs(:connection).returns(@connection)
@@ -24,30 +24,30 @@ module ActiveRecord
 
     def test_establishes_connection_without_database
       ActiveRecord::Base.expects(:establish_connection).
-        with('adapter' => 'mysql2', 'database' => nil)
+        with("adapter" => "mysql2", "database" => nil)
 
       ActiveRecord::Tasks::DatabaseTasks.create @configuration
     end
 
     def test_creates_database_with_no_default_options
       @connection.expects(:create_database).
-        with('my-app-db', {})
+        with("my-app-db", {})
 
       ActiveRecord::Tasks::DatabaseTasks.create @configuration
     end
 
     def test_creates_database_with_given_encoding
       @connection.expects(:create_database).
-        with('my-app-db', charset: 'latin1')
+        with("my-app-db", charset: "latin1")
 
-      ActiveRecord::Tasks::DatabaseTasks.create @configuration.merge('encoding' => 'latin1')
+      ActiveRecord::Tasks::DatabaseTasks.create @configuration.merge("encoding" => "latin1")
     end
 
     def test_creates_database_with_given_collation
       @connection.expects(:create_database).
-        with('my-app-db', collation: 'latin1_swedish_ci')
+        with("my-app-db", collation: "latin1_swedish_ci")
 
-      ActiveRecord::Tasks::DatabaseTasks.create @configuration.merge('collation' => 'latin1_swedish_ci')
+      ActiveRecord::Tasks::DatabaseTasks.create @configuration.merge("collation" => "latin1_swedish_ci")
     end
 
     def test_establishes_connection_to_database
@@ -78,10 +78,10 @@ module ActiveRecord
       @connection    = stub("Connection", create_database: true)
       @error         = Mysql2::Error.new("Invalid permissions")
       @configuration = {
-        'adapter'  => 'mysql2',
-        'database' => 'my-app-db',
-        'username' => 'pat',
-        'password' => 'wossname'
+        "adapter"  => "mysql2",
+        "database" => "my-app-db",
+        "username" => "pat",
+        "password" => "wossname"
       }
 
       $stdin.stubs(:gets).returns("secret\n")
@@ -110,10 +110,10 @@ module ActiveRecord
     def test_connection_established_as_root
       assert_permissions_granted_for("pat")
       ActiveRecord::Base.expects(:establish_connection).with(
-        'adapter'  => 'mysql2',
-        'database' => nil,
-        'username' => 'root',
-        'password' => 'secret'
+        "adapter"  => "mysql2",
+        "database" => nil,
+        "username" => "root",
+        "password" => "secret"
       )
 
       ActiveRecord::Tasks::DatabaseTasks.create @configuration
@@ -122,7 +122,7 @@ module ActiveRecord
     def test_database_created_by_root
       assert_permissions_granted_for("pat")
       @connection.expects(:create_database).
-        with('my-app-db', {})
+        with("my-app-db", {})
 
       ActiveRecord::Tasks::DatabaseTasks.create @configuration
     end
@@ -133,8 +133,8 @@ module ActiveRecord
     end
 
     def test_do_not_grant_privileges_for_root_user
-      @configuration['username'] = 'root'
-      @configuration['password'] = ''
+      @configuration["username"] = "root"
+      @configuration["password"] = ""
       ActiveRecord::Tasks::DatabaseTasks.create @configuration
     end
 
@@ -142,10 +142,10 @@ module ActiveRecord
       assert_permissions_granted_for("pat")
       ActiveRecord::Base.expects(:establish_connection).returns do
         ActiveRecord::Base.expects(:establish_connection).with(
-          'adapter'  => 'mysql2',
-          'database' => 'my-app-db',
-          'username' => 'pat',
-          'password' => 'secret'
+          "adapter"  => "mysql2",
+          "database" => "my-app-db",
+          "username" => "pat",
+          "password" => "secret"
         )
 
         raise @error
@@ -165,8 +165,8 @@ module ActiveRecord
     private
 
     def assert_permissions_granted_for(db_user)
-      db_name = @configuration['database']
-      db_password = @configuration['password']
+      db_name = @configuration["database"]
+      db_password = @configuration["password"]
       @connection.expects(:execute).with("GRANT ALL PRIVILEGES ON #{db_name}.* TO '#{db_user}'@'localhost' IDENTIFIED BY '#{db_password}' WITH GRANT OPTION;")
     end
   end
@@ -175,8 +175,8 @@ module ActiveRecord
     def setup
       @connection    = stub(:drop_database => true)
       @configuration = {
-        'adapter'  => 'mysql2',
-        'database' => 'my-app-db'
+        "adapter"  => "mysql2",
+        "database" => "my-app-db"
       }
 
       ActiveRecord::Base.stubs(:connection).returns(@connection)
@@ -197,7 +197,7 @@ module ActiveRecord
     end
 
     def test_drops_database
-      @connection.expects(:drop_database).with('my-app-db')
+      @connection.expects(:drop_database).with("my-app-db")
 
       ActiveRecord::Tasks::DatabaseTasks.drop @configuration
     end
@@ -213,8 +213,8 @@ module ActiveRecord
     def setup
       @connection    = stub(:recreate_database => true)
       @configuration = {
-        'adapter'  => 'mysql2',
-        'database' => 'test-db'
+        "adapter"  => "mysql2",
+        "database" => "test-db"
       }
 
       ActiveRecord::Base.stubs(:connection).returns(@connection)
@@ -229,17 +229,17 @@ module ActiveRecord
 
     def test_recreates_database_with_no_default_options
       @connection.expects(:recreate_database).
-        with('test-db', {})
+        with("test-db", {})
 
       ActiveRecord::Tasks::DatabaseTasks.purge @configuration
     end
 
     def test_recreates_database_with_the_given_options
       @connection.expects(:recreate_database).
-        with('test-db', charset: 'latin', collation: 'latin1_swedish_ci')
+        with("test-db", charset: "latin", collation: "latin1_swedish_ci")
 
       ActiveRecord::Tasks::DatabaseTasks.purge @configuration.merge(
-        'encoding' => 'latin', 'collation' => 'latin1_swedish_ci')
+        "encoding" => "latin", "collation" => "latin1_swedish_ci")
     end
   end
 
@@ -247,8 +247,8 @@ module ActiveRecord
     def setup
       @connection    = stub(:create_database => true)
       @configuration = {
-        'adapter'  => 'mysql2',
-        'database' => 'my-app-db'
+        "adapter"  => "mysql2",
+        "database" => "my-app-db"
       }
 
       ActiveRecord::Base.stubs(:connection).returns(@connection)
@@ -265,8 +265,8 @@ module ActiveRecord
     def setup
       @connection    = stub(:create_database => true)
       @configuration = {
-        'adapter'  => 'mysql2',
-        'database' => 'my-app-db'
+        "adapter"  => "mysql2",
+        "database" => "my-app-db"
       }
 
       ActiveRecord::Base.stubs(:connection).returns(@connection)
@@ -282,8 +282,8 @@ module ActiveRecord
   class MySQLStructureDumpTest < ActiveRecord::TestCase
     def setup
       @configuration = {
-        'adapter'  => 'mysql2',
-        'database' => 'test-db'
+        "adapter"  => "mysql2",
+        "database" => "test-db"
       }
     end
 
@@ -311,7 +311,7 @@ module ActiveRecord
       Kernel.expects(:system).with("mysqldump", "--port=10000", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db").returns(true)
 
       ActiveRecord::Tasks::DatabaseTasks.structure_dump(
-        @configuration.merge('port' => 10000),
+        @configuration.merge("port" => 10000),
         filename)
     end
 
@@ -328,14 +328,14 @@ module ActiveRecord
   class MySQLStructureLoadTest < ActiveRecord::TestCase
     def setup
       @configuration = {
-        'adapter'  => 'mysql2',
-        'database' => 'test-db'
+        "adapter"  => "mysql2",
+        "database" => "test-db"
       }
     end
 
     def test_structure_load
       filename = "awesome-file.sql"
-      Kernel.expects(:system).with('mysql', '--execute', %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db")
+      Kernel.expects(:system).with("mysql", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db")
         .returns(true)
 
       ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)

@@ -1,4 +1,4 @@
-require 'models/topic'
+require "models/topic"
 
 class Reply < Topic
   belongs_to :topic, :foreign_key => "parent_id", :counter_cache => true
@@ -7,8 +7,8 @@ class Reply < Topic
 end
 
 class UniqueReply < Reply
-  belongs_to :topic, :foreign_key => 'parent_id', :counter_cache => true
-  validates_uniqueness_of :content, :scope => 'parent_id'
+  belongs_to :topic, :foreign_key => "parent_id", :counter_cache => true
+  validates_uniqueness_of :content, :scope => "parent_id"
 end
 
 class SillyUniqueReply < UniqueReply
@@ -56,6 +56,6 @@ end
 
 module Web
   class Reply < Web::Topic
-    belongs_to :topic, :foreign_key => "parent_id", :counter_cache => true, :class_name => 'Web::Topic'
+    belongs_to :topic, :foreign_key => "parent_id", :counter_cache => true, :class_name => "Web::Topic"
   end
 end

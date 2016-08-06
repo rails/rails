@@ -1,12 +1,12 @@
-require 'cases/helper'
-require 'cases/migration/helper'
-require 'bigdecimal/util'
-require 'concurrent/atomic/count_down_latch'
+require "cases/helper"
+require "cases/migration/helper"
+require "bigdecimal/util"
+require "concurrent/atomic/count_down_latch"
 
-require 'models/person'
-require 'models/topic'
-require 'models/developer'
-require 'models/computer'
+require "models/person"
+require "models/topic"
+require "models/developer"
+require "models/computer"
 
 require MIGRATIONS_ROOT + "/valid/2_we_need_reminders"
 require MIGRATIONS_ROOT + "/rename/1_we_need_things"
@@ -59,7 +59,7 @@ class MigrationTest < ActiveRecord::TestCase
 
     %w(last_name key bio age height wealth birthday favorite_day
        moment_of_truth male administrator funny).each do |column|
-      Person.connection.remove_column('people', column) rescue nil
+      Person.connection.remove_column("people", column) rescue nil
     end
     Person.connection.remove_column("people", "first_name") rescue nil
     Person.connection.remove_column("people", "middle_name") rescue nil
@@ -93,7 +93,7 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_migration_detection_without_schema_migration_table
-    ActiveRecord::Base.connection.drop_table 'schema_migrations', if_exists: true
+    ActiveRecord::Base.connection.drop_table "schema_migrations", if_exists: true
 
     migrations_path = MIGRATIONS_ROOT + "/valid"
     old_path = ActiveRecord::Migrator.migrations_paths
@@ -248,22 +248,22 @@ class MigrationTest < ActiveRecord::TestCase
 
   def test_instance_based_migration_up
     migration = MockMigration.new
-    assert !migration.went_up, 'have not gone up'
-    assert !migration.went_down, 'have not gone down'
+    assert !migration.went_up, "have not gone up"
+    assert !migration.went_down, "have not gone down"
 
     migration.migrate :up
-    assert migration.went_up, 'have gone up'
-    assert !migration.went_down, 'have not gone down'
+    assert migration.went_up, "have gone up"
+    assert !migration.went_down, "have not gone down"
   end
 
   def test_instance_based_migration_down
     migration = MockMigration.new
-    assert !migration.went_up, 'have not gone up'
-    assert !migration.went_down, 'have not gone down'
+    assert !migration.went_up, "have not gone up"
+    assert !migration.went_down, "have not gone down"
 
     migration.migrate :down
-    assert !migration.went_up, 'have gone up'
-    assert migration.went_down, 'have not gone down'
+    assert !migration.went_up, "have gone up"
+    assert migration.went_down, "have not gone down"
   end
 
   if ActiveRecord::Base.connection.supports_ddl_transactions?
@@ -274,7 +274,7 @@ class MigrationTest < ActiveRecord::TestCase
         def version; 100 end
         def migrate(x)
           add_column "people", "last_name", :string
-          raise 'Something broke'
+          raise "Something broke"
         end
       }.new
 
@@ -295,7 +295,7 @@ class MigrationTest < ActiveRecord::TestCase
         def version; 100 end
         def migrate(x)
           add_column "people", "last_name", :string
-          raise 'Something broke'
+          raise "Something broke"
         end
       }.new
 
@@ -318,7 +318,7 @@ class MigrationTest < ActiveRecord::TestCase
         def version; 101 end
         def migrate(x)
           add_column "people", "last_name", :string
-          raise 'Something broke'
+          raise "Something broke"
         end
       }.new
 
@@ -330,8 +330,8 @@ class MigrationTest < ActiveRecord::TestCase
         "without ddl transactions, the Migrator should not rollback on error but it did."
     ensure
       Person.reset_column_information
-      if Person.column_names.include?('last_name')
-        Person.connection.remove_column('people', 'last_name')
+      if Person.column_names.include?("last_name")
+        Person.connection.remove_column("people", "last_name")
       end
     end
   end
@@ -430,7 +430,7 @@ class MigrationTest < ActiveRecord::TestCase
 
   def test_internal_metadata_stores_environment_when_other_data_exists
     ActiveRecord::InternalMetadata.delete_all
-    ActiveRecord::InternalMetadata[:foo]  = 'bar'
+    ActiveRecord::InternalMetadata[:foo]  = "bar"
 
     current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
     migrations_path = MIGRATIONS_ROOT + "/valid"
@@ -440,7 +440,7 @@ class MigrationTest < ActiveRecord::TestCase
     current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
     ActiveRecord::Migrator.up(migrations_path)
     assert_equal current_env, ActiveRecord::InternalMetadata[:environment]
-    assert_equal 'bar', ActiveRecord::InternalMetadata[:foo]
+    assert_equal "bar", ActiveRecord::InternalMetadata[:foo]
   ensure
     ActiveRecord::Migrator.migrations_paths = old_path
   end
@@ -448,7 +448,7 @@ class MigrationTest < ActiveRecord::TestCase
   def test_proper_table_name_on_migration
     reminder_class = new_isolated_reminder_class
     migration = ActiveRecord::Migration.new
-    assert_equal "table", migration.proper_table_name('table')
+    assert_equal "table", migration.proper_table_name("table")
     assert_equal "table", migration.proper_table_name(:table)
     assert_equal "reminders", migration.proper_table_name(reminder_class)
     reminder_class.reset_table_name
@@ -457,26 +457,26 @@ class MigrationTest < ActiveRecord::TestCase
     # Use the model's own prefix/suffix if a model is given
     ActiveRecord::Base.table_name_prefix = "ARprefix_"
     ActiveRecord::Base.table_name_suffix = "_ARsuffix"
-    reminder_class.table_name_prefix = 'prefix_'
-    reminder_class.table_name_suffix = '_suffix'
+    reminder_class.table_name_prefix = "prefix_"
+    reminder_class.table_name_suffix = "_suffix"
     reminder_class.reset_table_name
     assert_equal "prefix_reminders_suffix", migration.proper_table_name(reminder_class)
-    reminder_class.table_name_prefix = ''
-    reminder_class.table_name_suffix = ''
+    reminder_class.table_name_prefix = ""
+    reminder_class.table_name_suffix = ""
     reminder_class.reset_table_name
 
     # Use AR::Base's prefix/suffix if string or symbol is given
     ActiveRecord::Base.table_name_prefix = "prefix_"
     ActiveRecord::Base.table_name_suffix = "_suffix"
     reminder_class.reset_table_name
-    assert_equal "prefix_table_suffix", migration.proper_table_name('table', migration.table_name_options)
+    assert_equal "prefix_table_suffix", migration.proper_table_name("table", migration.table_name_options)
     assert_equal "prefix_table_suffix", migration.proper_table_name(:table, migration.table_name_options)
   end
 
   def test_rename_table_with_prefix_and_suffix
     assert !Thing.table_exists?
-    ActiveRecord::Base.table_name_prefix = 'p_'
-    ActiveRecord::Base.table_name_suffix = '_s'
+    ActiveRecord::Base.table_name_prefix = "p_"
+    ActiveRecord::Base.table_name_suffix = "_s"
     Thing.reset_table_name
     Thing.reset_sequence_name
     WeNeedThings.up
@@ -496,8 +496,8 @@ class MigrationTest < ActiveRecord::TestCase
 
   def test_add_drop_table_with_prefix_and_suffix
     assert !Reminder.table_exists?
-    ActiveRecord::Base.table_name_prefix = 'prefix_'
-    ActiveRecord::Base.table_name_suffix = '_suffix'
+    ActiveRecord::Base.table_name_prefix = "prefix_"
+    ActiveRecord::Base.table_name_suffix = "_suffix"
     Reminder.reset_table_name
     Reminder.reset_sequence_name
     Reminder.reset_column_information
@@ -570,7 +570,7 @@ class MigrationTest < ActiveRecord::TestCase
       assert_nothing_raised do
         begin
           Person.connection.create_table :table_with_name_thats_just_ok,
-            :sequence_name => 'suitably_short_seq' do |t|
+            :sequence_name => "suitably_short_seq" do |t|
             t.column :foo, :string, :null => false
           end
 
@@ -578,7 +578,7 @@ class MigrationTest < ActiveRecord::TestCase
 
         ensure
           Person.connection.drop_table :table_with_name_thats_just_ok,
-            :sequence_name => 'suitably_short_seq' rescue nil
+            :sequence_name => "suitably_short_seq" rescue nil
         end
       end
 
@@ -748,8 +748,8 @@ class ExplicitlyNamedIndexMigrationTest < ActiveRecord::TestCase
     end
 
     assert_nothing_raised do
-      connection.add_index :values, :value, name: 'a_different_name'
-      connection.remove_index :values, column: :value, name: 'a_different_name'
+      connection.add_index :values, :value, name: "a_different_name"
+      connection.remove_index :values, column: :value, name: "a_different_name"
     end
   ensure
     connection.drop_table :values rescue nil
@@ -782,7 +782,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
 
       assert_equal 8, columns.size
       [:name, :qualification, :experience].each {|s| assert_equal :string, column(s).type }
-      assert_equal '0', column(:age).default
+      assert_equal "0", column(:age).default
     end
 
     def test_removing_columns
@@ -821,7 +821,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert_equal 2, indexes.size
 
       name_age_index = index(:index_delete_me_on_name_and_age)
-      assert_equal ['name', 'age'].sort, name_age_index.columns.sort
+      assert_equal ["name", "age"].sort, name_age_index.columns.sort
       assert ! name_age_index.unique
 
       assert index(:awesome_username_index).unique
@@ -862,12 +862,12 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       # One query to do the bulk change
       assert_queries(3, :ignore_none => true) do
         with_bulk_change_table do |t|
-          t.change :name, :string, :default => 'NONAME'
+          t.change :name, :string, :default => "NONAME"
           t.change :birthdate, :datetime
         end
       end
 
-      assert_equal 'NONAME', column(:name).default
+      assert_equal "NONAME", column(:name).default
       assert_equal :datetime, column(:birthdate).type
     end
 
@@ -887,7 +887,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
     end
 
     def columns
-      @columns ||= Person.connection.columns('delete_me')
+      @columns ||= Person.connection.columns("delete_me")
     end
 
     def index(name)
@@ -895,7 +895,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
     end
 
     def indexes
-      @indexes ||= Person.connection.indexes('delete_me')
+      @indexes ||= Person.connection.indexes("delete_me")
     end
   end # AlterTableMigrationsTest
 

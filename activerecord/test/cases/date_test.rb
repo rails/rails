@@ -1,5 +1,5 @@
-require 'cases/helper'
-require 'models/topic'
+require "cases/helper"
+require "models/topic"
 
 class DateTest < ActiveRecord::TestCase
   def test_date_with_time_value
@@ -9,7 +9,7 @@ class DateTest < ActiveRecord::TestCase
   end
 
   def test_date_with_string_value
-    string_value = '2016-05-11 19:00:00'
+    string_value = "2016-05-11 19:00:00"
     topic = Topic.create(last_read: string_value)
     assert_equal topic, Topic.find_by(last_read: string_value)
   end

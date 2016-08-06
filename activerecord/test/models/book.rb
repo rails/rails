@@ -1,7 +1,7 @@
 class Book < ActiveRecord::Base
   has_many :authors
 
-  has_many :citations, :foreign_key => 'book1_id'
+  has_many :citations, :foreign_key => "book1_id"
   has_many :references, -> { distinct }, through: :citations, source: :reference_of
 
   has_many :subscriptions
@@ -14,7 +14,7 @@ class Book < ActiveRecord::Base
   enum author_visibility: [:visible, :invisible], _prefix: true
   enum illustrator_visibility: [:visible, :invisible], _prefix: true
   enum font_size: [:small, :medium, :large], _prefix: :with, _suffix: true
-  enum cover: { hard: 'hard', soft: 'soft' }
+  enum cover: { hard: "hard", soft: "soft" }
 
   def published!
     super

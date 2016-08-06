@@ -1,11 +1,11 @@
 require "cases/helper"
-require 'models/post'
-require 'models/comment'
-require 'models/author'
-require 'models/essay'
-require 'models/categorization'
-require 'models/person'
-require 'active_support/core_ext/regexp'
+require "models/post"
+require "models/comment"
+require "models/author"
+require "models/essay"
+require "models/categorization"
+require "models/person"
+require "active_support/core_ext/regexp"
 
 class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
   fixtures :authors, :essays, :posts, :comments, :categorizations, :people

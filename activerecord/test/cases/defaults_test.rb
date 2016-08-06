@@ -1,7 +1,7 @@
 require "cases/helper"
-require 'support/schema_dumping_helper'
-require 'models/default'
-require 'models/entrant'
+require "support/schema_dumping_helper"
+require "models/default"
+require "models/entrant"
 
 class DefaultTest < ActiveRecord::TestCase
   def test_nil_defaults_for_not_null_columns
@@ -99,7 +99,7 @@ if current_adapter?(:Mysql2Adapter)
   class MysqlDefaultExpressionTest < ActiveRecord::TestCase
     include SchemaDumpingHelper
 
-    if ActiveRecord::Base.connection.version >= '5.6.0'
+    if ActiveRecord::Base.connection.version >= "5.6.0"
       test "schema dump includes default expression" do
         output = dump_table_schema("datetime_defaults")
         assert_match %r/t\.datetime\s+"modified_datetime",\s+default: -> { "CURRENT_TIMESTAMP" }/, output
@@ -142,8 +142,8 @@ if current_adapter?(:Mysql2Adapter)
       using_strict(false) do
         with_text_blob_not_null_table do |klass|
           record = klass.new
-          assert_equal '', record.non_null_blob
-          assert_equal '', record.non_null_text
+          assert_equal "", record.non_null_blob
+          assert_equal "", record.non_null_text
 
           assert_nil record.null_blob
           assert_nil record.null_text
@@ -151,8 +151,8 @@ if current_adapter?(:Mysql2Adapter)
           record.save!
           record.reload
 
-          assert_equal '', record.non_null_text
-          assert_equal '', record.non_null_blob
+          assert_equal "", record.non_null_text
+          assert_equal "", record.non_null_blob
 
           assert_nil record.null_text
           assert_nil record.null_blob
@@ -176,7 +176,7 @@ if current_adapter?(:Mysql2Adapter)
 
     def with_text_blob_not_null_table
       klass = Class.new(ActiveRecord::Base)
-      klass.table_name = 'test_mysql_text_not_null_defaults'
+      klass.table_name = "test_mysql_text_not_null_defaults"
       klass.connection.create_table klass.table_name do |t|
         t.column :non_null_text, :text, :null => false
         t.column :non_null_blob, :blob, :null => false
@@ -193,16 +193,16 @@ if current_adapter?(:Mysql2Adapter)
     # We use an implicit NULL so schema.rb is compatible with other databases.
     def test_mysql_integer_not_null_defaults
       klass = Class.new(ActiveRecord::Base)
-      klass.table_name = 'test_integer_not_null_default_zero'
+      klass.table_name = "test_integer_not_null_default_zero"
       klass.connection.create_table klass.table_name do |t|
         t.column :zero, :integer, :null => false, :default => 0
         t.column :omit, :integer, :null => false
       end
 
-      assert_equal '0', klass.columns_hash['zero'].default
-      assert !klass.columns_hash['zero'].null
-      assert_equal nil, klass.columns_hash['omit'].default
-      assert !klass.columns_hash['omit'].null
+      assert_equal "0", klass.columns_hash["zero"].default
+      assert !klass.columns_hash["zero"].null
+      assert_equal nil, klass.columns_hash["omit"].default
+      assert !klass.columns_hash["omit"].null
 
       assert_raise(ActiveRecord::StatementInvalid) { klass.create! }
 

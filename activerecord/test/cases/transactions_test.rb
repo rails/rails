@@ -1,12 +1,12 @@
 require "cases/helper"
-require 'models/topic'
-require 'models/reply'
-require 'models/developer'
-require 'models/computer'
-require 'models/book'
-require 'models/author'
-require 'models/post'
-require 'models/movie'
+require "models/topic"
+require "models/reply"
+require "models/developer"
+require "models/computer"
+require "models/book"
+require "models/author"
+require "models/post"
+require "models/movie"
 
 class TransactionTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
@@ -144,7 +144,7 @@ class TransactionTest < ActiveRecord::TestCase
 
   def test_raising_exception_in_callback_rollbacks_in_save
     def @first.after_save_for_transaction
-      raise 'Make the transaction rollback'
+      raise "Make the transaction rollback"
     end
 
     @first.approved = true
@@ -170,7 +170,7 @@ class TransactionTest < ActiveRecord::TestCase
     topic = Topic.new
 
     def topic.after_save_for_transaction
-      raise 'Make the transaction rollback'
+      raise "Make the transaction rollback"
     end
 
     assert_raises(RuntimeError) do
@@ -181,7 +181,7 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_transaction_state_is_cleared_when_record_is_persisted
-    author = Author.create! name: 'foo'
+    author = Author.create! name: "foo"
     author.name = nil
     assert_not author.save
     assert_not author.new_record?
@@ -230,7 +230,7 @@ class TransactionTest < ActiveRecord::TestCase
       send("add_cancelling_before_#{filter}_with_db_side_effect_to_topic", @first)
       nbooks_before_save = Book.count
       original_author_name = @first.author_name
-      @first.author_name += '_this_should_not_end_up_in_the_db'
+      @first.author_name += "_this_should_not_end_up_in_the_db"
       status = @first.save
       assert !status
       assert_equal original_author_name, @first.reload.author_name
@@ -241,7 +241,7 @@ class TransactionTest < ActiveRecord::TestCase
       send("add_cancelling_before_#{filter}_with_db_side_effect_to_topic", @first)
       nbooks_before_save = Book.count
       original_author_name = @first.author_name
-      @first.author_name += '_this_should_not_end_up_in_the_db'
+      @first.author_name += "_this_should_not_end_up_in_the_db"
 
       begin
         @first.save!
@@ -256,7 +256,7 @@ class TransactionTest < ActiveRecord::TestCase
   def test_callback_rollback_in_create
     topic = Class.new(Topic) {
       def after_create_for_transaction
-        raise 'Make the transaction rollback'
+        raise "Make the transaction rollback"
       end
     }
 
@@ -493,7 +493,7 @@ class TransactionTest < ActiveRecord::TestCase
 
   def test_rollback_when_commit_raises
     assert_called(Topic.connection, :begin_db_transaction) do
-      Topic.connection.stub(:commit_db_transaction, ->{ raise('OH NOES') }) do
+      Topic.connection.stub(:commit_db_transaction, ->{ raise("OH NOES") }) do
         assert_called(Topic.connection, :rollback_db_transaction) do
 
           e = assert_raise RuntimeError do
@@ -501,22 +501,22 @@ class TransactionTest < ActiveRecord::TestCase
               # do nothing
             end
           end
-          assert_equal 'OH NOES', e.message
+          assert_equal "OH NOES", e.message
         end
       end
     end
   end
 
   def test_rollback_when_saving_a_frozen_record
-    topic = Topic.new(:title => 'test')
+    topic = Topic.new(:title => "test")
     topic.freeze
     e = assert_raise(RuntimeError) { topic.save }
     assert_match(/frozen/i, e.message) # Not good enough, but we can't do much
                                        # about it since there is no specific error
                                        # for frozen objects.
-    assert !topic.persisted?, 'not persisted'
+    assert !topic.persisted?, "not persisted"
     assert_nil topic.id
-    assert topic.frozen?, 'not frozen'
+    assert topic.frozen?, "not frozen"
   end
 
   def test_rollback_when_thread_killed
@@ -549,12 +549,12 @@ class TransactionTest < ActiveRecord::TestCase
 
   def test_restore_active_record_state_for_all_records_in_a_transaction
     topic_without_callbacks = Class.new(ActiveRecord::Base) do
-      self.table_name = 'topics'
+      self.table_name = "topics"
     end
 
-    topic_1 = Topic.new(:title => 'test_1')
-    topic_2 = Topic.new(:title => 'test_2')
-    topic_3 = topic_without_callbacks.new(:title => 'test_3')
+    topic_1 = Topic.new(:title => "test_1")
+    topic_2 = Topic.new(:title => "test_2")
+    topic_3 = topic_without_callbacks.new(:title => "test_3")
 
     Topic.transaction do
       assert topic_1.save
@@ -562,27 +562,27 @@ class TransactionTest < ActiveRecord::TestCase
       assert topic_3.save
       @first.save
       @second.destroy
-      assert topic_1.persisted?, 'persisted'
+      assert topic_1.persisted?, "persisted"
       assert_not_nil topic_1.id
-      assert topic_2.persisted?, 'persisted'
+      assert topic_2.persisted?, "persisted"
       assert_not_nil topic_2.id
-      assert topic_3.persisted?, 'persisted'
+      assert topic_3.persisted?, "persisted"
       assert_not_nil topic_3.id
-      assert @first.persisted?, 'persisted'
+      assert @first.persisted?, "persisted"
       assert_not_nil @first.id
-      assert @second.destroyed?, 'destroyed'
+      assert @second.destroyed?, "destroyed"
       raise ActiveRecord::Rollback
     end
 
-    assert !topic_1.persisted?, 'not persisted'
+    assert !topic_1.persisted?, "not persisted"
     assert_nil topic_1.id
-    assert !topic_2.persisted?, 'not persisted'
+    assert !topic_2.persisted?, "not persisted"
     assert_nil topic_2.id
-    assert !topic_3.persisted?, 'not persisted'
+    assert !topic_3.persisted?, "not persisted"
     assert_nil topic_3.id
-    assert @first.persisted?, 'persisted'
+    assert @first.persisted?, "persisted"
     assert_not_nil @first.id
-    assert !@second.destroyed?, 'not destroyed'
+    assert !@second.destroyed?, "not destroyed"
   end
 
   def test_restore_frozen_state_after_double_destroy
@@ -606,7 +606,7 @@ class TransactionTest < ActiveRecord::TestCase
       topic.destroy
       raise ActiveRecord::Rollback
     end
-    assert topic.frozen?, 'frozen'
+    assert topic.frozen?, "frozen"
   end
 
   def test_rollback_for_freshly_persisted_records
@@ -615,7 +615,7 @@ class TransactionTest < ActiveRecord::TestCase
       topic.destroy
       raise ActiveRecord::Rollback
     end
-    assert topic.persisted?, 'persisted'
+    assert topic.persisted?, "persisted"
   end
 
   def test_sqlite_add_column_in_transaction
@@ -629,27 +629,27 @@ class TransactionTest < ActiveRecord::TestCase
 
     assert_nothing_raised do
       Topic.reset_column_information
-      Topic.connection.add_column('topics', 'stuff', :string)
-      assert Topic.column_names.include?('stuff')
+      Topic.connection.add_column("topics", "stuff", :string)
+      assert Topic.column_names.include?("stuff")
 
       Topic.reset_column_information
-      Topic.connection.remove_column('topics', 'stuff')
-      assert !Topic.column_names.include?('stuff')
+      Topic.connection.remove_column("topics", "stuff")
+      assert !Topic.column_names.include?("stuff")
     end
 
     if Topic.connection.supports_ddl_transactions?
       assert_nothing_raised do
-        Topic.transaction { Topic.connection.add_column('topics', 'stuff', :string) }
+        Topic.transaction { Topic.connection.add_column("topics", "stuff", :string) }
       end
     else
       Topic.transaction do
-        assert_raise(ActiveRecord::StatementInvalid) { Topic.connection.add_column('topics', 'stuff', :string) }
+        assert_raise(ActiveRecord::StatementInvalid) { Topic.connection.add_column("topics", "stuff", :string) }
         raise ActiveRecord::Rollback
       end
     end
   ensure
     begin
-      Topic.connection.remove_column('topics', 'stuff')
+      Topic.connection.remove_column("topics", "stuff")
     rescue
     ensure
       Topic.reset_column_information
@@ -691,7 +691,7 @@ class TransactionTest < ActiveRecord::TestCase
     end
 
     klass = Class.new(ActiveRecord::Base) do
-      self.table_name = 'transaction_without_primary_keys'
+      self.table_name = "transaction_without_primary_keys"
       after_commit { } # necessary to trigger the has_transactional_callbacks branch
     end
 
@@ -702,7 +702,7 @@ class TransactionTest < ActiveRecord::TestCase
       end
     end
   ensure
-    connection.drop_table 'transaction_without_primary_keys', if_exists: true
+    connection.drop_table "transaction_without_primary_keys", if_exists: true
   end
 
   private

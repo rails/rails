@@ -1,5 +1,5 @@
 require "cases/helper"
-require 'support/connection_helper'
+require "support/connection_helper"
 
 module PostgresqlCompositeBehavior
   include ConnectionHelper
@@ -20,7 +20,7 @@ module PostgresqlCompositeBehavior
              street VARCHAR(90)
          );
         SQL
-      @connection.create_table('postgresql_composites') do |t|
+      @connection.create_table("postgresql_composites") do |t|
         t.column :address, :full_address
       end
     end
@@ -29,8 +29,8 @@ module PostgresqlCompositeBehavior
   def teardown
     super
 
-    @connection.drop_table 'postgresql_composites', if_exists: true
-    @connection.execute 'DROP TYPE IF EXISTS full_address'
+    @connection.drop_table "postgresql_composites", if_exists: true
+    @connection.execute "DROP TYPE IF EXISTS full_address"
     reset_connection
     PostgresqlComposite.reset_column_information
   end
@@ -126,7 +126,7 @@ class PostgresqlCompositeWithCustomOIDTest < ActiveRecord::PostgreSQLTestCase
     composite.address = FullAddress.new("Paris", "Rue Basse")
     composite.save!
 
-    assert_equal 'Paris', composite.reload.address.city
-    assert_equal 'Rue Basse', composite.reload.address.street
+    assert_equal "Paris", composite.reload.address.city
+    assert_equal "Rue Basse", composite.reload.address.street
   end
 end

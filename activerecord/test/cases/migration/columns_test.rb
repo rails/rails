@@ -13,7 +13,7 @@ module ActiveRecord
         add_column "test_models", "girlfriend", :string
         TestModel.reset_column_information
 
-        TestModel.create :girlfriend => 'bobette'
+        TestModel.create :girlfriend => "bobette"
 
         rename_column "test_models", "girlfriend", "exgirlfriend"
 
@@ -28,12 +28,12 @@ module ActiveRecord
       def test_rename_column_using_symbol_arguments
         add_column :test_models, :first_name, :string
 
-        TestModel.create :first_name => 'foo'
+        TestModel.create :first_name => "foo"
 
         rename_column :test_models, :first_name, :nick_name
         TestModel.reset_column_information
         assert TestModel.column_names.include?("nick_name")
-        assert_equal ['foo'], TestModel.all.map(&:nick_name)
+        assert_equal ["foo"], TestModel.all.map(&:nick_name)
       end
 
       # FIXME: another integration test.  We should decouple this from the
@@ -41,25 +41,25 @@ module ActiveRecord
       def test_rename_column
         add_column "test_models", "first_name", "string"
 
-        TestModel.create :first_name => 'foo'
+        TestModel.create :first_name => "foo"
 
         rename_column "test_models", "first_name", "nick_name"
         TestModel.reset_column_information
         assert TestModel.column_names.include?("nick_name")
-        assert_equal ['foo'], TestModel.all.map(&:nick_name)
+        assert_equal ["foo"], TestModel.all.map(&:nick_name)
       end
 
       def test_rename_column_preserves_default_value_not_null
-        add_column 'test_models', 'salary', :integer, :default => 70000
+        add_column "test_models", "salary", :integer, :default => 70000
 
         default_before = connection.columns("test_models").find { |c| c.name == "salary" }.default
-        assert_equal '70000', default_before
+        assert_equal "70000", default_before
 
         rename_column "test_models", "salary", "annual_salary"
 
         assert TestModel.column_names.include?("annual_salary")
         default_after = connection.columns("test_models").find { |c| c.name == "annual_salary" }.default
-        assert_equal '70000', default_after
+        assert_equal "70000", default_after
       end
 
       if current_adapter?(:Mysql2Adapter)
@@ -84,7 +84,7 @@ module ActiveRecord
       end
 
       def test_rename_column_with_sql_reserved_word
-        add_column 'test_models', 'first_name', :string
+        add_column "test_models", "first_name", :string
         rename_column "test_models", "first_name", "group"
 
         assert TestModel.column_names.include?("group")
@@ -94,10 +94,10 @@ module ActiveRecord
         add_column "test_models", :hat_name, :string
         add_index :test_models, :hat_name
 
-        assert_equal 1, connection.indexes('test_models').size
+        assert_equal 1, connection.indexes("test_models").size
         rename_column "test_models", "hat_name", "name"
 
-        assert_equal ['index_test_models_on_name'], connection.indexes('test_models').map(&:name)
+        assert_equal ["index_test_models_on_name"], connection.indexes("test_models").map(&:name)
       end
 
       def test_rename_column_with_multi_column_index
@@ -105,37 +105,37 @@ module ActiveRecord
         add_column "test_models", :hat_style, :string, limit: 100
         add_index "test_models", ["hat_style", "hat_size"], unique: true
 
-        rename_column "test_models", "hat_size", 'size'
+        rename_column "test_models", "hat_size", "size"
         if current_adapter? :OracleAdapter
-          assert_equal ['i_test_models_hat_style_size'], connection.indexes('test_models').map(&:name)
+          assert_equal ["i_test_models_hat_style_size"], connection.indexes("test_models").map(&:name)
         else
-          assert_equal ['index_test_models_on_hat_style_and_size'], connection.indexes('test_models').map(&:name)
+          assert_equal ["index_test_models_on_hat_style_and_size"], connection.indexes("test_models").map(&:name)
         end
 
-        rename_column "test_models", "hat_style", 'style'
+        rename_column "test_models", "hat_style", "style"
         if current_adapter? :OracleAdapter
-          assert_equal ['i_test_models_style_size'], connection.indexes('test_models').map(&:name)
+          assert_equal ["i_test_models_style_size"], connection.indexes("test_models").map(&:name)
         else
-          assert_equal ['index_test_models_on_style_and_size'], connection.indexes('test_models').map(&:name)
+          assert_equal ["index_test_models_on_style_and_size"], connection.indexes("test_models").map(&:name)
         end
       end
 
       def test_rename_column_does_not_rename_custom_named_index
         add_column "test_models", :hat_name, :string
-        add_index :test_models, :hat_name, :name => 'idx_hat_name'
+        add_index :test_models, :hat_name, :name => "idx_hat_name"
 
-        assert_equal 1, connection.indexes('test_models').size
+        assert_equal 1, connection.indexes("test_models").size
         rename_column "test_models", "hat_name", "name"
-        assert_equal ['idx_hat_name'], connection.indexes('test_models').map(&:name)
+        assert_equal ["idx_hat_name"], connection.indexes("test_models").map(&:name)
       end
 
       def test_remove_column_with_index
         add_column "test_models", :hat_name, :string
         add_index :test_models, :hat_name
 
-        assert_equal 1, connection.indexes('test_models').size
+        assert_equal 1, connection.indexes("test_models").size
         remove_column("test_models", "hat_name")
-        assert_equal 0, connection.indexes('test_models').size
+        assert_equal 0, connection.indexes("test_models").size
       end
 
       def test_remove_column_with_multi_column_index
@@ -143,15 +143,15 @@ module ActiveRecord
         add_column "test_models", :hat_style, :string, :limit => 100
         add_index "test_models", ["hat_style", "hat_size"], :unique => true
 
-        assert_equal 1, connection.indexes('test_models').size
+        assert_equal 1, connection.indexes("test_models").size
         remove_column("test_models", "hat_size")
 
         # Every database and/or database adapter has their own behavior
         # if it drops the multi-column index when any of the indexed columns dropped by remove_column.
         if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
-          assert_equal [], connection.indexes('test_models').map(&:name)
+          assert_equal [], connection.indexes("test_models").map(&:name)
         else
-          assert_equal ['index_test_models_on_hat_style_and_hat_size'], connection.indexes('test_models').map(&:name)
+          assert_equal ["index_test_models_on_hat_style_and_hat_size"], connection.indexes("test_models").map(&:name)
         end
       end
 
@@ -160,7 +160,7 @@ module ActiveRecord
         change_column "test_models", "updated_at", :datetime, :null => false
 
         TestModel.reset_column_information
-        assert_equal false, TestModel.columns_hash['updated_at'].null
+        assert_equal false, TestModel.columns_hash["updated_at"].null
       ensure
         change_column "test_models", "updated_at", :datetime, :null => true
       end
@@ -180,24 +180,24 @@ module ActiveRecord
       end
 
       def test_change_column
-        add_column 'test_models', 'age', :integer
-        add_column 'test_models', 'approved', :boolean, :default => true
+        add_column "test_models", "age", :integer
+        add_column "test_models", "approved", :boolean, :default => true
 
         old_columns = connection.columns(TestModel.table_name)
 
-        assert old_columns.find { |c| c.name == 'age' && c.type == :integer }
+        assert old_columns.find { |c| c.name == "age" && c.type == :integer }
 
         change_column "test_models", "age", :string
 
         new_columns = connection.columns(TestModel.table_name)
 
-        assert_not new_columns.find { |c| c.name == 'age' and c.type == :integer }
-        assert new_columns.find { |c| c.name == 'age' and c.type == :string }
+        assert_not new_columns.find { |c| c.name == "age" and c.type == :integer }
+        assert new_columns.find { |c| c.name == "age" and c.type == :string }
 
         old_columns = connection.columns(TestModel.table_name)
         assert old_columns.find { |c|
           default = connection.lookup_cast_type_from_column(c).deserialize(c.default)
-          c.name == 'approved' && c.type == :boolean && default == true
+          c.name == "approved" && c.type == :boolean && default == true
         }
 
         change_column :test_models, :approved, :boolean, :default => false
@@ -205,11 +205,11 @@ module ActiveRecord
 
         assert_not new_columns.find { |c|
           default = connection.lookup_cast_type_from_column(c).deserialize(c.default)
-          c.name == 'approved' and c.type == :boolean and default == true
+          c.name == "approved" and c.type == :boolean and default == true
         }
         assert new_columns.find { |c|
           default = connection.lookup_cast_type_from_column(c).deserialize(c.default)
-          c.name == 'approved' and c.type == :boolean and default == false
+          c.name == "approved" and c.type == :boolean and default == false
         }
         change_column :test_models, :approved, :boolean, :default => true
       end
@@ -235,23 +235,23 @@ module ActiveRecord
 
       def test_change_column_with_custom_index_name
         add_column "test_models", "category", :string
-        add_index :test_models, :category, name: 'test_models_categories_idx'
+        add_index :test_models, :category, name: "test_models_categories_idx"
 
-        assert_equal ['test_models_categories_idx'], connection.indexes('test_models').map(&:name)
-        change_column "test_models", "category", :string, null: false, default: 'article'
+        assert_equal ["test_models_categories_idx"], connection.indexes("test_models").map(&:name)
+        change_column "test_models", "category", :string, null: false, default: "article"
 
-        assert_equal ['test_models_categories_idx'], connection.indexes('test_models').map(&:name)
+        assert_equal ["test_models_categories_idx"], connection.indexes("test_models").map(&:name)
       end
 
       def test_change_column_with_long_index_name
-        table_name_prefix = 'test_models_'
-        long_index_name = table_name_prefix + ('x' * (connection.allowed_index_name_length - table_name_prefix.length))
+        table_name_prefix = "test_models_"
+        long_index_name = table_name_prefix + ("x" * (connection.allowed_index_name_length - table_name_prefix.length))
         add_column "test_models", "category", :string
         add_index :test_models, :category, name: long_index_name
 
-        change_column "test_models", "category", :string, null: false, default: 'article'
+        change_column "test_models", "category", :string, null: false, default: "article"
 
-        assert_equal [long_index_name], connection.indexes('test_models').map(&:name)
+        assert_equal [long_index_name], connection.indexes("test_models").map(&:name)
       end
 
       def test_change_column_default
@@ -287,7 +287,7 @@ module ActiveRecord
         remove_column("my_table", "col_two")
         rename_column("my_table", "col_one", "col_three")
 
-        assert_equal 'my_table_id', connection.primary_key('my_table')
+        assert_equal "my_table_id", connection.primary_key("my_table")
       ensure
         connection.drop_table(:my_table) rescue nil
       end

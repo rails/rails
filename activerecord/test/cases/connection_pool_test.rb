@@ -1,5 +1,5 @@
 require "cases/helper"
-require 'concurrent/atomic/count_down_latch'
+require "concurrent/atomic/count_down_latch"
 
 module ActiveRecord
   module ConnectionAdapters
@@ -343,12 +343,12 @@ module ActiveRecord
 
       def test_connection_notification_is_called
         payloads = []
-        subscription = ActiveSupport::Notifications.subscribe('!connection.active_record') do |name, started, finished, unique_id, payload|
+        subscription = ActiveSupport::Notifications.subscribe("!connection.active_record") do |name, started, finished, unique_id, payload|
           payloads << payload
         end
         ActiveRecord::Base.establish_connection :arunit
         assert_equal [:config, :connection_id, :spec_name], payloads[0].keys.sort
-        assert_equal 'primary', payloads[0][:spec_name]
+        assert_equal "primary", payloads[0][:spec_name]
       ensure
         ActiveSupport::Notifications.unsubscribe(subscription) if subscription
       end
@@ -395,8 +395,8 @@ module ActiveRecord
             all_threads_in_new_connection.wait
           end
         rescue Timeout::Error
-          flunk 'pool unable to establish connections concurrently or implementation has ' <<
-                'changed, this test then needs to patch a different :new_connection method'
+          flunk "pool unable to establish connections concurrently or implementation has " <<
+                "changed, this test then needs to patch a different :new_connection method"
         ensure
           # clean up the threads
           all_go.count_down
@@ -519,7 +519,7 @@ module ActiveRecord
           pool.clear_reloadable_connections
 
           unless stuck_thread.join(2)
-            flunk 'clear_reloadable_connections must not let other connection waiting threads get stuck in queue'
+            flunk "clear_reloadable_connections must not let other connection waiting threads get stuck in queue"
           end
 
           assert_equal 0, pool.num_waiting_in_queue

@@ -1,31 +1,31 @@
-require 'cases/helper'
-require 'models/admin'
-require 'models/admin/account'
-require 'models/admin/randomly_named_c1'
-require 'models/admin/user'
-require 'models/binary'
-require 'models/book'
-require 'models/bulb'
-require 'models/category'
-require 'models/comment'
-require 'models/company'
-require 'models/computer'
-require 'models/course'
-require 'models/developer'
-require 'models/doubloon'
-require 'models/joke'
-require 'models/matey'
-require 'models/parrot'
-require 'models/pirate'
-require 'models/post'
-require 'models/randomly_named_c1'
-require 'models/reply'
-require 'models/ship'
-require 'models/task'
-require 'models/topic'
-require 'models/traffic_light'
-require 'models/treasure'
-require 'tempfile'
+require "cases/helper"
+require "models/admin"
+require "models/admin/account"
+require "models/admin/randomly_named_c1"
+require "models/admin/user"
+require "models/binary"
+require "models/book"
+require "models/bulb"
+require "models/category"
+require "models/comment"
+require "models/company"
+require "models/computer"
+require "models/course"
+require "models/developer"
+require "models/doubloon"
+require "models/joke"
+require "models/matey"
+require "models/parrot"
+require "models/pirate"
+require "models/post"
+require "models/randomly_named_c1"
+require "models/reply"
+require "models/ship"
+require "models/task"
+require "models/topic"
+require "models/traffic_light"
+require "models/treasure"
+require "tempfile"
 
 class FixturesTest < ActiveRecord::TestCase
   self.use_instantiated_fixtures = true
@@ -53,12 +53,12 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_broken_yaml_exception
-    badyaml = Tempfile.new ['foo', '.yml']
-    badyaml.write 'a: : '
+    badyaml = Tempfile.new ["foo", ".yml"]
+    badyaml.write "a: : "
     badyaml.flush
 
     dir  = File.dirname badyaml.path
-    name = File.basename badyaml.path, '.yml'
+    name = File.basename badyaml.path, ".yml"
     assert_raises(ActiveRecord::Fixture::FormatError) do
       ActiveRecord::FixtureSet.create_fixtures(dir, name)
     end
@@ -69,8 +69,8 @@ class FixturesTest < ActiveRecord::TestCase
 
   def test_create_fixtures
     fixtures = ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, "parrots")
-    assert Parrot.find_by_name('Curious George'), 'George is not in the database'
-    assert fixtures.detect { |f| f.name == 'parrots' }, "no fixtures named 'parrots' in #{fixtures.map(&:name).inspect}"
+    assert Parrot.find_by_name("Curious George"), "George is not in the database"
+    assert fixtures.detect { |f| f.name == "parrots" }, "no fixtures named 'parrots' in #{fixtures.map(&:name).inspect}"
   end
 
   def test_multiple_clean_fixtures
@@ -83,8 +83,8 @@ class FixturesTest < ActiveRecord::TestCase
   def test_create_symbol_fixtures
     fixtures = ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, :collections, :collections => Course) { Course.connection }
 
-    assert Course.find_by_name('Collection'), 'course is not in the database'
-    assert fixtures.detect { |f| f.name == 'collections' }, "no fixtures named 'collections' in #{fixtures.map(&:name).inspect}"
+    assert Course.find_by_name("Collection"), "course is not in the database"
+    assert fixtures.detect { |f| f.name == "collections" }, "no fixtures named 'collections' in #{fixtures.map(&:name).inspect}"
   end
 
   def test_attributes
@@ -126,8 +126,8 @@ class FixturesTest < ActiveRecord::TestCase
       old_suffix = ActiveRecord::Base.table_name_suffix
 
       # Set a prefix/suffix we can test against
-      ActiveRecord::Base.table_name_prefix = 'prefix_'
-      ActiveRecord::Base.table_name_suffix = '_suffix'
+      ActiveRecord::Base.table_name_prefix = "prefix_"
+      ActiveRecord::Base.table_name_suffix = "_suffix"
 
       other_topic_klass = Class.new(ActiveRecord::Base) do
         def self.name
@@ -170,7 +170,7 @@ class FixturesTest < ActiveRecord::TestCase
 
   def test_logger_level_invariant
     level = ActiveRecord::Base.logger.level
-    create_fixtures('topics')
+    create_fixtures("topics")
     assert_equal level, ActiveRecord::Base.logger.level
   end
 
@@ -229,11 +229,11 @@ class FixturesTest < ActiveRecord::TestCase
 
   def test_omap_fixtures
     assert_nothing_raised do
-      fixtures = ActiveRecord::FixtureSet.new(Account.connection, 'categories', Category, FIXTURES_ROOT + "/categories_ordered")
+      fixtures = ActiveRecord::FixtureSet.new(Account.connection, "categories", Category, FIXTURES_ROOT + "/categories_ordered")
 
       fixtures.each.with_index do |(name, fixture), i|
         assert_equal "fixture_no_#{i}", name
-        assert_equal "Category #{i}", fixture['name']
+        assert_equal "Category #{i}", fixture["name"]
       end
     end
   end
@@ -249,8 +249,8 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_binary_in_fixtures
-    data = File.open(ASSETS_ROOT + "/flowers.jpg", 'rb') { |f| f.read }
-    data.force_encoding('ASCII-8BIT')
+    data = File.open(ASSETS_ROOT + "/flowers.jpg", "rb") { |f| f.read }
+    data.force_encoding("ASCII-8BIT")
     data.freeze
     assert_equal data, @flowers.data
   end
@@ -260,8 +260,8 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_fixtures_are_set_up_with_database_env_variable
-    db_url_tmp = ENV['DATABASE_URL']
-    ENV['DATABASE_URL'] = "sqlite3::memory:"
+    db_url_tmp = ENV["DATABASE_URL"]
+    ENV["DATABASE_URL"] = "sqlite3::memory:"
     ActiveRecord::Base.stub(:configurations, {}) do
       test_case = Class.new(ActiveRecord::TestCase) do
         fixtures :accounts
@@ -276,7 +276,7 @@ class FixturesTest < ActiveRecord::TestCase
       assert result.passed?, "Expected #{result.name} to pass:\n#{result}"
     end
   ensure
-    ENV['DATABASE_URL'] = db_url_tmp
+    ENV["DATABASE_URL"] = db_url_tmp
   end
 end
 
@@ -297,11 +297,11 @@ class HasManyThroughFixture < ActiveSupport::TestCase
     parrot.has_many :parrot_treasures, :anonymous_class => pt
     parrot.has_many :treasures, :through => :parrot_treasures
 
-    parrots = File.join FIXTURES_ROOT, 'parrots'
+    parrots = File.join FIXTURES_ROOT, "parrots"
 
     fs = ActiveRecord::FixtureSet.new parrot.connection, "parrots", parrot, parrots
     rows = fs.table_rows
-    assert_equal load_has_and_belongs_to_many['parrots_treasures'], rows['parrots_treasures']
+    assert_equal load_has_and_belongs_to_many["parrots_treasures"], rows["parrots_treasures"]
   end
 
   def test_has_many_through_with_renamed_table
@@ -315,18 +315,18 @@ class HasManyThroughFixture < ActiveSupport::TestCase
     parrot.has_many :parrot_treasures, :anonymous_class => pt
     parrot.has_many :treasures, :through => :parrot_treasures
 
-    parrots = File.join FIXTURES_ROOT, 'parrots'
+    parrots = File.join FIXTURES_ROOT, "parrots"
 
     fs = ActiveRecord::FixtureSet.new parrot.connection, "parrots", parrot, parrots
     rows = fs.table_rows
-    assert_equal load_has_and_belongs_to_many['parrots_treasures'], rows['parrot_treasures']
+    assert_equal load_has_and_belongs_to_many["parrots_treasures"], rows["parrot_treasures"]
   end
 
   def load_has_and_belongs_to_many
     parrot = make_model "Parrot"
     parrot.has_and_belongs_to_many :treasures
 
-    parrots = File.join FIXTURES_ROOT, 'parrots'
+    parrots = File.join FIXTURES_ROOT, "parrots"
 
     fs = ActiveRecord::FixtureSet.new parrot.connection, "parrots", parrot, parrots
     fs.table_rows
@@ -339,7 +339,7 @@ if Account.connection.respond_to?(:reset_pk_sequence!)
     fixtures :companies
 
     def setup
-      @instances = [Account.new(:credit_limit => 50), Company.new(:name => 'RoR Consulting'), Course.new(name: 'Test')]
+      @instances = [Account.new(:credit_limit => 50), Company.new(:name => "RoR Consulting"), Course.new(name: "Test")]
       ActiveRecord::FixtureSet.reset_cache # make sure tables get reinitialized
     end
 
@@ -368,7 +368,7 @@ if Account.connection.respond_to?(:reset_pk_sequence!)
     def test_create_fixtures_resets_sequences_when_not_cached
       @instances.each do |instance|
         max_id = create_fixtures(instance.class.table_name).first.fixtures.inject(0) do |_max_id, (_, fixture)|
-          fixture_id = fixture['id'].to_i
+          fixture_id = fixture["id"].to_i
           fixture_id > _max_id ? fixture_id : _max_id
         end
 
@@ -414,7 +414,7 @@ class FixturesWithoutInstantiationTest < ActiveRecord::TestCase
   def test_reloading_fixtures_through_accessor_methods
     topic = Struct.new(:title)
     assert_equal "The First Topic", topics(:first).title
-    assert_called(@loaded_fixtures['topics']['first'], :find, returns: topic.new("Fresh Topic!")) do
+    assert_called(@loaded_fixtures["topics"]["first"], :find, returns: topic.new("Fresh Topic!")) do
       assert_equal "Fresh Topic!", topics(:first, true).title
     end
   end
@@ -510,13 +510,13 @@ class OverRideFixtureMethodTest < ActiveRecord::TestCase
 
   def topics(name)
     topic = super
-    topic.title = 'omg'
+    topic.title = "omg"
     topic
   end
 
   def test_fixture_methods_can_be_overridden
     x = topics :first
-    assert_equal 'omg', x.title
+    assert_equal "omg", x.title
   end
 end
 
@@ -650,15 +650,15 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
   private
 
     def fire_connection_notification(connection)
-      ActiveRecord::Base.connection_handler.stubs(:retrieve_connection).with('book').returns(connection)
+      ActiveRecord::Base.connection_handler.stubs(:retrieve_connection).with("book").returns(connection)
       message_bus = ActiveSupport::Notifications.instrumenter
       payload = {
-        spec_name: 'book',
+        spec_name: "book",
         config: nil,
         connection_id: connection.object_id
       }
 
-      message_bus.instrument('!connection.active_record', payload) {}
+      message_bus.instrument("!connection.active_record", payload) {}
     end
 end
 
@@ -719,7 +719,7 @@ class FixturesBrokenRollbackTest < ActiveRecord::TestCase
 
   private
     def load_fixtures(config)
-      raise 'argh'
+      raise "argh"
     end
 end
 
@@ -738,7 +738,7 @@ end
 
 class LoadAllFixturesWithPathnameTest < ActiveRecord::TestCase
   def test_all_there
-    self.class.fixture_path = Pathname.new(FIXTURES_ROOT).join('all')
+    self.class.fixture_path = Pathname.new(FIXTURES_ROOT).join("all")
     self.class.fixtures :all
 
     if File.symlink? FIXTURES_ROOT + "/all/admin"
@@ -760,18 +760,18 @@ class FasterFixturesTest < ActiveRecord::TestCase
   end
 
   def test_cache
-    assert ActiveRecord::FixtureSet.fixture_is_cached?(ActiveRecord::Base.connection, 'categories')
-    assert ActiveRecord::FixtureSet.fixture_is_cached?(ActiveRecord::Base.connection, 'authors')
+    assert ActiveRecord::FixtureSet.fixture_is_cached?(ActiveRecord::Base.connection, "categories")
+    assert ActiveRecord::FixtureSet.fixture_is_cached?(ActiveRecord::Base.connection, "authors")
 
     assert_no_queries do
-      create_fixtures('categories')
-      create_fixtures('authors')
+      create_fixtures("categories")
+      create_fixtures("authors")
     end
 
-    load_extra_fixture('posts')
-    assert ActiveRecord::FixtureSet.fixture_is_cached?(ActiveRecord::Base.connection, 'posts')
+    load_extra_fixture("posts")
+    assert ActiveRecord::FixtureSet.fixture_is_cached?(ActiveRecord::Base.connection, "posts")
     self.class.setup_fixture_accessors :posts
-    assert_equal 'Welcome to the weblog', posts(:welcome).title
+    assert_equal "Welcome to the weblog", posts(:welcome).title
   end
 end
 
@@ -779,9 +779,9 @@ class FoxyFixturesTest < ActiveRecord::TestCase
   fixtures :parrots, :parrots_pirates, :pirates, :treasures, :mateys, :ships, :computers,
            :developers, :"admin/accounts", :"admin/users", :live_parrots, :dead_parrots, :books
 
-  if ActiveRecord::Base.connection.adapter_name == 'PostgreSQL'
-    require 'models/uuid_parent'
-    require 'models/uuid_child'
+  if ActiveRecord::Base.connection.adapter_name == "PostgreSQL"
+    require "models/uuid_parent"
+    require "models/uuid_child"
     fixtures :uuid_parents, :uuid_children
   end
 
@@ -798,8 +798,8 @@ class FoxyFixturesTest < ActiveRecord::TestCase
     assert_equal 207281424, ActiveRecord::FixtureSet.identify(:ruby)
     assert_equal 1066363776, ActiveRecord::FixtureSet.identify(:sapphire_2)
 
-    assert_equal 'f92b6bda-0d0d-5fe1-9124-502b18badded', ActiveRecord::FixtureSet.identify(:daddy, :uuid)
-    assert_equal 'b4b10018-ad47-595d-b42f-d8bdaa6d01bf', ActiveRecord::FixtureSet.identify(:sonny, :uuid)
+    assert_equal "f92b6bda-0d0d-5fe1-9124-502b18badded", ActiveRecord::FixtureSet.identify(:daddy, :uuid)
+    assert_equal "b4b10018-ad47-595d-b42f-d8bdaa6d01bf", ActiveRecord::FixtureSet.identify(:sonny, :uuid)
   end
 
   TIMESTAMP_COLUMNS = %w(created_at created_on updated_at updated_on)
@@ -953,10 +953,10 @@ class CustomNameForFixtureOrModelTest < ActiveRecord::TestCase
                         ClassNameThatDoesNotFollowCONVENTIONS,
                     :'admin/randomly_named_a9' =>
                         Admin::ClassNameThatDoesNotFollowCONVENTIONS1,
-                    'admin/randomly_named_b0'  =>
+                    "admin/randomly_named_b0"  =>
                         Admin::ClassNameThatDoesNotFollowCONVENTIONS2
 
-  fixtures :randomly_named_a9, 'admin/randomly_named_a9',
+  fixtures :randomly_named_a9, "admin/randomly_named_a9",
            :'admin/randomly_named_b0'
 
   def test_named_accessor_for_randomly_named_fixture_and_class
@@ -972,8 +972,8 @@ class CustomNameForFixtureOrModelTest < ActiveRecord::TestCase
   end
 
   def test_table_name_is_defined_in_the_model
-    assert_equal 'randomly_named_table2', ActiveRecord::FixtureSet::all_loaded_fixtures["admin/randomly_named_a9"].table_name
-    assert_equal 'randomly_named_table2', Admin::ClassNameThatDoesNotFollowCONVENTIONS1.table_name
+    assert_equal "randomly_named_table2", ActiveRecord::FixtureSet::all_loaded_fixtures["admin/randomly_named_a9"].table_name
+    assert_equal "randomly_named_table2", Admin::ClassNameThatDoesNotFollowCONVENTIONS1.table_name
   end
 end
 
@@ -1009,6 +1009,6 @@ class FixtureClassNamesTest < ActiveRecord::TestCase
   end
 
   test "fixture_class_names returns nil for unregistered identifier" do
-    assert_nil self.fixture_class_names['unregistered_identifier']
+    assert_nil self.fixture_class_names["unregistered_identifier"]
   end
 end

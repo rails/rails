@@ -1,15 +1,15 @@
 require "cases/helper"
-require 'models/developer'
-require 'models/computer'
-require 'models/project'
-require 'models/company'
-require 'models/ship'
-require 'models/pirate'
-require 'models/car'
-require 'models/bulb'
-require 'models/author'
-require 'models/image'
-require 'models/post'
+require "models/developer"
+require "models/computer"
+require "models/project"
+require "models/company"
+require "models/ship"
+require "models/pirate"
+require "models/car"
+require "models/bulb"
+require "models/author"
+require "models/image"
+require "models/post"
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
@@ -28,7 +28,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     ActiveRecord::SQLCounter.clear_log
     companies(:first_firm).account
   ensure
-    assert ActiveRecord::SQLCounter.log_all.all? { |sql| /order by/i !~ sql }, 'ORDER BY was used in the query'
+    assert ActiveRecord::SQLCounter.log_all.all? { |sql| /order by/i !~ sql }, "ORDER BY was used in the query"
   end
 
   def test_has_one_cache_nils
@@ -170,27 +170,27 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_dependence_with_nil_associate
-    firm = DependentFirm.new(:name => 'nullify')
+    firm = DependentFirm.new(:name => "nullify")
     firm.save!
     assert_nothing_raised { firm.destroy }
   end
 
   def test_restrict_with_exception
-    firm = RestrictedWithExceptionFirm.create!(:name => 'restrict')
+    firm = RestrictedWithExceptionFirm.create!(:name => "restrict")
     firm.create_account(:credit_limit => 10)
 
     assert_not_nil firm.account
 
     assert_raise(ActiveRecord::DeleteRestrictionError) { firm.destroy }
-    assert RestrictedWithExceptionFirm.exists?(:name => 'restrict')
+    assert RestrictedWithExceptionFirm.exists?(:name => "restrict")
     assert firm.account.present?
   end
 
   def test_restrict_with_error_is_deprecated_using_key_one
     I18n.backend = I18n::Backend::Simple.new
-    I18n.backend.store_translations :en, activerecord: { errors: { messages: { restrict_dependent_destroy: { one: 'message for deprecated key' } } } }
+    I18n.backend.store_translations :en, activerecord: { errors: { messages: { restrict_dependent_destroy: { one: "message for deprecated key" } } } }
 
-    firm = RestrictedWithErrorFirm.create!(name: 'restrict')
+    firm = RestrictedWithErrorFirm.create!(name: "restrict")
     firm.create_account(credit_limit: 10)
 
     assert_not_nil firm.account
@@ -198,15 +198,15 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_deprecated { firm.destroy }
 
     assert !firm.errors.empty?
-    assert_equal 'message for deprecated key', firm.errors[:base].first
-    assert RestrictedWithErrorFirm.exists?(name: 'restrict')
+    assert_equal "message for deprecated key", firm.errors[:base].first
+    assert RestrictedWithErrorFirm.exists?(name: "restrict")
     assert firm.account.present?
   ensure
     I18n.backend.reload!
   end
 
   def test_restrict_with_error
-    firm = RestrictedWithErrorFirm.create!(:name => 'restrict')
+    firm = RestrictedWithErrorFirm.create!(:name => "restrict")
     firm.create_account(:credit_limit => 10)
 
     assert_not_nil firm.account
@@ -215,14 +215,14 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     assert !firm.errors.empty?
     assert_equal "Cannot delete record because a dependent account exists", firm.errors[:base].first
-    assert RestrictedWithErrorFirm.exists?(:name => 'restrict')
+    assert RestrictedWithErrorFirm.exists?(:name => "restrict")
     assert firm.account.present?
   end
 
   def test_restrict_with_error_with_locale
     I18n.backend = I18n::Backend::Simple.new
-    I18n.backend.store_translations 'en', activerecord: {attributes: {restricted_with_error_firm: {account: 'firm account'}}}
-    firm = RestrictedWithErrorFirm.create!(name: 'restrict')
+    I18n.backend.store_translations "en", activerecord: {attributes: {restricted_with_error_firm: {account: "firm account"}}}
+    firm = RestrictedWithErrorFirm.create!(name: "restrict")
     firm.create_account(credit_limit: 10)
 
     assert_not_nil firm.account
@@ -231,7 +231,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     assert !firm.errors.empty?
     assert_equal "Cannot delete record because a dependent firm account exists", firm.errors[:base].first
-    assert RestrictedWithErrorFirm.exists?(name: 'restrict')
+    assert RestrictedWithErrorFirm.exists?(name: "restrict")
     assert firm.account.present?
   ensure
     I18n.backend.reload!
@@ -319,7 +319,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_create_with_inexistent_foreign_key_failing
-    firm = Firm.create(name: 'GlobalMegaCorp')
+    firm = Firm.create(name: "GlobalMegaCorp")
 
     assert_raises(ActiveRecord::UnknownAttributeError) do
       firm.create_account_with_inexistent_foreign_key
@@ -365,7 +365,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   def test_finding_with_interpolated_condition
     firm = Firm.first
-    superior = firm.clients.create(:name => 'SuperiorCo')
+    superior = firm.clients.create(:name => "SuperiorCo")
     superior.rating = 10
     superior.save
     assert_equal 10, firm.clients_with_interpolated_conditions.first.rating
@@ -382,7 +382,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_save_still_works_after_accessing_nil_has_one
-    jp = Company.new :name => 'Jaded Pixel'
+    jp = Company.new :name => "Jaded Pixel"
     jp.dummy_account.nil?
 
     assert_nothing_raised do
@@ -435,7 +435,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_attributes_are_being_set_when_initialized_from_has_one_association_with_where_clause
-    new_account = companies(:first_firm).build_account(:firm_name => 'Account')
+    new_account = companies(:first_firm).build_account(:firm_name => "Account")
     assert_equal new_account.firm_name, "Account"
   end
 
@@ -505,7 +505,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_association_keys_bypass_attribute_protection
-    car = Car.create(:name => 'honda')
+    car = Car.create(:name => "honda")
 
     bulb = car.build_bulb
     assert_equal car.id, bulb.car_id
@@ -537,31 +537,31 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_build_with_block
-    car = Car.create(:name => 'honda')
+    car = Car.create(:name => "honda")
 
-    bulb = car.build_bulb{ |b| b.color = 'Red' }
-    assert_equal 'RED!', bulb.color
+    bulb = car.build_bulb{ |b| b.color = "Red" }
+    assert_equal "RED!", bulb.color
   end
 
   def test_create_with_block
-    car = Car.create(:name => 'honda')
+    car = Car.create(:name => "honda")
 
-    bulb = car.create_bulb{ |b| b.color = 'Red' }
-    assert_equal 'RED!', bulb.color
+    bulb = car.create_bulb{ |b| b.color = "Red" }
+    assert_equal "RED!", bulb.color
   end
 
   def test_create_bang_with_block
-    car = Car.create(:name => 'honda')
+    car = Car.create(:name => "honda")
 
-    bulb = car.create_bulb!{ |b| b.color = 'Red' }
-    assert_equal 'RED!', bulb.color
+    bulb = car.create_bulb!{ |b| b.color = "Red" }
+    assert_equal "RED!", bulb.color
   end
 
   def test_association_attributes_are_available_to_after_initialize
-    car = Car.create(:name => 'honda')
+    car = Car.create(:name => "honda")
     bulb = car.create_bulb
 
-    assert_equal car.id, bulb.attributes_after_initialize['car_id']
+    assert_equal car.id, bulb.attributes_after_initialize["car_id"]
   end
 
   def test_has_one_transaction
@@ -581,36 +581,36 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   def test_has_one_assignment_dont_trigger_save_on_change_of_same_object
     pirate = Pirate.create!(catchphrase: "Don' botharrr talkin' like one, savvy?")
-    ship = pirate.build_ship(name: 'old name')
+    ship = pirate.build_ship(name: "old name")
     ship.save!
 
-    ship.name = 'new name'
+    ship.name = "new name"
     assert ship.changed?
     assert_queries(1) do
       # One query for updating name, not triggering query for updating pirate_id
       pirate.ship = ship
     end
 
-    assert_equal 'new name', pirate.ship.reload.name
+    assert_equal "new name", pirate.ship.reload.name
   end
 
   def test_has_one_assignment_triggers_save_on_change_on_replacing_object
     pirate = Pirate.create!(catchphrase: "Don' botharrr talkin' like one, savvy?")
-    ship = pirate.build_ship(name: 'old name')
+    ship = pirate.build_ship(name: "old name")
     ship.save!
 
-    new_ship = Ship.create(name: 'new name')
+    new_ship = Ship.create(name: "new name")
     assert_queries(2) do
       # One query for updating name and second query for updating pirate_id
       pirate.ship = new_ship
     end
 
-    assert_equal 'new name', pirate.ship.reload.name
+    assert_equal "new name", pirate.ship.reload.name
   end
 
   def test_has_one_autosave_with_primary_key_manually_set
-    post = Post.create(id: 1234, title: "Some title", body: 'Some content')
-    author = Author.new(id: 33, name: 'Hank Moody')
+    post = Post.create(id: 1234, title: "Some title", body: "Some content")
+    author = Author.new(id: 33, name: "Hank Moody")
 
     author.post = post
     author.save
@@ -621,7 +621,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one_loading_for_new_record
-    post = Post.create!(author_id: 42, title: 'foo', body: 'bar')
+    post = Post.create!(author_id: 42, title: "foo", body: "bar")
     author = Author.new(id: 42)
     assert_equal post, author.post
   end
@@ -635,7 +635,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_with_polymorphic_has_one_with_custom_columns_name
-    post = Post.create! :title => 'foo', :body => 'bar'
+    post = Post.create! :title => "foo", :body => "bar"
     image = Image.create!
 
     post.main_image = image
@@ -644,8 +644,8 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal image, post.main_image
   end
 
-  test 'dangerous association name raises ArgumentError' do
-    [:errors, 'errors', :save, 'save'].each do |name|
+  test "dangerous association name raises ArgumentError" do
+    [:errors, "errors", :save, "save"].each do |name|
       assert_raises(ArgumentError, "Association #{name} should not be allowed") do
         Class.new(ActiveRecord::Base) do
           has_one name
@@ -661,20 +661,20 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   class SpecialBook < ActiveRecord::Base
-    self.table_name = 'books'
-    belongs_to :author, class_name: 'SpecialAuthor'
+    self.table_name = "books"
+    belongs_to :author, class_name: "SpecialAuthor"
   end
 
   class SpecialAuthor < ActiveRecord::Base
-    self.table_name = 'authors'
-    has_one :book, class_name: 'SpecialBook', foreign_key: 'author_id'
+    self.table_name = "authors"
+    has_one :book, class_name: "SpecialBook", foreign_key: "author_id"
   end
 
   def test_assocation_enum_works_properly
-    author = SpecialAuthor.create!(name: 'Test')
-    book = SpecialBook.create!(status: 'published')
+    author = SpecialAuthor.create!(name: "Test")
+    book = SpecialBook.create!(status: "published")
     author.book = book
 
-    refute_equal 0, SpecialAuthor.joins(:book).where(books: { status: 'published' } ).count
+    refute_equal 0, SpecialAuthor.joins(:book).where(books: { status: "published" } ).count
   end
 end

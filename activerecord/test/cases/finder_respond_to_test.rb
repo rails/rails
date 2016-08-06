@@ -1,5 +1,5 @@
 require "cases/helper"
-require 'models/topic'
+require "models/topic"
 
 class FinderRespondToTest < ActiveRecord::TestCase
 
