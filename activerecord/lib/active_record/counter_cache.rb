@@ -73,11 +73,22 @@ module ActiveRecord
       #   # UPDATE posts
       #   #    SET comment_count = COALESCE(comment_count, 0) + 1
       #   #  WHERE id IN (10, 15)
-      def update_counters(id, counters)
+      def update_counters(id, counters, touch = false)
         updates = counters.map do |counter_name, value|
           operator = value < 0 ? '-' : '+'
           quoted_column = connection.quote_column_name(counter_name)
           "#{quoted_column} = COALESCE(#{quoted_column}, 0) #{operator} #{value.abs}"
+        end
+
+        if touch && record_timestamps
+          current_time = default_timezone == :utc ? Time.now.utc : Time.now
+
+          columns_for_update =
+            Timestamp::TIMESTAMP_ATTRIBUTES_FOR_UPDATE.select { |c| column_names.include?(c.to_s) }
+
+          columns_for_update.each do |column|
+            updates << "#{column} = '#{connection.quoted_date(current_time)}'"
+          end
         end
 
         unscoped.where(primary_key => id).update_all updates.join(', ')
