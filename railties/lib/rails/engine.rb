@@ -467,7 +467,13 @@ module Rails
       self
     end
 
-    # Eager load the application by loading all ruby
+    # Invokes all registered forker hooks.
+    # Check <tt>Rails::Railtie.forkers</tt> for more info.
+    def load_forkers(app=self)
+      run_forkers_blocks(app)
+      self
+    end
+
     # files inside eager_load paths.
     def eager_load!
       config.eager_load_paths.each do |load_path|
