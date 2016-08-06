@@ -1,6 +1,6 @@
-require 'active_record_unit'
-require 'fixtures/project'
-require 'fixtures/developer'
+require "active_record_unit"
+require "fixtures/project"
+require "fixtures/developer"
 
 class FormHelperActiveRecordTest < ActionView::TestCase
   tests ActionView::Helpers::FormHelper
@@ -39,12 +39,12 @@ class FormHelperActiveRecordTest < ActionView::TestCase
 
   def test_nested_fields_for_with_child_index_option_override_on_a_nested_attributes_collection_association
     form_for(@developer) do |f|
-      concat f.fields_for(:projects, @developer.projects.first, :child_index => 'abc') { |cf|
+      concat f.fields_for(:projects, @developer.projects.first, :child_index => "abc") { |cf|
         concat cf.text_field(:name)
       }
     end
 
-    expected = whole_form('/developers/123', 'edit_developer_123', 'edit_developer', :method => 'patch') do
+    expected = whole_form("/developers/123", "edit_developer_123", "edit_developer", :method => "patch") do
       '<input id="developer_projects_attributes_abc_name" name="developer[projects_attributes][abc][name]" type="text" value="project #321" />' +
           '<input id="developer_projects_attributes_abc_id" name="developer[projects_attributes][abc][id]" type="hidden" value="321" />'
     end

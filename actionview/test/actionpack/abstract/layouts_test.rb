@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 module AbstractControllerTests
   module Layouts
@@ -38,7 +38,7 @@ module AbstractControllerTests
       layout "hello_locals"
 
       def index
-        render :template => 'some/template', locals: { foo: "less than 3" }
+        render :template => "some/template", locals: { foo: "less than 3" }
       end
     end
 
@@ -349,7 +349,7 @@ module AbstractControllerTests
       end
 
       test "when layout is specified as a proc, do not leak any methods into controller's action_methods" do
-        assert_equal Set.new(['index']), WithProc.action_methods
+        assert_equal Set.new(["index"]), WithProc.action_methods
       end
 
       test "when layout is specified as a proc, call it and use the layout returned" do
@@ -543,7 +543,7 @@ module AbstractControllerTests
       test "layout for anonymous controller" do
         klass = Class.new(WithString) do
           def index
-            render plain: 'index', layout: true
+            render plain: "index", layout: true
           end
         end
 

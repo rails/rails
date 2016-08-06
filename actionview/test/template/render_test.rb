@@ -1,12 +1,12 @@
-require 'abstract_unit'
-require 'controller/fake_models'
+require "abstract_unit"
+require "controller/fake_models"
 
 class TestController < ActionController::Base
 end
 
 module RenderTestCases
   def setup_view(paths)
-    @assigns = { :secret => 'in the sauce' }
+    @assigns = { :secret => "in the sauce" }
     @view = Class.new(ActionView::Base) do
       def view_cache_dependencies; end
 
@@ -18,8 +18,8 @@ module RenderTestCases
     @controller_view = TestController.new.view_context
 
     # Reload and register danish language for testing
-    I18n.backend.store_translations 'da', {}
-    I18n.backend.store_translations 'pt-BR', {}
+    I18n.backend.store_translations "da", {}
+    I18n.backend.store_translations "pt-BR", {}
 
     # Ensure original are still the same since we are reindexing view paths
     assert_equal ORIGINAL_LOCALES, I18n.available_locales.map(&:to_s).sort
@@ -112,7 +112,7 @@ module RenderTestCases
   end
 
   def test_render_ruby_template_inline
-    assert_equal '4', @view.render(:inline => "(2**2).to_s", :type => :ruby)
+    assert_equal "4", @view.render(:inline => "(2**2).to_s", :type => :ruby)
   end
 
   def test_render_file_with_localization_on_context_level
@@ -130,11 +130,11 @@ module RenderTestCases
   end
 
   def test_render_file_at_top_level
-    assert_equal 'Elastica', @view.render(:file => '/shared')
+    assert_equal "Elastica", @view.render(:file => "/shared")
   end
 
   def test_render_file_with_full_path
-    template_path = File.join(File.dirname(__FILE__), '../fixtures/test/hello_world')
+    template_path = File.join(File.dirname(__FILE__), "../fixtures/test/hello_world")
     assert_equal "Hello world!", @view.render(:file => template_path)
   end
 
@@ -143,7 +143,7 @@ module RenderTestCases
   end
 
   def test_render_file_with_locals
-    locals = { :secret => 'in the sauce' }
+    locals = { :secret => "in the sauce" }
     assert_equal "The secret is in the sauce\n", @view.render(:file => "test/render_file_with_locals", :locals => locals)
   end
 
@@ -156,7 +156,7 @@ module RenderTestCases
   end
 
   def test_render_outside_path
-    assert File.exist?(File.join(File.dirname(__FILE__), '../../test/abstract_unit.rb'))
+    assert File.exist?(File.join(File.dirname(__FILE__), "../../test/abstract_unit.rb"))
     assert_raises ActionView::MissingTemplate do
       @view.render(:template => "../\\../test/abstract_unit.rb")
     end
@@ -167,22 +167,22 @@ module RenderTestCases
   end
 
   def test_render_partial_with_format
-    assert_equal 'partial html', @view.render(:partial => 'test/partial')
+    assert_equal "partial html", @view.render(:partial => "test/partial")
   end
 
   def test_render_partial_with_selected_format
-    assert_equal 'partial html', @view.render(:partial => 'test/partial', :formats => :html)
-    assert_equal 'partial js', @view.render(:partial => 'test/partial', :formats => [:js])
+    assert_equal "partial html", @view.render(:partial => "test/partial", :formats => :html)
+    assert_equal "partial js", @view.render(:partial => "test/partial", :formats => [:js])
   end
 
   def test_render_partial_at_top_level
     # file fixtures/_top_level_partial_only (not fixtures/test)
-    assert_equal 'top level partial', @view.render(:partial => '/top_level_partial_only')
+    assert_equal "top level partial", @view.render(:partial => "/top_level_partial_only")
   end
 
   def test_render_partial_with_format_at_top_level
     # file fixtures/_top_level_partial.html (not fixtures/test, with format extension)
-    assert_equal 'top level partial html', @view.render(:partial => '/top_level_partial')
+    assert_equal "top level partial html", @view.render(:partial => "/top_level_partial")
   end
 
   def test_render_partial_with_locals
@@ -207,7 +207,7 @@ module RenderTestCases
   end
 
   def test_render_partial_starting_with_a_capital
-    assert_nothing_raised { @view.render(:partial => 'test/FooBar') }
+    assert_nothing_raised { @view.render(:partial => "test/FooBar") }
   end
 
   def test_render_partial_with_hyphen
@@ -219,14 +219,14 @@ module RenderTestCases
   end
 
   def test_render_partial_with_invalid_option_as
-    e = assert_raises(ArgumentError) { @view.render(:partial => "test/partial_only", :as => 'a-in') }
+    e = assert_raises(ArgumentError) { @view.render(:partial => "test/partial_only", :as => "a-in") }
     assert_equal "The value (a-in) of the option `as` is not a valid Ruby identifier; " +
       "make sure it starts with lowercase letter, " +
       "and is followed by any combination of letters, numbers and underscores.", e.message
   end
 
   def test_render_partial_with_hyphen_and_invalid_option_as
-    e = assert_raises(ArgumentError) { @view.render(:partial => "test/a-in", :as => 'a-in') }
+    e = assert_raises(ArgumentError) { @view.render(:partial => "test/a-in", :as => "a-in") }
     assert_equal "The value (a-in) of the option `as` is not a valid Ruby identifier; " +
       "make sure it starts with lowercase letter, " +
       "and is followed by any combination of letters, numbers and underscores.", e.message
@@ -288,7 +288,7 @@ module RenderTestCases
 
   def test_render_partial_collection_as_by_string
     assert_equal "david david davidmary mary mary",
-      @view.render(:partial => "test/customer_with_var", :collection => [ Customer.new("david"), Customer.new("mary") ], :as => 'customer')
+      @view.render(:partial => "test/customer_with_var", :collection => [ Customer.new("david"), Customer.new("mary") ], :as => "customer")
   end
 
   def test_render_partial_collection_as_by_symbol
@@ -318,11 +318,11 @@ module RenderTestCases
   end
 
   def test_render_partial_without_object_does_not_put_partial_name_to_local_assigns
-    assert_equal 'false', @view.render(partial: 'test/partial_name_in_local_assigns')
+    assert_equal "false", @view.render(partial: "test/partial_name_in_local_assigns")
   end
 
   def test_render_partial_with_nil_object_puts_partial_name_to_local_assigns
-    assert_equal 'true', @view.render(partial: 'test/partial_name_in_local_assigns', object: nil)
+    assert_equal "true", @view.render(partial: "test/partial_name_in_local_assigns", object: nil)
   end
 
   def test_render_partial_with_nil_values_in_collection
@@ -330,22 +330,22 @@ module RenderTestCases
   end
 
   def test_render_partial_with_layout_using_collection_and_template
-    assert_equal "<b>Hello: Amazon</b><b>Hello: Yahoo</b>", @view.render(:partial => "test/customer", :layout => 'test/b_layout_for_partial', :collection => [ Customer.new("Amazon"), Customer.new("Yahoo") ])
+    assert_equal "<b>Hello: Amazon</b><b>Hello: Yahoo</b>", @view.render(:partial => "test/customer", :layout => "test/b_layout_for_partial", :collection => [ Customer.new("Amazon"), Customer.new("Yahoo") ])
   end
 
   def test_render_partial_with_layout_using_collection_and_template_makes_current_item_available_in_layout
     assert_equal '<b class="amazon">Hello: Amazon</b><b class="yahoo">Hello: Yahoo</b>',
-      @view.render(:partial => "test/customer", :layout => 'test/b_layout_for_partial_with_object', :collection => [ Customer.new("Amazon"), Customer.new("Yahoo") ])
+      @view.render(:partial => "test/customer", :layout => "test/b_layout_for_partial_with_object", :collection => [ Customer.new("Amazon"), Customer.new("Yahoo") ])
   end
 
   def test_render_partial_with_layout_using_collection_and_template_makes_current_item_counter_available_in_layout
     assert_equal '<b data-counter="0">Hello: Amazon</b><b data-counter="1">Hello: Yahoo</b>',
-      @view.render(:partial => "test/customer", :layout => 'test/b_layout_for_partial_with_object_counter', :collection => [ Customer.new("Amazon"), Customer.new("Yahoo") ])
+      @view.render(:partial => "test/customer", :layout => "test/b_layout_for_partial_with_object_counter", :collection => [ Customer.new("Amazon"), Customer.new("Yahoo") ])
   end
 
   def test_render_partial_with_layout_using_object_and_template_makes_object_available_in_layout
     assert_equal '<b class="amazon">Hello: Amazon</b>',
-      @view.render(:partial => "test/customer", :layout => 'test/b_layout_for_partial_with_object', :object => Customer.new("Amazon"))
+      @view.render(:partial => "test/customer", :layout => "test/b_layout_for_partial_with_object", :object => Customer.new("Amazon"))
   end
 
   def test_render_partial_with_empty_array_should_return_nil
@@ -353,11 +353,11 @@ module RenderTestCases
   end
 
   def test_render_partial_using_string
-    assert_equal "Hello: Anonymous", @controller_view.render('customer')
+    assert_equal "Hello: Anonymous", @controller_view.render("customer")
   end
 
   def test_render_partial_with_locals_using_string
-    assert_equal "Hola: david", @controller_view.render('customer_greeting', :greeting => 'Hola', :customer_greeting => Customer.new("david"))
+    assert_equal "Hola: david", @controller_view.render("customer_greeting", :greeting => "Hola", :customer_greeting => Customer.new("david"))
   end
 
   def test_render_partial_with_object_uses_render_partial_path
@@ -430,7 +430,7 @@ module RenderTestCases
 
   def test_render_inline_with_render_from_to_proc
     ActionView::Template.register_template_handler :ruby_handler, :source.to_proc
-    assert_equal '3', @view.render(inline: "(1 + 2).to_s", type: :ruby_handler)
+    assert_equal "3", @view.render(inline: "(1 + 2).to_s", type: :ruby_handler)
   ensure
     ActionView::Template.unregister_template_handler :ruby_handler
   end
@@ -450,11 +450,11 @@ module RenderTestCases
   end
 
   def test_render_body
-    assert_equal 'some body', @view.render(body: 'some body')
+    assert_equal "some body", @view.render(body: "some body")
   end
 
   def test_render_plain
-    assert_equal 'some plaintext', @view.render(plain: 'some plaintext')
+    assert_equal "some plaintext", @view.render(plain: "some plaintext")
   end
 
   def test_render_knows_about_types_registered_when_extensions_are_checked_earlier_in_initialization
@@ -520,12 +520,12 @@ module RenderTestCases
 
   def test_render_partial_and_layout_without_block_with_locals
     assert_equal %(Before (Foo!)\npartial html\nAfter),
-      @view.render(:partial => 'test/partial', :layout => 'test/layout_for_partial', :locals => { :name => 'Foo!'})
+      @view.render(:partial => "test/partial", :layout => "test/layout_for_partial", :locals => { :name => "Foo!"})
   end
 
   def test_render_partial_and_layout_without_block_with_locals_and_rendering_another_partial
     assert_equal %(Before (Foo!)\npartial html\npartial with partial\n\nAfter),
-      @view.render(:partial => 'test/partial_with_partial', :layout => 'test/layout_for_partial', :locals => { :name => 'Foo!'})
+      @view.render(:partial => "test/partial_with_partial", :layout => "test/layout_for_partial", :locals => { :name => "Foo!"})
   end
 
   def test_render_partial_shortcut_with_block_content
@@ -535,21 +535,21 @@ module RenderTestCases
 
   def test_render_layout_with_a_nested_render_layout_call
     assert_equal %(Before (Foo!)\nBefore (Bar!)\npartial html\nAfter\npartial with layout\n\nAfter),
-      @view.render(:partial => 'test/partial_with_layout', :layout => 'test/layout_for_partial', :locals => { :name => 'Foo!'})
+      @view.render(:partial => "test/partial_with_layout", :layout => "test/layout_for_partial", :locals => { :name => "Foo!"})
   end
 
   def test_render_layout_with_a_nested_render_layout_call_using_block_with_render_partial
     assert_equal %(Before (Foo!)\nBefore (Bar!)\n\n  partial html\n\nAfterpartial with layout\n\nAfter),
-      @view.render(:partial => 'test/partial_with_layout_block_partial', :layout => 'test/layout_for_partial', :locals => { :name => 'Foo!'})
+      @view.render(:partial => "test/partial_with_layout_block_partial", :layout => "test/layout_for_partial", :locals => { :name => "Foo!"})
   end
 
   def test_render_layout_with_a_nested_render_layout_call_using_block_with_render_content
     assert_equal %(Before (Foo!)\nBefore (Bar!)\n\n  Content from inside layout!\n\nAfterpartial with layout\n\nAfter),
-      @view.render(:partial => 'test/partial_with_layout_block_content', :layout => 'test/layout_for_partial', :locals => { :name => 'Foo!'})
+      @view.render(:partial => "test/partial_with_layout_block_content", :layout => "test/layout_for_partial", :locals => { :name => "Foo!"})
   end
 
   def test_render_partial_with_layout_raises_descriptive_error
-    e = assert_raises(ActionView::MissingTemplate) { @view.render(partial: 'test/partial', layout: true) }
+    e = assert_raises(ActionView::MissingTemplate) { @view.render(partial: "test/partial", layout: true) }
     assert_match "Missing partial /_true with", e.message
   end
 
@@ -632,14 +632,14 @@ class LazyViewRenderTest < ActiveSupport::TestCase
   def test_render_utf8_template_with_incompatible_external_encoding
     with_external_encoding Encoding::SHIFT_JIS do
       e = assert_raises(ActionView::Template::Error) { @view.render(:file => "test/utf8", :formats => [:html], :layouts => "layouts/yield") }
-      assert_match 'Your template was not saved as valid Shift_JIS', e.cause.message
+      assert_match "Your template was not saved as valid Shift_JIS", e.cause.message
     end
   end
 
   def test_render_utf8_template_with_partial_with_incompatible_encoding
     with_external_encoding Encoding::SHIFT_JIS do
       e = assert_raises(ActionView::Template::Error) { @view.render(:file => "test/utf8_magic_with_bare_partial", :formats => [:html], :layouts => "layouts/yield") }
-      assert_match 'Your template was not saved as valid Shift_JIS', e.cause.message
+      assert_match "Your template was not saved as valid Shift_JIS", e.cause.message
     end
   end
 
@@ -676,7 +676,7 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
     customer = Customer.new("david", 1)
     key = cache_key(customer, "test/_customer")
 
-    ActionView::PartialRenderer.collection_cache.write(key, 'Cached')
+    ActionView::PartialRenderer.collection_cache.write(key, "Cached")
 
     assert_not_equal "Cached",
       @view.render(partial: "test/customer", collection: [customer])
@@ -686,7 +686,7 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
     customer = Customer.new("david", 1)
     key = cache_key(customer, "test/_customer")
 
-    ActionView::PartialRenderer.collection_cache.write(key, 'Cached')
+    ActionView::PartialRenderer.collection_cache.write(key, "Cached")
 
     assert_equal "Cached",
       @view.render(partial: "test/customer", collection: [customer], cached: true)
@@ -696,7 +696,7 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
     customer = CachedCustomer.new("david", 1)
     key = cache_key(customer, "test/_cached_customer")
 
-    ActionView::PartialRenderer.collection_cache.write(key, 'Cached')
+    ActionView::PartialRenderer.collection_cache.write(key, "Cached")
 
     assert_equal "Cached",
       @view.render(partial: "test/cached_customer", collection: [customer], cached: true)

@@ -1,5 +1,5 @@
-require 'abstract_unit'
-require 'active_model'
+require "abstract_unit"
+require "active_model"
 
 class ApplicationController < ActionController::Base
   self.view_paths = File.join(FIXTURE_LOAD_PATH, "actionpack")
@@ -110,12 +110,12 @@ class TestController < ApplicationController
 
   # :ported:
   def render_template_in_top_directory
-    render :template => 'shared'
+    render :template => "shared"
   end
 
   # :deprecated:
   def render_template_in_top_directory_with_slash
-    render '/shared'
+    render "/shared"
   end
 
   # :ported:
@@ -158,40 +158,40 @@ class TestController < ApplicationController
 
   # :ported:
   def render_file_with_instance_variables
-    @secret = 'in the sauce'
-    path = File.join(File.dirname(__FILE__), '../../fixtures/test/render_file_with_ivar')
+    @secret = "in the sauce"
+    path = File.join(File.dirname(__FILE__), "../../fixtures/test/render_file_with_ivar")
     render :file => path
   end
 
   # :ported:
   def render_file_not_using_full_path
-    @secret = 'in the sauce'
-    render :file => 'test/render_file_with_ivar'
+    @secret = "in the sauce"
+    render :file => "test/render_file_with_ivar"
   end
 
   def render_file_not_using_full_path_with_dot_in_path
-    @secret = 'in the sauce'
-    render :file => 'test/dot.directory/render_file_with_ivar'
+    @secret = "in the sauce"
+    render :file => "test/dot.directory/render_file_with_ivar"
   end
 
   def render_file_using_pathname
-    @secret = 'in the sauce'
-    render :file => Pathname.new(File.dirname(__FILE__)).join('..', '..', 'fixtures', 'test', 'dot.directory', 'render_file_with_ivar')
+    @secret = "in the sauce"
+    render :file => Pathname.new(File.dirname(__FILE__)).join("..", "..", "fixtures", "test", "dot.directory", "render_file_with_ivar")
   end
 
   def render_file_from_template
-    @secret = 'in the sauce'
-    @path = File.expand_path(File.join(File.dirname(__FILE__), '../../fixtures/test/render_file_with_ivar'))
+    @secret = "in the sauce"
+    @path = File.expand_path(File.join(File.dirname(__FILE__), "../../fixtures/test/render_file_with_ivar"))
   end
 
   def render_file_with_locals
-    path = File.join(File.dirname(__FILE__), '../../fixtures/test/render_file_with_locals')
-    render :file => path, :locals => {:secret => 'in the sauce'}
+    path = File.join(File.dirname(__FILE__), "../../fixtures/test/render_file_with_locals")
+    render :file => path, :locals => {:secret => "in the sauce"}
   end
 
   def render_file_as_string_with_locals
-    path = File.expand_path(File.join(File.dirname(__FILE__), '../../fixtures/test/render_file_with_locals'))
-    render file: path, :locals => {:secret => 'in the sauce'}
+    path = File.expand_path(File.join(File.dirname(__FILE__), "../../fixtures/test/render_file_with_locals"))
+    render file: path, :locals => {:secret => "in the sauce"}
   end
 
   def accessing_request_in_template
@@ -249,7 +249,7 @@ class TestController < ApplicationController
   end
 
   def render_line_offset
-    render :inline => '<% raise %>', :locals => {:foo => 'bar'}
+    render :inline => "<% raise %>", :locals => {:foo => "bar"}
   end
 
   def heading
@@ -262,7 +262,7 @@ class TestController < ApplicationController
 
   # :ported:
   def blank_response
-    render plain: ' '
+    render plain: " "
   end
 
   # :ported:
@@ -283,7 +283,7 @@ class TestController < ApplicationController
 
   # :ported:
   def partials_list
-    @test_unchanged = 'hello'
+    @test_unchanged = "hello"
     @customers = [ Customer.new("david"), Customer.new("mary") ]
     render :action => "list"
   end
@@ -404,7 +404,7 @@ class TestController < ApplicationController
 
   # :ported:
   def render_with_explicit_template_with_locals
-    render :template => "test/render_file_with_locals", :locals => { :secret => 'area51' }
+    render :template => "test/render_file_with_locals", :locals => { :secret => "area51" }
   end
 
   # :ported:
@@ -458,7 +458,7 @@ class TestController < ApplicationController
   end
 
   def render_with_assigns_option
-    render inline: '<%= @hello %>', assigns: { hello: "world" }
+    render inline: "<%= @hello %>", assigns: { hello: "world" }
   end
 
   def yield_content_for
@@ -479,15 +479,15 @@ class TestController < ApplicationController
   end
 
   def partial_formats_html
-    render :partial => 'partial', :formats => [:html]
+    render :partial => "partial", :formats => [:html]
   end
 
   def partial
-    render :partial => 'partial'
+    render :partial => "partial"
   end
 
   def partial_html_erb
-    render :partial => 'partial_html_erb'
+    render :partial => "partial_html_erb"
   end
 
   def render_to_string_with_partial
@@ -538,11 +538,11 @@ class TestController < ApplicationController
   end
 
   def partial_collection_with_iteration
-    render partial: "customer_iteration", collection: [ Customer.new("david"), Customer.new("mary"), Customer.new('christine') ]
+    render partial: "customer_iteration", collection: [ Customer.new("david"), Customer.new("mary"), Customer.new("christine") ]
   end
 
   def partial_collection_with_as_and_iteration
-    render partial: "customer_iteration_with_as", collection: [ Customer.new("david"), Customer.new("mary"), Customer.new('christine') ], as: :client
+    render partial: "customer_iteration_with_as", collection: [ Customer.new("david"), Customer.new("mary"), Customer.new("christine") ], as: :client
   end
 
   def partial_collection_with_counter
@@ -589,7 +589,7 @@ class TestController < ApplicationController
   end
 
   def missing_partial
-    render :partial => 'thisFileIsntHere'
+    render :partial => "thisFileIsntHere"
   end
 
   def partial_with_hash_object
@@ -656,7 +656,7 @@ class TestController < ApplicationController
         when "action_talk_to_layout", "layout_overriding_layout"
           "layouts/talk_from_action"
         when "render_implicit_html_template_from_xhr_request"
-          (request.xhr? ? 'layouts/xhr' : 'layouts/standard')
+          (request.xhr? ? "layouts/xhr" : "layouts/standard")
       end
     end
 end
@@ -771,7 +771,7 @@ class RenderTest < ActionController::TestCase
   # :ported:
   def test_do_with_render_action_and_layout_false
     get :hello_world_with_layout_false
-    assert_equal 'Hello world!', @response.body
+    assert_equal "Hello world!", @response.body
   end
 
   # :ported:
@@ -826,27 +826,27 @@ class RenderTest < ActionController::TestCase
     get :render_custom_code
     assert_response 404
     assert_response :missing
-    assert_equal 'hello world', @response.body
+    assert_equal "hello world", @response.body
   end
 
   # :ported:
   def test_render_text_with_nil
     get :render_text_with_nil
     assert_response 200
-    assert_equal '', @response.body
+    assert_equal "", @response.body
   end
 
   # :ported:
   def test_render_text_with_false
     get :render_text_with_false
-    assert_equal 'false', @response.body
+    assert_equal "false", @response.body
   end
 
   # :ported:
   def test_render_nothing_with_appendix
     get :render_nothing_with_appendix
     assert_response 200
-    assert_equal 'appended', @response.body
+    assert_equal "appended", @response.body
   end
 
   def test_render_text_with_resource
@@ -941,7 +941,7 @@ class RenderTest < ActionController::TestCase
 
   def test_render_to_string_inline
     get :render_to_string_with_inline_and_render
-    assert_equal 'Hello world!', @response.body
+    assert_equal "Hello world!", @response.body
   end
 
   # :ported:
@@ -974,24 +974,24 @@ class RenderTest < ActionController::TestCase
 
   def test_should_render_formatted_template
     get :formatted_html_erb
-    assert_equal 'formatted html erb', @response.body
+    assert_equal "formatted html erb", @response.body
   end
 
   def test_should_render_formatted_html_erb_template
     get :formatted_xml_erb
-    assert_equal '<test>passed formatted html erb</test>', @response.body
+    assert_equal "<test>passed formatted html erb</test>", @response.body
   end
 
   def test_should_render_formatted_html_erb_template_with_bad_accepts_header
     @request.env["HTTP_ACCEPT"] = "; a=dsf"
     get :formatted_xml_erb
-    assert_equal '<test>passed formatted html erb</test>', @response.body
+    assert_equal "<test>passed formatted html erb</test>", @response.body
   end
 
   def test_should_render_formatted_html_erb_template_with_faulty_accepts_header
     @request.accept = "image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, application/x-shockwave-flash, */*"
     get :formatted_xml_erb
-    assert_equal '<test>passed formatted html erb</test>', @response.body
+    assert_equal "<test>passed formatted html erb</test>", @response.body
   end
 
   def test_layout_test_with_different_layout
@@ -1021,7 +1021,7 @@ class RenderTest < ActionController::TestCase
 
   def test_rendering_nothing_on_layout
     get :rendering_nothing_on_layout
-    assert_equal '', @response.body
+    assert_equal "", @response.body
   end
 
   def test_render_to_string_doesnt_break_assigns
@@ -1103,7 +1103,7 @@ class RenderTest < ActionController::TestCase
 
   def test_render_text_with_assigns_option
     get :render_with_assigns_option
-    assert_equal 'world', response.body
+    assert_equal "world", response.body
   end
 
   # :ported:

@@ -1,5 +1,5 @@
-require 'abstract_unit'
-require 'set'
+require "abstract_unit"
+require "set"
 
 module AbstractController
   module Testing

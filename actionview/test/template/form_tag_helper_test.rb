@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class FormTagHelperTest < ActionView::TestCase
   include RenderERBUtils
@@ -14,7 +14,7 @@ class FormTagHelperTest < ActionView::TestCase
     method = options[:method]
     enforce_utf8 = options.fetch(:enforce_utf8, true)
 
-    ''.tap do |txt|
+    "".tap do |txt|
       if enforce_utf8
         txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
       end
@@ -78,7 +78,7 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_check_box_tag_id_sanitized
     label_elem = root_elem(check_box_tag("project[2][admin]"))
-    assert_match VALID_HTML_ID, label_elem['id']
+    assert_match VALID_HTML_ID, label_elem["id"]
   end
 
   def test_form_tag
@@ -88,7 +88,7 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_form_tag_multipart
-    actual = form_tag({}, { 'multipart' => true })
+    actual = form_tag({}, { "multipart" => true })
     expected = whole_form("http://www.example.com", :enctype => true)
     assert_dom_equal expected, actual
   end
@@ -165,7 +165,7 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_hidden_field_tag_id_sanitized
     input_elem = root_elem(hidden_field_tag("item[][title]"))
-    assert_match VALID_HTML_ID, input_elem['id']
+    assert_match VALID_HTML_ID, input_elem["id"]
   end
 
   def test_file_field_tag
@@ -183,7 +183,7 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_multiple_field_tags_with_same_options
-    options = {class: 'important'}
+    options = {class: "important"}
     assert_dom_equal %(<input name="title" type="file" id="title" class="important"/>), file_field_tag("title", options)
     assert_dom_equal %(<input type="password" name="title" id="title" value="Hello!" class="important" />), password_field_tag("title", "Hello!", options)
     assert_dom_equal %(<input type="text" name="title" id="title" value="Hello!" class="important" />), text_field_tag("title", "Hello!", options)
@@ -210,7 +210,7 @@ class FormTagHelperTest < ActionView::TestCase
     expected = %(<input id="person_gender_m" name="person[gender]" type="radio" value="m" />)
     assert_dom_equal expected, actual
 
-    actual = radio_button_tag('ctrlname', 'apache2.2')
+    actual = radio_button_tag("ctrlname", "apache2.2")
     expected = %(<input id="ctrlname_apache2.2" name="ctrlname" type="radio" value="apache2.2" />)
     assert_dom_equal expected, actual
   end
@@ -235,7 +235,7 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_select_tag_id_sanitized
     input_elem = root_elem(select_tag("project[1]people", "<option>david</option>"))
-    assert_match VALID_HTML_ID, input_elem['id']
+    assert_match VALID_HTML_ID, input_elem["id"]
   end
 
   def test_select_tag_with_include_blank
@@ -251,7 +251,7 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_select_tag_with_include_blank_string
-    actual = select_tag "places", raw("<option>Home</option><option>Work</option><option>Pub</option>"), include_blank: 'Choose'
+    actual = select_tag "places", raw("<option>Home</option><option>Work</option><option>Pub</option>"), include_blank: "Choose"
     expected = %(<select id="places" name="places"><option value="">Choose</option><option>Home</option><option>Work</option><option>Pub</option></select>)
     assert_dom_equal expected, actual
   end
@@ -306,7 +306,7 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_text_area_tag_id_sanitized
     input_elem = root_elem(text_area_tag("item[][description]"))
-    assert_match VALID_HTML_ID, input_elem['id']
+    assert_match VALID_HTML_ID, input_elem["id"]
   end
 
   def test_text_area_tag_escape_content
@@ -370,7 +370,7 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_text_field_tag_with_placeholder_option
-    actual = text_field_tag "title", "Hello!", placeholder: 'Enter search term...'
+    actual = text_field_tag "title", "Hello!", placeholder: "Enter search term..."
     expected = %(<input id="title" name="title" placeholder="Enter search term..." type="text" value="Hello!" />)
     assert_dom_equal expected, actual
   end
@@ -383,7 +383,7 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_text_field_tag_id_sanitized
     input_elem = root_elem(text_field_tag("item[][title]"))
-    assert_match VALID_HTML_ID, input_elem['id']
+    assert_match VALID_HTML_ID, input_elem["id"]
   end
 
   def test_label_tag_without_text
@@ -412,11 +412,11 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_label_tag_id_sanitized
     label_elem = root_elem(label_tag("item[title]"))
-    assert_match VALID_HTML_ID, label_elem['for']
+    assert_match VALID_HTML_ID, label_elem["for"]
   end
 
   def test_label_tag_with_block
-    assert_dom_equal('<label>Blocked</label>', label_tag { "Blocked" })
+    assert_dom_equal("<label>Blocked</label>", label_tag { "Blocked" })
   end
 
   def test_label_tag_with_block_and_argument
@@ -430,7 +430,7 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_boolean_options
-    assert_dom_equal %(<input checked="checked" disabled="disabled" id="admin" name="admin" readonly="readonly" type="checkbox" value="1" />), check_box_tag("admin", 1, true, 'disabled' => true, :readonly => "yes")
+    assert_dom_equal %(<input checked="checked" disabled="disabled" id="admin" name="admin" readonly="readonly" type="checkbox" value="1" />), check_box_tag("admin", 1, true, "disabled" => true, :readonly => "yes")
     assert_dom_equal %(<input checked="checked" id="admin" name="admin" type="checkbox" value="1" />), check_box_tag("admin", 1, true, :disabled => false, :readonly => nil)
     assert_dom_equal %(<input type="checkbox" />), tag(:input, :type => "checkbox", :checked => false)
     assert_dom_equal %(<select id="people" multiple="multiple" name="people[]"><option>david</option></select>), select_tag("people", raw("<option>david</option>"), :multiple => true)
@@ -561,16 +561,16 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_button_tag_with_block
-    assert_dom_equal('<button name="button" type="submit">Content</button>', button_tag { 'Content' })
+    assert_dom_equal('<button name="button" type="submit">Content</button>', button_tag { "Content" })
   end
 
   def test_button_tag_with_block_and_options
-    output = button_tag(:name => 'temptation', :type => 'button') { content_tag(:strong, 'Do not press me') }
+    output = button_tag(:name => "temptation", :type => "button") { content_tag(:strong, "Do not press me") }
     assert_dom_equal('<button name="temptation" type="button"><strong>Do not press me</strong></button>', output)
   end
 
   def test_button_tag_defaults_with_block_and_options
-    output = button_tag(:name => 'temptation', :value => 'within') { content_tag(:strong, 'Do not press me') }
+    output = button_tag(:name => "temptation", :value => "within") { content_tag(:strong, "Do not press me") }
     assert_dom_equal('<button name="temptation" value="within" type="submit" ><strong>Do not press me</strong></button>', output)
   end
 

@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class ActiveModelHelperTest < ActionView::TestCase
   tests ActionView::Helpers::ActiveModelHelper
@@ -50,8 +50,8 @@ class ActiveModelHelperTest < ActionView::TestCase
 
   def test_select_with_errors_and_blank_option
     expected_dom = %(<div class="field_with_errors"><select name="post[author_name]" id="post_author_name"><option value="">Choose one...</option>\n<option value="a">a</option>\n<option value="b">b</option></select></div>)
-    assert_dom_equal(expected_dom, select("post", "author_name", [:a, :b], :include_blank => 'Choose one...'))
-    assert_dom_equal(expected_dom, select("post", "author_name", [:a, :b], :prompt => 'Choose one...'))
+    assert_dom_equal(expected_dom, select("post", "author_name", [:a, :b], :include_blank => "Choose one..."))
+    assert_dom_equal(expected_dom, select("post", "author_name", [:a, :b], :prompt => "Choose one..."))
   end
 
   def test_date_select_with_errors

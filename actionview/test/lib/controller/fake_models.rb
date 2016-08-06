@@ -191,7 +191,7 @@ class Plane
   attr_reader :to_key
 
   def model_name
-    OpenStruct.new param_key: 'airplane'
+    OpenStruct.new param_key: "airplane"
   end
 
   def save

@@ -1,10 +1,10 @@
-$:.unshift(File.dirname(__FILE__) + '/lib')
-$:.unshift(File.dirname(__FILE__) + '/fixtures/helpers')
-$:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
+$:.unshift(File.dirname(__FILE__) + "/lib")
+$:.unshift(File.dirname(__FILE__) + "/fixtures/helpers")
+$:.unshift(File.dirname(__FILE__) + "/fixtures/alternate_helpers")
 
-ENV['TMPDIR'] = File.join(File.dirname(__FILE__), 'tmp')
+ENV["TMPDIR"] = File.join(File.dirname(__FILE__), "tmp")
 
-require 'active_support/core_ext/kernel/reporting'
+require "active_support/core_ext/kernel/reporting"
 
 # These are the normal settings that will be set up by Railties
 # TODO: Have these tests support other combinations of these values
@@ -13,16 +13,16 @@ silence_warnings do
   Encoding.default_external = "UTF-8"
 end
 
-require 'active_support/testing/autorun'
-require 'active_support/testing/method_call_assertions'
-require 'action_controller'
-require 'action_view'
-require 'action_view/testing/resolvers'
-require 'active_support/dependencies'
-require 'active_model'
-require 'active_record'
+require "active_support/testing/autorun"
+require "active_support/testing/method_call_assertions"
+require "action_controller"
+require "action_view"
+require "action_view/testing/resolvers"
+require "active_support/dependencies"
+require "active_model"
+require "active_record"
 
-require 'pp' # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
+require "pp" # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
 
 module Rails
   class << self
@@ -43,11 +43,11 @@ ActiveSupport::Deprecation.debug = true
 I18n.enforce_available_locales = false
 
 # Register danish language for testing
-I18n.backend.store_translations 'da', {}
-I18n.backend.store_translations 'pt-BR', {}
+I18n.backend.store_translations "da", {}
+I18n.backend.store_translations "pt-BR", {}
 ORIGINAL_LOCALES = I18n.available_locales.map(&:to_s).sort
 
-FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
+FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), "fixtures")
 
 module RenderERBUtils
   def view
@@ -95,11 +95,11 @@ module ActionDispatch
 
       ActiveSupport::Deprecation.silence do
         SharedTestRoutes.draw do
-          get ':controller(/:action)'
+          get ":controller(/:action)"
         end
 
         ActionDispatch::IntegrationTest.app.routes.draw do
-          get ':controller(/:action)'
+          get ":controller(/:action)"
         end
       end
 
@@ -169,7 +169,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
     end
 
     def dispatch(controller, action, env)
-      [200, {'Content-Type' => 'text/html'}, ["#{controller}##{action}"]]
+      [200, {"Content-Type" => "text/html"}, ["#{controller}##{action}"]]
     end
   end
 
@@ -272,11 +272,11 @@ module ActionDispatch
 end
 
 # Skips the current run on Rubinius using Minitest::Assertions#skip
-def rubinius_skip(message = '')
-  skip message if RUBY_ENGINE == 'rbx'
+def rubinius_skip(message = "")
+  skip message if RUBY_ENGINE == "rbx"
 end
 # Skips the current run on JRuby using Minitest::Assertions#skip
-def jruby_skip(message = '')
+def jruby_skip(message = "")
   skip message if defined?(JRUBY_VERSION)
 end
 

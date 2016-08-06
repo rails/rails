@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class DateHelperTest < ActionView::TestCase
   tests ActionView::Helpers::DateHelper
@@ -13,7 +13,7 @@ class DateHelperTest < ActionView::TestCase
         123
       end
       def to_param
-        '123'
+        "123"
       end
     end
   end
@@ -142,15 +142,15 @@ class DateHelperTest < ActionView::TestCase
 
   def test_distance_in_words_with_time_zones
     from = Time.mktime(2004, 6, 6, 21, 45, 0)
-    assert_distance_of_time_in_words(from.in_time_zone('Alaska'))
-    assert_distance_of_time_in_words(from.in_time_zone('Hawaii'))
+    assert_distance_of_time_in_words(from.in_time_zone("Alaska"))
+    assert_distance_of_time_in_words(from.in_time_zone("Hawaii"))
   end
 
   def test_distance_in_words_with_different_time_zones
     from = Time.mktime(2004, 6, 6, 21, 45, 0)
     assert_distance_of_time_in_words(
-      from.in_time_zone('Alaska'),
-      from.in_time_zone('Hawaii')
+      from.in_time_zone("Alaska"),
+      from.in_time_zone("Hawaii")
     )
   end
 
@@ -235,8 +235,8 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="1">1</option>\n<option value="2">2</option>\n<option value="3">3</option>\n<option value="4">4</option>\n<option value="5">5</option>\n<option value="6">6</option>\n<option value="7">7</option>\n<option value="8">8</option>\n<option value="9">9</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16" selected="selected">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_day(Time.mktime(2003, 8, 16), {}, :class => 'selector')
-    assert_dom_equal expected, select_day(16, {}, :class => 'selector')
+    assert_dom_equal expected, select_day(Time.mktime(2003, 8, 16), {}, :class => "selector")
+    assert_dom_equal expected, select_day(16, {}, :class => "selector")
   end
 
   def test_select_day_with_default_prompt
@@ -252,7 +252,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="">Choose day</option>\n<option value="1">1</option>\n<option value="2">2</option>\n<option value="3">3</option>\n<option value="4">4</option>\n<option value="5">5</option>\n<option value="6">6</option>\n<option value="7">7</option>\n<option value="8">8</option>\n<option value="9">9</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16" selected="selected">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_day(16, :prompt => 'Choose day')
+    assert_dom_equal expected, select_day(16, :prompt => "Choose day")
   end
 
   def test_select_day_with_generic_with_css_classes
@@ -268,7 +268,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="1">1</option>\n<option value="2">2</option>\n<option value="3">3</option>\n<option value="4">4</option>\n<option value="5">5</option>\n<option value="6">6</option>\n<option value="7">7</option>\n<option value="8">8</option>\n<option value="9">9</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16" selected="selected">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_day(16, with_css_classes: { day: 'my-day' })
+    assert_dom_equal expected, select_day(16, with_css_classes: { day: "my-day" })
   end
 
   def test_select_month
@@ -303,8 +303,8 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="1">January</option>\n<option value="2">February</option>\n<option value="3">March</option>\n<option value="4">April</option>\n<option value="5">May</option>\n<option value="6">June</option>\n<option value="7">July</option>\n<option value="8" selected="selected">August</option>\n<option value="9">September</option>\n<option value="10">October</option>\n<option value="11">November</option>\n<option value="12">December</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_month(Time.mktime(2003, 8, 16), :field_name => 'mois')
-    assert_dom_equal expected, select_month(8, :field_name => 'mois')
+    assert_dom_equal expected, select_month(Time.mktime(2003, 8, 16), :field_name => "mois")
+    assert_dom_equal expected, select_month(8, :field_name => "mois")
   end
 
   def test_select_month_with_blank
@@ -347,7 +347,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="1">January (01)</option>\n<option value="2">February (02)</option>\n<option value="3">March (03)</option>\n<option value="4">April (04)</option>\n<option value="5">May (05)</option>\n<option value="6">June (06)</option>\n<option value="7">July (07)</option>\n<option value="8" selected="selected">August (08)</option>\n<option value="9">September (09)</option>\n<option value="10">October (10)</option>\n<option value="11">November (11)</option>\n<option value="12">December (12)</option>\n)
     expected << "</select>\n"
 
-    format_string = '%{name} (%<number>02d)'
+    format_string = "%{name} (%<number>02d)"
     assert_dom_equal expected, select_month(Time.mktime(2003, 8, 16), :month_format_string => format_string)
     assert_dom_equal expected, select_month(8, :month_format_string => format_string)
   end
@@ -397,7 +397,7 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_select_month_with_hidden_and_field_name
-    assert_dom_equal "<input type=\"hidden\" id=\"date_mois\" name=\"date[mois]\" value=\"8\" />\n", select_month(8, :use_hidden => true, :field_name => 'mois')
+    assert_dom_equal "<input type=\"hidden\" id=\"date_mois\" name=\"date[mois]\" value=\"8\" />\n", select_month(8, :use_hidden => true, :field_name => "mois")
   end
 
   def test_select_month_with_html_options
@@ -405,7 +405,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="1">January</option>\n<option value="2">February</option>\n<option value="3">March</option>\n<option value="4">April</option>\n<option value="5">May</option>\n<option value="6">June</option>\n<option value="7">July</option>\n<option value="8" selected="selected">August</option>\n<option value="9">September</option>\n<option value="10">October</option>\n<option value="11">November</option>\n<option value="12">December</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_month(Time.mktime(2003, 8, 16), {}, :class => 'selector', :accesskey => 'M')
+    assert_dom_equal expected, select_month(Time.mktime(2003, 8, 16), {}, :class => "selector", :accesskey => "M")
   end
 
   def test_select_month_with_default_prompt
@@ -421,7 +421,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="">Choose month</option>\n<option value="1">January</option>\n<option value="2">February</option>\n<option value="3">March</option>\n<option value="4">April</option>\n<option value="5">May</option>\n<option value="6">June</option>\n<option value="7">July</option>\n<option value="8" selected="selected">August</option>\n<option value="9">September</option>\n<option value="10">October</option>\n<option value="11">November</option>\n<option value="12">December</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_month(8, :prompt => 'Choose month')
+    assert_dom_equal expected, select_month(8, :prompt => "Choose month")
   end
 
   def test_select_month_with_generic_with_css_classes
@@ -437,7 +437,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="1">January</option>\n<option value="2">February</option>\n<option value="3">March</option>\n<option value="4">April</option>\n<option value="5">May</option>\n<option value="6">June</option>\n<option value="7">July</option>\n<option value="8" selected="selected">August</option>\n<option value="9">September</option>\n<option value="10">October</option>\n<option value="11">November</option>\n<option value="12">December</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_month(8, with_css_classes: { month: 'my-month' })
+    assert_dom_equal expected, select_month(8, with_css_classes: { month: "my-month" })
   end
 
   def test_select_year
@@ -463,8 +463,8 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="2003" selected="selected">2003</option>\n<option value="2004">2004</option>\n<option value="2005">2005</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_year(Time.mktime(2003, 8, 16), :start_year => 2003, :end_year => 2005, :field_name => 'annee')
-    assert_dom_equal expected, select_year(2003, :start_year => 2003, :end_year => 2005, :field_name => 'annee')
+    assert_dom_equal expected, select_year(Time.mktime(2003, 8, 16), :start_year => 2003, :end_year => 2005, :field_name => "annee")
+    assert_dom_equal expected, select_year(2003, :start_year => 2003, :end_year => 2005, :field_name => "annee")
   end
 
   def test_select_year_with_type_discarding
@@ -492,7 +492,7 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_select_year_with_hidden_and_field_name
-    assert_dom_equal "<input type=\"hidden\" id=\"date_anno\" name=\"date[anno]\" value=\"2007\" />\n", select_year(2007, :use_hidden => true, :field_name => 'anno')
+    assert_dom_equal "<input type=\"hidden\" id=\"date_anno\" name=\"date[anno]\" value=\"2007\" />\n", select_year(2007, :use_hidden => true, :field_name => "anno")
   end
 
   def test_select_year_with_html_options
@@ -500,7 +500,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="2003" selected="selected">2003</option>\n<option value="2004">2004</option>\n<option value="2005">2005</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_year(Time.mktime(2003, 8, 16), {:start_year => 2003, :end_year => 2005}, :class => 'selector', :accesskey => 'M')
+    assert_dom_equal expected, select_year(Time.mktime(2003, 8, 16), {:start_year => 2003, :end_year => 2005}, :class => "selector", :accesskey => "M")
   end
 
   def test_select_year_with_default_prompt
@@ -516,7 +516,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="">Choose year</option>\n<option value="2003">2003</option>\n<option value="2004">2004</option>\n<option value="2005">2005</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_year(nil, :start_year => 2003, :end_year => 2005, :prompt => 'Choose year')
+    assert_dom_equal expected, select_year(nil, :start_year => 2003, :end_year => 2005, :prompt => "Choose year")
   end
 
   def test_select_year_with_generic_with_css_classes
@@ -532,7 +532,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="2003">2003</option>\n<option value="2004">2004</option>\n<option value="2005">2005</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_year(nil, start_year: 2003, end_year: 2005, with_css_classes: { year: 'my-year' })
+    assert_dom_equal expected, select_year(nil, start_year: 2003, end_year: 2005, with_css_classes: { year: "my-year" })
   end
   
   def test_select_year_with_position
@@ -571,7 +571,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08" selected="selected">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_hour(Time.mktime(2003, 8, 16, 8, 4, 18), :field_name => 'heure')
+    assert_dom_equal expected, select_hour(Time.mktime(2003, 8, 16, 8, 4, 18), :field_name => "heure")
   end
 
   def test_select_hour_with_blank
@@ -595,7 +595,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08" selected="selected">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_hour(Time.mktime(2003, 8, 16, 8, 4, 18), {}, :class => 'selector', :accesskey => 'M')
+    assert_dom_equal expected, select_hour(Time.mktime(2003, 8, 16, 8, 4, 18), {}, :class => "selector", :accesskey => "M")
   end
 
   def test_select_hour_with_default_prompt
@@ -611,7 +611,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="">Choose hour</option>\n<option value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08" selected="selected">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_hour(Time.mktime(2003, 8, 16, 8, 4, 18), :prompt => 'Choose hour')
+    assert_dom_equal expected, select_hour(Time.mktime(2003, 8, 16, 8, 4, 18), :prompt => "Choose hour")
   end
 
   def test_select_hour_with_generic_with_css_classes
@@ -627,7 +627,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08" selected="selected">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_hour(Time.mktime(2003, 8, 16, 8, 4, 18), with_css_classes: { hour: 'my-hour' })
+    assert_dom_equal expected, select_hour(Time.mktime(2003, 8, 16, 8, 4, 18), with_css_classes: { hour: "my-hour" })
   end
 
   def test_select_minute
@@ -651,7 +651,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04" selected="selected">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n<option value="32">32</option>\n<option value="33">33</option>\n<option value="34">34</option>\n<option value="35">35</option>\n<option value="36">36</option>\n<option value="37">37</option>\n<option value="38">38</option>\n<option value="39">39</option>\n<option value="40">40</option>\n<option value="41">41</option>\n<option value="42">42</option>\n<option value="43">43</option>\n<option value="44">44</option>\n<option value="45">45</option>\n<option value="46">46</option>\n<option value="47">47</option>\n<option value="48">48</option>\n<option value="49">49</option>\n<option value="50">50</option>\n<option value="51">51</option>\n<option value="52">52</option>\n<option value="53">53</option>\n<option value="54">54</option>\n<option value="55">55</option>\n<option value="56">56</option>\n<option value="57">57</option>\n<option value="58">58</option>\n<option value="59">59</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_minute(Time.mktime(2003, 8, 16, 8, 4, 18), :field_name => 'minuto')
+    assert_dom_equal expected, select_minute(Time.mktime(2003, 8, 16, 8, 4, 18), :field_name => "minuto")
   end
 
   def test_select_minute_with_blank
@@ -691,7 +691,7 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_select_minute_with_hidden_and_field_name
-    assert_dom_equal "<input type=\"hidden\" id=\"date_minuto\" name=\"date[minuto]\" value=\"8\" />\n", select_minute(8, :use_hidden => true, :field_name => 'minuto')
+    assert_dom_equal "<input type=\"hidden\" id=\"date_minuto\" name=\"date[minuto]\" value=\"8\" />\n", select_minute(8, :use_hidden => true, :field_name => "minuto")
   end
 
   def test_select_minute_with_html_options
@@ -699,7 +699,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04" selected="selected">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n<option value="32">32</option>\n<option value="33">33</option>\n<option value="34">34</option>\n<option value="35">35</option>\n<option value="36">36</option>\n<option value="37">37</option>\n<option value="38">38</option>\n<option value="39">39</option>\n<option value="40">40</option>\n<option value="41">41</option>\n<option value="42">42</option>\n<option value="43">43</option>\n<option value="44">44</option>\n<option value="45">45</option>\n<option value="46">46</option>\n<option value="47">47</option>\n<option value="48">48</option>\n<option value="49">49</option>\n<option value="50">50</option>\n<option value="51">51</option>\n<option value="52">52</option>\n<option value="53">53</option>\n<option value="54">54</option>\n<option value="55">55</option>\n<option value="56">56</option>\n<option value="57">57</option>\n<option value="58">58</option>\n<option value="59">59</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_minute(Time.mktime(2003, 8, 16, 8, 4, 18), {}, :class => 'selector', :accesskey => 'M')
+    assert_dom_equal expected, select_minute(Time.mktime(2003, 8, 16, 8, 4, 18), {}, :class => "selector", :accesskey => "M")
   end
 
   def test_select_minute_with_default_prompt
@@ -715,7 +715,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="">Choose minute</option>\n<option value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04" selected="selected">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n<option value="32">32</option>\n<option value="33">33</option>\n<option value="34">34</option>\n<option value="35">35</option>\n<option value="36">36</option>\n<option value="37">37</option>\n<option value="38">38</option>\n<option value="39">39</option>\n<option value="40">40</option>\n<option value="41">41</option>\n<option value="42">42</option>\n<option value="43">43</option>\n<option value="44">44</option>\n<option value="45">45</option>\n<option value="46">46</option>\n<option value="47">47</option>\n<option value="48">48</option>\n<option value="49">49</option>\n<option value="50">50</option>\n<option value="51">51</option>\n<option value="52">52</option>\n<option value="53">53</option>\n<option value="54">54</option>\n<option value="55">55</option>\n<option value="56">56</option>\n<option value="57">57</option>\n<option value="58">58</option>\n<option value="59">59</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_minute(Time.mktime(2003, 8, 16, 8, 4, 18), :prompt => 'Choose minute')
+    assert_dom_equal expected, select_minute(Time.mktime(2003, 8, 16, 8, 4, 18), :prompt => "Choose minute")
   end
 
   def test_select_minute_with_generic_with_css_classes
@@ -731,7 +731,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04" selected="selected">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n<option value="32">32</option>\n<option value="33">33</option>\n<option value="34">34</option>\n<option value="35">35</option>\n<option value="36">36</option>\n<option value="37">37</option>\n<option value="38">38</option>\n<option value="39">39</option>\n<option value="40">40</option>\n<option value="41">41</option>\n<option value="42">42</option>\n<option value="43">43</option>\n<option value="44">44</option>\n<option value="45">45</option>\n<option value="46">46</option>\n<option value="47">47</option>\n<option value="48">48</option>\n<option value="49">49</option>\n<option value="50">50</option>\n<option value="51">51</option>\n<option value="52">52</option>\n<option value="53">53</option>\n<option value="54">54</option>\n<option value="55">55</option>\n<option value="56">56</option>\n<option value="57">57</option>\n<option value="58">58</option>\n<option value="59">59</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_minute(Time.mktime(2003, 8, 16, 8, 4, 18), with_css_classes: { minute: 'my-minute' })
+    assert_dom_equal expected, select_minute(Time.mktime(2003, 8, 16, 8, 4, 18), with_css_classes: { minute: "my-minute" })
   end
 
   def test_select_second
@@ -755,7 +755,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18" selected="selected">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n<option value="32">32</option>\n<option value="33">33</option>\n<option value="34">34</option>\n<option value="35">35</option>\n<option value="36">36</option>\n<option value="37">37</option>\n<option value="38">38</option>\n<option value="39">39</option>\n<option value="40">40</option>\n<option value="41">41</option>\n<option value="42">42</option>\n<option value="43">43</option>\n<option value="44">44</option>\n<option value="45">45</option>\n<option value="46">46</option>\n<option value="47">47</option>\n<option value="48">48</option>\n<option value="49">49</option>\n<option value="50">50</option>\n<option value="51">51</option>\n<option value="52">52</option>\n<option value="53">53</option>\n<option value="54">54</option>\n<option value="55">55</option>\n<option value="56">56</option>\n<option value="57">57</option>\n<option value="58">58</option>\n<option value="59">59</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_second(Time.mktime(2003, 8, 16, 8, 4, 18), :field_name => 'segundo')
+    assert_dom_equal expected, select_second(Time.mktime(2003, 8, 16, 8, 4, 18), :field_name => "segundo")
   end
 
   def test_select_second_with_blank
@@ -779,7 +779,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18" selected="selected">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n<option value="32">32</option>\n<option value="33">33</option>\n<option value="34">34</option>\n<option value="35">35</option>\n<option value="36">36</option>\n<option value="37">37</option>\n<option value="38">38</option>\n<option value="39">39</option>\n<option value="40">40</option>\n<option value="41">41</option>\n<option value="42">42</option>\n<option value="43">43</option>\n<option value="44">44</option>\n<option value="45">45</option>\n<option value="46">46</option>\n<option value="47">47</option>\n<option value="48">48</option>\n<option value="49">49</option>\n<option value="50">50</option>\n<option value="51">51</option>\n<option value="52">52</option>\n<option value="53">53</option>\n<option value="54">54</option>\n<option value="55">55</option>\n<option value="56">56</option>\n<option value="57">57</option>\n<option value="58">58</option>\n<option value="59">59</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_second(Time.mktime(2003, 8, 16, 8, 4, 18), {}, :class => 'selector', :accesskey => 'M')
+    assert_dom_equal expected, select_second(Time.mktime(2003, 8, 16, 8, 4, 18), {}, :class => "selector", :accesskey => "M")
   end
 
   def test_select_second_with_default_prompt
@@ -795,7 +795,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="">Choose seconds</option>\n<option value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18" selected="selected">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n<option value="32">32</option>\n<option value="33">33</option>\n<option value="34">34</option>\n<option value="35">35</option>\n<option value="36">36</option>\n<option value="37">37</option>\n<option value="38">38</option>\n<option value="39">39</option>\n<option value="40">40</option>\n<option value="41">41</option>\n<option value="42">42</option>\n<option value="43">43</option>\n<option value="44">44</option>\n<option value="45">45</option>\n<option value="46">46</option>\n<option value="47">47</option>\n<option value="48">48</option>\n<option value="49">49</option>\n<option value="50">50</option>\n<option value="51">51</option>\n<option value="52">52</option>\n<option value="53">53</option>\n<option value="54">54</option>\n<option value="55">55</option>\n<option value="56">56</option>\n<option value="57">57</option>\n<option value="58">58</option>\n<option value="59">59</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_second(Time.mktime(2003, 8, 16, 8, 4, 18), :prompt => 'Choose seconds')
+    assert_dom_equal expected, select_second(Time.mktime(2003, 8, 16, 8, 4, 18), :prompt => "Choose seconds")
   end
 
   def test_select_second_with_generic_with_css_classes
@@ -811,7 +811,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18" selected="selected">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n<option value="32">32</option>\n<option value="33">33</option>\n<option value="34">34</option>\n<option value="35">35</option>\n<option value="36">36</option>\n<option value="37">37</option>\n<option value="38">38</option>\n<option value="39">39</option>\n<option value="40">40</option>\n<option value="41">41</option>\n<option value="42">42</option>\n<option value="43">43</option>\n<option value="44">44</option>\n<option value="45">45</option>\n<option value="46">46</option>\n<option value="47">47</option>\n<option value="48">48</option>\n<option value="49">49</option>\n<option value="50">50</option>\n<option value="51">51</option>\n<option value="52">52</option>\n<option value="53">53</option>\n<option value="54">54</option>\n<option value="55">55</option>\n<option value="56">56</option>\n<option value="57">57</option>\n<option value="58">58</option>\n<option value="59">59</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_second(Time.mktime(2003, 8, 16, 8, 4, 18), with_css_classes: { second: 'my-second' })
+    assert_dom_equal expected, select_second(Time.mktime(2003, 8, 16, 8, 4, 18), with_css_classes: { second: "my-second" })
   end
 
   def test_select_date
@@ -1134,7 +1134,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="1">1</option>\n<option value="2">2</option>\n<option value="3">3</option>\n<option value="4">4</option>\n<option value="5">5</option>\n<option value="6">6</option>\n<option value="7">7</option>\n<option value="8">8</option>\n<option value="9">9</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16" selected="selected">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), start_year: 2003, end_year: 2005, with_css_classes: { year: 'my-year', month: 'my-month', day: 'my-day' })
+    assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), start_year: 2003, end_year: 2005, with_css_classes: { year: "my-year", month: "my-month", day: "my-day" })
   end
 
   def test_select_date_with_css_classes_option_and_html_class_option
@@ -1150,7 +1150,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="1">1</option>\n<option value="2">2</option>\n<option value="3">3</option>\n<option value="4">4</option>\n<option value="5">5</option>\n<option value="6">6</option>\n<option value="7">7</option>\n<option value="8">8</option>\n<option value="9">9</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16" selected="selected">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), {:start_year => 2003, :end_year => 2005, :prefix => "date[first]", :with_css_classes => true}, { class: 'datetime optional' })
+    assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), {:start_year => 2003, :end_year => 2005, :prefix => "date[first]", :with_css_classes => true}, { class: "datetime optional" })
   end
 
   def test_select_date_with_custom_with_css_classes_and_html_class_option
@@ -1166,7 +1166,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="1">1</option>\n<option value="2">2</option>\n<option value="3">3</option>\n<option value="4">4</option>\n<option value="5">5</option>\n<option value="6">6</option>\n<option value="7">7</option>\n<option value="8">8</option>\n<option value="9">9</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16" selected="selected">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), {start_year: 2003, end_year: 2005, with_css_classes: { year: 'my-year', month: 'my-month', day: 'my-day' }}, { class: 'date optional' })
+    assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), {start_year: 2003, end_year: 2005, with_css_classes: { year: "my-year", month: "my-month", day: "my-day" }}, { class: "date optional" })
   end
 
   def test_select_date_with_partial_with_css_classes_and_html_class_option
@@ -1182,7 +1182,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="1">1</option>\n<option value="2">2</option>\n<option value="3">3</option>\n<option value="4">4</option>\n<option value="5">5</option>\n<option value="6">6</option>\n<option value="7">7</option>\n<option value="8">8</option>\n<option value="9">9</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16" selected="selected">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), {start_year: 2003, end_year: 2005, with_css_classes: { month: 'my-month custom-grid' }}, { class: 'date optional' })
+    assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), {start_year: 2003, end_year: 2005, with_css_classes: { month: "my-month custom-grid" }}, { class: "date optional" })
   end
 
   def test_select_date_with_html_class_option
@@ -1198,7 +1198,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="1">1</option>\n<option value="2">2</option>\n<option value="3">3</option>\n<option value="4">4</option>\n<option value="5">5</option>\n<option value="6">6</option>\n<option value="7">7</option>\n<option value="8">8</option>\n<option value="9">9</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16" selected="selected">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), { start_year: 2003, end_year: 2005 }, { class: 'date optional custom-grid' })
+    assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), { start_year: 2003, end_year: 2005 }, { class: "date optional custom-grid" })
   end
 
   def test_select_datetime
@@ -1282,7 +1282,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04" selected="selected">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n<option value="32">32</option>\n<option value="33">33</option>\n<option value="34">34</option>\n<option value="35">35</option>\n<option value="36">36</option>\n<option value="37">37</option>\n<option value="38">38</option>\n<option value="39">39</option>\n<option value="40">40</option>\n<option value="41">41</option>\n<option value="42">42</option>\n<option value="43">43</option>\n<option value="44">44</option>\n<option value="45">45</option>\n<option value="46">46</option>\n<option value="47">47</option>\n<option value="48">48</option>\n<option value="49">49</option>\n<option value="50">50</option>\n<option value="51">51</option>\n<option value="52">52</option>\n<option value="53">53</option>\n<option value="54">54</option>\n<option value="55">55</option>\n<option value="56">56</option>\n<option value="57">57</option>\n<option value="58">58</option>\n<option value="59">59</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_datetime(Time.mktime(2003, 8, 16, 8, 4, 18), :start_year => 2003, :end_year => 2005, :prefix => "date[first]", :datetime_separator => ' &mdash; ', :time_separator => ' : ')
+    assert_dom_equal expected, select_datetime(Time.mktime(2003, 8, 16, 8, 4, 18), :start_year => 2003, :end_year => 2005, :prefix => "date[first]", :datetime_separator => " &mdash; ", :time_separator => " : ")
   end
 
   def test_select_datetime_with_nil_value_and_no_start_and_end_year
@@ -1339,7 +1339,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04" selected="selected">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n<option value="32">32</option>\n<option value="33">33</option>\n<option value="34">34</option>\n<option value="35">35</option>\n<option value="36">36</option>\n<option value="37">37</option>\n<option value="38">38</option>\n<option value="39">39</option>\n<option value="40">40</option>\n<option value="41">41</option>\n<option value="42">42</option>\n<option value="43">43</option>\n<option value="44">44</option>\n<option value="45">45</option>\n<option value="46">46</option>\n<option value="47">47</option>\n<option value="48">48</option>\n<option value="49">49</option>\n<option value="50">50</option>\n<option value="51">51</option>\n<option value="52">52</option>\n<option value="53">53</option>\n<option value="54">54</option>\n<option value="55">55</option>\n<option value="56">56</option>\n<option value="57">57</option>\n<option value="58">58</option>\n<option value="59">59</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_datetime(Time.mktime(2003, 8, 16, 8, 4, 18), {:start_year => 2003, :end_year => 2005, :prefix => "date[first]"}, :class => 'selector')
+    assert_dom_equal expected, select_datetime(Time.mktime(2003, 8, 16, 8, 4, 18), {:start_year => 2003, :end_year => 2005, :prefix => "date[first]"}, :class => "selector")
   end
 
   def test_select_datetime_with_all_separators
@@ -1371,7 +1371,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04" selected="selected">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n<option value="32">32</option>\n<option value="33">33</option>\n<option value="34">34</option>\n<option value="35">35</option>\n<option value="36">36</option>\n<option value="37">37</option>\n<option value="38">38</option>\n<option value="39">39</option>\n<option value="40">40</option>\n<option value="41">41</option>\n<option value="42">42</option>\n<option value="43">43</option>\n<option value="44">44</option>\n<option value="45">45</option>\n<option value="46">46</option>\n<option value="47">47</option>\n<option value="48">48</option>\n<option value="49">49</option>\n<option value="50">50</option>\n<option value="51">51</option>\n<option value="52">52</option>\n<option value="53">53</option>\n<option value="54">54</option>\n<option value="55">55</option>\n<option value="56">56</option>\n<option value="57">57</option>\n<option value="58">58</option>\n<option value="59">59</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_datetime(Time.mktime(2003, 8, 16, 8, 4, 18), { :datetime_separator => "&mdash;", :date_separator => "/", :time_separator => ":", :start_year => 2003, :end_year => 2005, :prefix => "date[first]"}, :class => 'selector')
+    assert_dom_equal expected, select_datetime(Time.mktime(2003, 8, 16, 8, 4, 18), { :datetime_separator => "&mdash;", :date_separator => "/", :time_separator => ":", :start_year => 2003, :end_year => 2005, :prefix => "date[first]"}, :class => "selector")
   end
 
   def test_select_datetime_should_work_with_date
@@ -1434,7 +1434,7 @@ class DateHelperTest < ActionView::TestCase
     expected << "</select>\n"
 
     assert_dom_equal expected, select_datetime(Time.mktime(2003, 8, 16, 8, 4, 18), :start_year => 2003, :end_year => 2005, :prefix => "date[first]",
-      :prompt => {:day => 'Choose day', :month => 'Choose month', :year => 'Choose year', :hour => 'Choose hour', :minute => 'Choose minute'})
+      :prompt => {:day => "Choose day", :month => "Choose month", :year => "Choose year", :hour => "Choose hour", :minute => "Choose minute"})
   end
 
   def test_select_datetime_with_generic_with_css_classes
@@ -1490,7 +1490,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04" selected="selected">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n<option value="32">32</option>\n<option value="33">33</option>\n<option value="34">34</option>\n<option value="35">35</option>\n<option value="36">36</option>\n<option value="37">37</option>\n<option value="38">38</option>\n<option value="39">39</option>\n<option value="40">40</option>\n<option value="41">41</option>\n<option value="42">42</option>\n<option value="43">43</option>\n<option value="44">44</option>\n<option value="45">45</option>\n<option value="46">46</option>\n<option value="47">47</option>\n<option value="48">48</option>\n<option value="49">49</option>\n<option value="50">50</option>\n<option value="51">51</option>\n<option value="52">52</option>\n<option value="53">53</option>\n<option value="54">54</option>\n<option value="55">55</option>\n<option value="56">56</option>\n<option value="57">57</option>\n<option value="58">58</option>\n<option value="59">59</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_datetime(Time.mktime(2003, 8, 16, 8, 4, 18), start_year: 2003, end_year: 2005, with_css_classes: { day: 'my-day', month: 'my-month', year: 'my-year', hour: 'my-hour', minute: 'my-minute' })
+    assert_dom_equal expected, select_datetime(Time.mktime(2003, 8, 16, 8, 4, 18), start_year: 2003, end_year: 2005, with_css_classes: { day: "my-day", month: "my-month", year: "my-year", hour: "my-hour", minute: "my-minute" })
   end
 
   def test_select_datetime_with_custom_hours
@@ -1519,7 +1519,7 @@ class DateHelperTest < ActionView::TestCase
     expected << "</select>\n"
 
     assert_dom_equal expected, select_datetime(Time.mktime(2003, 8, 16, 8, 4, 18), :start_year => 2003, :end_year => 2005, :start_hour => 1, :end_hour => 9, :prefix => "date[first]",
-      :prompt => {:day => 'Choose day', :month => 'Choose month', :year => 'Choose year', :hour => 'Choose hour', :minute => 'Choose minute'})
+      :prompt => {:day => "Choose day", :month => "Choose month", :year => "Choose year", :hour => "Choose hour", :minute => "Choose minute"})
   end
 
   def test_select_datetime_with_hidden
@@ -1585,8 +1585,8 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04" selected="selected">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n<option value="32">32</option>\n<option value="33">33</option>\n<option value="34">34</option>\n<option value="35">35</option>\n<option value="36">36</option>\n<option value="37">37</option>\n<option value="38">38</option>\n<option value="39">39</option>\n<option value="40">40</option>\n<option value="41">41</option>\n<option value="42">42</option>\n<option value="43">43</option>\n<option value="44">44</option>\n<option value="45">45</option>\n<option value="46">46</option>\n<option value="47">47</option>\n<option value="48">48</option>\n<option value="49">49</option>\n<option value="50">50</option>\n<option value="51">51</option>\n<option value="52">52</option>\n<option value="53">53</option>\n<option value="54">54</option>\n<option value="55">55</option>\n<option value="56">56</option>\n<option value="57">57</option>\n<option value="58">58</option>\n<option value="59">59</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_time(Time.mktime(2003, 8, 16, 8, 4, 18), :time_separator => ' : ')
-    assert_dom_equal expected, select_time(Time.mktime(2003, 8, 16, 8, 4, 18), :time_separator => ' : ', :include_seconds => false)
+    assert_dom_equal expected, select_time(Time.mktime(2003, 8, 16, 8, 4, 18), :time_separator => " : ")
+    assert_dom_equal expected, select_time(Time.mktime(2003, 8, 16, 8, 4, 18), :time_separator => " : ", :include_seconds => false)
   end
 
   def test_select_time_with_seconds
@@ -1598,13 +1598,13 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08" selected="selected">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n)
     expected << "</select>\n"
 
-    expected << ' : '
+    expected << " : "
 
     expected << %(<select id="date_minute" name="date[minute]">\n)
     expected << %(<option value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04" selected="selected">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n<option value="32">32</option>\n<option value="33">33</option>\n<option value="34">34</option>\n<option value="35">35</option>\n<option value="36">36</option>\n<option value="37">37</option>\n<option value="38">38</option>\n<option value="39">39</option>\n<option value="40">40</option>\n<option value="41">41</option>\n<option value="42">42</option>\n<option value="43">43</option>\n<option value="44">44</option>\n<option value="45">45</option>\n<option value="46">46</option>\n<option value="47">47</option>\n<option value="48">48</option>\n<option value="49">49</option>\n<option value="50">50</option>\n<option value="51">51</option>\n<option value="52">52</option>\n<option value="53">53</option>\n<option value="54">54</option>\n<option value="55">55</option>\n<option value="56">56</option>\n<option value="57">57</option>\n<option value="58">58</option>\n<option value="59">59</option>\n)
     expected << "</select>\n"
 
-    expected << ' : '
+    expected << " : "
 
     expected << %(<select id="date_second" name="date[second]">\n)
     expected << %(<option value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18" selected="selected">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n<option value="32">32</option>\n<option value="33">33</option>\n<option value="34">34</option>\n<option value="35">35</option>\n<option value="36">36</option>\n<option value="37">37</option>\n<option value="38">38</option>\n<option value="39">39</option>\n<option value="40">40</option>\n<option value="41">41</option>\n<option value="42">42</option>\n<option value="43">43</option>\n<option value="44">44</option>\n<option value="45">45</option>\n<option value="46">46</option>\n<option value="47">47</option>\n<option value="48">48</option>\n<option value="49">49</option>\n<option value="50">50</option>\n<option value="51">51</option>\n<option value="52">52</option>\n<option value="53">53</option>\n<option value="54">54</option>\n<option value="55">55</option>\n<option value="56">56</option>\n<option value="57">57</option>\n<option value="58">58</option>\n<option value="59">59</option>\n)
@@ -1634,7 +1634,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18" selected="selected">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n<option value="32">32</option>\n<option value="33">33</option>\n<option value="34">34</option>\n<option value="35">35</option>\n<option value="36">36</option>\n<option value="37">37</option>\n<option value="38">38</option>\n<option value="39">39</option>\n<option value="40">40</option>\n<option value="41">41</option>\n<option value="42">42</option>\n<option value="43">43</option>\n<option value="44">44</option>\n<option value="45">45</option>\n<option value="46">46</option>\n<option value="47">47</option>\n<option value="48">48</option>\n<option value="49">49</option>\n<option value="50">50</option>\n<option value="51">51</option>\n<option value="52">52</option>\n<option value="53">53</option>\n<option value="54">54</option>\n<option value="55">55</option>\n<option value="56">56</option>\n<option value="57">57</option>\n<option value="58">58</option>\n<option value="59">59</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_time(Time.mktime(2003, 8, 16, 8, 4, 18), :include_seconds => true, :time_separator => ' : ')
+    assert_dom_equal expected, select_time(Time.mktime(2003, 8, 16, 8, 4, 18), :include_seconds => true, :time_separator => " : ")
   end
 
   def test_select_time_with_html_options
@@ -1652,8 +1652,8 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04" selected="selected">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n<option value="32">32</option>\n<option value="33">33</option>\n<option value="34">34</option>\n<option value="35">35</option>\n<option value="36">36</option>\n<option value="37">37</option>\n<option value="38">38</option>\n<option value="39">39</option>\n<option value="40">40</option>\n<option value="41">41</option>\n<option value="42">42</option>\n<option value="43">43</option>\n<option value="44">44</option>\n<option value="45">45</option>\n<option value="46">46</option>\n<option value="47">47</option>\n<option value="48">48</option>\n<option value="49">49</option>\n<option value="50">50</option>\n<option value="51">51</option>\n<option value="52">52</option>\n<option value="53">53</option>\n<option value="54">54</option>\n<option value="55">55</option>\n<option value="56">56</option>\n<option value="57">57</option>\n<option value="58">58</option>\n<option value="59">59</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_time(Time.mktime(2003, 8, 16, 8, 4, 18), {}, :class => 'selector')
-    assert_dom_equal expected, select_time(Time.mktime(2003, 8, 16, 8, 4, 18), {:include_seconds => false}, :class => 'selector')
+    assert_dom_equal expected, select_time(Time.mktime(2003, 8, 16, 8, 4, 18), {}, :class => "selector")
+    assert_dom_equal expected, select_time(Time.mktime(2003, 8, 16, 8, 4, 18), {:include_seconds => false}, :class => "selector")
   end
 
   def test_select_time_should_work_with_date
@@ -1706,7 +1706,7 @@ class DateHelperTest < ActionView::TestCase
     expected << "</select>\n"
 
     assert_dom_equal expected, select_time(Time.mktime(2003, 8, 16, 8, 4, 18), :include_seconds => true,
-      :prompt => {:hour => 'Choose hour', :minute => 'Choose minute', :second => 'Choose seconds'})
+      :prompt => {:hour => "Choose hour", :minute => "Choose minute", :second => "Choose seconds"})
   end
 
   def test_select_time_with_generic_with_css_classes
@@ -1754,7 +1754,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18" selected="selected">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n<option value="32">32</option>\n<option value="33">33</option>\n<option value="34">34</option>\n<option value="35">35</option>\n<option value="36">36</option>\n<option value="37">37</option>\n<option value="38">38</option>\n<option value="39">39</option>\n<option value="40">40</option>\n<option value="41">41</option>\n<option value="42">42</option>\n<option value="43">43</option>\n<option value="44">44</option>\n<option value="45">45</option>\n<option value="46">46</option>\n<option value="47">47</option>\n<option value="48">48</option>\n<option value="49">49</option>\n<option value="50">50</option>\n<option value="51">51</option>\n<option value="52">52</option>\n<option value="53">53</option>\n<option value="54">54</option>\n<option value="55">55</option>\n<option value="56">56</option>\n<option value="57">57</option>\n<option value="58">58</option>\n<option value="59">59</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_time(Time.mktime(2003, 8, 16, 8, 4, 18), include_seconds: true, with_css_classes: { hour: 'my-hour', minute: 'my-minute', second: 'my-second' })
+    assert_dom_equal expected, select_time(Time.mktime(2003, 8, 16, 8, 4, 18), include_seconds: true, with_css_classes: { hour: "my-hour", minute: "my-minute", second: "my-second" })
   end
 
   def test_select_time_with_hidden
@@ -1893,7 +1893,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %{<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option value="2004" selected="selected">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n}
     expected << "</select>\n"
 
-    assert_dom_equal expected, date_select("post", "written_on", :date_separator => '/', :order => [ :month, :year ])
+    assert_dom_equal expected, date_select("post", "written_on", :date_separator => "/", :order => [ :month, :year ])
   end
 
   def test_date_select_without_day_and_with_disabled_html_option
@@ -2153,7 +2153,7 @@ class DateHelperTest < ActionView::TestCase
 
     expected << "</select>\n"
 
-    assert_dom_equal expected, date_select("post", "written_on", {}, :class => 'selector')
+    assert_dom_equal expected, date_select("post", "written_on", {}, :class => "selector")
   end
 
   def test_date_select_with_html_options_within_fields_for
@@ -2161,7 +2161,7 @@ class DateHelperTest < ActionView::TestCase
     @post.written_on = Date.new(2004, 6, 15)
 
     output_buffer = fields_for :post, @post do |f|
-      concat f.date_select(:written_on, {}, :class => 'selector')
+      concat f.date_select(:written_on, {}, :class => "selector")
     end
 
     expected = %{<select id="post_written_on_1i" name="post[written_on(1i)]" class="selector">\n}
@@ -2282,7 +2282,7 @@ class DateHelperTest < ActionView::TestCase
 
     expected << "</select>\n"
 
-    assert_dom_equal expected, date_select("post", "written_on", :prompt => {:year => 'Choose year', :month => 'Choose month', :day => 'Choose day'})
+    assert_dom_equal expected, date_select("post", "written_on", :prompt => {:year => "Choose year", :month => "Choose month", :day => "Choose day"})
   end
 
   def test_date_select_with_generic_with_css_classes
@@ -2322,7 +2322,7 @@ class DateHelperTest < ActionView::TestCase
 
     expected << "</select>\n"
 
-    assert_dom_equal expected, date_select("post", "written_on", with_css_classes: { year: 'my-year', month: 'my-month', day: 'my-day' })
+    assert_dom_equal expected, date_select("post", "written_on", with_css_classes: { year: "my-year", month: "my-month", day: "my-day" })
   end
 
   def test_time_select
@@ -2436,7 +2436,7 @@ class DateHelperTest < ActionView::TestCase
     0.upto(59) { |i| expected << %(<option value="#{sprintf("%02d", i)}"#{' selected="selected"' if i == 16}>#{sprintf("%02d", i)}</option>\n) }
     expected << "</select>\n"
 
-    assert_dom_equal expected, time_select("post", "written_on", {}, :class => 'selector')
+    assert_dom_equal expected, time_select("post", "written_on", {}, :class => "selector")
   end
 
   def test_time_select_with_html_options_within_fields_for
@@ -2444,7 +2444,7 @@ class DateHelperTest < ActionView::TestCase
     @post.written_on = Time.local(2004, 6, 15, 15, 16, 35)
 
     output_buffer = fields_for :post, @post do |f|
-      concat f.time_select(:written_on, {}, :class => 'selector')
+      concat f.time_select(:written_on, {}, :class => "selector")
     end
 
     expected = %{<input type="hidden" id="post_written_on_1i" name="post[written_on(1i)]" value="2004" />\n}
@@ -2528,7 +2528,7 @@ class DateHelperTest < ActionView::TestCase
     0.upto(59) { |i| expected << %(<option value="#{sprintf("%02d", i)}"#{' selected="selected"' if i == 16}>#{sprintf("%02d", i)}</option>\n) }
     expected << "</select>\n"
 
-    assert_dom_equal expected, time_select("post", "written_on", :prompt => {:hour => 'Choose hour', :minute => 'Choose minute'})
+    assert_dom_equal expected, time_select("post", "written_on", :prompt => {:hour => "Choose hour", :minute => "Choose minute"})
   end
 
   def test_time_select_with_generic_with_css_classes
@@ -2570,7 +2570,7 @@ class DateHelperTest < ActionView::TestCase
     0.upto(59) { |i| expected << %(<option value="#{sprintf("%02d", i)}"#{' selected="selected"' if i == 16}>#{sprintf("%02d", i)}</option>\n) }
     expected << "</select>\n"
 
-    assert_dom_equal expected, time_select("post", "written_on", with_css_classes: { hour: 'my-hour', minute: 'my-minute' })
+    assert_dom_equal expected, time_select("post", "written_on", with_css_classes: { hour: "my-hour", minute: "my-minute" })
   end
 
   def test_time_select_with_disabled_html_option
@@ -2681,7 +2681,7 @@ class DateHelperTest < ActionView::TestCase
     # The love zone is UTC+0
     mytz = Class.new(ActiveSupport::TimeZone) {
       attr_accessor :now
-    }.create('tenderlove', 0, ActiveSupport::TimeZone.find_tzinfo('UTC'))
+    }.create("tenderlove", 0, ActiveSupport::TimeZone.find_tzinfo("UTC"))
 
     now       = Time.mktime(2004, 6, 15, 16, 35, 0)
     mytz.now  = now
@@ -2723,7 +2723,7 @@ class DateHelperTest < ActionView::TestCase
     @post.updated_at = Time.local(2004, 6, 15, 16, 35)
 
     output_buffer = fields_for :post, @post do |f|
-      concat f.datetime_select(:updated_at, {}, :class => 'selector')
+      concat f.datetime_select(:updated_at, {}, :class => "selector")
     end
 
     expected = %{<select id="post_updated_at_1i" name="post[updated_at(1i)]" class="selector">\n<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option selected="selected" value="2004">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n</select>\n}
@@ -2843,7 +2843,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %{<option value="">Choose minute</option>\n<option value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n<option value="32">32</option>\n<option value="33">33</option>\n<option value="34">34</option>\n<option value="35">35</option>\n<option value="36">36</option>\n<option value="37">37</option>\n<option value="38">38</option>\n<option value="39">39</option>\n<option value="40">40</option>\n<option value="41">41</option>\n<option value="42">42</option>\n<option value="43">43</option>\n<option value="44">44</option>\n<option value="45">45</option>\n<option value="46">46</option>\n<option value="47">47</option>\n<option value="48">48</option>\n<option value="49">49</option>\n<option value="50">50</option>\n<option value="51">51</option>\n<option value="52">52</option>\n<option value="53">53</option>\n<option value="54">54</option>\n<option value="55">55</option>\n<option value="56">56</option>\n<option value="57">57</option>\n<option value="58">58</option>\n<option value="59">59</option>\n}
     expected << "</select>\n"
 
-    assert_dom_equal expected, datetime_select("post", "updated_at", :start_year=>1999, :end_year=>2009, :prompt => {:year => 'Choose year', :month => 'Choose month', :day => 'Choose day', :hour => 'Choose hour', :minute => 'Choose minute'})
+    assert_dom_equal expected, datetime_select("post", "updated_at", :start_year=>1999, :end_year=>2009, :prompt => {:year => "Choose year", :month => "Choose month", :day => "Choose day", :hour => "Choose hour", :minute => "Choose minute"})
   end
 
   def test_datetime_select_with_generic_with_css_classes
@@ -2901,7 +2901,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %{<option value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16" selected="selected">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n<option value="32">32</option>\n<option value="33">33</option>\n<option value="34">34</option>\n<option value="35">35</option>\n<option value="36">36</option>\n<option value="37">37</option>\n<option value="38">38</option>\n<option value="39">39</option>\n<option value="40">40</option>\n<option value="41">41</option>\n<option value="42">42</option>\n<option value="43">43</option>\n<option value="44">44</option>\n<option value="45">45</option>\n<option value="46">46</option>\n<option value="47">47</option>\n<option value="48">48</option>\n<option value="49">49</option>\n<option value="50">50</option>\n<option value="51">51</option>\n<option value="52">52</option>\n<option value="53">53</option>\n<option value="54">54</option>\n<option value="55">55</option>\n<option value="56">56</option>\n<option value="57">57</option>\n<option value="58">58</option>\n<option value="59">59</option>\n}
     expected << "</select>\n"
 
-    assert_dom_equal expected, datetime_select("post", "written_on", start_year: 1999, end_year: 2009, with_css_classes: { year: 'my-year', month: 'my-month', day: 'my-day', hour: 'my-hour', minute: 'my-minute' })
+    assert_dom_equal expected, datetime_select("post", "written_on", start_year: 1999, end_year: 2009, with_css_classes: { year: "my-year", month: "my-month", day: "my-day", hour: "my-hour", minute: "my-minute" })
   end
 
   def test_date_select_with_zero_value_and_no_start_year
@@ -3425,7 +3425,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %{<option value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n<option value="32">32</option>\n<option value="33">33</option>\n<option value="34">34</option>\n<option value="35" selected="selected">35</option>\n<option value="36">36</option>\n<option value="37">37</option>\n<option value="38">38</option>\n<option value="39">39</option>\n<option value="40">40</option>\n<option value="41">41</option>\n<option value="42">42</option>\n<option value="43">43</option>\n<option value="44">44</option>\n<option value="45">45</option>\n<option value="46">46</option>\n<option value="47">47</option>\n<option value="48">48</option>\n<option value="49">49</option>\n<option value="50">50</option>\n<option value="51">51</option>\n<option value="52">52</option>\n<option value="53">53</option>\n<option value="54">54</option>\n<option value="55">55</option>\n<option value="56">56</option>\n<option value="57">57</option>\n<option value="58">58</option>\n<option value="59">59</option>\n}
     expected << "</select>\n"
 
-    assert_dom_equal expected, datetime_select("post", "updated_at", {}, :class => 'selector')
+    assert_dom_equal expected, datetime_select("post", "updated_at", {}, :class => "selector")
   end
 
   def test_date_select_should_not_change_passed_options_hash
@@ -3583,9 +3583,9 @@ class DateHelperTest < ActionView::TestCase
     assert select_second(Time.mktime(2003, 8, 16, 8, 4, 18)).html_safe?
 
     assert select_minute(8, :use_hidden => true).html_safe?
-    assert select_month(8, :prompt => 'Choose month').html_safe?
+    assert select_month(8, :prompt => "Choose month").html_safe?
 
-    assert select_time(Time.mktime(2003, 8, 16, 8, 4, 18), {}, :class => 'selector').html_safe?
+    assert select_time(Time.mktime(2003, 8, 16, 8, 4, 18), {}, :class => "selector").html_safe?
     assert select_date(Time.mktime(2003, 8, 16), :date_separator => " / ", :start_year => 2003, :end_year => 2005, :prefix => "date[first]").html_safe?
   end
 
@@ -3604,21 +3604,21 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_time_tag_with_time
-    time = Time.new(2013, 2, 20, 0, 0, 0, '+00:00')
+    time = Time.new(2013, 2, 20, 0, 0, 0, "+00:00")
     expected = '<time datetime="2013-02-20T00:00:00+00:00">February 20, 2013 00:00</time>'
     assert_equal expected, time_tag(time)
   end
 
   def test_time_tag_with_given_text
-    assert_match(/<time.*>Right now<\/time>/, time_tag(Time.now, 'Right now'))
+    assert_match(/<time.*>Right now<\/time>/, time_tag(Time.now, "Right now"))
   end
 
   def test_time_tag_with_given_block
-    assert_match(/<time.*><span>Right now<\/span><\/time>/, time_tag(Time.now){ raw('<span>Right now</span>') })
+    assert_match(/<time.*><span>Right now<\/span><\/time>/, time_tag(Time.now){ raw("<span>Right now</span>") })
   end
 
   def test_time_tag_with_different_format
-    time = Time.new(2013, 2, 20, 0, 0, 0, '+00:00')
+    time = Time.new(2013, 2, 20, 0, 0, 0, "+00:00")
     expected = '<time datetime="2013-02-20T00:00:00+00:00">20 Feb 00:00</time>'
     assert_equal expected, time_tag(time, :format => :short)
   end

@@ -1,4 +1,4 @@
-require 'active_record_unit'
+require "active_record_unit"
 
 class RenderPartialWithRecordIdentificationController < ActionController::Base
   def render_with_has_many_and_belongs_to_association
@@ -42,7 +42,7 @@ class RenderPartialWithRecordIdentificationController < ActionController::Base
 
   def render_with_record_collection_and_spacer_template
     @developer = Developer.find(1)
-    render :partial => @developer.projects, :spacer_template => 'test/partial_only'
+    render :partial => @developer.projects, :spacer_template => "test/partial_only"
   end
 end
 
@@ -57,27 +57,27 @@ class RenderPartialWithRecordIdentificationTest < ActiveRecordTestCase
 
   def test_rendering_partial_with_has_many_association
     get :render_with_has_many_association
-    assert_equal 'Birdman is better!', @response.body
+    assert_equal "Birdman is better!", @response.body
   end
 
   def test_rendering_partial_with_scope
     get :render_with_scope
-    assert_equal 'Birdman is better!Nuh uh!', @response.body
+    assert_equal "Birdman is better!Nuh uh!", @response.body
   end
 
   def test_render_with_record
     get :render_with_record
-    assert_equal 'David', @response.body
+    assert_equal "David", @response.body
   end
 
   def test_render_with_record_collection
     get :render_with_record_collection
-    assert_equal 'DavidJamisfixture_3fixture_4fixture_5fixture_6fixture_7fixture_8fixture_9fixture_10Jamis', @response.body
+    assert_equal "DavidJamisfixture_3fixture_4fixture_5fixture_6fixture_7fixture_8fixture_9fixture_10Jamis", @response.body
   end
 
   def test_render_with_record_collection_and_spacer_template
     get :render_with_record_collection_and_spacer_template
-    assert_equal Developer.find(1).projects.map(&:name).join('only partial'), @response.body
+    assert_equal Developer.find(1).projects.map(&:name).join("only partial"), @response.body
   end
 
   def test_rendering_partial_with_has_one_association

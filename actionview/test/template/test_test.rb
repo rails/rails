@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 module PeopleHelper
   def title(text)
@@ -41,7 +41,7 @@ class PeopleHelperTest < ActionView::TestCase
         extend ActiveModel::Naming
         def to_model; self; end
         def persisted?; true; end
-        def self.name; 'Minitest::Mock'; end
+        def self.name; "Minitest::Mock"; end
       }.new "David"
 
       the_model = nil
@@ -60,7 +60,7 @@ class PeopleHelperTest < ActionView::TestCase
     def with_test_route_set
       with_routing do |set|
         set.draw do
-          get 'people', :to => 'people#index', :as => :people
+          get "people", :to => "people#index", :as => :people
         end
         yield
       end
@@ -84,7 +84,7 @@ class CrazySymbolHelperTest < ActionView::TestCase
 end
 
 class CrazyStringHelperTest < ActionView::TestCase
-  tests 'people'
+  tests "people"
 
   def test_set_helper_class_using_string
     assert_equal PeopleHelper, self.class.helper_class

@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class TagHelperTest < ActionView::TestCase
   include RenderERBUtils
@@ -18,7 +18,7 @@ class TagHelperTest < ActionView::TestCase
 
   def test_tag_builder_void_tag
     assert_equal "<br>", tag.br
-    assert_equal "<br class=\"some_class\">", tag.br(class: 'some_class')
+    assert_equal "<br class=\"some_class\">", tag.br(class: "some_class")
   end
 
   def test_tag_builder_void_tag_with_forced_content
@@ -52,11 +52,11 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_tag_options_accepts_blank_option
-    assert_equal "<p included=\"\" />", tag("p", :included => '')
+    assert_equal "<p included=\"\" />", tag("p", :included => "")
   end
 
   def test_tag_builder_options_accepts_blank_option
-    assert_equal "<p included=\"\"></p>", tag.p(included: '')
+    assert_equal "<p included=\"\"></p>", tag.p(included: "")
   end
 
   def test_tag_options_converts_boolean_option
@@ -75,9 +75,9 @@ class TagHelperTest < ActionView::TestCase
     assert_equal content_tag("a", "Create", "href" => "create"),
                  content_tag("a", "Create", :href => "create")
     assert_equal "<p>&lt;script&gt;evil_js&lt;/script&gt;</p>",
-                 content_tag(:p, '<script>evil_js</script>')
+                 content_tag(:p, "<script>evil_js</script>")
     assert_equal "<p><script>evil_js</script></p>",
-                 content_tag(:p, '<script>evil_js</script>', nil, false)
+                 content_tag(:p, "<script>evil_js</script>", nil, false)
   end
 
   def test_tag_builder_with_content
@@ -88,16 +88,16 @@ class TagHelperTest < ActionView::TestCase
     assert_equal "<p>&lt;script&gt;evil_js&lt;/script&gt;</p>",
                  tag.p("<script>evil_js</script>")
     assert_equal "<p><script>evil_js</script></p>",
-                 tag.p('<script>evil_js</script>', escape_attributes: false)
+                 tag.p("<script>evil_js</script>", escape_attributes: false)
   end
 
   def test_tag_builder_nested
     assert_equal "<div>content</div>",
                  tag.div { "content" }
     assert_equal "<div id=\"header\"><span>hello</span></div>",
-                 tag.div(id: 'header') { |tag| tag.span 'hello' }
+                 tag.div(id: "header") { |tag| tag.span "hello" }
     assert_equal "<div id=\"header\"><div class=\"world\"><span>hello</span></div></div>",
-                 tag.div(id: 'header') { |tag| tag.div(class: 'world') { tag.span 'hello' } }
+                 tag.div(id: "header") { |tag| tag.div(class: "world") { tag.span "hello" } }
   end
 
   def test_content_tag_with_block_in_erb
@@ -173,13 +173,13 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_content_tag_with_escaped_array_class
-    str = content_tag('p', "limelight", :class => ["song", "play>"])
+    str = content_tag("p", "limelight", :class => ["song", "play>"])
     assert_equal "<p class=\"song play&gt;\">limelight</p>", str
 
-    str = content_tag('p', "limelight", :class => ["song", "play"])
+    str = content_tag("p", "limelight", :class => ["song", "play"])
     assert_equal "<p class=\"song play\">limelight</p>", str
 
-    str = content_tag('p', "limelight", :class => ["song", ["play"]])
+    str = content_tag("p", "limelight", :class => ["song", ["play"]])
     assert_equal "<p class=\"song play\">limelight</p>", str
   end
 
@@ -195,10 +195,10 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_content_tag_with_unescaped_array_class
-    str = content_tag('p', "limelight", {:class => ["song", "play>"]}, false)
+    str = content_tag("p", "limelight", {:class => ["song", "play>"]}, false)
     assert_equal "<p class=\"song play>\">limelight</p>", str
 
-    str = content_tag('p', "limelight", {:class => ["song", ["play>"]]}, false)
+    str = content_tag("p", "limelight", {:class => ["song", ["play>"]]}, false)
     assert_equal "<p class=\"song play>\">limelight</p>", str
   end
 
@@ -211,32 +211,32 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_content_tag_with_empty_array_class
-    str = content_tag('p', 'limelight', {:class => []})
+    str = content_tag("p", "limelight", {:class => []})
     assert_equal '<p class="">limelight</p>', str
   end
 
   def test_tag_builder_with_empty_array_class
-    assert_equal '<p class="">limelight</p>', tag.p('limelight', class: [])
+    assert_equal '<p class="">limelight</p>', tag.p("limelight", class: [])
   end
 
   def test_content_tag_with_unescaped_empty_array_class
-    str = content_tag('p', 'limelight', {:class => []}, false)
+    str = content_tag("p", "limelight", {:class => []}, false)
     assert_equal '<p class="">limelight</p>', str
   end
 
   def test_tag_builder_with_unescaped_empty_array_class
-    str = tag.p 'limelight', class: [], escape_attributes: false
+    str = tag.p "limelight", class: [], escape_attributes: false
     assert_equal '<p class="">limelight</p>', str
   end
 
   def test_content_tag_with_data_attributes
     assert_dom_equal '<p data-number="1" data-string="hello" data-string-with-quotes="double&quot;quote&quot;party&quot;">limelight</p>',
-      content_tag('p', "limelight", data: { number: 1, string: 'hello', string_with_quotes: 'double"quote"party"' })
+      content_tag("p", "limelight", data: { number: 1, string: "hello", string_with_quotes: 'double"quote"party"' })
   end
 
   def test_tag_builder_with_data_attributes
     assert_dom_equal '<p data-number="1" data-string="hello" data-string-with-quotes="double&quot;quote&quot;party&quot;">limelight</p>',
-      tag.p("limelight", data: { number: 1, string: 'hello', string_with_quotes: 'double"quote"party"' })
+      tag.p("limelight", data: { number: 1, string: "hello", string_with_quotes: 'double"quote"party"' })
   end
 
   def test_cdata_section
@@ -253,73 +253,73 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_escape_once
-    assert_equal '1 &lt; 2 &amp; 3', escape_once('1 < 2 &amp; 3')
+    assert_equal "1 &lt; 2 &amp; 3", escape_once("1 < 2 &amp; 3")
     assert_equal " &#X27; &#x27; &#x03BB; &#X03bb; &quot; &#39; &lt; &gt; ", escape_once(" &#X27; &#x27; &#x03BB; &#X03bb; \" ' < > ")
   end
 
   def test_tag_honors_html_safe_for_param_values
-    ['1&amp;2', '1 &lt; 2', '&#8220;test&#8220;'].each do |escaped|
-      assert_equal %(<a href="#{escaped}" />), tag('a', :href => escaped.html_safe)
+    ["1&amp;2", "1 &lt; 2", "&#8220;test&#8220;"].each do |escaped|
+      assert_equal %(<a href="#{escaped}" />), tag("a", :href => escaped.html_safe)
       assert_equal %(<a href="#{escaped}"></a>), tag.a(href: escaped.html_safe)
     end
   end
 
   def test_tag_honors_html_safe_with_escaped_array_class
-    assert_equal '<p class="song&gt; play>" />', tag('p', :class => ['song>', raw('play>')])
-    assert_equal '<p class="song> play&gt;" />', tag('p', :class => [raw('song>'), 'play>'])
+    assert_equal '<p class="song&gt; play>" />', tag("p", :class => ["song>", raw("play>")])
+    assert_equal '<p class="song> play&gt;" />', tag("p", :class => [raw("song>"), "play>"])
   end
 
   def test_tag_builder_honors_html_safe_with_escaped_array_class
-    assert_equal '<p class="song&gt; play>"></p>', tag.p(class: ['song>', raw('play>')])
-    assert_equal '<p class="song> play&gt;"></p>', tag.p(class: [raw('song>'), 'play>'])
+    assert_equal '<p class="song&gt; play>"></p>', tag.p(class: ["song>", raw("play>")])
+    assert_equal '<p class="song> play&gt;"></p>', tag.p(class: [raw("song>"), "play>"])
   end
 
   def test_skip_invalid_escaped_attributes
-    ['&1;', '&#1dfa3;', '& #123;'].each do |escaped|
-      assert_equal %(<a href="#{escaped.gsub(/&/, '&amp;')}" />), tag('a', :href => escaped)
+    ["&1;", "&#1dfa3;", "& #123;"].each do |escaped|
+      assert_equal %(<a href="#{escaped.gsub(/&/, '&amp;')}" />), tag("a", :href => escaped)
       assert_equal %(<a href="#{escaped.gsub(/&/, '&amp;')}"></a>), tag.a(href: escaped)
     end
   end
 
   def test_disable_escaping
-    assert_equal '<a href="&amp;" />', tag('a', { :href => '&amp;' }, false, false)
+    assert_equal '<a href="&amp;" />', tag("a", { :href => "&amp;" }, false, false)
   end
 
   def test_tag_builder_disable_escaping
-    assert_equal '<a href="&amp;"></a>', tag.a(href: '&amp;', escape_attributes: false)
-    assert_equal '<a href="&amp;">cnt</a>', tag.a(href: '&amp;' , escape_attributes: false) { "cnt"}
-    assert_equal '<br data-hidden="&amp;">', tag.br("data-hidden": '&amp;' , escape_attributes: false)
-    assert_equal '<a href="&amp;">content</a>', tag.a("content", href: '&amp;', escape_attributes: false)
-    assert_equal '<a href="&amp;">content</a>', tag.a(href: '&amp;', escape_attributes: false) { "content"}
+    assert_equal '<a href="&amp;"></a>', tag.a(href: "&amp;", escape_attributes: false)
+    assert_equal '<a href="&amp;">cnt</a>', tag.a(href: "&amp;" , escape_attributes: false) { "cnt"}
+    assert_equal '<br data-hidden="&amp;">', tag.br("data-hidden": "&amp;" , escape_attributes: false)
+    assert_equal '<a href="&amp;">content</a>', tag.a("content", href: "&amp;", escape_attributes: false)
+    assert_equal '<a href="&amp;">content</a>', tag.a(href: "&amp;", escape_attributes: false) { "content"}
   end
 
   def test_data_attributes
-    ['data', :data].each { |data|
+    ["data", :data].each { |data|
       assert_dom_equal '<a data-a-float="3.14" data-a-big-decimal="-123.456" data-a-number="1" data-array="[1,2,3]" data-hash="{&quot;key&quot;:&quot;value&quot;}" data-string-with-quotes="double&quot;quote&quot;party&quot;" data-string="hello" data-symbol="foo" />',
-        tag('a', { data => { a_float: 3.14, a_big_decimal: BigDecimal.new("-123.456"), a_number: 1, string: 'hello', symbol: :foo, array: [1, 2, 3], hash: { key: 'value'}, string_with_quotes: 'double"quote"party"' } })
+        tag("a", { data => { a_float: 3.14, a_big_decimal: BigDecimal.new("-123.456"), a_number: 1, string: "hello", symbol: :foo, array: [1, 2, 3], hash: { key: "value"}, string_with_quotes: 'double"quote"party"' } })
       assert_dom_equal '<a data-a-float="3.14" data-a-big-decimal="-123.456" data-a-number="1" data-array="[1,2,3]" data-hash="{&quot;key&quot;:&quot;value&quot;}" data-string-with-quotes="double&quot;quote&quot;party&quot;" data-string="hello" data-symbol="foo" />',
-        tag.a(data: { a_float: 3.14, a_big_decimal: BigDecimal.new("-123.456"), a_number: 1, string: 'hello', symbol: :foo, array: [1, 2, 3], hash: { key: 'value'}, string_with_quotes: 'double"quote"party"' })
+        tag.a(data: { a_float: 3.14, a_big_decimal: BigDecimal.new("-123.456"), a_number: 1, string: "hello", symbol: :foo, array: [1, 2, 3], hash: { key: "value"}, string_with_quotes: 'double"quote"party"' })
     }
   end
 
   def test_aria_attributes
-    ['aria', :aria].each { |aria|
+    ["aria", :aria].each { |aria|
       assert_dom_equal '<a aria-a-float="3.14" aria-a-big-decimal="-123.456" aria-a-number="1" aria-array="[1,2,3]" aria-hash="{&quot;key&quot;:&quot;value&quot;}" aria-string-with-quotes="double&quot;quote&quot;party&quot;" aria-string="hello" aria-symbol="foo" />',
-        tag('a', { aria => { a_float: 3.14, a_big_decimal: BigDecimal.new("-123.456"), a_number: 1, string: 'hello', symbol: :foo, array: [1, 2, 3], hash: { key: 'value'}, string_with_quotes: 'double"quote"party"' } })
+        tag("a", { aria => { a_float: 3.14, a_big_decimal: BigDecimal.new("-123.456"), a_number: 1, string: "hello", symbol: :foo, array: [1, 2, 3], hash: { key: "value"}, string_with_quotes: 'double"quote"party"' } })
       assert_dom_equal '<a aria-a-float="3.14" aria-a-big-decimal="-123.456" aria-a-number="1" aria-array="[1,2,3]" aria-hash="{&quot;key&quot;:&quot;value&quot;}" aria-string-with-quotes="double&quot;quote&quot;party&quot;" aria-string="hello" aria-symbol="foo" />',
-        tag.a(aria: { a_float: 3.14, a_big_decimal: BigDecimal.new("-123.456"), a_number: 1, string: 'hello', symbol: :foo, array: [1, 2, 3], hash: { key: 'value'}, string_with_quotes: 'double"quote"party"' })
+        tag.a(aria: { a_float: 3.14, a_big_decimal: BigDecimal.new("-123.456"), a_number: 1, string: "hello", symbol: :foo, array: [1, 2, 3], hash: { key: "value"}, string_with_quotes: 'double"quote"party"' })
     }
   end
 
   def test_link_to_data_nil_equal
-    div_type1 = content_tag(:div, 'test', { 'data-tooltip' => nil })
-    div_type2 = content_tag(:div, 'test', { data: {tooltip: nil} })
+    div_type1 = content_tag(:div, "test", { "data-tooltip" => nil })
+    div_type2 = content_tag(:div, "test", { data: {tooltip: nil} })
     assert_dom_equal div_type1, div_type2 
   end
 
   def test_tag_builder_link_to_data_nil_equal
-    div_type1 = tag.div 'test', { 'data-tooltip': nil }
-    div_type2 = tag.div 'test', { data: {tooltip: nil} }
+    div_type1 = tag.div "test", { 'data-tooltip': nil }
+    div_type2 = tag.div "test", { data: {tooltip: nil} }
     assert_dom_equal div_type1, div_type2
   end
 

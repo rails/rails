@@ -1,8 +1,8 @@
-require 'active_record_unit'
-require 'active_record/railties/controller_runtime'
-require 'fixtures/project'
-require 'active_support/log_subscriber/test_helper'
-require 'action_controller/log_subscriber'
+require "active_record_unit"
+require "active_record/railties/controller_runtime"
+require "fixtures/project"
+require "active_support/log_subscriber/test_helper"
+require "action_controller/log_subscriber"
 
 ActionController::Base.include(ActiveRecord::Railties::ControllerRuntime)
 
@@ -24,7 +24,7 @@ class ControllerRuntimeLogSubscriberTest < ActionController::TestCase
 
     def redirect
       Project.all
-      redirect_to :action => 'show'
+      redirect_to :action => "show"
     end
 
     def db_after_render

@@ -1,6 +1,6 @@
-require 'abstract_unit'
-require 'fileutils'
-require 'action_view/dependency_tracker'
+require "abstract_unit"
+require "fileutils"
+require "action_view/dependency_tracker"
 
 class FixtureTemplate
   attr_reader :source, :handler
@@ -17,7 +17,7 @@ class FixtureFinder < ActionView::LookupContext
   FIXTURES_DIR = "#{File.dirname(__FILE__)}/../fixtures/digestor"
 
   def initialize(details = {})
-    super(ActionView::PathSet.new(['digestor', 'digestor/api']), details, [])
+    super(ActionView::PathSet.new(["digestor", "digestor/api"]), details, [])
     @rendered_format = :html
   end
 end
@@ -135,12 +135,12 @@ class TemplateDigestorTest < ActionView::TestCase
 
   def test_getting_of_singly_nested_dependencies
     singly_nested_dependencies = ["messages/header", "messages/form", "messages/message", "events/event", "comments/comment"]
-    assert_equal singly_nested_dependencies, nested_dependencies('messages/edit')
+    assert_equal singly_nested_dependencies, nested_dependencies("messages/edit")
   end
 
   def test_getting_of_doubly_nested_dependencies
     doubly_nested = [{"comments/comments"=>["comments/comment"]}, "messages/message"]
-    assert_equal doubly_nested, nested_dependencies('messages/peek')
+    assert_equal doubly_nested, nested_dependencies("messages/peek")
   end
 
   def test_nested_template_directory
@@ -195,7 +195,7 @@ class TemplateDigestorTest < ActionView::TestCase
   end
 
   def test_dont_generate_a_digest_for_missing_templates
-    assert_equal '', digest("nothing/there")
+    assert_equal "", digest("nothing/there")
   end
 
   def test_collection_dependency

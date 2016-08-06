@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class TextHelperTest < ActionView::TestCase
   tests ActionView::Helpers::TextHelper
@@ -11,9 +11,9 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_concat
-    self.output_buffer = 'foo'
-    assert_equal 'foobar', concat('bar')
-    assert_equal 'foobar', output_buffer
+    self.output_buffer = "foo"
+    assert_equal "foobar", concat("bar")
+    assert_equal "foobar", output_buffer
   end
 
   def test_simple_format_should_be_html_safe
@@ -38,8 +38,8 @@ class TextHelperTest < ActionView::TestCase
     text = "A\r\n  \nB\n\n\r\n\t\nC\nD".freeze
     assert_equal "<p>A\n<br />  \n<br />B</p>\n\n<p>\t\n<br />C\n<br />D</p>", simple_format(text)
 
-    assert_equal %q(<p class="test">This is a classy test</p>), simple_format("This is a classy test", :class => 'test')
-    assert_equal %Q(<p class="test">para 1</p>\n\n<p class="test">para 2</p>), simple_format("para 1\n\npara 2", :class => 'test')
+    assert_equal %q(<p class="test">This is a classy test</p>), simple_format("This is a classy test", :class => "test")
+    assert_equal %Q(<p class="test">para 1</p>\n\n<p class="test">para 2</p>), simple_format("para 1\n\npara 2", :class => "test")
   end
 
   def test_simple_format_should_sanitize_input_when_sanitize_option_is_not_false
@@ -47,8 +47,8 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_simple_format_should_sanitize_input_when_sanitize_option_is_true
-    assert_equal '<p><b> test with unsafe string </b>code!</p>',
-      simple_format('<b> test with unsafe string </b><script>code!</script>', {}, sanitize: true)
+    assert_equal "<p><b> test with unsafe string </b>code!</p>",
+      simple_format("<b> test with unsafe string </b><script>code!</script>", {}, sanitize: true)
   end
 
   def test_simple_format_should_not_sanitize_input_when_sanitize_option_is_false
@@ -98,9 +98,9 @@ class TextHelperTest < ActionView::TestCase
     assert_equal "This is a string that wil[...]", truncate("This is a string that will go longer then the default truncate length of 30", :omission => "[...]")
     assert_equal "Hello W...", truncate("Hello World!", :length => 10)
     assert_equal "Hello[...]", truncate("Hello World!", :omission => "[...]", :length => 10)
-    assert_equal "Hello[...]", truncate("Hello Big World!", :omission => "[...]", :length => 13, :separator => ' ')
-    assert_equal "Hello Big[...]", truncate("Hello Big World!", :omission => "[...]", :length => 14, :separator => ' ')
-    assert_equal "Hello Big[...]", truncate("Hello Big World!", :omission => "[...]", :length => 15, :separator => ' ')
+    assert_equal "Hello[...]", truncate("Hello Big World!", :omission => "[...]", :length => 13, :separator => " ")
+    assert_equal "Hello Big[...]", truncate("Hello Big World!", :omission => "[...]", :length => 14, :separator => " ")
+    assert_equal "Hello Big[...]", truncate("Hello Big World!", :omission => "[...]", :length => 15, :separator => " ")
   end
 
   def test_truncate_multibyte
@@ -117,7 +117,7 @@ class TextHelperTest < ActionView::TestCase
 
   def test_truncate_with_link_options
     assert_equal "Here is a long test and ...<a href=\"#\">Continue</a>",
-    truncate("Here is a long test and I need a continue to read link", :length => 27) { link_to 'Continue', '#' }
+    truncate("Here is a long test and I need a continue to read link", :length => 27) { link_to "Continue", "#" }
   end
 
   def test_truncate_should_be_html_safe
@@ -138,22 +138,22 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_truncate_with_block_should_be_html_safe
-    truncated = truncate("Here's a long test and I need a continue to read link", :length => 27) { link_to 'Continue', '#' }
+    truncated = truncate("Here's a long test and I need a continue to read link", :length => 27) { link_to "Continue", "#" }
     assert truncated.html_safe?
   end
 
   def test_truncate_with_block_should_escape_the_input
     assert_equal "&lt;script&gt;code!&lt;/script&gt;He...<a href=\"#\">Continue</a>",
-      truncate("<script>code!</script>Here's a long test and I need a continue to read link", :length => 27) { link_to 'Continue', '#' }
+      truncate("<script>code!</script>Here's a long test and I need a continue to read link", :length => 27) { link_to "Continue", "#" }
   end
 
   def test_truncate_with_block_should_not_escape_the_input_with_escape_false
     assert_equal "<script>code!</script>He...<a href=\"#\">Continue</a>",
-      truncate("<script>code!</script>Here's a long test and I need a continue to read link", :length => 27, :escape => false) { link_to 'Continue', '#' }
+      truncate("<script>code!</script>Here's a long test and I need a continue to read link", :length => 27, :escape => false) { link_to "Continue", "#" }
   end
 
   def test_truncate_with_block_with_escape_false_should_be_html_safe
-    truncated = truncate("<script>code!</script>Here's a long test and I need a continue to read link", :length => 27, :escape => false) { link_to 'Continue', '#' }
+    truncated = truncate("<script>code!</script>Here's a long test and I need a continue to read link", :length => 27, :escape => false) { link_to "Continue", "#" }
     assert truncated.html_safe?
   end
 
@@ -189,11 +189,11 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_highlight_pending
-    assert_equal '   ', highlight('   ', 'blank text is returned verbatim')
+    assert_equal "   ", highlight("   ", "blank text is returned verbatim")
   end
 
   def test_highlight_should_return_blank_string_for_nil
-    assert_equal '', highlight(nil, 'blank string is returned for nil')
+    assert_equal "", highlight(nil, "blank string is returned for nil")
   end
 
   def test_highlight_should_sanitize_input
@@ -233,7 +233,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_highlight_with_multiple_phrases_in_one_pass
-    assert_equal %(<em>wow</em> <em>em</em>), highlight('wow em', %w(wow em), :highlighter => '<em>\1</em>')
+    assert_equal %(<em>wow</em> <em>em</em>), highlight("wow em", %w(wow em), :highlighter => '<em>\1</em>')
   end
 
   def test_highlight_with_html
@@ -285,17 +285,17 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_excerpt_with_regex
-    assert_equal('...is a beautiful! mor...', excerpt('This is a beautiful! morning', 'beautiful', :radius => 5))
-    assert_equal('...is a beautiful? mor...', excerpt('This is a beautiful? morning', 'beautiful', :radius => 5))
-    assert_equal('...is a beautiful? mor...', excerpt('This is a beautiful? morning', /\bbeau\w*\b/i, :radius => 5))
-    assert_equal('...is a beautiful? mor...', excerpt('This is a beautiful? morning', /\b(beau\w*)\b/i, :radius => 5))
+    assert_equal("...is a beautiful! mor...", excerpt("This is a beautiful! morning", "beautiful", :radius => 5))
+    assert_equal("...is a beautiful? mor...", excerpt("This is a beautiful? morning", "beautiful", :radius => 5))
+    assert_equal("...is a beautiful? mor...", excerpt("This is a beautiful? morning", /\bbeau\w*\b/i, :radius => 5))
+    assert_equal("...is a beautiful? mor...", excerpt("This is a beautiful? morning", /\b(beau\w*)\b/i, :radius => 5))
     assert_equal("...udge Allen and...", excerpt("This day was challenging for judge Allen and his colleagues.", /\ballen\b/i, :radius => 5))
-    assert_equal("...judge Allen and...", excerpt("This day was challenging for judge Allen and his colleagues.", /\ballen\b/i, :radius => 1, :separator => ' '))
+    assert_equal("...judge Allen and...", excerpt("This day was challenging for judge Allen and his colleagues.", /\ballen\b/i, :radius => 1, :separator => " "))
     assert_equal("...was challenging for...", excerpt("This day was challenging for judge Allen and his colleagues.", /\b(\w*allen\w*)\b/i, :radius => 5))
   end
 
   def test_excerpt_should_not_be_html_safe
-    assert !excerpt('This is a beautiful! morning', 'beautiful', :radius => 5).html_safe?
+    assert !excerpt("This is a beautiful! morning", "beautiful", :radius => 5).html_safe?
   end
 
   def test_excerpt_in_borderline_cases
@@ -325,7 +325,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_excerpt_with_utf8
-    assert_equal("...\357\254\203ciency could not be...".force_encoding(Encoding::UTF_8), excerpt("That's why e\357\254\203ciency could not be helped".force_encoding(Encoding::UTF_8), 'could', :radius => 8))
+    assert_equal("...\357\254\203ciency could not be...".force_encoding(Encoding::UTF_8), excerpt("That's why e\357\254\203ciency could not be helped".force_encoding(Encoding::UTF_8), "could", :radius => 8))
   end
 
   def test_excerpt_does_not_modify_the_options_hash
@@ -336,19 +336,19 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_excerpt_with_separator
-    options = { :separator => ' ', :radius => 1 }
-    assert_equal('...a very beautiful...', excerpt('This is a very beautiful morning', 'very', options))
-    assert_equal('This is...', excerpt('This is a very beautiful morning', 'this', options))
-    assert_equal('...beautiful morning', excerpt('This is a very beautiful morning', 'morning', options))
+    options = { :separator => " ", :radius => 1 }
+    assert_equal("...a very beautiful...", excerpt("This is a very beautiful morning", "very", options))
+    assert_equal("This is...", excerpt("This is a very beautiful morning", "this", options))
+    assert_equal("...beautiful morning", excerpt("This is a very beautiful morning", "morning", options))
 
     options = { :separator => "\n", :radius => 0 }
-    assert_equal("...very long...", excerpt("my very\nvery\nvery long\nstring", 'long', options))
+    assert_equal("...very long...", excerpt("my very\nvery\nvery long\nstring", "long", options))
 
     options = { :separator => "\n", :radius => 1 }
-    assert_equal("...very\nvery long\nstring", excerpt("my very\nvery\nvery long\nstring", 'long', options))
+    assert_equal("...very\nvery long\nstring", excerpt("my very\nvery\nvery long\nstring", "long", options))
 
-    assert_equal excerpt('This is a beautiful morning', 'a'),
-                 excerpt('This is a beautiful morning', 'a', separator: nil)
+    assert_equal excerpt("This is a beautiful morning", "a"),
+                 excerpt("This is a beautiful morning", "a", separator: nil)
   end
 
   def test_word_wrap
@@ -373,12 +373,12 @@ class TextHelperTest < ActionView::TestCase
   def test_pluralization
     assert_equal("1 count", pluralize(1, "count"))
     assert_equal("2 counts", pluralize(2, "count"))
-    assert_equal("1 count", pluralize('1', "count"))
-    assert_equal("2 counts", pluralize('2', "count"))
-    assert_equal("1,066 counts", pluralize('1,066', "count"))
-    assert_equal("1.25 counts", pluralize('1.25', "count"))
-    assert_equal("1.0 count", pluralize('1.0', "count"))
-    assert_equal("1.00 count", pluralize('1.00', "count"))
+    assert_equal("1 count", pluralize("1", "count"))
+    assert_equal("2 counts", pluralize("2", "count"))
+    assert_equal("1,066 counts", pluralize("1,066", "count"))
+    assert_equal("1.25 counts", pluralize("1.25", "count"))
+    assert_equal("1.0 count", pluralize("1.0", "count"))
+    assert_equal("1.00 count", pluralize("1.00", "count"))
     assert_equal("2 counters", pluralize(2, "count", plural: "counters"))
     assert_equal("0 counters", pluralize(nil, "count", plural: "counters"))
     assert_equal("2 people", pluralize(2, "person"))
@@ -394,7 +394,7 @@ class TextHelperTest < ActionView::TestCase
       I18n.locale = :de
 
       ActiveSupport::Inflector.inflections(:de) do |inflect|
-        inflect.irregular 'region', 'regionen'
+        inflect.irregular "region", "regionen"
       end
 
       assert_equal("1 region",   pluralize(1, "region"))
@@ -407,7 +407,7 @@ class TextHelperTest < ActionView::TestCase
 
   def test_deprecated_plural_as_positional_argument
     assert_deprecated do
-      pluralize(2, 'count', 'counters')
+      pluralize(2, "count", "counters")
     end
   end
 

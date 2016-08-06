@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class TestController < ActionController::Base
 end
@@ -6,7 +6,7 @@ end
 class FiberedTest < ActiveSupport::TestCase
   def setup
     view_paths = ActionController::Base.view_paths
-    @assigns = { :secret => 'in the sauce', :name => nil }
+    @assigns = { :secret => "in the sauce", :name => nil }
     @view = ActionView::Base.new(view_paths, @assigns)
     @controller_view = TestController.new.view_context
   end
@@ -44,7 +44,7 @@ class FiberedTest < ActiveSupport::TestCase
   end
 
   def test_render_file_with_locals
-    locals = { :secret => 'in the sauce' }
+    locals = { :secret => "in the sauce" }
     assert_equal "The secret is in the sauce\n", buffered_render(:file => "test/render_file_with_locals", :locals => locals)
   end
 

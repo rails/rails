@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class Scroll < Struct.new(:id, :to_param, :title, :body, :updated_at, :created_at)
   extend ActiveModel::Naming
@@ -317,7 +317,7 @@ class AtomFeedTest < ActionController::TestCase
 
   def test_feed_xml_processing_instructions
     with_restful_routing(:scrolls) do
-      get :index, params: { id: 'feed_with_xml_processing_instructions' }
+      get :index, params: { id: "feed_with_xml_processing_instructions" }
       assert_match %r{<\?xml-stylesheet [^\?]*type="text/css"}, @response.body
       assert_match %r{<\?xml-stylesheet [^\?]*href="t.css"}, @response.body
     end
@@ -325,7 +325,7 @@ class AtomFeedTest < ActionController::TestCase
 
   def test_feed_xml_processing_instructions_duplicate_targets
     with_restful_routing(:scrolls) do
-      get :index, params: { id: 'feed_with_xml_processing_instructions_duplicate_targets' }
+      get :index, params: { id: "feed_with_xml_processing_instructions_duplicate_targets" }
       assert_match %r{<\?target1 (a="1" b="2"|b="2" a="1")\?>}, @response.body
       assert_match %r{<\?target1 (c="3" d="4"|d="4" c="3")\?>}, @response.body
     end
@@ -342,21 +342,21 @@ class AtomFeedTest < ActionController::TestCase
 
   def test_feed_entry_type_option_default_to_text_html
     with_restful_routing(:scrolls) do
-      get :index, params: { id: 'defaults' }
+      get :index, params: { id: "defaults" }
       assert_select "entry link[rel=alternate][type=\"text/html\"]"
     end
   end
 
   def test_feed_entry_type_option_specified
     with_restful_routing(:scrolls) do
-      get :index, params: { id: 'entry_type_options' }
+      get :index, params: { id: "entry_type_options" }
       assert_select "entry link[rel=alternate][type=\"text/xml\"]"
     end
   end
 
   def test_feed_entry_url_false_option_adds_no_link
     with_restful_routing(:scrolls) do
-      get :index, params: { id: 'entry_url_false_option' }
+      get :index, params: { id: "entry_url_false_option" }
       assert_select "entry link", false
     end
   end
