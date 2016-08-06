@@ -1,72 +1,46 @@
 require 'rails/commands/rake_proxy'
+require 'rails/commands/commands_tasks'
 
 module Rails
   class Engine
-    class CommandsTasks # :nodoc:
+    class CommandsTasks < CommandsTasks # :nodoc:
       include Rails::RakeProxy
 
       attr_reader :argv
 
-      HELP_MESSAGE = <<-EOT
-Usage: rails COMMAND [ARGS]
+      # Some commands are not supported in engines,
+      # since they're infrequently used, and should be run in the application
+      UNSUPPORTED_COMMANDS = ['new', 'plugin new']
 
-The common Rails commands available for engines are:
- generate    Generate new code (short-cut alias: "g")
- destroy     Undo code generated with "generate" (short-cut alias: "d")
- test        Run tests (short-cut alias: "t")
+      APPLICATION_WHITELIST = %w(console server runner version dbconsole help)
 
-All commands can be run with -h for more information.
-
-If you want to run any commands that need to be run in context
-of the application, like `rails server` or `rails console`,
-you should do it from application's directory (typically test/dummy).
-
-In addition to those commands, there are:
-  EOT
-
-      COMMAND_WHITELIST = %w(generate destroy version help test)
-
-      def initialize(argv)
-        @argv = argv
-      end
+      ENGINE_WHITELIST = %w(generate destroy test)
 
       def run_command!(command)
         command = parse_command(command)
 
-        if COMMAND_WHITELIST.include?(command)
+        if ENGINE_WHITELIST.include?(command)
           send(command)
+        elsif APPLICATION_WHITELIST.include?(command)
+          run_in_application(command)
         else
           run_rake_task(command)
         end
       end
 
-      def generate
-        generate_or_destroy(:generate)
-      end
-
-      def destroy
-        generate_or_destroy(:destroy)
-      end
-
-      def test
-        require_command!("test")
-      end
-
-      def version
-        argv.unshift '--version'
-        require_command!("application")
-      end
-
-      def help
-        write_help_message
-        write_commands(formatted_rake_tasks)
+      def run_in_application(command)
+        while !Pathname.pwd.root?
+          if File.exists?(File.expand_path('config/application.rb', Dir.pwd))
+            Object.const_set(:APP_PATH, File.expand_path('config/application', Dir.pwd))
+            send(command)
+            break
+          else
+            Dir.chdir("..")
+          end
+        end
       end
 
       private
-
-        def require_command!(command)
-          require "rails/commands/#{command}"
-        end
 
         def generate_or_destroy(command)
           load_generators
@@ -82,34 +56,12 @@ In addition to those commands, there are:
           engine.load_generators
         end
 
-        def write_help_message
-          puts HELP_MESSAGE
+        def main_commands
+          super.reject { |command| UNSUPPORTED_COMMANDS.include? command }
         end
 
-        def write_commands(commands)
-          width = commands.map { |name, _| name.size }.max || 10
-          commands.each { |command| printf(" %-#{width}s   %s\n", *command) }
-        end
-
-        def parse_command(command)
-          case command
-          when '--version', '-v'
-            'version'
-          when '--help', '-h'
-            'help'
-          else
-            command
-          end
-        end
-
-        def rake_tasks
-          return @rake_tasks if defined?(@rake_tasks)
-
-          load_generators
-          Rake::TaskManager.record_task_metadata = true
-          Rake.application.init('rails')
-          Rake.application.load_rakefile
-          @rake_tasks = Rake.application.tasks.select(&:comment)
+        def additional_commands
+          super.reject { |command| UNSUPPORTED_COMMANDS.include? command }
         end
     end
   end

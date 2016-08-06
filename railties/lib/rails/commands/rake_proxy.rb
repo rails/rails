@@ -28,7 +28,7 @@ module Rails
       end
 
       def formatted_rake_tasks
-        rake_tasks.map { |t| [ t.name_with_args, t.comment ] }
+        rake_tasks.map { |t| [ t.name_with_args, t.comment ] }.to_h
       end
   end
 end
