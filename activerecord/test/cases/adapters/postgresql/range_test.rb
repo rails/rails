@@ -1,5 +1,6 @@
 require "cases/helper"
 require 'support/connection_helper'
+require 'support/in_time_zone'
 
 if ActiveRecord::Base.connection.respond_to?(:supports_ranges?) && ActiveRecord::Base.connection.supports_ranges?
   class PostgresqlRange < ActiveRecord::Base

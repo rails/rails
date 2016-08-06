@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'support/in_time_zone'
 require 'support/schema_dumping_helper'
 
 class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase

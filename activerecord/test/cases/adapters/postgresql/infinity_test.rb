@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'support/in_time_zone'
 
 class PostgresqlInfinityTest < ActiveRecord::PostgreSQLTestCase
   include InTimeZone

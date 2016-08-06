@@ -1,5 +1,6 @@
 require "cases/helper"
 require 'support/connection_helper'
+require 'support/sql_subscriber'
 
 module ActiveRecord
   class PostgresqlConnectionTest < ActiveRecord::PostgreSQLTestCase

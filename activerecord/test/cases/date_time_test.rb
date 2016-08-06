@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'support/in_time_zone'
 require 'models/topic'
 require 'models/task'
 

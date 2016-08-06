@@ -1,5 +1,6 @@
 require "cases/helper"
 require 'support/connection_helper'
+require 'support/sql_subscriber'
 
 class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   include ConnectionHelper
