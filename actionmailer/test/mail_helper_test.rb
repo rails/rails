@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class HelperMailer < ActionMailer::Base
   def use_mail_helper

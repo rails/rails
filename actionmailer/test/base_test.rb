@@ -1,12 +1,12 @@
-require 'abstract_unit'
-require 'set'
+require "abstract_unit"
+require "set"
 
-require 'action_dispatch'
-require 'active_support/time'
+require "action_dispatch"
+require "active_support/time"
 
-require 'mailers/base_mailer'
-require 'mailers/proc_mailer'
-require 'mailers/asset_mailer'
+require "mailers/base_mailer"
+require "mailers/proc_mailer"
+require "mailers/asset_mailer"
 
 class BaseTest < ActiveSupport::TestCase
   include Rails::Dom::Testing::Assertions::DomAssertions
@@ -32,33 +32,33 @@ class BaseTest < ActiveSupport::TestCase
   # Basic mail usage without block
   test "mail() should set the headers of the mail message" do
     email = BaseMailer.welcome
-    assert_equal(['system@test.lindsaar.net'],    email.to)
-    assert_equal(['jose@test.plataformatec.com'], email.from)
-    assert_equal('The first email on new API!',   email.subject)
+    assert_equal(["system@test.lindsaar.net"],    email.to)
+    assert_equal(["jose@test.plataformatec.com"], email.from)
+    assert_equal("The first email on new API!",   email.subject)
   end
 
   test "mail() with from overwrites the class level default" do
-    email = BaseMailer.welcome(from: 'someone@example.com',
-                               to:   'another@example.org')
-    assert_equal(['someone@example.com'], email.from)
-    assert_equal(['another@example.org'], email.to)
+    email = BaseMailer.welcome(from: "someone@example.com",
+                               to:   "another@example.org")
+    assert_equal(["someone@example.com"], email.from)
+    assert_equal(["another@example.org"], email.to)
   end
 
   test "mail() with bcc, cc, content_type, charset, mime_version, reply_to and date" do
     time  = Time.now.beginning_of_day.to_datetime
-    email = BaseMailer.welcome(bcc: 'bcc@test.lindsaar.net',
-                               cc: 'cc@test.lindsaar.net',
-                               content_type: 'multipart/mixed',
-                               charset: 'iso-8559-1',
-                               mime_version: '2.0',
-                               reply_to: 'reply-to@test.lindsaar.net',
+    email = BaseMailer.welcome(bcc: "bcc@test.lindsaar.net",
+                               cc: "cc@test.lindsaar.net",
+                               content_type: "multipart/mixed",
+                               charset: "iso-8559-1",
+                               mime_version: "2.0",
+                               reply_to: "reply-to@test.lindsaar.net",
                                date: time)
-    assert_equal(['bcc@test.lindsaar.net'],             email.bcc)
-    assert_equal(['cc@test.lindsaar.net'],              email.cc)
-    assert_equal('multipart/mixed; charset=iso-8559-1', email.content_type)
-    assert_equal('iso-8559-1',                          email.charset)
-    assert_equal('2.0',                                 email.mime_version)
-    assert_equal(['reply-to@test.lindsaar.net'],        email.reply_to)
+    assert_equal(["bcc@test.lindsaar.net"],             email.bcc)
+    assert_equal(["cc@test.lindsaar.net"],              email.cc)
+    assert_equal("multipart/mixed; charset=iso-8559-1", email.content_type)
+    assert_equal("iso-8559-1",                          email.charset)
+    assert_equal("2.0",                                 email.mime_version)
+    assert_equal(["reply-to@test.lindsaar.net"],        email.reply_to)
     assert_equal(time,                                  email.date)
   end
 
@@ -75,63 +75,63 @@ class BaseTest < ActiveSupport::TestCase
 
   test "should set template content type if mail has only one part" do
     mail = BaseMailer.html_only
-    assert_equal('text/html', mail.mime_type)
+    assert_equal("text/html", mail.mime_type)
     mail = BaseMailer.plain_text_only
-    assert_equal('text/plain', mail.mime_type)
+    assert_equal("text/plain", mail.mime_type)
   end
 
   # Custom headers
   test "custom headers" do
     email = BaseMailer.welcome
-    assert_equal("Not SPAM", email['X-SPAM'].decoded)
+    assert_equal("Not SPAM", email["X-SPAM"].decoded)
   end
 
   test "can pass random headers in as a hash to mail" do
-    hash = {'X-Special-Domain-Specific-Header' => "SecretValue",
-            'In-Reply-To' => '1234@mikel.me.com' }
+    hash = {"X-Special-Domain-Specific-Header" => "SecretValue",
+            "In-Reply-To" => "1234@mikel.me.com" }
     mail = BaseMailer.welcome(hash)
-    assert_equal('SecretValue', mail['X-Special-Domain-Specific-Header'].decoded)
-    assert_equal('1234@mikel.me.com', mail['In-Reply-To'].decoded)
+    assert_equal("SecretValue", mail["X-Special-Domain-Specific-Header"].decoded)
+    assert_equal("1234@mikel.me.com", mail["In-Reply-To"].decoded)
   end
 
   test "can pass random headers in as a hash to headers" do
-    hash = {'X-Special-Domain-Specific-Header' => "SecretValue",
-            'In-Reply-To' => '1234@mikel.me.com' }
+    hash = {"X-Special-Domain-Specific-Header" => "SecretValue",
+            "In-Reply-To" => "1234@mikel.me.com" }
     mail = BaseMailer.welcome_with_headers(hash)
-    assert_equal('SecretValue', mail['X-Special-Domain-Specific-Header'].decoded)
-    assert_equal('1234@mikel.me.com', mail['In-Reply-To'].decoded)
+    assert_equal("SecretValue", mail["X-Special-Domain-Specific-Header"].decoded)
+    assert_equal("1234@mikel.me.com", mail["In-Reply-To"].decoded)
   end
 
   # Attachments
   test "attachment with content" do
     email = BaseMailer.attachment_with_content
     assert_equal(1, email.attachments.length)
-    assert_equal('invoice.pdf', email.attachments[0].filename)
-    assert_equal('This is test File content', email.attachments['invoice.pdf'].decoded)
+    assert_equal("invoice.pdf", email.attachments[0].filename)
+    assert_equal("This is test File content", email.attachments["invoice.pdf"].decoded)
   end
 
   test "attachment gets content type from filename" do
     email = BaseMailer.attachment_with_content
-    assert_equal('invoice.pdf', email.attachments[0].filename)
-    assert_equal('application/pdf', email.attachments[0].mime_type)
+    assert_equal("invoice.pdf", email.attachments[0].filename)
+    assert_equal("application/pdf", email.attachments[0].mime_type)
   end
 
   test "attachment with hash" do
     email = BaseMailer.attachment_with_hash
     assert_equal(1, email.attachments.length)
-    assert_equal('invoice.jpg', email.attachments[0].filename)
+    assert_equal("invoice.jpg", email.attachments[0].filename)
     expected = "\312\213\254\232)b"
     expected.force_encoding(Encoding::BINARY)
-    assert_equal expected, email.attachments['invoice.jpg'].decoded
+    assert_equal expected, email.attachments["invoice.jpg"].decoded
   end
 
   test "attachment with hash using default mail encoding" do
     email = BaseMailer.attachment_with_hash_default_encoding
     assert_equal(1, email.attachments.length)
-    assert_equal('invoice.jpg', email.attachments[0].filename)
+    assert_equal("invoice.jpg", email.attachments[0].filename)
     expected = "\312\213\254\232)b"
     expected.force_encoding(Encoding::BINARY)
-    assert_equal expected, email.attachments['invoice.jpg'].decoded
+    assert_equal expected, email.attachments["invoice.jpg"].decoded
   end
 
   test "sets mime type to multipart/mixed when attachment is included" do
@@ -215,24 +215,24 @@ class BaseTest < ActiveSupport::TestCase
       email = BaseMailer.welcome(subject: nil)
       assert_equal "Welcome", email.subject
 
-      with_translation 'en', base_mailer: {welcome: {subject: "New Subject!"}} do
+      with_translation "en", base_mailer: {welcome: {subject: "New Subject!"}} do
         email = BaseMailer.welcome(subject: nil)
         assert_equal "New Subject!", email.subject
       end
     end
   end
 
-  test 'default subject can have interpolations' do
-    with_translation 'en', base_mailer: {with_subject_interpolations: {subject: 'Will the real %{rapper_or_impersonator} please stand up?'}} do
+  test "default subject can have interpolations" do
+    with_translation "en", base_mailer: {with_subject_interpolations: {subject: "Will the real %{rapper_or_impersonator} please stand up?"}} do
       email = BaseMailer.with_subject_interpolations
-      assert_equal 'Will the real Slim Shady please stand up?', email.subject
+      assert_equal "Will the real Slim Shady please stand up?", email.subject
     end
   end
 
   test "translations are scoped properly" do
-    with_translation 'en', base_mailer: {email_with_translations: {greet_user: "Hello %{name}!"}} do
+    with_translation "en", base_mailer: {email_with_translations: {greet_user: "Hello %{name}!"}} do
       email = BaseMailer.email_with_translations
-      assert_equal 'Hello lifo!', email.body.encoded
+      assert_equal "Hello lifo!", email.body.encoded
     end
   end
 
@@ -240,7 +240,7 @@ class BaseTest < ActiveSupport::TestCase
     class LateAttachmentMailer < ActionMailer::Base
       def welcome
         mail body: "yay", from: "welcome@example.com", to: "to@example.com"
-        attachments['invoice.pdf'] = 'This is test File content'
+        attachments["invoice.pdf"] = "This is test File content"
       end
     end
 
@@ -252,7 +252,7 @@ class BaseTest < ActiveSupport::TestCase
     class LateInlineAttachmentMailer < ActionMailer::Base
       def welcome
         mail body: "yay", from: "welcome@example.com", to: "to@example.com"
-        attachments.inline['invoice.pdf'] = 'This is test File content'
+        attachments.inline["invoice.pdf"] = "This is test File content"
       end
     end
 
@@ -271,13 +271,13 @@ class BaseTest < ActiveSupport::TestCase
     assert_nothing_raised { mail.message }
 
     assert_equal ["image/jpeg; filename=controller_attachments.jpg",
-                  "image/jpeg; filename=attachments.jpg"], mail.attachments.inline.map {|a| a['Content-Type'].to_s }
+                  "image/jpeg; filename=attachments.jpg"], mail.attachments.inline.map {|a| a["Content-Type"].to_s }
   end
 
   test "accessing attachments works after mail was called" do
     class LateAttachmentAccessorMailer < ActionMailer::Base
       def welcome
-        attachments['invoice.pdf'] = 'This is test File content'
+        attachments["invoice.pdf"] = "This is test File content"
         mail body: "yay", from: "welcome@example.com", to: "to@example.com"
 
         unless attachments.map(&:filename) == ["invoice.pdf"]
@@ -366,7 +366,7 @@ class BaseTest < ActiveSupport::TestCase
       I18n.backend = fallback_backend.new
       I18n.fallbacks[:"de-AT"] = [:de]
 
-      swap I18n, locale: 'de-AT' do
+      swap I18n, locale: "de-AT" do
         email = BaseMailer.implicit_with_locale
         assert_equal(2, email.parts.size)
         assert_equal("multipart/alternative", email.mime_type)
@@ -449,7 +449,7 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("Format with any!", email.parts[1].body.encoded)
   end
 
-  test 'explicit without specifying format with format.any' do
+  test "explicit without specifying format with format.any" do
     error = assert_raises(ArgumentError) do
       BaseMailer.explicit_without_specifying_format_with_any.parts
     end
@@ -508,13 +508,13 @@ class BaseTest < ActiveSupport::TestCase
   test "calling just the action should return the generated mail object" do
     email = BaseMailer.welcome
     assert_equal(0, BaseMailer.deliveries.length)
-    assert_equal('The first email on new API!', email.subject)
+    assert_equal("The first email on new API!", email.subject)
   end
 
   test "calling deliver on the action should deliver the mail object" do
     assert_called(BaseMailer, :deliver_mail) do
       mail = BaseMailer.welcome.deliver_now
-      assert_equal 'The first email on new API!', mail.subject
+      assert_equal "The first email on new API!", mail.subject
     end
   end
 
@@ -534,35 +534,35 @@ class BaseTest < ActiveSupport::TestCase
 
   # Rendering
   test "you can specify a different template for implicit render" do
-    mail = BaseMailer.implicit_different_template('implicit_multipart').deliver_now
+    mail = BaseMailer.implicit_different_template("implicit_multipart").deliver_now
     assert_equal("HTML Implicit Multipart", mail.html_part.body.decoded)
     assert_equal("TEXT Implicit Multipart", mail.text_part.body.decoded)
   end
 
   test "should raise if missing template in implicit render" do
     assert_raises ActionView::MissingTemplate do
-      BaseMailer.implicit_different_template('missing_template').deliver_now
+      BaseMailer.implicit_different_template("missing_template").deliver_now
     end
     assert_equal(0, BaseMailer.deliveries.length)
   end
 
   test "you can specify a different template for explicit render" do
-    mail = BaseMailer.explicit_different_template('explicit_multipart_templates').deliver_now
+    mail = BaseMailer.explicit_different_template("explicit_multipart_templates").deliver_now
     assert_equal("HTML Explicit Multipart Templates", mail.html_part.body.decoded)
     assert_equal("TEXT Explicit Multipart Templates", mail.text_part.body.decoded)
   end
 
   test "you can specify a different layout" do
-    mail = BaseMailer.different_layout('different_layout').deliver_now
+    mail = BaseMailer.different_layout("different_layout").deliver_now
     assert_equal("HTML -- HTML", mail.html_part.body.decoded)
     assert_equal("PLAIN -- PLAIN", mail.text_part.body.decoded)
   end
 
   test "you can specify the template path for implicit lookup" do
-    mail = BaseMailer.welcome_from_another_path('another.path/base_mailer').deliver_now
+    mail = BaseMailer.welcome_from_another_path("another.path/base_mailer").deliver_now
     assert_equal("Welcome from another path", mail.body.encoded)
 
-    mail = BaseMailer.welcome_from_another_path(['unknown/invalid', 'another.path/base_mailer']).deliver_now
+    mail = BaseMailer.welcome_from_another_path(["unknown/invalid", "another.path/base_mailer"]).deliver_now
     assert_equal("Welcome from another path", mail.body.encoded)
   end
 
@@ -589,15 +589,15 @@ class BaseTest < ActiveSupport::TestCase
     assert_dom_equal(%{<img alt="Dummy" src="http://local.com/images/dummy.png" />}, mail.body.to_s.strip)
   end
 
-  test 'the view is not rendered when mail was never called' do
+  test "the view is not rendered when mail was never called" do
     mail = BaseMailer.without_mail_call
-    assert_equal('', mail.body.to_s.strip)
+    assert_equal("", mail.body.to_s.strip)
     mail.deliver_now
   end
 
-  test 'the return value of mailer methods is not relevant' do
+  test "the return value of mailer methods is not relevant" do
     mail = BaseMailer.with_nil_as_return_value
-    assert_equal('Welcome', mail.body.to_s.strip)
+    assert_equal("Welcome", mail.body.to_s.strip)
     mail.deliver_now
   end
 
@@ -708,16 +708,16 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "being able to put proc's into the defaults hash and they get evaluated on mail sending" do
-    mail1 = ProcMailer.welcome['X-Proc-Method']
+    mail1 = ProcMailer.welcome["X-Proc-Method"]
     yesterday = 1.day.ago
     Time.stub(:now, yesterday) do
-      mail2 = ProcMailer.welcome['X-Proc-Method']
+      mail2 = ProcMailer.welcome["X-Proc-Method"]
       assert(mail1.to_s.to_i > mail2.to_s.to_i)
     end
   end
 
-  test 'default values which have to_proc (e.g. symbols) should not be considered procs' do
-    assert(ProcMailer.welcome['x-has-to-proc'].to_s == 'symbol')
+  test "default values which have to_proc (e.g. symbols) should not be considered procs" do
+    assert(ProcMailer.welcome["x-has-to-proc"].to_s == "symbol")
   end
 
   test "we can call other defined methods on the class as needed" do
@@ -733,11 +733,11 @@ class BaseTest < ActiveSupport::TestCase
 
       private
       def add_special_header!
-        headers('X-Special-Header' => 'Wow, so special')
+        headers("X-Special-Header" => "Wow, so special")
       end
     end
 
-    assert_equal('Wow, so special', BeforeActionMailer.welcome['X-Special-Header'].to_s)
+    assert_equal("Wow, so special", BeforeActionMailer.welcome["X-Special-Header"].to_s)
   end
 
   test "modifying the mail message with an after_action" do
@@ -748,11 +748,11 @@ class BaseTest < ActiveSupport::TestCase
 
       private
       def add_special_header!
-        headers('X-Special-Header' => 'Testing')
+        headers("X-Special-Header" => "Testing")
       end
     end
 
-    assert_equal('Testing', AfterActionMailer.welcome['X-Special-Header'].to_s)
+    assert_equal("Testing", AfterActionMailer.welcome["X-Special-Header"].to_s)
   end
 
   test "adding an inline attachment using a before_action" do
@@ -763,12 +763,12 @@ class BaseTest < ActiveSupport::TestCase
 
       private
       def add_inline_attachment!
-        attachments.inline["footer.jpg"] = 'hey there'
+        attachments.inline["footer.jpg"] = "hey there"
       end
     end
 
     mail = DefaultInlineAttachmentMailer.welcome
-    assert_equal('image/jpeg; filename=footer.jpg', mail.attachments.inline.first['Content-Type'].to_s)
+    assert_equal("image/jpeg; filename=footer.jpg", mail.attachments.inline.first["Content-Type"].to_s)
   end
 
   test "action methods should be refreshed after defining new method" do
@@ -798,7 +798,7 @@ class BaseTest < ActiveSupport::TestCase
 
   test "default_from can be set" do
     class DefaultFromMailer < ActionMailer::Base
-      default to: 'system@test.lindsaar.net'
+      default to: "system@test.lindsaar.net"
       self.default_options = {from: "robert.pankowecki@gmail.com"}
 
       def welcome
@@ -814,7 +814,7 @@ class BaseTest < ActiveSupport::TestCase
       after_action :a_callback
 
       def welcome
-        headers('X-Special-Header' => 'special indeed!')
+        headers("X-Special-Header" => "special indeed!")
         mail subject: "subject", body: "hello world", to: ["joe@example.com"]
       end
 
