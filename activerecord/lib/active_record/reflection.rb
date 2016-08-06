@@ -281,7 +281,6 @@ module ActiveRecord
       end
 
       def autosave=(autosave)
-        @automatic_inverse_of = false
         @options[:autosave] = autosave
         parent_reflection = self.parent_reflection
         if parent_reflection

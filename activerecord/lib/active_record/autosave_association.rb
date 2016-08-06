@@ -270,6 +270,16 @@ module ActiveRecord
       new_record? || changed? || marked_for_destruction? || nested_records_changed_for_autosave?
     end
 
+    # Returns true if this record has triggered saving of other records through
+    # autosave associations, and will remain true for the length of the cycle
+    # until all autosaves have completed.
+    #
+    # This is necessary so that saves triggered on associated records know not
+    # to re-save the parent if the autosave is bidirectional.
+    def _triggering_record? # :nodoc:
+      defined?(@_triggering_record) ? @_triggering_record : false
+    end
+
     private
 
       # Returns the record for an association collection that should be validated
@@ -369,6 +379,15 @@ module ActiveRecord
         true
       end
 
+      # Temporarily mark this record as a triggering_record for the duration of
+      # the block call
+      def with_self_as_triggering_record
+        @_triggering_record = true
+        yield
+      ensure
+        @_triggering_record = false
+      end
+
       # Saves any new associated records, or all loaded autosave associations if
       # <tt>:autosave</tt> is enabled on the association.
       #
@@ -389,18 +408,20 @@ module ActiveRecord
             end
 
             records.each do |record|
-              next if record.destroyed?
+              next if record.destroyed? || record._triggering_record?
 
               saved = true
 
-              if autosave != false && (@new_record_before_save || record.new_record?)
-                if autosave
-                  saved = association.insert_record(record, false)
-                else
-                  association.insert_record(record) unless reflection.nested?
+              with_self_as_triggering_record do
+                if autosave != false && (@new_record_before_save || record.new_record?)
+                  if autosave
+                    saved = association.insert_record(record, false)
+                  else
+                    association.insert_record(record) unless reflection.nested?
+                  end
+                elsif autosave
+                  saved = record.save(validate: false)
                 end
-              elsif autosave
-                saved = record.save(:validate => false)
               end
 
               raise ActiveRecord::Rollback unless saved
@@ -424,7 +445,7 @@ module ActiveRecord
         association = association_instance_get(reflection.name)
         record      = association && association.load_target
 
-        if record && !record.destroyed?
+        if record && !record.destroyed? && !record._triggering_record?
           autosave = reflection.options[:autosave]
 
           if autosave && record.marked_for_destruction?
@@ -437,7 +458,10 @@ module ActiveRecord
                 record[reflection.foreign_key] = key
               end
 
-              saved = record.save(:validate => !autosave)
+              saved = with_self_as_triggering_record do
+                record.save(validate: !autosave)
+              end
+
               raise ActiveRecord::Rollback if !saved && autosave
               saved
             end
@@ -458,14 +482,18 @@ module ActiveRecord
       def save_belongs_to_association(reflection)
         association = association_instance_get(reflection.name)
         record      = association && association.load_target
-        if record && !record.destroyed?
+        if record && !record.destroyed? && !record._triggering_record?
           autosave = reflection.options[:autosave]
 
           if autosave && record.marked_for_destruction?
             self[reflection.foreign_key] = nil
             record.destroy
           elsif autosave != false
-            saved = record.save(:validate => !autosave) if record.new_record? || (autosave && record.changed_for_autosave?)
+            if record.new_record? || (autosave && record.changed_for_autosave?)
+              saved = with_self_as_triggering_record do
+                record.save(validate: !autosave)
+              end
+            end
 
             if association.updated?
               association_id = record.send(reflection.options[:primary_key] || :id)

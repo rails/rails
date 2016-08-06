@@ -13,6 +13,9 @@ class Ship < ActiveRecord::Base
 
   validates_presence_of :name
 
+  attr_accessor :validate_pirate
+  validates :pirate, presence: true, if: :validate_pirate
+
   attr_accessor :cancel_save_from_callback
   before_save :cancel_save_callback_method, :if => :cancel_save_from_callback
   def cancel_save_callback_method
