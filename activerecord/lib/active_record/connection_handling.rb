@@ -113,7 +113,9 @@ module ActiveRecord
     end
 
     def retrieve_connection
-      connection_handler.retrieve_connection(connection_specification_name)
+      connection = connection_handler.retrieve_connection(connection_specification_name)
+      connection.enable_query_cache! if query_cache_enabled?
+      connection
     end
 
     # Returns +true+ if Active Record is connected.

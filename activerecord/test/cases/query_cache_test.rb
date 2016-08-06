@@ -31,14 +31,16 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   def test_exceptional_middleware_leaves_enabled_cache_alone
-    ActiveRecord::Base.connection.enable_query_cache!
+    ActiveRecord::Base.enable_query_cache!
 
     mw = middleware { |env|
       raise "lol borked"
     }
     assert_raises(RuntimeError) { mw.call({}) }
 
-    assert ActiveRecord::Base.connection.query_cache_enabled, 'cache on'
+    assert ActiveRecord::Base.query_cache_enabled?, 'cache on'
+  ensure
+    ActiveRecord::Base.disable_query_cache!
   end
 
   def test_middleware_delegates
@@ -210,6 +212,40 @@ class QueryCacheTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection.uncached do
       assert_equal 0, Post.where(title: 'rollback').to_a.count
     end
+  end
+
+  def test_query_cache_does_not_establish_connection_if_unconnected
+    ActiveRecord::Base.clear_all_connections!
+    refute ActiveRecord::Base.connected? # sanity check
+
+    middleware {
+      refute ActiveRecord::Base.connected?, "QueryCache forced ActiveRecord::Base to establish a connection in setup"
+    }.call({})
+
+    refute ActiveRecord::Base.connected?, "QueryCache forced ActiveRecord::Base to establish a connection in cleanup"
+  end
+
+  def test_query_cache_is_enabled_on_connections_established_after_middleware_runs
+    ActiveRecord::Base.clear_all_connections!
+    refute ActiveRecord::Base.connected? # sanity check
+
+    middleware {
+      assert ActiveRecord::Base.connection.query_cache_enabled, "QueryCache did not get lazily enabled"
+    }.call({})
+  end
+
+  def test_query_caching_is_local_to_the_current_thread
+    ActiveRecord::Base.clear_all_connections!
+
+    middleware {
+      assert ActiveRecord::Base.query_cache_enabled?
+      assert ActiveRecord::Base.connection.query_cache_enabled
+
+      Thread.new {
+        refute ActiveRecord::Base.query_cache_enabled?
+        refute ActiveRecord::Base.connection.query_cache_enabled
+      }.join
+    }.call({})
   end
 
   private
