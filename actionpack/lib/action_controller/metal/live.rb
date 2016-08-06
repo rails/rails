@@ -1,6 +1,6 @@
-require 'action_dispatch/http/response'
-require 'delegate'
-require 'active_support/json'
+require "action_dispatch/http/response"
+require "delegate"
+require "active_support/json"
 
 module ActionController
   # Mix this module into your controller, and all actions in that controller

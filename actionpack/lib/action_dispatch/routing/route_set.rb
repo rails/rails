@@ -1,12 +1,12 @@
-require 'action_dispatch/journey'
-require 'active_support/concern'
-require 'active_support/core_ext/object/to_query'
-require 'active_support/core_ext/hash/slice'
-require 'active_support/core_ext/module/remove_method'
-require 'active_support/core_ext/array/extract_options'
-require 'action_controller/metal/exceptions'
-require 'action_dispatch/http/request'
-require 'action_dispatch/routing/endpoint'
+require "action_dispatch/journey"
+require "active_support/concern"
+require "active_support/core_ext/object/to_query"
+require "active_support/core_ext/hash/slice"
+require "active_support/core_ext/module/remove_method"
+require "active_support/core_ext/array/extract_options"
+require "action_controller/metal/exceptions"
+require "action_dispatch/http/request"
+require "action_dispatch/routing/endpoint"
 
 module ActionDispatch
   module Routing
@@ -34,7 +34,7 @@ module ActionDispatch
           if @raise_on_name_error
             raise
           else
-            return [404, {'X-Cascade' => 'pass'}, []]
+            return [404, {"X-Cascade" => "pass"}, []]
           end
         end
 
@@ -310,7 +310,7 @@ module ActionDispatch
       alias :routes :set
 
       def self.default_resources_path_names
-        { :new => 'new', :edit => 'edit' }
+        { :new => "new", :edit => "edit" }
       end
 
       def self.new_with_config(config)
@@ -581,12 +581,12 @@ module ActionDispatch
           # be "index", not the recalled action of "show".
 
           if options[:controller]
-            options[:action]     ||= 'index'
+            options[:action]     ||= "index"
             options[:controller]   = options[:controller].to_s
           end
 
           if options.key?(:action)
-            options[:action] = (options[:action] || 'index').to_s
+            options[:action] = (options[:action] || "index").to_s
           end
         end
 
@@ -605,7 +605,7 @@ module ActionDispatch
         # is specified, the controller becomes "foo/baz/bat"
         def use_relative_controller!
           if !named_route && different_controller? && !controller.start_with?("/")
-            old_parts = current_controller.split('/')
+            old_parts = current_controller.split("/")
             size = controller.count("/") + 1
             parts = old_parts[0...-size] << controller
             @options[:controller] = parts.join("/")
@@ -670,7 +670,7 @@ module ActionDispatch
       end
 
       def find_script_name(options)
-        options.delete(:script_name) || find_relative_url_root(options) || ''
+        options.delete(:script_name) || find_relative_url_root(options) || ""
       end
 
       def find_relative_url_root(options)

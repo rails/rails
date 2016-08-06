@@ -1,16 +1,16 @@
-require 'stringio'
+require "stringio"
 
-require 'active_support/inflector'
-require 'action_dispatch/http/headers'
-require 'action_controller/metal/exceptions'
-require 'rack/request'
-require 'action_dispatch/http/cache'
-require 'action_dispatch/http/mime_negotiation'
-require 'action_dispatch/http/parameters'
-require 'action_dispatch/http/filter_parameters'
-require 'action_dispatch/http/upload'
-require 'action_dispatch/http/url'
-require 'active_support/core_ext/array/conversions'
+require "active_support/inflector"
+require "action_dispatch/http/headers"
+require "action_controller/metal/exceptions"
+require "rack/request"
+require "action_dispatch/http/cache"
+require "action_dispatch/http/mime_negotiation"
+require "action_dispatch/http/parameters"
+require "action_dispatch/http/filter_parameters"
+require "action_dispatch/http/upload"
+require "action_dispatch/http/url"
+require "active_support/core_ext/array/conversions"
 
 module ActionDispatch
   class Request
@@ -22,8 +22,8 @@ module ActionDispatch
     include ActionDispatch::Http::URL
     include Rack::Request::Env
 
-    autoload :Session, 'action_dispatch/request/session'
-    autoload :Utils,   'action_dispatch/request/utils'
+    autoload :Session, "action_dispatch/request/session"
+    autoload :Utils,   "action_dispatch/request/utils"
 
     LOCALHOST   = Regexp.union [/^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/, /^::1$/, /^0:0:0:0:0:0:0:1(%.*)?$/]
 
@@ -68,7 +68,7 @@ module ActionDispatch
 
     PASS_NOT_FOUND = Class.new { # :nodoc:
       def self.action(_); self; end
-      def self.call(_); [404, {'X-Cascade' => 'pass'}, []]; end
+      def self.call(_); [404, {"X-Cascade" => "pass"}, []]; end
     }
 
     def controller_class
@@ -76,7 +76,7 @@ module ActionDispatch
 
       if params.key?(:controller)
         controller_param = params[:controller].underscore
-        params[:action] ||= 'index'
+        params[:action] ||= "index"
         const_name = "#{controller_param.camelize}Controller"
         ActiveSupport::Dependencies.constantize(const_name)
       else
@@ -148,11 +148,11 @@ module ActionDispatch
     end
 
     def controller_instance # :nodoc:
-      get_header('action_controller.instance'.freeze)
+      get_header("action_controller.instance".freeze)
     end
 
     def controller_instance=(controller) # :nodoc:
-      set_header('action_controller.instance'.freeze, controller)
+      set_header("action_controller.instance".freeze, controller)
     end
 
     def http_auth_salt
@@ -163,7 +163,7 @@ module ActionDispatch
       # We're treating `nil` as "unset", and we want the default setting to be
       # `true`.  This logic should be extracted to `env_config` and calculated
       # once.
-      !(get_header('action_dispatch.show_exceptions'.freeze) == false)
+      !(get_header("action_dispatch.show_exceptions".freeze) == false)
     end
 
     # Returns a symbol form of the #request_method
@@ -175,7 +175,7 @@ module ActionDispatch
     # even if it was overridden by middleware. See #request_method for
     # more information.
     def method
-      @method ||= check_method(get_header("rack.methodoverride.original_method") || get_header('REQUEST_METHOD'))
+      @method ||= check_method(get_header("rack.methodoverride.original_method") || get_header("REQUEST_METHOD"))
     end
 
     # Returns a symbol form of the #method
@@ -237,7 +237,7 @@ module ActionDispatch
     # (case-insensitive), which may need to be manually added depending on the
     # choice of JavaScript libraries and frameworks.
     def xml_http_request?
-      get_header('HTTP_X_REQUESTED_WITH') =~ /XMLHttpRequest/i
+      get_header("HTTP_X_REQUESTED_WITH") =~ /XMLHttpRequest/i
     end
     alias :xhr? :xml_http_request?
 
@@ -276,24 +276,24 @@ module ActionDispatch
 
     # Returns the lowercase name of the HTTP server software.
     def server_software
-      (get_header('SERVER_SOFTWARE') && /^([a-zA-Z]+)/ =~ get_header('SERVER_SOFTWARE')) ? $1.downcase : nil
+      (get_header("SERVER_SOFTWARE") && /^([a-zA-Z]+)/ =~ get_header("SERVER_SOFTWARE")) ? $1.downcase : nil
     end
 
     # Read the request \body. This is useful for web services that need to
     # work with raw requests directly.
     def raw_post
-      unless has_header? 'RAW_POST_DATA'
+      unless has_header? "RAW_POST_DATA"
         raw_post_body = body
-        set_header('RAW_POST_DATA', raw_post_body.read(content_length))
+        set_header("RAW_POST_DATA", raw_post_body.read(content_length))
         raw_post_body.rewind if raw_post_body.respond_to?(:rewind)
       end
-      get_header 'RAW_POST_DATA'
+      get_header "RAW_POST_DATA"
     end
 
     # The request body is an IO input stream. If the RAW_POST_DATA environment
     # variable is already set, wrap it in a StringIO.
     def body
-      if raw_post = get_header('RAW_POST_DATA')
+      if raw_post = get_header("RAW_POST_DATA")
         raw_post.force_encoding(Encoding::BINARY)
         StringIO.new(raw_post)
       else
@@ -314,7 +314,7 @@ module ActionDispatch
     end
 
     def body_stream #:nodoc:
-      get_header('rack.input')
+      get_header("rack.input")
     end
 
     # TODO This should be broken apart into AD::Request::Session and probably
@@ -367,10 +367,10 @@ module ActionDispatch
     # Returns the authorization header regardless of whether it was specified directly or through one of the
     # proxy alternatives.
     def authorization
-      get_header('HTTP_AUTHORIZATION')   ||
-      get_header('X-HTTP_AUTHORIZATION') ||
-      get_header('X_HTTP_AUTHORIZATION') ||
-      get_header('REDIRECT_X_HTTP_AUTHORIZATION')
+      get_header("HTTP_AUTHORIZATION")   ||
+      get_header("X-HTTP_AUTHORIZATION") ||
+      get_header("X_HTTP_AUTHORIZATION") ||
+      get_header("REDIRECT_X_HTTP_AUTHORIZATION")
     end
 
     # True if the request came from localhost, 127.0.0.1, or ::1.
@@ -391,7 +391,7 @@ module ActionDispatch
     end
 
     def ssl?
-      super || scheme == 'wss'.freeze
+      super || scheme == "wss".freeze
     end
 
     private

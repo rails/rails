@@ -1,16 +1,16 @@
-require 'action_dispatch/http/request'
-require 'action_dispatch/middleware/exception_wrapper'
-require 'action_dispatch/routing/inspector'
-require 'action_view'
-require 'action_view/base'
+require "action_dispatch/http/request"
+require "action_dispatch/middleware/exception_wrapper"
+require "action_dispatch/routing/inspector"
+require "action_view"
+require "action_view/base"
 
-require 'pp'
+require "pp"
 
 module ActionDispatch
   # This middleware is responsible for logging exceptions and
   # showing a debugging page in case the request is local.
   class DebugExceptions
-    RESCUES_TEMPLATE_PATH = File.expand_path('../templates', __FILE__)
+    RESCUES_TEMPLATE_PATH = File.expand_path("../templates", __FILE__)
 
     class DebugView < ActionView::Base
       def debug_params(params)
@@ -19,7 +19,7 @@ module ActionDispatch
         clean_params.delete("controller")
 
         if clean_params.empty?
-          'None'
+          "None"
         else
           PP.pp(clean_params, "", 200)
         end
@@ -27,9 +27,9 @@ module ActionDispatch
 
       def debug_headers(headers)
         if headers.present?
-          headers.inspect.gsub(',', ",\n")
+          headers.inspect.gsub(",", ",\n")
         else
-          'None'
+          "None"
         end
       end
 
@@ -56,7 +56,7 @@ module ActionDispatch
       request = ActionDispatch::Request.new env
       _, headers, body = response = @app.call(env)
 
-      if headers['X-Cascade'] == 'pass'
+      if headers["X-Cascade"] == "pass"
         body.close if body.respond_to?(:close)
         raise ActionController::RoutingError, "No route matches [#{env['REQUEST_METHOD']}] #{env['PATH_INFO'].inspect}"
       end
@@ -70,11 +70,11 @@ module ActionDispatch
     private
 
     def render_exception(request, exception)
-      backtrace_cleaner = request.get_header('action_dispatch.backtrace_cleaner')
+      backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")
       wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
       log_error(request, wrapper)
 
-      if request.get_header('action_dispatch.show_detailed_exceptions')
+      if request.get_header("action_dispatch.show_detailed_exceptions")
         content_type = request.formats.first
 
         if api_request?(content_type)
@@ -95,7 +95,7 @@ module ActionDispatch
         body = template.render(template: file, layout: false, formats: [:text])
         format = "text/plain"
       else
-        body = template.render(template: file, layout: 'rescues/layout')
+        body = template.render(template: file, layout: "rescues/layout")
         format = "text/html"
       end
       render(wrapper.status_code, body, format)
@@ -128,9 +128,9 @@ module ActionDispatch
     def create_template(request, wrapper)
       traces = wrapper.traces
 
-      trace_to_show = 'Application Trace'
-      if traces[trace_to_show].empty? && wrapper.rescue_template != 'routing_error'
-        trace_to_show = 'Full Trace'
+      trace_to_show = "Application Trace"
+      if traces[trace_to_show].empty? && wrapper.rescue_template != "routing_error"
+        trace_to_show = "Full Trace"
       end
 
       if source_to_show = traces[trace_to_show].first
@@ -151,7 +151,7 @@ module ActionDispatch
     end
 
     def render(status, body, format)
-      [status, {'Content-Type' => "#{format}; charset=#{Response.default_charset}", 'Content-Length' => body.bytesize.to_s}, [body]]
+      [status, {"Content-Type" => "#{format}; charset=#{Response.default_charset}", "Content-Length" => body.bytesize.to_s}, [body]]
     end
 
     def log_error(request, wrapper)

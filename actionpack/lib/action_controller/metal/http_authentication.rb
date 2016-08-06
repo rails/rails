@@ -1,5 +1,5 @@
-require 'base64'
-require 'active_support/security_utils'
+require "base64"
+require "active_support/security_utils"
 
 module ActionController
   # Makes it dead easy to do HTTP Basic, Digest and Token authentication.
@@ -99,23 +99,23 @@ module ActionController
       end
 
       def has_basic_credentials?(request)
-        request.authorization.present? && (auth_scheme(request).downcase == 'basic')
+        request.authorization.present? && (auth_scheme(request).downcase == "basic")
       end
 
       def user_name_and_password(request)
-        decode_credentials(request).split(':', 2)
+        decode_credentials(request).split(":", 2)
       end
 
       def decode_credentials(request)
-        ::Base64.decode64(auth_param(request) || '')
+        ::Base64.decode64(auth_param(request) || "")
       end
 
       def auth_scheme(request)
-        request.authorization.to_s.split(' ', 2).first
+        request.authorization.to_s.split(" ", 2).first
       end
 
       def auth_param(request)
-        request.authorization.to_s.split(' ', 2).second
+        request.authorization.to_s.split(" ", 2).second
       end
 
       def encode_credentials(user_name, password)
@@ -208,7 +208,7 @@ module ActionController
           password = password_procedure.call(credentials[:username])
           return false unless password
 
-          method = request.get_header('rack.methodoverride.original_method') || request.get_header('REQUEST_METHOD')
+          method = request.get_header("rack.methodoverride.original_method") || request.get_header("REQUEST_METHOD")
           uri    = credentials[:uri]
 
           [true, false].any? do |trailing_question_mark|
@@ -226,17 +226,17 @@ module ActionController
       # of a plain-text password.
       def expected_response(http_method, uri, credentials, password, password_is_ha1=true)
         ha1 = password_is_ha1 ? password : ha1(credentials, password)
-        ha2 = ::Digest::MD5.hexdigest([http_method.to_s.upcase, uri].join(':'))
-        ::Digest::MD5.hexdigest([ha1, credentials[:nonce], credentials[:nc], credentials[:cnonce], credentials[:qop], ha2].join(':'))
+        ha2 = ::Digest::MD5.hexdigest([http_method.to_s.upcase, uri].join(":"))
+        ::Digest::MD5.hexdigest([ha1, credentials[:nonce], credentials[:nc], credentials[:cnonce], credentials[:qop], ha2].join(":"))
       end
 
       def ha1(credentials, password)
-        ::Digest::MD5.hexdigest([credentials[:username], credentials[:realm], password].join(':'))
+        ::Digest::MD5.hexdigest([credentials[:username], credentials[:realm], password].join(":"))
       end
 
       def encode_credentials(http_method, credentials, password, password_is_ha1)
         credentials[:response] = expected_response(http_method, credentials[:uri], credentials, password, password_is_ha1)
-        "Digest " + credentials.sort_by {|x| x[0].to_s }.map {|v| "#{v[0]}='#{v[1]}'" }.join(', ')
+        "Digest " + credentials.sort_by {|x| x[0].to_s }.map {|v| "#{v[0]}='#{v[1]}'" }.join(", ")
       end
 
       def decode_credentials_header(request)
@@ -244,9 +244,9 @@ module ActionController
       end
 
       def decode_credentials(header)
-        ActiveSupport::HashWithIndifferentAccess[header.to_s.gsub(/^Digest\s+/, '').split(',').map do |pair|
-          key, value = pair.split('=', 2)
-          [key.strip, value.to_s.gsub(/^"|"$/,'').delete('\'')]
+        ActiveSupport::HashWithIndifferentAccess[header.to_s.gsub(/^Digest\s+/, "").split(",").map do |pair|
+          key, value = pair.split("=", 2)
+          [key.strip, value.to_s.gsub(/^"|"$/,"").delete('\'')]
         end]
       end
 
@@ -406,7 +406,7 @@ module ActionController
     #
     #   RewriteRule ^(.*)$ dispatch.fcgi [E=X-HTTP_AUTHORIZATION:%{HTTP:Authorization},QSA,L]
     module Token
-      TOKEN_KEY = 'token='
+      TOKEN_KEY = "token="
       TOKEN_REGEX = /^(Token|Bearer)\s+/
       AUTHN_PAIR_DELIMITERS = /(?:,|;|\t+)/
       extend self
@@ -476,14 +476,14 @@ module ActionController
 
       # This removes the <tt>"</tt> characters wrapping the value.
       def rewrite_param_values(array_params)
-        array_params.each { |param| (param[1] || "").gsub! %r/^"|"$/, '' }
+        array_params.each { |param| (param[1] || "").gsub! %r/^"|"$/, "" }
       end
 
       # This method takes an authorization body and splits up the key-value
       # pairs by the standardized <tt>:</tt>, <tt>;</tt>, or <tt>\t</tt>
       # delimiters defined in +AUTHN_PAIR_DELIMITERS+.
       def raw_params(auth)
-        _raw_params = auth.sub(TOKEN_REGEX, '').split(/\s*#{AUTHN_PAIR_DELIMITERS}\s*/)
+        _raw_params = auth.sub(TOKEN_REGEX, "").split(/\s*#{AUTHN_PAIR_DELIMITERS}\s*/)
 
         if !(_raw_params.first =~ %r{\A#{TOKEN_KEY}})
           _raw_params[0] = "#{TOKEN_KEY}#{_raw_params.first}"

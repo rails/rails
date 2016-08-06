@@ -1,4 +1,4 @@
-require 'action_dispatch/journey/nfa/dot'
+require "action_dispatch/journey/nfa/dot"
 
 module ActionDispatch
   module Journey # :nodoc:
@@ -72,20 +72,20 @@ module ActionDispatch
         end
 
         def to_svg
-          svg = IO.popen('dot -Tsvg', 'w+') { |f|
+          svg = IO.popen("dot -Tsvg", "w+") { |f|
             f.write(to_dot)
             f.close_write
             f.readlines
           }
           3.times { svg.shift }
-          svg.join.sub(/width="[^"]*"/, '').sub(/height="[^"]*"/, '')
+          svg.join.sub(/width="[^"]*"/, "").sub(/height="[^"]*"/, "")
         end
 
-        def visualizer(paths, title = 'FSM')
-          viz_dir   = File.join File.dirname(__FILE__), '..', 'visualizer'
-          fsm_js    = File.read File.join(viz_dir, 'fsm.js')
-          fsm_css   = File.read File.join(viz_dir, 'fsm.css')
-          erb       = File.read File.join(viz_dir, 'index.html.erb')
+        def visualizer(paths, title = "FSM")
+          viz_dir   = File.join File.dirname(__FILE__), "..", "visualizer"
+          fsm_js    = File.read File.join(viz_dir, "fsm.js")
+          fsm_css   = File.read File.join(viz_dir, "fsm.css")
+          erb       = File.read File.join(viz_dir, "index.html.erb")
           states    = "function tt() { return #{to_json}; }"
 
           fun_routes = paths.sample(3).map do |ast|
@@ -93,10 +93,10 @@ module ActionDispatch
               case n
               when Nodes::Symbol
                 case n.left
-                when ':id' then rand(100).to_s
-                when ':format' then %w{ xml json }.sample
+                when ":id" then rand(100).to_s
+                when ":format" then %w{ xml json }.sample
                 else
-                  'omg'
+                  "omg"
                 end
               when Nodes::Terminal then n.symbol
               else
@@ -115,7 +115,7 @@ module ActionDispatch
           svg         = svg
           javascripts = javascripts
 
-          require 'erb'
+          require "erb"
           template = ERB.new erb
           template.result(binding)
         end
@@ -148,7 +148,7 @@ module ActionDispatch
             when Regexp
               @regexp_states
             else
-              raise ArgumentError, 'unknown symbol: %s' % sym.class
+              raise ArgumentError, "unknown symbol: %s" % sym.class
             end
           end
       end

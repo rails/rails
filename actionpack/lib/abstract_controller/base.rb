@@ -1,9 +1,9 @@
-require 'erubis'
-require 'abstract_controller/error'
-require 'active_support/configurable'
-require 'active_support/descendants_tracker'
-require 'active_support/core_ext/module/anonymous'
-require 'active_support/core_ext/module/attr_internal'
+require "erubis"
+require "abstract_controller/error"
+require "active_support/configurable"
+require "active_support/descendants_tracker"
+require "active_support/core_ext/module/anonymous"
+require "active_support/core_ext/module/attr_internal"
 
 module AbstractController
   # Raised when a non-existing controller action is triggered.
@@ -94,7 +94,7 @@ module AbstractController
       # ==== Returns
       # * <tt>String</tt>
       def controller_path
-        @controller_path ||= name.sub(/Controller$/, ''.freeze).underscore unless anonymous?
+        @controller_path ||= name.sub(/Controller$/, "".freeze).underscore unless anonymous?
       end
 
       # Refresh the cached action_methods when a new action_method is added.

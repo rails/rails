@@ -120,7 +120,7 @@ module ActionDispatch
       def env_name(key)
         key = key.to_s
         if key =~ HTTP_HEADER
-          key = key.upcase.tr('-', '_')
+          key = key.upcase.tr("-", "_")
           key = "HTTP_" + key unless CGI_VARIABLES.include?(key)
         end
         key

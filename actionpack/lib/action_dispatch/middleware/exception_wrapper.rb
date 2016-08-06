@@ -1,33 +1,33 @@
-require 'active_support/core_ext/module/attribute_accessors'
-require 'rack/utils'
+require "active_support/core_ext/module/attribute_accessors"
+require "rack/utils"
 
 module ActionDispatch
   class ExceptionWrapper
     cattr_accessor :rescue_responses
     @@rescue_responses = Hash.new(:internal_server_error)
     @@rescue_responses.merge!(
-      'ActionController::RoutingError'                => :not_found,
-      'AbstractController::ActionNotFound'            => :not_found,
-      'ActionController::MethodNotAllowed'            => :method_not_allowed,
-      'ActionController::UnknownHttpMethod'           => :method_not_allowed,
-      'ActionController::NotImplemented'              => :not_implemented,
-      'ActionController::UnknownFormat'               => :not_acceptable,
-      'ActionController::InvalidAuthenticityToken'    => :unprocessable_entity,
-      'ActionController::InvalidCrossOriginRequest'   => :unprocessable_entity,
-      'ActionDispatch::ParamsParser::ParseError'      => :bad_request,
-      'ActionController::BadRequest'                  => :bad_request,
-      'ActionController::ParameterMissing'            => :bad_request,
-      'Rack::QueryParser::ParameterTypeError'         => :bad_request,
-      'Rack::QueryParser::InvalidParameterError'      => :bad_request
+      "ActionController::RoutingError"                => :not_found,
+      "AbstractController::ActionNotFound"            => :not_found,
+      "ActionController::MethodNotAllowed"            => :method_not_allowed,
+      "ActionController::UnknownHttpMethod"           => :method_not_allowed,
+      "ActionController::NotImplemented"              => :not_implemented,
+      "ActionController::UnknownFormat"               => :not_acceptable,
+      "ActionController::InvalidAuthenticityToken"    => :unprocessable_entity,
+      "ActionController::InvalidCrossOriginRequest"   => :unprocessable_entity,
+      "ActionDispatch::ParamsParser::ParseError"      => :bad_request,
+      "ActionController::BadRequest"                  => :bad_request,
+      "ActionController::ParameterMissing"            => :bad_request,
+      "Rack::QueryParser::ParameterTypeError"         => :bad_request,
+      "Rack::QueryParser::InvalidParameterError"      => :bad_request
     )
 
     cattr_accessor :rescue_templates
-    @@rescue_templates = Hash.new('diagnostics')
+    @@rescue_templates = Hash.new("diagnostics")
     @@rescue_templates.merge!(
-      'ActionView::MissingTemplate'         => 'missing_template',
-      'ActionController::RoutingError'      => 'routing_error',
-      'AbstractController::ActionNotFound'  => 'unknown_action',
-      'ActionView::Template::Error'         => 'template_error'
+      "ActionView::MissingTemplate"         => "missing_template",
+      "ActionController::RoutingError"      => "routing_error",
+      "AbstractController::ActionNotFound"  => "unknown_action",
+      "ActionView::Template::Error"         => "template_error"
     )
 
     attr_reader :backtrace_cleaner, :exception, :line_number, :file

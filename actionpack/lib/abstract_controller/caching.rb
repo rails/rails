@@ -29,7 +29,7 @@ module AbstractController
       extend ConfigMethods
 
       config_accessor :default_static_extension
-      self.default_static_extension ||= '.html'
+      self.default_static_extension ||= ".html"
 
       config_accessor :perform_caching
       self.perform_caching = true if perform_caching.nil?

@@ -1,7 +1,7 @@
-require 'active_support/core_ext/hash/slice'
-require 'active_support/core_ext/hash/except'
-require 'active_support/core_ext/module/anonymous'
-require 'action_dispatch/http/mime_type'
+require "active_support/core_ext/hash/slice"
+require "active_support/core_ext/hash/except"
+require "active_support/core_ext/module/anonymous"
+require "action_dispatch/http/mime_type"
 
 module ActionController
   # Wraps the parameters hash into a nested hash. This will allow clients to
@@ -71,7 +71,7 @@ module ActionController
 
     EXCLUDE_PARAMETERS = %w(authenticity_token _method utf8)
 
-    require 'mutex_m'
+    require "mutex_m"
 
     class Options < Struct.new(:name, :format, :include, :exclude, :klass, :model) # :nodoc:
       include Mutex_m
@@ -137,7 +137,7 @@ module ActionController
       # try to find Foo::Bar::User, Foo::User and finally User.
       def _default_wrap_model #:nodoc:
         return nil if klass.anonymous?
-        model_name = klass.name.sub(/Controller$/, '').classify
+        model_name = klass.name.sub(/Controller$/, "").classify
 
         begin
           if model_klass = model_name.safe_constantize

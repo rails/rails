@@ -1,4 +1,4 @@
-require 'action_dispatch/journey/nfa/dot'
+require "action_dispatch/journey/nfa/dot"
 
 module ActionDispatch
   module Journey # :nodoc:

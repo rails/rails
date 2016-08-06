@@ -1,14 +1,14 @@
-require 'action_dispatch/journey/router/utils'
-require 'action_dispatch/journey/routes'
-require 'action_dispatch/journey/formatter'
+require "action_dispatch/journey/router/utils"
+require "action_dispatch/journey/routes"
+require "action_dispatch/journey/formatter"
 
 before = $-w
 $-w = false
-require 'action_dispatch/journey/parser'
+require "action_dispatch/journey/parser"
 $-w = before
 
-require 'action_dispatch/journey/route'
-require 'action_dispatch/journey/path/pattern'
+require "action_dispatch/journey/route"
+require "action_dispatch/journey/path/pattern"
 
 module ActionDispatch
   module Journey # :nodoc:
@@ -29,7 +29,7 @@ module ActionDispatch
           script_name = req.script_name
 
           unless route.path.anchored
-            req.script_name = (script_name.to_s + match.to_s).chomp('/')
+            req.script_name = (script_name.to_s + match.to_s).chomp("/")
             req.path_info = match.post_match
             req.path_info = "/" + req.path_info unless req.path_info.start_with? "/"
           end
@@ -38,7 +38,7 @@ module ActionDispatch
 
           status, headers, body = route.app.serve(req)
 
-          if 'pass' == headers['X-Cascade']
+          if "pass" == headers["X-Cascade"]
             req.script_name     = script_name
             req.path_info       = path_info
             req.path_parameters = set_params
@@ -48,7 +48,7 @@ module ActionDispatch
           return [status, headers, body]
         end
 
-        return [404, {'X-Cascade' => 'pass'}, ['Not Found']]
+        return [404, {"X-Cascade" => "pass"}, ["Not Found"]]
       end
 
       def recognize(rails_req)

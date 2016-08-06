@@ -1,4 +1,4 @@
-require 'active_support/core_ext/hash/keys'
+require "active_support/core_ext/hash/keys"
 
 module ActionController
   module ConditionalGet

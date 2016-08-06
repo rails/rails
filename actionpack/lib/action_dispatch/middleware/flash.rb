@@ -1,4 +1,4 @@
-require 'active_support/core_ext/hash/keys'
+require "active_support/core_ext/hash/keys"
 
 module ActionDispatch
   # The flash provides a way to pass temporary primitive-types (String, Array, Hash) between actions. Anything you place in the flash will be exposed
@@ -36,7 +36,7 @@ module ActionDispatch
   #
   # See docs on the FlashHash class for more details about the flash.
   class Flash
-    KEY = 'action_dispatch.request.flash_hash'.freeze
+    KEY = "action_dispatch.request.flash_hash".freeze
 
     module RequestMethods
       # Access the contents of the flash. Use <tt>flash["notice"]</tt> to
@@ -60,14 +60,14 @@ module ActionDispatch
         session    = self.session || {}
         flash_hash = self.flash_hash
 
-        if flash_hash && (flash_hash.present? || session.key?('flash'))
+        if flash_hash && (flash_hash.present? || session.key?("flash"))
           session["flash"] = flash_hash.to_session_value
           self.flash = flash_hash.dup
         end
 
         if (!session.respond_to?(:loaded?) || session.loaded?) && # (reset_session uses {}, which doesn't implement #loaded?)
-            session.key?('flash') && session['flash'].nil?
-          session.delete('flash')
+            session.key?("flash") && session["flash"].nil?
+          session.delete("flash")
         end
       end
 
@@ -118,8 +118,8 @@ module ActionDispatch
           end
           new(flashes, flashes.keys)
         when Hash # Rails 4.0
-          flashes = value['flashes']
-          if discard = value['discard']
+          flashes = value["flashes"]
+          if discard = value["discard"]
             flashes.except!(*discard)
           end
           new(flashes, flashes.keys)
@@ -133,7 +133,7 @@ module ActionDispatch
       def to_session_value #:nodoc:
         flashes_to_keep = @flashes.except(*@discard)
         return nil if flashes_to_keep.empty?
-        { 'discard' => [], 'flashes' => flashes_to_keep }
+        { "discard" => [], "flashes" => flashes_to_keep }
       end
 
       def initialize(flashes = {}, discard = []) #:nodoc:

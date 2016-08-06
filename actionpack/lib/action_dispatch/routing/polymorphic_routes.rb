@@ -158,20 +158,20 @@ module ActionDispatch
       end
 
       class HelperMethodBuilder # :nodoc:
-        CACHE = { 'path' => {}, 'url' => {} }
+        CACHE = { "path" => {}, "url" => {} }
 
         def self.get(action, type)
           type   = type.to_s
           CACHE[type].fetch(action) { build action, type }
         end
 
-        def self.url;  CACHE['url'.freeze][nil]; end
-        def self.path; CACHE['path'.freeze][nil]; end
+        def self.url;  CACHE["url".freeze][nil]; end
+        def self.path; CACHE["path".freeze][nil]; end
 
         def self.build(action, type)
           prefix = action ? "#{action}_" : ""
           suffix = type
-          if action.to_s == 'new'
+          if action.to_s == "new"
             HelperMethodBuilder.singular prefix, suffix
           else
             HelperMethodBuilder.plural prefix, suffix
@@ -314,9 +314,9 @@ module ActionDispatch
           "#{prefix}#{str}_#{suffix}"
         end
 
-        [nil, 'new', 'edit'].each do |action|
-          CACHE['url'][action]  = build action, 'url'
-          CACHE['path'][action] = build action, 'path'
+        [nil, "new", "edit"].each do |action|
+          CACHE["url"][action]  = build action, "url"
+          CACHE["path"][action] = build action, "path"
         end
       end
     end

@@ -62,7 +62,7 @@ module AbstractController
       #   impossible to skip a callback defined using an anonymous proc
       #   using #skip_action_callback.
       def skip_action_callback(*names)
-        ActiveSupport::Deprecation.warn('`skip_action_callback` is deprecated and will be removed in Rails 5.1. Please use skip_before_action, skip_after_action or skip_around_action instead.')
+        ActiveSupport::Deprecation.warn("`skip_action_callback` is deprecated and will be removed in Rails 5.1. Please use skip_before_action, skip_after_action or skip_around_action instead.")
         skip_before_action(*names, raise: false)
         skip_after_action(*names, raise: false)
         skip_around_action(*names, raise: false)

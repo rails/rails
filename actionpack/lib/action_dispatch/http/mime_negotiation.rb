@@ -1,4 +1,4 @@
-require 'active_support/core_ext/module/attribute_accessors'
+require "active_support/core_ext/module/attribute_accessors"
 
 module ActionDispatch
   module Http
@@ -16,7 +16,7 @@ module ActionDispatch
       # X-Post-Data-Format HTTP header if present.
       def content_mime_type
         fetch_header("action_dispatch.request.content_type") do |k|
-          v = if get_header('CONTENT_TYPE') =~ /^([^,\;]*)/
+          v = if get_header("CONTENT_TYPE") =~ /^([^,\;]*)/
             Mime::Type.lookup($1.strip.downcase)
           else
             nil
@@ -30,13 +30,13 @@ module ActionDispatch
       end
 
       def has_content_type?
-        has_header? 'CONTENT_TYPE'
+        has_header? "CONTENT_TYPE"
       end
 
       # Returns the accepted MIME type for the request.
       def accepts
         fetch_header("action_dispatch.request.accepts") do |k|
-          header = get_header('HTTP_ACCEPT').to_s.strip
+          header = get_header("HTTP_ACCEPT").to_s.strip
 
           v = if header.empty?
             [content_mime_type]
@@ -164,7 +164,7 @@ module ActionDispatch
       end
 
       def format_from_path_extension
-        path = get_header('action_dispatch.original_path') || get_header('PATH_INFO')
+        path = get_header("action_dispatch.original_path") || get_header("PATH_INFO")
         if match = path && path.match(/\.(\w+)\z/)
           Mime[match.captures.first]
         end

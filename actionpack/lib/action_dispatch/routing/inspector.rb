@@ -1,5 +1,5 @@
-require 'delegate'
-require 'active_support/core_ext/string/strip'
+require "delegate"
+require "active_support/core_ext/string/strip"
 
 module ActionDispatch
   module Routing
@@ -33,11 +33,11 @@ module ActionDispatch
       end
 
       def controller
-        parts.include?(:controller) ? ':controller' : requirements[:controller]
+        parts.include?(:controller) ? ":controller" : requirements[:controller]
       end
 
       def action
-        parts.include?(:action) ? ':action' : requirements[:action]
+        parts.include?(:action) ? ":action" : requirements[:action]
       end
 
       def internal?
@@ -161,7 +161,7 @@ module ActionDispatch
 
       private
         def draw_section(routes)
-          header_lengths = ['Prefix', 'Verb', 'URI Pattern'].map(&:length)
+          header_lengths = ["Prefix", "Verb", "URI Pattern"].map(&:length)
           name_width, verb_width, path_width = widths(routes).zip(header_lengths).map(&:max)
 
           routes.map do |r|

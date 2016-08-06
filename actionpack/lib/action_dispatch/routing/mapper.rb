@@ -1,9 +1,9 @@
-require 'active_support/core_ext/hash/slice'
-require 'active_support/core_ext/enumerable'
-require 'active_support/core_ext/array/extract_options'
-require 'active_support/core_ext/regexp'
-require 'action_dispatch/routing/redirection'
-require 'action_dispatch/routing/endpoint'
+require "active_support/core_ext/hash/slice"
+require "active_support/core_ext/enumerable"
+require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/regexp"
+require "action_dispatch/routing/redirection"
+require "action_dispatch/routing/endpoint"
 
 module ActionDispatch
   module Routing
@@ -41,7 +41,7 @@ module ActionDispatch
         end
 
         def serve(req)
-          return [ 404, {'X-Cascade' => 'pass'}, [] ] unless matches?(req)
+          return [ 404, {"X-Cascade" => "pass"}, [] ] unless matches?(req)
 
           @strategy.call @app, req
         end
@@ -93,7 +93,7 @@ module ActionDispatch
         end
 
         def self.optional_format?(path, format)
-          format != false && !path.include?(':format') && !path.end_with?('/')
+          format != false && !path.include?(":format") && !path.end_with?("/")
         end
 
         def initialize(set, ast, defaults, controller, default_action, modyoule, to, formatted, scope_constraints, blocks, via, options_constraints, anchor, options)
@@ -138,7 +138,7 @@ module ActionDispatch
           @defaults = formats[:defaults].merge(@defaults).merge(normalize_defaults(options))
 
           if path_params.include?(:action) && !@requirements.key?(:action)
-            @defaults[:action] ||= 'index'
+            @defaults[:action] ||= "index"
           end
 
           @required_defaults = (split_options[:required_defaults] || []).map(&:first)
@@ -333,7 +333,7 @@ module ActionDispatch
 
           def split_to(to)
             if to =~ /#/
-              to.split('#')
+              to.split("#")
             else
               []
             end
@@ -661,7 +661,7 @@ module ActionDispatch
                   super(options)
                 else
                   prefix_options = options.slice(*_route.segment_keys)
-                  prefix_options[:relative_url_root] = ''.freeze
+                  prefix_options[:relative_url_root] = "".freeze
                   # we must actually delete prefix segment keys to avoid passing them to next url_for
                   _route.segment_keys.each { |k| options.delete(k) }
                   _routes.url_helpers.send("#{name}_path", prefix_options)
@@ -814,7 +814,7 @@ module ActionDispatch
           options = args.extract_options!.dup
           scope = {}
 
-          options[:path] = args.flatten.join('/') if args.any?
+          options[:path] = args.flatten.join("/") if args.any?
           options[:constraints] ||= {}
 
           unless nested_scope?
@@ -838,7 +838,7 @@ module ActionDispatch
           end
 
           if options.key? :anchor
-            raise ArgumentError, 'anchor is ignored unless passed to `match`'
+            raise ArgumentError, "anchor is ignored unless passed to `match`"
           end
 
           @scope.options.each do |option|
@@ -1563,9 +1563,9 @@ module ActionDispatch
             path, to = options.find { |name, _value| name.is_a?(String) }
 
             if path.nil?
-              ActiveSupport::Deprecation.warn 'Omitting the route path is deprecated. '\
-                'Specify the path with a String or a Symbol instead.'
-              path = ''
+              ActiveSupport::Deprecation.warn "Omitting the route path is deprecated. "\
+                "Specify the path with a String or a Symbol instead."
+              path = ""
             end
 
             case to
@@ -1642,7 +1642,7 @@ to this:
         def get_to_from_path(path, to, action)
           return to if to || action
 
-          path_without_format = path.sub(/\(\.:format\)$/, '')
+          path_without_format = path.sub(/\(\.:format\)$/, "")
           if using_match_shorthand?(path_without_format)
             path_without_format.gsub(%r{^/}, "").sub(%r{/([^/]*)$}, '#\1').tr("-", "_")
           else
@@ -1678,7 +1678,7 @@ to this:
           default_action = options.delete(:action) || @scope[:action]
 
           if action =~ /^[\w\-\/]+$/
-            default_action ||= action.tr('-', '_') unless action.include?("/")
+            default_action ||= action.tr("-", "_") unless action.include?("/")
           else
             action = nil
           end
@@ -1866,8 +1866,8 @@ to this:
               prefix = action
             end
 
-            if prefix && prefix != '/' && !prefix.empty?
-              Mapper.normalize_name prefix.to_s.tr('-', '_')
+            if prefix && prefix != "/" && !prefix.empty?
+              Mapper.normalize_name prefix.to_s.tr("-", "_")
             end
           end
 
@@ -1883,7 +1883,7 @@ to this:
             end
 
             action_name = @scope.action_name(name_prefix, prefix, collection_name, member_name)
-            candidate = action_name.select(&:present?).join('_')
+            candidate = action_name.select(&:present?).join("_")
 
             unless candidate.empty?
               # If a name was not explicitly given, we check if it is valid
@@ -1924,7 +1924,7 @@ to this:
         def match_root_route(options)
           name = has_named_route?(:root) ? nil : :root
           defaults_option = options.delete(:defaults)
-          args = ['/', { as: name, via: :get }.merge!(options)]
+          args = ["/", { as: name, via: :get }.merge!(options)]
 
           if defaults_option
             defaults(defaults_option) { match(*args) }

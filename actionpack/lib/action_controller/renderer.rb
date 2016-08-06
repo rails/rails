@@ -1,4 +1,4 @@
-require 'active_support/core_ext/hash/keys'
+require "active_support/core_ext/hash/keys"
 
 module ActionController
   # ActionController::Renderer allows you to render arbitrary templates
@@ -37,11 +37,11 @@ module ActionController
     attr_reader :defaults, :controller
 
     DEFAULTS = {
-      http_host: 'example.org',
+      http_host: "example.org",
       https: false,
-      method: 'get',
-      script_name: '',
-      input: ''
+      method: "get",
+      script_name: "",
+      input: ""
     }.freeze
 
     # Create a new renderer instance for a specific controller class.
@@ -69,7 +69,7 @@ module ActionController
 
     # Render templates with any options from ActionController::Base#render_to_string.
     def render(*args)
-      raise 'missing controller' unless controller
+      raise "missing controller" unless controller
 
       request = ActionDispatch::Request.new @env
       request.routes = controller._routes
@@ -88,17 +88,17 @@ module ActionController
       end
 
       RACK_KEY_TRANSLATION = {
-        http_host:   'HTTP_HOST',
-        https:       'HTTPS',
-        method:      'REQUEST_METHOD',
-        script_name: 'SCRIPT_NAME',
-        input:       'rack.input'
+        http_host:   "HTTP_HOST",
+        https:       "HTTPS",
+        method:      "REQUEST_METHOD",
+        script_name: "SCRIPT_NAME",
+        input:       "rack.input"
       }
 
       IDENTITY = ->(_) { _ }
 
       RACK_VALUE_TRANSLATION = {
-        https: ->(v) { v ? 'on' : 'off' },
+        https: ->(v) { v ? "on" : "off" },
         method: ->(v) { v.upcase },
       }
 

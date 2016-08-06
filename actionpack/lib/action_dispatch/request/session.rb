@@ -1,4 +1,4 @@
-require 'rack/session/abstract/id'
+require "rack/session/abstract/id"
 
 module ActionDispatch
   class Request

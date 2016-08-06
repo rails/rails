@@ -1,7 +1,7 @@
-require 'active_support/core_ext/array/extract_options'
-require 'action_dispatch/middleware/stack'
-require 'action_dispatch/http/request'
-require 'action_dispatch/http/response'
+require "active_support/core_ext/array/extract_options"
+require "action_dispatch/middleware/stack"
+require "action_dispatch/http/request"
+require "action_dispatch/http/response"
 
 module ActionController
   # Extend ActionDispatch middleware stack to make it aware of options
@@ -130,7 +130,7 @@ module ActionController
     # ==== Returns
     # * <tt>string</tt>
     def self.controller_name
-      @controller_name ||= name.demodulize.sub(/Controller$/, '').underscore
+      @controller_name ||= name.demodulize.sub(/Controller$/, "").underscore
     end
 
     def self.make_response!(request)

@@ -21,7 +21,7 @@ module ActionDispatch
   # This middleware exposes operational details of the server, with no access
   # control. It should only be enabled when in use, and removed thereafter.
   class DebugLocks
-    def initialize(app, path = '/rails/locks')
+    def initialize(app, path = "/rails/locks")
       @app = app
       @path = path
     end
@@ -30,7 +30,7 @@ module ActionDispatch
       req = ActionDispatch::Request.new env
 
       if req.get?
-        path = req.path_info.chomp('/'.freeze)
+        path = req.path_info.chomp("/".freeze)
         if path == @path
           return render_details(req)
         end
@@ -61,16 +61,16 @@ module ActionDispatch
 
         str = threads.map do |thread, info|
           if info[:exclusive]
-            lock_state = 'Exclusive'
+            lock_state = "Exclusive"
           elsif info[:sharing] > 0
-            lock_state = 'Sharing'
+            lock_state = "Sharing"
             lock_state << " x#{info[:sharing]}" if info[:sharing] > 1
           else
-            lock_state = 'No lock'
+            lock_state = "No lock"
           end
 
           if info[:waiting]
-            lock_state << ' (yielded share)'
+            lock_state << " (yielded share)"
           end
 
           msg = "Thread #{info[:index]} [0x#{thread.__id__.to_s(16)} #{thread.status || 'dead'}]  #{lock_state}\n"

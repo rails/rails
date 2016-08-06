@@ -1,5 +1,5 @@
-require 'active_support/core_ext/hash/except'
-require 'active_support/core_ext/hash/slice'
+require "active_support/core_ext/hash/except"
+require "active_support/core_ext/hash/slice"
 
 module ActionController
   # This module provides a method which will redirect the browser to use HTTPS
@@ -76,7 +76,7 @@ module ActionController
     def force_ssl_redirect(host_or_options = nil)
       unless request.ssl?
         options = {
-          :protocol => 'https://',
+          :protocol => "https://",
           :host     => request.host,
           :path     => request.fullpath,
           :status   => :moved_permanently

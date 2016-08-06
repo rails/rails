@@ -1,4 +1,4 @@
-require 'active_support/core_ext/string/filters'
+require "active_support/core_ext/string/filters"
 
 module ActionController
   module Rendering
@@ -49,7 +49,7 @@ module ActionController
     end
 
     def render_to_body(options = {})
-      super || _render_in_priorities(options) || ' '
+      super || _render_in_priorities(options) || " "
     end
 
     private

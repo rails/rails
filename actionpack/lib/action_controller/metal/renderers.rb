@@ -1,4 +1,4 @@
-require 'set'
+require "set"
 
 module ActionController
   # See <tt>Renderers.add</tt>

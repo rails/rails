@@ -1,13 +1,13 @@
-require 'active_support/core_ext/hash/keys'
-require 'active_support/key_generator'
-require 'active_support/message_verifier'
-require 'active_support/json'
-require 'rack/utils'
+require "active_support/core_ext/hash/keys"
+require "active_support/key_generator"
+require "active_support/message_verifier"
+require "active_support/json"
+require "rack/utils"
 
 module ActionDispatch
   class Request
     def cookie_jar
-      fetch_header('action_dispatch.cookies'.freeze) do
+      fetch_header("action_dispatch.cookies".freeze) do
         self.cookie_jar = Cookies::CookieJar.build(self, cookies)
       end
     end
@@ -20,11 +20,11 @@ module ActionDispatch
     }
 
     def have_cookie_jar?
-      has_header? 'action_dispatch.cookies'.freeze
+      has_header? "action_dispatch.cookies".freeze
     end
 
     def cookie_jar=(jar)
-      set_header 'action_dispatch.cookies'.freeze, jar
+      set_header "action_dispatch.cookies".freeze, jar
     end
 
     def key_generator
@@ -338,13 +338,13 @@ module ActionDispatch
       end
 
       def to_header
-        @cookies.map { |k,v| "#{escape(k)}=#{escape(v)}" }.join '; '
+        @cookies.map { |k,v| "#{escape(k)}=#{escape(v)}" }.join "; "
       end
 
       def handle_options(options) #:nodoc:
         options[:path] ||= "/"
 
-        if options[:domain] == :all || options[:domain] == 'all'
+        if options[:domain] == :all || options[:domain] == "all"
           # if there is a provided tld length then we use it otherwise default domain regexp
           domain_regexp = options[:tld_length] ? /([^.]+\.?){#{options[:tld_length]}}$/ : DOMAIN_REGEXP
 
@@ -355,7 +355,7 @@ module ActionDispatch
           end
         elsif options[:domain].is_a? Array
           # if host matches one of the supplied domains without a dot in front of it
-          options[:domain] = options[:domain].find {|domain| request.host.include? domain.sub(/^\./, '') }
+          options[:domain] = options[:domain].find {|domain| request.host.include? domain.sub(/^\./, "") }
         end
       end
 
@@ -528,7 +528,7 @@ module ActionDispatch
         end
 
         def digest
-          request.cookies_digest || 'SHA1'
+          request.cookies_digest || "SHA1"
         end
 
         def key_generator
@@ -576,8 +576,8 @@ module ActionDispatch
             "Read the upgrade documentation to learn more about this new config option."
         end
 
-        secret = key_generator.generate_key(request.encrypted_cookie_salt || '')
-        sign_secret = key_generator.generate_key(request.encrypted_signed_cookie_salt || '')
+        secret = key_generator.generate_key(request.encrypted_cookie_salt || "")
+        sign_secret = key_generator.generate_key(request.encrypted_signed_cookie_salt || "")
         @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, digest: digest, serializer: ActiveSupport::MessageEncryptor::NullSerializer)
       end
 

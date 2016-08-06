@@ -1,9 +1,9 @@
-require 'action_dispatch/http/request'
-require 'active_support/core_ext/uri'
-require 'active_support/core_ext/array/extract_options'
-require 'rack/utils'
-require 'action_controller/metal/exceptions'
-require 'action_dispatch/routing/endpoint'
+require "action_dispatch/http/request"
+require "active_support/core_ext/uri"
+require "active_support/core_ext/array/extract_options"
+require "rack/utils"
+require "action_controller/metal/exceptions"
+require "action_dispatch/routing/endpoint"
 
 module ActionDispatch
   module Routing
@@ -39,9 +39,9 @@ module ActionDispatch
         body = %(<html><body>You are being <a href="#{ERB::Util.unwrapped_html_escape(uri.to_s)}">redirected</a>.</body></html>)
 
         headers = {
-          'Location' => uri.to_s,
-          'Content-Type' => 'text/html',
-          'Content-Length' => body.length.to_s
+          "Location" => uri.to_s,
+          "Content-Type" => "text/html",
+          "Content-Length" => body.length.to_s
         }
 
         [ status, headers, [body] ]
@@ -57,7 +57,7 @@ module ActionDispatch
 
       private
         def relative_path?(path)
-          path && !path.empty? && path[0] != '/'
+          path && !path.empty? && path[0] != "/"
         end
 
         def escape(params)

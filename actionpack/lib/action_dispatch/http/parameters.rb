@@ -3,7 +3,7 @@ module ActionDispatch
     module Parameters
       extend ActiveSupport::Concern
 
-      PARAMETERS_KEY = 'action_dispatch.request.path_parameters'
+      PARAMETERS_KEY = "action_dispatch.request.path_parameters"
 
       DEFAULT_PARSERS = {
         Mime[:json].symbol => -> (raw_post) {
@@ -43,7 +43,7 @@ module ActionDispatch
       alias :params :parameters
 
       def path_parameters=(parameters) #:nodoc:
-        delete_header('action_dispatch.request.parameters')
+        delete_header("action_dispatch.request.parameters")
 
         # If any of the path parameters has an invalid encoding then
         # raise since it's likely to trigger errors further on.

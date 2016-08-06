@@ -1,4 +1,4 @@
-require 'active_support/dependencies'
+require "active_support/dependencies"
 
 module AbstractController
   module Helpers
@@ -182,7 +182,7 @@ module AbstractController
       end
 
       def default_helper_module!
-        module_name = name.sub(/Controller$/, ''.freeze)
+        module_name = name.sub(/Controller$/, "".freeze)
         module_path = module_name.underscore
         helper module_path
       rescue LoadError => e

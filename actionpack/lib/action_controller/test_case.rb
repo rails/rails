@@ -1,10 +1,10 @@
-require 'rack/session/abstract/id'
-require 'active_support/core_ext/hash/conversions'
-require 'active_support/core_ext/object/to_query'
-require 'active_support/core_ext/module/anonymous'
-require 'active_support/core_ext/hash/keys'
-require 'action_controller/template_assertions'
-require 'rails-dom-testing'
+require "rack/session/abstract/id"
+require "active_support/core_ext/hash/conversions"
+require "active_support/core_ext/object/to_query"
+require "active_support/core_ext/module/anonymous"
+require "active_support/core_ext/hash/keys"
+require "action_controller/template_assertions"
+require "rails-dom-testing"
 
 module ActionController
   # :stopdoc:
@@ -27,7 +27,7 @@ module ActionController
   # Please use ActionDispatch::IntegrationTest going forward.
   class TestRequest < ActionDispatch::TestRequest #:nodoc:
     DEFAULT_ENV = ActionDispatch::TestRequest::DEFAULT_ENV.dup
-    DEFAULT_ENV.delete 'PATH_INFO'
+    DEFAULT_ENV.delete "PATH_INFO"
 
     def self.new_session
       TestSession.new
@@ -52,7 +52,7 @@ module ActionController
       self.session = session
       self.session_options = TestSession::DEFAULT_OPTIONS
       @custom_param_parsers = {
-        xml: lambda { |raw_post| Hash.from_xml(raw_post)['hash'] }
+        xml: lambda { |raw_post| Hash.from_xml(raw_post)["hash"] }
       }
     end
 
@@ -61,7 +61,7 @@ module ActionController
     end
 
     def content_type=(type)
-      set_header 'CONTENT_TYPE', type
+      set_header "CONTENT_TYPE", type
     end
 
     def assign_parameters(routes, controller_path, action, parameters, generated_path, query_string_keys)
@@ -91,8 +91,8 @@ module ActionController
           self.content_type = ENCODER.content_type
           data = ENCODER.build_multipart non_path_parameters
         else
-          fetch_header('CONTENT_TYPE') do |k|
-            set_header k, 'application/x-www-form-urlencoded'
+          fetch_header("CONTENT_TYPE") do |k|
+            set_header k, "application/x-www-form-urlencoded"
           end
 
           case content_mime_type.to_sym
@@ -110,8 +110,8 @@ module ActionController
           end
         end
 
-        set_header 'CONTENT_LENGTH', data.length.to_s
-        set_header 'rack.input', StringIO.new(data)
+        set_header "CONTENT_LENGTH", data.length.to_s
+        set_header "rack.input", StringIO.new(data)
       end
 
       fetch_header("PATH_INFO") do |k|
@@ -419,11 +419,11 @@ module ActionController
           `get :index, xhr: true` and `post :create, xhr: true`
         MSG
 
-        @request.env['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
-        @request.env['HTTP_ACCEPT'] ||= [Mime[:js], Mime[:html], Mime[:xml], 'text/xml', '*/*'].join(', ')
+        @request.env["HTTP_X_REQUESTED_WITH"] = "XMLHttpRequest"
+        @request.env["HTTP_ACCEPT"] ||= [Mime[:js], Mime[:html], Mime[:xml], "text/xml", "*/*"].join(", ")
         __send__(*args).tap do
-          @request.env.delete 'HTTP_X_REQUESTED_WITH'
-          @request.env.delete 'HTTP_ACCEPT'
+          @request.env.delete "HTTP_X_REQUESTED_WITH"
+          @request.env.delete "HTTP_ACCEPT"
         end
       end
       alias xhr :xml_http_request
@@ -465,7 +465,7 @@ module ActionController
           http_method, parameters, session, flash = args
           format = nil
 
-          if parameters.is_a?(String) && http_method != 'HEAD'
+          if parameters.is_a?(String) && http_method != "HEAD"
             body = parameters
             parameters = nil
           end
@@ -476,7 +476,7 @@ module ActionController
         end
 
         if body
-          @request.set_header 'RAW_POST_DATA', body
+          @request.set_header "RAW_POST_DATA", body
         end
 
         if http_method
@@ -495,15 +495,15 @@ module ActionController
 
         self.cookies.update @request.cookies
         self.cookies.update_cookies_from_jar
-        @request.set_header 'HTTP_COOKIE', cookies.to_header
-        @request.delete_header 'action_dispatch.cookies'
+        @request.set_header "HTTP_COOKIE", cookies.to_header
+        @request.delete_header "action_dispatch.cookies"
 
         @request          = TestRequest.new scrub_env!(@request.env), @request.session
         @response         = build_response @response_klass
         @response.request = @request
         @controller.recycle!
 
-        @request.set_header 'REQUEST_METHOD', http_method
+        @request.set_header "REQUEST_METHOD", http_method
 
         parameters = parameters.symbolize_keys
 
@@ -517,9 +517,9 @@ module ActionController
         @request.flash.update(flash || {})
 
         if xhr
-          @request.set_header 'HTTP_X_REQUESTED_WITH', 'XMLHttpRequest'
-          @request.fetch_header('HTTP_ACCEPT') do |k|
-            @request.set_header k, [Mime[:js], Mime[:html], Mime[:xml], 'text/xml', '*/*'].join(', ')
+          @request.set_header "HTTP_X_REQUESTED_WITH", "XMLHttpRequest"
+          @request.fetch_header("HTTP_ACCEPT") do |k|
+            @request.set_header k, [Mime[:js], Mime[:html], Mime[:xml], "text/xml", "*/*"].join(", ")
           end
         end
 
@@ -534,7 +534,7 @@ module ActionController
           @request = @controller.request
           @response = @controller.response
 
-          @request.delete_header 'HTTP_COOKIE'
+          @request.delete_header "HTTP_COOKIE"
 
           if @request.have_cookie_jar?
             unless @request.cookie_jar.committed?
@@ -545,16 +545,16 @@ module ActionController
           @response.prepare!
 
           if flash_value = @request.flash.to_session_value
-            @request.session['flash'] = flash_value
+            @request.session["flash"] = flash_value
           else
-            @request.session.delete('flash')
+            @request.session.delete("flash")
           end
 
           if xhr
-            @request.delete_header 'HTTP_X_REQUESTED_WITH'
-            @request.delete_header 'HTTP_ACCEPT'
+            @request.delete_header "HTTP_X_REQUESTED_WITH"
+            @request.delete_header "HTTP_ACCEPT"
           end
-          @request.query_string = ''
+          @request.query_string = ""
 
           @response.sent!
         end
@@ -618,9 +618,9 @@ module ActionController
       def scrub_env!(env)
         env.delete_if { |k, v| k =~ /^(action_dispatch|rack)\.request/ }
         env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
-        env.delete 'action_dispatch.request.query_parameters'
-        env.delete 'action_dispatch.request.request_parameters'
-        env['rack.input'] = StringIO.new
+        env.delete "action_dispatch.request.query_parameters"
+        env.delete "action_dispatch.request.request_parameters"
+        env["rack.input"] = StringIO.new
         env
       end
 
@@ -672,7 +672,7 @@ module ActionController
 
       def html_format?(parameters)
         return true unless parameters.key?(:format)
-        Mime.fetch(parameters[:format]) { Mime['html'] }.html?
+        Mime.fetch(parameters[:format]) { Mime["html"] }.html?
       end
     end
 

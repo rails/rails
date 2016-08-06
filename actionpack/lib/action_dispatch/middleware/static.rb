@@ -1,5 +1,5 @@
-require 'rack/utils'
-require 'active_support/core_ext/uri'
+require "rack/utils"
+require "active_support/core_ext/uri"
 
 module ActionDispatch
   # This middleware returns a file's contents from disk in the body response.
@@ -13,8 +13,8 @@ module ActionDispatch
   # located at `public/assets/application.js` if the file exists. If the file
   # does not exist, a 404 "File not Found" response will be returned.
   class FileHandler
-    def initialize(root, index: 'index', headers: {})
-      @root          = root.chomp('/')
+    def initialize(root, index: "index", headers: {})
+      @root          = root.chomp("/")
       @file_server   = ::Rack::File.new(@root, headers)
       @index         = index
     end
@@ -33,7 +33,7 @@ module ActionDispatch
       paths = [path, "#{path}#{ext}", "#{path}/#{@index}#{ext}"]
 
       if match = paths.detect { |p|
-        path = File.join(@root, p.force_encoding('UTF-8'.freeze))
+        path = File.join(@root, p.force_encoding("UTF-8".freeze))
         begin
           File.file?(path) && File.readable?(path)
         rescue SystemCallError
@@ -59,13 +59,13 @@ module ActionDispatch
         if status == 304
           return [status, headers, body]
         end
-        headers['Content-Encoding'] = 'gzip'
-        headers['Content-Type']     = content_type(path)
+        headers["Content-Encoding"] = "gzip"
+        headers["Content-Type"]     = content_type(path)
       else
         status, headers, body = @file_server.call(request.env)
       end
 
-      headers['Vary'] = 'Accept-Encoding' if gzip_path
+      headers["Vary"] = "Accept-Encoding" if gzip_path
 
       return [status, headers, body]
     ensure
@@ -78,7 +78,7 @@ module ActionDispatch
       end
 
       def content_type(path)
-        ::Rack::Mime.mime_type(::File.extname(path), 'text/plain'.freeze)
+        ::Rack::Mime.mime_type(::File.extname(path), "text/plain".freeze)
       end
 
       def gzip_encoding_accepted?(request)
@@ -106,12 +106,12 @@ module ActionDispatch
   # produce a directory traversal using this middleware. Only 'GET' and 'HEAD'
   # requests will result in a file being returned.
   class Static
-    def initialize(app, path, deprecated_cache_control = :not_set, index: 'index', headers: {})
+    def initialize(app, path, deprecated_cache_control = :not_set, index: "index", headers: {})
       if deprecated_cache_control != :not_set
         ActiveSupport::Deprecation.warn("The `cache_control` argument is deprecated," \
                                         "replaced by `headers: { 'Cache-Control' => #{deprecated_cache_control} }`, " \
                                         " and will be removed in Rails 5.1.")
-        headers['Cache-Control'.freeze] = deprecated_cache_control
+        headers["Cache-Control".freeze] = deprecated_cache_control
       end
 
       @app = app
@@ -122,7 +122,7 @@ module ActionDispatch
       req = Rack::Request.new env
 
       if req.get? || req.head?
-        path = req.path_info.chomp('/'.freeze)
+        path = req.path_info.chomp("/".freeze)
         if match = @file_handler.match?(path)
           req.path_info = match
           return @file_handler.serve(req)

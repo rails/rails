@@ -4,10 +4,10 @@
 # from Racc grammer file "".
 #
 
-require 'racc/parser.rb'
+require "racc/parser.rb"
 
 
-require 'action_dispatch/journey/parser_extras'
+require "action_dispatch/journey/parser_extras"
 module ActionDispatch
   module Journey
     class Parser < Racc::Parser
@@ -174,7 +174,7 @@ end
 # reduce 14 omitted
 
 def _reduce_15(val, _values)
- Slash.new('/')
+ Slash.new("/")
 end
 
 def _reduce_16(val, _values)

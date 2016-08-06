@@ -1,4 +1,4 @@
-require 'action_controller/metal/exceptions'
+require "action_controller/metal/exceptions"
 
 module ActionController #:nodoc:
   # Methods for sending arbitrary data and for streaming files to the browser,
@@ -8,8 +8,8 @@ module ActionController #:nodoc:
 
     include ActionController::Rendering
 
-    DEFAULT_SEND_FILE_TYPE        = 'application/octet-stream'.freeze #:nodoc:
-    DEFAULT_SEND_FILE_DISPOSITION = 'attachment'.freeze #:nodoc:
+    DEFAULT_SEND_FILE_TYPE        = "application/octet-stream".freeze #:nodoc:
+    DEFAULT_SEND_FILE_DISPOSITION = "attachment".freeze #:nodoc:
 
     protected
       # Sends the file. This uses a server-appropriate method (such as X-Sendfile)
@@ -122,7 +122,7 @@ module ActionController #:nodoc:
         else
           if !type_provided && options[:filename]
             # If type wasn't provided, try guessing from file extension.
-            content_type = Mime::Type.lookup_by_extension(File.extname(options[:filename]).downcase.delete('.')) || content_type
+            content_type = Mime::Type.lookup_by_extension(File.extname(options[:filename]).downcase.delete(".")) || content_type
           end
           self.content_type = content_type
         end
@@ -131,10 +131,10 @@ module ActionController #:nodoc:
         unless disposition.nil?
           disposition  = disposition.to_s
           disposition += %(; filename="#{options[:filename]}") if options[:filename]
-          headers['Content-Disposition'] = disposition
+          headers["Content-Disposition"] = disposition
         end
 
-        headers['Content-Transfer-Encoding'] = 'binary'
+        headers["Content-Transfer-Encoding"] = "binary"
 
         response.sending_file = true
 

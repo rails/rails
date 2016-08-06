@@ -1,8 +1,8 @@
-require 'rack/utils'
-require 'rack/request'
-require 'rack/session/abstract/id'
-require 'action_dispatch/middleware/cookies'
-require 'action_dispatch/request/session'
+require "rack/utils"
+require "rack/request"
+require "rack/session/abstract/id"
+require "action_dispatch/middleware/cookies"
+require "action_dispatch/request/session"
 
 module ActionDispatch
   module Session
@@ -28,7 +28,7 @@ module ActionDispatch
 
     module Compatibility
       def initialize(app, options = {})
-        options[:key] ||= '_session_id'
+        options[:key] ||= "_session_id"
         super
       end
 

@@ -37,8 +37,8 @@ module ActionDispatch
     end
 
     def render_format(status, content_type, body)
-      [status, {'Content-Type' => "#{content_type}; charset=#{ActionDispatch::Response.default_charset}",
-                'Content-Length' => body.bytesize.to_s}, [body]]
+      [status, {"Content-Type" => "#{content_type}; charset=#{ActionDispatch::Response.default_charset}",
+                "Content-Length" => body.bytesize.to_s}, [body]]
     end
 
     def render_html(status)
@@ -46,7 +46,7 @@ module ActionDispatch
       path = "#{public_path}/#{status}.html" unless (found = File.exist?(path))
 
       if found || File.exist?(path)
-        render_format(status, 'text/html', File.read(path))
+        render_format(status, "text/html", File.read(path))
       else
         [404, { "X-Cascade" => "pass" }, []]
       end

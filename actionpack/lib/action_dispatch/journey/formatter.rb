@@ -1,4 +1,4 @@
-require 'action_controller/metal/exceptions'
+require "action_controller/metal/exceptions"
 
 module ActionDispatch
   module Journey

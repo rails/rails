@@ -1,13 +1,13 @@
-require 'active_support/core_ext/hash/indifferent_access'
-require 'active_support/core_ext/hash/transform_values'
-require 'active_support/core_ext/array/wrap'
-require 'active_support/core_ext/string/filters'
-require 'active_support/rescuable'
-require 'action_dispatch/http/upload'
-require 'rack/test'
-require 'stringio'
-require 'set'
-require 'yaml'
+require "active_support/core_ext/hash/indifferent_access"
+require "active_support/core_ext/hash/transform_values"
+require "active_support/core_ext/array/wrap"
+require "active_support/core_ext/string/filters"
+require "active_support/rescuable"
+require "action_dispatch/http/upload"
+require "rack/test"
+require "stringio"
+require "set"
+require "yaml"
 
 module ActionController
   # Raised when a required parameter is missing.
@@ -596,26 +596,26 @@ module ActionController
       # Wire up YAML format compatibility with Rails 4.2 and Psych 2.0.8 and 2.0.9+.
       # Makes the YAML parser call `init_with` when it encounters the keys below
       # instead of trying its own parsing routines.
-      YAML.load_tags['!ruby/hash-with-ivars:ActionController::Parameters'] = name
-      YAML.load_tags['!ruby/hash:ActionController::Parameters'] = name
+      YAML.load_tags["!ruby/hash-with-ivars:ActionController::Parameters"] = name
+      YAML.load_tags["!ruby/hash:ActionController::Parameters"] = name
     end
     hook_into_yaml_loading
 
     def init_with(coder) # :nodoc:
       case coder.tag
-      when '!ruby/hash:ActionController::Parameters'
+      when "!ruby/hash:ActionController::Parameters"
         # YAML 2.0.8's format where hash instance variables weren't stored.
         @parameters = coder.map.with_indifferent_access
         @permitted  = false
-      when '!ruby/hash-with-ivars:ActionController::Parameters'
+      when "!ruby/hash-with-ivars:ActionController::Parameters"
         # YAML 2.0.9's Hash subclass format where keys and values
         # were stored under an elements hash and `permitted` within an ivars hash.
-        @parameters = coder.map['elements'].with_indifferent_access
-        @permitted  = coder.map['ivars'][:@permitted]
-      when '!ruby/object:ActionController::Parameters'
+        @parameters = coder.map["elements"].with_indifferent_access
+        @permitted  = coder.map["ivars"][:@permitted]
+      when "!ruby/object:ActionController::Parameters"
         # YAML's Object format. Only needed because of the format
         # backwardscompability above, otherwise equivalent to YAML's initialization.
-        @parameters, @permitted = coder.map['parameters'], coder.map['permitted']
+        @parameters, @permitted = coder.map["parameters"], coder.map["permitted"]
       end
     end
 
