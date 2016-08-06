@@ -2,6 +2,7 @@ require 'active_support/core_ext/module/remove_method'
 require 'action_controller'
 require 'action_controller/test_case'
 require 'action_view'
+require 'active_support/deprecation'
 
 require 'rails-dom-testing'
 
@@ -35,14 +36,16 @@ module ActionView
     module Behavior
       extend ActiveSupport::Concern
 
-      include ActionDispatch::Assertions, ActionDispatch::TestProcess
+      if defined?(ActionPack)
+        include ActionDispatch::Assertions, ActionDispatch::TestProcess
+        include ActionController::TemplateAssertions
+        include ActionDispatch::Routing::PolymorphicRoutes
+        include AbstractController::Helpers
+      end
+
       include Rails::Dom::Testing::Assertions
-      include ActionController::TemplateAssertions
+
       include ActionView::Context
-
-      include ActionDispatch::Routing::PolymorphicRoutes
-
-      include AbstractController::Helpers
       include ActionView::Helpers
       include ActionView::RecordIdentifier
       include ActionView::RoutingUrlFor
@@ -110,6 +113,7 @@ module ActionView
         make_test_case_available_to_view!
         say_no_to_protect_against_forgery!
       end
+      deprecate :@request
 
       def config
         @controller.config if @controller.respond_to?(:config)
@@ -126,7 +130,7 @@ module ActionView
       end
 
       # Need to experiment if this priority is the best one: rendered => output_buffer
-      class RenderedViewsCollection
+      class RenderedViewsCollection # :nodoc:
         def initialize
           @rendered_views ||= Hash.new { |hash, key| hash[key] = [] }
         end
@@ -139,16 +143,19 @@ module ActionView
         def locals_for(view)
           @rendered_views[view]
         end
+        deprecate :locals_for
 
         def rendered_views
           @rendered_views.keys
         end
+        deprecate :rendered_views
 
         def view_rendered?(view, expected_locals)
           locals_for(view).any? do |actual_locals|
             expected_locals.all? {|key, value| value == actual_locals[key] }
           end
         end
+        deprecate :view_rendered?
       end
 
       included do
