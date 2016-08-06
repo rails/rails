@@ -1,4 +1,4 @@
-require 'faye/websocket'
+require "faye/websocket"
 
 module ActionCable
   module Connection

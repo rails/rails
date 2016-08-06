@@ -1,5 +1,5 @@
-require 'nio'
-require 'thread'
+require "nio"
+require "thread"
 
 module ActionCable
   module Connection

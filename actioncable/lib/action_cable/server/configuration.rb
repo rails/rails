@@ -21,7 +21,7 @@ module ActionCable
       # If the adapter cannot be found, this will default to the Redis adapter.
       # Also makes sure proper dependencies are required.
       def pubsub_adapter
-        adapter = (cable.fetch('adapter') { 'redis' })
+        adapter = (cable.fetch("adapter") { "redis" })
         path_to_adapter = "action_cable/subscription_adapter/#{adapter}"
         begin
           require path_to_adapter
@@ -32,7 +32,7 @@ module ActionCable
         end
 
         adapter = adapter.camelize
-        adapter = 'PostgreSQL' if adapter == 'Postgresql'
+        adapter = "PostgreSQL" if adapter == "Postgresql"
         "ActionCable::SubscriptionAdapter::#{adapter}".constantize
       end
 

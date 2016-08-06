@@ -32,7 +32,7 @@ module ActionCable
         end
 
         previous_connection_class = self.connection_class
-        self.connection_class = -> { 'ApplicationCable::Connection'.safe_constantize || previous_connection_class.call }
+        self.connection_class = -> { "ApplicationCable::Connection".safe_constantize || previous_connection_class.call }
 
         options.each { |k,v| send("#{k}=", v) }
       end

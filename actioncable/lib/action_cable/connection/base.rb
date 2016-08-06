@@ -1,4 +1,4 @@
-require 'action_dispatch'
+require "action_dispatch"
 
 module ActionCable
   module Connection
@@ -112,7 +112,7 @@ module ActionCable
           identifier: connection_identifier,
           started_at: @started_at,
           subscriptions: subscriptions.identifiers,
-          request_id: @env['action_dispatch.request_id']
+          request_id: @env["action_dispatch.request_id"]
         }
       end
 
@@ -195,7 +195,7 @@ module ActionCable
         def allow_request_origin?
           return true if server.config.disable_request_forgery_protection
 
-          if Array(server.config.allowed_request_origins).any? { |allowed_origin|  allowed_origin === env['HTTP_ORIGIN'] }
+          if Array(server.config.allowed_request_origins).any? { |allowed_origin|  allowed_origin === env["HTTP_ORIGIN"] }
             true
           else
             logger.error("Request origin not allowed: #{env['HTTP_ORIGIN']}")
@@ -213,7 +213,7 @@ module ActionCable
 
           logger.error invalid_request_message
           logger.info finished_request_message
-          [ 404, { 'Content-Type' => 'text/plain' }, [ 'Page not found' ] ]
+          [ 404, { "Content-Type" => "text/plain" }, [ "Page not found" ] ]
         end
 
         # Tags are declared in the server but computed in the connection. This allows us per-connection tailored tags.
@@ -226,7 +226,7 @@ module ActionCable
           'Started %s "%s"%s for %s at %s' % [
             request.request_method,
             request.filtered_path,
-            websocket.possible? ? ' [WebSocket]' : '[non-WebSocket]',
+            websocket.possible? ? " [WebSocket]" : "[non-WebSocket]",
             request.ip,
             Time.now.to_s ]
         end
@@ -234,19 +234,19 @@ module ActionCable
         def finished_request_message
           'Finished "%s"%s for %s at %s' % [
             request.filtered_path,
-            websocket.possible? ? ' [WebSocket]' : '[non-WebSocket]',
+            websocket.possible? ? " [WebSocket]" : "[non-WebSocket]",
             request.ip,
             Time.now.to_s ]
         end
 
         def invalid_request_message
-          'Failed to upgrade to WebSocket (REQUEST_METHOD: %s, HTTP_CONNECTION: %s, HTTP_UPGRADE: %s)' % [
+          "Failed to upgrade to WebSocket (REQUEST_METHOD: %s, HTTP_CONNECTION: %s, HTTP_UPGRADE: %s)" % [
             env["REQUEST_METHOD"], env["HTTP_CONNECTION"], env["HTTP_UPGRADE"]
           ]
         end
 
         def successful_request_message
-          'Successfully upgraded to WebSocket (REQUEST_METHOD: %s, HTTP_CONNECTION: %s, HTTP_UPGRADE: %s)' % [
+          "Successfully upgraded to WebSocket (REQUEST_METHOD: %s, HTTP_CONNECTION: %s, HTTP_UPGRADE: %s)" % [
             env["REQUEST_METHOD"], env["HTTP_CONNECTION"], env["HTTP_UPGRADE"]
           ]
         end

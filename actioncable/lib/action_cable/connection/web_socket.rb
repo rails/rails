@@ -1,4 +1,4 @@
-require 'websocket/driver'
+require "websocket/driver"
 
 module ActionCable
   module Connection

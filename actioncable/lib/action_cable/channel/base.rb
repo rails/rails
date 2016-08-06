@@ -1,4 +1,4 @@
-require 'set'
+require "set"
 
 module ActionCable
   module Channel
@@ -244,7 +244,7 @@ module ActionCable
         end
 
         def extract_action(data)
-          (data['action'].presence || :receive).to_sym
+          (data["action"].presence || :receive).to_sym
         end
 
         def processable_action?(action)
@@ -263,7 +263,7 @@ module ActionCable
 
         def action_signature(action, data)
           "#{self.class.name}##{action}".tap do |signature|
-            if (arguments = data.except('action')).any?
+            if (arguments = data.except("action")).any?
               signature << "(#{arguments.inspect})"
             end
           end
