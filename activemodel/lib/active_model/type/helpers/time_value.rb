@@ -19,7 +19,7 @@ module ActiveModel
         end
 
         def is_utc?
-          ::Time.zone_default.nil? || ::Time.zone_default =~ 'UTC'
+          ::Time.zone_default.nil? || ::Time.zone_default =~ "UTC"
         end
 
         def default_timezone

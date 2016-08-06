@@ -1,6 +1,6 @@
-require 'concurrent/map'
-require 'mutex_m'
-require 'active_support/core_ext/regexp'
+require "concurrent/map"
+require "mutex_m"
+require "active_support/core_ext/regexp"
 
 module ActiveModel
   # Raised when an attribute is not defined.
@@ -394,7 +394,7 @@ module ActiveModel
           AttributeMethodMatch = Struct.new(:target, :attr_name, :method_name)
 
           def initialize(options = {})
-            @prefix, @suffix = options.fetch(:prefix, ''), options.fetch(:suffix, '')
+            @prefix, @suffix = options.fetch(:prefix, ""), options.fetch(:suffix, "")
             @regex = /^(?:#{Regexp.escape(@prefix)})(.*)(?:#{Regexp.escape(@suffix)})$/
             @method_missing_target = "#{@prefix}attribute#{@suffix}"
             @method_name = "#{prefix}%s#{suffix}"

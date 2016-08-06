@@ -12,7 +12,7 @@ module ActiveModel
     # - Empty strings are coerced to +nil+
     # - All other values will be coerced to +true+
     class Boolean < Value
-      FALSE_VALUES = [false, 0, '0', 'f', 'F', 'false', 'FALSE', 'off', 'OFF'].to_set
+      FALSE_VALUES = [false, 0, "0", "f", "F", "false", "FALSE", "off", "OFF"].to_set
 
       def type # :nodoc:
         :boolean
@@ -21,7 +21,7 @@ module ActiveModel
       private
 
       def cast_value(value)
-        if value == ''
+        if value == ""
           nil
         else
           !FALSE_VALUES.include?(value)

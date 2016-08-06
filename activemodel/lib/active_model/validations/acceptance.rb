@@ -64,7 +64,7 @@ module ActiveModel
         private
 
         def convert_to_reader_name(method_name)
-          method_name.to_s.chomp('=')
+          method_name.to_s.chomp("=")
         end
       end
     end

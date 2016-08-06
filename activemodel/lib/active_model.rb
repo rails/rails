@@ -21,24 +21,24 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-require 'active_support'
-require 'active_support/rails'
-require 'active_model/version'
+require "active_support"
+require "active_support/rails"
+require "active_model/version"
 
 module ActiveModel
   extend ActiveSupport::Autoload
 
   autoload :AttributeAssignment
   autoload :AttributeMethods
-  autoload :BlockValidator, 'active_model/validator'
+  autoload :BlockValidator, "active_model/validator"
   autoload :Callbacks
   autoload :Conversion
   autoload :Dirty
-  autoload :EachValidator, 'active_model/validator'
+  autoload :EachValidator, "active_model/validator"
   autoload :ForbiddenAttributesProtection
   autoload :Lint
   autoload :Model
-  autoload :Name, 'active_model/naming'
+  autoload :Name, "active_model/naming"
   autoload :Naming
   autoload :SecurePassword
   autoload :Serialization
@@ -49,9 +49,9 @@ module ActiveModel
 
   eager_autoload do
     autoload :Errors
-    autoload :RangeError, 'active_model/errors'
-    autoload :StrictValidationFailed, 'active_model/errors'
-    autoload :UnknownAttributeError, 'active_model/errors'
+    autoload :RangeError, "active_model/errors"
+    autoload :StrictValidationFailed, "active_model/errors"
+    autoload :UnknownAttributeError, "active_model/errors"
   end
 
   module Serializers
@@ -69,5 +69,5 @@ module ActiveModel
 end
 
 ActiveSupport.on_load(:i18n) do
-  I18n.load_path << File.dirname(__FILE__) + '/active_model/locale/en.yml'
+  I18n.load_path << File.dirname(__FILE__) + "/active_model/locale/en.yml"
 end

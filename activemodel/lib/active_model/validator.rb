@@ -100,7 +100,7 @@ module ActiveModel
     #   PresenceValidator.kind   # => :presence
     #   UniquenessValidator.kind # => :uniqueness
     def self.kind
-      @kind ||= name.split('::').last.underscore.chomp('_validator').to_sym unless anonymous?
+      @kind ||= name.split("::").last.underscore.chomp("_validator").to_sym unless anonymous?
     end
 
     # Accepts options that will be made available through the +options+ reader.

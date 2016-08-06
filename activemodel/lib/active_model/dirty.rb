@@ -1,5 +1,5 @@
-require 'active_support/hash_with_indifferent_access'
-require 'active_support/core_ext/object/duplicable'
+require "active_support/hash_with_indifferent_access"
+require "active_support/core_ext/object/duplicable"
 
 module ActiveModel
   # == Active \Model \Dirty
@@ -123,9 +123,9 @@ module ActiveModel
     private_constant :OPTION_NOT_GIVEN
 
     included do
-      attribute_method_suffix '_changed?', '_change', '_will_change!', '_was'
-      attribute_method_suffix '_previously_changed?', '_previous_change'
-      attribute_method_affix prefix: 'restore_', suffix: '!'
+      attribute_method_suffix "_changed?", "_change", "_will_change!", "_was"
+      attribute_method_suffix "_previously_changed?", "_previous_change"
+      attribute_method_affix prefix: "restore_", suffix: "!"
     end
 
     # Returns +true+ if any of the attributes have unsaved changes, +false+ otherwise.

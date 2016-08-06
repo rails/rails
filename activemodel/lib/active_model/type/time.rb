@@ -29,7 +29,7 @@ module ActiveModel
         return value unless value.is_a?(::String)
         return if value.empty?
 
-        if value.start_with?('2000-01-01')
+        if value.start_with?("2000-01-01")
           dummy_time_value = value
         else
           dummy_time_value = "2000-01-01 #{value}"
