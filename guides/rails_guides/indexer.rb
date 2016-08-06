@@ -1,5 +1,5 @@
-require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/string/inflections'
+require "active_support/core_ext/object/blank"
+require "active_support/core_ext/string/inflections"
 
 module RailsGuides
   class Indexer
@@ -34,7 +34,7 @@ module RailsGuides
             return level_hash
           elsif level == current_level
             index = counters.join(".")
-            idx ||= '#' + title_to_idx(title)
+            idx ||= "#" + title_to_idx(title)
 
             raise "Parsing Fail" unless @result.sub!(matched, "h#{level}(#{idx}). #{index} #{title}")
 
@@ -58,7 +58,7 @@ module RailsGuides
     end
 
     def title_to_idx(title)
-      idx = title.strip.parameterize.sub(/^\d+/, '')
+      idx = title.strip.parameterize.sub(/^\d+/, "")
       if warnings && idx.blank?
         puts "BLANK ID: please put an explicit ID for section #{title}, as in h5(#my-id)"
       end

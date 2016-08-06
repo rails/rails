@@ -1,7 +1,7 @@
 namespace :guides do
 
   desc 'Generate guides (for authors), use ONLY=foo to process just "foo.md"'
-  task :generate => 'generate:html'
+  task :generate => "generate:html"
 
   namespace :generate do
 
@@ -19,8 +19,8 @@ namespace :guides do
       unless `convert` =~ /convert/  
         abort "Please install ImageMagick`"
       end
-      ENV['KINDLE'] = '1'
-      Rake::Task['guides:generate:html'].invoke
+      ENV["KINDLE"] = "1"
+      Rake::Task["guides:generate:html"].invoke
     end
   end
 
@@ -76,4 +76,4 @@ Examples:
   end
 end
 
-task :default => 'guides:help'
+task :default => "guides:help"

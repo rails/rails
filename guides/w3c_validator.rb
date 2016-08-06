@@ -26,7 +26,7 @@
 #
 # ---------------------------------------------------------------------------
 
-require 'w3c_validators'
+require "w3c_validators"
 include W3CValidators
 
 module RailsGuides
@@ -62,11 +62,11 @@ module RailsGuides
       guides.delete("./output/layout.html")
       guides.delete("./output/_license.html")
       guides.delete("./output/_welcome.html")
-      ENV.key?('ONLY') ? select_only(guides) : guides
+      ENV.key?("ONLY") ? select_only(guides) : guides
     end
 
     def select_only(guides)
-      prefixes = ENV['ONLY'].split(",").map(&:strip)
+      prefixes = ENV["ONLY"].split(",").map(&:strip)
       guides.select do |guide|
         prefixes.any? {|p| guide.start_with?("./output/#{p}")}
       end

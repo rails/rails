@@ -49,18 +49,18 @@
 #
 # ---------------------------------------------------------------------------
 
-require 'set'
-require 'fileutils'
+require "set"
+require "fileutils"
 
-require 'active_support/core_ext/string/output_safety'
-require 'active_support/core_ext/object/blank'
-require 'action_controller'
-require 'action_view'
+require "active_support/core_ext/string/output_safety"
+require "active_support/core_ext/object/blank"
+require "action_controller"
+require "action_view"
 
-require 'rails_guides/markdown'
-require 'rails_guides/indexer'
-require 'rails_guides/helpers'
-require 'rails_guides/levenshtein'
+require "rails_guides/markdown"
+require "rails_guides/indexer"
+require "rails_guides/helpers"
+require "rails_guides/levenshtein"
 
 module RailsGuides
   class Generator
@@ -81,12 +81,12 @@ module RailsGuides
     end
 
     def set_flags_from_environment
-      @edge     = ENV['EDGE']     == '1'
-      @warnings = ENV['WARNINGS'] == '1'
-      @all      = ENV['ALL']      == '1'
-      @kindle   = ENV['KINDLE']   == '1'
-      @version  = ENV['RAILS_VERSION'] || 'local'
-      @lang     = ENV['GUIDES_LANGUAGE']
+      @edge     = ENV["EDGE"]     == "1"
+      @warnings = ENV["WARNINGS"] == "1"
+      @all      = ENV["ALL"]      == "1"
+      @kindle   = ENV["KINDLE"]   == "1"
+      @version  = ENV["RAILS_VERSION"] || "local"
+      @lang     = ENV["GUIDES_LANGUAGE"]
     end
 
     def register_kindle_mime_types
@@ -113,18 +113,18 @@ module RailsGuides
     end
 
     def generate_mobi
-      require 'rails_guides/kindle'
+      require "rails_guides/kindle"
       out = "#{output_dir}/kindlegen.out"
       Kindle.generate(output_dir, mobi, out)
       puts "(kindlegen log at #{out})."
     end
 
     def mobi
-      "ruby_on_rails_guides_#@version%s.mobi" % (@lang.present? ? ".#@lang" : '')
+      "ruby_on_rails_guides_#@version%s.mobi" % (@lang.present? ? ".#@lang" : "")
     end
 
     def initialize_dirs(output)
-      @guides_dir = File.join(File.dirname(__FILE__), '..')
+      @guides_dir = File.join(File.dirname(__FILE__), "..")
       @source_dir = "#@guides_dir/source/#@lang"
       @output_dir = if output
         output
@@ -132,7 +132,7 @@ module RailsGuides
         "#@guides_dir/output/kindle/#@lang"
       else
         "#@guides_dir/output/#@lang"
-      end.sub(%r</$>, '')
+      end.sub(%r</$>, "")
     end
 
     def create_output_dir_if_needed
@@ -151,18 +151,18 @@ module RailsGuides
 
       if kindle?
         Dir.entries("#{source_dir}/kindle").grep(GUIDES_RE).map do |entry|
-          next if entry == 'KINDLE.md'
+          next if entry == "KINDLE.md"
           guides << "kindle/#{entry}"
         end
       end
 
-      ENV.key?('ONLY') ? select_only(guides) : guides
+      ENV.key?("ONLY") ? select_only(guides) : guides
     end
 
     def select_only(guides)
-      prefixes = ENV['ONLY'].split(",").map(&:strip)
+      prefixes = ENV["ONLY"].split(",").map(&:strip)
       guides.select do |guide|
-        guide.start_with?('kindle'.freeze, *prefixes)
+        guide.start_with?("kindle".freeze, *prefixes)
       end
     end
 
@@ -171,10 +171,10 @@ module RailsGuides
     end
 
     def output_file_for(guide)
-      if guide.end_with?('.md')
-        guide.sub(/md\z/, 'html')
+      if guide.end_with?(".md")
+        guide.sub(/md\z/, "html")
       else
-        guide.sub(/\.erb\z/, '')
+        guide.sub(/\.erb\z/, "")
       end
     end
 
@@ -191,9 +191,9 @@ module RailsGuides
     def generate_guide(guide, output_file)
       output_path = output_path_for(output_file)
       puts "Generating #{guide} as #{output_file}"
-      layout = kindle? ? 'kindle/layout' : 'layout'
+      layout = kindle? ? "kindle/layout" : "layout"
 
-      File.open(output_path, 'w') do |f|
+      File.open(output_path, "w") do |f|
         view = ActionView::Base.new(source_dir, :edge => @edge, :version => @version, :mobi => "kindle/#{mobi}", :lang => @lang)
         view.extend(Helpers)
 
@@ -236,7 +236,7 @@ module RailsGuides
 
     def check_fragment_identifiers(html, anchors)
       html.scan(/<a\s+href="#([^"]+)/).flatten.each do |fragment_identifier|
-        next if fragment_identifier == 'mainCol' # in layout, jumps to some DIV
+        next if fragment_identifier == "mainCol" # in layout, jumps to some DIV
         unless anchors.member?(fragment_identifier)
           guess = anchors.min { |a, b|
             Levenshtein.distance(fragment_identifier, a) <=> Levenshtein.distance(fragment_identifier, b)
