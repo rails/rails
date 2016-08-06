@@ -60,7 +60,7 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     end
 
     assert_raises ActiveJob::SerializationError do
-      ActiveJob::Arguments.serialize [ { :a => [{ 2 => 3 }] } ]
+      ActiveJob::Arguments.serialize [ { a: [{ 2 => 3 }] } ]
     end
   end
 

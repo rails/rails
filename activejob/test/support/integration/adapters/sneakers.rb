@@ -16,16 +16,16 @@ end
 module SneakersJobsManager
   def setup
     ActiveJob::Base.queue_adapter = :sneakers
-    Sneakers.configure  :heartbeat => 2,
-                        :amqp => "amqp://guest:guest@localhost:5672",
-                        :vhost => "/",
-                        :exchange => "active_jobs_sneakers_int_test",
-                        :exchange_type => :direct,
-                        :daemonize => true,
-                        :threads => 1,
-                        :workers => 1,
-                        :pid_path => Rails.root.join("tmp/sneakers.pid").to_s,
-                        :log => Rails.root.join("log/sneakers.log").to_s
+    Sneakers.configure  heartbeat: 2,
+                        amqp: "amqp://guest:guest@localhost:5672",
+                        vhost: "/",
+                        exchange: "active_jobs_sneakers_int_test",
+                        exchange_type: :direct,
+                        daemonize: true,
+                        threads: 1,
+                        workers: 1,
+                        pid_path: Rails.root.join("tmp/sneakers.pid").to_s,
+                        log: Rails.root.join("log/sneakers.log").to_s
     unless can_run?
       puts "Cannot run integration tests for sneakers. To be able to run integration tests for sneakers you need to install and start rabbitmq.\n"
       exit
