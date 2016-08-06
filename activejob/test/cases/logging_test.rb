@@ -61,7 +61,7 @@ class LoggingTest < ActiveSupport::TestCase
     original_queue_name = LoggingJob.queue_name
     LoggingJob.queue_as :php_jobs
     LoggingJob.perform_later("Dummy")
-    assert_match(/to .*?\(php_jobs\).*/, @logger.messages)
+    assert_match(/to .*\(php_jobs\).*/, @logger.messages)
   ensure
     LoggingJob.queue_name = original_queue_name
   end
@@ -69,38 +69,44 @@ class LoggingTest < ActiveSupport::TestCase
   def test_globalid_parameter_logging
     person = Person.new(123)
     LoggingJob.perform_later person
-    assert_match(%r{Enqueued.*gid://aj/Person/123}, @logger.messages)
+    assert_match(%r{Enqueued}, @logger.messages)
+    assert_match(%r{.*gid://aj/Person/123}, @logger.messages)
     assert_match(%r{Dummy, here is it: #<Person:.*>}, @logger.messages)
-    assert_match(%r{Performing.*gid://aj/Person/123}, @logger.messages)
+    assert_match(%r{Performing}, @logger.messages)
   end
 
   def test_globalid_nested_parameter_logging
     person = Person.new(123)
     LoggingJob.perform_later(person: person)
-    assert_match(%r{Enqueued.*gid://aj/Person/123}, @logger.messages)
+    assert_match(%r{Enqueued}, @logger.messages)
+    assert_match(%r{.*gid://aj/Person/123}, @logger.messages)
     assert_match(%r{Dummy, here is it: .*#<Person:.*>}, @logger.messages)
-    assert_match(%r{Performing.*gid://aj/Person/123}, @logger.messages)
+    assert_match(%r{Performing}, @logger.messages)
   end
 
   def test_enqueue_job_logging
     HelloJob.perform_later "Cristian"
-    assert_match(/Enqueued HelloJob \(Job ID: .*?\) to .*?:.*Cristian/, @logger.messages)
+    assert_match(/Enqueued HelloJob \(Job ID: .*\) to .*/, @logger.messages)
+    assert_match(/Job ID: .* arguments:.*Cristian/, @logger.messages)
   end
 
   def test_perform_job_logging
     LoggingJob.perform_later "Dummy"
-    assert_match(/Performing LoggingJob from .*? with arguments:.*Dummy/, @logger.messages)
+    assert_match(/Performing LoggingJob from .*/, @logger.messages)
+    assert_match(/Job ID: .* arguments:.*Dummy/, @logger.messages)
     assert_match(/Dummy, here is it: Dummy/, @logger.messages)
-    assert_match(/Performed LoggingJob from .*? in .*ms/, @logger.messages)
+    assert_match(/Performed LoggingJob from .* in .*ms/, @logger.messages)
   end
 
   def test_perform_nested_jobs_logging
     NestedJob.perform_later
-    assert_match(/\[LoggingJob\] \[.*?\]/, @logger.messages)
+    assert_match(/\[LoggingJob\] \[.*\]/, @logger.messages)
     assert_match(/\[ActiveJob\] Enqueued NestedJob \(Job ID: .*\) to/, @logger.messages)
     assert_match(/\[ActiveJob\] \[NestedJob\] \[NESTED-JOB-ID\] Performing NestedJob from/, @logger.messages)
-    assert_match(/\[ActiveJob\] \[NestedJob\] \[NESTED-JOB-ID\] Enqueued LoggingJob \(Job ID: .*?\) to .* with arguments: "NestedJob"/, @logger.messages)
-    assert_match(/\[ActiveJob\].*\[LoggingJob\] \[LOGGING-JOB-ID\] Performing LoggingJob from .* with arguments: "NestedJob"/, @logger.messages)
+    assert_match(/\[ActiveJob\] \[NestedJob\] \[NESTED-JOB-ID\] Enqueued LoggingJob \(Job ID: .*\) to .*/, @logger.messages)
+    assert_match(/\[ActiveJob\] \[NestedJob\] \[NESTED-JOB-ID\] Job ID: .* arguments: "NestedJob"/, @logger.messages)
+    assert_match(/\[ActiveJob\].*\[LoggingJob\] \[LOGGING-JOB-ID\] Performing LoggingJob from .*/, @logger.messages)
+    assert_match(/\[ActiveJob\].*\[LoggingJob\] \[LOGGING-JOB-ID\] Job ID: .* arguments: "NestedJob"/, @logger.messages)
     assert_match(/\[ActiveJob\].*\[LoggingJob\] \[LOGGING-JOB-ID\] Dummy, here is it: NestedJob/, @logger.messages)
     assert_match(/\[ActiveJob\].*\[LoggingJob\] \[LOGGING-JOB-ID\] Performed LoggingJob from .* in/, @logger.messages)
     assert_match(/\[ActiveJob\] \[NestedJob\] \[NESTED-JOB-ID\] Performed NestedJob from .* in/, @logger.messages)
@@ -108,14 +114,16 @@ class LoggingTest < ActiveSupport::TestCase
 
   def test_enqueue_at_job_logging
     HelloJob.set(wait_until: 24.hours.from_now).perform_later "Cristian"
-    assert_match(/Enqueued HelloJob \(Job ID: .*\) to .*? at.*Cristian/, @logger.messages)
+    assert_match(/Enqueued HelloJob \(Job ID: .*\) to/, @logger.messages)
+    assert_match(/Job ID: .* arguments: .*Cristian/, @logger.messages)
   rescue NotImplementedError
     skip
   end
 
   def test_enqueue_in_job_logging
     HelloJob.set(wait: 2.seconds).perform_later "Cristian"
-    assert_match(/Enqueued HelloJob \(Job ID: .*\) to .*? at.*Cristian/, @logger.messages)
+    assert_match(/Enqueued HelloJob \(Job ID: .*\) to/, @logger.messages)
+    assert_match(/Job ID: .* arguments: .*Cristian/, @logger.messages)
   rescue NotImplementedError
     skip
   end

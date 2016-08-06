@@ -53,24 +53,33 @@ module ActiveJob
 
     class LogSubscriber < ActiveSupport::LogSubscriber #:nodoc:
       def enqueue(event)
+        job = event.payload[:job]
+
         info do
-          job = event.payload[:job]
-          "Enqueued #{job.class.name} (Job ID: #{job.job_id}) to #{queue_name(event)}" + args_info(job)
+          "Enqueued #{job.class.name} (Job ID: #{job.job_id}) to #{queue_name(event)}"
         end
+
+        log_args_info(job)
       end
 
       def enqueue_at(event)
+        job = event.payload[:job]
+
         info do
-          job = event.payload[:job]
-          "Enqueued #{job.class.name} (Job ID: #{job.job_id}) to #{queue_name(event)} at #{scheduled_at(event)}" + args_info(job)
+          "Enqueued #{job.class.name} (Job ID: #{job.job_id}) to #{queue_name(event)} at #{scheduled_at(event)}"
         end
+
+        log_args_info(job)
       end
 
       def perform_start(event)
+        job = event.payload[:job]
+
         info do
-          job = event.payload[:job]
-          "Performing #{job.class.name} from #{queue_name(event)}" + args_info(job)
+          "Performing #{job.class.name} from #{queue_name(event)}"
         end
+
+        log_args_info(job)
       end
 
       def perform(event)
@@ -85,12 +94,12 @@ module ActiveJob
           event.payload[:adapter].class.name.demodulize.remove('Adapter') + "(#{event.payload[:job].queue_name})"
         end
 
-        def args_info(job)
+        def log_args_info(job)
           if job.arguments.any?
-            ' with arguments: ' +
-              job.arguments.map { |arg| format(arg).inspect }.join(', ')
-          else
-            ''
+            debug do
+              arguments = job.arguments.map { |arg| format(arg).inspect }.join(', ')
+              "Job ID: #{job.job_id} arguments: " + arguments
+            end
           end
         end
 
