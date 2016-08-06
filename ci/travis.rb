@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-require 'fileutils'
+require "fileutils"
 include FileUtils
 
 commands = [
@@ -15,16 +15,16 @@ end
 
 class Build
   MAP = {
-    'railties' => 'railties',
-    'ap'       => 'actionpack',
-    'am'       => 'actionmailer',
-    'amo'      => 'activemodel',
-    'as'       => 'activesupport',
-    'ar'       => 'activerecord',
-    'av'       => 'actionview',
-    'aj'       => 'activejob',
-    'ac'       => 'actioncable',
-    'guides'   => 'guides'
+    "railties" => "railties",
+    "ap"       => "actionpack",
+    "am"       => "actionmailer",
+    "amo"      => "activemodel",
+    "as"       => "activesupport",
+    "ar"       => "activerecord",
+    "av"       => "actionview",
+    "aj"       => "activejob",
+    "ac"       => "actioncable",
+    "guides"   => "guides"
   }
 
   attr_reader :component, :options
@@ -55,41 +55,41 @@ class Build
     heading << "with #{adapter}" if activerecord?
     heading << "in isolation" if isolated?
     heading << "integration" if integration?
-    heading.join(' ')
+    heading.join(" ")
   end
 
   def tasks
     if activerecord?
       tasks = ["#{adapter}:#{'isolated_' if isolated?}test"]
       case adapter
-      when 'mysql2'
-        tasks.unshift 'db:mysql:rebuild'
-      when 'postgresql'
-        tasks.unshift 'db:postgresql:rebuild'
+      when "mysql2"
+        tasks.unshift "db:mysql:rebuild"
+      when "postgresql"
+        tasks.unshift "db:postgresql:rebuild"
       end
       tasks
     else
-      ["test", ('isolated' if isolated?), ('integration' if integration?)].compact.join(":")
+      ["test", ("isolated" if isolated?), ("integration" if integration?)].compact.join(":")
     end
   end
 
   def key
     key = [gem]
     key << adapter if activerecord?
-    key << 'isolated' if isolated?
-    key.join(':')
+    key << "isolated" if isolated?
+    key.join(":")
   end
 
   def activesupport?
-    gem == 'activesupport'
+    gem == "activesupport"
   end
 
   def activerecord?
-    gem == 'activerecord'
+    gem == "activerecord"
   end
 
   def guides?
-    gem == 'guides'
+    gem == "guides"
   end
 
   def isolated?
@@ -97,16 +97,16 @@ class Build
   end
 
   def integration?
-    component.split(':').last == 'integration'
+    component.split(":").last == "integration"
   end
 
   def gem
-    MAP[component.split(':').first]
+    MAP[component.split(":").first]
   end
   alias :dir :gem
 
   def adapter
-    component.split(':').last
+    component.split(":").last
   end
 
   def rake(*tasks)
@@ -123,34 +123,34 @@ class Build
       # There is a known issue with the listen tests that causes files to be
       # incorrectly GC'ed even when they are still in-use. The current solution
       # is to only run them in isolation to avoid randomly failing our test suite.
-      { 'LISTEN' => '0' }
+      { "LISTEN" => "0" }
     else
       {}
     end
   end
 
   def run_bug_report_templates
-    Dir.glob('bug_report_templates/*.rb').all? do |file|
-      system(Gem.ruby, '-w', file)
+    Dir.glob("bug_report_templates/*.rb").all? do |file|
+      system(Gem.ruby, "-w", file)
     end
   end
 end
 
-if ENV['GEM']=='aj:integration'
-   ENV['QC_DATABASE_URL']  = 'postgres://postgres@localhost/active_jobs_qc_int_test'
-   ENV['QUE_DATABASE_URL'] = 'postgres://postgres@localhost/active_jobs_que_int_test'
+if ENV["GEM"]=="aj:integration"
+   ENV["QC_DATABASE_URL"]  = "postgres://postgres@localhost/active_jobs_qc_int_test"
+   ENV["QUE_DATABASE_URL"] = "postgres://postgres@localhost/active_jobs_que_int_test"
 end
 
 results = {}
 
-ENV['GEM'].split(',').each do |gem|
+ENV["GEM"].split(",").each do |gem|
   [false, true].each do |isolated|
-    next if ENV['TRAVIS_PULL_REQUEST'] && ENV['TRAVIS_PULL_REQUEST'] != 'false' && isolated
-    next if gem == 'railties' && isolated
-    next if gem == 'ac' && isolated
-    next if gem == 'ac:integration' && isolated
-    next if gem == 'aj:integration' && isolated
-    next if gem == 'guides' && isolated
+    next if ENV["TRAVIS_PULL_REQUEST"] && ENV["TRAVIS_PULL_REQUEST"] != "false" && isolated
+    next if gem == "railties" && isolated
+    next if gem == "ac" && isolated
+    next if gem == "ac:integration" && isolated
+    next if gem == "aj:integration" && isolated
+    next if gem == "guides" && isolated
 
     build = Build.new(gem, :isolated => isolated)
     results[build.key] = build.run!
