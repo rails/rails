@@ -1,29 +1,14 @@
 AllCops:
   TargetRubyVersion: 2.3
+  # RuboCop has a bunch of cops enabled by default. This setting tells RuboCop
+  # to ignore them, so only the ones explictily set in this file are enabled.
   DisabledByDefault: true
-
-# Two spaces, no tabs (for indentation).
-Style/IndentationWidth:
-  Enabled: true
-
-# No trailing whitespace.
-Style/TrailingWhitespace:
-  Enabled: true
-
-# Blank lines should not have any spaces.
-Style/TrailingBlankLines:
-  Enabled: true
-
-# Use Ruby >= 1.9 syntax for hashes. Prefer { a: :b } over { :a => :b }.
-Style/HashSyntax:
-  Enabled: true
+  Exclude:
+    - '**/templates/**/*'
+    - '**/vendor/**/*'
 
 # Prefer &&/|| over and/or.
 Style/AndOr:
-  Enabled: true
-
-# Use my_method(my_arg) not my_method( my_arg ) or my_method my_arg.
-Lint/RequireParentheses:
   Enabled: true
 
 # Do not use braces for hash literals when they are the last argument of a
@@ -31,11 +16,9 @@ Lint/RequireParentheses:
 Style/BracesAroundHashParameters:
   Enabled: true
 
-# Method definitions after `private` or `protected` isolated calls need one
-# extra level of indentation.
-Style/IndentationConsistency:
+# Align `when` with `case`.
+Style/CaseIndentation:
   Enabled: true
-  EnforcedStyle: rails
 
 # In a regular class definition, no empty lines around the body.
 Style/EmptyLinesAroundClassBody:
@@ -45,7 +28,51 @@ Style/EmptyLinesAroundClassBody:
 Style/EmptyLinesAroundModuleBody:
   Enabled: true
 
+# Use Ruby >= 1.9 syntax for hashes. Prefer { a: :b } over { :a => :b }.
+Style/HashSyntax:
+  Enabled: true
+
+# Method definitions after `private` or `protected` isolated calls need one
+# extra level of indentation.
+Style/IndentationConsistency:
+  Enabled: true
+  EnforcedStyle: rails
+
+# Two spaces, no tabs (for indentation).
+Style/IndentationWidth:
+  Enabled: true
+
+# Defining a method with parameters needs parentheses.
+Style/MethodDefParentheses:
+  Enabled: true
+
+# Check quotes usage according to lint rule below.
+Style/StringLiterals:
+  Enabled: true
+  EnforcedStyle: double_quotes
+
+# Detect hard tabs, no hard tabs.
+Style/Tab:
+  Enabled: true
+
+# Blank lines should not have any spaces.
+Style/TrailingBlankLines:
+  Enabled: true
+
+# No trailing whitespace.
+Style/TrailingWhitespace:
+  Enabled: true
+
+# Use quotes for string literals when they are enough.
+Style/UnneededPercentQ:
+  Enabled: true
+
 # Align `end` with the matching keyword or starting expression except for
 # assignments, where it should be aligned with the LHS.
 Lint/EndAlignment:
+  Enabled: true
   AlignWith: variable
+
+# Use my_method(my_arg) not my_method( my_arg ) or my_method my_arg.
+Lint/RequireParentheses:
+  Enabled: true
