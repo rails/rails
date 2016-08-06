@@ -327,17 +327,23 @@ module ActiveSupport
     #   ordinal(-11)   # => "th"
     #   ordinal(-1021) # => "st"
     def ordinal(number)
-      abs_number = number.to_i.abs
-
-      if (11..13).include?(abs_number % 100)
-        "th"
-      else
-        case abs_number % 10
-          when 1; "st"
-          when 2; "nd"
-          when 3; "rd"
-          else    "th"
-        end
+      case number
+        when 1; "st".freeze
+        when 2; "nd".freeze
+        when 3; "rd".freeze
+        when 4, 5, 6, 7, 8, 9, 10, 11, 12, 13; "th".freeze
+        else
+          num_modulo = number.to_i.abs % 100
+          if 11 <= num_modulo && num_modulo <= 13
+            "th".freeze
+          else
+            case num_modulo % 10
+              when 1; "st".freeze
+              when 2; "nd".freeze
+              when 3; "rd".freeze
+              else    "th".freeze
+            end
+          end
       end
     end
 
