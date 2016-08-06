@@ -5,7 +5,8 @@ require 'time_zone_test_helpers'
 
 class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   def date_time_init(year,month,day,hour,minute,second,*args)
-    DateTime.civil(year,month,day,hour,minute,second)
+    sec_fractions = args.empty? ? 0 : args.first * Rational(1, 1_000_000)
+    DateTime.civil(year,month,day,hour,minute,second + sec_fractions)
   end
 
   include DateAndTimeBehavior
@@ -113,7 +114,8 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_end_of_day
-    assert_equal DateTime.civil(2005,2,4,23,59,59), DateTime.civil(2005,2,4,10,10,10).end_of_day
+    assert_equal DateTime.civil(2005,2,4,23,59,59+Rational(999_999_999, 1_000_000_000)), DateTime.civil(2005,2,4,10,10,10).end_of_day
+    assert_equal Time.local(2005,2,4,10,10,10).end_of_day.to_datetime, DateTime.civil(2005,2,4,10,10,10).end_of_day
   end
 
   def test_beginning_of_hour
@@ -121,7 +123,8 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_end_of_hour
-    assert_equal DateTime.civil(2005,2,4,19,59,59), DateTime.civil(2005,2,4,19,30,10).end_of_hour
+    assert_equal DateTime.civil(2005,2,4,19,59,59+Rational(999_999_999, 1_000_000_000)), DateTime.civil(2005,2,4,19,30,10).end_of_hour
+    assert_equal Time.local(2005,2,4,19,30,10).end_of_hour.to_datetime, DateTime.civil(2005,2,4,19,30,10).end_of_hour
   end
 
   def test_beginning_of_minute
@@ -129,13 +132,15 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_end_of_minute
-    assert_equal DateTime.civil(2005,2,4,19,30,59), DateTime.civil(2005,2,4,19,30,10).end_of_minute
+    assert_equal DateTime.civil(2005,2,4,19,30,59+Rational(999_999_999, 1_000_000_000)), DateTime.civil(2005,2,4,19,30,10).end_of_minute
+    assert_equal Time.local(2005,2,4,19,30,10).end_of_minute.to_datetime, DateTime.civil(2005,2,4,19,30,10).end_of_minute
   end
 
   def test_end_of_month
-    assert_equal DateTime.civil(2005,3,31,23,59,59), DateTime.civil(2005,3,20,10,10,10).end_of_month
-    assert_equal DateTime.civil(2005,2,28,23,59,59), DateTime.civil(2005,2,20,10,10,10).end_of_month
-    assert_equal DateTime.civil(2005,4,30,23,59,59), DateTime.civil(2005,4,20,10,10,10).end_of_month
+    assert_equal DateTime.civil(2005,3,31,23,59,59+Rational(999_999_999, 1_000_000_000)), DateTime.civil(2005,3,20,10,10,10).end_of_month
+    assert_equal DateTime.civil(2005,2,28,23,59,59+Rational(999_999_999, 1_000_000_000)), DateTime.civil(2005,2,20,10,10,10).end_of_month
+    assert_equal DateTime.civil(2005,4,30,23,59,59+Rational(999_999_999, 1_000_000_000)), DateTime.civil(2005,4,20,10,10,10).end_of_month
+    assert_equal Time.local(2005,2,4,10,10,10).end_of_month.to_datetime, DateTime.civil(2005,2,4,10,10,10).end_of_month
   end
 
   def test_last_year

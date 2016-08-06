@@ -122,7 +122,7 @@ class DateTime
 
   # Returns a new DateTime representing the end of the day (23:59:59).
   def end_of_day
-    change(:hour => 23, :min => 59, :sec => 59)
+    change(:hour => 23, :min => 59, :sec => 59 + Rational(999_999_999, 1_000_000_000))
   end
   alias :at_end_of_day :end_of_day
 
@@ -134,7 +134,7 @@ class DateTime
 
   # Returns a new DateTime representing the end of the hour (hh:59:59).
   def end_of_hour
-    change(:min => 59, :sec => 59)
+    change(:min => 59, :sec => 59 + Rational(999_999_999, 1_000_000_000))
   end
   alias :at_end_of_hour :end_of_hour
 
@@ -146,7 +146,7 @@ class DateTime
 
   # Returns a new DateTime representing the end of the minute (hh:mm:59).
   def end_of_minute
-    change(:sec => 59)
+    change(:sec => 59 + Rational(999_999_999, 1_000_000_000))
   end
   alias :at_end_of_minute :end_of_minute
 
