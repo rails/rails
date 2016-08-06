@@ -561,8 +561,9 @@ To disable and allow requests from any origin:
 config.action_cable.disable_request_forgery_protection = true
 ```
 
-By default, Action Cable allows all requests from localhost:3000 when running
-in the development environment.
+By default, Action Cable allows all requests from localhost:3000 (and all other
+ports) when running in the development environment.  Additionally, if you start
+your rails server with -b 0.0.0.0 then all private IP addresses will be added.
 
 ### Consumer Configuration
 
