@@ -8,11 +8,11 @@ module Rails
       check_class_collision suffix: "Mailer"
 
       def create_mailer_file
-        template "mailer.rb", File.join('app/mailers', class_path, "#{file_name}_mailer.rb")
+        template "mailer.rb", File.join("app/mailers", class_path, "#{file_name}_mailer.rb")
 
         in_root do
           if self.behavior == :invoke && !File.exist?(application_mailer_file_name)
-            template 'application_mailer.rb', application_mailer_file_name
+            template "application_mailer.rb", application_mailer_file_name
           end
         end
       end
@@ -21,7 +21,7 @@ module Rails
 
       protected
         def file_name
-          @_file_name ||= super.gsub(/_mailer/i, '')
+          @_file_name ||= super.gsub(/_mailer/i, "")
         end
 
       private

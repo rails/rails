@@ -1,11 +1,11 @@
-require 'mail'
-require 'action_mailer/collector'
-require 'active_support/core_ext/string/inflections'
-require 'active_support/core_ext/hash/except'
-require 'active_support/core_ext/module/anonymous'
+require "mail"
+require "action_mailer/collector"
+require "active_support/core_ext/string/inflections"
+require "active_support/core_ext/hash/except"
+require "active_support/core_ext/module/anonymous"
 
-require 'action_mailer/log_subscriber'
-require 'action_mailer/rescuable'
+require "action_mailer/log_subscriber"
+require "action_mailer/rescuable"
 
 module ActionMailer
   # Action Mailer allows you to send email from your application using a mailer model and views.
@@ -598,7 +598,7 @@ module ActionMailer
     end
 
     class NullMail #:nodoc:
-      def body; '' end
+      def body; "" end
       def header; {} end
 
       def respond_to?(string, include_all=false)
@@ -864,7 +864,7 @@ module ActionMailer
     # humanized version of the <tt>action_name</tt>.
     # If the subject has interpolations, you can pass them through the +interpolations+ parameter.
     def default_i18n_subject(interpolations = {})
-      mailer_scope = self.class.mailer_name.tr('/', '.')
+      mailer_scope = self.class.mailer_name.tr("/", ".")
       I18n.t(:subject, interpolations.merge(scope: [mailer_scope, action_name], default: action_name.humanize))
     end
 
@@ -925,7 +925,7 @@ module ActionMailer
     def each_template(paths, name, &block)
       templates = lookup_context.find_all(name, paths)
       if templates.empty?
-        raise ActionView::MissingTemplate.new(paths, name, paths, false, 'mailer')
+        raise ActionView::MissingTemplate.new(paths, name, paths, false, "mailer")
       else
         templates.uniq(&:formats).each(&block)
       end

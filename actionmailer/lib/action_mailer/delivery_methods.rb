@@ -1,4 +1,4 @@
-require 'tmpdir'
+require "tmpdir"
 
 module ActionMailer
   # This module handles everything related to mail delivery, from registering
@@ -25,7 +25,7 @@ module ActionMailer
       add_delivery_method :smtp, Mail::SMTP,
         address:              "localhost",
         port:                 25,
-        domain:               'localhost.localdomain',
+        domain:               "localhost.localdomain",
         user_name:            nil,
         password:             nil,
         authentication:       nil,
@@ -35,8 +35,8 @@ module ActionMailer
         location: defined?(Rails.root) ? "#{Rails.root}/tmp/mails" : "#{Dir.tmpdir}/mails"
 
       add_delivery_method :sendmail, Mail::Sendmail,
-        location:  '/usr/sbin/sendmail',
-        arguments: '-i'
+        location:  "/usr/sbin/sendmail",
+        arguments: "-i"
 
       add_delivery_method :test, Mail::TestMailer
     end
