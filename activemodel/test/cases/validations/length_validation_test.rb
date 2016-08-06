@@ -1,7 +1,7 @@
-require 'cases/helper'
+require "cases/helper"
 
-require 'models/topic'
-require 'models/person'
+require "models/topic"
+require "models/person"
 
 class LengthValidationTest < ActiveModel::TestCase
   def teardown
@@ -125,7 +125,7 @@ class LengthValidationTest < ActiveModel::TestCase
   def test_optionally_validates_length_of_using_within
     Topic.validates_length_of :title, :content, within: 3..5, allow_nil: true
 
-    t = Topic.new('title' => 'abc', 'content' => 'abcd')
+    t = Topic.new("title" => "abc", "content" => "abcd")
     assert t.valid?
 
     t.title = nil
@@ -228,17 +228,17 @@ class LengthValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_length_of_custom_errors_for_both_too_short_and_too_long
-    Topic.validates_length_of :title, minimum: 3, maximum: 5, too_short: 'too short', too_long: 'too long'
+    Topic.validates_length_of :title, minimum: 3, maximum: 5, too_short: "too short", too_long: "too long"
 
-    t = Topic.new(title: 'a')
+    t = Topic.new(title: "a")
     assert t.invalid?
     assert t.errors[:title].any?
-    assert_equal ['too short'], t.errors['title']
+    assert_equal ["too short"], t.errors["title"]
 
-    t = Topic.new(title: 'aaaaaa')
+    t = Topic.new(title: "aaaaaa")
     assert t.invalid?
     assert t.errors[:title].any?
-    assert_equal ['too long'], t.errors['title']
+    assert_equal ["too long"], t.errors["title"]
   end
 
   def test_validates_length_of_custom_errors_for_is_with_message

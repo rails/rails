@@ -1,6 +1,6 @@
-require 'cases/helper'
+require "cases/helper"
 
-require 'models/topic'
+require "models/topic"
 
 class ValidationsContextTest < ActiveModel::TestCase
   def teardown

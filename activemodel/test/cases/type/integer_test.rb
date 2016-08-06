@@ -7,10 +7,10 @@ module ActiveModel
       test "simple values" do
         type = Type::Integer.new
         assert_equal 1, type.cast(1)
-        assert_equal 1, type.cast('1')
-        assert_equal 1, type.cast('1ignore')
-        assert_equal 0, type.cast('bad1')
-        assert_equal 0, type.cast('bad')
+        assert_equal 1, type.cast("1")
+        assert_equal 1, type.cast("1ignore")
+        assert_equal 0, type.cast("bad1")
+        assert_equal 0, type.cast("bad")
         assert_equal 1, type.cast(1.7)
         assert_equal 0, type.cast(false)
         assert_equal 1, type.cast(true)
@@ -44,11 +44,11 @@ module ActiveModel
       test "changed?" do
         type = Type::Integer.new
 
-        assert type.changed?(5, 5, '5wibble')
-        assert_not type.changed?(5, 5, '5')
-        assert_not type.changed?(5, 5, '5.0')
-        assert_not type.changed?(-5, -5, '-5')
-        assert_not type.changed?(-5, -5, '-5.0')
+        assert type.changed?(5, 5, "5wibble")
+        assert_not type.changed?(5, 5, "5")
+        assert_not type.changed?(5, 5, "5.0")
+        assert_not type.changed?(-5, -5, "-5")
+        assert_not type.changed?(-5, -5, "-5.0")
         assert_not type.changed?(nil, nil, nil)
       end
 

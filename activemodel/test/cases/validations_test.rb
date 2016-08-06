@@ -1,11 +1,11 @@
-require 'cases/helper'
+require "cases/helper"
 
-require 'models/topic'
-require 'models/reply'
-require 'models/custom_reader'
+require "models/topic"
+require "models/reply"
+require "models/custom_reader"
 
-require 'active_support/json'
-require 'active_support/xml_mini'
+require "active_support/json"
+require "active_support/xml_mini"
 
 class ValidationsTest < ActiveModel::TestCase
   class CustomStrictValidationException < StandardError; end
@@ -116,7 +116,7 @@ class ValidationsTest < ActiveModel::TestCase
   def test_validates_each
     hits = 0
     Topic.validates_each(:title, :content, [:title, :content]) do |record, attr|
-      record.errors.add attr, 'gotcha'
+      record.errors.add attr, "gotcha"
       hits += 1
     end
     t = Topic.new("title" => "valid", "content" => "whatever")
@@ -129,7 +129,7 @@ class ValidationsTest < ActiveModel::TestCase
   def test_validates_each_custom_reader
     hits = 0
     CustomReader.validates_each(:title, :content, [:title, :content]) do |record, attr|
-      record.errors.add attr, 'gotcha'
+      record.errors.add attr, "gotcha"
       hits += 1
     end
     t = CustomReader.new("title" => "valid", "content" => "whatever")
@@ -170,7 +170,7 @@ class ValidationsTest < ActiveModel::TestCase
       # A common mistake -- we meant to call 'validates'
       Topic.validate :title, presence: true
     end
-    message = 'Unknown key: :presence. Valid keys are: :on, :if, :unless, :prepend. Perhaps you meant to call `validates` instead of `validate`?'
+    message = "Unknown key: :presence. Valid keys are: :on, :if, :unless, :prepend. Perhaps you meant to call `validates` instead of `validate`?"
     assert_equal message, error.message
   end
 
@@ -233,21 +233,21 @@ class ValidationsTest < ActiveModel::TestCase
     assert t.invalid?
     assert_equal "can't be blank", t.errors["title"].first
     Topic.validates_presence_of :title, :author_name
-    Topic.validate {errors.add('author_email_address', 'will never be valid')}
+    Topic.validate {errors.add("author_email_address", "will never be valid")}
     Topic.validates_length_of :title, :content, minimum: 2
 
-    t = Topic.new title: ''
+    t = Topic.new title: ""
     assert t.invalid?
 
     assert_equal :title, key = t.errors.keys[0]
     assert_equal "can't be blank", t.errors[key][0]
-    assert_equal 'is too short (minimum is 2 characters)', t.errors[key][1]
+    assert_equal "is too short (minimum is 2 characters)", t.errors[key][1]
     assert_equal :author_name, key = t.errors.keys[1]
     assert_equal "can't be blank", t.errors[key][0]
     assert_equal :author_email_address, key = t.errors.keys[2]
-    assert_equal 'will never be valid', t.errors[key][0]
+    assert_equal "will never be valid", t.errors[key][0]
     assert_equal :content, key = t.errors.keys[3]
-    assert_equal 'is too short (minimum is 2 characters)', t.errors[key][0]
+    assert_equal "is too short (minimum is 2 characters)", t.errors[key][0]
   end
 
   def test_validation_with_if_and_on
@@ -271,7 +271,7 @@ class ValidationsTest < ActiveModel::TestCase
     assert t.invalid?
     assert t.errors[:title].any?
 
-    t.title = 'Things are going to change'
+    t.title = "Things are going to change"
     assert !t.invalid?
   end
 
@@ -332,9 +332,9 @@ class ValidationsTest < ActiveModel::TestCase
     assert topic.invalid?
     assert_equal 3, topic.errors.size
 
-    topic.title = 'Some Title'
-    topic.author_name = 'Some Author'
-    topic.content = 'Some Content Whose Length is more than 10.'
+    topic.title = "Some Title"
+    topic.author_name = "Some Author"
+    topic.content = "Some Content Whose Length is more than 10."
     assert topic.valid?
   end
 
@@ -440,7 +440,7 @@ class ValidationsTest < ActiveModel::TestCase
     assert duped.invalid?
 
     topic.title = nil
-    duped.title = 'Mathematics'
+    duped.title = "Mathematics"
     assert topic.invalid?
     assert duped.valid?
   end
@@ -448,7 +448,7 @@ class ValidationsTest < ActiveModel::TestCase
   def test_validation_with_message_as_proc_that_takes_a_record_as_a_parameter
     Topic.validates_presence_of(:title, message: proc { |record| "You have failed me for the last time, #{record.author_name}." })
 
-    t = Topic.new(author_name: 'Admiral')
+    t = Topic.new(author_name: "Admiral")
     assert t.invalid?
     assert_equal ["You have failed me for the last time, Admiral."], t.errors[:title]
   end
@@ -456,7 +456,7 @@ class ValidationsTest < ActiveModel::TestCase
   def test_validation_with_message_as_proc_that_takes_record_and_data_as_a_parameters
     Topic.validates_presence_of(:title, message: proc { |record, data| "#{data[:attribute]} is missing. You have failed me for the last time, #{record.author_name}." })
 
-    t = Topic.new(author_name: 'Admiral')
+    t = Topic.new(author_name: "Admiral")
     assert t.invalid?
     assert_equal ["Title is missing. You have failed me for the last time, Admiral."], t.errors[:title]
   end

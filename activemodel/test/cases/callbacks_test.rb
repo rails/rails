@@ -110,8 +110,8 @@ class CallbacksTest < ActiveModel::TestCase
     end
     extend ActiveModel::Callbacks
     define_model_callbacks :create
-    def callback1; self.history << 'callback1'; end
-    def callback2; self.history << 'callback2'; end
+    def callback1; self.history << "callback1"; end
+    def callback2; self.history << "callback2"; end
     def create
       run_callbacks(:create) {}
       self

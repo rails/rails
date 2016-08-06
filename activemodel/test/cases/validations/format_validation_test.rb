@@ -1,7 +1,7 @@
-require 'cases/helper'
+require "cases/helper"
 
-require 'models/topic'
-require 'models/person'
+require "models/topic"
+require "models/person"
 
 class PresenceValidationTest < ActiveModel::TestCase
 
@@ -63,7 +63,7 @@ class PresenceValidationTest < ActiveModel::TestCase
 
   def test_validate_format_with_formatted_message
     Topic.validates_format_of(:title, with: /\AValid Title\z/, message: "can't be %{value}")
-    t = Topic.new(title: 'Invalid title')
+    t = Topic.new(title: "Invalid title")
     assert t.invalid?
     assert_equal ["can't be Invalid title"], t.errors[:title]
   end

@@ -1,5 +1,5 @@
 require "cases/helper"
-require 'active_support/core_ext/object/instance_variables'
+require "active_support/core_ext/object/instance_variables"
 
 class SerializationTest < ActiveModel::TestCase
   class User
@@ -18,14 +18,14 @@ class SerializationTest < ActiveModel::TestCase
 
     def method_missing(method_name, *args)
       if method_name == :bar
-        'i_am_bar'
+        "i_am_bar"
       else
         super
       end
     end
 
     def foo
-      'i_am_foo'
+      "i_am_foo"
     end
   end
 
@@ -40,14 +40,14 @@ class SerializationTest < ActiveModel::TestCase
   end
 
   setup do
-    @user = User.new('David', 'david@example.com', 'male')
+    @user = User.new("David", "david@example.com", "male")
     @user.address = Address.new
     @user.address.street = "123 Lane"
     @user.address.city = "Springfield"
     @user.address.state = "CA"
     @user.address.zip = 11111
-    @user.friends = [User.new('Joe', 'joe@example.com', 'male'),
-                     User.new('Sue', 'sue@example.com', 'female')]
+    @user.friends = [User.new("Joe", "joe@example.com", "male"),
+                     User.new("Sue", "sue@example.com", "female")]
   end
 
   def test_method_serializable_hash_should_work
@@ -101,8 +101,8 @@ class SerializationTest < ActiveModel::TestCase
 
   def test_include_option_with_plural_association
     expected = {"email"=>"david@example.com", "gender"=>"male", "name"=>"David",
-                "friends"=>[{"name"=>'Joe', "email"=>'joe@example.com', "gender"=>'male'},
-                           {"name"=>'Sue', "email"=>'sue@example.com', "gender"=>'female'}]}
+                "friends"=>[{"name"=>"Joe", "email"=>"joe@example.com", "gender"=>"male"},
+                           {"name"=>"Sue", "email"=>"sue@example.com", "gender"=>"female"}]}
     assert_equal expected, @user.serializable_hash(include: :friends)
   end
 
@@ -125,16 +125,16 @@ class SerializationTest < ActiveModel::TestCase
   def test_include_option_with_ary
     @user.friends = FriendList.new(@user.friends)
     expected = {"email"=>"david@example.com", "gender"=>"male", "name"=>"David",
-                "friends"=>[{"name"=>'Joe', "email"=>'joe@example.com', "gender"=>'male'},
-                           {"name"=>'Sue', "email"=>'sue@example.com', "gender"=>'female'}]}
+                "friends"=>[{"name"=>"Joe", "email"=>"joe@example.com", "gender"=>"male"},
+                           {"name"=>"Sue", "email"=>"sue@example.com", "gender"=>"female"}]}
     assert_equal expected, @user.serializable_hash(include: :friends)
   end
 
   def test_multiple_includes
     expected = {"email"=>"david@example.com", "gender"=>"male", "name"=>"David",
                 "address"=>{"street"=>"123 Lane", "city"=>"Springfield", "state"=>"CA", "zip"=>11111},
-                "friends"=>[{"name"=>'Joe', "email"=>'joe@example.com', "gender"=>'male'},
-                           {"name"=>'Sue', "email"=>'sue@example.com', "gender"=>'female'}]}
+                "friends"=>[{"name"=>"Joe", "email"=>"joe@example.com", "gender"=>"male"},
+                           {"name"=>"Sue", "email"=>"sue@example.com", "gender"=>"female"}]}
     assert_equal expected, @user.serializable_hash(include: [:address, :friends])
   end
 
@@ -147,9 +147,9 @@ class SerializationTest < ActiveModel::TestCase
   def test_nested_include
     @user.friends.first.friends = [@user]
     expected = {"email"=>"david@example.com", "gender"=>"male", "name"=>"David",
-                "friends"=>[{"name"=>'Joe', "email"=>'joe@example.com', "gender"=>'male',
+                "friends"=>[{"name"=>"Joe", "email"=>"joe@example.com", "gender"=>"male",
                             "friends"=> [{"email"=>"david@example.com", "gender"=>"male", "name"=>"David"}]},
-                            {"name"=>'Sue', "email"=>'sue@example.com', "gender"=>'female', "friends"=> []}]}
+                            {"name"=>"Sue", "email"=>"sue@example.com", "gender"=>"female", "friends"=> []}]}
     assert_equal expected, @user.serializable_hash(include: { friends: { include: :friends } })
   end
 
@@ -160,16 +160,16 @@ class SerializationTest < ActiveModel::TestCase
 
   def test_except_include
     expected = {"name"=>"David", "email"=>"david@example.com",
-                "friends"=> [{"name" => 'Joe', "email" => 'joe@example.com'},
-                             {"name" => "Sue", "email" => 'sue@example.com'}]}
+                "friends"=> [{"name" => "Joe", "email" => "joe@example.com"},
+                             {"name" => "Sue", "email" => "sue@example.com"}]}
     assert_equal expected, @user.serializable_hash(except: :gender, include: { friends: { except: :gender } })
   end
 
   def test_multiple_includes_with_options
     expected = {"email"=>"david@example.com", "gender"=>"male", "name"=>"David",
                 "address"=>{"street"=>"123 Lane"},
-                "friends"=>[{"name"=>'Joe', "email"=>'joe@example.com', "gender"=>'male'},
-                           {"name"=>'Sue', "email"=>'sue@example.com', "gender"=>'female'}]}
+                "friends"=>[{"name"=>"Joe", "email"=>"joe@example.com", "gender"=>"male"},
+                           {"name"=>"Sue", "email"=>"sue@example.com", "gender"=>"female"}]}
     assert_equal expected, @user.serializable_hash(include: [{ address: {only: "street" } }, :friends])
   end
 end

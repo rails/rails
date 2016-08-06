@@ -1,6 +1,6 @@
-require 'cases/helper'
+require "cases/helper"
 
-require 'models/topic'
+require "models/topic"
 
 class ValidatesWithTest < ActiveModel::TestCase
 
@@ -160,7 +160,7 @@ class ValidatesWithTest < ActiveModel::TestCase
 
     topic = Topic.new
     assert !topic.valid?
-    assert_equal ['is missing'], topic.errors[:title]
+    assert_equal ["is missing"], topic.errors[:title]
   end
 
   test "optionally pass in the attribute being validated when validating with an instance method" do
@@ -169,6 +169,6 @@ class ValidatesWithTest < ActiveModel::TestCase
     topic = Topic.new title: "foo"
     assert !topic.valid?
     assert topic.errors[:title].empty?
-    assert_equal ['is missing'], topic.errors[:content]
+    assert_equal ["is missing"], topic.errors[:content]
   end
 end

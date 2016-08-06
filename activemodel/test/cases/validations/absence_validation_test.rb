@@ -1,7 +1,7 @@
-require 'cases/helper'
-require 'models/topic'
-require 'models/person'
-require 'models/custom_reader'
+require "cases/helper"
+require "models/topic"
+require "models/person"
+require "models/custom_reader"
 
 class AbsenceValidationTest < ActiveModel::TestCase
   teardown do

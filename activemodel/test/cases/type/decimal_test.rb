@@ -48,9 +48,9 @@ module ActiveModel
       def test_changed?
         type = Decimal.new
 
-        assert type.changed?(5.0, 5.0, '5.0wibble')
-        assert_not type.changed?(5.0, 5.0, '5.0')
-        assert_not type.changed?(-5.0, -5.0, '-5.0')
+        assert type.changed?(5.0, 5.0, "5.0wibble")
+        assert_not type.changed?(5.0, 5.0, "5.0")
+        assert_not type.changed?(-5.0, -5.0, "-5.0")
       end
 
       def test_scale_is_applied_before_precision_to_prevent_rounding_errors
