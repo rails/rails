@@ -2,7 +2,7 @@ task "load_app" do
   namespace :app do
     load APP_RAKEFILE
   end
-  task :environment => "app:environment"
+  task environment: "app:environment"
 
   if !defined?(ENGINE_ROOT) || !ENGINE_ROOT
     ENGINE_ROOT = find_engine_path(APP_RAKEFILE)

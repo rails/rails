@@ -5,29 +5,29 @@ module Rails
     class Task < RDoc::Task
       RDOC_FILES = {
         "activesupport" => {
-          :include => %w(
+          include: %w(
             README.rdoc
             lib/active_support/**/*.rb
           ),
-          :exclude => "lib/active_support/vendor/*"
+          exclude: "lib/active_support/vendor/*"
         },
 
         "activerecord" => {
-          :include => %w(
+          include: %w(
             README.rdoc
             lib/active_record/**/*.rb
           )
         },
 
         "activemodel" => {
-          :include => %w(
+          include: %w(
             README.rdoc
             lib/active_model/**/*.rb
           )
         },
 
         "actionpack" => {
-          :include => %w(
+          include: %w(
             README.rdoc
             lib/abstract_controller/**/*.rb
             lib/action_controller/**/*.rb
@@ -36,40 +36,40 @@ module Rails
         },
 
         "actionview" => {
-          :include => %w(
+          include: %w(
             README.rdoc
             lib/action_view/**/*.rb
           ),
-          :exclude => "lib/action_view/vendor/*"
+          exclude: "lib/action_view/vendor/*"
         },
 
         "actionmailer" => {
-          :include => %w(
+          include: %w(
             README.rdoc
             lib/action_mailer/**/*.rb
           )
         },
 
         "activejob" => {
-          :include => %w(
+          include: %w(
             README.md
             lib/active_job/**/*.rb
           )
         },
 
         "actioncable" => {
-          :include => %w(
+          include: %w(
             README.md
             lib/action_cable/**/*.rb
           )
         },
 
         "railties" => {
-          :include => %w(
+          include: %w(
             README.rdoc
             lib/**/*.rb
           ),
-          :exclude => "lib/rails/generators/rails/**/templates/**/*.rb"
+          exclude: "lib/rails/generators/rails/**/templates/**/*.rb"
         }
       }
 
