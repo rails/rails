@@ -152,7 +152,7 @@ ENV["GEM"].split(",").each do |gem|
     next if gem == "aj:integration" && isolated
     next if gem == "guides" && isolated
 
-    build = Build.new(gem, :isolated => isolated)
+    build = Build.new(gem, isolated: isolated)
     results[build.key] = build.run!
 
   end

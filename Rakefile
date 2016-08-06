@@ -5,16 +5,16 @@ require "tasks/release"
 require "railties/lib/rails/api/task"
 
 desc "Build gem files for all projects"
-task :build => "all:build"
+task build: "all:build"
 
 desc "Prepare the release"
-task :prep_release => "all:prep_release"
+task prep_release: "all:prep_release"
 
 desc "Release all gems to rubygems and create a tag"
-task :release => "all:release"
+task release: "all:release"
 
 desc "Run all tests by default"
-task :default => %w(test test:isolated)
+task default: %w(test test:isolated)
 
 %w(test test:isolated package gem).each do |task_name|
   desc "Run #{task_name} task for all projects"
@@ -40,7 +40,7 @@ task :smoke do
 end
 
 desc "Install gems for all projects."
-task :install => "all:install"
+task install: "all:install"
 
 desc "Generate documentation for the Rails framework"
 if ENV["EDGE"]
@@ -50,7 +50,7 @@ else
 end
 
 desc "Bump all versions to match RAILS_VERSION"
-task :update_versions => "all:update_versions"
+task update_versions: "all:update_versions"
 
 # We have a webhook configured in GitHub that gets invoked after pushes.
 # This hook triggers the following tasks:
