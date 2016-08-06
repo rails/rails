@@ -1,15 +1,15 @@
-require 'active_record/connection_adapters/abstract_adapter'
-require 'active_record/connection_adapters/statement_pool'
-require 'active_record/connection_adapters/mysql/column'
-require 'active_record/connection_adapters/mysql/explain_pretty_printer'
-require 'active_record/connection_adapters/mysql/quoting'
-require 'active_record/connection_adapters/mysql/schema_creation'
-require 'active_record/connection_adapters/mysql/schema_definitions'
-require 'active_record/connection_adapters/mysql/schema_dumper'
-require 'active_record/connection_adapters/mysql/type_metadata'
+require "active_record/connection_adapters/abstract_adapter"
+require "active_record/connection_adapters/statement_pool"
+require "active_record/connection_adapters/mysql/column"
+require "active_record/connection_adapters/mysql/explain_pretty_printer"
+require "active_record/connection_adapters/mysql/quoting"
+require "active_record/connection_adapters/mysql/schema_creation"
+require "active_record/connection_adapters/mysql/schema_definitions"
+require "active_record/connection_adapters/mysql/schema_dumper"
+require "active_record/connection_adapters/mysql/type_metadata"
 
-require 'active_support/core_ext/string/strip'
-require 'active_support/core_ext/regexp'
+require "active_support/core_ext/string/strip"
+require "active_support/core_ext/regexp"
 
 module ActiveRecord
   module ConnectionAdapters
@@ -68,16 +68,16 @@ module ActiveRecord
 
         @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
 
-        if version < '5.0.0'
+        if version < "5.0.0"
           raise "Your version of MySQL (#{full_version.match(/^\d+\.\d+\.\d+/)[0]}) is too old. Active Record supports MySQL >= 5.0."
         end
       end
 
-      CHARSETS_OF_4BYTES_MAXLEN = ['utf8mb4', 'utf16', 'utf16le', 'utf32']
+      CHARSETS_OF_4BYTES_MAXLEN = ["utf8mb4", "utf16", "utf16le", "utf32"]
 
       def internal_string_options_for_primary_key # :nodoc:
         super.tap { |options|
-          options[:collation] = collation.sub(/\A[^_]+/, 'utf8') if CHARSETS_OF_4BYTES_MAXLEN.include?(charset)
+          options[:collation] = collation.sub(/\A[^_]+/, "utf8") if CHARSETS_OF_4BYTES_MAXLEN.include?(charset)
         }
       end
 
@@ -136,9 +136,9 @@ module ActiveRecord
 
       def supports_datetime_with_precision?
         if mariadb?
-          version >= '5.3.0'
+          version >= "5.3.0"
         else
-          version >= '5.6.4'
+          version >= "5.6.4"
         end
       end
 
@@ -159,7 +159,7 @@ module ActiveRecord
       end
 
       def index_algorithms
-        { default: 'ALGORITHM = DEFAULT', copy: 'ALGORITHM = COPY', inplace: 'ALGORITHM = INPLACE' }
+        { default: "ALGORITHM = DEFAULT", copy: "ALGORITHM = COPY", inplace: "ALGORITHM = INPLACE" }
       end
 
       # HELPER METHODS ===========================================
@@ -208,7 +208,7 @@ module ActiveRecord
       def explain(arel, binds = [])
         sql     = "EXPLAIN #{to_sql(arel, binds)}"
         start   = Time.now
-        result  = exec_query(sql, 'EXPLAIN', binds)
+        result  = exec_query(sql, "EXPLAIN", binds)
         elapsed = Time.now - start
 
         MySQL::ExplainPrettyPrinter.new.pp(result, elapsed)
@@ -294,17 +294,17 @@ module ActiveRecord
       end
 
       def current_database
-        select_value 'SELECT DATABASE() as db'
+        select_value "SELECT DATABASE() as db"
       end
 
       # Returns the database character set.
       def charset
-        show_variable 'character_set_database'
+        show_variable "character_set_database"
       end
 
       # Returns the database collation strategy.
       def collation
-        show_variable 'collation_database'
+        show_variable "collation_database"
       end
 
       def tables(name = nil) # :nodoc:
@@ -327,7 +327,7 @@ module ActiveRecord
         sql = "SELECT table_name FROM information_schema.tables "
         sql << "WHERE table_schema = #{quote(@config[:database])}"
 
-        select_values(sql, 'SCHEMA')
+        select_values(sql, "SCHEMA")
       end
 
       def truncate(table_name, name = nil)
@@ -353,11 +353,11 @@ module ActiveRecord
         sql = "SELECT table_name FROM information_schema.tables "
         sql << "WHERE table_schema = #{quote(schema)} AND table_name = #{quote(name)}"
 
-        select_values(sql, 'SCHEMA').any?
+        select_values(sql, "SCHEMA").any?
       end
 
       def views # :nodoc:
-        select_values("SHOW FULL TABLES WHERE table_type = 'VIEW'", 'SCHEMA')
+        select_values("SHOW FULL TABLES WHERE table_type = 'VIEW'", "SCHEMA")
       end
 
       def view_exists?(view_name) # :nodoc:
@@ -368,17 +368,17 @@ module ActiveRecord
         sql = "SELECT table_name FROM information_schema.tables WHERE table_type = 'VIEW'"
         sql << " AND table_schema = #{quote(schema)} AND table_name = #{quote(name)}"
 
-        select_values(sql, 'SCHEMA').any?
+        select_values(sql, "SCHEMA").any?
       end
 
       # Returns an array of indexes for the given table.
       def indexes(table_name, name = nil) #:nodoc:
         indexes = []
         current_index = nil
-        execute_and_free("SHOW KEYS FROM #{quote_table_name(table_name)}", 'SCHEMA') do |result|
+        execute_and_free("SHOW KEYS FROM #{quote_table_name(table_name)}", "SCHEMA") do |result|
           each_hash(result) do |row|
             if current_index != row[:Key_name]
-              next if row[:Key_name] == 'PRIMARY' # skip the primary key
+              next if row[:Key_name] == "PRIMARY" # skip the primary key
               current_index = row[:Key_name]
 
               mysql_index_type = row[:Index_type].downcase.to_sym
@@ -412,7 +412,7 @@ module ActiveRecord
       def table_comment(table_name) # :nodoc:
         schema, name = extract_schema_qualified_name(table_name)
 
-        select_value(<<-SQL.strip_heredoc, 'SCHEMA')
+        select_value(<<-SQL.strip_heredoc, "SCHEMA")
           SELECT table_comment
           FROM information_schema.tables
           WHERE table_schema = #{quote(schema)}
@@ -421,7 +421,7 @@ module ActiveRecord
       end
 
       def create_table(table_name, **options) #:nodoc:
-        super(table_name, options: 'ENGINE=InnoDB', **options)
+        super(table_name, options: "ENGINE=InnoDB", **options)
       end
 
       def bulk_change_table(table_name, operations) #:nodoc:
@@ -518,7 +518,7 @@ module ActiveRecord
 
         schema, name = extract_schema_qualified_name(table_name)
 
-        fk_info = select_all(<<-SQL.strip_heredoc, 'SCHEMA')
+        fk_info = select_all(<<-SQL.strip_heredoc, "SCHEMA")
           SELECT fk.referenced_table_name AS 'to_table',
                  fk.referenced_column_name AS 'primary_key',
                  fk.column_name AS 'column',
@@ -535,15 +535,15 @@ module ActiveRecord
 
         fk_info.map do |row|
           options = {
-            column: row['column'],
-            name: row['name'],
-            primary_key: row['primary_key']
+            column: row["column"],
+            name: row["name"],
+            primary_key: row["primary_key"]
           }
 
-          options[:on_update] = extract_foreign_key_action(row['on_update'])
-          options[:on_delete] = extract_foreign_key_action(row['on_delete'])
+          options[:on_update] = extract_foreign_key_action(row["on_update"])
+          options[:on_delete] = extract_foreign_key_action(row["on_delete"])
 
-          ForeignKeyDefinition.new(table_name, row['to_table'], options)
+          ForeignKeyDefinition.new(table_name, row["to_table"], options)
         end
       end
 
@@ -553,7 +553,7 @@ module ActiveRecord
         create_table_info = create_table_info(table_name)
 
         # strip create_definitions and partition_options
-        raw_table_options = create_table_info.sub(/\A.*\n\) /m, '').sub(/\n\/\*!.*\*\/\n\z/m, '').strip
+        raw_table_options = create_table_info.sub(/\A.*\n\) /m, "").sub(/\n\/\*!.*\*\/\n\z/m, "").strip
 
         # strip AUTO_INCREMENT
         raw_table_options.sub!(/(ENGINE=\w+)(?: AUTO_INCREMENT=\d+)/, '\1')
@@ -561,7 +561,7 @@ module ActiveRecord
         table_options[:options] = raw_table_options
 
         # strip COMMENT
-        if raw_table_options.sub!(/ COMMENT='.+'/, '')
+        if raw_table_options.sub!(/ COMMENT='.+'/, "")
           table_options[:comment] = table_comment(table_name)
         end
 
@@ -571,13 +571,13 @@ module ActiveRecord
       # Maps logical Rails types to MySQL-specific data types.
       def type_to_sql(type, limit = nil, precision = nil, scale = nil, unsigned = nil)
         sql = case type.to_s
-        when 'integer'
+        when "integer"
           integer_to_sql(limit)
-        when 'text'
+        when "text"
           text_to_sql(limit)
-        when 'blob'
+        when "blob"
           binary_to_sql(limit)
-        when 'binary'
+        when "binary"
           if (0..0xfff) === limit
             "varbinary(#{limit})"
           else
@@ -587,13 +587,13 @@ module ActiveRecord
           super(type, limit, precision, scale)
         end
 
-        sql << ' unsigned' if unsigned && type != :primary_key
+        sql << " unsigned" if unsigned && type != :primary_key
         sql
       end
 
       # SHOW VARIABLES LIKE 'name'
       def show_variable(name)
-        select_value("SELECT @@#{name}", 'SCHEMA')
+        select_value("SELECT @@#{name}", "SCHEMA")
       rescue ActiveRecord::StatementInvalid
         nil
       end
@@ -603,7 +603,7 @@ module ActiveRecord
 
         schema, name = extract_schema_qualified_name(table_name)
 
-        select_values(<<-SQL.strip_heredoc, 'SCHEMA')
+        select_values(<<-SQL.strip_heredoc, "SCHEMA")
           SELECT column_name
           FROM information_schema.key_column_usage
           WHERE constraint_name = 'PRIMARY'
@@ -635,10 +635,10 @@ module ActiveRecord
           # Convert Arel node to string
           s = s.to_sql unless s.is_a?(String)
           # Remove any ASC/DESC modifiers
-          s.gsub(/\s+(?:ASC|DESC)\b/i, '')
+          s.gsub(/\s+(?:ASC|DESC)\b/i, "")
         }.reject(&:blank?).map.with_index { |column, i| "#{column} AS alias_#{i}" }
 
-        [super, *order_columns].join(', ')
+        [super, *order_columns].join(", ")
       end
 
       def strict_mode?
@@ -675,18 +675,18 @@ module ActiveRecord
         register_integer_type m, %r(^tinyint)i,   limit: 1
 
         m.register_type %r(^tinyint\(1\))i, Type::Boolean.new if emulate_booleans
-        m.alias_type %r(year)i,          'integer'
-        m.alias_type %r(bit)i,           'binary'
+        m.alias_type %r(year)i,          "integer"
+        m.alias_type %r(bit)i,           "binary"
 
         m.register_type(%r(enum)i) do |sql_type|
           limit = sql_type[/^enum\((.+)\)/i, 1]
-            .split(',').map{|enum| enum.strip.length - 2}.max
+            .split(",").map{|enum| enum.strip.length - 2}.max
           MysqlString.new(limit: limit)
         end
 
         m.register_type(%r(^set)i) do |sql_type|
           limit = sql_type[/^set\((.+)\)/i, 1]
-            .split(',').map{|set| set.strip.length - 1}.sum - 1
+            .split(",").map{|set| set.strip.length - 1}.sum - 1
           MysqlString.new(limit: limit)
         end
       end
@@ -727,7 +727,7 @@ module ActiveRecord
       end
 
       def quoted_columns_for_index(column_names, options = {})
-        option_strings = Hash[column_names.map {|name| [name, '']}]
+        option_strings = Hash[column_names.map {|name| [name, ""]}]
 
         # add index length
         option_strings = add_index_length(option_strings, column_names, options)
@@ -789,7 +789,7 @@ module ActiveRecord
           auto_increment: column.auto_increment?
         }
 
-        current_type = select_one("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE '#{column_name}'", 'SCHEMA')["Type"]
+        current_type = select_one("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE '#{column_name}'", "SCHEMA")["Type"]
         td = create_table_definition(table_name)
         cd = td.new_column_definition(new_column_name, current_type, options)
         schema_creation.accept(ChangeColumnDefinition.new(cd, column.name))
@@ -836,30 +836,30 @@ module ActiveRecord
 
         subselect = Arel::SelectManager.new(select.engine)
         subselect.project Arel.sql(key.name)
-        subselect.from subsubselect.as('__active_record_temp')
+        subselect.from subsubselect.as("__active_record_temp")
       end
 
       def supports_rename_index?
-        mariadb? ? false : version >= '5.7.6'
+        mariadb? ? false : version >= "5.7.6"
       end
 
       def configure_connection
         variables = @config.fetch(:variables, {}).stringify_keys
 
         # By default, MySQL 'where id is null' selects the last inserted id; Turn this off.
-        variables['sql_auto_is_null'] = 0
+        variables["sql_auto_is_null"] = 0
 
         # Increase timeout so the server doesn't disconnect us.
         wait_timeout = @config[:wait_timeout]
         wait_timeout = 2147483 unless wait_timeout.is_a?(Integer)
-        variables['wait_timeout'] = self.class.type_cast_config_to_integer(wait_timeout)
+        variables["wait_timeout"] = self.class.type_cast_config_to_integer(wait_timeout)
 
-        defaults = [':default', :default].to_set
+        defaults = [":default", :default].to_set
 
         # Make MySQL reject illegal values rather than truncating or blanking them, see
         # http://dev.mysql.com/doc/refman/5.7/en/sql-mode.html#sqlmode_strict_all_tables
         # If the user has provided another value for sql_mode, don't replace it.
-        if sql_mode = variables.delete('sql_mode')
+        if sql_mode = variables.delete("sql_mode")
           sql_mode = quote(sql_mode)
         elsif !defaults.include?(strict_mode?)
           if strict_mode?
@@ -890,22 +890,22 @@ module ActiveRecord
             "@@SESSION.#{k} = #{quote(v)}"
           end
           # or else nil; compact to clear nils out
-        end.compact.join(', ')
+        end.compact.join(", ")
 
         # ...and send them all in one query
         @connection.query  "SET #{encoding} #{sql_mode_assignment} #{variable_assignments}"
       end
 
       def column_definitions(table_name) # :nodoc:
-        execute_and_free("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}", 'SCHEMA') do |result|
+        execute_and_free("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}", "SCHEMA") do |result|
           each_hash(result)
         end
       end
 
       def extract_foreign_key_action(specifier) # :nodoc:
         case specifier
-        when 'CASCADE'; :cascade
-        when 'SET NULL'; :nullify
+        when "CASCADE"; :cascade
+        when "SET NULL"; :nullify
         end
       end
 
@@ -925,31 +925,31 @@ module ActiveRecord
 
       def integer_to_sql(limit) # :nodoc:
         case limit
-        when 1; 'tinyint'
-        when 2; 'smallint'
-        when 3; 'mediumint'
-        when nil, 4; 'int'
-        when 5..8; 'bigint'
+        when 1; "tinyint"
+        when 2; "smallint"
+        when 3; "mediumint"
+        when nil, 4; "int"
+        when 5..8; "bigint"
         else raise(ActiveRecordError, "No integer type has byte size #{limit}")
         end
       end
 
       def text_to_sql(limit) # :nodoc:
         case limit
-        when 0..0xff;               'tinytext'
-        when nil, 0x100..0xffff;    'text'
-        when 0x10000..0xffffff;     'mediumtext'
-        when 0x1000000..0xffffffff; 'longtext'
+        when 0..0xff;               "tinytext"
+        when nil, 0x100..0xffff;    "text"
+        when 0x10000..0xffffff;     "mediumtext"
+        when 0x1000000..0xffffffff; "longtext"
         else raise(ActiveRecordError, "No text type has byte length #{limit}")
         end
       end
 
       def binary_to_sql(limit) # :nodoc:
         case limit
-        when 0..0xff;               'tinyblob'
-        when nil, 0x100..0xffff;    'blob'
-        when 0x10000..0xffffff;     'mediumblob'
-        when 0x1000000..0xffffffff; 'longblob'
+        when 0..0xff;               "tinyblob"
+        when nil, 0x100..0xffff;    "blob"
+        when 0x10000..0xffffff;     "mediumblob"
+        when 0x1000000..0xffffffff; "longblob"
         else raise(ActiveRecordError, "No binary type has byte length #{limit}")
         end
       end

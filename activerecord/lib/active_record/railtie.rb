@@ -17,10 +17,10 @@ module ActiveRecord
                                               :timestamps => true
 
     config.action_dispatch.rescue_responses.merge!(
-      'ActiveRecord::RecordNotFound'   => :not_found,
-      'ActiveRecord::StaleObjectError' => :conflict,
-      'ActiveRecord::RecordInvalid'    => :unprocessable_entity,
-      'ActiveRecord::RecordNotSaved'   => :unprocessable_entity
+      "ActiveRecord::RecordNotFound"   => :not_found,
+      "ActiveRecord::StaleObjectError" => :conflict,
+      "ActiveRecord::RecordInvalid"    => :unprocessable_entity,
+      "ActiveRecord::RecordNotSaved"   => :unprocessable_entity
     )
 
 
@@ -35,8 +35,8 @@ module ActiveRecord
           ActiveRecord::Tasks::DatabaseTasks.database_configuration = Rails.application.config.database_configuration
 
           if defined?(ENGINE_ROOT) && engine = Rails::Engine.find(ENGINE_ROOT)
-            if engine.paths['db/migrate'].existent
-              ActiveRecord::Tasks::DatabaseTasks.migrations_paths += engine.paths['db/migrate'].to_a
+            if engine.paths["db/migrate"].existent
+              ActiveRecord::Tasks::DatabaseTasks.migrations_paths += engine.paths["db/migrate"].to_a
             end
           end
         end
@@ -102,7 +102,7 @@ module ActiveRecord
     initializer "active_record.warn_on_records_fetched_greater_than" do
       if config.active_record.warn_on_records_fetched_greater_than
         ActiveSupport.on_load(:active_record) do
-          require 'active_record/relation/record_fetch_warning'
+          require "active_record/relation/record_fetch_warning"
         end
       end
     end

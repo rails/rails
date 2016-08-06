@@ -2,14 +2,14 @@ module ActiveRecord
   module ConnectionAdapters
     module MySQL
       module Quoting # :nodoc:
-        QUOTED_TRUE, QUOTED_FALSE = '1'.freeze, '0'.freeze
+        QUOTED_TRUE, QUOTED_FALSE = "1".freeze, "0".freeze
 
         def quote_column_name(name)
           @quoted_column_names[name] ||= "`#{super.gsub('`', '``')}`".freeze
         end
 
         def quote_table_name(name)
-          @quoted_table_names[name] ||= super.gsub('.', '`.`').freeze
+          @quoted_table_names[name] ||= super.gsub(".", "`.`").freeze
         end
 
         def quoted_true
@@ -32,7 +32,7 @@ module ActiveRecord
           if supports_datetime_with_precision?
             super
           else
-            super.sub(/\.\d{6}\z/, '')
+            super.sub(/\.\d{6}\z/, "")
           end
         end
 

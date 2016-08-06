@@ -2,9 +2,9 @@ require "active_record/relation/from_clause"
 require "active_record/relation/query_attribute"
 require "active_record/relation/where_clause"
 require "active_record/relation/where_clause_factory"
-require 'active_model/forbidden_attributes_protection'
-require 'active_support/core_ext/string/filters'
-require 'active_support/core_ext/regexp'
+require "active_model/forbidden_attributes_protection"
+require "active_support/core_ext/string/filters"
+require "active_support/core_ext/regexp"
 
 module ActiveRecord
   module QueryMethods
@@ -271,7 +271,7 @@ module ActiveRecord
     #   # => ActiveModel::MissingAttributeError: missing attribute: other_field
     def select(*fields)
       return super if block_given?
-      raise ArgumentError, 'Call this with at least one field' if fields.empty?
+      raise ArgumentError, "Call this with at least one field" if fields.empty?
       spawn._select!(*fields)
     end
 
@@ -1014,7 +1014,7 @@ module ActiveRecord
       name = from_clause.name
       case opts
       when Relation
-        name ||= 'subquery'
+        name ||= "subquery"
         opts.arel.as(name.to_s)
       else
         opts
@@ -1027,7 +1027,7 @@ module ActiveRecord
         when Hash, Symbol, Array
           :association_join
         else
-          raise ArgumentError, 'only Hash, Symbol and Array are allowed'
+          raise ArgumentError, "only Hash, Symbol and Array are allowed"
         end
       end
 
@@ -1046,7 +1046,7 @@ module ActiveRecord
         when Arel::Nodes::Join
           :join_node
         else
-          raise 'unknown class: %s' % join.class.name
+          raise "unknown class: %s" % join.class.name
         end
       end
 
@@ -1125,9 +1125,9 @@ module ActiveRecord
           if does_not_support_reverse?(o)
             raise IrreversibleOrderError, "Order #{o.inspect} can not be reversed automatically"
           end
-          o.split(',').map! do |s|
+          o.split(",").map! do |s|
             s.strip!
-            s.gsub!(/\sasc\Z/i, ' DESC') || s.gsub!(/\sdesc\Z/i, ' ASC') || s.concat(' DESC')
+            s.gsub!(/\sasc\Z/i, " DESC") || s.gsub!(/\sdesc\Z/i, " ASC") || s.concat(" DESC")
           end
         else
           o
@@ -1150,7 +1150,7 @@ module ActiveRecord
     end
 
     VALID_DIRECTIONS = [:asc, :desc, :ASC, :DESC,
-                        'asc', 'desc', 'ASC', 'DESC'] # :nodoc:
+                        "asc", "desc", "ASC", "DESC"] # :nodoc:
 
     def validate_order_args(args)
       args.each do |arg|

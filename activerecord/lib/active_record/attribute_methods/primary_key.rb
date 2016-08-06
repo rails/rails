@@ -1,4 +1,4 @@
-require 'set'
+require "set"
 
 module ActiveRecord
   module AttributeMethods
@@ -48,14 +48,14 @@ module ActiveRecord
       protected
 
       def attribute_method?(attr_name)
-        attr_name == 'id' || super
+        attr_name == "id" || super
       end
 
       module ClassMethods
         def define_method_attribute(attr_name)
           super
 
-          if attr_name == primary_key && attr_name != 'id'
+          if attr_name == primary_key && attr_name != "id"
             generated_attribute_methods.send(:alias_method, :id, primary_key)
           end
         end
@@ -98,7 +98,7 @@ module ActiveRecord
               pk = connection.schema_cache.primary_keys(table_name)
               suppress_composite_primary_key(pk)
             else
-              'id'
+              "id"
             end
           end
         end

@@ -1,8 +1,8 @@
-require 'active_support/core_ext/string/filters'
+require "active_support/core_ext/string/filters"
 
 module ActiveRecord
   module FinderMethods
-    ONE_AS_ONE = '1 AS one'
+    ONE_AS_ONE = "1 AS one"
 
     # Find by id - This can either be a specific id (1), a list of ids (1, 5, 6), or an array of ids ([5, 6, 10]).
     # If one or more records can not be found for the requested ids, then RecordNotFound will be raised. If the primary key
@@ -388,7 +388,7 @@ module ActiveRecord
           []
         else
           arel = relation.arel
-          rows = connection.select_all(arel, 'SQL', relation.bound_attributes)
+          rows = connection.select_all(arel, "SQL", relation.bound_attributes)
           join_dependency.instantiate(rows, aliases)
         end
       end
@@ -425,7 +425,7 @@ module ActiveRecord
       relation = relation.except(:select).select(values).distinct!
       arel = relation.arel
 
-      id_rows = @klass.connection.select_all(arel, 'SQL', relation.bound_attributes)
+      id_rows = @klass.connection.select_all(arel, "SQL", relation.bound_attributes)
       id_rows.map {|row| row[primary_key]}
     end
 

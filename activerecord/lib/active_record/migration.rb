@@ -1,6 +1,6 @@
-require 'set'
+require "set"
 require "active_support/core_ext/module/attribute_accessors"
-require 'active_support/core_ext/regexp'
+require "active_support/core_ext/regexp"
 
 module ActiveRecord
   class MigrationError < ActiveRecordError#:nodoc:
@@ -510,8 +510,8 @@ module ActiveRecord
   # Remember that you can still open your own transactions, even if you
   # are in a Migration with <tt>self.disable_ddl_transaction!</tt>.
   class Migration
-    autoload :CommandRecorder, 'active_record/migration/command_recorder'
-    autoload :Compatibility, 'active_record/migration/compatibility'
+    autoload :CommandRecorder, "active_record/migration/command_recorder"
+    autoload :Compatibility, "active_record/migration/compatibility"
 
     # This must be defined before the inherited hook, below
     class Current < Migration # :nodoc:
@@ -830,7 +830,7 @@ module ActiveRecord
     end
 
     def method_missing(method, *arguments, &block)
-      arg_list = arguments.map(&:inspect) * ', '
+      arg_list = arguments.map(&:inspect) * ", "
 
       say_with_time "#{method}(#{arg_list})" do
         unless connection.respond_to? :revert
@@ -1052,7 +1052,7 @@ module ActiveRecord
       end
 
       def migrations_paths
-        @migrations_paths ||= ['db/migrate']
+        @migrations_paths ||= ["db/migrate"]
         # just to not break things if someone uses: migrations_path = some_string
         Array(@migrations_paths)
       end

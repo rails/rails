@@ -1,4 +1,4 @@
-require 'active_support/per_thread_registry'
+require "active_support/per_thread_registry"
 
 module ActiveRecord
   module Scoping

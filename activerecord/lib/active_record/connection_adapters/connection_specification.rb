@@ -1,4 +1,4 @@
-require 'uri'
+require "uri"
 
 module ActiveRecord
   module ConnectionAdapters
@@ -37,11 +37,11 @@ module ActiveRecord
         def initialize(url)
           raise "Database URL cannot be empty" if url.blank?
           @uri     = uri_parser.parse(url)
-          @adapter = @uri.scheme && @uri.scheme.tr('-', '_')
+          @adapter = @uri.scheme && @uri.scheme.tr("-", "_")
           @adapter = "postgresql" if @adapter == "postgres"
 
           if @uri.opaque
-            @uri.opaque, @query = @uri.opaque.split('?', 2)
+            @uri.opaque, @query = @uri.opaque.split("?", 2)
           else
             @query = @uri.query
           end
@@ -74,7 +74,7 @@ module ActiveRecord
         #   "localhost"
         #   # => {}
         def query_hash
-          Hash[(@query || '').split("&").map { |pair| pair.split("=") }]
+          Hash[(@query || "").split("&").map { |pair| pair.split("=") }]
         end
 
         def raw_config
@@ -95,7 +95,7 @@ module ActiveRecord
 
         # Returns name of the database.
         def database_from_path
-          if @adapter == 'sqlite3'
+          if @adapter == "sqlite3"
             # 'sqlite3:/foo' is absolute, because that makes sense. The
             # corresponding relative version, 'sqlite3:foo', is handled
             # elsewhere, as an "opaque".

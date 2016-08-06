@@ -1,4 +1,4 @@
-require 'concurrent/map'
+require "concurrent/map"
 
 module ActiveRecord
   module Type

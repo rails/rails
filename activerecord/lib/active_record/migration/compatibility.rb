@@ -5,7 +5,7 @@ module ActiveRecord
         version = version.to_s
         name = "V#{version.tr('.', '_')}"
         unless const_defined?(name)
-          versions = constants.grep(/\AV[0-9_]+\z/).map { |s| s.to_s.delete('V').tr('_', '.').inspect }
+          versions = constants.grep(/\AV[0-9_]+\z/).map { |s| s.to_s.delete("V").tr("_", ".").inspect }
           raise ArgumentError, "Unknown migration version #{version.inspect}; expected one of #{versions.sort.join(', ')}"
         end
         const_get(name)

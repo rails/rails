@@ -1,4 +1,4 @@
-require 'active_support/core_ext/string/filters'
+require "active_support/core_ext/string/filters"
 
 module ActiveRecord
   module ConnectionAdapters
@@ -14,11 +14,11 @@ module ActiveRecord
           end
 
           def type_cast_for_schema(value)
-            value.inspect.gsub('Infinity', '::Float::INFINITY')
+            value.inspect.gsub("Infinity", "::Float::INFINITY")
           end
 
           def cast_value(value)
-            return if value == 'empty'
+            return if value == "empty"
             return value unless value.is_a?(::String)
 
             extracted = extract_bounds(value)
@@ -60,16 +60,16 @@ module ActiveRecord
           end
 
           def type_cast_single_for_database(value)
-            infinity?(value) ? '' : @subtype.serialize(value)
+            infinity?(value) ? "" : @subtype.serialize(value)
           end
 
           def extract_bounds(value)
-            from, to = value[1..-2].split(',')
+            from, to = value[1..-2].split(",")
             {
-              from:          (value[1] == ',' || from == '-infinity') ? infinity(negative: true) : from,
-              to:            (value[-2] == ',' || to == 'infinity') ? infinity : to,
-              exclude_start: (value[0] == '('),
-              exclude_end:   (value[-1] == ')')
+              from:          (value[1] == "," || from == "-infinity") ? infinity(negative: true) : from,
+              to:            (value[-2] == "," || to == "infinity") ? infinity : to,
+              exclude_start: (value[0] == "("),
+              exclude_end:   (value[-1] == ")")
             }
           end
 

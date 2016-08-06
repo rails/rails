@@ -73,7 +73,7 @@ module ActiveRecord
       private
         def config
           @raw_config.dup.tap do |cfg|
-            if url = ENV['DATABASE_URL']
+            if url = ENV["DATABASE_URL"]
               cfg[@env] ||= {}
               cfg[@env]["url"] ||= url
             end

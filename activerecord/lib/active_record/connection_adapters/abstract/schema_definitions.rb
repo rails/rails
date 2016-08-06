@@ -388,7 +388,7 @@ module ActiveRecord
       end
 
       def aliased_types(name, fallback)
-        'timestamp' == name ? :datetime : fallback
+        "timestamp" == name ? :datetime : fallback
       end
     end
 

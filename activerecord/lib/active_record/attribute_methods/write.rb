@@ -11,7 +11,7 @@ module ActiveRecord
         protected
 
         def define_method_attribute=(name)
-          safe_name = name.unpack('h*'.freeze).first
+          safe_name = name.unpack("h*".freeze).first
           ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
 
           generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
@@ -44,7 +44,7 @@ module ActiveRecord
 
       def write_attribute_with_type_cast(attr_name, value, should_type_cast)
         attr_name = attr_name.to_s
-        attr_name = self.class.primary_key if attr_name == 'id' && self.class.primary_key
+        attr_name = self.class.primary_key if attr_name == "id" && self.class.primary_key
 
         if should_type_cast
           @attributes.write_from_user(attr_name, value)

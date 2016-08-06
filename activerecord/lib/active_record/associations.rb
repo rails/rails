@@ -1,7 +1,7 @@
-require 'active_support/core_ext/enumerable'
-require 'active_support/core_ext/string/conversions'
-require 'active_support/core_ext/module/remove_method'
-require 'active_record/errors'
+require "active_support/core_ext/enumerable"
+require "active_support/core_ext/string/conversions"
+require "active_support/core_ext/module/remove_method"
+require "active_record/errors"
 
 module ActiveRecord
   class AssociationNotFoundError < ConfigurationError #:nodoc:
@@ -207,14 +207,14 @@ module ActiveRecord
     autoload :ThroughAssociation
 
     module Builder #:nodoc:
-      autoload :Association,           'active_record/associations/builder/association'
-      autoload :SingularAssociation,   'active_record/associations/builder/singular_association'
-      autoload :CollectionAssociation, 'active_record/associations/builder/collection_association'
+      autoload :Association,           "active_record/associations/builder/association"
+      autoload :SingularAssociation,   "active_record/associations/builder/singular_association"
+      autoload :CollectionAssociation, "active_record/associations/builder/collection_association"
 
-      autoload :BelongsTo,           'active_record/associations/builder/belongs_to'
-      autoload :HasOne,              'active_record/associations/builder/has_one'
-      autoload :HasMany,             'active_record/associations/builder/has_many'
-      autoload :HasAndBelongsToMany, 'active_record/associations/builder/has_and_belongs_to_many'
+      autoload :BelongsTo,           "active_record/associations/builder/belongs_to"
+      autoload :HasOne,              "active_record/associations/builder/has_one"
+      autoload :HasMany,             "active_record/associations/builder/has_many"
+      autoload :HasAndBelongsToMany, "active_record/associations/builder/has_and_belongs_to_many"
     end
 
     eager_autoload do

@@ -94,7 +94,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
     def middle_reflection(join_model)
       middle_name = [lhs_model.name.downcase.pluralize,
-                     association_name].join('_'.freeze).gsub('::'.freeze, '_'.freeze).to_sym
+                     association_name].join("_".freeze).gsub("::".freeze, "_".freeze).to_sym
       middle_options = middle_options join_model
 
       HasMany.create_reflection(lhs_model,

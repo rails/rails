@@ -62,7 +62,7 @@ module ActiveRecord
 
       @klass.connection.insert(
         im,
-        'SQL',
+        "SQL",
         primary_key || false,
         primary_key_value,
         nil,
@@ -86,7 +86,7 @@ module ActiveRecord
 
       @klass.connection.update(
         um,
-        'SQL',
+        "SQL",
         bvs,
       )
     end
@@ -382,7 +382,7 @@ module ActiveRecord
         stmt.wheres = arel.constraints
       end
 
-      @klass.connection.update stmt, 'SQL', bound_attributes
+      @klass.connection.update stmt, "SQL", bound_attributes
     end
 
     # Updates an object (or multiple objects) and saves it to the database, if validations pass.
@@ -533,7 +533,7 @@ module ActiveRecord
           stmt.wheres = arel.constraints
         end
 
-        affected = @klass.connection.delete(stmt, 'SQL', bound_attributes)
+        affected = @klass.connection.delete(stmt, "SQL", bound_attributes)
 
         reset
         affected
@@ -671,7 +671,7 @@ module ActiveRecord
 
     def inspect
       entries = records.take([limit_value, 11].compact.min).map!(&:inspect)
-      entries[10] = '...' if entries.size == 11
+      entries[10] = "..." if entries.size == 11
 
       "#<#{self.class.name} [#{entries.join(', ')}]>"
     end
@@ -726,7 +726,7 @@ module ActiveRecord
       return [] if string.blank?
       # always convert table names to downcase as in Oracle quoted table names are in uppercase
       # ignore raw_sql_ that is used by Oracle adapter as alias for limit/offset subqueries
-      string.scan(/([a-zA-Z_][.\w]+).?\./).flatten.map(&:downcase).uniq - ['raw_sql_']
+      string.scan(/([a-zA-Z_][.\w]+).?\./).flatten.map(&:downcase).uniq - ["raw_sql_"]
     end
   end
 end

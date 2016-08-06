@@ -82,7 +82,7 @@ module ActiveRecord
       # Executes +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
-      def exec_query(sql, name = 'SQL', binds = [], prepare: false)
+      def exec_query(sql, name = "SQL", binds = [], prepare: false)
         raise NotImplementedError
       end
 
@@ -324,7 +324,7 @@ module ActiveRecord
           end
         end
 
-        execute "INSERT INTO #{quote_table_name(table_name)} (#{key_list.join(', ')}) VALUES (#{value_list.join(', ')})", 'Fixture Insert'
+        execute "INSERT INTO #{quote_table_name(table_name)} (#{key_list.join(', ')}) VALUES (#{value_list.join(', ')})", "Fixture Insert"
       end
 
       def empty_insert_statement_value
@@ -343,8 +343,8 @@ module ActiveRecord
       def sanitize_limit(limit)
         if limit.is_a?(Integer) || limit.is_a?(Arel::Nodes::SqlLiteral)
           limit
-        elsif limit.to_s.include?(',')
-          Arel.sql limit.to_s.split(',').map{ |i| Integer(i) }.join(',')
+        elsif limit.to_s.include?(",")
+          Arel.sql limit.to_s.split(",").map{ |i| Integer(i) }.join(",")
         else
           Integer(limit)
         end

@@ -13,13 +13,13 @@ module ActiveRecord
           end
 
           def run(records)
-            nodes = records.reject { |row| @store.key? row['oid'].to_i }
-            mapped, nodes = nodes.partition { |row| @store.key? row['typname'] }
-            ranges, nodes = nodes.partition { |row| row['typtype'] == 'r'.freeze }
-            enums, nodes = nodes.partition { |row| row['typtype'] == 'e'.freeze }
-            domains, nodes = nodes.partition { |row| row['typtype'] == 'd'.freeze }
-            arrays, nodes = nodes.partition { |row| row['typinput'] == 'array_in'.freeze }
-            composites, nodes = nodes.partition { |row| row['typelem'].to_i != 0 }
+            nodes = records.reject { |row| @store.key? row["oid"].to_i }
+            mapped, nodes = nodes.partition { |row| @store.key? row["typname"] }
+            ranges, nodes = nodes.partition { |row| row["typtype"] == "r".freeze }
+            enums, nodes = nodes.partition { |row| row["typtype"] == "e".freeze }
+            domains, nodes = nodes.partition { |row| row["typtype"] == "d".freeze }
+            arrays, nodes = nodes.partition { |row| row["typinput"] == "array_in".freeze }
+            composites, nodes = nodes.partition { |row| row["typelem"].to_i != 0 }
 
             mapped.each     { |row| register_mapped_type(row)    }
             enums.each      { |row| register_enum_type(row)      }
@@ -43,36 +43,36 @@ module ActiveRecord
 
           private
           def register_mapped_type(row)
-            alias_type row['oid'], row['typname']
+            alias_type row["oid"], row["typname"]
           end
 
           def register_enum_type(row)
-            register row['oid'], OID::Enum.new
+            register row["oid"], OID::Enum.new
           end
 
           def register_array_type(row)
-            register_with_subtype(row['oid'], row['typelem'].to_i) do |subtype|
-              OID::Array.new(subtype, row['typdelim'])
+            register_with_subtype(row["oid"], row["typelem"].to_i) do |subtype|
+              OID::Array.new(subtype, row["typdelim"])
             end
           end
 
           def register_range_type(row)
-            register_with_subtype(row['oid'], row['rngsubtype'].to_i) do |subtype|
-              OID::Range.new(subtype, row['typname'].to_sym)
+            register_with_subtype(row["oid"], row["rngsubtype"].to_i) do |subtype|
+              OID::Range.new(subtype, row["typname"].to_sym)
             end
           end
 
           def register_domain_type(row)
             if base_type = @store.lookup(row["typbasetype"].to_i)
-              register row['oid'], base_type
+              register row["oid"], base_type
             else
               warn "unknown base type (OID: #{row["typbasetype"]}) for domain #{row["typname"]}."
             end
           end
 
           def register_composite_type(row)
-            if subtype = @store.lookup(row['typelem'].to_i)
-              register row['oid'], OID::Vector.new(row['typdelim'], subtype)
+            if subtype = @store.lookup(row["typelem"].to_i)
+              register row["oid"], OID::Vector.new(row["typdelim"], subtype)
             end
           end
 

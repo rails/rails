@@ -1,7 +1,7 @@
-require 'thread'
-require 'active_support/core_ext/hash/indifferent_access'
-require 'active_support/core_ext/object/duplicable'
-require 'active_support/core_ext/string/filters'
+require "thread"
+require "active_support/core_ext/hash/indifferent_access"
+require "active_support/core_ext/object/duplicable"
+require "active_support/core_ext/string/filters"
 
 module ActiveRecord
   module Core
@@ -253,7 +253,7 @@ module ActiveRecord
         elsif !connected?
           "#{super} (call '#{super}.connection' to establish a connection)"
         elsif table_exists?
-          attr_list = attribute_types.map { |name, type| "#{name}: #{type.type}" } * ', '
+          attr_list = attribute_types.map { |name, type| "#{name}: #{type.type}" } * ", "
           "#{super}(#{attr_list})"
         else
           "#{super}(Table doesn't exist)"
@@ -362,7 +362,7 @@ module ActiveRecord
 
       init_internals
 
-      @new_record = coder['new_record']
+      @new_record = coder["new_record"]
 
       self.class.define_attribute_methods
 
@@ -425,8 +425,8 @@ module ActiveRecord
     #   coder # => {"attributes" => {"id" => nil, ... }}
     def encode_with(coder)
       self.class.yaml_encoder.encode(@attributes, coder)
-      coder['new_record'] = new_record?
-      coder['active_record_yaml_version'] = 2
+      coder["new_record"] = new_record?
+      coder["active_record_yaml_version"] = 2
     end
 
     # Returns true if +comparison_object+ is the same exact object, or +comparison_object+
@@ -516,19 +516,19 @@ module ActiveRecord
       pp.object_address_group(self) do
         if defined?(@attributes) && @attributes
           column_names = self.class.column_names.select { |name| has_attribute?(name) || new_record? }
-          pp.seplist(column_names, proc { pp.text ',' }) do |column_name|
+          pp.seplist(column_names, proc { pp.text "," }) do |column_name|
             column_value = read_attribute(column_name)
-            pp.breakable ' '
+            pp.breakable " "
             pp.group(1) do
               pp.text column_name
-              pp.text ':'
+              pp.text ":"
               pp.breakable
               pp.pp column_value
             end
           end
         else
-          pp.breakable ' '
-          pp.text 'not initialized'
+          pp.breakable " "
+          pp.text "not initialized"
         end
       end
     end

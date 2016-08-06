@@ -1,4 +1,4 @@
-require 'active_support/core_ext/regexp'
+require "active_support/core_ext/regexp"
 
 module ActiveRecord
   module DynamicMatchers #:nodoc:
@@ -44,7 +44,7 @@ module ActiveRecord
         end
 
         def suffix
-          ''
+          ""
         end
       end
 
@@ -53,7 +53,7 @@ module ActiveRecord
       def initialize(model, name)
         @model           = model
         @name            = name.to_s
-        @attribute_names = @name.match(self.class.pattern)[1].split('_and_')
+        @attribute_names = @name.match(self.class.pattern)[1].split("_and_")
         @attribute_names.map! { |n| @model.attribute_aliases[n] || n }
       end
 
@@ -78,13 +78,13 @@ module ActiveRecord
       # The parameters in the signature may have reserved Ruby words, in order
       # to prevent errors, we start each param name with `_`.
       def signature
-        attribute_names.map { |name| "_#{name}" }.join(', ')
+        attribute_names.map { |name| "_#{name}" }.join(", ")
       end
 
       # Given that the parameters starts with `_`, the finder needs to use the
       # same parameter name.
       def attributes_hash
-        "{" + attribute_names.map { |name| ":#{name} => _#{name}" }.join(',') + "}"
+        "{" + attribute_names.map { |name| ":#{name} => _#{name}" }.join(",") + "}"
       end
 
       def finder

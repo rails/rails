@@ -42,16 +42,16 @@ module ActiveRecord
       extend ActiveSupport::Autoload
 
       eager_autoload do
-        autoload :Association,           'active_record/associations/preloader/association'
-        autoload :SingularAssociation,   'active_record/associations/preloader/singular_association'
-        autoload :CollectionAssociation, 'active_record/associations/preloader/collection_association'
-        autoload :ThroughAssociation,    'active_record/associations/preloader/through_association'
+        autoload :Association,           "active_record/associations/preloader/association"
+        autoload :SingularAssociation,   "active_record/associations/preloader/singular_association"
+        autoload :CollectionAssociation, "active_record/associations/preloader/collection_association"
+        autoload :ThroughAssociation,    "active_record/associations/preloader/through_association"
 
-        autoload :HasMany,             'active_record/associations/preloader/has_many'
-        autoload :HasManyThrough,      'active_record/associations/preloader/has_many_through'
-        autoload :HasOne,              'active_record/associations/preloader/has_one'
-        autoload :HasOneThrough,       'active_record/associations/preloader/has_one_through'
-        autoload :BelongsTo,           'active_record/associations/preloader/belongs_to'
+        autoload :HasMany,             "active_record/associations/preloader/has_many"
+        autoload :HasManyThrough,      "active_record/associations/preloader/has_many_through"
+        autoload :HasOne,              "active_record/associations/preloader/has_one"
+        autoload :HasOneThrough,       "active_record/associations/preloader/has_one_through"
+        autoload :BelongsTo,           "active_record/associations/preloader/belongs_to"
       end
 
       NULL_RELATION = Struct.new(:values, :where_clause, :joins_values).new({}, Relation::WhereClause.empty, [])

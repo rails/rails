@@ -21,13 +21,13 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-require 'active_support'
-require 'active_support/rails'
-require 'active_model'
-require 'arel'
+require "active_support"
+require "active_support/rails"
+require "active_model"
+require "arel"
 
-require 'active_record/version'
-require 'active_record/attribute_set'
+require "active_record/version"
+require "active_record/attribute_set"
 
 module ActiveRecord
   extend ActiveSupport::Autoload
@@ -46,7 +46,7 @@ module ActiveRecord
   autoload :Integration
   autoload :LegacyYamlAdapter
   autoload :Migration
-  autoload :Migrator, 'active_record/migration'
+  autoload :Migrator, "active_record/migration"
   autoload :ModelSchema
   autoload :NestedAttributes
   autoload :NoTouching
@@ -56,7 +56,7 @@ module ActiveRecord
   autoload :Querying
   autoload :CollectionCacheKey
   autoload :ReadonlyAttributes
-  autoload :RecordInvalid, 'active_record/validations'
+  autoload :RecordInvalid, "active_record/validations"
   autoload :Reflection
   autoload :RuntimeRegistry
   autoload :Sanitization
@@ -76,9 +76,9 @@ module ActiveRecord
   autoload :SecureToken
 
   eager_autoload do
-    autoload :ActiveRecordError, 'active_record/errors'
-    autoload :ConnectionNotEstablished, 'active_record/errors'
-    autoload :ConnectionAdapters, 'active_record/connection_adapters/abstract_adapter'
+    autoload :ActiveRecordError, "active_record/errors"
+    autoload :ConnectionNotEstablished, "active_record/errors"
+    autoload :ConnectionAdapters, "active_record/connection_adapters/abstract_adapter"
 
     autoload :Aggregations
     autoload :Associations
@@ -90,7 +90,7 @@ module ActiveRecord
     autoload :AssociationRelation
     autoload :NullRelation
 
-    autoload_under 'relation' do
+    autoload_under "relation" do
       autoload :QueryMethods
       autoload :FinderMethods
       autoload :Calculations
@@ -104,8 +104,8 @@ module ActiveRecord
   end
 
   module Coders
-    autoload :YAMLColumn, 'active_record/coders/yaml_column'
-    autoload :JSON, 'active_record/coders/json'
+    autoload :YAMLColumn, "active_record/coders/yaml_column"
+    autoload :JSON, "active_record/coders/json"
   end
 
   module AttributeMethods
@@ -153,13 +153,13 @@ module ActiveRecord
     extend ActiveSupport::Autoload
 
     autoload :DatabaseTasks
-    autoload :SQLiteDatabaseTasks, 'active_record/tasks/sqlite_database_tasks'
-    autoload :MySQLDatabaseTasks,  'active_record/tasks/mysql_database_tasks'
+    autoload :SQLiteDatabaseTasks, "active_record/tasks/sqlite_database_tasks"
+    autoload :MySQLDatabaseTasks,  "active_record/tasks/mysql_database_tasks"
     autoload :PostgreSQLDatabaseTasks,
-      'active_record/tasks/postgresql_database_tasks'
+      "active_record/tasks/postgresql_database_tasks"
   end
 
-  autoload :TestFixtures, 'active_record/fixtures'
+  autoload :TestFixtures, "active_record/fixtures"
 
   def self.eager_load!
     super
@@ -176,5 +176,5 @@ ActiveSupport.on_load(:active_record) do
 end
 
 ActiveSupport.on_load(:i18n) do
-  I18n.load_path << File.dirname(__FILE__) + '/active_record/locale/en.yml'
+  I18n.load_path << File.dirname(__FILE__) + "/active_record/locale/en.yml"
 end

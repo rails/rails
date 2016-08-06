@@ -1,4 +1,4 @@
-require 'active_record/attribute'
+require "active_record/attribute"
 
 module ActiveRecord
   class Attribute # :nodoc:

@@ -70,7 +70,7 @@ module ActiveRecord
       class_attribute :ignored_columns, instance_accessor: false
       self.ignored_columns = [].freeze
 
-      self.inheritance_column = 'type'
+      self.inheritance_column = "type"
 
       delegate :type_for_attribute, to: :class
     end
@@ -316,8 +316,8 @@ module ActiveRecord
         @content_columns ||= columns.reject do |c|
           c.name == primary_key ||
           c.name == inheritance_column ||
-          c.name.end_with?('_id') ||
-          c.name.end_with?('_count')
+          c.name.end_with?("_id") ||
+          c.name.end_with?("_count")
         end
       end
 
@@ -412,7 +412,7 @@ module ActiveRecord
           if parent < Base && !parent.abstract_class?
             contained = parent.table_name
             contained = contained.singularize if parent.pluralize_table_names
-            contained += '_'
+            contained += "_"
           end
 
           "#{full_table_name_prefix}#{contained}#{undecorated_table_name(name)}#{full_table_name_suffix}"

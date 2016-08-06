@@ -1,4 +1,4 @@
-require 'active_support/core_ext/object/deep_dup'
+require "active_support/core_ext/object/deep_dup"
 
 module ActiveRecord
   # Declare an enum attribute where the values map to integers in the database,
@@ -216,15 +216,15 @@ module ActiveRecord
 
       def detect_enum_conflict!(enum_name, method_name, klass_method = false)
         if klass_method && dangerous_class_method?(method_name)
-          raise_conflict_error(enum_name, method_name, type: 'class')
+          raise_conflict_error(enum_name, method_name, type: "class")
         elsif !klass_method && dangerous_attribute_method?(method_name)
           raise_conflict_error(enum_name, method_name)
         elsif !klass_method && method_defined_within?(method_name, _enum_methods_module, Module)
-          raise_conflict_error(enum_name, method_name, source: 'another enum')
+          raise_conflict_error(enum_name, method_name, source: "another enum")
         end
       end
 
-      def raise_conflict_error(enum_name, method_name, type: 'instance', source: 'Active Record')
+      def raise_conflict_error(enum_name, method_name, type: "instance", source: "Active Record")
         raise ArgumentError, ENUM_CONFLICT_MESSAGE % {
           enum: enum_name,
           klass: self.name,

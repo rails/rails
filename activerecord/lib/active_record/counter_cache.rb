@@ -75,12 +75,12 @@ module ActiveRecord
       #   #  WHERE id IN (10, 15)
       def update_counters(id, counters)
         updates = counters.map do |counter_name, value|
-          operator = value < 0 ? '-' : '+'
+          operator = value < 0 ? "-" : "+"
           quoted_column = connection.quote_column_name(counter_name)
           "#{quoted_column} = COALESCE(#{quoted_column}, 0) #{operator} #{value.abs}"
         end
 
-        unscoped.where(primary_key => id).update_all updates.join(', ')
+        unscoped.where(primary_key => id).update_all updates.join(", ")
       end
 
       # Increment a numeric field by one, via a direct SQL update.

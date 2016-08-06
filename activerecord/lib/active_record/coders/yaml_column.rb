@@ -1,5 +1,5 @@
-require 'yaml'
-require 'active_support/core_ext/regexp'
+require "yaml"
+require "active_support/core_ext/regexp"
 
 module ActiveRecord
   module Coders # :nodoc:

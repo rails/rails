@@ -5,7 +5,7 @@ module ActiveRecord
         def column_spec_for_primary_key(column)
           spec = super
           if schema_type(column) == :uuid
-            spec[:default] ||= 'nil'
+            spec[:default] ||= "nil"
           end
           spec
         end
@@ -13,7 +13,7 @@ module ActiveRecord
         # Adds +:array+ option to the default set
         def prepare_column_options(column)
           spec = super
-          spec[:array] = 'true' if column.array?
+          spec[:array] = "true" if column.array?
           spec
         end
 

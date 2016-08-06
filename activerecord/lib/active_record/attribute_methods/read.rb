@@ -25,7 +25,7 @@ module ActiveRecord
         # Making it frozen means that it doesn't get duped when used to
         # key the @attributes in read_attribute.
         def define_method_attribute(name)
-          safe_name = name.unpack('h*'.freeze).first
+          safe_name = name.unpack("h*".freeze).first
           temp_method = "__temp__#{safe_name}"
 
           ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
@@ -49,7 +49,7 @@ module ActiveRecord
       # to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name, &block)
         name = attr_name.to_s
-        name = self.class.primary_key if name == 'id'.freeze
+        name = self.class.primary_key if name == "id".freeze
         _read_attribute(name, &block)
       end
 

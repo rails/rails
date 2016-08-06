@@ -33,7 +33,7 @@ module ActiveRecord
           super
         end
 
-        def exec_query(sql, name = 'SQL', binds = [], prepare: false)
+        def exec_query(sql, name = "SQL", binds = [], prepare: false)
           if without_prepared_statement?(binds)
             execute_and_free(sql, name) do |result|
               ActiveRecord::Result.new(result.fields, result.to_a) if result

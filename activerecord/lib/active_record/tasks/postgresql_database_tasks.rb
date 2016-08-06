@@ -1,8 +1,8 @@
 module ActiveRecord
   module Tasks # :nodoc:
     class PostgreSQLDatabaseTasks # :nodoc:
-      DEFAULT_ENCODING = ENV['CHARSET'] || 'utf8'
-      ON_ERROR_STOP_1 = 'ON_ERROR_STOP=1'.freeze
+      DEFAULT_ENCODING = ENV["CHARSET"] || "utf8"
+      ON_ERROR_STOP_1 = "ON_ERROR_STOP=1".freeze
 
       delegate :connection, :establish_connection, :clear_active_connections!,
         to: ActiveRecord::Base
@@ -13,8 +13,8 @@ module ActiveRecord
 
       def create(master_established = false)
         establish_master_connection unless master_established
-        connection.create_database configuration['database'],
-          configuration.merge('encoding' => encoding)
+        connection.create_database configuration["database"],
+          configuration.merge("encoding" => encoding)
         establish_connection configuration
       rescue ActiveRecord::StatementInvalid => error
         if /database .* already exists/ === error.message
@@ -26,7 +26,7 @@ module ActiveRecord
 
       def drop
         establish_master_connection
-        connection.drop_database configuration['database']
+        connection.drop_database configuration["database"]
       end
 
       def charset
@@ -48,28 +48,28 @@ module ActiveRecord
 
         search_path = case ActiveRecord::Base.dump_schemas
         when :schema_search_path
-          configuration['schema_search_path']
+          configuration["schema_search_path"]
         when :all
           nil
         when String
           ActiveRecord::Base.dump_schemas
         end
 
-        args = ['-s', '-x', '-O', '-f', filename]
+        args = ["-s", "-x", "-O", "-f", filename]
         unless search_path.blank?
-          args += search_path.split(',').map do |part|
+          args += search_path.split(",").map do |part|
             "--schema=#{part.strip}"
           end
         end
-        args << configuration['database']
-        run_cmd('pg_dump', args, 'dumping')
+        args << configuration["database"]
+        run_cmd("pg_dump", args, "dumping")
         File.open(filename, "a") { |f| f << "SET search_path TO #{connection.schema_search_path};\n\n" }
       end
 
       def structure_load(filename)
         set_psql_env
-        args = [ '-v', ON_ERROR_STOP_1, '-q', '-f', filename, configuration['database'] ]
-        run_cmd('psql', args, 'loading' )
+        args = [ "-v", ON_ERROR_STOP_1, "-q", "-f", filename, configuration["database"] ]
+        run_cmd("psql", args, "loading" )
       end
 
       private
@@ -79,21 +79,21 @@ module ActiveRecord
       end
 
       def encoding
-        configuration['encoding'] || DEFAULT_ENCODING
+        configuration["encoding"] || DEFAULT_ENCODING
       end
 
       def establish_master_connection
         establish_connection configuration.merge(
-          'database'           => 'postgres',
-          'schema_search_path' => 'public'
+          "database"           => "postgres",
+          "schema_search_path" => "public"
         )
       end
 
       def set_psql_env
-        ENV['PGHOST']     = configuration['host']          if configuration['host']
-        ENV['PGPORT']     = configuration['port'].to_s     if configuration['port']
-        ENV['PGPASSWORD'] = configuration['password'].to_s if configuration['password']
-        ENV['PGUSER']     = configuration['username'].to_s if configuration['username']
+        ENV["PGHOST"]     = configuration["host"]          if configuration["host"]
+        ENV["PGPORT"]     = configuration["port"].to_s     if configuration["port"]
+        ENV["PGPASSWORD"] = configuration["password"].to_s if configuration["password"]
+        ENV["PGUSER"]     = configuration["username"].to_s if configuration["username"]
       end
 
       def run_cmd(cmd, args, action)

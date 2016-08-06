@@ -120,7 +120,7 @@ module ActiveRecord
       def invert_predicate(node)
         case node
         when NilClass
-          raise ArgumentError, 'Invalid argument for .where.not(), got nil.'
+          raise ArgumentError, "Invalid argument for .where.not(), got nil."
         when Arel::Nodes::In
           Arel::Nodes::NotIn.new(node.left, node.right)
         when Arel::Nodes::Equality
@@ -158,7 +158,7 @@ module ActiveRecord
         end
       end
 
-      ARRAY_WITH_EMPTY_STRING = ['']
+      ARRAY_WITH_EMPTY_STRING = [""]
       def non_empty_predicates
         predicates - ARRAY_WITH_EMPTY_STRING
       end

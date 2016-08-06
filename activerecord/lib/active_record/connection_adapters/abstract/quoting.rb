@@ -1,4 +1,4 @@
-require 'active_support/core_ext/big_decimal/conversions'
+require "active_support/core_ext/big_decimal/conversions"
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -116,7 +116,7 @@ module ActiveRecord
       end
 
       def unquoted_true
-        't'.freeze
+        "t".freeze
       end
 
       def quoted_false
@@ -124,7 +124,7 @@ module ActiveRecord
       end
 
       def unquoted_false
-        'f'.freeze
+        "f".freeze
       end
 
       # Quote date/time values for use in SQL input. Includes microseconds
@@ -147,7 +147,7 @@ module ActiveRecord
       end
 
       def quoted_time(value) # :nodoc:
-        quoted_date(value).sub(/\A2000-01-01 /, '')
+        quoted_date(value).sub(/\A2000-01-01 /, "")
       end
 
       private
@@ -168,7 +168,7 @@ module ActiveRecord
         when false      then quoted_false
         when nil        then "NULL"
         # BigDecimals need to be put in a non-normalized form and quoted.
-        when BigDecimal then value.to_s('F')
+        when BigDecimal then value.to_s("F")
         when Numeric, ActiveSupport::Duration then value.to_s
         when Type::Time::Value then "'#{quoted_time(value)}'"
         when Date, Time then "'#{quoted_date(value)}'"
@@ -185,7 +185,7 @@ module ActiveRecord
         when true       then unquoted_true
         when false      then unquoted_false
         # BigDecimals need to be put in a non-normalized form and quoted.
-        when BigDecimal then value.to_s('F')
+        when BigDecimal then value.to_s("F")
         when Type::Time::Value then quoted_time(value)
         when Date, Time then quoted_date(value)
         when *types_which_need_no_typecasting

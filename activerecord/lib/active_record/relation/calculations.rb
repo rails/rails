@@ -225,7 +225,7 @@ module ActiveRecord
     end
 
     def operation_over_aggregate_column(column, operation, distinct)
-      operation == 'count' ? column.count(distinct) : column.send(operation)
+      operation == "count" ? column.count(distinct) : column.send(operation)
     end
 
     def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
@@ -276,10 +276,10 @@ module ActiveRecord
       group_aliases = group_fields.map { |field| column_alias_for(field) }
       group_columns = group_aliases.zip(group_fields)
 
-      if operation == 'count' && column_name == :all
-        aggregate_alias = 'count_all'
+      if operation == "count" && column_name == :all
+        aggregate_alias = "count_all"
       else
-        aggregate_alias = column_alias_for([operation, column_name].join(' '))
+        aggregate_alias = column_alias_for([operation, column_name].join(" "))
       end
 
       select_values = [
@@ -340,24 +340,24 @@ module ActiveRecord
       end
 
       table_name = keys.to_s.downcase
-      table_name.gsub!(/\*/, 'all')
-      table_name.gsub!(/\W+/, ' ')
+      table_name.gsub!(/\*/, "all")
+      table_name.gsub!(/\W+/, " ")
       table_name.strip!
-      table_name.gsub!(/ +/, '_')
+      table_name.gsub!(/ +/, "_")
 
       @klass.connection.table_alias_for(table_name)
     end
 
     def type_for(field, &block)
-      field_name = field.respond_to?(:name) ? field.name.to_s : field.to_s.split('.').last
+      field_name = field.respond_to?(:name) ? field.name.to_s : field.to_s.split(".").last
       @klass.type_for_attribute(field_name, &block)
     end
 
     def type_cast_calculated_value(value, type, operation = nil)
       case operation
-        when 'count'   then value.to_i
-        when 'sum'     then type.deserialize(value || 0)
-        when 'average' then value.respond_to?(:to_d) ? value.to_d : value
+        when "count"   then value.to_i
+        when "sum"     then type.deserialize(value || 0)
+        when "average" then value.respond_to?(:to_d) ? value.to_d : value
         else type.deserialize(value)
       end
     end
@@ -372,15 +372,15 @@ module ActiveRecord
     end
 
     def build_count_subquery(relation, column_name, distinct)
-      column_alias = Arel.sql('count_column')
-      subquery_alias = Arel.sql('subquery_for_count')
+      column_alias = Arel.sql("count_column")
+      subquery_alias = Arel.sql("subquery_for_count")
 
       aliased_column = aggregate_column(column_name == :all ? 1 : column_name).as(column_alias)
       relation.select_values = [aliased_column]
       subquery = relation.arel.as(subquery_alias)
 
       sm = Arel::SelectManager.new relation.engine
-      select_value = operation_over_aggregate_column(column_alias, 'count', distinct)
+      select_value = operation_over_aggregate_column(column_alias, "count", distinct)
       sm.project(select_value).from(subquery)
     end
   end

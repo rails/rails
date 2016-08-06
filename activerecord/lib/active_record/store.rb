@@ -1,4 +1,4 @@
-require 'active_support/core_ext/hash/indifferent_access'
+require "active_support/core_ext/hash/indifferent_access"
 
 module ActiveRecord
   # Store gives you a thin wrapper around serialize for the purpose of storing hashes in a single column.
@@ -192,7 +192,7 @@ module ActiveRecord
       end
 
       def load(yaml)
-        self.class.as_indifferent_hash(@coder.load(yaml || ''))
+        self.class.as_indifferent_hash(@coder.load(yaml || ""))
       end
 
       def self.as_indifferent_hash(obj)

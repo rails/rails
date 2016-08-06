@@ -1,6 +1,6 @@
-require 'active_record/migration/join_table'
-require 'active_support/core_ext/string/access'
-require 'digest'
+require "active_record/migration/join_table"
+require "active_support/core_ext/string/access"
+require "digest"
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -25,7 +25,7 @@ module ActiveRecord
 
       # Truncates a table alias according to the limits of the current adapter.
       def table_alias_for(table_name)
-        table_name[0...table_alias_length].tr('.', '_')
+        table_name[0...table_alias_length].tr(".", "_")
       end
 
       # Returns the relation names useable to back Active Record models.
@@ -985,7 +985,7 @@ module ActiveRecord
       end
 
       def dump_schema_information #:nodoc:
-        versions = ActiveRecord::SchemaMigration.order('version').pluck(:version)
+        versions = ActiveRecord::SchemaMigration.order("version").pluck(:version)
         insert_versions_sql(versions)
       end
 
@@ -1026,7 +1026,7 @@ module ActiveRecord
         migrated = select_values("SELECT version FROM #{sm_table}").map(&:to_i)
         paths = migrations_paths.map {|p| "#{p}/[0-9]*_*.rb" }
         versions = Dir[*paths].map do |filename|
-          filename.split('/').last.split('_').first.to_i
+          filename.split("/").last.split("_").first.to_i
         end
 
         unless migrated.include?(version)
@@ -1178,7 +1178,7 @@ module ActiveRecord
         def quoted_columns_for_index(column_names, options = {})
           return [column_names] if column_names.is_a?(String)
 
-          option_strings = Hash[column_names.map {|name| [name, '']}]
+          option_strings = Hash[column_names.map {|name| [name, ""]}]
 
           # add index sort order if supported
           if supports_index_sort_order?
@@ -1205,7 +1205,7 @@ module ActiveRecord
           end
 
           if column_names.any?
-            checks << lambda { |i| i.columns.join('_and_') == column_names.join('_and_') }
+            checks << lambda { |i| i.columns.join("_and_") == column_names.join("_and_") }
           end
 
           raise ArgumentError "No name or columns specified" if checks.none?
@@ -1255,7 +1255,7 @@ module ActiveRecord
 
       def index_name_options(column_names) # :nodoc:
         if column_names.is_a?(String)
-          column_names = column_names.scan(/\w+/).join('_')
+          column_names = column_names.scan(/\w+/).join("_")
         end
 
         { column: column_names }

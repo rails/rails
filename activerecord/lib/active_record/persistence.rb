@@ -66,7 +66,7 @@ module ActiveRecord
       def instantiate(attributes, column_types = {})
         klass = discriminate_class_for_record(attributes)
         attributes = klass.attributes_builder.build_from_database(attributes, column_types)
-        klass.allocate.init_with('attributes' => attributes, 'new_record' => false)
+        klass.allocate.init_with("attributes" => attributes, "new_record" => false)
       end
 
       private
@@ -439,7 +439,7 @@ module ActiveRecord
           self.class.unscoped { self.class.find(id) }
         end
 
-      @attributes = fresh_object.instance_variable_get('@attributes')
+      @attributes = fresh_object.instance_variable_get("@attributes")
       @new_record = false
       self
     end

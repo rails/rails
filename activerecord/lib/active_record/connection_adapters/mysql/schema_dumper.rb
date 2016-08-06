@@ -5,17 +5,17 @@ module ActiveRecord
         def column_spec_for_primary_key(column)
           if column.bigint?
             spec = { id: :bigint.inspect }
-            spec[:default] = schema_default(column) || 'nil' unless column.auto_increment?
+            spec[:default] = schema_default(column) || "nil" unless column.auto_increment?
           else
             spec = super
           end
-          spec[:unsigned] = 'true' if column.unsigned?
+          spec[:unsigned] = "true" if column.unsigned?
           spec
         end
 
         def prepare_column_options(column)
           spec = super
-          spec[:unsigned] = 'true' if column.unsigned?
+          spec[:unsigned] = "true" if column.unsigned?
           spec
         end
 
@@ -30,7 +30,7 @@ module ActiveRecord
         end
 
         def schema_type(column)
-          if column.sql_type == 'tinyblob'
+          if column.sql_type == "tinyblob"
             :blob
           else
             super

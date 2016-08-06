@@ -275,12 +275,12 @@ module ActiveRecord
       end
 
       def raise_in_transactional_callbacks
-        ActiveSupport::Deprecation.warn('ActiveRecord::Base.raise_in_transactional_callbacks is deprecated and will be removed without replacement.')
+        ActiveSupport::Deprecation.warn("ActiveRecord::Base.raise_in_transactional_callbacks is deprecated and will be removed without replacement.")
         true
       end
 
       def raise_in_transactional_callbacks=(value)
-        ActiveSupport::Deprecation.warn('ActiveRecord::Base.raise_in_transactional_callbacks= is deprecated, has no effect and will be removed without replacement.')
+        ActiveSupport::Deprecation.warn("ActiveRecord::Base.raise_in_transactional_callbacks= is deprecated, has no effect and will be removed without replacement.")
         value
       end
 

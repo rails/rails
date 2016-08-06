@@ -1,4 +1,4 @@
-require 'active_support/core_ext/string/strip'
+require "active_support/core_ext/string/strip"
 
 module ActiveRecord
   module AttributeMethods

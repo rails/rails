@@ -1,4 +1,4 @@
-require 'active_support/core_ext/regexp'
+require "active_support/core_ext/regexp"
 
 module ActiveRecord
   module Sanitization
@@ -70,7 +70,7 @@ module ActiveRecord
       #   sanitize_sql_for_order("id ASC")
       #   # => "id ASC"
       def sanitize_sql_for_order(condition)
-        if condition.is_a?(Array) && condition.first.to_s.include?('?')
+        if condition.is_a?(Array) && condition.first.to_s.include?("?")
           sanitize_sql_array(condition)
         else
           condition
@@ -120,7 +120,7 @@ module ActiveRecord
         attrs.map do |attr, value|
           value = type_for_attribute(attr.to_s).serialize(value)
           "#{c.quote_table_name_for_assignment(table, attr)} = #{c.quote(value)}"
-        end.join(', ')
+        end.join(", ")
       end
 
       # Sanitizes a +string+ so that it is safe to use within an SQL
@@ -157,7 +157,7 @@ module ActiveRecord
         statement, *values = ary
         if values.first.is_a?(Hash) && /:\w+/.match?(statement)
           replace_named_bind_variables(statement, values.first)
-        elsif statement.include?('?')
+        elsif statement.include?("?")
           replace_bind_variables(statement, values)
         elsif statement.blank?
           statement
@@ -167,7 +167,7 @@ module ActiveRecord
       end
 
       def replace_bind_variables(statement, values) # :nodoc:
-        raise_if_bind_arity_mismatch(statement, statement.count('?'), values.size)
+        raise_if_bind_arity_mismatch(statement, statement.count("?"), values.size)
         bound = values.dup
         c = connection
         statement.gsub(/\?/) do
@@ -185,7 +185,7 @@ module ActiveRecord
 
       def replace_named_bind_variables(statement, bind_vars) # :nodoc:
         statement.gsub(/(:?):([a-zA-Z]\w*)/) do |match|
-          if $1 == ':' # skip postgresql casts
+          if $1 == ":" # skip postgresql casts
             match # return the whole match
           elsif bind_vars.include?(match = $2.to_sym)
             replace_bind_variable(bind_vars[match])
@@ -200,7 +200,7 @@ module ActiveRecord
           if value.respond_to?(:empty?) && value.empty?
             c.quote(nil)
           else
-            value.map { |v| c.quote(v) }.join(',')
+            value.map { |v| c.quote(v) }.join(",")
           end
         else
           c.quote(value)

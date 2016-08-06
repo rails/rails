@@ -1,11 +1,11 @@
-require 'active_record/type'
-require 'active_record/connection_adapters/determine_if_preparable_visitor'
-require 'active_record/connection_adapters/schema_cache'
-require 'active_record/connection_adapters/sql_type_metadata'
-require 'active_record/connection_adapters/abstract/schema_dumper'
-require 'active_record/connection_adapters/abstract/schema_creation'
-require 'arel/collectors/bind'
-require 'arel/collectors/sql_string'
+require "active_record/type"
+require "active_record/connection_adapters/determine_if_preparable_visitor"
+require "active_record/connection_adapters/schema_cache"
+require "active_record/connection_adapters/sql_type_metadata"
+require "active_record/connection_adapters/abstract/schema_dumper"
+require "active_record/connection_adapters/abstract/schema_creation"
+require "arel/collectors/bind"
+require "arel/collectors/sql_string"
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -14,7 +14,7 @@ module ActiveRecord
     autoload :Column
     autoload :ConnectionSpecification
 
-    autoload_at 'active_record/connection_adapters/abstract/schema_definitions' do
+    autoload_at "active_record/connection_adapters/abstract/schema_definitions" do
       autoload :IndexDefinition
       autoload :ColumnDefinition
       autoload :ChangeColumnDefinition
@@ -25,11 +25,11 @@ module ActiveRecord
       autoload :ReferenceDefinition
     end
 
-    autoload_at 'active_record/connection_adapters/abstract/connection_pool' do
+    autoload_at "active_record/connection_adapters/abstract/connection_pool" do
       autoload :ConnectionHandler
     end
 
-    autoload_under 'abstract' do
+    autoload_under "abstract" do
       autoload :SchemaStatements
       autoload :DatabaseStatements
       autoload :DatabaseLimits
@@ -39,7 +39,7 @@ module ActiveRecord
       autoload :Savepoints
     end
 
-    autoload_at 'active_record/connection_adapters/abstract/transaction' do
+    autoload_at "active_record/connection_adapters/abstract/transaction" do
       autoload :TransactionManager
       autoload :NullTransaction
       autoload :RealTransaction
@@ -61,7 +61,7 @@ module ActiveRecord
     # Most of the methods in the adapter are useful during migrations. Most
     # notably, the instance methods provided by SchemaStatements are very useful.
     class AbstractAdapter
-      ADAPTER_NAME = 'Abstract'.freeze
+      ADAPTER_NAME = "Abstract".freeze
       include Quoting, DatabaseStatements, SchemaStatements
       include DatabaseLimits
       include QueryCache
@@ -120,11 +120,11 @@ module ActiveRecord
         include Comparable
 
         def initialize(version_string)
-          @version = version_string.split('.').map(&:to_i)
+          @version = version_string.split(".").map(&:to_i)
         end
 
         def <=>(version_string)
-          @version <=> version_string.split('.').map(&:to_i)
+          @version <=> version_string.split(".").map(&:to_i)
         end
       end
 
@@ -164,9 +164,9 @@ module ActiveRecord
       # this method must only be called while holding connection pool's mutex
       def lease
         if in_use?
-          msg = 'Cannot lease connection, '
+          msg = "Cannot lease connection, "
           if @owner == Thread.current
-            msg << 'it is already leased by the current thread.'
+            msg << "it is already leased by the current thread."
           else
             msg << "it is already in use by a different thread: #{@owner}. " <<
                    "Current thread: #{Thread.current}."
@@ -193,7 +193,7 @@ module ActiveRecord
 
           @owner = nil
         else
-          raise ActiveRecordError, 'Cannot expire connection, it is not currently leased.'
+          raise ActiveRecordError, "Cannot expire connection, it is not currently leased."
         end
       end
 
@@ -206,7 +206,7 @@ module ActiveRecord
             @owner = Thread.current
           end
         else
-          raise ActiveRecordError, 'Cannot steal connection, it is not currently leased.'
+          raise ActiveRecordError, "Cannot steal connection, it is not currently leased."
         end
       end
 
@@ -508,12 +508,12 @@ module ActiveRecord
         register_class_with_limit m, %r(float)i,         Type::Float
         register_class_with_limit m, %r(int)i,           Type::Integer
 
-        m.alias_type %r(blob)i,      'binary'
-        m.alias_type %r(clob)i,      'text'
-        m.alias_type %r(timestamp)i, 'datetime'
-        m.alias_type %r(numeric)i,   'decimal'
-        m.alias_type %r(number)i,    'decimal'
-        m.alias_type %r(double)i,    'float'
+        m.alias_type %r(blob)i,      "binary"
+        m.alias_type %r(clob)i,      "text"
+        m.alias_type %r(timestamp)i, "datetime"
+        m.alias_type %r(numeric)i,   "decimal"
+        m.alias_type %r(number)i,    "decimal"
+        m.alias_type %r(double)i,    "float"
 
         m.register_type(%r(decimal)i) do |sql_type|
           scale = extract_scale(sql_type)

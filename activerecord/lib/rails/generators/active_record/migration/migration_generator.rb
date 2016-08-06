@@ -1,5 +1,5 @@
-require 'rails/generators/active_record'
-require 'active_support/core_ext/regexp'
+require "rails/generators/active_record"
+require "active_support/core_ext/regexp"
 
 module ActiveRecord
   module Generators # :nodoc:
@@ -28,7 +28,7 @@ module ActiveRecord
           @table_name       = normalize_table_name($2)
         when /join_table/
           if attributes.length == 2
-            @migration_action = 'join'
+            @migration_action = "join"
             @join_tables      = pluralize_table_names? ? attributes.map(&:plural_name) : attributes.map(&:singular_name)
 
             set_index_names

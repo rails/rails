@@ -10,7 +10,7 @@ module ActiveRecord
         #
         def pp(result)
           result.rows.map do |row|
-            row.join('|')
+            row.join("|")
           end.join("\n") + "\n"
         end
       end

@@ -195,7 +195,7 @@ module ActiveRecord
         raise
       ensure
         unless error
-          if Thread.current.status == 'aborting'
+          if Thread.current.status == "aborting"
             rollback_transaction if transaction
           else
             begin

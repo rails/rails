@@ -1,6 +1,6 @@
-require 'thread'
-require 'concurrent/map'
-require 'monitor'
+require "thread"
+require "concurrent/map"
+require "monitor"
 
 module ActiveRecord
   # Raised when a connection could not be obtained within the connection
@@ -197,7 +197,7 @@ module ActiveRecord
 
             elapsed = Time.now - t0
             if elapsed >= timeout
-              msg = 'could not obtain a connection from the pool within %0.3f seconds (waited %0.3f seconds); all pooled connections were in use' %
+              msg = "could not obtain a connection from the pool within %0.3f seconds (waited %0.3f seconds); all pooled connections were in use" %
                 [timeout, elapsed]
               raise ConnectionTimeoutError, msg
             end
@@ -858,7 +858,7 @@ module ActiveRecord
           payload[:config] = spec.config
         end
 
-        message_bus.instrument('!connection.active_record', payload) do
+        message_bus.instrument("!connection.active_record", payload) do
           owner_to_pool[spec.name] = ConnectionAdapters::ConnectionPool.new(spec)
         end
 

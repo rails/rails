@@ -11,7 +11,7 @@ module ActiveRecord
 
       def create
         establish_connection configuration_without_database
-        connection.create_database configuration['database'], creation_options
+        connection.create_database configuration["database"], creation_options
         establish_connection configuration
       rescue ActiveRecord::StatementInvalid => error
         if /database exists/ === error.message
@@ -23,26 +23,26 @@ module ActiveRecord
         if error.respond_to?(:errno) && error.errno == ACCESS_DENIED_ERROR
           $stdout.print error.message
           establish_connection root_configuration_without_database
-          connection.create_database configuration['database'], creation_options
-          if configuration['username'] != 'root'
-            connection.execute grant_statement.gsub(/\s+/, ' ').strip
+          connection.create_database configuration["database"], creation_options
+          if configuration["username"] != "root"
+            connection.execute grant_statement.gsub(/\s+/, " ").strip
           end
           establish_connection configuration
         else
           $stderr.puts error.inspect
           $stderr.puts "Couldn't create database for #{configuration.inspect}, #{creation_options.inspect}"
-          $stderr.puts "(If you set the charset manually, make sure you have a matching collation)" if configuration['encoding']
+          $stderr.puts "(If you set the charset manually, make sure you have a matching collation)" if configuration["encoding"]
         end
       end
 
       def drop
         establish_connection configuration
-        connection.drop_database configuration['database']
+        connection.drop_database configuration["database"]
       end
 
       def purge
         establish_connection configuration
-        connection.recreate_database configuration['database'], creation_options
+        connection.recreate_database configuration["database"], creation_options
       end
 
       def charset
@@ -61,15 +61,15 @@ module ActiveRecord
         args.concat(["--skip-comments"])
         args.concat(["#{configuration['database']}"])
 
-        run_cmd('mysqldump', args, 'dumping')
+        run_cmd("mysqldump", args, "dumping")
       end
 
       def structure_load(filename)
         args = prepare_command_options
-        args.concat(['--execute', %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}])
+        args.concat(["--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}])
         args.concat(["--database", "#{configuration['database']}"])
 
-        run_cmd('mysql', args, 'loading')
+        run_cmd("mysql", args, "loading")
       end
 
       private
@@ -79,19 +79,19 @@ module ActiveRecord
       end
 
       def configuration_without_database
-        configuration.merge('database' => nil)
+        configuration.merge("database" => nil)
       end
 
       def creation_options
         Hash.new.tap do |options|
-          options[:charset]     = configuration['encoding']   if configuration.include? 'encoding'
-          options[:collation]   = configuration['collation']  if configuration.include? 'collation'
+          options[:charset]     = configuration["encoding"]   if configuration.include? "encoding"
+          options[:collation]   = configuration["collation"]  if configuration.include? "collation"
         end
       end
 
       def error_class
-        if configuration['adapter'].include?('jdbc')
-          require 'active_record/railties/jdbcmysql_error'
+        if configuration["adapter"].include?("jdbc")
+          require "active_record/railties/jdbcmysql_error"
           ArJdbcMySQL::Error
         elsif defined?(Mysql2)
           Mysql2::Error
@@ -110,8 +110,8 @@ IDENTIFIED BY '#{configuration['password']}' WITH GRANT OPTION;
 
       def root_configuration_without_database
         configuration_without_database.merge(
-          'username' => 'root',
-          'password' => root_password
+          "username" => "root",
+          "password" => root_password
         )
       end
 
@@ -122,17 +122,17 @@ IDENTIFIED BY '#{configuration['password']}' WITH GRANT OPTION;
 
       def prepare_command_options
         args = {
-          'host'      => '--host',
-          'port'      => '--port',
-          'socket'    => '--socket',
-          'username'  => '--user',
-          'password'  => '--password',
-          'encoding'  => '--default-character-set',
-          'sslca'     => '--ssl-ca',
-          'sslcert'   => '--ssl-cert',
-          'sslcapath' => '--ssl-capath',
-          'sslcipher' => '--ssl-cipher',
-          'sslkey'    => '--ssl-key'
+          "host"      => "--host",
+          "port"      => "--port",
+          "socket"    => "--socket",
+          "username"  => "--user",
+          "password"  => "--password",
+          "encoding"  => "--default-character-set",
+          "sslca"     => "--ssl-ca",
+          "sslcert"   => "--ssl-cert",
+          "sslcapath" => "--ssl-capath",
+          "sslcipher" => "--ssl-cipher",
+          "sslkey"    => "--ssl-key"
         }.map { |opt, arg| "#{arg}=#{configuration[opt]}" if configuration[opt] }.compact
 
         args

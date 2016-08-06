@@ -63,7 +63,7 @@ module ActiveRecord
         def increment_lock
           lock_col = self.class.locking_column
           previous_lock_value = send(lock_col).to_i
-          send(lock_col + '=', previous_lock_value + 1)
+          send(lock_col + "=", previous_lock_value + 1)
         end
 
         def _create_record(attribute_names = self.attribute_names, *) # :nodoc:
@@ -106,7 +106,7 @@ module ActiveRecord
 
           # If something went wrong, revert the version.
           rescue Exception
-            send(lock_col + '=', previous_lock_value)
+            send(lock_col + "=", previous_lock_value)
             raise
           end
         end
@@ -133,7 +133,7 @@ module ActiveRecord
         end
 
       module ClassMethods
-        DEFAULT_LOCKING_COLUMN = 'lock_version'
+        DEFAULT_LOCKING_COLUMN = "lock_version"
 
         # Returns true if the +lock_optimistically+ flag is set to true
         # (which it is, by default) and the table includes the
@@ -198,11 +198,11 @@ module ActiveRecord
       end
 
       def init_with(coder)
-        __setobj__(coder['subtype'])
+        __setobj__(coder["subtype"])
       end
 
       def encode_with(coder)
-        coder['subtype'] = __getobj__
+        coder["subtype"] = __getobj__
       end
     end
   end

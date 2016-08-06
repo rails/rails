@@ -8,15 +8,15 @@ module ActiveRecord
       end
 
       def create
-        raise DatabaseAlreadyExists if File.exist?(configuration['database'])
+        raise DatabaseAlreadyExists if File.exist?(configuration["database"])
 
         establish_connection configuration
         connection
       end
 
       def drop
-        require 'pathname'
-        path = Pathname.new configuration['database']
+        require "pathname"
+        path = Pathname.new configuration["database"]
         file = path.absolute? ? path.to_s : File.join(root, path)
 
         FileUtils.rm(file)
@@ -36,12 +36,12 @@ module ActiveRecord
       end
 
       def structure_dump(filename)
-        dbfile = configuration['database']
+        dbfile = configuration["database"]
         `sqlite3 #{dbfile} .schema > #{filename}`
       end
 
       def structure_load(filename)
-        dbfile = configuration['database']
+        dbfile = configuration["database"]
         `sqlite3 #{dbfile} < "#{filename}"`
       end
 

@@ -40,7 +40,7 @@ module ActiveRecord
         default = schema_default(column) if column.has_default?
         spec[:default]   = default unless default.nil?
 
-        spec[:null] = 'false' unless column.null
+        spec[:null] = "false" unless column.null
 
         if collation = schema_collation(column)
           spec[:collation] = collation

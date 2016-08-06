@@ -1,4 +1,4 @@
-require 'active_support/core_ext/string/filters'
+require "active_support/core_ext/string/filters"
 
 module ActiveRecord
   module Tasks # :nodoc:
@@ -40,10 +40,10 @@ module ActiveRecord
       attr_writer :current_config, :db_dir, :migrations_paths, :fixtures_path, :root, :env, :seed_loader
       attr_accessor :database_configuration
 
-      LOCAL_HOSTS    = ['127.0.0.1', 'localhost']
+      LOCAL_HOSTS    = ["127.0.0.1", "localhost"]
 
       def check_protected_environments!
-        unless ENV['DISABLE_DATABASE_ENVIRONMENT_CHECK']
+        unless ENV["DISABLE_DATABASE_ENVIRONMENT_CHECK"]
           current = ActiveRecord::Migrator.current_environment
           stored  = ActiveRecord::Migrator.last_stored_environment
 
@@ -72,14 +72,14 @@ module ActiveRecord
       end
 
       def migrations_paths
-        @migrations_paths ||= Rails.application.paths['db/migrate'].to_a
+        @migrations_paths ||= Rails.application.paths["db/migrate"].to_a
       end
 
       def fixtures_path
-        @fixtures_path ||= if ENV['FIXTURES_PATH']
-                             File.join(root, ENV['FIXTURES_PATH'])
+        @fixtures_path ||= if ENV["FIXTURES_PATH"]
+                             File.join(root, ENV["FIXTURES_PATH"])
                            else
-                             File.join(root, 'test', 'fixtures')
+                             File.join(root, "test", "fixtures")
                            end
       end
 
@@ -106,7 +106,7 @@ module ActiveRecord
 
       def create(*arguments)
         configuration = arguments.first
-        class_for_adapter(configuration['adapter']).new(*arguments).create
+        class_for_adapter(configuration["adapter"]).new(*arguments).create
         $stdout.puts "Created database '#{configuration['database']}'"
       rescue DatabaseAlreadyExists
         $stderr.puts "Database '#{configuration['database']}' already exists"
@@ -133,7 +133,7 @@ module ActiveRecord
 
       def drop(*arguments)
         configuration = arguments.first
-        class_for_adapter(configuration['adapter']).new(*arguments).drop
+        class_for_adapter(configuration["adapter"]).new(*arguments).drop
         $stdout.puts "Dropped database '#{configuration['database']}'"
       rescue ActiveRecord::NoDatabaseError
         $stderr.puts "Database '#{configuration['database']}' does not exist"
@@ -156,7 +156,7 @@ module ActiveRecord
       def migrate
         verbose = ENV["VERBOSE"] ? ENV["VERBOSE"] == "true" : true
         version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
-        scope   = ENV['SCOPE']
+        scope   = ENV["SCOPE"]
         verbose_was, Migration.verbose = Migration.verbose, verbose
         Migrator.migrate(migrations_paths, version) do |migration|
           scope.blank? || scope == migration.scope
@@ -172,7 +172,7 @@ module ActiveRecord
 
       def charset(*arguments)
         configuration = arguments.first
-        class_for_adapter(configuration['adapter']).new(*arguments).charset
+        class_for_adapter(configuration["adapter"]).new(*arguments).charset
       end
 
       def collation_current(environment = env)
@@ -181,11 +181,11 @@ module ActiveRecord
 
       def collation(*arguments)
         configuration = arguments.first
-        class_for_adapter(configuration['adapter']).new(*arguments).collation
+        class_for_adapter(configuration["adapter"]).new(*arguments).collation
       end
 
       def purge(configuration)
-        class_for_adapter(configuration['adapter']).new(configuration).purge
+        class_for_adapter(configuration["adapter"]).new(configuration).purge
       end
 
       def purge_all
@@ -204,13 +204,13 @@ module ActiveRecord
       def structure_dump(*arguments)
         configuration = arguments.first
         filename = arguments.delete_at 1
-        class_for_adapter(configuration['adapter']).new(*arguments).structure_dump(filename)
+        class_for_adapter(configuration["adapter"]).new(*arguments).structure_dump(filename)
       end
 
       def structure_load(*arguments)
         configuration = arguments.first
         filename = arguments.delete_at 1
-        class_for_adapter(configuration['adapter']).new(*arguments).structure_load(filename)
+        class_for_adapter(configuration["adapter"]).new(*arguments).structure_load(filename)
       end
 
       def load_schema(configuration, format = ActiveRecord::Base.schema_format, file = nil) # :nodoc:
@@ -285,17 +285,17 @@ module ActiveRecord
 
       def each_current_configuration(environment)
         environments = [environment]
-        environments << 'test' if environment == 'development'
+        environments << "test" if environment == "development"
 
         configurations = ActiveRecord::Base.configurations.values_at(*environments)
         configurations.compact.each do |configuration|
-          yield configuration unless configuration['database'].blank?
+          yield configuration unless configuration["database"].blank?
         end
       end
 
       def each_local_configuration
         ActiveRecord::Base.configurations.each_value do |configuration|
-          next unless configuration['database']
+          next unless configuration["database"]
 
           if local_database?(configuration)
             yield configuration
@@ -306,7 +306,7 @@ module ActiveRecord
       end
 
       def local_database?(configuration)
-        configuration['host'].blank? || LOCAL_HOSTS.include?(configuration['host'])
+        configuration["host"].blank? || LOCAL_HOSTS.include?(configuration["host"])
       end
     end
   end
