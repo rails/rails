@@ -1,6 +1,6 @@
-require 'test_helper'
-require 'stubs/test_server'
-require 'active_support/core_ext/object/json'
+require "test_helper"
+require "stubs/test_server"
+require "active_support/core_ext/object/json"
 
 class ActionCable::Connection::BaseTest < ActionCable::TestCase
   class Connection < ActionCable::Connection::Base
@@ -113,14 +113,14 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
     run_in_eventmachine do
       class CallMeMaybe
         def call(*)
-          raise 'Do not call me!'
+          raise "Do not call me!"
         end
       end
 
       env = Rack::MockRequest.env_for(
         "/test",
-        { 'HTTP_CONNECTION' => 'upgrade', 'HTTP_UPGRADE' => 'websocket',
-          'HTTP_HOST' => 'localhost', 'HTTP_ORIGIN' => 'http://rubyonrails.org', 'rack.hijack' => CallMeMaybe.new }
+        { "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket",
+          "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.org", "rack.hijack" => CallMeMaybe.new }
       )
 
       connection = ActionCable::Connection::Base.new(@server, env)
@@ -131,8 +131,8 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
 
   private
     def open_connection
-      env = Rack::MockRequest.env_for "/test", 'HTTP_CONNECTION' => 'upgrade', 'HTTP_UPGRADE' => 'websocket',
-        'HTTP_HOST' => 'localhost', 'HTTP_ORIGIN' => 'http://rubyonrails.com'
+      env = Rack::MockRequest.env_for "/test", "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket",
+        "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.com"
 
       Connection.new(@server, env)
     end

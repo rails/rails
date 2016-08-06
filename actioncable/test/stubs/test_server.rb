@@ -1,4 +1,4 @@
-require 'ostruct'
+require "ostruct"
 
 class TestServer
   include ActionCable::Server::Connections
@@ -10,7 +10,7 @@ class TestServer
     @logger = ActiveSupport::TaggedLogging.new ActiveSupport::Logger.new(StringIO.new)
 
     @config = OpenStruct.new(log_tags: [], subscription_adapter: subscription_adapter)
-    @config.use_faye = ENV['FAYE'].present?
+    @config.use_faye = ENV["FAYE"].present?
     @config.client_socket_class = if @config.use_faye
                                     ActionCable::Connection::FayeClientSocket
                                   else

@@ -1,4 +1,4 @@
-require 'test_helper'
+require "test_helper"
 
 class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
   class Connection < ActionCable::Connection::Base
@@ -25,7 +25,7 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
   setup do
     @server = TestServer.new
 
-    @chat_identifier = ActiveSupport::JSON.encode(id: 1, channel: 'ActionCable::Connection::SubscriptionsTest::ChatChannel')
+    @chat_identifier = ActiveSupport::JSON.encode(id: 1, channel: "ActionCable::Connection::SubscriptionsTest::ChatChannel")
   end
 
   test "subscribe command" do
@@ -42,7 +42,7 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
     run_in_eventmachine do
       setup_connection
 
-      @subscriptions.execute_command 'command' => 'subscribe'
+      @subscriptions.execute_command "command" => "subscribe"
       assert @subscriptions.identifiers.empty?
     end
   end
@@ -55,7 +55,7 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
       channel = subscribe_to_chat_channel
       channel.expects(:unsubscribe_from_channel)
 
-      @subscriptions.execute_command 'command' => 'unsubscribe', 'identifier' => @chat_identifier
+      @subscriptions.execute_command "command" => "unsubscribe", "identifier" => @chat_identifier
       assert @subscriptions.identifiers.empty?
     end
   end
@@ -64,7 +64,7 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
     run_in_eventmachine do
       setup_connection
 
-      @subscriptions.execute_command 'command' => 'unsubscribe'
+      @subscriptions.execute_command "command" => "unsubscribe"
       assert @subscriptions.identifiers.empty?
     end
   end
@@ -74,8 +74,8 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
       setup_connection
       channel = subscribe_to_chat_channel
 
-      data = { 'content' => 'Hello World!', 'action' => 'speak' }
-      @subscriptions.execute_command 'command' => 'message', 'identifier' => @chat_identifier, 'data' => ActiveSupport::JSON.encode(data)
+      data = { "content" => "Hello World!", "action" => "speak" }
+      @subscriptions.execute_command "command" => "message", "identifier" => @chat_identifier, "data" => ActiveSupport::JSON.encode(data)
 
       assert_equal [ data ], channel.lines
     end
@@ -87,7 +87,7 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
 
       channel1 = subscribe_to_chat_channel
 
-      channel2_id = ActiveSupport::JSON.encode(id: 2, channel: 'ActionCable::Connection::SubscriptionsTest::ChatChannel')
+      channel2_id = ActiveSupport::JSON.encode(id: 2, channel: "ActionCable::Connection::SubscriptionsTest::ChatChannel")
       channel2 = subscribe_to_chat_channel(channel2_id)
 
       channel1.expects(:unsubscribe_from_channel)
@@ -99,14 +99,14 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
 
   private
     def subscribe_to_chat_channel(identifier = @chat_identifier)
-      @subscriptions.execute_command 'command' => 'subscribe', 'identifier' => identifier
+      @subscriptions.execute_command "command" => "subscribe", "identifier" => identifier
       assert_equal identifier, @subscriptions.identifiers.last
 
-      @subscriptions.send :find, 'identifier' => identifier
+      @subscriptions.send :find, "identifier" => identifier
     end
 
     def setup_connection
-      env = Rack::MockRequest.env_for "/test", 'HTTP_HOST' => 'localhost', 'HTTP_CONNECTION' => 'upgrade', 'HTTP_UPGRADE' => 'websocket'
+      env = Rack::MockRequest.env_for "/test", "HTTP_HOST" => "localhost", "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket"
       @connection = Connection.new(@server, env)
 
       @subscriptions = ActionCable::Connection::Subscriptions.new(@connection)

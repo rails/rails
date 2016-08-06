@@ -1,20 +1,20 @@
-require 'action_cable'
-require 'active_support/testing/autorun'
+require "action_cable"
+require "active_support/testing/autorun"
 
-require 'puma'
-require 'mocha/setup'
-require 'rack/mock'
+require "puma"
+require "mocha/setup"
+require "rack/mock"
 
 begin
-  require 'byebug'
+  require "byebug"
 rescue LoadError
 end
 
 # Require all the stubs and models
-Dir[File.dirname(__FILE__) + '/stubs/*.rb'].each {|file| require file }
+Dir[File.dirname(__FILE__) + "/stubs/*.rb"].each {|file| require file }
 
-if ENV['FAYE'].present?
-  require 'faye/websocket'
+if ENV["FAYE"].present?
+  require "faye/websocket"
   class << Faye::WebSocket
     remove_method :ensure_reactor_running
 
@@ -59,7 +59,7 @@ module ConcurrentRubyConcurrencyHelpers
 end
 
 class ActionCable::TestCase < ActiveSupport::TestCase
-  if ENV['FAYE'].present?
+  if ENV["FAYE"].present?
     include EventMachineConcurrencyHelpers
   else
     include ConcurrentRubyConcurrencyHelpers
