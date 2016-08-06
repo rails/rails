@@ -1,4 +1,4 @@
-require 'rake/testtask'
+require "rake/testtask"
 
 dir = File.dirname(__FILE__)
 
@@ -17,7 +17,7 @@ end
 namespace :test do
   task :isolated do
     Dir.glob("#{dir}/test/**/*_test.rb").all? do |file|
-      sh(Gem.ruby, '-w', "-I#{dir}/lib", "-I#{dir}/test", file)
+      sh(Gem.ruby, "-w", "-I#{dir}/lib", "-I#{dir}/test", file)
     end or raise "Failures"
   end
 end

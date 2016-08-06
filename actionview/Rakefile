@@ -1,4 +1,4 @@
-require 'rake/testtask'
+require "rake/testtask"
 
 desc "Default Task"
 task :default => :test
@@ -13,31 +13,31 @@ task :test => ["test:template", "test:integration:action_pack", "test:integratio
 namespace :test do
   task :isolated do
     Dir.glob("test/{actionpack,activerecord,template}/**/*_test.rb").all? do |file|
-      sh(Gem.ruby, '-w', '-Ilib:test', file)
+      sh(Gem.ruby, "-w", "-Ilib:test", file)
     end or raise "Failures"
   end
 
   Rake::TestTask.new(:template) do |t|
-    t.libs << 'test'
-    t.test_files = Dir.glob('test/template/**/*_test.rb')
+    t.libs << "test"
+    t.test_files = Dir.glob("test/template/**/*_test.rb")
     t.warning = true
     t.verbose = true
     t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
   end
 
   namespace :integration do
-    desc 'ActiveRecord Integration Tests'
+    desc "ActiveRecord Integration Tests"
     Rake::TestTask.new(:active_record) do |t|
-      t.libs << 'test'
+      t.libs << "test"
       t.test_files = Dir.glob("test/activerecord/*_test.rb")
       t.warning = true
       t.verbose = true
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
     end
 
-    desc 'ActionPack Integration Tests'
+    desc "ActionPack Integration Tests"
     Rake::TestTask.new(:action_pack) do |t|
-      t.libs << 'test'
+      t.libs << "test"
       t.test_files = Dir.glob("test/actionpack/**/*_test.rb")
       t.warning = true
       t.verbose = true
@@ -47,7 +47,7 @@ namespace :test do
 end
 
 task :lines do
-  load File.expand_path('..', File.dirname(__FILE__)) + '/tools/line_statistics'
+  load File.expand_path("..", File.dirname(__FILE__)) + "/tools/line_statistics"
   files = FileList["lib/**/*.rb"]
   CodeTools::LineStatistics.new(files).print_loc
 end

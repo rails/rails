@@ -1,13 +1,13 @@
 #!/usr/bin/env ruby
 
 begin
-  $:.unshift(File.expand_path(File.dirname(__FILE__) + '/../lib'))
-  require 'active_support'
+  $:.unshift(File.expand_path(File.dirname(__FILE__) + "/../lib"))
+  require "active_support"
 rescue IOError
 end
 
-require 'open-uri'
-require 'tmpdir'
+require "open-uri"
+require "tmpdir"
 
 module ActiveSupport
   module Multibyte
@@ -20,10 +20,10 @@ module ActiveSupport
       class DatabaseGenerator
         BASE_URI = "http://www.unicode.org/Public/#{UNICODE_VERSION}/ucd/"
         SOURCES = {
-          :codepoints => BASE_URI + 'UnicodeData.txt',
-          :composition_exclusion => BASE_URI + 'CompositionExclusions.txt',
-          :grapheme_break_property => BASE_URI + 'auxiliary/GraphemeBreakProperty.txt',
-          :cp1252 => 'http://unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1252.TXT'
+          :codepoints => BASE_URI + "UnicodeData.txt",
+          :composition_exclusion => BASE_URI + "CompositionExclusions.txt",
+          :grapheme_break_property => BASE_URI + "auxiliary/GraphemeBreakProperty.txt",
+          :cp1252 => "http://unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1252.TXT"
         }
 
         def initialize
@@ -52,9 +52,9 @@ module ActiveSupport
           codepoint.code              = $1.hex
           codepoint.combining_class   = Integer($4)
           codepoint.decomp_type       = $7
-          codepoint.decomp_mapping    = ($8=='') ? nil : $8.split.collect(&:hex)
-          codepoint.uppercase_mapping = ($16=='') ? 0 : $16.hex
-          codepoint.lowercase_mapping = ($17=='') ? 0 : $17.hex
+          codepoint.decomp_mapping    = ($8=="") ? nil : $8.split.collect(&:hex)
+          codepoint.uppercase_mapping = ($16=="") ? 0 : $16.hex
+          codepoint.lowercase_mapping = ($17=="") ? 0 : $17.hex
           @ucd.codepoints[codepoint.code] = codepoint
         end
 
@@ -62,8 +62,8 @@ module ActiveSupport
           if line =~ /^([0-9A-F.]+)\s*;\s*([\w]+)\s*#/
             type = $2.downcase.intern
             @ucd.boundary[type] ||= []
-            if $1.include? '..'
-              parts = $1.split '..'
+            if $1.include? ".."
+              parts = $1.split ".."
               @ucd.boundary[type] << (parts[0].hex..parts[1].hex)
             else
               @ucd.boundary[type] << $1.hex
@@ -105,7 +105,7 @@ module ActiveSupport
             filename =  File.join(Dir.tmpdir, "#{url.split('/').last}")
             unless File.exist?(filename)
               $stderr.puts "Downloading #{url.split('/').last}"
-              File.open(filename, 'wb') do |target|
+              File.open(filename, "wb") do |target|
                 open(url) do |source|
                   source.each_line { |line| target.write line }
                 end
@@ -120,7 +120,7 @@ module ActiveSupport
         end
 
         def dump_to(filename)
-          File.open(filename, 'wb') do |f|
+          File.open(filename, "wb") do |f|
             f.write Marshal.dump([@ucd.codepoints, @ucd.composition_exclusion, @ucd.composition_map, @ucd.boundary, @ucd.cp1252])
           end
         end

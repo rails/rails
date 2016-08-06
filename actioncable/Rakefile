@@ -1,7 +1,7 @@
-require 'rake/testtask'
-require 'pathname'
-require 'action_cable'
-require 'blade'
+require "rake/testtask"
+require "pathname"
+require "action_cable"
+require "blade"
 
 dir = File.dirname(__FILE__)
 
@@ -20,12 +20,12 @@ end
 namespace :test do
   task :isolated do
     Dir.glob("test/**/*_test.rb").all? do |file|
-      sh(Gem.ruby, '-w', '-Ilib:test', file)
+      sh(Gem.ruby, "-w", "-Ilib:test", file)
     end or raise "Failures"
   end
 
   task :integration do
-    if ENV['CI']
+    if ENV["CI"]
       Blade.start(interface: :ci)
     else
       Blade.start(interface: :runner)
