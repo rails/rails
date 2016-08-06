@@ -307,7 +307,7 @@ module ActionController
       @controller.error_latch = Concurrent::CountDownLatch.new
 
       capture_log_output do |output|
-        get :overfill_buffer_and_die, :format => "plain"
+        get :overfill_buffer_and_die, format: "plain"
 
         t = Thread.new(response) { |resp|
           resp.await_commit

@@ -202,7 +202,7 @@ module ActionDispatch
           request.request_method = method if method
 
           params = fail_on(ActionController::RoutingError, msg) do
-            @routes.recognize_path(path, { :method => method, :extras => extras })
+            @routes.recognize_path(path, { method: method, extras: extras })
           end
           request.path_parameters = params.with_indifferent_access
 

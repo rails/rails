@@ -12,32 +12,32 @@ module RenderStreaming
     layout "application"
 
     def hello_world
-      render :stream => true
+      render stream: true
     end
 
     def layout_exception
-      render :action => "hello_world", :stream => true, :layout => "boom"
+      render action: "hello_world", stream: true, layout: "boom"
     end
 
     def template_exception
-      render :action => "boom", :stream => true
+      render action: "boom", stream: true
     end
 
     def skip
-      render :action => "hello_world", :stream => false
+      render action: "hello_world", stream: false
     end
 
     def explicit
-      render :action => "hello_world", :stream => true
+      render action: "hello_world", stream: true
     end
 
     def no_layout
-      render :action => "hello_world", :stream => true, :layout => false
+      render action: "hello_world", stream: true, layout: false
     end
 
     def explicit_cache
       headers["Cache-Control"] = "private"
-      render :action => "hello_world", :stream => true
+      render action: "hello_world", stream: true
     end
   end
 

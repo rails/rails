@@ -150,11 +150,11 @@ module ActionDispatch
       private
 
       def polymorphic_url_for_action(action, record_or_hash, options)
-        polymorphic_url(record_or_hash, options.merge(:action => action))
+        polymorphic_url(record_or_hash, options.merge(action: action))
       end
 
       def polymorphic_path_for_action(action, record_or_hash, options)
-        polymorphic_path(record_or_hash, options.merge(:action => action))
+        polymorphic_path(record_or_hash, options.merge(action: action))
       end
 
       class HelperMethodBuilder # :nodoc:

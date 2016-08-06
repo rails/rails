@@ -11,13 +11,13 @@ class RenderersTest < ActionController::TestCase
   end
   class JsonRenderable
     def as_json(options={})
-      hash = { :a => :b, :c => :d, :e => :f }
+      hash = { a: :b, c: :d, e: :f }
       hash.except!(*options[:except]) if options[:except]
       hash
     end
 
     def to_json(options = {})
-      super :except => [:c, :e]
+      super except: [:c, :e]
     end
   end
   class CsvRenderable
@@ -28,7 +28,7 @@ class RenderersTest < ActionController::TestCase
   class TestController < ActionController::Base
 
     def render_simon_says
-      render :simon => "foo"
+      render simon: "foo"
     end
 
     def respond_to_mime

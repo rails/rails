@@ -8,7 +8,7 @@ module RenderAction
     )]
 
     def hello_world
-      render :action => "hello_world"
+      render action: "hello_world"
     end
 
     def hello_world_as_string
@@ -16,7 +16,7 @@ module RenderAction
     end
 
     def hello_world_as_string_with_options
-      render "hello_world", :status => 404
+      render "hello_world", status: 404
     end
 
     def hello_world_as_symbol
@@ -24,23 +24,23 @@ module RenderAction
     end
 
     def hello_world_with_symbol
-      render :action => :hello_world
+      render action: :hello_world
     end
 
     def hello_world_with_layout
-      render :action => "hello_world", :layout => true
+      render action: "hello_world", layout: true
     end
 
     def hello_world_with_layout_false
-      render :action => "hello_world", :layout => false
+      render action: "hello_world", layout: false
     end
 
     def hello_world_with_layout_nil
-      render :action => "hello_world", :layout => nil
+      render action: "hello_world", layout: nil
     end
 
     def hello_world_with_custom_layout
-      render :action => "hello_world", :layout => "greetings"
+      render action: "hello_world", layout: "greetings"
     end
 
   end
@@ -127,27 +127,27 @@ module RenderActionWithApplicationLayout
     )]
 
     def hello_world
-      render :action => "hello_world"
+      render action: "hello_world"
     end
 
     def hello_world_with_layout
-      render :action => "hello_world", :layout => true
+      render action: "hello_world", layout: true
     end
 
     def hello_world_with_layout_false
-      render :action => "hello_world", :layout => false
+      render action: "hello_world", layout: false
     end
 
     def hello_world_with_layout_nil
-      render :action => "hello_world", :layout => nil
+      render action: "hello_world", layout: nil
     end
 
     def hello_world_with_custom_layout
-      render :action => "hello_world", :layout => "greetings"
+      render action: "hello_world", layout: "greetings"
     end
 
     def with_builder_and_layout
-      render :action => "hello", :layout => "builder"
+      render action: "hello", layout: "builder"
     end
   end
 
@@ -207,23 +207,23 @@ module RenderActionWithControllerLayout
     )]
 
     def hello_world
-      render :action => "hello_world"
+      render action: "hello_world"
     end
 
     def hello_world_with_layout
-      render :action => "hello_world", :layout => true
+      render action: "hello_world", layout: true
     end
 
     def hello_world_with_layout_false
-      render :action => "hello_world", :layout => false
+      render action: "hello_world", layout: false
     end
 
     def hello_world_with_layout_nil
-      render :action => "hello_world", :layout => nil
+      render action: "hello_world", layout: nil
     end
 
     def hello_world_with_custom_layout
-      render :action => "hello_world", :layout => "greetings"
+      render action: "hello_world", layout: "greetings"
     end
   end
 
@@ -267,19 +267,19 @@ module RenderActionWithBothLayouts
     })]
 
     def hello_world
-      render :action => "hello_world"
+      render action: "hello_world"
     end
 
     def hello_world_with_layout
-      render :action => "hello_world", :layout => true
+      render action: "hello_world", layout: true
     end
 
     def hello_world_with_layout_false
-      render :action => "hello_world", :layout => false
+      render action: "hello_world", layout: false
     end
 
     def hello_world_with_layout_nil
-      render :action => "hello_world", :layout => nil
+      render action: "hello_world", layout: nil
     end
   end
 

@@ -54,7 +54,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
       assert_equal "Hello Secret", @response.body, "Authentication failed for request header #{header}"
     end
     test "successful authentication with #{header.downcase} and long credentials" do
-      @request.env[header] = encode_credentials("1234567890123456789012345678901234567890", :algorithm => "test")
+      @request.env[header] = encode_credentials("1234567890123456789012345678901234567890", algorithm: "test")
       get :show
 
       assert_response :success

@@ -165,13 +165,13 @@ class CacheStoreTest < ActionDispatch::IntegrationTest
       with_routing do |set|
         set.draw do
           ActiveSupport::Deprecation.silence do
-            get ":action", :to => ::CacheStoreTest::TestController
+            get ":action", to: ::CacheStoreTest::TestController
           end
         end
 
         @app = self.class.build_app(set) do |middleware|
           @cache = ActiveSupport::Cache::MemoryStore.new
-          middleware.use ActionDispatch::Session::CacheStore, :key => "_session_id", :cache => @cache
+          middleware.use ActionDispatch::Session::CacheStore, key: "_session_id", cache: @cache
           middleware.delete ActionDispatch::ShowExceptions
         end
 

@@ -38,7 +38,7 @@ module ActionDispatch
       end
 
       def test_regexp_first_precedence
-        get "/whois/:domain", :domain => /\w+\.[\w\.]+/, to: "foo#bar"
+        get "/whois/:domain", domain: /\w+\.[\w\.]+/, to: "foo#bar"
         get "/whois/:id(.:format)", to: "foo#baz"
 
         env = rails_env "PATH_INFO" => "/whois/example.com"
@@ -55,40 +55,40 @@ module ActionDispatch
       end
 
       def test_required_parts_verified_are_anchored
-        get "/foo/:id", :id => /\d/, anchor: false, to: "foo#bar"
+        get "/foo/:id", id: /\d/, anchor: false, to: "foo#bar"
 
         assert_raises(ActionController::UrlGenerationError) do
-          @formatter.generate(nil, { :controller => "foo", :action => "bar", :id => "10" }, { })
+          @formatter.generate(nil, { controller: "foo", action: "bar", id: "10" }, { })
         end
       end
 
       def test_required_parts_are_verified_when_building
-        get "/foo/:id", :id => /\d+/, anchor: false, to: "foo#bar"
+        get "/foo/:id", id: /\d+/, anchor: false, to: "foo#bar"
 
-        path, _ = @formatter.generate(nil, { :controller => "foo", :action => "bar", :id => "10" }, { })
+        path, _ = @formatter.generate(nil, { controller: "foo", action: "bar", id: "10" }, { })
         assert_equal "/foo/10", path
 
         assert_raises(ActionController::UrlGenerationError) do
-          @formatter.generate(nil, { :id => "aa" }, { })
+          @formatter.generate(nil, { id: "aa" }, { })
         end
       end
 
       def test_only_required_parts_are_verified
-        get "/foo(/:id)", :id => /\d/, :to => "foo#bar"
+        get "/foo(/:id)", id: /\d/, to: "foo#bar"
 
-        path, _ = @formatter.generate(nil, { :controller => "foo", :action => "bar", :id => "10" }, { })
+        path, _ = @formatter.generate(nil, { controller: "foo", action: "bar", id: "10" }, { })
         assert_equal "/foo/10", path
 
-        path, _ = @formatter.generate(nil, { :controller => "foo", :action => "bar" }, { })
+        path, _ = @formatter.generate(nil, { controller: "foo", action: "bar" }, { })
         assert_equal "/foo", path
 
-        path, _ = @formatter.generate(nil, { :controller => "foo", :action => "bar", :id => "aa" }, { })
+        path, _ = @formatter.generate(nil, { controller: "foo", action: "bar", id: "aa" }, { })
         assert_equal "/foo/aa", path
       end
 
       def test_knows_what_parts_are_missing_from_named_route
         route_name = "gorby_thunderhorse"
-        get "/foo/:id", :as => route_name, :id => /\d+/, :to => "foo#bar"
+        get "/foo/:id", as: route_name, id: /\d+/, to: "foo#bar"
 
         error = assert_raises(ActionController::UrlGenerationError) do
           @formatter.generate(route_name, { }, { })
@@ -117,7 +117,7 @@ module ActionDispatch
 
       def test_clear_trailing_slash_from_script_name_on_root_unanchored_routes
         app    = lambda { |env| [200, {}, ["success!"]] }
-        get "/weblog", :to => app
+        get "/weblog", to: app
 
         env  = rack_env("SCRIPT_NAME" => "", "PATH_INFO" => "/weblog")
         resp = route_set.call env
@@ -130,12 +130,12 @@ module ActionDispatch
 
         env = rails_env "PATH_INFO" => "/foo/10"
         router.recognize(env) do |r, params|
-          assert_equal({:id => "10", :controller => "foo", :action => "bar"}, params)
+          assert_equal({id: "10", controller: "foo", action: "bar"}, params)
         end
 
         env = rails_env "PATH_INFO" => "/foo"
         router.recognize(env) do |r, params|
-          assert_equal({:id => nil, :controller => "foo", :action => "bar"}, params)
+          assert_equal({id: nil, controller: "foo", action: "bar"}, params)
         end
       end
 
@@ -184,14 +184,14 @@ module ActionDispatch
       def test_required_part_in_recall
         get "/messages/:a/:b", to: "foo#bar"
 
-        path, _ = @formatter.generate(nil, { :controller => "foo", :action => "bar", :a => "a" }, { :b => "b" })
+        path, _ = @formatter.generate(nil, { controller: "foo", action: "bar", a: "a" }, { b: "b" })
         assert_equal "/messages/a/b", path
       end
 
       def test_splat_in_recall
         get "/*path", to: "foo#bar"
 
-        path, _ = @formatter.generate(nil, { :controller => "foo", :action => "bar" }, { :path => "b" })
+        path, _ = @formatter.generate(nil, { controller: "foo", action: "bar" }, { path: "b" })
         assert_equal "/b", path
       end
 
@@ -199,15 +199,15 @@ module ActionDispatch
         get "/messages/:action(/:id(.:format))", to: "foo#bar"
         get "/messages/:id(.:format)", to: "bar#baz"
 
-        path, _ = @formatter.generate(nil, { :controller => "foo", :id => 10 }, { :action => "index" })
+        path, _ = @formatter.generate(nil, { controller: "foo", id: 10 }, { action: "index" })
         assert_equal "/messages/index/10", path
       end
 
       def test_nil_path_parts_are_ignored
         get "/:controller(/:action(.:format))", to: "tasks#lol"
 
-        params = { :controller => "tasks", :format => nil }
-        extras = { :action => "lol" }
+        params = { controller: "tasks", format: nil }
+        extras = { action: "lol" }
 
         path, _ = @formatter.generate(nil, params, extras)
         assert_equal "/tasks", path
@@ -242,17 +242,17 @@ module ActionDispatch
         get "/:controller(/:action)", to: "foo#bar"
 
         path, params = @formatter.generate(
-          nil, {:id=>1, :controller=>"tasks", :action=>"show"}, {})
+          nil, {id: 1, controller: "tasks", action: "show"}, {})
         assert_equal "/tasks/show", path
-        assert_equal({:id => 1}, params)
+        assert_equal({id: 1}, params)
       end
 
       def test_generate_escapes
         get "/:controller(/:action)", to: "foo#bar"
 
         path, _ = @formatter.generate(nil,
-          { :controller        => "tasks",
-                 :action            => "a/b c+d",
+          { controller: "tasks",
+                 action: "a/b c+d",
         }, {})
         assert_equal "/tasks/a%2Fb%20c+d", path
       end
@@ -261,8 +261,8 @@ module ActionDispatch
         get "/:controller(/:action)", to: "foo#bar"
 
         path, _ = @formatter.generate(
-          nil, { :controller        => "admin/tasks",
-                 :action            => "a/b c+d",
+          nil, { controller: "admin/tasks",
+                 action: "a/b c+d",
         }, {})
         assert_equal "/admin/tasks/a%2Fb%20c+d", path
       end
@@ -271,22 +271,22 @@ module ActionDispatch
         get "/:controller(/:action)", to: "foo#bar"
 
         path, params = @formatter.generate(
-          nil, { :id                => 1,
-                 :controller        => "tasks",
-                 :action            => "show",
-                 :relative_url_root => nil
+          nil, { id: 1,
+                 controller: "tasks",
+                 action: "show",
+                 relative_url_root: nil
         }, {})
         assert_equal "/tasks/show", path
-        assert_equal({:id => 1, :relative_url_root => nil}, params)
+        assert_equal({id: 1, relative_url_root: nil}, params)
       end
 
       def test_generate_missing_keys_no_matches_different_format_keys
         get "/:controller/:action/:name", to: "foo#bar"
         primarty_parameters = {
-          :id                => 1,
-          :controller        => "tasks",
-          :action            => "show",
-          :relative_url_root => nil
+          id: 1,
+          controller: "tasks",
+          action: "show",
+          relative_url_root: nil
         }
         redirection_parameters = {
           "action"=>"show",
@@ -311,8 +311,8 @@ module ActionDispatch
 
         path, params = @formatter.generate(
           nil,
-          {:controller =>"tasks", :id => 10},
-          {:action     =>"index"})
+          {controller: "tasks", id: 10},
+          {action: "index"})
         assert_equal "/tasks/index/10", path
         assert_equal({}, params)
       end
@@ -322,16 +322,16 @@ module ActionDispatch
 
         path, params = @formatter.generate(
           "tasks",
-          {:controller=>"tasks"},
-          {:controller=>"tasks", :action=>"index"})
+          {controller: "tasks"},
+          {controller: "tasks", action: "index"})
         assert_equal "/tasks", path
         assert_equal({}, params)
       end
 
       {
-        "/content"          => { :controller => "content" },
-        "/content/list"     => { :controller => "content", :action => "list" },
-        "/content/show/10"  => { :controller => "content", :action => "show", :id => "10" },
+        "/content"          => { controller: "content" },
+        "/content/list"     => { controller: "content", action: "list" },
+        "/content/show/10"  => { controller: "content", action: "show", id: "10" },
       }.each do |request_path, expected|
         define_method("test_recognize_#{expected.keys.map(&:to_s).join('_')}") do
           get "/:controller(/:action(/:id))", to: "foo#bar"
@@ -342,7 +342,7 @@ module ActionDispatch
 
           router.recognize(env) do |r, params|
             assert_equal route, r
-            assert_equal({ :action => "bar" }.merge(expected), params)
+            assert_equal({ action: "bar" }.merge(expected), params)
             called = true
           end
 
@@ -351,8 +351,8 @@ module ActionDispatch
       end
 
       {
-        :segment => ["/a%2Fb%20c+d/splat", { :segment => "a/b c+d", :splat => "splat"   }],
-        :splat   => ["/segment/a/b%20c+d", { :segment => "segment", :splat => "a/b c+d" }]
+        segment: ["/a%2Fb%20c+d/splat", { segment: "a/b c+d", splat: "splat"   }],
+        splat: ["/segment/a/b%20c+d", { segment: "segment", splat: "a/b c+d" }]
       }.each do |name, (request_path, expected)|
         define_method("test_recognize_#{name}") do
           get "/:segment/*splat", to: "foo#bar"
@@ -363,7 +363,7 @@ module ActionDispatch
 
           router.recognize(env) do |r, params|
             assert_equal route, r
-            assert_equal(expected.merge(:controller=>"foo", :action=>"bar"), params)
+            assert_equal(expected.merge(controller: "foo", action: "bar"), params)
             called = true
           end
 
@@ -372,15 +372,15 @@ module ActionDispatch
       end
 
       def test_namespaced_controller
-        get "/:controller(/:action(/:id))", { :controller => /.+?/ }
+        get "/:controller(/:action(/:id))", { controller: /.+?/ }
         route = @routes.first
 
         env = rails_env "PATH_INFO" => "/admin/users/show/10"
         called   = false
         expected = {
-          :controller => "admin/users",
-          :action     => "show",
-          :id         => "10"
+          controller: "admin/users",
+          action: "show",
+          id: "10"
         }
 
         router.recognize(env) do |r, params|
@@ -396,7 +396,7 @@ module ActionDispatch
         route = @routes.first
 
         env    = rails_env "PATH_INFO" => "/books/list.rss"
-        expected = { :controller => "books", :action => "list", :format => "rss" }
+        expected = { controller: "books", action: "list", format: "rss" }
         called = false
         router.recognize(env) do |r, params|
           assert_equal route, r

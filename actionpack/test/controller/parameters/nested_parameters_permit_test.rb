@@ -134,9 +134,9 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
     params = ActionController::Parameters.new({
       book: {
         authors_attributes: {
-          :'0' => { name: "William Shakespeare", age_of_death: "52" },
-          :'1' => { name: "Unattributed Assistant" },
-          :'2' => { name: %w(injected names) }
+          '0': { name: "William Shakespeare", age_of_death: "52" },
+          '1': { name: "Unattributed Assistant" },
+          '2': { name: %w(injected names) }
         }
       }
     })
@@ -155,8 +155,8 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
     params = ActionController::Parameters.new({
       book: {
         authors_attributes: {
-          :'-1' => { name: "William Shakespeare", age_of_death: "52" },
-          :'-2' => { name: "Unattributed Assistant" }
+          '-1': { name: "William Shakespeare", age_of_death: "52" },
+          '-2': { name: "Unattributed Assistant" }
         }
       }
     })
@@ -179,7 +179,7 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
         }
       }
     })
-    params = params.require(:product).permit(:properties => ["0"])
+    params = params.require(:product).permit(properties: ["0"])
     assert_not_nil        params[:properties]["0"]
     assert_nil            params[:properties]["1"]
     assert_equal "prop0", params[:properties]["0"]

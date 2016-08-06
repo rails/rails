@@ -4,7 +4,7 @@ require "action_controller/log_subscriber"
 
 module Another
   class LogSubscribersController < ActionController::Base
-    wrap_parameters :person, :include => :name, :format => :json
+    wrap_parameters :person, include: :name, format: :json
 
     class SpecialException < Exception
     end
@@ -31,7 +31,7 @@ module Another
     end
 
     def data_sender
-      send_data "cool data", :filename => "file.txt"
+      send_data "cool data", filename: "file.txt"
     end
 
     def file_sender
@@ -39,27 +39,27 @@ module Another
     end
 
     def with_fragment_cache
-      render :inline => "<%= cache('foo'){ 'bar' } %>"
+      render inline: "<%= cache('foo'){ 'bar' } %>"
     end
 
     def with_fragment_cache_and_percent_in_key
-      render :inline => "<%= cache('foo%bar'){ 'Contains % sign in key' } %>"
+      render inline: "<%= cache('foo%bar'){ 'Contains % sign in key' } %>"
     end
 
     def with_fragment_cache_if_with_true_condition
-      render :inline => "<%= cache_if(true, 'foo') { 'bar' } %>"
+      render inline: "<%= cache_if(true, 'foo') { 'bar' } %>"
     end
 
     def with_fragment_cache_if_with_false_condition
-      render :inline => "<%= cache_if(false, 'foo') { 'bar' } %>"
+      render inline: "<%= cache_if(false, 'foo') { 'bar' } %>"
     end
 
     def with_fragment_cache_unless_with_false_condition
-      render :inline => "<%= cache_unless(false, 'foo') { 'bar' } %>"
+      render inline: "<%= cache_unless(false, 'foo') { 'bar' } %>"
     end
 
     def with_fragment_cache_unless_with_true_condition
-      render :inline => "<%= cache_unless(true, 'foo') { 'bar' } %>"
+      render inline: "<%= cache_unless(true, 'foo') { 'bar' } %>"
     end
 
     def with_exception

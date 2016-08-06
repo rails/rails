@@ -16,12 +16,12 @@ module RenderPartial
     )]
 
     def html_with_json_inside_json
-      render :action => "with_json"
+      render action: "with_json"
     end
 
     def changing
       @test_unchanged = "hello"
-      render :action => "basic"
+      render action: "basic"
     end
 
     def overridden

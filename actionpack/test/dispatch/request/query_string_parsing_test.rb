@@ -145,7 +145,7 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
     with_routing do |set|
       set.draw do
         ActiveSupport::Deprecation.silence do
-          get ":action", :to => ::QueryStringParsingTest::TestController
+          get ":action", to: ::QueryStringParsingTest::TestController
         end
       end
 
@@ -159,7 +159,7 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
       with_routing do |set|
         set.draw do
           ActiveSupport::Deprecation.silence do
-            get ":action", :to => ::QueryStringParsingTest::TestController
+            get ":action", to: ::QueryStringParsingTest::TestController
           end
         end
         @app = self.class.build_app(set) do |middleware|

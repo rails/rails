@@ -34,14 +34,14 @@ class RescueController < ActionController::Base
   # We use a fully-qualified name in some strings, and a relative constant
   # name in some other to test correct handling of both cases.
 
-  rescue_from NotAuthorized, :with => :deny_access
-  rescue_from "RescueController::NotAuthorizedToRescueAsString", :with => :deny_access
+  rescue_from NotAuthorized, with: :deny_access
+  rescue_from "RescueController::NotAuthorizedToRescueAsString", with: :deny_access
 
-  rescue_from RecordInvalid, :with => :show_errors
-  rescue_from "RescueController::RecordInvalidToRescueAsString", :with => :show_errors
+  rescue_from RecordInvalid, with: :show_errors
+  rescue_from "RescueController::RecordInvalidToRescueAsString", with: :show_errors
 
-  rescue_from NotAllowed, :with => proc { head :forbidden }
-  rescue_from "RescueController::NotAllowedToRescueAsString", :with => proc { head :forbidden }
+  rescue_from NotAllowed, with: proc { head :forbidden }
+  rescue_from "RescueController::NotAllowedToRescueAsString", with: proc { head :forbidden }
 
   rescue_from InvalidRequest, with: proc { |exception| render plain: exception.message }
   rescue_from "InvalidRequestToRescueAsString", with: proc { |exception| render plain: exception.message }
@@ -170,9 +170,9 @@ class ExceptionInheritanceRescueController < ActionController::Base
   class GrandchildException < ChildException
   end
 
-  rescue_from ChildException,      :with => lambda { head :ok }
-  rescue_from ParentException,     :with => lambda { head :created }
-  rescue_from GrandchildException, :with => lambda { head :no_content }
+  rescue_from ChildException,      with: lambda { head :ok }
+  rescue_from ParentException,     with: lambda { head :created }
+  rescue_from GrandchildException, with: lambda { head :no_content }
 
   def raise_parent_exception
     raise ParentException
@@ -206,7 +206,7 @@ class ControllerInheritanceRescueController < ExceptionInheritanceRescueControll
   class SecondExceptionInChildController < StandardError
   end
 
-  rescue_from FirstExceptionInChildController, "SecondExceptionInChildController", :with => lambda { head :gone }
+  rescue_from FirstExceptionInChildController, "SecondExceptionInChildController", with: lambda { head :gone }
 
   def raise_first_exception_in_child_controller
     raise FirstExceptionInChildController
@@ -314,7 +314,7 @@ class RescueTest < ActionDispatch::IntegrationTest
         "invalid"
       end
     end
-    rescue_from RecordInvalid, :with => :show_errors
+    rescue_from RecordInvalid, with: :show_errors
 
     def foo
       render plain: "foo"
@@ -353,9 +353,9 @@ class RescueTest < ActionDispatch::IntegrationTest
     def with_test_routing
       with_routing do |set|
         set.draw do
-          get "foo", :to => ::RescueTest::TestController.action(:foo)
-          get "invalid", :to => ::RescueTest::TestController.action(:invalid)
-          get "b00m", :to => ::RescueTest::TestController.action(:b00m)
+          get "foo", to: ::RescueTest::TestController.action(:foo)
+          get "invalid", to: ::RescueTest::TestController.action(:invalid)
+          get "b00m", to: ::RescueTest::TestController.action(:b00m)
         end
         yield
       end

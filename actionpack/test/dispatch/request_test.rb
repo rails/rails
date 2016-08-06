@@ -34,28 +34,28 @@ end
 
 class RequestUrlFor < BaseRequestTest
   test "url_for class method" do
-    e = assert_raise(ArgumentError) { url_for(:host => nil) }
+    e = assert_raise(ArgumentError) { url_for(host: nil) }
     assert_match(/Please provide the :host parameter/, e.message)
 
-    assert_equal "/books", url_for(:only_path => true, :path => "/books")
+    assert_equal "/books", url_for(only_path: true, path: "/books")
 
     assert_equal "http://www.example.com/books/?q=code", url_for(trailing_slash: true, path: "/books?q=code")
     assert_equal "http://www.example.com/books/?spareslashes=////", url_for(trailing_slash: true, path: "/books?spareslashes=////")
 
     assert_equal "http://www.example.com",  url_for
-    assert_equal "http://api.example.com",  url_for(:subdomain => "api")
-    assert_equal "http://example.com",      url_for(:subdomain => false)
-    assert_equal "http://www.ror.com",      url_for(:domain => "ror.com")
-    assert_equal "http://api.ror.co.uk",    url_for(:host => "www.ror.co.uk", :subdomain => "api", :tld_length => 2)
-    assert_equal "http://www.example.com:8080",   url_for(:port => 8080)
-    assert_equal "https://www.example.com",       url_for(:protocol => "https")
-    assert_equal "http://www.example.com/docs",   url_for(:path => "/docs")
-    assert_equal "http://www.example.com#signup", url_for(:anchor => "signup")
-    assert_equal "http://www.example.com/",       url_for(:trailing_slash => true)
-    assert_equal "http://dhh:supersecret@www.example.com", url_for(:user => "dhh", :password => "supersecret")
-    assert_equal "http://www.example.com?search=books",    url_for(:params => { :search => "books" })
-    assert_equal "http://www.example.com?params=",  url_for(:params => "")
-    assert_equal "http://www.example.com?params=1", url_for(:params => 1)
+    assert_equal "http://api.example.com",  url_for(subdomain: "api")
+    assert_equal "http://example.com",      url_for(subdomain: false)
+    assert_equal "http://www.ror.com",      url_for(domain: "ror.com")
+    assert_equal "http://api.ror.co.uk",    url_for(host: "www.ror.co.uk", subdomain: "api", tld_length: 2)
+    assert_equal "http://www.example.com:8080",   url_for(port: 8080)
+    assert_equal "https://www.example.com",       url_for(protocol: "https")
+    assert_equal "http://www.example.com/docs",   url_for(path: "/docs")
+    assert_equal "http://www.example.com#signup", url_for(anchor: "signup")
+    assert_equal "http://www.example.com/",       url_for(trailing_slash: true)
+    assert_equal "http://dhh:supersecret@www.example.com", url_for(user: "dhh", password: "supersecret")
+    assert_equal "http://www.example.com?search=books",    url_for(params: { search: "books" })
+    assert_equal "http://www.example.com?params=",  url_for(params: "")
+    assert_equal "http://www.example.com?params=1", url_for(params: 1)
   end
 end
 

@@ -4,7 +4,7 @@ module Admin; class User; end; end
 
 module ParamsWrapperTestHelp
   def with_default_wrapper_options(&block)
-    @controller.class._set_wrapper_options({:format => [:json]})
+    @controller.class._set_wrapper_options({format: [:json]})
     @controller.class.inherited(@controller.class)
     yield
   end
@@ -84,7 +84,7 @@ class ParamsWrapperTest < ActionController::TestCase
 
   def test_specify_include_option
     with_default_wrapper_options do
-      UsersController.wrap_parameters :include => :username
+      UsersController.wrap_parameters include: :username
 
       @request.env["CONTENT_TYPE"] = "application/json"
       post :parse, params: { "username" => "sikachu", "title" => "Developer" }
@@ -94,7 +94,7 @@ class ParamsWrapperTest < ActionController::TestCase
 
   def test_specify_exclude_option
     with_default_wrapper_options do
-      UsersController.wrap_parameters :exclude => :title
+      UsersController.wrap_parameters exclude: :title
 
       @request.env["CONTENT_TYPE"] = "application/json"
       post :parse, params: { "username" => "sikachu", "title" => "Developer" }
@@ -104,7 +104,7 @@ class ParamsWrapperTest < ActionController::TestCase
 
   def test_specify_both_wrapper_name_and_include_option
     with_default_wrapper_options do
-      UsersController.wrap_parameters :person, :include => :username
+      UsersController.wrap_parameters :person, include: :username
 
       @request.env["CONTENT_TYPE"] = "application/json"
       post :parse, params: { "username" => "sikachu", "title" => "Developer" }
@@ -131,7 +131,7 @@ class ParamsWrapperTest < ActionController::TestCase
 
   def test_specify_format
     with_default_wrapper_options do
-      UsersController.wrap_parameters :format => :xml
+      UsersController.wrap_parameters format: :xml
 
       @request.env["CONTENT_TYPE"] = "application/xml"
       post :parse, params: { "username" => "sikachu", "title" => "Developer" }
@@ -310,7 +310,7 @@ class AnonymousControllerParamsWrapperTest < ActionController::TestCase
 
   def test_does_wrap_params_if_name_provided
     with_default_wrapper_options do
-      @controller.class.wrap_parameters(:name => "guest")
+      @controller.class.wrap_parameters(name: "guest")
       @request.env["CONTENT_TYPE"] = "application/json"
       post :parse, params: { "username" => "sikachu" }
       assert_parameters({ "username" => "sikachu", "guest" => { "username" => "sikachu" }})

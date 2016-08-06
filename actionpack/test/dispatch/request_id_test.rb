@@ -56,7 +56,7 @@ class RequestIdResponseTest < ActionDispatch::IntegrationTest
   def with_test_route_set
     with_routing do |set|
       set.draw do
-        get "/", :to => ::RequestIdResponseTest::TestController.action(:index)
+        get "/", to: ::RequestIdResponseTest::TestController.action(:index)
       end
 
       @app = self.class.build_app(set) do |middleware|

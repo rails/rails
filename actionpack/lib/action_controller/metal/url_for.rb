@@ -27,10 +27,10 @@ module ActionController
 
     def url_options
       @_url_options ||= {
-        :host => request.host,
-        :port => request.optional_port,
-        :protocol => request.protocol,
-        :_recall => request.path_parameters
+        host: request.host,
+        port: request.optional_port,
+        protocol: request.protocol,
+        _recall: request.path_parameters
       }.merge!(super).freeze
 
       if (same_origin = _routes.equal?(request.routes)) ||

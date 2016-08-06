@@ -143,7 +143,7 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
   test "uploads and reads binary file" do
     with_test_routing do
       fixture = FIXTURE_PATH + "/mona_lisa.jpg"
-      params = { :uploaded_data => fixture_file_upload(fixture, "image/jpg") }
+      params = { uploaded_data: fixture_file_upload(fixture, "image/jpg") }
       post "/read", params: params
     end
   end
@@ -191,7 +191,7 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
       with_routing do |set|
         set.draw do
           ActiveSupport::Deprecation.silence do
-            post ":action", :controller => "multipart_params_parsing_test/test"
+            post ":action", controller: "multipart_params_parsing_test/test"
           end
         end
         yield

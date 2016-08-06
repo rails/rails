@@ -18,11 +18,11 @@ module RenderTemplate
     )]
 
     def index
-      render :template => "test/basic"
+      render template: "test/basic"
     end
 
     def html_with_json_inside_json
-      render :template => "test/with_json"
+      render template: "test/with_json"
     end
 
     def index_without_key
@@ -30,11 +30,11 @@ module RenderTemplate
     end
 
     def in_top_directory
-      render :template => "shared"
+      render template: "shared"
     end
 
     def in_top_directory_with_slash
-      render :template => "/shared"
+      render template: "/shared"
     end
 
     def in_top_directory_with_slash_without_key
@@ -42,27 +42,27 @@ module RenderTemplate
     end
 
     def with_locals
-      render :template => "locals", :locals => { :secret => "area51" }
+      render template: "locals", locals: { secret: "area51" }
     end
 
     def with_locals_without_key
-      render "locals", :locals => { :secret => "area51" }
+      render "locals", locals: { secret: "area51" }
     end
 
     def builder_template
-      render :template => "xml_template"
+      render template: "xml_template"
     end
 
     def with_raw
-      render :template => "with_raw"
+      render template: "with_raw"
     end
 
     def with_implicit_raw
-      render :template => "with_implicit_raw"
+      render template: "with_implicit_raw"
     end
 
     def with_error
-      render :template => "test/with_error"
+      render template: "test/with_error"
     end
 
     private
@@ -154,30 +154,30 @@ module RenderTemplate
     )]
 
     def index
-      render :template => "test/basic"
+      render template: "test/basic"
     end
 
     def with_layout
-      render :template => "test/basic", :layout => true
+      render template: "test/basic", layout: true
     end
 
     def with_layout_false
-      render :template => "test/basic", :layout => false
+      render template: "test/basic", layout: false
     end
 
     def with_layout_nil
-      render :template => "test/basic", :layout => nil
+      render template: "test/basic", layout: nil
     end
 
     def with_custom_layout
-      render :template => "test/basic", :layout => "greetings"
+      render template: "test/basic", layout: "greetings"
     end
   end
 
   class TestWithLayout < Rack::TestCase
     test "rendering with implicit layout" do
       with_routing do |set|
-        set.draw { ActiveSupport::Deprecation.silence { get ":controller", :action => :index } }
+        set.draw { ActiveSupport::Deprecation.silence { get ":controller", action: :index } }
 
         get "/render_template/with_layout"
 
@@ -223,7 +223,7 @@ module RenderTemplate
       )]
 
       def with_forward_slash
-        render :template => "/test/basic"
+        render template: "/test/basic"
       end
     end
 

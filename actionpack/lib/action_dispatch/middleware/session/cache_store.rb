@@ -29,7 +29,7 @@ module ActionDispatch
       def write_session(env, sid, session, options)
         key = cache_key(sid)
         if session
-          @cache.write(key, session, :expires_in => options[:expire_after])
+          @cache.write(key, session, expires_in: options[:expire_after])
         else
           @cache.delete(key)
         end

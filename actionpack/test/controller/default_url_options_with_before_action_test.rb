@@ -10,11 +10,11 @@ class ControllerWithBeforeActionAndDefaultUrlOptions < ActionController::Base
   end
 
   def redirect
-    redirect_to :action => "target"
+    redirect_to action: "target"
   end
 
   def default_url_options
-    {:locale => "de"}
+    {locale: "de"}
   end
 end
 

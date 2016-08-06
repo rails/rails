@@ -614,7 +614,7 @@ module ActionDispatch
           target_as       = name_for_action(options[:as], path)
           options[:via] ||= :all
 
-          match(path, options.merge(:to => app, :anchor => false, :format => false))
+          match(path, options.merge(to: app, anchor: false, format: false))
 
           define_generate_prefix(app, target_as) if rails_app
           self
@@ -985,7 +985,7 @@ module ActionDispatch
         #      resources :iphones
         #    end
         def constraints(constraints = {})
-          scope(:constraints => constraints) { yield }
+          scope(constraints: constraints) { yield }
         end
 
         # Allows you to set default parameters for a route, such as this:
@@ -1801,7 +1801,7 @@ to this:
           end
 
           def resource_scope(resource) #:nodoc:
-            @scope = @scope.new(:scope_level_resource => resource)
+            @scope = @scope.new(scope_level_resource: resource)
 
             controller(resource.resource_scope) { yield }
           ensure
@@ -1809,7 +1809,7 @@ to this:
           end
 
           def nested_options #:nodoc:
-            options = { :as => parent_resource.member_name }
+            options = { as: parent_resource.member_name }
             options[:constraints] = {
               parent_resource.nested_param => param_constraint
             } if param_constraint?
@@ -1836,8 +1836,8 @@ to this:
           end
 
           def shallow_scope #:nodoc:
-            scope = { :as   => @scope[:shallow_prefix],
-                      :path => @scope[:shallow_path] }
+            scope = { as: @scope[:shallow_prefix],
+                      path: @scope[:shallow_path] }
             @scope = @scope.new scope
 
             yield
@@ -2122,7 +2122,7 @@ to this:
 
       def initialize(set) #:nodoc:
         @set = set
-        @scope = Scope.new({ :path_names => @set.resources_path_names })
+        @scope = Scope.new({ path_names: @set.resources_path_names })
         @concerns = {}
       end
 

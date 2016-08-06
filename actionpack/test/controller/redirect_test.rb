@@ -25,39 +25,39 @@ class RedirectController < ActionController::Base
   def location; render plain: "called location"; end
 
   def simple_redirect
-    redirect_to :action => "hello_world"
+    redirect_to action: "hello_world"
   end
 
   def redirect_with_status
-    redirect_to({:action => "hello_world", :status => 301})
+    redirect_to({action: "hello_world", status: 301})
   end
 
   def redirect_with_status_hash
-    redirect_to({:action => "hello_world"}, {:status => 301})
+    redirect_to({action: "hello_world"}, {status: 301})
   end
 
   def redirect_with_protocol
-    redirect_to :action => "hello_world", :protocol => "https"
+    redirect_to action: "hello_world", protocol: "https"
   end
 
   def url_redirect_with_status
-    redirect_to("http://www.example.com", :status => :moved_permanently)
+    redirect_to("http://www.example.com", status: :moved_permanently)
   end
 
   def url_redirect_with_status_hash
-    redirect_to("http://www.example.com", {:status => 301})
+    redirect_to("http://www.example.com", {status: 301})
   end
 
   def relative_url_redirect_with_status
-    redirect_to("/things/stuff", :status => :found)
+    redirect_to("/things/stuff", status: :found)
   end
 
   def relative_url_redirect_with_status_hash
-    redirect_to("/things/stuff", {:status => 301})
+    redirect_to("/things/stuff", {status: 301})
   end
 
   def redirect_to_back_with_status
-    redirect_to :back, :status => 307
+    redirect_to :back, status: 307
   end
 
   def redirect_back_with_status
@@ -65,11 +65,11 @@ class RedirectController < ActionController::Base
   end
 
   def host_redirect
-    redirect_to :action => "other_host", :only_path => false, :host => "other.test.host"
+    redirect_to action: "other_host", only_path: false, host: "other.test.host"
   end
 
   def module_redirect
-    redirect_to :controller => "module_test/module_redirect", :action => "hello_world"
+    redirect_to controller: "module_test/module_redirect", action: "hello_world"
   end
 
   def redirect_to_url
@@ -118,7 +118,7 @@ class RedirectController < ActionController::Base
   end
 
   def redirect_to_with_block_and_options
-    redirect_to proc { {:action => "hello_world"} }
+    redirect_to proc { {action: "hello_world"} }
   end
 
   def redirect_with_header_break
@@ -133,7 +133,7 @@ class RedirectController < ActionController::Base
 
   protected
     def dashbord_url(id, message)
-      url_for :action => "dashboard", :params => { "id" => id, "message" => message }
+      url_for action: "dashboard", params: { "id" => id, "message" => message }
     end
 end
 
@@ -220,7 +220,7 @@ class RedirectTest < ActionController::TestCase
   def test_simple_redirect_using_options
     get :host_redirect
     assert_response :redirect
-    assert_redirected_to :action => "other_host", :only_path => false, :host => "other.test.host"
+    assert_redirected_to action: "other_host", only_path: false, host: "other.test.host"
   end
 
   def test_module_redirect
@@ -232,7 +232,7 @@ class RedirectTest < ActionController::TestCase
   def test_module_redirect_using_options
     get :module_redirect
     assert_response :redirect
-    assert_redirected_to :controller => "module_test/module_redirect", :action => "hello_world"
+    assert_redirected_to controller: "module_test/module_redirect", action: "hello_world"
   end
 
   def test_redirect_to_url
@@ -364,7 +364,7 @@ end
 module ModuleTest
   class ModuleRedirectController < ::RedirectController
     def module_redirect
-      redirect_to :controller => "/redirect", :action => "hello_world"
+      redirect_to controller: "/redirect", action: "hello_world"
     end
   end
 
@@ -380,7 +380,7 @@ module ModuleTest
     def test_simple_redirect_using_options
       get :host_redirect
       assert_response :redirect
-      assert_redirected_to :action => "other_host", :only_path => false, :host => "other.test.host"
+      assert_redirected_to action: "other_host", only_path: false, host: "other.test.host"
     end
 
     def test_module_redirect
@@ -392,7 +392,7 @@ module ModuleTest
     def test_module_redirect_using_options
       get :module_redirect
       assert_response :redirect
-      assert_redirected_to :controller => "/redirect", :action => "hello_world"
+      assert_redirected_to controller: "/redirect", action: "hello_world"
     end
   end
 end

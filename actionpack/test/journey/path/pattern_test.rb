@@ -23,7 +23,7 @@ module ActionDispatch
           define_method(:"test_to_regexp_#{path}") do
             path = Pattern.build(
               path,
-              { :controller => /.+/ },
+              { controller: /.+/ },
               SEPARATORS,
               true
             )
@@ -47,7 +47,7 @@ module ActionDispatch
           define_method(:"test_to_non_anchored_regexp_#{path}") do
             path = Pattern.build(
               path,
-              { :controller => /.+/ },
+              { controller: /.+/ },
               SEPARATORS,
               false
             )
@@ -70,7 +70,7 @@ module ActionDispatch
           define_method(:"test_names_#{path}") do
             path = Pattern.build(
               path,
-              { :controller => /.+/ },
+              { controller: /.+/ },
               SEPARATORS,
               true
             )
@@ -81,7 +81,7 @@ module ActionDispatch
         def test_to_regexp_with_extended_group
           path = Pattern.build(
             "/page/:name",
-            { :name => /
+            { name: /
               #ROFL
               (tender|love
               #MAO
@@ -108,7 +108,7 @@ module ActionDispatch
         def test_to_regexp_match_non_optional
           path = Pattern.build(
             "/:name",
-            { :name => /\d+/ },
+            { name: /\d+/ },
             SEPARATORS,
             true
           )
@@ -119,7 +119,7 @@ module ActionDispatch
         def test_to_regexp_with_group
           path = Pattern.build(
             "/page/:name",
-            { :name => /(tender|love)/ },
+            { name: /(tender|love)/ },
             SEPARATORS,
             true
           )
@@ -129,7 +129,7 @@ module ActionDispatch
         end
 
         def test_ast_sets_regular_expressions
-          requirements = { :name => /(tender|love)/, :value => /./ }
+          requirements = { name: /(tender|love)/, value: /./ }
           path = Pattern.build(
             "/page/:name/:value",
             requirements,
@@ -147,7 +147,7 @@ module ActionDispatch
         def test_match_data_with_group
           path = Pattern.build(
             "/page/:name",
-            { :name => /(tender|love)/ },
+            { name: /(tender|love)/ },
             SEPARATORS,
             true
           )
@@ -159,7 +159,7 @@ module ActionDispatch
         def test_match_data_with_multi_group
           path = Pattern.build(
             "/page/:name/:id",
-            { :name => /t(((ender|love)))()/ },
+            { name: /t(((ender|love)))()/ },
             SEPARATORS,
             true
           )
@@ -174,7 +174,7 @@ module ActionDispatch
           z = /\d+/
           path = Pattern.build(
             "/page/*foo",
-            { :foo => z },
+            { foo: z },
             SEPARATORS,
             true
           )
@@ -184,7 +184,7 @@ module ActionDispatch
         def test_insensitive_regexp_with_group
           path = Pattern.build(
             "/page/:name/aaron",
-            { :name => /(tender|love)/i },
+            { name: /(tender|love)/i },
             SEPARATORS,
             true
           )

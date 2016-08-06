@@ -30,11 +30,11 @@ module ActionDispatch
           end
         end
         engine.routes.draw do
-          get "/cart", :to => "cart#show"
+          get "/cart", to: "cart#show"
         end
 
         output = draw do
-          get "/custom/assets", :to => "custom_assets#show"
+          get "/custom/assets", to: "custom_assets#show"
           mount engine => "/blog", :as => "blog"
         end
 
@@ -71,7 +71,7 @@ module ActionDispatch
 
       def test_cart_inspect
         output = draw do
-          get "/cart", :to => "cart#show"
+          get "/cart", to: "cart#show"
         end
 
         assert_equal [
@@ -93,7 +93,7 @@ module ActionDispatch
 
       def test_inspect_shows_custom_assets
         output = draw do
-          get "/custom/assets", :to => "custom_assets#show"
+          get "/custom/assets", to: "custom_assets#show"
         end
 
         assert_equal [
@@ -122,7 +122,7 @@ module ActionDispatch
 
       def test_inspect_routes_shows_root_route
         output = draw do
-          root :to => "pages#main"
+          root to: "pages#main"
         end
 
         assert_equal [
@@ -160,7 +160,7 @@ module ActionDispatch
       def test_inspect_routes_shows_controller_and_action_route_with_constraints
         output = draw do
           ActiveSupport::Deprecation.silence do
-            get ":controller(/:action(/:id))", :id => /\d+/
+            get ":controller(/:action(/:id))", id: /\d+/
           end
         end
 
@@ -172,7 +172,7 @@ module ActionDispatch
 
       def test_rails_routes_shows_route_with_defaults
         output = draw do
-          get "photos/:id" => "photos#show", :defaults => {:format => "jpg"}
+          get "photos/:id" => "photos#show", :defaults => {format: "jpg"}
         end
 
         assert_equal [
@@ -256,7 +256,7 @@ module ActionDispatch
         end
 
         output = draw do
-          scope :constraint => constraint.new do
+          scope constraint: constraint.new do
             mount MountedRackApp => "/foo"
           end
         end
@@ -289,7 +289,7 @@ module ActionDispatch
 
       def test_redirect
         output = draw do
-          get "/foo"    => redirect("/foo/bar"), :constraints => { :subdomain => "admin" }
+          get "/foo"    => redirect("/foo/bar"), :constraints => { subdomain: "admin" }
           get "/bar"    => redirect(path: "/foo/bar", status: 307)
           get "/foobar" => redirect{ "/foo/bar" }
         end

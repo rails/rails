@@ -59,10 +59,10 @@ class MiddlewareStackTest < ActiveSupport::TestCase
 
   test "use should push middleware class with arguments onto the stack" do
     assert_difference "@stack.size" do
-      @stack.use BazMiddleware, true, :foo => "bar"
+      @stack.use BazMiddleware, true, foo: "bar"
     end
     assert_equal BazMiddleware, @stack.last.klass
-    assert_equal([true, {:foo => "bar"}], @stack.last.args)
+    assert_equal([true, {foo: "bar"}], @stack.last.args)
   end
 
   test "use should push middleware class with block arguments onto the stack" do

@@ -310,7 +310,7 @@ end
 module RoutingTestHelpers
   def url_for(set, options)
     route_name = options.delete :use_route
-    set.url_for options.merge(:only_path => true), route_name
+    set.url_for options.merge(only_path: true), route_name
   end
 
   def make_set(strict = true)

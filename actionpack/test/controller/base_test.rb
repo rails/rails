@@ -19,11 +19,11 @@ end
 
 class DefaultUrlOptionsController < ActionController::Base
   def from_view
-    render :inline => "<%= #{params[:route]} %>"
+    render inline: "<%= #{params[:route]} %>"
   end
 
   def default_url_options
-    { :host => "www.override.com", :action => "new", :locale => "en" }
+    { host: "www.override.com", action: "new", locale: "en" }
   end
 end
 
@@ -39,11 +39,11 @@ end
 
 class UrlOptionsController < ActionController::Base
   def from_view
-    render :inline => "<%= #{params[:route]} %>"
+    render inline: "<%= #{params[:route]} %>"
   end
 
   def url_options
-    super.merge(:host => "www.override.com")
+    super.merge(host: "www.override.com")
   end
 end
 
@@ -162,10 +162,10 @@ class UrlOptionsTest < ActionController::TestCase
     end
 
     options = {
-      :action     => "home",
-      :controller => "pages",
-      :only_path  => true,
-      :params     => { "token" => "secret" }
+      action: "home",
+      controller: "pages",
+      only_path: true,
+      params: { "token" => "secret" }
     }
 
     assert_equal "/home?token=secret", rs.url_for(options)
@@ -174,7 +174,7 @@ class UrlOptionsTest < ActionController::TestCase
   def test_url_options_override
     with_routing do |set|
       set.draw do
-        get "from_view", :to => "url_options#from_view", :as => :from_view
+        get "from_view", to: "url_options#from_view", as: :from_view
 
         ActiveSupport::Deprecation.silence do
           get ":controller/:action"
@@ -185,7 +185,7 @@ class UrlOptionsTest < ActionController::TestCase
 
       assert_equal "http://www.override.com/from_view", @response.body
       assert_equal "http://www.override.com/from_view", @controller.send(:from_view_url)
-      assert_equal "http://www.override.com/default_url_options/index", @controller.url_for(:controller => "default_url_options")
+      assert_equal "http://www.override.com/default_url_options/index", @controller.url_for(controller: "default_url_options")
     end
   end
 
@@ -211,7 +211,7 @@ class DefaultUrlOptionsTest < ActionController::TestCase
   def test_default_url_options_override
     with_routing do |set|
       set.draw do
-        get "from_view", :to => "default_url_options#from_view", :as => :from_view
+        get "from_view", to: "default_url_options#from_view", as: :from_view
 
         ActiveSupport::Deprecation.silence do
           get ":controller/:action"
@@ -222,7 +222,7 @@ class DefaultUrlOptionsTest < ActionController::TestCase
 
       assert_equal "http://www.override.com/from_view?locale=en", @response.body
       assert_equal "http://www.override.com/from_view?locale=en", @controller.send(:from_view_url)
-      assert_equal "http://www.override.com/default_url_options/new?locale=en", @controller.url_for(:controller => "default_url_options")
+      assert_equal "http://www.override.com/default_url_options/new?locale=en", @controller.url_for(controller: "default_url_options")
     end
   end
 
@@ -243,14 +243,14 @@ class DefaultUrlOptionsTest < ActionController::TestCase
       assert_equal "/en/descriptions/1", @response.body
       assert_equal "/en/descriptions", @controller.send(:descriptions_path)
       assert_equal "/pl/descriptions", @controller.send(:descriptions_path, "pl")
-      assert_equal "/pl/descriptions", @controller.send(:descriptions_path, :locale => "pl")
+      assert_equal "/pl/descriptions", @controller.send(:descriptions_path, locale: "pl")
       assert_equal "/pl/descriptions.xml", @controller.send(:descriptions_path, "pl", "xml")
-      assert_equal "/en/descriptions.xml", @controller.send(:descriptions_path, :format => "xml")
+      assert_equal "/en/descriptions.xml", @controller.send(:descriptions_path, format: "xml")
       assert_equal "/en/descriptions/1", @controller.send(:description_path, 1)
       assert_equal "/pl/descriptions/1", @controller.send(:description_path, "pl", 1)
-      assert_equal "/pl/descriptions/1", @controller.send(:description_path, 1, :locale => "pl")
+      assert_equal "/pl/descriptions/1", @controller.send(:description_path, 1, locale: "pl")
       assert_equal "/pl/descriptions/1.xml", @controller.send(:description_path, "pl", 1, "xml")
-      assert_equal "/en/descriptions/1.xml", @controller.send(:description_path, 1, :format => "xml")
+      assert_equal "/en/descriptions/1.xml", @controller.send(:description_path, 1, format: "xml")
     end
   end
 end

@@ -14,7 +14,7 @@ class OldContentTypeController < ActionController::Base
 
   # :ported:
   def render_content_type_from_render
-    render body: "hello world!", :content_type => Mime[:rss]
+    render body: "hello world!", content_type: Mime[:rss]
   end
 
   # :ported:
@@ -37,7 +37,7 @@ class OldContentTypeController < ActionController::Base
 
   def render_change_for_builder
     response.content_type = Mime[:html]
-    render :action => "render_default_for_builder"
+    render action: "render_default_for_builder"
   end
 
   def render_default_content_types_for_respond_to

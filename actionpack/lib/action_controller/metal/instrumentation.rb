@@ -16,13 +16,13 @@ module ActionController
 
     def process_action(*args)
       raw_payload = {
-        :controller => self.class.name,
-        :action     => self.action_name,
-        :params     => request.filtered_parameters,
-        :headers    => request.headers,
-        :format     => request.format.ref,
-        :method     => request.request_method,
-        :path       => request.fullpath
+        controller: self.class.name,
+        action: self.action_name,
+        params: request.filtered_parameters,
+        headers: request.headers,
+        format: request.format.ref,
+        method: request.request_method,
+        path: request.fullpath
       }
 
       ActiveSupport::Notifications.instrument("start_processing.action_controller", raw_payload.dup)
@@ -48,7 +48,7 @@ module ActionController
 
     def send_file(path, options={})
       ActiveSupport::Notifications.instrument("send_file.action_controller",
-        options.merge(:path => path)) do
+        options.merge(path: path)) do
         super
       end
     end
@@ -72,7 +72,7 @@ module ActionController
 
     # A hook invoked every time a before callback is halted.
     def halted_callback_hook(filter)
-      ActiveSupport::Notifications.instrument("halted_callback.action_controller", :filter => filter)
+      ActiveSupport::Notifications.instrument("halted_callback.action_controller", filter: filter)
     end
 
     # A hook which allows you to clean up any time, wrongly taken into account in

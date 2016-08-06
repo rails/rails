@@ -166,7 +166,7 @@ class ReloaderTest < ActiveSupport::TestCase
     i = 10
     assert_deprecated do
       Reloader.to_prepare { i += 1 }
-      Reloader.to_prepare(:prepend => true) { i = 0 }
+      Reloader.to_prepare(prepend: true) { i = 0 }
     end
 
     assert_deprecated do

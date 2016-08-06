@@ -13,7 +13,7 @@ module TestUrlGeneration
     end
 
     Routes.draw do
-      get "/foo", :to => "my_route_generating#index", :as => :foo
+      get "/foo", to: "my_route_generating#index", as: :foo
 
       resources :bars
 
@@ -35,7 +35,7 @@ module TestUrlGeneration
     end
 
     test "accepting a :script_name option" do
-      assert_equal "/bar/foo", foo_path(:script_name => "/bar")
+      assert_equal "/bar/foo", foo_path(script_name: "/bar")
     end
 
     test "the request's SCRIPT_NAME takes precedence over the route" do
@@ -50,7 +50,7 @@ module TestUrlGeneration
 
     test "handling http protocol with https set" do
       https!
-      assert_equal "http://www.example.com/foo", foo_url(:protocol => "http")
+      assert_equal "http://www.example.com/foo", foo_url(protocol: "http")
     end
 
     test "extracting protocol from host when protocol not present" do

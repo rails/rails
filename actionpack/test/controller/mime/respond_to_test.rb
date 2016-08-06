@@ -46,7 +46,7 @@ class RespondToController < ActionController::Base
   def json_xml_or_html
     respond_to do |type|
       type.json { render body: "JSON" }
-      type.xml { render :xml => "XML" }
+      type.xml { render xml: "XML" }
       type.html { render body: "HTML" }
     end
   end
@@ -146,7 +146,7 @@ class RespondToController < ActionController::Base
 
   def json_with_callback
     respond_to do |type|
-      type.json { render :json => "JS", :callback => "alert" }
+      type.json { render json: "JS", callback: "alert" }
     end
   end
 
@@ -163,8 +163,8 @@ class RespondToController < ActionController::Base
     request.format = "iphone" if request.env["HTTP_ACCEPT"] == "text/iphone"
 
     respond_to do |type|
-      type.html   { @type = "Firefox"; render :action => "iphone_with_html_response_type" }
-      type.iphone { @type = "iPhone" ; render :action => "iphone_with_html_response_type" }
+      type.html   { @type = "Firefox"; render action: "iphone_with_html_response_type" }
+      type.iphone { @type = "iPhone" ; render action: "iphone_with_html_response_type" }
     end
   end
 

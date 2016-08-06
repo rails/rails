@@ -7,7 +7,7 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
     before_action :authenticate_long_credentials, only: :show
     before_action :auth_with_special_chars, only: :special_creds
 
-    http_basic_authenticate_with :name => "David", :password => "Goliath", :only => :search
+    http_basic_authenticate_with name: "David", password: "Goliath", only: :search
 
     def index
       render plain: "Hello Secret"

@@ -310,7 +310,7 @@ module ActionDispatch
       alias :routes :set
 
       def self.default_resources_path_names
-        { :new => "new", :edit => "edit" }
+        { new: "new", edit: "edit" }
       end
 
       def self.new_with_config(config)
@@ -731,7 +731,7 @@ module ActionDispatch
         extras = environment[:extras] || {}
 
         begin
-          env = Rack::MockRequest.env_for(path, {:method => method})
+          env = Rack::MockRequest.env_for(path, {method: method})
         rescue URI::InvalidURIError => e
           raise ActionController::RoutingError, e.message
         end

@@ -56,8 +56,8 @@ module MiddlewareTest
   end
 
   class ActionsController < ActionController::Metal
-    use MyMiddleware, :only => :show
-    middleware.insert_before MyMiddleware, ExclaimerMiddleware, :except => :index
+    use MyMiddleware, only: :show
+    middleware.insert_before MyMiddleware, ExclaimerMiddleware, except: :index
 
     def index
       self.response_body = "index"

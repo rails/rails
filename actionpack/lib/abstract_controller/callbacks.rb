@@ -194,7 +194,7 @@ module AbstractController
 
         define_method "prepend_#{callback}_action" do |*names, &blk|
           _insert_callbacks(names, blk) do |name, options|
-            set_callback(:process_action, callback, name, options.merge(:prepend => true))
+            set_callback(:process_action, callback, name, options.merge(prepend: true))
           end
         end
 

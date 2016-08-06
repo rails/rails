@@ -367,7 +367,7 @@ module ActionDispatch
           value = options[:value]
         else
           value = options
-          options = { :value => value }
+          options = { value: value }
         end
 
         handle_options(options)

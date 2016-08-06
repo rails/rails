@@ -32,7 +32,7 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_request_via_redirect_uses_given_method
-    path = "/somepath"; args = {:id => "1"}; headers = {"X-Test-Header" => "testvalue"}
+    path = "/somepath"; args = {id: "1"}; headers = {"X-Test-Header" => "testvalue"}
     assert_called_with @session, :process, [:put, path, params: args, headers: headers] do
       @session.stub :redirect?, false do
         assert_deprecated { @session.request_via_redirect(:put, path, params: args, headers: headers) }
@@ -50,7 +50,7 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_request_via_redirect_follows_redirects
-    path = "/somepath"; args = {:id => "1"}; headers = {"X-Test-Header" => "testvalue"}
+    path = "/somepath"; args = {id: "1"}; headers = {"X-Test-Header" => "testvalue"}
     value_series = [true, true, false]
     assert_called @session, :follow_redirect!, times: 2 do
       @session.stub :redirect?, ->{ value_series.shift } do
@@ -60,7 +60,7 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_request_via_redirect_returns_status
-    path = "/somepath"; args = {:id => "1"}; headers = {"X-Test-Header" => "testvalue"}
+    path = "/somepath"; args = {id: "1"}; headers = {"X-Test-Header" => "testvalue"}
     @session.stub :redirect?, false do
       @session.stub :status, 200 do
         assert_deprecated do
@@ -403,9 +403,9 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       respond_to do |format|
         format.html { render plain: "OK", status: 200 }
         format.js { render plain: "JS OK", status: 200 }
-        format.xml { render :xml => "<root></root>", :status => 200 }
-        format.rss { render :xml => "<root></root>", :status => 200 }
-        format.atom { render :xml => "<root></root>", :status => 200 }
+        format.xml { render xml: "<root></root>", status: 200 }
+        format.rss { render xml: "<root></root>", status: 200 }
+        format.atom { render xml: "<root></root>", status: 200 }
       end
     end
 
@@ -660,7 +660,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
   end
 
   def test_generate_url_with_controller
-    assert_equal "http://www.example.com/foo", url_for(:controller => "foo")
+    assert_equal "http://www.example.com/foo", url_for(controller: "foo")
   end
 
   def test_port_via_host!
@@ -747,8 +747,8 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
           get "moved" => redirect("/method")
 
           ActiveSupport::Deprecation.silence do
-            match ":action", :to => controller, :via => [:get, :post], :as => :action
-            get "get/:action", :to => controller, :as => :get_action
+            match ":action", to: controller, via: [:get, :post], as: :action
+            get "get/:action", to: controller, as: :get_action
           end
         end
 
@@ -792,7 +792,7 @@ class MetalIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   def test_generate_url_without_controller
-    assert_equal "http://www.example.com/foo", url_for(:controller => "foo")
+    assert_equal "http://www.example.com/foo", url_for(controller: "foo")
   end
 
   def test_pass_headers
@@ -859,7 +859,7 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
     end
 
     routes.draw do
-      get "baz", :to => "application_integration_test/test#index", :as => :baz
+      get "baz", to: "application_integration_test/test#index", as: :baz
     end
 
     def self.call(*)
@@ -867,14 +867,14 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   routes.draw do
-    get "",    :to => "application_integration_test/test#index", :as => :empty_string
+    get "",    to: "application_integration_test/test#index", as: :empty_string
 
-    get "foo", :to => "application_integration_test/test#index", :as => :foo
-    get "bar", :to => "application_integration_test/test#index", :as => :bar
+    get "foo", to: "application_integration_test/test#index", as: :foo
+    get "bar", to: "application_integration_test/test#index", as: :bar
 
     mount MountedApp => "/mounted", :as => "mounted"
     get "fooz" => proc { |env| [ 200, {"X-Cascade" => "pass"}, [ "omg" ] ] }, :anchor => false
-    get "fooz", :to => "application_integration_test/test#index"
+    get "fooz", to: "application_integration_test/test#index"
   end
 
   def app
@@ -942,7 +942,7 @@ class EnvironmentFilterIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   routes.draw do
-    match "/post", :to => "environment_filter_integration_test/test#post", :via => :post
+    match "/post", to: "environment_filter_integration_test/test#post", via: :post
   end
 
   def app
@@ -975,7 +975,7 @@ class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTest
 
   class BarController < ActionController::Base
     def default_url_options
-      { :host => "bar.com" }
+      { host: "bar.com" }
     end
 
     def index
@@ -996,9 +996,9 @@ class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   routes.draw do
-    default_url_options :host => "foo.com"
+    default_url_options host: "foo.com"
 
-    scope :module => "url_options_integration_test" do
+    scope module: "url_options_integration_test" do
       get "/foo" => "foo#index", :as => :foos
       get "/foo/:id" => "foo#show", :as => :foo
       get "/foo/:id/edit" => "foo#edit", :as => :edit_foo
@@ -1038,7 +1038,7 @@ class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTest
   test "current request path parameters are recalled" do
     get "/foo/1"
     assert_response :success
-    assert_equal "/foo/1/edit", url_for(:action => "edit", :only_path => true)
+    assert_equal "/foo/1/edit", url_for(action: "edit", only_path: true)
   end
 end
 

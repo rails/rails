@@ -67,7 +67,7 @@ module ActionDispatch # :nodoc:
 
     alias_method :headers,  :header
 
-    delegate :[], :[]=, :to => :@header
+    delegate :[], :[]=, to: :@header
 
     def each(&block)
       sending!

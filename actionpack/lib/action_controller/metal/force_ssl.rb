@@ -76,10 +76,10 @@ module ActionController
     def force_ssl_redirect(host_or_options = nil)
       unless request.ssl?
         options = {
-          :protocol => "https://",
-          :host     => request.host,
-          :path     => request.fullpath,
-          :status   => :moved_permanently
+          protocol: "https://",
+          host: request.host,
+          path: request.fullpath,
+          status: :moved_permanently
         }
 
         if host_or_options.is_a?(Hash)

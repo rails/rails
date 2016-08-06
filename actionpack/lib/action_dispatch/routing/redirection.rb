@@ -103,11 +103,11 @@ module ActionDispatch
 
       def path(params, request)
         url_options = {
-          :protocol => request.protocol,
-          :host     => request.host,
-          :port     => request.optional_port,
-          :path     => request.path,
-          :params   => request.query_parameters
+          protocol: request.protocol,
+          host: request.host,
+          port: request.optional_port,
+          path: request.path,
+          params: request.query_parameters
         }.merge! options
 
         if !params.empty? && url_options[:path].match(/%\{\w*\}/)

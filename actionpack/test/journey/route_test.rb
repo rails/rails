@@ -34,63 +34,63 @@ module ActionDispatch
 
       def test_ip_address
         path  = Path::Pattern.from_string "/messages/:id(.:format)"
-        route = Route.build("name", nil, path, {:ip => "192.168.1.1"}, [],
-                          { :controller => "foo", :action => "bar" })
+        route = Route.build("name", nil, path, {ip: "192.168.1.1"}, [],
+                          { controller: "foo", action: "bar" })
         assert_equal "192.168.1.1", route.ip
       end
 
       def test_default_ip
         path  = Path::Pattern.from_string "/messages/:id(.:format)"
         route = Route.build("name", nil, path, {}, [],
-                          { :controller => "foo", :action => "bar" })
+                          { controller: "foo", action: "bar" })
         assert_equal(//, route.ip)
       end
 
       def test_format_with_star
         path  = Path::Pattern.from_string "/:controller/*extra"
         route = Route.build("name", nil, path, {}, [],
-                          { :controller => "foo", :action => "bar" })
+                          { controller: "foo", action: "bar" })
         assert_equal "/foo/himom", route.format({
-          :controller => "foo",
-          :extra      => "himom",
+          controller: "foo",
+          extra: "himom",
         })
       end
 
       def test_connects_all_match
         path  = Path::Pattern.from_string "/:controller(/:action(/:id(.:format)))"
-        route = Route.build("name", nil, path, {:action => "bar"}, [], { :controller => "foo" })
+        route = Route.build("name", nil, path, {action: "bar"}, [], { controller: "foo" })
 
         assert_equal "/foo/bar/10", route.format({
-          :controller => "foo",
-          :action     => "bar",
-          :id         => 10
+          controller: "foo",
+          action: "bar",
+          id: 10
         })
       end
 
       def test_extras_are_not_included_if_optional
         path  = Path::Pattern.from_string "/page/:id(/:action)"
-        route = Route.build("name", nil, path, { }, [], { :action => "show" })
+        route = Route.build("name", nil, path, { }, [], { action: "show" })
 
-        assert_equal "/page/10", route.format({ :id => 10 })
+        assert_equal "/page/10", route.format({ id: 10 })
       end
 
       def test_extras_are_not_included_if_optional_with_parameter
         path  = Path::Pattern.from_string "(/sections/:section)/pages/:id"
-        route = Route.build("name", nil, path, { }, [], { :action => "show" })
+        route = Route.build("name", nil, path, { }, [], { action: "show" })
 
-        assert_equal "/pages/10", route.format({:id => 10})
+        assert_equal "/pages/10", route.format({id: 10})
       end
 
       def test_extras_are_not_included_if_optional_parameter_is_nil
         path  = Path::Pattern.from_string "(/sections/:section)/pages/:id"
-        route = Route.build("name", nil, path, { }, [], { :action => "show" })
+        route = Route.build("name", nil, path, { }, [], { action: "show" })
 
-        assert_equal "/pages/10", route.format({:id => 10, :section => nil})
+        assert_equal "/pages/10", route.format({id: 10, section: nil})
       end
 
       def test_score
         constraints = {}
-        defaults = {:controller=>"pages", :action=>"show"}
+        defaults = {controller: "pages", action: "show"}
 
         path = Path::Pattern.from_string "/page/:id(/:action)(.:format)"
         specific = Route.build "name", nil, path, constraints, [:controller, :action], defaults
@@ -98,7 +98,7 @@ module ActionDispatch
         path = Path::Pattern.from_string "/:controller(/:action(/:id))(.:format)"
         generic = Route.build "name", nil, path, constraints, [], {}
 
-        knowledge = {:id=>20, :controller=>"pages", :action=>"show"}
+        knowledge = {id: 20, controller: "pages", action: "show"}
 
         routes = [specific, generic]
 

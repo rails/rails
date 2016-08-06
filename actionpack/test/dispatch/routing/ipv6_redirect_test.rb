@@ -7,17 +7,17 @@ class IPv6IntegrationTest < ActionDispatch::IntegrationTest
   class ::BadRouteRequestController < ActionController::Base
     include Routes.url_helpers
     def index
-      render :text => foo_path
+      render text: foo_path
     end
 
     def foo
-      redirect_to :action => :index
+      redirect_to action: :index
     end
   end
 
   Routes.draw do
-    get "/",    :to => "bad_route_request#index", :as => :index
-    get "/foo", :to => "bad_route_request#foo", :as => :foo
+    get "/",    to: "bad_route_request#index", as: :index
+    get "/foo", to: "bad_route_request#foo", as: :foo
   end
 
   def _routes

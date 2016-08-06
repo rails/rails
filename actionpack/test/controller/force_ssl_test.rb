@@ -15,15 +15,15 @@ class ForceSSLControllerLevel < ForceSSLController
 end
 
 class ForceSSLCustomOptions < ForceSSLController
-  force_ssl :host => "secure.example.com", :only => :redirect_host
-  force_ssl :port => 8443, :only => :redirect_port
-  force_ssl :subdomain => "secure", :only => :redirect_subdomain
-  force_ssl :domain => "secure.com", :only => :redirect_domain
-  force_ssl :path => "/foo", :only => :redirect_path
-  force_ssl :status => :found, :only => :redirect_status
-  force_ssl :flash => { :message => "Foo, Bar!" }, :only => :redirect_flash
-  force_ssl :alert => "Foo, Bar!", :only => :redirect_alert
-  force_ssl :notice => "Foo, Bar!", :only => :redirect_notice
+  force_ssl host: "secure.example.com", only: :redirect_host
+  force_ssl port: 8443, only: :redirect_port
+  force_ssl subdomain: "secure", only: :redirect_subdomain
+  force_ssl domain: "secure.com", only: :redirect_domain
+  force_ssl path: "/foo", only: :redirect_path
+  force_ssl status: :found, only: :redirect_status
+  force_ssl flash: { message: "Foo, Bar!" }, only: :redirect_flash
+  force_ssl alert: "Foo, Bar!", only: :redirect_alert
+  force_ssl notice: "Foo, Bar!", only: :redirect_notice
 
   def force_ssl_action
     render plain: action_name
@@ -53,15 +53,15 @@ class ForceSSLCustomOptions < ForceSSLController
 end
 
 class ForceSSLOnlyAction < ForceSSLController
-  force_ssl :only => :cheeseburger
+  force_ssl only: :cheeseburger
 end
 
 class ForceSSLExceptAction < ForceSSLController
-  force_ssl :except => :banana
+  force_ssl except: :banana
 end
 
 class ForceSSLIfCondition < ForceSSLController
-  force_ssl :if => :use_force_ssl?
+  force_ssl if: :use_force_ssl?
 
   def use_force_ssl?
     action_name == "cheeseburger"
@@ -69,7 +69,7 @@ class ForceSSLIfCondition < ForceSSLController
 end
 
 class ForceSSLFlash < ForceSSLController
-  force_ssl :except => [:banana, :set_flash, :use_flash]
+  force_ssl except: [:banana, :set_flash, :use_flash]
 
   def set_flash
     flash["that"] = "hello"
@@ -79,7 +79,7 @@ class ForceSSLFlash < ForceSSLController
   def use_flash
     @flash_copy = {}.update flash
     @flashy = flash["that"]
-    render :inline => "hello"
+    render inline: "hello"
   end
 end
 
@@ -251,8 +251,8 @@ class ForceSSLDuplicateRoutesTest < ActionController::TestCase
   def test_force_ssl_redirects_to_same_path
     with_routing do |set|
       set.draw do
-        get "/foo", :to => "force_ssl_controller_level#banana"
-        get "/bar", :to => "force_ssl_controller_level#banana"
+        get "/foo", to: "force_ssl_controller_level#banana"
+        get "/bar", to: "force_ssl_controller_level#banana"
       end
 
       @request.env["PATH_INFO"] = "/bar"
@@ -270,7 +270,7 @@ class ForceSSLFormatTest < ActionController::TestCase
   def test_force_ssl_redirects_to_same_format
     with_routing do |set|
       set.draw do
-        get "/foo", :to => "force_ssl_controller_level#banana"
+        get "/foo", to: "force_ssl_controller_level#banana"
       end
 
       get :banana, format: :json
@@ -287,8 +287,8 @@ class ForceSSLOptionalSegmentsTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         scope "(:locale)" do
-          defaults :locale => "en" do
-            get "/foo", :to => "force_ssl_controller_level#banana"
+          defaults locale: "en" do
+            get "/foo", to: "force_ssl_controller_level#banana"
           end
         end
       end

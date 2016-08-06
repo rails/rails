@@ -18,27 +18,27 @@ class RenderXmlTest < ActionController::TestCase
     end
 
     def render_with_location
-      render :xml => "<hello/>", :location => "http://example.com", :status => 201
+      render xml: "<hello/>", location: "http://example.com", status: 201
     end
 
     def render_with_object_location
       customer = Customer.new("Some guy", 1)
-      render :xml => "<customer/>", :location => customer, :status => :created
+      render xml: "<customer/>", location: customer, status: :created
     end
 
     def render_with_to_xml
-      render :xml => XmlRenderable.new
+      render xml: XmlRenderable.new
     end
 
     def formatted_xml_erb
     end
 
     def render_xml_with_custom_content_type
-      render :xml => "<blah/>", :content_type => "application/atomsvc+xml"
+      render xml: "<blah/>", content_type: "application/atomsvc+xml"
     end
 
     def render_xml_with_custom_options
-      render :xml => XmlRenderable.new, :root => "i-am-THE-xml"
+      render xml: XmlRenderable.new, root: "i-am-THE-xml"
     end
   end
 

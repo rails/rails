@@ -71,8 +71,8 @@ class TestController < ActionController::Base
   end
 
   def conditional_hello
-    if stale?(:last_modified => Time.now.utc.beginning_of_day, :etag => [:foo, 123])
-      render :action => "hello_world"
+    if stale?(last_modified: Time.now.utc.beginning_of_day, etag: [:foo, 123])
+      render action: "hello_world"
     end
   end
 
@@ -80,7 +80,7 @@ class TestController < ActionController::Base
     record = Struct.new(:updated_at, :cache_key).new(Time.now.utc.beginning_of_day, "foo/123")
 
     if stale?(record)
-      render :action => "hello_world"
+      render action: "hello_world"
     end
   end
 
@@ -121,43 +121,43 @@ class TestController < ActionController::Base
 
   def conditional_hello_with_expires_in
     expires_in 60.1.seconds
-    render :action => "hello_world"
+    render action: "hello_world"
   end
 
   def conditional_hello_with_expires_in_with_public
-    expires_in 1.minute, :public => true
-    render :action => "hello_world"
+    expires_in 1.minute, public: true
+    render action: "hello_world"
   end
 
   def conditional_hello_with_expires_in_with_must_revalidate
-    expires_in 1.minute, :must_revalidate => true
-    render :action => "hello_world"
+    expires_in 1.minute, must_revalidate: true
+    render action: "hello_world"
   end
 
   def conditional_hello_with_expires_in_with_public_and_must_revalidate
-    expires_in 1.minute, :public => true, :must_revalidate => true
-    render :action => "hello_world"
+    expires_in 1.minute, public: true, must_revalidate: true
+    render action: "hello_world"
   end
 
   def conditional_hello_with_expires_in_with_public_with_more_keys
     expires_in 1.minute, :public => true, "s-maxage" => 5.hours
-    render :action => "hello_world"
+    render action: "hello_world"
   end
 
   def conditional_hello_with_expires_in_with_public_with_more_keys_old_syntax
     expires_in 1.minute, :public => true, :private => nil, "s-maxage" => 5.hours
-    render :action => "hello_world"
+    render action: "hello_world"
   end
 
   def conditional_hello_with_expires_now
     expires_now
-    render :action => "hello_world"
+    render action: "hello_world"
   end
 
   def conditional_hello_with_cache_control_headers
     response.headers["Cache-Control"] = "no-transform"
     expires_now
-    render :action => "hello_world"
+    render action: "hello_world"
   end
 
   def respond_with_empty_body
@@ -165,12 +165,12 @@ class TestController < ActionController::Base
   end
 
   def conditional_hello_with_bangs
-    render :action => "hello_world"
+    render action: "hello_world"
   end
-  before_action :handle_last_modified_and_etags, :only=>:conditional_hello_with_bangs
+  before_action :handle_last_modified_and_etags, only: :conditional_hello_with_bangs
 
   def handle_last_modified_and_etags
-    fresh_when(:last_modified => Time.now.utc.beginning_of_day, :etag => [ :foo, 123 ])
+    fresh_when(last_modified: Time.now.utc.beginning_of_day, etag: [ :foo, 123 ])
   end
 
   def head_with_status_hash
@@ -186,19 +186,19 @@ class TestController < ActionController::Base
   end
 
   def head_created_with_application_json_content_type
-    head :created, :content_type => "application/json"
+    head :created, content_type: "application/json"
   end
 
   def head_ok_with_image_png_content_type
-    head :ok, :content_type => "image/png"
+    head :ok, content_type: "image/png"
   end
 
   def head_with_location_header
-    head :ok, :location => "/foo"
+    head :ok, location: "/foo"
   end
 
   def head_with_location_object
-    head :ok, :location => Customer.new("david", 1)
+    head :ok, location: Customer.new("david", 1)
   end
 
   def head_with_symbolic_status
@@ -214,7 +214,7 @@ class TestController < ActionController::Base
   end
 
   def head_with_custom_header
-    head :ok, :x_custom_header => "something"
+    head :ok, x_custom_header: "something"
   end
 
   def head_with_www_authenticate_header
@@ -222,7 +222,7 @@ class TestController < ActionController::Base
   end
 
   def head_with_status_code_first
-    head :forbidden, :x_custom_header => "something"
+    head :forbidden, x_custom_header: "something"
   end
 
   def head_and_return
@@ -285,7 +285,7 @@ class MetalTestController < ActionController::Metal
   include ActionController::Rendering
 
   def accessing_logger_in_template
-    render :inline =>  "<%= logger.class %>"
+    render inline: "<%= logger.class %>"
   end
 end
 

@@ -6,13 +6,13 @@ require "pathname"
 class RenderJsonTest < ActionController::TestCase
   class JsonRenderable
     def as_json(options={})
-      hash = { :a => :b, :c => :d, :e => :f }
+      hash = { a: :b, c: :d, e: :f }
       hash.except!(*options[:except]) if options[:except]
       hash
     end
 
     def to_json(options = {})
-      super :except => [:c, :e]
+      super except: [:c, :e]
     end
   end
 
@@ -24,7 +24,7 @@ class RenderJsonTest < ActionController::TestCase
     end
 
     def render_json_nil
-      render :json => nil
+      render json: nil
     end
 
     def render_json_render_to_string
@@ -32,35 +32,35 @@ class RenderJsonTest < ActionController::TestCase
     end
 
     def render_json_hello_world
-      render :json => ActiveSupport::JSON.encode(:hello => "world")
+      render json: ActiveSupport::JSON.encode(hello: "world")
     end
 
     def render_json_hello_world_with_status
-      render :json => ActiveSupport::JSON.encode(:hello => "world"), :status => 401
+      render json: ActiveSupport::JSON.encode(hello: "world"), status: 401
     end
 
     def render_json_hello_world_with_callback
-      render :json => ActiveSupport::JSON.encode(:hello => "world"), :callback => "alert"
+      render json: ActiveSupport::JSON.encode(hello: "world"), callback: "alert"
     end
 
     def render_json_with_custom_content_type
-      render :json => ActiveSupport::JSON.encode(:hello => "world"), :content_type => "text/javascript"
+      render json: ActiveSupport::JSON.encode(hello: "world"), content_type: "text/javascript"
     end
 
     def render_symbol_json
-      render :json => ActiveSupport::JSON.encode(:hello => "world")
+      render json: ActiveSupport::JSON.encode(hello: "world")
     end
 
     def render_json_with_render_to_string
-      render :json => {:hello => render_to_string(:partial => "partial")}
+      render json: {hello: render_to_string(partial: "partial")}
     end
 
     def render_json_with_extra_options
-      render :json => JsonRenderable.new, :except => [:c, :e]
+      render json: JsonRenderable.new, except: [:c, :e]
     end
 
     def render_json_without_options
-      render :json => JsonRenderable.new
+      render json: JsonRenderable.new
     end
   end
 

@@ -11,11 +11,11 @@ class RenderJSTest < ActionController::TestCase
     end
 
     def render_vanilla_js_hello
-      render :js => "alert('hello')"
+      render js: "alert('hello')"
     end
 
     def show_partial
-      render :partial => "partial"
+      render partial: "partial"
     end
   end
 

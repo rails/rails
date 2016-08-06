@@ -35,7 +35,7 @@ module ActionController
 
   class MethodNotAllowed < ActionControllerError #:nodoc:
     def initialize(*allowed_methods)
-      super("Only #{allowed_methods.to_sentence(:locale => :en)} requests are allowed.")
+      super("Only #{allowed_methods.to_sentence(locale: :en)} requests are allowed.")
     end
   end
 

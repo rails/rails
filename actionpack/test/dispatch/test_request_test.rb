@@ -49,7 +49,7 @@ class TestRequestTest < ActiveSupport::TestCase
     req.cookie_jar.clear
     assert_cookies({}, req.cookie_jar)
 
-    req.cookie_jar.update(:user_name => "david")
+    req.cookie_jar.update(user_name: "david")
     assert_cookies({"user_name" => "david"}, req.cookie_jar)
   end
 
