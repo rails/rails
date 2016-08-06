@@ -76,8 +76,11 @@ module ActiveRecord
         else
           klass.connection.case_sensitive_comparison(table, attribute, column, value)
         end
-        bind = Relation::QueryAttribute.new(attribute_name, value, cast_type)
-        klass.unscoped.where!(comparison, bind)
+        klass.unscoped.tap do |scope|
+          parts = [comparison]
+          binds = [Relation::QueryAttribute.new(attribute_name, value, cast_type)]
+          scope.where_clause += Relation::WhereClause.new(parts, binds)
+        end
       end
 
       def scope_relation(record, relation)
