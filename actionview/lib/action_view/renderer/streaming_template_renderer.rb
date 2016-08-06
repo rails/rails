@@ -64,7 +64,7 @@ module ActionView
       output  = ActionView::StreamingBuffer.new(buffer)
       yielder = lambda { |*name| view._layout_for(*name) }
 
-      instrument(:template, :identifier => template.identifier, :layout => layout.try(:virtual_path)) do
+      instrument(:template, identifier: template.identifier, layout: layout.try(:virtual_path)) do
         fiber = Fiber.new do
           if layout
             layout.render(view, locals, output, &yielder)

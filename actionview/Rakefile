@@ -1,14 +1,14 @@
 require "rake/testtask"
 
 desc "Default Task"
-task :default => :test
+task default: :test
 
 task :package
 
 # Run the unit tests
 
 desc "Run all unit tests"
-task :test => ["test:template", "test:integration:action_pack", "test:integration:active_record"]
+task test: ["test:template", "test:integration:action_pack", "test:integration:active_record"]
 
 namespace :test do
   task :isolated do

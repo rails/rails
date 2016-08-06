@@ -92,7 +92,7 @@ end
 class StreamingLayoutController < LayoutTest
   def render(*args)
     options = args.extract_options!
-    super(*args, options.merge(:stream => true))
+    super(*args, options.merge(stream: true))
   end
 end
 
@@ -119,27 +119,27 @@ end
 class PrependsViewPathController < LayoutTest
   def hello
     prepend_view_path File.dirname(__FILE__) + "/../../fixtures/actionpack/layout_tests/alt/"
-    render :layout => "alt"
+    render layout: "alt"
   end
 end
 
 class OnlyLayoutController < LayoutTest
-  layout "item", :only => "hello"
+  layout "item", only: "hello"
 end
 
 class ExceptLayoutController < LayoutTest
-  layout "item", :except => "goodbye"
+  layout "item", except: "goodbye"
 end
 
 class SetsLayoutInRenderController < LayoutTest
   def hello
-    render :layout => "third_party_template_library"
+    render layout: "third_party_template_library"
   end
 end
 
 class RendersNoLayoutController < LayoutTest
   def hello
-    render :layout => false
+    render layout: false
   end
 end
 
@@ -241,7 +241,7 @@ end
 
 class LayoutStatusIsRendered < LayoutTest
   def hello
-    render :status => 401
+    render status: 401
   end
 end
 

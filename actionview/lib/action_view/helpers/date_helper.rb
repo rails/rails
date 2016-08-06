@@ -101,34 +101,34 @@ module ActionView
         distance_in_minutes = ((to_time - from_time)/60.0).round
         distance_in_seconds = (to_time - from_time).round
 
-        I18n.with_options :locale => options[:locale], :scope => options[:scope] do |locale|
+        I18n.with_options locale: options[:locale], scope: options[:scope] do |locale|
           case distance_in_minutes
             when 0..1
               return distance_in_minutes == 0 ?
-                     locale.t(:less_than_x_minutes, :count => 1) :
-                     locale.t(:x_minutes, :count => distance_in_minutes) unless options[:include_seconds]
+                     locale.t(:less_than_x_minutes, count: 1) :
+                     locale.t(:x_minutes, count: distance_in_minutes) unless options[:include_seconds]
 
               case distance_in_seconds
-                when 0..4   then locale.t :less_than_x_seconds, :count => 5
-                when 5..9   then locale.t :less_than_x_seconds, :count => 10
-                when 10..19 then locale.t :less_than_x_seconds, :count => 20
+                when 0..4   then locale.t :less_than_x_seconds, count: 5
+                when 5..9   then locale.t :less_than_x_seconds, count: 10
+                when 10..19 then locale.t :less_than_x_seconds, count: 20
                 when 20..39 then locale.t :half_a_minute
-                when 40..59 then locale.t :less_than_x_minutes, :count => 1
-                else             locale.t :x_minutes,           :count => 1
+                when 40..59 then locale.t :less_than_x_minutes, count: 1
+                else             locale.t :x_minutes,           count: 1
               end
 
-            when 2...45           then locale.t :x_minutes,      :count => distance_in_minutes
-            when 45...90          then locale.t :about_x_hours,  :count => 1
+            when 2...45           then locale.t :x_minutes,      count: distance_in_minutes
+            when 45...90          then locale.t :about_x_hours,  count: 1
             # 90 mins up to 24 hours
-            when 90...1440        then locale.t :about_x_hours,  :count => (distance_in_minutes.to_f / 60.0).round
+            when 90...1440        then locale.t :about_x_hours,  count: (distance_in_minutes.to_f / 60.0).round
             # 24 hours up to 42 hours
-            when 1440...2520      then locale.t :x_days,         :count => 1
+            when 1440...2520      then locale.t :x_days,         count: 1
             # 42 hours up to 30 days
-            when 2520...43200     then locale.t :x_days,         :count => (distance_in_minutes.to_f / 1440.0).round
+            when 2520...43200     then locale.t :x_days,         count: (distance_in_minutes.to_f / 1440.0).round
             # 30 days up to 60 days
-            when 43200...86400    then locale.t :about_x_months, :count => (distance_in_minutes.to_f / 43200.0).round
+            when 43200...86400    then locale.t :about_x_months, count: (distance_in_minutes.to_f / 43200.0).round
             # 60 days up to 365 days
-            when 86400...525600   then locale.t :x_months,       :count => (distance_in_minutes.to_f / 43200.0).round
+            when 86400...525600   then locale.t :x_months,       count: (distance_in_minutes.to_f / 43200.0).round
             else
               if from_time.acts_like?(:time) && to_time.acts_like?(:time)
                 fyear = from_time.year
@@ -149,11 +149,11 @@ module ActionView
               remainder                   = (minutes_with_offset % MINUTES_IN_YEAR)
               distance_in_years           = (minutes_with_offset.div MINUTES_IN_YEAR)
               if remainder < MINUTES_IN_QUARTER_YEAR
-                locale.t(:about_x_years,  :count => distance_in_years)
+                locale.t(:about_x_years,  count: distance_in_years)
               elsif remainder < MINUTES_IN_THREE_QUARTERS_YEAR
-                locale.t(:over_x_years,   :count => distance_in_years)
+                locale.t(:over_x_years,   count: distance_in_years)
               else
-                locale.t(:almost_x_years, :count => distance_in_years + 1)
+                locale.t(:almost_x_years, count: distance_in_years + 1)
               end
           end
         end
@@ -682,10 +682,10 @@ module ActionView
       def time_tag(date_or_time, *args, &block)
         options  = args.extract_options!
         format   = options.delete(:format) || :long
-        content  = args.first || I18n.l(date_or_time, :format => format)
+        content  = args.first || I18n.l(date_or_time, format: format)
         datetime = date_or_time.acts_like?(:time) ? date_or_time.xmlschema : date_or_time.iso8601
 
-        content_tag("time".freeze, content, options.reverse_merge(:datetime => datetime), &block)
+        content_tag("time".freeze, content, options.reverse_merge(datetime: datetime), &block)
       end
     end
 
@@ -694,7 +694,7 @@ module ActionView
 
       DEFAULT_PREFIX = "date".freeze
       POSITION = {
-        :year => 1, :month => 2, :day => 3, :hour => 4, :minute => 5, :second => 6
+        year: 1, month: 2, day: 3, hour: 4, minute: 5, second: 6
       }.freeze
 
       AMPM_TRANSLATION = Hash[
@@ -781,7 +781,7 @@ module ActionView
         if @options[:use_hidden] || @options[:discard_minute]
           build_hidden(:minute, min)
         else
-          build_options_and_select(:minute, min, :step => @options[:minute_step])
+          build_options_and_select(:minute, min, step: @options[:minute_step])
         end
       end
 
@@ -801,7 +801,7 @@ module ActionView
         if @options[:use_hidden] || @options[:discard_day]
           build_hidden(:day, day || 1)
         else
-          build_options_and_select(:day, day, :start => 1, :end => 31, :leading_zeros => false, :use_two_digit_numbers => @options[:use_two_digit_numbers])
+          build_options_and_select(:day, day, start: 1, end: 31, leading_zeros: false, use_two_digit_numbers: @options[:use_two_digit_numbers])
         end
       end
 
@@ -811,7 +811,7 @@ module ActionView
         else
           month_options = []
           1.upto(12) do |month_number|
-            options = { :value => month_number }
+            options = { value: month_number }
             options[:selected] = "selected" if month == month_number
             month_options << content_tag("option".freeze, month_name(month_number), options) + "\n"
           end
@@ -861,7 +861,7 @@ module ActionView
         # valid. Otherwise, February 31st or February 29th, 2011 can be selected, which are invalid.
         def set_day_if_discarded
           if @datetime && @options[:discard_day]
-            @datetime = @datetime.change(:day => 1)
+            @datetime = @datetime.change(day: 1)
           end
         end
 
@@ -886,7 +886,7 @@ module ActionView
         #           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
         def translated_month_names
           key = @options[:use_short_month] ? :'date.abbr_month_names' : :'date.month_names'
-          I18n.translate(key, :locale => @options[:locale])
+          I18n.translate(key, locale: @options[:locale])
         end
 
         # Looks up month names by number (1-based):
@@ -929,7 +929,7 @@ module ActionView
         end
 
         def translated_date_order
-          date_order = I18n.translate(:'date.order', :locale => @options[:locale], :default => [])
+          date_order = I18n.translate(:'date.order', locale: @options[:locale], default: [])
           date_order = date_order.map(&:to_sym)
 
           forbidden_elements = date_order - [:year, :month, :day]
@@ -976,7 +976,7 @@ module ActionView
           select_options = []
           start.step(stop, step) do |i|
             value = leading_zeros ? sprintf("%02d", i) : i
-            tag_options = { :value => value }
+            tag_options = { value: value }
             tag_options[:selected] = "selected" if selected == i
             text = options[:use_two_digit_numbers] ? sprintf("%02d", i) : value
             text = options[:ampm] ? AMPM_TRANSLATION[i] : text
@@ -993,14 +993,14 @@ module ActionView
         #      </select>"
         def build_select(type, select_options_as_html)
           select_options = {
-            :id => input_id_from_type(type),
-            :name => input_name_from_type(type)
+            id: input_id_from_type(type),
+            name: input_name_from_type(type)
           }.merge!(@html_options)
           select_options[:disabled] = "disabled" if @options[:disabled]
           select_options[:class] = css_class_attribute(type, select_options[:class], @options[:with_css_classes]) if @options[:with_css_classes]
 
           select_html = "\n"
-          select_html << content_tag("option".freeze, "", :value => "") + "\n" if @options[:include_blank]
+          select_html << content_tag("option".freeze, "", value: "") + "\n" if @options[:include_blank]
           select_html << prompt_option_tag(type, @options[:prompt]) + "\n" if @options[:prompt]
           select_html << select_options_as_html
 
@@ -1027,15 +1027,15 @@ module ActionView
         def prompt_option_tag(type, options)
           prompt = case options
             when Hash
-              default_options = {:year => false, :month => false, :day => false, :hour => false, :minute => false, :second => false}
+              default_options = {year: false, month: false, day: false, hour: false, minute: false, second: false}
               default_options.merge!(options)[type.to_sym]
             when String
               options
             else
-              I18n.translate(:"datetime.prompts.#{type}", :locale => @options[:locale])
+              I18n.translate(:"datetime.prompts.#{type}", locale: @options[:locale])
           end
 
-          prompt ? content_tag("option".freeze, prompt, :value => "") : ""
+          prompt ? content_tag("option".freeze, prompt, value: "") : ""
         end
 
         # Builds hidden input tag for date part and value.
@@ -1043,10 +1043,10 @@ module ActionView
         #  => "<input id="post_written_on_1i" name="post[written_on(1i)]" type="hidden" value="2008" />"
         def build_hidden(type, value)
           select_options = {
-            :type => "hidden",
-            :id => input_id_from_type(type),
-            :name => input_name_from_type(type),
-            :value => value
+            type: "hidden",
+            id: input_id_from_type(type),
+            name: input_name_from_type(type),
+            value: value
           }.merge!(@html_options.slice(:disabled))
           select_options[:disabled] = "disabled" if @options[:disabled]
 

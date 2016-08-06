@@ -117,8 +117,8 @@ module ActionView
 
         xml.feed(feed_opts) do
           xml.id(options[:id] || "tag:#{request.host},#{options[:schema_date]}:#{request.fullpath.split(".")[0]}")
-          xml.link(:rel => "alternate", :type => "text/html", :href => options[:root_url] || (request.protocol + request.host_with_port))
-          xml.link(:rel => "self", :type => "application/atom+xml", :href => options[:url] || request.url)
+          xml.link(rel: "alternate", type: "text/html", href: options[:root_url] || (request.protocol + request.host_with_port))
+          xml.link(rel: "self", type: "application/atom+xml", href: options[:url] || request.url)
 
           yield AtomFeedBuilder.new(xml, self, options)
         end
@@ -138,7 +138,7 @@ module ActionView
           def method_missing(method, *arguments, &block)
             if xhtml_block?(method, arguments)
               @xml.__send__(method, *arguments) do
-                @xml.div(:xmlns => "http://www.w3.org/1999/xhtml") do |xhtml|
+                @xml.div(xmlns: "http://www.w3.org/1999/xhtml") do |xhtml|
                   block.call(xhtml)
                 end
               end
@@ -192,7 +192,7 @@ module ActionView
             type = options.fetch(:type, "text/html")
 
             url = options.fetch(:url) { @view.polymorphic_url(record) }
-            @xml.link(:rel => "alternate", :type => type, :href => url) if url
+            @xml.link(rel: "alternate", type: type, href: url) if url
 
             yield AtomBuilder.new(@xml)
           end

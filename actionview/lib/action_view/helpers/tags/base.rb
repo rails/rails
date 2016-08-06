@@ -130,7 +130,7 @@ module ActionView
           select = content_tag("select", add_options(option_tags, options, value), html_options)
 
           if html_options["multiple"] && options.fetch(:include_hidden, true)
-            tag("input", :disabled => html_options["disabled"], :name => html_options["name"], :type => "hidden", :value => "") + select
+            tag("input", disabled: html_options["disabled"], name: html_options["name"], type: "hidden", value: "") + select
           else
             select
           end
@@ -143,10 +143,10 @@ module ActionView
 
         def add_options(option_tags, options, value = nil)
           if options[:include_blank]
-            option_tags = tag_builder.content_tag_string("option", options[:include_blank].kind_of?(String) ? options[:include_blank] : nil, :value => "") + "\n" + option_tags
+            option_tags = tag_builder.content_tag_string("option", options[:include_blank].kind_of?(String) ? options[:include_blank] : nil, value: "") + "\n" + option_tags
           end
           if value.blank? && options[:prompt]
-            option_tags = tag_builder.content_tag_string("option", prompt_text(options[:prompt]), :value => "") + "\n" + option_tags
+            option_tags = tag_builder.content_tag_string("option", prompt_text(options[:prompt]), value: "") + "\n" + option_tags
           end
           option_tags
         end

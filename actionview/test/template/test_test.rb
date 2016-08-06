@@ -60,7 +60,7 @@ class PeopleHelperTest < ActionView::TestCase
     def with_test_route_set
       with_routing do |set|
         set.draw do
-          get "people", :to => "people#index", :as => :people
+          get "people", to: "people#index", as: :people
         end
         yield
       end

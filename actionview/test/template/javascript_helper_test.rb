@@ -53,7 +53,7 @@ class JavaScriptHelperTest < ActionView::TestCase
 
   def test_javascript_tag_with_options
     assert_dom_equal "<script id=\"the_js_tag\">\n//<![CDATA[\nalert('hello')\n//]]>\n</script>",
-      javascript_tag("alert('hello')", :id => "the_js_tag")
+      javascript_tag("alert('hello')", id: "the_js_tag")
   end
 
   def test_javascript_cdata_section

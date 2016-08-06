@@ -22,7 +22,7 @@ class FormHelperTest < ActionView::TestCase
           post: {
             cost: "Total cost"
           },
-          :"post/language" => {
+          "post/language": {
             spanish: "Espanol"
           }
         }
@@ -68,7 +68,7 @@ class FormHelperTest < ActionView::TestCase
           post: {
             cost: "Total cost"
           },
-          :"post/cost" => {
+          "post/cost": {
             uk: "Pounds"
           }
         }
@@ -535,12 +535,12 @@ class FormHelperTest < ActionView::TestCase
 
   def test_file_field_with_multiple_behavior
     expected = '<input id="import_file" multiple="multiple" name="import[file][]" type="file" />'
-    assert_dom_equal expected, file_field("import", "file", :multiple => true)
+    assert_dom_equal expected, file_field("import", "file", multiple: true)
   end
 
   def test_file_field_with_multiple_behavior_and_explicit_name
     expected = '<input id="import_file" multiple="multiple" name="custom" type="file" />'
-    assert_dom_equal expected, file_field("import", "file", :multiple => true, :name => "custom")
+    assert_dom_equal expected, file_field("import", "file", multiple: true, name: "custom")
   end
 
   def test_hidden_field

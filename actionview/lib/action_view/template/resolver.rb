@@ -37,7 +37,7 @@ module ActionView
     class Cache #:nodoc:
       class SmallCache < Concurrent::Map
         def initialize(options = {})
-          super(options.merge(:initial_capacity => 2))
+          super(options.merge(initial_capacity: 2))
         end
       end
 
@@ -204,7 +204,7 @@ module ActionView
 
   # An abstract class that implements a Resolver with path semantics.
   class PathResolver < Resolver #:nodoc:
-    EXTENSIONS = { :locale => ".", :formats => ".", :variants => "+", :handlers => "." }
+    EXTENSIONS = { locale: ".", formats: ".", variants: "+", handlers: "." }
     DEFAULT_PATTERN = ":prefix/:action{.:locale,}{.:formats,}{+:variants,}{.:handlers,}"
 
     def initialize(pattern=nil)
@@ -230,10 +230,10 @@ module ActionView
         contents = File.binread(template)
 
         Template.new(contents, File.expand_path(template), handler,
-          :virtual_path => path.virtual,
-          :format       => format,
-          :variant      => variant,
-          :updated_at   => mtime(template)
+          virtual_path: path.virtual,
+          format: format,
+          variant: variant,
+          updated_at: mtime(template)
         )
       end
     end

@@ -7,7 +7,7 @@ class ViewLoadPathsTest < ActionController::TestCase
     before_action :add_view_path, only: :hello_world_at_request_time
 
     def hello_world() end
-    def hello_world_at_request_time() render(:action => "hello_world") end
+    def hello_world_at_request_time() render(action: "hello_world") end
 
     private
       def add_view_path
@@ -18,7 +18,7 @@ class ViewLoadPathsTest < ActionController::TestCase
   module Test
     class SubController < ActionController::Base
       layout "test/sub"
-      def hello_world; render(:template => "test/hello_world"); end
+      def hello_world; render(template: "test/hello_world"); end
     end
   end
 
@@ -132,8 +132,8 @@ class ViewLoadPathsTest < ActionController::TestCase
             template.identifier,
             template.handler,
             {
-              :virtual_path => template.virtual_path,
-              :format => template.formats
+              virtual_path: template.virtual_path,
+              format: template.formats
             }
           )
         end

@@ -216,7 +216,7 @@ class TemplateDigestorTest < ActionView::TestCase
 
   def test_details_are_included_in_cache_key
     # Cache the template digest.
-    @finder = FixtureFinder.new({:formats => [:html]})
+    @finder = FixtureFinder.new({formats: [:html]})
     old_digest = digest("events/_event")
 
     # Change the template; the cached digest remains unchanged.

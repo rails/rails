@@ -306,7 +306,7 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_autodiscovery_link_tag_with_unknown_type
-    result = auto_discovery_link_tag(:xml, "/feed.xml", :type => "application/xml")
+    result = auto_discovery_link_tag(:xml, "/feed.xml", type: "application/xml")
     expected = %(<link href="/feed.xml" rel="alternate" title="XML" type="application/xml" />)
     assert_dom_equal expected, result
   end
@@ -331,9 +331,9 @@ class AssetTagHelperTest < ActionView::TestCase
   def test_compute_asset_public_path
     assert_equal "/robots.txt", compute_asset_path("robots.txt")
     assert_equal "/robots.txt", compute_asset_path("/robots.txt")
-    assert_equal "/javascripts/foo.js", compute_asset_path("foo.js", :type => :javascript)
-    assert_equal "/javascripts/foo.js", compute_asset_path("/foo.js", :type => :javascript)
-    assert_equal "/stylesheets/foo.css", compute_asset_path("foo.css", :type => :stylesheet)
+    assert_equal "/javascripts/foo.js", compute_asset_path("foo.js", type: :javascript)
+    assert_equal "/javascripts/foo.js", compute_asset_path("/foo.js", type: :javascript)
+    assert_equal "/stylesheets/foo.css", compute_asset_path("foo.css", type: :stylesheet)
   end
 
   def test_auto_discovery_link_tag
@@ -421,7 +421,7 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_stylesheet_link_tag_escapes_options
-    assert_dom_equal %(<link href="/file.css" media="&lt;script&gt;" rel="stylesheet" />), stylesheet_link_tag("/file", :media => "<script>")
+    assert_dom_equal %(<link href="/file.css" media="&lt;script&gt;" rel="stylesheet" />), stylesheet_link_tag("/file", media: "<script>")
   end
 
   def test_stylesheet_link_tag_should_not_output_the_same_asset_twice
@@ -470,14 +470,14 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_image_tag_does_not_modify_options
-    options = {:size => "16x10"}
+    options = {size: "16x10"}
     image_tag("icon", options)
-    assert_equal({:size => "16x10"}, options)
+    assert_equal({size: "16x10"}, options)
   end
 
   def test_image_tag_raises_an_error_for_competing_size_arguments
     exception = assert_raise(ArgumentError) do
-      image_tag("gold.png", :height => "100", :width => "200", :size => "45x70")
+      image_tag("gold.png", height: "100", width: "200", size: "45x70")
     end
 
     assert_equal("Cannot pass a :size option with a :height or :width option", exception.message)
@@ -532,11 +532,11 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_video_audio_tag_does_not_modify_options
-    options = {:autoplay => true}
+    options = {autoplay: true}
     video_tag("video", options)
-    assert_equal({:autoplay => true}, options)
+    assert_equal({autoplay: true}, options)
     audio_tag("audio", options)
-    assert_equal({:autoplay => true}, options)
+    assert_equal({autoplay: true}, options)
   end
 
   def test_image_tag_interpreting_email_cid_correctly
@@ -545,7 +545,7 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_image_tag_interpreting_email_adding_optional_alt_tag
-    assert_equal '<img alt="Image" src="cid:thi%25%25sis@acontentid" />', image_tag("cid:thi%25%25sis@acontentid", :alt => "Image")
+    assert_equal '<img alt="Image" src="cid:thi%25%25sis@acontentid" />', image_tag("cid:thi%25%25sis@acontentid", alt: "Image")
   end
 
   def test_should_not_modify_source_string
@@ -634,11 +634,11 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
   end
 
   def test_should_current_request_host_is_always_returned_for_request
-    assert_equal "gopher://www.example.com", compute_asset_host("foo", :protocol => :request)
+    assert_equal "gopher://www.example.com", compute_asset_host("foo", protocol: :request)
   end
 
   def test_should_return_custom_host_if_passed_in_options
-    assert_equal "http://custom.example.com", compute_asset_host("foo", :host => "http://custom.example.com")
+    assert_equal "http://custom.example.com", compute_asset_host("foo", host: "http://custom.example.com")
   end
 
   def test_should_ignore_relative_root_path_on_complete_url
@@ -652,12 +652,12 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
 
   def test_should_return_relative_asset_host
     @controller.config.asset_host = "assets.example.com"
-    assert_equal "//assets.example.com", compute_asset_host("foo", :protocol => :relative)
+    assert_equal "//assets.example.com", compute_asset_host("foo", protocol: :relative)
   end
 
   def test_should_return_custom_protocol_asset_host
     @controller.config.asset_host = "assets.example.com"
-    assert_equal "ftp://assets.example.com", compute_asset_host("foo", :protocol => "ftp")
+    assert_equal "ftp://assets.example.com", compute_asset_host("foo", protocol: "ftp")
   end
 
   def test_should_compute_proper_path_with_asset_host
@@ -813,6 +813,6 @@ class AssetUrlHelperEmptyModuleTest < ActionView::TestCase
     end
 
     assert @module.config.asset_host
-    assert_equal "http://custom.example.com/foo", @module.asset_url("foo", :host => "http://custom.example.com")
+    assert_equal "http://custom.example.com/foo", @module.asset_url("foo", host: "http://custom.example.com")
   end
 end

@@ -15,22 +15,22 @@ class TranslationHelperTest < ActiveSupport::TestCase
 
   setup do
     I18n.backend.store_translations(:en,
-      :translations => {
-        :templates => {
-          :found => { :foo => "Foo" },
-          :array => { :foo => { :bar => "Foo Bar" } },
-          :default => { :foo => "Foo" }
+      translations: {
+        templates: {
+          found: { foo: "Foo" },
+          array: { foo: { bar: "Foo Bar" } },
+          default: { foo: "Foo" }
         },
-        :foo => "Foo",
-        :hello => "<a>Hello World</a>",
-        :html => "<a>Hello World</a>",
-        :hello_html => "<a>Hello World</a>",
-        :interpolated_html => "<a>Hello %{word}</a>",
-        :array_html => %w(foo bar),
-        :array => %w(foo bar),
-        :count_html => {
-          :one   => "<a>One %{count}</a>",
-          :other => "<a>Other %{count}</a>"
+        foo: "Foo",
+        hello: "<a>Hello World</a>",
+        html: "<a>Hello World</a>",
+        hello_html: "<a>Hello World</a>",
+        interpolated_html: "<a>Hello %{word}</a>",
+        array_html: %w(foo bar),
+        array: %w(foo bar),
+        count_html: {
+          one: "<a>One %{count}</a>",
+          other: "<a>Other %{count}</a>"
         }
       }
     )
@@ -42,8 +42,8 @@ class TranslationHelperTest < ActiveSupport::TestCase
   end
 
   def test_delegates_setting_to_i18n
-    assert_called_with(I18n, :translate, [:foo, :locale => "en", :raise => true], returns: "") do
-      translate :foo, :locale => "en"
+    assert_called_with(I18n, :translate, [:foo, locale: "en", raise: true], returns: "") do
+      translate :foo, locale: "en"
     end
   end
 
@@ -96,7 +96,7 @@ class TranslationHelperTest < ActiveSupport::TestCase
 
   def test_raises_missing_translation_message_with_raise_option
     assert_raise(I18n::MissingTranslationData) do
-      translate(:"translations.missing", :raise => true)
+      translate(:"translations.missing", raise: true)
     end
   end
 
@@ -122,20 +122,20 @@ class TranslationHelperTest < ActiveSupport::TestCase
   end
 
   def test_finds_translation_scoped_by_partial
-    assert_equal "Foo", view.render(:file => "translations/templates/found").strip
+    assert_equal "Foo", view.render(file: "translations/templates/found").strip
   end
 
   def test_finds_array_of_translations_scoped_by_partial
-    assert_equal "Foo Bar", @view.render(:file => "translations/templates/array").strip
+    assert_equal "Foo Bar", @view.render(file: "translations/templates/array").strip
   end
 
   def test_default_lookup_scoped_by_partial
-    assert_equal "Foo", view.render(:file => "translations/templates/default").strip
+    assert_equal "Foo", view.render(file: "translations/templates/default").strip
   end
 
   def test_missing_translation_scoped_by_partial
     expected = '<span class="translation_missing" title="translation missing: en.translations.templates.missing.missing">Missing</span>'
-    assert_equal expected, view.render(:file => "translations/templates/missing").strip
+    assert_equal expected, view.render(file: "translations/templates/missing").strip
   end
 
   def test_translate_does_not_mark_plain_text_as_safe_html
@@ -152,14 +152,14 @@ class TranslationHelperTest < ActiveSupport::TestCase
 
   def test_translate_escapes_interpolations_in_translations_with_a_html_suffix
     word_struct = Struct.new(:to_s)
-    assert_equal "<a>Hello &lt;World&gt;</a>", translate(:'translations.interpolated_html', :word => "<World>")
-    assert_equal "<a>Hello &lt;World&gt;</a>", translate(:'translations.interpolated_html', :word => word_struct.new("<World>"))
+    assert_equal "<a>Hello &lt;World&gt;</a>", translate(:'translations.interpolated_html', word: "<World>")
+    assert_equal "<a>Hello &lt;World&gt;</a>", translate(:'translations.interpolated_html', word: word_struct.new("<World>"))
   end
 
   def test_translate_with_html_count
-    assert_equal "<a>One 1</a>", translate(:'translations.count_html', :count => 1)
-    assert_equal "<a>Other 2</a>", translate(:'translations.count_html', :count => 2)
-    assert_equal "<a>Other &lt;One&gt;</a>", translate(:'translations.count_html', :count => "<One>")
+    assert_equal "<a>One 1</a>", translate(:'translations.count_html', count: 1)
+    assert_equal "<a>Other 2</a>", translate(:'translations.count_html', count: 2)
+    assert_equal "<a>Other &lt;One&gt;</a>", translate(:'translations.count_html', count: "<One>")
   end
 
   def test_translation_returning_an_array_ignores_html_suffix
@@ -167,13 +167,13 @@ class TranslationHelperTest < ActiveSupport::TestCase
   end
 
   def test_translate_with_default_named_html
-    translation = translate(:'translations.missing', :default => :'translations.hello_html')
+    translation = translate(:'translations.missing', default: :'translations.hello_html')
     assert_equal "<a>Hello World</a>", translation
     assert_equal true, translation.html_safe?
   end
 
   def test_translate_with_missing_default
-    translation = translate(:'translations.missing', :default => :'translations.missing_html')
+    translation = translate(:'translations.missing', default: :'translations.missing_html')
     expected = '<span class="translation_missing" title="translation missing: en.translations.missing_html">Missing Html</span>'
     assert_equal expected, translation
     assert_equal true, translation.html_safe?
@@ -181,24 +181,24 @@ class TranslationHelperTest < ActiveSupport::TestCase
 
   def test_translate_with_missing_default_and_raise_option
     assert_raise(I18n::MissingTranslationData) do
-      translate(:'translations.missing', :default => :'translations.missing_html', :raise => true)
+      translate(:'translations.missing', default: :'translations.missing_html', raise: true)
     end
   end
 
   def test_translate_with_two_defaults_named_html
-    translation = translate(:'translations.missing', :default => [:'translations.missing_html', :'translations.hello_html'])
+    translation = translate(:'translations.missing', default: [:'translations.missing_html', :'translations.hello_html'])
     assert_equal "<a>Hello World</a>", translation
     assert_equal true, translation.html_safe?
   end
 
   def test_translate_with_last_default_named_html
-    translation = translate(:'translations.missing', :default => [:'translations.missing', :'translations.hello_html'])
+    translation = translate(:'translations.missing', default: [:'translations.missing', :'translations.hello_html'])
     assert_equal "<a>Hello World</a>", translation
     assert_equal true, translation.html_safe?
   end
 
   def test_translate_with_last_default_not_named_html
-    translation = translate(:'translations.missing', :default => [:'translations.missing_html', :'translations.foo'])
+    translation = translate(:'translations.missing', default: [:'translations.missing_html', :'translations.foo'])
     assert_equal "Foo", translation
     assert_equal false, translation.html_safe?
   end

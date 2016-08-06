@@ -32,7 +32,7 @@ module ActionView
         with_fallbacks { find_file(options[:file], nil, false, keys, @details) }
       elsif options.key?(:inline)
         handler = Template.handler_for_extension(options[:type] || "erb")
-        Template.new(options[:inline], "inline template", handler, :locals => keys)
+        Template.new(options[:inline], "inline template", handler, locals: keys)
       elsif options.key?(:template)
         if options[:template].respond_to?(:render)
           options[:template]
@@ -50,7 +50,7 @@ module ActionView
       view, locals = @view, locals || {}
 
       render_with_layout(layout_name, locals) do |layout|
-        instrument(:template, :identifier => template.identifier, :layout => layout.try(:virtual_path)) do
+        instrument(:template, identifier: template.identifier, layout: layout.try(:virtual_path)) do
           template.render(view, locals) { |*name| view._layout_for(*name) }
         end
       end
@@ -89,7 +89,7 @@ module ActionView
             find_template(layout, nil, false, [], details)
           end
         rescue ActionView::MissingTemplate
-          all_details = @details.merge(:formats => @lookup_context.default_formats)
+          all_details = @details.merge(formats: @lookup_context.default_formats)
           raise unless template_exists?(layout, nil, false, [], all_details)
         end
       when Proc

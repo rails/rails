@@ -119,8 +119,8 @@ module ActionView
 
           self.class.erb_implementation.new(
             erb,
-            :escape => (self.class.escape_whitelist.include? template.type),
-            :trim => (self.class.erb_trim_mode == "-")
+            escape: (self.class.escape_whitelist.include? template.type),
+            trim: (self.class.erb_trim_mode == "-")
           ).src
         end
 

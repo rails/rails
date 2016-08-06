@@ -139,7 +139,7 @@ module ActionView
           "rel"   => tag_options[:rel] || "alternate",
           "type"  => tag_options[:type] || Template::Types[type].to_s,
           "title" => tag_options[:title] || type.to_s.upcase,
-          "href"  => url_options.is_a?(Hash) ? url_for(url_options.merge(:only_path => false)) : url_options
+          "href"  => url_options.is_a?(Hash) ? url_for(url_options.merge(only_path: false)) : url_options
         )
       end
 
@@ -172,9 +172,9 @@ module ActionView
       #   # => <link href="/assets/mb-icon.png" rel="apple-touch-icon" type="image/png" />
       def favicon_link_tag(source="favicon.ico", options={})
         tag("link", {
-          :rel  => "shortcut icon",
-          :type => "image/x-icon",
-          :href => path_to_image(source)
+          rel: "shortcut icon",
+          type: "image/x-icon",
+          href: path_to_image(source)
         }.merge!(options.symbolize_keys))
       end
 
@@ -313,7 +313,7 @@ module ActionView
 
           if sources.size > 1
             content_tag(type, options) do
-              safe_join sources.map { |source| tag("source", :src => send("path_to_#{type}", source)) }
+              safe_join sources.map { |source| tag("source", src: send("path_to_#{type}", source)) }
             end
           else
             options[:src] = send("path_to_#{type}", sources.first)

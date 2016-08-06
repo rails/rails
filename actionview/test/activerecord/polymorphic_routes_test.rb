@@ -95,7 +95,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
 
   def test_string_with_options
     with_test_routes do
-      assert_equal "http://example.com/projects?id=10", polymorphic_url("projects", :id => 10)
+      assert_equal "http://example.com/projects?id=10", polymorphic_url("projects", id: 10)
     end
   end
 
@@ -107,7 +107,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
 
   def test_symbol_with_options
     with_test_routes do
-      assert_equal "http://example.com/projects?id=10", polymorphic_url(:projects, :id => 10)
+      assert_equal "http://example.com/projects?id=10", polymorphic_url(:projects, id: 10)
     end
   end
 
@@ -179,7 +179,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
   def test_with_nil_id
     with_test_routes do
       exception = assert_raise ArgumentError do
-        polymorphic_url({ :id => nil })
+        polymorphic_url({ id: nil })
       end
       assert_equal "Nil location provided. Can't build URI.", exception.message
     end
@@ -233,8 +233,8 @@ class PolymorphicRoutesTest < ActionController::TestCase
 
   def test_class_with_options
     with_test_routes do
-      assert_equal "http://example.com/projects?foo=bar", polymorphic_url(@project.class, { :foo => :bar })
-      assert_equal "/projects?foo=bar", polymorphic_path(@project.class, { :foo => :bar })
+      assert_equal "http://example.com/projects?foo=bar", polymorphic_url(@project.class, { foo: :bar })
+      assert_equal "/projects?foo=bar", polymorphic_path(@project.class, { foo: :bar })
     end
   end
 
@@ -274,7 +274,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
 
   def test_with_record_and_action
     with_test_routes do
-      assert_equal "http://example.com/projects/new", polymorphic_url(@project, :action => "new")
+      assert_equal "http://example.com/projects/new", polymorphic_url(@project, action: "new")
     end
   end
 
@@ -303,35 +303,35 @@ class PolymorphicRoutesTest < ActionController::TestCase
   def test_url_helper_prefixed_with_edit_with_url_options
     with_test_routes do
       @project.save
-      assert_equal "http://example.com/projects/#{@project.id}/edit?param1=10", edit_polymorphic_url(@project, :param1 => "10")
+      assert_equal "http://example.com/projects/#{@project.id}/edit?param1=10", edit_polymorphic_url(@project, param1: "10")
     end
   end
 
   def test_url_helper_with_url_options
     with_test_routes do
       @project.save
-      assert_equal "http://example.com/projects/#{@project.id}?param1=10", polymorphic_url(@project, :param1 => "10")
+      assert_equal "http://example.com/projects/#{@project.id}?param1=10", polymorphic_url(@project, param1: "10")
     end
   end
 
   def test_format_option
     with_test_routes do
       @project.save
-      assert_equal "http://example.com/projects/#{@project.id}.pdf", polymorphic_url(@project, :format => :pdf)
+      assert_equal "http://example.com/projects/#{@project.id}.pdf", polymorphic_url(@project, format: :pdf)
     end
   end
 
   def test_format_option_with_url_options
     with_test_routes do
       @project.save
-      assert_equal "http://example.com/projects/#{@project.id}.pdf?param1=10", polymorphic_url(@project, :format => :pdf, :param1 => "10")
+      assert_equal "http://example.com/projects/#{@project.id}.pdf?param1=10", polymorphic_url(@project, format: :pdf, param1: "10")
     end
   end
 
   def test_id_and_format_option
     with_test_routes do
       @project.save
-      assert_equal "http://example.com/projects/#{@project.id}.pdf", polymorphic_url(:id => @project, :format => :pdf)
+      assert_equal "http://example.com/projects/#{@project.id}.pdf", polymorphic_url(id: @project, format: :pdf)
     end
   end
 
@@ -373,7 +373,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
 
   def test_new_with_array_and_namespace
     with_admin_test_routes do
-      assert_equal "http://example.com/admin/projects/new", polymorphic_url([:admin, @project], :action => "new")
+      assert_equal "http://example.com/admin/projects/new", polymorphic_url([:admin, @project], action: "new")
     end
   end
 
@@ -426,7 +426,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
     with_test_routes do
       @project.save
       @task.save
-      assert_equal "http://example.com/projects/#{@project.id}/bid/tasks/#{@task.id}.pdf", polymorphic_url([@project, :bid, @task], :format => :pdf)
+      assert_equal "http://example.com/projects/#{@project.id}/bid/tasks/#{@task.id}.pdf", polymorphic_url([@project, :bid, @task], format: :pdf)
     end
   end
 
@@ -474,13 +474,13 @@ class PolymorphicRoutesTest < ActionController::TestCase
   def test_with_hash
     with_test_routes do
       @project.save
-      assert_equal "http://example.com/projects/#{@project.id}", polymorphic_url(:id => @project)
+      assert_equal "http://example.com/projects/#{@project.id}", polymorphic_url(id: @project)
     end
   end
 
   def test_polymorphic_path_accepts_options
     with_test_routes do
-      assert_equal "/projects/new", polymorphic_path(@project, :action => "new")
+      assert_equal "/projects/new", polymorphic_path(@project, action: "new")
     end
   end
 
@@ -527,7 +527,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
 
   def test_with_irregular_plural_record_and_action
     with_test_routes do
-      assert_equal "http://example.com/taxes/new", polymorphic_url(@tax, :action => "new")
+      assert_equal "http://example.com/taxes/new", polymorphic_url(@tax, action: "new")
     end
   end
 
@@ -561,7 +561,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
 
   def test_new_with_irregular_plural_array_and_namespace
     with_admin_test_routes do
-      assert_equal "http://example.com/admin/taxes/new", polymorphic_url([:admin, @tax], :action => "new")
+      assert_equal "http://example.com/admin/taxes/new", polymorphic_url([:admin, @tax], action: "new")
     end
   end
 
@@ -622,7 +622,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
   def with_namespaced_routes(name)
     with_routing do |set|
       set.draw do
-        scope(:module => name) do
+        scope(module: name) do
           resources :blogs do
             resources :posts do
               resources :faxes

@@ -205,7 +205,7 @@ module ActionView
     include ActionView::Rendering
 
     included do
-      class_attribute :_layout, :_layout_conditions, :instance_accessor => false
+      class_attribute :_layout, :_layout_conditions, instance_accessor: false
       self._layout = nil
       self._layout_conditions = {}
       _write_layout_method

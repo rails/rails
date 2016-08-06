@@ -217,7 +217,7 @@ class ScrollsController < ActionController::Base
       Scroll.new(2, "2", "Hello Two", "Something Boring", Time.utc(2007, 12, 12, 15)),
     ]
 
-    render :inline => FEEDS[params[:id]], :type => :builder
+    render inline: FEEDS[params[:id]], type: :builder
   end
 end
 
@@ -278,22 +278,22 @@ class AtomFeedTest < ActionController::TestCase
   def test_feed_id_should_be_a_valid_tag
     with_restful_routing(:scrolls) do
       get :index, params: { id: "defaults" }
-      assert_select "id", :text => "tag:www.nextangle.com,2008:/scrolls?id=defaults"
+      assert_select "id", text: "tag:www.nextangle.com,2008:/scrolls?id=defaults"
     end
   end
 
   def test_entry_id_should_be_a_valid_tag
     with_restful_routing(:scrolls) do
       get :index, params: { id: "defaults" }
-      assert_select "entry id", :text => "tag:www.nextangle.com,2008:Scroll/1"
-      assert_select "entry id", :text => "tag:www.nextangle.com,2008:Scroll/2"
+      assert_select "entry id", text: "tag:www.nextangle.com,2008:Scroll/1"
+      assert_select "entry id", text: "tag:www.nextangle.com,2008:Scroll/2"
     end
   end
 
   def test_feed_should_allow_nested_xml_blocks
     with_restful_routing(:scrolls) do
       get :index, params: { id: "xml_block" }
-      assert_select "author name", :text => "DHH"
+      assert_select "author name", text: "DHH"
     end
   end
 
@@ -309,9 +309,9 @@ class AtomFeedTest < ActionController::TestCase
   def test_feed_should_allow_overriding_ids
     with_restful_routing(:scrolls) do
       get :index, params: { id: "feed_with_overridden_ids" }
-      assert_select "id", :text => "tag:test.rubyonrails.org,2008:test/"
-      assert_select "entry id", :text => "tag:test.rubyonrails.org,2008:1"
-      assert_select "entry id", :text => "tag:test.rubyonrails.org,2008:2"
+      assert_select "id", text: "tag:test.rubyonrails.org,2008:test/"
+      assert_select "entry id", text: "tag:test.rubyonrails.org,2008:1"
+      assert_select "entry id", text: "tag:test.rubyonrails.org,2008:2"
     end
   end
 
@@ -335,8 +335,8 @@ class AtomFeedTest < ActionController::TestCase
     with_restful_routing(:scrolls) do
       get :index, params: { id:  "feed_with_xhtml_content" }
       assert_match %r{xmlns="http://www.w3.org/1999/xhtml"}, @response.body
-      assert_select "summary", :text => /Something Boring/
-      assert_select "summary", :text => /after 2/
+      assert_select "summary", text: /Something Boring/
+      assert_select "summary", text: /after 2/
     end
   end
 

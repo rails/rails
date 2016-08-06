@@ -3,46 +3,46 @@ require "active_record_unit"
 class RenderPartialWithRecordIdentificationController < ActionController::Base
   def render_with_has_many_and_belongs_to_association
     @developer = Developer.find(1)
-    render :partial => @developer.projects
+    render partial: @developer.projects
   end
 
   def render_with_has_many_association
     @topic = Topic.find(1)
-    render :partial => @topic.replies
+    render partial: @topic.replies
   end
 
   def render_with_scope
-    render :partial => Reply.base
+    render partial: Reply.base
   end
 
   def render_with_has_many_through_association
     @developer = Developer.first
-    render :partial => @developer.topics
+    render partial: @developer.topics
   end
 
   def render_with_has_one_association
     @company = Company.find(1)
-    render :partial => @company.mascot
+    render partial: @company.mascot
   end
 
   def render_with_belongs_to_association
     @reply = Reply.find(1)
-    render :partial => @reply.topic
+    render partial: @reply.topic
   end
 
   def render_with_record
     @developer = Developer.first
-    render :partial => @developer
+    render partial: @developer
   end
 
   def render_with_record_collection
     @developers = Developer.all
-    render :partial => @developers
+    render partial: @developers
   end
 
   def render_with_record_collection_and_spacer_template
     @developer = Developer.find(1)
-    render :partial => @developer.projects, :spacer_template => "test/partial_only"
+    render partial: @developer.projects, spacer_template: "test/partial_only"
   end
 end
 
@@ -98,22 +98,22 @@ end
 module Fun
   class NestedController < ActionController::Base
     def render_with_record_in_nested_controller
-      render :partial => Game.new("Pong")
+      render partial: Game.new("Pong")
     end
 
     def render_with_record_collection_in_nested_controller
-      render :partial => [ Game.new("Pong"), Game.new("Tank") ]
+      render partial: [ Game.new("Pong"), Game.new("Tank") ]
     end
   end
 
   module Serious
     class NestedDeeperController < ActionController::Base
       def render_with_record_in_deeper_nested_controller
-        render :partial => Game.new("Chess")
+        render partial: Game.new("Chess")
       end
 
       def render_with_record_collection_in_deeper_nested_controller
-        render :partial => [ Game.new("Chess"), Game.new("Sudoku"), Game.new("Solitaire") ]
+        render partial: [ Game.new("Chess"), Game.new("Sudoku"), Game.new("Solitaire") ]
       end
     end
   end
