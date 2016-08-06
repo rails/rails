@@ -1177,10 +1177,14 @@ module ActiveRecord
       order_args.map! do |arg|
         case arg
         when Symbol
-          arel_attribute(arg).asc
+          Arel::Nodes::Ascending.new(arel_attribute(arg))
         when Hash
           arg.map { |field, dir|
-            arel_attribute(field).send(dir.downcase)
+            if dir.downcase.to_s == "desc"
+              Arel::Nodes::Descending.new(arel_attribute(field))
+            else
+              Arel::Nodes::Ascending.new(arel_attribute(field))
+            end
           }
         else
           arg
