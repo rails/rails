@@ -903,11 +903,30 @@ class FileStoreTest < ActiveSupport::TestCase
     @cache.write('foo', 'bar', expires_in: 10)
     @cache.write('baz', 'qux')
     @cache.write('quux', 'corge', expires_in: 20)
+
     Time.stub(:now, time + 15) do
       @cache.cleanup
       assert_not @cache.exist?('foo')
       assert @cache.exist?('baz')
       assert @cache.exist?('quux')
+    end
+  end
+
+  def test_cleanup_physically_removes_expired_entries
+    time = Time.now
+    k1, k2, k3, k4, k5, k6, k7 = 'a', ['a','b'] * 175, ['ab','c'] * 140, ['abc','de'] * 100, ['abce','efg'] * 80, ['abcefghij'] * 80, ['abcefghij'] * 1000
+
+    @cache.write(k1, 'alpha',   expires_in: 1)
+    @cache.write(k2, 'beta',    expires_in: 2)
+    @cache.write(k3, 'gamma',   expires_in: 3)
+    @cache.write(k4, 'delta',   expires_in: 4)
+    @cache.write(k5, 'epsilon', expires_in: 5)
+    @cache.write(k6, 'zeta',    expires_in: 6)
+    @cache.write(k7, 'eta',     expires_in: 7)
+
+    Time.stub(:now, time + 30) do
+      @cache.cleanup
+      assert_equal [], Dir.entries(cache_dir).reject {|f| ActiveSupport::Cache::FileStore::EXCLUDED_DIRS.include?(f)}
     end
   end
 
