@@ -420,7 +420,7 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
 
   setup do
     @connection = ActiveRecord::Base.connection
-    @connection.create_table :defaults, force: true do |t|
+    @connection.create_table :dump_defaults, force: true do |t|
       t.string   :string_with_default,   default: "Hello!"
       t.date     :date_with_default,     default: '2014-06-05'
       t.datetime :datetime_with_default, default: "2014-06-05 07:17:04"
@@ -430,11 +430,11 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
 
   teardown do
     return unless @connection
-    @connection.drop_table 'defaults', if_exists: true
+    @connection.drop_table 'dump_defaults', if_exists: true
   end
 
   def test_schema_dump_defaults_with_universally_supported_types
-    output = dump_table_schema('defaults')
+    output = dump_table_schema('dump_defaults')
 
     assert_match %r{t\.string\s+"string_with_default",.*?default: "Hello!"}, output
     assert_match %r{t\.date\s+"date_with_default",\s+default: '2014-06-05'}, output
