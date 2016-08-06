@@ -1,9 +1,9 @@
-require 'abstract_unit'
-require 'active_support/xml_mini'
-require 'active_support/builder'
-require 'active_support/core_ext/hash'
-require 'active_support/core_ext/big_decimal'
-require 'yaml'
+require "abstract_unit"
+require "active_support/xml_mini"
+require "active_support/builder"
+require "active_support/core_ext/hash"
+require "active_support/core_ext/big_decimal"
+require "yaml"
 
 module XmlMiniTest
   class RenameKeyTest < ActiveSupport::TestCase
@@ -92,7 +92,7 @@ module XmlMiniTest
     end
 
     test "#to_tag should use the type value in the options hash" do
-      @xml.to_tag(:b, "blue", @options.merge(type: 'color'))
+      @xml.to_tag(:b, "blue", @options.merge(type: "color"))
       assert_xml( "<b type=\"color\">blue</b>" )
     end
 
@@ -122,7 +122,7 @@ module XmlMiniTest
     end
 
     test "#to_tag accepts datetime types" do
-      @xml.to_tag(:b, DateTime.new(2001,2,3,4,5,6,'+7'), @options)
+      @xml.to_tag(:b, DateTime.new(2001,2,3,4,5,6,"+7"), @options)
       assert_xml( "<b type=\"dateTime\">2001-02-03T04:05:06+07:00</b>")
     end
 
@@ -233,22 +233,22 @@ module XmlMiniTest
     end
 
     def test_symbol
-      parser = @parsing['symbol']
-      assert_equal :symbol, parser.call('symbol')
+      parser = @parsing["symbol"]
+      assert_equal :symbol, parser.call("symbol")
       assert_equal :symbol, parser.call(:symbol)
       assert_equal :'123', parser.call(123)
       assert_raises(ArgumentError) { parser.call(Date.new(2013,11,12,02,11)) }
     end
 
     def test_date
-      parser = @parsing['date']
+      parser = @parsing["date"]
       assert_equal Date.new(2013,11,12), parser.call("2013-11-12T0211Z")
       assert_raises(TypeError) { parser.call(1384190018) }
       assert_raises(ArgumentError) { parser.call("not really a date") }
     end
 
     def test_datetime
-      parser = @parsing['datetime']
+      parser = @parsing["datetime"]
       assert_equal Time.new(2013,11,12,02,11,00,0), parser.call("2013-11-12T02:11:00Z")
       assert_equal DateTime.new(2013,11,12), parser.call("2013-11-12T0211Z")
       assert_equal DateTime.new(2013,11,12,02,11), parser.call("2013-11-12T02:11Z")
@@ -257,7 +257,7 @@ module XmlMiniTest
     end
 
     def test_integer
-      parser = @parsing['integer']
+      parser = @parsing["integer"]
       assert_equal 123, parser.call(123)
       assert_equal 123, parser.call(123.003)
       assert_equal 123, parser.call("123")
@@ -266,7 +266,7 @@ module XmlMiniTest
     end
 
     def test_float
-      parser = @parsing['float']
+      parser = @parsing["float"]
       assert_equal 123, parser.call("123")
       assert_equal 123.003, parser.call("123.003")
       assert_equal 123.0, parser.call("123,003")
@@ -277,7 +277,7 @@ module XmlMiniTest
     end
 
     def test_decimal
-      parser = @parsing['decimal']
+      parser = @parsing["decimal"]
       assert_equal 123, parser.call("123")
       assert_equal 123.003, parser.call("123.003")
       assert_equal 123.0, parser.call("123,003")
@@ -288,7 +288,7 @@ module XmlMiniTest
     end
 
     def test_boolean
-      parser = @parsing['boolean']
+      parser = @parsing["boolean"]
       [1, true, "1"].each do |value|
         assert parser.call(value)
       end
@@ -299,7 +299,7 @@ module XmlMiniTest
     end
 
     def test_string
-      parser = @parsing['string']
+      parser = @parsing["string"]
       assert_equal "123", parser.call(123)
       assert_equal "123", parser.call("123")
       assert_equal "[]", parser.call("[]")
@@ -320,9 +320,9 @@ YAML
           {"sku"=>"BL394D", "quantity"=>4, "description"=>"Basketball"}
         ]
       }
-      parser = @parsing['yaml']
+      parser = @parsing["yaml"]
       assert_equal(expected, parser.call(yaml))
-      assert_equal({1 => 'test'}, parser.call({1 => 'test'}))
+      assert_equal({1 => "test"}, parser.call({1 => "test"}))
       assert_equal({"1 => 'test'"=>nil}, parser.call("{1 => 'test'}"))
     end
 
@@ -341,12 +341,12 @@ in the continued and indefatigable generation of knowledge, exceeds the short
 vehemence of any carnal pleasure.
 EXPECTED
 
-      parser = @parsing['base64Binary']
+      parser = @parsing["base64Binary"]
       assert_equal expected_base64.gsub(/\n/," ").strip, parser.call(base64)
       parser.call("NON BASE64 INPUT")
 
-      parser = @parsing['binary']
-      assert_equal expected_base64.gsub(/\n/," ").strip, parser.call(base64, 'encoding' => 'base64')
+      parser = @parsing["binary"]
+      assert_equal expected_base64.gsub(/\n/," ").strip, parser.call(base64, "encoding" => "base64")
       assert_equal "IGNORED INPUT", parser.call("IGNORED INPUT", {})
     end
   end

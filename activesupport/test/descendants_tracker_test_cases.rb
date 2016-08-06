@@ -1,4 +1,4 @@
-require 'set'
+require "set"
 
 module DescendantsTrackerTestCases
   class Parent

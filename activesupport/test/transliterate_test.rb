@@ -1,5 +1,5 @@
-require 'abstract_unit'
-require 'active_support/inflector/transliterate'
+require "abstract_unit"
+require "active_support/inflector/transliterate"
 
 class TransliterateTest < ActiveSupport::TestCase
   def test_transliterate_should_not_change_ascii_chars

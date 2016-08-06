@@ -1,5 +1,5 @@
-require 'abstract_unit'
-require 'active_support/core_ext/module/delegation'
+require "abstract_unit"
+require "active_support/core_ext/module/delegation"
 
 module Notifications
   class TestCase < ActiveSupport::TestCase
@@ -49,10 +49,10 @@ module Notifications
       old_notifier = ActiveSupport::Notifications.notifier
       ActiveSupport::Notifications.notifier = ActiveSupport::Notifications::Fanout.new
 
-      ActiveSupport::Notifications.subscribe('foo', TestSubscriber.new)
+      ActiveSupport::Notifications.subscribe("foo", TestSubscriber.new)
 
-      ActiveSupport::Notifications.instrument('foo') do
-        ActiveSupport::Notifications.subscribe('foo') {}
+      ActiveSupport::Notifications.instrument("foo") do
+        ActiveSupport::Notifications.subscribe("foo") {}
       end
     ensure
       ActiveSupport::Notifications.notifier = old_notifier
@@ -141,26 +141,26 @@ module Notifications
 
     def test_log_subscriber_with_string
       events = []
-      @notifier.subscribe('1') { |*args| events << args }
+      @notifier.subscribe("1") { |*args| events << args }
 
-      @notifier.publish '1'
-      @notifier.publish '1.a'
-      @notifier.publish 'a.1'
+      @notifier.publish "1"
+      @notifier.publish "1.a"
+      @notifier.publish "a.1"
       @notifier.wait
 
-      assert_equal [['1']], events
+      assert_equal [["1"]], events
     end
 
     def test_log_subscriber_with_pattern
       events = []
       @notifier.subscribe(/\d/) { |*args| events << args }
 
-      @notifier.publish '1'
-      @notifier.publish 'a.1'
-      @notifier.publish '1.a'
+      @notifier.publish "1"
+      @notifier.publish "a.1"
+      @notifier.publish "1.a"
       @notifier.wait
 
-      assert_equal [['1'], ['a.1'], ['1.a']], events
+      assert_equal [["1"], ["a.1"], ["1.a"]], events
     end
 
     def test_multiple_log_subscribers

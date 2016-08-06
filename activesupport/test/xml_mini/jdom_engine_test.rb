@@ -1,17 +1,17 @@
-if RUBY_PLATFORM.include?('java')
-  require 'abstract_unit'
-  require 'active_support/xml_mini'
-  require 'active_support/core_ext/hash/conversions'
+if RUBY_PLATFORM.include?("java")
+  require "abstract_unit"
+  require "active_support/xml_mini"
+  require "active_support/core_ext/hash/conversions"
 
 
   class JDOMEngineTest < ActiveSupport::TestCase
     include ActiveSupport
 
-    FILES_DIR = File.dirname(__FILE__) + '/../fixtures/xml'
+    FILES_DIR = File.dirname(__FILE__) + "/../fixtures/xml"
 
     def setup
       @default_backend = XmlMini.backend
-      XmlMini.backend = 'JDOM'
+      XmlMini.backend = "JDOM"
     end
 
     def teardown
@@ -25,12 +25,12 @@ if RUBY_PLATFORM.include?('java')
            </logo>
          </blog>
        eoxml
-       assert hash.has_key?('blog')
-       assert hash['blog'].has_key?('logo')
+       assert hash.has_key?("blog")
+       assert hash["blog"].has_key?("logo")
 
-       file = hash['blog']['logo']
-       assert_equal 'logo.png', file.original_filename
-       assert_equal 'image/png', file.content_type
+       file = hash["blog"]["logo"]
+       assert_equal "logo.png", file.original_filename
+       assert_equal "image/png", file.content_type
     end
 
     def test_not_allowed_to_expand_entities_to_files
@@ -40,7 +40,7 @@ if RUBY_PLATFORM.include?('java')
       ]>
       <member>x&a;</member>
       EOT
-      assert_equal 'x', Hash.from_xml(attack_xml)["member"]
+      assert_equal "x", Hash.from_xml(attack_xml)["member"]
     end
 
     def test_not_allowed_to_expand_parameter_entities_to_files
@@ -52,7 +52,7 @@ if RUBY_PLATFORM.include?('java')
       <member>x&a;</member>
       EOT
       assert_raise Java::OrgXmlSax::SAXParseException do
-        assert_equal 'x', Hash.from_xml(attack_xml)["member"]
+        assert_equal "x", Hash.from_xml(attack_xml)["member"]
       end
     end
 
@@ -62,7 +62,7 @@ if RUBY_PLATFORM.include?('java')
       <!DOCTYPE member SYSTEM "file://#{FILES_DIR}/jdom_doctype.dtd">
       <member>x&a;</member>
       EOT
-      assert_equal 'x', Hash.from_xml(attack_xml)["member"]
+      assert_equal "x", Hash.from_xml(attack_xml)["member"]
     end
 
     def test_exception_thrown_on_expansion_attack
@@ -86,13 +86,13 @@ if RUBY_PLATFORM.include?('java')
     end
 
     def test_setting_JDOM_as_backend
-      XmlMini.backend = 'JDOM'
+      XmlMini.backend = "JDOM"
       assert_equal XmlMini_JDOM, XmlMini.backend
     end
 
     def test_blank_returns_empty_hash
       assert_equal({}, XmlMini.parse(nil))
-      assert_equal({}, XmlMini.parse(''))
+      assert_equal({}, XmlMini.parse(""))
     end
 
     def test_array_type_makes_an_array
@@ -178,7 +178,7 @@ if RUBY_PLATFORM.include?('java')
     private
       def assert_equal_rexml(xml)
         parsed_xml = XmlMini.parse(xml)
-        hash = XmlMini.with_backend('REXML') { XmlMini.parse(xml) }
+        hash = XmlMini.with_backend("REXML") { XmlMini.parse(xml) }
         assert_equal(hash, parsed_xml)
       end
   end

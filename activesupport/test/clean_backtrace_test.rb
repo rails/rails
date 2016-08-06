@@ -1,9 +1,9 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class BacktraceCleanerFilterTest < ActiveSupport::TestCase
   def setup
     @bc = ActiveSupport::BacktraceCleaner.new
-    @bc.add_filter { |line| line.gsub("/my/prefix", '') }
+    @bc.add_filter { |line| line.gsub("/my/prefix", "") }
   end
 
   test "backtrace should filter all lines in a backtrace, removing prefixes" do
@@ -26,7 +26,7 @@ end
 class BacktraceCleanerSilencerTest < ActiveSupport::TestCase
   def setup
     @bc = ActiveSupport::BacktraceCleaner.new
-    @bc.add_silencer { |line| line.include?('mongrel') }
+    @bc.add_silencer { |line| line.include?("mongrel") }
   end
 
   test "backtrace should not contain lines that match the silencer" do
@@ -44,8 +44,8 @@ end
 class BacktraceCleanerMultipleSilencersTest < ActiveSupport::TestCase
   def setup
     @bc = ActiveSupport::BacktraceCleaner.new
-    @bc.add_silencer { |line| line.include?('mongrel') }
-    @bc.add_silencer { |line| line.include?('yolo') }
+    @bc.add_silencer { |line| line.include?("mongrel") }
+    @bc.add_silencer { |line| line.include?("yolo") }
   end
 
   test "backtrace should not contain lines that match the silencers" do
@@ -66,7 +66,7 @@ class BacktraceCleanerFilterAndSilencerTest < ActiveSupport::TestCase
   def setup
     @bc = ActiveSupport::BacktraceCleaner.new
     @bc.add_filter   { |line| line.gsub("/mongrel", "") }
-    @bc.add_silencer { |line| line.include?('mongrel') }
+    @bc.add_silencer { |line| line.include?("mongrel") }
   end
 
   test "backtrace should not silence lines that has first had their silence hook filtered out" do

@@ -1,7 +1,7 @@
-require 'abstract_unit'
-require 'openssl'
-require 'active_support/time'
-require 'active_support/json'
+require "abstract_unit"
+require "openssl"
+require "active_support/time"
+require "active_support/json"
 
 class MessageVerifierTest < ActiveSupport::TestCase
 
@@ -50,7 +50,7 @@ class MessageVerifierTest < ActiveSupport::TestCase
     prev = ActiveSupport.use_standard_json_time_format
     ActiveSupport.use_standard_json_time_format = true
     verifier = ActiveSupport::MessageVerifier.new("Hey, I'm a secret!", :serializer => JSONSerializer.new)
-    message = verifier.generate({ :foo => 123, 'bar' => Time.utc(2010) })
+    message = verifier.generate({ :foo => 123, "bar" => Time.utc(2010) })
     exp = { "foo" => 123, "bar" => "2010-01-01T00:00:00.000Z" }
     assert_equal exp, verifier.verified(message)
     assert_equal exp, verifier.verify(message)
@@ -81,6 +81,6 @@ class MessageVerifierTest < ActiveSupport::TestCase
     exception = assert_raise(ArgumentError) do
       ActiveSupport::MessageVerifier.new(nil)
     end
-    assert_equal exception.message, 'Secret should not be nil.'
+    assert_equal exception.message, "Secret should not be nil."
   end
 end

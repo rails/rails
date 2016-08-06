@@ -1,16 +1,16 @@
 # encoding: utf-8
 
-require 'abstract_unit'
-require 'multibyte_test_helpers'
+require "abstract_unit"
+require "multibyte_test_helpers"
 
-require 'fileutils'
-require 'open-uri'
-require 'tmpdir'
+require "fileutils"
+require "open-uri"
+require "tmpdir"
 
 class MultibyteGraphemeBreakConformanceTest < ActiveSupport::TestCase
   include MultibyteTestHelpers
 
-  UNIDATA_FILE = '/auxiliary/GraphemeBreakTest.txt'
+  UNIDATA_FILE = "/auxiliary/GraphemeBreakTest.txt"
   RUN_P = begin
             Downloader.download(UNIDATA_URL + UNIDATA_FILE, CACHE_DIR + UNIDATA_FILE)
           rescue
@@ -32,11 +32,11 @@ class MultibyteGraphemeBreakConformanceTest < ActiveSupport::TestCase
     def each_line_of_break_tests(&block)
       lines = 0
       max_test_lines = 0 # Don't limit below 21, because that's the header of the testfile
-      File.open(File.join(CACHE_DIR, UNIDATA_FILE), 'r') do | f |
+      File.open(File.join(CACHE_DIR, UNIDATA_FILE), "r") do | f |
         until f.eof? || (max_test_lines > 21 and lines > max_test_lines)
           lines += 1
           line = f.gets.chomp!
-          next if line.empty? || line.start_with?('#')
+          next if line.empty? || line.start_with?("#")
 
           cols, comment = line.split("#")
           # Cluster breaks are represented by ÷

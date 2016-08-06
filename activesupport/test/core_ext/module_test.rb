@@ -1,5 +1,5 @@
-require 'abstract_unit'
-require 'active_support/core_ext/module'
+require "abstract_unit"
+require "active_support/core_ext/module"
 
 module One
   Constant1 = "Hello World"
@@ -32,7 +32,7 @@ class Someone < Struct.new(:name, :place)
   delegate :table_name, :to => :class, :prefix => true
 
   def self.table_name
-    'some_table'
+    "some_table"
   end
 
   FAILED_DELEGATE_LINE = __LINE__ + 1
@@ -180,8 +180,8 @@ class ModuleTest < ActiveSupport::TestCase
   end
 
   def test_delegation_to_class_method
-    assert_equal 'some_table', @david.table_name
-    assert_equal 'some_table', @david.class_table_name
+    assert_equal "some_table", @david.table_name
+    assert_equal "some_table", @david.class_table_name
   end
 
   def test_missing_delegation_target
@@ -332,12 +332,12 @@ class ModuleTest < ActiveSupport::TestCase
     assert_equal 1, se.to_i
     assert_equal [2, 3], se.ints
 
-    assert_equal '2', se.to_s
+    assert_equal "2", se.to_s
     assert_equal [3], se.ints
   end
 
   def test_delegation_doesnt_mask_nested_no_method_error_on_nil_receiver
-    product = Product.new('Widget')
+    product = Product.new("Widget")
 
     # Nested NoMethodError is a different name from the delegation
     assert_raise(NoMethodError) { product.manufacturer_name }
@@ -408,11 +408,11 @@ end
 
 module BarMethods
   def bar_with_baz
-    bar_without_baz << '_with_baz'
+    bar_without_baz << "_with_baz"
   end
 
   def quux_with_baz!
-    quux_without_baz! << '_with_baz'
+    quux_without_baz! << "_with_baz"
   end
 
   def quux_with_baz?
@@ -420,17 +420,17 @@ module BarMethods
   end
 
   def quux_with_baz=(v)
-    send(:quux_without_baz=, v) << '_with_baz'
+    send(:quux_without_baz=, v) << "_with_baz"
   end
 
   def duck_with_orange
-    duck_without_orange << '_with_orange'
+    duck_without_orange << "_with_orange"
   end
 end
 
 class MethodAliasingTest < ActiveSupport::TestCase
   def setup
-    Object.const_set :FooClassWithBarMethod, Class.new { def bar() 'bar' end }
+    Object.const_set :FooClassWithBarMethod, Class.new { def bar() "bar" end }
     @instance = FooClassWithBarMethod.new
   end
 
@@ -461,7 +461,7 @@ class MethodAliasingTest < ActiveSupport::TestCase
         assert !@instance.respond_to?(method)
       end
 
-      assert_equal 'bar', @instance.bar
+      assert_equal "bar", @instance.bar
 
       FooClassWithBarMethod.class_eval { include BarMethodAliaser }
 
@@ -469,15 +469,15 @@ class MethodAliasingTest < ActiveSupport::TestCase
         assert_respond_to @instance, method
       end
 
-      assert_equal 'bar_with_baz', @instance.bar
-      assert_equal 'bar', @instance.bar_without_baz
+      assert_equal "bar_with_baz", @instance.bar
+      assert_equal "bar", @instance.bar_without_baz
     end
   end
 
   def test_alias_method_chain_with_punctuation_method
     assert_deprecated(/alias_method_chain/) do
       FooClassWithBarMethod.class_eval do
-        def quux!; 'quux' end
+        def quux!; "quux" end
       end
 
       assert !@instance.respond_to?(:quux_with_baz!)
@@ -487,17 +487,17 @@ class MethodAliasingTest < ActiveSupport::TestCase
       end
       assert_respond_to @instance, :quux_with_baz!
 
-      assert_equal 'quux_with_baz', @instance.quux!
-      assert_equal 'quux', @instance.quux_without_baz!
+      assert_equal "quux_with_baz", @instance.quux!
+      assert_equal "quux", @instance.quux_without_baz!
     end
   end
 
   def test_alias_method_chain_with_same_names_between_predicates_and_bang_methods
     assert_deprecated(/alias_method_chain/) do
       FooClassWithBarMethod.class_eval do
-        def quux!; 'quux!' end
+        def quux!; "quux!" end
         def quux?; true end
-        def quux=(v); 'quux=' end
+        def quux=(v); "quux=" end
       end
 
       assert !@instance.respond_to?(:quux_with_baz!)
@@ -511,30 +511,30 @@ class MethodAliasingTest < ActiveSupport::TestCase
 
 
       FooClassWithBarMethod.alias_method_chain :quux!, :baz
-      assert_equal 'quux!_with_baz', @instance.quux!
-      assert_equal 'quux!', @instance.quux_without_baz!
+      assert_equal "quux!_with_baz", @instance.quux!
+      assert_equal "quux!", @instance.quux_without_baz!
 
       FooClassWithBarMethod.alias_method_chain :quux?, :baz
       assert_equal false, @instance.quux?
       assert_equal true,  @instance.quux_without_baz?
 
       FooClassWithBarMethod.alias_method_chain :quux=, :baz
-      assert_equal 'quux=_with_baz', @instance.send(:quux=, 1234)
-      assert_equal 'quux=', @instance.send(:quux_without_baz=, 1234)
+      assert_equal "quux=_with_baz", @instance.send(:quux=, 1234)
+      assert_equal "quux=", @instance.send(:quux_without_baz=, 1234)
     end
   end
 
   def test_alias_method_chain_with_feature_punctuation
     assert_deprecated(/alias_method_chain/) do
       FooClassWithBarMethod.class_eval do
-        def quux; 'quux' end
-        def quux?; 'quux?' end
+        def quux; "quux" end
+        def quux?; "quux?" end
         include BarMethodAliaser
         alias_method_chain :quux, :baz!
       end
 
       assert_nothing_raised do
-        assert_equal 'quux_with_baz', @instance.quux_with_baz!
+        assert_equal "quux_with_baz", @instance.quux_with_baz!
       end
 
       assert_raise(NameError) do
@@ -557,15 +557,15 @@ class MethodAliasingTest < ActiveSupport::TestCase
       end
 
       assert_not_nil args
-      assert_equal 'quux', args[0]
-      assert_equal '?', args[1]
+      assert_equal "quux", args[0]
+      assert_equal "?", args[1]
     end
   end
 
   def test_alias_method_chain_preserves_private_method_status
     assert_deprecated(/alias_method_chain/) do
       FooClassWithBarMethod.class_eval do
-        def duck; 'duck' end
+        def duck; "duck" end
         include BarMethodAliaser
         private :duck
         alias_method_chain :duck, :orange
@@ -575,7 +575,7 @@ class MethodAliasingTest < ActiveSupport::TestCase
         @instance.duck
       end
 
-      assert_equal 'duck_with_orange', @instance.instance_eval { duck }
+      assert_equal "duck_with_orange", @instance.instance_eval { duck }
       assert FooClassWithBarMethod.private_method_defined?(:duck)
     end
   end
@@ -583,7 +583,7 @@ class MethodAliasingTest < ActiveSupport::TestCase
   def test_alias_method_chain_preserves_protected_method_status
     assert_deprecated(/alias_method_chain/) do
       FooClassWithBarMethod.class_eval do
-        def duck; 'duck' end
+        def duck; "duck" end
         include BarMethodAliaser
         protected :duck
         alias_method_chain :duck, :orange
@@ -593,7 +593,7 @@ class MethodAliasingTest < ActiveSupport::TestCase
         @instance.duck
       end
 
-      assert_equal 'duck_with_orange', @instance.instance_eval { duck }
+      assert_equal "duck_with_orange", @instance.instance_eval { duck }
       assert FooClassWithBarMethod.protected_method_defined?(:duck)
     end
   end
@@ -601,13 +601,13 @@ class MethodAliasingTest < ActiveSupport::TestCase
   def test_alias_method_chain_preserves_public_method_status
     assert_deprecated(/alias_method_chain/) do
       FooClassWithBarMethod.class_eval do
-        def duck; 'duck' end
+        def duck; "duck" end
         include BarMethodAliaser
         public :duck
         alias_method_chain :duck, :orange
       end
 
-      assert_equal 'duck_with_orange', @instance.duck
+      assert_equal "duck_with_orange", @instance.duck
       assert FooClassWithBarMethod.public_method_defined?(:duck)
     end
   end

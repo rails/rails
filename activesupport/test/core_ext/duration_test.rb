@@ -1,8 +1,8 @@
-require 'abstract_unit'
-require 'active_support/inflector'
-require 'active_support/time'
-require 'active_support/json'
-require 'time_zone_test_helpers'
+require "abstract_unit"
+require "active_support/inflector"
+require "active_support/time"
+require "active_support/json"
+require "time_zone_test_helpers"
 
 class DurationTest < ActiveSupport::TestCase
   include TimeZoneTestHelpers
@@ -29,14 +29,14 @@ class DurationTest < ActiveSupport::TestCase
   def test_threequals
     assert ActiveSupport::Duration === 1.day
     assert !(ActiveSupport::Duration === 1.day.to_i)
-    assert !(ActiveSupport::Duration === 'foo')
+    assert !(ActiveSupport::Duration === "foo")
   end
 
   def test_equals
     assert 1.day == 1.day
     assert 1.day == 1.day.to_i
     assert 1.day.to_i == 1.day
-    assert !(1.day == 'foo')
+    assert !(1.day == "foo")
   end
 
   def test_to_s
@@ -54,28 +54,28 @@ class DurationTest < ActiveSupport::TestCase
     assert !1.eql?(1.second)
     assert 1.minute.eql?(180.seconds - 2.minutes)
     assert !1.minute.eql?(60)
-    assert !1.minute.eql?('foo')
+    assert !1.minute.eql?("foo")
   end
 
   def test_inspect
-    assert_equal '0 seconds',                       0.seconds.inspect
-    assert_equal '1 month',                         1.month.inspect
-    assert_equal '1 month and 1 day',               (1.month + 1.day).inspect
-    assert_equal '6 months and -2 days',            (6.months - 2.days).inspect
-    assert_equal '10 seconds',                      10.seconds.inspect
-    assert_equal '10 years, 2 months, and 1 day',   (10.years + 2.months + 1.day).inspect
-    assert_equal '10 years, 2 months, and 1 day',   (10.years + 1.month  + 1.day + 1.month).inspect
-    assert_equal '10 years, 2 months, and 1 day',   (1.day + 10.years + 2.months).inspect
-    assert_equal '7 days',                          7.days.inspect
-    assert_equal '1 week',                          1.week.inspect
-    assert_equal '2 weeks',                         1.fortnight.inspect
+    assert_equal "0 seconds",                       0.seconds.inspect
+    assert_equal "1 month",                         1.month.inspect
+    assert_equal "1 month and 1 day",               (1.month + 1.day).inspect
+    assert_equal "6 months and -2 days",            (6.months - 2.days).inspect
+    assert_equal "10 seconds",                      10.seconds.inspect
+    assert_equal "10 years, 2 months, and 1 day",   (10.years + 2.months + 1.day).inspect
+    assert_equal "10 years, 2 months, and 1 day",   (10.years + 1.month  + 1.day + 1.month).inspect
+    assert_equal "10 years, 2 months, and 1 day",   (1.day + 10.years + 2.months).inspect
+    assert_equal "7 days",                          7.days.inspect
+    assert_equal "1 week",                          1.week.inspect
+    assert_equal "2 weeks",                         1.fortnight.inspect
   end
 
   def test_inspect_locale
     current_locale = I18n.default_locale
     I18n.default_locale = :de
-    I18n.backend.store_translations(:de, { support: { array: { last_word_connector: ' und ' } } })
-    assert_equal '10 years, 1 month und 1 day', (10.years + 1.month  + 1.day).inspect
+    I18n.backend.store_translations(:de, { support: { array: { last_word_connector: " und " } } })
+    assert_equal "10 years, 1 month und 1 day", (10.years + 1.month  + 1.day).inspect
   ensure
     I18n.default_locale = current_locale
   end
@@ -89,7 +89,7 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_time_plus_duration_returns_same_time_datatype
-    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone['Moscow'] , Time.utc(2016,4,28,00,45))
+    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Moscow"] , Time.utc(2016,4,28,00,45))
     now = Time.now.utc
     %w( second minute hour day week month year ).each do |unit|
       assert_equal((now + 1.send(unit)).class, Time, "Time + 1.#{unit} must be Time")
@@ -99,7 +99,7 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_argument_error
     e = assert_raise ArgumentError do
-      1.second.ago('')
+      1.second.ago("")
     end
     assert_equal 'expected a time or date, got ""', e.message, "ensure ArgumentError is not being raised by dependencies.rb"
   end
@@ -149,7 +149,7 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_since_and_ago_anchored_to_time_now_when_time_zone_is_not_set
     Time.zone = nil
-    with_env_tz 'US/Eastern' do
+    with_env_tz "US/Eastern" do
       Time.stub(:now, Time.local(2000)) do
         # since
         assert_not_instance_of ActiveSupport::TimeWithZone, 5.seconds.since
@@ -162,17 +162,17 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_since_and_ago_anchored_to_time_zone_now_when_time_zone_is_set
-    Time.zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
-    with_env_tz 'US/Eastern' do
+    Time.zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+    with_env_tz "US/Eastern" do
       Time.stub(:now, Time.local(2000)) do
         # since
         assert_instance_of ActiveSupport::TimeWithZone, 5.seconds.since
         assert_equal Time.utc(2000,1,1,0,0,5), 5.seconds.since.time
-        assert_equal 'Eastern Time (US & Canada)', 5.seconds.since.time_zone.name
+        assert_equal "Eastern Time (US & Canada)", 5.seconds.since.time_zone.name
         # ago
         assert_instance_of ActiveSupport::TimeWithZone, 5.seconds.ago
         assert_equal Time.utc(1999,12,31,23,59,55), 5.seconds.ago.time
-        assert_equal 'Eastern Time (US & Canada)', 5.seconds.ago.time_zone.name
+        assert_equal "Eastern Time (US & Canada)", 5.seconds.ago.time_zone.name
       end
     end
   ensure
@@ -180,13 +180,13 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_adding_hours_across_dst_boundary
-    with_env_tz 'CET' do
+    with_env_tz "CET" do
       assert_equal Time.local(2009,3,29,0,0,0) + 24.hours, Time.local(2009,3,30,1,0,0)
     end
   end
 
   def test_adding_day_across_dst_boundary
-    with_env_tz 'CET' do
+    with_env_tz "CET" do
       assert_equal Time.local(2009,3,29,0,0,0) + 1.day, Time.local(2009,3,30,0,0,0)
     end
   end
@@ -204,7 +204,7 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_to_json
-    assert_equal '172800', 2.days.to_json
+    assert_equal "172800", 2.days.to_json
   end
 
   def test_case_when
@@ -260,7 +260,7 @@ class DurationTest < ActiveSupport::TestCase
   # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
   def test_iso8601_parsing_wrong_patterns_with_raise
-    invalid_patterns = ['', 'P', 'PT', 'P1YT', 'T', 'PW', 'P1Y1W', '~P1Y', '.P1Y', 'P1.5Y0.5M', 'P1.5Y1M', 'P1.5MT10.5S']
+    invalid_patterns = ["", "P", "PT", "P1YT", "T", "PW", "P1Y1W", "~P1Y", ".P1Y", "P1.5Y0.5M", "P1.5Y1M", "P1.5MT10.5S"]
     invalid_patterns.each do |pattern|
       assert_raise ActiveSupport::Duration::ISO8601Parser::ParsingError, pattern.inspect do
         ActiveSupport::Duration.parse(pattern)
@@ -270,16 +270,16 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_iso8601_output
     expectations = [
-      ['P1Y',           1.year                           ],
-      ['P1W',           1.week                           ],
-      ['P1Y1M',         1.year + 1.month                 ],
-      ['P1Y1M1D',       1.year + 1.month + 1.day         ],
-      ['-P1Y1D',        -1.year - 1.day                  ],
-      ['P1Y-1DT-1S',    1.year - 1.day - 1.second        ], # Parts with different signs are exists in PostgreSQL interval datatype.
-      ['PT1S',          1.second                         ],
-      ['PT1.4S',        (1.4).seconds                    ],
-      ['P1Y1M1DT1H',    1.year + 1.month + 1.day + 1.hour],
-      ['PT0S',          0.minutes                        ],
+      ["P1Y",           1.year                           ],
+      ["P1W",           1.week                           ],
+      ["P1Y1M",         1.year + 1.month                 ],
+      ["P1Y1M1D",       1.year + 1.month + 1.day         ],
+      ["-P1Y1D",        -1.year - 1.day                  ],
+      ["P1Y-1DT-1S",    1.year - 1.day - 1.second        ], # Parts with different signs are exists in PostgreSQL interval datatype.
+      ["PT1S",          1.second                         ],
+      ["PT1.4S",        (1.4).seconds                    ],
+      ["P1Y1M1DT1H",    1.year + 1.month + 1.day + 1.hour],
+      ["PT0S",          0.minutes                        ],
     ]
     expectations.each do |expected_output, duration|
       assert_equal expected_output, duration.iso8601, expected_output.inspect
@@ -288,17 +288,17 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_iso8601_output_precision
     expectations = [
-        [nil, 'P1Y1MT5.55S',  1.year + 1.month + (5.55).seconds ],
-        [0,   'P1Y1MT6S',     1.year + 1.month + (5.55).seconds ],
-        [1,   'P1Y1MT5.5S',   1.year + 1.month + (5.55).seconds ],
-        [2,   'P1Y1MT5.55S',  1.year + 1.month + (5.55).seconds ],
-        [3,   'P1Y1MT5.550S', 1.year + 1.month + (5.55).seconds ],
-        [nil, 'PT1S',         1.second                          ],
-        [2,   'PT1.00S',      1.second                          ],
-        [nil, 'PT1.4S',       (1.4).seconds                     ],
-        [0,   'PT1S',         (1.4).seconds                     ],
-        [1,   'PT1.4S',       (1.4).seconds                     ],
-        [5,   'PT1.40000S',   (1.4).seconds                     ],
+        [nil, "P1Y1MT5.55S",  1.year + 1.month + (5.55).seconds ],
+        [0,   "P1Y1MT6S",     1.year + 1.month + (5.55).seconds ],
+        [1,   "P1Y1MT5.5S",   1.year + 1.month + (5.55).seconds ],
+        [2,   "P1Y1MT5.55S",  1.year + 1.month + (5.55).seconds ],
+        [3,   "P1Y1MT5.550S", 1.year + 1.month + (5.55).seconds ],
+        [nil, "PT1S",         1.second                          ],
+        [2,   "PT1.00S",      1.second                          ],
+        [nil, "PT1.4S",       (1.4).seconds                     ],
+        [0,   "PT1S",         (1.4).seconds                     ],
+        [1,   "PT1.4S",       (1.4).seconds                     ],
+        [5,   "PT1.40000S",   (1.4).seconds                     ],
     ]
     expectations.each do |precision, expected_output, duration|
       assert_equal expected_output, duration.iso8601(precision: precision), expected_output.inspect

@@ -1,8 +1,8 @@
-require 'abstract_unit'
-require 'active_support/json'
-require 'active_support/core_ext/object/json'
-require 'active_support/core_ext/hash/indifferent_access'
-require 'active_support/core_ext/array/extract_options'
+require "abstract_unit"
+require "active_support/json"
+require "active_support/core_ext/object/json"
+require "active_support/core_ext/hash/indifferent_access"
+require "active_support/core_ext/array/extract_options"
 
 class OrderedHashTest < ActiveSupport::TestCase
   def setup
@@ -27,7 +27,7 @@ class OrderedHashTest < ActiveSupport::TestCase
   end
 
   def test_assignment
-    key, value = 'purple', '5422a8'
+    key, value = "purple", "5422a8"
 
     @ordered_hash[key] = value
     assert_equal @keys.length + 1, @ordered_hash.length
@@ -37,8 +37,8 @@ class OrderedHashTest < ActiveSupport::TestCase
   end
 
   def test_delete
-    key, value = 'white', 'ffffff'
-    bad_key = 'black'
+    key, value = "white", "ffffff"
+    bad_key = "black"
 
     @ordered_hash[key] = value
     assert_equal @keys.length + 1, @ordered_hash.length
@@ -60,22 +60,22 @@ class OrderedHashTest < ActiveSupport::TestCase
   end
 
   def test_has_key
-    assert_equal true, @ordered_hash.has_key?('blue')
-    assert_equal true, @ordered_hash.key?('blue')
-    assert_equal true, @ordered_hash.include?('blue')
-    assert_equal true, @ordered_hash.member?('blue')
+    assert_equal true, @ordered_hash.has_key?("blue")
+    assert_equal true, @ordered_hash.key?("blue")
+    assert_equal true, @ordered_hash.include?("blue")
+    assert_equal true, @ordered_hash.member?("blue")
 
-    assert_equal false, @ordered_hash.has_key?('indigo')
-    assert_equal false, @ordered_hash.key?('indigo')
-    assert_equal false, @ordered_hash.include?('indigo')
-    assert_equal false, @ordered_hash.member?('indigo')
+    assert_equal false, @ordered_hash.has_key?("indigo")
+    assert_equal false, @ordered_hash.key?("indigo")
+    assert_equal false, @ordered_hash.include?("indigo")
+    assert_equal false, @ordered_hash.member?("indigo")
   end
 
   def test_has_value
-    assert_equal true, @ordered_hash.has_value?('000099')
-    assert_equal true, @ordered_hash.value?('000099')
-    assert_equal false, @ordered_hash.has_value?('ABCABC')
-    assert_equal false, @ordered_hash.value?('ABCABC')
+    assert_equal true, @ordered_hash.has_value?("000099")
+    assert_equal true, @ordered_hash.value?("000099")
+    assert_equal false, @ordered_hash.has_value?("ABCABC")
+    assert_equal false, @ordered_hash.value?("ABCABC")
   end
 
   def test_each_key
@@ -127,24 +127,24 @@ class OrderedHashTest < ActiveSupport::TestCase
 
   def test_delete_if
     copy = @ordered_hash.dup
-    copy.delete('pink')
-    assert_equal copy, @ordered_hash.delete_if { |k, _| k == 'pink' }
-    assert !@ordered_hash.keys.include?('pink')
+    copy.delete("pink")
+    assert_equal copy, @ordered_hash.delete_if { |k, _| k == "pink" }
+    assert !@ordered_hash.keys.include?("pink")
   end
 
   def test_reject!
-    (copy = @ordered_hash.dup).delete('pink')
-    @ordered_hash.reject! { |k, _| k == 'pink' }
+    (copy = @ordered_hash.dup).delete("pink")
+    @ordered_hash.reject! { |k, _| k == "pink" }
     assert_equal copy, @ordered_hash
-    assert !@ordered_hash.keys.include?('pink')
+    assert !@ordered_hash.keys.include?("pink")
   end
 
   def test_reject
     copy = @ordered_hash.dup
-    new_ordered_hash = @ordered_hash.reject { |k, _| k == 'pink' }
+    new_ordered_hash = @ordered_hash.reject { |k, _| k == "pink" }
     assert_equal copy, @ordered_hash
-    assert !new_ordered_hash.keys.include?('pink')
-    assert @ordered_hash.keys.include?('pink')
+    assert !new_ordered_hash.keys.include?("pink")
+    assert @ordered_hash.keys.include?("pink")
     assert_instance_of ActiveSupport::OrderedHash, new_ordered_hash
   end
 
@@ -155,11 +155,11 @@ class OrderedHashTest < ActiveSupport::TestCase
 
   def test_merge
     other_hash =  ActiveSupport::OrderedHash.new
-    other_hash['purple'] = '800080'
-    other_hash['violet'] = 'ee82ee'
+    other_hash["purple"] = "800080"
+    other_hash["violet"] = "ee82ee"
     merged = @ordered_hash.merge other_hash
     assert_equal merged.length, @ordered_hash.length + other_hash.length
-    assert_equal @keys + ['purple', 'violet'], merged.keys
+    assert_equal @keys + ["purple", "violet"], merged.keys
   end
 
   def test_merge_with_block
@@ -220,11 +220,11 @@ class OrderedHashTest < ActiveSupport::TestCase
     alternate = ActiveSupport::OrderedHash[ [
       [1, 2],
       [3, 4],
-      [ 'missing value' ]
+      [ "missing value" ]
     ]]
 
     assert_kind_of ActiveSupport::OrderedHash, alternate
-    assert_equal [1, 3, 'missing value'], alternate.keys
+    assert_equal [1, 3, "missing value"], alternate.keys
     assert_equal [2, 4, nil ], alternate.values
   end
 
@@ -235,7 +235,7 @@ class OrderedHashTest < ActiveSupport::TestCase
   end
 
   def test_replace_updates_keys
-    @other_ordered_hash = ActiveSupport::OrderedHash[:black, '000000', :white, '000000']
+    @other_ordered_hash = ActiveSupport::OrderedHash[:black, "000000", :white, "000000"]
     original = @ordered_hash.replace(@other_ordered_hash)
     assert_same original, @ordered_hash
     assert_equal @other_ordered_hash.keys, @ordered_hash.keys
@@ -295,12 +295,12 @@ class OrderedHashTest < ActiveSupport::TestCase
 
   def test_psych_serialize_tag
     yaml = Psych.dump(@ordered_hash)
-    assert_match '!omap', yaml
+    assert_match "!omap", yaml
   end
 
   def test_has_yaml_tag
     @ordered_hash[:array] = %w(a b c)
-    assert_match '!omap', YAML.dump(@ordered_hash)
+    assert_match "!omap", YAML.dump(@ordered_hash)
   end
 
   def test_update_sets_keys

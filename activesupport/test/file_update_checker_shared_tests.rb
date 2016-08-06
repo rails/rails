@@ -1,4 +1,4 @@
-require 'fileutils'
+require "fileutils"
 
 module FileUpdateCheckerSharedTests
   extend ActiveSupport::Testing::Declarative
@@ -22,8 +22,8 @@ module FileUpdateCheckerSharedTests
     end
   end
 
-  test 'should not execute the block if no paths are given' do
-    silence_warnings { require 'listen' }
+  test "should not execute the block if no paths are given" do
+    silence_warnings { require "listen" }
     i = 0
 
     checker = new_checker { i += 1 }
@@ -32,7 +32,7 @@ module FileUpdateCheckerSharedTests
     assert_equal 0, i
   end
 
-  test 'should not execute the block if no files change' do
+  test "should not execute the block if no files change" do
     i = 0
 
     FileUtils.touch(tmpfiles)
@@ -43,7 +43,7 @@ module FileUpdateCheckerSharedTests
     assert_equal 0, i
   end
 
-  test 'should execute the block once when files are created' do
+  test "should execute the block once when files are created" do
     i = 0
 
     checker = new_checker(tmpfiles) { i += 1 }
@@ -54,7 +54,7 @@ module FileUpdateCheckerSharedTests
     assert_equal 1, i
   end
 
-  test 'should execute the block once when files are modified' do
+  test "should execute the block once when files are modified" do
     i = 0
 
     FileUtils.touch(tmpfiles)
@@ -67,7 +67,7 @@ module FileUpdateCheckerSharedTests
     assert_equal 1, i
   end
 
-  test 'should execute the block once when files are deleted' do
+  test "should execute the block once when files are deleted" do
     i = 0
 
     FileUtils.touch(tmpfiles)
@@ -81,7 +81,7 @@ module FileUpdateCheckerSharedTests
   end
 
 
-  test 'updated should become true when watched files are created' do
+  test "updated should become true when watched files are created" do
     i = 0
 
     checker = new_checker(tmpfiles) { i += 1 }
@@ -93,7 +93,7 @@ module FileUpdateCheckerSharedTests
   end
 
 
-  test 'updated should become true when watched files are modified' do
+  test "updated should become true when watched files are modified" do
     i = 0
 
     FileUtils.touch(tmpfiles)
@@ -106,7 +106,7 @@ module FileUpdateCheckerSharedTests
     assert checker.updated?
   end
 
-  test 'updated should become true when watched files are deleted' do
+  test "updated should become true when watched files are deleted" do
     i = 0
 
     FileUtils.touch(tmpfiles)
@@ -119,7 +119,7 @@ module FileUpdateCheckerSharedTests
     assert checker.updated?
   end
 
-  test 'should be robust to handle files with wrong modified time' do
+  test "should be robust to handle files with wrong modified time" do
     i = 0
 
     FileUtils.touch(tmpfiles)
@@ -136,7 +136,7 @@ module FileUpdateCheckerSharedTests
     assert_equal 1, i
   end
 
-  test 'should return max_time for files with mtime = Time.at(0)' do
+  test "should return max_time for files with mtime = Time.at(0)" do
     i = 0
 
     FileUtils.touch(tmpfiles)
@@ -152,7 +152,7 @@ module FileUpdateCheckerSharedTests
     assert_equal 1, i
   end
 
-  test 'should cache updated result until execute' do
+  test "should cache updated result until execute" do
     i = 0
 
     checker = new_checker(tmpfiles) { i += 1 }
@@ -165,48 +165,48 @@ module FileUpdateCheckerSharedTests
     assert !checker.updated?
   end
 
-  test 'should execute the block if files change in a watched directory one extension' do
+  test "should execute the block if files change in a watched directory one extension" do
     i = 0
 
     checker = new_checker([], tmpdir => :rb) { i += 1 }
 
-    touch(tmpfile('foo.rb'))
+    touch(tmpfile("foo.rb"))
 
     assert checker.execute_if_updated
     assert_equal 1, i
   end
 
-  test 'should execute the block if files change in a watched directory several extensions' do
+  test "should execute the block if files change in a watched directory several extensions" do
     i = 0
 
     checker = new_checker([], tmpdir => [:rb, :txt]) { i += 1 }
 
-    touch(tmpfile('foo.rb'))
+    touch(tmpfile("foo.rb"))
 
     assert checker.execute_if_updated
     assert_equal 1, i
 
-    touch(tmpfile('foo.txt'))
+    touch(tmpfile("foo.txt"))
 
     assert checker.execute_if_updated
     assert_equal 2, i
   end
 
-  test 'should not execute the block if the file extension is not watched' do
+  test "should not execute the block if the file extension is not watched" do
     i = 0
 
     checker = new_checker([], tmpdir => :txt) { i += 1 }
 
-    touch(tmpfile('foo.rb'))
+    touch(tmpfile("foo.rb"))
 
     assert !checker.execute_if_updated
     assert_equal 0, i
   end
 
-  test 'does not assume files exist on instantiation' do
+  test "does not assume files exist on instantiation" do
     i = 0
 
-    non_existing = tmpfile('non_existing.rb')
+    non_existing = tmpfile("non_existing.rb")
     checker = new_checker([non_existing]) { i += 1 }
 
     touch(non_existing)
@@ -215,12 +215,12 @@ module FileUpdateCheckerSharedTests
     assert_equal 1, i
   end
 
-  test 'detects files in new subdirectories' do
+  test "detects files in new subdirectories" do
     i = 0
 
     checker = new_checker([], tmpdir => :rb) { i += 1 }
 
-    subdir = tmpfile('subdir')
+    subdir = tmpfile("subdir")
     mkdir(subdir)
     wait
 
@@ -233,15 +233,15 @@ module FileUpdateCheckerSharedTests
     assert_equal 1, i
   end
 
-  test 'looked up extensions are inherited in subdirectories not listening to them' do
+  test "looked up extensions are inherited in subdirectories not listening to them" do
     i = 0
 
-    subdir = tmpfile('subdir')
+    subdir = tmpfile("subdir")
     mkdir(subdir)
 
     checker = new_checker([], tmpdir => :rb, subdir => :txt) { i += 1 }
 
-    touch(tmpfile('new.txt'))
+    touch(tmpfile("new.txt"))
 
     assert !checker.execute_if_updated
     assert_equal 0, i

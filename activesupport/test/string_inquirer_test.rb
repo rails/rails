@@ -1,8 +1,8 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class StringInquirerTest < ActiveSupport::TestCase
   def setup
-    @string_inquirer = ActiveSupport::StringInquirer.new('production')
+    @string_inquirer = ActiveSupport::StringInquirer.new("production")
   end
 
   def test_match

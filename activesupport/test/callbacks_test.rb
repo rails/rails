@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 module CallbacksTest
   class Record
@@ -61,7 +61,7 @@ module CallbacksTest
       send(callback_method, callback_symbol(callback_method_sym))
       ActiveSupport::Deprecation.silence { send(callback_method, callback_string(callback_method_sym)) }
       send(callback_method, callback_proc(callback_method_sym))
-      send(callback_method, callback_object(callback_method_sym.to_s.gsub(/_save/, '')))
+      send(callback_method, callback_object(callback_method_sym.to_s.gsub(/_save/, "")))
       send(callback_method, CallbackClass)
       send(callback_method) { |model| model.history << [callback_method_sym, :block] }
     end
@@ -195,10 +195,10 @@ module CallbacksTest
     before_save Proc.new { |r| r.history << [:before_save, :symbol] }, :unless => :no
     before_save Proc.new { |r| r.history << "b00m" }, :unless => :yes
     # string
-    before_save Proc.new { |r| r.history << [:before_save, :string] }, :if => 'yes'
-    before_save Proc.new { |r| r.history << "b00m" }, :if => 'no'
-    before_save Proc.new { |r| r.history << [:before_save, :string] }, :unless => 'no'
-    before_save Proc.new { |r| r.history << "b00m" }, :unless => 'yes'
+    before_save Proc.new { |r| r.history << [:before_save, :string] }, :if => "yes"
+    before_save Proc.new { |r| r.history << "b00m" }, :if => "no"
+    before_save Proc.new { |r| r.history << [:before_save, :string] }, :unless => "no"
+    before_save Proc.new { |r| r.history << "b00m" }, :unless => "yes"
     # Combined if and unless
     before_save Proc.new { |r| r.history << [:before_save, :combined_symbol] }, :if => :yes, :unless => :no
     before_save Proc.new { |r| r.history << "b00m" }, :if => :yes, :unless => :yes

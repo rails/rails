@@ -1,42 +1,42 @@
-require 'abstract_unit'
-require 'active_support/core_ext/array'
-require 'active_support/core_ext/big_decimal'
-require 'active_support/core_ext/hash'
-require 'active_support/core_ext/string'
+require "abstract_unit"
+require "active_support/core_ext/array"
+require "active_support/core_ext/big_decimal"
+require "active_support/core_ext/hash"
+require "active_support/core_ext/string"
 
 class ToSentenceTest < ActiveSupport::TestCase
   def test_plain_array_to_sentence
     assert_equal "", [].to_sentence
-    assert_equal "one", ['one'].to_sentence
-    assert_equal "one and two", ['one', 'two'].to_sentence
-    assert_equal "one, two, and three", ['one', 'two', 'three'].to_sentence
+    assert_equal "one", ["one"].to_sentence
+    assert_equal "one and two", ["one", "two"].to_sentence
+    assert_equal "one, two, and three", ["one", "two", "three"].to_sentence
   end
 
   def test_to_sentence_with_words_connector
-    assert_equal "one two, and three", ['one', 'two', 'three'].to_sentence(words_connector: ' ')
-    assert_equal "one & two, and three", ['one', 'two', 'three'].to_sentence(words_connector: ' & ')
-    assert_equal "onetwo, and three", ['one', 'two', 'three'].to_sentence(words_connector: nil)
+    assert_equal "one two, and three", ["one", "two", "three"].to_sentence(words_connector: " ")
+    assert_equal "one & two, and three", ["one", "two", "three"].to_sentence(words_connector: " & ")
+    assert_equal "onetwo, and three", ["one", "two", "three"].to_sentence(words_connector: nil)
   end
 
   def test_to_sentence_with_last_word_connector
-    assert_equal "one, two, and also three", ['one', 'two', 'three'].to_sentence(last_word_connector: ', and also ')
-    assert_equal "one, twothree", ['one', 'two', 'three'].to_sentence(last_word_connector: nil)
-    assert_equal "one, two three", ['one', 'two', 'three'].to_sentence(last_word_connector: ' ')
-    assert_equal "one, two and three", ['one', 'two', 'three'].to_sentence(last_word_connector: ' and ')
+    assert_equal "one, two, and also three", ["one", "two", "three"].to_sentence(last_word_connector: ", and also ")
+    assert_equal "one, twothree", ["one", "two", "three"].to_sentence(last_word_connector: nil)
+    assert_equal "one, two three", ["one", "two", "three"].to_sentence(last_word_connector: " ")
+    assert_equal "one, two and three", ["one", "two", "three"].to_sentence(last_word_connector: " and ")
   end
 
   def test_to_sentence_with_fallback_string
-    assert_equal "none", [].to_sentence(fallback_string: 'none')
-    assert_equal "one, two, and three", ['one', 'two', 'three'].to_sentence(fallback_string: 'none')
+    assert_equal "none", [].to_sentence(fallback_string: "none")
+    assert_equal "one, two, and three", ["one", "two", "three"].to_sentence(fallback_string: "none")
   end
 
   def test_two_elements
-    assert_equal "one and two", ['one', 'two'].to_sentence
-    assert_equal "one two", ['one', 'two'].to_sentence(two_words_connector: ' ')
+    assert_equal "one and two", ["one", "two"].to_sentence
+    assert_equal "one two", ["one", "two"].to_sentence(two_words_connector: " ")
   end
 
   def test_one_element
-    assert_equal "one", ['one'].to_sentence
+    assert_equal "one", ["one"].to_sentence
   end
 
   def test_one_element_not_same_object
@@ -45,31 +45,31 @@ class ToSentenceTest < ActiveSupport::TestCase
   end
 
   def test_one_non_string_element
-    assert_equal '1', [1].to_sentence
+    assert_equal "1", [1].to_sentence
   end
 
   def test_does_not_modify_given_hash
-    options = { words_connector: ' ' }
-    assert_equal "one two, and three", ['one', 'two', 'three'].to_sentence(options)
-    assert_equal({ words_connector: ' ' }, options)
+    options = { words_connector: " " }
+    assert_equal "one two, and three", ["one", "two", "three"].to_sentence(options)
+    assert_equal({ words_connector: " " }, options)
   end
 
   def test_with_blank_elements
-    assert_equal ", one, , two, and three", [nil, 'one', '', 'two', 'three'].to_sentence
+    assert_equal ", one, , two, and three", [nil, "one", "", "two", "three"].to_sentence
   end
 
   def test_with_invalid_options
     exception = assert_raise ArgumentError do
-      ['one', 'two'].to_sentence(passing: 'invalid option')
+      ["one", "two"].to_sentence(passing: "invalid option")
     end
 
     assert_equal exception.message, "Unknown key: :passing. Valid keys are: :words_connector, :two_words_connector, :last_word_connector, :locale, :fallback_string"
   end
 
   def test_always_returns_string
-    assert_instance_of String, [ActiveSupport::SafeBuffer.new('one')].to_sentence
-    assert_instance_of String, [ActiveSupport::SafeBuffer.new('one'), 'two'].to_sentence
-    assert_instance_of String, [ActiveSupport::SafeBuffer.new('one'), 'two', 'three'].to_sentence
+    assert_instance_of String, [ActiveSupport::SafeBuffer.new("one")].to_sentence
+    assert_instance_of String, [ActiveSupport::SafeBuffer.new("one"), "two"].to_sentence
+    assert_instance_of String, [ActiveSupport::SafeBuffer.new("one"), "two", "three"].to_sentence
   end
 end
 
@@ -93,7 +93,7 @@ class ToXmlTest < ActiveSupport::TestCase
   def test_to_xml_with_hash_elements
     xml = [
       { name: "David", age: 26, age_in_millis: 820497600000 },
-      { name: "Jason", age: 31, age_in_millis: BigDecimal.new('1.0') }
+      { name: "Jason", age: 31, age_in_millis: BigDecimal.new("1.0") }
     ].to_xml(skip_instruct: true, indent: 0)
 
     assert_equal '<objects type="array"><object>', xml.first(30)
@@ -113,7 +113,7 @@ class ToXmlTest < ActiveSupport::TestCase
   end
 
   def test_to_xml_with_non_hash_different_type_elements
-    xml = [1, 2.0, '3'].to_xml(skip_instruct: true, indent: 0)
+    xml = [1, 2.0, "3"].to_xml(skip_instruct: true, indent: 0)
 
     assert_equal '<objects type="array"><object', xml.first(29)
     assert xml.include?(%(<object type="integer">1</object>)), xml
@@ -176,7 +176,7 @@ class ToXmlTest < ActiveSupport::TestCase
   def test_to_xml_with_instruct
     xml = [
       { name: "David", age: 26, age_in_millis: 820497600000 },
-      { name: "Jason", age: 31, age_in_millis: BigDecimal.new('1.0') }
+      { name: "Jason", age: 31, age_in_millis: BigDecimal.new("1.0") }
     ].to_xml(skip_instruct: false, indent: 0)
 
     assert_match(/^<\?xml [^>]*/, xml)
@@ -186,7 +186,7 @@ class ToXmlTest < ActiveSupport::TestCase
   def test_to_xml_with_block
     xml = [
       { name: "David", age: 26, age_in_millis: 820497600000 },
-      { name: "Jason", age: 31, age_in_millis: BigDecimal.new('1.0') }
+      { name: "Jason", age: 31, age_in_millis: BigDecimal.new("1.0") }
     ].to_xml(skip_instruct: true, indent: 0) do |builder|
       builder.count 2
     end

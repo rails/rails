@@ -1,9 +1,9 @@
-require 'abstract_unit'
-require 'active_support/core_ext/object/with_options'
+require "abstract_unit"
+require "active_support/core_ext/object/with_options"
 
 class OptionMergerTest < ActiveSupport::TestCase
   def setup
-    @options = {:hello => 'world'}
+    @options = {:hello => "world"}
   end
 
   def test_method_with_options_merges_options_when_options_are_present
@@ -24,7 +24,7 @@ class OptionMergerTest < ActiveSupport::TestCase
   end
 
   def test_method_with_options_allows_to_overwrite_options
-    local_options = {:hello => 'moon'}
+    local_options = {:hello => "moon"}
     assert_equal @options.keys, local_options.keys
 
     with_options(@options) do |o|
@@ -76,7 +76,7 @@ class OptionMergerTest < ActiveSupport::TestCase
 
   # Needed when counting objects with the ObjectSpace
   def test_option_merger_class_method
-    assert_equal ActiveSupport::OptionMerger, ActiveSupport::OptionMerger.new('', '').class
+    assert_equal ActiveSupport::OptionMerger, ActiveSupport::OptionMerger.new("", "").class
   end
 
   def test_option_merger_implicit_receiver

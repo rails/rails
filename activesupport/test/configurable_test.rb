@@ -1,5 +1,5 @@
-require 'abstract_unit'
-require 'active_support/configurable'
+require "abstract_unit"
+require "active_support/configurable"
 
 class ConfigurableActiveSupport < ActiveSupport::TestCase
   class Parent
@@ -111,7 +111,7 @@ class ConfigurableActiveSupport < ActiveSupport::TestCase
     end
   end
 
-  test 'the config_accessor method should not be publicly callable' do
+  test "the config_accessor method should not be publicly callable" do
     assert_raises NoMethodError do
       Class.new {
         include ActiveSupport::Configurable

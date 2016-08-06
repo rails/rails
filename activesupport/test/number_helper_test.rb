@@ -1,6 +1,6 @@
-require 'abstract_unit'
-require 'active_support/number_helper'
-require 'active_support/core_ext/string/output_safety'
+require "abstract_unit"
+require "active_support/number_helper"
+require "active_support/core_ext/string/output_safety"
 
 module ActiveSupport
   module NumberHelper
@@ -51,10 +51,10 @@ module ActiveSupport
           assert_equal("800 555 1212", number_helper.number_to_phone(8005551212, {:delimiter => " "}))
           assert_equal("(800) 555-1212 x 123", number_helper.number_to_phone(8005551212, {:area_code => true, :extension => 123}))
           assert_equal("800-555-1212", number_helper.number_to_phone(8005551212, :extension => "  "))
-          assert_equal("555.1212", number_helper.number_to_phone(5551212, :delimiter => '.'))
+          assert_equal("555.1212", number_helper.number_to_phone(5551212, :delimiter => "."))
           assert_equal("800-555-1212", number_helper.number_to_phone("8005551212"))
           assert_equal("+1-800-555-1212", number_helper.number_to_phone(8005551212, :country_code => 1))
-          assert_equal("+18005551212", number_helper.number_to_phone(8005551212, :country_code => 1, :delimiter => ''))
+          assert_equal("+18005551212", number_helper.number_to_phone(8005551212, :country_code => 1, :delimiter => ""))
           assert_equal("22-555-1212", number_helper.number_to_phone(225551212))
           assert_equal("+45-22-555-1212", number_helper.number_to_phone(225551212, :country_code => 45))
           assert_equal("(755) 6123-4567", number_helper.number_to_phone(75561234567, pattern: /(\d{3,4})(\d{4})(\d{4})/, area_code: true))
@@ -87,7 +87,7 @@ module ActiveSupport
           assert_equal("100.000%", number_helper.number_to_percentage("100"))
           assert_equal("1000.000%", number_helper.number_to_percentage("1000"))
           assert_equal("123.4%", number_helper.number_to_percentage(123.400, :precision => 3, :strip_insignificant_zeros => true))
-          assert_equal("1.000,000%", number_helper.number_to_percentage(1000, :delimiter => '.', :separator => ','))
+          assert_equal("1.000,000%", number_helper.number_to_percentage(1000, :delimiter => ".", :separator => ","))
           assert_equal("1000.000  %", number_helper.number_to_percentage(1000, :format => "%n  %"))
           assert_equal("98a%", number_helper.number_to_percentage("98a"))
           assert_equal("NaN%", number_helper.number_to_percentage(Float::NAN))
@@ -122,9 +122,9 @@ module ActiveSupport
 
       def test_to_delimited_with_options_hash
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
-          assert_equal '12 345 678', number_helper.number_to_delimited(12345678, :delimiter => ' ')
-          assert_equal '12,345,678-05', number_helper.number_to_delimited(12345678.05, :separator => '-')
-          assert_equal '12.345.678,05', number_helper.number_to_delimited(12345678.05, :separator => ',', :delimiter => '.')
+          assert_equal "12 345 678", number_helper.number_to_delimited(12345678, :delimiter => " ")
+          assert_equal "12,345,678-05", number_helper.number_to_delimited(12345678.05, :separator => "-")
+          assert_equal "12.345.678,05", number_helper.number_to_delimited(12345678.05, :separator => ",", :delimiter => ".")
         end
       end
 
@@ -149,18 +149,18 @@ module ActiveSupport
 
           assert_equal("111.23460000000000000000", number_helper.number_to_rounded(111.2346, :precision => 20))
           assert_equal("111.23460000000000000000", number_helper.number_to_rounded(Rational(1112346, 10000), :precision => 20))
-          assert_equal("111.23460000000000000000", number_helper.number_to_rounded('111.2346', :precision => 20))
+          assert_equal("111.23460000000000000000", number_helper.number_to_rounded("111.2346", :precision => 20))
           assert_equal("111.23460000000000000000", number_helper.number_to_rounded(BigDecimal(111.2346, Float::DIG), :precision => 20))
-          assert_equal("111.2346" + "0"*96, number_helper.number_to_rounded('111.2346', :precision => 100))
+          assert_equal("111.2346" + "0"*96, number_helper.number_to_rounded("111.2346", :precision => 100))
           assert_equal("111.2346", number_helper.number_to_rounded(Rational(1112346, 10000), :precision => 4))
-          assert_equal('0.00', number_helper.number_to_rounded(Rational(0, 1), :precision => 2))
+          assert_equal("0.00", number_helper.number_to_rounded(Rational(0, 1), :precision => 2))
         end
       end
 
       def test_to_rounded_with_custom_delimiter_and_separator
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
-          assert_equal '31,83',       number_helper.number_to_rounded(31.825, :precision => 2, :separator => ',')
-          assert_equal '1.231,83',    number_helper.number_to_rounded(1231.825, :precision => 2, :separator => ',', :delimiter => '.')
+          assert_equal "31,83",       number_helper.number_to_rounded(31.825, :precision => 2, :separator => ",")
+          assert_equal "1.231,83",    number_helper.number_to_rounded(1231.825, :precision => 2, :separator => ",", :delimiter => ".")
         end
       end
 
@@ -218,99 +218,99 @@ module ActiveSupport
 
       def test_number_number_to_human_size
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
-          assert_equal '0 Bytes',   number_helper.number_to_human_size(0)
-          assert_equal '1 Byte',    number_helper.number_to_human_size(1)
-          assert_equal '3 Bytes',   number_helper.number_to_human_size(3.14159265)
-          assert_equal '123 Bytes', number_helper.number_to_human_size(123.0)
-          assert_equal '123 Bytes', number_helper.number_to_human_size(123)
-          assert_equal '1.21 KB',    number_helper.number_to_human_size(1234)
-          assert_equal '12.1 KB',   number_helper.number_to_human_size(12345)
-          assert_equal '1.18 MB',    number_helper.number_to_human_size(1234567)
-          assert_equal '1.15 GB',    number_helper.number_to_human_size(1234567890)
-          assert_equal '1.12 TB',    number_helper.number_to_human_size(1234567890123)
-          assert_equal '1.1 PB',   number_helper.number_to_human_size(1234567890123456)
-          assert_equal '1.07 EB',   number_helper.number_to_human_size(1234567890123456789)
-          assert_equal '1030 EB',   number_helper.number_to_human_size(exabytes(1026))
-          assert_equal '444 KB',    number_helper.number_to_human_size(kilobytes(444))
-          assert_equal '1020 MB',   number_helper.number_to_human_size(megabytes(1023))
-          assert_equal '3 TB',      number_helper.number_to_human_size(terabytes(3))
-          assert_equal '1.2 MB',   number_helper.number_to_human_size(1234567, :precision => 2)
-          assert_equal '3 Bytes',   number_helper.number_to_human_size(3.14159265, :precision => 4)
-          assert_equal '123 Bytes', number_helper.number_to_human_size('123')
-          assert_equal '1 KB',   number_helper.number_to_human_size(kilobytes(1.0123), :precision => 2)
-          assert_equal '1.01 KB',   number_helper.number_to_human_size(kilobytes(1.0100), :precision => 4)
-          assert_equal '10 KB',   number_helper.number_to_human_size(kilobytes(10.000), :precision => 4)
-          assert_equal '1 Byte',   number_helper.number_to_human_size(1.1)
-          assert_equal '10 Bytes', number_helper.number_to_human_size(10)
+          assert_equal "0 Bytes",   number_helper.number_to_human_size(0)
+          assert_equal "1 Byte",    number_helper.number_to_human_size(1)
+          assert_equal "3 Bytes",   number_helper.number_to_human_size(3.14159265)
+          assert_equal "123 Bytes", number_helper.number_to_human_size(123.0)
+          assert_equal "123 Bytes", number_helper.number_to_human_size(123)
+          assert_equal "1.21 KB",    number_helper.number_to_human_size(1234)
+          assert_equal "12.1 KB",   number_helper.number_to_human_size(12345)
+          assert_equal "1.18 MB",    number_helper.number_to_human_size(1234567)
+          assert_equal "1.15 GB",    number_helper.number_to_human_size(1234567890)
+          assert_equal "1.12 TB",    number_helper.number_to_human_size(1234567890123)
+          assert_equal "1.1 PB",   number_helper.number_to_human_size(1234567890123456)
+          assert_equal "1.07 EB",   number_helper.number_to_human_size(1234567890123456789)
+          assert_equal "1030 EB",   number_helper.number_to_human_size(exabytes(1026))
+          assert_equal "444 KB",    number_helper.number_to_human_size(kilobytes(444))
+          assert_equal "1020 MB",   number_helper.number_to_human_size(megabytes(1023))
+          assert_equal "3 TB",      number_helper.number_to_human_size(terabytes(3))
+          assert_equal "1.2 MB",   number_helper.number_to_human_size(1234567, :precision => 2)
+          assert_equal "3 Bytes",   number_helper.number_to_human_size(3.14159265, :precision => 4)
+          assert_equal "123 Bytes", number_helper.number_to_human_size("123")
+          assert_equal "1 KB",   number_helper.number_to_human_size(kilobytes(1.0123), :precision => 2)
+          assert_equal "1.01 KB",   number_helper.number_to_human_size(kilobytes(1.0100), :precision => 4)
+          assert_equal "10 KB",   number_helper.number_to_human_size(kilobytes(10.000), :precision => 4)
+          assert_equal "1 Byte",   number_helper.number_to_human_size(1.1)
+          assert_equal "10 Bytes", number_helper.number_to_human_size(10)
         end
       end
 
       def test_number_to_human_size_with_si_prefix
         assert_deprecated do
           [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
-            assert_equal '3 Bytes',    number_helper.number_to_human_size(3.14159265, :prefix => :si)
-            assert_equal '123 Bytes',  number_helper.number_to_human_size(123.0, :prefix => :si)
-            assert_equal '123 Bytes',  number_helper.number_to_human_size(123, :prefix => :si)
-            assert_equal '1.23 KB',    number_helper.number_to_human_size(1234, :prefix => :si)
-            assert_equal '12.3 KB',    number_helper.number_to_human_size(12345, :prefix => :si)
-            assert_equal '1.23 MB',    number_helper.number_to_human_size(1234567, :prefix => :si)
-            assert_equal '1.23 GB',    number_helper.number_to_human_size(1234567890, :prefix => :si)
-            assert_equal '1.23 TB',    number_helper.number_to_human_size(1234567890123, :prefix => :si)
-            assert_equal '1.23 PB',    number_helper.number_to_human_size(1234567890123456, :prefix => :si)
-            assert_equal '1.23 EB',    number_helper.number_to_human_size(1234567890123456789, :prefix => :si)
+            assert_equal "3 Bytes",    number_helper.number_to_human_size(3.14159265, :prefix => :si)
+            assert_equal "123 Bytes",  number_helper.number_to_human_size(123.0, :prefix => :si)
+            assert_equal "123 Bytes",  number_helper.number_to_human_size(123, :prefix => :si)
+            assert_equal "1.23 KB",    number_helper.number_to_human_size(1234, :prefix => :si)
+            assert_equal "12.3 KB",    number_helper.number_to_human_size(12345, :prefix => :si)
+            assert_equal "1.23 MB",    number_helper.number_to_human_size(1234567, :prefix => :si)
+            assert_equal "1.23 GB",    number_helper.number_to_human_size(1234567890, :prefix => :si)
+            assert_equal "1.23 TB",    number_helper.number_to_human_size(1234567890123, :prefix => :si)
+            assert_equal "1.23 PB",    number_helper.number_to_human_size(1234567890123456, :prefix => :si)
+            assert_equal "1.23 EB",    number_helper.number_to_human_size(1234567890123456789, :prefix => :si)
           end
         end
       end
 
       def test_number_to_human_size_with_options_hash
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
-          assert_equal '1.2 MB',   number_helper.number_to_human_size(1234567, :precision => 2)
-          assert_equal '3 Bytes',   number_helper.number_to_human_size(3.14159265, :precision => 4)
-          assert_equal '1 KB',   number_helper.number_to_human_size(kilobytes(1.0123), :precision => 2)
-          assert_equal '1.01 KB',   number_helper.number_to_human_size(kilobytes(1.0100), :precision => 4)
-          assert_equal '10 KB',     number_helper.number_to_human_size(kilobytes(10.000), :precision => 4)
-          assert_equal '1 TB', number_helper.number_to_human_size(1234567890123, :precision => 1)
-          assert_equal '500 MB', number_helper.number_to_human_size(524288000, :precision=>3)
-          assert_equal '10 MB', number_helper.number_to_human_size(9961472, :precision=>0)
-          assert_equal '40 KB', number_helper.number_to_human_size(41010, :precision => 1)
-          assert_equal '40 KB', number_helper.number_to_human_size(41100, :precision => 2)
-          assert_equal '1.0 KB',   number_helper.number_to_human_size(kilobytes(1.0123), :precision => 2, :strip_insignificant_zeros => false)
-          assert_equal '1.012 KB',   number_helper.number_to_human_size(kilobytes(1.0123), :precision => 3, :significant => false)
-          assert_equal '1 KB',   number_helper.number_to_human_size(kilobytes(1.0123), :precision => 0, :significant => true) #ignores significant it precision is 0
+          assert_equal "1.2 MB",   number_helper.number_to_human_size(1234567, :precision => 2)
+          assert_equal "3 Bytes",   number_helper.number_to_human_size(3.14159265, :precision => 4)
+          assert_equal "1 KB",   number_helper.number_to_human_size(kilobytes(1.0123), :precision => 2)
+          assert_equal "1.01 KB",   number_helper.number_to_human_size(kilobytes(1.0100), :precision => 4)
+          assert_equal "10 KB",     number_helper.number_to_human_size(kilobytes(10.000), :precision => 4)
+          assert_equal "1 TB", number_helper.number_to_human_size(1234567890123, :precision => 1)
+          assert_equal "500 MB", number_helper.number_to_human_size(524288000, :precision=>3)
+          assert_equal "10 MB", number_helper.number_to_human_size(9961472, :precision=>0)
+          assert_equal "40 KB", number_helper.number_to_human_size(41010, :precision => 1)
+          assert_equal "40 KB", number_helper.number_to_human_size(41100, :precision => 2)
+          assert_equal "1.0 KB",   number_helper.number_to_human_size(kilobytes(1.0123), :precision => 2, :strip_insignificant_zeros => false)
+          assert_equal "1.012 KB",   number_helper.number_to_human_size(kilobytes(1.0123), :precision => 3, :significant => false)
+          assert_equal "1 KB",   number_helper.number_to_human_size(kilobytes(1.0123), :precision => 0, :significant => true) #ignores significant it precision is 0
         end
       end
 
       def test_number_to_human_size_with_custom_delimiter_and_separator
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
-          assert_equal '1,01 KB',     number_helper.number_to_human_size(kilobytes(1.0123), :precision => 3, :separator => ',')
-          assert_equal '1,01 KB',     number_helper.number_to_human_size(kilobytes(1.0100), :precision => 4, :separator => ',')
-          assert_equal '1.000,1 TB',  number_helper.number_to_human_size(terabytes(1000.1), :precision => 5, :delimiter => '.', :separator => ',')
+          assert_equal "1,01 KB",     number_helper.number_to_human_size(kilobytes(1.0123), :precision => 3, :separator => ",")
+          assert_equal "1,01 KB",     number_helper.number_to_human_size(kilobytes(1.0100), :precision => 4, :separator => ",")
+          assert_equal "1.000,1 TB",  number_helper.number_to_human_size(terabytes(1000.1), :precision => 5, :delimiter => ".", :separator => ",")
         end
       end
 
       def test_number_to_human
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
-          assert_equal '-123', number_helper.number_to_human(-123)
-          assert_equal '-0.5', number_helper.number_to_human(-0.5)
-          assert_equal '0',   number_helper.number_to_human(0)
-          assert_equal '0.5', number_helper.number_to_human(0.5)
-          assert_equal '123', number_helper.number_to_human(123)
-          assert_equal '1.23 Thousand', number_helper.number_to_human(1234)
-          assert_equal '12.3 Thousand', number_helper.number_to_human(12345)
-          assert_equal '1.23 Million', number_helper.number_to_human(1234567)
-          assert_equal '1.23 Billion', number_helper.number_to_human(1234567890)
-          assert_equal '1.23 Trillion', number_helper.number_to_human(1234567890123)
-          assert_equal '1.23 Quadrillion', number_helper.number_to_human(1234567890123456)
-          assert_equal '1230 Quadrillion', number_helper.number_to_human(1234567890123456789)
-          assert_equal '490 Thousand', number_helper.number_to_human(489939, :precision => 2)
-          assert_equal '489.9 Thousand', number_helper.number_to_human(489939, :precision => 4)
-          assert_equal '489 Thousand', number_helper.number_to_human(489000, :precision => 4)
-          assert_equal '489.0 Thousand', number_helper.number_to_human(489000, :precision => 4, :strip_insignificant_zeros => false)
-          assert_equal '1.2346 Million', number_helper.number_to_human(1234567, :precision => 4, :significant => false)
-          assert_equal '1,2 Million', number_helper.number_to_human(1234567, :precision => 1, :significant => false, :separator => ',')
-          assert_equal '1 Million', number_helper.number_to_human(1234567, :precision => 0, :significant => true, :separator => ',') #significant forced to false
-          assert_equal '1 Million', number_helper.number_to_human(999999)
-          assert_equal '1 Billion', number_helper.number_to_human(999999999)
+          assert_equal "-123", number_helper.number_to_human(-123)
+          assert_equal "-0.5", number_helper.number_to_human(-0.5)
+          assert_equal "0",   number_helper.number_to_human(0)
+          assert_equal "0.5", number_helper.number_to_human(0.5)
+          assert_equal "123", number_helper.number_to_human(123)
+          assert_equal "1.23 Thousand", number_helper.number_to_human(1234)
+          assert_equal "12.3 Thousand", number_helper.number_to_human(12345)
+          assert_equal "1.23 Million", number_helper.number_to_human(1234567)
+          assert_equal "1.23 Billion", number_helper.number_to_human(1234567890)
+          assert_equal "1.23 Trillion", number_helper.number_to_human(1234567890123)
+          assert_equal "1.23 Quadrillion", number_helper.number_to_human(1234567890123456)
+          assert_equal "1230 Quadrillion", number_helper.number_to_human(1234567890123456789)
+          assert_equal "490 Thousand", number_helper.number_to_human(489939, :precision => 2)
+          assert_equal "489.9 Thousand", number_helper.number_to_human(489939, :precision => 4)
+          assert_equal "489 Thousand", number_helper.number_to_human(489000, :precision => 4)
+          assert_equal "489.0 Thousand", number_helper.number_to_human(489000, :precision => 4, :strip_insignificant_zeros => false)
+          assert_equal "1.2346 Million", number_helper.number_to_human(1234567, :precision => 4, :significant => false)
+          assert_equal "1,2 Million", number_helper.number_to_human(1234567, :precision => 1, :significant => false, :separator => ",")
+          assert_equal "1 Million", number_helper.number_to_human(1234567, :precision => 0, :significant => true, :separator => ",") #significant forced to false
+          assert_equal "1 Million", number_helper.number_to_human(999999)
+          assert_equal "1 Billion", number_helper.number_to_human(999999999)
         end
       end
 
@@ -318,48 +318,48 @@ module ActiveSupport
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
           #Only integers
           volume = {:unit => "ml", :thousand => "lt", :million => "m3"}
-          assert_equal '123 lt', number_helper.number_to_human(123456, :units => volume)
-          assert_equal '12 ml', number_helper.number_to_human(12, :units => volume)
-          assert_equal '1.23 m3', number_helper.number_to_human(1234567, :units => volume)
+          assert_equal "123 lt", number_helper.number_to_human(123456, :units => volume)
+          assert_equal "12 ml", number_helper.number_to_human(12, :units => volume)
+          assert_equal "1.23 m3", number_helper.number_to_human(1234567, :units => volume)
 
           #Including fractionals
           distance = {:mili => "mm", :centi => "cm", :deci => "dm", :unit => "m", :ten => "dam", :hundred => "hm", :thousand => "km"}
-          assert_equal '1.23 mm', number_helper.number_to_human(0.00123, :units => distance)
-          assert_equal '1.23 cm', number_helper.number_to_human(0.0123, :units => distance)
-          assert_equal '1.23 dm', number_helper.number_to_human(0.123, :units => distance)
-          assert_equal '1.23 m', number_helper.number_to_human(1.23, :units => distance)
-          assert_equal '1.23 dam', number_helper.number_to_human(12.3, :units => distance)
-          assert_equal '1.23 hm', number_helper.number_to_human(123, :units => distance)
-          assert_equal '1.23 km', number_helper.number_to_human(1230, :units => distance)
-          assert_equal '1.23 km', number_helper.number_to_human(1230, :units => distance)
-          assert_equal '1.23 km', number_helper.number_to_human(1230, :units => distance)
-          assert_equal '12.3 km', number_helper.number_to_human(12300, :units => distance)
+          assert_equal "1.23 mm", number_helper.number_to_human(0.00123, :units => distance)
+          assert_equal "1.23 cm", number_helper.number_to_human(0.0123, :units => distance)
+          assert_equal "1.23 dm", number_helper.number_to_human(0.123, :units => distance)
+          assert_equal "1.23 m", number_helper.number_to_human(1.23, :units => distance)
+          assert_equal "1.23 dam", number_helper.number_to_human(12.3, :units => distance)
+          assert_equal "1.23 hm", number_helper.number_to_human(123, :units => distance)
+          assert_equal "1.23 km", number_helper.number_to_human(1230, :units => distance)
+          assert_equal "1.23 km", number_helper.number_to_human(1230, :units => distance)
+          assert_equal "1.23 km", number_helper.number_to_human(1230, :units => distance)
+          assert_equal "12.3 km", number_helper.number_to_human(12300, :units => distance)
 
           #The quantifiers don't need to be a continuous sequence
           gangster = {:hundred => "hundred bucks", :million => "thousand quids"}
-          assert_equal '1 hundred bucks', number_helper.number_to_human(100, :units => gangster)
-          assert_equal '25 hundred bucks', number_helper.number_to_human(2500, :units => gangster)
-          assert_equal '25 thousand quids', number_helper.number_to_human(25000000, :units => gangster)
-          assert_equal '12300 thousand quids', number_helper.number_to_human(12345000000, :units => gangster)
+          assert_equal "1 hundred bucks", number_helper.number_to_human(100, :units => gangster)
+          assert_equal "25 hundred bucks", number_helper.number_to_human(2500, :units => gangster)
+          assert_equal "25 thousand quids", number_helper.number_to_human(25000000, :units => gangster)
+          assert_equal "12300 thousand quids", number_helper.number_to_human(12345000000, :units => gangster)
 
           #Spaces are stripped from the resulting string
-          assert_equal '4', number_helper.number_to_human(4, :units => {:unit => "", :ten => 'tens '})
-          assert_equal '4.5  tens', number_helper.number_to_human(45, :units => {:unit => "", :ten => ' tens   '})
+          assert_equal "4", number_helper.number_to_human(4, :units => {:unit => "", :ten => "tens "})
+          assert_equal "4.5  tens", number_helper.number_to_human(45, :units => {:unit => "", :ten => " tens   "})
         end
       end
 
       def test_number_to_human_with_custom_units_that_are_missing_the_needed_key
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
-          assert_equal '123', number_helper.number_to_human(123, units: { thousand: 'k'})
-          assert_equal '123', number_helper.number_to_human(123, units: {})
+          assert_equal "123", number_helper.number_to_human(123, units: { thousand: "k"})
+          assert_equal "123", number_helper.number_to_human(123, units: {})
         end
       end
 
       def test_number_to_human_with_custom_format
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
-          assert_equal '123 times Thousand', number_helper.number_to_human(123456, :format => "%n times %u")
+          assert_equal "123 times Thousand", number_helper.number_to_human(123456, :format => "%n times %u")
           volume = {:unit => "ml", :thousand => "lt", :million => "m3"}
-          assert_equal '123.lt', number_helper.number_to_human(123456, :units => volume, :format => "%n.%u")
+          assert_equal "123.lt", number_helper.number_to_human(123456, :units => volume, :format => "%n.%u")
         end
       end
 
@@ -377,28 +377,28 @@ module ActiveSupport
 
       def test_number_helpers_do_not_mutate_options_hash
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
-          options = { 'raise' => true }
+          options = { "raise" => true }
 
           number_helper.number_to_phone(1, options)
-          assert_equal({ 'raise' => true }, options)
+          assert_equal({ "raise" => true }, options)
 
           number_helper.number_to_currency(1, options)
-          assert_equal({ 'raise' => true }, options)
+          assert_equal({ "raise" => true }, options)
 
           number_helper.number_to_percentage(1, options)
-          assert_equal({ 'raise' => true }, options)
+          assert_equal({ "raise" => true }, options)
 
           number_helper.number_to_delimited(1, options)
-          assert_equal({ 'raise' => true }, options)
+          assert_equal({ "raise" => true }, options)
 
           number_helper.number_to_rounded(1, options)
-          assert_equal({ 'raise' => true }, options)
+          assert_equal({ "raise" => true }, options)
 
           number_helper.number_to_human_size(1, options)
-          assert_equal({ 'raise' => true }, options)
+          assert_equal({ "raise" => true }, options)
 
           number_helper.number_to_human(1, options)
-          assert_equal({ 'raise' => true }, options)
+          assert_equal({ "raise" => true }, options)
         end
       end
 
@@ -412,8 +412,8 @@ module ActiveSupport
           assert_equal("x", number_helper.number_to_delimited("x"))
           assert_equal("x.", number_helper.number_to_rounded("x."))
           assert_equal("x", number_helper.number_to_rounded("x"))
-          assert_equal "x", number_helper.number_to_human_size('x')
-          assert_equal "x", number_helper.number_to_human('x')
+          assert_equal "x", number_helper.number_to_human_size("x")
+          assert_equal "x", number_helper.number_to_human("x")
         end
       end
 

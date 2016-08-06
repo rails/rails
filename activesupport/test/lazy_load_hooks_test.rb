@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class LazyLoadHooksTest < ActiveSupport::TestCase
   def test_basic_hook

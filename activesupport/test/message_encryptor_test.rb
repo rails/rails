@@ -1,7 +1,7 @@
-require 'abstract_unit'
-require 'openssl'
-require 'active_support/time'
-require 'active_support/json'
+require "abstract_unit"
+require "openssl"
+require "active_support/time"
+require "active_support/json"
 
 class MessageEncryptorTest < ActiveSupport::TestCase
   class JSONSerializer
@@ -52,7 +52,7 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     prev = ActiveSupport.use_standard_json_time_format
     ActiveSupport.use_standard_json_time_format = true
     encryptor = ActiveSupport::MessageEncryptor.new(SecureRandom.random_bytes(32), SecureRandom.random_bytes(128), :serializer => JSONSerializer.new)
-    message = encryptor.encrypt_and_sign({ :foo => 123, 'bar' => Time.utc(2010) })
+    message = encryptor.encrypt_and_sign({ :foo => 123, "bar" => Time.utc(2010) })
     exp = { "foo" => 123, "bar" => "2010-01-01T00:00:00.000Z" }
     assert_equal exp, encryptor.decrypt_and_verify(message)
   ensure
@@ -71,13 +71,13 @@ class MessageEncryptorTest < ActiveSupport::TestCase
   end
 
   def test_aead_mode_encryption
-    encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: 'aes-256-gcm')
+    encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: "aes-256-gcm")
     message = encryptor.encrypt_and_sign(@data)
     assert_equal @data, encryptor.decrypt_and_verify(message)
   end
 
   def test_messing_with_aead_values_causes_failures
-    encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: 'aes-256-gcm')
+    encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: "aes-256-gcm")
     text, iv, auth_tag = encryptor.encrypt_and_sign(@data).split("--")
     assert_not_decrypted([iv, text, auth_tag] * "--")
     assert_not_decrypted([munge(text), iv, auth_tag] * "--")

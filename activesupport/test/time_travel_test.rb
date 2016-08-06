@@ -1,6 +1,6 @@
-require 'abstract_unit'
-require 'active_support/core_ext/date_time'
-require 'active_support/core_ext/numeric/time'
+require "abstract_unit"
+require "active_support/core_ext/date_time"
+require "active_support/core_ext/numeric/time"
 
 class TimeTravelTest < ActiveSupport::TestCase
   def test_time_helper_travel

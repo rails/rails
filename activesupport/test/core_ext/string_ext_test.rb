@@ -1,16 +1,16 @@
-require 'date'
-require 'abstract_unit'
-require 'inflector_test_cases'
-require 'constantize_test_cases'
+require "date"
+require "abstract_unit"
+require "inflector_test_cases"
+require "constantize_test_cases"
 
-require 'active_support/inflector'
-require 'active_support/core_ext/string'
-require 'active_support/time'
-require 'active_support/core_ext/string/strip'
-require 'active_support/core_ext/string/output_safety'
-require 'active_support/core_ext/string/indent'
-require 'time_zone_test_helpers'
-require 'yaml'
+require "active_support/inflector"
+require "active_support/core_ext/string"
+require "active_support/time"
+require "active_support/core_ext/string/strip"
+require "active_support/core_ext/string/output_safety"
+require "active_support/core_ext/string/indent"
+require "time_zone_test_helpers"
+require "yaml"
 
 class StringInflectionsTest < ActiveSupport::TestCase
   include InflectorTestCases
@@ -18,12 +18,12 @@ class StringInflectionsTest < ActiveSupport::TestCase
   include TimeZoneTestHelpers
 
   def test_strip_heredoc_on_an_empty_string
-    assert_equal '', ''.strip_heredoc
+    assert_equal "", "".strip_heredoc
   end
 
   def test_strip_heredoc_on_a_string_with_no_lines
-    assert_equal 'x', 'x'.strip_heredoc
-    assert_equal 'x', '    x'.strip_heredoc
+    assert_equal "x", "x".strip_heredoc
+    assert_equal "x", "    x".strip_heredoc
   end
 
   def test_strip_heredoc_on_a_heredoc_with_no_margin
@@ -60,7 +60,7 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal("blargles", "blargle".pluralize(2))
   end
 
-  test 'pluralize with count = 1 still returns new string' do
+  test "pluralize with count = 1 still returns new string" do
     name = "Kuldeep"
     assert_not_same name.pluralize(1), name
   end
@@ -96,7 +96,7 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 
   def test_camelize_lower
-    assert_equal('capital', 'Capital'.camelize(:lower))
+    assert_equal("capital", "Capital".camelize(:lower))
   end
 
   def test_dasherize
@@ -164,41 +164,41 @@ class StringInflectionsTest < ActiveSupport::TestCase
 
   def test_string_parameterized_no_separator
     StringToParameterizeWithNoSeparator.each do |normal, slugged|
-      assert_equal(normal.parameterize(separator: ''), slugged)
+      assert_equal(normal.parameterize(separator: ""), slugged)
     end
   end
 
   def test_string_parameterized_no_separator_deprecated
     StringToParameterizeWithNoSeparator.each do |normal, slugged|
       assert_deprecated(/Passing the separator argument as a positional parameter is deprecated and will soon be removed. Use `separator: ''` instead./i) do
-        assert_equal(normal.parameterize(''), slugged)
+        assert_equal(normal.parameterize(""), slugged)
       end
     end
   end
 
   def test_string_parameterized_no_separator_preserve_case
     StringToParameterizePreserveCaseWithNoSeparator.each do |normal, slugged|
-      assert_equal(normal.parameterize(separator: '', preserve_case: true), slugged)
+      assert_equal(normal.parameterize(separator: "", preserve_case: true), slugged)
     end
   end
 
   def test_string_parameterized_underscore
     StringToParameterizeWithUnderscore.each do |normal, slugged|
-      assert_equal(normal.parameterize(separator: '_'), slugged)
+      assert_equal(normal.parameterize(separator: "_"), slugged)
     end
   end
 
   def test_string_parameterized_underscore_deprecated
     StringToParameterizeWithUnderscore.each do |normal, slugged|
       assert_deprecated(/Passing the separator argument as a positional parameter is deprecated and will soon be removed. Use `separator: '_'` instead./i) do
-        assert_equal(normal.parameterize('_'), slugged)
+        assert_equal(normal.parameterize("_"), slugged)
       end
     end
   end
 
   def test_string_parameterized_underscore_preserve_case
     StringToParameterizePreserceCaseWithUnderscore.each do |normal, slugged|
-      assert_equal(normal.parameterize(separator: '_', preserve_case: true), slugged)
+      assert_equal(normal.parameterize(separator: "_", preserve_case: true), slugged)
     end
   end
 
@@ -215,23 +215,23 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 
   def test_humanize_with_html_escape
-    assert_equal 'Hello', ERB::Util.html_escape("hello").humanize
+    assert_equal "Hello", ERB::Util.html_escape("hello").humanize
   end
 
   def test_ord
-    assert_equal 97, 'a'.ord
-    assert_equal 97, 'abc'.ord
+    assert_equal 97, "a".ord
+    assert_equal 97, "abc".ord
   end
 
   def test_starts_ends_with_alias
     s = "hello"
-    assert s.starts_with?('h')
-    assert s.starts_with?('hel')
-    assert !s.starts_with?('el')
+    assert s.starts_with?("h")
+    assert s.starts_with?("hel")
+    assert !s.starts_with?("el")
 
-    assert s.ends_with?('o')
-    assert s.ends_with?('lo')
-    assert !s.ends_with?('el')
+    assert s.ends_with?("o")
+    assert s.ends_with?("lo")
+    assert !s.ends_with?("el")
   end
 
   def test_string_squish
@@ -264,9 +264,9 @@ class StringInflectionsTest < ActiveSupport::TestCase
 
   def test_truncate_with_omission_and_separator
     assert_equal "Hello[...]", "Hello World!".truncate(10, :omission => "[...]")
-    assert_equal "Hello[...]", "Hello Big World!".truncate(13, :omission => "[...]", :separator => ' ')
-    assert_equal "Hello Big[...]", "Hello Big World!".truncate(14, :omission => "[...]", :separator => ' ')
-    assert_equal "Hello Big[...]", "Hello Big World!".truncate(15, :omission => "[...]", :separator => ' ')
+    assert_equal "Hello[...]", "Hello Big World!".truncate(13, :omission => "[...]", :separator => " ")
+    assert_equal "Hello Big[...]", "Hello Big World!".truncate(14, :omission => "[...]", :separator => " ")
+    assert_equal "Hello Big[...]", "Hello Big World!".truncate(15, :omission => "[...]", :separator => " ")
   end
 
   def test_truncate_with_omission_and_regexp_separator
@@ -286,14 +286,14 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 
   def test_truncate_words_with_separator
-    assert_equal "Hello<br>Big<br>World!...", "Hello<br>Big<br>World!<br>".truncate_words(3, :separator => '<br>')
-    assert_equal "Hello<br>Big<br>World!", "Hello<br>Big<br>World!".truncate_words(3, :separator => '<br>')
-    assert_equal "Hello\n<br>Big...", "Hello\n<br>Big<br>Wide<br>World!".truncate_words(2, :separator => '<br>')
+    assert_equal "Hello<br>Big<br>World!...", "Hello<br>Big<br>World!<br>".truncate_words(3, :separator => "<br>")
+    assert_equal "Hello<br>Big<br>World!", "Hello<br>Big<br>World!".truncate_words(3, :separator => "<br>")
+    assert_equal "Hello\n<br>Big...", "Hello\n<br>Big<br>Wide<br>World!".truncate_words(2, :separator => "<br>")
   end
 
   def test_truncate_words_with_separator_and_omission
-    assert_equal "Hello<br>Big<br>World![...]", "Hello<br>Big<br>World!<br>".truncate_words(3, :omission => "[...]", :separator => '<br>')
-    assert_equal "Hello<br>Big<br>World!", "Hello<br>Big<br>World!".truncate_words(3, :omission => "[...]", :separator => '<br>')
+    assert_equal "Hello<br>Big<br>World![...]", "Hello<br>Big<br>World!<br>".truncate_words(3, :omission => "[...]", :separator => "<br>")
+    assert_equal "Hello<br>Big<br>World!", "Hello<br>Big<br>World!".truncate_words(3, :omission => "[...]", :separator => "<br>")
   end
 
   def test_truncate_words_with_complex_string
@@ -381,14 +381,14 @@ class StringAccessTest < ActiveSupport::TestCase
 
   test "#first returns the first character" do
     assert_equal "h", "hello".first
-    assert_equal 'x', 'x'.first
+    assert_equal "x", "x".first
   end
 
   test "#first with Integer, returns a substring from the beginning to position" do
     assert_equal "he", "hello".first(2)
     assert_equal "", "hello".first(0)
     assert_equal "hello", "hello".first(10)
-    assert_equal 'x', 'x'.first(4)
+    assert_equal "x", "x".first(4)
   end
 
   test "#first with Integer >= string length still returns a new string" do
@@ -399,14 +399,14 @@ class StringAccessTest < ActiveSupport::TestCase
 
   test "#last returns the last character" do
     assert_equal "o", "hello".last
-    assert_equal 'x', 'x'.last
+    assert_equal "x", "x".last
   end
 
   test "#last with Integer, returns a substring from the end to position" do
     assert_equal "llo", "hello".last(3)
     assert_equal "hello", "hello".last(10)
     assert_equal "", "hello".last(0)
-    assert_equal 'x', 'x'.last(4)
+    assert_equal "x", "x".last(4)
   end
 
   test "#last with Integer >= string length still returns a new string" do
@@ -633,14 +633,14 @@ end
 
 class StringBehaviourTest < ActiveSupport::TestCase
   def test_acts_like_string
-    assert 'Bambi'.acts_like_string?
+    assert "Bambi".acts_like_string?
   end
 end
 
 class CoreExtStringMultibyteTest < ActiveSupport::TestCase
-  UTF8_STRING = 'こにちわ'
-  ASCII_STRING = 'ohayo'.encode('US-ASCII')
-  EUC_JP_STRING = 'さよなら'.encode('EUC-JP')
+  UTF8_STRING = "こにちわ"
+  ASCII_STRING = "ohayo".encode("US-ASCII")
+  EUC_JP_STRING = "さよなら".encode("EUC-JP")
   INVALID_UTF8_STRING = "\270\236\010\210\245"
 
   def test_core_ext_adds_mb_chars
@@ -820,8 +820,8 @@ class OutputSafetyTest < ActiveSupport::TestCase
     assert string.html_safe?
   end
 
-  test 'emits normal string yaml' do
-    assert_equal 'foo'.to_yaml, 'foo'.html_safe.to_yaml(:foo => 1)
+  test "emits normal string yaml" do
+    assert_equal "foo".to_yaml, "foo".html_safe.to_yaml(:foo => 1)
   end
 
   test "call to_param returns a normal string" do
@@ -832,7 +832,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
   test "ERB::Util.html_escape should escape unsafe characters" do
     string = '<>&"\''
-    expected = '&lt;&gt;&amp;&quot;&#39;'
+    expected = "&lt;&gt;&amp;&quot;&#39;"
     assert_equal expected, ERB::Util.html_escape(string)
   end
 
@@ -848,7 +848,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
   end
 
   test "ERB::Util.html_escape_once only escapes once" do
-    string = '1 < 2 &amp; 3'
+    string = "1 < 2 &amp; 3"
     escaped_string = "1 &lt; 2 &amp; 3"
 
     assert_equal escaped_string, ERB::Util.html_escape_once(string)
@@ -863,15 +863,15 @@ class OutputSafetyTest < ActiveSupport::TestCase
 end
 
 class StringExcludeTest < ActiveSupport::TestCase
-  test 'inverse of #include' do
-    assert_equal false, 'foo'.exclude?('o')
-    assert_equal true, 'foo'.exclude?('p')
+  test "inverse of #include" do
+    assert_equal false, "foo".exclude?("o")
+    assert_equal true, "foo".exclude?("p")
   end
 end
 
 class StringIndentTest < ActiveSupport::TestCase
-  test 'does not indent strings that only contain newlines (edge cases)' do
-    ['', "\n", "\n" * 7].each do |str|
+  test "does not indent strings that only contain newlines (edge cases)" do
+    ["", "\n", "\n" * 7].each do |str|
       assert_nil str.indent!(8)
       assert_equal str, str.indent(8)
       assert_equal str, str.indent(1, "\t")
@@ -893,8 +893,8 @@ class StringIndentTest < ActiveSupport::TestCase
   # Nothing is said about existing indentation that mixes spaces and tabs, so
   # there is nothing to test.
 
-  test 'uses the indent char if passed' do
-    assert_equal <<EXPECTED, <<ACTUAL.indent(4, '.')
+  test "uses the indent char if passed" do
+    assert_equal <<EXPECTED, <<ACTUAL.indent(4, ".")
 ....  def some_method(x, y)
 ....    some_code
 ....  end
@@ -904,7 +904,7 @@ EXPECTED
   end
 ACTUAL
 
-    assert_equal <<EXPECTED, <<ACTUAL.indent(2, '&nbsp;')
+    assert_equal <<EXPECTED, <<ACTUAL.indent(2, "&nbsp;")
 &nbsp;&nbsp;&nbsp;&nbsp;def some_method(x, y)
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;some_code
 &nbsp;&nbsp;&nbsp;&nbsp;end
@@ -919,7 +919,7 @@ ACTUAL
     assert_equal " foo\n\n bar", "foo\n\nbar".indent(1)
   end
 
-  test 'indents blank lines if told so' do
+  test "indents blank lines if told so" do
     assert_equal " foo\n \n bar", "foo\n\nbar".indent(1, nil, true)
   end
 end

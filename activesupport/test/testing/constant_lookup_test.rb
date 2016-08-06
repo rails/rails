@@ -1,5 +1,5 @@
-require 'abstract_unit'
-require 'dependencies_test_helpers'
+require "abstract_unit"
+require "dependencies_test_helpers"
 
 class Foo; end
 class Bar < Foo
@@ -69,7 +69,7 @@ class ConstantLookupTest < ActiveSupport::TestCase
   def test_does_not_swallow_exception_on_no_name_error_within_constant
     assert_raises(NameError) do
       with_autoloading_fixtures do
-        self.class.determine_constant_from_test_name('RaisesNameError')
+        self.class.determine_constant_from_test_name("RaisesNameError")
       end
     end
   end

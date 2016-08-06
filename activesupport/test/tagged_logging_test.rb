@@ -1,6 +1,6 @@
-require 'abstract_unit'
-require 'active_support/logger'
-require 'active_support/tagged_logging'
+require "abstract_unit"
+require "active_support/logger"
+require "active_support/tagged_logging"
 
 class TaggedLoggingTest < ActiveSupport::TestCase
   class MyLogger < ::ActiveSupport::Logger
@@ -14,7 +14,7 @@ class TaggedLoggingTest < ActiveSupport::TestCase
     @logger = ActiveSupport::TaggedLogging.new(MyLogger.new(@output))
   end
 
-  test 'sets logger.formatter if missing and extends it with a tagging API' do
+  test "sets logger.formatter if missing and extends it with a tagging API" do
     logger = Logger.new(StringIO.new)
     assert_nil logger.formatter
     ActiveSupport::TaggedLogging.new(logger)
@@ -43,14 +43,14 @@ class TaggedLoggingTest < ActiveSupport::TestCase
   end
 
   test "push and pop tags directly" do
-    assert_equal %w(A B C), @logger.push_tags('A', ['B', '  ', ['C']])
-    @logger.info 'a'
+    assert_equal %w(A B C), @logger.push_tags("A", ["B", "  ", ["C"]])
+    @logger.info "a"
     assert_equal %w(C), @logger.pop_tags
-    @logger.info 'b'
+    @logger.info "b"
     assert_equal %w(B), @logger.pop_tags(1)
-    @logger.info 'c'
+    @logger.info "c"
     assert_equal [], @logger.clear_tags!
-    @logger.info 'd'
+    @logger.info "d"
     assert_equal "[A] [B] [C] a\n[A] [B] b\n[A] c\nd\n", @output.string
   end
 

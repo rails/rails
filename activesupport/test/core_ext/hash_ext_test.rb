@@ -1,11 +1,11 @@
-require 'abstract_unit'
-require 'active_support/core_ext/hash'
-require 'bigdecimal'
-require 'active_support/core_ext/string/access'
-require 'active_support/ordered_hash'
-require 'active_support/core_ext/object/conversions'
-require 'active_support/core_ext/object/deep_dup'
-require 'active_support/inflections'
+require "abstract_unit"
+require "active_support/core_ext/hash"
+require "bigdecimal"
+require "active_support/core_ext/string/access"
+require "active_support/ordered_hash"
+require "active_support/core_ext/object/conversions"
+require "active_support/core_ext/object/deep_dup"
+require "active_support/inflections"
 
 class HashExtTest < ActiveSupport::TestCase
   class IndifferentHash < ActiveSupport::HashWithIndifferentAccess
@@ -34,22 +34,22 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def setup
-    @strings = { 'a' => 1, 'b' => 2 }
-    @nested_strings = { 'a' => { 'b' => { 'c' => 3 } } }
+    @strings = { "a" => 1, "b" => 2 }
+    @nested_strings = { "a" => { "b" => { "c" => 3 } } }
     @symbols = { :a => 1, :b => 2 }
     @nested_symbols = { :a => { :b => { :c => 3 } } }
-    @mixed = { :a => 1, 'b' => 2 }
-    @nested_mixed = { 'a' => { :b => { 'c' => 3 } } }
+    @mixed = { :a => 1, "b" => 2 }
+    @nested_mixed = { "a" => { :b => { "c" => 3 } } }
     @integers = { 0 => 1, 1 => 2 }
     @nested_integers = { 0 => { 1 => { 2 => 3} } }
     @illegal_symbols = { [] => 3 }
     @nested_illegal_symbols = { [] => { [] => 3} }
-    @upcase_strings = { 'A' => 1, 'B' => 2 }
-    @nested_upcase_strings = { 'A' => { 'B' => { 'C' => 3 } } }
-    @string_array_of_hashes = { 'a' => [ { 'b' => 2 }, { 'c' => 3 }, 4 ] }
+    @upcase_strings = { "A" => 1, "B" => 2 }
+    @nested_upcase_strings = { "A" => { "B" => { "C" => 3 } } }
+    @string_array_of_hashes = { "a" => [ { "b" => 2 }, { "c" => 3 }, 4 ] }
     @symbol_array_of_hashes = { :a => [ { :b => 2 }, { :c => 3 }, 4 ] }
-    @mixed_array_of_hashes = { :a => [ { :b => 2 }, { 'c' => 3 }, 4 ] }
-    @upcase_array_of_hashes = { 'A' => [ { 'B' => 2 }, { 'C' => 3 }, 4 ] }
+    @mixed_array_of_hashes = { :a => [ { :b => 2 }, { "c" => 3 }, 4 ] }
+    @upcase_array_of_hashes = { "A" => [ { "B" => 2 }, { "C" => 3 }, 4 ] }
   end
 
   def test_methods
@@ -127,7 +127,7 @@ class HashExtTest < ActiveSupport::TestCase
     transformed_hash = @nested_mixed.deep_dup
     transformed_hash.deep_transform_keys!{ |key| key.to_s.upcase }
     assert_equal @nested_upcase_strings, transformed_hash
-    assert_equal @nested_mixed, { 'a' => { :b => { 'c' => 3 } } }
+    assert_equal @nested_mixed, { "a" => { :b => { "c" => 3 } } }
   end
 
   def test_symbolize_keys
@@ -183,7 +183,7 @@ class HashExtTest < ActiveSupport::TestCase
     transformed_hash = @nested_mixed.deep_dup
     transformed_hash.deep_symbolize_keys!
     assert_equal @nested_symbols, transformed_hash
-    assert_equal @nested_mixed, { 'a' => { :b => { 'c' => 3 } } }
+    assert_equal @nested_mixed, { "a" => { :b => { "c" => 3 } } }
   end
 
   def test_symbolize_keys_preserves_keys_that_cant_be_symbolized
@@ -259,7 +259,7 @@ class HashExtTest < ActiveSupport::TestCase
     transformed_hash = @nested_mixed.deep_dup
     transformed_hash.deep_stringify_keys!
     assert_equal @nested_strings, transformed_hash
-    assert_equal @nested_mixed, { 'a' => { :b => { 'c' => 3 } } }
+    assert_equal @nested_mixed, { "a" => { :b => { "c" => 3 } } }
   end
 
   def test_symbolize_keys_for_hash_with_indifferent_access
@@ -353,9 +353,9 @@ class HashExtTest < ActiveSupport::TestCase
     @symbols = @symbols.with_indifferent_access
     @mixed   = @mixed.with_indifferent_access
 
-    assert_equal 'a', @strings.__send__(:convert_key, :a)
+    assert_equal "a", @strings.__send__(:convert_key, :a)
 
-    assert_equal 1, @strings.fetch('a')
+    assert_equal 1, @strings.fetch("a")
     assert_equal 1, @strings.fetch(:a.to_s)
     assert_equal 1, @strings.fetch(:a)
 
@@ -366,18 +366,18 @@ class HashExtTest < ActiveSupport::TestCase
 
     hashes.each do |name, hash|
       method_map.sort_by(&:to_s).each do |meth, expected|
-        assert_equal(expected, hash.__send__(meth, 'a'),
+        assert_equal(expected, hash.__send__(meth, "a"),
                      "Calling #{name}.#{meth} 'a'")
         assert_equal(expected, hash.__send__(meth, :a),
                      "Calling #{name}.#{meth} :a")
       end
     end
 
-    assert_equal [1, 2], @strings.values_at('a', 'b')
+    assert_equal [1, 2], @strings.values_at("a", "b")
     assert_equal [1, 2], @strings.values_at(:a, :b)
-    assert_equal [1, 2], @symbols.values_at('a', 'b')
+    assert_equal [1, 2], @symbols.values_at("a", "b")
     assert_equal [1, 2], @symbols.values_at(:a, :b)
-    assert_equal [1, 2], @mixed.values_at('a', 'b')
+    assert_equal [1, 2], @mixed.values_at("a", "b")
     assert_equal [1, 2], @mixed.values_at(:a, :b)
   end
 
@@ -412,11 +412,11 @@ class HashExtTest < ActiveSupport::TestCase
   def test_indifferent_writing
     hash = HashWithIndifferentAccess.new
     hash[:a] = 1
-    hash['b'] = 2
+    hash["b"] = 2
     hash[3] = 3
 
-    assert_equal hash['a'], 1
-    assert_equal hash['b'], 2
+    assert_equal hash["a"], 1
+    assert_equal hash["b"], 2
     assert_equal hash[:a], 1
     assert_equal hash[:b], 2
     assert_equal hash[3], 3
@@ -424,23 +424,23 @@ class HashExtTest < ActiveSupport::TestCase
 
   def test_indifferent_update
     hash = HashWithIndifferentAccess.new
-    hash[:a] = 'a'
-    hash['b'] = 'b'
+    hash[:a] = "a"
+    hash["b"] = "b"
 
     updated_with_strings = hash.update(@strings)
     updated_with_symbols = hash.update(@symbols)
     updated_with_mixed = hash.update(@mixed)
 
     assert_equal updated_with_strings[:a], 1
-    assert_equal updated_with_strings['a'], 1
-    assert_equal updated_with_strings['b'], 2
+    assert_equal updated_with_strings["a"], 1
+    assert_equal updated_with_strings["b"], 2
 
     assert_equal updated_with_symbols[:a], 1
-    assert_equal updated_with_symbols['b'], 2
+    assert_equal updated_with_symbols["b"], 2
     assert_equal updated_with_symbols[:b], 2
 
     assert_equal updated_with_mixed[:a], 1
-    assert_equal updated_with_mixed['b'], 2
+    assert_equal updated_with_mixed["b"], 2
 
     assert [updated_with_strings, updated_with_symbols, updated_with_mixed].all? { |h| h.keys.size == 2 }
   end
@@ -448,32 +448,32 @@ class HashExtTest < ActiveSupport::TestCase
   def test_update_with_to_hash_conversion
     hash = HashWithIndifferentAccess.new
     hash.update HashByConversion.new({ :a => 1 })
-    assert_equal hash['a'], 1
+    assert_equal hash["a"], 1
   end
 
   def test_indifferent_merging
     hash = HashWithIndifferentAccess.new
-    hash[:a] = 'failure'
-    hash['b'] = 'failure'
+    hash[:a] = "failure"
+    hash["b"] = "failure"
 
-    other = { 'a' => 1, :b => 2 }
+    other = { "a" => 1, :b => 2 }
 
     merged = hash.merge(other)
 
     assert_equal HashWithIndifferentAccess, merged.class
     assert_equal 1, merged[:a]
-    assert_equal 2, merged['b']
+    assert_equal 2, merged["b"]
 
     hash.update(other)
 
     assert_equal 1, hash[:a]
-    assert_equal 2, hash['b']
+    assert_equal 2, hash["b"]
   end
 
   def test_merge_with_to_hash_conversion
     hash = HashWithIndifferentAccess.new
     merged = hash.merge HashByConversion.new({ :a => 1 })
-    assert_equal merged['a'], 1
+    assert_equal merged["a"], 1
   end
 
   def test_indifferent_replace
@@ -482,7 +482,7 @@ class HashExtTest < ActiveSupport::TestCase
 
     replaced = hash.replace(b: 12)
 
-    assert hash.key?('b')
+    assert hash.key?("b")
     assert !hash.key?(:a)
     assert_equal 12, hash[:b]
     assert_same hash, replaced
@@ -494,7 +494,7 @@ class HashExtTest < ActiveSupport::TestCase
 
     replaced = hash.replace(HashByConversion.new(b: 12))
 
-    assert hash.key?('b')
+    assert hash.key?("b")
     assert !hash.key?(:a)
     assert_equal 12, hash[:b]
     assert_same hash, replaced
@@ -503,18 +503,18 @@ class HashExtTest < ActiveSupport::TestCase
   def test_indifferent_merging_with_block
     hash = HashWithIndifferentAccess.new
     hash[:a] = 1
-    hash['b'] = 3
+    hash["b"] = 3
 
-    other = { 'a' => 4, :b => 2, 'c' => 10 }
+    other = { "a" => 4, :b => 2, "c" => 10 }
 
     merged = hash.merge(other) { |key, old, new| old > new ? old : new }
 
     assert_equal HashWithIndifferentAccess, merged.class
     assert_equal 4, merged[:a]
-    assert_equal 3, merged['b']
+    assert_equal 3, merged["b"]
     assert_equal 10, merged[:c]
 
-    other_indifferent = HashWithIndifferentAccess.new('a' => 9, :b => 2)
+    other_indifferent = HashWithIndifferentAccess.new("a" => 9, :b => 2)
 
     merged = hash.merge(other_indifferent) { |key, old, new| old + new }
 
@@ -528,26 +528,26 @@ class HashExtTest < ActiveSupport::TestCase
     hash.reverse_merge! key: :new_value
     assert_equal :old_value, hash[:key]
 
-    hash = HashWithIndifferentAccess.new('some' => 'value', 'other' => 'value')
-    hash.reverse_merge!(:some => 'noclobber', :another => 'clobber')
-    assert_equal 'value', hash[:some]
-    assert_equal 'clobber', hash[:another]
+    hash = HashWithIndifferentAccess.new("some" => "value", "other" => "value")
+    hash.reverse_merge!(:some => "noclobber", :another => "clobber")
+    assert_equal "value", hash[:some]
+    assert_equal "clobber", hash[:another]
   end
 
   def test_indifferent_deleting
-    get_hash = proc{ { :a => 'foo' }.with_indifferent_access }
+    get_hash = proc{ { :a => "foo" }.with_indifferent_access }
     hash = get_hash.call
-    assert_equal hash.delete(:a), 'foo'
+    assert_equal hash.delete(:a), "foo"
     assert_equal hash.delete(:a), nil
     hash = get_hash.call
-    assert_equal hash.delete('a'), 'foo'
-    assert_equal hash.delete('a'), nil
+    assert_equal hash.delete("a"), "foo"
+    assert_equal hash.delete("a"), nil
   end
 
   def test_indifferent_select
     hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).select {|k,v| v == 1}
 
-    assert_equal({ 'a' => 1 }, hash)
+    assert_equal({ "a" => 1 }, hash)
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
   end
 
@@ -566,14 +566,14 @@ class HashExtTest < ActiveSupport::TestCase
     indifferent_strings = ActiveSupport::HashWithIndifferentAccess.new(@strings)
     indifferent_strings.select! {|k,v| v == 1}
 
-    assert_equal({ 'a' => 1 }, indifferent_strings)
+    assert_equal({ "a" => 1 }, indifferent_strings)
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, indifferent_strings
   end
 
   def test_indifferent_reject
     hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).reject {|k,v| v != 1}
 
-    assert_equal({ 'a' => 1 }, hash)
+    assert_equal({ "a" => 1 }, hash)
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
   end
 
@@ -586,7 +586,7 @@ class HashExtTest < ActiveSupport::TestCase
     indifferent_strings = ActiveSupport::HashWithIndifferentAccess.new(@strings)
     indifferent_strings.reject! {|k,v| v != 1}
 
-    assert_equal({ 'a' => 1 }, indifferent_strings)
+    assert_equal({ "a" => 1 }, indifferent_strings)
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, indifferent_strings
   end
 
@@ -596,10 +596,10 @@ class HashExtTest < ActiveSupport::TestCase
 
     # Should preserve the default value.
     mixed_with_default = @mixed.dup
-    mixed_with_default.default = '1234'
+    mixed_with_default.default = "1234"
     roundtrip = mixed_with_default.with_indifferent_access.to_hash
     assert_equal @strings, roundtrip
-    assert_equal '1234', roundtrip.default
+    assert_equal "1234", roundtrip.default
 
     # Ensure nested hashes are not HashWithIndiffereneAccess
     new_to_hash = @nested_mixed.with_indifferent_access.to_hash
@@ -616,7 +616,7 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_with_indifferent_access_has_no_side_effects_on_existing_hash
-    hash = {content: [{:foo => :bar, 'bar' => 'baz'}]}
+    hash = {content: [{:foo => :bar, "bar" => "baz"}]}
     hash.with_indifferent_access
 
     assert_equal [:foo, "bar"], hash[:content].first.keys
@@ -650,9 +650,9 @@ class HashExtTest < ActiveSupport::TestCase
     h = HashWithIndifferentAccess.new
     h[:first] = 1
     h = h.stringify_keys
-    assert_equal 1, h['first']
+    assert_equal 1, h["first"]
     h = HashWithIndifferentAccess.new
-    h['first'] = 1
+    h["first"] = 1
     h = h.symbolize_keys
     assert_equal 1, h[:first]
   end
@@ -661,40 +661,40 @@ class HashExtTest < ActiveSupport::TestCase
     h = HashWithIndifferentAccess.new
     h[:first] = 1
     h = h.deep_stringify_keys
-    assert_equal 1, h['first']
+    assert_equal 1, h["first"]
     h = HashWithIndifferentAccess.new
-    h['first'] = 1
+    h["first"] = 1
     h = h.deep_symbolize_keys
     assert_equal 1, h[:first]
   end
 
   def test_to_options_on_indifferent_preserves_hash
     h = HashWithIndifferentAccess.new
-    h['first'] = 1
+    h["first"] = 1
     h.to_options!
-    assert_equal 1, h['first']
+    assert_equal 1, h["first"]
   end
 
   def test_to_options_on_indifferent_preserves_works_as_hash_with_dup
-    h = HashWithIndifferentAccess.new({ a: { b: 'b' } })
+    h = HashWithIndifferentAccess.new({ a: { b: "b" } })
     dup = h.dup
 
-    dup[:a][:c] = 'c'
-    assert_equal 'c', h[:a][:c]
+    dup[:a][:c] = "c"
+    assert_equal "c", h[:a][:c]
   end
 
   def test_indifferent_sub_hashes
-    h = {'user' => {'id' => 5}}.with_indifferent_access
-    ['user', :user].each {|user| [:id, 'id'].each {|id| assert_equal 5, h[user][id], "h[#{user.inspect}][#{id.inspect}] should be 5"}}
+    h = {"user" => {"id" => 5}}.with_indifferent_access
+    ["user", :user].each {|user| [:id, "id"].each {|id| assert_equal 5, h[user][id], "h[#{user.inspect}][#{id.inspect}] should be 5"}}
 
     h = {:user => {:id => 5}}.with_indifferent_access
-    ['user', :user].each {|user| [:id, 'id'].each {|id| assert_equal 5, h[user][id], "h[#{user.inspect}][#{id.inspect}] should be 5"}}
+    ["user", :user].each {|user| [:id, "id"].each {|id| assert_equal 5, h[user][id], "h[#{user.inspect}][#{id.inspect}] should be 5"}}
   end
 
   def test_indifferent_duplication
     # Should preserve default value
     h = HashWithIndifferentAccess.new
-    h.default = '1234'
+    h.default = "1234"
     assert_equal h.default, h.dup.default
 
     # Should preserve class for subclasses
@@ -768,8 +768,8 @@ class HashExtTest < ActiveSupport::TestCase
 
   def test_deep_merge_with_falsey_values
     hash_1 = { e: false }
-    hash_2 = { e: 'e' }
-    expected = { e: [:e, false, 'e'] }
+    hash_2 = { e: "e" }
+    expected = { e: [:e, false, "e"] }
     assert_equal(expected, hash_1.deep_merge(hash_2) { |k, o, n| [k, o, n] })
 
     hash_1.deep_merge!(hash_2) { |k, o, n| [k, o, n] }
@@ -791,9 +791,9 @@ class HashExtTest < ActiveSupport::TestCase
   def test_store_on_indifferent_access
     hash = HashWithIndifferentAccess.new
     hash.store(:test1, 1)
-    hash.store('test1', 11)
+    hash.store("test1", 11)
     hash[:test2] = 2
-    hash['test2'] = 22
+    hash["test2"] = 22
     expected = { "test1" => 11, "test2" => 22 }
     assert_equal expected, hash
   end
@@ -801,10 +801,10 @@ class HashExtTest < ActiveSupport::TestCase
   def test_constructor_on_indifferent_access
     hash = HashWithIndifferentAccess[:foo, 1]
     assert_equal 1, hash[:foo]
-    assert_equal 1, hash['foo']
+    assert_equal 1, hash["foo"]
     hash[:foo] = 3
     assert_equal 3, hash[:foo]
-    assert_equal 3, hash['foo']
+    assert_equal 3, hash["foo"]
   end
 
   def test_reverse_merge
@@ -828,8 +828,8 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_slice
-    original = { :a => 'x', :b => 'y', :c => 10 }
-    expected = { :a => 'x', :b => 'y' }
+    original = { :a => "x", :b => "y", :c => 10 }
+    expected = { :a => "x", :b => "y" }
 
     # Should return a new hash with only the given keys.
     assert_equal expected, original.slice(:a, :b)
@@ -837,7 +837,7 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_slice_inplace
-    original = { :a => 'x', :b => 'y', :c => 10 }
+    original = { :a => "x", :b => "y", :c => 10 }
     expected = { :c => 10 }
 
     # Should replace the hash with only the given keys.
@@ -845,7 +845,7 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_slice_with_an_array_key
-    original = { :a => 'x', :b => 'y', :c => 10, [:a, :b] => "an array key" }
+    original = { :a => "x", :b => "y", :c => 10, [:a, :b] => "an array key" }
     expected = { [:a, :b] => "an array key", :c => 10 }
 
     # Should return a new hash with only the given keys when given an array key.
@@ -854,26 +854,26 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_slice_inplace_with_an_array_key
-    original = { :a => 'x', :b => 'y', :c => 10, [:a, :b] => "an array key" }
-    expected = { :a => 'x', :b => 'y' }
+    original = { :a => "x", :b => "y", :c => 10, [:a, :b] => "an array key" }
+    expected = { :a => "x", :b => "y" }
 
     # Should replace the hash with only the given keys when given an array key.
     assert_equal expected, original.slice!([:a, :b], :c)
   end
 
   def test_slice_with_splatted_keys
-    original = { :a => 'x', :b => 'y', :c => 10, [:a, :b] => "an array key" }
-    expected = { :a => 'x', :b => "y" }
+    original = { :a => "x", :b => "y", :c => 10, [:a, :b] => "an array key" }
+    expected = { :a => "x", :b => "y" }
 
     # Should grab each of the splatted keys.
     assert_equal expected, original.slice(*[:a, :b])
   end
 
   def test_indifferent_slice
-    original = { :a => 'x', :b => 'y', :c => 10 }.with_indifferent_access
-    expected = { :a => 'x', :b => 'y' }.with_indifferent_access
+    original = { :a => "x", :b => "y", :c => 10 }.with_indifferent_access
+    expected = { :a => "x", :b => "y" }.with_indifferent_access
 
-    [['a', 'b'], [:a, :b]].each do |keys|
+    [["a", "b"], [:a, :b]].each do |keys|
       # Should return a new hash with only the given keys.
       assert_equal expected, original.slice(*keys), keys.inspect
       assert_not_equal expected, original
@@ -881,10 +881,10 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_indifferent_slice_inplace
-    original = { :a => 'x', :b => 'y', :c => 10 }.with_indifferent_access
+    original = { :a => "x", :b => "y", :c => 10 }.with_indifferent_access
     expected = { :c => 10 }.with_indifferent_access
 
-    [['a', 'b'], [:a, :b]].each do |keys|
+    [["a", "b"], [:a, :b]].each do |keys|
       # Should replace the hash with only the given keys.
       copy = original.dup
       assert_equal expected, copy.slice!(*keys)
@@ -892,13 +892,13 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_indifferent_slice_access_with_symbols
-    original = {'login' => 'bender', 'password' => 'shiny', 'stuff' => 'foo'}
+    original = {"login" => "bender", "password" => "shiny", "stuff" => "foo"}
     original = original.with_indifferent_access
 
     slice = original.slice(:login, :password)
 
-    assert_equal 'bender', slice[:login]
-    assert_equal 'bender', slice['login']
+    assert_equal "bender", slice[:login]
+    assert_equal "bender", slice["login"]
   end
 
   def test_slice_bang_does_not_override_default
@@ -939,11 +939,11 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_indifferent_extract
-    original = {:a => 1, 'b' => 2, :c => 3, 'd' => 4}.with_indifferent_access
+    original = {:a => 1, "b" => 2, :c => 3, "d" => 4}.with_indifferent_access
     expected = {:a => 1, :b => 2}.with_indifferent_access
     remaining = {:c => 3, :d => 4}.with_indifferent_access
 
-    [['a', 'b'], [:a, :b]].each do |keys|
+    [["a", "b"], [:a, :b]].each do |keys|
       copy = original.dup
       assert_equal expected, copy.extract!(*keys)
       assert_equal remaining, copy
@@ -951,8 +951,8 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_except
-    original = { :a => 'x', :b => 'y', :c => 10 }
-    expected = { :a => 'x', :b => 'y' }
+    original = { :a => "x", :b => "y", :c => 10 }
+    expected = { :a => "x", :b => "y" }
 
     # Should return a new hash without the given keys.
     assert_equal expected, original.except(:c)
@@ -964,8 +964,8 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_except_with_more_than_one_argument
-    original = { :a => 'x', :b => 'y', :c => 10 }
-    expected = { :a => 'x' }
+    original = { :a => "x", :b => "y", :c => 10 }
+    expected = { :a => "x" }
 
     assert_equal expected, original.except(:b, :c)
 
@@ -974,7 +974,7 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_except_with_original_frozen
-    original = { :a => 'x', :b => 'y' }
+    original = { :a => "x", :b => "y" }
     original.freeze
     assert_nothing_raised { original.except(:a) }
 
@@ -982,7 +982,7 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_except_does_not_delete_values_in_original
-    original = { :a => 'x', :b => 'y' }
+    original = { :a => "x", :b => "y" }
     assert_not_called(original, :delete) do
       original.except(:a)
     end
@@ -1024,7 +1024,7 @@ class HashExtTest < ActiveSupport::TestCase
 
   def test_new_with_to_hash_conversion
     hash = HashWithIndifferentAccess.new(HashByConversion.new(a: 1))
-    assert hash.key?('a')
+    assert hash.key?("a")
     assert_equal 1, hash[:a]
   end
 
@@ -1084,7 +1084,7 @@ class IWriteMyOwnXML
     xml = options[:builder] ||= Builder::XmlMarkup.new(:indent => options[:indent])
     xml.instruct! unless options[:skip_instruct]
     xml.level_one do
-      xml.tag!(:second_level, 'content')
+      xml.tag!(:second_level, "content")
     end
   end
 end
@@ -1097,26 +1097,26 @@ class HashExtToParamTests < ActiveSupport::TestCase
   end
 
   def test_string_hash
-    assert_equal '', {}.to_param
-    assert_equal 'hello=world', { :hello => "world" }.to_param
-    assert_equal 'hello=10', { "hello" => 10 }.to_param
-    assert_equal 'hello=world&say_bye=true', {:hello => "world", "say_bye" => true}.to_param
+    assert_equal "", {}.to_param
+    assert_equal "hello=world", { :hello => "world" }.to_param
+    assert_equal "hello=10", { "hello" => 10 }.to_param
+    assert_equal "hello=world&say_bye=true", {:hello => "world", "say_bye" => true}.to_param
   end
 
   def test_number_hash
-    assert_equal '10=20&30=40&50=60', {10 => 20, 30 => 40, 50 => 60}.to_param
+    assert_equal "10=20&30=40&50=60", {10 => 20, 30 => 40, 50 => 60}.to_param
   end
 
   def test_to_param_hash
-    assert_equal 'custom-1=param-1&custom2-1=param2-1', {ToParam.new('custom') => ToParam.new('param'), ToParam.new('custom2') => ToParam.new('param2')}.to_param
+    assert_equal "custom-1=param-1&custom2-1=param2-1", {ToParam.new("custom") => ToParam.new("param"), ToParam.new("custom2") => ToParam.new("param2")}.to_param
   end
 
   def test_to_param_hash_escapes_its_keys_and_values
-    assert_equal 'param+1=A+string+with+%2F+characters+%26+that+should+be+%3F+escaped', { 'param 1' => 'A string with / characters & that should be ? escaped' }.to_param
+    assert_equal "param+1=A+string+with+%2F+characters+%26+that+should+be+%3F+escaped", { "param 1" => "A string with / characters & that should be ? escaped" }.to_param
   end
 
   def test_to_param_orders_by_key_in_ascending_order
-    assert_equal 'a=2&b=1&c=0', Hash[*%w(b 1 c 0 a 2)].to_param
+    assert_equal "a=2&b=1&c=0", Hash[*%w(b 1 c 0 a 2)].to_param
   end
 end
 
@@ -1229,7 +1229,7 @@ class HashToXmlTest < ActiveSupport::TestCase
   def test_timezoned_attributes
     xml = {
       :created_at => Time.utc(1999,2,2),
-      :local_created_at => Time.utc(1999,2,2).in_time_zone('Eastern Time (US & Canada)')
+      :local_created_at => Time.utc(1999,2,2).in_time_zone("Eastern Time (US & Canada)")
     }.to_xml(@xml_options)
     assert_match %r{<created-at type=\"dateTime\">1999-02-02T00:00:00Z</created-at>}, xml
     assert_match %r{<local-created-at type=\"dateTime\">1999-02-01T19:00:00-05:00</local-created-at>}, xml
@@ -1486,12 +1486,12 @@ class HashToXmlTest < ActiveSupport::TestCase
       </blog>
     XML
     hash = Hash.from_xml(blog_xml)
-    assert hash.has_key?('blog')
-    assert hash['blog'].has_key?('logo')
+    assert hash.has_key?("blog")
+    assert hash["blog"].has_key?("logo")
 
-    file = hash['blog']['logo']
-    assert_equal 'logo.png', file.original_filename
-    assert_equal 'image/png', file.content_type
+    file = hash["blog"]["logo"]
+    assert_equal "logo.png", file.original_filename
+    assert_equal "image/png", file.content_type
   end
 
   def test_file_from_xml_with_defaults
@@ -1501,9 +1501,9 @@ class HashToXmlTest < ActiveSupport::TestCase
         </logo>
       </blog>
     XML
-    file = Hash.from_xml(blog_xml)['blog']['logo']
-    assert_equal 'untitled', file.original_filename
-    assert_equal 'application/octet-stream', file.content_type
+    file = Hash.from_xml(blog_xml)["blog"]["logo"]
+    assert_equal "untitled", file.original_filename
+    assert_equal "application/octet-stream", file.content_type
   end
 
   def test_tag_with_attrs_and_whitespace
@@ -1512,7 +1512,7 @@ class HashToXmlTest < ActiveSupport::TestCase
       </blog>
     XML
     hash = Hash.from_xml(xml)
-    assert_equal "bacon is the best", hash['blog']['name']
+    assert_equal "bacon is the best", hash["blog"]["name"]
   end
 
   def test_empty_cdata_from_xml
@@ -1558,7 +1558,7 @@ class HashToXmlTest < ActiveSupport::TestCase
 
     expected_product_hash = {
       :weight => 0.5,
-      :image => {'type' => 'ProductImage', 'filename' => 'image.gif' },
+      :image => {"type" => "ProductImage", "filename" => "image.gif" },
     }.stringify_keys
 
     assert_equal expected_product_hash, Hash.from_xml(product_xml)["product"]
@@ -1581,17 +1581,17 @@ class HashToXmlTest < ActiveSupport::TestCase
   end
 
   def test_from_xml_array_one
-    expected = { 'numbers' => { 'type' => 'Array', 'value' => '1' }}
+    expected = { "numbers" => { "type" => "Array", "value" => "1" }}
     assert_equal expected, Hash.from_xml('<numbers type="Array"><value>1</value></numbers>')
   end
 
   def test_from_xml_array_many
-    expected = { 'numbers' => { 'type' => 'Array', 'value' => [ '1', '2' ] }}
+    expected = { "numbers" => { "type" => "Array", "value" => [ "1", "2" ] }}
     assert_equal expected, Hash.from_xml('<numbers type="Array"><value>1</value><value>2</value></numbers>')
   end
 
   def test_from_trusted_xml_allows_symbol_and_yaml_types
-    expected = { 'product' => { 'name' => :value }}
+    expected = { "product" => { "name" => :value }}
     assert_equal expected, Hash.from_trusted_xml('<product><name type="symbol">value</name></product>')
     assert_equal expected, Hash.from_trusted_xml('<product><name type="yaml">:value</name></product>')
   end
@@ -1654,8 +1654,8 @@ class HashToXmlTest < ActiveSupport::TestCase
   # The XML builder seems to fail miserably when trying to tag something
   # with the same name as a Kernel method (throw, test, loop, select ...)
   def test_kernel_method_names_to_xml
-    hash     = { :throw => { :ball => 'red' } }
-    expected = '<person><throw><ball>red</ball></throw></person>'
+    hash     = { :throw => { :ball => "red" } }
+    expected = "<person><throw><ball>red</ball></throw></person>"
 
     assert_nothing_raised do
       assert_equal expected, hash.to_xml(@xml_options)
@@ -1670,30 +1670,30 @@ class HashToXmlTest < ActiveSupport::TestCase
 
   def test_escaping_to_xml
     hash = {
-      :bare_string        => 'First & Last Name',
-      :pre_escaped_string => 'First &amp; Last Name'
+      :bare_string        => "First & Last Name",
+      :pre_escaped_string => "First &amp; Last Name"
     }.stringify_keys
 
-    expected_xml = '<person><bare-string>First &amp; Last Name</bare-string><pre-escaped-string>First &amp;amp; Last Name</pre-escaped-string></person>'
+    expected_xml = "<person><bare-string>First &amp; Last Name</bare-string><pre-escaped-string>First &amp;amp; Last Name</pre-escaped-string></person>"
     assert_equal expected_xml, hash.to_xml(@xml_options)
   end
 
   def test_unescaping_from_xml
-    xml_string = '<person><bare-string>First &amp; Last Name</bare-string><pre-escaped-string>First &amp;amp; Last Name</pre-escaped-string></person>'
+    xml_string = "<person><bare-string>First &amp; Last Name</bare-string><pre-escaped-string>First &amp;amp; Last Name</pre-escaped-string></person>"
     expected_hash = {
-      :bare_string        => 'First & Last Name',
-      :pre_escaped_string => 'First &amp; Last Name'
+      :bare_string        => "First & Last Name",
+      :pre_escaped_string => "First &amp; Last Name"
     }.stringify_keys
-    assert_equal expected_hash, Hash.from_xml(xml_string)['person']
+    assert_equal expected_hash, Hash.from_xml(xml_string)["person"]
   end
 
   def test_roundtrip_to_xml_from_xml
     hash = {
-      :bare_string        => 'First & Last Name',
-      :pre_escaped_string => 'First &amp; Last Name'
+      :bare_string        => "First & Last Name",
+      :pre_escaped_string => "First &amp; Last Name"
     }.stringify_keys
 
-    assert_equal hash, Hash.from_xml(hash.to_xml(@xml_options))['person']
+    assert_equal hash, Hash.from_xml(hash.to_xml(@xml_options))["person"]
   end
 
   def test_datetime_xml_type_with_utc_time
@@ -1702,7 +1702,7 @@ class HashToXmlTest < ActiveSupport::TestCase
         <alert_at type="datetime">2008-02-10T15:30:45Z</alert_at>
       </alert>
     XML
-    alert_at = Hash.from_xml(alert_xml)['alert']['alert_at']
+    alert_at = Hash.from_xml(alert_xml)["alert"]["alert_at"]
     assert alert_at.utc?
     assert_equal Time.utc(2008, 2, 10, 15, 30, 45), alert_at
   end
@@ -1713,7 +1713,7 @@ class HashToXmlTest < ActiveSupport::TestCase
         <alert_at type="datetime">2008-02-10T10:30:45-05:00</alert_at>
       </alert>
     XML
-    alert_at = Hash.from_xml(alert_xml)['alert']['alert_at']
+    alert_at = Hash.from_xml(alert_xml)["alert"]["alert_at"]
     assert alert_at.utc?
     assert_equal Time.utc(2008, 2, 10, 15, 30, 45), alert_at
   end
@@ -1724,7 +1724,7 @@ class HashToXmlTest < ActiveSupport::TestCase
         <alert_at type="datetime">2050-02-10T15:30:45Z</alert_at>
       </alert>
     XML
-    alert_at = Hash.from_xml(alert_xml)['alert']['alert_at']
+    alert_at = Hash.from_xml(alert_xml)["alert"]["alert_at"]
     assert alert_at.utc?
     assert_equal 2050,  alert_at.year
     assert_equal 2,     alert_at.month
@@ -1744,11 +1744,11 @@ class HashToXmlTest < ActiveSupport::TestCase
   def test_expansion_count_is_limited
     expected =
       case ActiveSupport::XmlMini.backend.name
-      when 'ActiveSupport::XmlMini_REXML';        RuntimeError
-      when 'ActiveSupport::XmlMini_Nokogiri';     Nokogiri::XML::SyntaxError
-      when 'ActiveSupport::XmlMini_NokogiriSAX';  RuntimeError
-      when 'ActiveSupport::XmlMini_LibXML';       LibXML::XML::Error
-      when 'ActiveSupport::XmlMini_LibXMLSAX';    LibXML::XML::Error
+      when "ActiveSupport::XmlMini_REXML";        RuntimeError
+      when "ActiveSupport::XmlMini_Nokogiri";     Nokogiri::XML::SyntaxError
+      when "ActiveSupport::XmlMini_NokogiriSAX";  RuntimeError
+      when "ActiveSupport::XmlMini_LibXML";       LibXML::XML::Error
+      when "ActiveSupport::XmlMini_LibXMLSAX";    LibXML::XML::Error
       end
 
     assert_raise expected do

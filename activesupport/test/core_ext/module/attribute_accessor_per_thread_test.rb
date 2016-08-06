@@ -1,5 +1,5 @@
-require 'abstract_unit'
-require 'active_support/core_ext/module/attribute_accessors_per_thread'
+require "abstract_unit"
+require "active_support/core_ext/module/attribute_accessors_per_thread"
 
 class ModuleAttributeAccessorPerThreadTest < ActiveSupport::TestCase
   def setup
@@ -57,21 +57,21 @@ class ModuleAttributeAccessorPerThreadTest < ActiveSupport::TestCase
   def test_values_should_not_bleed_between_threads
     threads = []
     threads << Thread.new do
-      @class.foo = 'things'
+      @class.foo = "things"
       sleep 1
-      assert_equal 'things', @class.foo
+      assert_equal "things", @class.foo
     end
 
     threads << Thread.new do
-      @class.foo = 'other things'
+      @class.foo = "other things"
       sleep 1
-      assert_equal 'other things', @class.foo      
+      assert_equal "other things", @class.foo      
     end
     
     threads << Thread.new do
-      @class.foo = 'really other things'
+      @class.foo = "really other things"
       sleep 1
-      assert_equal 'really other things', @class.foo      
+      assert_equal "really other things", @class.foo      
     end
     
     threads.each { |t| t.join }
@@ -108,7 +108,7 @@ class ModuleAttributeAccessorPerThreadTest < ActiveSupport::TestCase
   end
 
   def test_should_return_same_value_by_class_or_instance_accessor
-    @class.foo = 'fries'
+    @class.foo = "fries"
 
     assert_equal @class.foo, @object.foo
   end

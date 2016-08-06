@@ -128,10 +128,10 @@ module InflectorTestCases
   }
 
   SymbolToLowerCamel = {
-    :product                => 'product',
-    :special_guest          => 'specialGuest',
-    :application_controller => 'applicationController',
-    :area51_controller      => 'area51Controller'
+    :product                => "product",
+    :special_guest          => "specialGuest",
+    :application_controller => "applicationController",
+    :area51_controller      => "area51Controller"
   }
 
   CamelToUnderscoreWithoutReverse = {
@@ -241,11 +241,11 @@ module InflectorTestCases
   }
 
   UnderscoreToHuman = {
-    'employee_salary' => 'Employee salary',
-    'employee_id'     => 'Employee',
-    'underground'     => 'Underground',
-    '_id'             => 'Id',
-    '_external_id'    => 'External'
+    "employee_salary" => "Employee salary",
+    "employee_id"     => "Employee",
+    "underground"     => "Underground",
+    "_id"             => "Id",
+    "_external_id"    => "External"
   }
 
   UnderscoreToHumanWithoutCapitalize = {
@@ -255,20 +255,20 @@ module InflectorTestCases
   }
 
   MixtureToTitleCase = {
-    'active_record'         => 'Active Record',
-    'ActiveRecord'          => 'Active Record',
-    'action web service'    => 'Action Web Service',
-    'Action Web Service'    => 'Action Web Service',
-    'Action web service'    => 'Action Web Service',
-    'actionwebservice'      => 'Actionwebservice',
-    'Actionwebservice'      => 'Actionwebservice',
+    "active_record"         => "Active Record",
+    "ActiveRecord"          => "Active Record",
+    "action web service"    => "Action Web Service",
+    "Action Web Service"    => "Action Web Service",
+    "Action web service"    => "Action Web Service",
+    "actionwebservice"      => "Actionwebservice",
+    "Actionwebservice"      => "Actionwebservice",
     "david's code"          => "David's Code",
     "David's code"          => "David's Code",
     "david's Code"          => "David's Code",
     "sgt. pepper's"         => "Sgt. Pepper's",
     "i've just seen a face" => "I've Just Seen A Face",
     "maybe you'll be there" => "Maybe You'll Be There",
-    "¿por qué?"             => '¿Por Qué?',
+    "¿por qué?"             => "¿Por Qué?",
     "Fred’s"                => "Fred’s",
     "Fred`s"                => "Fred`s",
     ActiveSupport::SafeBuffer.new("confirmation num") => "Confirmation Num"
@@ -345,13 +345,13 @@ module InflectorTestCases
   }
 
   Irregularities = {
-    'person' => 'people',
-    'man'    => 'men',
-    'child'  => 'children',
-    'sex'    => 'sexes',
-    'move'   => 'moves',
-    'cow'    => 'kine', # Test inflections with different starting letters
-    'zombie' => 'zombies',
-    'genus'  => 'genera'
+    "person" => "people",
+    "man"    => "men",
+    "child"  => "children",
+    "sex"    => "sexes",
+    "move"   => "moves",
+    "cow"    => "kine", # Test inflections with different starting letters
+    "zombie" => "zombies",
+    "genus"  => "genera"
   }
 end

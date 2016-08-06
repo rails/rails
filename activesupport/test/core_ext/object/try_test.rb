@@ -1,5 +1,5 @@
-require 'abstract_unit'
-require 'active_support/core_ext/object'
+require "abstract_unit"
+require "active_support/core_ext/object"
 
 class ObjectTryTest < ActiveSupport::TestCase
   def setup
@@ -15,7 +15,7 @@ class ObjectTryTest < ActiveSupport::TestCase
   def test_nonexisting_method_with_arguments
     method = :undefined_method
     assert !@string.respond_to?(method)
-    assert_nil @string.try(method, 'llo', 'y')
+    assert_nil @string.try(method, "llo", "y")
   end
 
   def test_nonexisting_method_bang
@@ -27,7 +27,7 @@ class ObjectTryTest < ActiveSupport::TestCase
   def test_nonexisting_method_with_arguments_bang
     method = :undefined_method
     assert !@string.respond_to?(method)
-    assert_raise(NoMethodError) { @string.try!(method, 'llo', 'y') }
+    assert_raise(NoMethodError) { @string.try!(method, "llo", "y") }
   end
 
   def test_valid_method
@@ -35,11 +35,11 @@ class ObjectTryTest < ActiveSupport::TestCase
   end
 
   def test_argument_forwarding
-    assert_equal 'Hey', @string.try(:sub, 'llo', 'y')
+    assert_equal "Hey", @string.try(:sub, "llo", "y")
   end
 
   def test_block_forwarding
-    assert_equal 'Hey', @string.try(:sub, 'llo') { |match| 'y' }
+    assert_equal "Hey", @string.try(:sub, "llo") { |match| "y" }
   end
 
   def test_nil_to_type
@@ -48,7 +48,7 @@ class ObjectTryTest < ActiveSupport::TestCase
   end
 
   def test_false_try
-    assert_equal 'false', false.try(:to_s)
+    assert_equal "false", false.try(:to_s)
   end
 
   def test_try_only_block
@@ -78,7 +78,7 @@ class ObjectTryTest < ActiveSupport::TestCase
       private
 
         def private_method
-          'private method'
+          "private method"
         end
     end
 
@@ -90,7 +90,7 @@ class ObjectTryTest < ActiveSupport::TestCase
       private
 
         def private_method
-          'private method'
+          "private method"
         end
     end
 
@@ -99,22 +99,22 @@ class ObjectTryTest < ActiveSupport::TestCase
 
   class Decorator < SimpleDelegator
     def delegator_method
-      'delegator method'
+      "delegator method"
     end
 
     def reverse
-      'overridden reverse'
+      "overridden reverse"
     end
 
     private
 
       def private_delegator_method
-        'private delegator method'
+        "private delegator method"
       end
   end
 
   def test_try_with_method_on_delegator
-    assert_equal 'delegator method', Decorator.new(@string).try(:delegator_method)
+    assert_equal "delegator method", Decorator.new(@string).try(:delegator_method)
   end
 
   def test_try_with_method_on_delegator_target
@@ -122,7 +122,7 @@ class ObjectTryTest < ActiveSupport::TestCase
   end
 
   def test_try_with_overridden_method_on_delegator
-    assert_equal 'overridden reverse', Decorator.new(@string).reverse
+    assert_equal "overridden reverse", Decorator.new(@string).reverse
   end
 
   def test_try_with_private_method_on_delegator
@@ -140,7 +140,7 @@ class ObjectTryTest < ActiveSupport::TestCase
       private
 
         def private_method
-          'private method'
+          "private method"
         end
     end
 
@@ -152,7 +152,7 @@ class ObjectTryTest < ActiveSupport::TestCase
       private
 
         def private_method
-          'private method'
+          "private method"
         end
     end
 
