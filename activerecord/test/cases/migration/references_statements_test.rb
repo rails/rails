@@ -110,12 +110,12 @@ module ActiveRecord
 
       private
 
-      def with_polymorphic_column
-        add_column table_name, :supplier_type, :string
-        add_index table_name, [:supplier_id, :supplier_type]
+        def with_polymorphic_column
+          add_column table_name, :supplier_type, :string
+          add_index table_name, [:supplier_id, :supplier_type]
 
-        yield
-      end
+          yield
+        end
     end
   end
 end

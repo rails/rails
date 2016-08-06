@@ -357,80 +357,80 @@ module ActiveRecord
 
       private
 
-      def schema_loaded?
-        defined?(@columns_hash) && @columns_hash
-      end
-
-      def load_schema
-        unless schema_loaded?
-          load_schema!
+        def schema_loaded?
+          defined?(@columns_hash) && @columns_hash
         end
-      end
 
-      def load_schema!
-        @columns_hash = connection.schema_cache.columns_hash(table_name).except(*ignored_columns)
-        @columns_hash.each do |name, column|
-          warn_if_deprecated_type(column)
-          define_attribute(
-            name,
-            connection.lookup_cast_type_from_column(column),
-            default: column.default,
-            user_provided_default: false
-          )
+        def load_schema
+          unless schema_loaded?
+            load_schema!
+          end
         end
-      end
 
-      def reload_schema_from_cache
-        @arel_engine = nil
-        @arel_table = nil
-        @column_names = nil
-        @attribute_types = nil
-        @content_columns = nil
-        @default_attributes = nil
-        @inheritance_column = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
-        @attributes_builder = nil
-        @columns = nil
-        @columns_hash = nil
-        @attribute_names = nil
-        @yaml_encoder = nil
-        direct_descendants.each do |descendant|
-          descendant.send(:reload_schema_from_cache)
+        def load_schema!
+          @columns_hash = connection.schema_cache.columns_hash(table_name).except(*ignored_columns)
+          @columns_hash.each do |name, column|
+            warn_if_deprecated_type(column)
+            define_attribute(
+              name,
+              connection.lookup_cast_type_from_column(column),
+              default: column.default,
+              user_provided_default: false
+            )
+          end
         end
-      end
+
+        def reload_schema_from_cache
+          @arel_engine = nil
+          @arel_table = nil
+          @column_names = nil
+          @attribute_types = nil
+          @content_columns = nil
+          @default_attributes = nil
+          @inheritance_column = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
+          @attributes_builder = nil
+          @columns = nil
+          @columns_hash = nil
+          @attribute_names = nil
+          @yaml_encoder = nil
+          direct_descendants.each do |descendant|
+            descendant.send(:reload_schema_from_cache)
+          end
+        end
 
       # Guesses the table name, but does not decorate it with prefix and suffix information.
-      def undecorated_table_name(class_name = base_class.name)
-        table_name = class_name.to_s.demodulize.underscore
-        pluralize_table_names ? table_name.pluralize : table_name
-      end
+        def undecorated_table_name(class_name = base_class.name)
+          table_name = class_name.to_s.demodulize.underscore
+          pluralize_table_names ? table_name.pluralize : table_name
+        end
 
       # Computes and returns a table name according to default conventions.
-      def compute_table_name
-        base = base_class
-        if self == base
-          # Nested classes are prefixed with singular parent table name.
-          if parent < Base && !parent.abstract_class?
-            contained = parent.table_name
-            contained = contained.singularize if parent.pluralize_table_names
-            contained += "_"
-          end
+        def compute_table_name
+          base = base_class
+          if self == base
+            # Nested classes are prefixed with singular parent table name.
+            if parent < Base && !parent.abstract_class?
+              contained = parent.table_name
+              contained = contained.singularize if parent.pluralize_table_names
+              contained += "_"
+            end
 
-          "#{full_table_name_prefix}#{contained}#{undecorated_table_name(name)}#{full_table_name_suffix}"
-        else
-          # STI subclasses always use their superclass' table.
-          base.table_name
-        end
-      end
-
-      def warn_if_deprecated_type(column)
-        return if attributes_to_define_after_schema_loads.key?(column.name)
-        if column.respond_to?(:oid) && column.sql_type.start_with?("point")
-          if column.array?
-            array_arguments = ", array: true"
+            "#{full_table_name_prefix}#{contained}#{undecorated_table_name(name)}#{full_table_name_suffix}"
           else
-            array_arguments = ""
+            # STI subclasses always use their superclass' table.
+            base.table_name
           end
-          ActiveSupport::Deprecation.warn(<<-WARNING.strip_heredoc)
+        end
+
+        def warn_if_deprecated_type(column)
+          return if attributes_to_define_after_schema_loads.key?(column.name)
+          if column.respond_to?(:oid) && column.sql_type.start_with?("point")
+            if column.array?
+              array_arguments = ", array: true"
+            else
+              array_arguments = ""
+            end
+            ActiveSupport::Deprecation.warn(<<-WARNING.strip_heredoc)
             The behavior of the `:point` type will be changing in Rails 5.1 to
             return a `Point` object, rather than an `Array`. If you'd like to
             keep the old behavior, you can add this line to #{self.name}:
@@ -441,8 +441,8 @@ module ActiveRecord
 
               attribute :#{column.name}, :point#{array_arguments}
           WARNING
+          end
         end
-      end
     end
   end
 end

@@ -24,33 +24,33 @@ module ActiveModel
 
       private
 
-      def option_call(record, name)
-        option = options[name]
-        option.respond_to?(:call) ? option.call(record) : option
-      end
+        def option_call(record, name)
+          option = options[name]
+          option.respond_to?(:call) ? option.call(record) : option
+        end
 
-      def record_error(record, attribute, name, value)
-        record.errors.add(attribute, :invalid, options.except(name).merge!(value: value))
-      end
+        def record_error(record, attribute, name, value)
+          record.errors.add(attribute, :invalid, options.except(name).merge!(value: value))
+        end
 
-      def check_options_validity(name)
-        if option = options[name]
-          if option.is_a?(Regexp)
-            if options[:multiline] != true && regexp_using_multiline_anchors?(option)
-              raise ArgumentError, "The provided regular expression is using multiline anchors (^ or $), " \
-              "which may present a security risk. Did you mean to use \\A and \\z, or forgot to add the " \
-              ":multiline => true option?"
+        def check_options_validity(name)
+          if option = options[name]
+            if option.is_a?(Regexp)
+              if options[:multiline] != true && regexp_using_multiline_anchors?(option)
+                raise ArgumentError, "The provided regular expression is using multiline anchors (^ or $), " \
+                "which may present a security risk. Did you mean to use \\A and \\z, or forgot to add the " \
+                ":multiline => true option?"
+              end
+            elsif !option.respond_to?(:call)
+              raise ArgumentError, "A regular expression or a proc or lambda must be supplied as :#{name}"
             end
-          elsif !option.respond_to?(:call)
-            raise ArgumentError, "A regular expression or a proc or lambda must be supplied as :#{name}"
           end
         end
-      end
 
-      def regexp_using_multiline_anchors?(regexp)
-        source = regexp.source
-        source.start_with?("^") || (source.end_with?("$") && !source.end_with?("\\$"))
-      end
+        def regexp_using_multiline_anchors?(regexp)
+          source = regexp.source
+          source.start_with?("^") || (source.end_with?("$") && !source.end_with?("\\$"))
+        end
     end
 
     module HelperMethods

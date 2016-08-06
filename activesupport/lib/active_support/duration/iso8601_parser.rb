@@ -80,44 +80,44 @@ module ActiveSupport
 
       private
 
-      def finished?
-        scanner.eos?
-      end
+        def finished?
+          scanner.eos?
+        end
 
       # Parses number which can be a float with either comma or period.
-      def number
-        PERIOD_OR_COMMA.match?(scanner[1]) ? scanner[1].tr(COMMA, PERIOD).to_f : scanner[1].to_i
-      end
+        def number
+          PERIOD_OR_COMMA.match?(scanner[1]) ? scanner[1].tr(COMMA, PERIOD).to_f : scanner[1].to_i
+        end
 
-      def scan(pattern)
-        scanner.scan(pattern)
-      end
+        def scan(pattern)
+          scanner.scan(pattern)
+        end
 
-      def raise_parsing_error(reason = nil)
-        raise ParsingError, "Invalid ISO 8601 duration: #{scanner.string.inspect} #{reason}".strip
-      end
+        def raise_parsing_error(reason = nil)
+          raise ParsingError, "Invalid ISO 8601 duration: #{scanner.string.inspect} #{reason}".strip
+        end
 
       # Checks for various semantic errors as stated in ISO 8601 standard.
-      def validate!
-        raise_parsing_error("is empty duration") if parts.empty?
+        def validate!
+          raise_parsing_error("is empty duration") if parts.empty?
 
-        # Mixing any of Y, M, D with W is invalid.
-        if parts.key?(:weeks) && (parts.keys & DATE_COMPONENTS).any?
-          raise_parsing_error("mixing weeks with other date parts not allowed")
+          # Mixing any of Y, M, D with W is invalid.
+          if parts.key?(:weeks) && (parts.keys & DATE_COMPONENTS).any?
+            raise_parsing_error("mixing weeks with other date parts not allowed")
+          end
+
+          # Specifying an empty T part is invalid.
+          if mode == :time && (parts.keys & TIME_COMPONENTS).empty?
+            raise_parsing_error("time part marker is present but time part is empty")
+          end
+
+          fractions = parts.values.reject(&:zero?).select { |a| (a % 1) != 0 }
+          unless fractions.empty? || (fractions.size == 1 && fractions.last == @parts.values.reject(&:zero?).last)
+            raise_parsing_error "(only last part can be fractional)"
+          end
+
+          return true
         end
-
-        # Specifying an empty T part is invalid.
-        if mode == :time && (parts.keys & TIME_COMPONENTS).empty?
-          raise_parsing_error("time part marker is present but time part is empty")
-        end
-
-        fractions = parts.values.reject(&:zero?).select { |a| (a % 1) != 0 }
-        unless fractions.empty? || (fractions.size == 1 && fractions.last == @parts.values.reject(&:zero?).last)
-          raise_parsing_error "(only last part can be fractional)"
-        end
-
-        return true
-      end
     end
   end
 end

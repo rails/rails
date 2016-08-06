@@ -104,7 +104,7 @@ module ActionDispatch # :nodoc:
       def body
         @str_body ||= begin
           buf = ""
-            each { |chunk| buf << chunk }
+          each { |chunk| buf << chunk }
           buf
         end
       end

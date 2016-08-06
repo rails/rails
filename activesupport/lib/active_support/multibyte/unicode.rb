@@ -389,25 +389,25 @@ module ActiveSupport
 
       private
 
-      def apply_mapping(string, mapping) #:nodoc:
-        database.codepoints
-        string.each_codepoint.map do |codepoint|
-          cp = database.codepoints[codepoint]
-          if cp and (ncp = cp.send(mapping)) and ncp > 0
-            ncp
-          else
-            codepoint
-          end
-        end.pack("U*")
-      end
+        def apply_mapping(string, mapping) #:nodoc:
+          database.codepoints
+          string.each_codepoint.map do |codepoint|
+            cp = database.codepoints[codepoint]
+            if cp and (ncp = cp.send(mapping)) and ncp > 0
+              ncp
+            else
+              codepoint
+            end
+          end.pack("U*")
+        end
 
-      def recode_windows1252_chars(string)
-        string.encode(Encoding::UTF_8, Encoding::Windows_1252, invalid: :replace, undef: :replace)
-      end
+        def recode_windows1252_chars(string)
+          string.encode(Encoding::UTF_8, Encoding::Windows_1252, invalid: :replace, undef: :replace)
+        end
 
-      def database
-        @database ||= UnicodeDatabase.new
-      end
+        def database
+          @database ||= UnicodeDatabase.new
+        end
     end
   end
 end

@@ -242,24 +242,24 @@ module ActiveRecord
 
       private
 
-      NO_DEFAULT_PROVIDED = Object.new # :nodoc:
-      private_constant :NO_DEFAULT_PROVIDED
+        NO_DEFAULT_PROVIDED = Object.new # :nodoc:
+        private_constant :NO_DEFAULT_PROVIDED
 
-      def define_default_attribute(name, value, type, from_user:)
-        if value == NO_DEFAULT_PROVIDED
-          default_attribute = _default_attributes[name].with_type(type)
-        elsif from_user
-          default_attribute = Attribute::UserProvidedDefault.new(
-            name,
-            value,
-            type,
-            _default_attributes.fetch(name.to_s) { nil },
-          )
-        else
-          default_attribute = Attribute.from_database(name, value, type)
+        def define_default_attribute(name, value, type, from_user:)
+          if value == NO_DEFAULT_PROVIDED
+            default_attribute = _default_attributes[name].with_type(type)
+          elsif from_user
+            default_attribute = Attribute::UserProvidedDefault.new(
+              name,
+              value,
+              type,
+              _default_attributes.fetch(name.to_s) { nil },
+            )
+          else
+            default_attribute = Attribute.from_database(name, value, type)
+          end
+          _default_attributes[name] = default_attribute
         end
-        _default_attributes[name] = default_attribute
-      end
     end
   end
 end

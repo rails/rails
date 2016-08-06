@@ -237,9 +237,9 @@ module ActionDispatch
 
       private
 
-      def upgrade_legacy_signed_cookies?
-        request.secret_token.present? && request.secret_key_base.present?
-      end
+        def upgrade_legacy_signed_cookies?
+          request.secret_token.present? && request.secret_key_base.present?
+        end
     end
 
     # Passing the ActiveSupport::MessageEncryptor::NullSerializer downstream
@@ -420,26 +420,26 @@ module ActionDispatch
 
       private
 
-      def escape(string)
-        ::Rack::Utils.escape(string)
-      end
+        def escape(string)
+          ::Rack::Utils.escape(string)
+        end
 
-      def make_set_cookie_header(header)
-        header = @set_cookies.inject(header) { |m, (k, v)|
-          if write_cookie?(v)
-            ::Rack::Utils.add_cookie_to_header(m, k, v)
-          else
-            m
-          end
-        }
-        @delete_cookies.inject(header) { |m, (k, v)|
-          ::Rack::Utils.add_remove_cookie_to_header(m, k, v)
-        }
-      end
+        def make_set_cookie_header(header)
+          header = @set_cookies.inject(header) { |m, (k, v)|
+            if write_cookie?(v)
+              ::Rack::Utils.add_cookie_to_header(m, k, v)
+            else
+              m
+            end
+          }
+          @delete_cookies.inject(header) { |m, (k, v)|
+            ::Rack::Utils.add_remove_cookie_to_header(m, k, v)
+          }
+        end
 
-      def write_cookie?(cookie)
-        request.ssl? || !cookie[:secure] || always_write_cookie
-      end
+        def write_cookie?(cookie)
+          request.ssl? || !cookie[:secure] || always_write_cookie
+        end
     end
 
     class AbstractCookieJar # :nodoc:

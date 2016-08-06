@@ -1684,7 +1684,7 @@ to this:
           end
 
           as = if !options.fetch(:as, true) # if it's set to nil or false
-                 options.delete(:as)
+            options.delete(:as)
                else
                  name_for_action(options.delete(:as), action)
                end
@@ -1914,24 +1914,24 @@ to this:
           end
         private
 
-        def path_scope(path)
-          @scope = @scope.new(path: merge_path_scope(@scope[:path], path))
-          yield
-        ensure
-          @scope = @scope.parent
-        end
-
-        def match_root_route(options)
-          name = has_named_route?(:root) ? nil : :root
-          defaults_option = options.delete(:defaults)
-          args = ["/", { as: name, via: :get }.merge!(options)]
-
-          if defaults_option
-            defaults(defaults_option) { match(*args) }
-          else
-            match(*args)
+          def path_scope(path)
+            @scope = @scope.new(path: merge_path_scope(@scope[:path], path))
+            yield
+          ensure
+            @scope = @scope.parent
           end
-        end
+
+          def match_root_route(options)
+            name = has_named_route?(:root) ? nil : :root
+            defaults_option = options.delete(:defaults)
+            args = ["/", { as: name, via: :get }.merge!(options)]
+
+            if defaults_option
+              defaults(defaults_option) { match(*args) }
+            else
+              match(*args)
+            end
+          end
       end
 
       # Routing Concerns allow you to declare common routes that can be reused

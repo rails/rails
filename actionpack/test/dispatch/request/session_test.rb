@@ -106,13 +106,13 @@ module ActionDispatch
       end
 
       private
-      def store
-        Class.new {
-          def load_session(env); [1, {}]; end
-          def session_exists?(env); true; end
-          def delete_session(env, id, options); 123; end
-        }.new
-      end
+        def store
+          Class.new {
+            def load_session(env); [1, {}]; end
+            def session_exists?(env); true; end
+            def delete_session(env, id, options); 123; end
+          }.new
+        end
     end
 
     class SessionIntegrationTest < ActionDispatch::IntegrationTest

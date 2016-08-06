@@ -130,11 +130,11 @@ module ActionController #:nodoc:
 
       private
 
-      def protection_method_class(name)
-        ActionController::RequestForgeryProtection::ProtectionMethods.const_get(name.to_s.classify)
-      rescue NameError
-        raise ArgumentError, "Invalid request forgery protection method, use :null_session, :exception, or :reset_session"
-      end
+        def protection_method_class(name)
+          ActionController::RequestForgeryProtection::ProtectionMethods.const_get(name.to_s.classify)
+        rescue NameError
+          raise ArgumentError, "Invalid request forgery protection method, use :null_session, :exception, or :reset_session"
+        end
     end
 
     module ProtectionMethods
@@ -154,26 +154,26 @@ module ActionController #:nodoc:
 
         protected
 
-        class NullSessionHash < Rack::Session::Abstract::SessionHash #:nodoc:
-          def initialize(req)
-            super(nil, req)
-            @data = {}
-            @loaded = true
+          class NullSessionHash < Rack::Session::Abstract::SessionHash #:nodoc:
+            def initialize(req)
+              super(nil, req)
+              @data = {}
+              @loaded = true
+            end
+
+            # no-op
+            def destroy; end
+
+            def exists?
+              true
+            end
           end
 
-          # no-op
-          def destroy; end
-
-          def exists?
-            true
+          class NullCookieJar < ActionDispatch::Cookies::CookieJar #:nodoc:
+            def write(*)
+              # nothing
+            end
           end
-        end
-
-        class NullCookieJar < ActionDispatch::Cookies::CookieJar #:nodoc:
-          def write(*)
-            # nothing
-          end
-        end
       end
 
       class ResetSession

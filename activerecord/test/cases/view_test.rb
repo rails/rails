@@ -78,139 +78,139 @@ module ViewBehavior
 end
 
 if ActiveRecord::Base.connection.supports_views?
-class ViewWithPrimaryKeyTest < ActiveRecord::TestCase
-  include ViewBehavior
+  class ViewWithPrimaryKeyTest < ActiveRecord::TestCase
+    include ViewBehavior
 
-  private
-  def create_view(name, query)
-    @connection.execute "CREATE VIEW #{name} AS #{query}"
+    private
+      def create_view(name, query)
+        @connection.execute "CREATE VIEW #{name} AS #{query}"
+      end
+
+      def drop_view(name)
+        @connection.execute "DROP VIEW #{name}" if @connection.view_exists? name
+      end
   end
 
-  def drop_view(name)
-    @connection.execute "DROP VIEW #{name}" if @connection.view_exists? name
-  end
-end
+  class ViewWithoutPrimaryKeyTest < ActiveRecord::TestCase
+    include SchemaDumpingHelper
+    fixtures :books
 
-class ViewWithoutPrimaryKeyTest < ActiveRecord::TestCase
-  include SchemaDumpingHelper
-  fixtures :books
+    class Paperback < ActiveRecord::Base; end
 
-  class Paperback < ActiveRecord::Base; end
-
-  setup do
-    @connection = ActiveRecord::Base.connection
-    @connection.execute <<-SQL
+    setup do
+      @connection = ActiveRecord::Base.connection
+      @connection.execute <<-SQL
       CREATE VIEW paperbacks
         AS SELECT name, status FROM books WHERE format = 'paperback'
     SQL
-  end
+    end
 
-  teardown do
-    @connection.execute "DROP VIEW paperbacks" if @connection.view_exists? "paperbacks"
-  end
+    teardown do
+      @connection.execute "DROP VIEW paperbacks" if @connection.view_exists? "paperbacks"
+    end
 
-  def test_reading
-    books = Paperback.all
-    assert_equal ["Agile Web Development with Rails"], books.map(&:name)
-  end
+    def test_reading
+      books = Paperback.all
+      assert_equal ["Agile Web Development with Rails"], books.map(&:name)
+    end
 
-  def test_views
-    assert_equal [Paperback.table_name], @connection.views
-  end
+    def test_views
+      assert_equal [Paperback.table_name], @connection.views
+    end
 
-  def test_view_exists
-    view_name = Paperback.table_name
-    assert @connection.view_exists?(view_name), "'#{view_name}' view should exist"
-  end
+    def test_view_exists
+      view_name = Paperback.table_name
+      assert @connection.view_exists?(view_name), "'#{view_name}' view should exist"
+    end
 
-  def test_table_exists
-    view_name = Paperback.table_name
-    # TODO: switch this assertion around once we changed #tables to not return views.
-    ActiveSupport::Deprecation.silence { assert @connection.table_exists?(view_name), "'#{view_name}' table should exist" }    
-  end
+    def test_table_exists
+      view_name = Paperback.table_name
+      # TODO: switch this assertion around once we changed #tables to not return views.
+      ActiveSupport::Deprecation.silence { assert @connection.table_exists?(view_name), "'#{view_name}' table should exist" }
+    end
 
-  def test_column_definitions
-    assert_equal([["name", :string],
-                  ["status", :integer]], Paperback.columns.map { |c| [c.name, c.type] })
-  end
+    def test_column_definitions
+      assert_equal([["name", :string],
+                    ["status", :integer]], Paperback.columns.map { |c| [c.name, c.type] })
+    end
 
-  def test_attributes
-    assert_equal({"name" => "Agile Web Development with Rails", "status" => 2},
-                 Paperback.first.attributes)
-  end
+    def test_attributes
+      assert_equal({"name" => "Agile Web Development with Rails", "status" => 2},
+                   Paperback.first.attributes)
+    end
 
-  def test_does_not_have_a_primary_key
-    assert_nil Paperback.primary_key
-  end
+    def test_does_not_have_a_primary_key
+      assert_nil Paperback.primary_key
+    end
 
-  def test_does_not_dump_view_as_table
-    schema = dump_table_schema "paperbacks"
-    assert_no_match %r{create_table "paperbacks"}, schema
+    def test_does_not_dump_view_as_table
+      schema = dump_table_schema "paperbacks"
+      assert_no_match %r{create_table "paperbacks"}, schema
+    end
   end
-end
 
 # sqlite dose not support CREATE, INSERT, and DELETE for VIEW
-if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
-class UpdateableViewTest < ActiveRecord::TestCase
-  self.use_transactional_tests = false
-  fixtures :books
+  if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
+    class UpdateableViewTest < ActiveRecord::TestCase
+      self.use_transactional_tests = false
+      fixtures :books
 
-  class PrintedBook < ActiveRecord::Base
-    self.primary_key = "id"
-  end
+      class PrintedBook < ActiveRecord::Base
+        self.primary_key = "id"
+      end
 
-  setup do
-    @connection = ActiveRecord::Base.connection
-    @connection.execute <<-SQL
+      setup do
+        @connection = ActiveRecord::Base.connection
+        @connection.execute <<-SQL
       CREATE VIEW printed_books
         AS SELECT id, name, status, format FROM books WHERE format = 'paperback'
     SQL
-  end
+      end
 
-  teardown do
-    @connection.execute "DROP VIEW printed_books" if @connection.view_exists? "printed_books"
-  end
+      teardown do
+        @connection.execute "DROP VIEW printed_books" if @connection.view_exists? "printed_books"
+      end
 
-  def test_update_record
-    book = PrintedBook.first
-    book.name = "AWDwR"
-    book.save!
-    book.reload
-    assert_equal "AWDwR", book.name
-  end
+      def test_update_record
+        book = PrintedBook.first
+        book.name = "AWDwR"
+        book.save!
+        book.reload
+        assert_equal "AWDwR", book.name
+      end
 
-  def test_insert_record
-    PrintedBook.create! name: "Rails in Action", status: 0, format: "paperback"
+      def test_insert_record
+        PrintedBook.create! name: "Rails in Action", status: 0, format: "paperback"
 
-    new_book = PrintedBook.last
-    assert_equal "Rails in Action", new_book.name
-  end
+        new_book = PrintedBook.last
+        assert_equal "Rails in Action", new_book.name
+      end
 
-  def test_update_record_to_fail_view_conditions
-    book = PrintedBook.first
-    book.format = "ebook"
-    book.save!
+      def test_update_record_to_fail_view_conditions
+        book = PrintedBook.first
+        book.format = "ebook"
+        book.save!
 
-    assert_raises ActiveRecord::RecordNotFound do
-      book.reload
+        assert_raises ActiveRecord::RecordNotFound do
+          book.reload
+        end
+      end
     end
-  end
-end
-end # end fo `if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)`
+  end # end fo `if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)`
 end # end fo `if ActiveRecord::Base.connection.supports_views?`
 
 if ActiveRecord::Base.connection.respond_to?(:supports_materialized_views?) &&
     ActiveRecord::Base.connection.supports_materialized_views?
-class MaterializedViewTest < ActiveRecord::PostgreSQLTestCase
-  include ViewBehavior
+  class MaterializedViewTest < ActiveRecord::PostgreSQLTestCase
+    include ViewBehavior
 
-  private
-  def create_view(name, query)
-    @connection.execute "CREATE MATERIALIZED VIEW #{name} AS #{query}"
-  end
+    private
+      def create_view(name, query)
+        @connection.execute "CREATE MATERIALIZED VIEW #{name} AS #{query}"
+      end
 
-  def drop_view(name)
-    @connection.execute "DROP MATERIALIZED VIEW #{name}" if @connection.view_exists? name
+      def drop_view(name)
+        @connection.execute "DROP MATERIALIZED VIEW #{name}" if @connection.view_exists? name
+      end
   end
-end
 end

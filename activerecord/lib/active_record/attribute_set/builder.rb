@@ -92,31 +92,31 @@ module ActiveRecord
 
     protected
 
-    attr_reader :types, :values, :additional_types, :delegate_hash, :default
+      attr_reader :types, :values, :additional_types, :delegate_hash, :default
 
-    def materialize
-      unless @materialized
-        values.each_key { |key| self[key] }
-        types.each_key { |key| self[key] }
-        unless frozen?
-          @materialized = true
+      def materialize
+        unless @materialized
+          values.each_key { |key| self[key] }
+          types.each_key { |key| self[key] }
+          unless frozen?
+            @materialized = true
+          end
         end
+        delegate_hash
       end
-      delegate_hash
-    end
 
     private
 
-    def assign_default_value(name)
-      type = additional_types.fetch(name, types[name])
-      value_present = true
-      value = values.fetch(name) { value_present = false }
+      def assign_default_value(name)
+        type = additional_types.fetch(name, types[name])
+        value_present = true
+        value = values.fetch(name) { value_present = false }
 
-      if value_present
-        delegate_hash[name] = Attribute.from_database(name, value, type)
-      elsif types.key?(name)
-        delegate_hash[name] = default.call(name) || Attribute.uninitialized(name, type)
+        if value_present
+          delegate_hash[name] = Attribute.from_database(name, value, type)
+        elsif types.key?(name)
+          delegate_hash[name] = default.call(name) || Attribute.uninitialized(name, type)
+        end
       end
-    end
   end
 end

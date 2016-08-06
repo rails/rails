@@ -643,62 +643,62 @@ module Rails
 
     protected
 
-    def load_config_initializer(initializer)
-      ActiveSupport::Notifications.instrument("load_config_initializer.railties", initializer: initializer) do
-        load(initializer)
-      end
-    end
-
-    def run_tasks_blocks(*) #:nodoc:
-      super
-      paths["lib/tasks"].existent.sort.each { |ext| load(ext) }
-    end
-
-    def has_migrations? #:nodoc:
-      paths["db/migrate"].existent.any?
-    end
-
-    def self.find_root_with_flag(flag, root_path, default=nil) #:nodoc:
-
-      while root_path && File.directory?(root_path) && !File.exist?("#{root_path}/#{flag}")
-        parent = File.dirname(root_path)
-        root_path = parent != root_path && parent
+      def load_config_initializer(initializer)
+        ActiveSupport::Notifications.instrument("load_config_initializer.railties", initializer: initializer) do
+          load(initializer)
+        end
       end
 
-      root = File.exist?("#{root_path}/#{flag}") ? root_path : default
-      raise "Could not find root path for #{self}" unless root
+      def run_tasks_blocks(*) #:nodoc:
+        super
+        paths["lib/tasks"].existent.sort.each { |ext| load(ext) }
+      end
 
-      Pathname.new File.realpath root
-    end
+      def has_migrations? #:nodoc:
+        paths["db/migrate"].existent.any?
+      end
 
-    def default_middleware_stack #:nodoc:
-      ActionDispatch::MiddlewareStack.new
-    end
+      def self.find_root_with_flag(flag, root_path, default=nil) #:nodoc:
 
-    def _all_autoload_once_paths #:nodoc:
-      config.autoload_once_paths
-    end
+        while root_path && File.directory?(root_path) && !File.exist?("#{root_path}/#{flag}")
+          parent = File.dirname(root_path)
+          root_path = parent != root_path && parent
+        end
 
-    def _all_autoload_paths #:nodoc:
-      @_all_autoload_paths ||= (config.autoload_paths + config.eager_load_paths + config.autoload_once_paths).uniq
-    end
+        root = File.exist?("#{root_path}/#{flag}") ? root_path : default
+        raise "Could not find root path for #{self}" unless root
 
-    def _all_load_paths #:nodoc:
-      @_all_load_paths ||= (config.paths.load_paths + _all_autoload_paths).uniq
-    end
+        Pathname.new File.realpath root
+      end
+
+      def default_middleware_stack #:nodoc:
+        ActionDispatch::MiddlewareStack.new
+      end
+
+      def _all_autoload_once_paths #:nodoc:
+        config.autoload_once_paths
+      end
+
+      def _all_autoload_paths #:nodoc:
+        @_all_autoload_paths ||= (config.autoload_paths + config.eager_load_paths + config.autoload_once_paths).uniq
+      end
+
+      def _all_load_paths #:nodoc:
+        @_all_load_paths ||= (config.paths.load_paths + _all_autoload_paths).uniq
+      end
 
     private
 
-    def build_request(env)
-      env.merge!(env_config)
-      req = ActionDispatch::Request.new env
-      req.routes = routes
-      req.engine_script_name = req.script_name
-      req
-    end
+      def build_request(env)
+        env.merge!(env_config)
+        req = ActionDispatch::Request.new env
+        req.routes = routes
+        req.engine_script_name = req.script_name
+        req
+      end
 
-    def build_middleware
-      config.middleware
-    end
+      def build_middleware
+        config.middleware
+      end
   end
 end

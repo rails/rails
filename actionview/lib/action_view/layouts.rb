@@ -230,19 +230,19 @@ module ActionView
         #
         # ==== Returns
         # * <tt>Boolean</tt> - True if the action has a layout definition, false otherwise.
-        def _conditional_layout?
-          return unless super
+          def _conditional_layout?
+            return unless super
 
-          conditions = _layout_conditions
+            conditions = _layout_conditions
 
-          if only = conditions[:only]
-            only.include?(action_name)
-          elsif except = conditions[:except]
-            !except.include?(action_name)
-          else
-            true
+            if only = conditions[:only]
+              only.include?(action_name)
+            elsif except = conditions[:except]
+              !except.include?(action_name)
+            else
+              true
+            end
           end
-        end
       end
 
       # Specify the layout to use for this class.
@@ -338,9 +338,9 @@ module ActionView
       #
       # ==== Returns
       # * <tt>String</tt> - A template name
-      def _implied_layout_name # :nodoc:
-        controller_path
-      end
+        def _implied_layout_name # :nodoc:
+          controller_path
+        end
     end
 
     def _normalize_options(options) # :nodoc:

@@ -42,7 +42,7 @@ module Rails
           properties.each do |(name, value)|
             table << %(<tr><td class="name">#{CGI.escapeHTML(name.to_s)}</td>)
             formatted_value = if value.kind_of?(Array)
-                  "<ul>" + value.map { |v| "<li>#{CGI.escapeHTML(v.to_s)}</li>" }.join + "</ul>"
+              "<ul>" + value.map { |v| "<li>#{CGI.escapeHTML(v.to_s)}</li>" }.join + "</ul>"
                 else
                   CGI.escapeHTML(value.to_s)
                 end

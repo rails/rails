@@ -75,7 +75,7 @@ class PooledConnectionsTest < ActiveRecord::TestCase
 
   private
 
-  def add_record(name)
-    ActiveRecord::Base.connection_pool.with_connection { Project.create! name: name }
-  end
+    def add_record(name)
+      ActiveRecord::Base.connection_pool.with_connection { Project.create! name: name }
+    end
 end unless in_memory_db?

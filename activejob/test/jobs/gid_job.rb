@@ -5,4 +5,3 @@ class GidJob < ActiveJob::Base
     JobBuffer.add("Person with ID: #{person.id}")
   end
 end
-

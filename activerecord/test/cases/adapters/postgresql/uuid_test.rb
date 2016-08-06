@@ -266,8 +266,8 @@ class PostgresqlUUIDTestInverseOf < ActiveRecord::PostgreSQLTestCase
   end
 
   teardown do
-      drop_table "pg_uuid_comments"
-      drop_table "pg_uuid_posts"
+    drop_table "pg_uuid_comments"
+    drop_table "pg_uuid_posts"
   end
 
   if ActiveRecord::Base.connection.supports_extensions?

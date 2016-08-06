@@ -90,21 +90,21 @@ class MessageEncryptorTest < ActiveSupport::TestCase
 
   private
 
-  def assert_not_decrypted(value)
-    assert_raise(ActiveSupport::MessageEncryptor::InvalidMessage) do
-      @encryptor.decrypt_and_verify(@verifier.generate(value))
+    def assert_not_decrypted(value)
+      assert_raise(ActiveSupport::MessageEncryptor::InvalidMessage) do
+        @encryptor.decrypt_and_verify(@verifier.generate(value))
+      end
     end
-  end
 
-  def assert_not_verified(value)
-    assert_raise(ActiveSupport::MessageVerifier::InvalidSignature) do
-      @encryptor.decrypt_and_verify(value)
+    def assert_not_verified(value)
+      assert_raise(ActiveSupport::MessageVerifier::InvalidSignature) do
+        @encryptor.decrypt_and_verify(value)
+      end
     end
-  end
 
-  def munge(base64_string)
-    bits = ::Base64.strict_decode64(base64_string)
-    bits.reverse!
-    ::Base64.strict_encode64(bits)
-  end
+    def munge(base64_string)
+      bits = ::Base64.strict_decode64(base64_string)
+      bits.reverse!
+      ::Base64.strict_encode64(bits)
+    end
 end

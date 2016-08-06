@@ -88,4 +88,3 @@ class UrlRewriterTests < ActionController::TestCase
     assert_equal "/foo/bar/3/?query=string", @rewriter.rewrite(@routes, options)
   end
 end
-

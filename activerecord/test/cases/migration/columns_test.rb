@@ -74,7 +74,7 @@ module ActiveRecord
 
       def test_rename_nonexistent_column
         exception = if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
-                      ActiveRecord::StatementInvalid
+          ActiveRecord::StatementInvalid
                     else
                       ActiveRecord::ActiveRecordError
                     end

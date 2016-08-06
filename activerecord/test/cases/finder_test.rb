@@ -853,7 +853,7 @@ class FinderTest < ActiveRecord::TestCase
       Company.where(["id=? AND name = ?", 2]).first
     }
     assert_raise(ActiveRecord::PreparedStatementInvalid) {
-     Company.where(["id=?", 2, 3, 4]).first
+      Company.where(["id=?", 2, 3, 4]).first
     }
   end
 

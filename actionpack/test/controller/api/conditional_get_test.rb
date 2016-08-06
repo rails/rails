@@ -17,9 +17,9 @@ class ConditionalGetApiController < ActionController::API
 
   private
 
-  def handle_last_modified_and_etags
-    fresh_when(last_modified: Time.now.utc.beginning_of_day, etag: [ :foo, 123 ])
-  end
+    def handle_last_modified_and_etags
+      fresh_when(last_modified: Time.now.utc.beginning_of_day, etag: [ :foo, 123 ])
+    end
 end
 
 class ConditionalGetApiTest < ActionController::TestCase

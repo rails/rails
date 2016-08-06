@@ -493,41 +493,41 @@ module ActionDispatch
 
       private
 
-      def get *args
-        ActiveSupport::Deprecation.silence do
-          mapper.get(*args)
+        def get *args
+          ActiveSupport::Deprecation.silence do
+            mapper.get(*args)
+          end
         end
-      end
 
-      def match *args
-        ActiveSupport::Deprecation.silence do
-          mapper.match(*args)
+        def match *args
+          ActiveSupport::Deprecation.silence do
+            mapper.match(*args)
+          end
         end
-      end
 
-      def rails_env env, klass = ActionDispatch::Request
-        klass.new(rack_env(env))
-      end
+        def rails_env env, klass = ActionDispatch::Request
+          klass.new(rack_env(env))
+        end
 
-      def rack_env env
-        {
-          "rack.version"      => [1, 1],
-          "rack.input"        => StringIO.new,
-          "rack.errors"       => StringIO.new,
-          "rack.multithread"  => true,
-          "rack.multiprocess" => true,
-          "rack.run_once"     => false,
-          "REQUEST_METHOD"    => "GET",
-          "SERVER_NAME"       => "example.org",
-          "SERVER_PORT"       => "80",
-          "QUERY_STRING"      => "",
-          "PATH_INFO"         => "/content",
-          "rack.url_scheme"   => "http",
-          "HTTPS"             => "off",
-          "SCRIPT_NAME"       => "",
-          "CONTENT_LENGTH"    => "0"
-        }.merge env
-      end
+        def rack_env env
+          {
+            "rack.version"      => [1, 1],
+            "rack.input"        => StringIO.new,
+            "rack.errors"       => StringIO.new,
+            "rack.multithread"  => true,
+            "rack.multiprocess" => true,
+            "rack.run_once"     => false,
+            "REQUEST_METHOD"    => "GET",
+            "SERVER_NAME"       => "example.org",
+            "SERVER_PORT"       => "80",
+            "QUERY_STRING"      => "",
+            "PATH_INFO"         => "/content",
+            "rack.url_scheme"   => "http",
+            "HTTPS"             => "off",
+            "SCRIPT_NAME"       => "",
+            "CONTENT_LENGTH"    => "0"
+          }.merge env
+        end
     end
   end
 end

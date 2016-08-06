@@ -53,19 +53,19 @@ module ActiveSupport
 
     # To prevent users from using something insecure like "Password" we make sure that the
     # secret they've provided is at least 30 characters in length.
-    def ensure_secret_secure(secret)
-      if secret.blank?
-        raise ArgumentError, "A secret is required to generate an integrity hash " \
-          "for cookie session data. Set a secret_key_base of at least " \
-          "#{SECRET_MIN_LENGTH} characters in config/secrets.yml."
-      end
+      def ensure_secret_secure(secret)
+        if secret.blank?
+          raise ArgumentError, "A secret is required to generate an integrity hash " \
+            "for cookie session data. Set a secret_key_base of at least " \
+            "#{SECRET_MIN_LENGTH} characters in config/secrets.yml."
+        end
 
-      if secret.length < SECRET_MIN_LENGTH
-        raise ArgumentError, "Secret should be something secure, " \
-          "like \"#{SecureRandom.hex(16)}\". The value you " \
-          "provided, \"#{secret}\", is shorter than the minimum length " \
-          "of #{SECRET_MIN_LENGTH} characters."
+        if secret.length < SECRET_MIN_LENGTH
+          raise ArgumentError, "Secret should be something secure, " \
+            "like \"#{SecureRandom.hex(16)}\". The value you " \
+            "provided, \"#{secret}\", is shorter than the minimum length " \
+            "of #{SECRET_MIN_LENGTH} characters."
+        end
       end
-    end
   end
 end

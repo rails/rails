@@ -68,10 +68,10 @@ class ActionMailerI18nWithControllerTest < ActionDispatch::IntegrationTest
 
   protected
 
-  def with_translation(locale, data)
-    I18n.backend.store_translations(locale, data)
-    yield
-  ensure
-    I18n.backend.reload!
-  end
+    def with_translation(locale, data)
+      I18n.backend.store_translations(locale, data)
+      yield
+    ensure
+      I18n.backend.reload!
+    end
 end

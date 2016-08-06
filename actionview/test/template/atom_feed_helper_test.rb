@@ -28,7 +28,7 @@ class ScrollsController < ActionController::Base
           end
         end
     EOT
-    FEEDS["entry_options"] = <<-EOT
+  FEEDS["entry_options"] = <<-EOT
         atom_feed do |feed|
           feed.title("My great blog!")
           feed.updated(@scrolls.first.created_at)
@@ -45,7 +45,7 @@ class ScrollsController < ActionController::Base
           end
         end
     EOT
-    FEEDS["entry_type_options"] = <<-EOT
+  FEEDS["entry_type_options"] = <<-EOT
         atom_feed(:schema_date => '2008') do |feed|
           feed.title("My great blog!")
           feed.updated(@scrolls.first.created_at)
@@ -62,7 +62,7 @@ class ScrollsController < ActionController::Base
           end
         end
     EOT
-    FEEDS["entry_url_false_option"] = <<-EOT
+  FEEDS["entry_url_false_option"] = <<-EOT
         atom_feed do |feed|
           feed.title("My great blog!")
           feed.updated(@scrolls.first.created_at)
@@ -79,7 +79,7 @@ class ScrollsController < ActionController::Base
           end
         end
     EOT
-    FEEDS["xml_block"] = <<-EOT
+  FEEDS["xml_block"] = <<-EOT
         atom_feed do |feed|
           feed.title("My great blog!")
           feed.updated(@scrolls.first.created_at)
@@ -96,7 +96,7 @@ class ScrollsController < ActionController::Base
           end
         end
     EOT
-    FEEDS["feed_with_atomPub_namespace"] = <<-EOT
+  FEEDS["feed_with_atomPub_namespace"] = <<-EOT
         atom_feed({'xmlns:app' => 'http://www.w3.org/2007/app',
                  'xmlns:openSearch' => 'http://a9.com/-/spec/opensearch/1.1/'}) do |feed|
           feed.title("My great blog!")
@@ -115,7 +115,7 @@ class ScrollsController < ActionController::Base
           end
         end
     EOT
-    FEEDS["feed_with_overridden_ids"] = <<-EOT
+  FEEDS["feed_with_overridden_ids"] = <<-EOT
         atom_feed({:id => 'tag:test.rubyonrails.org,2008:test/'}) do |feed|
           feed.title("My great blog!")
           feed.updated(@scrolls.first.created_at)
@@ -169,7 +169,7 @@ class ScrollsController < ActionController::Base
           end
         end
     EOT
-    FEEDS["feed_with_xhtml_content"] = <<-'EOT'
+  FEEDS["feed_with_xhtml_content"] = <<-'EOT'
         atom_feed do |feed|
           feed.title("My great blog!")
           feed.updated(@scrolls.first.created_at)
@@ -191,7 +191,7 @@ class ScrollsController < ActionController::Base
           end
         end
     EOT
-    FEEDS["provide_builder"] = <<-'EOT'
+  FEEDS["provide_builder"] = <<-'EOT'
           # we pass in the new_xml to the helper so it doesn't
           # call anything on the original builder
           new_xml = Builder::XmlMarkup.new(:target=>'')

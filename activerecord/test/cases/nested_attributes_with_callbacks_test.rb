@@ -46,7 +46,7 @@ class NestedAttributesWithCallbacksTest < ActiveRecord::TestCase
   end
 
   def new_bird_attributes
-     [{"name" => "New Bird"}]
+    [{"name" => "New Bird"}]
   end
 
   def destroy_bird_attributes

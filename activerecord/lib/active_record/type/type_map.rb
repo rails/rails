@@ -44,21 +44,21 @@ module ActiveRecord
 
       private
 
-      def perform_fetch(lookup_key, *args)
-        matching_pair = @mapping.reverse_each.detect do |key, _|
-          key === lookup_key
+        def perform_fetch(lookup_key, *args)
+          matching_pair = @mapping.reverse_each.detect do |key, _|
+            key === lookup_key
+          end
+
+          if matching_pair
+            matching_pair.last.call(lookup_key, *args)
+          else
+            yield lookup_key, *args
+          end
         end
 
-        if matching_pair
-          matching_pair.last.call(lookup_key, *args)
-        else
-          yield lookup_key, *args
+        def default_value
+          @default_value ||= ActiveModel::Type::Value.new
         end
-      end
-
-      def default_value
-        @default_value ||= ActiveModel::Type::Value.new
-      end
     end
   end
 end

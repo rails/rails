@@ -61,11 +61,11 @@ module ActionDispatch
         end
 
         private
-        def tt string
-          ast     = @parser.parse string
-          builder = Builder.new ast
-          builder.transition_table
-        end
+          def tt string
+            ast     = @parser.parse string
+            builder = Builder.new ast
+            builder.transition_table
+          end
       end
     end
   end

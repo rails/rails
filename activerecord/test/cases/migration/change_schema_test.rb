@@ -415,13 +415,13 @@ module ActiveRecord
       end
 
       private
-      def testing_table_with_only_foo_attribute
-        connection.create_table :testings, id: false do |t|
-          t.column :foo, :string
-        end
+        def testing_table_with_only_foo_attribute
+          connection.create_table :testings, id: false do |t|
+            t.column :foo, :string
+          end
 
-        yield
-      end
+          yield
+        end
     end
 
     if ActiveRecord::Base.connection.supports_foreign_keys?

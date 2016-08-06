@@ -299,26 +299,26 @@ module ActiveRecord
 
       private
 
-      def cached_find_by_statement(key, &block) # :nodoc:
-        cache = @find_by_statement_cache[connection.prepared_statements]
-        cache[key] || cache.synchronize {
-          cache[key] ||= StatementCache.create(connection, &block)
-        }
-      end
-
-      def relation # :nodoc:
-        relation = Relation.create(self, arel_table, predicate_builder)
-
-        if finder_needs_type_condition? && !ignore_default_scope?
-          relation.where(type_condition).create_with(inheritance_column.to_sym => sti_name)
-        else
-          relation
+        def cached_find_by_statement(key, &block) # :nodoc:
+          cache = @find_by_statement_cache[connection.prepared_statements]
+          cache[key] || cache.synchronize {
+            cache[key] ||= StatementCache.create(connection, &block)
+          }
         end
-      end
 
-      def table_metadata # :nodoc:
-        TableMetadata.new(self, arel_table)
-      end
+        def relation # :nodoc:
+          relation = Relation.create(self, arel_table, predicate_builder)
+
+          if finder_needs_type_condition? && !ignore_default_scope?
+            relation.where(type_condition).create_with(inheritance_column.to_sym => sti_name)
+          else
+            relation
+          end
+        end
+
+        def table_metadata # :nodoc:
+          TableMetadata.new(self, arel_table)
+        end
     end
 
     # New objects can be instantiated as either empty (pass no construction parameter) or pre-set with
@@ -498,11 +498,11 @@ module ActiveRecord
       # We check defined?(@attributes) not to issue warnings if the object is
       # allocated but not initialized.
       inspection = if defined?(@attributes) && @attributes
-                     self.class.column_names.collect { |name|
-                       if has_attribute?(name)
-                         "#{name}: #{attribute_for_inspect(name)}"
-                       end
-                     }.compact.join(", ")
+        self.class.column_names.collect { |name|
+          if has_attribute?(name)
+            "#{name}: #{attribute_for_inspect(name)}"
+          end
+        }.compact.join(", ")
                    else
                      "not initialized"
                    end
@@ -548,32 +548,32 @@ module ActiveRecord
     # So we can avoid the method_missing hit by explicitly defining #to_ary as nil here.
     #
     # See also http://tenderlovemaking.com/2011/06/28/til-its-ok-to-return-nil-from-to_ary.html
-    def to_ary # :nodoc:
-      nil
-    end
-
-    def init_internals
-      @readonly                 = false
-      @destroyed                = false
-      @marked_for_destruction   = false
-      @destroyed_by_association = nil
-      @new_record               = true
-      @txn                      = nil
-      @_start_transaction_state = {}
-      @transaction_state        = nil
-    end
-
-    def initialize_internals_callback
-    end
-
-    def thaw
-      if frozen?
-        @attributes = @attributes.dup
+      def to_ary # :nodoc:
+        nil
       end
-    end
 
-    def custom_inspect_method_defined?
-      self.class.instance_method(:inspect).owner != ActiveRecord::Base.instance_method(:inspect).owner
-    end
+      def init_internals
+        @readonly                 = false
+        @destroyed                = false
+        @marked_for_destruction   = false
+        @destroyed_by_association = nil
+        @new_record               = true
+        @txn                      = nil
+        @_start_transaction_state = {}
+        @transaction_state        = nil
+      end
+
+      def initialize_internals_callback
+      end
+
+      def thaw
+        if frozen?
+          @attributes = @attributes.dup
+        end
+      end
+
+      def custom_inspect_method_defined?
+        self.class.instance_method(:inspect).owner != ActiveRecord::Base.instance_method(:inspect).owner
+      end
   end
 end

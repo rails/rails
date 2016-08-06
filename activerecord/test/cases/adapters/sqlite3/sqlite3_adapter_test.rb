@@ -420,22 +420,22 @@ module ActiveRecord
 
       private
 
-      def assert_logged logs
-        subscriber = SQLSubscriber.new
-        subscription = ActiveSupport::Notifications.subscribe("sql.active_record", subscriber)
-        yield
-        assert_equal logs, subscriber.logged
-      ensure
-        ActiveSupport::Notifications.unsubscribe(subscription)
-      end
+        def assert_logged logs
+          subscriber = SQLSubscriber.new
+          subscription = ActiveSupport::Notifications.subscribe("sql.active_record", subscriber)
+          yield
+          assert_equal logs, subscriber.logged
+        ensure
+          ActiveSupport::Notifications.unsubscribe(subscription)
+        end
 
-      def with_example_table(definition = nil, table_name = "ex", &block)
-        definition ||= <<-SQL
+        def with_example_table(definition = nil, table_name = "ex", &block)
+          definition ||= <<-SQL
           id integer PRIMARY KEY AUTOINCREMENT,
           number integer
         SQL
-        super(@conn, table_name, definition, &block)
-      end
+          super(@conn, table_name, definition, &block)
+        end
     end
   end
 end

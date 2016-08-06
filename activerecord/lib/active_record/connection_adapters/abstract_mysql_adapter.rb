@@ -651,340 +651,340 @@ module ActiveRecord
 
       protected
 
-      def initialize_type_map(m) # :nodoc:
-        super
-
-        register_class_with_limit m, %r(char)i, MysqlString
-
-        m.register_type %r(tinytext)i,   Type::Text.new(limit: 2**8 - 1)
-        m.register_type %r(tinyblob)i,   Type::Binary.new(limit: 2**8 - 1)
-        m.register_type %r(text)i,       Type::Text.new(limit: 2**16 - 1)
-        m.register_type %r(blob)i,       Type::Binary.new(limit: 2**16 - 1)
-        m.register_type %r(mediumtext)i, Type::Text.new(limit: 2**24 - 1)
-        m.register_type %r(mediumblob)i, Type::Binary.new(limit: 2**24 - 1)
-        m.register_type %r(longtext)i,   Type::Text.new(limit: 2**32 - 1)
-        m.register_type %r(longblob)i,   Type::Binary.new(limit: 2**32 - 1)
-        m.register_type %r(^float)i,     Type::Float.new(limit: 24)
-        m.register_type %r(^double)i,    Type::Float.new(limit: 53)
-        m.register_type %r(^json)i,      MysqlJson.new
-
-        register_integer_type m, %r(^bigint)i,    limit: 8
-        register_integer_type m, %r(^int)i,       limit: 4
-        register_integer_type m, %r(^mediumint)i, limit: 3
-        register_integer_type m, %r(^smallint)i,  limit: 2
-        register_integer_type m, %r(^tinyint)i,   limit: 1
-
-        m.register_type %r(^tinyint\(1\))i, Type::Boolean.new if emulate_booleans
-        m.alias_type %r(year)i,          "integer"
-        m.alias_type %r(bit)i,           "binary"
-
-        m.register_type(%r(enum)i) do |sql_type|
-          limit = sql_type[/^enum\((.+)\)/i, 1]
-            .split(",").map{|enum| enum.strip.length - 2}.max
-          MysqlString.new(limit: limit)
-        end
-
-        m.register_type(%r(^set)i) do |sql_type|
-          limit = sql_type[/^set\((.+)\)/i, 1]
-            .split(",").map{|set| set.strip.length - 1}.sum - 1
-          MysqlString.new(limit: limit)
-        end
-      end
-
-      def register_integer_type(mapping, key, options) # :nodoc:
-        mapping.register_type(key) do |sql_type|
-          if /\bunsigned\z/ === sql_type
-            Type::UnsignedInteger.new(options)
-          else
-            Type::Integer.new(options)
-          end
-        end
-      end
-
-      def extract_precision(sql_type)
-        if /time/ === sql_type
-          super || 0
-        else
+        def initialize_type_map(m) # :nodoc:
           super
-        end
-      end
 
-      def fetch_type_metadata(sql_type, extra = "")
-        MySQL::TypeMetadata.new(super(sql_type), extra: extra, strict: strict_mode?)
-      end
+          register_class_with_limit m, %r(char)i, MysqlString
 
-      def add_index_length(option_strings, column_names, options = {})
-        if options.is_a?(Hash) && length = options[:length]
-          case length
-          when Hash
-            column_names.each {|name| option_strings[name] += "(#{length[name]})" if length.has_key?(name) && length[name].present?}
-          when Integer
-            column_names.each {|name| option_strings[name] += "(#{length})"}
+          m.register_type %r(tinytext)i,   Type::Text.new(limit: 2**8 - 1)
+          m.register_type %r(tinyblob)i,   Type::Binary.new(limit: 2**8 - 1)
+          m.register_type %r(text)i,       Type::Text.new(limit: 2**16 - 1)
+          m.register_type %r(blob)i,       Type::Binary.new(limit: 2**16 - 1)
+          m.register_type %r(mediumtext)i, Type::Text.new(limit: 2**24 - 1)
+          m.register_type %r(mediumblob)i, Type::Binary.new(limit: 2**24 - 1)
+          m.register_type %r(longtext)i,   Type::Text.new(limit: 2**32 - 1)
+          m.register_type %r(longblob)i,   Type::Binary.new(limit: 2**32 - 1)
+          m.register_type %r(^float)i,     Type::Float.new(limit: 24)
+          m.register_type %r(^double)i,    Type::Float.new(limit: 53)
+          m.register_type %r(^json)i,      MysqlJson.new
+
+          register_integer_type m, %r(^bigint)i,    limit: 8
+          register_integer_type m, %r(^int)i,       limit: 4
+          register_integer_type m, %r(^mediumint)i, limit: 3
+          register_integer_type m, %r(^smallint)i,  limit: 2
+          register_integer_type m, %r(^tinyint)i,   limit: 1
+
+          m.register_type %r(^tinyint\(1\))i, Type::Boolean.new if emulate_booleans
+          m.alias_type %r(year)i,          "integer"
+          m.alias_type %r(bit)i,           "binary"
+
+          m.register_type(%r(enum)i) do |sql_type|
+            limit = sql_type[/^enum\((.+)\)/i, 1]
+              .split(",").map{|enum| enum.strip.length - 2}.max
+            MysqlString.new(limit: limit)
+          end
+
+          m.register_type(%r(^set)i) do |sql_type|
+            limit = sql_type[/^set\((.+)\)/i, 1]
+              .split(",").map{|set| set.strip.length - 1}.sum - 1
+            MysqlString.new(limit: limit)
           end
         end
 
-        return option_strings
-      end
+        def register_integer_type(mapping, key, options) # :nodoc:
+          mapping.register_type(key) do |sql_type|
+            if /\bunsigned\z/ === sql_type
+              Type::UnsignedInteger.new(options)
+            else
+              Type::Integer.new(options)
+            end
+          end
+        end
 
-      def quoted_columns_for_index(column_names, options = {})
-        option_strings = Hash[column_names.map {|name| [name, ""]}]
+        def extract_precision(sql_type)
+          if /time/ === sql_type
+            super || 0
+          else
+            super
+          end
+        end
 
-        # add index length
-        option_strings = add_index_length(option_strings, column_names, options)
+        def fetch_type_metadata(sql_type, extra = "")
+          MySQL::TypeMetadata.new(super(sql_type), extra: extra, strict: strict_mode?)
+        end
 
-        # add index sort order
-        option_strings = add_index_sort_order(option_strings, column_names, options)
+        def add_index_length(option_strings, column_names, options = {})
+          if options.is_a?(Hash) && length = options[:length]
+            case length
+            when Hash
+              column_names.each {|name| option_strings[name] += "(#{length[name]})" if length.has_key?(name) && length[name].present?}
+            when Integer
+              column_names.each {|name| option_strings[name] += "(#{length})"}
+            end
+          end
 
-        column_names.map {|name| quote_column_name(name) + option_strings[name]}
-      end
+          return option_strings
+        end
+
+        def quoted_columns_for_index(column_names, options = {})
+          option_strings = Hash[column_names.map {|name| [name, ""]}]
+
+          # add index length
+          option_strings = add_index_length(option_strings, column_names, options)
+
+          # add index sort order
+          option_strings = add_index_sort_order(option_strings, column_names, options)
+
+          column_names.map {|name| quote_column_name(name) + option_strings[name]}
+        end
 
       # See https://dev.mysql.com/doc/refman/5.7/en/error-messages-server.html
-      ER_DUP_ENTRY            = 1062
-      ER_NO_REFERENCED_ROW_2  = 1452
-      ER_DATA_TOO_LONG        = 1406
-      ER_LOCK_DEADLOCK        = 1213
+        ER_DUP_ENTRY            = 1062
+        ER_NO_REFERENCED_ROW_2  = 1452
+        ER_DATA_TOO_LONG        = 1406
+        ER_LOCK_DEADLOCK        = 1213
 
-      def translate_exception(exception, message)
-        case error_number(exception)
-        when ER_DUP_ENTRY
-          RecordNotUnique.new(message)
-        when ER_NO_REFERENCED_ROW_2
-          InvalidForeignKey.new(message)
-        when ER_DATA_TOO_LONG
-          ValueTooLong.new(message)
-        when ER_LOCK_DEADLOCK
-          Deadlocked.new(message)
-        else
-          super
-        end
-      end
-
-      def add_column_sql(table_name, column_name, type, options = {})
-        td = create_table_definition(table_name)
-        cd = td.new_column_definition(column_name, type, options)
-        schema_creation.accept(AddColumnDefinition.new(cd))
-      end
-
-      def change_column_sql(table_name, column_name, type, options = {})
-        column = column_for(table_name, column_name)
-
-        unless options_include_default?(options)
-          options[:default] = column.default
+        def translate_exception(exception, message)
+          case error_number(exception)
+          when ER_DUP_ENTRY
+            RecordNotUnique.new(message)
+          when ER_NO_REFERENCED_ROW_2
+            InvalidForeignKey.new(message)
+          when ER_DATA_TOO_LONG
+            ValueTooLong.new(message)
+          when ER_LOCK_DEADLOCK
+            Deadlocked.new(message)
+          else
+            super
+          end
         end
 
-        unless options.has_key?(:null)
-          options[:null] = column.null
+        def add_column_sql(table_name, column_name, type, options = {})
+          td = create_table_definition(table_name)
+          cd = td.new_column_definition(column_name, type, options)
+          schema_creation.accept(AddColumnDefinition.new(cd))
         end
 
-        td = create_table_definition(table_name)
-        cd = td.new_column_definition(column.name, type, options)
-        schema_creation.accept(ChangeColumnDefinition.new(cd, column.name))
-      end
+        def change_column_sql(table_name, column_name, type, options = {})
+          column = column_for(table_name, column_name)
 
-      def rename_column_sql(table_name, column_name, new_column_name)
-        column  = column_for(table_name, column_name)
-        options = {
-          default: column.default,
-          null: column.null,
-          auto_increment: column.auto_increment?
-        }
+          unless options_include_default?(options)
+            options[:default] = column.default
+          end
 
-        current_type = select_one("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE '#{column_name}'", "SCHEMA")["Type"]
-        td = create_table_definition(table_name)
-        cd = td.new_column_definition(new_column_name, current_type, options)
-        schema_creation.accept(ChangeColumnDefinition.new(cd, column.name))
-      end
+          unless options.has_key?(:null)
+            options[:null] = column.null
+          end
 
-      def remove_column_sql(table_name, column_name, type = nil, options = {})
-        "DROP #{quote_column_name(column_name)}"
-      end
+          td = create_table_definition(table_name)
+          cd = td.new_column_definition(column.name, type, options)
+          schema_creation.accept(ChangeColumnDefinition.new(cd, column.name))
+        end
 
-      def remove_columns_sql(table_name, *column_names)
-        column_names.map {|column_name| remove_column_sql(table_name, column_name) }
-      end
+        def rename_column_sql(table_name, column_name, new_column_name)
+          column  = column_for(table_name, column_name)
+          options = {
+            default: column.default,
+            null: column.null,
+            auto_increment: column.auto_increment?
+          }
 
-      def add_index_sql(table_name, column_name, options = {})
-        index_name, index_type, index_columns, _, index_algorithm, index_using = add_index_options(table_name, column_name, options)
-        index_algorithm[0, 0] = ", " if index_algorithm.present?
-        "ADD #{index_type} INDEX #{quote_column_name(index_name)} #{index_using} (#{index_columns})#{index_algorithm}"
-      end
+          current_type = select_one("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE '#{column_name}'", "SCHEMA")["Type"]
+          td = create_table_definition(table_name)
+          cd = td.new_column_definition(new_column_name, current_type, options)
+          schema_creation.accept(ChangeColumnDefinition.new(cd, column.name))
+        end
 
-      def remove_index_sql(table_name, options = {})
-        index_name = index_name_for_remove(table_name, options)
-        "DROP INDEX #{index_name}"
-      end
+        def remove_column_sql(table_name, column_name, type = nil, options = {})
+          "DROP #{quote_column_name(column_name)}"
+        end
 
-      def add_timestamps_sql(table_name, options = {})
-        [add_column_sql(table_name, :created_at, :datetime, options), add_column_sql(table_name, :updated_at, :datetime, options)]
-      end
+        def remove_columns_sql(table_name, *column_names)
+          column_names.map {|column_name| remove_column_sql(table_name, column_name) }
+        end
 
-      def remove_timestamps_sql(table_name, options = {})
-        [remove_column_sql(table_name, :updated_at), remove_column_sql(table_name, :created_at)]
-      end
+        def add_index_sql(table_name, column_name, options = {})
+          index_name, index_type, index_columns, _, index_algorithm, index_using = add_index_options(table_name, column_name, options)
+          index_algorithm[0, 0] = ", " if index_algorithm.present?
+          "ADD #{index_type} INDEX #{quote_column_name(index_name)} #{index_using} (#{index_columns})#{index_algorithm}"
+        end
+
+        def remove_index_sql(table_name, options = {})
+          index_name = index_name_for_remove(table_name, options)
+          "DROP INDEX #{index_name}"
+        end
+
+        def add_timestamps_sql(table_name, options = {})
+          [add_column_sql(table_name, :created_at, :datetime, options), add_column_sql(table_name, :updated_at, :datetime, options)]
+        end
+
+        def remove_timestamps_sql(table_name, options = {})
+          [remove_column_sql(table_name, :updated_at), remove_column_sql(table_name, :created_at)]
+        end
 
       private
 
       # MySQL is too stupid to create a temporary table for use subquery, so we have
       # to give it some prompting in the form of a subsubquery. Ugh!
-      def subquery_for(key, select)
-        subsubselect = select.clone
-        subsubselect.projections = [key]
+        def subquery_for(key, select)
+          subsubselect = select.clone
+          subsubselect.projections = [key]
 
-        # Materialize subquery by adding distinct
-        # to work with MySQL 5.7.6 which sets optimizer_switch='derived_merge=on'
-        subsubselect.distinct unless select.limit || select.offset || select.orders.any?
+          # Materialize subquery by adding distinct
+          # to work with MySQL 5.7.6 which sets optimizer_switch='derived_merge=on'
+          subsubselect.distinct unless select.limit || select.offset || select.orders.any?
 
-        subselect = Arel::SelectManager.new(select.engine)
-        subselect.project Arel.sql(key.name)
-        subselect.from subsubselect.as("__active_record_temp")
-      end
+          subselect = Arel::SelectManager.new(select.engine)
+          subselect.project Arel.sql(key.name)
+          subselect.from subsubselect.as("__active_record_temp")
+        end
 
-      def supports_rename_index?
-        mariadb? ? false : version >= "5.7.6"
-      end
+        def supports_rename_index?
+          mariadb? ? false : version >= "5.7.6"
+        end
 
-      def configure_connection
-        variables = @config.fetch(:variables, {}).stringify_keys
+        def configure_connection
+          variables = @config.fetch(:variables, {}).stringify_keys
 
-        # By default, MySQL 'where id is null' selects the last inserted id; Turn this off.
-        variables["sql_auto_is_null"] = 0
+          # By default, MySQL 'where id is null' selects the last inserted id; Turn this off.
+          variables["sql_auto_is_null"] = 0
 
-        # Increase timeout so the server doesn't disconnect us.
-        wait_timeout = @config[:wait_timeout]
-        wait_timeout = 2147483 unless wait_timeout.is_a?(Integer)
-        variables["wait_timeout"] = self.class.type_cast_config_to_integer(wait_timeout)
+          # Increase timeout so the server doesn't disconnect us.
+          wait_timeout = @config[:wait_timeout]
+          wait_timeout = 2147483 unless wait_timeout.is_a?(Integer)
+          variables["wait_timeout"] = self.class.type_cast_config_to_integer(wait_timeout)
 
-        defaults = [":default", :default].to_set
+          defaults = [":default", :default].to_set
 
-        # Make MySQL reject illegal values rather than truncating or blanking them, see
-        # http://dev.mysql.com/doc/refman/5.7/en/sql-mode.html#sqlmode_strict_all_tables
-        # If the user has provided another value for sql_mode, don't replace it.
-        if sql_mode = variables.delete("sql_mode")
-          sql_mode = quote(sql_mode)
-        elsif !defaults.include?(strict_mode?)
-          if strict_mode?
-            sql_mode = "CONCAT(@@sql_mode, ',STRICT_ALL_TABLES')"
-          else
-            sql_mode = "REPLACE(@@sql_mode, 'STRICT_TRANS_TABLES', '')"
-            sql_mode = "REPLACE(#{sql_mode}, 'STRICT_ALL_TABLES', '')"
-            sql_mode = "REPLACE(#{sql_mode}, 'TRADITIONAL', '')"
+          # Make MySQL reject illegal values rather than truncating or blanking them, see
+          # http://dev.mysql.com/doc/refman/5.7/en/sql-mode.html#sqlmode_strict_all_tables
+          # If the user has provided another value for sql_mode, don't replace it.
+          if sql_mode = variables.delete("sql_mode")
+            sql_mode = quote(sql_mode)
+          elsif !defaults.include?(strict_mode?)
+            if strict_mode?
+              sql_mode = "CONCAT(@@sql_mode, ',STRICT_ALL_TABLES')"
+            else
+              sql_mode = "REPLACE(@@sql_mode, 'STRICT_TRANS_TABLES', '')"
+              sql_mode = "REPLACE(#{sql_mode}, 'STRICT_ALL_TABLES', '')"
+              sql_mode = "REPLACE(#{sql_mode}, 'TRADITIONAL', '')"
+            end
+            sql_mode = "CONCAT(#{sql_mode}, ',NO_AUTO_VALUE_ON_ZERO')"
           end
-          sql_mode = "CONCAT(#{sql_mode}, ',NO_AUTO_VALUE_ON_ZERO')"
-        end
-        sql_mode_assignment = "@@SESSION.sql_mode = #{sql_mode}, " if sql_mode
+          sql_mode_assignment = "@@SESSION.sql_mode = #{sql_mode}, " if sql_mode
 
-        # NAMES does not have an equals sign, see
-        # http://dev.mysql.com/doc/refman/5.7/en/set-statement.html#id944430
-        # (trailing comma because variable_assignments will always have content)
-        if @config[:encoding]
-          encoding = "NAMES #{@config[:encoding]}"
-          encoding << " COLLATE #{@config[:collation]}" if @config[:collation]
-          encoding << ", "
-        end
-
-        # Gather up all of the SET variables...
-        variable_assignments = variables.map do |k, v|
-          if defaults.include?(v)
-            "@@SESSION.#{k} = DEFAULT" # Sets the value to the global or compile default
-          elsif !v.nil?
-            "@@SESSION.#{k} = #{quote(v)}"
+          # NAMES does not have an equals sign, see
+          # http://dev.mysql.com/doc/refman/5.7/en/set-statement.html#id944430
+          # (trailing comma because variable_assignments will always have content)
+          if @config[:encoding]
+            encoding = "NAMES #{@config[:encoding]}"
+            encoding << " COLLATE #{@config[:collation]}" if @config[:collation]
+            encoding << ", "
           end
-          # or else nil; compact to clear nils out
-        end.compact.join(", ")
 
-        # ...and send them all in one query
-        @connection.query  "SET #{encoding} #{sql_mode_assignment} #{variable_assignments}"
-      end
+          # Gather up all of the SET variables...
+          variable_assignments = variables.map do |k, v|
+            if defaults.include?(v)
+              "@@SESSION.#{k} = DEFAULT" # Sets the value to the global or compile default
+            elsif !v.nil?
+              "@@SESSION.#{k} = #{quote(v)}"
+            end
+            # or else nil; compact to clear nils out
+          end.compact.join(", ")
 
-      def column_definitions(table_name) # :nodoc:
-        execute_and_free("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}", "SCHEMA") do |result|
-          each_hash(result)
+          # ...and send them all in one query
+          @connection.query  "SET #{encoding} #{sql_mode_assignment} #{variable_assignments}"
         end
-      end
 
-      def extract_foreign_key_action(specifier) # :nodoc:
-        case specifier
-        when "CASCADE"; :cascade
-        when "SET NULL"; :nullify
-        end
-      end
-
-      def create_table_info(table_name) # :nodoc:
-        select_one("SHOW CREATE TABLE #{quote_table_name(table_name)}")["Create Table"]
-      end
-
-      def create_table_definition(*args) # :nodoc:
-        MySQL::TableDefinition.new(*args)
-      end
-
-      def extract_schema_qualified_name(string) # :nodoc:
-        schema, name = string.to_s.scan(/[^`.\s]+|`[^`]*`/)
-        schema, name = @config[:database], schema unless name
-        [schema, name]
-      end
-
-      def integer_to_sql(limit) # :nodoc:
-        case limit
-        when 1; "tinyint"
-        when 2; "smallint"
-        when 3; "mediumint"
-        when nil, 4; "int"
-        when 5..8; "bigint"
-        else raise(ActiveRecordError, "No integer type has byte size #{limit}")
-        end
-      end
-
-      def text_to_sql(limit) # :nodoc:
-        case limit
-        when 0..0xff;               "tinytext"
-        when nil, 0x100..0xffff;    "text"
-        when 0x10000..0xffffff;     "mediumtext"
-        when 0x1000000..0xffffffff; "longtext"
-        else raise(ActiveRecordError, "No text type has byte length #{limit}")
-        end
-      end
-
-      def binary_to_sql(limit) # :nodoc:
-        case limit
-        when 0..0xff;               "tinyblob"
-        when nil, 0x100..0xffff;    "blob"
-        when 0x10000..0xffffff;     "mediumblob"
-        when 0x1000000..0xffffffff; "longblob"
-        else raise(ActiveRecordError, "No binary type has byte length #{limit}")
-        end
-      end
-
-      class MysqlJson < Type::Internal::AbstractJson # :nodoc:
-        def changed_in_place?(raw_old_value, new_value)
-          # Normalization is required because MySQL JSON data format includes
-          # the space between the elements.
-          super(serialize(deserialize(raw_old_value)), new_value)
-        end
-      end
-
-      class MysqlString < Type::String # :nodoc:
-        def serialize(value)
-          case value
-          when true then MySQL::Quoting::QUOTED_TRUE
-          when false then MySQL::Quoting::QUOTED_FALSE
-          else super
+        def column_definitions(table_name) # :nodoc:
+          execute_and_free("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}", "SCHEMA") do |result|
+            each_hash(result)
           end
         end
 
-        private
-
-        def cast_value(value)
-          case value
-          when true then MySQL::Quoting::QUOTED_TRUE
-          when false then MySQL::Quoting::QUOTED_FALSE
-          else super
+        def extract_foreign_key_action(specifier) # :nodoc:
+          case specifier
+          when "CASCADE"; :cascade
+          when "SET NULL"; :nullify
           end
         end
-      end
 
-      ActiveRecord::Type.register(:json, MysqlJson, adapter: :mysql2)
-      ActiveRecord::Type.register(:string, MysqlString, adapter: :mysql2)
-      ActiveRecord::Type.register(:unsigned_integer, Type::UnsignedInteger, adapter: :mysql2)
+        def create_table_info(table_name) # :nodoc:
+          select_one("SHOW CREATE TABLE #{quote_table_name(table_name)}")["Create Table"]
+        end
+
+        def create_table_definition(*args) # :nodoc:
+          MySQL::TableDefinition.new(*args)
+        end
+
+        def extract_schema_qualified_name(string) # :nodoc:
+          schema, name = string.to_s.scan(/[^`.\s]+|`[^`]*`/)
+          schema, name = @config[:database], schema unless name
+          [schema, name]
+        end
+
+        def integer_to_sql(limit) # :nodoc:
+          case limit
+          when 1; "tinyint"
+          when 2; "smallint"
+          when 3; "mediumint"
+          when nil, 4; "int"
+          when 5..8; "bigint"
+          else raise(ActiveRecordError, "No integer type has byte size #{limit}")
+          end
+        end
+
+        def text_to_sql(limit) # :nodoc:
+          case limit
+          when 0..0xff;               "tinytext"
+          when nil, 0x100..0xffff;    "text"
+          when 0x10000..0xffffff;     "mediumtext"
+          when 0x1000000..0xffffffff; "longtext"
+          else raise(ActiveRecordError, "No text type has byte length #{limit}")
+          end
+        end
+
+        def binary_to_sql(limit) # :nodoc:
+          case limit
+          when 0..0xff;               "tinyblob"
+          when nil, 0x100..0xffff;    "blob"
+          when 0x10000..0xffffff;     "mediumblob"
+          when 0x1000000..0xffffffff; "longblob"
+          else raise(ActiveRecordError, "No binary type has byte length #{limit}")
+          end
+        end
+
+        class MysqlJson < Type::Internal::AbstractJson # :nodoc:
+          def changed_in_place?(raw_old_value, new_value)
+            # Normalization is required because MySQL JSON data format includes
+            # the space between the elements.
+            super(serialize(deserialize(raw_old_value)), new_value)
+          end
+        end
+
+        class MysqlString < Type::String # :nodoc:
+          def serialize(value)
+            case value
+            when true then MySQL::Quoting::QUOTED_TRUE
+            when false then MySQL::Quoting::QUOTED_FALSE
+            else super
+            end
+          end
+
+          private
+
+            def cast_value(value)
+              case value
+              when true then MySQL::Quoting::QUOTED_TRUE
+              when false then MySQL::Quoting::QUOTED_FALSE
+              else super
+              end
+            end
+        end
+
+        ActiveRecord::Type.register(:json, MysqlJson, adapter: :mysql2)
+        ActiveRecord::Type.register(:string, MysqlString, adapter: :mysql2)
+        ActiveRecord::Type.register(:unsigned_integer, Type::UnsignedInteger, adapter: :mysql2)
     end
   end
 end

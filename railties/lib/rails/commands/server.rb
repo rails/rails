@@ -21,31 +21,31 @@ module Rails
 
       private
 
-      def option_parser(options)
-        OptionParser.new do |opts|
-          opts.banner = "Usage: rails server [mongrel, thin etc] [options]"
-          opts.on("-p", "--port=port", Integer,
-                  "Runs Rails on the specified port.", "Default: 3000") { |v| options[:Port] = v }
-          opts.on("-b", "--binding=IP", String,
-                  "Binds Rails to the specified IP.", "Default: localhost") { |v| options[:Host] = v }
-          opts.on("-c", "--config=file", String,
-                  "Uses a custom rackup configuration.") { |v| options[:config] = v }
-          opts.on("-d", "--daemon", "Runs server as a Daemon.") { options[:daemonize] = true }
-          opts.on("-e", "--environment=name", String,
-                  "Specifies the environment to run this server under (test/development/production).",
-                  "Default: development") { |v| options[:environment] = v }
-          opts.on("-P", "--pid=pid", String,
-                  "Specifies the PID file.",
-                  "Default: tmp/pids/server.pid") { |v| options[:pid] = v }
-          opts.on("-C", "--[no-]dev-caching",
-                  "Specifies whether to perform caching in development.",
-                  "true or false") { |v| options[:caching] = v }
+        def option_parser(options)
+          OptionParser.new do |opts|
+            opts.banner = "Usage: rails server [mongrel, thin etc] [options]"
+            opts.on("-p", "--port=port", Integer,
+                    "Runs Rails on the specified port.", "Default: 3000") { |v| options[:Port] = v }
+            opts.on("-b", "--binding=IP", String,
+                    "Binds Rails to the specified IP.", "Default: localhost") { |v| options[:Host] = v }
+            opts.on("-c", "--config=file", String,
+                    "Uses a custom rackup configuration.") { |v| options[:config] = v }
+            opts.on("-d", "--daemon", "Runs server as a Daemon.") { options[:daemonize] = true }
+            opts.on("-e", "--environment=name", String,
+                    "Specifies the environment to run this server under (test/development/production).",
+                    "Default: development") { |v| options[:environment] = v }
+            opts.on("-P", "--pid=pid", String,
+                    "Specifies the PID file.",
+                    "Default: tmp/pids/server.pid") { |v| options[:pid] = v }
+            opts.on("-C", "--[no-]dev-caching",
+                    "Specifies whether to perform caching in development.",
+                    "true or false") { |v| options[:caching] = v }
 
-          opts.separator ""
+            opts.separator ""
 
-          opts.on("-h", "--help", "Shows this help message.") { puts opts; exit }
+            opts.on("-h", "--help", "Shows this help message.") { puts opts; exit }
+          end
         end
-      end
     end
 
     def initialize(*)

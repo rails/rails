@@ -64,6 +64,6 @@ module ActiveRecord
 
     protected
 
-    attr_reader :klass, :arel_table, :association
+      attr_reader :klass, :arel_table, :association
   end
 end

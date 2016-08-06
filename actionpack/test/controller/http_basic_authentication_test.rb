@@ -31,31 +31,31 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
 
     private
 
-    def authenticate
-      authenticate_or_request_with_http_basic do |username, password|
-        username == "lifo" && password == "world"
+      def authenticate
+        authenticate_or_request_with_http_basic do |username, password|
+          username == "lifo" && password == "world"
+        end
       end
-    end
 
-    def authenticate_with_request
-      if authenticate_with_http_basic { |username, password| username == "pretty" && password == "please" }
-        @logged_in = true
-      else
-        request_http_basic_authentication("SuperSecret", "Authentication Failed\n")
+      def authenticate_with_request
+        if authenticate_with_http_basic { |username, password| username == "pretty" && password == "please" }
+          @logged_in = true
+        else
+          request_http_basic_authentication("SuperSecret", "Authentication Failed\n")
+        end
       end
-    end
 
-    def auth_with_special_chars
-      authenticate_or_request_with_http_basic do |username, password|
-        username == 'login!@#$%^&*()_+{}[];"\',./<>?`~ \n\r\t' && password == 'pwd:!@#$%^&*()_+{}[];"\',./<>?`~ \n\r\t'
+      def auth_with_special_chars
+        authenticate_or_request_with_http_basic do |username, password|
+          username == 'login!@#$%^&*()_+{}[];"\',./<>?`~ \n\r\t' && password == 'pwd:!@#$%^&*()_+{}[];"\',./<>?`~ \n\r\t'
+        end
       end
-    end
 
-    def authenticate_long_credentials
-      authenticate_or_request_with_http_basic do |username, password|
-        username == "1234567890123456789012345678901234567890" && password == "1234567890123456789012345678901234567890"
+      def authenticate_long_credentials
+        authenticate_or_request_with_http_basic do |username, password|
+          username == "1234567890123456789012345678901234567890" && password == "1234567890123456789012345678901234567890"
+        end
       end
-    end
   end
 
   AUTH_HEADERS = ["HTTP_AUTHORIZATION", "X-HTTP_AUTHORIZATION", "X_HTTP_AUTHORIZATION", "REDIRECT_X_HTTP_AUTHORIZATION"]
@@ -171,7 +171,7 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
 
   private
 
-  def encode_credentials(username, password)
-    "Basic #{::Base64.encode64("#{username}:#{password}")}"
-  end
+    def encode_credentials(username, password)
+      "Basic #{::Base64.encode64("#{username}:#{password}")}"
+    end
 end

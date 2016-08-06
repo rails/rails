@@ -58,35 +58,35 @@ module ActiveSupport
     #   Hash to merge the converted element into.
     # element::
     #   XML element to merge into hash
-    def merge_element!(hash, element, depth)
-      raise "Document too deep!" if depth == 0
-      delete_empty(hash)
-      merge!(hash, element.tag_name, collapse(element, depth))
-    end
+      def merge_element!(hash, element, depth)
+        raise "Document too deep!" if depth == 0
+        delete_empty(hash)
+        merge!(hash, element.tag_name, collapse(element, depth))
+      end
 
-    def delete_empty(hash)
-      hash.delete(CONTENT_KEY) if hash[CONTENT_KEY] == ""
-    end
+      def delete_empty(hash)
+        hash.delete(CONTENT_KEY) if hash[CONTENT_KEY] == ""
+      end
 
     # Actually converts an XML document element into a data structure.
     #
     # element::
     #   The document element to be collapsed.
-    def collapse(element, depth)
-      hash = get_attributes(element)
+      def collapse(element, depth)
+        hash = get_attributes(element)
 
-      child_nodes = element.child_nodes
-      if child_nodes.length > 0
-        (0...child_nodes.length).each do |i|
-          child = child_nodes.item(i)
-          merge_element!(hash, child, depth - 1) unless child.node_type == Node.TEXT_NODE
+        child_nodes = element.child_nodes
+        if child_nodes.length > 0
+          (0...child_nodes.length).each do |i|
+            child = child_nodes.item(i)
+            merge_element!(hash, child, depth - 1) unless child.node_type == Node.TEXT_NODE
+          end
+          merge_texts!(hash, element) unless empty_content?(element)
+          hash
+        else
+          merge_texts!(hash, element)
         end
-        merge_texts!(hash, element) unless empty_content?(element)
-        hash
-      else
-        merge_texts!(hash, element)
       end
-    end
 
     # Merge all the texts of an element into the hash
     #
@@ -94,16 +94,16 @@ module ActiveSupport
     #   Hash to add the converted element to.
     # element::
     #   XML element whose texts are to me merged into the hash
-    def merge_texts!(hash, element)
-      delete_empty(hash)
-      text_children = texts(element)
-      if text_children.join.empty?
-        hash
-      else
-        # must use value to prevent double-escaping
-        merge!(hash, CONTENT_KEY, text_children.join)
+      def merge_texts!(hash, element)
+        delete_empty(hash)
+        text_children = texts(element)
+        if text_children.join.empty?
+          hash
+        else
+          # must use value to prevent double-escaping
+          merge!(hash, CONTENT_KEY, text_children.join)
+        end
       end
-    end
 
     # Adds a new key/value pair to an existing Hash. If the key to be added
     # already exists and the existing value associated with key is not
@@ -116,66 +116,66 @@ module ActiveSupport
     #   Key to be added.
     # value::
     #   Value to be associated with key.
-    def merge!(hash, key, value)
-      if hash.has_key?(key)
-        if hash[key].instance_of?(Array)
-          hash[key] << value
+      def merge!(hash, key, value)
+        if hash.has_key?(key)
+          if hash[key].instance_of?(Array)
+            hash[key] << value
+          else
+            hash[key] = [hash[key], value]
+          end
+        elsif value.instance_of?(Array)
+          hash[key] = [value]
         else
-          hash[key] = [hash[key], value]
+          hash[key] = value
         end
-      elsif value.instance_of?(Array)
-        hash[key] = [value]
-      else
-        hash[key] = value
+        hash
       end
-      hash
-    end
 
     # Converts the attributes array of an XML element into a hash.
     # Returns an empty Hash if node has no attributes.
     #
     # element::
     #   XML element to extract attributes from.
-    def get_attributes(element)
-      attribute_hash = {}
-      attributes = element.attributes
-      (0...attributes.length).each do |i|
-         attribute_hash[CONTENT_KEY] ||= ""
-         attribute_hash[attributes.item(i).name] =  attributes.item(i).value
+      def get_attributes(element)
+        attribute_hash = {}
+        attributes = element.attributes
+        (0...attributes.length).each do |i|
+          attribute_hash[CONTENT_KEY] ||= ""
+          attribute_hash[attributes.item(i).name] =  attributes.item(i).value
+        end
+        attribute_hash
       end
-      attribute_hash
-    end
 
     # Determines if a document element has text content
     #
     # element::
     #   XML element to be checked.
-    def texts(element)
-      texts = []
-      child_nodes = element.child_nodes
-      (0...child_nodes.length).each do |i|
-        item = child_nodes.item(i)
-        if item.node_type == Node.TEXT_NODE
-          texts << item.get_data
+      def texts(element)
+        texts = []
+        child_nodes = element.child_nodes
+        (0...child_nodes.length).each do |i|
+          item = child_nodes.item(i)
+          if item.node_type == Node.TEXT_NODE
+            texts << item.get_data
+          end
         end
+        texts
       end
-      texts
-    end
 
     # Determines if a document element has text content
     #
     # element::
     #   XML element to be checked.
-    def empty_content?(element)
-      text = ""
-      child_nodes = element.child_nodes
-      (0...child_nodes.length).each do |i|
-        item = child_nodes.item(i)
-        if item.node_type == Node.TEXT_NODE
-          text << item.get_data.strip
+      def empty_content?(element)
+        text = ""
+        child_nodes = element.child_nodes
+        (0...child_nodes.length).each do |i|
+          item = child_nodes.item(i)
+          if item.node_type == Node.TEXT_NODE
+            text << item.get_data.strip
+          end
         end
+        text.strip.length == 0
       end
-      text.strip.length == 0
-    end
   end
 end

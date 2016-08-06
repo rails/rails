@@ -83,23 +83,23 @@ module ActiveRecord
 
         private
 
-        def index_name_for_remove(table_name, options = {})
-          index_name = index_name(table_name, options)
+          def index_name_for_remove(table_name, options = {})
+            index_name = index_name(table_name, options)
 
-          unless index_name_exists?(table_name, index_name, true)
-            if options.is_a?(Hash) && options.has_key?(:name)
-              options_without_column = options.dup
-              options_without_column.delete :column
-              index_name_without_column = index_name(table_name, options_without_column)
+            unless index_name_exists?(table_name, index_name, true)
+              if options.is_a?(Hash) && options.has_key?(:name)
+                options_without_column = options.dup
+                options_without_column.delete :column
+                index_name_without_column = index_name(table_name, options_without_column)
 
-              return index_name_without_column if index_name_exists?(table_name, index_name_without_column, false)
+                return index_name_without_column if index_name_exists?(table_name, index_name_without_column, false)
+              end
+
+              raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' does not exist"
             end
 
-            raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' does not exist"
+            index_name
           end
-
-          index_name
-        end
       end
 
       class V5_0 < V5_1

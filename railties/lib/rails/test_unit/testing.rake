@@ -8,7 +8,7 @@ desc "Runs all tests in test folder"
 task :test do
   $: << "test"
   pattern = if ENV.key?("TEST")
-               ENV["TEST"]
+    ENV["TEST"]
              else
                "test"
              end

@@ -286,23 +286,23 @@ module ActiveRecord
 
       private
 
-      def set_options_for_callbacks!(args, enforced_options = {})
-        options = args.extract_options!.merge!(enforced_options)
-        args << options
+        def set_options_for_callbacks!(args, enforced_options = {})
+          options = args.extract_options!.merge!(enforced_options)
+          args << options
 
-        if options[:on]
-          fire_on = Array(options[:on])
-          assert_valid_transaction_action(fire_on)
-          options[:if] = Array(options[:if])
-          options[:if] << "transaction_include_any_action?(#{fire_on})"
+          if options[:on]
+            fire_on = Array(options[:on])
+            assert_valid_transaction_action(fire_on)
+            options[:if] = Array(options[:if])
+            options[:if] << "transaction_include_any_action?(#{fire_on})"
+          end
         end
-      end
 
-      def assert_valid_transaction_action(actions)
-        if (actions - ACTIONS).any?
-          raise ArgumentError, ":on conditions for after_commit and after_rollback callbacks have to be one of #{ACTIONS}"
+        def assert_valid_transaction_action(actions)
+          if (actions - ACTIONS).any?
+            raise ArgumentError, ":on conditions for after_commit and after_rollback callbacks have to be one of #{ACTIONS}"
+          end
         end
-      end
     end
 
     # See ActiveRecord::Transactions::ClassMethods for detailed documentation.
@@ -410,73 +410,73 @@ module ActiveRecord
     protected
 
     # Save the new record state and id of a record so it can be restored later if a transaction fails.
-    def remember_transaction_record_state #:nodoc:
-      @_start_transaction_state[:id] = id
-      @_start_transaction_state.reverse_merge!(
-        new_record: @new_record,
-        destroyed: @destroyed,
-        frozen?: frozen?,
-      )
-      @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) + 1
-    end
+      def remember_transaction_record_state #:nodoc:
+        @_start_transaction_state[:id] = id
+        @_start_transaction_state.reverse_merge!(
+          new_record: @new_record,
+          destroyed: @destroyed,
+          frozen?: frozen?,
+        )
+        @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) + 1
+      end
 
     # Clear the new record state and id of a record.
-    def clear_transaction_record_state #:nodoc:
-      @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
-      force_clear_transaction_record_state if @_start_transaction_state[:level] < 1
-    end
+      def clear_transaction_record_state #:nodoc:
+        @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
+        force_clear_transaction_record_state if @_start_transaction_state[:level] < 1
+      end
 
     # Force to clear the transaction record state.
-    def force_clear_transaction_record_state #:nodoc:
-      @_start_transaction_state.clear
-    end
+      def force_clear_transaction_record_state #:nodoc:
+        @_start_transaction_state.clear
+      end
 
     # Restore the new record state and id of a record that was previously saved by a call to save_record_state.
-    def restore_transaction_record_state(force = false) #:nodoc:
-      unless @_start_transaction_state.empty?
-        transaction_level = (@_start_transaction_state[:level] || 0) - 1
-        if transaction_level < 1 || force
-          restore_state = @_start_transaction_state
-          thaw
-          @new_record = restore_state[:new_record]
-          @destroyed  = restore_state[:destroyed]
-          pk = self.class.primary_key
-          if pk && read_attribute(pk) != restore_state[:id]
-            write_attribute(pk, restore_state[:id])
+      def restore_transaction_record_state(force = false) #:nodoc:
+        unless @_start_transaction_state.empty?
+          transaction_level = (@_start_transaction_state[:level] || 0) - 1
+          if transaction_level < 1 || force
+            restore_state = @_start_transaction_state
+            thaw
+            @new_record = restore_state[:new_record]
+            @destroyed  = restore_state[:destroyed]
+            pk = self.class.primary_key
+            if pk && read_attribute(pk) != restore_state[:id]
+              write_attribute(pk, restore_state[:id])
+            end
+            freeze if restore_state[:frozen?]
           end
-          freeze if restore_state[:frozen?]
         end
       end
-    end
 
     # Determine if a record was created or destroyed in a transaction. State should be one of :new_record or :destroyed.
-    def transaction_record_state(state) #:nodoc:
-      @_start_transaction_state[state]
-    end
+      def transaction_record_state(state) #:nodoc:
+        @_start_transaction_state[state]
+      end
 
     # Determine if a transaction included an action for :create, :update, or :destroy. Used in filtering callbacks.
-    def transaction_include_any_action?(actions) #:nodoc:
-      actions.any? do |action|
-        case action
-        when :create
-          transaction_record_state(:new_record)
-        when :destroy
-          destroyed?
-        when :update
-          !(transaction_record_state(:new_record) || destroyed?)
+      def transaction_include_any_action?(actions) #:nodoc:
+        actions.any? do |action|
+          case action
+          when :create
+            transaction_record_state(:new_record)
+          when :destroy
+            destroyed?
+          when :update
+            !(transaction_record_state(:new_record) || destroyed?)
+          end
         end
       end
-    end
 
     private
 
-    def set_transaction_state(state) # :nodoc:
-      @transaction_state = state
-    end
+      def set_transaction_state(state) # :nodoc:
+        @transaction_state = state
+      end
 
-    def has_transactional_callbacks? # :nodoc:
-      !_rollback_callbacks.empty? || !_commit_callbacks.empty? || !_before_commit_callbacks.empty?
-    end
+      def has_transactional_callbacks? # :nodoc:
+        !_rollback_callbacks.empty? || !_commit_callbacks.empty? || !_before_commit_callbacks.empty?
+      end
 
     # Updates the attributes on this particular Active Record object so that
     # if it's associated with a transaction, then the state of the Active Record
@@ -495,15 +495,15 @@ module ActiveRecord
     # Since Active Record objects can be inside multiple transactions, this
     # method recursively goes through the parent of the TransactionState and
     # checks if the Active Record object reflects the state of the object.
-    def sync_with_transaction_state
-      update_attributes_from_transaction_state(@transaction_state)
-    end
-
-    def update_attributes_from_transaction_state(transaction_state)
-      if transaction_state && transaction_state.finalized?
-        restore_transaction_record_state if transaction_state.rolledback?
-        clear_transaction_record_state
+      def sync_with_transaction_state
+        update_attributes_from_transaction_state(@transaction_state)
       end
-    end
+
+      def update_attributes_from_transaction_state(transaction_state)
+        if transaction_state && transaction_state.finalized?
+          restore_transaction_record_state if transaction_state.rolledback?
+          clear_transaction_record_state
+        end
+      end
   end
 end

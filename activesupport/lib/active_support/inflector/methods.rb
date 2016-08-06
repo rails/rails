@@ -361,31 +361,31 @@ module ActiveSupport
     #
     #   const_regexp("Foo::Bar::Baz") # => "Foo(::Bar(::Baz)?)?"
     #   const_regexp("::")            # => "::"
-    def const_regexp(camel_cased_word) #:nodoc:
-      parts = camel_cased_word.split("::".freeze)
+      def const_regexp(camel_cased_word) #:nodoc:
+        parts = camel_cased_word.split("::".freeze)
 
-      return Regexp.escape(camel_cased_word) if parts.blank?
+        return Regexp.escape(camel_cased_word) if parts.blank?
 
-      last  = parts.pop
+        last  = parts.pop
 
-      parts.reverse.inject(last) do |acc, part|
-        part.empty? ? acc : "#{part}(::#{acc})?"
+        parts.reverse.inject(last) do |acc, part|
+          part.empty? ? acc : "#{part}(::#{acc})?"
+        end
       end
-    end
 
     # Applies inflection rules for +singularize+ and +pluralize+.
     #
     #  apply_inflections('post', inflections.plurals)    # => "posts"
     #  apply_inflections('posts', inflections.singulars) # => "post"
-    def apply_inflections(word, rules)
-      result = word.to_s.dup
+      def apply_inflections(word, rules)
+        result = word.to_s.dup
 
-      if word.empty? || inflections.uncountables.uncountable?(result)
-        result
-      else
-        rules.each { |(rule, replacement)| break if result.sub!(rule, replacement) }
-        result
+        if word.empty? || inflections.uncountables.uncountable?(result)
+          result
+        else
+          rules.each { |(rule, replacement)| break if result.sub!(rule, replacement) }
+          result
+        end
       end
-    end
   end
 end

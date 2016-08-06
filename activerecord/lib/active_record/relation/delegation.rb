@@ -83,17 +83,17 @@ module ActiveRecord
 
       protected
 
-      def method_missing(method, *args, &block)
-        if @klass.respond_to?(method)
-          self.class.delegate_to_scoped_klass(method)
-          scoping { @klass.public_send(method, *args, &block) }
-        elsif arel.respond_to?(method)
-          self.class.delegate method, to: :arel
-          arel.public_send(method, *args, &block)
-        else
-          super
+        def method_missing(method, *args, &block)
+          if @klass.respond_to?(method)
+            self.class.delegate_to_scoped_klass(method)
+            scoping { @klass.public_send(method, *args, &block) }
+          elsif arel.respond_to?(method)
+            self.class.delegate method, to: :arel
+            arel.public_send(method, *args, &block)
+          else
+            super
+          end
         end
-      end
     end
 
     module ClassMethods # :nodoc:
@@ -103,9 +103,9 @@ module ActiveRecord
 
       private
 
-      def relation_class_for(klass)
-        klass.relation_delegate_class(self)
-      end
+        def relation_class_for(klass)
+          klass.relation_delegate_class(self)
+        end
     end
 
     def respond_to?(method, include_private = false)
@@ -115,14 +115,14 @@ module ActiveRecord
 
     protected
 
-    def method_missing(method, *args, &block)
-      if @klass.respond_to?(method)
-        scoping { @klass.public_send(method, *args, &block) }
-      elsif arel.respond_to?(method)
-        arel.public_send(method, *args, &block)
-      else
-        super
+      def method_missing(method, *args, &block)
+        if @klass.respond_to?(method)
+          scoping { @klass.public_send(method, *args, &block) }
+        elsif arel.respond_to?(method)
+          arel.public_send(method, *args, &block)
+        else
+          super
+        end
       end
-    end
   end
 end

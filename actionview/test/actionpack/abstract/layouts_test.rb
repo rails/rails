@@ -422,16 +422,16 @@ module AbstractControllerTests
 
       test "when a grandchild has no layout specified, the child has an implied layout, and the " \
         "parent has specified a layout, use the child controller layout" do
-          controller = WithChildOfImplied.new
-          controller.process(:index)
-          assert_equal "With Implied Hello string!", controller.response_body
+        controller = WithChildOfImplied.new
+        controller.process(:index)
+        assert_equal "With Implied Hello string!", controller.response_body
       end
 
       test "when a grandchild has nil layout specified, the child has an implied layout, and the " \
         "parent has specified a layout, use the grand child controller layout" do
-          controller = WithGrandChildOfImplied.new
-          controller.process(:index)
-          assert_equal "With Grand Child Hello string!", controller.response_body
+        controller = WithGrandChildOfImplied.new
+        controller.process(:index)
+        assert_equal "With Grand Child Hello string!", controller.response_body
       end
 
       test "a child inherits layout from abstract controller" do

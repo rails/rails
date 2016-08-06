@@ -152,9 +152,9 @@ module ActionController
 
     private
 
-    def params_parsers
-      super.merge @custom_param_parsers
-    end
+      def params_parsers
+        super.merge @custom_param_parsers
+      end
   end
 
   class LiveTestResponse < Live::Response
@@ -615,37 +615,37 @@ module ActionController
 
       private
 
-      def scrub_env!(env)
-        env.delete_if { |k, v| k =~ /^(action_dispatch|rack)\.request/ }
-        env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
-        env.delete "action_dispatch.request.query_parameters"
-        env.delete "action_dispatch.request.request_parameters"
-        env["rack.input"] = StringIO.new
-        env
-      end
-
-      def process_with_kwargs(http_method, action, *args)
-        if kwarg_request?(args)
-          args.first.merge!(method: http_method)
-          process(action, *args)
-        else
-          non_kwarg_request_warning if args.any?
-
-          args = args.unshift(http_method)
-          process(action, *args)
+        def scrub_env!(env)
+          env.delete_if { |k, v| k =~ /^(action_dispatch|rack)\.request/ }
+          env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
+          env.delete "action_dispatch.request.query_parameters"
+          env.delete "action_dispatch.request.request_parameters"
+          env["rack.input"] = StringIO.new
+          env
         end
-      end
 
-      REQUEST_KWARGS = %i(params session flash method body xhr)
-      def kwarg_request?(args)
-        args[0].respond_to?(:keys) && (
-          (args[0].key?(:format) && args[0].keys.size == 1) ||
-          args[0].keys.any? { |k| REQUEST_KWARGS.include?(k) }
-        )
-      end
+        def process_with_kwargs(http_method, action, *args)
+          if kwarg_request?(args)
+            args.first.merge!(method: http_method)
+            process(action, *args)
+          else
+            non_kwarg_request_warning if args.any?
 
-      def non_kwarg_request_warning
-        ActiveSupport::Deprecation.warn(<<-MSG.strip_heredoc)
+            args = args.unshift(http_method)
+            process(action, *args)
+          end
+        end
+
+        REQUEST_KWARGS = %i(params session flash method body xhr)
+        def kwarg_request?(args)
+          args[0].respond_to?(:keys) && (
+            (args[0].key?(:format) && args[0].keys.size == 1) ||
+            args[0].keys.any? { |k| REQUEST_KWARGS.include?(k) }
+          )
+        end
+
+        def non_kwarg_request_warning
+          ActiveSupport::Deprecation.warn(<<-MSG.strip_heredoc)
           ActionController::TestCase HTTP request methods will accept only
           keyword arguments in future Rails versions.
 
@@ -654,26 +654,26 @@ module ActionController
           get :show, params: { id: 1 }, session: { user_id: 1 }
           process :update, method: :post, params: { id: 1 }
         MSG
-      end
+        end
 
-      def document_root_element
-        html_document.root
-      end
+        def document_root_element
+          html_document.root
+        end
 
-      def check_required_ivars
-        # Sanity check for required instance variables so we can give an
-        # understandable error message.
-        [:@routes, :@controller, :@request, :@response].each do |iv_name|
-          if !instance_variable_defined?(iv_name) || instance_variable_get(iv_name).nil?
-            raise "#{iv_name} is nil: make sure you set it in your test's setup method."
+        def check_required_ivars
+          # Sanity check for required instance variables so we can give an
+          # understandable error message.
+          [:@routes, :@controller, :@request, :@response].each do |iv_name|
+            if !instance_variable_defined?(iv_name) || instance_variable_get(iv_name).nil?
+              raise "#{iv_name} is nil: make sure you set it in your test's setup method."
+            end
           end
         end
-      end
 
-      def html_format?(parameters)
-        return true unless parameters.key?(:format)
-        Mime.fetch(parameters[:format]) { Mime["html"] }.html?
-      end
+        def html_format?(parameters)
+          return true unless parameters.key?(:format)
+          Mime.fetch(parameters[:format]) { Mime["html"] }.html?
+        end
     end
 
     include Behavior

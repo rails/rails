@@ -70,9 +70,9 @@ module ActiveRecord
       class StatementPool < ConnectionAdapters::StatementPool
         private
 
-        def dealloc(stmt)
-          stmt[:stmt].close unless stmt[:stmt].closed?
-        end
+          def dealloc(stmt)
+            stmt[:stmt].close unless stmt[:stmt].closed?
+          end
       end
 
       def schema_creation # :nodoc:

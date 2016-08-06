@@ -513,7 +513,7 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
       "аБвг АБВГ" => "Абвг абвг",
       "АБВГ АБВГ" => "Абвг абвг",
       "" => "" }.each do |f,t|
-        assert_equal t, chars(f).capitalize
+      assert_equal t, chars(f).capitalize
     end
   end
 
@@ -720,16 +720,16 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
 
   private
 
-  def string_from_classes(classes)
-    # Characters from the character classes as described in UAX #29
-    character_from_class = {
-      l: 0x1100, v: 0x1160, t: 0x11A8, lv: 0xAC00, lvt: 0xAC01, cr: 0x000D, lf: 0x000A,
-      extend: 0x094D, n: 0x64, spacingmark: 0x0903, r: 0x1F1E6, control: 0x0001
-    }
-    classes.collect do |k|
-      character_from_class[k.intern]
-    end.pack("U*")
-  end
+    def string_from_classes(classes)
+      # Characters from the character classes as described in UAX #29
+      character_from_class = {
+        l: 0x1100, v: 0x1160, t: 0x11A8, lv: 0xAC00, lvt: 0xAC01, cr: 0x000D, lf: 0x000A,
+        extend: 0x094D, n: 0x64, spacingmark: 0x0903, r: 0x1F1E6, control: 0x0001
+      }
+      classes.collect do |k|
+        character_from_class[k.intern]
+      end.pack("U*")
+    end
 end
 
 class MultibyteInternalsTest < ActiveSupport::TestCase

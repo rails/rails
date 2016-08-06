@@ -277,15 +277,15 @@ module ActionDispatch
       end
 
       protected
-      def now_is_loaded?
-        @now
-      end
-
-      def stringify_array(array)
-        array.map do |item|
-          item.kind_of?(Symbol) ? item.to_s : item
+        def now_is_loaded?
+          @now
         end
-      end
+
+        def stringify_array(array)
+          array.map do |item|
+            item.kind_of?(Symbol) ? item.to_s : item
+          end
+        end
     end
 
     def self.new(app) app; end

@@ -114,12 +114,12 @@ module ActiveModel
 
     private
 
-    def with_timezone_config(default:)
-      old_zone_default = ::Time.zone_default
-      ::Time.zone_default = ::Time.find_zone(default)
-      yield
-    ensure
-      ::Time.zone_default = old_zone_default
-    end
+      def with_timezone_config(default:)
+        old_zone_default = ::Time.zone_default
+        ::Time.zone_default = ::Time.find_zone(default)
+        yield
+      ensure
+        ::Time.zone_default = old_zone_default
+      end
   end
 end

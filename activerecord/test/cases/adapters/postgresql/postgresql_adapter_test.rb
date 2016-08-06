@@ -390,13 +390,13 @@ module ActiveRecord
 
       private
 
-      def with_example_table(definition = "id serial primary key, number integer, data character varying(255)", &block)
-        super(@connection, "ex", definition, &block)
-      end
+        def with_example_table(definition = "id serial primary key, number integer, data character varying(255)", &block)
+          super(@connection, "ex", definition, &block)
+        end
 
-      def connection_without_insert_returning
-        ActiveRecord::Base.postgresql_connection(ActiveRecord::Base.configurations["arunit"].merge(insert_returning: false))
-      end
+        def connection_without_insert_returning
+          ActiveRecord::Base.postgresql_connection(ActiveRecord::Base.configurations["arunit"].merge(insert_returning: false))
+        end
     end
   end
 end

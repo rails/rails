@@ -243,9 +243,9 @@ module ActiveSupport #:nodoc:
 
     private
 
-    def html_escape_interpolated_argument(arg)
-      (!html_safe? || arg.html_safe?) ? arg : CGI.escapeHTML(arg.to_s)
-    end
+      def html_escape_interpolated_argument(arg)
+        (!html_safe? || arg.html_safe?) ? arg : CGI.escapeHTML(arg.to_s)
+      end
   end
 end
 

@@ -62,11 +62,11 @@ module ActiveSupport
         end
 
         def method_missing(level, message = nil)
-           if block_given?
-             @logged[level] << yield
-           else
-             @logged[level] << message
-           end
+          if block_given?
+            @logged[level] << yield
+          else
+            @logged[level] << message
+          end
         end
 
         def logged(level)

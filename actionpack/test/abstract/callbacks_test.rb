@@ -126,14 +126,14 @@ module AbstractController
       end
 
       private
-      def list
-        @list = ["Hello", "World"]
-      end
+        def list
+          @list = ["Hello", "World"]
+        end
 
-      def authenticate
-        @list ||= []
-        @authenticated = "true"
-      end
+        def authenticate
+          @list ||= []
+          @authenticated = "true"
+        end
     end
 
     class TestCallbacksWithConditions < ActiveSupport::TestCase
@@ -170,14 +170,14 @@ module AbstractController
       end
 
       private
-      def list
-        @list = ["Hello", "World"]
-      end
+        def list
+          @list = ["Hello", "World"]
+        end
 
-      def authenticate
-        @list = []
-        @authenticated = "true"
-      end
+        def authenticate
+          @list = []
+          @authenticated = "true"
+        end
     end
 
     class TestCallbacksWithArrayConditions < ActiveSupport::TestCase

@@ -122,28 +122,28 @@ module ActiveModel
 
     private
 
-    def _define_before_model_callback(klass, callback) #:nodoc:
-      klass.define_singleton_method("before_#{callback}") do |*args, &block|
-        set_callback(:"#{callback}", :before, *args, &block)
+      def _define_before_model_callback(klass, callback) #:nodoc:
+        klass.define_singleton_method("before_#{callback}") do |*args, &block|
+          set_callback(:"#{callback}", :before, *args, &block)
+        end
       end
-    end
 
-    def _define_around_model_callback(klass, callback) #:nodoc:
-      klass.define_singleton_method("around_#{callback}") do |*args, &block|
-        set_callback(:"#{callback}", :around, *args, &block)
+      def _define_around_model_callback(klass, callback) #:nodoc:
+        klass.define_singleton_method("around_#{callback}") do |*args, &block|
+          set_callback(:"#{callback}", :around, *args, &block)
+        end
       end
-    end
 
-    def _define_after_model_callback(klass, callback) #:nodoc:
-      klass.define_singleton_method("after_#{callback}") do |*args, &block|
-        options = args.extract_options!
-        options[:prepend] = true
-        conditional = ActiveSupport::Callbacks::Conditionals::Value.new { |v|
-          v != false
-        }
-        options[:if] = Array(options[:if]) << conditional
-        set_callback(:"#{callback}", :after, *(args << options), &block)
+      def _define_after_model_callback(klass, callback) #:nodoc:
+        klass.define_singleton_method("after_#{callback}") do |*args, &block|
+          options = args.extract_options!
+          options[:prepend] = true
+          conditional = ActiveSupport::Callbacks::Conditionals::Value.new { |v|
+            v != false
+          }
+          options[:if] = Array(options[:if]) << conditional
+          set_callback(:"#{callback}", :after, *(args << options), &block)
+        end
       end
-    end
   end
 end

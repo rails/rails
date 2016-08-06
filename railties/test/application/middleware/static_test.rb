@@ -46,11 +46,11 @@ module ApplicationTests
 
     test "public_file_server.index_name defaults to 'index'" do
       app_file "public/index.html", "/index.html"
-      
+
       require "#{app_path}/config/environment"
 
       get "/"
-      
+
       assert_equal "/index.html\n", last_response.body
     end
 

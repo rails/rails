@@ -50,7 +50,7 @@ module ActiveRecord
           # to ensure special objects (e.g. Active Record models) are dumped correctly
           # using the #as_json hook.
           coder = if class_name_or_coder == ::JSON
-                    Coders::JSON
+            Coders::JSON
                   elsif [:load, :dump].all? { |x| class_name_or_coder.respond_to?(x) }
                     class_name_or_coder
                   else

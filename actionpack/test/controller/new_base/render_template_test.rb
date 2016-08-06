@@ -67,9 +67,9 @@ module RenderTemplate
 
     private
 
-    def show_detailed_exceptions?
-      request.local?
-    end
+      def show_detailed_exceptions?
+        request.local?
+      end
   end
 
   class TestWithoutLayout < Rack::TestCase

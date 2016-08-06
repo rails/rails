@@ -21,11 +21,11 @@ module ActionMailer
 
       private
 
-      def clear_test_deliveries
-        if ActionMailer::Base.delivery_method == :test
-          ActionMailer::Base.deliveries.clear
+        def clear_test_deliveries
+          if ActionMailer::Base.delivery_method == :test
+            ActionMailer::Base.deliveries.clear
+          end
         end
-      end
     end
 
     module Behavior

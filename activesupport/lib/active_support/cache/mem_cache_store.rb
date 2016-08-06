@@ -27,23 +27,23 @@ module ActiveSupport
       # Provide support for raw values in the local cache strategy.
       module LocalCacheWithRaw # :nodoc:
         protected
-        def read_entry(key, options)
-          entry = super
-          if options[:raw] && local_cache && entry
-            entry = deserialize_entry(entry.value)
+          def read_entry(key, options)
+            entry = super
+            if options[:raw] && local_cache && entry
+              entry = deserialize_entry(entry.value)
+            end
+            entry
           end
-          entry
-        end
 
-        def write_entry(key, entry, options) # :nodoc:
-          if options[:raw] && local_cache
-            raw_entry = Entry.new(entry.value.to_s)
-            raw_entry.expires_at = entry.expires_at
-            super(key, raw_entry, options)
-          else
-            super
+          def write_entry(key, entry, options) # :nodoc:
+            if options[:raw] && local_cache
+              raw_entry = Entry.new(entry.value.to_s)
+              raw_entry.expires_at = entry.expires_at
+              super(key, raw_entry, options)
+            else
+              super
+            end
           end
-        end
       end
 
       prepend Strategy::LocalCache

@@ -74,79 +74,79 @@ module ActiveRecord
 
       private
 
-      def configuration
-        @configuration
-      end
-
-      def configuration_without_database
-        configuration.merge("database" => nil)
-      end
-
-      def creation_options
-        Hash.new.tap do |options|
-          options[:charset]     = configuration["encoding"]   if configuration.include? "encoding"
-          options[:collation]   = configuration["collation"]  if configuration.include? "collation"
+        def configuration
+          @configuration
         end
-      end
 
-      def error_class
-        if configuration["adapter"].include?("jdbc")
-          require "active_record/railties/jdbcmysql_error"
-          ArJdbcMySQL::Error
-        elsif defined?(Mysql2)
-          Mysql2::Error
-        else
-          StandardError
+        def configuration_without_database
+          configuration.merge("database" => nil)
         end
-      end
 
-      def grant_statement
-        <<-SQL
+        def creation_options
+          Hash.new.tap do |options|
+            options[:charset]     = configuration["encoding"]   if configuration.include? "encoding"
+            options[:collation]   = configuration["collation"]  if configuration.include? "collation"
+          end
+        end
+
+        def error_class
+          if configuration["adapter"].include?("jdbc")
+            require "active_record/railties/jdbcmysql_error"
+            ArJdbcMySQL::Error
+          elsif defined?(Mysql2)
+            Mysql2::Error
+          else
+            StandardError
+          end
+        end
+
+        def grant_statement
+          <<-SQL
 GRANT ALL PRIVILEGES ON #{configuration['database']}.*
   TO '#{configuration['username']}'@'localhost'
 IDENTIFIED BY '#{configuration['password']}' WITH GRANT OPTION;
         SQL
-      end
+        end
 
-      def root_configuration_without_database
-        configuration_without_database.merge(
-          "username" => "root",
-          "password" => root_password
-        )
-      end
+        def root_configuration_without_database
+          configuration_without_database.merge(
+            "username" => "root",
+            "password" => root_password
+          )
+        end
 
-      def root_password
-        $stdout.print "Please provide the root password for your MySQL installation\n>"
-        $stdin.gets.strip
-      end
+        def root_password
+          $stdout.print "Please provide the root password for your MySQL installation\n>"
+          $stdin.gets.strip
+        end
 
-      def prepare_command_options
-        args = {
-          "host"      => "--host",
-          "port"      => "--port",
-          "socket"    => "--socket",
-          "username"  => "--user",
-          "password"  => "--password",
-          "encoding"  => "--default-character-set",
-          "sslca"     => "--ssl-ca",
-          "sslcert"   => "--ssl-cert",
-          "sslcapath" => "--ssl-capath",
-          "sslcipher" => "--ssl-cipher",
-          "sslkey"    => "--ssl-key"
-        }.map { |opt, arg| "#{arg}=#{configuration[opt]}" if configuration[opt] }.compact
+        def prepare_command_options
+          args = {
+            "host"      => "--host",
+            "port"      => "--port",
+            "socket"    => "--socket",
+            "username"  => "--user",
+            "password"  => "--password",
+            "encoding"  => "--default-character-set",
+            "sslca"     => "--ssl-ca",
+            "sslcert"   => "--ssl-cert",
+            "sslcapath" => "--ssl-capath",
+            "sslcipher" => "--ssl-cipher",
+            "sslkey"    => "--ssl-key"
+          }.map { |opt, arg| "#{arg}=#{configuration[opt]}" if configuration[opt] }.compact
 
-        args
-      end
+          args
+        end
 
-      def run_cmd(cmd, args, action)
-        fail run_cmd_error(cmd, args, action) unless Kernel.system(cmd, *args)
-      end
+        def run_cmd(cmd, args, action)
+          fail run_cmd_error(cmd, args, action) unless Kernel.system(cmd, *args)
+        end
 
-      def run_cmd_error(cmd, args, action)
-        msg = "failed to execute: `#{cmd}`\n"
-        msg << "Please check the output above for any errors and make sure that `#{cmd}` is installed in your PATH and has proper permissions.\n\n"
-        msg
-      end
+        def run_cmd_error(cmd, args, action)
+          msg = "failed to execute: `#{cmd}`\n"
+          msg << "Please check the output above for any errors and make sure that `#{cmd}` is installed in your PATH and has proper permissions.\n\n"
+          msg
+        end
     end
   end
 end

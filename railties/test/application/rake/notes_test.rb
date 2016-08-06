@@ -140,29 +140,29 @@ module ApplicationTests
 
       private
 
-      def run_rake_notes(command = "bin/rails notes")
-        boot_rails
-        load_tasks
+        def run_rake_notes(command = "bin/rails notes")
+          boot_rails
+          load_tasks
 
-        Dir.chdir(app_path) do
-          output = `#{command}`
-          lines  = output.scan(/\[([0-9\s]+)\]\s/).flatten
+          Dir.chdir(app_path) do
+            output = `#{command}`
+            lines  = output.scan(/\[([0-9\s]+)\]\s/).flatten
 
-          yield output, lines
+            yield output, lines
+          end
         end
-      end
 
-      def load_tasks
-        require "rake"
-        require "rdoc/task"
-        require "rake/testtask"
+        def load_tasks
+          require "rake"
+          require "rdoc/task"
+          require "rake/testtask"
 
-        Rails.application.load_tasks
-      end
+          Rails.application.load_tasks
+        end
 
-      def boot_rails
-        require "#{app_path}/config/environment"
-      end
+        def boot_rails
+          require "#{app_path}/config/environment"
+        end
     end
   end
 end

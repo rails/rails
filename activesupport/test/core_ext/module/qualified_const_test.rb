@@ -111,8 +111,8 @@ class QualifiedConstTest < ActiveSupport::TestCase
 
   private
 
-  def assert_raise_with_message(expected_exception, expected_message, &block)
-    exception = assert_raise(expected_exception, &block)
-    assert_equal expected_message, exception.message
-  end
+    def assert_raise_with_message(expected_exception, expected_message, &block)
+      exception = assert_raise(expected_exception, &block)
+      assert_equal expected_message, exception.message
+    end
 end

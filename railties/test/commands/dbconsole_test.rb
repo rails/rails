@@ -226,39 +226,39 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
 
   private
 
-  def app_db_config(results)
-    Rails.application.config.stub(:database_configuration, results || {}) do
-      yield
-    end
-  end
-
-  def dbconsole
-    @dbconsole ||= Class.new(Rails::DBConsole) do
-      attr_reader :find_cmd_and_exec_args
-
-      def find_cmd_and_exec(*args)
-        @find_cmd_and_exec_args = args
-      end
-    end.new(nil)
-  end
-
-  def start(config = {}, argv = [])
-    dbconsole.stub(:config, config.stringify_keys) do
-      dbconsole.stub(:arguments, argv) do
-        capture_abort { dbconsole.start }
-      end
-    end
-  end
-
-  def capture_abort
-    @aborted = false
-    @output = capture(:stderr) do
-      begin
+    def app_db_config(results)
+      Rails.application.config.stub(:database_configuration, results || {}) do
         yield
-      rescue SystemExit
-        @aborted = true
       end
     end
-  end
+
+    def dbconsole
+      @dbconsole ||= Class.new(Rails::DBConsole) do
+        attr_reader :find_cmd_and_exec_args
+
+        def find_cmd_and_exec(*args)
+          @find_cmd_and_exec_args = args
+        end
+      end.new(nil)
+    end
+
+    def start(config = {}, argv = [])
+      dbconsole.stub(:config, config.stringify_keys) do
+        dbconsole.stub(:arguments, argv) do
+          capture_abort { dbconsole.start }
+        end
+      end
+    end
+
+    def capture_abort
+      @aborted = false
+      @output = capture(:stderr) do
+        begin
+          yield
+        rescue SystemExit
+          @aborted = true
+        end
+      end
+    end
 
 end

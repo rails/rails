@@ -67,36 +67,36 @@ module CodeTools
 
     private
 
-    def assert_ruby_file_exists(path)
-      fail Error.new("No such file") unless File.exist?(path)
-      fail Error.new("#{path} is a directory") if File.directory?(path)
-      ruby_extension = File.extname(path) == ".rb"
-      ruby_executable = File.open(path, "rb") {|f| f.readline } =~ [/\A#!.*ruby/]
-      fail Error.new("Not a ruby file") unless ruby_extension or ruby_executable
-    end
-
-    module RequireProfiler
-      private
-      def require(file, *args) RequireProfiler.profile(file) { super } end
-      def load(file, *args) RequireProfiler.profile(file) { super } end
-
-      @depth, @stats = 0, []
-      class << self
-        attr_accessor :depth
-        attr_accessor :stats
-
-        def profile(file)
-          stats << [file, depth]
-          self.depth += 1
-          result = nil
-          elapsed = Benchmark.realtime { result = yield }
-          self.depth -= 1
-          stats.pop if stats.last.first == file
-          stats << [file, depth, elapsed] if result
-          result
-        end
+      def assert_ruby_file_exists(path)
+        fail Error.new("No such file") unless File.exist?(path)
+        fail Error.new("#{path} is a directory") if File.directory?(path)
+        ruby_extension = File.extname(path) == ".rb"
+        ruby_executable = File.open(path, "rb") {|f| f.readline } =~ [/\A#!.*ruby/]
+        fail Error.new("Not a ruby file") unless ruby_extension or ruby_executable
       end
-    end
+
+      module RequireProfiler
+        private
+          def require(file, *args) RequireProfiler.profile(file) { super } end
+          def load(file, *args) RequireProfiler.profile(file) { super } end
+
+          @depth, @stats = 0, []
+          class << self
+            attr_accessor :depth
+            attr_accessor :stats
+
+            def profile(file)
+              stats << [file, depth]
+              self.depth += 1
+              result = nil
+              elapsed = Benchmark.realtime { result = yield }
+              self.depth -= 1
+              stats.pop if stats.last.first == file
+              stats << [file, depth, elapsed] if result
+              result
+            end
+          end
+      end
   end
 end
 # ruby-prof printer name causes the third arg to be sent :classify

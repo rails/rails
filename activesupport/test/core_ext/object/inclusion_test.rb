@@ -46,11 +46,11 @@ class InTest < ActiveSupport::TestCase
     assert !A.in?(A)
     assert !A.in?(D)
   end
-  
+
   def test_no_method_catching
     assert_raise(ArgumentError) { 1.in?(1) }
   end
-  
+
   def test_presence_in
     assert_equal "stuff", "stuff".presence_in(%w( lots of stuff ))
     assert_nil "stuff".presence_in(%w( lots of crap ))

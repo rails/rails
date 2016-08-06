@@ -77,7 +77,7 @@ module ActiveRecord
 
       def fixtures_path
         @fixtures_path ||= if ENV["FIXTURES_PATH"]
-                             File.join(root, ENV["FIXTURES_PATH"])
+          File.join(root, ENV["FIXTURES_PATH"])
                            else
                              File.join(root, "test", "fixtures")
                            end
@@ -275,39 +275,39 @@ module ActiveRecord
 
       private
 
-      def class_for_adapter(adapter)
-        key = @tasks.keys.detect { |pattern| adapter[pattern] }
-        unless key
-          raise DatabaseNotSupported, "Rake tasks not supported by '#{adapter}' adapter"
+        def class_for_adapter(adapter)
+          key = @tasks.keys.detect { |pattern| adapter[pattern] }
+          unless key
+            raise DatabaseNotSupported, "Rake tasks not supported by '#{adapter}' adapter"
+          end
+          @tasks[key]
         end
-        @tasks[key]
-      end
 
-      def each_current_configuration(environment)
-        environments = [environment]
-        environments << "test" if environment == "development"
+        def each_current_configuration(environment)
+          environments = [environment]
+          environments << "test" if environment == "development"
 
-        configurations = ActiveRecord::Base.configurations.values_at(*environments)
-        configurations.compact.each do |configuration|
-          yield configuration unless configuration["database"].blank?
-        end
-      end
-
-      def each_local_configuration
-        ActiveRecord::Base.configurations.each_value do |configuration|
-          next unless configuration["database"]
-
-          if local_database?(configuration)
-            yield configuration
-          else
-            $stderr.puts "This task only modifies local databases. #{configuration['database']} is on a remote host."
+          configurations = ActiveRecord::Base.configurations.values_at(*environments)
+          configurations.compact.each do |configuration|
+            yield configuration unless configuration["database"].blank?
           end
         end
-      end
 
-      def local_database?(configuration)
-        configuration["host"].blank? || LOCAL_HOSTS.include?(configuration["host"])
-      end
+        def each_local_configuration
+          ActiveRecord::Base.configurations.each_value do |configuration|
+            next unless configuration["database"]
+
+            if local_database?(configuration)
+              yield configuration
+            else
+              $stderr.puts "This task only modifies local databases. #{configuration['database']} is on a remote host."
+            end
+          end
+        end
+
+        def local_database?(configuration)
+          configuration["host"].blank? || LOCAL_HOSTS.include?(configuration["host"])
+        end
     end
   end
 end

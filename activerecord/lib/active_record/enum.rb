@@ -142,7 +142,7 @@ module ActiveRecord
 
       protected
 
-      attr_reader :name, :mapping, :subtype
+        attr_reader :name, :mapping, :subtype
     end
 
     def enum(definitions)

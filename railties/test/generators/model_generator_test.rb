@@ -6,13 +6,13 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
   arguments %w(Account name:string age:integer)
 
-   def test_application_record_skeleton_is_created
-     run_generator
-     assert_file "app/models/application_record.rb" do |record|
-       assert_match(/class ApplicationRecord < ActiveRecord::Base/, record)
-       assert_match(/self.abstract_class = true/, record)
-     end
-   end
+  def test_application_record_skeleton_is_created
+    run_generator
+    assert_file "app/models/application_record.rb" do |record|
+      assert_match(/class ApplicationRecord < ActiveRecord::Base/, record)
+      assert_match(/self.abstract_class = true/, record)
+    end
+  end
 
   def test_help_shows_invoked_generators_options
     content = run_generator ["--help"]

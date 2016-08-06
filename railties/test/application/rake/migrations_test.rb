@@ -42,17 +42,17 @@ module ApplicationTests
           `bin/rails generate model user username:string password:string;
            bin/rails generate migration add_email_to_users email:string`
 
-           output = `bin/rails db:migrate`
-           assert_match(/create_table\(:users\)/, output)
-           assert_match(/CreateUsers: migrated/, output)
-           assert_match(/add_column\(:users, :email, :string\)/, output)
-           assert_match(/AddEmailToUsers: migrated/, output)
+          output = `bin/rails db:migrate`
+          assert_match(/create_table\(:users\)/, output)
+          assert_match(/CreateUsers: migrated/, output)
+          assert_match(/add_column\(:users, :email, :string\)/, output)
+          assert_match(/AddEmailToUsers: migrated/, output)
 
-           output = `bin/rails db:rollback STEP=2`
-           assert_match(/drop_table\(:users\)/, output)
-           assert_match(/CreateUsers: reverted/, output)
-           assert_match(/remove_column\(:users, :email, :string\)/, output)
-           assert_match(/AddEmailToUsers: reverted/, output)
+          output = `bin/rails db:rollback STEP=2`
+          assert_match(/drop_table\(:users\)/, output)
+          assert_match(/CreateUsers: reverted/, output)
+          assert_match(/remove_column\(:users, :email, :string\)/, output)
+          assert_match(/AddEmailToUsers: reverted/, output)
         end
       end
 
@@ -107,22 +107,22 @@ module ApplicationTests
            bin/rails generate migration add_email_to_users email:string;
            bin/rails db:migrate`
 
-           output = `bin/rails db:migrate:status`
+          output = `bin/rails db:migrate:status`
 
-           assert_match(/up\s+\d{14}\s+Create users/, output)
-           assert_match(/up\s+\d{14}\s+Add email to users/, output)
+          assert_match(/up\s+\d{14}\s+Create users/, output)
+          assert_match(/up\s+\d{14}\s+Add email to users/, output)
 
-           `bin/rails db:rollback STEP=2`
-           output = `bin/rails db:migrate:status`
+          `bin/rails db:rollback STEP=2`
+          output = `bin/rails db:migrate:status`
 
-           assert_match(/down\s+\d{14}\s+Create users/, output)
-           assert_match(/down\s+\d{14}\s+Add email to users/, output)
+          assert_match(/down\s+\d{14}\s+Create users/, output)
+          assert_match(/down\s+\d{14}\s+Add email to users/, output)
 
-           `bin/rails db:migrate:redo`
-           output = `bin/rails db:migrate:status`
+          `bin/rails db:migrate:redo`
+          output = `bin/rails db:migrate:status`
 
-           assert_match(/up\s+\d{14}\s+Create users/, output)
-           assert_match(/up\s+\d{14}\s+Add email to users/, output)
+          assert_match(/up\s+\d{14}\s+Create users/, output)
+          assert_match(/up\s+\d{14}\s+Add email to users/, output)
         end
       end
 
@@ -134,22 +134,22 @@ module ApplicationTests
            bin/rails generate migration add_email_to_users email:string;
            bin/rails db:migrate`
 
-           output = `bin/rails db:migrate:status`
+          output = `bin/rails db:migrate:status`
 
-           assert_match(/up\s+\d{3,}\s+Create users/, output)
-           assert_match(/up\s+\d{3,}\s+Add email to users/, output)
+          assert_match(/up\s+\d{3,}\s+Create users/, output)
+          assert_match(/up\s+\d{3,}\s+Add email to users/, output)
 
-           `bin/rails db:rollback STEP=2`
-           output = `bin/rails db:migrate:status`
+          `bin/rails db:rollback STEP=2`
+          output = `bin/rails db:migrate:status`
 
-           assert_match(/down\s+\d{3,}\s+Create users/, output)
-           assert_match(/down\s+\d{3,}\s+Add email to users/, output)
+          assert_match(/down\s+\d{3,}\s+Create users/, output)
+          assert_match(/down\s+\d{3,}\s+Add email to users/, output)
 
-           `bin/rails db:migrate:redo`
-           output = `bin/rails db:migrate:status`
+          `bin/rails db:migrate:redo`
+          output = `bin/rails db:migrate:status`
 
-           assert_match(/up\s+\d{3,}\s+Create users/, output)
-           assert_match(/up\s+\d{3,}\s+Add email to users/, output)
+          assert_match(/up\s+\d{3,}\s+Create users/, output)
+          assert_match(/up\s+\d{3,}\s+Add email to users/, output)
         end
       end
 
@@ -168,10 +168,10 @@ module ApplicationTests
 
           `bin/rails db:migrate`
 
-           output = `bin/rails db:migrate:status`
+          output = `bin/rails db:migrate:status`
 
-           assert_match(/up\s+001\s+One migration/, output)
-           assert_match(/up\s+002\s+Two migration/, output)
+          assert_match(/up\s+001\s+One migration/, output)
+          assert_match(/up\s+002\s+Two migration/, output)
         end
       end
 

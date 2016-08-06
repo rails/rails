@@ -91,24 +91,24 @@ module ActionDispatch
         end
 
         private
-        def asts paths
-          parser  = Journey::Parser.new
-          paths.map { |x|
-            ast = parser.parse x
-            ast.each { |n| n.memo = ast}
-            ast
-          }
-        end
+          def asts paths
+            parser  = Journey::Parser.new
+            paths.map { |x|
+              ast = parser.parse x
+              ast.each { |n| n.memo = ast}
+              ast
+            }
+          end
 
-        def tt paths
-          x = asts paths
-          builder = GTG::Builder.new Nodes::Or.new x
-          builder.transition_table
-        end
+          def tt paths
+            x = asts paths
+            builder = GTG::Builder.new Nodes::Or.new x
+            builder.transition_table
+          end
 
-        def simulator_for paths
-          GTG::Simulator.new tt(paths)
-        end
+          def simulator_for paths
+            GTG::Simulator.new tt(paths)
+          end
       end
     end
   end

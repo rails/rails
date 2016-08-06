@@ -164,13 +164,13 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
   # simply return the controller#action as Rack::Body.
   class StubDispatcher < ::ActionDispatch::Routing::RouteSet::Dispatcher
     protected
-    def controller_reference(controller_param)
-      controller_param
-    end
+      def controller_reference(controller_param)
+        controller_param
+      end
 
-    def dispatch(controller, action, env)
-      [200, {"Content-Type" => "text/html"}, ["#{controller}##{action}"]]
-    end
+      def dispatch(controller, action, env)
+        [200, {"Content-Type" => "text/html"}, ["#{controller}##{action}"]]
+      end
   end
 
   def self.stub_controllers
@@ -263,11 +263,11 @@ end
 module ActionDispatch
   class DebugExceptions
     private
-    remove_method :stderr_logger
+      remove_method :stderr_logger
     # Silence logger
-    def stderr_logger
-      nil
-    end
+      def stderr_logger
+        nil
+      end
   end
 end
 

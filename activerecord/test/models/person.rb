@@ -96,13 +96,13 @@ class RichPerson < ActiveRecord::Base
 
   private
 
-  def run_before_create
-    self.first_name = first_name.to_s + "run_before_create"
-  end
+    def run_before_create
+      self.first_name = first_name.to_s + "run_before_create"
+    end
 
-  def run_before_validation
-    self.first_name = first_name.to_s + "run_before_validation"
-  end
+    def run_before_validation
+      self.first_name = first_name.to_s + "run_before_validation"
+    end
 end
 
 class NestedPerson < ActiveRecord::Base

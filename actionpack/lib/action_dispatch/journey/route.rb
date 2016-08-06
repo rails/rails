@@ -168,13 +168,13 @@ module ActionDispatch
       end
 
       private
-      def verbs
-        @request_method_match.map(&:verb)
-      end
+        def verbs
+          @request_method_match.map(&:verb)
+        end
 
-      def match_verb(request)
-        @request_method_match.any? { |m| m.call request }
-      end
+        def match_verb(request)
+          @request_method_match.any? { |m| m.call request }
+        end
     end
   end
 end

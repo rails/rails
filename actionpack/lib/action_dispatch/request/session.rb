@@ -204,26 +204,26 @@ module ActionDispatch
 
       private
 
-      def load_for_read!
-        load! if !loaded? && exists?
-      end
+        def load_for_read!
+          load! if !loaded? && exists?
+        end
 
-      def load_for_write!
-        load! unless loaded?
-      end
+        def load_for_write!
+          load! unless loaded?
+        end
 
-      def load!
-        id, session = @by.load_session @req
-        options[:id] = id
-        @delegate.replace(stringify_keys(session))
-        @loaded = true
-      end
+        def load!
+          id, session = @by.load_session @req
+          options[:id] = id
+          @delegate.replace(stringify_keys(session))
+          @loaded = true
+        end
 
-      def stringify_keys(other)
-        other.each_with_object({}) { |(key, value), hash|
-          hash[key.to_s] = value
-        }
-      end
+        def stringify_keys(other)
+          other.each_with_object({}) { |(key, value), hash|
+            hash[key.to_s] = value
+          }
+        end
     end
   end
 end

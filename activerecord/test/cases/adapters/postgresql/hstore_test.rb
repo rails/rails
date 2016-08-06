@@ -322,32 +322,32 @@ if ActiveRecord::Base.connection.supports_extensions?
     end
 
     private
-    def assert_array_cycle(array)
-      # test creation
-      x = Hstore.create!(payload: array)
-      x.reload
-      assert_equal(array, x.payload)
+      def assert_array_cycle(array)
+        # test creation
+        x = Hstore.create!(payload: array)
+        x.reload
+        assert_equal(array, x.payload)
 
-      # test updating
-      x = Hstore.create!(payload: [])
-      x.payload = array
-      x.save!
-      x.reload
-      assert_equal(array, x.payload)
-    end
+        # test updating
+        x = Hstore.create!(payload: [])
+        x.payload = array
+        x.save!
+        x.reload
+        assert_equal(array, x.payload)
+      end
 
-    def assert_cycle(hash)
-      # test creation
-      x = Hstore.create!(tags: hash)
-      x.reload
-      assert_equal(hash, x.tags)
+      def assert_cycle(hash)
+        # test creation
+        x = Hstore.create!(tags: hash)
+        x.reload
+        assert_equal(hash, x.tags)
 
-      # test updating
-      x = Hstore.create!(tags: {})
-      x.tags = hash
-      x.save!
-      x.reload
-      assert_equal(hash, x.tags)
-    end
+        # test updating
+        x = Hstore.create!(tags: {})
+        x.tags = hash
+        x.save!
+        x.reload
+        assert_equal(hash, x.tags)
+      end
   end
 end

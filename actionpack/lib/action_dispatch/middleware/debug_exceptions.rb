@@ -69,129 +69,129 @@ module ActionDispatch
 
     private
 
-    def render_exception(request, exception)
-      backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")
-      wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
-      log_error(request, wrapper)
+      def render_exception(request, exception)
+        backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")
+        wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
+        log_error(request, wrapper)
 
-      if request.get_header("action_dispatch.show_detailed_exceptions")
-        content_type = request.formats.first
+        if request.get_header("action_dispatch.show_detailed_exceptions")
+          content_type = request.formats.first
 
-        if api_request?(content_type)
-          render_for_api_request(content_type, wrapper)
+          if api_request?(content_type)
+            render_for_api_request(content_type, wrapper)
+          else
+            render_for_browser_request(request, wrapper)
+          end
         else
-          render_for_browser_request(request, wrapper)
+          raise exception
         end
-      else
-        raise exception
-      end
-    end
-
-    def render_for_browser_request(request, wrapper)
-      template = create_template(request, wrapper)
-      file = "rescues/#{wrapper.rescue_template}"
-
-      if request.xhr?
-        body = template.render(template: file, layout: false, formats: [:text])
-        format = "text/plain"
-      else
-        body = template.render(template: file, layout: "rescues/layout")
-        format = "text/html"
-      end
-      render(wrapper.status_code, body, format)
-    end
-
-    def render_for_api_request(content_type, wrapper)
-      body = {
-        status: wrapper.status_code,
-        error:  Rack::Utils::HTTP_STATUS_CODES.fetch(
-          wrapper.status_code,
-          Rack::Utils::HTTP_STATUS_CODES[500]
-        ),
-        exception: wrapper.exception.inspect,
-        traces: wrapper.traces
-      }
-
-      to_format = "to_#{content_type.to_sym}"
-
-      if content_type && body.respond_to?(to_format)
-        formatted_body = body.public_send(to_format)
-        format = content_type
-      else
-        formatted_body = body.to_json
-        format = Mime[:json]
       end
 
-      render(wrapper.status_code, formatted_body, format)
-    end
+      def render_for_browser_request(request, wrapper)
+        template = create_template(request, wrapper)
+        file = "rescues/#{wrapper.rescue_template}"
 
-    def create_template(request, wrapper)
-      traces = wrapper.traces
-
-      trace_to_show = "Application Trace"
-      if traces[trace_to_show].empty? && wrapper.rescue_template != "routing_error"
-        trace_to_show = "Full Trace"
+        if request.xhr?
+          body = template.render(template: file, layout: false, formats: [:text])
+          format = "text/plain"
+        else
+          body = template.render(template: file, layout: "rescues/layout")
+          format = "text/html"
+        end
+        render(wrapper.status_code, body, format)
       end
 
-      if source_to_show = traces[trace_to_show].first
-        source_to_show_id = source_to_show[:id]
+      def render_for_api_request(content_type, wrapper)
+        body = {
+          status: wrapper.status_code,
+          error:  Rack::Utils::HTTP_STATUS_CODES.fetch(
+            wrapper.status_code,
+            Rack::Utils::HTTP_STATUS_CODES[500]
+          ),
+          exception: wrapper.exception.inspect,
+          traces: wrapper.traces
+        }
+
+        to_format = "to_#{content_type.to_sym}"
+
+        if content_type && body.respond_to?(to_format)
+          formatted_body = body.public_send(to_format)
+          format = content_type
+        else
+          formatted_body = body.to_json
+          format = Mime[:json]
+        end
+
+        render(wrapper.status_code, formatted_body, format)
       end
 
-      DebugView.new([RESCUES_TEMPLATE_PATH],
-        request: request,
-        exception: wrapper.exception,
-        traces: traces,
-        show_source_idx: source_to_show_id,
-        trace_to_show: trace_to_show,
-        routes_inspector: routes_inspector(wrapper.exception),
-        source_extracts: wrapper.source_extracts,
-        line_number: wrapper.line_number,
-        file: wrapper.file
-      )
-    end
+      def create_template(request, wrapper)
+        traces = wrapper.traces
 
-    def render(status, body, format)
-      [status, {"Content-Type" => "#{format}; charset=#{Response.default_charset}", "Content-Length" => body.bytesize.to_s}, [body]]
-    end
+        trace_to_show = "Application Trace"
+        if traces[trace_to_show].empty? && wrapper.rescue_template != "routing_error"
+          trace_to_show = "Full Trace"
+        end
 
-    def log_error(request, wrapper)
-      logger = logger(request)
-      return unless logger
+        if source_to_show = traces[trace_to_show].first
+          source_to_show_id = source_to_show[:id]
+        end
 
-      exception = wrapper.exception
-
-      trace = wrapper.application_trace
-      trace = wrapper.framework_trace if trace.empty?
-
-      ActiveSupport::Deprecation.silence do
-        logger.fatal "  "
-        logger.fatal "#{exception.class} (#{exception.message}):"
-        log_array logger, exception.annoted_source_code if exception.respond_to?(:annoted_source_code)
-        logger.fatal "  "
-        log_array logger, trace
+        DebugView.new([RESCUES_TEMPLATE_PATH],
+          request: request,
+          exception: wrapper.exception,
+          traces: traces,
+          show_source_idx: source_to_show_id,
+          trace_to_show: trace_to_show,
+          routes_inspector: routes_inspector(wrapper.exception),
+          source_extracts: wrapper.source_extracts,
+          line_number: wrapper.line_number,
+          file: wrapper.file
+        )
       end
-    end
 
-    def log_array(logger, array)
-      array.map { |line| logger.fatal line }
-    end
-
-    def logger(request)
-      request.logger || ActionView::Base.logger || stderr_logger
-    end
-
-    def stderr_logger
-      @stderr_logger ||= ActiveSupport::Logger.new($stderr)
-    end
-
-    def routes_inspector(exception)
-      if @routes_app.respond_to?(:routes) && (exception.is_a?(ActionController::RoutingError) || exception.is_a?(ActionView::Template::Error))
-        ActionDispatch::Routing::RoutesInspector.new(@routes_app.routes.routes)
+      def render(status, body, format)
+        [status, {"Content-Type" => "#{format}; charset=#{Response.default_charset}", "Content-Length" => body.bytesize.to_s}, [body]]
       end
-    end
 
-    def api_request?(content_type)
-      @response_format == :api && !content_type.html?
-    end
+      def log_error(request, wrapper)
+        logger = logger(request)
+        return unless logger
+
+        exception = wrapper.exception
+
+        trace = wrapper.application_trace
+        trace = wrapper.framework_trace if trace.empty?
+
+        ActiveSupport::Deprecation.silence do
+          logger.fatal "  "
+          logger.fatal "#{exception.class} (#{exception.message}):"
+          log_array logger, exception.annoted_source_code if exception.respond_to?(:annoted_source_code)
+          logger.fatal "  "
+          log_array logger, trace
+        end
+      end
+
+      def log_array(logger, array)
+        array.map { |line| logger.fatal line }
+      end
+
+      def logger(request)
+        request.logger || ActionView::Base.logger || stderr_logger
+      end
+
+      def stderr_logger
+        @stderr_logger ||= ActiveSupport::Logger.new($stderr)
+      end
+
+      def routes_inspector(exception)
+        if @routes_app.respond_to?(:routes) && (exception.is_a?(ActionController::RoutingError) || exception.is_a?(ActionView::Template::Error))
+          ActionDispatch::Routing::RoutesInspector.new(@routes_app.routes.routes)
+        end
+      end
+
+      def api_request?(content_type)
+        @response_format == :api && !content_type.html?
+      end
   end
 end

@@ -107,12 +107,11 @@ class TestJSONDecoding < ActiveSupport::TestCase
 
   private
 
-  def with_parse_json_times(value)
-    old_value = ActiveSupport.parse_json_times
-    ActiveSupport.parse_json_times = value
-    yield
-  ensure
-    ActiveSupport.parse_json_times = old_value
-  end
+    def with_parse_json_times(value)
+      old_value = ActiveSupport.parse_json_times
+      ActiveSupport.parse_json_times = value
+      yield
+    ensure
+      ActiveSupport.parse_json_times = old_value
+    end
 end
-

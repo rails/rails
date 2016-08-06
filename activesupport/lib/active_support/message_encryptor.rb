@@ -79,66 +79,66 @@ module ActiveSupport
 
     private
 
-    def _encrypt(value)
-      cipher = new_cipher
-      cipher.encrypt
-      cipher.key = @secret
+      def _encrypt(value)
+        cipher = new_cipher
+        cipher.encrypt
+        cipher.key = @secret
 
-      # Rely on OpenSSL for the initialization vector
-      iv = cipher.random_iv
-      cipher.auth_data = "" if aead_mode?
+        # Rely on OpenSSL for the initialization vector
+        iv = cipher.random_iv
+        cipher.auth_data = "" if aead_mode?
 
-      encrypted_data = cipher.update(@serializer.dump(value))
-      encrypted_data << cipher.final
+        encrypted_data = cipher.update(@serializer.dump(value))
+        encrypted_data << cipher.final
 
-      blob = "#{::Base64.strict_encode64 encrypted_data}--#{::Base64.strict_encode64 iv}"
-      blob << "--#{::Base64.strict_encode64 cipher.auth_tag}" if aead_mode?
-      blob
-    end
-
-    def _decrypt(encrypted_message)
-      cipher = new_cipher
-      encrypted_data, iv, auth_tag = encrypted_message.split("--".freeze).map {|v| ::Base64.strict_decode64(v)}
-
-      # Currently the OpenSSL bindings do not raise an error if auth_tag is
-      # truncated, which would allow an attacker to easily forge it. See
-      # https://github.com/ruby/openssl/issues/63
-      raise InvalidMessage if aead_mode? && auth_tag.bytes.length != 16
-
-      cipher.decrypt
-      cipher.key = @secret
-      cipher.iv  = iv
-      if aead_mode?
-        cipher.auth_tag = auth_tag
-        cipher.auth_data = ""
+        blob = "#{::Base64.strict_encode64 encrypted_data}--#{::Base64.strict_encode64 iv}"
+        blob << "--#{::Base64.strict_encode64 cipher.auth_tag}" if aead_mode?
+        blob
       end
 
-      decrypted_data = cipher.update(encrypted_data)
-      decrypted_data << cipher.final
+      def _decrypt(encrypted_message)
+        cipher = new_cipher
+        encrypted_data, iv, auth_tag = encrypted_message.split("--".freeze).map {|v| ::Base64.strict_decode64(v)}
 
-      @serializer.load(decrypted_data)
-    rescue OpenSSLCipherError, TypeError, ArgumentError
-      raise InvalidMessage
-    end
+        # Currently the OpenSSL bindings do not raise an error if auth_tag is
+        # truncated, which would allow an attacker to easily forge it. See
+        # https://github.com/ruby/openssl/issues/63
+        raise InvalidMessage if aead_mode? && auth_tag.bytes.length != 16
 
-    def new_cipher
-      OpenSSL::Cipher.new(@cipher)
-    end
+        cipher.decrypt
+        cipher.key = @secret
+        cipher.iv  = iv
+        if aead_mode?
+          cipher.auth_tag = auth_tag
+          cipher.auth_data = ""
+        end
 
-    def verifier
-      @verifier
-    end
+        decrypted_data = cipher.update(encrypted_data)
+        decrypted_data << cipher.final
 
-    def aead_mode?
-      @aead_mode ||= new_cipher.authenticated?
-    end
-
-    def resolve_verifier
-      if aead_mode?
-        NullVerifier
-      else
-        MessageVerifier.new(@sign_secret || @secret, digest: @digest, serializer: NullSerializer)
+        @serializer.load(decrypted_data)
+      rescue OpenSSLCipherError, TypeError, ArgumentError
+        raise InvalidMessage
       end
-    end
+
+      def new_cipher
+        OpenSSL::Cipher.new(@cipher)
+      end
+
+      def verifier
+        @verifier
+      end
+
+      def aead_mode?
+        @aead_mode ||= new_cipher.authenticated?
+      end
+
+      def resolve_verifier
+        if aead_mode?
+          NullVerifier
+        else
+          MessageVerifier.new(@sign_secret || @secret, digest: @digest, serializer: NullSerializer)
+        end
+      end
   end
 end

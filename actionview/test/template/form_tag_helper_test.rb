@@ -728,7 +728,7 @@ class FormTagHelperTest < ActionView::TestCase
 
   private
 
-  def root_elem(rendered_content)
-    Nokogiri::HTML::DocumentFragment.parse(rendered_content).children.first # extract from nodeset
-  end
+    def root_elem(rendered_content)
+      Nokogiri::HTML::DocumentFragment.parse(rendered_content).children.first # extract from nodeset
+    end
 end

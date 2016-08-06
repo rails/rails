@@ -19,20 +19,20 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
 
     private
 
-    def authenticate
-      authenticate_or_request_with_http_digest("SuperSecret") do |username|
-        # Returns the password
-        USERS[username]
+      def authenticate
+        authenticate_or_request_with_http_digest("SuperSecret") do |username|
+          # Returns the password
+          USERS[username]
+        end
       end
-    end
 
-    def authenticate_with_request
-      if authenticate_with_http_digest("SuperSecret")  { |username| USERS[username] }
-        @logged_in = true
-      else
-        request_http_digest_authentication("SuperSecret", "Authentication Failed")
+      def authenticate_with_request
+        if authenticate_with_http_digest("SuperSecret")  { |username| USERS[username] }
+          @logged_in = true
+        else
+          request_http_digest_authentication("SuperSecret", "Authentication Failed")
+        end
       end
-    end
   end
 
   AUTH_HEADERS = ["HTTP_AUTHORIZATION", "X-HTTP_AUTHORIZATION", "X_HTTP_AUTHORIZATION", "REDIRECT_X_HTTP_AUTHORIZATION"]
@@ -249,32 +249,32 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
 
   private
 
-  def encode_credentials(options)
-    options.reverse_merge!(nc: "00000001", cnonce: "0a4f113b", password_is_ha1: false)
-    password = options.delete(:password)
+    def encode_credentials(options)
+      options.reverse_merge!(nc: "00000001", cnonce: "0a4f113b", password_is_ha1: false)
+      password = options.delete(:password)
 
-    # Perform unauthenticated request to retrieve digest parameters to use on subsequent request
-    method = options.delete(:method) || "GET"
+      # Perform unauthenticated request to retrieve digest parameters to use on subsequent request
+      method = options.delete(:method) || "GET"
 
-    case method.to_s.upcase
-    when "GET"
-      get :index
-    when "POST"
-      post :index
+      case method.to_s.upcase
+      when "GET"
+        get :index
+      when "POST"
+        post :index
+      end
+
+      assert_response :unauthorized
+
+      credentials = decode_credentials(@response.headers["WWW-Authenticate"])
+      credentials.merge!(options)
+      path_info = @request.env["PATH_INFO"].to_s
+      uri = options[:uri] || path_info
+      credentials.merge!(uri: uri)
+      @request.env["ORIGINAL_FULLPATH"] = path_info
+      ActionController::HttpAuthentication::Digest.encode_credentials(method, credentials, password, options[:password_is_ha1])
     end
 
-    assert_response :unauthorized
-
-    credentials = decode_credentials(@response.headers["WWW-Authenticate"])
-    credentials.merge!(options)
-    path_info = @request.env["PATH_INFO"].to_s
-    uri = options[:uri] || path_info
-    credentials.merge!(uri: uri)
-    @request.env["ORIGINAL_FULLPATH"] = path_info
-    ActionController::HttpAuthentication::Digest.encode_credentials(method, credentials, password, options[:password_is_ha1])
-  end
-
-  def decode_credentials(header)
-    ActionController::HttpAuthentication::Digest.decode_credentials(header)
-  end
+    def decode_credentials(header)
+      ActionController::HttpAuthentication::Digest.decode_credentials(header)
+    end
 end

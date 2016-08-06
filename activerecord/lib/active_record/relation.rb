@@ -685,48 +685,48 @@ module ActiveRecord
 
     private
 
-    def exec_queries
-      @records = eager_loading? ? find_with_associations.freeze : @klass.find_by_sql(arel, bound_attributes).freeze
+      def exec_queries
+        @records = eager_loading? ? find_with_associations.freeze : @klass.find_by_sql(arel, bound_attributes).freeze
 
-      preload = preload_values
-      preload +=  includes_values unless eager_loading?
-      preloader = build_preloader
-      preload.each do |associations|
-        preloader.preload @records, associations
-      end
-
-      @records.each(&:readonly!) if readonly_value
-
-      @loaded = true
-      @records
-    end
-
-    def build_preloader
-      ActiveRecord::Associations::Preloader.new
-    end
-
-    def references_eager_loaded_tables?
-      joined_tables = arel.join_sources.map do |join|
-        if join.is_a?(Arel::Nodes::StringJoin)
-          tables_in_string(join.left)
-        else
-          [join.left.table_name, join.left.table_alias]
+        preload = preload_values
+        preload +=  includes_values unless eager_loading?
+        preloader = build_preloader
+        preload.each do |associations|
+          preloader.preload @records, associations
         end
+
+        @records.each(&:readonly!) if readonly_value
+
+        @loaded = true
+        @records
       end
 
-      joined_tables += [table.name, table.table_alias]
+      def build_preloader
+        ActiveRecord::Associations::Preloader.new
+      end
 
-      # always convert table names to downcase as in Oracle quoted table names are in uppercase
-      joined_tables = joined_tables.flatten.compact.map(&:downcase).uniq
+      def references_eager_loaded_tables?
+        joined_tables = arel.join_sources.map do |join|
+          if join.is_a?(Arel::Nodes::StringJoin)
+            tables_in_string(join.left)
+          else
+            [join.left.table_name, join.left.table_alias]
+          end
+        end
 
-      (references_values - joined_tables).any?
-    end
+        joined_tables += [table.name, table.table_alias]
 
-    def tables_in_string(string)
-      return [] if string.blank?
-      # always convert table names to downcase as in Oracle quoted table names are in uppercase
-      # ignore raw_sql_ that is used by Oracle adapter as alias for limit/offset subqueries
-      string.scan(/([a-zA-Z_][.\w]+).?\./).flatten.map(&:downcase).uniq - ["raw_sql_"]
-    end
+        # always convert table names to downcase as in Oracle quoted table names are in uppercase
+        joined_tables = joined_tables.flatten.compact.map(&:downcase).uniq
+
+        (references_values - joined_tables).any?
+      end
+
+      def tables_in_string(string)
+        return [] if string.blank?
+        # always convert table names to downcase as in Oracle quoted table names are in uppercase
+        # ignore raw_sql_ that is used by Oracle adapter as alias for limit/offset subqueries
+        string.scan(/([a-zA-Z_][.\w]+).?\./).flatten.map(&:downcase).uniq - ["raw_sql_"]
+      end
   end
 end

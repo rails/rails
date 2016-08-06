@@ -131,13 +131,13 @@ class ContentTypeTest < ActionController::TestCase
 
   private
 
-  def with_default_charset(charset)
-    old_default_charset = ActionDispatch::Response.default_charset
-    ActionDispatch::Response.default_charset = charset
-    yield
-  ensure
-    ActionDispatch::Response.default_charset = old_default_charset
-  end
+    def with_default_charset(charset)
+      old_default_charset = ActionDispatch::Response.default_charset
+      ActionDispatch::Response.default_charset = charset
+      yield
+    ensure
+      ActionDispatch::Response.default_charset = old_default_charset
+    end
 end
 
 class AcceptBasedContentTypeTest < ActionController::TestCase

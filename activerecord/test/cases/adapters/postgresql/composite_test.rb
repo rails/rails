@@ -69,12 +69,12 @@ class PostgresqlCompositeTest < ActiveRecord::PostgreSQLTestCase
   end
 
   private
-  def ensure_warning_is_issued
-    warning = capture(:stderr) do
-      PostgresqlComposite.columns_hash
+    def ensure_warning_is_issued
+      warning = capture(:stderr) do
+        PostgresqlComposite.columns_hash
+      end
+      assert_match(/unknown OID \d+: failed to recognize type of 'address'\. It will be treated as String\./, warning)
     end
-    assert_match(/unknown OID \d+: failed to recognize type of 'address'\. It will be treated as String\./, warning)
-  end
 end
 
 class PostgresqlCompositeWithCustomOIDTest < ActiveRecord::PostgreSQLTestCase

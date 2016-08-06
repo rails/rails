@@ -43,9 +43,9 @@ class Someone < Struct.new(:name, :place)
 
   private
 
-  def private_name
-    "Private"
-  end
+    def private_name
+      "Private"
+    end
 end
 
 Invoice   = Struct.new(:client) do

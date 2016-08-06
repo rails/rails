@@ -534,7 +534,7 @@ class DateHelperTest < ActionView::TestCase
 
     assert_dom_equal expected, select_year(nil, start_year: 2003, end_year: 2005, with_css_classes: { year: "my-year" })
   end
-  
+
   def test_select_year_with_position
     expected = %(<select id="date_year_1i" name="date[year(1i)]">\n)
     expected << %(<option value="2003">2003</option>\n<option value="2004">2004</option>\n<option value="2005">2005</option>\n)
@@ -2503,7 +2503,7 @@ class DateHelperTest < ActionView::TestCase
     expected << "</select>\n"
     expected << " : "
     expected << %(<select id="post_written_on_5i" name="post[written_on(5i)]">\n)
-        expected << %(<option value="">Minute</option>\n)
+    expected << %(<option value="">Minute</option>\n)
     0.upto(59) { |i| expected << %(<option value="#{sprintf("%02d", i)}"#{' selected="selected"' if i == 16}>#{sprintf("%02d", i)}</option>\n) }
     expected << "</select>\n"
 
@@ -2524,7 +2524,7 @@ class DateHelperTest < ActionView::TestCase
     expected << "</select>\n"
     expected << " : "
     expected << %(<select id="post_written_on_5i" name="post[written_on(5i)]">\n)
-        expected << %(<option value="">Choose minute</option>\n)
+    expected << %(<option value="">Choose minute</option>\n)
     0.upto(59) { |i| expected << %(<option value="#{sprintf("%02d", i)}"#{' selected="selected"' if i == 16}>#{sprintf("%02d", i)}</option>\n) }
     expected << "</select>\n"
 

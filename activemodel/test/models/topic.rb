@@ -38,7 +38,7 @@ class Topic
   end
 
   def my_word_tokenizer(str)
-   str.scan(/\w+/)
+    str.scan(/\w+/)
   end
 
 end

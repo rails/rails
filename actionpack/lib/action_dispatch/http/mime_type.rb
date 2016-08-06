@@ -306,24 +306,24 @@ module Mime
 
     protected
 
-    attr_reader :string, :synonyms
+      attr_reader :string, :synonyms
 
     private
 
-    def to_ary; end
-    def to_a; end
+      def to_ary; end
+      def to_a; end
 
-    def method_missing(method, *args)
-      if method.to_s.ends_with? "?"
-        method[0..-2].downcase.to_sym == to_sym
-      else
-        super
+      def method_missing(method, *args)
+        if method.to_s.ends_with? "?"
+          method[0..-2].downcase.to_sym == to_sym
+        else
+          super
+        end
       end
-    end
 
-    def respond_to_missing?(method, include_private = false) #:nodoc:
-      method.to_s.ends_with? "?"
-    end
+      def respond_to_missing?(method, include_private = false) #:nodoc:
+        method.to_s.ends_with? "?"
+      end
   end
 
   class AllType < Type
@@ -356,9 +356,9 @@ module Mime
     end
 
     private
-    def method_missing(method, *args)
-      false if method.to_s.ends_with? "?"
-    end
+      def method_missing(method, *args)
+        false if method.to_s.ends_with? "?"
+      end
   end
 end
 

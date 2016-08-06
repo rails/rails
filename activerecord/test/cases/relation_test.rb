@@ -306,23 +306,23 @@ module ActiveRecord
 
     private
 
-    def skip_if_sqlite3_version_includes_quoting_bug
-      if sqlite3_version_includes_quoting_bug?
-        skip <<-ERROR.squish
+      def skip_if_sqlite3_version_includes_quoting_bug
+        if sqlite3_version_includes_quoting_bug?
+          skip <<-ERROR.squish
           You are using an outdated version of SQLite3 which has a bug in
           quoted column names. Please update SQLite3 and rebuild the sqlite3
           ruby gem
         ERROR
+        end
       end
-    end
 
-    def sqlite3_version_includes_quoting_bug?
-      if current_adapter?(:SQLite3Adapter)
-        selected_quoted_column_names = ActiveRecord::Base.connection.exec_query(
-          'SELECT "join" FROM (SELECT id AS "join" FROM posts) subquery'
-        ).columns
-        ["join"] != selected_quoted_column_names
+      def sqlite3_version_includes_quoting_bug?
+        if current_adapter?(:SQLite3Adapter)
+          selected_quoted_column_names = ActiveRecord::Base.connection.exec_query(
+            'SELECT "join" FROM (SELECT id AS "join" FROM posts) subquery'
+          ).columns
+          ["join"] != selected_quoted_column_names
+        end
       end
-    end
   end
 end

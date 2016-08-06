@@ -20,25 +20,25 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
 
     private
 
-    def authenticate
-      authenticate_or_request_with_http_token do |token, _|
-        token == "lifo"
+      def authenticate
+        authenticate_or_request_with_http_token do |token, _|
+          token == "lifo"
+        end
       end
-    end
 
-    def authenticate_with_request
-      if authenticate_with_http_token { |token, options| token == '"quote" pretty' && options[:algorithm] == "test" }
-        @logged_in = true
-      else
-        request_http_token_authentication("SuperSecret", "Authentication Failed\n")
+      def authenticate_with_request
+        if authenticate_with_http_token { |token, options| token == '"quote" pretty' && options[:algorithm] == "test" }
+          @logged_in = true
+        else
+          request_http_token_authentication("SuperSecret", "Authentication Failed\n")
+        end
       end
-    end
 
-    def authenticate_long_credentials
-      authenticate_or_request_with_http_token do |token, options|
-        token == "1234567890123456789012345678901234567890" && options[:algorithm] == "test"
+      def authenticate_long_credentials
+        authenticate_or_request_with_http_token do |token, options|
+          token == "1234567890123456789012345678901234567890" && options[:algorithm] == "test"
+        end
       end
-    end
   end
 
   AUTH_HEADERS = ["HTTP_AUTHORIZATION", "X-HTTP_AUTHORIZATION", "X_HTTP_AUTHORIZATION", "REDIRECT_X_HTTP_AUTHORIZATION"]

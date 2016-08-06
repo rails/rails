@@ -497,115 +497,115 @@ module ActiveRecord
 
       protected
 
-      def initialize_type_map(m) # :nodoc:
-        register_class_with_limit m, %r(boolean)i,       Type::Boolean
-        register_class_with_limit m, %r(char)i,          Type::String
-        register_class_with_limit m, %r(binary)i,        Type::Binary
-        register_class_with_limit m, %r(text)i,          Type::Text
-        register_class_with_precision m, %r(date)i,      Type::Date
-        register_class_with_precision m, %r(time)i,      Type::Time
-        register_class_with_precision m, %r(datetime)i,  Type::DateTime
-        register_class_with_limit m, %r(float)i,         Type::Float
-        register_class_with_limit m, %r(int)i,           Type::Integer
+        def initialize_type_map(m) # :nodoc:
+          register_class_with_limit m, %r(boolean)i,       Type::Boolean
+          register_class_with_limit m, %r(char)i,          Type::String
+          register_class_with_limit m, %r(binary)i,        Type::Binary
+          register_class_with_limit m, %r(text)i,          Type::Text
+          register_class_with_precision m, %r(date)i,      Type::Date
+          register_class_with_precision m, %r(time)i,      Type::Time
+          register_class_with_precision m, %r(datetime)i,  Type::DateTime
+          register_class_with_limit m, %r(float)i,         Type::Float
+          register_class_with_limit m, %r(int)i,           Type::Integer
 
-        m.alias_type %r(blob)i,      "binary"
-        m.alias_type %r(clob)i,      "text"
-        m.alias_type %r(timestamp)i, "datetime"
-        m.alias_type %r(numeric)i,   "decimal"
-        m.alias_type %r(number)i,    "decimal"
-        m.alias_type %r(double)i,    "float"
+          m.alias_type %r(blob)i,      "binary"
+          m.alias_type %r(clob)i,      "text"
+          m.alias_type %r(timestamp)i, "datetime"
+          m.alias_type %r(numeric)i,   "decimal"
+          m.alias_type %r(number)i,    "decimal"
+          m.alias_type %r(double)i,    "float"
 
-        m.register_type(%r(decimal)i) do |sql_type|
-          scale = extract_scale(sql_type)
-          precision = extract_precision(sql_type)
+          m.register_type(%r(decimal)i) do |sql_type|
+            scale = extract_scale(sql_type)
+            precision = extract_precision(sql_type)
 
-          if scale == 0
-            # FIXME: Remove this class as well
-            Type::DecimalWithoutScale.new(precision: precision)
-          else
-            Type::Decimal.new(precision: precision, scale: scale)
+            if scale == 0
+              # FIXME: Remove this class as well
+              Type::DecimalWithoutScale.new(precision: precision)
+            else
+              Type::Decimal.new(precision: precision, scale: scale)
+            end
           end
         end
-      end
 
-      def reload_type_map # :nodoc:
-        type_map.clear
-        initialize_type_map(type_map)
-      end
-
-      def register_class_with_limit(mapping, key, klass) # :nodoc:
-        mapping.register_type(key) do |*args|
-          limit = extract_limit(args.last)
-          klass.new(limit: limit)
-        end
-      end
-
-      def register_class_with_precision(mapping, key, klass) # :nodoc:
-        mapping.register_type(key) do |*args|
-          precision = extract_precision(args.last)
-          klass.new(precision: precision)
-        end
-      end
-
-      def extract_scale(sql_type) # :nodoc:
-        case sql_type
-          when /\((\d+)\)/ then 0
-          when /\((\d+)(,(\d+))\)/ then $3.to_i
-        end
-      end
-
-      def extract_precision(sql_type) # :nodoc:
-        $1.to_i if sql_type =~ /\((\d+)(,\d+)?\)/
-      end
-
-      def extract_limit(sql_type) # :nodoc:
-        case sql_type
-        when /^bigint/i
-          8
-        when /\((.*)\)/
-          $1.to_i
-        end
-      end
-
-      def translate_exception_class(e, sql)
-        begin
-          message = "#{e.class.name}: #{e.message}: #{sql}"
-        rescue Encoding::CompatibilityError
-          message = "#{e.class.name}: #{e.message.force_encoding sql.encoding}: #{sql}"
+        def reload_type_map # :nodoc:
+          type_map.clear
+          initialize_type_map(type_map)
         end
 
-        exception = translate_exception(e, message)
-        exception.set_backtrace e.backtrace
-        exception
-      end
+        def register_class_with_limit(mapping, key, klass) # :nodoc:
+          mapping.register_type(key) do |*args|
+            limit = extract_limit(args.last)
+            klass.new(limit: limit)
+          end
+        end
 
-      def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil)
-        @instrumenter.instrument(
-          "sql.active_record",
-          sql:               sql,
-          name:              name,
-          binds:             binds,
-          type_casted_binds: type_casted_binds,
-          statement_name:    statement_name,
-          connection_id:     object_id) { yield }
-      rescue => e
-        raise translate_exception_class(e, sql)
-      end
+        def register_class_with_precision(mapping, key, klass) # :nodoc:
+          mapping.register_type(key) do |*args|
+            precision = extract_precision(args.last)
+            klass.new(precision: precision)
+          end
+        end
 
-      def translate_exception(exception, message)
-        # override in derived class
-        ActiveRecord::StatementInvalid.new(message)
-      end
+        def extract_scale(sql_type) # :nodoc:
+          case sql_type
+            when /\((\d+)\)/ then 0
+            when /\((\d+)(,(\d+))\)/ then $3.to_i
+          end
+        end
 
-      def without_prepared_statement?(binds)
-        !prepared_statements || binds.empty?
-      end
+        def extract_precision(sql_type) # :nodoc:
+          $1.to_i if sql_type =~ /\((\d+)(,\d+)?\)/
+        end
 
-      def column_for(table_name, column_name) # :nodoc:
-        column_name = column_name.to_s
-        columns(table_name).detect { |c| c.name == column_name } ||
-          raise(ActiveRecordError, "No such column: #{table_name}.#{column_name}")
-      end
+        def extract_limit(sql_type) # :nodoc:
+          case sql_type
+          when /^bigint/i
+            8
+          when /\((.*)\)/
+            $1.to_i
+          end
+        end
+
+        def translate_exception_class(e, sql)
+          begin
+            message = "#{e.class.name}: #{e.message}: #{sql}"
+          rescue Encoding::CompatibilityError
+            message = "#{e.class.name}: #{e.message.force_encoding sql.encoding}: #{sql}"
+          end
+
+          exception = translate_exception(e, message)
+          exception.set_backtrace e.backtrace
+          exception
+        end
+
+        def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil)
+          @instrumenter.instrument(
+            "sql.active_record",
+            sql:               sql,
+            name:              name,
+            binds:             binds,
+            type_casted_binds: type_casted_binds,
+            statement_name:    statement_name,
+            connection_id:     object_id) { yield }
+        rescue => e
+          raise translate_exception_class(e, sql)
+        end
+
+        def translate_exception(exception, message)
+          # override in derived class
+          ActiveRecord::StatementInvalid.new(message)
+        end
+
+        def without_prepared_statement?(binds)
+          !prepared_statements || binds.empty?
+        end
+
+        def column_for(table_name, column_name) # :nodoc:
+          column_name = column_name.to_s
+          columns(table_name).detect { |c| c.name == column_name } ||
+            raise(ActiveRecordError, "No such column: #{table_name}.#{column_name}")
+        end
     end
   end
 end

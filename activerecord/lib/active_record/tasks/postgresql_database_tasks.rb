@@ -74,38 +74,38 @@ module ActiveRecord
 
       private
 
-      def configuration
-        @configuration
-      end
+        def configuration
+          @configuration
+        end
 
-      def encoding
-        configuration["encoding"] || DEFAULT_ENCODING
-      end
+        def encoding
+          configuration["encoding"] || DEFAULT_ENCODING
+        end
 
-      def establish_master_connection
-        establish_connection configuration.merge(
-          "database"           => "postgres",
-          "schema_search_path" => "public"
-        )
-      end
+        def establish_master_connection
+          establish_connection configuration.merge(
+            "database"           => "postgres",
+            "schema_search_path" => "public"
+          )
+        end
 
-      def set_psql_env
-        ENV["PGHOST"]     = configuration["host"]          if configuration["host"]
-        ENV["PGPORT"]     = configuration["port"].to_s     if configuration["port"]
-        ENV["PGPASSWORD"] = configuration["password"].to_s if configuration["password"]
-        ENV["PGUSER"]     = configuration["username"].to_s if configuration["username"]
-      end
+        def set_psql_env
+          ENV["PGHOST"]     = configuration["host"]          if configuration["host"]
+          ENV["PGPORT"]     = configuration["port"].to_s     if configuration["port"]
+          ENV["PGPASSWORD"] = configuration["password"].to_s if configuration["password"]
+          ENV["PGUSER"]     = configuration["username"].to_s if configuration["username"]
+        end
 
-      def run_cmd(cmd, args, action)
-        fail run_cmd_error(cmd, args, action) unless Kernel.system(cmd, *args)
-      end
+        def run_cmd(cmd, args, action)
+          fail run_cmd_error(cmd, args, action) unless Kernel.system(cmd, *args)
+        end
 
-      def run_cmd_error(cmd, args, action)
-        msg = "failed to execute:\n"
-        msg << "#{cmd} #{args.join(' ')}\n\n"
-        msg << "Please check the output above for any errors and make sure that `#{cmd}` is installed in your PATH and has proper permissions.\n\n"
-        msg
-      end
+        def run_cmd_error(cmd, args, action)
+          msg = "failed to execute:\n"
+          msg << "#{cmd} #{args.join(' ')}\n\n"
+          msg << "Please check the output above for any errors and make sure that `#{cmd}` is installed in your PATH and has proper permissions.\n\n"
+          msg
+        end
     end
   end
 end

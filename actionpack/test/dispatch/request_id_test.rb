@@ -23,10 +23,10 @@ class RequestIdTest < ActiveSupport::TestCase
 
   private
 
-  def stub_request(env = {})
-    ActionDispatch::RequestId.new(lambda { |environment| [ 200, environment, [] ] }).call(env)
-    ActionDispatch::Request.new(env)
-  end
+    def stub_request(env = {})
+      ActionDispatch::RequestId.new(lambda { |environment| [ 200, environment, [] ] }).call(env)
+      ActionDispatch::Request.new(env)
+    end
 end
 
 class RequestIdResponseTest < ActionDispatch::IntegrationTest
@@ -53,17 +53,17 @@ class RequestIdResponseTest < ActionDispatch::IntegrationTest
 
   private
 
-  def with_test_route_set
-    with_routing do |set|
-      set.draw do
-        get "/", to: ::RequestIdResponseTest::TestController.action(:index)
-      end
+    def with_test_route_set
+      with_routing do |set|
+        set.draw do
+          get "/", to: ::RequestIdResponseTest::TestController.action(:index)
+        end
 
-      @app = self.class.build_app(set) do |middleware|
-        middleware.use ActionDispatch::RequestId
-      end
+        @app = self.class.build_app(set) do |middleware|
+          middleware.use ActionDispatch::RequestId
+        end
 
-      yield
+        yield
+      end
     end
-  end
 end

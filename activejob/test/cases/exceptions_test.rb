@@ -65,7 +65,7 @@ class ExceptionsTest < ActiveJob::TestCase
 
   test "long wait job" do
     travel_to Time.now
-  
+
     perform_enqueued_jobs do
       assert_performed_with at: (Time.now + 3600.seconds).to_i do
         RetryJob.perform_later "LongWaitError", 5
@@ -78,13 +78,13 @@ class ExceptionsTest < ActiveJob::TestCase
 
     perform_enqueued_jobs do
       assert_performed_with at: (Time.now + 3.seconds).to_i do
-      assert_performed_with at: (Time.now + 18.seconds).to_i do
-      assert_performed_with at: (Time.now + 83.seconds).to_i do
-      assert_performed_with at: (Time.now + 258.seconds).to_i do
-        RetryJob.perform_later "ExponentialWaitTenAttemptsError", 5
-      end
-      end
-      end
+        assert_performed_with at: (Time.now + 18.seconds).to_i do
+          assert_performed_with at: (Time.now + 83.seconds).to_i do
+            assert_performed_with at: (Time.now + 258.seconds).to_i do
+              RetryJob.perform_later "ExponentialWaitTenAttemptsError", 5
+            end
+          end
+        end
       end
     end
   end
@@ -94,13 +94,13 @@ class ExceptionsTest < ActiveJob::TestCase
 
     perform_enqueued_jobs do
       assert_performed_with at: (Time.now + 2.seconds).to_i do
-      assert_performed_with at: (Time.now + 4.seconds).to_i do
-      assert_performed_with at: (Time.now + 6.seconds).to_i do
-      assert_performed_with at: (Time.now + 8.seconds).to_i do
-        RetryJob.perform_later "CustomWaitTenAttemptsError", 5
-      end
-      end
-      end
+        assert_performed_with at: (Time.now + 4.seconds).to_i do
+          assert_performed_with at: (Time.now + 6.seconds).to_i do
+            assert_performed_with at: (Time.now + 8.seconds).to_i do
+              RetryJob.perform_later "CustomWaitTenAttemptsError", 5
+            end
+          end
+        end
       end
     end
   end

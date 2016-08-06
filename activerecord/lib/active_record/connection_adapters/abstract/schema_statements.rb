@@ -1245,49 +1245,49 @@ module ActiveRecord
         end
 
       private
-      def create_table_definition(*args)
-        TableDefinition.new(*args)
-      end
-
-      def create_alter_table(name)
-        AlterTable.new create_table_definition(name)
-      end
-
-      def index_name_options(column_names) # :nodoc:
-        if column_names.is_a?(String)
-          column_names = column_names.scan(/\w+/).join("_")
+        def create_table_definition(*args)
+          TableDefinition.new(*args)
         end
 
-        { column: column_names }
-      end
-
-      def foreign_key_name(table_name, options) # :nodoc:
-        identifier = "#{table_name}_#{options.fetch(:column)}_fk"
-        hashed_identifier = Digest::SHA256.hexdigest(identifier).first(10)
-        options.fetch(:name) do
-          "fk_rails_#{hashed_identifier}"
+        def create_alter_table(name)
+          AlterTable.new create_table_definition(name)
         end
-      end
 
-      def validate_index_length!(table_name, new_name, internal = false) # :nodoc:
-        max_index_length = internal ? index_name_length : allowed_index_name_length
+        def index_name_options(column_names) # :nodoc:
+          if column_names.is_a?(String)
+            column_names = column_names.scan(/\w+/).join("_")
+          end
 
-        if new_name.length > max_index_length
-          raise ArgumentError, "Index name '#{new_name}' on table '#{table_name}' is too long; the limit is #{allowed_index_name_length} characters"
+          { column: column_names }
         end
-      end
 
-      def extract_new_default_value(default_or_changes)
-        if default_or_changes.is_a?(Hash) && default_or_changes.has_key?(:from) && default_or_changes.has_key?(:to)
-          default_or_changes[:to]
-        else
-          default_or_changes
+        def foreign_key_name(table_name, options) # :nodoc:
+          identifier = "#{table_name}_#{options.fetch(:column)}_fk"
+          hashed_identifier = Digest::SHA256.hexdigest(identifier).first(10)
+          options.fetch(:name) do
+            "fk_rails_#{hashed_identifier}"
+          end
         end
-      end
 
-      def can_remove_index_by_name?(options)
-        options.is_a?(Hash) && options.key?(:name) && options.except(:name, :algorithm).empty?
-      end
+        def validate_index_length!(table_name, new_name, internal = false) # :nodoc:
+          max_index_length = internal ? index_name_length : allowed_index_name_length
+
+          if new_name.length > max_index_length
+            raise ArgumentError, "Index name '#{new_name}' on table '#{table_name}' is too long; the limit is #{allowed_index_name_length} characters"
+          end
+        end
+
+        def extract_new_default_value(default_or_changes)
+          if default_or_changes.is_a?(Hash) && default_or_changes.has_key?(:from) && default_or_changes.has_key?(:to)
+            default_or_changes[:to]
+          else
+            default_or_changes
+          end
+        end
+
+        def can_remove_index_by_name?(options)
+          options.is_a?(Hash) && options.key?(:name) && options.except(:name, :algorithm).empty?
+        end
     end
   end
 end

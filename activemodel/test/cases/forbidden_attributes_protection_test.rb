@@ -37,6 +37,6 @@ class ActiveModelMassUpdateProtectionTest < ActiveSupport::TestCase
   end
 
   test "regular attributes should still be allowed" do
-     assert_equal({ a: "b" }, Account.new.sanitize_for_mass_assignment(a: "b"))
+    assert_equal({ a: "b" }, Account.new.sanitize_for_mass_assignment(a: "b"))
   end
 end

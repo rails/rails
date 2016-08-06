@@ -156,38 +156,38 @@ class TestUnitReporterTest < ActiveSupport::TestCase
   end
 
   private
-  def assert_rerun_snippet_count(snippet_count)
-    assert_equal snippet_count, @output.string.scan(%r{^bin/rails test }).size
-  end
+    def assert_rerun_snippet_count(snippet_count)
+      assert_equal snippet_count, @output.string.scan(%r{^bin/rails test }).size
+    end
 
-  def failed_test
-    ft = ExampleTest.new(:woot)
-    ft.failures << begin
-                     raise Minitest::Assertion, "boo"
-                   rescue Minitest::Assertion => e
-                     e
-                   end
-    ft
-  end
+    def failed_test
+      ft = ExampleTest.new(:woot)
+      ft.failures << begin
+                       raise Minitest::Assertion, "boo"
+                     rescue Minitest::Assertion => e
+                       e
+                     end
+      ft
+    end
 
-  def errored_test
-    et = ExampleTest.new(:woot)
-    et.failures << Minitest::UnexpectedError.new(ArgumentError.new("wups"))
-    et
-  end
+    def errored_test
+      et = ExampleTest.new(:woot)
+      et.failures << Minitest::UnexpectedError.new(ArgumentError.new("wups"))
+      et
+    end
 
-  def passing_test
-    ExampleTest.new(:woot)
-  end
+    def passing_test
+      ExampleTest.new(:woot)
+    end
 
-  def skipped_test
-    st = ExampleTest.new(:woot)
-    st.failures << begin
-                     raise Minitest::Skip, "skipchurches, misstemples"
-                   rescue Minitest::Assertion => e
-                     e
-                   end
-    st.time = 10
-    st
-  end
+    def skipped_test
+      st = ExampleTest.new(:woot)
+      st.failures << begin
+                       raise Minitest::Skip, "skipchurches, misstemples"
+                     rescue Minitest::Assertion => e
+                       e
+                     end
+      st.time = 10
+      st
+    end
 end

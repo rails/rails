@@ -117,38 +117,38 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
 
   private
 
-  def start(argv = [])
-    rails_console = Rails::Console.new(app, parse_arguments(argv))
-    @output = capture(:stdout) { rails_console.start }
-  end
-
-  def app
-    @app ||= build_app(FakeConsole)
-  end
-
-  def build_app(console)
-    mocked_console = Class.new do
-      attr_reader :sandbox, :console
-
-      def initialize(console)
-        @console = console
-      end
-
-      def config
-        self
-      end
-
-      def sandbox=(arg)
-        @sandbox = arg
-      end
-
-      def load_console
-      end
+    def start(argv = [])
+      rails_console = Rails::Console.new(app, parse_arguments(argv))
+      @output = capture(:stdout) { rails_console.start }
     end
-    mocked_console.new(console)
-  end
 
-  def parse_arguments(args)
-    Rails::Console.parse_arguments(args)
-  end
+    def app
+      @app ||= build_app(FakeConsole)
+    end
+
+    def build_app(console)
+      mocked_console = Class.new do
+        attr_reader :sandbox, :console
+
+        def initialize(console)
+          @console = console
+        end
+
+        def config
+          self
+        end
+
+        def sandbox=(arg)
+          @sandbox = arg
+        end
+
+        def load_console
+        end
+      end
+      mocked_console.new(console)
+    end
+
+    def parse_arguments(args)
+      Rails::Console.parse_arguments(args)
+    end
 end

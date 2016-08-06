@@ -873,30 +873,30 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
 
     protected
 
-    def with_bulk_change_table
-      # Reset columns/indexes cache as we're changing the table
-      @columns = @indexes = nil
+      def with_bulk_change_table
+        # Reset columns/indexes cache as we're changing the table
+        @columns = @indexes = nil
 
-      Person.connection.change_table(:delete_me, bulk: true) do |t|
-        yield t
+        Person.connection.change_table(:delete_me, bulk: true) do |t|
+          yield t
+        end
       end
-    end
 
-    def column(name)
-      columns.detect {|c| c.name == name.to_s }
-    end
+      def column(name)
+        columns.detect {|c| c.name == name.to_s }
+      end
 
-    def columns
-      @columns ||= Person.connection.columns("delete_me")
-    end
+      def columns
+        @columns ||= Person.connection.columns("delete_me")
+      end
 
-    def index(name)
-      indexes.detect {|i| i.name == name.to_s }
-    end
+      def index(name)
+        indexes.detect {|i| i.name == name.to_s }
+      end
 
-    def indexes
-      @indexes ||= Person.connection.indexes("delete_me")
-    end
+      def indexes
+        @indexes ||= Person.connection.indexes("delete_me")
+      end
   end # AlterTableMigrationsTest
 
 end

@@ -34,29 +34,29 @@ module ActionController
 
     private
 
-    INCLUDE = ->(list, action) { list.include? action }
-    EXCLUDE = ->(list, action) { !list.include? action }
-    NULL    = ->(list, action) { true }
+      INCLUDE = ->(list, action) { list.include? action }
+      EXCLUDE = ->(list, action) { !list.include? action }
+      NULL    = ->(list, action) { true }
 
-    def build_middleware(klass, args, block)
-      options = args.extract_options!
-      only   = Array(options.delete(:only)).map(&:to_s)
-      except = Array(options.delete(:except)).map(&:to_s)
-      args << options unless options.empty?
+      def build_middleware(klass, args, block)
+        options = args.extract_options!
+        only   = Array(options.delete(:only)).map(&:to_s)
+        except = Array(options.delete(:except)).map(&:to_s)
+        args << options unless options.empty?
 
-      strategy = NULL
-      list     = nil
+        strategy = NULL
+        list     = nil
 
-      if only.any?
-        strategy = INCLUDE
-        list     = only
-      elsif except.any?
-        strategy = EXCLUDE
-        list     = except
+        if only.any?
+          strategy = INCLUDE
+          list     = only
+        elsif except.any?
+          strategy = EXCLUDE
+          list     = except
+        end
+
+        Middleware.new(get_class(klass), args, list, strategy, block)
       end
-
-      Middleware.new(get_class(klass), args, list, strategy, block)
-    end
   end
 
   # <tt>ActionController::Metal</tt> is the simplest possible controller, providing a

@@ -31,36 +31,36 @@ module ActiveModel
 
       protected
 
-      attr_reader :range
+        attr_reader :range
 
       private
 
-      def cast_value(value)
-        case value
-        when true then 1
-        when false then 0
-        else
-          value.to_i rescue nil
+        def cast_value(value)
+          case value
+          when true then 1
+          when false then 0
+          else
+            value.to_i rescue nil
+          end
         end
-      end
 
-      def ensure_in_range(value)
-        unless range.cover?(value)
-          raise ActiveModel::RangeError, "#{value} is out of range for #{self.class} with limit #{_limit}"
+        def ensure_in_range(value)
+          unless range.cover?(value)
+            raise ActiveModel::RangeError, "#{value} is out of range for #{self.class} with limit #{_limit}"
+          end
         end
-      end
 
-      def max_value
-        1 << (_limit * 8 - 1) # 8 bits per byte with one bit for sign
-      end
+        def max_value
+          1 << (_limit * 8 - 1) # 8 bits per byte with one bit for sign
+        end
 
-      def min_value
-        -max_value
-      end
+        def min_value
+          -max_value
+        end
 
-      def _limit
-        self.limit || DEFAULT_LIMIT
-      end
+        def _limit
+          self.limit || DEFAULT_LIMIT
+        end
     end
   end
 end

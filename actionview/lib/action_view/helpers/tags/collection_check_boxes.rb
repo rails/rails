@@ -20,13 +20,13 @@ module ActionView
 
         private
 
-        def render_component(builder)
-          builder.check_box + builder.label
-        end
+          def render_component(builder)
+            builder.check_box + builder.label
+          end
 
-        def hidden_field_name #:nodoc:
-          "#{super}[]"
-        end
+          def hidden_field_name #:nodoc:
+            "#{super}[]"
+          end
       end
     end
   end

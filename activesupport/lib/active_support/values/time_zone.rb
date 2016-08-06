@@ -227,11 +227,11 @@ module ActiveSupport
       def [](arg)
         case arg
           when String
-          begin
-            @lazy_zones_map[arg] ||= create(arg)
-          rescue TZInfo::InvalidTimezoneIdentifier
-            nil
-          end
+            begin
+              @lazy_zones_map[arg] ||= create(arg)
+            rescue TZInfo::InvalidTimezoneIdentifier
+              nil
+            end
           when Numeric, ActiveSupport::Duration
             arg *= 3600 if arg.abs <= 13
             all.find { |z| z.utc_offset == arg.to_i }

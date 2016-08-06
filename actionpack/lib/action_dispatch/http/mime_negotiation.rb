@@ -152,23 +152,23 @@ module ActionDispatch
 
       protected
 
-      BROWSER_LIKE_ACCEPTS = /,\s*\*\/\*|\*\/\*\s*,/
+        BROWSER_LIKE_ACCEPTS = /,\s*\*\/\*|\*\/\*\s*,/
 
-      def valid_accept_header
-        (xhr? && (accept.present? || content_mime_type)) ||
-          (accept.present? && accept !~ BROWSER_LIKE_ACCEPTS)
-      end
-
-      def use_accept_header
-        !self.class.ignore_accept_header
-      end
-
-      def format_from_path_extension
-        path = get_header("action_dispatch.original_path") || get_header("PATH_INFO")
-        if match = path && path.match(/\.(\w+)\z/)
-          Mime[match.captures.first]
+        def valid_accept_header
+          (xhr? && (accept.present? || content_mime_type)) ||
+            (accept.present? && accept !~ BROWSER_LIKE_ACCEPTS)
         end
-      end
+
+        def use_accept_header
+          !self.class.ignore_accept_header
+        end
+
+        def format_from_path_extension
+          path = get_header("action_dispatch.original_path") || get_header("PATH_INFO")
+          if match = path && path.match(/\.(\w+)\z/)
+            Mime[match.captures.first]
+          end
+        end
     end
   end
 end

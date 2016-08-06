@@ -80,20 +80,20 @@ module ActiveModel
       end
 
       private
-      def tokenize(record, value)
-        tokenizer = options[:tokenizer]
-        if tokenizer && value.kind_of?(String)
-          if tokenizer.kind_of?(Proc)
-            tokenizer.call(value)
-          elsif record.respond_to?(tokenizer)
-            record.send(tokenizer, value)
-          end
-        end || value
-      end
+        def tokenize(record, value)
+          tokenizer = options[:tokenizer]
+          if tokenizer && value.kind_of?(String)
+            if tokenizer.kind_of?(Proc)
+              tokenizer.call(value)
+            elsif record.respond_to?(tokenizer)
+              record.send(tokenizer, value)
+            end
+          end || value
+        end
 
-      def skip_nil_check?(key)
-        key == :maximum && options[:allow_nil].nil? && options[:allow_blank].nil?
-      end
+        def skip_nil_check?(key)
+          key == :maximum && options[:allow_nil].nil? && options[:allow_blank].nil?
+        end
     end
 
     module HelperMethods

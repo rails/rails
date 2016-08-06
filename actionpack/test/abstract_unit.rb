@@ -254,11 +254,11 @@ end
 module ActionDispatch
   class DebugExceptions
     private
-    remove_method :stderr_logger
+      remove_method :stderr_logger
     # Silence logger
-    def stderr_logger
-      nil
-    end
+      def stderr_logger
+        nil
+      end
   end
 end
 
@@ -348,9 +348,9 @@ module RoutingTestHelpers
 
     private
 
-    def make_request(env)
-      Request.new super, url_helpers, @block, strict
-    end
+      def make_request(env)
+        Request.new super, url_helpers, @block, strict
+      end
   end
 end
 
@@ -426,18 +426,18 @@ class ForkingExecutor
   end
 
   private
-  def translate_exceptions(result)
-    result.failures.map! { |e|
-      begin
-        Marshal.dump e
-        e
-      rescue TypeError
-        ex = Exception.new e.message
-        ex.set_backtrace e.backtrace
-        Minitest::UnexpectedError.new ex
-      end
-    }
-  end
+    def translate_exceptions(result)
+      result.failures.map! { |e|
+        begin
+          Marshal.dump e
+          e
+        rescue TypeError
+          ex = Exception.new e.message
+          ex.set_backtrace e.backtrace
+          Minitest::UnexpectedError.new ex
+        end
+      }
+    end
 end
 
 if RUBY_ENGINE == "ruby" && PROCESS_COUNT > 0

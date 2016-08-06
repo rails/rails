@@ -426,9 +426,9 @@ module ActiveRecord
     end
 
     def self.default_fixture_table_name(fixture_set_name, config = ActiveRecord::Base) # :nodoc:
-       "#{ config.table_name_prefix }"\
-       "#{ fixture_set_name.tr('/', '_') }"\
-       "#{ config.table_name_suffix }".to_sym
+      "#{ config.table_name_prefix }"\
+      "#{ fixture_set_name.tr('/', '_') }"\
+      "#{ config.table_name_suffix }".to_sym
     end
 
     def self.reset_cache
@@ -494,18 +494,18 @@ module ActiveRecord
 
       private
 
-      def insert_class(class_names, name, klass)
-        # We only want to deal with AR objects.
-        if klass && klass < ActiveRecord::Base
-          class_names[name] = klass
-        else
-          class_names[name] = nil
+        def insert_class(class_names, name, klass)
+          # We only want to deal with AR objects.
+          if klass && klass < ActiveRecord::Base
+            class_names[name] = klass
+          else
+            class_names[name] = nil
+          end
         end
-      end
 
-      def default_fixture_model(fs_name, config)
-        ActiveRecord::FixtureSet.default_fixture_model_name(fs_name, config)
-      end
+        def default_fixture_model(fs_name, config)
+          ActiveRecord::FixtureSet.default_fixture_model_name(fs_name, config)
+        end
     end
 
     def self.create_fixtures(fixtures_directory, fixture_set_names, class_names = {}, config = ActiveRecord::Base)

@@ -105,7 +105,7 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::PostgreSQLTestCase
 
   private
 
-  def assert_transaction_is_not_broken
-    assert_equal 1, @connection.select_value("SELECT 1")
-  end
+    def assert_transaction_is_not_broken
+      assert_equal 1, @connection.select_value("SELECT 1")
+    end
 end

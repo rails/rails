@@ -95,19 +95,19 @@ class PrependProtectForgeryBaseController < ActionController::Base
 
   protected
 
-  def add_called_callback(name)
-    @called_callbacks ||= []
-    @called_callbacks << name
-  end
+    def add_called_callback(name)
+      @called_callbacks ||= []
+      @called_callbacks << name
+    end
 
 
-  def custom_action
-    add_called_callback("custom_action")
-  end
+    def custom_action
+      add_called_callback("custom_action")
+    end
 
-  def verify_authenticity_token
-    add_called_callback("verify_authenticity_token")
-  end
+    def verify_authenticity_token
+      add_called_callback("verify_authenticity_token")
+    end
 end
 
 class FreeCookieController < RequestForgeryProtectionControllerUsingResetSession

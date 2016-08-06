@@ -975,38 +975,38 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   private
 
-  def new_topic_like_ar_class(&block)
-    klass = Class.new(ActiveRecord::Base) do
-      self.table_name = "topics"
-      class_eval(&block)
+    def new_topic_like_ar_class(&block)
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = "topics"
+        class_eval(&block)
+      end
+
+      assert_empty klass.generated_attribute_methods.instance_methods(false)
+      klass
     end
 
-    assert_empty klass.generated_attribute_methods.instance_methods(false)
-    klass
-  end
+    def with_time_zone_aware_types(*types)
+      old_types = ActiveRecord::Base.time_zone_aware_types
+      ActiveRecord::Base.time_zone_aware_types = types
+      yield
+    ensure
+      ActiveRecord::Base.time_zone_aware_types = old_types
+    end
 
-  def with_time_zone_aware_types(*types)
-    old_types = ActiveRecord::Base.time_zone_aware_types
-    ActiveRecord::Base.time_zone_aware_types = types
-    yield
-  ensure
-    ActiveRecord::Base.time_zone_aware_types = old_types
-  end
+    def cached_columns
+      Topic.columns.map(&:name)
+    end
 
-  def cached_columns
-    Topic.columns.map(&:name)
-  end
+    def time_related_columns_on_topic
+      Topic.columns.select { |c| [:time, :date, :datetime, :timestamp].include?(c.type) }
+    end
 
-  def time_related_columns_on_topic
-    Topic.columns.select { |c| [:time, :date, :datetime, :timestamp].include?(c.type) }
-  end
-
-  def privatize(method_signature)
-    @target.class_eval(<<-private_method, __FILE__, __LINE__ + 1)
+    def privatize(method_signature)
+      @target.class_eval(<<-private_method, __FILE__, __LINE__ + 1)
       private
       def #{method_signature}
         "I'm private"
       end
     private_method
-  end
+    end
 end

@@ -407,4 +407,3 @@ class DateExtBehaviorTest < ActiveSupport::TestCase
     end
   end
 end
-

@@ -15,43 +15,43 @@ module ActiveRecord
       end
 
       protected
-      attr_reader :migration_action, :join_tables
+        attr_reader :migration_action, :join_tables
 
       # Sets the default migration template that is being used for the generation of the migration.
       # Depending on command line arguments, the migration template and the table name instance
       # variables are set up.
-      def set_local_assigns!
-        @migration_template = "migration.rb"
-        case file_name
-        when /^(add|remove)_.*_(?:to|from)_(.*)/
-          @migration_action = $1
-          @table_name       = normalize_table_name($2)
-        when /join_table/
-          if attributes.length == 2
-            @migration_action = "join"
-            @join_tables      = pluralize_table_names? ? attributes.map(&:plural_name) : attributes.map(&:singular_name)
+        def set_local_assigns!
+          @migration_template = "migration.rb"
+          case file_name
+          when /^(add|remove)_.*_(?:to|from)_(.*)/
+            @migration_action = $1
+            @table_name       = normalize_table_name($2)
+          when /join_table/
+            if attributes.length == 2
+              @migration_action = "join"
+              @join_tables      = pluralize_table_names? ? attributes.map(&:plural_name) : attributes.map(&:singular_name)
 
-            set_index_names
+              set_index_names
+            end
+          when /^create_(.+)/
+            @table_name = normalize_table_name($1)
+            @migration_template = "create_table_migration.rb"
           end
-        when /^create_(.+)/
-          @table_name = normalize_table_name($1)
-          @migration_template = "create_table_migration.rb"
         end
-      end
 
-      def set_index_names
-        attributes.each_with_index do |attr, i|
-          attr.index_name = [attr, attributes[i - 1]].map{ |a| index_name_for(a) }
+        def set_index_names
+          attributes.each_with_index do |attr, i|
+            attr.index_name = [attr, attributes[i - 1]].map{ |a| index_name_for(a) }
+          end
         end
-      end
 
-      def index_name_for(attribute)
-        if attribute.foreign_key?
-          attribute.name
-        else
-          attribute.name.singularize.foreign_key
-        end.to_sym
-      end
+        def index_name_for(attribute)
+          if attribute.foreign_key?
+            attribute.name
+          else
+            attribute.name.singularize.foreign_key
+          end.to_sym
+        end
 
       private
         def attributes_with_index

@@ -66,10 +66,10 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_collection_options_with_preselected_value_array
-      assert_dom_equal(
-        "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\" selected=\"selected\">Babe went home</option>\n<option value=\"Cabe\" selected=\"selected\">Cabe went home</option>",
-        options_from_collection_for_select(dummy_posts, "author_name", "title", [ "Babe", "Cabe" ])
-      )
+    assert_dom_equal(
+      "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\" selected=\"selected\">Babe went home</option>\n<option value=\"Cabe\" selected=\"selected\">Cabe went home</option>",
+      options_from_collection_for_select(dummy_posts, "author_name", "title", [ "Babe", "Cabe" ])
+    )
   end
 
   def test_collection_options_with_proc_for_selected
@@ -171,10 +171,10 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_array_options_for_select_with_selection_array
-      assert_dom_equal(
-        "<option value=\"Denmark\">Denmark</option>\n<option value=\"&lt;USA&gt;\" selected=\"selected\">&lt;USA&gt;</option>\n<option value=\"Sweden\" selected=\"selected\">Sweden</option>",
-        options_for_select([ "Denmark", "<USA>", "Sweden" ], [ "<USA>", "Sweden" ])
-      )
+    assert_dom_equal(
+      "<option value=\"Denmark\">Denmark</option>\n<option value=\"&lt;USA&gt;\" selected=\"selected\">&lt;USA&gt;</option>\n<option value=\"Sweden\" selected=\"selected\">Sweden</option>",
+      options_for_select([ "Denmark", "<USA>", "Sweden" ], [ "<USA>", "Sweden" ])
+    )
   end
 
   def test_array_options_for_select_with_disabled_value
@@ -213,18 +213,18 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_array_options_for_string_include_in_other_string_bug_fix
-      assert_dom_equal(
-        "<option value=\"ruby\">ruby</option>\n<option value=\"rubyonrails\" selected=\"selected\">rubyonrails</option>",
-        options_for_select([ "ruby", "rubyonrails" ], "rubyonrails")
-      )
-      assert_dom_equal(
-        "<option value=\"ruby\" selected=\"selected\">ruby</option>\n<option value=\"rubyonrails\">rubyonrails</option>",
-        options_for_select([ "ruby", "rubyonrails" ], "ruby")
-      )
-      assert_dom_equal(
-        %(<option value="ruby" selected="selected">ruby</option>\n<option value="rubyonrails">rubyonrails</option>\n<option value=""></option>),
-        options_for_select([ "ruby", "rubyonrails", nil ], "ruby")
-      )
+    assert_dom_equal(
+      "<option value=\"ruby\">ruby</option>\n<option value=\"rubyonrails\" selected=\"selected\">rubyonrails</option>",
+      options_for_select([ "ruby", "rubyonrails" ], "rubyonrails")
+    )
+    assert_dom_equal(
+      "<option value=\"ruby\" selected=\"selected\">ruby</option>\n<option value=\"rubyonrails\">rubyonrails</option>",
+      options_for_select([ "ruby", "rubyonrails" ], "ruby")
+    )
+    assert_dom_equal(
+      %(<option value="ruby" selected="selected">ruby</option>\n<option value="rubyonrails">rubyonrails</option>\n<option value=""></option>),
+      options_for_select([ "ruby", "rubyonrails", nil ], "ruby")
+    )
   end
 
   def test_hash_options_for_select
@@ -1234,18 +1234,18 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_time_zone_select_with_default_time_zone_and_nil_value
-     @firm = Firm.new()
-     @firm.time_zone = nil
+    @firm = Firm.new()
+    @firm.time_zone = nil
 
-     html = time_zone_select( "firm", "time_zone", nil, default: "B" )
-     assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
-                   "<option value=\"A\">A</option>\n" +
-                   "<option value=\"B\" selected=\"selected\">B</option>\n" +
-                   "<option value=\"C\">C</option>\n" +
-                   "<option value=\"D\">D</option>\n" +
-                   "<option value=\"E\">E</option>" +
-                   "</select>",
-                   html
+    html = time_zone_select( "firm", "time_zone", nil, default: "B" )
+    assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
+                  "<option value=\"A\">A</option>\n" +
+                  "<option value=\"B\" selected=\"selected\">B</option>\n" +
+                  "<option value=\"C\">C</option>\n" +
+                  "<option value=\"D\">D</option>\n" +
+                  "<option value=\"E\">E</option>" +
+                  "</select>",
+                  html
   end
 
   def test_time_zone_select_with_default_time_zone_and_value
@@ -1386,14 +1386,14 @@ class FormOptionsHelperTest < ActionView::TestCase
 
   private
 
-  def dummy_posts
-    [ Post.new("<Abe> went home", "<Abe>", "To a little house", "shh!"),
-      Post.new("Babe went home", "Babe", "To a little house", "shh!"),
-      Post.new("Cabe went home", "Cabe", "To a little house", "shh!") ]
-  end
+    def dummy_posts
+      [ Post.new("<Abe> went home", "<Abe>", "To a little house", "shh!"),
+        Post.new("Babe went home", "Babe", "To a little house", "shh!"),
+        Post.new("Cabe went home", "Cabe", "To a little house", "shh!") ]
+    end
 
-  def dummy_continents
-    [ Continent.new("<Africa>", [Country.new("<sa>", "<South Africa>"), Country.new("so", "Somalia")]),
-      Continent.new("Europe", [Country.new("dk", "Denmark"), Country.new("ie", "Ireland")]) ]
-  end
+    def dummy_continents
+      [ Continent.new("<Africa>", [Country.new("<sa>", "<South Africa>"), Country.new("so", "Somalia")]),
+        Continent.new("Europe", [Country.new("dk", "Denmark"), Country.new("ie", "Ireland")]) ]
+    end
 end

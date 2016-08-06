@@ -135,23 +135,23 @@ module ActionController
       #
       # This method also does namespace lookup. Foo::Bar::UsersController will
       # try to find Foo::Bar::User, Foo::User and finally User.
-      def _default_wrap_model #:nodoc:
-        return nil if klass.anonymous?
-        model_name = klass.name.sub(/Controller$/, "").classify
+        def _default_wrap_model #:nodoc:
+          return nil if klass.anonymous?
+          model_name = klass.name.sub(/Controller$/, "").classify
 
-        begin
-          if model_klass = model_name.safe_constantize
-            model_klass
-          else
-            namespaces = model_name.split("::")
-            namespaces.delete_at(-2)
-            break if namespaces.last == model_name
-            model_name = namespaces.join("::")
-          end
-        end until model_klass
+          begin
+            if model_klass = model_name.safe_constantize
+              model_klass
+            else
+              namespaces = model_name.split("::")
+              namespaces.delete_at(-2)
+              break if namespaces.last == model_name
+              model_name = namespaces.join("::")
+            end
+          end until model_klass
 
-        model_klass
-      end
+          model_klass
+        end
     end
 
     included do

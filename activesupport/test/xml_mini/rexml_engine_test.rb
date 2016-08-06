@@ -26,8 +26,8 @@ class REXMLEngineTest < ActiveSupport::TestCase
     assert hash.has_key?("root")
     assert hash["root"].has_key?("products")
     assert_match "good", hash["root"]["__content__"]
-    products = hash["root"]["products"]    
-    assert products.has_key?("__content__")    
+    products = hash["root"]["products"]
+    assert products.has_key?("__content__")
     assert_match "hello everyone", products["__content__"]
   end
 

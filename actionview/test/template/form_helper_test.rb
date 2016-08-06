@@ -805,9 +805,9 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_radio_button_respects_passed_in_id
-     assert_dom_equal('<input checked="checked" id="foo" name="post[secret]" type="radio" value="1" />',
-       radio_button("post", "secret", "1", id: "foo")
-    )
+    assert_dom_equal('<input checked="checked" id="foo" name="post[secret]" type="radio" value="1" />',
+      radio_button("post", "secret", "1", id: "foo")
+   )
   end
 
   def test_radio_button_with_booleans
@@ -1443,10 +1443,10 @@ class FormHelperTest < ActionView::TestCase
       %{<input name="post[#{pid}][secret]" type="hidden" value="0" /><input checked="checked" id="post_#{pid}_secret" name="post[#{pid}][secret]" type="checkbox" value="1" />},
       check_box("post[]", "secret")
     )
-   assert_dom_equal(
-      %{<input checked="checked" id="post_#{pid}_title_hello_world" name="post[#{pid}][title]" type="radio" value="Hello World" />},
-      radio_button("post[]", "title", "Hello World")
-    )
+    assert_dom_equal(
+       %{<input checked="checked" id="post_#{pid}_title_hello_world" name="post[#{pid}][title]" type="radio" value="Hello World" />},
+       radio_button("post[]", "title", "Hello World")
+     )
     assert_dom_equal(
       %{<input id="post_#{pid}_title_goodbye_world" name="post[#{pid}][title]" type="radio" value="Goodbye World" />},
       radio_button("post[]", "title", "Goodbye World")
@@ -1467,10 +1467,10 @@ class FormHelperTest < ActionView::TestCase
       %{<input name="post[#{pid}][secret]" type="hidden" value="0" /><input checked="checked" name="post[#{pid}][secret]" type="checkbox" value="1" />},
       check_box("post[]", "secret", id: nil)
     )
-   assert_dom_equal(
-     %{<input checked="checked" name="post[#{pid}][title]" type="radio" value="Hello World" />},
-      radio_button("post[]", "title", "Hello World", id: nil)
-    )
+    assert_dom_equal(
+      %{<input checked="checked" name="post[#{pid}][title]" type="radio" value="Hello World" />},
+       radio_button("post[]", "title", "Hello World", id: nil)
+     )
     assert_dom_equal(
       %{<input name="post[#{pid}][title]" type="radio" value="Goodbye World" />},
       radio_button("post[]", "title", "Goodbye World", id: nil)
@@ -2187,7 +2187,7 @@ class FormHelperTest < ActionView::TestCase
       end
 
       expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
-      "<input name='commit' data-disable-with='Confirm Post changes' type='submit' value='Confirm Post changes' />"
+        "<input name='commit' data-disable-with='Confirm Post changes' type='submit' value='Confirm Post changes' />"
       end
 
       assert_dom_equal expected, output_buffer
@@ -2201,7 +2201,7 @@ class FormHelperTest < ActionView::TestCase
       end
 
       expected = whole_form do
-      "<input name='commit' class='extra' data-disable-with='Save changes' type='submit' value='Save changes' />"
+        "<input name='commit' class='extra' data-disable-with='Save changes' type='submit' value='Save changes' />"
       end
 
       assert_dom_equal expected, output_buffer
@@ -2215,7 +2215,7 @@ class FormHelperTest < ActionView::TestCase
       end
 
       expected = whole_form("/posts/123", "edit_another_post", "edit_another_post", method: "patch") do
-      "<input name='commit' data-disable-with='Update your Post' type='submit' value='Update your Post' />"
+        "<input name='commit' data-disable-with='Update your Post' type='submit' value='Update your Post' />"
       end
 
       assert_dom_equal expected, output_buffer
@@ -2419,11 +2419,11 @@ class FormHelperTest < ActionView::TestCase
       }
     end
 
-   expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
-     '<input name="post[title]" type="text" id="post_title" value="Hello World" />' +
-     '<input id="post_author_attributes_name" name="post[author_attributes][name]" type="text" value="author #321" />' +
-     '<input id="post_author_attributes_id" name="post[author_attributes][id]" type="hidden" value="321" />'
-   end
+    expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
+      '<input name="post[title]" type="text" id="post_title" value="Hello World" />' +
+      '<input id="post_author_attributes_name" name="post[author_attributes][name]" type="text" value="author #321" />' +
+      '<input id="post_author_attributes_id" name="post[author_attributes][id]" type="hidden" value="321" />'
+    end
 
     assert_dom_equal expected, output_buffer
   end
@@ -3443,48 +3443,48 @@ class FormHelperTest < ActionView::TestCase
 
   protected
 
-  def hidden_fields(options = {})
-    method = options[:method]
+    def hidden_fields(options = {})
+      method = options[:method]
 
-    if options.fetch(:enforce_utf8, true)
-      txt = %{<input name="utf8" type="hidden" value="&#x2713;" />}
-    else
-      txt = ""
+      if options.fetch(:enforce_utf8, true)
+        txt = %{<input name="utf8" type="hidden" value="&#x2713;" />}
+      else
+        txt = ""
+      end
+
+      if method && !%w(get post).include?(method.to_s)
+        txt << %{<input name="_method" type="hidden" value="#{method}" />}
+      end
+
+      txt
     end
 
-    if method && !%w(get post).include?(method.to_s)
-      txt << %{<input name="_method" type="hidden" value="#{method}" />}
+    def form_text(action = "/", id = nil, html_class = nil, remote = nil, multipart = nil, method = nil)
+      txt =  %{<form accept-charset="UTF-8" action="#{action}"}
+      txt << %{ enctype="multipart/form-data"} if multipart
+      txt << %{ data-remote="true"} if remote
+      txt << %{ class="#{html_class}"} if html_class
+      txt << %{ id="#{id}"} if id
+      method = method.to_s == "get" ? "get" : "post"
+      txt << %{ method="#{method}">}
     end
 
-    txt
-  end
+    def whole_form(action = "/", id = nil, html_class = nil, options = {})
+      contents = block_given? ? yield : ""
 
-  def form_text(action = "/", id = nil, html_class = nil, remote = nil, multipart = nil, method = nil)
-    txt =  %{<form accept-charset="UTF-8" action="#{action}"}
-    txt << %{ enctype="multipart/form-data"} if multipart
-    txt << %{ data-remote="true"} if remote
-    txt << %{ class="#{html_class}"} if html_class
-    txt << %{ id="#{id}"} if id
-    method = method.to_s == "get" ? "get" : "post"
-    txt << %{ method="#{method}">}
-  end
+      method, remote, multipart = options.values_at(:method, :remote, :multipart)
 
-  def whole_form(action = "/", id = nil, html_class = nil, options = {})
-    contents = block_given? ? yield : ""
+      form_text(action, id, html_class, remote, multipart, method) + hidden_fields(options.slice :method, :enforce_utf8) + contents + "</form>"
+    end
 
-    method, remote, multipart = options.values_at(:method, :remote, :multipart)
+    def protect_against_forgery?
+      false
+    end
 
-    form_text(action, id, html_class, remote, multipart, method) + hidden_fields(options.slice :method, :enforce_utf8) + contents + "</form>"
-  end
-
-  def protect_against_forgery?
-    false
-  end
-
-  def with_locale(testing_locale = :label)
-    old_locale, I18n.locale = I18n.locale, testing_locale
-    yield
-  ensure
-    I18n.locale = old_locale
-  end
+    def with_locale(testing_locale = :label)
+      old_locale, I18n.locale = I18n.locale, testing_locale
+      yield
+    ensure
+      I18n.locale = old_locale
+    end
 end

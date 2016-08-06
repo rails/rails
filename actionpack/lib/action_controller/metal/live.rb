@@ -215,18 +215,18 @@ module ActionController
     class Response < ActionDispatch::Response #:nodoc: all
       private
 
-      def before_committed
-        super
-        jar = request.cookie_jar
-        # The response can be committed multiple times
-        jar.write self unless committed?
-      end
+        def before_committed
+          super
+          jar = request.cookie_jar
+          # The response can be committed multiple times
+          jar.write self unless committed?
+        end
 
-      def build_buffer(response, body)
-        buf = Live::Buffer.new response
-        body.each { |part| buf.write part }
-        buf
-      end
+        def build_buffer(response, body)
+          buf = Live::Buffer.new response
+          body.each { |part| buf.write part }
+          buf
+        end
     end
 
     def process(name)

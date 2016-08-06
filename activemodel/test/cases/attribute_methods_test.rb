@@ -245,8 +245,8 @@ class AttributeMethodsTest < ActiveModel::TestCase
 
   class ClassWithProtected
     protected
-    def protected_method
-    end
+      def protected_method
+      end
   end
 
   test "should not interfere with respond_to? if the attribute has a private/protected method" do

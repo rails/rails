@@ -4781,9 +4781,9 @@ class TestPartialDynamicPathSegments < ActionDispatch::IntegrationTest
 
   private
 
-  def assert_params(params)
-    assert_equal(params, request.path_parameters)
-  end
+    def assert_params(params)
+      assert_equal(params, request.path_parameters)
+    end
 end
 
 class TestPathParameters < ActionDispatch::IntegrationTest

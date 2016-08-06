@@ -36,13 +36,13 @@ module ActiveRecord
 
     protected
 
-    attr_reader :attributes
+      attr_reader :attributes
 
     private
 
-    def attr_names
-      attributes.keys
-    end
+      def attr_names
+        attributes.keys
+      end
   end
 
   class NullMutationTracker # :nodoc:

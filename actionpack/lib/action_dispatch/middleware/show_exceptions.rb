@@ -39,22 +39,22 @@ module ActionDispatch
 
     private
 
-    def render_exception(request, exception)
-      backtrace_cleaner = request.get_header "action_dispatch.backtrace_cleaner"
-      wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
-      status  = wrapper.status_code
-      request.set_header "action_dispatch.exception", wrapper.exception
-      request.set_header "action_dispatch.original_path", request.path_info
-      request.path_info = "/#{status}"
-      response = @exceptions_app.call(request.env)
-      response[1]["X-Cascade"] == "pass" ? pass_response(status) : response
-    rescue Exception => failsafe_error
-      $stderr.puts "Error during failsafe response: #{failsafe_error}\n  #{failsafe_error.backtrace * "\n  "}"
-      FAILSAFE_RESPONSE
-    end
+      def render_exception(request, exception)
+        backtrace_cleaner = request.get_header "action_dispatch.backtrace_cleaner"
+        wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
+        status  = wrapper.status_code
+        request.set_header "action_dispatch.exception", wrapper.exception
+        request.set_header "action_dispatch.original_path", request.path_info
+        request.path_info = "/#{status}"
+        response = @exceptions_app.call(request.env)
+        response[1]["X-Cascade"] == "pass" ? pass_response(status) : response
+      rescue Exception => failsafe_error
+        $stderr.puts "Error during failsafe response: #{failsafe_error}\n  #{failsafe_error.backtrace * "\n  "}"
+        FAILSAFE_RESPONSE
+      end
 
-    def pass_response(status)
-      [status, {"Content-Type" => "text/html; charset=#{Response.default_charset}", "Content-Length" => "0"}, []]
-    end
+      def pass_response(status)
+        [status, {"Content-Type" => "text/html; charset=#{Response.default_charset}", "Content-Length" => "0"}, []]
+      end
   end
 end

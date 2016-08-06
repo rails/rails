@@ -46,9 +46,9 @@ module ActionDispatch
       end
 
       private
-      def make_request(env)
-        ActionDispatch::Request.new env
-      end
+        def make_request(env)
+          ActionDispatch::Request.new env
+        end
     end
 
     module StaleSessionCheck
@@ -94,9 +94,9 @@ module ActionDispatch
 
       private
 
-      def set_cookie(request, session_id, cookie)
-        request.cookie_jar[key] = cookie
-      end
+        def set_cookie(request, session_id, cookie)
+          request.cookie_jar[key] = cookie
+        end
     end
   end
 end

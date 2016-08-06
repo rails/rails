@@ -8,7 +8,7 @@ module Rails
       def start(*args)
         new(*args).start
       end
-      
+
       private
         def set_options_env(arguments, options)
           if arguments.first && arguments.first[0] != "-"
@@ -24,7 +24,7 @@ module Rails
 
         def available_environments
           Dir["config/environments/*.rb"].map { |fname| File.basename(fname, ".*") }
-        end  
+        end
     end
 
     def environment

@@ -23,9 +23,9 @@ module ActionView
 
         private
 
-        def field_type
-          self.class.field_type
-        end
+          def field_type
+            self.class.field_type
+          end
       end
     end
   end

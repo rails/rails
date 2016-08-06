@@ -59,20 +59,20 @@ module ActionDispatch
         end
 
         private
-        def ast strings
-          parser = Journey::Parser.new
-          asts   = strings.map { |string|
-            memo = Object.new
-            ast  = parser.parse string
-            ast.each { |n| n.memo = memo }
-            ast
-          }
-          Nodes::Or.new asts
-        end
+          def ast strings
+            parser = Journey::Parser.new
+            asts   = strings.map { |string|
+              memo = Object.new
+              ast  = parser.parse string
+              ast.each { |n| n.memo = memo }
+              ast
+            }
+            Nodes::Or.new asts
+          end
 
-        def tt strings
-          Builder.new(ast(strings)).transition_table
-        end
+          def tt strings
+            Builder.new(ast(strings)).transition_table
+          end
       end
     end
   end

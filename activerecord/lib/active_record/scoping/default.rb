@@ -87,62 +87,62 @@ module ActiveRecord
         #       # Should return a scope, you can call 'super' here etc.
         #     end
         #   end
-        def default_scope(scope = nil)
-          scope = Proc.new if block_given?
+          def default_scope(scope = nil)
+            scope = Proc.new if block_given?
 
-          if scope.is_a?(Relation) || !scope.respond_to?(:call)
-            raise ArgumentError,
-              "Support for calling #default_scope without a block is removed. For example instead " \
-              "of `default_scope where(color: 'red')`, please use " \
-              "`default_scope { where(color: 'red') }`. (Alternatively you can just redefine " \
-              "self.default_scope.)"
+            if scope.is_a?(Relation) || !scope.respond_to?(:call)
+              raise ArgumentError,
+                "Support for calling #default_scope without a block is removed. For example instead " \
+                "of `default_scope where(color: 'red')`, please use " \
+                "`default_scope { where(color: 'red') }`. (Alternatively you can just redefine " \
+                "self.default_scope.)"
+            end
+
+            self.default_scopes += [scope]
           end
 
-          self.default_scopes += [scope]
-        end
+          def build_default_scope(base_rel = nil) # :nodoc:
+            return if abstract_class?
 
-        def build_default_scope(base_rel = nil) # :nodoc:
-          return if abstract_class?
+            if self.default_scope_override.nil?
+              self.default_scope_override = !Base.is_a?(method(:default_scope).owner)
+            end
 
-          if self.default_scope_override.nil?
-            self.default_scope_override = !Base.is_a?(method(:default_scope).owner)
-          end
-
-          if self.default_scope_override
-            # The user has defined their own default scope method, so call that
-            evaluate_default_scope { default_scope }
-          elsif default_scopes.any?
-            base_rel ||= relation
-            evaluate_default_scope do
-              default_scopes.inject(base_rel) do |default_scope, scope|
-                scope = scope.respond_to?(:to_proc) ? scope : scope.method(:call)
-                default_scope.merge(base_rel.instance_exec(&scope))
+            if self.default_scope_override
+              # The user has defined their own default scope method, so call that
+              evaluate_default_scope { default_scope }
+            elsif default_scopes.any?
+              base_rel ||= relation
+              evaluate_default_scope do
+                default_scopes.inject(base_rel) do |default_scope, scope|
+                  scope = scope.respond_to?(:to_proc) ? scope : scope.method(:call)
+                  default_scope.merge(base_rel.instance_exec(&scope))
+                end
               end
             end
           end
-        end
 
-        def ignore_default_scope? # :nodoc:
-          ScopeRegistry.value_for(:ignore_default_scope, base_class)
-        end
+          def ignore_default_scope? # :nodoc:
+            ScopeRegistry.value_for(:ignore_default_scope, base_class)
+          end
 
-        def ignore_default_scope=(ignore) # :nodoc:
-          ScopeRegistry.set_value_for(:ignore_default_scope, base_class, ignore)
-        end
+          def ignore_default_scope=(ignore) # :nodoc:
+            ScopeRegistry.set_value_for(:ignore_default_scope, base_class, ignore)
+          end
 
         # The ignore_default_scope flag is used to prevent an infinite recursion
         # situation where a default scope references a scope which has a default
         # scope which references a scope...
-        def evaluate_default_scope # :nodoc:
-          return if ignore_default_scope?
+          def evaluate_default_scope # :nodoc:
+            return if ignore_default_scope?
 
-          begin
-            self.ignore_default_scope = true
-            yield
-          ensure
-            self.ignore_default_scope = false
+            begin
+              self.ignore_default_scope = true
+              yield
+            ensure
+              self.ignore_default_scope = false
+            end
           end
-        end
       end
     end
   end

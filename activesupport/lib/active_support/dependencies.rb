@@ -170,9 +170,9 @@ module ActiveSupport #:nodoc:
       end
 
       private
-      def pop_modules(modules)
-        modules.each { |mod| @stack[mod].pop }
-      end
+        def pop_modules(modules)
+          modules.each { |mod| @stack[mod].pop }
+        end
     end
 
     # An internal stack used to record which constants are loaded by any block.
@@ -282,17 +282,17 @@ module ActiveSupport #:nodoc:
 
       private
 
-      def load(file, wrap = false)
-        result = false
-        load_dependency(file) { result = super }
-        result
-      end
+        def load(file, wrap = false)
+          result = false
+          load_dependency(file) { result = super }
+          result
+        end
 
-      def require(file)
-        result = false
-        load_dependency(file) { result = super }
-        result
-      end
+        def require(file)
+          result = false
+          load_dependency(file) { result = super }
+          result
+        end
     end
 
     # Exception file-blaming.

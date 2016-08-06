@@ -770,25 +770,25 @@ class ResourcesTest < ActionController::TestCase
       assert_recognizes({controller: "messages", action: "index"}, "/messages/")
     end
 
-     with_routing do |set|
-        set.draw do
-          resources :messages, path: "reviews"
-        end
-        assert_simply_restful_for :messages, as: "reviews"
-        assert_recognizes({controller: "messages", action: "index"}, "/reviews")
-        assert_recognizes({controller: "messages", action: "index"}, "/reviews/")
-     end
+    with_routing do |set|
+      set.draw do
+        resources :messages, path: "reviews"
+      end
+      assert_simply_restful_for :messages, as: "reviews"
+      assert_recognizes({controller: "messages", action: "index"}, "/reviews")
+      assert_recognizes({controller: "messages", action: "index"}, "/reviews/")
+    end
   end
 
   def test_multiple_with_path_segment_and_controller
     with_routing do |set|
       set.draw do
-       resources :products do
-          resources :product_reviews, path: "reviews", controller: "messages"
-        end
-       resources :tutors do
-          resources :tutor_reviews, path: "reviews", controller: "comments"
-        end
+        resources :products do
+           resources :product_reviews, path: "reviews", controller: "messages"
+         end
+        resources :tutors do
+           resources :tutor_reviews, path: "reviews", controller: "comments"
+         end
       end
 
       assert_simply_restful_for :product_reviews, controller: "messages", as: "reviews", name_prefix: "product_", path_prefix: "products/1/", options: {product_id: "1"}
@@ -1314,7 +1314,7 @@ class ResourcesTest < ActionController::TestCase
       assert_equal expected.length, resource.send("#{action_method}_methods")[method].size, "#{resource.send("#{action_method}_methods")[method].inspect}"
       expected.each do |action|
         assert resource.send("#{action_method}_methods")[method].include?(action)
-          "#{method} not in #{action_method} methods: #{resource.send("#{action_method}_methods")[method].inspect}"
+        "#{method} not in #{action_method} methods: #{resource.send("#{action_method}_methods")[method].inspect}"
       end
     end
 

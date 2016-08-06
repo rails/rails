@@ -221,7 +221,7 @@ module ActiveRecord
         end
 
         dependent = if dependent
-                      dependent
+          dependent
                     elsif options[:dependent] == :destroy
                       :delete_all
                     else

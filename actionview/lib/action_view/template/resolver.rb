@@ -107,22 +107,22 @@ module ActionView
 
       private
 
-      def canonical_no_templates(templates)
-        templates.empty? ? NO_TEMPLATES : templates
-      end
-
-      def templates_have_changed?(cached_templates, fresh_templates)
-        # if either the old or new template list is empty, we don't need to (and can't)
-        # compare modification times, and instead just check whether the lists are different
-        if cached_templates.blank? || fresh_templates.blank?
-          return fresh_templates.blank? != cached_templates.blank?
+        def canonical_no_templates(templates)
+          templates.empty? ? NO_TEMPLATES : templates
         end
 
-        cached_templates_max_updated_at = cached_templates.map(&:updated_at).max
+        def templates_have_changed?(cached_templates, fresh_templates)
+          # if either the old or new template list is empty, we don't need to (and can't)
+          # compare modification times, and instead just check whether the lists are different
+          if cached_templates.blank? || fresh_templates.blank?
+            return fresh_templates.blank? != cached_templates.blank?
+          end
 
-        # if a template has changed, it will be now be newer than all the cached templates
-        fresh_templates.any? { |t| t.updated_at > cached_templates_max_updated_at }
-      end
+          cached_templates_max_updated_at = cached_templates.map(&:updated_at).max
+
+          # if a template has changed, it will be now be newer than all the cached templates
+          fresh_templates.any? { |t| t.updated_at > cached_templates_max_updated_at }
+        end
     end
 
     cattr_accessor :caching
@@ -214,93 +214,93 @@ module ActionView
 
     private
 
-    def find_templates(name, prefix, partial, details, outside_app_allowed = false)
-      path = Path.build(name, prefix, partial)
-      query(path, details, details[:formats], outside_app_allowed)
-    end
-
-    def query(path, details, formats, outside_app_allowed)
-      query = build_query(path, details)
-
-      template_paths = find_template_paths(query)
-      template_paths = reject_files_external_to_app(template_paths) unless outside_app_allowed
-
-      template_paths.map do |template|
-        handler, format, variant = extract_handler_and_format_and_variant(template, formats)
-        contents = File.binread(template)
-
-        Template.new(contents, File.expand_path(template), handler,
-          virtual_path: path.virtual,
-          format: format,
-          variant: variant,
-          updated_at: mtime(template)
-        )
+      def find_templates(name, prefix, partial, details, outside_app_allowed = false)
+        path = Path.build(name, prefix, partial)
+        query(path, details, details[:formats], outside_app_allowed)
       end
-    end
 
-    def reject_files_external_to_app(files)
-      files.reject { |filename| !inside_path?(@path, filename) }
-    end
+      def query(path, details, formats, outside_app_allowed)
+        query = build_query(path, details)
 
-    def find_template_paths(query)
-      Dir[query].uniq.reject do |filename|
-        File.directory?(filename) ||
-          # deals with case-insensitive file systems.
-          !File.fnmatch(query, filename, File::FNM_EXTGLOB)
-      end
-    end
+        template_paths = find_template_paths(query)
+        template_paths = reject_files_external_to_app(template_paths) unless outside_app_allowed
 
-    def inside_path?(path, filename)
-      filename = File.expand_path(filename)
-      path = File.join(path, "")
-      filename.start_with?(path)
-    end
+        template_paths.map do |template|
+          handler, format, variant = extract_handler_and_format_and_variant(template, formats)
+          contents = File.binread(template)
 
-    # Helper for building query glob string based on resolver's pattern.
-    def build_query(path, details)
-      query = @pattern.dup
-
-      prefix = path.prefix.empty? ? "" : "#{escape_entry(path.prefix)}\\1"
-      query.gsub!(/:prefix(\/)?/, prefix)
-
-      partial = escape_entry(path.partial? ? "_#{path.name}" : path.name)
-      query.gsub!(/:action/, partial)
-
-      details.each do |ext, candidates|
-        if ext == :variants && candidates == :any
-          query.gsub!(/:#{ext}/, "*")
-        else
-          query.gsub!(/:#{ext}/, "{#{candidates.compact.uniq.join(',')}}")
+          Template.new(contents, File.expand_path(template), handler,
+            virtual_path: path.virtual,
+            format: format,
+            variant: variant,
+            updated_at: mtime(template)
+          )
         end
       end
 
-      File.expand_path(query, @path)
-    end
+      def reject_files_external_to_app(files)
+        files.reject { |filename| !inside_path?(@path, filename) }
+      end
 
-    def escape_entry(entry)
-      entry.gsub(/[*?{}\[\]]/, '\\\\\\&'.freeze)
-    end
+      def find_template_paths(query)
+        Dir[query].uniq.reject do |filename|
+          File.directory?(filename) ||
+            # deals with case-insensitive file systems.
+            !File.fnmatch(query, filename, File::FNM_EXTGLOB)
+        end
+      end
+
+      def inside_path?(path, filename)
+        filename = File.expand_path(filename)
+        path = File.join(path, "")
+        filename.start_with?(path)
+      end
+
+    # Helper for building query glob string based on resolver's pattern.
+      def build_query(path, details)
+        query = @pattern.dup
+
+        prefix = path.prefix.empty? ? "" : "#{escape_entry(path.prefix)}\\1"
+        query.gsub!(/:prefix(\/)?/, prefix)
+
+        partial = escape_entry(path.partial? ? "_#{path.name}" : path.name)
+        query.gsub!(/:action/, partial)
+
+        details.each do |ext, candidates|
+          if ext == :variants && candidates == :any
+            query.gsub!(/:#{ext}/, "*")
+          else
+            query.gsub!(/:#{ext}/, "{#{candidates.compact.uniq.join(',')}}")
+          end
+        end
+
+        File.expand_path(query, @path)
+      end
+
+      def escape_entry(entry)
+        entry.gsub(/[*?{}\[\]]/, '\\\\\\&'.freeze)
+      end
 
     # Returns the file mtime from the filesystem.
-    def mtime(p)
-      File.mtime(p)
-    end
+      def mtime(p)
+        File.mtime(p)
+      end
 
     # Extract handler, formats and variant from path. If a format cannot be found neither
     # from the path, or the handler, we should return the array of formats given
     # to the resolver.
-    def extract_handler_and_format_and_variant(path, default_formats)
-      pieces = File.basename(path).split(".".freeze)
-      pieces.shift
+      def extract_handler_and_format_and_variant(path, default_formats)
+        pieces = File.basename(path).split(".".freeze)
+        pieces.shift
 
-      extension = pieces.pop
+        extension = pieces.pop
 
-      handler = Template.handler_for_extension(extension)
-      format, variant = pieces.last.split(EXTENSIONS[:variants], 2) if pieces.last
-      format  &&= Template::Types[format]
+        handler = Template.handler_for_extension(extension)
+        format, variant = pieces.last.split(EXTENSIONS[:variants], 2) if pieces.last
+        format  &&= Template::Types[format]
 
-      [handler, format, variant]
-    end
+        [handler, format, variant]
+      end
   end
 
   # A resolver that loads files from the filesystem. It allows setting your own

@@ -24,23 +24,23 @@ module ActiveRecord
 
         private
 
-        def default_primary_key?(column)
-          schema_type(column) == :serial
-        end
-
-        def schema_type(column)
-          return super unless column.serial?
-
-          if column.bigint?
-            :bigserial
-          else
-            :serial
+          def default_primary_key?(column)
+            schema_type(column) == :serial
           end
-        end
 
-        def schema_expression(column)
-          super unless column.serial?
-        end
+          def schema_type(column)
+            return super unless column.serial?
+
+            if column.bigint?
+              :bigserial
+            else
+              :serial
+            end
+          end
+
+          def schema_expression(column)
+            super unless column.serial?
+          end
       end
     end
   end

@@ -1,8 +1,8 @@
 namespace :log do
-  
-  ## 
+
+  ##
   # Truncates all/specified log files
-  # ENV['LOGS'] 
+  # ENV['LOGS']
   #   - defaults to standard environment log files i.e. 'development,test,production'
   #   - ENV['LOGS']=all truncates all files i.e. log/*.log
   #   - ENV['LOGS']='test,development' truncates only specified files
@@ -28,7 +28,7 @@ namespace :log do
         .map    { |file| "log/#{file.strip}.log" }
         .select { |file| File.exist?(file) }
   end
-  
+
   def clear_log_file(file)
     f = File.open(file, "w")
     f.close

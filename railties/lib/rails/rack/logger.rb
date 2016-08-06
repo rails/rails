@@ -67,14 +67,14 @@ module Rails
 
       private
 
-      def finish(request)
-        instrumenter = ActiveSupport::Notifications.instrumenter
-        instrumenter.finish "request.action_dispatch", request: request
-      end
+        def finish(request)
+          instrumenter = ActiveSupport::Notifications.instrumenter
+          instrumenter.finish "request.action_dispatch", request: request
+        end
 
-      def logger
-        Rails.logger
-      end
+        def logger
+          Rails.logger
+        end
     end
   end
 end

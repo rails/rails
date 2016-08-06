@@ -151,29 +151,29 @@ module ActiveSupport
 
     protected
 
-    def _dasherize(key)
-      # $2 must be a non-greedy regex for this to work
-      left, middle, right = /\A(_*)(.*?)(_*)\Z/.match(key.strip)[1,3]
-      "#{left}#{middle.tr('_ ', '--')}#{right}"
-    end
+      def _dasherize(key)
+        # $2 must be a non-greedy regex for this to work
+        left, middle, right = /\A(_*)(.*?)(_*)\Z/.match(key.strip)[1,3]
+        "#{left}#{middle.tr('_ ', '--')}#{right}"
+      end
 
     # TODO: Add support for other encodings
-    def _parse_binary(bin, entity) #:nodoc:
-      case entity["encoding"]
-      when "base64"
-        ::Base64.decode64(bin)
-      else
-        bin
+      def _parse_binary(bin, entity) #:nodoc:
+        case entity["encoding"]
+        when "base64"
+          ::Base64.decode64(bin)
+        else
+          bin
+        end
       end
-    end
 
-    def _parse_file(file, entity)
-      f = StringIO.new(::Base64.decode64(file))
-      f.extend(FileLike)
-      f.original_filename = entity["name"]
-      f.content_type = entity["content_type"]
-      f
-    end
+      def _parse_file(file, entity)
+        f = StringIO.new(::Base64.decode64(file))
+        f.extend(FileLike)
+        f.original_filename = entity["name"]
+        f.content_type = entity["content_type"]
+        f
+      end
 
     private
 

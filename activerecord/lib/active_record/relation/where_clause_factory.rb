@@ -32,7 +32,7 @@ module ActiveRecord
 
       protected
 
-      attr_reader :klass, :predicate_builder
+        attr_reader :klass, :predicate_builder
     end
   end
 end

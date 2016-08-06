@@ -114,13 +114,13 @@ module AbstractController
     # * self._prefix is used when defined
     class PrefixedViews < RenderingController
       private
-      def self.prefix
-        name.underscore
-      end
+        def self.prefix
+          name.underscore
+        end
 
-      def _prefixes
-        [self.class.prefix]
-      end
+        def _prefixes
+          [self.class.prefix]
+        end
     end
 
     class Me3 < PrefixedViews
@@ -189,19 +189,19 @@ module AbstractController
       include ActionView::Layouts
 
       private
-      def self.layout(formats)
-        find_template(name.underscore, {formats: formats}, _prefixes: ["layouts"])
-      rescue ActionView::MissingTemplate
-        begin
-          find_template("application", {formats: formats}, _prefixes: ["layouts"])
+        def self.layout(formats)
+          find_template(name.underscore, {formats: formats}, _prefixes: ["layouts"])
         rescue ActionView::MissingTemplate
+          begin
+            find_template("application", {formats: formats}, _prefixes: ["layouts"])
+          rescue ActionView::MissingTemplate
+          end
         end
-      end
 
-      def render_to_body(options = {})
-        options[:_layout] = options[:layout] || _default_layout({})
-        super
-      end
+        def render_to_body(options = {})
+          options[:_layout] = options[:layout] || _default_layout({})
+          super
+        end
     end
 
     class Me4 < WithLayouts

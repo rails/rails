@@ -522,15 +522,15 @@ module Rails
 
     private
 
-    def build_request(env)
-      req = super
-      env["ORIGINAL_FULLPATH"] = req.fullpath
-      env["ORIGINAL_SCRIPT_NAME"] = req.script_name
-      req
-    end
+      def build_request(env)
+        req = super
+        env["ORIGINAL_FULLPATH"] = req.fullpath
+        env["ORIGINAL_SCRIPT_NAME"] = req.script_name
+        req
+      end
 
-    def build_middleware
-      config.app_middleware + super
-    end
+      def build_middleware
+        config.app_middleware + super
+      end
   end
 end

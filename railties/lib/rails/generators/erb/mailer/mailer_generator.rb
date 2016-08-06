@@ -28,13 +28,13 @@ module Erb # :nodoc:
 
       protected
 
-      def formats
-        [:text, :html]
-      end
+        def formats
+          [:text, :html]
+        end
 
-      def file_name
-        @_file_name ||= super.gsub(/_mailer/i, "")
-      end
+        def file_name
+          @_file_name ||= super.gsub(/_mailer/i, "")
+        end
     end
   end
 end

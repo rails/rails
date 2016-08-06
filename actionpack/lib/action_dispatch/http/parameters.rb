@@ -64,24 +64,24 @@ module ActionDispatch
 
       private
 
-      def parse_formatted_parameters(parsers)
-        return yield if content_length.zero? || content_mime_type.nil?
+        def parse_formatted_parameters(parsers)
+          return yield if content_length.zero? || content_mime_type.nil?
 
-        strategy = parsers.fetch(content_mime_type.symbol) { return yield }
+          strategy = parsers.fetch(content_mime_type.symbol) { return yield }
 
-        begin
-          strategy.call(raw_post)
-        rescue # JSON or Ruby code block errors
-          my_logger = logger || ActiveSupport::Logger.new($stderr)
-          my_logger.debug "Error occurred while parsing request parameters.\nContents:\n\n#{raw_post}"
+          begin
+            strategy.call(raw_post)
+          rescue # JSON or Ruby code block errors
+            my_logger = logger || ActiveSupport::Logger.new($stderr)
+            my_logger.debug "Error occurred while parsing request parameters.\nContents:\n\n#{raw_post}"
 
-          raise ParamsParser::ParseError
+            raise ParamsParser::ParseError
+          end
         end
-      end
 
-      def params_parsers
-        ActionDispatch::Request.parameter_parsers
-      end
+        def params_parsers
+          ActionDispatch::Request.parameter_parsers
+        end
     end
   end
 end

@@ -177,34 +177,34 @@ module ActiveRecord
         end
       end
 
-    class IndifferentCoder # :nodoc:
-      def initialize(coder_or_class_name)
-        @coder =
-          if coder_or_class_name.respond_to?(:load) && coder_or_class_name.respond_to?(:dump)
-            coder_or_class_name
+      class IndifferentCoder # :nodoc:
+        def initialize(coder_or_class_name)
+          @coder =
+            if coder_or_class_name.respond_to?(:load) && coder_or_class_name.respond_to?(:dump)
+              coder_or_class_name
+            else
+              ActiveRecord::Coders::YAMLColumn.new(coder_or_class_name || Object)
+            end
+        end
+
+        def dump(obj)
+          @coder.dump self.class.as_indifferent_hash(obj)
+        end
+
+        def load(yaml)
+          self.class.as_indifferent_hash(@coder.load(yaml || ""))
+        end
+
+        def self.as_indifferent_hash(obj)
+          case obj
+          when ActiveSupport::HashWithIndifferentAccess
+            obj
+          when Hash
+            obj.with_indifferent_access
           else
-            ActiveRecord::Coders::YAMLColumn.new(coder_or_class_name || Object)
+            ActiveSupport::HashWithIndifferentAccess.new
           end
-      end
-
-      def dump(obj)
-        @coder.dump self.class.as_indifferent_hash(obj)
-      end
-
-      def load(yaml)
-        self.class.as_indifferent_hash(@coder.load(yaml || ""))
-      end
-
-      def self.as_indifferent_hash(obj)
-        case obj
-        when ActiveSupport::HashWithIndifferentAccess
-          obj
-        when Hash
-          obj.with_indifferent_access
-        else
-          ActiveSupport::HashWithIndifferentAccess.new
         end
       end
-    end
   end
 end

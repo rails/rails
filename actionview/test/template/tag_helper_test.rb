@@ -314,7 +314,7 @@ class TagHelperTest < ActionView::TestCase
   def test_link_to_data_nil_equal
     div_type1 = content_tag(:div, "test", "data-tooltip" => nil)
     div_type2 = content_tag(:div, "test", data: {tooltip: nil})
-    assert_dom_equal div_type1, div_type2 
+    assert_dom_equal div_type1, div_type2
   end
 
   def test_tag_builder_link_to_data_nil_equal

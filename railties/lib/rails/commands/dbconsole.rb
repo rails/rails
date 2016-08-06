@@ -21,7 +21,7 @@ module Rails
 
           opt.on("--mode [MODE]", ["html", "list", "line", "column"],
             "Automatically put the sqlite3 database in the specified mode (html, list, line, column).") do |mode|
-              options["mode"] = mode
+            options["mode"] = mode
           end
 
           opt.on("--header") do |h|

@@ -306,17 +306,17 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
   end
 
   private
-  def assert_cycle field, array
-    # test creation
-    x = PgArray.create!(field => array)
-    x.reload
-    assert_equal(array, x.public_send(field))
+    def assert_cycle field, array
+      # test creation
+      x = PgArray.create!(field => array)
+      x.reload
+      assert_equal(array, x.public_send(field))
 
-    # test updating
-    x = PgArray.create!(field => [])
-    x.public_send("#{field}=", array)
-    x.save!
-    x.reload
-    assert_equal(array, x.public_send(field))
-  end
+      # test updating
+      x = PgArray.create!(field => [])
+      x.public_send("#{field}=", array)
+      x.save!
+      x.reload
+      assert_equal(array, x.public_send(field))
+    end
 end

@@ -18,7 +18,7 @@ module ActiveRecord
           target.public_send(method, 1)
         end
        elsif method_arity == 1
-        target.public_send(method, 1)
+         target.public_send(method, 1)
       else
         raise NotImplementedError
       end

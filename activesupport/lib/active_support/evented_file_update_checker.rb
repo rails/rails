@@ -124,71 +124,71 @@ module ActiveSupport
         @ph.filter_out_descendants(dtw)
       end
 
-    class PathHelper
-      def xpath(path)
-        Pathname.new(path).expand_path
-      end
+      class PathHelper
+        def xpath(path)
+          Pathname.new(path).expand_path
+        end
 
-      def normalize_extension(ext)
-        ext.to_s.sub(/\A\./, "")
-      end
+        def normalize_extension(ext)
+          ext.to_s.sub(/\A\./, "")
+        end
 
-      # Given a collection of Pathname objects returns the longest subpath
-      # common to all of them, or +nil+ if there is none.
-      def longest_common_subpath(paths)
-        return if paths.empty?
+        # Given a collection of Pathname objects returns the longest subpath
+        # common to all of them, or +nil+ if there is none.
+        def longest_common_subpath(paths)
+          return if paths.empty?
 
-        lcsp = Pathname.new(paths[0])
+          lcsp = Pathname.new(paths[0])
 
-        paths[1..-1].each do |path|
-          until ascendant_of?(lcsp, path)
-            if lcsp.root?
-              # If we get here a root directory is not an ascendant of path.
-              # This may happen if there are paths in different drives on
-              # Windows.
-              return
-            else
-              lcsp = lcsp.parent
+          paths[1..-1].each do |path|
+            until ascendant_of?(lcsp, path)
+              if lcsp.root?
+                # If we get here a root directory is not an ascendant of path.
+                # This may happen if there are paths in different drives on
+                # Windows.
+                return
+              else
+                lcsp = lcsp.parent
+              end
             end
           end
+
+          lcsp
         end
 
-        lcsp
-      end
-
-      # Returns the deepest existing ascendant, which could be the argument itself.
-      def existing_parent(dir)
-        dir.ascend do |ascendant|
-          break ascendant if ascendant.directory?
-        end
-      end
-
-      # Filters out directories which are descendants of others in the collection (stable).
-      def filter_out_descendants(dirs)
-        return dirs if dirs.length < 2
-
-        dirs_sorted_by_nparts = dirs.sort_by { |dir| dir.each_filename.to_a.length }
-        descendants = []
-
-        until dirs_sorted_by_nparts.empty?
-          dir = dirs_sorted_by_nparts.shift
-
-          dirs_sorted_by_nparts.reject! do |possible_descendant|
-            ascendant_of?(dir, possible_descendant) && descendants << possible_descendant
+        # Returns the deepest existing ascendant, which could be the argument itself.
+        def existing_parent(dir)
+          dir.ascend do |ascendant|
+            break ascendant if ascendant.directory?
           end
         end
 
-        # Array#- preserves order.
-        dirs - descendants
-      end
+        # Filters out directories which are descendants of others in the collection (stable).
+        def filter_out_descendants(dirs)
+          return dirs if dirs.length < 2
 
-      private
+          dirs_sorted_by_nparts = dirs.sort_by { |dir| dir.each_filename.to_a.length }
+          descendants = []
 
-        def ascendant_of?(base, other)
-          base != other && other.ascend do |ascendant|
-            break true if base == ascendant
+          until dirs_sorted_by_nparts.empty?
+            dir = dirs_sorted_by_nparts.shift
+
+            dirs_sorted_by_nparts.reject! do |possible_descendant|
+              ascendant_of?(dir, possible_descendant) && descendants << possible_descendant
+            end
           end
+
+          # Array#- preserves order.
+          dirs - descendants
         end
-    end
+
+        private
+
+          def ascendant_of?(base, other)
+            base != other && other.ascend do |ascendant|
+              break true if base == ascendant
+            end
+          end
+      end
   end
 end

@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-unless `which kindlerb` 
+unless `which kindlerb`
   abort "Please gem install kindlerb"
 end
 
@@ -14,13 +14,13 @@ module Kindle
 
   def generate(output_dir, mobi_outfile, logfile)
     output_dir = File.absolute_path(output_dir)
-    Dir.chdir output_dir do 
+    Dir.chdir output_dir do
       puts "=> Using output dir: #{output_dir}"
       puts "=> Arranging html pages in document order"
       toc = File.read("toc.ncx")
       doc = Nokogiri::XML(toc).xpath("//ncx:content", "ncx" => "http://www.daisy.org/z3986/2005/ncx/")
       html_pages = doc.select {|c| c[:src]}.map {|c| c[:src]}.uniq
-     
+
       generate_front_matter(html_pages)
 
       generate_sections(html_pages)
@@ -37,7 +37,7 @@ module Kindle
 
   def generate_front_matter(html_pages)
     frontmatter = []
-    html_pages.delete_if {|x| 
+    html_pages.delete_if {|x|
       if x =~ /(toc|welcome|credits|copyright).html/
         frontmatter << x unless x =~ /toc/
         true
@@ -51,7 +51,7 @@ module Kindle
     fdoc.search("h3").each do |h3|
       h3.name = "h4"
     end
-    fdoc.search("h2").each do |h2| 
+    fdoc.search("h2").each do |h2|
       h2.name = "h3"
       h2["id"] = h2.inner_text.gsub(/\s/, "-")
     end
@@ -72,7 +72,7 @@ module Kindle
         subsection = h3.inner_text
         content = h3.xpath("./following-sibling::*").take_while {|x| x.name != "h3"}.map(&:to_html)
         item = Nokogiri::HTML(h3.to_html + content.join("\n"))
-        item_path = "sections/%03d/%03d.html" % [section_idx, item_idx] 
+        item_path = "sections/%03d/%03d.html" % [section_idx, item_idx]
         add_head_section(item, subsection)
         item.search("img").each do |img|
           img["src"] = "#{Dir.pwd}/#{img['src']}"

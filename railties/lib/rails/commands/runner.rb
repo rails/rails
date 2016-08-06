@@ -22,14 +22,14 @@ ARGV.clone.options do |opts|
   opts.on("-h", "--help",
           "Show this help message.") { $stdout.puts opts; exit }
 
-    opts.separator ""
-    opts.separator "Examples: "
+  opts.separator ""
+  opts.separator "Examples: "
 
-    opts.separator "    rails runner 'puts Rails.env'"
-    opts.separator "        This runs the code `puts Rails.env` after loading the app"
-    opts.separator ""
-    opts.separator "    rails runner path/to/filename.rb"
-    opts.separator "        This runs the Ruby file located at `path/to/filename.rb` after loading the app"
+  opts.separator "    rails runner 'puts Rails.env'"
+  opts.separator "        This runs the code `puts Rails.env` after loading the app"
+  opts.separator ""
+  opts.separator "    rails runner path/to/filename.rb"
+  opts.separator "        This runs the Ruby file located at `path/to/filename.rb` after loading the app"
 
   if RbConfig::CONFIG["host_os"] !~ /mswin|mingw/
     opts.separator ""

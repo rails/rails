@@ -56,14 +56,14 @@ class FilterTest < ActionController::TestCase
     end
 
     protected
-    (1..3).each do |i|
-      define_method "try_#{i}" do
-        instance_variable_set :@try, i
-        if action_name == "fail_#{i}"
-          head(404)
+      (1..3).each do |i|
+        define_method "try_#{i}" do
+          instance_variable_set :@try, i
+          if action_name == "fail_#{i}"
+            head(404)
+          end
         end
       end
-    end
   end
 
   class RenderingController < ActionController::Base
@@ -531,13 +531,13 @@ class FilterTest < ActionController::TestCase
 
     private
 
-    def find_only
-      @only = "Only"
-    end
+      def find_only
+        @only = "Only"
+      end
 
-    def find_except
-      @except = "Except"
-    end
+      def find_except
+        @except = "Except"
+      end
   end
 
   def test_non_yielding_around_actions_do_not_raise
@@ -931,26 +931,26 @@ class ControllerWithAllTypesOfFilters < PostsController
   around_action :around_again
 
   private
-  def before
-    @ran_filter ||= []
-    @ran_filter << "before"
-  end
+    def before
+      @ran_filter ||= []
+      @ran_filter << "before"
+    end
 
-  def around
-    @ran_filter << "around (before yield)"
-    yield
-    @ran_filter << "around (after yield)"
-  end
+    def around
+      @ran_filter << "around (before yield)"
+      yield
+      @ran_filter << "around (after yield)"
+    end
 
-  def after
-    @ran_filter << "after"
-  end
+    def after
+      @ran_filter << "after"
+    end
 
-  def around_again
-    @ran_filter << "around_again (before yield)"
-    yield
-    @ran_filter << "around_again (after yield)"
-  end
+    def around_again
+      @ran_filter << "around_again (before yield)"
+      yield
+      @ran_filter << "around_again (after yield)"
+    end
 end
 
 class ControllerWithTwoLessFilters < ControllerWithAllTypesOfFilters

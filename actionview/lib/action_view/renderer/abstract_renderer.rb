@@ -27,27 +27,27 @@ module ActionView
 
     protected
 
-    def extract_details(options)
-      @lookup_context.registered_details.each_with_object({}) do |key, details|
-        value = options[key]
+      def extract_details(options)
+        @lookup_context.registered_details.each_with_object({}) do |key, details|
+          value = options[key]
 
-        details[key] = Array(value) if value
+          details[key] = Array(value) if value
+        end
       end
-    end
 
-    def instrument(name, **options)
-      options[:identifier] ||= (@template && @template.identifier) || @path
+      def instrument(name, **options)
+        options[:identifier] ||= (@template && @template.identifier) || @path
 
-      ActiveSupport::Notifications.instrument("render_#{name}.action_view", options) do |payload|
-        yield payload
+        ActiveSupport::Notifications.instrument("render_#{name}.action_view", options) do |payload|
+          yield payload
+        end
       end
-    end
 
-    def prepend_formats(formats)
-      formats = Array(formats)
-      return if formats.empty? || @lookup_context.html_fallback_for_js
+      def prepend_formats(formats)
+        formats = Array(formats)
+        return if formats.empty? || @lookup_context.html_fallback_for_js
 
-      @lookup_context.formats = formats | @lookup_context.formats
-    end
+        @lookup_context.formats = formats | @lookup_context.formats
+      end
   end
 end

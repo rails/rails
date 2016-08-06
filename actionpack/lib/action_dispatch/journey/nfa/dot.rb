@@ -18,7 +18,7 @@ module ActionDispatch
           #  (memos || []).map { |v| "  #{k} -> #{v.object_id};" }
           #}.uniq
 
-        <<-eodot
+          <<-eodot
 digraph nfa {
   rankdir=LR;
   node [shape = doublecircle];

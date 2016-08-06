@@ -142,15 +142,15 @@ END
       end
 
       private
-      def tmp_yaml(name, contents)
-        t = Tempfile.new name
-        t.binmode
-        t.write contents
-        t.close
-        yield t
-      ensure
-        t.close true
-      end
+        def tmp_yaml(name, contents)
+          t = Tempfile.new name
+          t.binmode
+          t.write contents
+          t.close
+          yield t
+        ensure
+          t.close true
+        end
     end
   end
 end

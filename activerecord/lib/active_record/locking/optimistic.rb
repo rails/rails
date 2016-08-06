@@ -132,56 +132,56 @@ module ActiveRecord
           relation
         end
 
-      module ClassMethods
-        DEFAULT_LOCKING_COLUMN = "lock_version"
+        module ClassMethods
+          DEFAULT_LOCKING_COLUMN = "lock_version"
 
-        # Returns true if the +lock_optimistically+ flag is set to true
-        # (which it is, by default) and the table includes the
-        # +locking_column+ column (defaults to +lock_version+).
-        def locking_enabled?
-          lock_optimistically && columns_hash[locking_column]
-        end
-
-        # Set the column to use for optimistic locking. Defaults to +lock_version+.
-        def locking_column=(value)
-          reload_schema_from_cache
-          @locking_column = value.to_s
-        end
-
-        # The version column used for optimistic locking. Defaults to +lock_version+.
-        def locking_column
-          @locking_column = DEFAULT_LOCKING_COLUMN unless defined?(@locking_column)
-          @locking_column
-        end
-
-        # Reset the column used for optimistic locking back to the +lock_version+ default.
-        def reset_locking_column
-          self.locking_column = DEFAULT_LOCKING_COLUMN
-        end
-
-        # Make sure the lock version column gets updated when counters are
-        # updated.
-        def update_counters(id, counters)
-          counters = counters.merge(locking_column => 1) if locking_enabled?
-          super
-        end
-
-        private
-
-        # We need to apply this decorator here, rather than on module inclusion. The closure
-        # created by the matcher would otherwise evaluate for `ActiveRecord::Base`, not the
-        # sub class being decorated. As such, changes to `lock_optimistically`, or
-        # `locking_column` would not be picked up.
-        def inherited(subclass)
-          subclass.class_eval do
-            is_lock_column = ->(name, _) { lock_optimistically && name == locking_column }
-            decorate_matching_attribute_types(is_lock_column, :_optimistic_locking) do |type|
-              LockingType.new(type)
-            end
+          # Returns true if the +lock_optimistically+ flag is set to true
+          # (which it is, by default) and the table includes the
+          # +locking_column+ column (defaults to +lock_version+).
+          def locking_enabled?
+            lock_optimistically && columns_hash[locking_column]
           end
-          super
+
+          # Set the column to use for optimistic locking. Defaults to +lock_version+.
+          def locking_column=(value)
+            reload_schema_from_cache
+            @locking_column = value.to_s
+          end
+
+          # The version column used for optimistic locking. Defaults to +lock_version+.
+          def locking_column
+            @locking_column = DEFAULT_LOCKING_COLUMN unless defined?(@locking_column)
+            @locking_column
+          end
+
+          # Reset the column used for optimistic locking back to the +lock_version+ default.
+          def reset_locking_column
+            self.locking_column = DEFAULT_LOCKING_COLUMN
+          end
+
+          # Make sure the lock version column gets updated when counters are
+          # updated.
+          def update_counters(id, counters)
+            counters = counters.merge(locking_column => 1) if locking_enabled?
+            super
+          end
+
+          private
+
+          # We need to apply this decorator here, rather than on module inclusion. The closure
+          # created by the matcher would otherwise evaluate for `ActiveRecord::Base`, not the
+          # sub class being decorated. As such, changes to `lock_optimistically`, or
+          # `locking_column` would not be picked up.
+            def inherited(subclass)
+              subclass.class_eval do
+                is_lock_column = ->(name, _) { lock_optimistically && name == locking_column }
+                decorate_matching_attribute_types(is_lock_column, :_optimistic_locking) do |type|
+                  LockingType.new(type)
+                end
+              end
+              super
+            end
         end
-      end
     end
 
 

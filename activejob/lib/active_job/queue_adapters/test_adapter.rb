@@ -39,22 +39,22 @@ module ActiveJob
 
       private
 
-      def job_to_hash(job, extras = {})
-        { job: job.class, args: job.serialize.fetch("arguments"), queue: job.queue_name }.merge!(extras)
-      end
-
-      def enqueue_or_perform(perform, job, job_data)
-        if perform
-          performed_jobs << job_data
-          Base.execute job.serialize
-        else
-          enqueued_jobs << job_data
+        def job_to_hash(job, extras = {})
+          { job: job.class, args: job.serialize.fetch("arguments"), queue: job.queue_name }.merge!(extras)
         end
-      end
 
-      def filtered?(job)
-        filter && !Array(filter).include?(job.class)
-      end
+        def enqueue_or_perform(perform, job, job_data)
+          if perform
+            performed_jobs << job_data
+            Base.execute job.serialize
+          else
+            enqueued_jobs << job_data
+          end
+        end
+
+        def filtered?(job)
+          filter && !Array(filter).include?(job.class)
+        end
     end
   end
 end

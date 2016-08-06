@@ -5,21 +5,21 @@ module Erb # :nodoc:
     class Base < Rails::Generators::NamedBase #:nodoc:
       protected
 
-      def formats
-        [format]
-      end
+        def formats
+          [format]
+        end
 
-      def format
-        :html
-      end
+        def format
+          :html
+        end
 
-      def handler
-        :erb
-      end
+        def handler
+          :erb
+        end
 
-      def filename_with_extensions(name, format = self.format)
-        [name, format, handler].compact.join(".")
-      end
+        def filename_with_extensions(name, format = self.format)
+          [name, format, handler].compact.join(".")
+        end
     end
   end
 end

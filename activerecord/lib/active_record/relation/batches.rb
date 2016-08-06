@@ -249,24 +249,24 @@ module ActiveRecord
 
     private
 
-    def apply_limits(relation, start, finish)
-      relation = relation.where(arel_attribute(primary_key).gteq(start)) if start
-      relation = relation.where(arel_attribute(primary_key).lteq(finish)) if finish
-      relation
-    end
-
-    def batch_order
-      "#{quoted_table_name}.#{quoted_primary_key} ASC"
-    end
-
-    def act_on_ignored_order(error_on_ignore)
-      raise_error = (error_on_ignore.nil? ? self.klass.error_on_ignored_order : error_on_ignore)
-
-      if raise_error
-        raise ArgumentError.new(ORDER_IGNORE_MESSAGE)
-      elsif logger
-        logger.warn(ORDER_IGNORE_MESSAGE)
+      def apply_limits(relation, start, finish)
+        relation = relation.where(arel_attribute(primary_key).gteq(start)) if start
+        relation = relation.where(arel_attribute(primary_key).lteq(finish)) if finish
+        relation
       end
-    end
+
+      def batch_order
+        "#{quoted_table_name}.#{quoted_primary_key} ASC"
+      end
+
+      def act_on_ignored_order(error_on_ignore)
+        raise_error = (error_on_ignore.nil? ? self.klass.error_on_ignored_order : error_on_ignore)
+
+        if raise_error
+          raise ArgumentError.new(ORDER_IGNORE_MESSAGE)
+        elsif logger
+          logger.warn(ORDER_IGNORE_MESSAGE)
+        end
+      end
   end
 end

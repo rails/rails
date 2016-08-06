@@ -57,38 +57,38 @@ module ActiveRecord
 
     private
 
-    def colorize_payload_name(name, payload_name)
-      if payload_name.blank? || payload_name == "SQL" # SQL vs Model Load/Exists
-        color(name, MAGENTA, true)
-      else
-        color(name, CYAN, true)
-      end
-    end
-
-    def sql_color(sql)
-      case sql
-        when /\A\s*rollback/mi
-          RED
-        when /select .*for update/mi, /\A\s*lock/mi
-          WHITE
-        when /\A\s*select/i
-          BLUE
-        when /\A\s*insert/i
-          GREEN
-        when /\A\s*update/i
-          YELLOW
-        when /\A\s*delete/i
-          RED
-        when /transaction\s*\Z/i
-          CYAN
+      def colorize_payload_name(name, payload_name)
+        if payload_name.blank? || payload_name == "SQL" # SQL vs Model Load/Exists
+          color(name, MAGENTA, true)
         else
-          MAGENTA
+          color(name, CYAN, true)
+        end
       end
-    end
 
-    def logger
-      ActiveRecord::Base.logger
-    end
+      def sql_color(sql)
+        case sql
+          when /\A\s*rollback/mi
+            RED
+          when /select .*for update/mi, /\A\s*lock/mi
+            WHITE
+          when /\A\s*select/i
+            BLUE
+          when /\A\s*insert/i
+            GREEN
+          when /\A\s*update/i
+            YELLOW
+          when /\A\s*delete/i
+            RED
+          when /transaction\s*\Z/i
+            CYAN
+          else
+            MAGENTA
+        end
+      end
+
+      def logger
+        ActiveRecord::Base.logger
+      end
   end
 end
 

@@ -47,13 +47,13 @@ module ActiveRecord
 
       private
 
-      def configuration
-        @configuration
-      end
+        def configuration
+          @configuration
+        end
 
-      def root
-        @root
-      end
+        def root
+          @root
+        end
     end
   end
 end

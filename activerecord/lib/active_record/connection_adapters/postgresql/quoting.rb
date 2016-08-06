@@ -74,42 +74,42 @@ module ActiveRecord
 
         private
 
-        def _quote(value)
-          case value
-          when Type::Binary::Data
-            "'#{escape_bytea(value.to_s)}'"
-          when OID::Xml::Data
-            "xml '#{quote_string(value.to_s)}'"
-          when OID::Bit::Data
-            if value.binary?
-              "B'#{value}'"
-            elsif value.hex?
-              "X'#{value}'"
-            end
-          when Float
-            if value.infinite? || value.nan?
-              "'#{value}'"
+          def _quote(value)
+            case value
+            when Type::Binary::Data
+              "'#{escape_bytea(value.to_s)}'"
+            when OID::Xml::Data
+              "xml '#{quote_string(value.to_s)}'"
+            when OID::Bit::Data
+              if value.binary?
+                "B'#{value}'"
+              elsif value.hex?
+                "X'#{value}'"
+              end
+            when Float
+              if value.infinite? || value.nan?
+                "'#{value}'"
+              else
+                super
+              end
             else
               super
             end
-          else
-            super
           end
-        end
 
-        def _type_cast(value)
-          case value
-          when Type::Binary::Data
-            # Return a bind param hash with format as binary.
-            # See http://deveiate.org/code/pg/PGconn.html#method-i-exec_prepared-doc
-            # for more information
-            { value: value.to_s, format: 1 }
-          when OID::Xml::Data, OID::Bit::Data
-            value.to_s
-          else
-            super
+          def _type_cast(value)
+            case value
+            when Type::Binary::Data
+              # Return a bind param hash with format as binary.
+              # See http://deveiate.org/code/pg/PGconn.html#method-i-exec_prepared-doc
+              # for more information
+              { value: value.to_s, format: 1 }
+            when OID::Xml::Data, OID::Bit::Data
+              value.to_s
+            else
+              super
+            end
           end
-        end
       end
     end
   end

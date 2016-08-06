@@ -166,28 +166,28 @@ module ActionDispatch
       class String < FunctionalVisitor # :nodoc:
         private
 
-        def binary(node, seed)
-          visit(node.right, visit(node.left, seed))
-        end
+          def binary(node, seed)
+            visit(node.right, visit(node.left, seed))
+          end
 
-        def nary(node, seed)
-          last_child = node.children.last
-          node.children.inject(seed) { |s, c|
-            string = visit(c, s)
-            string << "|".freeze unless last_child == c
-            string
-          }
-        end
+          def nary(node, seed)
+            last_child = node.children.last
+            node.children.inject(seed) { |s, c|
+              string = visit(c, s)
+              string << "|".freeze unless last_child == c
+              string
+            }
+          end
 
-        def terminal(node, seed)
-          seed + node.left
-        end
+          def terminal(node, seed)
+            seed + node.left
+          end
 
-        def visit_GROUP(node, seed)
-          visit(node.left, seed << "(".freeze) << ")".freeze
-        end
+          def visit_GROUP(node, seed)
+            visit(node.left, seed << "(".freeze) << ")".freeze
+          end
 
-        INSTANCE = new
+          INSTANCE = new
       end
 
       class Dot < FunctionalVisitor # :nodoc:

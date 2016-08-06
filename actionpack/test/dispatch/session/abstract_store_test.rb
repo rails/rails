@@ -47,10 +47,10 @@ module ActionDispatch
       end
 
       private
-      def app(&block)
-        @env = nil
-        lambda { |env| @env = env }
-      end
+        def app(&block)
+          @env = nil
+          lambda { |env| @env = env }
+        end
     end
   end
 end

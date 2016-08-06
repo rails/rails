@@ -120,10 +120,10 @@ Benchmark.ips(TIME) do |x|
     Exhibit.first.look
   end
 
-  x.report "Model.take" do 
+  x.report "Model.take" do
     Exhibit.take
   end
-  
+
   x.report("Model.all limit(100)") do
     Exhibit.look Exhibit.limit(100)
   end

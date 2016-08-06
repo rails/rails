@@ -12,12 +12,12 @@ class TestServer
     @config = OpenStruct.new(log_tags: [], subscription_adapter: subscription_adapter)
     @config.use_faye = ENV["FAYE"].present?
     @config.client_socket_class = if @config.use_faye
-                                    ActionCable::Connection::FayeClientSocket
+      ActionCable::Connection::FayeClientSocket
                                   else
                                     ActionCable::Connection::ClientSocket
                                   end
 
-     @mutex = Monitor.new
+    @mutex = Monitor.new
   end
 
   def pubsub
@@ -26,7 +26,7 @@ class TestServer
 
   def event_loop
     @event_loop ||= if @config.use_faye
-                      ActionCable::Connection::FayeEventLoop.new
+      ActionCable::Connection::FayeEventLoop.new
                     else
                       ActionCable::Connection::StreamEventLoop.new
                     end

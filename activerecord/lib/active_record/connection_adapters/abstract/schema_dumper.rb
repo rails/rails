@@ -58,48 +58,48 @@ module ActiveRecord
 
       private
 
-      def default_primary_key?(column)
-        schema_type(column) == :integer
-      end
-
-      def schema_type(column)
-        if column.bigint?
-          :bigint
-        else
-          column.type
+        def default_primary_key?(column)
+          schema_type(column) == :integer
         end
-      end
 
-      def schema_limit(column)
-        limit = column.limit unless column.bigint?
-        limit.inspect if limit && limit != native_database_types[column.type][:limit]
-      end
-
-      def schema_precision(column)
-        column.precision.inspect if column.precision
-      end
-
-      def schema_scale(column)
-        column.scale.inspect if column.scale
-      end
-
-      def schema_default(column)
-        type = lookup_cast_type_from_column(column)
-        default = type.deserialize(column.default)
-        if default.nil?
-          schema_expression(column)
-        else
-          type.type_cast_for_schema(default)
+        def schema_type(column)
+          if column.bigint?
+            :bigint
+          else
+            column.type
+          end
         end
-      end
 
-      def schema_expression(column)
-        "-> { #{column.default_function.inspect} }" if column.default_function
-      end
+        def schema_limit(column)
+          limit = column.limit unless column.bigint?
+          limit.inspect if limit && limit != native_database_types[column.type][:limit]
+        end
 
-      def schema_collation(column)
-        column.collation.inspect if column.collation
-      end
+        def schema_precision(column)
+          column.precision.inspect if column.precision
+        end
+
+        def schema_scale(column)
+          column.scale.inspect if column.scale
+        end
+
+        def schema_default(column)
+          type = lookup_cast_type_from_column(column)
+          default = type.deserialize(column.default)
+          if default.nil?
+            schema_expression(column)
+          else
+            type.type_cast_for_schema(default)
+          end
+        end
+
+        def schema_expression(column)
+          "-> { #{column.default_function.inspect} }" if column.default_function
+        end
+
+        def schema_collation(column)
+          column.collation.inspect if column.collation
+        end
     end
   end
 end

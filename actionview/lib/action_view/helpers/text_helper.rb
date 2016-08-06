@@ -432,17 +432,17 @@ module ActionView
 
         private
 
-        def next_index
-          step_index(1)
-        end
+          def next_index
+            step_index(1)
+          end
 
-        def previous_index
-          step_index(-1)
-        end
+          def previous_index
+            step_index(-1)
+          end
 
-        def step_index(n)
-          (@index + n) % @values.size
-        end
+          def step_index(n)
+            (@index + n) % @values.size
+          end
       end
 
       private

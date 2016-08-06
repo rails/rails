@@ -732,9 +732,9 @@ class BaseTest < ActiveSupport::TestCase
       def welcome ; mail ; end
 
       private
-      def add_special_header!
-        headers("X-Special-Header" => "Wow, so special")
-      end
+        def add_special_header!
+          headers("X-Special-Header" => "Wow, so special")
+        end
     end
 
     assert_equal("Wow, so special", BeforeActionMailer.welcome["X-Special-Header"].to_s)
@@ -747,9 +747,9 @@ class BaseTest < ActiveSupport::TestCase
       def welcome ; mail ; end
 
       private
-      def add_special_header!
-        headers("X-Special-Header" => "Testing")
-      end
+        def add_special_header!
+          headers("X-Special-Header" => "Testing")
+        end
     end
 
     assert_equal("Testing", AfterActionMailer.welcome["X-Special-Header"].to_s)
@@ -762,9 +762,9 @@ class BaseTest < ActiveSupport::TestCase
       def welcome ; mail ; end
 
       private
-      def add_inline_attachment!
-        attachments.inline["footer.jpg"] = "hey there"
-      end
+        def add_inline_attachment!
+          attachments.inline["footer.jpg"] = "hey there"
+        end
     end
 
     mail = DefaultInlineAttachmentMailer.welcome

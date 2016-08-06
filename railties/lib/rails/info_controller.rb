@@ -32,13 +32,13 @@ class Rails::InfoController < Rails::ApplicationController # :nodoc:
 
   private
 
-  def match_route
-    _routes.routes.select {|route|
-      yield route.path
-    }.map {|route| route.path.spec.to_s }
-  end
+    def match_route
+      _routes.routes.select {|route|
+        yield route.path
+      }.map {|route| route.path.spec.to_s }
+    end
 
-  def with_leading_slash(path)
-    ("/" + path).squeeze("/")
-  end
+    def with_leading_slash(path)
+      ("/" + path).squeeze("/")
+    end
 end

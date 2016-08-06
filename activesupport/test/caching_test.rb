@@ -130,13 +130,13 @@ class CacheKeyTest < ActiveSupport::TestCase
 
   private
 
-  def with_env(kv)
-    old_values = {}
-    kv.each { |key, value| old_values[key], ENV[key] = ENV[key], value }
-    yield
-  ensure
-    old_values.each { |key, value| ENV[key] = value}
-  end
+    def with_env(kv)
+      old_values = {}
+      kv.each { |key, value| old_values[key], ENV[key] = ENV[key], value }
+      yield
+    ensure
+      old_values.each { |key, value| ENV[key] = value}
+    end
 end
 
 class CacheStoreSettingTest < ActiveSupport::TestCase

@@ -839,13 +839,13 @@ module NestedAttributesOnACollectionAssociationTests
 
   private
 
-  def association_setter
-    @association_setter ||= "#{@association_name}_attributes=".to_sym
-  end
+    def association_setter
+      @association_setter ||= "#{@association_name}_attributes=".to_sym
+    end
 
-  def association_getter
-    @association_getter ||= "#{@association_name}_attributes".to_sym
-  end
+    def association_getter
+      @association_getter ||= "#{@association_name}_attributes".to_sym
+    end
 end
 
 class TestNestedAttributesOnAHasManyAssociation < ActiveRecord::TestCase

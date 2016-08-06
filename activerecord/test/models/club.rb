@@ -10,9 +10,9 @@ class Club < ActiveRecord::Base
 
   private
 
-  def private_method
-    "I'm sorry sir, this is a *private* club, not a *pirate* club"
-  end
+    def private_method
+      "I'm sorry sir, this is a *private* club, not a *pirate* club"
+    end
 end
 
 class SuperClub < ActiveRecord::Base

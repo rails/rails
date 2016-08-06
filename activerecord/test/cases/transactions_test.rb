@@ -687,7 +687,7 @@ class TransactionTest < ActiveRecord::TestCase
   def test_transaction_rollback_with_primarykeyless_tables
     connection = ActiveRecord::Base.connection
     connection.create_table(:transaction_without_primary_keys, force: true, id: false) do |t|
-       t.integer :thing_id
+      t.integer :thing_id
     end
 
     klass = Class.new(ActiveRecord::Base) do
@@ -707,15 +707,15 @@ class TransactionTest < ActiveRecord::TestCase
 
   private
 
-  %w(validation save destroy).each do |filter|
-    define_method("add_cancelling_before_#{filter}_with_db_side_effect_to_topic") do |topic|
-      meta = class << topic; self; end
-      meta.send("define_method", "before_#{filter}_for_transaction") do
-        Book.create
-        throw(:abort)
+    %w(validation save destroy).each do |filter|
+      define_method("add_cancelling_before_#{filter}_with_db_side_effect_to_topic") do |topic|
+        meta = class << topic; self; end
+        meta.send("define_method", "before_#{filter}_for_transaction") do
+          Book.create
+          throw(:abort)
+        end
       end
     end
-  end
 end
 
 class TransactionsWithTransactionalFixturesTest < ActiveRecord::TestCase

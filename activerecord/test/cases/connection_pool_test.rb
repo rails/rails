@@ -527,13 +527,13 @@ module ActiveRecord
       end
 
       private
-      def with_single_connection_pool
-        one_conn_spec = ActiveRecord::Base.connection_pool.spec.dup
-        one_conn_spec.config[:pool] = 1 # this is safe to do, because .dupped ConnectionSpecification also auto-dups its config
-        yield(pool = ConnectionPool.new(one_conn_spec))
-      ensure
-        pool.disconnect! if pool
-      end
+        def with_single_connection_pool
+          one_conn_spec = ActiveRecord::Base.connection_pool.spec.dup
+          one_conn_spec.config[:pool] = 1 # this is safe to do, because .dupped ConnectionSpecification also auto-dups its config
+          yield(pool = ConnectionPool.new(one_conn_spec))
+        ensure
+          pool.disconnect! if pool
+        end
     end
   end
 end

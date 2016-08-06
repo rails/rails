@@ -739,7 +739,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
   def test_named_root_url_generation_with_controller_and_action
     rs.draw do
-       root to: "content#index", as: "home"
+      root to: "content#index", as: "home"
     end
 
     assert_equal "/", url_for(rs, controller: "content", action: "index")

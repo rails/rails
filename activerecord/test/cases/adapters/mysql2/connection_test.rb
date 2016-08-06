@@ -167,7 +167,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
 
   protected
 
-  def test_lock_free(lock_name)
-    @connection.select_value("SELECT IS_FREE_LOCK(#{@connection.quote(lock_name)})") == 1
-  end
+    def test_lock_free(lock_name)
+      @connection.select_value("SELECT IS_FREE_LOCK(#{@connection.quote(lock_name)})") == 1
+    end
 end

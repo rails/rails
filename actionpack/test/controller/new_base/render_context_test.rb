@@ -29,13 +29,13 @@ module RenderContext
     protected
 
     # 3) Set view_context to self
-    def view_context
-      self
-    end
+      def view_context
+        self
+      end
 
-    def __controller_method__
-      "controller context!"
-    end
+      def __controller_method__
+        "controller context!"
+      end
   end
 
   class RenderContextTest < Rack::TestCase

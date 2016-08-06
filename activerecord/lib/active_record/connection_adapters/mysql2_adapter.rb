@@ -113,19 +113,19 @@ module ActiveRecord
 
       private
 
-      def connect
-        @connection = Mysql2::Client.new(@config)
-        configure_connection
-      end
+        def connect
+          @connection = Mysql2::Client.new(@config)
+          configure_connection
+        end
 
-      def configure_connection
-        @connection.query_options.merge!(as: :array)
-        super
-      end
+        def configure_connection
+          @connection.query_options.merge!(as: :array)
+          super
+        end
 
-      def full_version
-        @full_version ||= @connection.server_info[:version]
-      end
+        def full_version
+          @full_version ||= @connection.server_info[:version]
+        end
     end
   end
 end

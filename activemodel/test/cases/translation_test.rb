@@ -110,4 +110,3 @@ class ActiveModelI18nTests < ActiveModel::TestCase
     assert_equal({ default: "Cool gender" }, options)
   end
 end
-

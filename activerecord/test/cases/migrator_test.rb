@@ -92,8 +92,8 @@ class MigratorTest < ActiveRecord::TestCase
      [20100101010101, "ValidWithTimestampsPeopleHaveLastNames"],
      [20100201010101, "ValidWithTimestampsWeNeedReminders"],
      [20100301010101, "ValidWithTimestampsInnocentJointable"]].each_with_index do |pair, i|
-      assert_equal pair.first, migrations[i].version
-      assert_equal pair.last, migrations[i].name
+       assert_equal pair.first, migrations[i].version
+       assert_equal pair.last, migrations[i].name
      end
   end
 
@@ -357,32 +357,32 @@ class MigratorTest < ActiveRecord::TestCase
   end
 
   private
-  def m(name, version)
-    x = Sensor.new name, version
-    x.extend(Module.new {
-      define_method(:up) { yield(:up, x); super() }
-      define_method(:down) { yield(:down, x); super() }
-    }) if block_given?
-  end
+    def m(name, version)
+      x = Sensor.new name, version
+      x.extend(Module.new {
+        define_method(:up) { yield(:up, x); super() }
+        define_method(:down) { yield(:down, x); super() }
+      }) if block_given?
+    end
 
-  def sensors(count)
-    calls = []
-    migrations = count.times.map { |i|
-      m(nil, i + 1) { |c,migration|
-        calls << [c, migration.version]
+    def sensors(count)
+      calls = []
+      migrations = count.times.map { |i|
+        m(nil, i + 1) { |c,migration|
+          calls << [c, migration.version]
+        }
       }
-    }
-    [calls, migrations]
-  end
+      [calls, migrations]
+    end
 
-  def migrator_class(count)
-    calls, migrations = sensors(count)
+    def migrator_class(count)
+      calls, migrations = sensors(count)
 
-    migrator = Class.new(ActiveRecord::Migrator).extend(Module.new {
-      define_method(:migrations) { |paths|
-        migrations
-      }
-    })
-    [calls, migrator]
-  end
+      migrator = Class.new(ActiveRecord::Migrator).extend(Module.new {
+        define_method(:migrations) { |paths|
+          migrations
+        }
+      })
+      [calls, migrator]
+    end
 end

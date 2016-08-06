@@ -79,18 +79,18 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
 
   private
 
-  def assert_no_difference_when_adding_callbacks_twice_for(model, association_name)
-    reflection = model.reflect_on_association(association_name)
-    assert_no_difference "callbacks_for_model(#{model.name}).length" do
-      model.send(:add_autosave_association_callbacks, reflection)
+    def assert_no_difference_when_adding_callbacks_twice_for(model, association_name)
+      reflection = model.reflect_on_association(association_name)
+      assert_no_difference "callbacks_for_model(#{model.name}).length" do
+        model.send(:add_autosave_association_callbacks, reflection)
+      end
     end
-  end
 
-  def callbacks_for_model(model)
-    model.instance_variables.grep(/_callbacks$/).flat_map do |ivar|
-      model.instance_variable_get(ivar)
+    def callbacks_for_model(model)
+      model.instance_variables.grep(/_callbacks$/).flat_map do |ivar|
+        model.instance_variable_get(ivar)
+      end
     end
-  end
 end
 
 class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase

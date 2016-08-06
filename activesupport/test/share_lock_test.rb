@@ -489,90 +489,90 @@ class ShareLockTest < ActiveSupport::TestCase
 
   private
 
-  module CustomAssertions
-    SUFFICIENT_TIMEOUT = 0.2
+    module CustomAssertions
+      SUFFICIENT_TIMEOUT = 0.2
 
-    private
+      private
 
-    def assert_threads_stuck_but_releasable_by_latch(threads, latch)
-      assert_threads_stuck threads
-      latch.count_down
-      assert_threads_not_stuck threads
+        def assert_threads_stuck_but_releasable_by_latch(threads, latch)
+          assert_threads_stuck threads
+          latch.count_down
+          assert_threads_not_stuck threads
+        end
+
+        def assert_threads_stuck(threads)
+          sleep(SUFFICIENT_TIMEOUT) # give threads time to do their business
+          assert(Array(threads).all? { |t| t.join(0.001).nil? })
+        end
+
+        def assert_threads_not_stuck(threads)
+          assert(Array(threads).all? { |t| t.join(SUFFICIENT_TIMEOUT) })
+        end
     end
 
-    def assert_threads_stuck(threads)
-      sleep(SUFFICIENT_TIMEOUT) # give threads time to do their business
-      assert(Array(threads).all? { |t| t.join(0.001).nil? })
-    end
+    class CustomAssertionsTest < ActiveSupport::TestCase
+      include CustomAssertions
 
-    def assert_threads_not_stuck(threads)
-      assert(Array(threads).all? { |t| t.join(SUFFICIENT_TIMEOUT) })
-    end
-  end
-
-  class CustomAssertionsTest < ActiveSupport::TestCase
-    include CustomAssertions
-
-    def setup
-      @latch = Concurrent::CountDownLatch.new
-      @thread = Thread.new { @latch.wait }
-    end
-
-    def teardown
-      @latch.count_down
-      @thread.join
-    end
-
-    def test_happy_path
-      assert_threads_stuck_but_releasable_by_latch @thread, @latch
-    end
-
-    def test_detects_stuck_thread
-      assert_raises(Minitest::Assertion) do
-        assert_threads_not_stuck @thread
+      def setup
+        @latch = Concurrent::CountDownLatch.new
+        @thread = Thread.new { @latch.wait }
       end
-    end
 
-    def test_detects_free_thread
-      @latch.count_down
-      assert_raises(Minitest::Assertion) do
-        assert_threads_stuck @thread
+      def teardown
+        @latch.count_down
+        @thread.join
       end
-    end
 
-    def test_detects_already_released
-      @latch.count_down
-      assert_raises(Minitest::Assertion) do
+      def test_happy_path
         assert_threads_stuck_but_releasable_by_latch @thread, @latch
       end
-    end
 
-    def test_detects_remains_latched
-      another_latch = Concurrent::CountDownLatch.new
-      assert_raises(Minitest::Assertion) do
-        assert_threads_stuck_but_releasable_by_latch @thread, another_latch
+      def test_detects_stuck_thread
+        assert_raises(Minitest::Assertion) do
+          assert_threads_not_stuck @thread
+        end
+      end
+
+      def test_detects_free_thread
+        @latch.count_down
+        assert_raises(Minitest::Assertion) do
+          assert_threads_stuck @thread
+        end
+      end
+
+      def test_detects_already_released
+        @latch.count_down
+        assert_raises(Minitest::Assertion) do
+          assert_threads_stuck_but_releasable_by_latch @thread, @latch
+        end
+      end
+
+      def test_detects_remains_latched
+        another_latch = Concurrent::CountDownLatch.new
+        assert_raises(Minitest::Assertion) do
+          assert_threads_stuck_but_releasable_by_latch @thread, another_latch
+        end
       end
     end
-  end
 
-  include CustomAssertions
+    include CustomAssertions
 
-  def with_thread_waiting_in_lock_section(lock_section)
-    in_section      = Concurrent::CountDownLatch.new
-    section_release = Concurrent::CountDownLatch.new
+    def with_thread_waiting_in_lock_section(lock_section)
+      in_section      = Concurrent::CountDownLatch.new
+      section_release = Concurrent::CountDownLatch.new
 
-    stuck_thread = Thread.new do
-      @lock.send(lock_section) do
-        in_section.count_down
-        section_release.wait
+      stuck_thread = Thread.new do
+        @lock.send(lock_section) do
+          in_section.count_down
+          section_release.wait
+        end
       end
+
+      in_section.wait
+
+      yield section_release
+    ensure
+      section_release.count_down
+      stuck_thread.join # clean up
     end
-
-    in_section.wait
-
-    yield section_release
-  ensure
-    section_release.count_down
-    stuck_thread.join # clean up
-  end
 end

@@ -247,11 +247,11 @@ module ActiveRecord
 
     protected
 
-    def with_warning_suppression
-      log_level = @connection.client_min_messages
-      @connection.client_min_messages = "error"
-      yield
-      @connection.client_min_messages = log_level
-    end
+      def with_warning_suppression
+        log_level = @connection.client_min_messages
+        @connection.client_min_messages = "error"
+        yield
+        @connection.client_min_messages = log_level
+      end
   end
 end

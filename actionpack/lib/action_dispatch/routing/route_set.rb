@@ -59,7 +59,7 @@ module ActionDispatch
 
         private
 
-        def controller(_); @controller_class; end
+          def controller(_); @controller_class; end
       end
 
       # A NamedRouteCollection instance is a collection of named routes, and also
@@ -180,40 +180,40 @@ module ActionDispatch
 
             private
 
-            def optimized_helper(args)
-              params = parameterize_args(args) do
-                raise_generation_error(args)
+              def optimized_helper(args)
+                params = parameterize_args(args) do
+                  raise_generation_error(args)
+                end
+
+                @route.format params
               end
 
-              @route.format params
-            end
+              def optimize_routes_generation?(t)
+                t.send(:optimize_routes_generation?)
+              end
 
-            def optimize_routes_generation?(t)
-              t.send(:optimize_routes_generation?)
-            end
+              def parameterize_args(args)
+                params = {}
+                @arg_size.times { |i|
+                  key = @required_parts[i]
+                  value = args[i].to_param
+                  yield key if value.nil? || value.empty?
+                  params[key] = value
+                }
+                params
+              end
 
-            def parameterize_args(args)
-              params = {}
-              @arg_size.times { |i|
-                key = @required_parts[i]
-                value = args[i].to_param
-                yield key if value.nil? || value.empty?
-                params[key] = value
-              }
-              params
-            end
+              def raise_generation_error(args)
+                missing_keys = []
+                params = parameterize_args(args) { |missing_key|
+                  missing_keys << missing_key
+                }
+                constraints = Hash[@route.requirements.merge(params).sort_by{|k,v| k.to_s}]
+                message = "No route matches #{constraints.inspect}"
+                message << " missing required keys: #{missing_keys.sort.inspect}"
 
-            def raise_generation_error(args)
-              missing_keys = []
-              params = parameterize_args(args) { |missing_key|
-                missing_keys << missing_key
-              }
-              constraints = Hash[@route.requirements.merge(params).sort_by{|k,v| k.to_s}]
-              message = "No route matches #{constraints.inspect}"
-              message << " missing required keys: #{missing_keys.sort.inspect}"
-
-              raise ActionController::UrlGenerationError, message
-            end
+                raise ActionController::UrlGenerationError, message
+              end
           end
 
           def initialize(route, options, route_name, url_strategy)
@@ -277,25 +277,25 @@ module ActionDispatch
         #
         #   foo_url(bar, baz, bang, sort_by: 'baz')
         #
-        def define_url_helper(mod, route, name, opts, route_key, url_strategy)
-          helper = UrlHelper.create(route, opts, route_key, url_strategy)
-          mod.module_eval do
-            define_method(name) do |*args|
-              last = args.last
-              options = case last
-                        when Hash
-                          args.pop
-                        when ActionController::Parameters
-                          if last.permitted?
-                            args.pop.to_h
-                          else
-                            raise ArgumentError, ActionDispatch::Routing::INSECURE_URL_PARAMETERS_MESSAGE
+          def define_url_helper(mod, route, name, opts, route_key, url_strategy)
+            helper = UrlHelper.create(route, opts, route_key, url_strategy)
+            mod.module_eval do
+              define_method(name) do |*args|
+                last = args.last
+                options = case last
+                          when Hash
+                            args.pop
+                          when ActionController::Parameters
+                            if last.permitted?
+                              args.pop.to_h
+                            else
+                              raise ArgumentError, ActionDispatch::Routing::INSECURE_URL_PARAMETERS_MESSAGE
+                            end
                           end
-                        end
-              helper.call self, args, options
+                helper.call self, args, options
+              end
             end
           end
-        end
       end
 
       # strategy for building urls to send to the client

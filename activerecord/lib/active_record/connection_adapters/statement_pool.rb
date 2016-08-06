@@ -47,13 +47,13 @@ module ActiveRecord
 
       private
 
-      def cache
-        @cache[Process.pid]
-      end
+        def cache
+          @cache[Process.pid]
+        end
 
-      def dealloc(stmt)
-        raise NotImplementedError
-      end
+        def dealloc(stmt)
+          raise NotImplementedError
+        end
     end
   end
 end

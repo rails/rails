@@ -36,9 +36,9 @@ module Render
 
     private
 
-    def secretz
-      render plain: "FAIL WHALE!"
-    end
+      def secretz
+        render plain: "FAIL WHALE!"
+      end
   end
 
   class DoubleRenderController < ActionController::Base

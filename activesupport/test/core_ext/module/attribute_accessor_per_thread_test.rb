@@ -65,15 +65,15 @@ class ModuleAttributeAccessorPerThreadTest < ActiveSupport::TestCase
     threads << Thread.new do
       @class.foo = "other things"
       sleep 1
-      assert_equal "other things", @class.foo      
+      assert_equal "other things", @class.foo
     end
-    
+
     threads << Thread.new do
       @class.foo = "really other things"
       sleep 1
-      assert_equal "really other things", @class.foo      
+      assert_equal "really other things", @class.foo
     end
-    
+
     threads.each { |t| t.join }
   end
 

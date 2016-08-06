@@ -107,30 +107,30 @@ module ActiveRecord
       private
 
       # Loads all the given data into +records+ for the +association+.
-      def preloaders_on(association, records, scope)
-        case association
-        when Hash
-          preloaders_for_hash(association, records, scope)
-        when Symbol
-          preloaders_for_one(association, records, scope)
-        when String
-          preloaders_for_one(association.to_sym, records, scope)
-        else
-          raise ArgumentError, "#{association.inspect} was not recognized for preload"
+        def preloaders_on(association, records, scope)
+          case association
+          when Hash
+            preloaders_for_hash(association, records, scope)
+          when Symbol
+            preloaders_for_one(association, records, scope)
+          when String
+            preloaders_for_one(association.to_sym, records, scope)
+          else
+            raise ArgumentError, "#{association.inspect} was not recognized for preload"
+          end
         end
-      end
 
-      def preloaders_for_hash(association, records, scope)
-        association.flat_map { |parent, child|
-          loaders = preloaders_for_one parent, records, scope
+        def preloaders_for_hash(association, records, scope)
+          association.flat_map { |parent, child|
+            loaders = preloaders_for_one parent, records, scope
 
-          recs = loaders.flat_map(&:preloaded_records).uniq
-          loaders.concat Array.wrap(child).flat_map { |assoc|
-            preloaders_on assoc, recs, scope
+            recs = loaders.flat_map(&:preloaded_records).uniq
+            loaders.concat Array.wrap(child).flat_map { |assoc|
+              preloaders_on assoc, recs, scope
+            }
+            loaders
           }
-          loaders
-        }
-      end
+        end
 
       # Loads all the given data into +records+ for a singular +association+.
       #
@@ -144,70 +144,70 @@ module ActiveRecord
       # Additionally, polymorphic belongs_to associations can have multiple associated
       # classes, depending on the polymorphic_type field. So we group by the classes as
       # well.
-      def preloaders_for_one(association, records, scope)
-        grouped_records(association, records).flat_map do |reflection, klasses|
-          klasses.map do |rhs_klass, rs|
-            loader = preloader_for(reflection, rs, rhs_klass).new(rhs_klass, rs, reflection, scope)
-            loader.run self
-            loader
+        def preloaders_for_one(association, records, scope)
+          grouped_records(association, records).flat_map do |reflection, klasses|
+            klasses.map do |rhs_klass, rs|
+              loader = preloader_for(reflection, rs, rhs_klass).new(rhs_klass, rs, reflection, scope)
+              loader.run self
+              loader
+            end
           end
         end
-      end
 
-      def grouped_records(association, records)
-        h = {}
-        records.each do |record|
-          next unless record
-          assoc = record.association(association)
-          klasses = h[assoc.reflection] ||= {}
-          (klasses[assoc.klass] ||= []) << record
-        end
-        h
-      end
-
-      class AlreadyLoaded # :nodoc:
-        attr_reader :owners, :reflection
-
-        def initialize(klass, owners, reflection, preload_scope)
-          @owners = owners
-          @reflection = reflection
+        def grouped_records(association, records)
+          h = {}
+          records.each do |record|
+            next unless record
+            assoc = record.association(association)
+            klasses = h[assoc.reflection] ||= {}
+            (klasses[assoc.klass] ||= []) << record
+          end
+          h
         end
 
-        def run(preloader); end
+        class AlreadyLoaded # :nodoc:
+          attr_reader :owners, :reflection
 
-        def preloaded_records
-          owners.flat_map { |owner| owner.association(reflection.name).target }
+          def initialize(klass, owners, reflection, preload_scope)
+            @owners = owners
+            @reflection = reflection
+          end
+
+          def run(preloader); end
+
+          def preloaded_records
+            owners.flat_map { |owner| owner.association(reflection.name).target }
+          end
         end
-      end
 
-      class NullPreloader # :nodoc:
-        def self.new(klass, owners, reflection, preload_scope); self; end
-        def self.run(preloader); end
-        def self.preloaded_records; []; end
-        def self.owners; []; end
-      end
+        class NullPreloader # :nodoc:
+          def self.new(klass, owners, reflection, preload_scope); self; end
+          def self.run(preloader); end
+          def self.preloaded_records; []; end
+          def self.owners; []; end
+        end
 
       # Returns a class containing the logic needed to load preload the data
       # and attach it to a relation. For example +Preloader::Association+ or
       # +Preloader::HasManyThrough+. The class returned implements a `run` method
       # that accepts a preloader.
-      def preloader_for(reflection, owners, rhs_klass)
-        return NullPreloader unless rhs_klass
+        def preloader_for(reflection, owners, rhs_klass)
+          return NullPreloader unless rhs_klass
 
-        if owners.first.association(reflection.name).loaded?
-          return AlreadyLoaded
-        end
-        reflection.check_preloadable!
+          if owners.first.association(reflection.name).loaded?
+            return AlreadyLoaded
+          end
+          reflection.check_preloadable!
 
-        case reflection.macro
-        when :has_many
-          reflection.options[:through] ? HasManyThrough : HasMany
-        when :has_one
-          reflection.options[:through] ? HasOneThrough : HasOne
-        when :belongs_to
-          BelongsTo
+          case reflection.macro
+          when :has_many
+            reflection.options[:through] ? HasManyThrough : HasMany
+          when :has_one
+            reflection.options[:through] ? HasOneThrough : HasOne
+          when :belongs_to
+            BelongsTo
+          end
         end
-      end
     end
   end
 end

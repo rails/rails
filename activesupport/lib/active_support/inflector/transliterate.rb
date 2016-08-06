@@ -104,7 +104,7 @@ module ActiveSupport
         # Remove leading/trailing separator.
         parameterized_string.gsub!(re_leading_trailing_separator, "".freeze)
       end
-      
+
       parameterized_string.downcase! unless preserve_case
       parameterized_string
     end

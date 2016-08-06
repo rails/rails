@@ -16,9 +16,9 @@ class TestSubscriber < ActiveSupport::Subscriber
 
   private
 
-  def private_party(event)
-    events << event
-  end
+    def private_party(event)
+      events << event
+    end
 end
 
 # Monkey patch subscriber to test that only one subscriber per method is added.

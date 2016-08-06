@@ -130,108 +130,108 @@ module ActiveRecord
 
     protected
 
-    attr_reader :original_attribute
-    alias_method :assigned?, :original_attribute
+      attr_reader :original_attribute
+      alias_method :assigned?, :original_attribute
 
-    def initialize_dup(other)
-      if defined?(@value) && @value.duplicable?
-        @value = @value.dup
-      end
-    end
-
-    def changed_from_assignment?
-      assigned? && type.changed?(original_value, value, value_before_type_cast)
-    end
-
-    def original_value_for_database
-      if assigned?
-        original_attribute.original_value_for_database
-      else
-        _original_value_for_database
-      end
-    end
-
-    def _original_value_for_database
-      type.serialize(original_value)
-    end
-
-    class FromDatabase < Attribute # :nodoc:
-      def type_cast(value)
-        type.deserialize(value)
-      end
-
-      def _original_value_for_database
-        value_before_type_cast
-      end
-    end
-
-    class FromUser < Attribute # :nodoc:
-      def type_cast(value)
-        type.cast(value)
-      end
-
-      def came_from_user?
-        true
-      end
-    end
-
-    class WithCastValue < Attribute # :nodoc:
-      def type_cast(value)
-        value
-      end
-
-      def changed_in_place?
-        false
-      end
-    end
-
-    class Null < Attribute # :nodoc:
-      def initialize(name)
-        super(name, nil, Type::Value.new)
-      end
-
-      def type_cast(*)
-        nil
-      end
-
-      def with_type(type)
-        self.class.with_cast_value(name, nil, type)
-      end
-
-      def with_value_from_database(value)
-        raise ActiveModel::MissingAttributeError, "can't write unknown attribute `#{name}`"
-      end
-      alias_method :with_value_from_user, :with_value_from_database
-    end
-
-    class Uninitialized < Attribute # :nodoc:
-      UNINITIALIZED_ORIGINAL_VALUE = Object.new
-
-      def initialize(name, type)
-        super(name, nil, type)
-      end
-
-      def value
-        if block_given?
-          yield name
+      def initialize_dup(other)
+        if defined?(@value) && @value.duplicable?
+          @value = @value.dup
         end
       end
 
-      def original_value
-        UNINITIALIZED_ORIGINAL_VALUE
+      def changed_from_assignment?
+        assigned? && type.changed?(original_value, value, value_before_type_cast)
       end
 
-      def value_for_database
+      def original_value_for_database
+        if assigned?
+          original_attribute.original_value_for_database
+        else
+          _original_value_for_database
+        end
       end
 
-      def initialized?
-        false
+      def _original_value_for_database
+        type.serialize(original_value)
       end
 
-      def with_type(type)
-        self.class.new(name, type)
+      class FromDatabase < Attribute # :nodoc:
+        def type_cast(value)
+          type.deserialize(value)
+        end
+
+        def _original_value_for_database
+          value_before_type_cast
+        end
       end
-    end
-    private_constant :FromDatabase, :FromUser, :Null, :Uninitialized, :WithCastValue
+
+      class FromUser < Attribute # :nodoc:
+        def type_cast(value)
+          type.cast(value)
+        end
+
+        def came_from_user?
+          true
+        end
+      end
+
+      class WithCastValue < Attribute # :nodoc:
+        def type_cast(value)
+          value
+        end
+
+        def changed_in_place?
+          false
+        end
+      end
+
+      class Null < Attribute # :nodoc:
+        def initialize(name)
+          super(name, nil, Type::Value.new)
+        end
+
+        def type_cast(*)
+          nil
+        end
+
+        def with_type(type)
+          self.class.with_cast_value(name, nil, type)
+        end
+
+        def with_value_from_database(value)
+          raise ActiveModel::MissingAttributeError, "can't write unknown attribute `#{name}`"
+        end
+        alias_method :with_value_from_user, :with_value_from_database
+      end
+
+      class Uninitialized < Attribute # :nodoc:
+        UNINITIALIZED_ORIGINAL_VALUE = Object.new
+
+        def initialize(name, type)
+          super(name, nil, type)
+        end
+
+        def value
+          if block_given?
+            yield name
+          end
+        end
+
+        def original_value
+          UNINITIALIZED_ORIGINAL_VALUE
+        end
+
+        def value_for_database
+        end
+
+        def initialized?
+          false
+        end
+
+        def with_type(type)
+          self.class.new(name, type)
+        end
+      end
+      private_constant :FromDatabase, :FromUser, :Null, :Uninitialized, :WithCastValue
   end
 end

@@ -167,16 +167,16 @@ class ActiveRecord::Relation
 
     private
 
-    def table
-      Arel::Table.new("table")
-    end
+      def table
+        Arel::Table.new("table")
+      end
 
-    def bind_param
-      Arel::Nodes::BindParam.new
-    end
+      def bind_param
+        Arel::Nodes::BindParam.new
+      end
 
-    def attribute(name, value)
-      ActiveRecord::Attribute.with_cast_value(name, value, ActiveRecord::Type::Value.new)
-    end
+      def attribute(name, value)
+        ActiveRecord::Attribute.with_cast_value(name, value, ActiveRecord::Type::Value.new)
+      end
   end
 end

@@ -10,15 +10,15 @@ module ActiveRecord
 
       private
 
-      def registration_klass
-        Registration
-      end
+        def registration_klass
+          Registration
+        end
 
-      def find_registration(symbol, *args)
-        registrations
-          .select { |registration| registration.matches?(symbol, *args) }
-          .max
-      end
+        def find_registration(symbol, *args)
+          registrations
+            .select { |registration| registration.matches?(symbol, *args) }
+            .max
+        end
     end
 
     class Registration
@@ -52,42 +52,42 @@ module ActiveRecord
 
       protected
 
-      attr_reader :name, :block, :adapter, :override
+        attr_reader :name, :block, :adapter, :override
 
-      def priority
-        result = 0
-        if adapter
-          result |= 1
+        def priority
+          result = 0
+          if adapter
+            result |= 1
+          end
+          if override
+            result |= 2
+          end
+          result
         end
-        if override
-          result |= 2
-        end
-        result
-      end
 
-      def priority_except_adapter
-        priority & 0b111111100
-      end
+        def priority_except_adapter
+          priority & 0b111111100
+        end
 
       private
 
-      def matches_adapter?(adapter: nil, **)
-        (self.adapter.nil? || adapter == self.adapter)
-      end
+        def matches_adapter?(adapter: nil, **)
+          (self.adapter.nil? || adapter == self.adapter)
+        end
 
-      def conflicts_with?(other)
-        same_priority_except_adapter?(other) &&
-          has_adapter_conflict?(other)
-      end
+        def conflicts_with?(other)
+          same_priority_except_adapter?(other) &&
+            has_adapter_conflict?(other)
+        end
 
-      def same_priority_except_adapter?(other)
-        priority_except_adapter == other.priority_except_adapter
-      end
+        def same_priority_except_adapter?(other)
+          priority_except_adapter == other.priority_except_adapter
+        end
 
-      def has_adapter_conflict?(other)
-        (override.nil? && other.adapter) ||
-          (adapter && other.override.nil?)
-      end
+        def has_adapter_conflict?(other)
+          (override.nil? && other.adapter) ||
+            (adapter && other.override.nil?)
+        end
     end
 
     class DecorationRegistration < Registration
@@ -112,15 +112,15 @@ module ActiveRecord
 
       protected
 
-      attr_reader :options, :klass
+        attr_reader :options, :klass
 
       private
 
-      def matches_options?(**kwargs)
-        options.all? do |key, value|
-          kwargs[key] == value
+        def matches_options?(**kwargs)
+          options.all? do |key, value|
+            kwargs[key] == value
+          end
         end
-      end
     end
   end
 

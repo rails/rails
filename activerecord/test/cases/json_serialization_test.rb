@@ -9,13 +9,13 @@ require "models/comment"
 module JsonSerializationHelpers
   private
 
-  def set_include_root_in_json(value)
-    original_root_in_json = ActiveRecord::Base.include_root_in_json
-    ActiveRecord::Base.include_root_in_json = value
-    yield
-  ensure
-    ActiveRecord::Base.include_root_in_json = original_root_in_json
-  end
+    def set_include_root_in_json(value)
+      original_root_in_json = ActiveRecord::Base.include_root_in_json
+      ActiveRecord::Base.include_root_in_json = value
+      yield
+    ensure
+      ActiveRecord::Base.include_root_in_json = original_root_in_json
+    end
 end
 
 class JsonSerializationTest < ActiveRecord::TestCase
@@ -275,7 +275,7 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
 
     ['"name":"David"', '"posts":[', '{"id":1}', '{"id":2}', '{"id":4}',
      '{"id":5}', '{"id":6}', '"name":"Mary"', '"posts":[', '{"id":7}', '{"id":9}'].each do |fragment|
-      assert json.include?(fragment), json
+       assert json.include?(fragment), json
      end
   end
 

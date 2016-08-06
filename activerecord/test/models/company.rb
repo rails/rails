@@ -22,12 +22,12 @@ class Company < AbstractCompany
 
   private
 
-  def private_method
-    "I am Jack's innermost fears and aspirations"
-  end
+    def private_method
+      "I am Jack's innermost fears and aspirations"
+    end
 
-  class SpecialCo < Company
-  end
+    class SpecialCo < Company
+    end
 end
 
 module Namespaced
@@ -218,13 +218,13 @@ class Account < ActiveRecord::Base
 
   protected
 
-  def check_empty_credit_limit
-    errors.add("credit_limit", :blank) if credit_limit.blank?
-  end
+    def check_empty_credit_limit
+      errors.add("credit_limit", :blank) if credit_limit.blank?
+    end
 
   private
 
-  def private_method
-    "Sir, yes sir!"
-  end
+    def private_method
+      "Sir, yes sir!"
+    end
 end
