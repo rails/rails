@@ -74,7 +74,7 @@ class String
   #   str.first(6) # => "hello"
   def first(limit = 1)
     if limit == 0
-      ''
+      ""
     elsif limit >= size
       self.dup
     else
@@ -94,7 +94,7 @@ class String
   #   str.last(6) # => "hello"
   def last(limit = 1)
     if limit == 0
-      ''
+      ""
     elsif limit >= size
       self.dup
     else

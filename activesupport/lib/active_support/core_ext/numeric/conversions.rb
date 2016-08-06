@@ -1,6 +1,6 @@
-require 'active_support/core_ext/big_decimal/conversions'
-require 'active_support/number_helper'
-require 'active_support/core_ext/module/deprecation'
+require "active_support/core_ext/big_decimal/conversions"
+require "active_support/number_helper"
+require "active_support/core_ext/module/deprecation"
 
 module ActiveSupport::NumericWithFormat
 

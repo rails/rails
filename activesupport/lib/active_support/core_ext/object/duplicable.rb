@@ -76,7 +76,7 @@ class Numeric
   end
 end
 
-require 'bigdecimal'
+require "bigdecimal"
 class BigDecimal
   # BigDecimals are duplicable:
   #

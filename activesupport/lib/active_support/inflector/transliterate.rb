@@ -1,5 +1,5 @@
-require 'active_support/core_ext/string/multibyte'
-require 'active_support/i18n'
+require "active_support/core_ext/string/multibyte"
+require "active_support/i18n"
 
 module ActiveSupport
   module Inflector
@@ -79,7 +79,7 @@ module ActiveSupport
     #   parameterize("Donald E. Knuth", preserve_case: true) # => "Donald-E-Knuth"
     #   parameterize("^trés|Jolie-- ", preserve_case: true) # => "tres-Jolie"
     #
-    def parameterize(string, sep = :unused, separator: '-', preserve_case: false)
+    def parameterize(string, sep = :unused, separator: "-", preserve_case: false)
       unless sep == :unused
         ActiveSupport::Deprecation.warn("Passing the separator argument as a positional parameter is deprecated and will soon be removed. Use `separator: '#{sep}'` instead.")
         separator = sep
@@ -102,7 +102,7 @@ module ActiveSupport
         # No more than one of the separator in a row.
         parameterized_string.gsub!(re_duplicate_separator, separator)
         # Remove leading/trailing separator.
-        parameterized_string.gsub!(re_leading_trailing_separator, ''.freeze)
+        parameterized_string.gsub!(re_leading_trailing_separator, "".freeze)
       end
       
       parameterized_string.downcase! unless preserve_case

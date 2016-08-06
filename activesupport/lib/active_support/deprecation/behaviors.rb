@@ -25,7 +25,7 @@ module ActiveSupport
             if defined?(Rails.logger) && Rails.logger
               Rails.logger
             else
-              require 'active_support/logger'
+              require "active_support/logger"
               ActiveSupport::Logger.new($stderr)
             end
         logger.warn message

@@ -1,6 +1,6 @@
-require 'set'
-require 'pathname'
-require 'concurrent/atomic/atomic_boolean'
+require "set"
+require "pathname"
+require "concurrent/atomic/atomic_boolean"
 
 module ActiveSupport
   # Allows you to "listen" to changes in a file system.
@@ -52,7 +52,7 @@ module ActiveSupport
         # to our test suite. Thus, we lazy load it and disable warnings locally.
         silence_warnings do
           begin
-            require 'listen'
+            require "listen"
           rescue LoadError => e
             raise LoadError, "Could not load the 'listen' gem. Add `gem 'listen'` to the development group of your Gemfile", e.backtrace
           end
@@ -130,7 +130,7 @@ module ActiveSupport
       end
 
       def normalize_extension(ext)
-        ext.to_s.sub(/\A\./, '')
+        ext.to_s.sub(/\A\./, "")
       end
 
       # Given a collection of Pathname objects returns the longest subpath

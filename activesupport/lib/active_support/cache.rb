@@ -1,29 +1,29 @@
-require 'benchmark'
-require 'zlib'
-require 'active_support/core_ext/array/extract_options'
-require 'active_support/core_ext/array/wrap'
-require 'active_support/core_ext/benchmark'
-require 'active_support/core_ext/module/attribute_accessors'
-require 'active_support/core_ext/numeric/bytes'
-require 'active_support/core_ext/numeric/time'
-require 'active_support/core_ext/object/to_param'
-require 'active_support/core_ext/string/inflections'
-require 'active_support/core_ext/string/strip'
+require "benchmark"
+require "zlib"
+require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/array/wrap"
+require "active_support/core_ext/benchmark"
+require "active_support/core_ext/module/attribute_accessors"
+require "active_support/core_ext/numeric/bytes"
+require "active_support/core_ext/numeric/time"
+require "active_support/core_ext/object/to_param"
+require "active_support/core_ext/string/inflections"
+require "active_support/core_ext/string/strip"
 
 module ActiveSupport
   # See ActiveSupport::Cache::Store for documentation.
   module Cache
-    autoload :FileStore,     'active_support/cache/file_store'
-    autoload :MemoryStore,   'active_support/cache/memory_store'
-    autoload :MemCacheStore, 'active_support/cache/mem_cache_store'
-    autoload :NullStore,     'active_support/cache/null_store'
+    autoload :FileStore,     "active_support/cache/file_store"
+    autoload :MemoryStore,   "active_support/cache/memory_store"
+    autoload :MemCacheStore, "active_support/cache/mem_cache_store"
+    autoload :NullStore,     "active_support/cache/null_store"
 
     # These options mean something to all cache implementations. Individual cache
     # implementations may support additional options.
     UNIVERSAL_OPTIONS = [:namespace, :compress, :compress_threshold, :expires_in, :race_condition_ttl]
 
     module Strategy
-      autoload :LocalCache, 'active_support/cache/strategy/local_cache'
+      autoload :LocalCache, "active_support/cache/strategy/local_cache"
     end
 
     class << self
@@ -300,7 +300,7 @@ module ActiveSupport
             save_block_result_to_cache(name, options) { |_name| yield _name }
           end
         elsif options && options[:force]
-          raise ArgumentError, 'Missing block: Calling `Cache#fetch` with `force: true` requires a block.'
+          raise ArgumentError, "Missing block: Calling `Cache#fetch` with `force: true` requires a block."
         else
           read(name, options)
         end
@@ -477,7 +477,7 @@ module ActiveSupport
           prefix = options[:namespace].is_a?(Proc) ? options[:namespace].call : options[:namespace]
           if prefix
             source = pattern.source
-            if source.start_with?('^')
+            if source.start_with?("^")
               source = source[1, source.length]
             else
               source = ".*#{source[0, source.length]}"

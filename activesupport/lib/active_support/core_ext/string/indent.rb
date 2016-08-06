@@ -3,7 +3,7 @@ class String
   #
   # Returns the indented string, or +nil+ if there was nothing to indent.
   def indent!(amount, indent_string=nil, indent_empty_lines=false)
-    indent_string = indent_string || self[/^[ \t]/] || ' '
+    indent_string = indent_string || self[/^[ \t]/] || " "
     re = indent_empty_lines ? /^/ : /^(?!$)/
     gsub!(re, indent_string * amount)
   end

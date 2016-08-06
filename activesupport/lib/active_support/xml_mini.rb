@@ -1,9 +1,9 @@
-require 'time'
-require 'base64'
-require 'bigdecimal'
-require 'active_support/core_ext/module/delegation'
-require 'active_support/core_ext/string/inflections'
-require 'active_support/core_ext/date_time/calculations'
+require "time"
+require "base64"
+require "bigdecimal"
+require "active_support/core_ext/module/delegation"
+require "active_support/core_ext/string/inflections"
+require "active_support/core_ext/date_time/calculations"
 
 module ActiveSupport
   # = XmlMini
@@ -20,11 +20,11 @@ module ActiveSupport
       attr_writer :original_filename, :content_type
 
       def original_filename
-        @original_filename || 'untitled'
+        @original_filename || "untitled"
       end
 
       def content_type
-        @content_type || 'application/octet-stream'
+        @content_type || "application/octet-stream"
       end
     end
 
@@ -159,8 +159,8 @@ module ActiveSupport
 
     # TODO: Add support for other encodings
     def _parse_binary(bin, entity) #:nodoc:
-      case entity['encoding']
-      when 'base64'
+      case entity["encoding"]
+      when "base64"
         ::Base64.decode64(bin)
       else
         bin
@@ -170,8 +170,8 @@ module ActiveSupport
     def _parse_file(file, entity)
       f = StringIO.new(::Base64.decode64(file))
       f.extend(FileLike)
-      f.original_filename = entity['name']
-      f.content_type = entity['content_type']
+      f.original_filename = entity["name"]
+      f.content_type = entity["content_type"]
       f
     end
 
@@ -195,5 +195,5 @@ module ActiveSupport
       end
   end
 
-  XmlMini.backend = 'REXML'
+  XmlMini.backend = "REXML"
 end

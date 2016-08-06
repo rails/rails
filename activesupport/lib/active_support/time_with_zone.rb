@@ -1,7 +1,7 @@
-require 'active_support/duration'
-require 'active_support/values/time_zone'
-require 'active_support/core_ext/object/acts_like'
-require 'active_support/core_ext/date_and_time/compatibility'
+require "active_support/duration"
+require "active_support/values/time_zone"
+require "active_support/core_ext/object/acts_like"
+require "active_support/core_ext/date_and_time/compatibility"
 
 module ActiveSupport
   # A Time-like class that can represent a time in any time zone. Necessary
@@ -39,11 +39,11 @@ module ActiveSupport
 
     # Report class name as 'Time' to thwart type checking.
     def self.name
-      'Time'
+      "Time"
     end
 
     PRECISIONS = Hash.new { |h, n| h[n] = "%FT%T.%#{n}N".freeze }
-    PRECISIONS[0] = '%FT%T'.freeze
+    PRECISIONS[0] = "%FT%T".freeze
 
     include Comparable, DateAndTime::Compatibility
     attr_reader :time_zone
@@ -171,12 +171,12 @@ module ActiveSupport
     end
 
     def init_with(coder) #:nodoc:
-      initialize(coder['utc'], coder['zone'], coder['time'])
+      initialize(coder["utc"], coder["zone"], coder["time"])
     end
 
     def encode_with(coder) #:nodoc:
-      coder.tag = '!ruby/object:ActiveSupport::TimeWithZone'
-      coder.map = { 'utc' => utc, 'zone' => time_zone, 'time' => time }
+      coder.tag = "!ruby/object:ActiveSupport::TimeWithZone"
+      coder.map = { "utc" => utc, "zone" => time_zone, "time" => time }
     end
 
     # Returns a string of the object's date and time in the format used by

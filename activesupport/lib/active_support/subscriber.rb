@@ -1,4 +1,4 @@
-require 'active_support/per_thread_registry'
+require "active_support/per_thread_registry"
 
 module ActiveSupport
   # ActiveSupport::Subscriber is an object set to consume
@@ -91,7 +91,7 @@ module ActiveSupport
       event.end = finished
       event.payload.merge!(payload)
 
-      method = name.split('.'.freeze).first
+      method = name.split(".".freeze).first
       send(method, event)
     end
 

@@ -1,5 +1,5 @@
-require 'active_support/core_ext/array/conversions'
-require 'active_support/core_ext/object/acts_like'
+require "active_support/core_ext/array/conversions"
+require "active_support/core_ext/object/acts_like"
 
 module ActiveSupport
   # Provides accurate date and time measurements using Date#advance and
@@ -9,8 +9,8 @@ module ActiveSupport
   class Duration
     attr_accessor :value, :parts
 
-    autoload :ISO8601Parser,     'active_support/duration/iso8601_parser'
-    autoload :ISO8601Serializer, 'active_support/duration/iso8601_serializer'
+    autoload :ISO8601Parser,     "active_support/duration/iso8601_parser"
+    autoload :ISO8601Serializer, "active_support/duration/iso8601_serializer"
 
     def initialize(value, parts) #:nodoc:
       @value, @parts = value, parts

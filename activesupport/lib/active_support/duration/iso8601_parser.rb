@@ -1,5 +1,5 @@
-require 'strscan'
-require 'active_support/core_ext/regexp'
+require "strscan"
+require "active_support/core_ext/regexp"
 
 module ActiveSupport
   class Duration
@@ -12,8 +12,8 @@ module ActiveSupport
       class ParsingError < ::ArgumentError; end
 
       PERIOD_OR_COMMA = /\.|,/
-      PERIOD = '.'.freeze
-      COMMA = ','.freeze
+      PERIOD = ".".freeze
+      COMMA = ",".freeze
 
       SIGN_MARKER = /\A\-|\+|/
       DATE_MARKER = /P/
@@ -21,8 +21,8 @@ module ActiveSupport
       DATE_COMPONENT = /(\-?\d+(?:[.,]\d+)?)(Y|M|D|W)/
       TIME_COMPONENT = /(\-?\d+(?:[.,]\d+)?)(H|M|S)/
 
-      DATE_TO_PART = { 'Y' => :years, 'M' => :months, 'W' => :weeks, 'D' => :days }
-      TIME_TO_PART = { 'H' => :hours, 'M' => :minutes, 'S' => :seconds }
+      DATE_TO_PART = { "Y" => :years, "M" => :months, "W" => :weeks, "D" => :days }
+      TIME_TO_PART = { "H" => :hours, "M" => :minutes, "S" => :seconds }
 
       DATE_COMPONENTS = [:years, :months, :days]
       TIME_COMPONENTS = [:hours, :minutes, :seconds]
@@ -42,7 +42,7 @@ module ActiveSupport
           case mode
             when :start
               if scan(SIGN_MARKER)
-                self.sign = (scanner.matched == '-') ? -1 : 1
+                self.sign = (scanner.matched == "-") ? -1 : 1
                 self.mode = :sign
               else
                 raise_parsing_error
@@ -99,21 +99,21 @@ module ActiveSupport
 
       # Checks for various semantic errors as stated in ISO 8601 standard.
       def validate!
-        raise_parsing_error('is empty duration') if parts.empty?
+        raise_parsing_error("is empty duration") if parts.empty?
 
         # Mixing any of Y, M, D with W is invalid.
         if parts.key?(:weeks) && (parts.keys & DATE_COMPONENTS).any?
-          raise_parsing_error('mixing weeks with other date parts not allowed')
+          raise_parsing_error("mixing weeks with other date parts not allowed")
         end
 
         # Specifying an empty T part is invalid.
         if mode == :time && (parts.keys & TIME_COMPONENTS).empty?
-          raise_parsing_error('time part marker is present but time part is empty')
+          raise_parsing_error("time part marker is present but time part is empty")
         end
 
         fractions = parts.values.reject(&:zero?).select { |a| (a % 1) != 0 }
         unless fractions.empty? || (fractions.size == 1 && fractions.last == @parts.values.reject(&:zero?).last)
-          raise_parsing_error '(only last part can be fractional)'
+          raise_parsing_error "(only last part can be fractional)"
         end
 
         return true

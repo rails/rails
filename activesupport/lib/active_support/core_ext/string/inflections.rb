@@ -1,5 +1,5 @@
-require 'active_support/inflector/methods'
-require 'active_support/inflector/transliterate'
+require "active_support/inflector/methods"
+require "active_support/inflector/transliterate"
 
 # String inflections define new methods on the String class to transform names for different purposes.
 # For instance, you can figure out the name of a table from the name of a class.
@@ -178,7 +178,7 @@ class String
   #
   #   <%= link_to(@person.name, person_path) %>
   #   # => <a href="/person/1-Donald-E-Knuth">Donald E. Knuth</a>
-  def parameterize(sep = :unused, separator: '-', preserve_case: false)
+  def parameterize(sep = :unused, separator: "-", preserve_case: false)
     unless sep == :unused
       ActiveSupport::Deprecation.warn("Passing the separator argument as a positional parameter is deprecated and will soon be removed. Use `separator: '#{sep}'` instead.")
       separator = sep

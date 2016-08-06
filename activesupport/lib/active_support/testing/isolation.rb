@@ -1,7 +1,7 @@
 module ActiveSupport
   module Testing
     module Isolation
-      require 'thread'
+      require "thread"
 
       def self.included(klass) #:nodoc:
         klass.class_eval do
@@ -74,8 +74,8 @@ module ActiveSupport
           else
             Tempfile.open("isolation") do |tmpfile|
               env = {
-                'ISOLATION_TEST' => self.class.name,
-                'ISOLATION_OUTPUT' => tmpfile.path
+                "ISOLATION_TEST" => self.class.name,
+                "ISOLATION_OUTPUT" => tmpfile.path
               }
 
               load_paths = $-I.map {|p| "-I\"#{File.expand_path(p)}\"" }.join(" ")

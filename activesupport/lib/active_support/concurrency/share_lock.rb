@@ -1,5 +1,5 @@
-require 'thread'
-require 'monitor'
+require "thread"
+require "monitor"
 
 module ActiveSupport
   module Concurrency

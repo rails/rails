@@ -1,5 +1,5 @@
-require 'active_support/core_ext/object/json'
-require 'active_support/core_ext/module/delegation'
+require "active_support/core_ext/object/json"
+require "active_support/core_ext/module/delegation"
 
 module ActiveSupport
   class << self
@@ -40,9 +40,9 @@ module ActiveSupport
           ESCAPED_CHARS = {
             "\u2028" => '\u2028',
             "\u2029" => '\u2029',
-            '>'      => '\u003e',
-            '<'      => '\u003c',
-            '&'      => '\u0026',
+            ">"      => '\u003e',
+            "<"      => '\u003c',
+            "&"      => '\u0026',
             }
 
           ESCAPE_REGEX_WITH_HTML_ENTITIES = /[\u2028\u2029><&]/u

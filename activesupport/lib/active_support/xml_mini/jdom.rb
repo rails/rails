@@ -1,9 +1,9 @@
-raise "JRuby is required to use the JDOM backend for XmlMini" unless RUBY_PLATFORM.include?('java')
+raise "JRuby is required to use the JDOM backend for XmlMini" unless RUBY_PLATFORM.include?("java")
 
-require 'jruby'
+require "jruby"
 include Java
 
-require 'active_support/core_ext/object/blank'
+require "active_support/core_ext/object/blank"
 
 java_import javax.xml.parsers.DocumentBuilder unless defined? DocumentBuilder
 java_import javax.xml.parsers.DocumentBuilderFactory unless defined? DocumentBuilderFactory
@@ -16,7 +16,7 @@ module ActiveSupport
   module XmlMini_JDOM #:nodoc:
     extend self
 
-    CONTENT_KEY = '__content__'.freeze
+    CONTENT_KEY = "__content__".freeze
 
     NODE_TYPE_NAMES = %w{ATTRIBUTE_NODE CDATA_SECTION_NODE COMMENT_NODE DOCUMENT_FRAGMENT_NODE
     DOCUMENT_NODE DOCUMENT_TYPE_NODE ELEMENT_NODE ENTITY_NODE ENTITY_REFERENCE_NODE NOTATION_NODE
@@ -46,7 +46,7 @@ module ActiveSupport
         xml_string_reader = StringReader.new(data)
         xml_input_source = InputSource.new(xml_string_reader)
         doc = @dbf.new_document_builder.parse(xml_input_source)
-        merge_element!({CONTENT_KEY => ''}, doc.document_element, XmlMini.depth)
+        merge_element!({CONTENT_KEY => ""}, doc.document_element, XmlMini.depth)
       end
     end
 
@@ -59,13 +59,13 @@ module ActiveSupport
     # element::
     #   XML element to merge into hash
     def merge_element!(hash, element, depth)
-      raise 'Document too deep!' if depth == 0
+      raise "Document too deep!" if depth == 0
       delete_empty(hash)
       merge!(hash, element.tag_name, collapse(element, depth))
     end
 
     def delete_empty(hash)
-      hash.delete(CONTENT_KEY) if hash[CONTENT_KEY] == ''
+      hash.delete(CONTENT_KEY) if hash[CONTENT_KEY] == ""
     end
 
     # Actually converts an XML document element into a data structure.
@@ -140,7 +140,7 @@ module ActiveSupport
       attribute_hash = {}
       attributes = element.attributes
       (0...attributes.length).each do |i|
-         attribute_hash[CONTENT_KEY] ||= ''
+         attribute_hash[CONTENT_KEY] ||= ""
          attribute_hash[attributes.item(i).name] =  attributes.item(i).value
       end
       attribute_hash
@@ -167,7 +167,7 @@ module ActiveSupport
     # element::
     #   XML element to be checked.
     def empty_content?(element)
-      text = ''
+      text = ""
       child_nodes = element.child_nodes
       (0...child_nodes.length).each do |i|
         item = child_nodes.item(i)

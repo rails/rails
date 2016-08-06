@@ -1,15 +1,15 @@
-gem 'minitest' # make sure we get the gem, not stdlib
-require 'minitest'
-require 'active_support/testing/tagged_logging'
-require 'active_support/testing/setup_and_teardown'
-require 'active_support/testing/assertions'
-require 'active_support/testing/deprecation'
-require 'active_support/testing/declarative'
-require 'active_support/testing/isolation'
-require 'active_support/testing/constant_lookup'
-require 'active_support/testing/time_helpers'
-require 'active_support/testing/file_fixtures'
-require 'active_support/core_ext/kernel/reporting'
+gem "minitest" # make sure we get the gem, not stdlib
+require "minitest"
+require "active_support/testing/tagged_logging"
+require "active_support/testing/setup_and_teardown"
+require "active_support/testing/assertions"
+require "active_support/testing/deprecation"
+require "active_support/testing/declarative"
+require "active_support/testing/isolation"
+require "active_support/testing/constant_lookup"
+require "active_support/testing/time_helpers"
+require "active_support/testing/file_fixtures"
+require "active_support/core_ext/kernel/reporting"
 
 module ActiveSupport
   class TestCase < ::Minitest::Test

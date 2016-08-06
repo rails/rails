@@ -1,13 +1,13 @@
 begin
-  require 'dalli'
+  require "dalli"
 rescue LoadError => e
   $stderr.puts "You don't have dalli installed in your application. Please add it to your Gemfile and run bundle install"
   raise e
 end
 
-require 'digest/md5'
-require 'active_support/core_ext/marshal'
-require 'active_support/core_ext/array/extract_options'
+require "digest/md5"
+require "active_support/core_ext/marshal"
+require "active_support/core_ext/array/extract_options"
 
 module ActiveSupport
   module Cache

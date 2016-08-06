@@ -1,7 +1,7 @@
-require 'openssl'
-require 'base64'
-require 'active_support/core_ext/array/extract_options'
-require 'active_support/message_verifier'
+require "openssl"
+require "base64"
+require "active_support/core_ext/array/extract_options"
+require "active_support/message_verifier"
 
 module ActiveSupport
   # MessageEncryptor is a simple way to encrypt values which get stored
@@ -59,8 +59,8 @@ module ActiveSupport
       sign_secret = signature_key_or_options.first
       @secret = secret
       @sign_secret = sign_secret
-      @cipher = options[:cipher] || 'aes-256-cbc'
-      @digest = options[:digest] || 'SHA1' unless aead_mode?
+      @cipher = options[:cipher] || "aes-256-cbc"
+      @digest = options[:digest] || "SHA1" unless aead_mode?
       @verifier = resolve_verifier
       @serializer = options[:serializer] || Marshal
     end

@@ -1,4 +1,4 @@
-require 'active_support/core_ext/module/delegation'
+require "active_support/core_ext/module/delegation"
 
 module ActiveSupport
   # NOTE: This approach has been deprecated for end-user code in favor of {thread_mattr_accessor}[rdoc-ref:Module#thread_mattr_accessor] and friends.
@@ -38,7 +38,7 @@ module ActiveSupport
   # If the class has an initializer, it must accept no arguments.
   module PerThreadRegistry
     def self.extended(object)
-      object.instance_variable_set '@per_thread_registry_key', object.name.freeze
+      object.instance_variable_set "@per_thread_registry_key", object.name.freeze
     end
 
     def instance

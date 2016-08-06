@@ -28,7 +28,7 @@ class Module
 
     # Strip out punctuation on predicates, bang or writer methods since
     # e.g. target?_without_feature is not a valid method name.
-    aliased_target, punctuation = target.to_s.sub(/([?!=])$/, ''), $1
+    aliased_target, punctuation = target.to_s.sub(/([?!=])$/, ""), $1
     yield(aliased_target, punctuation) if block_given?
 
     with_method = "#{aliased_target}_with_#{feature}#{punctuation}"

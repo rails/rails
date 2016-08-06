@@ -1,6 +1,6 @@
-require 'tzinfo'
-require 'concurrent/map'
-require 'active_support/core_ext/object/blank'
+require "tzinfo"
+require "concurrent/map"
+require "active_support/core_ext/object/blank"
 
 module ActiveSupport
   # The TimeZone class serves as a wrapper around TZInfo::Timezone instances.
@@ -180,8 +180,8 @@ module ActiveSupport
       "Samoa"                        => "Pacific/Apia"
     }
 
-    UTC_OFFSET_WITH_COLON = '%s%02d:%02d'
-    UTC_OFFSET_WITHOUT_COLON = UTC_OFFSET_WITH_COLON.tr(':', '')
+    UTC_OFFSET_WITH_COLON = "%s%02d:%02d"
+    UTC_OFFSET_WITHOUT_COLON = UTC_OFFSET_WITH_COLON.tr(":", "")
 
     @lazy_zones_map = Concurrent::Map.new
     @country_zones  = Concurrent::Map.new
@@ -193,7 +193,7 @@ module ActiveSupport
       #   ActiveSupport::TimeZone.seconds_to_utc_offset(-21_600) # => "-06:00"
       def seconds_to_utc_offset(seconds, colon = true)
         format = colon ? UTC_OFFSET_WITH_COLON : UTC_OFFSET_WITHOUT_COLON
-        sign = (seconds < 0 ? '-' : '+')
+        sign = (seconds < 0 ? "-" : "+")
         hours = seconds.abs / 3600
         minutes = (seconds.abs % 3600) / 60
         format % [sign, hours, minutes]
@@ -437,12 +437,12 @@ module ActiveSupport
     end
 
     def init_with(coder) #:nodoc:
-      initialize(coder['name'])
+      initialize(coder["name"])
     end
 
     def encode_with(coder) #:nodoc:
       coder.tag ="!ruby/object:#{self.class}"
-      coder.map = { 'name' => tzinfo.name }
+      coder.map = { "name" => tzinfo.name }
     end
 
     private

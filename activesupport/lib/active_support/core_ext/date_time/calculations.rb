@@ -1,4 +1,4 @@
-require 'date'
+require "date"
 
 class DateTime
   class << self

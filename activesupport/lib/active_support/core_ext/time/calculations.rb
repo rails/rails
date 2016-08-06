@@ -1,9 +1,9 @@
-require 'active_support/duration'
-require 'active_support/core_ext/time/conversions'
-require 'active_support/time_with_zone'
-require 'active_support/core_ext/time/zones'
-require 'active_support/core_ext/date_and_time/calculations'
-require 'active_support/core_ext/date/calculations'
+require "active_support/duration"
+require "active_support/core_ext/time/conversions"
+require "active_support/time_with_zone"
+require "active_support/core_ext/time/zones"
+require "active_support/core_ext/date_and_time/calculations"
+require "active_support/core_ext/date/calculations"
 
 class Time
   include DateAndTime::Calculations
@@ -112,7 +112,7 @@ class Time
     elsif zone
       ::Time.local(new_year, new_month, new_day, new_hour, new_min, new_sec, new_usec)
     else
-      raise ArgumentError, 'argument out of range' if new_usec >= 1000000
+      raise ArgumentError, "argument out of range" if new_usec >= 1000000
       ::Time.new(new_year, new_month, new_day, new_hour, new_min, new_sec + (new_usec.to_r / 1000000), utc_offset)
     end
   end

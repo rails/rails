@@ -1,6 +1,6 @@
-require 'active_support/core_ext/kernel/singleton_class'
-require 'active_support/core_ext/module/remove_method'
-require 'active_support/core_ext/array/extract_options'
+require "active_support/core_ext/kernel/singleton_class"
+require "active_support/core_ext/module/remove_method"
+require "active_support/core_ext/array/extract_options"
 
 class Class
   # Declare a class-level attribute whose value is inheritable by subclasses.

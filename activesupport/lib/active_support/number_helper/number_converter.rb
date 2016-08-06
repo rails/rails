@@ -1,8 +1,8 @@
-require 'active_support/core_ext/big_decimal/conversions'
-require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/hash/keys'
-require 'active_support/i18n'
-require 'active_support/core_ext/class/attribute'
+require "active_support/core_ext/big_decimal/conversions"
+require "active_support/core_ext/object/blank"
+require "active_support/core_ext/hash/keys"
+require "active_support/i18n"
+require "active_support/core_ext/class/attribute"
 
 module ActiveSupport
   module NumberHelper
@@ -169,7 +169,7 @@ module ActiveSupport
         end
 
         def default_value(key)
-          key.split('.').reduce(DEFAULTS) { |defaults, k| defaults[k.to_sym] }
+          key.split(".").reduce(DEFAULTS) { |defaults, k| defaults[k.to_sym] }
         end
 
         def valid_float? #:nodoc:

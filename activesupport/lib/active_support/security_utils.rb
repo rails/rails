@@ -1,4 +1,4 @@
-require 'digest'
+require "digest"
 
 module ActiveSupport
   module SecurityUtils

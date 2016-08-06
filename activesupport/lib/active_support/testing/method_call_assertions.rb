@@ -1,4 +1,4 @@
-require 'minitest/mock'
+require "minitest/mock"
 
 module ActiveSupport
   module Testing
