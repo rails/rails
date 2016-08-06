@@ -150,8 +150,8 @@ class RelationScopingTest < ActiveRecord::TestCase
   end
 
   def test_scoped_create_with_where
-    new_comment = VerySpecialComment.where(:post_id => 1).scoping do
-      VerySpecialComment.create :body => "Wonderful world"
+    new_comment = VerySpecialComment.where(post_id: 1).scoping do
+      VerySpecialComment.create body: "Wonderful world"
     end
 
     assert_equal 1, new_comment.post_id
@@ -159,8 +159,8 @@ class RelationScopingTest < ActiveRecord::TestCase
   end
 
   def test_scoped_create_with_create_with
-    new_comment = VerySpecialComment.create_with(:post_id => 1).scoping do
-      VerySpecialComment.create :body => "Wonderful world"
+    new_comment = VerySpecialComment.create_with(post_id: 1).scoping do
+      VerySpecialComment.create body: "Wonderful world"
     end
 
     assert_equal 1, new_comment.post_id
@@ -168,8 +168,8 @@ class RelationScopingTest < ActiveRecord::TestCase
   end
 
   def test_scoped_create_with_create_with_has_higher_priority
-    new_comment = VerySpecialComment.where(:post_id => 2).create_with(:post_id => 1).scoping do
-      VerySpecialComment.create :body => "Wonderful world"
+    new_comment = VerySpecialComment.where(post_id: 2).create_with(post_id: 1).scoping do
+      VerySpecialComment.create body: "Wonderful world"
     end
 
     assert_equal 1, new_comment.post_id
@@ -193,7 +193,7 @@ class RelationScopingTest < ActiveRecord::TestCase
   end
 
   def test_update_all_default_scope_filters_on_joins
-    DeveloperFilteredOnJoins.update_all(:salary => 65000)
+    DeveloperFilteredOnJoins.update_all(salary: 65000)
     assert_equal 65000, Developer.find(developers(:david).id).salary
 
     # has not changed jamis
@@ -260,9 +260,9 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
   end
 
   def test_replace_options
-    Developer.where(:name => "David").scoping do
+    Developer.where(name: "David").scoping do
       Developer.unscoped do
-        assert_equal "Jamis", Developer.where(:name => "Jamis").first[:name]
+        assert_equal "Jamis", Developer.where(name: "Jamis").first[:name]
       end
 
       assert_equal "David", Developer.first[:name]
@@ -290,9 +290,9 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
   end
 
   def test_nested_scoped_create
-    comment = Comment.create_with(:post_id => 1).scoping do
-      Comment.create_with(:post_id => 2).scoping do
-        Comment.create :body => "Hey guys, nested scopes are broken. Please fix!"
+    comment = Comment.create_with(post_id: 1).scoping do
+      Comment.create_with(post_id: 2).scoping do
+        Comment.create body: "Hey guys, nested scopes are broken. Please fix!"
       end
     end
 
@@ -300,10 +300,10 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
   end
 
   def test_nested_exclusive_scope_for_create
-    comment = Comment.create_with(:body => "Hey guys, nested scopes are broken. Please fix!").scoping do
-      Comment.unscoped.create_with(:post_id => 1).scoping do
+    comment = Comment.create_with(body: "Hey guys, nested scopes are broken. Please fix!").scoping do
+      Comment.unscoped.create_with(post_id: 1).scoping do
         assert Comment.new.body.blank?
-        Comment.create :body => "Hey guys"
+        Comment.create body: "Hey guys"
       end
     end
 
@@ -352,7 +352,7 @@ class HasManyScopingTest < ActiveRecord::TestCase
   end
 
   def test_should_maintain_default_scope_on_eager_loaded_associations
-    michael = Person.where(:id => people(:michael).id).includes(:bad_references).first
+    michael = Person.where(id: people(:michael).id).includes(:bad_references).first
     magician = BadReference.find(1)
     assert_equal [magician], michael.bad_references
   end

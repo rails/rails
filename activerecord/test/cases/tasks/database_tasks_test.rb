@@ -213,7 +213,7 @@ module ActiveRecord
 
   class DatabaseTasksDropAllTest < ActiveRecord::TestCase
     def setup
-      @configurations = {:development => {"database" => "my-db"}}
+      @configurations = {development: {"database" => "my-db"}}
 
       ActiveRecord::Base.stubs(:configurations).returns(@configurations)
     end
@@ -374,7 +374,7 @@ module ActiveRecord
 
   class DatabaseTasksPurgeAllTest < ActiveRecord::TestCase
     def test_purge_all_local_configurations
-      configurations = {:development => {"database" => "my-db"}}
+      configurations = {development: {"database" => "my-db"}}
       ActiveRecord::Base.stubs(:configurations).returns(configurations)
 
       ActiveRecord::Tasks::DatabaseTasks.expects(:purge).

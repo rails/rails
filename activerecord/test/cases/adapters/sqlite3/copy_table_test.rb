@@ -25,7 +25,7 @@ class CopyTableTest < ActiveRecord::SQLite3TestCase
 
   def test_copy_table_renaming_column
     test_copy_table("customers", "customers2",
-        :rename => {"name" => "person_name"}) do |from, to, options|
+        rename: {"name" => "person_name"}) do |from, to, options|
       expected = column_values(from, "name")
       assert_equal expected, column_values(to, "person_name")
       assert expected.any?, "No values in table: #{expected.inspect}"
@@ -77,7 +77,7 @@ class CopyTableTest < ActiveRecord::SQLite3TestCase
 
 protected
   def copy_table(from, to, options = {})
-    @connection.copy_table(from, to, {:temporary => true}.merge(options))
+    @connection.copy_table(from, to, {temporary: true}.merge(options))
   end
 
   def column_names(table)

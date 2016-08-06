@@ -81,7 +81,7 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_create_symbol_fixtures
-    fixtures = ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, :collections, :collections => Course) { Course.connection }
+    fixtures = ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, :collections, collections: Course) { Course.connection }
 
     assert Course.find_by_name("Collection"), "course is not in the database"
     assert fixtures.detect { |f| f.name == "collections" }, "no fixtures named 'collections' in #{fixtures.map(&:name).inspect}"
@@ -115,10 +115,10 @@ class FixturesTest < ActiveRecord::TestCase
         t.column :bonus_time, :time
         t.column :last_read, :date
         t.column :content, :string
-        t.column :approved, :boolean, :default => true
-        t.column :replies_count, :integer, :default => 0
+        t.column :approved, :boolean, default: true
+        t.column :replies_count, :integer, default: 0
         t.column :parent_id, :integer
-        t.column :type, :string, :limit => 50
+        t.column :type, :string, limit: 50
       end
 
       # Store existing prefix/suffix
@@ -291,11 +291,11 @@ class HasManyThroughFixture < ActiveSupport::TestCase
     treasure = make_model "Treasure"
 
     pt.table_name = "parrots_treasures"
-    pt.belongs_to :parrot, :anonymous_class => parrot
-    pt.belongs_to :treasure, :anonymous_class => treasure
+    pt.belongs_to :parrot, anonymous_class: parrot
+    pt.belongs_to :treasure, anonymous_class: treasure
 
-    parrot.has_many :parrot_treasures, :anonymous_class => pt
-    parrot.has_many :treasures, :through => :parrot_treasures
+    parrot.has_many :parrot_treasures, anonymous_class: pt
+    parrot.has_many :treasures, through: :parrot_treasures
 
     parrots = File.join FIXTURES_ROOT, "parrots"
 
@@ -309,11 +309,11 @@ class HasManyThroughFixture < ActiveSupport::TestCase
     parrot = make_model "Parrot"
     treasure = make_model "Treasure"
 
-    pt.belongs_to :parrot, :anonymous_class => parrot
-    pt.belongs_to :treasure, :anonymous_class => treasure
+    pt.belongs_to :parrot, anonymous_class: parrot
+    pt.belongs_to :treasure, anonymous_class: treasure
 
-    parrot.has_many :parrot_treasures, :anonymous_class => pt
-    parrot.has_many :treasures, :through => :parrot_treasures
+    parrot.has_many :parrot_treasures, anonymous_class: pt
+    parrot.has_many :treasures, through: :parrot_treasures
 
     parrots = File.join FIXTURES_ROOT, "parrots"
 
@@ -339,7 +339,7 @@ if Account.connection.respond_to?(:reset_pk_sequence!)
     fixtures :companies
 
     def setup
-      @instances = [Account.new(:credit_limit => 50), Company.new(:name => "RoR Consulting"), Course.new(name: "Test")]
+      @instances = [Account.new(credit_limit: 50), Company.new(name: "RoR Consulting"), Course.new(name: "Test")]
       ActiveRecord::FixtureSet.reset_cache # make sure tables get reinitialized
     end
 
@@ -553,7 +553,7 @@ class SetFixtureClassPrevailsTest < ActiveRecord::TestCase
 end
 
 class CheckSetTableNameFixturesTest < ActiveRecord::TestCase
-  set_fixture_class :funny_jokes => Joke
+  set_fixture_class funny_jokes: Joke
   fixtures :funny_jokes
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
   # and thus takes into account our set_fixture_class
@@ -565,7 +565,7 @@ class CheckSetTableNameFixturesTest < ActiveRecord::TestCase
 end
 
 class FixtureNameIsNotTableNameFixturesTest < ActiveRecord::TestCase
-  set_fixture_class :items => Book
+  set_fixture_class items: Book
   fixtures :items
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
   # and thus takes into account our set_fixture_class
@@ -577,7 +577,7 @@ class FixtureNameIsNotTableNameFixturesTest < ActiveRecord::TestCase
 end
 
 class FixtureNameIsNotTableNameMultipleFixturesTest < ActiveRecord::TestCase
-  set_fixture_class :items => Book, :funny_jokes => Joke
+  set_fixture_class items: Book, funny_jokes: Joke
   fixtures :items, :funny_jokes
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
   # and thus takes into account our set_fixture_class
@@ -593,7 +593,7 @@ class FixtureNameIsNotTableNameMultipleFixturesTest < ActiveRecord::TestCase
 end
 
 class CustomConnectionFixturesTest < ActiveRecord::TestCase
-  set_fixture_class :courses => Course
+  set_fixture_class courses: Course
   fixtures :courses
   self.use_transactional_tests = false
 
@@ -608,7 +608,7 @@ class CustomConnectionFixturesTest < ActiveRecord::TestCase
 end
 
 class TransactionalFixturesOnCustomConnectionTest < ActiveRecord::TestCase
-  set_fixture_class :courses => Course
+  set_fixture_class courses: Course
   fixtures :courses
   self.use_transactional_tests = true
 
@@ -627,7 +627,7 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
   self.use_instantiated_fixtures = false
 
   def test_transaction_created_on_connection_notification
-    connection = stub(:transaction_open? => false)
+    connection = stub(transaction_open?: false)
     connection.expects(:begin_transaction).with(joinable: false)
     fire_connection_notification(connection)
   end
@@ -676,7 +676,7 @@ class InvalidTableNameFixturesTest < ActiveRecord::TestCase
 end
 
 class CheckEscapedYamlFixturesTest < ActiveRecord::TestCase
-  set_fixture_class :funny_jokes => Joke
+  set_fixture_class funny_jokes: Joke
   fixtures :funny_jokes
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
   # and thus takes into account our set_fixture_class

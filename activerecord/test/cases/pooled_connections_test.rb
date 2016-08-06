@@ -18,7 +18,7 @@ class PooledConnectionsTest < ActiveRecord::TestCase
 
   # Will deadlock due to lack of Monitor timeouts in 1.9
   def checkout_checkin_connections(pool_size, threads)
-    ActiveRecord::Base.establish_connection(@connection.merge({:pool => pool_size, :checkout_timeout => 0.5}))
+    ActiveRecord::Base.establish_connection(@connection.merge({pool: pool_size, checkout_timeout: 0.5}))
     @connection_count = 0
     @timed_out = 0
     threads.times do
@@ -36,7 +36,7 @@ class PooledConnectionsTest < ActiveRecord::TestCase
   end
 
   def checkout_checkin_connections_loop(pool_size, loops)
-    ActiveRecord::Base.establish_connection(@connection.merge({:pool => pool_size, :checkout_timeout => 0.5}))
+    ActiveRecord::Base.establish_connection(@connection.merge({pool: pool_size, checkout_timeout: 0.5}))
     @connection_count = 0
     @timed_out = 0
     loops.times do
@@ -66,7 +66,7 @@ class PooledConnectionsTest < ActiveRecord::TestCase
   end
 
   def test_pooled_connection_remove
-    ActiveRecord::Base.establish_connection(@connection.merge({:pool => 2, :checkout_timeout => 0.5}))
+    ActiveRecord::Base.establish_connection(@connection.merge({pool: 2, checkout_timeout: 0.5}))
     old_connection = ActiveRecord::Base.connection
     extra_connection = ActiveRecord::Base.connection_pool.checkout
     ActiveRecord::Base.connection_pool.remove(extra_connection)
@@ -76,6 +76,6 @@ class PooledConnectionsTest < ActiveRecord::TestCase
   private
 
   def add_record(name)
-    ActiveRecord::Base.connection_pool.with_connection { Project.create! :name => name }
+    ActiveRecord::Base.connection_pool.with_connection { Project.create! name: name }
   end
 end unless in_memory_db?

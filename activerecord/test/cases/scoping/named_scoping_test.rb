@@ -69,10 +69,10 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_scopes_with_options_limit_finds_to_those_matching_the_criteria_specified
-    assert !Topic.all.merge!(:where => {:approved => true}).to_a.empty?
+    assert !Topic.all.merge!(where: {approved: true}).to_a.empty?
 
-    assert_equal Topic.all.merge!(:where => {:approved => true}).to_a, Topic.approved
-    assert_equal Topic.where(:approved => true).count, Topic.approved.count
+    assert_equal Topic.all.merge!(where: {approved: true}).to_a, Topic.approved
+    assert_equal Topic.where(approved: true).count, Topic.approved.count
   end
 
   def test_scopes_with_string_name_can_be_composed
@@ -82,8 +82,8 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_scopes_are_composable
-    assert_equal((approved = Topic.all.merge!(:where => {:approved => true}).to_a), Topic.approved)
-    assert_equal((replied = Topic.all.merge!(:where => "replies_count > 0").to_a), Topic.replied)
+    assert_equal((approved = Topic.all.merge!(where: {approved: true}).to_a), Topic.approved)
+    assert_equal((replied = Topic.all.merge!(where: "replies_count > 0").to_a), Topic.replied)
     assert !(approved == replied)
     assert !(approved & replied).empty?
 
@@ -238,9 +238,9 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_many_should_return_false_if_none_or_one
-    topics = Topic.base.where(:id => 0)
+    topics = Topic.base.where(id: 0)
     assert !topics.many?
-    topics = Topic.base.where(:id => 1)
+    topics = Topic.base.where(id: 1)
     assert !topics.many?
   end
 
@@ -357,7 +357,7 @@ class NamedScopingTest < ActiveRecord::TestCase
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "topics"
       scope :"title containing space", -> { where("title LIKE '% %'") }
-      scope :approved, -> { where(:approved => true) }
+      scope :approved, -> { where(approved: true) }
     end
     assert_equal klass.send(:"title containing space"), klass.where("title LIKE '% %'")
     assert_equal klass.approved.send(:"title containing space"), klass.approved.where("title LIKE '% %'")
@@ -431,11 +431,11 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_equal 4, Topic.approved.count
 
     assert_queries(5) do
-      Topic.approved.find_each(:batch_size => 1) {|t| assert t.approved? }
+      Topic.approved.find_each(batch_size: 1) {|t| assert t.approved? }
     end
 
     assert_queries(3) do
-      Topic.approved.find_in_batches(:batch_size => 2) do |group|
+      Topic.approved.find_in_batches(batch_size: 2) do |group|
         group.each {|t| assert t.approved? }
       end
     end
@@ -517,7 +517,7 @@ class NamedScopingTest < ActiveRecord::TestCase
   def test_scopes_to_get_newest
     post = posts(:welcome)
     old_last_comment = post.comments.newest
-    new_comment = post.comments.create(:body => "My new comment")
+    new_comment = post.comments.create(body: "My new comment")
     assert_equal new_comment, post.comments.newest
     assert_not_equal old_last_comment, post.comments.newest
   end
@@ -543,7 +543,7 @@ class NamedScopingTest < ActiveRecord::TestCase
     klass.table_name = "posts"
 
     assert_raises(ArgumentError) do
-      klass.send(:default_scope, klass.where(:id => posts(:welcome).id))
+      klass.send(:default_scope, klass.where(id: posts(:welcome).id))
     end
   end
 

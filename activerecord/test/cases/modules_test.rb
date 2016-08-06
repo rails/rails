@@ -41,7 +41,7 @@ class ModulesTest < ActiveRecord::TestCase
   end
 
   def test_associations_spanning_cross_modules
-    account = MyApplication::Billing::Account.all.merge!(:order => "id").first
+    account = MyApplication::Billing::Account.all.merge!(order: "id").first
     assert_kind_of MyApplication::Business::Firm, account.firm
     assert_kind_of MyApplication::Billing::Firm, account.qualified_billing_firm
     assert_kind_of MyApplication::Billing::Firm, account.unqualified_billing_firm
@@ -50,7 +50,7 @@ class ModulesTest < ActiveRecord::TestCase
   end
 
   def test_find_account_and_include_company
-    account = MyApplication::Billing::Account.all.merge!(:includes => :firm).find(1)
+    account = MyApplication::Billing::Account.all.merge!(includes: :firm).find(1)
     assert_kind_of MyApplication::Business::Firm, account.firm
   end
 
@@ -73,8 +73,8 @@ class ModulesTest < ActiveRecord::TestCase
     clients = []
 
     assert_nothing_raised do
-      clients << MyApplication::Business::Client.references(:accounts).merge!(:includes => {:firm => :account}, :where => "accounts.id IS NOT NULL").find(3)
-      clients << MyApplication::Business::Client.includes(:firm => :account).find(3)
+      clients << MyApplication::Business::Client.references(:accounts).merge!(includes: {firm: :account}, where: "accounts.id IS NOT NULL").find(3)
+      clients << MyApplication::Business::Client.includes(firm: :account).find(3)
     end
 
     clients.each do |client|

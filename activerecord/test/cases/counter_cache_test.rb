@@ -19,12 +19,12 @@ class CounterCacheTest < ActiveRecord::TestCase
   fixtures :topics, :categories, :categorizations, :cars, :dogs, :dog_lovers, :people, :friendships, :subscribers, :subscriptions, :books
 
   class ::SpecialTopic < ::Topic
-    has_many :special_replies, :foreign_key => "parent_id"
-    has_many :lightweight_special_replies, -> { select("topics.id, topics.title") }, :foreign_key => "parent_id", :class_name => "SpecialReply"
+    has_many :special_replies, foreign_key: "parent_id"
+    has_many :lightweight_special_replies, -> { select("topics.id, topics.title") }, foreign_key: "parent_id", class_name: "SpecialReply"
   end
 
   class ::SpecialReply < ::Reply
-    belongs_to :special_topic, :foreign_key => "parent_id", :counter_cache => "replies_count"
+    belongs_to :special_topic, foreign_key: "parent_id", counter_cache: "replies_count"
   end
 
   setup do
@@ -79,7 +79,7 @@ class CounterCacheTest < ActiveRecord::TestCase
   end
 
   test "reset counters with modularized and camelized classnames" do
-    special = SpecialTopic.create!(:title => "Special")
+    special = SpecialTopic.create!(title: "Special")
     SpecialTopic.increment_counter(:replies_count, special.id)
 
     assert_difference "special.reload.replies_count", -1 do
@@ -116,13 +116,13 @@ class CounterCacheTest < ActiveRecord::TestCase
     assert_equal 2, category.categorizations.count
     assert_nil category.categorizations_count
 
-    Category.update_counters(category.id, :categorizations_count => category.categorizations.count)
+    Category.update_counters(category.id, categorizations_count: category.categorizations.count)
     assert_equal 2, category.reload.categorizations_count
   end
 
   test "update counter for decrement" do
     assert_difference "@topic.reload.replies_count", -3 do
-      Topic.update_counters(@topic.id, :replies_count => -3)
+      Topic.update_counters(@topic.id, replies_count: -3)
     end
   end
 
@@ -130,7 +130,7 @@ class CounterCacheTest < ActiveRecord::TestCase
     t1, t2 = topics(:first, :second)
 
     assert_difference ["t1.reload.replies_count", "t2.reload.replies_count"], 2 do
-      Topic.update_counters([t1.id, t2.id], :replies_count => 2)
+      Topic.update_counters([t1.id, t2.id], replies_count: 2)
     end
   end
 
@@ -174,7 +174,7 @@ class CounterCacheTest < ActiveRecord::TestCase
   end
 
   test "reset counter works with select declared on association" do
-    special = SpecialTopic.create!(:title => "Special")
+    special = SpecialTopic.create!(title: "Special")
     SpecialTopic.increment_counter(:replies_count, special.id)
 
     assert_difference "special.reload.replies_count", -1 do

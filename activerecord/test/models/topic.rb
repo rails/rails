@@ -5,15 +5,15 @@ class Topic < ActiveRecord::Base
       where "written_on < ?", time
     end
   }
-  scope :approved, -> { where(:approved => true) }
-  scope :rejected, -> { where(:approved => false) }
+  scope :approved, -> { where(approved: true) }
+  scope :rejected, -> { where(approved: false) }
 
   scope :scope_with_lambda, lambda { all }
 
-  scope :by_lifo, -> { where(:author_name => "lifo") }
+  scope :by_lifo, -> { where(author_name: "lifo") }
   scope :replied, -> { where "replies_count > 0" }
 
-  scope "approved_as_string", -> { where(:approved => true) }
+  scope "approved_as_string", -> { where(approved: true) }
   scope :anonymous_extension, -> { all } do
     def one
       1
@@ -22,7 +22,7 @@ class Topic < ActiveRecord::Base
 
   scope :with_object, Class.new(Struct.new(:klass)) {
     def call
-      klass.where(:approved => true)
+      klass.where(approved: true)
     end
   }.new(self)
 
@@ -35,8 +35,8 @@ class Topic < ActiveRecord::Base
   has_many :replies, dependent: :destroy, foreign_key: "parent_id", autosave: true
   has_many :approved_replies, -> { approved }, class_name: "Reply", foreign_key: "parent_id", counter_cache: "replies_count"
 
-  has_many :unique_replies, :dependent => :destroy, :foreign_key => "parent_id"
-  has_many :silly_unique_replies, :dependent => :destroy, :foreign_key => "parent_id"
+  has_many :unique_replies, dependent: :destroy, foreign_key: "parent_id"
+  has_many :silly_unique_replies, dependent: :destroy, foreign_key: "parent_id"
 
   serialize :content
 
@@ -113,6 +113,6 @@ end
 
 module Web
   class Topic < ActiveRecord::Base
-    has_many :replies, :dependent => :destroy, :foreign_key => "parent_id", :class_name => "Web::Reply"
+    has_many :replies, dependent: :destroy, foreign_key: "parent_id", class_name: "Web::Reply"
   end
 end

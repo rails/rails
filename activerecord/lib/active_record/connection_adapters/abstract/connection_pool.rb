@@ -339,7 +339,7 @@ module ActiveRecord
         # that case +conn.owner+ attr should be consulted.
         # Access and modification of +@thread_cached_conns+ does not require
         # synchronization.
-        @thread_cached_conns = Concurrent::Map.new(:initial_capacity => @size)
+        @thread_cached_conns = Concurrent::Map.new(initial_capacity: @size)
 
         @connections         = []
         @automatic_reconnect = true
@@ -833,8 +833,8 @@ module ActiveRecord
     class ConnectionHandler
       def initialize
         # These caches are keyed by spec.name (ConnectionSpecification#name).
-        @owner_to_pool = Concurrent::Map.new(:initial_capacity => 2) do |h,k|
-          h[k] = Concurrent::Map.new(:initial_capacity => 2)
+        @owner_to_pool = Concurrent::Map.new(initial_capacity: 2) do |h,k|
+          h[k] = Concurrent::Map.new(initial_capacity: 2)
         end
       end
 

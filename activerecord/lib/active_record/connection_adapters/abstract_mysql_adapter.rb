@@ -480,7 +480,7 @@ module ActiveRecord
       def change_column_default(table_name, column_name, default_or_changes) #:nodoc:
         default = extract_new_default_value(default_or_changes)
         column = column_for(table_name, column_name)
-        change_column table_name, column_name, column.sql_type, :default => default
+        change_column table_name, column_name, column.sql_type, default: default
       end
 
       def change_column_null(table_name, column_name, null, default = nil) #:nodoc:
@@ -490,7 +490,7 @@ module ActiveRecord
           execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
         end
 
-        change_column table_name, column_name, column.sql_type, :null => null
+        change_column table_name, column_name, column.sql_type, null: null
       end
 
       def change_column(table_name, column_name, type, options = {}) #:nodoc:

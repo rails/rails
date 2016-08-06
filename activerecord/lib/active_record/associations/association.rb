@@ -19,7 +19,7 @@ module ActiveRecord
       attr_reader :owner, :target, :reflection
       attr_accessor :inversed
 
-      delegate :options, :to => :reflection
+      delegate :options, to: :reflection
 
       def initialize(owner, reflection)
         reflection.check_validity!

@@ -20,7 +20,7 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
 
   def test_construct_finder_sql_does_not_table_name_collide_on_duplicate_associations
     assert_nothing_raised do
-      sql = Person.joins(:agents => {:agents => :agents}).joins(:agents => {:agents => {:primary_contact => :agents}}).to_sql
+      sql = Person.joins(agents: {agents: :agents}).joins(agents: {agents: {primary_contact: :agents}}).to_sql
       assert_match(/agents_people_4/i, sql)
     end
   end
@@ -47,7 +47,7 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
   end
 
   def test_join_conditions_allow_nil_associations
-    authors = Author.includes(:essays).where(:essays => {:id => nil})
+    authors = Author.includes(:essays).where(essays: {id: nil})
     assert_equal 2, authors.count
   end
 
@@ -92,7 +92,7 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
   end
 
   def test_find_with_sti_join
-    scope = Post.joins(:special_comments).where(:id => posts(:sti_comments).id)
+    scope = Post.joins(:special_comments).where(id: posts(:sti_comments).id)
 
     # The join should match SpecialComment and its subclasses only
     assert scope.where("comments.type" => "Comment").empty?
@@ -102,12 +102,12 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
 
   def test_find_with_conditions_on_reflection
     assert !posts(:welcome).comments.empty?
-    assert Post.joins(:nonexistent_comments).where(:id => posts(:welcome).id).empty? # [sic!]
+    assert Post.joins(:nonexistent_comments).where(id: posts(:welcome).id).empty? # [sic!]
   end
 
   def test_find_with_conditions_on_through_reflection
     assert !posts(:welcome).tags.empty?
-    assert Post.joins(:misc_tags).where(:id => posts(:welcome).id).empty?
+    assert Post.joins(:misc_tags).where(id: posts(:welcome).id).empty?
   end
 
   test "the default scope of the target is applied when joining associations" do

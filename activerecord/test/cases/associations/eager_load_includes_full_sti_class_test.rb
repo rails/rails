@@ -5,7 +5,7 @@ require "models/tagging"
 module Namespaced
   class Post < ActiveRecord::Base
     self.table_name = "posts"
-    has_one :tagging, :as => :taggable, :class_name => "Tagging"
+    has_one :tagging, as: :taggable, class_name: "Tagging"
   end
 end
 
@@ -16,8 +16,8 @@ class EagerLoadIncludeFullStiClassNamesTest < ActiveRecord::TestCase
   end
 
   def generate_test_objects
-    post = Namespaced::Post.create( :title => "Great stuff", :body => "This is not", :author_id => 1 )
-    Tagging.create( :taggable => post )
+    post = Namespaced::Post.create( title: "Great stuff", body: "This is not", author_id: 1 )
+    Tagging.create( taggable: post )
   end
 
   def test_class_names

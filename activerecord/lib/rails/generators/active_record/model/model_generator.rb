@@ -3,7 +3,7 @@ require "rails/generators/active_record"
 module ActiveRecord
   module Generators # :nodoc:
     class ModelGenerator < Base # :nodoc:
-      argument :attributes, :type => :array, :default => [], :banner => "field[:type][:index] field[:type][:index]"
+      argument :attributes, type: :array, default: [], banner: "field[:type][:index] field[:type][:index]"
 
       check_class_collision
 

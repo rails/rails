@@ -535,7 +535,7 @@ module ActiveRecord
 
           update_all_loaded_fixtures fixtures_map
 
-          connection.transaction(:requires_new => true) do
+          connection.transaction(requires_new: true) do
             deleted_tables = Set.new
             fixture_sets.each do |fs|
               conn = fs.model_class.respond_to?(:connection) ? fs.model_class.connection : connection
@@ -859,7 +859,7 @@ module ActiveRecord
     end
 
     included do
-      class_attribute :fixture_path, :instance_writer => false
+      class_attribute :fixture_path, instance_writer: false
       class_attribute :fixture_table_names
       class_attribute :fixture_class_names
       class_attribute :use_transactional_tests

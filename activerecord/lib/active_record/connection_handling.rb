@@ -138,6 +138,6 @@ module ActiveRecord
     end
 
     delegate :clear_active_connections!, :clear_reloadable_connections!,
-      :clear_all_connections!, :to => :connection_handler
+      :clear_all_connections!, to: :connection_handler
   end
 end

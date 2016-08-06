@@ -41,7 +41,7 @@ module ActiveRecord
              :shuffle, :split, to: :records
 
     delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key,
-             :connection, :columns_hash, :to => :klass
+             :connection, :columns_hash, to: :klass
 
     module ClassSpecificRelation # :nodoc:
       extend ActiveSupport::Concern
@@ -88,7 +88,7 @@ module ActiveRecord
           self.class.delegate_to_scoped_klass(method)
           scoping { @klass.public_send(method, *args, &block) }
         elsif arel.respond_to?(method)
-          self.class.delegate method, :to => :arel
+          self.class.delegate method, to: :arel
           arel.public_send(method, *args, &block)
         else
           super

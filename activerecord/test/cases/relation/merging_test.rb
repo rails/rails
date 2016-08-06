@@ -66,14 +66,14 @@ class RelationMergingTest < ActiveRecord::TestCase
   end
 
   def test_relation_merging_with_joins
-    comments = Comment.joins(:post).where(:body => "Thank you for the welcome").merge(Post.where(:body => "Such a lovely day"))
+    comments = Comment.joins(:post).where(body: "Thank you for the welcome").merge(Post.where(body: "Such a lovely day"))
     assert_equal 1, comments.count
   end
 
   def test_relation_merging_with_association
     assert_queries(2) do  # one for loading post, and another one merged query
-      post = Post.where(:body => "Such a lovely day").first
-      comments = Comment.where(:body => "Thank you for the welcome").merge(post.comments)
+      post = Post.where(body: "Such a lovely day").first
+      comments = Comment.where(body: "Thank you for the welcome").merge(post.comments)
       assert_equal 1, comments.count
     end
   end

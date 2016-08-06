@@ -73,7 +73,7 @@ module ActiveRecord
         indexes = @connection.indexes("accounts")
         assert indexes.empty?
 
-        @connection.add_index :accounts, :firm_id, :name => idx_name
+        @connection.add_index :accounts, :firm_id, name: idx_name
         indexes = @connection.indexes("accounts")
         assert_equal "accounts", indexes.first.table
         assert_equal idx_name, indexes.first.name
@@ -84,18 +84,18 @@ module ActiveRecord
       end
 
     ensure
-      @connection.remove_index(:accounts, :name => idx_name) rescue nil
+      @connection.remove_index(:accounts, name: idx_name) rescue nil
     end
 
     def test_remove_index_when_name_and_wrong_column_name_specified
       index_name = "accounts_idx"
 
-      @connection.add_index :accounts, :firm_id, :name => index_name
+      @connection.add_index :accounts, :firm_id, name: index_name
       assert_raises ArgumentError do
-        @connection.remove_index :accounts, :name => index_name, :column => :wrong_column_name
+        @connection.remove_index :accounts, name: index_name, column: :wrong_column_name
       end
     ensure
-      @connection.remove_index(:accounts, :name => index_name)
+      @connection.remove_index(:accounts, name: index_name)
     end
 
     def test_current_database
@@ -163,13 +163,13 @@ module ActiveRecord
       def test_reset_empty_table_with_custom_pk
         Movie.delete_all
         Movie.connection.reset_pk_sequence! "movies"
-        assert_equal 1, Movie.create(:name => "fight club").id
+        assert_equal 1, Movie.create(name: "fight club").id
       end
 
       def test_reset_table_with_non_integer_pk
         Subscriber.delete_all
         Subscriber.connection.reset_pk_sequence! "subscribers"
-        sub = Subscriber.new(:name => "robert drake")
+        sub = Subscriber.new(name: "robert drake")
         sub.id = "bob drake"
         assert_nothing_raised { sub.save! }
       end

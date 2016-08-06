@@ -700,7 +700,7 @@ module ActiveRecord
     class ThroughReflection < AbstractReflection #:nodoc:
       attr_reader :delegate_reflection
       delegate :foreign_key, :foreign_type, :association_foreign_key,
-               :active_record_primary_key, :type, :to => :source_reflection
+               :active_record_primary_key, :type, to: :source_reflection
 
       def initialize(delegate_reflection)
         @delegate_reflection = delegate_reflection

@@ -36,7 +36,7 @@ class ValidationsTest < ActiveRecord::TestCase
   end
 
   def test_valid_using_special_context
-    r = WrongReply.new(:title => "Valid title")
+    r = WrongReply.new(title: "Valid title")
     assert !r.valid?(:special_case)
     assert_equal "Invalid", r.errors[:author_name].join
 
@@ -53,7 +53,7 @@ class ValidationsTest < ActiveRecord::TestCase
   end
 
   def test_invalid_using_multiple_contexts
-    r = WrongReply.new(:title => "Wrong Create")
+    r = WrongReply.new(title: "Wrong Create")
     assert r.invalid?([:special_case, :create])
     assert_equal "Invalid", r.errors[:author_name].join
     assert_equal "is Wrong Create", r.errors[:title].join
@@ -95,7 +95,7 @@ class ValidationsTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordInvalid) do
       WrongReply.new.validate!(:special_case)
     end
-    r = WrongReply.new(:title => "Valid title", :author_name => "secret", :content => "Good")
+    r = WrongReply.new(title: "Valid title", author_name: "secret", content: "Good")
     assert r.validate!(:special_case)
   end
 
@@ -124,7 +124,7 @@ class ValidationsTest < ActiveRecord::TestCase
   def test_save_without_validation
     reply = WrongReply.new
     assert !reply.save
-    assert reply.save(:validate => false)
+    assert reply.save(validate: false)
   end
 
   def test_validates_acceptance_of_with_non_existent_table

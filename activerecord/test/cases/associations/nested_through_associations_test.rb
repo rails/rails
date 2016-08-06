@@ -443,7 +443,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [ratings(:special_comment_rating), ratings(:sub_special_comment_rating)], ratings
 
     # Ensure STI is respected in the join
-    scope = Post.joins(:special_comments_ratings).where(:id => posts(:sti_comments).id)
+    scope = Post.joins(:special_comments_ratings).where(id: posts(:sti_comments).id)
     assert scope.where("comments.type" => "Comment").empty?
     assert !scope.where("comments.type" => "SpecialComment").empty?
     assert !scope.where("comments.type" => "SubSpecialComment").empty?
@@ -453,7 +453,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     taggings = posts(:sti_comments).special_comments_ratings_taggings
     assert_equal [taggings(:special_comment_rating)], taggings
 
-    scope = Post.joins(:special_comments_ratings_taggings).where(:id => posts(:sti_comments).id)
+    scope = Post.joins(:special_comments_ratings_taggings).where(id: posts(:sti_comments).id)
     assert scope.where("comments.type" => "Comment").empty?
     assert !scope.where("comments.type" => "SpecialComment").empty?
   end

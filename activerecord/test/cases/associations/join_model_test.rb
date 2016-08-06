@@ -97,10 +97,10 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_polymorphic_has_many_create_model_with_inheritance_and_custom_base_class
-    post = SubStiPost.create :title => "SubStiPost", :body => "SubStiPost body"
+    post = SubStiPost.create title: "SubStiPost", body: "SubStiPost body"
     assert_instance_of SubStiPost, post
 
-    tagging = tags(:misc).taggings.create(:taggable => post)
+    tagging = tags(:misc).taggings.create(taggable: post)
     assert_equal "SubStiPost", tagging.taggable_type
   end
 
@@ -116,12 +116,12 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     post = posts(:thinking)
     assert_instance_of SpecialPost, post
 
-    tagging = tags(:misc).taggings.create(:taggable => post)
+    tagging = tags(:misc).taggings.create(taggable: post)
     assert_equal "Post", tagging.taggable_type
   end
 
   def test_polymorphic_has_one_create_model_with_inheritance
-    tagging = tags(:misc).create_tagging(:taggable => posts(:thinking))
+    tagging = tags(:misc).create_tagging(taggable: posts(:thinking))
     assert_equal "Post", tagging.taggable_type
   end
 
@@ -142,7 +142,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_set_polymorphic_has_one_on_new_record
     tagging = tags(:misc).taggings.create
-    post = Post.new :title => "foo", :body => "bar"
+    post = Post.new title: "foo", body: "bar"
     post.tagging = tagging
     post.save!
 
@@ -153,21 +153,21 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_create_polymorphic_has_many_with_scope
     old_count = posts(:welcome).taggings.count
-    tagging = posts(:welcome).taggings.create(:tag => tags(:misc))
+    tagging = posts(:welcome).taggings.create(tag: tags(:misc))
     assert_equal "Post", tagging.taggable_type
     assert_equal old_count+1, posts(:welcome).taggings.count
   end
 
   def test_create_bang_polymorphic_with_has_many_scope
     old_count = posts(:welcome).taggings.count
-    tagging = posts(:welcome).taggings.create!(:tag => tags(:misc))
+    tagging = posts(:welcome).taggings.create!(tag: tags(:misc))
     assert_equal "Post", tagging.taggable_type
     assert_equal old_count+1, posts(:welcome).taggings.count
   end
 
   def test_create_polymorphic_has_one_with_scope
     old_count = Tagging.count
-    tagging = posts(:welcome).create_tagging(:tag => tags(:misc))
+    tagging = posts(:welcome).create_tagging(tag: tags(:misc))
     assert_equal "Post", tagging.taggable_type
     assert_equal old_count+1, Tagging.count
   end
@@ -235,15 +235,15 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_create_through_has_many_with_piggyback
     category = categories(:sti_test)
-    ernie = category.authors_with_select.create(:name => "Ernie")
+    ernie = category.authors_with_select.create(name: "Ernie")
     assert_nothing_raised do
       assert_equal ernie, category.authors_with_select.detect {|a| a.name == "Ernie"}
     end
   end
 
   def test_include_has_many_through
-    posts              = Post.all.merge!(:order => "posts.id").to_a
-    posts_with_authors = Post.all.merge!(:includes => :authors, :order => "posts.id").to_a
+    posts              = Post.all.merge!(order: "posts.id").to_a
+    posts_with_authors = Post.all.merge!(includes: :authors, order: "posts.id").to_a
     assert_equal posts.length, posts_with_authors.length
     posts.length.times do |i|
       assert_equal posts[i].authors.length, assert_no_queries { posts_with_authors[i].authors.length }
@@ -267,8 +267,8 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_include_polymorphic_has_many_through
-    posts           = Post.all.merge!(:order => "posts.id").to_a
-    posts_with_tags = Post.all.merge!(:includes => :tags, :order => "posts.id").to_a
+    posts           = Post.all.merge!(order: "posts.id").to_a
+    posts_with_tags = Post.all.merge!(includes: :tags, order: "posts.id").to_a
     assert_equal posts.length, posts_with_tags.length
     posts.length.times do |i|
       assert_equal posts[i].tags.length, assert_no_queries { posts_with_tags[i].tags.length }
@@ -276,8 +276,8 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_include_polymorphic_has_many
-    posts               = Post.all.merge!(:order => "posts.id").to_a
-    posts_with_taggings = Post.all.merge!(:includes => :taggings, :order => "posts.id").to_a
+    posts               = Post.all.merge!(order: "posts.id").to_a
+    posts_with_taggings = Post.all.merge!(includes: :taggings, order: "posts.id").to_a
     assert_equal posts.length, posts_with_taggings.length
     posts.length.times do |i|
       assert_equal posts[i].taggings.length, assert_no_queries { posts_with_taggings[i].taggings.length }
@@ -329,7 +329,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_belongs_to_polymorphic_with_counter_cache
     assert_equal 1, posts(:welcome)[:tags_count]
-    tagging = posts(:welcome).taggings.create(:tag => tags(:general))
+    tagging = posts(:welcome).taggings.create(tag: tags(:general))
     assert_equal 2, posts(:welcome, :reload)[:tags_count]
     tagging.destroy
     assert_equal 1, posts(:welcome, :reload)[:tags_count]
@@ -365,13 +365,13 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_has_many_polymorphic_associations_merges_through_scope
     Tag.has_many :null_taggings, -> { none }, class_name: :Tagging
-    Tag.has_many :null_tagged_posts, :through => :null_taggings, :source => "taggable", :source_type => "Post"
+    Tag.has_many :null_tagged_posts, through: :null_taggings, source: "taggable", source_type: "Post"
     assert_equal [], tags(:general).null_tagged_posts
     refute_equal [], tags(:general).tagged_posts
   end
 
   def test_eager_has_many_polymorphic_with_source_type
-    tag_with_include = Tag.all.merge!(:includes => :tagged_posts).find(tags(:general).id)
+    tag_with_include = Tag.all.merge!(includes: :tagged_posts).find(tags(:general).id)
     desired = posts(:welcome, :thinking)
     assert_no_queries do
       # added sort by ID as otherwise test using JRuby was failing as array elements were in different order
@@ -393,7 +393,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_has_many_find_conditions
-    options = { :where => "comments.#{QUOTED_TYPE}='SpecialComment'", :order => "comments.id" }
+    options = { where: "comments.#{QUOTED_TYPE}='SpecialComment'", order: "comments.id" }
     assert_equal comments(:does_it_hurt), authors(:david).comments.merge(options).first
   end
 
@@ -418,7 +418,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_eager_load_has_many_through_has_many
-    author = Author.all.merge!(:where => ["name = ?", "David"], :includes => :comments, :order => "comments.id").first
+    author = Author.all.merge!(where: ["name = ?", "David"], includes: :comments, order: "comments.id").first
     SpecialComment.new; VerySpecialComment.new
     assert_no_queries do
       assert_equal [1,2,3,5,6,7,8,9,10,12], author.comments.collect(&:id)
@@ -426,7 +426,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_eager_load_has_many_through_has_many_with_conditions
-    post = Post.all.merge!(:includes => :invalid_tags).first
+    post = Post.all.merge!(includes: :invalid_tags).first
     assert_no_queries do
       post.invalid_tags
     end
@@ -434,8 +434,8 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_eager_belongs_to_and_has_one_not_singularized
     assert_nothing_raised do
-      Author.all.merge!(:includes => :author_address).first
-      AuthorAddress.all.merge!(:includes => :author).first
+      Author.all.merge!(includes: :author_address).first
+      AuthorAddress.all.merge!(includes: :author).first
     end
   end
 
@@ -445,8 +445,8 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_add_to_self_referential_has_many_through
-    new_author = Author.create(:name => "Bob")
-    authors(:david).author_favorites.create :favorite_author => new_author
+    new_author = Author.create(name: "Bob")
+    authors(:david).author_favorites.create favorite_author: new_author
     assert_equal new_author, authors(:david).reload.favorite_authors.first
   end
 
@@ -462,7 +462,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_associating_unsaved_records_with_has_many_through
     saved_post = posts(:thinking)
-    new_tag = Tag.new(:name => "new")
+    new_tag = Tag.new(name: "new")
 
     saved_post.tags << new_tag
     assert new_tag.persisted? #consistent with habtm!
@@ -473,7 +473,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert saved_post.reload.tags.reload.include?(new_tag)
 
 
-    new_post = Post.new(:title => "Association replacement works!", :body => "You best believe it.")
+    new_post = Post.new(title: "Association replacement works!", body: "You best believe it.")
     saved_tag = tags(:general)
 
     new_post.tags << saved_tag
@@ -491,7 +491,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_create_associate_when_adding_to_has_many_through
     count = posts(:thinking).tags.count
-    push = Tag.create!(:name => "pushme")
+    push = Tag.create!(name: "pushme")
     post_thinking = posts(:thinking)
     assert_nothing_raised { post_thinking.tags << push }
     assert_nil( wrong = post_thinking.tags.detect { |t| t.class != Tag },
@@ -501,7 +501,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_equal(count + 1, post_thinking.reload.tags.size)
     assert_equal(count + 1, post_thinking.tags.reload.size)
 
-    assert_kind_of Tag, post_thinking.tags.create!(:name => "foo")
+    assert_kind_of Tag, post_thinking.tags.create!(name: "foo")
     assert_nil( wrong = post_thinking.tags.detect { |t| t.class != Tag },
                 message = "Expected a Tag in tags collection, got #{wrong.class}.")
     assert_nil( wrong = post_thinking.taggings.detect { |t| t.class != Tagging },
@@ -509,7 +509,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_equal(count + 2, post_thinking.reload.tags.size)
     assert_equal(count + 2, post_thinking.tags.reload.size)
 
-    assert_nothing_raised { post_thinking.tags.concat(Tag.create!(:name => "abc"), Tag.create!(:name => "def")) }
+    assert_nothing_raised { post_thinking.tags.concat(Tag.create!(name: "abc"), Tag.create!(name: "def")) }
     assert_nil( wrong = post_thinking.tags.detect { |t| t.class != Tag },
                 message = "Expected a Tag in tags collection, got #{wrong.class}.")
     assert_nil( wrong = post_thinking.taggings.detect { |t| t.class != Tagging },
@@ -550,7 +550,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   def test_delete_associate_when_deleting_from_has_many_through_with_nonstandard_id
     count = books(:awdr).references.count
     references_before = books(:awdr).references
-    book = Book.create!(:name => "Getting Real")
+    book = Book.create!(name: "Getting Real")
     book_awdr = books(:awdr)
     book_awdr.references << book
     assert_equal(count + 1, book_awdr.references.reload.size)
@@ -564,7 +564,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   def test_delete_associate_when_deleting_from_has_many_through
     count = posts(:thinking).tags.count
     tags_before = posts(:thinking).tags.sort
-    tag = Tag.create!(:name => "doomed")
+    tag = Tag.create!(name: "doomed")
     post_thinking = posts(:thinking)
     post_thinking.tags << tag
     assert_equal(count + 1, post_thinking.taggings.reload.size)
@@ -581,9 +581,9 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   def test_delete_associate_when_deleting_from_has_many_through_with_multiple_tags
     count = posts(:thinking).tags.count
     tags_before = posts(:thinking).tags.sort
-    doomed = Tag.create!(:name => "doomed")
-    doomed2 = Tag.create!(:name => "doomed2")
-    quaked = Tag.create!(:name => "quaked")
+    doomed = Tag.create!(name: "doomed")
+    doomed2 = Tag.create!(name: "doomed2")
+    quaked = Tag.create!(name: "quaked")
     post_thinking = posts(:thinking)
     post_thinking.tags << doomed << doomed2
     assert_equal(count + 2, post_thinking.reload.tags.reload.size)
@@ -642,7 +642,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_polymorphic_has_many
     expected = taggings(:welcome_general)
-    p = Post.all.merge!(:includes => :taggings).find(posts(:welcome).id)
+    p = Post.all.merge!(includes: :taggings).find(posts(:welcome).id)
     assert_no_queries {assert p.taggings.include?(expected)}
     assert posts(:welcome).taggings.include?(taggings(:welcome_general))
   end
@@ -650,18 +650,18 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   def test_polymorphic_has_one
     expected = posts(:welcome)
 
-    tagging  = Tagging.all.merge!(:includes => :taggable).find(taggings(:welcome_general).id)
+    tagging  = Tagging.all.merge!(includes: :taggable).find(taggings(:welcome_general).id)
     assert_no_queries { assert_equal expected, tagging.taggable}
   end
 
   def test_polymorphic_belongs_to
-    p = Post.all.merge!(:includes => {:taggings => :taggable}).find(posts(:welcome).id)
+    p = Post.all.merge!(includes: {taggings: :taggable}).find(posts(:welcome).id)
     assert_no_queries {assert_equal posts(:welcome), p.taggings.first.taggable}
   end
 
   def test_preload_polymorphic_has_many_through
-    posts           = Post.all.merge!(:order => "posts.id").to_a
-    posts_with_tags = Post.all.merge!(:includes => :tags, :order => "posts.id").to_a
+    posts           = Post.all.merge!(order: "posts.id").to_a
+    posts_with_tags = Post.all.merge!(includes: :tags, order: "posts.id").to_a
     assert_equal posts.length, posts_with_tags.length
     posts.length.times do |i|
       assert_equal posts[i].tags.length, assert_no_queries { posts_with_tags[i].tags.length }
@@ -669,7 +669,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_preload_polymorph_many_types
-    taggings = Tagging.all.merge!(:includes => :taggable, :where => ["taggable_type != ?", "FakeModel"]).to_a
+    taggings = Tagging.all.merge!(includes: :taggable, where: ["taggable_type != ?", "FakeModel"]).to_a
     assert_no_queries do
       taggings.first.taggable.id
       taggings[1].taggable.id
@@ -682,13 +682,13 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_preload_nil_polymorphic_belongs_to
     assert_nothing_raised do
-      Tagging.all.merge!(:includes => :taggable, :where => ["taggable_type IS NULL"]).to_a
+      Tagging.all.merge!(includes: :taggable, where: ["taggable_type IS NULL"]).to_a
     end
   end
 
   def test_preload_polymorphic_has_many
-    posts               = Post.all.merge!(:order => "posts.id").to_a
-    posts_with_taggings = Post.all.merge!(:includes => :taggings, :order => "posts.id").to_a
+    posts               = Post.all.merge!(order: "posts.id").to_a
+    posts_with_taggings = Post.all.merge!(includes: :taggings, order: "posts.id").to_a
     assert_equal posts.length, posts_with_taggings.length
     posts.length.times do |i|
       assert_equal posts[i].taggings.length, assert_no_queries { posts_with_taggings[i].taggings.length }
@@ -696,7 +696,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_shared_parent
-    comments = Comment.all.merge!(:includes => :post, :where => "post_id = 1").to_a
+    comments = Comment.all.merge!(includes: :post, where: "post_id = 1").to_a
     assert_no_queries do
       assert_equal comments.first.post, comments[1].post
     end
@@ -728,22 +728,22 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_has_many_through_include_returns_false_for_non_matching_record_to_verify_scoping
     david = authors(:david)
-    category = Category.create!(:name => "Not Associated")
+    category = Category.create!(name: "Not Associated")
 
     assert ! david.categories.loaded?
     assert ! david.categories.include?(category)
   end
 
   def test_has_many_through_goes_through_all_sti_classes
-    sub_sti_post = SubStiPost.create!(:title => "test", :body => "test", :author_id => 1)
-    new_comment = sub_sti_post.comments.create(:body => "test")
+    sub_sti_post = SubStiPost.create!(title: "test", body: "test", author_id: 1)
+    new_comment = sub_sti_post.comments.create(body: "test")
 
     assert_equal [9, 10, new_comment.id], authors(:david).sti_post_comments.map(&:id).sort
   end
 
   def test_has_many_with_pluralize_table_names_false
-    aircraft = Aircraft.create!(:name => "Airbus 380")
-    engine = Engine.create!(:car_id => aircraft.id)
+    aircraft = Aircraft.create!(name: "Airbus 380")
+    engine = Engine.create!(car_id: aircraft.id)
     assert_equal aircraft.engines, [engine]
   end
 
@@ -771,7 +771,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
       Post.find(post_id).update_columns type: class_name
       klass = Object.const_set(class_name, Class.new(ActiveRecord::Base))
       klass.table_name = "posts"
-      klass.send(association, association_name, :as => :taggable, :dependent => dependency)
+      klass.send(association, association_name, as: :taggable, dependent: dependency)
       klass.find(post_id)
     end
 end

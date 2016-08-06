@@ -6,7 +6,7 @@ module ActiveRecord
       def setup
         @adapter = AbstractAdapter.new(nil)
         def @adapter.native_database_types
-          {:string => "varchar"}
+          {string: "varchar"}
         end
         @viz = @adapter.schema_creation
       end

@@ -54,7 +54,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
 
   def test_customized_primary_key_auto_assigns_on_save
     Keyboard.delete_all
-    keyboard = Keyboard.new(:name => "HHKB")
+    keyboard = Keyboard.new(name: "HHKB")
     assert_nothing_raised { keyboard.save! }
     assert_equal keyboard.id, Keyboard.find_by_name("HHKB").id
   end
@@ -114,7 +114,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_nothing_raised { MixedCaseMonkey.delete(1) }
   end
   def test_update_counters_should_quote_pkey_and_quote_counter_columns
-    assert_nothing_raised { MixedCaseMonkey.update_counters(1, :fleaCount => 99) }
+    assert_nothing_raised { MixedCaseMonkey.update_counters(1, fleaCount: 99) }
   end
   def test_find_with_one_id_should_quote_pkey
     assert_nothing_raised { MixedCaseMonkey.find(1) }

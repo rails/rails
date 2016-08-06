@@ -13,8 +13,8 @@ module ActiveRecord
   class Railtie < Rails::Railtie # :nodoc:
     config.active_record = ActiveSupport::OrderedOptions.new
 
-    config.app_generators.orm :active_record, :migration => true,
-                                              :timestamps => true
+    config.app_generators.orm :active_record, migration: true,
+                                              timestamps: true
 
     config.action_dispatch.rescue_responses.merge!(
       "ActiveRecord::RecordNotFound"   => :not_found,

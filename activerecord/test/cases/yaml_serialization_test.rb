@@ -9,7 +9,7 @@ class YamlSerializationTest < ActiveRecord::TestCase
 
   def test_to_yaml_with_time_with_zone_should_not_raise_exception
     with_timezone_config aware_attributes: true, zone: "Pacific Time (US & Canada)" do
-      topic = Topic.new(:written_on => DateTime.now)
+      topic = Topic.new(written_on: DateTime.now)
       assert_nothing_raised { topic.to_yaml }
     end
   end
@@ -22,8 +22,8 @@ class YamlSerializationTest < ActiveRecord::TestCase
   end
 
   def test_roundtrip_serialized_column
-    topic = Topic.new(:content => {:omg=>:lol})
-    assert_equal({:omg=>:lol}, YAML.load(YAML.dump(topic)).content)
+    topic = Topic.new(content: {omg: :lol})
+    assert_equal({omg: :lol}, YAML.load(YAML.dump(topic)).content)
   end
 
   def test_psych_roundtrip

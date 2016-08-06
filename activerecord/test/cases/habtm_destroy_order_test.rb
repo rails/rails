@@ -4,8 +4,8 @@ require "models/student"
 
 class HabtmDestroyOrderTest < ActiveRecord::TestCase
   test "may not delete a lesson with students" do
-    sicp = Lesson.new(:name => "SICP")
-    ben = Student.new(:name => "Ben Bitdiddle")
+    sicp = Lesson.new(name: "SICP")
+    ben = Student.new(name: "Ben Bitdiddle")
     sicp.students << ben
     sicp.save!
     assert_raises LessonError do
@@ -17,8 +17,8 @@ class HabtmDestroyOrderTest < ActiveRecord::TestCase
   end
 
   test "should not raise error if have foreign key in the join table" do
-    student = Student.new(:name => "Ben Bitdiddle")
-    lesson = Lesson.new(:name => "SICP")
+    student = Student.new(name: "Ben Bitdiddle")
+    lesson = Lesson.new(name: "SICP")
     lesson.students << student
     lesson.save!
     assert_nothing_raised do
@@ -29,8 +29,8 @@ class HabtmDestroyOrderTest < ActiveRecord::TestCase
   test "not destroying a student with lessons leaves student<=>lesson association intact" do
     # test a normal before_destroy doesn't destroy the habtm joins
     begin
-      sicp = Lesson.new(:name => "SICP")
-      ben = Student.new(:name => "Ben Bitdiddle")
+      sicp = Lesson.new(name: "SICP")
+      ben = Student.new(name: "Ben Bitdiddle")
       # add a before destroy to student
       Student.class_eval do
         before_destroy do
@@ -49,8 +49,8 @@ class HabtmDestroyOrderTest < ActiveRecord::TestCase
 
   test "not destroying a lesson with students leaves student<=>lesson association intact" do
     # test a more aggressive before_destroy  doesn't destroy the habtm joins and still throws the exception
-    sicp = Lesson.new(:name => "SICP")
-    ben = Student.new(:name => "Ben Bitdiddle")
+    sicp = Lesson.new(name: "SICP")
+    ben = Student.new(name: "Ben Bitdiddle")
     sicp.students << ben
     sicp.save!
     assert_raises LessonError do

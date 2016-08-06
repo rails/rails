@@ -67,7 +67,7 @@ end
 class ImmutableDeveloper < ActiveRecord::Base
   self.table_name = "developers"
 
-  validates_inclusion_of :salary, :in => 50000..200000
+  validates_inclusion_of :salary, in: 50000..200000
 
   before_save :cancel
   before_destroy :cancel
@@ -96,16 +96,16 @@ class OnCallbacksDeveloper < ActiveRecord::Base
   self.table_name = "developers"
 
   before_validation { history << :before_validation }
-  before_validation(:on => :create){ history << :before_validation_on_create }
-  before_validation(:on => :update){ history << :before_validation_on_update }
+  before_validation(on: :create){ history << :before_validation_on_create }
+  before_validation(on: :update){ history << :before_validation_on_update }
 
   validate do
     history << :validate
   end
 
   after_validation { history << :after_validation }
-  after_validation(:on => :create){ history << :after_validation_on_create }
-  after_validation(:on => :update){ history << :after_validation_on_update }
+  after_validation(on: :create){ history << :after_validation_on_create }
+  after_validation(on: :update){ history << :after_validation_on_update }
 
   def history
     @history ||= []
@@ -116,14 +116,14 @@ class ContextualCallbacksDeveloper < ActiveRecord::Base
   self.table_name = "developers"
 
   before_validation { history << :before_validation }
-  before_validation :before_validation_on_create_and_update, :on => [ :create, :update ]
+  before_validation :before_validation_on_create_and_update, on: [ :create, :update ]
 
   validate do
     history << :validate
   end
 
   after_validation { history << :after_validation }
-  after_validation :after_validation_on_create_and_update, :on => [ :create, :update ]
+  after_validation :after_validation_on_create_and_update, on: [ :create, :update ]
 
   def before_validation_on_create_and_update
     history << "before_validation_on_#{self.validation_context}".to_sym

@@ -39,9 +39,9 @@ module ActiveRecord
         ensure_not_nested
 
         if raise
-          record.save!(:validate => validate)
+          record.save!(validate: validate)
         else
-          return unless record.save(:validate => validate)
+          return unless record.save(validate: validate)
         end
 
         save_through_record(record)

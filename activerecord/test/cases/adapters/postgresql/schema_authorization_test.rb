@@ -90,9 +90,9 @@ class SchemaAuthorizationTest < ActiveRecord::PostgreSQLTestCase
     assert_nothing_raised do
       USERS.each do |u|
         set_session_auth u
-        st = SchemaThing.new :name => "TEST1"
+        st = SchemaThing.new name: "TEST1"
         st.save!
-        st = SchemaThing.new :id => 5, :name => "TEST2"
+        st = SchemaThing.new id: 5, name: "TEST2"
         st.save!
         set_session_auth
       end

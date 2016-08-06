@@ -4,24 +4,24 @@ require "models/bird"
 
 class NestedAttributesWithCallbacksTest < ActiveRecord::TestCase
   Pirate.has_many(:birds_with_add_load,
-                  :class_name => "Bird",
-                  :before_add => proc { |p,b|
+                  class_name: "Bird",
+                  before_add: proc { |p,b|
                     @@add_callback_called << b
                     p.birds_with_add_load.to_a
                   })
   Pirate.has_many(:birds_with_add,
-                  :class_name => "Bird",
-                  :before_add => proc { |p,b| @@add_callback_called << b })
+                  class_name: "Bird",
+                  before_add: proc { |p,b| @@add_callback_called << b })
 
   Pirate.accepts_nested_attributes_for(:birds_with_add_load,
                                        :birds_with_add,
-                                       :allow_destroy => true)
+                                       allow_destroy: true)
 
   def setup
     @@add_callback_called = []
     @pirate = Pirate.new.tap do |pirate|
       pirate.catchphrase = "Don't call me!"
-      pirate.birds_attributes = [{:name => "Bird1"},{:name => "Bird2"}]
+      pirate.birds_attributes = [{name: "Bird1"},{name: "Bird2"}]
       pirate.save!
     end
     @birds = @pirate.birds.to_a

@@ -20,7 +20,7 @@ module ActiveRecord
 
         def test_create_question_marks
           str = "foo?bar"
-          x   = Topic.create!(:title => str, :content => str)
+          x   = Topic.create!(title: str, content: str)
           x.reload
           assert_equal str, x.title
           assert_equal str, x.content
@@ -39,7 +39,7 @@ module ActiveRecord
 
         def test_create_null_bytes
           str = "foo\0bar"
-          x   = Topic.create!(:title => str, :content => str)
+          x   = Topic.create!(title: str, content: str)
           x.reload
           assert_equal str, x.title
           assert_equal str, x.content

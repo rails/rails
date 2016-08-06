@@ -11,7 +11,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   fixtures :developers, :posts, :comments
 
   def test_default_scope
-    expected = Developer.all.merge!(:order => "salary DESC").to_a.collect(&:salary)
+    expected = Developer.all.merge!(order: "salary DESC").to_a.collect(&:salary)
     received = DeveloperOrderedBySalary.all.collect(&:salary)
     assert_equal expected, received
   end
@@ -132,7 +132,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal expected, received
 
     expected_2 = Developer.order("salary DESC").collect(&:name)
-    received_2 = DeveloperOrderedBySalary.select("id").where("name" => "Jamis").unscope({:where => :name}, :select).collect(&:name)
+    received_2 = DeveloperOrderedBySalary.select("id").where("name" => "Jamis").unscope({where: :name}, :select).collect(&:name)
     assert_equal expected_2, received_2
 
     expected_3 = Developer.order("salary DESC").collect(&:name)
@@ -310,28 +310,28 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_create_attribute_overwrites_default_scoping
-    assert_equal "David", PoorDeveloperCalledJamis.create!(:name => "David").name
-    assert_equal 200000, PoorDeveloperCalledJamis.create!(:name => "David", :salary => 200000).salary
+    assert_equal "David", PoorDeveloperCalledJamis.create!(name: "David").name
+    assert_equal 200000, PoorDeveloperCalledJamis.create!(name: "David", salary: 200000).salary
   end
 
   def test_create_attribute_overwrites_default_values
-    assert_equal nil, PoorDeveloperCalledJamis.create!(:salary => nil).salary
-    assert_equal 50000, PoorDeveloperCalledJamis.create!(:name => "David").salary
+    assert_equal nil, PoorDeveloperCalledJamis.create!(salary: nil).salary
+    assert_equal 50000, PoorDeveloperCalledJamis.create!(name: "David").salary
   end
 
   def test_default_scope_attribute
-    jamis = PoorDeveloperCalledJamis.new(:name => "David")
+    jamis = PoorDeveloperCalledJamis.new(name: "David")
     assert_equal 50000, jamis.salary
   end
 
   def test_where_attribute
-    aaron = PoorDeveloperCalledJamis.where(:salary => 20).new(:name => "Aaron")
+    aaron = PoorDeveloperCalledJamis.where(salary: 20).new(name: "Aaron")
     assert_equal 20, aaron.salary
     assert_equal "Aaron", aaron.name
   end
 
   def test_where_attribute_merge
-    aaron = PoorDeveloperCalledJamis.where(:name => "foo").new(:name => "Aaron")
+    aaron = PoorDeveloperCalledJamis.where(name: "foo").new(name: "Aaron")
     assert_equal "Aaron", aaron.name
   end
 
@@ -342,26 +342,26 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_create_with_merge
-    aaron = PoorDeveloperCalledJamis.create_with(:name => "foo", :salary => 20).merge(
-              PoorDeveloperCalledJamis.create_with(:name => "Aaron")).new
+    aaron = PoorDeveloperCalledJamis.create_with(name: "foo", salary: 20).merge(
+              PoorDeveloperCalledJamis.create_with(name: "Aaron")).new
     assert_equal 20, aaron.salary
     assert_equal "Aaron", aaron.name
 
-    aaron = PoorDeveloperCalledJamis.create_with(:name => "foo", :salary => 20).
-                                     create_with(:name => "Aaron").new
+    aaron = PoorDeveloperCalledJamis.create_with(name: "foo", salary: 20).
+                                     create_with(name: "Aaron").new
     assert_equal 20, aaron.salary
     assert_equal "Aaron", aaron.name
   end
 
   def test_create_with_reset
-    jamis = PoorDeveloperCalledJamis.create_with(:name => "Aaron").create_with(nil).new
+    jamis = PoorDeveloperCalledJamis.create_with(name: "Aaron").create_with(nil).new
     assert_equal "Jamis", jamis.name
   end
 
   # FIXME: I don't know if this is *desired* behavior, but it is *today's*
   # behavior.
   def test_create_with_empty_hash_will_not_reset
-    jamis = PoorDeveloperCalledJamis.create_with(:name => "Aaron").create_with({}).new
+    jamis = PoorDeveloperCalledJamis.create_with(name: "Aaron").create_with({}).new
     assert_equal "Aaron", jamis.name
   end
 
@@ -410,9 +410,9 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_default_scope_include_with_count
     d = DeveloperWithIncludes.create!
-    d.audit_logs.create! :message => "foo"
+    d.audit_logs.create! message: "foo"
 
-    assert_equal 1, DeveloperWithIncludes.where(:audit_logs => { :message => "foo" }).count
+    assert_equal 1, DeveloperWithIncludes.where(audit_logs: { message: "foo" }).count
   end
 
   def test_default_scope_with_references_works_through_collection_association

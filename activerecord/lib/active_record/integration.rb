@@ -11,7 +11,7 @@ module ActiveRecord
       # Accepts any of the symbols in <tt>Time::DATE_FORMATS</tt>.
       #
       # This is +:usec+, by default.
-      class_attribute :cache_timestamp_format, :instance_writer => false
+      class_attribute :cache_timestamp_format, instance_writer: false
       self.cache_timestamp_format = :usec
     end
 

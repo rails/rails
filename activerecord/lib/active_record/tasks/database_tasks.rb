@@ -96,7 +96,7 @@ module ActiveRecord
       end
 
       def current_config(options = {})
-        options.reverse_merge! :env => env
+        options.reverse_merge! env: env
         if options.has_key?(:config)
           @current_config = options[:config]
         else

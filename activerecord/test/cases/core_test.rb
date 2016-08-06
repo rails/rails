@@ -25,8 +25,8 @@ class CoreTest < ActiveRecord::TestCase
   end
 
   def test_inspect_limited_select_instance
-    assert_equal %(#<Topic id: 1>), Topic.all.merge!(:select => "id", :where => "id = 1").first.inspect
-    assert_equal %(#<Topic id: 1, title: "The First Topic">), Topic.all.merge!(:select => "id, title", :where => "id = 1").first.inspect
+    assert_equal %(#<Topic id: 1>), Topic.all.merge!(select: "id", where: "id = 1").first.inspect
+    assert_equal %(#<Topic id: 1, title: "The First Topic">), Topic.all.merge!(select: "id, title", where: "id = 1").first.inspect
   end
 
   def test_inspect_class_without_table

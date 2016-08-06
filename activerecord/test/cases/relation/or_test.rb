@@ -47,13 +47,13 @@ module ActiveRecord
     def test_or_preserves_other_querying_methods
       expected = Post.where("id = 1 or id = 2 or id = 3").order("body asc").to_a
       partial = Post.order("body asc")
-      assert_equal expected, partial.where("id = 1").or(partial.where(:id => [2, 3])).to_a
-      assert_equal expected, Post.order("body asc").where("id = 1").or(Post.order("body asc").where(:id => [2, 3])).to_a
+      assert_equal expected, partial.where("id = 1").or(partial.where(id: [2, 3])).to_a
+      assert_equal expected, Post.order("body asc").where("id = 1").or(Post.order("body asc").where(id: [2, 3])).to_a
     end
 
     def test_or_with_incompatible_relations
       error = assert_raises ArgumentError do
-        Post.order("body asc").where("id = 1").or(Post.order("id desc").where(:id => [2, 3])).to_a
+        Post.order("body asc").where("id = 1").or(Post.order("id desc").where(id: [2, 3])).to_a
       end
 
       assert_equal "Relation passed to #or must be structurally compatible. Incompatible values: [:order]", error.message

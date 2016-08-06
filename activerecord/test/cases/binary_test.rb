@@ -13,7 +13,7 @@ unless current_adapter?(:DB2Adapter)
       str = "\x80"
       str.force_encoding("ASCII-8BIT")
 
-      binary = Binary.new :name => "いただきます！", :data => str
+      binary = Binary.new name: "いただきます！", data: str
       binary.save!
       binary.reload
       assert_equal str, binary.data
@@ -31,7 +31,7 @@ unless current_adapter?(:DB2Adapter)
         data.force_encoding("ASCII-8BIT")
         data.freeze
 
-        bin = Binary.new(:data => data)
+        bin = Binary.new(data: data)
         assert_equal data, bin.data, "Newly assigned data differs from original"
 
         bin.save!

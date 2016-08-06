@@ -241,7 +241,7 @@ class TimestampTest < ActiveRecord::TestCase
   def test_saving_a_record_with_a_belongs_to_that_specifies_touching_a_specific_attribute_the_parent_should_update_that_attribute
     klass = Class.new(ActiveRecord::Base) do
       def self.name; "Pet"; end
-      belongs_to :owner, :touch => :happy_at
+      belongs_to :owner, touch: :happy_at
     end
 
     pet   = klass.first
@@ -257,7 +257,7 @@ class TimestampTest < ActiveRecord::TestCase
   def test_touching_a_record_with_a_belongs_to_that_uses_a_counter_cache_should_update_the_parent
     klass = Class.new(ActiveRecord::Base) do
       def self.name; "Pet"; end
-      belongs_to :owner, :counter_cache => :use_count, :touch => true
+      belongs_to :owner, counter_cache: :use_count, touch: true
     end
 
     pet = klass.first
@@ -276,7 +276,7 @@ class TimestampTest < ActiveRecord::TestCase
   def test_touching_a_record_touches_parent_record_and_grandparent_record
     klass = Class.new(ActiveRecord::Base) do
       def self.name; "Toy"; end
-      belongs_to :pet, :touch => true
+      belongs_to :pet, touch: true
     end
 
     toy = klass.first
@@ -298,7 +298,7 @@ class TimestampTest < ActiveRecord::TestCase
 
     wheel_klass = Class.new(ActiveRecord::Base) do
       def self.name; "Wheel"; end
-      belongs_to :wheelable, :polymorphic => true, :touch => true
+      belongs_to :wheelable, polymorphic: true, touch: true
     end
 
     toy = klass.first
@@ -346,7 +346,7 @@ class TimestampTest < ActiveRecord::TestCase
 
     wheel_class = Class.new(ActiveRecord::Base) do
       def self.name; "Wheel"; end
-      belongs_to :wheelable, :polymorphic => true, :touch => true
+      belongs_to :wheelable, polymorphic: true, touch: true
     end
 
     car1 = car_class.find(1)
@@ -377,7 +377,7 @@ class TimestampTest < ActiveRecord::TestCase
 
     wheel_class = Class.new(ActiveRecord::Base) do
       def self.name; "Wheel"; end
-      belongs_to :wheelable, :polymorphic => true, :touch => true
+      belongs_to :wheelable, polymorphic: true, touch: true
     end
 
     car = car_class.find(1)

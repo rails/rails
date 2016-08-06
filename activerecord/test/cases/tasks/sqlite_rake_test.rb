@@ -74,7 +74,7 @@ module ActiveRecord
   class SqliteDBDropTest < ActiveRecord::TestCase
     def setup
       @database      = "db_create.sqlite3"
-      @path          = stub(:to_s => "/absolute/path", :absolute? => true)
+      @path          = stub(to_s: "/absolute/path", absolute?: true)
       @configuration = {
         "adapter"  => "sqlite3",
         "database" => @database

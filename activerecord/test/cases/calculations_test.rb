@@ -57,7 +57,7 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_should_return_integer_average_if_db_returns_such
     ShipPart.delete_all
-    ShipPart.create!(:id => 3, :name => "foo")
+    ShipPart.create!(id: 3, name: "foo")
     value = ShipPart.average(:id)
     assert_equal 3, value
   end
@@ -258,7 +258,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_sum_should_return_valid_values_for_decimals
-    NumericData.create(:bank_balance => 19.83)
+    NumericData.create(bank_balance: 19.83)
     assert_equal 19.83, NumericData.sum(:bank_balance)
   end
 
@@ -318,7 +318,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_calculate_grouped_association_with_foreign_key_option
-    Account.belongs_to :another_firm, :class_name => "Firm", :foreign_key => "firm_id"
+    Account.belongs_to :another_firm, class_name: "Firm", foreign_key: "firm_id"
     c = Account.group(:another_firm).count(:all)
     assert_equal 1, c[companies(:first_firm)]
     assert_equal 2, c[companies(:rails_core)]
@@ -381,7 +381,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_perform_joined_include_when_referencing_included_tables
-    joined_count = Account.includes(:firm).where(:companies => {:name => "37signals"}).count
+    joined_count = Account.includes(:firm).where(companies: {name: "37signals"}).count
     assert_equal 1, joined_count
   end
 
@@ -504,8 +504,8 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal Company.count(:all), Company.from("companies").count(:all)
     assert_equal Account.where("credit_limit = 50").count(:all),
         Account.from("accounts").where("credit_limit = 50").count(:all)
-    assert_equal Company.where(:type => "Firm").count(:type),
-        Company.where(:type => "Firm").from("companies").count(:type)
+    assert_equal Company.where(type: "Firm").count(:type),
+        Company.where(type: "Firm").from("companies").count(:type)
   end
 
   def test_sum_with_from_option
@@ -533,19 +533,19 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_maximum_with_not_auto_table_name_prefix_if_column_included
-    Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
+    Company.create!(name: "test", contracts: [Contract.new(developer_id: 7)])
 
     assert_equal 7, Company.includes(:contracts).maximum(:developer_id)
   end
 
   def test_minimum_with_not_auto_table_name_prefix_if_column_included
-    Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
+    Company.create!(name: "test", contracts: [Contract.new(developer_id: 7)])
 
     assert_equal 7, Company.includes(:contracts).minimum(:developer_id)
   end
 
   def test_sum_with_not_auto_table_name_prefix_if_column_included
-    Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
+    Company.create!(name: "test", contracts: [Contract.new(developer_id: 7)])
 
     assert_equal 7, Company.includes(:contracts).sum(:developer_id)
   end
@@ -582,7 +582,7 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_pluck_type_cast
     topic = topics(:first)
-    relation = Topic.where(:id => topic.id)
+    relation = Topic.where(id: topic.id)
     assert_equal [ topic.approved ], relation.pluck(:approved)
     assert_equal [ topic.last_read ], relation.pluck(:last_read)
     assert_equal [ topic.written_on ], relation.pluck(:written_on)
@@ -603,8 +603,8 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_with_serialization
-    t = Topic.create!(:content => { :foo => :bar })
-    assert_equal [{:foo => :bar}], Topic.where(:id => t.id).pluck(:content)
+    t = Topic.create!(content: { foo: :bar })
+    assert_equal [{foo: :bar}], Topic.where(id: t.id).pluck(:content)
   end
 
   def test_pluck_with_qualified_column_name
@@ -612,17 +612,17 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_auto_table_name_prefix
-    c = Company.create!(:name => "test", :contracts => [Contract.new])
+    c = Company.create!(name: "test", contracts: [Contract.new])
     assert_equal [c.id], Company.joins(:contracts).pluck(:id)
   end
 
   def test_pluck_if_table_included
-    c = Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
+    c = Company.create!(name: "test", contracts: [Contract.new(developer_id: 7)])
     assert_equal [c.id], Company.includes(:contracts).where("contracts.id" => c.contracts.first).pluck(:id)
   end
 
   def test_pluck_not_auto_table_name_prefix_if_column_joined
-    Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
+    Company.create!(name: "test", contracts: [Contract.new(developer_id: 7)])
     assert_equal [7], Company.joins(:contracts).pluck(:developer_id)
   end
 
@@ -647,7 +647,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_not_auto_table_name_prefix_if_column_included
-    Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
+    Company.create!(name: "test", contracts: [Contract.new(developer_id: 7)])
     ids = Company.includes(:contracts).pluck(:developer_id)
     assert_equal Company.count, ids.length
     assert_equal [7], ids.compact
@@ -672,7 +672,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_with_multiple_columns_and_includes
-    Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
+    Company.create!(name: "test", contracts: [Contract.new(developer_id: 7)])
     companies_and_developers = Company.order("companies.id").includes(:contracts).pluck(:name, :developer_id)
 
     assert_equal Company.count, companies_and_developers.length
@@ -681,7 +681,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_with_reserved_words
-    Possession.create!(:where => "Over There")
+    Possession.create!(where: "Over There")
 
     assert_equal ["Over There"], Possession.pluck(:where)
   end

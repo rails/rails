@@ -131,15 +131,15 @@ end
 class InverseAssociationTests < ActiveRecord::TestCase
   def test_should_allow_for_inverse_of_options_in_associations
     assert_nothing_raised do
-      Class.new(ActiveRecord::Base).has_many(:wheels, :inverse_of => :car)
+      Class.new(ActiveRecord::Base).has_many(:wheels, inverse_of: :car)
     end
 
     assert_nothing_raised do
-      Class.new(ActiveRecord::Base).has_one(:engine, :inverse_of => :car)
+      Class.new(ActiveRecord::Base).has_one(:engine, inverse_of: :car)
     end
 
     assert_nothing_raised do
-      Class.new(ActiveRecord::Base).belongs_to(:car, :inverse_of => :driver)
+      Class.new(ActiveRecord::Base).belongs_to(:car, inverse_of: :driver)
     end
   end
 
@@ -228,7 +228,7 @@ class InverseHasOneTests < ActiveRecord::TestCase
 
 
   def test_parent_instance_should_be_shared_with_eager_loaded_child_on_find
-    m = Man.all.merge!(:where => {:name => "Gordon"}, :includes => :face).first
+    m = Man.all.merge!(where: {name: "Gordon"}, includes: :face).first
     f = m.face
     assert_equal m.name, f.man.name, "Name of man should be the same before changes to parent instance"
     m.name = "Bongo"
@@ -236,7 +236,7 @@ class InverseHasOneTests < ActiveRecord::TestCase
     f.man.name = "Mungo"
     assert_equal m.name, f.man.name, "Name of man should be the same after changes to child-owned instance"
 
-    m = Man.all.merge!(:where => {:name => "Gordon"}, :includes => :face, :order => "faces.id").first
+    m = Man.all.merge!(where: {name: "Gordon"}, includes: :face, order: "faces.id").first
     f = m.face
     assert_equal m.name, f.man.name, "Name of man should be the same before changes to parent instance"
     m.name = "Bongo"
@@ -247,7 +247,7 @@ class InverseHasOneTests < ActiveRecord::TestCase
 
   def test_parent_instance_should_be_shared_with_newly_built_child
     m = Man.first
-    f = m.build_face(:description => "haunted")
+    f = m.build_face(description: "haunted")
     assert_not_nil f.man
     assert_equal m.name, f.man.name, "Name of man should be the same before changes to parent instance"
     m.name = "Bongo"
@@ -258,7 +258,7 @@ class InverseHasOneTests < ActiveRecord::TestCase
 
   def test_parent_instance_should_be_shared_with_newly_created_child
     m = Man.first
-    f = m.create_face(:description => "haunted")
+    f = m.create_face(description: "haunted")
     assert_not_nil f.man
     assert_equal m.name, f.man.name, "Name of man should be the same before changes to parent instance"
     m.name = "Bongo"
@@ -269,7 +269,7 @@ class InverseHasOneTests < ActiveRecord::TestCase
 
   def test_parent_instance_should_be_shared_with_newly_created_child_via_bang_method
     m = Man.first
-    f = m.create_face!(:description => "haunted")
+    f = m.create_face!(description: "haunted")
     assert_not_nil f.man
     assert_equal m.name, f.man.name, "Name of man should be the same before changes to parent instance"
     m.name = "Bongo"
@@ -280,7 +280,7 @@ class InverseHasOneTests < ActiveRecord::TestCase
 
   def test_parent_instance_should_be_shared_with_replaced_via_accessor_child
     m = Man.first
-    f = Face.new(:description => "haunted")
+    f = Face.new(description: "haunted")
     m.face = f
     assert_not_nil f.man
     assert_equal m.name, f.man.name, "Name of man should be the same before changes to parent instance"
@@ -311,7 +311,7 @@ class InverseHasManyTests < ActiveRecord::TestCase
   end
 
   def test_parent_instance_should_be_shared_with_eager_loaded_children
-    m = Man.all.merge!(:where => {:name => "Gordon"}, :includes => :interests).first
+    m = Man.all.merge!(where: {name: "Gordon"}, includes: :interests).first
     is = m.interests
     is.each do |i|
       assert_equal m.name, i.man.name, "Name of man should be the same before changes to parent instance"
@@ -321,7 +321,7 @@ class InverseHasManyTests < ActiveRecord::TestCase
       assert_equal m.name, i.man.name, "Name of man should be the same after changes to child-owned instance"
     end
 
-    m = Man.all.merge!(:where => {:name => "Gordon"}, :includes => :interests, :order => "interests.id").first
+    m = Man.all.merge!(where: {name: "Gordon"}, includes: :interests, order: "interests.id").first
     is = m.interests
     is.each do |i|
       assert_equal m.name, i.man.name, "Name of man should be the same before changes to parent instance"
@@ -346,7 +346,7 @@ class InverseHasManyTests < ActiveRecord::TestCase
 
   def test_parent_instance_should_be_shared_with_newly_created_via_bang_method_child
     m = Man.first
-    i = m.interests.create!(:topic => "Industrial Revolution Re-enactment")
+    i = m.interests.create!(topic: "Industrial Revolution Re-enactment")
     assert_not_nil i.man
     assert_equal m.name, i.man.name, "Name of man should be the same before changes to parent instance"
     m.name = "Bongo"
@@ -385,7 +385,7 @@ class InverseHasManyTests < ActiveRecord::TestCase
 
   def test_parent_instance_should_be_shared_with_poked_in_child
     m = men(:gordon)
-    i = Interest.create(:topic => "Industrial Revolution Re-enactment")
+    i = Interest.create(topic: "Industrial Revolution Re-enactment")
     m.interests << i
     assert_not_nil i.man
     assert_equal m.name, i.man.name, "Name of man should be the same before changes to parent instance"
@@ -397,7 +397,7 @@ class InverseHasManyTests < ActiveRecord::TestCase
 
   def test_parent_instance_should_be_shared_with_replaced_via_accessor_children
     m = Man.first
-    i = Interest.new(:topic => "Industrial Revolution Re-enactment")
+    i = Interest.new(topic: "Industrial Revolution Re-enactment")
     m.interests = [i]
     assert_not_nil i.man
     assert_equal m.name, i.man.name, "Name of man should be the same before changes to parent instance"
@@ -485,7 +485,7 @@ class InverseHasManyTests < ActiveRecord::TestCase
 
   def test_child_instance_should_point_to_parent_without_saving
     man = Man.new
-    i = Interest.create(:topic => "Industrial Revolution Re-enactment")
+    i = Interest.create(topic: "Industrial Revolution Re-enactment")
 
     man.interests << i
     assert_not_nil i.man
@@ -511,7 +511,7 @@ class InverseBelongsToTests < ActiveRecord::TestCase
   end
 
   def test_eager_loaded_child_instance_should_be_shared_with_parent_on_find
-    f = Face.all.merge!(:includes => :man, :where => {:description => "trusting"}).first
+    f = Face.all.merge!(includes: :man, where: {description: "trusting"}).first
     m = f.man
     assert_equal f.description, m.face.description, "Description of face should be the same before changes to child instance"
     f.description = "gormless"
@@ -519,7 +519,7 @@ class InverseBelongsToTests < ActiveRecord::TestCase
     m.face.description = "pleasing"
     assert_equal f.description, m.face.description, "Description of face should be the same after changes to parent-owned instance"
 
-    f = Face.all.merge!(:includes => :man, :order => "men.id", :where => {:description => "trusting"}).first
+    f = Face.all.merge!(includes: :man, order: "men.id", where: {description: "trusting"}).first
     m = f.man
     assert_equal f.description, m.face.description, "Description of face should be the same before changes to child instance"
     f.description = "gormless"
@@ -530,7 +530,7 @@ class InverseBelongsToTests < ActiveRecord::TestCase
 
   def test_child_instance_should_be_shared_with_newly_built_parent
     f = faces(:trusting)
-    m = f.build_man(:name => "Charles")
+    m = f.build_man(name: "Charles")
     assert_not_nil m.face
     assert_equal f.description, m.face.description, "Description of face should be the same before changes to child instance"
     f.description = "gormless"
@@ -541,7 +541,7 @@ class InverseBelongsToTests < ActiveRecord::TestCase
 
   def test_child_instance_should_be_shared_with_newly_created_parent
     f = faces(:trusting)
-    m = f.create_man(:name => "Charles")
+    m = f.create_man(name: "Charles")
     assert_not_nil m.face
     assert_equal f.description, m.face.description, "Description of face should be the same before changes to child instance"
     f.description = "gormless"
@@ -565,7 +565,7 @@ class InverseBelongsToTests < ActiveRecord::TestCase
 
   def test_child_instance_should_be_shared_with_replaced_via_accessor_parent
     f = Face.first
-    m = Man.new(:name => "Charles")
+    m = Man.new(name: "Charles")
     f.man = m
     assert_not_nil m.face
     assert_equal f.description, m.face.description, "Description of face should be the same before changes to child instance"
@@ -584,7 +584,7 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
   fixtures :men, :faces, :interests
 
   def test_child_instance_should_be_shared_with_parent_on_find
-    f = Face.all.merge!(:where => {:description => "confused"}).first
+    f = Face.all.merge!(where: {description: "confused"}).first
     m = f.polymorphic_man
     assert_equal f.description, m.polymorphic_face.description, "Description of face should be the same before changes to child instance"
     f.description = "gormless"
@@ -594,7 +594,7 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
   end
 
   def test_eager_loaded_child_instance_should_be_shared_with_parent_on_find
-    f = Face.all.merge!(:where => {:description => "confused"}, :includes => :man).first
+    f = Face.all.merge!(where: {description: "confused"}, includes: :man).first
     m = f.polymorphic_man
     assert_equal f.description, m.polymorphic_face.description, "Description of face should be the same before changes to child instance"
     f.description = "gormless"
@@ -602,7 +602,7 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
     m.polymorphic_face.description = "pleasing"
     assert_equal f.description, m.polymorphic_face.description, "Description of face should be the same after changes to parent-owned instance"
 
-    f = Face.all.merge!(:where => {:description => "confused"}, :includes => :man, :order => "men.id").first
+    f = Face.all.merge!(where: {description: "confused"}, includes: :man, order: "men.id").first
     m = f.polymorphic_man
     assert_equal f.description, m.polymorphic_face.description, "Description of face should be the same before changes to child instance"
     f.description = "gormless"
@@ -698,8 +698,8 @@ class InverseMultipleHasManyInversesForSameModel < ActiveRecord::TestCase
   def test_that_we_can_create_associations_that_have_the_same_reciprocal_name_from_different_models
     assert_nothing_raised do
       i = Interest.first
-      i.build_zine(:title => "Get Some in Winter! 2008")
-      i.build_man(:name => "Gordon")
+      i.build_zine(title: "Get Some in Winter! 2008")
+      i.build_man(name: "Gordon")
       i.save!
     end
   end

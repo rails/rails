@@ -18,7 +18,7 @@ def run_without_aborting(*tasks)
 end
 
 desc "Run mysql2, sqlite, and postgresql tests by default"
-task :default => :test
+task default: :test
 
 task :package
 
@@ -41,8 +41,8 @@ end
 
 desc "Build MySQL and PostgreSQL test databases"
 namespace :db do
-  task :create => ["db:mysql:build", "db:postgresql:build"]
-  task :drop => ["db:mysql:drop", "db:postgresql:drop"]
+  task create: ["db:mysql:build", "db:postgresql:build"]
+  task drop: ["db:mysql:drop", "db:postgresql:drop"]
 end
 
 %w( mysql2 postgresql sqlite3 sqlite3_mem db2 oracle jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb ).each do |adapter|
@@ -73,8 +73,8 @@ end
   end
 
   namespace adapter do
-    task :test => "test_#{adapter}"
-    task :isolated_test => "isolated_test_#{adapter}"
+    task test: "test_#{adapter}"
+    task isolated_test: "isolated_test_#{adapter}"
 
     # Set the connection environment for the adapter
     task(:env) { ENV["ARCONN"] = adapter }
@@ -102,7 +102,7 @@ namespace :db do
     end
 
     desc "Rebuild the MySQL test databases"
-    task :rebuild => [:drop, :build]
+    task rebuild: [:drop, :build]
   end
 
   namespace :postgresql do
@@ -126,17 +126,17 @@ namespace :db do
     end
 
     desc "Rebuild the PostgreSQL test databases"
-    task :rebuild => [:drop, :build]
+    task rebuild: [:drop, :build]
   end
 end
 
-task :build_mysql_databases => "db:mysql:build"
-task :drop_mysql_databases => "db:mysql:drop"
-task :rebuild_mysql_databases => "db:mysql:rebuild"
+task build_mysql_databases: "db:mysql:build"
+task drop_mysql_databases: "db:mysql:drop"
+task rebuild_mysql_databases: "db:mysql:rebuild"
 
-task :build_postgresql_databases => "db:postgresql:build"
-task :drop_postgresql_databases => "db:postgresql:drop"
-task :rebuild_postgresql_databases => "db:postgresql:rebuild"
+task build_postgresql_databases: "db:postgresql:build"
+task drop_postgresql_databases: "db:postgresql:drop"
+task rebuild_postgresql_databases: "db:postgresql:rebuild"
 
 task :lines do
   load File.expand_path("..", File.dirname(__FILE__)) + "/tools/line_statistics"

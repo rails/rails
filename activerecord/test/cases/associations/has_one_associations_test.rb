@@ -36,13 +36,13 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_queries(1) { assert_nil firm.account }
     assert_queries(0) { assert_nil firm.account }
 
-    firms = Firm.all.merge!(:includes => :account).to_a
+    firms = Firm.all.merge!(includes: :account).to_a
     assert_queries(0) { firms.each(&:account) }
   end
 
   def test_with_select
     assert_equal Firm.find(1).account_with_select.attributes.size, 2
-    assert_equal Firm.all.merge!(:includes => :account_with_select).find(1).account_with_select.attributes.size, 2
+    assert_equal Firm.all.merge!(includes: :account_with_select).find(1).account_with_select.attributes.size, 2
   end
 
   def test_finding_using_primary_key
@@ -102,7 +102,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   def test_nullification_on_association_change
     firm = companies(:rails_core)
     old_account_id = firm.account.id
-    firm.account = Account.new(:credit_limit => 5)
+    firm.account = Account.new(credit_limit: 5)
     # account is dependent with nullify, therefore its firm_id should be nil
     assert_nil Account.find(old_account_id).firm_id
   end
@@ -125,12 +125,12 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_association_change_calls_delete
-    companies(:first_firm).deletable_account = Account.new(:credit_limit => 5)
+    companies(:first_firm).deletable_account = Account.new(credit_limit: 5)
     assert_equal [], Account.destroyed_account_ids[companies(:first_firm).id]
   end
 
   def test_association_change_calls_destroy
-    companies(:first_firm).account = Account.new(:credit_limit => 5)
+    companies(:first_firm).account = Account.new(credit_limit: 5)
     assert_equal [companies(:first_firm).id], Account.destroyed_account_ids[companies(:first_firm).id]
   end
 
@@ -170,19 +170,19 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_dependence_with_nil_associate
-    firm = DependentFirm.new(:name => "nullify")
+    firm = DependentFirm.new(name: "nullify")
     firm.save!
     assert_nothing_raised { firm.destroy }
   end
 
   def test_restrict_with_exception
-    firm = RestrictedWithExceptionFirm.create!(:name => "restrict")
-    firm.create_account(:credit_limit => 10)
+    firm = RestrictedWithExceptionFirm.create!(name: "restrict")
+    firm.create_account(credit_limit: 10)
 
     assert_not_nil firm.account
 
     assert_raise(ActiveRecord::DeleteRestrictionError) { firm.destroy }
-    assert RestrictedWithExceptionFirm.exists?(:name => "restrict")
+    assert RestrictedWithExceptionFirm.exists?(name: "restrict")
     assert firm.account.present?
   end
 
@@ -206,8 +206,8 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_restrict_with_error
-    firm = RestrictedWithErrorFirm.create!(:name => "restrict")
-    firm.create_account(:credit_limit => 10)
+    firm = RestrictedWithErrorFirm.create!(name: "restrict")
+    firm.create_account(credit_limit: 10)
 
     assert_not_nil firm.account
 
@@ -215,7 +215,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     assert !firm.errors.empty?
     assert_equal "Cannot delete record because a dependent account exists", firm.errors[:base].first
-    assert RestrictedWithErrorFirm.exists?(:name => "restrict")
+    assert RestrictedWithErrorFirm.exists?(name: "restrict")
     assert firm.account.present?
   end
 
@@ -260,24 +260,24 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   def test_building_the_associated_object_with_explicit_sti_base_class
     firm = DependentFirm.new
-    company = firm.build_company(:type => "Company")
+    company = firm.build_company(type: "Company")
     assert_kind_of Company, company, "Expected #{company.class} to be a Company"
   end
 
   def test_building_the_associated_object_with_sti_subclass
     firm = DependentFirm.new
-    company = firm.build_company(:type => "Client")
+    company = firm.build_company(type: "Client")
     assert_kind_of Client, company, "Expected #{company.class} to be a Client"
   end
 
   def test_building_the_associated_object_with_an_invalid_type
     firm = DependentFirm.new
-    assert_raise(ActiveRecord::SubclassNotFound) { firm.build_company(:type => "Invalid") }
+    assert_raise(ActiveRecord::SubclassNotFound) { firm.build_company(type: "Invalid") }
   end
 
   def test_building_the_associated_object_with_an_unrelated_type
     firm = DependentFirm.new
-    assert_raise(ActiveRecord::SubclassNotFound) { firm.build_company(:type => "Account") }
+    assert_raise(ActiveRecord::SubclassNotFound) { firm.build_company(type: "Account") }
   end
 
   def test_build_and_create_should_not_happen_within_scope
@@ -295,19 +295,19 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_create_association
-    firm = Firm.create(:name => "GlobalMegaCorp")
-    account = firm.create_account(:credit_limit => 1000)
+    firm = Firm.create(name: "GlobalMegaCorp")
+    account = firm.create_account(credit_limit: 1000)
     assert_equal account, firm.reload.account
   end
 
   def test_create_association_with_bang
-    firm = Firm.create(:name => "GlobalMegaCorp")
-    account = firm.create_account!(:credit_limit => 1000)
+    firm = Firm.create(name: "GlobalMegaCorp")
+    account = firm.create_account!(credit_limit: 1000)
     assert_equal account, firm.reload.account
   end
 
   def test_create_association_with_bang_failing
-    firm = Firm.create(:name => "GlobalMegaCorp")
+    firm = Firm.create(name: "GlobalMegaCorp")
     assert_raise ActiveRecord::RecordInvalid do
       firm.create_account!
     end
@@ -365,7 +365,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   def test_finding_with_interpolated_condition
     firm = Firm.first
-    superior = firm.clients.create(:name => "SuperiorCo")
+    superior = firm.clients.create(name: "SuperiorCo")
     superior.rating = 10
     superior.save
     assert_equal 10, firm.clients_with_interpolated_conditions.first.rating
@@ -382,7 +382,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_save_still_works_after_accessing_nil_has_one
-    jp = Company.new :name => "Jaded Pixel"
+    jp = Company.new name: "Jaded Pixel"
     jp.dummy_account.nil?
 
     assert_nothing_raised do
@@ -411,14 +411,14 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     assert_nothing_raised do
       Firm.find(@firm.id).save!
-      Firm.all.merge!(:includes => :account).find(@firm.id).save!
+      Firm.all.merge!(includes: :account).find(@firm.id).save!
     end
 
     @firm.account.destroy
 
     assert_nothing_raised do
       Firm.find(@firm.id).save!
-      Firm.all.merge!(:includes => :account).find(@firm.id).save!
+      Firm.all.merge!(includes: :account).find(@firm.id).save!
     end
   end
 
@@ -435,7 +435,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_attributes_are_being_set_when_initialized_from_has_one_association_with_where_clause
-    new_account = companies(:first_firm).build_account(:firm_name => "Account")
+    new_account = companies(:first_firm).build_account(firm_name: "Account")
     assert_equal new_account.firm_name, "Account"
   end
 
@@ -505,60 +505,60 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_association_keys_bypass_attribute_protection
-    car = Car.create(:name => "honda")
+    car = Car.create(name: "honda")
 
     bulb = car.build_bulb
     assert_equal car.id, bulb.car_id
 
-    bulb = car.build_bulb :car_id => car.id + 1
+    bulb = car.build_bulb car_id: car.id + 1
     assert_equal car.id, bulb.car_id
 
     bulb = car.create_bulb
     assert_equal car.id, bulb.car_id
 
-    bulb = car.create_bulb :car_id => car.id + 1
+    bulb = car.create_bulb car_id: car.id + 1
     assert_equal car.id, bulb.car_id
   end
 
   def test_association_protect_foreign_key
-    pirate = Pirate.create!(:catchphrase => "Don' botharrr talkin' like one, savvy?")
+    pirate = Pirate.create!(catchphrase: "Don' botharrr talkin' like one, savvy?")
 
     ship = pirate.build_ship
     assert_equal pirate.id, ship.pirate_id
 
-    ship = pirate.build_ship :pirate_id => pirate.id + 1
+    ship = pirate.build_ship pirate_id: pirate.id + 1
     assert_equal pirate.id, ship.pirate_id
 
     ship = pirate.create_ship
     assert_equal pirate.id, ship.pirate_id
 
-    ship = pirate.create_ship :pirate_id => pirate.id + 1
+    ship = pirate.create_ship pirate_id: pirate.id + 1
     assert_equal pirate.id, ship.pirate_id
   end
 
   def test_build_with_block
-    car = Car.create(:name => "honda")
+    car = Car.create(name: "honda")
 
     bulb = car.build_bulb{ |b| b.color = "Red" }
     assert_equal "RED!", bulb.color
   end
 
   def test_create_with_block
-    car = Car.create(:name => "honda")
+    car = Car.create(name: "honda")
 
     bulb = car.create_bulb{ |b| b.color = "Red" }
     assert_equal "RED!", bulb.color
   end
 
   def test_create_bang_with_block
-    car = Car.create(:name => "honda")
+    car = Car.create(name: "honda")
 
     bulb = car.create_bulb!{ |b| b.color = "Red" }
     assert_equal "RED!", bulb.color
   end
 
   def test_association_attributes_are_available_to_after_initialize
-    car = Car.create(:name => "honda")
+    car = Car.create(name: "honda")
     bulb = car.create_bulb
 
     assert_equal car.id, bulb.attributes_after_initialize["car_id"]
@@ -635,7 +635,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_with_polymorphic_has_one_with_custom_columns_name
-    post = Post.create! :title => "foo", :body => "bar"
+    post = Post.create! title: "foo", body: "bar"
     image = Image.create!
 
     post.main_image = image

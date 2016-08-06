@@ -229,13 +229,13 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_inheritance_find_all
-    companies = Company.all.merge!(:order => "id").to_a
+    companies = Company.all.merge!(order: "id").to_a
     assert_kind_of Firm, companies[0], "37signals should be a firm"
     assert_kind_of Client, companies[1], "Summit should be a client"
   end
 
   def test_alt_inheritance_find_all
-    companies = Vegetable.all.merge!(:order => "id").to_a
+    companies = Vegetable.all.merge!(order: "id").to_a
     assert_kind_of Cucumber, companies[0]
     assert_kind_of Cabbage, companies[1]
   end
@@ -250,7 +250,7 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_alt_inheritance_save
-    cabbage = Cabbage.new(:name => "Savoy")
+    cabbage = Cabbage.new(name: "Savoy")
     cabbage.save!
 
     savoy = Vegetable.find(cabbage.id)
@@ -263,12 +263,12 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_inheritance_new_with_base_class
-    company = Company.new(:type => "Company")
+    company = Company.new(type: "Company")
     assert_equal Company, company.class
   end
 
   def test_inheritance_new_with_subclass
-    firm = Company.new(:type => "Firm")
+    firm = Company.new(type: "Firm")
     assert_equal Firm, firm.class
   end
 
@@ -287,11 +287,11 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_new_with_invalid_type
-    assert_raise(ActiveRecord::SubclassNotFound) { Company.new(:type => "InvalidType") }
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.new(type: "InvalidType") }
   end
 
   def test_new_with_unrelated_type
-    assert_raise(ActiveRecord::SubclassNotFound) { Company.new(:type => "Account") }
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.new(type: "Account") }
   end
 
   def test_new_with_unrelated_namespaced_type
@@ -319,7 +319,7 @@ class InheritanceTest < ActiveRecord::TestCase
     path = File.expand_path("../../models/autoloadable", __FILE__)
     ActiveSupport::Dependencies.autoload_paths << path
 
-    firm = Company.new(:type => "ExtraFirm")
+    firm = Company.new(type: "ExtraFirm")
     assert_equal ExtraFirm, firm.class
   ensure
     ActiveSupport::Dependencies.autoload_paths.reject! { |p| p == path }
@@ -352,7 +352,7 @@ class InheritanceTest < ActiveRecord::TestCase
     Client.update_all "name = 'I am a client'"
     assert_equal "I am a client", Client.first.name
     # Order by added as otherwise Oracle tests were failing because of different order of results
-    assert_equal "37signals", Firm.all.merge!(:order => "id").to_a.first.name
+    assert_equal "37signals", Firm.all.merge!(order: "id").to_a.first.name
   end
 
   def test_alt_update_all_within_inheritance
@@ -374,51 +374,51 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_find_first_within_inheritance
-    assert_kind_of Firm, Company.all.merge!(:where => "name = '37signals'").first
-    assert_kind_of Firm, Firm.all.merge!(:where => "name = '37signals'").first
-    assert_nil Client.all.merge!(:where => "name = '37signals'").first
+    assert_kind_of Firm, Company.all.merge!(where: "name = '37signals'").first
+    assert_kind_of Firm, Firm.all.merge!(where: "name = '37signals'").first
+    assert_nil Client.all.merge!(where: "name = '37signals'").first
   end
 
   def test_alt_find_first_within_inheritance
-    assert_kind_of Cabbage, Vegetable.all.merge!(:where => "name = 'his cabbage'").first
-    assert_kind_of Cabbage, Cabbage.all.merge!(:where => "name = 'his cabbage'").first
-    assert_nil Cucumber.all.merge!(:where => "name = 'his cabbage'").first
+    assert_kind_of Cabbage, Vegetable.all.merge!(where: "name = 'his cabbage'").first
+    assert_kind_of Cabbage, Cabbage.all.merge!(where: "name = 'his cabbage'").first
+    assert_nil Cucumber.all.merge!(where: "name = 'his cabbage'").first
   end
 
   def test_complex_inheritance
     very_special_client = VerySpecialClient.create("name" => "veryspecial")
     assert_equal very_special_client, VerySpecialClient.where("name = 'veryspecial'").first
-    assert_equal very_special_client, SpecialClient.all.merge!(:where => "name = 'veryspecial'").first
-    assert_equal very_special_client, Company.all.merge!(:where => "name = 'veryspecial'").first
-    assert_equal very_special_client, Client.all.merge!(:where => "name = 'veryspecial'").first
-    assert_equal 1, Client.all.merge!(:where => "name = 'Summit'").to_a.size
+    assert_equal very_special_client, SpecialClient.all.merge!(where: "name = 'veryspecial'").first
+    assert_equal very_special_client, Company.all.merge!(where: "name = 'veryspecial'").first
+    assert_equal very_special_client, Client.all.merge!(where: "name = 'veryspecial'").first
+    assert_equal 1, Client.all.merge!(where: "name = 'Summit'").to_a.size
     assert_equal very_special_client, Client.find(very_special_client.id)
   end
 
   def test_alt_complex_inheritance
     king_cole = KingCole.create("name" => "uniform heads")
     assert_equal king_cole, KingCole.where("name = 'uniform heads'").first
-    assert_equal king_cole, GreenCabbage.all.merge!(:where => "name = 'uniform heads'").first
-    assert_equal king_cole, Cabbage.all.merge!(:where => "name = 'uniform heads'").first
-    assert_equal king_cole, Vegetable.all.merge!(:where => "name = 'uniform heads'").first
-    assert_equal 1, Cabbage.all.merge!(:where => "name = 'his cabbage'").to_a.size
+    assert_equal king_cole, GreenCabbage.all.merge!(where: "name = 'uniform heads'").first
+    assert_equal king_cole, Cabbage.all.merge!(where: "name = 'uniform heads'").first
+    assert_equal king_cole, Vegetable.all.merge!(where: "name = 'uniform heads'").first
+    assert_equal 1, Cabbage.all.merge!(where: "name = 'his cabbage'").to_a.size
     assert_equal king_cole, Cabbage.find(king_cole.id)
   end
 
   def test_eager_load_belongs_to_something_inherited
-    account = Account.all.merge!(:includes => :firm).find(1)
+    account = Account.all.merge!(includes: :firm).find(1)
     assert account.association(:firm).loaded?, "association was not eager loaded"
   end
 
   def test_alt_eager_loading
-    cabbage = RedCabbage.all.merge!(:includes => :seller).find(4)
+    cabbage = RedCabbage.all.merge!(includes: :seller).find(4)
     assert cabbage.association(:seller).loaded?, "association was not eager loaded"
   end
 
   def test_eager_load_belongs_to_primary_key_quoting
     con = Account.connection
     assert_sql(/#{con.quote_table_name('companies')}.#{con.quote_column_name('id')} = 1/) do
-      Account.all.merge!(:includes => :firm).find(1)
+      Account.all.merge!(includes: :firm).find(1)
     end
   end
 
@@ -471,7 +471,7 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
 
   def test_sti_type_from_attributes_disabled_in_non_sti_class
     phone = Shop::Product::Type.new(name: "Phone")
-    product = Shop::Product.new(:type => phone)
+    product = Shop::Product.new(type: phone)
     assert product.save
   end
 

@@ -60,10 +60,10 @@ module ActiveRecord
         binds = [Relation::QueryAttribute.new("id", "10", Type::Integer.new)]
         type_casted_binds = binds.map { |attr| type_cast(attr.value_for_database) }
         payload = {
-          :name  => "SQL",
-          :sql   => "select * from topics where id = ?",
-          :binds => binds,
-          :type_casted_binds => type_casted_binds
+          name: "SQL",
+          sql: "select * from topics where id = ?",
+          binds: binds,
+          type_casted_binds: type_casted_binds
         }
         event  = ActiveSupport::Notifications::Event.new(
           "foo",

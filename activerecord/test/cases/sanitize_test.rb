@@ -90,10 +90,10 @@ class SanitizeTest < ActiveRecord::TestCase
   end
 
   def test_named_bind_variables
-    assert_equal "1", bind(":a", :a => 1) # ' ruby-mode
-    assert_equal "1 1", bind(":a :a", :a => 1)  # ' ruby-mode
+    assert_equal "1", bind(":a", a: 1) # ' ruby-mode
+    assert_equal "1 1", bind(":a :a", a: 1)  # ' ruby-mode
 
-    assert_nothing_raised { bind("'+00:00'", :foo => "bar") }
+    assert_nothing_raised { bind("'+00:00'", foo: "bar") }
   end
 
   def test_named_bind_arity
@@ -120,14 +120,14 @@ class SanitizeTest < ActiveRecord::TestCase
     assert_equal "1,2,3", bind("?", [1, 2, 3])
     assert_equal quoted_abc, bind("?", %w(a b c))
 
-    assert_equal "1,2,3", bind(":a", :a => [1, 2, 3])
-    assert_equal quoted_abc, bind(":a", :a => %w(a b c)) # '
+    assert_equal "1,2,3", bind(":a", a: [1, 2, 3])
+    assert_equal quoted_abc, bind(":a", a: %w(a b c)) # '
 
     assert_equal "1,2,3", bind("?", SimpleEnumerable.new([1, 2, 3]))
     assert_equal quoted_abc, bind("?", SimpleEnumerable.new(%w(a b c)))
 
-    assert_equal "1,2,3", bind(":a", :a => SimpleEnumerable.new([1, 2, 3]))
-    assert_equal quoted_abc, bind(":a", :a => SimpleEnumerable.new(%w(a b c))) # '
+    assert_equal "1,2,3", bind(":a", a: SimpleEnumerable.new([1, 2, 3]))
+    assert_equal quoted_abc, bind(":a", a: SimpleEnumerable.new(%w(a b c))) # '
   end
 
   def test_bind_empty_enumerable
@@ -160,7 +160,7 @@ class SanitizeTest < ActiveRecord::TestCase
   end
 
   def test_named_bind_with_postgresql_type_casts
-    l = Proc.new { bind(":a::integer '2009-01-01'::date", :a => "10") }
+    l = Proc.new { bind(":a::integer '2009-01-01'::date", a: "10") }
     assert_nothing_raised(&l)
     assert_equal "#{ActiveRecord::Base.connection.quote('10')}::integer '2009-01-01'::date", l.call
   end

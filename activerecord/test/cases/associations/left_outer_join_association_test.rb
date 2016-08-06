@@ -18,8 +18,8 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
   def test_construct_finder_sql_does_not_table_name_collide_on_duplicate_associations
     assert_nothing_raised do
       queries = capture_sql do
-        Person.left_outer_joins(:agents => {:agents => :agents})
-              .left_outer_joins(:agents => {:agents => {:primary_contact => :agents}}).to_a
+        Person.left_outer_joins(agents: {agents: :agents})
+              .left_outer_joins(agents: {agents: {primary_contact: :agents}}).to_a
       end
       assert queries.any? { |sql| /agents_people_4/i.match?(sql) }
     end
@@ -56,7 +56,7 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
   end
 
   def test_find_with_sti_join
-    scope = Post.left_outer_joins(:special_comments).where(:id => posts(:sti_comments).id)
+    scope = Post.left_outer_joins(:special_comments).where(id: posts(:sti_comments).id)
 
     # The join should match SpecialComment and its subclasses only
     assert scope.where("comments.type" => "Comment").empty?
