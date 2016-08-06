@@ -52,11 +52,10 @@ module ActionView
 
       def initialize
         @data = SmallCache.new(&KEY_BLOCK)
-        @query_cache = SmallCache.new
       end
 
       def inspect
-        "#<#{self.class.name}:0x#{(object_id << 1).to_s(16)} keys=#{@data.size} queries=#{@query_cache.size}>"
+        "#<#{self.class.name}:0x#{(object_id << 1).to_s(16)} keys=#{@data.size}>"
       end
 
       # Cache the templates returned by the block
@@ -75,17 +74,8 @@ module ActionView
         end
       end
 
-      def cache_query(query) # :nodoc:
-        if Resolver.caching?
-          @query_cache[query] ||= canonical_no_templates(yield)
-        else
-          yield
-        end
-      end
-
       def clear
         @data.clear
-        @query_cache.clear
       end
 
       # Get the cache size.  Do not call this
@@ -102,7 +92,7 @@ module ActionView
           end
         end
 
-        size + @query_cache.size
+        size
       end
 
       private
@@ -116,6 +106,8 @@ module ActionView
         # compare modification times, and instead just check whether the lists are different
         if cached_templates.blank? || fresh_templates.blank?
           return fresh_templates.blank? != cached_templates.blank?
+        elsif cached_templates.size != fresh_templates.size
+          return true
         end
 
         cached_templates_max_updated_at = cached_templates.map(&:updated_at).max
@@ -134,6 +126,7 @@ module ActionView
 
     def initialize
       @cache = Cache.new
+      @escape_path = true
     end
 
     def clear_cache
@@ -153,8 +146,12 @@ module ActionView
       end
     end
 
-    def find_all_with_query(query) # :nodoc:
-      @cache.cache_query(query) { find_template_paths(File.join(@path, query)) }
+    def find_all_unescaped(name, prefix, partial = false, details = {}, key = nil, locals = []) #:nodoc:
+      cached(key, [name, prefix, partial], details, locals) do
+        leave_path_unescaped do
+          find_templates(name, prefix, partial, details)
+        end
+      end
     end
 
   private
@@ -199,6 +196,14 @@ module ActionView
         t.variants       = details[:variants] || []      if t.variants.empty?
         t.virtual_path ||= (cached ||= build_path(*path_info))
       end
+    end
+
+    def leave_path_unescaped
+      old_escape_path, @escape_path = @escape_path, false
+
+      yield
+    ensure
+      @escape_path = old_escape_path
     end
   end
 
@@ -362,7 +367,8 @@ module ActionView
   # An Optimized resolver for Rails' most common case.
   class OptimizedFileSystemResolver < FileSystemResolver #:nodoc:
     def build_query(path, details)
-      query = escape_entry(File.join(@path, path))
+      query = File.join(@path, path)
+      query = escape_entry(query) if @escape_path
 
       exts = EXTENSIONS.map do |ext, prefix|
         if ext == :variants && details[ext] == :any

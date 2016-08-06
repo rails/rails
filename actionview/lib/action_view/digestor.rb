@@ -25,7 +25,7 @@ module ActionView
             dependencies.each do |injected_dep|
               root.children << Injected.new(injected_dep, nil, nil)
             end
-            finder.digest_cache[cache_key] = root.digest(finder)
+            finder.digest_cache[cache_key] = root.digest
           end
         end
       end
@@ -49,7 +49,7 @@ module ActionView
           else
             node = seen[template.identifier] = Node.create(name, logical_name, template, partial)
 
-            deps = DependencyTracker.find_dependencies(name, template, finder.view_paths)
+            deps = DependencyTracker.find_dependencies(name, template, finder)
             deps.uniq { |n| n.gsub(%r|/_|, "/") }.each do |dep_file|
               node.children << tree(dep_file, finder, true, seen)
             end
@@ -78,19 +78,17 @@ module ActionView
         @children     = children
       end
 
-      def digest(finder, stack = [])
-        Digest::MD5.hexdigest("#{template.source}-#{dependency_digest(finder, stack)}")
+      def digest(stack = [])
+        Digest::MD5.hexdigest("#{template.source}-#{dependency_digest(stack)}")
       end
 
-      def dependency_digest(finder, stack)
+      def dependency_digest(stack)
         children.map do |node|
           if stack.include?(node)
             false
           else
-            finder.digest_cache[node.name] ||= begin
-                                                 stack.push node
-                                                 node.digest(finder, stack).tap { stack.pop }
-                                               end
+            stack.push node
+            node.digest(stack).tap { stack.pop }
           end
         end.join("-")
       end
@@ -103,11 +101,11 @@ module ActionView
     class Partial < Node; end
 
     class Missing < Node
-      def digest(finder, _ = []) '' end
+      def digest(_ = []) '' end
     end
 
     class Injected < Node
-      def digest(finder, _ = []) name end
+      def digest(_ = []) name end
     end
 
     class NullLogger

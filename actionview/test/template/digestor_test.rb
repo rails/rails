@@ -67,6 +67,43 @@ class TemplateDigestorTest < ActionView::TestCase
     end
   end
 
+  def test_non_partials_do_not_impact_wildcard_dependencies
+    disable_resolver_caching do
+      assert_no_digest_difference("events/index") do
+        add_template("events/show")
+      end
+    end
+  end
+
+  def test_variant_impacts_wildcard_dependency_without_variant
+    disable_resolver_caching do
+      assert_digest_difference("events/index") do
+        change_template("events/_completed", variant: :phone)
+      end
+    end
+  end
+
+  def test_different_variant_does_not_impact_wildcard_dependency
+    disable_resolver_caching do
+      assert_no_digest_difference("events/index", variants: [ :phone ]) do
+        change_template("events/_completed", variant: :tablet)
+      end
+    end
+  end
+
+  def test_different_format_does_not_impact_wildcard_dependency
+    # Although we specify a format below, it's optional in the generated
+    # query: `{.html,}`. Thus we find a json template.
+    # If require a format, we no longer find variants of that format.
+    skip
+
+    disable_resolver_caching do
+      assert_no_digest_difference("events/index", format: :html) do
+        add_template("events/_completed", format: :json)
+      end
+    end
+  end
+
   def test_explicit_dependency_wildcard_picks_up_added_file
     disable_resolver_caching do
       assert_digest_difference("events/index") do
@@ -261,8 +298,8 @@ class TemplateDigestorTest < ActionView::TestCase
 
   def test_variants
     assert_digest_difference("messages/new", variants: [:iphone]) do
-      change_template("messages/new",     :iphone)
-      change_template("messages/_header", :iphone)
+      change_template("messages/new",     variant: :iphone)
+      change_template("messages/_header", variant: :iphone)
     end
   end
 
@@ -325,6 +362,16 @@ class TemplateDigestorTest < ActionView::TestCase
       end
     end
 
+    def assert_no_digest_difference(template_name, **options)
+      previous_digest = digest(template_name, options)
+      finder.digest_cache.clear
+
+      yield
+
+      assert_equal previous_digest, digest(template_name, options), "digest did change"
+      finder.digest_cache.clear
+    end
+
     def assert_digest_difference(template_name, options = {})
       previous_digest = digest(template_name, options)
       finder.digest_cache.clear
@@ -335,14 +382,11 @@ class TemplateDigestorTest < ActionView::TestCase
       finder.digest_cache.clear
     end
 
-    def digest(template_name, options = {})
-      options = options.dup
-      finder_options = options.extract!(:variants, :format)
+    def digest(template_name, format: nil, variants: [], dependencies: [])
+      finder.variants = variants
+      finder.rendered_format = format if format
 
-      finder.variants = finder_options[:variants] || []
-      finder.rendered_format = finder_options[:format] if finder_options[:format]
-
-      ActionView::Digestor.digest(name: template_name, finder: finder, dependencies: (options[:dependencies] || []))
+      ActionView::Digestor.digest(name: template_name, finder: finder, dependencies: dependencies)
     end
 
     def dependencies(template_name)
@@ -371,10 +415,10 @@ class TemplateDigestorTest < ActionView::TestCase
       @finder ||= FixtureFinder.new
     end
 
-    def change_template(template_name, variant = nil)
-      variant = "+#{variant}" if variant.present?
+    def change_template(template_name, variant: nil, format: :html)
+      variant = "+#{variant}" if variant
 
-      File.open("digestor/#{template_name}.html#{variant}.erb", "w") do |f|
+      File.open("digestor/#{template_name}.#{format}#{variant}.erb", "w") do |f|
         f.write "\nTHIS WAS CHANGED!"
       end
     end
