@@ -393,6 +393,22 @@ class EnumTest < ActiveRecord::TestCase
     assert book2.single?
   end
 
+  test "enum with alias_attribute" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      alias_attribute :aliased_status, :status
+      enum aliased_status: [:proposed, :written, :published]
+    end
+
+    book = klass.proposed.create!
+    assert book.proposed?
+    assert_equal 'proposed', book.aliased_status
+
+    book = klass.find(book.id)
+    assert book.proposed?
+    assert_equal 'proposed', book.aliased_status
+  end
+
   test "query state by predicate with prefix" do
     assert @book.author_visibility_visible?
     assert_not @book.author_visibility_invisible?
