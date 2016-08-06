@@ -1,6 +1,6 @@
 require 'ostruct'
 
-class TestServer
+class TestServer < ActionCable::Server::Base
   include ActionCable::Server::Connections
   include ActionCable::Server::Broadcasting
 
@@ -17,6 +17,7 @@ class TestServer
                                     ActionCable::Connection::ClientSocket
                                   end
 
+    @config.connection_class = -> { ActionCable::Connection::Base }
      @mutex = Monitor.new
   end
 
