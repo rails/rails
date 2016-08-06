@@ -24,7 +24,7 @@ class Deprecatee
   def c; end
   def d; end
   def e; end
-  deprecate :a, :b, :c => :e, :d => "you now need to do something extra for this one"
+  deprecate :a, :b, c: :e, d: "you now need to do something extra for this one"
 
   def f=(v); end
   deprecate :f=

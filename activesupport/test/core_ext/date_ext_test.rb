@@ -81,10 +81,10 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_change
-    assert_equal Date.new(2005, 2, 21), Date.new(2005, 2, 11).change(:day => 21)
-    assert_equal Date.new(2007, 5, 11), Date.new(2005, 2, 11).change(:year => 2007, :month => 5)
-    assert_equal Date.new(2006,2,22), Date.new(2005,2,22).change(:year => 2006)
-    assert_equal Date.new(2005,6,22), Date.new(2005,2,22).change(:month => 6)
+    assert_equal Date.new(2005, 2, 21), Date.new(2005, 2, 11).change(day: 21)
+    assert_equal Date.new(2007, 5, 11), Date.new(2005, 2, 11).change(year: 2007, month: 5)
+    assert_equal Date.new(2006,2,22), Date.new(2005,2,22).change(year: 2006)
+    assert_equal Date.new(2005,6,22), Date.new(2005,2,22).change(month: 6)
   end
 
   def test_sunday
@@ -139,34 +139,34 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_advance
-    assert_equal Date.new(2006,2,28), Date.new(2005,2,28).advance(:years => 1)
-    assert_equal Date.new(2005,6,28), Date.new(2005,2,28).advance(:months => 4)
-    assert_equal Date.new(2005,3,21), Date.new(2005,2,28).advance(:weeks => 3)
-    assert_equal Date.new(2005,3,5), Date.new(2005,2,28).advance(:days => 5)
-    assert_equal Date.new(2012,9,28), Date.new(2005,2,28).advance(:years => 7, :months => 7)
-    assert_equal Date.new(2013,10,3), Date.new(2005,2,28).advance(:years => 7, :months => 19, :days => 5)
-    assert_equal Date.new(2013,10,17), Date.new(2005,2,28).advance(:years => 7, :months => 19, :weeks => 2, :days => 5)
-    assert_equal Date.new(2005,2,28), Date.new(2004,2,29).advance(:years => 1) #leap day plus one year
+    assert_equal Date.new(2006,2,28), Date.new(2005,2,28).advance(years: 1)
+    assert_equal Date.new(2005,6,28), Date.new(2005,2,28).advance(months: 4)
+    assert_equal Date.new(2005,3,21), Date.new(2005,2,28).advance(weeks: 3)
+    assert_equal Date.new(2005,3,5), Date.new(2005,2,28).advance(days: 5)
+    assert_equal Date.new(2012,9,28), Date.new(2005,2,28).advance(years: 7, months: 7)
+    assert_equal Date.new(2013,10,3), Date.new(2005,2,28).advance(years: 7, months: 19, days: 5)
+    assert_equal Date.new(2013,10,17), Date.new(2005,2,28).advance(years: 7, months: 19, weeks: 2, days: 5)
+    assert_equal Date.new(2005,2,28), Date.new(2004,2,29).advance(years: 1) #leap day plus one year
   end
 
   def test_advance_does_first_years_and_then_days
-    assert_equal Date.new(2012, 2, 29), Date.new(2011, 2, 28).advance(:years => 1, :days => 1)
+    assert_equal Date.new(2012, 2, 29), Date.new(2011, 2, 28).advance(years: 1, days: 1)
     # If day was done first we would jump to 2012-03-01 instead.
   end
 
   def test_advance_does_first_months_and_then_days
-    assert_equal Date.new(2010, 3, 29), Date.new(2010, 2, 28).advance(:months => 1, :days => 1)
+    assert_equal Date.new(2010, 3, 29), Date.new(2010, 2, 28).advance(months: 1, days: 1)
     # If day was done first we would jump to 2010-04-01 instead.
   end
 
   def test_advance_in_calendar_reform
-    assert_equal Date.new(1582,10,15), Date.new(1582,10,4).advance(:days => 1)
-    assert_equal Date.new(1582,10,4), Date.new(1582,10,15).advance(:days => -1)
+    assert_equal Date.new(1582,10,15), Date.new(1582,10,4).advance(days: 1)
+    assert_equal Date.new(1582,10,4), Date.new(1582,10,15).advance(days: -1)
     5.upto(14) do |day|
-      assert_equal Date.new(1582,10,4), Date.new(1582,9,day).advance(:months => 1)
-      assert_equal Date.new(1582,10,4), Date.new(1582,11,day).advance(:months => -1)
-      assert_equal Date.new(1582,10,4), Date.new(1581,10,day).advance(:years => 1)
-      assert_equal Date.new(1582,10,4), Date.new(1583,10,day).advance(:years => -1)
+      assert_equal Date.new(1582,10,4), Date.new(1582,9,day).advance(months: 1)
+      assert_equal Date.new(1582,10,4), Date.new(1582,11,day).advance(months: -1)
+      assert_equal Date.new(1582,10,4), Date.new(1581,10,day).advance(years: 1)
+      assert_equal Date.new(1582,10,4), Date.new(1583,10,day).advance(years: -1)
     end
   end
 
@@ -384,9 +384,9 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_date_advance_should_not_change_passed_options_hash
-    options = { :years => 3, :months => 11, :days => 2 }
+    options = { years: 3, months: 11, days: 2 }
     Date.new(2005,2,28).advance(options)
-    assert_equal({ :years => 3, :months => 11, :days => 2 }, options)
+    assert_equal({ years: 3, months: 11, days: 2 }, options)
   end
 end
 

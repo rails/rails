@@ -30,11 +30,11 @@ module ActiveSupport
       private
 
         def conversion_format
-          translate_number_value_with_default("human.storage_units.format", :locale => options[:locale], :raise => true)
+          translate_number_value_with_default("human.storage_units.format", locale: options[:locale], raise: true)
         end
 
         def unit
-          translate_number_value_with_default(storage_unit_key, :locale => options[:locale], :count => number.to_i, :raise => true)
+          translate_number_value_with_default(storage_unit_key, locale: options[:locale], count: number.to_i, raise: true)
         end
 
         def storage_unit_key

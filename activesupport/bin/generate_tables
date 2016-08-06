@@ -20,10 +20,10 @@ module ActiveSupport
       class DatabaseGenerator
         BASE_URI = "http://www.unicode.org/Public/#{UNICODE_VERSION}/ucd/"
         SOURCES = {
-          :codepoints => BASE_URI + "UnicodeData.txt",
-          :composition_exclusion => BASE_URI + "CompositionExclusions.txt",
-          :grapheme_break_property => BASE_URI + "auxiliary/GraphemeBreakProperty.txt",
-          :cp1252 => "http://unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1252.TXT"
+          codepoints: BASE_URI + "UnicodeData.txt",
+          composition_exclusion: BASE_URI + "CompositionExclusions.txt",
+          grapheme_break_property: BASE_URI + "auxiliary/GraphemeBreakProperty.txt",
+          cp1252: "http://unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1252.TXT"
         }
 
         def initialize

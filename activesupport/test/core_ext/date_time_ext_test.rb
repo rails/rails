@@ -159,47 +159,47 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_change
-    assert_equal DateTime.civil(2006,2,22,15,15,10), DateTime.civil(2005,2,22,15,15,10).change(:year => 2006)
-    assert_equal DateTime.civil(2005,6,22,15,15,10), DateTime.civil(2005,2,22,15,15,10).change(:month => 6)
-    assert_equal DateTime.civil(2012,9,22,15,15,10), DateTime.civil(2005,2,22,15,15,10).change(:year => 2012, :month => 9)
-    assert_equal DateTime.civil(2005,2,22,16),       DateTime.civil(2005,2,22,15,15,10).change(:hour => 16)
-    assert_equal DateTime.civil(2005,2,22,16,45),    DateTime.civil(2005,2,22,15,15,10).change(:hour => 16, :min => 45)
-    assert_equal DateTime.civil(2005,2,22,15,45),    DateTime.civil(2005,2,22,15,15,10).change(:min => 45)
+    assert_equal DateTime.civil(2006,2,22,15,15,10), DateTime.civil(2005,2,22,15,15,10).change(year: 2006)
+    assert_equal DateTime.civil(2005,6,22,15,15,10), DateTime.civil(2005,2,22,15,15,10).change(month: 6)
+    assert_equal DateTime.civil(2012,9,22,15,15,10), DateTime.civil(2005,2,22,15,15,10).change(year: 2012, month: 9)
+    assert_equal DateTime.civil(2005,2,22,16),       DateTime.civil(2005,2,22,15,15,10).change(hour: 16)
+    assert_equal DateTime.civil(2005,2,22,16,45),    DateTime.civil(2005,2,22,15,15,10).change(hour: 16, min: 45)
+    assert_equal DateTime.civil(2005,2,22,15,45),    DateTime.civil(2005,2,22,15,15,10).change(min: 45)
 
     # datetime with fractions of a second
-    assert_equal DateTime.civil(2005,2,1,15,15,10.7), DateTime.civil(2005,2,22,15,15,10.7).change(:day => 1)
+    assert_equal DateTime.civil(2005,2,1,15,15,10.7), DateTime.civil(2005,2,22,15,15,10.7).change(day: 1)
   end
 
   def test_advance
-    assert_equal DateTime.civil(2006,2,28,15,15,10),  DateTime.civil(2005,2,28,15,15,10).advance(:years => 1)
-    assert_equal DateTime.civil(2005,6,28,15,15,10),  DateTime.civil(2005,2,28,15,15,10).advance(:months => 4)
-    assert_equal DateTime.civil(2005,3,21,15,15,10),  DateTime.civil(2005,2,28,15,15,10).advance(:weeks => 3)
-    assert_equal DateTime.civil(2005,3,5,15,15,10),   DateTime.civil(2005,2,28,15,15,10).advance(:days => 5)
-    assert_equal DateTime.civil(2012,9,28,15,15,10),  DateTime.civil(2005,2,28,15,15,10).advance(:years => 7, :months => 7)
-    assert_equal DateTime.civil(2013,10,3,15,15,10),  DateTime.civil(2005,2,28,15,15,10).advance(:years => 7, :months => 19, :days => 5)
-    assert_equal DateTime.civil(2013,10,17,15,15,10), DateTime.civil(2005,2,28,15,15,10).advance(:years => 7, :months => 19, :weeks => 2, :days => 5)
-    assert_equal DateTime.civil(2001,12,27,15,15,10), DateTime.civil(2005,2,28,15,15,10).advance(:years => -3, :months => -2, :days => -1)
-    assert_equal DateTime.civil(2005,2,28,15,15,10),  DateTime.civil(2004,2,29,15,15,10).advance(:years => 1) #leap day plus one year
-    assert_equal DateTime.civil(2005,2,28,20,15,10),  DateTime.civil(2005,2,28,15,15,10).advance(:hours => 5)
-    assert_equal DateTime.civil(2005,2,28,15,22,10),  DateTime.civil(2005,2,28,15,15,10).advance(:minutes => 7)
-    assert_equal DateTime.civil(2005,2,28,15,15,19),  DateTime.civil(2005,2,28,15,15,10).advance(:seconds => 9)
-    assert_equal DateTime.civil(2005,2,28,20,22,19),  DateTime.civil(2005,2,28,15,15,10).advance(:hours => 5, :minutes => 7, :seconds => 9)
-    assert_equal DateTime.civil(2005,2,28,10,8,1),    DateTime.civil(2005,2,28,15,15,10).advance(:hours => -5, :minutes => -7, :seconds => -9)
-    assert_equal DateTime.civil(2013,10,17,20,22,19), DateTime.civil(2005,2,28,15,15,10).advance(:years => 7, :months => 19, :weeks => 2, :days => 5, :hours => 5, :minutes => 7, :seconds => 9)
+    assert_equal DateTime.civil(2006,2,28,15,15,10),  DateTime.civil(2005,2,28,15,15,10).advance(years: 1)
+    assert_equal DateTime.civil(2005,6,28,15,15,10),  DateTime.civil(2005,2,28,15,15,10).advance(months: 4)
+    assert_equal DateTime.civil(2005,3,21,15,15,10),  DateTime.civil(2005,2,28,15,15,10).advance(weeks: 3)
+    assert_equal DateTime.civil(2005,3,5,15,15,10),   DateTime.civil(2005,2,28,15,15,10).advance(days: 5)
+    assert_equal DateTime.civil(2012,9,28,15,15,10),  DateTime.civil(2005,2,28,15,15,10).advance(years: 7, months: 7)
+    assert_equal DateTime.civil(2013,10,3,15,15,10),  DateTime.civil(2005,2,28,15,15,10).advance(years: 7, months: 19, days: 5)
+    assert_equal DateTime.civil(2013,10,17,15,15,10), DateTime.civil(2005,2,28,15,15,10).advance(years: 7, months: 19, weeks: 2, days: 5)
+    assert_equal DateTime.civil(2001,12,27,15,15,10), DateTime.civil(2005,2,28,15,15,10).advance(years: -3, months: -2, days: -1)
+    assert_equal DateTime.civil(2005,2,28,15,15,10),  DateTime.civil(2004,2,29,15,15,10).advance(years: 1) #leap day plus one year
+    assert_equal DateTime.civil(2005,2,28,20,15,10),  DateTime.civil(2005,2,28,15,15,10).advance(hours: 5)
+    assert_equal DateTime.civil(2005,2,28,15,22,10),  DateTime.civil(2005,2,28,15,15,10).advance(minutes: 7)
+    assert_equal DateTime.civil(2005,2,28,15,15,19),  DateTime.civil(2005,2,28,15,15,10).advance(seconds: 9)
+    assert_equal DateTime.civil(2005,2,28,20,22,19),  DateTime.civil(2005,2,28,15,15,10).advance(hours: 5, minutes: 7, seconds: 9)
+    assert_equal DateTime.civil(2005,2,28,10,8,1),    DateTime.civil(2005,2,28,15,15,10).advance(hours: -5, minutes: -7, seconds: -9)
+    assert_equal DateTime.civil(2013,10,17,20,22,19), DateTime.civil(2005,2,28,15,15,10).advance(years: 7, months: 19, weeks: 2, days: 5, hours: 5, minutes: 7, seconds: 9)
   end
 
   def test_advance_partial_days
-    assert_equal DateTime.civil(2012,9,29,13,15,10),  DateTime.civil(2012,9,28,1,15,10).advance(:days => 1.5)
-    assert_equal DateTime.civil(2012,9,28,13,15,10),  DateTime.civil(2012,9,28,1,15,10).advance(:days => 0.5)
-    assert_equal DateTime.civil(2012,10,29,13,15,10), DateTime.civil(2012,9,28,1,15,10).advance(:days => 1.5, :months => 1)
+    assert_equal DateTime.civil(2012,9,29,13,15,10),  DateTime.civil(2012,9,28,1,15,10).advance(days: 1.5)
+    assert_equal DateTime.civil(2012,9,28,13,15,10),  DateTime.civil(2012,9,28,1,15,10).advance(days: 0.5)
+    assert_equal DateTime.civil(2012,10,29,13,15,10), DateTime.civil(2012,9,28,1,15,10).advance(days: 1.5, months: 1)
   end
 
   def test_advanced_processes_first_the_date_deltas_and_then_the_time_deltas
     # If the time deltas were processed first, the following datetimes would be advanced to 2010/04/01 instead.
-    assert_equal DateTime.civil(2010, 3, 29), DateTime.civil(2010, 2, 28, 23, 59, 59).advance(:months => 1, :seconds => 1)
-    assert_equal DateTime.civil(2010, 3, 29), DateTime.civil(2010, 2, 28, 23, 59).advance(:months => 1, :minutes => 1)
-    assert_equal DateTime.civil(2010, 3, 29), DateTime.civil(2010, 2, 28, 23).advance(:months => 1, :hours => 1)
-    assert_equal DateTime.civil(2010, 3, 29), DateTime.civil(2010, 2, 28, 22, 58, 59).advance(:months => 1, :hours => 1, :minutes => 1, :seconds => 1)
+    assert_equal DateTime.civil(2010, 3, 29), DateTime.civil(2010, 2, 28, 23, 59, 59).advance(months: 1, seconds: 1)
+    assert_equal DateTime.civil(2010, 3, 29), DateTime.civil(2010, 2, 28, 23, 59).advance(months: 1, minutes: 1)
+    assert_equal DateTime.civil(2010, 3, 29), DateTime.civil(2010, 2, 28, 23).advance(months: 1, hours: 1)
+    assert_equal DateTime.civil(2010, 3, 29), DateTime.civil(2010, 2, 28, 22, 58, 59).advance(months: 1, hours: 1, minutes: 1, seconds: 1)
   end
 
   def test_last_week

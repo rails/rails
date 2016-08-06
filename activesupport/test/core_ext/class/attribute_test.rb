@@ -56,18 +56,18 @@ class ClassAttributeTest < ActiveSupport::TestCase
   end
 
   test "disabling instance writer" do
-    object = Class.new { class_attribute :setting, :instance_writer => false }.new
+    object = Class.new { class_attribute :setting, instance_writer: false }.new
     assert_raise(NoMethodError) { object.setting = "boom" }
   end
 
   test "disabling instance reader" do
-    object = Class.new { class_attribute :setting, :instance_reader => false }.new
+    object = Class.new { class_attribute :setting, instance_reader: false }.new
     assert_raise(NoMethodError) { object.setting }
     assert_raise(NoMethodError) { object.setting? }
   end
 
   test "disabling both instance writer and reader" do
-    object = Class.new { class_attribute :setting, :instance_accessor => false }.new
+    object = Class.new { class_attribute :setting, instance_accessor: false }.new
     assert_raise(NoMethodError) { object.setting }
     assert_raise(NoMethodError) { object.setting? }
     assert_raise(NoMethodError) { object.setting = "boom" }

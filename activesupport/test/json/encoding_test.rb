@@ -47,12 +47,12 @@ class TestJSONEncoding < ActiveSupport::TestCase
   end
 
   def test_hash_encoding
-    assert_equal %({\"a\":\"b\"}), ActiveSupport::JSON.encode(:a => :b)
+    assert_equal %({\"a\":\"b\"}), ActiveSupport::JSON.encode(a: :b)
     assert_equal %({\"a\":1}), ActiveSupport::JSON.encode("a" => 1)
     assert_equal %({\"a\":[1,2]}), ActiveSupport::JSON.encode("a" => [1,2])
     assert_equal %({"1":2}), ActiveSupport::JSON.encode(1 => 2)
 
-    assert_equal %({\"a\":\"b\",\"c\":\"d\"}), sorted_json(ActiveSupport::JSON.encode(:a => :b, :c => :d))
+    assert_equal %({\"a\":\"b\",\"c\":\"d\"}), sorted_json(ActiveSupport::JSON.encode(a: :b, c: :d))
   end
 
   def test_hash_keys_encoding
@@ -98,11 +98,11 @@ class TestJSONEncoding < ActiveSupport::TestCase
   end
 
   def test_hash_should_allow_key_filtering_with_only
-    assert_equal %({"a":1}), ActiveSupport::JSON.encode({"a" => 1, :b => 2, :c => 3}, :only => "a")
+    assert_equal %({"a":1}), ActiveSupport::JSON.encode({"a" => 1, :b => 2, :c => 3}, only: "a")
   end
 
   def test_hash_should_allow_key_filtering_with_except
-    assert_equal %({"b":2}), ActiveSupport::JSON.encode({"foo" => "bar", :b => 2, :c => 3}, :except => ["foo", :c])
+    assert_equal %({"b":2}), ActiveSupport::JSON.encode({"foo" => "bar", :b => 2, :c => 3}, except: ["foo", :c])
   end
 
   def test_time_to_json_includes_local_offset
@@ -115,7 +115,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
 
   def test_hash_with_time_to_json
     with_standard_json_time_format(false) do
-      assert_equal '{"time":"2009/01/01 00:00:00 +0000"}', { :time => Time.utc(2009) }.to_json
+      assert_equal '{"time":"2009/01/01 00:00:00 +0000"}', { time: Time.utc(2009) }.to_json
     end
   end
 
@@ -123,8 +123,8 @@ class TestJSONEncoding < ActiveSupport::TestCase
     assert_nothing_raised do
       hash = {
         "CHI" => {
-          :display_name => "chicago",
-          :latitude => 123.234
+          display_name: "chicago",
+          latitude: 123.234
         }
       }
       ActiveSupport::JSON.encode(hash)
@@ -133,7 +133,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
 
   def test_hash_like_with_options
     h = JSONTest::Hashlike.new
-    json = h.to_json :only => [:foo]
+    json = h.to_json only: [:foo]
 
     assert_equal({"foo"=>"hello"}, JSON.parse(json))
   end
@@ -142,7 +142,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
     obj = Object.new
     obj.instance_variable_set :@foo, "hello"
     obj.instance_variable_set :@bar, "world"
-    json = obj.to_json :only => ["foo"]
+    json = obj.to_json only: ["foo"]
 
     assert_equal({"foo"=>"hello"}, JSON.parse(json))
   end
@@ -151,43 +151,43 @@ class TestJSONEncoding < ActiveSupport::TestCase
     struct = Struct.new(:foo, :bar).new
     struct.foo = "hello"
     struct.bar = "world"
-    json = struct.to_json :only => [:foo]
+    json = struct.to_json only: [:foo]
 
     assert_equal({"foo"=>"hello"}, JSON.parse(json))
   end
 
   def test_hash_should_pass_encoding_options_to_children_in_as_json
     person = {
-      :name => "John",
-      :address => {
-        :city => "London",
-        :country => "UK"
+      name: "John",
+      address: {
+        city: "London",
+        country: "UK"
       }
     }
-    json = person.as_json :only => [:address, :city]
+    json = person.as_json only: [:address, :city]
 
     assert_equal({ "address" => { "city" => "London" }}, json)
   end
 
   def test_hash_should_pass_encoding_options_to_children_in_to_json
     person = {
-      :name => "John",
-      :address => {
-        :city => "London",
-        :country => "UK"
+      name: "John",
+      address: {
+        city: "London",
+        country: "UK"
       }
     }
-    json = person.to_json :only => [:address, :city]
+    json = person.to_json only: [:address, :city]
 
     assert_equal(%({"address":{"city":"London"}}), json)
   end
 
   def test_array_should_pass_encoding_options_to_children_in_as_json
     people = [
-      { :name => "John", :address => { :city => "London", :country => "UK" }},
-      { :name => "Jean", :address => { :city => "Paris" , :country => "France" }}
+      { name: "John", address: { city: "London", country: "UK" }},
+      { name: "Jean", address: { city: "Paris" , country: "France" }}
     ]
-    json = people.as_json :only => [:address, :city]
+    json = people.as_json only: [:address, :city]
     expected = [
       { "address" => { "city" => "London" }},
       { "address" => { "city" => "Paris" }}
@@ -198,10 +198,10 @@ class TestJSONEncoding < ActiveSupport::TestCase
 
   def test_array_should_pass_encoding_options_to_children_in_to_json
     people = [
-      { :name => "John", :address => { :city => "London", :country => "UK" }},
-      { :name => "Jean", :address => { :city => "Paris" , :country => "France" }}
+      { name: "John", address: { city: "London", country: "UK" }},
+      { name: "Jean", address: { city: "Paris" , country: "France" }}
     ]
-    json = people.to_json :only => [:address, :city]
+    json = people.to_json only: [:address, :city]
 
     assert_equal(%([{"address":{"city":"London"}},{"address":{"city":"Paris"}}]), json)
   end
@@ -210,8 +210,8 @@ class TestJSONEncoding < ActiveSupport::TestCase
     include Enumerable
     def initialize()
       @people = [
-        { :name => "John", :address => { :city => "London", :country => "UK" }},
-        { :name => "Jean", :address => { :city => "Paris" , :country => "France" }}
+        { name: "John", address: { city: "London", country: "UK" }},
+        { name: "Jean", address: { city: "Paris" , country: "France" }}
       ]
     end
     def each(*, &blk)
@@ -223,7 +223,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
   end
 
   def test_enumerable_should_generate_json_with_as_json
-    json = People.new.as_json :only => [:address, :city]
+    json = People.new.as_json only: [:address, :city]
     expected = [
       { "address" => { "city" => "London" }},
       { "address" => { "city" => "Paris" }}
@@ -233,12 +233,12 @@ class TestJSONEncoding < ActiveSupport::TestCase
   end
 
   def test_enumerable_should_generate_json_with_to_json
-    json = People.new.to_json :only => [:address, :city]
+    json = People.new.to_json only: [:address, :city]
     assert_equal(%([{"address":{"city":"London"}},{"address":{"city":"Paris"}}]), json)
   end
 
   def test_enumerable_should_pass_encoding_options_to_children_in_as_json
-    json = People.new.each.as_json :only => [:address, :city]
+    json = People.new.each.as_json only: [:address, :city]
     expected = [
       { "address" => { "city" => "London" }},
       { "address" => { "city" => "Paris" }}
@@ -248,7 +248,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
   end
 
   def test_enumerable_should_pass_encoding_options_to_children_in_to_json
-    json = People.new.each.to_json :only => [:address, :city]
+    json = People.new.each.to_json only: [:address, :city]
 
     assert_equal(%([{"address":{"city":"London"}},{"address":{"city":"Paris"}}]), json)
   end

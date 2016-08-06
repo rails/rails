@@ -323,8 +323,8 @@ module ActiveSupport
 
       def merge_conditional_options(chain, if_option:, unless_option:)
         options = {
-          :if     => @if.dup,
-          :unless => @unless.dup
+          if: @if.dup,
+          unless: @unless.dup
         }
 
         options[:if].concat     Array(unless_option)

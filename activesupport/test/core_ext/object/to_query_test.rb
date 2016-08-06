@@ -5,7 +5,7 @@ require "active_support/core_ext/string/output_safety"
 
 class ToQueryTest < ActiveSupport::TestCase
   def test_simple_conversion
-    assert_query_equal "a=10", :a => 10
+    assert_query_equal "a=10", a: 10
   end
 
   def test_cgi_escaping
@@ -28,22 +28,22 @@ class ToQueryTest < ActiveSupport::TestCase
 
   def test_nested_conversion
     assert_query_equal "person%5Blogin%5D=seckar&person%5Bname%5D=Nicholas",
-      :person => Hash[:login, "seckar", :name, "Nicholas"]
+      person: Hash[:login, "seckar", :name, "Nicholas"]
   end
 
   def test_multiple_nested
     assert_query_equal "account%5Bperson%5D%5Bid%5D=20&person%5Bid%5D=10",
-      Hash[:account, {:person => {:id => 20}}, :person, {:id => 10}]
+      Hash[:account, {person: {id: 20}}, :person, {id: 10}]
   end
 
   def test_array_values
     assert_query_equal "person%5Bid%5D%5B%5D=10&person%5Bid%5D%5B%5D=20",
-      :person => {:id => [10, 20]}
+      person: {id: [10, 20]}
   end
 
   def test_array_values_are_not_sorted
     assert_query_equal "person%5Bid%5D%5B%5D=20&person%5Bid%5D%5B%5D=10",
-      :person => {:id => [20, 10]}
+      person: {id: [20, 10]}
   end
 
   def test_empty_array

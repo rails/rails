@@ -12,23 +12,23 @@ module XmlMiniTest
     end
 
     def test_rename_key_dasherizes_with_dasherize_true
-      assert_equal "my-key", ActiveSupport::XmlMini.rename_key("my_key", :dasherize => true)
+      assert_equal "my-key", ActiveSupport::XmlMini.rename_key("my_key", dasherize: true)
     end
 
     def test_rename_key_does_nothing_with_dasherize_false
-      assert_equal "my_key", ActiveSupport::XmlMini.rename_key("my_key", :dasherize => false)
+      assert_equal "my_key", ActiveSupport::XmlMini.rename_key("my_key", dasherize: false)
     end
 
     def test_rename_key_camelizes_with_camelize_true
-      assert_equal "MyKey", ActiveSupport::XmlMini.rename_key("my_key", :camelize => true)
+      assert_equal "MyKey", ActiveSupport::XmlMini.rename_key("my_key", camelize: true)
     end
 
     def test_rename_key_lower_camelizes_with_camelize_lower
-      assert_equal "myKey", ActiveSupport::XmlMini.rename_key("my_key", :camelize => :lower)
+      assert_equal "myKey", ActiveSupport::XmlMini.rename_key("my_key", camelize: :lower)
     end
 
     def test_rename_key_lower_camelizes_with_camelize_upper
-      assert_equal "MyKey", ActiveSupport::XmlMini.rename_key("my_key", :camelize => :upper)
+      assert_equal "MyKey", ActiveSupport::XmlMini.rename_key("my_key", camelize: :upper)
     end
 
     def test_rename_key_does_not_dasherize_leading_underscores
@@ -63,7 +63,7 @@ module XmlMiniTest
 
     def setup
       @xml = ActiveSupport::XmlMini
-      @options = {:skip_instruct => true, :builder => Builder::XmlMarkup.new}
+      @options = {skip_instruct: true, builder: Builder::XmlMarkup.new}
     end
 
     test "#to_tag accepts a callable object and passes options with the builder" do

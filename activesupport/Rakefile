@@ -1,6 +1,6 @@
 require "rake/testtask"
 
-task :default => :test
+task default: :test
 
 task :package
 

@@ -3,11 +3,11 @@ require "active_support/core_ext/object/with_options"
 
 class OptionMergerTest < ActiveSupport::TestCase
   def setup
-    @options = {:hello => "world"}
+    @options = {hello: "world"}
   end
 
   def test_method_with_options_merges_options_when_options_are_present
-    local_options = {:cool => true}
+    local_options = {cool: true}
 
     with_options(@options) do |o|
       assert_equal local_options, method_with_options(local_options)
@@ -24,7 +24,7 @@ class OptionMergerTest < ActiveSupport::TestCase
   end
 
   def test_method_with_options_allows_to_overwrite_options
-    local_options = {:hello => "moon"}
+    local_options = {hello: "moon"}
     assert_equal @options.keys, local_options.keys
 
     with_options(@options) do |o|
@@ -40,34 +40,34 @@ class OptionMergerTest < ActiveSupport::TestCase
   end
 
   def test_nested_method_with_options_containing_hashes_merge
-    with_options :conditions => { :method => :get } do |outer|
-      outer.with_options :conditions => { :domain => "www" } do |inner|
-        expected = { :conditions => { :method => :get, :domain => "www" } }
+    with_options conditions: { method: :get } do |outer|
+      outer.with_options conditions: { domain: "www" } do |inner|
+        expected = { conditions: { method: :get, domain: "www" } }
         assert_equal expected, inner.method_with_options
       end
     end
   end
 
   def test_nested_method_with_options_containing_hashes_overwrite
-    with_options :conditions => { :method => :get, :domain => "www" } do |outer|
-      outer.with_options :conditions => { :method => :post } do |inner|
-        expected = { :conditions => { :method => :post, :domain => "www" } }
+    with_options conditions: { method: :get, domain: "www" } do |outer|
+      outer.with_options conditions: { method: :post } do |inner|
+        expected = { conditions: { method: :post, domain: "www" } }
         assert_equal expected, inner.method_with_options
       end
     end
   end
 
   def test_nested_method_with_options_containing_hashes_going_deep
-    with_options :html => { :class => "foo", :style => { :margin => 0, :display => "block" } } do |outer|
-      outer.with_options :html => { :title => "bar", :style => { :margin => "1em", :color => "#fff" } } do |inner|
-        expected = { :html => { :class => "foo", :title => "bar", :style => { :margin => "1em", :display => "block", :color => "#fff" } } }
+    with_options html: { class: "foo", style: { margin: 0, display: "block" } } do |outer|
+      outer.with_options html: { title: "bar", style: { margin: "1em", color: "#fff" } } do |inner|
+        expected = { html: { class: "foo", title: "bar", style: { margin: "1em", display: "block", color: "#fff" } } }
         assert_equal expected, inner.method_with_options
       end
     end
   end
 
   def test_nested_method_with_options_using_lambda
-    local_lambda = lambda { { :lambda => true } }
+    local_lambda = lambda { { lambda: true } }
     with_options(@options) do |o|
       assert_equal @options.merge(local_lambda.call),
         o.method_with_options(local_lambda).call

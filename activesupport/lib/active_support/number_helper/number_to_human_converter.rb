@@ -40,7 +40,7 @@ module ActiveSupport
           when Hash
             units[exp] || ""
           when String, Symbol
-            I18n.translate("#{units}.#{exp}", :locale => options[:locale], :count => number.to_i)
+            I18n.translate("#{units}.#{exp}", locale: options[:locale], count: number.to_i)
           else
             translate_in_locale("human.decimal_units.units.#{exp}", count: number.to_i)
           end
@@ -56,7 +56,7 @@ module ActiveSupport
           when Hash
             units
           when String, Symbol
-            I18n.translate(units.to_s, :locale => options[:locale], :raise => true)
+            I18n.translate(units.to_s, locale: options[:locale], raise: true)
           when nil
             translate_in_locale("human.decimal_units.units", raise: true)
           else

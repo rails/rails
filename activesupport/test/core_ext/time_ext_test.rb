@@ -393,122 +393,122 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_change
-    assert_equal Time.local(2006,2,22,15,15,10), Time.local(2005,2,22,15,15,10).change(:year => 2006)
-    assert_equal Time.local(2005,6,22,15,15,10), Time.local(2005,2,22,15,15,10).change(:month => 6)
-    assert_equal Time.local(2012,9,22,15,15,10), Time.local(2005,2,22,15,15,10).change(:year => 2012, :month => 9)
-    assert_equal Time.local(2005,2,22,16),       Time.local(2005,2,22,15,15,10).change(:hour => 16)
-    assert_equal Time.local(2005,2,22,16,45),    Time.local(2005,2,22,15,15,10).change(:hour => 16, :min => 45)
-    assert_equal Time.local(2005,2,22,15,45),    Time.local(2005,2,22,15,15,10).change(:min => 45)
+    assert_equal Time.local(2006,2,22,15,15,10), Time.local(2005,2,22,15,15,10).change(year: 2006)
+    assert_equal Time.local(2005,6,22,15,15,10), Time.local(2005,2,22,15,15,10).change(month: 6)
+    assert_equal Time.local(2012,9,22,15,15,10), Time.local(2005,2,22,15,15,10).change(year: 2012, month: 9)
+    assert_equal Time.local(2005,2,22,16),       Time.local(2005,2,22,15,15,10).change(hour: 16)
+    assert_equal Time.local(2005,2,22,16,45),    Time.local(2005,2,22,15,15,10).change(hour: 16, min: 45)
+    assert_equal Time.local(2005,2,22,15,45),    Time.local(2005,2,22,15,15,10).change(min: 45)
 
-    assert_equal Time.local(2005,1,2, 5, 0, 0, 0), Time.local(2005,1,2,11,22,33,44).change(:hour => 5)
-    assert_equal Time.local(2005,1,2,11, 6, 0, 0), Time.local(2005,1,2,11,22,33,44).change(:min  => 6)
-    assert_equal Time.local(2005,1,2,11,22, 7, 0), Time.local(2005,1,2,11,22,33,44).change(:sec  => 7)
-    assert_equal Time.local(2005,1,2,11,22,33, 8), Time.local(2005,1,2,11,22,33,44).change(:usec => 8)
-    assert_equal Time.local(2005,1,2,11,22,33, 8), Time.local(2005,1,2,11,22,33,2).change(:nsec => 8000)
-    assert_raise(ArgumentError) { Time.local(2005,1,2,11,22,33, 8).change(:usec => 1, :nsec => 1) }
+    assert_equal Time.local(2005,1,2, 5, 0, 0, 0), Time.local(2005,1,2,11,22,33,44).change(hour: 5)
+    assert_equal Time.local(2005,1,2,11, 6, 0, 0), Time.local(2005,1,2,11,22,33,44).change(min: 6)
+    assert_equal Time.local(2005,1,2,11,22, 7, 0), Time.local(2005,1,2,11,22,33,44).change(sec: 7)
+    assert_equal Time.local(2005,1,2,11,22,33, 8), Time.local(2005,1,2,11,22,33,44).change(usec: 8)
+    assert_equal Time.local(2005,1,2,11,22,33, 8), Time.local(2005,1,2,11,22,33,2).change(nsec: 8000)
+    assert_raise(ArgumentError) { Time.local(2005,1,2,11,22,33, 8).change(usec: 1, nsec: 1) }
     assert_nothing_raised { Time.new(2015, 5, 9, 10, 00, 00, "+03:00").change(nsec: 999999999) }
   end
 
   def test_utc_change
-    assert_equal Time.utc(2006,2,22,15,15,10), Time.utc(2005,2,22,15,15,10).change(:year => 2006)
-    assert_equal Time.utc(2005,6,22,15,15,10), Time.utc(2005,2,22,15,15,10).change(:month => 6)
-    assert_equal Time.utc(2012,9,22,15,15,10), Time.utc(2005,2,22,15,15,10).change(:year => 2012, :month => 9)
-    assert_equal Time.utc(2005,2,22,16),       Time.utc(2005,2,22,15,15,10).change(:hour => 16)
-    assert_equal Time.utc(2005,2,22,16,45),    Time.utc(2005,2,22,15,15,10).change(:hour => 16, :min => 45)
-    assert_equal Time.utc(2005,2,22,15,45),    Time.utc(2005,2,22,15,15,10).change(:min => 45)
-    assert_equal Time.utc(2005,1,2,11,22,33,8), Time.utc(2005,1,2,11,22,33,2).change(:nsec => 8000)
+    assert_equal Time.utc(2006,2,22,15,15,10), Time.utc(2005,2,22,15,15,10).change(year: 2006)
+    assert_equal Time.utc(2005,6,22,15,15,10), Time.utc(2005,2,22,15,15,10).change(month: 6)
+    assert_equal Time.utc(2012,9,22,15,15,10), Time.utc(2005,2,22,15,15,10).change(year: 2012, month: 9)
+    assert_equal Time.utc(2005,2,22,16),       Time.utc(2005,2,22,15,15,10).change(hour: 16)
+    assert_equal Time.utc(2005,2,22,16,45),    Time.utc(2005,2,22,15,15,10).change(hour: 16, min: 45)
+    assert_equal Time.utc(2005,2,22,15,45),    Time.utc(2005,2,22,15,15,10).change(min: 45)
+    assert_equal Time.utc(2005,1,2,11,22,33,8), Time.utc(2005,1,2,11,22,33,2).change(nsec: 8000)
   end
 
   def test_offset_change
-    assert_equal Time.new(2006,2,22,15,15,10,"-08:00"), Time.new(2005,2,22,15,15,10,"-08:00").change(:year => 2006)
-    assert_equal Time.new(2005,6,22,15,15,10,"-08:00"), Time.new(2005,2,22,15,15,10,"-08:00").change(:month => 6)
-    assert_equal Time.new(2012,9,22,15,15,10,"-08:00"), Time.new(2005,2,22,15,15,10,"-08:00").change(:year => 2012, :month => 9)
-    assert_equal Time.new(2005,2,22,16,0,0,"-08:00"),   Time.new(2005,2,22,15,15,10,"-08:00").change(:hour => 16)
-    assert_equal Time.new(2005,2,22,16,45,0,"-08:00"),  Time.new(2005,2,22,15,15,10,"-08:00").change(:hour => 16, :min => 45)
-    assert_equal Time.new(2005,2,22,15,45,0,"-08:00"),  Time.new(2005,2,22,15,15,10,"-08:00").change(:min => 45)
-    assert_equal Time.new(2005,2,22,15,15,10,"-08:00"),  Time.new(2005,2,22,15,15,0,"-08:00").change(:sec => 10)
-    assert_equal 10, Time.new(2005,2,22,15,15,0,"-08:00").change(:usec => 10).usec
-    assert_equal 10, Time.new(2005,2,22,15,15,0,"-08:00").change(:nsec => 10).nsec
-    assert_raise(ArgumentError) { Time.new(2005, 2, 22, 15, 15, 45, "-08:00").change(:usec => 1000000) }
-    assert_raise(ArgumentError) { Time.new(2005, 2, 22, 15, 15, 45, "-08:00").change(:nsec => 1000000000) }
+    assert_equal Time.new(2006,2,22,15,15,10,"-08:00"), Time.new(2005,2,22,15,15,10,"-08:00").change(year: 2006)
+    assert_equal Time.new(2005,6,22,15,15,10,"-08:00"), Time.new(2005,2,22,15,15,10,"-08:00").change(month: 6)
+    assert_equal Time.new(2012,9,22,15,15,10,"-08:00"), Time.new(2005,2,22,15,15,10,"-08:00").change(year: 2012, month: 9)
+    assert_equal Time.new(2005,2,22,16,0,0,"-08:00"),   Time.new(2005,2,22,15,15,10,"-08:00").change(hour: 16)
+    assert_equal Time.new(2005,2,22,16,45,0,"-08:00"),  Time.new(2005,2,22,15,15,10,"-08:00").change(hour: 16, min: 45)
+    assert_equal Time.new(2005,2,22,15,45,0,"-08:00"),  Time.new(2005,2,22,15,15,10,"-08:00").change(min: 45)
+    assert_equal Time.new(2005,2,22,15,15,10,"-08:00"),  Time.new(2005,2,22,15,15,0,"-08:00").change(sec: 10)
+    assert_equal 10, Time.new(2005,2,22,15,15,0,"-08:00").change(usec: 10).usec
+    assert_equal 10, Time.new(2005,2,22,15,15,0,"-08:00").change(nsec: 10).nsec
+    assert_raise(ArgumentError) { Time.new(2005, 2, 22, 15, 15, 45, "-08:00").change(usec: 1000000) }
+    assert_raise(ArgumentError) { Time.new(2005, 2, 22, 15, 15, 45, "-08:00").change(nsec: 1000000000) }
   end
 
   def test_advance
-    assert_equal Time.local(2006,2,28,15,15,10), Time.local(2005,2,28,15,15,10).advance(:years => 1)
-    assert_equal Time.local(2005,6,28,15,15,10), Time.local(2005,2,28,15,15,10).advance(:months => 4)
-    assert_equal Time.local(2005,3,21,15,15,10), Time.local(2005,2,28,15,15,10).advance(:weeks => 3)
-    assert_equal Time.local(2005,3,25,3,15,10), Time.local(2005,2,28,15,15,10).advance(:weeks => 3.5)
-    assert_in_delta Time.local(2005,3,26,12,51,10), Time.local(2005,2,28,15,15,10).advance(:weeks => 3.7), 1
-    assert_equal Time.local(2005,3,5,15,15,10), Time.local(2005,2,28,15,15,10).advance(:days => 5)
-    assert_equal Time.local(2005,3,6,3,15,10), Time.local(2005,2,28,15,15,10).advance(:days => 5.5)
-    assert_in_delta Time.local(2005,3,6,8,3,10), Time.local(2005,2,28,15,15,10).advance(:days => 5.7), 1
-    assert_equal Time.local(2012,9,28,15,15,10), Time.local(2005,2,28,15,15,10).advance(:years => 7, :months => 7)
-    assert_equal Time.local(2013,10,3,15,15,10), Time.local(2005,2,28,15,15,10).advance(:years => 7, :months => 19, :days => 5)
-    assert_equal Time.local(2013,10,17,15,15,10), Time.local(2005,2,28,15,15,10).advance(:years => 7, :months => 19, :weeks => 2, :days => 5)
-    assert_equal Time.local(2001,12,27,15,15,10), Time.local(2005,2,28,15,15,10).advance(:years => -3, :months => -2, :days => -1)
-    assert_equal Time.local(2005,2,28,15,15,10), Time.local(2004,2,29,15,15,10).advance(:years => 1) #leap day plus one year
-    assert_equal Time.local(2005,2,28,20,15,10), Time.local(2005,2,28,15,15,10).advance(:hours => 5)
-    assert_equal Time.local(2005,2,28,15,22,10), Time.local(2005,2,28,15,15,10).advance(:minutes => 7)
-    assert_equal Time.local(2005,2,28,15,15,19), Time.local(2005,2,28,15,15,10).advance(:seconds => 9)
-    assert_equal Time.local(2005,2,28,20,22,19), Time.local(2005,2,28,15,15,10).advance(:hours => 5, :minutes => 7, :seconds => 9)
-    assert_equal Time.local(2005,2,28,10,8,1), Time.local(2005,2,28,15,15,10).advance(:hours => -5, :minutes => -7, :seconds => -9)
-    assert_equal Time.local(2013,10,17,20,22,19), Time.local(2005,2,28,15,15,10).advance(:years => 7, :months => 19, :weeks => 2, :days => 5, :hours => 5, :minutes => 7, :seconds => 9)
+    assert_equal Time.local(2006,2,28,15,15,10), Time.local(2005,2,28,15,15,10).advance(years: 1)
+    assert_equal Time.local(2005,6,28,15,15,10), Time.local(2005,2,28,15,15,10).advance(months: 4)
+    assert_equal Time.local(2005,3,21,15,15,10), Time.local(2005,2,28,15,15,10).advance(weeks: 3)
+    assert_equal Time.local(2005,3,25,3,15,10), Time.local(2005,2,28,15,15,10).advance(weeks: 3.5)
+    assert_in_delta Time.local(2005,3,26,12,51,10), Time.local(2005,2,28,15,15,10).advance(weeks: 3.7), 1
+    assert_equal Time.local(2005,3,5,15,15,10), Time.local(2005,2,28,15,15,10).advance(days: 5)
+    assert_equal Time.local(2005,3,6,3,15,10), Time.local(2005,2,28,15,15,10).advance(days: 5.5)
+    assert_in_delta Time.local(2005,3,6,8,3,10), Time.local(2005,2,28,15,15,10).advance(days: 5.7), 1
+    assert_equal Time.local(2012,9,28,15,15,10), Time.local(2005,2,28,15,15,10).advance(years: 7, months: 7)
+    assert_equal Time.local(2013,10,3,15,15,10), Time.local(2005,2,28,15,15,10).advance(years: 7, months: 19, days: 5)
+    assert_equal Time.local(2013,10,17,15,15,10), Time.local(2005,2,28,15,15,10).advance(years: 7, months: 19, weeks: 2, days: 5)
+    assert_equal Time.local(2001,12,27,15,15,10), Time.local(2005,2,28,15,15,10).advance(years: -3, months: -2, days: -1)
+    assert_equal Time.local(2005,2,28,15,15,10), Time.local(2004,2,29,15,15,10).advance(years: 1) #leap day plus one year
+    assert_equal Time.local(2005,2,28,20,15,10), Time.local(2005,2,28,15,15,10).advance(hours: 5)
+    assert_equal Time.local(2005,2,28,15,22,10), Time.local(2005,2,28,15,15,10).advance(minutes: 7)
+    assert_equal Time.local(2005,2,28,15,15,19), Time.local(2005,2,28,15,15,10).advance(seconds: 9)
+    assert_equal Time.local(2005,2,28,20,22,19), Time.local(2005,2,28,15,15,10).advance(hours: 5, minutes: 7, seconds: 9)
+    assert_equal Time.local(2005,2,28,10,8,1), Time.local(2005,2,28,15,15,10).advance(hours: -5, minutes: -7, seconds: -9)
+    assert_equal Time.local(2013,10,17,20,22,19), Time.local(2005,2,28,15,15,10).advance(years: 7, months: 19, weeks: 2, days: 5, hours: 5, minutes: 7, seconds: 9)
   end
 
   def test_utc_advance
-    assert_equal Time.utc(2006,2,22,15,15,10), Time.utc(2005,2,22,15,15,10).advance(:years => 1)
-    assert_equal Time.utc(2005,6,22,15,15,10), Time.utc(2005,2,22,15,15,10).advance(:months => 4)
-    assert_equal Time.utc(2005,3,21,15,15,10), Time.utc(2005,2,28,15,15,10).advance(:weeks => 3)
-    assert_equal Time.utc(2005,3,25,3,15,10), Time.utc(2005,2,28,15,15,10).advance(:weeks => 3.5)
-    assert_in_delta Time.utc(2005,3,26,12,51,10), Time.utc(2005,2,28,15,15,10).advance(:weeks => 3.7), 1
-    assert_equal Time.utc(2005,3,5,15,15,10), Time.utc(2005,2,28,15,15,10).advance(:days => 5)
-    assert_equal Time.utc(2005,3,6,3,15,10), Time.utc(2005,2,28,15,15,10).advance(:days => 5.5)
-    assert_in_delta Time.utc(2005,3,6,8,3,10), Time.utc(2005,2,28,15,15,10).advance(:days => 5.7), 1
-    assert_equal Time.utc(2012,9,22,15,15,10), Time.utc(2005,2,22,15,15,10).advance(:years => 7, :months => 7)
-    assert_equal Time.utc(2013,10,3,15,15,10), Time.utc(2005,2,22,15,15,10).advance(:years => 7, :months => 19, :days => 11)
-    assert_equal Time.utc(2013,10,17,15,15,10), Time.utc(2005,2,28,15,15,10).advance(:years => 7, :months => 19, :weeks => 2, :days => 5)
-    assert_equal Time.utc(2001,12,27,15,15,10), Time.utc(2005,2,28,15,15,10).advance(:years => -3, :months => -2, :days => -1)
-    assert_equal Time.utc(2005,2,28,15,15,10), Time.utc(2004,2,29,15,15,10).advance(:years => 1) #leap day plus one year
-    assert_equal Time.utc(2005,2,28,20,15,10), Time.utc(2005,2,28,15,15,10).advance(:hours => 5)
-    assert_equal Time.utc(2005,2,28,15,22,10), Time.utc(2005,2,28,15,15,10).advance(:minutes => 7)
-    assert_equal Time.utc(2005,2,28,15,15,19), Time.utc(2005,2,28,15,15,10).advance(:seconds => 9)
-    assert_equal Time.utc(2005,2,28,20,22,19), Time.utc(2005,2,28,15,15,10).advance(:hours => 5, :minutes => 7, :seconds => 9)
-    assert_equal Time.utc(2005,2,28,10,8,1), Time.utc(2005,2,28,15,15,10).advance(:hours => -5, :minutes => -7, :seconds => -9)
-    assert_equal Time.utc(2013,10,17,20,22,19), Time.utc(2005,2,28,15,15,10).advance(:years => 7, :months => 19, :weeks => 2, :days => 5, :hours => 5, :minutes => 7, :seconds => 9)
+    assert_equal Time.utc(2006,2,22,15,15,10), Time.utc(2005,2,22,15,15,10).advance(years: 1)
+    assert_equal Time.utc(2005,6,22,15,15,10), Time.utc(2005,2,22,15,15,10).advance(months: 4)
+    assert_equal Time.utc(2005,3,21,15,15,10), Time.utc(2005,2,28,15,15,10).advance(weeks: 3)
+    assert_equal Time.utc(2005,3,25,3,15,10), Time.utc(2005,2,28,15,15,10).advance(weeks: 3.5)
+    assert_in_delta Time.utc(2005,3,26,12,51,10), Time.utc(2005,2,28,15,15,10).advance(weeks: 3.7), 1
+    assert_equal Time.utc(2005,3,5,15,15,10), Time.utc(2005,2,28,15,15,10).advance(days: 5)
+    assert_equal Time.utc(2005,3,6,3,15,10), Time.utc(2005,2,28,15,15,10).advance(days: 5.5)
+    assert_in_delta Time.utc(2005,3,6,8,3,10), Time.utc(2005,2,28,15,15,10).advance(days: 5.7), 1
+    assert_equal Time.utc(2012,9,22,15,15,10), Time.utc(2005,2,22,15,15,10).advance(years: 7, months: 7)
+    assert_equal Time.utc(2013,10,3,15,15,10), Time.utc(2005,2,22,15,15,10).advance(years: 7, months: 19, days: 11)
+    assert_equal Time.utc(2013,10,17,15,15,10), Time.utc(2005,2,28,15,15,10).advance(years: 7, months: 19, weeks: 2, days: 5)
+    assert_equal Time.utc(2001,12,27,15,15,10), Time.utc(2005,2,28,15,15,10).advance(years: -3, months: -2, days: -1)
+    assert_equal Time.utc(2005,2,28,15,15,10), Time.utc(2004,2,29,15,15,10).advance(years: 1) #leap day plus one year
+    assert_equal Time.utc(2005,2,28,20,15,10), Time.utc(2005,2,28,15,15,10).advance(hours: 5)
+    assert_equal Time.utc(2005,2,28,15,22,10), Time.utc(2005,2,28,15,15,10).advance(minutes: 7)
+    assert_equal Time.utc(2005,2,28,15,15,19), Time.utc(2005,2,28,15,15,10).advance(seconds: 9)
+    assert_equal Time.utc(2005,2,28,20,22,19), Time.utc(2005,2,28,15,15,10).advance(hours: 5, minutes: 7, seconds: 9)
+    assert_equal Time.utc(2005,2,28,10,8,1), Time.utc(2005,2,28,15,15,10).advance(hours: -5, minutes: -7, seconds: -9)
+    assert_equal Time.utc(2013,10,17,20,22,19), Time.utc(2005,2,28,15,15,10).advance(years: 7, months: 19, weeks: 2, days: 5, hours: 5, minutes: 7, seconds: 9)
   end
 
   def test_offset_advance
-    assert_equal Time.new(2006,2,22,15,15,10,"-08:00"), Time.new(2005,2,22,15,15,10,"-08:00").advance(:years => 1)
-    assert_equal Time.new(2005,6,22,15,15,10,"-08:00"), Time.new(2005,2,22,15,15,10,"-08:00").advance(:months => 4)
-    assert_equal Time.new(2005,3,21,15,15,10,"-08:00"), Time.new(2005,2,28,15,15,10,"-08:00").advance(:weeks => 3)
-    assert_equal Time.new(2005,3,25,3,15,10,"-08:00"), Time.new(2005,2,28,15,15,10,"-08:00").advance(:weeks => 3.5)
-    assert_in_delta Time.new(2005,3,26,12,51,10,"-08:00"), Time.new(2005,2,28,15,15,10,"-08:00").advance(:weeks => 3.7), 1
-    assert_equal Time.new(2005,3,5,15,15,10,"-08:00"), Time.new(2005,2,28,15,15,10,"-08:00").advance(:days => 5)
-    assert_equal Time.new(2005,3,6,3,15,10,"-08:00"), Time.new(2005,2,28,15,15,10,"-08:00").advance(:days => 5.5)
-    assert_in_delta Time.new(2005,3,6,8,3,10,"-08:00"), Time.new(2005,2,28,15,15,10,"-08:00").advance(:days => 5.7), 1
-    assert_equal Time.new(2012,9,22,15,15,10,"-08:00"), Time.new(2005,2,22,15,15,10,"-08:00").advance(:years => 7, :months => 7)
-    assert_equal Time.new(2013,10,3,15,15,10,"-08:00"), Time.new(2005,2,22,15,15,10,"-08:00").advance(:years => 7, :months => 19, :days => 11)
-    assert_equal Time.new(2013,10,17,15,15,10,"-08:00"), Time.new(2005,2,28,15,15,10,"-08:00").advance(:years => 7, :months => 19, :weeks => 2, :days => 5)
-    assert_equal Time.new(2001,12,27,15,15,10,"-08:00"), Time.new(2005,2,28,15,15,10,"-08:00").advance(:years => -3, :months => -2, :days => -1)
-    assert_equal Time.new(2005,2,28,15,15,10,"-08:00"), Time.new(2004,2,29,15,15,10,"-08:00").advance(:years => 1) #leap day plus one year
-    assert_equal Time.new(2005,2,28,20,15,10,"-08:00"), Time.new(2005,2,28,15,15,10,"-08:00").advance(:hours => 5)
-    assert_equal Time.new(2005,2,28,15,22,10,"-08:00"), Time.new(2005,2,28,15,15,10,"-08:00").advance(:minutes => 7)
-    assert_equal Time.new(2005,2,28,15,15,19,"-08:00"), Time.new(2005,2,28,15,15,10,"-08:00").advance(:seconds => 9)
-    assert_equal Time.new(2005,2,28,20,22,19,"-08:00"), Time.new(2005,2,28,15,15,10,"-08:00").advance(:hours => 5, :minutes => 7, :seconds => 9)
-    assert_equal Time.new(2005,2,28,10,8,1,"-08:00"), Time.new(2005,2,28,15,15,10,"-08:00").advance(:hours => -5, :minutes => -7, :seconds => -9)
-    assert_equal Time.new(2013,10,17,20,22,19,"-08:00"), Time.new(2005,2,28,15,15,10,"-08:00").advance(:years => 7, :months => 19, :weeks => 2, :days => 5, :hours => 5, :minutes => 7, :seconds => 9)
+    assert_equal Time.new(2006,2,22,15,15,10,"-08:00"), Time.new(2005,2,22,15,15,10,"-08:00").advance(years: 1)
+    assert_equal Time.new(2005,6,22,15,15,10,"-08:00"), Time.new(2005,2,22,15,15,10,"-08:00").advance(months: 4)
+    assert_equal Time.new(2005,3,21,15,15,10,"-08:00"), Time.new(2005,2,28,15,15,10,"-08:00").advance(weeks: 3)
+    assert_equal Time.new(2005,3,25,3,15,10,"-08:00"), Time.new(2005,2,28,15,15,10,"-08:00").advance(weeks: 3.5)
+    assert_in_delta Time.new(2005,3,26,12,51,10,"-08:00"), Time.new(2005,2,28,15,15,10,"-08:00").advance(weeks: 3.7), 1
+    assert_equal Time.new(2005,3,5,15,15,10,"-08:00"), Time.new(2005,2,28,15,15,10,"-08:00").advance(days: 5)
+    assert_equal Time.new(2005,3,6,3,15,10,"-08:00"), Time.new(2005,2,28,15,15,10,"-08:00").advance(days: 5.5)
+    assert_in_delta Time.new(2005,3,6,8,3,10,"-08:00"), Time.new(2005,2,28,15,15,10,"-08:00").advance(days: 5.7), 1
+    assert_equal Time.new(2012,9,22,15,15,10,"-08:00"), Time.new(2005,2,22,15,15,10,"-08:00").advance(years: 7, months: 7)
+    assert_equal Time.new(2013,10,3,15,15,10,"-08:00"), Time.new(2005,2,22,15,15,10,"-08:00").advance(years: 7, months: 19, days: 11)
+    assert_equal Time.new(2013,10,17,15,15,10,"-08:00"), Time.new(2005,2,28,15,15,10,"-08:00").advance(years: 7, months: 19, weeks: 2, days: 5)
+    assert_equal Time.new(2001,12,27,15,15,10,"-08:00"), Time.new(2005,2,28,15,15,10,"-08:00").advance(years: -3, months: -2, days: -1)
+    assert_equal Time.new(2005,2,28,15,15,10,"-08:00"), Time.new(2004,2,29,15,15,10,"-08:00").advance(years: 1) #leap day plus one year
+    assert_equal Time.new(2005,2,28,20,15,10,"-08:00"), Time.new(2005,2,28,15,15,10,"-08:00").advance(hours: 5)
+    assert_equal Time.new(2005,2,28,15,22,10,"-08:00"), Time.new(2005,2,28,15,15,10,"-08:00").advance(minutes: 7)
+    assert_equal Time.new(2005,2,28,15,15,19,"-08:00"), Time.new(2005,2,28,15,15,10,"-08:00").advance(seconds: 9)
+    assert_equal Time.new(2005,2,28,20,22,19,"-08:00"), Time.new(2005,2,28,15,15,10,"-08:00").advance(hours: 5, minutes: 7, seconds: 9)
+    assert_equal Time.new(2005,2,28,10,8,1,"-08:00"), Time.new(2005,2,28,15,15,10,"-08:00").advance(hours: -5, minutes: -7, seconds: -9)
+    assert_equal Time.new(2013,10,17,20,22,19,"-08:00"), Time.new(2005,2,28,15,15,10,"-08:00").advance(years: 7, months: 19, weeks: 2, days: 5, hours: 5, minutes: 7, seconds: 9)
   end
 
   def test_advance_with_nsec
     t = Time.at(0, Rational(108635108, 1000))
-    assert_equal t, t.advance(:months => 0)
+    assert_equal t, t.advance(months: 0)
   end
 
   def test_advance_gregorian_proleptic
-    assert_equal Time.local(1582,10,14,15,15,10), Time.local(1582,10,15,15,15,10).advance(:days => -1)
-    assert_equal Time.local(1582,10,15,15,15,10), Time.local(1582,10,14,15,15,10).advance(:days => 1)
-    assert_equal Time.local(1582,10,5,15,15,10), Time.local(1582,10,4,15,15,10).advance(:days => 1)
-    assert_equal Time.local(1582,10,4,15,15,10), Time.local(1582,10,5,15,15,10).advance(:days => -1)
+    assert_equal Time.local(1582,10,14,15,15,10), Time.local(1582,10,15,15,15,10).advance(days: -1)
+    assert_equal Time.local(1582,10,15,15,15,10), Time.local(1582,10,14,15,15,10).advance(days: 1)
+    assert_equal Time.local(1582,10,5,15,15,10), Time.local(1582,10,4,15,15,10).advance(days: 1)
+    assert_equal Time.local(1582,10,4,15,15,10), Time.local(1582,10,5,15,15,10).advance(days: -1)
   end
 
   def test_last_week

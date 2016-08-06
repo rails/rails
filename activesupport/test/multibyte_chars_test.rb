@@ -723,8 +723,8 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
   def string_from_classes(classes)
     # Characters from the character classes as described in UAX #29
     character_from_class = {
-      :l => 0x1100, :v => 0x1160, :t => 0x11A8, :lv => 0xAC00, :lvt => 0xAC01, :cr => 0x000D, :lf => 0x000A,
-      :extend => 0x094D, :n => 0x64, :spacingmark => 0x0903, :r => 0x1F1E6, :control => 0x0001
+      l: 0x1100, v: 0x1160, t: 0x11A8, lv: 0xAC00, lvt: 0xAC01, cr: 0x000D, lf: 0x000A,
+      extend: 0x094D, n: 0x64, spacingmark: 0x0903, r: 0x1F1E6, control: 0x0001
     }
     classes.collect do |k|
       character_from_class[k.intern]

@@ -13,7 +13,7 @@ require "active_support/json"
 class KeyGeneratorTest < ActiveSupport::TestCase
   def setup
     @secret    = SecureRandom.hex(64)
-    @generator = ActiveSupport::KeyGenerator.new(@secret, :iterations=>2)
+    @generator = ActiveSupport::KeyGenerator.new(@secret, iterations: 2)
   end
 
   test "Generating a key of the default length" do
@@ -47,7 +47,7 @@ end
 class CachingKeyGeneratorTest < ActiveSupport::TestCase
   def setup
     @secret    = SecureRandom.hex(64)
-    @generator = ActiveSupport::KeyGenerator.new(@secret, :iterations=>2)
+    @generator = ActiveSupport::KeyGenerator.new(@secret, iterations: 2)
     @caching_generator = ActiveSupport::CachingKeyGenerator.new(@generator)
   end
 

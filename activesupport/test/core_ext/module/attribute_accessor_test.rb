@@ -5,9 +5,9 @@ class ModuleAttributeAccessorTest < ActiveSupport::TestCase
   def setup
     m = @module = Module.new do
       mattr_accessor :foo
-      mattr_accessor :bar, :instance_writer => false
-      mattr_reader   :shaq, :instance_reader => false
-      mattr_accessor :camp, :instance_accessor => false
+      mattr_accessor :bar, instance_writer: false
+      mattr_reader   :shaq, instance_reader: false
+      mattr_accessor :camp, instance_accessor: false
 
       cattr_accessor(:defa) { "default_accessor_value" }
       cattr_reader(:defr) { "default_reader_value" }

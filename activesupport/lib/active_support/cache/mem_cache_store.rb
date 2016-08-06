@@ -97,7 +97,7 @@ module ActiveSupport
         options = merged_options(options)
 
         keys_to_names = Hash[names.map{|name| [normalize_key(name, options), name]}]
-        raw_values = @data.get_multi(keys_to_names.keys, :raw => true)
+        raw_values = @data.get_multi(keys_to_names.keys, raw: true)
         values = {}
         raw_values.each do |key, value|
           entry = deserialize_entry(value)
@@ -112,7 +112,7 @@ module ActiveSupport
       # to zero.
       def increment(name, amount = 1, options = nil) # :nodoc:
         options = merged_options(options)
-        instrument(:increment, name, :amount => amount) do
+        instrument(:increment, name, amount: amount) do
           rescue_error_with nil do
             @data.incr(normalize_key(name, options), amount)
           end
@@ -125,7 +125,7 @@ module ActiveSupport
       # to zero.
       def decrement(name, amount = 1, options = nil) # :nodoc:
         options = merged_options(options)
-        instrument(:decrement, name, :amount => amount) do
+        instrument(:decrement, name, amount: amount) do
           rescue_error_with nil do
             @data.decr(normalize_key(name, options), amount)
           end

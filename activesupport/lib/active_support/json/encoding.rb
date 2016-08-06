@@ -7,7 +7,7 @@ module ActiveSupport
       :time_precision, :time_precision=,
       :escape_html_entities_in_json, :escape_html_entities_in_json=,
       :json_encoder, :json_encoder=,
-      :to => :'ActiveSupport::JSON::Encoding'
+      to: :'ActiveSupport::JSON::Encoding'
   end
 
   module JSON

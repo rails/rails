@@ -60,7 +60,7 @@ module ActiveSupport
     def transliterate(string, replacement = "?".freeze)
       I18n.transliterate(ActiveSupport::Multibyte::Unicode.normalize(
         ActiveSupport::Multibyte::Unicode.tidy_bytes(string), :c),
-          :replacement => replacement)
+          replacement: replacement)
     end
 
     # Replaces special characters in a string so that it may be used as part of
