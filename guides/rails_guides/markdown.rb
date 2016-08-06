@@ -159,7 +159,7 @@ module RailsGuides
         @view.content_for(:header_section) { @header }
         @view.content_for(:page_title) { @title }
         @view.content_for(:index_section) { @index }
-        @view.render(:layout => @layout, :text => @body)
+        @view.render(layout: @layout, text: @body)
       end
   end
 end

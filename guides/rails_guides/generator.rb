@@ -194,13 +194,13 @@ module RailsGuides
       layout = kindle? ? "kindle/layout" : "layout"
 
       File.open(output_path, "w") do |f|
-        view = ActionView::Base.new(source_dir, :edge => @edge, :version => @version, :mobi => "kindle/#{mobi}", :lang => @lang)
+        view = ActionView::Base.new(source_dir, edge: @edge, version: @version, mobi: "kindle/#{mobi}", lang: @lang)
         view.extend(Helpers)
 
         if guide =~ /\.(\w+)\.erb$/
           # Generate the special pages like the home.
           # Passing a template handler in the template name is deprecated. So pass the file name without the extension.
-          result = view.render(:layout => layout, :formats => [$1], :file => $`)
+          result = view.render(layout: layout, formats: [$1], file: $`)
         else
           body = File.read(File.join(source_dir, guide))
           result = RailsGuides::Markdown.new(view, layout).render(body)
