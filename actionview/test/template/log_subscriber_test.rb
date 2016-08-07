@@ -37,6 +37,11 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
     @view.controller = controller
   end
 
+  def set_view_cache_dependencies
+    def @view.view_cache_dependencies; []; end
+    def @view.fragment_cache_key(*); "ahoy `controller` dependency"; end
+  end
+
   def test_render_file_template
     Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
       @view.render(file: "test/hello_world")
@@ -82,8 +87,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
 
   def test_render_partial_with_cache_missed
     Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
-      def @view.view_cache_dependencies; []; end
-      def @view.fragment_cache_key(*); 'ahoy `controller` dependency'; end
+      set_view_cache_dependencies
       set_cache_controller
 
       @view.render(partial: "test/cached_customer", locals: { cached_customer: Customer.new("david") })
@@ -96,8 +100,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
 
   def test_render_partial_with_cache_hitted
     Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
-      def @view.view_cache_dependencies; []; end
-      def @view.fragment_cache_key(*); 'ahoy `controller` dependency'; end
+      set_view_cache_dependencies
       set_cache_controller
 
       @view.render(partial: "test/cached_customer", locals: { cached_customer: Customer.new("david") })
@@ -112,8 +115,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
 
   def test_render_partial_with_cache_hitted_and_missed
     Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
-      def @view.view_cache_dependencies; []; end
-      def @view.fragment_cache_key(*); 'ahoy `controller` dependency'; end
+      set_view_cache_dependencies
       set_cache_controller
 
       @view.render(partial: "test/cached_customer", locals: { cached_customer: Customer.new("david") })
@@ -162,8 +164,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
 
   def test_render_collection_with_cached_set
     Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
-      def @view.view_cache_dependencies; []; end
-      def @view.fragment_cache_key(*); "ahoy `controller` dependency"; end
+      set_view_cache_dependencies
 
       @view.render(partial: "customers/customer", collection: [ Customer.new("david"), Customer.new("mary") ], cached: true,
         locals: { greeting: "hi" })
