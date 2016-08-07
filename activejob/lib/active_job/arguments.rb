@@ -104,7 +104,7 @@ module ActiveJob
       end
 
       def serialized_global_id?(hash)
-        hash.size == 1 and hash.include?(GLOBALID_KEY)
+        hash.size == 1 && hash.include?(GLOBALID_KEY)
       end
 
       def deserialize_global_id(hash)
