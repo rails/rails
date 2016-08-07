@@ -5,5 +5,7 @@ module SystemTesting
   module Base
     include TestHelper
     include DriverAdapter
+
+    ActiveSupport.run_load_hooks(:system_testing, self)
   end
 end
