@@ -191,7 +191,6 @@ else
     eoxml
     end
 
-
     private
       def assert_equal_rexml(xml)
         parsed_xml = XmlMini.parse(xml)

@@ -1,7 +1,6 @@
 require "abstract_unit"
 require "active_support/core_ext/load_error"
 
-
 class TestMissingSourceFile < ActiveSupport::TestCase
   def test_it_is_deprecated
     assert_deprecated do

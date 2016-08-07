@@ -247,7 +247,6 @@ module ActionController
   end
 end
 
-
 class ::ApplicationController < ActionController::Base
 end
 

@@ -374,7 +374,6 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
     end
 end
 
-
 # TODO: test against the generated SQL since testing locking behavior itself
 # is so cumbersome. Will deadlock Ruby threads if the underlying db.execute
 # blocks, so separate script called by Kernel#system is needed.

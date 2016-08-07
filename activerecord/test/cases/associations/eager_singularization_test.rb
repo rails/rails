@@ -1,6 +1,5 @@
 require "cases/helper"
 
-
 if ActiveRecord::Base.connection.supports_migrations?
   class EagerSingularizationTest < ActiveRecord::TestCase
     class Virus < ActiveRecord::Base

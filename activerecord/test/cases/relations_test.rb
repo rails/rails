@@ -953,7 +953,6 @@ class RelationTest < ActiveRecord::TestCase
     }
   end
 
-
   def test_find_all_using_where_with_relation_with_select_to_build_subquery
     david = authors(:david)
     assert_queries(1) {

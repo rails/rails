@@ -35,7 +35,6 @@ module ActiveRecord
       alias table_exists? data_source_exists?
       deprecate table_exists?: "use #data_source_exists? instead"
 
-
       # Add internal cache for table with +table_name+.
       def add(table_name)
         if data_source_exists?(table_name)

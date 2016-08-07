@@ -99,7 +99,6 @@ class PrependProtectForgeryBaseController < ActionController::Base
       @called_callbacks << name
     end
 
-
     def custom_action
       add_called_callback("custom_action")
     end

@@ -338,7 +338,6 @@ module ActionDispatch
                       "                DELETE /admin/posts/:id(.:format)      admin/posts#destroy"], output
       end
 
-
       def test_regression_route_with_controller_regexp
         output = draw do
           ActiveSupport::Deprecation.silence do

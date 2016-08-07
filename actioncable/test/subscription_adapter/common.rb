@@ -23,7 +23,6 @@ module CommonSubscriptionAdapterTest
     [@rx_adapter, @tx_adapter].uniq.each(&:shutdown)
   end
 
-
   def subscribe_as_queue(channel, adapter = @rx_adapter)
     queue = Queue.new
 
@@ -40,7 +39,6 @@ module CommonSubscriptionAdapterTest
   ensure
     adapter.unsubscribe(channel, callback) if subscribed.set?
   end
-
 
   def test_subscribe_and_unsubscribe
     subscribe_as_queue("channel") do |queue|

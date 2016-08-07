@@ -276,7 +276,6 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal @nested_symbols, @nested_mixed.with_indifferent_access.deep_symbolize_keys
   end
 
-
   def test_symbolize_keys_bang_for_hash_with_indifferent_access
     assert_raise(NoMethodError) { @symbols.with_indifferent_access.dup.symbolize_keys! }
     assert_raise(NoMethodError) { @strings.with_indifferent_access.dup.symbolize_keys! }

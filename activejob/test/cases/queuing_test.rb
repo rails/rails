@@ -2,7 +2,6 @@ require "helper"
 require "jobs/hello_job"
 require "active_support/core_ext/numeric/time"
 
-
 class QueuingTest < ActiveSupport::TestCase
   setup do
     JobBuffer.clear
@@ -31,7 +30,6 @@ class QueuingTest < ActiveSupport::TestCase
     job = HelloJob.perform_later "Jamie"
     assert_equal [ "Jamie" ], job.arguments
   end
-
 
   test "job returned by perform_at has the timestamp available" do
     begin

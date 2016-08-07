@@ -159,7 +159,6 @@ class SendFileTest < ActionController::TestCase
     assert_equal "image/png", response.content_type
   end
 
-
   def test_send_file_headers_with_bad_symbol
     error = assert_raise(ArgumentError) { get __method__ }
     assert_equal "Unknown MIME type this_type_is_not_registered", error.message

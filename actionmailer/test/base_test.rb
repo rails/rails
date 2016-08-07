@@ -380,7 +380,6 @@ class BaseTest < ActiveSupport::TestCase
     end
   end
 
-
   test "implicit multipart with several view paths uses the first one with template" do
     old = BaseMailer.view_paths
     begin

@@ -247,7 +247,6 @@ class HelperTest < ActiveSupport::TestCase
     end
 end
 
-
 class IsolatedHelpersTest < ActionController::TestCase
   class A < ActionController::Base
     def index

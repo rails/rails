@@ -1226,7 +1226,6 @@ YAML
         end
       RUBY
 
-
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           mount Bukkits::Engine => "/"
@@ -1275,7 +1274,6 @@ YAML
           get '/bukkit' => 'bukkit#index'
         end
       RUBY
-
 
       @plugin.write "app/controllers/bukkits/bukkit_controller.rb", <<-RUBY
         class Bukkits::BukkitController < ActionController::Base

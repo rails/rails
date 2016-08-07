@@ -132,7 +132,6 @@ module ActiveRecord
       assert_equal "title DESC", relation.order_values.first
       assert_equal "comments_count ASC", relation.order_values.last
 
-
       relation.reverse_order!
 
       assert_equal "title ASC", relation.order_values.first

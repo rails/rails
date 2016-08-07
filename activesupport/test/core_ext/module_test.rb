@@ -509,7 +509,6 @@ class MethodAliasingTest < ActiveSupport::TestCase
       assert_respond_to @instance, :quux_with_baz?
       assert_respond_to @instance, :quux_with_baz=
 
-
       FooClassWithBarMethod.alias_method_chain :quux!, :baz
       assert_equal "quux!_with_baz", @instance.quux!
       assert_equal "quux!", @instance.quux_without_baz!

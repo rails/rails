@@ -56,7 +56,6 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_equal "Deck", ship.parts[0].name
   end
 
-
   def test_include_with_order_works
     assert_nothing_raised {Account.all.merge!(order: "id", includes: :firm).first}
     assert_nothing_raised {Account.all.merge!(order: :id, includes: :firm).first}

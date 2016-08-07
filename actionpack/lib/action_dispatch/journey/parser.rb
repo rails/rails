@@ -6,7 +6,6 @@
 
 require "racc/parser.rb"
 
-
 require "action_dispatch/journey/parser_extras"
 module ActionDispatch
   module Journey

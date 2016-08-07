@@ -57,7 +57,6 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
-
   def test_collection_options_with_preselected_value
     assert_dom_equal(
       "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\" selected=\"selected\">Babe went home</option>\n<option value=\"Cabe\">Cabe went home</option>",

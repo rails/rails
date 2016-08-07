@@ -2257,7 +2257,6 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
-
   def test_nested_fields_for_with_nested_collections
     form_for(@post, as: "post[]") do |f|
       concat f.text_field(:title)

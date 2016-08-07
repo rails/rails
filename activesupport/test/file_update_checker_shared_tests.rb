@@ -80,7 +80,6 @@ module FileUpdateCheckerSharedTests
     assert_equal 1, i
   end
 
-
   test "updated should become true when watched files are created" do
     i = 0
 
@@ -91,7 +90,6 @@ module FileUpdateCheckerSharedTests
 
     assert checker.updated?
   end
-
 
   test "updated should become true when watched files are modified" do
     i = 0

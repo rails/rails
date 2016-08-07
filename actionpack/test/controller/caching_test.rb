@@ -277,7 +277,6 @@ CACHED
       @store.read("views/test.host/functional_caching/formatted_fragment_cached/#{template_digest("functional_caching/formatted_fragment_cached")}")
   end
 
-
   def test_fragment_caching_with_variant
     get :formatted_fragment_cached_with_variant, format: "html", params: { v: :phone }
     assert_response :success

@@ -479,7 +479,6 @@ class SetupSubclassTest < SetupTest
   end
 end
 
-
 class OverlappingFixturesTest < ActiveRecord::TestCase
   fixtures :topics, :developers
   fixtures :developers, :accounts

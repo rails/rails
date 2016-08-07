@@ -86,7 +86,6 @@ class RenderJsonTest < ActionController::TestCase
     assert_equal "[]", @response.body
   end
 
-
   def test_render_json
     get :render_json_hello_world
     assert_equal '{"hello":"world"}', @response.body

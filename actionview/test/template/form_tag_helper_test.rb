@@ -517,7 +517,6 @@ class FormTagHelperTest < ActionView::TestCase
     )
   end
 
-
   def test_button_tag
     assert_dom_equal(
       %(<button name="button" type="submit">Button</button>),

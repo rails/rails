@@ -12,7 +12,6 @@ class LengthValidationTest < ActiveRecord::TestCase
     end
   end
 
-
   def test_validates_size_of_association
     assert_nothing_raised { @owner.validates_size_of :pets, minimum: 1 }
     o = @owner.new("name" => "nopets")

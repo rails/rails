@@ -618,7 +618,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-
   def test_api_generators_configuration_for_api_engines
     run_generator [destination_root, "--full", "--api"]
 

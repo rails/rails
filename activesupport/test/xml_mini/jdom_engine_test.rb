@@ -3,7 +3,6 @@ if RUBY_PLATFORM.include?("java")
   require "active_support/xml_mini"
   require "active_support/core_ext/hash/conversions"
 
-
   class JDOMEngineTest < ActiveSupport::TestCase
     include ActiveSupport
 
@@ -55,7 +54,6 @@ if RUBY_PLATFORM.include?("java")
         assert_equal "x", Hash.from_xml(attack_xml)["member"]
       end
     end
-
 
     def test_not_allowed_to_load_external_doctypes
       attack_xml = <<-EOT
