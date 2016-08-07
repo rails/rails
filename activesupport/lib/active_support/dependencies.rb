@@ -371,7 +371,7 @@ module ActiveSupport #:nodoc:
             load_args = ["#{file_name}.rb"]
             load_args << const_path unless const_path.nil?
 
-            if !warnings_on_first_load or history.include?(expanded)
+            if !warnings_on_first_load || history.include?(expanded)
               result = load_file(*load_args)
             else
               enable_warnings { result = load_file(*load_args) }

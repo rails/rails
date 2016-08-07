@@ -33,7 +33,7 @@ class MultibyteGraphemeBreakConformanceTest < ActiveSupport::TestCase
       lines = 0
       max_test_lines = 0 # Don't limit below 21, because that's the header of the testfile
       File.open(File.join(CACHE_DIR, UNIDATA_FILE), "r") do | f |
-        until f.eof? || (max_test_lines > 21 and lines > max_test_lines)
+        until f.eof? || (max_test_lines > 21 && lines > max_test_lines)
           lines += 1
           line = f.gets.chomp!
           next if line.empty? || line.start_with?("#")
