@@ -92,7 +92,7 @@ class ACLogSubscriberTest < ActionController::TestCase
 
   def setup
     super
-    @controller.enable_fragment_cache_logging = true
+    ActionController::Base.enable_fragment_cache_logging = true
 
     @old_logger = ActionController::Base.logger
 
