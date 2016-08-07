@@ -33,7 +33,7 @@ module ActionCable
           pg_conn = ar_conn.raw_connection
 
           unless pg_conn.is_a?(PG::Connection)
-            raise "ActiveRecord database must be Postgres in order to use the Postgres ActionCable storage adapter"
+            raise "The Active Record database must be PostgreSQL in order to use the PostgreSQL Action Cable storage adapter"
           end
 
           yield pg_conn
