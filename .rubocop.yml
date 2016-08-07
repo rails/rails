@@ -1,7 +1,7 @@
 AllCops:
   TargetRubyVersion: 2.3
   # RuboCop has a bunch of cops enabled by default. This setting tells RuboCop
-  # to ignore them, so only the ones explictily set in this file are enabled.
+  # to ignore them, so only the ones explicitly set in this file are enabled.
   DisabledByDefault: true
   Exclude:
     - '**/templates/**/*'
