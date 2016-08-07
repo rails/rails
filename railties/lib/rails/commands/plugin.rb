@@ -4,11 +4,12 @@ else
   ARGV.shift
   unless ARGV.delete("--no-rc")
     customrc = ARGV.index{ |x| x.include?("--rc=") }
-    railsrc = if customrc
-      File.expand_path(ARGV.delete_at(customrc).gsub(/--rc=/, ""))
-    else
-      File.join(File.expand_path("~"), ".railsrc")
-    end
+    railsrc =
+      if customrc
+        File.expand_path(ARGV.delete_at(customrc).gsub(/--rc=/, ""))
+      else
+        File.join(File.expand_path("~"), ".railsrc")
+      end
 
     if File.exist?(railsrc)
       extra_args_string = File.read(railsrc)
