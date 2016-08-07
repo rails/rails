@@ -49,7 +49,6 @@ module ActiveRecord
         assert connection.index_name_exists?(table_name, "old_idx", false)
       end
 
-
       def test_double_add_index
         connection.add_index(table_name, [:foo], name: "some_idx")
         assert_raises(ArgumentError) {

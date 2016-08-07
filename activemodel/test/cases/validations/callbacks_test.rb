@@ -71,7 +71,6 @@ class DogValidatorWithIfCondition < Dog
   def set_after_validation_marker2; self.history << "after_validation_marker2" ; end
 end
 
-
 class CallbacksWithMethodNamesShouldBeCalled < ActiveModel::TestCase
   def test_if_condition_is_respected_for_before_validation
     d = DogValidatorWithIfCondition.new

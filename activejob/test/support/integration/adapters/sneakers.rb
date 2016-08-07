@@ -12,7 +12,6 @@ module Sneakers
   end
 end
 
-
 module SneakersJobsManager
   def setup
     ActiveJob::Base.queue_adapter = :sneakers

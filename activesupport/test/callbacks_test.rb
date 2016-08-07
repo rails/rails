@@ -181,8 +181,6 @@ module CallbacksTest
     end
   end
 
-
-
   class ConditionalPerson < Record
     # proc
     before_save Proc.new { |r| r.history << [:before_save, :proc] }, if: Proc.new { |r| true }
@@ -488,8 +486,6 @@ module CallbacksTest
       ], person.history
     end
   end
-
-
 
   class ResetCallbackTest < ActiveSupport::TestCase
     def test_save_conditional_person

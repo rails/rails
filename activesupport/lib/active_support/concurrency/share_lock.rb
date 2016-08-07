@@ -13,7 +13,6 @@ module ActiveSupport
       # we need exclusive locks to be reentrant, and we need to be able
       # to upgrade share locks to exclusive.
 
-
       def raw_state # :nodoc:
         synchronize do
           threads = @sleeping.keys | @sharing.keys | @waiting.keys

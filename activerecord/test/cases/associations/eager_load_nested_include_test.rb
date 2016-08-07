@@ -58,8 +58,6 @@ class NonPolyTwo < ActiveRecord::Base
   include Remembered
 end
 
-
-
 class EagerLoadPolyAssocsTest < ActiveRecord::TestCase
   NUM_SIMPLE_OBJS = 50
   NUM_SHAPE_EXPRESSIONS = 100

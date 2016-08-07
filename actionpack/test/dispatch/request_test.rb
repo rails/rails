@@ -1069,7 +1069,6 @@ class RequestParameters < BaseRequestTest
   end
 end
 
-
 class RequestParameterFilter < BaseRequestTest
   test "process parameter filter" do
     test_hashes = [

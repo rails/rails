@@ -161,7 +161,6 @@ module ActiveSupport
     alias_method :has_key?, :key?
     alias_method :member?, :key?
 
-
     # Same as <tt>Hash#[]</tt> where the key passed as argument can be
     # either a string or a symbol:
     #

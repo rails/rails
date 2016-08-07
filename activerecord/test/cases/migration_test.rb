@@ -401,7 +401,6 @@ class MigrationTest < ActiveRecord::TestCase
     ENV["RACK_ENV"]  = original_rack_env
   end
 
-
   def test_migration_sets_internal_metadata_even_when_fully_migrated
     current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
     migrations_path = MIGRATIONS_ROOT + "/valid"

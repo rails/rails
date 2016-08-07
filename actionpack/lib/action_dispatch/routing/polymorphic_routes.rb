@@ -134,7 +134,6 @@ module ActionDispatch
                                                opts
       end
 
-
       %w(edit new).each do |action|
         module_eval <<-EOT, __FILE__, __LINE__ + 1
           def #{action}_polymorphic_url(record_or_hash, options = {})
@@ -210,7 +209,6 @@ module ActionDispatch
             else
               method, args = builder.handle_model record_or_hash_or_array
             end
-
 
             if options.empty?
               recipient.send(method, *args)

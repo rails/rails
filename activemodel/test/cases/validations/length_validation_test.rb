@@ -336,7 +336,6 @@ class LengthValidationTest < ActiveModel::TestCase
     assert_equal ["Your essay must be at least 5 words."], t.errors[:content]
   end
 
-
   def test_validates_length_of_with_symbol
     assert_deprecated do
       Topic.validates_length_of(

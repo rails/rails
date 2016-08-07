@@ -105,7 +105,6 @@ module ActionView
       attr_reader :name, :template
       private :name, :template
 
-
       private
         def source
           template.source

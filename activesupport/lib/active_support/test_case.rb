@@ -66,7 +66,6 @@ module ActiveSupport
     alias :assert_not_respond_to :refute_respond_to
     alias :assert_not_same :refute_same
 
-
     # Assertion that the block should not raise an exception.
     #
     # Passes if evaluated code in the yielded block raises no exception.

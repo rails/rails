@@ -137,7 +137,6 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
     assert_equal "after_adding<new>", ar.developers_log.last
   end
 
-
   def test_has_and_belongs_to_many_remove_callback
     david = developers(:david)
     jamis = developers(:jamis)

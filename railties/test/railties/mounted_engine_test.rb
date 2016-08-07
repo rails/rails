@@ -34,7 +34,6 @@ module ApplicationTests
         end
       RUBY
 
-
       @simple_plugin.write "lib/weblog.rb", <<-RUBY
         module Weblog
           class Engine < ::Rails::Engine
@@ -238,7 +237,6 @@ module ApplicationTests
 
       get "/metrics/generate_blog_route_in_view", {}, "SCRIPT_NAME" => "/foo"
       assert_equal "/foo/anonymous/blog/posts/1", last_response.body
-
 
       # test generating application's route from engine with default_url_options
       get "/someone/blog/generate_application_route", {}, "SCRIPT_NAME" => "/foo"

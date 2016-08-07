@@ -24,7 +24,6 @@ unless defined?(ActiveRecord) && defined?(FixtureSet)
 end
 $stderr.flush
 
-
 # Define the rest of the connector
 class ActiveRecordTestConnector
   class << self

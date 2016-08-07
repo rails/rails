@@ -317,7 +317,6 @@ module ActiveRecord
         end
     end
 
-
     # Holds all the meta-data about an aggregation as it was specified in the
     # Active Record class.
     class AggregateReflection < MacroReflection #:nodoc:

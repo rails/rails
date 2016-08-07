@@ -306,7 +306,6 @@ class TestJSONEncoding < ActiveSupport::TestCase
     user_birthday = Struct::UserNameAndDate.new "David", Date.new(2010, 01, 01)
     custom = Struct::Custom.new "David", user_birthday
 
-
     json_strings = ""
     json_string_and_date = ""
     json_custom = ""

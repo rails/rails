@@ -1318,7 +1318,6 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="2003" selected="selected">2003</option>\n<option value="2004">2004</option>\n<option value="2005">2005</option>\n)
     expected << "</select>\n"
 
-
     expected << %(<select id="date_first_month" name="date[first][month]" class="selector">\n)
     expected << %(<option value="1">January</option>\n<option value="2">February</option>\n<option value="3">March</option>\n<option value="4">April</option>\n<option value="5">May</option>\n<option value="6">June</option>\n<option value="7">July</option>\n<option value="8" selected="selected">August</option>\n<option value="9">September</option>\n<option value="10">October</option>\n<option value="11">November</option>\n<option value="12">December</option>\n)
     expected << "</select>\n"
@@ -1952,7 +1951,6 @@ class DateHelperTest < ActionView::TestCase
     output_buffer = fields_for :post, @post, index: id do |f|
       concat f.date_select(:written_on)
     end
-
 
     expected = %{<select id="post_#{id}_written_on_1i" name="post[#{id}][written_on(1i)]">\n<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option selected="selected" value="2004">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n</select>\n}
     expected << %{<select id="post_#{id}_written_on_2i" name="post[#{id}][written_on(2i)]">\n<option value="1">January</option>\n<option value="2">February</option>\n<option value="3">March</option>\n<option value="4">April</option>\n<option value="5">May</option>\n<option selected="selected" value="6">June</option>\n<option value="7">July</option>\n<option value="8">August</option>\n<option value="9">September</option>\n<option value="10">October</option>\n<option value="11">November</option>\n<option value="12">December</option>\n</select>\n}

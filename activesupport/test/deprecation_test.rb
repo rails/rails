@@ -35,7 +35,6 @@ class Deprecatee
   A = ActiveSupport::Deprecation::DeprecatedConstantProxy.new("Deprecatee::A", "Deprecatee::B::C")
 end
 
-
 class DeprecationTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Stream
 

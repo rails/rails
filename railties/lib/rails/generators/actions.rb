@@ -274,7 +274,6 @@ module Rails
           end
         end
 
-
         # Runs the supplied command using either "rake ..." or "rails ..."
         # based on the executor parameter provided.
         def execute_command(executor, command, options={})

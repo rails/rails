@@ -666,7 +666,6 @@ module ApplicationTests
       end
       RUBY
 
-
       app_file "app/controllers/posts_controller.rb", <<-RUBY
       class PostsController < ApplicationController
         def index

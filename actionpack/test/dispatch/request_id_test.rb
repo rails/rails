@@ -50,7 +50,6 @@ class RequestIdResponseTest < ActionDispatch::IntegrationTest
     end
   end
 
-
   private
 
     def with_test_route_set

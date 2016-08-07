@@ -35,7 +35,6 @@ class ReadOnlyTest < ActiveRecord::TestCase
     assert_equal "Developer is marked as readonly", e.message
   end
 
-
   def test_find_with_readonly_option
     Developer.all.each { |d| assert !d.readonly? }
     Developer.readonly(false).each { |d| assert !d.readonly? }

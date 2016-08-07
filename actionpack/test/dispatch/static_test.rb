@@ -82,7 +82,6 @@ module StaticTests
     assert_html "means hello in Japanese\n", get("/foo/#{Rack::Utils.escape("こんにちは.html")}")
   end
 
-
   def test_serves_static_file_with_exclamation_mark_in_filename
     with_static_file "/foo/foo!bar.html" do |file|
       assert_html file, get("/foo/foo%21bar.html")

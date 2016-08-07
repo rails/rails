@@ -79,7 +79,6 @@ module ActiveRecord
             end
           end
 
-
           def through_scope
             scope = through_reflection.klass.unscoped
 

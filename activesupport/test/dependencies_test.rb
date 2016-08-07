@@ -1036,7 +1036,6 @@ class DependenciesTest < ActiveSupport::TestCase
     remove_constants(:A)
   end
 
-
   def test_autoload_once_paths_should_behave_when_recursively_loading
     old_path = ActiveSupport::Dependencies.autoload_once_paths
     with_loading "dependencies", "autoloading_fixtures" do

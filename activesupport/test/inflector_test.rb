@@ -80,7 +80,6 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
-
   def test_overwrite_previous_inflectors
     assert_equal("series", ActiveSupport::Inflector.singularize("series"))
     ActiveSupport::Inflector.inflections.singular "series", "serie"

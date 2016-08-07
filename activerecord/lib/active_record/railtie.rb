@@ -23,7 +23,6 @@ module ActiveRecord
       "ActiveRecord::RecordNotSaved"   => :unprocessable_entity
     )
 
-
     config.active_record.use_schema_cache_dump = true
     config.active_record.maintain_test_schema = true
 

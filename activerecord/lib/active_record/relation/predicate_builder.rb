@@ -92,7 +92,6 @@ module ActiveRecord
         end
       end
 
-
       def create_binds_for_hash(attributes)
         result = attributes.dup
         binds = []

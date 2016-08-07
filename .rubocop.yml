@@ -20,6 +20,10 @@ Style/BracesAroundHashParameters:
 Style/CaseIndentation:
   Enabled: true
 
+# No extra empty lines.
+Style/EmptyLines:
+  Enabled: true
+
 # In a regular class definition, no empty lines around the body.
 Style/EmptyLinesAroundClassBody:
   Enabled: true

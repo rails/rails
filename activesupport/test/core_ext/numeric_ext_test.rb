@@ -176,7 +176,6 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal("&pound;1234567890,50", 1234567890.50.to_s(:currency, unit: "&pound;", separator: ",", delimiter: ""))
   end
 
-
   def test_to_s__rounded
     assert_equal("-111.235", -111.2346.to_s(:rounded))
     assert_equal("111.235", 111.2346.to_s(:rounded))
@@ -221,7 +220,6 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal "12.345.678,05", 12345678.05.to_s(:delimited, separator: ",", delimiter: ".")
     assert_equal "12.345.678,05", 12345678.05.to_s(:delimited, delimiter: ".", separator: ",")
   end
-
 
   def test_to_s__rounded_with_custom_delimiter_and_separator
     assert_equal "31,83",       31.825.to_s(:rounded, precision: 2, separator: ",")

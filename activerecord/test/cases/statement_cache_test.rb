@@ -25,7 +25,6 @@ module ActiveRecord
       assert_equal "my other book", b[0].name
     end
 
-
     def test_statement_cache_id
       b1 = Book.create(name: "my book")
       b2 = Book.create(name: "my other book")

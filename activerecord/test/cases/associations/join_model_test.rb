@@ -472,7 +472,6 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert new_tag.persisted?
     assert saved_post.reload.tags.reload.include?(new_tag)
 
-
     new_post = Post.new(title: "Association replacement works!", body: "You best believe it.")
     saved_tag = tags(:general)
 

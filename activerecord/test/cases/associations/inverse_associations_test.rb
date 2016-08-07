@@ -226,7 +226,6 @@ class InverseHasOneTests < ActiveRecord::TestCase
     assert_equal m.name, f.man.name, "Name of man should be the same after changes to child-owned instance"
   end
 
-
   def test_parent_instance_should_be_shared_with_eager_loaded_child_on_find
     m = Man.all.merge!(where: {name: "Gordon"}, includes: :face).first
     f = m.face

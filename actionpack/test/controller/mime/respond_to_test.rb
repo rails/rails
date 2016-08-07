@@ -51,7 +51,6 @@ class RespondToController < ActionController::Base
     end
   end
 
-
   def forced_xml
     request.format = :xml
 
@@ -108,7 +107,6 @@ class RespondToController < ActionController::Base
       type.all  { render body: "Nothing" }
     end
   end
-
 
   def custom_constant_handling
     respond_to do |type|

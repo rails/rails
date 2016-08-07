@@ -134,7 +134,6 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
-
   def test_aliased_attribute_changes
     # the actual attribute here is name, title is an
     # alias setup via alias_attribute
@@ -407,7 +406,6 @@ class DirtyTest < ActiveRecord::TestCase
     pirate.catchphrase = phrase
     assert !pirate.changed?
   end
-
 
   def test_reverted_changes_are_not_dirty_going_from_nil_to_value_and_back
     pirate = Pirate.create!(catchphrase: "Yar!")

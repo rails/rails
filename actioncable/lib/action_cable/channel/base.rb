@@ -177,7 +177,6 @@ module ActionCable
         end
       end
 
-
       protected
         # Called once a consumer has become a subscriber of the channel. Usually the place to setup any streams
         # you want this channel to be sending to the subscriber.

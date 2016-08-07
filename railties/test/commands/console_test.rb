@@ -40,7 +40,6 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
   def test_start_with_sandbox
     start ["--sandbox"]
 
-
     assert app.console.started?
     assert app.sandbox
     assert_match(/Loading \w+ environment in sandbox \(Rails/, output)
