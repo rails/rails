@@ -1,10 +1,11 @@
-require "rake"
 require "active_support"
 
 module Rails
   module RakeProxy #:nodoc:
     private
       def run_rake_task(command)
+        require_rake
+
         ARGV.unshift(command) # Prepend the command, so Rake knows how to run it.
 
         Rake.application.standard_exception_handling do
@@ -15,6 +16,8 @@ module Rails
       end
 
       def rake_tasks
+        require_rake
+
         return @rake_tasks if defined?(@rake_tasks)
 
         ActiveSupport::Deprecation.silence do
@@ -29,6 +32,10 @@ module Rails
 
       def formatted_rake_tasks
         rake_tasks.map { |t| [ t.name_with_args, t.comment ] }
+      end
+
+      def require_rake
+        require "rake" # Defer booting Rake until we know it's needed.
       end
   end
 end
