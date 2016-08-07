@@ -1,3 +1,9 @@
+*   Don't override the `Accept` header in integration tests when called with `xhr: true`.
+
+    Fixes #25859.
+
+    *David Chen*
+
 *   Fix 'defaults' option for root route.
 
     A regression from some refactoring for the 5.0 release, this change
