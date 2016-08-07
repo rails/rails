@@ -172,6 +172,7 @@ class FunctionalFragmentCachingTest < BaseCachingTest
   end
 
   def test_fragment_cache_instrumentation
+    @mailer.enable_fragment_cache_logging = true
     payload = nil
 
     subscriber = proc do |*args|
@@ -185,6 +186,8 @@ class FunctionalFragmentCachingTest < BaseCachingTest
 
     assert_equal "caching_mailer", payload[:mailer]
     assert_equal "views/caching/#{template_digest("caching_mailer/fragment_cache")}", payload[:key]
+  ensure
+    @mailer.enable_fragment_cache_logging = true
   end
 
   private

@@ -19,7 +19,16 @@ module ActionView
         message << " (#{event.duration.round(1)}ms)"
       end
     end
-    alias :render_partial :render_template
+
+    def render_partial(event)
+      info do
+        message = "  Rendered #{from_rails_root(event.payload[:identifier])}"
+        message << " within #{from_rails_root(event.payload[:layout])}" if event.payload[:layout]
+        message << " (#{event.duration.round(1)}ms)"
+        message << " #{cache_message(event.payload)}" if event.payload.key?(:cache_hit)
+        message
+      end
+    end
 
     def render_collection(event)
       identifier = event.payload[:identifier] || "templates"
@@ -60,6 +69,14 @@ module ActionView
         "[#{payload[:cache_hits]} / #{payload[:count]} cache hits]"
       else
         "[#{payload[:count]} times]"
+      end
+    end
+
+    def cache_message(payload)
+      if payload[:cache_hit]
+        "[cache hit]"
+      else
+        "[cache miss]"
       end
     end
 
