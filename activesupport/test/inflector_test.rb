@@ -96,7 +96,7 @@ class InflectorTest < ActiveSupport::TestCase
 
   MixtureToTitleCaseWithKeepIdSuffix.each_with_index do |(before, titleized), index|
     define_method "test_titleize_with_keep_id_suffix_mixture_to_title_case_#{index}" do
-      assert_equal(titleized, ActiveSupport::Inflector.titleize(before, keep_id_suffix: true), 
+      assert_equal(titleized, ActiveSupport::Inflector.titleize(before, keep_id_suffix: true),
         "mixture to TitleCase with keep_id_suffix failed for #{before}")
     end
   end
