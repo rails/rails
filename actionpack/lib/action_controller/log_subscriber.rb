@@ -66,6 +66,7 @@ module ActionController
         end
       METHOD
     end
+
     def logger
       ActionController::Base.logger
     end
