@@ -103,7 +103,7 @@ module ActiveRecord
     # Same as #take but raises ActiveRecord::RecordNotFound if no record
     # is found. Note that #take! accepts no arguments.
     def take!
-      take or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql(@klass.arel_engine)}]")
+      take || raise(RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql(@klass.arel_engine)}]"))
     end
 
     # Find the first record (or first N records if a parameter is supplied).
@@ -165,7 +165,7 @@ module ActiveRecord
     # Same as #last but raises ActiveRecord::RecordNotFound if no record
     # is found. Note that #last! accepts no arguments.
     def last!
-      last or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql(@klass.arel_engine)}]")
+      last || raise(RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql(@klass.arel_engine)}]"))
     end
 
     # Find the second record.
@@ -261,7 +261,7 @@ module ActiveRecord
     # Same as #third_to_last but raises ActiveRecord::RecordNotFound if no record
     # is found.
     def third_to_last!
-      find_nth_from_last 3 or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql(@klass.arel_engine)}]")
+      find_nth_from_last(3) || raise(RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql(@klass.arel_engine)}]"))
     end
 
     # Find the second-to-last record.
@@ -277,7 +277,7 @@ module ActiveRecord
     # Same as #second_to_last but raises ActiveRecord::RecordNotFound if no record
     # is found.
     def second_to_last!
-      find_nth_from_last 2 or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql(@klass.arel_engine)}]")
+      find_nth_from_last(2) || raise(RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql(@klass.arel_engine)}]"))
     end
 
     # Returns true if a record exists in the table that matches the +id+ or
@@ -539,17 +539,18 @@ module ActiveRecord
       end
 
       def find_nth!(index)
-        find_nth(index) or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql(@klass.arel_engine)}]")
+        find_nth(index) || raise(RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql(@klass.arel_engine)}]"))
       end
 
       def find_nth_with_limit(index, limit)
         # TODO: once the offset argument is removed from find_nth,
-        # find_nth_with_limit_and_offset can be merged into this method.
-        relation = if order_values.empty? && primary_key
-          order(arel_attribute(primary_key).asc)
-        else
-          self
-        end
+        # find_nth_with_limit_and_offset can be merged into this method
+        relation =
+          if order_values.empty? && primary_key
+            order(arel_attribute(primary_key).asc)
+          else
+            self
+          end
 
         relation = relation.offset(index) unless index.zero?
         relation.limit(limit).to_a
@@ -559,11 +560,12 @@ module ActiveRecord
         if loaded?
           records[-index]
         else
-          relation = if order_values.empty? && primary_key
-            order(arel_attribute(primary_key).asc)
-          else
-            self
-          end
+          relation =
+            if order_values.empty? && primary_key
+              order(arel_attribute(primary_key).asc)
+            else
+              self
+            end
 
           relation.to_a[-index]
           # TODO: can be made more performant on large result sets by

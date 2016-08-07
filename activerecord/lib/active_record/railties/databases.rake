@@ -203,18 +203,20 @@ db_namespace = namespace :db do
 
       base_dir = ActiveRecord::Tasks::DatabaseTasks.fixtures_path
 
-      fixtures_dir = if ENV["FIXTURES_DIR"]
-        File.join base_dir, ENV["FIXTURES_DIR"]
-      else
-        base_dir
-      end
+      fixtures_dir =
+        if ENV["FIXTURES_DIR"]
+          File.join base_dir, ENV["FIXTURES_DIR"]
+        else
+          base_dir
+        end
 
-      fixture_files = if ENV["FIXTURES"]
-        ENV["FIXTURES"].split(",")
-      else
-        # The use of String#[] here is to support namespaced fixtures.
-        Dir["#{fixtures_dir}/**/*.yml"].map {|f| f[(fixtures_dir.size + 1)..-5] }
-      end
+      fixture_files =
+        if ENV["FIXTURES"]
+          ENV["FIXTURES"].split(",")
+        else
+          # The use of String#[] here is to support namespaced fixtures
+          Dir["#{fixtures_dir}/**/*.yml"].map {|f| f[(fixtures_dir.size + 1)..-5] }
+        end
 
       ActiveRecord::FixtureSet.create_fixtures(fixtures_dir, fixture_files)
     end
