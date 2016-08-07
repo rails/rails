@@ -61,9 +61,11 @@ elsif File.exist?(code_or_file)
 else
   begin
     eval(code_or_file, binding, __FILE__, __LINE__)
-  rescue SyntaxError, NameError
+  rescue SyntaxError, NameError => e
     $stderr.puts "Please specify a valid ruby command or the path of a script to run."
     $stderr.puts "Run '#{command} -h' for help."
+    $stderr.puts
+    $stderr.puts e
     exit 1
   end
 end
