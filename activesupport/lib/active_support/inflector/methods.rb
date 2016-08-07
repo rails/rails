@@ -127,7 +127,9 @@ module ActiveSupport
       inflections.humans.each { |(rule, replacement)| break if result.sub!(rule, replacement) }
 
       result.sub!(/\A_+/, ''.freeze)
-      result.sub!(/_id\z/, ''.freeze)
+      unless options.fetch(:keep_id_suffix, false)
+        result.sub!(/_id\z/, ''.freeze)
+      end
       result.tr!('_'.freeze, ' '.freeze)
 
       result.gsub!(/([a-z\d]*)/i) do |match|
@@ -160,8 +162,8 @@ module ActiveSupport
     #   titleize('x-men: the last stand')    # => "X Men: The Last Stand"
     #   titleize('TheManWithoutAPast')       # => "The Man Without A Past"
     #   titleize('raiders_of_the_lost_ark')  # => "Raiders Of The Lost Ark"
-    def titleize(word)
-      humanize(underscore(word)).gsub(/\b(?<!['’`])[a-z]/) { |match| match.capitalize }
+    def titleize(word, options = {})
+      humanize(underscore(word), options).gsub(/\b(?<!['’`])[a-z]/) { |match| match.capitalize }
     end
 
     # Creates the name of a table like Rails does for models to table names.

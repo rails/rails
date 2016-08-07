@@ -104,8 +104,8 @@ class String
   #
   #   'man from the boondocks'.titleize # => "Man From The Boondocks"
   #   'x-men: the last stand'.titleize  # => "X Men: The Last Stand"
-  def titleize
-    ActiveSupport::Inflector.titleize(self)
+  def titleize(options = {})
+    ActiveSupport::Inflector.titleize(self, options)
   end
   alias_method :titlecase, :titleize
 
@@ -214,10 +214,11 @@ class String
   # optional parameter +capitalize+ to false.
   # By default, this parameter is true.
   #
-  #   'employee_salary'.humanize              # => "Employee salary"
-  #   'author_id'.humanize                    # => "Author"
-  #   'author_id'.humanize(capitalize: false) # => "author"
-  #   '_id'.humanize                          # => "Id"
+  #   'employee_salary'.humanize                    # => "Employee salary"
+  #   'author_id'.humanize                          # => "Author"
+  #   'author_id'.humanize(keep_id_suffix: true)    # => "Author Id" 
+  #   'author_id'.humanize(capitalize: false)       # => "author"
+  #   '_id'.humanize                                # => "Id"
   def humanize(options = {})
     ActiveSupport::Inflector.humanize(self, options)
   end
