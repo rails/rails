@@ -6,9 +6,9 @@ class TestColumnAlias < ActiveRecord::TestCase
 
   QUERY = if "Oracle" == ActiveRecord::Base.connection.adapter_name
     "SELECT id AS pk FROM topics WHERE ROWNUM < 2"
-          else
-            "SELECT id AS pk FROM topics"
-          end
+  else
+    "SELECT id AS pk FROM topics"
+  end
 
   def test_column_alias
     records = Topic.connection.select_all(QUERY)

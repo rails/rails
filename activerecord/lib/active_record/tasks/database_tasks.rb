@@ -78,9 +78,9 @@ module ActiveRecord
       def fixtures_path
         @fixtures_path ||= if ENV["FIXTURES_PATH"]
           File.join(root, ENV["FIXTURES_PATH"])
-                           else
-                             File.join(root, "test", "fixtures")
-                           end
+        else
+          File.join(root, "test", "fixtures")
+        end
       end
 
       def root

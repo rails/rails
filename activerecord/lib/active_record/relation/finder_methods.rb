@@ -544,12 +544,12 @@ module ActiveRecord
 
       def find_nth_with_limit(index, limit)
         # TODO: once the offset argument is removed from find_nth,
-        # find_nth_with_limit_and_offset can be merged into this method
+        # find_nth_with_limit_and_offset can be merged into this method.
         relation = if order_values.empty? && primary_key
           order(arel_attribute(primary_key).asc)
-                   else
-                     self
-                   end
+        else
+          self
+        end
 
         relation = relation.offset(index) unless index.zero?
         relation.limit(limit).to_a
@@ -561,9 +561,9 @@ module ActiveRecord
         else
           relation = if order_values.empty? && primary_key
             order(arel_attribute(primary_key).asc)
-                     else
-                       self
-                     end
+          else
+            self
+          end
 
           relation.to_a[-index]
           # TODO: can be made more performant on large result sets by

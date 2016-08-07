@@ -51,11 +51,11 @@ module ActiveRecord
           # using the #as_json hook.
           coder = if class_name_or_coder == ::JSON
             Coders::JSON
-                  elsif [:load, :dump].all? { |x| class_name_or_coder.respond_to?(x) }
-                    class_name_or_coder
-                  else
-                    Coders::YAMLColumn.new(class_name_or_coder)
-                  end
+          elsif [:load, :dump].all? { |x| class_name_or_coder.respond_to?(x) }
+            class_name_or_coder
+          else
+            Coders::YAMLColumn.new(class_name_or_coder)
+          end
 
           decorate_attribute_type(attr_name, :serialize) do |type|
             Type::Serialized.new(type, coder)

@@ -221,11 +221,11 @@ module ActiveRecord
 
         dependent = if dependent
           dependent
-                    elsif options[:dependent] == :destroy
-                      :delete_all
-                    else
-                      options[:dependent]
-                    end
+        elsif options[:dependent] == :destroy
+          :delete_all
+        else
+          options[:dependent]
+        end
 
         delete_or_nullify_all_records(dependent).tap do
           reset

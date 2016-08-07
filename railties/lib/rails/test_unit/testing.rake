@@ -9,9 +9,9 @@ task :test do
   $: << "test"
   pattern = if ENV.key?("TEST")
     ENV["TEST"]
-             else
-               "test"
-             end
+  else
+    "test"
+  end
   Minitest.rake_run([pattern])
 end
 

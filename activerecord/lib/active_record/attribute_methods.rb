@@ -162,9 +162,9 @@ module ActiveRecord
       def attribute_names
         @attribute_names ||= if !abstract_class? && table_exists?
           attribute_types.keys
-          else
-            []
-          end
+        else
+          []
+        end
       end
 
       # Returns true if the given attribute exists, otherwise false.
