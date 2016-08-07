@@ -226,7 +226,7 @@ class TestController < ActionController::Base
   end
 
   def head_and_return
-    head :ok and return
+    head(:ok) && return
     raise "should not reach this line"
   end
 

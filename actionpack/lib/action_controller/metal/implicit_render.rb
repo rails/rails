@@ -62,10 +62,11 @@ module ActionController
     def method_for_action(action_name)
       super || if template_exists?(action_name.to_s, _prefixes)
                  "default_render"
-      end
+               end
     end
 
     private
+
       def interactive_browser_request?
         request.get? && request.format == Mime[:html] && !request.xhr?
       end

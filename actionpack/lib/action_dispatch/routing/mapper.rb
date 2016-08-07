@@ -1683,11 +1683,12 @@ to this:
             action = nil
           end
 
-          as = if !options.fetch(:as, true) # if it's set to nil or false
-            options.delete(:as)
-               else
-                 name_for_action(options.delete(:as), action)
-               end
+          as =
+            if !options.fetch(:as, true) # if it's set to nil or false
+              options.delete(:as)
+            else
+              name_for_action(options.delete(:as), action)
+            end
 
           path = Mapping.normalize_path URI.parser.escape(path), formatted
           ast = Journey::Parser.parse path
@@ -1712,7 +1713,7 @@ to this:
         def root(path, options = {})
           if path.is_a?(String)
             options[:to] = path
-          elsif path.is_a?(Hash) and options.empty?
+          elsif path.is_a?(Hash) && options.empty?
             options = path
           else
             raise ArgumentError, "must be called with a path and/or options"
