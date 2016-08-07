@@ -765,7 +765,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
           end
         end
 
-        self.singleton_class.include(set.url_helpers)
+        singleton_class.include(set.url_helpers)
 
         yield
       end

@@ -772,8 +772,8 @@ class BaseTest < ActiveSupport::TestCase
 
   test "action methods should be refreshed after defining new method" do
     class FooMailer < ActionMailer::Base
-      # this triggers action_methods
-      self.respond_to?(:foo)
+      # This triggers action_methods.
+      respond_to?(:foo)
 
       def notify
       end

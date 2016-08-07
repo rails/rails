@@ -104,11 +104,11 @@ module ActiveRecord
           def build_default_scope(base_rel = nil) # :nodoc:
             return if abstract_class?
 
-            if self.default_scope_override.nil?
+            if default_scope_override.nil?
               self.default_scope_override = !Base.is_a?(method(:default_scope).owner)
             end
 
-            if self.default_scope_override
+            if default_scope_override
               # The user has defined their own default scope method, so call that
               evaluate_default_scope { default_scope }
             elsif default_scopes.any?

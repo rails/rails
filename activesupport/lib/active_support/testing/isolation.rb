@@ -68,7 +68,7 @@ module ActiveSupport
           if ENV["ISOLATION_TEST"]
             yield
             File.open(ENV["ISOLATION_OUTPUT"], "w") do |file|
-              file.puts [Marshal.dump(self.dup)].pack("m")
+              file.puts [Marshal.dump(dup)].pack("m")
             end
             exit!
           else

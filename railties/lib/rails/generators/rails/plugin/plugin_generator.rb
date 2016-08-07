@@ -328,7 +328,7 @@ task default: :test
       end
 
       def self.banner
-        "rails plugin new #{self.arguments.map(&:usage).join(' ')} [options]"
+        "rails plugin new #{arguments.map(&:usage).join(' ')} [options]"
       end
 
       def original_name

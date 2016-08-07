@@ -804,7 +804,7 @@ module CallbacksTest
 
   class WriterSkipper < Person
     attr_accessor :age
-    skip_callback :save, :before, :before_save_method, if: lambda {self.age > 21}
+    skip_callback :save, :before, :before_save_method, if: -> { age > 21 }
   end
 
   class WriterCallbacksTest < ActiveSupport::TestCase

@@ -72,7 +72,7 @@ class ConcernTest < ActiveSupport::TestCase
   def test_class_methods_are_extended
     @klass.include(Baz)
     assert_equal "baz", @klass.baz
-    assert_equal ConcernTest::Baz::ClassMethods, (class << @klass; self.included_modules; end)[0]
+    assert_equal ConcernTest::Baz::ClassMethods, (class << @klass; included_modules; end)[0]
   end
 
   def test_class_methods_are_extended_only_on_expected_objects

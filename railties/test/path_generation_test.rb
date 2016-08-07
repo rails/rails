@@ -30,7 +30,7 @@ class PathGenerationTest < ActiveSupport::TestCase
     end
 
     def make_request(env)
-      Request.new super, self.url_helpers, @block
+      Request.new(super, url_helpers, @block)
     end
   end
 

@@ -697,7 +697,7 @@ module ActiveSupport #:nodoc:
       if file_path
         expanded = File.expand_path(file_path)
         expanded.sub!(/\.rb\z/, "")
-        self.loaded.delete(expanded)
+        loaded.delete(expanded)
       end
 
       if constants.empty?

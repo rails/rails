@@ -18,6 +18,6 @@ class ActiveJobTestCaseTest < ActiveJob::TestCase
   end
 
   def test_set_test_adapter
-    assert_kind_of ActiveJob::QueueAdapters::TestAdapter, self.queue_adapter
+    assert_kind_of ActiveJob::QueueAdapters::TestAdapter, queue_adapter
   end
 end

@@ -26,7 +26,7 @@ module ActiveRecord
             has_many_association = has_many.find { |association| association.counter_cache_column && association.counter_cache_column.to_sym == counter_association.to_sym }
             counter_association = has_many_association.plural_name if has_many_association
           end
-          raise ArgumentError, "'#{self.name}' has no association called '#{counter_association}'" unless has_many_association
+          raise ArgumentError, "'#{name}' has no association called '#{counter_association}'" unless has_many_association
 
           if has_many_association.is_a? ActiveRecord::Reflection::ThroughReflection
             has_many_association = has_many_association.through_reflection

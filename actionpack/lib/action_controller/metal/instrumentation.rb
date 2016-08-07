@@ -17,7 +17,7 @@ module ActionController
     def process_action(*args)
       raw_payload = {
         controller: self.class.name,
-        action: self.action_name,
+        action: action_name,
         params: request.filtered_parameters,
         headers: request.headers,
         format: request.format.ref,

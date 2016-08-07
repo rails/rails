@@ -1004,10 +1004,10 @@ class FixtureClassNamesTest < ActiveRecord::TestCase
   end
 
   def teardown
-    self.fixture_class_names.replace(@saved_cache)
+    fixture_class_names.replace(@saved_cache)
   end
 
   test "fixture_class_names returns nil for unregistered identifier" do
-    assert_nil self.fixture_class_names["unregistered_identifier"]
+    assert_nil fixture_class_names["unregistered_identifier"]
   end
 end

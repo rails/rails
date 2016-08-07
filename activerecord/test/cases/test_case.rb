@@ -86,7 +86,7 @@ module ActiveRecord
       def clear_log; self.log = []; self.log_all = []; end
     end
 
-    self.clear_log
+    clear_log
 
     self.ignored_sql = [/^PRAGMA/, /^SELECT currval/, /^SELECT CAST/, /^SELECT @@IDENTITY/, /^SELECT @@ROWCOUNT/, /^SAVEPOINT/, /^ROLLBACK TO SAVEPOINT/, /^RELEASE SAVEPOINT/, /^SHOW max_identifier_length/, /^BEGIN/, /^COMMIT/]
 

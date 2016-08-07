@@ -313,7 +313,7 @@ class MigrationTest < ActiveRecord::TestCase
       assert_no_column Person, :last_name
 
       migration = Class.new(ActiveRecord::Migration::Current) {
-        self.disable_ddl_transaction!
+        disable_ddl_transaction!
 
         def version; 101 end
         def migrate(x)

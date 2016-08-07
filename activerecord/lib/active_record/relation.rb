@@ -657,7 +657,7 @@ module ActiveRecord
     end
 
     def pretty_print(q)
-      q.pp(self.records)
+      q.pp(records)
     end
 
     # Returns true if relation is blank.

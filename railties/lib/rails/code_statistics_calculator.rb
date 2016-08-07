@@ -43,7 +43,7 @@ class CodeStatisticsCalculator #:nodoc:
 
   def add_by_file_path(file_path)
     File.open(file_path) do |f|
-      self.add_by_io(f, file_type(file_path))
+      add_by_io(f, file_type(file_path))
     end
   end
 

@@ -16,7 +16,7 @@ class CallbackDeveloper < ActiveRecord::Base
 
     def define_callback_method(callback_method)
       define_method(callback_method) do
-        self.history << [callback_method, :method]
+        history << [callback_method, :method]
       end
       send(callback_method, :"#{callback_method}")
     end

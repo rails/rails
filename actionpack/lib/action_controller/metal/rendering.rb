@@ -32,7 +32,7 @@ module ActionController
 
     # Check for double render errors and set the content_type after rendering.
     def render(*args) #:nodoc:
-      raise ::AbstractController::DoubleRenderError if self.response_body
+      raise ::AbstractController::DoubleRenderError if response_body
       super
     end
 

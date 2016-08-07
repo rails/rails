@@ -111,7 +111,7 @@ rescue LoadError
     # File activesupport/lib/active_support/inflector/methods.rb, line 150
     def classify
       # strip out any leading schema name
-      camelize(self.sub(/.*\./, ""))
+      camelize(sub(/.*\./, ""))
     end
     # File activesupport/lib/active_support/inflector/methods.rb, line 68
     def camelize(uppercase_first_letter = true)

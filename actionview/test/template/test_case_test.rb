@@ -85,7 +85,7 @@ module ActionView
     end
 
     test "uses controller lookup context" do
-      assert_equal self.lookup_context, @controller.lookup_context
+      assert_equal lookup_context, @controller.lookup_context
     end
   end
 

@@ -114,8 +114,8 @@ module ActiveRecord
 
       def stored_attributes
         parent = superclass.respond_to?(:stored_attributes) ? superclass.stored_attributes : {}
-        if self.local_stored_attributes
-          parent.merge!(self.local_stored_attributes) { |k, a, b| a | b }
+        if local_stored_attributes
+          parent.merge!(local_stored_attributes) { |k, a, b| a | b }
         end
         parent
       end

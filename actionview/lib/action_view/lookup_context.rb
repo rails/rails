@@ -21,7 +21,7 @@ module ActionView
     self.registered_details = []
 
     def self.register_detail(name, &block)
-      self.registered_details << name
+      registered_details << name
       Accessors::DEFAULT_PROCS[name] = block
 
       Accessors.send :define_method, :"default_#{name}", &block

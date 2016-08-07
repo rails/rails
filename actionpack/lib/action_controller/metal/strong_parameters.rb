@@ -719,7 +719,7 @@ module ActionController
       end
 
       def unpermitted_keys(params)
-        self.keys - params.keys - self.always_permitted_parameters
+        keys - params.keys - always_permitted_parameters
       end
 
       #

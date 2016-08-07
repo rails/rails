@@ -227,7 +227,7 @@ module ActiveRecord
       def raise_conflict_error(enum_name, method_name, type: "instance", source: "Active Record")
         raise ArgumentError, ENUM_CONFLICT_MESSAGE % {
           enum: enum_name,
-          klass: self.name,
+          klass: name,
           type: type,
           method: method_name,
           source: source

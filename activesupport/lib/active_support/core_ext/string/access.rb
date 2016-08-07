@@ -76,7 +76,7 @@ class String
     if limit == 0
       ""
     elsif limit >= size
-      self.dup
+      dup
     else
       to(limit - 1)
     end
@@ -96,7 +96,7 @@ class String
     if limit == 0
       ""
     elsif limit >= size
-      self.dup
+      dup
     else
       from(-limit)
     end

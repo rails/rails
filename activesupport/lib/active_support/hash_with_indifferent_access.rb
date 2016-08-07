@@ -216,7 +216,7 @@ module ActiveSupport
     # modify the receiver but rather returns a new hash with indifferent
     # access with the result of the merge.
     def merge(hash, &block)
-      self.dup.update(hash, &block)
+      dup.update(hash, &block)
     end
 
     # Like +merge+ but the other way around: Merges the receiver into the

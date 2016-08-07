@@ -83,7 +83,7 @@ module ActionController
       end
 
       if get?
-        if self.query_string.blank?
+        if query_string.blank?
           self.query_string = non_path_parameters.to_query
         end
       else
@@ -492,8 +492,8 @@ module ActionController
 
         @html_document = nil
 
-        self.cookies.update @request.cookies
-        self.cookies.update_cookies_from_jar
+        cookies.update(@request.cookies)
+        cookies.update_cookies_from_jar
         @request.set_header "HTTP_COOKIE", cookies.to_header
         @request.delete_header "action_dispatch.cookies"
 
@@ -538,7 +538,7 @@ module ActionController
           if @request.have_cookie_jar?
             unless @request.cookie_jar.committed?
               @request.cookie_jar.write(@response)
-              self.cookies.update(@request.cookie_jar.instance_variable_get(:@cookies))
+              cookies.update(@request.cookie_jar.instance_variable_get(:@cookies))
             end
           end
           @response.prepare!

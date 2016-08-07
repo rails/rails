@@ -575,7 +575,7 @@ module ActiveRecord
       end
 
       def allow_destroy?(association_name)
-        self.nested_attributes_options[association_name][:allow_destroy]
+        nested_attributes_options[association_name][:allow_destroy]
       end
 
       def raise_nested_attributes_record_not_found!(association_name, record_id)

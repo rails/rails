@@ -59,7 +59,7 @@ module ActiveModel
         end
 
         def _limit
-          self.limit || DEFAULT_LIMIT
+          limit || DEFAULT_LIMIT
         end
     end
   end

@@ -45,8 +45,8 @@ module ActiveJob
       self.queue_name   = self.class.queue_name_from_part(options[:queue]) if options[:queue]
       self.priority     = options[:priority].to_i if options[:priority]
       run_callbacks :enqueue do
-        if self.scheduled_at
-          self.class.queue_adapter.enqueue_at self, self.scheduled_at
+        if scheduled_at
+          self.class.queue_adapter.enqueue_at self, scheduled_at
         else
           self.class.queue_adapter.enqueue self
         end

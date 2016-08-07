@@ -1006,7 +1006,7 @@ module ActiveRecord
           result = [] if multi_val_method
         end
 
-        self.send(unscope_code, result)
+        send(unscope_code, result)
       end
 
       def build_from

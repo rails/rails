@@ -8,7 +8,7 @@ module ContentNegotiation
     )]
 
     def all
-      render plain: self.formats.inspect
+      render plain: formats.inspect
     end
   end
 

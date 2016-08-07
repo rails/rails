@@ -275,7 +275,7 @@ module AbstractController
     end
 
     class Me6 < AbstractController::Base
-      self.action_methods
+      action_methods
 
       def index
       end

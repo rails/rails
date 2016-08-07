@@ -32,7 +32,7 @@ module ActiveRecord
         raise_on_type_mismatch!(record) if record
         load_target
 
-        return self.target if !(target || record)
+        return target unless target || record
 
         assigning_another_record = target != record
         if assigning_another_record || record.changed?

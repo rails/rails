@@ -433,7 +433,7 @@ module ActiveRecord
             ActiveSupport::Deprecation.warn(<<-WARNING.strip_heredoc)
             The behavior of the `:point` type will be changing in Rails 5.1 to
             return a `Point` object, rather than an `Array`. If you'd like to
-            keep the old behavior, you can add this line to #{self.name}:
+            keep the old behavior, you can add this line to #{name}:
 
               attribute :#{column.name}, :legacy_point#{array_arguments}
 

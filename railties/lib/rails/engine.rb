@@ -619,7 +619,7 @@ module Rails
     end
 
     rake_tasks do
-      next if self.is_a?(Rails::Application)
+      next if is_a?(Rails::Application)
       next unless has_migrations?
 
       namespace railtie_name do

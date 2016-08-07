@@ -125,7 +125,7 @@ module Rails
       initializer :set_routes_reloader_hook do |app|
         reloader = routes_reloader
         reloader.execute_if_updated
-        self.reloaders << reloader
+        reloaders << reloader
         app.reloader.to_run do
           # We configure #execute rather than #execute_if_updated because if
           # autoloaded constants are cleared we need to reload routes also in
@@ -161,7 +161,7 @@ module Rails
 
         if config.reload_classes_only_on_change
           reloader = config.file_watcher.new(*watchable_args, &callback)
-          self.reloaders << reloader
+          reloaders << reloader
 
           # Prepend this callback to have autoloaded constants cleared before
           # any other possible reloading, in case they need to autoload fresh

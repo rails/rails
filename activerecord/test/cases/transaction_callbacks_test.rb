@@ -17,7 +17,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
     attr_accessor :save_on_after_create
     after_create do
-      self.save! if save_on_after_create
+      save! if save_on_after_create
     end
 
     def history

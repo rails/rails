@@ -626,7 +626,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
 
   def protect_against_forgery?
-    self.request_forgery
+    request_forgery
   end
 
   def form_authenticity_token(*args)

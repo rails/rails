@@ -84,7 +84,7 @@ class Topic < ActiveRecord::Base
     end
 
     def set_email_address
-      unless self.persisted?
+      unless persisted?
         self.author_email_address = "test@test.com"
       end
     end

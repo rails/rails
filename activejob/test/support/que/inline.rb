@@ -9,6 +9,6 @@ Que::Job.class_eval do
       options.delete(:priority)
       args << options unless options.empty?
     end
-    self.run(*args)
+    run(*args)
   end
 end

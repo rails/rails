@@ -361,7 +361,7 @@ module Rails
     protected
 
       def self.banner
-        "rails new #{self.arguments.map(&:usage).join(' ')} [options]"
+        "rails new #{arguments.map(&:usage).join(' ')} [options]"
       end
 
       # Define file as an alias to create_file for backwards compatibility.

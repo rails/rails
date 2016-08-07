@@ -127,11 +127,11 @@ module Rails
       end
 
       def polymorphic?
-        self.attr_options[:polymorphic]
+        attr_options[:polymorphic]
       end
 
       def required?
-        self.attr_options[:required]
+        attr_options[:required]
       end
 
       def has_index?

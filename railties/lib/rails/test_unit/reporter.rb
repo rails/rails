@@ -68,7 +68,7 @@ module Rails
 
       def format_rerun_snippet(result)
         location, line = result.method(result.name).source_location
-        "#{self.executable} #{relative_path_for(location)}:#{line}"
+        "#{executable} #{relative_path_for(location)}:#{line}"
       end
 
       def app_root

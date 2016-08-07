@@ -48,7 +48,7 @@ module Rails
       # Convenience method to hide this generator from the available ones when
       # running rails generator command.
       def self.hide!
-        Rails::Generators.hide_namespace self.namespace
+        Rails::Generators.hide_namespace(namespace)
       end
 
       # Invoke a generator based on the value supplied by the user to the
@@ -273,7 +273,7 @@ module Rails
 
         # Use Rails default banner.
         def self.banner
-          "rails generate #{namespace.sub(/^rails:/,'')} #{self.arguments.map(&:usage).join(' ')} [options]".gsub(/\s+/, " ")
+          "rails generate #{namespace.sub(/^rails:/,'')} #{arguments.map(&:usage).join(' ')} [options]".gsub(/\s+/, " ")
         end
 
         # Sets the base_name taking into account the current class namespace.

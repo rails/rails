@@ -35,12 +35,12 @@ module Digest
 
     # Convenience method for uuid_from_hash using Digest::MD5.
     def self.uuid_v3(uuid_namespace, name)
-      self.uuid_from_hash(Digest::MD5, uuid_namespace, name)
+      uuid_from_hash(Digest::MD5, uuid_namespace, name)
     end
 
     # Convenience method for uuid_from_hash using Digest::SHA1.
     def self.uuid_v5(uuid_namespace, name)
-      self.uuid_from_hash(Digest::SHA1, uuid_namespace, name)
+      uuid_from_hash(Digest::SHA1, uuid_namespace, name)
     end
 
     # Convenience method for SecureRandom.uuid.

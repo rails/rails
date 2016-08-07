@@ -17,7 +17,7 @@ module Rails
         controller_name = name
         if options[:model_name]
           self.name = options[:model_name]
-          assign_names!(self.name)
+          assign_names!(name)
         end
 
         assign_controller_names!(controller_name.pluralize)

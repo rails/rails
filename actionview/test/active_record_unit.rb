@@ -28,7 +28,7 @@ $stderr.flush
 class ActiveRecordTestConnector
   class << self
     def setup
-      unless self.connected || !self.able_to_connect
+      unless connected || !able_to_connect
         setup_connection
         load_schema
         require_fixture_models

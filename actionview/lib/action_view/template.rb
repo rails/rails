@@ -65,8 +65,7 @@ module ActionView
     # If you want to provide an alternate mechanism for
     # specifying encodings (like ERB does via <%# encoding: ... %>),
     # you may indicate that you will handle encodings yourself
-    # by implementing <tt>self.handles_encoding?</tt>
-    # on your handler.
+    # by implementing <tt>handles_encoding?</tt> on your handler.
     #
     # If you do, Rails will not try to encode the String
     # into the default_internal, passing you the unaltered

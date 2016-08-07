@@ -15,37 +15,37 @@ class DogWithMethodCallbacks < Dog
   before_validation :set_before_validation_marker
   after_validation :set_after_validation_marker
 
-  def set_before_validation_marker; self.history << "before_validation_marker"; end
-  def set_after_validation_marker;  self.history << "after_validation_marker" ; end
+  def set_before_validation_marker; history << "before_validation_marker"; end
+  def set_after_validation_marker;  history << "after_validation_marker" ; end
 end
 
 class DogValidatorsAreProc < Dog
-  before_validation { self.history << "before_validation_marker" }
-  after_validation  { self.history << "after_validation_marker" }
+  before_validation { history << "before_validation_marker" }
+  after_validation  { history << "after_validation_marker" }
 end
 
 class DogWithTwoValidators < Dog
-  before_validation { self.history << "before_validation_marker1" }
-  before_validation { self.history << "before_validation_marker2" }
+  before_validation { history << "before_validation_marker1" }
+  before_validation { history << "before_validation_marker2" }
 end
 
 class DogDeprecatedBeforeValidatorReturningFalse < Dog
   before_validation { false }
-  before_validation { self.history << "before_validation_marker2" }
+  before_validation { history << "before_validation_marker2" }
 end
 
 class DogBeforeValidatorThrowingAbort < Dog
   before_validation { throw :abort }
-  before_validation { self.history << "before_validation_marker2" }
+  before_validation { history << "before_validation_marker2" }
 end
 
 class DogAfterValidatorReturningFalse < Dog
   after_validation { false }
-  after_validation { self.history << "after_validation_marker" }
+  after_validation { history << "after_validation_marker" }
 end
 
 class DogWithMissingName < Dog
-  before_validation { self.history << "before_validation_marker" }
+  before_validation { history << "before_validation_marker" }
   validates_presence_of :name
 end
 
@@ -53,8 +53,8 @@ class DogValidatorWithOnCondition < Dog
   before_validation :set_before_validation_marker, on: :create
   after_validation :set_after_validation_marker, on: :create
 
-  def set_before_validation_marker; self.history << "before_validation_marker"; end
-  def set_after_validation_marker;  self.history << "after_validation_marker" ; end
+  def set_before_validation_marker; history << "before_validation_marker"; end
+  def set_after_validation_marker;  history << "after_validation_marker" ; end
 end
 
 class DogValidatorWithIfCondition < Dog
@@ -64,11 +64,11 @@ class DogValidatorWithIfCondition < Dog
   after_validation :set_after_validation_marker1, if: -> { true }
   after_validation :set_after_validation_marker2, if: -> { false }
 
-  def set_before_validation_marker1; self.history << "before_validation_marker1"; end
-  def set_before_validation_marker2; self.history << "before_validation_marker2" ; end
+  def set_before_validation_marker1; history << "before_validation_marker1"; end
+  def set_before_validation_marker2; history << "before_validation_marker2" ; end
 
-  def set_after_validation_marker1; self.history << "after_validation_marker1"; end
-  def set_after_validation_marker2; self.history << "after_validation_marker2" ; end
+  def set_after_validation_marker1; history << "after_validation_marker1"; end
+  def set_after_validation_marker2; history << "after_validation_marker2" ; end
 end
 
 class CallbacksWithMethodNamesShouldBeCalled < ActiveModel::TestCase

@@ -445,7 +445,7 @@ module ActiveSupport
         def around(&around)
           CallbackSequence.new do |arg|
             around.call(arg) {
-              self.call(arg)
+              call(arg)
             }
           end
         end
@@ -624,7 +624,7 @@ module ActiveSupport
         # callback is skipped.
         #
         #   class Writer < Person
-        #      skip_callback :validate, :before, :check_membership, if: -> { self.age > 18 }
+        #      skip_callback :validate, :before, :check_membership, if: -> { age > 18 }
         #   end
         #
         # An <tt>ArgumentError</tt> will be raised if the callback has not
@@ -662,7 +662,7 @@ module ActiveSupport
             target.set_callbacks name, chain
           end
 
-          self.set_callbacks name, callbacks.dup.clear
+          set_callbacks(name, callbacks.dup.clear)
         end
 
         # Define sets of events in the object life cycle that support callbacks.

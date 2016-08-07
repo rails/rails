@@ -83,7 +83,7 @@ module ActiveRecord
           The flag error_on_ignored_order_or_limit is deprecated. Limits are
           now supported. Please use error_on_ignored_order instead.
         MSG
-        self.error_on_ignored_order
+        error_on_ignored_order
       end
 
       def error_on_ignored_order_or_limit
@@ -268,7 +268,7 @@ module ActiveRecord
       # Returns an instance of <tt>Arel::Table</tt> loaded with the current table name.
       #
       #   class Post < ActiveRecord::Base
-      #     scope :published_and_commented, -> { published.and(self.arel_table[:comments_count].gt(0)) }
+      #     scope :published_and_commented, -> { published.and(arel_table[:comments_count].gt(0)) }
       #   end
       def arel_table # :nodoc:
         @arel_table ||= Arel::Table.new(table_name, type_caster: type_caster)

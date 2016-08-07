@@ -14,7 +14,7 @@ module Rails
         # Unfreeze name in case it's given as a frozen string
         args[0] = args[0].dup if args[0].is_a?(String) && args[0].frozen?
         super
-        assign_names!(self.name)
+        assign_names!(name)
         parse_attributes! if respond_to?(:attributes)
       end
 
