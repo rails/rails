@@ -65,6 +65,9 @@ class Module
   #   e.subject = "Megastars"
   #   e.title    # => "Megastars"
   def alias_attribute(new_name, old_name)
+    # The following reader methods use an explicit `self` receiver in otder to
+    # support aliases that start with an uppercase letter. Otherwise, they would
+    # be resolved as constants instead.
     module_eval <<-STR, __FILE__, __LINE__ + 1
       def #{new_name}; self.#{old_name}; end          # def subject; self.title; end
       def #{new_name}?; self.#{old_name}?; end        # def subject?; self.title?; end
