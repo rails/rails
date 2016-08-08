@@ -39,16 +39,19 @@ class Module
 
     syms.each do |sym|
       raise NameError.new("invalid attribute name: #{sym}") unless /^[_A-Za-z]\w*$/.match?(sym)
+
+      # The following generated method concatenates `name` because we want it
+      # to work with inheritance via polymorphism.
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         def self.#{sym}
-          Thread.current["attr_"+ name + "_#{sym}"]
+          Thread.current["attr_" + name + "_#{sym}"]
         end
       EOS
 
       unless options[:instance_reader] == false || options[:instance_accessor] == false
         class_eval(<<-EOS, __FILE__, __LINE__ + 1)
           def #{sym}
-            Thread.current["attr_"+ self.class.name + "_#{sym}"]
+            self.class.#{sym}
           end
         EOS
       end
@@ -78,16 +81,19 @@ class Module
     options = syms.extract_options!
     syms.each do |sym|
       raise NameError.new("invalid attribute name: #{sym}") unless /^[_A-Za-z]\w*$/.match?(sym)
+
+      # The following generated method concatenates `name` because we want it
+      # to work with inheritance via polymorphism.
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         def self.#{sym}=(obj)
-          Thread.current["attr_"+ name + "_#{sym}"] = obj
+          Thread.current["attr_" + name + "_#{sym}"] = obj
         end
       EOS
 
       unless options[:instance_writer] == false || options[:instance_accessor] == false
         class_eval(<<-EOS, __FILE__, __LINE__ + 1)
           def #{sym}=(obj)
-            Thread.current["attr_"+ self.class.name + "_#{sym}"] = obj
+            self.class.#{sym} = obj
           end
         EOS
       end
