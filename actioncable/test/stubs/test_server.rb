@@ -13,9 +13,9 @@ class TestServer
     @config.use_faye = ENV["FAYE"].present?
     @config.client_socket_class = if @config.use_faye
       ActionCable::Connection::FayeClientSocket
-                                  else
-                                    ActionCable::Connection::ClientSocket
-                                  end
+    else
+      ActionCable::Connection::ClientSocket
+    end
 
     @mutex = Monitor.new
   end
@@ -27,9 +27,9 @@ class TestServer
   def event_loop
     @event_loop ||= if @config.use_faye
       ActionCable::Connection::FayeEventLoop.new
-                    else
-                      ActionCable::Connection::StreamEventLoop.new
-                    end
+    else
+      ActionCable::Connection::StreamEventLoop.new
+    end
   end
 
   def worker_pool

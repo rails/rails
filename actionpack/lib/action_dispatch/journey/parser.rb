@@ -192,5 +192,5 @@ module ActionDispatch
         val[0]
       end
     end   # class Parser
-    end   # module Journey
-  end   # module ActionDispatch
+  end   # module Journey
+end   # module ActionDispatch

@@ -1685,9 +1685,9 @@ to this:
 
           as = if !options.fetch(:as, true) # if it's set to nil or false
             options.delete(:as)
-               else
-                 name_for_action(options.delete(:as), action)
-               end
+          else
+            name_for_action(options.delete(:as), action)
+          end
 
           path = Mapping.normalize_path URI.parser.escape(path), formatted
           ast = Journey::Parser.parse path

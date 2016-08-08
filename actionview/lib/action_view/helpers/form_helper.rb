@@ -468,9 +468,9 @@ module ActionView
 
         options[:url] ||= if options.key?(:format)
           polymorphic_path(record, format: options.delete(:format))
-                          else
-                            polymorphic_path(record, {})
-                          end
+        else
+          polymorphic_path(record, {})
+        end
       end
       private :apply_form_for_options!
 
@@ -1574,12 +1574,12 @@ module ActionView
 
         record_name = if index
           "#{object_name}[#{index}][#{record_name}]"
-                      elsif record_name.to_s.end_with?("[]")
-                        record_name = record_name.to_s.sub(/(.*)\[\]$/, "[\\1][#{record_object.id}]")
-                        "#{object_name}#{record_name}"
-                      else
-                        "#{object_name}[#{record_name}]"
-                      end
+        elsif record_name.to_s.end_with?("[]")
+          record_name = record_name.to_s.sub(/(.*)\[\]$/, "[\\1][#{record_object.id}]")
+          "#{object_name}#{record_name}"
+        else
+          "#{object_name}[#{record_name}]"
+        end
         fields_options[:child_index] = index
 
         @template.fields_for(record_name, record_object, fields_options, &block)

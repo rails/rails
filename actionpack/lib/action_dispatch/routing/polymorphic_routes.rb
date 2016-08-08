@@ -248,9 +248,9 @@ module ActionDispatch
             named_route = if model.persisted?
               args << model
               get_method_for_string model.model_name.singular_route_key
-                          else
-                            get_method_for_class model
-                          end
+            else
+              get_method_for_class model
+            end
 
             [named_route, args]
           end

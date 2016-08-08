@@ -503,9 +503,9 @@ module ActiveRecord
             "#{name}: #{attribute_for_inspect(name)}"
           end
         end.compact.join(", ")
-     else
-       "not initialized"
-     end
+      else
+        "not initialized"
+      end
 
       "#<#{self.class} #{inspection}>"
     end
