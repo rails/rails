@@ -209,7 +209,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
   def test_class_and_lambda_constraints
     subdomain = Class.new {
       def matches?(request)
-        request.subdomain.present? and request.subdomain != "clients"
+        request.subdomain.present? && request.subdomain != "clients"
       end
     }
 
@@ -227,7 +227,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
   def test_lambda_constraints
     rs.draw do
       get "/", constraints: lambda { |req|
-        req.subdomain.present? and req.subdomain != "clients" },
+        req.subdomain.present? && req.subdomain != "clients" },
                  to: lambda { |env| [200, {}, %w{default}] }
 
       get "/", constraints: lambda { |req|

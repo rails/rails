@@ -67,7 +67,7 @@ end
           |x| x.include?("/adapters/")
         } + Dir["test/cases/adapters/#{adapter_short}/**/*_test.rb"]).all? do |file|
           sh(Gem.ruby, "-w" ,"-Itest", file)
-        end or raise "Failures"
+        end || raise("Failures")
       end
     end
   end

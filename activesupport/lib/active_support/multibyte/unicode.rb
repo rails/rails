@@ -89,25 +89,25 @@ module ActiveSupport
 
           should_break =
             # GB3. CR X LF
-            if previous == database.boundary[:cr] and current == database.boundary[:lf]
+            if previous == database.boundary[:cr] && current == database.boundary[:lf]
               false
             # GB4. (Control|CR|LF) ÷
-            elsif previous and in_char_class?(previous, [:control,:cr,:lf])
+            elsif previous && in_char_class?(previous, [:control,:cr,:lf])
               true
             # GB5. ÷ (Control|CR|LF)
             elsif in_char_class?(current, [:control,:cr,:lf])
               true
             # GB6. L X (L|V|LV|LVT)
-            elsif database.boundary[:l] === previous and in_char_class?(current, [:l,:v,:lv,:lvt])
+            elsif database.boundary[:l] === previous && in_char_class?(current, [:l,:v,:lv,:lvt])
               false
             # GB7. (LV|V) X (V|T)
-            elsif in_char_class?(previous, [:lv,:v]) and in_char_class?(current, [:v,:t])
+            elsif in_char_class?(previous, [:lv,:v]) && in_char_class?(current, [:v,:t])
               false
             # GB8. (LVT|T) X (T)
-            elsif in_char_class?(previous, [:lvt,:t]) and database.boundary[:t] === current
+            elsif in_char_class?(previous, [:lvt,:t]) && database.boundary[:t] === current
               false
             # GB8a. Regional_Indicator X Regional_Indicator
-            elsif database.boundary[:regional_indicator] === previous and database.boundary[:regional_indicator] === current
+            elsif database.boundary[:regional_indicator] === previous && database.boundary[:regional_indicator] === current
               false
             # GB9. X Extend
             elsif database.boundary[:extend] === current
@@ -158,7 +158,7 @@ module ActiveSupport
       def decompose(type, codepoints)
         codepoints.inject([]) do |decomposed, cp|
           # if it's a hangul syllable starter character
-          if HANGUL_SBASE <= cp and cp < HANGUL_SLAST
+          if HANGUL_SBASE <= cp && cp < HANGUL_SLAST
             sindex = cp - HANGUL_SBASE
             ncp = [] # new codepoints
             ncp << HANGUL_LBASE + sindex / HANGUL_NCOUNT
@@ -167,7 +167,7 @@ module ActiveSupport
             ncp << (HANGUL_TBASE + tindex) unless tindex == 0
             decomposed.concat ncp
           # if the codepoint is decomposable in with the current decomposition type
-          elsif (ncp = database.codepoints[cp].decomp_mapping) and (!database.codepoints[cp].decomp_type || type == :compatibility)
+          elsif (ncp = database.codepoints[cp].decomp_mapping) && (!database.codepoints[cp].decomp_type || type == :compatibility)
             decomposed.concat decompose(type, ncp.dup)
           else
             decomposed << cp
@@ -186,11 +186,11 @@ module ActiveSupport
           pos += 1
           lindex = starter_char - HANGUL_LBASE
           # -- Hangul
-          if 0 <= lindex and lindex < HANGUL_LCOUNT
+          if 0 <= lindex && lindex < HANGUL_LCOUNT
             vindex = codepoints[starter_pos+1] - HANGUL_VBASE rescue vindex = -1
-            if 0 <= vindex and vindex < HANGUL_VCOUNT
+            if 0 <= vindex && vindex < HANGUL_VCOUNT
               tindex = codepoints[starter_pos+2] - HANGUL_TBASE rescue tindex = -1
-              if 0 <= tindex and tindex < HANGUL_TCOUNT
+              if 0 <= tindex && tindex < HANGUL_TCOUNT
                 j = starter_pos + 2
                 eoa -= 2
               else
@@ -392,7 +392,7 @@ module ActiveSupport
           database.codepoints
           string.each_codepoint.map do |codepoint|
             cp = database.codepoints[codepoint]
-            if cp and (ncp = cp.send(mapping)) and ncp > 0
+            if cp && (ncp = cp.send(mapping)) && ncp > 0
               ncp
             else
               codepoint

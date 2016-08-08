@@ -219,13 +219,14 @@ module ActiveRecord
           raise ArgumentError, "Valid values are :nullify or :delete_all"
         end
 
-        dependent = if dependent
-          dependent
-        elsif options[:dependent] == :destroy
-          :delete_all
-        else
-          options[:dependent]
-        end
+        dependent =
+          if dependent
+            dependent
+          elsif options[:dependent] == :destroy
+            :delete_all
+          else
+            options[:dependent]
+          end
 
         delete_or_nullify_all_records(dependent).tap do
           reset

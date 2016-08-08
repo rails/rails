@@ -229,7 +229,7 @@ module ActiveRecord
       end
 
       def find_by!(*args) # :nodoc:
-        find_by(*args) or raise RecordNotFound.new("Couldn't find #{name}", name)
+        find_by(*args) || raise(RecordNotFound.new("Couldn't find #{name}", name))
       end
 
       def initialize_generated_modules # :nodoc:
@@ -497,15 +497,16 @@ module ActiveRecord
     def inspect
       # We check defined?(@attributes) not to issue warnings if the object is
       # allocated but not initialized.
-      inspection = if defined?(@attributes) && @attributes
-        self.class.column_names.collect do |name|
-          if has_attribute?(name)
-            "#{name}: #{attribute_for_inspect(name)}"
-          end
-        end.compact.join(", ")
-     else
-       "not initialized"
-     end
+      inspection =
+        if defined?(@attributes) && @attributes
+          self.class.column_names.collect { |name|
+            if has_attribute?(name)
+              "#{name}: #{attribute_for_inspect(name)}"
+            end
+          }.compact.join(", ")
+        else
+          "not initialized"
+        end
 
       "#<#{self.class} #{inspection}>"
     end

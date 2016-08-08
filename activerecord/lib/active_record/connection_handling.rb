@@ -109,7 +109,7 @@ module ActiveRecord
     end
 
     def connection_pool
-      connection_handler.retrieve_connection_pool(connection_specification_name) or raise ConnectionNotEstablished
+      connection_handler.retrieve_connection_pool(connection_specification_name) || raise(ConnectionNotEstablished)
     end
 
     def retrieve_connection

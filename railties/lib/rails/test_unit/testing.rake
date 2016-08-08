@@ -7,11 +7,13 @@ task default: :test
 desc "Runs all tests in test folder"
 task :test do
   $: << "test"
-  pattern = if ENV.key?("TEST")
-    ENV["TEST"]
-  else
-    "test"
-  end
+  pattern =
+    if ENV.key?("TEST")
+      ENV["TEST"]
+    else
+      "test"
+    end
+
   Minitest.rake_run([pattern])
 end
 
