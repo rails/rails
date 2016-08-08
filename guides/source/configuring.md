@@ -455,6 +455,8 @@ encrypted cookies salt value. Defaults to `'signed encrypted cookie'`.
     'ActionDispatch::ParamsParser::ParseError'    => :bad_request,
     'ActionController::BadRequest'                => :bad_request,
     'ActionController::ParameterMissing'          => :bad_request,
+    'Rack::QueryParser::ParameterTypeError'       => :bad_request,
+    'Rack::QueryParser::InvalidParameterError'    => :bad_request,
     'ActiveRecord::RecordNotFound'                => :not_found,
     'ActiveRecord::StaleObjectError'              => :conflict,
     'ActiveRecord::RecordInvalid'                 => :unprocessable_entity,
