@@ -8,6 +8,12 @@ class ModuleAttributeAccessorPerThreadTest < ActiveSupport::TestCase
       thread_mattr_accessor :bar,  instance_writer: false
       thread_mattr_reader   :shaq, instance_reader: false
       thread_mattr_accessor :camp, instance_accessor: false
+
+      def self.name; "MyClass" end
+    end
+
+    @subclass = Class.new(@class) do
+      def self.name; "SubMyClass" end
     end
 
     @object = @class.new
@@ -111,5 +117,15 @@ class ModuleAttributeAccessorPerThreadTest < ActiveSupport::TestCase
     @class.foo = "fries"
 
     assert_equal @class.foo, @object.foo
+  end
+
+  def test_should_not_affect_superclass_if_subclass_set_value
+    @class.foo = "super"
+    assert_equal @class.foo, "super"
+    assert_nil @subclass.foo
+
+    @subclass.foo = "sub"
+    assert_equal @class.foo, "super"
+    assert_equal @subclass.foo, "sub"
   end
 end
