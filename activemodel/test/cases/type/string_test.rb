@@ -6,8 +6,8 @@ module ActiveModel
     class StringTest < ActiveModel::TestCase
       test "type casting" do
         type = Type::String.new
-        assert_equal "t", type.cast(true)
-        assert_equal "f", type.cast(false)
+        assert_equal true, type.cast(true)
+        assert_equal false, type.cast(false)
         assert_equal "123", type.cast(123)
       end
 
