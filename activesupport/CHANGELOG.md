@@ -1,3 +1,31 @@
+*   Fix `thread_mattr_accessor` subclass no longer overwrites parent.
+
+    Assigning a value to a subclass using `thread_mattr_accessor` no
+    longer changes the value of the parent class. This brings the
+    behavior inline with the documentation.
+
+    Given:
+
+        class Account
+          thread_mattr_accessor :user
+        end
+
+        class Customer < Account
+        end
+
+        Account.user = "DHH"
+        Customer.user = "Rafael"
+
+    Before:
+
+        Account.user  # => "Rafael"
+
+    After:
+
+        Account.user  # => "DHH"
+
+    *Shinichi Maeshima*
+
 *   Since weeks are no longer converted to days, add `:weeks` to the list of
     parts that `ActiveSupport::TimeWithZone` will recognize as possibly being
     of variable duration to take account of DST transitions.
