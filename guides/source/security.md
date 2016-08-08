@@ -268,6 +268,16 @@ a default header for Ajax calls in your library. To get the token, have a look a
 
 Note that _cross-site scripting (XSS) vulnerabilities bypass all CSRF protections_. XSS gives the attacker access to all elements on a page, so they can read the CSRF security token from a form or directly submit the form. Read [more about XSS](#cross-site-scripting-xss) later.
 
+It is common to use persistent cookies to store user information, with `cookies.permanent` for example. If  `protect_from_forgery with: :null_session` or `protect_from_forgery with: :reset_session` is also used, this will cause the built-in CSRF protection to not be effective because all cookies are not cleared, just the session. If you are using a cookie store other than the session for user information, you must use `protect_from_forgery with: :exception` and handle the exception yourself:		
+		
+```ruby		
+rescue_from ActionController::InvalidAuthenticityToken do |exception|		
+  sign_out_user # Example method that will destroy the user cookies		
+end		
+```		
+		
+The above block can be placed in the `ApplicationController` and will be called when a CSRF token is not present or is incorrect for non-GET requests.
+
 Redirection and Files
 ---------------------
 
