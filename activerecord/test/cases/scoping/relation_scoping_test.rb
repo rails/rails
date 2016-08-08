@@ -246,7 +246,7 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
         devs = Developer.all
         sql = devs.to_sql
         assert_match "(salary = 80000)", sql
-        assert_match "LIMIT 10", sql
+        assert_match /LIMIT 10|ROWNUM <= 10|FETCH FIRST 10 ROWS ONLY/, sql
       end
     end
   end
