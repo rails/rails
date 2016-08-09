@@ -1,3 +1,7 @@
+*   Introduce take_or_create, take_or_create!, and take_or_initialize
+
+    *Alex Boyd*
+
 *   Hashes can once again be passed to setters of `composed_of`, if all of the
     mapping methods are methods implemented on `Hash`.
 
