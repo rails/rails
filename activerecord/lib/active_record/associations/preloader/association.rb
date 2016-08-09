@@ -103,7 +103,7 @@ module ActiveRecord
           end
 
           def records_for(ids, &block)
-            scope.where(association_key_name => ids).load(&block)
+            scope.where(association_key_name => ids.size == 1 ? ids.first : ids).load(&block)
           end
 
           def scope
