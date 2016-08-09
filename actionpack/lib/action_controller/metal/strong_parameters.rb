@@ -32,13 +32,13 @@ module ActionController
   #
   #   params = ActionController::Parameters.new(a: "123", b: "456")
   #   params.permit(:c)
-  #   # => ActionController::UnpermittedParameters: found unpermitted parameters: a, b
+  #   # => ActionController::UnpermittedParameters: found unpermitted parameters: :a, :b
   class UnpermittedParameters < IndexError
     attr_reader :params # :nodoc:
 
     def initialize(params) # :nodoc:
       @params = params
-      super("found unpermitted parameter#{'s' if params.size > 1 }: #{params.join(", ")}")
+      super("found unpermitted parameter#{'s' if params.size > 1 }: #{params.map { |e| ":#{e}" }.join(", ")}")
     end
   end
 
