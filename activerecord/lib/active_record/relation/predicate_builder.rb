@@ -112,6 +112,12 @@ module ActiveRecord
               binds.concat(bvs)
               attrs
             end
+          when value.is_a?(Array) && !table.type(column_name).respond_to?(:subtype)
+            if value.size == 1
+              attrs, bvs = create_binds_for_hash(column_name => value.first)
+              binds.concat(bvs)
+              result[column_name] = attrs[column_name]
+            end
           when value.is_a?(Range) && !table.type(column_name).respond_to?(:subtype)
             first = value.begin
             last = value.end
@@ -126,6 +132,7 @@ module ActiveRecord
 
             result[column_name] = RangeHandler::RangeWithBinds.new(first, last, value.exclude_end?)
           else
+            value = value.id if value.is_a?(Base)
             if can_be_bound?(column_name, value)
               result[column_name] = Arel::Nodes::BindParam.new
               binds << build_bind_param(column_name, value)
