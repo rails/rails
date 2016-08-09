@@ -95,6 +95,11 @@ module ActiveRecord
             next
           when value.is_a?(Relation)
             binds += value.bound_attributes
+          when value.is_a?(Array) && !table.type(column_name).respond_to?(:subtype)
+            if value.size == 1 && can_be_bound?(column_name, value.first)
+              result[column_name] = Arel::Nodes::BindParam.new
+              binds << build_bind_param(column_name, value.first)
+            end
           when value.is_a?(Range) && !table.type(column_name).respond_to?(:subtype)
             first = value.begin
             last = value.end
