@@ -170,6 +170,18 @@ module ActiveRecord
       first || new(attributes, &block)
     end
 
+    def take_or_create(attributes = nil, &block) # :nodoc:
+      take || create(attributes, &block)
+    end
+
+    def take_or_create!(attributes = nil, &block) # :nodoc:
+      take || create!(attributes, &block)
+    end
+
+    def take_or_initialize(attributes = nil, &block) # :nodoc:
+      take || new(attributes, &block)
+    end
+
     # Finds the first record with the given attributes, or creates a record
     # with the attributes if one is not found:
     #
