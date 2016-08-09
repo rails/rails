@@ -19,7 +19,8 @@ class AlwaysPermittedParametersTest < ActiveSupport::TestCase
   end
 
   test "permits parameters that are whitelisted" do
-    params = ActionController::Parameters.new(      book: { pages: 65 },
+    params = ActionController::Parameters.new(
+      book: { pages: 65 },
       format: "json")
     permitted = params.permit book: [:pages]
     assert permitted.permitted?

@@ -29,7 +29,8 @@ class UriReservedCharactersRoutingTest < ActiveSupport::TestCase
 
   def test_route_generation_escapes_unsafe_path_characters
     assert_equal "/content/act#{@escaped}ion/var#{@escaped}iable/add#{@escaped}itional-1/add#{@escaped}itional-2",
-      url_for(@set,         controller: "content",
+      url_for(@set,
+        controller: "content",
         action: "act#{@segment}ion",
         variable: "var#{@segment}iable",
         additional: ["add#{@segment}itional-1", "add#{@segment}itional-2"])
@@ -45,7 +46,8 @@ class UriReservedCharactersRoutingTest < ActiveSupport::TestCase
 
   def test_route_generation_allows_passing_non_string_values_to_generated_helper
     assert_equal "/content/action/variable/1/2",
-      url_for(@set,         controller: "content",
+      url_for(@set,
+        controller: "content",
         action: "action",
         variable: "variable",
         additional: [1, 2])
@@ -776,7 +778,8 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
       end
     end
 
-    assert_equal "/journal", url_for(rs,       controller: "content",
+    assert_equal "/journal", url_for(rs,
+      controller: "content",
       action: "list_journal",
       date: nil,
       user_id: nil)

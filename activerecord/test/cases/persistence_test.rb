@@ -967,7 +967,8 @@ class PersistenceTest < ActiveRecord::TestCase
         self.table_name = :widgets
       end
 
-      instance  = widget.create!(        name: "Bob",
+      instance  = widget.create!(
+        name: "Bob",
         created_at: 1.day.ago,
         updated_at: 1.day.ago)
 

@@ -11,7 +11,8 @@ class LogOnUnpermittedParamsTest < ActiveSupport::TestCase
   end
 
   test "logs on unexpected param" do
-    params = ActionController::Parameters.new(      book: { pages: 65 },
+    params = ActionController::Parameters.new(
+      book: { pages: 65 },
       fishing: "Turnips")
 
     assert_logged("Unpermitted parameter: fishing") do
@@ -20,7 +21,8 @@ class LogOnUnpermittedParamsTest < ActiveSupport::TestCase
   end
 
   test "logs on unexpected params" do
-    params = ActionController::Parameters.new(      book: { pages: 65 },
+    params = ActionController::Parameters.new(
+      book: { pages: 65 },
       fishing: "Turnips",
       car: "Mersedes")
 
@@ -30,7 +32,8 @@ class LogOnUnpermittedParamsTest < ActiveSupport::TestCase
   end
 
   test "logs on unexpected nested param" do
-    params = ActionController::Parameters.new(      book: { pages: 65, title: "Green Cats and where to find then." })
+    params = ActionController::Parameters.new(
+      book: { pages: 65, title: "Green Cats and where to find then." })
 
     assert_logged("Unpermitted parameter: title") do
       params.permit(book: [:pages])
@@ -38,7 +41,8 @@ class LogOnUnpermittedParamsTest < ActiveSupport::TestCase
   end
 
   test "logs on unexpected nested params" do
-    params = ActionController::Parameters.new(      book: { pages: 65, title: "Green Cats and where to find then.", author: "G. A. Dog" })
+    params = ActionController::Parameters.new(
+      book: { pages: 65, title: "Green Cats and where to find then.", author: "G. A. Dog" })
 
     assert_logged("Unpermitted parameters: title, author") do
       params.permit(book: [:pages])

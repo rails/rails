@@ -50,7 +50,8 @@ module ActionDispatch
         path  = Path::Pattern.from_string "/:controller/*extra"
         route = Route.build("name", nil, path, {}, [],
                           controller: "foo", action: "bar")
-        assert_equal "/foo/himom", route.format(          controller: "foo",
+        assert_equal "/foo/himom", route.format(
+          controller: "foo",
           extra: "himom")
       end
 
@@ -58,7 +59,8 @@ module ActionDispatch
         path  = Path::Pattern.from_string "/:controller(/:action(/:id(.:format)))"
         route = Route.build("name", nil, path, {action: "bar"}, [], controller: "foo")
 
-        assert_equal "/foo/bar/10", route.format(          controller: "foo",
+        assert_equal "/foo/bar/10", route.format(
+          controller: "foo",
           action: "bar",
           id: 10)
       end
