@@ -11,7 +11,8 @@ class RaiseOnUnpermittedParamsTest < ActiveSupport::TestCase
   end
 
   test "raises on unexpected params" do
-    params = ActionController::Parameters.new(      book: { pages: 65 },
+    params = ActionController::Parameters.new(
+      book: { pages: 65 },
       fishing: "Turnips")
 
     assert_raises(ActionController::UnpermittedParameters) do
@@ -20,7 +21,8 @@ class RaiseOnUnpermittedParamsTest < ActiveSupport::TestCase
   end
 
   test "raises on unexpected nested params" do
-    params = ActionController::Parameters.new(      book: { pages: 65, title: "Green Cats and where to find then." })
+    params = ActionController::Parameters.new(
+      book: { pages: 65, title: "Green Cats and where to find then." })
 
     assert_raises(ActionController::UnpermittedParameters) do
       params.permit(book: [:pages])

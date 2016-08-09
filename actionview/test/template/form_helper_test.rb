@@ -16,7 +16,8 @@ class FormHelperTest < ActionView::TestCase
 
   setup do
     # Create "label" locale for testing I18n label helpers
-    I18n.backend.store_translations "label",       activemodel: {
+    I18n.backend.store_translations "label",
+      activemodel: {
         attributes: {
           post: {
             cost: "Total cost"
@@ -47,7 +48,8 @@ class FormHelperTest < ActionView::TestCase
       }
 
     # Create "submit" locale for testing I18n submit helpers
-    I18n.backend.store_translations "submit",       helpers: {
+    I18n.backend.store_translations "submit",
+      helpers: {
         submit: {
           create: "Create %{model}",
           update: "Confirm %{model} changes",
@@ -58,7 +60,8 @@ class FormHelperTest < ActionView::TestCase
         }
       }
 
-    I18n.backend.store_translations "placeholder",       activemodel: {
+    I18n.backend.store_translations "placeholder",
+      activemodel: {
         attributes: {
           post: {
             cost: "Total cost"

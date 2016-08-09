@@ -596,7 +596,8 @@ module NestedAttributesOnACollectionAssociationTests
   end
 
   def test_should_save_only_one_association_on_create
-    pirate = Pirate.create!(      :catchphrase => "Arr",
+    pirate = Pirate.create!(
+      :catchphrase => "Arr",
       association_getter => { "foo" => { name: "Grace OMalley" } })
 
     assert_equal 1, pirate.reload.send(@association_name).count

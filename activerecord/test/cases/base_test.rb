@@ -279,7 +279,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_initialize_with_attributes
-    topic = Topic.new(      "title" => "initialized from attributes", "written_on" => "2003-12-12 23:23")
+    topic = Topic.new(
+      "title" => "initialized from attributes", "written_on" => "2003-12-12 23:23")
 
     assert_equal("initialized from attributes", topic.title)
   end

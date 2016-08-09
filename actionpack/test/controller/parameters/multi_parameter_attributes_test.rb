@@ -3,7 +3,8 @@ require "action_controller/metal/strong_parameters"
 
 class MultiParameterAttributesTest < ActiveSupport::TestCase
   test "permitted multi-parameter attribute keys" do
-    params = ActionController::Parameters.new(      book: {
+    params = ActionController::Parameters.new(
+      book: {
         "shipped_at(1i)"   => "2012",
         "shipped_at(2i)"   => "3",
         "shipped_at(3i)"   => "25",

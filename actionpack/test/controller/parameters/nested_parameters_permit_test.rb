@@ -7,7 +7,8 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "permitted nested parameters" do
-    params = ActionController::Parameters.new(      book: {
+    params = ActionController::Parameters.new(
+      book: {
         title: "Romeo and Juliet",
         authors: [{
           name: "William Shakespeare",
@@ -43,7 +44,8 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "permitted nested parameters with a string or a symbol as a key" do
-    params = ActionController::Parameters.new(      book: {
+    params = ActionController::Parameters.new(
+      book: {
         "authors" => [
           { name: "William Shakespeare", born: "1564-04-26" },
           { name: "Christopher Marlowe" }
@@ -66,7 +68,8 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "nested arrays with strings" do
-    params = ActionController::Parameters.new(      book: {
+    params = ActionController::Parameters.new(
+      book: {
         genres: ["Tragedy"]
       })
 
@@ -75,7 +78,8 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "permit may specify symbols or strings" do
-    params = ActionController::Parameters.new(      book: {
+    params = ActionController::Parameters.new(
+      book: {
         title: "Romeo and Juliet",
         author: "William Shakespeare"
       },
@@ -88,7 +92,8 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "nested array with strings that should be hashes" do
-    params = ActionController::Parameters.new(      book: {
+    params = ActionController::Parameters.new(
+      book: {
         genres: ["Tragedy"]
       })
 
@@ -97,7 +102,8 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "nested array with strings that should be hashes and additional values" do
-    params = ActionController::Parameters.new(      book: {
+    params = ActionController::Parameters.new(
+      book: {
         title: "Romeo and Juliet",
         genres: ["Tragedy"]
       })
@@ -108,7 +114,8 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "nested string that should be a hash" do
-    params = ActionController::Parameters.new(      book: {
+    params = ActionController::Parameters.new(
+      book: {
         genre: "Tragedy"
       })
 
@@ -117,7 +124,8 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "fields_for-style nested params" do
-    params = ActionController::Parameters.new(      book: {
+    params = ActionController::Parameters.new(
+      book: {
         authors_attributes: {
           '0': { name: "William Shakespeare", age_of_death: "52" },
           '1': { name: "Unattributed Assistant" },
@@ -136,7 +144,8 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "fields_for-style nested params with negative numbers" do
-    params = ActionController::Parameters.new(      book: {
+    params = ActionController::Parameters.new(
+      book: {
         authors_attributes: {
           '-1': { name: "William Shakespeare", age_of_death: "52" },
           '-2': { name: "Unattributed Assistant" }
@@ -153,7 +162,8 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "nested number as key" do
-    params = ActionController::Parameters.new(      product: {
+    params = ActionController::Parameters.new(
+      product: {
         properties: {
           "0" => "prop0",
           "1" => "prop1"

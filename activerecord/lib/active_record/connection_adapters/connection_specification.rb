@@ -78,10 +78,12 @@ module ActiveRecord
 
           def raw_config
             if uri.opaque
-              query_hash.merge(              "adapter"  => @adapter,
+              query_hash.merge(
+                "adapter"  => @adapter,
                 "database" => uri.opaque)
             else
-              query_hash.merge(              "adapter"  => @adapter,
+              query_hash.merge(
+                "adapter"  => @adapter,
                 "username" => uri.user,
                 "password" => uri.password,
                 "port"     => uri.port,

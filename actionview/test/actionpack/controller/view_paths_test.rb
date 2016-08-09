@@ -131,7 +131,7 @@ class ViewLoadPathsTest < ActionController::TestCase
             "Decorated body",
             template.identifier,
             template.handler,
-                          virtual_path: template.virtual_path,
+              virtual_path: template.virtual_path,
               format: template.formats
           )
         end
