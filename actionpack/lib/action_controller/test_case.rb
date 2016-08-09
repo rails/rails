@@ -33,12 +33,14 @@ module ActionController
       TestSession.new
     end
 
+    attr_reader :controller_class
+
     # Create a new test request with default `env` values
-    def self.create
+    def self.create(controller_class)
       env = {}
       env = Rails.application.env_config.merge(env) if defined?(Rails.application) && Rails.application
       env["rack.request.cookie_hash"] = {}.with_indifferent_access
-      new(default_env.merge(env), new_session)
+      new(default_env.merge(env), new_session, controller_class)
     end
 
     def self.default_env
@@ -46,11 +48,12 @@ module ActionController
     end
     private_class_method :default_env
 
-    def initialize(env, session)
+    def initialize(env, session, controller_class)
       super(env)
 
       self.session = session
       self.session_options = TestSession::DEFAULT_OPTIONS
+      @controller_class = controller_class
       @custom_param_parsers = {
         xml: lambda { |raw_post| Hash.from_xml(raw_post)["hash"] }
       }
@@ -497,7 +500,7 @@ module ActionController
         @request.set_header "HTTP_COOKIE", cookies.to_header
         @request.delete_header "action_dispatch.cookies"
 
-        @request          = TestRequest.new scrub_env!(@request.env), @request.session
+        @request          = TestRequest.new scrub_env!(@request.env), @request.session, @controller.class
         @response         = build_response @response_klass
         @response.request = @request
         @controller.recycle!
@@ -591,7 +594,7 @@ module ActionController
           end
         end
 
-        @request          = TestRequest.create
+        @request          = TestRequest.create(@controller.class)
         @response         = build_response @response_klass
         @response.request = @request
 

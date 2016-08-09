@@ -37,10 +37,22 @@ module ActionDispatch
                    query_parameters.dup
                  end
         params.merge!(path_parameters)
+        params = set_custom_encoding(params)
         set_header("action_dispatch.request.parameters", params)
         params
       end
       alias :params :parameters
+
+      def set_custom_encoding(params)
+        action = params[:action]
+        params.each do |k, v|
+          if v.is_a?(String) && v.encoding != encoding_template(action, k)
+            params[k] = v.force_encoding(encoding_template(action, k))
+          end
+        end
+
+        params
+      end
 
       def path_parameters=(parameters) #:nodoc:
         delete_header("action_dispatch.request.parameters")
@@ -63,6 +75,10 @@ module ActionDispatch
       end
 
       private
+
+        def encoding_template(action, param)
+          controller_class.encoding_for_param(action, param)
+        end
 
         def parse_formatted_parameters(parsers)
           return yield if content_length.zero? || content_mime_type.nil?
