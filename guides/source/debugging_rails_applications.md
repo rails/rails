@@ -946,6 +946,7 @@ development that will end your tailing of development.log. Have all information
 about your Rails app requests in the browser — in the Developer Tools panel.
 Provides insight to db/rendering/total times, parameter list, rendered views and
 more.
+* [Pry](https://github.com/pry/pry) An IRB alternative and runtime developer console.
 
 References
 ----------
