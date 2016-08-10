@@ -668,11 +668,6 @@ module ActionController
             end
           end
         end
-
-        def html_format?(parameters)
-          return true unless parameters.key?(:format)
-          Mime.fetch(parameters[:format]) { Mime["html"] }.html?
-        end
     end
 
     include Behavior
