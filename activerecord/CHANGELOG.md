@@ -1,3 +1,8 @@
+*   Doing count on relations that contain LEFT OUTER JOIN Arel node no longer
+    force a DISTINCT. This solves issues when using count after a left_joins.
+
+    *Maxime Handfield Lapointe*
+
 *   RecordNotFound raised by association.find exposes `id`, `primary_key` and
     `model` methods to be consistent with RecordNotFound raised by Record.find.
 
