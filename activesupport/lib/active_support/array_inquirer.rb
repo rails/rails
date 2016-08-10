@@ -7,6 +7,9 @@ module ActiveSupport
   #   variants.phone?    # => true
   #   variants.tablet?   # => true
   #   variants.desktop?  # => false
+  #
+  # It works only for Array whose string-like contents comprises of no
+  # whitespaces or special characters except underscore.
   class ArrayInquirer < Array
     # Passes each element of +candidates+ collection to ArrayInquirer collection.
     # The method returns true if any element from the ArrayInquirer collection

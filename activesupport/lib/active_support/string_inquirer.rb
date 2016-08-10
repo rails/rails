@@ -8,6 +8,9 @@ module ActiveSupport
   # you can call this:
   #
   #   Rails.env.production?
+  #
+  # It works only for the simple String that comprises of no whitespaces
+  # or special characters except underscore.
   class StringInquirer < String
     private
 
