@@ -122,27 +122,19 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
     # Stub Rails dispatcher so it does not get controller references and
     # simply return the controller#action as Rack::Body.
     class NullController < ::ActionController::Metal
-      def initialize(controller_name)
-        @controller = controller_name
-      end
-
-      def make_response!(request)
-        self.class.make_response! request
-      end
-
-      def dispatch(action, req, res)
-        [200, {"Content-Type" => "text/html"}, ["#{@controller}##{action}"]]
+      def self.dispatch(action, req, res)
+        [200, {"Content-Type" => "text/html"}, ["#{req.params[:controller]}##{action}"]]
       end
     end
 
-    class NullControllerRequest < DelegateClass(ActionDispatch::Request)
+    class NullControllerRequest < ActionDispatch::Request
       def controller_class
-        NullController.new params[:controller]
+        NullController
       end
     end
 
     def make_request(env)
-      NullControllerRequest.new super
+      NullControllerRequest.new env
     end
   end
 

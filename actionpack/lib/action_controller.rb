@@ -40,6 +40,7 @@ module ActionController
     autoload :Rescue
     autoload :Streaming
     autoload :StrongParameters
+    autoload :ParameterEncoding
     autoload :Testing
     autoload :UrlFor
   end
