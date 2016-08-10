@@ -1208,7 +1208,7 @@ module ActiveRecord
             checks << lambda { |i| i.columns.join("_and_") == column_names.join("_and_") }
           end
 
-          raise ArgumentError "No name or columns specified" if checks.none?
+          raise ArgumentError, "No name or columns specified" if checks.none?
 
           matching_indexes = indexes(table_name).select { |i| checks.all? { |check| check[i] } }
 
