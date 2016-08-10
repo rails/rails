@@ -81,6 +81,12 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
     assert_equal expected, remove_index(:people, name: "index_people_on_last_name", algorithm: :concurrently)
   end
 
+  def test_remove_index_with_wrong_option
+    assert_raises ArgumentError do
+      remove_index(:people, coulmn: :last_name)
+    end
+  end
+
   private
     def method_missing(method_symbol, *arguments)
       ActiveRecord::Base.connection.send(method_symbol, *arguments)
