@@ -512,6 +512,30 @@ class ProductsController < ApplicationController
 end
 ```
 
+Sometimes we want to cache response, for example a static page, that never gets
+expired. To achieve this, we can use `http_cache_forever` helper and by doing
+so browser and proxies will cache it indefinitely.
+
+By default cached responses will be private, cached only on the user's web
+browser. To allow proxies to cache the response, set `public: true` to indicate
+that they can serve the cached response to all users.
+
+Using this helper, `last_modified` header is set to `Time.new(2011, 1, 1).utc`
+and `expires` header is set to a 100 years.
+
+WARNING: Use this method carefully as browser/proxy won't be able to invalidate
+the cached response unless browser cache is forcefully cleared.
+
+```ruby
+class HomeController < ApplicationController
+  def index
+    http_cache_forever(public: true) do
+      render
+    end
+  end
+end
+```
+
 ### Strong v/s Weak ETags
 
 Rails generates weak ETags by default. Weak ETags allow semantically equivalent
