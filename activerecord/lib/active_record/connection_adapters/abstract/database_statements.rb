@@ -228,9 +228,9 @@ module ActiveRecord
           if isolation
             raise ActiveRecord::TransactionIsolationError, "cannot set isolation when joining a transaction"
           end
-          yield
+          yield(current_transaction)
         else
-          transaction_manager.within_new_transaction(isolation: isolation, joinable: joinable) { yield }
+          transaction_manager.within_new_transaction(isolation: isolation, joinable: joinable) { yield(current_transaction) }
         end
       rescue ActiveRecord::Rollback
         # rollbacks are silently swallowed

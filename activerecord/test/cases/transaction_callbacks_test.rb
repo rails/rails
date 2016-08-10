@@ -506,3 +506,140 @@ class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
     assert_equal [:rollback], @topic.history
   end
 end
+
+class TransactionLevelCallbacksTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
+  setup do
+    @history = []
+  end
+
+  teardown do
+    @history = nil
+  end
+
+  test "commit callback outside transactions" do
+    ActiveRecord::Base.connection.current_transaction.on_commit { @history << :on_commit }
+    assert_equal [:on_commit], @history
+  end
+
+  test "rollback callback outside transactions" do
+    ActiveRecord::Base.connection.current_transaction.on_rollback { @history << :on_rollback }
+    assert @history.empty?
+  end
+
+  test "commit callback inside committed transaction" do
+    ActiveRecord::Base.transaction do |t|
+      t.on_commit { @history << :on_commit }
+    end
+    assert_equal [:on_commit], @history
+  end
+
+  test "commit callback inside rolledback transaction" do
+    ActiveRecord::Base.transaction do |t|
+      t.on_commit { @history << :on_commit }
+      raise ActiveRecord::Rollback
+    end
+    assert @history.empty?
+  end
+
+  test "rollback callback inside committed transaction" do
+    ActiveRecord::Base.transaction do |t|
+      t.on_rollback { @history << :on_rollback }
+    end
+    assert @history.empty?
+  end
+
+  test "rollback callback inside rolledback transaction" do
+    ActiveRecord::Base.transaction do |t|
+      t.on_rollback { @history << :on_rollback }
+      raise ActiveRecord::Rollback
+    end
+    assert_equal [:on_rollback], @history
+  end
+
+  test "callbacks inside committed transaction" do
+    ActiveRecord::Base.transaction do |t1|
+      t1.on_commit { @history << :on_commit_1 }
+      t1.on_rollback { @history << :on_rollback_1 }
+      ActiveRecord::Base.transaction do |t2|
+        t2.on_commit { @history << :on_commit_2 }
+        t2.on_rollback { @history << :on_rollback_2 }
+      end
+    end
+    assert_equal [:on_commit_1, :on_commit_2], @history
+  end
+
+  test "callbacks inside rolledback transaction" do
+    ActiveRecord::Base.transaction do |t1|
+      t1.on_commit { @history << :on_commit_1 }
+      t1.on_rollback { @history << :on_rollback_1 }
+      ActiveRecord::Base.transaction do |t2|
+        t2.on_commit { @history << :on_commit_2 }
+        t2.on_rollback { @history << :on_rollback_2 }
+      end
+      raise ActiveRecord::Rollback
+    end
+    assert_equal [:on_rollback_1, :on_rollback_2], @history
+  end
+
+  test "commit callback in nested transactions" do
+    ActiveRecord::Base.transaction do |t1|
+      t1.on_commit { @history << :on_commit_1 }
+      ActiveRecord::Base.transaction(requires_new: true) do  |t2|
+        t2.on_commit { @history << :on_commit_2 }
+      end
+      assert @history.empty?
+    end
+    assert_equal [:on_commit_1, :on_commit_2], @history
+  end
+
+  test "rollback callback in nested transactions" do
+    ActiveRecord::Base.transaction do |t1|
+      t1.on_rollback { @history << :on_rollback_1 }
+      ActiveRecord::Base.transaction(requires_new: true) do |t2|
+        t2.on_rollback { @history << :on_rollback_2 }
+        raise ActiveRecord::Rollback
+      end
+      assert_equal [:on_rollback_2], @history
+      raise ActiveRecord::Rollback
+    end
+    assert_equal [:on_rollback_2, :on_rollback_1], @history
+  end
+
+  test "commit and rollback callbacks in deep nested transactions" do
+    ActiveRecord::Base.transaction do |t1|
+      t1.on_commit { @history << :on_commit_1 }
+      t1.on_rollback { @history << :on_rollback_1 }
+
+      ActiveRecord::Base.transaction do |t2|
+        t2.on_commit { @history << :on_commit_2 }
+        t2.on_rollback { @history << :on_rollback_2 }
+      end
+      assert @history.empty?
+
+      ActiveRecord::Base.transaction(requires_new: true) do |t2|
+        t2.on_commit { @history << :on_commit_3 }
+        t2.on_rollback { @history << :on_rollback_3 }
+        raise ActiveRecord::Rollback
+      end
+      assert_equal [:on_rollback_3], @history
+
+      ActiveRecord::Base.transaction(requires_new: true) do |t2|
+        t2.on_commit { @history << :on_commit_4 }
+        t2.on_rollback { @history << :on_rollback_4 }
+
+        ActiveRecord::Base.transaction(requires_new: true) do |t3|
+          t3.on_commit { @history << :on_commit_5 }
+          t3.on_rollback { @history << :on_rollback_5 }
+          raise ActiveRecord::Rollback
+        end
+        assert_equal [:on_rollback_3, :on_rollback_5], @history
+
+      end
+      assert_equal [:on_rollback_3, :on_rollback_5], @history
+    end
+
+    assert_equal [:on_rollback_3, :on_rollback_5, :on_commit_1, :on_commit_2, :on_commit_4], @history
+  end
+end
