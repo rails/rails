@@ -1,4 +1,5 @@
 module ActionController
+  # Allows encoding to be specified per parameter per action.
   module ParameterEncoding
     extend ActiveSupport::Concern
 
