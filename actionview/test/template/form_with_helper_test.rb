@@ -412,8 +412,8 @@ class FormWithHelperTest < ActionView::TestCase
         "<option value='Babe'>Babe</option>\n" +
         "<option value='Cabe'>Cabe</option>" +
       "</select>"
-    assert_tag_equal(expected) { |f| f.collection_select(:author_name, dummy_posts, :author_name, :author_name) }
-    assert_tag_equal(expected) { |f| f.collection_select("author_name", dummy_posts, "author_name", "author_name") }
+    assert_tag_equal(expected) { |f| f.select(:author_name, collection: dummy_posts, value: :author_name, text: :author_name) }
+    assert_tag_equal(expected) { |f| f.select("author_name", collection: dummy_posts, value: "author_name", text: "author_name") }
   end
 
   def test_form_with_url

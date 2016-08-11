@@ -18,9 +18,9 @@ module ActionView
 
         GENERATED_FIELD_HELPERS.each do |selector|
           class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-            def #{selector}(method, *args, **options)                             # def text_field(method, *args, **options)
-              tag.input options_for_field('#{selector}', method, args, options)   #   tag.input options_for_field(selector, method, args, options)
-            end                                                                   # end
+            def #{selector}(method, *args, **options)                                             # def text_field(method, *args, **options)
+              tag.input field_options('#{selector.to_s.split("_").first}', method, args, options) # tag.input field_options('text', method, args, options)
+            end                                                                                   # end
           RUBY_EVAL
         end
 
@@ -65,27 +65,27 @@ module ActionView
           hidden + tag.input(checkbox_options).html_safe
         end
 
-        def select(method, choices = nil, blank: nil, prompt: nil, index: :undefined, disabled: nil, **options, &block)
-          tag.select option_tags_for_select(choices, blank: blank), options_for(method, options)
-        end
-
-        def collection_select(method, collection, value_method, text_method, blank: nil, prompt: nil, index: :undefined, disabled: nil, **options)
-          choices = collection.map do |object|
-            [object.send(value_method), object.send(text_method)]
+        def select(method, choices = nil, value: :value, text: :text, collection: nil, blank: nil, prompt: nil, index: :undefined, disabled: nil, **options, &block)
+          if (collection)
+            choices = collection.map do |object|
+              [object.send(value), object.send(text)]
+            end
+            select(method, choices, options)
+          else
+            tag.select option_tags_for_select(choices, blank: blank), options_for(method, options)
           end
-          select(method, choices, options)
         end
 
         def option_tags_for_select(choices, blank: false)
-          result = (blank ? tag.option("", value: "") : "").html_safe
-          result += choices.map do |choice|
-            if choice.is_a? Array
-              tag.option choice[0], value: choice[1]
-            else
-              tag.option choice, value: choice
-            end
-          end.join("\n").html_safe
-          result
+          built_options = choices.map do |(title, value)|
+            tag.option title, value: value || title
+          end.join("\n")
+
+          if blank
+            tag.option("", value: "").html_safe + built_options.html_safe
+          else
+            built_options.html_safe
+          end
         end
 
         private
@@ -107,7 +107,9 @@ module ActionView
           end
 
           def translate_with_human_attribute_name(method)
-            model && model.class.respond_to?(:human_attribute_name) ? model.class.human_attribute_name(method) : nil
+            if model && model.class.respond_to?(:human_attribute_name)
+              model.class.human_attribute_name(method)
+            end
           end
 
           def submit_default_value
@@ -131,24 +133,19 @@ module ActionView
             name += options.delete(:multiple) ? "[]" : "" #exception => file_field
           end
 
-          def id_for(method, scope, **options)
-            scope.nil? ? method : "#{scope}_#{method}"
-          end
-
           def options_for(method, options)
             options.reverse_merge!(name: name_for(method, options))
           end
 
-          def options_for_field(selector, method, args, options)
-            type = selector.split("_").first
-            options = options_for(method, options)
-            options.merge!(value: model.send(method)) if model && type != 'password'
+          def field_options(field_type, attribute, args, options)
+            options = options_for(attribute, options)
+            options.merge!(value: model.send(attribute)) if model && field_type != 'password'
             options.merge!(value: args[0]) if args.size > 0
             options[:size] = options[:maxlength] unless options.key?(:size)
-            if placeholder = placeholder(options.delete(:placeholder), method)
+            if placeholder = placeholder(options.delete(:placeholder), attribute)
               options.merge!(placeholder: placeholder)
             end
-            options.reverse_merge!(type: type)
+            options.reverse_merge!(type: field_type)
           end
 
           def placeholder(tag_value, method)
