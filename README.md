@@ -68,7 +68,7 @@ and may also be used independently outside Rails.
 
 5. Follow the guidelines to start developing your application. You may find
    the following resources handy:
-    * [Getting Started with Rails](http://guides.rubyonrails.org/getting_started.html)
+    * [![Gitter](https://badges.gitter.im/rails/rails.svg)](https://gitter.im/rails/rails?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
     * [Ruby on Rails Guides](http://guides.rubyonrails.org)
     * [The API Documentation](http://api.rubyonrails.org)
     * [Ruby on Rails Tutorial](http://www.railstutorial.org/book)
