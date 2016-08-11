@@ -280,7 +280,7 @@ class FixturesTest < ActiveRecord::TestCase
   end
 end
 
-class HasManyThroughFixture < ActiveSupport::TestCase
+class HasManyThroughFixture < ActiveRecord::TestCase
   def make_model(name)
     Class.new(ActiveRecord::Base) { define_singleton_method(:name) { name } }
   end
