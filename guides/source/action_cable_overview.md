@@ -313,7 +313,7 @@ App.cable.subscriptions.create { channel: "ChatChannel", room: "Best Room" },
 ```ruby
 # Somewhere in your app this is called, perhaps
 # from a NewCommentJob.
-ChatChannel.broadcast_to(
+ActionCable.server.broadcast(
   "chat_#{room}",
   sent_by: 'Paul',
   body: 'This is a cool chat app.'
