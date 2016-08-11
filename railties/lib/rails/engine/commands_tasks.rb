@@ -103,6 +103,8 @@ In addition to those commands, there are:
         end
 
         def rake_tasks
+          require_rake
+
           return @rake_tasks if defined?(@rake_tasks)
 
           load_generators
