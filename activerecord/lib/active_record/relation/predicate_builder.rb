@@ -77,7 +77,7 @@ module ActiveRecord
           if value.is_a?(Hash)
             associated_predicate_builder(key).expand_from_hash(value)
           else
-            expand(key, value)
+            build(table.arel_attribute(key), value)
           end
         end
       end
@@ -92,6 +92,7 @@ module ActiveRecord
             attrs, bvs = associated_predicate_builder(column_name).create_binds_for_hash(value)
             result[column_name] = attrs
             binds += bvs
+            next
           when Relation
             binds += value.bound_attributes
           when Range
@@ -113,22 +114,20 @@ module ActiveRecord
               binds << build_bind_param(column_name, value)
             end
           end
+          # Find the foreign key when using queries such as:
+          # Post.where(author: author)
+          #
+          # For polymorphic relationships, find the foreign key and type:
+          # PriceEstimate.where(estimate_of: treasure)
+          if table.associated_with?(column_name)
+            result[column_name] = AssociationQueryHandler.value_for(table, column_name, value)
+          end
         end
 
         [result, binds]
       end
 
     private
-
-      def expand(column, value)
-        # Find the foreign key when using queries such as:
-        # Post.where(author: author)
-        #
-        # For polymorphic relationships, find the foreign key and type:
-        # PriceEstimate.where(estimate_of: treasure)
-        value = AssociationQueryHandler.value_for(table, column, value) if table.associated_with?(column)
-        build(table.arel_attribute(column), value)
-      end
 
       def associated_predicate_builder(association_name)
         self.class.new(table.associated_table(association_name))
