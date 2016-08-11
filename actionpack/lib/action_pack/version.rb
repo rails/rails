@@ -3,7 +3,7 @@ module ActionPack
     MAJOR = 3
     MINOR = 2
     TINY  = 22
-    PRE   = "2"
+    PRE   = "3"
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join('.')
   end
