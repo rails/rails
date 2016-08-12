@@ -28,10 +28,10 @@
 
     *David Chen*
 
-*   Fix 'defaults' option for root route.
+*   Fix `defaults` option for root route.
 
     A regression from some refactoring for the 5.0 release, this change
-    fixes the use of 'defaults' (default parameters) in the 'root' routing method.
+    fixes the use of `defaults` (default parameters) in the `root` routing method.
 
     *Chris Arcand*
 
@@ -45,16 +45,16 @@
 
     *Grey Baker*
 
-*   Don't raise ActionController::UnknownHttpMethod from ActionDispatch::Static
+*   Don't raise `ActionController::UnknownHttpMethod` from `ActionDispatch::Static`.
 
     Pass `Rack::Request` objects to `ActionDispatch::FileHandler` to avoid it
     raising `ActionController::UnknownHttpMethod`. If an unknown method is
-    passed, it should exception higher in the stack instead, once we've had a
+    passed, it should pass exception higher in the stack instead, once we've had a
     chance to define exception handling behaviour.
 
     *Grey Baker*
 
-*   Handle `Rack::QueryParser` errors in `ActionDispatch::ExceptionWrapper`
+*   Handle `Rack::QueryParser` errors in `ActionDispatch::ExceptionWrapper`.
 
     Updated `ActionDispatch::ExceptionWrapper` to handle the Rack 2.0 namespace
     for `ParameterTypeError` and `InvalidParameterError` errors.

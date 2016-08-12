@@ -40,10 +40,10 @@
 
     *Xavier Noria*
 
-*   Allow MessageEncryptor to take advantage of authenticated encryption modes.
+*   Allow `MessageEncryptor` to take advantage of authenticated encryption modes.
 
     AEAD modes like `aes-256-gcm` provide both confidentiality and data
-    authenticity, eliminating the need to use MessageVerifier to check if the
+    authenticity, eliminating the need to use `MessageVerifier` to check if the
     encrypted data has been tampered with. This speeds up encryption/decryption
     and results in shorter cipher text.
 
@@ -147,7 +147,7 @@
 
     *Sean Griffin*
 
-*   Introduce Module#delegate_missing_to.
+*   Introduce `Module#delegate_missing_to`.
 
     When building a decorator, a common pattern emerges:
 

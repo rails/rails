@@ -1,6 +1,6 @@
 ## Rails 5.1.0.alpha ##
 
-*   Added declarative exception handling via ActiveJob::Base.retry_on and ActiveJob::Base.discard_on. 
+*   Added declarative exception handling via `ActiveJob::Base.retry_on` and `ActiveJob::Base.discard_on`. 
 
     Examples:
 

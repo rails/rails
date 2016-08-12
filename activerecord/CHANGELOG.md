@@ -47,7 +47,9 @@
     *Xavier Noria*
 
 *   Using `group` with an attribute that has a custom type will properly cast
-    the hash keys after calling a calculation method like `count`. Fixes #25595.
+    the hash keys after calling a calculation method like `count`. 
+    
+    Fixes #25595.
 
     *Sean Griffin*
 
@@ -81,6 +83,7 @@
     *Sean Griffin*
 
 *   Ensure hashes can be assigned to attributes created using `composed_of`.
+    
     Fixes #25210.
 
     *Sean Griffin*
@@ -100,7 +103,7 @@
 
     *Erol Fornoles*
 
-*   PostgreSQL: Fix db:structure:load silent failure on SQL error.
+*   PostgreSQL: Fix `db:structure:load` silent failure on SQL error.
 
     The command line flag `-v ON_ERROR_STOP=1` should be used
     when invoking `psql` to make sure errors are not suppressed.
