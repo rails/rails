@@ -3,5 +3,6 @@ module SystemTesting
     extend ActiveSupport::Autoload
 
     autoload :FormHelper
+    autoload :Assertions
   end
 end

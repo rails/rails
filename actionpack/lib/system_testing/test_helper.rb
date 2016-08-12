@@ -5,6 +5,7 @@ module SystemTesting
   module TestHelper
     include Capybara::DSL
     include TestHelpers::FormHelper
+    include TestHelpers::Assertions
 
     def after_teardown
       Capybara.reset_sessions!
