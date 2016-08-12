@@ -32,7 +32,7 @@ module ActionView
         end
 
         def submit
-          tag.input value: submit_default_value, "data-disable-with": submit_default_value, type: 'submit', name: 'commit'
+          tag.input value: submit_default_value, "data-disable-with": submit_default_value, type: "submit", name: "commit"
         end
 
         def text_area(attribute, *args, **options)
@@ -54,11 +54,11 @@ module ActionView
         def check_box(attribute, include_hidden: true, on: "1", off: "0", **options)
           hidden = "".html_safe
           options = default_options(attribute, options)
-          checkbox_options = options.merge(type: 'checkbox', value: on)
+          checkbox_options = options.merge(type: "checkbox", value: on)
           checkbox_options.merge!(checked: "checked") if model && checked?(on, model.send(attribute))
           include_hidden = false if off.nil?
           if include_hidden
-            hidden_options = options.merge(type: 'hidden', value: off)
+            hidden_options = options.merge(type: "hidden", value: off)
             hidden_options.delete(:checked)
             hidden = tag.input(hidden_options).html_safe
           end
@@ -150,7 +150,7 @@ module ActionView
             if options.key?(:value)
             elsif value
               options[:value] = value
-            elsif @model && !field_type.match('password')
+            elsif @model && !field_type.match("password")
               options[:value] ||= @model.public_send(attribute)
             end
 
@@ -178,7 +178,7 @@ module ActionView
           end
       end
 
-      def form_with(model: nil, scope: nil, url: nil, remote: true, method: 'post', **options, &block)
+      def form_with(model: nil, scope: nil, url: nil, remote: true, method: "post", **options, &block)
         url ||= polymorphic_path(model, {})
         model = model.last if model.is_a?(Array)
         if model
