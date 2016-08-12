@@ -29,6 +29,14 @@ class TagHelperTest < ActionView::TestCase
     assert_equal "<p included=\"\" />", tag("p", :included => '')
   end
 
+  def test_tag_options_accepts_symbol_option_when_not_escaping
+    assert_equal "<p value=\"symbol\" />", tag("p", { :value => :symbol }, false, false)
+  end
+
+  def test_tag_options_accepts_integer_option_when_not_escaping
+    assert_equal "<p value=\"42\" />", tag("p", { :value => 42 }, false, false)
+  end
+
   def test_tag_options_converts_boolean_option
     assert_equal '<p disabled="disabled" multiple="multiple" readonly="readonly" />',
       tag("p", :disabled => true, :multiple => true, :readonly => true)
