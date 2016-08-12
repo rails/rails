@@ -4,16 +4,16 @@ module ActionController
     extend ActiveSupport::Concern
 
     module ClassMethods
-      def inherited(klass)
+      def inherited(klass) # :nodoc:
         super
         klass.setup_param_encode
       end
 
-      def setup_param_encode
+      def setup_param_encode # :nodoc:
         @_parameter_encodings = {}
       end
 
-      def encoding_for_param(action, param)
+      def encoding_for_param(action, param) # :nodoc:
         if @_parameter_encodings[action.to_s] && @_parameter_encodings[action.to_s][param.to_s]
           @_parameter_encodings[action.to_s][param.to_s]
         else
