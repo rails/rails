@@ -166,7 +166,7 @@ module ActionView
         def tag_option(key, value, escape)
           value = value.join(" ") if value.is_a?(Array)
           value = ERB::Util.h(value) if escape
-          %(#{key}="#{value}")
+          %(#{key}="#{value.gsub(/"/, '&quot;'.freeze)}")
         end
     end
   end
