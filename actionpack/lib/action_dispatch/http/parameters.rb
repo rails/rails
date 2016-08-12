@@ -43,17 +43,6 @@ module ActionDispatch
       end
       alias :params :parameters
 
-      def set_custom_encoding(params)
-        action = params[:action]
-        params.each do |k, v|
-          if v.is_a?(String) && v.encoding != encoding_template(action, k)
-            params[k] = v.force_encoding(encoding_template(action, k))
-          end
-        end
-
-        params
-      end
-
       def path_parameters=(parameters) #:nodoc:
         delete_header("action_dispatch.request.parameters")
 
@@ -75,6 +64,17 @@ module ActionDispatch
       end
 
       private
+
+        def set_custom_encoding(params)
+          action = params[:action]
+          params.each do |k, v|
+            if v.is_a?(String) && v.encoding != encoding_template(action, k)
+              params[k] = v.force_encoding(encoding_template(action, k))
+            end
+          end
+
+          params
+        end
 
         def encoding_template(action, param)
           controller_class.encoding_for_param(action, param)
