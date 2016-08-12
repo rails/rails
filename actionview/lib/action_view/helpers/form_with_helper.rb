@@ -123,18 +123,25 @@ module ActionView
             end
           end
 
-          def name_for(method, options)
+          def input_name(attribute, index: nil, multiple: nil, **options)
+            attribute = attribute.to_s.chomp("?")
+            indexing   = "[#{index}]" if index
+            multipling = "[]" if multiple
             scope = options.delete(:scope) { @scope }
-            index = options.delete(:index)
-            method = method.to_s.chomp("?")
-            name = scope.to_s
-            name += index ? "[#{index}]" : ""
-            name += scope.nil? ? method : "[#{method}]"
-            name += options.delete(:multiple) ? "[]" : "" #exception => file_field
+            if scope
+              "#{scope}#{indexing}[#{attribute}]#{multipling}"
+            else
+              "#{attribute}#{indexing}#{multipling}"
+            end
           end
 
           def options_for(method, options)
-            options.reverse_merge!(name: name_for(method, options))
+            name = input_name(method, options)
+            options.reverse_merge!(name: name)
+            options.delete(:multiple)
+            options.delete(:index)
+            options.delete(:scope)
+            options
           end
 
           def field_options(field_type, attribute, args, options)
