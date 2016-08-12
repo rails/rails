@@ -24,9 +24,9 @@ module ActionView
           RUBY_EVAL
         end
 
-        def file_field(method, *args, **options)
+        def file_field(attribute, *args, **options)
           multiple = options.slice(:multiple)
-          options = default_options(method, options).merge!(type: "file")
+          options = default_options(attribute, options).merge!(type: "file")
           options.merge!(multiple)
           tag.input options
         end
@@ -35,27 +35,27 @@ module ActionView
           tag.input value: submit_default_value, "data-disable-with": submit_default_value, type: 'submit', name: 'commit'
         end
 
-        def text_area(method, *args, **options)
-          options = default_options(method, options)
-          content = model.send(method) if model
+        def text_area(attribute, *args, **options)
+          options = default_options(attribute, options)
+          content = model.send(attribute) if model
           content = args[0] if args.size > 0
           content.nil? ? tag.textarea(options) : tag.textarea(content, options)
         end
 
-        def label(method, *args, **options, &block)
+        def label(attribute, *args, **options, &block)
           content ||= args[0] if args.size > 0
-          content ||= I18n.t("#{model.model_name.i18n_key}.#{method}", default: "", scope: "helpers.label").presence if model && model.model_name
-          content ||= translate_with_human_attribute_name(method)
-          content ||= method.to_s.humanize
+          content ||= I18n.t("#{model.model_name.i18n_key}.#{attribute}", default: "", scope: "helpers.label").presence if model && model.model_name
+          content ||= translate_with_human_attribute_name(attribute)
+          content ||= attribute.to_s.humanize
           content = @template.capture(content, &block) if block_given?
           tag.label content, options
         end
 
-        def check_box(method, include_hidden: true, on: "1", off: "0", **options)
+        def check_box(attribute, include_hidden: true, on: "1", off: "0", **options)
           hidden = "".html_safe
-          options = default_options(method, options)
+          options = default_options(attribute, options)
           checkbox_options = options.merge(type: 'checkbox', value: on)
-          checkbox_options.merge!(checked: "checked") if model && checked?(on, model.send(method))
+          checkbox_options.merge!(checked: "checked") if model && checked?(on, model.send(attribute))
           include_hidden = false if off.nil?
           if include_hidden
             hidden_options = options.merge(type: 'hidden', value: off)
@@ -65,14 +65,14 @@ module ActionView
           hidden + tag.input(checkbox_options).html_safe
         end
 
-        def select(method, choices = nil, value: :value, text: :text, collection: nil, blank: nil, prompt: nil, index: :undefined, disabled: nil, **options, &block)
+        def select(attribute, choices = nil, value: :value, text: :text, collection: nil, blank: nil, prompt: nil, index: :undefined, disabled: nil, **options, &block)
           if (collection)
             choices = collection.map do |object|
               [object.send(value), object.send(text)]
             end
-            select(method, choices, options)
+            select(attribute, choices, options)
           else
-            tag.select option_tags_for_select(choices, blank: blank), default_options(method, options)
+            tag.select option_tags_for_select(choices, blank: blank), default_options(attribute, options)
           end
         end
 
@@ -106,9 +106,9 @@ module ActionView
             end
           end
 
-          def translate_with_human_attribute_name(method)
+          def translate_with_human_attribute_name(attribute)
             if model && model.class.respond_to?(:human_attribute_name)
-              model.class.human_attribute_name(method)
+              model.class.human_attribute_name(attribute)
             end
           end
 
@@ -135,8 +135,8 @@ module ActionView
             end
           end
 
-          def default_options(method, options)
-            name = input_name(method, options)
+          def default_options(attribute, options)
+            name = input_name(attribute, options)
             options.reverse_merge!(name: name)
             options.delete(:multiple)
             options.delete(:index)
@@ -160,12 +160,12 @@ module ActionView
             options
           end
 
-          def placeholder(tag_value, method)
+          def placeholder(tag_value, attribute)
             if tag_value
               placeholder = tag_value if tag_value.is_a?(String)
-              method_and_value = tag_value.is_a?(TrueClass) ? method : "#{method}.#{tag_value}"
-              placeholder ||= Tags::Translator.new(model, scope, method_and_value, scope: "helpers.placeholder").translate
-              placeholder ||= method.to_s.humanize
+              attribute_and_value = tag_value.is_a?(TrueClass) ? attribute : "#{attribute}.#{tag_value}"
+              placeholder ||= Tags::Translator.new(model, scope, attribute_and_value, scope: "helpers.placeholder").translate
+              placeholder ||= attribute.to_s.humanize
             end
           end
 
