@@ -2,7 +2,7 @@ require "cases/helper"
 require "models/post"
 
 module ActiveRecord
-  class RelationMutationTest < ActiveSupport::TestCase
+  class RelationMutationTest < ActiveRecord::TestCase
     class FakeKlass < Struct.new(:table_name, :name)
       extend ActiveRecord::Delegation::DelegateCache
       inherited self
