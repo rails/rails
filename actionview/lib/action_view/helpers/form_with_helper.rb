@@ -18,15 +18,15 @@ module ActionView
 
         GENERATED_FIELD_HELPERS.each do |selector|
           class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-            def #{selector}(method, *args, **options)                                             # def text_field(method, *args, **options)
-              tag.input field_options('#{selector.to_s.split("_").first}', method, args, options) # tag.input field_options('text', method, args, options)
-            end                                                                                   # end
+            def #{selector}(attribute, *args, **options)                                               # def text_field(attribute, *args, **options)
+              tag.input field_options('#{selector.to_s.split("_").first}', attribute, *args, options)  # tag.input field_options('text', attribute, args, options)
+            end                                                                                        # end
           RUBY_EVAL
         end
 
         def file_field(method, *args, **options)
           multiple = options.slice(:multiple)
-          options = options_for(method, options).merge!(type: "file")
+          options = default_options(method, options).merge!(type: "file")
           options.merge!(multiple)
           tag.input options
         end
@@ -36,7 +36,7 @@ module ActionView
         end
 
         def text_area(method, *args, **options)
-          options = options_for(method, options)
+          options = default_options(method, options)
           content = model.send(method) if model
           content = args[0] if args.size > 0
           content.nil? ? tag.textarea(options) : tag.textarea(content, options)
@@ -53,7 +53,7 @@ module ActionView
 
         def check_box(method, include_hidden: true, on: "1", off: "0", **options)
           hidden = "".html_safe
-          options = options_for(method, options)
+          options = default_options(method, options)
           checkbox_options = options.merge(type: 'checkbox', value: on)
           checkbox_options.merge!(checked: "checked") if model && checked?(on, model.send(method))
           include_hidden = false if off.nil?
@@ -72,7 +72,7 @@ module ActionView
             end
             select(method, choices, options)
           else
-            tag.select option_tags_for_select(choices, blank: blank), options_for(method, options)
+            tag.select option_tags_for_select(choices, blank: blank), default_options(method, options)
           end
         end
 
@@ -135,7 +135,7 @@ module ActionView
             end
           end
 
-          def options_for(method, options)
+          def default_options(method, options)
             name = input_name(method, options)
             options.reverse_merge!(name: name)
             options.delete(:multiple)
@@ -144,15 +144,20 @@ module ActionView
             options
           end
 
-          def field_options(field_type, attribute, args, options)
-            options = options_for(attribute, options)
-            options.merge!(value: model.send(attribute)) if model && field_type != 'password'
-            options.merge!(value: args[0]) if args.size > 0
-            options[:size] = options[:maxlength] unless options.key?(:size)
-            if placeholder = placeholder(options.delete(:placeholder), attribute)
-              options.merge!(placeholder: placeholder)
+          def field_options(field_type, attribute, value = nil, *args, placeholder: nil, **options)
+            options = default_options(attribute, options)
+
+            if options.key?(:value)
+            elsif value
+              options[:value] = value
+            elsif @model && !field_type.match('password')
+              options[:value] ||= @model.public_send(attribute)
             end
-            options.reverse_merge!(type: field_type)
+
+            options[:placeholder] = placeholder(placeholder, attribute)
+            options[:size] = options[:maxlength] unless options.key?(:size)
+            options[:type] ||= field_type
+            options
           end
 
           def placeholder(tag_value, method)

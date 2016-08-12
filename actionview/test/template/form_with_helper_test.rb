@@ -161,7 +161,7 @@ class FormWithHelperTest < ActionView::TestCase
   end
 
   def test_hidden_field_with_nil_value
-    assert_tag_equal('<input name="post[title]" type="hidden">') { |f| f.hidden_field("title", nil) }
+    assert_tag_equal('<input name="post[title]" type="hidden">') { |f| f.hidden_field("title", value: nil) }
   end
 
   def test_hidden_field_with_options
@@ -169,7 +169,7 @@ class FormWithHelperTest < ActionView::TestCase
   end
 
   def test_text_field_with_custom_type
-    assert_tag_equal('<input name="post[title]" type="email">') { |f| f.text_field(:title, nil, type: "email") }
+    assert_tag_equal('<input name="post[title]" type="email" value="Catch 22">') { |f| f.text_field(:title, type: "email") }
   end
 
   def test_text_field
@@ -201,7 +201,7 @@ class FormWithHelperTest < ActionView::TestCase
   end
 
   def test_text_field_with_nil_value
-    assert_tag_equal('<input name="post[title]" type="text">') { |f| f.text_field("title", nil) }
+    assert_tag_equal('<input name="post[title]" type="text">') { |f| f.text_field("title", value: nil) }
   end
 
   def test_text_field_with_nil_name
