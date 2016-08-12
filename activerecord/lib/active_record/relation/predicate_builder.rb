@@ -68,6 +68,18 @@ module ActiveRecord
         case value
         when Array
           values = value.to_a.map {|x| x.is_a?(Base) ? x.id : x}
+
+          if values.any? { |val| val.is_a?(Array) }
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              Passing a nested array to Active Record finder methods is
+              deprecated and will be removed. Flatten your array before using
+              it for 'IN' conditions.
+            MSG
+
+            flat_values = values.flatten
+            values = flat_values unless flat_values.include?(nil)
+          end
+
           ranges, values = values.partition {|v| v.is_a?(Range)}
 
           values_predicate = if values.include?(nil)
