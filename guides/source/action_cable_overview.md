@@ -242,10 +242,10 @@ WebNotificationsChannel.broadcast_to(
 The `WebNotificationsChannel.broadcast_to` call places a message in the current
 subscription adapter (Redis by default)'s pubsub queue under a separate
 broadcasting name for each user. For a user with an ID of 1, the broadcasting
-name would be `web_notifications_1`.
+name would be `web_notifications:1`.
 
 The channel has been instructed to stream everything that arrives at
-`web_notifications_1` directly to the client by invoking the `received`
+`web_notifications:1` directly to the client by invoking the `received`
 callback.
 
 ### Subscriptions
@@ -313,7 +313,7 @@ App.cable.subscriptions.create { channel: "ChatChannel", room: "Best Room" },
 ```ruby
 # Somewhere in your app this is called, perhaps
 # from a NewCommentJob.
-ChatChannel.broadcast_to(
+ActionCable.server.broadcast(
   "chat_#{room}",
   sent_by: 'Paul',
   body: 'This is a cool chat app.'
