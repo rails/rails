@@ -35,11 +35,15 @@ module ActionView
           tag.input value: submit_default_value, "data-disable-with": submit_default_value, type: "submit", name: "commit"
         end
 
-        def text_area(attribute, *args, **options)
+        def text_area(attribute, content = nil, placeholder: nil, **options)
           options = default_options(attribute, options)
-          content = model.send(attribute) if model
-          content = args[0] if args.size > 0
-          content.nil? ? tag.textarea(options) : tag.textarea(content, options)
+          options[:placeholder] = placeholder(placeholder, attribute)
+          if options.key?(:content)
+            content = options.delete(:content)
+          elsif model
+            content ||= model.send(attribute)
+          end
+          tag.textarea(content, options)
         end
 
         def label(attribute, *args, **options, &block)

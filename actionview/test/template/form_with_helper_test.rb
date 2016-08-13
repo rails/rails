@@ -406,6 +406,89 @@ class FormWithHelperTest < ActionView::TestCase
     assert_tag_equal('<input name="post[secret]" type="radio" value="false">') { |f| f.radio_button(:secret, false) }
   end
 
+  def test_text_area_placeholder_without_locales
+    I18n.with_locale :placeholder do
+      assert_tag_equal("<textarea name='post[body]' placeholder='Body'>\nThe plotline follows...</textarea>") do |f|
+        f.text_area(:body, placeholder: true)
+      end
+    end
+  end
+
+  def test_text_area_placeholder_with_locales
+    I18n.with_locale :placeholder do
+      assert_tag_equal("<textarea name='post[title]' placeholder='What is this about?'>\nCatch 22</textarea>") do |f|
+        f.text_area(:title, placeholder: true)
+      end
+    end
+  end
+
+  def test_text_area_placeholder_with_human_attribute_name
+    I18n.with_locale :placeholder do
+      assert_tag_equal("<textarea name='post[cost]' placeholder='Total cost'>\n</textarea>") do |f|
+        f.text_area(:cost, placeholder: true)
+      end
+    end
+  end
+
+  def test_text_area_placeholder_with_string_value
+    I18n.with_locale :placeholder do
+      assert_tag_equal("<textarea name='post[cost]' placeholder='HOW MUCH?'>\n</textarea>") do |f|
+        f.text_area(:cost, placeholder: "HOW MUCH?")
+      end
+    end
+  end
+
+  def test_text_area_placeholder_with_human_attribute_name_and_value
+    I18n.with_locale :placeholder do
+      assert_tag_equal("<textarea name='post[cost]' placeholder='Pounds'>\n</textarea>") do |f|
+        f.text_area(:cost, placeholder: :uk)
+      end
+    end
+  end
+
+  def test_text_area_placeholder_with_locales_and_value
+    I18n.with_locale :placeholder do
+      assert_tag_equal("<textarea name='post[written_on]' placeholder='Escrito en'>\n2004-06-15</textarea>") do |f|
+        f.text_area(:written_on, placeholder: :spanish)
+      end
+    end
+  end
+
+  def test_text_area
+    assert_tag_equal("<textarea name='post[body]'>\nThe plotline follows...</textarea>") do |f|
+      f.text_area("body")
+    end
+  end
+
+  def test_text_area_with_escapes
+    @post.body = "Back to <i>the</i> hill and over it again!"
+    assert_tag_equal("<textarea name='post[body]'>\nBack to &lt;i&gt;the&lt;/i&gt; hill and over it again!</textarea>") do |f|
+      f.text_area("body")
+    end
+  end
+
+  def test_text_area_with_value
+    assert_tag_equal("<textarea name='post[body]'>\nTesting alternate values.</textarea>") do |f|
+      f.text_area(:body, "Testing alternate values.")
+    end
+    assert_tag_equal("<textarea name='post[body]'>\nTesting alternate values.</textarea>") do |f|
+      f.text_area(:body, content: "Testing alternate values.")
+    end
+  end
+
+  def test_text_area_with_nil_alternate_value
+    assert_tag_equal("<textarea name='post[body]'>\n</textarea>") do |f|
+      f.text_area(:body, content: nil)
+    end
+  end
+
+  def test_text_area_with_html_entities
+    @post.body = "The HTML Entity for & is &amp;"
+    assert_tag_equal("<textarea name='post[body]'>\nThe HTML Entity for &amp; is &amp;amp;</textarea>") do |f|
+      f.text_area(:body)
+    end
+  end
+
   def test_url_field
     assert_tag_equal('<input name="post[cost]" type="url">') { |f| f.url_field("cost") }
   end
