@@ -3,7 +3,7 @@ require "action_dispatch"
 require "active_record"
 
 class JsonParamsParsingTest < ActionDispatch::IntegrationTest
-  test "prevent null query" do
+  def test_prevent_null_query
     # Make sure we have data to find
     klass = Class.new(ActiveRecord::Base) do
       def self.name; 'Foo'; end
@@ -32,6 +32,8 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     [[[nil]], [[[nil]]]].each do |data|
       assert_nil app.call(make_env({ 't' => data }))
     end
+  ensure
+    klass.connection.drop_table("foos")
   end
 
   private
