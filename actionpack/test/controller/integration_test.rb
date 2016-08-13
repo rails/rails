@@ -42,10 +42,8 @@ class SessionTest < ActiveSupport::TestCase
 
   def test_deprecated_request_via_redirect_uses_given_method
     path = "/somepath"; args = { id: '1' }; headers = { "X-Test-Header" => "testvalue" }
-    assert_called_with @session, :process, [:put, path, params: args, headers: headers] do
-      @session.stub :redirect?, false do
-        assert_deprecated { @session.request_via_redirect(:put, path, args, headers) }
-      end
+    @session.stub :redirect?, false do
+      assert_deprecated { @session.request_via_redirect(:put, path, args, headers) }
     end
   end
 
@@ -137,27 +135,22 @@ class SessionTest < ActiveSupport::TestCase
 
   def test_deprecated_get
     path = "/index"; params = "blah"; headers = { location: 'blah' }
-
-    assert_called_with @session, :process, [:get, path, params: params, headers: headers] do
-      assert_deprecated {
-        @session.get(path, params, headers)
-      }
+    assert_deprecated do
+      @session.get(path, params, headers)
     end
   end
 
   def test_post
     path = "/index"; params = "blah"; headers = { location: 'blah' }
     assert_called_with @session, :process, [:post, path, params: params, headers: headers] do
-      assert_deprecated {
-        @session.post(path, params, headers)
-      }
+      @session.post(path, params: params, headers: headers)
     end
   end
 
   def test_deprecated_post
     path = "/index"; params = "blah"; headers = { location: 'blah' }
-    assert_called_with @session, :process, [:post, path, params: params, headers: headers] do
-      @session.post(path, params: params, headers: headers)
+    assert_deprecated do
+      @session.post(path, params, headers)
     end
   end
 
@@ -170,10 +163,8 @@ class SessionTest < ActiveSupport::TestCase
 
   def test_deprecated_patch
     path = "/index"; params = "blah"; headers = { location: 'blah' }
-    assert_called_with @session, :process, [:patch, path, params: params, headers: headers] do
-      assert_deprecated {
-        @session.patch(path, params, headers)
-      }
+    assert_deprecated do
+      @session.patch(path, params, headers)
     end
   end
 
@@ -186,26 +177,22 @@ class SessionTest < ActiveSupport::TestCase
 
   def test_deprecated_put
     path = "/index"; params = "blah"; headers = { location: 'blah' }
-    assert_called_with @session, :process, [:put, path, params: params, headers: headers] do
-      assert_deprecated {
-        @session.put(path, params, headers)
-      }
+    assert_deprecated do
+      @session.put(path, params, headers)
     end
   end
 
   def test_delete
     path = "/index"; params = "blah"; headers = { location: 'blah' }
     assert_called_with @session, :process, [:delete, path, params: params, headers: headers] do
-      assert_deprecated {
-        @session.delete(path,params,headers)
-      }
+      @session.delete(path, params: params, headers: headers)
     end
   end
 
   def test_deprecated_delete
     path = "/index"; params = "blah"; headers = { location: 'blah' }
-    assert_called_with @session, :process, [:delete, path, params: params, headers: headers] do
-      @session.delete(path, params: params, headers: headers)
+    assert_deprecated do
+      @session.delete(path, params, headers)
     end
   end
 
@@ -216,12 +203,10 @@ class SessionTest < ActiveSupport::TestCase
     end
   end
 
-  def deprecated_test_head
+  def test_deprecated_head
     path = "/index"; params = "blah"; headers = { location: 'blah' }
-    assert_called_with @session, :process, [:head, path, params: params, headers: headers] do
-      assert_deprecated {
-        @session.head(path, params, headers)
-      }
+    assert_deprecated do
+      @session.head(path, params, headers)
     end
   end
 
