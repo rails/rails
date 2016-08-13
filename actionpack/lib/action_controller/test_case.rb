@@ -415,8 +415,8 @@ module ActionController
 
       def xml_http_request(*args)
         ActiveSupport::Deprecation.warn(<<-MSG.strip_heredoc)
-          xhr and xml_http_request methods are deprecated in favor of
-          `get :index, xhr: true` and `post :create, xhr: true`
+          `xhr` and `xml_http_request` are deprecated and will be removed in Rails 5.1.
+          Switch to e.g. `post :create, params: { comment: { body: 'Honey bunny' } }, xhr: true`.
         MSG
 
         @request.env['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'

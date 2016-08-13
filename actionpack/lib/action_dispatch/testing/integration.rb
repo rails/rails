@@ -81,26 +81,14 @@ module ActionDispatch
       #
       # Example:
       #
-      #   xhr :get, '/feed', params: { since: 201501011400 }
-      def xml_http_request(request_method, path, *args)
-        if kwarg_request?(args)
-          params, headers, env = args.first.values_at(:params, :headers, :env)
-        else
-          params = args[0]
-          headers = args[1]
-          env = {}
-
-          if params.present? || headers.present?
-            non_kwarg_request_warning
-          end
-        end
-
+      #   xhr :get, '/feed', since: 201501011400
+      def xml_http_request(request_method, path, parameters = nil, headers_or_env = nil)
         ActiveSupport::Deprecation.warn(<<-MSG.strip_heredoc)
-          xhr and xml_http_request methods are deprecated in favor of
-          `get "/posts", xhr: true` and `post "/posts/1", xhr: true`.
+          `xhr` and `xml_http_request` are deprecated and will be removed in Rails 5.1.
+          Switch to e.g. `post comments_path, params: { comment: { body: 'Honey bunny' } }, xhr: true`.
         MSG
 
-        process(request_method, path, params: params, headers: headers, xhr: true)
+        process(request_method, path, params: parameters, headers: headers_or_env, xhr: true)
       end
       alias xhr :xml_http_request
 
