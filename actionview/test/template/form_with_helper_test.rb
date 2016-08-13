@@ -142,7 +142,7 @@ class FormWithHelperTest < ActionView::TestCase
   end
 
   def test_file_field_with_multiple_behavior
-    assert_tag_equal('<input multiple="multiple" name="post[attachment][]" type="file">') { |f| f.file_field(:attachment, "file", multiple: true) }
+    assert_tag_equal('<input multiple="multiple" name="post[attachment][]" type="file">') { |f| f.file_field(:attachment, multiple: true) }
   end
 
   def test_file_field_with_multiple_behavior_and_explicit_name
