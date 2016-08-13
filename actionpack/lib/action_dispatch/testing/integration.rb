@@ -297,18 +297,14 @@ module ActionDispatch
 
         def non_kwarg_request_warning
           ActiveSupport::Deprecation.warn(<<-MSG.strip_heredoc)
-            ActionDispatch::IntegrationTest HTTP request methods will accept only
-            the following keyword arguments in future Rails versions:
-            #{REQUEST_KWARGS.join(', ')}
+            Using positional arguments in integration tests has been deprecated,
+            in favor of keyword arguments, and will be removed in Rails 5.1.
 
-            Examples:
+            Deprecated style:
+            get "/profile", { id: 1 }, { "X-Extra-Header" => "123" }
 
-            get '/profile',
-              params: { id: 1 },
-              headers: { 'X-Extra-Header' => '123' },
-              env: { 'action_dispatch.custom' => 'custom' },
-              xhr: true,
-              as: :json
+            New keyword style:
+            get "/profile", params: { id: 1 }, headers: { "X-Extra-Header" => "123" }
           MSG
         end
 
