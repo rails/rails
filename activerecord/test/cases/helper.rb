@@ -1,7 +1,5 @@
 require "config"
 
-require "active_support/testing/autorun"
-require "active_support/testing/method_call_assertions"
 require "stringio"
 
 require "active_record"
@@ -132,21 +130,6 @@ def disable_extension!(extension, connection)
 
   connection.disable_extension extension
   connection.reconnect!
-end
-
-require "cases/validations_repair_helper"
-class ActiveSupport::TestCase
-  include ActiveRecord::TestFixtures
-  include ActiveRecord::ValidationsRepairHelper
-  include ActiveSupport::Testing::MethodCallAssertions
-
-  self.fixture_path = FIXTURES_ROOT
-  self.use_instantiated_fixtures  = false
-  self.use_transactional_tests = true
-
-  def create_fixtures(*fixture_set_names, &block)
-    ActiveRecord::FixtureSet.create_fixtures(ActiveSupport::TestCase.fixture_path, fixture_set_names, fixture_class_names, &block)
-  end
 end
 
 def load_schema

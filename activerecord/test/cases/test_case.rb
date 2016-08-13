@@ -1,13 +1,29 @@
 require "active_support/test_case"
+require "active_support/testing/autorun"
+require "active_support/testing/method_call_assertions"
 require "active_support/testing/stream"
 require "active_support/core_ext/regexp"
+require "active_record/fixtures"
+
+require "cases/validations_repair_helper"
 
 module ActiveRecord
   # = Active Record Test Case
   #
   # Defines some test assertions to test against SQL queries.
   class TestCase < ActiveSupport::TestCase #:nodoc:
+    include ActiveSupport::Testing::MethodCallAssertions
     include ActiveSupport::Testing::Stream
+    include ActiveRecord::TestFixtures
+    include ActiveRecord::ValidationsRepairHelper
+
+    self.fixture_path = FIXTURES_ROOT
+    self.use_instantiated_fixtures = false
+    self.use_transactional_tests = true
+
+    def create_fixtures(*fixture_set_names, &block)
+      ActiveRecord::FixtureSet.create_fixtures(ActiveRecord::TestCase.fixture_path, fixture_set_names, fixture_class_names, &block)
+    end
 
     def teardown
       SQLCounter.clear_log
