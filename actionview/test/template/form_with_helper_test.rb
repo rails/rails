@@ -383,6 +383,29 @@ class FormWithHelperTest < ActionView::TestCase
     assert_tag_equal('<input form="new_form" name="post[secret]" type="hidden" value="0" /><input checked="checked" form="new_form" name="post[secret]" type="checkbox" value="1" />') { |f| f.check_box(:secret, form: "new_form") }
   end
 
+  def test_radio_button
+    assert_tag_equal('<input name="post[title]" type="radio" value="Goodbye World">') do |f|
+      f.radio_button("title", "Goodbye World")
+    end
+    assert_tag_equal('<input name="item[subobject][title]" type="radio" value="inside world">') do |f|
+      f.radio_button("title", "inside world", scope: "item[subobject]")
+    end
+  end
+
+  def test_radio_button_checked
+    assert_tag_equal('<input checked="checked" name="post[title]" type="radio" value="Catch 22">') do |f|
+      f.radio_button(:title, "Catch 22")
+    end
+  end
+
+  def test_url_field
+    assert_tag_equal('<input name="post[cost]" type="url">') { |f| f.url_field("cost") }
+  end
+
+  def test_email_field
+    assert_tag_equal('<input name="post[cost]" type="email">') { |f| f.email_field("cost") }
+  end
+
   def test_select_with_choices_as_pairs
     categories = [%w(Volvo volvo), %w(Saab saab), %w(Mercedes mercedes)]
     expected = "<select name='post[category]'>" +

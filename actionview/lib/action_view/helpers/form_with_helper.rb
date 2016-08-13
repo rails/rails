@@ -65,6 +65,16 @@ module ActionView
           hidden + tag.input(checkbox_options).html_safe
         end
 
+        def radio_button(attribute, value = nil, **options)
+          options = default_options(attribute, options)
+          if value
+            options[:value] = value
+            options[:checked] = "checked" if model.public_send(attribute) == value
+          end
+          options[:type] = "radio"
+          tag.input(options).html_safe
+        end
+
         def select(attribute, choices = nil, value: :value, text: :text, collection: nil, blank: nil, prompt: nil, index: :undefined, disabled: nil, **options, &block)
           if (collection)
             choices = collection.map do |object|
