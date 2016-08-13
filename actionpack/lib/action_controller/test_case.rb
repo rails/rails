@@ -646,13 +646,15 @@ module ActionController
 
       def non_kwarg_request_warning
         ActiveSupport::Deprecation.warn(<<-MSG.strip_heredoc)
-          ActionController::TestCase HTTP request methods will accept only
-          keyword arguments in future Rails versions.
+          Using positional arguments in functional tests has been deprecated,
+          in favor of keyword arguments, and will be removed in Rails 5.1.
 
-          Examples:
+          Deprecated style:
+          get :show, { id: 1 }, nil, { notice: "This is a flash message" }
 
-          get :show, params: { id: 1 }, session: { user_id: 1 }
-          process :update, method: :post, params: { id: 1 }
+          New keyword style:
+          get :show, params: { id: 1 }, flash: { notice: "This is a flash message" },
+            session: nil # Can safely be omitted.
         MSG
       end
 
