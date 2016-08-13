@@ -28,6 +28,8 @@ module ActiveSupport
       end
     end
 
+    # Declares a block that will be executed when a Rails component is fully
+    # loaded.
     def on_load(name, options = {}, &block)
       @loaded[name].each do |base|
         execute_hook(base, options, block)
