@@ -60,14 +60,13 @@ module ActiveRecord
         end
 
         def test_should_not_set_default_for_blob_and_text_data_types
-          text_type = MySQL::TypeMetadata.new(
-            SqlTypeMetadata.new(type: :text))
+          text_type = MySQL::TypeMetadata.new(SqlTypeMetadata.new(type: :text))
 
           text_column = MySQL::Column.new("title", nil, text_type)
-          assert_equal nil, text_column.default
+          assert_nil text_column.default
 
           not_null_text_column = MySQL::Column.new("title", nil, text_type, false)
-          assert_equal "", not_null_text_column.default
+          assert_nil not_null_text_column.default
         end
 
         def test_has_default_should_return_false_for_blob_and_text_data_types

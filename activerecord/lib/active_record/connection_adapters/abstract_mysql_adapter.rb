@@ -709,7 +709,7 @@ module ActiveRecord
         end
 
         def fetch_type_metadata(sql_type, extra = "")
-          MySQL::TypeMetadata.new(super(sql_type), extra: extra, strict: strict_mode?)
+          MySQL::TypeMetadata.new(super(sql_type), extra: extra)
         end
 
         def add_index_length(quoted_columns, **options)
