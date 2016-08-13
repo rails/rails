@@ -393,9 +393,17 @@ class FormWithHelperTest < ActionView::TestCase
   end
 
   def test_radio_button_checked
-    assert_tag_equal('<input checked="checked" name="post[title]" type="radio" value="Catch 22">') do |f|
-      f.radio_button(:title, "Catch 22")
-    end
+    assert_tag_equal('<input checked="checked" name="post[title]" type="radio" value="Catch 22">') { |f| f.radio_button(:title, "Catch 22") }
+    assert_tag_equal('<input checked="checked" name="post[secret]" type="radio" value="1">') { |f| f.radio_button(:secret, "1") }
+  end
+
+  def test_radio_button_with_negative_integer_value
+    assert_tag_equal('<input name="post[secret]" type="radio" value="-1" />') { |f| f.radio_button(:secret, "-1") }
+  end
+
+  def test_radio_button_with_booleans
+    assert_tag_equal('<input name="post[secret]" type="radio" value="true">') { |f| f.radio_button(:secret, true) }
+    assert_tag_equal('<input name="post[secret]" type="radio" value="false">') { |f| f.radio_button(:secret, false) }
   end
 
   def test_url_field

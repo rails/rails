@@ -67,9 +67,9 @@ module ActionView
 
         def radio_button(attribute, value = nil, **options)
           options = default_options(attribute, options)
-          if value
-            options[:value] = value
-            options[:checked] = "checked" if model.public_send(attribute) == value
+          unless value.nil?
+            options[:value] = value.to_s
+            options[:checked] = "checked" if model.public_send(attribute).to_s == value
           end
           options[:type] = "radio"
           tag.input(options).html_safe
