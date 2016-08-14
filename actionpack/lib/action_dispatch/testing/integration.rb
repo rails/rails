@@ -667,38 +667,39 @@ module ActionDispatch
   #       end
   #   end
   #
+  # === Changing the request encoding
+  #
   # You can also test your JSON API easily by setting what the request should
   # be encoded as:
   #
-  #   require 'test_helper'
+  #   require "test_helper"
   #
   #   class ApiTest < ActionDispatch::IntegrationTest
-  #     test 'creates articles' do
+  #     test "creates articles" do
   #       assert_difference -> { Article.count } do
-  #         post articles_path, params: { article: { title: 'Ahoy!' } }, as: :json
+  #         post articles_path, params: { article: { title: "Ahoy!" } }, as: :json
   #       end
   #
   #       assert_response :success
-  #       assert_equal({ id: Arcticle.last.id, title: 'Ahoy!' }, response.parsed_body)
+  #       assert_equal({ id: Arcticle.last.id, title: "Ahoy!" }, response.parsed_body)
   #     end
   #   end
   #
-  # The `as` option sets the format to JSON, sets the content type to
-  # 'application/json' and encodes the parameters as JSON.
+  # The +as+ option sets the format to JSON, sets the content type to
+  # "application/json" and encodes the parameters as JSON.
   #
-  # Calling `parsed_body` on the response parses the response body as what
-  # the last request was encoded as. If the request wasn't encoded `as` something,
-  # it's the same as calling `body`.
+  # Calling +parsed_body+ on the response parses the response body based on the
+  # last response MIME type.
   #
-  # For any custom MIME Types you've registered, you can even add your own encoders with:
+  # For any custom MIME types you've registered, you can even add your own encoders with:
   #
   #   ActionDispatch::IntegrationTest.register_encoder :wibble,
   #     param_encoder: -> params { params.to_wibble },
   #     response_parser: -> body { body }
   #
-  # Where `param_encoder` defines how the params should be encoded and
-  # `response_parser` defines how the response body should be parsed through
-  # `parsed_body`.
+  # Where +param_encoder+ defines how the params should be encoded and
+  # +response_parser+ defines how the response body should be parsed through
+  # +parsed_body+.
   #
   # Consult the Rails Testing Guide for more.
 
