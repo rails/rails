@@ -325,6 +325,7 @@ module Rails
           remove_file "app/views/layouts/mailer.html.erb"
           remove_file "app/views/layouts/mailer.text.erb"
           remove_dir "app/mailers"
+          remove_dir "test/mailers"
         end
       end
 

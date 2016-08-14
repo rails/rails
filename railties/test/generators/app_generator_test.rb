@@ -381,6 +381,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/config\.action_mailer/, content)
     end
     assert_no_directory "app/mailers"
+    assert_no_directory "test/mailers"
   end
 
   def test_generator_has_assets_gems
