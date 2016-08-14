@@ -402,6 +402,22 @@ The schema dumper adds one additional configuration option:
 
 * `config.action_controller.always_permitted_parameters` sets a list of whitelisted parameters that are permitted by default. The default values are `['controller', 'action']`.
 
+* `config.action_controller.enable_fragment_cache_logging` determines whether to log fragment cache reads and writes in verbose format as follows:
+
+    ```
+    Read fragment views/v1/2914079/v1/2914079/recordings/70182313-20160225015037000000/d0bdf2974e1ef6d31685c3b392ad0b74 (0.6ms)
+    Rendered messages/_message.html.erb in 1.2 ms [cache hit]
+    Write fragment views/v1/2914079/v1/2914079/recordings/70182313-20160225015037000000/3b4e249ac9d168c617e32e84b99218b5 (1.1ms)
+    Rendered recordings/threads/_thread.html.erb in 1.5 ms [cache miss]
+    ```
+
+  By default it is set to `false` which results in following output:
+
+    ```
+    Rendered messages/_message.html.erb in 1.2 ms [cache hit]
+    Rendered recordings/threads/_thread.html.erb in 1.5 ms [cache miss]
+    ```
+
 ### Configuring Action Dispatch
 
 * `config.action_dispatch.session_store` sets the name of the store for session data. The default is `:cookie_store`; other valid options include `:active_record_store`, `:mem_cache_store` or the name of your own custom class.
@@ -517,14 +533,6 @@ encrypted cookies salt value. Defaults to `'signed encrypted cookie'`.
   submit_tag should automatically disable on click, this defaults to `true`.
 
 * `config.action_view.debug_missing_translation` determines whether to wrap the missing translations key in a `<span>` tag or not. This defaults to `true`.
-
-* `config.action_view.enable_fragment_cache_logging` determines whether to log fragment cache reads and writes like:
-
-    ```
-    Read fragment views/v1/2914079/v1/2914079/recordings/70182313-20160225015037000000/d0bdf2974e1ef6d31685c3b392ad0b74 (0.6ms)
-    ```
-
-  Default value is false.
 
 ### Configuring Action Mailer
 
