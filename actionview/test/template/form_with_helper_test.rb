@@ -7,8 +7,10 @@ class FormWithHelperTest < ActionView::TestCase
   setup do
     @post = Post.new("Catch 22", "Joseph Heller", "The plotline follows...", 1, false, Date.new(2004, 6, 15))
     @comment = Comment.new
+    @comment.body = "Awsome post"
     @post.comments = []
     @post.comments << @comment
+    def @post.id; 0; end
     def @post.to_param; "77"; end
 
     I18n.backend.store_translations "label",
@@ -528,6 +530,63 @@ class FormWithHelperTest < ActionView::TestCase
       "</select>"
     assert_tag_equal(expected) { |f| f.select(:author_name, collection: dummy_posts, value: :author_name, text: :author_name) }
     assert_tag_equal(expected) { |f| f.select("author_name", collection: dummy_posts, value: "author_name", text: "author_name") }
+  end
+
+  def test_nested_fields
+    actual = fields_with(model: @post) do |f|
+      concat f.fields(model: @comment) { |c| concat c.text_field(:body) }
+    end
+    assert_dom_equal "<input name='post[comment][body]' type='text' value='Awsome post'>", actual
+  end
+
+  def test_nested_fields_indexed
+    actual = fields_with(model: @post, indexed: true) do |f|
+      concat f.text_field(:title)
+      concat f.fields(model: @comment, indexed: true) { |c| concat c.text_field(:name) }
+    end
+    expected = "<input name='post[77][title]' type='text' value='Catch 22'><input name='post[77][comment][][name]' type='text' value='new comment'>"
+    assert_dom_equal expected, actual
+  end
+
+  def test_double_nested_fields_indexed
+    @comment.save
+    actual = fields_with(scope: :posts) do |f|
+      f.fields(model: @post, indexed: true) do |f2|
+        @post.comments.each do |comment|
+          concat f2.fields(model: comment, indexed: true) { |c| concat c.text_field(:name) }
+        end
+      end
+    end
+    expected = "<input name='posts[post][77][comment][1][name]' type='text' value='comment #1'>"
+    assert_dom_equal expected, actual
+  end
+
+  def test_nested_fields_with_index
+    actual = fields_with(model: @post, index: 1) do |c|
+      concat c.text_field(:title)
+      concat c.fields(model: @comment, index: 1) { |r| concat r.text_field(:name) }
+    end
+    expected = "<input name='post[1][title]' type='text' value='Catch 22'><input name='post[1][comment][1][name]' type='text' value='new comment'>"
+    assert_dom_equal expected, actual
+  end
+
+  def test_nested_fields_with_as
+    actual = fields_with(model: @post, scope: "thepost") do |f|
+      concat f.fields(model: @post, as: "comment") { |c| concat c.text_field(:title) }
+    end
+    expected = "<input name='thepost[comment][title]' type='text' value='Catch 22'>"
+    assert_dom_equal expected, actual
+  end
+
+  def test_nested_fields_with_index_and_as
+    actual = fields_with(model: @post, scope: "postie", index: 6) do |f|
+      concat f.fields(model: @post, as: "comment", index: 9) { |c|
+        concat c.text_field(:title)
+        concat c.radio_button(:title, "hello")
+      }
+    end
+    expected = "<input name='postie[6][comment][9][title]' type='text' value='Catch 22'><input name='postie[6][comment][9][title]' type='radio' value='hello'>"
+    assert_dom_equal expected, actual
   end
 
   def test_form_with_url

@@ -1,19 +1,22 @@
+require "action_view/model_naming"
+
 module ActionView
   module Helpers
     module FormWithHelper
       class FormWithBuilder
         include ActionView::Helpers::TagHelper
+        include ModelNaming
 
         INPUT_FIELD_HELPERS = [:hidden_field, :text_field, :password_field, :color_field,
                         :search_field, :telephone_field, :phone_field, :date_field, :time_field,
                         :datetime_field, :datetime_local_field, :month_field, :week_field,
                         :url_field, :email_field, :number_field, :range_field]
 
-        attr_accessor :model, :scope, :remote
+        attr_accessor :model, :scope
 
         INPUT_FIELD_HELPERS.each do |selector|
           class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-            def #{selector}(attribute, value = nil, **options)                                         # def text_field(attribute, *args, **options)
+            def #{selector}(attribute, value = nil, **options)                                         # def text_field(attribute, value = nil, **options)
               tag.input field_options('#{selector.to_s.split("_").first}', attribute, value, options)  # tag.input field_options('text', attribute, args, options)
             end                                                                                        # end
           RUBY_EVAL
@@ -92,6 +95,16 @@ module ActionView
           else
             built_options.html_safe
           end
+        end
+
+        def fields(model: nil, indexed: false, index: nil, as: nil, &block)
+          model_name = model_name_from_record_or_class(model).param_key
+          indexing = "[#{index}]" if index
+          indexing ||= "[#{model.to_param}]" if indexed
+          naming = "[#{as ? as : model_name}]"
+          inner_scope = "#{self.scope}#{naming}#{indexing}"
+          new_builder = FormWithBuilder.new(@template, model, inner_scope)
+          @template.capture(new_builder, &block)
         end
 
         private
@@ -176,27 +189,29 @@ module ActionView
             end
           end
 
-          def initialize(template, model, scope, remote)
+          def initialize(template, model, scope)
             @template = template
             @model = model
             @scope = scope
-            @remote = remote
           end
       end
 
-      def form_with(model: nil, scope: nil, url: nil, remote: true, method: "post", **options, &block)
+      def form_with(model: nil, scope: nil, url: nil, remote: true, method: "post", indexed: false, index: nil, **options, &block)
         url ||= polymorphic_path(model, {})
         model = model.last if model.is_a?(Array)
         utf_field = tag.input name: "utf8", type: "hidden", value: "&#x2713;", escape_attributes: false
         method_field = tag.input name: "_method", type: "hidden", value: "patch" if model && model.persisted?
         options = options.merge(action: url, "data-remote": remote, "accept-charset": "UTF-8", method: method)
-        output = fields_with(model: model, scope: scope, remote: remote, &block)
+        output = fields_with(model: model, scope: scope, indexed: indexed, index: index, &block)
         tag.form utf_field + method_field + output, options
       end
 
-      def fields_with(model: nil, scope: nil, remote: true, &block)
+      def fields_with(model: nil, scope: nil, indexed: false, index: nil, &block)
         scope ||= model_name_from_record_or_class(model).param_key if model
-        builder = FormWithBuilder.new(self, model, scope, remote)
+        indexing = "[#{index}]" if index
+        indexing ||= "[#{model.to_param}]" if indexed
+        scope = "#{scope}#{indexing}".presence
+        builder = FormWithBuilder.new(self, model, scope)
         block_given? ? capture(builder, &block) : ""
       end
     end
