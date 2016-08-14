@@ -147,18 +147,18 @@ documentation.
 
 ### Autoloading is Disabled After Booting in the Production Environment
 
-Autoloading is now disabled after booting in the production environment by
-default.
+Autoloading of paths in `config.autoload_paths` is now disabled after booting in
+the production environment by default. Eager loading the application is part of
+the boot process. Top-level constants should still work as they are still
+autoloaded, meaning you don't need to manually require them.
 
-Eager loading the application is part of the boot process, so top-level
-constants are fine and are still autoloaded, no need to require their files.
+Constants in deeper places are only executed at runtime, like regular method
+bodies. These should also still work because their Ruby definition files will be
+eager loaded during the boot process as well.
 
-Constants in deeper places only executed at runtime, like regular method bodies,
-are also fine because the file defining them will have been eager loaded while booting.
-
-For the vast majority of applications this change needs no action. But in the
-very rare event that your application needs autoloading while running in
-production mode, set `Rails.application.config.enable_dependency_loading` to
+For the vast majority of applications this change requires no action. But in the
+rare situation where your application needs autoloading in the production
+environment, you can set `Rails.application.config.enable_dependency_loading` to
 true.
 
 ### XML Serialization
