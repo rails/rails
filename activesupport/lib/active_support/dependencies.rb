@@ -179,6 +179,19 @@ module ActiveSupport #:nodoc:
     mattr_accessor :constant_watch_stack
     self.constant_watch_stack = WatchStack.new
 
+    # Module prepends this
+    module ModuleConstGet
+      def const_get(const_name, *)
+        if !anonymous? && self != Object
+          const_get_signal_var = "calling_#{name}_const_get_#{const_name}"
+          Thread.current[const_get_signal_var] = true
+        end
+        super
+      ensure
+        Thread.current[const_get_signal_var] = nil if const_get_signal_var
+      end
+    end
+
     # Module includes this module.
     module ModuleConstMissing #:nodoc:
       def self.append_features(base)
@@ -199,8 +212,10 @@ module ActiveSupport #:nodoc:
       end
 
       def const_missing(const_name)
+        const_get_signal_var = "calling_#{name}_const_get_#{const_name}"
+        look_in_parent = !Thread.current.key?(const_get_signal_var)
         from_mod = anonymous? ? guess_for_anonymous(const_name) : self
-        Dependencies.load_missing_constant(from_mod, const_name)
+        Dependencies.load_missing_constant(from_mod, const_name, look_in_parent: look_in_parent)
       end
 
       # We assume that the name of the module reflects the nesting
@@ -319,6 +334,7 @@ module ActiveSupport #:nodoc:
     def hook!
       Object.class_eval { include Loadable }
       Module.class_eval { include ModuleConstMissing }
+      Module.prepend ModuleConstGet
       Exception.class_eval { include Blamable }
     end
 
@@ -491,7 +507,7 @@ module ActiveSupport #:nodoc:
     # Load the constant named +const_name+ which is missing from +from_mod+. If
     # it is not possible to load the constant into from_mod, try its parent
     # module using +const_missing+.
-    def load_missing_constant(from_mod, const_name)
+    def load_missing_constant(from_mod, const_name, look_in_parent: true)
       unless qualified_const_defined?(from_mod.name) && Inflector.constantize(from_mod.name).equal?(from_mod)
         raise ArgumentError, "A copy of #{from_mod} has been removed from the module tree but is still active!"
       end
@@ -514,7 +530,7 @@ module ActiveSupport #:nodoc:
         end
       elsif mod = autoload_module!(from_mod, const_name, qualified_name, path_suffix)
         return mod
-      elsif (parent = from_mod.parent) && parent != from_mod &&
+      elsif look_in_parent && (parent = from_mod.parent) && parent != from_mod &&
             ! from_mod.parents.any? { |p| p.const_defined?(const_name, false) }
         # If our parents do not have a constant named +const_name+ then we are free
         # to attempt to load upwards. If they do have such a constant, then this

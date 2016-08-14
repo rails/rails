@@ -1069,4 +1069,14 @@ class DependenciesTest < ActiveSupport::TestCase
   ensure
     ActiveSupport::Dependencies.hook!
   end
+
+  def test_const_get_for_non_existent_class_in_module
+    with_autoloading_fixtures do
+      assert_raises NameError do
+        ModuleFolder.const_get(:ShouldNotBeConstGettableFromModuleFolder, false)
+      end
+    end
+  ensure
+    remove_constants(:ModuleFolder)
+  end
 end
