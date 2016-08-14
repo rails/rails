@@ -17,7 +17,7 @@ module ActionController
         if @_parameter_encodings[action.to_s] && @_parameter_encodings[action.to_s][param.to_s]
           @_parameter_encodings[action.to_s][param.to_s]
         else
-          ::Encoding::UTF_8
+          super
         end
       end
 
