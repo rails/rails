@@ -115,6 +115,13 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_many_mutations
+    car = Car.new name: "<3<3<3"
+    car.engines_count = 0
+    20_000.times { car.engines_count += 1 }
+    assert car.save
+  end
+
   def test_limit_without_comma
     assert_equal 1, Topic.limit("1").to_a.length
     assert_equal 1, Topic.limit(1).to_a.length
