@@ -667,6 +667,9 @@ module ActionDispatch
   #       end
   #   end
   #
+  # See the {request helpers documentation}[rdoc-ref:ActionDispatch::Integration::RequestHelpers] for help on how to
+  # use +get+, etc.
+  #
   # === Changing the request encoding
   #
   # You can also test your JSON API easily by setting what the request should
