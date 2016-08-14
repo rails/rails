@@ -525,14 +525,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_taking_with_a_number
     # taking from unloaded Relation
     bob = Author.find(authors(:bob).id)
+    new_post = bob.posts.build
+    assert_not bob.posts.loaded?
     assert_equal [posts(:misc_by_bob)], bob.posts.take(1)
-    bob = Author.find(authors(:bob).id)
     assert_equal [posts(:misc_by_bob), posts(:other_by_bob)], bob.posts.take(2)
+    assert_equal [posts(:misc_by_bob), posts(:other_by_bob), new_post], bob.posts.take(3)
 
     # taking from loaded Relation
-    bob.posts.to_a
-    assert_equal [posts(:misc_by_bob)], authors(:bob).posts.take(1)
-    assert_equal [posts(:misc_by_bob), posts(:other_by_bob)], authors(:bob).posts.take(2)
+    bob.posts.load
+    assert bob.posts.loaded?
+    assert_equal [posts(:misc_by_bob)], bob.posts.take(1)
+    assert_equal [posts(:misc_by_bob), posts(:other_by_bob)], bob.posts.take(2)
+    assert_equal [posts(:misc_by_bob), posts(:other_by_bob), new_post], bob.posts.take(3)
   end
 
   def test_taking_with_inverse_of
