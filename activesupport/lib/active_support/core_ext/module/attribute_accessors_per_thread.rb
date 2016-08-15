@@ -140,9 +140,9 @@ class Module
   #
   #   Current.new.user = "DHH"  # => NoMethodError
   #   Current.new.user          # => NoMethodError
-  def thread_mattr_accessor(*syms, &blk)
-    thread_mattr_reader(*syms, &blk)
-    thread_mattr_writer(*syms, &blk)
+  def thread_mattr_accessor(*syms)
+    thread_mattr_reader(*syms)
+    thread_mattr_writer(*syms)
   end
   alias :thread_cattr_accessor :thread_mattr_accessor
 end
