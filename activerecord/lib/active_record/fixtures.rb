@@ -14,7 +14,7 @@ module ActiveRecord
   # \Fixtures are a way of organizing data that you want to test against; in short, sample data.
   #
   # They are stored in YAML files, one file per model, which are placed in the directory
-  # appointed by <tt>ActiveRecord::TestCase.fixture_path=(path)</tt> (this is automatically
+  # appointed by <tt>ActiveSupport::TestCase.fixture_path=(path)</tt> (this is automatically
   # configured for Rails, so you can just put your files in <tt><your-rails-app>/test/fixtures/</tt>).
   # The fixture file ends with the +.yml+ file extension, for example:
   # <tt><your-rails-app>/test/fixtures/web_sites.yml</tt>).
@@ -57,7 +57,7 @@ module ActiveRecord
   #
   #   require 'test_helper'
   #
-  #   class WebSiteTest < ActiveRecord::TestCase
+  #   class WebSiteTest < ActiveSupport::TestCase
   #     test "web_site_count" do
   #       assert_equal 2, WebSite.count
   #     end
@@ -89,7 +89,7 @@ module ActiveRecord
   #   end
   #
   # In order to use these methods to access fixtured data within your testcases, you must specify one of the
-  # following in your ActiveRecord::TestCase-derived class:
+  # following in your ActiveSupport::TestCase-derived class:
   #
   # - to fully enable instantiated fixtures (enable alternate methods #1 and #2 above)
   #     self.use_instantiated_fixtures = true
@@ -144,7 +144,7 @@ module ActiveRecord
   # Test cases can use begin+rollback to isolate their changes to the database instead of having to
   # delete+insert for every test case.
   #
-  #   class FooTest < ActiveRecord::TestCase
+  #   class FooTest < ActiveSupport::TestCase
   #     self.use_transactional_tests = true
   #
   #     test "godzilla" do
