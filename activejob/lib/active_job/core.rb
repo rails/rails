@@ -114,7 +114,7 @@ module ActiveJob
       self.queue_name           = job_data["queue_name"]
       self.priority             = job_data["priority"]
       self.serialized_arguments = job_data["arguments"]
-      self.executions           = job_data["executions"]
+      self.executions           = job_data["executions"] || 0
       self.locale               = job_data["locale"] || I18n.locale.to_s
     end
 
