@@ -117,7 +117,7 @@ module ActiveRecord
     #
     def first(limit = nil)
       if limit
-        find_nth_with_limit_and_offset(0, limit, offset: offset_index)
+        find_nth_with_limit(0, limit)
       else
         find_nth 0
       end
@@ -520,22 +520,8 @@ module ActiveRecord
         end
       end
 
-      def find_nth(index, offset = nil)
-        # TODO: once the offset argument is removed we rely on offset_index
-        # within find_nth_with_limit, rather than pass it in via
-        # find_nth_with_limit_and_offset
-        if offset
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          Passing an offset argument to find_nth is deprecated,
-          please use Relation#offset instead.
-        MSG
-        end
-        if loaded?
-          records[index]
-        else
-          offset ||= offset_index
-          @offsets[offset + index] ||= find_nth_with_limit_and_offset(index, 1, offset: offset).first
-        end
+      def find_nth(index)
+        @offsets[offset_index + index] ||= find_nth_with_limit(index, 1).first
       end
 
       def find_nth!(index)
@@ -543,16 +529,18 @@ module ActiveRecord
       end
 
       def find_nth_with_limit(index, limit)
-        # TODO: once the offset argument is removed from find_nth,
-        # find_nth_with_limit_and_offset can be merged into this method.
-        relation = if order_values.empty? && primary_key
-          order(arel_attribute(primary_key).asc)
+        if loaded?
+          records[index, limit]
         else
-          self
-        end
+          relation = if order_values.empty? && primary_key
+            order(arel_attribute(primary_key).asc)
+          else
+            self
+          end
 
-        relation = relation.offset(index) unless index.zero?
-        relation.limit(limit).to_a
+          relation = relation.offset(offset_index + index) unless index.zero?
+          relation.limit(limit).to_a
+        end
       end
 
       def find_nth_from_last(index)
@@ -575,15 +563,6 @@ module ActiveRecord
       end
 
     private
-
-      def find_nth_with_limit_and_offset(index, limit, offset:) # :nodoc:
-        if loaded?
-          records[index, limit]
-        else
-          index += offset
-          find_nth_with_limit(index, limit)
-        end
-      end
 
       def find_last(limit)
         limit ? records.last(limit) : records.last
