@@ -150,6 +150,20 @@ module ActionController
         response.stream.close
       end
 
+      def write_sleep_autoload
+        path = File.join(File.dirname(__FILE__), "../fixtures")
+        ActiveSupport::Dependencies.autoload_paths << path
+
+        response.headers["Content-Type"] = "text/event-stream"
+        response.stream.write "before load"
+        sleep 0.01
+        ::LoadMe
+        response.stream.close
+        latch.count_down
+
+        ActiveSupport::Dependencies.autoload_paths.reject! {|p| p == path}
+      end
+
       def thread_locals
         tc.assert_equal "aaron", Thread.current[:setting]
 
@@ -279,6 +293,14 @@ module ActionController
       get :basic_stream
       assert_equal "helloworld", @response.body
       assert_equal "text/event-stream", @response.headers["Content-Type"]
+    end
+
+    def test_delayed_autoload_after_write_within_interlock_hook
+      # Simulate InterlockHook
+      ActiveSupport::Dependencies.interlock.start_running
+      res = get :write_sleep_autoload
+      res.each {}
+      ActiveSupport::Dependencies.interlock.done_running
     end
 
     def test_async_stream

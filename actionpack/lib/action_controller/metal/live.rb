@@ -205,7 +205,12 @@ module ActionController
       private
 
         def each_chunk(&block)
-          while str = @buf.pop
+          loop do
+            str = nil
+            ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+              str = @buf.pop
+            end
+            break unless str
             yield str
           end
         end
