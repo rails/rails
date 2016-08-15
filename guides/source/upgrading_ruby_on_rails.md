@@ -44,7 +44,7 @@ TIP: Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterp
 
 ### The Update Task
 
-Rails provides the `app:update` task (`rails:update` on 4.2 and earlier). After updating the Rails version
+Rails provides the `app:update` task (`rake rails:update` on 4.2 and earlier). After updating the Rails version
 in the Gemfile, run this task.
 This will help you with the creation of new files and changes of old files in an
 interactive session.
