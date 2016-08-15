@@ -1,7 +1,7 @@
-require 'uri'
-require 'active_support/core_ext/hash/indifferent_access'
-require 'active_support/core_ext/string/access'
-require 'action_controller/metal/exceptions'
+require "uri"
+require "active_support/core_ext/hash/indifferent_access"
+require "active_support/core_ext/string/access"
+require "action_controller/metal/exceptions"
 
 module ActionDispatch
   module Assertions
@@ -82,7 +82,7 @@ module ActionDispatch
             expected_path = uri.path.to_s.empty? ? "/" : uri.path
           end
         else
-          expected_path = "/#{expected_path}" unless expected_path.first == '/'
+          expected_path = "/#{expected_path}" unless expected_path.first == "/"
         end
         # Load routes.rb if it hasn't been loaded.
 
@@ -184,7 +184,7 @@ module ActionDispatch
           end
 
           # Assume given controller
-          request = ActionController::TestRequest.create
+          request = ActionController::TestRequest.create @controller.class
 
           if path =~ %r{://}
             fail_on(URI::InvalidURIError, msg) do
@@ -202,7 +202,7 @@ module ActionDispatch
           request.request_method = method if method
 
           params = fail_on(ActionController::RoutingError, msg) do
-            @routes.recognize_path(path, { :method => method, :extras => extras })
+            @routes.recognize_path(path, method: method, extras: extras)
           end
           request.path_parameters = params.with_indifferent_access
 

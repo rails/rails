@@ -41,9 +41,9 @@ module ActiveRecord
         set_inverse_instance(record)
 
         if raise
-          record.save!(:validate => validate)
+          record.save!(validate: validate)
         else
-          record.save(:validate => validate)
+          record.save(validate: validate)
         end
       end
 

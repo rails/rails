@@ -83,7 +83,7 @@ module ActionDispatch
         end
 
         def location_if_redirected
-          return '' unless @response.redirection? && @response.location.present?
+          return "" unless @response.redirection? && @response.location.present?
           location = normalize_argument_to_redirection(@response.location)
           " redirect to <#{location}>"
         end

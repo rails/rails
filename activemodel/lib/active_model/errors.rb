@@ -1,7 +1,7 @@
-require 'active_support/core_ext/array/conversions'
-require 'active_support/core_ext/string/inflections'
-require 'active_support/core_ext/object/deep_dup'
-require 'active_support/core_ext/string/filters'
+require "active_support/core_ext/array/conversions"
+require "active_support/core_ext/string/inflections"
+require "active_support/core_ext/object/deep_dup"
+require "active_support/core_ext/string/filters"
 
 module ActiveModel
   # == Active \Model \Errors
@@ -276,11 +276,11 @@ module ActiveModel
     #   person.errors.to_hash(true) # => {:name=>["name cannot be nil"]}
     def to_hash(full_messages = false)
       if full_messages
-        self.messages.each_with_object({}) do |(attribute, array), messages|
+        messages.each_with_object({}) do |(attribute, array), messages|
           messages[attribute] = array.map { |message| full_message(attribute, message) }
         end
       else
-        self.messages.dup
+        messages.dup
       end
     end
 
@@ -437,13 +437,12 @@ module ActiveModel
     #   person.errors.full_message(:name, 'is invalid') # => "Name is invalid"
     def full_message(attribute, message)
       return message if attribute == :base
-      attr_name = attribute.to_s.tr('.', '_').humanize
+      attr_name = attribute.to_s.tr(".", "_").humanize
       attr_name = @base.class.human_attribute_name(attribute, default: attr_name)
-      I18n.t(:"errors.format", {
+      I18n.t(:"errors.format",
         default:  "%{attribute} %{message}",
         attribute: attr_name,
-        message:   message
-      })
+        message:   message)
     end
 
     # Translates an error message in its default scope

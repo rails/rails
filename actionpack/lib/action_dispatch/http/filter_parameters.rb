@@ -1,4 +1,4 @@
-require 'action_dispatch/http/parameter_filter'
+require "action_dispatch/http/parameter_filter"
 
 module ActionDispatch
   module Http
@@ -70,7 +70,7 @@ module ActionDispatch
         ParameterFilter.new(filters)
       end
 
-      KV_RE   = '[^&;=]+'
+      KV_RE   = "[^&;=]+"
       PAIR_RE = %r{(#{KV_RE})=(#{KV_RE})}
       def filtered_query_string
         query_string.gsub(PAIR_RE) do |_|

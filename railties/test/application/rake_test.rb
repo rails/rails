@@ -82,7 +82,7 @@ module ApplicationTests
         end
       RUBY
 
-      app_file 'app/models/hello.rb', <<-RUBY
+      app_file "app/models/hello.rb", <<-RUBY
         class Hello
           def world
             puts 'Hello world'
@@ -91,7 +91,7 @@ module ApplicationTests
       RUBY
 
       output = Dir.chdir(app_path) { `bin/rails do_nothing` }
-      assert_match 'Hello world', output
+      assert_match "Hello world", output
     end
 
     def test_should_not_eager_load_model_for_rake
@@ -102,17 +102,17 @@ module ApplicationTests
         end
       RUBY
 
-      add_to_env_config 'production', <<-RUBY
+      add_to_env_config "production", <<-RUBY
         config.eager_load = true
       RUBY
 
-      app_file 'app/models/hello.rb', <<-RUBY
+      app_file "app/models/hello.rb", <<-RUBY
         raise 'should not be pre-required for rake even eager_load=true'
       RUBY
 
       Dir.chdir(app_path) do
-        assert system('bin/rails do_nothing RAILS_ENV=production'),
-               'should not be pre-required for rake even eager_load=true'
+        assert system("bin/rails do_nothing RAILS_ENV=production"),
+               "should not be pre-required for rake even eager_load=true"
       end
     end
 
@@ -346,7 +346,7 @@ module ApplicationTests
         # ensure we have a schema_migrations table to dump
         `bin/rails db:migrate db:structure:dump SCHEMA=db/my_structure.sql`
       end
-      assert File.exist?(File.join(app_path, 'db', 'my_structure.sql'))
+      assert File.exist?(File.join(app_path, "db", "my_structure.sql"))
     end
 
     def test_rake_dump_structure_should_be_called_twice_when_migrate_redo
@@ -367,24 +367,24 @@ module ApplicationTests
          bin/rails generate model product name:string;
          bin/rails db:migrate db:schema:cache:dump`
       end
-      assert File.exist?(File.join(app_path, 'db', 'schema_cache.dump'))
+      assert File.exist?(File.join(app_path, "db", "schema_cache.dump"))
     end
 
     def test_rake_clear_schema_cache
       Dir.chdir(app_path) do
         `bin/rails db:schema:cache:dump db:schema:cache:clear`
       end
-      assert !File.exist?(File.join(app_path, 'db', 'schema_cache.dump'))
+      assert !File.exist?(File.join(app_path, "db", "schema_cache.dump"))
     end
 
     def test_copy_templates
       Dir.chdir(app_path) do
         `bin/rails app:templates:copy`
         %w(controller mailer scaffold).each do |dir|
-          assert File.exist?(File.join(app_path, 'lib', 'templates', 'erb', dir))
+          assert File.exist?(File.join(app_path, "lib", "templates", "erb", dir))
         end
         %w(controller helper scaffold_controller assets).each do |dir|
-          assert File.exist?(File.join(app_path, 'lib', 'templates', 'rails', dir))
+          assert File.exist?(File.join(app_path, "lib", "templates", "rails", dir))
         end
       end
     end

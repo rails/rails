@@ -29,16 +29,15 @@ module ActionDispatch
 
         class All
           def self.call(_); true; end
-          def self.verb; ''; end
+          def self.verb; ""; end
         end
 
-        VERB_TO_CLASS = VERBS.each_with_object({ :all => All }) do |verb, hash|
+        VERB_TO_CLASS = VERBS.each_with_object(all: All) do |verb, hash|
           klass = const_get verb
           hash[verb]                 = klass
           hash[verb.downcase]        = klass
           hash[verb.downcase.to_sym] = klass
         end
-
       end
 
       def self.verb_matcher(verb)
@@ -164,17 +163,17 @@ module ActionDispatch
       end
 
       def verb
-        verbs.join('|')
+        verbs.join("|")
       end
 
       private
-      def verbs
-        @request_method_match.map(&:verb)
-      end
+        def verbs
+          @request_method_match.map(&:verb)
+        end
 
-      def match_verb(request)
-        @request_method_match.any? { |m| m.call request }
-      end
+        def match_verb(request)
+          @request_method_match.any? { |m| m.call request }
+        end
     end
   end
 end

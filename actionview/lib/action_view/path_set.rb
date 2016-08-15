@@ -69,30 +69,30 @@ module ActionView #:nodoc:
 
     private
 
-    def _find_all(path, prefixes, args, outside_app)
-      prefixes = [prefixes] if String === prefixes
-      prefixes.each do |prefix|
-        paths.each do |resolver|
-          if outside_app
-            templates = resolver.find_all_anywhere(path, prefix, *args)
-          else
-            templates = resolver.find_all(path, prefix, *args)
+      def _find_all(path, prefixes, args, outside_app)
+        prefixes = [prefixes] if String === prefixes
+        prefixes.each do |prefix|
+          paths.each do |resolver|
+            if outside_app
+              templates = resolver.find_all_anywhere(path, prefix, *args)
+            else
+              templates = resolver.find_all(path, prefix, *args)
+            end
+            return templates unless templates.empty?
           end
-          return templates unless templates.empty?
         end
+        []
       end
-      []
-    end
 
-    def typecast(paths)
-      paths.map do |path|
-        case path
-        when Pathname, String
-          OptimizedFileSystemResolver.new path.to_s
-        else
-          path
+      def typecast(paths)
+        paths.map do |path|
+          case path
+          when Pathname, String
+            OptimizedFileSystemResolver.new path.to_s
+          else
+            path
+          end
         end
       end
-    end
   end
 end

@@ -1,13 +1,13 @@
 begin
-  require 'dalli'
+  require "dalli"
 rescue LoadError => e
   $stderr.puts "You don't have dalli installed in your application. Please add it to your Gemfile and run bundle install"
   raise e
 end
 
-require 'digest/md5'
-require 'active_support/core_ext/marshal'
-require 'active_support/core_ext/array/extract_options'
+require "digest/md5"
+require "active_support/core_ext/marshal"
+require "active_support/core_ext/array/extract_options"
 
 module ActiveSupport
   module Cache
@@ -27,23 +27,23 @@ module ActiveSupport
       # Provide support for raw values in the local cache strategy.
       module LocalCacheWithRaw # :nodoc:
         protected
-        def read_entry(key, options)
-          entry = super
-          if options[:raw] && local_cache && entry
-            entry = deserialize_entry(entry.value)
+          def read_entry(key, options)
+            entry = super
+            if options[:raw] && local_cache && entry
+              entry = deserialize_entry(entry.value)
+            end
+            entry
           end
-          entry
-        end
 
-        def write_entry(key, entry, options) # :nodoc:
-          if options[:raw] && local_cache
-            raw_entry = Entry.new(entry.value.to_s)
-            raw_entry.expires_at = entry.expires_at
-            super(key, raw_entry, options)
-          else
-            super
+          def write_entry(key, entry, options) # :nodoc:
+            if options[:raw] && local_cache
+              raw_entry = Entry.new(entry.value.to_s)
+              raw_entry.expires_at = entry.expires_at
+              super(key, raw_entry, options)
+            else
+              super
+            end
           end
-        end
       end
 
       prepend Strategy::LocalCache
@@ -97,7 +97,7 @@ module ActiveSupport
         options = merged_options(options)
 
         keys_to_names = Hash[names.map{|name| [normalize_key(name, options), name]}]
-        raw_values = @data.get_multi(keys_to_names.keys, :raw => true)
+        raw_values = @data.get_multi(keys_to_names.keys, raw: true)
         values = {}
         raw_values.each do |key, value|
           entry = deserialize_entry(value)
@@ -112,7 +112,7 @@ module ActiveSupport
       # to zero.
       def increment(name, amount = 1, options = nil) # :nodoc:
         options = merged_options(options)
-        instrument(:increment, name, :amount => amount) do
+        instrument(:increment, name, amount: amount) do
           rescue_error_with nil do
             @data.incr(normalize_key(name, options), amount)
           end
@@ -125,7 +125,7 @@ module ActiveSupport
       # to zero.
       def decrement(name, amount = 1, options = nil) # :nodoc:
         options = merged_options(options)
-        instrument(:decrement, name, :amount => amount) do
+        instrument(:decrement, name, amount: amount) do
           rescue_error_with nil do
             @data.decr(normalize_key(name, options), amount)
           end

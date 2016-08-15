@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class MyCustomDelivery
 end
@@ -23,7 +23,7 @@ class DefaultsDeliveryMethodsTest < ActiveSupport::TestCase
   test "default smtp settings" do
     settings = { address:              "localhost",
                  port:                 25,
-                 domain:               'localhost.localdomain',
+                 domain:               "localhost.localdomain",
                  user_name:            nil,
                  password:             nil,
                  authentication:       nil,
@@ -38,8 +38,8 @@ class DefaultsDeliveryMethodsTest < ActiveSupport::TestCase
 
   test "default sendmail settings" do
     settings = {
-      location:  '/usr/sbin/sendmail',
-      arguments: '-i'
+      location:  "/usr/sbin/sendmail",
+      arguments: "-i"
     }
     assert_equal settings, ActionMailer::Base.sendmail_settings
   end
@@ -83,8 +83,8 @@ end
 class MailDeliveryTest < ActiveSupport::TestCase
   class DeliveryMailer < ActionMailer::Base
     DEFAULT_HEADERS = {
-      to: 'mikel@test.lindsaar.net',
-      from: 'jose@test.plataformatec.com'
+      to: "mikel@test.lindsaar.net",
+      from: "jose@test.plataformatec.com"
     }
 
     def welcome(hash={})
@@ -145,7 +145,7 @@ class MailDeliveryTest < ActiveSupport::TestCase
     settings = {
       address: "localhost",
       port: 25,
-      domain: 'localhost.localdomain',
+      domain: "localhost.localdomain",
       user_name: nil,
       password: nil,
       authentication: nil,

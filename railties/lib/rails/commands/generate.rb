@@ -1,9 +1,9 @@
-require 'rails/generators'
+require "rails/generators"
 
 #if no argument/-h/--help is passed to rails generate command, then
 #it generates the help associated.
 if [nil, "-h", "--help"].include?(ARGV.first)
-  Rails::Generators.help 'generate'
+  Rails::Generators.help "generate"
   exit
 end
 

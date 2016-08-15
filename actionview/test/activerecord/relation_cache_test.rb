@@ -1,4 +1,4 @@
-require 'active_record_unit'
+require "active_record_unit"
 
 class RelationCacheTest <  ActionView::TestCase
   tests ActionView::Helpers::CacheHelper
@@ -14,5 +14,4 @@ class RelationCacheTest <  ActionView::TestCase
   end
 
   def view_cache_dependencies; end
-
 end

@@ -1,11 +1,10 @@
-require 'rack/body_proxy'
-require 'rack/utils'
+require "rack/body_proxy"
+require "rack/utils"
 
 module ActiveSupport
   module Cache
     module Strategy
       module LocalCache
-
         #--
         # This class wraps up local storage for middlewares. Only the middleware method should
         # construct them.

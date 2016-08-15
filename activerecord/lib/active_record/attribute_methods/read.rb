@@ -24,24 +24,24 @@ module ActiveRecord
         # to allocate an object on each call to the attribute method.
         # Making it frozen means that it doesn't get duped when used to
         # key the @attributes in read_attribute.
-        def define_method_attribute(name)
-          safe_name = name.unpack('h*'.freeze).first
-          temp_method = "__temp__#{safe_name}"
+          def define_method_attribute(name)
+            safe_name = name.unpack("h*".freeze).first
+            temp_method = "__temp__#{safe_name}"
 
-          ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
+            ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
 
-          generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
+            generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
             def #{temp_method}
               name = ::ActiveRecord::AttributeMethods::AttrNames::ATTR_#{safe_name}
               _read_attribute(name) { |n| missing_attribute(n, caller) }
             end
           STR
 
-          generated_attribute_methods.module_eval do
-            alias_method name, temp_method
-            undef_method temp_method
+            generated_attribute_methods.module_eval do
+              alias_method name, temp_method
+              undef_method temp_method
+            end
           end
-        end
       end
 
       # Returns the value of the attribute identified by <tt>attr_name</tt> after
@@ -49,7 +49,7 @@ module ActiveRecord
       # to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name, &block)
         name = attr_name.to_s
-        name = self.class.primary_key if name == 'id'.freeze
+        name = self.class.primary_key if name == "id".freeze
         _read_attribute(name, &block)
       end
 
@@ -69,7 +69,6 @@ module ActiveRecord
 
       alias :attribute :_read_attribute
       private :attribute
-
     end
   end
 end

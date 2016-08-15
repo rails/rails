@@ -1,15 +1,15 @@
-require 'cases/helper'
-require 'models/contact'
-require 'active_support/core_ext/object/instance_variables'
+require "cases/helper"
+require "models/contact"
+require "active_support/core_ext/object/instance_variables"
 
 class JsonSerializationTest < ActiveModel::TestCase
   def setup
     @contact = Contact.new
-    @contact.name = 'Konata Izumi'
+    @contact.name = "Konata Izumi"
     @contact.age = 16
     @contact.created_at = Time.utc(2006, 8, 1)
     @contact.awesome = true
-    @contact.preferences = { 'shows' => 'anime' }
+    @contact.preferences = { "shows" => "anime" }
   end
 
   test "should not include root in json (class method)" do
@@ -53,7 +53,7 @@ class JsonSerializationTest < ActiveModel::TestCase
   end
 
   test "should include custom root in json" do
-    json = @contact.to_json(root: 'json_contact')
+    json = @contact.to_json(root: "json_contact")
 
     assert_match %r{^\{"json_contact":\{}, json
     assert_match %r{"name":"Konata Izumi"}, json
@@ -134,9 +134,9 @@ class JsonSerializationTest < ActiveModel::TestCase
       json = @contact.as_json
 
       assert_kind_of Hash, json
-      assert_kind_of Hash, json['contact']
+      assert_kind_of Hash, json["contact"]
       %w(name age created_at awesome preferences).each do |field|
-        assert_equal @contact.send(field), json['contact'][field]
+        assert_equal @contact.send(field), json["contact"][field]
       end
     ensure
       Contact.include_root_in_json = original_include_root_in_json

@@ -68,7 +68,7 @@ The Rails philosophy includes two major guiding principles:
   again, our code is more maintainable, more extensible, and less buggy.
 * **Convention Over Configuration:** Rails has opinions about the best way to do many
   things in a web application, and defaults to this set of conventions, rather than
-  require that you specify every minutiae through endless configuration files.
+  require that you specify minutiae through endless configuration files.
 
 Creating a New Rails Project
 ----------------------------
@@ -147,6 +147,10 @@ $ rails new blog
 This will create a Rails application called Blog in a `blog` directory and
 install the gem dependencies that are already mentioned in `Gemfile` using
 `bundle install`.
+
+NOTE: If you're using Windows Subsystem for Linux then there are currently some
+limitations on file system notifications that mean you should disable the `spring`
+and `listen` gems which you can do by running `rails new blog --skip-spring --skip-listen`.
 
 TIP: You can see all of the command line options that the Rails application
 builder accepts by running `rails new -h`.
@@ -465,29 +469,24 @@ The first part identifies which template is missing. In this case, it's the
 then it will attempt to load a template called `application/new`. It looks for
 one here because the `ArticlesController` inherits from `ApplicationController`.
 
-The next part of the message contains a hash. The `:locale` key in this hash
-simply indicates which spoken language template should be retrieved. By default,
-this is the English - or "en" - template. The next key, `:formats` specifies the
-format of the template to be served in response. The default format is `:html`, and
-so Rails is looking for an HTML template. The final key, `:handlers`, is telling
-us what _template handlers_ could be used to render our template. `:erb` is most
-commonly used for HTML templates, `:builder` is used for XML templates, and
-`:coffee` uses CoffeeScript to build JavaScript templates.
-
-The message also contains `request.formats` which specifies the format of template to be
-served in response. It is set to `text/html` as we requested this page via browser, so Rails
-is looking for an HTML template.
+The next part of the message contains `request.formats` which specifies
+the format of template to be served in response. It is set to `text/html` as we
+requested this page via browser, so Rails is looking for an HTML template.
+`request.variants` specifies what kind of physical devices would be served by
+the response and helps Rails determine which template to use in the response.
+It is empty because no information has been provided.
 
 The simplest template that would work in this case would be one located at
 `app/views/articles/new.html.erb`. The extension of this file name is important:
 the first extension is the _format_ of the template, and the second extension
-is the _handler_ that will be used. Rails is attempting to find a template
-called `articles/new` within `app/views` for the application. The format for
-this template can only be `html` and the handler must be one of `erb`,
-`builder` or `coffee`. `:erb` is most commonly used for HTML templates, `:builder` is
-used for XML templates, and `:coffee` uses CoffeeScript to build JavaScript templates.
-Because you want to create a new HTML form, you will be
-using the `ERB` language which is designed to embed Ruby in HTML.
+is the _handler_ that will be used to render the template. Rails is attempting
+to find a template called `articles/new` within `app/views` for the
+application. The format for this template can only be `html` and the default
+handler for HTML is `erb`. Rails uses other handlers for other formats.
+`builder` handler is used to build XML templates and `coffee` handler uses
+CoffeeScript to build JavaScript templates. Because you want to create a new
+HTML form, you will be using the `ERB` language which is designed to embed Ruby
+in HTML.
 
 Therefore the file should be called `articles/new.html.erb` and needs to be
 located inside the `app/views` directory of the application.

@@ -39,9 +39,9 @@ module ActiveRecord
         ensure_not_nested
 
         if raise
-          record.save!(:validate => validate)
+          record.save!(validate: validate)
         else
-          return unless record.save(:validate => validate)
+          return unless record.save(validate: validate)
         end
 
         save_through_record(record)
@@ -146,7 +146,7 @@ module ActiveRecord
               stmt.from scope.klass.arel_table
               stmt.wheres = arel.constraints
 
-              count = scope.klass.connection.delete(stmt, 'SQL', scope.bound_attributes)
+              count = scope.klass.connection.delete(stmt, "SQL", scope.bound_attributes)
             end
           when :nullify
             count = scope.update_all(source_reflection.foreign_key => nil)
@@ -196,7 +196,7 @@ module ActiveRecord
 
         def find_target
           return [] unless target_reflection_has_associated_record?
-          get_records
+          super
         end
 
         # NOTE - not sure that we can actually cope with inverses here

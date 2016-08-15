@@ -1,11 +1,11 @@
-require 'generators/generators_test_helper'
-require 'rails/generators/rails/app/app_generator'
+require "generators/generators_test_helper"
+require "rails/generators/rails/app/app_generator"
 
 class ApiAppGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
   tests Rails::Generators::AppGenerator
 
-  arguments [destination_root, '--api']
+  arguments [destination_root, "--api"]
 
   def setup
     Rails.application = TestApp::Application
@@ -73,51 +73,50 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
 
   private
 
-  def default_files
-    files = %W(
-      .gitignore
-      Gemfile
-      Rakefile
-      config.ru
-      app/controllers
-      app/mailers
-      app/models
-      app/views/layouts/mailer.html.erb
-      app/views/layouts/mailer.text.erb
-      config/environments
-      config/initializers
-      config/locales
-      db
-      lib
-      lib/tasks
-      log
-      test/fixtures
-      test/controllers
-      test/integration
-      test/models
-      tmp
-      vendor
-    )
-    files.concat %w(bin/bundle bin/rails bin/rake)
-    files
-  end
+    def default_files
+      files = %W(
+        .gitignore
+        Gemfile
+        Rakefile
+        config.ru
+        app/controllers
+        app/mailers
+        app/models
+        app/views/layouts/mailer.html.erb
+        app/views/layouts/mailer.text.erb
+        config/environments
+        config/initializers
+        config/locales
+        db
+        lib
+        lib/tasks
+        log
+        test/fixtures
+        test/controllers
+        test/integration
+        test/models
+        tmp
+        vendor
+      )
+      files.concat %w(bin/bundle bin/rails bin/rake)
+      files
+    end
 
-  def skipped_files
-    %w(app/assets
-       app/helpers
-       app/views/layouts/application.html.erb
-       config/initializers/assets.rb
-       config/initializers/cookies_serializer.rb
-       config/initializers/session_store.rb
-       lib/assets
-       vendor/assets
-       test/helpers
-       tmp/cache/assets
-       public/404.html
-       public/422.html
-       public/500.html
-       public/apple-touch-icon-precomposed.png
-       public/apple-touch-icon.png
-       public/favicon.ico)
-  end
+    def skipped_files
+      %w(app/assets
+         app/helpers
+         app/views/layouts/application.html.erb
+         config/initializers/assets.rb
+         config/initializers/cookies_serializer.rb
+         lib/assets
+         vendor/assets
+         test/helpers
+         tmp/cache/assets
+         public/404.html
+         public/422.html
+         public/500.html
+         public/apple-touch-icon-precomposed.png
+         public/apple-touch-icon.png
+         public/favicon.ico)
+    end
 end

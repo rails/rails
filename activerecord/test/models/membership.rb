@@ -9,7 +9,7 @@ class CurrentMembership < Membership
 end
 
 class SuperMembership < Membership
-  belongs_to :member, -> { order('members.id DESC') }
+  belongs_to :member, -> { order("members.id DESC") }
   belongs_to :club
 end
 

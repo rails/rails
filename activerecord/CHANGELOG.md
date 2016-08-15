@@ -1,3 +1,36 @@
+*   Hashes can once again be passed to setters of `composed_of`, if all of the
+    mapping methods are methods implemented on `Hash`.
+
+    Fixes #25978.
+
+    *Sean Griffin*
+
+*   Fix the SELECT statement in `#table_comment` for MySQL.
+
+    *Takeshi Akima*
+
+*   Virtual attributes will no longer raise when read on models loaded from the
+    database
+
+    *Sean Griffin*
+
+*   Support calling the method `merge` in `scope`'s lambda.
+
+    *Yasuhiro Sugino*
+
+*   Fixes multi-parameter attributes conversion with invalid params.
+
+    *Hiroyuki Ishii*
+
+*   Add newline between each migration in `structure.sql`.
+
+    Keeps schema migration inserts as a single commit, but allows for easier
+    git diffing.
+
+    Fixes #25504.
+
+    *Grey Baker*, *Norberto Lopes*
+
 *   The flag `error_on_ignored_order_or_limit` has been deprecated in favor of
     the current `error_on_ignored_order`.
 
@@ -14,7 +47,9 @@
     *Xavier Noria*
 
 *   Using `group` with an attribute that has a custom type will properly cast
-    the hash keys after calling a calculation method like `count`. Fixes #25595.
+    the hash keys after calling a calculation method like `count`. 
+    
+    Fixes #25595.
 
     *Sean Griffin*
 
@@ -48,6 +83,7 @@
     *Sean Griffin*
 
 *   Ensure hashes can be assigned to attributes created using `composed_of`.
+    
     Fixes #25210.
 
     *Sean Griffin*
@@ -67,7 +103,7 @@
 
     *Erol Fornoles*
 
-*   PostgreSQL: Fix db:structure:load silent failure on SQL error.
+*   PostgreSQL: Fix `db:structure:load` silent failure on SQL error.
 
     The command line flag `-v ON_ERROR_STOP=1` should be used
     when invoking `psql` to make sure errors are not suppressed.

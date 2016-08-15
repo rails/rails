@@ -1,5 +1,5 @@
-require 'active_support/test_case'
-require 'rails-dom-testing'
+require "active_support/test_case"
+require "rails-dom-testing"
 
 module ActionMailer
   class NonInferrableMailerError < ::StandardError
@@ -21,11 +21,11 @@ module ActionMailer
 
       private
 
-      def clear_test_deliveries
-        if ActionMailer::Base.delivery_method == :test
-          ActionMailer::Base.deliveries.clear
+        def clear_test_deliveries
+          if ActionMailer::Base.delivery_method == :test
+            ActionMailer::Base.deliveries.clear
+          end
         end
-      end
     end
 
     module Behavior
@@ -99,7 +99,7 @@ module ActionMailer
         def set_expected_mail # :nodoc:
           @expected = Mail.new
           @expected.content_type ["text", "plain", { "charset" => charset }]
-          @expected.mime_version = '1.0'
+          @expected.mime_version = "1.0"
         end
 
       private
@@ -113,7 +113,7 @@ module ActionMailer
         end
 
         def read_fixture(action)
-          IO.readlines(File.join(Rails.root, 'test', 'fixtures', self.class.mailer_class.name.underscore, action))
+          IO.readlines(File.join(Rails.root, "test", "fixtures", self.class.mailer_class.name.underscore, action))
         end
     end
 

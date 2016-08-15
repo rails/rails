@@ -1,13 +1,12 @@
-require 'rack/utils'
-require 'rack/request'
-require 'rack/session/abstract/id'
-require 'action_dispatch/middleware/cookies'
-require 'action_dispatch/request/session'
+require "rack/utils"
+require "rack/request"
+require "rack/session/abstract/id"
+require "action_dispatch/middleware/cookies"
+require "action_dispatch/request/session"
 
 module ActionDispatch
   module Session
     class SessionRestoreError < StandardError #:nodoc:
-
       def initialize(const_error = nil)
         if const_error
           ActiveSupport::Deprecation.warn("Passing #original_exception is deprecated and has no effect. " \
@@ -28,7 +27,7 @@ module ActionDispatch
 
     module Compatibility
       def initialize(app, options = {})
-        options[:key] ||= '_session_id'
+        options[:key] ||= "_session_id"
         super
       end
 
@@ -46,9 +45,9 @@ module ActionDispatch
       end
 
       private
-      def make_request(env)
-        ActionDispatch::Request.new env
-      end
+        def make_request(env)
+          ActionDispatch::Request.new env
+        end
     end
 
     module StaleSessionCheck
@@ -94,9 +93,9 @@ module ActionDispatch
 
       private
 
-      def set_cookie(request, session_id, cookie)
-        request.cookie_jar[key] = cookie
-      end
+        def set_cookie(request, session_id, cookie)
+          request.cookie_jar[key] = cookie
+        end
     end
   end
 end

@@ -1,9 +1,9 @@
 require "cases/helper"
-require 'models/man'
-require 'models/face'
-require 'models/interest'
-require 'models/speedometer'
-require 'models/dashboard'
+require "models/man"
+require "models/face"
+require "models/interest"
+require "models/speedometer"
+require "models/dashboard"
 
 class PresenceValidationTest < ActiveRecord::TestCase
   class Boy < Man; end
@@ -57,7 +57,7 @@ class PresenceValidationTest < ActiveRecord::TestCase
     dash = Dashboard.new
 
     # dashboard has to_a method
-    def dash.to_a; ['(/)', '(\)']; end
+    def dash.to_a; ["(/)", '(\)']; end
 
     s = speedometer.new
     s.dashboard = dash
@@ -71,10 +71,10 @@ class PresenceValidationTest < ActiveRecord::TestCase
       Interest.validates_presence_of(:topic)
       Interest.validates_presence_of(:abbreviation)
 
-      interest = Interest.create!(topic: 'Thought Leadering', abbreviation: 'tl')
+      interest = Interest.create!(topic: "Thought Leadering", abbreviation: "tl")
       assert interest.valid?
 
-      interest.abbreviation = ''
+      interest.abbreviation = ""
 
       assert interest.invalid?
     end

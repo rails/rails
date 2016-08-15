@@ -1,9 +1,9 @@
-require 'yaml'
+require "yaml"
+require "active_support/core_ext/regexp"
 
 module ActiveRecord
   module Coders # :nodoc:
     class YAMLColumn # :nodoc:
-
       attr_accessor :object_class
 
       def initialize(object_class = Object)
@@ -20,7 +20,7 @@ module ActiveRecord
 
       def load(yaml)
         return object_class.new if object_class != Object && yaml.nil?
-        return yaml unless yaml.is_a?(String) && yaml =~ /^---/
+        return yaml unless yaml.is_a?(String) && /^---/.match?(yaml)
         obj = YAML.load(yaml)
 
         assert_valid_value(obj)
@@ -38,13 +38,13 @@ module ActiveRecord
 
       private
 
-      def check_arity_of_constructor
-        begin
-          load(nil)
-        rescue ArgumentError
-          raise ArgumentError, "Cannot serialize #{object_class}. Classes passed to `serialize` must have a 0 argument constructor."
+        def check_arity_of_constructor
+          begin
+            load(nil)
+          rescue ArgumentError
+            raise ArgumentError, "Cannot serialize #{object_class}. Classes passed to `serialize` must have a 0 argument constructor."
+          end
         end
-      end
     end
   end
 end

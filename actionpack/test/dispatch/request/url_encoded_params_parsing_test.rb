@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
@@ -18,7 +18,7 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
 
   test "parses unbalanced query string with array" do
     query    = "location[]=1&location[]=2&age_group[]=2"
-    expected = { 'location' => ["1", "2"], 'age_group' => ["2"] }
+    expected = { "location" => ["1", "2"], "age_group" => ["2"] }
     assert_parses expected, query
   end
 
@@ -141,7 +141,7 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
       with_routing do |set|
         set.draw do
           ActiveSupport::Deprecation.silence do
-            post ':action', to: ::UrlEncodedParamsParsingTest::TestController
+            post ":action", to: ::UrlEncodedParamsParsingTest::TestController
           end
         end
         yield

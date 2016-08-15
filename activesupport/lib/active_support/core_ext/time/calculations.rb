@@ -1,9 +1,9 @@
-require 'active_support/duration'
-require 'active_support/core_ext/time/conversions'
-require 'active_support/time_with_zone'
-require 'active_support/core_ext/time/zones'
-require 'active_support/core_ext/date_and_time/calculations'
-require 'active_support/core_ext/date/calculations'
+require "active_support/duration"
+require "active_support/core_ext/time/conversions"
+require "active_support/time_with_zone"
+require "active_support/core_ext/time/zones"
+require "active_support/core_ext/date_and_time/calculations"
+require "active_support/core_ext/date/calculations"
 
 class Time
   include DateAndTime::Calculations
@@ -61,7 +61,7 @@ class Time
   #   Time.new(2012, 8, 29, 12, 34, 56).seconds_since_midnight # => 45296.0
   #   Time.new(2012, 8, 29, 23, 59, 59).seconds_since_midnight # => 86399.0
   def seconds_since_midnight
-    to_i - change(:hour => 0).to_i + (usec / 1.0e+6)
+    to_i - change(hour: 0).to_i + (usec / 1.0e+6)
   end
 
   # Returns the number of seconds until 23:59:59.
@@ -112,7 +112,7 @@ class Time
     elsif zone
       ::Time.local(new_year, new_month, new_day, new_hour, new_min, new_sec, new_usec)
     else
-      raise ArgumentError, 'argument out of range' if new_usec >= 1000000
+      raise ArgumentError, "argument out of range" if new_usec >= 1000000
       ::Time.new(new_year, new_month, new_day, new_hour, new_min, new_sec + (new_usec.to_r / 1000000), utc_offset)
     end
   end
@@ -141,7 +141,7 @@ class Time
 
     d = to_date.advance(options)
     d = d.gregorian if d.julian?
-    time_advanced_by_date = change(:year => d.year, :month => d.month, :day => d.day)
+    time_advanced_by_date = change(year: d.year, month: d.month, day: d.day)
     seconds_to_advance = \
       options.fetch(:seconds, 0) +
       options.fetch(:minutes, 0) * 60 +
@@ -169,7 +169,7 @@ class Time
 
   # Returns a new Time representing the start of the day (0:00)
   def beginning_of_day
-    change(:hour => 0)
+    change(hour: 0)
   end
   alias :midnight :beginning_of_day
   alias :at_midnight :beginning_of_day
@@ -177,7 +177,7 @@ class Time
 
   # Returns a new Time representing the middle of the day (12:00)
   def middle_of_day
-    change(:hour => 12)
+    change(hour: 12)
   end
   alias :midday :middle_of_day
   alias :noon :middle_of_day
@@ -188,41 +188,41 @@ class Time
   # Returns a new Time representing the end of the day, 23:59:59.999999
   def end_of_day
     change(
-      :hour => 23,
-      :min => 59,
-      :sec => 59,
-      :usec => Rational(999999999, 1000)
+      hour: 23,
+      min: 59,
+      sec: 59,
+      usec: Rational(999999999, 1000)
     )
   end
   alias :at_end_of_day :end_of_day
 
   # Returns a new Time representing the start of the hour (x:00)
   def beginning_of_hour
-    change(:min => 0)
+    change(min: 0)
   end
   alias :at_beginning_of_hour :beginning_of_hour
 
   # Returns a new Time representing the end of the hour, x:59:59.999999
   def end_of_hour
     change(
-      :min => 59,
-      :sec => 59,
-      :usec => Rational(999999999, 1000)
+      min: 59,
+      sec: 59,
+      usec: Rational(999999999, 1000)
     )
   end
   alias :at_end_of_hour :end_of_hour
 
   # Returns a new Time representing the start of the minute (x:xx:00)
   def beginning_of_minute
-    change(:sec => 0)
+    change(sec: 0)
   end
   alias :at_beginning_of_minute :beginning_of_minute
 
   # Returns a new Time representing the end of the minute, x:xx:59.999999
   def end_of_minute
     change(
-      :sec => 59,
-      :usec => Rational(999999999, 1000)
+      sec: 59,
+      usec: Rational(999999999, 1000)
     )
   end
   alias :at_end_of_minute :end_of_minute
@@ -281,5 +281,4 @@ class Time
   end
   alias_method :eql_without_coercion, :eql?
   alias_method :eql?, :eql_with_coercion
-
 end

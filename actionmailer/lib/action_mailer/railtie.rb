@@ -1,4 +1,4 @@
-require 'active_job/railtie'
+require "active_job/railtie"
 require "action_mailer"
 require "rails"
 require "abstract_controller/railties/routes_helpers"
@@ -18,7 +18,7 @@ module ActionMailer
 
       if app.config.force_ssl
         options.default_url_options ||= {}
-        options.default_url_options[:protocol] ||= 'https'
+        options.default_url_options[:protocol] ||= "https"
       end
 
       options.assets_dir      ||= paths["public"].first
@@ -61,8 +61,8 @@ module ActionMailer
 
       if options.show_previews
         app.routes.prepend do
-          get '/rails/mailers'         => "rails/mailers#index", internal: true
-          get '/rails/mailers/*path'   => "rails/mailers#preview", internal: true
+          get "/rails/mailers"         => "rails/mailers#index", internal: true
+          get "/rails/mailers/*path"   => "rails/mailers#preview", internal: true
         end
 
         if options.preview_path

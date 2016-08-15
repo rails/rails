@@ -13,7 +13,7 @@ module ApplicationTests
         teardown_app
       end
 
-      test 'rake restart touches tmp/restart.txt' do
+      test "rake restart touches tmp/restart.txt" do
         Dir.chdir(app_path) do
           `rake restart`
           assert File.exist?("tmp/restart.txt")
@@ -26,15 +26,15 @@ module ApplicationTests
         end
       end
 
-      test 'rake restart should work even if tmp folder does not exist' do
+      test "rake restart should work even if tmp folder does not exist" do
         Dir.chdir(app_path) do
-          FileUtils.remove_dir('tmp')
+          FileUtils.remove_dir("tmp")
           `rake restart`
-          assert File.exist?('tmp/restart.txt')
+          assert File.exist?("tmp/restart.txt")
         end
       end
 
-      test 'rake restart removes server.pid also' do
+      test "rake restart removes server.pid also" do
         Dir.chdir(app_path) do
           FileUtils.mkdir_p("tmp/pids")
           FileUtils.touch("tmp/pids/server.pid")

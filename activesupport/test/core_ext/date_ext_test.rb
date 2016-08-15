@@ -1,7 +1,7 @@
-require 'abstract_unit'
-require 'active_support/time'
-require 'core_ext/date_and_time_behavior'
-require 'time_zone_test_helpers'
+require "abstract_unit"
+require "active_support/time"
+require "core_ext/date_and_time_behavior"
+require "time_zone_test_helpers"
 
 class DateExtCalculationsTest < ActiveSupport::TestCase
   def date_time_init(year,month,day,*args)
@@ -47,7 +47,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_to_time
-    with_env_tz 'US/Eastern' do
+    with_env_tz "US/Eastern" do
       assert_equal Time, Date.new(2005, 2, 21).to_time.class
       assert_equal Time.local(2005, 2, 21), Date.new(2005, 2, 21).to_time
       assert_equal Time.local(2005, 2, 21).utc_offset, Date.new(2005, 2, 21).to_time.utc_offset
@@ -81,10 +81,10 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_change
-    assert_equal Date.new(2005, 2, 21), Date.new(2005, 2, 11).change(:day => 21)
-    assert_equal Date.new(2007, 5, 11), Date.new(2005, 2, 11).change(:year => 2007, :month => 5)
-    assert_equal Date.new(2006,2,22), Date.new(2005,2,22).change(:year => 2006)
-    assert_equal Date.new(2005,6,22), Date.new(2005,2,22).change(:month => 6)
+    assert_equal Date.new(2005, 2, 21), Date.new(2005, 2, 11).change(day: 21)
+    assert_equal Date.new(2007, 5, 11), Date.new(2005, 2, 11).change(year: 2007, month: 5)
+    assert_equal Date.new(2006,2,22), Date.new(2005,2,22).change(year: 2006)
+    assert_equal Date.new(2005,6,22), Date.new(2005,2,22).change(month: 6)
   end
 
   def test_sunday
@@ -139,34 +139,34 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_advance
-    assert_equal Date.new(2006,2,28), Date.new(2005,2,28).advance(:years => 1)
-    assert_equal Date.new(2005,6,28), Date.new(2005,2,28).advance(:months => 4)
-    assert_equal Date.new(2005,3,21), Date.new(2005,2,28).advance(:weeks => 3)
-    assert_equal Date.new(2005,3,5), Date.new(2005,2,28).advance(:days => 5)
-    assert_equal Date.new(2012,9,28), Date.new(2005,2,28).advance(:years => 7, :months => 7)
-    assert_equal Date.new(2013,10,3), Date.new(2005,2,28).advance(:years => 7, :months => 19, :days => 5)
-    assert_equal Date.new(2013,10,17), Date.new(2005,2,28).advance(:years => 7, :months => 19, :weeks => 2, :days => 5)
-    assert_equal Date.new(2005,2,28), Date.new(2004,2,29).advance(:years => 1) #leap day plus one year
+    assert_equal Date.new(2006,2,28), Date.new(2005,2,28).advance(years: 1)
+    assert_equal Date.new(2005,6,28), Date.new(2005,2,28).advance(months: 4)
+    assert_equal Date.new(2005,3,21), Date.new(2005,2,28).advance(weeks: 3)
+    assert_equal Date.new(2005,3,5), Date.new(2005,2,28).advance(days: 5)
+    assert_equal Date.new(2012,9,28), Date.new(2005,2,28).advance(years: 7, months: 7)
+    assert_equal Date.new(2013,10,3), Date.new(2005,2,28).advance(years: 7, months: 19, days: 5)
+    assert_equal Date.new(2013,10,17), Date.new(2005,2,28).advance(years: 7, months: 19, weeks: 2, days: 5)
+    assert_equal Date.new(2005,2,28), Date.new(2004,2,29).advance(years: 1) #leap day plus one year
   end
 
   def test_advance_does_first_years_and_then_days
-    assert_equal Date.new(2012, 2, 29), Date.new(2011, 2, 28).advance(:years => 1, :days => 1)
+    assert_equal Date.new(2012, 2, 29), Date.new(2011, 2, 28).advance(years: 1, days: 1)
     # If day was done first we would jump to 2012-03-01 instead.
   end
 
   def test_advance_does_first_months_and_then_days
-    assert_equal Date.new(2010, 3, 29), Date.new(2010, 2, 28).advance(:months => 1, :days => 1)
+    assert_equal Date.new(2010, 3, 29), Date.new(2010, 2, 28).advance(months: 1, days: 1)
     # If day was done first we would jump to 2010-04-01 instead.
   end
 
   def test_advance_in_calendar_reform
-    assert_equal Date.new(1582,10,15), Date.new(1582,10,4).advance(:days => 1)
-    assert_equal Date.new(1582,10,4), Date.new(1582,10,15).advance(:days => -1)
+    assert_equal Date.new(1582,10,15), Date.new(1582,10,4).advance(days: 1)
+    assert_equal Date.new(1582,10,4), Date.new(1582,10,15).advance(days: -1)
     5.upto(14) do |day|
-      assert_equal Date.new(1582,10,4), Date.new(1582,9,day).advance(:months => 1)
-      assert_equal Date.new(1582,10,4), Date.new(1582,11,day).advance(:months => -1)
-      assert_equal Date.new(1582,10,4), Date.new(1581,10,day).advance(:years => 1)
-      assert_equal Date.new(1582,10,4), Date.new(1583,10,day).advance(:years => -1)
+      assert_equal Date.new(1582,10,4), Date.new(1582,9,day).advance(months: 1)
+      assert_equal Date.new(1582,10,4), Date.new(1582,11,day).advance(months: -1)
+      assert_equal Date.new(1582,10,4), Date.new(1581,10,day).advance(years: 1)
+      assert_equal Date.new(1582,10,4), Date.new(1583,10,day).advance(years: -1)
     end
   end
 
@@ -196,7 +196,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_yesterday_constructor_when_zone_is_not_set
-    with_env_tz 'UTC' do
+    with_env_tz "UTC" do
       with_tz_default do
         assert_equal(Date.today - 1, Date.yesterday)
       end
@@ -204,8 +204,8 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_yesterday_constructor_when_zone_is_set
-    with_env_tz 'UTC' do
-      with_tz_default ActiveSupport::TimeZone['Eastern Time (US & Canada)'] do # UTC -5
+    with_env_tz "UTC" do
+      with_tz_default ActiveSupport::TimeZone["Eastern Time (US & Canada)"] do # UTC -5
         Time.stub(:now, Time.local(2000, 1, 1)) do
           assert_equal Date.new(1999, 12, 30), Date.yesterday
         end
@@ -218,7 +218,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_tomorrow_constructor_when_zone_is_not_set
-    with_env_tz 'UTC' do
+    with_env_tz "UTC" do
       with_tz_default do
         assert_equal(Date.today + 1, Date.tomorrow)
       end
@@ -226,8 +226,8 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_tomorrow_constructor_when_zone_is_set
-    with_env_tz 'UTC' do
-      with_tz_default ActiveSupport::TimeZone['Europe/Paris'] do # UTC +1
+    with_env_tz "UTC" do
+      with_tz_default ActiveSupport::TimeZone["Europe/Paris"] do # UTC +1
         Time.stub(:now, Time.local(1999, 12, 31, 23)) do
           assert_equal Date.new(2000, 1, 2), Date.tomorrow
         end
@@ -240,8 +240,8 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_since_when_zone_is_set
-    zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
-    with_env_tz 'UTC' do
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+    with_env_tz "UTC" do
       with_tz_default zone do
         assert_equal zone.local(2005,2,21,0,0,45), Date.new(2005,2,21).since(45)
         assert_equal zone, Date.new(2005,2,21).since(45).time_zone
@@ -254,8 +254,8 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_ago_when_zone_is_set
-    zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
-    with_env_tz 'UTC' do
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+    with_env_tz "UTC" do
       with_tz_default zone do
         assert_equal zone.local(2005,2,20,23,59,15), Date.new(2005,2,21).ago(45)
         assert_equal zone, Date.new(2005,2,21).ago(45).time_zone
@@ -272,8 +272,8 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_beginning_of_day_when_zone_is_set
-    zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
-    with_env_tz 'UTC' do
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+    with_env_tz "UTC" do
       with_tz_default zone do
         assert_equal zone.local(2005,2,21,0,0,0), Date.new(2005,2,21).beginning_of_day
         assert_equal zone, Date.new(2005,2,21).beginning_of_day.time_zone
@@ -286,8 +286,8 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_end_of_day_when_zone_is_set
-    zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
-    with_env_tz 'UTC' do
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+    with_env_tz "UTC" do
       with_tz_default zone do
         assert_equal zone.local(2005,2,21,23,59,59,Rational(999999999, 1000)), Date.new(2005,2,21).end_of_day
         assert_equal zone, Date.new(2005,2,21).end_of_day.time_zone
@@ -330,7 +330,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_xmlschema
-    with_env_tz 'US/Eastern' do
+    with_env_tz "US/Eastern" do
       assert_match(/^1980-02-28T00:00:00-05:?00$/, Date.new(1980, 2, 28).xmlschema)
       assert_match(/^1980-06-28T00:00:00-04:?00$/, Date.new(1980, 6, 28).xmlschema)
       # these tests are only of interest on platforms where older dates #to_time fail over to DateTime
@@ -342,8 +342,8 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_xmlschema_when_zone_is_set
-    with_env_tz 'UTC' do
-      with_tz_default ActiveSupport::TimeZone['Eastern Time (US & Canada)'] do # UTC -5
+    with_env_tz "UTC" do
+      with_tz_default ActiveSupport::TimeZone["Eastern Time (US & Canada)"] do # UTC -5
         assert_match(/^1980-02-28T00:00:00-05:?00$/, Date.new(1980, 2, 28).xmlschema)
         assert_match(/^1980-06-28T00:00:00-04:?00$/, Date.new(1980, 6, 28).xmlschema)
       end
@@ -367,7 +367,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_current_returns_date_today_when_zone_not_set
-    with_env_tz 'US/Central' do
+    with_env_tz "US/Central" do
       Time.stub(:now, Time.local(1999, 12, 31, 23)) do
         assert_equal Date.today, Date.current
       end
@@ -375,8 +375,8 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_current_returns_time_zone_today_when_zone_is_set
-    Time.zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
-    with_env_tz 'US/Central' do
+    Time.zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+    with_env_tz "US/Central" do
       assert_equal ::Time.zone.today, Date.current
     end
   ensure
@@ -384,9 +384,9 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_date_advance_should_not_change_passed_options_hash
-    options = { :years => 3, :months => 11, :days => 2 }
+    options = { years: 3, months: 11, days: 2 }
     Date.new(2005,2,28).advance(options)
-    assert_equal({ :years => 3, :months => 11, :days => 2 }, options)
+    assert_equal({ years: 3, months: 11, days: 2 }, options)
   end
 end
 
@@ -407,4 +407,3 @@ class DateExtBehaviorTest < ActiveSupport::TestCase
     end
   end
 end
-

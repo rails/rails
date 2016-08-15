@@ -1,3 +1,12 @@
+*   A generated app should not include Uglifier with `--skip-javascript` option.
+
+    *Ben Pickles*
+
+*   Set session store to cookie store internally and remove the initializer from
+    the generated app.
+
+    *Prathamesh Sonpatki*
+
 *   Set the server host using the `HOST` environment variable.
 
     *mahnunchik*
@@ -7,6 +16,17 @@
         config.annotations.register_directories('spec', 'features')
 
     *John Meehan*
+
+*   Display name of the class defining the initializer along with the initializer 
+    name in the output of `rails initializers`.
+
+    Before:
+        disable_dependency_loading
+
+    After:
+        DemoApp::Application.disable_dependency_loading
+
+    *ta1kt0me*
 
 *   Do not run `bundle install` when generating a new plugin.
 

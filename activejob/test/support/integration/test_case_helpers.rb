@@ -1,6 +1,6 @@
-require 'active_support/concern'
-require 'active_support/core_ext/string/inflections'
-require 'support/integration/jobs_manager'
+require "active_support/concern"
+require "active_support/core_ext/string/inflections"
+require "support/integration/jobs_manager"
 
 module TestCaseHelpers
   extend ActiveSupport::Concern
@@ -29,7 +29,7 @@ module TestCaseHelpers
     end
 
     def adapter_is?(*adapter_class_symbols)
-      adapter = ActiveJob::Base.queue_adapter.class.name.demodulize.chomp('Adapter').underscore
+      adapter = ActiveJob::Base.queue_adapter.class.name.demodulize.chomp("Adapter").underscore
       adapter_class_symbols.map(&:to_s).include? adapter
     end
 

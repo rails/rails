@@ -25,7 +25,7 @@ module ActiveSupport
             if defined?(Rails.logger) && Rails.logger
               Rails.logger
             else
-              require 'active_support/logger'
+              require "active_support/logger"
               ActiveSupport::Logger.new($stderr)
             end
         logger.warn message
@@ -34,7 +34,7 @@ module ActiveSupport
 
       notify: ->(message, callstack) {
         ActiveSupport::Notifications.instrument("deprecation.rails",
-                                                :message => message, :callstack => callstack)
+                                                message: message, callstack: callstack)
       },
 
       silence: ->(message, callstack) {},

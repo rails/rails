@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 # Tests the controller dispatching happy path
 module Dispatching
@@ -69,48 +69,48 @@ module Dispatching
     end
 
     test "controller path" do
-      assert_equal 'dispatching/empty', EmptyController.controller_path
+      assert_equal "dispatching/empty", EmptyController.controller_path
       assert_equal EmptyController.controller_path, EmptyController.new.controller_path
     end
 
     test "non-default controller path" do
-      assert_equal 'i_am_not_default', NonDefaultPathController.controller_path
+      assert_equal "i_am_not_default", NonDefaultPathController.controller_path
       assert_equal NonDefaultPathController.controller_path, NonDefaultPathController.new.controller_path
     end
 
     test "sub controller path" do
-      assert_equal 'dispatching/sub_empty', SubEmptyController.controller_path
+      assert_equal "dispatching/sub_empty", SubEmptyController.controller_path
       assert_equal SubEmptyController.controller_path, SubEmptyController.new.controller_path
     end
 
     test "namespaced controller path" do
-      assert_equal 'dispatching/submodule/contained_empty', Submodule::ContainedEmptyController.controller_path
+      assert_equal "dispatching/submodule/contained_empty", Submodule::ContainedEmptyController.controller_path
       assert_equal Submodule::ContainedEmptyController.controller_path, Submodule::ContainedEmptyController.new.controller_path
     end
 
     test "namespaced non-default controller path" do
-      assert_equal 'i_am_extremely_not_default', Submodule::ContainedNonDefaultPathController.controller_path
+      assert_equal "i_am_extremely_not_default", Submodule::ContainedNonDefaultPathController.controller_path
       assert_equal Submodule::ContainedNonDefaultPathController.controller_path, Submodule::ContainedNonDefaultPathController.new.controller_path
     end
 
     test "namespaced sub controller path" do
-      assert_equal 'dispatching/submodule/contained_sub_empty', Submodule::ContainedSubEmptyController.controller_path
+      assert_equal "dispatching/submodule/contained_sub_empty", Submodule::ContainedSubEmptyController.controller_path
       assert_equal Submodule::ContainedSubEmptyController.controller_path, Submodule::ContainedSubEmptyController.new.controller_path
     end
 
     test "controller name" do
-      assert_equal 'empty', EmptyController.controller_name
-      assert_equal 'contained_empty', Submodule::ContainedEmptyController.controller_name
+      assert_equal "empty", EmptyController.controller_name
+      assert_equal "contained_empty", Submodule::ContainedEmptyController.controller_name
     end
 
     test "non-default path controller name" do
-      assert_equal 'non_default_path', NonDefaultPathController.controller_name
-      assert_equal 'contained_non_default_path', Submodule::ContainedNonDefaultPathController.controller_name
+      assert_equal "non_default_path", NonDefaultPathController.controller_name
+      assert_equal "contained_non_default_path", Submodule::ContainedNonDefaultPathController.controller_name
     end
 
     test "sub controller name" do
-      assert_equal 'sub_empty', SubEmptyController.controller_name
-      assert_equal 'contained_sub_empty', Submodule::ContainedSubEmptyController.controller_name
+      assert_equal "sub_empty", SubEmptyController.controller_name
+      assert_equal "contained_sub_empty", Submodule::ContainedSubEmptyController.controller_name
     end
 
     test "action methods" do

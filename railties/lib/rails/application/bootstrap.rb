@@ -1,7 +1,7 @@
-require 'fileutils'
-require 'active_support/notifications'
-require 'active_support/dependencies'
-require 'active_support/descendants_tracker'
+require "fileutils"
+require "active_support/notifications"
+require "active_support/dependencies"
+require "active_support/descendants_tracker"
 
 module Rails
   class Application
@@ -36,7 +36,7 @@ INFO
             FileUtils.mkdir_p File.dirname path
           end
 
-          f = File.open path, 'a'
+          f = File.open path, "a"
           f.binmode
           f.sync = config.autoflush_log # if true make sure every write flushes
 

@@ -1,6 +1,6 @@
-require 'tmpdir'
-require 'abstract_unit'
-require 'rails/app_loader'
+require "tmpdir"
+require "abstract_unit"
+require "rails/app_loader"
 
 class AppLoaderTest < ActiveSupport::TestCase
   def loader
@@ -27,12 +27,12 @@ class AppLoaderTest < ActiveSupport::TestCase
   end
 
   setup do
-    @tmp = Dir.mktmpdir('railties-rails-loader-test-suite')
+    @tmp = Dir.mktmpdir("railties-rails-loader-test-suite")
     @cwd = Dir.pwd
     Dir.chdir(@tmp)
   end
 
-  ['bin', 'script'].each do |script_dir|
+  ["bin", "script"].each do |script_dir|
     exe = "#{script_dir}/rails"
 
     test "is not in a Rails application if #{exe} is not found in the current or parent directories" do
@@ -47,7 +47,7 @@ class AppLoaderTest < ActiveSupport::TestCase
       assert !loader.exec_app
     end
 
-    ['APP_PATH', 'ENGINE_PATH'].each do |keyword|
+    ["APP_PATH", "ENGINE_PATH"].each do |keyword|
       test "is in a Rails application if #{exe} exists and contains #{keyword}" do
         write exe, keyword
 
@@ -66,7 +66,7 @@ class AppLoaderTest < ActiveSupport::TestCase
         write "foo/bar/#{exe}"
         write "foo/#{exe}", keyword
 
-        Dir.chdir('foo/bar')
+        Dir.chdir("foo/bar")
 
         loader.exec_app
 

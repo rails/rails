@@ -23,9 +23,9 @@ module ActiveRecord
 
         protected
 
-        def attributes_for_hash
-          [self.class, @type_metadata, extra, strict]
-        end
+          def attributes_for_hash
+            [self.class, @type_metadata, extra, strict]
+          end
       end
     end
   end

@@ -108,7 +108,6 @@ class Tag
 
   attr_accessor :relevances
   def relevances_attributes=(attributes); end
-
 end
 
 class CommentRelevance
@@ -191,7 +190,7 @@ class Plane
   attr_reader :to_key
 
   def model_name
-    OpenStruct.new param_key: 'airplane'
+    OpenStruct.new param_key: "airplane"
   end
 
   def save

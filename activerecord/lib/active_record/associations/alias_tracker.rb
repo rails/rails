@@ -1,4 +1,4 @@
-require 'active_support/core_ext/string/conversions'
+require "active_support/core_ext/string/conversions"
 
 module ActiveRecord
   module Associations

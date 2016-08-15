@@ -1,11 +1,11 @@
-require 'active_record/connection_adapters/abstract_adapter'
-require 'active_record/connection_adapters/statement_pool'
-require 'active_record/connection_adapters/sqlite3/explain_pretty_printer'
-require 'active_record/connection_adapters/sqlite3/quoting'
-require 'active_record/connection_adapters/sqlite3/schema_creation'
+require "active_record/connection_adapters/abstract_adapter"
+require "active_record/connection_adapters/statement_pool"
+require "active_record/connection_adapters/sqlite3/explain_pretty_printer"
+require "active_record/connection_adapters/sqlite3/quoting"
+require "active_record/connection_adapters/sqlite3/schema_creation"
 
-gem 'sqlite3', '~> 1.3.6'
-require 'sqlite3'
+gem "sqlite3", "~> 1.3.6"
+require "sqlite3"
 
 module ActiveRecord
   module ConnectionHandling # :nodoc:
@@ -18,7 +18,7 @@ module ActiveRecord
       # Allow database path relative to Rails.root, but only if the database
       # path is not the special path that tells sqlite to build a database only
       # in memory.
-      if ':memory:' != config[:database]
+      if ":memory:" != config[:database]
         config[:database] = File.expand_path(config[:database], Rails.root) if defined?(Rails.root)
         dirname = File.dirname(config[:database])
         Dir.mkdir(dirname) unless File.directory?(dirname)
@@ -26,7 +26,7 @@ module ActiveRecord
 
       db = SQLite3::Database.new(
         config[:database].to_s,
-        :results_as_hash => true
+        results_as_hash: true
       )
 
       db.busy_timeout(ConnectionAdapters::SQLite3Adapter.type_cast_config_to_integer(config[:timeout])) if config[:timeout]
@@ -49,12 +49,12 @@ module ActiveRecord
     #
     # * <tt>:database</tt> - Path to the database file.
     class SQLite3Adapter < AbstractAdapter
-      ADAPTER_NAME = 'SQLite'.freeze
+      ADAPTER_NAME = "SQLite".freeze
 
       include SQLite3::Quoting
 
       NATIVE_DATABASE_TYPES = {
-        primary_key:  'INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL',
+        primary_key:  "INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL",
         string:       { name: "varchar" },
         text:         { name: "text" },
         integer:      { name: "integer" },
@@ -70,9 +70,9 @@ module ActiveRecord
       class StatementPool < ConnectionAdapters::StatementPool
         private
 
-        def dealloc(stmt)
-          stmt[:stmt].close unless stmt[:stmt].closed?
-        end
+          def dealloc(stmt)
+            stmt[:stmt].close unless stmt[:stmt].closed?
+          end
       end
 
       def schema_creation # :nodoc:
@@ -99,7 +99,7 @@ module ActiveRecord
       end
 
       def supports_partial_index?
-        sqlite_version >= '3.8.0'
+        sqlite_version >= "3.8.0"
       end
 
       # Returns true, since this connection adapter supports prepared statement
@@ -130,7 +130,7 @@ module ActiveRecord
       end
 
       def supports_multi_insert?
-        sqlite_version >= '3.7.11'
+        sqlite_version >= "3.7.11"
       end
 
       def active?
@@ -184,13 +184,13 @@ module ActiveRecord
 
       def explain(arel, binds = [])
         sql = "EXPLAIN QUERY PLAN #{to_sql(arel, binds)}"
-        SQLite3::ExplainPrettyPrinter.new.pp(exec_query(sql, 'EXPLAIN', []))
+        SQLite3::ExplainPrettyPrinter.new.pp(exec_query(sql, "EXPLAIN", []))
       end
 
       def exec_query(sql, name = nil, binds = [], prepare: false)
-        type_casted_binds = binds.map { |attr| type_cast(attr.value_for_database) }
+        type_casted_binds = type_casted_binds(binds)
 
-        log(sql, name, binds) do
+        log(sql, name, binds, type_casted_binds) do
           # Don't cache statements if they are not prepared
           unless prepare
             stmt    = @connection.prepare(sql)
@@ -203,22 +203,22 @@ module ActiveRecord
             ensure
               stmt.close
             end
-            stmt = records
           else
             cache = @statements[sql] ||= {
-              :stmt => @connection.prepare(sql)
+              stmt: @connection.prepare(sql)
             }
             stmt = cache[:stmt]
             cols = cache[:cols] ||= stmt.columns
             stmt.reset!
             stmt.bind_params(type_casted_binds)
+            records = stmt.to_a
           end
 
-          ActiveRecord::Result.new(cols, stmt.to_a)
+          ActiveRecord::Result.new(cols, records)
         end
       end
 
-      def exec_delete(sql, name = 'SQL', binds = [])
+      def exec_delete(sql, name = "SQL", binds = [])
         exec_query(sql, name, binds)
         @connection.changes
       end
@@ -233,15 +233,15 @@ module ActiveRecord
       end
 
       def begin_db_transaction #:nodoc:
-        log('begin transaction',nil) { @connection.transaction }
+        log("begin transaction",nil) { @connection.transaction }
       end
 
       def commit_db_transaction #:nodoc:
-        log('commit transaction',nil) { @connection.commit }
+        log("commit transaction",nil) { @connection.commit }
       end
 
       def exec_rollback_db_transaction #:nodoc:
-        log('rollback transaction',nil) { @connection.rollback }
+        log("rollback transaction",nil) { @connection.rollback }
       end
 
       # SCHEMA STATEMENTS ========================================
@@ -263,7 +263,7 @@ module ActiveRecord
       end
 
       def data_sources
-        select_values("SELECT name FROM sqlite_master WHERE type IN ('table','view') AND name <> 'sqlite_sequence'", 'SCHEMA')
+        select_values("SELECT name FROM sqlite_master WHERE type IN ('table','view') AND name <> 'sqlite_sequence'", "SCHEMA")
       end
 
       def table_exists?(table_name)
@@ -282,11 +282,11 @@ module ActiveRecord
         sql = "SELECT name FROM sqlite_master WHERE type IN ('table','view') AND name <> 'sqlite_sequence'"
         sql << " AND name = #{quote(table_name)}"
 
-        select_values(sql, 'SCHEMA').any?
+        select_values(sql, "SCHEMA").any?
       end
 
       def views # :nodoc:
-        select_values("SELECT name FROM sqlite_master WHERE type = 'view' AND name <> 'sqlite_sequence'", 'SCHEMA')
+        select_values("SELECT name FROM sqlite_master WHERE type = 'view' AND name <> 'sqlite_sequence'", "SCHEMA")
       end
 
       def view_exists?(view_name) # :nodoc:
@@ -295,7 +295,7 @@ module ActiveRecord
         sql = "SELECT name FROM sqlite_master WHERE type = 'view' AND name <> 'sqlite_sequence'"
         sql << " AND name = #{quote(view_name)}"
 
-        select_values(sql, 'SCHEMA').any?
+        select_values(sql, "SCHEMA").any?
       end
 
       # Returns an array of +Column+ objects for the table specified by +table_name+.
@@ -311,16 +311,16 @@ module ActiveRecord
             field["dflt_value"] = $1.gsub('""', '"')
           end
 
-          collation = field['collation']
-          sql_type = field['type']
+          collation = field["collation"]
+          sql_type = field["type"]
           type_metadata = fetch_type_metadata(sql_type)
-          new_column(field['name'], field['dflt_value'], type_metadata, field['notnull'].to_i == 0, table_name, nil, collation)
+          new_column(field["name"], field["dflt_value"], type_metadata, field["notnull"].to_i == 0, table_name, nil, collation)
         end
       end
 
       # Returns an array of indexes for the given table.
       def indexes(table_name, name = nil) #:nodoc:
-        exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", 'SCHEMA').map do |row|
+        exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", "SCHEMA").map do |row|
           sql = <<-SQL
             SELECT sql
             FROM sqlite_master
@@ -330,22 +330,22 @@ module ActiveRecord
             FROM sqlite_temp_master
             WHERE name=#{quote(row['name'])} AND type='index'
           SQL
-          index_sql = exec_query(sql).first['sql']
+          index_sql = exec_query(sql).first["sql"]
           match = /\sWHERE\s+(.+)$/i.match(index_sql)
           where = match[1] if match
           IndexDefinition.new(
             table_name,
-            row['name'],
-            row['unique'] != 0,
+            row["name"],
+            row["unique"] != 0,
             exec_query("PRAGMA index_info('#{row['name']}')", "SCHEMA").map { |col|
-              col['name']
+              col["name"]
             }, nil, nil, where)
         end
       end
 
       def primary_keys(table_name) # :nodoc:
-        pks = table_structure(table_name).select { |f| f['pk'] > 0 }
-        pks.sort_by { |f| f['pk'] }.map { |f| f['name'] }
+        pks = table_structure(table_name).select { |f| f["pk"] > 0 }
+        pks.sort_by { |f| f["pk"] }.map { |f| f["name"] }
       end
 
       def remove_index(table_name, options = {}) #:nodoc:
@@ -425,7 +425,7 @@ module ActiveRecord
       protected
 
         def table_structure(table_name)
-          structure = exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", 'SCHEMA')
+          structure = exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", "SCHEMA")
           raise(ActiveRecord::StatementInvalid, "Could not find table '#{table_name}'") if structure.empty?
           table_structure_with_collation(table_name, structure)
         end
@@ -436,7 +436,7 @@ module ActiveRecord
 
           transaction do
             move_table(table_name, altered_table_name,
-              options.merge(:temporary => true))
+              options.merge(temporary: true))
             move_table(altered_table_name, table_name, &caller)
           end
         end
@@ -460,9 +460,9 @@ module ActiveRecord
               next if column_name == from_primary_key
 
               @definition.column(column_name, column.type,
-                :limit => column.limit, :default => column.default,
-                :precision => column.precision, :scale => column.scale,
-                :null => column.null, collation: column.collation)
+                limit: column.limit, default: column.default,
+                precision: column.precision, scale: column.scale,
+                null: column.null, collation: column.collation)
             end
             yield @definition if block_given?
           end
@@ -501,15 +501,15 @@ module ActiveRecord
           from_columns = columns(from).collect(&:name)
           columns = columns.find_all{|col| from_columns.include?(column_mappings[col])}
           from_columns_to_copy = columns.map { |col| column_mappings[col] }
-          quoted_columns = columns.map { |col| quote_column_name(col) } * ','
-          quoted_from_columns = from_columns_to_copy.map { |col| quote_column_name(col) } * ','
+          quoted_columns = columns.map { |col| quote_column_name(col) } * ","
+          quoted_from_columns = from_columns_to_copy.map { |col| quote_column_name(col) } * ","
 
           exec_query("INSERT INTO #{quote_table_name(to)} (#{quoted_columns})
                      SELECT #{quoted_from_columns} FROM #{quote_table_name(from)}")
         end
 
         def sqlite_version
-          @sqlite_version ||= SQLite3Adapter::Version.new(select_value('select sqlite_version(*)'))
+          @sqlite_version ||= SQLite3Adapter::Version.new(select_value("select sqlite_version(*)"))
         end
 
         def translate_exception(exception, message)
@@ -538,24 +538,24 @@ module ActiveRecord
           # Result will have following sample string
           # CREATE TABLE "users" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
           #                       "password_digest" varchar COLLATE "NOCASE");
-          result = exec_query(sql, 'SCHEMA').first
+          result = exec_query(sql, "SCHEMA").first
 
           if result
             # Splitting with left parentheses and picking up last will return all
             # columns separated with comma(,).
-            columns_string = result["sql"].split('(').last
+            columns_string = result["sql"].split("(").last
 
-            columns_string.split(',').each do |column_string|
+            columns_string.split(",").each do |column_string|
               # This regex will match the column name and collation type and will save
               # the value in $1 and $2 respectively.
-              collation_hash[$1] = $2 if (COLLATE_REGEX =~ column_string)
+              collation_hash[$1] = $2 if COLLATE_REGEX =~ column_string
             end
 
             basic_structure.map! do |column|
-              column_name = column['name']
+              column_name = column["name"]
 
               if collation_hash.has_key? column_name
-                column['collation'] = collation_hash[column_name]
+                column["collation"] = collation_hash[column_name]
               end
 
               column

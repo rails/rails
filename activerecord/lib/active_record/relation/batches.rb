@@ -1,4 +1,4 @@
-require 'active_record/relation/batches/batch_enumerator'
+require "active_record/relation/batches/batch_enumerator"
 
 module ActiveRecord
   module Batches
@@ -34,7 +34,7 @@ module ActiveRecord
     # * <tt>:start</tt> - Specifies the primary key value to start from, inclusive of the value.
     # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
     # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
-    #                               the order has to be ignored due to batching.
+    #                               an order is present in the relation.
     #
     # Limits are honored, and if present there is no requirement for the batch
     # size, it can be less than, equal, or greater than the limit.
@@ -93,7 +93,7 @@ module ActiveRecord
     # * <tt>:start</tt> - Specifies the primary key value to start from, inclusive of the value.
     # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
     # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
-    #                               the order has to be ignored due to batching.
+    #                               an order is present in the relation.
     #
     # Limits are honored, and if present there is no requirement for the batch
     # size, it can be less than, equal, or greater than the limit.
@@ -157,7 +157,7 @@ module ActiveRecord
     # * <tt>:start</tt> - Specifies the primary key value to start from, inclusive of the value.
     # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
     # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
-    #                               the order has to be ignored due to batching.
+    #                               an order is present in the relation.
     #
     # Limits are honored, and if present there is no requirement for the batch
     # size, it can be less than, equal, or greater than the limit.
@@ -249,24 +249,24 @@ module ActiveRecord
 
     private
 
-    def apply_limits(relation, start, finish)
-      relation = relation.where(arel_attribute(primary_key).gteq(start)) if start
-      relation = relation.where(arel_attribute(primary_key).lteq(finish)) if finish
-      relation
-    end
-
-    def batch_order
-      "#{quoted_table_name}.#{quoted_primary_key} ASC"
-    end
-
-    def act_on_ignored_order(error_on_ignore)
-      raise_error = (error_on_ignore.nil? ? self.klass.error_on_ignored_order : error_on_ignore)
-
-      if raise_error
-        raise ArgumentError.new(ORDER_IGNORE_MESSAGE)
-      elsif logger
-        logger.warn(ORDER_IGNORE_MESSAGE)
+      def apply_limits(relation, start, finish)
+        relation = relation.where(arel_attribute(primary_key).gteq(start)) if start
+        relation = relation.where(arel_attribute(primary_key).lteq(finish)) if finish
+        relation
       end
-    end
+
+      def batch_order
+        "#{quoted_table_name}.#{quoted_primary_key} ASC"
+      end
+
+      def act_on_ignored_order(error_on_ignore)
+        raise_error = (error_on_ignore.nil? ? self.klass.error_on_ignored_order : error_on_ignore)
+
+        if raise_error
+          raise ArgumentError.new(ORDER_IGNORE_MESSAGE)
+        elsif logger
+          logger.warn(ORDER_IGNORE_MESSAGE)
+        end
+      end
   end
 end

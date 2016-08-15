@@ -1,12 +1,12 @@
 class BaseMailer < ActionMailer::Base
   self.mailer_name = "base_mailer"
 
-  default to: 'system@test.lindsaar.net',
-          from: 'jose@test.plataformatec.com',
-          reply_to: 'mikel@test.lindsaar.net'
+  default to: "system@test.lindsaar.net",
+          from: "jose@test.plataformatec.com",
+          reply_to: "mikel@test.lindsaar.net"
 
   def welcome(hash = {})
-    headers['X-SPAM'] = "Not SPAM"
+    headers["X-SPAM"] = "Not SPAM"
     mail({subject: "The first email on new API!"}.merge!(hash))
   end
 
@@ -28,30 +28,30 @@ class BaseMailer < ActionMailer::Base
   end
 
   def inline_attachment
-    attachments.inline['logo.png'] = "\312\213\254\232"
+    attachments.inline["logo.png"] = "\312\213\254\232"
     mail
   end
 
   def attachment_with_content(hash = {})
-    attachments['invoice.pdf'] = 'This is test File content'
+    attachments["invoice.pdf"] = "This is test File content"
     mail(hash)
   end
 
   def attachment_with_hash
-    attachments['invoice.jpg'] = { data: ::Base64.encode64("\312\213\254\232)b"),
+    attachments["invoice.jpg"] = { data: ::Base64.encode64("\312\213\254\232)b"),
                                    mime_type: "image/x-jpg",
                                    transfer_encoding: "base64" }
     mail
   end
 
   def attachment_with_hash_default_encoding
-    attachments['invoice.jpg'] = { data: "\312\213\254\232)b",
+    attachments["invoice.jpg"] = { data: "\312\213\254\232)b",
                                    mime_type: "image/x-jpg" }
     mail
   end
 
   def implicit_multipart(hash = {})
-    attachments['invoice.pdf'] = 'This is test File content' if hash.delete(:attachments)
+    attachments["invoice.pdf"] = "This is test File content" if hash.delete(:attachments)
     mail(hash)
   end
 
@@ -60,7 +60,7 @@ class BaseMailer < ActionMailer::Base
   end
 
   def explicit_multipart(hash = {})
-    attachments['invoice.pdf'] = 'This is test File content' if hash.delete(:attachments)
+    attachments["invoice.pdf"] = "This is test File content" if hash.delete(:attachments)
     mail(hash) do |format|
       format.text { render text: "TEXT Explicit Multipart" }
       format.html { render text: "HTML Explicit Multipart" }
@@ -100,18 +100,18 @@ class BaseMailer < ActionMailer::Base
     end
   end
 
-  def implicit_different_template(template_name='')
+  def implicit_different_template(template_name="")
     mail(template_name: template_name)
   end
 
-  def explicit_different_template(template_name='')
+  def explicit_different_template(template_name="")
     mail do |format|
       format.text { render template: "#{mailer_name}/#{template_name}" }
       format.html { render template: "#{mailer_name}/#{template_name}" }
     end
   end
 
-  def different_layout(layout_name='')
+  def different_layout(layout_name="")
     mail do |format|
       format.text { render layout: layout_name }
       format.html { render layout: layout_name }
@@ -131,6 +131,6 @@ class BaseMailer < ActionMailer::Base
   end
 
   def with_subject_interpolations
-    mail(subject: default_i18n_subject(rapper_or_impersonator: 'Slim Shady'), body: '')
+    mail(subject: default_i18n_subject(rapper_or_impersonator: "Slim Shady"), body: "")
   end
 end

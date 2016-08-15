@@ -69,7 +69,7 @@ module ActiveModel
     #   person = Person.create(id: 1)
     #   person.to_param # => "1"
     def to_param
-      (persisted? && key = to_key) ? key.join('-') : nil
+      (persisted? && key = to_key) ? key.join("-") : nil
     end
 
     # Returns a +string+ identifying the path associated with the object.

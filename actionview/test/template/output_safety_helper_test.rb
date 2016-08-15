@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class OutputSafetyHelperTest < ActionView::TestCase
   tests ActionView::Helpers::OutputSafetyHelper
@@ -26,11 +26,11 @@ class OutputSafetyHelperTest < ActionView::TestCase
   end
 
   test "safe_join should work recursively similarly to Array.join" do
-    joined = safe_join(['a',['b','c']], ':')
-    assert_equal 'a:b:c', joined
+    joined = safe_join(["a",["b","c"]], ":")
+    assert_equal "a:b:c", joined
 
-    joined = safe_join(['"a"',['<b>','<c>']], ' <br/> ')
-    assert_equal '&quot;a&quot; &lt;br/&gt; &lt;b&gt; &lt;br/&gt; &lt;c&gt;', joined
+    joined = safe_join(['"a"',["<b>","<c>"]], " <br/> ")
+    assert_equal "&quot;a&quot; &lt;br/&gt; &lt;b&gt; &lt;br/&gt; &lt;c&gt;", joined
   end
 
   test "to_sentence should escape non-html_safe values" do
@@ -50,9 +50,9 @@ class OutputSafetyHelperTest < ActionView::TestCase
   end
 
   test "to_sentence connector words are checked for html safety" do
-    assert_equal "one & two, and three", to_sentence(['one', 'two', 'three'], words_connector: ' & '.html_safe)
-    assert_equal "one & two", to_sentence(['one', 'two'], two_words_connector: ' & '.html_safe)
-    assert_equal "one, two &lt;script&gt;alert(1)&lt;/script&gt; three", to_sentence(['one', 'two', 'three'], last_word_connector: ' <script>alert(1)</script> ')
+    assert_equal "one & two, and three", to_sentence(["one", "two", "three"], words_connector: " & ".html_safe)
+    assert_equal "one & two", to_sentence(["one", "two"], two_words_connector: " & ".html_safe)
+    assert_equal "one, two &lt;script&gt;alert(1)&lt;/script&gt; three", to_sentence(["one", "two", "three"], last_word_connector: " <script>alert(1)</script> ")
   end
 
   test "to_sentence should not escape html_safe values" do
@@ -67,24 +67,24 @@ class OutputSafetyHelperTest < ActionView::TestCase
   end
 
   test "to_sentence handles blank strings" do
-    actual = to_sentence(['', 'two', 'three'])
+    actual = to_sentence(["", "two", "three"])
     assert actual.html_safe?
     assert_equal ", two, and three", actual
   end
 
   test "to_sentence handles nil values" do
-    actual = to_sentence([nil, 'two', 'three'])
+    actual = to_sentence([nil, "two", "three"])
     assert actual.html_safe?
     assert_equal ", two, and three", actual
   end
 
   test "to_sentence still supports ActiveSupports Array#to_sentence arguments" do
-    assert_equal "one two, and three", to_sentence(['one', 'two', 'three'], words_connector: ' ')
-    assert_equal "one & two, and three", to_sentence(['one', 'two', 'three'], words_connector: ' & '.html_safe)
-    assert_equal "onetwo, and three", to_sentence(['one', 'two', 'three'], words_connector: nil)
-    assert_equal "one, two, and also three", to_sentence(['one', 'two', 'three'], last_word_connector: ', and also ')
-    assert_equal "one, twothree", to_sentence(['one', 'two', 'three'], last_word_connector: nil)
-    assert_equal "one, two three", to_sentence(['one', 'two', 'three'], last_word_connector: ' ')
-    assert_equal "one, two and three", to_sentence(['one', 'two', 'three'], last_word_connector: ' and ')
+    assert_equal "one two, and three", to_sentence(["one", "two", "three"], words_connector: " ")
+    assert_equal "one & two, and three", to_sentence(["one", "two", "three"], words_connector: " & ".html_safe)
+    assert_equal "onetwo, and three", to_sentence(["one", "two", "three"], words_connector: nil)
+    assert_equal "one, two, and also three", to_sentence(["one", "two", "three"], last_word_connector: ", and also ")
+    assert_equal "one, twothree", to_sentence(["one", "two", "three"], last_word_connector: nil)
+    assert_equal "one, two three", to_sentence(["one", "two", "three"], last_word_connector: " ")
+    assert_equal "one, two and three", to_sentence(["one", "two", "three"], last_word_connector: " and ")
   end
 end

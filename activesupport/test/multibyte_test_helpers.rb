@@ -6,7 +6,7 @@ module MultibyteTestHelpers
           system "mkdir -p #{File.dirname(to)}"
         end
         open(from) do |source|
-          File.open(to, 'w') do |target|
+          File.open(to, "w") do |target|
             source.each_line do |l|
               target.write l
             end
@@ -21,8 +21,8 @@ module MultibyteTestHelpers
   CACHE_DIR = "#{Dir.tmpdir}/cache/unicode_conformance"
   FileUtils.mkdir_p(CACHE_DIR)
 
-  UNICODE_STRING = 'こにちわ'.freeze
-  ASCII_STRING = 'ohayo'.freeze
+  UNICODE_STRING = "こにちわ".freeze
+  ASCII_STRING = "ohayo".freeze
   BYTE_STRING = "\270\236\010\210\245".force_encoding("ASCII-8BIT").freeze
 
   def chars(str)
@@ -30,7 +30,7 @@ module MultibyteTestHelpers
   end
 
   def inspect_codepoints(str)
-    str.to_s.unpack("U*").map{|cp| cp.to_s(16) }.join(' ')
+    str.to_s.unpack("U*").map{|cp| cp.to_s(16) }.join(" ")
   end
 
   def assert_equal_codepoints(expected, actual, message=nil)

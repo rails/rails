@@ -1,5 +1,4 @@
 module ActiveRecord
-
   # Statement cache is used to cache a single statement in order to avoid creating the AST again.
   # Initializing the cache is done by passing the statement in the create block:
   #
@@ -40,7 +39,7 @@ module ActiveRecord
     end
 
     class PartialQuery < Query # :nodoc:
-      def initialize values
+      def initialize(values)
         @values = values
         @indexes = values.each_with_index.find_all { |thing,i|
           Arel::Nodes::BindParam === thing
@@ -49,19 +48,18 @@ module ActiveRecord
 
       def sql_for(binds, connection)
         val = @values.dup
-        binds = connection.prepare_binds_for_database(binds)
-        @indexes.each { |i| val[i] = connection.quote(binds.shift) }
+        casted_binds = binds.map(&:value_for_database)
+        @indexes.each { |i| val[i] = connection.quote(casted_binds.shift) }
         val.join
       end
     end
 
-    def self.query(visitor, ast)
-      Query.new visitor.accept(ast, Arel::Collectors::SQLString.new).value
+    def self.query(sql)
+      Query.new(sql)
     end
 
-    def self.partial_query(visitor, ast, collector)
-      collected = visitor.accept(ast, collector).value
-      PartialQuery.new collected
+    def self.partial_query(values)
+      PartialQuery.new(values)
     end
 
     class Params # :nodoc:
@@ -92,7 +90,7 @@ module ActiveRecord
     def self.create(connection, block = Proc.new)
       relation      = block.call Params.new
       bind_map      = BindMap.new relation.bound_attributes
-      query_builder = connection.cacheable_query relation.arel
+      query_builder = connection.cacheable_query(self, relation.arel)
       new query_builder, bind_map
     end
 

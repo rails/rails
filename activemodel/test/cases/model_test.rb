@@ -1,4 +1,4 @@
-require 'cases/helper'
+require "cases/helper"
 
 class ModelTest < ActiveModel::TestCase
   include ActiveModel::Lint::Tests
@@ -9,7 +9,7 @@ class ModelTest < ActiveModel::TestCase
     end
 
     def initialize(*args)
-      @attr ||= 'default value'
+      @attr ||= "default value"
       super
     end
   end
@@ -50,7 +50,7 @@ class ModelTest < ActiveModel::TestCase
       BasicModel.new()
       BasicModel.new(nil)
       BasicModel.new({})
-      SimpleModel.new(attr: 'value')
+      SimpleModel.new(attr: "value")
     end
   end
 
@@ -61,17 +61,17 @@ class ModelTest < ActiveModel::TestCase
 
   def test_mixin_inclusion_chain
     object = BasicModel.new
-    assert_equal 'default value', object.attr
+    assert_equal "default value", object.attr
   end
 
   def test_mixin_initializer_when_args_exist
-    object = BasicModel.new(hello: 'world')
-    assert_equal 'world', object.hello
+    object = BasicModel.new(hello: "world")
+    assert_equal "world", object.hello
   end
 
   def test_mixin_initializer_when_args_dont_exist
     assert_raises(ActiveModel::UnknownAttributeError) do
-      SimpleModel.new(hello: 'world')
+      SimpleModel.new(hello: "world")
     end
   end
 end

@@ -27,16 +27,16 @@ module ActiveRecord
         end
 
         def auto_increment?
-          extra == 'auto_increment'
+          extra == "auto_increment"
         end
 
         private
 
-        def extract_default
-          if blob_or_text_column?
-            @default = null || strict ? nil : ''
+          def extract_default
+            if blob_or_text_column?
+              @default = null || strict ? nil : ""
+            end
           end
-        end
       end
     end
   end

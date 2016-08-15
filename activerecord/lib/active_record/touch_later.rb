@@ -58,6 +58,5 @@ module ActiveRecord
       def belongs_to_touch_method
         :touch_later
       end
-
   end
 end

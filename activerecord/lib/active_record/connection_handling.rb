@@ -73,7 +73,7 @@ module ActiveRecord
       private
         def config
           @raw_config.dup.tap do |cfg|
-            if url = ENV['DATABASE_URL']
+            if url = ENV["DATABASE_URL"]
               cfg[@env] ||= {}
               cfg[@env]["url"] ||= url
             end
@@ -138,6 +138,6 @@ module ActiveRecord
     end
 
     delegate :clear_active_connections!, :clear_reloadable_connections!,
-      :clear_all_connections!, :to => :connection_handler
+      :clear_all_connections!, to: :connection_handler
   end
 end

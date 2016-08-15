@@ -1,7 +1,7 @@
-require 'rails/initializable'
-require 'active_support/inflector'
-require 'active_support/core_ext/module/introspection'
-require 'active_support/core_ext/module/delegation'
+require "rails/initializable"
+require "active_support/inflector"
+require "active_support/core_ext/module/introspection"
+require "active_support/core_ext/module/delegation"
 
 module Rails
   # <tt>Rails::Railtie</tt> is the core of the Rails framework and provides
@@ -111,7 +111,7 @@ module Rails
   #
   # Be sure to look at the documentation of those specific classes for more information.
   class Railtie
-    autoload :Configuration, 'rails/railtie/configuration'
+    autoload :Configuration, "rails/railtie/configuration"
 
     include Initializable
 
@@ -222,31 +222,31 @@ module Rails
 
     protected
 
-    def run_console_blocks(app) #:nodoc:
-      each_registered_block(:console) { |block| block.call(app) }
-    end
+      def run_console_blocks(app) #:nodoc:
+        each_registered_block(:console) { |block| block.call(app) }
+      end
 
-    def run_generators_blocks(app) #:nodoc:
-      each_registered_block(:generators) { |block| block.call(app) }
-    end
+      def run_generators_blocks(app) #:nodoc:
+        each_registered_block(:generators) { |block| block.call(app) }
+      end
 
-    def run_runner_blocks(app) #:nodoc:
-      each_registered_block(:runner) { |block| block.call(app) }
-    end
+      def run_runner_blocks(app) #:nodoc:
+        each_registered_block(:runner) { |block| block.call(app) }
+      end
 
-    def run_tasks_blocks(app) #:nodoc:
-      extend Rake::DSL
-      each_registered_block(:rake_tasks) { |block| instance_exec(app, &block) }
-    end
+      def run_tasks_blocks(app) #:nodoc:
+        extend Rake::DSL
+        each_registered_block(:rake_tasks) { |block| instance_exec(app, &block) }
+      end
 
     private
 
-    def each_registered_block(type, &block)
-      klass = self.class
-      while klass.respond_to?(type)
-        klass.public_send(type).each(&block)
-        klass = klass.superclass
+      def each_registered_block(type, &block)
+        klass = self.class
+        while klass.respond_to?(type)
+          klass.public_send(type).each(&block)
+          klass = klass.superclass
+        end
       end
-    end
   end
 end

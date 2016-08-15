@@ -1,7 +1,7 @@
-require 'active_support/core_ext/array/extract_options'
-require 'action_dispatch/middleware/stack'
-require 'action_dispatch/http/request'
-require 'action_dispatch/http/response'
+require "active_support/core_ext/array/extract_options"
+require "action_dispatch/middleware/stack"
+require "action_dispatch/http/request"
+require "action_dispatch/http/response"
 
 module ActionController
   # Extend ActionDispatch middleware stack to make it aware of options
@@ -34,29 +34,29 @@ module ActionController
 
     private
 
-    INCLUDE = ->(list, action) { list.include? action }
-    EXCLUDE = ->(list, action) { !list.include? action }
-    NULL    = ->(list, action) { true }
+      INCLUDE = ->(list, action) { list.include? action }
+      EXCLUDE = ->(list, action) { !list.include? action }
+      NULL    = ->(list, action) { true }
 
-    def build_middleware(klass, args, block)
-      options = args.extract_options!
-      only   = Array(options.delete(:only)).map(&:to_s)
-      except = Array(options.delete(:except)).map(&:to_s)
-      args << options unless options.empty?
+      def build_middleware(klass, args, block)
+        options = args.extract_options!
+        only   = Array(options.delete(:only)).map(&:to_s)
+        except = Array(options.delete(:except)).map(&:to_s)
+        args << options unless options.empty?
 
-      strategy = NULL
-      list     = nil
+        strategy = NULL
+        list     = nil
 
-      if only.any?
-        strategy = INCLUDE
-        list     = only
-      elsif except.any?
-        strategy = EXCLUDE
-        list     = except
+        if only.any?
+          strategy = INCLUDE
+          list     = only
+        elsif except.any?
+          strategy = EXCLUDE
+          list     = except
+        end
+
+        Middleware.new(get_class(klass), args, list, strategy, block)
       end
-
-      Middleware.new(get_class(klass), args, list, strategy, block)
-    end
   end
 
   # <tt>ActionController::Metal</tt> is the simplest possible controller, providing a
@@ -130,7 +130,7 @@ module ActionController
     # ==== Returns
     # * <tt>string</tt>
     def self.controller_name
-      @controller_name ||= name.demodulize.sub(/Controller$/, '').underscore
+      @controller_name ||= name.demodulize.sub(/Controller$/, "").underscore
     end
 
     def self.make_response!(request)
@@ -139,15 +139,19 @@ module ActionController
       end
     end
 
+    def self.encoding_for_param(action, param) # :nodoc:
+      ::Encoding::UTF_8
+    end
+
     # Delegates to the class' <tt>controller_name</tt>
     def controller_name
       self.class.controller_name
     end
 
     attr_internal :response, :request
-    delegate :session, :to => "@_request"
+    delegate :session, to: "@_request"
     delegate :headers, :status=, :location=, :content_type=,
-             :status, :location, :content_type, :to => "@_response"
+             :status, :location, :content_type, to: "@_response"
 
     def initialize
       @_request = nil

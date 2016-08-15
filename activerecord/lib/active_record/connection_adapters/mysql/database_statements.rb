@@ -33,7 +33,7 @@ module ActiveRecord
           super
         end
 
-        def exec_query(sql, name = 'SQL', binds = [], prepare: false)
+        def exec_query(sql, name = "SQL", binds = [], prepare: false)
           if without_prepared_statement?(binds)
             execute_and_free(sql, name) do |result|
               ActiveRecord::Result.new(result.fields, result.to_a) if result
@@ -45,7 +45,7 @@ module ActiveRecord
           end
         end
 
-        def exec_delete(sql, name, binds)
+        def exec_delete(sql, name = nil, binds = [])
           if without_prepared_statement?(binds)
             execute_and_free(sql, name) { @connection.affected_rows }
           else
@@ -56,56 +56,56 @@ module ActiveRecord
 
         protected
 
-        def last_inserted_id(result)
-          @connection.last_id
-        end
+          def last_inserted_id(result)
+            @connection.last_id
+          end
 
         private
 
-        def select_result(sql, name = nil, binds = [])
-          if without_prepared_statement?(binds)
-            execute_and_free(sql, name) { |result| yield result }
-          else
-            exec_stmt_and_free(sql, name, binds, cache_stmt: true) { |_, result| yield result }
-          end
-        end
-
-        def exec_stmt_and_free(sql, name, binds, cache_stmt: false)
-          if @connection
-            # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
-            # made since we established the connection
-            @connection.query_options[:database_timezone] = ActiveRecord::Base.default_timezone
-          end
-
-          type_casted_binds = binds.map { |attr| type_cast(attr.value_for_database) }
-
-          log(sql, name, binds) do
-            if cache_stmt
-              cache = @statements[sql] ||= {
-                stmt: @connection.prepare(sql)
-              }
-              stmt = cache[:stmt]
+          def select_result(sql, name = nil, binds = [])
+            if without_prepared_statement?(binds)
+              execute_and_free(sql, name) { |result| yield result }
             else
-              stmt = @connection.prepare(sql)
+              exec_stmt_and_free(sql, name, binds, cache_stmt: true) { |_, result| yield result }
             end
-
-            begin
-              result = stmt.execute(*type_casted_binds)
-            rescue Mysql2::Error => e
-              if cache_stmt
-                @statements.delete(sql)
-              else
-                stmt.close
-              end
-              raise e
-            end
-
-            ret = yield stmt, result
-            result.free if result
-            stmt.close unless cache_stmt
-            ret
           end
-        end
+
+          def exec_stmt_and_free(sql, name, binds, cache_stmt: false)
+            if @connection
+              # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
+              # made since we established the connection
+              @connection.query_options[:database_timezone] = ActiveRecord::Base.default_timezone
+            end
+
+            type_casted_binds = type_casted_binds(binds)
+
+            log(sql, name, binds, type_casted_binds) do
+              if cache_stmt
+                cache = @statements[sql] ||= {
+                  stmt: @connection.prepare(sql)
+                }
+                stmt = cache[:stmt]
+              else
+                stmt = @connection.prepare(sql)
+              end
+
+              begin
+                result = stmt.execute(*type_casted_binds)
+              rescue Mysql2::Error => e
+                if cache_stmt
+                  @statements.delete(sql)
+                else
+                  stmt.close
+                end
+                raise e
+              end
+
+              ret = yield stmt, result
+              result.free if result
+              stmt.close unless cache_stmt
+              ret
+            end
+          end
       end
     end
   end

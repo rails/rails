@@ -1,6 +1,6 @@
-require 'active_support/core_ext/object/try'
-require 'active_support/core_ext/kernel/singleton_class'
-require 'thread'
+require "active_support/core_ext/object/try"
+require "active_support/core_ext/kernel/singleton_class"
+require "thread"
 
 module ActionView
   # = Action View Template
@@ -65,8 +65,7 @@ module ActionView
     # If you want to provide an alternate mechanism for
     # specifying encodings (like ERB does via <%# encoding: ... %>),
     # you may indicate that you will handle encodings yourself
-    # by implementing <tt>self.handles_encoding?</tt>
-    # on your handler.
+    # by implementing <tt>handles_encoding?</tt> on your handler.
     #
     # If you do, Rails will not try to encode the String
     # into the default_internal, passing you the unaltered
@@ -180,12 +179,12 @@ module ActionView
       name    = pieces.pop
       partial = !!name.sub!(/^_/, "")
       lookup.disable_cache do
-        lookup.find_template(name, [ pieces.join('/') ], partial, @locals)
+        lookup.find_template(name, [ pieces.join("/") ], partial, @locals)
       end
     end
 
     def inspect
-      @inspect ||= defined?(Rails.root) ? identifier.sub("#{Rails.root}/", ''.freeze) : identifier
+      @inspect ||= defined?(Rails.root) ? identifier.sub("#{Rails.root}/", "".freeze) : identifier
     end
 
     # This method is responsible for properly setting the encoding of the
@@ -204,7 +203,7 @@ module ActionView
       # Look for # encoding: *. If we find one, we'll encode the
       # String in that encoding, otherwise, we'll use the
       # default external encoding.
-      if source.sub!(/\A#{ENCODING_FLAG}/, '')
+      if source.sub!(/\A#{ENCODING_FLAG}/, "")
         encoding = magic_encoding = $1
       else
         encoding = Encoding.default_external
@@ -326,19 +325,19 @@ module ActionView
 
       def locals_code #:nodoc:
         # Double assign to suppress the dreaded 'assigned but unused variable' warning
-        @locals.each_with_object('') { |key, code| code << "#{key} = #{key} = local_assigns[:#{key}];" }
+        @locals.each_with_object("") { |key, code| code << "#{key} = #{key} = local_assigns[:#{key}];" }
       end
 
       def method_name #:nodoc:
         @method_name ||= begin
           m = "_#{identifier_method_name}__#{@identifier.hash}_#{__id__}"
-          m.tr!('-'.freeze, '_'.freeze)
+          m.tr!("-".freeze, "_".freeze)
           m
         end
       end
 
       def identifier_method_name #:nodoc:
-        inspect.tr('^a-z_'.freeze, '_'.freeze)
+        inspect.tr("^a-z_".freeze, "_".freeze)
       end
 
       def instrument(action, &block)

@@ -1,16 +1,16 @@
-desc 'Generate a cryptographically secure secret key (this is typically used to generate a secret for cookie sessions).'
+desc "Generate a cryptographically secure secret key (this is typically used to generate a secret for cookie sessions)."
 task :secret do
-  require 'securerandom'
+  require "securerandom"
   puts SecureRandom.hex(64)
 end
 
-desc 'List versions of all Rails frameworks and the environment'
+desc "List versions of all Rails frameworks and the environment"
 task about: :environment do
   puts Rails::Info
 end
 
 namespace :time do
-  desc 'List all time zones, list by two-letter country code (`rails time:zones[US]`), or list by UTC offset (`rails time:zones[-8]`)'
+  desc "List all time zones, list by two-letter country code (`rails time:zones[US]`), or list by UTC offset (`rails time:zones[-8]`)"
   task :zones, :country_or_offset do |t, args|
     zones, offset = ActiveSupport::TimeZone.all, nil
 
@@ -38,8 +38,8 @@ namespace :time do
 
     # desc 'Displays names of time zones recognized by the Rails TimeZone class with the same offset as the system local time'
     task :local do
-      require 'active_support'
-      require 'active_support/time'
+      require "active_support"
+      require "active_support/time"
 
       jan_offset = Time.now.beginning_of_year.utc_offset
       jul_offset = Time.now.beginning_of_year.change(month: 7).utc_offset
@@ -49,12 +49,12 @@ namespace :time do
     end
 
     # to find UTC -06:00 zones, OFFSET can be set to either -6, -6:00 or 21600
-    def build_time_zone_list(zones, offset = ENV['OFFSET'])
-      require 'active_support'
-      require 'active_support/time'
+    def build_time_zone_list(zones, offset = ENV["OFFSET"])
+      require "active_support"
+      require "active_support/time"
       if offset
         offset = if offset.to_s.match(/(\+|-)?(\d+):(\d+)/)
-          sign = $1 == '-' ? -1 : 1
+          sign = $1 == "-" ? -1 : 1
           hours, minutes = $2.to_f, $3.to_f
           ((hours * 3600) + (minutes.to_f * 60)) * sign
         elsif offset.to_f.abs <= 13

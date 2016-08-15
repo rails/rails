@@ -1,9 +1,8 @@
-require 'cases/helper'
+require "cases/helper"
 
-require 'models/topic'
+require "models/topic"
 
 class ConditionalValidationTest < ActiveModel::TestCase
-
   def teardown
     Topic.clear_validators!
   end

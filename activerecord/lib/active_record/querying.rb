@@ -9,7 +9,7 @@ module ActiveRecord
     delegate :find_each, :find_in_batches, :in_batches, to: :all
     delegate :select, :group, :order, :except, :reorder, :limit, :offset, :joins, :left_joins, :left_outer_joins, :or,
              :where, :rewhere, :preload, :eager_load, :includes, :from, :lock, :readonly,
-             :having, :create_with, :uniq, :distinct, :references, :none, :unscope, to: :all
+             :having, :create_with, :uniq, :distinct, :references, :none, :unscope, :merge, to: :all
     delegate :count, :average, :minimum, :maximum, :sum, :calculate, to: :all
     delegate :pluck, :ids, to: :all
 
@@ -46,7 +46,7 @@ module ActiveRecord
         class_name: name
       }
 
-      message_bus.instrument('instantiation.active_record', payload) do
+      message_bus.instrument("instantiation.active_record", payload) do
         result_set.map { |record| instantiate(record, column_types) }
       end
     end

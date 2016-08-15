@@ -2,9 +2,8 @@ module ActionDispatch
   module Http
     module Cache
       module Request
-
-        HTTP_IF_MODIFIED_SINCE = 'HTTP_IF_MODIFIED_SINCE'.freeze
-        HTTP_IF_NONE_MATCH     = 'HTTP_IF_NONE_MATCH'.freeze
+        HTTP_IF_MODIFIED_SINCE = "HTTP_IF_MODIFIED_SINCE".freeze
+        HTTP_IF_NONE_MATCH     = "HTTP_IF_NONE_MATCH".freeze
 
         def if_modified_since
           if since = get_header(HTTP_IF_MODIFIED_SINCE)
@@ -27,7 +26,7 @@ module ActionDispatch
         def etag_matches?(etag)
           if etag
             validators = if_none_match_etags
-            validators.include?(etag) || validators.include?('*')
+            validators.include?(etag) || validators.include?("*")
           end
         end
 
@@ -102,11 +101,11 @@ module ActionDispatch
         end
 
         def weak_etag=(weak_validators)
-          set_header 'ETag', generate_weak_etag(weak_validators)
+          set_header "ETag", generate_weak_etag(weak_validators)
         end
 
         def strong_etag=(strong_validators)
-          set_header 'ETag', generate_strong_etag(strong_validators)
+          set_header "ETag", generate_strong_etag(strong_validators)
         end
 
         def etag?; etag; end
@@ -123,7 +122,7 @@ module ActionDispatch
 
       private
 
-        DATE          = 'Date'.freeze
+        DATE          = "Date".freeze
         LAST_MODIFIED = "Last-Modified".freeze
         SPECIAL_KEYS  = Set.new(%w[extras no-cache max-age public private must-revalidate])
 
@@ -137,7 +136,7 @@ module ActionDispatch
 
         def cache_control_segments
           if cache_control = _cache_control
-            cache_control.delete(' ').split(',')
+            cache_control.delete(" ").split(",")
           else
             []
           end
@@ -147,10 +146,10 @@ module ActionDispatch
           cache_control = {}
 
           cache_control_segments.each do |segment|
-            directive, argument = segment.split('=', 2)
+            directive, argument = segment.split("=", 2)
 
             if SPECIAL_KEYS.include? directive
-              key = directive.tr('-', '_')
+              key = directive.tr("-", "_")
               cache_control[key.to_sym] = argument || true
             else
               cache_control[:extras] ||= []

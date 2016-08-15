@@ -44,20 +44,20 @@ class HeaderTest < ActiveSupport::TestCase
 
   test "add to multivalued headers" do
     # Sets header when not present
-    @headers.add 'Foo', '1'
-    assert_equal '1', @headers['Foo']
+    @headers.add "Foo", "1"
+    assert_equal "1", @headers["Foo"]
 
     # Ignores nil values
-    @headers.add 'Foo', nil
-    assert_equal '1', @headers['Foo']
+    @headers.add "Foo", nil
+    assert_equal "1", @headers["Foo"]
 
     # Converts value to string
-    @headers.add 'Foo', 1
-    assert_equal '1,1', @headers['Foo']
+    @headers.add "Foo", 1
+    assert_equal "1,1", @headers["Foo"]
 
     # Case-insensitive
-    @headers.add 'fOo', 2
-    assert_equal '1,1,2', @headers['foO']
+    @headers.add "fOo", 2
+    assert_equal "1,1,2", @headers["foO"]
   end
 
   test "headers can contain numbers" do
@@ -153,7 +153,7 @@ class HeaderTest < ActiveSupport::TestCase
   test "headers directly modifies the passed environment" do
     env = {"HTTP_REFERER" => "/"}
     headers = make_headers(env)
-    headers['Referer'] = "http://example.com/"
+    headers["Referer"] = "http://example.com/"
     headers.merge! "CONTENT_TYPE" => "text/plain"
     assert_equal({"HTTP_REFERER"=>"http://example.com/",
                   "CONTENT_TYPE"=>"text/plain"}, env)

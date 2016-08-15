@@ -16,20 +16,20 @@ module ActiveRecord
       end
 
       def test_quote_column_name
-        assert_equal "foo", @quoter.quote_column_name('foo')
+        assert_equal "foo", @quoter.quote_column_name("foo")
       end
 
       def test_quote_table_name
-        assert_equal "foo", @quoter.quote_table_name('foo')
+        assert_equal "foo", @quoter.quote_table_name("foo")
       end
 
       def test_quote_table_name_calls_quote_column_name
         @quoter.extend(Module.new {
           def quote_column_name(string)
-            'lol'
+            "lol"
           end
         })
-        assert_equal 'lol', @quoter.quote_table_name('foo')
+        assert_equal "lol", @quoter.quote_table_name("foo")
       end
 
       def test_quote_string
@@ -86,7 +86,7 @@ module ActiveRecord
       end
 
       def test_quote_nil
-        assert_equal 'NULL', @quoter.quote(nil, nil)
+        assert_equal "NULL", @quoter.quote(nil, nil)
       end
 
       def test_quote_true
@@ -114,11 +114,11 @@ module ActiveRecord
 
       def test_quote_bigdecimal
         bigdec = BigDecimal.new((1 << 100).to_s)
-        assert_equal bigdec.to_s('F'), @quoter.quote(bigdec, nil)
+        assert_equal bigdec.to_s("F"), @quoter.quote(bigdec, nil)
       end
 
       def test_dates_and_times
-        @quoter.extend(Module.new { def quoted_date(value) 'lol' end })
+        @quoter.extend(Module.new { def quoted_date(value) "lol" end })
         assert_equal "'lol'", @quoter.quote(Date.today, nil)
         assert_equal "'lol'", @quoter.quote(Time.now, nil)
         assert_equal "'lol'", @quoter.quote(DateTime.now, nil)
@@ -147,6 +147,22 @@ module ActiveRecord
 
       def test_quote_duration
         assert_equal "1800", @quoter.quote(30.minutes)
+      end
+    end
+
+    class QuoteBooleanTest < ActiveRecord::TestCase
+      def setup
+        @connection = ActiveRecord::Base.connection
+      end
+
+      def test_quote_returns_frozen_string
+        assert_predicate @connection.quote(true), :frozen?
+        assert_predicate @connection.quote(false), :frozen?
+      end
+
+      def test_type_cast_returns_frozen_value
+        assert_predicate @connection.type_cast(true), :frozen?
+        assert_predicate @connection.type_cast(false), :frozen?
       end
     end
   end

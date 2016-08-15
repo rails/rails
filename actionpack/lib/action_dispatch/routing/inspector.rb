@@ -1,5 +1,5 @@
-require 'delegate'
-require 'active_support/core_ext/string/strip'
+require "delegate"
+require "active_support/core_ext/string/strip"
 
 module ActionDispatch
   module Routing
@@ -33,11 +33,11 @@ module ActionDispatch
       end
 
       def controller
-        parts.include?(:controller) ? ':controller' : requirements[:controller]
+        parts.include?(:controller) ? ":controller" : requirements[:controller]
       end
 
       def action
-        parts.include?(:action) ? ':action' : requirements[:action]
+        parts.include?(:action) ? ":action" : requirements[:action]
       end
 
       def internal?
@@ -80,48 +80,48 @@ module ActionDispatch
 
       private
 
-      def normalize_filter(filter)
-        if filter.is_a?(Hash) && filter[:controller]
-          { controller: /#{filter[:controller].downcase.sub(/_?controller\z/, '').sub('::', '/')}/ }
-        elsif filter
-          { controller: /#{filter}/, action: /#{filter}/, verb: /#{filter}/, name: /#{filter}/, path: /#{filter}/ }
-        end
-      end
-
-      def filter_routes(filter)
-        if filter
-          @routes.select do |route|
-            route_wrapper = RouteWrapper.new(route)
-            filter.any? { |default, value| route_wrapper.send(default) =~ value }
+        def normalize_filter(filter)
+          if filter.is_a?(Hash) && filter[:controller]
+            { controller: /#{filter[:controller].downcase.sub(/_?controller\z/, '').sub('::', '/')}/ }
+          elsif filter
+            { controller: /#{filter}/, action: /#{filter}/, verb: /#{filter}/, name: /#{filter}/, path: /#{filter}/ }
           end
-        else
-          @routes
         end
-      end
 
-      def collect_routes(routes)
-        routes.collect do |route|
-          RouteWrapper.new(route)
-        end.reject(&:internal?).collect do |route|
-          collect_engine_routes(route)
-
-          { name: route.name,
-            verb: route.verb,
-            path: route.path,
-            reqs: route.reqs }
+        def filter_routes(filter)
+          if filter
+            @routes.select do |route|
+              route_wrapper = RouteWrapper.new(route)
+              filter.any? { |default, value| route_wrapper.send(default) =~ value }
+            end
+          else
+            @routes
+          end
         end
-      end
 
-      def collect_engine_routes(route)
-        name = route.endpoint
-        return unless route.engine?
-        return if @engines[name]
+        def collect_routes(routes)
+          routes.collect do |route|
+            RouteWrapper.new(route)
+          end.reject(&:internal?).collect do |route|
+            collect_engine_routes(route)
 
-        routes = route.rack_app.routes
-        if routes.is_a?(ActionDispatch::Routing::RouteSet)
-          @engines[name] = collect_routes(routes.routes)
+            { name: route.name,
+              verb: route.verb,
+              path: route.path,
+              reqs: route.reqs }
+          end
         end
-      end
+
+        def collect_engine_routes(route)
+          name = route.endpoint
+          return unless route.engine?
+          return if @engines[name]
+
+          routes = route.rack_app.routes
+          if routes.is_a?(ActionDispatch::Routing::RouteSet)
+            @engines[name] = collect_routes(routes.routes)
+          end
+        end
     end
 
     class ConsoleFormatter
@@ -161,7 +161,7 @@ module ActionDispatch
 
       private
         def draw_section(routes)
-          header_lengths = ['Prefix', 'Verb', 'URI Pattern'].map(&:length)
+          header_lengths = ["Prefix", "Verb", "URI Pattern"].map(&:length)
           name_width, verb_width, path_width = widths(routes).zip(header_lengths).map(&:max)
 
           routes.map do |r|

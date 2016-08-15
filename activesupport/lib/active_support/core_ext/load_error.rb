@@ -1,4 +1,4 @@
-require 'active_support/deprecation/proxy_wrappers'
+require "active_support/deprecation/proxy_wrappers"
 
 class LoadError
   REGEXPS = [
@@ -23,8 +23,8 @@ class LoadError
   # Returns true if the given path name (except perhaps for the ".rb"
   # extension) is the missing file which caused the exception to be raised.
   def is_missing?(location)
-    location.sub(/\.rb$/, ''.freeze) == path.sub(/\.rb$/, ''.freeze)
+    location.sub(/\.rb$/, "".freeze) == path.sub(/\.rb$/, "".freeze)
   end
 end
 
-MissingSourceFile = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('MissingSourceFile', 'LoadError')
+MissingSourceFile = ActiveSupport::Deprecation::DeprecatedConstantProxy.new("MissingSourceFile", "LoadError")

@@ -1,4 +1,4 @@
-require 'tsort'
+require "tsort"
 
 module Rails
   module Initializable

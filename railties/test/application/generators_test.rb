@@ -113,7 +113,7 @@ module ApplicationTests
     test "generators with string and hash for options should generate symbol keys" do
       with_bare_config do |c|
         c.generators do |g|
-          g.orm    'data_mapper', migration: false
+          g.orm    "data_mapper", migration: false
         end
 
         expected = {

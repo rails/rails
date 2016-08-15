@@ -1,10 +1,10 @@
-require 'active_support/core_ext/kernel/reporting'
-require 'active_support/file_update_checker'
-require 'rails/engine/configuration'
-require 'rails/source_annotation_extractor'
+require "active_support/core_ext/kernel/reporting"
+require "active_support/file_update_checker"
+require "rails/engine/configuration"
+require "rails/source_annotation_extractor"
 
-require 'active_support/deprecation'
-require 'active_support/core_ext/string/strip' # for strip_heredoc
+require "active_support/deprecation"
+require "active_support/core_ext/string/strip" # for strip_heredoc
 
 module Rails
   class Application
@@ -34,8 +34,7 @@ module Rails
         @public_file_server.index_name   = "index"
         @force_ssl                       = false
         @ssl_options                     = {}
-        @session_store                   = :cookie_store
-        @session_options                 = {}
+        @session_store                   = nil
         @time_zone                       = "UTC"
         @beginning_of_week               = :monday
         @log_level                       = nil
@@ -135,7 +134,7 @@ module Rails
           require "yaml"
           require "erb"
           YAML.load(ERB.new(yaml.read).result) || {}
-        elsif ENV['DATABASE_URL']
+        elsif ENV["DATABASE_URL"]
           # Value from ENV['DATABASE_URL'] is set to default database connection
           # by Active Record.
           {}
@@ -165,27 +164,35 @@ module Rails
         self.generators.colorize_logging = val
       end
 
-      def session_store(*args)
-        if args.empty?
-          case @session_store
-          when :disabled
-            nil
-          when :active_record_store
+      def session_store(new_session_store = nil, **options)
+        if new_session_store
+          if new_session_store == :active_record_store
             begin
               ActionDispatch::Session::ActiveRecordStore
             rescue NameError
               raise "`ActiveRecord::SessionStore` is extracted out of Rails into a gem. " \
                 "Please add `activerecord-session_store` to your Gemfile to use it."
             end
+          end
+
+          @session_store = new_session_store
+          @session_options = options || {}
+        else
+          case @session_store
+          when :disabled
+            nil
+          when :active_record_store
+            ActionDispatch::Session::ActiveRecordStore
           when Symbol
             ActionDispatch::Session.const_get(@session_store.to_s.camelize)
           else
             @session_store
           end
-        else
-          @session_store = args.shift
-          @session_options = args.shift || {}
         end
+      end
+
+      def session_store? #:nodoc:
+        @session_store
       end
 
       def annotations

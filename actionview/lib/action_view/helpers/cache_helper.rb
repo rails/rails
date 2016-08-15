@@ -69,11 +69,11 @@ module ActionView
       #   render 'comments/comments'
       #   render('comments/comments')
       #
-      #   render "header" => render("comments/header")
+      #   render "header" translates to render("comments/header")
       #
-      #   render(@topic)         => render("topics/topic")
-      #   render(topics)         => render("topics/topic")
-      #   render(message.topics) => render("topics/topic")
+      #   render(@topic)         translates to render("topics/topic")
+      #   render(topics)         translates to render("topics/topic")
+      #   render(message.topics) translates to render("topics/topic")
       #
       # It's not possible to derive all render calls like that, though.
       # Here are a few examples of things that can't be derived:
@@ -130,9 +130,10 @@ module ActionView
       #
       # When rendering a collection of objects that each use the same partial, a `cached`
       # option can be passed.
+      #
       # For collections rendered such:
       #
-      #   <%= render partial: 'notifications/notification', collection: @notifications, cached: true %>
+      #   <%= render partial: 'projects/project', collection: @projects, cached: true %>
       #
       # The `cached: true` will make Action View's rendering read several templates
       # from cache at once instead of one call per template.
@@ -142,13 +143,21 @@ module ActionView
       # Works great alongside individual template fragment caching.
       # For instance if the template the collection renders is cached like:
       #
-      #   # notifications/_notification.html.erb
-      #   <% cache notification do %>
+      #   # projects/_project.html.erb
+      #   <% cache project do %>
       #     <%# ... %>
       #   <% end %>
       #
       # Any collection renders will find those cached templates when attempting
       # to read multiple templates at once.
+      #
+      # If your collection cache depends on multiple sources (try to avoid this to keep things simple),
+      # you can name all these dependencies as part of a block that returns an array:
+      #
+      #   <%= render partial: 'projects/project', collection: @projects, cached: -> project { [ project, current_user ] } %>
+      #
+      # This will include both records as part of the cache key and updating either of them will
+      # expire the cache.
       def cache(name = {}, options = {}, &block)
         if controller.respond_to?(:perform_caching) && controller.perform_caching
           name_options = options.slice(:skip_digest, :virtual_path)
@@ -217,7 +226,13 @@ module ActionView
 
       # TODO: Create an object that has caching read/write on it
       def fragment_for(name = {}, options = nil, &block) #:nodoc:
-        read_fragment_for(name, options) || write_fragment_for(name, options, &block)
+        if content = read_fragment_for(name, options)
+          @log_payload_for_partial_render[:cache_hit] = true if defined?(@log_payload_for_partial_render)
+          content
+        else
+          @log_payload_for_partial_render[:cache_hit] = false if defined?(@log_payload_for_partial_render)
+          write_fragment_for(name, options, &block)
+        end
       end
 
       def read_fragment_for(name, options) #:nodoc:

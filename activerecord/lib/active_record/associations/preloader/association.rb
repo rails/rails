@@ -61,99 +61,99 @@ module ActiveRecord
 
         private
 
-        def associated_records_by_owner(preloader)
-          records = load_records
-          owners.each_with_object({}) do |owner, result|
-            result[owner] = records[convert_key(owner[owner_key_name])] || []
-          end
-        end
-
-        def owner_keys
-          unless defined?(@owner_keys)
-            @owner_keys = owners.map do |owner|
-              owner[owner_key_name]
+          def associated_records_by_owner(preloader)
+            records = load_records
+            owners.each_with_object({}) do |owner, result|
+              result[owner] = records[convert_key(owner[owner_key_name])] || []
             end
-            @owner_keys.uniq!
-            @owner_keys.compact!
-          end
-          @owner_keys
-        end
-
-        def key_conversion_required?
-          @key_conversion_required ||= association_key_type != owner_key_type
-        end
-
-        def convert_key(key)
-          if key_conversion_required?
-            key.to_s
-          else
-            key
-          end
-        end
-
-        def association_key_type
-          @klass.type_for_attribute(association_key_name.to_s).type
-        end
-
-        def owner_key_type
-          @model.type_for_attribute(owner_key_name.to_s).type
-        end
-
-        def load_records
-          return {} if owner_keys.empty?
-          # Some databases impose a limit on the number of ids in a list (in Oracle it's 1000)
-          # Make several smaller queries if necessary or make one query if the adapter supports it
-          slices  = owner_keys.each_slice(klass.connection.in_clause_length || owner_keys.size)
-          @preloaded_records = slices.flat_map do |slice|
-            records_for(slice)
-          end
-          @preloaded_records.group_by do |record| 
-            convert_key(record[association_key_name])
-          end
-        end
-
-        def reflection_scope
-          @reflection_scope ||= reflection.scope ? klass.unscoped.instance_exec(nil, &reflection.scope) : klass.unscoped
-        end
-
-        def build_scope
-          scope = klass.unscoped
-
-          values = reflection_scope.values
-          preload_values = preload_scope.values
-
-          scope.where_clause = reflection_scope.where_clause + preload_scope.where_clause
-          scope.references_values = Array(values[:references]) + Array(preload_values[:references])
-
-          if preload_values[:select] || values[:select]
-            scope._select!(preload_values[:select] || values[:select])
-          end
-          scope.includes! preload_values[:includes] || values[:includes]
-          if preload_scope.joins_values.any?
-            scope.joins!(preload_scope.joins_values)
-          else
-            scope.joins!(reflection_scope.joins_values)
           end
 
-          if order_values = preload_values[:order] || values[:order]
-            scope.order!(order_values)
+          def owner_keys
+            unless defined?(@owner_keys)
+              @owner_keys = owners.map do |owner|
+                owner[owner_key_name]
+              end
+              @owner_keys.uniq!
+              @owner_keys.compact!
+            end
+            @owner_keys
           end
 
-          if preload_values[:reordering] || values[:reordering]
-            scope.reordering_value = true
+          def key_conversion_required?
+            @key_conversion_required ||= association_key_type != owner_key_type
           end
 
-          if preload_values[:readonly] || values[:readonly]
-            scope.readonly!
+          def convert_key(key)
+            if key_conversion_required?
+              key.to_s
+            else
+              key
+            end
           end
 
-          if options[:as]
-            scope.where!(klass.table_name => { reflection.type => model.base_class.sti_name })
+          def association_key_type
+            @klass.type_for_attribute(association_key_name.to_s).type
           end
 
-          scope.unscope_values = Array(values[:unscope]) + Array(preload_values[:unscope])
-          klass.default_scoped.merge(scope)
-        end
+          def owner_key_type
+            @model.type_for_attribute(owner_key_name.to_s).type
+          end
+
+          def load_records
+            return {} if owner_keys.empty?
+            # Some databases impose a limit on the number of ids in a list (in Oracle it's 1000)
+            # Make several smaller queries if necessary or make one query if the adapter supports it
+            slices  = owner_keys.each_slice(klass.connection.in_clause_length || owner_keys.size)
+            @preloaded_records = slices.flat_map do |slice|
+              records_for(slice)
+            end
+            @preloaded_records.group_by do |record|
+              convert_key(record[association_key_name])
+            end
+          end
+
+          def reflection_scope
+            @reflection_scope ||= reflection.scope ? klass.unscoped.instance_exec(nil, &reflection.scope) : klass.unscoped
+          end
+
+          def build_scope
+            scope = klass.unscoped
+
+            values = reflection_scope.values
+            preload_values = preload_scope.values
+
+            scope.where_clause = reflection_scope.where_clause + preload_scope.where_clause
+            scope.references_values = Array(values[:references]) + Array(preload_values[:references])
+
+            if preload_values[:select] || values[:select]
+              scope._select!(preload_values[:select] || values[:select])
+            end
+            scope.includes! preload_values[:includes] || values[:includes]
+            if preload_scope.joins_values.any?
+              scope.joins!(preload_scope.joins_values)
+            else
+              scope.joins!(reflection_scope.joins_values)
+            end
+
+            if order_values = preload_values[:order] || values[:order]
+              scope.order!(order_values)
+            end
+
+            if preload_values[:reordering] || values[:reordering]
+              scope.reordering_value = true
+            end
+
+            if preload_values[:readonly] || values[:readonly]
+              scope.readonly!
+            end
+
+            if options[:as]
+              scope.where!(klass.table_name => { reflection.type => model.base_class.sti_name })
+            end
+
+            scope.unscope_values = Array(values[:unscope]) + Array(preload_values[:unscope])
+            klass.default_scoped.merge(scope)
+          end
       end
     end
   end

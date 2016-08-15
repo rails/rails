@@ -1,4 +1,5 @@
-require 'zlib'
+require "zlib"
+require "active_support/core_ext/regexp"
 
 module ActionView
   # = Action View Asset URL Helpers
@@ -131,10 +132,10 @@ module ActionView
         raise ArgumentError, "nil is not a valid asset source" if source.nil?
 
         source = source.to_s
-        return "" unless source.present?
-        return source if source =~ URI_REGEXP
+        return "" if source.blank?
+        return source if URI_REGEXP.match?(source)
 
-        tail, source = source[/([\?#].+)$/], source.sub(/([\?#].+)$/, ''.freeze)
+        tail, source = source[/([\?#].+)$/], source.sub(/([\?#].+)$/, "".freeze)
 
         if extname = compute_asset_extname(source, options)
           source = "#{source}#{extname}"
@@ -168,13 +169,13 @@ module ActionView
       #   asset_url "application.js", host: "http://cdn.example.com" # => http://cdn.example.com/assets/application.js
       #
       def asset_url(source, options = {})
-        path_to_asset(source, options.merge(:protocol => :request))
+        path_to_asset(source, options.merge(protocol: :request))
       end
       alias_method :url_to_asset, :asset_url # aliased to avoid conflicts with an asset_url named route
 
       ASSET_EXTENSIONS = {
-        javascript: '.js',
-        stylesheet: '.css'
+        javascript: ".js",
+        stylesheet: ".css"
       }
 
       # Compute extname to append to asset path. Returns nil if
@@ -187,12 +188,12 @@ module ActionView
 
       # Maps asset types to public directory.
       ASSET_PUBLIC_DIRECTORIES = {
-        audio:      '/audios',
-        font:       '/fonts',
-        image:      '/images',
-        javascript: '/javascripts',
-        stylesheet: '/stylesheets',
-        video:      '/videos'
+        audio:      "/audios",
+        font:       "/fonts",
+        image:      "/images",
+        javascript: "/javascripts",
+        stylesheet: "/stylesheets",
+        video:      "/videos"
       }
 
       # Computes asset path to public directory. Plugins and
@@ -213,19 +214,21 @@ module ActionView
         host = options[:host]
         host ||= config.asset_host if defined? config.asset_host
 
-        if host.respond_to?(:call)
-          arity = host.respond_to?(:arity) ? host.arity : host.method(:call).arity
-          args = [source]
-          args << request if request && (arity > 1 || arity < 0)
-          host = host.call(*args)
-        elsif host =~ /%d/
-          host = host % (Zlib.crc32(source) % 4)
+        if host
+          if host.respond_to?(:call)
+            arity = host.respond_to?(:arity) ? host.arity : host.method(:call).arity
+            args = [source]
+            args << request if request && (arity > 1 || arity < 0)
+            host = host.call(*args)
+          elsif host.include?("%d")
+            host = host % (Zlib.crc32(source) % 4)
+          end
         end
 
         host ||= request.base_url if request && options[:protocol] == :request
         return unless host
 
-        if host =~ URI_REGEXP
+        if URI_REGEXP.match?(host)
           host
         else
           protocol = options[:protocol] || config.default_asset_host_protocol || (request ? :request : :relative)

@@ -21,7 +21,7 @@ ActiveRecord::Schema.define do
     t.string :settings, null: true, limit: 1024
     # MySQL does not allow default values for blobs. Fake it out with a
     # big varchar below.
-    t.string :preferences, null: true, default: '', limit: 1024
+    t.string :preferences, null: true, default: "", limit: 1024
     t.string :json_data, null: true, limit: 1024
     t.string :json_data_empty, null: true, default: "", limit: 1024
     t.text :params
@@ -98,7 +98,7 @@ ActiveRecord::Schema.define do
     t.column :author_visibility, :integer, default: 0
     t.column :illustrator_visibility, :integer, default: 0
     t.column :font_size, :integer, default: 0
-    t.column :cover, :string, default: 'hard'
+    t.column :cover, :string, default: "hard"
   end
 
   create_table :booleans, force: true do |t|
@@ -198,8 +198,8 @@ ActiveRecord::Schema.define do
     t.string :description, default: ""
     t.index [:firm_id, :type, :rating], name: "company_index"
     t.index [:firm_id, :type], name: "company_partial_index", where: "rating > 10"
-    t.index :name, name: 'company_name_index', using: :btree
-    t.index 'lower(name)', name: "company_expression_index" if supports_expression_index?
+    t.index :name, name: "company_name_index", using: :btree
+    t.index "lower(name)", name: "company_expression_index" if supports_expression_index?
   end
 
   create_table :content, force: true do |t|
@@ -298,7 +298,7 @@ ActiveRecord::Schema.define do
   create_table :edges, force: true, id: false do |t|
     t.column :source_id, :integer, null: false
     t.column :sink_id,   :integer, null: false
-    t.index [:source_id, :sink_id], unique: true, name: 'unique_edge_index'
+    t.index [:source_id, :sink_id], unique: true, name: "unique_edge_index"
   end
 
   create_table :engines, force: true do |t|
@@ -388,6 +388,11 @@ ActiveRecord::Schema.define do
 
   create_table :jobs, force: true do |t|
     t.integer :ideal_reference_id
+  end
+
+  create_table :jobs_pool, force: true, id: false do |t|
+    t.references :job, null: false, index: true
+    t.references :user, null: false, index: true
   end
 
   create_table :keyboards, force: true, id: false do |t|
@@ -889,7 +894,7 @@ ActiveRecord::Schema.define do
     t.column :label, :string
   end
 
-  create_table 'warehouse-things', force: true do |t|
+  create_table "warehouse-things", force: true do |t|
     t.integer :value
   end
 
@@ -929,11 +934,11 @@ ActiveRecord::Schema.define do
     t.string :title
   end
 
-  create_table :countries, force: true, id: false, primary_key: 'country_id' do |t|
+  create_table :countries, force: true, id: false, primary_key: "country_id" do |t|
     t.string :country_id
     t.string :name
   end
-  create_table :treaties, force: true, id: false, primary_key: 'treaty_id' do |t|
+  create_table :treaties, force: true, id: false, primary_key: "treaty_id" do |t|
     t.string :treaty_id
     t.string :name
   end
@@ -954,9 +959,9 @@ ActiveRecord::Schema.define do
     t.string :name
   end
   create_table :weirds, force: true do |t|
-    t.string 'a$b'
-    t.string 'なまえ'
-    t.string 'from'
+    t.string "a$b"
+    t.string "なまえ"
+    t.string "from"
   end
 
   create_table :nodes, force: true do |t|
@@ -1010,7 +1015,7 @@ ActiveRecord::Schema.define do
     t.float :overloaded_float, default: 500
     t.float :unoverloaded_float
     t.string :overloaded_string_with_limit, limit: 255
-    t.string :string_with_default, default: 'the original default'
+    t.string :string_with_default, default: "the original default"
   end
 
   create_table :users, force: true do |t|

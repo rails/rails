@@ -1,7 +1,7 @@
 require "cases/helper"
-require 'models/entrant'
-require 'models/bird'
-require 'models/course'
+require "models/entrant"
+require "models/bird"
+require "models/course"
 
 class MultipleDbTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
@@ -60,7 +60,7 @@ class MultipleDbTest < ActiveRecord::TestCase
 
     ActiveSupport::Dependencies.clear
     Object.send(:remove_const, :Course)
-    require_dependency 'models/course'
+    require_dependency "models/course"
 
     assert Course.connection
   end

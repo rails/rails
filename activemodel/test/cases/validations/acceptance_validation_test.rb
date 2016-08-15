@@ -1,11 +1,10 @@
-require 'cases/helper'
+require "cases/helper"
 
-require 'models/topic'
-require 'models/reply'
-require 'models/person'
+require "models/topic"
+require "models/reply"
+require "models/person"
 
 class AcceptanceValidationTest < ActiveModel::TestCase
-
   def teardown
     Topic.clear_validators!
   end

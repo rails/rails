@@ -1,6 +1,6 @@
-require 'action_dispatch/http/response'
-require 'delegate'
-require 'active_support/json'
+require "action_dispatch/http/response"
+require "delegate"
+require "active_support/json"
 
 module ActionController
   # Mix this module into your controller, and all actions in that controller
@@ -84,7 +84,6 @@ module ActionController
     # Note: SSEs are not currently supported by IE. However, they are supported
     # by Chrome, Firefox, Opera, and Safari.
     class SSE
-
       WHITELISTED_OPTIONS = %w( retry event id )
 
       def initialize(stream, options = {})
@@ -215,18 +214,18 @@ module ActionController
     class Response < ActionDispatch::Response #:nodoc: all
       private
 
-      def before_committed
-        super
-        jar = request.cookie_jar
-        # The response can be committed multiple times
-        jar.write self unless committed?
-      end
+        def before_committed
+          super
+          jar = request.cookie_jar
+          # The response can be committed multiple times
+          jar.write self unless committed?
+        end
 
-      def build_buffer(response, body)
-        buf = Live::Buffer.new response
-        body.each { |part| buf.write part }
-        buf
-      end
+        def build_buffer(response, body)
+          buf = Live::Buffer.new response
+          body.each { |part| buf.write part }
+          buf
+        end
     end
 
     def process(name)

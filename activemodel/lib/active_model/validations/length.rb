@@ -46,7 +46,7 @@ module ActiveModel
         keys = CHECKS.keys & options.keys
 
         if keys.empty?
-          raise ArgumentError, 'Range unspecified. Specify the :in, :within, :maximum, :minimum, or :is option.'
+          raise ArgumentError, "Range unspecified. Specify the :in, :within, :maximum, :minimum, or :is option."
         end
 
         keys.each do |key|
@@ -80,24 +80,23 @@ module ActiveModel
       end
 
       private
-      def tokenize(record, value)
-        tokenizer = options[:tokenizer]
-        if tokenizer && value.kind_of?(String)
-          if tokenizer.kind_of?(Proc)
-            tokenizer.call(value)
-          elsif record.respond_to?(tokenizer)
-            record.send(tokenizer, value)
-          end
-        end || value
-      end
+        def tokenize(record, value)
+          tokenizer = options[:tokenizer]
+          if tokenizer && value.kind_of?(String)
+            if tokenizer.kind_of?(Proc)
+              tokenizer.call(value)
+            elsif record.respond_to?(tokenizer)
+              record.send(tokenizer, value)
+            end
+          end || value
+        end
 
-      def skip_nil_check?(key)
-        key == :maximum && options[:allow_nil].nil? && options[:allow_blank].nil?
-      end
+        def skip_nil_check?(key)
+          key == :maximum && options[:allow_nil].nil? && options[:allow_blank].nil?
+        end
     end
 
     module HelperMethods
-
       # Validates that the specified attributes match the length restrictions
       # supplied. Only one constraint option can be used at a time apart from
       # +:minimum+ and +:maximum+ that can be combined together:

@@ -27,9 +27,9 @@ module ActiveRecord
 
       protected
 
-      def attributes_for_hash
-        [self.class, @type_metadata, oid, fmod]
-      end
+        def attributes_for_hash
+          [self.class, @type_metadata, oid, fmod]
+        end
     end
   end
 end

@@ -13,7 +13,7 @@ module ActiveRecord
 
       protected
 
-      attr_reader :types
+        attr_reader :types
     end
   end
 end

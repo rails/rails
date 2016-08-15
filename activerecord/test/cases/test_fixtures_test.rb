@@ -1,4 +1,4 @@
-require 'cases/helper'
+require "cases/helper"
 
 class TestFixturesTest < ActiveRecord::TestCase
   setup do
@@ -7,7 +7,7 @@ class TestFixturesTest < ActiveRecord::TestCase
   end
 
   def test_deprecated_use_transactional_fixtures=
-    assert_deprecated 'use use_transactional_tests= instead' do
+    assert_deprecated "use use_transactional_tests= instead" do
       @klass.use_transactional_fixtures = true
     end
   end

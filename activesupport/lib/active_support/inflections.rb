@@ -1,4 +1,4 @@
-require 'active_support/inflector/inflections'
+require "active_support/inflector/inflections"
 
 #--
 # Defines the standard inflection rules. These are the starting point for
@@ -8,8 +8,8 @@ require 'active_support/inflector/inflections'
 #++
 module ActiveSupport
   Inflector.inflections(:en) do |inflect|
-    inflect.plural(/$/, 's')
-    inflect.plural(/s$/i, 's')
+    inflect.plural(/$/, "s")
+    inflect.plural(/s$/i, "s")
     inflect.plural(/^(ax|test)is$/i, '\1es')
     inflect.plural(/(octop|vir)us$/i, '\1i')
     inflect.plural(/(octop|vir)i$/i, '\1i')
@@ -18,7 +18,7 @@ module ActiveSupport
     inflect.plural(/(buffal|tomat)o$/i, '\1oes')
     inflect.plural(/([ti])um$/i, '\1a')
     inflect.plural(/([ti])a$/i, '\1a')
-    inflect.plural(/sis$/i, 'ses')
+    inflect.plural(/sis$/i, "ses")
     inflect.plural(/(?:([^f])fe|([lr])f)$/i, '\1\2ves')
     inflect.plural(/(hive)$/i, '\1s')
     inflect.plural(/([^aeiouy]|qu)y$/i, '\1ies')
@@ -30,7 +30,7 @@ module ActiveSupport
     inflect.plural(/^(oxen)$/i, '\1')
     inflect.plural(/(quiz)$/i, '\1zes')
 
-    inflect.singular(/s$/i, '')
+    inflect.singular(/s$/i, "")
     inflect.singular(/(ss)$/i, '\1')
     inflect.singular(/(n)ews$/i, '\1ews')
     inflect.singular(/([ti])a$/i, '\1um')
@@ -58,12 +58,12 @@ module ActiveSupport
     inflect.singular(/(quiz)zes$/i, '\1')
     inflect.singular(/(database)s$/i, '\1')
 
-    inflect.irregular('person', 'people')
-    inflect.irregular('man', 'men')
-    inflect.irregular('child', 'children')
-    inflect.irregular('sex', 'sexes')
-    inflect.irregular('move', 'moves')
-    inflect.irregular('zombie', 'zombies')
+    inflect.irregular("person", "people")
+    inflect.irregular("man", "men")
+    inflect.irregular("child", "children")
+    inflect.irregular("sex", "sexes")
+    inflect.irregular("move", "moves")
+    inflect.irregular("zombie", "zombies")
 
     inflect.uncountable(%w(equipment information rice money species series fish sheep jeans police))
   end

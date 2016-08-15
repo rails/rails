@@ -1,7 +1,7 @@
-require 'rails/test_unit/line_filtering'
+require "rails/test_unit/line_filtering"
 
 if defined?(Rake.application) && Rake.application.top_level_tasks.grep(/^(default$|test(:|$))/).any?
-  ENV['RAILS_ENV'] ||= 'test'
+  ENV["RAILS_ENV"] ||= "test"
 end
 
 module Rails

@@ -1,9 +1,9 @@
-require 'active_support/core_ext/hash/slice'
-require 'active_support/core_ext/enumerable'
-require 'active_support/core_ext/array/extract_options'
-require 'active_support/core_ext/regexp'
-require 'action_dispatch/routing/redirection'
-require 'action_dispatch/routing/endpoint'
+require "active_support/core_ext/hash/slice"
+require "active_support/core_ext/enumerable"
+require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/regexp"
+require "action_dispatch/routing/redirection"
+require "action_dispatch/routing/endpoint"
 
 module ActionDispatch
   module Routing
@@ -41,7 +41,7 @@ module ActionDispatch
         end
 
         def serve(req)
-          return [ 404, {'X-Cascade' => 'pass'}, [] ] unless matches?(req)
+          return [ 404, {"X-Cascade" => "pass"}, [] ] unless matches?(req)
 
           @strategy.call @app, req
         end
@@ -93,7 +93,7 @@ module ActionDispatch
         end
 
         def self.optional_format?(path, format)
-          format != false && !path.include?(':format') && !path.end_with?('/')
+          format != false && !path.include?(":format") && !path.end_with?("/")
         end
 
         def initialize(set, ast, defaults, controller, default_action, modyoule, to, formatted, scope_constraints, blocks, via, options_constraints, anchor, options)
@@ -138,7 +138,7 @@ module ActionDispatch
           @defaults = formats[:defaults].merge(@defaults).merge(normalize_defaults(options))
 
           if path_params.include?(:action) && !@requirements.key?(:action)
-            @defaults[:action] ||= 'index'
+            @defaults[:action] ||= "index"
           end
 
           @required_defaults = (split_options[:required_defaults] || []).map(&:first)
@@ -333,7 +333,7 @@ module ActionDispatch
 
           def split_to(to)
             if to =~ /#/
-              to.split('#')
+              to.split("#")
             else
               []
             end
@@ -614,7 +614,7 @@ module ActionDispatch
           target_as       = name_for_action(options[:as], path)
           options[:via] ||= :all
 
-          match(path, options.merge(:to => app, :anchor => false, :format => false))
+          match(path, options.merge(to: app, anchor: false, format: false))
 
           define_generate_prefix(app, target_as) if rails_app
           self
@@ -661,7 +661,7 @@ module ActionDispatch
                   super(options)
                 else
                   prefix_options = options.slice(*_route.segment_keys)
-                  prefix_options[:relative_url_root] = ''.freeze
+                  prefix_options[:relative_url_root] = "".freeze
                   # we must actually delete prefix segment keys to avoid passing them to next url_for
                   _route.segment_keys.each { |k| options.delete(k) }
                   _routes.url_helpers.send("#{name}_path", prefix_options)
@@ -814,7 +814,7 @@ module ActionDispatch
           options = args.extract_options!.dup
           scope = {}
 
-          options[:path] = args.flatten.join('/') if args.any?
+          options[:path] = args.flatten.join("/") if args.any?
           options[:constraints] ||= {}
 
           unless nested_scope?
@@ -838,7 +838,7 @@ module ActionDispatch
           end
 
           if options.key? :anchor
-            raise ArgumentError, 'anchor is ignored unless passed to `match`'
+            raise ArgumentError, "anchor is ignored unless passed to `match`"
           end
 
           @scope.options.each do |option|
@@ -985,7 +985,7 @@ module ActionDispatch
         #      resources :iphones
         #    end
         def constraints(constraints = {})
-          scope(:constraints => constraints) { yield }
+          scope(constraints: constraints) { yield }
         end
 
         # Allows you to set default parameters for a route, such as this:
@@ -1563,9 +1563,9 @@ module ActionDispatch
             path, to = options.find { |name, _value| name.is_a?(String) }
 
             if path.nil?
-              ActiveSupport::Deprecation.warn 'Omitting the route path is deprecated. '\
-                'Specify the path with a String or a Symbol instead.'
-              path = ''
+              ActiveSupport::Deprecation.warn "Omitting the route path is deprecated. "\
+                "Specify the path with a String or a Symbol instead."
+              path = ""
             end
 
             case to
@@ -1642,7 +1642,7 @@ to this:
         def get_to_from_path(path, to, action)
           return to if to || action
 
-          path_without_format = path.sub(/\(\.:format\)$/, '')
+          path_without_format = path.sub(/\(\.:format\)$/, "")
           if using_match_shorthand?(path_without_format)
             path_without_format.gsub(%r{^/}, "").sub(%r{/([^/]*)$}, '#\1').tr("-", "_")
           else
@@ -1678,16 +1678,16 @@ to this:
           default_action = options.delete(:action) || @scope[:action]
 
           if action =~ /^[\w\-\/]+$/
-            default_action ||= action.tr('-', '_') unless action.include?("/")
+            default_action ||= action.tr("-", "_") unless action.include?("/")
           else
             action = nil
           end
 
           as = if !options.fetch(:as, true) # if it's set to nil or false
-                 options.delete(:as)
-               else
-                 name_for_action(options.delete(:as), action)
-               end
+            options.delete(:as)
+          else
+            name_for_action(options.delete(:as), action)
+          end
 
           path = Mapping.normalize_path URI.parser.escape(path), formatted
           ast = Journey::Parser.parse path
@@ -1801,7 +1801,7 @@ to this:
           end
 
           def resource_scope(resource) #:nodoc:
-            @scope = @scope.new(:scope_level_resource => resource)
+            @scope = @scope.new(scope_level_resource: resource)
 
             controller(resource.resource_scope) { yield }
           ensure
@@ -1809,7 +1809,7 @@ to this:
           end
 
           def nested_options #:nodoc:
-            options = { :as => parent_resource.member_name }
+            options = { as: parent_resource.member_name }
             options[:constraints] = {
               parent_resource.nested_param => param_constraint
             } if param_constraint?
@@ -1836,8 +1836,8 @@ to this:
           end
 
           def shallow_scope #:nodoc:
-            scope = { :as   => @scope[:shallow_prefix],
-                      :path => @scope[:shallow_path] }
+            scope = { as: @scope[:shallow_prefix],
+                      path: @scope[:shallow_path] }
             @scope = @scope.new scope
 
             yield
@@ -1866,8 +1866,8 @@ to this:
               prefix = action
             end
 
-            if prefix && prefix != '/' && !prefix.empty?
-              Mapper.normalize_name prefix.to_s.tr('-', '_')
+            if prefix && prefix != "/" && !prefix.empty?
+              Mapper.normalize_name prefix.to_s.tr("-", "_")
             end
           end
 
@@ -1883,7 +1883,7 @@ to this:
             end
 
             action_name = @scope.action_name(name_prefix, prefix, collection_name, member_name)
-            candidate = action_name.select(&:present?).join('_')
+            candidate = action_name.select(&:present?).join("_")
 
             unless candidate.empty?
               # If a name was not explicitly given, we check if it is valid
@@ -1914,17 +1914,24 @@ to this:
           end
         private
 
-        def path_scope(path)
-          @scope = @scope.new(path: merge_path_scope(@scope[:path], path))
-          yield
-        ensure
-          @scope = @scope.parent
-        end
+          def path_scope(path)
+            @scope = @scope.new(path: merge_path_scope(@scope[:path], path))
+            yield
+          ensure
+            @scope = @scope.parent
+          end
 
-        def match_root_route(options)
-          name = has_named_route?(:root) ? nil : :root
-          match '/', { :as => name, :via => :get }.merge!(options)
-        end
+          def match_root_route(options)
+            name = has_named_route?(:root) ? nil : :root
+            defaults_option = options.delete(:defaults)
+            args = ["/", { as: name, via: :get }.merge!(options)]
+
+            if defaults_option
+              defaults(defaults_option) { match(*args) }
+            else
+              match(*args)
+            end
+          end
       end
 
       # Routing Concerns allow you to declare common routes that can be reused
@@ -2115,7 +2122,7 @@ to this:
 
       def initialize(set) #:nodoc:
         @set = set
-        @scope = Scope.new({ :path_names => @set.resources_path_names })
+        @scope = Scope.new(path_names: @set.resources_path_names)
         @concerns = {}
       end
 

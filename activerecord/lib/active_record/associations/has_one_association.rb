@@ -32,7 +32,7 @@ module ActiveRecord
         raise_on_type_mismatch!(record) if record
         load_target
 
-        return self.target if !(target || record)
+        return target unless target || record
 
         assigning_another_record = target != record
         if assigning_another_record || record.changed?
@@ -60,12 +60,12 @@ module ActiveRecord
       def delete(method = options[:dependent])
         if load_target
           case method
-            when :delete
-              target.delete
-            when :destroy
-              target.destroy
-            when :nullify
-              target.update_columns(reflection.foreign_key => nil) if target.persisted?
+          when :delete
+            target.delete
+          when :destroy
+            target.destroy
+          when :nullify
+            target.update_columns(reflection.foreign_key => nil) if target.persisted?
           end
         end
       end
@@ -82,18 +82,18 @@ module ActiveRecord
 
         def remove_target!(method)
           case method
-            when :delete
-              target.delete
-            when :destroy
-              target.destroy
+          when :delete
+            target.delete
+          when :destroy
+            target.destroy
             else
-              nullify_owner_attributes(target)
+            nullify_owner_attributes(target)
 
-              if target.persisted? && owner.persisted? && !target.save
-                set_owner_attributes(target)
-                raise RecordNotSaved, "Failed to remove the existing associated #{reflection.name}. " +
-                                      "The record failed to save after its foreign key was set to nil."
-              end
+            if target.persisted? && owner.persisted? && !target.save
+              set_owner_attributes(target)
+              raise RecordNotSaved, "Failed to remove the existing associated #{reflection.name}. " +
+                                    "The record failed to save after its foreign key was set to nil."
+            end
           end
         end
 

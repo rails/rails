@@ -35,7 +35,7 @@ module ActiveRecord
         assert_not index_exists?(table_name, :user_id)
       end
 
-      def test_create_reference_id_index_even_if_index_option_is_passed
+      def test_create_reference_id_index_even_if_index_option_is_not_passed
         add_reference table_name, :user
         assert index_exists?(table_name, :user_id)
       end
@@ -46,18 +46,18 @@ module ActiveRecord
       end
 
       def test_creates_reference_type_column_with_default
-        add_reference table_name, :taggable, polymorphic: { default: 'Photo' }, index: true
-        assert column_exists?(table_name, :taggable_type, :string, default: 'Photo')
+        add_reference table_name, :taggable, polymorphic: { default: "Photo" }, index: true
+        assert column_exists?(table_name, :taggable_type, :string, default: "Photo")
       end
 
       def test_creates_named_index
-        add_reference table_name, :tag, index: { name: 'index_taggings_on_tag_id' }
-        assert index_exists?(table_name, :tag_id, name: 'index_taggings_on_tag_id')
+        add_reference table_name, :tag, index: { name: "index_taggings_on_tag_id" }
+        assert index_exists?(table_name, :tag_id, name: "index_taggings_on_tag_id")
       end
 
       def test_creates_named_unique_index
-        add_reference table_name, :tag, index: { name: 'index_taggings_on_tag_id', unique: true }
-        assert index_exists?(table_name, :tag_id, name: 'index_taggings_on_tag_id', unique: true )
+        add_reference table_name, :tag, index: { name: "index_taggings_on_tag_id", unique: true }
+        assert index_exists?(table_name, :tag_id, name: "index_taggings_on_tag_id", unique: true )
       end
 
       def test_creates_reference_id_with_specified_type
@@ -110,12 +110,12 @@ module ActiveRecord
 
       private
 
-      def with_polymorphic_column
-        add_column table_name, :supplier_type, :string
-        add_index table_name, [:supplier_id, :supplier_type]
+        def with_polymorphic_column
+          add_column table_name, :supplier_type, :string
+          add_index table_name, [:supplier_id, :supplier_type]
 
-        yield
-      end
+          yield
+        end
     end
   end
 end

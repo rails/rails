@@ -1,12 +1,12 @@
-require 'resque'
-require 'active_support/core_ext/enumerable'
-require 'active_support/core_ext/array/access'
+require "resque"
+require "active_support/core_ext/enumerable"
+require "active_support/core_ext/array/access"
 
 begin
-  require 'resque-scheduler'
+  require "resque-scheduler"
 rescue LoadError
   begin
-    require 'resque_scheduler'
+    require "resque_scheduler"
   rescue LoadError
     false
   end

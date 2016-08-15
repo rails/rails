@@ -93,7 +93,7 @@ module ActionDispatch
 
     private
       def set_hsts_header!(headers)
-        headers['Strict-Transport-Security'.freeze] ||= @hsts_header
+        headers["Strict-Transport-Security".freeze] ||= @hsts_header
       end
 
       def normalize_hsts_options(options)
@@ -119,10 +119,10 @@ module ActionDispatch
       end
 
       def flag_cookies_as_secure!(headers)
-        if cookies = headers['Set-Cookie'.freeze]
+        if cookies = headers["Set-Cookie".freeze]
           cookies = cookies.split("\n".freeze)
 
-          headers['Set-Cookie'.freeze] = cookies.map { |cookie|
+          headers["Set-Cookie".freeze] = cookies.map { |cookie|
             if cookie !~ /;\s*secure\s*(;|$)/i
               "#{cookie}; secure"
             else
@@ -134,8 +134,8 @@ module ActionDispatch
 
       def redirect_to_https(request)
         [ @redirect.fetch(:status, 301),
-          { 'Content-Type' => 'text/html',
-            'Location' => https_location_for(request) },
+          { "Content-Type" => "text/html",
+            "Location" => https_location_for(request) },
           @redirect.fetch(:body, []) ]
       end
 

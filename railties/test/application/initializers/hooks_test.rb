@@ -57,7 +57,7 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
       assert $activerecord_configurations
-      assert $activerecord_configurations['development']
+      assert $activerecord_configurations["development"]
     end
 
     test "after_initialize happens after to_prepare in development" do

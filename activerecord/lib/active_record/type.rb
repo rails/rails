@@ -1,17 +1,17 @@
-require 'active_model/type'
+require "active_model/type"
 
-require 'active_record/type/internal/abstract_json'
-require 'active_record/type/internal/timezone'
+require "active_record/type/internal/abstract_json"
+require "active_record/type/internal/timezone"
 
-require 'active_record/type/date'
-require 'active_record/type/date_time'
-require 'active_record/type/time'
+require "active_record/type/date"
+require "active_record/type/date_time"
+require "active_record/type/time"
 
-require 'active_record/type/serialized'
-require 'active_record/type/adapter_specific_registry'
+require "active_record/type/serialized"
+require "active_record/type/adapter_specific_registry"
 
-require 'active_record/type/type_map'
-require 'active_record/type/hash_lookup_type_map'
+require "active_record/type/type_map"
+require "active_record/type/hash_lookup_type_map"
 
 module ActiveRecord
   module Type

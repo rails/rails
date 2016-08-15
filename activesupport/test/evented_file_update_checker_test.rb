@@ -1,12 +1,12 @@
-require 'abstract_unit'
-require 'pathname'
-require 'file_update_checker_shared_tests'
+require "abstract_unit"
+require "pathname"
+require "file_update_checker_shared_tests"
 
 class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
   include FileUpdateCheckerSharedTests
 
   def setup
-    skip if ENV['LISTEN'] == '0'
+    skip if ENV["LISTEN"] == "0"
     super
   end
 
@@ -35,7 +35,7 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
     wait
   end
 
-  test 'notifies forked processes' do
+  test "notifies forked processes" do
     FileUtils.touch(tmpfiles)
 
     checker = new_checker(tmpfiles) { }
@@ -87,33 +87,33 @@ class EventedFileUpdateCheckerPathHelperTest < ActiveSupport::TestCase
     @ph = ActiveSupport::EventedFileUpdateChecker::PathHelper.new
   end
 
-  test '#xpath returns the expanded path as a Pathname object' do
+  test "#xpath returns the expanded path as a Pathname object" do
     assert_equal pn(__FILE__).expand_path, @ph.xpath(__FILE__)
   end
 
-  test '#normalize_extension returns a bare extension as is' do
-    assert_equal 'rb', @ph.normalize_extension('rb')
+  test "#normalize_extension returns a bare extension as is" do
+    assert_equal "rb", @ph.normalize_extension("rb")
   end
 
-  test '#normalize_extension removes a leading dot' do
-    assert_equal 'rb', @ph.normalize_extension('.rb')
+  test "#normalize_extension removes a leading dot" do
+    assert_equal "rb", @ph.normalize_extension(".rb")
   end
 
-  test '#normalize_extension supports symbols' do
-    assert_equal 'rb', @ph.normalize_extension(:rb)
+  test "#normalize_extension supports symbols" do
+    assert_equal "rb", @ph.normalize_extension(:rb)
   end
 
-  test '#longest_common_subpath finds the longest common subpath, if there is one' do
+  test "#longest_common_subpath finds the longest common subpath, if there is one" do
     paths = %w(
       /foo/bar
       /foo/baz
       /foo/bar/baz/woo/zoo
     ).map { |path| pn(path) }
 
-    assert_equal pn('/foo'), @ph.longest_common_subpath(paths)
+    assert_equal pn("/foo"), @ph.longest_common_subpath(paths)
   end
 
-  test '#longest_common_subpath returns the root directory as an edge case' do
+  test "#longest_common_subpath returns the root directory as an edge case" do
     paths = %w(
       /foo/bar
       /foo/baz
@@ -121,30 +121,30 @@ class EventedFileUpdateCheckerPathHelperTest < ActiveSupport::TestCase
       /wadus
     ).map { |path| pn(path) }
 
-    assert_equal pn('/'), @ph.longest_common_subpath(paths)
+    assert_equal pn("/"), @ph.longest_common_subpath(paths)
   end
 
-  test '#longest_common_subpath returns nil for an empty collection' do
+  test "#longest_common_subpath returns nil for an empty collection" do
     assert_nil @ph.longest_common_subpath([])
   end
 
-  test '#existing_parent returns the most specific existing ascendant' do
+  test "#existing_parent returns the most specific existing ascendant" do
     wd = Pathname.getwd
 
     assert_equal wd, @ph.existing_parent(wd)
-    assert_equal wd, @ph.existing_parent(wd.join('non-existing/directory'))
-    assert_equal pn('/'), @ph.existing_parent(pn('/non-existing/directory'))
+    assert_equal wd, @ph.existing_parent(wd.join("non-existing/directory"))
+    assert_equal pn("/"), @ph.existing_parent(pn("/non-existing/directory"))
   end
 
-  test '#filter_out_descendants returns the same collection if there are no descendants (empty)' do
+  test "#filter_out_descendants returns the same collection if there are no descendants (empty)" do
     assert_equal [], @ph.filter_out_descendants([])
   end
 
-  test '#filter_out_descendants returns the same collection if there are no descendants (one)' do
-    assert_equal ['/foo'], @ph.filter_out_descendants(['/foo'])
+  test "#filter_out_descendants returns the same collection if there are no descendants (one)" do
+    assert_equal ["/foo"], @ph.filter_out_descendants(["/foo"])
   end
 
-  test '#filter_out_descendants returns the same collection if there are no descendants (several)' do
+  test "#filter_out_descendants returns the same collection if there are no descendants (several)" do
     paths = %w(
       /Rails.root/app/controllers
       /Rails.root/app/models
@@ -154,7 +154,7 @@ class EventedFileUpdateCheckerPathHelperTest < ActiveSupport::TestCase
     assert_equal paths, @ph.filter_out_descendants(paths)
   end
 
-  test '#filter_out_descendants filters out descendants preserving order' do
+  test "#filter_out_descendants filters out descendants preserving order" do
     paths = %w(
       /Rails.root/app/controllers
       /Rails.root/app/controllers/concerns
@@ -166,7 +166,7 @@ class EventedFileUpdateCheckerPathHelperTest < ActiveSupport::TestCase
     assert_equal paths.values_at(0, 2, 4), @ph.filter_out_descendants(paths)
   end
 
-  test '#filter_out_descendants works on path units' do
+  test "#filter_out_descendants works on path units" do
     paths = %w(
       /foo/bar
       /foo/barrrr
@@ -175,7 +175,7 @@ class EventedFileUpdateCheckerPathHelperTest < ActiveSupport::TestCase
     assert_equal paths, @ph.filter_out_descendants(paths)
   end
 
-  test '#filter_out_descendants deals correctly with the root directory' do
+  test "#filter_out_descendants deals correctly with the root directory" do
     paths = %w(
       /
       /foo
@@ -185,7 +185,7 @@ class EventedFileUpdateCheckerPathHelperTest < ActiveSupport::TestCase
     assert_equal paths.values_at(0), @ph.filter_out_descendants(paths)
   end
 
-  test '#filter_out_descendants preserves duplicates' do
+  test "#filter_out_descendants preserves duplicates" do
     paths = %w(
       /foo
       /foo/bar

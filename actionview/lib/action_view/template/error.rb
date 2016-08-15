@@ -1,4 +1,5 @@
 require "active_support/core_ext/enumerable"
+require "active_support/core_ext/regexp"
 
 module ActionView
   # = Action View Errors
@@ -35,10 +36,10 @@ module ActionView
       prefixes = Array(prefixes)
       template_type = if partial
         "partial"
-      elsif path =~ /layouts/i
-        'layout'
+      elsif /layouts/i.match?(path)
+        "layout"
       else
-        'template'
+        "template"
       end
 
       if partial && path.present?
@@ -130,7 +131,7 @@ module ActionView
           if line_number
             "on line ##{line_number} of "
           else
-            'in '
+            "in "
           end + file_name
         end
 

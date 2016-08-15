@@ -1,5 +1,5 @@
-require 'abstract_unit'
-require 'action_dispatch/testing/assertions/response'
+require "abstract_unit"
+require "action_dispatch/testing/assertions/response"
 
 module ActionDispatch
   module Assertions
@@ -26,7 +26,7 @@ module ActionDispatch
 
       def test_assert_response_predicate_methods
         [:success, :missing, :redirect, :error].each do |sym|
-          @response = FakeResponse.new RESPONSE_PREDICATES[sym].to_s.sub(/\?/, '').to_sym
+          @response = FakeResponse.new RESPONSE_PREDICATES[sym].to_s.sub(/\?/, "").to_sym
           assert_response sym
 
           assert_raises(Minitest::Assertion) {
@@ -92,7 +92,7 @@ module ActionDispatch
       def test_error_message_shows_302_redirect_when_302_asserted_for_success
         @response = ActionDispatch::Response.new
         @response.status = 302
-        @response.location = 'http://test.host/posts/redirect/1'
+        @response.location = "http://test.host/posts/redirect/1"
 
         error = assert_raises(Minitest::Assertion) { assert_response :success }
         expected = "Expected response to be a <2XX: success>,"\
@@ -104,7 +104,7 @@ module ActionDispatch
       def test_error_message_shows_302_redirect_when_302_asserted_for_301
         @response = ActionDispatch::Response.new
         @response.status = 302
-        @response.location = 'http://test.host/posts/redirect/2'
+        @response.location = "http://test.host/posts/redirect/2"
 
         error = assert_raises(Minitest::Assertion) { assert_response 301 }
         expected = "Expected response to be a <301: Moved Permanently>,"\

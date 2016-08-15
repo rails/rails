@@ -1,9 +1,9 @@
-require 'action_dispatch/http/request'
-require 'active_support/core_ext/uri'
-require 'active_support/core_ext/array/extract_options'
-require 'rack/utils'
-require 'action_controller/metal/exceptions'
-require 'action_dispatch/routing/endpoint'
+require "action_dispatch/http/request"
+require "active_support/core_ext/uri"
+require "active_support/core_ext/array/extract_options"
+require "rack/utils"
+require "action_controller/metal/exceptions"
+require "action_dispatch/routing/endpoint"
 
 module ActionDispatch
   module Routing
@@ -22,7 +22,6 @@ module ActionDispatch
       end
 
       def serve(req)
-        req.check_path_parameters!
         uri = URI.parse(path(req.path_parameters, req))
 
         unless uri.host
@@ -40,9 +39,9 @@ module ActionDispatch
         body = %(<html><body>You are being <a href="#{ERB::Util.unwrapped_html_escape(uri.to_s)}">redirected</a>.</body></html>)
 
         headers = {
-          'Location' => uri.to_s,
-          'Content-Type' => 'text/html',
-          'Content-Length' => body.length.to_s
+          "Location" => uri.to_s,
+          "Content-Type" => "text/html",
+          "Content-Length" => body.length.to_s
         }
 
         [ status, headers, [body] ]
@@ -58,7 +57,7 @@ module ActionDispatch
 
       private
         def relative_path?(path)
-          path && !path.empty? && path[0] != '/'
+          path && !path.empty? && path[0] != "/"
         end
 
         def escape(params)
@@ -104,11 +103,11 @@ module ActionDispatch
 
       def path(params, request)
         url_options = {
-          :protocol => request.protocol,
-          :host     => request.host,
-          :port     => request.optional_port,
-          :path     => request.path,
-          :params   => request.query_parameters
+          protocol: request.protocol,
+          host: request.host,
+          port: request.optional_port,
+          path: request.path,
+          params: request.query_parameters
         }.merge! options
 
         if !params.empty? && url_options[:path].match(/%\{\w*\}/)
@@ -134,7 +133,6 @@ module ActionDispatch
     end
 
     module Redirection
-
       # Redirect any path to another path:
       #
       #   get "/stories" => redirect("/posts")

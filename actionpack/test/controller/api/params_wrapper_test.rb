@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class ParamsWrapperForApiTest < ActionController::TestCase
   class UsersController < ActionController::API
@@ -17,10 +17,10 @@ class ParamsWrapperForApiTest < ActionController::TestCase
   tests UsersController
 
   def test_specify_wrapper_name
-    @request.env['CONTENT_TYPE'] = 'application/json'
-    post :test, params: { 'username' => 'sikachu' }
+    @request.env["CONTENT_TYPE"] = "application/json"
+    post :test, params: { "username" => "sikachu" }
 
-    expected = { 'username' => 'sikachu', 'person' => { 'username' => 'sikachu' }}
+    expected = { "username" => "sikachu", "person" => { "username" => "sikachu" }}
     assert_equal expected, @controller.last_parameters
   end
 end

@@ -1,5 +1,5 @@
-require 'abstract_unit'
-require 'active_support/core_ext/array'
+require "abstract_unit"
+require "active_support/core_ext/array"
 
 class GroupingTest < ActiveSupport::TestCase
   def setup
@@ -13,27 +13,27 @@ class GroupingTest < ActiveSupport::TestCase
 
   def test_in_groups_of_with_perfect_fit
     groups = []
-    ('a'..'i').to_a.in_groups_of(3) do |group|
+    ("a".."i").to_a.in_groups_of(3) do |group|
       groups << group
     end
 
     assert_equal [%w(a b c), %w(d e f), %w(g h i)], groups
-    assert_equal [%w(a b c), %w(d e f), %w(g h i)], ('a'..'i').to_a.in_groups_of(3)
+    assert_equal [%w(a b c), %w(d e f), %w(g h i)], ("a".."i").to_a.in_groups_of(3)
   end
 
   def test_in_groups_of_with_padding
     groups = []
-    ('a'..'g').to_a.in_groups_of(3) do |group|
+    ("a".."g").to_a.in_groups_of(3) do |group|
       groups << group
     end
 
-    assert_equal [%w(a b c), %w(d e f), ['g', nil, nil]], groups
+    assert_equal [%w(a b c), %w(d e f), ["g", nil, nil]], groups
   end
 
   def test_in_groups_of_pads_with_specified_values
     groups = []
 
-    ('a'..'g').to_a.in_groups_of(3, 'foo') do |group|
+    ("a".."g").to_a.in_groups_of(3, "foo") do |group|
       groups << group
     end
 
@@ -43,7 +43,7 @@ class GroupingTest < ActiveSupport::TestCase
   def test_in_groups_of_without_padding
     groups = []
 
-    ('a'..'g').to_a.in_groups_of(3, false) do |group|
+    ("a".."g").to_a.in_groups_of(3, false) do |group|
       groups << group
     end
 
@@ -83,8 +83,8 @@ class GroupingTest < ActiveSupport::TestCase
 
     assert_equal [[1, 2, 3], [4, 5, nil], [6, 7, nil]],
       array.in_groups(3)
-    assert_equal [[1, 2, 3], [4, 5, 'foo'], [6, 7, 'foo']],
-      array.in_groups(3, 'foo')
+    assert_equal [[1, 2, 3], [4, 5, "foo"], [6, 7, "foo"]],
+      array.in_groups(3, "foo")
   end
 
   def test_in_groups_without_padding

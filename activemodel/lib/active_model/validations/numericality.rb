@@ -1,5 +1,4 @@
 module ActiveModel
-
   module Validations
     class NumericalityValidator < EachValidator # :nodoc:
       CHECKS = { greater_than: :>, greater_than_or_equal_to: :>=,
@@ -99,10 +98,10 @@ module ActiveModel
 
       private
 
-      def record_attribute_changed_in_place?(record, attr_name)
-        record.respond_to?(:attribute_changed_in_place?) &&
-          record.attribute_changed_in_place?(attr_name.to_s)
-      end
+        def record_attribute_changed_in_place?(record, attr_name)
+          record.respond_to?(:attribute_changed_in_place?) &&
+            record.attribute_changed_in_place?(attr_name.to_s)
+        end
     end
 
     module HelperMethods

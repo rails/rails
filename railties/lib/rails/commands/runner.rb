@@ -1,8 +1,8 @@
-require 'optparse'
+require "optparse"
 
-options = { environment: (ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development").dup }
+options = { environment: (ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development").dup }
 code_or_file = nil
-command = 'bin/rails runner'
+command = "bin/rails runner"
 
 if ARGV.first.nil?
   ARGV.push "-h"
@@ -22,16 +22,16 @@ ARGV.clone.options do |opts|
   opts.on("-h", "--help",
           "Show this help message.") { $stdout.puts opts; exit }
 
-    opts.separator ""
-    opts.separator "Examples: "
+  opts.separator ""
+  opts.separator "Examples: "
 
-    opts.separator "    rails runner 'puts Rails.env'"
-    opts.separator "        This runs the code `puts Rails.env` after loading the app"
-    opts.separator ""
-    opts.separator "    rails runner path/to/filename.rb"
-    opts.separator "        This runs the Ruby file located at `path/to/filename.rb` after loading the app"
+  opts.separator "    rails runner 'puts Rails.env'"
+  opts.separator "        This runs the code `puts Rails.env` after loading the app"
+  opts.separator ""
+  opts.separator "    rails runner path/to/filename.rb"
+  opts.separator "        This runs the Ruby file located at `path/to/filename.rb` after loading the app"
 
-  if RbConfig::CONFIG['host_os'] !~ /mswin|mingw/
+  if RbConfig::CONFIG["host_os"] !~ /mswin|mingw/
     opts.separator ""
     opts.separator "You can also use runner as a shebang line for your executables:"
     opts.separator "    -------------------------------------------------------------"
@@ -61,9 +61,11 @@ elsif File.exist?(code_or_file)
 else
   begin
     eval(code_or_file, binding, __FILE__, __LINE__)
-  rescue SyntaxError, NameError
+  rescue SyntaxError, NameError => e
     $stderr.puts "Please specify a valid ruby command or the path of a script to run."
     $stderr.puts "Run '#{command} -h' for help."
+    $stderr.puts
+    $stderr.puts e
     exit 1
   end
 end

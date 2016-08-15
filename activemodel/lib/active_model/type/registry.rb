@@ -23,17 +23,17 @@ module ActiveModel
 
       protected
 
-      attr_reader :registrations
+        attr_reader :registrations
 
       private
 
-      def registration_klass
-        Registration
-      end
+        def registration_klass
+          Registration
+        end
 
-      def find_registration(symbol, *args)
-        registrations.find { |r| r.matches?(symbol, *args) }
-      end
+        def find_registration(symbol, *args)
+          registrations.find { |r| r.matches?(symbol, *args) }
+        end
     end
 
     class Registration
@@ -57,7 +57,7 @@ module ActiveModel
 
       protected
 
-      attr_reader :name, :block
+        attr_reader :name, :block
     end
   end
   # :startdoc:

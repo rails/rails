@@ -1,12 +1,11 @@
-require 'rails/generators/active_model'
-require 'rails/generators/model_helpers'
+require "rails/generators/active_model"
+require "rails/generators/model_helpers"
 
 module Rails
   module Generators
     # Deal with controller names on scaffold and add some helpers to deal with
     # ActiveModel.
     module ResourceHelpers # :nodoc:
-
       def self.included(base) #:nodoc:
         base.include(Rails::Generators::ModelHelpers)
         base.class_option :model_name, type: :string, desc: "ModelName to be used"
@@ -18,7 +17,7 @@ module Rails
         controller_name = name
         if options[:model_name]
           self.name = options[:model_name]
-          assign_names!(self.name)
+          assign_names!(name)
         end
 
         assign_controller_names!(controller_name.pluralize)
@@ -38,21 +37,21 @@ module Rails
 
         def assign_controller_names!(name)
           @controller_name = name
-          @controller_class_path = name.include?('/') ? name.split('/') : name.split('::')
+          @controller_class_path = name.include?("/") ? name.split("/") : name.split("::")
           @controller_class_path.map!(&:underscore)
           @controller_file_name = @controller_class_path.pop
         end
 
         def controller_file_path
-          @controller_file_path ||= (controller_class_path + [controller_file_name]).join('/')
+          @controller_file_path ||= (controller_class_path + [controller_file_name]).join("/")
         end
 
         def controller_class_name
-          (controller_class_path + [controller_file_name]).map!(&:camelize).join('::')
+          (controller_class_path + [controller_file_name]).map!(&:camelize).join("::")
         end
 
         def controller_i18n_scope
-          @controller_i18n_scope ||= controller_file_path.tr('/', '.')
+          @controller_i18n_scope ||= controller_file_path.tr("/", ".")
         end
 
         # Loads the ORM::Generators::ActiveModel class. This class is responsible

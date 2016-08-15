@@ -1,4 +1,4 @@
-require 'active_support/core_ext/string/filters'
+require "active_support/core_ext/string/filters"
 
 module ActiveRecord
   module Integration
@@ -11,7 +11,7 @@ module ActiveRecord
       # Accepts any of the symbols in <tt>Time::DATE_FORMATS</tt>.
       #
       # This is +:usec+, by default.
-      class_attribute :cache_timestamp_format, :instance_writer => false
+      class_attribute :cache_timestamp_format, instance_writer: false
       self.cache_timestamp_format = :usec
     end
 
@@ -100,7 +100,7 @@ module ActiveRecord
           define_method :to_param do
             if (default = super()) &&
                  (result = send(method_name).to_s).present? &&
-                   (param = result.squish.parameterize.truncate(20, separator: /-/, omission: '')).present?
+                   (param = result.squish.parameterize.truncate(20, separator: /-/, omission: "")).present?
               "#{default}-#{param}"
             else
               default

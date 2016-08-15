@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class MiddlewareStackTest < ActiveSupport::TestCase
   class FooMiddleware; end
@@ -59,10 +59,10 @@ class MiddlewareStackTest < ActiveSupport::TestCase
 
   test "use should push middleware class with arguments onto the stack" do
     assert_difference "@stack.size" do
-      @stack.use BazMiddleware, true, :foo => "bar"
+      @stack.use BazMiddleware, true, foo: "bar"
     end
     assert_equal BazMiddleware, @stack.last.klass
-    assert_equal([true, {:foo => "bar"}], @stack.last.args)
+    assert_equal([true, {foo: "bar"}], @stack.last.args)
   end
 
   test "use should push middleware class with block arguments onto the stack" do
@@ -102,7 +102,7 @@ class MiddlewareStackTest < ActiveSupport::TestCase
 
   test "swaps one middleware out for same middleware class" do
     assert_equal FooMiddleware, @stack[0].klass
-    @stack.swap(FooMiddleware, FooMiddleware, Proc.new { |env| [500, {}, ['error!']] })
+    @stack.swap(FooMiddleware, FooMiddleware, Proc.new { |env| [500, {}, ["error!"]] })
     assert_equal FooMiddleware, @stack[0].klass
   end
 

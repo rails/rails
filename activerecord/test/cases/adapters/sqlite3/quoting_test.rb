@@ -1,7 +1,7 @@
 require "cases/helper"
-require 'bigdecimal'
-require 'yaml'
-require 'securerandom'
+require "bigdecimal"
+require "yaml"
+require "securerandom"
 
 class SQLite3QuotingTest < ActiveRecord::SQLite3TestCase
   def setup
@@ -16,7 +16,7 @@ class SQLite3QuotingTest < ActiveRecord::SQLite3TestCase
   end
 
   def test_type_cast_symbol
-    assert_equal 'foo', @conn.type_cast(:foo)
+    assert_equal "foo", @conn.type_cast(:foo)
   end
 
   def test_type_cast_date
@@ -41,15 +41,15 @@ class SQLite3QuotingTest < ActiveRecord::SQLite3TestCase
   end
 
   def test_type_cast_true
-    assert_equal 't', @conn.type_cast(true)
+    assert_equal "t", @conn.type_cast(true)
   end
 
   def test_type_cast_false
-    assert_equal 'f', @conn.type_cast(false)
+    assert_equal "f", @conn.type_cast(false)
   end
 
   def test_type_cast_bigdecimal
-    bd = BigDecimal.new '10.0'
+    bd = BigDecimal.new "10.0"
     assert_equal bd.to_f, @conn.type_cast(bd)
   end
 
@@ -79,7 +79,7 @@ class SQLite3QuotingTest < ActiveRecord::SQLite3TestCase
   end
 
   def test_quoting_binary_strings
-    value = "hello".encode('ascii-8bit')
+    value = "hello".encode("ascii-8bit")
     type = ActiveRecord::Type::String.new
 
     assert_equal "'hello'", @conn.quote(type.serialize(value))

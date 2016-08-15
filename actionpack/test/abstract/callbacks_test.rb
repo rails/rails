@@ -1,8 +1,7 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 module AbstractController
   module Testing
-
     class ControllerWithCallbacks < AbstractController::Base
       include AbstractController::Callbacks
     end
@@ -114,8 +113,8 @@ module AbstractController
     end
 
     class CallbacksWithConditions < ControllerWithCallbacks
-      before_action :list, :only => :index
-      before_action :authenticate, :except => :index
+      before_action :list, only: :index
+      before_action :authenticate, except: :index
 
       def index
         self.response_body = @list.join(", ")
@@ -126,14 +125,14 @@ module AbstractController
       end
 
       private
-      def list
-        @list = ["Hello", "World"]
-      end
+        def list
+          @list = ["Hello", "World"]
+        end
 
-      def authenticate
-        @list ||= []
-        @authenticated = "true"
-      end
+        def authenticate
+          @list ||= []
+          @authenticated = "true"
+        end
     end
 
     class TestCallbacksWithConditions < ActiveSupport::TestCase
@@ -170,14 +169,14 @@ module AbstractController
       end
 
       private
-      def list
-        @list = ["Hello", "World"]
-      end
+        def list
+          @list = ["Hello", "World"]
+        end
 
-      def authenticate
-        @list = []
-        @authenticated = "true"
-      end
+        def authenticate
+          @list = []
+          @authenticated = "true"
+        end
     end
 
     class TestCallbacksWithArrayConditions < ActiveSupport::TestCase
@@ -202,7 +201,7 @@ module AbstractController
     end
 
     class ChangedConditions < Callback2
-      before_action :first, :only => :index
+      before_action :first, only: :index
 
       def not_index
         @text ||= nil

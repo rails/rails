@@ -1,4 +1,4 @@
-require 'rails/commands/rake_proxy'
+require "rails/commands/rake_proxy"
 
 module Rails
   # This is a class which takes in a rails command and initiates the appropriate
@@ -30,9 +30,9 @@ In addition to those commands, there are:
 EOT
 
     ADDITIONAL_COMMANDS = [
-      [ 'destroy', 'Undo code generated with "generate" (short-cut alias: "d")' ],
-      [ 'plugin new', 'Generates skeleton for developing a Rails plugin' ],
-      [ 'runner',
+      [ "destroy", 'Undo code generated with "generate" (short-cut alias: "d")' ],
+      [ "plugin new", "Generates skeleton for developing a Rails plugin" ],
+      [ "runner",
         'Run a piece of code in the application environment (short-cut alias: "r")' ]
     ]
 
@@ -69,7 +69,7 @@ EOT
       options = Rails::Console.parse_arguments(argv)
 
       # RAILS_ENV needs to be set before config/application is required
-      ENV['RAILS_ENV'] = options[:environment] if options[:environment]
+      ENV["RAILS_ENV"] = options[:environment] if options[:environment]
 
       # shift ARGV so IRB doesn't freak
       shift_argv!
@@ -113,7 +113,7 @@ EOT
     end
 
     def version
-      argv.unshift '--version'
+      argv.unshift "--version"
       require_command!("application")
     end
 
@@ -131,7 +131,7 @@ EOT
       end
 
       def shift_argv!
-        argv.shift if argv.first && argv.first[0] != '-'
+        argv.shift if argv.first && argv.first[0] != "-"
       end
 
       def require_command!(command)
@@ -139,7 +139,7 @@ EOT
       end
 
       def generate_or_destroy(command)
-        require 'rails/generators'
+        require "rails/generators"
         require_application_and_environment!
         Rails.application.load_generators
         require_command!(command)
@@ -149,7 +149,7 @@ EOT
       # This allows us to run `rails server` from other directories, but still get
       # the main config.ru and properly set the tmp directory.
       def set_application_directory!
-        Dir.chdir(File.expand_path('../../', APP_PATH)) unless File.exist?(File.expand_path("config.ru"))
+        Dir.chdir(File.expand_path("../../", APP_PATH)) unless File.exist?(File.expand_path("config.ru"))
       end
 
       def require_application_and_environment!
@@ -168,10 +168,10 @@ EOT
 
       def parse_command(command)
         case command
-        when '--version', '-v'
-          'version'
-        when '--help', '-h'
-          'help'
+        when "--version", "-v"
+          "version"
+        when "--help", "-h"
+          "help"
         else
           command
         end

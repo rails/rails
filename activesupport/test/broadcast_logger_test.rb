@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 module ActiveSupport
   class BroadcastLoggerTest < TestCase
@@ -26,8 +26,8 @@ module ActiveSupport
     test "#close broadcasts to all loggers" do
       logger.close
 
-      assert log1.closed, 'should be closed'
-      assert log2.closed, 'should be closed'
+      assert log1.closed, "should be closed"
+      assert log2.closed, "should be closed"
     end
 
     test "#<< shovels the value into all loggers" do
@@ -138,7 +138,7 @@ module ActiveSupport
         add(::Logger::UNKNOWN, message, &block)
       end
 
-      def << x
+      def <<(x)
         @chevrons << x
       end
 

@@ -1,4 +1,5 @@
-require 'erubis'
+require "erubis"
+require "active_support/core_ext/regexp"
 
 module ActionView
   class Template
@@ -28,7 +29,7 @@ module ActionView
         # We override to always treat <%== as escaped.
         def add_expr(src, code, indicator)
           case indicator
-          when '=='
+          when "=="
             add_expr_escaped(src, code)
           else
             super
@@ -39,16 +40,16 @@ module ActionView
 
         def add_expr_literal(src, code)
           flush_newline_if_pending(src)
-          if code =~ BLOCK_EXPR
-            src << '@output_buffer.append= ' << code
+          if BLOCK_EXPR.match?(code)
+            src << "@output_buffer.append= " << code
           else
-            src << '@output_buffer.append=(' << code << ');'
+            src << "@output_buffer.append=(" << code << ");"
           end
         end
 
         def add_expr_escaped(src, code)
           flush_newline_if_pending(src)
-          if code =~ BLOCK_EXPR
+          if BLOCK_EXPR.match?(code)
             src << "@output_buffer.safe_expr_append= " << code
           else
             src << "@output_buffer.safe_expr_append=(" << code << ");"
@@ -62,7 +63,7 @@ module ActionView
 
         def add_postamble(src)
           flush_newline_if_pending(src)
-          src << '@output_buffer.to_s'
+          src << "@output_buffer.to_s"
         end
 
         def flush_newline_if_pending(src)
@@ -77,7 +78,7 @@ module ActionView
         # Specify trim mode for the ERB compiler. Defaults to '-'.
         # See ERB documentation for suitable values.
         class_attribute :erb_trim_mode
-        self.erb_trim_mode = '-'
+        self.erb_trim_mode = "-"
 
         # Default implementation used.
         class_attribute :erb_implementation
@@ -108,7 +109,7 @@ module ActionView
           # expression
           template_source = template.source.dup.force_encoding(Encoding::ASCII_8BIT)
 
-          erb = template_source.gsub(ENCODING_TAG, '')
+          erb = template_source.gsub(ENCODING_TAG, "")
           encoding = $2
 
           erb.force_encoding valid_encoding(template.source.dup, encoding)
@@ -118,8 +119,8 @@ module ActionView
 
           self.class.erb_implementation.new(
             erb,
-            :escape => (self.class.escape_whitelist.include? template.type),
-            :trim => (self.class.erb_trim_mode == "-")
+            escape: (self.class.escape_whitelist.include? template.type),
+            trim: (self.class.erb_trim_mode == "-")
           ).src
         end
 

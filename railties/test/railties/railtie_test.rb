@@ -99,9 +99,9 @@ module RailtiesTest
       require "#{app_path}/config/environment"
 
       assert !$ran_block
-      require 'rake'
-      require 'rake/testtask'
-      require 'rdoc/task'
+      require "rake"
+      require "rake/testtask"
+      require "rdoc/task"
 
       Rails.application.load_tasks
       assert $ran_block
@@ -123,9 +123,9 @@ module RailtiesTest
       require "#{app_path}/config/environment"
 
       assert_equal [], $ran_block
-      require 'rake'
-      require 'rake/testtask'
-      require 'rdoc/task'
+      require "rake"
+      require "rake/testtask"
+      require "rdoc/task"
 
       Rails.application.load_tasks
       assert $ran_block.include?("my_tie")
@@ -196,8 +196,8 @@ module RailtiesTest
     test "we can change our environment if we want to" do
       begin
         original_env = Rails.env
-        Rails.env = 'foo'
-        assert_equal('foo', Rails.env)
+        Rails.env = "foo"
+        assert_equal("foo", Rails.env)
       ensure
         Rails.env = original_env
         assert_equal(original_env, Rails.env)

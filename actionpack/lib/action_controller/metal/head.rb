@@ -18,7 +18,7 @@ module ActionController
     # See Rack::Utils::SYMBOL_TO_STATUS_CODE for a full list of valid +status+ symbols.
     def head(status, options = {})
       if status.is_a?(Hash)
-        msg = status[:status] ? 'The :status option' : 'The implicit :ok status'
+        msg = status[:status] ? "The :status option" : "The implicit :ok status"
         options, status = status, status.delete(:status)
 
         ActiveSupport::Deprecation.warn(<<-MSG.squish)
@@ -33,7 +33,7 @@ module ActionController
       content_type = options.delete(:content_type)
 
       options.each do |key, value|
-        headers[key.to_s.dasherize.split('-').each { |v| v[0] = v[0].chr.upcase }.join('-')] = value.to_s
+        headers[key.to_s.dasherize.split("-").each { |v| v[0] = v[0].chr.upcase }.join("-")] = value.to_s
       end
 
       self.status = status
@@ -41,7 +41,7 @@ module ActionController
 
       self.response_body = ""
 
-      if include_content?(self.response_code)
+      if include_content?(response_code)
         self.content_type = content_type || (Mime[formats.first] if formats)
         self.response.charset = false
       end
@@ -50,15 +50,15 @@ module ActionController
     end
 
     private
-    def include_content?(status)
-      case status
-      when 100..199
-        false
-      when 204, 205, 304
-        false
-      else
-        true
+      def include_content?(status)
+        case status
+        when 100..199
+          false
+        when 204, 205, 304
+          false
+        else
+          true
+        end
       end
-    end
   end
 end

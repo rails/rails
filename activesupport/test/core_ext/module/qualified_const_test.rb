@@ -1,5 +1,5 @@
-require 'abstract_unit'
-require 'active_support/core_ext/module/qualified_const'
+require "abstract_unit"
+require "active_support/core_ext/module/qualified_const"
 
 module QualifiedConstTestMod
   X = false
@@ -89,8 +89,8 @@ class QualifiedConstTest < ActiveSupport::TestCase
         end
       ensure
         silence_warnings do
-          QualifiedConstTestMod.qualified_const_set('QualifiedConstTestMod::X', false)
-          QualifiedConstTestMod::M.qualified_const_set('X', 1)
+          QualifiedConstTestMod.qualified_const_set("QualifiedConstTestMod::X", false)
+          QualifiedConstTestMod::M.qualified_const_set("X", 1)
         end
       end
     end
@@ -111,8 +111,8 @@ class QualifiedConstTest < ActiveSupport::TestCase
 
   private
 
-  def assert_raise_with_message(expected_exception, expected_message, &block)
-    exception = assert_raise(expected_exception, &block)
-    assert_equal expected_message, exception.message
-  end
+    def assert_raise_with_message(expected_exception, expected_message, &block)
+      exception = assert_raise(expected_exception, &block)
+      assert_equal expected_message, exception.message
+    end
 end

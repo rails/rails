@@ -1,6 +1,6 @@
 class Bulb < ActiveRecord::Base
-  default_scope { where(:name => 'defaulty') }
-  belongs_to :car, :touch => true
+  default_scope { where(name: "defaulty") }
+  belongs_to :car, touch: true
   scope :awesome, -> { where(frickinawesome: true) }
 
   attr_reader :scope_after_initialize, :attributes_after_initialize
@@ -35,7 +35,7 @@ class CustomBulb < Bulb
   after_initialize :set_awesomeness
 
   def set_awesomeness
-    self.frickinawesome = true if name == 'Dude'
+    self.frickinawesome = true if name == "Dude"
   end
 end
 

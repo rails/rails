@@ -11,7 +11,6 @@ module ActiveRecord
     # +columns+ attribute of said TableDefinition object, in order to be used
     # for generating a number of table creation or table changing SQL statements.
     class ColumnDefinition < Struct.new(:name, :type, :limit, :precision, :scale, :default, :null, :first, :after, :auto_increment, :primary_key, :collation, :sql_type, :comment) #:nodoc:
-
       def primary_key?
         primary_key || type.to_sym == :primary_key
       end
@@ -61,9 +60,9 @@ module ActiveRecord
       end
 
       private
-      def default_primary_key
-        "id"
-      end
+        def default_primary_key
+          "id"
+        end
     end
 
     class ReferenceDefinition # :nodoc:
@@ -103,51 +102,51 @@ module ActiveRecord
 
       protected
 
-      attr_reader :name, :polymorphic, :index, :foreign_key, :type, :options
+        attr_reader :name, :polymorphic, :index, :foreign_key, :type, :options
 
       private
 
-      def as_options(value, default = {})
-        if value.is_a?(Hash)
-          value
-        else
-          default
+        def as_options(value, default = {})
+          if value.is_a?(Hash)
+            value
+          else
+            default
+          end
         end
-      end
 
-      def polymorphic_options
-        as_options(polymorphic, options)
-      end
-
-      def index_options
-        as_options(index)
-      end
-
-      def foreign_key_options
-        as_options(foreign_key).merge(column: column_name)
-      end
-
-      def columns
-        result = [[column_name, type, options]]
-        if polymorphic
-          result.unshift(["#{name}_type", :string, polymorphic_options])
+        def polymorphic_options
+          as_options(polymorphic, options)
         end
-        result
-      end
 
-      def column_name
-        "#{name}_id"
-      end
-
-      def column_names
-        columns.map(&:first)
-      end
-
-      def foreign_table_name
-        foreign_key_options.fetch(:to_table) do
-          Base.pluralize_table_names ? name.to_s.pluralize : name
+        def index_options
+          as_options(index)
         end
-      end
+
+        def foreign_key_options
+          as_options(foreign_key).merge(column: column_name)
+        end
+
+        def columns
+          result = [[column_name, type, options]]
+          if polymorphic
+            result.unshift(["#{name}_type", :string, polymorphic_options])
+          end
+          result
+        end
+
+        def column_name
+          "#{name}_id"
+        end
+
+        def column_names
+          columns.map(&:first)
+        end
+
+        def foreign_table_name
+          foreign_key_options.fetch(:to_table) do
+            Base.pluralize_table_names ? name.to_s.pluralize : name
+          end
+        end
     end
 
     module ColumnMethods
@@ -383,13 +382,13 @@ module ActiveRecord
       end
 
       private
-      def create_column_definition(name, type)
-        ColumnDefinition.new name, type
-      end
+        def create_column_definition(name, type)
+          ColumnDefinition.new name, type
+        end
 
-      def aliased_types(name, fallback)
-        'timestamp' == name ? :datetime : fallback
-      end
+        def aliased_types(name, fallback)
+          "timestamp" == name ? :datetime : fallback
+        end
     end
 
     class AlterTable # :nodoc:

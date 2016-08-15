@@ -1,5 +1,5 @@
-require 'abstract_unit'
-require 'active_support/core_ext/module/concerning'
+require "abstract_unit"
+require "active_support/core_ext/module/concerning"
 
 class ModuleConcerningTest < ActiveSupport::TestCase
   def test_concerning_declares_a_concern_and_includes_it_immediately
@@ -24,10 +24,10 @@ class ModuleConcernTest < ActiveSupport::TestCase
     assert !klass.ancestors.include?(klass::Baz), klass.ancestors.inspect
 
     # Public method visibility by default
-    assert klass::Baz.public_instance_methods.map(&:to_s).include?('should_be_public')
+    assert klass::Baz.public_instance_methods.map(&:to_s).include?("should_be_public")
 
     # Calls included hook
-    assert_equal 1, Class.new { include klass::Baz }.instance_variable_get('@foo')
+    assert_equal 1, Class.new { include klass::Baz }.instance_variable_get("@foo")
   end
 
   class Foo

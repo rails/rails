@@ -25,26 +25,26 @@ module ActiveRecord
         recorder = CommandRecorder.new(Class.new {
           def create_table(name); end
         }.new)
-        assert recorder.respond_to?(:create_table), 'respond_to? create_table'
+        assert recorder.respond_to?(:create_table), "respond_to? create_table"
         recorder.send(:create_table, :horses)
         assert_equal [[:create_table, [:horses], nil]], recorder.commands
       end
 
       def test_unknown_commands_delegate
         recorder = Struct.new(:foo)
-        recorder = CommandRecorder.new(recorder.new('bar'))
-        assert_equal 'bar', recorder.foo
+        recorder = CommandRecorder.new(recorder.new("bar"))
+        assert_equal "bar", recorder.foo
       end
 
       def test_inverse_of_raise_exception_on_unknown_commands
         assert_raises(ActiveRecord::IrreversibleMigration) do
-          @recorder.inverse_of :execute, ['some sql']
+          @recorder.inverse_of :execute, ["some sql"]
         end
       end
 
       def test_irreversible_commands_raise_exception
         assert_raises(ActiveRecord::IrreversibleMigration) do
-          @recorder.revert{ @recorder.execute 'some sql' }
+          @recorder.revert{ @recorder.execute "some sql" }
         end
       end
 
@@ -166,7 +166,7 @@ module ActiveRecord
 
       def test_invert_change_column_default
         assert_raises(ActiveRecord::IrreversibleMigration) do
-          @recorder.inverse_of :change_column_default, [:table, :column, 'default_value']
+          @recorder.inverse_of :change_column_default, [:table, :column, "default_value"]
         end
       end
 
@@ -283,13 +283,13 @@ module ActiveRecord
       end
 
       def test_invert_enable_extension
-        disable = @recorder.inverse_of :enable_extension, ['uuid-ossp']
-        assert_equal [:disable_extension, ['uuid-ossp'], nil], disable
+        disable = @recorder.inverse_of :enable_extension, ["uuid-ossp"]
+        assert_equal [:disable_extension, ["uuid-ossp"], nil], disable
       end
 
       def test_invert_disable_extension
-        enable = @recorder.inverse_of :disable_extension, ['uuid-ossp']
-        assert_equal [:enable_extension, ['uuid-ossp'], nil], enable
+        enable = @recorder.inverse_of :disable_extension, ["uuid-ossp"]
+        assert_equal [:enable_extension, ["uuid-ossp"], nil], enable
       end
 
       def test_invert_add_foreign_key

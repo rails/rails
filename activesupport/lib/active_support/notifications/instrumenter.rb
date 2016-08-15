@@ -1,4 +1,4 @@
-require 'securerandom'
+require "securerandom"
 
 module ActiveSupport
   module Notifications
@@ -44,9 +44,9 @@ module ActiveSupport
 
       private
 
-      def unique_id
-        SecureRandom.hex(10)
-      end
+        def unique_id
+          SecureRandom.hex(10)
+        end
     end
 
     class Event

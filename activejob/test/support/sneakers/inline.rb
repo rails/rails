@@ -1,4 +1,4 @@
-require 'sneakers'
+require "sneakers"
 
 module Sneakers
   module Worker

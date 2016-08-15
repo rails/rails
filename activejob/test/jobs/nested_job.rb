@@ -7,4 +7,3 @@ class NestedJob < ActiveJob::Base
     "NESTED-JOB-ID"
   end
 end
-

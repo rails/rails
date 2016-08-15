@@ -1,9 +1,9 @@
-require 'abstract_unit'
-require 'multibyte_test_helpers'
-require 'stringio'
-require 'fileutils'
-require 'tempfile'
-require 'concurrent/atomics'
+require "abstract_unit"
+require "multibyte_test_helpers"
+require "stringio"
+require "fileutils"
+require "tempfile"
+require "concurrent/atomics"
 
 class LoggerTest < ActiveSupport::TestCase
   include MultibyteTestHelpers
@@ -26,12 +26,12 @@ class LoggerTest < ActiveSupport::TestCase
   end
 
   def test_write_binary_data_to_existing_file
-    t = Tempfile.new ['development', 'log']
+    t = Tempfile.new ["development", "log"]
     t.binmode
-    t.write 'hi mom!'
+    t.write "hi mom!"
     t.close
 
-    f = File.open(t.path, 'w')
+    f = File.open(t.path, "w")
     f.binmode
 
     logger = Logger.new f
@@ -47,9 +47,9 @@ class LoggerTest < ActiveSupport::TestCase
   end
 
   def test_write_binary_data_create_file
-    fname = File.join Dir.tmpdir, 'lol', 'rofl.log'
+    fname = File.join Dir.tmpdir, "lol", "rofl.log"
     FileUtils.mkdir_p File.dirname(fname)
-    f = File.open(fname, 'w')
+    f = File.open(fname, "w")
     f.binmode
 
     logger = Logger.new f
@@ -115,7 +115,7 @@ class LoggerTest < ActiveSupport::TestCase
 
   def test_should_know_if_its_loglevel_is_below_a_given_level
     Logger::Severity.constants.each do |level|
-      next if level.to_s == 'UNKNOWN'
+      next if level.to_s == "UNKNOWN"
       @logger.level = Logger::Severity.const_get(level) - 1
       assert @logger.send("#{level.downcase}?"), "didn't know if it was #{level.downcase}? or below"
     end

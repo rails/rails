@@ -1,7 +1,8 @@
-require 'active_support/core_ext/array/extract_options'
-require 'active_support/core_ext/hash/keys'
-require 'action_view/helpers/asset_url_helper'
-require 'action_view/helpers/tag_helper'
+require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/hash/keys"
+require "active_support/core_ext/regexp"
+require "action_view/helpers/asset_url_helper"
+require "action_view/helpers/tag_helper"
 
 module ActionView
   # = Action View Asset Tag Helpers
@@ -55,7 +56,7 @@ module ActionView
       #   # => <script src="http://www.example.com/xmlhr.js"></script>
       def javascript_include_tag(*sources)
         options = sources.extract_options!.stringify_keys
-        path_options = options.extract!('protocol', 'extname', 'host').symbolize_keys
+        path_options = options.extract!("protocol", "extname", "host").symbolize_keys
         sources.uniq.map { |source|
           tag_options = {
             "src" => path_to_javascript(source, path_options)
@@ -91,7 +92,7 @@ module ActionView
       #   #    <link href="/css/stylish.css" media="screen" rel="stylesheet" />
       def stylesheet_link_tag(*sources)
         options = sources.extract_options!.stringify_keys
-        path_options = options.extract!('protocol', 'host').symbolize_keys
+        path_options = options.extract!("protocol", "host").symbolize_keys
 
         sources.uniq.map { |source|
           tag_options = {
@@ -138,7 +139,7 @@ module ActionView
           "rel"   => tag_options[:rel] || "alternate",
           "type"  => tag_options[:type] || Template::Types[type].to_s,
           "title" => tag_options[:title] || type.to_s.upcase,
-          "href"  => url_options.is_a?(Hash) ? url_for(url_options.merge(:only_path => false)) : url_options
+          "href"  => url_options.is_a?(Hash) ? url_for(url_options.merge(only_path: false)) : url_options
         )
       end
 
@@ -169,11 +170,11 @@ module ActionView
       #
       #   favicon_link_tag 'mb-icon.png', rel: 'apple-touch-icon', type: 'image/png'
       #   # => <link href="/assets/mb-icon.png" rel="apple-touch-icon" type="image/png" />
-      def favicon_link_tag(source='favicon.ico', options={})
-        tag('link', {
-          :rel  => 'shortcut icon',
-          :type => 'image/x-icon',
-          :href => path_to_image(source)
+      def favicon_link_tag(source="favicon.ico", options={})
+        tag("link", {
+          rel: "shortcut icon",
+          type: "image/x-icon",
+          href: path_to_image(source)
         }.merge!(options.symbolize_keys))
       end
 
@@ -213,8 +214,8 @@ module ActionView
 
         src = options[:src] = path_to_image(source)
 
-        unless src =~ /^(?:cid|data):/ || src.blank?
-          options[:alt] = options.fetch(:alt){ image_alt(src) }
+        unless src.start_with?("cid:") || src.start_with?("data:") || src.blank?
+          options[:alt] = options.fetch(:alt) { image_alt(src) }
         end
 
         options[:width], options[:height] = extract_dimensions(options.delete(:size)) if options[:size]
@@ -239,7 +240,7 @@ module ActionView
       #   image_alt('underscored_file_name.png')
       #   # => Underscored file name
       def image_alt(src)
-        File.basename(src, '.*'.freeze).sub(/-[[:xdigit:]]{32,64}\z/, ''.freeze).tr('-_'.freeze, ' '.freeze).capitalize
+        File.basename(src, ".*".freeze).sub(/-[[:xdigit:]]{32,64}\z/, "".freeze).tr("-_".freeze, " ".freeze).capitalize
       end
 
       # Returns an HTML video tag for the +sources+. If +sources+ is a string,
@@ -281,7 +282,7 @@ module ActionView
       #   video_tag(["trailer.ogg", "trailer.flv"], size: "160x120")
       #   # => <video height="120" width="160"><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
       def video_tag(*sources)
-        multiple_sources_tag('video', sources) do |options|
+        multiple_sources_tag("video", sources) do |options|
           options[:poster] = path_to_image(options[:poster]) if options[:poster]
           options[:width], options[:height] = extract_dimensions(options.delete(:size)) if options[:size]
         end
@@ -300,7 +301,7 @@ module ActionView
       #   audio_tag("sound.wav", "sound.mid")
       #   # => <audio><source src="/audios/sound.wav" /><source src="/audios/sound.mid" /></audio>
       def audio_tag(*sources)
-        multiple_sources_tag('audio', sources)
+        multiple_sources_tag("audio", sources)
       end
 
       private
@@ -312,7 +313,7 @@ module ActionView
 
           if sources.size > 1
             content_tag(type, options) do
-              safe_join sources.map { |source| tag("source", :src => send("path_to_#{type}", source)) }
+              safe_join sources.map { |source| tag("source", src: send("path_to_#{type}", source)) }
             end
           else
             options[:src] = send("path_to_#{type}", sources.first)
@@ -322,9 +323,9 @@ module ActionView
 
         def extract_dimensions(size)
           size = size.to_s
-          if size =~ %r{\A\d+x\d+\z}
-            size.split('x')
-          elsif size =~ %r{\A\d+\z}
+          if /\A\d+x\d+\z/.match?(size)
+            size.split("x")
+          elsif /\A\d+\z/.match?(size)
             [size, size]
           end
         end

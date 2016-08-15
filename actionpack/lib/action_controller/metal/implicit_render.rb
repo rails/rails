@@ -1,4 +1,4 @@
-require 'active_support/core_ext/string/strip'
+require "active_support/core_ext/string/strip"
 
 module ActionController
   # Handles implicit rendering for a controller action that does not
@@ -27,7 +27,6 @@ module ActionController
   # Finally, if we DON'T find a template AND the request isn't a browser page
   # load, then we implicitly respond with 204 No Content.
   module ImplicitRender
-
     # :stopdoc:
     include BasicImplicitRender
 

@@ -8,7 +8,7 @@ module ActiveRecord
           attr_reader :subtype, :delimiter
           delegate :type, :user_input_in_time_zone, :limit, to: :subtype
 
-          def initialize(subtype, delimiter = ',')
+          def initialize(subtype, delimiter = ",")
             @subtype = subtype
             @delimiter = delimiter
 
@@ -56,13 +56,13 @@ module ActiveRecord
 
           private
 
-          def type_cast_array(value, method)
-            if value.is_a?(::Array)
-              value.map { |item| type_cast_array(item, method) }
-            else
-              @subtype.public_send(method, value)
+            def type_cast_array(value, method)
+              if value.is_a?(::Array)
+                value.map { |item| type_cast_array(item, method) }
+              else
+                @subtype.public_send(method, value)
+              end
             end
-          end
         end
       end
     end

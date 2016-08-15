@@ -14,10 +14,10 @@ module ActionDispatch
         #   normalize_path("/%ab")  # => "/%AB"
         def self.normalize_path(path)
           path = "/#{path}"
-          path.squeeze!('/'.freeze)
-          path.sub!(%r{/+\Z}, ''.freeze)
+          path.squeeze!("/".freeze)
+          path.sub!(%r{/+\Z}, "".freeze)
           path.gsub!(/(%[a-f0-9]{2})/) { $1.upcase }
-          path = '/' if path == ''.freeze
+          path = "/" if path == "".freeze
           path
         end
 
@@ -55,7 +55,7 @@ module ActionDispatch
 
           def unescape_uri(uri)
             encoding = uri.encoding == US_ASCII ? UTF_8 : uri.encoding
-            uri.gsub(ESCAPED) { |match| [match[1, 2].hex].pack('C') }.force_encoding(encoding)
+            uri.gsub(ESCAPED) { |match| [match[1, 2].hex].pack("C") }.force_encoding(encoding)
           end
 
           protected

@@ -1,10 +1,10 @@
-require 'isolation/abstract_unit'
+require "isolation/abstract_unit"
 
 module ApplicationTests
   class ApplicationRoutingTest < ActiveSupport::TestCase
-     require 'rack/test'
-     include Rack::Test::Methods
-     include ActiveSupport::Testing::Isolation
+    require "rack/test"
+    include Rack::Test::Methods
+    include ActiveSupport::Testing::Isolation
 
     def setup
       build_app
@@ -15,7 +15,7 @@ module ApplicationTests
       @plugin = engine "blog"
       @metrics_plugin = engine "metrics"
 
-      app_file 'config/routes.rb', <<-RUBY
+      app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           mount Weblog::Engine, :at => '/', :as => 'weblog'
           resources :posts
@@ -33,7 +33,6 @@ module ApplicationTests
           root :to => 'main#index'
         end
       RUBY
-
 
       @simple_plugin.write "lib/weblog.rb", <<-RUBY
         module Weblog
@@ -198,7 +197,7 @@ module ApplicationTests
       assert_equal "/john/blog/posts/1", last_response.body
 
       # test generating engine's route from engine with default_url_options
-      get "/john/blog/posts", {}, 'SCRIPT_NAME' => "/foo"
+      get "/john/blog/posts", {}, "SCRIPT_NAME" => "/foo"
       assert_equal "/foo/john/blog/posts/1", last_response.body
 
       # test generating engine's route from application
@@ -212,10 +211,10 @@ module ApplicationTests
       assert_equal "/john/blog/posts", last_response.body
 
       # test generating engine's route from application with default_url_options
-      get "/engine_route", {}, 'SCRIPT_NAME' => "/foo"
+      get "/engine_route", {}, "SCRIPT_NAME" => "/foo"
       assert_equal "/foo/anonymous/blog/posts", last_response.body
 
-      get "/url_for_engine_route", {}, 'SCRIPT_NAME' => "/foo"
+      get "/url_for_engine_route", {}, "SCRIPT_NAME" => "/foo"
       assert_equal "/foo/john/blog/posts", last_response.body
 
       # test generating application's route from engine
@@ -227,21 +226,20 @@ module ApplicationTests
 
       # test generating engine's route from other engine
       get "/metrics/generate_blog_route"
-      assert_equal '/anonymous/blog/posts/1', last_response.body
+      assert_equal "/anonymous/blog/posts/1", last_response.body
 
       get "/metrics/generate_blog_route_in_view"
-      assert_equal '/anonymous/blog/posts/1', last_response.body
+      assert_equal "/anonymous/blog/posts/1", last_response.body
 
       # test generating engine's route from other engine with default_url_options
-      get "/metrics/generate_blog_route", {}, 'SCRIPT_NAME' => '/foo'
-      assert_equal '/foo/anonymous/blog/posts/1', last_response.body
+      get "/metrics/generate_blog_route", {}, "SCRIPT_NAME" => "/foo"
+      assert_equal "/foo/anonymous/blog/posts/1", last_response.body
 
-      get "/metrics/generate_blog_route_in_view", {}, 'SCRIPT_NAME' => '/foo'
-      assert_equal '/foo/anonymous/blog/posts/1', last_response.body
-
+      get "/metrics/generate_blog_route_in_view", {}, "SCRIPT_NAME" => "/foo"
+      assert_equal "/foo/anonymous/blog/posts/1", last_response.body
 
       # test generating application's route from engine with default_url_options
-      get "/someone/blog/generate_application_route", {}, 'SCRIPT_NAME' => '/foo'
+      get "/someone/blog/generate_application_route", {}, "SCRIPT_NAME" => "/foo"
       assert_equal "/foo/", last_response.body
 
       # test polymorphic routes

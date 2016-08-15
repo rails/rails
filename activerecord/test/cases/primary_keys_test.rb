@@ -1,12 +1,12 @@
 require "cases/helper"
-require 'support/schema_dumping_helper'
-require 'models/topic'
-require 'models/reply'
-require 'models/subscriber'
-require 'models/movie'
-require 'models/keyboard'
-require 'models/mixed_case_monkey'
-require 'models/dashboard'
+require "support/schema_dumping_helper"
+require "models/topic"
+require "models/reply"
+require "models/subscriber"
+require "models/movie"
+require "models/keyboard"
+require "models/mixed_case_monkey"
+require "models/dashboard"
 
 class PrimaryKeysTest < ActiveRecord::TestCase
   fixtures :topics, :subscribers, :movies, :mixed_case_monkeys
@@ -54,9 +54,9 @@ class PrimaryKeysTest < ActiveRecord::TestCase
 
   def test_customized_primary_key_auto_assigns_on_save
     Keyboard.delete_all
-    keyboard = Keyboard.new(:name => 'HHKB')
+    keyboard = Keyboard.new(name: "HHKB")
     assert_nothing_raised { keyboard.save! }
-    assert_equal keyboard.id, Keyboard.find_by_name('HHKB').id
+    assert_equal keyboard.id, Keyboard.find_by_name("HHKB").id
   end
 
   def test_customized_primary_key_can_be_get_before_saving
@@ -67,9 +67,9 @@ class PrimaryKeysTest < ActiveRecord::TestCase
 
   def test_customized_string_primary_key_settable_before_save
     subscriber = Subscriber.new
-    assert_nothing_raised { subscriber.id = 'webster123' }
-    assert_equal 'webster123', subscriber.id
-    assert_equal 'webster123', subscriber.nick
+    assert_nothing_raised { subscriber.id = "webster123" }
+    assert_equal "webster123", subscriber.id
+    assert_equal "webster123", subscriber.nick
   end
 
   def test_string_key
@@ -114,7 +114,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_nothing_raised { MixedCaseMonkey.delete(1) }
   end
   def test_update_counters_should_quote_pkey_and_quote_counter_columns
-    assert_nothing_raised { MixedCaseMonkey.update_counters(1, :fleaCount => 99) }
+    assert_nothing_raised { MixedCaseMonkey.update_counters(1, fleaCount: 99) }
   end
   def test_find_with_one_id_should_quote_pkey
     assert_nothing_raised { MixedCaseMonkey.find(1) }
@@ -138,15 +138,15 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   if ActiveRecord::Base.connection.supports_primary_key?
     def test_primary_key_returns_value_if_it_exists
       klass = Class.new(ActiveRecord::Base) do
-        self.table_name = 'developers'
+        self.table_name = "developers"
       end
 
-      assert_equal 'id', klass.primary_key
+      assert_equal "id", klass.primary_key
     end
 
     def test_primary_key_returns_nil_if_it_does_not_exist
       klass = Class.new(ActiveRecord::Base) do
-        self.table_name = 'developers_projects'
+        self.table_name = "developers_projects"
       end
 
       assert_nil klass.primary_key
@@ -166,17 +166,17 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   end
 
   def test_primary_key_update_with_custom_key_name
-    dashboard = Dashboard.create!(dashboard_id: '1')
-    dashboard.id = '2'
+    dashboard = Dashboard.create!(dashboard_id: "1")
+    dashboard.id = "2"
     dashboard.save!
 
     dashboard = Dashboard.first
-    assert_equal '2', dashboard.id
+    assert_equal "2", dashboard.id
   end
 
   def test_create_without_primary_key_no_extra_query
     klass = Class.new(ActiveRecord::Base) do
-      self.table_name = 'dashboards'
+      self.table_name = "dashboards"
     end
     klass.create! # warmup schema cache
     assert_queries(3, ignore_none: true) { klass.create! }
@@ -205,13 +205,13 @@ class PrimaryKeyWithNoConnectionTest < ActiveRecord::TestCase
       connection = ActiveRecord::Base.remove_connection
 
       model = Class.new(ActiveRecord::Base)
-      model.primary_key = 'foo'
+      model.primary_key = "foo"
 
-      assert_equal 'foo', model.primary_key
+      assert_equal "foo", model.primary_key
 
       ActiveRecord::Base.establish_connection(connection)
 
-      assert_equal 'foo', model.primary_key
+      assert_equal "foo", model.primary_key
     end
   end
 end
@@ -255,6 +255,7 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
 
   def setup
     @connection = ActiveRecord::Base.connection
+    @connection.schema_cache.clear!
     @connection.create_table(:barcodes, primary_key: ["region", "code"], force: true) do |t|
       t.string :region
       t.integer :code
@@ -270,10 +271,15 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
   end
 
   def test_primary_key_issues_warning
-    warning = capture(:stderr) do
-      assert_nil @connection.primary_key("barcodes")
+    model = Class.new(ActiveRecord::Base) do
+      def self.table_name
+        "barcodes"
+      end
     end
-    assert_match(/WARNING: Rails does not support composite primary key\./, warning)
+    warning = capture(:stderr) do
+      assert_nil model.primary_key
+    end
+    assert_match(/WARNING: Active Record does not support composite primary key\./, warning)
   end
 
   def test_collectly_dump_composite_primary_key
@@ -298,7 +304,7 @@ if current_adapter?(:Mysql2Adapter)
     end
 
     test "primary key with bigint allows default override via nil" do
-      column = @connection.columns(:bigint_defaults).find { |c| c.name == 'id' }
+      column = @connection.columns(:bigint_defaults).find { |c| c.name == "id" }
       assert column.bigint?
       assert_not column.auto_increment?
     end
@@ -356,7 +362,7 @@ if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
     if current_adapter?(:Mysql2Adapter)
       test "primary key column type with options" do
         @connection.create_table(:widgets, id: :primary_key, limit: 8, unsigned: true, force: true)
-        column = @connection.columns(:widgets).find { |c| c.name == 'id' }
+        column = @connection.columns(:widgets).find { |c| c.name == "id" }
         assert column.auto_increment?
         assert_equal :integer, column.type
         assert_equal 8, column.limit

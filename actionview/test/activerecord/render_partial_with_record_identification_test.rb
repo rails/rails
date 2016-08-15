@@ -1,48 +1,48 @@
-require 'active_record_unit'
+require "active_record_unit"
 
 class RenderPartialWithRecordIdentificationController < ActionController::Base
   def render_with_has_many_and_belongs_to_association
     @developer = Developer.find(1)
-    render :partial => @developer.projects
+    render partial: @developer.projects
   end
 
   def render_with_has_many_association
     @topic = Topic.find(1)
-    render :partial => @topic.replies
+    render partial: @topic.replies
   end
 
   def render_with_scope
-    render :partial => Reply.base
+    render partial: Reply.base
   end
 
   def render_with_has_many_through_association
     @developer = Developer.first
-    render :partial => @developer.topics
+    render partial: @developer.topics
   end
 
   def render_with_has_one_association
     @company = Company.find(1)
-    render :partial => @company.mascot
+    render partial: @company.mascot
   end
 
   def render_with_belongs_to_association
     @reply = Reply.find(1)
-    render :partial => @reply.topic
+    render partial: @reply.topic
   end
 
   def render_with_record
     @developer = Developer.first
-    render :partial => @developer
+    render partial: @developer
   end
 
   def render_with_record_collection
     @developers = Developer.all
-    render :partial => @developers
+    render partial: @developers
   end
 
   def render_with_record_collection_and_spacer_template
     @developer = Developer.find(1)
-    render :partial => @developer.projects, :spacer_template => 'test/partial_only'
+    render partial: @developer.projects, spacer_template: "test/partial_only"
   end
 end
 
@@ -57,27 +57,27 @@ class RenderPartialWithRecordIdentificationTest < ActiveRecordTestCase
 
   def test_rendering_partial_with_has_many_association
     get :render_with_has_many_association
-    assert_equal 'Birdman is better!', @response.body
+    assert_equal "Birdman is better!", @response.body
   end
 
   def test_rendering_partial_with_scope
     get :render_with_scope
-    assert_equal 'Birdman is better!Nuh uh!', @response.body
+    assert_equal "Birdman is better!Nuh uh!", @response.body
   end
 
   def test_render_with_record
     get :render_with_record
-    assert_equal 'David', @response.body
+    assert_equal "David", @response.body
   end
 
   def test_render_with_record_collection
     get :render_with_record_collection
-    assert_equal 'DavidJamisfixture_3fixture_4fixture_5fixture_6fixture_7fixture_8fixture_9fixture_10Jamis', @response.body
+    assert_equal "DavidJamisfixture_3fixture_4fixture_5fixture_6fixture_7fixture_8fixture_9fixture_10Jamis", @response.body
   end
 
   def test_render_with_record_collection_and_spacer_template
     get :render_with_record_collection_and_spacer_template
-    assert_equal Developer.find(1).projects.map(&:name).join('only partial'), @response.body
+    assert_equal Developer.find(1).projects.map(&:name).join("only partial"), @response.body
   end
 
   def test_rendering_partial_with_has_one_association
@@ -98,22 +98,22 @@ end
 module Fun
   class NestedController < ActionController::Base
     def render_with_record_in_nested_controller
-      render :partial => Game.new("Pong")
+      render partial: Game.new("Pong")
     end
 
     def render_with_record_collection_in_nested_controller
-      render :partial => [ Game.new("Pong"), Game.new("Tank") ]
+      render partial: [ Game.new("Pong"), Game.new("Tank") ]
     end
   end
 
   module Serious
     class NestedDeeperController < ActionController::Base
       def render_with_record_in_deeper_nested_controller
-        render :partial => Game.new("Chess")
+        render partial: Game.new("Chess")
       end
 
       def render_with_record_collection_in_deeper_nested_controller
-        render :partial => [ Game.new("Chess"), Game.new("Sudoku"), Game.new("Solitaire") ]
+        render partial: [ Game.new("Chess"), Game.new("Sudoku"), Game.new("Solitaire") ]
       end
     end
   end

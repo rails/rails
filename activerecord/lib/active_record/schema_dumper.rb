@@ -1,4 +1,4 @@
-require 'stringio'
+require "stringio"
 
 module ActiveRecord
   # = Active Record Schema Dumper
@@ -105,18 +105,13 @@ HEADER
           tbl = StringIO.new
 
           # first dump primary key column
-          if @connection.respond_to?(:primary_keys)
-            pk = @connection.primary_keys(table)
-            pk = pk.first unless pk.size > 1
-          else
-            pk = @connection.primary_key(table)
-          end
+          pk = @connection.primary_key(table)
 
           tbl.print "  create_table #{remove_prefix_and_suffix(table).inspect}"
 
           case pk
           when String
-            tbl.print ", primary_key: #{pk.inspect}" unless pk == 'id'
+            tbl.print ", primary_key: #{pk.inspect}" unless pk == "id"
             pkcol = columns.detect { |c| c.name == pk }
             pkcolspec = @connection.column_spec_for_primary_key(pkcol)
             if pkcolspec.present?
@@ -132,10 +127,10 @@ HEADER
           tbl.print ", force: :cascade"
 
           table_options = @connection.table_options(table)
-          tbl.print ", options: #{table_options.inspect}" unless table_options.blank?
-
-          if comment = @connection.table_comment(table).presence
-            tbl.print ", comment: #{comment.inspect}"
+          if table_options.present?
+            table_options.each do |key, value|
+              tbl.print ", #{key}: #{value.inspect}" if value.present?
+            end
           end
 
           tbl.puts " do |t|"
@@ -166,12 +161,12 @@ HEADER
           # add column type definition to our format string
           format_string.unshift "    t.%-#{type_length}s "
 
-          format_string *= ''
+          format_string *= ""
 
           column_specs.each do |colspec|
             values = keys.zip(lengths).map{ |key, len| colspec.key?(key) ? colspec[key] + ", " : " " * len }
             values.unshift colspec[:type]
-            tbl.print((format_string % values).gsub(/,\s*$/, ''))
+            tbl.print((format_string % values).gsub(/,\s*$/, ""))
             tbl.puts
           end
 
@@ -218,7 +213,7 @@ HEADER
           index.columns.inspect,
           "name: #{index.name.inspect}",
         ]
-        index_parts << 'unique: true' if index.unique
+        index_parts << "unique: true" if index.unique
 
         index_lengths = (index.lengths || []).compact
         index_parts << "length: #{Hash[index.columns.zip(index.lengths)].inspect}" if index_lengths.any?

@@ -1,19 +1,19 @@
-require 'set'
-require 'thread'
-require 'concurrent/map'
-require 'pathname'
-require 'active_support/core_ext/module/aliasing'
-require 'active_support/core_ext/module/attribute_accessors'
-require 'active_support/core_ext/module/introspection'
-require 'active_support/core_ext/module/anonymous'
-require 'active_support/core_ext/module/qualified_const'
-require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/kernel/reporting'
-require 'active_support/core_ext/load_error'
-require 'active_support/core_ext/name_error'
-require 'active_support/core_ext/string/starts_ends_with'
+require "set"
+require "thread"
+require "concurrent/map"
+require "pathname"
+require "active_support/core_ext/module/aliasing"
+require "active_support/core_ext/module/attribute_accessors"
+require "active_support/core_ext/module/introspection"
+require "active_support/core_ext/module/anonymous"
+require "active_support/core_ext/module/qualified_const"
+require "active_support/core_ext/object/blank"
+require "active_support/core_ext/kernel/reporting"
+require "active_support/core_ext/load_error"
+require "active_support/core_ext/name_error"
+require "active_support/core_ext/string/starts_ends_with"
 require "active_support/dependencies/interlock"
-require 'active_support/inflector'
+require "active_support/inflector"
 
 module ActiveSupport #:nodoc:
   module Dependencies #:nodoc:
@@ -64,7 +64,7 @@ module ActiveSupport #:nodoc:
 
     # Should we load files or require them?
     mattr_accessor :mechanism
-    self.mechanism = ENV['NO_RELOAD'] ? :require : :load
+    self.mechanism = ENV["NO_RELOAD"] ? :require : :load
 
     # The set of directories from which we may automatically load files. Files
     # under these directories will be reloaded on each request in development mode,
@@ -170,9 +170,9 @@ module ActiveSupport #:nodoc:
       end
 
       private
-      def pop_modules(modules)
-        modules.each { |mod| @stack[mod].pop }
-      end
+        def pop_modules(modules)
+          modules.each { |mod| @stack[mod].pop }
+        end
     end
 
     # An internal stack used to record which constants are loaded by any block.
@@ -282,17 +282,17 @@ module ActiveSupport #:nodoc:
 
       private
 
-      def load(file, wrap = false)
-        result = false
-        load_dependency(file) { result = super }
-        result
-      end
+        def load(file, wrap = false)
+          result = false
+          load_dependency(file) { result = super }
+          result
+        end
 
-      def require(file)
-        result = false
-        load_dependency(file) { result = super }
-        result
-      end
+        def require(file)
+          result = false
+          load_dependency(file) { result = super }
+          result
+        end
     end
 
     # Exception file-blaming.
@@ -503,7 +503,7 @@ module ActiveSupport #:nodoc:
 
       if file_path
         expanded = File.expand_path(file_path)
-        expanded.sub!(/\.rb\z/, ''.freeze)
+        expanded.sub!(/\.rb\z/, "".freeze)
 
         if loading.include?(expanded)
           raise "Circular dependency detected while autoloading constant #{qualified_name}"
@@ -591,7 +591,7 @@ module ActiveSupport #:nodoc:
 
       def store(klass)
         return self unless klass.respond_to?(:name)
-        raise(ArgumentError, 'anonymous classes cannot be cached') if klass.name.empty?
+        raise(ArgumentError, "anonymous classes cannot be cached") if klass.name.empty?
         @store[klass.name] = klass
         self
       end
@@ -675,29 +675,29 @@ module ActiveSupport #:nodoc:
     # A module, class, symbol, or string may be provided.
     def to_constant_name(desc) #:nodoc:
       case desc
-        when String then desc.sub(/^::/, '')
-        when Symbol then desc.to_s
-        when Module
-          desc.name ||
-            raise(ArgumentError, "Anonymous modules have no name to be referenced by")
+      when String then desc.sub(/^::/, "")
+      when Symbol then desc.to_s
+      when Module
+        desc.name ||
+          raise(ArgumentError, "Anonymous modules have no name to be referenced by")
         else raise TypeError, "Not a valid constant descriptor: #{desc.inspect}"
       end
     end
 
     def remove_constant(const) #:nodoc:
       # Normalize ::Foo, ::Object::Foo, Object::Foo, Object::Object::Foo, etc. as Foo.
-      normalized = const.to_s.sub(/\A::/, '')
-      normalized.sub!(/\A(Object::)+/, '')
+      normalized = const.to_s.sub(/\A::/, "")
+      normalized.sub!(/\A(Object::)+/, "")
 
-      constants = normalized.split('::')
+      constants = normalized.split("::")
       to_remove = constants.pop
 
       # Remove the file path from the loaded list.
       file_path = search_for_file(const.underscore)
       if file_path
         expanded = File.expand_path(file_path)
-        expanded.sub!(/\.rb\z/, '')
-        self.loaded.delete(expanded)
+        expanded.sub!(/\.rb\z/, "")
+        loaded.delete(expanded)
       end
 
       if constants.empty?
@@ -710,7 +710,7 @@ module ActiveSupport #:nodoc:
         # here than require the caller to be clever. We check the parent
         # rather than the very const argument because we do not want to
         # trigger Kernel#autoloads, see the comment below.
-        parent_name = constants.join('::')
+        parent_name = constants.join("::")
         return unless qualified_const_defined?(parent_name)
         parent = constantize(parent_name)
       end

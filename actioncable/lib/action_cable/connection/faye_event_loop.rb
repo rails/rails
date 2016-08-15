@@ -1,6 +1,6 @@
-require 'thread'
+require "thread"
 
-require 'eventmachine'
+require "eventmachine"
 EventMachine.epoll  if EventMachine.epoll?
 EventMachine.kqueue if EventMachine.kqueue?
 

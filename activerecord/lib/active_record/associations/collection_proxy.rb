@@ -29,7 +29,7 @@ module ActiveRecord
     # instantiation of the actual post records.
     class CollectionProxy < Relation
       delegate(*(ActiveRecord::Calculations.public_instance_methods - [:count]), to: :scope)
-      delegate :find_nth, to: :scope
+      delegate :exists?, :update_all, :arel, to: :scope
 
       def initialize(klass, association) #:nodoc:
         @association = association
@@ -793,7 +793,7 @@ module ActiveRecord
       # Returns +true+ if the collection is empty. If the collection has been
       # loaded it is equivalent
       # to <tt>collection.size.zero?</tt>. If the collection has not been loaded,
-      # it is equivalent to <tt>collection.exists?</tt>. If the collection has
+      # it is equivalent to <tt>!collection.exists?</tt>. If the collection has
       # not already been loaded and you are going to fetch the records anyway it
       # is better to check <tt>collection.length.zero?</tt>.
       #
@@ -895,10 +895,6 @@ module ActiveRecord
       #   person.pets.include?(Pet.find(21)) # => false
       def include?(record)
         !!@association.include?(record)
-      end
-
-      def arel #:nodoc:
-        scope.arel
       end
 
       def proxy_association
@@ -1074,6 +1070,12 @@ module ActiveRecord
         proxy_association.reset_scope
         self
       end
+
+      private
+
+        def exec_queries
+          load_target
+        end
     end
   end
 end

@@ -1,10 +1,9 @@
-require 'cases/helper'
+require "cases/helper"
 
-require 'models/topic'
-require 'models/person'
+require "models/topic"
+require "models/person"
 
 class ConfirmationValidationTest < ActiveModel::TestCase
-
   def teardown
     Topic.clear_validators!
   end
@@ -56,10 +55,9 @@ class ConfirmationValidationTest < ActiveModel::TestCase
       @old_load_path, @old_backend = I18n.load_path.dup, I18n.backend
       I18n.load_path.clear
       I18n.backend = I18n::Backend::Simple.new
-      I18n.backend.store_translations('en', {
+      I18n.backend.store_translations("en",
         errors: { messages: { confirmation: "doesn't match %{attribute}" } },
-        activemodel: { attributes: { topic: { title: 'Test Title'} } }
-      })
+        activemodel: { attributes: { topic: { title: "Test Title"} } })
 
       Topic.validates_confirmation_of(:title)
 

@@ -1,5 +1,6 @@
 require "action_view/rendering"
 require "active_support/core_ext/module/remove_method"
+require "active_support/core_ext/regexp"
 
 module ActionView
   # Layouts reverse the common pattern of including shared headers and footers in many templates to isolate changes in
@@ -204,7 +205,7 @@ module ActionView
     include ActionView::Rendering
 
     included do
-      class_attribute :_layout, :_layout_conditions, :instance_accessor => false
+      class_attribute :_layout, :_layout_conditions, instance_accessor: false
       self._layout = nil
       self._layout_conditions = {}
       _write_layout_method
@@ -229,30 +230,33 @@ module ActionView
         #
         # ==== Returns
         # * <tt>Boolean</tt> - True if the action has a layout definition, false otherwise.
-        def _conditional_layout?
-          return unless super
+          def _conditional_layout?
+            return unless super
 
-          conditions = _layout_conditions
+            conditions = _layout_conditions
 
-          if only = conditions[:only]
-            only.include?(action_name)
-          elsif except = conditions[:except]
-            !except.include?(action_name)
-          else
-            true
+            if only = conditions[:only]
+              only.include?(action_name)
+            elsif except = conditions[:except]
+              !except.include?(action_name)
+            else
+              true
+            end
           end
-        end
       end
 
       # Specify the layout to use for this class.
       #
       # If the specified layout is a:
       # String:: the String is the template name
-      # Symbol:: call the method specified by the symbol, which will return the template name
+      # Symbol:: call the method specified by the symbol
+      # Proc::   call the passed Proc
       # false::  There is no layout
       # true::   raise an ArgumentError
       # nil::    Force default layout behavior with inheritance
       #
+      # Return value of Proc & Symbol arguments should be String, false, true or nil
+      # with the same meaning as described above.
       # ==== Parameters
       # * <tt>layout</tt> - The layout to use.
       #
@@ -276,7 +280,7 @@ module ActionView
       def _write_layout_method # :nodoc:
         remove_possible_method(:_layout)
 
-        prefixes    = _implied_layout_name =~ /\blayouts/ ? [] : ["layouts"]
+        prefixes = /\blayouts/.match?(_implied_layout_name) ? [] : ["layouts"]
         default_behavior = "lookup_context.find_all('#{_implied_layout_name}', #{prefixes.inspect}, false, [], { formats: formats }).first || super"
         name_clause = if name
           default_behavior
@@ -287,10 +291,10 @@ module ActionView
         end
 
         layout_definition = case _layout
-          when String
-            _layout.inspect
-          when Symbol
-            <<-RUBY
+                            when String
+                              _layout.inspect
+                            when Symbol
+                              <<-RUBY
               #{_layout}.tap do |layout|
                 return #{default_behavior} if layout.nil?
                 unless layout.is_a?(String) || !layout
@@ -299,20 +303,20 @@ module ActionView
                 end
               end
             RUBY
-          when Proc
-            define_method :_layout_from_proc, &_layout
-            protected :_layout_from_proc
-            <<-RUBY
+                            when Proc
+                              define_method :_layout_from_proc, &_layout
+                              protected :_layout_from_proc
+                              <<-RUBY
               result = _layout_from_proc(#{_layout.arity == 0 ? '' : 'self'})
               return #{default_behavior} if result.nil?
               result
             RUBY
-          when false
-            nil
-          when true
-            raise ArgumentError, "Layouts must be specified as a String, Symbol, Proc, false, or nil"
-          when nil
-            name_clause
+                            when false
+                              nil
+                            when true
+                              raise ArgumentError, "Layouts must be specified as a String, Symbol, Proc, false, or nil"
+                            when nil
+                              name_clause
         end
 
         self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
@@ -334,9 +338,9 @@ module ActionView
       #
       # ==== Returns
       # * <tt>String</tt> - A template name
-      def _implied_layout_name # :nodoc:
-        controller_path
-      end
+        def _implied_layout_name # :nodoc:
+          controller_path
+        end
     end
 
     def _normalize_options(options) # :nodoc:

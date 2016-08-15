@@ -1,7 +1,6 @@
 module ActiveSupport
   module Multibyte
     module Unicode
-
       extend self
 
       # A list of all available normalization forms.
@@ -10,7 +9,7 @@ module ActiveSupport
       NORMALIZATION_FORMS = [:c, :kc, :d, :kd]
 
       # The Unicode version that is supported by the implementation
-      UNICODE_VERSION = '8.0.0'
+      UNICODE_VERSION = "8.0.0"
 
       # The default normalization used for operations that require
       # normalization. It can be set to any of the normalizations
@@ -57,7 +56,7 @@ module ActiveSupport
       # Returns a regular expression pattern that matches the passed Unicode
       # codepoints.
       def self.codepoints_to_pattern(array_of_codepoints) #:nodoc:
-        array_of_codepoints.collect{ |e| [e].pack 'U*'.freeze }.join('|'.freeze)
+        array_of_codepoints.collect{ |e| [e].pack "U*".freeze }.join("|".freeze)
       end
       TRAILERS_PAT = /(#{codepoints_to_pattern(LEADERS_AND_TRAILERS)})+\Z/u
       LEADERS_PAT = /\A(#{codepoints_to_pattern(LEADERS_AND_TRAILERS)})+/u
@@ -136,7 +135,7 @@ module ActiveSupport
       #
       #   Unicode.pack_graphemes(Unicode.unpack_graphemes('क्षि')) # => 'क्षि'
       def pack_graphemes(unpacked)
-        unpacked.flatten.pack('U*')
+        unpacked.flatten.pack("U*")
       end
 
       # Re-order codepoints so the string becomes canonical.
@@ -259,7 +258,7 @@ module ActiveSupport
           reader = Encoding::Converter.new(Encoding::UTF_8, Encoding::UTF_16LE)
 
           source = string.dup
-          out = ''.force_encoding(Encoding::UTF_16LE)
+          out = "".force_encoding(Encoding::UTF_16LE)
 
           loop do
             reader.primitive_convert(source, out)
@@ -287,17 +286,17 @@ module ActiveSupport
         # See http://www.unicode.org/reports/tr15, Table 1
         codepoints = string.codepoints.to_a
         case form
-          when :d
-            reorder_characters(decompose(:canonical, codepoints))
-          when :c
-            compose(reorder_characters(decompose(:canonical, codepoints)))
-          when :kd
-            reorder_characters(decompose(:compatibility, codepoints))
-          when :kc
-            compose(reorder_characters(decompose(:compatibility, codepoints)))
+        when :d
+          reorder_characters(decompose(:canonical, codepoints))
+        when :c
+          compose(reorder_characters(decompose(:canonical, codepoints)))
+        when :kd
+          reorder_characters(decompose(:compatibility, codepoints))
+        when :kc
+          compose(reorder_characters(decompose(:compatibility, codepoints)))
           else
-            raise ArgumentError, "#{form} is not a valid normalization variant", caller
-        end.pack('U*'.freeze)
+          raise ArgumentError, "#{form} is not a valid normalization variant", caller
+        end.pack("U*".freeze)
       end
 
       def downcase(string)
@@ -356,7 +355,7 @@ module ActiveSupport
         # UnicodeDatabase.
         def load
           begin
-            @codepoints, @composition_exclusion, @composition_map, @boundary, @cp1252 = File.open(self.class.filename, 'rb') { |f| Marshal.load f.read }
+            @codepoints, @composition_exclusion, @composition_map, @boundary, @cp1252 = File.open(self.class.filename, "rb") { |f| Marshal.load f.read }
           rescue => e
             raise IOError.new("Couldn't load the Unicode tables for UTF8Handler (#{e.message}), ActiveSupport::Multibyte is unusable")
           end
@@ -378,7 +377,7 @@ module ActiveSupport
 
         # Returns the directory in which the data files are stored.
         def self.dirname
-          File.dirname(__FILE__) + '/../values/'
+          File.dirname(__FILE__) + "/../values/"
         end
 
         # Returns the filename for the data file for this version.
@@ -389,25 +388,25 @@ module ActiveSupport
 
       private
 
-      def apply_mapping(string, mapping) #:nodoc:
-        database.codepoints
-        string.each_codepoint.map do |codepoint|
-          cp = database.codepoints[codepoint]
-          if cp and (ncp = cp.send(mapping)) and ncp > 0
-            ncp
-          else
-            codepoint
-          end
-        end.pack('U*')
-      end
+        def apply_mapping(string, mapping) #:nodoc:
+          database.codepoints
+          string.each_codepoint.map do |codepoint|
+            cp = database.codepoints[codepoint]
+            if cp and (ncp = cp.send(mapping)) and ncp > 0
+              ncp
+            else
+              codepoint
+            end
+          end.pack("U*")
+        end
 
-      def recode_windows1252_chars(string)
-        string.encode(Encoding::UTF_8, Encoding::Windows_1252, invalid: :replace, undef: :replace)
-      end
+        def recode_windows1252_chars(string)
+          string.encode(Encoding::UTF_8, Encoding::Windows_1252, invalid: :replace, undef: :replace)
+        end
 
-      def database
-        @database ||= UnicodeDatabase.new
-      end
+        def database
+          @database ||= UnicodeDatabase.new
+        end
     end
   end
 end

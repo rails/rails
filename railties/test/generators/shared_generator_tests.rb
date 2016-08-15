@@ -5,7 +5,7 @@ module SharedGeneratorTests
   def setup
     Rails.application = TestApp::Application
     super
-    Rails::Generators::AppGenerator.instance_variable_set('@desc', nil)
+    Rails::Generators::AppGenerator.instance_variable_set("@desc", nil)
 
     Kernel::silence_warnings do
       Thor::Base.shell.send(:attr_accessor, :always_force)
@@ -16,7 +16,7 @@ module SharedGeneratorTests
 
   def teardown
     super
-    Rails::Generators::AppGenerator.instance_variable_set('@desc', nil)
+    Rails::Generators::AppGenerator.instance_variable_set("@desc", nil)
     Rails.application = TestApp::Application.instance
   end
 
@@ -81,7 +81,7 @@ module SharedGeneratorTests
     template.instance_eval "def read; self; end" # Make the string respond to read
 
     check_open = -> *args do
-      assert_equal [ path, 'Accept' => 'application/x-thor-template' ], args
+      assert_equal [ path, "Accept" => "application/x-thor-template" ], args
       template
     end
 
@@ -93,7 +93,7 @@ module SharedGeneratorTests
   def test_skip_gemfile
     assert_not_called(generator([destination_root], skip_gemfile: true), :bundle_command) do
       quietly { generator.invoke_all }
-      assert_no_file 'Gemfile'
+      assert_no_file "Gemfile"
     end
   end
 
@@ -102,22 +102,22 @@ module SharedGeneratorTests
       quietly { generator.invoke_all }
       # skip_bundle is only about running bundle install, ensure the Gemfile is still
       # generated.
-      assert_file 'Gemfile'
+      assert_file "Gemfile"
     end
   end
 
   def test_skip_git
-    run_generator [destination_root, '--skip-git', '--full']
-    assert_no_file('.gitignore')
+    run_generator [destination_root, "--skip-git", "--full"]
+    assert_no_file(".gitignore")
   end
 
   def test_skip_keeps
-    run_generator [destination_root, '--skip-keeps', '--full']
+    run_generator [destination_root, "--skip-keeps", "--full"]
 
-    assert_file '.gitignore' do |content|
+    assert_file ".gitignore" do |content|
       assert_no_match(/\.keep/, content)
     end
 
-    assert_no_file('app/models/concerns/.keep')
+    assert_no_file("app/models/concerns/.keep")
   end
 end

@@ -41,7 +41,6 @@ module ActiveRecord
     end
 
     class Transaction #:nodoc:
-
       attr_reader :connection, :state, :records, :savepoint_name
       attr_writer :joinable
 
@@ -101,7 +100,6 @@ module ActiveRecord
     end
 
     class SavepointTransaction < Transaction
-
       def initialize(connection, savepoint_name, options, *args)
         super(connection, options, *args)
         if options[:isolation]
@@ -124,7 +122,6 @@ module ActiveRecord
     end
 
     class RealTransaction < Transaction
-
       def initialize(connection, options, *args)
         super
         if options[:isolation]
@@ -195,7 +192,7 @@ module ActiveRecord
         raise
       ensure
         unless error
-          if Thread.current.status == 'aborting'
+          if Thread.current.status == "aborting"
             rollback_transaction if transaction
           else
             begin
@@ -226,7 +223,6 @@ module ActiveRecord
           return unless error.is_a?(ActiveRecord::PreparedStatementCacheExpired)
           @connection.clear_cache!
         end
-
     end
   end
 end

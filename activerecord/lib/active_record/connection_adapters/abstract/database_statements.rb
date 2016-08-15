@@ -10,7 +10,7 @@ module ActiveRecord
       def to_sql(arel, binds = [])
         if arel.respond_to?(:ast)
           collected = visitor.accept(arel.ast, collector)
-          collected.compile(binds.dup, self)
+          collected.compile(binds, self)
         else
           arel
         end
@@ -18,11 +18,12 @@ module ActiveRecord
 
       # This is used in the StatementCache object. It returns an object that
       # can be used to query the database repeatedly.
-      def cacheable_query(arel) # :nodoc:
+      def cacheable_query(klass, arel) # :nodoc:
+        collected = visitor.accept(arel.ast, collector)
         if prepared_statements
-          ActiveRecord::StatementCache.query visitor, arel.ast
+          klass.query(collected.value)
         else
-          ActiveRecord::StatementCache.partial_query visitor, arel.ast, collector
+          klass.partial_query(collected.value)
         end
       end
 
@@ -81,21 +82,21 @@ module ActiveRecord
       # Executes +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
-      def exec_query(sql, name = 'SQL', binds = [], prepare: false)
+      def exec_query(sql, name = "SQL", binds = [], prepare: false)
         raise NotImplementedError
       end
 
       # Executes insert +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
-      def exec_insert(sql, name, binds, pk = nil, sequence_name = nil)
+      def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil)
         exec_query(sql, name, binds)
       end
 
       # Executes delete +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
-      def exec_delete(sql, name, binds)
+      def exec_delete(sql, name = nil, binds = [])
         exec_query(sql, name, binds)
       end
 
@@ -107,7 +108,7 @@ module ActiveRecord
       # Executes update +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
-      def exec_update(sql, name, binds)
+      def exec_update(sql, name = nil, binds = [])
         exec_query(sql, name, binds)
       end
 
@@ -315,7 +316,7 @@ module ActiveRecord
           end
         end
         key_list = fixture.keys.map { |name| quote_column_name(name) }
-        value_list = prepare_binds_for_database(binds).map do |value|
+        value_list = binds.map(&:value_for_database).map do |value|
           begin
             quote(value)
           rescue TypeError
@@ -323,7 +324,7 @@ module ActiveRecord
           end
         end
 
-        execute "INSERT INTO #{quote_table_name(table_name)} (#{key_list.join(', ')}) VALUES (#{value_list.join(', ')})", 'Fixture Insert'
+        execute "INSERT INTO #{quote_table_name(table_name)} (#{key_list.join(', ')}) VALUES (#{value_list.join(', ')})", "Fixture Insert"
       end
 
       def empty_insert_statement_value
@@ -342,8 +343,8 @@ module ActiveRecord
       def sanitize_limit(limit)
         if limit.is_a?(Integer) || limit.is_a?(Arel::Nodes::SqlLiteral)
           limit
-        elsif limit.to_s.include?(',')
-          Arel.sql limit.to_s.split(',').map{ |i| Integer(i) }.join(',')
+        elsif limit.to_s.include?(",")
+          Arel.sql limit.to_s.split(",").map{ |i| Integer(i) }.join(",")
         else
           Integer(limit)
         end

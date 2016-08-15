@@ -1,6 +1,6 @@
-require 'concurrent/map'
-require 'action_view/dependency_tracker'
-require 'monitor'
+require "concurrent/map"
+require "action_view/dependency_tracker"
+require "monitor"
 
 module ActionView
   class Digestor
@@ -14,7 +14,7 @@ module ActionView
       # * <tt>dependencies</tt>  - An array of dependent views
       def digest(name:, finder:, dependencies: [])
         dependencies ||= []
-        cache_key = [ name, finder.rendered_format, dependencies ].flatten.compact.join('.')
+        cache_key = [ name, finder.rendered_format, dependencies ].flatten.compact.join(".")
 
         # this is a correctly done double-checked locking idiom
         # (Concurrent::Map's lookups have volatile semantics)
@@ -41,8 +41,7 @@ module ActionView
         options = {}
         options[:formats] = [finder.rendered_format] if finder.rendered_format
 
-        if finder.disable_cache { finder.exists?(logical_name, [], partial, [], options) }
-          template = finder.disable_cache { finder.find(logical_name, [], partial, [], options) }
+        if template = finder.disable_cache { finder.find_all(logical_name, [], partial, [], options).first }
           finder.rendered_format ||= template.formats.first
 
           if node = seen[template.identifier] # handle cycles in the tree
@@ -104,7 +103,7 @@ module ActionView
     class Partial < Node; end
 
     class Missing < Node
-      def digest(finder, _ = []) '' end
+      def digest(finder, _ = []) "" end
     end
 
     class Injected < Node

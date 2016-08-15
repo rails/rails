@@ -3,7 +3,7 @@
 
     *Tinco Andringa*
 
-*   Add ActiveSupport::Notifications hook to Broadcaster#broadcast
+*   Add ActiveSupport::Notifications hook to Broadcaster#broadcast.
 
     *Matthew Wear*
 

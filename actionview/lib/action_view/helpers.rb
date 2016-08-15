@@ -1,4 +1,4 @@
-require 'active_support/benchmarkable'
+require "active_support/benchmarkable"
 
 module ActionView #:nodoc:
   module Helpers #:nodoc:

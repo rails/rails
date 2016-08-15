@@ -1,5 +1,5 @@
-require 'abstract_unit'
-require 'rails/backtrace_cleaner'
+require "abstract_unit"
+require "rails/backtrace_cleaner"
 
 class BacktraceCleanerTest < ActiveSupport::TestCase
   def setup

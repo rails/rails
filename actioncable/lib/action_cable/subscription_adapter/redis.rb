@@ -1,7 +1,7 @@
-require 'thread'
+require "thread"
 
-gem 'redis', '~> 3.0'
-require 'redis'
+gem "redis", "~> 3.0"
+require "redis"
 
 module ActionCable
   module SubscriptionAdapter
@@ -72,7 +72,7 @@ module ActionCable
             conn.without_reconnect do
               original_client = conn.client
 
-              conn.subscribe('_action_cable_internal') do |on|
+              conn.subscribe("_action_cable_internal") do |on|
                 on.subscribe do |chan, count|
                   @subscription_lock.synchronize do
                     if count == 1
@@ -111,7 +111,7 @@ module ActionCable
               return if @thread.nil?
 
               when_connected do
-                send_command('unsubscribe')
+                send_command("unsubscribe")
                 @raw_client = nil
               end
             end
@@ -123,13 +123,13 @@ module ActionCable
             @subscription_lock.synchronize do
               ensure_listener_running
               @subscribe_callbacks[channel] << on_success
-              when_connected { send_command('subscribe', channel) }
+              when_connected { send_command("subscribe", channel) }
             end
           end
 
           def remove_channel(channel)
             @subscription_lock.synchronize do
-              when_connected { send_command('unsubscribe', channel) }
+              when_connected { send_command("unsubscribe", channel) }
             end
           end
 

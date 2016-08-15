@@ -1,6 +1,6 @@
-require 'active_support/core_ext/object/duplicable'
-require 'active_support/core_ext/string/inflections'
-require 'active_support/per_thread_registry'
+require "active_support/core_ext/object/duplicable"
+require "active_support/core_ext/string/inflections"
+require "active_support/per_thread_registry"
 
 module ActiveSupport
   module Cache
@@ -9,7 +9,7 @@ module ActiveSupport
       # duration of a block. Repeated calls to the cache for the same key will hit the
       # in-memory cache for faster access.
       module LocalCache
-        autoload :Middleware, 'active_support/cache/strategy/local_cache_middleware'
+        autoload :Middleware, "active_support/cache/strategy/local_cache_middleware"
 
         # Class for storing and registering the local caches.
         class LocalCacheRegistry # :nodoc:
@@ -146,7 +146,7 @@ module ActiveSupport
         private
 
           def local_cache_key
-            @local_cache_key ||= "#{self.class.name.underscore}_local_cache_#{object_id}".gsub(/[\/-]/, '_').to_sym
+            @local_cache_key ||= "#{self.class.name.underscore}_local_cache_#{object_id}".gsub(/[\/-]/, "_").to_sym
           end
 
           def local_cache

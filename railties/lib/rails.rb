@@ -1,18 +1,18 @@
-require 'rails/ruby_version_check'
+require "rails/ruby_version_check"
 
-require 'pathname'
+require "pathname"
 
-require 'active_support'
-require 'active_support/dependencies/autoload'
-require 'active_support/core_ext/kernel/reporting'
-require 'active_support/core_ext/module/delegation'
-require 'active_support/core_ext/array/extract_options'
+require "active_support"
+require "active_support/dependencies/autoload"
+require "active_support/core_ext/kernel/reporting"
+require "active_support/core_ext/module/delegation"
+require "active_support/core_ext/array/extract_options"
 
-require 'rails/application'
-require 'rails/version'
+require "rails/application"
+require "rails/version"
 
-require 'active_support/railtie'
-require 'action_dispatch/railtie'
+require "active_support/railtie"
+require "action_dispatch/railtie"
 
 # UTF-8 is the default internal and external encoding.
 silence_warnings do
@@ -47,7 +47,7 @@ module Rails
     def backtrace_cleaner
       @backtrace_cleaner ||= begin
         # Relies on Active Support, so we have to lazy load to postpone definition until AS has been loaded
-        require 'rails/backtrace_cleaner'
+        require "rails/backtrace_cleaner"
         Rails::BacktraceCleaner.new
       end
     end

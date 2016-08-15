@@ -1,5 +1,5 @@
-require 'cases/helper'
-require 'models/user'
+require "cases/helper"
+require "models/user"
 
 class SecureTokenTest < ActiveRecord::TestCase
   setup do

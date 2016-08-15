@@ -24,7 +24,6 @@ module ActiveRecord
     # If you need to work on all current children, new and existing records,
     # +load_target+ and the +loaded+ flag are your friends.
     class CollectionAssociation < Association #:nodoc:
-
       # Implements the reader method, e.g. foo.items for Foo.has_many :items
       def reader(force_reload = false)
         if force_reload
@@ -152,9 +151,7 @@ module ActiveRecord
         if loaded?
           n ? target.take(n) : target.first
         else
-          scope.take(n).tap do |record|
-            set_inverse_instance record if record.is_a? ActiveRecord::Base
-          end
+          scope.take(n)
         end
       end
 
@@ -223,12 +220,12 @@ module ActiveRecord
         end
 
         dependent = if dependent
-                      dependent
-                    elsif options[:dependent] == :destroy
-                      :delete_all
-                    else
-                      options[:dependent]
-                    end
+          dependent
+        elsif options[:dependent] == :destroy
+          :delete_all
+        else
+          options[:dependent]
+        end
 
         delete_or_nullify_all_records(dependent).tap do
           reset
@@ -457,23 +454,20 @@ module ActiveRecord
       end
 
       private
-      def get_records
-        return scope.to_a if skip_statement_cache?
-
-        conn = klass.connection
-        sc = reflection.association_scope_cache(conn, owner) do
-          StatementCache.create(conn) { |params|
-            as = AssociationScope.create { params.bind }
-            target_scope.merge as.scope(self, conn)
-          }
-        end
-
-        binds = AssociationScope.get_bind_values(owner, reflection.chain)
-        sc.execute binds, klass, klass.connection
-      end
 
         def find_target
-          records = get_records
+          return scope.to_a if skip_statement_cache?
+
+          conn = klass.connection
+          sc = reflection.association_scope_cache(conn, owner) do
+            StatementCache.create(conn) { |params|
+              as = AssociationScope.create { params.bind }
+              target_scope.merge as.scope(self, conn)
+            }
+          end
+
+          binds = AssociationScope.get_bind_values(owner, reflection.chain)
+          records = sc.execute(binds, klass, conn)
           records.each { |record| set_inverse_instance(record) }
           records
         end
@@ -656,9 +650,7 @@ module ActiveRecord
           args.shift if args.first.is_a?(Hash) && args.first.empty?
 
           collection = fetch_first_nth_or_last_using_find?(args) ? scope : load_target
-          collection.send(type, *args).tap do |record|
-            set_inverse_instance record if record.is_a? ActiveRecord::Base
-          end
+          collection.send(type, *args)
         end
     end
   end

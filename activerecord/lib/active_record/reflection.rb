@@ -1,5 +1,5 @@
-require 'thread'
-require 'active_support/core_ext/string/filters'
+require "thread"
+require "active_support/core_ext/string/filters"
 
 module ActiveRecord
   # = Active Record Reflection
@@ -316,7 +316,6 @@ module ActiveRecord
           name.to_s.camelize
         end
     end
-
 
     # Holds all the meta-data about an aggregation as it was specified in the
     # Active Record class.
@@ -700,7 +699,7 @@ module ActiveRecord
     class ThroughReflection < AbstractReflection #:nodoc:
       attr_reader :delegate_reflection
       delegate :foreign_key, :foreign_type, :association_foreign_key,
-               :active_record_primary_key, :type, :to => :source_reflection
+               :active_record_primary_key, :type, to: :source_reflection
 
       def initialize(delegate_reflection)
         @delegate_reflection = delegate_reflection
@@ -978,7 +977,6 @@ module ActiveRecord
           public_instance_methods
 
         delegate(*delegate_methods, to: :delegate_reflection)
-
     end
 
     class PolymorphicReflection < ThroughReflection # :nodoc:

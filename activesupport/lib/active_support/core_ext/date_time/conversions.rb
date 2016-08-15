@@ -1,8 +1,8 @@
-require 'date'
-require 'active_support/inflector/methods'
-require 'active_support/core_ext/time/conversions'
-require 'active_support/core_ext/date_time/calculations'
-require 'active_support/values/time_zone'
+require "date"
+require "active_support/inflector/methods"
+require "active_support/core_ext/time/conversions"
+require "active_support/core_ext/date_time/calculations"
+require "active_support/values/time_zone"
 
 class DateTime
   # Convert to a formatted string. See Time::DATE_FORMATS for predefined formats.
@@ -95,11 +95,11 @@ class DateTime
 
   private
 
-  def offset_in_seconds
-    (offset * 86400).to_i
-  end
+    def offset_in_seconds
+      (offset * 86400).to_i
+    end
 
-  def seconds_since_unix_epoch
-    (jd - 2440588) * 86400 - offset_in_seconds + seconds_since_midnight
-  end
+    def seconds_since_unix_epoch
+      (jd - 2440588) * 86400 - offset_in_seconds + seconds_since_midnight
+    end
 end

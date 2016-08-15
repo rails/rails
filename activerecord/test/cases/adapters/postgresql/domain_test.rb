@@ -1,5 +1,5 @@
 require "cases/helper"
-require 'support/connection_helper'
+require "support/connection_helper"
 
 class PostgresqlDomainTest < ActiveRecord::PostgreSQLTestCase
   include ConnectionHelper
@@ -12,15 +12,15 @@ class PostgresqlDomainTest < ActiveRecord::PostgreSQLTestCase
     @connection = ActiveRecord::Base.connection
     @connection.transaction do
       @connection.execute "CREATE DOMAIN custom_money as numeric(8,2)"
-      @connection.create_table('postgresql_domains') do |t|
+      @connection.create_table("postgresql_domains") do |t|
         t.column :price, :custom_money
       end
     end
   end
 
   teardown do
-    @connection.drop_table 'postgresql_domains', if_exists: true
-    @connection.execute 'DROP DOMAIN IF EXISTS custom_money'
+    @connection.drop_table "postgresql_domains", if_exists: true
+    @connection.execute "DROP DOMAIN IF EXISTS custom_money"
     reset_connection
   end
 

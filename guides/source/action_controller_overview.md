@@ -362,7 +362,7 @@ If your user sessions don't store critical data or don't need to be around for l
 
 Read more about session storage in the [Security Guide](security.html).
 
-If you need a different session storage mechanism, you can change it in the `config/initializers/session_store.rb` file:
+If you need a different session storage mechanism, you can change it in an initializer:
 
 ```ruby
 # Use the database for sessions instead of the cookie-based default,
@@ -371,7 +371,7 @@ If you need a different session storage mechanism, you can change it in the `con
 # Rails.application.config.session_store :active_record_store
 ```
 
-Rails sets up a session key (the name of the cookie) when signing the session data. These can also be changed in `config/initializers/session_store.rb`:
+Rails sets up a session key (the name of the cookie) when signing the session data. These can also be changed in an initializer:
 
 ```ruby
 # Be sure to restart your server when you modify this file.

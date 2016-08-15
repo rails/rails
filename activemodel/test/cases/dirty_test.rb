@@ -62,13 +62,13 @@ class DirtyTest < ActiveModel::TestCase
   test "list of changed attribute keys" do
     assert_equal [], @model.changed
     @model.name = "Paul"
-    assert_equal ['name'], @model.changed
+    assert_equal ["name"], @model.changed
   end
 
   test "changes to attribute values" do
-    assert !@model.changes['name']
+    assert !@model.changes["name"]
     @model.name = "John"
-    assert_equal [nil, "John"], @model.changes['name']
+    assert_equal [nil, "John"], @model.changes["name"]
   end
 
   test "checking if an attribute has changed to a particular value" do
@@ -84,14 +84,14 @@ class DirtyTest < ActiveModel::TestCase
   test "changes accessible through both strings and symbols" do
     @model.name = "David"
     assert_not_nil @model.changes[:name]
-    assert_not_nil @model.changes['name']
+    assert_not_nil @model.changes["name"]
   end
 
   test "be consistent with symbols arguments after the changes are applied" do
     @model.name = "David"
     assert @model.attribute_changed?(:name)
     @model.save
-    @model.name = 'Rafael'
+    @model.name = "Rafael"
     assert @model.attribute_changed?(:name)
   end
 
@@ -134,7 +134,7 @@ class DirtyTest < ActiveModel::TestCase
   test "saving should preserve previous changes" do
     @model.name = "Jericho Cane"
     @model.save
-    assert_equal [nil, "Jericho Cane"], @model.previous_changes['name']
+    assert_equal [nil, "Jericho Cane"], @model.previous_changes["name"]
   end
 
   test "setting new attributes should not affect previous changes" do
@@ -176,13 +176,13 @@ class DirtyTest < ActiveModel::TestCase
   end
 
   test "reload should reset all changes" do
-    @model.name = 'Dmitry'
+    @model.name = "Dmitry"
     @model.name_changed?
     @model.save
-    @model.name = 'Bob'
+    @model.name = "Bob"
 
-    assert_equal [nil, 'Dmitry'], @model.previous_changes['name']
-    assert_equal 'Dmitry', @model.changed_attributes['name']
+    assert_equal [nil, "Dmitry"], @model.previous_changes["name"]
+    assert_equal "Dmitry", @model.changed_attributes["name"]
 
     @model.reload
 
@@ -191,30 +191,30 @@ class DirtyTest < ActiveModel::TestCase
   end
 
   test "restore_attributes should restore all previous data" do
-    @model.name = 'Dmitry'
-    @model.color = 'Red'
+    @model.name = "Dmitry"
+    @model.color = "Red"
     @model.save
-    @model.name = 'Bob'
-    @model.color = 'White'
+    @model.name = "Bob"
+    @model.color = "White"
 
     @model.restore_attributes
 
     assert_not @model.changed?
-    assert_equal 'Dmitry', @model.name
-    assert_equal 'Red', @model.color
+    assert_equal "Dmitry", @model.name
+    assert_equal "Red", @model.color
   end
 
   test "restore_attributes can restore only some attributes" do
-    @model.name = 'Dmitry'
-    @model.color = 'Red'
+    @model.name = "Dmitry"
+    @model.color = "Red"
     @model.save
-    @model.name = 'Bob'
-    @model.color = 'White'
+    @model.name = "Bob"
+    @model.color = "White"
 
-    @model.restore_attributes(['name'])
+    @model.restore_attributes(["name"])
 
     assert @model.changed?
-    assert_equal 'Dmitry', @model.name
-    assert_equal 'White', @model.color
+    assert_equal "Dmitry", @model.name
+    assert_equal "White", @model.color
   end
 end

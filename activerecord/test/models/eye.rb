@@ -15,7 +15,7 @@ class Eye < ActiveRecord::Base
   after_create :trace_after_create2
   after_update :trace_after_update2
   after_save   :trace_after_save2
-  
+
   def trace_after_create
     (@after_create_callbacks_stack ||= []) << !iris.persisted?
   end

@@ -368,7 +368,7 @@ account.to_query('company[name]')
 
 so its output is ready to be used in a query string.
 
-Arrays return the result of applying `to_query` to each element with `_key_[]` as key, and join the result with "&":
+Arrays return the result of applying `to_query` to each element with `key[]` as key, and join the result with "&":
 
 ```ruby
 [3.4, -45.6].to_query('sample')
@@ -2915,6 +2915,24 @@ end
 ```
 
 NOTE: Defined in `active_support/core_ext/regexp.rb`.
+
+### `match?`
+
+Rails implements `Regexp#match?` for Ruby versions prior to 2.4:
+
+```ruby
+/oo/.match?('foo')    # => true
+/oo/.match?('bar')    # => false
+/oo/.match?('foo', 1) # => true
+```
+
+The backport has the same interface and lack of side-effects in the caller like
+not setting `$1` and friends, but it does not have the speed benefits. Its
+purpose is to be able to write 2.4 compatible code. Rails itself uses this
+predicate internally for example.
+
+Active Support defines `Regexp#match?` only if not present, so code running
+under 2.4 or later does run the original one and gets the performance boost.
 
 Extensions to `Range`
 ---------------------
