@@ -15,11 +15,6 @@ module ActiveRecord
       rt
     end
 
-    def initialize
-      super
-      @odd = false
-    end
-
     def render_bind(attr, type_casted_value)
       value = if attr.type.binary? && attr.value
         "<#{attr.value_for_database.to_s.bytesize} bytes of binary data>"
