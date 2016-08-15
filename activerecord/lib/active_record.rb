@@ -68,7 +68,6 @@ module ActiveRecord
   autoload :StatementCache
   autoload :Store
   autoload :Suppressor
-  autoload :TableMetadata
   autoload :Timestamp
   autoload :Transactions
   autoload :Translation
@@ -101,6 +100,7 @@ module ActiveRecord
     end
 
     autoload :Result
+    autoload :TableMetadata
   end
 
   module Coders
