@@ -18,6 +18,7 @@ The most common rails commands are:
  generate    Generate new code (short-cut alias: "g")
  console     Start the Rails console (short-cut alias: "c")
  server      Start the Rails server (short-cut alias: "s")
+ restart     Restart the Rails server
  test        Run tests (short-cut alias: "t")
  dbconsole   Start a console for the database specified in config/database.yml
              (short-cut alias: "db")
