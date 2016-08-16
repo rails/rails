@@ -462,7 +462,7 @@ class TimestampTest < ActiveRecord::TestCase
 
   def test_index_is_created_for_both_timestamps
     ActiveRecord::Base.connection.create_table(:foos, force: true) do |t|
-      t.timestamps(:foos, null: true, index: true)
+      t.timestamps null: true, index: true
     end
 
     indexes = ActiveRecord::Base.connection.indexes("foos")

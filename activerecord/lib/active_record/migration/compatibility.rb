@@ -21,7 +21,7 @@ module ActiveRecord
           end
           alias :belongs_to :references
 
-          def timestamps(*, **options)
+          def timestamps(**options)
             options[:null] = true if options[:null].nil?
             super
           end
@@ -59,7 +59,7 @@ module ActiveRecord
         end
         alias :add_belongs_to :add_reference
 
-        def add_timestamps(*, **options)
+        def add_timestamps(_, **options)
           options[:null] = true if options[:null].nil?
           super
         end

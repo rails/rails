@@ -341,9 +341,7 @@ module ActiveRecord
       # <tt>:updated_at</tt> to the table. See {connection.add_timestamps}[rdoc-ref:SchemaStatements#add_timestamps]
       #
       #   t.timestamps null: false
-      def timestamps(*args)
-        options = args.extract_options!
-
+      def timestamps(**options)
         options[:null] = false if options[:null].nil?
 
         column(:created_at, :datetime, options)
