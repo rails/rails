@@ -564,6 +564,8 @@ module ActiveRecord
                                   "new records could not be saved."
           end
 
+          associate_all_records(target)
+
           target
         end
 
@@ -647,6 +649,14 @@ module ActiveRecord
 
           collection = find_from_target? ? load_target : scope
           collection.send(type, *args)
+        end
+
+        def associate_all_records(target)
+          if owner.new_record? && target.all? {|record| record.new_record? }
+            target.each do |new_record|
+              associate_record(new_record)
+            end
+          end
         end
     end
   end

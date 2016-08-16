@@ -193,9 +193,25 @@ module ActiveRecord
           attributes
         end
 
+        def instantiation_attributes(record)
+          attributes = {}
+
+          association_name = reflection.klass.arel_table.alias(reflection.active_record.table_name).right.singularize
+
+          if (reflection.has_one? || reflection.collection?) && !options[:through] && record.respond_to?(association_name)
+            attributes[association_name] = owner
+          end
+
+          attributes
+        end
+
         # Sets the owner attributes on the given record
         def set_owner_attributes(record)
-          creation_attributes.each { |key, value| record[key] = value }
+          if owner.new_record? && record.new_record?
+            instantiation_attributes(record).each { |key, value| record.public_send("#{key}=", value) }
+          else
+            creation_attributes.each { |key, value| record[key] = value }
+          end
         end
 
         # Returns true if there is a foreign key present on the owner which
