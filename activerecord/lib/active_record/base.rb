@@ -312,8 +312,8 @@ module ActiveRecord #:nodoc:
     include NestedAttributes
     include Aggregations
     include Transactions
-    include NoTouching
     include TouchLater
+    include NoTouching
     include Reflection
     include Serialization
     include Store
