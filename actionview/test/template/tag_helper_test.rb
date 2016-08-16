@@ -29,6 +29,14 @@ class TagHelperTest < ActionView::TestCase
     assert_equal "<p included=\"\" />", tag("p", :included => '')
   end
 
+  def test_tag_options_accepts_symbol_option_when_not_escaping
+    assert_equal "<p value=\"symbol\" />", tag("p", { value: :symbol }, false, false)
+  end
+
+  def test_tag_options_accepts_integer_option_when_not_escaping
+    assert_equal "<p value=\"42\" />", tag("p", { value: 42 }, false, false)
+  end
+
   def test_tag_options_converts_boolean_option
     assert_dom_equal '<p disabled="disabled" itemscope="itemscope" multiple="multiple" readonly="readonly" allowfullscreen="allowfullscreen" seamless="seamless" typemustmatch="typemustmatch" sortable="sortable" default="default" inert="inert" truespeed="truespeed" />',
       tag("p", :disabled => true, :itemscope => true, :multiple => true, :readonly => true, :allowfullscreen => true, :seamless => true, :typemustmatch => true, :sortable => true, :default => true, :inert => true, :truespeed => true)
@@ -138,6 +146,16 @@ class TagHelperTest < ActionView::TestCase
 
     str = tag('p', :class => ['song>'.html_safe, 'play>'])
     assert_equal '<p class="song> play&gt;" />', str
+  end
+
+  def test_tag_does_not_honor_html_safe_double_quotes_as_attributes
+    assert_dom_equal '<p title="&quot;">content</p>',
+      content_tag('p', "content", title: '"'.html_safe)
+  end
+
+  def test_data_tag_does_not_honor_html_safe_double_quotes_as_attributes
+    assert_dom_equal '<p data-title="&quot;">content</p>',
+      content_tag('p', "content", data: { title: '"'.html_safe })
   end
 
   def test_skip_invalid_escaped_attributes

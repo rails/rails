@@ -1,3 +1,8 @@
+## Rails 4.2.7 (July 12, 2016) ##
+
+*   No changes.
+
+
 ## Rails 4.2.6 (March 07, 2016) ##
 
 *   Fix stripping the digest from the automatically generated img tag alt

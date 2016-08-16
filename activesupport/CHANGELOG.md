@@ -1,3 +1,16 @@
+## Rails 4.2.7 (July 12, 2016) ##
+
+*   Fixed `ActiveSupport::Logger.broadcast` so that calls to `#silence` now
+    properly delegate to all loggers. Silencing now properly suppresses logging
+    to both the log and the console.
+
+    *Kevin McPhillips*
+
+*   Backported `ActiveSupport::LoggerThreadSafeLevel`. Assigning the
+    `Rails.logger.level` is now thread safe.
+
+    *Kevin McPhillips*
+
 *   Fixed a problem with ActiveSupport::SafeBuffer.titleize calling capitalize
     on nil.
 

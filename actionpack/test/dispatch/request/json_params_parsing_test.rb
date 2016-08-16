@@ -84,7 +84,50 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "prevent null query" do
+    # Make sure we have data to find
+    klass = Class.new(ActiveRecord::Base) do
+      def self.name; 'Foo'; end
+      establish_connection adapter: "sqlite3", database: ":memory:"
+      connection.create_table "foos" do |t|
+        t.string :title
+        t.timestamps null: false
+      end
+    end
+    klass.create
+    assert klass.first
+
+    app = ActionDispatch::ParamsParser.new ->(env) {
+      request = ActionDispatch::Request.new env
+      params = ActionController::Parameters.new request.parameters
+      if params[:t]
+        klass.find_by_title(params[:t])
+      else
+        nil
+      end
+    }
+
+    assert_nil app.call(make_env({ 't' => nil }))
+    assert_nil app.call(make_env({ 't' => [nil] }))
+
+    [[[nil]], [[[nil]]]].each do |data|
+      assert_deprecated do
+        assert_nil app.call(make_env({ 't' => data }))
+      end
+    end
+  end
+
   private
+    def make_env json
+      data = JSON.dump json
+      content_length = data.length
+      {
+        'CONTENT_LENGTH' => content_length,
+        'CONTENT_TYPE'   => 'application/json',
+        'rack.input'     => StringIO.new(data)
+      }
+    end
+
     def assert_parses(expected, actual, headers = {})
       with_test_routing do
         post "/parse", actual, headers

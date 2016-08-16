@@ -18,5 +18,8 @@ class ApplicationTests::ConfigurationTests::CustomTest < ApplicationTests::Confi
     assert_equal false, x.hyper_debugger
     assert_equal nil, x.nil_debugger
     assert_nil x.i_do_not_exist.zomg
+    assert_equal true, x.respond_to?(:i_do_not_exist)
+    assert_kind_of Method, x.method(:i_do_not_exist)
+    assert_kind_of ActiveSupport::OrderedOptions, x.i_do_not_exist
   end
 end

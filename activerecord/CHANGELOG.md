@@ -1,3 +1,30 @@
+*   Allow `joins` to be unscoped.
+
+    Fixes #13775.
+
+    *Takashi Kokubun*
+
+*   Hashes can once again be passed to setters of `composed_of`, if all of the
+    mapping methods are methods implemented on `Hash`.
+
+    Fixes #25978.
+
+    *Sean Griffin*
+
+
+## Rails 4.2.7 (July 12, 2016) ##
+
+*   Inspecting an object with an associated array of over 10 elements no longer
+    truncates the array, preventing `inspect` from looping infinitely in some
+    cases.
+
+    *Kevin McPhillips*
+
+*   Ensure hashes can be assigned to attributes created using `composed_of`.
+    Fixes #25210.
+
+    *Sean Griffin*
+
 *   Queries such as `Computer.joins(:monitor).group(:status).count` will now be
     interpreted as  `Computer.joins(:monitor).group('computers.status').count`
     so that when `Computer` and `Monitor` have both `status` columns we don't
