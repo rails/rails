@@ -101,9 +101,6 @@ module ActiveRecord
       private
 
         def mutation_tracker
-          unless defined?(@mutation_tracker)
-            @mutation_tracker = nil
-          end
           @mutation_tracker ||= AttributeMutationTracker.new(@attributes)
         end
 
