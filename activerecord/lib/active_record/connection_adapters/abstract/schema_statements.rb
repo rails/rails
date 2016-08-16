@@ -1161,31 +1161,34 @@ module ActiveRecord
       end
 
       protected
-        def add_index_sort_order(option_strings, column_names, options = {})
-          if options.is_a?(Hash) && order = options[:order]
+
+        def add_index_sort_order(quoted_columns, **options)
+          if order = options[:order]
             case order
             when Hash
-              column_names.each { |name| option_strings[name] += " #{order[name].upcase}" if order.has_key?(name) }
+              quoted_columns.each { |name, column| column << " #{order[name].upcase}" if order[name].present? }
             when String
-              column_names.each { |name| option_strings[name] += " #{order.upcase}" }
+              quoted_columns.each { |name, column| column << " #{order.upcase}" if order.present? }
             end
           end
 
-          return option_strings
+          quoted_columns
         end
 
         # Overridden by the MySQL adapter for supporting index lengths
-        def quoted_columns_for_index(column_names, options = {})
-          return [column_names] if column_names.is_a?(String)
-
-          option_strings = Hash[column_names.map { |name| [name, ""] }]
-
-          # add index sort order if supported
+        def add_options_for_index_columns(quoted_columns, **options)
           if supports_index_sort_order?
-            option_strings = add_index_sort_order(option_strings, column_names, options)
+            quoted_columns = add_index_sort_order(quoted_columns, options)
           end
 
-          column_names.map { |name| quote_column_name(name) + option_strings[name] }
+          quoted_columns
+        end
+
+        def quoted_columns_for_index(column_names, **options)
+          return [column_names] if column_names.is_a?(String)
+
+          quoted_columns = Hash[column_names.map { |name| [name, quote_column_name(name).dup] }]
+          add_options_for_index_columns(quoted_columns, options).values
         end
 
         def index_name_for_remove(table_name, options = {})

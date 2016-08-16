@@ -713,32 +713,25 @@ module ActiveRecord
           MySQL::TypeMetadata.new(super(sql_type), extra: extra, strict: strict_mode?)
         end
 
-        def add_index_length(option_strings, column_names, options = {})
-          if options.is_a?(Hash) && length = options[:length]
+        def add_index_length(quoted_columns, **options)
+          if length = options[:length]
             case length
             when Hash
-              column_names.each { |name| option_strings[name] += "(#{length[name]})" if length.has_key?(name) && length[name].present? }
+              quoted_columns.each { |name, column| column << "(#{length[name]})" if length[name].present? }
             when Integer
-              column_names.each { |name| option_strings[name] += "(#{length})" }
+              quoted_columns.each { |name, column| column << "(#{length})" }
             end
           end
 
-          return option_strings
+          quoted_columns
         end
 
-        def quoted_columns_for_index(column_names, options = {})
-          option_strings = Hash[column_names.map { |name| [name, ""] }]
-
-          # add index length
-          option_strings = add_index_length(option_strings, column_names, options)
-
-          # add index sort order
-          option_strings = add_index_sort_order(option_strings, column_names, options)
-
-          column_names.map { |name| quote_column_name(name) + option_strings[name] }
+        def add_options_for_index_columns(quoted_columns, **options)
+          quoted_columns = add_index_length(quoted_columns, options)
+          super
         end
 
-      # See https://dev.mysql.com/doc/refman/5.7/en/error-messages-server.html
+        # See https://dev.mysql.com/doc/refman/5.7/en/error-messages-server.html
         ER_DUP_ENTRY            = 1062
         ER_NO_REFERENCED_ROW_2  = 1452
         ER_DATA_TOO_LONG        = 1406
