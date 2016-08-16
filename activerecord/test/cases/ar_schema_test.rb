@@ -17,6 +17,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       @connection.drop_table :nep_fruits rescue nil
       @connection.drop_table :nep_schema_migrations rescue nil
       @connection.drop_table :has_timestamps rescue nil
+      @connection.drop_table :multiple_indexes rescue nil
       ActiveRecord::SchemaMigration.delete_all rescue nil
       ActiveRecord::Migration.verbose = @original_verbose
     end
@@ -91,6 +92,21 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal "002", ActiveRecord::SchemaMigration.normalize_migration_number("2")
       assert_equal "017", ActiveRecord::SchemaMigration.normalize_migration_number("0017")
       assert_equal "20131219224947", ActiveRecord::SchemaMigration.normalize_migration_number("20131219224947")
+    end
+
+    def test_schema_load_with_multiple_indexes_for_column_of_different_names
+      ActiveRecord::Schema.define do
+        create_table :multiple_indexes do |t|
+          t.string "foo"
+          t.index ["foo"], name: "multiple_indexes_foo_1"
+          t.index ["foo"], name: "multiple_indexes_foo_2"
+        end
+      end
+
+      indexes = @connection.indexes("multiple_indexes")
+
+      assert_equal 2, indexes.length
+      assert_equal ["multiple_indexes_foo_1", "multiple_indexes_foo_2"], indexes.collect(&:name).sort
     end
 
     def test_timestamps_without_null_set_null_to_false_on_create_table
