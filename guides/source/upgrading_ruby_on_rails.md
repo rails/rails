@@ -94,6 +94,8 @@ class ApplicationRecord < ActiveRecord::Base
 end
 ```
 
+Then make sure that all your models inherit from it.
+
 ### Halting Callback Chains via `throw(:abort)`
 
 In Rails 4.2, when a 'before' callback returns `false` in Active Record
