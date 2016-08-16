@@ -14,6 +14,7 @@ class Comment < ActiveRecord::Base
   has_many :ratings
 
   belongs_to :first_post, :foreign_key => :post_id
+  belongs_to :special_post_with_default_scope, foreign_key: :post_id
 
   has_many :children, :class_name => 'Comment', :foreign_key => :parent_id
   belongs_to :parent, :class_name => 'Comment', :counter_cache => :children_count
