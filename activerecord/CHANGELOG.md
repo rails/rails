@@ -1,3 +1,8 @@
+*   RecordNotFound raised by association.find exposes `id`, `primary_key` and
+    `model` methods to be consistent with RecordNotFound raised by Record.find.
+
+    *Michel Pigassou*
+
 *   Hashes can once again be passed to setters of `composed_of`, if all of the
     mapping methods are methods implemented on `Hash`.
 
