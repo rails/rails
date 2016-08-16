@@ -12,7 +12,7 @@ module ActiveJob
       # holding queue for inspection.
       #
       # You can also pass a block that'll be invoked if the retry attempts fail for custom logic rather than letting
-      # the exception bubble up.
+      # the exception bubble up. This block is yielded with the job instance as the first and the error instance as the second parameter.
       #
       # ==== Options
       # * <tt>:wait</tt> - Re-enqueues the job with a delay specified either in seconds (default: 3 seconds),
@@ -28,7 +28,7 @@ module ActiveJob
       #  class RemoteServiceJob < ActiveJob::Base
       #    retry_on CustomAppException # defaults to 3s wait, 5 attempts
       #    retry_on AnotherCustomAppException, wait: ->(executions) { executions * 2 }
-      #    retry_on(YetAnotherCustomAppException) do |exception|
+      #    retry_on(YetAnotherCustomAppException) do |job, exception|
       #      ExceptionNotifier.caught(exception)
       #    end
       #    retry_on ActiveRecord::StatementInvalid, wait: 5.seconds, attempts: 3
@@ -47,7 +47,7 @@ module ActiveJob
             retry_job wait: determine_delay(wait), queue: queue, priority: priority
           else
             if block_given?
-              yield exception
+              yield self, exception
             else
               logger.error "Stopped retrying #{self.class} due to a #{exception}, which reoccurred on #{executions} attempts. The original exception was #{error.cause.inspect}."
               raise error

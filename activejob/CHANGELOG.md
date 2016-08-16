@@ -1,5 +1,9 @@
 ## Rails 5.1.0.alpha ##
 
+*   Yield the job instance so you have access to things like `job.arguments` on the custom logic after retries fail.
+
+    *DHH*
+
 *   Added declarative exception handling via `ActiveJob::Base.retry_on` and `ActiveJob::Base.discard_on`. 
 
     Examples:

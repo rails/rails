@@ -15,7 +15,7 @@ class RetryJob < ActiveJob::Base
   retry_on ShortWaitTenAttemptsError, wait: 1.second, attempts: 10
   retry_on ExponentialWaitTenAttemptsError, wait: :exponentially_longer, attempts: 10
   retry_on CustomWaitTenAttemptsError, wait: ->(executions) { executions * 2 }, attempts: 10
-  retry_on(CustomCatchError) { |exception| JobBuffer.add("Dealt with a job that failed to retry in a custom way") }
+  retry_on(CustomCatchError) { |job, exception| JobBuffer.add("Dealt with a job that failed to retry in a custom way after #{job.arguments.second} attempts") }
   discard_on DiscardableError
 
   def perform(raising, attempts)
