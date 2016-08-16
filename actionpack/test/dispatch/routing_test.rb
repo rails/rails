@@ -3342,6 +3342,24 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "/foo", foo_root_path
   end
 
+  def test_namespaced_root_path
+    draw do
+      namespace :foo do
+        root "test#index"
+      end
+
+      root "test#index"
+
+      namespace :bar do
+        root "test#index"
+      end
+    end
+
+    assert_equal "/foo", foo_root_path
+    assert_equal "/", root_path
+    assert_equal "/bar", bar_root_path
+  end
+
   def test_trailing_slash
     draw do
       resources :streams
@@ -4271,6 +4289,35 @@ class TestNamedRouteUrlHelpers < ActionDispatch::IntegrationTest
       assert_response :success
       assert_raises(ActionController::UrlGenerationError) { product_path(nil) }
     end
+  end
+end
+
+class TestRootUrlHelpers < ActionDispatch::IntegrationTest
+  Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
+    app.draw do
+      namespace :foo do
+        root "test#index"
+      end
+
+      root "test#index"
+
+      namespace :bar do
+        root "test#index"
+      end
+    end
+  end
+
+  APP = build_app Routes
+  def app; APP end
+
+  include Routes.url_helpers
+
+  test "url helpers defined" do
+    helpers = app.routes.url_helpers
+
+    assert_respond_to helpers, :foo_root_url
+    assert_respond_to helpers, :root_url
+    assert_respond_to helpers, :bar_root_url
   end
 end
 
