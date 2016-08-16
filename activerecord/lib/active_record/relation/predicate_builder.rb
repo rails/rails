@@ -87,14 +87,14 @@ module ActiveRecord
         binds = []
 
         attributes.each do |column_name, value|
-          case value
-          when Hash
+          case
+          when value.is_a?(Hash)
             attrs, bvs = associated_predicate_builder(column_name).create_binds_for_hash(value)
             result[column_name] = attrs
             binds += bvs
-          when Relation
+          when value.is_a?(Relation)
             binds += value.bound_attributes
-          when Range
+          when value.is_a?(Range) && !table.type(column_name).respond_to?(:subtype)
             first = value.begin
             last = value.end
             unless first.respond_to?(:infinite?) && first.infinite?
@@ -155,9 +155,13 @@ module ActiveRecord
       end
 
       def can_be_bound?(column_name, value)
-        !value.nil? &&
-          handler_for(value).is_a?(BasicObjectHandler) &&
-          !table.associated_with?(column_name)
+        return if table.associated_with?(column_name)
+        case value
+        when Array, Range
+          table.type(column_name).respond_to?(:subtype)
+        else
+          !value.nil? && handler_for(value).is_a?(BasicObjectHandler)
+        end
       end
 
       def build_bind_param(column_name, value)

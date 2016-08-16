@@ -282,6 +282,12 @@ _SQL
       assert_raises(ArgumentError) { PostgresqlRange.create!(tstz_range: "(''2010-01-01 14:30:00+05'', ''2011-01-01 14:30:00-03'']") }
     end
 
+    def test_where_by_attribute_with_range
+      range = 1..100
+      record = PostgresqlRange.create!(int4_range: range)
+      assert_equal record, PostgresqlRange.where(int4_range: range).take
+    end
+
     def test_update_all_with_ranges
       PostgresqlRange.create!
 
