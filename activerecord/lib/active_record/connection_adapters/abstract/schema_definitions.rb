@@ -212,7 +212,7 @@ module ActiveRecord
 
       def initialize(name, temporary = false, options = nil, as = nil, comment: nil)
         @columns_hash = {}
-        @indexes = {}
+        @indexes = []
         @foreign_keys = []
         @primary_keys = nil
         @temporary = temporary
@@ -328,7 +328,7 @@ module ActiveRecord
       #
       #   index(:account_id, name: 'index_projects_on_account_id')
       def index(column_name, options = {})
-        indexes[column_name] = options
+        indexes << [column_name, options]
       end
 
       def foreign_key(table_name, options = {}) # :nodoc:
