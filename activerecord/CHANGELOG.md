@@ -1,3 +1,8 @@
+*   RecordNotFound raised by association.find exposes `id`, `primary_key` and
+    `model` methods to be consistent with RecordNotFound raised by Record.find.
+
+    *Michel Pigassou*
+
 *   Fix the SELECT statement in `#table_comment` for MySQL.
 
     *Takeshi Akima*
