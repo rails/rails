@@ -102,9 +102,9 @@ module ActiveRecord
         assert_equal float.to_s, @quoter.quote(float, nil)
       end
 
-      def test_quote_fixnum
-        fixnum = 1
-        assert_equal fixnum.to_s, @quoter.quote(fixnum, nil)
+      def test_quote_integer
+        integer = 1
+        assert_equal integer.to_s, @quoter.quote(integer, nil)
       end
 
       def test_quote_bignum

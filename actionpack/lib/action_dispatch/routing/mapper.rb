@@ -110,7 +110,7 @@ module ActionDispatch
           if options_constraints.is_a?(Hash)
             split_constraints path_params, options_constraints
             options_constraints.each do |key, default|
-              if URL_OPTIONS.include?(key) && (String === default || Fixnum === default)
+              if URL_OPTIONS.include?(key) && (String === default || Integer === default)
                 @defaults[key] ||= default
               end
             end
@@ -790,8 +790,8 @@ module ActionDispatch
           end
 
           if options[:constraints].is_a?(Hash)
-            defaults = options[:constraints].select do
-              |k, v| URL_OPTIONS.include?(k) && (v.is_a?(String) || v.is_a?(Fixnum))
+            defaults = options[:constraints].select do |k, v|
+              URL_OPTIONS.include?(k) && (v.is_a?(String) || v.is_a?(Integer))
             end
 
             (options[:defaults] ||= {}).reverse_merge!(defaults)
