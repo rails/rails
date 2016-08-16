@@ -124,8 +124,6 @@ class Numeric
     # Ruby 2.4+ unifies Fixnum & Bignum into Integer.
     if Integer == Fixnum
       next if klass == Fixnum || klass == Bignum
-    else
-      next if klass == Fixnum
     end
 
     klass.send(:define_method, :to_s) do |*args|
