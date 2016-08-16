@@ -262,8 +262,8 @@ module ActiveRecord
       #   another_person_without.pets         # => []
       #   another_person_without.pets.take    # => nil
       #   another_person_without.pets.take(2) # => []
-      def take(n = nil)
-        @association.take(n)
+      def take(limit = nil)
+        @association.take(limit)
       end
 
       # Returns a new object of the collection type that has been instantiated

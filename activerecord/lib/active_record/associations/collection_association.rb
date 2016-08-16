@@ -147,11 +147,11 @@ module ActiveRecord
         first_nth_or_last(:last, *args)
       end
 
-      def take(n = nil)
-        if loaded?
-          n ? target.take(n) : target.first
+      def take(limit = nil)
+        if find_from_target?
+          limit ? load_target.take(limit) : load_target.first
         else
-          scope.take(n)
+          scope.take(limit)
         end
       end
 
@@ -608,14 +608,10 @@ module ActiveRecord
         #   * target already loaded
         #   * owner is new record
         #   * target contains new or changed record(s)
-        def fetch_first_nth_or_last_using_find?(args)
-          if args.first.is_a?(Hash)
-            true
-          else
-            !(loaded? ||
-              owner.new_record? ||
-              target.any? { |record| record.new_record? || record.changed? })
-          end
+        def find_from_target?
+          loaded? ||
+            owner.new_record? ||
+            target.any? { |record| record.new_record? || record.changed? }
         end
 
         def include_in_memory?(record)
@@ -649,7 +645,7 @@ module ActiveRecord
         def first_nth_or_last(type, *args)
           args.shift if args.first.is_a?(Hash) && args.first.empty?
 
-          collection = fetch_first_nth_or_last_using_find?(args) ? scope : load_target
+          collection = find_from_target? ? load_target : scope
           collection.send(type, *args)
         end
     end
