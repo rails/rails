@@ -18,7 +18,7 @@ module ActiveRecord
 
           def deserialize(value)
             if value.is_a?(::String)
-              type_cast_array(@pg_decoder.decode(value), :deserialize)
+              type_cast_array(@pg_decoder.decode(value.encode!(__ENCODING__)), :deserialize)
             else
               super
             end
