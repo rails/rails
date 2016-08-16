@@ -92,6 +92,17 @@ module AbstractController
         end
       end
 
+      def read_multi_fragments(keys, options = nil)
+        return unless cache_configured?
+
+        keys = keys.map { |key| fragment_cache_key(key) }
+        instrument_fragment_cache :read_multi_fragments, count: keys.size do |payload|
+          results = cache_store.read_multi(keys, options)
+          payload[:cache_hits] = results.size
+          results.map { |result| result.respond_to?(:html_safe) ? result.html_safe : result }
+        end
+      end
+
       # Check if a cached fragment from the location signified by
       # +key+ exists (see +expire_fragment+ for acceptable formats).
       def fragment_exist?(key, options = nil)

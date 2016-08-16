@@ -169,6 +169,18 @@ module ActionView
         nil
       end
 
+      def multi_caches(names = {}, options = {}, &block)
+        if controller.respond_to?(:perform_caching) && controller.perform_caching
+          name_options = options.slice(:skip_digest, :virtual_path)
+          keys = names.map { |name| cache_fragment_name(name, name_options) }
+          read_multi_fragments_for(keys)
+        end
+
+        yield
+
+        nil
+      end
+
       # Cache fragments of a view if +condition+ is true
       #
       #   <% cache_if admin?, project do %>
@@ -224,6 +236,10 @@ module ActionView
         end
       end
 
+      def read_multi_fragments_for(names, options)
+        @_read_multi_fragments_for_hits = controller.read_multi_fragments(names, options)
+      end
+
       # TODO: Create an object that has caching read/write on it
       def fragment_for(name = {}, options = nil, &block) #:nodoc:
         if content = read_fragment_for(name, options)
@@ -236,7 +252,11 @@ module ActionView
       end
 
       def read_fragment_for(name, options) #:nodoc:
-        controller.read_fragment(name, options)
+        preloaded = if @_read_multi_fragments_for_hits
+          @_read_multi_fragments_for_hits[controller.fragment_cache_key name]
+        end
+
+        preloaded || controller.read_fragment(name, options)
       end
 
       def write_fragment_for(name, options) #:nodoc:
