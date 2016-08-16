@@ -151,15 +151,11 @@ module ActiveRecord
           end
         end
 
-        CLAUSE_METHOD_NAMES = CLAUSE_METHODS.map do |name|
-          ["#{name}_clause", "#{name}_clause="]
-        end
-
         def merge_clauses
-          CLAUSE_METHOD_NAMES.each do |(reader, writer)|
-            clause = relation.send(reader)
-            other_clause = other.send(reader)
-            relation.send(writer, clause.merge(other_clause))
+          CLAUSE_METHODS.each do |method|
+            clause = relation.get_value(method)
+            other_clause = other.get_value(method)
+            relation.set_value(method, clause.merge(other_clause))
           end
         end
     end
