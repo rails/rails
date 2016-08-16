@@ -15,7 +15,7 @@ class LogOnUnpermittedParamsTest < ActiveSupport::TestCase
       book: { pages: 65 },
       fishing: "Turnips")
 
-    assert_logged("Unpermitted parameter: fishing") do
+    assert_logged("Unpermitted parameter: :fishing") do
       params.permit(book: [:pages])
     end
   end
@@ -26,7 +26,7 @@ class LogOnUnpermittedParamsTest < ActiveSupport::TestCase
       fishing: "Turnips",
       car: "Mersedes")
 
-    assert_logged("Unpermitted parameters: fishing, car") do
+    assert_logged("Unpermitted parameters: :fishing, :car") do
       params.permit(book: [:pages])
     end
   end
@@ -35,7 +35,7 @@ class LogOnUnpermittedParamsTest < ActiveSupport::TestCase
     params = ActionController::Parameters.new(
       book: { pages: 65, title: "Green Cats and where to find then." })
 
-    assert_logged("Unpermitted parameter: title") do
+    assert_logged("Unpermitted parameter: :title") do
       params.permit(book: [:pages])
     end
   end
@@ -44,7 +44,7 @@ class LogOnUnpermittedParamsTest < ActiveSupport::TestCase
     params = ActionController::Parameters.new(
       book: { pages: 65, title: "Green Cats and where to find then.", author: "G. A. Dog" })
 
-    assert_logged("Unpermitted parameters: title, author") do
+    assert_logged("Unpermitted parameters: :title, :author") do
       params.permit(book: [:pages])
     end
   end
