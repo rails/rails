@@ -533,6 +533,10 @@ module ActiveRecord
       #  add_column(:measurements, :huge_integer, :decimal, precision: 30)
       #  # ALTER TABLE "measurements" ADD "huge_integer" decimal(30)
       #
+      #  # Defines a column that stores an array of a type.
+      #  add_column(:users, :skills, :text, array: true)
+      #  # ALTER TABLE "users" ADD "skills" text[]
+      #
       #  # Defines a column with a database-specific type.
       #  add_column(:shapes, :triangle, 'polygon')
       #  # ALTER TABLE "shapes" ADD "triangle" polygon
