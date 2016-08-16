@@ -32,11 +32,11 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
   end
 
   test "parses bracketed parameters" do
-    assert_equal({ "foo" => { "baz" => "bar"}}, parse_multipart("bracketed_param"))
+    assert_equal({ "foo" => { "baz" => "bar" } }, parse_multipart("bracketed_param"))
   end
 
   test "parse single utf8 parameter" do
-    assert_equal({ "Iñtërnâtiônàlizætiøn_name" => "Iñtërnâtiônàlizætiøn_value"},
+    assert_equal({ "Iñtërnâtiônàlizætiøn_name" => "Iñtërnâtiônàlizætiøn_value" },
                  parse_multipart("single_utf8_param"), "request.request_parameters")
     assert_equal(
       "Iñtërnâtiônàlizætiøn_value",
@@ -45,10 +45,10 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
 
   test "parse bracketed utf8 parameter" do
     assert_equal({ "Iñtërnâtiônàlizætiøn_name" => {
-      "Iñtërnâtiônàlizætiøn_nested_name" => "Iñtërnâtiônàlizætiøn_value"} },
+      "Iñtërnâtiônàlizætiøn_nested_name" => "Iñtërnâtiônàlizætiøn_value" } },
       parse_multipart("bracketed_utf8_param"), "request.request_parameters")
     assert_equal(
-      {"Iñtërnâtiônàlizætiøn_nested_name" => "Iñtërnâtiônàlizætiøn_value"},
+      { "Iñtërnâtiônàlizætiøn_nested_name" => "Iñtërnâtiônàlizætiøn_value" },
       TestController.last_parameters["Iñtërnâtiônàlizætiøn_name"], "request.parameters")
   end
 

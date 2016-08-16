@@ -28,7 +28,7 @@ class ResourcesTest < ActionController::TestCase
   def test_override_paths_for_member_and_collection_methods
     collection_methods = { rss: :get, reorder: :post, csv: :post }
     member_methods    = { rss: :get, atom: :get, upload: :post, fix: :post }
-    path_names = {new: "nuevo", rss: "canal", fix: "corrigir" }
+    path_names = { new: "nuevo", rss: "canal", fix: "corrigir" }
 
     with_restful_routing :messages,
         collection: collection_methods,
@@ -77,7 +77,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_multiple_resources_with_options
-    expected_options = {controller: "threads", action: "index"}
+    expected_options = { controller: "threads", action: "index" }
 
     with_restful_routing :messages, :comments, expected_options.slice(:controller) do
       assert_recognizes(expected_options, path: "comments")
@@ -92,7 +92,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_irregular_id_with_no_constraints_should_raise_error
-    expected_options = {controller: "messages", action: "show", id: "1.1.1"}
+    expected_options = { controller: "messages", action: "show", id: "1.1.1" }
 
     with_restful_routing :messages do
       assert_raise(Assertion) do
@@ -102,24 +102,24 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_irregular_id_with_constraints_should_pass
-    expected_options = {controller: "messages", action: "show", id: "1.1.1"}
+    expected_options = { controller: "messages", action: "show", id: "1.1.1" }
 
-    with_restful_routing(:messages, constraints: {id: /[0-9]\.[0-9]\.[0-9]/}) do
+    with_restful_routing(:messages, constraints: { id: /[0-9]\.[0-9]\.[0-9]/ }) do
       assert_recognizes(expected_options, path: "messages/1.1.1", method: :get)
     end
   end
 
   def test_with_path_prefix_constraints
-    expected_options = {controller: "messages", action: "show", thread_id: "1.1.1", id: "1"}
-    with_restful_routing :messages, path_prefix: "/thread/:thread_id", constraints: {thread_id: /[0-9]\.[0-9]\.[0-9]/} do
+    expected_options = { controller: "messages", action: "show", thread_id: "1.1.1", id: "1" }
+    with_restful_routing :messages, path_prefix: "/thread/:thread_id", constraints: { thread_id: /[0-9]\.[0-9]\.[0-9]/ } do
       assert_recognizes(expected_options, path: "thread/1.1.1/messages/1", method: :get)
     end
   end
 
   def test_irregular_id_constraints_should_get_passed_to_member_actions
-    expected_options = {controller: "messages", action: "custom", id: "1.1.1"}
+    expected_options = { controller: "messages", action: "custom", id: "1.1.1" }
 
-    with_restful_routing(:messages, member: {custom: :get}, constraints: {id: /[0-9]\.[0-9]\.[0-9]/}) do
+    with_restful_routing(:messages, member: { custom: :get }, constraints: { id: /[0-9]\.[0-9]\.[0-9]/ }) do
       assert_recognizes(expected_options, path: "messages/1.1.1/custom", method: :get)
     end
   end
@@ -261,7 +261,7 @@ class ResourcesTest < ActionController::TestCase
   def test_with_member_action
     [:patch, :put, :post].each do |method|
       with_restful_routing :messages, member: { mark: method } do
-        mark_options = {action: "mark", id: "1"}
+        mark_options = { action: "mark", id: "1" }
         mark_path    = "/messages/1/mark"
         assert_restful_routes_for :messages do |options|
           assert_recognizes(options.merge(mark_options), path: mark_path, method: method)
@@ -275,24 +275,24 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_with_member_action_and_requirement
-    expected_options = {controller: "messages", action: "mark", id: "1.1.1"}
+    expected_options = { controller: "messages", action: "mark", id: "1.1.1" }
 
-    with_restful_routing(:messages, constraints: {id: /[0-9]\.[0-9]\.[0-9]/}, member: { mark: :get }) do
+    with_restful_routing(:messages, constraints: { id: /[0-9]\.[0-9]\.[0-9]/ }, member: { mark: :get }) do
       assert_recognizes(expected_options, path: "messages/1.1.1/mark", method: :get)
     end
   end
 
   def test_member_when_override_paths_for_default_restful_actions_with
     [:patch, :put, :post].each do |method|
-      with_restful_routing :messages, member: { mark: method }, path_names: {new: "nuevo"} do
-        mark_options = {action: "mark", id: "1", controller: "messages"}
+      with_restful_routing :messages, member: { mark: method }, path_names: { new: "nuevo" } do
+        mark_options = { action: "mark", id: "1", controller: "messages" }
         mark_path    = "/messages/1/mark"
 
-        assert_restful_routes_for :messages, path_names: {new: "nuevo"} do |options|
+        assert_restful_routes_for :messages, path_names: { new: "nuevo" } do |options|
           assert_recognizes(options.merge(mark_options), path: mark_path, method: method)
         end
 
-        assert_restful_named_routes_for :messages, path_names: {new: "nuevo"} do
+        assert_restful_named_routes_for :messages, path_names: { new: "nuevo" } do
           assert_named_route mark_path, :mark_message_path, mark_options
         end
       end
@@ -312,7 +312,7 @@ class ResourcesTest < ActionController::TestCase
         end
 
         %w(mark unmark).each do |action|
-          action_options = {action: action, id: "1"}
+          action_options = { action: action, id: "1" }
           action_path    = "/messages/1/#{action}"
           assert_restful_routes_for :messages do |options|
             assert_recognizes(options.merge(action_options), path: action_path, method: method)
@@ -359,7 +359,7 @@ class ResourcesTest < ActionController::TestCase
         end
       end
 
-      preview_options = {action: "preview"}
+      preview_options = { action: "preview" }
       preview_path    = "/messages/new/preview"
       assert_restful_routes_for :messages do |options|
         assert_recognizes(options.merge(preview_options), path: preview_path, method: :post)
@@ -381,7 +381,7 @@ class ResourcesTest < ActionController::TestCase
         end
       end
 
-      preview_options = {action: "preview", thread_id: "1"}
+      preview_options = { action: "preview", thread_id: "1" }
       preview_path    = "/threads/1/messages/new/preview"
       assert_restful_routes_for :messages, path_prefix: "threads/1/", name_prefix: "thread_", options: { thread_id: "1" } do |options|
         assert_recognizes(options.merge(preview_options), path: preview_path, method: :post)
@@ -403,7 +403,7 @@ class ResourcesTest < ActionController::TestCase
         end
       end
 
-      preview_options = {action: "preview", thread_id: "1", format: "xml"}
+      preview_options = { action: "preview", thread_id: "1", format: "xml" }
       preview_path    = "/threads/1/messages/new/preview.xml"
       assert_restful_routes_for :messages, path_prefix: "threads/1/", name_prefix: "thread_", options: { thread_id: "1" } do |options|
         assert_recognizes(options.merge(preview_options), path: preview_path, method: :post)
@@ -561,7 +561,7 @@ class ResourcesTest < ActionController::TestCase
           end
         end
 
-        reset_options = {action: "reset"}
+        reset_options = { action: "reset" }
         reset_path    = "/account/reset"
         assert_singleton_routes_for :account do |options|
           assert_recognizes(options.merge(reset_options), path: reset_path, method: method)
@@ -585,7 +585,7 @@ class ResourcesTest < ActionController::TestCase
         end
 
         %w(reset disable).each do |action|
-          action_options = {action: action}
+          action_options = { action: action }
           action_path    = "/account/#{action}"
           assert_singleton_routes_for :account do |options|
             assert_recognizes(options.merge(action_options), path: action_path, method: method)
@@ -743,7 +743,7 @@ class ResourcesTest < ActionController::TestCase
         end
       end
 
-      assert_simply_restful_for :images, controller: "backoffice/images", name_prefix: "backoffice_product_", path_prefix: "backoffice/products/1/", options: {product_id: "1"}
+      assert_simply_restful_for :images, controller: "backoffice/images", name_prefix: "backoffice_product_", path_prefix: "backoffice/products/1/", options: { product_id: "1" }
     end
   end
 
@@ -759,15 +759,15 @@ class ResourcesTest < ActionController::TestCase
         end
       end
 
-      assert_simply_restful_for :images, controller: "backoffice/admin/images", name_prefix: "backoffice_admin_product_", path_prefix: "backoffice/admin/products/1/", options: {product_id: "1"}
+      assert_simply_restful_for :images, controller: "backoffice/admin/images", name_prefix: "backoffice_admin_product_", path_prefix: "backoffice/admin/products/1/", options: { product_id: "1" }
     end
   end
 
   def test_with_path_segment
     with_restful_routing :messages do
       assert_simply_restful_for :messages
-      assert_recognizes({controller: "messages", action: "index"}, "/messages")
-      assert_recognizes({controller: "messages", action: "index"}, "/messages/")
+      assert_recognizes({ controller: "messages", action: "index" }, "/messages")
+      assert_recognizes({ controller: "messages", action: "index" }, "/messages/")
     end
 
     with_routing do |set|
@@ -775,8 +775,8 @@ class ResourcesTest < ActionController::TestCase
         resources :messages, path: "reviews"
       end
       assert_simply_restful_for :messages, as: "reviews"
-      assert_recognizes({controller: "messages", action: "index"}, "/reviews")
-      assert_recognizes({controller: "messages", action: "index"}, "/reviews/")
+      assert_recognizes({ controller: "messages", action: "index" }, "/reviews")
+      assert_recognizes({ controller: "messages", action: "index" }, "/reviews/")
     end
   end
 
@@ -791,13 +791,13 @@ class ResourcesTest < ActionController::TestCase
          end
       end
 
-      assert_simply_restful_for :product_reviews, controller: "messages", as: "reviews", name_prefix: "product_", path_prefix: "products/1/", options: {product_id: "1"}
-      assert_simply_restful_for :tutor_reviews,controller: "comments", as: "reviews", name_prefix: "tutor_", path_prefix: "tutors/1/", options: {tutor_id: "1"}
+      assert_simply_restful_for :product_reviews, controller: "messages", as: "reviews", name_prefix: "product_", path_prefix: "products/1/", options: { product_id: "1" }
+      assert_simply_restful_for :tutor_reviews,controller: "comments", as: "reviews", name_prefix: "tutor_", path_prefix: "tutors/1/", options: { tutor_id: "1" }
     end
   end
 
   def test_with_path_segment_path_prefix_constraints
-    expected_options = {controller: "messages", action: "show", thread_id: "1.1.1", id: "1"}
+    expected_options = { controller: "messages", action: "show", thread_id: "1.1.1", id: "1" }
     with_routing do |set|
       set.draw do
         scope "/thread/:thread_id", constraints: { thread_id: /[0-9]\.[0-9]\.[0-9]/ } do
@@ -1125,7 +1125,7 @@ class ResourcesTest < ActionController::TestCase
 
     def with_singleton_resources(*args)
       with_routing do |set|
-        set.draw {resource(*args) }
+        set.draw { resource(*args) }
         yield
       end
     end

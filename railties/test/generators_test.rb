@@ -23,32 +23,32 @@ class GeneratorsTest < Rails::Generators::TestCase
 
   def test_invoke_when_generator_is_not_found
     name = :unknown
-    output = capture(:stdout){ Rails::Generators.invoke name }
+    output = capture(:stdout) { Rails::Generators.invoke name }
     assert_match "Could not find generator '#{name}'", output
     assert_match "`rails generate --help`", output
   end
 
   def test_generator_suggestions
     name = :migrationz
-    output = capture(:stdout){ Rails::Generators.invoke name }
+    output = capture(:stdout) { Rails::Generators.invoke name }
     assert_match "Maybe you meant 'migration'", output
   end
 
   def test_generator_multiple_suggestions
     name = :tas
-    output = capture(:stdout){ Rails::Generators.invoke name }
+    output = capture(:stdout) { Rails::Generators.invoke name }
     assert_match "Maybe you meant 'task', 'job' or", output
   end
 
   def test_help_when_a_generator_with_required_arguments_is_invoked_without_arguments
-    output = capture(:stdout){ Rails::Generators.invoke :model, [] }
+    output = capture(:stdout) { Rails::Generators.invoke :model, [] }
     assert_match(/Description:/, output)
   end
 
   def test_should_give_higher_preference_to_rails_generators
     assert File.exist?(File.join(@path, "generators", "model_generator.rb"))
     assert_called_with(Rails::Generators::ModelGenerator, :start, [["Account"], {}]) do
-      warnings = capture(:stderr){ Rails::Generators.invoke :model, ["Account"] }
+      warnings = capture(:stderr) { Rails::Generators.invoke :model, ["Account"] }
       assert warnings.empty?
     end
   end
@@ -115,7 +115,7 @@ class GeneratorsTest < Rails::Generators::TestCase
   end
 
   def test_rails_generators_help_with_builtin_information
-    output = capture(:stdout){ Rails::Generators.help }
+    output = capture(:stdout) { Rails::Generators.help }
     assert_match(/Rails:/, output)
     assert_match(/^  model$/, output)
     assert_match(/^  scaffold_controller$/, output)
@@ -123,19 +123,19 @@ class GeneratorsTest < Rails::Generators::TestCase
   end
 
   def test_rails_generators_help_does_not_include_app_nor_plugin_new
-    output = capture(:stdout){ Rails::Generators.help }
+    output = capture(:stdout) { Rails::Generators.help }
     assert_no_match(/app/, output)
     assert_no_match(/[^:]plugin/, output)
   end
 
   def test_rails_generators_with_others_information
-    output = capture(:stdout){ Rails::Generators.help }
+    output = capture(:stdout) { Rails::Generators.help }
     assert_match(/Fixjour:/, output)
     assert_match(/^  fixjour$/, output)
   end
 
   def test_rails_generators_does_not_show_active_record_hooks
-    output = capture(:stdout){ Rails::Generators.help }
+    output = capture(:stdout) { Rails::Generators.help }
     assert_match(/ActiveRecord:/, output)
     assert_match(/^  active_record:fixjour$/, output)
   end
@@ -214,7 +214,7 @@ class GeneratorsTest < Rails::Generators::TestCase
 
     # Create template
     mkdir_p(File.dirname(template))
-    File.open(template, "w"){ |f| f.write "empty" }
+    File.open(template, "w") { |f| f.write "empty" }
 
     capture(:stdout) do
       Rails::Generators.invoke :model, ["user"], destination_root: destination_root

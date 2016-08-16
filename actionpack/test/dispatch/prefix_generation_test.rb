@@ -238,7 +238,7 @@ module TestGenerationPrefix
     end
 
     test "[APP] generating engine's route includes default_url_options[:script_name]" do
-      RailsApplication.routes.default_url_options = {script_name: "/something"}
+      RailsApplication.routes.default_url_options = { script_name: "/something" }
       get "/generate"
       assert_equal "/something/awesome/blog/posts/1", last_response.body
     end
@@ -277,7 +277,7 @@ module TestGenerationPrefix
     end
 
     test "[OBJECT] generating engine's route includes default_url_options[:script_name]" do
-      RailsApplication.routes.default_url_options = {script_name: "/something"}
+      RailsApplication.routes.default_url_options = { script_name: "/something" }
       assert_equal "/something/pure-awesomeness/blog/posts/3", engine_object.post_path(id: 3, omg: "pure-awesomeness")
     end
 
@@ -286,7 +286,7 @@ module TestGenerationPrefix
     end
 
     test "[OBJECT] generating application's route includes default_url_options[:script_name]" do
-      RailsApplication.routes.default_url_options = {script_name: "/something"}
+      RailsApplication.routes.default_url_options = { script_name: "/something" }
       assert_equal "/something/", app_object.root_path
     end
 

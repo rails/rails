@@ -221,7 +221,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   def test_restrict_with_error_with_locale
     I18n.backend = I18n::Backend::Simple.new
-    I18n.backend.store_translations "en", activerecord: {attributes: {restricted_with_error_firm: {account: "firm account"}}}
+    I18n.backend.store_translations "en", activerecord: { attributes: { restricted_with_error_firm: { account: "firm account" } } }
     firm = RestrictedWithErrorFirm.create!(name: "restrict")
     firm.create_account(credit_limit: 10)
 
@@ -539,21 +539,21 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   def test_build_with_block
     car = Car.create(name: "honda")
 
-    bulb = car.build_bulb{ |b| b.color = "Red" }
+    bulb = car.build_bulb { |b| b.color = "Red" }
     assert_equal "RED!", bulb.color
   end
 
   def test_create_with_block
     car = Car.create(name: "honda")
 
-    bulb = car.create_bulb{ |b| b.color = "Red" }
+    bulb = car.create_bulb { |b| b.color = "Red" }
     assert_equal "RED!", bulb.color
   end
 
   def test_create_bang_with_block
     car = Car.create(name: "honda")
 
-    bulb = car.create_bulb!{ |b| b.color = "Red" }
+    bulb = car.create_bulb! { |b| b.color = "Red" }
     assert_equal "RED!", bulb.color
   end
 

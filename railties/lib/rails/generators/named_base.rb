@@ -51,7 +51,7 @@ module Rails
 
         def indent(content, multiplier = 2)
           spaces = " " * multiplier
-          content.each_line.map {|line| line.blank? ? line : "#{spaces}#{line}" }.join
+          content.each_line.map { |line| line.blank? ? line : "#{spaces}#{line}" }.join
         end
 
         def wrap_with_namespace(content)
@@ -162,7 +162,7 @@ module Rails
         end
 
         def route_url
-          @route_url ||= class_path.collect {|dname| "/" + dname }.join + "/" + plural_file_name
+          @route_url ||= class_path.collect { |dname| "/" + dname }.join + "/" + plural_file_name
         end
 
         def url_helper_prefix

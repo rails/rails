@@ -30,7 +30,7 @@ module RenderFile
 
     def with_locals
       path = File.join(File.dirname(__FILE__), "../../fixtures/test/render_file_with_locals")
-      render file: path, locals: {secret: "in the sauce"}
+      render file: path, locals: { secret: "in the sauce" }
     end
   end
 

@@ -224,7 +224,7 @@ module ActiveRecord
       def test_merge_no_conflicts_with_database_url
         ENV["DATABASE_URL"] = "postgres://localhost/foo"
 
-        config   = {"default_env" => { "pool" => "5" } }
+        config   = { "default_env" => { "pool" => "5" } }
         actual   = resolve_config(config)
         expected = { "default_env" =>
                      { "adapter"  => "postgresql",
@@ -239,7 +239,7 @@ module ActiveRecord
       def test_merge_conflicts_with_database_url
         ENV["DATABASE_URL"] = "postgres://localhost/foo"
 
-        config   = {"default_env" => { "adapter" => "NOT-POSTGRES", "database" => "NOT-FOO", "pool" => "5" } }
+        config   = { "default_env" => { "adapter" => "NOT-POSTGRES", "database" => "NOT-FOO", "pool" => "5" } }
         actual   = resolve_config(config)
         expected = { "default_env" =>
                      { "adapter"  => "postgresql",

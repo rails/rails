@@ -152,7 +152,7 @@ module Rails
 
         dirs_on_path = ENV["PATH"].to_s.split(File::PATH_SEPARATOR)
         unless (ext = RbConfig::CONFIG["EXEEXT"]).empty?
-          commands = commands.map{|cmd| "#{cmd}#{ext}"}
+          commands = commands.map { |cmd| "#{cmd}#{ext}" }
         end
 
         full_path_command = nil

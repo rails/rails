@@ -38,7 +38,7 @@ module ActiveRecord
             if row
               row.last
             else
-              {'model_class': nil}
+              { 'model_class': nil }
             end
           end
         end

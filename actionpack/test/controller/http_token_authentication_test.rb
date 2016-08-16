@@ -156,10 +156,10 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
 
   test "token_and_options returns correct token with nounce option" do
     token = "rcHu+HzSFw89Ypyhn/896A="
-    nonce_hash = {nonce: "123abc"}
+    nonce_hash = { nonce: "123abc" }
     actual = ActionController::HttpAuthentication::Token.token_and_options(sample_request(token, nonce_hash))
     expected_token = token
-    expected_nonce = {"nonce" => nonce_hash[:nonce]}
+    expected_nonce = { "nonce" => nonce_hash[:nonce] }
     assert_equal(expected_token, actual.first)
     assert_equal(expected_nonce, actual.last)
   end
@@ -190,7 +190,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
 
   private
 
-    def sample_request(token, options = {nonce: "def"})
+    def sample_request(token, options = { nonce: "def" })
       authorization = options.inject([%{Token token="#{token}"}]) do |arr, (k, v)|
         arr << "#{k}=\"#{v}\""
       end.join(", ")

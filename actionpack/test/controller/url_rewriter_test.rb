@@ -79,7 +79,7 @@ class UrlRewriterTests < ActionController::TestCase
   end
 
   def test_trailing_slash
-    options = {controller: "foo", action: "bar", id: "3", only_path: true}
+    options = { controller: "foo", action: "bar", id: "3", only_path: true }
     assert_equal "/foo/bar/3", @rewriter.rewrite(@routes, options)
     assert_equal "/foo/bar/3?query=string", @rewriter.rewrite(@routes, options.merge(query: "string"))
     options.update(trailing_slash: true)

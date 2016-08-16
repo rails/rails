@@ -3,11 +3,11 @@ require "active_support/core_ext/object/with_options"
 
 class OptionMergerTest < ActiveSupport::TestCase
   def setup
-    @options = {hello: "world"}
+    @options = { hello: "world" }
   end
 
   def test_method_with_options_merges_options_when_options_are_present
-    local_options = {cool: true}
+    local_options = { cool: true }
 
     with_options(@options) do |o|
       assert_equal local_options, method_with_options(local_options)
@@ -24,7 +24,7 @@ class OptionMergerTest < ActiveSupport::TestCase
   end
 
   def test_method_with_options_allows_to_overwrite_options
-    local_options = {hello: "moon"}
+    local_options = { hello: "moon" }
     assert_equal @options.keys, local_options.keys
 
     with_options(@options) do |o|

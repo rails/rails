@@ -200,8 +200,8 @@ module ActiveRecord
         end
         created_columns = connection.columns(table_name)
 
-        created_at_column = created_columns.detect {|c| c.name == "created_at" }
-        updated_at_column = created_columns.detect {|c| c.name == "updated_at" }
+        created_at_column = created_columns.detect { |c| c.name == "created_at" }
+        updated_at_column = created_columns.detect { |c| c.name == "updated_at" }
 
         assert !created_at_column.null
         assert !updated_at_column.null
@@ -213,8 +213,8 @@ module ActiveRecord
         end
         created_columns = connection.columns(table_name)
 
-        created_at_column = created_columns.detect {|c| c.name == "created_at" }
-        updated_at_column = created_columns.detect {|c| c.name == "updated_at" }
+        created_at_column = created_columns.detect { |c| c.name == "created_at" }
+        updated_at_column = created_columns.detect { |c| c.name == "updated_at" }
 
         assert created_at_column.null
         assert updated_at_column.null
@@ -246,7 +246,7 @@ module ActiveRecord
 
         con = connection
         connection.execute "insert into testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}) values (1, 'hello')"
-        assert_nothing_raised {connection.add_column :testings, :bar, :string, null: false, default: "default" }
+        assert_nothing_raised { connection.add_column :testings, :bar, :string, null: false, default: "default" }
 
         assert_raises(ActiveRecord::StatementInvalid) do
           connection.execute "insert into testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}, #{con.quote_column_name('bar')}) values (2, 'hello', NULL)"
@@ -298,9 +298,9 @@ module ActiveRecord
         assert_equal false, person_klass.columns_hash["wealth"].null
         # Oracle needs primary key value from sequence
         if current_adapter?(:OracleAdapter)
-          assert_nothing_raised {person_klass.connection.execute("insert into testings (id, title) values (testings_seq.nextval, 'tester')")}
+          assert_nothing_raised { person_klass.connection.execute("insert into testings (id, title) values (testings_seq.nextval, 'tester')") }
         else
-          assert_nothing_raised {person_klass.connection.execute("insert into testings (title) values ('tester')")}
+          assert_nothing_raised { person_klass.connection.execute("insert into testings (title) values ('tester')") }
         end
 
         # change column default to see that column doesn't lose its not null definition
@@ -346,9 +346,9 @@ module ActiveRecord
           end
           notnull_migration.new.suppress_messages do
             notnull_migration.migrate(:up)
-            assert_equal false, connection.columns(:testings).find{ |c| c.name == "foo"}.null
+            assert_equal false, connection.columns(:testings).find { |c| c.name == "foo" }.null
             notnull_migration.migrate(:down)
-            assert connection.columns(:testings).find{ |c| c.name == "foo"}.null
+            assert connection.columns(:testings).find { |c| c.name == "foo" }.null
           end
         end
       end

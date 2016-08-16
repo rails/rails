@@ -11,7 +11,7 @@ class DebugHelperTest < ActionView::TestCase
   end
 
   def test_debug_with_marshal_error
-    obj = -> { }
+    obj = -> {}
     assert_match obj.inspect, Nokogiri.XML(debug(obj)).content
   end
 end

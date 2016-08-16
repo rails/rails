@@ -146,7 +146,7 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
   test "transmitting data" do
     @channel.perform_action "action" => :get_latest
 
-    expected = { "identifier" => "{id: 1}", "message" => { "data" => "latest" }}
+    expected = { "identifier" => "{id: 1}", "message" => { "data" => "latest" } }
     assert_equal expected, @connection.last_transmission
   end
 
@@ -173,7 +173,7 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
         events << ActiveSupport::Notifications::Event.new(*args)
       end
 
-      data = {"action" => :speak, "content" => "hello"}
+      data = { "action" => :speak, "content" => "hello" }
       @channel.perform_action data
 
       assert_equal 1, events.length
@@ -194,7 +194,7 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
       end
 
       @channel.perform_action "action" => :get_latest
-      expected_data = {data: "latest"}
+      expected_data = { data: "latest" }
 
       assert_equal 1, events.length
       assert_equal "transmit.action_cable", events[0].name

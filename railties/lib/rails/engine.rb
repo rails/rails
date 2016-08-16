@@ -402,7 +402,7 @@ module Rails
             end
 
             unless mod.respond_to?(:railtie_routes_url_helpers)
-              define_method(:railtie_routes_url_helpers) {|include_path_helpers = true| railtie.routes.url_helpers(include_path_helpers) }
+              define_method(:railtie_routes_url_helpers) { |include_path_helpers = true| railtie.routes.url_helpers(include_path_helpers) }
             end
           end
         end
@@ -590,8 +590,8 @@ module Rails
     initializer :add_view_paths do
       views = paths["app/views"].existent
       unless views.empty?
-        ActiveSupport.on_load(:action_controller){ prepend_view_path(views) if respond_to?(:prepend_view_path) }
-        ActiveSupport.on_load(:action_mailer){ prepend_view_path(views) }
+        ActiveSupport.on_load(:action_controller) { prepend_view_path(views) if respond_to?(:prepend_view_path) }
+        ActiveSupport.on_load(:action_mailer) { prepend_view_path(views) }
       end
     end
 

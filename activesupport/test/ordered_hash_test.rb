@@ -94,13 +94,13 @@ class OrderedHashTest < ActiveSupport::TestCase
 
   def test_each
     values = []
-    assert_equal @ordered_hash, @ordered_hash.each {|key, value| values << value}
+    assert_equal @ordered_hash, @ordered_hash.each { |key, value| values << value }
     assert_equal @values, values
     assert_kind_of Enumerator, @ordered_hash.each
   end
 
   def test_each_with_index
-    @ordered_hash.each_with_index { |pair, index| assert_equal [@keys[index], @values[index]], pair}
+    @ordered_hash.each_with_index { |pair, index| assert_equal [@keys[index], @values[index]], pair }
   end
 
   def test_each_pair
@@ -242,7 +242,7 @@ class OrderedHashTest < ActiveSupport::TestCase
   end
 
   def test_nested_under_indifferent_access
-    flash = {a: ActiveSupport::OrderedHash[:b, 1, :c, 2]}.with_indifferent_access
+    flash = { a: ActiveSupport::OrderedHash[:b, 1, :c, 2] }.with_indifferent_access
     assert_kind_of ActiveSupport::OrderedHash, flash[:a]
   end
 

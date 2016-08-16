@@ -156,7 +156,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
   test "rescue with text error for xhr request" do
     @app = DevelopmentApp
-    xhr_request_env = {"action_dispatch.show_exceptions" => true, "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest"}
+    xhr_request_env = { "action_dispatch.show_exceptions" => true, "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest" }
 
     get "/", headers: xhr_request_env
     assert_response 500
@@ -399,9 +399,9 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     backtrace_cleaner = ActiveSupport::BacktraceCleaner.new
     backtrace_cleaner.add_silencer { true }
 
-    env = {"action_dispatch.show_exceptions" => true,
+    env = { "action_dispatch.show_exceptions" => true,
            "action_dispatch.logger" => Logger.new(output),
-           "action_dispatch.backtrace_cleaner" => backtrace_cleaner}
+           "action_dispatch.backtrace_cleaner" => backtrace_cleaner }
 
     get "/", headers: env
     assert_operator((output.rewind && output.read).lines.count, :>, 10)

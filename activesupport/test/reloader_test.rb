@@ -21,13 +21,13 @@ class ReloaderTest < ActiveSupport::TestCase
     r = new_reloader { true }
     invoked = false
     r.to_run { invoked = true }
-    r.wrap { }
+    r.wrap {}
     assert invoked
 
     r = new_reloader { false }
     invoked = false
     r.to_run { invoked = true }
-    r.wrap { }
+    r.wrap {}
     assert !invoked
   end
 
@@ -39,7 +39,7 @@ class ReloaderTest < ActiveSupport::TestCase
     reloader.executor.to_run { called << :executor_run }
     reloader.executor.to_complete { called << :executor_complete }
 
-    reloader.wrap { }
+    reloader.wrap {}
     assert_equal [:executor_run, :reloader_run, :prepare, :reloader_complete, :executor_complete], called
 
     called = []
@@ -49,7 +49,7 @@ class ReloaderTest < ActiveSupport::TestCase
     reloader.check = lambda { false }
 
     called = []
-    reloader.wrap { }
+    reloader.wrap {}
     assert_equal [:executor_run, :executor_complete], called
 
     called = []

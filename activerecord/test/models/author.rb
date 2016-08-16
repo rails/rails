@@ -67,13 +67,13 @@ class Author < ActiveRecord::Base
            before_remove: :log_before_removing,
            after_remove: :log_after_removing
   has_many :posts_with_proc_callbacks, class_name: "Post",
-           before_add: Proc.new {|o, r| o.post_log << "before_adding#{r.id || '<new>'}"},
-           after_add: Proc.new {|o, r| o.post_log << "after_adding#{r.id || '<new>'}"},
-           before_remove: Proc.new {|o, r| o.post_log << "before_removing#{r.id}"},
-           after_remove: Proc.new {|o, r| o.post_log << "after_removing#{r.id}"}
+           before_add: Proc.new { |o, r| o.post_log << "before_adding#{r.id || '<new>'}" },
+           after_add: Proc.new { |o, r| o.post_log << "after_adding#{r.id || '<new>'}" },
+           before_remove: Proc.new { |o, r| o.post_log << "before_removing#{r.id}" },
+           after_remove: Proc.new { |o, r| o.post_log << "after_removing#{r.id}" }
   has_many :posts_with_multiple_callbacks, class_name: "Post",
-           before_add: [:log_before_adding, Proc.new {|o, r| o.post_log << "before_adding_proc#{r.id || '<new>'}"}],
-           after_add: [:log_after_adding,  Proc.new {|o, r| o.post_log << "after_adding_proc#{r.id || '<new>'}"}]
+           before_add: [:log_before_adding, Proc.new { |o, r| o.post_log << "before_adding_proc#{r.id || '<new>'}" }],
+           after_add: [:log_after_adding,  Proc.new { |o, r| o.post_log << "after_adding_proc#{r.id || '<new>'}" }]
   has_many :unchangeable_posts, class_name: "Post", before_add: :raise_exception, after_add: :log_after_adding
 
   has_many :categorizations

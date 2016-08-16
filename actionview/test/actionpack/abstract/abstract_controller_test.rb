@@ -37,7 +37,7 @@ module AbstractController
 
       def render(options = {})
         if options.is_a?(String)
-          options = {_template_name: options}
+          options = { _template_name: options }
         end
         super
       end
@@ -189,10 +189,10 @@ module AbstractController
 
       private
         def self.layout(formats)
-          find_template(name.underscore, {formats: formats}, _prefixes: ["layouts"])
+          find_template(name.underscore, { formats: formats }, _prefixes: ["layouts"])
         rescue ActionView::MissingTemplate
           begin
-            find_template("application", {formats: formats}, _prefixes: ["layouts"])
+            find_template("application", { formats: formats }, _prefixes: ["layouts"])
           rescue ActionView::MissingTemplate
           end
         end

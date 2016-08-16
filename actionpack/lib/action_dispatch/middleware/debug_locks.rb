@@ -86,11 +86,11 @@ module ActionDispatch
             end
 
             blockers = threads.values.select { |binfo| blocked_by?(info, binfo, threads.values) }
-            msg << "  blocked by: #{blockers.map {|i| i[:index] }.join(', ')}\n" if blockers.any?
+            msg << "  blocked by: #{blockers.map { |i| i[:index] }.join(', ')}\n" if blockers.any?
           end
 
           blockees = threads.values.select { |binfo| blocked_by?(binfo, info, threads.values) }
-          msg << "  blocking: #{blockees.map {|i| i[:index] }.join(', ')}\n" if blockees.any?
+          msg << "  blocking: #{blockees.map { |i| i[:index] }.join(', ')}\n" if blockees.any?
 
           msg << "\n#{info[:backtrace].join("\n")}\n" if info[:backtrace]
         end.join("\n\n---\n\n\n")

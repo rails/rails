@@ -145,7 +145,7 @@ module ActionView
 
         def view_rendered?(view, expected_locals)
           locals_for(view).any? do |actual_locals|
-            expected_locals.all? {|key, value| value == actual_locals[key] }
+            expected_locals.all? { |key, value| value == actual_locals[key] }
           end
         end
       end

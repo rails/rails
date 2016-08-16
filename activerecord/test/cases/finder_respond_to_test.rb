@@ -10,7 +10,7 @@ class FinderRespondToTest < ActiveRecord::TestCase
   end
 
   def test_should_preserve_normal_respond_to_behaviour_and_respond_to_newly_added_method
-    class << Topic; self; end.send(:define_method, :method_added_for_finder_respond_to_test) { }
+    class << Topic; self; end.send(:define_method, :method_added_for_finder_respond_to_test) {}
     assert_respond_to Topic, :method_added_for_finder_respond_to_test
   ensure
     class << Topic; self; end.send(:remove_method, :method_added_for_finder_respond_to_test)

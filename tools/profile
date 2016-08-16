@@ -71,7 +71,7 @@ module CodeTools
         fail Error.new("No such file") unless File.exist?(path)
         fail Error.new("#{path} is a directory") if File.directory?(path)
         ruby_extension = File.extname(path) == ".rb"
-        ruby_executable = File.open(path, "rb") {|f| f.readline } =~ [/\A#!.*ruby/]
+        ruby_executable = File.open(path, "rb") { |f| f.readline } =~ [/\A#!.*ruby/]
         fail Error.new("Not a ruby file") unless ruby_extension or ruby_executable
       end
 

@@ -23,7 +23,7 @@ module ActionView #:nodoc:
     def query(path, exts, formats, _)
       query = ""
       EXTENSIONS.each_key do |ext|
-        query << "(" << exts[ext].map {|e| e && Regexp.escape(".#{e}") }.join("|") << "|)"
+        query << "(" << exts[ext].map { |e| e && Regexp.escape(".#{e}") }.join("|") << "|)"
       end
       query = /^(#{Regexp.escape(path)})#{query}$/
 
@@ -40,7 +40,7 @@ module ActionView #:nodoc:
         )
       end
 
-      templates.sort_by {|t| -t.identifier.match(/^#{query}$/).captures.reject(&:blank?).size }
+      templates.sort_by { |t| -t.identifier.match(/^#{query}$/).captures.reject(&:blank?).size }
     end
   end
 

@@ -63,7 +63,7 @@ module ActionView
         if layout
           view = @view
           view.view_flow.set(:layout, content)
-          layout.render(view, locals){ |*name| view._layout_for(*name) }
+          layout.render(view, locals) { |*name| view._layout_for(*name) }
         else
           content
         end

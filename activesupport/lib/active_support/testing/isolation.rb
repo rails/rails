@@ -78,7 +78,7 @@ module ActiveSupport
                 "ISOLATION_OUTPUT" => tmpfile.path
               }
 
-              load_paths = $-I.map {|p| "-I\"#{File.expand_path(p)}\"" }.join(" ")
+              load_paths = $-I.map { |p| "-I\"#{File.expand_path(p)}\"" }.join(" ")
               orig_args = ORIG_ARGV.join(" ")
               test_opts = "-n#{self.class.name}##{self.name}"
               command = "#{Gem.ruby} #{load_paths} #{$0} '#{orig_args}' #{test_opts}"

@@ -42,7 +42,7 @@ class CaptureHelperTest < ActionView::TestCase
     content_for :foo, "foo"
     assert_equal "foo", content_for(:foo)
 
-    content_for(:bar){ "bar" }
+    content_for(:bar) { "bar" }
     assert_equal "bar", content_for(:bar)
   end
 

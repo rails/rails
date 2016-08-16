@@ -1,12 +1,12 @@
 class Module
   # Declares an attribute reader backed by an internally-named instance variable.
   def attr_internal_reader(*attrs)
-    attrs.each {|attr_name| attr_internal_define(attr_name, :reader)}
+    attrs.each { |attr_name| attr_internal_define(attr_name, :reader) }
   end
 
   # Declares an attribute writer backed by an internally-named instance variable.
   def attr_internal_writer(*attrs)
-    attrs.each {|attr_name| attr_internal_define(attr_name, :writer)}
+    attrs.each { |attr_name| attr_internal_define(attr_name, :writer) }
   end
 
   # Declares an attribute reader and writer backed by an internally-named instance

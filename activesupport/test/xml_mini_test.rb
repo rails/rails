@@ -63,16 +63,16 @@ module XmlMiniTest
 
     def setup
       @xml = ActiveSupport::XmlMini
-      @options = {skip_instruct: true, builder: Builder::XmlMarkup.new}
+      @options = { skip_instruct: true, builder: Builder::XmlMarkup.new }
     end
 
     test "#to_tag accepts a callable object and passes options with the builder" do
-      @xml.to_tag(:some_tag, lambda {|o| o[:builder].br }, @options)
+      @xml.to_tag(:some_tag, lambda { |o| o[:builder].br }, @options)
       assert_xml "<br/>"
     end
 
     test "#to_tag accepts a callable object and passes options and tag name" do
-      @xml.to_tag(:tag, lambda {|o, t| o[:builder].b(t) }, @options)
+      @xml.to_tag(:tag, lambda { |o, t| o[:builder].b(t) }, @options)
       assert_xml "<b>tag</b>"
     end
 
@@ -317,13 +317,13 @@ product:
 YAML
       expected = {
         "product"=> [
-          {"sku"=>"BL394D", "quantity"=>4, "description"=>"Basketball"}
+          { "sku"=>"BL394D", "quantity"=>4, "description"=>"Basketball" }
         ]
       }
       parser = @parsing["yaml"]
       assert_equal(expected, parser.call(yaml))
-      assert_equal({1 => "test"}, parser.call(1 => "test"))
-      assert_equal({"1 => 'test'"=>nil}, parser.call("{1 => 'test'}"))
+      assert_equal({ 1 => "test" }, parser.call(1 => "test"))
+      assert_equal({ "1 => 'test'"=>nil }, parser.call("{1 => 'test'}"))
     end
 
     def test_base64Binary_and_binary

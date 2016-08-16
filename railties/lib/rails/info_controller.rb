@@ -21,8 +21,8 @@ class Rails::InfoController < Rails::ApplicationController # :nodoc:
       path = URI.parser.escape path
       normalized_path = with_leading_slash path
       render json: {
-        exact: match_route {|it| it.match normalized_path },
-        fuzzy: match_route {|it| it.spec.to_s.match path }
+        exact: match_route { |it| it.match normalized_path },
+        fuzzy: match_route { |it| it.spec.to_s.match path }
       }
     else
       @routes_inspector = ActionDispatch::Routing::RoutesInspector.new(_routes.routes)
@@ -33,9 +33,9 @@ class Rails::InfoController < Rails::ApplicationController # :nodoc:
   private
 
     def match_route
-      _routes.routes.select {|route|
+      _routes.routes.select { |route|
         yield route.path
-      }.map {|route| route.path.spec.to_s }
+      }.map { |route| route.path.spec.to_s }
     end
 
     def with_leading_slash(path)

@@ -33,17 +33,17 @@ class ToQueryTest < ActiveSupport::TestCase
 
   def test_multiple_nested
     assert_query_equal "account%5Bperson%5D%5Bid%5D=20&person%5Bid%5D=10",
-      Hash[:account, {person: {id: 20}}, :person, {id: 10}]
+      Hash[:account, { person: { id: 20 } }, :person, { id: 10 }]
   end
 
   def test_array_values
     assert_query_equal "person%5Bid%5D%5B%5D=10&person%5Bid%5D%5B%5D=20",
-      person: {id: [10, 20]}
+      person: { id: [10, 20] }
   end
 
   def test_array_values_are_not_sorted
     assert_query_equal "person%5Bid%5D%5B%5D=20&person%5Bid%5D%5B%5D=10",
-      person: {id: [20, 10]}
+      person: { id: [20, 10] }
   end
 
   def test_empty_array
@@ -56,7 +56,7 @@ class ToQueryTest < ActiveSupport::TestCase
     assert_query_equal "a=1&b%5Bc%5D=3",
       a: 1, b: { c: 3, d: {} }
     assert_query_equal "",
-      a: {b: {c: {}}}
+      a: { b: { c: {} } }
     assert_query_equal "b%5Bc%5D=false&b%5Be%5D=&b%5Bf%5D=&p=12",
       p: 12, b: { c: false, e: nil, f: "" }
     assert_query_equal "b%5Bc%5D=3&b%5Bf%5D=",

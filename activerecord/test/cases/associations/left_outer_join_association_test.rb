@@ -18,8 +18,8 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
   def test_construct_finder_sql_does_not_table_name_collide_on_duplicate_associations
     assert_nothing_raised do
       queries = capture_sql do
-        Person.left_outer_joins(agents: {agents: :agents})
-              .left_outer_joins(agents: {agents: {primary_contact: :agents}}).to_a
+        Person.left_outer_joins(agents: { agents: :agents })
+              .left_outer_joins(agents: { agents: { primary_contact: :agents } }).to_a
       end
       assert queries.any? { |sql| /agents_people_4/i.match?(sql) }
     end
@@ -46,7 +46,7 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
   end
 
   def test_left_outer_joins_forbids_to_use_string_as_argument
-    assert_raise(ArgumentError){ Author.left_outer_joins('LEFT OUTER JOIN "posts" ON "posts"."user_id" = "users"."id"').to_a }
+    assert_raise(ArgumentError) { Author.left_outer_joins('LEFT OUTER JOIN "posts" ON "posts"."user_id" = "users"."id"').to_a }
   end
 
   def test_join_conditions_added_to_join_clause

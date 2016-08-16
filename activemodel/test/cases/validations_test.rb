@@ -51,7 +51,7 @@ class ValidationsTest < ActiveModel::TestCase
     r = Reply.new
     r.valid?
 
-    errors = r.errors.collect {|attr, messages| [attr.to_s, messages]}
+    errors = r.errors.collect { |attr, messages| [attr.to_s, messages] }
 
     assert errors.include?(["title", "is Empty"])
     assert errors.include?(["content", "is Empty"])
@@ -198,9 +198,9 @@ class ValidationsTest < ActiveModel::TestCase
     end
 
     assert_nothing_raised do
-      klass.validate :validator_a, if: ->{ true }
+      klass.validate :validator_a, if: -> { true }
       klass.validate :validator_b, prepend: true
-      klass.validate :validator_c, unless: ->{ true }
+      klass.validate :validator_c, unless: -> { true }
     end
 
     t = klass.new
@@ -233,7 +233,7 @@ class ValidationsTest < ActiveModel::TestCase
     assert t.invalid?
     assert_equal "can't be blank", t.errors["title"].first
     Topic.validates_presence_of :title, :author_name
-    Topic.validate {errors.add("author_email_address", "will never be valid")}
+    Topic.validate { errors.add("author_email_address", "will never be valid") }
     Topic.validates_length_of :title, :content, minimum: 2
 
     t = Topic.new title: ""
@@ -251,7 +251,7 @@ class ValidationsTest < ActiveModel::TestCase
   end
 
   def test_validation_with_if_and_on
-    Topic.validates_presence_of :title, if: Proc.new{|x| x.author_name = "bad"; true }, on: :update
+    Topic.validates_presence_of :title, if: Proc.new { |x| x.author_name = "bad"; true }, on: :update
 
     t = Topic.new(title: "")
 

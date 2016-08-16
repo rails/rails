@@ -236,7 +236,7 @@ module ActionController
 
       def encode_credentials(http_method, credentials, password, password_is_ha1)
         credentials[:response] = expected_response(http_method, credentials[:uri], credentials, password, password_is_ha1)
-        "Digest " + credentials.sort_by {|x| x[0].to_s }.map {|v| "#{v[0]}='#{v[1]}'" }.join(", ")
+        "Digest " + credentials.sort_by { |x| x[0].to_s }.map { |v| "#{v[0]}='#{v[1]}'" }.join(", ")
       end
 
       def decode_credentials_header(request)

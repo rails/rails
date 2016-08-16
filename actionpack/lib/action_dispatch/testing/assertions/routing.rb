@@ -127,7 +127,7 @@ module ActionDispatch
           options[:controller] = "/#{controller}"
         end
 
-        generate_options = options.dup.delete_if{ |k, _| defaults.key?(k) }
+        generate_options = options.dup.delete_if { |k, _| defaults.key?(k) }
         assert_generates(path.is_a?(Hash) ? path[:path] : path, generate_options, defaults, extras, message)
       end
 

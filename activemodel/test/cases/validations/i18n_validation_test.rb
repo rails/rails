@@ -49,8 +49,8 @@ class I18nValidationTest < ActiveModel::TestCase
   # [ case,                                validation_options,            generate_message_options]
     [ "given no options",                  {},                            {}],
     [ "given custom message",              { message: "custom" },         { message: "custom" }],
-    [ "given if condition",                { if:                          lambda { true }},  {}],
-    [ "given unless condition",            { unless:                      lambda { false }}, {}],
+    [ "given if condition",                { if:                          lambda { true } },  {}],
+    [ "given unless condition",            { unless:                      lambda { false } }, {}],
     [ "given option that is not reserved", { format: "jpg" },             { format: "jpg" }]
   ]
 
@@ -225,7 +225,7 @@ class I18nValidationTest < ActiveModel::TestCase
 
     test "#{validation} finds custom model key translation when #{error_type}" do
       I18n.backend.store_translations "en", activemodel: { errors: { models: { person: { attributes: { attribute => { error_type => "custom message" } } } } } }
-      I18n.backend.store_translations "en", errors: { messages: { error_type => "global message"}}
+      I18n.backend.store_translations "en", errors: { messages: { error_type => "global message" } }
 
       yield(@person, {})
       @person.valid?
@@ -234,7 +234,7 @@ class I18nValidationTest < ActiveModel::TestCase
 
     test "#{validation} finds custom model key translation with interpolation when #{error_type}" do
       I18n.backend.store_translations "en", activemodel: { errors: { models: { person: { attributes: { attribute => { error_type => "custom message with %{extra}" } } } } } }
-      I18n.backend.store_translations "en", errors: { messages: {error_type => "global message"} }
+      I18n.backend.store_translations "en", errors: { messages: { error_type => "global message" } }
 
       yield(@person, { extra: "extra information" })
       @person.valid?
@@ -242,7 +242,7 @@ class I18nValidationTest < ActiveModel::TestCase
     end
 
     test "#{validation} finds global default key translation when #{error_type}" do
-      I18n.backend.store_translations "en", errors: { messages: {error_type => "global message"} }
+      I18n.backend.store_translations "en", errors: { messages: { error_type => "global message" } }
 
       yield(@person, {})
       @person.valid?

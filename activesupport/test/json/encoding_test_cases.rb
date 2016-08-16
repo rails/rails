@@ -51,8 +51,8 @@ module JSONTest
     ArrayTests    = [[ ["a", "b", "c"],          %([\"a\",\"b\",\"c\"])        ],
                      [ [1, "a", :b, nil, false], %([1,\"a\",\"b\",null,false]) ]]
 
-    HashTests     = [[ {foo: "bar"}, %({\"foo\":\"bar\"}) ],
-                     [ {1 => 1, 2 => "a", 3 => :b, 4 => nil, 5 => false}, %({\"1\":1,\"2\":\"a\",\"3\":\"b\",\"4\":null,\"5\":false}) ]]
+    HashTests     = [[ { foo: "bar" }, %({\"foo\":\"bar\"}) ],
+                     [ { 1 => 1, 2 => "a", 3 => :b, 4 => nil, 5 => false }, %({\"1\":1,\"2\":\"a\",\"3\":\"b\",\"4\":null,\"5\":false}) ]]
 
     RangeTests    = [[ 1..2,     %("1..2")],
                      [ 1...2,    %("1...2")],

@@ -69,9 +69,9 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_scopes_with_options_limit_finds_to_those_matching_the_criteria_specified
-    assert !Topic.all.merge!(where: {approved: true}).to_a.empty?
+    assert !Topic.all.merge!(where: { approved: true }).to_a.empty?
 
-    assert_equal Topic.all.merge!(where: {approved: true}).to_a, Topic.approved
+    assert_equal Topic.all.merge!(where: { approved: true }).to_a, Topic.approved
     assert_equal Topic.where(approved: true).count, Topic.approved.count
   end
 
@@ -82,7 +82,7 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_scopes_are_composable
-    assert_equal((approved = Topic.all.merge!(where: {approved: true}).to_a), Topic.approved)
+    assert_equal((approved = Topic.all.merge!(where: { approved: true }).to_a), Topic.approved)
     assert_equal((replied = Topic.all.merge!(where: "replies_count > 0").to_a), Topic.replied)
     assert !(approved == replied)
     assert !(approved & replied).empty?
@@ -327,12 +327,12 @@ class NamedScopingTest < ActiveRecord::TestCase
 
     conflicts.each do |name|
       e = assert_raises(ArgumentError, "scope `#{name}` should not be allowed") do
-        klass.class_eval { scope name, ->{ where(approved: true) } }
+        klass.class_eval { scope name, -> { where(approved: true) } }
       end
       assert_match(/You tried to define a scope named \"#{name}\" on the model/, e.message)
 
       e = assert_raises(ArgumentError, "scope `#{name}` should not be allowed") do
-        subklass.class_eval { scope name, ->{ where(approved: true) } }
+        subklass.class_eval { scope name, -> { where(approved: true) } }
       end
       assert_match(/You tried to define a scope named \"#{name}\" on the model/, e.message)
     end
@@ -340,12 +340,12 @@ class NamedScopingTest < ActiveRecord::TestCase
     non_conflicts.each do |name|
       assert_nothing_raised do
         silence_warnings do
-          klass.class_eval { scope name, ->{ where(approved: true) } }
+          klass.class_eval { scope name, -> { where(approved: true) } }
         end
       end
 
       assert_nothing_raised do
-        subklass.class_eval { scope name, ->{ where(approved: true) } }
+        subklass.class_eval { scope name, -> { where(approved: true) } }
       end
     end
   end
@@ -431,12 +431,12 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_equal 4, Topic.approved.count
 
     assert_queries(5) do
-      Topic.approved.find_each(batch_size: 1) {|t| assert t.approved? }
+      Topic.approved.find_each(batch_size: 1) { |t| assert t.approved? }
     end
 
     assert_queries(3) do
       Topic.approved.find_in_batches(batch_size: 2) do |group|
-        group.each {|t| assert t.approved? }
+        group.each { |t| assert t.approved? }
       end
     end
   end
@@ -462,7 +462,7 @@ class NamedScopingTest < ActiveRecord::TestCase
     [:public_method, :protected_method, :private_method].each do |reserved_method|
       assert Topic.respond_to?(reserved_method, true)
       ActiveRecord::Base.logger.expects(:warn)
-      silence_warnings { Topic.scope(reserved_method, -> { }) }
+      silence_warnings { Topic.scope(reserved_method, -> {}) }
     end
   end
 

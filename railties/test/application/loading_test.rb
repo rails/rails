@@ -298,7 +298,7 @@ class LoadingTest < ActiveSupport::TestCase
       end
     MIGRATION
 
-    Dir.chdir(app_path) { `rake db:migrate`}
+    Dir.chdir(app_path) { `rake db:migrate` }
     require "#{rails_root}/config/environment"
 
     get "/title"

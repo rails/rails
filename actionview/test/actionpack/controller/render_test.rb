@@ -186,12 +186,12 @@ class TestController < ApplicationController
 
   def render_file_with_locals
     path = File.join(File.dirname(__FILE__), "../../fixtures/test/render_file_with_locals")
-    render file: path, locals: {secret: "in the sauce"}
+    render file: path, locals: { secret: "in the sauce" }
   end
 
   def render_file_as_string_with_locals
     path = File.expand_path(File.join(File.dirname(__FILE__), "../../fixtures/test/render_file_with_locals"))
-    render file: path, locals: {secret: "in the sauce"}
+    render file: path, locals: { secret: "in the sauce" }
   end
 
   def accessing_request_in_template
@@ -249,7 +249,7 @@ class TestController < ApplicationController
   end
 
   def render_line_offset
-    render inline: "<% raise %>", locals: {foo: "bar"}
+    render inline: "<% raise %>", locals: { foo: "bar" }
   end
 
   def heading
@@ -593,7 +593,7 @@ class TestController < ApplicationController
   end
 
   def partial_with_hash_object
-    render partial: "hash_object", object: {first_name: "Sam"}
+    render partial: "hash_object", object: { first_name: "Sam" }
   end
 
   def partial_with_nested_object
@@ -605,11 +605,11 @@ class TestController < ApplicationController
   end
 
   def partial_hash_collection
-    render partial: "hash_object", collection: [ {first_name: "Pratik"}, {first_name: "Amy"} ]
+    render partial: "hash_object", collection: [ { first_name: "Pratik" }, { first_name: "Amy" } ]
   end
 
   def partial_hash_collection_with_locals
-    render partial: "hash_greeting", collection: [ {first_name: "Pratik"}, {first_name: "Amy"} ], locals: { greeting: "Hola" }
+    render partial: "hash_greeting", collection: [ { first_name: "Pratik" }, { first_name: "Amy" } ], locals: { greeting: "Hola" }
   end
 
   def partial_with_implicit_local_assignment

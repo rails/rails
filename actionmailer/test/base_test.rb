@@ -87,7 +87,7 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "can pass random headers in as a hash to mail" do
-    hash = {"X-Special-Domain-Specific-Header" => "SecretValue",
+    hash = { "X-Special-Domain-Specific-Header" => "SecretValue",
             "In-Reply-To" => "1234@mikel.me.com" }
     mail = BaseMailer.welcome(hash)
     assert_equal("SecretValue", mail["X-Special-Domain-Specific-Header"].decoded)
@@ -95,7 +95,7 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "can pass random headers in as a hash to headers" do
-    hash = {"X-Special-Domain-Specific-Header" => "SecretValue",
+    hash = { "X-Special-Domain-Specific-Header" => "SecretValue",
             "In-Reply-To" => "1234@mikel.me.com" }
     mail = BaseMailer.welcome_with_headers(hash)
     assert_equal("SecretValue", mail["X-Special-Domain-Specific-Header"].decoded)
@@ -215,7 +215,7 @@ class BaseTest < ActiveSupport::TestCase
       email = BaseMailer.welcome(subject: nil)
       assert_equal "Welcome", email.subject
 
-      with_translation "en", base_mailer: {welcome: {subject: "New Subject!"}} do
+      with_translation "en", base_mailer: { welcome: { subject: "New Subject!" } } do
         email = BaseMailer.welcome(subject: nil)
         assert_equal "New Subject!", email.subject
       end
@@ -223,14 +223,14 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "default subject can have interpolations" do
-    with_translation "en", base_mailer: {with_subject_interpolations: {subject: "Will the real %{rapper_or_impersonator} please stand up?"}} do
+    with_translation "en", base_mailer: { with_subject_interpolations: { subject: "Will the real %{rapper_or_impersonator} please stand up?" } } do
       email = BaseMailer.with_subject_interpolations
       assert_equal "Will the real Slim Shady please stand up?", email.subject
     end
   end
 
   test "translations are scoped properly" do
-    with_translation "en", base_mailer: {email_with_translations: {greet_user: "Hello %{name}!"}} do
+    with_translation "en", base_mailer: { email_with_translations: { greet_user: "Hello %{name}!" } } do
       email = BaseMailer.email_with_translations
       assert_equal "Hello lifo!", email.body.encoded
     end
@@ -271,7 +271,7 @@ class BaseTest < ActiveSupport::TestCase
     assert_nothing_raised { mail.message }
 
     assert_equal ["image/jpeg; filename=controller_attachments.jpg",
-                  "image/jpeg; filename=attachments.jpg"], mail.attachments.inline.map {|a| a["Content-Type"].to_s }
+                  "image/jpeg; filename=attachments.jpg"], mail.attachments.inline.map { |a| a["Content-Type"].to_s }
   end
 
   test "accessing attachments works after mail was called" do
@@ -798,7 +798,7 @@ class BaseTest < ActiveSupport::TestCase
   test "default_from can be set" do
     class DefaultFromMailer < ActionMailer::Base
       default to: "system@test.lindsaar.net"
-      self.default_options = {from: "robert.pankowecki@gmail.com"}
+      self.default_options = { from: "robert.pankowecki@gmail.com" }
 
       def welcome
         mail(subject: "subject", body: "hello world")

@@ -58,31 +58,31 @@ module ActionDispatch
         get "/foo/:id", id: /\d/, anchor: false, to: "foo#bar"
 
         assert_raises(ActionController::UrlGenerationError) do
-          @formatter.generate(nil, { controller: "foo", action: "bar", id: "10" }, { })
+          @formatter.generate(nil, { controller: "foo", action: "bar", id: "10" }, {})
         end
       end
 
       def test_required_parts_are_verified_when_building
         get "/foo/:id", id: /\d+/, anchor: false, to: "foo#bar"
 
-        path, _ = @formatter.generate(nil, { controller: "foo", action: "bar", id: "10" }, { })
+        path, _ = @formatter.generate(nil, { controller: "foo", action: "bar", id: "10" }, {})
         assert_equal "/foo/10", path
 
         assert_raises(ActionController::UrlGenerationError) do
-          @formatter.generate(nil, { id: "aa" }, { })
+          @formatter.generate(nil, { id: "aa" }, {})
         end
       end
 
       def test_only_required_parts_are_verified
         get "/foo(/:id)", id: /\d/, to: "foo#bar"
 
-        path, _ = @formatter.generate(nil, { controller: "foo", action: "bar", id: "10" }, { })
+        path, _ = @formatter.generate(nil, { controller: "foo", action: "bar", id: "10" }, {})
         assert_equal "/foo/10", path
 
-        path, _ = @formatter.generate(nil, { controller: "foo", action: "bar" }, { })
+        path, _ = @formatter.generate(nil, { controller: "foo", action: "bar" }, {})
         assert_equal "/foo", path
 
-        path, _ = @formatter.generate(nil, { controller: "foo", action: "bar", id: "aa" }, { })
+        path, _ = @formatter.generate(nil, { controller: "foo", action: "bar", id: "aa" }, {})
         assert_equal "/foo/aa", path
       end
 
@@ -91,7 +91,7 @@ module ActionDispatch
         get "/foo/:id", as: route_name, id: /\d+/, to: "foo#bar"
 
         error = assert_raises(ActionController::UrlGenerationError) do
-          @formatter.generate(route_name, { }, { })
+          @formatter.generate(route_name, {}, {})
         end
 
         assert_match(/missing required keys: \[:id\]/, error.message)
@@ -101,7 +101,7 @@ module ActionDispatch
         route_name = "gorby_thunderhorse"
 
         error = assert_raises(ActionController::UrlGenerationError) do
-          @formatter.generate(route_name, { }, { })
+          @formatter.generate(route_name, {}, {})
         end
 
         assert_no_match(/missing required keys: \[\]/, error.message)
@@ -130,12 +130,12 @@ module ActionDispatch
 
         env = rails_env "PATH_INFO" => "/foo/10"
         router.recognize(env) do |r, params|
-          assert_equal({id: "10", controller: "foo", action: "bar"}, params)
+          assert_equal({ id: "10", controller: "foo", action: "bar" }, params)
         end
 
         env = rails_env "PATH_INFO" => "/foo"
         router.recognize(env) do |r, params|
-          assert_equal({id: nil, controller: "foo", action: "bar"}, params)
+          assert_equal({ id: nil, controller: "foo", action: "bar" }, params)
         end
       end
 
@@ -242,9 +242,9 @@ module ActionDispatch
         get "/:controller(/:action)", to: "foo#bar"
 
         path, params = @formatter.generate(
-          nil, {id: 1, controller: "tasks", action: "show"}, {})
+          nil, { id: 1, controller: "tasks", action: "show" }, {})
         assert_equal "/tasks/show", path
-        assert_equal({id: 1}, params)
+        assert_equal({ id: 1 }, params)
       end
 
       def test_generate_escapes
@@ -277,7 +277,7 @@ module ActionDispatch
                  relative_url_root: nil
         }, {})
         assert_equal "/tasks/show", path
-        assert_equal({id: 1, relative_url_root: nil}, params)
+        assert_equal({ id: 1, relative_url_root: nil }, params)
       end
 
       def test_generate_missing_keys_no_matches_different_format_keys
@@ -297,7 +297,7 @@ module ActionDispatch
         }
         request_parameters = primarty_parameters.merge(redirection_parameters).merge(missing_parameters)
 
-        message = "No route matches #{Hash[request_parameters.sort_by{|k,v|k.to_s}].inspect} missing required keys: #{[missing_key.to_sym].inspect}"
+        message = "No route matches #{Hash[request_parameters.sort_by { |k,v|k.to_s }].inspect} missing required keys: #{[missing_key.to_sym].inspect}"
 
         error = assert_raises(ActionController::UrlGenerationError) do
           @formatter.generate(
@@ -311,7 +311,7 @@ module ActionDispatch
 
         path, params = @formatter.generate(
           nil,
-          {controller: "tasks", id: 10},
+          { controller: "tasks", id: 10 },
           action: "index")
         assert_equal "/tasks/index/10", path
         assert_equal({}, params)
@@ -322,7 +322,7 @@ module ActionDispatch
 
         path, params = @formatter.generate(
           "tasks",
-          {controller: "tasks"},
+          { controller: "tasks" },
           controller: "tasks", action: "index")
         assert_equal "/tasks", path
         assert_equal({}, params)

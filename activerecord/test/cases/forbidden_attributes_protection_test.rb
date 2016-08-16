@@ -140,7 +140,7 @@ class ForbiddenAttributesProtectionTest < ActiveRecord::TestCase
   def test_where_not_works_with_permitted_params
     params = ProtectedParams.new(first_name: "Guille").permit!
     Person.create!(params)
-    assert_empty Person.where.not(params).select {|p| p.first_name == "Guille" }
+    assert_empty Person.where.not(params).select { |p| p.first_name == "Guille" }
   end
 
   def test_strong_params_style_objects_work_with_singular_associations

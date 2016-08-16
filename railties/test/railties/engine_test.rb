@@ -98,7 +98,7 @@ module RailtiesTest
 
         assert_no_match(/2_create_users/, output.join("\n"))
 
-        bukkits_migration_order = output.index(output.detect{|o| /NOTE: Migration 3_create_sessions.rb from bukkits has been skipped/ =~ o })
+        bukkits_migration_order = output.index(output.detect { |o| /NOTE: Migration 3_create_sessions.rb from bukkits has been skipped/ =~ o })
         assert_not_nil bukkits_migration_order, "Expected migration to be skipped"
 
         migrations_count = Dir["#{app_path}/db/migrate/*.rb"].length

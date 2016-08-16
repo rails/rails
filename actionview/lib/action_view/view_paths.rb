@@ -43,7 +43,7 @@ module ActionView
     end
 
     def details_for_lookup
-      { }
+      {}
     end
 
     def append_view_path(path)

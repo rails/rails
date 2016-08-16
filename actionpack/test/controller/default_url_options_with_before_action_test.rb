@@ -13,7 +13,7 @@ class ControllerWithBeforeActionAndDefaultUrlOptions < ActionController::Base
   end
 
   def default_url_options
-    {locale: "de"}
+    { locale: "de" }
   end
 end
 

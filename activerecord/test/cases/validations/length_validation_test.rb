@@ -54,7 +54,7 @@ class LengthValidationTest < ActiveRecord::TestCase
     assert owner.save
 
     pet_count = Pet.count
-    assert_not owner.update_attributes pets_attributes: [ {_destroy: 1, id: pet.id} ]
+    assert_not owner.update_attributes pets_attributes: [ { _destroy: 1, id: pet.id } ]
     assert_not owner.valid?
     assert owner.errors[:pets].any?
     assert_equal pet_count, Pet.count

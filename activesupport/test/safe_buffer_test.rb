@@ -58,7 +58,7 @@ class SafeBufferTest < ActiveSupport::TestCase
     str  = "hello!"
     data = { "str" => ActiveSupport::SafeBuffer.new(str) }
     yaml = YAML.dump data
-    assert_equal({"str" => str}, YAML.load(yaml))
+    assert_equal({ "str" => str }, YAML.load(yaml))
   end
 
   test "Should work with primitive-like-strings in to_yaml conversion" do

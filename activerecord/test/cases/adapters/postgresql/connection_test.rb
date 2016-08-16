@@ -184,7 +184,7 @@ module ActiveRecord
 
     def test_set_session_variable_true
       run_without_connection do |orig_connection|
-        ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: {debug_print_plan: true}))
+        ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { debug_print_plan: true }))
         set_true = ActiveRecord::Base.connection.exec_query "SHOW DEBUG_PRINT_PLAN"
         assert_equal set_true.rows, [["on"]]
       end
@@ -192,7 +192,7 @@ module ActiveRecord
 
     def test_set_session_variable_false
       run_without_connection do |orig_connection|
-        ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: {debug_print_plan: false}))
+        ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { debug_print_plan: false }))
         set_false = ActiveRecord::Base.connection.exec_query "SHOW DEBUG_PRINT_PLAN"
         assert_equal set_false.rows, [["off"]]
       end
@@ -201,14 +201,14 @@ module ActiveRecord
     def test_set_session_variable_nil
       run_without_connection do |orig_connection|
         # This should be a no-op that does not raise an error
-        ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: {debug_print_plan: nil}))
+        ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { debug_print_plan: nil }))
       end
     end
 
     def test_set_session_variable_default
       run_without_connection do |orig_connection|
         # This should execute a query that does not raise an error
-        ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: {debug_print_plan: :default}))
+        ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { debug_print_plan: :default }))
       end
     end
 
@@ -224,14 +224,14 @@ module ActiveRecord
       got_lock = @connection.get_advisory_lock(lock_id)
       assert got_lock, "get_advisory_lock should have returned true but it didn't"
 
-      advisory_lock = @connection.query(list_advisory_locks).find {|l| l[1] == lock_id}
+      advisory_lock = @connection.query(list_advisory_locks).find { |l| l[1] == lock_id }
       assert advisory_lock,
         "expected to find an advisory lock with lock_id #{lock_id} but there wasn't one"
 
       released_lock = @connection.release_advisory_lock(lock_id)
       assert released_lock, "expected release_advisory_lock to return true but it didn't"
 
-      advisory_locks = @connection.query(list_advisory_locks).select {|l| l[1] == lock_id}
+      advisory_locks = @connection.query(list_advisory_locks).select { |l| l[1] == lock_id }
       assert_empty advisory_locks,
         "expected to have released advisory lock with lock_id #{lock_id} but it was still held"
     end

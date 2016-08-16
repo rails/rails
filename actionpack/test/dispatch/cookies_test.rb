@@ -210,12 +210,12 @@ class CookiesTest < ActionController::TestCase
     end
 
     def set_cookie_with_domain
-      cookies[:user_name] = {value: "rizwanreza", domain: :all}
+      cookies[:user_name] = { value: "rizwanreza", domain: :all }
       head :ok
     end
 
     def set_cookie_with_domain_all_as_string
-      cookies[:user_name] = {value: "rizwanreza", domain: "all"}
+      cookies[:user_name] = { value: "rizwanreza", domain: "all" }
       head :ok
     end
 
@@ -230,7 +230,7 @@ class CookiesTest < ActionController::TestCase
     end
 
     def set_cookie_with_domain_and_tld
-      cookies[:user_name] = {value: "rizwanreza", domain: :all, tld_length: 2}
+      cookies[:user_name] = { value: "rizwanreza", domain: :all, tld_length: 2 }
       head :ok
     end
 
@@ -240,7 +240,7 @@ class CookiesTest < ActionController::TestCase
     end
 
     def set_cookie_with_domains
-      cookies[:user_name] = {value: "rizwanreza", domain: %w(example1.com example2.com .example3.com)}
+      cookies[:user_name] = { value: "rizwanreza", domain: %w(example1.com example2.com .example3.com) }
       head :ok
     end
 
@@ -293,7 +293,7 @@ class CookiesTest < ActionController::TestCase
   def test_setting_cookie
     get :authenticate
     assert_cookie_header "user_name=david; path=/"
-    assert_equal({"user_name" => "david"}, @response.cookies)
+    assert_equal({ "user_name" => "david" }, @response.cookies)
   end
 
   def test_setting_the_same_value_to_cookie
@@ -305,45 +305,45 @@ class CookiesTest < ActionController::TestCase
   def test_setting_the_same_value_to_permanent_cookie
     request.cookies[:user_name] = "Jamie"
     get :set_permanent_cookie
-    assert_equal({"user_name" => "Jamie"}, response.cookies)
+    assert_equal({ "user_name" => "Jamie" }, response.cookies)
   end
 
   def test_setting_with_escapable_characters
     get :set_with_with_escapable_characters
     assert_cookie_header "that+%26+guy=foo+%26+bar+%3D%3E+baz; path=/"
-    assert_equal({"that & guy" => "foo & bar => baz"}, @response.cookies)
+    assert_equal({ "that & guy" => "foo & bar => baz" }, @response.cookies)
   end
 
   def test_setting_cookie_for_fourteen_days
     get :authenticate_for_fourteen_days
     assert_cookie_header "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 -0000"
-    assert_equal({"user_name" => "david"}, @response.cookies)
+    assert_equal({ "user_name" => "david" }, @response.cookies)
   end
 
   def test_setting_cookie_for_fourteen_days_with_symbols
     get :authenticate_for_fourteen_days_with_symbols
     assert_cookie_header "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 -0000"
-    assert_equal({"user_name" => "david"}, @response.cookies)
+    assert_equal({ "user_name" => "david" }, @response.cookies)
   end
 
   def test_setting_cookie_with_http_only
     get :authenticate_with_http_only
     assert_cookie_header "user_name=david; path=/; HttpOnly"
-    assert_equal({"user_name" => "david"}, @response.cookies)
+    assert_equal({ "user_name" => "david" }, @response.cookies)
   end
 
   def test_setting_cookie_with_secure
     @request.env["HTTPS"] = "on"
     get :authenticate_with_secure
     assert_cookie_header "user_name=david; path=/; secure"
-    assert_equal({"user_name" => "david"}, @response.cookies)
+    assert_equal({ "user_name" => "david" }, @response.cookies)
   end
 
   def test_setting_cookie_with_secure_when_always_write_cookie_is_true
     old_cookie, @request.cookie_jar.always_write_cookie = @request.cookie_jar.always_write_cookie, true
     get :authenticate_with_secure
     assert_cookie_header "user_name=david; path=/; secure"
-    assert_equal({"user_name" => "david"}, @response.cookies)
+    assert_equal({ "user_name" => "david" }, @response.cookies)
   ensure
     @request.cookie_jar.always_write_cookie = old_cookie
   end
@@ -351,14 +351,14 @@ class CookiesTest < ActionController::TestCase
   def test_not_setting_cookie_with_secure
     get :authenticate_with_secure
     assert_not_cookie_header "user_name=david; path=/; secure"
-    assert_not_equal({"user_name" => "david"}, @response.cookies)
+    assert_not_equal({ "user_name" => "david" }, @response.cookies)
   end
 
   def test_multiple_cookies
     get :set_multiple_cookies
     assert_equal 2, @response.cookies.size
     assert_cookie_header "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 -0000\nlogin=XJ-122; path=/"
-    assert_equal({"login" => "XJ-122", "user_name" => "david"}, @response.cookies)
+    assert_equal({ "login" => "XJ-122", "user_name" => "david" }, @response.cookies)
   end
 
   def test_setting_test_cookie
@@ -369,7 +369,7 @@ class CookiesTest < ActionController::TestCase
     request.cookies[:user_name] = "Joe"
     get :logout
     assert_cookie_header "user_name=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000"
-    assert_equal({"user_name" => nil}, @response.cookies)
+    assert_equal({ "user_name" => nil }, @response.cookies)
   end
 
   def test_delete_cookie_with_path
@@ -656,7 +656,7 @@ class CookiesTest < ActionController::TestCase
     request.cookies[:user_name] = "Joe"
     get :delete_and_set_cookie
     assert_cookie_header "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 -0000"
-    assert_equal({"user_name" => "david"}, @response.cookies)
+    assert_equal({ "user_name" => "david" }, @response.cookies)
   end
 
   def test_raise_data_overflow

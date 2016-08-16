@@ -97,7 +97,7 @@ class ValidatesWithTest < ActiveModel::TestCase
   test "passes all configuration options to the validator class" do
     topic = Topic.new
     validator = Minitest::Mock.new
-    validator.expect(:new, validator, [{foo: :bar, if: "1 == 1", class: Topic}])
+    validator.expect(:new, validator, [{ foo: :bar, if: "1 == 1", class: Topic }])
     validator.expect(:validate, nil, [topic])
     validator.expect(:is_a?, false, [Symbol])
     validator.expect(:is_a?, false, [String])

@@ -67,7 +67,7 @@ module RailsGuides
       def select_only(guides)
         prefixes = ENV["ONLY"].split(",").map(&:strip)
         guides.select do |guide|
-          prefixes.any? {|p| guide.start_with?("./output/#{p}")}
+          prefixes.any? { |p| guide.start_with?("./output/#{p}") }
         end
       end
 

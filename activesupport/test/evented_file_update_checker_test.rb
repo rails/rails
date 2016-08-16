@@ -38,7 +38,7 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
   test "notifies forked processes" do
     FileUtils.touch(tmpfiles)
 
-    checker = new_checker(tmpfiles) { }
+    checker = new_checker(tmpfiles) {}
     assert !checker.updated?
 
     # Pipes used for flow controll across fork.

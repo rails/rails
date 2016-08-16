@@ -1014,7 +1014,7 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
   def test_use_zone_raises_on_invalid_timezone
     Time.zone = "Alaska"
     assert_raise ArgumentError do
-      Time.use_zone("No such timezone exists") { }
+      Time.use_zone("No such timezone exists") {}
     end
     assert_equal ActiveSupport::TimeZone["Alaska"], Time.zone
   end
@@ -1072,9 +1072,9 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
   end
 
   def test_time_zone_setter_with_invalid_zone
-    assert_raise(ArgumentError){ Time.zone = "No such timezone exists" }
-    assert_raise(ArgumentError){ Time.zone = -15.hours }
-    assert_raise(ArgumentError){ Time.zone = Object.new }
+    assert_raise(ArgumentError) { Time.zone = "No such timezone exists" }
+    assert_raise(ArgumentError) { Time.zone = -15.hours }
+    assert_raise(ArgumentError) { Time.zone = Object.new }
   end
 
   def test_find_zone_without_bang_returns_nil_if_time_zone_can_not_be_found

@@ -346,7 +346,7 @@ module ActionView
             view._layout_for(*name, &block)
           end
 
-          content = layout.render(view, locals){ content } if layout
+          content = layout.render(view, locals) { content } if layout
           content
         end
       end

@@ -324,7 +324,7 @@ class LengthValidationTest < ActiveModel::TestCase
         :content,
         minimum: 5,
         too_short: "Your essay must be at least %{count} words.",
-        tokenizer: lambda {|str| str.scan(/\w+/) },
+        tokenizer: lambda { |str| str.scan(/\w+/) },
       )
     end
     t = Topic.new(content: "this content should be long enough")

@@ -55,7 +55,7 @@ module ActionMailer
       end
 
       def find_part(cid)
-        message.all_parts.find{ |p| p.attachment? && p.cid == cid }
+        message.all_parts.find { |p| p.attachment? && p.cid == cid }
       end
   end
 end

@@ -26,7 +26,7 @@ module ActiveRecord
 
     def test_association_not_eq
       expected = Arel::Nodes::Grouping.new(Comment.arel_table[@name].not_eq(Arel::Nodes::BindParam.new))
-      relation = Post.joins(:comments).where.not(comments: {title: "hello"})
+      relation = Post.joins(:comments).where.not(comments: { title: "hello" })
       assert_equal(expected.to_sql, relation.where_clause.ast.to_sql)
     end
 

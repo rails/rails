@@ -40,12 +40,12 @@ class MultibyteGraphemeBreakConformanceTest < ActiveSupport::TestCase
 
           cols, comment = line.split("#")
           # Cluster breaks are represented by ÷
-          clusters = cols.split("÷").map{|e| e.strip}.reject{|e| e.empty? }
+          clusters = cols.split("÷").map { |e| e.strip }.reject { |e| e.empty? }
           clusters = clusters.map do |cluster|
             # Codepoints within each cluster are separated by ×
-            codepoints = cluster.split("×").map{|e| e.strip}.reject{|e| e.empty? }
+            codepoints = cluster.split("×").map { |e| e.strip }.reject { |e| e.empty? }
             # codepoints are in hex in the test suite, pack wants them as integers
-            codepoints.map{|codepoint| codepoint.to_i(16)}
+            codepoints.map { |codepoint| codepoint.to_i(16) }
           end
 
           # The tests contain a solitary U+D800 <Non Private Use High

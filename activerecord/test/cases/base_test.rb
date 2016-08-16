@@ -307,7 +307,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_create_after_initialize_with_block
-    cb = CustomBulb.create {|c| c.name = "Dude" }
+    cb = CustomBulb.create { |c| c.name = "Dude" }
     assert_equal("Dude", cb.name)
     assert_equal(true, cb.frickinawesome)
   end
@@ -664,7 +664,7 @@ class BasicsTest < ActiveRecord::TestCase
 
       Weird.reset_column_information
 
-      assert_equal ["EUC-JP"], Weird.columns.map {|c| c.name.encoding.name }.uniq
+      assert_equal ["EUC-JP"], Weird.columns.map { |c| c.name.encoding.name }.uniq
     ensure
       silence_warnings { Encoding.default_internal = old_default_internal }
       Weird.reset_column_information
@@ -1278,7 +1278,7 @@ class BasicsTest < ActiveRecord::TestCase
     ActiveSupport::Dependencies.remove_unloadable_constants!
     assert_nil ActiveRecord::Scoping::ScopeRegistry.value_for(:current_scope, klass)
   ensure
-    Object.class_eval{ remove_const :UnloadablePost } if defined?(UnloadablePost)
+    Object.class_eval { remove_const :UnloadablePost } if defined?(UnloadablePost)
   end
 
   def test_marshal_round_trip

@@ -192,7 +192,7 @@ class SendFileTest < ActionController::TestCase
   end
 
   def test_send_file_without_content_disposition_header
-    @controller.options = {disposition: nil}
+    @controller.options = { disposition: nil }
     process("data")
     assert_nil @controller.headers["Content-Disposition"]
   end

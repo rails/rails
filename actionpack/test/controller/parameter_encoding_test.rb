@@ -30,35 +30,35 @@ class ParameterEncodingTest < ActionController::TestCase
   tests ParameterEncodingController
 
   test "properly transcodes UTF8 parameters into declared encodings" do
-    post :test_foo, params: {"foo" => "foo", "bar" => "bar", "baz" => "baz"}
+    post :test_foo, params: { "foo" => "foo", "bar" => "bar", "baz" => "baz" }
 
     assert_response :success
     assert_equal "UTF-8", @response.body
   end
 
   test "properly transcodes ASCII_8BIT parameters into declared encodings" do
-    post :test_bar, params: {"foo" => "foo", "bar" => "bar", "baz" => "baz"}
+    post :test_bar, params: { "foo" => "foo", "bar" => "bar", "baz" => "baz" }
 
     assert_response :success
     assert_equal "ASCII-8BIT", @response.body
   end
 
   test "properly transcodes ISO_8859_1 parameters into declared encodings" do
-    post :test_baz, params: {"foo" => "foo", "bar" => "bar", "baz" => "baz"}
+    post :test_baz, params: { "foo" => "foo", "bar" => "bar", "baz" => "baz" }
 
     assert_response :success
     assert_equal "ISO-8859-1", @response.body
   end
 
   test "does not transcode parameters when not specified" do
-    post :test_no_change_to_baz, params: {"foo" => "foo", "bar" => "bar", "baz" => "baz"}
+    post :test_no_change_to_baz, params: { "foo" => "foo", "bar" => "bar", "baz" => "baz" }
 
     assert_response :success
     assert_equal "UTF-8", @response.body
   end
 
   test "respects different encoding declarations for a param per action" do
-    post :test_baz_to_ascii, params: {"foo" => "foo", "bar" => "bar", "baz" => "baz"}
+    post :test_baz_to_ascii, params: { "foo" => "foo", "bar" => "bar", "baz" => "baz" }
 
     assert_response :success
     assert_equal "ASCII-8BIT", @response.body

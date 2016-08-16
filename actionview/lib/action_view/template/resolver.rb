@@ -42,10 +42,10 @@ module ActionView
       end
 
       # preallocate all the default blocks for performance/memory consumption reasons
-      PARTIAL_BLOCK = lambda {|cache, partial| cache[partial] = SmallCache.new}
-      PREFIX_BLOCK  = lambda {|cache, prefix|  cache[prefix]  = SmallCache.new(&PARTIAL_BLOCK)}
-      NAME_BLOCK    = lambda {|cache, name|    cache[name]    = SmallCache.new(&PREFIX_BLOCK)}
-      KEY_BLOCK     = lambda {|cache, key|     cache[key]     = SmallCache.new(&NAME_BLOCK)}
+      PARTIAL_BLOCK = lambda { |cache, partial| cache[partial] = SmallCache.new }
+      PREFIX_BLOCK  = lambda { |cache, prefix|  cache[prefix]  = SmallCache.new(&PARTIAL_BLOCK) }
+      NAME_BLOCK    = lambda { |cache, name|    cache[name]    = SmallCache.new(&PREFIX_BLOCK) }
+      KEY_BLOCK     = lambda { |cache, key|     cache[key]     = SmallCache.new(&NAME_BLOCK) }
 
       # usually a majority of template look ups return nothing, use this canonical preallocated array to save memory
       NO_TEMPLATES = [].freeze

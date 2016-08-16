@@ -159,7 +159,7 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
       activerecord.reload
       assert activerecord.developers_with_callbacks.size == 2
     end
-    activerecord.developers_with_callbacks.flat_map {|d| ["before_removing#{d.id}","after_removing#{d.id}"]}.sort
+    activerecord.developers_with_callbacks.flat_map { |d| ["before_removing#{d.id}","after_removing#{d.id}"] }.sort
     assert activerecord.developers_with_callbacks.clear
     assert_predicate activerecord.developers_log, :empty?
   end

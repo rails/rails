@@ -426,7 +426,7 @@ module ActiveRecord
         arel = relation.arel
 
         id_rows = @klass.connection.select_all(arel, "SQL", relation.bound_attributes)
-        id_rows.map {|row| row[primary_key]}
+        id_rows.map { |row| row[primary_key] }
       end
 
       def using_limitable_reflections?(reflections)

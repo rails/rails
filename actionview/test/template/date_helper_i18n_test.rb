@@ -112,8 +112,8 @@ class DateHelperSelectTagsI18nTests < ActiveSupport::TestCase
   end
 
   def test_date_or_time_select_translates_prompts
-    prompt_defaults = {year: "Year", month: "Month", day: "Day", hour: "Hour", minute: "Minute", second: "Seconds"}
-    defaults = {[:'date.order', locale: "en", default: []] => %w(year month day)}
+    prompt_defaults = { year: "Year", month: "Month", day: "Day", hour: "Hour", minute: "Minute", second: "Seconds" }
+    defaults = { [:'date.order', locale: "en", default: []] => %w(year month day) }
 
     prompt_defaults.each do |key, prompt|
       defaults[[("datetime.prompts." + key.to_s).to_sym, locale: "en"]] = prompt
@@ -143,7 +143,7 @@ class DateHelperSelectTagsI18nTests < ActiveSupport::TestCase
   end
 
   def test_date_or_time_select_given_no_order_options_translates_order
-    assert_called_with(I18n, :translate, [ [:'date.order', locale: "en", default: []], [:"date.month_names", {locale: "en"}] ], returns: %w(year month day)) do
+    assert_called_with(I18n, :translate, [ [:'date.order', locale: "en", default: []], [:"date.month_names", { locale: "en" }] ], returns: %w(year month day)) do
       datetime_select("post", "updated_at", locale: "en")
     end
   end
@@ -157,7 +157,7 @@ class DateHelperSelectTagsI18nTests < ActiveSupport::TestCase
   end
 
   def test_date_or_time_select_given_symbol_keys
-    assert_called_with(I18n, :translate, [ [:'date.order', locale: "en", default: []], [:"date.month_names", {locale: "en"}] ], returns: [:year, :month, :day]) do
+    assert_called_with(I18n, :translate, [ [:'date.order', locale: "en", default: []], [:"date.month_names", { locale: "en" }] ], returns: [:year, :month, :day]) do
       datetime_select("post", "updated_at", locale: "en")
     end
   end

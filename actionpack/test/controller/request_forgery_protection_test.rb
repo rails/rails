@@ -398,7 +398,7 @@ module RequestForgeryProtectionTests
     end
 
     assert_cross_origin_not_blocked { get :same_origin_js, xhr: true }
-    assert_cross_origin_not_blocked { get :same_origin_js, xhr: true, format: "js"}
+    assert_cross_origin_not_blocked { get :same_origin_js, xhr: true, format: "js" }
     assert_cross_origin_not_blocked do
       @request.accept = "text/javascript"
       get :negotiate_same_origin, xhr: true
@@ -443,7 +443,7 @@ module RequestForgeryProtectionTests
     assert_cross_origin_not_blocked { post :same_origin_js, params: { format: "js", custom_authenticity_token: @token } }
     assert_cross_origin_not_blocked do
       @request.accept = "text/javascript"
-      post :negotiate_same_origin, params: { custom_authenticity_token: @token}
+      post :negotiate_same_origin, params: { custom_authenticity_token: @token }
     end
   end
 
@@ -613,7 +613,7 @@ class FreeCookieControllerTest < ActionController::TestCase
   def test_should_allow_all_methods_without_token
     SecureRandom.stub :base64, @token do
       [:post, :patch, :put, :delete].each do |method|
-        assert_nothing_raised { send(method, :index)}
+        assert_nothing_raised { send(method, :index) }
       end
     end
   end
@@ -692,7 +692,7 @@ class PerFormTokensControllerTest < ActionController::TestCase
     # This is required because PATH_INFO isn't reset between requests.
     @request.env["PATH_INFO"] = "/per_form_tokens/post_one"
     assert_nothing_raised do
-      post :post_one, params: {custom_authenticity_token: form_token}
+      post :post_one, params: { custom_authenticity_token: form_token }
     end
     assert_response :success
   end
@@ -707,7 +707,7 @@ class PerFormTokensControllerTest < ActionController::TestCase
     # This is required because PATH_INFO isn't reset between requests.
     @request.env["PATH_INFO"] = "/per_form_tokens/post_two"
     assert_raises(ActionController::InvalidAuthenticityToken) do
-      post :post_two, params: {custom_authenticity_token: form_token}
+      post :post_two, params: { custom_authenticity_token: form_token }
     end
   end
 
@@ -721,7 +721,7 @@ class PerFormTokensControllerTest < ActionController::TestCase
     # This is required because PATH_INFO isn't reset between requests.
     @request.env["PATH_INFO"] = "/per_form_tokens/post_one"
     assert_raises(ActionController::InvalidAuthenticityToken) do
-      patch :post_one, params: {custom_authenticity_token: form_token}
+      patch :post_one, params: { custom_authenticity_token: form_token }
     end
   end
 
@@ -777,13 +777,13 @@ class PerFormTokensControllerTest < ActionController::TestCase
     # This is required because PATH_INFO isn't reset between requests.
     @request.env["PATH_INFO"] = "/per_form_tokens/post_one"
     assert_nothing_raised do
-      post :post_one, params: {custom_authenticity_token: token}
+      post :post_one, params: { custom_authenticity_token: token }
     end
     assert_response :success
   end
 
   def test_ignores_params
-    get :index, params: {form_path: "/per_form_tokens/post_one?foo=bar"}
+    get :index, params: { form_path: "/per_form_tokens/post_one?foo=bar" }
 
     form_token = assert_presence_and_fetch_form_csrf_token
 
@@ -792,33 +792,33 @@ class PerFormTokensControllerTest < ActionController::TestCase
     # This is required because PATH_INFO isn't reset between requests.
     @request.env["PATH_INFO"] = "/per_form_tokens/post_one?foo=baz"
     assert_nothing_raised do
-      post :post_one, params: {custom_authenticity_token: form_token, baz: "foo"}
+      post :post_one, params: { custom_authenticity_token: form_token, baz: "foo" }
     end
     assert_response :success
   end
 
   def test_ignores_trailing_slash_during_generation
-    get :index, params: {form_path: "/per_form_tokens/post_one/"}
+    get :index, params: { form_path: "/per_form_tokens/post_one/" }
 
     form_token = assert_presence_and_fetch_form_csrf_token
 
     # This is required because PATH_INFO isn't reset between requests.
     @request.env["PATH_INFO"] = "/per_form_tokens/post_one"
     assert_nothing_raised do
-      post :post_one, params: {custom_authenticity_token: form_token}
+      post :post_one, params: { custom_authenticity_token: form_token }
     end
     assert_response :success
   end
 
   def test_ignores_origin_during_generation
-    get :index, params: {form_path: "https://example.com/per_form_tokens/post_one/"}
+    get :index, params: { form_path: "https://example.com/per_form_tokens/post_one/" }
 
     form_token = assert_presence_and_fetch_form_csrf_token
 
     # This is required because PATH_INFO isn't reset between requests.
     @request.env["PATH_INFO"] = "/per_form_tokens/post_one"
     assert_nothing_raised do
-      post :post_one, params: {custom_authenticity_token: form_token}
+      post :post_one, params: { custom_authenticity_token: form_token }
     end
     assert_response :success
   end
@@ -831,19 +831,19 @@ class PerFormTokensControllerTest < ActionController::TestCase
     # This is required because PATH_INFO isn't reset between requests.
     @request.env["PATH_INFO"] = "/per_form_tokens/post_one/"
     assert_nothing_raised do
-      post :post_one, params: {custom_authenticity_token: form_token}
+      post :post_one, params: { custom_authenticity_token: form_token }
     end
     assert_response :success
   end
 
   def test_method_is_case_insensitive
-    get :index, params: {form_method: "POST"}
+    get :index, params: { form_method: "POST" }
 
     form_token = assert_presence_and_fetch_form_csrf_token
     # This is required because PATH_INFO isn't reset between requests.
     @request.env["PATH_INFO"] = "/per_form_tokens/post_one/"
     assert_nothing_raised do
-      post :post_one, params: {custom_authenticity_token: form_token}
+      post :post_one, params: { custom_authenticity_token: form_token }
     end
     assert_response :success
   end

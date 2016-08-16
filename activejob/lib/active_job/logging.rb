@@ -18,7 +18,7 @@ module ActiveJob
 
       around_perform do |job, block, _|
         tag_logger(job.class.name, job.job_id) do
-          payload = {adapter: job.class.queue_adapter, job: job}
+          payload = { adapter: job.class.queue_adapter, job: job }
           ActiveSupport::Notifications.instrument("perform_start.active_job", payload.dup)
           ActiveSupport::Notifications.instrument("perform.active_job", payload) do
             block.call
@@ -41,7 +41,7 @@ module ActiveJob
       def tag_logger(*tags)
         if logger.respond_to?(:tagged)
           tags.unshift "ActiveJob" unless logger_tagged_by_active_job?
-          logger.tagged(*tags){ yield }
+          logger.tagged(*tags) { yield }
         else
           yield
         end

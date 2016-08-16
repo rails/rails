@@ -66,7 +66,7 @@ module TestHelpers
 
     def extract_body(response)
       "".tap do |body|
-        response[2].each {|chunk| body << chunk }
+        response[2].each { |chunk| body << chunk }
       end
     end
 
@@ -214,7 +214,7 @@ module TestHelpers
       def write(file, string)
         path = "#{@path}/#{file}"
         FileUtils.mkdir_p(File.dirname(path))
-        File.open(path, "w") {|f| f.puts string }
+        File.open(path, "w") { |f| f.puts string }
       end
 
       def delete(file)
@@ -308,7 +308,7 @@ module TestHelpers
         remove_from_config "config.active_record.*"
       end
 
-      $:.reject! {|path| path =~ %r'/(#{to_remove.join('|')})/' }
+      $:.reject! { |path| path =~ %r'/(#{to_remove.join('|')})/' }
     end
   end
 end

@@ -7,7 +7,7 @@ class BaseMailer < ActionMailer::Base
 
   def welcome(hash = {})
     headers["X-SPAM"] = "Not SPAM"
-    mail({subject: "The first email on new API!"}.merge!(hash))
+    mail({ subject: "The first email on new API!" }.merge!(hash))
   end
 
   def welcome_with_headers(hash = {})
@@ -76,7 +76,7 @@ class BaseMailer < ActionMailer::Base
 
   def explicit_multipart_with_any(hash = {})
     mail(hash) do |format|
-      format.any(:text, :html){ render text: "Format with any!" }
+      format.any(:text, :html) { render text: "Format with any!" }
     end
   end
 
@@ -88,8 +88,8 @@ class BaseMailer < ActionMailer::Base
 
   def explicit_multipart_with_options(include_html = false)
     mail do |format|
-      format.text(content_transfer_encoding: "base64"){ render "welcome" }
-      format.html{ render "welcome" } if include_html
+      format.text(content_transfer_encoding: "base64") { render "welcome" }
+      format.html { render "welcome" } if include_html
     end
   end
 

@@ -49,7 +49,7 @@ class ParametersRequireTest < ActiveSupport::TestCase
   end
 
   test "require array when all required params are present" do
-    safe_params = ActionController::Parameters.new(person: {first_name: "Gaurish", title: "Mjallo", city: "Barcelona"})
+    safe_params = ActionController::Parameters.new(person: { first_name: "Gaurish", title: "Mjallo", city: "Barcelona" })
       .require(:person)
       .require([:first_name, :title])
 
@@ -59,7 +59,7 @@ class ParametersRequireTest < ActiveSupport::TestCase
 
   test "require array when a required param is missing" do
     assert_raises(ActionController::ParameterMissing) do
-      ActionController::Parameters.new(person: {first_name: "Gaurish", title: nil})
+      ActionController::Parameters.new(person: { first_name: "Gaurish", title: nil })
         .require(:person)
         .require([:first_name, :title])
     end

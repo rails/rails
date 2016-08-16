@@ -54,7 +54,7 @@ module ApplicationTests
         Rails.application.initialize!
       RUBY
 
-      assert_match("SuperMiddleware", Dir.chdir(app_path){ `bin/rails middleware` })
+      assert_match("SuperMiddleware", Dir.chdir(app_path) { `bin/rails middleware` })
     end
 
     def test_initializers_are_executed_in_rake_tasks
@@ -69,7 +69,7 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path){ `bin/rails do_nothing` }
+      output = Dir.chdir(app_path) { `bin/rails do_nothing` }
       assert_match "Doing something...", output
     end
 
@@ -128,7 +128,7 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path){ `bin/rails routes` }
+      output = Dir.chdir(app_path) { `bin/rails routes` }
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
     end
 
@@ -140,13 +140,13 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path){ `bin/rails routes CONTROLLER=cart` }
+      output = Dir.chdir(app_path) { `bin/rails routes CONTROLLER=cart` }
       assert_equal ["Passing `CONTROLLER` to `bin/rails routes` is deprecated and will be removed in Rails 5.1.",
                     "Please use `bin/rails routes -c controller_name` instead.",
                     "Prefix Verb URI Pattern     Controller#Action",
                     "  cart GET  /cart(.:format) cart#show\n"].join("\n"), output
 
-      output = Dir.chdir(app_path){ `bin/rails routes -c cart` }
+      output = Dir.chdir(app_path) { `bin/rails routes -c cart` }
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
     end
 
@@ -167,10 +167,10 @@ module ApplicationTests
                          "                PUT    /admin/post(.:format)      admin/posts#update",
                          "                DELETE /admin/post(.:format)      admin/posts#destroy\n"].join("\n")
 
-      output = Dir.chdir(app_path){ `bin/rails routes -c Admin::PostController` }
+      output = Dir.chdir(app_path) { `bin/rails routes -c Admin::PostController` }
       assert_equal expected_output, output
 
-      output = Dir.chdir(app_path){ `bin/rails routes -c PostController` }
+      output = Dir.chdir(app_path) { `bin/rails routes -c PostController` }
       assert_equal expected_output, output
     end
 
@@ -183,13 +183,13 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path){ `bin/rails routes -g show` }
+      output = Dir.chdir(app_path) { `bin/rails routes -g show` }
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
 
-      output = Dir.chdir(app_path){ `bin/rails routes -g POST` }
+      output = Dir.chdir(app_path) { `bin/rails routes -g POST` }
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n       POST /cart(.:format) cart#create\n", output
 
-      output = Dir.chdir(app_path){ `bin/rails routes -g basketballs` }
+      output = Dir.chdir(app_path) { `bin/rails routes -g basketballs` }
       assert_equal "     Prefix Verb URI Pattern            Controller#Action\n" \
                    "basketballs GET  /basketballs(.:format) basketball#index\n", output
     end
@@ -202,13 +202,13 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path){ `bin/rails routes -c cart` }
+      output = Dir.chdir(app_path) { `bin/rails routes -c cart` }
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
 
-      output = Dir.chdir(app_path){ `bin/rails routes -c Cart` }
+      output = Dir.chdir(app_path) { `bin/rails routes -c Cart` }
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
 
-      output = Dir.chdir(app_path){ `bin/rails routes -c CartController` }
+      output = Dir.chdir(app_path) { `bin/rails routes -c CartController` }
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
     end
 
@@ -218,7 +218,7 @@ module ApplicationTests
         end
       RUBY
 
-      assert_equal <<-MESSAGE.strip_heredoc, Dir.chdir(app_path){ `bin/rails routes` }
+      assert_equal <<-MESSAGE.strip_heredoc, Dir.chdir(app_path) { `bin/rails routes` }
         You don't have any routes defined!
 
         Please add some routes in config/routes.rb.
@@ -234,7 +234,7 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path){ `bin/rake --rakefile Rakefile routes` }
+      output = Dir.chdir(app_path) { `bin/rake --rakefile Rakefile routes` }
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
     end
 
@@ -247,7 +247,7 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path){ `bin/rails log_something RAILS_ENV=production && cat log/production.log` }
+      output = Dir.chdir(app_path) { `bin/rails log_something RAILS_ENV=production && cat log/production.log` }
       assert_match "Sample log message", output
     end
 

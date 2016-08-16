@@ -194,7 +194,7 @@ class DurationTest < ActiveSupport::TestCase
   def test_delegation_with_block_works
     counter = 0
     assert_nothing_raised do
-      1.minute.times {counter += 1}
+      1.minute.times { counter += 1 }
     end
     assert_equal counter, 60
   end

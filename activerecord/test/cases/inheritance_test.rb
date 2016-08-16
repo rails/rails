@@ -70,7 +70,7 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_compute_type_no_method_error
-    ActiveSupport::Dependencies.stub(:safe_constantize, proc{ raise NoMethodError }) do
+    ActiveSupport::Dependencies.stub(:safe_constantize, proc { raise NoMethodError }) do
       assert_raises NoMethodError do
         ActiveRecord::Base.send :compute_type, "InvalidModel"
       end
@@ -87,7 +87,7 @@ class InheritanceTest < ActiveRecord::TestCase
       error = e
     end
 
-    ActiveSupport::Dependencies.stub(:safe_constantize, proc{ raise e }) do
+    ActiveSupport::Dependencies.stub(:safe_constantize, proc { raise e }) do
 
       exception = assert_raises NameError do
         ActiveRecord::Base.send :compute_type, "InvalidModel"
@@ -97,7 +97,7 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_compute_type_argument_error
-    ActiveSupport::Dependencies.stub(:safe_constantize, proc{ raise ArgumentError }) do
+    ActiveSupport::Dependencies.stub(:safe_constantize, proc { raise ArgumentError }) do
       assert_raises ArgumentError do
         ActiveRecord::Base.send :compute_type, "InvalidModel"
       end

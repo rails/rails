@@ -759,7 +759,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
   class BulkAlterTableMigrationsTest < ActiveRecord::TestCase
     def setup
       @connection = Person.connection
-      @connection.create_table(:delete_me, force: true) {|t| }
+      @connection.create_table(:delete_me, force: true) { |t| }
       Person.reset_column_information
       Person.reset_sequence_name
     end
@@ -780,7 +780,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       end
 
       assert_equal 8, columns.size
-      [:name, :qualification, :experience].each {|s| assert_equal :string, column(s).type }
+      [:name, :qualification, :experience].each { |s| assert_equal :string, column(s).type }
       assert_equal "0", column(:age).default
     end
 
@@ -789,7 +789,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         t.string :qualification, :experience
       end
 
-      [:qualification, :experience].each {|c| assert column(c) }
+      [:qualification, :experience].each { |c| assert column(c) }
 
       assert_queries(1) do
         with_bulk_change_table do |t|
@@ -798,7 +798,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         end
       end
 
-      [:qualification, :experience].each {|c| assert ! column(c) }
+      [:qualification, :experience].each { |c| assert ! column(c) }
       assert column(:qualification_experience)
     end
 
@@ -882,7 +882,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       end
 
       def column(name)
-        columns.detect {|c| c.name == name.to_s }
+        columns.detect { |c| c.name == name.to_s }
       end
 
       def columns
@@ -890,7 +890,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       end
 
       def index(name)
-        indexes.detect {|i| i.name == name.to_s }
+        indexes.detect { |i| i.name == name.to_s }
       end
 
       def indexes

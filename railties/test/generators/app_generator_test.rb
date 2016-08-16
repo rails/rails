@@ -77,7 +77,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_invalid_application_name_raises_an_error
-    content = capture(:stderr){ run_generator [File.join(destination_root, "43-things")] }
+    content = capture(:stderr) { run_generator [File.join(destination_root, "43-things")] }
     assert_equal "Invalid application name 43-things. Please give a name which does not start with numbers.\n", content
   end
 

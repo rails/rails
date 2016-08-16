@@ -94,7 +94,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     account = model.new
     assert_not account.valid?
-    assert_equal [{error: :blank}], account.errors.details[:company]
+    assert_equal [{ error: :blank }], account.errors.details[:company]
   ensure
     ActiveRecord::Base.belongs_to_required_by_default = original_value
   end
@@ -111,7 +111,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     account = model.new
     assert_not account.valid?
-    assert_equal [{error: :blank}], account.errors.details[:company]
+    assert_equal [{ error: :blank }], account.errors.details[:company]
   ensure
     ActiveRecord::Base.belongs_to_required_by_default = original_value
   end
@@ -203,14 +203,14 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_eager_loading_with_primary_key
     Firm.create("name" => "Apple")
     Client.create("name" => "Citibank", :firm_name => "Apple")
-    citibank_result = Client.all.merge!(where: {name: "Citibank"}, includes: :firm_with_primary_key).first
+    citibank_result = Client.all.merge!(where: { name: "Citibank" }, includes: :firm_with_primary_key).first
     assert citibank_result.association(:firm_with_primary_key).loaded?
   end
 
   def test_eager_loading_with_primary_key_as_symbol
     Firm.create("name" => "Apple")
     Client.create("name" => "Citibank", :firm_name => "Apple")
-    citibank_result = Client.all.merge!(where: {name: "Citibank"}, includes: :firm_with_primary_key_symbols).first
+    citibank_result = Client.all.merge!(where: { name: "Citibank" }, includes: :firm_with_primary_key_symbols).first
     assert citibank_result.association(:firm_with_primary_key_symbols).loaded?
   end
 
@@ -1004,21 +1004,21 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_build_with_block
     client = Client.create(name: "Client Company")
 
-    firm = client.build_firm{ |f| f.name = "Agency Company" }
+    firm = client.build_firm { |f| f.name = "Agency Company" }
     assert_equal "Agency Company", firm.name
   end
 
   def test_create_with_block
     client = Client.create(name: "Client Company")
 
-    firm = client.create_firm{ |f| f.name = "Agency Company" }
+    firm = client.create_firm { |f| f.name = "Agency Company" }
     assert_equal "Agency Company", firm.name
   end
 
   def test_create_bang_with_block
     client = Client.create(name: "Client Company")
 
-    firm = client.create_firm!{ |f| f.name = "Agency Company" }
+    firm = client.create_firm! { |f| f.name = "Agency Company" }
     assert_equal "Agency Company", firm.name
   end
 

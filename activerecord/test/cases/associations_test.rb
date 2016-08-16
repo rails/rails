@@ -57,8 +57,8 @@ class AssociationsTest < ActiveRecord::TestCase
   end
 
   def test_include_with_order_works
-    assert_nothing_raised {Account.all.merge!(order: "id", includes: :firm).first}
-    assert_nothing_raised {Account.all.merge!(order: :id, includes: :firm).first}
+    assert_nothing_raised { Account.all.merge!(order: "id", includes: :firm).first }
+    assert_nothing_raised { Account.all.merge!(order: :id, includes: :firm).first }
   end
 
   def test_bad_collection_keys
@@ -199,13 +199,13 @@ class AssociationProxyTest < ActiveRecord::TestCase
   end
 
   def test_create_via_association_with_block
-    post = authors(:david).posts.create(title: "New on Edge") {|p| p.body = "More cool stuff!"}
+    post = authors(:david).posts.create(title: "New on Edge") { |p| p.body = "More cool stuff!" }
     assert_equal post.title, "New on Edge"
     assert_equal post.body, "More cool stuff!"
   end
 
   def test_create_with_bang_via_association_with_block
-    post = authors(:david).posts.create!(title: "New on Edge") {|p| p.body = "More cool stuff!"}
+    post = authors(:david).posts.create!(title: "New on Edge") { |p| p.body = "More cool stuff!" }
     assert_equal post.title, "New on Edge"
     assert_equal post.body, "More cool stuff!"
   end

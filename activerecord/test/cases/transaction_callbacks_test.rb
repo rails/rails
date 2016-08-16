@@ -68,17 +68,17 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
     def do_before_commit(on)
       blocks = @before_commit[on] if defined?(@before_commit)
-      blocks.each{|b| b.call(self)} if blocks
+      blocks.each { |b| b.call(self) } if blocks
     end
 
     def do_after_commit(on)
       blocks = @after_commit[on] if defined?(@after_commit)
-      blocks.each{|b| b.call(self)} if blocks
+      blocks.each { |b| b.call(self) } if blocks
     end
 
     def do_after_rollback(on)
       blocks = @after_rollback[on] if defined?(@after_rollback)
-      blocks.each{|b| b.call(self)} if blocks
+      blocks.each { |b| b.call(self) } if blocks
     end
   end
 
@@ -101,8 +101,8 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_call_after_commit_after_transaction_commits
-    @first.after_commit_block{|r| r.history << :after_commit}
-    @first.after_rollback_block{|r| r.history << :after_rollback}
+    @first.after_commit_block { |r| r.history << :after_commit }
+    @first.after_rollback_block { |r| r.history << :after_rollback }
 
     @first.save!
     assert_equal [:after_commit], @first.history
@@ -155,7 +155,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_only_call_after_commit_on_top_level_transactions
-    @first.after_commit_block{|r| r.history << :after_commit}
+    @first.after_commit_block { |r| r.history << :after_commit }
     assert @first.history.empty?
 
     @first.transaction do
@@ -168,8 +168,8 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_call_after_rollback_after_transaction_rollsback
-    @first.after_commit_block{|r| r.history << :after_commit}
-    @first.after_rollback_block{|r| r.history << :after_rollback}
+    @first.after_commit_block { |r| r.history << :after_commit }
+    @first.after_rollback_block { |r| r.history << :after_rollback }
 
     Topic.transaction do
       @first.save!
@@ -245,14 +245,14 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   def test_only_call_after_rollback_on_records_rolled_back_to_a_savepoint
     def @first.rollbacks(i=0); @rollbacks ||= 0; @rollbacks += i if i; end
     def @first.commits(i=0); @commits ||= 0; @commits += i if i; end
-    @first.after_rollback_block{|r| r.rollbacks(1)}
-    @first.after_commit_block{|r| r.commits(1)}
+    @first.after_rollback_block { |r| r.rollbacks(1) }
+    @first.after_commit_block { |r| r.commits(1) }
 
     second = TopicWithCallbacks.find(3)
     def second.rollbacks(i=0); @rollbacks ||= 0; @rollbacks += i if i; end
     def second.commits(i=0); @commits ||= 0; @commits += i if i; end
-    second.after_rollback_block{|r| r.rollbacks(1)}
-    second.after_commit_block{|r| r.commits(1)}
+    second.after_rollback_block { |r| r.rollbacks(1) }
+    second.after_commit_block { |r| r.commits(1) }
 
     Topic.transaction do
       @first.save!
@@ -272,8 +272,8 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     def @first.rollbacks(i=0); @rollbacks ||= 0; @rollbacks += i if i; end
     def @first.commits(i=0); @commits ||= 0; @commits += i if i; end
 
-    @first.after_rollback_block{|r| r.rollbacks(1)}
-    @first.after_commit_block{|r| r.commits(1)}
+    @first.after_rollback_block { |r| r.rollbacks(1) }
+    @first.after_commit_block { |r| r.commits(1) }
 
     Topic.transaction do
       @first.save
@@ -292,7 +292,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_after_commit_callback_should_not_swallow_errors
-    @first.after_commit_block{ fail "boom" }
+    @first.after_commit_block { fail "boom" }
     assert_raises(RuntimeError) do
       Topic.transaction do
         @first.save!
@@ -303,8 +303,8 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   def test_after_commit_callback_when_raise_should_not_restore_state
     first = TopicWithCallbacks.new
     second = TopicWithCallbacks.new
-    first.after_commit_block{ fail "boom" }
-    second.after_commit_block{ fail "boom" }
+    first.after_commit_block { fail "boom" }
+    second.after_commit_block { fail "boom" }
 
     begin
       Topic.transaction do
@@ -322,7 +322,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
   def test_after_rollback_callback_should_not_swallow_errors_when_set_to_raise
     error_class = Class.new(StandardError)
-    @first.after_rollback_block{ raise error_class }
+    @first.after_rollback_block { raise error_class }
     assert_raises(error_class) do
       Topic.transaction do
         @first.save!
@@ -336,8 +336,8 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
     first = TopicWithCallbacks.new
     second = TopicWithCallbacks.new
-    first.after_rollback_block{ raise error_class }
-    second.after_rollback_block{ raise error_class }
+    first.after_rollback_block { raise error_class }
+    second.after_rollback_block { raise error_class }
 
     begin
       Topic.transaction do

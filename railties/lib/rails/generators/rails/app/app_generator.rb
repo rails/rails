@@ -479,7 +479,7 @@ module Rails
         end
 
         def railsrc(argv)
-          if (customrc = argv.index{ |x| x.include?("--rc=") })
+          if (customrc = argv.index { |x| x.include?("--rc=") })
             fname = File.expand_path(argv[customrc].gsub(/--rc=/, ""))
             yield(argv.take(customrc) + argv.drop(customrc + 1), fname)
           else

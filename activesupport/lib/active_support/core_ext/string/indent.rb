@@ -38,6 +38,6 @@ class String
   #   "foo\n\nbar".indent(2, nil, true) # => "  foo\n  \n  bar"
   #
   def indent(amount, indent_string=nil, indent_empty_lines=false)
-    dup.tap {|_| _.indent!(amount, indent_string, indent_empty_lines)}
+    dup.tap { |_| _.indent!(amount, indent_string, indent_empty_lines) }
   end
 end

@@ -103,7 +103,7 @@ module ApplicationTests
       add_to_config "config.ssl_options = { host: 'example.com' }"
       boot!
 
-      assert_equal [{host: "example.com"}], Rails.application.middleware.first.args
+      assert_equal [{ host: "example.com" }], Rails.application.middleware.first.args
     end
 
     test "removing Active Record omits its middleware" do

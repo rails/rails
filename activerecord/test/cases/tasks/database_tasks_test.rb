@@ -64,12 +64,12 @@ module ActiveRecord
       instance.expects(:structure_dump).with("awesome-file.sql")
 
       ActiveRecord::Tasks::DatabaseTasks.register_task(/foo/, klazz)
-      ActiveRecord::Tasks::DatabaseTasks.structure_dump({"adapter" => :foo}, "awesome-file.sql")
+      ActiveRecord::Tasks::DatabaseTasks.structure_dump({ "adapter" => :foo }, "awesome-file.sql")
     end
 
     def test_unregistered_task
       assert_raise(ActiveRecord::Tasks::DatabaseNotSupported) do
-        ActiveRecord::Tasks::DatabaseTasks.structure_dump({"adapter" => :bar}, "awesome-file.sql")
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump({ "adapter" => :bar }, "awesome-file.sql")
       end
     end
   end
@@ -87,7 +87,7 @@ module ActiveRecord
 
   class DatabaseTasksCreateAllTest < ActiveRecord::TestCase
     def setup
-      @configurations = {"development" => {"database" => "my-db"}}
+      @configurations = { "development" => { "database" => "my-db" } }
 
       ActiveRecord::Base.stubs(:configurations).returns(@configurations)
     end
@@ -145,9 +145,9 @@ module ActiveRecord
   class DatabaseTasksCreateCurrentTest < ActiveRecord::TestCase
     def setup
       @configurations = {
-        "development" => {"database" => "dev-db"},
-        "test"        => {"database" => "test-db"},
-        "production"  => {"database" => "prod-db"}
+        "development" => { "database" => "dev-db" },
+        "test"        => { "database" => "test-db" },
+        "production"  => { "database" => "prod-db" }
       }
 
       ActiveRecord::Base.stubs(:configurations).returns(@configurations)
@@ -213,7 +213,7 @@ module ActiveRecord
 
   class DatabaseTasksDropAllTest < ActiveRecord::TestCase
     def setup
-      @configurations = {development: {"database" => "my-db"}}
+      @configurations = { development: { "database" => "my-db" } }
 
       ActiveRecord::Base.stubs(:configurations).returns(@configurations)
     end
@@ -271,9 +271,9 @@ module ActiveRecord
   class DatabaseTasksDropCurrentTest < ActiveRecord::TestCase
     def setup
       @configurations = {
-        "development" => {"database" => "dev-db"},
-        "test"        => {"database" => "test-db"},
-        "production"  => {"database" => "prod-db"}
+        "development" => { "database" => "dev-db" },
+        "test"        => { "database" => "test-db" },
+        "production"  => { "database" => "prod-db" }
       }
 
       ActiveRecord::Base.stubs(:configurations).returns(@configurations)
@@ -358,9 +358,9 @@ module ActiveRecord
   class DatabaseTasksPurgeCurrentTest < ActiveRecord::TestCase
     def test_purges_current_environment_database
       configurations = {
-        "development" => {"database" => "dev-db"},
-        "test"        => {"database" => "test-db"},
-        "production"  => {"database" => "prod-db"}
+        "development" => { "database" => "dev-db" },
+        "test"        => { "database" => "test-db" },
+        "production"  => { "database" => "prod-db" }
       }
       ActiveRecord::Base.stubs(:configurations).returns(configurations)
 
@@ -374,7 +374,7 @@ module ActiveRecord
 
   class DatabaseTasksPurgeAllTest < ActiveRecord::TestCase
     def test_purge_all_local_configurations
-      configurations = {development: {"database" => "my-db"}}
+      configurations = { development: { "database" => "my-db" } }
       ActiveRecord::Base.stubs(:configurations).returns(configurations)
 
       ActiveRecord::Tasks::DatabaseTasks.expects(:purge).
@@ -412,7 +412,7 @@ module ActiveRecord
     ADAPTERS_TASKS.each do |k, v|
       define_method("test_#{k}_structure_dump") do
         eval("@#{v}").expects(:structure_dump).with("awesome-file.sql")
-        ActiveRecord::Tasks::DatabaseTasks.structure_dump({"adapter" => k}, "awesome-file.sql")
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump({ "adapter" => k }, "awesome-file.sql")
       end
     end
   end
@@ -423,7 +423,7 @@ module ActiveRecord
     ADAPTERS_TASKS.each do |k, v|
       define_method("test_#{k}_structure_load") do
         eval("@#{v}").expects(:structure_load).with("awesome-file.sql")
-        ActiveRecord::Tasks::DatabaseTasks.structure_load({"adapter" => k}, "awesome-file.sql")
+        ActiveRecord::Tasks::DatabaseTasks.structure_load({ "adapter" => k }, "awesome-file.sql")
       end
     end
   end
@@ -443,7 +443,7 @@ module ActiveRecord
   end
 
   class DatabaseTasksCheckSchemaFileSpecifiedFormatsTest < ActiveRecord::TestCase
-    {ruby: "schema.rb", sql: "structure.sql"}.each_pair do |fmt, filename|
+    { ruby: "schema.rb", sql: "structure.sql" }.each_pair do |fmt, filename|
       define_method("test_check_schema_file_for_#{fmt}_format") do
         ActiveRecord::Tasks::DatabaseTasks.stubs(:db_dir).returns("/tmp")
         assert_equal "/tmp/#{filename}", ActiveRecord::Tasks::DatabaseTasks.schema_file(fmt)

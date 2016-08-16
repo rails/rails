@@ -363,7 +363,7 @@ class DeprecationTest < ActiveSupport::TestCase
     def deprecator_with_messages
       klass = Class.new(ActiveSupport::Deprecation)
       deprecator = klass.new
-      deprecator.behavior = Proc.new{|message, callstack| deprecator.messages << message}
+      deprecator.behavior = Proc.new { |message, callstack| deprecator.messages << message }
       def deprecator.messages
         @messages ||= []
       end

@@ -805,7 +805,7 @@ class HttpCacheForeverTest < ActionController::TestCase
   tests HttpCacheForeverController
 
   def test_cache_with_public
-    get :cache_me_forever, params: {public: true}
+    get :cache_me_forever, params: { public: true }
     assert_response :ok
     assert_equal "max-age=#{100.years}, public", @response.headers["Cache-Control"]
     assert_not_nil @response.etag

@@ -34,7 +34,7 @@ class ViewLoadPathsTest < ActionController::TestCase
   end
 
   def expand(array)
-    array.map {|x| File.expand_path(x.to_s)}
+    array.map { |x| File.expand_path(x.to_s) }
   end
 
   def assert_paths(*paths)

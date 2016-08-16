@@ -135,7 +135,7 @@ module ActionView
               fyear += 1 if from_time.month >= 3
               tyear = to_time.year
               tyear -= 1 if to_time.month < 3
-              leap_years = (fyear > tyear) ? 0 : (fyear..tyear).count{|x| Date.leap?(x)}
+              leap_years = (fyear > tyear) ? 0 : (fyear..tyear).count { |x| Date.leap?(x) }
               minute_offset_for_leap_year = leap_years * 1440
               # Discount the leap year days when calculating year distance.
               # e.g. if there are 20 leap year days between 2 dates having the same day
@@ -918,7 +918,7 @@ module ActionView
           elsif @options[:add_month_numbers]
             "#{number} - #{month_names[number]}"
           elsif format_string = @options[:month_format_string]
-            format_string % {number: number, name: month_names[number]}
+            format_string % { number: number, name: month_names[number] }
           else
             month_names[number]
           end
@@ -1027,7 +1027,7 @@ module ActionView
         def prompt_option_tag(type, options)
           prompt = case options
                    when Hash
-                     default_options = {year: false, month: false, day: false, hour: false, minute: false, second: false}
+                     default_options = { year: false, month: false, day: false, hour: false, minute: false, second: false }
                      default_options.merge!(options)[type.to_sym]
                    when String
                      options

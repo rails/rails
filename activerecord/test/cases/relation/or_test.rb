@@ -61,8 +61,8 @@ module ActiveRecord
 
     def test_or_when_grouping
       groups = Post.where("id < 10").group("body").select("body, COUNT(*) AS c")
-      expected = groups.having("COUNT(*) > 1 OR body like 'Such%'").to_a.map {|o| [o.body, o.c] }
-      assert_equal expected, groups.having("COUNT(*) > 1").or(groups.having("body like 'Such%'")).to_a.map {|o| [o.body, o.c] }
+      expected = groups.having("COUNT(*) > 1 OR body like 'Such%'").to_a.map { |o| [o.body, o.c] }
+      assert_equal expected, groups.having("COUNT(*) > 1").or(groups.having("body like 'Such%'")).to_a.map { |o| [o.body, o.c] }
     end
 
     def test_or_with_named_scope

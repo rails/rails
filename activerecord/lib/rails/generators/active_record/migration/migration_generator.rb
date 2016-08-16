@@ -41,7 +41,7 @@ module ActiveRecord
 
         def set_index_names
           attributes.each_with_index do |attr, i|
-            attr.index_name = [attr, attributes[i - 1]].map{ |a| index_name_for(a) }
+            attr.index_name = [attr, attributes[i - 1]].map { |a| index_name_for(a) }
           end
         end
 

@@ -41,8 +41,8 @@ module ActiveRecord
 
       def test_creates_index_with_options
         connection.create_table table_name do |t|
-          t.references :foo, index: {name: :index_testings_on_yo_momma}
-          t.references :bar, index: {unique: true}
+          t.references :foo, index: { name: :index_testings_on_yo_momma }
+          t.references :bar, index: { unique: true }
         end
 
         assert connection.index_exists?(table_name, :foo_id, name: :index_testings_on_yo_momma)

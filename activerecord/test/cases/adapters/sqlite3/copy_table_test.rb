@@ -11,7 +11,7 @@ class CopyTableTest < ActiveRecord::SQLite3TestCase
   end
 
   def test_copy_table(from = "customers", to = "customers2", options = {})
-    assert_nothing_raised {copy_table(from, to, options)}
+    assert_nothing_raised { copy_table(from, to, options) }
     assert_equal row_count(from), row_count(to)
 
     if block_given?
@@ -25,7 +25,7 @@ class CopyTableTest < ActiveRecord::SQLite3TestCase
 
   def test_copy_table_renaming_column
     test_copy_table("customers", "customers2",
-        rename: {"name" => "person_name"}) do |from, to, options|
+        rename: { "name" => "person_name" }) do |from, to, options|
       expected = column_values(from, "name")
       assert_equal expected, column_values(to, "person_name")
       assert expected.any?, "No values in table: #{expected.inspect}"
@@ -55,8 +55,8 @@ class CopyTableTest < ActiveRecord::SQLite3TestCase
 
   def test_copy_table_with_id_col_that_is_not_primary_key
     test_copy_table("goofy_string_id", "goofy_string_id2") do
-      original_id = @connection.columns("goofy_string_id").detect{|col| col.name == "id" }
-      copied_id = @connection.columns("goofy_string_id2").detect{|col| col.name == "id" }
+      original_id = @connection.columns("goofy_string_id").detect { |col| col.name == "id" }
+      copied_id = @connection.columns("goofy_string_id2").detect { |col| col.name == "id" }
       assert_equal original_id.type, copied_id.type
       assert_equal original_id.sql_type, copied_id.sql_type
       assert_equal original_id.limit, copied_id.limit
@@ -77,15 +77,15 @@ class CopyTableTest < ActiveRecord::SQLite3TestCase
 
 protected
   def copy_table(from, to, options = {})
-    @connection.copy_table(from, to, {temporary: true}.merge(options))
+    @connection.copy_table(from, to, { temporary: true }.merge(options))
   end
 
   def column_names(table)
-    @connection.table_structure(table).map {|column| column["name"]}
+    @connection.table_structure(table).map { |column| column["name"] }
   end
 
   def column_values(table, column)
-    @connection.select_all("SELECT #{column} FROM #{table} ORDER BY id").map {|row| row[column]}
+    @connection.select_all("SELECT #{column} FROM #{table} ORDER BY id").map { |row| row[column] }
   end
 
   def table_indexes_without_name(table)

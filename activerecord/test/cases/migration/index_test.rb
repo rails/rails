@@ -143,7 +143,7 @@ module ActiveRecord
       end
 
       def test_add_index_attribute_length_limit
-        connection.add_index :testings, [:foo, :bar], length: {foo: 10, bar: nil}
+        connection.add_index :testings, [:foo, :bar], length: { foo: 10, bar: nil }
 
         assert connection.index_exists?(:testings, [:foo, :bar])
       end
@@ -169,13 +169,13 @@ module ActiveRecord
         connection.add_index("testings", ["last_name"], length: 10)
         connection.remove_index("testings", "last_name")
 
-        connection.add_index("testings", ["last_name"], length: {last_name: 10})
+        connection.add_index("testings", ["last_name"], length: { last_name: 10 })
         connection.remove_index("testings", ["last_name"])
 
         connection.add_index("testings", ["last_name", "first_name"], length: 10)
         connection.remove_index("testings", ["last_name", "first_name"])
 
-        connection.add_index("testings", ["last_name", "first_name"], length: {last_name: 10, first_name: 20})
+        connection.add_index("testings", ["last_name", "first_name"], length: { last_name: 10, first_name: 20 })
         connection.remove_index("testings", ["last_name", "first_name"])
 
         connection.add_index("testings", ["key"], name: "key_idx", unique: true)
@@ -186,11 +186,11 @@ module ActiveRecord
 
         # Selected adapters support index sort order
         if current_adapter?(:SQLite3Adapter, :Mysql2Adapter, :PostgreSQLAdapter)
-          connection.add_index("testings", ["last_name"], order: {last_name: :desc})
+          connection.add_index("testings", ["last_name"], order: { last_name: :desc })
           connection.remove_index("testings", ["last_name"])
-          connection.add_index("testings", ["last_name", "first_name"], order: {last_name: :desc})
+          connection.add_index("testings", ["last_name", "first_name"], order: { last_name: :desc })
           connection.remove_index("testings", ["last_name", "first_name"])
-          connection.add_index("testings", ["last_name", "first_name"], order: {last_name: :desc, first_name: :asc})
+          connection.add_index("testings", ["last_name", "first_name"], order: { last_name: :desc, first_name: :asc })
           connection.remove_index("testings", ["last_name", "first_name"])
           connection.add_index("testings", ["last_name", "first_name"], order: :desc)
           connection.remove_index("testings", ["last_name", "first_name"])

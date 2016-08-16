@@ -9,7 +9,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
 
   def teardown
     Rails::DBConsole.send(:remove_const, "APP_PATH")
-    %w[PGUSER PGHOST PGPORT PGPASSWORD DATABASE_URL].each{|key| ENV.delete(key)}
+    %w[PGUSER PGHOST PGPORT PGPASSWORD DATABASE_URL].each { |key| ENV.delete(key) }
   end
 
   def test_config_with_db_config_only
@@ -123,7 +123,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   end
 
   def test_mysql_include_password
-    start({adapter: "mysql2", database: "db", username: "user", password: "qwerty"}, ["-p"])
+    start({ adapter: "mysql2", database: "db", username: "user", password: "qwerty" }, ["-p"])
     assert !aborted
     assert_equal [%w[mysql mysql5], "--user=user", "--password=qwerty", "db"], dbconsole.find_cmd_and_exec_args
   end
@@ -145,7 +145,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   end
 
   def test_postgresql_include_password
-    start({adapter: "postgresql", database: "db", username: "user", password: "q1w2e3"}, ["-p"])
+    start({ adapter: "postgresql", database: "db", username: "user", password: "q1w2e3" }, ["-p"])
     assert !aborted
     assert_equal ["psql", "db"], dbconsole.find_cmd_and_exec_args
     assert_equal "user", ENV["PGUSER"]
@@ -159,13 +159,13 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   end
 
   def test_sqlite3_mode
-    start({adapter: "sqlite3", database: "db.sqlite3"}, ["--mode", "html"])
+    start({ adapter: "sqlite3", database: "db.sqlite3" }, ["--mode", "html"])
     assert !aborted
     assert_equal ["sqlite3", "-html", Rails.root.join("db.sqlite3").to_s], dbconsole.find_cmd_and_exec_args
   end
 
   def test_sqlite3_header
-    start({adapter: "sqlite3", database: "db.sqlite3"}, ["--header"])
+    start({ adapter: "sqlite3", database: "db.sqlite3" }, ["--header"])
     assert_equal ["sqlite3", "-header", Rails.root.join("db.sqlite3").to_s], dbconsole.find_cmd_and_exec_args
   end
 
@@ -190,7 +190,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   end
 
   def test_oracle_include_password
-    start({adapter: "oracle", database: "db", username: "user", password: "secret"}, ["-p"])
+    start({ adapter: "oracle", database: "db", username: "user", password: "secret" }, ["-p"])
     assert !aborted
     assert_equal ["sqlplus", "user/secret@db"], dbconsole.find_cmd_and_exec_args
   end

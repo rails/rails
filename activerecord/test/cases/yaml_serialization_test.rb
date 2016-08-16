@@ -22,8 +22,8 @@ class YamlSerializationTest < ActiveRecord::TestCase
   end
 
   def test_roundtrip_serialized_column
-    topic = Topic.new(content: {omg: :lol})
-    assert_equal({omg: :lol}, YAML.load(YAML.dump(topic)).content)
+    topic = Topic.new(content: { omg: :lol })
+    assert_equal({ omg: :lol }, YAML.load(YAML.dump(topic)).content)
   end
 
   def test_psych_roundtrip

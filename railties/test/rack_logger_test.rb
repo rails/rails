@@ -47,7 +47,7 @@ module Rails
       end
 
       def test_notification
-        logger = TestLogger.new { }
+        logger = TestLogger.new {}
 
         assert_difference("subscriber.starts.length") do
           assert_difference("subscriber.finishes.length") do

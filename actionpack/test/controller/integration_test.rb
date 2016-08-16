@@ -4,7 +4,7 @@ require "rails/engine"
 
 class SessionTest < ActiveSupport::TestCase
   StubApp = lambda { |env|
-    [200, {"Content-Type" => "text/html", "Content-Length" => "13"}, ["Hello, World!"]]
+    [200, { "Content-Type" => "text/html", "Content-Length" => "13" }, ["Hello, World!"]]
   }
 
   def setup
@@ -32,7 +32,7 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_request_via_redirect_uses_given_method
-    path = "/somepath"; args = {id: "1"}; headers = {"X-Test-Header" => "testvalue"}
+    path = "/somepath"; args = { id: "1" }; headers = { "X-Test-Header" => "testvalue" }
     assert_called_with @session, :process, [:put, path, params: args, headers: headers] do
       @session.stub :redirect?, false do
         assert_deprecated { @session.request_via_redirect(:put, path, params: args, headers: headers) }
@@ -50,17 +50,17 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_request_via_redirect_follows_redirects
-    path = "/somepath"; args = {id: "1"}; headers = {"X-Test-Header" => "testvalue"}
+    path = "/somepath"; args = { id: "1" }; headers = { "X-Test-Header" => "testvalue" }
     value_series = [true, true, false]
     assert_called @session, :follow_redirect!, times: 2 do
-      @session.stub :redirect?, ->{ value_series.shift } do
+      @session.stub :redirect?, -> { value_series.shift } do
         assert_deprecated { @session.request_via_redirect(:get, path, params: args, headers: headers) }
       end
     end
   end
 
   def test_request_via_redirect_returns_status
-    path = "/somepath"; args = {id: "1"}; headers = {"X-Test-Header" => "testvalue"}
+    path = "/somepath"; args = { id: "1" }; headers = { "X-Test-Header" => "testvalue" }
     @session.stub :redirect?, false do
       @session.stub :status, 200 do
         assert_deprecated do
@@ -466,7 +466,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
   def test_get_xml_rss_atom
     %w[ application/xml application/rss+xml application/atom+xml ].each do |mime_string|
       with_test_route_set do
-        get "/get", headers: {"HTTP_ACCEPT" => mime_string}
+        get "/get", headers: { "HTTP_ACCEPT" => mime_string }
         assert_equal 200, status
         assert_equal "OK", status_message
         assert_response 200
@@ -503,7 +503,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       self.cookies["cookie_2"] = "oatmeal"
       get "/cookie_monster"
       assert_equal "cookie_1=; path=/\ncookie_3=chocolate; path=/", headers["Set-Cookie"]
-      assert_equal({"cookie_1"=>"", "cookie_2"=>"oatmeal", "cookie_3"=>"chocolate"}, cookies.to_hash)
+      assert_equal({ "cookie_1"=>"", "cookie_2"=>"oatmeal", "cookie_3"=>"chocolate" }, cookies.to_hash)
     end
   end
 
@@ -513,14 +513,14 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_response :success
 
       assert_equal "foo=bar; path=/", headers["Set-Cookie"]
-      assert_equal({"foo"=>"bar"}, cookies.to_hash)
+      assert_equal({ "foo"=>"bar" }, cookies.to_hash)
 
       get "/get_cookie"
       assert_response :success
       assert_equal "bar", body
 
       assert_equal nil, headers["Set-Cookie"]
-      assert_equal({"foo"=>"bar"}, cookies.to_hash)
+      assert_equal({ "foo"=>"bar" }, cookies.to_hash)
     end
   end
 
@@ -532,14 +532,14 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_response :success
 
       assert_equal "foo=bar; path=/", headers["Set-Cookie"]
-      assert_equal({"foo"=>"bar"}, cookies.to_hash)
+      assert_equal({ "foo"=>"bar" }, cookies.to_hash)
 
       get "/get_cookie"
       assert_response :success
       assert_equal "bar", body
 
       assert_equal nil, headers["Set-Cookie"]
-      assert_equal({"foo"=>"bar"}, cookies.to_hash)
+      assert_equal({ "foo"=>"bar" }, cookies.to_hash)
     end
   end
 
@@ -778,9 +778,9 @@ class MetalIntegrationTest < ActionDispatch::IntegrationTest
   class Poller
     def self.call(env)
       if env["PATH_INFO"] =~ /^\/success/
-        [200, {"Content-Type" => "text/plain", "Content-Length" => "12"}, ["Hello World!"]]
+        [200, { "Content-Type" => "text/plain", "Content-Length" => "12" }, ["Hello World!"]]
       else
-        [404, {"Content-Type" => "text/plain", "Content-Length" => "0"}, []]
+        [404, { "Content-Type" => "text/plain", "Content-Length" => "0" }, []]
       end
     end
   end
@@ -809,7 +809,7 @@ class MetalIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   def test_pass_headers
-    get "/success", headers: {"Referer" => "http://www.example.com/foo", "Host" => "http://nohost.com"}
+    get "/success", headers: { "Referer" => "http://www.example.com/foo", "Host" => "http://nohost.com" }
 
     assert_equal "http://nohost.com", @request.env["HTTP_HOST"]
     assert_equal "http://www.example.com/foo", @request.env["HTTP_REFERER"]
@@ -885,7 +885,7 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
     get "bar", to: "application_integration_test/test#index", as: :bar
 
     mount MountedApp => "/mounted", :as => "mounted"
-    get "fooz" => proc { |env| [ 200, {"X-Cascade" => "pass"}, [ "omg" ] ] }, :anchor => false
+    get "fooz" => proc { |env| [ 200, { "X-Cascade" => "pass" }, [ "omg" ] ] }, :anchor => false
     get "fooz", to: "application_integration_test/test#index"
   end
 
@@ -1158,7 +1158,7 @@ class IntegrationRequestsWithSessionSetup < ActionDispatch::IntegrationTest
 
   def test_cookies_set_in_setup_are_persisted_through_the_session
     get "/foo"
-    assert_equal({"user_name"=>"david"}, cookies.to_hash)
+    assert_equal({ "user_name"=>"david" }, cookies.to_hash)
   end
 end
 

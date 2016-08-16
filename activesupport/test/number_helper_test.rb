@@ -316,13 +316,13 @@ module ActiveSupport
       def test_number_to_human_with_custom_units
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
           #Only integers
-          volume = {unit: "ml", thousand: "lt", million: "m3"}
+          volume = { unit: "ml", thousand: "lt", million: "m3" }
           assert_equal "123 lt", number_helper.number_to_human(123456, units: volume)
           assert_equal "12 ml", number_helper.number_to_human(12, units: volume)
           assert_equal "1.23 m3", number_helper.number_to_human(1234567, units: volume)
 
           #Including fractionals
-          distance = {mili: "mm", centi: "cm", deci: "dm", unit: "m", ten: "dam", hundred: "hm", thousand: "km"}
+          distance = { mili: "mm", centi: "cm", deci: "dm", unit: "m", ten: "dam", hundred: "hm", thousand: "km" }
           assert_equal "1.23 mm", number_helper.number_to_human(0.00123, units: distance)
           assert_equal "1.23 cm", number_helper.number_to_human(0.0123, units: distance)
           assert_equal "1.23 dm", number_helper.number_to_human(0.123, units: distance)
@@ -335,21 +335,21 @@ module ActiveSupport
           assert_equal "12.3 km", number_helper.number_to_human(12300, units: distance)
 
           #The quantifiers don't need to be a continuous sequence
-          gangster = {hundred: "hundred bucks", million: "thousand quids"}
+          gangster = { hundred: "hundred bucks", million: "thousand quids" }
           assert_equal "1 hundred bucks", number_helper.number_to_human(100, units: gangster)
           assert_equal "25 hundred bucks", number_helper.number_to_human(2500, units: gangster)
           assert_equal "25 thousand quids", number_helper.number_to_human(25000000, units: gangster)
           assert_equal "12300 thousand quids", number_helper.number_to_human(12345000000, units: gangster)
 
           #Spaces are stripped from the resulting string
-          assert_equal "4", number_helper.number_to_human(4, units: {unit: "", ten: "tens "})
-          assert_equal "4.5  tens", number_helper.number_to_human(45, units: {unit: "", ten: " tens   "})
+          assert_equal "4", number_helper.number_to_human(4, units: { unit: "", ten: "tens " })
+          assert_equal "4.5  tens", number_helper.number_to_human(45, units: { unit: "", ten: " tens   " })
         end
       end
 
       def test_number_to_human_with_custom_units_that_are_missing_the_needed_key
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
-          assert_equal "123", number_helper.number_to_human(123, units: { thousand: "k"})
+          assert_equal "123", number_helper.number_to_human(123, units: { thousand: "k" })
           assert_equal "123", number_helper.number_to_human(123, units: {})
         end
       end
@@ -357,7 +357,7 @@ module ActiveSupport
       def test_number_to_human_with_custom_format
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
           assert_equal "123 times Thousand", number_helper.number_to_human(123456, format: "%n times %u")
-          volume = {unit: "ml", thousand: "lt", million: "m3"}
+          volume = { unit: "ml", thousand: "lt", million: "m3" }
           assert_equal "123.lt", number_helper.number_to_human(123456, units: volume, format: "%n.%u")
         end
       end

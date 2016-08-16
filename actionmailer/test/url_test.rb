@@ -94,7 +94,7 @@ class ActionMailerUrlTest < ActionMailer::TestCase
 
     # hash
     assert_url_for "/a/b/c", controller: "a", action: "b", id: "c"
-    assert_url_for "/a/b/c", {controller: "a", action: "b", id: "c", only_path: true}, true
+    assert_url_for "/a/b/c", { controller: "a", action: "b", id: "c", only_path: true }, true
 
     # model
     assert_url_for "/dummy_model", DummyModel.new

@@ -47,8 +47,8 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
 
     def find_preview
       candidates = []
-      params[:path].to_s.scan(%r{/|$}){ candidates << $` }
-      preview = candidates.detect{ |candidate| ActionMailer::Preview.exists?(candidate) }
+      params[:path].to_s.scan(%r{/|$}) { candidates << $` }
+      preview = candidates.detect { |candidate| ActionMailer::Preview.exists?(candidate) }
 
       if preview
         @preview = ActionMailer::Preview.find(preview)
@@ -64,7 +64,7 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
         end
       end
 
-      if formats.any?{ |f| @email.mime_type == f }
+      if formats.any? { |f| @email.mime_type == f }
         @email
       end
     end

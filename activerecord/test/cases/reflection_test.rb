@@ -124,7 +124,7 @@ class ReflectionTest < ActiveRecord::TestCase
     )
 
     reflection_for_gps_location = AggregateReflection.new(
-      :gps_location, nil, { }, Customer
+      :gps_location, nil, {}, Customer
     )
 
     assert Customer.reflect_on_all_aggregations.include?(reflection_for_gps_location)

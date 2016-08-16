@@ -98,7 +98,7 @@ class RoutingAssertionsTest < ActionController::TestCase
   end
 
   def test_assert_routing_with_extras
-    assert_routing("/articles", { controller: "articles", action: "index", page: "1" }, { }, page: "1")
+    assert_routing("/articles", { controller: "articles", action: "index", page: "1" }, {}, page: "1")
   end
 
   def test_assert_routing_with_hash_constraint

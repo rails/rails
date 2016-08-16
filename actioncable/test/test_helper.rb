@@ -11,7 +11,7 @@ rescue LoadError
 end
 
 # Require all the stubs and models
-Dir[File.dirname(__FILE__) + "/stubs/*.rb"].each {|file| require file }
+Dir[File.dirname(__FILE__) + "/stubs/*.rb"].each { |file| require file }
 
 if ENV["FAYE"].present?
   require "faye/websocket"

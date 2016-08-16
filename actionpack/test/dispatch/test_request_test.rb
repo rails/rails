@@ -33,24 +33,24 @@ class TestRequestTest < ActiveSupport::TestCase
     assert_equal nil, req.env["HTTP_COOKIE"]
 
     req.cookie_jar["user_name"] = "david"
-    assert_cookies({"user_name" => "david"}, req.cookie_jar)
+    assert_cookies({ "user_name" => "david" }, req.cookie_jar)
 
     req.cookie_jar["login"] = "XJ-122"
-    assert_cookies({"user_name" => "david", "login" => "XJ-122"}, req.cookie_jar)
+    assert_cookies({ "user_name" => "david", "login" => "XJ-122" }, req.cookie_jar)
 
     assert_nothing_raised do
       req.cookie_jar["login"] = nil
-      assert_cookies({"user_name" => "david", "login" => nil}, req.cookie_jar)
+      assert_cookies({ "user_name" => "david", "login" => nil }, req.cookie_jar)
     end
 
     req.cookie_jar.delete(:login)
-    assert_cookies({"user_name" => "david"}, req.cookie_jar)
+    assert_cookies({ "user_name" => "david" }, req.cookie_jar)
 
     req.cookie_jar.clear
     assert_cookies({}, req.cookie_jar)
 
     req.cookie_jar.update(user_name: "david")
-    assert_cookies({"user_name" => "david"}, req.cookie_jar)
+    assert_cookies({ "user_name" => "david" }, req.cookie_jar)
   end
 
   test "does not complain when there is no application config" do

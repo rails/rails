@@ -44,7 +44,7 @@ module ActiveSupport
 
         def add(words)
           concat(words.flatten.map(&:downcase))
-          @regex_array += map {|word| to_regex(word) }
+          @regex_array += map { |word| to_regex(word) }
           self
         end
 

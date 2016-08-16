@@ -10,7 +10,7 @@ module ActiveRecord
       end
 
       def test_establish_connection_uses_spec_name
-        config = {"readonly" => {"adapter" => "sqlite3"}}
+        config = { "readonly" => { "adapter" => "sqlite3" } }
         resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(config)
         spec =   resolver.spec(:readonly)
         @handler.establish_connection(spec.to_hash)

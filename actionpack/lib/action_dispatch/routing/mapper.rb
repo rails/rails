@@ -41,7 +41,7 @@ module ActionDispatch
         end
 
         def serve(req)
-          return [ 404, {"X-Cascade" => "pass"}, [] ] unless matches?(req)
+          return [ 404, { "X-Cascade" => "pass" }, [] ] unless matches?(req)
 
           @strategy.call @app, req
         end
@@ -270,7 +270,7 @@ module ActionDispatch
               { requirements: { format: Regexp.compile(formatted) },
                 defaults:     { format: formatted } }
             else
-              { requirements: { }, defaults: { } }
+              { requirements: {}, defaults: {} }
             end
           end
 

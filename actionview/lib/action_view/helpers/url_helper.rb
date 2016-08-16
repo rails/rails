@@ -570,7 +570,7 @@ module ActionView
 
             html_options
           else
-            link_to_remote_options?(options) ? {"data-remote" => "true".freeze} : {}
+            link_to_remote_options?(options) ? { "data-remote" => "true".freeze } : {}
           end
         end
 

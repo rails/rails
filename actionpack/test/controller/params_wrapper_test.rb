@@ -150,7 +150,7 @@ class ParamsWrapperTest < ActionController::TestCase
   def test_no_double_wrap_if_key_exists
     with_default_wrapper_options do
       @request.env["CONTENT_TYPE"] = "application/json"
-      post :parse, params: { "user" => { "username" => "sikachu" }}
+      post :parse, params: { "user" => { "username" => "sikachu" } }
       assert_parameters("user" => { "username" => "sikachu" })
     end
   end
@@ -158,8 +158,8 @@ class ParamsWrapperTest < ActionController::TestCase
   def test_nested_params
     with_default_wrapper_options do
       @request.env["CONTENT_TYPE"] = "application/json"
-      post :parse, params: { "person" => { "username" => "sikachu" }}
-      assert_parameters("person" => { "username" => "sikachu" }, "user" => {"person" => { "username" => "sikachu" }})
+      post :parse, params: { "person" => { "username" => "sikachu" } }
+      assert_parameters("person" => { "username" => "sikachu" }, "user" => { "person" => { "username" => "sikachu" } })
     end
   end
 
@@ -208,7 +208,7 @@ class ParamsWrapperTest < ActionController::TestCase
       @request.env["CONTENT_TYPE"] = "application/json"
       post :parse, params: {}
       assert_parameters(
-        "user" => { }
+        "user" => {}
       )
     end
   end

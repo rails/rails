@@ -64,8 +64,8 @@ if ActiveRecord::Base.connection.supports_extensions?
       @connection.add_column "hstores", "permissions", :hstore, default: '"users"=>"read", "articles"=>"write"'
       Hstore.reset_column_information
 
-      assert_equal({"users"=>"read", "articles"=>"write"}, Hstore.column_defaults["permissions"])
-      assert_equal({"users"=>"read", "articles"=>"write"}, Hstore.new.permissions)
+      assert_equal({ "users"=>"read", "articles"=>"write" }, Hstore.column_defaults["permissions"])
+      assert_equal({ "users"=>"read", "articles"=>"write" }, Hstore.new.permissions)
     ensure
       Hstore.reset_column_information
     end
@@ -103,18 +103,18 @@ if ActiveRecord::Base.connection.supports_extensions?
     end
 
     def test_cast_value_on_write
-      x = Hstore.new tags: {"bool" => true, "number" => 5}
-      assert_equal({"bool" => true, "number" => 5}, x.tags_before_type_cast)
-      assert_equal({"bool" => "true", "number" => "5"}, x.tags)
+      x = Hstore.new tags: { "bool" => true, "number" => 5 }
+      assert_equal({ "bool" => true, "number" => 5 }, x.tags_before_type_cast)
+      assert_equal({ "bool" => "true", "number" => "5" }, x.tags)
       x.save
-      assert_equal({"bool" => "true", "number" => "5"}, x.reload.tags)
+      assert_equal({ "bool" => "true", "number" => "5" }, x.reload.tags)
     end
 
     def test_type_cast_hstore
-      assert_equal({"1" => "2"}, @type.deserialize("\"1\"=>\"2\""))
+      assert_equal({ "1" => "2" }, @type.deserialize("\"1\"=>\"2\""))
       assert_equal({}, @type.deserialize(""))
-      assert_equal({"key"=>nil}, @type.deserialize("key => NULL"))
-      assert_equal({"c"=>"}",'"a"'=>'b "a b'}, @type.deserialize(%q(c=>"}", "\"a\""=>"b \"a b")))
+      assert_equal({ "key"=>nil }, @type.deserialize("key => NULL"))
+      assert_equal({ "c"=>"}",'"a"'=>'b "a b' }, @type.deserialize(%q(c=>"}", "\"a\""=>"b \"a b")))
     end
 
     def test_with_store_accessors
@@ -182,31 +182,31 @@ if ActiveRecord::Base.connection.supports_extensions?
     end
 
     def test_parse1
-      assert_equal({"a"=>nil,"b"=>nil,"c"=>"NuLl","null"=>"c"}, @type.deserialize('a=>null,b=>NuLl,c=>"NuLl",null=>c'))
+      assert_equal({ "a"=>nil,"b"=>nil,"c"=>"NuLl","null"=>"c" }, @type.deserialize('a=>null,b=>NuLl,c=>"NuLl",null=>c'))
     end
 
     def test_parse2
-      assert_equal({" " => " "},  @type.deserialize("\\ =>\\ "))
+      assert_equal({ " " => " " },  @type.deserialize("\\ =>\\ "))
     end
 
     def test_parse3
-      assert_equal({"=" => ">"},  @type.deserialize("==>>"))
+      assert_equal({ "=" => ">" },  @type.deserialize("==>>"))
     end
 
     def test_parse4
-      assert_equal({"=a"=>"q=w"},   @type.deserialize('\=a=>q=w'))
+      assert_equal({ "=a"=>"q=w" },   @type.deserialize('\=a=>q=w'))
     end
 
     def test_parse5
-      assert_equal({"=a"=>"q=w"},   @type.deserialize('"=a"=>q\=w'))
+      assert_equal({ "=a"=>"q=w" },   @type.deserialize('"=a"=>q\=w'))
     end
 
     def test_parse6
-      assert_equal({"\"a"=>"q>w"},  @type.deserialize('"\"a"=>q>w'))
+      assert_equal({ "\"a"=>"q>w" },  @type.deserialize('"\"a"=>q>w'))
     end
 
     def test_parse7
-      assert_equal({"\"a"=>"q\"w"}, @type.deserialize('\"a=>q"w'))
+      assert_equal({ "\"a"=>"q\"w" }, @type.deserialize('\"a=>q"w'))
     end
 
     def test_rewrite
@@ -219,19 +219,19 @@ if ActiveRecord::Base.connection.supports_extensions?
     def test_select
       @connection.execute "insert into hstores (tags) VALUES ('1=>2')"
       x = Hstore.first
-      assert_equal({"1" => "2"}, x.tags)
+      assert_equal({ "1" => "2" }, x.tags)
     end
 
     def test_array_cycle
-      assert_array_cycle([{"AA" => "BB", "CC" => "DD"}, {"AA" => nil}])
+      assert_array_cycle([{ "AA" => "BB", "CC" => "DD" }, { "AA" => nil }])
     end
 
     def test_array_strings_with_quotes
-      assert_array_cycle([{"this has" => 'some "s that need to be escaped"'}])
+      assert_array_cycle([{ "this has" => 'some "s that need to be escaped"' }])
     end
 
     def test_array_strings_with_commas
-      assert_array_cycle([{"this,has" => "many,values"}])
+      assert_array_cycle([{ "this,has" => "many,values" }])
     end
 
     def test_array_strings_with_array_delimiters
@@ -239,17 +239,17 @@ if ActiveRecord::Base.connection.supports_extensions?
     end
 
     def test_array_strings_with_null_strings
-      assert_array_cycle([{"NULL" => "NULL"}])
+      assert_array_cycle([{ "NULL" => "NULL" }])
     end
 
     def test_contains_nils
-      assert_array_cycle([{"NULL" => nil}])
+      assert_array_cycle([{ "NULL" => nil }])
     end
 
     def test_select_multikey
       @connection.execute "insert into hstores (tags) VALUES ('1=>2,2=>3')"
       x = Hstore.first
-      assert_equal({"1" => "2", "2" => "3"}, x.tags)
+      assert_equal({ "1" => "2", "2" => "3" }, x.tags)
     end
 
     def test_create
@@ -303,17 +303,17 @@ if ActiveRecord::Base.connection.supports_extensions?
       HstoreWithSerialize.create! tags: TagCollection.new("one" => "two")
       record = HstoreWithSerialize.first
       assert_instance_of TagCollection, record.tags
-      assert_equal({"one" => "two"}, record.tags.to_hash)
+      assert_equal({ "one" => "two" }, record.tags.to_hash)
       record.tags = TagCollection.new("three" => "four")
       record.save!
-      assert_equal({"three" => "four"}, HstoreWithSerialize.first.tags.to_hash)
+      assert_equal({ "three" => "four" }, HstoreWithSerialize.first.tags.to_hash)
     end
 
     def test_clone_hstore_with_serialized_attributes
       HstoreWithSerialize.create! tags: TagCollection.new("one" => "two")
       record = HstoreWithSerialize.first
       dupe = record.dup
-      assert_equal({"one" => "two"}, dupe.tags.to_hash)
+      assert_equal({ "one" => "two" }, dupe.tags.to_hash)
     end
 
     def test_schema_dump_with_shorthand

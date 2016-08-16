@@ -153,10 +153,10 @@ HEADER
           }
 
           # the string we're going to sprintf our values against, with standardized column widths
-          format_string = lengths.map{ |len| "%-#{len}s" }
+          format_string = lengths.map { |len| "%-#{len}s" }
 
           # find the max length for the 'type' column, which is special
-          type_length = column_specs.map{ |column| column[:type].length }.max
+          type_length = column_specs.map { |column| column[:type].length }.max
 
           # add column type definition to our format string
           format_string.unshift "    t.%-#{type_length}s "
@@ -164,7 +164,7 @@ HEADER
           format_string *= ""
 
           column_specs.each do |colspec|
-            values = keys.zip(lengths).map{ |key, len| colspec.key?(key) ? colspec[key] + ", " : " " * len }
+            values = keys.zip(lengths).map { |key, len| colspec.key?(key) ? colspec[key] + ", " : " " * len }
             values.unshift colspec[:type]
             tbl.print((format_string % values).gsub(/,\s*$/, ""))
             tbl.puts

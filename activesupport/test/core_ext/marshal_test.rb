@@ -12,7 +12,7 @@ class MarshalTest < ActiveSupport::TestCase
   end
 
   test "that Marshal#load still works" do
-    sanity_data = ["test", [1, 2, 3], {a: [1, 2, 3]}, ActiveSupport::TestCase]
+    sanity_data = ["test", [1, 2, 3], { a: [1, 2, 3] }, ActiveSupport::TestCase]
     sanity_data.each do |obj|
       dumped = Marshal.dump(obj)
       assert_equal Marshal.method(:load).super_method.call(dumped), Marshal.load(dumped)

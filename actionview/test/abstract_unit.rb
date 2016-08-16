@@ -169,7 +169,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
       end
 
       def dispatch(controller, action, env)
-        [200, {"Content-Type" => "text/html"}, ["#{controller}##{action}"]]
+        [200, { "Content-Type" => "text/html" }, ["#{controller}##{action}"]]
       end
   end
 
@@ -204,7 +204,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
         ActiveSupport::Dependencies.autoload_paths << path
         yield
       ensure
-        ActiveSupport::Dependencies.autoload_paths.reject! {|p| p == path}
+        ActiveSupport::Dependencies.autoload_paths.reject! { |p| p == path }
         ActiveSupport::Dependencies.clear
       end
     end

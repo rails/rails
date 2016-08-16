@@ -34,7 +34,7 @@ module ActionDispatch
           if @raise_on_name_error
             raise
           else
-            return [404, {"X-Cascade" => "pass"}, []]
+            return [404, { "X-Cascade" => "pass" }, []]
           end
         end
 
@@ -208,7 +208,7 @@ module ActionDispatch
                 params = parameterize_args(args) { |missing_key|
                   missing_keys << missing_key
                 }
-                constraints = Hash[@route.requirements.merge(params).sort_by{|k,v| k.to_s}]
+                constraints = Hash[@route.requirements.merge(params).sort_by { |k,v| k.to_s }]
                 message = "No route matches #{constraints.inspect}"
                 message << " missing required keys: #{missing_keys.sort.inspect}"
 

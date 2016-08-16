@@ -165,7 +165,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   def test_string_constraint
     with_routing do |set|
       set.draw do
-        get "photos", to: "action_pack_assertions#nothing", constraints: {subdomain: "admin"}
+        get "photos", to: "action_pack_assertions#nothing", constraints: { subdomain: "admin" }
       end
     end
   end

@@ -19,7 +19,7 @@ module Kindle
       puts "=> Arranging html pages in document order"
       toc = File.read("toc.ncx")
       doc = Nokogiri::XML(toc).xpath("//ncx:content", "ncx" => "http://www.daisy.org/z3986/2005/ncx/")
-      html_pages = doc.select {|c| c[:src]}.map {|c| c[:src]}.uniq
+      html_pages = doc.select { |c| c[:src] }.map { |c| c[:src] }.uniq
 
       generate_front_matter(html_pages)
 
@@ -37,13 +37,13 @@ module Kindle
 
   def generate_front_matter(html_pages)
     frontmatter = []
-    html_pages.delete_if {|x|
+    html_pages.delete_if { |x|
       if x =~ /(toc|welcome|credits|copyright).html/
         frontmatter << x unless x =~ /toc/
         true
       end
     }
-    html = frontmatter.map {|x|
+    html = frontmatter.map { |x|
       Nokogiri::HTML(File.open(x)).at("body").inner_html
     }.join("\n")
 
@@ -56,7 +56,7 @@ module Kindle
       h2["id"] = h2.inner_text.gsub(/\s/, "-")
     end
     add_head_section fdoc, "Front Matter"
-    File.open("frontmatter.html","w") {|f| f.puts fdoc.to_html}
+    File.open("frontmatter.html","w") { |f| f.puts fdoc.to_html }
     html_pages.unshift "frontmatter.html"
   end
 
@@ -67,18 +67,18 @@ module Kindle
       doc = Nokogiri::HTML(File.open(page))
       title = doc.at("title").inner_text.gsub("Ruby on Rails Guides: ", "")
       title = page.capitalize.gsub(".html", "") if title.strip == ""
-      File.open("sections/%03d/_section.txt" % section_idx, "w") {|f| f.puts title}
+      File.open("sections/%03d/_section.txt" % section_idx, "w") { |f| f.puts title }
       doc.xpath("//h3[@id]").each_with_index do |h3,item_idx|
         subsection = h3.inner_text
-        content = h3.xpath("./following-sibling::*").take_while {|x| x.name != "h3"}.map(&:to_html)
+        content = h3.xpath("./following-sibling::*").take_while { |x| x.name != "h3" }.map(&:to_html)
         item = Nokogiri::HTML(h3.to_html + content.join("\n"))
         item_path = "sections/%03d/%03d.html" % [section_idx, item_idx]
         add_head_section(item, subsection)
         item.search("img").each do |img|
           img["src"] = "#{Dir.pwd}/#{img['src']}"
         end
-        item.xpath("//li/p").each {|p| p.swap(p.children); p.remove}
-        File.open(item_path, "w") {|f| f.puts item.to_html}
+        item.xpath("//li/p").each { |p| p.swap(p.children); p.remove }
+        File.open(item_path, "w") { |f| f.puts item.to_html }
       end
     end
   end
@@ -101,7 +101,7 @@ module Kindle
       "mobi_outfile" => mobi_outfile
     }
     puts document.to_yaml
-    File.open("_document.yml", "w"){|f| f.puts document.to_yaml}
+    File.open("_document.yml", "w") { |f| f.puts document.to_yaml }
   end
 
   def add_head_section(doc, title)

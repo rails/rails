@@ -94,7 +94,7 @@ class MultibyteConformanceTest < ActiveSupport::TestCase
           next unless cols.length == 5
 
           # codepoints are in hex in the test suite, pack wants them as integers
-          cols.map!{|c| c.split.map{|codepoint| codepoint.to_i(16)}.pack("U*") }
+          cols.map! { |c| c.split.map { |codepoint| codepoint.to_i(16) }.pack("U*") }
           cols << comment
 
           yield(*cols)
@@ -103,6 +103,6 @@ class MultibyteConformanceTest < ActiveSupport::TestCase
     end
 
     def inspect_codepoints(str)
-      str.to_s.unpack("U*").map{|cp| cp.to_s(16) }.join(" ")
+      str.to_s.unpack("U*").map { |cp| cp.to_s(16) }.join(" ")
     end
 end

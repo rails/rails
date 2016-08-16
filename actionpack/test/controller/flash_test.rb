@@ -176,13 +176,13 @@ class FlashTest < ActionController::TestCase
 
     assert_equal(:foo_indeed, flash.discard(:foo)) # valid key passed
     assert_nil flash.discard(:unknown) # non existent key passed
-    assert_equal({"foo" => :foo_indeed, "bar" => :bar_indeed}, flash.discard().to_hash) # nothing passed
-    assert_equal({"foo" => :foo_indeed, "bar" => :bar_indeed}, flash.discard(nil).to_hash) # nothing passed
+    assert_equal({ "foo" => :foo_indeed, "bar" => :bar_indeed }, flash.discard().to_hash) # nothing passed
+    assert_equal({ "foo" => :foo_indeed, "bar" => :bar_indeed }, flash.discard(nil).to_hash) # nothing passed
 
     assert_equal(:foo_indeed, flash.keep(:foo)) # valid key passed
     assert_nil flash.keep(:unknown) # non existent key passed
-    assert_equal({"foo" => :foo_indeed, "bar" => :bar_indeed}, flash.keep().to_hash) # nothing passed
-    assert_equal({"foo" => :foo_indeed, "bar" => :bar_indeed}, flash.keep(nil).to_hash) # nothing passed
+    assert_equal({ "foo" => :foo_indeed, "bar" => :bar_indeed }, flash.keep().to_hash) # nothing passed
+    assert_equal({ "foo" => :foo_indeed, "bar" => :bar_indeed }, flash.keep(nil).to_hash) # nothing passed
   end
 
   def test_redirect_to_with_alert

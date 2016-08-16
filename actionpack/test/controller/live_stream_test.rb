@@ -161,7 +161,7 @@ module ActionController
         response.stream.close
         latch.count_down
 
-        ActiveSupport::Dependencies.autoload_paths.reject! {|p| p == path}
+        ActiveSupport::Dependencies.autoload_paths.reject! { |p| p == path }
       end
 
       def thread_locals
@@ -285,7 +285,7 @@ module ActionController
 
     def test_set_cookie
       get :set_cookie
-      assert_equal({"hello" => "world"}, @response.cookies)
+      assert_equal({ "hello" => "world" }, @response.cookies)
       assert_equal "hello world", @response.body
     end
 

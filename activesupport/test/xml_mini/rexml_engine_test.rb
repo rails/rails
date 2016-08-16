@@ -39,6 +39,6 @@ class REXMLEngineTest < ActiveSupport::TestCase
   def test_parse_from_frozen_string
     ActiveSupport::XmlMini.backend = "REXML"
     xml_string = "<root></root>".freeze
-    assert_equal({"root" => {}}, ActiveSupport::XmlMini.parse(xml_string))
+    assert_equal({ "root" => {} }, ActiveSupport::XmlMini.parse(xml_string))
   end
 end

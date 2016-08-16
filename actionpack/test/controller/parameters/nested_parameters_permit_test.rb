@@ -73,7 +73,7 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
         genres: ["Tragedy"]
       })
 
-    permitted = params.permit book: {genres: []}
+    permitted = params.permit book: { genres: [] }
     assert_equal ["Tragedy"], permitted[:book][:genres]
   end
 
@@ -85,7 +85,7 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
       },
       magazine: "Shakespeare Today")
 
-    permitted = params.permit({book: ["title", :author]}, "magazine")
+    permitted = params.permit({ book: ["title", :author] }, "magazine")
     assert_equal "Romeo and Juliet", permitted[:book][:title]
     assert_equal "William Shakespeare", permitted[:book][:author]
     assert_equal "Shakespeare Today", permitted[:magazine]

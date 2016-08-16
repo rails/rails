@@ -117,7 +117,7 @@ class ParameterSet
   delegate :[], :[]=, to: :@params
 
   def initialize
-    @params = {foo: "bar"}
+    @params = { foo: "bar" }
   end
 end
 
@@ -312,7 +312,7 @@ class ModuleTest < ActiveSupport::TestCase
   rescue NoMethodError => e
     file_and_line = "#{__FILE__}:#{Someone::FAILED_DELEGATE_LINE}"
     # We can't simply check the first line of the backtrace, because JRuby reports the call to __send__ in the backtrace.
-    assert e.backtrace.any?{|a| a.include?(file_and_line)},
+    assert e.backtrace.any? { |a| a.include?(file_and_line) },
            "[#{e.backtrace.inspect}] did not include [#{file_and_line}]"
   end
 
@@ -322,7 +322,7 @@ class ModuleTest < ActiveSupport::TestCase
   rescue NoMethodError => e
     file_and_line = "#{__FILE__}:#{Someone::FAILED_DELEGATE_LINE_2}"
     # We can't simply check the first line of the backtrace, because JRuby reports the call to __send__ in the backtrace.
-    assert e.backtrace.any?{|a| a.include?(file_and_line)},
+    assert e.backtrace.any? { |a| a.include?(file_and_line) },
            "[#{e.backtrace.inspect}] did not include [#{file_and_line}]"
   end
 

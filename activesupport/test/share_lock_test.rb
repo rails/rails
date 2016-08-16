@@ -17,7 +17,7 @@ class ShareLockTest < ActiveSupport::TestCase
 
   def test_sharing_doesnt_block
     with_thread_waiting_in_lock_section(:sharing) do |sharing_thread_latch|
-      assert_threads_not_stuck(Thread.new {@lock.sharing {} })
+      assert_threads_not_stuck(Thread.new { @lock.sharing {} })
     end
   end
 

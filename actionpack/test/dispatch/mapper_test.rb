@@ -58,7 +58,7 @@ module ActionDispatch
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
         mapper.get "/foo", to: "posts#index", as: :main, format: true
-        assert_equal({controller: "posts", action: "index"},
+        assert_equal({ controller: "posts", action: "index" },
                      fakeset.defaults.first)
         assert_equal "/foo.:format", fakeset.asts.first.to_s
       end
@@ -69,7 +69,7 @@ module ActionDispatch
         mapper.scope(format: true) do
           mapper.get "/foo", to: "posts#index", as: :main
         end
-        assert_equal({controller: "posts", action: "index"},
+        assert_equal({ controller: "posts", action: "index" },
                      fakeset.defaults.first)
         assert_equal "/foo.:format", fakeset.asts.first.to_s
       end
@@ -80,13 +80,13 @@ module ActionDispatch
         mapper.scope(omg: :awesome) do
           mapper.get "/", to: "posts#index", as: :main
         end
-        assert_equal({omg: :awesome, controller: "posts", action: "index"},
+        assert_equal({ omg: :awesome, controller: "posts", action: "index" },
                      fakeset.defaults.first)
         assert_equal("GET", fakeset.routes.first.verb)
       end
 
       def test_mapping_requirements
-        options = { }
+        options = {}
         scope = Mapper::Scope.new({})
         ast = Journey::Parser.parse "/store/:name(*rest)"
         m = Mapper::Mapping.build(scope, FakeSet.new, ast, "foo", "bar", nil, [:get], nil, {}, true, options)

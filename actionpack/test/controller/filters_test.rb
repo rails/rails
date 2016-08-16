@@ -174,11 +174,11 @@ class FilterTest < ActionController::TestCase
   end
 
   class OnlyConditionProcController < ConditionalFilterController
-    before_action(only: :show) {|c| c.instance_variable_set(:"@ran_proc_action", true) }
+    before_action(only: :show) { |c| c.instance_variable_set(:"@ran_proc_action", true) }
   end
 
   class ExceptConditionProcController < ConditionalFilterController
-    before_action(except: :show_without_action) {|c| c.instance_variable_set(:"@ran_proc_action", true) }
+    before_action(except: :show_without_action) { |c| c.instance_variable_set(:"@ran_proc_action", true) }
   end
 
   class ConditionalClassFilter
@@ -194,11 +194,11 @@ class FilterTest < ActionController::TestCase
   end
 
   class AnomolousYetValidConditionController < ConditionalFilterController
-    before_action(ConditionalClassFilter, :ensure_login, Proc.new {|c| c.instance_variable_set(:"@ran_proc_action1", true)}, except: :show_without_action) { |c| c.instance_variable_set(:"@ran_proc_action2", true)}
+    before_action(ConditionalClassFilter, :ensure_login, Proc.new { |c| c.instance_variable_set(:"@ran_proc_action1", true) }, except: :show_without_action) { |c| c.instance_variable_set(:"@ran_proc_action2", true) }
   end
 
   class OnlyConditionalOptionsFilter < ConditionalFilterController
-    before_action :ensure_login, only: :index, if: Proc.new {|c| c.instance_variable_set(:"@ran_conditional_index_proc", true) }
+    before_action :ensure_login, only: :index, if: Proc.new { |c| c.instance_variable_set(:"@ran_conditional_index_proc", true) }
   end
 
   class ConditionalOptionsFilter < ConditionalFilterController

@@ -525,12 +525,12 @@ module ActiveSupport
           case key
           when Array
             if key.size > 1
-              key = key.collect{|element| expanded_key(element)}
+              key = key.collect { |element| expanded_key(element) }
             else
               key = key.first
             end
           when Hash
-            key = key.sort_by { |k,_| k.to_s }.collect{|k,v| "#{k}=#{v}"}
+            key = key.sort_by { |k,_| k.to_s }.collect { |k,v| "#{k}=#{v}" }
           end
 
           key.to_param
@@ -559,7 +559,7 @@ module ActiveSupport
 
           payload = { key: key }
           payload.merge!(options) if options.is_a?(Hash)
-          ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload){ yield(payload) }
+          ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload) { yield(payload) }
         end
 
         def log
@@ -584,7 +584,7 @@ module ActiveSupport
         end
 
         def get_entry_value(entry, name, options)
-          instrument(:fetch_hit, name, options) { }
+          instrument(:fetch_hit, name, options) {}
           entry.value
         end
 

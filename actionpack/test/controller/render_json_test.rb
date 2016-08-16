@@ -52,7 +52,7 @@ class RenderJsonTest < ActionController::TestCase
     end
 
     def render_json_with_render_to_string
-      render json: {hello: render_to_string(partial: "partial")}
+      render json: { hello: render_to_string(partial: "partial") }
     end
 
     def render_json_with_extra_options

@@ -78,9 +78,9 @@ module ActiveRecord
         indexes = @connection.indexes(table).sort_by(&:name)
         assert_equal 3,indexes.size
 
-        index_a = indexes.select{|i| i.name == index_a_name}[0]
-        index_b = indexes.select{|i| i.name == index_b_name}[0]
-        index_c = indexes.select{|i| i.name == index_c_name}[0]
+        index_a = indexes.select { |i| i.name == index_a_name }[0]
+        index_b = indexes.select { |i| i.name == index_b_name }[0]
+        index_c = indexes.select { |i| i.name == index_c_name }[0]
         assert_equal :btree, index_a.using
         assert_nil index_a.type
         assert_equal :btree, index_b.using
@@ -121,6 +121,6 @@ class Mysql2AnsiQuotesTest < ActiveRecord::Mysql2TestCase
   def test_foreign_keys_method_with_ansi_quotes
     fks = @connection.foreign_keys("lessons_students")
     assert_equal([["lessons_students", "students", :cascade]],
-                 fks.map {|fk| [fk.from_table, fk.to_table, fk.on_delete] })
+                 fks.map { |fk| [fk.from_table, fk.to_table, fk.on_delete] })
   end
 end

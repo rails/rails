@@ -83,7 +83,7 @@ class PersistenceTest < ActiveRecord::TestCase
   end
 
   def test_delete_all_with_joins_and_where_part_is_hash
-    where_args = {toys: {name: "Bone"}}
+    where_args = { toys: { name: "Bone" } }
     count = Pet.joins(:toys).where(where_args).count
 
     assert_equal count, 1

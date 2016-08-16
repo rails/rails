@@ -180,9 +180,9 @@ module Rails
         klass.start(args, config)
       else
         options     = sorted_groups.flat_map(&:last)
-        suggestions = options.sort_by {|suggested| levenshtein_distance(namespace.to_s, suggested) }.first(3)
+        suggestions = options.sort_by { |suggested| levenshtein_distance(namespace.to_s, suggested) }.first(3)
         msg =  "Could not find generator '#{namespace}'. "
-        msg << "Maybe you meant #{ suggestions.map {|s| "'#{s}'"}.to_sentence(last_word_connector: " or ", locale: :en) }\n"
+        msg << "Maybe you meant #{ suggestions.map { |s| "'#{s}'" }.to_sentence(last_word_connector: " or ", locale: :en) }\n"
         msg << "Run `rails generate --help` for more options."
         puts msg
       end

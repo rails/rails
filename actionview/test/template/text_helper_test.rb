@@ -71,7 +71,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_simple_format_does_not_modify_the_html_options_hash
-    options = { class: "foobar"}
+    options = { class: "foobar" }
     passed_options = options.dup
     simple_format("some text", passed_options)
     assert_equal options, passed_options

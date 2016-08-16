@@ -280,8 +280,8 @@ module ActionController #:nodoc:
 
         def any(*args, &block)
           if block_given?
-            if args.any? && args.none?{ |a| a == @variant }
-              args.each{ |v| @variants[v] = block }
+            if args.any? && args.none? { |a| a == @variant }
+              args.each { |v| @variants[v] = block }
             else
               @variants[:any] = block
             end

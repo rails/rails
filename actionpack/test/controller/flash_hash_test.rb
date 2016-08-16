@@ -48,11 +48,11 @@ module ActionDispatch
 
     def test_to_hash
       @hash["foo"] = "bar"
-      assert_equal({"foo" => "bar"}, @hash.to_hash)
+      assert_equal({ "foo" => "bar" }, @hash.to_hash)
 
       @hash.to_hash["zomg"] = "aaron"
       assert !@hash.key?("zomg")
-      assert_equal({"foo" => "bar"}, @hash.to_hash)
+      assert_equal({ "foo" => "bar" }, @hash.to_hash)
     end
 
     def test_to_session_value
@@ -74,7 +74,7 @@ module ActionDispatch
       rails_3_2_cookie = "BAh7B0kiD3Nlc3Npb25faWQGOgZFRkkiJWY4ZTFiODE1MmJhNzYwOWMyOGJiYjE3ZWM5MjYzYmE3BjsAVEkiCmZsYXNoBjsARm86JUFjdGlvbkRpc3BhdGNoOjpGbGFzaDo6Rmxhc2hIYXNoCToKQHVzZWRvOghTZXQGOgpAaGFzaHsGSSINZmFyZXdlbGwGOwBUVDoMQGNsb3NlZEY6DUBmbGFzaGVzewdJIg1ncmVldGluZwY7AFRJIgpIZWxsbwY7AFRJIg1mYXJld2VsbAY7AFRJIgxHb29kYnllBjsAVDoJQG5vdzA="
       session = Marshal.load(Base64.decode64(rails_3_2_cookie))
       hash = Flash::FlashHash.from_session_value(session["flash"])
-      assert_equal({"greeting" => "Hello"}, hash.to_hash)
+      assert_equal({ "greeting" => "Hello" }, hash.to_hash)
       assert_equal(nil, hash.to_session_value)
     end
 
@@ -83,7 +83,7 @@ module ActionDispatch
       session = ActionDispatch::Cookies::JsonSerializer.load(decrypted_data)
       hash = Flash::FlashHash.from_session_value(session["flash"])
 
-      assert_equal({"greeting" => "Hello"}, hash.to_hash)
+      assert_equal({ "greeting" => "Hello" }, hash.to_hash)
       assert_equal(nil, hash.to_session_value)
       assert_equal "Hello", hash[:greeting]
       assert_equal "Hello", hash["greeting"]
@@ -112,7 +112,7 @@ module ActionDispatch
     def test_replace
       @hash["hello"] = "world"
       @hash.replace("omg" => "aaron")
-      assert_equal({"omg" => "aaron"}, @hash.to_hash)
+      assert_equal({ "omg" => "aaron" }, @hash.to_hash)
     end
 
     def test_discard_no_args
@@ -129,14 +129,14 @@ module ActionDispatch
       @hash.discard "hello"
 
       @hash.sweep
-      assert_equal({"omg" => "world"}, @hash.to_hash)
+      assert_equal({ "omg" => "world" }, @hash.to_hash)
     end
 
     def test_keep_sweep
       @hash["hello"] = "world"
 
       @hash.sweep
-      assert_equal({"hello" => "world"}, @hash.to_hash)
+      assert_equal({ "hello" => "world" }, @hash.to_hash)
     end
 
     def test_update_sweep
@@ -144,7 +144,7 @@ module ActionDispatch
       @hash.update("hi" => "mom")
 
       @hash.sweep
-      assert_equal({"hello" => "world", "hi" => "mom"}, @hash.to_hash)
+      assert_equal({ "hello" => "world", "hi" => "mom" }, @hash.to_hash)
     end
 
     def test_update_delete_sweep
@@ -153,7 +153,7 @@ module ActionDispatch
       @hash.update("hello" => "mom")
 
       @hash.sweep
-      assert_equal({"hello" => "mom"}, @hash.to_hash)
+      assert_equal({ "hello" => "mom" }, @hash.to_hash)
     end
 
     def test_delete_sweep
@@ -162,7 +162,7 @@ module ActionDispatch
       @hash.delete "hi"
 
       @hash.sweep
-      assert_equal({"hello" => "world"}, @hash.to_hash)
+      assert_equal({ "hello" => "world" }, @hash.to_hash)
     end
 
     def test_clear_sweep
@@ -178,7 +178,7 @@ module ActionDispatch
       @hash.replace("hi" => "mom")
 
       @hash.sweep
-      assert_equal({"hi" => "mom"}, @hash.to_hash)
+      assert_equal({ "hi" => "mom" }, @hash.to_hash)
     end
 
     def test_discard_then_add
@@ -188,7 +188,7 @@ module ActionDispatch
       @hash["hello"] = "world"
 
       @hash.sweep
-      assert_equal({"omg" => "world", "hello" => "world"}, @hash.to_hash)
+      assert_equal({ "omg" => "world", "hello" => "world" }, @hash.to_hash)
     end
 
     def test_keep_all_sweep
@@ -198,14 +198,14 @@ module ActionDispatch
       @hash.keep
 
       @hash.sweep
-      assert_equal({"omg" => "world", "hello" => "world"}, @hash.to_hash)
+      assert_equal({ "omg" => "world", "hello" => "world" }, @hash.to_hash)
     end
 
     def test_double_sweep
       @hash["hello"] = "world"
       @hash.sweep
 
-      assert_equal({"hello" => "world"}, @hash.to_hash)
+      assert_equal({ "hello" => "world" }, @hash.to_hash)
 
       @hash.sweep
       assert_equal({}, @hash.to_hash)

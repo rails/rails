@@ -680,13 +680,13 @@ module ActiveRecord
 
           m.register_type(%r(enum)i) do |sql_type|
             limit = sql_type[/^enum\((.+)\)/i, 1]
-              .split(",").map{|enum| enum.strip.length - 2}.max
+              .split(",").map { |enum| enum.strip.length - 2 }.max
             MysqlString.new(limit: limit)
           end
 
           m.register_type(%r(^set)i) do |sql_type|
             limit = sql_type[/^set\((.+)\)/i, 1]
-              .split(",").map{|set| set.strip.length - 1}.sum - 1
+              .split(",").map { |set| set.strip.length - 1 }.sum - 1
             MysqlString.new(limit: limit)
           end
         end
@@ -717,9 +717,9 @@ module ActiveRecord
           if options.is_a?(Hash) && length = options[:length]
             case length
             when Hash
-              column_names.each {|name| option_strings[name] += "(#{length[name]})" if length.has_key?(name) && length[name].present?}
+              column_names.each { |name| option_strings[name] += "(#{length[name]})" if length.has_key?(name) && length[name].present? }
             when Integer
-              column_names.each {|name| option_strings[name] += "(#{length})"}
+              column_names.each { |name| option_strings[name] += "(#{length})" }
             end
           end
 
@@ -727,7 +727,7 @@ module ActiveRecord
         end
 
         def quoted_columns_for_index(column_names, options = {})
-          option_strings = Hash[column_names.map {|name| [name, ""]}]
+          option_strings = Hash[column_names.map { |name| [name, ""] }]
 
           # add index length
           option_strings = add_index_length(option_strings, column_names, options)
@@ -735,7 +735,7 @@ module ActiveRecord
           # add index sort order
           option_strings = add_index_sort_order(option_strings, column_names, options)
 
-          column_names.map {|name| quote_column_name(name) + option_strings[name]}
+          column_names.map { |name| quote_column_name(name) + option_strings[name] }
         end
 
       # See https://dev.mysql.com/doc/refman/5.7/en/error-messages-server.html
@@ -800,7 +800,7 @@ module ActiveRecord
         end
 
         def remove_columns_sql(table_name, *column_names)
-          column_names.map {|column_name| remove_column_sql(table_name, column_name) }
+          column_names.map { |column_name| remove_column_sql(table_name, column_name) }
         end
 
         def add_index_sql(table_name, column_name, options = {})

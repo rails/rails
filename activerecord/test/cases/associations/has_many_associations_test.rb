@@ -305,7 +305,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   test "building the association with an array" do
     speedometer = Speedometer.new(speedometer_id: "a")
-    data = [{name: "first"}, {name: "second"}]
+    data = [{ name: "first" }, { name: "second" }]
     speedometer.minivans.build(data)
 
     assert_equal 2, speedometer.minivans.size
@@ -487,7 +487,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_finding_array_compatibility
-    assert_equal 3, Firm.order(:id).find{|f| f.id > 0}.clients.length
+    assert_equal 3, Firm.order(:id).find { |f| f.id > 0 }.clients.length
   end
 
   def test_find_many_with_merged_options
@@ -644,7 +644,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert ! firm.clients.loaded?
 
     assert_queries(4) do
-      firm.clients.find_each(batch_size: 1) {|c| assert_equal firm.id, c.firm_id }
+      firm.clients.find_each(batch_size: 1) { |c| assert_equal firm.id, c.firm_id }
     end
 
     assert ! firm.clients.loaded?
@@ -670,7 +670,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_queries(2) do
       firm.clients.find_in_batches(batch_size: 2) do |clients|
-        clients.each {|c| assert_equal firm.id, c.firm_id }
+        clients.each { |c| assert_equal firm.id, c.firm_id }
       end
     end
 
@@ -701,7 +701,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_find_all_with_include_and_conditions
     assert_nothing_raised do
-      Developer.all.merge!(joins: :audit_logs, where: {"audit_logs.message" => nil, :name => "Smith"}).to_a
+      Developer.all.merge!(joins: :audit_logs, where: { "audit_logs.message" => nil, :name => "Smith" }).to_a
     end
   end
 
@@ -888,7 +888,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_build_many
     company = companies(:first_firm)
-    new_clients = assert_no_queries(ignore_none: false) { company.clients_of_firm.build([{"name" => "Another Client"}, {"name" => "Another Client II"}]) }
+    new_clients = assert_no_queries(ignore_none: false) { company.clients_of_firm.build([{ "name" => "Another Client" }, { "name" => "Another Client II" }]) }
     assert_equal 2, new_clients.size
   end
 
@@ -914,7 +914,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_build_via_block
     company = companies(:first_firm)
-    new_client = assert_no_queries(ignore_none: false) { company.clients_of_firm.build {|client| client.name = "Another Client" } }
+    new_client = assert_no_queries(ignore_none: false) { company.clients_of_firm.build { |client| client.name = "Another Client" } }
     assert !company.clients_of_firm.loaded?
 
     assert_equal "Another Client", new_client.name
@@ -925,7 +925,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_build_many_via_block
     company = companies(:first_firm)
     new_clients = assert_no_queries(ignore_none: false) do
-      company.clients_of_firm.build([{"name" => "Another Client"}, {"name" => "Another Client II"}]) do |client|
+      company.clients_of_firm.build([{ "name" => "Another Client" }, { "name" => "Another Client II" }]) do |client|
         client.name = "changed"
       end
     end
@@ -962,7 +962,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_create_many
-    companies(:first_firm).clients_of_firm.create([{"name" => "Another Client"}, {"name" => "Another Client II"}])
+    companies(:first_firm).clients_of_firm.create([{ "name" => "Another Client" }, { "name" => "Another Client II" }])
     assert_equal 4, companies(:first_firm).clients_of_firm.reload.size
   end
 
@@ -1564,7 +1564,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_restrict_with_error_with_locale
     I18n.backend = I18n::Backend::Simple.new
-    I18n.backend.store_translations "en", activerecord: {attributes: {restricted_with_error_firm: {companies: "client companies"}}}
+    I18n.backend.store_translations "en", activerecord: { attributes: { restricted_with_error_firm: { companies: "client companies" } } }
     firm = RestrictedWithErrorFirm.create!(name: "restrict")
     firm.companies.create(name: "child")
 
@@ -1742,7 +1742,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       lambda { authors(:mary).comments = [comments(:greetings), comments(:more_greetings)] },
       lambda { authors(:mary).comments << Comment.create!(body: "Yay", post_id: 424242) },
       lambda { authors(:mary).comments.delete(authors(:mary).comments.first) },
-    ].each {|block| assert_raise(ActiveRecord::HasManyThroughCantAssociateThroughHasOneOrManyReflection, &block) }
+    ].each { |block| assert_raise(ActiveRecord::HasManyThroughCantAssociateThroughHasOneOrManyReflection, &block) }
   end
 
   def test_dynamic_find_should_respect_association_order_for_through

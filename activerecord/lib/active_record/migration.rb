@@ -725,7 +725,7 @@ module ActiveRecord
     #    end
     def reversible
       helper = ReversibleBlockHelper.new(reverting?)
-      execute_block{ yield helper }
+      execute_block { yield helper }
     end
 
     # Runs the given migration classes.

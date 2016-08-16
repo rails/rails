@@ -194,7 +194,7 @@ module ActionDispatch
         end
 
         def test_to_regexp_with_strexp
-          path = Pattern.build("/:controller", { }, SEPARATORS, true)
+          path = Pattern.build("/:controller", {}, SEPARATORS, true)
           x = %r{\A/([^/.?]+)\Z}
 
           assert_equal(x.source, path.source)

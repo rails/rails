@@ -139,7 +139,7 @@ class PathsTest < ActiveSupport::TestCase
       @root["app"] = "/app"
       @root["app"].autoload_once!
       @root["app"].autoload_once!
-      assert_equal 1, @root.autoload_once.select {|p| p == @root["app"].expanded.first }.size
+      assert_equal 1, @root.autoload_once.select { |p| p == @root["app"].expanded.first }.size
     end
   end
 
@@ -203,7 +203,7 @@ class PathsTest < ActiveSupport::TestCase
       @root["app"] = "/app"
       @root["app"].eager_load!
       @root["app"].eager_load!
-      assert_equal 1, @root.eager_load.select {|p| p == @root["app"].expanded.first }.size
+      assert_equal 1, @root.eager_load.select { |p| p == @root["app"].expanded.first }.size
     end
   end
 

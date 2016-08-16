@@ -59,7 +59,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           end
           fks = @connection.foreign_keys("testings")
           assert_equal([["testings", "testing_parents", "parent_id"]],
-                       fks.map {|fk| [fk.from_table, fk.to_table, fk.column] })
+                       fks.map { |fk| [fk.from_table, fk.to_table, fk.column] })
         end
 
         test "foreign keys cannot be added to polymorphic relations when creating the table" do
@@ -186,7 +186,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
 
           fks = @connection.foreign_keys("testings")
 
-          fk_definitions = fks.map {|fk| [fk.from_table, fk.to_table, fk.column] }
+          fk_definitions = fks.map { |fk| [fk.from_table, fk.to_table, fk.column] }
           assert_equal([["testings", "testing_parents", "col_1"],
                         ["testings", "testing_parents", "col_2"]], fk_definitions)
         end

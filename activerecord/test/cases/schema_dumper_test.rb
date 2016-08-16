@@ -76,11 +76,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert matches.all? if required
     matches.compact!
     return assert(true) if matches.empty?
-    assert_equal 1, matches.map{ |match| match.offset(0).first }.uniq.length
+    assert_equal 1, matches.map { |match| match.offset(0).first }.uniq.length
   end
 
   def column_definition_lines(output = standard_dump)
-    output.scan(/^( *)create_table.*?\n(.*?)^\1end/m).map{ |m| m.last.split(/\n/) }
+    output.scan(/^( *)create_table.*?\n(.*?)^\1end/m).map { |m| m.last.split(/\n/) }
   end
 
   def test_types_line_up

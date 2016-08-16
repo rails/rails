@@ -4,7 +4,7 @@ require "controller/fake_controllers"
 
 class TestRoutingMapper < ActionDispatch::IntegrationTest
   SprocketsApp = lambda { |env|
-    [200, {"Content-Type" => "text/html"}, ["javascripts"]]
+    [200, { "Content-Type" => "text/html" }, ["javascripts"]]
   }
 
   class IpRestrictor
@@ -245,7 +245,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_redirect_proc
     draw do
-      get "account/proc/:name", to: redirect {|params, req| "/#{params[:name].pluralize}" }
+      get "account/proc/:name", to: redirect { |params, req| "/#{params[:name].pluralize}" }
     end
 
     get "/account/proc/person"
@@ -254,7 +254,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_redirect_proc_with_request
     draw do
-      get "account/proc_req" => redirect {|params, req| "/#{req.method}" }
+      get "account/proc_req" => redirect { |params, req| "/#{req.method}" }
     end
 
     get "/account/proc_req"
@@ -480,7 +480,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
 
     # without dup, additional (and possibly unwanted) values will be present in the options (eg. :host)
-    original_options = {controller: "projects", action: "status"}
+    original_options = { controller: "projects", action: "status" }
     options = original_options.dup
 
     url_for options
@@ -495,7 +495,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
 
     controller = "/projects"
-    options = {controller: controller, action: "status", only_path: true}
+    options = { controller: controller, action: "status", only_path: true }
     url = url_for(options)
 
     assert_equal "/projects/status", url
@@ -958,15 +958,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   end
 
   def test_resource_does_not_modify_passed_options
-    options = {id: /.+?/, format: /json|xml/}
+    options = { id: /.+?/, format: /json|xml/ }
     draw { resource :user, options }
-    assert_equal({id: /.+?/, format: /json|xml/}, options)
+    assert_equal({ id: /.+?/, format: /json|xml/ }, options)
   end
 
   def test_resources_does_not_modify_passed_options
-    options = {id: /.+?/, format: /json|xml/}
+    options = { id: /.+?/, format: /json|xml/ }
     draw { resources :users, options }
-    assert_equal({id: /.+?/, format: /json|xml/}, options)
+    assert_equal({ id: /.+?/, format: /json|xml/ }, options)
   end
 
   def test_path_names
@@ -2557,7 +2557,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     get "/movies/00001"
     assert_equal "Not Found", @response.body
-    assert_raises(ActionController::UrlGenerationError){ movie_path(id: "00001") }
+    assert_raises(ActionController::UrlGenerationError) { movie_path(id: "00001") }
 
     get "/movies/0001/reviews"
     assert_equal "reviews#index", @response.body
@@ -2565,7 +2565,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     get "/movies/00001/reviews"
     assert_equal "Not Found", @response.body
-    assert_raises(ActionController::UrlGenerationError){ movie_reviews_path(movie_id: "00001") }
+    assert_raises(ActionController::UrlGenerationError) { movie_reviews_path(movie_id: "00001") }
 
     get "/movies/0001/reviews/0001"
     assert_equal "reviews#show", @response.body
@@ -2573,7 +2573,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     get "/movies/00001/reviews/0001"
     assert_equal "Not Found", @response.body
-    assert_raises(ActionController::UrlGenerationError){ movie_path(movie_id: "00001", id: "00001") }
+    assert_raises(ActionController::UrlGenerationError) { movie_path(movie_id: "00001", id: "00001") }
 
     get "/movies/0001/trailer"
     assert_equal "trailers#show", @response.body
@@ -2581,7 +2581,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     get "/movies/00001/trailer"
     assert_equal "Not Found", @response.body
-    assert_raises(ActionController::UrlGenerationError){ movie_trailer_path(movie_id: "00001") }
+    assert_raises(ActionController::UrlGenerationError) { movie_trailer_path(movie_id: "00001") }
   end
 
   def test_only_should_be_read_from_scope
@@ -3009,7 +3009,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         get "/cities", to: "countries#cities"
       end
 
-      get "/countries/:country/(*other)", to: redirect{ |params, req| params[:other] ? "/countries/all/#{params[:other]}" : "/countries/all" }
+      get "/countries/:country/(*other)", to: redirect { |params, req| params[:other] ? "/countries/all/#{params[:other]}" : "/countries/all" }
     end
 
     get "/countries/France"
@@ -3030,7 +3030,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       scope "/italians" do
         get "/writers", to: "italians#writers", constraints: ::TestRoutingMapper::IpRestrictor
         get "/sculptors", to: "italians#sculptors"
-        get "/painters/:painter", to: "italians#painters", constraints: {painter: /michelangelo/}
+        get "/painters/:painter", to: "italians#painters", constraints: { painter: /michelangelo/ }
       end
     end
 
@@ -3120,7 +3120,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     get "/lists/2/todos/1"
     assert_equal "Not Found", @response.body
-    assert_raises(ActionController::UrlGenerationError){ list_todo_path(list_id: "2", id: "1") }
+    assert_raises(ActionController::UrlGenerationError) { list_todo_path(list_id: "2", id: "1") }
   end
 
   def test_redirect_argument_error
@@ -3720,13 +3720,13 @@ class TestAltApp < ActionDispatch::IntegrationTest
 
   class XHeader
     def call(env)
-      [200, {"Content-Type" => "text/html"}, ["XHeader"]]
+      [200, { "Content-Type" => "text/html" }, ["XHeader"]]
     end
   end
 
   class AltApp
     def call(env)
-      [200, {"Content-Type" => "text/html"}, ["Alternative App"]]
+      [200, { "Content-Type" => "text/html" }, ["Alternative App"]]
     end
   end
 
@@ -3736,7 +3736,7 @@ class TestAltApp < ActionDispatch::IntegrationTest
     end
   }.new
   AltRoutes.draw do
-    get "/" => TestAltApp::XHeader.new, :constraints => {x_header: /HEADER/}
+    get "/" => TestAltApp::XHeader.new, :constraints => { x_header: /HEADER/ }
     get "/" => TestAltApp::AltApp.new
   end
 
@@ -3903,7 +3903,7 @@ class TestDefaultScope < ActionDispatch::IntegrationTest
   end
 
   DefaultScopeRoutes = ActionDispatch::Routing::RouteSet.new
-  DefaultScopeRoutes.default_scope = {module: :blog}
+  DefaultScopeRoutes.default_scope = { module: :blog }
   DefaultScopeRoutes.draw do
     resources :posts
   end
@@ -4144,7 +4144,7 @@ class TestGlobRoutingMapper < ActionDispatch::IntegrationTest
     app.draw do
       ok = lambda { |env| [200, { "Content-Type" => "text/plain" }, []] }
 
-      get "/*id" => redirect("/not_cars"), :constraints => {id: /dummy/}
+      get "/*id" => redirect("/not_cars"), :constraints => { id: /dummy/ }
       get "/cars" => ok
     end
   end
@@ -4629,24 +4629,24 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
     message = "No route matches #{url.inspect} missing required keys: #{missing.inspect}"
 
     # Optimized url helper
-    error = assert_raises(ActionController::UrlGenerationError){ product_path(nil) }
+    error = assert_raises(ActionController::UrlGenerationError) { product_path(nil) }
     assert_equal message, error.message
 
     # Non-optimized url helper
-    error = assert_raises(ActionController::UrlGenerationError, message){ product_path(id: nil) }
+    error = assert_raises(ActionController::UrlGenerationError, message) { product_path(id: nil) }
     assert_equal message, error.message
   end
 
   test "url helpers raise message with mixed parameters when generation fails " do
-    url, missing = { action: "show", controller: "products", id: nil, "id"=>"url-tested"}, [:id]
+    url, missing = { action: "show", controller: "products", id: nil, "id"=>"url-tested" }, [:id]
     message = "No route matches #{url.inspect} missing required keys: #{missing.inspect}"
 
     # Optimized url helper
-    error = assert_raises(ActionController::UrlGenerationError){ product_path(nil, "id"=>"url-tested") }
+    error = assert_raises(ActionController::UrlGenerationError) { product_path(nil, "id"=>"url-tested") }
     assert_equal message, error.message
 
     # Non-optimized url helper
-    error = assert_raises(ActionController::UrlGenerationError, message){ product_path(id: nil, "id"=>"url-tested") }
+    error = assert_raises(ActionController::UrlGenerationError, message) { product_path(id: nil, "id"=>"url-tested") }
     assert_equal message, error.message
   end
 end

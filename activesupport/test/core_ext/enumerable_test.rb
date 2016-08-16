@@ -75,7 +75,7 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_typed_equal(2.0, sum.real, Float)
     assert_typed_equal(3.0, sum.imag, Float)
 
-    sum = GenericEnumerable.new([1, 2]).sum(10) {|v| v * 2 }
+    sum = GenericEnumerable.new([1, 2]).sum(10) { |v| v * 2 }
     assert_typed_equal(16, sum, Integer)
   end
 
@@ -162,7 +162,7 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_typed_equal(2.0, sum.real, Float)
     assert_typed_equal(3.0, sum.imag, Float)
 
-    sum = [1, 2].sum(10) {|v| v * 2 }
+    sum = [1, 2].sum(10) { |v| v * 2 }
     assert_typed_equal(16, sum, Integer)
   end
 
@@ -184,17 +184,17 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal false, GenericEnumerable.new([ 1 ]      ).many?
     assert_equal true,  GenericEnumerable.new([ 1, 2 ]   ).many?
 
-    assert_equal false, GenericEnumerable.new([]         ).many? {|x| x > 1 }
-    assert_equal false, GenericEnumerable.new([ 2 ]      ).many? {|x| x > 1 }
-    assert_equal false, GenericEnumerable.new([ 1, 2 ]   ).many? {|x| x > 1 }
-    assert_equal true,  GenericEnumerable.new([ 1, 2, 2 ]).many? {|x| x > 1 }
+    assert_equal false, GenericEnumerable.new([]         ).many? { |x| x > 1 }
+    assert_equal false, GenericEnumerable.new([ 2 ]      ).many? { |x| x > 1 }
+    assert_equal false, GenericEnumerable.new([ 1, 2 ]   ).many? { |x| x > 1 }
+    assert_equal true,  GenericEnumerable.new([ 1, 2, 2 ]).many? { |x| x > 1 }
   end
 
   def test_many_iterates_only_on_what_is_needed
     infinity = 1.0/0.0
     very_long_enum = 0..infinity
     assert_equal true, very_long_enum.many?
-    assert_equal true, very_long_enum.many?{|x| x > 100}
+    assert_equal true, very_long_enum.many? { |x| x > 100 }
   end
 
   def test_exclude?
@@ -206,7 +206,7 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal [1, 2, 4], GenericEnumerable.new((1..5).to_a).without(3, 5)
     assert_equal [1, 2, 4], (1..5).to_a.without(3, 5)
     assert_equal [1, 2, 4], (1..5).to_set.without(3, 5)
-    assert_equal({foo: 1, baz: 3}, {foo: 1, bar: 2, baz: 3}.without(:bar))
+    assert_equal({ foo: 1, baz: 3 }, { foo: 1, bar: 2, baz: 3 }.without(:bar))
   end
 
   def test_pluck

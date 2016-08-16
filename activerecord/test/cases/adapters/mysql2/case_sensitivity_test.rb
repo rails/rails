@@ -30,7 +30,7 @@ class Mysql2CaseSensitivityTest < ActiveRecord::Mysql2TestCase
     CollationTest.create!(string_cs_column: "A")
     invalid = CollationTest.new(string_cs_column: "a")
     queries = assert_sql { invalid.save }
-    cs_uniqueness_query = queries.detect { |q| q.match(/string_cs_column/)}
+    cs_uniqueness_query = queries.detect { |q| q.match(/string_cs_column/) }
     assert_match(/lower/i, cs_uniqueness_query)
   end
 

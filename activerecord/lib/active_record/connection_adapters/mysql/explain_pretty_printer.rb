@@ -39,7 +39,7 @@ module ActiveRecord
           def compute_column_widths(result)
             [].tap do |widths|
               result.columns.each_with_index do |column, i|
-                cells_in_column = [column] + result.rows.map {|r| r[i].nil? ? "NULL" : r[i].to_s}
+                cells_in_column = [column] + result.rows.map { |r| r[i].nil? ? "NULL" : r[i].to_s }
                 widths << cells_in_column.map(&:length).max
               end
             end
@@ -47,7 +47,7 @@ module ActiveRecord
 
           def build_separator(widths)
             padding = 1
-            "+" + widths.map {|w| "-" * (w + (padding*2))}.join("+") + "+"
+            "+" + widths.map { |w| "-" * (w + (padding*2)) }.join("+") + "+"
           end
 
           def build_cells(items, widths)

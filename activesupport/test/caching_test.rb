@@ -19,7 +19,7 @@ module ActiveSupport
             })
             _, _, body = middleware.call({})
             assert LocalCacheRegistry.cache_for(key), "should still have a cache"
-            body.each { }
+            body.each {}
             assert LocalCacheRegistry.cache_for(key), "should still have a cache"
             body.close
             assert_nil LocalCacheRegistry.cache_for(key)
@@ -135,7 +135,7 @@ class CacheKeyTest < ActiveSupport::TestCase
       kv.each { |key, value| old_values[key], ENV[key] = ENV[key], value }
       yield
     ensure
-      old_values.each { |key, value| ENV[key] = value}
+      old_values.each { |key, value| ENV[key] = value }
     end
 end
 
@@ -212,7 +212,7 @@ class CacheStoreNamespaceTest < ActiveSupport::TestCase
 
   def test_proc_namespace
     test_val = "tester"
-    proc = lambda{test_val}
+    proc = lambda { test_val }
     cache = ActiveSupport::Cache.lookup_store(:memory_store, namespace: proc)
     cache.write("foo", "bar")
     assert_equal "bar", cache.read("foo")
@@ -306,7 +306,7 @@ module CacheStoreBehavior
 
   def test_should_read_and_write_hash
     assert @cache.write("foo", a: "b")
-    assert_equal({a: "b"}, @cache.read("foo"))
+    assert_equal({ a: "b" }, @cache.read("foo"))
   end
 
   def test_should_read_and_write_integer
@@ -328,7 +328,7 @@ module CacheStoreBehavior
     @cache.write("foo", "bar")
     @cache.write("fu", "baz")
     @cache.write("fud", "biz")
-    assert_equal({"foo" => "bar", "fu" => "baz"}, @cache.read_multi("foo", "fu"))
+    assert_equal({ "foo" => "bar", "fu" => "baz" }, @cache.read_multi("foo", "fu"))
   end
 
   def test_read_multi_with_expires
@@ -337,7 +337,7 @@ module CacheStoreBehavior
     @cache.write("fu", "baz")
     @cache.write("fud", "biz")
     Time.stub(:now, time + 11) do
-      assert_equal({"fu" => "baz"}, @cache.read_multi("foo", "fu"))
+      assert_equal({ "fu" => "baz" }, @cache.read_multi("foo", "fu"))
     end
   end
 
@@ -402,7 +402,7 @@ module CacheStoreBehavior
   end
 
   def test_hash_as_cache_key
-    @cache.write({foo: 1, fu: 2}, "bar")
+    @cache.write({ foo: 1, fu: 2 }, "bar")
     assert_equal "bar", @cache.read("foo=1/fu=2")
   end
 
@@ -520,12 +520,12 @@ module CacheStoreBehavior
 
   def test_really_long_keys
     key = ""
-    900.times{key << "x"}
+    900.times { key << "x" }
     assert @cache.write(key, "bar")
     assert_equal "bar", @cache.read(key)
     assert_equal "bar", @cache.fetch(key)
     assert_nil @cache.read("#{key}x")
-    assert_equal({key => "bar"}, @cache.read_multi(key))
+    assert_equal({ key => "bar" }, @cache.read_multi(key))
     assert @cache.delete(key)
   end
 
@@ -867,7 +867,7 @@ class FileStoreTest < ActiveSupport::TestCase
   def test_key_transformation_max_filename_size
     key = "#{'A' * ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE}B"
     path = @cache.send(:normalize_key, key, {})
-    assert path.split("/").all? { |dir_name| dir_name.size <= ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE}
+    assert path.split("/").all? { |dir_name| dir_name.size <= ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE }
     assert_equal "B", File.basename(path)
   end
 
@@ -888,7 +888,7 @@ class FileStoreTest < ActiveSupport::TestCase
     end
     assert File.exist?(cache_dir), "Parent of top level cache dir was deleted!"
     assert File.exist?(sub_cache_dir), "Top level cache dir was deleted!"
-    assert Dir.entries(sub_cache_dir).reject {|f| ActiveSupport::Cache::FileStore::EXCLUDED_DIRS.include?(f)}.empty?
+    assert Dir.entries(sub_cache_dir).reject { |f| ActiveSupport::Cache::FileStore::EXCLUDED_DIRS.include?(f) }.empty?
   end
 
   def test_log_exception_when_cache_read_fails

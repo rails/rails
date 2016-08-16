@@ -26,9 +26,9 @@ module ActiveSupport
           decimal_units: {
             format: "%n %u",
             units: {
-              deci: {one: "Tenth", other: "Tenths"},
+              deci: { one: "Tenth", other: "Tenths" },
               unit: "u",
-              ten: {one: "Ten", other: "Tens"},
+              ten: { one: "Ten", other: "Tens" },
               thousand: "t",
               million: "m",
               billion: "b",
@@ -37,10 +37,10 @@ module ActiveSupport
             }
           }
         },
-        percentage: { format: {delimiter: "", precision: 2, strip_insignificant_zeros: true} },
-        precision: { format: {delimiter: "", significant: true} }
+        percentage: { format: { delimiter: "", precision: 2, strip_insignificant_zeros: true } },
+        precision: { format: { delimiter: "", significant: true } }
       },
-      custom_units_for_number_to_human: {mili: "mm", centi: "cm", deci: "dm", unit: "m", ten: "dam", hundred: "hm", thousand: "km"}
+      custom_units_for_number_to_human: { mili: "mm", centi: "cm", deci: "dm", unit: "m", ten: "dam", hundred: "hm", thousand: "km" }
     end
 
     def teardown

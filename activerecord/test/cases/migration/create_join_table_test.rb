@@ -61,7 +61,7 @@ module ActiveRecord
       end
 
       def test_create_join_table_with_column_options
-        connection.create_join_table :artists, :musics, column_options: {null: true}
+        connection.create_join_table :artists, :musics, column_options: { null: true }
 
         assert_equal [true, true], connection.columns(:artists_musics).map(&:null)
       end
@@ -116,8 +116,8 @@ module ActiveRecord
       end
 
       def test_drop_join_table_with_column_options
-        connection.create_join_table :artists, :musics, column_options: {null: true}
-        connection.drop_join_table :artists, :musics, column_options: {null: true}
+        connection.create_join_table :artists, :musics, column_options: { null: true }
+        connection.drop_join_table :artists, :musics, column_options: { null: true }
 
         ActiveSupport::Deprecation.silence { assert !connection.table_exists?("artists_musics") }
       end

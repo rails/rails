@@ -59,7 +59,7 @@ module ActionView
 
     test "can render a layout with block" do
       assert_equal "Before (ChrisCruft)\n!\nAfter",
-                    render(layout: "test/layout_for_partial", locals: {name: "ChrisCruft"}) {"!"}
+                    render(layout: "test/layout_for_partial", locals: { name: "ChrisCruft" }) { "!" }
     end
 
     helper AnotherTestHelper
@@ -155,7 +155,7 @@ module ActionView
     test "view_assigns returns a Hash of user defined ivars" do
       @a = "b"
       @c = "d"
-      assert_equal({a: "b", c: "d"}, view_assigns)
+      assert_equal({ a: "b", c: "d" }, view_assigns)
     end
 
     test "view_assigns excludes internal ivars" do

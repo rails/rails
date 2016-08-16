@@ -95,7 +95,7 @@ module ActionDispatch
             parser  = Journey::Parser.new
             paths.map { |x|
               ast = parser.parse x
-              ast.each { |n| n.memo = ast}
+              ast.each { |n| n.memo = ast }
               ast
             }
           end

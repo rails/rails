@@ -22,7 +22,7 @@ class BaseRequestTest < ActiveSupport::TestCase
     def stub_request(env = {})
       ip_spoofing_check = env.key?(:ip_spoofing_check) ? env.delete(:ip_spoofing_check) : true
       @trusted_proxies ||= nil
-      ip_app = ActionDispatch::RemoteIp.new(Proc.new { }, ip_spoofing_check, @trusted_proxies)
+      ip_app = ActionDispatch::RemoteIp.new(Proc.new {}, ip_spoofing_check, @trusted_proxies)
       ActionDispatch::Http::URL.tld_length = env.delete(:tld_length) if env.key?(:tld_length)
 
       ip_app.call(env)
@@ -596,7 +596,7 @@ class RequestParamsParsing < BaseRequestTest
       "rack.input" => StringIO.new("flamenco=love")
     )
 
-    assert_equal({"flamenco"=> "love"}, request.request_parameters)
+    assert_equal({ "flamenco"=> "love" }, request.request_parameters)
   end
 
   test "doesnt interpret request uri as query string when missing" do
@@ -784,21 +784,21 @@ end
 class RequestFormat < BaseRequestTest
   test "xml format" do
     request = stub_request
-    assert_called(request, :parameters, times: 2, returns: {format: :xml}) do
+    assert_called(request, :parameters, times: 2, returns: { format: :xml }) do
       assert_equal Mime[:xml], request.format
     end
   end
 
   test "xhtml format" do
     request = stub_request
-    assert_called(request, :parameters, times: 2, returns: {format: :xhtml}) do
+    assert_called(request, :parameters, times: 2, returns: { format: :xhtml }) do
       assert_equal Mime[:html], request.format
     end
   end
 
   test "txt format" do
     request = stub_request
-    assert_called(request, :parameters, times: 2, returns: {format: :txt}) do
+    assert_called(request, :parameters, times: 2, returns: { format: :txt }) do
       assert_equal Mime[:text], request.format
     end
   end
@@ -817,14 +817,14 @@ class RequestFormat < BaseRequestTest
 
   test "can override format with parameter negative" do
     request = stub_request
-    assert_called(request, :parameters, times: 2, returns: {format: :txt}) do
+    assert_called(request, :parameters, times: 2, returns: { format: :txt }) do
       assert !request.format.xml?
     end
   end
 
   test "can override format with parameter positive" do
     request = stub_request
-    assert_called(request, :parameters, times: 2, returns: {format: :xml}) do
+    assert_called(request, :parameters, times: 2, returns: { format: :xml }) do
       assert request.format.xml?
     end
   end
@@ -852,21 +852,21 @@ class RequestFormat < BaseRequestTest
 
   test "formats format:text with accept header" do
     request = stub_request
-    assert_called(request, :parameters, times: 2, returns: {format: :txt}) do
+    assert_called(request, :parameters, times: 2, returns: { format: :txt }) do
       assert_equal [Mime[:text]], request.formats
     end
   end
 
   test "formats format:unknown with accept header" do
     request = stub_request
-    assert_called(request, :parameters, times: 2, returns: {format: :unknown}) do
+    assert_called(request, :parameters, times: 2, returns: { format: :unknown }) do
       assert_instance_of Mime::NullType, request.format
     end
   end
 
   test "format is not nil with unknown format" do
     request = stub_request
-    assert_called(request, :parameters, times: 2, returns: {format: :hello}) do
+    assert_called(request, :parameters, times: 2, returns: { format: :hello }) do
       assert request.format.nil?
       assert_not request.format.html?
       assert_not request.format.xml?
@@ -921,7 +921,7 @@ class RequestFormat < BaseRequestTest
 
       request = stub_request "HTTP_ACCEPT" => "application/xml",
                              "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest"
-      assert_called(request, :parameters, times: 2, returns: {format: :json}) do
+      assert_called(request, :parameters, times: 2, returns: { format: :json }) do
         assert_equal [ Mime[:json] ], request.formats
       end
     ensure
@@ -997,11 +997,11 @@ class RequestParameters < BaseRequestTest
   test "parameters" do
     request = stub_request
 
-    assert_called(request, :request_parameters, times: 2, returns: {"foo" => 1}) do
-      assert_called(request, :query_parameters, times: 2, returns: {"bar" => 2}) do
-        assert_equal({"foo" => 1, "bar" => 2}, request.parameters)
-        assert_equal({"foo" => 1}, request.request_parameters)
-        assert_equal({"bar" => 2}, request.query_parameters)
+    assert_called(request, :request_parameters, times: 2, returns: { "foo" => 1 }) do
+      assert_called(request, :query_parameters, times: 2, returns: { "bar" => 2 }) do
+        assert_equal({ "foo" => 1, "bar" => 2 }, request.parameters)
+        assert_equal({ "foo" => 1 }, request.request_parameters)
+        assert_equal({ "bar" => 2 }, request.query_parameters)
       end
     end
   end
@@ -1072,14 +1072,14 @@ end
 class RequestParameterFilter < BaseRequestTest
   test "process parameter filter" do
     test_hashes = [
-    [{"foo"=>"bar"},{"foo"=>"bar"},%w'food'],
-    [{"foo"=>"bar"},{"foo"=>"[FILTERED]"},%w'foo'],
-    [{"foo"=>"bar", "bar"=>"foo"},{"foo"=>"[FILTERED]", "bar"=>"foo"},%w'foo baz'],
-    [{"foo"=>"bar", "baz"=>"foo"},{"foo"=>"[FILTERED]", "baz"=>"[FILTERED]"},%w'foo baz'],
-    [{"bar"=>{"foo"=>"bar","bar"=>"foo"}},{"bar"=>{"foo"=>"[FILTERED]","bar"=>"foo"}},%w'fo'],
-    [{"foo"=>{"foo"=>"bar","bar"=>"foo"}},{"foo"=>"[FILTERED]"},%w'f banana'],
-    [{"deep"=>{"cc"=>{"code"=>"bar","bar"=>"foo"},"ss"=>{"code"=>"bar"}}},{"deep"=>{"cc"=>{"code"=>"[FILTERED]","bar"=>"foo"},"ss"=>{"code"=>"bar"}}},%w'deep.cc.code'],
-    [{"baz"=>[{"foo"=>"baz"}, "1"]}, {"baz"=>[{"foo"=>"[FILTERED]"}, "1"]}, [/foo/]]]
+    [{ "foo"=>"bar" },{ "foo"=>"bar" },%w'food'],
+    [{ "foo"=>"bar" },{ "foo"=>"[FILTERED]" },%w'foo'],
+    [{ "foo"=>"bar", "bar"=>"foo" },{ "foo"=>"[FILTERED]", "bar"=>"foo" },%w'foo baz'],
+    [{ "foo"=>"bar", "baz"=>"foo" },{ "foo"=>"[FILTERED]", "baz"=>"[FILTERED]" },%w'foo baz'],
+    [{ "bar"=>{ "foo"=>"bar","bar"=>"foo" } },{ "bar"=>{ "foo"=>"[FILTERED]","bar"=>"foo" } },%w'fo'],
+    [{ "foo"=>{ "foo"=>"bar","bar"=>"foo" } },{ "foo"=>"[FILTERED]" },%w'f banana'],
+    [{ "deep"=>{ "cc"=>{ "code"=>"bar","bar"=>"foo" },"ss"=>{ "code"=>"bar" } } },{ "deep"=>{ "cc"=>{ "code"=>"[FILTERED]","bar"=>"foo" },"ss"=>{ "code"=>"bar" } } },%w'deep.cc.code'],
+    [{ "baz"=>[{ "foo"=>"baz" }, "1"] }, { "baz"=>[{ "foo"=>"[FILTERED]" }, "1"] }, [/foo/]]]
 
     test_hashes.each do |before_filter, after_filter, filter_words|
       parameter_filter = ActionDispatch::Http::ParameterFilter.new(filter_words)
@@ -1091,8 +1091,8 @@ class RequestParameterFilter < BaseRequestTest
       }
 
       parameter_filter = ActionDispatch::Http::ParameterFilter.new(filter_words)
-      before_filter["barg"] = {:bargain=>"gain", "blah"=>"bar", "bar"=>{"bargain"=>{"blah"=>"foo"}}}
-      after_filter["barg"]  = {:bargain=>"niag", "blah"=>"[FILTERED]", "bar"=>{"bargain"=>{"blah"=>"[FILTERED]"}}}
+      before_filter["barg"] = { :bargain=>"gain", "blah"=>"bar", "bar"=>{ "bargain"=>{ "blah"=>"foo" } } }
+      after_filter["barg"]  = { :bargain=>"niag", "blah"=>"[FILTERED]", "bar"=>{ "bargain"=>{ "blah"=>"[FILTERED]" } } }
 
       assert_equal after_filter, parameter_filter.filter(before_filter)
     end

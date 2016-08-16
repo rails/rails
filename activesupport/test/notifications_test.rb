@@ -31,7 +31,7 @@ module Notifications
       expected = [name, name]
 
       events   = []
-      callback = lambda {|*_| events << _.first}
+      callback = lambda { |*_| events << _.first }
       ActiveSupport::Notifications.subscribed(callback, name) do
         ActiveSupport::Notifications.instrument(name)
         ActiveSupport::Notifications.instrument(name2)

@@ -348,7 +348,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_delete_association
-    assert_queries(2){posts(:welcome);people(:michael); }
+    assert_queries(2) { posts(:welcome);people(:michael); }
 
     assert_queries(1) do
       posts(:welcome).people.delete(people(:michael))
@@ -541,7 +541,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_replace_association
-    assert_queries(4){posts(:welcome);people(:david);people(:michael); posts(:welcome).people.reload}
+    assert_queries(4) { posts(:welcome);people(:david);people(:michael); posts(:welcome).people.reload }
 
     # 1 query to delete the existing reader (michael)
     # 1 query to associate the new reader (david)
@@ -549,7 +549,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       posts(:welcome).people = [people(:david)]
     end
 
-    assert_queries(0){
+    assert_queries(0) {
       assert posts(:welcome).people.include?(people(:david))
       assert !posts(:welcome).people.include?(people(:michael))
     }
@@ -658,7 +658,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_push_with_invalid_join_record
     repair_validations(Contract) do
-      Contract.validate {|r| r.errors[:base] << "Invalid Contract" }
+      Contract.validate { |r| r.errors[:base] << "Invalid Contract" }
 
       firm = companies(:first_firm)
       lifo = Developer.new(name: "lifo")
@@ -812,7 +812,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       lambda { authors(:david).very_special_comments = [VerySpecialComment.create!(body: "Gorp!", post_id: 1011), VerySpecialComment.create!(body: "Eep!", post_id: 1012)] },
       lambda { authors(:david).very_special_comments << VerySpecialComment.create!(body: "Hoohah!", post_id: 1013) },
       lambda { authors(:david).very_special_comments.delete(authors(:david).very_special_comments.first) },
-    ].each {|block| assert_raise(ActiveRecord::HasManyThroughCantAssociateThroughHasOneOrManyReflection, &block) }
+    ].each { |block| assert_raise(ActiveRecord::HasManyThroughCantAssociateThroughHasOneOrManyReflection, &block) }
   end
 
   def test_has_many_association_through_a_has_many_association_to_self
@@ -886,7 +886,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_collection_singular_ids_setter_raises_exception_when_invalid_ids_set
     company = companies(:rails_core)
     ids =  [Developer.first.id, -9999]
-    assert_raises(ActiveRecord::AssociationTypeMismatch) {company.developer_ids= ids}
+    assert_raises(ActiveRecord::AssociationTypeMismatch) { company.developer_ids= ids }
   end
 
   def test_build_a_model_from_hm_through_association_with_where_clause

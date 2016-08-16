@@ -173,11 +173,11 @@ module ActiveRecord
       end
 
       def full_table_name_prefix #:nodoc:
-        (parents.detect{ |p| p.respond_to?(:table_name_prefix) } || self).table_name_prefix
+        (parents.detect { |p| p.respond_to?(:table_name_prefix) } || self).table_name_prefix
       end
 
       def full_table_name_suffix #:nodoc:
-        (parents.detect {|p| p.respond_to?(:table_name_suffix) } || self).table_name_suffix
+        (parents.detect { |p| p.respond_to?(:table_name_suffix) } || self).table_name_suffix
       end
 
       # Defines the name of the table column which will store the class name on single-table

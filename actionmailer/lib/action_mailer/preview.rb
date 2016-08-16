@@ -80,12 +80,12 @@ module ActionMailer
 
       # Returns true if the preview exists.
       def exists?(preview)
-        all.any?{ |p| p.preview_name == preview }
+        all.any? { |p| p.preview_name == preview }
       end
 
       # Find a mailer preview by its underscored class name.
       def find(preview)
-        all.find{ |p| p.preview_name == preview }
+        all.find { |p| p.preview_name == preview }
       end
 
       # Returns the underscored name of the mailer preview without the suffix.
@@ -96,7 +96,7 @@ module ActionMailer
       protected
         def load_previews #:nodoc:
           if preview_path
-            Dir["#{preview_path}/**/*_preview.rb"].each{ |file| require_dependency file }
+            Dir["#{preview_path}/**/*_preview.rb"].each { |file| require_dependency file }
           end
         end
 

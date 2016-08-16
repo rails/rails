@@ -80,7 +80,7 @@ class NumberHelperTest < ActionView::TestCase
     #Including fractionals
     distance = { mili: "<b>mm</b>", centi: "<b>cm</b>", deci: "<b>dm</b>", unit: "<b>m</b>",
                  ten: "<b>dam</b>", hundred: "<b>hm</b>", thousand: "<b>km</b>",
-                 micro: "<b>um</b>", nano: "<b>nm</b>", pico: "<b>pm</b>", femto: "<b>fm</b>"}
+                 micro: "<b>um</b>", nano: "<b>nm</b>", pico: "<b>pm</b>", femto: "<b>fm</b>" }
     assert_equal "1.23 &lt;b&gt;mm&lt;/b&gt;", number_to_human(0.00123, units: distance)
     assert_equal "1.23 &lt;b&gt;cm&lt;/b&gt;", number_to_human(0.0123, units: distance)
     assert_equal "1.23 &lt;b&gt;dm&lt;/b&gt;", number_to_human(0.123, units: distance)
@@ -117,7 +117,7 @@ class NumberHelperTest < ActionView::TestCase
 
   def test_number_to_human_with_custom_translation_scope
     I18n.backend.store_translations "ts",
-      custom_units_for_number_to_human: {mili: "mm", centi: "cm", deci: "dm", unit: "m", ten: "dam", hundred: "hm", thousand: "km"}
+      custom_units_for_number_to_human: { mili: "mm", centi: "cm", deci: "dm", unit: "m", ten: "dam", hundred: "hm", thousand: "km" }
     assert_equal "1.01 cm", number_to_human(0.0101, locale: "ts", units: :custom_units_for_number_to_human)
   ensure
     I18n.reload!

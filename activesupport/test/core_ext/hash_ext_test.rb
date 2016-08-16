@@ -41,9 +41,9 @@ class HashExtTest < ActiveSupport::TestCase
     @mixed = { :a => 1, "b" => 2 }
     @nested_mixed = { "a" => { b: { "c" => 3 } } }
     @integers = { 0 => 1, 1 => 2 }
-    @nested_integers = { 0 => { 1 => { 2 => 3} } }
+    @nested_integers = { 0 => { 1 => { 2 => 3 } } }
     @illegal_symbols = { [] => 3 }
-    @nested_illegal_symbols = { [] => { [] => 3} }
+    @nested_illegal_symbols = { [] => { [] => 3 } }
     @upcase_strings = { "A" => 1, "B" => 2 }
     @nested_upcase_strings = { "A" => { "B" => { "C" => 3 } } }
     @string_array_of_hashes = { "a" => [ { "b" => 2 }, { "c" => 3 }, 4 ] }
@@ -75,57 +75,57 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_transform_keys
-    assert_equal @upcase_strings, @strings.transform_keys{ |key| key.to_s.upcase }
-    assert_equal @upcase_strings, @symbols.transform_keys{ |key| key.to_s.upcase }
-    assert_equal @upcase_strings, @mixed.transform_keys{ |key| key.to_s.upcase }
+    assert_equal @upcase_strings, @strings.transform_keys { |key| key.to_s.upcase }
+    assert_equal @upcase_strings, @symbols.transform_keys { |key| key.to_s.upcase }
+    assert_equal @upcase_strings, @mixed.transform_keys { |key| key.to_s.upcase }
   end
 
   def test_transform_keys_not_mutates
     transformed_hash = @mixed.dup
-    transformed_hash.transform_keys{ |key| key.to_s.upcase }
+    transformed_hash.transform_keys { |key| key.to_s.upcase }
     assert_equal @mixed, transformed_hash
   end
 
   def test_deep_transform_keys
-    assert_equal @nested_upcase_strings, @nested_symbols.deep_transform_keys{ |key| key.to_s.upcase }
-    assert_equal @nested_upcase_strings, @nested_strings.deep_transform_keys{ |key| key.to_s.upcase }
-    assert_equal @nested_upcase_strings, @nested_mixed.deep_transform_keys{ |key| key.to_s.upcase }
-    assert_equal @upcase_array_of_hashes, @string_array_of_hashes.deep_transform_keys{ |key| key.to_s.upcase }
-    assert_equal @upcase_array_of_hashes, @symbol_array_of_hashes.deep_transform_keys{ |key| key.to_s.upcase }
-    assert_equal @upcase_array_of_hashes, @mixed_array_of_hashes.deep_transform_keys{ |key| key.to_s.upcase }
+    assert_equal @nested_upcase_strings, @nested_symbols.deep_transform_keys { |key| key.to_s.upcase }
+    assert_equal @nested_upcase_strings, @nested_strings.deep_transform_keys { |key| key.to_s.upcase }
+    assert_equal @nested_upcase_strings, @nested_mixed.deep_transform_keys { |key| key.to_s.upcase }
+    assert_equal @upcase_array_of_hashes, @string_array_of_hashes.deep_transform_keys { |key| key.to_s.upcase }
+    assert_equal @upcase_array_of_hashes, @symbol_array_of_hashes.deep_transform_keys { |key| key.to_s.upcase }
+    assert_equal @upcase_array_of_hashes, @mixed_array_of_hashes.deep_transform_keys { |key| key.to_s.upcase }
   end
 
   def test_deep_transform_keys_not_mutates
     transformed_hash = @nested_mixed.deep_dup
-    transformed_hash.deep_transform_keys{ |key| key.to_s.upcase }
+    transformed_hash.deep_transform_keys { |key| key.to_s.upcase }
     assert_equal @nested_mixed, transformed_hash
   end
 
   def test_transform_keys!
-    assert_equal @upcase_strings, @symbols.dup.transform_keys!{ |key| key.to_s.upcase }
-    assert_equal @upcase_strings, @strings.dup.transform_keys!{ |key| key.to_s.upcase }
-    assert_equal @upcase_strings, @mixed.dup.transform_keys!{ |key| key.to_s.upcase }
+    assert_equal @upcase_strings, @symbols.dup.transform_keys! { |key| key.to_s.upcase }
+    assert_equal @upcase_strings, @strings.dup.transform_keys! { |key| key.to_s.upcase }
+    assert_equal @upcase_strings, @mixed.dup.transform_keys! { |key| key.to_s.upcase }
   end
 
   def test_transform_keys_with_bang_mutates
     transformed_hash = @mixed.dup
-    transformed_hash.transform_keys!{ |key| key.to_s.upcase }
+    transformed_hash.transform_keys! { |key| key.to_s.upcase }
     assert_equal @upcase_strings, transformed_hash
     assert_equal @mixed, :a => 1, "b" => 2
   end
 
   def test_deep_transform_keys!
-    assert_equal @nested_upcase_strings, @nested_symbols.deep_dup.deep_transform_keys!{ |key| key.to_s.upcase }
-    assert_equal @nested_upcase_strings, @nested_strings.deep_dup.deep_transform_keys!{ |key| key.to_s.upcase }
-    assert_equal @nested_upcase_strings, @nested_mixed.deep_dup.deep_transform_keys!{ |key| key.to_s.upcase }
-    assert_equal @upcase_array_of_hashes, @string_array_of_hashes.deep_dup.deep_transform_keys!{ |key| key.to_s.upcase }
-    assert_equal @upcase_array_of_hashes, @symbol_array_of_hashes.deep_dup.deep_transform_keys!{ |key| key.to_s.upcase }
-    assert_equal @upcase_array_of_hashes, @mixed_array_of_hashes.deep_dup.deep_transform_keys!{ |key| key.to_s.upcase }
+    assert_equal @nested_upcase_strings, @nested_symbols.deep_dup.deep_transform_keys! { |key| key.to_s.upcase }
+    assert_equal @nested_upcase_strings, @nested_strings.deep_dup.deep_transform_keys! { |key| key.to_s.upcase }
+    assert_equal @nested_upcase_strings, @nested_mixed.deep_dup.deep_transform_keys! { |key| key.to_s.upcase }
+    assert_equal @upcase_array_of_hashes, @string_array_of_hashes.deep_dup.deep_transform_keys! { |key| key.to_s.upcase }
+    assert_equal @upcase_array_of_hashes, @symbol_array_of_hashes.deep_dup.deep_transform_keys! { |key| key.to_s.upcase }
+    assert_equal @upcase_array_of_hashes, @mixed_array_of_hashes.deep_dup.deep_transform_keys! { |key| key.to_s.upcase }
   end
 
   def test_deep_transform_keys_with_bang_mutates
     transformed_hash = @nested_mixed.deep_dup
-    transformed_hash.deep_transform_keys!{ |key| key.to_s.upcase }
+    transformed_hash.deep_transform_keys! { |key| key.to_s.upcase }
     assert_equal @nested_upcase_strings, transformed_hash
     assert_equal @nested_mixed, "a" => { b: { "c" => 3 } }
   end
@@ -534,7 +534,7 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_indifferent_deleting
-    get_hash = proc{ { a: "foo" }.with_indifferent_access }
+    get_hash = proc { { a: "foo" }.with_indifferent_access }
     hash = get_hash.call
     assert_equal hash.delete(:a), "foo"
     assert_equal hash.delete(:a), nil
@@ -544,7 +544,7 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_indifferent_select
-    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).select {|k,v| v == 1}
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).select { |k,v| v == 1 }
 
     assert_equal({ "a" => 1 }, hash)
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
@@ -556,21 +556,21 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_indifferent_select_returns_a_hash_when_unchanged
-    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).select {|k,v| true}
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).select { |k,v| true }
 
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
   end
 
   def test_indifferent_select_bang
     indifferent_strings = ActiveSupport::HashWithIndifferentAccess.new(@strings)
-    indifferent_strings.select! {|k,v| v == 1}
+    indifferent_strings.select! { |k,v| v == 1 }
 
     assert_equal({ "a" => 1 }, indifferent_strings)
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, indifferent_strings
   end
 
   def test_indifferent_reject
-    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).reject {|k,v| v != 1}
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).reject { |k,v| v != 1 }
 
     assert_equal({ "a" => 1 }, hash)
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
@@ -583,7 +583,7 @@ class HashExtTest < ActiveSupport::TestCase
 
   def test_indifferent_reject_bang
     indifferent_strings = ActiveSupport::HashWithIndifferentAccess.new(@strings)
-    indifferent_strings.reject! {|k,v| v != 1}
+    indifferent_strings.reject! { |k,v| v != 1 }
 
     assert_equal({ "a" => 1 }, indifferent_strings)
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, indifferent_strings
@@ -608,21 +608,21 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_lookup_returns_the_same_object_that_is_stored_in_hash_indifferent_access
-    hash = HashWithIndifferentAccess.new {|h, k| h[k] = []}
+    hash = HashWithIndifferentAccess.new { |h, k| h[k] = [] }
     hash[:a] << 1
 
     assert_equal [1], hash[:a]
   end
 
   def test_with_indifferent_access_has_no_side_effects_on_existing_hash
-    hash = {content: [{:foo => :bar, "bar" => "baz"}]}
+    hash = { content: [{ :foo => :bar, "bar" => "baz" }] }
     hash.with_indifferent_access
 
     assert_equal [:foo, "bar"], hash[:content].first.keys
   end
 
   def test_indifferent_hash_with_array_of_hashes
-    hash = { "urls" => { "url" => [ { "address" => "1" }, { "address" => "2" } ] }}.with_indifferent_access
+    hash = { "urls" => { "url" => [ { "address" => "1" }, { "address" => "2" } ] } }.with_indifferent_access
     assert_equal "1", hash[:urls][:url].first[:address]
 
     hash = hash.to_hash
@@ -634,14 +634,14 @@ class HashExtTest < ActiveSupport::TestCase
   def test_should_preserve_array_subclass_when_value_is_array
     array = SubclassingArray.new
     array << { "address" => "1" }
-    hash = { "urls" => { "url" => array }}.with_indifferent_access
+    hash = { "urls" => { "url" => array } }.with_indifferent_access
     assert_equal SubclassingArray, hash[:urls][:url].class
   end
 
   def test_should_preserve_array_class_when_hash_value_is_frozen_array
     array = SubclassingArray.new
     array << { "address" => "1" }
-    hash = { "urls" => { "url" => array.freeze }}.with_indifferent_access
+    hash = { "urls" => { "url" => array.freeze } }.with_indifferent_access
     assert_equal SubclassingArray, hash[:urls][:url].class
   end
 
@@ -683,11 +683,11 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_indifferent_sub_hashes
-    h = {"user" => {"id" => 5}}.with_indifferent_access
-    ["user", :user].each {|user| [:id, "id"].each {|id| assert_equal 5, h[user][id], "h[#{user.inspect}][#{id.inspect}] should be 5"}}
+    h = { "user" => { "id" => 5 } }.with_indifferent_access
+    ["user", :user].each { |user| [:id, "id"].each { |id| assert_equal 5, h[user][id], "h[#{user.inspect}][#{id.inspect}] should be 5" } }
 
-    h = {user: {id: 5}}.with_indifferent_access
-    ["user", :user].each {|user| [:id, "id"].each {|id| assert_equal 5, h[user][id], "h[#{user.inspect}][#{id.inspect}] should be 5"}}
+    h = { user: { id: 5 } }.with_indifferent_access
+    ["user", :user].each { |user| [:id, "id"].each { |id| assert_equal 5, h[user][id], "h[#{user.inspect}][#{id.inspect}] should be 5" } }
   end
 
   def test_indifferent_duplication
@@ -703,7 +703,7 @@ class HashExtTest < ActiveSupport::TestCase
 
   def test_nested_dig_indifferent_access
     skip if RUBY_VERSION < "2.3.0"
-    data = {"this" => {"views" => 1234}}.with_indifferent_access
+    data = { "this" => { "views" => 1234 } }.with_indifferent_access
     assert_equal 1234, data.dig(:this, :views)
   end
 
@@ -740,9 +740,9 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_assorted_keys_not_stringified
-    original = {Object.new => 2, 1 => 2, [] => true}
+    original = { Object.new => 2, 1 => 2, [] => true }
     indiff = original.with_indifferent_access
-    assert(!indiff.keys.any? {|k| k.kind_of? String}, "A key was converted to a string!")
+    assert(!indiff.keys.any? { |k| k.kind_of? String }, "A key was converted to a string!")
   end
 
   def test_deep_merge
@@ -891,7 +891,7 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_indifferent_slice_access_with_symbols
-    original = {"login" => "bender", "password" => "shiny", "stuff" => "foo"}
+    original = { "login" => "bender", "password" => "shiny", "stuff" => "foo" }
     original = original.with_indifferent_access
 
     slice = original.slice(:login, :password)
@@ -919,17 +919,17 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_extract
-    original = {a: 1, b: 2, c: 3, d: 4}
-    expected = {a: 1, b: 2}
-    remaining = {c: 3, d: 4}
+    original = { a: 1, b: 2, c: 3, d: 4 }
+    expected = { a: 1, b: 2 }
+    remaining = { c: 3, d: 4 }
 
     assert_equal expected, original.extract!(:a, :b, :x)
     assert_equal remaining, original
   end
 
   def test_extract_nils
-    original = {a: nil, b: nil}
-    expected = {a: nil}
+    original = { a: nil, b: nil }
+    expected = { a: nil }
     extracted = original.extract!(:a, :x)
 
     assert_equal expected, extracted
@@ -938,9 +938,9 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_indifferent_extract
-    original = {:a => 1, "b" => 2, :c => 3, "d" => 4}.with_indifferent_access
-    expected = {a: 1, b: 2}.with_indifferent_access
-    remaining = {c: 3, d: 4}.with_indifferent_access
+    original = { :a => 1, "b" => 2, :c => 3, "d" => 4 }.with_indifferent_access
+    expected = { a: 1, b: 2 }.with_indifferent_access
+    remaining = { c: 3, d: 4 }.with_indifferent_access
 
     [["a", "b"], [:a, :b]].each do |keys|
       copy = original.dup
@@ -1099,15 +1099,15 @@ class HashExtToParamTests < ActiveSupport::TestCase
     assert_equal "", {}.to_param
     assert_equal "hello=world", { hello: "world" }.to_param
     assert_equal "hello=10", { "hello" => 10 }.to_param
-    assert_equal "hello=world&say_bye=true", {:hello => "world", "say_bye" => true}.to_param
+    assert_equal "hello=world&say_bye=true", { :hello => "world", "say_bye" => true }.to_param
   end
 
   def test_number_hash
-    assert_equal "10=20&30=40&50=60", {10 => 20, 30 => 40, 50 => 60}.to_param
+    assert_equal "10=20&30=40&50=60", { 10 => 20, 30 => 40, 50 => 60 }.to_param
   end
 
   def test_to_param_hash
-    assert_equal "custom-1=param-1&custom2-1=param2-1", {ToParam.new("custom") => ToParam.new("param"), ToParam.new("custom2") => ToParam.new("param2")}.to_param
+    assert_equal "custom-1=param-1&custom2-1=param2-1", { ToParam.new("custom") => ToParam.new("param"), ToParam.new("custom2") => ToParam.new("param2") }.to_param
   end
 
   def test_to_param_hash_escapes_its_keys_and_values
@@ -1437,7 +1437,7 @@ class HashToXmlTest < ActiveSupport::TestCase
         <posts type="array"></posts>
       </blog>
     XML
-    expected_blog_hash = {"blog" => {"posts" => []}}
+    expected_blog_hash = { "blog" => { "posts" => [] } }
     assert_equal expected_blog_hash, Hash.from_xml(blog_xml)
   end
 
@@ -1448,7 +1448,7 @@ class HashToXmlTest < ActiveSupport::TestCase
         </posts>
       </blog>
     XML
-    expected_blog_hash = {"blog" => {"posts" => []}}
+    expected_blog_hash = { "blog" => { "posts" => [] } }
     assert_equal expected_blog_hash, Hash.from_xml(blog_xml)
   end
 
@@ -1460,7 +1460,7 @@ class HashToXmlTest < ActiveSupport::TestCase
         </posts>
       </blog>
     XML
-    expected_blog_hash = {"blog" => {"posts" => ["a post"]}}
+    expected_blog_hash = { "blog" => { "posts" => ["a post"] } }
     assert_equal expected_blog_hash, Hash.from_xml(blog_xml)
   end
 
@@ -1473,7 +1473,7 @@ class HashToXmlTest < ActiveSupport::TestCase
         </posts>
       </blog>
     XML
-    expected_blog_hash = {"blog" => {"posts" => ["a post", "another post"]}}
+    expected_blog_hash = { "blog" => { "posts" => ["a post", "another post"] } }
     assert_equal expected_blog_hash, Hash.from_xml(blog_xml)
   end
 
@@ -1557,7 +1557,7 @@ class HashToXmlTest < ActiveSupport::TestCase
 
     expected_product_hash = {
       weight: 0.5,
-      image: {"type" => "ProductImage", "filename" => "image.gif" },
+      image: { "type" => "ProductImage", "filename" => "image.gif" },
     }.stringify_keys
 
     assert_equal expected_product_hash, Hash.from_xml(product_xml)["product"]
@@ -1580,17 +1580,17 @@ class HashToXmlTest < ActiveSupport::TestCase
   end
 
   def test_from_xml_array_one
-    expected = { "numbers" => { "type" => "Array", "value" => "1" }}
+    expected = { "numbers" => { "type" => "Array", "value" => "1" } }
     assert_equal expected, Hash.from_xml('<numbers type="Array"><value>1</value></numbers>')
   end
 
   def test_from_xml_array_many
-    expected = { "numbers" => { "type" => "Array", "value" => [ "1", "2" ] }}
+    expected = { "numbers" => { "type" => "Array", "value" => [ "1", "2" ] } }
     assert_equal expected, Hash.from_xml('<numbers type="Array"><value>1</value><value>2</value></numbers>')
   end
 
   def test_from_trusted_xml_allows_symbol_and_yaml_types
-    expected = { "product" => { "name" => :value }}
+    expected = { "product" => { "name" => :value } }
     assert_equal expected, Hash.from_trusted_xml('<product><name type="symbol">value</name></product>')
     assert_equal expected, Hash.from_trusted_xml('<product><name type="yaml">:value</name></product>')
   end
@@ -1734,10 +1734,10 @@ class HashToXmlTest < ActiveSupport::TestCase
   end
 
   def test_to_xml_dups_options
-    options = {skip_instruct: true}
+    options = { skip_instruct: true }
     {}.to_xml(options)
     # :builder, etc, shouldn't be added to options
-    assert_equal({skip_instruct: true}, options)
+    assert_equal({ skip_instruct: true }, options)
   end
 
   def test_expansion_count_is_limited

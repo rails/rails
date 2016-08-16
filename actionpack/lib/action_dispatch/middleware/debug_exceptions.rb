@@ -151,7 +151,7 @@ module ActionDispatch
       end
 
       def render(status, body, format)
-        [status, {"Content-Type" => "#{format}; charset=#{Response.default_charset}", "Content-Length" => body.bytesize.to_s}, [body]]
+        [status, { "Content-Type" => "#{format}; charset=#{Response.default_charset}", "Content-Length" => body.bytesize.to_s }, [body]]
       end
 
       def log_error(request, wrapper)

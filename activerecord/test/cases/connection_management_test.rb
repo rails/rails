@@ -104,7 +104,7 @@ module ActiveRecord
         def middleware(app)
           lambda do |env|
             a, b, c = executor.wrap { app.call(env) }
-            [a, b, Rack::BodyProxy.new(c) { }]
+            [a, b, Rack::BodyProxy.new(c) {}]
           end
         end
     end

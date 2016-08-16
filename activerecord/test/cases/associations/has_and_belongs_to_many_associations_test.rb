@@ -258,7 +258,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_habtm_saving_multiple_relationships
     new_project = Project.new("name" => "Grimetime")
     amount_of_developers = 4
-    developers = (0...amount_of_developers).collect {|i| Developer.create(name: "JME #{i}") }.reverse
+    developers = (0...amount_of_developers).collect { |i| Developer.create(name: "JME #{i}") }.reverse
 
     new_project.developer_ids = [developers[0].id, developers[1].id]
     new_project.developers_with_callback_ids = [developers[2].id, developers[3].id]
@@ -588,7 +588,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_dynamic_find_all_should_respect_readonly_access
-    projects(:active_record).readonly_developers.each { |d| assert_raise(ActiveRecord::ReadOnlyRecord) { d.save!  } if d.valid?}
+    projects(:active_record).readonly_developers.each { |d| assert_raise(ActiveRecord::ReadOnlyRecord) { d.save!  } if d.valid? }
     projects(:active_record).readonly_developers.each(&:readonly?)
   end
 
@@ -700,7 +700,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal(
       3,
       Developer.references(:developers_projects_join).merge(
-        includes: {projects: :developers},
+        includes: { projects: :developers },
         where: "projects_developers_projects_join.joined_on IS NOT NULL"
       ).to_a.size
     )
@@ -720,7 +720,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal(
       3,
       Developer.references(:developers_projects_join).merge(
-        includes: {projects: :developers}, where: "projects_developers_projects_join.joined_on IS NOT NULL",
+        includes: { projects: :developers }, where: "projects_developers_projects_join.joined_on IS NOT NULL",
         group: group.join(",")
       ).to_a.size
     )

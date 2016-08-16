@@ -355,7 +355,7 @@ module ActionDispatch
           end
         elsif options[:domain].is_a? Array
           # if host matches one of the supplied domains without a dot in front of it
-          options[:domain] = options[:domain].find {|domain| request.host.include? domain.sub(/^\./, "") }
+          options[:domain] = options[:domain].find { |domain| request.host.include? domain.sub(/^\./, "") }
         end
       end
 
@@ -406,7 +406,7 @@ module ActionDispatch
 
       # Removes all cookies on the client machine by calling <tt>delete</tt> for each cookie
       def clear(options = {})
-        @cookies.each_key{ |k| delete(k, options) }
+        @cookies.each_key { |k| delete(k, options) }
       end
 
       def write(headers)

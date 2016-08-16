@@ -94,7 +94,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   def test_to_form_params_with_namespace
     assert_equal(
       [{ name: "country[name]", value: "Denmark" }],
-      to_form_params({name: "Denmark"}, "country")
+      to_form_params({ name: "Denmark" }, "country")
     )
   end
 
@@ -260,7 +260,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
 
   def test_link_tag_with_back
-    env = {"HTTP_REFERER" => "http://www.example.com/referer"}
+    env = { "HTTP_REFERER" => "http://www.example.com/referer" }
     @controller = Struct.new(:request).new(Struct.new(:env).new(env))
     expected = %{<a href="#{env["HTTP_REFERER"]}">go back</a>}
     assert_dom_equal expected, link_to("go back", :back)

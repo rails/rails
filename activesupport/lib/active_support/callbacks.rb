@@ -399,7 +399,7 @@ module ActiveSupport
               end
             else
               scopes = Array(chain_config[:scope])
-              method_to_call = scopes.map{ |s| public_send(s) }.join("_")
+              method_to_call = scopes.map { |s| public_send(s) }.join("_")
 
               lambda { |target, _, &blk|
                 filter.public_send method_to_call, target, &blk
@@ -635,7 +635,7 @@ module ActiveSupport
 
           __update_callbacks(name) do |target, chain|
             filters.each do |filter|
-              callback = chain.find {|c| c.matches?(type, filter) }
+              callback = chain.find { |c| c.matches?(type, filter) }
 
               if !callback && options[:raise]
                 raise ArgumentError, "#{type.to_s.capitalize} #{name} callback #{filter.inspect} has not been defined"

@@ -140,7 +140,7 @@ module ActiveRecord
 
     test "create_with!" do
       assert relation.create_with!(foo: "bar").equal?(relation)
-      assert_equal({foo: "bar"}, relation.create_with_value)
+      assert_equal({ foo: "bar" }, relation.create_with_value)
     end
 
     test "test_merge!" do

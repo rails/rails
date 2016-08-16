@@ -80,8 +80,8 @@ module ActionView
 
           def add_default_name_and_id(options)
             index = name_and_id_index(options)
-            options["name"] = options.fetch("name"){ tag_name(options["multiple"], index) }
-            options["id"] = options.fetch("id"){ tag_id(index) }
+            options["name"] = options.fetch("name") { tag_name(options["multiple"], index) }
+            options["id"] = options.fetch("id") { tag_id(index) }
             if namespace = options.delete("namespace")
               options["id"] = options["id"] ? "#{namespace}_#{options['id']}" : namespace
             end

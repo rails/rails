@@ -263,7 +263,7 @@ module ApplicationTests
       assert_equal "WIN", last_response.body
     end
 
-    {"development" => "baz", "production" => "bar"}.each do |mode, expected|
+    { "development" => "baz", "production" => "bar" }.each do |mode, expected|
       test "reloads routes when configuration is changed in #{mode}" do
         controller :foo, <<-RUBY
           class FooController < ApplicationController

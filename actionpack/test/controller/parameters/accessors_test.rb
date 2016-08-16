@@ -13,7 +13,7 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
           first: "David",
           last: "Heinemeier Hansson"
         },
-        addresses: [{city: "Chicago", state: "Illinois"}]
+        addresses: [{ city: "Chicago", state: "Illinois" }]
       }
     )
   end

@@ -42,7 +42,7 @@ module ApplicationTests
     test "assets are concatenated when debug is off and compile is off either if debug_assets param is provided" do
       # config.assets.debug and config.assets.compile are false for production environment
       ENV["RAILS_ENV"] = "production"
-      output = Dir.chdir(app_path){ `bin/rails assets:precompile --trace 2>&1` }
+      output = Dir.chdir(app_path) { `bin/rails assets:precompile --trace 2>&1` }
       assert $?.success?, output
 
       # Load app env

@@ -362,12 +362,12 @@ module RenderTestCases
 
   def test_render_partial_with_object_uses_render_partial_path
     assert_equal "Hello: lifo",
-      @controller_view.render(partial: Customer.new("lifo"), locals: {greeting: "Hello"})
+      @controller_view.render(partial: Customer.new("lifo"), locals: { greeting: "Hello" })
   end
 
   def test_render_partial_with_object_and_format_uses_render_partial_path
     assert_equal "<greeting>Hello</greeting><name>lifo</name>",
-      @controller_view.render(partial: Customer.new("lifo"), formats: :xml, locals: {greeting: "Hello"})
+      @controller_view.render(partial: Customer.new("lifo"), formats: :xml, locals: { greeting: "Hello" })
   end
 
   def test_render_partial_using_object
@@ -520,12 +520,12 @@ module RenderTestCases
 
   def test_render_partial_and_layout_without_block_with_locals
     assert_equal %(Before (Foo!)\npartial html\nAfter),
-      @view.render(partial: "test/partial", layout: "test/layout_for_partial", locals: { name: "Foo!"})
+      @view.render(partial: "test/partial", layout: "test/layout_for_partial", locals: { name: "Foo!" })
   end
 
   def test_render_partial_and_layout_without_block_with_locals_and_rendering_another_partial
     assert_equal %(Before (Foo!)\npartial html\npartial with partial\n\nAfter),
-      @view.render(partial: "test/partial_with_partial", layout: "test/layout_for_partial", locals: { name: "Foo!"})
+      @view.render(partial: "test/partial_with_partial", layout: "test/layout_for_partial", locals: { name: "Foo!" })
   end
 
   def test_render_partial_shortcut_with_block_content
@@ -535,17 +535,17 @@ module RenderTestCases
 
   def test_render_layout_with_a_nested_render_layout_call
     assert_equal %(Before (Foo!)\nBefore (Bar!)\npartial html\nAfter\npartial with layout\n\nAfter),
-      @view.render(partial: "test/partial_with_layout", layout: "test/layout_for_partial", locals: { name: "Foo!"})
+      @view.render(partial: "test/partial_with_layout", layout: "test/layout_for_partial", locals: { name: "Foo!" })
   end
 
   def test_render_layout_with_a_nested_render_layout_call_using_block_with_render_partial
     assert_equal %(Before (Foo!)\nBefore (Bar!)\n\n  partial html\n\nAfterpartial with layout\n\nAfter),
-      @view.render(partial: "test/partial_with_layout_block_partial", layout: "test/layout_for_partial", locals: { name: "Foo!"})
+      @view.render(partial: "test/partial_with_layout_block_partial", layout: "test/layout_for_partial", locals: { name: "Foo!" })
   end
 
   def test_render_layout_with_a_nested_render_layout_call_using_block_with_render_content
     assert_equal %(Before (Foo!)\nBefore (Bar!)\n\n  Content from inside layout!\n\nAfterpartial with layout\n\nAfter),
-      @view.render(partial: "test/partial_with_layout_block_content", layout: "test/layout_for_partial", locals: { name: "Foo!"})
+      @view.render(partial: "test/partial_with_layout_block_content", layout: "test/layout_for_partial", locals: { name: "Foo!" })
   end
 
   def test_render_partial_with_layout_raises_descriptive_error

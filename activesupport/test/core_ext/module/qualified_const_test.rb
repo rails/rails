@@ -68,7 +68,7 @@ class QualifiedConstTest < ActiveSupport::TestCase
       assert_equal 1, QualifiedConstTestMod.qualified_const_get("N::X")
       assert_equal 2, QualifiedConstTestMod.qualified_const_get("M::C::X")
 
-      assert_raise(NameError) { QualifiedConstTestMod.qualified_const_get("M::C::Y")}
+      assert_raise(NameError) { QualifiedConstTestMod.qualified_const_get("M::C::Y") }
     end
   end
 
@@ -98,14 +98,14 @@ class QualifiedConstTest < ActiveSupport::TestCase
 
   test "reject absolute paths" do
     assert_deprecated do
-      assert_raise_with_message(NameError, "wrong constant name ::X") { Object.qualified_const_defined?("::X")}
-      assert_raise_with_message(NameError, "wrong constant name ::X") { Object.qualified_const_defined?("::X::Y")}
+      assert_raise_with_message(NameError, "wrong constant name ::X") { Object.qualified_const_defined?("::X") }
+      assert_raise_with_message(NameError, "wrong constant name ::X") { Object.qualified_const_defined?("::X::Y") }
 
-      assert_raise_with_message(NameError, "wrong constant name ::X") { Object.qualified_const_get("::X")}
-      assert_raise_with_message(NameError, "wrong constant name ::X") { Object.qualified_const_get("::X::Y")}
+      assert_raise_with_message(NameError, "wrong constant name ::X") { Object.qualified_const_get("::X") }
+      assert_raise_with_message(NameError, "wrong constant name ::X") { Object.qualified_const_get("::X::Y") }
 
-      assert_raise_with_message(NameError, "wrong constant name ::X") { Object.qualified_const_set("::X", nil)}
-      assert_raise_with_message(NameError, "wrong constant name ::X") { Object.qualified_const_set("::X::Y", nil)}
+      assert_raise_with_message(NameError, "wrong constant name ::X") { Object.qualified_const_set("::X", nil) }
+      assert_raise_with_message(NameError, "wrong constant name ::X") { Object.qualified_const_set("::X::Y", nil) }
     end
   end
 

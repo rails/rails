@@ -19,7 +19,7 @@ module RailsGuides
     end
 
     def documents_flat
-      documents_by_section.flat_map {|section| section["documents"]}
+      documents_by_section.flat_map { |section| section["documents"] }
     end
 
     def finished_documents(documents)

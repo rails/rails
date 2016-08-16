@@ -13,7 +13,7 @@ class ObjectInstanceVariableTest < ActiveSupport::TestCase
   end
 
   def test_instance_values
-    assert_equal({"bar" => "bar", "baz" => "baz"}, @source.instance_values)
+    assert_equal({ "bar" => "bar", "baz" => "baz" }, @source.instance_values)
   end
 
   def test_instance_exec_passes_arguments_to_block

@@ -141,7 +141,7 @@ module ActionView #:nodoc:
 
     # Specify the proc used to decorate input tags that refer to attributes with errors.
     cattr_accessor :field_error_proc
-    @@field_error_proc = Proc.new{ |html_tag, instance| "<div class=\"field_with_errors\">#{html_tag}</div>".html_safe }
+    @@field_error_proc = Proc.new { |html_tag, instance| "<div class=\"field_with_errors\">#{html_tag}</div>".html_safe }
 
     # How to complete the streaming when an exception occurs.
     # This is our best guess: first try to close the attribute, then the tag.

@@ -78,7 +78,7 @@ module ActionPack
       ["/admin/users",[ { controller: "admin/users", action: "index" }]],
       ["/admin/users",[ { action: "index" }, { controller: "admin/users", action: "index" }, "/admin/users"]],
       ["/admin/users",[ { controller: "users", action: "index" }, { controller: "admin/accounts", action: "show", id: "1" }, "/admin/accounts/show/1"]],
-      ["/people",[      { controller: "/people", action: "index" }, {controller: "admin/accounts", action: "foo", id: "bar"}, "/admin/accounts/foo/bar"]],
+      ["/people",[      { controller: "/people", action: "index" }, { controller: "admin/accounts", action: "foo", id: "bar" }, "/admin/accounts/foo/bar"]],
 
       ["/admin/posts",[     { controller: "admin/posts" }]],
       ["/admin/posts/new",[ { controller: "admin/posts", action: "new" }]],
@@ -124,7 +124,7 @@ module ActionPack
 
       ["/project",[    { controller: "project", action: "index" }]],
       ["/projects/1",[ { controller: "project", action: "index", project_id: "1" }]],
-      ["/projects/1",[ { controller: "project", action: "index"}, {project_id: "1", controller: "project", action: "index" }, "/projects/1"]],
+      ["/projects/1",[ { controller: "project", action: "index" }, { project_id: "1", controller: "project", action: "index" }, "/projects/1"]],
       ["/projects/1",[ { use_route: "project", controller: "project", action: "index", project_id: "1" }]],
       ["/projects/1",[ { use_route: "project", controller: "project", action: "index" }, { controller: "project", action: "index", project_id: "1" }, "/projects/1"]],
 
@@ -164,11 +164,11 @@ module ActionPack
       ["/posts/show/1",[  { controller: "posts", action: "show", id: "1", format: "" }]],
       ["/posts",[         { controller: "posts" }]],
       ["/posts",[         { controller: "posts", action: "index" }]],
-      ["/posts/create",[  { action: "create" }, {day: nil, month: nil, controller: "posts", action: "show_date"}, "/blog"]],
+      ["/posts/create",[  { action: "create" }, { day: nil, month: nil, controller: "posts", action: "show_date" }, "/blog"]],
       ["/posts?foo=bar",[ { controller: "posts", foo: "bar" }]],
       ["/posts?foo%5B%5D=bar&foo%5B%5D=baz", [{ controller: "posts", foo: ["bar", "baz"] }]],
       ["/posts?page=2",  [{ controller: "posts", page: 2 }]],
-      ["/posts?q%5Bfoo%5D%5Ba%5D=b", [{ controller: "posts", q: { foo: { a: "b"}} }]],
+      ["/posts?q%5Bfoo%5D%5Ba%5D=b", [{ controller: "posts", q: { foo: { a: "b" } } }]],
 
       ["/news.rss", [{ controller: "news", action: "index", format: "rss" }]],
     ].each_with_index do |(url, params), i|

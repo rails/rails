@@ -12,7 +12,7 @@ class I18nValidationTest < ActiveRecord::TestCase
     @old_load_path, @old_backend = I18n.load_path.dup, I18n.backend
     I18n.load_path.clear
     I18n.backend = I18n::Backend::Simple.new
-    I18n.backend.store_translations("en", errors: {messages: {custom: nil}})
+    I18n.backend.store_translations("en", errors: { messages: { custom: nil } })
   end
 
   teardown do
@@ -38,11 +38,11 @@ class I18nValidationTest < ActiveRecord::TestCase
   COMMON_CASES = [
   # [ case,                                validation_options,            generate_message_options]
     [ "given no options",                  {},                            {}],
-    [ "given custom message",              {message: "custom"},        {message: "custom"}],
-    [ "given if condition",                {if: lambda { true }},  {}],
-    [ "given unless condition",            {unless: lambda { false }}, {}],
-    [ "given option that is not reserved", {format: "jpg"},            {format: "jpg" }],
-    [ "given on condition",                {on: [:create, :update] },     {}]
+    [ "given custom message",              { message: "custom" },        { message: "custom" }],
+    [ "given if condition",                { if: lambda { true } },  {}],
+    [ "given unless condition",            { unless: lambda { false } }, {}],
+    [ "given option that is not reserved", { format: "jpg" },            { format: "jpg" }],
+    [ "given on condition",                { on: [:create, :update] },     {}]
   ]
 
   COMMON_CASES.each do |name, validation_options, generate_message_options|
@@ -65,8 +65,8 @@ class I18nValidationTest < ActiveRecord::TestCase
   end
 
   def test_validates_associated_finds_custom_model_key_translation
-    I18n.backend.store_translations "en", activerecord: {errors: {models: {topic: {attributes: {replies: {invalid: "custom message"}}}}}}
-    I18n.backend.store_translations "en", activerecord: {errors: {messages: {invalid: "global message"}}}
+    I18n.backend.store_translations "en", activerecord: { errors: { models: { topic: { attributes: { replies: { invalid: "custom message" } } } } } }
+    I18n.backend.store_translations "en", activerecord: { errors: { messages: { invalid: "global message" } } }
 
     Topic.validates_associated :replies
     replied_topic.valid?
@@ -74,7 +74,7 @@ class I18nValidationTest < ActiveRecord::TestCase
   end
 
   def test_validates_associated_finds_global_default_translation
-    I18n.backend.store_translations "en", activerecord: {errors: {messages: {invalid: "global message"}}}
+    I18n.backend.store_translations "en", activerecord: { errors: { messages: { invalid: "global message" } } }
 
     Topic.validates_associated :replies
     replied_topic.valid?

@@ -418,7 +418,7 @@ module ActiveRecord
 
       def rename_column(table_name, column_name, new_column_name) #:nodoc:
         column = column_for(table_name, column_name)
-        alter_table(table_name, rename: {column.name => new_column_name.to_s})
+        alter_table(table_name, rename: { column.name => new_column_name.to_s })
         rename_column_indexes(table_name, column.name, new_column_name)
       end
 
@@ -432,7 +432,7 @@ module ActiveRecord
 
         def alter_table(table_name, options = {}) #:nodoc:
           altered_table_name = "a#{table_name}"
-          caller = lambda {|definition| yield definition if block_given?}
+          caller = lambda { |definition| yield definition if block_given? }
 
           transaction do
             move_table(table_name, altered_table_name,
@@ -482,7 +482,7 @@ module ActiveRecord
             end
 
             to_column_names = columns(to).map(&:name)
-            columns = index.columns.map {|c| rename[c] || c }.select do |column|
+            columns = index.columns.map { |c| rename[c] || c }.select do |column|
               to_column_names.include?(column)
             end
 
@@ -496,10 +496,10 @@ module ActiveRecord
         end
 
         def copy_table_contents(from, to, columns, rename = {}) #:nodoc:
-          column_mappings = Hash[columns.map {|name| [name, name]}]
+          column_mappings = Hash[columns.map { |name| [name, name] }]
           rename.each { |a| column_mappings[a.last] = a.first }
           from_columns = columns(from).collect(&:name)
-          columns = columns.find_all{|col| from_columns.include?(column_mappings[col])}
+          columns = columns.find_all { |col| from_columns.include?(column_mappings[col]) }
           from_columns_to_copy = columns.map { |col| column_mappings[col] }
           quoted_columns = columns.map { |col| quote_column_name(col) } * ","
           quoted_from_columns = from_columns_to_copy.map { |col| quote_column_name(col) } * ","

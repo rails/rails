@@ -493,7 +493,7 @@ class TransactionTest < ActiveRecord::TestCase
 
   def test_rollback_when_commit_raises
     assert_called(Topic.connection, :begin_db_transaction) do
-      Topic.connection.stub(:commit_db_transaction, ->{ raise("OH NOES") }) do
+      Topic.connection.stub(:commit_db_transaction, -> { raise("OH NOES") }) do
         assert_called(Topic.connection, :rollback_db_transaction) do
 
           e = assert_raise RuntimeError do
@@ -692,7 +692,7 @@ class TransactionTest < ActiveRecord::TestCase
 
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "transaction_without_primary_keys"
-      after_commit { } # necessary to trigger the has_transactional_callbacks branch
+      after_commit {} # necessary to trigger the has_transactional_callbacks branch
     end
 
     assert_no_difference(-> { klass.count }) do

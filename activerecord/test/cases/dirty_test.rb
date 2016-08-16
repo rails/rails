@@ -280,7 +280,7 @@ class DirtyTest < ActiveRecord::TestCase
     assert pirate.changed?
     assert_nil pirate.catchphrase_was
     assert_equal %w(catchphrase), pirate.changed
-    assert_equal({"catchphrase" => [nil, "arrr"]}, pirate.changes)
+    assert_equal({ "catchphrase" => [nil, "arrr"] }, pirate.changes)
 
     pirate.save
     assert !pirate.changed?
@@ -314,7 +314,7 @@ class DirtyTest < ActiveRecord::TestCase
     assert !topic.approved_changed?
 
     # Coming from web form.
-    params = {topic: {approved: 1}}
+    params = { topic: { approved: 1 } }
     # In the controller.
     topic.attributes = params[:topic]
     assert topic.approved?
@@ -423,7 +423,7 @@ class DirtyTest < ActiveRecord::TestCase
 
   def test_save_should_store_serialized_attributes_even_with_partial_writes
     with_partial_writes(Topic) do
-      topic = Topic.create!(content: {a: "a"})
+      topic = Topic.create!(content: { a: "a" })
 
       assert_not topic.changed?
 
@@ -444,7 +444,7 @@ class DirtyTest < ActiveRecord::TestCase
 
   def test_save_always_should_update_timestamps_when_serialized_attributes_are_present
     with_partial_writes(Topic) do
-      topic = Topic.create!(content: {a: "a"})
+      topic = Topic.create!(content: { a: "a" })
       topic.save!
 
       updated_at = topic.updated_at
@@ -460,7 +460,7 @@ class DirtyTest < ActiveRecord::TestCase
 
   def test_save_should_not_save_serialized_attribute_with_partial_writes_if_not_present
     with_partial_writes(Topic) do
-      Topic.create!(author_name: "Bill", content: {a: "a"})
+      Topic.create!(author_name: "Bill", content: { a: "a" })
       topic = Topic.select("id, author_name").first
       topic.update_columns author_name: "John"
       topic = Topic.first

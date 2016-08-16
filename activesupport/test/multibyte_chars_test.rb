@@ -208,7 +208,7 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
   end
 
   def test_insert_throws_index_error
-    assert_raise(IndexError) { @chars.insert(-12, "わ")}
+    assert_raise(IndexError) { @chars.insert(-12, "わ") }
     assert_raise(IndexError) { @chars.insert(12, "わ") }
   end
 
@@ -479,7 +479,7 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
     assert_equal "Hello", chars.method(:capitalize!).call # Defined on Chars
     assert_equal "Hello", chars
     assert_equal "jello", "hello".mb_chars.method(:gsub).call(/h/, "j") # Defined on String
-    assert_raise(NameError){ "".mb_chars.method(:undefined_method) } # Not defined
+    assert_raise(NameError) { "".mb_chars.method(:undefined_method) } # Not defined
   end
 
   def test_acts_like_string

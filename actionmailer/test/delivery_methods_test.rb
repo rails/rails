@@ -32,7 +32,7 @@ class DefaultsDeliveryMethodsTest < ActiveSupport::TestCase
   end
 
   test "default file delivery settings (with Rails.root)" do
-    settings = {location: "#{Rails.root}/tmp/mails"}
+    settings = { location: "#{Rails.root}/tmp/mails" }
     assert_equal settings, ActionMailer::Base.file_settings
   end
 
@@ -127,16 +127,16 @@ class MailDeliveryTest < ActiveSupport::TestCase
   end
 
   test "delivery method options default to class level options" do
-    default_options = {a: "b"}
+    default_options = { a: "b" }
     ActionMailer::Base.add_delivery_method :optioned, MyOptionedDelivery, default_options
     mail_instance = DeliveryMailer.welcome(delivery_method: :optioned)
     assert_equal default_options, mail_instance.delivery_method.options
   end
 
   test "delivery method options can be overridden per mail instance" do
-    default_options = {a: "b"}
+    default_options = { a: "b" }
     ActionMailer::Base.add_delivery_method :optioned, MyOptionedDelivery, default_options
-    overridden_options = {a: "a"}
+    overridden_options = { a: "a" }
     mail_instance = DeliveryMailer.welcome(delivery_method: :optioned, delivery_method_options: overridden_options)
     assert_equal overridden_options, mail_instance.delivery_method.options
   end
@@ -152,7 +152,7 @@ class MailDeliveryTest < ActiveSupport::TestCase
       enable_starttls_auto: true
     }
     assert_equal settings, ActionMailer::Base.smtp_settings
-    overridden_options = {user_name: "overridden", password: "somethingobtuse"}
+    overridden_options = { user_name: "overridden", password: "somethingobtuse" }
     mail_instance = DeliveryMailer.welcome(delivery_method_options: overridden_options)
     delivery_method_instance = mail_instance.delivery_method
     assert_equal "overridden", delivery_method_instance.settings[:user_name]

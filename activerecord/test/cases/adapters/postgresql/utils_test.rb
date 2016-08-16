@@ -54,7 +54,7 @@ class PostgreSQLNameTest < ActiveRecord::PostgreSQLTestCase
   end
 
   test "can be used as hash key" do
-    hash = {Name.new("schema", "article_seq") => "success"}
+    hash = { Name.new("schema", "article_seq") => "success" }
     assert_equal "success", hash[Name.new("schema", "article_seq")]
     assert_equal nil, hash[Name.new("schema", "articles")]
     assert_equal nil, hash[Name.new("public", "article_seq")]

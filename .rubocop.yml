@@ -50,6 +50,18 @@ Style/IndentationWidth:
 Style/MethodDefParentheses:
   Enabled: true
 
+# Use `foo {}` not `foo{}`.
+Style/SpaceBeforeBlockBraces:
+  Enabled: true
+
+# Use `foo { bar }` not `foo {bar}`.
+Style/SpaceInsideBlockBraces:
+  Enabled: true
+
+# Use `{ a: 1 }` not `{a:1}`.
+Style/SpaceInsideHashLiteralBraces:
+  Enabled: true
+
 # Check quotes usage according to lint rule below.
 Style/StringLiterals:
   Enabled: true

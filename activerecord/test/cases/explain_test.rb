@@ -40,7 +40,7 @@ if ActiveRecord::Base.connection.supports_explain?
       queries = sqls.zip(binds)
 
       stub_explain_for_query_plans do
-        expected = sqls.map {|sql| "EXPLAIN for: #{sql}\nquery plan #{sql}"}.join("\n")
+        expected = sqls.map { |sql| "EXPLAIN for: #{sql}\nquery plan #{sql}" }.join("\n")
         assert_equal expected, base.exec_explain(queries)
       end
     end
@@ -75,7 +75,7 @@ if ActiveRecord::Base.connection.supports_explain?
       def stub_explain_for_query_plans(query_plans = ["query plan foo", "query plan bar"])
         explain_called = 0
 
-        connection.stub(:explain, proc{ explain_called += 1; query_plans[explain_called - 1] }) do
+        connection.stub(:explain, proc { explain_called += 1; query_plans[explain_called - 1] }) do
           yield
         end
       end

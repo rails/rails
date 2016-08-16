@@ -21,7 +21,7 @@ class EachTest < ActiveRecord::TestCase
 
   def test_each_should_not_return_query_chain_and_execute_only_one_query
     assert_queries(1) do
-      result = Post.find_each(batch_size: 100000){ }
+      result = Post.find_each(batch_size: 100000) {}
       assert_nil result
     end
   end
@@ -135,11 +135,11 @@ class EachTest < ActiveRecord::TestCase
 
   def test_find_in_batches_shouldnt_execute_query_unless_needed
     assert_queries(2) do
-      Post.find_in_batches(batch_size: @total) {|batch| assert_kind_of Array, batch }
+      Post.find_in_batches(batch_size: @total) { |batch| assert_kind_of Array, batch }
     end
 
     assert_queries(1) do
-      Post.find_in_batches(batch_size: @total + 1) {|batch| assert_kind_of Array, batch }
+      Post.find_in_batches(batch_size: @total + 1) { |batch| assert_kind_of Array, batch }
     end
   end
 
@@ -156,7 +156,7 @@ class EachTest < ActiveRecord::TestCase
   def test_find_in_batches_should_not_use_records_after_yielding_them_in_case_original_array_is_modified
     not_a_post = "not a post"
     def not_a_post.id; end
-    not_a_post.stub(:id, ->{ raise StandardError.new("not_a_post had #id called on it") }) do
+    not_a_post.stub(:id, -> { raise StandardError.new("not_a_post had #id called on it") }) do
       assert_nothing_raised do
         Post.find_in_batches(batch_size: 1) do |batch|
           assert_kind_of Array, batch
@@ -182,7 +182,7 @@ class EachTest < ActiveRecord::TestCase
 
   def test_find_in_batches_should_error_on_ignore_the_order
     assert_raise(ArgumentError) do
-      PostWithDefaultScope.find_in_batches(error_on_ignore: true){}
+      PostWithDefaultScope.find_in_batches(error_on_ignore: true) {}
     end
   end
 
@@ -191,7 +191,7 @@ class EachTest < ActiveRecord::TestCase
     prev = ActiveRecord::Base.error_on_ignored_order
     ActiveRecord::Base.error_on_ignored_order = true
     assert_nothing_raised do
-      PostWithDefaultScope.find_in_batches(error_on_ignore: false){}
+      PostWithDefaultScope.find_in_batches(error_on_ignore: false) {}
     end
   ensure
     # Set back to default
@@ -203,7 +203,7 @@ class EachTest < ActiveRecord::TestCase
     prev = ActiveRecord::Base.error_on_ignored_order
     ActiveRecord::Base.error_on_ignored_order = true
     assert_raise(ArgumentError) do
-      PostWithDefaultScope.find_in_batches(){}
+      PostWithDefaultScope.find_in_batches() {}
     end
   ensure
     # Set back to default
@@ -212,7 +212,7 @@ class EachTest < ActiveRecord::TestCase
 
   def test_find_in_batches_should_not_error_by_default
     assert_nothing_raised do
-      PostWithDefaultScope.find_in_batches(){}
+      PostWithDefaultScope.find_in_batches() {}
     end
   end
 
@@ -227,7 +227,7 @@ class EachTest < ActiveRecord::TestCase
 
   def test_find_in_batches_should_not_modify_passed_options
     assert_nothing_raised do
-      Post.find_in_batches({ batch_size: 42, start: 1 }.freeze){}
+      Post.find_in_batches({ batch_size: 42, start: 1 }.freeze) {}
     end
   end
 
@@ -445,7 +445,7 @@ class EachTest < ActiveRecord::TestCase
 
   def test_in_batches_should_not_modify_passed_options
     assert_nothing_raised do
-      Post.in_batches({ of: 42, start: 1 }.freeze){}
+      Post.in_batches({ of: 42, start: 1 }.freeze) {}
     end
   end
 

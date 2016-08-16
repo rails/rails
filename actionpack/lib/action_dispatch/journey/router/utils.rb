@@ -28,7 +28,7 @@ module ActionDispatch
           US_ASCII = Encoding::US_ASCII
           UTF_8    = Encoding::UTF_8
           EMPTY    = "".force_encoding(US_ASCII).freeze
-          DEC2HEX  = (0..255).to_a.map{ |i| ENCODE % i }.map{ |s| s.force_encoding(US_ASCII) }
+          DEC2HEX  = (0..255).to_a.map { |i| ENCODE % i }.map { |s| s.force_encoding(US_ASCII) }
 
           ALPHA = "a-zA-Z".freeze
           DIGIT = "0-9".freeze
@@ -60,7 +60,7 @@ module ActionDispatch
 
           protected
             def escape(component, pattern)
-              component.gsub(pattern){ |unsafe| percent_encode(unsafe) }.force_encoding(US_ASCII)
+              component.gsub(pattern) { |unsafe| percent_encode(unsafe) }.force_encoding(US_ASCII)
             end
 
             def percent_encode(unsafe)

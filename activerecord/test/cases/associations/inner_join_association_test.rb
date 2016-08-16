@@ -20,7 +20,7 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
 
   def test_construct_finder_sql_does_not_table_name_collide_on_duplicate_associations
     assert_nothing_raised do
-      sql = Person.joins(agents: {agents: :agents}).joins(agents: {agents: {primary_contact: :agents}}).to_sql
+      sql = Person.joins(agents: { agents: :agents }).joins(agents: { agents: { primary_contact: :agents } }).to_sql
       assert_match(/agents_people_4/i, sql)
     end
   end
@@ -47,7 +47,7 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
   end
 
   def test_join_conditions_allow_nil_associations
-    authors = Author.includes(:essays).where(essays: {id: nil})
+    authors = Author.includes(:essays).where(essays: { id: nil })
     assert_equal 2, authors.count
   end
 
@@ -60,13 +60,13 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
   def test_find_with_implicit_inner_joins_honors_readonly_with_select
     authors = Author.joins(:posts).select("authors.*").to_a
     assert !authors.empty?, "expected authors to be non-empty"
-    assert authors.all? {|a| !a.readonly? }, "expected no authors to be readonly"
+    assert authors.all? { |a| !a.readonly? }, "expected no authors to be readonly"
   end
 
   def test_find_with_implicit_inner_joins_honors_readonly_false
     authors = Author.joins(:posts).readonly(false).to_a
     assert !authors.empty?, "expected authors to be non-empty"
-    assert authors.all? {|a| !a.readonly? }, "expected no authors to be readonly"
+    assert authors.all? { |a| !a.readonly? }, "expected no authors to be readonly"
   end
 
   def test_find_with_implicit_inner_joins_does_not_set_associations
@@ -76,17 +76,17 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
   end
 
   def test_count_honors_implicit_inner_joins
-    real_count = Author.all.to_a.sum{|a| a.posts.count }
+    real_count = Author.all.to_a.sum { |a| a.posts.count }
     assert_equal real_count, Author.joins(:posts).count, "plain inner join count should match the number of referenced posts records"
   end
 
   def test_calculate_honors_implicit_inner_joins
-    real_count = Author.all.to_a.sum{|a| a.posts.count }
+    real_count = Author.all.to_a.sum { |a| a.posts.count }
     assert_equal real_count, Author.joins(:posts).calculate(:count, "authors.id"), "plain inner join count should match the number of referenced posts records"
   end
 
   def test_calculate_honors_implicit_inner_joins_and_distinct_and_conditions
-    real_count = Author.all.to_a.select {|a| a.posts.any? {|p| p.title.start_with?("Welcome")} }.length
+    real_count = Author.all.to_a.select { |a| a.posts.any? { |p| p.title.start_with?("Welcome") } }.length
     authors_with_welcoming_post_titles = Author.all.merge!(joins: :posts, where: "posts.title like 'Welcome%'").distinct.calculate(:count, "authors.id")
     assert_equal real_count, authors_with_welcoming_post_titles, "inner join and conditions should have only returned authors posting titles starting with 'Welcome'"
   end

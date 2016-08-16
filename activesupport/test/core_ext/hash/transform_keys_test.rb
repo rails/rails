@@ -48,7 +48,7 @@ class TransformKeysTest < ActiveSupport::TestCase
     class HashDescendant < ::Hash
       def initialize(elements = nil)
         super(elements)
-        (elements || {}).each_pair{ |key, value| self[key] = value }
+        (elements || {}).each_pair { |key, value| self[key] = value }
       end
     end
 

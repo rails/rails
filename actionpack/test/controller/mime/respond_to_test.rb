@@ -76,7 +76,7 @@ class RespondToController < ActionController::Base
   def missing_templates
     respond_to do |type|
       # This test requires a block that is empty
-      type.json { }
+      type.json {}
       type.xml
     end
   end
@@ -221,7 +221,7 @@ class RespondToController < ActionController::Base
   def variant_any
     respond_to do |format|
       format.html do |variant|
-        variant.any(:tablet, :phablet){ render body: "any" }
+        variant.any(:tablet, :phablet) { render body: "any" }
         variant.phone { render body: "phone" }
       end
     end
@@ -238,7 +238,7 @@ class RespondToController < ActionController::Base
 
   def variant_inline_any
     respond_to do |format|
-      format.html.any(:tablet, :phablet){ render body: "any" }
+      format.html.any(:tablet, :phablet) { render body: "any" }
       format.html.phone { render body: "phone" }
     end
   end
@@ -259,7 +259,7 @@ class RespondToController < ActionController::Base
 
   def variant_any_with_none
     respond_to do |format|
-      format.html.any(:none, :phone){ render body: "none or phone" }
+      format.html.any(:none, :phone) { render body: "none or phone" }
     end
   end
 
@@ -267,8 +267,8 @@ class RespondToController < ActionController::Base
     respond_to do |format|
       format.html { render body: "HTML" }
       format.any(:js, :xml) do |variant|
-        variant.phone{ render body: "phone" }
-        variant.any(:tablet, :phablet){ render body: "tablet" }
+        variant.phone { render body: "phone" }
+        variant.any(:tablet, :phablet) { render body: "tablet" }
       end
     end
   end
@@ -674,7 +674,7 @@ class RespondToControllerTest < ActionController::TestCase
     get :variant_without_implicit_template_rendering, xhr: true, params: { v: :does_not_matter }
     assert_response :no_content
 
-    assert_equal 1, logger.logged(:info).select{ |s| s == NO_CONTENT_WARNING }.size, "Implicit head :no_content not logged"
+    assert_equal 1, logger.logged(:info).select { |s| s == NO_CONTENT_WARNING }.size, "Implicit head :no_content not logged"
   ensure
     ActionController::Base.logger = old_logger
   end
@@ -686,7 +686,7 @@ class RespondToControllerTest < ActionController::TestCase
     get :variant_without_implicit_template_rendering, format: "json", params: { v: :does_not_matter }
     assert_response :no_content
 
-    assert_equal 1, logger.logged(:info).select{ |s| s == NO_CONTENT_WARNING }.size, "Implicit head :no_content not logged"
+    assert_equal 1, logger.logged(:info).select { |s| s == NO_CONTENT_WARNING }.size, "Implicit head :no_content not logged"
   ensure
     ActionController::Base.logger = old_logger
   end

@@ -40,7 +40,7 @@ class ResponseTest < ActiveSupport::TestCase
   def test_each_isnt_called_if_str_body_is_written
     # Controller writes and reads response body
     each_counter = 0
-    @response.body = Object.new.tap {|o| o.singleton_class.send(:define_method, :each) { |&block| each_counter += 1; block.call "foo" } }
+    @response.body = Object.new.tap { |o| o.singleton_class.send(:define_method, :each) { |&block| each_counter += 1; block.call "foo" } }
     @response["X-Foo"] = @response.body
 
     assert_equal 1, each_counter, "#each was not called once"
@@ -224,7 +224,7 @@ class ResponseTest < ActiveSupport::TestCase
     @response.set_cookie("user_name", value: "david", path: "/")
     _status, headers, _body = @response.to_a
     assert_equal "user_name=david; path=/", headers["Set-Cookie"]
-    assert_equal({"user_name" => "david"}, @response.cookies)
+    assert_equal({ "user_name" => "david" }, @response.cookies)
   end
 
   test "multiple cookies" do
@@ -232,14 +232,14 @@ class ResponseTest < ActiveSupport::TestCase
     @response.set_cookie("login", value: "foo&bar", path: "/", expires: Time.utc(2005, 10, 10,5))
     _status, headers, _body = @response.to_a
     assert_equal "user_name=david; path=/\nlogin=foo%26bar; path=/; expires=Mon, 10 Oct 2005 05:00:00 -0000", headers["Set-Cookie"]
-    assert_equal({"login" => "foo&bar", "user_name" => "david"}, @response.cookies)
+    assert_equal({ "login" => "foo&bar", "user_name" => "david" }, @response.cookies)
   end
 
   test "delete cookies" do
     @response.set_cookie("user_name", value: "david", path: "/")
     @response.set_cookie("login", value: "foo&bar", path: "/", expires: Time.utc(2005, 10, 10,5))
     @response.delete_cookie("login")
-    assert_equal({"user_name" => "david", "login" => nil}, @response.cookies)
+    assert_equal({ "user_name" => "david", "login" => nil }, @response.cookies)
   end
 
   test "read ETag and Cache-Control" do
@@ -254,7 +254,7 @@ class ResponseTest < ActiveSupport::TestCase
     assert resp.weak_etag?
     assert_not resp.strong_etag?
     assert_equal('W/"202cb962ac59075b964b07152d234b70"', resp.etag)
-    assert_equal({public: true}, resp.cache_control)
+    assert_equal({ public: true }, resp.cache_control)
 
     assert_equal("public", resp.headers["Cache-Control"])
     assert_equal('W/"202cb962ac59075b964b07152d234b70"', resp.headers["ETag"])
@@ -461,14 +461,14 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
     assert_equal('W/"202cb962ac59075b964b07152d234b70"', @response.headers["ETag"])
 
     assert_equal('W/"202cb962ac59075b964b07152d234b70"', @response.etag)
-    assert_equal({public: true}, @response.cache_control)
+    assert_equal({ public: true }, @response.cache_control)
   end
 
   test "response cache control from rackish app" do
     @app = lambda { |env|
       [200,
-        {"ETag" => 'W/"202cb962ac59075b964b07152d234b70"',
-          "Cache-Control" => "public"}, ["Hello"]]
+        { "ETag" => 'W/"202cb962ac59075b964b07152d234b70"',
+          "Cache-Control" => "public" }, ["Hello"]]
     }
 
     get "/"
@@ -478,7 +478,7 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
     assert_equal('W/"202cb962ac59075b964b07152d234b70"', @response.headers["ETag"])
 
     assert_equal('W/"202cb962ac59075b964b07152d234b70"', @response.etag)
-    assert_equal({public: true}, @response.cache_control)
+    assert_equal({ public: true }, @response.cache_control)
   end
 
   test "response charset and content type from railsish app" do
@@ -503,7 +503,7 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
   test "response charset and content type from rackish app" do
     @app = lambda { |env|
       [200,
-        {"Content-Type" => "application/xml; charset=utf-16"},
+        { "Content-Type" => "application/xml; charset=utf-16" },
         ["Hello"]]
     }
 

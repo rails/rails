@@ -29,7 +29,7 @@ module ActiveSupport
       # config file when using +FileStore+ because everything in that directory will be deleted.
       def clear(options = nil)
         root_dirs = exclude_from(cache_path, EXCLUDED_DIRS + GITKEEP_FILES)
-        FileUtils.rm_r(root_dirs.collect{|f| File.join(cache_path, f)})
+        FileUtils.rm_r(root_dirs.collect { |f| File.join(cache_path, f) })
       rescue Errno::ENOENT
       end
 
@@ -80,7 +80,7 @@ module ActiveSupport
         def write_entry(key, entry, options)
           return false if options[:unless_exist] && File.exist?(key)
           ensure_cache_path(File.dirname(key))
-          File.atomic_write(key, cache_path) {|f| Marshal.dump(entry, f)}
+          File.atomic_write(key, cache_path) { |f| Marshal.dump(entry, f) }
           true
         end
 

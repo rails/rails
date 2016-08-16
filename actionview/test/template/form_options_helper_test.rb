@@ -74,7 +74,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_collection_options_with_proc_for_selected
     assert_dom_equal(
       "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\" selected=\"selected\">Babe went home</option>\n<option value=\"Cabe\">Cabe went home</option>",
-      options_from_collection_for_select(dummy_posts, "author_name", "title", lambda{|p| p.author_name == "Babe" })
+      options_from_collection_for_select(dummy_posts, "author_name", "title", lambda { |p| p.author_name == "Babe" })
     )
   end
 
@@ -102,7 +102,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_collection_options_with_proc_for_disabled
     assert_dom_equal(
       "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\" disabled=\"disabled\">Babe went home</option>\n<option value=\"Cabe\" disabled=\"disabled\">Cabe went home</option>",
-      options_from_collection_for_select(dummy_posts, "author_name", "title", disabled: lambda {|p| %w(Babe Cabe).include?(p.author_name)})
+      options_from_collection_for_select(dummy_posts, "author_name", "title", disabled: lambda { |p| %w(Babe Cabe).include?(p.author_name) })
     )
   end
 
@@ -636,7 +636,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_select_with_multiple_and_without_hidden_input
-    output_buffer =  select(:post, :category, "", {include_hidden: false}, multiple: true)
+    output_buffer =  select(:post, :category, "", { include_hidden: false }, multiple: true)
     assert_dom_equal(
       "<select multiple=\"multiple\" id=\"post_category\" name=\"post[category][]\"></select>",
       output_buffer
@@ -644,7 +644,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_select_with_multiple_and_with_explicit_name_ending_with_brackets
-    output_buffer =  select(:post, :category, [], {include_hidden: false}, multiple: true, name: "post[category][]")
+    output_buffer =  select(:post, :category, [], { include_hidden: false }, multiple: true, name: "post[category][]")
     assert_dom_equal(
       "<select multiple=\"multiple\" id=\"post_category\" name=\"post[category][]\"></select>",
       output_buffer
@@ -1313,21 +1313,21 @@ class FormOptionsHelperTest < ActionView::TestCase
 
   def test_option_html_attributes_with_single_element_hash
     assert_equal(
-      {class: "fancy"},
+      { class: "fancy" },
       option_html_attributes([ "foo", "bar", { class: "fancy" } ])
     )
   end
 
   def test_option_html_attributes_with_multiple_element_hash
     assert_equal(
-      {:class => "fancy", "onclick" => "alert('Hello World');"},
+      { :class => "fancy", "onclick" => "alert('Hello World');" },
       option_html_attributes([ "foo", "bar", { :class => "fancy", "onclick" => "alert('Hello World');" } ])
     )
   end
 
   def test_option_html_attributes_with_multiple_hashes
     assert_equal(
-      {:class => "fancy", "onclick" => "alert('Hello World');"},
+      { :class => "fancy", "onclick" => "alert('Hello World');" },
       option_html_attributes([ "foo", "bar", { class: "fancy" }, { "onclick" => "alert('Hello World');" } ])
     )
   end

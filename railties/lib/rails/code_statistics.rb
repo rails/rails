@@ -9,7 +9,7 @@ class CodeStatistics #:nodoc:
                 "Job tests",
                 "Integration tests"]
 
-  HEADERS = {lines: " Lines", code_lines: "   LOC", classes: "Classes", methods: "Methods"}
+  HEADERS = { lines: " Lines", code_lines: "   LOC", classes: "Classes", methods: "Methods" }
 
   def initialize(*pairs)
     @pairs      = pairs
@@ -32,7 +32,7 @@ class CodeStatistics #:nodoc:
 
   private
     def calculate_statistics
-      Hash[@pairs.map{|pair| [pair.first, calculate_directory_statistics(pair.last)]}]
+      Hash[@pairs.map { |pair| [pair.first, calculate_directory_statistics(pair.last)] }]
     end
 
     def calculate_directory_statistics(directory, pattern = /^(?!\.).*?\.(rb|js|coffee|rake)$/)
@@ -70,7 +70,7 @@ class CodeStatistics #:nodoc:
     end
 
     def width_for(label)
-      [@statistics.values.sum {|s| s.send(label) }.to_s.size, HEADERS[label].length].max
+      [@statistics.values.sum { |s| s.send(label) }.to_s.size, HEADERS[label].length].max
     end
 
     def print_header

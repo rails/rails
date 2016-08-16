@@ -196,21 +196,21 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
   end
 
   def test_callbacks_firing_order_on_create
-    eye = Eye.create(iris_attributes: {color: "honey"})
+    eye = Eye.create(iris_attributes: { color: "honey" })
     assert_equal [true, false], eye.after_create_callbacks_stack
   end
 
   def test_callbacks_firing_order_on_update
-    eye = Eye.create(iris_attributes: {color: "honey"})
-    eye.update(iris_attributes: {color: "green"})
+    eye = Eye.create(iris_attributes: { color: "honey" })
+    eye.update(iris_attributes: { color: "green" })
     assert_equal [true, false], eye.after_update_callbacks_stack
   end
 
   def test_callbacks_firing_order_on_save
-    eye = Eye.create(iris_attributes: {color: "honey"})
+    eye = Eye.create(iris_attributes: { color: "honey" })
     assert_equal [false, false], eye.after_save_callbacks_stack
 
-    eye.update(iris_attributes: {color: "blue"})
+    eye.update(iris_attributes: { color: "blue" })
     assert_equal [false, false, false, false], eye.after_save_callbacks_stack
   end
 end
@@ -443,7 +443,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
     assert_not invalid_electron.valid?
     assert valid_electron.valid?
     assert_not molecule.valid?
-    assert_equal [{error: :blank}], molecule.errors.details["electrons.name"]
+    assert_equal [{ error: :blank }], molecule.errors.details["electrons.name"]
   end
 
   def test_errors_details_should_be_indexed_when_passed_as_array
@@ -457,7 +457,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
     assert_not tuning_peg_invalid.valid?
     assert tuning_peg_valid.valid?
     assert_not guitar.valid?
-    assert_equal [{error: :not_a_number, value: nil}] , guitar.errors.details["tuning_pegs[1].pitch"]
+    assert_equal [{ error: :not_a_number, value: nil }] , guitar.errors.details["tuning_pegs[1].pitch"]
     assert_equal [], guitar.errors.details["tuning_pegs.pitch"]
   end
 
@@ -474,7 +474,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
     assert_not invalid_electron.valid?
     assert valid_electron.valid?
     assert_not molecule.valid?
-    assert_equal [{error: :blank}], molecule.errors.details["electrons[1].name"]
+    assert_equal [{ error: :blank }], molecule.errors.details["electrons[1].name"]
     assert_equal [], molecule.errors.details["electrons.name"]
   ensure
     ActiveRecord::Base.index_nested_attribute_errors = old_attribute_config
@@ -610,7 +610,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
 
   def test_build_many_before_save
     company = companies(:first_firm)
-    assert_no_queries(ignore_none: false) { company.clients_of_firm.build([{"name" => "Another Client"}, {"name" => "Another Client II"}]) }
+    assert_no_queries(ignore_none: false) { company.clients_of_firm.build([{ "name" => "Another Client" }, { "name" => "Another Client II" }]) }
 
     company.name += "-changed"
     assert_queries(3) { assert company.save }
@@ -619,7 +619,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
 
   def test_build_via_block_before_save
     company = companies(:first_firm)
-    new_client = assert_no_queries(ignore_none: false) { company.clients_of_firm.build {|client| client.name = "Another Client" } }
+    new_client = assert_no_queries(ignore_none: false) { company.clients_of_firm.build { |client| client.name = "Another Client" } }
     assert !company.clients_of_firm.loaded?
 
     company.name += "-changed"
@@ -631,7 +631,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
   def test_build_many_via_block_before_save
     company = companies(:first_firm)
     assert_no_queries(ignore_none: false) do
-      company.clients_of_firm.build([{"name" => "Another Client"}, {"name" => "Another Client II"}]) do |client|
+      company.clients_of_firm.build([{ "name" => "Another Client" }, { "name" => "Another Client II" }]) do |client|
         client.name = "changed"
       end
     end
@@ -1407,9 +1407,9 @@ module AutosaveAssociationOnACollectionAssociationTests
   end
 
   def test_should_default_invalid_error_from_i18n
-    I18n.backend.store_translations(:en, activerecord: {errors: { models:
+    I18n.backend.store_translations(:en, activerecord: { errors: { models:
       { @associated_model_name.to_s.to_sym => { blank: "cannot be blank" } }
-    }})
+    } })
 
     @pirate.send(@association_name).build(name: "")
 

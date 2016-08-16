@@ -54,7 +54,7 @@ module ActionDispatch
       end
 
       def pass_response(status)
-        [status, {"Content-Type" => "text/html; charset=#{Response.default_charset}", "Content-Length" => "0"}, []]
+        [status, { "Content-Type" => "text/html; charset=#{Response.default_charset}", "Content-Length" => "0" }, []]
       end
   end
 end

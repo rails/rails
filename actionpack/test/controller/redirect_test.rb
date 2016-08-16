@@ -33,7 +33,7 @@ class RedirectController < ActionController::Base
   end
 
   def redirect_with_status_hash
-    redirect_to({action: "hello_world"}, status: 301)
+    redirect_to({ action: "hello_world" }, status: 301)
   end
 
   def redirect_with_protocol
@@ -118,7 +118,7 @@ class RedirectController < ActionController::Base
   end
 
   def redirect_to_with_block_and_options
-    redirect_to proc { {action: "hello_world"} }
+    redirect_to proc { { action: "hello_world" } }
   end
 
   def redirect_with_header_break

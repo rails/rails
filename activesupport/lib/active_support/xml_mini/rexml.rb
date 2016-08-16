@@ -55,7 +55,7 @@ module ActiveSupport
         hash = get_attributes(element)
 
         if element.has_elements?
-          element.each_element {|child| merge_element!(hash, child, depth - 1) }
+          element.each_element { |child| merge_element!(hash, child, depth - 1) }
           merge_texts!(hash, element) unless empty_content?(element)
           hash
         else

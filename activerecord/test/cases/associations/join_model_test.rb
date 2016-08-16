@@ -237,7 +237,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     category = categories(:sti_test)
     ernie = category.authors_with_select.create(name: "Ernie")
     assert_nothing_raised do
-      assert_equal ernie, category.authors_with_select.detect {|a| a.name == "Ernie"}
+      assert_equal ernie, category.authors_with_select.detect { |a| a.name == "Ernie" }
     end
   end
 
@@ -642,7 +642,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   def test_polymorphic_has_many
     expected = taggings(:welcome_general)
     p = Post.all.merge!(includes: :taggings).find(posts(:welcome).id)
-    assert_no_queries {assert p.taggings.include?(expected)}
+    assert_no_queries { assert p.taggings.include?(expected) }
     assert posts(:welcome).taggings.include?(taggings(:welcome_general))
   end
 
@@ -650,12 +650,12 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     expected = posts(:welcome)
 
     tagging  = Tagging.all.merge!(includes: :taggable).find(taggings(:welcome_general).id)
-    assert_no_queries { assert_equal expected, tagging.taggable}
+    assert_no_queries { assert_equal expected, tagging.taggable }
   end
 
   def test_polymorphic_belongs_to
-    p = Post.all.merge!(includes: {taggings: :taggable}).find(posts(:welcome).id)
-    assert_no_queries {assert_equal posts(:welcome), p.taggings.first.taggable}
+    p = Post.all.merge!(includes: { taggings: :taggable }).find(posts(:welcome).id)
+    assert_no_queries { assert_equal posts(:welcome), p.taggings.first.taggable }
   end
 
   def test_preload_polymorphic_has_many_through
@@ -748,17 +748,17 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_proper_error_message_for_eager_load_and_includes_association_errors
     includes_error = assert_raises(ActiveRecord::ConfigurationError) {
-      Post.includes(:nonexistent_relation).where(nonexistent_relation: {name: "Rochester"}).find(1)
+      Post.includes(:nonexistent_relation).where(nonexistent_relation: { name: "Rochester" }).find(1)
     }
     assert_equal("Can't join 'Post' to association named 'nonexistent_relation'; perhaps you misspelled it?", includes_error.message)
 
     eager_load_error = assert_raises(ActiveRecord::ConfigurationError) {
-      Post.eager_load(:nonexistent_relation).where(nonexistent_relation: {name: "Rochester"}).find(1)
+      Post.eager_load(:nonexistent_relation).where(nonexistent_relation: { name: "Rochester" }).find(1)
     }
     assert_equal("Can't join 'Post' to association named 'nonexistent_relation'; perhaps you misspelled it?", eager_load_error.message)
 
     includes_and_eager_load_error = assert_raises(ActiveRecord::ConfigurationError) {
-      Post.eager_load(:nonexistent_relation).includes(:nonexistent_relation).where(nonexistent_relation: {name: "Rochester"}).find(1)
+      Post.eager_load(:nonexistent_relation).includes(:nonexistent_relation).where(nonexistent_relation: { name: "Rochester" }).find(1)
     }
     assert_equal("Can't join 'Post' to association named 'nonexistent_relation'; perhaps you misspelled it?", includes_and_eager_load_error.message)
   end

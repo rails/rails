@@ -49,7 +49,7 @@ class FragmentCachingTest < ActionController::TestCase
     @controller = FragmentCachingTestController.new
     @controller.perform_caching = true
     @controller.cache_store = @store
-    @params = {controller: "posts", action: "index"}
+    @params = { controller: "posts", action: "index" }
     @controller.params = @params
     @controller.request = @request
     @controller.response = @response
@@ -324,7 +324,7 @@ class CacheHelperOutputBufferTest < ActionController::TestCase
       cache_helper.stub :output_buffer, output_buffer do
         assert_called_with cache_helper, :output_buffer=, [output_buffer.class.new(output_buffer)] do
           assert_nothing_raised do
-            cache_helper.send :fragment_for, "Test fragment name", "Test fragment", &Proc.new{ nil }
+            cache_helper.send :fragment_for, "Test fragment name", "Test fragment", &Proc.new { nil }
           end
         end
       end
@@ -345,7 +345,7 @@ class CacheHelperOutputBufferTest < ActionController::TestCase
       cache_helper.stub :output_buffer, output_buffer do
         assert_called_with cache_helper, :output_buffer=, [output_buffer.class.new(output_buffer)] do
           assert_nothing_raised do
-            cache_helper.send :fragment_for, "Test fragment name", "Test fragment", &Proc.new{ nil }
+            cache_helper.send :fragment_for, "Test fragment name", "Test fragment", &Proc.new { nil }
           end
         end
       end

@@ -197,7 +197,7 @@ class ReloaderTest < ActiveSupport::TestCase
       x.check = lambda { true }
 
       @response ||= "response"
-      @reloader ||= Reloader.new(block || proc {[200, {}, @response]}, x)
+      @reloader ||= Reloader.new(block || proc { [200, {}, @response] }, x)
       @reloader.call("rack.input" => StringIO.new(""))[2]
     end
 end

@@ -113,7 +113,7 @@ module ActiveRecord
         end
 
         def exec_delete(sql, name = nil, binds = [])
-          execute_and_clear(sql, name, binds) {|result| result.cmd_tuples }
+          execute_and_clear(sql, name, binds) { |result| result.cmd_tuples }
         end
         alias :exec_update :exec_delete
 

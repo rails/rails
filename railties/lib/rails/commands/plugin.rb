@@ -3,7 +3,7 @@ if ARGV.first != "new"
 else
   ARGV.shift
   unless ARGV.delete("--no-rc")
-    customrc = ARGV.index{ |x| x.include?("--rc=") }
+    customrc = ARGV.index { |x| x.include?("--rc=") }
     railsrc = if customrc
       File.expand_path(ARGV.delete_at(customrc).gsub(/--rc=/, ""))
     else

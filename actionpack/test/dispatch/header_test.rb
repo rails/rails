@@ -18,14 +18,14 @@ class HeaderTest < ActiveSupport::TestCase
       "HTTP_REFERER" => "/some/page",
       "Host" => "http://test.com")
 
-    assert_equal({"Content-Type" => "application/json",
+    assert_equal({ "Content-Type" => "application/json",
                   "HTTP_REFERER" => "/some/page",
-                  "Host" => "http://test.com"}, headers.env)
+                  "Host" => "http://test.com" }, headers.env)
   end
 
   test "#env returns the headers as env variables" do
-    assert_equal({"CONTENT_TYPE" => "text/plain",
-                  "HTTP_REFERER" => "/some/page"}, @headers.env)
+    assert_equal({ "CONTENT_TYPE" => "text/plain",
+                  "HTTP_REFERER" => "/some/page" }, @headers.env)
   end
 
   test "#each iterates through the env variables" do
@@ -105,28 +105,28 @@ class HeaderTest < ActiveSupport::TestCase
   test "#merge! headers with mutation" do
     @headers.merge!("Host" => "http://example.test",
                     "Content-Type" => "text/html")
-    assert_equal({"HTTP_HOST" => "http://example.test",
+    assert_equal({ "HTTP_HOST" => "http://example.test",
                   "CONTENT_TYPE" => "text/html",
-                  "HTTP_REFERER" => "/some/page"}, @headers.env)
+                  "HTTP_REFERER" => "/some/page" }, @headers.env)
   end
 
   test "#merge! env with mutation" do
     @headers.merge!("HTTP_HOST" => "http://first.com",
                     "CONTENT_TYPE" => "text/html")
-    assert_equal({"HTTP_HOST" => "http://first.com",
+    assert_equal({ "HTTP_HOST" => "http://first.com",
                   "CONTENT_TYPE" => "text/html",
-                  "HTTP_REFERER" => "/some/page"}, @headers.env)
+                  "HTTP_REFERER" => "/some/page" }, @headers.env)
   end
 
   test "merge without mutation" do
     combined = @headers.merge("HTTP_HOST" => "http://example.com",
                               "CONTENT_TYPE" => "text/html")
-    assert_equal({"HTTP_HOST" => "http://example.com",
+    assert_equal({ "HTTP_HOST" => "http://example.com",
                   "CONTENT_TYPE" => "text/html",
-                  "HTTP_REFERER" => "/some/page"}, combined.env)
+                  "HTTP_REFERER" => "/some/page" }, combined.env)
 
-    assert_equal({"CONTENT_TYPE" => "text/plain",
-                  "HTTP_REFERER" => "/some/page"}, @headers.env)
+    assert_equal({ "CONTENT_TYPE" => "text/plain",
+                  "HTTP_REFERER" => "/some/page" }, @headers.env)
   end
 
   test "env variables with . are not modified" do
@@ -151,11 +151,11 @@ class HeaderTest < ActiveSupport::TestCase
   end
 
   test "headers directly modifies the passed environment" do
-    env = {"HTTP_REFERER" => "/"}
+    env = { "HTTP_REFERER" => "/" }
     headers = make_headers(env)
     headers["Referer"] = "http://example.com/"
     headers.merge! "CONTENT_TYPE" => "text/plain"
-    assert_equal({"HTTP_REFERER"=>"http://example.com/",
-                  "CONTENT_TYPE"=>"text/plain"}, env)
+    assert_equal({ "HTTP_REFERER"=>"http://example.com/",
+                  "CONTENT_TYPE"=>"text/plain" }, env)
   end
 end

@@ -16,28 +16,28 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
            :categorizations, :people, :categories, :edges, :vertices
 
   def test_eager_association_loading_with_cascaded_two_levels
-    authors = Author.all.merge!(includes: {posts: :comments}, order: "authors.id").to_a
+    authors = Author.all.merge!(includes: { posts: :comments }, order: "authors.id").to_a
     assert_equal 3, authors.size
     assert_equal 5, authors[0].posts.size
     assert_equal 3, authors[1].posts.size
-    assert_equal 10, authors[0].posts.collect{|post| post.comments.size }.inject(0){|sum,i| sum+i}
+    assert_equal 10, authors[0].posts.collect { |post| post.comments.size }.inject(0) { |sum,i| sum+i }
   end
 
   def test_eager_association_loading_with_cascaded_two_levels_and_one_level
-    authors = Author.all.merge!(includes: [{posts: :comments}, :categorizations], order: "authors.id").to_a
+    authors = Author.all.merge!(includes: [{ posts: :comments }, :categorizations], order: "authors.id").to_a
     assert_equal 3, authors.size
     assert_equal 5, authors[0].posts.size
     assert_equal 3, authors[1].posts.size
-    assert_equal 10, authors[0].posts.collect{|post| post.comments.size }.inject(0){|sum,i| sum+i}
+    assert_equal 10, authors[0].posts.collect { |post| post.comments.size }.inject(0) { |sum,i| sum+i }
     assert_equal 1, authors[0].categorizations.size
     assert_equal 2, authors[1].categorizations.size
   end
 
   def test_eager_association_loading_with_hmt_does_not_table_name_collide_when_joining_associations
     assert_nothing_raised do
-      Author.joins(:posts).eager_load(:comments).where(posts: {tags_count: 1}).to_a
+      Author.joins(:posts).eager_load(:comments).where(posts: { tags_count: 1 }).to_a
     end
-    authors = Author.joins(:posts).eager_load(:comments).where(posts: {tags_count: 1}).to_a
+    authors = Author.joins(:posts).eager_load(:comments).where(posts: { tags_count: 1 }).to_a
     assert_equal 1, assert_no_queries { authors.size }
     assert_equal 10, assert_no_queries { authors[0].comments.size }
   end
@@ -50,7 +50,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_cascaded_eager_association_loading_with_join_for_count
-    categories = Category.joins(:categorizations).includes([{posts: :comments}, :authors])
+    categories = Category.joins(:categorizations).includes([{ posts: :comments }, :authors])
 
     assert_equal 4, categories.count
     assert_equal 4, categories.to_a.count
@@ -82,29 +82,29 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_cascaded_two_levels_with_two_has_many_associations
-    authors = Author.all.merge!(includes: {posts: [:comments, :categorizations]}, order: "authors.id").to_a
+    authors = Author.all.merge!(includes: { posts: [:comments, :categorizations] }, order: "authors.id").to_a
     assert_equal 3, authors.size
     assert_equal 5, authors[0].posts.size
     assert_equal 3, authors[1].posts.size
-    assert_equal 10, authors[0].posts.collect{|post| post.comments.size }.inject(0){|sum,i| sum+i}
+    assert_equal 10, authors[0].posts.collect { |post| post.comments.size }.inject(0) { |sum,i| sum+i }
   end
 
   def test_eager_association_loading_with_cascaded_two_levels_and_self_table_reference
-    authors = Author.all.merge!(includes: {posts: [:comments, :author]}, order: "authors.id").to_a
+    authors = Author.all.merge!(includes: { posts: [:comments, :author] }, order: "authors.id").to_a
     assert_equal 3, authors.size
     assert_equal 5, authors[0].posts.size
     assert_equal authors(:david).name, authors[0].name
-    assert_equal [authors(:david).name], authors[0].posts.collect{|post| post.author.name}.uniq
+    assert_equal [authors(:david).name], authors[0].posts.collect { |post| post.author.name }.uniq
   end
 
   def test_eager_association_loading_with_cascaded_two_levels_with_condition
-    authors = Author.all.merge!(includes: {posts: :comments}, where: "authors.id=1", order: "authors.id").to_a
+    authors = Author.all.merge!(includes: { posts: :comments }, where: "authors.id=1", order: "authors.id").to_a
     assert_equal 1, authors.size
     assert_equal 5, authors[0].posts.size
   end
 
   def test_eager_association_loading_with_cascaded_three_levels_by_ping_pong
-    firms = Firm.all.merge!(includes: {account: {firm: :account}}, order: "companies.id").to_a
+    firms = Firm.all.merge!(includes: { account: { firm: :account } }, order: "companies.id").to_a
     assert_equal 2, firms.size
     assert_equal firms.first.account, firms.first.account.firm.account
     assert_equal companies(:first_firm).account, assert_no_queries { firms.first.account.firm.account }
@@ -158,7 +158,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_where_first_level_returns_nil
-    authors = Author.all.merge!(includes: {post_about_thinking: :comments}, order: "authors.id DESC").to_a
+    authors = Author.all.merge!(includes: { post_about_thinking: :comments }, order: "authors.id DESC").to_a
     assert_equal [authors(:bob), authors(:mary), authors(:david)], authors
     assert_no_queries do
       authors[2].post_about_thinking.comments.first
@@ -166,12 +166,12 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_recursive_cascading_four_levels_has_many_through
-    source = Vertex.all.merge!(includes: {sinks: {sinks: {sinks: :sinks}}}, order: "vertices.id").first
+    source = Vertex.all.merge!(includes: { sinks: { sinks: { sinks: :sinks } } }, order: "vertices.id").first
     assert_equal vertices(:vertex_4), assert_no_queries { source.sinks.first.sinks.first.sinks.first }
   end
 
   def test_eager_association_loading_with_recursive_cascading_four_levels_has_and_belongs_to_many
-    sink = Vertex.all.merge!(includes: {sources: {sources: {sources: :sources}}}, order: "vertices.id DESC").first
+    sink = Vertex.all.merge!(includes: { sources: { sources: { sources: :sources } } }, order: "vertices.id DESC").first
     assert_equal vertices(:vertex_1), assert_no_queries { sink.sources.first.sources.first.sources.first.sources.first }
   end
 

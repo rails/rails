@@ -139,7 +139,7 @@ class TemplateDigestorTest < ActionView::TestCase
   end
 
   def test_getting_of_doubly_nested_dependencies
-    doubly_nested = [{"comments/comments"=>["comments/comment"]}, "messages/message"]
+    doubly_nested = [{ "comments/comments"=>["comments/comment"] }, "messages/message"]
     assert_equal doubly_nested, nested_dependencies("messages/peek")
   end
 
@@ -150,13 +150,13 @@ class TemplateDigestorTest < ActionView::TestCase
   end
 
   def test_nested_template_deps
-    nested_deps = ["messages/header", {"comments/comments"=>["comments/comment"]}, "messages/actions/move", "events/event", "messages/something_missing", "messages/something_missing_1", "messages/message", "messages/form"]
+    nested_deps = ["messages/header", { "comments/comments"=>["comments/comment"] }, "messages/actions/move", "events/event", "messages/something_missing", "messages/something_missing_1", "messages/message", "messages/form"]
     assert_equal nested_deps, nested_dependencies("messages/show")
   end
 
   def test_nested_template_deps_with_non_default_rendered_format
     finder.rendered_format = nil
-    nested_deps = [{"comments/comments"=>["comments/comment"]}]
+    nested_deps = [{ "comments/comments"=>["comments/comment"] }]
     assert_equal nested_deps, nested_dependencies("messages/thread")
   end
 

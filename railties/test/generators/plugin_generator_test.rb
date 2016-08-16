@@ -27,19 +27,19 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   include SharedGeneratorTests
 
   def test_invalid_plugin_name_raises_an_error
-    content = capture(:stderr){ run_generator [File.join(destination_root, "my_plugin-31fr-extension")] }
+    content = capture(:stderr) { run_generator [File.join(destination_root, "my_plugin-31fr-extension")] }
     assert_equal "Invalid plugin name my_plugin-31fr-extension. Please give a name which does not contain a namespace starting with numeric characters.\n", content
 
-    content = capture(:stderr){ run_generator [File.join(destination_root, "things4.3")] }
+    content = capture(:stderr) { run_generator [File.join(destination_root, "things4.3")] }
     assert_equal "Invalid plugin name things4.3. Please give a name which uses only alphabetic, numeric, \"_\" or \"-\" characters.\n", content
 
-    content = capture(:stderr){ run_generator [File.join(destination_root, "43things")] }
+    content = capture(:stderr) { run_generator [File.join(destination_root, "43things")] }
     assert_equal "Invalid plugin name 43things. Please give a name which does not start with numbers.\n", content
 
-    content = capture(:stderr){ run_generator [File.join(destination_root, "plugin")] }
+    content = capture(:stderr) { run_generator [File.join(destination_root, "plugin")] }
     assert_equal "Invalid plugin name plugin. Please give a name which does not match one of the reserved rails words: application, destroy, plugin, runner, test\n", content
 
-    content = capture(:stderr){ run_generator [File.join(destination_root, "Digest")] }
+    content = capture(:stderr) { run_generator [File.join(destination_root, "Digest")] }
     assert_equal "Invalid plugin name Digest, constant Digest is already in use. Please choose another plugin name.\n", content
   end
 
@@ -710,7 +710,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   protected
 
     def action(*args, &block)
-      silence(:stdout){ generator.send(*args, &block) }
+      silence(:stdout) { generator.send(*args, &block) }
     end
 
     def default_files

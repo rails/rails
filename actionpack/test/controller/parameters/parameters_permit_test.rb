@@ -15,7 +15,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
           first: "David",
           last: "Heinemeier Hansson"
         },
-        addresses: [{city: "Chicago", state: "Illinois"}]
+        addresses: [{ city: "Chicago", state: "Illinois" }]
       }
     )
 
@@ -39,13 +39,13 @@ class ParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "iteration should not impact permit" do
-    hash = {"foo"=>{"bar"=>{"0"=>{"baz"=>"hello", "zot"=>"1"}}}}
+    hash = { "foo"=>{ "bar"=>{ "0"=>{ "baz"=>"hello", "zot"=>"1" } } } }
     params = ActionController::Parameters.new(hash)
 
     walk_permitted params
 
     sanitized = params[:foo].permit(bar: [:baz])
-    assert_equal({"0"=>{"baz"=>"hello"}}, sanitized[:bar].to_unsafe_h)
+    assert_equal({ "0"=>{ "baz"=>"hello" } }, sanitized[:bar].to_unsafe_h)
   end
 
   test "if nothing is permitted, the hash becomes empty" do
@@ -98,7 +98,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "key: hashes are filtered out" do
-    [{}, {foo: 1}, {foo: "bar"}].each do |hash|
+    [{}, { foo: 1 }, { foo: "bar" }].each do |hash|
       params = ActionController::Parameters.new(id: hash)
       permitted = params.permit(:id)
       assert_filtered_out permitted, :id
@@ -161,7 +161,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "key to empty array: arrays of non-permitted scalar do not pass" do
-    [[Object.new], [[]], [[1]], [{}], [{id: "1"}]].each do |non_permitted_scalar|
+    [[Object.new], [[]], [[1]], [{}], [{ id: "1" }]].each do |non_permitted_scalar|
       params = ActionController::Parameters.new(id: non_permitted_scalar)
       permitted = params.permit(id: [])
       assert_filtered_out permitted, :id
@@ -203,10 +203,10 @@ class ParametersPermitTest < ActiveSupport::TestCase
   # the cache does not get fooled, the hash is still wrapped as strong params,
   # and not permitted.
   test "mutated arrays are detected" do
-    params = ActionController::Parameters.new(users: [{id: 1}])
+    params = ActionController::Parameters.new(users: [{ id: 1 }])
 
     permitted = params.permit(users: [:id])
-    permitted[:users] << {injected: 1}
+    permitted[:users] << { injected: 1 }
     assert_not permitted[:users].last.permitted?
   end
 
@@ -315,8 +315,8 @@ class ParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "to_unsafe_h returns unfiltered params even after accessing few keys" do
-    params = ActionController::Parameters.new("f"=>{"language_facet"=>["Tibetan"]})
-    expected = {"f"=>{"language_facet"=>["Tibetan"]}}
+    params = ActionController::Parameters.new("f"=>{ "language_facet"=>["Tibetan"] })
+    expected = { "f"=>{ "language_facet"=>["Tibetan"] } }
 
     assert params["f"].is_a? ActionController::Parameters
     assert_equal expected, params.to_unsafe_h

@@ -18,21 +18,21 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
 
   test "parses json params for application json" do
     assert_parses(
-      {"person" => {"name" => "David"}},
+      { "person" => { "name" => "David" } },
       "{\"person\": {\"name\": \"David\"}}", "CONTENT_TYPE" => "application/json"
     )
   end
 
   test "parses boolean and number json params for application json" do
     assert_parses(
-      {"item" => {"enabled" => false, "count" => 10}},
+      { "item" => { "enabled" => false, "count" => 10 } },
       "{\"item\": {\"enabled\": false, \"count\": 10}}", "CONTENT_TYPE" => "application/json"
     )
   end
 
   test "parses json params for application jsonrequest" do
     assert_parses(
-      {"person" => {"name" => "David"}},
+      { "person" => { "name" => "David" } },
       "{\"person\": {\"name\": \"David\"}}", "CONTENT_TYPE" => "application/jsonrequest"
     )
   end
@@ -46,15 +46,15 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
 
   test "nils are stripped from collections" do
     assert_parses(
-      {"person" => []},
+      { "person" => [] },
       "{\"person\":[null]}", "CONTENT_TYPE" => "application/json"
     )
     assert_parses(
-      {"person" => ["foo"]},
+      { "person" => ["foo"] },
       "{\"person\":[\"foo\",null]}", "CONTENT_TYPE" => "application/json"
     )
     assert_parses(
-      {"person" => []},
+      { "person" => [] },
       "{\"person\":[null, null]}", "CONTENT_TYPE" => "application/json"
     )
   end
@@ -133,21 +133,21 @@ class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
 
   test "parses json params for application json" do
     assert_parses(
-      {"user" => {"username" => "sikachu"}, "username" => "sikachu"},
+      { "user" => { "username" => "sikachu" }, "username" => "sikachu" },
       "{\"username\": \"sikachu\"}", "CONTENT_TYPE" => "application/json"
     )
   end
 
   test "parses json params for application jsonrequest" do
     assert_parses(
-      {"user" => {"username" => "sikachu"}, "username" => "sikachu"},
+      { "user" => { "username" => "sikachu" }, "username" => "sikachu" },
       "{\"username\": \"sikachu\"}", "CONTENT_TYPE" => "application/jsonrequest"
     )
   end
 
   test "parses json with non-object JSON content" do
     assert_parses(
-      {"user" => {"_json" => "string content" }, "_json" => "string content" },
+      { "user" => { "_json" => "string content" }, "_json" => "string content" },
       "\"string content\"", "CONTENT_TYPE" => "application/json"
     )
   end
@@ -157,7 +157,7 @@ class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
       Mime::Type.unregister :json
       Mime::Type.register "application/json", :json, %w(application/vnd.rails+json)
       assert_parses(
-        {"user" => {"username" => "meinac"}, "username" => "meinac"},
+        { "user" => { "username" => "meinac" }, "username" => "meinac" },
         "{\"username\": \"meinac\"}", "CONTENT_TYPE" => "application/json"
       )
     ensure
@@ -171,7 +171,7 @@ class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
       Mime::Type.unregister :json
       Mime::Type.register "application/json", :json, %w(application/vnd.rails+json)
       assert_parses(
-        {"user" => {"username" => "meinac"}, "username" => "meinac"},
+        { "user" => { "username" => "meinac" }, "username" => "meinac" },
         "{\"username\": \"meinac\"}", "CONTENT_TYPE" => "application/vnd.rails+json"
       )
     ensure

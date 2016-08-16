@@ -93,7 +93,7 @@ class ModuleAttributeAccessorTest < ActiveSupport::TestCase
 
   def test_should_not_invoke_default_value_block_multiple_times
     count = 0
-    @module.cattr_accessor(:defcount){ count += 1 }
+    @module.cattr_accessor(:defcount) { count += 1 }
     assert_equal 1, count
   end
 end

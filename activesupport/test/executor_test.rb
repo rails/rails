@@ -21,7 +21,7 @@ class ExecutorTest < ActiveSupport::TestCase
     executor.to_run { @foo = true }
     executor.to_complete { result = @foo }
 
-    executor.wrap { }
+    executor.wrap {}
 
     assert result
   end
@@ -83,7 +83,7 @@ class ExecutorTest < ActiveSupport::TestCase
 
     executor.register_hook(hook)
 
-    executor.wrap { }
+    executor.wrap {}
 
     assert_equal :some_state, supplied_state
   end
@@ -103,7 +103,7 @@ class ExecutorTest < ActiveSupport::TestCase
 
     executor.register_hook(hook)
 
-    executor.wrap { }
+    executor.wrap {}
 
     assert_equal nil, supplied_state
   end
@@ -127,7 +127,7 @@ class ExecutorTest < ActiveSupport::TestCase
     executor.register_hook(hook)
 
     assert_raises(DummyError) do
-      executor.wrap { }
+      executor.wrap {}
     end
 
     assert_equal :none, supplied_state
@@ -152,7 +152,7 @@ class ExecutorTest < ActiveSupport::TestCase
     end
 
     assert_raises(DummyError) do
-      executor.wrap { }
+      executor.wrap {}
     end
 
     assert_equal :some_state, supplied_state

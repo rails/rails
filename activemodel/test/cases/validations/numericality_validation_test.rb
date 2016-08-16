@@ -254,11 +254,11 @@ class NumericalityValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_numericality_with_invalid_args
-    assert_raise(ArgumentError){ Topic.validates_numericality_of :approved, greater_than_or_equal_to: "foo" }
-    assert_raise(ArgumentError){ Topic.validates_numericality_of :approved, less_than_or_equal_to: "foo" }
-    assert_raise(ArgumentError){ Topic.validates_numericality_of :approved, greater_than: "foo" }
-    assert_raise(ArgumentError){ Topic.validates_numericality_of :approved, less_than: "foo" }
-    assert_raise(ArgumentError){ Topic.validates_numericality_of :approved, equal_to: "foo" }
+    assert_raise(ArgumentError) { Topic.validates_numericality_of :approved, greater_than_or_equal_to: "foo" }
+    assert_raise(ArgumentError) { Topic.validates_numericality_of :approved, less_than_or_equal_to: "foo" }
+    assert_raise(ArgumentError) { Topic.validates_numericality_of :approved, greater_than: "foo" }
+    assert_raise(ArgumentError) { Topic.validates_numericality_of :approved, less_than: "foo" }
+    assert_raise(ArgumentError) { Topic.validates_numericality_of :approved, equal_to: "foo" }
   end
 
   private

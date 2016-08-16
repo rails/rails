@@ -168,7 +168,7 @@ module Rails
         names.each do |name|
           unless class_options.key?(name)
             defaults = if options[:type] == :boolean
-              { }
+              {}
             elsif [true, false].include?(default_value_for_option(name, options))
               { banner: "" }
             else

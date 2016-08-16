@@ -15,13 +15,13 @@ class TestRoutingMount < ActionDispatch::IntegrationTest
     def self.routes; Object.new; end
 
     def self.call(env)
-      [200, {"Content-Type" => "text/html"}, ["OK"]]
+      [200, { "Content-Type" => "text/html" }, ["OK"]]
     end
   end
 
   Router.draw do
     SprocketsApp = lambda { |env|
-      [200, {"Content-Type" => "text/html"}, ["#{env["SCRIPT_NAME"]} -- #{env["PATH_INFO"]}"]]
+      [200, { "Content-Type" => "text/html" }, ["#{env["SCRIPT_NAME"]} -- #{env["PATH_INFO"]}"]]
     }
 
     mount SprocketsApp, at: "/sprockets"

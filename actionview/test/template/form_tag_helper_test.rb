@@ -183,7 +183,7 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_multiple_field_tags_with_same_options
-    options = {class: "important"}
+    options = { class: "important" }
     assert_dom_equal %(<input name="title" type="file" id="title" class="important"/>), file_field_tag("title", options)
     assert_dom_equal %(<input type="password" name="title" id="title" value="Hello!" class="important" />), password_field_tag("title", "Hello!", options)
     assert_dom_equal %(<input type="text" name="title" id="title" value="Hello!" class="important" />), text_field_tag("title", "Hello!", options)

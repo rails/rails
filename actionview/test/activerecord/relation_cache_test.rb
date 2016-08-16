@@ -9,7 +9,7 @@ class RelationCacheTest <  ActionView::TestCase
   end
 
   def test_cache_relation_other
-    cache(Project.all){ concat("Hello World") }
+    cache(Project.all) { concat("Hello World") }
     assert_equal "Hello World", controller.cache_store.read("views/projects-#{Project.count}/")
   end
 

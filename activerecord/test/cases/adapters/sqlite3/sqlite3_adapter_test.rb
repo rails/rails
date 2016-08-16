@@ -405,7 +405,7 @@ module ActiveRecord
                                    configurations["arunit"]["database"])
         statement = ::SQLite3::Statement.new(db,
                                            "CREATE TABLE statement_test (number integer not null)")
-        statement.stub(:step, ->{ raise ::SQLite3::BusyException.new("busy") }) do
+        statement.stub(:step, -> { raise ::SQLite3::BusyException.new("busy") }) do
           assert_called(statement, :columns, returns: []) do
             assert_called(statement, :close) do
               ::SQLite3::Statement.stub(:new, statement) do

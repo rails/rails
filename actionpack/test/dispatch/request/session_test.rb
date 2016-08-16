@@ -19,7 +19,7 @@ module ActionDispatch
         s = Session.create(store, req, {})
         s["foo"] = "bar"
         assert_equal "bar", s["foo"]
-        assert_equal({"foo" => "bar"}, s.to_hash)
+        assert_equal({ "foo" => "bar" }, s.to_hash)
       end
 
       def test_create_merges_old
@@ -98,7 +98,7 @@ module ActionDispatch
         assert_equal "2", session.fetch(:two, "2")
         assert_nil session.fetch(:two, nil)
 
-        assert_equal "three", session.fetch(:three) {|el| el.to_s }
+        assert_equal "three", session.fetch(:three) { |el| el.to_s }
 
         assert_raise KeyError do
           session.fetch(:three)

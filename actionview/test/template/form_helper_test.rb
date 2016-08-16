@@ -3439,7 +3439,7 @@ class FormHelperTest < ActionView::TestCase
       end
     end
 
-    form_for(@post, builder: builder_class) { }
+    form_for(@post, builder: builder_class) {}
     assert_equal 1, initialization_count, "form builder instantiated more than once"
   end
 

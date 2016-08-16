@@ -222,19 +222,19 @@ module AbstractController
 
       def test_trailing_slash
         add_host!
-        options = {controller: "foo", trailing_slash: true, action: "bar", id: "33"}
+        options = { controller: "foo", trailing_slash: true, action: "bar", id: "33" }
         assert_equal("http://www.basecamphq.com/foo/bar/33/", W.new.url_for(options) )
       end
 
       def test_trailing_slash_with_protocol
         add_host!
-        options = { trailing_slash: true,protocol: "https", controller: "foo", action: "bar", id: "33"}
+        options = { trailing_slash: true,protocol: "https", controller: "foo", action: "bar", id: "33" }
         assert_equal("https://www.basecamphq.com/foo/bar/33/", W.new.url_for(options) )
         assert_equal "https://www.basecamphq.com/foo/bar/33/?query=string", W.new.url_for(options.merge(query: "string"))
       end
 
       def test_trailing_slash_with_only_path
-        options = {controller: "foo", trailing_slash: true}
+        options = { controller: "foo", trailing_slash: true }
         assert_equal "/foo/", W.new.url_for(options.merge(only_path: true))
         options.update(action: "bar", id: "33")
         assert_equal "/foo/bar/33/", W.new.url_for(options.merge(only_path: true))
@@ -242,7 +242,7 @@ module AbstractController
       end
 
       def test_trailing_slash_with_anchor
-        options = {trailing_slash: true, controller: "foo", action: "bar", id: "33", only_path: true, anchor: "chapter7"}
+        options = { trailing_slash: true, controller: "foo", action: "bar", id: "33", only_path: true, anchor: "chapter7" }
         assert_equal "/foo/bar/33/#chapter7", W.new.url_for(options)
         assert_equal "/foo/bar/33/?query=string#chapter7", W.new.url_for(options.merge(query: "string"))
       end
@@ -250,8 +250,8 @@ module AbstractController
       def test_trailing_slash_with_params
         url = W.new.url_for(trailing_slash: true, only_path: true, controller: "cont", action: "act", p1: "cafe", p2: "link")
         params = extract_params(url)
-        assert_equal({p1: "cafe"}.to_query, params[0])
-        assert_equal({p2: "link"}.to_query, params[1])
+        assert_equal({ p1: "cafe" }.to_query, params[0])
+        assert_equal({ p2: "link" }.to_query, params[1])
       end
 
       def test_relative_url_root_is_respected
@@ -348,40 +348,40 @@ module AbstractController
       def test_two_parameters
         url = W.new.url_for(only_path: true, controller: "c", action: "a", p1: "X1", p2: "Y2")
         params = extract_params(url)
-        assert_equal({p1: "X1"}.to_query, params[0])
-        assert_equal({p2: "Y2"}.to_query, params[1])
+        assert_equal({ p1: "X1" }.to_query, params[0])
+        assert_equal({ p2: "Y2" }.to_query, params[1])
       end
 
       def test_hash_parameter
-        url = W.new.url_for(only_path: true, controller: "c", action: "a", query: {name: "Bob", category: "prof"})
+        url = W.new.url_for(only_path: true, controller: "c", action: "a", query: { name: "Bob", category: "prof" })
         params = extract_params(url)
-        assert_equal({"query[category]" => "prof"}.to_query, params[0])
-        assert_equal({"query[name]" => "Bob"}.to_query, params[1])
+        assert_equal({ "query[category]" => "prof" }.to_query, params[0])
+        assert_equal({ "query[name]" => "Bob" }.to_query, params[1])
       end
 
       def test_array_parameter
         url = W.new.url_for(only_path: true, controller: "c", action: "a", query: ["Bob", "prof"])
         params = extract_params(url)
-        assert_equal({"query[]" => "Bob"}.to_query, params[0])
-        assert_equal({"query[]" => "prof"}.to_query, params[1])
+        assert_equal({ "query[]" => "Bob" }.to_query, params[0])
+        assert_equal({ "query[]" => "prof" }.to_query, params[1])
       end
 
       def test_hash_recursive_parameters
-        url = W.new.url_for(only_path: true, controller: "c", action: "a", query: {person: {name: "Bob", position: "prof"}, hobby: "piercing"})
+        url = W.new.url_for(only_path: true, controller: "c", action: "a", query: { person: { name: "Bob", position: "prof" }, hobby: "piercing" })
         params = extract_params(url)
-        assert_equal({"query[hobby]"            => "piercing"}.to_query, params[0])
-        assert_equal({"query[person][name]"     => "Bob"     }.to_query, params[1])
-        assert_equal({"query[person][position]" => "prof"    }.to_query, params[2])
+        assert_equal({ "query[hobby]"            => "piercing" }.to_query, params[0])
+        assert_equal({ "query[person][name]"     => "Bob"     }.to_query, params[1])
+        assert_equal({ "query[person][position]" => "prof"    }.to_query, params[2])
       end
 
       def test_hash_recursive_and_array_parameters
-        url = W.new.url_for(only_path: true, controller: "c", action: "a", id: 101, query: {person: {name: "Bob", position: ["prof", "art director"]}, hobby: "piercing"})
+        url = W.new.url_for(only_path: true, controller: "c", action: "a", id: 101, query: { person: { name: "Bob", position: ["prof", "art director"] }, hobby: "piercing" })
         assert_match(%r(^/c/a/101), url)
         params = extract_params(url)
-        assert_equal({"query[hobby]"              => "piercing"    }.to_query, params[0])
-        assert_equal({"query[person][name]"       => "Bob"         }.to_query, params[1])
-        assert_equal({"query[person][position][]" => "art director"}.to_query, params[2])
-        assert_equal({"query[person][position][]" => "prof"        }.to_query, params[3])
+        assert_equal({ "query[hobby]"              => "piercing"    }.to_query, params[0])
+        assert_equal({ "query[person][name]"       => "Bob"         }.to_query, params[1])
+        assert_equal({ "query[person][position][]" => "art director" }.to_query, params[2])
+        assert_equal({ "query[person][position][]" => "prof"        }.to_query, params[3])
       end
 
       def test_url_action_controller_parameters
@@ -407,7 +407,7 @@ module AbstractController
           kls.default_url_options[:host] = "www.basecamphq.com"
 
           controller = kls.new
-          params = {action: :index, controller: :posts, format: :xml}
+          params = { action: :index, controller: :posts, format: :xml }
           assert_equal("http://www.basecamphq.com/posts.xml", controller.send(:url_for, params))
           params[:format] = nil
           assert_equal("http://www.basecamphq.com/", controller.send(:url_for, params))

@@ -138,7 +138,7 @@ class ACLogSubscriberTest < ActionController::TestCase
   def test_process_action_without_parameters
     get :show
     wait
-    assert_nil logs.detect {|l| l =~ /Parameters/ }
+    assert_nil logs.detect { |l| l =~ /Parameters/ }
   end
 
   def test_process_action_with_parameters

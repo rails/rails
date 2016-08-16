@@ -381,7 +381,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_perform_joined_include_when_referencing_included_tables
-    joined_count = Account.includes(:firm).where(companies: {name: "37signals"}).count
+    joined_count = Account.includes(:firm).where(companies: { name: "37signals" }).count
     assert_equal 1, joined_count
   end
 
@@ -604,7 +604,7 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_pluck_with_serialization
     t = Topic.create!(content: { foo: :bar })
-    assert_equal [{foo: :bar}], Topic.where(id: t.id).pluck(:content)
+    assert_equal [{ foo: :bar }], Topic.where(id: t.id).pluck(:content)
   end
 
   def test_pluck_with_qualified_column_name

@@ -332,7 +332,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     @connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
 
     with_schema_search_path SCHEMA_NAME do
-      assert_nothing_raised { @connection.remove_index "things", name: "things_Index"}
+      assert_nothing_raised { @connection.remove_index "things", name: "things_Index" }
     end
   end
 

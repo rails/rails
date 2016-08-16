@@ -64,7 +64,7 @@ class ActiveRecordTestConnector
       end
 
       def require_fixture_models
-        Dir.glob(File.dirname(__FILE__) + "/fixtures/*.rb").each {|f| require f}
+        Dir.glob(File.dirname(__FILE__) + "/fixtures/*.rb").each { |f| require f }
       end
   end
 end

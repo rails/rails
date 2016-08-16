@@ -29,27 +29,27 @@ module ActiveRecord
             "adapter"  =>  "abstract",
             "host"     =>  "foo",
             "encoding" => "utf8",
-            "name"     => "production"}, spec)
+            "name"     => "production" }, spec)
         end
 
         def test_url_sub_key
-          spec = resolve :production, "production" => {"url" => "abstract://foo?encoding=utf8"}
+          spec = resolve :production, "production" => { "url" => "abstract://foo?encoding=utf8" }
           assert_equal({
             "adapter"  => "abstract",
             "host"     => "foo",
             "encoding" => "utf8",
-            "name"     => "production"}, spec)
+            "name"     => "production" }, spec)
         end
 
         def test_url_sub_key_merges_correctly
-          hash = {"url" => "abstract://foo?encoding=utf8&", "adapter" => "sqlite3", "host" => "bar", "pool" => "3"}
+          hash = { "url" => "abstract://foo?encoding=utf8&", "adapter" => "sqlite3", "host" => "bar", "pool" => "3" }
           spec = resolve :production, "production" => hash
           assert_equal({
             "adapter"  => "abstract",
             "host"     => "foo",
             "encoding" => "utf8",
             "pool"     => "3",
-            "name"     => "production"}, spec)
+            "name"     => "production" }, spec)
         end
 
         def test_url_host_no_db
@@ -112,16 +112,16 @@ module ActiveRecord
         end
 
         def test_url_sub_key_for_sqlite3
-          spec = resolve :production, "production" => {"url" => "sqlite3:foo?encoding=utf8"}
+          spec = resolve :production, "production" => { "url" => "sqlite3:foo?encoding=utf8" }
           assert_equal({
             "adapter"  => "sqlite3",
             "database" => "foo",
             "encoding" => "utf8",
-            "name"     => "production"}, spec)
+            "name"     => "production" }, spec)
         end
 
         def test_spec_name_on_key_lookup
-          spec = spec(:readonly, "readonly" => {"adapter" => "sqlite3"})
+          spec = spec(:readonly, "readonly" => { "adapter" => "sqlite3" })
           assert_equal "readonly", spec.name
         end
 

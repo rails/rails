@@ -21,7 +21,7 @@ class Post < ActiveRecord::Base
   scope :titled_with_an_apostrophe, -> { where("title LIKE '%''%'") }
   scope :ranked_by_comments,      -> { order("comments_count DESC") }
 
-  scope :limit_by, lambda {|l| limit(l) }
+  scope :limit_by, lambda { |l| limit(l) }
 
   belongs_to :author
 
@@ -34,8 +34,8 @@ class Post < ActiveRecord::Base
   has_one :first_comment, -> { order("id ASC") }, class_name: "Comment"
   has_one :last_comment, -> { order("id desc") }, class_name: "Comment"
 
-  scope :with_special_comments, -> { joins(:comments).where(comments: {type: "SpecialComment"}) }
-  scope :with_very_special_comments, -> { joins(:comments).where(comments: {type: "VerySpecialComment"}) }
+  scope :with_special_comments, -> { joins(:comments).where(comments: { type: "SpecialComment" }) }
+  scope :with_very_special_comments, -> { joins(:comments).where(comments: { type: "VerySpecialComment" }) }
   scope :with_post, ->(post_id) { joins(:comments).where(comments: { post_id: post_id }) }
 
   scope :with_comments, -> { preload(:comments) }
@@ -141,10 +141,10 @@ class Post < ActiveRecord::Base
   has_many :people, through: :readers
   has_many :single_people, through: :readers
   has_many :people_with_callbacks, source: :person, through: :readers,
-              before_add: lambda {|owner, reader| log(:added,   :before, reader.first_name) },
-              after_add: lambda {|owner, reader| log(:added,   :after,  reader.first_name) },
-              before_remove: lambda {|owner, reader| log(:removed, :before, reader.first_name) },
-              after_remove: lambda {|owner, reader| log(:removed, :after,  reader.first_name) }
+              before_add: lambda { |owner, reader| log(:added,   :before, reader.first_name) },
+              after_add: lambda { |owner, reader| log(:added,   :after,  reader.first_name) },
+              before_remove: lambda { |owner, reader| log(:removed, :before, reader.first_name) },
+              after_remove: lambda { |owner, reader| log(:removed, :after,  reader.first_name) }
   has_many :skimmers, -> { where skimmer: true }, class_name: "Reader"
   has_many :impatient_people, through: :skimmers, source: :person
 

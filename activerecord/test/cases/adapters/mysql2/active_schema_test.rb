@@ -30,10 +30,10 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
     assert_equal expected, add_index(:people, [:last_name, :first_name], length: 15)
 
     expected = "CREATE  INDEX `index_people_on_last_name_and_first_name`  ON `people` (`last_name`(15), `first_name`) "
-    assert_equal expected, add_index(:people, [:last_name, :first_name], length: {last_name: 15})
+    assert_equal expected, add_index(:people, [:last_name, :first_name], length: { last_name: 15 })
 
     expected = "CREATE  INDEX `index_people_on_last_name_and_first_name`  ON `people` (`last_name`(15), `first_name`(10)) "
-    assert_equal expected, add_index(:people, [:last_name, :first_name], length: {last_name: 15, first_name: 10})
+    assert_equal expected, add_index(:people, [:last_name, :first_name], length: { last_name: 15, first_name: 10 })
 
     %w(SPATIAL FULLTEXT UNIQUE).each do |type|
       expected = "CREATE #{type} INDEX `index_people_on_last_name`  ON `people` (`last_name`) "

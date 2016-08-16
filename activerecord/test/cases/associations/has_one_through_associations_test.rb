@@ -95,7 +95,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
       Member.all.merge!(includes: :club, where: ["name = ?", "Groucho Marx"]).to_a
     end
     assert_equal 1, members.size
-    assert_not_nil assert_no_queries {members[0].club}
+    assert_not_nil assert_no_queries { members[0].club }
   end
 
   def test_has_one_through_eager_loading_through_polymorphic
@@ -103,7 +103,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
       Member.all.merge!(includes: :sponsor_club, where: ["name = ?", "Groucho Marx"]).to_a
     end
     assert_equal 1, members.size
-    assert_not_nil assert_no_queries {members[0].sponsor_club}
+    assert_not_nil assert_no_queries { members[0].sponsor_club }
   end
 
   def test_has_one_through_with_conditions_eager_loading
@@ -125,7 +125,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   def test_eager_has_one_through_polymorphic_with_source_type
     clubs = Club.all.merge!(includes: :sponsored_member, where: ["name = ?","Moustache and Eyebrow Fancier Club"]).to_a
     # Only the eyebrow fanciers club has a sponsored_member
-    assert_not_nil assert_no_queries {clubs[0].sponsored_member}
+    assert_not_nil assert_no_queries { clubs[0].sponsored_member }
   end
 
   def test_has_one_through_nonpreload_eagerloading
@@ -133,7 +133,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
       Member.all.merge!(includes: :club, where: ["members.name = ?", "Groucho Marx"], order: "clubs.name").to_a #force fallback
     end
     assert_equal 1, members.size
-    assert_not_nil assert_no_queries {members[0].club}
+    assert_not_nil assert_no_queries { members[0].club }
   end
 
   def test_has_one_through_nonpreload_eager_loading_through_polymorphic
@@ -141,7 +141,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
       Member.all.merge!(includes: :sponsor_club, where: ["members.name = ?", "Groucho Marx"], order: "clubs.name").to_a #force fallback
     end
     assert_equal 1, members.size
-    assert_not_nil assert_no_queries {members[0].sponsor_club}
+    assert_not_nil assert_no_queries { members[0].sponsor_club }
   end
 
   def test_has_one_through_nonpreload_eager_loading_through_polymorphic_with_more_than_one_through_record

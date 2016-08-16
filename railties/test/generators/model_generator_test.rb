@@ -275,7 +275,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
   def test_migration_error_is_not_shown_on_revoke
     run_generator
-    error = capture(:stderr){ run_generator ["Account"], behavior: :revoke }
+    error = capture(:stderr) { run_generator ["Account"], behavior: :revoke }
     assert_no_match(/Another migration is already named create_accounts/, error)
   end
 
@@ -300,7 +300,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
     assert_file "test/fixtures/accounts.yml", /name: MyString/, /age: 1/
     assert_generated_fixture("test/fixtures/accounts.yml",
-                             "one"=>{"name"=>"MyString", "age"=>1}, "two"=>{"name"=>"MyString", "age"=>1})
+                             "one"=>{ "name"=>"MyString", "age"=>1 }, "two"=>{ "name"=>"MyString", "age"=>1 })
   end
 
   def test_fixtures_use_the_references_ids
@@ -308,7 +308,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
     assert_file "test/fixtures/line_items.yml", /product: one\n  cart: one/
     assert_generated_fixture("test/fixtures/line_items.yml",
-                             "one"=>{"product"=>"one", "cart"=>"one"}, "two"=>{"product"=>"two", "cart"=>"two"})
+                             "one"=>{ "product"=>"one", "cart"=>"one" }, "two"=>{ "product"=>"two", "cart"=>"two" })
   end
 
   def test_fixtures_use_the_references_ids_and_type
@@ -316,15 +316,15 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
     assert_file "test/fixtures/line_items.yml", /product: one\n  product_type: Product\n  cart: one/
     assert_generated_fixture("test/fixtures/line_items.yml",
-                             "one"=>{"product"=>"one", "product_type"=>"Product", "cart"=>"one"},
-                              "two"=>{"product"=>"two", "product_type"=>"Product", "cart"=>"two"})
+                             "one"=>{ "product"=>"one", "product_type"=>"Product", "cart"=>"one" },
+                              "two"=>{ "product"=>"two", "product_type"=>"Product", "cart"=>"two" })
   end
 
   def test_fixtures_respect_reserved_yml_keywords
     run_generator ["LineItem", "no:integer", "Off:boolean", "ON:boolean"]
 
     assert_generated_fixture("test/fixtures/line_items.yml",
-                             "one"=>{"no"=>1, "Off"=>false, "ON"=>false}, "two"=>{"no"=>1, "Off"=>false, "ON"=>false})
+                             "one"=>{ "no"=>1, "Off"=>false, "ON"=>false }, "two"=>{ "no"=>1, "Off"=>false, "ON"=>false })
   end
 
   def test_fixture_is_skipped
@@ -343,13 +343,13 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     ActiveRecord::Base.pluralize_table_names = false
     run_generator
     assert_generated_fixture("test/fixtures/account.yml",
-                             "one"=>{"name"=>"MyString", "age"=>1}, "two"=>{"name"=>"MyString", "age"=>1})
+                             "one"=>{ "name"=>"MyString", "age"=>1 }, "two"=>{ "name"=>"MyString", "age"=>1 })
   ensure
     ActiveRecord::Base.pluralize_table_names = original_pluralize_table_name
   end
 
   def test_check_class_collision
-    content = capture(:stderr){ run_generator ["object"] }
+    content = capture(:stderr) { run_generator ["object"] }
     assert_match(/The name 'Object' is either already used in your application or reserved/, content)
   end
 

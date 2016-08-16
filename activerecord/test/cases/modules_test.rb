@@ -73,7 +73,7 @@ class ModulesTest < ActiveRecord::TestCase
     clients = []
 
     assert_nothing_raised do
-      clients << MyApplication::Business::Client.references(:accounts).merge!(includes: {firm: :account}, where: "accounts.id IS NOT NULL").find(3)
+      clients << MyApplication::Business::Client.references(:accounts).merge!(includes: { firm: :account }, where: "accounts.id IS NOT NULL").find(3)
       clients << MyApplication::Business::Client.includes(firm: :account).find(3)
     end
 

@@ -225,7 +225,7 @@ module ActiveRecord
       InvertibleMigration.new.migrate :up
       received = []
       migration = InvertibleByPartsMigration.new
-      migration.test = ->(dir){
+      migration.test = ->(dir) {
         ActiveSupport::Deprecation.silence do
           assert migration.connection.table_exists?("horses")
           assert migration.connection.table_exists?("new_horses")
@@ -305,7 +305,7 @@ module ActiveRecord
     end
 
     def test_revert_order
-      block = Proc.new{|t| t.string :name }
+      block = Proc.new { |t| t.string :name }
       recorder = ActiveRecord::Migration::CommandRecorder.new(ActiveRecord::Base.connection)
       recorder.instance_eval do
         create_table("apples", &block)

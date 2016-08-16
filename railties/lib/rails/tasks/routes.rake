@@ -7,7 +7,7 @@ task routes: :environment do
   all_routes = Rails.application.routes.routes
   require "action_dispatch/routing/inspector"
   inspector = ActionDispatch::Routing::RoutesInspector.new(all_routes)
-  if ARGV.any?{ |argv| argv.start_with? "CONTROLLER" }
+  if ARGV.any? { |argv| argv.start_with? "CONTROLLER" }
     puts <<-eow.strip_heredoc
       Passing `CONTROLLER` to `bin/rails routes` is deprecated and will be removed in Rails 5.1.
       Please use `bin/rails routes -c controller_name` instead.

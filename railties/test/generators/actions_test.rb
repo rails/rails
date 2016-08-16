@@ -34,7 +34,7 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   def test_create_file_should_write_block_contents_to_file_path
-    action(:create_file, "lib/test_file.rb"){ "heres block data" }
+    action(:create_file, "lib/test_file.rb") { "heres block data" }
     assert_file "lib/test_file.rb", "heres block data"
   end
 
@@ -78,7 +78,7 @@ class ActionsTest < Rails::Generators::TestCase
   def test_gem_should_insert_on_separate_lines
     run_generator
 
-    File.open("Gemfile", "a") {|f| f.write("# Some content...") }
+    File.open("Gemfile", "a") { |f| f.write("# Some content...") }
 
     action :gem, "rspec"
     action :gem, "rspec-rails"
@@ -372,6 +372,6 @@ F
   protected
 
     def action(*args, &block)
-      capture(:stdout){ generator.send(*args, &block) }
+      capture(:stdout) { generator.send(*args, &block) }
     end
 end

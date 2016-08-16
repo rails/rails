@@ -156,7 +156,7 @@ class CacheStoreTest < ActionDispatch::IntegrationTest
       assert_response :success
       assert_not_equal "0xhax", cookies["_session_id"]
       assert_equal nil, @cache.read("_session_id:0xhax")
-      assert_equal({"foo" => "bar"}, @cache.read("_session_id:#{cookies['_session_id']}"))
+      assert_equal({ "foo" => "bar" }, @cache.read("_session_id:#{cookies['_session_id']}"))
     end
   end
 

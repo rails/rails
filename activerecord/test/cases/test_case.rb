@@ -40,7 +40,7 @@ module ActiveRecord
     ensure
       failed_patterns = []
       patterns_to_match.each do |pattern|
-        failed_patterns << pattern unless SQLCounter.log_all.any?{ |sql| pattern === sql }
+        failed_patterns << pattern unless SQLCounter.log_all.any? { |sql| pattern === sql }
       end
       assert failed_patterns.empty?, "Query pattern(s) #{failed_patterns.map(&:inspect).join(', ')} not found.#{SQLCounter.log.size == 0 ? '' : "\nQueries:\n#{SQLCounter.log.join("\n")}"}"
     end

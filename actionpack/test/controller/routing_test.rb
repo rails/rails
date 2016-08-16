@@ -91,7 +91,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     end
 
     hash = ActiveSupport::JSON.decode get(URI("http://example.org/journey/faithfully-omg"))
-    assert_equal({"artist"=>"journey", "song"=>"faithfully"}, hash)
+    assert_equal({ "artist"=>"journey", "song"=>"faithfully" }, hash)
   end
 
   def test_id_with_dash
@@ -103,7 +103,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     end
 
     hash = ActiveSupport::JSON.decode get(URI("http://example.org/journey/faithfully-omg"))
-    assert_equal({"id"=>"faithfully-omg"}, hash)
+    assert_equal({ "id"=>"faithfully-omg" }, hash)
   end
 
   def test_dash_with_custom_regexp
@@ -115,7 +115,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     end
 
     hash = ActiveSupport::JSON.decode get(URI("http://example.org/journey/123-omg"))
-    assert_equal({"artist"=>"journey", "song"=>"123"}, hash)
+    assert_equal({ "artist"=>"journey", "song"=>"123" }, hash)
     assert_equal "Not Found", get(URI("http://example.org/journey/faithfully-omg"))
   end
 
@@ -128,7 +128,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     end
 
     hash = ActiveSupport::JSON.decode get(URI("http://example.org/journey/omg-faithfully"))
-    assert_equal({"artist"=>"journey", "song"=>"faithfully"}, hash)
+    assert_equal({ "artist"=>"journey", "song"=>"faithfully" }, hash)
   end
 
   def test_pre_dash_with_custom_regexp
@@ -140,7 +140,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     end
 
     hash = ActiveSupport::JSON.decode get(URI("http://example.org/journey/omg-123"))
-    assert_equal({"artist"=>"journey", "song"=>"123"}, hash)
+    assert_equal({ "artist"=>"journey", "song"=>"123" }, hash)
     assert_equal "Not Found", get(URI("http://example.org/journey/omg-faithfully"))
   end
 
@@ -286,7 +286,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
       }
     end
     assert_equal "foo", get(URI("http://example.org/posts/1/foo.js"))
-    assert_equal({id: "1", filters: "foo", format: "js"}, params)
+    assert_equal({ id: "1", filters: "foo", format: "js" }, params)
   end
 
   def test_specific_controller_action_failure
@@ -301,11 +301,11 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
   def test_default_setup
     rs.draw { ActiveSupport::Deprecation.silence { get "/:controller(/:action(/:id))" } }
-    assert_equal({controller: "content", action: "index"}, rs.recognize_path("/content"))
-    assert_equal({controller: "content", action: "list"},  rs.recognize_path("/content/list"))
-    assert_equal({controller: "content", action: "show", id: "10"}, rs.recognize_path("/content/show/10"))
+    assert_equal({ controller: "content", action: "index" }, rs.recognize_path("/content"))
+    assert_equal({ controller: "content", action: "list" },  rs.recognize_path("/content/list"))
+    assert_equal({ controller: "content", action: "show", id: "10" }, rs.recognize_path("/content/show/10"))
 
-    assert_equal({controller: "admin/user", action: "show", id: "10"}, rs.recognize_path("/admin/user/show/10"))
+    assert_equal({ controller: "admin/user", action: "show", id: "10" }, rs.recognize_path("/admin/user/show/10"))
 
     assert_equal "/admin/user/show/10", url_for(rs, controller: "admin/user", action: "show", id: 10)
 
@@ -330,7 +330,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
       get ":url", controller: "content", action: "translate"
     end
 
-    assert_equal({controller: "content", action: "translate", url: "example"}, rs.recognize_path("/example"))
+    assert_equal({ controller: "content", action: "translate", url: "example" }, rs.recognize_path("/example"))
   end
 
   def test_route_with_regexp_for_action
@@ -351,9 +351,9 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
       end
     end
 
-    assert_equal({controller: "admin/user", admintoken: "foo", action: "index"},
+    assert_equal({ controller: "admin/user", admintoken: "foo", action: "index" },
         rs.recognize_path("/admin/user/foo"))
-    assert_equal({controller: "content", action: "foo"},
+    assert_equal({ controller: "content", action: "foo" },
         rs.recognize_path("/content/foo"))
 
     assert_equal "/admin/user/foo", url_for(rs, controller: "admin/user", admintoken: "foo", action: "index")
@@ -366,8 +366,8 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
         get "/:controller(/:action(/:id))", controller: /admin\/(accounts|users)/
       end
     end
-    assert_equal({controller: "admin/accounts", action: "index"}, rs.recognize_path("/admin/accounts"))
-    assert_equal({controller: "admin/users", action: "index"}, rs.recognize_path("/admin/users"))
+    assert_equal({ controller: "admin/accounts", action: "index" }, rs.recognize_path("/admin/accounts"))
+    assert_equal({ controller: "admin/users", action: "index" }, rs.recognize_path("/admin/users"))
     assert_raise(ActionController::RoutingError) { rs.recognize_path("/admin/products") }
   end
 
@@ -377,22 +377,22 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
         get ":controller/:action/:file",
                   controller: /admin|user/,
                   action: /upload|download/,
-                  defaults: {file: nil},
-                  constraints: {file: %r{[^/]+(\.[^/]+)?}}
+                  defaults: { file: nil },
+                  constraints: { file: %r{[^/]+(\.[^/]+)?} }
       end
     end
     # Without a file extension
     assert_equal "/user/download/file",
       url_for(rs, controller: "user", action: "download", file: "file")
 
-    assert_equal({controller: "user", action: "download", file: "file"},
+    assert_equal({ controller: "user", action: "download", file: "file" },
       rs.recognize_path("/user/download/file"))
 
     # Now, let's try a file with an extension, really a dot (.)
     assert_equal "/user/download/file.jpg",
       url_for(rs, controller: "user", action: "download", file: "file.jpg")
 
-    assert_equal({controller: "user", action: "download", file: "file.jpg"},
+    assert_equal({ controller: "user", action: "download", file: "file.jpg" },
       rs.recognize_path("/user/download/file.jpg"))
   end
 
@@ -603,7 +603,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     end
 
     get URI("http://test.host/pages/boo")
-    assert_equal({controller: "content", action: "show_file", path: "pages/boo"},
+    assert_equal({ controller: "content", action: "show_file", path: "pages/boo" },
                  controller.request.path_parameters)
 
     assert_equal "/pages/boo",
@@ -638,9 +638,9 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     assert_equal "/page",    url_for(rs, controller: "content", action: "show_page", id: "1")
     assert_equal "/page/10", url_for(rs, controller: "content", action: "show_page", id: 10)
 
-    assert_equal({controller: "content", action: "show_page", id: 1 }, rs.recognize_path("/page"))
-    assert_equal({controller: "content", action: "show_page", id: "1"}, rs.recognize_path("/page/1"))
-    assert_equal({controller: "content", action: "show_page", id: "10"}, rs.recognize_path("/page/10"))
+    assert_equal({ controller: "content", action: "show_page", id: 1 }, rs.recognize_path("/page"))
+    assert_equal({ controller: "content", action: "show_page", id: "1" }, rs.recognize_path("/page/1"))
+    assert_equal({ controller: "content", action: "show_page", id: "10" }, rs.recognize_path("/page/10"))
   end
 
   # For newer revision
@@ -672,7 +672,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
   def test_requirement_should_prevent_optional_id
     rs.draw do
-      get "post/:id" => "post#show", :constraints => {id: /\d+/}, :as => "post"
+      get "post/:id" => "post#show", :constraints => { id: /\d+/ }, :as => "post"
     end
 
     assert_equal "/post/10", url_for(rs, controller: "post", action: "show", id: 10)
@@ -1111,8 +1111,8 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal "/users/show/10",  url_for(set, controller: "users", action: "show", id: 10)
     assert_equal "/users/index/10", url_for(set, controller: "users", id: 10)
 
-    assert_equal({controller: "users", action: "index", id: "10"}, set.recognize_path("/users/index/10"))
-    assert_equal({controller: "users", action: "index", id: "10"}, set.recognize_path("/users/index/10/"))
+    assert_equal({ controller: "users", action: "index", id: "10" }, set.recognize_path("/users/index/10"))
+    assert_equal({ controller: "users", action: "index", id: "10" }, set.recognize_path("/users/index/10/"))
   end
 
   def test_route_with_parameter_shell
@@ -1124,12 +1124,12 @@ class RouteSetTest < ActiveSupport::TestCase
       end
     end
 
-    assert_equal({controller: "pages", action: "index"}, request_path_params("/pages"))
-    assert_equal({controller: "pages", action: "index"}, request_path_params("/pages/index"))
-    assert_equal({controller: "pages", action: "list"}, request_path_params("/pages/list"))
+    assert_equal({ controller: "pages", action: "index" }, request_path_params("/pages"))
+    assert_equal({ controller: "pages", action: "index" }, request_path_params("/pages/index"))
+    assert_equal({ controller: "pages", action: "list" }, request_path_params("/pages/list"))
 
-    assert_equal({controller: "pages", action: "show", id: "10"}, request_path_params("/pages/show/10"))
-    assert_equal({controller: "pages", action: "show", id: "10"}, request_path_params("/page/10"))
+    assert_equal({ controller: "pages", action: "show", id: "10" }, request_path_params("/pages/show/10"))
+    assert_equal({ controller: "pages", action: "show", id: "10" }, request_path_params("/page/10"))
   end
 
   def test_route_constraints_on_request_object_with_anchors_are_valid
@@ -1189,8 +1189,8 @@ class RouteSetTest < ActiveSupport::TestCase
       get "page/:id" => "pages#show", :id => /[a-zA-Z0-9\+]+/
     end
 
-    assert_equal({controller: "pages", action: "show", id: "10"}, request_path_params("/page/10"))
-    assert_equal({controller: "pages", action: "show", id: "hello+world"}, request_path_params("/page/hello+world"))
+    assert_equal({ controller: "pages", action: "show", id: "10" }, request_path_params("/page/10"))
+    assert_equal({ controller: "pages", action: "show", id: "hello+world" }, request_path_params("/page/hello+world"))
   end
 
   def test_recognize_with_http_methods
@@ -1500,7 +1500,7 @@ class RouteSetTest < ActiveSupport::TestCase
     end
 
     get URI("http://test.host/posts.xml")
-    assert_equal({controller: "posts", action: "index", format: "xml"},
+    assert_equal({ controller: "posts", action: "index", format: "xml" },
                  controller.request.path_parameters)
 
     assert_equal "/posts", controller.url_for(
@@ -1591,12 +1591,12 @@ class RouteSetTest < ActiveSupport::TestCase
   def test_route_with_subdomain_and_constraints_must_receive_params
     name_param = nil
     set.draw do
-      get "page/:name" => "pages#show", :constraints => lambda {|request|
+      get "page/:name" => "pages#show", :constraints => lambda { |request|
         name_param = request.params[:name]
         return true
       }
     end
-    assert_equal({controller: "pages", action: "show", name: "mypage"},
+    assert_equal({ controller: "pages", action: "show", name: "mypage" },
       set.recognize_path("http://subdomain.example.org/page/mypage"))
     assert_equal(name_param, "mypage")
   end
@@ -1604,19 +1604,19 @@ class RouteSetTest < ActiveSupport::TestCase
   def test_route_requirement_recognize_with_ignore_case
     set.draw do
       get "page/:name" => "pages#show",
-        :constraints => {name: /(david|jamis)/i}
+        :constraints => { name: /(david|jamis)/i }
     end
-    assert_equal({controller: "pages", action: "show", name: "jamis"}, set.recognize_path("/page/jamis"))
+    assert_equal({ controller: "pages", action: "show", name: "jamis" }, set.recognize_path("/page/jamis"))
     assert_raise ActionController::RoutingError do
       set.recognize_path("/page/davidjamis")
     end
-    assert_equal({controller: "pages", action: "show", name: "DAVID"}, set.recognize_path("/page/DAVID"))
+    assert_equal({ controller: "pages", action: "show", name: "DAVID" }, set.recognize_path("/page/DAVID"))
   end
 
   def test_route_requirement_generate_with_ignore_case
     set.draw do
       get "page/:name" => "pages#show",
-        :constraints => {name: /(david|jamis)/i}
+        :constraints => { name: /(david|jamis)/i }
     end
 
     url = url_for(set, controller: "pages", action: "show", name: "david")
@@ -1631,15 +1631,15 @@ class RouteSetTest < ActiveSupport::TestCase
   def test_route_requirement_recognize_with_extended_syntax
     set.draw do
       get "page/:name" => "pages#show",
-        :constraints => {name: / # Desperately overcommented regexp
+        :constraints => { name: / # Desperately overcommented regexp
                                     ( #Either
                                      david #The Creator
                                     | #Or
                                       jamis #The Deployer
-                                    )/x}
+                                    )/x }
     end
-    assert_equal({controller: "pages", action: "show", name: "jamis"}, set.recognize_path("/page/jamis"))
-    assert_equal({controller: "pages", action: "show", name: "david"}, set.recognize_path("/page/david"))
+    assert_equal({ controller: "pages", action: "show", name: "jamis" }, set.recognize_path("/page/jamis"))
+    assert_equal({ controller: "pages", action: "show", name: "david" }, set.recognize_path("/page/david"))
     assert_raise ActionController::RoutingError do
       set.recognize_path("/page/david #The Creator")
     end
@@ -1651,15 +1651,15 @@ class RouteSetTest < ActiveSupport::TestCase
   def test_route_requirement_with_xi_modifiers
     set.draw do
       get "page/:name" => "pages#show",
-        :constraints => {name: / # Desperately overcommented regexp
+        :constraints => { name: / # Desperately overcommented regexp
                                     ( #Either
                                      david #The Creator
                                     | #Or
                                       jamis #The Deployer
-                                    )/xi}
+                                    )/xi }
     end
 
-    assert_equal({controller: "pages", action: "show", name: "JAMIS"},
+    assert_equal({ controller: "pages", action: "show", name: "JAMIS" },
         set.recognize_path("/page/JAMIS"))
 
     assert_equal "/page/JAMIS",
@@ -1671,8 +1671,8 @@ class RouteSetTest < ActiveSupport::TestCase
       get "unnamed", controller: :pages, action: :show, name: :as_symbol
       get "named"  , controller: :pages, action: :show, name: :as_symbol, as: :named
     end
-    assert_equal({controller: "pages", action: "show", name: :as_symbol}, set.recognize_path("/unnamed"))
-    assert_equal({controller: "pages", action: "show", name: :as_symbol}, set.recognize_path("/named"))
+    assert_equal({ controller: "pages", action: "show", name: :as_symbol }, set.recognize_path("/unnamed"))
+    assert_equal({ controller: "pages", action: "show", name: :as_symbol }, set.recognize_path("/named"))
   end
 
   def test_regexp_chunk_should_add_question_mark_for_optionals
@@ -1684,8 +1684,8 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal "/",      url_for(set, controller: "foo")
     assert_equal "/hello", url_for(set, controller: "bar")
 
-    assert_equal({controller: "foo", action: "index"}, set.recognize_path("/"))
-    assert_equal({controller: "bar", action: "index"}, set.recognize_path("/hello"))
+    assert_equal({ controller: "foo", action: "index" }, set.recognize_path("/"))
+    assert_equal({ controller: "bar", action: "index" }, set.recognize_path("/hello"))
   end
 
   def test_assign_route_options_with_anchor_chars
@@ -1697,7 +1697,7 @@ class RouteSetTest < ActiveSupport::TestCase
 
     assert_equal "/cars/buy/1/2", url_for(set, controller: "cars", action: "buy", person: "1", car: "2")
 
-    assert_equal({controller: "cars", action: "buy", person: "1", car: "2"}, set.recognize_path("/cars/buy/1/2"))
+    assert_equal({ controller: "cars", action: "buy", person: "1", car: "2" }, set.recognize_path("/cars/buy/1/2"))
   end
 
   def test_segmentation_of_dot_path
@@ -1709,7 +1709,7 @@ class RouteSetTest < ActiveSupport::TestCase
 
     assert_equal "/books/list.rss", url_for(set, controller: "books", action: "list")
 
-    assert_equal({controller: "books", action: "list"}, set.recognize_path("/books/list.rss"))
+    assert_equal({ controller: "books", action: "list" }, set.recognize_path("/books/list.rss"))
   end
 
   def test_segmentation_of_dynamic_dot_path
@@ -1724,10 +1724,10 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal "/books/list",     url_for(set, controller: "books", action: "list")
     assert_equal "/books",          url_for(set, controller: "books", action: "index")
 
-    assert_equal({controller: "books", action: "list", format: "rss"}, set.recognize_path("/books/list.rss"))
-    assert_equal({controller: "books", action: "list", format: "xml"}, set.recognize_path("/books/list.xml"))
-    assert_equal({controller: "books", action: "list"},  set.recognize_path("/books/list"))
-    assert_equal({controller: "books", action: "index"}, set.recognize_path("/books"))
+    assert_equal({ controller: "books", action: "list", format: "rss" }, set.recognize_path("/books/list.rss"))
+    assert_equal({ controller: "books", action: "list", format: "xml" }, set.recognize_path("/books/list.xml"))
+    assert_equal({ controller: "books", action: "list" },  set.recognize_path("/books/list"))
+    assert_equal({ controller: "books", action: "index" }, set.recognize_path("/books"))
   end
 
   def test_slashes_are_implied
@@ -1737,14 +1737,14 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal "/content/list",   url_for(set, controller: "content", action: "list")
     assert_equal "/content/show/1", url_for(set, controller: "content", action: "show", id: "1")
 
-    assert_equal({controller: "content", action: "index"}, set.recognize_path("/content"))
-    assert_equal({controller: "content", action: "index"}, set.recognize_path("/content/index"))
-    assert_equal({controller: "content", action: "list"},  set.recognize_path("/content/list"))
-    assert_equal({controller: "content", action: "show", id: "1"}, set.recognize_path("/content/show/1"))
+    assert_equal({ controller: "content", action: "index" }, set.recognize_path("/content"))
+    assert_equal({ controller: "content", action: "index" }, set.recognize_path("/content/index"))
+    assert_equal({ controller: "content", action: "list" },  set.recognize_path("/content/list"))
+    assert_equal({ controller: "content", action: "show", id: "1" }, set.recognize_path("/content/show/1"))
   end
 
   def test_default_route_recognition
-    expected = {controller: "pages", action: "show", id: "10"}
+    expected = { controller: "pages", action: "show", id: "10" }
     assert_equal expected, default_route_set.recognize_path("/pages/show/10")
     assert_equal expected, default_route_set.recognize_path("/pages/show/10/")
 
@@ -1860,19 +1860,19 @@ class RouteSetTest < ActiveSupport::TestCase
       controller.request.path_parameters
     }
 
-    assert_equal({controller: "blog", action: "index"}, recognize_path.("/blog"))
-    assert_equal({controller: "blog", action: "show", id: "123"}, recognize_path.("/blog/show/123"))
-    assert_equal({controller: "blog", action: "show_date", year: "2004", day: nil, month: nil }, recognize_path.("/blog/2004"))
-    assert_equal({controller: "blog", action: "show_date", year: "2004", month: "12", day: nil }, recognize_path.("/blog/2004/12"))
-    assert_equal({controller: "blog", action: "show_date", year: "2004", month: "12", day: "25"}, recognize_path.("/blog/2004/12/25"))
-    assert_equal({controller: "articles", action: "edit", id: "123"}, recognize_path.("/blog/articles/edit/123"))
-    assert_equal({controller: "articles", action: "show_stats"}, recognize_path.("/blog/articles/show_stats"))
-    assert_equal({controller: "blog", action: "unknown_request", anything: "blog/wibble"}, recognize_path.("/blog/wibble"))
-    assert_equal({controller: "blog", action: "unknown_request", anything: "junk"}, recognize_path.("/junk"))
+    assert_equal({ controller: "blog", action: "index" }, recognize_path.("/blog"))
+    assert_equal({ controller: "blog", action: "show", id: "123" }, recognize_path.("/blog/show/123"))
+    assert_equal({ controller: "blog", action: "show_date", year: "2004", day: nil, month: nil }, recognize_path.("/blog/2004"))
+    assert_equal({ controller: "blog", action: "show_date", year: "2004", month: "12", day: nil }, recognize_path.("/blog/2004/12"))
+    assert_equal({ controller: "blog", action: "show_date", year: "2004", month: "12", day: "25" }, recognize_path.("/blog/2004/12/25"))
+    assert_equal({ controller: "articles", action: "edit", id: "123" }, recognize_path.("/blog/articles/edit/123"))
+    assert_equal({ controller: "articles", action: "show_stats" }, recognize_path.("/blog/articles/show_stats"))
+    assert_equal({ controller: "blog", action: "unknown_request", anything: "blog/wibble" }, recognize_path.("/blog/wibble"))
+    assert_equal({ controller: "blog", action: "unknown_request", anything: "junk" }, recognize_path.("/junk"))
 
     get URI("http://example.org/blog/2006/07/28")
 
-    assert_equal({controller: "blog",  action: "show_date", year: "2006", month: "07", day: "28"}, controller.request.path_parameters)
+    assert_equal({ controller: "blog",  action: "show_date", year: "2006", month: "07", day: "28" }, controller.request.path_parameters)
     assert_equal("/blog/2006/07/25", controller.url_for(day: 25, only_path: true))
     assert_equal("/blog/2005",       controller.url_for(year: 2005, only_path: true))
     assert_equal("/blog/show/123",   controller.url_for(action: "show" , id: 123, only_path: true))
@@ -1966,76 +1966,76 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
   end
 
   def test_recognize_path
-    assert_equal({controller: "admin/users", action: "index"}, @routes.recognize_path("/admin/users", method: :get))
-    assert_equal({controller: "admin/users", action: "create"}, @routes.recognize_path("/admin/users", method: :post))
-    assert_equal({controller: "admin/users", action: "new"}, @routes.recognize_path("/admin/users/new", method: :get))
-    assert_equal({controller: "admin/users", action: "show", id: "1"}, @routes.recognize_path("/admin/users/1", method: :get))
-    assert_equal({controller: "admin/users", action: "update", id: "1"}, @routes.recognize_path("/admin/users/1", method: :put))
-    assert_equal({controller: "admin/users", action: "destroy", id: "1"}, @routes.recognize_path("/admin/users/1", method: :delete))
-    assert_equal({controller: "admin/users", action: "edit", id: "1"}, @routes.recognize_path("/admin/users/1/edit", method: :get))
+    assert_equal({ controller: "admin/users", action: "index" }, @routes.recognize_path("/admin/users", method: :get))
+    assert_equal({ controller: "admin/users", action: "create" }, @routes.recognize_path("/admin/users", method: :post))
+    assert_equal({ controller: "admin/users", action: "new" }, @routes.recognize_path("/admin/users/new", method: :get))
+    assert_equal({ controller: "admin/users", action: "show", id: "1" }, @routes.recognize_path("/admin/users/1", method: :get))
+    assert_equal({ controller: "admin/users", action: "update", id: "1" }, @routes.recognize_path("/admin/users/1", method: :put))
+    assert_equal({ controller: "admin/users", action: "destroy", id: "1" }, @routes.recognize_path("/admin/users/1", method: :delete))
+    assert_equal({ controller: "admin/users", action: "edit", id: "1" }, @routes.recognize_path("/admin/users/1/edit", method: :get))
 
-    assert_equal({controller: "admin/posts", action: "index"}, @routes.recognize_path("/admin/posts", method: :get))
-    assert_equal({controller: "admin/posts", action: "new"}, @routes.recognize_path("/admin/posts/new", method: :get))
+    assert_equal({ controller: "admin/posts", action: "index" }, @routes.recognize_path("/admin/posts", method: :get))
+    assert_equal({ controller: "admin/posts", action: "new" }, @routes.recognize_path("/admin/posts/new", method: :get))
 
-    assert_equal({controller: "api/users", action: "index"}, @routes.recognize_path("/api", method: :get))
-    assert_equal({controller: "api/users", action: "index"}, @routes.recognize_path("/api/", method: :get))
+    assert_equal({ controller: "api/users", action: "index" }, @routes.recognize_path("/api", method: :get))
+    assert_equal({ controller: "api/users", action: "index" }, @routes.recognize_path("/api/", method: :get))
 
-    assert_equal({controller: "posts", action: "show_date", year: "2009", month: nil, day: nil }, @routes.recognize_path("/blog/2009", method: :get))
-    assert_equal({controller: "posts", action: "show_date", year: "2009", month: "01", day: nil }, @routes.recognize_path("/blog/2009/01", method: :get))
-    assert_equal({controller: "posts", action: "show_date", year: "2009", month: "01", day: "01"}, @routes.recognize_path("/blog/2009/01/01", method: :get))
+    assert_equal({ controller: "posts", action: "show_date", year: "2009", month: nil, day: nil }, @routes.recognize_path("/blog/2009", method: :get))
+    assert_equal({ controller: "posts", action: "show_date", year: "2009", month: "01", day: nil }, @routes.recognize_path("/blog/2009/01", method: :get))
+    assert_equal({ controller: "posts", action: "show_date", year: "2009", month: "01", day: "01" }, @routes.recognize_path("/blog/2009/01/01", method: :get))
 
-    assert_equal({controller: "archive", action: "index", year: "2010"}, @routes.recognize_path("/archive/2010"))
-    assert_equal({controller: "archive", action: "index"}, @routes.recognize_path("/archive"))
+    assert_equal({ controller: "archive", action: "index", year: "2010" }, @routes.recognize_path("/archive/2010"))
+    assert_equal({ controller: "archive", action: "index" }, @routes.recognize_path("/archive"))
 
-    assert_equal({controller: "people", action: "index"}, @routes.recognize_path("/people", method: :get))
-    assert_equal({controller: "people", action: "index", format: "xml"}, @routes.recognize_path("/people.xml", method: :get))
-    assert_equal({controller: "people", action: "create"}, @routes.recognize_path("/people", method: :post))
-    assert_equal({controller: "people", action: "new"}, @routes.recognize_path("/people/new", method: :get))
-    assert_equal({controller: "people", action: "show", id: "1"}, @routes.recognize_path("/people/1", method: :get))
-    assert_equal({controller: "people", action: "show", id: "1", format: "xml"}, @routes.recognize_path("/people/1.xml", method: :get))
-    assert_equal({controller: "people", action: "update", id: "1"}, @routes.recognize_path("/people/1", method: :put))
-    assert_equal({controller: "people", action: "destroy", id: "1"}, @routes.recognize_path("/people/1", method: :delete))
-    assert_equal({controller: "people", action: "edit", id: "1"}, @routes.recognize_path("/people/1/edit", method: :get))
-    assert_equal({controller: "people", action: "edit", id: "1", format: "xml"}, @routes.recognize_path("/people/1/edit.xml", method: :get))
+    assert_equal({ controller: "people", action: "index" }, @routes.recognize_path("/people", method: :get))
+    assert_equal({ controller: "people", action: "index", format: "xml" }, @routes.recognize_path("/people.xml", method: :get))
+    assert_equal({ controller: "people", action: "create" }, @routes.recognize_path("/people", method: :post))
+    assert_equal({ controller: "people", action: "new" }, @routes.recognize_path("/people/new", method: :get))
+    assert_equal({ controller: "people", action: "show", id: "1" }, @routes.recognize_path("/people/1", method: :get))
+    assert_equal({ controller: "people", action: "show", id: "1", format: "xml" }, @routes.recognize_path("/people/1.xml", method: :get))
+    assert_equal({ controller: "people", action: "update", id: "1" }, @routes.recognize_path("/people/1", method: :put))
+    assert_equal({ controller: "people", action: "destroy", id: "1" }, @routes.recognize_path("/people/1", method: :delete))
+    assert_equal({ controller: "people", action: "edit", id: "1" }, @routes.recognize_path("/people/1/edit", method: :get))
+    assert_equal({ controller: "people", action: "edit", id: "1", format: "xml" }, @routes.recognize_path("/people/1/edit.xml", method: :get))
 
-    assert_equal({controller: "symbols", action: "show", name: :as_symbol}, @routes.recognize_path("/symbols"))
-    assert_equal({controller: "foo", action: "id_default", id: "1"}, @routes.recognize_path("/id_default/1"))
-    assert_equal({controller: "foo", action: "id_default", id: "2"}, @routes.recognize_path("/id_default/2"))
-    assert_equal({controller: "foo", action: "id_default", id: 1 }, @routes.recognize_path("/id_default"))
-    assert_equal({controller: "foo", action: "get_or_post"}, @routes.recognize_path("/get_or_post", method: :get))
-    assert_equal({controller: "foo", action: "get_or_post"}, @routes.recognize_path("/get_or_post", method: :post))
+    assert_equal({ controller: "symbols", action: "show", name: :as_symbol }, @routes.recognize_path("/symbols"))
+    assert_equal({ controller: "foo", action: "id_default", id: "1" }, @routes.recognize_path("/id_default/1"))
+    assert_equal({ controller: "foo", action: "id_default", id: "2" }, @routes.recognize_path("/id_default/2"))
+    assert_equal({ controller: "foo", action: "id_default", id: 1 }, @routes.recognize_path("/id_default"))
+    assert_equal({ controller: "foo", action: "get_or_post" }, @routes.recognize_path("/get_or_post", method: :get))
+    assert_equal({ controller: "foo", action: "get_or_post" }, @routes.recognize_path("/get_or_post", method: :post))
     assert_raise(ActionController::RoutingError) { @routes.recognize_path("/get_or_post", method: :put) }
     assert_raise(ActionController::RoutingError) { @routes.recognize_path("/get_or_post", method: :delete) }
 
-    assert_equal({controller: "posts", action: "index", optional: "bar"}, @routes.recognize_path("/optional/bar"))
+    assert_equal({ controller: "posts", action: "index", optional: "bar" }, @routes.recognize_path("/optional/bar"))
     assert_raise(ActionController::RoutingError) { @routes.recognize_path("/optional") }
 
-    assert_equal({controller: "posts", action: "show", id: "1", ws: true}, @routes.recognize_path("/ws/posts/show/1", method: :get))
-    assert_equal({controller: "posts", action: "list", ws: true}, @routes.recognize_path("/ws/posts/list", method: :get))
-    assert_equal({controller: "posts", action: "index", ws: true}, @routes.recognize_path("/ws/posts", method: :get))
+    assert_equal({ controller: "posts", action: "show", id: "1", ws: true }, @routes.recognize_path("/ws/posts/show/1", method: :get))
+    assert_equal({ controller: "posts", action: "list", ws: true }, @routes.recognize_path("/ws/posts/list", method: :get))
+    assert_equal({ controller: "posts", action: "index", ws: true }, @routes.recognize_path("/ws/posts", method: :get))
 
-    assert_equal({controller: "account", action: "subscription"}, @routes.recognize_path("/account", method: :get))
-    assert_equal({controller: "account", action: "subscription"}, @routes.recognize_path("/account/subscription", method: :get))
-    assert_equal({controller: "account", action: "billing"}, @routes.recognize_path("/account/billing", method: :get))
+    assert_equal({ controller: "account", action: "subscription" }, @routes.recognize_path("/account", method: :get))
+    assert_equal({ controller: "account", action: "subscription" }, @routes.recognize_path("/account/subscription", method: :get))
+    assert_equal({ controller: "account", action: "billing" }, @routes.recognize_path("/account/billing", method: :get))
 
-    assert_equal({page_id: "1", controller: "notes", action: "index"}, @routes.recognize_path("/pages/1/notes", method: :get))
-    assert_equal({page_id: "1", controller: "notes", action: "list"}, @routes.recognize_path("/pages/1/notes/list", method: :get))
-    assert_equal({page_id: "1", controller: "notes", action: "show", id: "2"}, @routes.recognize_path("/pages/1/notes/show/2", method: :get))
+    assert_equal({ page_id: "1", controller: "notes", action: "index" }, @routes.recognize_path("/pages/1/notes", method: :get))
+    assert_equal({ page_id: "1", controller: "notes", action: "list" }, @routes.recognize_path("/pages/1/notes/list", method: :get))
+    assert_equal({ page_id: "1", controller: "notes", action: "show", id: "2" }, @routes.recognize_path("/pages/1/notes/show/2", method: :get))
 
-    assert_equal({controller: "posts", action: "ping"}, @routes.recognize_path("/posts/ping", method: :get))
-    assert_equal({controller: "posts", action: "index"}, @routes.recognize_path("/posts", method: :get))
-    assert_equal({controller: "posts", action: "index"}, @routes.recognize_path("/posts/index", method: :get))
-    assert_equal({controller: "posts", action: "show"}, @routes.recognize_path("/posts/show", method: :get))
-    assert_equal({controller: "posts", action: "show", id: "1"}, @routes.recognize_path("/posts/show/1", method: :get))
-    assert_equal({controller: "posts", action: "create"}, @routes.recognize_path("/posts/create", method: :post))
+    assert_equal({ controller: "posts", action: "ping" }, @routes.recognize_path("/posts/ping", method: :get))
+    assert_equal({ controller: "posts", action: "index" }, @routes.recognize_path("/posts", method: :get))
+    assert_equal({ controller: "posts", action: "index" }, @routes.recognize_path("/posts/index", method: :get))
+    assert_equal({ controller: "posts", action: "show" }, @routes.recognize_path("/posts/show", method: :get))
+    assert_equal({ controller: "posts", action: "show", id: "1" }, @routes.recognize_path("/posts/show/1", method: :get))
+    assert_equal({ controller: "posts", action: "create" }, @routes.recognize_path("/posts/create", method: :post))
 
-    assert_equal({controller: "geocode", action: "show", postalcode: "hx12-1az"}, @routes.recognize_path("/ignorecase/geocode/hx12-1az"))
-    assert_equal({controller: "geocode", action: "show", postalcode: "hx12-1AZ"}, @routes.recognize_path("/ignorecase/geocode/hx12-1AZ"))
-    assert_equal({controller: "geocode", action: "show", postalcode: "12345-1234"}, @routes.recognize_path("/extended/geocode/12345-1234"))
-    assert_equal({controller: "geocode", action: "show", postalcode: "12345"}, @routes.recognize_path("/extended/geocode/12345"))
+    assert_equal({ controller: "geocode", action: "show", postalcode: "hx12-1az" }, @routes.recognize_path("/ignorecase/geocode/hx12-1az"))
+    assert_equal({ controller: "geocode", action: "show", postalcode: "hx12-1AZ" }, @routes.recognize_path("/ignorecase/geocode/hx12-1AZ"))
+    assert_equal({ controller: "geocode", action: "show", postalcode: "12345-1234" }, @routes.recognize_path("/extended/geocode/12345-1234"))
+    assert_equal({ controller: "geocode", action: "show", postalcode: "12345" }, @routes.recognize_path("/extended/geocode/12345"))
 
-    assert_equal({controller: "news", action: "index" }, @routes.recognize_path("/", method: :get))
-    assert_equal({controller: "news", action: "index", format: "rss"}, @routes.recognize_path("/news.rss", method: :get))
+    assert_equal({ controller: "news", action: "index" }, @routes.recognize_path("/", method: :get))
+    assert_equal({ controller: "news", action: "index", format: "rss" }, @routes.recognize_path("/news.rss", method: :get))
 
     assert_raise(ActionController::RoutingError) { @routes.recognize_path("/none", method: :get) }
   end
@@ -2059,25 +2059,25 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
   end
 
   def test_extras
-    params = {controller: "people"}
+    params = { controller: "people" }
     assert_equal [], @routes.extra_keys(params)
-    assert_equal({controller: "people", action: "index"}, params)
+    assert_equal({ controller: "people", action: "index" }, params)
 
-    params = {controller: "people", foo: "bar"}
+    params = { controller: "people", foo: "bar" }
     assert_equal [:foo], @routes.extra_keys(params)
-    assert_equal({controller: "people", action: "index", foo: "bar"}, params)
+    assert_equal({ controller: "people", action: "index", foo: "bar" }, params)
 
-    params = {controller: "people", action: "create", person: { name: "Josh"}}
+    params = { controller: "people", action: "create", person: { name: "Josh" } }
     assert_equal [:person], @routes.extra_keys(params)
-    assert_equal({controller: "people", action: "create", person: { name: "Josh"}}, params)
+    assert_equal({ controller: "people", action: "create", person: { name: "Josh" } }, params)
   end
 
   def test_unicode_path
-    assert_equal({controller: "news", action: "index"}, @routes.recognize_path(URI.parser.escape("こんにちは/世界"), method: :get))
+    assert_equal({ controller: "news", action: "index" }, @routes.recognize_path(URI.parser.escape("こんにちは/世界"), method: :get))
   end
 
   def test_downcased_unicode_path
-    assert_equal({controller: "news", action: "index"}, @routes.recognize_path(URI.parser.escape("こんにちは/世界").downcase, method: :get))
+    assert_equal({ controller: "news", action: "index" }, @routes.recognize_path(URI.parser.escape("こんにちは/世界").downcase, method: :get))
   end
 
   private

@@ -899,7 +899,7 @@ ActiveRecord::Schema.define do
   end
 
   [:circles, :squares, :triangles, :non_poly_ones, :non_poly_twos].each do |t|
-    create_table(t, force: true) { }
+    create_table(t, force: true) {}
   end
 
   # NOTE - the following 4 tables are used by models that have :inverse_of options on the associations

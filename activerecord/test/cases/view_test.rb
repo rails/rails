@@ -60,7 +60,7 @@ module ViewBehavior
   end
 
   def test_attributes
-    assert_equal({"id" => 2, "name" => "Ruby for Rails", "status" => 0},
+    assert_equal({ "id" => 2, "name" => "Ruby for Rails", "status" => 0 },
                  Ebook.first.attributes)
   end
 
@@ -135,7 +135,7 @@ if ActiveRecord::Base.connection.supports_views?
     end
 
     def test_attributes
-      assert_equal({"name" => "Agile Web Development with Rails", "status" => 2},
+      assert_equal({ "name" => "Agile Web Development with Rails", "status" => 2 },
                    Paperback.first.attributes)
     end
 

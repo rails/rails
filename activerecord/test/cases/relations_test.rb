@@ -384,7 +384,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_select_with_block
-    even_ids = Developer.all.select {|d| d.id % 2 == 0 }.map(&:id)
+    even_ids = Developer.all.select { |d| d.id % 2 == 0 }.map(&:id)
     assert_equal [2, 4, 6, 8, 10], even_ids.sort
   end
 
@@ -526,7 +526,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_find_on_hash_conditions
-    assert_equal Topic.all.merge!(where: {approved: false}).to_a, Topic.where(approved: false).to_a
+    assert_equal Topic.all.merge!(where: { approved: false }).to_a, Topic.where(approved: false).to_a
   end
 
   def test_joins_with_string_array
@@ -1225,8 +1225,8 @@ class RelationTest < ActiveRecord::TestCase
       assert posts.any? # Uses COUNT()
       assert ! posts.where(id: nil).any?
 
-      assert posts.any? {|p| p.id > 0 }
-      assert ! posts.any? {|p| p.id <= 0 }
+      assert posts.any? { |p| p.id > 0 }
+      assert ! posts.any? { |p| p.id <= 0 }
     end
 
     assert posts.loaded?
@@ -1237,8 +1237,8 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_queries(2) do
       assert posts.many? # Uses COUNT()
-      assert posts.many? {|p| p.id > 0 }
-      assert ! posts.many? {|p| p.id < 2 }
+      assert posts.many? { |p| p.id > 0 }
+      assert ! posts.many? { |p| p.id < 2 }
     end
 
     assert posts.loaded?
@@ -1260,8 +1260,8 @@ class RelationTest < ActiveRecord::TestCase
     assert ! posts.loaded?
 
     assert_queries(1) do
-      assert posts.none? {|p| p.id < 0 }
-      assert ! posts.none? {|p| p.id == 1 }
+      assert posts.none? { |p| p.id < 0 }
+      assert ! posts.none? { |p| p.id == 1 }
     end
 
     assert posts.loaded?
@@ -1276,8 +1276,8 @@ class RelationTest < ActiveRecord::TestCase
     assert ! posts.loaded?
 
     assert_queries(1) do
-      assert ! posts.one? {|p| p.id < 3 }
-      assert posts.one? {|p| p.id == 1 }
+      assert ! posts.one? { |p| p.id < 3 }
+      assert posts.one? { |p| p.id == 1 }
     end
 
     assert posts.loaded?
@@ -1363,11 +1363,11 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_first_or_create_with_array
-    several_green_birds = Bird.where(color: "green").first_or_create([{name: "parrot"}, {name: "parakeet"}])
+    several_green_birds = Bird.where(color: "green").first_or_create([{ name: "parrot" }, { name: "parakeet" }])
     assert_kind_of Array, several_green_birds
     several_green_birds.each { |bird| assert bird.persisted? }
 
-    same_parrot = Bird.where(color: "green").first_or_create([{name: "hummingbird"}, {name: "macaw"}])
+    same_parrot = Bird.where(color: "green").first_or_create([{ name: "hummingbird" }, { name: "macaw" }])
     assert_kind_of Bird, same_parrot
     assert_equal several_green_birds.first, same_parrot
   end
@@ -1411,17 +1411,17 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_first_or_create_with_valid_array
-    several_green_birds = Bird.where(color: "green").first_or_create!([{name: "parrot"}, {name: "parakeet"}])
+    several_green_birds = Bird.where(color: "green").first_or_create!([{ name: "parrot" }, { name: "parakeet" }])
     assert_kind_of Array, several_green_birds
     several_green_birds.each { |bird| assert bird.persisted? }
 
-    same_parrot = Bird.where(color: "green").first_or_create!([{name: "hummingbird"}, {name: "macaw"}])
+    same_parrot = Bird.where(color: "green").first_or_create!([{ name: "hummingbird" }, { name: "macaw" }])
     assert_kind_of Bird, same_parrot
     assert_equal several_green_birds.first, same_parrot
   end
 
   def test_first_or_create_with_invalid_array
-    assert_raises(ActiveRecord::RecordInvalid) { Bird.where(color: "green").first_or_create!([ {name: "parrot"}, {pirate_id: 1} ]) }
+    assert_raises(ActiveRecord::RecordInvalid) { Bird.where(color: "green").first_or_create!([ { name: "parrot" }, { pirate_id: 1 } ]) }
   end
 
   def test_first_or_initialize
@@ -1555,8 +1555,8 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_unscoped_block_style
-    assert_equal "honda", CoolCar.unscoped { CoolCar.order_using_new_style.limit(1).first.name}
-    assert_equal "honda", FastCar.unscoped { FastCar.order_using_new_style.limit(1).first.name}
+    assert_equal "honda", CoolCar.unscoped { CoolCar.order_using_new_style.limit(1).first.name }
+    assert_equal "honda", FastCar.unscoped { FastCar.order_using_new_style.limit(1).first.name }
   end
 
   def test_intersection_with_array

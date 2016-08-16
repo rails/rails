@@ -339,7 +339,7 @@ module ActiveRecord
         column_options.reverse_merge!(null: false)
         type = column_options.delete(:type) || :integer
 
-        t1_column, t2_column = [table_1, table_2].map{ |t| t.to_s.singularize.foreign_key }
+        t1_column, t2_column = [table_1, table_2].map { |t| t.to_s.singularize.foreign_key }
 
         create_table(join_table_name, options.merge!(id: false)) do |td|
           td.send type, t1_column, column_options
@@ -962,7 +962,7 @@ module ActiveRecord
 
       def foreign_key_for(from_table, options_or_to_table = {}) # :nodoc:
         return unless supports_foreign_keys?
-        foreign_keys(from_table).detect {|fk| fk.defined_for? options_or_to_table }
+        foreign_keys(from_table).detect { |fk| fk.defined_for? options_or_to_table }
       end
 
       def foreign_key_for!(from_table, options_or_to_table = {}) # :nodoc:
@@ -994,7 +994,7 @@ module ActiveRecord
 
         if supports_multi_insert?
           sql = "INSERT INTO #{sm_table} (version) VALUES\n"
-          sql << versions.map {|v| "('#{v}')" }.join(",\n")
+          sql << versions.map { |v| "('#{v}')" }.join(",\n")
           sql << ";\n\n"
           sql
         else
@@ -1024,7 +1024,7 @@ module ActiveRecord
         sm_table = quote_table_name(ActiveRecord::Migrator.schema_migrations_table_name)
 
         migrated = select_values("SELECT version FROM #{sm_table}").map(&:to_i)
-        paths = migrations_paths.map {|p| "#{p}/[0-9]*_*.rb" }
+        paths = migrations_paths.map { |p| "#{p}/[0-9]*_*.rb" }
         versions = Dir[*paths].map do |filename|
           filename.split("/").last.split("_").first.to_i
         end
@@ -1033,9 +1033,9 @@ module ActiveRecord
           execute "INSERT INTO #{sm_table} (version) VALUES ('#{version}')"
         end
 
-        inserting = (versions - migrated).select {|v| v < version}
+        inserting = (versions - migrated).select { |v| v < version }
         if inserting.any?
-          if (duplicate = inserting.detect {|v| inserting.count(v) > 1})
+          if (duplicate = inserting.detect { |v| inserting.count(v) > 1 })
             raise "Duplicate migration #{duplicate}. Please renumber your migrations to resolve the conflict."
           end
           execute insert_versions_sql(inserting)
@@ -1165,9 +1165,9 @@ module ActiveRecord
           if options.is_a?(Hash) && order = options[:order]
             case order
             when Hash
-              column_names.each {|name| option_strings[name] += " #{order[name].upcase}" if order.has_key?(name)}
+              column_names.each { |name| option_strings[name] += " #{order[name].upcase}" if order.has_key?(name) }
             when String
-              column_names.each {|name| option_strings[name] += " #{order.upcase}"}
+              column_names.each { |name| option_strings[name] += " #{order.upcase}" }
             end
           end
 
@@ -1178,14 +1178,14 @@ module ActiveRecord
         def quoted_columns_for_index(column_names, options = {})
           return [column_names] if column_names.is_a?(String)
 
-          option_strings = Hash[column_names.map {|name| [name, ""]}]
+          option_strings = Hash[column_names.map { |name| [name, ""] }]
 
           # add index sort order if supported
           if supports_index_sort_order?
             option_strings = add_index_sort_order(option_strings, column_names, options)
           end
 
-          column_names.map {|name| quote_column_name(name) + option_strings[name]}
+          column_names.map { |name| quote_column_name(name) + option_strings[name] }
         end
 
         def index_name_for_remove(table_name, options = {})

@@ -3,7 +3,7 @@ require "zlib"
 
 module StaticTests
   DummyApp = lambda { |env|
-    [200, {"Content-Type" => "text/plain"}, ["Hello, World!"]]
+    [200, { "Content-Type" => "text/plain" }, ["Hello, World!"]]
   }
 
   def setup
@@ -168,7 +168,7 @@ module StaticTests
 
   def test_does_not_modify_path_info
     file_name = "/gzip/application-a71b3024f80aea3181c09774ca17e712.js"
-    env = {"PATH_INFO" => file_name, "HTTP_ACCEPT_ENCODING" => "gzip", "REQUEST_METHOD" => "POST"}
+    env = { "PATH_INFO" => file_name, "HTTP_ACCEPT_ENCODING" => "gzip", "REQUEST_METHOD" => "POST" }
     @app.call(env)
     assert_equal file_name, env["PATH_INFO"]
   end
@@ -266,7 +266,7 @@ class StaticTest < ActiveSupport::TestCase
   def setup
     super
     @root = "#{FIXTURE_LOAD_PATH}/public"
-    @app = ActionDispatch::Static.new(DummyApp, @root, headers: {"Cache-Control" => "public, max-age=60"})
+    @app = ActionDispatch::Static.new(DummyApp, @root, headers: { "Cache-Control" => "public, max-age=60" })
   end
 
   def public_path
@@ -308,7 +308,7 @@ class StaticEncodingTest < StaticTest
   def setup
     super
     @root = "#{FIXTURE_LOAD_PATH}/公共"
-    @app = ActionDispatch::Static.new(DummyApp, @root, headers: {"Cache-Control" => "public, max-age=60"})
+    @app = ActionDispatch::Static.new(DummyApp, @root, headers: { "Cache-Control" => "public, max-age=60" })
   end
 
   def public_path

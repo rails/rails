@@ -8,7 +8,7 @@ module ActionDispatch
       DEFAULT_PARSERS = {
         Mime[:json].symbol => -> (raw_post) {
           data = ActiveSupport::JSON.decode(raw_post)
-          data.is_a?(Hash) ? data : {_json: data}
+          data.is_a?(Hash) ? data : { _json: data }
         }
       }
 

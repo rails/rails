@@ -172,7 +172,7 @@ module ActionDispatch
 
       def test_rails_routes_shows_route_with_defaults
         output = draw do
-          get "photos/:id" => "photos#show", :defaults => {format: "jpg"}
+          get "photos/:id" => "photos#show", :defaults => { format: "jpg" }
         end
 
         assert_equal [
@@ -291,7 +291,7 @@ module ActionDispatch
         output = draw do
           get "/foo"    => redirect("/foo/bar"), :constraints => { subdomain: "admin" }
           get "/bar"    => redirect(path: "/foo/bar", status: 307)
-          get "/foobar" => redirect{ "/foo/bar" }
+          get "/foobar" => redirect { "/foo/bar" }
         end
 
         assert_equal [

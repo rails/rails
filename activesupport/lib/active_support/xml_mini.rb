@@ -126,7 +126,7 @@ module ActiveSupport
 
         key = rename_key(key.to_s, options)
 
-        attributes = options[:skip_types] || type_name.nil? ? { } : { type: type_name }
+        attributes = options[:skip_types] || type_name.nil? ? {} : { type: type_name }
         attributes[:nil] = true if value.nil?
 
         encoding = options[:encoding] || DEFAULT_ENCODINGS[type_name]

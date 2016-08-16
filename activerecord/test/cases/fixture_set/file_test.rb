@@ -77,7 +77,7 @@ module ActiveRecord
         yaml = "one:\n  name: <%= fixture_helper %>\n"
         tmp_yaml ["curious", "yml"], yaml do |t|
           golden =
-              [["one", {"name" => "Fixture helper"}]]
+              [["one", { "name" => "Fixture helper" }]]
           assert_equal golden, File.open(t.path) { |fh| fh.to_a }
         end
         ActiveRecord::FixtureSet.context_class.class_eval do

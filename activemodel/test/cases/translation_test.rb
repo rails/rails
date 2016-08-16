@@ -38,23 +38,23 @@ class ActiveModelI18nTests < ActiveModel::TestCase
   end
 
   def test_translated_model_attributes_with_symbols
-    I18n.backend.store_translations "en", activemodel: { attributes: { person: { name: "person name attribute"} } }
+    I18n.backend.store_translations "en", activemodel: { attributes: { person: { name: "person name attribute" } } }
     assert_equal "person name attribute", Person.human_attribute_name(:name)
   end
 
   def test_translated_model_attributes_with_ancestor
-    I18n.backend.store_translations "en", activemodel: { attributes: { child: { name: "child name attribute"} } }
+    I18n.backend.store_translations "en", activemodel: { attributes: { child: { name: "child name attribute" } } }
     assert_equal "child name attribute", Child.human_attribute_name("name")
   end
 
   def test_translated_model_attributes_with_ancestors_fallback
-    I18n.backend.store_translations "en", activemodel: { attributes: { person: { name: "person name attribute"} } }
+    I18n.backend.store_translations "en", activemodel: { attributes: { person: { name: "person name attribute" } } }
     assert_equal "person name attribute", Child.human_attribute_name("name")
   end
 
   def test_translated_model_attributes_with_attribute_matching_namespaced_model_name
     I18n.backend.store_translations "en", activemodel: { attributes: {
-      person: { gender: "person gender"},
+      person: { gender: "person gender" },
       "person/gender": { attribute: "person gender attribute" }
     } }
 

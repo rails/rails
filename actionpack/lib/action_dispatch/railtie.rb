@@ -8,8 +8,8 @@ module ActionDispatch
     config.action_dispatch.show_exceptions = true
     config.action_dispatch.tld_length = 1
     config.action_dispatch.ignore_accept_header = false
-    config.action_dispatch.rescue_templates = { }
-    config.action_dispatch.rescue_responses = { }
+    config.action_dispatch.rescue_templates = {}
+    config.action_dispatch.rescue_responses = {}
     config.action_dispatch.default_charset = nil
     config.action_dispatch.rack_cache = false
     config.action_dispatch.http_auth_salt = "http authentication"

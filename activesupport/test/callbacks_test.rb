@@ -89,7 +89,7 @@ module CallbacksTest
 
     define_callbacks :dispatch
 
-    set_callback :dispatch, :before, :log, unless: proc {|c| c.action_name == :index || c.action_name == :show }
+    set_callback :dispatch, :before, :log, unless: proc { |c| c.action_name == :index || c.action_name == :show }
     set_callback :dispatch, :after, :log2
 
     attr_reader :action_name, :logger
@@ -114,7 +114,7 @@ module CallbacksTest
   end
 
   class Child < ParentController
-    skip_callback :dispatch, :before, :log, if: proc {|c| c.action_name == :update}
+    skip_callback :dispatch, :before, :log, if: proc { |c| c.action_name == :update }
     skip_callback :dispatch, :after, :log2
   end
 
@@ -125,10 +125,10 @@ module CallbacksTest
       super
     end
 
-    before_save Proc.new {|r| r.history << [:before_save, :starts_true, :if] }, if: :starts_true
-    before_save Proc.new {|r| r.history << [:before_save, :starts_false, :if] }, if: :starts_false
-    before_save Proc.new {|r| r.history << [:before_save, :starts_true, :unless] }, unless: :starts_true
-    before_save Proc.new {|r| r.history << [:before_save, :starts_false, :unless] }, unless: :starts_false
+    before_save Proc.new { |r| r.history << [:before_save, :starts_true, :if] }, if: :starts_true
+    before_save Proc.new { |r| r.history << [:before_save, :starts_false, :if] }, if: :starts_false
+    before_save Proc.new { |r| r.history << [:before_save, :starts_true, :unless] }, unless: :starts_true
+    before_save Proc.new { |r| r.history << [:before_save, :starts_false, :unless] }, unless: :starts_false
 
     def starts_true
       if @@starts_true
@@ -227,7 +227,7 @@ module CallbacksTest
     set_callback :save, :before, :nope,           unless: :yes
     set_callback :save, :after,  :tweedle
     ActiveSupport::Deprecation.silence { set_callback :save, :before, "tweedle_dee" }
-    set_callback :save, :before, proc {|m| m.history << "yup" }
+    set_callback :save, :before, proc { |m| m.history << "yup" }
     set_callback :save, :before, :nope,           if: proc { false }
     set_callback :save, :before, :nope,           unless: proc { true }
     set_callback :save, :before, :yup,            if: proc { true }
@@ -879,7 +879,7 @@ module CallbacksTest
 
     def test_proc_arity_2
       assert_raises(ArgumentError) do
-        klass = build_class(->(x,y) { })
+        klass = build_class(->(x,y) {})
         klass.new.run
       end
     end
@@ -958,7 +958,7 @@ module CallbacksTest
 
     def test_proc_arity2
       assert_raises(ArgumentError) do
-        object = build_class(->(a,b) { }).new
+        object = build_class(->(a,b) {}).new
         object.run
       end
     end

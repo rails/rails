@@ -98,7 +98,7 @@ module ActiveSupport
 
       def _decrypt(encrypted_message)
         cipher = new_cipher
-        encrypted_data, iv, auth_tag = encrypted_message.split("--".freeze).map {|v| ::Base64.strict_decode64(v)}
+        encrypted_data, iv, auth_tag = encrypted_message.split("--".freeze).map { |v| ::Base64.strict_decode64(v) }
 
         # Currently the OpenSSL bindings do not raise an error if auth_tag is
         # truncated, which would allow an attacker to easily forge it. See

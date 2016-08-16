@@ -260,7 +260,7 @@ module ActiveSupport
       private
         def zones_map
           @zones_map ||= begin
-            MAPPING.each_key {|place| self[place]} # load all the zones
+            MAPPING.each_key { |place| self[place] } # load all the zones
             @lazy_zones_map
           end
         end

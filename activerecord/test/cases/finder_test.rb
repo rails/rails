@@ -127,7 +127,7 @@ class FinderTest < ActiveRecord::TestCase
     gc_disabled = GC.disable
     Post.where("author_id" => nil)  # warm up
     x = Symbol.all_symbols.count
-    Post.where("title" => {"xxxqqqq" => "bar"})
+    Post.where("title" => { "xxxqqqq" => "bar" })
     assert_equal x, Symbol.all_symbols.count
   ensure
     GC.enable if gc_disabled == false
@@ -627,8 +627,8 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_only_some_columns
     topic = Topic.select("author_name").find(1)
-    assert_raise(ActiveModel::MissingAttributeError) {topic.title}
-    assert_raise(ActiveModel::MissingAttributeError) {topic.title?}
+    assert_raise(ActiveModel::MissingAttributeError) { topic.title }
+    assert_raise(ActiveModel::MissingAttributeError) { topic.title? }
     assert_nil topic.read_attribute("title")
     assert_equal "David", topic.author_name
     assert !topic.attribute_present?("title")
@@ -864,7 +864,7 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_named_bind_variables_with_quotes
     Company.create("name" => "37signals' go'es agains")
-    assert Company.where(["name = :name", {name: "37signals' go'es agains"}]).first
+    assert Company.where(["name = :name", { name: "37signals' go'es agains" }]).first
   end
 
   def test_named_bind_variables
@@ -1075,9 +1075,9 @@ class FinderTest < ActiveRecord::TestCase
       [["1", "1", nil, "37signals"],
        ["2", "1", "2", "Summit"],
        ["3", "1", "1", "Microsoft"]],
-      Company.connection.select_rows("SELECT id, firm_id, client_of, name FROM companies WHERE id IN (1,2,3) ORDER BY id").map! {|i| i.map! {|j| j.to_s unless j.nil?}})
+      Company.connection.select_rows("SELECT id, firm_id, client_of, name FROM companies WHERE id IN (1,2,3) ORDER BY id").map! { |i| i.map! { |j| j.to_s unless j.nil? } })
     assert_equal [["1", "37signals"], ["2", "Summit"], ["3", "Microsoft"]],
-      Company.connection.select_rows("SELECT id, name FROM companies WHERE id IN (1,2,3) ORDER BY id").map! {|i| i.map! {|j| j.to_s unless j.nil?}}
+      Company.connection.select_rows("SELECT id, name FROM companies WHERE id IN (1,2,3) ORDER BY id").map! { |i| i.map! { |j| j.to_s unless j.nil? } }
   end
 
   def test_find_with_order_on_included_associations_with_construct_finder_sql_for_association_limiting_and_is_distinct

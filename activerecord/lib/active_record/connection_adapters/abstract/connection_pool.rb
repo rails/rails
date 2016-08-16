@@ -617,7 +617,7 @@ module ActiveRecord
         def attempt_to_checkout_all_existing_connections(raise_on_acquisition_timeout = true)
           collected_conns = synchronize do
             # account for our own connections
-            @connections.select {|conn| conn.owner == Thread.current}
+            @connections.select { |conn| conn.owner == Thread.current }
           end
 
           newly_checked_out = []
@@ -654,7 +654,7 @@ module ActiveRecord
           if release_newly_checked_out && newly_checked_out
             # releasing only those conns that were checked out in this method, conns
             # checked outside this method (before it was called) are not for us to release
-            newly_checked_out.each {|conn| checkin(conn)}
+            newly_checked_out.each { |conn| checkin(conn) }
           end
         end
 

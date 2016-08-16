@@ -348,13 +348,13 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
 
   def test_number_to_human_with_custom_units
     #Only integers
-    volume = {unit: "ml", thousand: "lt", million: "m3"}
+    volume = { unit: "ml", thousand: "lt", million: "m3" }
     assert_equal "123 lt", 123456.to_s(:human, units: volume)
     assert_equal "12 ml", 12.to_s(:human, units: volume)
     assert_equal "1.23 m3", 1234567.to_s(:human, units: volume)
 
     #Including fractionals
-    distance = {mili: "mm", centi: "cm", deci: "dm", unit: "m", ten: "dam", hundred: "hm", thousand: "km"}
+    distance = { mili: "mm", centi: "cm", deci: "dm", unit: "m", ten: "dam", hundred: "hm", thousand: "km" }
     assert_equal "1.23 mm", 0.00123.to_s(:human, units: distance)
     assert_equal "1.23 cm", 0.0123.to_s(:human, units: distance)
     assert_equal "1.23 dm", 0.123.to_s(:human, units: distance)
@@ -367,20 +367,20 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal "12.3 km", 12300.to_s(:human, units: distance)
 
     #The quantifiers don't need to be a continuous sequence
-    gangster = {hundred: "hundred bucks", million: "thousand quids"}
+    gangster = { hundred: "hundred bucks", million: "thousand quids" }
     assert_equal "1 hundred bucks", 100.to_s(:human, units: gangster)
     assert_equal "25 hundred bucks", 2500.to_s(:human, units: gangster)
     assert_equal "25 thousand quids", 25000000.to_s(:human, units: gangster)
     assert_equal "12300 thousand quids", 12345000000.to_s(:human, units: gangster)
 
     #Spaces are stripped from the resulting string
-    assert_equal "4", 4.to_s(:human, units: {unit: "", ten: "tens "})
-    assert_equal "4.5  tens", 45.to_s(:human, units: {unit: "", ten: " tens   "})
+    assert_equal "4", 4.to_s(:human, units: { unit: "", ten: "tens " })
+    assert_equal "4.5  tens", 45.to_s(:human, units: { unit: "", ten: " tens   " })
   end
 
   def test_number_to_human_with_custom_format
     assert_equal "123 times Thousand", 123456.to_s(:human, format: "%n times %u")
-    volume = {unit: "ml", thousand: "lt", million: "m3"}
+    volume = { unit: "ml", thousand: "lt", million: "m3" }
     assert_equal "123.lt", 123456.to_s(:human, units: volume, format: "%n.%u")
   end
 

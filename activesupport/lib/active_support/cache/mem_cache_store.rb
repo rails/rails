@@ -85,7 +85,7 @@ module ActiveSupport
           @data = addresses.first
         else
           mem_cache_options = options.dup
-          UNIVERSAL_OPTIONS.each{|name| mem_cache_options.delete(name)}
+          UNIVERSAL_OPTIONS.each { |name| mem_cache_options.delete(name) }
           @data = self.class.build_mem_cache(*(addresses + [mem_cache_options]))
         end
       end
@@ -96,7 +96,7 @@ module ActiveSupport
         options = names.extract_options!
         options = merged_options(options)
 
-        keys_to_names = Hash[names.map{|name| [normalize_key(name, options), name]}]
+        keys_to_names = Hash[names.map { |name| [normalize_key(name, options), name] }]
         raw_values = @data.get_multi(keys_to_names.keys, raw: true)
         values = {}
         raw_values.each do |key, value|
@@ -176,7 +176,7 @@ module ActiveSupport
         def normalize_key(key, options)
           key = super.dup
           key = key.force_encoding(Encoding::ASCII_8BIT)
-          key = key.gsub(ESCAPE_KEY_CHARS){ |match| "%#{match.getbyte(0).to_s(16).upcase}" }
+          key = key.gsub(ESCAPE_KEY_CHARS) { |match| "%#{match.getbyte(0).to_s(16).upcase}" }
           key = "#{key[0, 213]}:md5:#{Digest::MD5.hexdigest(key)}" if key.size > 250
           key
         end

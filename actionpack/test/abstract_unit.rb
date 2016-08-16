@@ -123,7 +123,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
     # simply return the controller#action as Rack::Body.
     class NullController < ::ActionController::Metal
       def self.dispatch(action, req, res)
-        [200, {"Content-Type" => "text/html"}, ["#{req.params[:controller]}##{action}"]]
+        [200, { "Content-Type" => "text/html" }, ["#{req.params[:controller]}##{action}"]]
       end
     end
 
@@ -164,7 +164,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
         ActiveSupport::Dependencies.autoload_paths << path
         yield
       ensure
-        ActiveSupport::Dependencies.autoload_paths.reject! {|p| p == path}
+        ActiveSupport::Dependencies.autoload_paths.reject! { |p| p == path }
         ActiveSupport::Dependencies.clear
       end
     end
@@ -259,9 +259,9 @@ module ActionDispatch
       host = uri_or_host.host unless path
       path ||= uri_or_host.path
 
-      params = {"PATH_INFO"      => path,
+      params = { "PATH_INFO"      => path,
                 "REQUEST_METHOD" => method,
-                "HTTP_HOST"      => host}
+                "HTTP_HOST"      => host }
 
       routes.call(params)
     end

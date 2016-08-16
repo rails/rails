@@ -57,7 +57,7 @@ class ConfirmationValidationTest < ActiveModel::TestCase
       I18n.backend = I18n::Backend::Simple.new
       I18n.backend.store_translations("en",
         errors: { messages: { confirmation: "doesn't match %{attribute}" } },
-        activemodel: { attributes: { topic: { title: "Test Title"} } })
+        activemodel: { attributes: { topic: { title: "Test Title" } } })
 
       Topic.validates_confirmation_of(:title)
 

@@ -137,7 +137,7 @@ module ApplicationTests
       body = last_response.body
       etag = last_response.headers["ETag"]
 
-      get "/expires/expires_etag", {private: true}, "If-None-Match" => etag
+      get "/expires/expires_etag", { private: true }, "If-None-Match" => etag
       assert_equal     "miss", last_response.headers["X-Rack-Cache"]
       assert_not_equal body,   last_response.body
     end
@@ -171,7 +171,7 @@ module ApplicationTests
       body = last_response.body
       last = last_response.headers["Last-Modified"]
 
-      get "/expires/expires_last_modified", {private: true}, "If-Modified-Since" => last
+      get "/expires/expires_last_modified", { private: true }, "If-Modified-Since" => last
       assert_equal     "miss", last_response.headers["X-Rack-Cache"]
       assert_not_equal body,   last_response.body
     end

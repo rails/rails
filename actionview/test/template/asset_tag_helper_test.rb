@@ -470,9 +470,9 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_image_tag_does_not_modify_options
-    options = {size: "16x10"}
+    options = { size: "16x10" }
     image_tag("icon", options)
-    assert_equal({size: "16x10"}, options)
+    assert_equal({ size: "16x10" }, options)
   end
 
   def test_image_tag_raises_an_error_for_competing_size_arguments
@@ -532,11 +532,11 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_video_audio_tag_does_not_modify_options
-    options = {autoplay: true}
+    options = { autoplay: true }
     video_tag("video", options)
-    assert_equal({autoplay: true}, options)
+    assert_equal({ autoplay: true }, options)
     audio_tag("audio", options)
-    assert_equal({autoplay: true}, options)
+    assert_equal({ autoplay: true }, options)
   end
 
   def test_image_tag_interpreting_email_cid_correctly

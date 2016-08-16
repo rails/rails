@@ -20,7 +20,7 @@ class ParamsWrapperForApiTest < ActionController::TestCase
     @request.env["CONTENT_TYPE"] = "application/json"
     post :test, params: { "username" => "sikachu" }
 
-    expected = { "username" => "sikachu", "person" => { "username" => "sikachu" }}
+    expected = { "username" => "sikachu", "person" => { "username" => "sikachu" } }
     assert_equal expected, @controller.last_parameters
   end
 end
