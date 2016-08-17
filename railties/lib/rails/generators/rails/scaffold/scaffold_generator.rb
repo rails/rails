@@ -11,8 +11,10 @@ module Rails
       class_option :assets, type: :boolean
       class_option :resource_route, type: :boolean
       class_option :scaffold_stylesheet, type: :boolean
+      class_option :api, type: :boolean
 
       def handle_skip
+        @options = @options.merge(assets: false) if @options[:api]
         @options = @options.merge(stylesheets: false) unless options[:assets]
         @options = @options.merge(stylesheet_engine: false) unless options[:stylesheets] && options[:scaffold_stylesheet]
       end

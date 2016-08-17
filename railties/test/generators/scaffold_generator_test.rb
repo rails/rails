@@ -99,7 +99,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Route
     assert_file "config/routes.rb" do |route|
-      assert_match(/resources :product_lines$/, route)
+      assert_match(/resources :product_lines, except: \[:new, :edit\]$/, route)
     end
 
     # Controller
@@ -144,6 +144,23 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     # Views
     assert_no_file "app/views/layouts/product_lines.html.erb"
 
+    %w(index show new edit _form).each do |view|
+      assert_no_file "app/views/product_lines/#{view}.html.erb"
+    end
+
+    # Helpers
+    assert_no_file "app/helpers/product_lines_helper.rb"
+
+    # Assets
+    assert_no_file "app/assets/stylesheets/scaffold.css"
+    assert_no_file "app/assets/javascripts/product_lines.js"
+    assert_no_file "app/assets/stylesheets/product_lines.css"
+  end
+
+  def test_api_scaffold_doesnt_generate_views_assets_helpers
+    run_generator %w(product_line title:string product:belongs_to user:references --api)
+
+    # Views
     %w(index show new edit _form).each do |view|
       assert_no_file "app/views/product_lines/#{view}.html.erb"
     end
