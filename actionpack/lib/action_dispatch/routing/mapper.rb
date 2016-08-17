@@ -716,11 +716,7 @@ module ActionDispatch
           def map_method(method, args, &block)
             options = args.extract_options!
             options[:via] = method
-            if options.key?(:defaults)
-              defaults(options.delete(:defaults)) { match(*args, options, &block) }
-            else
-              match(*args, options, &block)
-            end
+            match(*args, options, &block)
             self
           end
       end
@@ -1557,7 +1553,7 @@ module ActionDispatch
         #   match 'path' => 'controller#action', via: patch
         #   match 'path', to: 'controller#action', via: :post
         #   match 'path', 'otherpath', on: :member, via: :get
-        def match(path, *rest)
+        def match(path, *rest, &block)
           if rest.empty? && Hash === path
             options  = path
             path, to = options.find { |name, _value| name.is_a?(String) }
@@ -1588,55 +1584,11 @@ module ActionDispatch
             paths = [path] + rest
           end
 
-          if options[:on] && !VALID_ON_OPTIONS.include?(options[:on])
-            raise ArgumentError, "Unknown scope #{on.inspect} given to :on"
+          if options.key?(:defaults)
+            defaults(options.delete(:defaults)) { map_match(paths, options, &block) }
+          else
+            map_match(paths, options, &block)
           end
-
-          if @scope[:to]
-            options[:to] ||= @scope[:to]
-          end
-
-          if @scope[:controller] && @scope[:action]
-            options[:to] ||= "#{@scope[:controller]}##{@scope[:action]}"
-          end
-
-          controller = options.delete(:controller) || @scope[:controller]
-          option_path = options.delete :path
-          to = options.delete :to
-          via = Mapping.check_via Array(options.delete(:via) {
-            @scope[:via]
-          })
-          formatted = options.delete(:format) { @scope[:format] }
-          anchor = options.delete(:anchor) { true }
-          options_constraints = options.delete(:constraints) || {}
-
-          path_types = paths.group_by(&:class)
-          path_types.fetch(String, []).each do |_path|
-            route_options = options.dup
-            if _path && option_path
-              ActiveSupport::Deprecation.warn <<-eowarn
-Specifying strings for both :path and the route path is deprecated. Change things like this:
-
-  match #{_path.inspect}, :path => #{option_path.inspect}
-
-to this:
-
-  match #{option_path.inspect}, :as => #{_path.inspect}, :action => #{path.inspect}
-              eowarn
-              route_options[:action] = _path
-              route_options[:as] = _path
-              _path = option_path
-            end
-            to = get_to_from_path(_path, to, route_options[:action])
-            decomposed_match(_path, controller, route_options, _path, to, via, formatted, anchor, options_constraints)
-          end
-
-          path_types.fetch(Symbol, []).each do |action|
-            route_options = options.dup
-            decomposed_match(action, controller, route_options, option_path, to, via, formatted, anchor, options_constraints)
-          end
-
-          self
         end
 
         def get_to_from_path(path, to, action)
@@ -1912,6 +1864,7 @@ to this:
           def api_only?
             @set.api_only?
           end
+
         private
 
           def path_scope(path)
@@ -1921,16 +1874,63 @@ to this:
             @scope = @scope.parent
           end
 
+          def map_match(paths, options)
+            if options[:on] && !VALID_ON_OPTIONS.include?(options[:on])
+              raise ArgumentError, "Unknown scope #{on.inspect} given to :on"
+            end
+
+            if @scope[:to]
+              options[:to] ||= @scope[:to]
+            end
+
+            if @scope[:controller] && @scope[:action]
+              options[:to] ||= "#{@scope[:controller]}##{@scope[:action]}"
+            end
+
+            controller = options.delete(:controller) || @scope[:controller]
+            option_path = options.delete :path
+            to = options.delete :to
+            via = Mapping.check_via Array(options.delete(:via) {
+              @scope[:via]
+            })
+            formatted = options.delete(:format) { @scope[:format] }
+            anchor = options.delete(:anchor) { true }
+            options_constraints = options.delete(:constraints) || {}
+
+            path_types = paths.group_by(&:class)
+            path_types.fetch(String, []).each do |_path|
+              route_options = options.dup
+              if _path && option_path
+                ActiveSupport::Deprecation.warn <<-eowarn
+Specifying strings for both :path and the route path is deprecated. Change things like this:
+
+  match #{_path.inspect}, :path => #{option_path.inspect}
+
+to this:
+
+  match #{option_path.inspect}, :as => #{_path.inspect}, :action => #{_path.inspect}
+                eowarn
+                route_options[:action] = _path
+                route_options[:as] = _path
+                _path = option_path
+              end
+              to = get_to_from_path(_path, to, route_options[:action])
+              decomposed_match(_path, controller, route_options, _path, to, via, formatted, anchor, options_constraints)
+            end
+
+            path_types.fetch(Symbol, []).each do |action|
+              route_options = options.dup
+              decomposed_match(action, controller, route_options, option_path, to, via, formatted, anchor, options_constraints)
+            end
+
+            self
+          end
+
           def match_root_route(options)
             name = has_named_route?(:root) ? nil : :root
-            defaults_option = options.delete(:defaults)
             args = ["/", { as: name, via: :get }.merge!(options)]
 
-            if defaults_option
-              defaults(defaults_option) { match(*args) }
-            else
-              match(*args)
-            end
+            match(*args)
           end
       end
 
