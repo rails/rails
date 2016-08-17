@@ -7,7 +7,6 @@ require "action_controller/template_assertions"
 require "rails-dom-testing"
 
 module ActionController
-  # :stopdoc:
   class Metal
     include Testing::Functional
   end
@@ -211,10 +210,18 @@ module ActionController
   end
 
   # Superclass for ActionController functional tests. Functional tests allow you to
-  # test a single controller action per test method. This should not be confused with
-  # integration tests (see ActionDispatch::IntegrationTest), which are more like
-  # "stories" that can involve multiple controllers and multiple actions (i.e. multiple
-  # different HTTP requests).
+  # test a single controller action per test method.
+  #
+  # == Use integration style controller tests over functional style controller tests.
+  #
+  # Rails discourages the use of functional tests in favor of integration tests
+  # (use ActionDispatch::IntegrationTest).
+  #
+  # New Rails applications no longer generate functional style controller tests and they should
+  # only be used for backward compatibility. Integration style controller tests perform actual
+  # requests, whereas functional style controller tests merely simulate a request. Besides,
+  # integration tests are as fast as functional tests and provide lot of helpers such as +as+,
+  # +parsed_body+ for effective testing of controller actions including even API endpoints.
   #
   # == Basic example
   #
@@ -675,5 +682,4 @@ module ActionController
 
     include Behavior
   end
-  # :startdoc:
 end
