@@ -103,7 +103,7 @@ module ActiveRecord
     # Same as #take but raises ActiveRecord::RecordNotFound if no record
     # is found. Note that #take! accepts no arguments.
     def take!
-      take or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql(@klass.arel_engine)}]")
+      take || raise_record_not_found_exception!
     end
 
     # Find the first record (or first N records if a parameter is supplied).
@@ -126,7 +126,7 @@ module ActiveRecord
     # Same as #first but raises ActiveRecord::RecordNotFound if no record
     # is found. Note that #first! accepts no arguments.
     def first!
-      find_nth! 0
+      first || raise_record_not_found_exception!
     end
 
     # Find the last record (or last N records if a parameter is supplied).
@@ -165,7 +165,7 @@ module ActiveRecord
     # Same as #last but raises ActiveRecord::RecordNotFound if no record
     # is found. Note that #last! accepts no arguments.
     def last!
-      last or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql(@klass.arel_engine)}]")
+      last || raise_record_not_found_exception!
     end
 
     # Find the second record.
@@ -181,7 +181,7 @@ module ActiveRecord
     # Same as #second but raises ActiveRecord::RecordNotFound if no record
     # is found.
     def second!
-      find_nth! 1
+      second || raise_record_not_found_exception!
     end
 
     # Find the third record.
@@ -197,7 +197,7 @@ module ActiveRecord
     # Same as #third but raises ActiveRecord::RecordNotFound if no record
     # is found.
     def third!
-      find_nth! 2
+      third || raise_record_not_found_exception!
     end
 
     # Find the fourth record.
@@ -213,7 +213,7 @@ module ActiveRecord
     # Same as #fourth but raises ActiveRecord::RecordNotFound if no record
     # is found.
     def fourth!
-      find_nth! 3
+      fourth || raise_record_not_found_exception!
     end
 
     # Find the fifth record.
@@ -229,7 +229,7 @@ module ActiveRecord
     # Same as #fifth but raises ActiveRecord::RecordNotFound if no record
     # is found.
     def fifth!
-      find_nth! 4
+      fifth || raise_record_not_found_exception!
     end
 
     # Find the forty-second record. Also known as accessing "the reddit".
@@ -245,7 +245,7 @@ module ActiveRecord
     # Same as #forty_two but raises ActiveRecord::RecordNotFound if no record
     # is found.
     def forty_two!
-      find_nth! 41
+      forty_two || raise_record_not_found_exception!
     end
 
     # Find the third-to-last record.
@@ -261,7 +261,7 @@ module ActiveRecord
     # Same as #third_to_last but raises ActiveRecord::RecordNotFound if no record
     # is found.
     def third_to_last!
-      find_nth_from_last 3 or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql(@klass.arel_engine)}]")
+      third_to_last || raise_record_not_found_exception!
     end
 
     # Find the second-to-last record.
@@ -277,7 +277,7 @@ module ActiveRecord
     # Same as #second_to_last but raises ActiveRecord::RecordNotFound if no record
     # is found.
     def second_to_last!
-      find_nth_from_last 2 or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql(@klass.arel_engine)}]")
+      second_to_last || raise_record_not_found_exception!
     end
 
     # Returns true if a record exists in the table that matches the +id+ or
@@ -345,12 +345,16 @@ module ActiveRecord
     # of results obtained should be provided in the +result_size+ argument and
     # the expected number of results should be provided in the +expected_size+
     # argument.
-    def raise_record_not_found_exception!(ids, result_size, expected_size) #:nodoc:
+    def raise_record_not_found_exception!(ids = nil, result_size = nil, expected_size = nil) # :nodoc:
       conditions = arel.where_sql(@klass.arel_engine)
       conditions = " [#{conditions}]" if conditions
       name = @klass.name
 
-      if Array(ids).size == 1
+      if ids.nil?
+        error = "Couldn't find #{name}"
+        error << " with#{conditions}" if conditions
+        raise RecordNotFound, error
+      elsif Array(ids).size == 1
         error = "Couldn't find #{name} with '#{primary_key}'=#{ids}#{conditions}"
         raise RecordNotFound.new(error, name, primary_key, ids)
       else
@@ -524,10 +528,6 @@ module ActiveRecord
 
       def find_nth(index)
         @offsets[offset_index + index] ||= find_nth_with_limit(index, 1).first
-      end
-
-      def find_nth!(index)
-        find_nth(index) or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql(@klass.arel_engine)}]")
       end
 
       def find_nth_with_limit(index, limit)
