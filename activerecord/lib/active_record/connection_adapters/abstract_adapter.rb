@@ -433,16 +433,16 @@ module ActiveRecord
         @connection
       end
 
-      def case_sensitive_comparison(table, attribute, column, value)
-        table[attribute].eq(Arel::Nodes::BindParam.new)
+      def case_sensitive_comparison(attribute, column, value) # :nodoc:
+        attribute.eq(value)
       end
 
-      def case_insensitive_comparison(table, attribute, column, value)
+      def case_insensitive_comparison(attribute, column, value) # :nodoc:
         if can_perform_case_insensitive_comparison_for?(column)
-          table[attribute].lower.eq(table.lower(Arel::Nodes::BindParam.new))
-        else
-          table[attribute].eq(Arel::Nodes::BindParam.new)
+          value = attribute.relation.lower(value)
+          attribute = attribute.lower
         end
+        attribute.eq(value)
       end
 
       def can_perform_case_insensitive_comparison_for?(column)
