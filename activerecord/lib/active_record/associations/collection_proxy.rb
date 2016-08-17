@@ -28,7 +28,6 @@ module ActiveRecord
     # is computed directly through SQL and does not trigger by itself the
     # instantiation of the actual post records.
     class CollectionProxy < Relation
-      delegate(*(ActiveRecord::Calculations.public_instance_methods - [:count]), to: :scope)
       delegate :exists?, :update_all, :arel, to: :scope
 
       def initialize(klass, association) #:nodoc:
@@ -732,6 +731,14 @@ module ActiveRecord
         @association.count(column_name)
       end
 
+      def calculate(operation, column_name)
+        null_scope? ? scope.calculate(operation, column_name) : super
+      end
+
+      def pluck(*column_names)
+        null_scope? ? scope.pluck(*column_names) : super
+      end
+
       # Returns the size of the collection. If the collection hasn't been loaded,
       # it executes a <tt>SELECT COUNT(*)</tt> query. Else it calls <tt>collection.size</tt>.
       #
@@ -1066,6 +1073,10 @@ module ActiveRecord
       end
 
       private
+
+        def null_scope?
+          @association.null_scope?
+        end
 
         def exec_queries
           load_target
