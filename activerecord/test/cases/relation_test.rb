@@ -6,7 +6,7 @@ require "models/rating"
 
 module ActiveRecord
   class RelationTest < ActiveRecord::TestCase
-    fixtures :posts, :comments, :authors, :author_addresses
+    fixtures :posts, :comments, :authors, :author_addresses, :ratings
 
     FakeKlass = Struct.new(:table_name, :name) do
       extend ActiveRecord::Delegation::DelegateCache
@@ -224,7 +224,26 @@ module ActiveRecord
     def test_relation_merging_with_merged_joins_as_symbols
       special_comments_with_ratings = SpecialComment.joins(:ratings)
       posts_with_special_comments_with_ratings = Post.group("posts.id").joins(:special_comments).merge(special_comments_with_ratings)
-      assert_equal({ 2 => 1, 4 => 3, 5 => 1 }, authors(:david).posts.merge(posts_with_special_comments_with_ratings).count)
+      assert_equal({ 4 => 2 }, authors(:david).posts.merge(posts_with_special_comments_with_ratings).count)
+    end
+
+    def test_relation_merging_with_merged_symbol_joins_keeps_inner_joins
+      queries = capture_sql { authors_with_commented_posts = Author.joins(:posts).merge(Post.joins(:comments)).to_a }
+
+      nb_inner_join = queries.sum { |sql| sql.scan(/INNER\s+JOIN/i).size }
+      assert_equal 2, nb_inner_join, "Wrong amount of INNER JOIN in query"
+      assert queries.none? { |sql| /LEFT\s+(OUTER)?\s+JOIN/i.match?(sql) }, "Shouldn't have any LEFT JOIN in query"
+    end
+
+    def test_relation_merging_with_merged_symbol_joins_has_correct_size_and_count
+      # Has one entry per comment
+      merged_authors_with_commented_posts_relation = Author.joins(:posts).merge(Post.joins(:comments))
+
+      post_ids_with_author = Post.joins(:author).pluck(:id)
+      manual_comments_on_post_that_have_author = Comment.where(post_id: post_ids_with_author).pluck(:id)
+
+      assert_equal manual_comments_on_post_that_have_author.size, merged_authors_with_commented_posts_relation.count
+      assert_equal manual_comments_on_post_that_have_author.size, merged_authors_with_commented_posts_relation.to_a.size
     end
 
     def test_relation_merging_with_joins_as_join_dependency_pick_proper_parent

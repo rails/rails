@@ -104,17 +104,17 @@ module ActiveRecord
         join_root.drop(1).map!(&:reflection)
       end
 
-      def join_constraints(outer_joins, join_type)
+      def join_constraints(joins_to_add, join_type)
         joins = join_root.children.flat_map { |child|
           make_join_constraints(join_root, child, join_type)
         }
 
-        joins.concat outer_joins.flat_map { |oj|
+        joins.concat joins_to_add.flat_map { |oj|
           if join_root.match? oj.join_root
             walk join_root, oj.join_root
           else
             oj.join_root.children.flat_map { |child|
-              make_outer_joins oj.join_root, child
+              make_join_constraints(oj.join_root, child, join_type)
             }
           end
         }
