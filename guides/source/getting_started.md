@@ -1154,7 +1154,7 @@ new articles. Create a file called `app/views/articles/edit.html.erb` and make
 it look as follows:
 
 ```html+erb
-<h1>Editing article</h1>
+<h1>Edit article</h1>
 
 <%= form_for :article, url: article_path(@article), method: :patch do |f| %>
 
