@@ -1,3 +1,9 @@
+*   Remove unused parameter `options = nil` for `#clear` of
+    `ActiveSupport::Cache::Strategy::LocalCache::LocalStore` and
+    `ActiveSupport::Cache::Strategy::LocalCache`.
+
+    *Yosuke Kabuto*
+
 *   Fix `thread_mattr_accessor` subclass no longer overwrites parent.
 
     Assigning a value to a subclass using `thread_mattr_accessor` no
