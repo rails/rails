@@ -874,11 +874,6 @@ class FinderTest < ActiveRecord::TestCase
     assert_kind_of Time, Topic.where(["id = :id", { id: 1 }]).first.written_on
   end
 
-  def test_string_sanitation
-    assert_not_equal "'something ' 1=1'", ActiveRecord::Base.sanitize("something ' 1=1")
-    assert_equal "'something; select table'", ActiveRecord::Base.sanitize("something; select table")
-  end
-
   def test_count_by_sql
     assert_equal(0, Entrant.count_by_sql("SELECT COUNT(*) FROM entrants WHERE id > 3"))
     assert_equal(1, Entrant.count_by_sql(["SELECT COUNT(*) FROM entrants WHERE id > ?", 2]))
