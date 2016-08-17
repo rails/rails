@@ -353,6 +353,7 @@ resource. You need to add the _article resource_ to the
 
 ```ruby
 Rails.application.routes.draw do
+  get 'welcome/index'
 
   resources :articles
 
