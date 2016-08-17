@@ -26,7 +26,7 @@ module Rails
 
         Rake::TaskManager.record_task_metadata = true
         Rake.application.instance_variable_set(:@name, "rails")
-        Rails.application.load_tasks
+        load_tasks
         @rake_tasks = Rake.application.tasks.select(&:comment)
       end
 
