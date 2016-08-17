@@ -74,7 +74,7 @@ module ActiveRecord
         return ["1=0"] if attributes.empty?
 
         attributes.flat_map do |key, value|
-          if value.is_a?(Hash)
+          if value.is_a?(Hash) && !table.has_column?(key)
             associated_predicate_builder(key).expand_from_hash(value)
           else
             build(table.arel_attribute(key), value)
@@ -88,7 +88,7 @@ module ActiveRecord
 
         attributes.each do |column_name, value|
           case
-          when value.is_a?(Hash)
+          when value.is_a?(Hash) && !table.has_column?(column_name)
             attrs, bvs = associated_predicate_builder(column_name).create_binds_for_hash(value)
             result[column_name] = attrs
             binds += bvs

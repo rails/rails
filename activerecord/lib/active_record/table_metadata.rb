@@ -37,6 +37,10 @@ module ActiveRecord
       end
     end
 
+    def has_column?(column_name)
+      klass && klass.columns_hash.key?(column_name.to_s)
+    end
+
     def associated_with?(association_name)
       klass && klass._reflect_on_association(association_name)
     end
