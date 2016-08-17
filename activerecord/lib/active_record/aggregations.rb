@@ -261,8 +261,10 @@ module ActiveRecord
               part = converter.respond_to?(:call) ? converter.call(part) : klass.send(converter, part)
             end
 
-            if part.is_a?(Hash)
-              raise ArgumentError unless part.size == part.keys.max
+            hash_from_multiparameter_assignment = part.is_a?(Hash) &&
+              part.each_key.all? { |k| k.is_a?(Integer) }
+            if hash_from_multiparameter_assignment
+              raise ArgumentError unless part.size == part.each_key.max
               part = klass.new(*part.sort.map(&:last))
             end
 

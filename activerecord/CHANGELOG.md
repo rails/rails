@@ -1,3 +1,10 @@
+*   Hashes can once again be passed to setters of `composed_of`, if all of the
+    mapping methods are methods implemented on `Hash`.
+
+    Fixes #25978.
+
+    *Sean Griffin*
+
 *   Doing count on relations that contain LEFT OUTER JOIN Arel node no longer
     force a DISTINCT. This solves issues when using count after a left_joins.
 
