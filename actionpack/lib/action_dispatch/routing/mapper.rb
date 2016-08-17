@@ -1591,63 +1591,6 @@ module ActionDispatch
           end
         end
 
-        def get_to_from_path(path, to, action)
-          return to if to || action
-
-          path_without_format = path.sub(/\(\.:format\)$/, "")
-          if using_match_shorthand?(path_without_format)
-            path_without_format.gsub(%r{^/}, "").sub(%r{/([^/]*)$}, '#\1').tr("-", "_")
-          else
-            nil
-          end
-        end
-
-        def using_match_shorthand?(path)
-          path =~ %r{^/?[-\w]+/[-\w/]+$}
-        end
-
-        def decomposed_match(path, controller, options, _path, to, via, formatted, anchor, options_constraints) # :nodoc:
-          if on = options.delete(:on)
-            send(on) { decomposed_match(path, controller, options, _path, to, via, formatted, anchor, options_constraints) }
-          else
-            case @scope.scope_level
-            when :resources
-              nested { decomposed_match(path, controller, options, _path, to, via, formatted, anchor, options_constraints) }
-            when :resource
-              member { decomposed_match(path, controller, options, _path, to, via, formatted, anchor, options_constraints) }
-            else
-              add_route(path, controller, options, _path, to, via, formatted, anchor, options_constraints)
-            end
-          end
-        end
-
-        def add_route(action, controller, options, _path, to, via, formatted, anchor, options_constraints) # :nodoc:
-          path = path_for_action(action, _path)
-          raise ArgumentError, "path is required" if path.blank?
-
-          action = action.to_s
-
-          default_action = options.delete(:action) || @scope[:action]
-
-          if action =~ /^[\w\-\/]+$/
-            default_action ||= action.tr("-", "_") unless action.include?("/")
-          else
-            action = nil
-          end
-
-          as = if !options.fetch(:as, true) # if it's set to nil or false
-            options.delete(:as)
-          else
-            name_for_action(options.delete(:as), action)
-          end
-
-          path = Mapping.normalize_path URI.parser.escape(path), formatted
-          ast = Journey::Parser.parse path
-
-          mapping = Mapping.build(@scope, @set, ast, controller, default_action, to, via, formatted, options_constraints, anchor, options)
-          @set.add_route(mapping, ast, as, anchor)
-        end
-
         # You can specify what Rails should route "/" to with the root method:
         #
         #   root to: 'pages#main'
@@ -1924,6 +1867,63 @@ to this:
             end
 
             self
+          end
+
+          def get_to_from_path(path, to, action)
+            return to if to || action
+
+            path_without_format = path.sub(/\(\.:format\)$/, "")
+            if using_match_shorthand?(path_without_format)
+              path_without_format.gsub(%r{^/}, "").sub(%r{/([^/]*)$}, '#\1').tr("-", "_")
+            else
+              nil
+            end
+          end
+
+          def using_match_shorthand?(path)
+            path =~ %r{^/?[-\w]+/[-\w/]+$}
+          end
+
+          def decomposed_match(path, controller, options, _path, to, via, formatted, anchor, options_constraints) # :nodoc:
+            if on = options.delete(:on)
+              send(on) { decomposed_match(path, controller, options, _path, to, via, formatted, anchor, options_constraints) }
+            else
+              case @scope.scope_level
+              when :resources
+                nested { decomposed_match(path, controller, options, _path, to, via, formatted, anchor, options_constraints) }
+              when :resource
+                member { decomposed_match(path, controller, options, _path, to, via, formatted, anchor, options_constraints) }
+              else
+                add_route(path, controller, options, _path, to, via, formatted, anchor, options_constraints)
+              end
+            end
+          end
+
+          def add_route(action, controller, options, _path, to, via, formatted, anchor, options_constraints) # :nodoc:
+            path = path_for_action(action, _path)
+            raise ArgumentError, "path is required" if path.blank?
+
+            action = action.to_s
+
+            default_action = options.delete(:action) || @scope[:action]
+
+            if action =~ /^[\w\-\/]+$/
+              default_action ||= action.tr("-", "_") unless action.include?("/")
+            else
+              action = nil
+            end
+
+            as = if !options.fetch(:as, true) # if it's set to nil or false
+              options.delete(:as)
+            else
+              name_for_action(options.delete(:as), action)
+            end
+
+            path = Mapping.normalize_path URI.parser.escape(path), formatted
+            ast = Journey::Parser.parse path
+
+            mapping = Mapping.build(@scope, @set, ast, controller, default_action, to, via, formatted, options_constraints, anchor, options)
+            @set.add_route(mapping, ast, as, anchor)
           end
 
           def match_root_route(options)
