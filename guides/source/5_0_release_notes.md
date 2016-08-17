@@ -1002,7 +1002,7 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Added `#prev_day` and `#next_day` counterparts to `#yesterday` and
     `#tomorrow` for `Date`, `Time`, and `DateTime`.
-    ([Pull Request](httpshttps://github.com/rails/rails/pull/18335))
+    ([Pull Request](https://github.com/rails/rails/pull/18335))
 
 *   Added `SecureRandom.base58` for generation of random base58 strings.
     ([commit](https://github.com/rails/rails/commit/b1093977110f18ae0cafe56c3d99fc22a7d54d1b))
