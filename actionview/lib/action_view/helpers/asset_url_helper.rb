@@ -167,12 +167,11 @@ module ActionView
       end
       alias_method :path_to_asset, :asset_path # aliased to avoid conflicts with an asset_path named route
 
-
       # Computes the path to an asset in the public folder.
       # This uses +asset_path+ and skips any asset lookups by assuming the asset is in the
       # `public` folder.
       def public_asset_path(source, options = {})
-        path_to_asset(source, {public_folder: true}.merge!(options))
+        path_to_asset(source, { public_folder: true }.merge!(options))
       end
       alias_method :path_to_public_asset, :public_asset_path # aliased to avoid conflicts with an public_asset_path named route
 
@@ -195,7 +194,7 @@ module ActionView
       # This uses +asset_url+ and skips any asset lookups by assuming the asset is in the
       # `public` folder.
       def public_asset_url(source, options = {})
-        url_to_asset(source, {public_folder: true}.merge!(options))
+        url_to_asset(source, { public_folder: true }.merge!(options))
       end
       alias_method :path_to_public_asset, :public_asset_path # aliased to avoid conflicts with a public_asset_path named route
 
@@ -289,7 +288,7 @@ module ActionView
       # This uses +javascript_path+ and skips any asset lookups by assuming the asset is in the
       # `public` folder.
       def public_javascript_path(source, options = {})
-        path_to_javascript(source, {public_folder: true}.merge!(options))
+        path_to_javascript(source, { public_folder: true }.merge!(options))
       end
       alias_method :path_to_public_javascript, :public_javascript_path # aliased to avoid conflicts with a public_javascript_path named route
 
@@ -309,7 +308,7 @@ module ActionView
       # This uses +javascript_url+ and skips any asset lookups by assuming the asset is in the
       # `public` folder.
       def public_javascript_url(source, options = {})
-        url_to_javascript(source, {public_folder: true}.merge!(options))
+        url_to_javascript(source, { public_folder: true }.merge!(options))
       end
       alias_method :path_to_public_javascript, :public_javascript_path # aliased to avoid conflicts with a public_javascript_path named route
 
@@ -332,7 +331,7 @@ module ActionView
       # This uses +stylesheet_path+ and skips any asset lookups by assuming the asset is in the
       # `public` folder.
       def public_stylesheet_path(source, options = {})
-        path_to_stylesheet(source, {public_folder: true}.merge!(options))
+        path_to_stylesheet(source, { public_folder: true }.merge!(options))
       end
       alias_method :path_to_public_stylesheet, :public_stylesheet_path # aliased to avoid conflicts with a public_stylesheet_path named route
 
@@ -352,7 +351,7 @@ module ActionView
       # This uses +stylesheet_url+ and skips any asset lookups by assuming the asset is in the
       # `public` folder.
       def public_stylesheet_url(source, options = {})
-        url_to_stylesheet(source, {public_folder: true}.merge!(options))
+        url_to_stylesheet(source, { public_folder: true }.merge!(options))
       end
       alias_method :path_to_public_stylesheet, :public_stylesheet_path # aliased to avoid conflicts with a public_stylesheet_path named route
 
@@ -378,7 +377,7 @@ module ActionView
       # This uses +image_path+ and skips any asset lookups by assuming the asset is in the
       # `public` folder.
       def public_image_path(source, options = {})
-        path_to_image(source, {public_folder: true}.merge!(options))
+        path_to_image(source, { public_folder: true }.merge!(options))
       end
       alias_method :path_to_public_image, :public_image_path # aliased to avoid conflicts with a public_image_path named route
 
@@ -398,7 +397,7 @@ module ActionView
       # This uses +image_url+ and skips any asset lookups by assuming the asset is in the
       # `public` folder.
       def public_image_url(source, options = {})
-        url_to_image(source, {public_folder: true}.merge!(options))
+        url_to_image(source, { public_folder: true }.merge!(options))
       end
       alias_method :path_to_public_image, :public_image_path # aliased to avoid conflicts with a public_image_path named route
 
@@ -420,7 +419,7 @@ module ActionView
       # This uses +video_path+ and skips any asset lookups by assuming the asset is in the
       # `public` folder.
       def public_video_path(source, options = {})
-        path_to_video(source, {public_folder: true}.merge!(options))
+        path_to_video(source, { public_folder: true }.merge!(options))
       end
       alias_method :path_to_public_video, :public_video_path # aliased to avoid conflicts with a public_video_path named route
 
@@ -440,7 +439,7 @@ module ActionView
       # This uses +video_url+ and skips any asset lookups by assuming the asset is in the
       # `public` folder.
       def public_video_url(source, options = {})
-        url_to_video(source, {public_folder: true}.merge!(options))
+        url_to_video(source, { public_folder: true }.merge!(options))
       end
       alias_method :path_to_public_video, :public_video_path # aliased to avoid conflicts with a public_video_path named route
 
@@ -462,7 +461,7 @@ module ActionView
       # This uses +audio_path+ and skips any asset lookups by assuming the asset is in the
       # `public` folder.
       def public_audio_path(source, options = {})
-        path_to_audio(source, {public_folder: true}.merge!(options))
+        path_to_audio(source, { public_folder: true }.merge!(options))
       end
       alias_method :path_to_public_audio, :public_audio_path # aliased to avoid conflicts with a public_audio_path named route
 
@@ -482,7 +481,7 @@ module ActionView
       # This uses +audio_url+ and skips any asset lookups by assuming the asset is in the
       # `public` folder.
       def public_audio_url(source, options = {})
-        url_to_audio(source, {public_folder: true}.merge!(options))
+        url_to_audio(source, { public_folder: true }.merge!(options))
       end
       alias_method :path_to_public_audio, :public_audio_path # aliased to avoid conflicts with a public_audio_path named route
 
@@ -503,7 +502,7 @@ module ActionView
       # This uses +font_path+ and skips any asset lookups by assuming the asset is in the
       # `public` folder.
       def public_font_path(source, options = {})
-        path_to_font(source, {public_folder: true}.merge!(options))
+        path_to_font(source, { public_folder: true }.merge!(options))
       end
       alias_method :path_to_public_font, :public_font_path # aliased to avoid conflicts with a public_font_path named route
 
@@ -523,7 +522,7 @@ module ActionView
       # This uses +font_url+ and skips any asset lookups by assuming the asset is in the
       # `public` folder.
       def public_font_url(source, options = {})
-        url_to_font(source, {public_folder: true}.merge!(options))
+        url_to_font(source, { public_folder: true }.merge!(options))
       end
       alias_method :path_to_public_font, :public_font_path # aliased to avoid conflicts with a public_font_url named route
     end

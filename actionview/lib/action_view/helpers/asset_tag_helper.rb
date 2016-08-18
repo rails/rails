@@ -186,17 +186,17 @@ module ActionView
       #   favicon_link_tag 'mb-icon.png', rel: 'apple-touch-icon', type: 'image/png'
       #   # => <link href="/assets/mb-icon.png" rel="apple-touch-icon" type="image/png" />
       def favicon_link_tag(source="favicon.ico", options={})
-        tag('link', {
+        tag("link", {
           rel: "shortcut icon",
           type: "image/x-icon",
-          href: path_to_image(source, { public_folder: options.delete(:public_folder) })
+          href: path_to_image(source, public_folder: options.delete(:public_folder))
         }.merge!(options.symbolize_keys))
       end
 
       # Returns a link tag for a favicon asset in the public
       # folder. This uses +favicon_link_tag+ and skips any asset
       # lookups by assuming any assets are in the `public` folder.
-      def public_favicon_link_tag(source='favicon.ico', options={})
+      def public_favicon_link_tag(source="favicon.ico", options={})
         favicon_link_tag(source, { public_folder: true }.merge!(options))
       end
 
@@ -234,7 +234,7 @@ module ActionView
         options = options.symbolize_keys
         check_for_image_tag_errors(options)
 
-        src = options[:src] = path_to_image(source, { public_folder: options.delete(:public_folder) })
+        src = options[:src] = path_to_image(source, public_folder: options.delete(:public_folder))
 
         unless src.start_with?("cid:") || src.start_with?("data:") || src.blank?
           options[:alt] = options.fetch(:alt) { image_alt(src) }
@@ -315,7 +315,7 @@ module ActionView
         public_poster_folder = options.delete(:public_poster_folder)
         sources << options
         multiple_sources_tag("video", sources) do |options|
-          options[:poster] = path_to_image(options[:poster], { public_folder: public_poster_folder }) if options[:poster]
+          options[:poster] = path_to_image(options[:poster], public_folder: public_poster_folder) if options[:poster]
           options[:width], options[:height] = extract_dimensions(options.delete(:size)) if options[:size]
         end
       end
@@ -325,7 +325,7 @@ module ActionView
       # lookups by assuming any assets are in the `public` folder.
       def public_video_tag(*sources)
         options = sources.extract_options!
-        video_tag(*sources, { public_folder: true , public_poster_folder: true}.merge!(options))
+        video_tag(*sources, { public_folder: true , public_poster_folder: true }.merge!(options))
       end
 
       # Returns an HTML audio tag for the +source+.
@@ -361,10 +361,10 @@ module ActionView
 
           if sources.size > 1
             content_tag(type, options) do
-              safe_join sources.map { |source| tag("source", src: send("path_to_#{type}", source, { public_folder: public_folder })) }
+              safe_join sources.map { |source| tag("source", src: send("path_to_#{type}", source, public_folder: public_folder)) }
             end
           else
-            options[:src] = send("path_to_#{type}", sources.first, { public_folder: public_folder })
+            options[:src] = send("path_to_#{type}", sources.first, public_folder: public_folder)
             content_tag(type, nil, options)
           end
         end

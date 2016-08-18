@@ -94,7 +94,7 @@ module ApplicationTests
 
         class ::PostsController < ActionController::Base ; end
 
-        get '/posts?debug_assets=true'
+        get "/posts?debug_assets=true"
 
         body = last_response.body
         assert_match(tag_match, body, "Expected `#{view_method}` to produce a match to #{ tag_match }, but did not: #{ body }")
@@ -120,7 +120,7 @@ module ApplicationTests
 
         class ::PostsController < ActionController::Base ; end
 
-        get '/posts?debug_assets=true'
+        get "/posts?debug_assets=true"
 
         body = last_response.body
         assert_match(tag_match, body, "Expected `#{view_method}` to produce a match to #{ tag_match }, but did not: #{ body }")
@@ -140,7 +140,7 @@ module ApplicationTests
 
         class ::PostsController < ActionController::Base ; end
 
-        get '/posts?debug_assets=true'
+        get "/posts?debug_assets=true"
 
         body = last_response.body.strip
         assert_match(tag_match, body, "Expected `#{view_method}` to produce a match to #{ tag_match }, but did not: #{ body }")
