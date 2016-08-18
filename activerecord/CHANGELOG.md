@@ -1,3 +1,11 @@
+*   Sqlite3 migrations to add a column to an existing table can now be
+    successfully rolled back when the column was given and invalid column
+    type.
+
+    Fixes #26087
+
+    *Travis O'Neill*
+
 *   Doing count on relations that contain LEFT OUTER JOIN Arel node no longer
     force a DISTINCT. This solves issues when using count after a left_joins.
 
@@ -57,8 +65,8 @@
     *Xavier Noria*
 
 *   Using `group` with an attribute that has a custom type will properly cast
-    the hash keys after calling a calculation method like `count`. 
-    
+    the hash keys after calling a calculation method like `count`.
+
     Fixes #25595.
 
     *Sean Griffin*
@@ -93,7 +101,7 @@
     *Sean Griffin*
 
 *   Ensure hashes can be assigned to attributes created using `composed_of`.
-    
+
     Fixes #25210.
 
     *Sean Griffin*
