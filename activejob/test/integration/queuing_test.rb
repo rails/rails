@@ -43,6 +43,13 @@ class QueuingTest < ActiveSupport::TestCase
     end
   end
 
+  test "resque JobWrapper should have instance variable queue" do
+    skip unless adapter_is?(:resque)
+    job = ::HelloJob.set(wait: 5.seconds).perform_later
+    hash = Resque.decode(Resque.find_delayed_selection { true }[0])
+    assert_equal hash["queue"], job.queue_name
+  end
+
   test "should not run job enqueued in the future" do
     begin
       TestJob.set(wait: 10.minutes).perform_later @id
