@@ -311,7 +311,7 @@ module ActiveRecord
 
     def group!(*args) # :nodoc:
       args.map! do |arg|
-        arg.split(",")
+        arg.split(",") if arg.is_a? String
       end
       args.flatten!
 
