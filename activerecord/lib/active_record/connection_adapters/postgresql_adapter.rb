@@ -772,9 +772,9 @@ module ActiveRecord
               SELECT exists(
                 SELECT * FROM pg_proc
                 INNER JOIN pg_cast
-                  ON casttarget::text::oidvector = proargtypes
+                  ON ARRAY[casttarget]::oidvector = proargtypes
                 WHERE proname = 'lower'
-                  AND castsource = '#{column.sql_type}'::regtype::oid
+                  AND castsource = #{quote column.sql_type}::regtype
               )
             end_sql
             execute_and_clear(sql, "SCHEMA", []) do |result|
