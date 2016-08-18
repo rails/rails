@@ -339,6 +339,11 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal author.post, Post.find_by(author_id: Author.where(id: author))
   end
 
+  def test_find_by_active_record_base_object
+    author = authors(:david)
+    assert_equal author.post, Post.find_by(author_id: author)
+  end
+
   def test_take
     assert_equal topics(:first), Topic.take
   end
