@@ -27,9 +27,27 @@ module ActiveRecord
         WhereClause.new(parts, binds || [])
       end
 
+      def inverted
+        @inverted ||= WhereClauseInvertedFactory.new(klass, predicate_builder)
+      end
+
       protected
 
         attr_reader :klass, :predicate_builder
+
+      private
+
+        class WhereClauseInvertedFactory < self # :nodoc:
+          def initialize(klass, predicate_builder)
+            super
+            @predicate_builder = @predicate_builder.dup
+            @predicate_builder.of_inverted_clause = true
+          end
+
+          def build(opts, other)
+            super.invert
+          end
+        end
     end
   end
 end

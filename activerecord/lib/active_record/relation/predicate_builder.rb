@@ -9,6 +9,8 @@ module ActiveRecord
     require "active_record/relation/predicate_builder/range_handler"
     require "active_record/relation/predicate_builder/relation_handler"
 
+    attr_accessor :of_inverted_clause
+
     delegate :resolve_column_aliases, to: :table
 
     def initialize(table)
@@ -77,7 +79,20 @@ module ActiveRecord
           if value.is_a?(Hash) && !table.has_column?(key)
             associated_predicate_builder(key).expand_from_hash(value)
           else
-            build(table.arel_attribute(key), value)
+            predicates = build(table.arel_attribute(key), value)
+
+            # Grouping NOT conditions that are of polymorphic associations
+            # in order to provide their proper inversion.
+            if of_inverted_clause &&
+              ((value.is_a?(AssociationQueryValue) &&
+                value.associated_table.polymorphic_association?) ||
+                  (value.is_a?(PolymorphicArrayValue) &&
+                    !predicates.is_a?(Arel::Nodes::Grouping)))
+
+              predicates = [Arel::Nodes::And.new(predicates)]
+            end
+
+            predicates
           end
         end
       end
