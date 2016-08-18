@@ -69,16 +69,22 @@ module ApplicationTests
       assert_match(/<script src="\/assets\/xmlhr(\.self)?-([0-z]+)\.js\?body=1"><\/script>/, last_response.body)
     end
 
-    test "public path methods are not over-written by the asset pipeline" do
+    test "public path and tag methods are not over-written by the asset pipeline" do
       contents = "doesnotexist"
       cases = {
-        public_asset_path:       %r{/#{ contents }},
-        public_image_path:       %r{/images/#{ contents }},
-        public_video_path:       %r{/videos/#{ contents }},
-        public_audio_path:       %r{/audios/#{ contents }},
-        public_font_path:        %r{/fonts/#{ contents }},
-        public_javascript_path:  %r{/javascripts/#{ contents }},
-        public_stylesheet_path:  %r{/stylesheets/#{ contents }},
+        public_asset_path:             %r{/#{ contents }},
+        public_image_path:             %r{/images/#{ contents }},
+        public_video_path:             %r{/videos/#{ contents }},
+        public_audio_path:             %r{/audios/#{ contents }},
+        public_font_path:              %r{/fonts/#{ contents }},
+        public_javascript_path:        %r{/javascripts/#{ contents }},
+        public_stylesheet_path:        %r{/stylesheets/#{ contents }},
+        public_image_tag:              %r{<img src="/images/#{ contents }"},
+        public_favicon_link_tag:       %r{<link rel="shortcut icon" type="image/x-icon" href="/images/#{ contents }" />},
+        public_stylesheet_link_tag:    %r{<link rel="stylesheet" media="screen" href="/stylesheets/#{ contents }.css" />},
+        public_javascript_include_tag: %r{<script src="/javascripts/#{ contents }.js">},
+        public_audio_tag:              %r{<audio src="/audios/#{ contents }"></audio>},
+        public_video_tag:              %r{<video src="/videos/#{ contents }"></video>}
       }
 
       cases.each do |(view_method, tag_match)|
@@ -124,7 +130,7 @@ module ApplicationTests
     test "public path methods do not use the asset pipeline" do
       cases = {
         asset_path:        /\/assets\/application-.*.\.js/,
-        public_asset_path: /application.js/
+        public_asset_path: /application.js/,
       }
 
       cases.each do |(view_method, tag_match)|

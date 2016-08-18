@@ -56,13 +56,21 @@ module ActionView
       #   # => <script src="http://www.example.com/xmlhr.js"></script>
       def javascript_include_tag(*sources)
         options = sources.extract_options!.stringify_keys
-        path_options = options.extract!("protocol", "extname", "host").symbolize_keys
+        path_options = options.extract!("protocol", "extname", "host", "public_folder").symbolize_keys
         sources.uniq.map { |source|
           tag_options = {
             "src" => path_to_javascript(source, path_options)
           }.merge!(options)
           content_tag("script".freeze, "", tag_options)
         }.join("\n").html_safe
+      end
+
+      # Computes the path to a series of javascript assets in the public
+      # folder. This uses +javascript_include_tag+ and skips any asset
+      # lookups by assuming any assets are in the `public` folder.
+      def public_javascript_include_tag(*sources)
+        options = sources.extract_options!
+        javascript_include_tag(*sources, { public_folder: true }.merge!(options))
       end
 
       # Returns a stylesheet link tag for the sources specified as arguments. If
@@ -92,8 +100,7 @@ module ActionView
       #   #    <link href="/css/stylish.css" media="screen" rel="stylesheet" />
       def stylesheet_link_tag(*sources)
         options = sources.extract_options!.stringify_keys
-        path_options = options.extract!("protocol", "host").symbolize_keys
-
+        path_options = options.extract!("protocol", "host", "public_folder").symbolize_keys
         sources.uniq.map { |source|
           tag_options = {
             "rel" => "stylesheet",
@@ -102,6 +109,14 @@ module ActionView
           }.merge!(options)
           tag(:link, tag_options)
         }.join("\n").html_safe
+      end
+
+      # Computes the path to a series of stylesheet assets in the public
+      # folder. This uses +stylesheet_link_tag+ and skips any asset
+      # lookups by assuming any assets are in the `public` folder.
+      def public_stylesheet_link_tag(*sources)
+        options = sources.extract_options!
+        stylesheet_link_tag(*sources, { public_folder: true }.merge!(options))
       end
 
       # Returns a link tag that browsers and feed readers can use to auto-detect
@@ -171,11 +186,18 @@ module ActionView
       #   favicon_link_tag 'mb-icon.png', rel: 'apple-touch-icon', type: 'image/png'
       #   # => <link href="/assets/mb-icon.png" rel="apple-touch-icon" type="image/png" />
       def favicon_link_tag(source="favicon.ico", options={})
-        tag("link", {
+        tag('link', {
           rel: "shortcut icon",
           type: "image/x-icon",
-          href: path_to_image(source)
+          href: path_to_image(source, { public_folder: options.delete(:public_folder) })
         }.merge!(options.symbolize_keys))
+      end
+
+      # Returns a link tag for a favicon asset in the public
+      # folder. This uses +favicon_link_tag+ and skips any asset
+      # lookups by assuming any assets are in the `public` folder.
+      def public_favicon_link_tag(source='favicon.ico', options={})
+        favicon_link_tag(source, { public_folder: true }.merge!(options))
       end
 
       # Returns an HTML image tag for the +source+. The +source+ can be a full
@@ -212,7 +234,7 @@ module ActionView
         options = options.symbolize_keys
         check_for_image_tag_errors(options)
 
-        src = options[:src] = path_to_image(source)
+        src = options[:src] = path_to_image(source, { public_folder: options.delete(:public_folder) })
 
         unless src.start_with?("cid:") || src.start_with?("data:") || src.blank?
           options[:alt] = options.fetch(:alt) { image_alt(src) }
@@ -220,6 +242,13 @@ module ActionView
 
         options[:width], options[:height] = extract_dimensions(options.delete(:size)) if options[:size]
         tag("img", options)
+      end
+
+      # Returns an HTML image tag for the source asset in the public
+      # folder. This uses +image_tag+ and skips any asset
+      # lookups by assuming any assets are in the `public` folder.
+      def public_image_tag(source, options={})
+        image_tag(source,  { public_folder: true }.merge!(options))
       end
 
       # Returns a string suitable for an HTML image tag alt attribute.
@@ -282,10 +311,21 @@ module ActionView
       #   video_tag(["trailer.ogg", "trailer.flv"], size: "160x120")
       #   # => <video height="120" width="160"><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
       def video_tag(*sources)
+        options = sources.extract_options!.symbolize_keys
+        public_poster_folder = options.delete(:public_poster_folder)
+        sources << options
         multiple_sources_tag("video", sources) do |options|
-          options[:poster] = path_to_image(options[:poster]) if options[:poster]
+          options[:poster] = path_to_image(options[:poster], { public_folder: public_poster_folder }) if options[:poster]
           options[:width], options[:height] = extract_dimensions(options.delete(:size)) if options[:size]
         end
+      end
+
+      # Returns an HTML video tag for the source asset in the public
+      # folder. This uses +video_tag+ and skips any asset
+      # lookups by assuming any assets are in the `public` folder.
+      def public_video_tag(*sources)
+        options = sources.extract_options!
+        video_tag(*sources, { public_folder: true , public_poster_folder: true}.merge!(options))
       end
 
       # Returns an HTML audio tag for the +source+.
@@ -304,19 +344,27 @@ module ActionView
         multiple_sources_tag("audio", sources)
       end
 
+      # Returns an HTML audio tag for the source asset in the public
+      # folder. This uses +audio_tag+ and skips any asset
+      def public_audio_tag(*sources)
+        options = sources.extract_options!
+        audio_tag(*sources, { public_folder: true }.merge!(options))
+      end
+
       private
         def multiple_sources_tag(type, sources)
-          options = sources.extract_options!.symbolize_keys
+          options       = sources.extract_options!.symbolize_keys
+          public_folder = options.delete(:public_folder)
           sources.flatten!
 
           yield options if block_given?
 
           if sources.size > 1
             content_tag(type, options) do
-              safe_join sources.map { |source| tag("source", src: send("path_to_#{type}", source)) }
+              safe_join sources.map { |source| tag("source", src: send("path_to_#{type}", source, { public_folder: public_folder })) }
             end
           else
-            options[:src] = send("path_to_#{type}", sources.first)
+            options[:src] = send("path_to_#{type}", sources.first, { public_folder: public_folder })
             content_tag(type, nil, options)
           end
         end
