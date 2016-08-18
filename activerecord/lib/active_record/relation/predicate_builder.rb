@@ -2,7 +2,6 @@ module ActiveRecord
   class PredicateBuilder # :nodoc:
     require "active_record/relation/predicate_builder/array_handler"
     require "active_record/relation/predicate_builder/association_query_handler"
-    require "active_record/relation/predicate_builder/base_handler"
     require "active_record/relation/predicate_builder/basic_object_handler"
     require "active_record/relation/predicate_builder/polymorphic_array_handler"
     require "active_record/relation/predicate_builder/range_handler"
@@ -15,7 +14,6 @@ module ActiveRecord
       @handlers = []
 
       register_handler(BasicObject, BasicObjectHandler.new)
-      register_handler(Base, BaseHandler.new(self))
       register_handler(Range, RangeHandler.new)
       register_handler(RangeHandler::RangeWithBinds, RangeHandler.new)
       register_handler(Relation, RelationHandler.new)
@@ -95,6 +93,9 @@ module ActiveRecord
             next
           when value.is_a?(Relation)
             binds += value.bound_attributes
+          when value.is_a?(Base) && !table.associated_with?(column_name)
+            result[column_name] = Arel::Nodes::BindParam.new
+            binds << build_bind_param(column_name, value.id)
           when value.is_a?(Range) && !table.type(column_name).respond_to?(:subtype)
             first = value.begin
             last = value.end
