@@ -771,6 +771,10 @@ module ActiveRecord
             sql = <<-end_sql
               SELECT exists(
                 SELECT * FROM pg_proc
+                WHERE proname = 'lower'
+                  AND proargtypes = ARRAY[#{quote column.sql_type}::regtype]::oidvector
+              ) OR exists(
+                SELECT * FROM pg_proc
                 INNER JOIN pg_cast
                   ON ARRAY[casttarget]::oidvector = proargtypes
                 WHERE proname = 'lower'
