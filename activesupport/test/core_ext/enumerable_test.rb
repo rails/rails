@@ -220,4 +220,25 @@ class EnumerableTests < ActiveSupport::TestCase
     ])
     assert_equal [[5, 99], [15, 0], [10, 50]], payments.pluck(:dollars, :cents)
   end
+
+  def test_single_with_a_single_item
+    assert_equal 11, [11].single
+    assert_equal 11, (11..11).single
+    assert_equal [:a, 11], { a: 11 }.single
+    assert_equal 12, GenericEnumerable.new([12]).single
+  end
+
+  def test_single_with_no_items
+    assert_raise(Enumerable::SingleItemExpectedError) { [].single }
+    assert_raise(Enumerable::SingleItemExpectedError) { (2..1).single }
+    assert_raise(Enumerable::SingleItemExpectedError) { {}.single }
+    assert_raise(Enumerable::SingleItemExpectedError) { GenericEnumerable.new([]).single }
+  end
+
+  def test_single_with_more_than_one_item
+    assert_raise(Enumerable::SingleItemExpectedError) { [1, 2].single }
+    assert_raise(Enumerable::SingleItemExpectedError) { (1..10).single }
+    assert_raise(Enumerable::SingleItemExpectedError) { { a: 1, b: 2 }.single }
+    assert_raise(Enumerable::SingleItemExpectedError) { GenericEnumerable.new(%w(a b c)).single }
+  end
 end

@@ -89,6 +89,32 @@ module Enumerable
       map { |element| element[keys.first] }
     end
   end
+
+  # Return one and only one element. Raise an error if there are none or more than one.
+  #
+  #   [1].single
+  #     => 1
+  #
+  #   [1, 2].single
+  #     => Enumerable::SingleItemExpectedError: The sequence contains more than one element (expected one and only one)
+  #
+  #   [].single
+  #     => Enumerable::SingleItemExpectedError: The sequence is empty (expected one and only one item)
+  def single
+    enumerator = self.map
+    val = enumerator.next
+    begin
+      enumerator.next
+      raise SingleItemExpectedError, 'The sequence contains more than one element (expected one and only one)'
+    rescue StopIteration
+      val
+    end
+  rescue StopIteration
+    raise SingleItemExpectedError, 'The sequence is empty (expected one and only one item)'
+  end
+
+  class SingleItemExpectedError < StandardError
+  end
 end
 
 class Range #:nodoc:
