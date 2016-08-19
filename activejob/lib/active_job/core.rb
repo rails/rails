@@ -82,7 +82,7 @@ module ActiveJob
         "job_id"     => job_id,
         "queue_name" => queue_name,
         "priority"   => priority,
-        "arguments"  => serialize_arguments(arguments),
+        "arguments"  => serialize_arguments_if_needed,
         "executions" => executions,
         "locale"     => I18n.locale.to_s
       }
@@ -123,6 +123,14 @@ module ActiveJob
         if defined?(@serialized_arguments) && @serialized_arguments.present?
           @arguments = deserialize_arguments(@serialized_arguments)
           @serialized_arguments = nil
+        end
+      end
+
+      def serialize_arguments_if_needed
+        if defined?(@serialized_arguments) && @serialized_arguments.present?
+          @serialized_arguments
+        else
+          serialize_arguments(arguments)
         end
       end
 

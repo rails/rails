@@ -31,4 +31,11 @@ class RescueTest < ActiveSupport::TestCase
     RescueJob.perform_later [Person.new(404)]
     assert_includes JobBuffer.values, "DeserializationError original exception was Person::RecordNotFound"
   end
+
+  test "should not lose information when re-serializing" do
+    job = RescueJob.new([Person.new(404)])
+    job.enqueue
+
+    assert_equal job.serialize, JobBuffer.last_value
+  end
 end
