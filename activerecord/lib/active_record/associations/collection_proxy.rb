@@ -851,6 +851,12 @@ module ActiveRecord
         @association.empty?
       end
 
+      ##
+      # :method: any?
+      #
+      # :call-seq:
+      #   any?()
+      #
       # Returns +true+ if the collection is not empty.
       #
       #   class Person < ActiveRecord::Base
@@ -880,10 +886,13 @@ module ActiveRecord
       #     pet.group == 'dogs'
       #   end
       #   # => true
-      def any?(&block)
-        @association.any?(&block)
-      end
 
+      ##
+      # :method: many?
+      #
+      # :call-seq:
+      #   many?()
+      #
       # Returns true if the collection has more than one record.
       # Equivalent to <tt>collection.size > 1</tt>.
       #
@@ -918,9 +927,6 @@ module ActiveRecord
       #     pet.group == 'cats'
       #   end
       #   # => true
-      def many?(&block)
-        @association.many?(&block)
-      end
 
       # Returns +true+ if the given +record+ is present in the collection.
       #
