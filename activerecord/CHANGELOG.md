@@ -1,3 +1,10 @@
+*   Avoid loading records from database when they are already loaded using
+    the `pluck` method on a collection.
+
+    Fixes #25921.
+
+    *Ryuta Kamizono*
+
 *   Remove text default treated as an empty string in non-strict mode for
     consistency with other types.
 
