@@ -111,50 +111,6 @@ module ActiveRecord
         end
       end
 
-      def first(limit = nil)
-        find_nth_or_last(:first, limit)
-      end
-
-      def second
-        find_nth_or_last(:second)
-      end
-
-      def third
-        find_nth_or_last(:third)
-      end
-
-      def fourth
-        find_nth_or_last(:fourth)
-      end
-
-      def fifth
-        find_nth_or_last(:fifth)
-      end
-
-      def forty_two
-        find_nth_or_last(:forty_two)
-      end
-
-      def third_to_last
-        find_nth_or_last(:third_to_last)
-      end
-
-      def second_to_last
-        find_nth_or_last(:second_to_last)
-      end
-
-      def last(limit = nil)
-        find_nth_or_last(:last, limit)
-      end
-
-      def take(limit = nil)
-        if find_from_target?
-          limit ? load_target.take(limit) : load_target.first
-        else
-          scope.take(limit)
-        end
-      end
-
       def build(attributes = {}, &block)
         if attributes.is_a?(Array)
           attributes.collect { |attr| build(attr, &block) }
@@ -453,6 +409,12 @@ module ActiveRecord
         owner.new_record? && !foreign_key_present?
       end
 
+      def find_from_target?
+        loaded? ||
+          owner.new_record? ||
+          target.any? { |record| record.new_record? || record.changed? }
+      end
+
       private
 
         def find_target
@@ -599,21 +561,6 @@ module ActiveRecord
           owner.class.send(full_callback_name)
         end
 
-        # Should we deal with assoc.first or assoc.last by issuing an independent query to
-        # the database, or by getting the target, and then taking the first/last item from that?
-        #
-        # If the args is just a non-empty options hash, go to the database.
-        #
-        # Otherwise, go to the database only if none of the following are true:
-        #   * target already loaded
-        #   * owner is new record
-        #   * target contains new or changed record(s)
-        def find_from_target?
-          loaded? ||
-            owner.new_record? ||
-            target.any? { |record| record.new_record? || record.changed? }
-        end
-
         def include_in_memory?(record)
           if reflection.is_a?(ActiveRecord::Reflection::ThroughReflection)
             assoc = owner.association(reflection.through_reflection.name)
@@ -639,12 +586,6 @@ module ActiveRecord
           else
             load_target.select { |r| ids.include?(r.id.to_s) }
           end
-        end
-
-        # Fetches the first/last using SQL if possible, otherwise from the target array.
-        def find_nth_or_last(ordinal, limit = nil)
-          collection = find_from_target? ? load_target : scope
-          limit ? collection.send(ordinal, limit) : collection.send(ordinal)
         end
     end
   end

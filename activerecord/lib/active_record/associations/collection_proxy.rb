@@ -140,6 +140,12 @@ module ActiveRecord
         @association.find(*args, &block)
       end
 
+      ##
+      # :method: first
+      #
+      # :call-seq:
+      #   first(limit = nil)
+      #
       # Returns the first record, or the first +n+ records, from the collection.
       # If the collection is empty, the first form returns +nil+, and the second
       # form returns an empty array.
@@ -166,45 +172,63 @@ module ActiveRecord
       #   another_person_without.pets          # => []
       #   another_person_without.pets.first    # => nil
       #   another_person_without.pets.first(3) # => []
-      def first(limit = nil)
-        @association.first(limit)
-      end
 
+      ##
+      # :method: second
+      #
+      # :call-seq:
+      #   second()
+      #
       # Same as #first except returns only the second record.
-      def second
-        @association.second
-      end
 
+      ##
+      # :method: third
+      #
+      # :call-seq:
+      #   third()
+      #
       # Same as #first except returns only the third record.
-      def third
-        @association.third
-      end
 
+      ##
+      # :method: fourth
+      #
+      # :call-seq:
+      #   fourth()
+      #
       # Same as #first except returns only the fourth record.
-      def fourth
-        @association.fourth
-      end
 
+      ##
+      # :method: fifth
+      #
+      # :call-seq:
+      #   fifth()
+      #
       # Same as #first except returns only the fifth record.
-      def fifth
-        @association.fifth
-      end
 
+      ##
+      # :method: forty_two
+      #
+      # :call-seq:
+      #   forty_two()
+      #
       # Same as #first except returns only the forty second record.
       # Also known as accessing "the reddit".
-      def forty_two
-        @association.forty_two
-      end
 
+      ##
+      # :method: third_to_last
+      #
+      # :call-seq:
+      #   third_to_last()
+      #
       # Same as #first except returns only the third-to-last record.
-      def third_to_last
-        @association.third_to_last
-      end
 
+      ##
+      # :method: second_to_last
+      #
+      # :call-seq:
+      #   second_to_last()
+      #
       # Same as #first except returns only the second-to-last record.
-      def second_to_last
-        @association.second_to_last
-      end
 
       # Returns the last record, or the last +n+ records, from the collection.
       # If the collection is empty, the first form returns +nil+, and the second
@@ -233,7 +257,8 @@ module ActiveRecord
       #   another_person_without.pets.last    # => nil
       #   another_person_without.pets.last(3) # => []
       def last(limit = nil)
-        @association.last(limit)
+        load_target if find_from_target?
+        super
       end
 
       # Gives a record (or N records if a parameter is supplied) from the collection
@@ -262,7 +287,8 @@ module ActiveRecord
       #   another_person_without.pets.take    # => nil
       #   another_person_without.pets.take(2) # => []
       def take(limit = nil)
-        @association.take(limit)
+        load_target if find_from_target?
+        super
       end
 
       # Returns a new object of the collection type that has been instantiated
@@ -1078,10 +1104,26 @@ module ActiveRecord
         self
       end
 
+      protected
+
+        def find_nth_with_limit(index, limit)
+          load_target if find_from_target?
+          super
+        end
+
+        def find_nth_from_last(index)
+          load_target if find_from_target?
+          super
+        end
+
       private
 
         def null_scope?
           @association.null_scope?
+        end
+
+        def find_from_target?
+          @association.find_from_target?
         end
 
         def exec_queries

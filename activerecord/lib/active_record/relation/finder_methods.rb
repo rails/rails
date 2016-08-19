@@ -97,7 +97,7 @@ module ActiveRecord
     #   Person.take(5) # returns 5 objects fetched by SELECT * FROM people LIMIT 5
     #   Person.where(["name LIKE '%?'", name]).take
     def take(limit = nil)
-      limit ? limit(limit).to_a : find_take
+      limit ? find_take_with_limit(limit) : find_take
     end
 
     # Same as #take but raises ActiveRecord::RecordNotFound if no record
@@ -526,13 +526,21 @@ module ActiveRecord
         end
       end
 
+      def find_take_with_limit(limit)
+        if loaded?
+          records.take(limit)
+        else
+          limit(limit).to_a
+        end
+      end
+
       def find_nth(index)
         @offsets[offset_index + index] ||= find_nth_with_limit(index, 1).first
       end
 
       def find_nth_with_limit(index, limit)
         if loaded?
-          records[index, limit]
+          records[index, limit] || []
         else
           relation = if order_values.empty? && primary_key
             order(arel_attribute(primary_key).asc)
