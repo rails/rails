@@ -88,12 +88,6 @@ module ActiveRecord
         assert_equal expect.to_i, result.rows.first.first
       end
 
-      def test_sql_for_insert_with_returning_disabled
-        connection = connection_without_insert_returning
-        sql, binds = connection.sql_for_insert("sql", nil, nil, nil, "binds")
-        assert_equal ["sql", "binds"], [sql, binds]
-      end
-
       def test_serial_sequence
         assert_equal "public.accounts_id_seq",
           @connection.serial_sequence("accounts", "id")
