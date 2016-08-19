@@ -802,6 +802,12 @@ module ActiveRecord
         @association.size
       end
 
+      ##
+      # :method: length
+      #
+      # :call-seq:
+      #   length()
+      #
       # Returns the size of the collection calling +size+ on the target.
       # If the collection has been already loaded, +length+ and +size+ are
       # equivalent. If not and you are going to need the records anyway this
@@ -822,9 +828,6 @@ module ActiveRecord
       #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
       #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
       #   #    ]
-      def length
-        @association.length
-      end
 
       # Returns +true+ if the collection is empty. If the collection has been
       # loaded it is equivalent

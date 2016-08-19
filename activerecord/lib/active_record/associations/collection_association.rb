@@ -270,15 +270,6 @@ module ActiveRecord
         end
       end
 
-      # Returns the size of the collection calling +size+ on the target.
-      #
-      # If the collection has been already loaded +length+ and +size+ are
-      # equivalent. If not and you are going to need the records anyway this
-      # method will take one less query. Otherwise +size+ is more efficient.
-      def length
-        load_target.size
-      end
-
       # Returns true if the collection is empty.
       #
       # If the collection has been loaded
