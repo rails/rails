@@ -1,3 +1,8 @@
+*   Add `:as` option to `ActionController:TestCase#process` and related methods.
+    
+    Specifying as: :mime_type allows the `CONTENT_TYPE` header to be specified
+    in controller tests without manually doing this through `@request.headers...`   
+
 *   Show cache hits and misses when rendering partials.
 
     Partials using the `cache` helper will show whether a render hit or missed

@@ -449,6 +449,8 @@ module ActionController
       # - +session+: A hash of parameters to store in the session. This may be +nil+.
       # - +flash+: A hash of parameters to store in the flash. This may be +nil+.
       # - +format+: Request format. Defaults to +nil+. Can be string or symbol.
+      # - +as+: Content type. Defaults to +nil+. Must be a symbol that corresponds
+      #   to a mime type
       #
       # Example calling +create+ action and sending two params:
       #
@@ -469,7 +471,7 @@ module ActionController
         check_required_ivars
 
         if kwarg_request?(args)
-          parameters, session, body, flash, http_method, format, xhr = args[0].values_at(:params, :session, :body, :flash, :method, :format, :xhr)
+          parameters, session, body, flash, http_method, format, xhr, as = args[0].values_at(:params, :session, :body, :flash, :method, :format, :xhr, :as)
         else
           http_method, parameters, session, flash = args
           format = nil
@@ -513,6 +515,11 @@ module ActionController
         @controller.recycle!
 
         @request.set_header "REQUEST_METHOD", http_method
+
+        if as
+          @request.content_type = Mime[as].to_s
+          format ||= as
+        end
 
         parameters = parameters.symbolize_keys
 
