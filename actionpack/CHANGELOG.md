@@ -1,3 +1,10 @@
+*   Add `:as` option to `ActionController:TestCase#process` and related methods.
+
+    Specifying `as: mime_type` allows the `CONTENT_TYPE` header to be specified
+    in controller tests without manually doing this through `@request.headers['CONTENT_TYPE']`.
+
+    *Everest Stefan Munro-Zeisberger*
+
 *   Don't override the `Accept` header in integration tests when called with `xhr: true`.
 
     Fixes #25859.
