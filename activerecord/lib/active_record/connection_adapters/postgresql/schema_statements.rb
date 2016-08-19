@@ -360,7 +360,7 @@ module ActiveRecord
 
         # Resets the sequence of a table's primary key to the maximum value.
         def reset_pk_sequence!(table, pk = nil, sequence = nil) #:nodoc:
-          unless pk and sequence
+          unless pk && sequence
             default_pk, default_sequence = pk_and_sequence_for(table)
 
             pk ||= default_pk
@@ -403,7 +403,7 @@ module ActiveRecord
               AND dep.refobjid      = '#{quote_table_name(table)}'::regclass
           end_sql
 
-          if result.nil? or result.empty?
+          if result.nil? || result.empty?
             result = query(<<-end_sql, "SCHEMA")[0]
               SELECT attr.attname, nsp.nspname,
                 CASE

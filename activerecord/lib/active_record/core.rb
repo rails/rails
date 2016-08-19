@@ -229,7 +229,7 @@ module ActiveRecord
       end
 
       def find_by!(*args) # :nodoc:
-        find_by(*args) or raise RecordNotFound.new("Couldn't find #{name}", name)
+        find_by(*args) || raise(RecordNotFound.new("Couldn't find #{name}", name))
       end
 
       def initialize_generated_modules # :nodoc:

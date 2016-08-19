@@ -1016,7 +1016,7 @@ module ActionView
                         options[type.to_sym]
                       else
                         type
-                      end
+          end
 
           [html_options_class, css_class].compact.join(" ")
         end

@@ -310,9 +310,9 @@ module Rails
 
         # Returns default for the option name given doing a lookup in config.
         def self.default_for_option(config, name, options, default)
-          if generator_name and c = config[generator_name.to_sym] and c.key?(name)
+          if generator_name && (c = config[generator_name.to_sym]) && c.key?(name)
             c[name]
-          elsif base_name and c = config[base_name.to_sym] and c.key?(name)
+          elsif base_name && (c = config[base_name.to_sym]) && c.key?(name)
             c[name]
           elsif config[:rails].key?(name)
             config[:rails][name]

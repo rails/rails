@@ -46,7 +46,7 @@ namespace :test do
         dir = File.dirname(__FILE__)
         Dir.glob("#{dir}/test/cases/**/*_test.rb").all? do |file|
           sh(Gem.ruby, "-w", "-I#{dir}/lib", "-I#{dir}/test", file)
-        end or raise "Failures"
+        end || raise("Failures")
       end
     end
 

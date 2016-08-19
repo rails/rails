@@ -111,7 +111,7 @@ module ActionController
           `fallback_location` represents the location to use if the request has
           no HTTP referer information.
         MESSAGE
-        request.headers["Referer"] or raise RedirectBackError
+        request.headers["Referer"] || raise(RedirectBackError)
       when Proc
         _compute_redirect_to_location request, options.call
       else

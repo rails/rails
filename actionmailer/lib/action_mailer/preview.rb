@@ -37,9 +37,9 @@ module ActionMailer
         preview_interceptor = case interceptor
                               when String, Symbol
                                 interceptor.to_s.camelize.constantize
-          else
+                              else
                                 interceptor
-          end
+                              end
 
         unless preview_interceptors.include?(preview_interceptor)
           preview_interceptors << preview_interceptor
