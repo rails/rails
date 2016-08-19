@@ -485,7 +485,7 @@ which contains these lines:
 
 Rails creates both `app/assets/javascripts/application.js` and
 `app/assets/stylesheets/application.css` regardless of whether the
---skip-sprockets option is used when creating a new rails application. This is
+--skip-sprockets option is used when creating a new Rails application. This is
 so you can easily add asset pipelining later if you like.
 
 The directives that work in JavaScript files also work in stylesheets
@@ -1024,7 +1024,7 @@ to tell our CDN (and browser) that the asset is "public", that means any cache
 can store the request. Also we commonly want to set `max-age` which is how long
 the cache will store the object before invalidating the cache. The `max-age`
 value is set to seconds with a maximum possible value of `31536000` which is one
-year. You can do this in your rails application by setting
+year. You can do this in your Rails application by setting
 
 ```
 config.public_file_server.headers = {
