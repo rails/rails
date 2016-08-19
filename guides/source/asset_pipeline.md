@@ -724,7 +724,7 @@ If you have other manifests or individual stylesheets and JavaScript files to
 include, you can add them to the `precompile` array in `config/initializers/assets.rb`:
 
 ```ruby
-Rails.application.config.assets.precompile += ['admin.js', 'admin.css', 'swfObject.js']
+Rails.application.config.assets.precompile += %w( admin.js admin.css )
 ```
 
 NOTE. Always specify an expected compiled filename that ends with .js or .css,
@@ -1109,9 +1109,9 @@ Windows you have a JavaScript runtime installed in your operating system.
 
 ### Serving GZipped version of assets
 
-By default, gzipped version of compiled assets will be generated, along 
-with the non-gzipped version of assets. Gzipped assets help reduce the transmission of 
-data over the wire. You can configure this by setting the `gzip` flag.
+By default, gzipped version of compiled assets will be generated, along with
+the non-gzipped version of assets. Gzipped assets help reduce the transmission
+of data over the wire. You can configure this by setting the `gzip` flag.
 
 ```ruby
 config.assets.gzip = false # disable gzipped assets generation
@@ -1291,7 +1291,7 @@ config.assets.digest = true
 
 # Precompile additional assets (application.js, application.css, and all
 # non-JS/CSS are already added)
-# config.assets.precompile += %w( search.js )
+# config.assets.precompile += %w( admin.js admin.css )
 ```
 
 Rails 4 and above no longer set default config values for Sprockets in `test.rb`, so
