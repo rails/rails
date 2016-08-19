@@ -144,6 +144,12 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal '172800', 2.days.to_json
   end
 
+  def test_flatten_duration
+    assert_nothing_raised do
+      [1.minute].flatten(1)
+    end
+  end
+
   protected
     def with_env_tz(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz
