@@ -4,10 +4,6 @@ module ActiveRecord
       class Column < ConnectionAdapters::Column # :nodoc:
         delegate :extra, to: :sql_type_metadata, allow_nil: true
 
-        def blob_or_text_column?
-          /\A(?:tiny|medium|long)?blob\b/ === sql_type || type == :text
-        end
-
         def unsigned?
           /\bunsigned\z/ === sql_type
         end
