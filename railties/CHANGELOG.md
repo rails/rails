@@ -1,3 +1,11 @@
+*   Run `before_configuration` callbacks as soon as application constant
+    inherits from `Rails::Application`.
+
+    Fixes #19880.
+
+    *Yuji Yaginuma*
+
+
 ## Rails 4.2.7 (July 12, 2016) ##
 
 *   Do not run `bundle install` when generating a new plugin.
