@@ -1,3 +1,10 @@
+*   Avoid loading records from database when they are already loaded using
+    the `pluck` method on a collection.
+
+    Fixes #25921.
+
+    *Ryuta Kamizono*
+
 *   Sqlite3 migrations to add a column to an existing table can now be
     successfully rolled back when the column was given and invalid column
     type.
