@@ -450,7 +450,7 @@ module ActionController
       # - +flash+: A hash of parameters to store in the flash. This may be +nil+.
       # - +format+: Request format. Defaults to +nil+. Can be string or symbol.
       # - +as+: Content type. Defaults to +nil+. Must be a symbol that corresponds
-      #   to a mime type
+      #   to a mime type.
       #
       # Example calling +create+ action and sending two params:
       #
