@@ -87,6 +87,7 @@ module Rails
         super
         Rails.app_class = base
         add_lib_to_load_path!(find_root(base.called_from))
+        ActiveSupport.run_load_hooks(:before_configuration, base)
       end
 
       def instance
@@ -146,7 +147,6 @@ module Rails
     def run_load_hooks! # :nodoc:
       return self if @ran_load_hooks
       @ran_load_hooks = true
-      ActiveSupport.run_load_hooks(:before_configuration, self)
 
       @initial_variable_values.each do |variable_name, value|
         if INITIAL_VARIABLES.include?(variable_name)
