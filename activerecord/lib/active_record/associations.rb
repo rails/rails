@@ -1296,6 +1296,12 @@ module ActiveRecord
         #   If using with the <tt>:through</tt> option, the association on the join model must be
         #   a #belongs_to, and the records which get deleted are the join records, rather than
         #   the associated records.
+        #
+        #   If using <tt>dependent: :destroy</tt> on a scoped association, only the scoped objects are destroyed.
+        #   For example, if a Post model defines
+        #   <tt>has_many :comments, -> { where published: true }, dependent: :destroy</tt> and <tt>destroy</tt> is
+        #   called on a post, only published comments are destroyed. This means that any unpublished comments in the
+        #   database would still contain a foreign key pointing to the now deleted post.
         # [:counter_cache]
         #   This option can be used to configure a custom named <tt>:counter_cache.</tt> You only need this option,
         #   when you customized the name of your <tt>:counter_cache</tt> on the #belongs_to association.
