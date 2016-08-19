@@ -551,6 +551,23 @@ class MigrationTest < ActiveRecord::TestCase
     end
   end
 
+  if current_adapter?(:SQLite3Adapter)
+    def test_allows_sqlite3_rollback_on_invalid_column_type
+      Person.connection.create_table :something, force: true do |t|
+        t.column :number, :integer
+        t.column :name, :string
+        t.column :foo, :bar
+      end
+      assert Person.connection.column_exists?(:something, :foo)
+      assert_nothing_raised { Person.connection.remove_column :something, :foo, :bar }
+      assert !Person.connection.column_exists?(:something, :foo)
+      assert Person.connection.column_exists?(:something, :name)
+      assert Person.connection.column_exists?(:something, :number)
+    ensure
+      Person.connection.drop_table :something, if_exists: true
+    end
+  end
+
   if current_adapter? :OracleAdapter
     def test_create_table_with_custom_sequence_name
       # table name is 29 chars, the standard sequence name will
