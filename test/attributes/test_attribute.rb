@@ -834,6 +834,18 @@ module Arel
           node.must_equal Nodes::NotIn.new(attribute, mgr.ast)
         end
 
+        it 'can be constructed with a Union' do
+          relation = Table.new(:users)
+          mgr1 = relation.project(relation[:id])
+          mgr2 = relation.project(relation[:id])
+
+          union = mgr1.union(mgr2)
+          node = relation[:id].in(union)
+          node.to_sql.must_be_like %{
+            "users"."id" IN (( SELECT "users"."id" FROM "users" UNION SELECT "users"."id" FROM "users" ))
+          }
+        end
+
         it 'can be constructed with a list' do
           attribute = Attribute.new nil, nil
           node = attribute.not_in([1, 2, 3])
