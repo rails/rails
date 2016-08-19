@@ -29,8 +29,9 @@ module ActiveRecord
           else        condition
           end
         end
-        alias_method :sanitize_sql, :sanitize_sql_for_conditions
-        alias_method :sanitize_conditions, :sanitize_sql
+        alias :sanitize_sql :sanitize_sql_for_conditions
+        alias :sanitize_conditions :sanitize_sql
+        deprecate sanitize_conditions: :sanitize_sql
 
       # Accepts an array, hash, or string of SQL conditions and sanitizes
       # them into a valid SQL fragment for a SET clause.
