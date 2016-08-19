@@ -1,3 +1,11 @@
+*   Run `before_configuration` callbacks as soon as application constant
+    inherits from `Rails::Application`.
+
+    Fixes #19880.
+
+    *Yuji Yaginuma*
+
+
 *   Do not run `bundle install` when generating a new plugin.
 
     Since bundler 1.12.0, the gemspec is validated so the `bundle install`
