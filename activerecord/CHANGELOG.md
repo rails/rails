@@ -1,3 +1,35 @@
+*   Remove text default treated as an empty string in non-strict mode for
+    consistency with other types.
+
+    Strict mode controls how MySQL handles invalid or missing values in
+    data-change statements such as INSERT or UPDATE. If strict mode is not
+    in effect, MySQL inserts adjusted values for invalid or missing values
+    and produces warnings.
+
+        def test_mysql_not_null_defaults_non_strict
+          using_strict(false) do
+            with_mysql_not_null_table do |klass|
+              record = klass.new
+              assert_nil record.non_null_integer
+              assert_nil record.non_null_string
+              assert_nil record.non_null_text
+              assert_nil record.non_null_blob
+
+              record.save!
+              record.reload
+
+              assert_equal 0,  record.non_null_integer
+              assert_equal "", record.non_null_string
+              assert_equal "", record.non_null_text
+              assert_equal "", record.non_null_blob
+            end
+          end
+        end
+
+    https://dev.mysql.com/doc/refman/5.7/en/sql-mode.html#sql-mode-strict
+
+    *Ryuta Kamizono*
+
 *   Sqlite3 migrations to add a column to an existing table can now be
     successfully rolled back when the column was given and invalid column
     type.
