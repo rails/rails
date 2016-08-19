@@ -1,3 +1,9 @@
+*   Option to remove standardized column types/arguments spaces in schema dump
+    with `ActiveRecord::SchemaDumper.standardized_argument_widths` and
+    `ActiveRecord::SchemaDumper.standardized_type_widths` methods.
+
+    *Tim Petricola*
+
 *   Avoid loading records from database when they are already loaded using
     the `pluck` method on a collection.
 
