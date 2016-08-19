@@ -53,6 +53,12 @@ module ActiveRecord
         @association.loaded?
       end
 
+      ##
+      # :method: select
+      #
+      # :call-seq:
+      #   select(*fields, &block)
+      #
       # Works in two ways.
       #
       # *First:* Specify a subset of fields to be selected from the result set.
@@ -106,9 +112,6 @@ module ActiveRecord
       #   #      #<Pet id: 2, name: "Spook">,
       #   #      #<Pet id: 3, name: "Choo-Choo">
       #   #    ]
-      def select(*fields, &block)
-        @association.select(*fields, &block)
-      end
 
       # Finds an object in the collection responding to the +id+. Uses the same
       # rules as ActiveRecord::Base.find. Returns ActiveRecord::RecordNotFound

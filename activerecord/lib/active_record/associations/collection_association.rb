@@ -82,14 +82,6 @@ module ActiveRecord
         @target = []
       end
 
-      def select(*fields)
-        if block_given?
-          load_target.select.each { |e| yield e }
-        else
-          scope.select(*fields)
-        end
-      end
-
       def find(*args)
         if block_given?
           load_target.find(*args) { |*block_args| yield(*block_args) }
