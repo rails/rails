@@ -1424,6 +1424,24 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert david.readonly_comments.first.readonly?
   end
 
+  test "eager-loading non-readonly association" do
+    # has_one
+    firm = Firm.where(id: "1").eager_load(:account).first!
+    assert_not firm.account.readonly?
+
+    # has_and_belongs_to_many
+    project = Project.where(id: "2").eager_load(:developers).first!
+    assert_not project.developers.first.readonly?
+
+    # has_many :through
+    david = Author.where(id: "1").eager_load(:comments).first!
+    assert_not david.comments.first.readonly?
+
+    # belongs_to
+    post = Post.where(id: "1").eager_load(:author).first!
+    assert_not post.author.readonly?
+  end
+
   test "eager-loading readonly association" do
     # has-one
     firm = Firm.where(id: "1").eager_load(:readonly_account).first!
@@ -1438,8 +1456,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert david.readonly_comments.first.readonly?
 
     # belongs_to
-    post = Post.where(id: "1").eager_load(:author).first!
-    assert post.author.readonly?
+    post = Post.where(id: "1").eager_load(:readonly_author).first!
+    assert post.readonly_author.readonly?
   end
 
   test "preloading a polymorphic association with references to the associated table" do
