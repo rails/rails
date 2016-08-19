@@ -65,10 +65,11 @@ class PostgresqlBitStringTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_roundtrip
-    PostgresqlBitString.create! a_bit: "00001010", a_bit_varying: "0101"
-    record = PostgresqlBitString.first
+    record = PostgresqlBitString.create!(a_bit: "00001010", a_bit_varying: "0101")
     assert_equal "00001010", record.a_bit
     assert_equal "0101", record.a_bit_varying
+    assert_nil record.another_bit
+    assert_nil record.another_bit_varying
 
     record.a_bit = "11111111"
     record.a_bit_varying = "0xF"
