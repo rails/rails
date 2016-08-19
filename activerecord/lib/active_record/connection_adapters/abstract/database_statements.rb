@@ -379,7 +379,7 @@ module ActiveRecord
         end
 
         def sql_for_insert(sql, pk, id_value, sequence_name, binds)
-          [sql, binds, pk, sequence_name]
+          [sql, binds]
         end
 
         def last_inserted_id(result)
