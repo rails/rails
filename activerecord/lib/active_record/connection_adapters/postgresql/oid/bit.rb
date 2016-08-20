@@ -7,7 +7,7 @@ module ActiveRecord
             :bit
           end
 
-          def cast(value)
+          def cast_value(value)
             if ::String === value
               case value
               when /^0x/i
@@ -16,7 +16,7 @@ module ActiveRecord
                 value                    # Bit-string notation
               end
             else
-              value
+              value.to_s
             end
           end
 
