@@ -84,7 +84,7 @@ The methods are:
 * `distinct`
 * `where`
 
-All of the above methods return an instance of `ActiveRecord::Relation`.
+Finder methods that return a collection, such as `where` and `group`, return an instance of `ActiveRecord::Relation`.  Methods that find a single entity, such as `find` and `first`, return a single instance of the model.
 
 The primary operation of `Model.find(options)` can be summarized as:
 
@@ -1251,9 +1251,9 @@ articles, all the articles would still be loaded. By using `joins` (an INNER
 JOIN), the join conditions **must** match, otherwise no records will be
 returned.
 
-NOTE: If an association is eager loaded as part of a join, any fields from a custom select clause will not present be on the loaded models. 
+NOTE: If an association is eager loaded as part of a join, any fields from a custom select clause will not present be on the loaded models.
 This is because it is ambiguous whether they should appear on the parent record, or the child.
- 
+
 Scopes
 ------
 
