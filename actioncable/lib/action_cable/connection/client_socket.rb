@@ -41,9 +41,9 @@ module ActionCable
 
         @ready_state = CONNECTING
 
-        if env['upgrade.websocket?']
+        if env["upgrade.websocket?"]
           @driver_started = true
-          @nws = env['upgrade.websocket'].call(self, protocols: protocols)
+          @nws = env["upgrade.websocket"].call(self, protocols: protocols)
           return
         else
           @nws = nil
