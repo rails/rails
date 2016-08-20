@@ -422,7 +422,7 @@ module ActionDispatch
 
       def before_setup # :nodoc:
         @app = nil
-        @integration_session = nil
+        @integration_session ||= nil
         super
       end
 
