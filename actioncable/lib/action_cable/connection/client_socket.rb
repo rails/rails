@@ -41,6 +41,14 @@ module ActionCable
 
         @ready_state = CONNECTING
 
+        if env['upgrade.websocket?']
+          @driver_started = true
+          @nws = env['upgrade.websocket'].call(self, protocols: protocols)
+          return
+        else
+          @nws = nil
+        end
+
         # The driver calls +env+, +url+, and +write+
         @driver = ::WebSocket::Driver.rack(self, protocols: protocols)
 
@@ -65,10 +73,16 @@ module ActionCable
       end
 
       def rack_response
-        start_driver
-        [ -1, {}, [] ]
+        if @nws
+          [ 101, {}, [] ]
+        else
+          start_driver
+          [ -1, {}, [] ]
+        end
       end
 
+      # Called from the websocket driver to write websocket encoded data
+      # to the remote side.
       def write(data)
         @stream.write(data)
       rescue => e
@@ -77,11 +91,19 @@ module ActionCable
 
       def transmit(message)
         return false if @ready_state > OPEN
-        case message
-        when Numeric then @driver.text(message.to_s)
-        when String  then @driver.text(message)
-        when Array   then @driver.binary(message)
-          else false
+        if @nws
+          case message
+          when Numeric then @nws.write(message.to_s)
+          when String  then @nws.write(message)
+            else false
+          end
+        else
+          case message
+          when Numeric then @driver.text(message.to_s)
+          when String  then @driver.text(message)
+          when Array   then @driver.binary(message)
+            else false
+          end
         end
       end
 
@@ -96,7 +118,12 @@ module ActionCable
         end
 
         @ready_state = CLOSING unless @ready_state == CLOSED
-        @driver.close(reason, code)
+
+        if @nws
+          @nws.close
+        else
+          @driver.close(reason, code)
+        end
       end
 
       def parse(data)
@@ -112,7 +139,24 @@ module ActionCable
       end
 
       def protocol
-        @driver.protocol
+        if @nws
+          "websocket"
+        else
+          @driver.protocol
+        end
+      end
+
+      # callbacks used by native websocket upgrade support
+      def on_open(conn)
+        open
+      end
+
+      def on_message(conn, msg)
+        receive_message msg
+      end
+
+      def on_close(conn)
+        begin_close(1000, "application requested")
       end
 
       private
