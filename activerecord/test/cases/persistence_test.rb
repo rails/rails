@@ -976,6 +976,14 @@ class PersistenceTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection.disable_query_cache!
   end
 
+  def test_not_null_constraints_are_translated_to_validation_error
+    author = Author.new(name: nil)
+    assert_raises(ActiveRecord::RecordInvalid) do
+      author.save!
+    end
+    assert_equal("can't be blank", author.errors[:name])
+  end
+
   class SaveTest < ActiveRecord::TestCase
     self.use_transactional_tests = false
 

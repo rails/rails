@@ -543,6 +543,9 @@ module ActiveRecord
       _raise_readonly_record_error if readonly?
       result = new_record? ? _create_record : _update_record(*args)
       result != false
+    rescue NotNull => e
+      errors.add(e.column, :blank)
+      raise RecordInvalid.new(self)
     end
 
     # Updates the associated record with values matching those of the instance attributes.
