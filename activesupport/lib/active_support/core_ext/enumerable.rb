@@ -96,21 +96,20 @@ module Enumerable
   #     => 1
   #
   #   [1, 2].single
-  #     => Enumerable::SingleItemExpectedError: The sequence contains more than one element (expected one and only one)
+  #     => Enumerable::SingleItemExpectedError: The sequence contains more than one item (expected one and only one)
   #
   #   [].single
   #     => Enumerable::SingleItemExpectedError: The sequence is empty (expected one and only one item)
   def single
-    enumerator = self.map
-    val = enumerator.next
-    begin
-      enumerator.next
-      raise SingleItemExpectedError, 'The sequence contains more than one element (expected one and only one)'
-    rescue StopIteration
-      val
+    found = false
+    result = nil
+    each do |item|
+      raise SingleItemExpectedError, "The sequence contains more than one item (expected one and only one)" if found
+      found = true
+      result = item
     end
-  rescue StopIteration
-    raise SingleItemExpectedError, 'The sequence is empty (expected one and only one item)'
+    raise SingleItemExpectedError, "The sequence is empty (expected one and only one item)" unless found
+    result
   end
 
   class SingleItemExpectedError < StandardError
