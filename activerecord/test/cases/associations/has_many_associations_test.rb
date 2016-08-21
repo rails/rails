@@ -242,11 +242,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_do_not_call_callbacks_for_delete_all
-<<<<<<< 13c8ec5a554b33083dee3af652b89b4727b90b6a
     car = Car.create(name: "honda")
-=======
-    car = Car.create(name: 'honda')
->>>>>>> We should assert for current car's funky bulb count, not overall bulb count
     car.funky_bulbs.create!
     assert_equal 1, car.funky_bulbs.count
     assert_nothing_raised { car.reload.funky_bulbs.delete_all }
