@@ -193,13 +193,6 @@ module ActionView
         }.merge!(options.symbolize_keys))
       end
 
-      # Returns a link tag for a favicon asset in the public
-      # folder. This uses +favicon_link_tag+ and skips any asset
-      # lookups by assuming any assets are in the `public` folder.
-      def public_favicon_link_tag(source="favicon.ico", options={})
-        favicon_link_tag(source, { public_folder: true }.merge!(options))
-      end
-
       # Returns an HTML image tag for the +source+. The +source+ can be a full
       # path or a file.
       #
@@ -242,13 +235,6 @@ module ActionView
 
         options[:width], options[:height] = extract_dimensions(options.delete(:size)) if options[:size]
         tag("img", options)
-      end
-
-      # Returns an HTML image tag for the source asset in the public
-      # folder. This uses +image_tag+ and skips any asset
-      # lookups by assuming any assets are in the `public` folder.
-      def public_image_tag(source, options={})
-        image_tag(source,  { public_folder: true }.merge!(options))
       end
 
       # Returns a string suitable for an HTML image tag alt attribute.
@@ -314,18 +300,10 @@ module ActionView
         options = sources.extract_options!.symbolize_keys
         public_poster_folder = options.delete(:public_poster_folder)
         sources << options
-        multiple_sources_tag("video", sources) do |options|
+        multiple_sources_tag_builder("video", sources) do |options|
           options[:poster] = path_to_image(options[:poster], public_folder: public_poster_folder) if options[:poster]
           options[:width], options[:height] = extract_dimensions(options.delete(:size)) if options[:size]
         end
-      end
-
-      # Returns an HTML video tag for the source asset in the public
-      # folder. This uses +video_tag+ and skips any asset
-      # lookups by assuming any assets are in the `public` folder.
-      def public_video_tag(*sources)
-        options = sources.extract_options!
-        video_tag(*sources, { public_folder: true , public_poster_folder: true }.merge!(options))
       end
 
       # Returns an HTML audio tag for the +source+.
@@ -341,18 +319,11 @@ module ActionView
       #   audio_tag("sound.wav", "sound.mid")
       #   # => <audio><source src="/audios/sound.wav" /><source src="/audios/sound.mid" /></audio>
       def audio_tag(*sources)
-        multiple_sources_tag("audio", sources)
-      end
-
-      # Returns an HTML audio tag for the source asset in the public
-      # folder. This uses +audio_tag+ and skips any asset
-      def public_audio_tag(*sources)
-        options = sources.extract_options!
-        audio_tag(*sources, { public_folder: true }.merge!(options))
+        multiple_sources_tag_builder("audio", sources)
       end
 
       private
-        def multiple_sources_tag(type, sources)
+        def multiple_sources_tag_builder(type, sources)
           options       = sources.extract_options!.symbolize_keys
           public_folder = options.delete(:public_folder)
           sources.flatten!
