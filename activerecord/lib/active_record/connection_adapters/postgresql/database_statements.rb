@@ -152,6 +152,9 @@ module ActiveRecord
             end
             last_insert_id_result(sequence_name)
           end
+        rescue PG::NotNullViolation => e
+          column = e.message.match(/column "(\w+)" violates/)[1]
+          raise ActiveRecord::NotNull.new(column)
         end
 
         # Begins a transaction.
