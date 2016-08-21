@@ -965,7 +965,7 @@ When `params[:token]` is one of: `[nil]`, `[nil, nil, ...]` or
 `['foo', nil]` it will bypass the test for `nil`, but `IS NULL` or
 `IN ('foo', NULL)` where clauses still will be added to the SQL query.
 
-To keep rails secure by default, `deep_munge` replaces some of the values with
+To keep Rails secure by default, `deep_munge` replaces some of the values with
 `nil`. Below table shows what the parameters look like based on `JSON` sent in
 request:
 
