@@ -247,7 +247,7 @@ module ActionCable
         end
 
         def processable_action?(action)
-          self.class.action_methods.include?(action.to_s)
+          self.class.action_methods.include?(action.to_s) unless subscription_rejected?
         end
 
         def dispatch_action(action, data)
