@@ -192,11 +192,7 @@ module ActionDispatch
 
       # Returns the complete URL used for this request.
       #
-      #   class Request < Rack::Request
-      #     include ActionDispatch::Http::URL
-      #   end
-      #
-      #   req = Request.new 'HTTP_HOST' => 'example.com'
+      #   req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com'
       #   req.url # => "http://example.com"
       def url
         protocol + host_with_port + fullpath
@@ -204,14 +200,10 @@ module ActionDispatch
 
       # Returns 'https://' if this is an SSL request and 'http://' otherwise.
       #
-      #   class Request < Rack::Request
-      #     include ActionDispatch::Http::URL
-      #   end
-      #
-      #   req = Request.new 'HTTP_HOST' => 'example.com'
+      #   req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com'
       #   req.protocol # => "http://"
       #
-      #   req = Request.new 'HTTP_HOST' => 'example.com', 'HTTPS' => 'on'
+      #   req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com', 'HTTPS' => 'on'
       #   req.protocol # => "https://"
       def protocol
         @protocol ||= ssl? ? "https://" : "http://"
@@ -219,17 +211,13 @@ module ActionDispatch
 
       # Returns the \host and port for this request, such as "example.com:8080".
       #
-      #   class Request < Rack::Request
-      #     include ActionDispatch::Http::URL
-      #   end
-      #
-      #   req = Request.new 'HTTP_HOST' => 'example.com'
+      #   req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com'
       #   req.raw_host_with_port # => "example.com"
       #
-      #   req = Request.new 'HTTP_HOST' => 'example.com:80'
+      #   req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com:80'
       #   req.raw_host_with_port # => "example.com:80"
       #
-      #   req = Request.new 'HTTP_HOST' => 'example.com:8080'
+      #   req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com:8080'
       #   req.raw_host_with_port # => "example.com:8080"
       def raw_host_with_port
         if forwarded = x_forwarded_host.presence
@@ -241,11 +229,7 @@ module ActionDispatch
 
       # Returns the host for this request, such as "example.com".
       #
-      #   class Request < Rack::Request
-      #     include ActionDispatch::Http::URL
-      #   end
-      #
-      #   req = Request.new 'HTTP_HOST' => 'example.com:8080'
+      #   req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com:8080'
       #   req.host # => "example.com"
       def host
         raw_host_with_port.sub(/:\d+$/, "".freeze)
@@ -255,17 +239,13 @@ module ActionDispatch
       # "example.com:8080". Port is only included if it is not a default port
       # (80 or 443)
       #
-      #   class Request < Rack::Request
-      #     include ActionDispatch::Http::URL
-      #   end
-      #
-      #   req = Request.new 'HTTP_HOST' => 'example.com'
+      #   req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com'
       #   req.host_with_port # => "example.com"
       #
-      #   req = Request.new 'HTTP_HOST' => 'example.com:80'
+      #   req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com:80'
       #   req.host_with_port # => "example.com"
       #
-      #   req = Request.new 'HTTP_HOST' => 'example.com:8080'
+      #   req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com:8080'
       #   req.host_with_port # => "example.com:8080"
       def host_with_port
         "#{host}#{port_string}"
@@ -273,14 +253,10 @@ module ActionDispatch
 
       # Returns the port number of this request as an integer.
       #
-      #   class Request < Rack::Request
-      #     include ActionDispatch::Http::URL
-      #   end
-      #
-      #   req = Request.new 'HTTP_HOST' => 'example.com'
+      #   req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com'
       #   req.port # => 80
       #
-      #   req = Request.new 'HTTP_HOST' => 'example.com:8080'
+      #   req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com:8080'
       #   req.port # => 8080
       def port
         @port ||= begin
@@ -294,11 +270,7 @@ module ActionDispatch
 
       # Returns the standard \port number for this request's protocol.
       #
-      #   class Request < Rack::Request
-      #     include ActionDispatch::Http::URL
-      #   end
-      #
-      #   req = Request.new 'HTTP_HOST' => 'example.com:8080'
+      #   req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com:8080'
       #   req.standard_port # => 80
       def standard_port
         case protocol
@@ -309,14 +281,10 @@ module ActionDispatch
 
       # Returns whether this request is using the standard port
       #
-      #   class Request < Rack::Request
-      #     include ActionDispatch::Http::URL
-      #   end
-      #
-      #   req = Request.new 'HTTP_HOST' => 'example.com:80'
+      #   req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com:80'
       #   req.standard_port? # => true
       #
-      #   req = Request.new 'HTTP_HOST' => 'example.com:8080'
+      #   req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com:8080'
       #   req.standard_port? # => false
       def standard_port?
         port == standard_port
@@ -325,14 +293,10 @@ module ActionDispatch
       # Returns a number \port suffix like 8080 if the \port number of this request
       # is not the default HTTP \port 80 or HTTPS \port 443.
       #
-      #   class Request < Rack::Request
-      #     include ActionDispatch::Http::URL
-      #   end
-      #
-      #   req = Request.new 'HTTP_HOST' => 'example.com:80'
+      #   req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com:80'
       #   req.optional_port # => nil
       #
-      #   req = Request.new 'HTTP_HOST' => 'example.com:8080'
+      #   req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com:8080'
       #   req.optional_port # => 8080
       def optional_port
         standard_port? ? nil : port
@@ -341,14 +305,10 @@ module ActionDispatch
       # Returns a string \port suffix, including colon, like ":8080" if the \port
       # number of this request is not the default HTTP \port 80 or HTTPS \port 443.
       #
-      #   class Request < Rack::Request
-      #     include ActionDispatch::Http::URL
-      #   end
-      #
-      #   req = Request.new 'HTTP_HOST' => 'example.com:80'
+      #   req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com:80'
       #   req.port_string # => ""
       #
-      #   req = Request.new 'HTTP_HOST' => 'example.com:8080'
+      #   req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com:8080'
       #   req.port_string # => ":8080"
       def port_string
         standard_port? ? "" : ":#{port}"
@@ -356,14 +316,10 @@ module ActionDispatch
 
       # Returns the requested port, such as 8080, based on SERVER_PORT
       #
-      #   class Request < Rack::Request
-      #     include ActionDispatch::Http::URL
-      #   end
-      #
-      #   req = Request.new 'SERVER_PORT' => '80'
+      #   req = ActionDispatch::Request.new 'SERVER_PORT' => '80'
       #   req.server_port # => 80
       #
-      #   req = Request.new 'SERVER_PORT' => '8080'
+      #   req = ActionDispatch::Request.new 'SERVER_PORT' => '8080'
       #   req.server_port # => 8080
       def server_port
         get_header("SERVER_PORT").to_i
