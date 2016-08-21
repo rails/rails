@@ -420,9 +420,13 @@ module ActionDispatch
 
       attr_reader :app
 
+      def initialize(*args, &blk)
+        super(*args, &blk)
+        @integration_session = nil
+      end
+
       def before_setup # :nodoc:
         @app = nil
-        @integration_session ||= nil
         super
       end
 
