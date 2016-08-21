@@ -7,6 +7,9 @@ class ActionCable::Channel::RejectionTest < ActiveSupport::TestCase
     def subscribed
       reject if params[:id] > 0
     end
+
+    def secret_action
+    end
   end
 
   setup do
@@ -16,10 +19,21 @@ class ActionCable::Channel::RejectionTest < ActiveSupport::TestCase
 
   test "subscription rejection" do
     @connection.expects(:subscriptions).returns mock().tap { |m| m.expects(:remove_subscription).with instance_of(SecretChannel) }
-    @channel = SecretChannel.new @connection, "{id: 1}", { id: 1 }
+    @channel = SecretChannel.new @connection, "{id: 1}", id: 1
 
     expected = { "identifier" => "{id: 1}", "type" => "reject_subscription" }
     assert_equal expected, @connection.last_transmission
   end
 
+  test "does not execute action if subscription is rejected" do
+    @connection.expects(:subscriptions).returns mock().tap { |m| m.expects(:remove_subscription).with instance_of(SecretChannel) }
+    @channel = SecretChannel.new @connection, "{id: 1}", id: 1
+
+    expected = { "identifier" => "{id: 1}", "type" => "reject_subscription" }
+    assert_equal expected, @connection.last_transmission
+    assert_equal 1, @connection.transmissions.size
+
+    @channel.perform_action("action" => :secret_action)
+    assert_equal 1, @connection.transmissions.size
+  end
 end
