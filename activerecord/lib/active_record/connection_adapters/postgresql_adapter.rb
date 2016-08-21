@@ -70,7 +70,7 @@ module ActiveRecord
       ADAPTER_NAME = "PostgreSQL".freeze
 
       NATIVE_DATABASE_TYPES = {
-        primary_key: "serial primary key",
+        primary_key: "bigserial primary key",
         string:      { name: "character varying" },
         text:        { name: "text" },
         integer:     { name: "integer" },

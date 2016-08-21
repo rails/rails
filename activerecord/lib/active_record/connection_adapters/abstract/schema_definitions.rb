@@ -71,7 +71,7 @@ module ActiveRecord
         polymorphic: false,
         index: true,
         foreign_key: false,
-        type: :integer,
+        type: :bigint,
         **options
       )
         @name = name
