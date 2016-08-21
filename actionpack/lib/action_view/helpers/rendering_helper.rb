@@ -1,3 +1,5 @@
+require "active_support/core_ext/hash/indifferent_access"
+
 module ActionView
   module Helpers
     # = Action View Rendering

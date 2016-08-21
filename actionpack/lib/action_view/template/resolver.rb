@@ -1,6 +1,7 @@
 require "pathname"
 require "active_support/core_ext/class"
 require "active_support/core_ext/io"
+require "active_support/core_ext/string/starts_ends_with"
 require "action_view/template"
 
 module ActionView
