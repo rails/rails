@@ -3,12 +3,15 @@ module ActiveRecord
     class AssociationQueryHandler # :nodoc:
       def self.value_for(table, column, value)
         associated_table = table.associated_table(column)
-        klass = if associated_table.polymorphic_association? && ::Array === value && value.first.is_a?(Base)
-          PolymorphicArrayValue
-        else
-          AssociationQueryValue
+        if associated_table.polymorphic_association?
+          case value.is_a?(Array) ? value.first : value
+          when Base, Relation
+            value = [value] unless value.is_a?(Array)
+            klass = PolymorphicArrayValue
+          end
         end
 
+        klass ||= AssociationQueryValue
         klass.new(associated_table, value)
       end
 
@@ -17,14 +20,8 @@ module ActiveRecord
       end
 
       def call(attribute, value)
-        queries = {}
-
         table = value.associated_table
-        if value.base_class
-          queries[table.association_foreign_type.to_s] = value.base_class.name
-        end
-
-        queries[table.association_foreign_key.to_s] = value.ids
+        queries = { table.association_foreign_key.to_s => value.ids }
         predicate_builder.build_from_hash(queries)
       end
 
@@ -54,25 +51,10 @@ module ActiveRecord
         end
       end
 
-      def base_class
-        if associated_table.polymorphic_association?
-          @base_class ||= polymorphic_base_class_from_value
-        end
-      end
-
       private
 
         def primary_key
-          associated_table.association_primary_key(base_class)
-        end
-
-        def polymorphic_base_class_from_value
-          case value
-          when Relation
-            value.klass.base_class
-          when Base
-            value.class.base_class
-          end
+          associated_table.association_primary_key
         end
 
         def convert_to_id(value)

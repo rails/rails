@@ -48,11 +48,21 @@ module ActiveRecord
         end
 
         def base_class(value)
-          value.class.base_class
+          case value
+          when Base
+            value.class.base_class
+          when Relation
+            value.klass.base_class
+          end
         end
 
         def convert_to_id(value)
-          value._read_attribute(primary_key(value))
+          case value
+          when Base
+            value._read_attribute(primary_key(value))
+          when Relation
+            value.select(primary_key(value))
+          end
         end
     end
   end
