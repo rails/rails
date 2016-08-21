@@ -287,24 +287,24 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
   def setup
     @connection = ActiveRecord::Base.connection
     @connection.schema_cache.clear!
-    @connection.create_table(:barcodes, primary_key: ["region", "code"], force: true) do |t|
+    @connection.create_table(:uber_barcodes, primary_key: ["region", "code"], force: true) do |t|
       t.string :region
       t.integer :code
     end
   end
 
   def teardown
-    @connection.drop_table(:barcodes, if_exists: true)
+    @connection.drop_table(:uber_barcodes, if_exists: true)
   end
 
   def test_composite_primary_key
-    assert_equal ["region", "code"], @connection.primary_keys("barcodes")
+    assert_equal ["region", "code"], @connection.primary_keys("uber_barcodes")
   end
 
   def test_primary_key_issues_warning
     model = Class.new(ActiveRecord::Base) do
       def self.table_name
-        "barcodes"
+        "uber_barcodes"
       end
     end
     warning = capture(:stderr) do
@@ -314,8 +314,8 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
   end
 
   def test_collectly_dump_composite_primary_key
-    schema = dump_table_schema "barcodes"
-    assert_match %r{create_table "barcodes", primary_key: \["region", "code"\]}, schema
+    schema = dump_table_schema "uber_barcodes"
+    assert_match %r{create_table "uber_barcodes", primary_key: \["region", "code"\]}, schema
   end
 end
 
