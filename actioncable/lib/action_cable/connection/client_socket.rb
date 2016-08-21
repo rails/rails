@@ -147,15 +147,15 @@ module ActionCable
       end
 
       # callbacks used by native websocket upgrade support
-      def on_open(conn)
+      def on_open
         open
       end
 
-      def on_message(conn, msg)
+      def on_message(msg)
         receive_message msg
       end
 
-      def on_close(conn)
+      def on_close
         begin_close(1000, "application requested")
       end
 
