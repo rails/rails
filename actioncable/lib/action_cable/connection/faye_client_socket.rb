@@ -11,6 +11,11 @@ module ActionCable
         @faye = nil
       end
 
+      # Used to pivot the socket type for native websocket support
+      def self.pick(env)
+        self
+      end
+
       def alive?
         @faye && @faye.ready_state == Faye::WebSocket::API::OPEN
       end

@@ -5,7 +5,11 @@ module ActionCable
     # Wrap the real socket to minimize the externally-presented API
     class WebSocket
       def initialize(env, event_target, event_loop, client_socket_class, protocols: ActionCable::INTERNAL[:protocols])
-        @websocket = ::WebSocket::Driver.websocket?(env) ? client_socket_class.new(env, event_target, event_loop, protocols) : nil
+        if ::WebSocket::Driver.websocket?(env)
+          @websocket =  client_socket_class.pick(env).new(env, event_target, event_loop, protocols)
+        else
+          @websocket = nil
+        end
       end
 
       def possible?
