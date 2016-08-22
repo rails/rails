@@ -1014,13 +1014,13 @@ There are multiple ways to use the `joins` method.
 You can just supply the raw SQL specifying the `JOIN` clause to `joins`:
 
 ```ruby
-Author.joins("INNER JOIN posts ON posts.author_id = author.id AND posts.published = 't'")
+Author.joins("INNER JOIN posts ON posts.author_id = authors.id AND posts.published = 't'")
 ```
 
 This will result in the following SQL:
 
 ```sql
-SELECT clients.* FROM clients INNER JOIN posts ON posts.author_id = author.id AND posts.published = 't'
+SELECT clients.* FROM clients INNER JOIN posts ON posts.author_id = authors.id AND posts.published = 't'
 ```
 
 #### Using Array/Hash of Named Associations
