@@ -213,6 +213,7 @@ module ActionController
       Renderers::All,
       ConditionalGet,
       EtagWithTemplateDigest,
+      EtagWithFlash,
       Caching,
       MimeResponds,
       ImplicitRender,

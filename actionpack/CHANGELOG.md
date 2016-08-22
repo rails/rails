@@ -1,3 +1,7 @@
+*   Include the content of the flash in the auto-generated etag.
+
+    *DHH*
+
 *   Show cache hits and misses when rendering partials.
 
     Partials using the `cache` helper will show whether a render hit or missed
