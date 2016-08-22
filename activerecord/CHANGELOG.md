@@ -1,3 +1,9 @@
+*   Fix query caching when type information is reset
+
+    Backports ancillary fix in 5.0.
+
+    *James Coleman*
+
 *   Allow `joins` to be unscoped.
 
     Fixes #13775.

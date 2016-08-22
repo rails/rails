@@ -243,6 +243,26 @@ class QueryCacheTest < ActiveRecord::TestCase
       assert_equal 0, Post.where(title: 'rollback').to_a.count
     end
   end
+
+  def test_query_cached_even_when_types_are_reset
+    Task.cache do
+      # Warm the cache
+      task = Task.find(1)
+
+      Task.connection.type_map.clear
+
+      # Preload the type cache again (so we don't have those queries issued during our assertions)
+      Task.connection.send(:initialize_type_map, Task.connection.type_map)
+
+      # Clear places where type information is cached
+      Task.reset_column_information
+      Task.find_by_statement_cache.clear
+
+      assert_queries(0) do
+        Task.find(1)
+      end
+    end
+  end
 end
 
 class QueryCacheExpiryTest < ActiveRecord::TestCase
