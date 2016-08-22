@@ -22,13 +22,13 @@ class FinderTest < ActiveRecord::TestCase
   fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :author_addresses, :customers, :categories, :categorizations, :cars
 
   def test_find_by_id_with_hash
-    assert_raises(ActiveRecord::StatementInvalid) do
+    assert_nothing_raised do
       Post.find_by_id(limit: 1)
     end
   end
 
   def test_find_by_title_and_id_with_hash
-    assert_raises(ActiveRecord::StatementInvalid) do
+    assert_nothing_raised do
       Post.find_by_title_and_id("foo", limit: 1)
     end
   end
@@ -872,11 +872,6 @@ class FinderTest < ActiveRecord::TestCase
     assert_nil Company.where(["name = :name", { name: "37signals!" }]).first
     assert_nil Company.where(["name = :name", { name: "37signals!' OR 1=1" }]).first
     assert_kind_of Time, Topic.where(["id = :id", { id: 1 }]).first.written_on
-  end
-
-  def test_string_sanitation
-    assert_not_equal "'something ' 1=1'", ActiveRecord::Base.sanitize("something ' 1=1")
-    assert_equal "'something; select table'", ActiveRecord::Base.sanitize("something; select table")
   end
 
   def test_count_by_sql

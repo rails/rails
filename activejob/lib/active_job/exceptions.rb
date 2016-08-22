@@ -31,12 +31,12 @@ module ActiveJob
       #    retry_on(YetAnotherCustomAppException) do |job, exception|
       #      ExceptionNotifier.caught(exception)
       #    end
-      #    retry_on ActiveRecord::StatementInvalid, wait: 5.seconds, attempts: 3
+      #    retry_on ActiveRecord::Deadlocked, wait: 5.seconds, attempts: 3
       #    retry_on Net::OpenTimeout, wait: :exponentially_longer, attempts: 10
       #
       #    def perform(*args)
       #      # Might raise CustomAppException, AnotherCustomAppException, or YetAnotherCustomAppException for something domain specific
-      #      # Might raise ActiveRecord::StatementInvalid when a local db deadlock is detected
+      #      # Might raise ActiveRecord::Deadlocked when a local db deadlock is detected
       #      # Might raise Net::OpenTimeout when the remote service is down
       #    end
       #  end

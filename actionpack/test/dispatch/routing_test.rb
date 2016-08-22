@@ -1759,6 +1759,24 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal 1, @request.params[:page]
   end
 
+  def test_keyed_default_string_params_with_match
+    draw do
+      match "/", to: "pages#show", via: :get, defaults: { id: "home" }
+    end
+
+    get "/"
+    assert_equal "home", @request.params[:id]
+  end
+
+  def test_default_string_params_with_match
+    draw do
+      match "/", to: "pages#show", via: :get, id: "home"
+    end
+
+    get "/"
+    assert_equal "home", @request.params[:id]
+  end
+
   def test_keyed_default_string_params_with_root
     draw do
       root to: "pages#show", defaults: { id: "home" }

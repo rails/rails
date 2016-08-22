@@ -70,38 +70,35 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r{create_table "CamelCase"}, output
   end
 
-  def assert_line_up(lines, pattern, required = false)
+  def assert_no_line_up(lines, pattern)
     return assert(true) if lines.empty?
     matches = lines.map { |line| line.match(pattern) }
-    assert matches.all? if required
     matches.compact!
     return assert(true) if matches.empty?
-    assert_equal 1, matches.map { |match| match.offset(0).first }.uniq.length
+    line_matches = lines.map { |line| [line, line.match(pattern)] }.select { |line, match| match }
+    assert line_matches.all? { |line, match|
+      start = match.offset(0).first
+      line[start - 2..start - 1] == ", "
+    }
   end
 
   def column_definition_lines(output = standard_dump)
     output.scan(/^( *)create_table.*?\n(.*?)^\1end/m).map { |m| m.last.split(/\n/) }
   end
 
-  def test_types_line_up
+  def test_types_no_line_up
     column_definition_lines.each do |column_set|
       next if column_set.empty?
 
-      lengths = column_set.map do |column|
-        if match = column.match(/\bt\.\w+\s+(?="\w+?")/)
-          match[0].length
-        end
-      end.compact
-
-      assert_equal 1, lengths.uniq.length
+      assert column_set.all? { |column| !column.match(/\bt\.\w+\s{2,}/) }
     end
   end
 
-  def test_arguments_line_up
+  def test_arguments_no_line_up
     column_definition_lines.each do |column_set|
-      assert_line_up(column_set, /default: /)
-      assert_line_up(column_set, /limit: /)
-      assert_line_up(column_set, /null: /)
+      assert_no_line_up(column_set, /default: /)
+      assert_no_line_up(column_set, /limit: /)
+      assert_no_line_up(column_set, /null: /)
     end
   end
 

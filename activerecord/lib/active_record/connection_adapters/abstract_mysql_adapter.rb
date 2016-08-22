@@ -613,12 +613,11 @@ module ActiveRecord
         SQL
       end
 
-      def case_sensitive_comparison(table, attribute, column, value)
+      def case_sensitive_comparison(attribute, column, value) # :nodoc:
         if column.collation && !column.case_sensitive?
-          table[attribute].eq(Arel::Nodes::Bin.new(Arel::Nodes::BindParam.new))
-        else
-          super
+          value = Arel::Nodes::Bin.new(value)
         end
+        attribute.eq(value)
       end
 
       def can_perform_case_insensitive_comparison_for?(column)
@@ -710,7 +709,7 @@ module ActiveRecord
         end
 
         def fetch_type_metadata(sql_type, extra = "")
-          MySQL::TypeMetadata.new(super(sql_type), extra: extra, strict: strict_mode?)
+          MySQL::TypeMetadata.new(super(sql_type), extra: extra)
         end
 
         def add_index_length(quoted_columns, **options)
@@ -923,7 +922,7 @@ module ActiveRecord
           when 3; "mediumint"
           when nil, 4; "int"
           when 5..8; "bigint"
-          else raise(ActiveRecordError, "No integer type has byte size #{limit}")
+          else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a decimal with scale 0 instead.")
           end
         end
 

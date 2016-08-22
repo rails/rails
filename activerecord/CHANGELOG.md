@@ -1,3 +1,63 @@
+*   Remove standardized column types/arguments spaces in schema dump.
+
+    *Tim Petricola*
+
+*   Avoid loading records from database when they are already loaded using
+    the `pluck` method on a collection.
+
+    Fixes #25921.
+
+    *Ryuta Kamizono*
+
+*   Remove text default treated as an empty string in non-strict mode for
+    consistency with other types.
+
+    Strict mode controls how MySQL handles invalid or missing values in
+    data-change statements such as INSERT or UPDATE. If strict mode is not
+    in effect, MySQL inserts adjusted values for invalid or missing values
+    and produces warnings.
+
+        def test_mysql_not_null_defaults_non_strict
+          using_strict(false) do
+            with_mysql_not_null_table do |klass|
+              record = klass.new
+              assert_nil record.non_null_integer
+              assert_nil record.non_null_string
+              assert_nil record.non_null_text
+              assert_nil record.non_null_blob
+
+              record.save!
+              record.reload
+
+              assert_equal 0,  record.non_null_integer
+              assert_equal "", record.non_null_string
+              assert_equal "", record.non_null_text
+              assert_equal "", record.non_null_blob
+            end
+          end
+        end
+
+    https://dev.mysql.com/doc/refman/5.7/en/sql-mode.html#sql-mode-strict
+
+    *Ryuta Kamizono*
+
+*   Sqlite3 migrations to add a column to an existing table can now be
+    successfully rolled back when the column was given and invalid column
+    type.
+
+    Fixes #26087
+
+    *Travis O'Neill*
+
+*   Deprecate `sanitize_conditions`. Use `sanitize_sql` instead.
+
+    *Ryuta Kamizono*
+
+*   Doing count on relations that contain LEFT OUTER JOIN Arel node no longer
+    force a DISTINCT. This solves issues when using count after a left_joins.
+
+    *Maxime Handfield Lapointe*
+
 *   RecordNotFound raised by association.find exposes `id`, `primary_key` and
     `model` methods to be consistent with RecordNotFound raised by Record.find.
 
@@ -52,8 +112,8 @@
     *Xavier Noria*
 
 *   Using `group` with an attribute that has a custom type will properly cast
-    the hash keys after calling a calculation method like `count`. 
-    
+    the hash keys after calling a calculation method like `count`.
+
     Fixes #25595.
 
     *Sean Griffin*
@@ -88,7 +148,7 @@
     *Sean Griffin*
 
 *   Ensure hashes can be assigned to attributes created using `composed_of`.
-    
+
     Fixes #25210.
 
     *Sean Griffin*

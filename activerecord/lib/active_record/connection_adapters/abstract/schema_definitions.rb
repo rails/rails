@@ -303,7 +303,7 @@ module ActiveRecord
       #   end
       def column(name, type, options = {})
         name = name.to_s
-        type = type.to_sym
+        type = type.to_sym if type
         options = options.dup
 
         if @columns_hash[name] && @columns_hash[name].primary_key?

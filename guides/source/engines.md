@@ -1364,7 +1364,7 @@ You can define assets for precompilation in `engine.rb`:
 
 ```ruby
 initializer "blorgh.assets.precompile" do |app|
-  app.config.assets.precompile += %w(admin.css admin.js)
+  app.config.assets.precompile += %w( admin.js admin.css )
 end
 ```
 

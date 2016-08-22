@@ -25,23 +25,32 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_construct_finder_sql_executes_a_left_outer_join
-    assert_not_equal Author.count, Author.joins(:posts).count
-    assert_equal Author.count, Author.left_outer_joins(:posts).count
+  def test_left_outer_joins_count_is_same_as_size_of_loaded_results
+    assert_equal 17, Post.left_outer_joins(:comments).to_a.size
+    assert_equal 17, Post.left_outer_joins(:comments).count
   end
 
-  def test_left_outer_join_by_left_joins
-    assert_not_equal Author.count, Author.joins(:posts).count
-    assert_equal Author.count, Author.left_joins(:posts).count
+  def test_left_joins_aliases_left_outer_joins
+    assert_equal Post.left_outer_joins(:comments).to_sql, Post.left_joins(:comments).to_sql
+  end
+
+  def test_left_outer_joins_return_has_value_for_every_comment
+    all_post_ids = Post.pluck(:id)
+    assert_equal all_post_ids, all_post_ids & Post.left_outer_joins(:comments).pluck(:id)
+  end
+
+  def test_left_outer_joins_actually_does_a_left_outer_join
+    queries = capture_sql { Author.left_outer_joins(:posts).to_a }
+    assert queries.any? { |sql| /LEFT OUTER JOIN/i.match?(sql) }
   end
 
   def test_construct_finder_sql_ignores_empty_left_outer_joins_hash
-    queries = capture_sql { Author.left_outer_joins({}) }
+    queries = capture_sql { Author.left_outer_joins({}).to_a }
     assert queries.none? { |sql| /LEFT OUTER JOIN/i.match?(sql) }
   end
 
   def test_construct_finder_sql_ignores_empty_left_outer_joins_array
-    queries = capture_sql { Author.left_outer_joins([]) }
+    queries = capture_sql { Author.left_outer_joins([]).to_a }
     assert queries.none? { |sql| /LEFT OUTER JOIN/i.match?(sql) }
   end
 

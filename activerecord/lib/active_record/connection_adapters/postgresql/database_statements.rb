@@ -124,26 +124,29 @@ module ActiveRecord
             pk = primary_key(table_ref) if table_ref
           end
 
-          pk = suppress_composite_primary_key(pk)
-
-          if pk && use_insert_returning?
+          if pk = suppress_composite_primary_key(pk)
             sql = "#{sql} RETURNING #{quote_column_name(pk)}"
           end
 
           super
         end
+        protected :sql_for_insert
 
         def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil)
-          val = exec_query(sql, name, binds)
-          if !use_insert_returning? && pk
+          if use_insert_returning? || pk == false
+            super
+          else
+            result = exec_query(sql, name, binds)
             unless sequence_name
               table_ref = extract_table_ref_from_insert_sql(sql)
-              sequence_name = default_sequence_name(table_ref, pk)
-              return val unless sequence_name
+              if table_ref
+                pk = primary_key(table_ref) if pk.nil?
+                pk = suppress_composite_primary_key(pk)
+                sequence_name = default_sequence_name(table_ref, pk)
+              end
+              return result unless sequence_name
             end
             last_insert_id_result(sequence_name)
-          else
-            val
           end
         end
 

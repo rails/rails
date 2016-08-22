@@ -62,8 +62,7 @@ module ActiveRecord
     #
     # * +sql+ - An SQL statement which should return a count query from the database, see the example above.
     def count_by_sql(sql)
-      sql = sanitize_conditions(sql)
-      connection.select_value(sql, "#{name} Count").to_i
+      connection.select_value(sanitize_sql(sql), "#{name} Count").to_i
     end
   end
 end

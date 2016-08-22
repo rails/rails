@@ -353,6 +353,7 @@ resource. You need to add the _article resource_ to the
 
 ```ruby
 Rails.application.routes.draw do
+  get 'welcome/index'
 
   resources :articles
 
@@ -484,7 +485,7 @@ to find a template called `articles/new` within `app/views` for the
 application. The format for this template can only be `html` and the default
 handler for HTML is `erb`. Rails uses other handlers for other formats.
 `builder` handler is used to build XML templates and `coffee` handler uses
-CoffeeScript to build JavaScript templates. Because you want to create a new
+CoffeeScript to build JavaScript templates. Since you want to create a new
 HTML form, you will be using the `ERB` language which is designed to embed Ruby
 in HTML.
 
@@ -527,7 +528,7 @@ method called `form_for`. To use this method, add this code into
 <% end %>
 ```
 
-If you refresh the page now, you'll see the exact same form as in the example.
+If you refresh the page now, you'll see the exact same form from our example above.
 Building forms in Rails is really just that easy!
 
 When you call `form_for`, you pass it an identifying object for this
@@ -1154,7 +1155,7 @@ new articles. Create a file called `app/views/articles/edit.html.erb` and make
 it look as follows:
 
 ```html+erb
-<h1>Editing article</h1>
+<h1>Edit article</h1>
 
 <%= form_for :article, url: article_path(@article), method: :patch do |f| %>
 

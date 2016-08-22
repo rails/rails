@@ -146,20 +146,13 @@ HEADER
           keys = @connection.migration_keys
 
           # figure out the lengths for each column based on above keys
-          lengths = keys.map { |key|
-            column_specs.map { |spec|
-              spec[key] ? spec[key].length + 2 : 0
-            }.max
-          }
+          lengths = [0] * keys.length
 
           # the string we're going to sprintf our values against, with standardized column widths
-          format_string = lengths.map { |len| "%-#{len}s" }
-
-          # find the max length for the 'type' column, which is special
-          type_length = column_specs.map { |column| column[:type].length }.max
+          format_string = ["%s"] * keys.length
 
           # add column type definition to our format string
-          format_string.unshift "    t.%-#{type_length}s "
+          format_string.unshift "    t.%s "
 
           format_string *= ""
 

@@ -380,47 +380,78 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_no_queries do
       bulbs.first()
-      bulbs.first({})
     end
 
     assert_no_queries do
       bulbs.second()
-      bulbs.second({})
     end
 
     assert_no_queries do
       bulbs.third()
-      bulbs.third({})
     end
 
     assert_no_queries do
       bulbs.fourth()
-      bulbs.fourth({})
     end
 
     assert_no_queries do
       bulbs.fifth()
-      bulbs.fifth({})
     end
 
     assert_no_queries do
       bulbs.forty_two()
-      bulbs.forty_two({})
     end
 
     assert_no_queries do
       bulbs.third_to_last()
-      bulbs.third_to_last({})
     end
 
     assert_no_queries do
       bulbs.second_to_last()
-      bulbs.second_to_last({})
     end
 
     assert_no_queries do
       bulbs.last()
-      bulbs.last({})
+    end
+  end
+
+  def test_finder_method_with_dirty_target
+    company = companies(:first_firm)
+    new_clients = []
+    assert_no_queries(ignore_none: false) do
+      new_clients << company.clients_of_firm.build(name: "Another Client")
+      new_clients << company.clients_of_firm.build(name: "Another Client II")
+      new_clients << company.clients_of_firm.build(name: "Another Client III")
+    end
+
+    assert_not company.clients_of_firm.loaded?
+    assert_queries(1) do
+      assert_same new_clients[0], company.clients_of_firm.third
+      assert_same new_clients[1], company.clients_of_firm.fourth
+      assert_same new_clients[2], company.clients_of_firm.fifth
+      assert_same new_clients[0], company.clients_of_firm.third_to_last
+      assert_same new_clients[1], company.clients_of_firm.second_to_last
+      assert_same new_clients[2], company.clients_of_firm.last
+    end
+  end
+
+  def test_finder_bang_method_with_dirty_target
+    company = companies(:first_firm)
+    new_clients = []
+    assert_no_queries(ignore_none: false) do
+      new_clients << company.clients_of_firm.build(name: "Another Client")
+      new_clients << company.clients_of_firm.build(name: "Another Client II")
+      new_clients << company.clients_of_firm.build(name: "Another Client III")
+    end
+
+    assert_not company.clients_of_firm.loaded?
+    assert_queries(1) do
+      assert_same new_clients[0], company.clients_of_firm.third!
+      assert_same new_clients[1], company.clients_of_firm.fourth!
+      assert_same new_clients[2], company.clients_of_firm.fifth!
+      assert_same new_clients[0], company.clients_of_firm.third_to_last!
+      assert_same new_clients[1], company.clients_of_firm.second_to_last!
+      assert_same new_clients[2], company.clients_of_firm.last!
     end
   end
 

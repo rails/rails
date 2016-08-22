@@ -7,7 +7,6 @@ require "action_controller/template_assertions"
 require "rails-dom-testing"
 
 module ActionController
-  # :stopdoc:
   class Metal
     include Testing::Functional
   end
@@ -211,10 +210,18 @@ module ActionController
   end
 
   # Superclass for ActionController functional tests. Functional tests allow you to
-  # test a single controller action per test method. This should not be confused with
-  # integration tests (see ActionDispatch::IntegrationTest), which are more like
-  # "stories" that can involve multiple controllers and multiple actions (i.e. multiple
-  # different HTTP requests).
+  # test a single controller action per test method.
+  #
+  # == Use integration style controller tests over functional style controller tests.
+  #
+  # Rails discourages the use of functional tests in favor of integration tests
+  # (use ActionDispatch::IntegrationTest).
+  #
+  # New Rails applications no longer generate functional style controller tests and they should
+  # only be used for backward compatibility. Integration style controller tests perform actual
+  # requests, whereas functional style controller tests merely simulate a request. Besides,
+  # integration tests are as fast as functional tests and provide lot of helpers such as +as+,
+  # +parsed_body+ for effective testing of controller actions including even API endpoints.
   #
   # == Basic example
   #
@@ -442,6 +449,8 @@ module ActionController
       # - +session+: A hash of parameters to store in the session. This may be +nil+.
       # - +flash+: A hash of parameters to store in the flash. This may be +nil+.
       # - +format+: Request format. Defaults to +nil+. Can be string or symbol.
+      # - +as+: Content type. Defaults to +nil+. Must be a symbol that corresponds
+      #   to a mime type.
       #
       # Example calling +create+ action and sending two params:
       #
@@ -462,7 +471,7 @@ module ActionController
         check_required_ivars
 
         if kwarg_request?(args)
-          parameters, session, body, flash, http_method, format, xhr = args[0].values_at(:params, :session, :body, :flash, :method, :format, :xhr)
+          parameters, session, body, flash, http_method, format, xhr, as = args[0].values_at(:params, :session, :body, :flash, :method, :format, :xhr, :as)
         else
           http_method, parameters, session, flash = args
           format = nil
@@ -506,6 +515,11 @@ module ActionController
         @controller.recycle!
 
         @request.set_header "REQUEST_METHOD", http_method
+
+        if as
+          @request.content_type = Mime[as].to_s
+          format ||= as
+        end
 
         parameters = parameters.symbolize_keys
 
@@ -675,5 +689,4 @@ module ActionController
 
     include Behavior
   end
-  # :startdoc:
 end

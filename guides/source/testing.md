@@ -37,9 +37,11 @@ controllers/    helpers/        mailers/        test_helper.rb
 fixtures/       integration/    models/
 ```
 
-The `models` directory is meant to hold tests for your models, the `controllers` directory is meant to hold tests for your controllers and the `integration` directory is meant to hold tests that involve any number of controllers interacting. There is also a directory for testing your mailers and one for testing view helpers.
+The `helpers`, `mailers`, and `models` directories are meant to hold tests for view helpers, mailers, and models, respectively. The `controllers` directory is meant to hold tests for controllers, routes, and views. The `integration` directory is meant to hold tests for interactions between controllers.
 
 Fixtures are a way of organizing test data; they reside in the `fixtures` directory.
+
+A `jobs` directory will also be created when an associated test is first generated.
 
 The `test_helper.rb` file holds the default configuration for your tests.
 
@@ -1085,7 +1087,7 @@ end
 Testing Routes
 --------------
 
-Like everything else in your Rails application, you can test your routes.
+Like everything else in your Rails application, you can test your routes. Route tests reside in `test/controllers/` or are part of controller tests.
 
 NOTE: If your application has complex routes, Rails provides a number of useful helpers to test them.
 

@@ -117,7 +117,10 @@ module ActiveRecord
       end
 
       if has_include?(column_name)
-        construct_relation_for_association_calculations.calculate(operation, column_name)
+        relation = construct_relation_for_association_calculations
+        relation = relation.distinct if operation.to_s.downcase == "count"
+
+        relation.calculate(operation, column_name)
       else
         perform_calculation(operation, column_name)
       end
@@ -160,7 +163,7 @@ module ActiveRecord
     #
     def pluck(*column_names)
       if loaded? && (column_names.map(&:to_s) - @klass.attribute_names - @klass.attribute_aliases.keys).empty?
-        return @records.pluck(*column_names)
+        return records.pluck(*column_names)
       end
 
       if has_include?(column_names.first)
@@ -198,11 +201,6 @@ module ActiveRecord
 
         if operation == "count"
           column_name ||= select_for_count
-
-          unless arel.ast.grep(Arel::Nodes::OuterJoin).empty?
-            distinct = true
-          end
-
           column_name = primary_key if column_name == :all && distinct
           distinct = nil if column_name =~ /\s*DISTINCT[\s(]+/i
         end

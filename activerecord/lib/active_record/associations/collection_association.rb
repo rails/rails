@@ -82,14 +82,6 @@ module ActiveRecord
         @target = []
       end
 
-      def select(*fields)
-        if block_given?
-          load_target.select.each { |e| yield e }
-        else
-          scope.select(*fields)
-        end
-      end
-
       def find(*args)
         if block_given?
           load_target.find(*args) { |*block_args| yield(*block_args) }
@@ -108,50 +100,6 @@ module ActiveRecord
           else
             scope.find(*args)
           end
-        end
-      end
-
-      def first(*args)
-        first_nth_or_last(:first, *args)
-      end
-
-      def second(*args)
-        first_nth_or_last(:second, *args)
-      end
-
-      def third(*args)
-        first_nth_or_last(:third, *args)
-      end
-
-      def fourth(*args)
-        first_nth_or_last(:fourth, *args)
-      end
-
-      def fifth(*args)
-        first_nth_or_last(:fifth, *args)
-      end
-
-      def forty_two(*args)
-        first_nth_or_last(:forty_two, *args)
-      end
-
-      def third_to_last(*args)
-        first_nth_or_last(:third_to_last, *args)
-      end
-
-      def second_to_last(*args)
-        first_nth_or_last(:second_to_last, *args)
-      end
-
-      def last(*args)
-        first_nth_or_last(:last, *args)
-      end
-
-      def take(limit = nil)
-        if find_from_target?
-          limit ? load_target.take(limit) : load_target.first
-        else
-          scope.take(limit)
         end
       end
 
@@ -322,15 +270,6 @@ module ActiveRecord
         end
       end
 
-      # Returns the size of the collection calling +size+ on the target.
-      #
-      # If the collection has been already loaded +length+ and +size+ are
-      # equivalent. If not and you are going to need the records anyway this
-      # method will take one less query. Otherwise +size+ is more efficient.
-      def length
-        load_target.size
-      end
-
       # Returns true if the collection is empty.
       #
       # If the collection has been loaded
@@ -451,6 +390,12 @@ module ActiveRecord
 
       def null_scope?
         owner.new_record? && !foreign_key_present?
+      end
+
+      def find_from_target?
+        loaded? ||
+          owner.new_record? ||
+          target.any? { |record| record.new_record? || record.changed? }
       end
 
       private
@@ -599,21 +544,6 @@ module ActiveRecord
           owner.class.send(full_callback_name)
         end
 
-        # Should we deal with assoc.first or assoc.last by issuing an independent query to
-        # the database, or by getting the target, and then taking the first/last item from that?
-        #
-        # If the args is just a non-empty options hash, go to the database.
-        #
-        # Otherwise, go to the database only if none of the following are true:
-        #   * target already loaded
-        #   * owner is new record
-        #   * target contains new or changed record(s)
-        def find_from_target?
-          loaded? ||
-            owner.new_record? ||
-            target.any? { |record| record.new_record? || record.changed? }
-        end
-
         def include_in_memory?(record)
           if reflection.is_a?(ActiveRecord::Reflection::ThroughReflection)
             assoc = owner.association(reflection.through_reflection.name)
@@ -639,14 +569,6 @@ module ActiveRecord
           else
             load_target.select { |r| ids.include?(r.id.to_s) }
           end
-        end
-
-        # Fetches the first/last using SQL if possible, otherwise from the target array.
-        def first_nth_or_last(type, *args)
-          args.shift if args.first.is_a?(Hash) && args.first.empty?
-
-          collection = find_from_target? ? load_target : scope
-          collection.send(type, *args)
         end
     end
   end
