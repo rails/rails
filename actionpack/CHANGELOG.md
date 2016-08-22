@@ -1,3 +1,15 @@
+*   Include the content of the flash in the auto-generated etag. This solves the following problem:
+
+      1. POST /messages
+      2. redirect_to messages_url, notice: 'Message was created'
+      3. GET /messages/1
+      4. GET /messages
+      
+      Step 4 would before still include the flash message, even though it's no longer relevant,
+      because the etag cache was recorded with the flash in place and didn't change when it was gone.
+
+    *DHH*
+
 *   SSL: Changes redirect behavior for all non-GET and non-HEAD requests
     (like POST/PUT/PATCH etc) to `http://` resources to redirect to `https://`
     with a [307 status code](http://tools.ietf.org/html/rfc7231#section-6.4.7) instead of [301 status code](http://tools.ietf.org/html/rfc7231#section-6.4.2).

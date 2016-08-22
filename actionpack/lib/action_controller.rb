@@ -23,6 +23,7 @@ module ActionController
     autoload :Cookies
     autoload :DataStreaming
     autoload :EtagWithTemplateDigest
+    autoload :EtagWithFlash
     autoload :Flash
     autoload :ForceSSL
     autoload :Head

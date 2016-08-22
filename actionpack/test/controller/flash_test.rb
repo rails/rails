@@ -263,6 +263,13 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
       flash[:bar] = "for great justice"
       head :ok
     end
+
+    def set_flash_optionally
+      flash.now.notice = params[:flash]
+      if stale? etag: "abe"
+        render inline: "maybe flash"
+      end
+    end
   end
 
   def test_flash
@@ -307,6 +314,28 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
       get "/set_bar"
       assert_response :success
       assert_equal "for great justice", @controller.bar
+    end
+  end
+
+  def test_flash_factored_into_etag
+    with_test_route_set do
+      get "/set_flash_optionally"
+      no_flash_etag = response.etag
+
+      get "/set_flash_optionally", params: { flash: "hello!" }
+      hello_flash_etag = response.etag
+
+      assert_not_equal no_flash_etag, hello_flash_etag
+
+      get "/set_flash_optionally", params: { flash: "hello!" }
+      another_hello_flash_etag = response.etag
+
+      assert_equal another_hello_flash_etag, hello_flash_etag
+
+      get "/set_flash_optionally", params: { flash: "goodbye!" }
+      goodbye_flash_etag = response.etag
+
+      assert_not_equal another_hello_flash_etag, goodbye_flash_etag
     end
   end
 
