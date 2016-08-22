@@ -670,7 +670,18 @@ module ActiveRecord
     end
 
     def inspect
-      entries = records.take([limit_value, 11].compact.min).map!(&:inspect)
+      num_to_take = [limit_value, 11].compact.min
+      # A relation may be initialized with values that were not loaded from the
+      # database. Therefore, if there are values, they must be preserved by not
+      # loading from the database; else, use a new relation with a limit, to
+      # avoid loading an unbounded number of records into memory unnecessarily.
+      entries =
+        if values.any?
+          records.take(num_to_take)
+        else
+          limit(num_to_take).to_a
+        end
+      entries.map!(&:inspect)
       entries[10] = "..." if entries.size == 11
 
       "#<#{self.class.name} [#{entries.join(', ')}]>"

@@ -1917,6 +1917,12 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  test "unloaded relations add a LIMIT in #inspect but not in #to_a" do
+    relation = Post.all
+    assert_sql(/LIMIT/) { relation.inspect }
+    assert_sql(/\A(?!.*LIMIT)/m) { relation.to_a }
+  end
+
   test "using a custom table affects the wheres" do
     table_alias = Post.arel_table.alias("omg_posts")
 

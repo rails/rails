@@ -1,3 +1,7 @@
+*   Avoid loading an unbound number of records in Relation#inspect.
+
+    *Amir Yalon*
+
 *   Option to remove standardized column types/arguments spaces in schema dump
     with `ActiveRecord::SchemaDumper.standardized_argument_widths` and
     `ActiveRecord::SchemaDumper.standardized_type_widths` methods.
