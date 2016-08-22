@@ -368,11 +368,9 @@ The MySQL adapter adds one additional configuration option:
 
 * `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans` controls whether Active Record will consider all `tinyint(1)` columns as booleans. Defaults to `true`.
 
-The schema dumper adds additional configuration options:
+The schema dumper adds one additional configuration option:
 
 * `ActiveRecord::SchemaDumper.ignore_tables` accepts an array of tables that should _not_ be included in any generated schema file. This setting is ignored unless `config.active_record.schema_format == :ruby`.
-* `ActiveRecord::SchemaDumper.standardized_argument_widths` configures whether colum arguments should be lined up or not in dump. By default this is `true`. This setting is ignored unless `config.active_record.schema_format == :ruby`.
-* `ActiveRecord::SchemaDumper.standardized_type_widths` configures whether colum types should be lined up or not in dump. By default this is `true`. This setting is ignored unless `config.active_record.schema_format == :ruby`.
 
 ### Configuring Action Controller
 

@@ -16,22 +16,6 @@ module ActiveRecord
     cattr_accessor :ignore_tables
     @@ignore_tables = []
 
-    ##
-    # :singleton-method:
-    # Define whether column arguments are lined up in dump.
-    # Acceptable values are true or false.
-    # This setting is only used if ActiveRecord::Base.schema_format == :ruby
-    cattr_accessor :standardized_argument_widths
-    @@standardized_argument_widths = true
-
-    ##
-    # :singleton-method:
-    # Define whether columns types are lined up in dump.
-    # Acceptable values are true or false.
-    # This setting is only used if ActiveRecord::Base.schema_format == :ruby
-    cattr_accessor :standardized_type_widths
-    @@standardized_type_widths = true
-
     class << self
       def dump(connection=ActiveRecord::Base.connection, stream=STDOUT, config = ActiveRecord::Base)
         new(connection, generate_options(config)).dump(stream)
@@ -162,32 +146,13 @@ HEADER
           keys = @connection.migration_keys
 
           # figure out the lengths for each column based on above keys
-          lengths = if standardized_argument_widths
-            keys.map { |key|
-              column_specs.map { |spec|
-                spec[key] ? spec[key].length + 2 : 0
-              }.max
-            }
-          else
-            [0] * keys.length
-          end
+          lengths = [0] * keys.length
 
           # the string we're going to sprintf our values against, with standardized column widths
-          format_string = if standardized_argument_widths
-            lengths.map { |len| "%-#{len}s" }
-          else
-            ["%s"] * keys.length
-          end
+          format_string = ["%s"] * keys.length
 
           # add column type definition to our format string
-          if standardized_type_widths
-            # find the max length for the 'type' column, which is special
-            type_length = column_specs.map { |column| column[:type].length }.max
-
-            format_string.unshift "    t.%-#{type_length}s "
-          else
-            format_string.unshift "    t.%s "
-          end
+          format_string.unshift "    t.%s "
 
           format_string *= ""
 

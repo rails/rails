@@ -1,6 +1,4 @@
-*   Option to remove standardized column types/arguments spaces in schema dump
-    with `ActiveRecord::SchemaDumper.standardized_argument_widths` and
-    `ActiveRecord::SchemaDumper.standardized_type_widths` methods.
+*   Remove standardized column types/arguments spaces in schema dump.
 
     *Tim Petricola*
 
