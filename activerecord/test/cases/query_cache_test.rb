@@ -212,6 +212,26 @@ class QueryCacheTest < ActiveRecord::TestCase
     end
   end
 
+  def test_query_cached_even_when_types_are_reset
+    Task.cache do
+      # Warm the cache
+      task = Task.find(1)
+
+      Task.connection.type_map.clear
+
+      # Preload the type cache again (so we don't have those queries issued during our assertions)
+      Task.connection.send(:initialize_type_map, Task.connection.type_map)
+
+      # Clear places where type information is cached
+      Task.reset_column_information
+      Task.initialize_find_by_cache
+
+      assert_queries(0) do
+        Task.find(1)
+      end
+    end
+  end
+
   private
     def middleware(&app)
       executor = Class.new(ActiveSupport::Executor)
