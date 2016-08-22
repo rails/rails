@@ -226,6 +226,7 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal 11, (11..11).single
     assert_equal [:a, 11], { a: 11 }.single
     assert_equal 12, GenericEnumerable.new([12]).single
+    assert_equal 11, [11].single { 22 }
   end
 
   def test_single_with_no_items
@@ -233,6 +234,7 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_raise(Enumerable::SingleItemExpectedError) { (2..1).single }
     assert_raise(Enumerable::SingleItemExpectedError) { {}.single }
     assert_raise(Enumerable::SingleItemExpectedError) { GenericEnumerable.new([]).single }
+    assert_equal 99, [].single { 99 }
   end
 
   def test_single_with_more_than_one_item
@@ -240,5 +242,6 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_raise(Enumerable::SingleItemExpectedError) { (1..10).single }
     assert_raise(Enumerable::SingleItemExpectedError) { { a: 1, b: 2 }.single }
     assert_raise(Enumerable::SingleItemExpectedError) { GenericEnumerable.new(%w(a b c)).single }
+    assert_raise(Enumerable::SingleItemExpectedError) { [1, 2].single { 99 } }
   end
 end

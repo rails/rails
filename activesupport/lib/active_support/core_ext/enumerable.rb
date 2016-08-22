@@ -90,7 +90,8 @@ module Enumerable
     end
   end
 
-  # Return one and only one element. Raise an error if there are none or more than one.
+  # Return one and only one item. Raise an error if there are none or more than one.
+  # Optinally return a default value from a block if there are no items in the enumerable.
   #
   #   [1].single
   #     => 1
@@ -100,6 +101,9 @@ module Enumerable
   #
   #   [].single
   #     => Enumerable::SingleItemExpectedError: The sequence is empty (expected one and only one item)
+  #
+  #   [].single { 99 }
+  #     => 99
   def single
     found = false
     result = nil
@@ -108,8 +112,9 @@ module Enumerable
       found = true
       result = item
     end
-    raise SingleItemExpectedError, "The sequence is empty (expected one and only one item)" unless found
-    result
+    return result if found
+    raise SingleItemExpectedError, "The sequence is empty (expected one and only one item)" unless block_given?
+    yield
   end
 
   class SingleItemExpectedError < StandardError
