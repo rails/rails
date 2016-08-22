@@ -41,12 +41,19 @@ module ActionCable
 
         @ready_state = CONNECTING
 
+        @protocol = nil
+        @nws = nil
+        @nws_started = false
+
         if env["upgrade.websocket?"]
-          @driver_started = true
-          @nws = env["upgrade.websocket"].call(self, protocols: protocols)
+          if protos = env['HTTP_SEC_WEBSOCKET_PROTOCOL']
+            protos = protos.split(/ *, */) if String === protos
+            @protocol = protos.find { |p| protocols.include?(p) }
+          end
+
+          @nws_started = true
+          env["upgrade.websocket"] = self
           return
-        else
-          @nws = nil
         end
 
         # The driver calls +env+, +url+, and +write+
@@ -61,7 +68,7 @@ module ActionCable
       end
 
       def start_driver
-        return if @driver.nil? || @driver_started
+        return if @driver.nil? || @driver_started || @nws_started
         @stream.hijack_rack_socket
 
         if callback = @env["async.callback"]
@@ -73,8 +80,13 @@ module ActionCable
       end
 
       def rack_response
-        if @nws
-          [ 101, {}, [] ]
+        if @nws_started
+          headers = {}
+          if @protocol
+            headers["Sec-WebSocket-Protocol"] = @protocol
+          end
+
+          [ 101, headers, [] ]
         else
           start_driver
           [ -1, {}, [] ]
@@ -97,13 +109,15 @@ module ActionCable
           when String  then @nws.write(message)
             else false
           end
-        else
+        elsif @driver
           case message
           when Numeric then @driver.text(message.to_s)
           when String  then @driver.text(message)
           when Array   then @driver.binary(message)
             else false
           end
+        else
+          raise "socket is not open"
         end
       end
 
@@ -121,8 +135,10 @@ module ActionCable
 
         if @nws
           @nws.close
-        else
+        elsif @driver
           @driver.close(reason, code)
+        else
+          raise "socket is not open"
         end
       end
 
@@ -139,7 +155,7 @@ module ActionCable
       end
 
       def protocol
-        if @nws
+        if @nws_started
           "websocket"
         else
           @driver.protocol
@@ -147,15 +163,16 @@ module ActionCable
       end
 
       # callbacks used by native websocket upgrade support
-      def on_open
+      def on_open(conn)
+        @nws = conn
         open
       end
 
-      def on_message(msg)
+      def on_message(conn, msg)
         receive_message msg
       end
 
-      def on_close
+      def on_close(conn)
         begin_close(1000, "application requested")
       end
 
