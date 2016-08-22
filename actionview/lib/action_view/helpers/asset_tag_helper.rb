@@ -65,14 +65,6 @@ module ActionView
         }.join("\n").html_safe
       end
 
-      # Computes the path to a series of javascript assets in the public
-      # folder. This uses +javascript_include_tag+ and skips any asset
-      # lookups by assuming any assets are in the `public` folder.
-      def public_javascript_include_tag(*sources)
-        options = sources.extract_options!
-        javascript_include_tag(*sources, { public_folder: true }.merge!(options))
-      end
-
       # Returns a stylesheet link tag for the sources specified as arguments. If
       # you don't specify an extension, <tt>.css</tt> will be appended automatically.
       # You can modify the link attributes by passing a hash as the last argument.
@@ -109,14 +101,6 @@ module ActionView
           }.merge!(options)
           tag(:link, tag_options)
         }.join("\n").html_safe
-      end
-
-      # Computes the path to a series of stylesheet assets in the public
-      # folder. This uses +stylesheet_link_tag+ and skips any asset
-      # lookups by assuming any assets are in the `public` folder.
-      def public_stylesheet_link_tag(*sources)
-        options = sources.extract_options!
-        stylesheet_link_tag(*sources, { public_folder: true }.merge!(options))
       end
 
       # Returns a link tag that browsers and feed readers can use to auto-detect
