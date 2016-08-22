@@ -434,11 +434,11 @@ Sprockets uses manifest files to determine which assets to include and serve.
 These manifest files contain _directives_ - instructions that tell Sprockets
 which files to require in order to build a single CSS or JavaScript file. With
 these directives, Sprockets loads the files specified, processes them if
-necessary, concatenates them into one single file and then compresses them (if
-`Rails.application.config.assets.compress` is true). By serving one file rather
-than many, the load time of pages can be greatly reduced because the browser
-makes fewer requests. Compression also reduces file size, enabling the
-browser to download them faster.
+necessary, concatenates them into one single file and then compresses them
+(based on value of `Rails.application.config.assets.js_compressor`). By serving
+one file rather than many, the load time of pages can be greatly reduced because
+the browser makes fewer requests. Compression also reduces file size, enabling
+the browser to download them faster.
 
 
 For example, a new Rails 4 application includes a default
