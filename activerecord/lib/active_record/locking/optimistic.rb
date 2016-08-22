@@ -78,17 +78,19 @@ module ActiveRecord
 
         def _update_record(attribute_names = self.attribute_names) #:nodoc:
           return super unless locking_enabled?
-          return 0 if attribute_names.empty?
 
           lock_col = self.class.locking_column
-          previous_lock_value = read_attribute_before_type_cast(lock_col)
 
-          increment_lock
-
-          attribute_names += [lock_col]
-          attribute_names.uniq!
+          return super if attribute_names.include?(lock_col)
+          return 0 if attribute_names.empty?
 
           begin
+            previous_lock_value = read_attribute_before_type_cast(lock_col)
+
+            increment_lock
+
+            attribute_names.push(lock_col)
+
             relation = self.class.unscoped
 
             affected_rows = relation.where(

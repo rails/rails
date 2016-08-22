@@ -1,3 +1,8 @@
+*   Optimistic locking: Added ability update locking_column value.
+    Ignore optimistic locking if update with new locking_column value.
+
+    *bogdanvlviv*
+
 *   Fixed: Optimistic locking does not work well with null in the database.
 
     Fixes #26024
