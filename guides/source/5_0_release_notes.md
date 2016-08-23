@@ -212,7 +212,7 @@ Please refer to the [Changelog][railties] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/22173))
 
 *   Deprecated the tasks in the `rails` task namespace in favor of the `app` namespace.
-    (e.g. `rails:update` and `rails:template` is renamed to `app:update` and `app:template`.)
+    (e.g. `rails:update` and `rails:template` tasks are renamed to `app:update` and `app:template`.)
     ([Pull Request](https://github.com/rails/rails/pull/23439))
 
 ### Notable changes
