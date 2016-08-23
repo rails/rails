@@ -466,9 +466,9 @@ module ActiveRecord
         if ActiveRecord::Base === id
           id = id.id
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          You are passing an instance of ActiveRecord::Base to `find`.
-          Please pass the id of the object by calling `.id`.
-        MSG
+            You are passing an instance of ActiveRecord::Base to `find`.
+            Please pass the id of the object by calling `.id`.
+          MSG
         end
 
         relation = where(primary_key => id)

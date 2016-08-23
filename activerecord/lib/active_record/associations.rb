@@ -1810,12 +1810,12 @@ module ActiveRecord
 
           include Module.new {
             class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def destroy_associations
-            association(:#{middle_reflection.name}).delete_all(:delete_all)
-            association(:#{name}).reset
-            super
-          end
-          RUBY
+              def destroy_associations
+                association(:#{middle_reflection.name}).delete_all(:delete_all)
+                association(:#{name}).reset
+                super
+              end
+            RUBY
           }
 
           hm_options = {}

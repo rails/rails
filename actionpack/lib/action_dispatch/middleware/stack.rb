@@ -119,7 +119,7 @@ them to actual class references.  For example:
 
   "#{klass}" => #{converted_klass}
 
-        eowarn
+          eowarn
           converted_klass
         else
           klass

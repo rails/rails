@@ -297,9 +297,9 @@ module ActiveSupport
         def self.build(chain, filter, kind, options)
           if filter.is_a?(String)
             ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Passing string to define callback is deprecated and will be removed
-            in Rails 5.1 without replacement.
-          MSG
+              Passing string to define callback is deprecated and will be removed
+              in Rails 5.1 without replacement.
+            MSG
           end
 
           new chain.name, filter, kind, options, chain.config
@@ -751,10 +751,10 @@ module ActiveSupport
             set_callbacks name, CallbackChain.new(name, options)
 
             module_eval <<-RUBY, __FILE__, __LINE__ + 1
-            def _run_#{name}_callbacks(&block)
-              __run_callbacks__(_#{name}_callbacks, &block)
-            end
-          RUBY
+              def _run_#{name}_callbacks(&block)
+                __run_callbacks__(_#{name}_callbacks, &block)
+              end
+            RUBY
           end
         end
 
@@ -787,9 +787,9 @@ module ActiveSupport
 
           def display_deprecation_warning_for_false_terminator
             ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          Returning `false` in Active Record and Active Model callbacks will not implicitly halt a callback chain in Rails 5.1.
-          To explicitly halt the callback chain, please use `throw :abort` instead.
-        MSG
+              Returning `false` in Active Record and Active Model callbacks will not implicitly halt a callback chain in Rails 5.1.
+              To explicitly halt the callback chain, please use `throw :abort` instead.
+            MSG
           end
       end
   end

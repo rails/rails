@@ -31,11 +31,11 @@ module ActiveRecord
             ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
 
             generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
-            def #{temp_method}
-              name = ::ActiveRecord::AttributeMethods::AttrNames::ATTR_#{safe_name}
-              _read_attribute(name) { |n| missing_attribute(n, caller) }
-            end
-          STR
+              def #{temp_method}
+                name = ::ActiveRecord::AttributeMethods::AttrNames::ATTR_#{safe_name}
+                _read_attribute(name) { |n| missing_attribute(n, caller) }
+              end
+            STR
 
             generated_attribute_methods.module_eval do
               alias_method name, temp_method

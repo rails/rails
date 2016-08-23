@@ -100,9 +100,9 @@ if ActiveRecord::Base.connection.supports_views?
     setup do
       @connection = ActiveRecord::Base.connection
       @connection.execute <<-SQL
-      CREATE VIEW paperbacks
-        AS SELECT name, status FROM books WHERE format = 'paperback'
-    SQL
+        CREATE VIEW paperbacks
+          AS SELECT name, status FROM books WHERE format = 'paperback'
+      SQL
     end
 
     teardown do
@@ -162,9 +162,9 @@ if ActiveRecord::Base.connection.supports_views?
       setup do
         @connection = ActiveRecord::Base.connection
         @connection.execute <<-SQL
-      CREATE VIEW printed_books
-        AS SELECT id, name, status, format FROM books WHERE format = 'paperback'
-    SQL
+          CREATE VIEW printed_books
+            AS SELECT id, name, status, format FROM books WHERE format = 'paperback'
+        SQL
       end
 
       teardown do

@@ -15,13 +15,13 @@ module ActiveRecord
             ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
 
             generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
-            def __temp__#{safe_name}=(value)
-              name = ::ActiveRecord::AttributeMethods::AttrNames::ATTR_#{safe_name}
-              write_attribute(name, value)
-            end
-            alias_method #{(name + '=').inspect}, :__temp__#{safe_name}=
-            undef_method :__temp__#{safe_name}=
-          STR
+              def __temp__#{safe_name}=(value)
+                name = ::ActiveRecord::AttributeMethods::AttrNames::ATTR_#{safe_name}
+                write_attribute(name, value)
+              end
+              alias_method #{(name + '=').inspect}, :__temp__#{safe_name}=
+              undef_method :__temp__#{safe_name}=
+            STR
           end
       end
 

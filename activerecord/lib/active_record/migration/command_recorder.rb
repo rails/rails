@@ -125,10 +125,10 @@ module ActiveRecord
             }.each do |cmd, inv|
               [[inv, cmd], [cmd, inv]].uniq.each do |method, inverse|
                 class_eval <<-EOV, __FILE__, __LINE__ + 1
-              def invert_#{method}(args, &block)    # def invert_create_table(args, &block)
-                [:#{inverse}, args, block]          #   [:drop_table, args, block]
-              end                                   # end
-            EOV
+                  def invert_#{method}(args, &block)    # def invert_create_table(args, &block)
+                    [:#{inverse}, args, block]          #   [:drop_table, args, block]
+                  end                                   # end
+                EOV
               end
             end
         end
