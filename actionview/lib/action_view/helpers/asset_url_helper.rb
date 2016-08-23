@@ -141,16 +141,11 @@ module ActionView
           source = "#{source}#{extname}"
         end
 
-        if options[:public_folder]
-          source = public_compute_asset_path(source, options) unless options[:raw]
-        else
-          if source[0] != ?/
-            source = compute_asset_path(source, options) unless options[:raw]
-          elsif !options[:raw]
-            message =  "Skipping computing asset path since asset #{ source.inspect } starts with a slash `/`.\n"
-            message << "This behavior is deprecated and will be removed. Instead explicitly\n"
-            message << "use a `public_*` helper instead. Optionally pass in `raw: true` to get the exact same behavior."
-            ActiveSupport::Deprecation.warn(message)
+        if source[0] != ?/
+          if options[:public_folder]
+            source = public_compute_asset_path(source, options)
+          else
+            source = compute_asset_path(source, options)
           end
         end
 
