@@ -485,7 +485,7 @@ which contains these lines:
 
 Rails creates both `app/assets/javascripts/application.js` and
 `app/assets/stylesheets/application.css` regardless of whether the
---skip-sprockets option is used when creating a new Rails application. This is
+--skip-sprockets option is used when creating a new rails application. This is
 so you can easily add asset pipelining later if you like.
 
 The directives that work in JavaScript files also work in stylesheets
@@ -585,6 +585,19 @@ When this option is true, the asset pipeline will check if all the assets loaded
 in your application are included in the `config.assets.precompile` list.
 If `config.assets.digest` is also true, the asset pipeline will require that
 all requests for assets include digests.
+
+### Raise an Error When an Asset is Not Found
+
+If you are using a recent version of sprockets-rails you can configure what happens
+when an asset lookup is performed and nothing is found. If you turn off "asset fallback"
+then an error will be raised when an asset cannot be found.
+
+```ruby
+config.assets.unknown_asset_fallback = false
+```
+
+If "asset fallback" is enabled then when an asset cannot be found the path will be
+output instead and no error raised.
 
 ### Turning Digests Off
 
@@ -724,7 +737,7 @@ If you have other manifests or individual stylesheets and JavaScript files to
 include, you can add them to the `precompile` array in `config/initializers/assets.rb`:
 
 ```ruby
-Rails.application.config.assets.precompile += %w( admin.js admin.css )
+Rails.application.config.assets.precompile += ['admin.js', 'admin.css', 'swfObject.js']
 ```
 
 NOTE. Always specify an expected compiled filename that ends with .js or .css,
@@ -1024,7 +1037,7 @@ to tell our CDN (and browser) that the asset is "public", that means any cache
 can store the request. Also we commonly want to set `max-age` which is how long
 the cache will store the object before invalidating the cache. The `max-age`
 value is set to seconds with a maximum possible value of `31536000` which is one
-year. You can do this in your Rails application by setting
+year. You can do this in your rails application by setting
 
 ```
 config.public_file_server.headers = {
@@ -1109,9 +1122,9 @@ Windows you have a JavaScript runtime installed in your operating system.
 
 ### Serving GZipped version of assets
 
-By default, gzipped version of compiled assets will be generated, along with
-the non-gzipped version of assets. Gzipped assets help reduce the transmission
-of data over the wire. You can configure this by setting the `gzip` flag.
+By default, gzipped version of compiled assets will be generated, along
+with the non-gzipped version of assets. Gzipped assets help reduce the transmission of
+data over the wire. You can configure this by setting the `gzip` flag.
 
 ```ruby
 config.assets.gzip = false # disable gzipped assets generation
@@ -1291,7 +1304,7 @@ config.assets.digest = true
 
 # Precompile additional assets (application.js, application.css, and all
 # non-JS/CSS are already added)
-# config.assets.precompile += %w( admin.js admin.css )
+# config.assets.precompile += %w( search.js )
 ```
 
 Rails 4 and above no longer set default config values for Sprockets in `test.rb`, so
