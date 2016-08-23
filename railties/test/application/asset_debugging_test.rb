@@ -130,7 +130,7 @@ module ApplicationTests
     test "{ public_folder: true } does not use the asset pipeline" do
       cases = {
         /\/assets\/application-.*.\.js/ => {},
-        /application.js/                => { public_folder: true},
+        /application.js/                => { public_folder: true },
       }
       cases.each do |(tag_match, options_hash)|
         app_file "app/views/posts/index.html.erb", "<%= asset_path('application.js', #{ options_hash }) %>"
