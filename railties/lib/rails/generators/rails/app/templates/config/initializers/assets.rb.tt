@@ -8,7 +8,7 @@ Rails.application.config.assets.version = '1.0'
 
 # Unknown asset fallback will return the path passed in when the given
 # asset is not present in the asset pipeline.
-# Rails.application.config.assets.unknown_asset_fallback = false
+Rails.application.config.assets.unknown_asset_fallback = false
 
 # Precompile additional assets.
 # application.js, application.css, and all non-JS/CSS in the app/assets
