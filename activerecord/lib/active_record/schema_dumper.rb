@@ -145,22 +145,9 @@ HEADER
           # find all migration keys used in this table
           keys = @connection.migration_keys
 
-          # figure out the lengths for each column based on above keys
-          lengths = [0] * keys.length
-
-          # the string we're going to sprintf our values against, with standardized column widths
-          format_string = ["%s"] * keys.length
-
-          # add column type definition to our format string
-          format_string.unshift "    t.%s "
-
-          format_string *= ""
-
           column_specs.each do |colspec|
-            values = keys.zip(lengths).map { |key, len| colspec.key?(key) ? colspec[key] + ", " : " " * len }
-            values.unshift colspec[:type]
-            tbl.print((format_string % values).gsub(/,\s*$/, ""))
-            tbl.puts
+            values = keys.map { |key| colspec[key] }.compact
+            tbl.puts "    t.#{colspec[:type]} #{values.join(", ")}"
           end
 
           indexes_in_create(table, tbl)
