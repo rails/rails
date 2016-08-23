@@ -1,10 +1,15 @@
-## Rails 5.1.0.alpha ##
+*   Added instance variable `@queue` to JobWrapper.
+
+    This will fix issues in [resque-scheduler](https://github.com/resque/resque-scheduler) `#job_to_hash` method,
+    so we can use `#enqueue_delayed_selection`, `#remove_delayed` method in resque-scheduler smoothly.
+
+    *mu29*
 
 *   Yield the job instance so you have access to things like `job.arguments` on the custom logic after retries fail.
 
     *DHH*
 
-*   Added declarative exception handling via `ActiveJob::Base.retry_on` and `ActiveJob::Base.discard_on`. 
+*   Added declarative exception handling via `ActiveJob::Base.retry_on` and `ActiveJob::Base.discard_on`.
 
     Examples:
 
@@ -23,5 +28,6 @@
         end
 
     *DHH*
+
 
 Please check [5-0-stable](https://github.com/rails/rails/blob/5-0-stable/activejob/CHANGELOG.md) for previous changes.
