@@ -1,3 +1,11 @@
+*   Added instance variable `@queue` to JobWrapper.
+
+    This will fix issues in [resque-scheduler](https://github.com/resque/resque-scheduler) `#job_to_hash` method,
+    so we can use `#enqueue_delayed_selection`, `#remove_delayed` method in resque-scheduler smoothly.
+
+    *mu29*
+
+
 ## Rails 5.0.0 (June 30, 2016) ##
 
 *   Enable class reloading prior to job dispatch, and ensure Active Record
