@@ -343,7 +343,7 @@ module ActionView
       def instrument(action, &block)
         payload = { virtual_path: @virtual_path, identifier: @identifier }
         case action
-        when "!render_template".freeze
+        when "!render_template"
           ActiveSupport::Notifications.instrument("!render_template.action_view".freeze, payload, &block)
         else
           ActiveSupport::Notifications.instrument("#{action}.action_view".freeze, payload, &block)
