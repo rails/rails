@@ -100,9 +100,9 @@
       url: configuring.html
       description: This guide covers the basic configuration settings for a Rails application.
     -
-      name: Rails Command Line Tools and Rake Tasks
+      name: The Rails Command Line
       url: command_line.html
-      description: This guide covers the command line tools and rake tasks provided by Rails.
+      description: This guide covers the command line tools provided by Rails.
     -
       name: Asset Pipeline
       url: asset_pipeline.html
