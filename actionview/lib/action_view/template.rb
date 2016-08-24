@@ -152,7 +152,7 @@ module ActionView
     # we use a bang in this instrumentation because you don't want to
     # consume this in production. This is only slow if it's being listened to.
     def render(view, locals, buffer=nil, &block)
-      instrument("!render_template".freeze) do
+      instrument_render_template do
         compile!(view)
         view.send(method_name, locals, buffer, &block)
       end
@@ -341,13 +341,17 @@ module ActionView
       end
 
       def instrument(action, &block)
-        payload = { virtual_path: @virtual_path, identifier: @identifier }
-        case action
-        when "!render_template"
-          ActiveSupport::Notifications.instrument("!render_template.action_view".freeze, payload, &block)
-        else
-          ActiveSupport::Notifications.instrument("#{action}.action_view".freeze, payload, &block)
-        end
+        ActiveSupport::Notifications.instrument("#{action}.action_view".freeze, instrument_payload, &block)
+      end
+
+    private
+
+      def instrument_render_template(&block)
+        ActiveSupport::Notifications.instrument("!render_template.action_view".freeze, instrument_payload, &block)
+      end
+
+      def instrument_payload
+        { virtual_path: @virtual_path, identifier: @identifier }
       end
   end
 end
