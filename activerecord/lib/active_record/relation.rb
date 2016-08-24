@@ -504,15 +504,10 @@ module ActiveRecord
     #   Post.limit(100).delete_all
     #   # => ActiveRecord::ActiveRecordError: delete_all doesn't support limit
     def delete_all(conditions = nil)
-      invalid_methods = INVALID_METHODS_FOR_DELETE_ALL.select { |method|
-        if MULTI_VALUE_METHODS.include?(method)
-          send("#{method}_values").any?
-        elsif SINGLE_VALUE_METHODS.include?(method)
-          send("#{method}_value")
-        elsif CLAUSE_METHODS.include?(method)
-          send("#{method}_clause").any?
-        end
-      }
+      invalid_methods = INVALID_METHODS_FOR_DELETE_ALL.select do |method|
+        value = get_value(method)
+        SINGLE_VALUE_METHODS.include?(method) ? value : value.any?
+      end
       if invalid_methods.any?
         raise ActiveRecordError.new("delete_all doesn't support #{invalid_methods.join(', ')}")
       end
