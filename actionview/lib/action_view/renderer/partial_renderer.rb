@@ -333,8 +333,6 @@ module ActionView
           view, locals, block = @view, @locals, @block
           object, as = @object, @variable
 
-          view.instance_variable_set(:@log_payload_for_partial_render, payload)
-
           if !block && (layout = @options[:layout])
             layout = find_template(layout.to_s, @template_keys)
           end
@@ -347,6 +345,7 @@ module ActionView
           end
 
           content = layout.render(view, locals) { content } if layout
+          payload[:cache_hit] = view.cache_hit
           content
         end
       end
