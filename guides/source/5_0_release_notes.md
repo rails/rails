@@ -125,7 +125,7 @@ store_listing.price_in_cents # => 10
 StoreListing.new.my_string # => "new default"
 StoreListing.new.my_default_proc # => 2015-05-30 11:04:48 -0600
 model = StoreListing.new(field_without_db_column: ["1", "2", "3"])
-model.attributes #=> {field_without_db_column: [1, 2, 3]}
+model.attributes # => {field_without_db_column: [1, 2, 3]}
 ```
 
 **Creating Custom Types:**
@@ -171,7 +171,7 @@ instead of waiting for the suite to complete.
 - Complete exception backtrace output using `-b` option.
 - Integration with `Minitest` to allow options like `-s` for test seed data,
 `-n` for running specific test by name, `-v` for better verbose output and so forth.
-- Colored test output
+- Colored test output.
 
 Railties
 --------
@@ -212,7 +212,7 @@ Please refer to the [Changelog][railties] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/22173))
 
 *   Deprecated the tasks in the `rails` task namespace in favor of the `app` namespace.
-    (e.g. `rails:update` and `rails:template` tasks is renamed to `app:update` and `app:template`.)
+    (e.g. `rails:update` and `rails:template` tasks are renamed to `app:update` and `app:template`.)
     ([Pull Request](https://github.com/rails/rails/pull/23439))
 
 ### Notable changes
@@ -431,11 +431,6 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 *   Added request encoding and response parsing to integration tests.
     ([Pull Request](https://github.com/rails/rails/pull/21671))
-
-*   Update default rendering policies when the controller action did
-    not explicitly indicate a response.
-    ([Pull Request](https://github.com/rails/rails/pull/23827))
-
 
 *   Add `ActionController#helpers` to get access to the view context
     at the controller level.
@@ -703,9 +698,6 @@ Please refer to the [Changelog][active-record] for detailed changes.
     operator to combine WHERE or HAVING clauses.
     ([commit](https://github.com/rails/rails/commit/b0b37942d729b6bdcd2e3178eda7fa1de203b3d0))
 
-*   Added `:time` option added for `#touch`.
-    ([Pull Request](https://github.com/rails/rails/pull/18956))
-
 *   Added `ActiveRecord::Base.suppress` to prevent the receiver from being saved
     during the given block.
     ([Pull Request](https://github.com/rails/rails/pull/18910))
@@ -962,8 +954,10 @@ Please refer to the [Changelog][active-support] for detailed changes.
     `ActiveSupport::Cache::MemCachedStore#escape_key`, and
     `ActiveSupport::Cache::FileStore#key_file_path`.
     Use `normalize_key` instead.
+    ([Pull Request](https://github.com/rails/rails/pull/22215),
+     [commit](https://github.com/rails/rails/commit/a8f773b0))
 
-    Deprecated `ActiveSupport::Cache::LocaleCache#set_cache_value` in favor of `write_cache_value`.
+*   Deprecated `ActiveSupport::Cache::LocaleCache#set_cache_value` in favor of `write_cache_value`.
     ([Pull Request](https://github.com/rails/rails/pull/22215))
 
 *   Deprecated passing arguments to `assert_nothing_raised`.
