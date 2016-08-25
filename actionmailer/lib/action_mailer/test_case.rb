@@ -41,6 +41,7 @@ module ActionMailer
         setup :initialize_test_deliveries
         setup :set_expected_mail
         teardown :restore_test_deliveries
+        ActiveSupport.run_load_hooks(:action_mailer_test_case, self)
       end
 
       module ClassMethods
