@@ -1444,18 +1444,6 @@ config.public_file_server.headers = {
 }
 ```
 
-### config/initializers/assets.rb
-
-In the most recent verison of sprockets-rails there is a flag available to configure what happens when
-an asset lookup is performed and no asset is found. By setting this value to false, an error will be
-raised so the asset lookup does not fail silently.
-
-```ruby
-# Unknown asset fallback will return the path passed in when the given
-# asset is not present in the asset pipeline.
-Rails.application.config.assets.unknown_asset_fallback = false
-```
-
 ### config/initializers/wrap_parameters.rb
 
 Add this file with the following contents, if you wish to wrap parameters into a nested hash. This is on by default in new applications.
