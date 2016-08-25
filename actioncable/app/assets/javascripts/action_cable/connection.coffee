@@ -101,7 +101,7 @@ class ActionCable.Connection
           # if the client tried to double subscribe to a particular channel with
           # the same identifier.
           #
-          # Right now, possible client erros include the following:
+          # Right now, possible client errors include the following:
           #
           # - `subscribing_to_existing_subscription`: This will be triggered if
           # the client tries to double subscribe to a channel.
