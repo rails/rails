@@ -187,7 +187,7 @@ module ActiveRecord
 
       class Null < Attribute # :nodoc:
         def initialize(name)
-          super(name, nil, Type::Value.new)
+          super(name, nil, Type.default_value)
         end
 
         def type_cast(*)

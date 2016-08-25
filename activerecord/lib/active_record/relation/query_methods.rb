@@ -80,14 +80,14 @@ module ActiveRecord
         limit_bind = Attribute.with_cast_value(
           "LIMIT".freeze,
           connection.sanitize_limit(limit_value),
-          Type::Value.new,
+          Type.default_value,
         )
       end
       if offset_value
         offset_bind = Attribute.with_cast_value(
           "OFFSET".freeze,
           offset_value.to_i,
-          Type::Value.new,
+          Type.default_value,
         )
       end
       connection.combine_bind_parameters(

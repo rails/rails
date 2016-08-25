@@ -11,7 +11,7 @@ module ActiveRecord
       end
 
       def lookup(lookup_key, *args)
-        fetch(lookup_key, *args) { default_value }
+        fetch(lookup_key, *args) { Type.default_value }
       end
 
       def fetch(lookup_key, *args, &block)
@@ -54,10 +54,6 @@ module ActiveRecord
           else
             yield lookup_key, *args
           end
-        end
-
-        def default_value
-          @default_value ||= ActiveModel::Type::Value.new
         end
     end
   end
