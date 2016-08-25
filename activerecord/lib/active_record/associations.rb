@@ -1792,12 +1792,7 @@ module ActiveRecord
         #   has_and_belongs_to_many :nations, class_name: "Country"
         #   has_and_belongs_to_many :categories, join_table: "prods_cats"
         #   has_and_belongs_to_many :categories, -> { readonly }
-        def has_and_belongs_to_many(name, scope = nil, options = {}, &extension)
-          if scope.is_a?(Hash)
-            options = scope
-            scope   = nil
-          end
-
+        def has_and_belongs_to_many(name, scope = nil, **options, &extension)
           habtm_reflection = ActiveRecord::Reflection::HasAndBelongsToManyReflection.new(name, scope, options, self)
 
           builder = Builder::HasAndBelongsToMany.new name, self, options
