@@ -152,6 +152,7 @@ module ActionView
 
       included do
         setup :setup_with_controller
+        ActiveSupport.run_load_hooks(:action_view_test_case, self)
       end
 
     private
