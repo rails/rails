@@ -215,7 +215,7 @@ class QueryCacheTest < ActiveRecord::TestCase
   def test_query_cached_even_when_types_are_reset
     Task.cache do
       # Warm the cache
-      task = Task.find(1)
+      Task.find(1)
 
       Task.connection.type_map.clear
 
