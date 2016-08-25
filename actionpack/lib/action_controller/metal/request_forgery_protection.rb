@@ -379,10 +379,11 @@ module ActionController #:nodoc:
         )
       end
 
+      # Merge +s2+ into +s1+ by +XOR+ing their bytes.
       def xor_byte_strings(s1, s2)
-        s2_bytes = s2.bytes
-        s1.each_byte.with_index { |c1, i| s2_bytes[i] ^= c1 }
-        s2_bytes.pack("C*")
+        s1_bytes = s1.bytes
+        s2.each_byte.with_index { |c1, i| s1_bytes[i] ^= c1 }
+        s1_bytes.pack("C*")
       end
 
       # The form's authenticity parameter. Override to provide your own.

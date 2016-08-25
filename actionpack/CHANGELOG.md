@@ -1,3 +1,8 @@
+*   CSRF: When the `:_csrf_token` is shorter than `AUTHENTICITY_TOKEN_LENGTH`,
+    use the available bytes to generate a new token instead of failing with a `TypeError`.
+
+    *Robert Mosolgo*
+
 *   Include the content of the flash in the auto-generated etag. This solves the following problem:
 
       1. POST /messages

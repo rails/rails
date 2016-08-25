@@ -516,6 +516,11 @@ class RequestForgeryProtectionControllerUsingResetSessionTest < ActionController
       assert_match(/#{regexp}/, @response.body)
     end
   end
+
+  def test_should_not_raise_error_if_token_is_too_short
+    session[:_csrf_token] = "c9/MY8OvP7aVbxB2/ksCQw=="
+    assert_nothing_raised { get :meta }
+  end
 end
 
 class RequestForgeryProtectionControllerUsingNullSessionTest < ActionController::TestCase
