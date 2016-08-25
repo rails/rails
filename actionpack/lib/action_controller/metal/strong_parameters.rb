@@ -198,6 +198,20 @@ module ActionController
     end
     alias_method :to_unsafe_hash, :to_unsafe_h
 
+    # Returns a safe <tt>ActiveSupport::HashWithIndifferentAccess</tt>
+    # representation of this parameter with all unpermitted keys removed
+    # for implicit type conversion.
+    #
+    #   params = ActionController::Parameters.new({
+    #     food: "Pizza",
+    #     type: "Pepperoni"
+    #   })
+    #   params.to_hash # => {}
+    #
+    #   safe_params = params.permit(:food)
+    #   safe_params.to_hash # => {"food"=>"Pizza"}
+    alias_method :to_hash, :to_h
+
     # Convert all hashes in values into parameters, then yield each pair in
     # the same way as <tt>Hash#each_pair</tt>
     def each_pair(&block)

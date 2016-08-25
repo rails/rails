@@ -1,3 +1,9 @@
+*   Restore ActionController::Parameters `to_hash` behavior
+
+    The `to_hash` method provides safe, implicit type conversion.
+
+    *Blake Sawyer*
+
 *   Include the content of the flash in the auto-generated etag. This solves the following problem:
 
       1. POST /messages

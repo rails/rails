@@ -350,6 +350,46 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_not company.dupped
   end
 
+  test "to_hash returns empty hash on unpermitted params" do
+    assert @params.to_hash.is_a? Hash
+    assert_not @params.to_hash.is_a? ActionController::Parameters
+    assert @params.to_hash.empty?
+  end
+
+  test "to_hash returns converted hash on permitted params" do
+    @params.permit!
+
+    assert @params.to_hash.is_a? Hash
+    assert_not @params.to_hash.is_a? ActionController::Parameters
+  end
+
+  test "to_hash returns converted hash when .permit_all_parameters is set" do
+    begin
+      ActionController::Parameters.permit_all_parameters = true
+      orig_hash = {
+        "food" => "Pizza",
+        "options" => { "type" => "Pepperoni" }
+      }
+      params = ActionController::Parameters.new(orig_hash)
+
+      assert params.to_hash.is_a? Hash
+      assert_not params.to_hash.is_a? ActionController::Parameters
+      assert_equal(params.to_hash, orig_hash)
+    ensure
+      ActionController::Parameters.permit_all_parameters = false
+    end
+  end
+
+  test "to_hash returns always permitted parameter on unpermitted params" do
+    params = ActionController::Parameters.new(
+      "controller" => "users",
+      "action" => "create",
+      "food" => "Pizza"
+    )
+
+    assert_equal({ "controller" => "users", "action" => "create" }, params.to_hash)
+  end
+
   test "include? returns true when the key is present" do
     assert @params.include? :person
     assert @params.include? "person"
