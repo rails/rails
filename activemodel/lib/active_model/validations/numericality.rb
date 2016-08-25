@@ -27,6 +27,7 @@ module ActiveModel
         end
 
         return if options[:allow_nil] && raw_value.nil?
+        return if options[:allow_blank] && raw_value.blank?
 
         unless is_number?(raw_value)
           record.errors.add(attr_name, :not_a_number, filtered_options(raw_value))
