@@ -190,21 +190,26 @@ module ActiveRecord
     extend ActiveSupport::Autoload
     extend ActiveSupport::Concern
 
-    # These classes will be loaded when associations are created.
-    # So there is no need to eager load them.
-    autoload :Association
-    autoload :SingularAssociation
-    autoload :CollectionAssociation
-    autoload :ForeignAssociation
-    autoload :CollectionProxy
+    eager_autoload do
+      autoload :Association
+      autoload :SingularAssociation
+      autoload :CollectionAssociation
+      autoload :ForeignAssociation
+      autoload :CollectionProxy
 
-    autoload :BelongsToAssociation
-    autoload :BelongsToPolymorphicAssociation
-    autoload :HasManyAssociation
-    autoload :HasManyThroughAssociation
-    autoload :HasOneAssociation
-    autoload :HasOneThroughAssociation
-    autoload :ThroughAssociation
+      autoload :BelongsToAssociation
+      autoload :BelongsToPolymorphicAssociation
+      autoload :HasManyAssociation
+      autoload :HasManyThroughAssociation
+      autoload :HasOneAssociation
+      autoload :HasOneThroughAssociation
+      autoload :ThroughAssociation
+
+      autoload :Preloader
+      autoload :JoinDependency
+      autoload :AssociationScope
+      autoload :AliasTracker
+    end
 
     module Builder #:nodoc:
       autoload :Association,           "active_record/associations/builder/association"
@@ -215,13 +220,6 @@ module ActiveRecord
       autoload :HasOne,              "active_record/associations/builder/has_one"
       autoload :HasMany,             "active_record/associations/builder/has_many"
       autoload :HasAndBelongsToMany, "active_record/associations/builder/has_and_belongs_to_many"
-    end
-
-    eager_autoload do
-      autoload :Preloader
-      autoload :JoinDependency
-      autoload :AssociationScope
-      autoload :AliasTracker
     end
 
     # Returns the association instance for the given name, instantiating it if it doesn't already exist
