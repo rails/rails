@@ -86,7 +86,7 @@ module ActionDispatch
         @req.fetch_header(env_name(key)) do
           return default unless default == DEFAULT
           return yield if block_given?
-          raise NameError, key
+          raise KeyError, key
         end
       end
 

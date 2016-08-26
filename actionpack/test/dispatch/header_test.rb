@@ -158,4 +158,10 @@ class HeaderTest < ActiveSupport::TestCase
     assert_equal({ "HTTP_REFERER"=>"http://example.com/",
                   "CONTENT_TYPE"=>"text/plain" }, env)
   end
+
+  test "fetch exception" do
+    assert_raises KeyError do
+      @headers.fetch(:some_key_that_doesnt_exist)
+    end
+  end
 end
