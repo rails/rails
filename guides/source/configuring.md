@@ -1217,21 +1217,25 @@ NOTE. If you are running in a multi-threaded environment, there could be a chanc
 Custom configuration
 --------------------
 
-You can configure your own code through the Rails configuration object with custom configuration. It works like this:
+You can configure your own code through the Rails configuration object with
+custom configuration under either the `config.x` namespace, or `config` directly.
+The key difference between these two is that you should be using `config.x` if you
+are defining _nested_ configuration (ex: `config.x.nested.nested.hi`), and just
+`config` for _single level_ configuration (ex: `config.hello`).
 
   ```ruby
-  config.payment_processing.schedule = :daily
-  config.payment_processing.retries  = 3
+  config.x.payment_processing.schedule = :daily
+  config.x.payment_processing.retries  = 3
   config.super_debugger = true
   ```
 
 These configuration points are then available through the configuration object:
 
   ```ruby
-  Rails.configuration.payment_processing.schedule # => :daily
-  Rails.configuration.payment_processing.retries  # => 3
-  Rails.configuration.super_debugger              # => true
-  Rails.configuration.super_debugger.not_set      # => nil
+  Rails.configuration.x.payment_processing.schedule # => :daily
+  Rails.configuration.x.payment_processing.retries  # => 3
+  Rails.configuration.x.payment_processing.not_set  # => nil
+  Rails.configuration.super_debugger                # => true
   ```
 
 You can also use `Rails::Application.config_for` to load whole configuration files:
