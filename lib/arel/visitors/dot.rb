@@ -204,13 +204,14 @@ module Arel
       alias :visit_NilClass :visit_String
       alias :visit_TrueClass :visit_String
       alias :visit_FalseClass :visit_String
-      alias :visit_Arel_Nodes_BindParam :visit_String
       alias :visit_Integer :visit_String
       alias :visit_Fixnum :visit_String
       alias :visit_BigDecimal :visit_String
       alias :visit_Float :visit_String
       alias :visit_Symbol :visit_String
       alias :visit_Arel_Nodes_SqlLiteral :visit_String
+
+      def visit_Arel_Nodes_BindParam o; end
 
       def visit_Hash o
         o.each_with_index do |pair, i|
