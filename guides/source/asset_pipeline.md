@@ -588,7 +588,7 @@ all requests for assets include digests.
 
 ### Raise an Error When an Asset is Not Found
 
-If you are using a recent version of sprockets-rails you can configure what happens
+If you are using sprockets-rails >= 3.2.0 you can configure what happens
 when an asset lookup is performed and nothing is found. If you turn off "asset fallback"
 then an error will be raised when an asset cannot be found.
 
