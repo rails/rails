@@ -97,6 +97,13 @@ class TestJSONEncoding < Test::Unit::TestCase
     assert_equal %({\"a\":\"b\",\"c\":\"d\"}), sorted_json(ActiveSupport::JSON.encode(:a => :b, :c => :d))
   end
 
+  def test_hash_keys_encoding
+    ActiveSupport.escape_html_entities_in_json = true
+    assert_equal "{\"\\u003C\\u003E\":\"\\u003C\\u003E\"}", ActiveSupport::JSON.encode("<>" => "<>")
+  ensure
+    ActiveSupport.escape_html_entities_in_json = false
+  end
+
   def test_utf8_string_encoded_properly_when_kcode_is_utf8
     with_kcode 'UTF8' do
       result = ActiveSupport::JSON.encode('€2.99')
