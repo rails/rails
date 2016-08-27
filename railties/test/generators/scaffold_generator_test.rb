@@ -62,6 +62,11 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       assert_match(/patch product_line_url\(@product_line\), params: \{ product_line: \{ product_id: @product_line\.product_id, title: @product_line\.title, user_id: @product_line\.user_id \} \}/, test)
     end
 
+    # System tests
+    assert_file "test/system/product_lines_test.rb" do |test|
+      assert_match(/class ProductLinesTest < Rails::SystemTestCase/, test)
+    end
+
     # Views
     assert_no_file "app/views/layouts/product_lines.html.erb"
 
