@@ -19,6 +19,17 @@ module ActiveSupport
         assert !object, message
       end
 
+      # Assertion that the block should not raise an exception.
+      #
+      # Passes if evaluated code in the yielded block raises no exception.
+      #
+      #   assert_nothing_raised do
+      #     perform_service(param: 'no_exception')
+      #   end
+      def assert_nothing_raised
+        yield
+      end
+
       # Test numeric difference between the return value of an expression as a
       # result of what is evaluated in the yielded block.
       #
