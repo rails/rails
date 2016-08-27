@@ -256,7 +256,7 @@ class Module
   #     end
   #   end
   #
-  # The target can be anything callable withing the object. E.g. instance
+  # The target can be anything callable within the object. E.g. instance
   # variables, methods, constants ant the likes.
   def delegate_missing_to(target)
     target = target.to_s
