@@ -29,9 +29,7 @@ module ActiveRecord
     end
 
     def initialize_copy(other)
-      # This method is a hot spot, so for now, use Hash[] to dup the hash.
-      #   https://bugs.ruby-lang.org/issues/7166
-      @values        = Hash[@values]
+      @values = @values.dup
       reset
     end
 
@@ -661,7 +659,7 @@ module ActiveRecord
     end
 
     def values
-      Hash[@values]
+      @values.dup
     end
 
     def inspect
