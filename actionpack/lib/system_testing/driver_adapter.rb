@@ -5,11 +5,16 @@ module SystemTesting
     extend ActiveSupport::Concern
 
     module ClassMethods
-      attr_accessor :driver_adapter
+      def default_driver
+        :capybara_rack_test_driver
+      end
 
-      def driver_adapter=(driver_name_or_class)
-        driver = DriverAdapters.lookup(driver_name_or_class).new
-        driver.call
+      def driver
+        @driver ||= DriverAdapters.lookup(default_driver).new
+      end
+
+      def driver=(adapter: default_driver, settings: {})
+        @driver = DriverAdapters.lookup(adapter).new(settings)
       end
     end
   end
