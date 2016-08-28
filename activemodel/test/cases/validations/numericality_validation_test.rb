@@ -35,6 +35,13 @@ class NumericalityValidationTest < ActiveModel::TestCase
     valid!(NIL + FLOATS + INTEGERS + BIGDECIMAL + INFINITY)
   end
 
+  def test_validates_numericality_of_with_blank_allowed
+    Topic.validates_numericality_of :approved, allow_blank: true
+
+    invalid!(JUNK)
+    valid!(NIL + BLANK + FLOATS + INTEGERS + BIGDECIMAL + INFINITY)
+  end
+
   def test_validates_numericality_of_with_integer_only
     Topic.validates_numericality_of :approved, only_integer: true
 
