@@ -749,6 +749,14 @@ module ActionController
         Rack::Test::UploadedFile,
       ]
 
+      #
+      # -- Whitelisting  -------------------------------------------------------
+      #
+
+      # If the value is a permitted non-scalar type, and the filter
+      # value is true, then the entire value is permitted.
+      PERMIT_ALL_VALUE = true
+
       def permitted_scalar?(value)
         PERMITTED_SCALAR_TYPES.any? { |type| value.is_a?(type) }
       end
@@ -789,6 +797,8 @@ module ActionController
             array_of_permitted_scalars?(self[key]) do |val|
               params[key] = val
             end
+          elsif non_scalar?(value) && filter[key] === PERMIT_ALL_VALUE
+            params[key] = value
           elsif non_scalar?(value)
             # Declaration { user: :name } or { user: [:name, :age, { address: ... }] }.
             params[key] = each_element(value) do |element|
