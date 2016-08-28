@@ -1609,8 +1609,7 @@ class RouteSetTest < ActiveSupport::TestCase
       end
     end
 
-    assert_equal({:controller => 'pages', :action => 'bar'},
-      set.recognize_path('/bar'))
+    assert_equal({controller: 'pages', action: 'bar'}, set.recognize_path('/bar'))
   end
 
   def test_route_requirement_recognize_with_ignore_case
