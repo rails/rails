@@ -6,7 +6,7 @@ module ActionDispatch
       IP_HOST_REGEXP  = /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/
       HOST_REGEXP     = /(^[^:]+:\/\/)?(\[[^\]]+\]|[^:]+)(?::(\d+$))?/
       PROTOCOL_REGEXP = /^([^:]+)(:)?(\/\/)?$/
-      SECOND_LVL_DOMAINS = ["asn.au", "com.au", "net.au", "id.au", "org.au", "edu.au", "gov.au", 
+      SECOND_LVL_DOMAINS = ["asn.au", "com.au", "net.au", "id.au", "org.au", "edu.au", "gov.au",
         "csiro.au", "act.au", "nsw.au", "nt.au", "qld.au", "sa.au", "tas.au", "vic.au", "wa.au",
         "co.at", "or.at", "priv.at", "ac.at", "avocat.fr", "aeroport.fr", "veterinaire.fr", "co.hu",
         "film.hu", "lakas.hu", "ingatlan.hu", "sport.hu", "hotel.hu", "ac.nz", "co.nz", "geek.nz",
