@@ -1,3 +1,20 @@
+*   Fix nested multiple roots
+
+    The PR #20940 enabled the use of multiple roots with different constraints
+    at the top level but unfortunately didn't work when those roots were inside
+    a namespace and also broke the use of root inside a namespace after a top
+    level root was defined because the check for the existence of the named route
+    used the global :root name and not the namespaced name.
+
+    This is fixed by using the name_for_action method to expand the :root name to
+    the full namespaced name. We can pass nil for the second argument as we're not
+    dealing with resource definitions so don't need to handle the cases for edit
+    and new routes.
+
+    Fixes #26148.
+
+    *Ryo Hashimoto*, *Andrew White*
+
 *   SSL: Changes redirect behavior for all non-GET and non-HEAD requests
     (like POST/PUT/PATCH etc) to `http://` resources to redirect to `https://`
     with a [307 status code](http://tools.ietf.org/html/rfc7231#section-6.4.7) instead of [301 status code](http://tools.ietf.org/html/rfc7231#section-6.4.2).
