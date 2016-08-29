@@ -677,7 +677,7 @@ $ git format-patch master --stdout > ~/my_changes.patch
 Switch over to the target branch and apply your changes:
 
 ```bash
-$ git checkout -b my_backport_branch 3-2-stable
+$ git checkout -b my_backport_branch 4-2-stable
 $ git apply ~/my_changes.patch
 ```
 
