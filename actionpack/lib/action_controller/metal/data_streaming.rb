@@ -70,6 +70,7 @@ module ActionController #:nodoc:
         send_file_headers! options
 
         self.status = options[:status] || 200
+        self.content_type = options[:type] if options.key?(:type)
         self.content_type = options[:content_type] if options.key?(:content_type)
         response.send_file path
       end

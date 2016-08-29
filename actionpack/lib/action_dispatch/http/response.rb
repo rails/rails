@@ -224,8 +224,10 @@ module ActionDispatch # :nodoc:
 
     # Sets the HTTP content type.
     def content_type=(content_type)
-      header_info = parse_content_type
-      set_content_type content_type.to_s, header_info.charset || self.class.default_charset
+      return unless content_type
+      new_header_info = parse_content_type(content_type.to_s)
+      prev_header_info = parse_content_type(get_header(CONTENT_TYPE))
+      set_content_type new_header_info.mime_type, new_header_info.charset || prev_header_info.charset || self.class.default_charset
     end
 
     # Sets the HTTP response's content MIME type. For example, in the controller
@@ -403,8 +405,7 @@ module ActionDispatch # :nodoc:
     ContentTypeHeader = Struct.new :mime_type, :charset
     NullContentTypeHeader = ContentTypeHeader.new nil, nil
 
-    def parse_content_type
-      content_type = get_header CONTENT_TYPE
+    def parse_content_type(content_type = get_header(CONTENT_TYPE))
       if content_type
         type, charset = content_type.split(/;\s*charset=/)
         type = nil if type.empty?
