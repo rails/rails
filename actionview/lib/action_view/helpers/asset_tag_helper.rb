@@ -257,6 +257,8 @@ module ActionView
       # * <tt>:size</tt> - Supplied as "{Width}x{Height}" or "{Number}", so "30x45" becomes
       #   width="30" and height="45", and "50" becomes width="50" and height="50".
       #   <tt>:size</tt> will be ignored if the value is not in the correct format.
+      # * <tt>:public_poster_folder</tt> will bypass the asset pipeline when using
+      #   the <tt>:poster</tt> option instead using an asset in the public folder.
       #
       # ==== Examples
       #
@@ -268,6 +270,8 @@ module ActionView
       #   # => <video preload="none" controls="controls" src="/videos/trailer.ogg" ></video>
       #   video_tag("trailer.m4v", size: "16x10", poster: "screenshot.png")
       #   # => <video src="/videos/trailer.m4v" width="16" height="10" poster="/assets/screenshot.png"></video>
+      #   video_tag("trailer.m4v", size: "16x10", poster: "screenshot.png", public_poster_folder: true)
+      #   # => <video src="/videos/trailer.m4v" width="16" height="10" poster="screenshot.png"></video>
       #   video_tag("/trailers/hd.avi", size: "16x16")
       #   # => <video src="/trailers/hd.avi" width="16" height="16"></video>
       #   video_tag("/trailers/hd.avi", size: "16")
