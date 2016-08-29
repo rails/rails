@@ -147,7 +147,7 @@ module ActiveSupport
         retval = yield
 
         unless from == UNTRACKED
-          error = "#{expression.inspect} isn't #{from}"
+          error = "#{expression.inspect} isn't #{from.inspect}"
           error = "#{message}.\n#{error}" if message
           assert from === before, error
         end
