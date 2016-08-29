@@ -3669,6 +3669,48 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_multiple_roots
+    draw do
+      namespace :foo do
+        root "pages#index", constraints: { host: 'www.example.com' }
+        root "admin/pages#index", constraints: { host: 'admin.example.com' }
+      end
+
+      root "pages#index", constraints: { host: 'www.example.com' }
+      root "admin/pages#index", constraints: { host: 'admin.example.com' }
+    end
+
+    get "http://www.example.com/foo"
+    assert_equal "foo/pages#index", @response.body
+
+    get "http://admin.example.com/foo"
+    assert_equal "foo/admin/pages#index", @response.body
+
+    get "http://www.example.com/"
+    assert_equal "pages#index", @response.body
+
+    get "http://admin.example.com/"
+    assert_equal "admin/pages#index", @response.body
+  end
+
+  def test_namespaced_roots
+    draw do
+      namespace :foo do
+        root "test#index"
+      end
+
+      root "test#index"
+
+      namespace :bar do
+        root "test#index"
+      end
+    end
+
+    assert_equal "/foo", foo_root_path
+    assert_equal "/", root_path
+    assert_equal "/bar", bar_root_path
+  end
+
 private
 
   def draw(&block)

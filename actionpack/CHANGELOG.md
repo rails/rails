@@ -1,10 +1,27 @@
+*   Fix nested multiple roots
+
+    The PR #20940 enabled the use of multiple roots with different constraints
+    at the top level but unfortunately didn't work when those roots were inside
+    a namespace and also broke the use of root inside a namespace after a top
+    level root was defined because the check for the existence of the named route
+    used the global :root name and not the namespaced name.
+
+    This is fixed by using the name_for_action method to expand the :root name to
+    the full namespaced name. We can pass nil for the second argument as we're not
+    dealing with resource definitions so don't need to handle the cases for edit
+    and new routes.
+
+    Fixes #26148.
+
+    *Ryo Hashimoto*, *Andrew White*
+
 *   Include the content of the flash in the auto-generated etag. This solves the following problem:
 
       1. POST /messages
       2. redirect_to messages_url, notice: 'Message was created'
       3. GET /messages/1
       4. GET /messages
-      
+
       Step 4 would before still include the flash message, even though it's no longer relevant,
       because the etag cache was recorded with the flash in place and didn't change when it was gone.
 

@@ -1927,7 +1927,7 @@ to this:
           end
 
           def match_root_route(options)
-            name = has_named_route?(:root) ? nil : :root
+            name = has_named_route?(name_for_action(:root, nil)) ? nil : :root
             args = ["/", { as: name, via: :get }.merge!(options)]
 
             match(*args)
