@@ -103,6 +103,10 @@ module ActiveModel
           type.serialize(9999999999999999999999999999999)
         end
       end
+
+      test "deprecated integer types" do
+        assert_deprecated { Type::BigInteger.new }
+      end
     end
   end
 end
