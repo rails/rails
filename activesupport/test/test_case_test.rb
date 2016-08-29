@@ -138,6 +138,15 @@ class AssertDifferenceTest < ActiveSupport::TestCase
     end
   end
 
+  def test_assert_changes_with_from_option_with_nil
+    error = assert_raises Minitest::Assertion do
+      assert_changes "@object.num", from: nil do
+        @object.increment
+      end
+    end
+    assert_equal "\"@object.num\" isn't nil", error.message
+  end
+
   def test_assert_changes_with_to_option
     assert_changes "@object.num", to: 1 do
       @object.increment
