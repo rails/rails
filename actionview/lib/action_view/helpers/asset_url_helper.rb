@@ -121,21 +121,21 @@ module ActionView
       # This is the entry point for all assets.
       # When using the asset pipeline (i.e. sprockets and sprockets-rails), the
       # behavior is "enhanced". You can bypass the asset pipeline by passing in
-      # `public_folder: true` to the options.
+      # <tt>public_folder: true</tt> to the options.
       #
       # All other asset *_path helpers delegate through this method.
       #
       # === With the asset pipeline
       #
-      # All options passed to asset_path will be passed to `compute_asset_path
+      # All options passed to +asset_path+ will be passed to +compute_asset_path+
       # which is implemented by sprockets-rails.
       #
       #      asset_path("application.js") # => "/assets/application-60aa4fdc5cea14baf5400fba1abf4f2a46a5166bad4772b1effe341570f07de9.js"
       #
-      # === Without the asset pipeline (`public_folder: true`)
+      # === Without the asset pipeline (<tt>public_folder: true</tt>)
       #
-      # Accepts a `type` option that can specify the asset's extension. No error
-      # checking is done to verify the source passed into `asset_path` is valid
+      # Accepts a <tt>type</tt> option that can specify the asset's extension. No error
+      # checking is done to verify the source passed into +asset_path+ is valid
       # and that the file exists on disk.
       #
       #      asset_path("application.js", public_folder: true)                 # => "application.js"
@@ -145,7 +145,7 @@ module ActionView
       #
       # === Options applying to all assets
       #
-      # Below lists scenarios that apply to `asset_path` whether or not you're
+      # Below lists scenarios that apply to +asset_path+ whether or not you're
       # using the asset pipeline.
       #
       # - All fully qualified urls are returned immediately. This bypasses the
@@ -163,19 +163,19 @@ module ActionView
       #
       #     asset_path("") # => ""
       #
-      # - If `config.relative_url_root` is specified, all assets will have that
+      # - If <tt>config.relative_url_root</tt> is specified, all assets will have that
       #   root prepended.
       #
       #     Rails.application.config.relative_url_root = "bar"
       #     asset_path("foo.js", public_folder: true) # => "bar/foo.js"
       #
-      # - A different asset host can be specified via `config.action_controller.asset_host`
+      # - A different asset host can be specified via <tt>config.action_controller.asset_host</tt>
       #   this is commonly used in conjunction with a CDN.
       #
       #     Rails.application.config.action_controller.asset_host = "assets.example.com"
       #     asset_path("foo.js", public_folder: true) # => "http://assets.example.com/foo.js"
       #
-      # - An extension name can be specified manually with `extname`.
+      # - An extension name can be specified manually with <tt>extname</tt>.
       #
       #     asset_path("foo", public_folder: true, extname: ".js")     # => "/foo.js"
       #     asset_path("foo.css", public_folder: true, extname: ".js") # => "/foo.css.js"

@@ -169,7 +169,7 @@ pipeline is enabled. It is set to `true` by default.
 
 * `config.assets.precompile` allows you to specify additional assets (other than `application.css` and `application.js`) which are to be precompiled when `rake assets:precompile` is run.
 
-* `config.assets.unknown_asset_fallback` allows you to modify the behavior of the asset pipeline when an asset is not in the pipeline with recent verisons of sprockets-rails.
+* `config.assets.unknown_asset_fallback` allows you to modify the behavior of the asset pipeline when an asset is not in the pipeline, if you use sprockets-rails 3.2.0 or newer.
 
 * `config.assets.prefix` defines the prefix where assets are served from. Defaults to `/assets`.
 
