@@ -76,13 +76,13 @@ module ActiveModel
 
       test "very small numbers are out of range" do
         assert_raises(ActiveModel::RangeError) do
-          Integer.new.serialize(-9999999999999999999999999999999)
+          Integer.new(limit: 8).serialize(-9999999999999999999999999999999)
         end
       end
 
       test "very large numbers are out of range" do
         assert_raises(ActiveModel::RangeError) do
-          Integer.new.serialize(9999999999999999999999999999999)
+          Integer.new(limit: 8).serialize(9999999999999999999999999999999)
         end
       end
 
@@ -94,11 +94,11 @@ module ActiveModel
       end
 
       test "int max value is in range" do
-        assert_equal(2147483647, Integer.new.serialize(2147483647))
+        assert_equal(2147483647, Integer.new(limit: 4).serialize(2147483647))
       end
 
       test "int min value is in range" do
-        assert_equal(-2147483648, Integer.new.serialize(-2147483648))
+        assert_equal(-2147483648, Integer.new(limit: 4).serialize(-2147483648))
       end
 
       test "columns with a larger limit have larger ranges" do
@@ -112,6 +112,10 @@ module ActiveModel
         assert_raises(ActiveModel::RangeError) do
           type.serialize(9999999999999999999999999999999)
         end
+      end
+
+      test "deprecated integer types" do
+        assert_deprecated { Type::BigInteger.new }
       end
     end
   end
