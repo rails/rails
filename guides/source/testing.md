@@ -239,8 +239,8 @@ Run options: --seed 1808
 
 Error:
 ArticleTest#test_should_report_error:
-NameError: undefined local variable or method `some_undefined_variable' for #<ArticleTest:0x007fee3aa71798>
-    test/models/article_test.rb:11:in `block in <class:ArticleTest>'
+NameError: undefined local variable or method 'some_undefined_variable' for #<ArticleTest:0x007fee3aa71798>
+    test/models/article_test.rb:11:in 'block in <class:ArticleTest>'
 
 
 bin/rails test test/models/article_test.rb:9
@@ -369,7 +369,7 @@ documentation](http://docs.seattlerb.org/minitest).
 
 We can run all of our tests at once by using the `bin/rails test` command.
 
-Or we can run a single test by passing the `bin/rails test` command the filename containing the test cases.
+Or we can run a single test file by passing the `bin/rails test` command the filename containing the test cases.
 
 ```bash
 $ bin/rails test test/models/article_test.rb
@@ -763,16 +763,11 @@ The `get` method kicks off the web request and populates the results into the `@
 
 * The action of the controller you are requesting.
   This can be in the form of a string or a route (i.e. `articles_url`).
-
 * `params`: option with a hash of request parameters to pass into the action
   (e.g. query string parameters or article variables).
-
 * `headers`: for setting the headers that will be passed with the request.
-
 * `env`: for customizing the request environment as needed.
-
 * `xhr`: whether the request is Ajax request or not. Can be set to true for marking the request as Ajax.
-
 * `as`: for encoding the request with different content type. Supports `:json` by default.
 
 All of these keyword arguments are optional.
@@ -865,8 +860,8 @@ class ArticlesControllerTest < ActionDispatch::IntegrationTest
   test "should get index" do
     get articles_url
         
-    assert_equal "index",  @controller.action_name
-    assert_equal "application/x-www-form-urlencoded",  @request.media_type
+    assert_equal "index", @controller.action_name
+    assert_equal "application/x-www-form-urlencoded", @request.media_type
     assert_match "Articles", @response.body    
   end
 end
@@ -1056,7 +1051,7 @@ To avoid code duplication, you can add your own test helpers.
 Sign in helper can be a good example:
 
 ```ruby
-#test/test_helper.rb
+# test/test_helper.rb
 
 module SignInHelper
   def sign_in_as(user)
@@ -1362,7 +1357,7 @@ Here is an example using the [`travel_to`](http://api.rubyonrails.org/classes/Ac
 user = User.create(name: 'Gaurish', activation_date: Date.new(2004, 10, 24))
 assert_not user.applicable_for_gifting?
 travel_to Date.new(2004, 11, 24) do
-  assert_equal Date.new(2004, 10, 24), user.activation_date # inside the travel_to block `Date.current` is mocked
+  assert_equal Date.new(2004, 10, 24), user.activation_date # inside the `travel_to` block `Date.current` is mocked
   assert user.applicable_for_gifting?
 end
 assert_equal Date.new(2004, 10, 24), user.activation_date # The change was visible only inside the `travel_to` block.
