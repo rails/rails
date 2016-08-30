@@ -626,6 +626,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_queries(0) { tagging.super_tag }
   end
 
+  def test_dont_find_target_when_saving_foreign_key_after_stale_association_loaded
+    client = Client.create!(name: "Test client", firm_with_basic_id: Firm.find(1))
+    client.firm_id = Firm.create!(name: "Test firm").id
+    assert_queries(1) { client.save! }
+  end
+
   def test_field_name_same_as_foreign_key
     computer = Computer.find(1)
     assert_not_nil computer.developer, ":foreign key == attribute didn't lock up" # '
