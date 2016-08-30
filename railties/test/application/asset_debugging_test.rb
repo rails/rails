@@ -88,7 +88,7 @@ module ApplicationTests
       }
 
       cases.each do |(view_method, tag_match)|
-        app_file "app/views/posts/index.html.erb", "<%= #{ view_method } '#{contents}', public_folder: true %>"
+        app_file "app/views/posts/index.html.erb", "<%= #{ view_method } '#{contents}', skip_pipeline: true %>"
 
         app "development"
 
@@ -114,7 +114,7 @@ module ApplicationTests
       }
 
       cases.each do |(view_method, tag_match)|
-        app_file "app/views/posts/index.html.erb", "<%= #{ view_method } '#{contents}', public_folder: true %>"
+        app_file "app/views/posts/index.html.erb", "<%= #{ view_method } '#{contents}', skip_pipeline: true %>"
 
         app "development"
 
@@ -127,10 +127,10 @@ module ApplicationTests
       end
     end
 
-    test "{ public_folder: true } does not use the asset pipeline" do
+    test "{ skip_pipeline: true } does not use the asset pipeline" do
       cases = {
         /\/assets\/application-.*.\.js/ => {},
-        /application.js/                => { public_folder: true },
+        /application.js/                => { skip_pipeline: true },
       }
       cases.each do |(tag_match, options_hash)|
         app_file "app/views/posts/index.html.erb", "<%= asset_path('application.js', #{ options_hash }) %>"

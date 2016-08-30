@@ -121,7 +121,7 @@ module ActionView
       # This is the entry point for all assets.
       # When using the asset pipeline (i.e. sprockets and sprockets-rails), the
       # behavior is "enhanced". You can bypass the asset pipeline by passing in
-      # <tt>public_folder: true</tt> to the options.
+      # <tt>skip_pipeline: true</tt> to the options.
       #
       # All other asset *_path helpers delegate through this method.
       #
@@ -132,16 +132,16 @@ module ActionView
       #
       #      asset_path("application.js") # => "/assets/application-60aa4fdc5cea14baf5400fba1abf4f2a46a5166bad4772b1effe341570f07de9.js"
       #
-      # === Without the asset pipeline (<tt>public_folder: true</tt>)
+      # === Without the asset pipeline (<tt>skip_pipeline: true</tt>)
       #
       # Accepts a <tt>type</tt> option that can specify the asset's extension. No error
       # checking is done to verify the source passed into +asset_path+ is valid
       # and that the file exists on disk.
       #
-      #      asset_path("application.js", public_folder: true)                 # => "application.js"
-      #      asset_path("filedoesnotexist.png", public_folder: true)           # => "filedoesnotexist.png"
-      #      asset_path("application", type: :javascript, public_folder: true) # => "/javascripts/application.js"
-      #      asset_path("application", type: :stylesheet, public_folder: true) # => "/stylesheets/application.css"
+      #      asset_path("application.js", skip_pipeline: true)                 # => "application.js"
+      #      asset_path("filedoesnotexist.png", skip_pipeline: true)           # => "filedoesnotexist.png"
+      #      asset_path("application", type: :javascript, skip_pipeline: true) # => "/javascripts/application.js"
+      #      asset_path("application", type: :stylesheet, skip_pipeline: true) # => "/stylesheets/application.css"
       #
       # === Options applying to all assets
       #
@@ -167,18 +167,18 @@ module ActionView
       #   root prepended.
       #
       #     Rails.application.config.relative_url_root = "bar"
-      #     asset_path("foo.js", public_folder: true) # => "bar/foo.js"
+      #     asset_path("foo.js", skip_pipeline: true) # => "bar/foo.js"
       #
       # - A different asset host can be specified via <tt>config.action_controller.asset_host</tt>
       #   this is commonly used in conjunction with a CDN.
       #
       #     Rails.application.config.action_controller.asset_host = "assets.example.com"
-      #     asset_path("foo.js", public_folder: true) # => "http://assets.example.com/foo.js"
+      #     asset_path("foo.js", skip_pipeline: true) # => "http://assets.example.com/foo.js"
       #
       # - An extension name can be specified manually with <tt>extname</tt>.
       #
-      #     asset_path("foo", public_folder: true, extname: ".js")     # => "/foo.js"
-      #     asset_path("foo.css", public_folder: true, extname: ".js") # => "/foo.css.js"
+      #     asset_path("foo", skip_pipeline: true, extname: ".js")     # => "/foo.js"
+      #     asset_path("foo.css", skip_pipeline: true, extname: ".js") # => "/foo.css.js"
       def asset_path(source, options = {})
         raise ArgumentError, "nil is not a valid asset source" if source.nil?
 
@@ -193,7 +193,7 @@ module ActionView
         end
 
         if source[0] != ?/
-          if options[:public_folder]
+          if options[:skip_pipeline]
             source = public_compute_asset_path(source, options)
           else
             source = compute_asset_path(source, options)

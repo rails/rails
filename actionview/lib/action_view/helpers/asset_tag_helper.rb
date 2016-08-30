@@ -56,7 +56,7 @@ module ActionView
       #   # => <script src="http://www.example.com/xmlhr.js"></script>
       def javascript_include_tag(*sources)
         options = sources.extract_options!.stringify_keys
-        path_options = options.extract!("protocol", "extname", "host", "public_folder").symbolize_keys
+        path_options = options.extract!("protocol", "extname", "host", "skip_pipeline").symbolize_keys
         sources.uniq.map { |source|
           tag_options = {
             "src" => path_to_javascript(source, path_options)
@@ -92,7 +92,7 @@ module ActionView
       #   #    <link href="/css/stylish.css" media="screen" rel="stylesheet" />
       def stylesheet_link_tag(*sources)
         options = sources.extract_options!.stringify_keys
-        path_options = options.extract!("protocol", "host", "public_folder").symbolize_keys
+        path_options = options.extract!("protocol", "host", "skip_pipeline").symbolize_keys
         sources.uniq.map { |source|
           tag_options = {
             "rel" => "stylesheet",
@@ -173,7 +173,7 @@ module ActionView
         tag("link", {
           rel: "shortcut icon",
           type: "image/x-icon",
-          href: path_to_image(source, public_folder: options.delete(:public_folder))
+          href: path_to_image(source, skip_pipeline: options.delete(:skip_pipeline))
         }.merge!(options.symbolize_keys))
       end
 
@@ -211,7 +211,7 @@ module ActionView
         options = options.symbolize_keys
         check_for_image_tag_errors(options)
 
-        src = options[:src] = path_to_image(source, public_folder: options.delete(:public_folder))
+        src = options[:src] = path_to_image(source, skip_pipeline: options.delete(:skip_pipeline))
 
         unless src.start_with?("cid:") || src.start_with?("data:") || src.blank?
           options[:alt] = options.fetch(:alt) { image_alt(src) }
@@ -289,7 +289,7 @@ module ActionView
         public_poster_folder = options.delete(:public_poster_folder)
         sources << options
         multiple_sources_tag_builder("video", sources) do |options|
-          options[:poster] = path_to_image(options[:poster], public_folder: public_poster_folder) if options[:poster]
+          options[:poster] = path_to_image(options[:poster], skip_pipeline: public_poster_folder) if options[:poster]
           options[:width], options[:height] = extract_dimensions(options.delete(:size)) if options[:size]
         end
       end
@@ -313,17 +313,17 @@ module ActionView
       private
         def multiple_sources_tag_builder(type, sources)
           options       = sources.extract_options!.symbolize_keys
-          public_folder = options.delete(:public_folder)
+          skip_pipeline = options.delete(:skip_pipeline)
           sources.flatten!
 
           yield options if block_given?
 
           if sources.size > 1
             content_tag(type, options) do
-              safe_join sources.map { |source| tag("source", src: send("path_to_#{type}", source, public_folder: public_folder)) }
+              safe_join sources.map { |source| tag("source", src: send("path_to_#{type}", source, skip_pipeline: skip_pipeline)) }
             end
           else
-            options[:src] = send("path_to_#{type}", sources.first, public_folder: public_folder)
+            options[:src] = send("path_to_#{type}", sources.first, skip_pipeline: skip_pipeline)
             content_tag(type, nil, options)
           end
         end
