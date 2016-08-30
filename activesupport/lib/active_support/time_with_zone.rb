@@ -81,7 +81,7 @@ module ActiveSupport
 
     # Returns a <tt>Time</tt> instance of the simultaneous time in the system timezone.
     def localtime(utc_offset = nil)
-      utc.getlocal(utc_offset)
+      @localtime ||= utc.getlocal(utc_offset)
     end
     alias_method :getlocal, :localtime
 
