@@ -130,7 +130,7 @@ module ActionView
       # All options passed to +asset_path+ will be passed to +compute_asset_path+
       # which is implemented by sprockets-rails.
       #
-      #      asset_path("application.js") # => "/assets/application-60aa4fdc5cea14baf5400fba1abf4f2a46a5166bad4772b1effe341570f07de9.js"
+      #   asset_path("application.js") # => "/assets/application-60aa4fdc5cea14baf5400fba1abf4f2a46a5166bad4772b1effe341570f07de9.js"
       #
       # === Without the asset pipeline (<tt>skip_pipeline: true</tt>)
       #
@@ -138,10 +138,10 @@ module ActionView
       # checking is done to verify the source passed into +asset_path+ is valid
       # and that the file exists on disk.
       #
-      #      asset_path("application.js", skip_pipeline: true)                 # => "application.js"
-      #      asset_path("filedoesnotexist.png", skip_pipeline: true)           # => "filedoesnotexist.png"
-      #      asset_path("application", type: :javascript, skip_pipeline: true) # => "/javascripts/application.js"
-      #      asset_path("application", type: :stylesheet, skip_pipeline: true) # => "/stylesheets/application.css"
+      #   asset_path("application.js", skip_pipeline: true)                 # => "application.js"
+      #   asset_path("filedoesnotexist.png", skip_pipeline: true)           # => "filedoesnotexist.png"
+      #   asset_path("application", type: :javascript, skip_pipeline: true) # => "/javascripts/application.js"
+      #   asset_path("application", type: :stylesheet, skip_pipeline: true) # => "/stylesheets/application.css"
       #
       # === Options applying to all assets
       #

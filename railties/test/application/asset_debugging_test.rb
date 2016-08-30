@@ -72,23 +72,23 @@ module ApplicationTests
     test "public path and tag methods are not over-written by the asset pipeline" do
       contents = "doesnotexist"
       cases = {
-        asset_path:             %r{/#{ contents }},
-        image_path:             %r{/images/#{ contents }},
-        video_path:             %r{/videos/#{ contents }},
-        audio_path:             %r{/audios/#{ contents }},
-        font_path:              %r{/fonts/#{ contents }},
-        javascript_path:        %r{/javascripts/#{ contents }},
-        stylesheet_path:        %r{/stylesheets/#{ contents }},
-        image_tag:              %r{<img src="/images/#{ contents }"},
-        favicon_link_tag:       %r{<link rel="shortcut icon" type="image/x-icon" href="/images/#{ contents }" />},
-        stylesheet_link_tag:    %r{<link rel="stylesheet" media="screen" href="/stylesheets/#{ contents }.css" />},
-        javascript_include_tag: %r{<script src="/javascripts/#{ contents }.js">},
-        audio_tag:              %r{<audio src="/audios/#{ contents }"></audio>},
-        video_tag:              %r{<video src="/videos/#{ contents }"></video>}
+        asset_path:             %r{/#{contents}},
+        image_path:             %r{/images/#{contents}},
+        video_path:             %r{/videos/#{contents}},
+        audio_path:             %r{/audios/#{contents}},
+        font_path:              %r{/fonts/#{contents}},
+        javascript_path:        %r{/javascripts/#{contents}},
+        stylesheet_path:        %r{/stylesheets/#{contents}},
+        image_tag:              %r{<img src="/images/#{contents}"},
+        favicon_link_tag:       %r{<link rel="shortcut icon" type="image/x-icon" href="/images/#{contents}" />},
+        stylesheet_link_tag:    %r{<link rel="stylesheet" media="screen" href="/stylesheets/#{contents}.css" />},
+        javascript_include_tag: %r{<script src="/javascripts/#{contents}.js">},
+        audio_tag:              %r{<audio src="/audios/#{contents}"></audio>},
+        video_tag:              %r{<video src="/videos/#{contents}"></video>}
       }
 
       cases.each do |(view_method, tag_match)|
-        app_file "app/views/posts/index.html.erb", "<%= #{ view_method } '#{contents}', skip_pipeline: true %>"
+        app_file "app/views/posts/index.html.erb", "<%= #{view_method} '#{contents}', skip_pipeline: true %>"
 
         app "development"
 
@@ -97,24 +97,24 @@ module ApplicationTests
         get "/posts?debug_assets=true"
 
         body = last_response.body
-        assert_match(tag_match, body, "Expected `#{view_method}` to produce a match to #{ tag_match }, but did not: #{ body }")
+        assert_match(tag_match, body, "Expected `#{view_method}` to produce a match to #{tag_match}, but did not: #{body}")
       end
     end
 
     test "public url methods are not over-written by the asset pipeline" do
       contents = "doesnotexist"
       cases = {
-        asset_url:       %r{http://example.org/#{ contents }},
-        image_url:       %r{http://example.org/images/#{ contents }},
-        video_url:       %r{http://example.org/videos/#{ contents }},
-        audio_url:       %r{http://example.org/audios/#{ contents }},
-        font_url:        %r{http://example.org/fonts/#{ contents }},
-        javascript_url:  %r{http://example.org/javascripts/#{ contents }},
-        stylesheet_url:  %r{http://example.org/stylesheets/#{ contents }},
+        asset_url:       %r{http://example.org/#{contents}},
+        image_url:       %r{http://example.org/images/#{contents}},
+        video_url:       %r{http://example.org/videos/#{contents}},
+        audio_url:       %r{http://example.org/audios/#{contents}},
+        font_url:        %r{http://example.org/fonts/#{contents}},
+        javascript_url:  %r{http://example.org/javascripts/#{contents}},
+        stylesheet_url:  %r{http://example.org/stylesheets/#{contents}},
       }
 
       cases.each do |(view_method, tag_match)|
-        app_file "app/views/posts/index.html.erb", "<%= #{ view_method } '#{contents}', skip_pipeline: true %>"
+        app_file "app/views/posts/index.html.erb", "<%= #{view_method} '#{contents}', skip_pipeline: true %>"
 
         app "development"
 
@@ -123,7 +123,7 @@ module ApplicationTests
         get "/posts?debug_assets=true"
 
         body = last_response.body
-        assert_match(tag_match, body, "Expected `#{view_method}` to produce a match to #{ tag_match }, but did not: #{ body }")
+        assert_match(tag_match, body, "Expected `#{view_method}` to produce a match to #{tag_match}, but did not: #{body}")
       end
     end
 
@@ -133,7 +133,7 @@ module ApplicationTests
         /application.js/                => { skip_pipeline: true },
       }
       cases.each do |(tag_match, options_hash)|
-        app_file "app/views/posts/index.html.erb", "<%= asset_path('application.js', #{ options_hash }) %>"
+        app_file "app/views/posts/index.html.erb", "<%= asset_path('application.js', #{options_hash}) %>"
 
         app "development"
 
@@ -142,7 +142,7 @@ module ApplicationTests
         get "/posts?debug_assets=true"
 
         body = last_response.body.strip
-        assert_match(tag_match, body, "Expected `asset_path` with `#{ options_hash}` to produce a match to #{ tag_match }, but did not: #{ body }")
+        assert_match(tag_match, body, "Expected `asset_path` with `#{options_hash}` to produce a match to #{tag_match}, but did not: #{body}")
       end
     end
 
