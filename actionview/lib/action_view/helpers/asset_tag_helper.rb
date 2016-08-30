@@ -257,7 +257,7 @@ module ActionView
       # * <tt>:size</tt> - Supplied as "{Width}x{Height}" or "{Number}", so "30x45" becomes
       #   width="30" and height="45", and "50" becomes width="50" and height="50".
       #   <tt>:size</tt> will be ignored if the value is not in the correct format.
-      # * <tt>:public_poster_folder</tt> will bypass the asset pipeline when using
+      # * <tt>:poster_skip_pipeline</tt> will bypass the asset pipeline when using
       #   the <tt>:poster</tt> option instead using an asset in the public folder.
       #
       # ==== Examples
@@ -270,7 +270,7 @@ module ActionView
       #   # => <video preload="none" controls="controls" src="/videos/trailer.ogg" ></video>
       #   video_tag("trailer.m4v", size: "16x10", poster: "screenshot.png")
       #   # => <video src="/videos/trailer.m4v" width="16" height="10" poster="/assets/screenshot.png"></video>
-      #   video_tag("trailer.m4v", size: "16x10", poster: "screenshot.png", public_poster_folder: true)
+      #   video_tag("trailer.m4v", size: "16x10", poster: "screenshot.png", poster_skip_pipeline: true)
       #   # => <video src="/videos/trailer.m4v" width="16" height="10" poster="screenshot.png"></video>
       #   video_tag("/trailers/hd.avi", size: "16x16")
       #   # => <video src="/trailers/hd.avi" width="16" height="16"></video>
@@ -286,7 +286,7 @@ module ActionView
       #   # => <video height="120" width="160"><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
       def video_tag(*sources)
         options = sources.extract_options!.symbolize_keys
-        public_poster_folder = options.delete(:public_poster_folder)
+        public_poster_folder = options.delete(:poster_skip_pipeline)
         sources << options
         multiple_sources_tag_builder("video", sources) do |options|
           options[:poster] = path_to_image(options[:poster], skip_pipeline: public_poster_folder) if options[:poster]
