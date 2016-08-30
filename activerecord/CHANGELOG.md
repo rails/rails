@@ -1,3 +1,8 @@
+*   Remove unnecessarily association load when a `belongs_to` association has already been
+    loaded then the foreign key is changed directly and the record saved.
+
+    *James Coleman*
+
 *   PostgreSQL array columns will now respect the encoding of strings contained
     in the array.
 
