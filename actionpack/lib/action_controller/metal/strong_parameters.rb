@@ -2,6 +2,7 @@ require "active_support/core_ext/hash/indifferent_access"
 require "active_support/core_ext/hash/transform_values"
 require "active_support/core_ext/array/wrap"
 require "active_support/core_ext/string/filters"
+require "active_support/core_ext/object/to_query"
 require "active_support/rescuable"
 require "action_dispatch/http/upload"
 require "rack/test"
@@ -409,6 +410,8 @@ module ActionController
     def [](key)
       convert_hashes_to_parameters(key, @parameters[key])
     end
+
+    undef_method :to_param
 
     # Assigns a value to a given +key+. The given key may still get filtered out
     # when +permit+ is called.
