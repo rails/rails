@@ -411,8 +411,6 @@ module ActionController
       convert_hashes_to_parameters(key, @parameters[key])
     end
 
-    undef_method :to_param
-
     # Assigns a value to a given +key+. The given key may still get filtered out
     # when +permit+ is called.
     def []=(key, value)
@@ -621,6 +619,10 @@ module ActionController
         @parameters, @permitted = coder.map["parameters"], coder.map["permitted"]
       end
     end
+
+    # Undefine `to_param` such that it gets caught in the `method_missing`
+    # deprecation cycle below.
+    undef_method :to_param
 
     def method_missing(method_sym, *args, &block)
       if @parameters.respond_to?(method_sym)
