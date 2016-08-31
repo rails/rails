@@ -372,7 +372,7 @@ module ActionDispatch
 
         handle_options(options)
 
-        if @cookies[name.to_s] != value or options[:expires]
+        if @cookies[name.to_s] != value || options[:expires]
           @cookies[name.to_s] = value
           @set_cookies[name.to_s] = options
           @delete_cookies.delete(name.to_s)
@@ -576,7 +576,7 @@ module ActionDispatch
             "Read the upgrade documentation to learn more about this new config option."
         end
 
-        secret = key_generator.generate_key(request.encrypted_cookie_salt || "")
+        secret = key_generator.generate_key(request.encrypted_cookie_salt || "")[0, ActiveSupport::MessageEncryptor.key_len]
         sign_secret = key_generator.generate_key(request.encrypted_signed_cookie_salt || "")
         @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, digest: digest, serializer: ActiveSupport::MessageEncryptor::NullSerializer)
       end
