@@ -84,6 +84,14 @@ module ApplicationTests
       assert_match %w( a b ).to_s, Dir.chdir(app_path) { `bin/rails runner "bin/program_name.rb" a b` }
     end
 
+    def test_should_run_stdin
+      app_file "bin/count_users.rb", <<-SCRIPT
+      puts User.count
+      SCRIPT
+
+      assert_match "42", Dir.chdir(app_path) { `cat bin/count_users.rb | bin/rails runner -` }
+    end
+
     def test_with_hook
       add_to_config <<-RUBY
         runner do |app|
