@@ -500,7 +500,7 @@ module ActiveRecord
       # We check defined?(@attributes) not to issue warnings if the object is
       # allocated but not initialized.
       inspection = if defined?(@attributes) && @attributes
-        self.class.column_names.collect do |name|
+        self.class.attribute_names.collect do |name|
           if has_attribute?(name)
             "#{name}: #{attribute_for_inspect(name)}"
           end

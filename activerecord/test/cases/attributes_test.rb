@@ -249,5 +249,11 @@ module ActiveRecord
       model.foo = "lol"
       refute model.changed?
     end
+
+    test "attributes not backed by database columns appear in inspect" do
+      inspection = OverloadedType.new.inspect
+
+      assert inspection.include?("non_existent_decimal")
+    end
   end
 end
