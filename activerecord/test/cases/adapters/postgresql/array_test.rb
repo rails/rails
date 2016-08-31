@@ -311,6 +311,12 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
     assert_equal ["has already been taken"], e2.errors[:tags], "Should have uniqueness message for tags"
   end
 
+  def test_encoding_arrays_of_utf8_strings
+    string_with_utf8 = "nový"
+    assert_equal [string_with_utf8], @type.deserialize(@type.serialize([string_with_utf8]))
+    assert_equal [[string_with_utf8]], @type.deserialize(@type.serialize([[string_with_utf8]]))
+  end
+
   private
     def assert_cycle(field, array)
       # test creation

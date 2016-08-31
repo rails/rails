@@ -33,7 +33,11 @@ module ActiveRecord
 
           def serialize(value)
             if value.is_a?(::Array)
-              @pg_encoder.encode(type_cast_array(value, :serialize))
+              result = @pg_encoder.encode(type_cast_array(value, :serialize))
+              if encoding = determine_encoding_of_strings(value)
+                result.encode!(encoding)
+              end
+              result
             else
               super
             end
@@ -61,6 +65,13 @@ module ActiveRecord
                 value.map { |item| type_cast_array(item, method) }
               else
                 @subtype.public_send(method, value)
+              end
+            end
+
+            def determine_encoding_of_strings(value)
+              case value
+              when ::Array then determine_encoding_of_strings(value.first)
+              when ::String then value.encoding
               end
             end
         end
