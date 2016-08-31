@@ -4,7 +4,6 @@ module ActiveRecord
     require "active_record/relation/predicate_builder/association_query_handler"
     require "active_record/relation/predicate_builder/base_handler"
     require "active_record/relation/predicate_builder/basic_object_handler"
-    require "active_record/relation/predicate_builder/case_sensitive_handler"
     require "active_record/relation/predicate_builder/class_handler"
     require "active_record/relation/predicate_builder/polymorphic_array_handler"
     require "active_record/relation/predicate_builder/range_handler"
@@ -17,7 +16,6 @@ module ActiveRecord
       @handlers = []
 
       register_handler(BasicObject, BasicObjectHandler.new)
-      register_handler(CaseSensitiveHandler::Value, CaseSensitiveHandler.new)
       register_handler(Class, ClassHandler.new(self))
       register_handler(Base, BaseHandler.new(self))
       register_handler(Range, RangeHandler.new)
@@ -33,9 +31,9 @@ module ActiveRecord
       expand_from_hash(attributes)
     end
 
-    def create_binds(attributes, options)
+    def create_binds(attributes)
       attributes = convert_dot_notation_to_hash(attributes)
-      create_binds_for_hash(attributes, options)
+      create_binds_for_hash(attributes)
     end
 
     def self.references(attributes)
@@ -84,14 +82,14 @@ module ActiveRecord
         end
       end
 
-      def create_binds_for_hash(attributes, options)
+      def create_binds_for_hash(attributes)
         result = attributes.dup
         binds = []
 
         attributes.each do |column_name, value|
           case
           when value.is_a?(Hash) && !table.has_column?(column_name)
-            attrs, bvs = associated_predicate_builder(column_name).create_binds_for_hash(value, options)
+            attrs, bvs = associated_predicate_builder(column_name).create_binds_for_hash(value)
             result[column_name] = attrs
             binds += bvs
             next
@@ -110,15 +108,11 @@ module ActiveRecord
             end
 
             result[column_name] = RangeHandler::RangeWithBinds.new(first, last, value.exclude_end?)
-          when can_be_bound?(column_name, value)
-            result[column_name] =
-              if perform_case_sensitive?(options)
-                CaseSensitiveHandler::Value.new(
-                  Arel::Nodes::BindParam.new, table, options[:case_sensitive])
-              else
-                Arel::Nodes::BindParam.new
-              end
-            binds << build_bind_param(column_name, value)
+          else
+            if can_be_bound?(column_name, value)
+              result[column_name] = Arel::Nodes::BindParam.new
+              binds << build_bind_param(column_name, value)
+            end
           end
 
           # Find the foreign key when using queries such as:
@@ -168,10 +162,6 @@ module ActiveRecord
         else
           !value.nil? && handler_for(value).is_a?(BasicObjectHandler)
         end
-      end
-
-      def perform_case_sensitive?(options)
-        options.key?(:case_sensitive)
       end
 
       def build_bind_param(column_name, value)
