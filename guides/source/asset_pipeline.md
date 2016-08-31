@@ -586,6 +586,19 @@ in your application are included in the `config.assets.precompile` list.
 If `config.assets.digest` is also true, the asset pipeline will require that
 all requests for assets include digests.
 
+### Raise an Error When an Asset is Not Found
+
+If you are using sprockets-rails >= 3.2.0 you can configure what happens
+when an asset lookup is performed and nothing is found. If you turn off "asset fallback"
+then an error will be raised when an asset cannot be found.
+
+```ruby
+config.assets.unknown_asset_fallback = false
+```
+
+If "asset fallback" is enabled then when an asset cannot be found the path will be
+output instead and no error raised. The asset fallback behavior is enabled by default.
+
 ### Turning Digests Off
 
 You can turn off digests by updating `config/environments/development.rb` to
