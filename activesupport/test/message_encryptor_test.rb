@@ -48,6 +48,16 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     assert_equal @data, @encryptor.decrypt_and_verify(message)
   end
 
+  def test_backwards_compat_for_64_bytes_key
+    # 64 bit key
+    secret = ["3942b1bf81e622559ed509e3ff274a780784fe9e75b065866bd270438c74da822219de3156473cc27df1fd590e4baf68c95eeb537b6e4d4c5a10f41635b5597e"].pack("H*")
+    # Encryptor with 32 bit key, 64 bit secret for verifier
+    encryptor = ActiveSupport::MessageEncryptor.new(secret[0..31], secret)
+    # Message generated with 64 bit key
+    message = "eHdGeExnZEwvMSt3U3dKaFl1WFo0TjVvYzA0eGpjbm5WSkt5MXlsNzhpZ0ZnbWhBWFlQZTRwaXE1bVJCS2oxMDZhYVp2dVN3V0lNZUlWQ3c2eVhQbnhnVjFmeVVubmhRKzF3WnZyWHVNMDg9LS1HSisyakJVSFlPb05ISzRMaXRzcFdBPT0=--831a1d54a3cda8a0658dc668a03dedcbce13b5ca"
+    assert_equal "data", encryptor.decrypt_and_verify(message)[:some]
+  end
+
   def test_alternative_serialization_method
     prev = ActiveSupport.use_standard_json_time_format
     ActiveSupport.use_standard_json_time_format = true
