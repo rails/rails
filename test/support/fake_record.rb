@@ -39,7 +39,7 @@ module FakeRecord
       @primary_keys[name.to_s]
     end
 
-    def table_exists? name
+    def data_source_exists? name
       @tables.include? name.to_s
     end
 
