@@ -1,3 +1,10 @@
+*   Add `to_param` to `ActionController::Parameters` deprecations.
+
+    In the future `ActionController::Parameters` are discouraged from being used
+    in URLs without explicit whitelisting. Go through `to_h` to use `to_param`.
+
+    *Kir Shatrov*
+
 *   Fix nested multiple roots
 
     The PR #20940 enabled the use of multiple roots with different constraints
