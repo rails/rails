@@ -5,6 +5,7 @@ require "models/developer"
 require "models/computer"
 require "models/vehicle"
 require "models/cat"
+require "models/rat"
 require "active_support/core_ext/regexp"
 
 class DefaultScopingTest < ActiveRecord::TestCase
@@ -497,5 +498,9 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
     assert_match vegetarian_pattern, Lion.all.to_sql
     assert_match gender_pattern, Lion.female.to_sql
+  end
+
+  def test_default_scope_ignores_primary_key
+    assert Rat.new.id.nil?
   end
 end

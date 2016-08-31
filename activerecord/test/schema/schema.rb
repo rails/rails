@@ -767,6 +767,9 @@ ActiveRecord::Schema.define do
     t.belongs_to :ship
   end
 
+  create_table :rats, force: true do |t|
+  end
+
   create_table :shop_accounts, force: true do |t|
     t.references :customer
     t.references :customer_carrier
