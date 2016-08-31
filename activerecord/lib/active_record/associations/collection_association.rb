@@ -454,7 +454,7 @@ module ActiveRecord
       end
 
       private
-      def get_records
+      def get_records(&block)
         return scope.to_a if skip_statement_cache?
 
         conn = klass.connection
@@ -466,13 +466,13 @@ module ActiveRecord
         end
 
         binds = AssociationScope.get_bind_values(owner, reflection.chain)
-        sc.execute binds, klass, klass.connection
+        sc.execute(binds, klass, klass.connection, &block)
       end
 
         def find_target
-          records = get_records
-          records.each { |record| set_inverse_instance(record) }
-          records
+          get_records do |record|
+            set_inverse_instance(record)
+          end
         end
 
         # We have some records loaded from the database (persisted) and some that are
