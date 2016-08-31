@@ -27,22 +27,10 @@ class PostgresqlPointTest < ActiveRecord::PostgreSQLTestCase
       t.point :legacy_y, default: [12.2, 13.3]
       t.point :legacy_z, default: "(14.4,15.5)"
     end
-    @connection.create_table("deprecated_points") do |t|
-      t.point :x
-    end
   end
 
   teardown do
     @connection.drop_table "postgresql_points", if_exists: true
-    @connection.drop_table "deprecated_points", if_exists: true
-  end
-
-  class DeprecatedPoint < ActiveRecord::Base; end
-
-  def test_deprecated_legacy_type
-    assert_deprecated do
-      DeprecatedPoint.new
-    end
   end
 
   def test_column

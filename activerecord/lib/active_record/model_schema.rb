@@ -370,7 +370,6 @@ module ActiveRecord
         def load_schema!
           @columns_hash = connection.schema_cache.columns_hash(table_name).except(*ignored_columns)
           @columns_hash.each do |name, column|
-            warn_if_deprecated_type(column)
             define_attribute(
               name,
               connection.lookup_cast_type_from_column(column),
@@ -419,28 +418,6 @@ module ActiveRecord
           else
             # STI subclasses always use their superclass' table.
             base.table_name
-          end
-        end
-
-        def warn_if_deprecated_type(column)
-          return if attributes_to_define_after_schema_loads.key?(column.name)
-          if column.respond_to?(:oid) && column.sql_type.start_with?("point")
-            if column.array?
-              array_arguments = ", array: true"
-            else
-              array_arguments = ""
-            end
-            ActiveSupport::Deprecation.warn(<<-WARNING.strip_heredoc)
-            The behavior of the `:point` type will be changing in Rails 5.1 to
-            return a `Point` object, rather than an `Array`. If you'd like to
-            keep the old behavior, you can add this line to #{name}:
-
-              attribute :#{column.name}, :legacy_point#{array_arguments}
-
-            If you'd like the new behavior today, you can add this line:
-
-              attribute :#{column.name}, :point#{array_arguments}
-          WARNING
           end
         end
     end

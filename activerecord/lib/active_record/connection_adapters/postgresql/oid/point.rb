@@ -1,4 +1,6 @@
 module ActiveRecord
+  Point = Struct.new(:x, :y)
+
   module ConnectionAdapters
     module PostgreSQL
       module OID # :nodoc:
@@ -12,20 +14,34 @@ module ActiveRecord
           def cast(value)
             case value
             when ::String
+              return if value.blank?
+
               if value[0] == "(" && value[-1] == ")"
                 value = value[1...-1]
               end
-              cast(value.split(","))
+              x, y = value.split(",")
+              build_point(x, y)
             when ::Array
-              value.map { |v| Float(v) }
+              build_point(*value)
             else
               value
             end
           end
 
           def serialize(value)
-            if value.is_a?(::Array)
-              "(#{number_for_point(value[0])},#{number_for_point(value[1])})"
+            case value
+            when ActiveRecord::Point
+              "(#{number_for_point(value.x)},#{number_for_point(value.y)})"
+            when ::Array
+              serialize(build_point(*value))
+            else
+              super
+            end
+          end
+
+          def type_cast_for_schema(value)
+            if ActiveRecord::Point === value
+              [value.x, value.y]
             else
               super
             end
@@ -35,6 +51,10 @@ module ActiveRecord
 
             def number_for_point(number)
               number.to_s.gsub(/\.0$/, "")
+            end
+
+            def build_point(x, y)
+              ActiveRecord::Point.new(Float(x), Float(y))
             end
         end
       end
