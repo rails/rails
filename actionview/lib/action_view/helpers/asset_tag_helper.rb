@@ -288,9 +288,9 @@ module ActionView
         options = sources.extract_options!.symbolize_keys
         public_poster_folder = options.delete(:poster_skip_pipeline)
         sources << options
-        multiple_sources_tag_builder("video", sources) do |options|
-          options[:poster] = path_to_image(options[:poster], skip_pipeline: public_poster_folder) if options[:poster]
-          options[:width], options[:height] = extract_dimensions(options.delete(:size)) if options[:size]
+        multiple_sources_tag_builder("video", sources) do |tag_options|
+          tag_options[:poster] = path_to_image(tag_options[:poster], skip_pipeline: public_poster_folder) if tag_options[:poster]
+          tag_options[:width], tag_options[:height] = extract_dimensions(tag_options.delete(:size)) if tag_options[:size]
         end
       end
 
