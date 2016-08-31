@@ -178,7 +178,7 @@ module ActiveRecord
     # and #destroy returns +false+.
     # See ActiveRecord::Callbacks for further details.
     def destroy
-      raise ReadOnlyRecord, "#{self.class} is marked as readonly" if readonly?
+      _raise_readonly_record_error if readonly?
       destroy_associations
       self.class.connection.add_transaction_record(self)
       destroy_row if persisted?
@@ -535,7 +535,7 @@ module ActiveRecord
     end
 
     def create_or_update(*args)
-      raise ReadOnlyRecord, "#{self.class} is marked as readonly" if readonly?
+      _raise_readonly_record_error if readonly?
       result = new_record? ? _create_record : _update_record(*args)
       result != false
     end
@@ -576,6 +576,10 @@ module ActiveRecord
 
     def belongs_to_touch_method
       :touch
+    end
+
+    def _raise_readonly_record_error
+      raise ReadOnlyRecord, "#{self.class} is marked as readonly"
     end
   end
 end
