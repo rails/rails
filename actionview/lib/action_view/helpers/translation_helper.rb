@@ -80,8 +80,14 @@ module ActionView
         if html_safe_translation_key?(key)
           html_safe_options = options.dup
           options.except(*I18n::RESERVED_KEYS).each do |name, value|
-            unless name == :count && value.is_a?(Numeric)
-              html_safe_options[name] = ERB::Util.html_escape(value.to_s)
+            next if name == :count && value.is_a?(Numeric)
+
+            html_safe_options[name] = if value.respond_to?(:call)
+              Proc.new do |*values|
+                ERB::Util.html_escape(value.call(*values).to_s)
+              end
+            else
+              ERB::Util.html_escape(value.to_s)
             end
           end
           translation = I18n.translate(scope_key_by_partial(key), html_safe_options.merge(raise: i18n_raise))
@@ -101,7 +107,10 @@ module ActionView
 
           interpolations = options.except(:default, :scope)
           if interpolations.any?
-            title << ", " << interpolations.map { |k, v| "#{k}: #{ERB::Util.html_escape(v)}" }.join(", ")
+            title << ", " << interpolations.map do |k, v|
+              v = v.respond_to?(:call) ? v.call(interpolations).to_s : v
+              "#{k}: #{ERB::Util.html_escape(v)}"
+            end.join(", ")
           end
 
           return title unless ActionView::Base.debug_missing_translation

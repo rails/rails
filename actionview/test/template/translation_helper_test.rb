@@ -156,6 +156,30 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert_equal "<a>Hello &lt;World&gt;</a>", translate(:'translations.interpolated_html', word: word_struct.new("<World>"))
   end
 
+  def test_translate_escapes_proc_interpolations_in_translations_with_a_html_suffix
+    translation = translate(:'translations.interpolated_html', word: Proc.new { "<World>" } )
+    assert_equal "<a>Hello &lt;World&gt;</a>", translation
+    assert_equal true, translation.html_safe?
+  end
+
+  def test_translate_escapes_proc_with_values_interpolations_in_translations_with_a_html_suffix
+    interpolation_params = { word: Proc.new { |values| values[:word_argument].upcase }, word_argument: "World" }
+    translation = translate(:'translations.interpolated_html',  interpolation_params)
+    assert_equal "<a>Hello WORLD</a>", translation
+    assert_equal true, translation.html_safe?
+  end
+
+  def test_translate_escapes_lambda_interpolations_in_translations_with_a_html_suffix
+    translation = translate(:'translations.interpolated_html', word: ->(_) { "<World>" } )
+    assert_equal "<a>Hello &lt;World&gt;</a>", translation
+    assert_equal true, translation.html_safe?
+  end
+
+  def test_translate_ignore_unused_proc_interpolations_in_translations_with_a_html_suffix
+    interpolation_params = { word: Proc.new { "world".upcase }, unused: Proc.new { raise "Unused interpolation" } }
+    assert_equal "<a>Hello WORLD</a>", translate(:'translations.interpolated_html', interpolation_params)
+  end
+
   def test_translate_with_html_count
     assert_equal "<a>One 1</a>", translate(:'translations.count_html', count: 1)
     assert_equal "<a>Other 2</a>", translate(:'translations.count_html', count: 2)
