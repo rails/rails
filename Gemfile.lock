@@ -285,7 +285,7 @@ DEPENDENCIES
   sdoc (~> 0.4.0)
   sequel
   sidekiq
-  sneakers (= 0.1.1.pre)
+  sneakers (< 2.0.0)
   sprockets (~> 3.0.0.rc.1)
   sqlite3 (~> 1.3.6)
   stackprof
@@ -293,6 +293,3 @@ DEPENDENCIES
   turbolinks
   uglifier (>= 1.3.0)
   w3c_validators
-
-BUNDLED WITH
-   1.12.5
