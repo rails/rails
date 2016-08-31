@@ -159,7 +159,7 @@ module ActiveSupport
           error = "#{message}.\n#{error}" if message
           assert_not_equal before, after, error
         else
-          message = "#{expression.inspect} didn't change to #{to}"
+          error = "#{expression.inspect} didn't change to #{to}"
           error = "#{message}.\n#{error}" if message
           assert to === after, error
         end

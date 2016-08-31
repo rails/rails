@@ -211,6 +211,15 @@ class AssertDifferenceTest < ActiveSupport::TestCase
     end
   end
 
+  def test_assert_changes_with_message
+    error = assert_raises Minitest::Assertion do
+      assert_changes "@object.num", "@object.num should 1", to: 1 do
+      end
+    end
+
+    assert_equal "@object.num should 1.\n\"@object.num\" didn't change to 1", error.message
+  end
+
   def test_assert_no_changes_pass
     assert_no_changes "@object.num" do
       # ...
