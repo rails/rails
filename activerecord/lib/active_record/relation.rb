@@ -562,8 +562,8 @@ module ActiveRecord
     # return value is the relation itself, not the records.
     #
     #   Post.where(published: true).load # => #<ActiveRecord::Relation>
-    def load
-      exec_queries unless loaded?
+    def load(&block)
+      exec_queries(&block) unless loaded?
 
       self
     end
@@ -678,8 +678,8 @@ module ActiveRecord
 
     private
 
-      def exec_queries
-        @records = eager_loading? ? find_with_associations.freeze : @klass.find_by_sql(arel, bound_attributes).freeze
+      def exec_queries(&block)
+        @records = eager_loading? ? find_with_associations.freeze : @klass.find_by_sql(arel, bound_attributes, &block).freeze
 
         preload = preload_values
         preload +=  includes_values unless eager_loading?

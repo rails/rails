@@ -35,7 +35,7 @@ module ActiveRecord
     #
     #   Post.find_by_sql ["SELECT title FROM posts WHERE author = ? AND created > ?", author_id, start_date]
     #   Post.find_by_sql ["SELECT body FROM comments WHERE author = :user_id OR approved_by = :user_id", { :user_id => user_id }]
-    def find_by_sql(sql, binds = [], preparable: nil)
+    def find_by_sql(sql, binds = [], preparable: nil, &block)
       result_set = connection.select_all(sanitize_sql(sql), "#{name} Load", binds, preparable: preparable)
       column_types = result_set.column_types.dup
       columns_hash.each_key { |k| column_types.delete k }
@@ -47,7 +47,7 @@ module ActiveRecord
       }
 
       message_bus.instrument("instantiation.active_record", payload) do
-        result_set.map { |record| instantiate(record, column_types) }
+        result_set.map { |record| instantiate(record, column_types, &block) }
       end
     end
 

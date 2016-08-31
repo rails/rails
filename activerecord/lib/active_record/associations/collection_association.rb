@@ -390,9 +390,9 @@ module ActiveRecord
           end
 
           binds = AssociationScope.get_bind_values(owner, reflection.chain)
-          records = sc.execute(binds, klass, conn)
-          records.each { |record| set_inverse_instance(record) }
-          records
+          sc.execute(binds, klass, conn) do |record|
+            set_inverse_instance(record)
+          end
         end
 
         # We have some records loaded from the database (persisted) and some that are

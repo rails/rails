@@ -99,12 +99,12 @@ module ActiveRecord
       @bind_map      = bind_map
     end
 
-    def execute(params, klass, connection)
+    def execute(params, klass, connection, &block)
       bind_values = bind_map.bind params
 
       sql = query_builder.sql_for bind_values, connection
 
-      klass.find_by_sql(sql, bind_values, preparable: true)
+      klass.find_by_sql(sql, bind_values, preparable: true, &block)
     end
     alias :call :execute
   end

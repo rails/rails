@@ -62,7 +62,12 @@ module ActiveRecord
         private
 
           def associated_records_by_owner(preloader)
-            records = load_records
+            records = load_records do |record|
+              owner = owners_by_key[convert_key(record[association_key_name])]
+              association = owner.association(reflection.name)
+              association.set_inverse_instance(record)
+            end
+
             owners.each_with_object({}) do |owner, result|
               result[owner] = records[convert_key(owner[owner_key_name])] || []
             end
@@ -77,6 +82,15 @@ module ActiveRecord
               @owner_keys.compact!
             end
             @owner_keys
+          end
+
+          def owners_by_key
+            unless defined?(@owners_by_key)
+              @owners_by_key = owners.each_with_object({}) do |owner, h|
+                h[convert_key(owner[owner_key_name])] = owner
+              end
+            end
+            @owners_by_key
           end
 
           def key_conversion_required?
@@ -99,13 +113,13 @@ module ActiveRecord
             @model.type_for_attribute(owner_key_name.to_s).type
           end
 
-          def load_records
+          def load_records(&block)
             return {} if owner_keys.empty?
             # Some databases impose a limit on the number of ids in a list (in Oracle it's 1000)
             # Make several smaller queries if necessary or make one query if the adapter supports it
             slices  = owner_keys.each_slice(klass.connection.in_clause_length || owner_keys.size)
             @preloaded_records = slices.flat_map do |slice|
-              records_for(slice)
+              records_for(slice).load(&block)
             end
             @preloaded_records.group_by do |record|
               convert_key(record[association_key_name])

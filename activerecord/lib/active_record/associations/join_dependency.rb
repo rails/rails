@@ -286,9 +286,12 @@ module ActiveRecord
         end
 
         def construct_model(record, node, row, model_cache, id, aliases)
-          model = model_cache[node][id] ||= node.instantiate(row,
-                                                             aliases.column_aliases(node))
           other = record.association(node.reflection.name)
+
+          model = model_cache[node][id] ||=
+            node.instantiate(row, aliases.column_aliases(node)) do |m|
+              other.set_inverse_instance(m)
+            end
 
           if node.reflection.collection?
             other.target.push(model)
@@ -296,7 +299,6 @@ module ActiveRecord
             other.target = model
           end
 
-          other.set_inverse_instance(model)
           model
         end
     end

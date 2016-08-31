@@ -1,3 +1,10 @@
+*   Inverse association instances will now be set before `after_find` or
+    `after_initialize` callbacks are run.
+
+    Fixes #26320.
+
+    *Sean Griffin*
+
 *   Remove unnecessarily association load when a `belongs_to` association has already been
     loaded then the foreign key is changed directly and the record saved.
 

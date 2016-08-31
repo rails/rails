@@ -29,7 +29,10 @@ module ActiveRecord
     private
 
       def exec_queries
-        super.each { |r| @association.set_inverse_instance r }
+        super do |r|
+          @association.set_inverse_instance r
+          yield r if block_given?
+        end
       end
   end
 end

@@ -9,7 +9,6 @@ module ActiveRecord
               association = owner.association(reflection.name)
               association.loaded!
               association.target.concat(records)
-              records.each { |record| association.set_inverse_instance(record) }
             end
           end
       end

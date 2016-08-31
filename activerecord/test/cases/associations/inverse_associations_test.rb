@@ -494,6 +494,33 @@ class InverseHasManyTests < ActiveRecord::TestCase
 
     assert !man.persisted?
   end
+
+  def test_inverse_instance_should_be_set_before_find_callbacks_are_run
+    reset_callbacks(Interest, :find) do
+      Interest.after_find { raise unless association(:man).loaded? && man.present? }
+
+      assert Man.first.interests.reload.any?
+      assert Man.includes(:interests).first.interests.any?
+      assert Man.joins(:interests).includes(:interests).first.interests.any?
+    end
+  end
+
+  def test_inverse_instance_should_be_set_before_initialize_callbacks_are_run
+    reset_callbacks(Interest, :initialize) do
+      Interest.after_initialize { raise unless association(:man).loaded? && man.present? }
+
+      assert Man.first.interests.reload.any?
+      assert Man.includes(:interests).first.interests.any?
+      assert Man.joins(:interests).includes(:interests).first.interests.any?
+    end
+  end
+
+  def reset_callbacks(target, type)
+    old_callbacks = target.send(:get_callbacks, type).deep_dup
+    yield
+  ensure
+    target.send(:set_callbacks, type, old_callbacks) if old_callbacks
+  end
 end
 
 class InverseBelongsToTests < ActiveRecord::TestCase
