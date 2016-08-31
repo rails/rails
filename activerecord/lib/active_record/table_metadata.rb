@@ -31,7 +31,7 @@ module ActiveRecord
       if klass
         klass.type_for_attribute(column_name.to_s)
       else
-        Type::Value.new
+        Type.default_value
       end
     end
 

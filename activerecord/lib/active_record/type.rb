@@ -37,6 +37,10 @@ module ActiveRecord
         registry.lookup(*args, adapter: adapter, **kwargs)
       end
 
+      def default_value # :nodoc:
+        @default_value ||= Value.new
+      end
+
       private
 
       def current_adapter_name

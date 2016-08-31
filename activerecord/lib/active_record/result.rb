@@ -32,8 +32,6 @@ module ActiveRecord
   class Result
     include Enumerable
 
-    IDENTITY_TYPE = Type::Value.new # :nodoc:
-
     attr_reader :columns, :rows, :column_types
 
     def initialize(columns, rows, column_types = {})
@@ -105,7 +103,7 @@ module ActiveRecord
 
       def column_type(name, type_overrides = {})
         type_overrides.fetch(name) do
-          column_types.fetch(name, IDENTITY_TYPE)
+          column_types.fetch(name, Type.default_value)
         end
       end
 

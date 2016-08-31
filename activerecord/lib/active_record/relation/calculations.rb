@@ -312,7 +312,7 @@ module ActiveRecord
           key = group_columns.map { |aliaz, col_name|
             column = type_for(col_name) do
               calculated_data.column_types.fetch(aliaz) do
-                Type::Value.new
+                Type.default_value
               end
             end
             type_cast_calculated_value(row[aliaz], column)

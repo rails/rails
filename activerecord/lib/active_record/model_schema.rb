@@ -268,7 +268,7 @@ module ActiveRecord
 
       def attribute_types # :nodoc:
         load_schema
-        @attribute_types ||= Hash.new(Type::Value.new)
+        @attribute_types ||= Hash.new(Type.default_value)
       end
 
       def yaml_encoder # :nodoc:

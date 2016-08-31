@@ -437,7 +437,7 @@ module ActiveRecord
 
           type_map.fetch(oid, fmod, sql_type) {
             warn "unknown OID #{oid}: failed to recognize type of '#{column_name}'. It will be treated as String."
-            Type::Value.new.tap do |cast_type|
+            Type.default_value.tap do |cast_type|
               type_map.register_type(oid, cast_type)
             end
           }
