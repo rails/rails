@@ -1,3 +1,10 @@
+*   Inverse association instances will now be set before `after_find` or
+    `after_initialize` callbacks are run.
+
+    Fixes #26320.
+
+    *Sean Griffin*
+
 *   Avoid loading records from database when they are already loaded using
     the `pluck` method on a collection.
 
