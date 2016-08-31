@@ -129,8 +129,7 @@ defaults to `:debug` for all environments. The available log levels are: `:debug
       include LoggerSilence
     end
 
-    mylogger           = MyLogger.new(STDOUT)
-    mylogger.formatter = config.log_formatter
+    mylogger      = MyLogger.new(STDOUT, formatter: config.log_formatter)
     config.logger = ActiveSupport::TaggedLogging.new(mylogger)
     ```
 

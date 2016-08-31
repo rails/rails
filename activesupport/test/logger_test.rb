@@ -34,8 +34,7 @@ class LoggerTest < ActiveSupport::TestCase
     f = File.open(t.path, "w")
     f.binmode
 
-    logger = Logger.new f
-    logger.level = Logger::DEBUG
+    logger = Logger.new f, level: Logger::DEBUG
 
     str = "\x80"
     str.force_encoding("ASCII-8BIT")
