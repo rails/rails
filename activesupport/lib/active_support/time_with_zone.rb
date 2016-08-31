@@ -318,11 +318,11 @@ module ActiveSupport
 
     # Return an instance of Time in the system timezone.
     def to_time
-      utc.to_time
+      @to_time ||= utc.to_time
     end
 
     def to_datetime
-      utc.to_datetime.new_offset(Rational(utc_offset, 86_400))
+      @to_datetime ||= utc.to_datetime.new_offset(Rational(utc_offset, 86_400))
     end
 
     # So that +self+ <tt>acts_like?(:time)</tt>.
