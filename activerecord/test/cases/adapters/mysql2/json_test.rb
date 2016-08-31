@@ -68,7 +68,7 @@ if ActiveRecord::Base.connection.supports_json?
 
       assert_equal({}, type.deserialize("{}"))
       assert_equal({ "key"=>nil }, type.deserialize('{"key": null}'))
-      assert_equal({ "c"=>"}",'"a"'=>'b "a b' }, type.deserialize(%q({"c":"}", "\"a\"":"b \"a b"})))
+      assert_equal({ "c"=>"}",'"a"'=>'b "a b' }, type.deserialize('{"c":"}", "\"a\"":"b \"a b"}'))
     end
 
     def test_rewrite
