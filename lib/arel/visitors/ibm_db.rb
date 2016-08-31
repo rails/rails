@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Arel
   module Visitors
     class IBM_DB < Arel::Visitors::ToSql

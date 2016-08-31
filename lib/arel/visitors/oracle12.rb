@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Arel
   module Visitors
     class Oracle12 < Arel::Visitors::ToSql

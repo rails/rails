@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Arel
   module Visitors
     class Dot < Arel::Visitors::Visitor
@@ -272,7 +273,7 @@ module Arel
             label = "<f0>#{node.name}"
 
             node.fields.each_with_index do |field, i|
-              label << "|<f#{i + 1}>#{quote field}"
+              label += "|<f#{i + 1}>#{quote field}"
             end
 
             "#{node.id} [label=\"#{label}\"];"
