@@ -1,3 +1,10 @@
+*   PostgreSQL array columns will now respect the encoding of strings contained
+    in the array.
+
+    Fixes #26326.
+
+    *Sean Griffin*
+
 *   Inverse association instances will now be set before `after_find` or
     `after_initialize` callbacks are run.
 
