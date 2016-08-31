@@ -35,7 +35,7 @@ module Arel
           stmt.limit = Nodes::Limit.new(10)
           stmt.lock = Nodes::Lock.new(Arel.sql('FOR UPDATE'))
           assert_raises ArgumentError do
-            sql = compile(stmt)
+            compile(stmt)
           end
         end
 
