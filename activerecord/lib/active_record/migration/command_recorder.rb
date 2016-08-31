@@ -92,7 +92,7 @@ module ActiveRecord
         send(method, args, &block)
       end
 
-      def respond_to?(*args) # :nodoc:
+      def respond_to_missing?(*args) # :nodoc:
         super || delegate.respond_to?(*args)
       end
 

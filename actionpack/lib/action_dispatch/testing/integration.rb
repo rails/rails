@@ -502,7 +502,7 @@ module ActionDispatch
         integration_session.default_url_options = options
       end
 
-      def respond_to?(method, include_private = false)
+      def respond_to_missing?(method, include_private = false)
         integration_session.respond_to?(method, include_private) || super
       end
 

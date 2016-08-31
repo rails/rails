@@ -108,7 +108,7 @@ module ActiveRecord
         end
     end
 
-    def respond_to?(method, include_private = false)
+    def respond_to_missing?(method, include_private = false)
       super || @klass.respond_to?(method, include_private) ||
         arel.respond_to?(method, include_private)
     end

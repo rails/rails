@@ -2,7 +2,7 @@ require "active_support/core_ext/regexp"
 
 module ActiveRecord
   module DynamicMatchers #:nodoc:
-    def respond_to?(name, include_private = false)
+    def respond_to_missing?(name, include_private = false)
       if self == Base
         super
       else
