@@ -1,3 +1,7 @@
+*   Write log with level :error when an exception got raised when trying to deliver an email.
+
+    *Ignatius Reza Lesmana*
+
 *   Allow Action Mailer classes to configure their delivery job.
 
         class MyMailer < ApplicationMailer

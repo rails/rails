@@ -19,6 +19,12 @@ class AMLogSubscriberTest < ActionMailer::TestCase
     end
   end
 
+  class ExceptionDelivery < Mail::TestMailer
+    def deliver!(mail)
+      raise Net::SMTPAuthenticationError
+    end
+  end
+
   def set_logger(logger)
     ActionMailer::Base.logger = logger
   end
@@ -35,6 +41,31 @@ class AMLogSubscriberTest < ActionMailer::TestCase
     assert_match(/Welcome/, @logger.logged(:debug).second)
   ensure
     BaseMailer.deliveries.clear
+  end
+
+  def test_deliver_is_notified_when_exception_is_raised
+    @original_delivery_method = ActionMailer::Base.delivery_method
+    ActionMailer::Base.delivery_method = ExceptionDelivery
+
+    mail = BaseMailer.welcome
+
+    assert_raise Net::SMTPAuthenticationError do
+      mail.deliver_now
+    end
+
+    wait
+
+    assert_equal(0, @logger.logged(:info).size)
+
+    assert_equal(1, @logger.logged(:error).size)
+    assert_match(/Net::SMTPAuthenticationError was raised when sending mail to system@test.lindsaar.net/, @logger.logged(:error).first)
+
+    assert_equal(2, @logger.logged(:debug).size)
+    assert_match(/BaseMailer#welcome: processed outbound mail in [\d.]+ms/, @logger.logged(:debug).first)
+    assert_match(/Welcome/, @logger.logged(:debug).second)
+  ensure
+    BaseMailer.deliveries.clear
+    ActionMailer::Base.delivery_method = @original_delivery_method
   end
 
   def test_receive_is_notified

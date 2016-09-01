@@ -8,9 +8,14 @@ module ActionMailer
   class LogSubscriber < ActiveSupport::LogSubscriber
     # An email was delivered.
     def deliver(event)
-      info do
-        recipients = Array(event.payload[:to]).join(", ")
-        "Sent mail to #{recipients} (#{event.duration.round(1)}ms)"
+      if exception = event.payload[:exception]
+        error do
+          "#{exception.first} was raised when sending mail to #{recipients(event)} (#{duration_in_ms(event)})"
+        end
+      else
+        info do
+          "Sent mail to #{recipients(event)} (#{duration_in_ms(event)})"
+        end
       end
 
       debug { event.payload[:mail] }
@@ -18,7 +23,7 @@ module ActionMailer
 
     # An email was received.
     def receive(event)
-      info { "Received mail (#{event.duration.round(1)}ms)" }
+      info { "Received mail (#{duration_in_ms(event)})" }
       debug { event.payload[:mail] }
     end
 
@@ -27,7 +32,7 @@ module ActionMailer
       debug do
         mailer = event.payload[:mailer]
         action = event.payload[:action]
-        "#{mailer}##{action}: processed outbound mail in #{event.duration.round(1)}ms"
+        "#{mailer}##{action}: processed outbound mail in #{duration_in_ms(event)}"
       end
     end
 
@@ -35,6 +40,15 @@ module ActionMailer
     def logger
       ActionMailer::Base.logger
     end
+
+    private
+      def recipients(event)
+        Array(event.payload[:to]).join(", ")
+      end
+
+      def duration_in_ms(event)
+        "#{event.duration.round(1)}ms"
+      end
   end
 end
 
