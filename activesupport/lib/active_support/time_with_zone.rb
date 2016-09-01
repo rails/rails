@@ -478,6 +478,8 @@ module ActiveSupport
       end
 
       def transfer_time_values_to_utc_constructor(time)
+        # avoid creating another Time object if possible
+        return time if time.instance_of?(::Time) && time.utc?
         ::Time.utc(time.year, time.month, time.day, time.hour, time.min, time.sec + time.subsec)
       end
 
