@@ -1011,12 +1011,13 @@ module ActionView
         #  css_class_attribute(:year, 'date optional', { year: 'my-year' })
         #  => "date optional my-year"
         def css_class_attribute(type, html_options_class, options) # :nodoc:
-          css_class = case options
-                      when Hash
-                        options[type.to_sym]
-                      else
-                        type
-                      end
+          css_class = \
+            case options
+            when Hash
+              options[type.to_sym]
+            else
+              type
+            end
 
           [html_options_class, css_class].compact.join(" ")
         end

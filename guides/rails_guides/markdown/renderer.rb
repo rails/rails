@@ -67,14 +67,15 @@ HTML
           # as a list item, but as a paragraph starting with a plain
           # asterisk.
           body.gsub(/^(TIP|IMPORTANT|CAUTION|WARNING|NOTE|INFO|TODO)[.:](.*?)(\n(?=\n)|\Z)/m) do
-            css_class = case $1
-                        when "CAUTION", "IMPORTANT"
-                          "warning"
-                        when "TIP"
-                          "info"
-                        else
-                          $1.downcase
-                        end
+            css_class = \
+              case $1
+              when "CAUTION", "IMPORTANT"
+                "warning"
+              when "TIP"
+                "info"
+              else
+                $1.downcase
+              end
             %(<div class="#{css_class}"><p>#{$2.strip}</p></div>)
           end
         end

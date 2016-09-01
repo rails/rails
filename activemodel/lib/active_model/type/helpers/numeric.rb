@@ -8,7 +8,7 @@ module ActiveModel
                   when false then 0
                   when ::String then value.presence
                   else value
-                  end
+          end
           super(value)
         end
 

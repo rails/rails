@@ -14,18 +14,19 @@ module ActiveRecord
     end
 
     def self.create(macro, name, scope, options, ar)
-      klass = case macro
-              when :composed_of
-                AggregateReflection
-              when :has_many
-                HasManyReflection
-              when :has_one
-                HasOneReflection
-              when :belongs_to
-                BelongsToReflection
-              else
-                raise "Unsupported Macro: #{macro}"
-              end
+      klass = \
+        case macro
+        when :composed_of
+          AggregateReflection
+        when :has_many
+          HasManyReflection
+        when :has_one
+          HasOneReflection
+        when :belongs_to
+          BelongsToReflection
+        else
+          raise "Unsupported Macro: #{macro}"
+        end
 
       reflection = klass.new(name, scope, options, ar)
       options[:through] ? ThroughReflection.new(reflection) : reflection

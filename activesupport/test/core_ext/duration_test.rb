@@ -208,7 +208,11 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_case_when
-    cased = case 1.day when 1.day then "ok" end
+    cased = \
+      case 1.day
+      when 1.day
+        "ok"
+      end
     assert_equal cased, "ok"
   end
 

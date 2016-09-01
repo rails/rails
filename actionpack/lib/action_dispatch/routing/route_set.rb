@@ -282,16 +282,17 @@ module ActionDispatch
             mod.module_eval do
               define_method(name) do |*args|
                 last = args.last
-                options = case last
-                          when Hash
-                            args.pop
-                          when ActionController::Parameters
-                            if last.permitted?
-                              args.pop.to_h
-                            else
-                              raise ArgumentError, ActionDispatch::Routing::INSECURE_URL_PARAMETERS_MESSAGE
-                            end
-                          end
+                options = \
+                  case last
+                  when Hash
+                    args.pop
+                  when ActionController::Parameters
+                    if last.permitted?
+                      args.pop.to_h
+                    else
+                      raise ArgumentError, ActionDispatch::Routing::INSECURE_URL_PARAMETERS_MESSAGE
+                    end
+                  end
                 helper.call self, args, options
               end
             end
