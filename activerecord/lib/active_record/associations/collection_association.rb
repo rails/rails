@@ -307,6 +307,8 @@ module ActiveRecord
             target << record
           end
 
+          set_inverse_instance(record)
+
           yield(record) if block_given?
         rescue
           if index
@@ -319,7 +321,6 @@ module ActiveRecord
         end
 
         callback(:after_add, record) unless skip_callbacks
-        set_inverse_instance(record)
 
         record
       end
