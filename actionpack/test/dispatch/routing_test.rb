@@ -3672,12 +3672,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   def test_multiple_roots
     draw do
       namespace :foo do
-        root "pages#index", constraints: { host: 'www.example.com' }
-        root "admin/pages#index", constraints: { host: 'admin.example.com' }
+        root "pages#index", constraints: { host: "www.example.com" }
+        root "admin/pages#index", constraints: { host: "admin.example.com" }
       end
 
-      root "pages#index", constraints: { host: 'www.example.com' }
-      root "admin/pages#index", constraints: { host: 'admin.example.com' }
+      root "pages#index", constraints: { host: "www.example.com" }
+      root "admin/pages#index", constraints: { host: "admin.example.com" }
     end
 
     get "http://www.example.com/foo"

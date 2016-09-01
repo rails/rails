@@ -7,10 +7,14 @@ module ActiveModel
 
       def serialize(value)
         case value
-        when ::Numeric, ActiveSupport::Duration then value.to_s
-        when true then "t"
-        when false then "f"
-        else super
+        when ::Numeric, ActiveSupport::Duration then
+          value.to_s
+        when true then
+          "t"
+        when false then
+          "f"
+          else
+          super
         end
       end
 

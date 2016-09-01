@@ -72,7 +72,7 @@ HTML
                           "warning"
                         when "TIP"
                           "info"
-                        else
+                          else
                           $1.downcase
                         end
             %(<div class="#{css_class}"><p>#{$2.strip}</p></div>)

@@ -114,7 +114,7 @@ if ActiveRecord::Base.connection.supports_extensions?
       assert_equal({ "1" => "2" }, @type.deserialize("\"1\"=>\"2\""))
       assert_equal({}, @type.deserialize(""))
       assert_equal({ "key"=>nil }, @type.deserialize("key => NULL"))
-      assert_equal({ "c"=>"}",'"a"'=>'b "a b' }, @type.deserialize(%q(c=>"}", "\"a\""=>"b \"a b")))
+      assert_equal({ "c"=>"}",'"a"'=>'b "a b' }, @type.deserialize('c=>"}", "\"a\""=>"b \"a b"'))
     end
 
     def test_with_store_accessors

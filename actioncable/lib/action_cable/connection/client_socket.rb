@@ -89,7 +89,7 @@ module ActionCable
         code   ||= 1000
         reason ||= ""
 
-        unless code == 1000 or (code >= 3000 and code <= 4999)
+        unless code == 1000 || (code >= 3000 && code <= 4999)
           raise ArgumentError, "Failed to execute 'close' on WebSocket: " +
                                "The code must be either 1000, or between 3000 and 4999. " +
                                "#{code} is neither."

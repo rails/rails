@@ -23,7 +23,7 @@ module ActiveRecord
                 HasOneReflection
               when :belongs_to
                 BelongsToReflection
-              else
+                else
                 raise "Unsupported Macro: #{macro}"
               end
 

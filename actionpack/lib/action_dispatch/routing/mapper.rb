@@ -1607,7 +1607,7 @@ module ActionDispatch
         def root(path, options = {})
           if path.is_a?(String)
             options[:to] = path
-          elsif path.is_a?(Hash) and options.empty?
+          elsif path.is_a?(Hash) && options.empty?
             options = path
           else
             raise ArgumentError, "must be called with a path and/or options"

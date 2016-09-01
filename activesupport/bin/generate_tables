@@ -84,7 +84,7 @@ module ActiveSupport
 
         def create_composition_map
           @ucd.codepoints.each do |_, cp|
-            if !cp.nil? and cp.combining_class == 0 and cp.decomp_type.nil? and !cp.decomp_mapping.nil? and cp.decomp_mapping.length == 2 and @ucd.codepoints[cp.decomp_mapping[0]].combining_class == 0 and !@ucd.composition_exclusion.include?(cp.code)
+            if !cp.nil? && cp.combining_class == 0 && cp.decomp_type.nil? && !cp.decomp_mapping.nil? && cp.decomp_mapping.length == 2 && @ucd.codepoints[cp.decomp_mapping[0]].combining_class == 0 && !@ucd.composition_exclusion.include?(cp.code)
               @ucd.composition_map[cp.decomp_mapping[0]] ||= {}
               @ucd.composition_map[cp.decomp_mapping[0]][cp.decomp_mapping[1]] = cp.code
             end

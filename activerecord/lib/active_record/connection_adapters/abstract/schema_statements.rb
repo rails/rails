@@ -970,8 +970,8 @@ module ActiveRecord
       end
 
       def foreign_key_for!(from_table, options_or_to_table = {}) # :nodoc:
-        foreign_key_for(from_table, options_or_to_table) or \
-          raise ArgumentError, "Table '#{from_table}' has no foreign key for #{options_or_to_table}"
+        foreign_key_for(from_table, options_or_to_table) || \
+          raise(ArgumentError, "Table '#{from_table}' has no foreign key for #{options_or_to_table}")
       end
 
       def foreign_key_column_for(table_name) # :nodoc:
