@@ -596,8 +596,8 @@ module ActionDispatch
         # :controller, :action or :id is not found, don't pull any
         # more keys from the recall.
         def normalize_controller_action_id!
-          use_recall_for(:controller) or return
-          use_recall_for(:action) or return
+          use_recall_for(:controller) || return
+          use_recall_for(:action) || return
           use_recall_for(:id)
         end
 

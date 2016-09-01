@@ -18,6 +18,6 @@ namespace :test do
   task :isolated do
     Dir.glob("test/**/*_test.rb").all? do |file|
       sh(Gem.ruby, "-w", "-Ilib:test", file)
-    end or raise "Failures"
+    end || raise("Failures")
   end
 end
