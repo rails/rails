@@ -316,7 +316,7 @@ module ActiveRecord
         MSG
       end
 
-      return false if !conditions
+      return false if conditions.blank?
 
       relation = apply_join_dependency(self, construct_join_dependency(eager_loading: false))
       return false if ActiveRecord::NullRelation === relation
