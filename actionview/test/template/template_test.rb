@@ -80,7 +80,7 @@ class TestERBTemplate < ActiveSupport::TestCase
   end
 
   def test_raw_template
-    @template = new_template("<%= hello %>", :handler => ActionView::Template::Handlers::Raw.new)
+    @template = new_template("<%= hello %>", handler: ActionView::Template::Handlers::Raw.new)
     assert_equal "<%= hello %>", render
   end
 
@@ -189,7 +189,9 @@ class TestERBTemplate < ActiveSupport::TestCase
       @template = new_template("hello \xFCmlat", virtual_path: nil)
       render
     end
-    assert_match(/\xFC/, e.message)
+    # Hack: We write the regexp this way because the parser of RuboCop
+    # errs with /\xFC/.
+    assert_match(Regexp.new("\xFC"), e.message)
   end
 
   def with_external_encoding(encoding)
