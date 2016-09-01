@@ -965,6 +965,7 @@ module ActionView
       #   # => <input type="radio" id="post_category_rails" name="post[category]" value="rails" checked="checked" />
       #   #    <input type="radio" id="post_category_java" name="post[category]" value="java" />
       #
+      #   # Let's say that @user.receive_newsletter returns "no":
       #   radio_button("user", "receive_newsletter", "yes")
       #   radio_button("user", "receive_newsletter", "no")
       #   # => <input type="radio" id="user_receive_newsletter_yes" name="user[receive_newsletter]" value="yes" />
@@ -1711,7 +1712,7 @@ module ActionView
       #   # => <input type="radio" id="post_category_rails" name="post[category]" value="rails" checked="checked" />
       #   #    <input type="radio" id="post_category_java" name="post[category]" value="java" />
       #
-      #   # Let's say that @user.category returns "no":
+      #   # Let's say that @user.receive_newsletter returns "no":
       #   radio_button("receive_newsletter", "yes")
       #   radio_button("receive_newsletter", "no")
       #   # => <input type="radio" id="user_receive_newsletter_yes" name="user[receive_newsletter]" value="yes" />
