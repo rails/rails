@@ -1007,7 +1007,7 @@ class Author < ApplicationRecord
 end
 ```
 
-In this case, saving or destroying an book will update the timestamp on the associated author. You can also specify a particular timestamp attribute to update:
+In this case, saving or destroying a book will update the timestamp on the associated author. You can also specify a particular timestamp attribute to update:
 
 ```ruby
 class Book < ApplicationRecord
