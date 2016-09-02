@@ -512,33 +512,35 @@ module ActiveRecord
       fixture_set_names = Array(fixture_set_names).map(&:to_s)
       class_names = ClassCache.new class_names, config
 
-      # FIXME: Apparently JK uses this.
-      connection = block_given? ? yield : ActiveRecord::Base.connection
+      fixtures_maps = Hash.new { |h,k| h[k] = {} }
+      fixtures_conn_keys = Hash.new { |h,k| h[k] = Set.new }
 
-      files_to_read = fixture_set_names.reject { |fs_name|
-        fixture_is_cached?(connection, fs_name)
-      }
+      default_connection = ActiveRecord::Base.connection
 
-      unless files_to_read.empty?
-        connection.disable_referential_integrity do
-          fixtures_map = {}
+      fixture_set_names.map do |fs_name|
+        klass = class_names[fs_name]
+        conn = klass ? klass.connection : default_connection
+        fixtures_conn_keys[conn] << fs_name
+        next if fixture_is_cached?(conn, fs_name)
+        fixtures_maps[conn][fs_name] = new( # ActiveRecord::FixtureSet.new
+          conn,
+          fs_name,
+          klass,
+          ::File.join(fixtures_directory, fs_name))
+      end
 
-          fixture_sets = files_to_read.map do |fs_name|
-            klass = class_names[fs_name]
-            conn = klass ? klass.connection : connection
-            fixtures_map[fs_name] = new( # ActiveRecord::FixtureSet.new
-              conn,
-              fs_name,
-              klass,
-              ::File.join(fixtures_directory, fs_name))
-          end
-
+      fixtures_maps.each_pair do |conn, fixtures_map|
+        conn.disable_referential_integrity do
           update_all_loaded_fixtures fixtures_map
+        end
+      end
 
-          connection.transaction(requires_new: true) do
-            deleted_tables = Set.new
-            fixture_sets.each do |fs|
-              conn = fs.model_class.respond_to?(:connection) ? fs.model_class.connection : connection
+      fixtures_maps.each_pair do |conn, fixtures_map|
+        conn.disable_referential_integrity do
+          conn.transaction(requires_new: true) do
+            fixtures_map.each_value do |fs|
+              deleted_tables = Set.new
+
               table_rows = fs.table_rows
 
               table_rows.each_key do |table|
@@ -561,10 +563,13 @@ module ActiveRecord
             end
           end
 
-          cache_fixtures(connection, fixtures_map)
+          cache_fixtures(conn, fixtures_map)
         end
       end
-      cached_fixtures(connection, fixture_set_names)
+
+      fixtures_conn_keys.map { |conn, fixtures_keys|
+        cached_fixtures(conn, fixtures_keys)
+      }.flatten(1)
     end
 
     # Returns a consistent, platform-independent identifier for +label+.
