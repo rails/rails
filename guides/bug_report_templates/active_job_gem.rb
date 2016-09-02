@@ -25,8 +25,8 @@ end
 
 class BuggyJobTest < ActiveJob::TestCase
   def test_stuff
-    assert_enqueued_with(job: BuggyJobTest) do
-      BuggyJobTest.perform_later
+    assert_enqueued_with(job: BuggyJob) do
+      BuggyJob.perform_later
     end
   end
 end
