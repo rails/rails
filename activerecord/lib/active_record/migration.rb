@@ -1052,7 +1052,11 @@ module ActiveRecord
       end
 
       def migrations_paths
-        @migrations_paths ||= ["db/migrate"]
+        @migrations_paths ||= if defined?(Rails) && Rails.application
+                                Rails.application.paths["db/migrate"].to_a
+                              else
+                                ["db/migrate"]
+                              end
         # just to not break things if someone uses: migrations_path = some_string
         Array(@migrations_paths)
       end

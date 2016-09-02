@@ -152,6 +152,16 @@ module ApplicationTests
       end
     end
 
+    test "migrations_paths uses path from config" do
+      add_to_config <<-RUBY
+        config.paths["db/migrate"] = "custom/db/migrate"
+      RUBY
+
+      app "development"
+
+      assert_includes ActiveRecord::Migrator.migrations_paths.first, "custom/db/migrate"
+    end
+
     test "Rails.groups returns available groups" do
       require "rails"
 
