@@ -113,14 +113,6 @@ module ActiveRecord
         end
       end
 
-      def create(attributes = {}, &block)
-        _create_record(attributes, &block)
-      end
-
-      def create!(attributes = {}, &block)
-        _create_record(attributes, true, &block)
-      end
-
       # Add +records+ to this association. Returns +self+ so method calls may
       # be chained. Since << flattens its argument list and inserts each record,
       # +push+ and +concat+ behave identically.
