@@ -68,9 +68,6 @@ module ActiveRecord
           case value
           when Relation
             value.klass.base_class
-          when Array
-            val = value.compact.first
-            val.class.base_class if val.is_a?(Base)
           when Base
             value.class.base_class
           end
