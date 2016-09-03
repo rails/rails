@@ -94,18 +94,18 @@ module ActiveRecord
               cast_type.type == :time &&
               time_zone_aware_types.include?(:not_explicitly_configured)
               ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
-              Time columns will become time zone aware in Rails 5.1. This
-              still causes `String`s to be parsed as if they were in `Time.zone`,
-              and `Time`s to be converted to `Time.zone`.
+                Time columns will become time zone aware in Rails 5.1. This
+                still causes `String`s to be parsed as if they were in `Time.zone`,
+                and `Time`s to be converted to `Time.zone`.
 
-              To keep the old behavior, you must add the following to your initializer:
+                To keep the old behavior, you must add the following to your initializer:
 
-                  config.active_record.time_zone_aware_types = [:datetime]
+                    config.active_record.time_zone_aware_types = [:datetime]
 
-              To silence this deprecation warning, add the following:
+                To silence this deprecation warning, add the following:
 
-                  config.active_record.time_zone_aware_types = [:datetime, :time]
-            MESSAGE
+                    config.active_record.time_zone_aware_types = [:datetime, :time]
+              MESSAGE
             end
 
             result

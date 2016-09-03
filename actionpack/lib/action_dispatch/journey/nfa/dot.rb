@@ -26,7 +26,7 @@ digraph nfa {
   node [shape = circle];
 #{edges.join "\n"}
 }
-        eodot
+          eodot
         end
       end
     end

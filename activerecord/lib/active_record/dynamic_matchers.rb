@@ -63,10 +63,10 @@ module ActiveRecord
 
         def define
           model.class_eval <<-CODE, __FILE__, __LINE__ + 1
-          def self.#{name}(#{signature})
-            #{body}
-          end
-        CODE
+            def self.#{name}(#{signature})
+              #{body}
+            end
+          CODE
         end
 
         private

@@ -290,11 +290,12 @@ module ActionView
           RUBY
         end
 
-        layout_definition = case _layout
-                            when String
-                              _layout.inspect
-                            when Symbol
-                              <<-RUBY
+        layout_definition = \
+          case _layout
+          when String
+            _layout.inspect
+          when Symbol
+            <<-RUBY
               #{_layout}.tap do |layout|
                 return #{default_behavior} if layout.nil?
                 unless layout.is_a?(String) || !layout
@@ -303,21 +304,21 @@ module ActionView
                 end
               end
             RUBY
-                            when Proc
-                              define_method :_layout_from_proc, &_layout
-                              protected :_layout_from_proc
-                              <<-RUBY
+          when Proc
+            define_method :_layout_from_proc, &_layout
+            protected :_layout_from_proc
+            <<-RUBY
               result = _layout_from_proc(#{_layout.arity == 0 ? '' : 'self'})
               return #{default_behavior} if result.nil?
               result
             RUBY
-                            when false
-                              nil
-                            when true
-                              raise ArgumentError, "Layouts must be specified as a String, Symbol, Proc, false, or nil"
-                            when nil
-                              name_clause
-        end
+          when false
+            nil
+          when true
+            raise ArgumentError, "Layouts must be specified as a String, Symbol, Proc, false, or nil"
+          when nil
+            name_clause
+          end
 
         self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def _layout(formats)

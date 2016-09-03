@@ -130,10 +130,10 @@ module ActiveRecord
               return pk unless pk.is_a?(Array)
 
               warn <<-WARNING.strip_heredoc
-            WARNING: Active Record does not support composite primary key.
+                WARNING: Active Record does not support composite primary key.
 
-            #{table_name} has composite primary key. Composite primary key is ignored.
-          WARNING
+                #{table_name} has composite primary key. Composite primary key is ignored.
+              WARNING
             end
         end
     end

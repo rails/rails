@@ -663,14 +663,14 @@ module ActionController
 
         def non_kwarg_request_warning
           ActiveSupport::Deprecation.warn(<<-MSG.strip_heredoc)
-          ActionController::TestCase HTTP request methods will accept only
-          keyword arguments in future Rails versions.
+            ActionController::TestCase HTTP request methods will accept only
+            keyword arguments in future Rails versions.
 
-          Examples:
+            Examples:
 
-          get :show, params: { id: 1 }, session: { user_id: 1 }
-          process :update, method: :post, params: { id: 1 }
-        MSG
+            get :show, params: { id: 1 }, session: { user_id: 1 }
+            process :update, method: :post, params: { id: 1 }
+          MSG
         end
 
         def document_root_element

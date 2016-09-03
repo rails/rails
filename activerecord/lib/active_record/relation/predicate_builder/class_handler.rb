@@ -18,9 +18,9 @@ module ActiveRecord
 
         def print_deprecation_warning
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          Passing a class as a value in an Active Record query is deprecated and
-          will be removed. Pass a string instead.
-        MSG
+            Passing a class as a value in an Active Record query is deprecated and
+            will be removed. Pass a string instead.
+          MSG
         end
     end
   end

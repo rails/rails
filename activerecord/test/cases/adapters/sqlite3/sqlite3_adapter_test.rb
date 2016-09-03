@@ -431,9 +431,9 @@ module ActiveRecord
 
         def with_example_table(definition = nil, table_name = "ex", &block)
           definition ||= <<-SQL
-          id integer PRIMARY KEY AUTOINCREMENT,
-          number integer
-        SQL
+            id integer PRIMARY KEY AUTOINCREMENT,
+            number integer
+          SQL
           super(@conn, table_name, definition, &block)
         end
     end
