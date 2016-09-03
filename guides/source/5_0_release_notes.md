@@ -797,6 +797,14 @@ Please refer to the [Changelog][active-record] for detailed changes.
     than the current time.
     ([Pull Request](https://github.com/rails/rails/pull/18956))
 
+*   Change transaction callbacks to not swallow errors.
+    Before this change any errors raised inside a transaction callback
+    were getting rescued and printed in the logs, unless you used
+    the (newly deprecated) `raise_in_transactional_callbacks = true` option.
+
+    Now these errors are not rescued anymore and just bubble up, as the other callbacks.
+    ([commit](https://github.com/rails/rails/commit/07d3d402341e81ada0214f2cb2be1da69eadfe72))
+
 Active Model
 ------------
 
