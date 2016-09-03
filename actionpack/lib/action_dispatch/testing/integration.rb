@@ -179,7 +179,7 @@ module ActionDispatch
       DEFAULT_HOST = "www.example.com"
 
       include Minitest::Assertions
-      include TestProcess, RequestHelpers, Assertions
+      include RequestHelpers, Assertions
 
       %w( status status_message headers body redirect? ).each do |method|
         delegate method, to: :response, allow_nil: true
@@ -711,6 +711,8 @@ module ActionDispatch
   # Consult the Rails Testing Guide for more.
 
   class IntegrationTest < ActiveSupport::TestCase
+    include TestProcess
+
     module UrlOptions
       extend ActiveSupport::Concern
       def url_options

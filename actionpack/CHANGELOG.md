@@ -1,3 +1,7 @@
+*   Make `fixture_file_upload` work in integration tests.
+
+    *Yuji Yaginuma*
+
 *   Add `to_param` to `ActionController::Parameters` deprecations.
 
     In the future `ActionController::Parameters` are discouraged from being used
