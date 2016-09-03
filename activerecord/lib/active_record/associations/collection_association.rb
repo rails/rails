@@ -183,31 +183,6 @@ module ActiveRecord
         end
       end
 
-      # Returns the number of records. If no arguments are given, it counts all
-      # columns using SQL. If one argument is given, it counts only the passed
-      # column using SQL. If a block is given, it counts the number of records
-      # yielding a true value.
-      def count(column_name = nil)
-        return super if block_given?
-        relation = scope
-        if association_scope.distinct_value
-          # This is needed because 'SELECT count(DISTINCT *)..' is not valid SQL.
-          column_name ||= reflection.klass.primary_key
-          relation = relation.distinct
-        end
-
-        value = relation.count(column_name)
-
-        limit  = options[:limit]
-        offset = options[:offset]
-
-        if limit || offset
-          [ [value - offset.to_i, 0].max, limit.to_i ].min
-        else
-          value
-        end
-      end
-
       # Removes +records+ from this association calling +before_remove+ and
       # +after_remove+ callbacks.
       #
