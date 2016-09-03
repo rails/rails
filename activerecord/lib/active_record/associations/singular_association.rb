@@ -23,14 +23,6 @@ module ActiveRecord
         replace(record)
       end
 
-      def create(attributes = {}, &block)
-        _create_record(attributes, &block)
-      end
-
-      def create!(attributes = {}, &block)
-        _create_record(attributes, true, &block)
-      end
-
       def build(attributes = {})
         record = build_record(attributes)
         yield(record) if block_given?

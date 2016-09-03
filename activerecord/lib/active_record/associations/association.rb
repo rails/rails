@@ -173,6 +173,14 @@ module ActiveRecord
         set_inverse_instance(record)
       end
 
+      def create(attributes = {}, &block)
+        _create_record(attributes, &block)
+      end
+
+      def create!(attributes = {}, &block)
+        _create_record(attributes, true, &block)
+      end
+
       private
 
         def find_target?
