@@ -180,7 +180,4 @@ if RUBY_PLATFORM.include?("java")
         assert_equal(hash, parsed_xml)
       end
   end
-
-else
-  # don't run these test because we aren't running in JRuby
 end
