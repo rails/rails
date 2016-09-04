@@ -1281,3 +1281,39 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
       end
     end
 end
+
+class IntegrationFileUploadTest < ActionDispatch::IntegrationTest
+  class IntegrationController < ActionController::Base
+    def test_file_upload
+      render plain: params[:file].size
+    end
+  end
+
+  def self.routes
+    @routes ||= ActionDispatch::Routing::RouteSet.new
+  end
+
+  def self.call(env)
+    routes.call(env)
+  end
+
+  def app
+    self.class
+  end
+
+  def self.fixture_path
+    File.dirname(__FILE__) + "/../fixtures/multipart"
+  end
+
+  routes.draw do
+    post "test_file_upload", to: "integration_file_upload_test/integration#test_file_upload"
+  end
+
+  def test_fixture_file_upload
+    post "/test_file_upload",
+      params: {
+        file: fixture_file_upload("/mona_lisa.jpg", "image/jpg")
+      }
+    assert_equal "159528", @response.body
+  end
+end
