@@ -743,6 +743,20 @@ module ActiveRecord
       end
       alias uniq distinct
 
+      def calculate(operation, column_name)
+        null_scope? ? scope.calculate(operation, column_name) : super
+      end
+
+      def pluck(*column_names)
+        null_scope? ? scope.pluck(*column_names) : super
+      end
+
+      ##
+      # :method: count
+      #
+      # :call-seq:
+      #   count(column_name = nil, &block)
+      #
       # Count all records.
       #
       #   class Person < ActiveRecord::Base
@@ -762,17 +776,6 @@ module ActiveRecord
       # perform the count using Ruby.
       #
       #   person.pets.count { |pet| pet.name.include?('-') } # => 2
-      def count(column_name = nil, &block)
-        @association.count(column_name, &block)
-      end
-
-      def calculate(operation, column_name)
-        null_scope? ? scope.calculate(operation, column_name) : super
-      end
-
-      def pluck(*column_names)
-        null_scope? ? scope.pluck(*column_names) : super
-      end
 
       # Returns the size of the collection. If the collection hasn't been loaded,
       # it executes a <tt>SELECT COUNT(*)</tt> query. Else it calls <tt>collection.size</tt>.
