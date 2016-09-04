@@ -40,13 +40,11 @@ INFO
           f.binmode
           f.sync = config.autoflush_log # if true make sure every write flushes
 
-          logger = ActiveSupport::Logger.new f
-          logger.formatter = config.log_formatter
-          logger = ActiveSupport::TaggedLogging.new(logger)
-          logger
+          logger = ActiveSupport::Logger.new f, formatter: config.log_formatter
+          ActiveSupport::TaggedLogging.new(logger)
         rescue StandardError
-          logger = ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(STDERR))
-          logger.level = ActiveSupport::Logger::WARN
+          logger = ActiveSupport::Logger.new(STDERR, level: ActiveSupport::Logger::WARN)
+          logger = ActiveSupport::TaggedLogging.new(logger)
           logger.warn(
             "Rails Error: Unable to access log file. Please ensure that #{path} exists and is writable " +
             "(ie, make it writable for user and group: chmod 0664 #{path}). " +

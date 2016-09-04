@@ -1234,8 +1234,7 @@ class BasicsTest < ActiveRecord::TestCase
   def test_benchmark_with_log_level
     original_logger = ActiveRecord::Base.logger
     log = StringIO.new
-    ActiveRecord::Base.logger = ActiveSupport::Logger.new(log)
-    ActiveRecord::Base.logger.level = Logger::WARN
+    ActiveRecord::Base.logger = ActiveSupport::Logger.new(log, level: Logger::WARN)
     ActiveRecord::Base.benchmark("Debug Topic Count", level: :debug) { Topic.count }
     ActiveRecord::Base.benchmark("Warn Topic Count",  level: :warn)  { Topic.count }
     ActiveRecord::Base.benchmark("Error Topic Count", level: :error) { Topic.count }
@@ -1249,8 +1248,7 @@ class BasicsTest < ActiveRecord::TestCase
   def test_benchmark_with_use_silence
     original_logger = ActiveRecord::Base.logger
     log = StringIO.new
-    ActiveRecord::Base.logger = ActiveSupport::Logger.new(log)
-    ActiveRecord::Base.logger.level = Logger::DEBUG
+    ActiveRecord::Base.logger = ActiveSupport::Logger.new(log, level: Logger::DEBUG)
     ActiveRecord::Base.benchmark("Logging", level: :debug, silence: false)  { ActiveRecord::Base.logger.debug "Quiet" }
     assert_match(/Quiet/, log.string)
   ensure

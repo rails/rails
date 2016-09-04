@@ -1,3 +1,17 @@
+*   Backport keyword argument support for `Logger#initialize` from Ruby 2.4
+
+    Before:
+
+        logger = Logger.new(STDOUT)
+        logger.level = Logger::WARN
+        logger.formatter = MyFormatter.new
+
+    After:
+
+        logger = Logger.new(STDOUT, level: Logger::WARN, formatter: MyFormatter.new)
+
+    *Matt Larraz*
+
 *   Remove unused parameter `options = nil` for `#clear` of
     `ActiveSupport::Cache::Strategy::LocalCache::LocalStore` and
     `ActiveSupport::Cache::Strategy::LocalCache`.

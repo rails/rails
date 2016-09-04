@@ -1,3 +1,4 @@
+require "active_support/core_ext/logger"
 require "active_support/logger_silence"
 require "active_support/logger_thread_safe_level"
 require "logger"
@@ -76,9 +77,9 @@ module ActiveSupport
       end
     end
 
-    def initialize(*args)
+    def initialize(*args, formatter: SimpleFormatter.new, **kwargs)
       super
-      @formatter = SimpleFormatter.new
+
       after_initialize if respond_to? :after_initialize
     end
 
