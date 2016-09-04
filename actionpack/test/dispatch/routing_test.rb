@@ -3693,7 +3693,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "admin/pages#index", @response.body
   end
 
-  def test_namespaced_roots
+  def test_multiple_namespaced_roots
     draw do
       namespace :foo do
         root "test#index"
