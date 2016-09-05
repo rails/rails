@@ -11,7 +11,7 @@ module ActiveJob
     def before_setup # :nodoc:
       test_adapter = queue_adapter_for_test
 
-      @old_queue_adapters = (ActiveJob::Base.subclasses << ActiveJob::Base).select do |klass|
+      @old_queue_adapters = (ActiveJob::Base.descendants << ActiveJob::Base).select do |klass|
         # only override explicitly set adapters, a quirk of `class_attribute`
         klass.singleton_class.public_instance_methods(false).include?(:_queue_adapter)
       end.map do |klass|
