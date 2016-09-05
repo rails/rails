@@ -131,7 +131,7 @@ defaults to `:debug` for all environments. The available log levels are: `:debug
 
     mylogger           = MyLogger.new(STDOUT)
     mylogger.formatter = config.log_formatter
-    config.logger = ActiveSupport::TaggedLogging.new(mylogger)
+    config.logger      = ActiveSupport::TaggedLogging.new(mylogger)
     ```
 
 * `config.middleware` allows you to configure the application's middleware. This is covered in depth in the [Configuring Middleware](#configuring-middleware) section below.
