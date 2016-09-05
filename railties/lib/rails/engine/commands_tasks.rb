@@ -26,7 +26,7 @@ module Rails
 
         def help_message
           <<-EOT.strip_heredoc
-            Usage: rails COMMAND [ARGS]
+            Usage: bin/rails COMMAND [ARGS]
 
             The common Rails commands available for engines are:
              generate    Generate new code (short-cut alias: "g")

@@ -1,6 +1,8 @@
 module Rails
   module Command
     class RakeCommand < Base
+      extend Rails::Command::Actions
+
       namespace "rake"
 
       class << self
@@ -27,12 +29,12 @@ module Rails
             return @rake_tasks if defined?(@rake_tasks)
 
             ActiveSupport::Deprecation.silence do
-              Rails::Command.require_application_and_environment!
+              require_application_and_environment!
             end
 
             Rake::TaskManager.record_task_metadata = true
             Rake.application.instance_variable_set(:@name, "rails")
-            Rails.application.load_tasks
+            load_tasks
             @rake_tasks = Rake.application.tasks.select(&:comment)
           end
 

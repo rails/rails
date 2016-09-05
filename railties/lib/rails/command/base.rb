@@ -15,6 +15,11 @@ module Rails
       include Actions
 
       class << self
+        # Returns true when the app is a Rails engine.
+        def engine?
+          defined?(ENGINE_ROOT)
+        end
+
         # Tries to get the description from a USAGE file one folder above the command
         # root.
         def desc(usage = nil, description = nil)
