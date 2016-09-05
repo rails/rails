@@ -28,10 +28,6 @@ module ActiveRecord
         end
 
         def records_for(ids)
-          query_scope(ids)
-        end
-
-        def query_scope(ids)
           scope.where(association_key_name => ids)
         end
 
