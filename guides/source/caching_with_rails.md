@@ -381,7 +381,7 @@ config.cache_store = :memory_store, { size: 64.megabytes }
 ```
 
 If you're running multiple Ruby on Rails server processes (which is the case
-if you're using mongrel_cluster or Phusion Passenger), then your Rails server
+if you're using Phusion Passenger or puma clustered mode), then your Rails server
 process instances won't be able to share cache data with each other. This cache
 store is not appropriate for large application deployments. However, it can
 work well for small, low traffic sites with only a couple of server processes,

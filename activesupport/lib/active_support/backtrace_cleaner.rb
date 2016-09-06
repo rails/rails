@@ -14,7 +14,7 @@ module ActiveSupport
   #
   #   bc = BacktraceCleaner.new
   #   bc.add_filter   { |line| line.gsub(Rails.root.to_s, '') } # strip the Rails.root prefix
-  #   bc.add_silencer { |line| line =~ /mongrel|rubygems/ } # skip any lines from mongrel or rubygems
+  #   bc.add_silencer { |line| line =~ /puma|rubygems/ } # skip any lines from puma or rubygems
   #   bc.clean(exception.backtrace) # perform the cleanup
   #
   # To reconfigure an existing BacktraceCleaner (like the default one in Rails)
@@ -59,8 +59,8 @@ module ActiveSupport
     # Adds a silencer from the block provided. If the silencer returns +true+
     # for a given line, it will be excluded from the clean backtrace.
     #
-    #   # Will reject all lines that include the word "mongrel", like "/gems/mongrel/server.rb" or "/app/my_mongrel_server/rb"
-    #   backtrace_cleaner.add_silencer { |line| line =~ /mongrel/ }
+    #   # Will reject all lines that include the word "puma", like "/gems/puma/server.rb" or "/app/my_puma_server/rb"
+    #   backtrace_cleaner.add_silencer { |line| line =~ /puma/ }
     def add_silencer(&block)
       @silencers << block
     end

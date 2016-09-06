@@ -23,7 +23,7 @@ module Rails
 
         def option_parser(options)
           OptionParser.new do |opts|
-            opts.banner = "Usage: rails server [mongrel, thin etc] [options]"
+            opts.banner = "Usage: rails server [puma, thin etc] [options]"
             opts.on("-p", "--port=port", Integer,
                     "Runs Rails on the specified port.", "Default: 3000") { |v| options[:Port] = v }
             opts.on("-b", "--binding=IP", String,
