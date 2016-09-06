@@ -107,6 +107,11 @@ module ActiveRecord
       #   #      #<Pet id: 3, name: "Choo-Choo", person_id: 1>
       #   #    ]
       #
+      #   person.pets.select(:name) { |pet| pet.name =~ /oo/ }
+      #   # => [
+      #   #      #<Pet id: 2, name: "Spook">,
+      #   #      #<Pet id: 3, name: "Choo-Choo">
+      #   #    ]
 
       # Finds an object in the collection responding to the +id+. Uses the same
       # rules as ActiveRecord::Base.find. Returns ActiveRecord::RecordNotFound
