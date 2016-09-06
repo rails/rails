@@ -227,9 +227,9 @@ module ActiveRecord
           else
             target.size
           end
-        elsif !loaded? && !association_scope.group_values.empty?
+        elsif !association_scope.group_values.empty?
           load_target.size
-        elsif !loaded? && !association_scope.distinct_value && target.is_a?(Array)
+        elsif !association_scope.distinct_value && target.is_a?(Array)
           unsaved_records = target.select(&:new_record?)
           unsaved_records.size + count_records
         else
