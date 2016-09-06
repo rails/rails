@@ -663,7 +663,7 @@ DEFAULT_OPTIONS = {
 }
 
 def self.run(app, options = {})
-  options  = DEFAULT_OPTIONS.merge(options)
+  options = DEFAULT_OPTIONS.merge(options)
 
   if options[:Verbose]
     app = Rack::CommonLogger.new(app, STDOUT)

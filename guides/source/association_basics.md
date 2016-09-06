@@ -387,7 +387,7 @@ The corresponding migration might look like this:
 class CreateSuppliers < ActiveRecord::Migration[5.0]
   def change
     create_table :suppliers do |t|
-      t.string  :name
+      t.string :name
       t.timestamps
     end
 
@@ -550,8 +550,8 @@ But what if you want to reload the cache, because data might have been changed b
 ```ruby
 author.books                 # retrieves books from the database
 author.books.size            # uses the cached copy of books
-author.books.reload.empty?    # discards the cached copy of books
-                                # and goes back to the database
+author.books.reload.empty?   # discards the cached copy of books
+                             # and goes back to the database
 ```
 
 ### Avoiding Name Collisions
@@ -1841,7 +1841,7 @@ article   = Article.create(name: 'a1')
 person.articles << article
 person.articles << article
 person.articles.inspect # => [#<Article id: 5, name: "a1">, #<Article id: 5, name: "a1">]
-Reading.all.inspect  # => [#<Reading id: 12, person_id: 5, article_id: 5>, #<Reading id: 13, person_id: 5, article_id: 5>]
+Reading.all.inspect     # => [#<Reading id: 12, person_id: 5, article_id: 5>, #<Reading id: 13, person_id: 5, article_id: 5>]
 ```
 
 In the above case there are two readings and `person.articles` brings out both of
@@ -1860,7 +1860,7 @@ article   = Article.create(name: 'a1')
 person.articles << article
 person.articles << article
 person.articles.inspect # => [#<Article id: 7, name: "a1">]
-Reading.all.inspect  # => [#<Reading id: 16, person_id: 7, article_id: 7>, #<Reading id: 17, person_id: 7, article_id: 7>]
+Reading.all.inspect     # => [#<Reading id: 16, person_id: 7, article_id: 7>, #<Reading id: 17, person_id: 7, article_id: 7>]
 ```
 
 In the above case there are still two readings. However `person.articles` shows
