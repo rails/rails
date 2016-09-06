@@ -721,6 +721,11 @@ class FormTagHelperTest < ActionView::TestCase
     assert_equal options, option: "random_option"
   end
 
+  def test_datalist_field_tag
+    expected = %{<input type="text" name="browser" id="browser" placeholder="placeholder" class="browser-input" list="browsers"><datalist id="browsers"><option value="Chrome"></option><option value="Firefox"></option></datalist>}
+    assert_dom_equal(expected, datalist_field_tag("browser", nil, raw('<option value="Chrome"></option><option value="Firefox"></option>'), placeholder: "placeholder", class: "browser-input", list: "cookies"))
+  end
+
   def protect_against_forgery?
     false
   end

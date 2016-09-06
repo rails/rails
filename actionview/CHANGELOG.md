@@ -147,4 +147,46 @@
 
     *Vipul A M*
 
+*   Added `#datalist_field_tag` to ActionView::Helpers::FormTagHelper and `#datalist_field` to
+    ActionView::Helpers::FormHelper. Methods create a text input tag linked to a datalist tag. Datalist is an input
+    type in HTML5 that represents a list of predefined options, available in the text input.
+    Ref: https://www.w3.org/wiki/HTML/Elements/datalist.
+
+    `#datalist_field_tag` Usage:
+
+    ```ruby
+    datalist_field_tag 'browser', nil, options_from_collection_for_select(@browsers, 'id', 'name'), placeholder: "placeholder"
+    # or
+    datalist_field_tag 'browser', nil, '<option value="1">Chrome</option>'.html_safe, placeholder: "placeholder"
+    ```
+
+    `#datalist_field_tag` Result:
+
+    ```html
+    <input type="text" name="browser" id="browser" placeholder="placeholder" class="browser-input" list="browsers"></input>
+    <datalist id="browsers">
+      <option value="1">Chrome</option>
+    </datalist>
+    ```    
+
+    `#datalist_field` Usage:
+
+    ```ruby
+    datalist_field(:user, :favorite_color, options_from_collection_for_select(Colors.all, 'id', 'name'), placeholder: "placeholder")
+    # or
+    datalist_field(:user, :favorite_color, '<option value="1">Red</option><option value="2">Blue</option>'.html_safe, placeholder: "placeholder")
+    ```
+
+    `#datalist_field` Result:
+
+    ```html
+    <input placeholder="placeholder" name="user[favorite_color]" id="user_favorite_color" type="text" list="user_favorite_colors"></input>
+    <datalist id="user_favorite_colors">
+      <option value="1">Red</option>
+      <option value="2">Blue</option>
+    </datalist>
+    ```
+
+    *Andy Zheng*
+
 Please check [5-0-stable](https://github.com/rails/rails/blob/5-0-stable/actionview/CHANGELOG.md) for previous changes.

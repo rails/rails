@@ -829,6 +829,39 @@ module ActionView
         '<input name="utf8" type="hidden" value="&#x2713;" />'.html_safe
       end
 
+      # Creates a text input linked to a datalist. A datalist contains a set of option tags.
+      # The datalist's bahavior is similar to a select tag. Datalists allow a selection from predefined values
+      # but are not constraint to those values. The text input can chosen from the datalist options or entered normally.
+      #
+      # === Examples
+      #   datalist_field_tag 'browser'
+      #   # => <input type="text" name="browser" id="browser" list="browsers"><datalist id="browsers"></datalist>
+      #
+      #   datalist_field_tag 'browser', 'default browser'
+      #   # => <input type="text" name="browser" id="browser" value="default browser" list="browsers"><datalist id="browsers"></datalist>
+      #
+      #   datalist_field_tag 'browser', nil, '<option value="Chrome"></option><option value="Firefox"></option>'.html_safe
+      #   # => <input type="text" name="browser" id="browser" list="browsers"><datalist id="browsers"><option value="Chrome"></option><option value="Firefox"></option></datalist>
+      #
+      #   datalist_field_tag 'browser', nil, '<option>Chrome</option><option>Firefox</option>'.html_safe
+      #   # => <input type="text" name="browser" id="browser" list="browsers"><datalist id="browsers"><option>Chrome</option><option>Firefox</option></datalist>
+      #
+      #   datalist_field_tag 'browser', nil, options_from_collection_for_select(@browsers, 'id', 'name')
+      #   # => <input type="text" name="browser" id="browser" list="browsers"><datalist id="browsers"><option value="1">Chrome</option><option value="2">Firefox</option></datalist>
+      #
+      #   datalist_field_tag 'browser', nil, options_from_collection_for_select(@browsers, 'id', 'name'), placeholder: "placeholder", class: "browser-input"
+      #   # => <input type="text" name="browser" id="browser" placeholder="placeholder" class="browser-input" list="browsers"><datalist id="browsers"><option value="1">Chrome</option><option value="2">Firefox</option></datalist>
+      def datalist_field_tag(name, value = nil, option_tags = nil, options = {})
+        option_tags ||= ""
+        list_name = sanitize_to_id(name.to_s).pluralize
+
+        # Delete :list from text_field_options if they tried to include them
+        # Text field's list attribute should correspond to the datalist's id
+        options.delete(:list)
+
+        (text_field_tag name, value, { list: list_name }.update(options.stringify_keys)) + (content_tag "datalist", option_tags, id: list_name)
+      end
+
       private
         def html_options_for_form(url_for_options, options)
           options.stringify_keys.tap do |html_options|

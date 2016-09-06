@@ -3443,6 +3443,11 @@ class FormHelperTest < ActionView::TestCase
     assert_equal 1, initialization_count, "form builder instantiated more than once"
   end
 
+  def test_datalist_field
+    expected = %{<input class="input" placeholder="placeholder" name="user[favorite_color]" id="user_favorite_color" type="text" list="user_favorite_colors"></input><datalist id="user_favorite_colors"><option value="1">Red</option><option value="2">Blue</option></datalist>}
+    assert_dom_equal(expected, datalist_field(:user, :favorite_color, '<option value="1">Red</option><option value="2">Blue</option>'.html_safe, placeholder: "placeholder", class: "input"))
+  end
+
   protected
 
     def hidden_fields(options = {})

@@ -11,6 +11,7 @@ module ActionView
         autoload :CollectionRadioButtons
         autoload :CollectionSelect
         autoload :ColorField
+        autoload :DatalistField
         autoload :DateField
         autoload :DateSelect
         autoload :DatetimeField

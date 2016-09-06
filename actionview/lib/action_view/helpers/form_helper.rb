@@ -1466,6 +1466,23 @@ module ActionView
         Tags::RangeField.new(object_name, method, self, options).render
       end
 
+      # Returns an input tag of type "text" and datalist tag with option tags
+      #
+      # === Options
+      # * Accepts options to be put in input tag
+      #
+      # === Example
+      #   datalist_field :home, :type, '<option value="1">House</option><option value="2">Aparement</option>'.html_safe, placeholder: "placeholder"
+      #   # => <input placeholder="placeholder" name="home[type]" id="home_type" type="text" list="home_types"></input>
+      #   # => <datalist id="home_types"><option value="1">House</option><option value="2">Aparement</option></datalist>
+      #
+      #   datalist_field :user, :favorite_color, options_from_collection_for_select(Color.all, "id", "name"), placeholder: "placeholder"
+      #   # => <input placeholder="placeholder" name="user[favorite_color]" id="user_favorite_color" type="text" list="user_favorite_colors"></input>
+      #   # => <datalist id="user_favorite_colors"><option value="1">Red</option><option value="2">Blue</option></datalist>
+      def datalist_field(object_name, method, option_tags, options = {})
+        Tags::DatalistField.new(object_name, method, self, option_tags, options).render
+      end
+
       private
         def html_options_for_form_with(url_for_options = nil, model = nil, html: {}, local: false,
           skip_enforcing_utf8: false, **options)
@@ -1573,7 +1590,7 @@ module ActionView
                             :telephone_field, :phone_field, :date_field,
                             :time_field, :datetime_field, :datetime_local_field,
                             :month_field, :week_field, :url_field, :email_field,
-                            :number_field, :range_field]
+                            :number_field, :range_field, :datalist_field]
 
       attr_accessor :object_name, :object, :options
 
