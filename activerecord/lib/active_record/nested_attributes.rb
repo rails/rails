@@ -519,14 +519,15 @@ module ActiveRecord
     # larger than the limit.
       def check_record_limit!(limit, attributes_collection)
         if limit
-          limit = case limit
-                  when Symbol
-                    send(limit)
-                  when Proc
-                    limit.call
-          else
-                    limit
-          end
+          limit = \
+            case limit
+            when Symbol
+              send(limit)
+            when Proc
+              limit.call
+            else
+              limit
+            end
 
           if limit && attributes_collection.size > limit
             raise TooManyRecords, "Maximum #{limit} records are allowed. Got #{attributes_collection.size} records instead."
