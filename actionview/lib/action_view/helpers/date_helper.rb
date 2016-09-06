@@ -1026,15 +1026,16 @@ module ActionView
         #  prompt_option_tag(:month, prompt: 'Select month')
         #  => "<option value="">Select month</option>"
         def prompt_option_tag(type, options)
-          prompt = case options
-                   when Hash
-                     default_options = { year: false, month: false, day: false, hour: false, minute: false, second: false }
-                     default_options.merge!(options)[type.to_sym]
-                   when String
-                     options
+          prompt = \
+            case options
+            when Hash
+              default_options = { year: false, month: false, day: false, hour: false, minute: false, second: false }
+              default_options.merge!(options)[type.to_sym]
+            when String
+              options
             else
-                     I18n.translate(:"datetime.prompts.#{type}", locale: @options[:locale])
-          end
+              I18n.translate(:"datetime.prompts.#{type}", locale: @options[:locale])
+            end
 
           prompt ? content_tag("option".freeze, prompt, value: "") : ""
         end

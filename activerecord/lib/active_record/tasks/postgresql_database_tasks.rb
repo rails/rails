@@ -46,14 +46,15 @@ module ActiveRecord
       def structure_dump(filename)
         set_psql_env
 
-        search_path = case ActiveRecord::Base.dump_schemas
-                      when :schema_search_path
-                        configuration["schema_search_path"]
-                      when :all
-                        nil
-                      when String
-                        ActiveRecord::Base.dump_schemas
-        end
+        search_path = \
+          case ActiveRecord::Base.dump_schemas
+          when :schema_search_path
+            configuration["schema_search_path"]
+          when :all
+            nil
+          when String
+            ActiveRecord::Base.dump_schemas
+          end
 
         args = ["-s", "-x", "-O", "-f", filename]
         unless search_path.blank?

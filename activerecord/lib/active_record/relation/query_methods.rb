@@ -59,11 +59,12 @@ module ActiveRecord
     FROZEN_EMPTY_HASH = {}.freeze
 
     Relation::VALUE_METHODS.each do |name|
-      method_name = case name
-                    when *Relation::MULTI_VALUE_METHODS then "#{name}_values"
-                    when *Relation::SINGLE_VALUE_METHODS then "#{name}_value"
-                    when *Relation::CLAUSE_METHODS then "#{name}_clause"
-      end
+      method_name = \
+        case name
+        when *Relation::MULTI_VALUE_METHODS then "#{name}_values"
+        when *Relation::SINGLE_VALUE_METHODS then "#{name}_value"
+        when *Relation::CLAUSE_METHODS then "#{name}_clause"
+        end
       class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{method_name}                   # def includes_values
           get_value(#{name.inspect})         #   get_value(:includes)

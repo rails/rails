@@ -570,22 +570,23 @@ module ActiveRecord
 
       # Maps logical Rails types to MySQL-specific data types.
       def type_to_sql(type, limit = nil, precision = nil, scale = nil, unsigned = nil)
-        sql = case type.to_s
-              when "integer"
-                integer_to_sql(limit)
-              when "text"
-                text_to_sql(limit)
-              when "blob"
-                binary_to_sql(limit)
-              when "binary"
-                if (0..0xfff) === limit
-                  "varbinary(#{limit})"
-                else
-                  binary_to_sql(limit)
-                end
-        else
-                super(type, limit, precision, scale)
-        end
+        sql = \
+          case type.to_s
+          when "integer"
+            integer_to_sql(limit)
+          when "text"
+            text_to_sql(limit)
+          when "blob"
+            binary_to_sql(limit)
+          when "binary"
+            if (0..0xfff) === limit
+              "varbinary(#{limit})"
+            else
+              binary_to_sql(limit)
+            end
+          else
+            super(type, limit, precision, scale)
+          end
 
         sql << " unsigned" if unsigned && type != :primary_key
         sql
