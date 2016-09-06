@@ -30,36 +30,6 @@ module ActiveSupport
       HANGUL_NCOUNT = HANGUL_VCOUNT * HANGUL_TCOUNT
       HANGUL_SCOUNT = 11172
       HANGUL_SLAST = HANGUL_SBASE + HANGUL_SCOUNT
-      HANGUL_JAMO_FIRST = 0x1100
-      HANGUL_JAMO_LAST = 0x11FF
-
-      # All the unicode whitespace
-      WHITESPACE = [
-        (0x0009..0x000D).to_a, # White_Space # Cc   [5] <control-0009>..<control-000D>
-        0x0020,                # White_Space # Zs       SPACE
-        0x0085,                # White_Space # Cc       <control-0085>
-        0x00A0,                # White_Space # Zs       NO-BREAK SPACE
-        0x1680,                # White_Space # Zs       OGHAM SPACE MARK
-        (0x2000..0x200A).to_a, # White_Space # Zs  [11] EN QUAD..HAIR SPACE
-        0x2028,                # White_Space # Zl       LINE SEPARATOR
-        0x2029,                # White_Space # Zp       PARAGRAPH SEPARATOR
-        0x202F,                # White_Space # Zs       NARROW NO-BREAK SPACE
-        0x205F,                # White_Space # Zs       MEDIUM MATHEMATICAL SPACE
-        0x3000,                # White_Space # Zs       IDEOGRAPHIC SPACE
-      ].flatten.freeze
-
-      # BOM (byte order mark) can also be seen as whitespace, it's a
-      # non-rendering character used to distinguish between little and big
-      # endian. This is not an issue in utf-8, so it must be ignored.
-      LEADERS_AND_TRAILERS = WHITESPACE + [65279] # ZERO-WIDTH NO-BREAK SPACE aka BOM
-
-      # Returns a regular expression pattern that matches the passed Unicode
-      # codepoints.
-      def self.codepoints_to_pattern(array_of_codepoints) #:nodoc:
-        array_of_codepoints.collect { |e| [e].pack "U*".freeze }.join("|".freeze)
-      end
-      TRAILERS_PAT = /(#{codepoints_to_pattern(LEADERS_AND_TRAILERS)})+\Z/u
-      LEADERS_PAT = /\A(#{codepoints_to_pattern(LEADERS_AND_TRAILERS)})+/u
 
       # Detect whether the codepoint is in a certain character class. Returns
       # +true+ when it's in the specified character class and +false+ otherwise.
