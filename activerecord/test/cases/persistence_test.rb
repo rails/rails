@@ -131,6 +131,13 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal initial_credit + 2, a1.reload.credit_limit
   end
 
+  def test_increment_new_record
+    account = Account.new
+    assert_raise ActiveRecord::ActiveRecordError do
+      account.increment!(:credit_limit)
+    end
+  end
+
   def test_destroy_all
     conditions = "author_name = 'Mary'"
     topics_by_mary = Topic.all.merge!(where: conditions, order: "id").to_a

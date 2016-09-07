@@ -334,6 +334,9 @@ module ActiveRecord
     # Saving is not subjected to validation checks. Returns +true+ if the
     # record could be saved.
     def increment!(attribute, by = 1)
+      raise ActiveRecordError, "cannot increment! a new record" if new_record?
+      raise ActiveRecordError, "cannot increment! a destroyed record" if destroyed?
+
       increment(attribute, by)
       change = public_send(attribute) - (attribute_was(attribute.to_s) || 0)
       self.class.update_counters(id, attribute => change)
