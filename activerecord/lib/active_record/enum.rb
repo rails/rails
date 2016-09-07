@@ -62,6 +62,12 @@ module ActiveRecord
   # be maintained, and new values should only be added to the end of the array. To
   # remove unused values, the explicit hash syntax should be used.
   #
+  # With the explicit hash syntax, you can also choose to map to database string
+  # values, if you have a database column that was created as a :string or
+  # compatible type:
+  #
+  #     enum status: { active: 'active', archived: 'archived_legacy' }
+  #
   # In rare circumstances you might need to access the mapping directly.
   # The mappings are exposed through a class method with the pluralized attribute
   # name, which return the mapping in a +HashWithIndifferentAccess+:
