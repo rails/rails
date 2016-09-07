@@ -100,7 +100,6 @@ module Rails
     end
 
     private
-
       def setup_dev_caching
         if options[:environment] == "development"
           Rails::DevCaching.enable_by_argument(options[:caching])

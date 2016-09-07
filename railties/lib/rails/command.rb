@@ -1,4 +1,5 @@
 require "active_support"
+require "active_support/dependencies/autoload"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/object/blank"
 require "active_support/core_ext/hash/transform_values"
@@ -7,8 +8,10 @@ require "thor"
 
 module Rails
   module Command
-    autoload :Behavior, "rails/command/behavior"
-    autoload :Base, "rails/command/base"
+    extend ActiveSupport::Autoload
+
+    autoload :Behavior
+    autoload :Base
 
     include Behavior
 
@@ -17,7 +20,7 @@ module Rails
         @hidden_commands ||= []
       end
 
-      def environment
+      def environment # :nodoc:
         ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development"
       end
 
