@@ -1501,6 +1501,14 @@ class FormHelperTest < ActionView::TestCase
     assert_equal "First argument in form cannot contain nil or be empty", error.message
   end
 
+  def test_form_for_requires_all_array_elements
+    error = assert_raises(ArgumentError) do
+      form_for([nil, @post], html: { id: "create-post" }) do
+      end
+    end
+    assert_equal "First argument in form cannot contain nil or be empty", error.message
+  end
+
   def test_form_for
     form_for(@post, html: { id: "create-post" }) do |f|
       concat f.label(:title) { "The Title" }
