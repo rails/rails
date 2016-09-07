@@ -242,8 +242,9 @@ module ActionController
       response.date = Time.now unless response.date?
     end
 
-    # Sets an HTTP 1.1 Cache-Control header of <tt>no-cache</tt> so no caching should
-    # occur by the browser or intermediate caches (like caching proxy servers).
+    # Sets an HTTP 1.1 Cache-Control header of <tt>no-cache</tt>. This means the
+    # resource will be marked as stale, so clients must always revalidate.
+    # Intermediate/browser caches may still store the asset.
     def expires_now
       response.cache_control.replace(no_cache: true)
     end
