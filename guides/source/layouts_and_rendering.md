@@ -630,7 +630,7 @@ to use in this case.
 redirect_back(fallback_location: root_path)
 ```
 
-NOTE: `redirect_to` and `redirect_back` do not halt and return immediately from method execution, but simply set HTTP responses. Statements occurring after them in a method will be executed. You need halt by an explicit `return` or some other halting mechanism, if needed.   
+NOTE: `redirect_to` and `redirect_back` do not halt and return immediately from method execution, but simply set HTTP responses. Statements occurring after them in a method will be executed. You can halt by an explicit `return` or some other halting mechanism, if needed.
 
 #### Getting a Different Redirect Status Code
 
