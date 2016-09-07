@@ -10,11 +10,9 @@ module ActiveRecord
         predicate_builder.build(attribute, value.name)
       end
 
-      protected
+      private
 
         attr_reader :predicate_builder
-
-      private
 
         def print_deprecation_warning
           ActiveSupport::Deprecation.warn(<<-MSG.squish)

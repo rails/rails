@@ -28,7 +28,7 @@ module ActiveRecord
         predicate_builder.build_from_hash(queries)
       end
 
-      protected
+      private
 
         attr_reader :predicate_builder
     end
