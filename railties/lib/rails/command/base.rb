@@ -111,7 +111,7 @@ module Rails
         # For a `Rails::Command::TestCommand` placed in `rails/command/test_command.rb`
         # would return `rails/test`.
         def default_command_root
-          path = File.expand_path(File.join(base_name, command_name), __dir__)
+          path = File.expand_path(File.join("../commands", command_name), __dir__)
           path if File.exist?(path)
         end
 
