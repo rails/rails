@@ -136,6 +136,7 @@ module ActiveSupport
       "Almaty"                       => "Asia/Almaty",
       "Novosibirsk"                  => "Asia/Novosibirsk",
       "Rangoon"                      => "Asia/Rangoon",
+      "Yangon"                       => "Asia/Rangoon",
       "Bangkok"                      => "Asia/Bangkok",
       "Hanoi"                        => "Asia/Bangkok",
       "Jakarta"                      => "Asia/Jakarta",
