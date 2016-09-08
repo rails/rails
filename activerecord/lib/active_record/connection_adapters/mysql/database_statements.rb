@@ -24,11 +24,9 @@ module ActiveRecord
 
         # Executes the SQL statement in the context of this connection.
         def execute(sql, name = nil)
-          if @connection
-            # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
-            # made since we established the connection
-            @connection.query_options[:database_timezone] = ActiveRecord::Base.default_timezone
-          end
+          # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
+          # made since we established the connection
+          @connection.query_options[:database_timezone] = ActiveRecord::Base.default_timezone
 
           super
         end
@@ -71,11 +69,9 @@ module ActiveRecord
           end
 
           def exec_stmt_and_free(sql, name, binds, cache_stmt: false)
-            if @connection
-              # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
-              # made since we established the connection
-              @connection.query_options[:database_timezone] = ActiveRecord::Base.default_timezone
-            end
+            # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
+            # made since we established the connection
+            @connection.query_options[:database_timezone] = ActiveRecord::Base.default_timezone
 
             type_casted_binds = type_casted_binds(binds)
 
