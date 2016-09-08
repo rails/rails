@@ -12,9 +12,19 @@ module ActiveModel
     end
     self.min_cost = false
 
+    included do
+      cattr_accessor :secure_password_field
+      cattr_accessor :secure_password_digest_field
+      self.secure_password_field = :password
+      self.secure_password_digest_field = :password_digest
+    end
+
     module ClassMethods
       # Adds methods to set and authenticate against a BCrypt password.
-      # This mechanism requires you to have a +password_digest+ attribute.
+      # By default, the field you want to secure is +password+ attribute and this mechanism
+      # requires you to have a +password_digest+ attribute.
+      # This can be overriden by passing <tt>password_field: :custom_attribute</tt> and/or
+      # <tt>password_digest_field: :custom_attribute_digest</tt> as arguments.
       #
       # The following validations are added automatically:
       # * Password must be present on creation
@@ -50,6 +60,24 @@ module ActiveModel
       #   user.authenticate('mUc3m00RsqyRe')                              # => user
       #   User.find_by(name: 'david').try(:authenticate, 'notright')      # => false
       #   User.find_by(name: 'david').try(:authenticate, 'mUc3m00RsqyRe') # => user
+      #
+      # Example using custom +password_field+ attribute:
+      #
+      #   # Schema: Visitor(name:string, passwd_digest:string)
+      #   class User < ActiveRecord::Base
+      #     has_secure_password password_field: :passwd
+      #   end
+      #
+      #   visitor = Visitor.new(name: 'david', passwd: '', passwd_confirmation: 'nomatch')
+      #   visitor.save                                                        # => false, passwd required
+      #   visitor.passwd = 'mUc3m00RsqyRe'
+      #   visitor.save                                                        # => false, confirmation doesn't match
+      #   visitor.passwd_confirmation = 'mUc3m00RsqyRe'
+      #   visitor.save                                                        # => true
+      #   visitor.authenticate('notright')                                    # => false
+      #   visitor.authenticate('mUc3m00RsqyRe')                               # => visitor
+      #   Visitor.find_by(name: 'david').try(:authenticate, 'notright')       # => false
+      #   Visitor.find_by(name: 'david').try(:authenticate, 'mUc3m00RsqyRe')  # => user
       def has_secure_password(options = {})
         # Load bcrypt gem only when has_secure_password is used.
         # This is to avoid ActiveModel (and by extension the entire framework)
@@ -61,7 +89,52 @@ module ActiveModel
           raise
         end
 
-        include InstanceMethodsOnActivation
+        self.secure_password_field = options.fetch(:password_field, secure_password_field).to_sym
+        self.secure_password_digest_field = options.fetch(:password_digest_field, "#{secure_password_field}_digest").to_sym
+
+        class_eval do
+          # Returns +self+ if the password is correct, otherwise +false+.
+          #
+          #   class User < ActiveRecord::Base
+          #     has_secure_password validations: false
+          #   end
+          #
+          #   user = User.new(name: 'david', password: 'mUc3m00RsqyRe')
+          #   user.save
+          #   user.authenticate('notright')      # => false
+          #   user.authenticate('mUc3m00RsqyRe') # => user
+          def authenticate(unencrypted_password)
+            BCrypt::Password.new(send(secure_password_digest_field)).is_password?(unencrypted_password) && self
+          end
+
+          attr_reader secure_password_field
+
+          # Encrypts the password into the +password_digest+ attribute, only if the
+          # new password is not empty.
+          #
+          #   class User < ActiveRecord::Base
+          #     has_secure_password validations: false
+          #   end
+          #
+          #   user = User.new
+          #   user.password = nil
+          #   user.password_digest # => nil
+          #   user.password = 'mUc3m00RsqyRe'
+          #   user.password_digest # => "$2a$10$4LEA7r4YmNHtvlAvHhsYAeZmk/xeUVtMTYqwIvYY76EW5GUqDiP4."
+          define_method("#{secure_password_field}=".to_sym) do |unencrypted_password|
+            if unencrypted_password.nil?
+              self.send("#{secure_password_digest_field}=".to_sym, nil)
+            elsif !unencrypted_password.empty?
+              instance_variable_set("@#{secure_password_field}", unencrypted_password)
+              cost = ActiveModel::SecurePassword.min_cost ? BCrypt::Engine::MIN_COST : BCrypt::Engine.cost
+              self.send("#{secure_password_digest_field}=", BCrypt::Password.create(unencrypted_password, cost: cost))
+            end
+          end
+
+          define_method("#{secure_password_field}_confirmation=".to_sym) do |unencrypted_password|
+            instance_variable_set("@#{secure_password_field}_confirmation", unencrypted_password)
+          end
+        end
 
         if options.fetch(:validations, true)
           include ActiveModel::Validations
@@ -71,56 +144,12 @@ module ActiveModel
           # when there is an error, the message is added to the password attribute instead
           # so that the error message will make sense to the end-user.
           validate do |record|
-            record.errors.add(:password, :blank) unless record.password_digest.present?
+            record.errors.add(secure_password_field, :blank) unless record.send(secure_password_digest_field).present?
           end
 
-          validates_length_of :password, maximum: ActiveModel::SecurePassword::MAX_PASSWORD_LENGTH_ALLOWED
-          validates_confirmation_of :password, allow_blank: true
+          validates_length_of secure_password_field, maximum: ActiveModel::SecurePassword::MAX_PASSWORD_LENGTH_ALLOWED
+          validates_confirmation_of secure_password_field, allow_blank: true
         end
-      end
-    end
-
-    module InstanceMethodsOnActivation
-      # Returns +self+ if the password is correct, otherwise +false+.
-      #
-      #   class User < ActiveRecord::Base
-      #     has_secure_password validations: false
-      #   end
-      #
-      #   user = User.new(name: 'david', password: 'mUc3m00RsqyRe')
-      #   user.save
-      #   user.authenticate('notright')      # => false
-      #   user.authenticate('mUc3m00RsqyRe') # => user
-      def authenticate(unencrypted_password)
-        BCrypt::Password.new(password_digest).is_password?(unencrypted_password) && self
-      end
-
-      attr_reader :password
-
-      # Encrypts the password into the +password_digest+ attribute, only if the
-      # new password is not empty.
-      #
-      #   class User < ActiveRecord::Base
-      #     has_secure_password validations: false
-      #   end
-      #
-      #   user = User.new
-      #   user.password = nil
-      #   user.password_digest # => nil
-      #   user.password = 'mUc3m00RsqyRe'
-      #   user.password_digest # => "$2a$10$4LEA7r4YmNHtvlAvHhsYAeZmk/xeUVtMTYqwIvYY76EW5GUqDiP4."
-      def password=(unencrypted_password)
-        if unencrypted_password.nil?
-          self.password_digest = nil
-        elsif !unencrypted_password.empty?
-          @password = unencrypted_password
-          cost = ActiveModel::SecurePassword.min_cost ? BCrypt::Engine::MIN_COST : BCrypt::Engine.cost
-          self.password_digest = BCrypt::Password.create(unencrypted_password, cost: cost)
-        end
-      end
-
-      def password_confirmation=(unencrypted_password)
-        @password_confirmation = unencrypted_password
       end
     end
   end

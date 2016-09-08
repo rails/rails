@@ -4,7 +4,7 @@ class Visitor
 
   define_model_callbacks :create
 
-  has_secure_password(validations: false)
+  has_secure_password(validations: false, password_field: :astalavista)
 
-  attr_accessor :password_digest, :password_confirmation
+  attr_accessor :astalavista_digest
 end

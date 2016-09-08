@@ -28,6 +28,22 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert_not_respond_to @visitor, :valid?
   end
 
+  test "secure_password_field should default to :password" do
+    assert_equal :password, @user.secure_password_field
+  end
+
+  test "secure_password_digest_field should default to :password_digest" do
+    assert_equal :password_digest, @user.secure_password_digest_field
+  end
+
+  test "secure_password_field should be set to custom password field" do
+    assert_equal :astalavista, @visitor.secure_password_field
+  end
+
+  test "secure_password_digest_field should be set to custom password digest field" do
+    assert_equal :astalavista_digest, @visitor.secure_password_digest_field
+  end
+
   test "create a new user with validations and valid password/confirmation" do
     @user.password = "password"
     @user.password_confirmation = "password"
