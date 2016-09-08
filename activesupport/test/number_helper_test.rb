@@ -346,7 +346,7 @@ module ActiveSupport
           assert_equal "4.5  tens", number_helper.number_to_human(45, units: { unit: "", ten: " tens   " })
 
           #Uses only provided units and not larger ones
-          assert_equal "1000 kilometers", number_helper.number_to_human(1_000_000, units: {unit: "meter", thousand: "kilometers"})
+          assert_equal "1000 kilometers", number_helper.number_to_human(1_000_000, units: { unit: "meter", thousand: "kilometers" })
         end
       end
 
