@@ -17,13 +17,7 @@ module ActiveSupport
         end
 
         units = opts[:units]
-        exponent = calculate_exponent(units)
-        @number = number / (10 ** exponent)
-
-        until (rounded_number = NumberToRoundedConverter.convert(number, options)) != NumberToRoundedConverter.convert(1000, options)
-          @number = number / 1000.0
-          exponent += 3
-        end
+        exponent, rounded_number = calculate_exponent(units)
         unit = determine_unit(units, exponent)
         format.gsub("%n".freeze, rounded_number).gsub("%u".freeze, unit).strip
       end
@@ -48,7 +42,19 @@ module ActiveSupport
 
         def calculate_exponent(units)
           exponent = number != 0 ? Math.log10(number.abs).floor : 0
-          unit_exponents(units).find { |e| exponent >= e } || 0
+          exponent = unit_exponents(units).find { |e| exponent >= e } || 0
+          @number = number / (10 ** exponent)
+
+          case units
+          when Hash
+            rounded_number = NumberToRoundedConverter.convert(number, options)
+          else
+            until (rounded_number = NumberToRoundedConverter.convert(number, options)) != NumberToRoundedConverter.convert(1000, options)
+              @number = number / 1000.0
+              exponent += 3
+            end
+          end
+          return exponent, rounded_number
         end
 
         def unit_exponents(units)
