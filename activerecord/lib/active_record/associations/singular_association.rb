@@ -48,9 +48,9 @@ module ActiveRecord
           end
 
           binds = AssociationScope.get_bind_values(owner, reflection.chain)
-          if record = sc.execute(binds, klass, conn).first
+          sc.execute(binds, klass, conn) do |record|
             set_inverse_instance record
-          end
+          end.first
         end
 
         def replace(record)
