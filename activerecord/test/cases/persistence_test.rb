@@ -131,14 +131,14 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal initial_credit + 2, a1.reload.credit_limit
   end
 
-  def test_increment_new_record
+  def test_increment_update_for_new_record
     account = Account.new
     assert_raise ActiveRecord::ActiveRecordError do
       account.increment!(:credit_limit)
     end
   end
 
-  def test_increment_destroyed_record
+  def test_increment_update_for_destroyed_record
     account = accounts(:signals37)
     account.destroy!
     assert_raise ActiveRecord::ActiveRecordError do
