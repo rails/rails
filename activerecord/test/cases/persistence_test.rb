@@ -138,6 +138,14 @@ class PersistenceTest < ActiveRecord::TestCase
     end
   end
 
+  def test_increment_destroyed_record
+    account = accounts(:signals37)
+    account.destroy!
+    assert_raise ActiveRecord::ActiveRecordError do
+      account.increment!(:credit_limit)
+    end
+  end
+
   def test_destroy_all
     conditions = "author_name = 'Mary'"
     topics_by_mary = Topic.all.merge!(where: conditions, order: "id").to_a
