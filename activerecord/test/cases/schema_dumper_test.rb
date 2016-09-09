@@ -47,6 +47,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
     end
   end
 
+  def test_insert_versions_with_empty_versions
+    schema_info = ActiveRecord::Base.connection.dump_schema_information
+    assert_no_match /VALUES\s+\;/mi, schema_info
+  end
+
   def test_schema_dump
     output = standard_dump
     assert_match %r{create_table "accounts"}, output
