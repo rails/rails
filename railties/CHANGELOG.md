@@ -1,3 +1,7 @@
+*  The `log:clear` task clear all environments log files by default.
+
+    *Yuji Yaginuma*
+
 *   Allow the use of listen's 3.1.x branch
 
     *Esteban Santana Santana*
