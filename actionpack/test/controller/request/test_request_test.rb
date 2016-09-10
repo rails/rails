@@ -6,6 +6,11 @@ class ActionController::TestRequestTest < ActionController::TestCase
     assert @request.session_options
   end
 
+  def test_mutating_session_options_does_not_affect_default_options
+    @request.session_options[:myparam] = 123
+    assert_equal nil, ActionController::TestSession::DEFAULT_OPTIONS[:myparam]
+  end
+
   ActionDispatch::Session::AbstractStore::DEFAULT_OPTIONS.each_key do |option|
     test "rack default session options #{option} exists in session options and is default" do
       assert_equal(ActionDispatch::Session::AbstractStore::DEFAULT_OPTIONS[option],
