@@ -124,6 +124,10 @@ module ActiveRecord
         assert_equal "'lol'", @quoter.quote(DateTime.now, nil)
       end
 
+      def test_quoting_classes
+        assert_equal "'Object'", @quoter.quote(Object)
+      end
+
       def test_crazy_object
         crazy = Object.new
         e = assert_raises(TypeError) do
