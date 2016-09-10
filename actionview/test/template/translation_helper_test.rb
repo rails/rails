@@ -213,6 +213,12 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert_equal 123, translation
   end
 
+  def test_translate_with_hash_default
+    default = { one: "One %{count}", other: "Other %{count}" }
+    assert_equal "One 1", translate(:'translations.missing', default: default, count: 1)
+    assert_equal "Other 2", translate(:'translations.missing', default: default, count: 2)
+  end
+
   def test_translate_with_array_of_string_defaults
     translation = translate(:'translations.missing', default: ["A Generic String", "Second generic string"])
     assert_equal "A Generic String", translation
