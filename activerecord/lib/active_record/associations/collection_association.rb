@@ -222,11 +222,7 @@ module ActiveRecord
       # +count_records+, which is a method descendants have to provide.
       def size
         if !find_target? || loaded?
-          if association_scope.distinct_value
-            target.uniq.size
-          else
-            target.size
-          end
+          target.size
         elsif !association_scope.group_values.empty?
           load_target.size
         elsif !association_scope.distinct_value && target.is_a?(Array)
