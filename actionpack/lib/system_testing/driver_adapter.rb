@@ -13,8 +13,15 @@ module SystemTesting
         @driver ||= DriverAdapters.lookup(default_driver).new
       end
 
-      def driver=(adapter: default_driver, settings: {})
-        @driver = DriverAdapters.lookup(adapter).new(settings)
+      def driver=(adapter)
+        @driver = case adapter
+        when Symbol
+          DriverAdapters.lookup(adapter).new
+        else
+          adapter
+        end
+
+        @driver.call
       end
     end
   end

@@ -13,11 +13,6 @@ module SystemTesting
       end
     end
 
-    def before_setup
-      Base.driver.call
-      super
-    end
-
     def after_teardown
       Capybara.reset_sessions!
       super
