@@ -49,7 +49,7 @@ module ActionController
       super(env)
 
       self.session = session
-      self.session_options = TestSession::DEFAULT_OPTIONS
+      self.session_options = TestSession::DEFAULT_OPTIONS.dup
       @custom_param_parsers = {
         xml: lambda { |raw_post| Hash.from_xml(raw_post)['hash'] }
       }
