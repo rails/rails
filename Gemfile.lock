@@ -1,5 +1,5 @@
 GIT
-  remote: git://github.com/QueueClassic/queue_classic.git
+  remote: https://github.com/QueueClassic/queue_classic
   revision: c26f2c9f6f6133b946fbcdd7b7ec905a4aca9f94
   branch: master
   specs:
@@ -7,14 +7,14 @@ GIT
       pg (>= 0.17, < 0.19)
 
 GIT
-  remote: git://github.com/collectiveidea/delayed_job.git
+  remote: https://github.com/collectiveidea/delayed_job
   revision: 71f1d5faf934d3057abca942f0d410327bc69087
   specs:
     delayed_job (4.1.1)
       activesupport (>= 3.0, < 5.1)
 
 GIT
-  remote: git://github.com/collectiveidea/delayed_job_active_record.git
+  remote: https://github.com/collectiveidea/delayed_job_active_record
   revision: 61e688e03b2ef4004b08de6d1e0a123fda8fffad
   specs:
     delayed_job_active_record (4.1.0)
@@ -22,7 +22,7 @@ GIT
       delayed_job (>= 3.0, < 5)
 
 GIT
-  remote: git://github.com/matthewd/rb-inotify.git
+  remote: https://github.com/matthewd/rb-inotify
   revision: 90553518d1fb79aedc98a3036c59bd2b6731ac40
   branch: close-handling
   specs:
@@ -30,7 +30,7 @@ GIT
       ffi (>= 0.5.0)
 
 GIT
-  remote: git://github.com/resque/resque.git
+  remote: https://github.com/resque/resque
   revision: 06036388ec61e573c761ac5a25a2ef3c76537ec7
   specs:
     resque (1.27.0)
@@ -41,7 +41,7 @@ GIT
       vegas (~> 0.1.2)
 
 GIT
-  remote: git://github.com/sass/sass.git
+  remote: https://github.com/sass/sass
   revision: 3fda1cbe70d615e7ef96e28db4fd1f8a3ebb5505
   branch: stable
   specs:
