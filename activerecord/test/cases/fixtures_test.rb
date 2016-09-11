@@ -728,7 +728,7 @@ class LoadAllFixturesTest < ActiveRecord::TestCase
     self.class.fixtures :all
 
     if File.symlink? FIXTURES_ROOT + "/all/admin"
-      assert_equal %w(admin/accounts admin/users developers people tasks), fixture_table_names.sort
+      assert_equal %w(admin/accounts admin/users developers namespaced/accounts people tasks), fixture_table_names.sort
     end
   ensure
     ActiveRecord::FixtureSet.reset_cache
@@ -741,7 +741,7 @@ class LoadAllFixturesWithPathnameTest < ActiveRecord::TestCase
     self.class.fixtures :all
 
     if File.symlink? FIXTURES_ROOT + "/all/admin"
-      assert_equal %w(admin/accounts admin/users developers people tasks), fixture_table_names.sort
+      assert_equal %w(admin/accounts admin/users developers namespaced/accounts people tasks), fixture_table_names.sort
     end
   ensure
     ActiveRecord::FixtureSet.reset_cache
