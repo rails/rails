@@ -2,7 +2,7 @@ require 'capybara/dsl'
 require 'system_testing/test_helpers'
 
 module SystemTesting
-  module TestHelper
+  module TestHelper # :nodoc:
     include TestHelpers::FormHelper
     include TestHelpers::Assertions
     include Capybara::DSL
