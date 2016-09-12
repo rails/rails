@@ -380,8 +380,9 @@ module ActiveRecord
       def save_collection_association(reflection)
         if association = association_instance_get(reflection.name)
           autosave = reflection.options[:autosave]
+          new_record_before_save_flag = @new_record_before_save
 
-          if records = associated_records_to_validate_or_save(association, @new_record_before_save, autosave)
+          if records = associated_records_to_validate_or_save(association, new_record_before_save_flag, autosave)
             if autosave
               records_to_destroy = records.select(&:marked_for_destruction?)
               records_to_destroy.each { |record| association.destroy(record) }
@@ -393,7 +394,7 @@ module ActiveRecord
 
               saved = true
 
-              if autosave != false && (@new_record_before_save || record.new_record?)
+              if autosave != false && (new_record_before_save_flag || record.new_record?)
                 if autosave
                   saved = association.insert_record(record, false)
                 else

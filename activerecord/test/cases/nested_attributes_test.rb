@@ -9,6 +9,7 @@ require "models/man"
 require "models/interest"
 require "models/owner"
 require "models/pet"
+require "models/zine"
 require "active_support/hash_with_indifferent_access"
 
 class TestNestedAttributesInGeneral < ActiveRecord::TestCase
@@ -172,6 +173,17 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     interest = man.interests.create(topic: "photography")
     man.update(interests_attributes: { topic: "gardening", id: interest.id })
     assert_equal "gardening", interest.reload.topic
+  end
+
+  def test_has_many_inverse_of_should_save_all_associated_records
+    zine = Zine.new
+    zine.interests << Interest.create(topic: "photography")
+    zine.interests << Interest.create(topic: "IoT")
+    zine.interests << Interest.create(topic: "3D printing")
+
+    zine.save!
+
+    assert_equal 3, zine.interests.count
   end
 
   def test_reject_if_with_blank_nested_attributes_id
