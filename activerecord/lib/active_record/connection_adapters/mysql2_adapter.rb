@@ -90,7 +90,6 @@ module ActiveRecord
       #++
 
       def active?
-        return false unless @connection
         @connection.ping
       end
 
@@ -105,10 +104,7 @@ module ActiveRecord
       # Otherwise, this method does nothing.
       def disconnect!
         super
-        unless @connection.nil?
-          @connection.close
-          @connection = nil
-        end
+        @connection.close
       end
 
       private
