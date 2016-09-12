@@ -63,6 +63,27 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     assert @connection.active?
   end
 
+  def test_execute_after_disconnect
+    @connection.disconnect!
+    error = assert_raise(ActiveRecord::StatementInvalid) do
+      @connection.execute("SELECT 1")
+    end
+    assert_match /closed MySQL connection/, error.message
+  end
+
+  def test_quote_after_disconnect
+    @connection.disconnect!
+    error = assert_raise(Mysql2::Error) do
+      @connection.quote("string")
+    end
+    assert_match /closed MySQL connection/, error.message
+  end
+
+  def test_active_after_disconnect
+    @connection.disconnect!
+    assert_equal false, @connection.active?
+  end
+
   def test_mysql_connection_collation_is_configured
     assert_equal "utf8_unicode_ci", @connection.show_variable("collation_connection")
     assert_equal "utf8_general_ci", ARUnit2Model.connection.show_variable("collation_connection")
