@@ -133,16 +133,12 @@ module ActiveRecord
       end
 
       def test_quote_string_no_column
-        assert_equal "'lo\\\\l'", @quoter.quote('lo\l', nil)
+        assert_equal "'lo\\\\l'", @quoter.quote('lo\l')
       end
 
       def test_quote_as_mb_chars_no_column
         string = ActiveSupport::Multibyte::Chars.new('lo\l')
-        assert_equal "'lo\\\\l'", @quoter.quote(string, nil)
-      end
-
-      def test_string_with_crazy_column
-        assert_equal "'lo\\\\l'", @quoter.quote('lo\l')
+        assert_equal "'lo\\\\l'", @quoter.quote(string)
       end
 
       def test_quote_duration
