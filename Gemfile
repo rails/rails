@@ -25,10 +25,10 @@ gem 'bcrypt', '~> 3.1.11', require: false
 gem 'uglifier', '>= 1.3.0', require: false
 
 # Track stable branch of sass because it doesn't have circular require warnings.
-gem 'sass', github: 'sass/sass', branch: 'stable', require: false
+gem 'sass', git: 'https://github.com/sass/sass', branch: 'stable', require: false
 
 # FIXME: Remove this fork after https://github.com/nex3/rb-inotify/pull/49 is fixed.
-gem 'rb-inotify', github: 'matthewd/rb-inotify', branch: 'close-handling', require: false
+gem 'rb-inotify', git: 'https://github.com/matthewd/rb-inotify', branch: 'close-handling', require: false
 
 group :doc do
   gem 'sdoc', '~> 0.4.0'
@@ -48,7 +48,7 @@ group :job do
   gem 'sidekiq', require: false
   gem 'sucker_punch', require: false
   gem 'delayed_job', require: false
-  gem 'queue_classic', github: "QueueClassic/queue_classic", branch: 'master', require: false, platforms: :ruby
+  gem 'queue_classic', git: "https://github.com/QueueClassic/queue_classic", branch: 'master', require: false, platforms: :ruby
   gem 'sneakers', require: false
   gem 'que', require: false
   gem 'backburner', require: false
@@ -104,10 +104,10 @@ end
 
 platforms :jruby do
   if ENV['AR_JDBC']
-    gem 'activerecord-jdbcsqlite3-adapter', github: 'jruby/activerecord-jdbc-adapter', branch: 'master'
+    gem 'activerecord-jdbcsqlite3-adapter', git: 'https://github.com/jruby/activerecord-jdbc-adapter', branch: 'master'
     group :db do
-      gem 'activerecord-jdbcmysql-adapter', github: 'jruby/activerecord-jdbc-adapter', branch: 'master'
-      gem 'activerecord-jdbcpostgresql-adapter', github: 'jruby/activerecord-jdbc-adapter', branch: 'master'
+      gem 'activerecord-jdbcmysql-adapter', git: 'https://github.com/jruby/activerecord-jdbc-adapter', branch: 'master'
+      gem 'activerecord-jdbcpostgresql-adapter', git: 'https://github.com/jruby/activerecord-jdbc-adapter', branch: 'master'
     end
   else
     gem 'activerecord-jdbcsqlite3-adapter', '>= 1.3.0'
@@ -129,7 +129,7 @@ if ENV['ORACLE_ENHANCED']
   platforms :ruby do
     gem 'ruby-oci8', '~> 2.2'
   end
-  gem 'activerecord-oracle_enhanced-adapter', github: 'rsim/oracle-enhanced', branch: 'master'
+  gem 'activerecord-oracle_enhanced-adapter', git: 'https://github.com/rsim/oracle-enhanced', branch: 'master'
 end
 
 # A gem necessary for Active Record tests with IBM DB.

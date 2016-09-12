@@ -6,10 +6,17 @@ module ApplicationTests
 
     def setup
       build_app
+
+      create_gemfile
+      update_boot_file_to_use_bundler
+      @old_gemfile_env = ENV["BUNDLE_GEMFILE"]
+      ENV["BUNDLE_GEMFILE"] = app_path + "/Gemfile"
     end
 
     def teardown
       teardown_app
+
+      ENV["BUNDLE_GEMFILE"] = @old_gemfile_env
     end
 
     def test_bin_setup
@@ -52,5 +59,16 @@ Created database 'db/test.sqlite3'
         OUTPUT
       end
     end
+
+    private
+      def create_gemfile
+        app_file("Gemfile", "source 'https://rubygems.org'")
+        app_file("Gemfile", "gem 'rails', path: '#{RAILS_FRAMEWORK_ROOT}'", "a")
+        app_file("Gemfile", "gem 'sqlite3'", "a")
+      end
+
+      def update_boot_file_to_use_bundler
+        app_file("config/boot.rb", "require 'bundler/setup'")
+      end
   end
 end

@@ -1,13 +1,13 @@
 GIT
-  remote: git://github.com/QueueClassic/queue_classic.git
-  revision: 3c53a465786a1d3c40730c31b693d74c7bfa16cb
+  remote: https://github.com/QueueClassic/queue_classic
+  revision: 1ef197b9db8149a895e59077badcb5b94d4c8b44
   branch: master
   specs:
     queue_classic (3.2.0.RC1)
       pg (>= 0.17, < 0.19)
 
 GIT
-  remote: git://github.com/matthewd/rb-inotify.git
+  remote: https://github.com/matthewd/rb-inotify
   revision: 90553518d1fb79aedc98a3036c59bd2b6731ac40
   branch: close-handling
   specs:
@@ -15,7 +15,7 @@ GIT
       ffi (>= 0.5.0)
 
 GIT
-  remote: git://github.com/sass/sass.git
+  remote: https://github.com/sass/sass
   revision: 7716e67f3507c6f65878c69aa49ec358ebf675c7
   branch: stable
   specs:
