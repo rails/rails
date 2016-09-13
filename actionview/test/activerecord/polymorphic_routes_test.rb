@@ -59,6 +59,16 @@ module Blog
   end
 end
 
+module Admin
+  class Category < ActiveRecord::Base
+    self.table_name = "projects"
+  end
+
+  class Product < ActiveRecord::Base
+    self.table_name = "projects"
+  end
+end
+
 class PolymorphicRoutesTest < ActionController::TestCase
   include SharedTestRoutes.url_helpers
   self.default_url_options[:host] = "example.com"
@@ -74,6 +84,8 @@ class PolymorphicRoutesTest < ActionController::TestCase
     @series = Series.new
     @blog_post = Blog::Post.new
     @blog_blog = Blog::Blog.new
+    @admin_category = Admin::Category.new
+    @admin_product = Admin::Product.new
   end
 
   def assert_url(url, args)
@@ -112,29 +124,29 @@ class PolymorphicRoutesTest < ActionController::TestCase
   end
 
   def test_passing_routes_proxy
-    with_namespaced_routes(:blog) do
+    with_scoped_routes(:blog) do
       proxy = ActionDispatch::Routing::RoutesProxy.new(_routes, self, _routes.url_helpers)
       @blog_post.save
       assert_url "http://example.com/posts/#{@blog_post.id}", [proxy, @blog_post]
     end
   end
 
-  def test_namespaced_model
-    with_namespaced_routes(:blog) do
+  def test_scoped_model
+    with_scoped_routes(:blog) do
       @blog_post.save
       assert_url "http://example.com/posts/#{@blog_post.id}", @blog_post
     end
   end
 
-  def test_namespaced_model_with_name_the_same_as_namespace
-    with_namespaced_routes(:blog) do
+  def test_scoped_model_with_name_the_same_as_namespace
+    with_scoped_routes(:blog) do
       @blog_blog.save
       assert_url "http://example.com/blogs/#{@blog_blog.id}", @blog_blog
     end
   end
 
   def test_polymorphic_url_with_2_objects
-    with_namespaced_routes(:blog) do
+    with_scoped_routes(:blog) do
       @blog_blog.save
       @blog_post.save
       assert_equal "http://example.com/blogs/#{@blog_blog.id}/posts/#{@blog_post.id}", polymorphic_url([@blog_blog, @blog_post])
@@ -142,7 +154,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
   end
 
   def test_polymorphic_url_with_3_objects
-    with_namespaced_routes(:blog) do
+    with_scoped_routes(:blog) do
       @blog_blog.save
       @blog_post.save
       @fax.save
@@ -150,11 +162,19 @@ class PolymorphicRoutesTest < ActionController::TestCase
     end
   end
 
-  def test_namespaced_model_with_nested_resources
-    with_namespaced_routes(:blog) do
+  def test_scoped_model_with_nested_resources
+    with_scoped_routes(:blog) do
       @blog_post.save
       @blog_blog.save
       assert_url "http://example.com/blogs/#{@blog_blog.id}/posts/#{@blog_post.id}", [@blog_blog, @blog_post]
+    end
+  end
+
+  def test_namespaced_model_with_nested_resources
+    with_namespaced_routes(:admin) do
+      @admin_category.save
+      @admin_product.save
+      assert_url "http://example.com/admin/categories/#{@admin_category.id}/products/#{@admin_product.id}", [@admin_category, @admin_product]
     end
   end
 
@@ -620,6 +640,21 @@ class PolymorphicRoutesTest < ActionController::TestCase
   end
 
   def with_namespaced_routes(name)
+    with_routing do |set|
+      set.draw do
+        namespace(name) do
+          resources :categories do
+            resources :products
+          end
+        end
+      end
+
+      extend @routes.url_helpers
+      yield
+    end
+  end
+
+  def with_scoped_routes(name)
     with_routing do |set|
       set.draw do
         scope(module: name) do
