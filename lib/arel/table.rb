@@ -6,7 +6,7 @@ module Arel
     @engine = nil
     class << self; attr_accessor :engine; end
 
-    attr_accessor :name, :aliases, :table_alias
+    attr_accessor :name, :table_alias
 
     # TableAlias and Table both have a #table_name which is the name of the underlying table
     alias :table_name :name
@@ -14,7 +14,6 @@ module Arel
     def initialize(name, as: nil, type_caster: nil)
       @name    = name.to_s
       @columns = nil
-      @aliases = []
       @type_caster = type_caster
 
       # Sometime AR sends an :as parameter to table, to let the table know
@@ -27,9 +26,7 @@ module Arel
     end
 
     def alias name = "#{self.name}_2"
-      Nodes::TableAlias.new(self, name).tap do |node|
-        @aliases << node
-      end
+      Nodes::TableAlias.new(self, name)
     end
 
     def from
@@ -94,7 +91,6 @@ module Arel
     def eql? other
       self.class == other.class &&
         self.name == other.name &&
-        self.aliases == other.aliases &&
         self.table_alias == other.table_alias
     end
     alias :== :eql?

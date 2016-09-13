@@ -110,10 +110,7 @@ module Arel
 
     describe 'alias' do
       it 'should create a node that proxies to a table' do
-        @relation.aliases.must_equal []
-
         node = @relation.alias
-        @relation.aliases.must_equal [node]
         node.name.must_equal 'users_2'
         node[:id].relation.must_equal node
       end
@@ -191,10 +188,8 @@ module Arel
     describe 'equality' do
       it 'is equal with equal ivars' do
         relation1 = Table.new(:users)
-        relation1.aliases     = %w[a b c]
         relation1.table_alias = 'zomg'
         relation2 = Table.new(:users)
-        relation2.aliases     = %w[a b c]
         relation2.table_alias = 'zomg'
         array = [relation1, relation2]
         assert_equal 1, array.uniq.size
@@ -202,11 +197,9 @@ module Arel
 
       it 'is not equal with different ivars' do
         relation1 = Table.new(:users)
-        relation1.aliases     = %w[a b c]
         relation1.table_alias = 'zomg'
         relation2 = Table.new(:users)
-        relation2.aliases     = %w[x y z]
-        relation2.table_alias = 'zomg'
+        relation2.table_alias = 'zomg2'
         array = [relation1, relation2]
         assert_equal 2, array.uniq.size
       end
