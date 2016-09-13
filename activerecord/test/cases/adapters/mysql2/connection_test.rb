@@ -68,7 +68,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     error = assert_raise(ActiveRecord::StatementInvalid) do
       @connection.execute("SELECT 1")
     end
-    assert_match /closed MySQL connection/, error.message
+    assert_match(/closed MySQL connection/, error.message)
   end
 
   def test_quote_after_disconnect
@@ -76,7 +76,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     error = assert_raise(Mysql2::Error) do
       @connection.quote("string")
     end
-    assert_match /closed MySQL connection/, error.message
+    assert_match(/closed MySQL connection/, error.message)
   end
 
   def test_active_after_disconnect
