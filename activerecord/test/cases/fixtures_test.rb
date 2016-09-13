@@ -210,6 +210,27 @@ class FixturesTest < ActiveRecord::TestCase
     end
   end
 
+  # Make sure to raise an error when `:all` fixtures should be loaded
+  # but there is no `fixture_path`. It's an edge case but possible.
+  def test_missing_fixture_path
+    backup_fixture_path = nil
+    # unset the `fixture_path` like `rspec-rails` does it
+    ActiveSupport::TestCase.class_exec do
+      include ActiveRecord::TestFixtures
+      backup_fixture_path = self.fixture_path
+      self.fixture_path = ''
+    end
+    assert_raise(StandardError) do
+      ActiveRecord::FixtureSet.create_fixtures(ActiveSupport::TestCase.fixture_path, [:all])
+    end
+    # undo our stupidness
+    ActiveSupport::TestCase.class_exec do
+      include ActiveRecord::TestFixtures
+      self.fixture_path = backup_fixture_path
+    end
+  end
+
+
   def test_dirty_dirty_yaml_file
     assert_raise(ActiveRecord::Fixture::FormatError) do
       ActiveRecord::FixtureSet.new( Account.connection, "courses", Course, FIXTURES_ROOT + "/naked/yml/courses")

@@ -902,6 +902,10 @@ module ActiveRecord
 
       def fixtures(*fixture_set_names)
         if fixture_set_names.first == :all
+          # protect against globbing `/`:
+          unless (fixture_path and fixture_path != '') 
+            raise StandardError, "No 'fixture_path' configured'"
+          end
           fixture_set_names = Dir["#{fixture_path}/{**,*}/*.{yml}"]
           fixture_set_names.map! { |f| f[(fixture_path.to_s.size + 1)..-5] }
         else
