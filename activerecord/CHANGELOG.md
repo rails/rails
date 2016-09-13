@@ -1,3 +1,8 @@
+*   Using a mysql2 connection after it fails to reconnect will now have an error message
+    saying the connection is closed rather than an undefined method error message.
+
+    *Dylan Thacker-Smith*
+
 *   Remove unnecessarily association load when a `belongs_to` association has already been
     loaded then the foreign key is changed directly and the record saved.
 
