@@ -116,6 +116,8 @@ module ActiveRecord
     #   Person.first(3) # returns the first three objects fetched by SELECT * FROM people ORDER BY people.id LIMIT 3
     #
     def first(limit = nil)
+      return find_first(limit) if loaded? || limit_value
+
       if limit
         find_nth_with_limit(0, limit)
       else
@@ -576,6 +578,10 @@ module ActiveRecord
 
       def find_last(limit)
         limit ? records.last(limit) : records.last
+      end
+
+      def find_first(limit)
+        limit ? records.first(limit) : records.first
       end
   end
 end
