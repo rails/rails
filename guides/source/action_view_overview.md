@@ -254,12 +254,6 @@ as if we had written:
 <%= render partial: "product", locals: { product: @product } %>
 ```
 
-With the `as` option we can specify a different name for the local variable. For example, if we wanted it to be `item` instead of `product` we would do:
-
-```erb
-<%= render partial: "product", as: "item" %>
-```
-
 The `object` option can be used to directly specify which object is rendered into the partial; useful when the template's object is elsewhere (e.g. in a different instance variable or in a local variable).
 
 For example, instead of:
@@ -274,10 +268,16 @@ we would do:
 <%= render partial: "product", object: @item %>
 ```
 
-The `object` and `as` options can also be used together:
+With the `as` option we can specify a different name for the said local variable. For example, if we wanted it to be `item` instead of `product` we would do:
 
 ```erb
 <%= render partial: "product", object: @item, as: "item" %>
+```
+
+This is equivalent to
+
+```erb
+<%= render partial: "product", locals: { item: @item } %>
 ```
 
 #### Rendering Collections
