@@ -262,48 +262,48 @@ module ActionDispatch
 
           def handle_list(list)
             record_list = list.dup
-          record      = record_list.pop
+            record      = record_list.pop
 
-          args = []
-          namespace = ""
+            args      = []
+            namespace = ""
 
-          route  = record_list.map { |parent|
-            case parent
+            route  = record_list.map { |parent|
+              case parent
+              when Symbol, String
+                parent.to_s
+              when Class
+                args << parent
+                namespace = parent.model_name.to_s.deconstantize.underscore.gsub("/", "_")
+                parent.model_name.singular_route_key
+              else
+                args << parent.to_model
+                namespace = parent.to_model.model_name.to_s.deconstantize.underscore.gsub("/", "_")
+                parent.to_model.model_name.singular_route_key
+              end
+            }
+
+            namespace += "_" unless namespace.blank?
+
+            route <<
+            case record
             when Symbol, String
-              parent.to_s
+              record.to_s
             when Class
-              args << parent
-              namespace = parent.model_name.to_s.deconstantize.underscore.gsub('/', '_')
-              parent.model_name.singular_route_key
+              @key_strategy.call(record.model_name).sub /^#{namespace}/, ""
             else
-              args << parent.to_model
-              namespace = parent.to_model.model_name.to_s.deconstantize.underscore.gsub('/', '_')
-              parent.to_model.model_name.singular_route_key
+              model = record.to_model
+              if model.persisted?
+                args << model
+                model.model_name.singular_route_key.sub /^#{namespace}/, ""
+              else
+                @key_strategy.call(model.model_name).sub /^#{namespace}/, ""
+              end
             end
-          }
 
-          namespace += "_" unless namespace.blank?
+            route << suffix
 
-          route <<
-          case record
-          when Symbol, String
-            record.to_s
-          when Class
-            @key_strategy.call(record.model_name).sub /^#{namespace}/, ""
-          else
-            model = record.to_model
-            if model.persisted?
-              args << model
-              model.model_name.singular_route_key.sub /^#{namespace}/, ""
-            else
-              @key_strategy.call(model.model_name).sub /^#{namespace}/, ""
-            end
-          end
-
-          route << suffix
-
-          named_route = prefix + route.join("_")
-          [named_route, args]
+            named_route = prefix + route.join("_")
+            [named_route, args]
           end
 
           private
