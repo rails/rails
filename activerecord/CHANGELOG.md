@@ -1,3 +1,28 @@
+*   Warning if key of where_values_hash is duplicated
+
+    If one key has multi values, ActiveRecord uses a
+    value of last where condition.
+    Sometimes this causes strange behavior about
+    `#scope_for_create`.
+
+    1. If same key is passed to `where` and then `where.not`,
+       `where_values_hash` uses a value passed to `where.not`.
+
+           Developer.where(salary: 100_000).where.not(salary: 1_000).where_values_hash
+           # => {"salary"=>1000}
+
+    2. If same key is passed to `where`, first value is a Integer
+       and second value is a Range, `where_values_hash` uses end
+       value of range.
+
+           Developer.where(salary: 100_000).where(salary: (1..999)).where_values_hash
+           # => {"salary"=>999}
+
+    To notify developers of these unexpected result, add
+    warnings to `#where_values_hash`.
+
+    *Yuichiro Kaneko*
+
 *   PostgreSQL array columns will now respect the encoding of strings contained
     in the array.
 

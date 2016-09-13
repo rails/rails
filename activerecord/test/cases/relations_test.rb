@@ -455,6 +455,27 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal({ "salary" => 100_000 }, Developer.none.where(salary: 100_000).where_values_hash)
   end
 
+  def test_not_relation_where_values_hash
+    assert_equal({}, Developer.where.not(salary: 100_000).where_values_hash)
+  end
+
+  def test_same_key_relation_where_values_hash
+    warning = capture(:stderr) do
+      Developer.where(salary: 100_000).where(salary: 2_000).where_values_hash
+    end
+    assert_equal("WARNING: salary is duplicated. An after value is used.\n", warning)
+
+    warning = capture(:stderr) do
+      Developer.where(salary: 100_000).where.not(salary: 1_000).where_values_hash
+    end
+    assert_equal("WARNING: salary is duplicated. An after value is used.\n", warning)
+
+    warning = capture(:stderr) do
+      Developer.where(salary: 100_000).where(salary: (1..999)).where_values_hash
+    end
+    assert_equal("WARNING: salary is duplicated. An after value is used.\nWARNING: salary is duplicated. An after value is used.\n", warning)
+  end
+
   def test_null_relation_sum
     ac = Aircraft.new
     assert_equal Hash.new, ac.engines.group(:id).sum(:id)

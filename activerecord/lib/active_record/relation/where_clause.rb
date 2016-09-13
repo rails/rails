@@ -52,7 +52,13 @@ module ActiveRecord
           end
         end
 
-        binds = self.binds.map { |attr| [attr.name, attr.value] }.to_h
+        binds = self.binds.each_with_object({}) { |attr, hash|
+          if hash.key?(attr.name)
+            warn "WARNING: #{attr.name} is duplicated. An after value is used."
+          end
+
+          hash[attr.name] = attr.value
+        }
 
         equalities.map { |node|
           name = node.left.name
