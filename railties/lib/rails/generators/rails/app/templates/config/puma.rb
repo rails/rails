@@ -42,6 +42,14 @@ environment ENV.fetch("RAILS_ENV") { "development" }
 # on_worker_boot do
 #   ActiveRecord::Base.establish_connection if defined?(ActiveRecord)
 # end
+#
+# If you are preloading your application and using ActiveRecord, it's
+# recommended that you close any connections to the database before workers
+# are forked to prevent connection leakage.
+#
+# before_fork do
+#   ActiveRecord::Base.connection_pool.disconnect! if defined?(ActiveRecord)
+# end
 
 # Allow puma to be restarted by `rails restart` command.
 plugin :tmp_restart
