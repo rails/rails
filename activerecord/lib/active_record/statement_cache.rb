@@ -7,12 +7,12 @@ module ActiveRecord
   #   end
   #
   # The cached statement is executed by using the
-  # [connection.execute]{rdoc-ref:ConnectionAdapters::DatabaseStatements#execute} method:
+  # {connection.execute}[rdoc-ref:ConnectionAdapters::DatabaseStatements#execute] method:
   #
   #   cache.execute([], Book, Book.connection)
   #
   # The relation returned by the block is cached, and for each
-  # [execute]{rdoc-ref:ConnectionAdapters::DatabaseStatements#execute}
+  # {execute}[rdoc-ref:ConnectionAdapters::DatabaseStatements#execute]
   # call the cached relation gets duped. Database is queried when +to_a+ is called on the relation.
   #
   # If you want to cache the statement without the values you can use the +bind+ method of the
