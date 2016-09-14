@@ -117,11 +117,6 @@ module TestHelpers
         end
       end
 
-      gemfile_path = "#{app_path}/Gemfile"
-      if options[:gemfile].blank? && File.exist?(gemfile_path)
-        File.delete gemfile_path
-      end
-
       routes = File.read("#{app_path}/config/routes.rb")
       if routes =~ /(\n\s*end\s*)\Z/
         File.open("#{app_path}/config/routes.rb", "w") do |f|
