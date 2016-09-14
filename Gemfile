@@ -9,7 +9,12 @@ else
 end
 
 gem 'bcrypt-ruby', '~> 3.0.0'
-gem 'jquery-rails'
+
+if RUBY_VERSION < '1.9.3'
+  gem 'jquery-rails', '< 4'
+else
+  gem 'jquery-rails'
+end
 
 if ENV['JOURNEY']
   gem 'journey', :path => ENV['JOURNEY']
@@ -17,7 +22,12 @@ else
   gem 'journey'
 end
 
-gem 'i18n', '~> 0.6.11'
+if RUBY_VERSION < '1.9.3'
+  gem 'i18n', '~> 0.6.11', '< 0.7'
+else
+  gem 'i18n', '~> 0.6.11'
+end
+
 gem 'test-unit', '~> 3.0.0'
 
 if RUBY_VERSION < '1.9.3'
@@ -26,12 +36,21 @@ end
 
 # This needs to be with require false to avoid
 # it being automatically loaded by sprockets
-gem 'uglifier', '>= 1.0.3', :require => false
+if RUBY_VERSION < '1.9.3'
+  gem 'uglifier', '>= 1.0.3', '< 3', :require => false
+else
+  gem 'uglifier', '>= 1.0.3', :require => false
+end
 
 # execjs >= 2.1.0 doesn't work with Ruby 1.8
 gem 'execjs', '< 2.1.0'
 
-gem 'rake', '>= 0.8.7'
+if RUBY_VERSION < '1.9.3'
+  gem 'rake', '>= 0.8.7', '< 11'
+else
+  gem 'rake', '>= 0.8.7'
+end
+
 gem 'mocha', '~> 0.14', :require => false
 
 group :doc do
