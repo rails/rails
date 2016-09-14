@@ -205,7 +205,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
   def test_edge_option
     assert_generates_without_bundler(edge: true)
-    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']#{Regexp.escape("5-0-stable")}["']$}
+    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["']$}
   end
 
   def test_generation_does_not_run_bundle_install_with_full_and_mountable
