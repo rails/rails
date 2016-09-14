@@ -343,6 +343,16 @@ module RenderTestCases
       @view.render(partial: "test/customer", layout: "test/b_layout_for_partial_with_object_counter", collection: [ Customer.new("Amazon"), Customer.new("Yahoo") ])
   end
 
+  def test_render_partial_using_collection_and_collection_template_wraps_collection_in_template
+    assert_equal '<b><b data-counter="0">Hello: Amazon</b><b data-counter="1">Hello: Yahoo</b></b>',
+      @view.render(partial: "test/customer", collection: [Customer.new("Amazon"), Customer.new("Yahoo")], layout: "test/b_layout_for_partial_with_object_counter", collection_layout: "test/b_layout_for_partial")
+  end
+
+  def test_render_partial_using_blank_collection_and_collection_template
+    assert_equal nil,
+      @view.render(partial: "test/customer", collection: [], layout: "test/b_layout_for_partial_with_object_counter", collection_layout: "test/b_layout_for_partial")
+  end
+
   def test_render_partial_with_layout_using_object_and_template_makes_object_available_in_layout
     assert_equal '<b class="amazon">Hello: Amazon</b>',
       @view.render(partial: "test/customer", layout: "test/b_layout_for_partial_with_object", object: Customer.new("Amazon"))
