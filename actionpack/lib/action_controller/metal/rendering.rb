@@ -90,7 +90,7 @@ module ActionController
           render as `text/plain`, `render html: '<strong>HTML</strong>'` to
           render as `text/html`, or `render body: 'raw'` to match the deprecated
           behavior and render with the default Content-Type, which is
-          `text/plain`.
+          `text/html`.
         WARNING
         end
 
