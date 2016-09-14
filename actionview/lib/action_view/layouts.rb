@@ -224,12 +224,12 @@ module ActionView
       module LayoutConditions # :nodoc:
         private
 
-        # Determines whether the current action has a layout definition by
-        # checking the action name against the :only and :except conditions
-        # set by the <tt>layout</tt> method.
-        #
-        # ==== Returns
-        # * <tt>Boolean</tt> - True if the action has a layout definition, false otherwise.
+          # Determines whether the current action has a layout definition by
+          # checking the action name against the :only and :except conditions
+          # set by the <tt>layout</tt> method.
+          #
+          # ==== Returns
+          # * <tt>Boolean</tt> - True if the action has a layout definition, false otherwise.
           def _conditional_layout?
             return unless super
 
@@ -334,11 +334,11 @@ module ActionView
 
       private
 
-      # If no layout is supplied, look for a template named the return
-      # value of this method.
-      #
-      # ==== Returns
-      # * <tt>String</tt> - A template name
+        # If no layout is supplied, look for a template named the return
+        # value of this method.
+        #
+        # ==== Returns
+        # * <tt>String</tt> - A template name
         def _implied_layout_name # :nodoc:
           controller_path
         end

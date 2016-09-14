@@ -16,7 +16,7 @@ module ActionView
 
     private
 
-    # Determine the template to be rendered using the given options.
+      # Determine the template to be rendered using the given options.
       def determine_template(options)
         keys = options.has_key?(:locals) ? options[:locals].keys : []
 
@@ -44,8 +44,8 @@ module ActionView
         end
       end
 
-    # Renders the given template. A string representing the layout can be
-    # supplied as well.
+      # Renders the given template. A string representing the layout can be
+      # supplied as well.
       def render_template(template, layout_name = nil, locals = nil) #:nodoc:
         view, locals = @view, locals || {}
 
@@ -69,9 +69,9 @@ module ActionView
         end
       end
 
-    # This is the method which actually finds the layout using details in the lookup
-    # context object. If no layout is found, it checks if at least a layout with
-    # the given name exists across all details before raising the error.
+      # This is the method which actually finds the layout using details in the lookup
+      # context object. If no layout is found, it checks if at least a layout with
+      # the given name exists across all details before raising the error.
       def find_layout(layout, keys, formats)
         resolve_layout(layout, keys, formats)
       end

@@ -128,13 +128,13 @@ module ActionController
       end
 
       private
-      # Determine the wrapper model from the controller's name. By convention,
-      # this could be done by trying to find the defined model that has the
-      # same singular name as the controller. For example, +UsersController+
-      # will try to find if the +User+ model exists.
-      #
-      # This method also does namespace lookup. Foo::Bar::UsersController will
-      # try to find Foo::Bar::User, Foo::User and finally User.
+        # Determine the wrapper model from the controller's name. By convention,
+        # this could be done by trying to find the defined model that has the
+        # same singular name as the controller. For example, +UsersController+
+        # will try to find if the +User+ model exists.
+        #
+        # This method also does namespace lookup. Foo::Bar::UsersController will
+        # try to find Foo::Bar::User, Foo::User and finally User.
         def _default_wrap_model #:nodoc:
           return nil if klass.anonymous?
           model_name = klass.name.sub(/Controller$/, "").classify

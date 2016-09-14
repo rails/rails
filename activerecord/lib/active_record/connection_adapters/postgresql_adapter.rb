@@ -527,7 +527,7 @@ module ActiveRecord
           case default
             # Quoted types
           when /\A[\(B]?'(.*)'.*::"?([\w. ]+)"?(?:\[\])?\z/m
-              # The default 'now'::date is CURRENT_DATE
+            # The default 'now'::date is CURRENT_DATE
             if $1 == "now".freeze && $2 == "date".freeze
               nil
             else
@@ -542,9 +542,9 @@ module ActiveRecord
             # Object identifier types
           when /\A-?\d+\z/
             $1
-            else
-              # Anything else is blank, some user type, or some function
-              # and we can't know the value of that, so return nil.
+          else
+            # Anything else is blank, some user type, or some function
+            # and we can't know the value of that, so return nil.
             nil
           end
         end

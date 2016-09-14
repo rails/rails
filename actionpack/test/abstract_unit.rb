@@ -246,7 +246,7 @@ module ActionDispatch
   class DebugExceptions
     private
       remove_method :stderr_logger
-    # Silence logger
+      # Silence logger
       def stderr_logger
         nil
       end

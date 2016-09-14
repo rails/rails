@@ -245,12 +245,12 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
-# FIXME: get following tests to pass on jruby, currently skipped
-#
-# Currently this fails because ActiveSupport::Multibyte::Unicode#tidy_bytes
-# required a specific Encoding::Converter(UTF-8 to UTF8-MAC) which unavailable on JRuby
-# causing our tests to error out.
-# related bug http://jira.codehaus.org/browse/JRUBY-7194
+  # FIXME: get following tests to pass on jruby, currently skipped
+  #
+  # Currently this fails because ActiveSupport::Multibyte::Unicode#tidy_bytes
+  # required a specific Encoding::Converter(UTF-8 to UTF8-MAC) which unavailable on JRuby
+  # causing our tests to error out.
+  # related bug http://jira.codehaus.org/browse/JRUBY-7194
   def test_parameterize
     jruby_skip "UTF-8 to UTF8-MAC Converter is unavailable"
     StringToParameterized.each do |some_string, parameterized_string|

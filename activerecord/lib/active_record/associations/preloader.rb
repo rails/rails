@@ -106,7 +106,7 @@ module ActiveRecord
 
       private
 
-      # Loads all the given data into +records+ for the +association+.
+        # Loads all the given data into +records+ for the +association+.
         def preloaders_on(association, records, scope)
           case association
           when Hash
@@ -132,18 +132,18 @@ module ActiveRecord
           }
         end
 
-      # Loads all the given data into +records+ for a singular +association+.
-      #
-      # Functions by instantiating a preloader class such as Preloader::HasManyThrough and
-      # call the +run+ method for each passed in class in the +records+ argument.
-      #
-      # Not all records have the same class, so group then preload group on the reflection
-      # itself so that if various subclass share the same association then we do not split
-      # them unnecessarily
-      #
-      # Additionally, polymorphic belongs_to associations can have multiple associated
-      # classes, depending on the polymorphic_type field. So we group by the classes as
-      # well.
+        # Loads all the given data into +records+ for a singular +association+.
+        #
+        # Functions by instantiating a preloader class such as Preloader::HasManyThrough and
+        # call the +run+ method for each passed in class in the +records+ argument.
+        #
+        # Not all records have the same class, so group then preload group on the reflection
+        # itself so that if various subclass share the same association then we do not split
+        # them unnecessarily
+        #
+        # Additionally, polymorphic belongs_to associations can have multiple associated
+        # classes, depending on the polymorphic_type field. So we group by the classes as
+        # well.
         def preloaders_for_one(association, records, scope)
           grouped_records(association, records).flat_map do |reflection, klasses|
             klasses.map do |rhs_klass, rs|
@@ -187,10 +187,10 @@ module ActiveRecord
           def self.owners; []; end
         end
 
-      # Returns a class containing the logic needed to load preload the data
-      # and attach it to a relation. For example +Preloader::Association+ or
-      # +Preloader::HasManyThrough+. The class returned implements a `run` method
-      # that accepts a preloader.
+        # Returns a class containing the logic needed to load preload the data
+        # and attach it to a relation. For example +Preloader::Association+ or
+        # +Preloader::HasManyThrough+. The class returned implements a `run` method
+        # that accepts a preloader.
         def preloader_for(reflection, owners, rhs_klass)
           return NullPreloader unless rhs_klass
 
