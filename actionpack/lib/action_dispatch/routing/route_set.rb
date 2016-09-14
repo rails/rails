@@ -264,19 +264,19 @@ module ActionDispatch
         end
 
         private
-        # Create a url helper allowing ordered parameters to be associated
-        # with corresponding dynamic segments, so you can do:
-        #
-        #   foo_url(bar, baz, bang)
-        #
-        # Instead of:
-        #
-        #   foo_url(bar: bar, baz: baz, bang: bang)
-        #
-        # Also allow options hash, so you can do:
-        #
-        #   foo_url(bar, baz, bang, sort_by: 'baz')
-        #
+          # Create a url helper allowing ordered parameters to be associated
+          # with corresponding dynamic segments, so you can do:
+          #
+          #   foo_url(bar, baz, bang)
+          #
+          # Instead of:
+          #
+          #   foo_url(bar: bar, baz: baz, bang: bang)
+          #
+          # Also allow options hash, so you can do:
+          #
+          #   foo_url(bar, baz, bang, sort_by: 'baz')
+          #
           def define_url_helper(mod, route, name, opts, route_key, url_strategy)
             helper = UrlHelper.create(route, opts, route_key, url_strategy)
             mod.module_eval do

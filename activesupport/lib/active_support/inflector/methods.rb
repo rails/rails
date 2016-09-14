@@ -356,11 +356,11 @@ module ActiveSupport
 
     private
 
-    # Mounts a regular expression, returned as a string to ease interpolation,
-    # that will match part by part the given constant.
-    #
-    #   const_regexp("Foo::Bar::Baz") # => "Foo(::Bar(::Baz)?)?"
-    #   const_regexp("::")            # => "::"
+      # Mounts a regular expression, returned as a string to ease interpolation,
+      # that will match part by part the given constant.
+      #
+      #   const_regexp("Foo::Bar::Baz") # => "Foo(::Bar(::Baz)?)?"
+      #   const_regexp("::")            # => "::"
       def const_regexp(camel_cased_word) #:nodoc:
         parts = camel_cased_word.split("::".freeze)
 
@@ -373,10 +373,10 @@ module ActiveSupport
         end
       end
 
-    # Applies inflection rules for +singularize+ and +pluralize+.
-    #
-    #  apply_inflections('post', inflections.plurals)    # => "posts"
-    #  apply_inflections('posts', inflections.singulars) # => "post"
+      # Applies inflection rules for +singularize+ and +pluralize+.
+      #
+      #  apply_inflections('post', inflections.plurals)    # => "posts"
+      #  apply_inflections('posts', inflections.singulars) # => "post"
       def apply_inflections(word, rules)
         result = word.to_s.dup
 

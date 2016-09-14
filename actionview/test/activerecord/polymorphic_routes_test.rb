@@ -598,7 +598,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
     end
   end
 
- # Tests for uncountable names
+  # Tests for uncountable names
   def test_uncountable_resource
     with_test_routes do
       @series.save

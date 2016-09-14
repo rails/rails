@@ -1163,7 +1163,7 @@ module ActiveRecord
 
     private
 
-    # Used for running a specific migration.
+      # Used for running a specific migration.
       def run_without_lock
         migration = migrations.detect { |m| m.version == @target_version }
         raise UnknownMigrationVersionError.new(@target_version) if migration.nil?
@@ -1172,7 +1172,7 @@ module ActiveRecord
         record_environment
       end
 
-    # Used for running multiple migrations up to or down to a certain value.
+      # Used for running multiple migrations up to or down to a certain value.
       def migrate_without_lock
         if invalid_target?
           raise UnknownMigrationVersionError.new(@target_version)
@@ -1185,7 +1185,7 @@ module ActiveRecord
         record_environment
       end
 
-    # Stores the current environment in the database.
+      # Stores the current environment in the database.
       def record_environment
         return if down?
         ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Migrator.current_environment
@@ -1195,7 +1195,7 @@ module ActiveRecord
         migrated.include?(migration.version.to_i)
       end
 
-    # Return true if a valid version is not provided.
+      # Return true if a valid version is not provided.
       def invalid_target?
         !target && @target_version && @target_version > 0
       end
@@ -1272,7 +1272,7 @@ module ActiveRecord
         @direction == :down
       end
 
-    # Wrap the migration in a transaction only if supported by the adapter.
+      # Wrap the migration in a transaction only if supported by the adapter.
       def ddl_transaction(migration)
         if use_transaction?(migration)
           Base.transaction { yield }

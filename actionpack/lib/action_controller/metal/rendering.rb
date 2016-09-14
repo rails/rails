@@ -72,14 +72,14 @@ module ActionController
         end
       end
 
-    # Normalize arguments by catching blocks and setting them on :update.
+      # Normalize arguments by catching blocks and setting them on :update.
       def _normalize_args(action=nil, options={}, &blk) #:nodoc:
         options = super
         options[:update] = blk if block_given?
         options
       end
 
-    # Normalize both text and status options.
+      # Normalize both text and status options.
       def _normalize_options(options) #:nodoc:
         _normalize_text(options)
 
@@ -118,7 +118,7 @@ module ActionController
         end
       end
 
-    # Process controller specific options, as status, content-type and location.
+      # Process controller specific options, as status, content-type and location.
       def _process_options(options) #:nodoc:
         status, content_type, location = options.values_at(:status, :content_type, :location)
 

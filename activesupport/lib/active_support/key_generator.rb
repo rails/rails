@@ -51,8 +51,8 @@ module ActiveSupport
 
     private
 
-    # To prevent users from using something insecure like "Password" we make sure that the
-    # secret they've provided is at least 30 characters in length.
+      # To prevent users from using something insecure like "Password" we make sure that the
+      # secret they've provided is at least 30 characters in length.
       def ensure_secret_secure(secret)
         if secret.blank?
           raise ArgumentError, "A secret is required to generate an integrity hash " \

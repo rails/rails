@@ -108,7 +108,7 @@ module ActionController
       end
 
       private
-      # Extract helper names from files in <tt>app/helpers/**/*_helper.rb</tt>
+        # Extract helper names from files in <tt>app/helpers/**/*_helper.rb</tt>
         def all_application_helpers
           all_helpers_from_path(helpers_path)
         end

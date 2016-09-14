@@ -1150,22 +1150,22 @@ module ActiveRecord
         end.flatten!
       end
 
-    # Checks to make sure that the arguments are not blank. Note that if some
-    # blank-like object were initially passed into the query method, then this
-    # method will not raise an error.
-    #
-    # Example:
-    #
-    #    Post.references()   # raises an error
-    #    Post.references([]) # does not raise an error
-    #
-    # This particular method should be called with a method_name and the args
-    # passed into that method as an input. For example:
-    #
-    # def references(*args)
-    #   check_if_method_has_arguments!("references", args)
-    #   ...
-    # end
+      # Checks to make sure that the arguments are not blank. Note that if some
+      # blank-like object were initially passed into the query method, then this
+      # method will not raise an error.
+      #
+      # Example:
+      #
+      #    Post.references()   # raises an error
+      #    Post.references([]) # does not raise an error
+      #
+      # This particular method should be called with a method_name and the args
+      # passed into that method as an input. For example:
+      #
+      # def references(*args)
+      #   check_if_method_has_arguments!("references", args)
+      #   ...
+      # end
       def check_if_method_has_arguments!(method_name, args)
         if args.blank?
           raise ArgumentError, "The method .#{method_name}() must contain arguments."

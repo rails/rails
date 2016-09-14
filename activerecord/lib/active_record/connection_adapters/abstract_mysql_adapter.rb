@@ -818,8 +818,8 @@ module ActiveRecord
 
       private
 
-      # MySQL is too stupid to create a temporary table for use subquery, so we have
-      # to give it some prompting in the form of a subsubquery. Ugh!
+        # MySQL is too stupid to create a temporary table for use subquery, so we have
+        # to give it some prompting in the form of a subsubquery. Ugh!
         def subquery_for(key, select)
           subsubselect = select.clone
           subsubselect.projections = [key]

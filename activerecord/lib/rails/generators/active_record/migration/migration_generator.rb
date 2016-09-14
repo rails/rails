@@ -17,9 +17,9 @@ module ActiveRecord
       protected
         attr_reader :migration_action, :join_tables
 
-      # Sets the default migration template that is being used for the generation of the migration.
-      # Depending on command line arguments, the migration template and the table name instance
-      # variables are set up.
+        # Sets the default migration template that is being used for the generation of the migration.
+        # Depending on command line arguments, the migration template and the table name instance
+        # variables are set up.
         def set_local_assigns!
           @migration_template = "migration.rb"
           case file_name

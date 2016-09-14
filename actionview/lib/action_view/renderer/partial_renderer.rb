@@ -350,13 +350,13 @@ module ActionView
         end
       end
 
-    # Sets up instance variables needed for rendering a partial. This method
-    # finds the options and details and extracts them. The method also contains
-    # logic that handles the type of object passed in as the partial.
-    #
-    # If +options[:partial]+ is a string, then the +@path+ instance variable is
-    # set to that string. Otherwise, the +options[:partial]+ object must
-    # respond to +to_partial_path+ in order to setup the path.
+      # Sets up instance variables needed for rendering a partial. This method
+      # finds the options and details and extracts them. The method also contains
+      # logic that handles the type of object passed in as the partial.
+      #
+      # If +options[:partial]+ is a string, then the +@path+ instance variable is
+      # set to that string. Otherwise, the +options[:partial]+ object must
+      # respond to +to_partial_path+ in order to setup the path.
       def setup(context, options, block)
         @view   = context
         @options = options
@@ -466,13 +466,13 @@ module ActionView
         end
       end
 
-    # Obtains the path to where the object's partial is located. If the object
-    # responds to +to_partial_path+, then +to_partial_path+ will be called and
-    # will provide the path. If the object does not respond to +to_partial_path+,
-    # then an +ArgumentError+ is raised.
-    #
-    # If +prefix_partial_path_with_controller_namespace+ is true, then this
-    # method will prefix the partial paths with a namespace.
+      # Obtains the path to where the object's partial is located. If the object
+      # responds to +to_partial_path+, then +to_partial_path+ will be called and
+      # will provide the path. If the object does not respond to +to_partial_path+,
+      # then an +ArgumentError+ is raised.
+      #
+      # If +prefix_partial_path_with_controller_namespace+ is true, then this
+      # method will prefix the partial paths with a namespace.
       def partial_path(object = @object)
         object = object.to_model if object.respond_to?(:to_model)
 

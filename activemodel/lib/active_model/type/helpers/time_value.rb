@@ -64,7 +64,7 @@ module ActiveModel
 
           ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(\.\d+)?\z/
 
-        # Doesn't handle time zones.
+          # Doesn't handle time zones.
           def fast_string_to_time(string)
             if string =~ ISO_DATETIME
               microsec = ($7.to_r * 1_000_000).to_i

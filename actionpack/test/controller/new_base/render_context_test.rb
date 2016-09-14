@@ -28,7 +28,7 @@ module RenderContext
 
     protected
 
-    # 3) Set view_context to self
+      # 3) Set view_context to self
       def view_context
         self
       end

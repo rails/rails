@@ -225,7 +225,7 @@ module ActiveRecord
           [:add_foreign_key, reversed_args]
         end
 
-      # Forwards any missing method call to the \target.
+        # Forwards any missing method call to the \target.
         def method_missing(method, *args, &block)
           if @delegate.respond_to?(method)
             @delegate.send(method, *args, &block)

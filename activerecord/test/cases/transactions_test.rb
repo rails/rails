@@ -511,9 +511,10 @@ class TransactionTest < ActiveRecord::TestCase
     topic = Topic.new(title: "test")
     topic.freeze
     e = assert_raise(RuntimeError) { topic.save }
-    assert_match(/frozen/i, e.message) # Not good enough, but we can't do much
-                                       # about it since there is no specific error
-                                       # for frozen objects.
+    # Not good enough, but we can't do much
+    # about it since there is no specific error
+    # for frozen objects.
+    assert_match(/frozen/i, e.message)
     assert !topic.persisted?, "not persisted"
     assert_nil topic.id
     assert topic.frozen?, "not frozen"

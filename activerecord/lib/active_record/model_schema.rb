@@ -397,13 +397,13 @@ module ActiveRecord
           end
         end
 
-      # Guesses the table name, but does not decorate it with prefix and suffix information.
+        # Guesses the table name, but does not decorate it with prefix and suffix information.
         def undecorated_table_name(class_name = base_class.name)
           table_name = class_name.to_s.demodulize.underscore
           pluralize_table_names ? table_name.pluralize : table_name
         end
 
-      # Computes and returns a table name according to default conventions.
+        # Computes and returns a table name according to default conventions.
         def compute_table_name
           base = base_class
           if self == base

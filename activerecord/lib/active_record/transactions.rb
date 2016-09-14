@@ -409,7 +409,7 @@ module ActiveRecord
 
     protected
 
-    # Save the new record state and id of a record so it can be restored later if a transaction fails.
+      # Save the new record state and id of a record so it can be restored later if a transaction fails.
       def remember_transaction_record_state #:nodoc:
         @_start_transaction_state[:id] = id
         @_start_transaction_state.reverse_merge!(
@@ -420,18 +420,18 @@ module ActiveRecord
         @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) + 1
       end
 
-    # Clear the new record state and id of a record.
+      # Clear the new record state and id of a record.
       def clear_transaction_record_state #:nodoc:
         @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
         force_clear_transaction_record_state if @_start_transaction_state[:level] < 1
       end
 
-    # Force to clear the transaction record state.
+      # Force to clear the transaction record state.
       def force_clear_transaction_record_state #:nodoc:
         @_start_transaction_state.clear
       end
 
-    # Restore the new record state and id of a record that was previously saved by a call to save_record_state.
+      # Restore the new record state and id of a record that was previously saved by a call to save_record_state.
       def restore_transaction_record_state(force = false) #:nodoc:
         unless @_start_transaction_state.empty?
           transaction_level = (@_start_transaction_state[:level] || 0) - 1
@@ -449,12 +449,12 @@ module ActiveRecord
         end
       end
 
-    # Determine if a record was created or destroyed in a transaction. State should be one of :new_record or :destroyed.
+      # Determine if a record was created or destroyed in a transaction. State should be one of :new_record or :destroyed.
       def transaction_record_state(state) #:nodoc:
         @_start_transaction_state[state]
       end
 
-    # Determine if a transaction included an action for :create, :update, or :destroy. Used in filtering callbacks.
+      # Determine if a transaction included an action for :create, :update, or :destroy. Used in filtering callbacks.
       def transaction_include_any_action?(actions) #:nodoc:
         actions.any? do |action|
           case action
@@ -478,23 +478,23 @@ module ActiveRecord
         !_rollback_callbacks.empty? || !_commit_callbacks.empty? || !_before_commit_callbacks.empty?
       end
 
-    # Updates the attributes on this particular Active Record object so that
-    # if it's associated with a transaction, then the state of the Active Record
-    # object will be updated to reflect the current state of the transaction.
-    #
-    # The +@transaction_state+ variable stores the states of the associated
-    # transaction. This relies on the fact that a transaction can only be in
-    # one rollback or commit (otherwise a list of states would be required).
-    # Each Active Record object inside of a transaction carries that transaction's
-    # TransactionState.
-    #
-    # This method checks to see if the ActiveRecord object's state reflects
-    # the TransactionState, and rolls back or commits the Active Record object
-    # as appropriate.
-    #
-    # Since Active Record objects can be inside multiple transactions, this
-    # method recursively goes through the parent of the TransactionState and
-    # checks if the Active Record object reflects the state of the object.
+      # Updates the attributes on this particular Active Record object so that
+      # if it's associated with a transaction, then the state of the Active Record
+      # object will be updated to reflect the current state of the transaction.
+      #
+      # The +@transaction_state+ variable stores the states of the associated
+      # transaction. This relies on the fact that a transaction can only be in
+      # one rollback or commit (otherwise a list of states would be required).
+      # Each Active Record object inside of a transaction carries that transaction's
+      # TransactionState.
+      #
+      # This method checks to see if the ActiveRecord object's state reflects
+      # the TransactionState, and rolls back or commits the Active Record object
+      # as appropriate.
+      #
+      # Since Active Record objects can be inside multiple transactions, this
+      # method recursively goes through the parent of the TransactionState and
+      # checks if the Active Record object reflects the state of the object.
       def sync_with_transaction_state
         update_attributes_from_transaction_state(@transaction_state)
       end
