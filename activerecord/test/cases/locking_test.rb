@@ -181,6 +181,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
 
     p1.touch
     assert_equal 1, p1.lock_version
+    assert_not p1.changed?, "Changes should have been cleared"
   end
 
   def test_touch_stale_object

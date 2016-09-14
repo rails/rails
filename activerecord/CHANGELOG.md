@@ -1,3 +1,10 @@
+*   Calling `touch` on a model using optimistic locking will now leave the model
+    in a non-dirty state with no attribute changes.
+
+    Fixes #26496.
+
+    *Jakob Skjerning*
+
 *   Using a mysql2 connection after it fails to reconnect will now have an error message
     saying the connection is closed rather than an undefined method error message.
 
