@@ -165,6 +165,12 @@ class SanitizeTest < ActiveRecord::TestCase
     assert_equal "#{ActiveRecord::Base.connection.quote('10')}::integer '2009-01-01'::date", l.call
   end
 
+  def test_named_bind_with_escaped_colon
+    l = Proc.new { bind("attrs->>'user%:age' = :age", age: 10) }
+    assert_nothing_raised(&l)
+    assert_equal "attrs->>'user:age' = 10", l.call
+  end
+
   private
     def bind(statement, *vars)
       if vars.first.is_a?(Hash)

@@ -483,6 +483,12 @@ Client.where("created_at >= :start_date AND created_at <= :end_date",
 
 This makes for clearer readability if you have a large number of variable conditions.
 
+In case you need to escape a colon in your conditions string you can do it with `%`:
+
+```ruby
+User.where("login = :login OR login = '%:fake'", {login: params[:login]})
+```
+
 ### Hash Conditions
 
 Active Record also allows you to pass in hash conditions which can increase the readability of your conditions syntax. With hash conditions, you pass in a hash with keys of the fields you want qualified and the values of how you want to qualify them:
