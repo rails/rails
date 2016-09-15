@@ -14,9 +14,7 @@ module ActionView #:nodoc:
         "text template"
       end
 
-      def inspect
-        "text template"
-      end
+      alias_method :inspect, :identifier
 
       def to_str
         @string
