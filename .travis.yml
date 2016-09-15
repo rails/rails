@@ -11,6 +11,8 @@ rvm:
   - 2.0.0
   - 2.1
   - 2.2
+  - 2.3.1
+  - ruby-head
 env:
   - "GEM=railties"
   - "GEM=ap,am,amo,ares,as"
@@ -36,5 +38,6 @@ bundler_args: --path vendor/bundle
 # Last recorded passing CI run is https://travis-ci.org/rails/rails/builds/48782330
 matrix:
   allow_failures:
+    - rvm: ruby-head
     - rvm: 1.8.7
       env: GEM=railties
