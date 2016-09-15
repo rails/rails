@@ -6,8 +6,8 @@ rescue LoadError => e
 end
 
 gemfile(true) do
-  # source "https://rubygems.org"
-  gem "activerecord"
+  source "https://rubygems.org"
+  gem "rails", github: "rails/rails"
   gem "sqlite3"
 end
 

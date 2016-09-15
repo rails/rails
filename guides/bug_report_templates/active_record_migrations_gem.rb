@@ -6,7 +6,7 @@ rescue LoadError => e
 end
 
 gemfile(true) do
-  # source "https://rubygems.org"
+  source "https://rubygems.org"
   # Activate the gem you are reporting the issue against.
   gem "activerecord", "5.0.0.1"
   gem "sqlite3"
