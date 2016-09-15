@@ -58,7 +58,7 @@ module ActiveModel
   #
   # A newly instantiated +Person+ object is unchanged:
   #
-  #   person = Person.new("Uncle Bob")
+  #   person = Person.new
   #   person.changed? # => false
   #
   # Change the name:
