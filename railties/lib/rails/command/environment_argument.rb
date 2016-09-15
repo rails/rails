@@ -13,6 +13,8 @@ module Rails
         def extract_environment_option_from_argument
           if environment
             self.options = options.merge(environment: acceptable_environment(environment))
+          elsif !options[:environment]
+            self.options = options.merge(environment: Rails::Command.environment)
           end
         end
 
