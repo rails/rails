@@ -511,7 +511,7 @@ module ActiveRecord
       #   Default is (38,0).
       # * DB2: <tt>:precision</tt> [1..63], <tt>:scale</tt> [0..62].
       #   Default unknown.
-      # * SqlServer?: <tt>:precision</tt> [1..38], <tt>:scale</tt> [0..38].
+      # * SqlServer: <tt>:precision</tt> [1..38], <tt>:scale</tt> [0..38].
       #   Default (38,0).
       #
       # == Examples
