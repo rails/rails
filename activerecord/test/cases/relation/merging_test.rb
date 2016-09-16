@@ -86,9 +86,9 @@ class RelationMergingTest < ActiveRecord::TestCase
     merged   = left.merge(right)
 
     assert_equal expected, merged.bound_attributes
-    assert !merged.to_sql.include?("omg")
-    assert merged.to_sql.include?("wtf")
-    assert merged.to_sql.include?("bbq")
+    assert_not_includes merged.to_sql, "omg"
+    assert_includes merged.to_sql, "wtf"
+    assert_includes merged.to_sql, "bbq"
   end
 
   def test_merging_reorders_bind_params

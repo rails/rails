@@ -30,7 +30,7 @@ module ApplicationTests
     end
 
     def assert_no_fallbacks
-      assert !I18n.backend.class.included_modules.include?(I18n::Backend::Fallbacks)
+      assert_not_includes I18n.backend.class.included_modules, I18n::Backend::Fallbacks
     end
 
     # Locales
@@ -62,8 +62,8 @@ module ApplicationTests
         "#{app_path}/config/locales/en.yml", "#{app_path}/config/another_locale.yml"
       ], Rails.application.config.i18n.load_path
 
-      assert I18n.load_path.include?("#{app_path}/config/locales/en.yml")
-      assert I18n.load_path.include?("#{app_path}/config/another_locale.yml")
+      assert_includes I18n.load_path, "#{app_path}/config/locales/en.yml"
+      assert_includes I18n.load_path, "#{app_path}/config/another_locale.yml"
     end
 
     test "load_path is populated before eager loaded models" do
@@ -214,7 +214,7 @@ fr:
     test "config.i18n.fallbacks = true initializes I18n.fallbacks with default settings" do
       I18n::Railtie.config.i18n.fallbacks = true
       load_app
-      assert I18n.backend.class.included_modules.include?(I18n::Backend::Fallbacks)
+      assert_includes I18n.backend.class.included_modules, I18n::Backend::Fallbacks
       assert_fallbacks de: [:de, :en]
     end
 
@@ -222,7 +222,7 @@ fr:
       I18n::Railtie.config.i18n.fallbacks = true
       I18n::Railtie.config.i18n.backend = Class.new(I18n::Backend::Simple).new
       load_app
-      assert I18n.backend.class.included_modules.include?(I18n::Backend::Fallbacks)
+      assert_includes I18n.backend.class.included_modules, I18n::Backend::Fallbacks
       assert_fallbacks de: [:de, :en]
     end
 

@@ -53,8 +53,8 @@ class ValidationsTest < ActiveModel::TestCase
 
     errors = r.errors.collect { |attr, messages| [attr.to_s, messages] }
 
-    assert errors.include?(["title", "is Empty"])
-    assert errors.include?(["content", "is Empty"])
+    assert_includes errors, ["title", "is Empty"]
+    assert_includes errors, ["content", "is Empty"]
   end
 
   def test_multiple_errors_per_attr_iteration_with_full_error_composition
@@ -86,8 +86,8 @@ class ValidationsTest < ActiveModel::TestCase
 
     assert_equal ["Reply is not dignifying"], r.errors[:base]
 
-    assert errors.include?("Title is Empty")
-    assert errors.include?("Reply is not dignifying")
+    assert_includes errors, "Title is Empty"
+    assert_includes errors, "Reply is not dignifying"
     assert_equal 2, r.errors.count
   end
 
@@ -101,8 +101,8 @@ class ValidationsTest < ActiveModel::TestCase
 
     assert_equal ["is invalid"], r.errors[:base]
 
-    assert errors.include?("Title is Empty")
-    assert errors.include?("is invalid")
+    assert_includes errors, "Title is Empty"
+    assert_includes errors, "is invalid"
 
     assert_equal 2, r.errors.count
   end

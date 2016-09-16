@@ -37,7 +37,7 @@ class ErrorsTest < ActiveModel::TestCase
   def test_include?
     errors = ActiveModel::Errors.new(self)
     errors[:foo] << "omg"
-    assert errors.include?(:foo), "errors should include :foo"
+    assert_includes errors, :foo, "errors should include :foo"
   end
 
   def test_dup
@@ -125,7 +125,7 @@ class ErrorsTest < ActiveModel::TestCase
     person.errors[:foo]
     assert person.errors.empty?
     assert person.errors.blank?
-    assert !person.errors.include?(:foo)
+    assert_not_includes person.errors, :foo
   end
 
   test "include? does not add a key to messages hash" do

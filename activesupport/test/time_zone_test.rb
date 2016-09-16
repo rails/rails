@@ -505,13 +505,13 @@ class TimeZoneTest < ActiveSupport::TestCase
   end
 
   def test_us_zones
-    assert ActiveSupport::TimeZone.us_zones.include?(ActiveSupport::TimeZone["Hawaii"])
-    assert !ActiveSupport::TimeZone.us_zones.include?(ActiveSupport::TimeZone["Kuala Lumpur"])
+    assert_includes ActiveSupport::TimeZone.us_zones, ActiveSupport::TimeZone["Hawaii"]
+    assert_not_includes ActiveSupport::TimeZone.us_zones, ActiveSupport::TimeZone["Kuala Lumpur"]
   end
 
   def test_country_zones
-    assert ActiveSupport::TimeZone.country_zones("ru").include?(ActiveSupport::TimeZone["Moscow"])
-    assert !ActiveSupport::TimeZone.country_zones(:ru).include?(ActiveSupport::TimeZone["Kuala Lumpur"])
+    assert_includes ActiveSupport::TimeZone.country_zones("ru"), ActiveSupport::TimeZone["Moscow"]
+    assert_not_includes ActiveSupport::TimeZone.country_zones(:ru), ActiveSupport::TimeZone["Kuala Lumpur"]
   end
 
   def test_to_yaml

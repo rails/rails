@@ -631,11 +631,11 @@ class TransactionTest < ActiveRecord::TestCase
     assert_nothing_raised do
       Topic.reset_column_information
       Topic.connection.add_column("topics", "stuff", :string)
-      assert Topic.column_names.include?("stuff")
+      assert_includes Topic.column_names, "stuff"
 
       Topic.reset_column_information
       Topic.connection.remove_column("topics", "stuff")
-      assert !Topic.column_names.include?("stuff")
+      assert_not_includes Topic.column_names, "stuff"
     end
 
     if Topic.connection.supports_ddl_transactions?

@@ -746,7 +746,7 @@ class HeadRenderTest < ActionController::TestCase
 
     get :head_with_symbolic_status, params: { status: "no_content" }
     assert_equal 204, @response.status
-    assert !@response.headers.include?("Content-Length")
+    assert_not_includes @response.headers, "Content-Length"
     assert_response :no_content
 
     Rack::Utils::SYMBOL_TO_STATUS_CODE.each do |status, code|

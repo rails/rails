@@ -870,7 +870,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     rescue Client::RaisedOnSave
     end
 
-    assert !companies(:first_firm).clients_of_firm.reload.include?(good)
+    assert_not_includes companies(:first_firm).clients_of_firm.reload, good
   end
 
   def test_transactions_when_adding_to_new_record

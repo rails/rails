@@ -229,7 +229,7 @@ class GeneratorsTest < Rails::Generators::TestCase
 
   def test_source_paths_for_not_namespaced_generators
     mspec = Rails::Generators.find_by_namespace :fixjour
-    assert mspec.source_paths.include?(File.join(Rails.root, "lib", "templates", "fixjour"))
+    assert_includes mspec.source_paths, File.join(Rails.root, "lib", "templates", "fixjour")
   end
 
   def test_usage_with_embedded_ruby
@@ -239,8 +239,8 @@ class GeneratorsTest < Rails::Generators::TestCase
   end
 
   def test_hide_namespace
-    assert !Rails::Generators.hidden_namespaces.include?("special:namespace")
+    assert_not_includes Rails::Generators.hidden_namespaces, "special:namespace"
     Rails::Generators.hide_namespace("special:namespace")
-    assert Rails::Generators.hidden_namespaces.include?("special:namespace")
+    assert_includes Rails::Generators.hidden_namespaces, "special:namespace"
   end
 end

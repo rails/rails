@@ -76,9 +76,9 @@ class HeaderTest < ActiveSupport::TestCase
 
   test "key?" do
     assert @headers.key?("CONTENT_TYPE")
-    assert @headers.include?("CONTENT_TYPE")
+    assert_includes @headers, "CONTENT_TYPE"
     assert @headers.key?("Content-Type")
-    assert @headers.include?("Content-Type")
+    assert_includes @headers, "Content-Type"
   end
 
   test "fetch with block" do

@@ -127,9 +127,9 @@ class ReflectionTest < ActiveRecord::TestCase
       :gps_location, nil, {}, Customer
     )
 
-    assert Customer.reflect_on_all_aggregations.include?(reflection_for_gps_location)
-    assert Customer.reflect_on_all_aggregations.include?(reflection_for_balance)
-    assert Customer.reflect_on_all_aggregations.include?(reflection_for_address)
+    assert_includes Customer.reflect_on_all_aggregations, reflection_for_gps_location
+    assert_includes Customer.reflect_on_all_aggregations, reflection_for_balance
+    assert_includes Customer.reflect_on_all_aggregations, reflection_for_address
 
     assert_equal reflection_for_address, Customer.reflect_on_aggregation(:address)
 

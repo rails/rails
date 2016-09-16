@@ -68,7 +68,7 @@ class CookieJarTest < ActiveSupport::TestCase
   def test_write_doesnt_set_a_nil_header
     headers = {}
     request.cookie_jar.write(headers)
-    assert !headers.include?("Set-Cookie")
+    assert_not_includes headers, "Set-Cookie"
   end
 end
 
@@ -1115,11 +1115,11 @@ class CookiesTest < ActionController::TestCase
     assert_equal "david", cookies[:user_name]
 
     get :noop
-    assert !@response.headers.include?("Set-Cookie")
+    assert_not_includes @response.headers, "Set-Cookie"
     assert_equal "david", cookies[:user_name]
 
     get :noop
-    assert !@response.headers.include?("Set-Cookie")
+    assert_not_includes @response.headers, "Set-Cookie"
     assert_equal "david", cookies[:user_name]
   end
 

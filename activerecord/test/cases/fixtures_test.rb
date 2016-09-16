@@ -923,7 +923,7 @@ class FoxyFixturesTest < ActiveRecord::TestCase
   end
 
   def test_namespaced_models
-    assert admin_accounts(:signals37).users.include?(admin_users(:david))
+    assert_includes admin_accounts(:signals37).users, admin_users(:david)
     assert_equal 2, admin_accounts(:signals37).users.size
   end
 

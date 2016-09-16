@@ -1127,63 +1127,63 @@ class HashToXmlTest < ActiveSupport::TestCase
   def test_one_level
     xml = { name: "David", street: "Paulina" }.to_xml(@xml_options)
     assert_equal "<person>", xml.first(8)
-    assert xml.include?(%(<street>Paulina</street>))
-    assert xml.include?(%(<name>David</name>))
+    assert_includes xml, %(<street>Paulina</street>)
+    assert_includes xml, %(<name>David</name>)
   end
 
   def test_one_level_dasherize_false
     xml = { name: "David", street_name: "Paulina" }.to_xml(@xml_options.merge(dasherize: false))
     assert_equal "<person>", xml.first(8)
-    assert xml.include?(%(<street_name>Paulina</street_name>))
-    assert xml.include?(%(<name>David</name>))
+    assert_includes xml, %(<street_name>Paulina</street_name>)
+    assert_includes xml, %(<name>David</name>)
   end
 
   def test_one_level_dasherize_true
     xml = { name: "David", street_name: "Paulina" }.to_xml(@xml_options.merge(dasherize: true))
     assert_equal "<person>", xml.first(8)
-    assert xml.include?(%(<street-name>Paulina</street-name>))
-    assert xml.include?(%(<name>David</name>))
+    assert_includes xml, %(<street-name>Paulina</street-name>)
+    assert_includes xml, %(<name>David</name>)
   end
 
   def test_one_level_camelize_true
     xml = { name: "David", street_name: "Paulina" }.to_xml(@xml_options.merge(camelize: true))
     assert_equal "<Person>", xml.first(8)
-    assert xml.include?(%(<StreetName>Paulina</StreetName>))
-    assert xml.include?(%(<Name>David</Name>))
+    assert_includes xml, %(<StreetName>Paulina</StreetName>)
+    assert_includes xml, %(<Name>David</Name>)
   end
 
   def test_one_level_camelize_lower
     xml = { name: "David", street_name: "Paulina" }.to_xml(@xml_options.merge(camelize: :lower))
     assert_equal "<person>", xml.first(8)
-    assert xml.include?(%(<streetName>Paulina</streetName>))
-    assert xml.include?(%(<name>David</name>))
+    assert_includes xml, %(<streetName>Paulina</streetName>)
+    assert_includes xml, %(<name>David</name>)
   end
 
   def test_one_level_with_types
     xml = { name: "David", street: "Paulina", age: 26, age_in_millis: 820497600000, moved_on: Date.new(2005, 11, 15), resident: :yes }.to_xml(@xml_options)
     assert_equal "<person>", xml.first(8)
-    assert xml.include?(%(<street>Paulina</street>))
-    assert xml.include?(%(<name>David</name>))
-    assert xml.include?(%(<age type="integer">26</age>))
-    assert xml.include?(%(<age-in-millis type="integer">820497600000</age-in-millis>))
-    assert xml.include?(%(<moved-on type="date">2005-11-15</moved-on>))
-    assert xml.include?(%(<resident type="symbol">yes</resident>))
+    assert_includes xml, %(<street>Paulina</street>)
+    assert_includes xml, %(<name>David</name>)
+    assert_includes xml, %(<age type="integer">26</age>)
+    assert_includes xml, %(<age-in-millis type="integer">820497600000</age-in-millis>)
+    assert_includes xml, %(<moved-on type="date">2005-11-15</moved-on>)
+    assert_includes xml, %(<resident type="symbol">yes</resident>)
   end
 
   def test_one_level_with_nils
     xml = { name: "David", street: "Paulina", age: nil }.to_xml(@xml_options)
     assert_equal "<person>", xml.first(8)
-    assert xml.include?(%(<street>Paulina</street>))
-    assert xml.include?(%(<name>David</name>))
-    assert xml.include?(%(<age nil="true"/>))
+    assert_includes xml, %(<street>Paulina</street>)
+    assert_includes xml, %(<name>David</name>)
+    assert_includes xml, %(<age nil="true"/>)
   end
 
   def test_one_level_with_skipping_types
     xml = { name: "David", street: "Paulina", age: nil }.to_xml(@xml_options.merge(skip_types: true))
     assert_equal "<person>", xml.first(8)
-    assert xml.include?(%(<street>Paulina</street>))
-    assert xml.include?(%(<name>David</name>))
-    assert xml.include?(%(<age nil="true"/>))
+    assert_includes xml, %(<street>Paulina</street>)
+    assert_includes xml, %(<name>David</name>)
+    assert_includes xml, %(<age nil="true"/>)
   end
 
   def test_one_level_with_yielding
@@ -1192,37 +1192,37 @@ class HashToXmlTest < ActiveSupport::TestCase
     end
 
     assert_equal "<person>", xml.first(8)
-    assert xml.include?(%(<street>Paulina</street>))
-    assert xml.include?(%(<name>David</name>))
-    assert xml.include?(%(<creator>Rails</creator>))
+    assert_includes xml, %(<street>Paulina</street>)
+    assert_includes xml, %(<name>David</name>)
+    assert_includes xml, %(<creator>Rails</creator>)
   end
 
   def test_two_levels
     xml = { name: "David", address: { street: "Paulina" } }.to_xml(@xml_options)
     assert_equal "<person>", xml.first(8)
-    assert xml.include?(%(<address><street>Paulina</street></address>))
-    assert xml.include?(%(<name>David</name>))
+    assert_includes xml, %(<address><street>Paulina</street></address>)
+    assert_includes xml, %(<name>David</name>)
   end
 
   def test_two_levels_with_second_level_overriding_to_xml
     xml = { name: "David", address: { street: "Paulina" }, child: IWriteMyOwnXML.new }.to_xml(@xml_options)
     assert_equal "<person>", xml.first(8)
-    assert xml.include?(%(<address><street>Paulina</street></address>))
-    assert xml.include?(%(<level_one><second_level>content</second_level></level_one>))
+    assert_includes xml, %(<address><street>Paulina</street></address>)
+    assert_includes xml, %(<level_one><second_level>content</second_level></level_one>)
   end
 
   def test_two_levels_with_array
     xml = { name: "David", addresses: [{ street: "Paulina" }, { street: "Evergreen" }] }.to_xml(@xml_options)
     assert_equal "<person>", xml.first(8)
-    assert xml.include?(%(<addresses type="array"><address>))
-    assert xml.include?(%(<address><street>Paulina</street></address>))
-    assert xml.include?(%(<address><street>Evergreen</street></address>))
-    assert xml.include?(%(<name>David</name>))
+    assert_includes xml, %(<addresses type="array"><address>)
+    assert_includes xml, %(<address><street>Paulina</street></address>)
+    assert_includes xml, %(<address><street>Evergreen</street></address>)
+    assert_includes xml, %(<name>David</name>)
   end
 
   def test_three_levels_with_array
     xml = { name: "David", addresses: [{ streets: [ { name: "Paulina" }, { name: "Paulina" } ] } ] }.to_xml(@xml_options)
-    assert xml.include?(%(<addresses type="array"><address><streets type="array"><street><name>))
+    assert_includes xml, %(<addresses type="array"><address><streets type="array"><street><name>)
   end
 
   def test_timezoned_attributes

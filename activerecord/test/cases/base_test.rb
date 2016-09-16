@@ -1519,7 +1519,7 @@ class BasicsTest < ActiveRecord::TestCase
   test "ignored columns are not present in columns_hash" do
     cache_columns = Developer.connection.schema_cache.columns_hash(Developer.table_name)
     assert_includes cache_columns.keys, "first_name"
-    refute_includes Developer.columns_hash.keys, "first_name"
+    assert_not_includes Developer.columns_hash.keys, "first_name"
   end
 
   test "ignored columns have no attribute methods" do

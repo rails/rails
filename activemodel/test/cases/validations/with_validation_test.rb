@@ -51,7 +51,7 @@ class ValidatesWithTest < ActiveModel::TestCase
     Topic.validates_with(ValidatorThatAddsErrors)
     topic = Topic.new
     assert topic.invalid?, "A class that adds errors causes the record to be invalid"
-    assert topic.errors[:base].include?(ERROR_MESSAGE)
+    assert_includes topic.errors[:base], ERROR_MESSAGE
   end
 
   test "with a class that returns valid" do
@@ -64,8 +64,8 @@ class ValidatesWithTest < ActiveModel::TestCase
     Topic.validates_with(ValidatorThatAddsErrors, OtherValidatorThatAddsErrors)
     topic = Topic.new
     assert topic.invalid?
-    assert topic.errors[:base].include?(ERROR_MESSAGE)
-    assert topic.errors[:base].include?(OTHER_ERROR_MESSAGE)
+    assert_includes topic.errors[:base], ERROR_MESSAGE
+    assert_includes topic.errors[:base], OTHER_ERROR_MESSAGE
   end
 
   test "with if statements that return false" do
@@ -78,7 +78,7 @@ class ValidatesWithTest < ActiveModel::TestCase
     Topic.validates_with(ValidatorThatAddsErrors, if: "1 == 1")
     topic = Topic.new
     assert topic.invalid?
-    assert topic.errors[:base].include?(ERROR_MESSAGE)
+    assert_includes topic.errors[:base], ERROR_MESSAGE
   end
 
   test "with unless statements that return true" do
@@ -91,7 +91,7 @@ class ValidatesWithTest < ActiveModel::TestCase
     Topic.validates_with(ValidatorThatAddsErrors, unless: "1 == 2")
     topic = Topic.new
     assert topic.invalid?
-    assert topic.errors[:base].include?(ERROR_MESSAGE)
+    assert_includes topic.errors[:base], ERROR_MESSAGE
   end
 
   test "passes all configuration options to the validator class" do
@@ -111,7 +111,7 @@ class ValidatesWithTest < ActiveModel::TestCase
     Topic.validates_with(ValidatorThatValidatesOptions, field: :first_name)
     topic = Topic.new
     assert topic.invalid?
-    assert topic.errors[:base].include?(ERROR_MESSAGE)
+    assert_includes topic.errors[:base], ERROR_MESSAGE
   end
 
   test "validates_with each validator" do

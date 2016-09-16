@@ -175,7 +175,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     person = Person.new
     post = Post.new
     person.posts << post
-    assert person.posts.include?(post)
+    assert_includes person.posts, post
   end
 
   def test_associate_existing
@@ -187,10 +187,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_queries(1) do
-      assert post.people.include?(person)
+      assert_includes post.people, person
     end
 
-    assert post.reload.people.reload.include?(person)
+    assert_includes post.reload.people.reload, person
   end
 
   def test_delete_all_for_with_dependent_option_destroy
@@ -266,7 +266,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       post.people.delete(person)
     end
 
-    assert !post.people.reload.include?(person)
+    assert_not_includes post.people.reload, person
   end
 
   def test_associating_new
@@ -284,10 +284,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_queries(1) do
-      assert posts(:thinking).people.include?(new_person)
+      assert_includes posts(:thinking).people, new_person
     end
 
-    assert posts(:thinking).reload.people.reload.include?(new_person)
+    assert_includes posts(:thinking).reload.people.reload, new_person
   end
 
   def test_associate_new_by_building
@@ -300,8 +300,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     # Should only need to load the association once
     assert_queries(1) do
-      assert posts(:thinking).people.collect(&:first_name).include?("Bob")
-      assert posts(:thinking).people.collect(&:first_name).include?("Ted")
+      assert_includes posts(:thinking).people.collect(&:first_name), "Bob"
+      assert_includes posts(:thinking).people.collect(&:first_name), "Ted"
     end
 
     # 2 queries for each new record (1 to save the record itself, 1 for the join model)
@@ -312,8 +312,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       posts(:thinking).save
     end
 
-    assert posts(:thinking).reload.people.reload.collect(&:first_name).include?("Bob")
-    assert posts(:thinking).reload.people.reload.collect(&:first_name).include?("Ted")
+    assert_includes posts(:thinking).reload.people.reload.collect(&:first_name), "Bob"
+    assert_includes posts(:thinking).reload.people.reload.collect(&:first_name), "Ted"
   end
 
   def test_build_then_save_with_has_many_inverse
@@ -322,7 +322,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     person.save
     post.reload
 
-    assert post.people.include?(person)
+    assert_includes post.people, person
   end
 
   def test_build_then_save_with_has_one_inverse
@@ -331,7 +331,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     person.save
     post.reload
 
-    assert post.single_people.include?(person)
+    assert_includes post.single_people, person
   end
 
   def test_both_parent_ids_set_when_saving_new
@@ -550,12 +550,12 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_queries(0) {
-      assert posts(:welcome).people.include?(people(:david))
-      assert !posts(:welcome).people.include?(people(:michael))
+      assert_includes posts(:welcome).people, people(:david)
+      assert_not_includes posts(:welcome).people, people(:michael)
     }
 
-    assert posts(:welcome).reload.people.reload.include?(people(:david))
-    assert !posts(:welcome).reload.people.reload.include?(people(:michael))
+    assert_includes posts(:welcome).reload.people.reload, people(:david)
+    assert_not_includes posts(:welcome).reload.people.reload, people(:michael)
   end
 
   def test_replace_order_is_preserved
@@ -591,10 +591,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     # *Now* we actually need the collection so it's loaded
     assert_queries(1) do
-      assert posts(:thinking).people.collect(&:first_name).include?("Jeb")
+      assert_includes posts(:thinking).people.collect(&:first_name), "Jeb"
     end
 
-    assert posts(:thinking).reload.people.reload.collect(&:first_name).include?("Jeb")
+    assert_includes posts(:thinking).reload.people.reload.collect(&:first_name), "Jeb"
   end
 
   def test_through_record_is_built_when_created_with_where
@@ -832,14 +832,14 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     category = author.named_categories.build(name: "Primary")
     author.save
     assert Categorization.exists?(author_id: author.id, named_category_name: category.name)
-    assert author.named_categories.reload.include?(category)
+    assert_includes author.named_categories.reload, category
   end
 
   def test_collection_create_with_nonstandard_primary_key_on_belongs_to
     author   = authors(:mary)
     category = author.named_categories.create(name: "Primary")
     assert Categorization.exists?(author_id: author.id, named_category_name: category.name)
-    assert author.named_categories.reload.include?(category)
+    assert_includes author.named_categories.reload, category
   end
 
   def test_collection_exists
@@ -908,14 +908,14 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     person = Person.new
     reference = person.references.build
     job = reference.build_job
-    assert person.jobs.include?(job)
+    assert_includes person.jobs, job
   end
 
   def test_include_method_in_association_through_should_return_true_for_instance_added_with_nested_builds
     author = Author.new
     post = author.posts.build
     comment = post.comments.build
-    assert author.comments.include?(comment)
+    assert_includes author.comments, comment
   end
 
   def test_through_association_readonly_should_be_false
@@ -1022,7 +1022,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     post    = posts(:welcome)
     address = author_addresses(:david_address)
 
-    assert post.author_addresses.include?(address)
+    assert_includes post.author_addresses, address
     post.author_addresses.delete(address)
     assert post[:author_count].nil?
   end
@@ -1107,7 +1107,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_many_through_obeys_order_on_through_association
     owner = owners(:blackbeard)
-    assert owner.toys.to_sql.include?("pets.name desc")
+    assert_includes owner.toys.to_sql, "pets.name desc"
     assert_equal ["parrot", "bulbul"], owner.toys.map { |r| r.pet.name }
   end
 

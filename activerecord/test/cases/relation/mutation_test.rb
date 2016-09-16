@@ -71,7 +71,7 @@ module ActiveRecord
 
     test "#references!" do
       assert relation.references!(:foo).equal?(relation)
-      assert relation.references_values.include?("foo")
+      assert_includes relation.references_values, "foo"
     end
 
     test "extending!" do
