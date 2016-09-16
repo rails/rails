@@ -42,11 +42,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
     posts = Post.all.merge!(includes: :comments).to_a
     post = posts.find { |p| p.id == 1 }
     assert_equal 2, post.comments.size
-    assert post.comments.include?(comments(:greetings))
+    assert_includes post.comments, comments(:greetings)
 
     post = Post.all.merge!(includes: :comments, where: "posts.title = 'Welcome to the weblog'").first
     assert_equal 2, post.comments.size
-    assert post.comments.include?(comments(:greetings))
+    assert_includes post.comments, comments(:greetings)
 
     posts = Post.all.merge!(includes: :last_comment).to_a
     post = posts.find { |p| p.id == 1 }
@@ -103,7 +103,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     posts = Post.all.merge!(includes: [ :comments, :author, :categories ], order: "posts.id").to_a
     assert_equal 2, posts.first.comments.size
     assert_equal 2, posts.first.categories.size
-    assert posts.first.comments.include?(comments(:greetings))
+    assert_includes posts.first.comments, comments(:greetings)
   end
 
   def test_duplicate_middle_objects
@@ -349,8 +349,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
     comments = Comment.all.merge!(includes: :post).to_a
     assert_equal 11, comments.length
     titles = comments.map { |c| c.post.title }
-    assert titles.include?(posts(:welcome).title)
-    assert titles.include?(posts(:sti_post_and_comments).title)
+    assert_includes titles, posts(:welcome).title
+    assert_includes titles, posts(:sti_post_and_comments).title
   end
 
   def test_eager_association_loading_with_belongs_to_and_limit
@@ -630,8 +630,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal 2, posts[0].categories.size
     assert_equal 1, posts[1].categories.size
     assert_equal 0, posts[2].categories.size
-    assert posts[0].categories.include?(categories(:technology))
-    assert posts[1].categories.include?(categories(:general))
+    assert_includes posts[0].categories, categories(:technology)
+    assert_includes posts[1].categories, categories(:general)
   end
 
   # Since the preloader for habtm gets raw row hashes from the database and then
@@ -695,8 +695,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal 2, posts[0].categories.size
     assert_equal 1, posts[1].categories.size
     assert_equal 0, posts[2].categories.size
-    assert posts[0].categories.include?(categories(:technology))
-    assert posts[1].categories.include?(categories(:general))
+    assert_includes posts[0].categories, categories(:technology)
+    assert_includes posts[1].categories, categories(:general)
   end
 
   def test_eager_with_inheritance
@@ -895,9 +895,9 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_polymorphic_type_condition
     post = Post.all.merge!(includes: :taggings).find(posts(:thinking).id)
-    assert post.taggings.include?(taggings(:thinking_general))
+    assert_includes post.taggings, taggings(:thinking_general)
     post = SpecialPost.all.merge!(includes: :taggings).find(posts(:thinking).id)
-    assert post.taggings.include?(taggings(:thinking_general))
+    assert_includes post.taggings, taggings(:thinking_general)
   end
 
   def test_eager_with_multiple_associations_with_same_table_has_many_and_habtm

@@ -101,7 +101,7 @@ module ApplicationTests
       File.delete "#{app_path}/config/initializers/disable_maintain_test_schema.rb"
 
       result = assert_successful_test_run("models/user_test.rb")
-      assert !result.include?("create_table(:users)")
+      assert_not_includes result, "create_table(:users)"
     end
 
     test "sql structure migrations" do
@@ -289,7 +289,7 @@ Expected: ["id", "name"]
       def assert_unsuccessful_run(name, message)
         result = run_test_file(name)
         assert_not_equal 0, $?.to_i
-        assert result.include?(message)
+        assert_includes result, message
         result
       end
 

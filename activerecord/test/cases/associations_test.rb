@@ -131,7 +131,7 @@ class AssociationProxyTest < ActiveRecord::TestCase
 
     david.posts << (post = Post.new(title: "New on Edge", body: "More cool stuff!"))
     assert !david.posts.loaded?
-    assert david.posts.include?(post)
+    assert_includes david.posts, post
   end
 
   def test_push_has_many_through_does_not_load_target
@@ -139,7 +139,7 @@ class AssociationProxyTest < ActiveRecord::TestCase
 
     david.categories << categories(:technology)
     assert !david.categories.loaded?
-    assert david.categories.include?(categories(:technology))
+    assert_includes david.categories, categories(:technology)
   end
 
   def test_push_followed_by_save_does_not_load_target
@@ -149,7 +149,7 @@ class AssociationProxyTest < ActiveRecord::TestCase
     assert !david.posts.loaded?
     david.save
     assert !david.posts.loaded?
-    assert david.posts.include?(post)
+    assert_includes david.posts, post
   end
 
   def test_push_does_not_lose_additions_to_new_record

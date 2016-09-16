@@ -585,7 +585,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     firm.save
     firm.reload
     assert_equal 2, firm.clients.length
-    assert firm.clients.include?(companies(:second_client))
+    assert_includes firm.clients, companies(:second_client)
   end
 
   def test_assign_ids_for_through_a_belongs_to
@@ -594,7 +594,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     post.save
     post.reload
     assert_equal 2, post.people.length
-    assert post.people.include?(people(:david))
+    assert_includes post.people, people(:david)
   end
 
   def test_build_before_save
@@ -647,7 +647,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     assert firm.save
     firm.reload
     assert_equal 2, firm.clients.length
-    assert firm.clients.include?(Client.find_by_name("New Client"))
+    assert_includes firm.clients, Client.find_by_name("New Client")
   end
 end
 

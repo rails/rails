@@ -33,10 +33,10 @@ module ActiveRecord
     def test_tables
       tables = nil
       ActiveSupport::Deprecation.silence { tables = @connection.tables }
-      assert tables.include?("accounts")
-      assert tables.include?("authors")
-      assert tables.include?("tasks")
-      assert tables.include?("topics")
+      assert_includes tables, "accounts"
+      assert_includes tables, "authors"
+      assert_includes tables, "tasks"
+      assert_includes tables, "topics"
     end
 
     def test_table_exists?
@@ -53,10 +53,10 @@ module ActiveRecord
 
     def test_data_sources
       data_sources = @connection.data_sources
-      assert data_sources.include?("accounts")
-      assert data_sources.include?("authors")
-      assert data_sources.include?("tasks")
-      assert data_sources.include?("topics")
+      assert_includes data_sources, "accounts"
+      assert_includes data_sources, "authors"
+      assert_includes data_sources, "tasks"
+      assert_includes data_sources, "topics"
     end
 
     def test_data_source_exists?

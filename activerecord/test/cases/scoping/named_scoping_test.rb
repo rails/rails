@@ -33,8 +33,8 @@ class NamedScopingTest < ActiveRecord::TestCase
     all_posts.to_a
 
     new_post = Topic.create!
-    assert !all_posts.include?(new_post)
-    assert all_posts.reload.include?(new_post)
+    assert_not_includes all_posts, new_post
+    assert_includes all_posts.reload, new_post
   end
 
   def test_delegates_finds_and_calculations_to_the_base_class

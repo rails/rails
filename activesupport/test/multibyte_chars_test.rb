@@ -213,11 +213,11 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
   end
 
   def test_should_know_if_one_includes_the_other
-    assert @chars.include?("")
-    assert @chars.include?("ち")
-    assert @chars.include?("わ")
-    assert !@chars.include?("こちわ")
-    assert !@chars.include?("a")
+    assert_includes @chars, ""
+    assert_includes @chars, "ち"
+    assert_includes @chars, "わ"
+    assert_not_includes @chars, "こちわ"
+    assert_not_includes @chars, "a"
   end
 
   def test_include_raises_when_nil_is_passed

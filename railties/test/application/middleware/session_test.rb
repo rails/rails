@@ -370,7 +370,7 @@ module ApplicationTests
       assert_equal 200, last_response.status
       assert_equal "It worked!", last_response.body
 
-      refute Rails.application.middleware.include?(ActionDispatch::Flash)
+      assert_not_includes Rails.application.middleware, ActionDispatch::Flash
     end
 
     test "cookie_only is set to true even if user tries to overwrite it" do

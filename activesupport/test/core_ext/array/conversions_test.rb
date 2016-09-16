@@ -97,28 +97,28 @@ class ToXmlTest < ActiveSupport::TestCase
     ].to_xml(skip_instruct: true, indent: 0)
 
     assert_equal '<objects type="array"><object>', xml.first(30)
-    assert xml.include?(%(<age type="integer">26</age>)), xml
-    assert xml.include?(%(<age-in-millis type="integer">820497600000</age-in-millis>)), xml
-    assert xml.include?(%(<name>David</name>)), xml
-    assert xml.include?(%(<age type="integer">31</age>)), xml
-    assert xml.include?(%(<age-in-millis type="decimal">1.0</age-in-millis>)), xml
-    assert xml.include?(%(<name>Jason</name>)), xml
+    assert_includes xml, %(<age type="integer">26</age>), xml
+    assert_includes xml, %(<age-in-millis type="integer">820497600000</age-in-millis>), xml
+    assert_includes xml, %(<name>David</name>), xml
+    assert_includes xml, %(<age type="integer">31</age>), xml
+    assert_includes xml, %(<age-in-millis type="decimal">1.0</age-in-millis>), xml
+    assert_includes xml, %(<name>Jason</name>), xml
   end
 
   def test_to_xml_with_non_hash_elements
     xml = %w[1 2 3].to_xml(skip_instruct: true, indent: 0)
 
     assert_equal '<strings type="array"><string', xml.first(29)
-    assert xml.include?(%(<string>2</string>)), xml
+    assert_includes xml, %(<string>2</string>), xml
   end
 
   def test_to_xml_with_non_hash_different_type_elements
     xml = [1, 2.0, "3"].to_xml(skip_instruct: true, indent: 0)
 
     assert_equal '<objects type="array"><object', xml.first(29)
-    assert xml.include?(%(<object type="integer">1</object>)), xml
-    assert xml.include?(%(<object type="float">2.0</object>)), xml
-    assert xml.include?(%(object>3</object>)), xml
+    assert_includes xml, %(<object type="integer">1</object>), xml
+    assert_includes xml, %(<object type="float">2.0</object>), xml
+    assert_includes xml, %(object>3</object>), xml
   end
 
   def test_to_xml_with_dedicated_name
@@ -135,10 +135,10 @@ class ToXmlTest < ActiveSupport::TestCase
     ].to_xml(skip_instruct: true, skip_types: true, indent: 0)
 
     assert_equal "<objects><object>", xml.first(17)
-    assert xml.include?(%(<street-address>Paulina</street-address>))
-    assert xml.include?(%(<name>David</name>))
-    assert xml.include?(%(<street-address>Evergreen</street-address>))
-    assert xml.include?(%(<name>Jason</name>))
+    assert_includes xml, %(<street-address>Paulina</street-address>)
+    assert_includes xml, %(<name>David</name>)
+    assert_includes xml, %(<street-address>Evergreen</street-address>)
+    assert_includes xml, %(<name>Jason</name>)
   end
 
   def test_to_xml_with_indent_set
@@ -147,10 +147,10 @@ class ToXmlTest < ActiveSupport::TestCase
     ].to_xml(skip_instruct: true, skip_types: true, indent: 4)
 
     assert_equal "<objects>\n    <object>", xml.first(22)
-    assert xml.include?(%(\n        <street-address>Paulina</street-address>))
-    assert xml.include?(%(\n        <name>David</name>))
-    assert xml.include?(%(\n        <street-address>Evergreen</street-address>))
-    assert xml.include?(%(\n        <name>Jason</name>))
+    assert_includes xml, %(\n        <street-address>Paulina</street-address>)
+    assert_includes xml, %(\n        <name>David</name>)
+    assert_includes xml, %(\n        <street-address>Evergreen</street-address>)
+    assert_includes xml, %(\n        <name>Jason</name>)
   end
 
   def test_to_xml_with_dasherize_false
@@ -159,8 +159,8 @@ class ToXmlTest < ActiveSupport::TestCase
     ].to_xml(skip_instruct: true, skip_types: true, indent: 0, dasherize: false)
 
     assert_equal "<objects><object>", xml.first(17)
-    assert xml.include?(%(<street_address>Paulina</street_address>))
-    assert xml.include?(%(<street_address>Evergreen</street_address>))
+    assert_includes xml, %(<street_address>Paulina</street_address>)
+    assert_includes xml, %(<street_address>Evergreen</street_address>)
   end
 
   def test_to_xml_with_dasherize_true
@@ -169,8 +169,8 @@ class ToXmlTest < ActiveSupport::TestCase
     ].to_xml(skip_instruct: true, skip_types: true, indent: 0, dasherize: true)
 
     assert_equal "<objects><object>", xml.first(17)
-    assert xml.include?(%(<street-address>Paulina</street-address>))
-    assert xml.include?(%(<street-address>Evergreen</street-address>))
+    assert_includes xml, %(<street-address>Paulina</street-address>)
+    assert_includes xml, %(<street-address>Evergreen</street-address>)
   end
 
   def test_to_xml_with_instruct
@@ -191,7 +191,7 @@ class ToXmlTest < ActiveSupport::TestCase
       builder.count 2
     end
 
-    assert xml.include?(%(<count>2</count>)), xml
+    assert_includes xml, %(<count>2</count>), xml
   end
 
   def test_to_xml_with_empty
