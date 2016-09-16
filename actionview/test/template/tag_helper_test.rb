@@ -352,4 +352,11 @@ class TagHelperTest < ActionView::TestCase
   def test_respond_to
     assert_respond_to tag, :any_tag
   end
+
+  def test_tag_builder_options
+    str = tag.p("class" => "show", class: "elsewhere")
+
+    assert_match(/class="show"/, str)
+    assert_match(/class="elsewhere"/, str)
+  end
 end
