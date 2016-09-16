@@ -1,5 +1,3 @@
-# -*- frozen-string-literal: true -*-
-
 require "singleton"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/string/starts_ends_with"
@@ -363,3 +361,4 @@ module Mime
 end
 
 require "action_dispatch/http/mime_types"
+# -*- frozen-string-literal: true -*-
