@@ -1,3 +1,7 @@
+*   Run `Minitest.after_run` hooks when running `rails test`.
+
+    *Michael Grosser*
+
 *   Run `before_configuration` callbacks as soon as application constant
     inherits from `Rails::Application`.
 
