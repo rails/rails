@@ -48,7 +48,12 @@ module ActiveRecord
       # it has been typecast (for example, "2004-12-12" in a date column is cast
       # to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name, &block)
-        name = attr_name.to_s
+        name = if self.class.attribute_alias?(attr_name)
+          self.class.attribute_alias(attr_name).to_s
+        else
+          attr_name.to_s
+        end
+
         name = self.class.primary_key if name == "id".freeze
         _read_attribute(name, &block)
       end

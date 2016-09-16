@@ -1,3 +1,10 @@
+*   Fix `read_attribute` method to check whether an attribute is aliased or not, and
+    use the aliased attribute name if needed.
+
+    Fixes #26417.
+
+    *Prathamesh Sonpatki*
+
 *   PostgreSQL & MySQL: Use big integer as primary key type for new tables
 
     *Jon McCartie*, *Pavel Pravosud*
@@ -58,7 +65,7 @@
 
     *Jon Moss*
 
-*   Added `stat` method to `ActiveRecord::ConnectionAdapters::ConnectionPool`
+*   Add `stat` method to `ActiveRecord::ConnectionAdapters::ConnectionPool`.
 
     Example:
 
