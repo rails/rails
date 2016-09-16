@@ -245,7 +245,7 @@ module ActiveRecord
       end
 
       def reset_transaction #:nodoc:
-        @transaction_manager = TransactionManager.new(self)
+        @transaction_manager = ConnectionAdapters::TransactionManager.new(self)
       end
 
       # Register a record with the current transaction so that its after_commit and after_rollback callbacks
