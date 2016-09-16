@@ -178,9 +178,11 @@ module ActiveRecord
         end
 
         def replace_named_bind_variables(statement, bind_vars) # :nodoc:
-          statement.gsub(/(:?):([a-zA-Z]\w*)/) do |match|
+          statement.gsub(/(:|%)?:([a-zA-Z]\w*)/) do |match|
             if $1 == ":" # skip postgresql casts
               match # return the whole match
+            elsif $1 == "%" # skip escape char
+              match[1..-1] # return match including leading colon
             elsif bind_vars.include?(match = $2.to_sym)
               replace_bind_variable(bind_vars[match])
             else
