@@ -26,8 +26,8 @@ module ActiveModel
   #
   #     define_attribute_methods :name
   #
-  #     def initialize(name)
-  #       @name = name
+  #     def initialize
+  #       @name = nil
   #     end
   #
   #     def name
@@ -66,11 +66,11 @@ module ActiveModel
   #   person.name = 'Bob'
   #   person.changed?       # => true
   #   person.name_changed?  # => true
-  #   person.name_changed?(from: "Uncle Bob", to: "Bob") # => true
-  #   person.name_was       # => "Uncle Bob"
-  #   person.name_change    # => ["Uncle Bob", "Bob"]
+  #   person.name_changed?(from: nil, to: "Bob") # => true
+  #   person.name_was       # => nil
+  #   person.name_change    # => [nil, "Bob"]
   #   person.name = 'Bill'
-  #   person.name_change    # => ["Uncle Bob", "Bill"]
+  #   person.name_change    # => [nil, "Bill"]
   #
   # Save the changes:
   #
@@ -80,9 +80,9 @@ module ActiveModel
   #
   # Reset the changes:
   #
-  #   person.previous_changes         # => {"name" => ["Uncle Bob", "Bill"]}
+  #   person.previous_changes         # => {"name" => [nil, "Bill"]}
   #   person.name_previously_changed? # => true
-  #   person.name_previous_change     # => ["Uncle Bob", "Bill"]
+  #   person.name_previous_change     # => [nil, "Bill"]
   #   person.reload!
   #   person.previous_changes         # => {}
   #
