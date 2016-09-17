@@ -802,7 +802,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
     were getting rescued and printed in the logs, unless you used
     the (newly deprecated) `raise_in_transactional_callbacks = true` option.
 
-    Now these errors are not rescued anymore and just bubble up, as the other callbacks.
+    Now these errors are not rescued anymore and just bubble up, matching the
+    behavior of other callbacks.
     ([commit](https://github.com/rails/rails/commit/07d3d402341e81ada0214f2cb2be1da69eadfe72))
 
 Active Model
