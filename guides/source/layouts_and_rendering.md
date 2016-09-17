@@ -749,7 +749,7 @@ When Rails renders a view as a response, it does so by combining the view with t
 
 ### Asset Tag Helpers
 
-Asset tag helpers provide methods for generating HTML that link views to feeds, JavaScript, stylesheets, images, videos and audios. There are six asset tag helpers available in Rails:
+Asset tag helpers provide methods for generating HTML that link views to feeds, JavaScript, stylesheets, images, videos, and audios. There are six asset tag helpers available in Rails:
 
 * `auto_discovery_link_tag`
 * `javascript_include_tag`
