@@ -252,11 +252,11 @@ module ActiveRecord
         result = @klass.connection.select_all(query_builder, nil, bound_attributes)
         row    = result.first
         value  = row && row.values.first
-        column = result.column_types.fetch(column_alias) do
+        type   = result.column_types.fetch(column_alias) do
           type_for(column_name)
         end
 
-        type_cast_calculated_value(value, column, operation)
+        type_cast_calculated_value(value, type, operation)
       end
 
       def execute_grouped_calculation(operation, column_name, distinct) #:nodoc:
@@ -310,18 +310,16 @@ module ActiveRecord
 
         Hash[calculated_data.map do |row|
           key = group_columns.map { |aliaz, col_name|
-            column = type_for(col_name) do
-              calculated_data.column_types.fetch(aliaz) do
-                Type.default_value
-              end
+            type = type_for(col_name) do
+              calculated_data.column_types.fetch(aliaz, Type.default_value)
             end
-            type_cast_calculated_value(row[aliaz], column)
+            type_cast_calculated_value(row[aliaz], type)
           }
           key = key.first if key.size == 1
           key = key_records[key] if associated
 
-          column_type = calculated_data.column_types.fetch(aggregate_alias) { type_for(column_name) }
-          [key, type_cast_calculated_value(row[aggregate_alias], column_type, operation)]
+          type = calculated_data.column_types.fetch(aggregate_alias) { type_for(column_name) }
+          [key, type_cast_calculated_value(row[aggregate_alias], type, operation)]
         end]
       end
 
@@ -356,7 +354,7 @@ module ActiveRecord
         when "count"   then value.to_i
         when "sum"     then type.deserialize(value || 0)
         when "average" then value.respond_to?(:to_d) ? value.to_d : value
-          else type.deserialize(value)
+        else type.deserialize(value)
         end
       end
 
