@@ -363,6 +363,12 @@ module CacheStoreBehavior
     assert_equal({ foo => "FOO!", bar => "BAM!" }, values)
   end
 
+  def test_fetch_multi_without_block
+    assert_raises(ArgumentError) do
+      @cache.fetch_multi("foo")
+    end
+  end
+
   def test_read_and_write_compressed_small_data
     @cache.write("foo", "bar", compress: true)
     assert_equal "bar", @cache.read("foo")
