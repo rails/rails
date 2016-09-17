@@ -200,15 +200,15 @@ module ActiveSupport
       # You may also specify additional options via the +options+ argument.
       # Setting <tt>force: true</tt> forces a cache "miss," meaning we treat
       # the cache value as missing even if it's present. Passing a block is
-      # required when `force` is true so this always results in a cache write.
+      # required when +force+ is true so this always results in a cache write.
       #
       #   cache.write('today', 'Monday')
       #   cache.fetch('today', force: true) { 'Tuesday' } # => 'Tuesday'
       #   cache.fetch('today', force: true) # => ArgumentError
       #
-      # The `:force` option is useful when you're calling some other method to
+      # The +:force+ option is useful when you're calling some other method to
       # ask whether you should force a cache write. Otherwise, it's clearer to
-      # just call `Cache#write`.
+      # just call <tt>Cache#write</tt>.
       #
       # Setting <tt>:compress</tt> will store a large cache entry set by the call
       # in a compressed format.
