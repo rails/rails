@@ -184,7 +184,7 @@ end
 By inheriting from the `Rails::Engine` class, this gem notifies Rails that
 there's an engine at the specified path, and will correctly mount the engine
 inside the application, performing tasks such as adding the `app` directory of
-the engine to the load path for models, mailers, controllers and views.
+the engine to the load path for models, mailers, controllers, and views.
 
 The `isolate_namespace` method here deserves special notice. This call is
 responsible for isolating the controllers, models, routes and other things into

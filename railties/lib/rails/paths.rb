@@ -30,7 +30,7 @@ module Rails
     #   root["config/routes"].inspect # => ["config/routes.rb"]
     #
     # The +add+ method accepts the following options as arguments:
-    # eager_load, autoload, autoload_once and glob.
+    # eager_load, autoload, autoload_once, and glob.
     #
     # Finally, the +Path+ object also provides a few helpers:
     #

@@ -133,7 +133,7 @@ module ActiveSupport
       period.zone_identifier.to_s
     end
 
-    # Returns a string of the object's date, time, zone and offset from UTC.
+    # Returns a string of the object's date, time, zone, and offset from UTC.
     #
     #   Time.zone.now.inspect # => "Thu, 04 Dec 2014 11:00:25 EST -05:00"
     def inspect
