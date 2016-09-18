@@ -9,7 +9,11 @@
 
 <div id="container">
   <h2><%= h @exception.message %></h2>
-
+  <%- if h @exception.message.to_s.match(/^Migrations are pending.*RAILS_ENV=development$/) %>
+      <form method="post" action="/rails/migrate">
+        <h2> <input value="Attempt Migrating from here" type="submit"/> </h2>
+      </form>
+  <%- end %>
   <%= render template: "rescues/_source" %>
   <%= render template: "rescues/_trace" %>
   <%= render template: "rescues/_request_and_response" %>

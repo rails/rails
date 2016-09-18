@@ -545,7 +545,7 @@ module ActiveRecord
       def call(env)
         if connection.supports_migrations?
           mtime = ActiveRecord::Migrator.last_migration.mtime.to_i
-          if @last_check < mtime
+          if !rails_migration_path?(env) && @last_check < mtime
             ActiveRecord::Migration.check_pending!(connection)
             @last_check = mtime
           end
@@ -554,6 +554,10 @@ module ActiveRecord
       end
 
       private
+
+        def rails_migration_path?(env)
+          Rails.env.development? && env["ORIGINAL_FULLPATH"] == '/rails/migrate'
+        end
 
         def connection
           ActiveRecord::Base.connection

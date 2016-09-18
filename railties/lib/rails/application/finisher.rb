@@ -25,6 +25,7 @@ module Rails
             get "/rails/info/properties" => "rails/info#properties", internal: true
             get "/rails/info/routes"     => "rails/info#routes", internal: true
             get "/rails/info"            => "rails/info#index", internal: true
+            post "/rails/migrate"        => "rails/migration#migrate", internal: true
           end
 
           app.routes.append do
