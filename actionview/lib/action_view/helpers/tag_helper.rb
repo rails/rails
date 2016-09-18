@@ -42,7 +42,6 @@ module ActionView
         end
 
         def tag_string(*args, escape_attributes: true, **options, &block)
-
           content_options = args.extract_options!
           name, content = args
           options = content_options.merge options
