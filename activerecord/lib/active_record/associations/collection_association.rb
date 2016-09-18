@@ -259,7 +259,6 @@ module ActiveRecord
           seen[record.id] = true unless seen.key?(record.id)
         end
       end
-      alias uniq distinct
 
       # Replace this collection with +other_array+. This will perform a diff
       # and delete/add only records that have changed.
