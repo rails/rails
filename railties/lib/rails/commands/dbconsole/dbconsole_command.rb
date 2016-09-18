@@ -5,14 +5,12 @@ require "rails/command/environment_argument"
 
 module Rails
   class DBConsole
-    attr_reader :arguments
-
     def self.start(*args)
       new(*args).start
     end
 
-    def initialize(arguments = ARGV, options = {})
-      @arguments, @options = arguments, options
+    def initialize(options = {})
+      @options = options
     end
 
     def start
@@ -147,13 +145,13 @@ module Rails
 
       class_option :header, type: :string
 
-      class_option :environment, aliases: "-e", type: :string, default: Rails::Command.environment,
+      class_option :environment, aliases: "-e", type: :string,
         desc: "Specifies the environment to run this console under (test/development/production)."
 
       def perform
         extract_environment_option_from_argument
 
-        Rails::DBConsole.start(args, options)
+        Rails::DBConsole.start(options)
       end
     end
   end
