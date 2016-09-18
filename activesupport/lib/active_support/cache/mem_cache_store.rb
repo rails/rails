@@ -110,7 +110,7 @@ module ActiveSupport
       # operator and can only be used on values written with the :raw option.
       # Calling it on a value not stored with :raw will initialize that value
       # to zero.
-      def increment(name, amount = 1, options = nil) # :nodoc:
+      def increment(name, amount = 1, options = nil)
         options = merged_options(options)
         instrument(:increment, name, amount: amount) do
           rescue_error_with nil do
@@ -123,7 +123,7 @@ module ActiveSupport
       # operator and can only be used on values written with the :raw option.
       # Calling it on a value not stored with :raw will initialize that value
       # to zero.
-      def decrement(name, amount = 1, options = nil) # :nodoc:
+      def decrement(name, amount = 1, options = nil)
         options = merged_options(options)
         instrument(:decrement, name, amount: amount) do
           rescue_error_with nil do
