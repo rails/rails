@@ -4686,7 +4686,7 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
 
   test "url helpers raise a helpful error message when generation fails" do
     url, missing = { action: "show", controller: "products", id: nil }, [:id]
-    message = "No route matches #{url.inspect} missing required keys: #{missing.inspect}"
+    message = "No route matches #{url.inspect} one or more required keys is missing or does not match the constraint: #{missing.inspect}"
 
     # Optimized url helper
     error = assert_raises(ActionController::UrlGenerationError) { product_path(nil) }
@@ -4699,7 +4699,7 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
 
   test "url helpers raise message with mixed parameters when generation fails " do
     url, missing = { action: "show", controller: "products", id: nil, "id"=>"url-tested" }, [:id]
-    message = "No route matches #{url.inspect} missing required keys: #{missing.inspect}"
+    message = "No route matches #{url.inspect} one or more required keys is missing or does not match the constraint: #{missing.inspect}"
 
     # Optimized url helper
     error = assert_raises(ActionController::UrlGenerationError) { product_path(nil, "id"=>"url-tested") }
