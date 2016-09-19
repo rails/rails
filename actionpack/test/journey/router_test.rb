@@ -102,7 +102,7 @@ module ActionDispatch
         get "/foo/:id", as: route_name, id: /\d+/, to: "foo#bar"
 
         error = assert_raises(ActionController::UrlGenerationError) do
-          @formatter.generate(route_name, {}, {id: 'aa'})
+          @formatter.generate(route_name, {}, id: 'aa')
         end
 
         assert_match(/one or more required keys is missing or does not match the constraint: \[:id\]/, error.message)
