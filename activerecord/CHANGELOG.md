@@ -1,3 +1,18 @@
+*   Always store errors details information with symbols.
+
+    When the association is autosaved we were storing the details with
+    string keys. This was creating inconsistency with other details that are
+    added using the `Errors#add` method. It was also inconsistent with the
+    `Errors#messages` storage.
+
+    To fix this inconsistency we are always storing with symbols. This will
+    cause a small breaking change because in those cases the details could
+    be accessed as strings keys but now it can not.
+
+    Fix #26499.
+
+    *Rafael Mendonça França*, *Marcus Vieira*
+
 *   Calling `touch` on a model using optimistic locking will now leave the model
     in a non-dirty state with no attribute changes.
 
