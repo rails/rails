@@ -329,26 +329,20 @@ module ActiveRecord
         return true if record.destroyed? || (reflection.options[:autosave] && record.marked_for_destruction?)
 
         validation_context = self.validation_context unless [:create, :update].include?(self.validation_context)
+
         unless valid = record.valid?(validation_context)
           if reflection.options[:autosave]
             indexed_attribute = !index.nil? && (reflection.options[:index_errors] || ActiveRecord::Base.index_nested_attribute_errors)
 
             record.errors.each do |attribute, message|
-              if indexed_attribute
-                attribute = "#{reflection.name}[#{index}].#{attribute}"
-              else
-                attribute = "#{reflection.name}.#{attribute}"
-              end
+              attribute = normalize_reflection_attribute(indexed_attribute, reflection, index, attribute)
               errors[attribute] << message
               errors[attribute].uniq!
             end
 
             record.errors.details.each_key do |attribute|
-              if indexed_attribute
-                reflection_attribute = "#{reflection.name}[#{index}].#{attribute}"
-              else
-                reflection_attribute = "#{reflection.name}.#{attribute}"
-              end
+              reflection_attribute =
+                normalize_reflection_attribute(indexed_attribute, reflection, index, attribute).to_sym
 
               record.errors.details[attribute].each do |error|
                 errors.details[reflection_attribute] << error
@@ -360,6 +354,14 @@ module ActiveRecord
           end
         end
         valid
+      end
+
+      def normalize_reflection_attribute(indexed_attribute, reflection, index, attribute)
+        if indexed_attribute
+          "#{reflection.name}[#{index}].#{attribute}"
+        else
+          "#{reflection.name}.#{attribute}"
+        end
       end
 
       # Is used as a before_save callback to check while saving a collection

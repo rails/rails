@@ -1,3 +1,18 @@
+*   Always store errors details information with symbols.
+
+    When the association is autosaved we were storing the details with
+    string keys. This was creating inconsistency with other details that are
+    added using the `Errors#add` method. It was also inconsistent with the
+    `Errors#messages` storage.
+
+    To fix this inconsistency we are always storing with symbols. This will
+    cause a small breaking change because in those cases the details could
+    be accessed as strings keys but now it can not.
+
+    Fix #26499.
+
+    *Rafael Mendonça França*, *Marcus Vieira*
+
 *   Using a mysql2 connection after it fails to reconnect will now have an error message
     saying the connection is closed rather than an undefined method error message.
 
