@@ -84,7 +84,9 @@ module ActionCable::StreamTests
       run_in_eventmachine do
         connection = TestConnection.new
 
-        ChatChannel.new connection, "{id: 1}", id: 1
+        channel = ChatChannel.new connection, "{id: 1}", id: 1
+        channel.registered!
+
         assert_nil connection.last_transmission
 
         wait_for_async
@@ -101,6 +103,7 @@ module ActionCable::StreamTests
         connection = TestConnection.new
 
         channel = ChatChannel.new connection, "test_channel"
+        channel.registered!
         channel.send_confirmation
         channel.send_confirmation
 
@@ -114,7 +117,7 @@ module ActionCable::StreamTests
     end
   end
 
-  require "action_cable/subscription_adapter/inline"
+  require "action_cable/subscription_adapter/async"
 
   class UserCallbackChannel < ActionCable::Channel::Base
     def subscribed
@@ -124,9 +127,16 @@ module ActionCable::StreamTests
     end
   end
 
-  class StreamEncodingTest < ActionCable::TestCase
+  class MultiChatChannel < ActionCable::Channel::Base
+    def subscribed
+      stream_from "main_room"
+      stream_from "test_all_rooms"
+    end
+  end
+
+  class StreamFromTest < ActionCable::TestCase
     setup do
-      @server = TestServer.new(subscription_adapter: ActionCable::SubscriptionAdapter::Inline)
+      @server = TestServer.new(subscription_adapter: ActionCable::SubscriptionAdapter::Async)
       @server.config.allowed_request_origins = %w( http://rubyonrails.com )
     end
 
@@ -150,6 +160,17 @@ module ActionCable::StreamTests
         @server.broadcast "channel", {}
         wait_for_async
         refute Thread.current[:ran_callback], "User callback was not run through the worker pool"
+      end
+    end
+
+    test "subscription confirmation should only be sent out once with muptiple stream_from" do
+      run_in_eventmachine do
+        connection = open_connection
+        expected = { "identifier" => { "channel" => MultiChatChannel.name }.to_json, "type" => "confirm_subscription" }
+        connection.websocket.expects(:transmit).with(expected.to_json)
+        receive(connection, command: "subscribe", channel: MultiChatChannel.name, identifiers: {})
+
+        wait_for_async
       end
     end
 

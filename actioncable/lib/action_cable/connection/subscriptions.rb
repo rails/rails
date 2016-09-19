@@ -29,7 +29,9 @@ module ActionCable
         subscription_klass = id_options[:channel].safe_constantize
 
         if subscription_klass && ActionCable::Channel::Base >= subscription_klass
-          subscriptions[id_key] ||= subscription_klass.new(connection, id_key, id_options)
+          subscription = subscription_klass.new(connection, id_key, id_options)
+          subscriptions[id_key] ||= subscription
+          subscription.registered!
         else
           logger.error "Subscription class not found: #{id_options[:channel].inspect}"
         end

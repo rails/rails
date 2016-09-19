@@ -150,8 +150,13 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
     assert_equal expected, @connection.last_transmission
   end
 
-  test "subscription confirmation" do
+  test "do not send subscription confirmation on initialize" do
+    assert_nil @connection.last_transmission
+  end
+
+  test "subscription confirmation on registration" do
     expected = { "identifier" => "{id: 1}", "type" => "confirm_subscription" }
+    @channel.registered!
     assert_equal expected, @connection.last_transmission
   end
 
@@ -208,6 +213,8 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
 
   test "notification for transmit_subscription_confirmation" do
     begin
+      @channel.registered!
+
       events = []
       ActiveSupport::Notifications.subscribe "transmit_subscription_confirmation.action_cable" do |*args|
         events << ActiveSupport::Notifications::Event.new(*args)

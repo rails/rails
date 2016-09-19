@@ -144,13 +144,23 @@ module ActionCable
 
         # When a channel is streaming via pubsub, we want to delay the confirmation
         # transmission until pubsub subscription is confirmed.
-        @defer_subscription_confirmation = false
+        #
+        # We use atomic fixnum to track the number of waiting tasks to avoid race conditions
+        @defer_subscription_confirmation_counter = Concurrent::AtomicFixnum.new(1)
 
         @reject_subscription = nil
         @subscription_confirmation_sent = nil
 
         delegate_connection_identifiers
         subscribe_to_channel
+      end
+
+      # This method is called after subscription has been added to the channel.
+      # Send confirmation here to avoid race conditions when client tries to perform actions
+      # right after receiving confirmation.
+      def registered!
+        @defer_subscription_confirmation_counter.decrement
+        transmit_subscription_confirmation unless defer_subscription_confirmation?
       end
 
       # Extract the action name from the passed data and process it via the channel. The process will ensure
@@ -202,15 +212,19 @@ module ActionCable
         end
 
         def defer_subscription_confirmation!
-          @defer_subscription_confirmation = true
+          @defer_subscription_confirmation_counter.increment
         end
 
         def defer_subscription_confirmation?
-          @defer_subscription_confirmation
+          @defer_subscription_confirmation_counter.value.positive?
         end
 
         def subscription_confirmation_sent?
           @subscription_confirmation_sent
+        end
+
+        def registered?
+          @registered
         end
 
         def reject
@@ -235,11 +249,7 @@ module ActionCable
             subscribed
           end
 
-          if subscription_rejected?
-            reject_subscription
-          else
-            transmit_subscription_confirmation unless defer_subscription_confirmation?
-          end
+          reject_subscription if subscription_rejected?
         end
 
         def extract_action(data)
