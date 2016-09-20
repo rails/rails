@@ -69,8 +69,8 @@ module ActionCable
 
       # Start streaming from the named <tt>broadcasting</tt> pubsub queue. Optionally, you can pass a <tt>callback</tt> that'll be used
       # instead of the default of just transmitting the updates straight to the subscriber.
-      # Pass `coder: ActiveSupport::JSON` to decode messages as JSON before passing to the callback.
-      # Defaults to `coder: nil` which does no decoding, passes raw messages.
+      # Pass <tt>coder: ActiveSupport::JSON</tt> to decode messages as JSON before passing to the callback.
+      # Defaults to <tt>coder: nil</tt> which does no decoding, passes raw messages.
       def stream_from(broadcasting, callback = nil, coder: nil, &block)
         broadcasting = String(broadcasting)
 
@@ -94,8 +94,8 @@ module ActionCable
       # <tt>callback</tt> that'll be used instead of the default of just transmitting the updates straight
       # to the subscriber.
       #
-      # Pass `coder: ActiveSupport::JSON` to decode messages as JSON before passing to the callback.
-      # Defaults to `coder: nil` which does no decoding, passes raw messages.
+      # Pass <tt>coder: ActiveSupport::JSON</tt> to decode messages as JSON before passing to the callback.
+      # Defaults to <tt>coder: nil</tt> which does no decoding, passes raw messages.
       def stream_for(model, callback = nil, coder: nil, &block)
         stream_from(broadcasting_for([ channel_name, model ]), callback || block, coder: coder)
       end
