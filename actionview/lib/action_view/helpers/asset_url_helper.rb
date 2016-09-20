@@ -37,7 +37,7 @@ module ActionView
     # some asset downloads to wait for previous assets to finish before they can
     # begin. You can use the <tt>%d</tt> wildcard in the +asset_host+ to
     # distribute the requests over four hosts. For example,
-    # <tt>assets%d.example.com<tt> will spread the asset requests over
+    # <tt>assets%d.example.com</tt> will spread the asset requests over
     # "assets0.example.com", ..., "assets3.example.com".
     #
     #   image_tag("rails.png")
