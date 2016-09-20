@@ -1,3 +1,10 @@
+*   Show an "unmatched constraints" error when params fail to match constraints
+    on a matched route, rather than a "missing keys" error.
+
+    Fixes #26470.
+
+    *Chris Carter*
+
 *   Fix adding implicitly rendered template digests to ETags.
 
     Fixes a case when modifying an implicitly rendered template for a
