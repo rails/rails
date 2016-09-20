@@ -188,6 +188,8 @@ GEM
       eventmachine (>= 0.12.0)
       websocket-driver (>= 0.5.1)
     ffi (1.9.14)
+    ffi (1.9.14-x64-mingw32)
+    ffi (1.9.14-x86-mingw32)
     globalid (0.3.7)
       activesupport (>= 4.1.0)
     hiredis (0.6.1)
