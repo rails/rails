@@ -1,3 +1,4 @@
+require "active_support/deprecation"
 require "active_support/deprecation/proxy_wrappers"
 
 class LoadError
