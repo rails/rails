@@ -84,8 +84,7 @@ module ActionCable
 
         connection.server.event_loop.post do
           pubsub.subscribe(broadcasting, handler, lambda do
-            @defer_subscription_confirmation_counter.decrement
-            transmit_subscription_confirmation unless defer_subscription_confirmation?
+            ensure_confirmation_sent
             logger.info "#{self.class.name} is streaming from #{broadcasting}"
           end)
         end

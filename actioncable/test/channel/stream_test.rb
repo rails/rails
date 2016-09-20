@@ -53,6 +53,7 @@ module ActionCable::StreamTests
         connection = TestConnection.new
         connection.expects(:pubsub).returns mock().tap { |m| m.expects(:subscribe).with("test_room_1", kind_of(Proc), kind_of(Proc)).returns stub_everything(:pubsub) }
         channel = ChatChannel.new connection, "{id: 1}", id: 1
+        channel.subscribe_to_channel
 
         connection.expects(:pubsub).returns mock().tap { |m| m.expects(:unsubscribe) }
         channel.unsubscribe_from_channel
@@ -64,6 +65,7 @@ module ActionCable::StreamTests
         connection = TestConnection.new
         connection.expects(:pubsub).returns mock().tap { |m| m.expects(:subscribe).with("channel", kind_of(Proc), kind_of(Proc)).returns stub_everything(:pubsub) }
         channel = SymbolChannel.new connection, ""
+        channel.subscribe_to_channel
 
         connection.expects(:pubsub).returns mock().tap { |m| m.expects(:unsubscribe) }
         channel.unsubscribe_from_channel
@@ -76,6 +78,7 @@ module ActionCable::StreamTests
         connection.expects(:pubsub).returns mock().tap { |m| m.expects(:subscribe).with("action_cable:stream_tests:chat:Room#1-Campfire", kind_of(Proc), kind_of(Proc)).returns stub_everything(:pubsub) }
 
         channel = ChatChannel.new connection, ""
+        channel.subscribe_to_channel
         channel.stream_for Room.new(1)
       end
     end
@@ -85,7 +88,7 @@ module ActionCable::StreamTests
         connection = TestConnection.new
 
         channel = ChatChannel.new connection, "{id: 1}", id: 1
-        channel.registered!
+        channel.subscribe_to_channel
 
         assert_nil connection.last_transmission
 
@@ -103,7 +106,6 @@ module ActionCable::StreamTests
         connection = TestConnection.new
 
         channel = ChatChannel.new connection, "test_channel"
-        channel.registered!
         channel.send_confirmation
         channel.send_confirmation
 
