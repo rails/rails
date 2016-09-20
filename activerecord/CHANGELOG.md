@@ -1,3 +1,10 @@
+*   Fix `wait_timeout` to configurable for mysql2 adapter.
+
+    Fixes #26556.
+
+    *Ryuta Kamizono*
+
+
 ## Rails 5.1.0.beta1 (February 23, 2017) ##
 
 *   Correctly dump native timestamp types for MySQL.
