@@ -19,7 +19,7 @@ module ActiveSupport
     #
     # If passed an optional +locale+ parameter, the word will be
     # pluralized using rules defined for that language. By default,
-    # this parameter is set to <tt>:en</tt>.
+    # this parameter is set to the value of <tt>I18n.locale</tt>.
     #
     #   pluralize('post')             # => "posts"
     #   pluralize('octopus')          # => "octopi"
@@ -27,7 +27,7 @@ module ActiveSupport
     #   pluralize('words')            # => "words"
     #   pluralize('CamelOctopus')     # => "CamelOctopi"
     #   pluralize('ley', :es)         # => "leyes"
-    def pluralize(word, locale = :en)
+    def pluralize(word, locale = I18n.locale)
       apply_inflections(word, inflections(locale).plurals)
     end
 
@@ -36,7 +36,7 @@ module ActiveSupport
     #
     # If passed an optional +locale+ parameter, the word will be
     # singularized using rules defined for that language. By default,
-    # this parameter is set to <tt>:en</tt>.
+    # this parameter is set to the value of <tt>I18n.locale</tt>.
     #
     #   singularize('posts')            # => "post"
     #   singularize('octopi')           # => "octopus"
@@ -44,7 +44,7 @@ module ActiveSupport
     #   singularize('word')             # => "word"
     #   singularize('CamelOctopi')      # => "CamelOctopus"
     #   singularize('leyes', :es)       # => "ley"
-    def singularize(word, locale = :en)
+    def singularize(word, locale = I18n.locale)
       apply_inflections(word, inflections(locale).singulars)
     end
 
