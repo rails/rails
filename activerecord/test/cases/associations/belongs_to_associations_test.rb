@@ -99,6 +99,32 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     ActiveRecord::Base.belongs_to_required_by_default = original_value
   end
 
+  def test_optional_relation_with_integrity_option
+    original_value = ActiveRecord::Base.belongs_to_required_by_default
+    ActiveRecord::Base.belongs_to_required_by_default = true
+
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "posts"
+      def self.name; "Temp"; end
+      belongs_to :author, optional: :with_integrity
+    end
+
+    author1 = Author.create!(name: "abc")
+    author2 = Author.create!(name: "xyz")
+
+    m = model.create!(title: "post title", body: "haha", author_id: author1.id)
+    m.author_id = 0
+
+    assert_raises(ActiveRecord::RecordInvalid) do
+      assert m.save!
+    end
+
+    m.author_id = author2.id
+    assert m.save
+  ensure
+    ActiveRecord::Base.belongs_to_required_by_default = original_value
+  end
+
   def test_required_belongs_to_config
     original_value = ActiveRecord::Base.belongs_to_required_by_default
     ActiveRecord::Base.belongs_to_required_by_default = true
