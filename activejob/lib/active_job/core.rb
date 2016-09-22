@@ -80,6 +80,7 @@ module ActiveJob
       {
         "job_class"  => self.class.name,
         "job_id"     => job_id,
+        "provider_job_id" => provider_job_id,
         "queue_name" => queue_name,
         "priority"   => priority,
         "arguments"  => serialize_arguments(arguments),
