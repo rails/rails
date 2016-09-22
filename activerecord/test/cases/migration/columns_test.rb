@@ -225,6 +225,16 @@ module ActiveRecord
         assert_nil TestModel.new.contributor
       end
 
+      def test_change_column_to_drop_default_with_null_false
+        add_column "test_models", "contributor", :boolean, default: true, null: false
+        assert TestModel.new.contributor?
+
+        change_column "test_models", "contributor", :boolean, default: nil, null: false
+        TestModel.reset_column_information
+        assert_not TestModel.new.contributor?
+        assert_nil TestModel.new.contributor
+      end
+
       def test_change_column_with_new_default
         add_column "test_models", "administrator", :boolean, default: true
         assert TestModel.new.administrator?
