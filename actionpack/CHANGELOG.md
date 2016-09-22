@@ -1,3 +1,11 @@
+*   Fix adding implicitly rendered template digests to ETags.
+
+    Fixes a case when modifying an implicitly rendered template for a
+    controller action using `fresh_when` or `stale?` would not result in a new
+    `ETag` value.
+
+    *Javan Makhmali*
+
 *   Make `fixture_file_upload` work in integration tests.
 
     *Yuji Yaginuma*
