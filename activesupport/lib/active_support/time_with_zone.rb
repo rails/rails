@@ -276,6 +276,7 @@ module ActiveSupport
         utc.since(other).in_time_zone(time_zone)
       end
     end
+    alias_method :in, :since
 
     def ago(other)
       since(-other)
