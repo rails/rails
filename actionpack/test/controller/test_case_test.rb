@@ -962,6 +962,13 @@ XML
     end
   end
 
+  def test_fixture_file_upload_ignores_fixture_path_given_full_path
+    TestCaseTest.stub :fixture_path, File.dirname(__FILE__) do
+      uploaded_file = fixture_file_upload("#{FILES_DIR}/mona_lisa.jpg", "image/jpg")
+      assert_equal File.open("#{FILES_DIR}/mona_lisa.jpg", READ_PLAIN).read, uploaded_file.read
+    end
+  end
+
   def test_fixture_file_upload_ignores_nil_fixture_path
     uploaded_file = fixture_file_upload("#{FILES_DIR}/mona_lisa.jpg", "image/jpg")
     assert_equal File.open("#{FILES_DIR}/mona_lisa.jpg", READ_PLAIN).read, uploaded_file.read
