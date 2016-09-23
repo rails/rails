@@ -133,8 +133,8 @@ class RelationScopingTest < ActiveRecord::TestCase
     scoped_developers = Developer.includes(:projects).scoping do
       Developer.where("projects.id" => 2).to_a
     end
-    assert scoped_developers.include?(developers(:david))
-    assert !scoped_developers.include?(developers(:jamis))
+    assert_includes scoped_developers, developers(:david)
+    assert_not_includes scoped_developers, developers(:jamis)
     assert_equal 1, scoped_developers.size
   end
 
@@ -143,8 +143,8 @@ class RelationScopingTest < ActiveRecord::TestCase
       Developer.where("developers_projects.project_id = 2").to_a
     end
 
-    assert scoped_developers.include?(developers(:david))
-    assert !scoped_developers.include?(developers(:jamis))
+    assert_includes scoped_developers, developers(:david)
+    assert_not_includes scoped_developers, developers(:jamis)
     assert_equal 1, scoped_developers.size
     assert_equal developers(:david).attributes, scoped_developers.first.attributes
   end
@@ -155,7 +155,7 @@ class RelationScopingTest < ActiveRecord::TestCase
     end
 
     assert_equal 1, new_comment.post_id
-    assert Post.find(1).comments.include?(new_comment)
+    assert_includes Post.find(1).comments, new_comment
   end
 
   def test_scoped_create_with_create_with
@@ -164,7 +164,7 @@ class RelationScopingTest < ActiveRecord::TestCase
     end
 
     assert_equal 1, new_comment.post_id
-    assert Post.find(1).comments.include?(new_comment)
+    assert_includes Post.find(1).comments, new_comment
   end
 
   def test_scoped_create_with_create_with_has_higher_priority
@@ -173,7 +173,7 @@ class RelationScopingTest < ActiveRecord::TestCase
     end
 
     assert_equal 1, new_comment.post_id
-    assert Post.find(1).comments.include?(new_comment)
+    assert_includes Post.find(1).comments, new_comment
   end
 
   def test_ensure_that_method_scoping_is_correctly_restored

@@ -24,15 +24,15 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     :edges
 
   def test_has_many
-    assert authors(:david).categories.include?(categories(:general))
+    assert_includes authors(:david).categories, categories(:general)
   end
 
   def test_has_many_inherited
-    assert authors(:mary).categories.include?(categories(:sti_test))
+    assert_includes authors(:mary).categories, categories(:sti_test)
   end
 
   def test_inherited_has_many
-    assert categories(:sti_test).authors.include?(authors(:mary))
+    assert_includes categories(:sti_test).authors, authors(:mary)
   end
 
   def test_has_many_distinct_through_join_model
@@ -467,10 +467,10 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     saved_post.tags << new_tag
     assert new_tag.persisted? #consistent with habtm!
     assert saved_post.persisted?
-    assert saved_post.tags.include?(new_tag)
+    assert_includes saved_post.tags, new_tag
 
     assert new_tag.persisted?
-    assert saved_post.reload.tags.reload.include?(new_tag)
+    assert_includes saved_post.reload.tags.reload, new_tag
 
     new_post = Post.new(title: "Association replacement works!", body: "You best believe it.")
     saved_tag = tags(:general)
@@ -478,11 +478,11 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     new_post.tags << saved_tag
     assert !new_post.persisted?
     assert saved_tag.persisted?
-    assert new_post.tags.include?(saved_tag)
+    assert_includes new_post.tags, saved_tag
 
     new_post.save!
     assert new_post.persisted?
-    assert new_post.reload.tags.reload.include?(saved_tag)
+    assert_includes new_post.reload.tags.reload, saved_tag
 
     assert !posts(:thinking).tags.build.persisted?
     assert !posts(:thinking).tags.new.persisted?
@@ -642,8 +642,8 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   def test_polymorphic_has_many
     expected = taggings(:welcome_general)
     p = Post.all.merge!(includes: :taggings).find(posts(:welcome).id)
-    assert_no_queries { assert p.taggings.include?(expected) }
-    assert posts(:welcome).taggings.include?(taggings(:welcome_general))
+    assert_no_queries { assert_includes p.taggings, expected }
+    assert_includes posts(:welcome).taggings, taggings(:welcome_general)
   end
 
   def test_polymorphic_has_one
@@ -675,8 +675,8 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     end
 
     taggables = taggings.map(&:taggable)
-    assert taggables.include?(items(:dvd))
-    assert taggables.include?(posts(:welcome))
+    assert_includes taggables, items(:dvd)
+    assert_includes taggables, posts(:welcome)
   end
 
   def test_preload_nil_polymorphic_belongs_to
@@ -709,7 +709,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
     assert_no_queries do
       assert david.categories.loaded?
-      assert david.categories.include?(category)
+      assert_includes david.categories, category
     end
   end
 
@@ -720,7 +720,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     david.reload
     assert ! david.categories.loaded?
     assert_queries(1) do
-      assert david.categories.include?(category)
+      assert_includes david.categories, category
     end
     assert ! david.categories.loaded?
   end

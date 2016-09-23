@@ -52,12 +52,12 @@ module ActiveSupport
 
     private
 
-    # Convert an XML element and merge into the hash
-    #
-    # hash::
-    #   Hash to merge the converted element into.
-    # element::
-    #   XML element to merge into hash
+      # Convert an XML element and merge into the hash
+      #
+      # hash::
+      #   Hash to merge the converted element into.
+      # element::
+      #   XML element to merge into hash
       def merge_element!(hash, element, depth)
         raise "Document too deep!" if depth == 0
         delete_empty(hash)
@@ -68,10 +68,10 @@ module ActiveSupport
         hash.delete(CONTENT_KEY) if hash[CONTENT_KEY] == ""
       end
 
-    # Actually converts an XML document element into a data structure.
-    #
-    # element::
-    #   The document element to be collapsed.
+      # Actually converts an XML document element into a data structure.
+      #
+      # element::
+      #   The document element to be collapsed.
       def collapse(element, depth)
         hash = get_attributes(element)
 
@@ -88,12 +88,12 @@ module ActiveSupport
         end
       end
 
-    # Merge all the texts of an element into the hash
-    #
-    # hash::
-    #   Hash to add the converted element to.
-    # element::
-    #   XML element whose texts are to me merged into the hash
+      # Merge all the texts of an element into the hash
+      #
+      # hash::
+      #   Hash to add the converted element to.
+      # element::
+      #   XML element whose texts are to me merged into the hash
       def merge_texts!(hash, element)
         delete_empty(hash)
         text_children = texts(element)
@@ -105,17 +105,17 @@ module ActiveSupport
         end
       end
 
-    # Adds a new key/value pair to an existing Hash. If the key to be added
-    # already exists and the existing value associated with key is not
-    # an Array, it will be wrapped in an Array. Then the new value is
-    # appended to that Array.
-    #
-    # hash::
-    #   Hash to add key/value pair to.
-    # key::
-    #   Key to be added.
-    # value::
-    #   Value to be associated with key.
+      # Adds a new key/value pair to an existing Hash. If the key to be added
+      # already exists and the existing value associated with key is not
+      # an Array, it will be wrapped in an Array. Then the new value is
+      # appended to that Array.
+      #
+      # hash::
+      #   Hash to add key/value pair to.
+      # key::
+      #   Key to be added.
+      # value::
+      #   Value to be associated with key.
       def merge!(hash, key, value)
         if hash.has_key?(key)
           if hash[key].instance_of?(Array)
@@ -131,11 +131,11 @@ module ActiveSupport
         hash
       end
 
-    # Converts the attributes array of an XML element into a hash.
-    # Returns an empty Hash if node has no attributes.
-    #
-    # element::
-    #   XML element to extract attributes from.
+      # Converts the attributes array of an XML element into a hash.
+      # Returns an empty Hash if node has no attributes.
+      #
+      # element::
+      #   XML element to extract attributes from.
       def get_attributes(element)
         attribute_hash = {}
         attributes = element.attributes
@@ -146,10 +146,10 @@ module ActiveSupport
         attribute_hash
       end
 
-    # Determines if a document element has text content
-    #
-    # element::
-    #   XML element to be checked.
+      # Determines if a document element has text content
+      #
+      # element::
+      #   XML element to be checked.
       def texts(element)
         texts = []
         child_nodes = element.child_nodes
@@ -162,10 +162,10 @@ module ActiveSupport
         texts
       end
 
-    # Determines if a document element has text content
-    #
-    # element::
-    #   XML element to be checked.
+      # Determines if a document element has text content
+      #
+      # element::
+      #   XML element to be checked.
       def empty_content?(element)
         text = ""
         child_nodes = element.child_nodes

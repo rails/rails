@@ -20,6 +20,10 @@ Style/BracesAroundHashParameters:
 Style/CaseIndentation:
   Enabled: true
 
+# Align comments with method definitions.
+Style/CommentIndentation:
+  Enabled: true
+
 # No extra empty lines.
 Style/EmptyLines:
   Enabled: true

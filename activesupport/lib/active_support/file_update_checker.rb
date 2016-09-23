@@ -105,13 +105,13 @@ module ActiveSupport
         @updated_at || max_mtime(paths) || Time.at(0)
       end
 
-    # This method returns the maximum mtime of the files in +paths+, or +nil+
-    # if the array is empty.
-    #
-    # Files with a mtime in the future are ignored. Such abnormal situation
-    # can happen for example if the user changes the clock by hand. It is
-    # healthy to consider this edge case because with mtimes in the future
-    # reloading is not triggered.
+      # This method returns the maximum mtime of the files in +paths+, or +nil+
+      # if the array is empty.
+      #
+      # Files with a mtime in the future are ignored. Such abnormal situation
+      # can happen for example if the user changes the clock by hand. It is
+      # healthy to consider this edge case because with mtimes in the future
+      # reloading is not triggered.
       def max_mtime(paths)
         time_now = Time.now
         max_mtime = nil

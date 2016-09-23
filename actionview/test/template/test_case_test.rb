@@ -25,7 +25,7 @@ module ActionView
       def self.included(test_case)
         test_case.class_eval do
           test "helpers defined on ActionView::TestCase are available" do
-            assert test_case.ancestors.include?(ASharedTestHelper)
+            assert_includes test_case.ancestors, ASharedTestHelper
             assert_equal "Holla!", from_shared_helper
           end
         end
@@ -64,7 +64,7 @@ module ActionView
 
     helper AnotherTestHelper
     test "additional helper classes can be specified as in a controller" do
-      assert test_case.ancestors.include?(AnotherTestHelper)
+      assert_includes test_case.ancestors, AnotherTestHelper
       assert_equal "Howdy!", from_another_helper
     end
 
@@ -96,12 +96,12 @@ module ActionView
     tests ATestHelper
     test "tests the specified helper module" do
       assert_equal ATestHelper, test_case.helper_class
-      assert test_case.ancestors.include?(ATestHelper)
+      assert_includes test_case.ancestors, ATestHelper
     end
 
     helper AnotherTestHelper
     test "additional helper classes can be specified as in a controller" do
-      assert test_case.ancestors.include?(AnotherTestHelper)
+      assert_includes test_case.ancestors, AnotherTestHelper
       assert_equal "Howdy!", from_another_helper
 
       test_case.helper_class.module_eval do
@@ -161,7 +161,7 @@ module ActionView
     test "view_assigns excludes internal ivars" do
       INTERNAL_IVARS.each do |ivar|
         assert defined?(ivar), "expected #{ivar} to be defined"
-        assert !view_assigns.keys.include?(ivar.to_s.tr("@", "").to_sym), "expected #{ivar} to be excluded from view_assigns"
+        assert_not_includes view_assigns.keys, ivar.to_s.tr("@", "").to_sym, "expected #{ivar} to be excluded from view_assigns"
       end
     end
   end
@@ -200,7 +200,7 @@ module ActionView
 
     test "inflects the name of the helper module to test from the test case class" do
       assert_equal ATestHelper, test_case.helper_class
-      assert test_case.ancestors.include?(ATestHelper)
+      assert_includes test_case.ancestors, ATestHelper
     end
 
     test "a configured test controller is available" do
@@ -209,7 +209,7 @@ module ActionView
     end
 
     test "no additional helpers should shared across test cases" do
-      assert !test_case.ancestors.include?(AnotherTestHelper)
+      assert_not_includes test_case.ancestors, AnotherTestHelper
       assert_raise(NoMethodError) { send :from_another_helper }
     end
 

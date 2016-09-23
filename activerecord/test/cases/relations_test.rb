@@ -530,8 +530,8 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_equal 3, developers_on_project_one.length
     developer_names = developers_on_project_one.map(&:name)
-    assert developer_names.include?("David")
-    assert developer_names.include?("Jamis")
+    assert_includes developer_names, "David"
+    assert_includes developer_names, "Jamis"
   end
 
   def test_find_on_hash_conditions
@@ -748,11 +748,11 @@ class RelationTest < ActiveRecord::TestCase
     posts = Post.preload(:comments)
     post = posts.find { |p| p.id == 1 }
     assert_equal 2, post.comments.size
-    assert post.comments.include?(comments(:greetings))
+    assert_includes post.comments, comments(:greetings)
 
     post = Post.where("posts.title = 'Welcome to the weblog'").preload(:comments).first
     assert_equal 2, post.comments.size
-    assert post.comments.include?(comments(:greetings))
+    assert_includes post.comments, comments(:greetings)
 
     posts = Post.preload(:last_comment)
     post = posts.find { |p| p.id == 1 }

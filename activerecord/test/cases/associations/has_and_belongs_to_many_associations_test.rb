@@ -169,7 +169,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     active_record = Project.find(1)
     assert !active_record.developers.empty?
     assert_equal 3, active_record.developers.size
-    assert active_record.developers.include?(david)
+    assert_includes active_record.developers, david
   end
 
   def test_adding_single
@@ -544,7 +544,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
     assert_no_queries(ignore_none: false) do
       assert project.developers.loaded?
-      assert project.developers.include?(developer)
+      assert_includes project.developers, developer
     end
   end
 
@@ -555,7 +555,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     project.reload
     assert ! project.developers.loaded?
     assert_queries(1) do
-      assert project.developers.include?(developer)
+      assert_includes project.developers, developer
     end
     assert ! project.developers.loaded?
   end
@@ -600,8 +600,8 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     project.save!
     project.reload
 
-    assert project.developers.include?(jamis)
-    assert project.developers.include?(david)
+    assert_includes project.developers, jamis
+    assert_includes project.developers, david
   end
 
   def test_find_in_association_with_options
@@ -628,7 +628,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     david.projects = [projects(:action_controller), Project.new("name" => "ActionWebSearch")]
     david.save
     assert_equal 2, david.projects.length
-    assert !david.projects.include?(projects(:active_record))
+    assert_not_includes david.projects, projects(:active_record)
   end
 
   def test_replace_on_new_object
@@ -646,9 +646,9 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     developer.special_projects << special_project
     developer.reload
 
-    assert developer.projects.include?(special_project)
-    assert developer.special_projects.include?(special_project)
-    assert !developer.special_projects.include?(other_project)
+    assert_includes developer.projects, special_project
+    assert_includes developer.special_projects, special_project
+    assert_not_includes developer.special_projects, other_project
   end
 
   def test_symbol_join_table
@@ -854,7 +854,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_include_method_in_has_and_belongs_to_many_association_should_return_true_for_instance_added_with_build
     project = Project.new
     developer = project.developers.build
-    assert project.developers.include?(developer)
+    assert_includes project.developers, developer
   end
 
   def test_destruction_does_not_error_without_primary_key

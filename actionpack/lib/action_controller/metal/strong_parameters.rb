@@ -578,7 +578,7 @@ module ActionController
     # +other_hash+ merges into current hash.
     def merge(other_hash)
       new_instance_with_inherited_permitted_status(
-        @parameters.merge(other_hash)
+        @parameters.merge(other_hash.to_h)
       )
     end
 

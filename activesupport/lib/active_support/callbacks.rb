@@ -102,9 +102,9 @@ module ActiveSupport
         end
       end
 
-    # A hook invoked every time a before callback is halted.
-    # This can be overridden in ActiveSupport::Callbacks implementors in order
-    # to provide better debugging/logging.
+      # A hook invoked every time a before callback is halted.
+      # This can be overridden in ActiveSupport::Callbacks implementors in order
+      # to provide better debugging/logging.
       def halted_callback_hook(filter)
       end
 
@@ -367,15 +367,15 @@ module ActiveSupport
             lambda { |*args, &blk| !l.call(*args, &blk) }
           end
 
-        # Filters support:
-        #
-        #   Symbols:: A method to call.
-        #   Strings:: Some content to evaluate.
-        #   Procs::   A proc to call with the object.
-        #   Objects:: An object with a <tt>before_foo</tt> method on it to call.
-        #
-        # All of these objects are converted into a lambda and handled
-        # the same after this point.
+          # Filters support:
+          #
+          #   Symbols:: A method to call.
+          #   Strings:: Some content to evaluate.
+          #   Procs::   A proc to call with the object.
+          #   Objects:: An object with a <tt>before_foo</tt> method on it to call.
+          #
+          # All of these objects are converted into a lambda and handled
+          # the same after this point.
           def make_lambda(filter)
             case filter
             when Symbol
@@ -422,9 +422,9 @@ module ActiveSupport
           end
       end
 
-    # Execute before and after filters in a sequence instead of
-    # chaining them with nested lambda calls, see:
-    # https://github.com/rails/rails/issues/18011
+      # Execute before and after filters in a sequence instead of
+      # chaining them with nested lambda calls, see:
+      # https://github.com/rails/rails/issues/18011
       class CallbackSequence
         def initialize(&call)
           @call = call
@@ -458,7 +458,7 @@ module ActiveSupport
         end
       end
 
-    # An Array with a compile method.
+      # An Array with a compile method.
       class CallbackChain #:nodoc:#
         include Enumerable
 

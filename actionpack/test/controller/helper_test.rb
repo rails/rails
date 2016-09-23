@@ -125,13 +125,13 @@ class HelperTest < ActiveSupport::TestCase
 
   def test_helper_method
     assert_nothing_raised { @controller_class.helper_method :delegate_method }
-    assert master_helper_methods.include?(:delegate_method)
+    assert_includes master_helper_methods, :delegate_method
   end
 
   def test_helper_attr
     assert_nothing_raised { @controller_class.helper_attr :delegate_attr }
-    assert master_helper_methods.include?(:delegate_attr)
-    assert master_helper_methods.include?(:delegate_attr=)
+    assert_includes master_helper_methods, :delegate_attr
+    assert_includes master_helper_methods, :delegate_attr=
   end
 
   def call_controller(klass, action)
@@ -168,13 +168,13 @@ class HelperTest < ActiveSupport::TestCase
     methods = AllHelpersController._helpers.instance_methods
 
     # abc_helper.rb
-    assert methods.include?(:bare_a)
+    assert_includes methods, :bare_a
 
     # fun/games_helper.rb
-    assert methods.include?(:stratego)
+    assert_includes methods, :stratego
 
     # fun/pdf_helper.rb
-    assert methods.include?(:foobar)
+    assert_includes methods, :foobar
   end
 
   def test_all_helpers_with_alternate_helper_dir
@@ -185,26 +185,26 @@ class HelperTest < ActiveSupport::TestCase
     @controller_class.helper :all
 
     # helpers/abc_helper.rb should not be included
-    assert !master_helper_methods.include?(:bare_a)
+    assert_not_includes master_helper_methods, :bare_a
 
     # alternate_helpers/foo_helper.rb
-    assert master_helper_methods.include?(:baz)
+    assert_includes master_helper_methods, :baz
   end
 
   def test_helper_proxy
     methods = AllHelpersController.helpers.methods
 
     # Action View
-    assert methods.include?(:pluralize)
+    assert_includes methods, :pluralize
 
     # abc_helper.rb
-    assert methods.include?(:bare_a)
+    assert_includes methods, :bare_a
 
     # fun/games_helper.rb
-    assert methods.include?(:stratego)
+    assert_includes methods, :stratego
 
     # fun/pdf_helper.rb
-    assert methods.include?(:foobar)
+    assert_includes methods, :foobar
   end
 
   def test_helper_proxy_in_instance

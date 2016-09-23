@@ -119,11 +119,11 @@ class HotCompatibilityTest < ActiveRecord::TestCase
         .instance_variable_get(:@cache)[Process.pid]
     end
 
-  # Rails will automatically clear the prepared statements on the connection
-  # that runs the migration, so we use two connections to simulate what would
-  # actually happen on a production system; we'd have one connection running the
-  # migration from the rake task ("ddl_connection" here), and we'd have another
-  # connection in a web worker.
+    # Rails will automatically clear the prepared statements on the connection
+    # that runs the migration, so we use two connections to simulate what would
+    # actually happen on a production system; we'd have one connection running the
+    # migration from the rake task ("ddl_connection" here), and we'd have another
+    # connection in a web worker.
     def with_two_connections
       run_without_connection do |original_connection|
         ActiveRecord::Base.establish_connection(original_connection.merge(pool_size: 2))

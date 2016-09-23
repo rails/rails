@@ -1808,7 +1808,7 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
-  def test_form_for_with_symbol_object_name
+  def test_form_for_with_symbol_as
     form_for(@post, as: "other_name", html: { id: "create-post" }) do |f|
       concat f.label(:title, class: "post_title")
       concat f.text_field(:title)
@@ -3120,7 +3120,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_form_builder_does_not_have_form_for_method
-    assert !ActionView::Helpers::FormBuilder.instance_methods.include?(:form_for)
+    assert_not_includes ActionView::Helpers::FormBuilder.instance_methods, :form_for
   end
 
   def test_form_for_and_fields_for

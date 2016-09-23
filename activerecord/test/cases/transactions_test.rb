@@ -511,9 +511,10 @@ class TransactionTest < ActiveRecord::TestCase
     topic = Topic.new(title: "test")
     topic.freeze
     e = assert_raise(RuntimeError) { topic.save }
-    assert_match(/frozen/i, e.message) # Not good enough, but we can't do much
-                                       # about it since there is no specific error
-                                       # for frozen objects.
+    # Not good enough, but we can't do much
+    # about it since there is no specific error
+    # for frozen objects.
+    assert_match(/frozen/i, e.message)
     assert !topic.persisted?, "not persisted"
     assert_nil topic.id
     assert topic.frozen?, "not frozen"
@@ -630,11 +631,11 @@ class TransactionTest < ActiveRecord::TestCase
     assert_nothing_raised do
       Topic.reset_column_information
       Topic.connection.add_column("topics", "stuff", :string)
-      assert Topic.column_names.include?("stuff")
+      assert_includes Topic.column_names, "stuff"
 
       Topic.reset_column_information
       Topic.connection.remove_column("topics", "stuff")
-      assert !Topic.column_names.include?("stuff")
+      assert_not_includes Topic.column_names, "stuff"
     end
 
     if Topic.connection.supports_ddl_transactions?

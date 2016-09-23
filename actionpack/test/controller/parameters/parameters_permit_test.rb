@@ -237,6 +237,13 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert @params.merge(a: "b").permitted?
   end
 
+  test "merge with parameters" do
+    other_params = ActionController::Parameters.new(id: "1234").permit!
+    merged_params = @params.merge(other_params)
+
+    assert merged_params[:id]
+  end
+
   test "modifying the parameters" do
     @params[:person][:hometown] = "Chicago"
     @params[:person][:family] = { brother: "Jonas" }

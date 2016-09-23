@@ -19,8 +19,8 @@ module ActiveModel
           fast_string_to_time(value) || fallback_string_to_time(value)
         end
 
-      # '0.123456' -> 123456
-      # '1.123456' -> 123456
+        # '0.123456' -> 123456
+        # '1.123456' -> 123456
         def microseconds(time)
           time[:sec_fraction] ? (time[:sec_fraction] * 1_000_000).to_i : 0
         end

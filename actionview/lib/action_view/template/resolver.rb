@@ -256,7 +256,7 @@ module ActionView
         filename.start_with?(path)
       end
 
-    # Helper for building query glob string based on resolver's pattern.
+      # Helper for building query glob string based on resolver's pattern.
       def build_query(path, details)
         query = @pattern.dup
 
@@ -281,14 +281,14 @@ module ActionView
         entry.gsub(/[*?{}\[\]]/, '\\\\\\&'.freeze)
       end
 
-    # Returns the file mtime from the filesystem.
+      # Returns the file mtime from the filesystem.
       def mtime(p)
         File.mtime(p)
       end
 
-    # Extract handler, formats and variant from path. If a format cannot be found neither
-    # from the path, or the handler, we should return the array of formats given
-    # to the resolver.
+      # Extract handler, formats and variant from path. If a format cannot be found neither
+      # from the path, or the handler, we should return the array of formats given
+      # to the resolver.
       def extract_handler_and_format_and_variant(path, default_formats)
         pieces = File.basename(path).split(".".freeze)
         pieces.shift

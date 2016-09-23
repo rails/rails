@@ -832,15 +832,15 @@ module ActionMailer
 
     protected
 
-    # Used by #mail to set the content type of the message.
-    #
-    # It will use the given +user_content_type+, or multipart if the mail
-    # message has any attachments. If the attachments are inline, the content
-    # type will be "multipart/related", otherwise "multipart/mixed".
-    #
-    # If there is no content type passed in via headers, and there are no
-    # attachments, or the message is multipart, then the default content type is
-    # used.
+      # Used by #mail to set the content type of the message.
+      #
+      # It will use the given +user_content_type+, or multipart if the mail
+      # message has any attachments. If the attachments are inline, the content
+      # type will be "multipart/related", otherwise "multipart/mixed".
+      #
+      # If there is no content type passed in via headers, and there are no
+      # attachments, or the message is multipart, then the default content type is
+      # used.
       def set_content_type(m, user_content_type, class_default)
         params = m.content_type_parameters || {}
         case
@@ -859,16 +859,16 @@ module ActionMailer
         end
       end
 
-    # Translates the +subject+ using Rails I18n class under <tt>[mailer_scope, action_name]</tt> scope.
-    # If it does not find a translation for the +subject+ under the specified scope it will default to a
-    # humanized version of the <tt>action_name</tt>.
-    # If the subject has interpolations, you can pass them through the +interpolations+ parameter.
+      # Translates the +subject+ using Rails I18n class under <tt>[mailer_scope, action_name]</tt> scope.
+      # If it does not find a translation for the +subject+ under the specified scope it will default to a
+      # humanized version of the <tt>action_name</tt>.
+      # If the subject has interpolations, you can pass them through the +interpolations+ parameter.
       def default_i18n_subject(interpolations = {})
         mailer_scope = self.class.mailer_name.tr("/", ".")
         I18n.t(:subject, interpolations.merge(scope: [mailer_scope, action_name], default: action_name.humanize))
       end
 
-    # Emails do not support relative path links.
+      # Emails do not support relative path links.
       def self.supports_path?
         false
       end
@@ -950,7 +950,7 @@ module ActionMailer
         container.add_part(part)
       end
 
-    # This and #instrument_name is for caching instrument
+      # This and #instrument_name is for caching instrument
       def instrument_payload(key)
         {
           mailer: mailer_name,

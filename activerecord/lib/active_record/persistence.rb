@@ -498,7 +498,6 @@ module ActiveRecord
           changes[column] = write_attribute(column, time)
         end
 
-        clear_attribute_changes(changes.keys)
         primary_key = self.class.primary_key
         scope = self.class.unscoped.where(primary_key => _read_attribute(primary_key))
 
@@ -508,6 +507,7 @@ module ActiveRecord
           changes[locking_column] = increment_lock
         end
 
+        clear_attribute_changes(changes.keys)
         result = scope.update_all(changes) == 1
 
         if !result && locking_enabled?

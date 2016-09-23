@@ -1008,8 +1008,8 @@ class FinderTest < ActiveRecord::TestCase
       where("project_id=1").to_a
     assert_equal 3, developers_on_project_one.length
     developer_names = developers_on_project_one.map(&:name)
-    assert developer_names.include?("David")
-    assert developer_names.include?("Jamis")
+    assert_includes developer_names, "David"
+    assert_includes developer_names, "Jamis"
   end
 
   def test_joins_dont_clobber_id
@@ -1092,7 +1092,7 @@ class FinderTest < ActiveRecord::TestCase
       order("client_of DESC").
       map(&:client_of)
 
-    assert client_of.include?(nil)
+    assert_includes client_of, nil
     assert_equal [2, 1].sort, client_of.compact.sort
   end
 

@@ -176,14 +176,14 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_dont_add_if_before_callback_raises_exception
-    assert !@david.unchangeable_posts.include?(@authorless)
+    assert_not_includes @david.unchangeable_posts, @authorless
     begin
       @david.unchangeable_posts << @authorless
     rescue Exception
     end
     assert @david.post_log.empty?
-    assert !@david.unchangeable_posts.include?(@authorless)
+    assert_not_includes @david.unchangeable_posts, @authorless
     @david.reload
-    assert !@david.unchangeable_posts.include?(@authorless)
+    assert_not_includes @david.unchangeable_posts, @authorless
   end
 end

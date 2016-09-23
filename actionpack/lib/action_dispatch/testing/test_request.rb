@@ -22,7 +22,7 @@ module ActionDispatch
     private_class_method :default_env
 
     def request_method=(method)
-      set_header("REQUEST_METHOD", method.to_s.upcase)
+      super(method.to_s.upcase)
     end
 
     def host=(host)

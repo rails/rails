@@ -50,7 +50,7 @@ class Role < ApplicationRecord
 end
 ```
 
-Active Record will perform queries on the database for you and is compatible with most database systems, including MySQL, MariaDB, PostgreSQL and SQLite. Regardless of which database system you're using, the Active Record method format will always be the same.
+Active Record will perform queries on the database for you and is compatible with most database systems, including MySQL, MariaDB, PostgreSQL, and SQLite. Regardless of which database system you're using, the Active Record method format will always be the same.
 
 Retrieving Objects from the Database
 ------------------------------------
@@ -1020,7 +1020,7 @@ Author.joins("INNER JOIN posts ON posts.author_id = authors.id AND posts.publish
 This will result in the following SQL:
 
 ```sql
-SELECT clients.* FROM clients INNER JOIN posts ON posts.author_id = authors.id AND posts.published = 't'
+SELECT authors.* FROM authors INNER JOIN posts ON posts.author_id = authors.id AND posts.published = 't'
 ```
 
 #### Using Array/Hash of Named Associations

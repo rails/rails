@@ -63,8 +63,6 @@ module ActiveRecord
           # Do a manual insertion
           if current_adapter?(:OracleAdapter)
             connection.execute "insert into test_models (id, wealth) values (people_seq.nextval, 12345678901234567890.0123456789)"
-          elsif current_adapter?(:PostgreSQLAdapter)
-            connection.execute "insert into test_models (wealth) values (12345678901234567890.0123456789)"
           else
             connection.execute "insert into test_models (wealth) values (12345678901234567890.0123456789)"
           end

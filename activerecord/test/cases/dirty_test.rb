@@ -495,8 +495,8 @@ class DirtyTest < ActiveRecord::TestCase
     assert_equal 4, pirate.previous_changes.size
     assert_equal [nil, "arrr"], pirate.previous_changes["catchphrase"]
     assert_equal [nil, pirate.id], pirate.previous_changes["id"]
-    assert pirate.previous_changes.include?("updated_on")
-    assert pirate.previous_changes.include?("created_on")
+    assert_includes pirate.previous_changes, "updated_on"
+    assert_includes pirate.previous_changes, "created_on"
     assert !pirate.previous_changes.key?("parrot_id")
 
     pirate.catchphrase = "Yar!!"
@@ -631,7 +631,7 @@ class DirtyTest < ActiveRecord::TestCase
     assert_equal("arrrr", pirate.catchphrase_was)
     assert pirate.catchphrase_changed?(from: "arrrr")
     assert_not pirate.catchphrase_changed?(from: "anything else")
-    assert pirate.changed_attributes.include?(:catchphrase)
+    assert_includes pirate.changed_attributes, :catchphrase
 
     pirate.save!
     pirate.reload

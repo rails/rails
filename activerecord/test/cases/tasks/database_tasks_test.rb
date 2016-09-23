@@ -30,7 +30,7 @@ module ActiveRecord
 
       protected_environments = ActiveRecord::Base.protected_environments.dup
       current_env            = ActiveRecord::Migrator.current_environment
-      assert !protected_environments.include?(current_env)
+      assert_not_includes protected_environments, current_env
       # Assert no error
       ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
 

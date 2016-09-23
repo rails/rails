@@ -157,7 +157,7 @@ module ActiveSupport
         "#{left}#{middle.tr('_ ', '--')}#{right}"
       end
 
-    # TODO: Add support for other encodings
+      # TODO: Add support for other encodings
       def _parse_binary(bin, entity) #:nodoc:
         case entity["encoding"]
         when "base64"

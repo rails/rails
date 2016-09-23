@@ -57,7 +57,7 @@ module ActiveRecord
 
           assert_equal "http://www.foreverflying.com/octopus-black7.jpg", connection.select_value("SELECT url FROM octopi WHERE id=1")
           index = connection.indexes(:octopi).first
-          assert index.columns.include?("url")
+          assert_includes index.columns, "url"
           assert_equal "index_octopi_on_url", index.name
         end
 

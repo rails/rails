@@ -303,7 +303,7 @@ module ActionView
       #   # the sunrise attribute.
       #   time_select("article", "start_time", include_seconds: true)
       #
-      #   # You can set the <tt>:minute_step</tt> to 15 which will give you: 00, 15, 30 and 45.
+      #   # You can set the <tt>:minute_step</tt> to 15 which will give you: 00, 15, 30, and 45.
       #   time_select 'game', 'game_time', {minute_step: 15}
       #
       #   # Creates a time select tag with a custom prompt. Use <tt>prompt: true</tt> for generic prompts.

@@ -37,7 +37,7 @@ module ActiveRecord
       end
 
       private
-      # Handle *= for method_missing.
+        # Handle *= for method_missing.
         def attribute=(attribute_name, value)
           write_attribute(attribute_name, value)
         end
