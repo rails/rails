@@ -279,6 +279,7 @@ module ActiveSupport
       end
     end
     alias_method :since, :+
+    alias_method :in, :+
 
     # Returns a new TimeWithZone object that represents the difference between
     # the current object's time and the +other+ time.
