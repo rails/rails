@@ -738,11 +738,11 @@ module ActiveSupport
         #
         # ===== Notes
         #
-        # +names+ passed to `define_callbacks` must not end with
-        # `!`, `?` or `=`.
+        # +names+ passed to +define_callbacks+ must not end with
+        # <tt>!</tt>, <tt>?</tt> or <tt>=</tt>.
         #
-        # Calling `define_callbacks` multiple times with the same +names+ will
-        # overwrite previous callbacks registered with `set_callback`.
+        # Calling +define_callbacks+ multiple times with the same +names+ will
+        # overwrite previous callbacks registered with +set_callback+.
         def define_callbacks(*names)
           options = names.extract_options!
 
