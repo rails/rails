@@ -17,7 +17,11 @@ module ActiveRecord
         end
 
         def serialize(value)
-          ::ActiveSupport::JSON.encode(value)
+          if value.nil?
+            nil
+          else
+            ::ActiveSupport::JSON.encode(value)
+          end
         end
 
         def accessor

@@ -1,3 +1,7 @@
+*   Serialize JSON attribute value `nil` as SQL `NULL`, not JSON `null`
+
+    *Trung Duc Tran*
+
 *   Always store errors details information with symbols.
 
     When the association is autosaved we were storing the details with
