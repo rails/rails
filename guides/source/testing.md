@@ -761,8 +761,8 @@ and also ensuring that the right response body has been generated.
 
 The `get` method kicks off the web request and populates the results into the `@response`. It can accept up to 6 arguments:
 
-* The action of the controller you are requesting.
-  This can be in the form of a string or a route (i.e. `articles_url`).
+* The URI of the controller action you are requesting.
+  This can be in the form of a string or a route helper (e.g. `articles_url`).
 * `params`: option with a hash of request parameters to pass into the action
   (e.g. query string parameters or article variables).
 * `headers`: for setting the headers that will be passed with the request.
@@ -775,13 +775,13 @@ All of these keyword arguments are optional.
 Example: Calling the `:show` action, passing an `id` of 12 as the `params` and setting `HTTP_REFERER` header:
 
 ```ruby
-get :show, params: { id: 12 }, headers: { "HTTP_REFERER" => "http://example.com/home" }
+get article_url, params: { id: 12 }, headers: { "HTTP_REFERER" => "http://example.com/home" }
 ```
 
 Another example: Calling the `:update` action, passing an `id` of 12 as the `params` as an Ajax request.
 
 ```ruby
-patch update_url, params: { id: 12 }, xhr: true
+patch article_url, params: { id: 12 }, xhr: true
 ```
 
 NOTE: If you try running `test_should_create_article` test from `articles_controller_test.rb` it will fail on account of the newly added model level validation and rightly so.
