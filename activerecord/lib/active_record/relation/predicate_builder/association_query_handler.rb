@@ -1,7 +1,7 @@
 module ActiveRecord
   class PredicateBuilder
-    class AssociationQueryHandler # :nodoc:
-      def self.value_for(table, column, value)
+    class AssociationQueryValue # :nodoc:
+      def self.queries_for(table, column, value)
         associated_table = table.associated_table(column)
         klass = if associated_table.polymorphic_association?
           case Array === value ? value.first : value
@@ -15,49 +15,39 @@ module ActiveRecord
           AssociationQueryValue
         end
 
-        klass.new(associated_table, value)
+        klass.new(associated_table, value).queries
       end
 
-      def initialize(predicate_builder)
-        @predicate_builder = predicate_builder
+      def initialize(table, value)
+        @table = table
+        @value = value
       end
 
-      def call(attribute, value)
-        table = value.associated_table
-        queries = { table.association_foreign_key.to_s => value.ids }
-        predicate_builder.build_from_hash(queries)
+      def queries
+        [table.association_foreign_key.to_s => ids]
       end
 
       # TODO Change this to private once we've dropped Ruby 2.2 support.
       # Workaround for Ruby 2.2 "private attribute?" warning.
       protected
 
-        attr_reader :predicate_builder
-    end
-
-    class AssociationQueryValue # :nodoc:
-      attr_reader :associated_table, :value
-
-      def initialize(associated_table, value)
-        @associated_table = associated_table
-        @value = value
-      end
-
-      def ids
-        case value
-        when Relation
-          value.select(primary_key)
-        when Array
-          value.map { |v| convert_to_id(v) }
-        else
-          convert_to_id(value)
-        end
-      end
+        attr_reader :table, :value
 
       private
 
+        def ids
+          case value
+          when Relation
+            value.select(primary_key)
+          when Array
+            value.map { |v| convert_to_id(v) }
+          else
+            convert_to_id(value)
+          end
+        end
+
         def primary_key
-          associated_table.association_primary_key
+          table.association_primary_key
         end
 
         def convert_to_id(value)

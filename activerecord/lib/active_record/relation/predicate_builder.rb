@@ -18,18 +18,11 @@ module ActiveRecord
       register_handler(RangeHandler::RangeWithBinds, RangeHandler.new)
       register_handler(Relation, RelationHandler.new)
       register_handler(Array, ArrayHandler.new(self))
-      register_handler(AssociationQueryValue, AssociationQueryHandler.new(self))
-      register_handler(PolymorphicArrayValue, PolymorphicArrayHandler.new(self))
     end
 
-    def build_from_hash(attributes)
+    def build_for_hash(attributes)
       attributes = convert_dot_notation_to_hash(attributes)
-      expand_from_hash(attributes)
-    end
-
-    def create_binds(attributes)
-      attributes = convert_dot_notation_to_hash(attributes)
-      create_binds_for_hash(attributes)
+      build_from_hash(attributes)
     end
 
     def self.references(attributes)
@@ -68,39 +61,36 @@ module ActiveRecord
 
       attr_reader :table
 
-      def expand_from_hash(attributes)
-        return ["1=0"] if attributes.empty?
+      def build_from_hash(attributes)
+        return [["1=0"], []] if attributes.empty?
 
-        attributes.flat_map do |key, value|
-          if value.is_a?(Hash) && !table.has_column?(key)
-            associated_predicate_builder(key).expand_from_hash(value)
-          else
-            build(table.arel_attribute(key), value)
-          end
-        end
-      end
-
-      def create_binds_for_hash(attributes)
-        result = attributes.dup
-        binds = []
-
+        parts, binds = [], []
         attributes.each do |column_name, value|
           case
           when value.is_a?(Hash) && !table.has_column?(column_name)
-            attrs, bvs = associated_predicate_builder(column_name).create_binds_for_hash(value)
-            result[column_name] = attrs
-            binds += bvs
+            prts, bvs = associated_predicate_builder(column_name).build_from_hash(value)
+            parts.concat(prts)
+            binds.concat(bvs)
             next
+          when table.associated_with?(column_name)
+            # Find the foreign key when using queries such as:
+            # Post.where(author: author)
+            #
+            # For polymorphic relationships, find the foreign key and type:
+            # PriceEstimate.where(estimate_of: treasure)
+            prts, bvs = build_for_association_query(column_name, value)
+            parts.concat(prts)
+            binds.concat(bvs)
+            next
+          end
+
+          if value.is_a?(Array) && !table.type(column_name).respond_to?(:subtype)
+            value = value.first if value.size == 1
+          end
+
+          case
           when value.is_a?(Relation)
-            binds += value.bound_attributes
-          when value.is_a?(Base) && !table.associated_with?(column_name)
-            result[column_name] = Arel::Nodes::BindParam.new
-            binds << build_bind_param(column_name, value.id)
-          when value.is_a?(Array) && !table.type(column_name).respond_to?(:subtype)
-            if value.size == 1 && can_be_bound?(column_name, value.first)
-              result[column_name] = Arel::Nodes::BindParam.new
-              binds << build_bind_param(column_name, value.first)
-            end
+            binds.concat(value.bound_attributes)
           when value.is_a?(Range) && !table.type(column_name).respond_to?(:subtype)
             first = value.begin
             last = value.end
@@ -113,25 +103,33 @@ module ActiveRecord
               last = Arel::Nodes::BindParam.new
             end
 
-            result[column_name] = RangeHandler::RangeWithBinds.new(first, last, value.exclude_end?)
-          else
-            if can_be_bound?(column_name, value)
-              result[column_name] = Arel::Nodes::BindParam.new
-              binds << build_bind_param(column_name, value)
-            end
+            value = RangeHandler::RangeWithBinds.new(first, last, value.exclude_end?)
+          when can_be_bound?(column_name, value.is_a?(Base) ? value = value.id : value)
+            binds << build_bind_param(column_name, value)
+            value = Arel::Nodes::BindParam.new
           end
 
-          # Find the foreign key when using queries such as:
-          # Post.where(author: author)
-          #
-          # For polymorphic relationships, find the foreign key and type:
-          # PriceEstimate.where(estimate_of: treasure)
-          if table.associated_with?(column_name)
-            result[column_name] = AssociationQueryHandler.value_for(table, column_name, value)
-          end
+          parts << build(table.arel_attribute(column_name), value)
         end
 
-        [result, binds]
+        [parts, binds]
+      end
+
+      def build_for_association_query(column_name, value)
+        parts, binds = [], []
+        AssociationQueryValue.queries_for(table, column_name, value).each do |query|
+          prts, bvs = build_from_hash(query)
+          parts << prts
+          binds.concat(bvs)
+        end
+
+        if parts.size > 1
+          parts = [parts.map { |type, id| Arel::Nodes::Grouping.new(type.and(id)) }.inject(&:or)]
+        else
+          parts.flatten!
+        end
+
+        [parts, binds]
       end
 
     private
@@ -161,7 +159,6 @@ module ActiveRecord
       end
 
       def can_be_bound?(column_name, value)
-        return if table.associated_with?(column_name)
         case value
         when Array, Range
           table.type(column_name).respond_to?(:subtype)
