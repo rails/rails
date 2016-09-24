@@ -6,6 +6,4 @@ else
   $LOAD_PATH << File.expand_path("../../test", APP_PATH)
 end
 
-result = Minitest.run(ARGV)
-Minitest.class_variable_get(:@@after_run).reverse_each(&:call)
-exit result
+require "minitest/autorun"
