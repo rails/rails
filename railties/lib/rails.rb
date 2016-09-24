@@ -52,13 +52,12 @@ module Rails
       end
     end
 
-    # Returns a Pathname object of the current Rails project,
-    # otherwise it returns nil if there is no project:
+    # Returns a Pathname object of the current Rails project.
     #
     #   Rails.root
     #     # => #<Pathname:/Users/someuser/some/path/project>
     def root
-      application && application.config.root
+      application.config.root
     end
 
     # Returns the current Rails environment.
