@@ -13,8 +13,8 @@ module ApplicationTests
       teardown_app
     end
 
-    test "truth" do
-      app_file 'test/unit/foo_test.rb', <<-RUBY
+    test "simple successful test" do
+      app_file "test/unit/foo_test.rb", <<-RUBY
         require 'test_helper'
 
         class FooTest < ActiveSupport::TestCase
@@ -24,7 +24,39 @@ module ApplicationTests
         end
       RUBY
 
-      assert_successful_test_run 'unit/foo_test.rb'
+      assert_successful_test_run "unit/foo_test.rb"
+    end
+
+    test "after_run" do
+      app_file "test/unit/foo_test.rb", <<-RUBY
+        require 'test_helper'
+
+        Minitest.after_run { puts "WORLD" }
+        Minitest.after_run { puts "HELLO" }
+
+        class FooTest < ActiveSupport::TestCase
+          def test_truth
+            assert true
+          end
+        end
+      RUBY
+
+      result = assert_successful_test_run "unit/foo_test.rb"
+      assert_equal ["HELLO", "WORLD"], result.scan(/HELLO|WORLD/) # only once and in correct order
+    end
+
+    test "simple failed test" do
+      app_file "test/unit/foo_test.rb", <<-RUBY
+        require 'test_helper'
+
+        class FooTest < ActiveSupport::TestCase
+          def test_truth
+            assert false
+          end
+        end
+      RUBY
+
+      assert_unsuccessful_run "unit/foo_test.rb", "Failed assertion"
     end
 
     test "integration test" do
