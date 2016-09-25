@@ -54,7 +54,12 @@ module Minitest
 
     options[:color] = true
     options[:output_inline] = true
-    options[:patterns] = defined?(@rake_patterns) ? @rake_patterns : opts.order!
+    options[:patterns] =
+      if defined?(@rake_patterns)
+        @rake_patterns
+      else
+        collect_file_patterns_from(opts)
+      end
   end
 
   # Running several Rake tasks in a single command would trip up the runner,
@@ -88,6 +93,21 @@ module Minitest
 
   mattr_accessor(:run_with_autorun)         { false }
   mattr_accessor(:run_with_rails_extension) { false }
+
+  def self.collect_file_patterns_from(opts)
+    patterns = []
+    argv = opts.default_argv.dup
+
+    begin
+      opts.order!(argv) { |pattern| patterns << pattern }
+    rescue OptionParser::InvalidOption
+      # Encountered unknown option from another plugin. Skip and parse remaining ones.
+      retry
+    end
+
+    patterns
+  end
+  private_class_method :collect_file_patterns_from
 end
 
 # Put Rails as the first plugin minitest initializes so other plugins
