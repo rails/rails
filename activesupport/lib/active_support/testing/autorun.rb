@@ -2,8 +2,8 @@ gem "minitest"
 
 require "minitest"
 
-if Minitest.respond_to?(:run_with_rails_extension) && !Minitest.run_with_rails_extension
-  Minitest.run_with_autorun = true
+if Minitest.respond_to?(:run_via) && !Minitest.run_via[:rails]
+  Minitest.run_via[:ruby] = true
 end
 
 Minitest.autorun
