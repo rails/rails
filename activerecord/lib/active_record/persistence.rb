@@ -107,7 +107,7 @@ module ActiveRecord
     #
     # By default, save always runs validations. If any of them fail the action
     # is cancelled and #save returns +false+, and the record won't be saved. However, if you supply
-    # validate: false, validations are bypassed altogether. See
+    # <tt>validate: false</tt>, validations are bypassed altogether. See
     # ActiveRecord::Validations for more information.
     #
     # By default, #save also sets the +updated_at+/+updated_on+ attributes to
@@ -134,7 +134,7 @@ module ActiveRecord
     #
     # By default, #save! always runs validations. If any of them fail
     # ActiveRecord::RecordInvalid gets raised, and the record won't be saved. However, if you supply
-    # validate: false, validations are bypassed altogether. See
+    # <tt>validate: false</tt>, validations are bypassed altogether. See
     # ActiveRecord::Validations for more information.
     #
     # By default, #save! also sets the +updated_at+/+updated_on+ attributes to
