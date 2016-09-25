@@ -1,3 +1,10 @@
+*   An eager loaded default scope containing distinct will now issue a distinct
+    query against the database.
+
+    Fixes #26545.
+
+    *Stephen Bussey*
+
 *   Serialize JSON attribute value `nil` as SQL `NULL`, not JSON `null`
 
     *Trung Duc Tran*

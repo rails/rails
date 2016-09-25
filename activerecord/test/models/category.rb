@@ -29,6 +29,8 @@ class Category < ActiveRecord::Base
   has_many :authors_with_select, -> { select "authors.*, categorizations.post_id" }, through: :categorizations, source: :author
 
   has_many :clubs
+  has_many :clubs_with_joins, -> { with_ratings }, class_name: "Club"
+  has_many :clubs_distinct_joins, -> { with_distinct_joins }, class_name: "Club"
 
   scope :general, -> { where(name: "General") }
 end

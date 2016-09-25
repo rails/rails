@@ -22,6 +22,7 @@ require "models/project"
 require "models/member"
 require "models/membership"
 require "models/club"
+require "models/club_category_rating"
 require "models/categorization"
 require "models/sponsor"
 require "models/mentor"
@@ -31,7 +32,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :authors, :essays, :author_addresses, :categories, :categories_posts,
             :companies, :accounts, :tags, :taggings, :people, :readers, :categorizations,
             :owners, :pets, :author_favorites, :jobs, :references, :subscribers, :subscriptions, :books,
-            :developers, :projects, :developers_projects, :members, :memberships, :clubs, :sponsors
+            :developers, :projects, :developers_projects, :members, :memberships, :clubs, :sponsors,
+            :club_category_ratings
 
   def test_eager_with_has_one_through_join_model_with_conditions_on_the_through
     member = Member.all.merge!(includes: :favourite_club).find(members(:some_other_guy).id)
@@ -968,8 +970,38 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_with_scope_with_joins
-    assert_nothing_raised do
-      Post.includes(:very_special_comment_with_post_with_joins).to_a
+    category = categories(:general)
+
+    club = clubs(:boring_club)
+    moustache_club = clubs(:moustache_club)
+
+    club_category_ratings(:boring_club_general_rating1)
+    club_category_ratings(:boring_club_general_rating2)
+    club_category_ratings(:moustache_club_general_rating)
+
+    preloaded_category = category.clubs.includes(club_category_ratings: { category: [:clubs_with_joins] }).to_a
+
+    assert_no_queries do
+      ids = preloaded_category.first.club_category_ratings.first.category.clubs_with_joins.map(&:id).sort
+      assert_equal([club.id, club.id, moustache_club.id], ids)
+    end
+  end
+
+  def test_eager_association_with_scope_with_distinct_joins
+    category = categories(:general)
+
+    club = clubs(:boring_club)
+    moustache_club = clubs(:moustache_club)
+
+    club_category_ratings(:boring_club_general_rating1)
+    club_category_ratings(:boring_club_general_rating2)
+    club_category_ratings(:moustache_club_general_rating)
+
+    preloaded_category = category.clubs.includes(club_category_ratings: { category: [:clubs_distinct_joins] }).to_a
+
+    assert_no_queries do
+      ids = preloaded_category.first.club_category_ratings.first.category.clubs_distinct_joins.map(&:id).sort
+      assert_equal([club.id, moustache_club.id], ids)
     end
   end
 

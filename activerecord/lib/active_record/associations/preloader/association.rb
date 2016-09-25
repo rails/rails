@@ -161,6 +161,10 @@ module ActiveRecord
               scope.where!(klass.table_name => { reflection.type => model.base_class.sti_name })
             end
 
+            if preload_values[:distinct] || values[:distinct]
+              scope.distinct!
+            end
+
             scope.unscope_values = Array(values[:unscope]) + Array(preload_values[:unscope])
             klass.default_scoped.merge(scope)
           end

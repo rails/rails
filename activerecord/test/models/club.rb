@@ -9,6 +9,14 @@ class Club < ActiveRecord::Base
 
   has_many :favourites, -> { where(memberships: { favourite: true }) }, through: :memberships, source: :member
 
+  def self.with_ratings
+    joins(:club_category_ratings)
+  end
+
+  def self.with_distinct_joins
+    joins(:club_category_ratings).distinct
+  end
+
   private
 
     def private_method
