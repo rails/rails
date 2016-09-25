@@ -1,3 +1,10 @@
+*   Return `true` from `update_attribute` when the value of the attribute
+    to be updated is unchanged.
+
+    Fixes #26593.
+
+    *Prathamesh Sonpatki*
+
 *   Serialize JSON attribute value `nil` as SQL `NULL`, not JSON `null`
 
     *Trung Duc Tran*
