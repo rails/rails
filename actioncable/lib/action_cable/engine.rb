@@ -70,6 +70,7 @@ module ActionCable
 
         app.reloader.before_class_unload do
           ActionCable.server.restart
+          ActionCable.server.pubsub.shutdown
         end
       end
     end
