@@ -85,6 +85,25 @@ class TimeTravelTest < ActiveSupport::TestCase
     end
   end
 
+  def test_time_helper_travel_back_with_subsequent_calls
+    current_date = Date.today
+
+    Time.stub(:now, Time.now) do
+      initial_expected_time    = Time.new(2004, 11, 24, 01, 04, 44)
+      subsequent_expected_time = Time.new(2004, 10, 24, 01, 04, 44)
+
+      travel_to initial_expected_time
+      travel_to subsequent_expected_time
+      travel_back
+
+      assert_not_equal initial_expected_time, Time.now
+      assert_not_equal Date.new(2004, 11, 24), Date.today
+      assert_not_equal initial_expected_time.to_datetime, DateTime.now
+
+      assert_equal current_date, Date.today
+    end
+  end
+
   def test_time_helper_travel_to_with_nested_calls_with_blocks
     Time.stub(:now, Time.now) do
       outer_expected_time = Time.new(2004, 11, 24, 01, 04, 44)
