@@ -61,10 +61,20 @@ module Minitest
   # as the patterns would also contain the other Rake tasks.
   def self.rake_run(patterns) # :nodoc:
     @rake_patterns = patterns
-    passed = run(Shellwords.split(ENV["TESTOPTS"] || ""))
-    exit passed unless passed
-    passed
+    autorun
   end
+
+  module RunRespectingRakeTestopts
+    def run(args = [])
+      if defined?(@rake_patterns)
+        args = Shellwords.split(ENV["TESTOPTS"] || "")
+      end
+
+      super
+    end
+  end
+
+  singleton_class.prepend RunRespectingRakeTestopts
 
   # Owes great inspiration to test runner trailblazers like RSpec,
   # minitest-reporters, maxitest and others.
