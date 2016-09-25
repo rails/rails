@@ -1,3 +1,10 @@
+*   Using `has_secure_token_digest` on a model will now allow generating a
+    secure random token and store the encrypted token as a `_digest` of that attribute.
+    This will also include a method `#authenticated?` to test whether an
+    unencrypted token matches the encrypted digest.
+
+    *Unathi Chonco*
+
 *   Fixed support for case insensitive comparisons of `text` columns in
     PostgreSQL.
 
