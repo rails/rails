@@ -28,6 +28,8 @@ class Category < ActiveRecord::Base
   has_many :authors, through: :categorizations
   has_many :authors_with_select, -> { select "authors.*, categorizations.post_id" }, through: :categorizations, source: :author
 
+  has_many :clubs
+
   scope :general, -> { where(name: "General") }
 end
 

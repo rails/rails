@@ -157,6 +157,12 @@ ActiveRecord::Schema.define do
     t.integer :category_id
   end
 
+  create_table :club_category_ratings, force: true do |t|
+    t.integer :category_id
+    t.integer :club_id
+    t.integer :value, null: false
+  end
+
   create_table :collections, force: true do |t|
     t.string :name
   end
