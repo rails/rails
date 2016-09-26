@@ -1,14 +1,11 @@
 boring_club:
-  id: 1
   name: Banana appreciation society
   category_id: 1
 
 moustache_club:
-  id: 2
   name: Moustache and Eyebrow Fancier Club
   category_id: 1
 
 crazy_club:
-  id: 3
   name: Skull and bones
   category_id: 2

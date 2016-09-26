@@ -982,8 +982,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
     preloaded_category = category.clubs.includes(club_category_ratings: { category: [:clubs_with_joins] }).to_a
 
     assert_no_queries do
-      ids = preloaded_category.first.club_category_ratings.first.category.clubs_with_joins.map(&:id).sort
-      assert_equal([club.id, club.id, moustache_club.id], ids)
+      ids = preloaded_category.first.club_category_ratings.first.category.clubs_with_joins.map(&:id)
+      assert_equal([club.id, club.id, moustache_club.id].sort, ids.sort)
     end
   end
 
@@ -1000,8 +1000,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
     preloaded_category = category.clubs.includes(club_category_ratings: { category: [:clubs_distinct_joins] }).to_a
 
     assert_no_queries do
-      ids = preloaded_category.first.club_category_ratings.first.category.clubs_distinct_joins.map(&:id).sort
-      assert_equal([club.id, moustache_club.id], ids)
+      ids = preloaded_category.first.club_category_ratings.first.category.clubs_distinct_joins.map(&:id)
+      assert_equal([club.id, moustache_club.id].sort, ids.sort)
     end
   end
 
