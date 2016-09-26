@@ -4,10 +4,7 @@ require "models/pirate"   # For timestamps
 require "models/parrot"
 require "models/person"   # For optimistic locking
 require "models/aircraft"
-
-class NumericData < ActiveRecord::Base
-  self.table_name = "numeric_data"
-end
+require "models/numeric_data"
 
 class DirtyTest < ActiveRecord::TestCase
   include InTimeZone

@@ -8,6 +8,7 @@ require "models/organization"
 require "models/possession"
 require "models/topic"
 require "models/reply"
+require "models/numeric_data"
 require "models/minivan"
 require "models/speedometer"
 require "models/ship_part"
@@ -16,14 +17,6 @@ require "models/developer"
 require "models/comment"
 require "models/rating"
 require "models/post"
-
-class NumericData < ActiveRecord::Base
-  self.table_name = "numeric_data"
-
-  attribute :world_population, :integer
-  attribute :my_house_population, :integer
-  attribute :atoms_in_universe, :integer
-end
 
 class CalculationsTest < ActiveRecord::TestCase
   fixtures :companies, :accounts, :topics, :speedometers, :minivans, :books

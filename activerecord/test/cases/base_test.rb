@@ -15,6 +15,7 @@ require "models/boolean"
 require "models/column_name"
 require "models/subscriber"
 require "models/comment"
+require "models/numeric_data"
 require "models/minimalistic"
 require "models/warehouse_thing"
 require "models/parrot"
@@ -906,13 +907,6 @@ class BasicsTest < ActiveRecord::TestCase
         assert_equal "a text field", default.char3
       end
     end
-  end
-
-  class NumericData < ActiveRecord::Base
-    self.table_name = "numeric_data"
-
-    attribute :my_house_population, :integer
-    attribute :atoms_in_universe, :integer
   end
 
   def test_big_decimal_conditions
