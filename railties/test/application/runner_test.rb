@@ -82,7 +82,7 @@ module ApplicationTests
     def test_runner_detects_bad_script_name
       output = Dir.chdir(app_path) { `bin/rails runner "iuiqwiourowe" 2>&1` }
       assert_not $?.success?
-      assert_match "undefined local variable or method `iuiqwiourowe' for main:Object", output
+      assert_match "undefined local variable or method `iuiqwiourowe' for", output
     end
 
     def test_environment_with_rails_env

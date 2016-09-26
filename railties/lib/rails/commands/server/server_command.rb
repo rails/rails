@@ -19,33 +19,35 @@ module Rails
         options
       end
 
-      private
+      def option_parser(options) # :nodoc:
+        OptionParser.new do |opts|
+          opts.banner = "Usage: rails server [mongrel, thin etc] [options]"
 
-        def option_parser(options)
-          OptionParser.new do |opts|
-            opts.banner = "Usage: rails server [puma, thin etc] [options]"
-            opts.on("-p", "--port=port", Integer,
-                    "Runs Rails on the specified port.", "Default: 3000") { |v| options[:Port] = v }
-            opts.on("-b", "--binding=IP", String,
-                    "Binds Rails to the specified IP.", "Default: localhost") { |v| options[:Host] = v }
-            opts.on("-c", "--config=file", String,
-                    "Uses a custom rackup configuration.") { |v| options[:config] = v }
-            opts.on("-d", "--daemon", "Runs server as a Daemon.") { options[:daemonize] = true }
-            opts.on("-e", "--environment=name", String,
-                    "Specifies the environment to run this server under (test/development/production).",
-                    "Default: development") { |v| options[:environment] = v }
-            opts.on("-P", "--pid=pid", String,
-                    "Specifies the PID file.",
-                    "Default: tmp/pids/server.pid") { |v| options[:pid] = v }
-            opts.on("-C", "--[no-]dev-caching",
-                    "Specifies whether to perform caching in development.",
-                    "true or false") { |v| options[:caching] = v }
+          opts.separator ""
+          opts.separator "Options:"
 
-            opts.separator ""
+          opts.on("-p", "--port=port", Integer,
+                  "Runs Rails on the specified port.", "Default: 3000") { |v| options[:Port] = v }
+          opts.on("-b", "--binding=IP", String,
+                  "Binds Rails to the specified IP.", "Default: localhost") { |v| options[:Host] = v }
+          opts.on("-c", "--config=file", String,
+                  "Uses a custom rackup configuration.") { |v| options[:config] = v }
+          opts.on("-d", "--daemon", "Runs server as a Daemon.") { options[:daemonize] = true }
+          opts.on("-e", "--environment=name", String,
+                  "Specifies the environment to run this server under (test/development/production).",
+                  "Default: development") { |v| options[:environment] = v }
+          opts.on("-P", "--pid=pid", String,
+                  "Specifies the PID file.",
+                  "Default: tmp/pids/server.pid") { |v| options[:pid] = v }
+          opts.on("-C", "--[no-]dev-caching",
+                  "Specifies whether to perform caching in development.",
+                  "true or false") { |v| options[:caching] = v }
 
-            opts.on("-h", "--help", "Shows this help message.") { puts opts; exit }
-          end
+          opts.separator ""
+
+          opts.on("-h", "--help", "Shows this help message.") { puts opts; exit }
         end
+      end
     end
 
     def initialize(*)
@@ -100,7 +102,6 @@ module Rails
     end
 
     private
-
       def setup_dev_caching
         if options[:environment] == "development"
           Rails::DevCaching.enable_by_argument(options[:caching])
@@ -135,5 +136,25 @@ module Rails
       def restart_command
         "bin/rails server #{ARGV.join(' ')}"
       end
+  end
+
+  module Command
+    class ServerCommand < Base
+      def help # :nodoc:
+        puts Rails::Server::Options.new.option_parser(Hash.new)
+      end
+
+      def perform
+        set_application_directory!
+
+        Rails::Server.new.tap do |server|
+          # Require application after server sets environment to propagate
+          # the --environment option.
+          require APP_PATH
+          Dir.chdir(Rails.application.root)
+          server.start
+        end
+      end
+    end
   end
 end

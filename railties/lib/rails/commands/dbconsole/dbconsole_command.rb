@@ -1,58 +1,20 @@
 require "erb"
 require "yaml"
-require "optparse"
-require "rails/commands/console_helper"
+
+require "rails/command/environment_argument"
 
 module Rails
   class DBConsole
-    include ConsoleHelper
-
-    attr_reader :arguments
-
-    class << self
-      def parse_arguments(arguments)
-        options = {}
-
-        OptionParser.new do |opt|
-          opt.banner = "Usage: rails dbconsole [environment] [options]"
-          opt.on("-p", "--include-password", "Automatically provide the password from database.yml") do |v|
-            options["include_password"] = true
-          end
-
-          opt.on("--mode [MODE]", ["html", "list", "line", "column"],
-            "Automatically put the sqlite3 database in the specified mode (html, list, line, column).") do |mode|
-            options["mode"] = mode
-          end
-
-          opt.on("--header") do |h|
-            options["header"] = h
-          end
-
-          opt.on("-h", "--help", "Show this help message.") do
-            puts opt
-            exit
-          end
-
-          opt.on("-e", "--environment=name", String,
-            "Specifies the environment to run this console under (test/development/production).",
-            "Default: development"
-          ) { |v| options[:environment] = v.strip }
-
-          opt.parse!(arguments)
-          abort opt.to_s unless (0..1).include?(arguments.size)
-        end
-
-        set_options_env(arguments, options)
-      end
+    def self.start(*args)
+      new(*args).start
     end
 
-    def initialize(arguments = ARGV)
-      @arguments = arguments
+    def initialize(options = {})
+      @options = options
     end
 
     def start
-      options = self.class.parse_arguments(arguments)
-      ENV["RAILS_ENV"] = options[:environment] || environment
+      ENV["RAILS_ENV"] = @options[:environment] || environment
 
       case config["adapter"]
       when /^(jdbc)?mysql/
@@ -69,7 +31,7 @@ module Rails
           "sslkey"    => "--ssl-key"
         }.map { |opt, arg| "#{arg}=#{config[opt]}" if config[opt] }.compact
 
-        if config["password"] && options["include_password"]
+        if config["password"] && @options["include_password"]
           args << "--password=#{config['password']}"
         elsif config["password"] && !config["password"].to_s.empty?
           args << "-p"
@@ -83,14 +45,14 @@ module Rails
         ENV["PGUSER"]     = config["username"] if config["username"]
         ENV["PGHOST"]     = config["host"] if config["host"]
         ENV["PGPORT"]     = config["port"].to_s if config["port"]
-        ENV["PGPASSWORD"] = config["password"].to_s if config["password"] && options["include_password"]
+        ENV["PGPASSWORD"] = config["password"].to_s if config["password"] && @options["include_password"]
         find_cmd_and_exec("psql", config["database"])
 
       when "sqlite3"
         args = []
 
-        args << "-#{options['mode']}" if options["mode"]
-        args << "-header" if options["header"]
+        args << "-#{@options['mode']}" if @options["mode"]
+        args << "-header" if @options["header"]
         args << File.expand_path(config["database"], Rails.respond_to?(:root) ? Rails.root : nil)
 
         find_cmd_and_exec("sqlite3", *args)
@@ -100,7 +62,7 @@ module Rails
 
         if config["username"]
           logon = config["username"]
-          logon << "/#{config['password']}" if config["password"] && options["include_password"]
+          logon << "/#{config['password']}" if config["password"] && @options["include_password"]
           logon << "@#{config['database']}" if config["database"]
         end
 
@@ -137,7 +99,7 @@ module Rails
     end
 
     def environment
-      Rails.respond_to?(:env) ? Rails.env : super
+      Rails.respond_to?(:env) ? Rails.env : Rails::Command.environment
     end
 
     protected
@@ -169,5 +131,28 @@ module Rails
           abort("Couldn't find database client: #{commands.join(', ')}. Check your $PATH and try again.")
         end
       end
+  end
+
+  module Command
+    class DbconsoleCommand < Base
+      include EnvironmentArgument
+
+      class_option :include_password, aliases: "-p", type: :boolean,
+        desc: "Automatically provide the password from database.yml"
+
+      class_option :mode, enum: %w( html list line column ), type: :string,
+        desc: "Automatically put the sqlite3 database in the specified mode (html, list, line, column)."
+
+      class_option :header, type: :string
+
+      class_option :environment, aliases: "-e", type: :string,
+        desc: "Specifies the environment to run this console under (test/development/production)."
+
+      def perform
+        extract_environment_option_from_argument
+
+        Rails::DBConsole.start(options)
+      end
+    end
   end
 end

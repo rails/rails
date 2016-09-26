@@ -7,9 +7,11 @@ Rails::AppLoader.exec_app
 require "rails/ruby_version_check"
 Signal.trap("INT") { puts; exit(1) }
 
+require "rails/command"
+
 if ARGV.first == "plugin"
   ARGV.shift
-  require "rails/commands/plugin"
+  Rails::Command.invoke :plugin, ARGV
 else
-  require "rails/commands/application"
+  Rails::Command.invoke :application, ARGV
 end

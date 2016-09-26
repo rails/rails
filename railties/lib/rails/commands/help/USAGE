@@ -1,0 +1,27 @@
+Usage: bin/rails COMMAND [args] [options]
+<% if engine? %>
+The common Rails commands available for engines are:
+ generate    Generate new code (short-cut alias: "g")
+ destroy     Undo code generated with "generate" (short-cut alias: "d")
+ test        Run tests (short-cut alias: "t")
+
+All commands can be run with -h for more information.
+
+If you want to run any commands that need to be run in context
+of the application, like `bin/rails server` or `bin/rails console`,
+you should do it from the application's directory (typically test/dummy).
+<% else %>
+The most common rails commands are:
+ generate    Generate new code (short-cut alias: "g")
+ console     Start the Rails console (short-cut alias: "c")
+ server      Start the Rails server (short-cut alias: "s")
+ test        Run tests (short-cut alias: "t")
+ dbconsole   Start a console for the database specified in config/database.yml
+             (short-cut alias: "db")
+ new         Create a new Rails application. "rails new my_app" creates a
+             new application called MyApp in "./my_app"
+
+All commands can be run with -h (or --help) for more information.
+<% end %>
+In addition to those commands, there are:
+
