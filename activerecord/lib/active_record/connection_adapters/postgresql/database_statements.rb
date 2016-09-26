@@ -90,7 +90,7 @@ module ActiveRecord
         end
 
         # Executes an SQL statement, returning a PG::Result object on success
-        # or raising a PG exception otherwise.
+        # or raising a PG::Error exception otherwise.
         # Note: the PG::Result object is manually memory managed; if you don't
         # need it specifically, you may want consider the <tt>exec_query</tt> wrapper.
         def execute(sql, name = nil)
