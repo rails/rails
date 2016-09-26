@@ -88,8 +88,8 @@ module ActiveRecord
       #
       #   user = User.new(name: 'david', token: 'mUc3m00RsqyRe')
       #   user.save
-      #   user.authenticate(:token, 'notright')         # => false
-      #   user.authenticate(:token, 'mUc3m00RsqyRe')    # => true
+      #   user.authenticated?(:token, 'notright')         # => false
+      #   user.authenticated?(:token, 'mUc3m00RsqyRe')    # => true
       def authenticated?(attribute, unencrypted_token)
         BCrypt::Password.new(self.send("#{attribute}_digest")).is_password?(unencrypted_token)
       end
