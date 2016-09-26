@@ -88,7 +88,7 @@ class Rails::ServerTest < ActiveSupport::TestCase
 
         args    = ["-e", "production"]
         options = Rails::Server::Options.new.parse!(args)
-        assert_equal false, options[:log_stdout]
+        assert_equal true, options[:log_stdout]
 
         with_rack_env "development" do
           args    = []
@@ -99,7 +99,7 @@ class Rails::ServerTest < ActiveSupport::TestCase
         with_rack_env "production" do
           args    = []
           options = Rails::Server::Options.new.parse!(args)
-          assert_equal false, options[:log_stdout]
+          assert_equal true, options[:log_stdout]
         end
 
         with_rails_env "development" do
@@ -111,7 +111,7 @@ class Rails::ServerTest < ActiveSupport::TestCase
         with_rails_env "production" do
           args    = []
           options = Rails::Server::Options.new.parse!(args)
-          assert_equal false, options[:log_stdout]
+          assert_equal true, options[:log_stdout]
         end
       end
     end
