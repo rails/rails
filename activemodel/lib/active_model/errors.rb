@@ -355,7 +355,7 @@ module ActiveModel
 
       Array(attributes).each do |attribute|
         value = @base.send(:read_attribute_for_validation, attribute)
-        is_empty = value.respond_to?(:empty?) ? value.empty? : false
+        is_empty = value.respond_to?(:empty?) && value.empty?
         add(attribute, :empty, options) if value.nil? || is_empty
       end
     end
