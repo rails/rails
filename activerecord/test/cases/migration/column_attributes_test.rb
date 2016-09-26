@@ -72,9 +72,7 @@ module ActiveRecord
           assert_kind_of BigDecimal, row.wealth
 
           # If this assert fails, that means the SELECT is broken!
-          unless current_adapter?(:SQLite3Adapter)
-            assert_equal correct_value, row.wealth
-          end
+          assert_equal correct_value, row.wealth
 
           # Reset to old state
           TestModel.delete_all
