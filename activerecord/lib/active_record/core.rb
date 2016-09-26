@@ -448,11 +448,11 @@ module ActiveRecord
     end
     alias :eql? :==
 
-    # Delegates to id in order to allow two records of the same type and id to work with something like:
-    #   [ Person.find(1), Person.find(2), Person.find(3) ] & [ Person.find(1), Person.find(4) ] # => [ Person.find(1) ]
+    # Delegates to class and id in order to allow two records of the same type and id to work with something like:
+    #   [ Person.find(1), Product.find(2), Person.find(3) ] & [ Person.find(1), Person.find(2), Person.find(4) ] # => [ Person.find(1) ]
     def hash
       if id
-        [self.class, id].hash
+        self.class.hash ^ id.hash
       else
         super
       end
