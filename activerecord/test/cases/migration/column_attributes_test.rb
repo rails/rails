@@ -165,7 +165,7 @@ module ActiveRecord
           assert_raise(ActiveRecordError) { add_column :test_models, :integer_too_big, :integer, limit: 10 }
 
           unless current_adapter?(:PostgreSQLAdapter)
-            assert_raise(ActiveRecordError) { add_column :test_models, :text_too_big, :integer, limit: 0xfffffffff }
+            assert_raise(ActiveRecordError) { add_column :test_models, :text_too_big, :text, limit: 0xfffffffff }
           end
         end
       end
