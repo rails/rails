@@ -54,11 +54,7 @@ end
 gem 'mocha', '~> 0.14', :require => false
 
 group :doc do
-  # The current sdoc cannot generate GitHub links due
-  # to a bug, but the PR that fixes it has been there
-  # for some weeks unapplied. As a temporary solution
-  # this is our own fork with the fix.
-  gem 'sdoc',  :git => 'git://github.com/fxn/sdoc.git'
+  gem 'sdoc', '~> 0.3'
   gem 'RedCloth', '~> 4.2'
   gem 'w3c_validators'
 end
