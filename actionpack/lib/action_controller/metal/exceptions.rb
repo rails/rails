@@ -51,4 +51,7 @@ module ActionController
 
   class UnknownFormat < ActionControllerError #:nodoc:
   end
+
+  class UnsupportedMediaType < ActionControllerError #:nodoc:
+  end
 end

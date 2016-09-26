@@ -12,6 +12,7 @@ module ActionDispatch
       "ActionController::UnknownHttpMethod"          => :method_not_allowed,
       "ActionController::NotImplemented"             => :not_implemented,
       "ActionController::UnknownFormat"              => :not_acceptable,
+      "ActionController::UnsupportedMediaType"       => :unsupported_media_type,
       "ActionController::InvalidAuthenticityToken"   => :unprocessable_entity,
       "ActionController::InvalidCrossOriginRequest"  => :unprocessable_entity,
       "ActionDispatch::Http::Parameters::ParseError" => :bad_request,
