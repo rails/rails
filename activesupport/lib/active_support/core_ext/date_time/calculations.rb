@@ -36,26 +36,24 @@ class DateTime
   end
 
   # Returns a new DateTime where one or more of the elements have been changed
-  # according to the +options+ parameter. The time options (<tt>:hour</tt>,
+  # according to the parameters. The time options (<tt>:hour</tt>,
   # <tt>:min</tt>, <tt>:sec</tt>) reset cascadingly, so if only the hour is
   # passed, then minute and sec is set to 0. If the hour and minute is passed,
-  # then sec is set to 0. The +options+ parameter takes a hash with any of these
-  # keys: <tt>:year</tt>, <tt>:month</tt>, <tt>:day</tt>, <tt>:hour</tt>,
-  # <tt>:min</tt>, <tt>:sec</tt>, <tt>:offset</tt>, <tt>:start</tt>.
+  # then sec is set to 0.
   #
   #   DateTime.new(2012, 8, 29, 22, 35, 0).change(day: 1)              # => DateTime.new(2012, 8, 1, 22, 35, 0)
   #   DateTime.new(2012, 8, 29, 22, 35, 0).change(year: 1981, day: 1)  # => DateTime.new(1981, 8, 1, 22, 35, 0)
   #   DateTime.new(2012, 8, 29, 22, 35, 0).change(year: 1981, hour: 0) # => DateTime.new(1981, 8, 29, 0, 0, 0)
-  def change(options)
+  def change(year: nil, month: nil, day: nil, hour: nil, min: nil, sec: nil, offset: nil, start: nil)
     ::DateTime.civil(
-      options.fetch(:year, year),
-      options.fetch(:month, month),
-      options.fetch(:day, day),
-      options.fetch(:hour, hour),
-      options.fetch(:min, options[:hour] ? 0 : min),
-      options.fetch(:sec, (options[:hour] || options[:min]) ? 0 : sec + sec_fraction),
-      options.fetch(:offset, offset),
-      options.fetch(:start, start)
+      year || self.year,
+      month || self.month,
+      day || self.day,
+      hour || self.hour,
+      min || (hour ? 0 : self.min),
+      sec || ((hour || min) ? 0 : self.sec + sec_fraction),
+      offset || self.offset,
+      start || self.start
     )
   end
 

@@ -116,15 +116,14 @@ class Date
   end
 
   # Returns a new Date where one or more of the elements have been changed according to the +options+ parameter.
-  # The +options+ parameter is a hash with a combination of these keys: <tt>:year</tt>, <tt>:month</tt>, <tt>:day</tt>.
   #
   #   Date.new(2007, 5, 12).change(day: 1)               # => Date.new(2007, 5, 1)
   #   Date.new(2007, 5, 12).change(year: 2005, month: 1) # => Date.new(2005, 1, 12)
-  def change(options)
+  def change(year: nil, month: nil, day: nil)
     ::Date.new(
-      options.fetch(:year, year),
-      options.fetch(:month, month),
-      options.fetch(:day, day)
+      year || self.year,
+      month || self.month,
+      day || self.day
     )
   end
 

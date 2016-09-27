@@ -1,4 +1,8 @@
-*   Update `#advance` methods to take keyword args
+*   Convert `Date/Time#change` methods to take keyword args
+
+    *Ben Woosley*
+
+*   Convert `Date/Time#advance` methods to take keyword args
 
     *Ben Woosley*
 
