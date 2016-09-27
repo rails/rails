@@ -250,6 +250,16 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal({ name: ["cannot be blank"] }, person.errors.to_hash)
   end
 
+  test "to_hash returns a hash without default proc" do
+    person = Person.new
+    assert_nil person.errors.to_hash.default_proc
+  end
+
+  test "as_json returns a hash without default proc" do
+    person = Person.new
+    assert_nil person.errors.as_json.default_proc
+  end
+
   test "full_messages creates a list of error messages with the attribute name included" do
     person = Person.new
     person.errors.add(:name, "cannot be blank")

@@ -280,7 +280,7 @@ module ActiveModel
           messages[attribute] = array.map { |message| full_message(attribute, message) }
         end
       else
-        messages.dup
+        without_default_proc(messages)
       end
     end
 
