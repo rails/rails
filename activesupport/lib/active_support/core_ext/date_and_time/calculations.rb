@@ -300,7 +300,7 @@ module DateAndTime
     end
 
     # Returns a Range representing the whole week of the current date/time.
-    # Week starts on start_day, default is <tt>Date.week_start</tt> or <tt>config.week_start</tt> when set.
+    # Week starts on start_day, default is <tt>Date.beginning_of_week</tt> or <tt>config.beginning_of_week</tt> when set.
     def all_week(start_day = Date.beginning_of_week)
       beginning_of_week(start_day)..end_of_week(start_day)
     end
