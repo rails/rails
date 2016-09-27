@@ -73,6 +73,7 @@ module ActionController
 
     require "mutex_m"
 
+    # PRNOTE(BF): Possible touch point for 415, 'format'
     class Options < Struct.new(:name, :format, :include, :exclude, :klass, :model) # :nodoc:
       include Mutex_m
 
@@ -276,6 +277,7 @@ module ActionController
 
       # Checks if we should perform parameters wrapping.
       def _wrapper_enabled?
+        # PRNOTE(BF): Possible touch point for 415
         return false unless request.has_content_type?
 
         ref = request.content_mime_type.ref

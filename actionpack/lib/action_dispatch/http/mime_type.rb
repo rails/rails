@@ -141,6 +141,10 @@ module Mime
       end
 
       def lookup(string)
+        # PRNOTE(BF): I think the 415 should be triggered here. Not sure if should be exception or throw/catch?
+        #   LOOKUP[string] or fail ActionController::UnsupportedMediaType.new("Unknown media type: '#{string}'")
+        #   LOOKUP[string] or throw(:unsupported_media_type, string)
+        # PRNOTE(BF): Type.new(string) returns a Mime::Type instance with 'nil' symbol
         LOOKUP[string] || Type.new(string)
       end
 
@@ -168,6 +172,7 @@ module Mime
         new_mime
       end
 
+      # PRNOTE(BF): Perhaps the exception should be raised here in addition or instead?
       def parse(accept_header)
         if !accept_header.include?(",")
           accept_header = accept_header.split(PARAMETER_SEPARATOR_REGEXP).first

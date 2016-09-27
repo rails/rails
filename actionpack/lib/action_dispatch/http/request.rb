@@ -356,11 +356,13 @@ module ActionDispatch
     def POST
       fetch_header("action_dispatch.request.request_parameters") do
         pr = parse_formatted_parameters(params_parsers) do |params|
+          # PRNOTE(BF): This isn't where the empty {} comes from in the test.
           super || {}
         end
         self.request_parameters = Request::Utils.normalize_encode_params(pr)
       end
     rescue Http::Parameters::ParseError # one of the parse strategies blew up
+      # PRNOTE(BF): This isn't where the empty {} comes from in the test.
       self.request_parameters = Request::Utils.normalize_encode_params(super || {})
       raise
     rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e

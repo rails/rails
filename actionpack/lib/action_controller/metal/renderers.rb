@@ -23,6 +23,8 @@ module ActionController
 
     # A Set containing renderer names that correspond to available renderer procs.
     # Default values are <tt>:json</tt>, <tt>:js</tt>, <tt>:xml</tt>.
+    # PRNOTE(BF): Should a MissingRenderer (actually only raised by the responders gem) return
+    # a 415?
     RENDERERS = Set.new
 
     included do

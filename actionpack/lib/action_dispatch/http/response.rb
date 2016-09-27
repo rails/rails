@@ -223,6 +223,8 @@ module ActionDispatch # :nodoc:
     end
 
     # Sets the HTTP content type.
+    # PRNOTE(BF): Not sure if we want to raise a the 415 exception here as it should really be a failure
+    # in handling the request.
     def content_type=(content_type)
       return unless content_type
       new_header_info = parse_content_type(content_type.to_s)
@@ -407,6 +409,8 @@ module ActionDispatch # :nodoc:
     ContentTypeHeader = Struct.new :mime_type, :charset
     NullContentTypeHeader = ContentTypeHeader.new nil, nil
 
+    # PRNOTE(BF): Not sure if we want to raise a the 415 exception here or fail in a different way
+    # when the content_type is unknown
     def parse_content_type(content_type)
       if content_type
         type, charset = content_type.split(/;\s*charset=/)
@@ -419,10 +423,14 @@ module ActionDispatch # :nodoc:
 
     # Small internal convenience method to get the parsed version of the current
     # content type header.
+    # PRNOTE(BF): Not sure if we want to raise a the 415 exception here or fail in a different way
+    # when the content_type is unknown
     def parsed_content_type_header
       parse_content_type(get_header(CONTENT_TYPE))
     end
 
+    # PRNOTE(BF): Not sure if we want to raise a the 415 exception here or fail in a different way
+    # when the content_type is unknown
     def set_content_type(content_type, charset)
       type = (content_type || "").dup
       type << "; charset=#{charset.to_s.downcase}" if charset
