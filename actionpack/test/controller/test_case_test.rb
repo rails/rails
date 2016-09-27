@@ -646,6 +646,11 @@ XML
     assert_equal 2, @request.request_parameters[:num_value]
   end
 
+  def test_using_as_json_sets_format_json
+    post :render_body, params: { bool_value: true, str_value: "string", num_value: 2 }, as: :json
+    assert_equal "json", @request.format
+  end
+
   def test_mutating_content_type_headers_for_plain_text_files_sets_the_header
     @request.headers["Content-Type"] = "text/plain"
     post :render_body, params: { name: "foo.txt" }
