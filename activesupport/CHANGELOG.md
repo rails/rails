@@ -1,3 +1,7 @@
+*   Update `#advance` methods to take keyword args
+
+    *Ben Woosley*
+
 *   Fix `ActiveSupport::TimeWithZone#in` across DST boundaries.
 
     Previously calls to `in` were being sent to the non-DST aware
@@ -8,10 +12,10 @@
         Time.zone = "US/Eastern"
 
         t = Time.zone.local(2016,11,6,1)
-        # => Sun, 06 Nov 2016 01:00:00 EDT -05:00 
+        # => Sun, 06 Nov 2016 01:00:00 EDT -05:00
 
         t.in(1.hour)
-        # => Sun, 06 Nov 2016 01:00:00 EST -05:00 
+        # => Sun, 06 Nov 2016 01:00:00 EST -05:00
 
     Fixes #26580.
 

@@ -333,10 +333,6 @@ module ActiveSupport
     # according to the proleptic Gregorian calendar. The result is returned as a
     # new TimeWithZone object.
     #
-    # The +options+ parameter takes a hash with any of these keys:
-    # <tt>:years</tt>, <tt>:months</tt>, <tt>:weeks</tt>, <tt>:days</tt>,
-    # <tt>:hours</tt>, <tt>:minutes</tt>, <tt>:seconds</tt>.
-    #
     # If advancing by a value of variable length (i.e., years, weeks, months,
     # days), move forward from #time, otherwise move forward from #utc, for
     # accuracy when moving across DST boundaries.
@@ -350,13 +346,13 @@ module ActiveSupport
     #   now.advance(weeks: 1)   # => Sun, 09 Nov 2014 01:26:28 EST -05:00
     #   now.advance(months: 1)  # => Tue, 02 Dec 2014 01:26:28 EST -05:00
     #   now.advance(years: 1)   # => Mon, 02 Nov 2015 01:26:28 EST -05:00
-    def advance(options)
+    def advance(years: nil, months: nil, weeks: nil, days: nil, hours: nil, minutes: nil, seconds: nil)
       # If we're advancing a value of variable length (i.e., years, weeks, months, days), advance from #time,
       # otherwise advance from #utc, for accuracy when moving across DST boundaries
-      if options.values_at(:years, :weeks, :months, :days).any?
-        method_missing(:advance, options)
+      if (years || weeks || months || days)
+        method_missing(:advance, years: years, months: months, weeks: weeks, days: days, hours: hours, minutes: minutes, seconds: seconds)
       else
-        utc.advance(options).in_time_zone(time_zone)
+        utc.advance(hours: hours, minutes: minutes, seconds: seconds).in_time_zone(time_zone)
       end
     end
 

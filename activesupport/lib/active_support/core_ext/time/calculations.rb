@@ -118,34 +118,31 @@ class Time
   end
 
   # Uses Date to provide precise Time calculations for years, months, and days
-  # according to the proleptic Gregorian calendar. The +options+ parameter
-  # takes a hash with any of these keys: <tt>:years</tt>, <tt>:months</tt>,
-  # <tt>:weeks</tt>, <tt>:days</tt>, <tt>:hours</tt>, <tt>:minutes</tt>,
-  # <tt>:seconds</tt>.
+  # according to the proleptic Gregorian calendar.
   #
   #   Time.new(2015, 8, 1, 14, 35, 0).advance(seconds: 1) # => 2015-08-01 14:35:01 -0700
   #   Time.new(2015, 8, 1, 14, 35, 0).advance(minutes: 1) # => 2015-08-01 14:36:00 -0700
   #   Time.new(2015, 8, 1, 14, 35, 0).advance(hours: 1)   # => 2015-08-01 15:35:00 -0700
   #   Time.new(2015, 8, 1, 14, 35, 0).advance(days: 1)    # => 2015-08-02 14:35:00 -0700
   #   Time.new(2015, 8, 1, 14, 35, 0).advance(weeks: 1)   # => 2015-08-08 14:35:00 -0700
-  def advance(options)
-    unless options[:weeks].nil?
-      options[:weeks], partial_weeks = options[:weeks].divmod(1)
-      options[:days] = options.fetch(:days, 0) + 7 * partial_weeks
+  def advance(years: nil, months: nil, weeks: nil, days: nil, hours: nil, minutes: nil, seconds: nil)
+    unless weeks.nil?
+      weeks, partial_weeks = weeks.divmod(1)
+      days = (days || 0) + 7 * partial_weeks
     end
 
-    unless options[:days].nil?
-      options[:days], partial_days = options[:days].divmod(1)
-      options[:hours] = options.fetch(:hours, 0) + 24 * partial_days
+    unless days.nil?
+      days, partial_days = days.divmod(1)
+      hours = (hours || 0) + 24 * partial_days
     end
 
-    d = to_date.advance(options)
+    d = to_date.advance(years: years, months: months, weeks: weeks, days: days)
     d = d.gregorian if d.julian?
     time_advanced_by_date = change(year: d.year, month: d.month, day: d.day)
     seconds_to_advance = \
-      options.fetch(:seconds, 0) +
-      options.fetch(:minutes, 0) * 60 +
-      options.fetch(:hours, 0) * 3600
+      (seconds || 0) +
+      (minutes || 0) * 60 +
+      (hours || 0) * 3600
 
     if seconds_to_advance.zero?
       time_advanced_by_date
