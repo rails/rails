@@ -1317,8 +1317,8 @@ end
 This test is pretty simple and only asserts that the job get the work done
 as expected.
 
-By default, `ActiveJob::TestCase` will set the queue adapter to `:async` so that
-your jobs are performed in an async fashion. It will also ensure that all previously performed
+By default, `ActiveJob::TestCase` will set the queue adapter to `:test` so that
+your jobs are performed inline. It will also ensure that all previously performed
 and enqueued jobs are cleared before any test run so you can safely assume that
 no jobs have already been executed in the scope of each test.
 
