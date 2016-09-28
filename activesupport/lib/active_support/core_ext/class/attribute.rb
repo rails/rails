@@ -20,7 +20,7 @@ class Class
   #   Base.setting                # => true
   #
   # In the above case as long as Subclass does not assign a value to setting
-  # by performing <tt>Subclass.setting = _something_ </tt>, <tt>Subclass.setting</tt>
+  # by performing <tt>Subclass.setting = _something_</tt>, <tt>Subclass.setting</tt>
   # would read value assigned to parent class. Once Subclass assigns a value then
   # the value assigned by Subclass would be returned.
   #
