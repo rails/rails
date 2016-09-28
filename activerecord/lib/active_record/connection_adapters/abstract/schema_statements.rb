@@ -766,7 +766,7 @@ module ActiveRecord
             raise ArgumentError, "You must specify the index name"
           end
         else
-          index_name(table_name, column: options)
+          index_name(table_name, index_name_options(options))
         end
       end
 
@@ -1120,18 +1120,14 @@ module ActiveRecord
       end
 
       def add_index_options(table_name, column_name, comment: nil, **options) # :nodoc:
-        if column_name.is_a?(String) && /\W/.match?(column_name)
-          column_names = column_name
-        else
-          column_names = Array(column_name)
-        end
+        column_names = index_column_names(column_name)
 
         options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type)
 
         index_type = options[:type].to_s if options.key?(:type)
         index_type ||= options[:unique] ? "UNIQUE" : ""
         index_name = options[:name].to_s if options.key?(:name)
-        index_name ||= index_name(table_name, index_name_options(column_names))
+        index_name ||= index_name(table_name, column_names)
 
         if options.key?(:algorithm)
           algorithm = index_algorithms.fetch(options[:algorithm]) {
@@ -1208,13 +1204,13 @@ module ActiveRecord
 
           if options.is_a?(Hash)
             checks << lambda { |i| i.name == options[:name].to_s } if options.key?(:name)
-            column_names = Array(options[:column]).map(&:to_s)
+            column_names = index_column_names(options[:column])
           else
-            column_names = Array(options).map(&:to_s)
+            column_names = index_column_names(options)
           end
 
-          if column_names.any?
-            checks << lambda { |i| i.columns.join("_and_") == column_names.join("_and_") }
+          if column_names.present?
+            checks << lambda { |i| index_name(table_name, i.columns) == index_name(table_name, column_names) }
           end
 
           raise ArgumentError, "No name or columns specified" if checks.none?
@@ -1261,8 +1257,16 @@ module ActiveRecord
           AlterTable.new create_table_definition(name)
         end
 
+        def index_column_names(column_names)
+          if column_names.is_a?(String) && /\W/.match?(column_names)
+            column_names
+          else
+            Array(column_names)
+          end
+        end
+
         def index_name_options(column_names)
-          if column_names.is_a?(String)
+          if column_names.is_a?(String) && /\W/.match?(column_names)
             column_names = column_names.scan(/\w+/).join("_")
           end
 
