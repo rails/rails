@@ -45,7 +45,6 @@ The internal documentation of Rails, in the form of code comments, has been impr
 * [A Guide to Testing Rails Applications](testing.html)
 * [Securing Rails Applications](security.html)
 * [Debugging Rails Applications](debugging_rails_applications.html)
-* [Performance Testing Rails Applications](performance_testing.html)
 * [The Basics of Creating Rails Plugins](plugins.html)
 
 All told, the Guides provide tens of thousands of words of guidance for beginning and intermediate Rails developers.
