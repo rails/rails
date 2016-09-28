@@ -504,7 +504,7 @@ module ActiveSupport
         def compile
           @callbacks || @mutex.synchronize do
             final_sequence = CallbackSequence.new { |env| Filters::ENDING.call(env) }
-            @callbacks ||= @chain.reverse.inject(final_sequence) do |callback_sequence, callback|
+            @callbacks ||= @chain.inject(final_sequence) do |callback_sequence, callback|
               callback.apply callback_sequence
             end
           end
