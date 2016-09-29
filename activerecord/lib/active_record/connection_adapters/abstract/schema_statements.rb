@@ -1215,7 +1215,7 @@ module ActiveRecord
           if column_names.any?
             checks << lambda do |i|
               columns = i.columns.is_a?(String) ? [i.columns] : i.columns
-              columns.join('_and_') == column_names.join('_and_')
+              columns.join("_and_") == column_names.join("_and_")
             end
           end
 
