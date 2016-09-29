@@ -2390,10 +2390,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [first_bulb, second_bulb], car.bulbs
   end
 
-  test 'double insertion of new object to association when same association used in the after create callback of a new object' do
-    car = Car.create!
-    car.bulbs << TrickyBulb.new
-    assert_equal 1, car.bulbs.size
+  test "double insertion of new object to association when same association used in the after create callback of a new object" do
+    reset_callbacks(:save, Bulb) do
+      Bulb.after_save { |record| record.car.bulbs.to_a }
+      car = Car.create!
+      car.bulbs << Bulb.new
+      assert_equal 1, car.bulbs.size
+    end
   end
 
   def test_association_force_reload_with_only_true_is_deprecated
@@ -2439,4 +2442,31 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [bulb.id], car.bulb_ids
     assert_no_queries { car.bulb_ids }
   end
+
+  def test_loading_association_in_validate_callback_doesnt_affect_persistence
+    reset_callbacks(:validation, Bulb) do
+      Bulb.after_validation { |m| m.car.bulbs.load }
+
+      car = Car.create!(name: "Car")
+      bulb = car.bulbs.create!
+
+      assert_equal [bulb], car.bulbs
+    end
+  end
+
+  private
+
+    def reset_callbacks(kind, klass)
+      old_callbacks = {}
+      old_callbacks[klass] = klass.send("_#{kind}_callbacks").dup
+      klass.subclasses.each do |subclass|
+        old_callbacks[subclass] = subclass.send("_#{kind}_callbacks").dup
+      end
+      yield
+    ensure
+      klass.send("_#{kind}_callbacks=", old_callbacks[klass])
+      klass.subclasses.each do |subclass|
+        subclass.send("_#{kind}_callbacks=", old_callbacks[subclass])
+      end
+    end
 end
