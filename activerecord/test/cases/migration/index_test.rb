@@ -126,6 +126,19 @@ module ActiveRecord
         assert connection.index_exists?(:testings, :foo, unique: true)
       end
 
+      if current_adapter?(:PostgreSQLAdapter)
+        # when an index is created with a function, indexes are not located by column name
+        # the index name recovered from the database in this case could be lower(bar)
+        def test_delete_index_when_column_has_no_formal_name
+          connection.execute('CREATE UNIQUE INDEX index_users_on_lower_email ON testings (lower(bar))')
+          connection.add_index :testings, :foo, unique: true
+
+          connection.remove_index :testings, :foo
+
+          assert_not connection.index_exists?(:testings, :foo)
+        end
+      end
+
       def test_named_index_exists
         connection.add_index :testings, :foo, name: "custom_index_name"
 

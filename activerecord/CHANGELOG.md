@@ -1,3 +1,13 @@
+*   Fixing bug at index removal
+   
+    When an index was created with condition like `lower(name)` 
+    it is returned as string from the database, and is not returned 
+    as an expected array.
+     
+    Fix #26635 
+     
+    *Hebert Coelho* 
+
 *   Serialize JSON attribute value `nil` as SQL `NULL`, not JSON `null`
 
     *Trung Duc Tran*
