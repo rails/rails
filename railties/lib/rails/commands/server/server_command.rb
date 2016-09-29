@@ -21,7 +21,7 @@ module Rails
 
       def option_parser(options) # :nodoc:
         OptionParser.new do |opts|
-          opts.banner = "Usage: rails server [mongrel, thin etc] [options]"
+          opts.banner = "Usage: rails server [puma, thin etc] [options]"
 
           opts.separator ""
           opts.separator "Options:"
