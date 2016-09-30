@@ -1213,7 +1213,10 @@ module ActiveRecord
           end
 
           if column_names.any?
-            checks << lambda { |i| i.columns.join("_and_") == column_names.join("_and_") }
+            checks << lambda do |i|
+              columns = i.columns.is_a?(String) ? [i.columns] : i.columns
+              columns.join("_and_") == column_names.join("_and_")
+            end
           end
 
           raise ArgumentError, "No name or columns specified" if checks.none?
