@@ -65,7 +65,7 @@ module ActiveRecord
         if @query_cache_enabled && !locked?(arel)
           arel, binds = binds_from_relation arel, binds
           sql = to_sql(arel, binds)
-          cache_sql(sql, binds) { super(sql, name, binds, preparable: preparable) }
+          cache_sql(sql, name, binds) { super(sql, name, binds, preparable: preparable) }
         else
           super
         end
@@ -73,11 +73,17 @@ module ActiveRecord
 
       private
 
-        def cache_sql(sql, binds)
+        def cache_sql(sql, name, binds)
           result =
             if @query_cache[sql].key?(binds)
-              ActiveSupport::Notifications.instrument("sql.active_record",
-                sql: sql, binds: binds, name: "CACHE", connection_id: object_id)
+              ActiveSupport::Notifications.instrument(
+                "sql.active_record",
+                sql: sql,
+                binds: binds,
+                name: name,
+                connection_id: object_id,
+                cached: true,
+              )
               @query_cache[sql][binds]
             else
               @query_cache[sql][binds] = yield
