@@ -51,6 +51,29 @@ class QueryCacheTest < ActiveRecord::TestCase
     assert !ActiveRecord::Base.connection.query_cache_enabled, "cache off"
   end
 
+  def test_exceptional_middleware_cleans_up_correct_cache
+    connection = ActiveRecord::Base.connection
+    called = false
+
+    mw = middleware { |env|
+      Task.find 1
+      Task.find 1
+      assert_equal 1, connection.query_cache.length
+
+      # Checkin connection early
+      ActiveRecord::Base.clear_active_connections!
+      # Make sure ActiveRecord::Base.connection doesn't checkout the same connection
+      ActiveRecord::Base.connection_pool.remove(connection)
+
+      called = true
+    }
+    mw.call({})
+
+    assert called
+    assert_equal 0, connection.query_cache.length
+    assert !connection.query_cache_enabled, "cache off"
+  end
+
   def test_exceptional_middleware_leaves_enabled_cache_alone
     ActiveRecord::Base.connection.enable_query_cache!
 
