@@ -101,15 +101,16 @@ module ActiveRecord
       assert_equal 6, klass.column_defaults.length
       assert_not klass.column_names.include?('wibble')
       assert_equal 5, klass.content_columns.length
+      assert_equal 6, klass.column_names.length
 
       klass.attribute :wibble, Type::Value.new
-
       assert_equal 7, klass.columns.length
       assert klass.columns_hash.key?('wibble')
       assert_equal 7, klass.column_types.length
       assert_equal 7, klass.column_defaults.length
       assert klass.column_names.include?('wibble')
       assert_equal 6, klass.content_columns.length
+      assert_equal 7, klass.column_names.length
     end
 
     test "non string/integers use custom types for queries" do
