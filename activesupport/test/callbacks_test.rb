@@ -56,6 +56,8 @@ module CallbacksTest
   end
 
   class Person < Record
+    attr_accessor :save_fails
+
     [:before_save, :after_save].each do |callback_method|
       callback_method_sym = callback_method.to_sym
       send(callback_method, callback_symbol(callback_method_sym))
@@ -67,7 +69,9 @@ module CallbacksTest
     end
 
     def save
-      run_callbacks :save
+      run_callbacks :save do
+        raise "inside save" if save_fails
+      end
     end
   end
 
@@ -222,6 +226,7 @@ module CallbacksTest
 
   class AroundPerson < MySuper
     attr_reader :history
+    attr_accessor :save_fails
 
     set_callback :save, :before, :nope,           if: :no
     set_callback :save, :before, :nope,           unless: :yes
@@ -285,6 +290,7 @@ module CallbacksTest
 
     def save
       run_callbacks :save do
+        raise "inside save" if save_fails
         @history << "running"
       end
     end
@@ -399,6 +405,71 @@ module CallbacksTest
         "tweedle dum post",
         "tweedle"
       ], around.history
+    end
+  end
+
+  class CallStackTest < ActiveSupport::TestCase
+    def test_tidy_call_stack
+      around = AroundPerson.new
+      around.save_fails = true
+
+      exception = (around.save rescue $!)
+
+      # Make sure we have the exception we're expecting
+      assert_equal "inside save", exception.message
+
+      call_stack = exception.backtrace_locations
+      call_stack.pop caller_locations(0).size
+
+      # Yes, this looks like an implementation test, but it's the least
+      # obtuse way of asserting that there aren't a load of entries in
+      # the call stack for each callback.
+      #
+      # If you've renamed a method, or squeezed more lines out, go ahead
+      # and update this assertion. But if you're here because a
+      # refactoring added new lines, please reconsider.
+
+      # As shown here, our current budget is one line for run_callbacks
+      # itself, plus N+1 lines where N is the number of :around
+      # callbacks that have been invoked, if there are any (plus
+      # whatever the callbacks do themselves, of course).
+
+      assert_equal [
+        "block in save",
+        "block in run_callbacks",
+        "tweedle_deedle",
+        "block in run_callbacks",
+        "w0tyes",
+        "block in run_callbacks",
+        "tweedle_dum",
+        "block in run_callbacks",
+        ("call" if RUBY_VERSION < "2.3"),
+        "run_callbacks",
+        "save"
+      ].compact, call_stack.map(&:label)
+    end
+
+    def test_short_call_stack
+      person = Person.new
+      person.save_fails = true
+
+      exception = (person.save rescue $!)
+
+      # Make sure we have the exception we're expecting
+      assert_equal "inside save", exception.message
+
+      call_stack = exception.backtrace_locations
+      call_stack.pop caller_locations(0).size
+
+      # This budget much simpler: with no :around callbacks invoked,
+      # there should be just one line. run_callbacks yields directly
+      # back to its caller.
+
+      assert_equal [
+        "block in save",
+        "run_callbacks",
+        "save"
+      ], call_stack.map(&:label)
     end
   end
 
