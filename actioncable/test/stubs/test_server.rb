@@ -26,10 +26,12 @@ class TestServer
 
   def event_loop
     @event_loop ||= if @config.use_faye
-                      ActionCable::Connection::FayeEventLoop.new
-                    else
-                      ActionCable::Connection::StreamEventLoop.new
-                    end
+      ActionCable::Connection::FayeEventLoop.new
+    else
+      ActionCable::Connection::StreamEventLoop.new.tap do |loop|
+        loop.instance_variable_set(:@executor, Concurrent.global_io_executor)
+      end
+    end
   end
 
   def worker_pool
