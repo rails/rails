@@ -136,6 +136,7 @@ module ActiveRecord
         @content_columns = nil
         @default_attributes = nil
         @persistable_attribute_names = nil
+        @attribute_names = nil
       end
 
       def raw_default_values
