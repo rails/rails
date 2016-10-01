@@ -54,6 +54,12 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_instance_of Time, @dt_twz.localtime
   end
 
+  def test_localtime_with_offset
+    assert_equal 0, @twz.localtime.gmt_offset
+    assert_equal (-3600), @twz.localtime(-3600).gmt_offset
+    assert_equal (-7200), @twz.localtime(-7200).gmt_offset
+  end
+
   def test_utc?
     assert_equal false, @twz.utc?
 
