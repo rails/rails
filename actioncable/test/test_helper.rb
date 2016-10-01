@@ -66,8 +66,12 @@ class ActionCable::TestCase < ActiveSupport::TestCase
   end
 
   def wait_for_executor(executor)
+    # do not wait forever, wait 2s
+    timeout = 2
     until executor.completed_task_count == executor.scheduled_task_count
       sleep 0.1
+      timeout -= 0.1
+      raise "Executor could not complete all tasks in 2 seconds" unless timeout > 0
     end
   end
 end

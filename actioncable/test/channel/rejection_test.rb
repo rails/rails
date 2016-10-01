@@ -20,6 +20,7 @@ class ActionCable::Channel::RejectionTest < ActiveSupport::TestCase
   test "subscription rejection" do
     @connection.expects(:subscriptions).returns mock().tap { |m| m.expects(:remove_subscription).with instance_of(SecretChannel) }
     @channel = SecretChannel.new @connection, "{id: 1}", id: 1
+    @channel.subscribe_to_channel
 
     expected = { "identifier" => "{id: 1}", "type" => "reject_subscription" }
     assert_equal expected, @connection.last_transmission
@@ -28,6 +29,7 @@ class ActionCable::Channel::RejectionTest < ActiveSupport::TestCase
   test "does not execute action if subscription is rejected" do
     @connection.expects(:subscriptions).returns mock().tap { |m| m.expects(:remove_subscription).with instance_of(SecretChannel) }
     @channel = SecretChannel.new @connection, "{id: 1}", id: 1
+    @channel.subscribe_to_channel
 
     expected = { "identifier" => "{id: 1}", "type" => "reject_subscription" }
     assert_equal expected, @connection.last_transmission
