@@ -1,3 +1,25 @@
+*   Fix `ActiveSupport::TimeWithZone#localtime` when called with different
+    `utc_offset` values.
+
+    Previously memoization in `localtime` wasn't taking the `utc_offset`
+    parameter into account when returning a cached value. It now caches the
+    computed value depending on the `utc_offset` parameter, e.g:
+
+      Time.zone = "US/Eastern"
+
+      t = Time.zone.local(2016,5,2,11)
+      # => Mon, 02 May 2016 11:00:00 EDT -04:00
+
+      t.localtime(-7200)
+      # => 2016-05-02 13:00:00 -0200
+
+      t.localtime(-3600)
+      # => 2016-05-02 14:00:00 -0100
+
+    Fixes #26644.
+
+    *Thomas Balthazar*
+
 *   Fix `ActiveSupport::TimeWithZone#in` across DST boundaries.
 
     Previously calls to `in` were being sent to the non-DST aware
