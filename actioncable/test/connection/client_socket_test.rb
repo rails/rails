@@ -33,8 +33,6 @@ class ActionCable::Connection::ClientSocketTest < ActionCable::TestCase
   end
 
   test "delegate socket errors to on_error handler" do
-    skip if ENV["FAYE"].present?
-
     run_in_eventmachine do
       connection = open_connection
 
@@ -49,8 +47,6 @@ class ActionCable::Connection::ClientSocketTest < ActionCable::TestCase
   end
 
   test "closes hijacked i/o socket at shutdown" do
-    skip if ENV["FAYE"].present?
-
     run_in_eventmachine do
       connection = open_connection
 

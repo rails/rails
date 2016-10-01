@@ -4,7 +4,7 @@ module ActionCable
     # in a Rails config initializer.
     class Configuration
       attr_accessor :logger, :log_tags
-      attr_accessor :use_faye, :connection_class, :worker_pool_size
+      attr_accessor :connection_class, :worker_pool_size
       attr_accessor :disable_request_forgery_protection, :allowed_request_origins
       attr_accessor :cable, :url, :mount_path
 
@@ -37,19 +37,11 @@ module ActionCable
       end
 
       def event_loop_class
-        if use_faye
-          ActionCable::Connection::FayeEventLoop
-        else
-          ActionCable::Connection::StreamEventLoop
-        end
+        ActionCable::Connection::StreamEventLoop
       end
 
       def client_socket_class
-        if use_faye
-          ActionCable::Connection::FayeClientSocket
-        else
-          ActionCable::Connection::ClientSocket
-        end
+        ActionCable::Connection::ClientSocket
       end
     end
   end

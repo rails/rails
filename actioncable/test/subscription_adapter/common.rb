@@ -11,7 +11,6 @@ module CommonSubscriptionAdapterTest
   def setup
     server = ActionCable::Server::Base.new
     server.config.cable = cable_config.with_indifferent_access
-    server.config.use_faye = ENV["FAYE"].present?
 
     adapter_klass = server.config.pubsub_adapter
 

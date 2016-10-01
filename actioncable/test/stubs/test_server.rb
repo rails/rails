@@ -10,12 +10,7 @@ class TestServer
     @logger = ActiveSupport::TaggedLogging.new ActiveSupport::Logger.new(StringIO.new)
 
     @config = OpenStruct.new(log_tags: [], subscription_adapter: subscription_adapter)
-    @config.use_faye = ENV["FAYE"].present?
-    @config.client_socket_class = if @config.use_faye
-      ActionCable::Connection::FayeClientSocket
-    else
-      ActionCable::Connection::ClientSocket
-    end
+    @config.client_socket_class = ActionCable::Connection::ClientSocket
 
     @mutex = Monitor.new
   end
@@ -25,12 +20,8 @@ class TestServer
   end
 
   def event_loop
-    @event_loop ||= if @config.use_faye
-      ActionCable::Connection::FayeEventLoop.new
-    else
-      ActionCable::Connection::StreamEventLoop.new.tap do |loop|
-        loop.instance_variable_set(:@executor, Concurrent.global_io_executor)
-      end
+    @event_loop ||= ActionCable::Connection::StreamEventLoop.new.tap do |loop|
+      loop.instance_variable_set(:@executor, Concurrent.global_io_executor)
     end
   end
 
