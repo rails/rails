@@ -10,7 +10,6 @@ class TestServer
     @logger = ActiveSupport::TaggedLogging.new ActiveSupport::Logger.new(StringIO.new)
 
     @config = OpenStruct.new(log_tags: [], subscription_adapter: subscription_adapter)
-    @config.client_socket_class = ActionCable::Connection::ClientSocket
 
     @mutex = Monitor.new
   end

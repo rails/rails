@@ -49,7 +49,7 @@ module ActionCable
       end
 
       def event_loop
-        @event_loop || @mutex.synchronize { @event_loop ||= config.event_loop_class.new }
+        @event_loop || @mutex.synchronize { @event_loop ||= ActionCable::Connection::StreamEventLoop.new }
       end
 
       # The worker pool is where we run connection callbacks and channel actions. We do as little as possible on the server's main thread.

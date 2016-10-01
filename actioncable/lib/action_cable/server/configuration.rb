@@ -35,14 +35,6 @@ module ActionCable
         adapter = "PostgreSQL" if adapter == "Postgresql"
         "ActionCable::SubscriptionAdapter::#{adapter}".constantize
       end
-
-      def event_loop_class
-        ActionCable::Connection::StreamEventLoop
-      end
-
-      def client_socket_class
-        ActionCable::Connection::ClientSocket
-      end
     end
   end
 end
