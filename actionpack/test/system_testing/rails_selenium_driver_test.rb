@@ -1,12 +1,12 @@
 require 'abstract_unit'
 
-class CapybaraSeleniumDriverTest < ActiveSupport::TestCase
+class RailsSeleniumDriverTest < ActiveSupport::TestCase
   def setup
-    Rails::SystemTestCase.driver = :capybara_selenium_driver
+    Rails::SystemTestCase.driver = :rails_selenium_driver
   end
 
-  def test_setting_driver_adapter_to_selenium
-    assert_kind_of SystemTesting::DriverAdapters::CapybaraSeleniumDriver, Rails::SystemTestCase.driver
+  def test_default_driver_adapter
+    assert_kind_of SystemTesting::DriverAdapters::RailsSeleniumDriver, Rails::SystemTestCase.driver
   end
 
   def test_default_settings
@@ -17,7 +17,7 @@ class CapybaraSeleniumDriverTest < ActiveSupport::TestCase
   end
 
   def test_setting_browser
-    Rails::SystemTestCase.driver = SystemTesting::DriverAdapters::CapybaraSeleniumDriver.new(
+    Rails::SystemTestCase.driver = SystemTesting::DriverAdapters::RailsSeleniumDriver.new(
       browser: :firefox
     )
 
@@ -25,7 +25,7 @@ class CapybaraSeleniumDriverTest < ActiveSupport::TestCase
   end
 
   def test_setting_server
-    Rails::SystemTestCase.driver = SystemTesting::DriverAdapters::CapybaraSeleniumDriver.new(
+    Rails::SystemTestCase.driver = SystemTesting::DriverAdapters::RailsSeleniumDriver.new(
       server: :webrick
     )
 
@@ -33,7 +33,7 @@ class CapybaraSeleniumDriverTest < ActiveSupport::TestCase
   end
 
   def test_setting_port
-    Rails::SystemTestCase.driver = SystemTesting::DriverAdapters::CapybaraSeleniumDriver.new(
+    Rails::SystemTestCase.driver = SystemTesting::DriverAdapters::RailsSeleniumDriver.new(
       port: 3000
     )
 
@@ -41,7 +41,7 @@ class CapybaraSeleniumDriverTest < ActiveSupport::TestCase
   end
 
   def test_setting_screen_size
-    Rails::SystemTestCase.driver = SystemTesting::DriverAdapters::CapybaraSeleniumDriver.new(
+    Rails::SystemTestCase.driver = SystemTesting::DriverAdapters::RailsSeleniumDriver.new(
       screen_size: [ 800, 800 ]
     )
 
@@ -50,7 +50,7 @@ class CapybaraSeleniumDriverTest < ActiveSupport::TestCase
 
   def test_does_not_accept_nonsense_kwargs
     assert_raises ArgumentError do
-      Rails::SystemTestCase.driver = SystemTesting::DriverAdapters::CapybaraSeleniumDriver.new(
+      Rails::SystemTestCase.driver = SystemTesting::DriverAdapters::RailsSeleniumDriver.new(
         made_up_arg: 'x'
       )
     end

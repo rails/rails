@@ -7,13 +7,7 @@ class DriverAdapterTest < ActiveSupport::TestCase
     end
 
     assert_nothing_raised do
-      Rails::SystemTestCase.driver = :capybara_selenium_driver
-    end
-  end
-
-  test 'settings can only be used for the appropriate adapter' do
-    assert_raises(ArgumentError) do
-      Rails::SystemTestCase.driver = SystemTesting::DriverAdapters::CapybaraRackTestDriver.new(something: 'test')
+      Rails::SystemTestCase.driver = :rack_test
     end
   end
 end
