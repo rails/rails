@@ -10,6 +10,8 @@ class ClientTest < ActionCable::TestCase
   WAIT_WHEN_EXPECTING_EVENT = 8
   WAIT_WHEN_NOT_EXPECTING_EVENT = 0.5
 
+  @@event_machine_thr = nil
+
   class EchoChannel < ActionCable::Channel::Base
     def subscribed
       stream_from "global"
@@ -43,7 +45,7 @@ class ClientTest < ActionCable::TestCase
     # and now the "real" setup for our test:
     server.config.disable_request_forgery_protection = true
 
-    Thread.new { EventMachine.run } unless EventMachine.reactor_running?
+    @@event_machine_thr = Thread.new { EventMachine.run } unless EventMachine.reactor_running?
     Thread.pass until EventMachine.reactor_running?
 
     # faye-websocket is warning-rich
@@ -265,6 +267,7 @@ class ClientTest < ActionCable::TestCase
       c.send_message command: "subscribe", identifier: JSON.generate(channel: "ClientTest::EchoChannel")
       assert_equal({ "identifier"=>"{\"channel\":\"ClientTest::EchoChannel\"}", "type"=>"confirm_subscription" }, c.read_message)
 
+      @@event_machine_thr.kill unless @@event_machine_thr.nil?
       ActionCable.server.restart
       c.wait_for_close
       assert c.closed?
