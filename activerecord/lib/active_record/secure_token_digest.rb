@@ -7,16 +7,16 @@ module ActiveRecord
       # This mechanism requires you to have a +XXX_digest+ attribute.
       # Where +XXX+ is the name of your desired token
       #
-      # Add bcrypt (~> 3.1.7) to Gemfile to use #has_secure_digest:
+      # Add bcrypt (~> 3.1.7) to Gemfile to use #has_secure_token_digest:
       #
       #   gem 'bcrypt', '~> 3.1.7'
       #
-      # Example using #has_secure_digest
+      # Example using #has_secure_token_digest
       #
       #   # Schema: User(name:string, password_digest:string)
       #   class User < ActiveRecord::Base
-      #     has_secure_digest
-      #     has_secure_digest :activation_token
+      #     has_secure_token_digest
+      #     has_secure_token_digest :activation_token
       #   end
       #
       #   user = User.new(name: 'david', token: 'custom_token')
