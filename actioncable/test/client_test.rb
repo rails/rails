@@ -39,7 +39,6 @@ class ClientTest < ActionCable::TestCase
     server.config.logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
 
     server.config.cable = ActiveSupport::HashWithIndifferentAccess.new(adapter: "async")
-    server.config.use_faye = ENV["FAYE"].present?
 
     # and now the "real" setup for our test:
     server.config.disable_request_forgery_protection = true

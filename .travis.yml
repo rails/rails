@@ -36,9 +36,7 @@ env:
     - "GEM=railties"
     - "GEM=ap"
     - "GEM=ac"
-    - "GEM=ac FAYE=1"
     - "GEM=ac:integration"
-    - "GEM=ac:integration FAYE=1"
     - "GEM=am,amo,as,av,aj"
     - "GEM=as PRESERVE_TIMEZONES=1"
     - "GEM=ar:mysql2"
@@ -69,7 +67,6 @@ matrix:
     - rvm: ruby-head
     - rvm: jruby-9.0.5.0
     - env: "GEM=ac:integration"
-    - env: "GEM=ac:integration FAYE=1"
   fast_finish: true
 
 notifications:
