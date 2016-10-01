@@ -1,5 +1,6 @@
+require "set"
+require "zlib"
 require "active_support/core_ext/module/attribute_accessors"
-require 'set'
 
 module ActiveRecord
   class MigrationError < ActiveRecordError#:nodoc:
