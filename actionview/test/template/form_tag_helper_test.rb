@@ -517,6 +517,13 @@ class FormTagHelperTest < ActionView::TestCase
     )
   end
 
+  def test_submit_tag_with_value_option
+    assert_dom_equal(
+      %(<input type="submit" name="commit" value="Like" data-disable-with="Like" />),
+      submit_tag("Save", "value" => "Like")
+    )
+  end
+
   def test_submit_tag_with_symbol_value
     assert_dom_equal(
       %(<input data-disable-with="Save" name='commit' type="submit" value="Save" />),

@@ -894,7 +894,7 @@ module ActionView
           unless tag_options["data-disable-with"] == false || (data && data["disable_with"] == false)
             disable_with_text = tag_options["data-disable-with"]
             disable_with_text ||= data["disable_with"] if data
-            disable_with_text ||= value.to_s.clone
+            disable_with_text ||= tag_options["value"].to_s.clone
             tag_options.deep_merge!("data" => { "disable_with" => disable_with_text })
           else
             data.delete("disable_with") if data
