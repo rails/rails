@@ -33,7 +33,7 @@ module SystemTesting
       #   # => SystemTesting::DriverAdapters::RailsSeleniumDriver
       def lookup(driver)
         if CapybaraDriver::CAPYBARA_DEFAULTS.include?(driver)
-          CapybaraDriver.new(driver)
+          CapybaraDriver.new(name: driver)
         elsif driver.is_a?(Symbol)
           klass = const_get(driver.to_s.camelize)
           klass.new

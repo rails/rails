@@ -1,3 +1,5 @@
+require 'system_testing/driver_adapters/web_server'
+
 module SystemTesting
   module DriverAdapters
     # == CapybaraDriver for System Testing
@@ -41,21 +43,41 @@ module SystemTesting
     #     server: :webrick
     #   )
     class CapybaraDriver
+      include WebServer
+
       CAPYBARA_DEFAULTS = [ :rack_test, :selenium, :webkit, :poltergeist ]
 
-      attr_reader :name
+      attr_reader :name, :server, :port
 
-      def initialize(name)
+      def initialize(name: :rack_test, server: :puma, port: 28100)
         @name = name
+        @server = server
+        @port = port
       end
 
       def call
-        Capybara.default_driver = @name
+        registration
+        setup
       end
 
       def supports_screenshots?
         @name != :rack_test
       end
+
+      private
+        def registration
+          register_server
+        end
+
+        def setup
+          set_server
+          set_port
+          set_driver
+        end
+
+        def set_driver
+          Capybara.default_driver = @name
+        end
     end
   end
 end
