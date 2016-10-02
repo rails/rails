@@ -37,9 +37,13 @@ module ActionCable
         connections.each(&:close)
 
         @mutex.synchronize do
-          worker_pool.halt if @worker_pool
-
+          # Shutdown the worker pool
+          @worker_pool.halt if @worker_pool
           @worker_pool = nil
+
+          # Shutdown the pub/sub adapter
+          @pubsub.shutdown if @pubsub
+          @pubsub = nil
         end
       end
 
