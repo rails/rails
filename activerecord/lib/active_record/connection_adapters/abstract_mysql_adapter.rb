@@ -718,6 +718,7 @@ module ActiveRecord
           if length = options[:length]
             case length
             when Hash
+              length = length.symbolize_keys
               quoted_columns.each { |name, column| column << "(#{length[name]})" if length[name].present? }
             when Integer
               quoted_columns.each { |name, column| column << "(#{length})" }

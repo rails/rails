@@ -1171,6 +1171,7 @@ module ActiveRecord
           if order = options[:order]
             case order
             when Hash
+              order = order.symbolize_keys
               quoted_columns.each { |name, column| column << " #{order[name].upcase}" if order[name].present? }
             when String
               quoted_columns.each { |name, column| column << " #{order.upcase}" if order.present? }
@@ -1192,7 +1193,7 @@ module ActiveRecord
         def quoted_columns_for_index(column_names, **options)
           return [column_names] if column_names.is_a?(String)
 
-          quoted_columns = Hash[column_names.map { |name| [name, quote_column_name(name).dup] }]
+          quoted_columns = Hash[column_names.map { |name| [name.to_sym, quote_column_name(name).dup] }]
           add_options_for_index_columns(quoted_columns, options).values
         end
 
