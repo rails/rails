@@ -287,7 +287,7 @@ module ActiveRecord
       def test_indexes_logs_name
         with_example_table do
           assert_logged [["PRAGMA index_list(\"ex\")", "SCHEMA", []]] do
-            @conn.indexes("ex", "hello")
+            assert_deprecated { @conn.indexes("ex", "hello") }
           end
         end
       end

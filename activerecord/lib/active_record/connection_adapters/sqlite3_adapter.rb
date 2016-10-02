@@ -316,6 +316,12 @@ module ActiveRecord
 
       # Returns an array of indexes for the given table.
       def indexes(table_name, name = nil) #:nodoc:
+        if name
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Passing name to #indexes is deprecated without replacement.
+          MSG
+        end
+
         exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", "SCHEMA").map do |row|
           sql = <<-SQL
             SELECT sql

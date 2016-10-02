@@ -1,5 +1,9 @@
+*   Deprecate passing `name` to `indexes`.
+
+    *Ryuta Kamizono*
+
 *   Compare deserialized values for `PostgreSQL::OID::Hstore` types when
-    calling `ActiveRecord::Dirty#changed_in_place?`
+    calling `ActiveRecord::Dirty#changed_in_place?`.
 
     Fixes #27502.
 

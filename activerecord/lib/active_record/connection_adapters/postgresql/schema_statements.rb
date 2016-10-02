@@ -166,7 +166,13 @@ module ActiveRecord
         end
 
         # Returns an array of indexes for the given table.
-        def indexes(table_name, name = nil)
+        def indexes(table_name, name = nil) # :nodoc:
+          if name
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              Passing name to #indexes is deprecated without replacement.
+            MSG
+          end
+
           table = Utils.extract_schema_qualified_name(table_name.to_s)
 
           result = query(<<-SQL, "SCHEMA")

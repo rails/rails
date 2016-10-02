@@ -95,7 +95,7 @@ module ActiveRecord
     end
 
     def test_indexes_logs_name
-      @connection.indexes("items", "hello")
+      assert_deprecated { @connection.indexes("items", "hello") }
       assert_equal "SCHEMA", @subscriber.logged[0][1]
     end
 
