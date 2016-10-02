@@ -25,7 +25,7 @@ module ActionCable
       # Stop processing work: any work that has not already started
       # running will be discarded from the queue
       def halt
-        @executor.kill
+        @executor.shutdown
       end
 
       def stopping?
