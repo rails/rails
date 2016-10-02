@@ -354,13 +354,13 @@ class PersistenceTest < ActiveRecord::TestCase
   def test_update_auto_save_relations
     menu = Menu.create!
 
-    menu.create_sub_menu(name: 'menu A')
+    menu.create_sub_menu(name: "menu A")
 
-    assert_equal 'menu A', Menu.find(menu.id).sub_menu.name
+    assert_equal "menu A", Menu.find(menu.id).sub_menu.name
 
-    menu.update_attribute(:name, 'menu B')
+    menu.update_attribute(:name, "menu B")
 
-    assert_equal 'menu B', Menu.find(menu.id).sub_menu.name
+    assert_equal "menu B", Menu.find(menu.id).sub_menu.name
   end
 
   def test_preserve_original_sti_type
