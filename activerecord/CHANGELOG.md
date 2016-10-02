@@ -1,3 +1,9 @@
+*   `update_attribute` now fires save after association update.
+
+    Fixes #25503
+    
+    *Hebert Coelho*
+
 *   Serialize JSON attribute value `nil` as SQL `NULL`, not JSON `null`
 
     *Trung Duc Tran*
