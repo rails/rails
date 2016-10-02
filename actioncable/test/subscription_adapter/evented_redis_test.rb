@@ -12,6 +12,14 @@ class EventedRedisAdapterTest < ActionCable::TestCase
   end
 
   def teardown
+    super
+
+    # Ensure EM is shut down before we re-enable warnings
+    EventMachine.reactor_thread.tap do |thread|
+      EventMachine.stop
+      thread.join
+    end
+
     $VERBOSE = @previous_verbose
   end
 
