@@ -72,10 +72,7 @@ group :cable do
   gem "hiredis", require: false
   gem "redis", require: false
 
-  gem "faye-websocket", require: false
-
-  # Lock to 1.1.1 until the fix for https://github.com/faye/faye/issues/394 is released
-  gem "faye", "1.1.1", require: false
+  gem "websocket-client-simple", require: false
 
   gem "blade", require: false, platforms: [:ruby]
   gem "blade-sauce_labs_plugin", require: false, platforms: [:ruby]
