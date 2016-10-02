@@ -52,6 +52,10 @@ module SystemTesting
       def call
         Capybara.default_driver = @name
       end
+
+      def supports_screenshots?
+        @name != :rack_test
+      end
     end
   end
 end

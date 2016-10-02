@@ -65,6 +65,10 @@ module SystemTesting
         setup
       end
 
+      def supports_screenshots?
+        true
+      end
+
       private
         def registration
           register_browser_driver

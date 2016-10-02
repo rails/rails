@@ -2,7 +2,8 @@ module SystemTesting
   module TestHelpers
     extend ActiveSupport::Autoload
 
-    autoload :FormHelper
     autoload :Assertions
+    autoload :FormHelper
+    autoload :ScreenshotHelper
   end
 end
