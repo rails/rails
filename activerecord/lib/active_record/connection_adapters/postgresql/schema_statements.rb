@@ -132,7 +132,7 @@ module ActiveRecord
         end
 
         # Verifies existence of an index with a given name.
-        def index_name_exists?(table_name, index_name, default)
+        def index_name_exists?(table_name, index_name, default = nil)
           table = Utils.extract_schema_qualified_name(table_name.to_s)
           index = Utils.extract_schema_qualified_name(index_name.to_s)
 

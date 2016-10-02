@@ -773,11 +773,7 @@ module ActiveRecord
       end
 
       # Verifies the existence of an index with a given name.
-      #
-      # The default argument is returned if the underlying implementation does not define the indexes method,
-      # as there's no way to determine the correct answer in that case.
-      def index_name_exists?(table_name, index_name, default)
-        return default unless respond_to?(:indexes)
+      def index_name_exists?(table_name, index_name, default = nil)
         index_name = index_name.to_s
         indexes(table_name).detect { |i| i.name == index_name }
       end
@@ -1149,7 +1145,7 @@ module ActiveRecord
 
         validate_index_length!(table_name, index_name, options.fetch(:internal, false))
 
-        if data_source_exists?(table_name) && index_name_exists?(table_name, index_name, false)
+        if data_source_exists?(table_name) && index_name_exists?(table_name, index_name)
           raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' already exists"
         end
         index_columns = quoted_columns_for_index(column_names, options).join(", ")
