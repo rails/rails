@@ -231,12 +231,13 @@ Active Record
 
 ### sql.active_record
 
-| Key              | Value                 |
-| ---------------- | --------------------- |
-| `:sql`           | SQL statement         |
-| `:name`          | Name of the operation |
-| `:connection_id` | `self.object_id`      |
-| `:binds`         | Bind parameters       |
+| Key              | Value                                    |
+| ---------------- | ---------------------------------------- |
+| `:sql`           | SQL statement                            |
+| `:name`          | Name of the operation                    |
+| `:connection_id` | `self.object_id`                         |
+| `:binds`         | Bind parameters                          |
+| `:cached`        | `true` is added when cached queries used |
 
 INFO. The adapters will add their own data as well.
 
