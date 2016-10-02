@@ -1,3 +1,9 @@
+*   Correctly set test adapter when configure the queue adapter on a per job.
+
+    Fixes #26360.
+
+    *Yuji Yaginuma*
+
 *   Removed deprecated support to passing the adapter class to `.queue_adapter`.
 
     *Rafael Mendonça França*
