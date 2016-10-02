@@ -69,20 +69,15 @@ module ActiveRecord
     def test_indexes
       idx_name = "accounts_idx"
 
-      if @connection.respond_to?(:indexes)
-        indexes = @connection.indexes("accounts")
-        assert indexes.empty?
+      indexes = @connection.indexes("accounts")
+      assert indexes.empty?
 
-        @connection.add_index :accounts, :firm_id, name: idx_name
-        indexes = @connection.indexes("accounts")
-        assert_equal "accounts", indexes.first.table
-        assert_equal idx_name, indexes.first.name
-        assert !indexes.first.unique
-        assert_equal ["firm_id"], indexes.first.columns
-      else
-        warn "#{@connection.class} does not respond to #indexes"
-      end
-
+      @connection.add_index :accounts, :firm_id, name: idx_name
+      indexes = @connection.indexes("accounts")
+      assert_equal "accounts", indexes.first.table
+      assert_equal idx_name, indexes.first.name
+      assert !indexes.first.unique
+      assert_equal ["firm_id"], indexes.first.columns
     ensure
       @connection.remove_index(:accounts, name: idx_name) rescue nil
     end
