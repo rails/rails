@@ -1,13 +1,38 @@
 require "test_helper"
 require "concurrent"
 
-require "faye/websocket"
+require "websocket-client-simple"
 require "json"
 
 require "active_support/hash_with_indifferent_access"
 
+####
+# 😷 Warning suppression 😷
+WebSocket::Frame::Handler::Handler03.prepend Module.new {
+  def initialize(*)
+    @application_data_buffer = nil
+    super
+  end
+}
+
+WebSocket::Frame::Data.prepend Module.new {
+  def initialize(*)
+    @masking_key = nil
+    super
+  end
+}
+
+WebSocket::Client::Simple::Client.prepend Module.new {
+  def initialize(*)
+    @socket = nil
+    super
+  end
+}
+#
+####
+
 class ClientTest < ActionCable::TestCase
-  WAIT_WHEN_EXPECTING_EVENT = 8
+  WAIT_WHEN_EXPECTING_EVENT = 2
   WAIT_WHEN_NOT_EXPECTING_EVENT = 0.5
 
   class EchoChannel < ActionCable::Channel::Base
@@ -42,16 +67,6 @@ class ClientTest < ActionCable::TestCase
 
     # and now the "real" setup for our test:
     server.config.disable_request_forgery_protection = true
-
-    Thread.new { EventMachine.run } unless EventMachine.reactor_running?
-    Thread.pass until EventMachine.reactor_running?
-
-    # faye-websocket is warning-rich
-    @previous_verbose, $VERBOSE = $VERBOSE, nil
-  end
-
-  def teardown
-    $VERBOSE = @previous_verbose
   end
 
   def with_puma_server(rack_app = ActionCable.server, port = 3099)
@@ -72,44 +87,49 @@ class ClientTest < ActionCable::TestCase
     attr_reader :pings
 
     def initialize(port)
-      @ws = Faye::WebSocket::Client.new("ws://127.0.0.1:#{port}/")
-      @messages = Queue.new
-      @closed = Concurrent::Event.new
-      @has_messages = Concurrent::Semaphore.new(0)
-      @pings = 0
+      messages = @messages = Queue.new
+      closed = @closed = Concurrent::Event.new
+      has_messages = @has_messages = Concurrent::Semaphore.new(0)
+      pings = @pings = Concurrent::AtomicFixnum.new(0)
 
-      open = Concurrent::Event.new
-      error = nil
+      open = Concurrent::Promise.new
 
-      @ws.on(:error) do |event|
-        if open.set?
-          @messages << RuntimeError.new(event.message)
-        else
-          error = event.message
-          open.set
+      @ws = WebSocket::Client::Simple.connect("ws://127.0.0.1:#{port}/") do |ws|
+        ws.on(:error) do |event|
+          event = RuntimeError.new(event.message) unless event.is_a?(Exception)
+
+          if open.pending?
+            open.fail(event)
+          else
+            messages << event
+            has_messages.release
+          end
+        end
+
+        ws.on(:open) do |event|
+          open.set(true)
+        end
+
+        ws.on(:message) do |event|
+          if event.type == :close
+            closed.set
+          else
+            message = JSON.parse(event.data)
+            if message["type"] == "ping"
+              pings.increment
+            else
+              messages << message
+              has_messages.release
+            end
+          end
+        end
+
+        ws.on(:close) do |event|
+          closed.set
         end
       end
 
-      @ws.on(:open) do |event|
-        open.set
-      end
-
-      @ws.on(:message) do |event|
-        message = JSON.parse(event.data)
-        if message["type"] == "ping"
-          @pings += 1
-        else
-          @messages << message
-          @has_messages.release
-        end
-      end
-
-      @ws.on(:close) do |event|
-        @closed.set
-      end
-
-      open.wait(WAIT_WHEN_EXPECTING_EVENT)
-      raise error if error
+      open.wait!(WAIT_WHEN_EXPECTING_EVENT)
     end
 
     def read_message
@@ -160,13 +180,17 @@ class ClientTest < ActionCable::TestCase
     end
   end
 
-  def faye_client(port)
+  def websocket_client(port)
     SyncClient.new(port)
+  end
+
+  def concurrently(enum)
+    enum.map { |*x| Concurrent::Future.execute { yield(*x) } }.map(&:value!)
   end
 
   def test_single_client
     with_puma_server do |port|
-      c = faye_client(port)
+      c = websocket_client(port)
       assert_equal({ "type" => "welcome" }, c.read_message)  # pop the first welcome message off the stack
       c.send_message command: "subscribe", identifier: JSON.generate(channel: "ClientTest::EchoChannel")
       assert_equal({ "identifier"=>"{\"channel\":\"ClientTest::EchoChannel\"}", "type"=>"confirm_subscription" }, c.read_message)
@@ -178,12 +202,12 @@ class ClientTest < ActionCable::TestCase
 
   def test_interacting_clients
     with_puma_server do |port|
-      clients = 10.times.map { faye_client(port) }
+      clients = concurrently(10.times) { websocket_client(port) }
 
       barrier_1 = Concurrent::CyclicBarrier.new(clients.size)
       barrier_2 = Concurrent::CyclicBarrier.new(clients.size)
 
-      clients.map { |c| Concurrent::Future.execute {
+      concurrently(clients) do |c|
         assert_equal({ "type" => "welcome" }, c.read_message)  # pop the first welcome message off the stack
         c.send_message command: "subscribe", identifier: JSON.generate(channel: "ClientTest::EchoChannel")
         assert_equal({ "identifier"=>'{"channel":"ClientTest::EchoChannel"}', "type"=>"confirm_subscription" }, c.read_message)
@@ -193,38 +217,38 @@ class ClientTest < ActionCable::TestCase
         c.send_message command: "message", identifier: JSON.generate(channel: "ClientTest::EchoChannel"), data: JSON.generate(action: "bulk", message: "hello")
         barrier_2.wait WAIT_WHEN_EXPECTING_EVENT
         assert_equal clients.size, c.read_messages(clients.size).size
-      } }.each(&:wait!)
+      end
 
-      clients.map { |c| Concurrent::Future.execute { c.close } }.each(&:wait!)
+      concurrently(clients, &:close)
     end
   end
 
   def test_many_clients
     with_puma_server do |port|
-      clients = 100.times.map { faye_client(port) }
+      clients = concurrently(100.times) { websocket_client(port) }
 
-      clients.map { |c| Concurrent::Future.execute {
+      concurrently(clients) do |c|
         assert_equal({ "type" => "welcome" }, c.read_message)  # pop the first welcome message off the stack
         c.send_message command: "subscribe", identifier: JSON.generate(channel: "ClientTest::EchoChannel")
         assert_equal({ "identifier"=>'{"channel":"ClientTest::EchoChannel"}', "type"=>"confirm_subscription" }, c.read_message)
         c.send_message command: "message", identifier: JSON.generate(channel: "ClientTest::EchoChannel"), data: JSON.generate(action: "ding", message: "hello")
         assert_equal({ "identifier"=>'{"channel":"ClientTest::EchoChannel"}', "message"=>{ "dong"=>"hello" } }, c.read_message)
-      } }.each(&:wait!)
+      end
 
-      clients.map { |c| Concurrent::Future.execute { c.close } }.each(&:wait!)
+      concurrently(clients, &:close)
     end
   end
 
   def test_disappearing_client
     with_puma_server do |port|
-      c = faye_client(port)
+      c = websocket_client(port)
       assert_equal({ "type" => "welcome" }, c.read_message)  # pop the first welcome message off the stack
       c.send_message command: "subscribe", identifier: JSON.generate(channel: "ClientTest::EchoChannel")
       assert_equal({ "identifier"=>"{\"channel\":\"ClientTest::EchoChannel\"}", "type"=>"confirm_subscription" }, c.read_message)
       c.send_message command: "message", identifier: JSON.generate(channel: "ClientTest::EchoChannel"), data: JSON.generate(action: "delay", message: "hello")
       c.close # disappear before write
 
-      c = faye_client(port)
+      c = websocket_client(port)
       assert_equal({ "type" => "welcome" }, c.read_message) # pop the first welcome message off the stack
       c.send_message command: "subscribe", identifier: JSON.generate(channel: "ClientTest::EchoChannel")
       assert_equal({ "identifier"=>"{\"channel\":\"ClientTest::EchoChannel\"}", "type"=>"confirm_subscription" }, c.read_message)
@@ -239,7 +263,7 @@ class ClientTest < ActionCable::TestCase
       app = ActionCable.server
       identifier = JSON.generate(channel: "ClientTest::EchoChannel")
 
-      c = faye_client(port)
+      c = websocket_client(port)
       assert_equal({ "type" => "welcome" }, c.read_message)
       c.send_message command: "subscribe", identifier: identifier
       assert_equal({ "identifier"=>"{\"channel\":\"ClientTest::EchoChannel\"}", "type"=>"confirm_subscription" }, c.read_message)
@@ -260,7 +284,7 @@ class ClientTest < ActionCable::TestCase
 
   def test_server_restart
     with_puma_server do |port|
-      c = faye_client(port)
+      c = websocket_client(port)
       assert_equal({ "type" => "welcome" }, c.read_message)
       c.send_message command: "subscribe", identifier: JSON.generate(channel: "ClientTest::EchoChannel")
       assert_equal({ "identifier"=>"{\"channel\":\"ClientTest::EchoChannel\"}", "type"=>"confirm_subscription" }, c.read_message)
