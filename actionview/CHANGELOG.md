@@ -1,3 +1,22 @@
+*   Render now accepts any keys for locals, including reserved words
+
+    Only locals with valid variable names get set directly. Others
+    will still be available in local_assigns.
+
+    Example of render with reserved words:
+
+    ```erb
+    <%= render "example", class: "text-center", message: "Hello world!" %>
+
+    <!-- _example.html.erb: -->
+    <%= tag.div class: local_assigns[:class] do %>
+      <p><%= message %></p>
+    <% end %>
+    ```
+
+    *Peter Schilling*, *Matthew Draper*
+
+
 ## Rails 5.0.0 (June 30, 2016) ##
 
 *   Changed partial rendering with a collection to allow collections which
