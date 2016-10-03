@@ -1,7 +1,7 @@
 module ActiveRecord
   module Type
-    class Serialized < DelegateClass(ActiveModel::Type::Value) # :nodoc:
-      include ActiveModel::Type::Helpers::Mutable
+    class Serialized < DelegateClass(Type::Value) # :nodoc:
+      include Type::Helpers::Mutable
 
       attr_reader :subtype, :coder
 
