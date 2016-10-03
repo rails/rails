@@ -40,7 +40,12 @@ module ActiveJob
       private
 
         def job_to_hash(job, extras = {})
-          { job: job.class, args: job.serialize.fetch("arguments"), queue: job.queue_name }.merge!(extras)
+          {
+            job: job.class,
+            args: job.serialize.fetch("arguments"),
+            queue: job.queue_name,
+            priority: job.priority
+          }.merge!(extras)
         end
 
         def enqueue_or_perform(perform, job, job_data)

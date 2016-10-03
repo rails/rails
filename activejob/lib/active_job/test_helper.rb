@@ -232,9 +232,16 @@ module ActiveJob
     #       MyJob.set(wait_until: Date.tomorrow.noon).perform_later
     #     end
     #   end
-    def assert_enqueued_with(job: nil, args: nil, at: nil, queue: nil)
+    #
+    # Argument options:
+    # * <tt>:job</tt> - Job class name.
+    # * <tt>:args</tt> - Arguments passed to job when enqueueing.
+    # * <tt>:at</tt> - Time when job should perform.
+    # * <tt>:queue</tt> - Queue name.
+    # * <tt>:priority</tt> - Priority value.
+    def assert_enqueued_with(job: nil, args: nil, at: nil, queue: nil, priority: nil)
       original_enqueued_jobs_count = enqueued_jobs.count
-      expected = { job: job, args: args, at: at, queue: queue }.compact
+      expected = { job: job, args: args, at: at, queue: queue, priority: priority }.compact
       serialized_args = serialize_args_for_assertion(expected)
       yield
       in_block_jobs = enqueued_jobs.drop(original_enqueued_jobs_count)
@@ -256,9 +263,16 @@ module ActiveJob
     #       MyJob.set(wait_until: Date.tomorrow.noon).perform_later
     #     end
     #   end
-    def assert_performed_with(job: nil, args: nil, at: nil, queue: nil)
+    #
+    # Argument options:
+    # * <tt>:job</tt> - Job class name.
+    # * <tt>:args</tt> - Arguments passed to job when enqueueing.
+    # * <tt>:at</tt> - Time when job should perform.
+    # * <tt>:queue</tt> - Queue name.
+    # * <tt>:priority</tt> - Priority value.
+    def assert_performed_with(job: nil, args: nil, at: nil, queue: nil, priority: nil)
       original_performed_jobs_count = performed_jobs.count
-      expected = { job: job, args: args, at: at, queue: queue }.compact
+      expected = { job: job, args: args, at: at, queue: queue, priority: priority }.compact
       serialized_args = serialize_args_for_assertion(expected)
       perform_enqueued_jobs { yield }
       in_block_jobs = performed_jobs.drop(original_performed_jobs_count)
