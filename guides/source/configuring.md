@@ -1296,7 +1296,7 @@ evented file system monitor to detect changes when `config.cache_classes` is
 
 ```ruby
 group :development do
-  gem 'listen', '~> 3.0.4'
+  gem 'listen', '>= 3.0.5', '< 3.2'
 end
 ```
 

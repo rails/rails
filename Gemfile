@@ -44,7 +44,7 @@ end
 
 # Active Support.
 gem "dalli", ">= 2.2.1"
-gem "listen", "~> 3.0.5", require: false
+gem "listen", ">= 3.0.5", "< 3.2", require: false
 
 # Active Job.
 group :job do
