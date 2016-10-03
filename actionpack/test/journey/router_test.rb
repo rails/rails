@@ -94,7 +94,18 @@ module ActionDispatch
           @formatter.generate(route_name, {}, {})
         end
 
-        assert_match(/missing required keys: \[:id\]/, error.message)
+        assert_match(/one or more required keys is missing or does not match the constraint: \[:id\]/, error.message)
+      end
+
+      def test_knows_what_parts_do_not_match_constraint
+        route_name = "gorby_thunderhorse"
+        get "/foo/:id", as: route_name, id: /\d+/, to: "foo#bar"
+
+        error = assert_raises(ActionController::UrlGenerationError) do
+          @formatter.generate(route_name, {}, id: "aa")
+        end
+
+        assert_match(/one or more required keys is missing or does not match the constraint: \[:id\]/, error.message)
       end
 
       def test_does_not_include_missing_keys_message
@@ -104,7 +115,7 @@ module ActionDispatch
           @formatter.generate(route_name, {}, {})
         end
 
-        assert_no_match(/missing required keys: \[\]/, error.message)
+        assert_no_match(/one or more required keys is missing or does not match the constraint: \[\]/, error.message)
       end
 
       def test_X_Cascade
@@ -297,7 +308,7 @@ module ActionDispatch
         }
         request_parameters = primarty_parameters.merge(redirection_parameters).merge(missing_parameters)
 
-        message = "No route matches #{Hash[request_parameters.sort_by { |k,v|k.to_s }].inspect} missing required keys: #{[missing_key.to_sym].inspect}"
+        message = "No route matches #{Hash[request_parameters.sort_by { |k,v|k.to_s }].inspect} one or more required keys is missing or does not match the constraint: #{[missing_key.to_sym].inspect}"
 
         error = assert_raises(ActionController::UrlGenerationError) do
           @formatter.generate(
