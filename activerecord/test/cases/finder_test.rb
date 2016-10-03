@@ -1265,6 +1265,21 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_first_and_last_with_limit_for_order_without_primary_key
+    # While Topic.first should impose an ordering by primary key,
+    # Topic.limit(n).first should not
+
+    Topic.first.touch # PostgreSQL changes the default order if no order clause is used
+
+    assert_equal Topic.limit(1).to_a.first, Topic.limit(1).first
+    assert_equal Topic.limit(2).to_a.first, Topic.limit(2).first
+    assert_equal Topic.limit(2).to_a.first(2), Topic.limit(2).first(2)
+
+    assert_equal Topic.limit(1).to_a.last, Topic.limit(1).last
+    assert_equal Topic.limit(2).to_a.last, Topic.limit(2).last
+    assert_equal Topic.limit(2).to_a.last(2), Topic.limit(2).last(2)
+  end
+
   def test_finder_with_offset_string
     assert_nothing_raised { Topic.offset("3").to_a }
   end
