@@ -20,7 +20,7 @@ module CommonSubscriptionAdapterTest
   end
 
   def teardown
-    [@rx_adapter, @tx_adapter].uniq.each(&:shutdown)
+    [@rx_adapter, @tx_adapter].uniq.compact.each(&:shutdown)
   end
 
   def subscribe_as_queue(channel, adapter = @rx_adapter)
