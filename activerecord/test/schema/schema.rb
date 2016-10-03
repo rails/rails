@@ -1027,6 +1027,15 @@ ActiveRecord::Schema.define do
   create_table :test_with_keyword_column_name, force: true do |t|
     t.string :desc
   end
+
+  create_table :menus, force: true do |t|
+    t.timestamps null: false
+  end
+
+  create_table :sub_menus, force: true do |t|
+    t.belongs_to :menu
+    t.string :name
+  end
 end
 
 Course.connection.create_table :courses, force: true do |t|

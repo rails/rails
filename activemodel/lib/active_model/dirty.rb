@@ -137,6 +137,29 @@ module ActiveModel
       changed_attributes.present?
     end
 
+    # changed? checks only for attributes and not for association update
+    alias attributes_changed? changed?
+
+    def associations_to_autosave_changed?
+      associations_keys = self._reflections.select { |_key, value| value.options[:autosave] }.keys
+
+      associations_keys.each do |association_key|
+        association = send(association_key)
+
+        if association.is_a?(ActiveRecord::Associations::CollectionProxy)
+          # without this if, some tests will break
+          # eg.: test_update_attribute_does_not_run_sql_if_attribute_is_not_changed
+          if association.size > 0
+            association.each { |d| return true if d && d.changed? }
+          end
+        else
+          return true if association.changed?
+        end
+      end
+
+      false
+    end
+
     # Returns an array with the name of the attributes with unsaved changes.
     #
     #   person.changed # => []

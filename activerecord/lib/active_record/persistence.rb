@@ -253,7 +253,11 @@ module ActiveRecord
       verify_readonly_attribute(name)
       public_send("#{name}=", value)
 
-      changed? ? save(validate: false) : true
+      attribute_or_association_changed? ? save(validate: false) : true
+    end
+
+    def attribute_or_association_changed?
+      attributes_changed? || associations_to_autosave_changed?
     end
 
     # Updates the attributes of the model from the passed-in hash and saves the

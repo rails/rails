@@ -20,6 +20,8 @@ require "models/pet"
 require "models/ship"
 require "models/toy"
 require "models/admin"
+require "models/menu"
+require "models/sub_menu"
 require "models/admin/user"
 require "rexml/document"
 
@@ -347,6 +349,18 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_instance_of Topic, topic
     topic.save!
     assert_instance_of Topic, Topic.find(topic.id)
+  end
+
+  def test_update_auto_save_relations
+    menu = Menu.create!
+
+    menu.create_sub_menu(name: "menu A")
+
+    assert_equal "menu A", Menu.find(menu.id).sub_menu.name
+
+    menu.update_attribute(:name, "menu B")
+
+    assert_equal "menu B", Menu.find(menu.id).sub_menu.name
   end
 
   def test_preserve_original_sti_type
