@@ -1,3 +1,7 @@
+*   Moved DecimalWithoutScale, Text, and UnsignedInteger from Active Model to Active Record
+
+    *Iain Beeston*
+
 *   Fixed support for case insensitive comparisons of `text` columns in
     PostgreSQL.
 

@@ -1,3 +1,7 @@
+*   Moved DecimalWithoutScale, Text, and UnsignedInteger from Active Model to Active Record
+
+    *Iain Beeston*
+
 *   Removed deprecated `:tokenizer` in the length validator.
 
     *Rafael Mendonça França*
