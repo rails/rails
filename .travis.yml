@@ -35,7 +35,7 @@ env:
   matrix:
     - "GEM=railties"
     - "GEM=ap"
-    - "GEM=ac"
+    - "GEM=ac TESTOPTS=-vs26"
     - "GEM=ac:integration"
     - "GEM=am,amo,as,av,aj"
     - "GEM=as PRESERVE_TIMEZONES=1"
