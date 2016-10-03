@@ -1,3 +1,7 @@
+*   Allow the use of listen's 3.1.x branch
+
+    *Esteban Santana Santana*
+
 *   Run `Minitest.after_run` hooks when running `rails test`.
 
     *Michael Grosser*

@@ -1,10 +1,10 @@
 GIT
   remote: https://github.com/QueueClassic/queue_classic.git
-  revision: 1ef197b9db8149a895e59077badcb5b94d4c8b44
+  revision: 51d56ca6fa2fdf1eeffdffd702ae1cc0940b5156
   branch: master
   specs:
     queue_classic (3.2.0.RC1)
-      pg (>= 0.17, < 0.19)
+      pg (>= 0.17, < 0.20)
 
 GIT
   remote: https://github.com/collectiveidea/delayed_job.git
@@ -31,7 +31,7 @@ GIT
 
 GIT
   remote: https://github.com/resque/resque.git
-  revision: a3a66389618b830de0e6acf862b0dc9fde05cf49
+  revision: 20d885065ac19e7f7d7a982f4ed1296083db0300
   specs:
     resque (1.27.0)
       mono_logger (~> 1.0)
@@ -112,8 +112,9 @@ GEM
     addressable (2.4.0)
     amq-protocol (2.0.1)
     arel (7.1.2)
-    backburner (1.3.0)
+    backburner (1.3.1)
       beaneater (~> 1.0)
+      concurrent-ruby (~> 1.0.1)
       dante (> 0.1.5)
     bcrypt (3.1.11)
     bcrypt (3.1.11-x64-mingw32)
@@ -141,7 +142,7 @@ GEM
     builder (3.2.2)
     bunny (2.2.2)
       amq-protocol (>= 2.0.1)
-    byebug (9.0.5)
+    byebug (9.0.6)
     childprocess (0.5.9)
       ffi (~> 1.0, >= 1.0.11)
     coffee-rails (4.2.1)
@@ -177,7 +178,7 @@ GEM
     execjs (2.7.0)
     faraday (0.9.2)
       multipart-post (>= 1.2, < 3)
-    faye (1.1.1)
+    faye (1.2.2)
       cookiejar (>= 0.3.0)
       em-http-request (>= 0.3.0)
       eventmachine (>= 0.12.0)
@@ -189,8 +190,6 @@ GEM
       eventmachine (>= 0.12.0)
       websocket-driver (>= 0.5.1)
     ffi (1.9.14)
-    ffi (1.9.14-x64-mingw32)
-    ffi (1.9.14-x86-mingw32)
     globalid (0.3.7)
       activesupport (>= 4.1.0)
     hiredis (0.6.1)
@@ -204,9 +203,10 @@ GEM
     kindlerb (0.1.1)
       mustache
       nokogiri
-    listen (3.0.8)
+    listen (3.1.5)
       rb-fsevent (~> 0.9, >= 0.9.4)
       rb-inotify (~> 0.9, >= 0.9.7)
+      ruby_dep (~> 1.2)
     loofah (2.0.3)
       nokogiri (>= 1.5.9)
     mail (2.6.4)
@@ -237,9 +237,9 @@ GEM
     nokogiri (1.6.8-x86-mingw32)
       mini_portile2 (~> 2.1.0)
       pkg-config (~> 1.1.7)
-    pg (0.18.4)
-    pg (0.18.4-x64-mingw32)
-    pg (0.18.4-x86-mingw32)
+    pg (0.19.0)
+    pg (0.19.0-x64-mingw32)
+    pg (0.19.0-x86-mingw32)
     pkg-config (1.1.7)
     psych (2.1.1)
     puma (3.6.0)
@@ -263,7 +263,7 @@ GEM
       nokogiri (~> 1.6.0)
     rails-html-sanitizer (1.0.3)
       loofah (~> 2.0)
-    rake (11.2.2)
+    rake (11.3.0)
     rb-fsevent (0.9.7)
     rdoc (4.2.2)
       json (~> 1.4)
@@ -276,6 +276,7 @@ GEM
       redis (~> 3.3)
       resque (~> 1.26)
       rufus-scheduler (~> 3.2)
+    ruby_dep (1.4.0)
     rubyzip (1.2.0)
     rufus-scheduler (3.2.2)
     sass-rails (5.0.6)
@@ -291,10 +292,10 @@ GEM
       childprocess (~> 0.5)
       rubyzip (~> 1.0)
       websocket (~> 1.0)
-    sequel (4.38.0)
+    sequel (4.39.0)
     serverengine (1.5.11)
       sigdump (~> 0.2.2)
-    sidekiq (4.2.0)
+    sidekiq (4.2.2)
       concurrent-ruby (~> 1.0)
       connection_pool (~> 2.2, >= 2.2.0)
       rack-protection (~> 1.5)
@@ -319,7 +320,7 @@ GEM
     sqlite3 (1.3.11)
     sqlite3 (1.3.11-x64-mingw32)
     sqlite3 (1.3.11-x86-mingw32)
-    stackprof (0.2.9)
+    stackprof (0.2.10)
     sucker_punch (2.0.2)
       concurrent-ruby (~> 1.0.0)
     thin (1.7.0)
@@ -335,7 +336,7 @@ GEM
     turbolinks-source (5.0.0)
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
-    tzinfo-data (1.2016.6)
+    tzinfo-data (1.2016.7)
       tzinfo (>= 1.0.0)
     uglifier (3.0.2)
       execjs (>= 0.3.0, < 3)
@@ -377,7 +378,7 @@ DEPENDENCIES
   hiredis
   jquery-rails
   kindlerb (= 0.1.1)
-  listen (~> 3.0.5)
+  listen (>= 3.0.5, < 3.2)
   minitest (< 5.3.4)
   mocha (~> 0.14)
   mysql2 (>= 0.4.4)
@@ -414,4 +415,4 @@ DEPENDENCIES
   websocket-client-simple
 
 BUNDLED WITH
-   1.13.1
+   1.13.2
