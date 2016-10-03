@@ -174,9 +174,10 @@ GEM
     kindlerb (0.1.1)
       mustache
       nokogiri
-    listen (3.0.8)
+    listen (3.1.5)
       rb-fsevent (~> 0.9, >= 0.9.4)
       rb-inotify (~> 0.9, >= 0.9.7)
+      ruby_dep (~> 1.2)
     loofah (2.0.3)
       nokogiri (>= 1.5.9)
     mail (2.6.4)
@@ -251,6 +252,7 @@ GEM
       redis (~> 3.0)
       resque (~> 1.25)
       rufus-scheduler (~> 3.2)
+    ruby_dep (1.4.0)
     rufus-scheduler (3.2.2)
     sass-rails (5.0.6)
       railties (>= 4.0.0, < 6)
@@ -343,7 +345,7 @@ DEPENDENCIES
   hiredis
   jquery-rails
   kindlerb (= 0.1.1)
-  listen (~> 3.0.5)
+  listen (>= 3.0.5, < 3.2)
   minitest (< 5.3.4)
   mocha (~> 0.14)
   mysql2 (>= 0.4.4)
@@ -379,4 +381,4 @@ DEPENDENCIES
   wdm (>= 0.1.0)
 
 BUNDLED WITH
-   1.13.1
+   1.13.2
