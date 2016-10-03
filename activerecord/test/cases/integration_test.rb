@@ -172,4 +172,10 @@ class IntegrationTest < ActiveRecord::TestCase
     owner = owners(:blackbeard)
     assert_equal "owners/#{owner.id}-#{owner.happy_at.utc.to_s(:usec)}", owner.cache_key(:updated_at, :happy_at)
   end
+
+  def test_cache_key_when_named_timestamp_is_nil
+    owner = owners(:blackbeard)
+    owner.happy_at = nil
+    assert_equal "owners/#{owner.id}", owner.cache_key(:happy_at)
+  end
 end
