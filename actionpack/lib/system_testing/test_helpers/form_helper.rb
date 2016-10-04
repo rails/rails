@@ -50,7 +50,7 @@ module SystemTesting
           find(:field, name, visible: :all, checked: checked)
         end
 
-        def find_label_wrapper(field, location: './ancestor::label')
+        def find_label_wrapper(field, location: "./ancestor::label")
           field.find :xpath, location
         end
     end

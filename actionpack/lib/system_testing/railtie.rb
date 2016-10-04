@@ -1,4 +1,4 @@
-require 'system_test_case'
+require "system_test_case"
 
 module SystemTesting
   # = System Testing Railtie

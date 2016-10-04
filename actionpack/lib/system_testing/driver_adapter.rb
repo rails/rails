@@ -1,4 +1,4 @@
-require 'system_testing/driver_adapters'
+require "system_testing/driver_adapters"
 
 module SystemTesting
   # The <tt>SystemTesting::DriverAdapter</tt> module is used to load the driver

@@ -1,4 +1,4 @@
-require 'system_testing/driver_adapters/web_server'
+require "system_testing/driver_adapters/web_server"
 
 module SystemTesting
   module DriverAdapters

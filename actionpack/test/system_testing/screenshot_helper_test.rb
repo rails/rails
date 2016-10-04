@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class ScreenshotHelperTest < ActiveSupport::TestCase
   def test_driver_support_for_screenshots

@@ -1,5 +1,5 @@
-require 'system_testing/test_helper'
-require 'system_testing/driver_adapter'
+require "system_testing/test_helper"
+require "system_testing/driver_adapter"
 
 module Rails
   # System tests are similar to Integration tests in that they incorporate multiple

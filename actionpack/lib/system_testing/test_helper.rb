@@ -1,5 +1,5 @@
-require 'capybara/dsl'
-require 'system_testing/test_helpers'
+require "capybara/dsl"
+require "system_testing/test_helpers"
 
 module SystemTesting
   module TestHelper # :nodoc:

@@ -30,7 +30,7 @@ module SystemTesting
         end
 
         def find_image
-          if ENV['CAPYBARA_INLINE_SCREENSHOT'] == 'artifact'
+          if ENV["CAPYBARA_INLINE_SCREENSHOT"] == "artifact"
             "\e]1338;url=artifact://#{image_path}\a"
           else
             name = inline_base64(File.basename(image_path))
@@ -40,9 +40,8 @@ module SystemTesting
         end
 
         def inline_base64(path)
-          Base64.encode64(path).gsub("\n",'')
+          Base64.encode64(path).gsub("\n", "")
         end
     end
   end
 end
-

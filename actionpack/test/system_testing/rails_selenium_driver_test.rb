@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class RailsSeleniumDriverTest < ActiveSupport::TestCase
   def setup
@@ -51,7 +51,7 @@ class RailsSeleniumDriverTest < ActiveSupport::TestCase
   def test_does_not_accept_nonsense_kwargs
     assert_raises ArgumentError do
       Rails::SystemTestCase.driver = SystemTesting::DriverAdapters::RailsSeleniumDriver.new(
-        made_up_arg: 'x'
+        made_up_arg: "x"
       )
     end
   end
