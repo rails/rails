@@ -34,16 +34,14 @@ module ActiveRecord
     def self.complete(enabled)
       ActiveRecord::Base.connection.clear_query_cache
       ActiveRecord::Base.connection.disable_query_cache! unless enabled
+
+      unless ActiveRecord::Base.connected? && ActiveRecord::Base.connection.transaction_open?
+        ActiveRecord::Base.clear_active_connections!
+      end
     end
 
     def self.install_executor_hooks(executor = ActiveSupport::Executor)
       executor.register_hook(self)
-
-      executor.to_complete do
-        unless ActiveRecord::Base.connected? && ActiveRecord::Base.connection.transaction_open?
-          ActiveRecord::Base.clear_active_connections!
-        end
-      end
     end
   end
 end
