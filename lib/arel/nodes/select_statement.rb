@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 module Arel
   module Nodes
-    class SelectStatement < Arel::Nodes::Node
+    class SelectStatement < Arel::Nodes::NodeExpression
       attr_reader :cores
       attr_accessor :limit, :orders, :lock, :offset, :with
 

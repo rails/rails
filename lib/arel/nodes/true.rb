@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 module Arel
   module Nodes
-    class True < Arel::Nodes::Node
+    class True < Arel::Nodes::NodeExpression
       def hash
         self.class.hash
       end

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 # node
 require 'arel/nodes/node'
+require 'arel/nodes/node_expression'
 require 'arel/nodes/select_statement'
 require 'arel/nodes/select_core'
 require 'arel/nodes/insert_statement'

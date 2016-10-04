@@ -1,10 +1,8 @@
 # frozen_string_literal: true
 module Arel
   module Nodes
-    class Function < Arel::Nodes::Node
-      include Arel::Predications
+    class Function < Arel::Nodes::NodeExpression
       include Arel::WindowPredications
-      include Arel::OrderPredications
       attr_accessor :expressions, :alias, :distinct
 
       def initialize expr, aliaz = nil

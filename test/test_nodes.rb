@@ -12,6 +12,7 @@ module Arel
           node_descendants.unshift k unless k == self
         end
         node_descendants.delete(Arel::Nodes::Node)
+        node_descendants.delete(Arel::Nodes::NodeExpression)
 
         bad_node_descendants = node_descendants.reject do |subnode|
           eqeq_owner = subnode.instance_method(:==).owner

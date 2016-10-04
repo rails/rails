@@ -3,12 +3,6 @@ module Arel
   module Nodes
 
     class UnaryOperation < Unary
-      include Arel::Expressions
-      include Arel::Predications
-      include Arel::OrderPredications
-      include Arel::AliasPredication
-      include Arel::Math
-
       attr_reader :operator
 
       def initialize operator, operand
