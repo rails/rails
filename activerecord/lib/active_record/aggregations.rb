@@ -13,11 +13,11 @@ module ActiveRecord
       super
     end
 
-    private
+    def clear_aggregation_cache # :nodoc:
+      @aggregation_cache.clear if persisted?
+    end
 
-      def clear_aggregation_cache # :nodoc:
-        @aggregation_cache.clear if persisted?
-      end
+    private
 
       def init_internals # :nodoc:
         @aggregation_cache = {}

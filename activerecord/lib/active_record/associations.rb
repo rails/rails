@@ -253,11 +253,11 @@ module ActiveRecord
       super
     end
 
+    def clear_association_cache # :nodoc:
+      @association_cache.clear if persisted?
+    end
+
     private
-      # Clears out the association cache.
-      def clear_association_cache # :nodoc:
-        @association_cache.clear if persisted?
-      end
 
       def init_internals # :nodoc:
         @association_cache = {}
