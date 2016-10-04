@@ -5,8 +5,17 @@ class Club < ActiveRecord::Base
   has_one :sponsor
   has_one :sponsored_member, through: :sponsor, source: :sponsorable, source_type: "Member"
   belongs_to :category
+  has_many :club_category_ratings
 
   has_many :favourites, -> { where(memberships: { favourite: true }) }, through: :memberships, source: :member
+
+  def self.with_ratings
+    joins(:club_category_ratings)
+  end
+
+  def self.with_distinct_joins
+    joins(:club_category_ratings).distinct
+  end
 
   private
 

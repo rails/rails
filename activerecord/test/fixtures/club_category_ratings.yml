@@ -1,0 +1,14 @@
+boring_club_general_rating1:
+  category_id: 1
+  club: boring_club
+  value: 1
+
+boring_club_general_rating2:
+  category_id: 1
+  club: boring_club
+  value: 2
+
+moustache_club_general_rating:
+  category_id: 1
+  club: moustache_club
+  value: 11
