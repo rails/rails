@@ -283,15 +283,6 @@ module ActionDispatch
         @https
       end
 
-      def process_with_kwargs(http_method, path, *args)
-        if kwarg_request?(args)
-          process(http_method, path, *args)
-        else
-          non_kwarg_request_warning if args.any?
-          process(http_method, path, params: args[0], headers: args[1])
-        end
-      end
-
       # Performs the actual request.
       def process(method, path, params: nil, headers: nil, env: nil, xhr: false, as: nil)
         request_encoder = RequestEncoder.encoder(as)
@@ -399,6 +390,15 @@ module ActionDispatch
               xhr: true,
               as: :json
           MSG
+        end
+
+        def process_with_kwargs(http_method, path, *args)
+          if kwarg_request?(args)
+            process(http_method, path, *args)
+          else
+            non_kwarg_request_warning if args.any?
+            process(http_method, path, params: args[0], headers: args[1])
+          end
         end
 
         def build_full_uri(path, env)
