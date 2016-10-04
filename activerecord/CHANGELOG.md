@@ -1,3 +1,8 @@
+*   Re-publicize useful cache clearing methods
+    `clear_association_cache` and `clear_aggregation_cache`
+
+    *Chris Arcand*
+
 *   Made ActiveRecord consistently use `ActiveRecord::Type` (not `ActiveModel::Type`)
 
     *Iain Beeston*
