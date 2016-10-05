@@ -1,3 +1,9 @@
+*   Removed support for returning false to halt a callback chain (deprecated).
+
+    Define a custom terminator to retain the old behavior.
+
+    *Iain Beeston*
+
 *   Removed support for callbacks defined as strings (deprecated).
 
     *Iain Beeston*

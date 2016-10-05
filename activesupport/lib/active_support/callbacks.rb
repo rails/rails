@@ -6,7 +6,6 @@ require "active_support/core_ext/kernel/reporting"
 require "active_support/core_ext/kernel/singleton_class"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/string/filters"
-require "active_support/deprecation"
 require "thread"
 
 module ActiveSupport
@@ -68,12 +67,6 @@ module ActiveSupport
     end
 
     CALLBACK_FILTER_TYPES = [:before, :after, :around]
-
-    # If true, Active Record and Active Model callbacks returning +false+ will
-    # halt the entire callback chain and display a deprecation message.
-    # If false, callback chains will only be halted by calling +throw :abort+.
-    # Defaults to +true+.
-    mattr_accessor(:halt_and_display_warning_on_return_false, instance_writer: false) { true }
 
     # Runs the callbacks for the given event.
     #
@@ -819,30 +812,6 @@ module ActiveSupport
 
           def set_callbacks(name, callbacks) # :nodoc:
             self.__callbacks = __callbacks.merge(name.to_sym => callbacks)
-          end
-
-          def deprecated_false_terminator # :nodoc:
-            Proc.new do |target, result_lambda|
-              terminate = true
-              catch(:abort) do
-                result = result_lambda.call if result_lambda.is_a?(Proc)
-                if Callbacks.halt_and_display_warning_on_return_false && result == false
-                  display_deprecation_warning_for_false_terminator
-                else
-                  terminate = false
-                end
-              end
-              terminate
-            end
-          end
-
-        private
-
-          def display_deprecation_warning_for_false_terminator
-            ActiveSupport::Deprecation.warn(<<-MSG.squish)
-              Returning `false` in Active Record and Active Model callbacks will not implicitly halt a callback chain in Rails 5.1.
-              To explicitly halt the callback chain, please use `throw :abort` instead.
-            MSG
           end
       end
   end
