@@ -422,7 +422,7 @@ App.cable.subscriptions.create "AppearanceChannel",
   buttonSelector = "[data-behavior~=appear_away]"
 
   install: ->
-    $(document).on "page:change.appearance", =>
+    $(document).on "turbolinks:load.appearance", =>
       @appear()
 
     $(document).on "click.appearance", buttonSelector, =>
