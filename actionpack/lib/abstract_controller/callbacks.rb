@@ -54,20 +54,6 @@ module AbstractController
         end
       end
 
-      # Skip before, after, and around action callbacks matching any of the names.
-      #
-      # ==== Parameters
-      # * <tt>names</tt> - A list of valid names that could be used for
-      #   callbacks. Note that skipping uses Ruby equality, so it's
-      #   impossible to skip a callback defined using an anonymous proc
-      #   using #skip_action_callback.
-      def skip_action_callback(*names)
-        ActiveSupport::Deprecation.warn("`skip_action_callback` is deprecated and will be removed in Rails 5.1. Please use skip_before_action, skip_after_action or skip_around_action instead.")
-        skip_before_action(*names, raise: false)
-        skip_after_action(*names, raise: false)
-        skip_around_action(*names, raise: false)
-      end
-
       # Take callback names and an optional callback proc, normalize them,
       # then call the block with each callback. This allows us to abstract
       # the normalization across several methods that use it.

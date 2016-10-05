@@ -1,3 +1,7 @@
+*   Removed deprecated AbstractController#skip_action_callback
+
+    *Iain Beeston*
+
 *   Removed deprecated *_filter callback methods from AbstractController
 
     *Iain Beeston*
