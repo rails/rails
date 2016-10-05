@@ -1,3 +1,7 @@
+*   Removed deprecated *_filter callback methods from AbstractController
+
+    *Iain Beeston*
+
 *   Show an "unmatched constraints" error when params fail to match constraints
     on a matched route, rather than a "missing keys" error.
 

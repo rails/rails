@@ -12,7 +12,7 @@ module ActionController
     end
 
     module ClassMethods
-      def before_filters
+      def before_actions
         _process_action_callbacks.find_all { |x| x.kind == :before }.map(&:name)
       end
     end
