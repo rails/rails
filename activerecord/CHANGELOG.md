@@ -1,3 +1,8 @@
+*   Fix `write_attribute` method to check whether an attribute is aliased or not, and
+    use the aliased attribute name if needed.
+
+    *Prathamesh Sonpatki*
+
 *   Fix `read_attribute` method to check whether an attribute is aliased or not, and
     use the aliased attribute name if needed.
 
@@ -65,7 +70,7 @@
 
     *Jon Moss*
 
-*   Add `stat` method to `ActiveRecord::ConnectionAdapters::ConnectionPool`.
+*   Added `stat` method to `ActiveRecord::ConnectionAdapters::ConnectionPool`.
 
     Example:
 
