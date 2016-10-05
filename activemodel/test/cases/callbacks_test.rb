@@ -27,7 +27,7 @@ class CallbacksTest < ActiveModel::TestCase
       false
     end
 
-    ActiveSupport::Deprecation.silence { after_create "@callbacks << :final_callback" }
+    after_create :final_callback
 
     def initialize(options = {})
       @callbacks = []
@@ -40,6 +40,10 @@ class CallbacksTest < ActiveModel::TestCase
       @callbacks << :before_create
       throw(@before_create_throws) if @before_create_throws
       @before_create_returns
+    end
+
+    def final_callback
+      @callbacks << :final_callback
     end
 
     def create
@@ -61,14 +65,6 @@ class CallbacksTest < ActiveModel::TestCase
     model = ModelCallbacks.new
     model.create
     assert_equal model.callbacks.last, :final_callback
-  end
-
-  test "the callback chain is halted when a before callback returns false (deprecated)" do
-    model = ModelCallbacks.new(before_create_returns: false)
-    assert_deprecated do
-      model.create
-      assert_equal model.callbacks.last, :before_create
-    end
   end
 
   test "the callback chain is halted when a callback throws :abort" do

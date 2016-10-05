@@ -279,13 +279,6 @@ module ActiveSupport
 
       class Callback #:nodoc:#
         def self.build(chain, filter, kind, options)
-          if filter.is_a?(String)
-            ActiveSupport::Deprecation.warn(<<-MSG.squish)
-              Passing string to define callback is deprecated and will be removed
-              in Rails 5.1 without replacement.
-            MSG
-          end
-
           new chain.name, filter, kind, options, chain.config
         end
 
@@ -427,7 +420,6 @@ module ActiveSupport
         # Filters support:
         #
         #   Symbols:: A method to call.
-        #   Strings:: Some content to evaluate.
         #   Procs::   A proc to call with the object.
         #   Objects:: An object with a <tt>before_foo</tt> method on it to call.
         #
@@ -437,8 +429,6 @@ module ActiveSupport
           case filter
           when Symbol
             new(nil, filter, [], nil)
-          when String
-            new(nil, :instance_exec, [:value], compile_lambda(filter))
           when Conditionals::Value
             new(filter, :call, [:target, :value], nil)
           when ::Proc
@@ -454,10 +444,6 @@ module ActiveSupport
 
             new(filter, method_to_call, [:target], nil)
           end
-        end
-
-        def self.compile_lambda(filter)
-          eval("lambda { |value| #{filter} }")
         end
       end
 
@@ -637,9 +623,8 @@ module ActiveSupport
         #   set_callback :save, :before_method
         #
         # The callback can be specified as a symbol naming an instance method; as a
-        # proc, lambda, or block; as a string to be instance evaluated(deprecated); or as an
-        # object that responds to a certain method determined by the <tt>:scope</tt>
-        # argument to +define_callbacks+.
+        # proc, lambda, or block; or as an object that responds to a certain method
+        # determined by the <tt>:scope</tt> argument to +define_callbacks+.
         #
         # If a proc, lambda, or block is given, its body is evaluated in the context
         # of the current object. It can also optionally accept the current object as
