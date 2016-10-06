@@ -1,3 +1,8 @@
+*   Raise ActiveRecord::RecordNotFound from collection `*_ids` setters
+    for unknown IDs with a better error message.
+
+    *Dominic Cleal*
+
 *   For PostgreSQL >= 9.4 use `pgcrypto`'s `gen_random_uuid()` instead of
     `uuid-ossp`'s UUID generation function.
 
