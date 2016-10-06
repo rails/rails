@@ -30,6 +30,15 @@ GIT
       ffi (>= 0.5.0)
 
 GIT
+  remote: https://github.com/matthewd/websocket-client-simple.git
+  revision: e161305f1a466b9398d86df3b1731b03362da91b
+  branch: close-race
+  specs:
+    websocket-client-simple (0.3.0)
+      event_emitter
+      websocket
+
+GIT
   remote: https://github.com/resque/resque.git
   revision: 20d885065ac19e7f7d7a982f4ed1296083db0300
   specs:
@@ -350,9 +359,6 @@ GEM
       nokogiri
     wdm (0.1.1)
     websocket (1.2.3)
-    websocket-client-simple (0.3.0)
-      event_emitter
-      websocket
     websocket-driver (0.6.4)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.2)
@@ -414,7 +420,7 @@ DEPENDENCIES
   uglifier (>= 1.3.0)
   w3c_validators
   wdm (>= 0.1.0)
-  websocket-client-simple
+  websocket-client-simple!
 
 BUNDLED WITH
    1.13.2
