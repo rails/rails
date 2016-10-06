@@ -8,6 +8,7 @@ class PostgreSQLUtilsTest < ActiveRecord::PostgreSQLTestCase
   def test_extract_schema_qualified_name
     {
       %(table_name)            => [nil,"table_name"],
+      %("table_name")            => [nil,"table_name"],
       %("table.name")          => [nil,"table.name"],
       %(schema.table_name)     => %w{schema table_name},
       %("schema".table_name)   => %w{schema table_name},
