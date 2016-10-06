@@ -36,6 +36,7 @@ module ActionCable
         @todo << lambda do
           @nio.deregister io
           @map.delete io
+          io.close
         end
         wakeup
       end
