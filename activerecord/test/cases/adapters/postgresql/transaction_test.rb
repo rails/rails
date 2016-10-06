@@ -28,32 +28,29 @@ module ActiveRecord
     end
 
     test "raises SerializationFailure when a serialization failure occurs" do
-      with_warning_suppression do
-        assert_raises(ActiveRecord::SerializationFailure) do
-          thread = Thread.new do
+      assert_raises(ActiveRecord::SerializationFailure) do
+        before = Concurrent::CyclicBarrier.new(2)
+        after = Concurrent::CyclicBarrier.new(2)
+
+        thread = Thread.new do
+          with_warning_suppression do
             Sample.transaction isolation: :serializable do
-              Sample.delete_all
-
-              10.times do |i|
-                sleep 0.1
-
-                Sample.create value: i
-              end
+              before.wait
+              Sample.create value: Sample.sum(:value)
+              after.wait
             end
           end
+        end
 
-          sleep 0.1
-
-          Sample.transaction isolation: :serializable do
-            Sample.delete_all
-
-            10.times do |i|
-              sleep 0.1
-
-              Sample.create value: i
+        begin
+          with_warning_suppression do
+            Sample.transaction isolation: :serializable do
+              before.wait
+              Sample.create value: Sample.sum(:value)
+              after.wait
             end
           end
-
+        ensure
           thread.join
         end
       end
@@ -91,10 +88,11 @@ module ActiveRecord
     protected
 
       def with_warning_suppression
-        log_level = @connection.client_min_messages
-        @connection.client_min_messages = "error"
+        log_level = ActiveRecord::Base.connection.client_min_messages
+        ActiveRecord::Base.connection.client_min_messages = "error"
         yield
-        @connection.client_min_messages = log_level
+      ensure
+        ActiveRecord::Base.connection.client_min_messages = log_level
       end
   end
 end
