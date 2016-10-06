@@ -51,10 +51,12 @@ class ActionCable::Connection::ClientSocketTest < ActionCable::TestCase
       connection = open_connection
 
       client = connection.websocket.send(:websocket)
+      event = Concurrent::Event.new
       client.instance_variable_get("@stream")
         .instance_variable_get("@rack_hijack_io")
-        .expects(:close)
+        .define_singleton_method(:close) { event.set }
       connection.close
+      event.wait
     end
   end
 
@@ -63,7 +65,13 @@ class ActionCable::Connection::ClientSocketTest < ActionCable::TestCase
       env = Rack::MockRequest.env_for "/test",
         "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket",
         "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.com"
-      env["rack.hijack"] = -> { env["rack.hijack_io"] = StringIO.new }
+      io = \
+        begin
+          Socket.pair(Socket::AF_UNIX, Socket::SOCK_STREAM, 0).first
+        rescue
+          StringIO.new
+        end
+      env["rack.hijack"] = -> { env["rack.hijack_io"] = io }
 
       Connection.new(@server, env).tap do |connection|
         connection.process
