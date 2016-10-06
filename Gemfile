@@ -72,7 +72,7 @@ group :cable do
   gem "hiredis", require: false
   gem "redis", require: false
 
-  gem "websocket-client-simple", require: false
+  gem "websocket-client-simple", github: "matthewd/websocket-client-simple", branch: "close-race", require: false
 
   gem "blade", require: false, platforms: [:ruby]
   gem "blade-sauce_labs_plugin", require: false, platforms: [:ruby]

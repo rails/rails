@@ -21,13 +21,6 @@ WebSocket::Frame::Data.prepend Module.new {
     super
   end
 }
-
-WebSocket::Client::Simple::Client.prepend Module.new {
-  def initialize(*)
-    @socket = nil
-    super
-  end
-}
 #
 ####
 
