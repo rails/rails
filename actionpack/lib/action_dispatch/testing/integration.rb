@@ -304,7 +304,7 @@ module ActionDispatch
 
         REQUEST_KWARGS = %i(params headers env xhr as)
         def kwarg_request?(args)
-          args[0].respond_to?(:keys) && args[0].keys.any? { |k| REQUEST_KWARGS.include?(k) }
+          args[0].respond_to?(:keys) && args[0].keys.all? { |k| REQUEST_KWARGS.include?(k) }
         end
 
         def non_kwarg_request_warning
