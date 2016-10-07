@@ -134,7 +134,7 @@ module ActiveSupport::NumericWithFormat
 end
 
 # Ruby 2.4+ unifies Fixnum & Bignum into Integer.
-if Integer == Fixnum
+if 0.class == Integer
   Integer.prepend ActiveSupport::NumericWithFormat
 else
   Fixnum.prepend ActiveSupport::NumericWithFormat
