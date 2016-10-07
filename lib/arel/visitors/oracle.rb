@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Arel
   module Visitors
     class Oracle < Arel::Visitors::ToSql
@@ -136,7 +137,7 @@ module Arel
             array[i] << ',' << part
           else
             # to ensure that array[i] will be String and not Arel::Nodes::SqlLiteral
-            array[i] = '' << part
+            array[i] = part.to_s
           end
           i += 1 if array[i].count('(') == array[i].count(')')
         end
