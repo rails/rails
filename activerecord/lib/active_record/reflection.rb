@@ -282,6 +282,10 @@ module ActiveRecord
       end
 
       def autosave=(autosave)
+        # autosave and inverse_of do not get along together nowadays. They may
+        # for example cause double saves. Thus, we disable this flag. If in the
+        # future those two flags are known to work well together, this could be
+        # removed.
         @automatic_inverse_of = false
         @options[:autosave] = autosave
         parent_reflection = self.parent_reflection
