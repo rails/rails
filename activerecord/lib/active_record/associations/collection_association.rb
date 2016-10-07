@@ -68,7 +68,7 @@ module ActiveRecord
 
       # Implements the ids writer method, e.g. foo.item_ids= for Foo.has_many :items
       def ids_writer(ids)
-        pk_type = reflection.primary_key_type
+        pk_type = reflection.association_primary_key_type
         ids = Array(ids).reject(&:blank?)
         ids.map! { |i| pk_type.cast(i) }
         records = klass.where(reflection.association_primary_key => ids).index_by do |r|
