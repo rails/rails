@@ -98,7 +98,6 @@ module Arel
       alias :visit_Arel_Nodes_Regexp             :binary
       alias :visit_Arel_Nodes_RightOuterJoin     :binary
       alias :visit_Arel_Nodes_TableAlias         :binary
-      alias :visit_Arel_Nodes_Union              :binary
       alias :visit_Arel_Nodes_Values             :binary
       alias :visit_Arel_Nodes_When               :binary
 
