@@ -244,7 +244,7 @@ module ActiveModel
     end
     alias :blank? :empty?
 
-    # Returns an xml formatted representation of the Errors hash.
+    # Returns an xml formatted representation of the +Errors+ hash.
     #
     #   person.errors.add(:name, :blank, message: "can't be blank")
     #   person.errors.add(:name, :not_specified, message: "must be specified")
@@ -361,7 +361,7 @@ module ActiveModel
     end
 
     # Will add an error message to each of the attributes in +attributes+ that
-    # is blank (using Object#blank?).
+    # is blank (using <tt>Object#blank?</tt>).
     #
     #   person.errors.add_on_blank(:name)
     #   person.errors.messages
