@@ -383,6 +383,14 @@ class IntegrationTestTest < ActiveSupport::TestCase
       mixin.__send__(:remove_method, :method_missing)
     end
   end
+
+  def test_assigns_is_undefined_and_not_point_to_the_gem
+    e = assert_raises(NoMethodError) do
+      @test.assigns(:foo)
+    end
+
+    assert_match(/undefined method/, e.message)
+  end
 end
 
 # Tests that integration tests don't call Controller test methods for processing.
