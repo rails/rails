@@ -36,7 +36,7 @@ gem "sass", github: "sass/sass", branch: "stable", require: false
 gem "rb-inotify", github: "matthewd/rb-inotify", branch: "close-handling", require: false
 
 group :doc do
-  gem "sdoc", "1.0.0.beta1"
+  gem "sdoc", "1.0.0.beta2"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators"
   gem "kindlerb", "0.1.1"
