@@ -124,6 +124,21 @@ module Arel
             }
           end
 
+          it 'creates a subquery when there is limit and offset with BindParams' do
+            stmt = Nodes::SelectStatement.new
+            stmt.limit = Nodes::Limit.new(Nodes::BindParam.new)
+            stmt.offset = Nodes::Offset.new(Nodes::BindParam.new)
+            sql = compile stmt
+            sql.must_be_like %{
+              SELECT * FROM (
+                SELECT raw_sql_.*, rownum raw_rnum_
+                FROM (SELECT ) raw_sql_
+                 WHERE rownum <= (:a1 + :a2)
+              )
+              WHERE raw_rnum_ > :a1
+            }
+          end
+
           it 'is idempotent with different subquery' do
             stmt = Nodes::SelectStatement.new
             stmt.limit = Nodes::Limit.new(10)
@@ -148,7 +163,6 @@ module Arel
             }
           end
         end
-
       end
 
       it 'modified except to be minus' do
