@@ -26,11 +26,22 @@ module Arel
                 FROM ("
 
           collector = super(o, collector)
-          collector << ") raw_sql_
+
+          if offset.expr.is_a? Nodes::BindParam
+            offset_bind = nil
+            collector << ') raw_sql_ WHERE rownum <= ('
+            collector.add_bind(offset.expr) { |i| offset_bind = ":a#{i}" }
+            collector << ' + '
+            collector.add_bind(limit) { |i| ":a#{i}" }
+            collector << ") ) WHERE raw_rnum_ > #{offset_bind}"
+            return collector
+          else
+            collector << ") raw_sql_
                 WHERE rownum <= #{offset.expr.to_i + limit}
               )
               WHERE "
-          return visit(offset, collector)
+            return visit(offset, collector)
+          end
         end
 
         if o.limit
