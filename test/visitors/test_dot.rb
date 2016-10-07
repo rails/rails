@@ -64,6 +64,7 @@ module Arel
         Arel::Nodes::As,
         Arel::Nodes::DeleteStatement,
         Arel::Nodes::JoinSource,
+        Arel::Nodes::Casted,
       ].each do |klass|
         define_method("test_#{klass.name.gsub('::', '_')}") do
           binary = klass.new(:a, :b)

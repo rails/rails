@@ -156,6 +156,11 @@ module Arel
         visit_edge o, "name"
       end
 
+      def visit_Arel_Nodes_Casted o
+        visit_edge o, 'val'
+        visit_edge o, 'attribute'
+      end
+
       def visit_Arel_Attribute o
         visit_edge o, "relation"
         visit_edge o, "name"
