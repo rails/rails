@@ -11,7 +11,6 @@ module ActiveRecord
                        :before_commit_without_transaction_enrollment,
                        :commit_without_transaction_enrollment,
                        :rollback_without_transaction_enrollment,
-                       terminator: deprecated_false_terminator,
                        scope: [:kind, :name]
     end
 
@@ -294,7 +293,7 @@ module ActiveRecord
             fire_on = Array(options[:on])
             assert_valid_transaction_action(fire_on)
             options[:if] = Array(options[:if])
-            options[:if] << "transaction_include_any_action?(#{fire_on})"
+            options[:if] << lambda { transaction_include_any_action?(fire_on) }
           end
         end
 

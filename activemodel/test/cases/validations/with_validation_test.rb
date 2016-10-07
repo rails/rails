@@ -69,26 +69,26 @@ class ValidatesWithTest < ActiveModel::TestCase
   end
 
   test "with if statements that return false" do
-    Topic.validates_with(ValidatorThatAddsErrors, if: "1 == 2")
+    Topic.validates_with(ValidatorThatAddsErrors, if: -> { 1 == 2 })
     topic = Topic.new
     assert topic.valid?
   end
 
   test "with if statements that return true" do
-    Topic.validates_with(ValidatorThatAddsErrors, if: "1 == 1")
+    Topic.validates_with(ValidatorThatAddsErrors, if: -> { 1 == 1 })
     topic = Topic.new
     assert topic.invalid?
     assert_includes topic.errors[:base], ERROR_MESSAGE
   end
 
   test "with unless statements that return true" do
-    Topic.validates_with(ValidatorThatAddsErrors, unless: "1 == 1")
+    Topic.validates_with(ValidatorThatAddsErrors, unless: -> { 1 == 1 })
     topic = Topic.new
     assert topic.valid?
   end
 
   test "with unless statements that returns false" do
-    Topic.validates_with(ValidatorThatAddsErrors, unless: "1 == 2")
+    Topic.validates_with(ValidatorThatAddsErrors, unless: -> { 1 == 2 })
     topic = Topic.new
     assert topic.invalid?
     assert_includes topic.errors[:base], ERROR_MESSAGE
@@ -96,13 +96,13 @@ class ValidatesWithTest < ActiveModel::TestCase
 
   test "passes all configuration options to the validator class" do
     topic = Topic.new
+    condition = -> { 1 == 1 }
     validator = Minitest::Mock.new
-    validator.expect(:new, validator, [{ foo: :bar, if: "1 == 1", class: Topic }])
+    validator.expect(:new, validator, [{ foo: :bar, if: condition, class: Topic }])
     validator.expect(:validate, nil, [topic])
     validator.expect(:is_a?, false, [Symbol])
-    validator.expect(:is_a?, false, [String])
 
-    Topic.validates_with(validator, if: "1 == 1", foo: :bar)
+    Topic.validates_with(validator, if: condition, foo: :bar)
     assert topic.valid?
     validator.verify
   end

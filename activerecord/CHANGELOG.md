@@ -1,3 +1,7 @@
+*   Removed support for returning false to halt ActiveRecord callbacks (deprecated).
+
+    *Iain Beeston*
+
 *   Made ActiveRecord consistently use `ActiveRecord::Type` (not `ActiveModel::Type`)
 
     *Iain Beeston*

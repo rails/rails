@@ -6,7 +6,6 @@ require "active_support/core_ext/kernel/reporting"
 require "active_support/core_ext/kernel/singleton_class"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/string/filters"
-require "active_support/deprecation"
 require "thread"
 
 module ActiveSupport
@@ -68,12 +67,6 @@ module ActiveSupport
     end
 
     CALLBACK_FILTER_TYPES = [:before, :after, :around]
-
-    # If true, Active Record and Active Model callbacks returning +false+ will
-    # halt the entire callback chain and display a deprecation message.
-    # If false, callback chains will only be halted by calling +throw :abort+.
-    # Defaults to +true+.
-    mattr_accessor(:halt_and_display_warning_on_return_false, instance_writer: false) { true }
 
     # Runs the callbacks for the given event.
     #
@@ -279,13 +272,6 @@ module ActiveSupport
 
       class Callback #:nodoc:#
         def self.build(chain, filter, kind, options)
-          if filter.is_a?(String)
-            ActiveSupport::Deprecation.warn(<<-MSG.squish)
-              Passing string to define callback is deprecated and will be removed
-              in Rails 5.1 without replacement.
-            MSG
-          end
-
           new chain.name, filter, kind, options, chain.config
         end
 
@@ -427,7 +413,6 @@ module ActiveSupport
         # Filters support:
         #
         #   Symbols:: A method to call.
-        #   Strings:: Some content to evaluate.
         #   Procs::   A proc to call with the object.
         #   Objects:: An object with a <tt>before_foo</tt> method on it to call.
         #
@@ -437,8 +422,6 @@ module ActiveSupport
           case filter
           when Symbol
             new(nil, filter, [], nil)
-          when String
-            new(nil, :instance_exec, [:value], compile_lambda(filter))
           when Conditionals::Value
             new(filter, :call, [:target, :value], nil)
           when ::Proc
@@ -454,10 +437,6 @@ module ActiveSupport
 
             new(filter, method_to_call, [:target], nil)
           end
-        end
-
-        def self.compile_lambda(filter)
-          eval("lambda { |value| #{filter} }")
         end
       end
 
@@ -637,9 +616,8 @@ module ActiveSupport
         #   set_callback :save, :before_method
         #
         # The callback can be specified as a symbol naming an instance method; as a
-        # proc, lambda, or block; as a string to be instance evaluated(deprecated); or as an
-        # object that responds to a certain method determined by the <tt>:scope</tt>
-        # argument to +define_callbacks+.
+        # proc, lambda, or block; or as an object that responds to a certain method
+        # determined by the <tt>:scope</tt> argument to +define_callbacks+.
         #
         # If a proc, lambda, or block is given, its body is evaluated in the context
         # of the current object. It can also optionally accept the current object as
@@ -834,30 +812,6 @@ module ActiveSupport
 
           def set_callbacks(name, callbacks) # :nodoc:
             self.__callbacks = __callbacks.merge(name.to_sym => callbacks)
-          end
-
-          def deprecated_false_terminator # :nodoc:
-            Proc.new do |target, result_lambda|
-              terminate = true
-              catch(:abort) do
-                result = result_lambda.call if result_lambda.is_a?(Proc)
-                if Callbacks.halt_and_display_warning_on_return_false && result == false
-                  display_deprecation_warning_for_false_terminator
-                else
-                  terminate = false
-                end
-              end
-              terminate
-            end
-          end
-
-        private
-
-          def display_deprecation_warning_for_false_terminator
-            ActiveSupport::Deprecation.warn(<<-MSG.squish)
-              Returning `false` in Active Record and Active Model callbacks will not implicitly halt a callback chain in Rails 5.1.
-              To explicitly halt the callback chain, please use `throw :abort` instead.
-            MSG
           end
       end
   end

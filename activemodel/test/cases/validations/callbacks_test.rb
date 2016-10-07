@@ -121,15 +121,6 @@ class CallbacksWithMethodNamesShouldBeCalled < ActiveModel::TestCase
     assert_equal false, output
   end
 
-  def test_deprecated_further_callbacks_should_not_be_called_if_before_validation_returns_false
-    d = DogDeprecatedBeforeValidatorReturningFalse.new
-    assert_deprecated do
-      output = d.valid?
-      assert_equal [], d.history
-      assert_equal false, output
-    end
-  end
-
   def test_further_callbacks_should_be_called_if_after_validation_returns_false
     d = DogAfterValidatorReturningFalse.new
     d.valid?
