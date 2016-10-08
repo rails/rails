@@ -4,11 +4,11 @@ require "active_support/core_ext/array"
 class GroupingTest < ActiveSupport::TestCase
   def setup
     # In Ruby < 2.4, test we avoid Integer#/ (redefined by mathn)
-    Fixnum.send :private, :/ unless Fixnum == Integer
+    Fixnum.send :private, :/ unless 0.class == Integer
   end
 
   def teardown
-    Fixnum.send :public, :/ unless Fixnum == Integer
+    Fixnum.send :public, :/ unless 0.class == Integer
   end
 
   def test_in_groups_of_with_perfect_fit
