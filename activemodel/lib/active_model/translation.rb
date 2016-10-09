@@ -44,7 +44,7 @@ module ActiveModel
     def human_attribute_name(attribute, options = {})
       options   = { count: 1 }.merge!(options)
       parts     = attribute.to_s.split(".")
-      attribute = parts.pop
+      attribute = parts.pop || ""
       namespace = parts.join("/") unless parts.empty?
       attributes_scope = "#{i18n_scope}.attributes"
 
@@ -55,7 +55,9 @@ module ActiveModel
         defaults << :"#{attributes_scope}.#{namespace}.#{attribute}"
       else
         defaults = lookup_ancestors.map do |klass|
-          :"#{attributes_scope}.#{klass.model_name.i18n_key}.#{attribute}"
+          attribute.empty? ?
+            :"#{attributes_scope}.#{klass.model_name.i18n_key}" :
+            :"#{attributes_scope}.#{klass.model_name.i18n_key}.#{attribute}"
         end
       end
 

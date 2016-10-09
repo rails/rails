@@ -1,3 +1,7 @@
+*   fix `ActiveModel::Translation#human_attribute_name`
+
+    *Ryotaro Goto*
+
 *   Execute `ConfirmationValidator` validation when `_confirmation`'s value is `false`.
 
     *bogdanvlviv*
