@@ -192,12 +192,8 @@ HEADER
           "name: #{index.name.inspect}",
         ]
         index_parts << "unique: true" if index.unique
-
-        index_lengths = (index.lengths || []).compact
-        index_parts << "length: #{Hash[index.columns.zip(index.lengths)].inspect}" if index_lengths.any?
-
-        index_orders = index.orders || {}
-        index_parts << "order: #{index.orders.inspect}" if index_orders.any?
+        index_parts << "length: { #{format_options(index.lengths)} }" if index.lengths.present?
+        index_parts << "order: { #{format_options(index.orders)} }" if index.orders.present?
         index_parts << "where: #{index.where.inspect}" if index.where
         index_parts << "using: #{index.using.inspect}" if index.using
         index_parts << "type: #{index.type.inspect}" if index.type

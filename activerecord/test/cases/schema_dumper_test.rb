@@ -183,8 +183,10 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_schema_dumps_index_columns_in_right_order
     index_definition = standard_dump.split(/\n/).grep(/t\.index.*company_index/).first.strip
-    if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
-      assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", using: :btree', index_definition
+    if current_adapter?(:PostgreSQLAdapter)
+      assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", order: { rating: :desc }, using: :btree', index_definition
+    elsif current_adapter?(:Mysql2Adapter)
+      assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", length: { type: 10 }, using: :btree', index_definition
     else
       assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index"', index_definition
     end
