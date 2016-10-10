@@ -24,10 +24,10 @@ module ActionController
     # === Examples:
     #
     #   redirect_to action: "show", id: 5
-    #   redirect_to post
+    #   redirect_to @post
     #   redirect_to "http://www.rubyonrails.org"
     #   redirect_to "/images/screenshot.jpg"
-    #   redirect_to articles_url
+    #   redirect_to posts_url
     #   redirect_to proc { edit_post_url(@post) }
     #
     # The redirection happens as a "302 Found" header unless otherwise specified using the <tt>:status</tt> option:
@@ -77,11 +77,11 @@ module ActionController
     # is missing this header, the <tt>fallback_location</tt> will be used.
     #
     #   redirect_back fallback_location: { action: "show", id: 5 }
-    #   redirect_back fallback_location: post
+    #   redirect_back fallback_location: @post
     #   redirect_back fallback_location: "http://www.rubyonrails.org"
-    #   redirect_back fallback_location:  "/images/screenshot.jpg"
-    #   redirect_back fallback_location:  articles_url
-    #   redirect_back fallback_location:  proc { edit_post_url(@post) }
+    #   redirect_back fallback_location: "/images/screenshot.jpg"
+    #   redirect_back fallback_location: posts_url
+    #   redirect_back fallback_location: proc { edit_post_url(@post) }
     #
     # All options that can be passed to <tt>redirect_to</tt> are accepted as
     # options and the behavior is identical.
