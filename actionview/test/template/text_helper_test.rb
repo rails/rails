@@ -379,6 +379,8 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("1.25 counts", pluralize("1.25", "count"))
     assert_equal("1.0 count", pluralize("1.0", "count"))
     assert_equal("1.00 count", pluralize("1.00", "count"))
+    assert_equal("2 counters", pluralize(2, "count", "counters"))
+    assert_equal("0 counters", pluralize(nil, "count", "counters"))
     assert_equal("2 counters", pluralize(2, "count", plural: "counters"))
     assert_equal("0 counters", pluralize(nil, "count", plural: "counters"))
     assert_equal("2 people", pluralize(2, "person"))
@@ -402,12 +404,6 @@ class TextHelperTest < ActionView::TestCase
       assert_equal("2 regions",  pluralize(2, "region", locale: :en))
     ensure
       I18n.locale = old_locale
-    end
-  end
-
-  def test_deprecated_plural_as_positional_argument
-    assert_deprecated do
-      pluralize(2, "count", "counters")
     end
   end
 
