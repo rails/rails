@@ -44,16 +44,6 @@ module StaticTests
     assert_equal "Hello, World!", get("/doorkeeper%00").body
   end
 
-  def test_sets_cache_control
-    app = assert_deprecated do
-      ActionDispatch::Static.new(DummyApp, @root, "public, max-age=60")
-    end
-    response = Rack::MockRequest.new(app).request("GET", "/index.html")
-
-    assert_html "/index.html", response
-    assert_equal "public, max-age=60", response.headers["Cache-Control"]
-  end
-
   def test_serves_static_index_at_root
     assert_html "/index.html", get("/index.html")
     assert_html "/index.html", get("/index")

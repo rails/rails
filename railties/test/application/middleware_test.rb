@@ -100,10 +100,10 @@ module ApplicationTests
 
     test "ActionDispatch::SSL is configured with options when given" do
       add_to_config "config.force_ssl = true"
-      add_to_config "config.ssl_options = { host: 'example.com' }"
+      add_to_config "config.ssl_options = { redirect: { host: 'example.com' } }"
       boot!
 
-      assert_equal [{ host: "example.com" }], Rails.application.middleware.first.args
+      assert_equal [{ redirect: { host: "example.com" } }], Rails.application.middleware.first.args
     end
 
     test "removing Active Record omits its middleware" do
@@ -227,9 +227,9 @@ module ApplicationTests
       class ::OmgController < ActionController::Base
         def index
           if params[:nothing]
-            render text: ""
+            render plain: ""
           else
-            render text: "OMG"
+            render plain: "OMG"
           end
         end
       end
@@ -239,7 +239,7 @@ module ApplicationTests
       get "/"
       assert_equal 200, last_response.status
       assert_equal "OMG", last_response.body
-      assert_equal "text/html; charset=utf-8", last_response.headers["Content-Type"]
+      assert_equal "text/plain; charset=utf-8", last_response.headers["Content-Type"]
       assert_equal "max-age=0, private, must-revalidate", last_response.headers["Cache-Control"]
       assert_equal etag, last_response.headers["Etag"]
 
@@ -253,7 +253,7 @@ module ApplicationTests
       get "/?nothing=true"
       assert_equal 200, last_response.status
       assert_equal "", last_response.body
-      assert_equal "text/html; charset=utf-8", last_response.headers["Content-Type"]
+      assert_equal "text/plain; charset=utf-8", last_response.headers["Content-Type"]
       assert_equal "no-cache", last_response.headers["Cache-Control"]
       assert_equal nil, last_response.headers["Etag"]
     end

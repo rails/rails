@@ -160,10 +160,6 @@ class TestController < ActionController::Base
     render action: "hello_world"
   end
 
-  def respond_with_empty_body
-    render nothing: true
-  end
-
   def conditional_hello_with_bangs
     render action: "hello_world"
   end
@@ -171,14 +167,6 @@ class TestController < ActionController::Base
 
   def handle_last_modified_and_etags
     fresh_when(last_modified: Time.now.utc.beginning_of_day, etag: [ :foo, 123 ])
-  end
-
-  def head_with_status_hash
-    head status: :created
-  end
-
-  def head_with_hash_does_not_include_status
-    head warning: :deprecated
   end
 
   def head_created
@@ -377,12 +365,6 @@ class ExpiresInRenderTest < ActionController::TestCase
     get :conditional_hello_with_cache_control_headers
     assert_match(/no-cache/, @response.headers["Cache-Control"])
     assert_match(/no-transform/, @response.headers["Cache-Control"])
-  end
-
-  def test_render_nothing_deprecated
-    assert_deprecated do
-      get :respond_with_empty_body
-    end
   end
 
   def test_date_header_when_expires_in
@@ -668,19 +650,6 @@ class HeadRenderTest < ActionController::TestCase
     post :head_created
     assert @response.body.blank?
     assert_response :created
-  end
-
-  def test_passing_hash_to_head_as_first_parameter_deprecated
-    assert_deprecated do
-      get :head_with_status_hash
-    end
-  end
-
-  def test_head_with_default_value_is_deprecated
-    assert_deprecated do
-      get :head_with_hash_does_not_include_status
-      assert_response :ok
-    end
   end
 
   def test_head_created_with_application_json_content_type

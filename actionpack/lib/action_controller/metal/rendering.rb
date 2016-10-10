@@ -4,7 +4,7 @@ module ActionController
   module Rendering
     extend ActiveSupport::Concern
 
-    RENDER_FORMATS_IN_PRIORITY = [:body, :text, :plain, :html]
+    RENDER_FORMATS_IN_PRIORITY = [:body, :plain, :html]
 
     module ClassMethods
       # Documentation at ActionController::Renderer#render
@@ -83,24 +83,8 @@ module ActionController
       def _normalize_options(options) #:nodoc:
         _normalize_text(options)
 
-        if options[:text]
-          ActiveSupport::Deprecation.warn <<-WARNING.squish
-          `render :text` is deprecated because it does not actually render a
-          `text/plain` response. Switch to `render plain: 'plain text'` to
-          render as `text/plain`, `render html: '<strong>HTML</strong>'` to
-          render as `text/html`, or `render body: 'raw'` to match the deprecated
-          behavior and render with the default Content-Type, which is
-          `text/html`.
-        WARNING
-        end
-
         if options[:html]
           options[:html] = ERB::Util.html_escape(options[:html])
-        end
-
-        if options.delete(:nothing)
-          ActiveSupport::Deprecation.warn("`:nothing` option is deprecated and will be removed in Rails 5.1. Use `head` method to respond with empty response body.")
-          options[:body] = nil
         end
 
         if options[:status]

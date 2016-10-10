@@ -375,7 +375,7 @@ module ApplicationTests
       class ::OmgController < ActionController::Base
         def index
           flash[:cool_story] = true
-          render text: "ok"
+          render plain: "ok"
         end
       end
 

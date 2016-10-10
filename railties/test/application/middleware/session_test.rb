@@ -70,7 +70,7 @@ module ApplicationTests
           end
 
           def read_session
-            render text: session[:foo].inspect
+            render plain: session[:foo].inspect
           end
         end
       RUBY
@@ -111,7 +111,7 @@ module ApplicationTests
           end
 
           def read_cookie
-            render text: cookies[:foo].inspect
+            render plain: cookies[:foo].inspect
           end
         end
       RUBY
@@ -149,15 +149,15 @@ module ApplicationTests
           end
 
           def read_session
-            render text: session[:foo]
+            render plain: session[:foo]
           end
 
           def read_encrypted_cookie
-            render text: cookies.encrypted[:_myapp_session]['foo']
+            render plain: cookies.encrypted[:_myapp_session]['foo']
           end
 
           def read_raw_cookie
-            render text: cookies[:_myapp_session]
+            render plain: cookies[:_myapp_session]
           end
         end
       RUBY
@@ -194,15 +194,15 @@ module ApplicationTests
           end
 
           def read_session
-            render text: session[:foo]
+            render plain: session[:foo]
           end
 
           def read_encrypted_cookie
-            render text: cookies.encrypted[:_myapp_session]['foo']
+            render plain: cookies.encrypted[:_myapp_session]['foo']
           end
 
           def read_raw_cookie
-            render text: cookies[:_myapp_session]
+            render plain: cookies[:_myapp_session]
           end
         end
       RUBY
@@ -249,15 +249,15 @@ module ApplicationTests
           end
 
           def read_session
-            render text: session[:foo]
+            render plain: session[:foo]
           end
 
           def read_encrypted_cookie
-            render text: cookies.encrypted[:_myapp_session]['foo']
+            render plain: cookies.encrypted[:_myapp_session]['foo']
           end
 
           def read_raw_cookie
-            render text: cookies[:_myapp_session]
+            render plain: cookies[:_myapp_session]
           end
         end
       RUBY
@@ -308,15 +308,15 @@ module ApplicationTests
           end
 
           def read_session
-            render text: session[:foo]
+            render plain: session[:foo]
           end
 
           def read_signed_cookie
-            render text: cookies.signed[:_myapp_session]['foo']
+            render plain: cookies.signed[:_myapp_session]['foo']
           end
 
           def read_raw_cookie
-            render text: cookies[:_myapp_session]
+            render plain: cookies[:_myapp_session]
           end
         end
       RUBY

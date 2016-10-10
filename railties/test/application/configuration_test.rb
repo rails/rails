@@ -398,7 +398,7 @@ module ApplicationTests
       class ::OmgController < ActionController::Base
         def index
           cookies.signed[:some_key] = "some_value"
-          render text: cookies[:some_key]
+          render plain: cookies[:some_key]
         end
       end
 
@@ -704,7 +704,7 @@ module ApplicationTests
         end
 
         def update
-          render text: "update"
+          render plain: "update"
         end
 
         private
@@ -978,7 +978,7 @@ module ApplicationTests
 
       class ::OmgController < ActionController::Base
         def index
-          render text: env["action_dispatch.show_exceptions"]
+          render plain: env["action_dispatch.show_exceptions"]
         end
       end
 
@@ -1008,7 +1008,7 @@ module ApplicationTests
       app_file "app/controllers/posts_controller.rb", <<-RUBY
       class PostsController < ApplicationController
         def create
-          render text: params[:post].inspect
+          render plain: params[:post].inspect
         end
       end
       RUBY
@@ -1029,7 +1029,7 @@ module ApplicationTests
       app_file "app/controllers/posts_controller.rb", <<-RUBY
       class PostsController < ActionController::Base
         def create
-          render text: params[:post].permitted? ? "permitted" : "forbidden"
+          render plain: params[:post].permitted? ? "permitted" : "forbidden"
         end
       end
       RUBY
@@ -1051,7 +1051,7 @@ module ApplicationTests
       app_file "app/controllers/posts_controller.rb", <<-RUBY
       class PostsController < ActionController::Base
         def create
-          render text: params.require(:post).permit(:name)
+          render plain: params.require(:post).permit(:name)
         end
       end
       RUBY
@@ -1090,7 +1090,7 @@ module ApplicationTests
       app_file "app/controllers/posts_controller.rb", <<-RUBY
       class PostsController < ActionController::Base
         def create
-          render text: params.permit(post: [:title])
+          render plain: params.permit(post: [:title])
         end
       end
       RUBY
@@ -1137,8 +1137,8 @@ module ApplicationTests
       class ::OmgController < ActionController::Base
         def index
           respond_to do |format|
-            format.html { render text: "HTML" }
-            format.xml { render text: "XML" }
+            format.html { render plain: "HTML" }
+            format.xml { render plain: "XML" }
           end
         end
       end

@@ -65,7 +65,7 @@ module ApplicationTests
       controller :foo, <<-RUBY
         class FooController < ApplicationController
           def index
-            render text: "foo"
+            render plain: "foo"
           end
         end
       RUBY
@@ -156,7 +156,7 @@ module ApplicationTests
       controller :foo, <<-RUBY
         class FooController < ApplicationController
           def index
-            render text: my_blog_path
+            render plain: my_blog_path
           end
         end
       RUBY
@@ -176,7 +176,7 @@ module ApplicationTests
       controller :foo, <<-RUBY
         class FooController < ApplicationController
           def index
-            render text: "foo"
+            render plain: "foo"
           end
         end
       RUBY
@@ -184,7 +184,7 @@ module ApplicationTests
       controller :bar, <<-RUBY
         class BarController < ActionController::Base
           def index
-            render text: "bar"
+            render plain: "bar"
           end
         end
       RUBY
@@ -206,7 +206,7 @@ module ApplicationTests
       controller "foo", <<-RUBY
         class FooController < ApplicationController
           def index
-            render text: "foo"
+            render plain: "foo"
           end
         end
       RUBY
@@ -215,7 +215,7 @@ module ApplicationTests
         module Admin
           class FooController < ApplicationController
             def index
-              render text: "admin::foo"
+              render plain: "admin::foo"
             end
           end
         end
@@ -268,11 +268,11 @@ module ApplicationTests
         controller :foo, <<-RUBY
           class FooController < ApplicationController
             def bar
-              render text: "bar"
+              render plain: "bar"
             end
 
             def baz
-              render text: "baz"
+              render plain: "baz"
             end
           end
         RUBY
@@ -332,7 +332,7 @@ module ApplicationTests
       controller :foo, <<-RUBY
         class FooController < ApplicationController
           def index
-            render :text => "foo"
+            render plain: "foo"
           end
         end
       RUBY
@@ -356,7 +356,7 @@ module ApplicationTests
       controller :foo, <<-RUBY
         class FooController < ApplicationController
           def index
-            render text: "foo"
+            render plain: "foo"
           end
         end
       RUBY
@@ -364,7 +364,7 @@ module ApplicationTests
       controller :bar, <<-RUBY
         class BarController < ApplicationController
           def index
-            render text: "bar"
+            render plain: "bar"
           end
         end
       RUBY
@@ -427,7 +427,7 @@ module ApplicationTests
       controller :foo, <<-RUBY
         class FooController < ApplicationController
           def index
-            render text: "foo"
+            render plain: "foo"
           end
         end
       RUBY
@@ -435,7 +435,7 @@ module ApplicationTests
       controller :bar, <<-RUBY
         class BarController < ApplicationController
           def index
-            render text: "bar"
+            render plain: "bar"
           end
         end
       RUBY
@@ -482,7 +482,7 @@ module ApplicationTests
       controller "yazilar", <<-RUBY
         class YazilarController < ApplicationController
           def index
-            render text: 'yazilar#index'
+            render plain: 'yazilar#index'
           end
         end
       RUBY
