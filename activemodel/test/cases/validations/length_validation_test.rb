@@ -318,42 +318,6 @@ class LengthValidationTest < ActiveModel::TestCase
     assert_equal ["is the wrong length (should be 5 characters)"], t.errors["title"]
   end
 
-  def test_validates_length_of_with_block
-    assert_deprecated do
-      Topic.validates_length_of(
-        :content,
-        minimum: 5,
-        too_short: "Your essay must be at least %{count} words.",
-        tokenizer: lambda { |str| str.scan(/\w+/) },
-      )
-    end
-    t = Topic.new(content: "this content should be long enough")
-    assert t.valid?
-
-    t.content = "not long enough"
-    assert t.invalid?
-    assert t.errors[:content].any?
-    assert_equal ["Your essay must be at least 5 words."], t.errors[:content]
-  end
-
-  def test_validates_length_of_with_symbol
-    assert_deprecated do
-      Topic.validates_length_of(
-        :content,
-        minimum: 5,
-        too_short: "Your essay must be at least %{count} words.",
-        tokenizer: :my_word_tokenizer,
-      )
-    end
-    t = Topic.new(content: "this content should be long enough")
-    assert t.valid?
-
-    t.content = "not long enough"
-    assert t.invalid?
-    assert t.errors[:content].any?
-    assert_equal ["Your essay must be at least 5 words."], t.errors[:content]
-  end
-
   def test_validates_length_of_for_integer
     Topic.validates_length_of(:approved, is: 4)
 

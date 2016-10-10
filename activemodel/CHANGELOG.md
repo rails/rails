@@ -1,3 +1,7 @@
+*   Removed deprecated `:tokenizer` in the length validator.
+
+    *Rafael Mendonça França*
+
 *   Removed deprecated methods in `ActiveModel::Errors`.
 
     `#get`, `#set`, `[]=`, `add_on_empty` and `add_on_blank`.
