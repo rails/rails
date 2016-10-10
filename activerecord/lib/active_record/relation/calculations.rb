@@ -112,10 +112,6 @@ module ActiveRecord
     #        ...
     #      end
     def calculate(operation, column_name)
-      if column_name.is_a?(Symbol) && attribute_alias?(column_name)
-        column_name = attribute_alias(column_name)
-      end
-
       if has_include?(column_name)
         relation = construct_relation_for_association_calculations
         relation = relation.distinct if operation.to_s.downcase == "count"
@@ -215,8 +211,8 @@ module ActiveRecord
       def aggregate_column(column_name)
         return column_name if Arel::Expressions === column_name
 
-        if @klass.column_names.include?(column_name.to_s)
-          Arel::Attribute.new(@klass.unscoped.table, column_name)
+        if @klass.has_attribute?(column_name.to_s) || @klass.attribute_alias?(column_name.to_s)
+          @klass.arel_attribute(column_name)
         else
           Arel.sql(column_name == :all ? "*" : column_name.to_s)
         end

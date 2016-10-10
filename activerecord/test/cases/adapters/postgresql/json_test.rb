@@ -113,6 +113,22 @@ module PostgresqlJSONSharedTestCases
     assert_equal(nil, x.payload)
   end
 
+  def test_select_nil_json_after_create
+    json = JsonDataType.create(payload: nil)
+    x = JsonDataType.where(payload:nil).first
+    assert_equal(json, x)
+  end
+
+  def test_select_nil_json_after_update
+    json = JsonDataType.create(payload: "foo")
+    x = JsonDataType.where(payload:nil).first
+    assert_equal(nil, x)
+
+    json.update_attributes payload: nil
+    x = JsonDataType.where(payload:nil).first
+    assert_equal(json.reload, x)
+  end
+
   def test_select_array_json_value
     @connection.execute %q|insert into json_data_type (payload) VALUES ('["v0",{"k1":"v1"}]')|
     x = JsonDataType.first

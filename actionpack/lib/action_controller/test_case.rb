@@ -498,10 +498,6 @@ module ActionController
 
         parameters ||= {}
 
-        if format
-          parameters[:format] = format
-        end
-
         @html_document = nil
 
         cookies.update(@request.cookies)
@@ -519,6 +515,10 @@ module ActionController
         if as
           @request.content_type = Mime[as].to_s
           format ||= as
+        end
+
+        if format
+          parameters[:format] = format
         end
 
         parameters = parameters.symbolize_keys

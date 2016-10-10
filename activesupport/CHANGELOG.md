@@ -1,3 +1,22 @@
+*   Fix `ActiveSupport::TimeWithZone#in` across DST boundaries.
+
+    Previously calls to `in` were being sent to the non-DST aware
+    method `Time#since` via `method_missing`. It is now aliased to
+    the DST aware `ActiveSupport::TimeWithZone#+` which handles
+    transitions across DST boundaries, e.g:
+
+        Time.zone = "US/Eastern"
+
+        t = Time.zone.local(2016,11,6,1)
+        # => Sun, 06 Nov 2016 01:00:00 EDT -05:00 
+
+        t.in(1.hour)
+        # => Sun, 06 Nov 2016 01:00:00 EST -05:00 
+
+    Fixes #26580.
+
+    *Thomas Balthazar*
+
 *   Remove unused parameter `options = nil` for `#clear` of
     `ActiveSupport::Cache::Strategy::LocalCache::LocalStore` and
     `ActiveSupport::Cache::Strategy::LocalCache`.

@@ -1,3 +1,18 @@
+*   Made ActiveRecord consistently use `ActiveRecord::Type` (not `ActiveModel::Type`)
+
+    *Iain Beeston*
+
+*   Serialize JSON attribute value `nil` as SQL `NULL`, not JSON `null`
+
+    *Trung Duc Tran*
+
+*   Return `true` from `update_attribute` when the value of the attribute
+    to be updated is unchanged.
+
+    Fixes #26593.
+
+    *Prathamesh Sonpatki*
+
 *   Always store errors details information with symbols.
 
     When the association is autosaved we were storing the details with

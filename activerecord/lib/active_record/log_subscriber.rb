@@ -26,15 +26,15 @@ module ActiveRecord
     end
 
     def sql(event)
-      return unless logger.debug?
-
       self.class.runtime += event.duration
+      return unless logger.debug?
 
       payload = event.payload
 
       return if IGNORE_PAYLOAD_NAMES.include?(payload[:name])
 
       name  = "#{payload[:name]} (#{event.duration.round(1)}ms)"
+      name  = "CACHE #{name}" if payload[:cached]
       sql   = payload[:sql]
       binds = nil
 

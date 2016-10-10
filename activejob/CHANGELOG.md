@@ -16,13 +16,13 @@
         class RemoteServiceJob < ActiveJob::Base
           retry_on CustomAppException # defaults to 3s wait, 5 attempts
           retry_on AnotherCustomAppException, wait: ->(executions) { executions * 2 }
-          retry_on ActiveRecord::StatementInvalid, wait: 5.seconds, attempts: 3
+          retry_on ActiveRecord::Deadlocked, wait: 5.seconds, attempts: 3
           retry_on Net::OpenTimeout, wait: :exponentially_longer, attempts: 10
           discard_on ActiveJob::DeserializationError
 
           def perform(*args)
             # Might raise CustomAppException or AnotherCustomAppException for something domain specific
-            # Might raise ActiveRecord::StatementInvalid when a local db deadlock is detected
+            # Might raise ActiveRecord::Deadlocked when a local db deadlock is detected
             # Might raise Net::OpenTimeout when the remote service is down
           end
         end

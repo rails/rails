@@ -297,7 +297,7 @@ module ActionDispatch
         }
         request_parameters = primarty_parameters.merge(redirection_parameters).merge(missing_parameters)
 
-        message = "No route matches #{Hash[request_parameters.sort_by { |k,v|k.to_s }].inspect} missing required keys: #{[missing_key.to_sym].inspect}"
+        message = "No route matches #{Hash[request_parameters.sort_by { |k,v|k.to_s }].inspect}, missing required keys: #{[missing_key.to_sym].inspect}"
 
         error = assert_raises(ActionController::UrlGenerationError) do
           @formatter.generate(

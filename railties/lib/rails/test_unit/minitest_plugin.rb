@@ -61,19 +61,30 @@ module Minitest
   # as the patterns would also contain the other Rake tasks.
   def self.rake_run(patterns) # :nodoc:
     @rake_patterns = patterns
-    passed = run(Shellwords.split(ENV["TESTOPTS"] || ""))
-    exit passed unless passed
-    passed
+    autorun
   end
+
+  module RunRespectingRakeTestopts
+    def run(args = [])
+      if defined?(@rake_patterns)
+        args = Shellwords.split(ENV["TESTOPTS"] || "")
+      end
+
+      super
+    end
+  end
+
+  singleton_class.prepend RunRespectingRakeTestopts
 
   # Owes great inspiration to test runner trailblazers like RSpec,
   # minitest-reporters, maxitest and others.
   def self.plugin_rails_init(options)
-    self.run_with_rails_extension = true
-
     ENV["RAILS_ENV"] = options[:environment] || "test"
 
-    ::Rails::TestRequirer.require_files(options[:patterns]) unless run_with_autorun
+    # If run via `ruby` we've been passed the files to run directly.
+    unless run_via[:ruby]
+      ::Rails::TestRequirer.require_files(options[:patterns])
+    end
 
     unless options[:full_backtrace] || ENV["BACKTRACE"]
       # Plugin can run without Rails loaded, check before filtering.
@@ -86,8 +97,7 @@ module Minitest
     reporter << ::Rails::TestUnitReporter.new(options[:io], options)
   end
 
-  mattr_accessor(:run_with_autorun)         { false }
-  mattr_accessor(:run_with_rails_extension) { false }
+  mattr_accessor(:run_via) { Hash.new }
 end
 
 # Put Rails as the first plugin minitest initializes so other plugins

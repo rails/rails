@@ -144,13 +144,14 @@ module ActionCable
 
         # When a channel is streaming via pubsub, we want to delay the confirmation
         # transmission until pubsub subscription is confirmed.
-        @defer_subscription_confirmation = false
+        #
+        # The counter starts at 1 because it's awaiting a call to #subscribe_to_channel
+        @defer_subscription_confirmation_counter = Concurrent::AtomicFixnum.new(1)
 
         @reject_subscription = nil
         @subscription_confirmation_sent = nil
 
         delegate_connection_identifiers
-        subscribe_to_channel
       end
 
       # Extract the action name from the passed data and process it via the channel. The process will ensure
@@ -167,6 +168,17 @@ module ActionCable
         else
           logger.error "Unable to process #{action_signature(action, data)}"
         end
+      end
+
+      # This method is called after subscription has been added to the connection
+      # and confirms or rejects the subscription.
+      def subscribe_to_channel
+        run_callbacks :subscribe do
+          subscribed
+        end
+
+        reject_subscription if subscription_rejected?
+        ensure_confirmation_sent
       end
 
       # Called by the cable connection when it's cut, so the channel has a chance to cleanup with callbacks.
@@ -201,12 +213,18 @@ module ActionCable
           end
         end
 
+        def ensure_confirmation_sent
+          return if subscription_rejected?
+          @defer_subscription_confirmation_counter.decrement
+          transmit_subscription_confirmation unless defer_subscription_confirmation?
+        end
+
         def defer_subscription_confirmation!
-          @defer_subscription_confirmation = true
+          @defer_subscription_confirmation_counter.increment
         end
 
         def defer_subscription_confirmation?
-          @defer_subscription_confirmation
+          @defer_subscription_confirmation_counter.value > 0
         end
 
         def subscription_confirmation_sent?
@@ -227,18 +245,6 @@ module ActionCable
             define_singleton_method(identifier) do
               connection.send(identifier)
             end
-          end
-        end
-
-        def subscribe_to_channel
-          run_callbacks :subscribe do
-            subscribed
-          end
-
-          if subscription_rejected?
-            reject_subscription
-          else
-            transmit_subscription_confirmation unless defer_subscription_confirmation?
           end
         end
 

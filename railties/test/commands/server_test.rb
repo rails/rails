@@ -1,6 +1,7 @@
 require "abstract_unit"
 require "env_helpers"
-require "rails/commands/server"
+require "rails/command"
+require "rails/commands/server/server_command"
 
 class Rails::ServerTest < ActiveSupport::TestCase
   include EnvHelpers

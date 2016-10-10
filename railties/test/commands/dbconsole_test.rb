@@ -1,6 +1,7 @@
 require "abstract_unit"
 require "minitest/mock"
-require "rails/commands/dbconsole"
+require "rails/command"
+require "rails/commands/dbconsole/dbconsole_command"
 
 class Rails::DBConsoleTest < ActiveSupport::TestCase
   def setup
@@ -97,16 +98,14 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   end
 
   def test_rails_env_is_development_when_argument_is_dev
-    Rails::DBConsole.stub(:available_environments, ["development", "test"]) do
-      options = Rails::DBConsole.send(:parse_arguments, ["dev"])
-      assert_match("development", options[:environment])
+    stub_available_environments([ "development", "test" ]) do
+      assert_match("development", parse_arguments([ "dev" ])[:environment])
     end
   end
 
   def test_rails_env_is_dev_when_argument_is_dev_and_dev_env_is_present
-    Rails::DBConsole.stub(:available_environments, ["dev"]) do
-      options = Rails::DBConsole.send(:parse_arguments, ["dev"])
-      assert_match("dev", options[:environment])
+    stub_available_environments([ "dev" ]) do
+      assert_match("dev", parse_arguments([ "dev" ])[:environment])
     end
   end
 
@@ -203,20 +202,16 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
 
   def test_print_help_short
     stdout = capture(:stdout) do
-      start({}, ["-h"])
+      Rails::Command.invoke(:dbconsole, ["-h"])
     end
-    assert aborted
-    assert_equal "", output
-    assert_match(/Usage:.*dbconsole/, stdout)
+    assert_match(/bin\/rails dbconsole \[environment\]/, stdout)
   end
 
   def test_print_help_long
     stdout = capture(:stdout) do
-      start({}, ["--help"])
+      Rails::Command.invoke(:dbconsole, ["--help"])
     end
-    assert aborted
-    assert_equal "", output
-    assert_match(/Usage:.*dbconsole/, stdout)
+    assert_match(/bin\/rails dbconsole \[environment\]/, stdout)
   end
 
   attr_reader :aborted, :output
@@ -230,21 +225,22 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
       end
     end
 
-    def dbconsole
-      @dbconsole ||= Class.new(Rails::DBConsole) do
+    def make_dbconsole
+      Class.new(Rails::DBConsole) do
         attr_reader :find_cmd_and_exec_args
 
         def find_cmd_and_exec(*args)
           @find_cmd_and_exec_args = args
         end
-      end.new(nil)
+      end
     end
 
+    attr_reader :dbconsole
+
     def start(config = {}, argv = [])
-      dbconsole.stub(:config, config.stringify_keys) do
-        dbconsole.stub(:arguments, argv) do
-          capture_abort { dbconsole.start }
-        end
+      @dbconsole = make_dbconsole.new(parse_arguments(argv))
+      @dbconsole.stub(:config, config.stringify_keys) do
+        capture_abort { @dbconsole.start }
       end
     end
 
@@ -256,6 +252,43 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
         rescue SystemExit
           @aborted = true
         end
+      end
+    end
+
+    def stub_available_environments(environments)
+      Rails::Command::DbconsoleCommand.class_eval do
+        alias_method :old_environments, :available_environments
+
+        define_method :available_environments do
+          environments
+        end
+      end
+
+      yield
+    ensure
+      Rails::Command::DbconsoleCommand.class_eval do
+        undef_method :available_environments
+        alias_method :available_environments, :old_environments
+        undef_method :old_environments
+      end
+    end
+
+    def parse_arguments(args)
+      Rails::Command::DbconsoleCommand.class_eval do
+        alias_method :old_perform, :perform
+        define_method(:perform) do
+          extract_environment_option_from_argument
+
+          options
+        end
+      end
+
+      Rails::Command.invoke(:dbconsole, args)
+    ensure
+      Rails::Command::DbconsoleCommand.class_eval do
+        undef_method :perform
+        alias_method :perform, :old_perform
+        undef_method :old_perform
       end
     end
 end

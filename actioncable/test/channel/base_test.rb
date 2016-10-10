@@ -77,11 +77,13 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
     @channel = ChatChannel.new @connection, "{id: 1}", id: 1
   end
 
-  test "should subscribe to a channel on initialize" do
+  test "should subscribe to a channel" do
+    @channel.subscribe_to_channel
     assert_equal 1, @channel.room.id
   end
 
   test "on subscribe callbacks" do
+    @channel.subscribe_to_channel
     assert @channel.subscribed
   end
 
@@ -90,6 +92,8 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
   end
 
   test "unsubscribing from a channel" do
+    @channel.subscribe_to_channel
+
     assert @channel.room
     assert @channel.subscribed?
 
@@ -150,8 +154,13 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
     assert_equal expected, @connection.last_transmission
   end
 
-  test "subscription confirmation" do
+  test "do not send subscription confirmation on initialize" do
+    assert_nil @connection.last_transmission
+  end
+
+  test "subscription confirmation on subscribe_to_channel" do
     expected = { "identifier" => "{id: 1}", "type" => "confirm_subscription" }
+    @channel.subscribe_to_channel
     assert_equal expected, @connection.last_transmission
   end
 
@@ -208,6 +217,8 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
 
   test "notification for transmit_subscription_confirmation" do
     begin
+      @channel.subscribe_to_channel
+
       events = []
       ActiveSupport::Notifications.subscribe "transmit_subscription_confirmation.action_cable" do |*args|
         events << ActiveSupport::Notifications::Event.new(*args)

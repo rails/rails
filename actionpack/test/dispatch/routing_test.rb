@@ -4684,22 +4684,25 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
 
   include Routes.url_helpers
 
-  test "url helpers raise a helpful error message when generation fails" do
+  test "url helpers raise a 'missing keys' error for a nil param with optimized helpers" do
     url, missing = { action: "show", controller: "products", id: nil }, [:id]
-    message = "No route matches #{url.inspect} missing required keys: #{missing.inspect}"
+    message = "No route matches #{url.inspect}, missing required keys: #{missing.inspect}"
 
-    # Optimized url helper
     error = assert_raises(ActionController::UrlGenerationError) { product_path(nil) }
     assert_equal message, error.message
+  end
 
-    # Non-optimized url helper
+  test "url helpers raise a 'constraint failure' error for a nil param with non-optimized helpers" do
+    url, missing = { action: "show", controller: "products", id: nil }, [:id]
+    message = "No route matches #{url.inspect}, possible unmatched constraints: #{missing.inspect}"
+
     error = assert_raises(ActionController::UrlGenerationError, message) { product_path(id: nil) }
     assert_equal message, error.message
   end
 
-  test "url helpers raise message with mixed parameters when generation fails " do
+  test "url helpers raise message with mixed parameters when generation fails" do
     url, missing = { action: "show", controller: "products", id: nil, "id"=>"url-tested" }, [:id]
-    message = "No route matches #{url.inspect} missing required keys: #{missing.inspect}"
+    message = "No route matches #{url.inspect}, possible unmatched constraints: #{missing.inspect}"
 
     # Optimized url helper
     error = assert_raises(ActionController::UrlGenerationError) { product_path(nil, "id"=>"url-tested") }

@@ -203,6 +203,10 @@ module ActiveRecord
         def invertible_for?(record)
           false
         end
+
+        def append_record(record)
+          @target << record
+        end
     end
   end
 end

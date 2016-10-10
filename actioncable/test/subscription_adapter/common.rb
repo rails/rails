@@ -11,7 +11,7 @@ module CommonSubscriptionAdapterTest
   def setup
     server = ActionCable::Server::Base.new
     server.config.cable = cable_config.with_indifferent_access
-    server.config.use_faye = ENV["FAYE"].present?
+    server.config.logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
 
     adapter_klass = server.config.pubsub_adapter
 
@@ -20,7 +20,7 @@ module CommonSubscriptionAdapterTest
   end
 
   def teardown
-    [@rx_adapter, @tx_adapter].uniq.each(&:shutdown)
+    [@rx_adapter, @tx_adapter].uniq.compact.each(&:shutdown)
   end
 
   def subscribe_as_queue(channel, adapter = @rx_adapter)

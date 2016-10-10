@@ -361,6 +361,9 @@ module ActiveSupport
       # the cache with the given keys, then that data is returned. Otherwise,
       # the supplied block is called for each key for which there was no data,
       # and the result will be written to the cache and returned.
+      # Therefore, you need to pass a block that returns the data to be written
+      # to the cache. If you do not want to write the cache when the cache is
+      # not found, use #read_multi.
       #
       # Options are passed to the underlying cache implementation.
       #
@@ -374,6 +377,8 @@ module ActiveSupport
       #   #      "unknown_key" => "Fallback value for key: unknown_key" }
       #
       def fetch_multi(*names)
+        raise ArgumentError, "Missing block: `Cache#fetch_multi` requires a block." unless block_given?
+
         options = names.extract_options!
         options = merged_options(options)
         results = read_multi(*names, options)

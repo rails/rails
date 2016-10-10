@@ -34,8 +34,6 @@ class ActionCable::Connection::StreamTest < ActionCable::TestCase
 
   [ EOFError, Errno::ECONNRESET ].each do |closed_exception|
     test "closes socket on #{closed_exception}" do
-      skip if ENV["FAYE"].present?
-
       run_in_eventmachine do
         connection = open_connection
 

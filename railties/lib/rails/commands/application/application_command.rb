@@ -11,7 +11,19 @@ module Rails
       end
     end
   end
-end
 
-args = Rails::Generators::ARGVScrubber.new(ARGV).prepare!
-Rails::Generators::AppGenerator.start args
+  module Command
+    class ApplicationCommand < Base
+      hide_command!
+
+      def help
+        perform # Punt help output to the generator.
+      end
+
+      def perform(*args)
+        Rails::Generators::AppGenerator.start \
+          Rails::Generators::ARGVScrubber.new(args).prepare!
+      end
+    end
+  end
+end

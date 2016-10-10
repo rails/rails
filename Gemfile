@@ -36,7 +36,7 @@ gem "sass", github: "sass/sass", branch: "stable", require: false
 gem "rb-inotify", github: "matthewd/rb-inotify", branch: "close-handling", require: false
 
 group :doc do
-  gem "sdoc", "~> 0.4.0"
+  gem "sdoc", "1.0.0.beta2"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators"
   gem "kindlerb", "0.1.1"
@@ -44,7 +44,7 @@ end
 
 # Active Support.
 gem "dalli", ">= 2.2.1"
-gem "listen", "~> 3.0.5", require: false
+gem "listen", ">= 3.0.5", "< 3.2", require: false
 
 # Active Job.
 group :job do
@@ -72,10 +72,7 @@ group :cable do
   gem "hiredis", require: false
   gem "redis", require: false
 
-  gem "faye-websocket", require: false
-
-  # Lock to 1.1.1 until the fix for https://github.com/faye/faye/issues/394 is released
-  gem "faye", "1.1.1", require: false
+  gem "websocket-client-simple", github: "matthewd/websocket-client-simple", branch: "close-race", require: false
 
   gem "blade", require: false, platforms: [:ruby]
   gem "blade-sauce_labs_plugin", require: false, platforms: [:ruby]

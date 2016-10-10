@@ -46,7 +46,7 @@ module Rails
 
     def backtrace_cleaner
       @backtrace_cleaner ||= begin
-        # Relies on Active Support, so we have to lazy load to postpone definition until AS has been loaded
+        # Relies on Active Support, so we have to lazy load to postpone definition until Active Support has been loaded
         require "rails/backtrace_cleaner"
         Rails::BacktraceCleaner.new
       end

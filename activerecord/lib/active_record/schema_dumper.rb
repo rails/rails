@@ -128,9 +128,7 @@ HEADER
 
           table_options = @connection.table_options(table)
           if table_options.present?
-            table_options.each do |key, value|
-              tbl.print ", #{key}: #{value.inspect}" if value.present?
-            end
+            tbl.print ", #{format_options(table_options)}"
           end
 
           tbl.puts " do |t|"
@@ -235,6 +233,10 @@ HEADER
 
           stream.puts add_foreign_key_statements.sort.join("\n")
         end
+      end
+
+      def format_options(options)
+        options.map { |key, value| "#{key}: #{value.inspect}" if value }.compact.join(", ")
       end
 
       def remove_prefix_and_suffix(table)

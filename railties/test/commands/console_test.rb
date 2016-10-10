@@ -1,6 +1,7 @@
 require "abstract_unit"
 require "env_helpers"
-require "rails/commands/console"
+require "rails/command"
+require "rails/commands/console/console_command"
 
 class Rails::ConsoleTest < ActiveSupport::TestCase
   include EnvHelpers
@@ -102,13 +103,21 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
   end
 
   def test_rails_env_is_dev_when_argument_is_dev_and_dev_env_is_present
-    stubbed_console = Class.new(Rails::Console) do
-      def available_environments
+    Rails::Command::ConsoleCommand.class_eval do
+      alias_method :old_environments, :available_environments
+
+      define_method :available_environments do
         ["dev"]
       end
     end
-    options = stubbed_console.parse_arguments(["dev"])
-    assert_match("dev", options[:environment])
+
+    assert_match("dev", parse_arguments(["dev"])[:environment])
+  ensure
+    Rails::Command::ConsoleCommand.class_eval do
+      undef_method :available_environments
+      alias_method :available_environments, :old_environments
+      undef_method :old_environments
+    end
   end
 
   attr_reader :output
@@ -148,6 +157,21 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     end
 
     def parse_arguments(args)
-      Rails::Console.parse_arguments(args)
+      Rails::Command::ConsoleCommand.class_eval do
+        alias_method :old_perform, :perform
+        define_method(:perform) do
+          extract_environment_option_from_argument
+
+          options
+        end
+      end
+
+      Rails::Command.invoke(:console, args)
+    ensure
+      Rails::Command::ConsoleCommand.class_eval do
+        undef_method :perform
+        alias_method :perform, :old_perform
+        undef_method :old_perform
+      end
     end
 end

@@ -1522,7 +1522,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal Post.where(author_id: 1).to_a, author_posts.to_a
 
     all_posts = relation.only(:limit)
-    assert_equal Post.limit(1).to_a.first, all_posts.first
+    assert_equal Post.limit(1).to_a, all_posts.to_a
   end
 
   def test_anonymous_extension

@@ -583,7 +583,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Removed support for the legacy `mysql` database adapter from core. Most users should
     be able to use `mysql2`. It will be converted to a separate gem when when we find someone
-    to maintain it. ([Pull Request 1](https://github.com/rails/rails/pull/22642)],
+    to maintain it. ([Pull Request 1](https://github.com/rails/rails/pull/22642),
     [Pull Request 2](https://github.com/rails/rails/pull/22715))
 
 *   Removed support for the `protected_attributes` gem.
@@ -594,6 +594,9 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Removed support for `activerecord-deprecated_finders` gem.
     ([commit](https://github.com/rails/rails/commit/78dab2a8569408658542e462a957ea5a35aa4679))
+
+*   Removed `ActiveRecord::ConnectionAdapters::Column::TRUE_VALUES` constant.
+    ([commit](https://github.com/rails/rails/commit/a502703c3d2151d4d3b421b29fefdac5ad05df61))
 
 ### Deprecations
 

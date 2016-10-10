@@ -125,12 +125,9 @@ module ActiveRecord
     end
 
     def call(name, start, finish, message_id, values)
+      return if values[:cached]
+
       sql = values[:sql]
-
-      # FIXME: this seems bad. we should probably have a better way to indicate
-      # the query was cached
-      return if "CACHE" == values[:name]
-
       self.class.log_all << sql
       self.class.log << sql unless ignore.match?(sql)
     end

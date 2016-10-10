@@ -81,7 +81,6 @@ The methods are:
 * `reorder`
 * `reverse_order`
 * `select`
-* `distinct`
 * `where`
 
 Finder methods that return a collection, such as `where` and `group`, return an instance of `ActiveRecord::Relation`.  Methods that find a single entity, such as `find` and `first`, return a single instance of the model.

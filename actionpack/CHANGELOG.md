@@ -1,3 +1,18 @@
+*   Show an "unmatched constraints" error when params fail to match constraints
+    on a matched route, rather than a "missing keys" error.
+
+    Fixes #26470.
+
+    *Chris Carter*
+
+*   Fix adding implicitly rendered template digests to ETags.
+
+    Fixes a case when modifying an implicitly rendered template for a
+    controller action using `fresh_when` or `stale?` would not result in a new
+    `ETag` value.
+
+    *Javan Makhmali*
+
 *   Make `fixture_file_upload` work in integration tests.
 
     *Yuji Yaginuma*
