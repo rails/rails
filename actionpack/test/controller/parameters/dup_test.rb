@@ -44,7 +44,7 @@ class ParametersDupTest < ActiveSupport::TestCase
 
   test "deep_dup" do
     dupped_params = @params.deep_dup
-    dupped_params[:person][:age] = '45'
+    dupped_params[:person][:age] = "45"
     dupped_params[:person][:addresses].clear
     dupped_params.permit!
 
