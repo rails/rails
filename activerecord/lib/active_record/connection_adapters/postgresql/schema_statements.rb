@@ -239,7 +239,9 @@ module ActiveRecord
         end
 
         def table_options(table_name) # :nodoc:
-          { comment: table_comment(table_name) }
+          if comment = table_comment(table_name)
+            { comment: comment }
+          end
         end
 
         # Returns a comment stored in database for given table

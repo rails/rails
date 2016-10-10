@@ -229,7 +229,7 @@ HEADER
       end
 
       def format_options(options)
-        options.map { |key, value| "#{key}: #{value.inspect}" if value }.compact.join(", ")
+        options.map { |key, value| "#{key}: #{value.inspect}" }.join(", ")
       end
 
       def remove_prefix_and_suffix(table)
