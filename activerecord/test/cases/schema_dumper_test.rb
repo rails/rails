@@ -51,6 +51,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     output = standard_dump
     assert_match %r{create_table "accounts"}, output
     assert_match %r{create_table "authors"}, output
+    assert_no_match %r{(?<=, ) do \|t\|}, output
     assert_no_match %r{create_table "schema_migrations"}, output
     assert_no_match %r{create_table "ar_internal_metadata"}, output
   end
