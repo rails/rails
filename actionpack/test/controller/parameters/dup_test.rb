@@ -1,5 +1,6 @@
 require "abstract_unit"
 require "action_controller/metal/strong_parameters"
+require "active_support/core_ext/object/deep_dup"
 
 class ParametersDupTest < ActiveSupport::TestCase
   setup do
@@ -39,5 +40,16 @@ class ParametersDupTest < ActiveSupport::TestCase
     dupped_params = @params.dup
     dupped_params.permit!
     assert_not_equal @params, dupped_params
+  end
+
+  test "deep_dup" do
+    dupped_params = @params.deep_dup
+    dupped_params[:person][:age] = '45'
+    dupped_params[:person][:addresses].clear
+    dupped_params.permit!
+
+    assert_not @params.permitted?
+    assert_not_equal @params[:person][:age], dupped_params[:person][:age]
+    assert_not_equal @params[:person][:addresses], dupped_params[:person][:addresses]
   end
 end
