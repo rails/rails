@@ -1,3 +1,8 @@
+*   Remove deprecated support to non-keyword arguments in `ActionDispatch::IntegrationTest#process`,
+    `#get`, `#post`, `#patch`, `#put`, `#delete`, and `#head`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActionDispatch::IntegrationTest#*_via_redirect`.
 
     *Rafael Mendonça França*

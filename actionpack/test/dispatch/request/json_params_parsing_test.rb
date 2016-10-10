@@ -75,7 +75,9 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
       begin
         $stderr = StringIO.new # suppress the log
         json = "[\"person]\": {\"name\": \"David\"}}"
-        exception = assert_raise(ActionDispatch::Http::Parameters::ParseError) { post "/parse", json, "CONTENT_TYPE" => "application/json", "action_dispatch.show_exceptions" => false }
+        exception = assert_raise(ActionDispatch::Http::Parameters::ParseError) do
+          post "/parse", params: json, headers: { "CONTENT_TYPE" => "application/json", "action_dispatch.show_exceptions" => false }
+        end
         assert_equal JSON::ParserError, exception.cause.class
         assert_equal exception.cause.message, exception.message
       ensure

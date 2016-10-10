@@ -38,38 +38,38 @@ module ActionDispatch
       #
       #   get '/feed', params: { since: 201501011400 }
       #   post '/profile', headers: { "X-Test-Header" => "testvalue" }
-      def get(path, *args)
-        process_with_kwargs(:get, path, *args)
+      def get(path, **args)
+        process(:get, path, **args)
       end
 
       # Performs a POST request with the given parameters. See +#get+ for more
       # details.
-      def post(path, *args)
-        process_with_kwargs(:post, path, *args)
+      def post(path, **args)
+        process(:post, path, **args)
       end
 
       # Performs a PATCH request with the given parameters. See +#get+ for more
       # details.
-      def patch(path, *args)
-        process_with_kwargs(:patch, path, *args)
+      def patch(path, **args)
+        process(:patch, path, **args)
       end
 
       # Performs a PUT request with the given parameters. See +#get+ for more
       # details.
-      def put(path, *args)
-        process_with_kwargs(:put, path, *args)
+      def put(path, **args)
+        process(:put, path, **args)
       end
 
       # Performs a DELETE request with the given parameters. See +#get+ for
       # more details.
-      def delete(path, *args)
-        process_with_kwargs(:delete, path, *args)
+      def delete(path, **args)
+        process(:delete, path, **args)
       end
 
       # Performs a HEAD request with the given parameters. See +#get+ for more
       # details.
       def head(path, *args)
-        process_with_kwargs(:head, path, *args)
+        process(:head, path, *args)
       end
 
       # Follow a single redirect response. If the last response was not a
@@ -206,37 +206,6 @@ module ActionDispatch
       private
         def _mock_session
           @_mock_session ||= Rack::MockSession.new(@app, host)
-        end
-
-        def process_with_kwargs(http_method, path, *args)
-          if kwarg_request?(args)
-            process(http_method, path, *args)
-          else
-            non_kwarg_request_warning if args.any?
-            process(http_method, path, params: args[0], headers: args[1])
-          end
-        end
-
-        REQUEST_KWARGS = %i(params headers env xhr as)
-        def kwarg_request?(args)
-          args[0].respond_to?(:keys) && args[0].keys.any? { |k| REQUEST_KWARGS.include?(k) }
-        end
-
-        def non_kwarg_request_warning
-          ActiveSupport::Deprecation.warn(<<-MSG.strip_heredoc)
-            ActionDispatch::IntegrationTest HTTP request methods will accept only
-            the following keyword arguments in future Rails versions:
-            #{REQUEST_KWARGS.join(', ')}
-
-            Examples:
-
-            get '/profile',
-              params: { id: 1 },
-              headers: { 'X-Extra-Header' => '123' },
-              env: { 'action_dispatch.custom' => 'custom' },
-              xhr: true,
-              as: :json
-          MSG
         end
 
         # Performs the actual request.
