@@ -508,7 +508,7 @@ module ActiveRecord
       end
 
       def add_sql_comment!(sql, comment) # :nodoc:
-        sql << " COMMENT #{quote(comment)}" if comment
+        sql << " COMMENT #{quote(comment)}" if comment.present?
         sql
       end
 
