@@ -225,14 +225,7 @@ module ActionView
       #
       #   pluralize(2, 'Person', locale: :de)
       #   # => 2 Personen
-      def pluralize(count, singular, deprecated_plural = nil, plural: nil, locale: I18n.locale)
-        if deprecated_plural
-          ActiveSupport::Deprecation.warn("Passing plural as a positional argument " \
-            "is deprecated and will be removed in Rails 5.1. Use e.g. " \
-            "pluralize(1, 'person', plural: 'people') instead.")
-          plural ||= deprecated_plural
-        end
-
+      def pluralize(count, singular, plural_arg = nil, plural: plural_arg, locale: I18n.locale)
         word = if (count == 1 || count =~ /^1(\.0+)?$/)
           singular
         else
