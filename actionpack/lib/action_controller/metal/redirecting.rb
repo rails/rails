@@ -104,14 +104,6 @@ module ActionController
         options
       when String
         request.protocol + request.host_with_port + options
-      when :back
-        ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
-          `redirect_to :back` is deprecated and will be removed from Rails 5.1.
-          Please use `redirect_back(fallback_location: fallback_location)` where
-          `fallback_location` represents the location to use if the request has
-          no HTTP referer information.
-        MESSAGE
-        request.headers["Referer"] || raise(RedirectBackError)
       when Proc
         _compute_redirect_to_location request, options.call
       else

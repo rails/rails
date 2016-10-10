@@ -38,71 +38,39 @@ module ActionDispatch
       #
       #   get '/feed', params: { since: 201501011400 }
       #   post '/profile', headers: { "X-Test-Header" => "testvalue" }
-      def get(path, *args)
-        process_with_kwargs(:get, path, *args)
+      def get(path, **args)
+        process(:get, path, **args)
       end
 
       # Performs a POST request with the given parameters. See +#get+ for more
       # details.
-      def post(path, *args)
-        process_with_kwargs(:post, path, *args)
+      def post(path, **args)
+        process(:post, path, **args)
       end
 
       # Performs a PATCH request with the given parameters. See +#get+ for more
       # details.
-      def patch(path, *args)
-        process_with_kwargs(:patch, path, *args)
+      def patch(path, **args)
+        process(:patch, path, **args)
       end
 
       # Performs a PUT request with the given parameters. See +#get+ for more
       # details.
-      def put(path, *args)
-        process_with_kwargs(:put, path, *args)
+      def put(path, **args)
+        process(:put, path, **args)
       end
 
       # Performs a DELETE request with the given parameters. See +#get+ for
       # more details.
-      def delete(path, *args)
-        process_with_kwargs(:delete, path, *args)
+      def delete(path, **args)
+        process(:delete, path, **args)
       end
 
       # Performs a HEAD request with the given parameters. See +#get+ for more
       # details.
       def head(path, *args)
-        process_with_kwargs(:head, path, *args)
+        process(:head, path, *args)
       end
-
-      # Performs an XMLHttpRequest request with the given parameters, mirroring
-      # an AJAX request made from JavaScript.
-      #
-      # The request_method is +:get+, +:post+, +:patch+, +:put+, +:delete+ or
-      # +:head+; the parameters are +nil+, a hash, or a url-encoded or multipart
-      # string; the headers are a hash.
-      #
-      # Example:
-      #
-      #   xhr :get, '/feed', params: { since: 201501011400 }
-      def xml_http_request(request_method, path, *args)
-        if kwarg_request?(args)
-          params, headers, env = args.first.values_at(:params, :headers, :env)
-        else
-          params = args[0]
-          headers = args[1]
-          env = {}
-
-          if params.present? || headers.present?
-            non_kwarg_request_warning
-          end
-        end
-
-        ActiveSupport::Deprecation.warn(<<-MSG.strip_heredoc)
-          xhr and xml_http_request methods are deprecated in favor of
-          `get "/posts", xhr: true` and `post "/posts/1", xhr: true`.
-        MSG
-
-        process(request_method, path, params: params, headers: headers, xhr: true)
-      end
-      alias xhr :xml_http_request
 
       # Follow a single redirect response. If the last response was not a
       # redirect, an exception will be raised. Otherwise, the redirect is
@@ -111,59 +79,6 @@ module ActionDispatch
         raise "not a redirect! #{status} #{status_message}" unless redirect?
         get(response.location)
         status
-      end
-
-      # Performs a request using the specified method, following any subsequent
-      # redirect. Note that the redirects are followed until the response is
-      # not a redirect--this means you may run into an infinite loop if your
-      # redirect loops back to itself.
-      #
-      # Example:
-      #
-      #   request_via_redirect :post, '/welcome',
-      #     params: { ref_id: 14 },
-      #     headers: { "X-Test-Header" => "testvalue" }
-      def request_via_redirect(http_method, path, *args)
-        ActiveSupport::Deprecation.warn("`request_via_redirect` is deprecated and will be removed in Rails 5.1. Please use `follow_redirect!` manually after the request call for the same behavior.")
-        process_with_kwargs(http_method, path, *args)
-
-        follow_redirect! while redirect?
-        status
-      end
-
-      # Performs a GET request, following any subsequent redirect.
-      # See +request_via_redirect+ for more information.
-      def get_via_redirect(path, *args)
-        ActiveSupport::Deprecation.warn("`get_via_redirect` is deprecated and will be removed in Rails 5.1. Please use `follow_redirect!` manually after the request call for the same behavior.")
-        request_via_redirect(:get, path, *args)
-      end
-
-      # Performs a POST request, following any subsequent redirect.
-      # See +request_via_redirect+ for more information.
-      def post_via_redirect(path, *args)
-        ActiveSupport::Deprecation.warn("`post_via_redirect` is deprecated and will be removed in Rails 5.1. Please use `follow_redirect!` manually after the request call for the same behavior.")
-        request_via_redirect(:post, path, *args)
-      end
-
-      # Performs a PATCH request, following any subsequent redirect.
-      # See +request_via_redirect+ for more information.
-      def patch_via_redirect(path, *args)
-        ActiveSupport::Deprecation.warn("`patch_via_redirect` is deprecated and will be removed in Rails 5.1. Please use `follow_redirect!` manually after the request call for the same behavior.")
-        request_via_redirect(:patch, path, *args)
-      end
-
-      # Performs a PUT request, following any subsequent redirect.
-      # See +request_via_redirect+ for more information.
-      def put_via_redirect(path, *args)
-        ActiveSupport::Deprecation.warn("`put_via_redirect` is deprecated and will be removed in Rails 5.1. Please use `follow_redirect!` manually after the request call for the same behavior.")
-        request_via_redirect(:put, path, *args)
-      end
-
-      # Performs a DELETE request, following any subsequent redirect.
-      # See +request_via_redirect+ for more information.
-      def delete_via_redirect(path, *args)
-        ActiveSupport::Deprecation.warn("`delete_via_redirect` is deprecated and will be removed in Rails 5.1. Please use `follow_redirect!` manually after the request call for the same behavior.")
-        request_via_redirect(:delete, path, *args)
       end
     end
 
@@ -291,37 +206,6 @@ module ActionDispatch
       private
         def _mock_session
           @_mock_session ||= Rack::MockSession.new(@app, host)
-        end
-
-        def process_with_kwargs(http_method, path, *args)
-          if kwarg_request?(args)
-            process(http_method, path, *args)
-          else
-            non_kwarg_request_warning if args.any?
-            process(http_method, path, params: args[0], headers: args[1])
-          end
-        end
-
-        REQUEST_KWARGS = %i(params headers env xhr as)
-        def kwarg_request?(args)
-          args[0].respond_to?(:keys) && args[0].keys.any? { |k| REQUEST_KWARGS.include?(k) }
-        end
-
-        def non_kwarg_request_warning
-          ActiveSupport::Deprecation.warn(<<-MSG.strip_heredoc)
-            ActionDispatch::IntegrationTest HTTP request methods will accept only
-            the following keyword arguments in future Rails versions:
-            #{REQUEST_KWARGS.join(', ')}
-
-            Examples:
-
-            get '/profile',
-              params: { id: 1 },
-              headers: { 'X-Extra-Header' => '123' },
-              env: { 'action_dispatch.custom' => 'custom' },
-              xhr: true,
-              as: :json
-          MSG
         end
 
         # Performs the actual request.

@@ -54,25 +54,6 @@ module AbstractController
         end
       end
 
-      # Skip before, after, and around action callbacks matching any of the names.
-      #
-      # ==== Parameters
-      # * <tt>names</tt> - A list of valid names that could be used for
-      #   callbacks. Note that skipping uses Ruby equality, so it's
-      #   impossible to skip a callback defined using an anonymous proc
-      #   using #skip_action_callback.
-      def skip_action_callback(*names)
-        ActiveSupport::Deprecation.warn("`skip_action_callback` is deprecated and will be removed in Rails 5.1. Please use skip_before_action, skip_after_action or skip_around_action instead.")
-        skip_before_action(*names, raise: false)
-        skip_after_action(*names, raise: false)
-        skip_around_action(*names, raise: false)
-      end
-
-      def skip_filter(*names)
-        ActiveSupport::Deprecation.warn("`skip_filter` is deprecated and will be removed in Rails 5.1. Use skip_before_action, skip_after_action or skip_around_action instead.")
-        skip_action_callback(*names)
-      end
-
       # Take callback names and an optional callback proc, normalize them,
       # then call the block with each callback. This allows us to abstract
       # the normalization across several methods that use it.
@@ -187,20 +168,10 @@ module AbstractController
           end
         end
 
-        define_method "#{callback}_filter" do |*names, &blk|
-          ActiveSupport::Deprecation.warn("#{callback}_filter is deprecated and will be removed in Rails 5.1. Use #{callback}_action instead.")
-          send("#{callback}_action", *names, &blk)
-        end
-
         define_method "prepend_#{callback}_action" do |*names, &blk|
           _insert_callbacks(names, blk) do |name, options|
             set_callback(:process_action, callback, name, options.merge(prepend: true))
           end
-        end
-
-        define_method "prepend_#{callback}_filter" do |*names, &blk|
-          ActiveSupport::Deprecation.warn("prepend_#{callback}_filter is deprecated and will be removed in Rails 5.1. Use prepend_#{callback}_action instead.")
-          send("prepend_#{callback}_action", *names, &blk)
         end
 
         # Skip a before, after or around callback. See _insert_callbacks
@@ -211,18 +182,8 @@ module AbstractController
           end
         end
 
-        define_method "skip_#{callback}_filter" do |*names, &blk|
-          ActiveSupport::Deprecation.warn("skip_#{callback}_filter is deprecated and will be removed in Rails 5.1. Use skip_#{callback}_action instead.")
-          send("skip_#{callback}_action", *names, &blk)
-        end
-
         # *_action is the same as append_*_action
         alias_method :"append_#{callback}_action", :"#{callback}_action"
-
-        define_method "append_#{callback}_filter" do |*names, &blk|
-          ActiveSupport::Deprecation.warn("append_#{callback}_filter is deprecated and will be removed in Rails 5.1. Use append_#{callback}_action instead.")
-          send("append_#{callback}_action", *names, &blk)
-        end
       end
     end
   end

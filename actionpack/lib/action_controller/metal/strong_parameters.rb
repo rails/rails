@@ -151,15 +151,6 @@ module ActionController
     def ==(other)
       if other.respond_to?(:permitted?)
         self.permitted? == other.permitted? && self.parameters == other.parameters
-      elsif other.is_a?(Hash)
-        ActiveSupport::Deprecation.warn <<-WARNING.squish
-          Comparing equality between `ActionController::Parameters` and a
-          `Hash` is deprecated and will be removed in Rails 5.1. Please only do
-          comparisons between instances of `ActionController::Parameters`. If
-          you need to compare to a hash, first convert it using
-          `ActionController::Parameters#new`.
-        WARNING
-        @parameters == other.with_indifferent_access
       else
         @parameters == other
       end
@@ -620,27 +611,7 @@ module ActionController
       end
     end
 
-    # Undefine `to_param` such that it gets caught in the `method_missing`
-    # deprecation cycle below.
     undef_method :to_param
-
-    def method_missing(method_sym, *args, &block)
-      if @parameters.respond_to?(method_sym)
-        message = <<-DEPRECATE.squish
-          Method #{method_sym} is deprecated and will be removed in Rails 5.1,
-          as `ActionController::Parameters` no longer inherits from
-          hash. Using this deprecated behavior exposes potential security
-          problems. If you continue to use this method you may be creating
-          a security vulnerability in your app that can be exploited. Instead,
-          consider using one of these documented methods which are not
-          deprecated: http://api.rubyonrails.org/v#{ActionPack.version}/classes/ActionController/Parameters.html
-        DEPRECATE
-        ActiveSupport::Deprecation.warn(message)
-        @parameters.public_send(method_sym, *args, &block)
-      else
-        super
-      end
-    end
 
     protected
       attr_reader :parameters

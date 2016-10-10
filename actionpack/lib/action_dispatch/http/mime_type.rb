@@ -45,32 +45,6 @@ module Mime
       return type if type.is_a?(Type)
       EXTENSION_LOOKUP.fetch(type.to_s) { |k| yield k }
     end
-
-    def const_missing(sym)
-      ext = sym.downcase
-      if Mime[ext]
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          Accessing mime types via constants is deprecated.
-          Please change `Mime::#{sym}` to `Mime[:#{ext}]`.
-        MSG
-        Mime[ext]
-      else
-        super
-      end
-    end
-
-    def const_defined?(sym, inherit = true)
-      ext = sym.downcase
-      if Mime[ext]
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          Accessing mime types via constants is deprecated.
-          Please change `Mime.const_defined?(#{sym})` to `Mime[:#{ext}]`.
-        MSG
-        true
-      else
-        super
-      end
-    end
   end
 
   # Encapsulates the notion of a mime type. Can be used at render time, for example, with:

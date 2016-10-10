@@ -229,14 +229,6 @@ XML
     assert_equal params.to_query, @response.body
   end
 
-  def test_deprecated_body_stream
-    params = Hash[:page, { name: "page name" }, "some key", 123]
-
-    assert_deprecated { post :render_body, params.dup }
-
-    assert_equal params.to_query, @response.body
-  end
-
   def test_document_body_and_params_with_post
     post :test_params, params: { id: 1 }
     assert_equal({ "id"=>"1", "controller"=>"test_case_test/test", "action"=>"test_params" }, ::JSON.parse(@response.body))
@@ -247,18 +239,8 @@ XML
     assert_equal "document body", @response.body
   end
 
-  def test_deprecated_document_body_with_post
-    assert_deprecated { post :render_body, "document body" }
-    assert_equal "document body", @response.body
-  end
-
   def test_document_body_with_put
     put :render_body, body: "document body"
-    assert_equal "document body", @response.body
-  end
-
-  def test_deprecated_document_body_with_put
-    assert_deprecated { put :render_body, "document body" }
     assert_equal "document body", @response.body
   end
 
@@ -272,21 +254,11 @@ XML
     assert_equal "><", flash["test"]
   end
 
-  def test_deprecated_process_with_flash
-    assert_deprecated { process :set_flash, "GET", nil, nil, "test" => "value" }
-    assert_equal ">value<", flash["test"]
-  end
-
   def test_process_with_flash
     process :set_flash,
       method: "GET",
       flash: { "test" => "value" }
     assert_equal ">value<", flash["test"]
-  end
-
-  def test_deprecated_process_with_flash_now
-    assert_deprecated { process :set_flash_now, "GET", nil, nil, "test_now" => "value_now" }
-    assert_equal ">value_now<", flash["test_now"]
   end
 
   def test_process_with_flash_now
@@ -311,14 +283,6 @@ XML
     assert_equal "it works", session[:symbol], "Test session hash should allow indifferent access"
   end
 
-  def test_process_with_session_arg
-    assert_deprecated { process :no_op, "GET", nil, "string" => "value1", symbol: "value2" }
-    assert_equal "value1", session["string"]
-    assert_equal "value1", session[:string]
-    assert_equal "value2", session["symbol"]
-    assert_equal "value2", session[:symbol]
-  end
-
   def test_process_with_session_kwarg
     process :no_op, method: "GET", session: { "string" => "value1", symbol: "value2" }
     assert_equal "value1", session["string"]
@@ -327,29 +291,11 @@ XML
     assert_equal "value2", session[:symbol]
   end
 
-  def test_deprecated_process_merges_session_arg
-    session[:foo] = "bar"
-    assert_deprecated {
-      get :no_op, nil, bar: "baz"
-    }
-    assert_equal "bar", session[:foo]
-    assert_equal "baz", session[:bar]
-  end
-
   def test_process_merges_session_arg
     session[:foo] = "bar"
     get :no_op, session: { bar: "baz" }
     assert_equal "bar", session[:foo]
     assert_equal "baz", session[:bar]
-  end
-
-  def test_deprecated_merged_session_arg_is_retained_across_requests
-    assert_deprecated {
-      get :no_op, nil, foo: "bar"
-    }
-    assert_equal "bar", session[:foo]
-    get :no_op
-    assert_equal "bar", session[:foo]
   end
 
   def test_merged_session_arg_is_retained_across_requests
@@ -393,23 +339,12 @@ XML
     assert_equal "/test_case_test/test/test_uri", @response.body
   end
 
-  def test_deprecated_process_with_request_uri_with_params
-    assert_deprecated { process :test_uri, "GET", id: 7 }
-    assert_equal "/test_case_test/test/test_uri/7", @response.body
-  end
-
   def test_process_with_request_uri_with_params
     process :test_uri,
       method: "GET",
       params: { id: 7 }
 
     assert_equal "/test_case_test/test/test_uri/7", @response.body
-  end
-
-  def test_deprecated_process_with_request_uri_with_params_with_explicit_uri
-    @request.env["PATH_INFO"] = "/explicit/uri"
-    assert_deprecated { process :test_uri, "GET", id: 7 }
-    assert_equal "/explicit/uri", @response.body
   end
 
   def test_process_with_request_uri_with_params_with_explicit_uri
@@ -491,20 +426,6 @@ XML
     end
   end
 
-  def test_deprecated_params_passing
-    assert_deprecated {
-      get :test_params, page: { name: "Page name", month: "4", year: "2004", day: "6" }
-    }
-    parsed_params = ::JSON.parse(@response.body)
-    assert_equal(
-      {
-        "controller" => "test_case_test/test", "action" => "test_params",
-        "page" => { "name" => "Page name", "month" => "4", "year" => "2004", "day" => "6" }
-      },
-      parsed_params
-    )
-  end
-
   def test_params_passing
     get :test_params, params: {
       page: {
@@ -581,16 +502,6 @@ XML
 
   def test_params_passing_path_parameter_is_string_when_not_html_request
     get :test_params, params: { format: "json", id: 1 }
-    parsed_params = ::JSON.parse(@response.body)
-    assert_equal(
-      { "controller" => "test_case_test/test", "action" => "test_params",
-       "format" => "json", "id" => "1" },
-      parsed_params
-    )
-  end
-
-  def test_deprecated_params_passing_path_parameter_is_string_when_not_html_request
-    assert_deprecated { get :test_params, format: "json", id: 1 }
     parsed_params = ::JSON.parse(@response.body)
     assert_equal(
       { "controller" => "test_case_test/test", "action" => "test_params",
@@ -683,11 +594,6 @@ XML
     assert_kind_of String, @request.path_parameters[:id]
   end
 
-  def test_deprecared_id_converted_to_string
-    assert_deprecated { get :test_params, id: 20, foo: Object.new }
-    assert_kind_of String, @request.path_parameters[:id]
-  end
-
   def test_array_path_parameter_handled_properly
     with_routing do |set|
       set.draw do
@@ -742,12 +648,6 @@ XML
     assert_nil @request.env["HTTP_ACCEPT"]
   end
 
-  def test_deprecated_xhr_with_params
-    assert_deprecated { xhr :get, :test_params, params: { id: 1 } }
-
-    assert_equal({ "id"=>"1", "controller"=>"test_case_test/test", "action"=>"test_params" }, ::JSON.parse(@response.body))
-  end
-
   def test_xhr_with_params
     get :test_params, params: { id: 1 }, xhr: true
 
@@ -761,23 +661,6 @@ XML
     assert_equal "A wonder", session[:string], "Test session hash should allow indifferent access"
     assert_equal "it works", session["symbol"], "Test session hash should allow indifferent access"
     assert_equal "it works", session[:symbol], "Test session hash should allow indifferent access"
-  end
-
-  def test_deprecated_xhr_with_session
-    assert_deprecated { xhr :get, :set_session }
-
-    assert_equal "A wonder", session["string"], "A value stored in the session should be available by string key"
-    assert_equal "A wonder", session[:string], "Test session hash should allow indifferent access"
-    assert_equal "it works", session["symbol"], "Test session hash should allow indifferent access"
-    assert_equal "it works", session[:symbol], "Test session hash should allow indifferent access"
-  end
-
-  def test_deprecated_params_reset_between_post_requests
-    assert_deprecated { post :no_op, foo: "bar" }
-    assert_equal "bar", @request.params[:foo]
-
-    post :no_op
-    assert @request.params[:foo].blank?
   end
 
   def test_params_reset_between_post_requests
@@ -977,15 +860,6 @@ XML
   def test_fixture_file_upload_ignores_nil_fixture_path
     uploaded_file = fixture_file_upload("#{FILES_DIR}/mona_lisa.jpg", "image/jpg")
     assert_equal File.open("#{FILES_DIR}/mona_lisa.jpg", READ_PLAIN).read, uploaded_file.read
-  end
-
-  def test_deprecated_action_dispatch_uploaded_file_upload
-    filename = "mona_lisa.jpg"
-    path = "#{FILES_DIR}/#{filename}"
-    assert_deprecated {
-      post :test_file_upload, file: Rack::Test::UploadedFile.new(path, "image/jpg", true)
-    }
-    assert_equal "159528", @response.body
   end
 
   def test_action_dispatch_uploaded_file_upload

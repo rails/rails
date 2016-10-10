@@ -131,14 +131,6 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert_not @params[:person].values_at(:name).first.permitted?
   end
 
-  test "equality with a hash is deprecated" do
-    hash1 = { foo: :bar }
-    params1 = ActionController::Parameters.new(hash1)
-    assert_deprecated("will be removed in Rails 5.1") do
-      assert(params1 == hash1)
-    end
-  end
-
   test "is equal to Parameters instance with same params" do
     params1 = ActionController::Parameters.new(a: 1, b: 2)
     params2 = ActionController::Parameters.new(a: 1, b: 2)

@@ -62,8 +62,8 @@ class BaseMailer < ActionMailer::Base
   def explicit_multipart(hash = {})
     attachments["invoice.pdf"] = "This is test File content" if hash.delete(:attachments)
     mail(hash) do |format|
-      format.text { render text: "TEXT Explicit Multipart" }
-      format.html { render text: "HTML Explicit Multipart" }
+      format.text { render plain: "TEXT Explicit Multipart" }
+      format.html { render plain: "HTML Explicit Multipart" }
     end
   end
 
@@ -76,7 +76,7 @@ class BaseMailer < ActionMailer::Base
 
   def explicit_multipart_with_any(hash = {})
     mail(hash) do |format|
-      format.any(:text, :html) { render text: "Format with any!" }
+      format.any(:text, :html) { render plain: "Format with any!" }
     end
   end
 

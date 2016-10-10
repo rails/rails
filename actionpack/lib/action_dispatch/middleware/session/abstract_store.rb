@@ -7,21 +7,11 @@ require "action_dispatch/request/session"
 module ActionDispatch
   module Session
     class SessionRestoreError < StandardError #:nodoc:
-      def initialize(const_error = nil)
-        if const_error
-          ActiveSupport::Deprecation.warn("Passing #original_exception is deprecated and has no effect. " \
-                                          "Exceptions will automatically capture the original exception.", caller)
-        end
-
+      def initialize
         super("Session contains objects whose class definition isn't available.\n" +
           "Remember to require the classes for all objects kept in the session.\n" +
           "(Original exception: #{$!.message} [#{$!.class}])\n")
         set_backtrace $!.backtrace
-      end
-
-      def original_exception
-        ActiveSupport::Deprecation.warn("#original_exception is deprecated. Use #cause instead.", caller)
-        cause
       end
     end
 

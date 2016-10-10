@@ -167,18 +167,6 @@ class MimeTypeTest < ActiveSupport::TestCase
     end
   end
 
-  test "deprecated lookup" do
-    assert_deprecated do
-      Mime::HTML
-    end
-  end
-
-  test "deprecated const_defined?" do
-    assert_deprecated do
-      Mime.const_defined? :HTML
-    end
-  end
-
   test "references gives preference to symbols before strings" do
     assert_equal :html, Mime[:html].ref
     another = Mime::Type.lookup("foo/bar")
