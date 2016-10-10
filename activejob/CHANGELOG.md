@@ -1,3 +1,7 @@
+*   Removed deprecated support to passing the adapter class to `.queue_adapter`.
+
+    *Rafael Mendonça França*
+
 *   Removed deprecated `#original_exception` in `ActiveJob::DeserializationError`.
 
     *Rafael Mendonça França*
