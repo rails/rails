@@ -115,36 +115,6 @@ module ActiveModel
     alias :has_key? :include?
     alias :key? :include?
 
-    # Get messages for +key+.
-    #
-    #   person.errors.messages   # => {:name=>["cannot be nil"]}
-    #   person.errors.get(:name) # => ["cannot be nil"]
-    #   person.errors.get(:age)  # => []
-    def get(key)
-      ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
-        ActiveModel::Errors#get is deprecated and will be removed in Rails 5.1.
-
-        To achieve the same use model.errors[:#{key}].
-      MESSAGE
-
-      messages[key]
-    end
-
-    # Set messages for +key+ to +value+.
-    #
-    #   person.errors[:name] # => ["cannot be nil"]
-    #   person.errors.set(:name, ["can't be nil"])
-    #   person.errors[:name] # => ["can't be nil"]
-    def set(key, value)
-      ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
-        ActiveModel::Errors#set is deprecated and will be removed in Rails 5.1.
-
-        Use model.errors.add(:#{key}, #{value.inspect}) instead.
-      MESSAGE
-
-      messages[key] = value
-    end
-
     # Delete messages for +key+. Returns the deleted messages.
     #
     #   person.errors[:name]        # => ["cannot be nil"]
@@ -171,20 +141,6 @@ module ActiveModel
     #   person.errors.keys    # => [:name]
     def [](attribute)
       messages[attribute.to_sym]
-    end
-
-    # Adds to the supplied attribute the supplied error message.
-    #
-    #   person.errors[:name] = "must be set"
-    #   person.errors[:name] # => ['must be set']
-    def []=(attribute, error)
-      ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
-        ActiveModel::Errors#[]= is deprecated and will be removed in Rails 5.1.
-
-        Use model.errors.add(:#{attribute}, #{error.inspect}) instead.
-      MESSAGE
-
-      messages[attribute.to_sym] << error
     end
 
     # Iterates through each error key, value pair in the error messages hash.
@@ -336,49 +292,6 @@ module ActiveModel
 
       details[attribute.to_sym]  << detail
       messages[attribute.to_sym] << message
-    end
-
-    # Will add an error message to each of the attributes in +attributes+
-    # that is empty.
-    #
-    #   person.errors.add_on_empty(:name)
-    #   person.errors.messages
-    #   # => {:name=>["can't be empty"]}
-    def add_on_empty(attributes, options = {})
-      ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
-        ActiveModel::Errors#add_on_empty is deprecated and will be removed in Rails 5.1.
-
-        To achieve the same use:
-
-          errors.add(attribute, :empty, options) if value.nil? || value.empty?
-      MESSAGE
-
-      Array(attributes).each do |attribute|
-        value = @base.send(:read_attribute_for_validation, attribute)
-        is_empty = value.respond_to?(:empty?) ? value.empty? : false
-        add(attribute, :empty, options) if value.nil? || is_empty
-      end
-    end
-
-    # Will add an error message to each of the attributes in +attributes+ that
-    # is blank (using Object#blank?).
-    #
-    #   person.errors.add_on_blank(:name)
-    #   person.errors.messages
-    #   # => {:name=>["can't be blank"]}
-    def add_on_blank(attributes, options = {})
-      ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
-        ActiveModel::Errors#add_on_blank is deprecated and will be removed in Rails 5.1.
-
-        To achieve the same use:
-
-          errors.add(attribute, :blank, options) if value.blank?
-      MESSAGE
-
-      Array(attributes).each do |attribute|
-        value = @base.send(:read_attribute_for_validation, attribute)
-        add(attribute, :blank, options) if value.blank?
-      end
     end
 
     # Returns +true+ if an error on the attribute with the given message is
