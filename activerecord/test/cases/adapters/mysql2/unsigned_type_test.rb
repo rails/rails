@@ -34,10 +34,10 @@ class Mysql2UnsignedTypeTest < ActiveRecord::Mysql2TestCase
     assert_raise(ActiveModel::RangeError) do
       UnsignedType.create(unsigned_bigint: -10)
     end
-    assert_raise(ActiveRecord::StatementInvalid) do
+    assert_raise(ActiveRecord::RangeError) do
       UnsignedType.create(unsigned_float: -10.0)
     end
-    assert_raise(ActiveRecord::StatementInvalid) do
+    assert_raise(ActiveRecord::RangeError) do
       UnsignedType.create(unsigned_decimal: -10.0)
     end
   end

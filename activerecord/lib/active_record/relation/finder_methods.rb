@@ -76,7 +76,7 @@ module ActiveRecord
     #   Post.find_by "published_at < ?", 2.weeks.ago
     def find_by(arg, *args)
       where(arg, *args).take
-    rescue RangeError
+    rescue ::RangeError
       nil
     end
 
@@ -84,7 +84,7 @@ module ActiveRecord
     # an ActiveRecord::RecordNotFound error.
     def find_by!(arg, *args)
       where(arg, *args).take!
-    rescue RangeError
+    rescue ::RangeError
       raise RecordNotFound.new("Couldn't find #{@klass.name} with an out of range value",
                                @klass.name)
     end
@@ -333,7 +333,7 @@ module ActiveRecord
       end
 
       connection.select_value(relation, "#{name} Exists", relation.bound_attributes) ? true : false
-    rescue RangeError
+    rescue ::RangeError
       false
     end
 
@@ -458,7 +458,7 @@ module ActiveRecord
         else
           find_some(ids)
         end
-      rescue RangeError
+      rescue ::RangeError
         raise RecordNotFound, "Couldn't find #{@klass.name} with an out of range ID"
       end
 

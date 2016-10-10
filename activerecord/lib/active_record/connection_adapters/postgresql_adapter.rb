@@ -404,6 +404,7 @@ module ActiveRecord
 
         # See http://www.postgresql.org/docs/current/static/errcodes-appendix.html
         VALUE_LIMIT_VIOLATION = "22001"
+        NUMERIC_VALUE_OUT_OF_RANGE = "22003"
         FOREIGN_KEY_VIOLATION = "23503"
         UNIQUE_VIOLATION      = "23505"
         SERIALIZATION_FAILURE = "40001"
@@ -419,6 +420,8 @@ module ActiveRecord
             InvalidForeignKey.new(message)
           when VALUE_LIMIT_VIOLATION
             ValueTooLong.new(message)
+          when NUMERIC_VALUE_OUT_OF_RANGE
+            RangeError.new(message)
           when SERIALIZATION_FAILURE
             SerializationFailure.new(message)
           when DEADLOCK_DETECTED
