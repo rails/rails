@@ -133,18 +133,15 @@ HEADER
 
           tbl.puts " do |t|"
 
-          # then dump all non-primary key columns
-          column_specs = columns.map do |column|
-            raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" unless @connection.valid_type?(column.type)
-            next if column.name == pk
-            @connection.column_spec(column)
-          end.compact
-
           # find all migration keys used in this table
           keys = @connection.migration_keys
 
-          column_specs.each do |colspec|
-            values = keys.map { |key| colspec[key] }.compact
+          # then dump all non-primary key columns
+          columns.each do |column|
+            raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" unless @connection.valid_type?(column.type)
+            next if column.name == pk
+            colspec = @connection.column_spec(column)
+            values = [column.name.inspect] + keys.map { |key| colspec[key] }.compact
             tbl.puts "    t.#{colspec[:type]} #{values.join(", ")}"
           end
 

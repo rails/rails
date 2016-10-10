@@ -120,7 +120,7 @@ module ActiveRecord
         checks = []
         checks << lambda { |c| c.name == column_name }
         checks << lambda { |c| c.type == type } if type
-        (migration_keys - [:name]).each do |attr|
+        migration_keys.each do |attr|
           checks << lambda { |c| c.send(attr) == options[attr] } if options.key?(attr)
         end
 

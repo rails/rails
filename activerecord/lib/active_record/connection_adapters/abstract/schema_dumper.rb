@@ -8,7 +8,6 @@ module ActiveRecord
     module ColumnDumper
       def column_spec(column)
         spec = Hash[prepare_column_options(column).map { |k, v| [k, "#{k}: #{v}"] }]
-        spec[:name] = column.name.inspect
         spec[:type] = schema_type(column).to_s
         spec
       end
@@ -53,7 +52,7 @@ module ActiveRecord
 
       # Lists the valid migration options
       def migration_keys
-        [:name, :limit, :precision, :scale, :default, :null, :collation, :comment]
+        [:limit, :precision, :scale, :default, :null, :collation, :comment]
       end
 
       private
