@@ -63,21 +63,11 @@ module ActionView
       # Override to prevent #cause resetting during re-raise.
       attr_reader :cause
 
-      def initialize(template, original_exception = nil)
-        if original_exception
-          ActiveSupport::Deprecation.warn("Passing #original_exception is deprecated and has no effect. " \
-                                          "Exceptions will automatically capture the original exception.", caller)
-        end
-
+      def initialize(template)
         super($!.message)
         set_backtrace($!.backtrace)
         @cause = $!
         @template, @sub_templates = template, nil
-      end
-
-      def original_exception
-        ActiveSupport::Deprecation.warn("#original_exception is deprecated. Use #cause instead.", caller)
-        cause
       end
 
       def file_name
