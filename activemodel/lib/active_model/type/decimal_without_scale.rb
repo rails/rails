@@ -1,8 +1,8 @@
-require "active_model/type/big_integer"
+require "active_model/type/integer"
 
 module ActiveModel
   module Type
-    class DecimalWithoutScale < BigInteger # :nodoc:
+    class DecimalWithoutScale < Integer # :nodoc:
       def type
         :decimal
       end

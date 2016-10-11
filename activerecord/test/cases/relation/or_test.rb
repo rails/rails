@@ -25,6 +25,11 @@ module ActiveRecord
       assert_equal expected, Post.where("id = 1").or(Post.none).to_a
     end
 
+    def test_or_with_out_of_range_value
+      expected = Post.where("id = 1 or id = 2147483648").to_a
+      assert_equal expected, Post.where(id: 1).or(Post.where(id: 2147483648)).to_a
+    end
+
     def test_or_with_bind_params
       assert_equal Post.find([1, 2]), Post.where(id: 1).or(Post.where(id: 2)).to_a
     end

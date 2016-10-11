@@ -73,7 +73,7 @@ module ActiveRecord
         primary_key: "serial primary key",
         string:      { name: "character varying" },
         text:        { name: "text" },
-        integer:     { name: "integer" },
+        integer:     { name: "integer", limit: 4 },
         float:       { name: "float" },
         decimal:     { name: "decimal" },
         datetime:    { name: "timestamp" },
@@ -404,6 +404,7 @@ module ActiveRecord
 
         # See http://www.postgresql.org/docs/current/static/errcodes-appendix.html
         VALUE_LIMIT_VIOLATION = "22001"
+        NUMERIC_VALUE_OUT_OF_RANGE = "22003"
         FOREIGN_KEY_VIOLATION = "23503"
         UNIQUE_VIOLATION      = "23505"
         SERIALIZATION_FAILURE = "40001"
@@ -419,6 +420,8 @@ module ActiveRecord
             InvalidForeignKey.new(message)
           when VALUE_LIMIT_VIOLATION
             ValueTooLong.new(message)
+          when NUMERIC_VALUE_OUT_OF_RANGE
+            RangeError.new(message)
           when SERIALIZATION_FAILURE
             SerializationFailure.new(message)
           when DEADLOCK_DETECTED
@@ -444,10 +447,10 @@ module ActiveRecord
         end
 
         def initialize_type_map(m) # :nodoc:
-          register_class_with_limit m, "int2", Type::Integer
-          register_class_with_limit m, "int4", Type::Integer
-          register_class_with_limit m, "int8", Type::Integer
-          m.alias_type "oid", "int2"
+          m.register_type "int2", OID::Integer.new(limit: 2)
+          m.register_type "int4", OID::Integer.new(limit: 4)
+          m.register_type "int8", OID::Integer.new(limit: 8)
+          m.alias_type "oid", "int4"
           m.register_type "float4", Type::Float.new
           m.alias_type "float8", "float4"
           m.register_type "text", Type::Text.new
@@ -509,17 +512,6 @@ module ActiveRecord
           end
 
           load_additional_types(m)
-        end
-
-        def extract_limit(sql_type) # :nodoc:
-          case sql_type
-          when /^bigint/i, /^int8/i
-            8
-          when /^smallint/i
-            2
-          else
-            super
-          end
         end
 
         # Extracts the value from a PostgreSQL column default definition.
@@ -835,6 +827,7 @@ module ActiveRecord
         ActiveRecord::Type.register(:enum, OID::Enum, adapter: :postgresql)
         ActiveRecord::Type.register(:hstore, OID::Hstore, adapter: :postgresql)
         ActiveRecord::Type.register(:inet, OID::Inet, adapter: :postgresql)
+        ActiveRecord::Type.register(:integer, OID::Integer, adapter: :postgresql)
         ActiveRecord::Type.register(:json, OID::Json, adapter: :postgresql)
         ActiveRecord::Type.register(:jsonb, OID::Jsonb, adapter: :postgresql)
         ActiveRecord::Type.register(:money, OID::Money, adapter: :postgresql)
