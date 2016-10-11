@@ -1,3 +1,7 @@
+*   Remove ability to pass conditions in `destroy_all` and `delete_all` methods
+
+    *Dino Maric*
+
 *   Fixed support for case insensitive comparisons of `text` columns in
     PostgreSQL.
 
