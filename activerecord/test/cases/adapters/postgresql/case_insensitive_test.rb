@@ -9,18 +9,18 @@ class PostgresqlCaseInsensitiveTest < ActiveRecord::PostgreSQLTestCase
 
     column = Default.columns_hash["char1"]
     comparison = connection.case_insensitive_comparison table, :char1, column, nil
-    assert_match /lower/i, comparison.to_sql
+    assert_match(/lower/i, comparison.to_sql)
 
     column = Default.columns_hash["char2"]
     comparison = connection.case_insensitive_comparison table, :char2, column, nil
-    assert_match /lower/i, comparison.to_sql
+    assert_match(/lower/i, comparison.to_sql)
 
     column = Default.columns_hash["char3"]
     comparison = connection.case_insensitive_comparison table, :char3, column, nil
-    assert_match /lower/i, comparison.to_sql
+    assert_match(/lower/i, comparison.to_sql)
 
     column = Default.columns_hash["multiline_default"]
     comparison = connection.case_insensitive_comparison table, :multiline_default, column, nil
-    assert_match /lower/i, comparison.to_sql
+    assert_match(/lower/i, comparison.to_sql)
   end
 end
