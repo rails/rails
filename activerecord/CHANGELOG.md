@@ -1,3 +1,8 @@
+*   Merging two relations which have joins no longer transforms the joins of
+    the merged relation into LEFT OUTER JOIN.
+
+    *Maxime Handfield Lapointe*
+
 *   Made ActiveRecord consistently use `ActiveRecord::Type` (not `ActiveModel::Type`)
 
     *Iain Beeston*
