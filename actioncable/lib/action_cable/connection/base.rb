@@ -196,9 +196,9 @@ module ActionCable
           return true if server.config.disable_request_forgery_protection
 
           proto = Rack::Request.new(env).ssl? ? "https" : "http"
-          if Array(server.config.allowed_request_origins).any? { |allowed_origin|  allowed_origin === env["HTTP_ORIGIN"] }
+          if server.config.allow_same_origin_as_host && env["HTTP_ORIGIN"] == "#{proto}://#{env['HTTP_HOST']}"
             true
-          elsif server.config.allow_same_origin_as_host && env["HTTP_ORIGIN"] == "#{proto}://#{env['HTTP_HOST']}"
+          elsif Array(server.config.allowed_request_origins).any? { |allowed_origin|  allowed_origin === env["HTTP_ORIGIN"] }
             true
           else
             logger.error("Request origin not allowed: #{env['HTTP_ORIGIN']}")
