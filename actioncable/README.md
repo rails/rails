@@ -340,6 +340,11 @@ To disable and allow requests from any origin:
 Rails.application.config.action_cable.disable_request_forgery_protection = true
 ```
 
+It is also possible to allow origins that are starting with the actual HTTP HOST header:
+```ruby
+Rails.application.config.action_cable.allow_same_origin_as_host = true
+```
+
 ### Consumer Configuration
 
 Once you have decided how to run your cable server (see below), you must provide the server URL (or path) to your client-side setup.
