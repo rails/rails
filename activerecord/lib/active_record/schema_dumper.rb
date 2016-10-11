@@ -115,9 +115,7 @@ HEADER
             pkcol = columns.detect { |c| c.name == pk }
             pkcolspec = @connection.column_spec_for_primary_key(pkcol)
             if pkcolspec.present?
-              pkcolspec.each do |key, value|
-                tbl.print ", #{key}: #{value}"
-              end
+              tbl.print ", #{format_colspec(pkcolspec)}"
             end
           when Array
             tbl.print ", primary_key: #{pk.inspect}"
@@ -133,16 +131,14 @@ HEADER
 
           tbl.puts " do |t|"
 
-          # find all migration keys used in this table
-          keys = @connection.migration_keys
-
           # then dump all non-primary key columns
           columns.each do |column|
             raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" unless @connection.valid_type?(column.type)
             next if column.name == pk
-            colspec = @connection.column_spec(column)
-            values = [column.name.inspect] + keys.map { |key| colspec[key] }.compact
-            tbl.puts "    t.#{colspec[:type]} #{values.join(", ")}"
+            type, colspec = @connection.column_spec(column)
+            tbl.print "    t.#{type} #{column.name.inspect}"
+            tbl.print ", #{format_colspec(colspec)}" if colspec.present?
+            tbl.puts
           end
 
           indexes_in_create(table, tbl)
@@ -226,6 +222,10 @@ HEADER
 
           stream.puts add_foreign_key_statements.sort.join("\n")
         end
+      end
+
+      def format_colspec(colspec)
+        colspec.map { |key, value| "#{key}: #{value}" }.join(", ")
       end
 
       def format_options(options)
