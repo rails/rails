@@ -184,9 +184,13 @@ class SecurePasswordTest < ActiveModel::TestCase
 
   test "authenticate" do
     @user.password = "secret"
+    @user.activation_token = "new_token"
 
     assert !@user.authenticate("wrong")
     assert @user.authenticate("secret")
+
+    assert !@user.authenticate("wrong", :activation_token)
+    assert @user.authenticate("new_token", :activation_token)
   end
 
   test "Password digest cost defaults to bcrypt default cost when min_cost is false" do
@@ -214,5 +218,14 @@ class SecurePasswordTest < ActiveModel::TestCase
 
     @user.password = "secret"
     assert_equal BCrypt::Engine::MIN_COST, @user.password_digest.cost
+  end
+
+  test "regenerate attribute method" do
+    old_digest = @user.activation_token_digest
+    @user.regenerate_activation_token
+
+    assert_not_nil @user.activation_token
+    assert_not_nil @user.activation_token_digest
+    assert_not_equal old_digest, @user.activation_token_digest
   end
 end
