@@ -42,14 +42,24 @@ class ParametersDupTest < ActiveSupport::TestCase
     assert_not_equal @params, dupped_params
   end
 
-  test "deep_dup" do
+  test "deep_dup content" do
     dupped_params = @params.deep_dup
     dupped_params[:person][:age] = "45"
     dupped_params[:person][:addresses].clear
+
+    assert_not_equal @params[:person][:age], dupped_params[:person][:age]
+    assert_not_equal @params[:person][:addresses], dupped_params[:person][:addresses]
+  end
+
+  test "deep_dup @permitted" do
+    dupped_params = @params.deep_dup
     dupped_params.permit!
 
     assert_not @params.permitted?
-    assert_not_equal @params[:person][:age], dupped_params[:person][:age]
-    assert_not_equal @params[:person][:addresses], dupped_params[:person][:addresses]
+  end
+
+  test "deep_dup @permitted is being copied" do
+    @params.permit!
+    assert @params.deep_dup.permitted?
   end
 end
