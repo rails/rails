@@ -613,6 +613,13 @@ module ActionController
 
     undef_method :to_param
 
+    # Returns duplicate of object including all parameters
+    def deep_dup
+      self.class.new(@parameters.deep_dup).tap do |duplicate|
+        duplicate.permitted = @permitted
+      end
+    end
+
     protected
       attr_reader :parameters
 
