@@ -1,3 +1,10 @@
+*   Permit same-origin connections by default.
+
+    New option `config.action_cable.allow_same_origin_as_host = false`
+    to disable.
+
+    *Dávid Halász*, *Matthew Draper*
+
 *   Prevent race where the client could receive and act upon a
     subscription confirmation before the channel's `subscribed` method
     completed.

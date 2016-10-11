@@ -15,7 +15,7 @@ module ActionCable
         @worker_pool_size = 4
 
         @disable_request_forgery_protection = false
-        @allow_same_origin_as_host = false
+        @allow_same_origin_as_host = true
       end
 
       # Returns constant of subscription adapter specified in config/cable.yml.

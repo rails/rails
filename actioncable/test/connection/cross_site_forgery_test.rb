@@ -13,12 +13,13 @@ class ActionCable::Connection::CrossSiteForgeryTest < ActionCable::TestCase
   setup do
     @server = TestServer.new
     @server.config.allowed_request_origins = %w( http://rubyonrails.com )
+    @server.config.allow_same_origin_as_host = false
   end
 
   teardown do
     @server.config.disable_request_forgery_protection = false
     @server.config.allowed_request_origins = []
-    @server.config.allow_same_origin_as_host = false
+    @server.config.allow_same_origin_as_host = true
   end
 
   test "disable forgery protection" do
