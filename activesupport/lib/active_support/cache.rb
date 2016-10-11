@@ -1,8 +1,6 @@
-require "benchmark"
 require "zlib"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/array/wrap"
-require "active_support/core_ext/benchmark"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/numeric/bytes"
 require "active_support/core_ext/numeric/time"
