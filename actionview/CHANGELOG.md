@@ -1,3 +1,7 @@
+*   Removed deprecated `#original_exception` in `ActionView::Template::Error`.
+
+    *Rafael Mendonça França*
+
 *   Render now accepts any keys for locals, including reserved words
 
     Only locals with valid variable names get set directly. Others

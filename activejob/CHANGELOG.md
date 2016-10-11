@@ -1,3 +1,11 @@
+*   Removed deprecated support to passing the adapter class to `.queue_adapter`.
+
+    *Rafael Mendonça França*
+
+*   Removed deprecated `#original_exception` in `ActiveJob::DeserializationError`.
+
+    *Rafael Mendonça França*
+
 *   Added instance variable `@queue` to JobWrapper.
 
     This will fix issues in [resque-scheduler](https://github.com/resque/resque-scheduler) `#job_to_hash` method,

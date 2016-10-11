@@ -20,19 +20,6 @@ class QueueAdapterTest < ActiveJob::TestCase
     assert_raises(ArgumentError) { ActiveJob::Base.queue_adapter = Mutex.new }
   end
 
-  test "should warn on passing an adapter class" do
-    klass = Class.new do
-      def self.name
-        "fake"
-      end
-
-      def enqueue(*); end
-      def enqueue_at(*); end
-    end
-
-    assert_deprecated { ActiveJob::Base.queue_adapter = klass }
-  end
-
   test "should allow overriding the queue_adapter at the child class level without affecting the parent or its sibling" do
     base_queue_adapter = ActiveJob::Base.queue_adapter
 

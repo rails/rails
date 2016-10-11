@@ -5,21 +5,9 @@ module ActiveJob
   #
   # Wraps the original exception raised as +cause+.
   class DeserializationError < StandardError
-    def initialize(e = nil) #:nodoc:
-      if e
-        ActiveSupport::Deprecation.warn("Passing #original_exception is deprecated and has no effect. " \
-                                        "Exceptions will automatically capture the original exception.", caller)
-      end
-
+    def initialize #:nodoc:
       super("Error while trying to deserialize arguments: #{$!.message}")
       set_backtrace $!.backtrace
-    end
-
-    # The original exception that was raised during deserialization of job
-    # arguments.
-    def original_exception
-      ActiveSupport::Deprecation.warn("#original_exception is deprecated. Use #cause instead.", caller)
-      cause
     end
   end
 

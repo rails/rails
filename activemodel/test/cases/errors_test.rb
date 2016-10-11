@@ -79,24 +79,6 @@ class ErrorsTest < ActiveModel::TestCase
     assert person.errors.empty?
   end
 
-  test "get returns the errors for the provided key" do
-    errors = ActiveModel::Errors.new(self)
-    errors[:foo] << "omg"
-
-    assert_deprecated do
-      assert_equal ["omg"], errors.get(:foo)
-    end
-  end
-
-  test "sets the error with the provided key" do
-    errors = ActiveModel::Errors.new(self)
-    assert_deprecated do
-      errors.set(:foo, "omg")
-    end
-
-    assert_equal({ foo: "omg" }, errors.messages)
-  end
-
   test "error access is indifferent" do
     errors = ActiveModel::Errors.new(self)
     errors[:foo] << "omg"
@@ -140,14 +122,6 @@ class ErrorsTest < ActiveModel::TestCase
     person.validate!
     assert_equal ["name cannot be nil"], person.errors.full_messages
     assert_equal ["cannot be nil"], person.errors[:name]
-  end
-
-  test "assign error" do
-    person = Person.new
-    assert_deprecated do
-      person.errors[:name] = "should not be nil"
-    end
-    assert_equal ["should not be nil"], person.errors[:name]
   end
 
   test "add an error message on a specific attribute" do
@@ -318,72 +292,6 @@ class ErrorsTest < ActiveModel::TestCase
     assert_nothing_raised {
       person.errors.generate_message(:name, :blank)
     }
-  end
-
-  test "add_on_empty generates message" do
-    person = Person.new
-    assert_called_with(person.errors, :generate_message, [:name, :empty, {}]) do
-      assert_deprecated do
-        person.errors.add_on_empty :name
-      end
-    end
-  end
-
-  test "add_on_empty generates message for multiple attributes" do
-    person = Person.new
-    expected_calls = [ [:name, :empty, {}], [:age, :empty, {}] ]
-    assert_called_with(person.errors, :generate_message, expected_calls) do
-      assert_deprecated do
-        person.errors.add_on_empty [:name, :age]
-      end
-    end
-  end
-
-  test "add_on_empty generates message with custom default message" do
-    person = Person.new
-    assert_called_with(person.errors, :generate_message, [:name, :empty, { message: "custom" }]) do
-      assert_deprecated do
-        person.errors.add_on_empty :name, message: "custom"
-      end
-    end
-  end
-
-  test "add_on_empty generates message with empty string value" do
-    person = Person.new
-    person.name = ""
-    assert_called_with(person.errors, :generate_message, [:name, :empty, {}]) do
-      assert_deprecated do
-        person.errors.add_on_empty :name
-      end
-    end
-  end
-
-  test "add_on_blank generates message" do
-    person = Person.new
-    assert_called_with(person.errors, :generate_message, [:name, :blank, {}]) do
-      assert_deprecated do
-        person.errors.add_on_blank :name
-      end
-    end
-  end
-
-  test "add_on_blank generates message for multiple attributes" do
-    person = Person.new
-    expected_calls = [ [:name, :blank, {}], [:age, :blank, {}] ]
-    assert_called_with(person.errors, :generate_message, expected_calls) do
-      assert_deprecated do
-        person.errors.add_on_blank [:name, :age]
-      end
-    end
-  end
-
-  test "add_on_blank generates message with custom default message" do
-    person = Person.new
-    assert_called_with(person.errors, :generate_message, [:name, :blank, { message: "custom" }]) do
-      assert_deprecated do
-        person.errors.add_on_blank :name, message: "custom"
-      end
-    end
   end
 
   test "details returns added error detail" do
