@@ -324,10 +324,7 @@ module ActiveRecord
       end
 
       def data_sources
-        sql = "SELECT table_name FROM information_schema.tables "
-        sql << "WHERE table_schema = #{quote(@config[:database])}"
-
-        select_values(sql, "SCHEMA")
+        select_values(data_source_sql, "SCHEMA")
       end
 
       def truncate(table_name, name = nil)
@@ -348,27 +345,17 @@ module ActiveRecord
       def data_source_exists?(table_name)
         return false unless table_name.present?
 
-        schema, name = extract_schema_qualified_name(table_name)
-
-        sql = "SELECT table_name FROM information_schema.tables "
-        sql << "WHERE table_schema = #{quote(schema)} AND table_name = #{quote(name)}"
-
-        select_values(sql, "SCHEMA").any?
+        select_values(data_source_sql(table_name), "SCHEMA").any?
       end
 
       def views # :nodoc:
-        select_values("SHOW FULL TABLES WHERE table_type = 'VIEW'", "SCHEMA")
+        select_values(data_source_sql(nil, :view), "SCHEMA")
       end
 
       def view_exists?(view_name) # :nodoc:
         return false unless view_name.present?
 
-        schema, name = extract_schema_qualified_name(view_name)
-
-        sql = "SELECT table_name FROM information_schema.tables WHERE table_type = 'VIEW'"
-        sql << " AND table_schema = #{quote(schema)} AND table_name = #{quote(name)}"
-
-        select_values(sql, "SCHEMA").any?
+        select_values(data_source_sql(view_name, :view), "SCHEMA").any?
       end
 
       # Returns an array of indexes for the given table.
@@ -915,6 +902,26 @@ module ActiveRecord
           schema, name = string.to_s.scan(/[^`.\s]+|`[^`]*`/)
           schema, name = @config[:database], schema unless name
           [schema, name]
+        end
+
+        def data_source_sql(name = nil, type = nil)
+          if name
+            schema, name = extract_schema_qualified_name(name)
+          else
+            schema = @config[:database]
+          end
+
+          sql = "SELECT table_name FROM information_schema.tables WHERE table_schema = #{quote(schema)}"
+          sql << " AND table_name = #{quote(name)}" if name
+
+          case type
+          when :table
+            sql << " AND table_type = 'BASE TABLE'"
+          when :view
+            sql << " AND table_type = 'VIEW'"
+          end
+
+          sql
         end
 
         def integer_to_sql(limit) # :nodoc:
