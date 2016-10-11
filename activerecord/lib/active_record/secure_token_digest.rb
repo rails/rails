@@ -13,7 +13,7 @@ module ActiveRecord
       #
       # Example using #has_secure_token_digest
       #
-      #   # Schema: User(name:string, password_digest:string)
+      #   # Schema: User(name:string, token_digest:string, activation_token_digest:string)
       #   class User < ActiveRecord::Base
       #     has_secure_token_digest
       #     has_secure_token_digest :activation_token
