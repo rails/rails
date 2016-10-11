@@ -1,3 +1,8 @@
+*   Fixed support for case insensitive comparisons of `text` columns in
+    PostgreSQL.
+
+    *Edho Arief*
+
 *   Made ActiveRecord consistently use `ActiveRecord::Type` (not `ActiveModel::Type`)
 
     *Iain Beeston*
