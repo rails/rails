@@ -1,3 +1,8 @@
+*   Fixed support for case insensitive comparisons of `text` columns in
+    PostgreSQL.
+
+    *Edho Arief*
+
 *   Return `true` from `update_attribute` when the value of the attribute
     to be updated is unchanged.
 
