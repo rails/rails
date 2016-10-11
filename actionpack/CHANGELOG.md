@@ -11,7 +11,7 @@
 
     *Rafael Mendonça França*
 
-*   Remove deprecated support for passing `:path` and route path as stings in `ActionDispatch::Routing::Mapper#match`.
+*   Remove deprecated support for passing `:path` and route path as strings in `ActionDispatch::Routing::Mapper#match`.
 
     *Rafael Mendonça França*
 
