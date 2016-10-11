@@ -263,7 +263,7 @@ module ActiveRecord
       end
 
       def data_sources
-        select_values("SELECT name FROM sqlite_master WHERE type IN ('table','view') AND name <> 'sqlite_sequence'", "SCHEMA")
+        select_values(data_source_sql, "SCHEMA")
       end
 
       def table_exists?(table_name)
@@ -279,23 +279,17 @@ module ActiveRecord
       def data_source_exists?(table_name)
         return false unless table_name.present?
 
-        sql = "SELECT name FROM sqlite_master WHERE type IN ('table','view') AND name <> 'sqlite_sequence'"
-        sql << " AND name = #{quote(table_name)}"
-
-        select_values(sql, "SCHEMA").any?
+        select_values(data_source_sql(table_name), "SCHEMA").any?
       end
 
       def views # :nodoc:
-        select_values("SELECT name FROM sqlite_master WHERE type = 'view' AND name <> 'sqlite_sequence'", "SCHEMA")
+        select_values(data_source_sql(nil, :view), "SCHEMA")
       end
 
       def view_exists?(view_name) # :nodoc:
         return false unless view_name.present?
 
-        sql = "SELECT name FROM sqlite_master WHERE type = 'view' AND name <> 'sqlite_sequence'"
-        sql << " AND name = #{quote(view_name)}"
-
-        select_values(sql, "SCHEMA").any?
+        select_values(data_source_sql(view_name, :view), "SCHEMA").any?
       end
 
       # Returns an array of +Column+ objects for the table specified by +table_name+.
@@ -563,6 +557,22 @@ module ActiveRecord
           else
             basic_structure.to_hash
           end
+        end
+
+        def data_source_sql(name = nil, type = nil)
+          type =
+            case type
+            when :table
+              "'table'"
+            when :view
+              "'view'"
+            else
+              "'table','view'"
+            end
+
+          sql = "SELECT name FROM sqlite_master WHERE type IN (#{type}) AND name <> 'sqlite_sequence'"
+          sql << " AND name = #{quote(name)}" if name
+          sql
         end
     end
   end
