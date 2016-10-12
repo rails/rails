@@ -115,7 +115,21 @@ class Class
       if instance_reader
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def #{reader_name}
-            singleton_class.#{reader_name}
+            return #{instance_variable_name} if defined?(#{instance_variable_name})
+
+            # Here we can't just call singleton_class every time, as this would
+            # automatically create a singleton class unless it already exists.
+            # Therefore, we have to search manually whether there is a singleton
+            # class for our object.
+            has_singleton_class = ObjectSpace.each_object(Class).any? do |klass|
+              klass < self.class && klass.singleton_class? && self.is_a?(klass)
+            end
+
+            if has_singleton_class
+              return singleton_class.#{reader_name}
+            else
+              return self.class.#{reader_name}
+            end
           end
         RUBY
       end
@@ -124,18 +138,19 @@ class Class
       if instance_writer
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def #{writer_name}(value)
-            singleton_class.#{writer_name}(value)
+            #{instance_variable_name} = value
           end
         RUBY
       end
 
-      # Define instance predicate method
-      next unless instance_reader && instance_predicate
-      class_eval <<-RUBY, __FILE__, __LINE__ + 1
-        def #{predicate_name}
-          !!singleton_class.#{reader_name}
-        end
-      RUBY
+      # Define predicate method
+      if instance_reader && instance_predicate
+        class_eval <<-RUBY, __FILE__, __LINE__ + 1
+          def #{predicate_name}
+            !!#{reader_name}
+          end
+        RUBY
+      end
     end
   end
 end
