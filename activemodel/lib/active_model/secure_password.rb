@@ -48,15 +48,14 @@ module ActiveModel
       #   user.save                                                       # => false, confirmation doesn't match
       #   user.password_confirmation = 'mUc3m00RsqyRe'
       #   user.save                                                       # => true
-      #   user.regenerate_activation_token
-      #   user.activation_token                                           # => "ME7abXFGvzZWJRVrD6Et0YqAS6Pg2eDo"
+      #   user.activation_token = "a_new_token"
       #   user.activation_token_digest                                    # => "$2a$10$0Budk0Fi/k2CDm2PEwa3BeXO5tPOA85b6xazE9rp8nF2MIJlsUik."
       #   user.save                                                       # => true
       #   user.authenticate('notright')                                   # => false
       #   user.authenticate('mUc3m00RsqyRe')                              # => user
+      #   user.authenticate_activation_token('a_new_token')               # => user
       #   User.find_by(name: 'david').try(:authenticate, 'notright')      # => false
       #   User.find_by(name: 'david').try(:authenticate, 'mUc3m00RsqyRe') # => user
-      #   user.authenticate('ME7abXFGvzZWJRVrD6Et0YqAS6Pg2eDo', :activation_token) # => user
       def has_secure_password(attribute = :password, validations: true)
         # Load bcrypt gem only when has_secure_password is used.
         # This is to avoid ActiveModel (and by extension the entire framework)
@@ -70,18 +69,6 @@ module ActiveModel
 
         attr_reader attribute
 
-        # Encrypts the password into the +password_digest+ attribute, only if the
-        # new password is not empty.
-        #
-        #   class User < ActiveRecord::Base
-        #     has_secure_password validations: false
-        #   end
-        #
-        #   user = User.new
-        #   user.password = nil
-        #   user.password_digest # => nil
-        #   user.password = 'mUc3m00RsqyRe'
-        #   user.password_digest # => "$2a$10$4LEA7r4YmNHtvlAvHhsYAeZmk/xeUVtMTYqwIvYY76EW5GUqDiP4."
         define_method("#{attribute}=") do |unencrypted_password|
           if unencrypted_password.nil?
             self.send("#{attribute}_digest=", nil)
@@ -96,11 +83,22 @@ module ActiveModel
           instance_variable_set("@#{attribute}_confirmation", unencrypted_password)
         end
 
-        define_method("regenerate_#{attribute}") do
-          self.send("#{attribute}=", self.class.generate_unique_secure_token)
+        # Returns +self+ if the password is correct, otherwise +false+.
+        #
+        #   class User < ActiveRecord::Base
+        #     has_secure_password validations: false
+        #   end
+        #
+        #   user = User.new(name: 'david', password: 'mUc3m00RsqyRe')
+        #   user.save
+        #   user.authenticate_password('notright')      # => false
+        #   user.authenticate_password('mUc3m00RsqyRe') # => user
+        define_method("authenticate_#{attribute}") do |unencrypted_password|
+          attribute_digest = send("#{attribute}_digest")
+          BCrypt::Password.new(attribute_digest).is_password?(unencrypted_password) && self
         end
 
-        include InstanceMethodsOnActivation
+        alias_method :authenticate, :authenticate_password if attribute == :password
 
         if validations
           include ActiveModel::Validations
@@ -116,28 +114,6 @@ module ActiveModel
           validates_length_of attribute, maximum: ActiveModel::SecurePassword::MAX_PASSWORD_LENGTH_ALLOWED
           validates_confirmation_of attribute, allow_blank: true
         end
-      end
-
-      # SecureRandom::base64 is used to generate a 24-character unique token, so collisions are highly unlikely.
-      def generate_unique_secure_token
-        SecureRandom.base64(24)
-      end
-    end
-
-    module InstanceMethodsOnActivation
-      # Returns +self+ if the password is correct, otherwise +false+.
-      #
-      #   class User < ActiveRecord::Base
-      #     has_secure_password validations: false
-      #   end
-      #
-      #   user = User.new(name: 'david', password: 'mUc3m00RsqyRe')
-      #   user.save
-      #   user.authenticate('notright')      # => false
-      #   user.authenticate('mUc3m00RsqyRe') # => user
-      def authenticate(unencrypted_password, attribute = :password)
-        attribute_digest = send("#{attribute}_digest")
-        BCrypt::Password.new(attribute_digest).is_password?(unencrypted_password) && self
       end
     end
   end
