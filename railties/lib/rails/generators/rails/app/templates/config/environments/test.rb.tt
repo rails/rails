@@ -22,7 +22,8 @@ Rails.application.configure do
   config.consider_all_requests_local       = true
   config.action_controller.perform_caching = false
 
-  # Raise exceptions instead of rendering exception templates.
+  # This flag will render exception templates when true.
+  # If you want to raise exceptions, set to false.
   config.action_dispatch.show_exceptions = false
 
   # Disable request forgery protection in test environment.
