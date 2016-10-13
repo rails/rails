@@ -86,7 +86,7 @@ module ActiveRecord
             SELECT c.relname
             FROM pg_class c
             LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
-            WHERE c.relkind IN ('r', 'v','m') -- (r)elation/table, (v)iew, (m)aterialized view
+            WHERE c.relkind IN ('r','v','m') -- (r)elation/table, (v)iew, (m)aterialized view
             AND n.nspname = ANY (current_schemas(false))
           SQL
         end
@@ -108,13 +108,13 @@ module ActiveRecord
           name = Utils.extract_schema_qualified_name(name.to_s)
           return false unless name.identifier
 
-          select_value(<<-SQL, "SCHEMA").to_i > 0
-              SELECT COUNT(*)
+          select_values(<<-SQL, "SCHEMA").any?
+              SELECT c.relname
               FROM pg_class c
               LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
               WHERE c.relkind IN ('r','v','m') -- (r)elation/table, (v)iew, (m)aterialized view
-              AND c.relname = '#{name.identifier}'
-              AND n.nspname = #{name.schema ? "'#{name.schema}'" : 'ANY (current_schemas(false))'}
+              AND c.relname = #{quote(name.identifier)}
+              AND n.nspname = #{name.schema ? quote(name.schema) : "ANY (current_schemas(false))"}
           SQL
         end
 
@@ -137,8 +137,8 @@ module ActiveRecord
             FROM pg_class c
             LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
             WHERE c.relkind IN ('v','m') -- (v)iew, (m)aterialized view
-            AND c.relname = '#{name.identifier}'
-            AND n.nspname = #{name.schema ? "'#{name.schema}'" : 'ANY (current_schemas(false))'}
+            AND c.relname = #{quote(name.identifier)}
+            AND n.nspname = #{name.schema ? quote(name.schema) : "ANY (current_schemas(false))"}
           SQL
         end
 
@@ -441,7 +441,7 @@ module ActiveRecord
             WITH pk_constraint AS (
               SELECT conrelid, unnest(conkey) AS connum FROM pg_constraint
               WHERE contype = 'p'
-                AND conrelid = '#{quote_table_name(table_name)}'::regclass
+                AND conrelid = #{quote(quote_table_name(table_name))}::regclass
             ), cons AS (
               SELECT conrelid, connum, row_number() OVER() AS rownum FROM pk_constraint
             )

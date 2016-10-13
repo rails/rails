@@ -42,8 +42,10 @@ module ActiveRecord
     def test_table_exists?
       ActiveSupport::Deprecation.silence do
         assert @connection.table_exists?("accounts")
-        assert !@connection.table_exists?("nonexistingtable")
-        assert !@connection.table_exists?(nil)
+        assert @connection.table_exists?(:accounts)
+        assert_not @connection.table_exists?("nonexistingtable")
+        assert_not @connection.table_exists?("'")
+        assert_not @connection.table_exists?(nil)
       end
     end
 
@@ -63,6 +65,7 @@ module ActiveRecord
       assert @connection.data_source_exists?("accounts")
       assert @connection.data_source_exists?(:accounts)
       assert_not @connection.data_source_exists?("nonexistingtable")
+      assert_not @connection.data_source_exists?("'")
       assert_not @connection.data_source_exists?(nil)
     end
 
