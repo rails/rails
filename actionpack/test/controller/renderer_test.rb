@@ -60,6 +60,14 @@ class RendererTest < ActiveSupport::TestCase
     assert_equal "true", content
   end
 
+  test "rendering with custom env using a key that is not in RACK_KEY_TRANSLATION" do
+    value    = "warden is here"
+    renderer = ApplicationController.renderer.new warden: value
+    content  = renderer.render inline: "<%= request.env['warden'] %>"
+
+    assert_equal value, content
+  end
+
   test "rendering with defaults" do
     renderer = ApplicationController.renderer.new https: true
     content = renderer.render inline: "<%= request.ssl? %>"

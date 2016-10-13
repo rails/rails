@@ -102,7 +102,9 @@ module ActionController
         method: ->(v) { v.upcase },
       }
 
-      def rack_key_for(key); RACK_KEY_TRANSLATION[key]; end
+      def rack_key_for(key)
+        RACK_KEY_TRANSLATION.fetch(key, key.to_s)
+      end
 
       def rack_value_for(key, value)
         RACK_VALUE_TRANSLATION.fetch(key, IDENTITY).call value
