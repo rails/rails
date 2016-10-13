@@ -42,7 +42,7 @@ module ActiveRecord
           reflection   = child_class._reflections.values.find { |e| e.belongs_to? && e.foreign_key.to_s == foreign_key && e.options[:counter_cache].present? }
           counter_name = reflection.counter_cache_column
 
-          updates = {counter_name.to_sym => object.send(counter_association).count(:all)}
+          updates = { counter_name.to_sym => object.send(counter_association).count(:all) }
           updates[:updated_at] = DateTime.now if options[:updated_at] == true
 
           unscoped.where(primary_key => object.id).update_all(updates)
@@ -99,7 +99,10 @@ module ActiveRecord
           "#{quoted_column} = COALESCE(#{quoted_column}, 0) #{operator} #{value.abs}"
         end
 
-        updates << "\"updated_at\" = '#{DateTime.now}'" if include_updated_at
+        if include_updated_at
+          quoted_updated_at = connection.quote_column_name("updated_at")
+          updates << "#{quoted_updated_at} = '#{DateTime.now}'"
+        end
 
         unscoped.where(primary_key => id).update_all updates.join(", ")
       end
@@ -126,7 +129,7 @@ module ActiveRecord
       #   # and update the updated_at value.
       #   DiscussionBoard.increment_counter(:posts_count, 5, updated_at: true)
       def increment_counter(counter_name, id, options={})
-        update_counters(id, {counter_name => 1}.merge(options))
+        update_counters(id, { counter_name => 1 }.merge(options))
       end
 
       # Decrement a numeric field by one, via a direct SQL update.
@@ -149,7 +152,7 @@ module ActiveRecord
       #   # and update the updated_at value.
       #   DiscussionBoard.decrement_counter(:posts_count, 5, updated_at: true)
       def decrement_counter(counter_name, id, options={})
-        update_counters(id, {counter_name => -1}.merge(options))
+        update_counters(id, { counter_name => -1 }.merge(options))
       end
     end
 
