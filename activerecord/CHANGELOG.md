@@ -1,3 +1,10 @@
+*   Add option to update the updated_at value of a record when incrementing,
+    decrementing, resetting, or updated counter caches.
+
+    Fixes #26724.
+
+    *Jarred Trost*
+
 *   Fixed support for case insensitive comparisons of `text` columns in
     PostgreSQL.
 
