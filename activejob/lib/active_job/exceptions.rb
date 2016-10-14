@@ -17,7 +17,7 @@ module ActiveJob
       # ==== Options
       # * <tt>:wait</tt> - Re-enqueues the job with a delay specified either in seconds (default: 3 seconds),
       #   as a computing proc that the number of executions so far as an argument, or as a symbol reference of
-      #   <tt>:exponentially_longer<>, which applies the wait algorithm of <tt>(executions ** 4) + 2</tt>
+      #   <tt>:exponentially_longer</tt>, which applies the wait algorithm of <tt>(executions ** 4) + 2</tt>
       #   (first wait 3s, then 18s, then 83s, etc)
       # * <tt>:attempts</tt> - Re-enqueues the job the specified number of times (default: 5 attempts)
       # * <tt>:queue</tt> - Re-enqueues the job on a different queue
