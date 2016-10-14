@@ -104,7 +104,7 @@ module ActiveRecord
       super
     end
 
-    class EnumType < Type::Value # :nodoc:
+    class EnumType < ActiveModel::Type::Value # :nodoc:
       delegate :type, to: :subtype
 
       def initialize(name, mapping, subtype)

@@ -6,7 +6,7 @@ module ActiveRecord
       def test_default_type
         mapping = TypeMap.new
 
-        assert_kind_of Value, mapping.lookup(:undefined)
+        assert_kind_of ActiveModel::Type::Value, mapping.lookup(:undefined)
       end
 
       def test_registering_types
@@ -122,7 +122,7 @@ module ActiveRecord
         assert_equal mapping.lookup(1), "string"
         assert_equal mapping.lookup(2), "int"
         assert_equal mapping.lookup(3), "string"
-        assert_kind_of Type::Value, mapping.lookup(4)
+        assert_kind_of ActiveModel::Type::Value, mapping.lookup(4)
       end
 
       def test_fetch

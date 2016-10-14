@@ -41,7 +41,7 @@ module ActiveRecord
 
       def test_binds_are_logged
         sub   = Arel::Nodes::BindParam.new
-        binds = [Relation::QueryAttribute.new("id", 1, Type::Value.new)]
+        binds = [Relation::QueryAttribute.new("id", 1, ActiveModel::Type::Value.new)]
         sql   = "select * from topics where id = #{sub.to_sql}"
 
         @connection.exec_query(sql, "SQL", binds)

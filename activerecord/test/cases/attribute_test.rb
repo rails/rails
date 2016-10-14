@@ -172,31 +172,31 @@ module ActiveRecord
     end
 
     test "an attribute has not been read by default" do
-      attribute = Attribute.from_database(:foo, 1, Type::Value.new)
+      attribute = Attribute.from_database(:foo, 1, ActiveModel::Type::Value.new)
       assert_not attribute.has_been_read?
     end
 
     test "an attribute has been read when its value is calculated" do
-      attribute = Attribute.from_database(:foo, 1, Type::Value.new)
+      attribute = Attribute.from_database(:foo, 1, ActiveModel::Type::Value.new)
       attribute.value
       assert attribute.has_been_read?
     end
 
     test "an attribute is not changed if it hasn't been assigned or mutated" do
-      attribute = Attribute.from_database(:foo, 1, Type::Value.new)
+      attribute = Attribute.from_database(:foo, 1, ActiveModel::Type::Value.new)
 
       refute attribute.changed?
     end
 
     test "an attribute is changed if it's been assigned a new value" do
-      attribute = Attribute.from_database(:foo, 1, Type::Value.new)
+      attribute = Attribute.from_database(:foo, 1, ActiveModel::Type::Value.new)
       changed = attribute.with_value_from_user(2)
 
       assert changed.changed?
     end
 
     test "an attribute is not changed if it's assigned the same value" do
-      attribute = Attribute.from_database(:foo, 1, Type::Value.new)
+      attribute = Attribute.from_database(:foo, 1, ActiveModel::Type::Value.new)
       unchanged = attribute.with_value_from_user(1)
 
       refute unchanged.changed?
@@ -228,7 +228,7 @@ module ActiveRecord
     end
 
     test "with_value_from_user validates the value" do
-      type = Type::Value.new
+      type = ActiveModel::Type::Value.new
       type.define_singleton_method(:assert_valid_value) do |value|
         if value == 1
           raise ArgumentError
@@ -244,7 +244,7 @@ module ActiveRecord
     end
 
     test "with_type preserves mutations" do
-      attribute = Attribute.from_database(:foo, "", Type::Value.new)
+      attribute = Attribute.from_database(:foo, "", ActiveModel::Type::Value.new)
       attribute.value << "1"
 
       assert_equal 1, attribute.with_type(Type::Integer.new).value

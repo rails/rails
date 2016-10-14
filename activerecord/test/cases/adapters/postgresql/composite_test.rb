@@ -80,7 +80,7 @@ end
 class PostgresqlCompositeWithCustomOIDTest < ActiveRecord::PostgreSQLTestCase
   include PostgresqlCompositeBehavior
 
-  class FullAddressType < ActiveRecord::Type::Value
+  class FullAddressType < ActiveModel::Type::Value
     def type; :full_address end
 
     def deserialize(value)

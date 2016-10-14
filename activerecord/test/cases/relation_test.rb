@@ -277,7 +277,7 @@ module ActiveRecord
       assert_equal({ 2=>1, 4=>3, 5=>1 }, authors(:david).posts.merge(posts_with_special_comments_with_ratings).count)
     end
 
-    class EnsureRoundTripTypeCasting < ActiveRecord::Type::Value
+    class EnsureRoundTripTypeCasting < ActiveModel::Type::Value
       def type
         :string
       end

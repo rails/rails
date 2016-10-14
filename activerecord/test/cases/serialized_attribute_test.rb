@@ -313,7 +313,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
       return if value.nil?
       value.gsub(" encoded", "")
     end
-    type = Class.new(ActiveRecord::Type::Value) do
+    type = Class.new(ActiveModel::Type::Value) do
       include ActiveRecord::Type::Helpers::Mutable
 
       def serialize(value)

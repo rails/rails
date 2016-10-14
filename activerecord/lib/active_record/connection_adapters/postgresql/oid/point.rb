@@ -4,7 +4,7 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module OID # :nodoc:
-        class Point < Type::Value # :nodoc:
+        class Point < ActiveModel::Type::Value # :nodoc:
           include Type::Helpers::Mutable
 
           def type

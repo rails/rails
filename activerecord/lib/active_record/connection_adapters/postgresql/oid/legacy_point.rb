@@ -2,7 +2,7 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module OID # :nodoc:
-        class LegacyPoint < Type::Value # :nodoc:
+        class LegacyPoint < ActiveModel::Type::Value # :nodoc:
           include Type::Helpers::Mutable
 
           def type

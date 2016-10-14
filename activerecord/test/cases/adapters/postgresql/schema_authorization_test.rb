@@ -114,6 +114,6 @@ class SchemaAuthorizationTest < ActiveRecord::PostgreSQLTestCase
     end
 
     def bind_param(value)
-      ActiveRecord::Relation::QueryAttribute.new(nil, value, ActiveRecord::Type::Value.new)
+      ActiveRecord::Relation::QueryAttribute.new(nil, value, ActiveModel::Type::Value.new)
     end
 end

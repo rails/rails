@@ -176,7 +176,7 @@ class ActiveRecord::Relation
       end
 
       def attribute(name, value)
-        ActiveRecord::Attribute.with_cast_value(name, value, ActiveRecord::Type::Value.new)
+        ActiveRecord::Attribute.with_cast_value(name, value, ActiveModel::Type::Value.new)
       end
   end
 end

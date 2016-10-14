@@ -2,7 +2,7 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module OID # :nodoc:
-        class Array < Type::Value # :nodoc:
+        class Array < ActiveModel::Type::Value # :nodoc:
           include Type::Helpers::Mutable
 
           attr_reader :subtype, :delimiter

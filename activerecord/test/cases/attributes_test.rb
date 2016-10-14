@@ -108,7 +108,7 @@ module ActiveRecord
       assert_equal 6, klass.column_defaults.length
       assert_not klass.attribute_types.include?("wibble")
 
-      klass.attribute :wibble, Type::Value.new
+      klass.attribute :wibble, ActiveModel::Type::Value.new
 
       assert_equal 7, klass.attribute_types.length
       assert_equal 7, klass.column_defaults.length
@@ -116,7 +116,7 @@ module ActiveRecord
     end
 
     test "the given default value is cast from user" do
-      custom_type = Class.new(Type::Value) do
+      custom_type = Class.new(ActiveModel::Type::Value) do
         def cast(*)
           "from user"
         end
@@ -201,7 +201,7 @@ module ActiveRecord
       child = Class.new(parent)
       child.new # => force a schema load
 
-      parent.attribute(:foo, Type::Value.new)
+      parent.attribute(:foo, ActiveModel::Type::Value.new)
 
       assert_equal(:bar, child.new(foo: :bar).foo)
     end

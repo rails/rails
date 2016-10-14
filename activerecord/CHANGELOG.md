@@ -1,3 +1,7 @@
+*   Deprecated ActiveRecord::Type::Value in favor of ActiveModel::Type::Value
+
+    *Iain Beeston*
+
 *   Fixed support for case insensitive comparisons of `text` columns in
     PostgreSQL.
 

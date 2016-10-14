@@ -141,7 +141,7 @@ module ActiveRecord
     end
 
     test "fetch_value returns nil for unknown attributes when types has a default" do
-      types = Hash.new(Type::Value.new)
+      types = Hash.new(ActiveModel::Type::Value.new)
       builder = AttributeSet::Builder.new(types)
       attributes = builder.build_from_database
 
@@ -219,7 +219,7 @@ module ActiveRecord
     end
 
     test "#accessed_attributes returns only attributes which have been read" do
-      builder = AttributeSet::Builder.new(foo: Type::Value.new, bar: Type::Value.new)
+      builder = AttributeSet::Builder.new(foo: ActiveModel::Type::Value.new, bar: ActiveModel::Type::Value.new)
       attributes = builder.build_from_database(foo: "1", bar: "2")
 
       assert_equal [], attributes.accessed

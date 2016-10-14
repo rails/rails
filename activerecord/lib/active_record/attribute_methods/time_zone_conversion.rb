@@ -3,7 +3,7 @@ require "active_support/core_ext/string/strip"
 module ActiveRecord
   module AttributeMethods
     module TimeZoneConversion
-      class TimeZoneConverter < DelegateClass(Type::Value) # :nodoc:
+      class TimeZoneConverter < DelegateClass(ActiveModel::Type::Value) # :nodoc:
         def deserialize(value)
           convert_time_to_time_zone(super)
         end
