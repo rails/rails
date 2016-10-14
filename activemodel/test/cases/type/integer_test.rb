@@ -1,5 +1,6 @@
 require "cases/helper"
 require "active_model/type"
+require "active_support/core_ext/numeric/time"
 
 module ActiveModel
   module Type
@@ -39,6 +40,12 @@ module ActiveModel
         type = Type::Integer.new
         assert_equal 1, type.serialize(true)
         assert_equal 0, type.serialize(false)
+      end
+
+      test "casting duration" do
+        type = Type::Integer.new
+        assert_equal 1800, type.cast(30.minutes)
+        assert_equal 7200, type.cast(2.hours)
       end
 
       test "changed?" do
