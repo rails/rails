@@ -16,7 +16,7 @@ class Hash
       result[key] = yield(value)
     end
     result
-  end
+  end unless method_defined? :transform_values
 
   # Destructively converts all values using the +block+ operations.
   # Same as +transform_values+ but modifies +self+.
@@ -25,5 +25,5 @@ class Hash
     each do |key, value|
       self[key] = yield(value)
     end
-  end
+  end unless method_defined? :transform_values!
 end
