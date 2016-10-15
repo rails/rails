@@ -11,7 +11,7 @@ class Hash
       result[key] = yield(value)
     end
     result
-  end
+  end unless method_defined? :transform_values
 
   # Destructive +transform_values+
   def transform_values!
@@ -19,5 +19,5 @@ class Hash
     each do |key, value|
       self[key] = yield(value)
     end
-  end
+  end unless method_defined? :transform_values!
 end
