@@ -270,33 +270,24 @@ The above are guidelines - please use your best judgment in using them.
 
 ### Benchmark Your Code
 
-If your change has an impact on the performance of Rails, please use the
-[benchmark-ips](https://github.com/evanphx/benchmark-ips) gem to provide
-benchmark results for comparison.
+For changes that might have an impact on performance, please benchmark your
+code and measure the impact. Please share the benchmark script you used as well
+as the results. You should consider including these information in your commit
+message, which allows future contributors to easily verify your findings and
+determine if they are still relevant. (For example, future optimizations in the
+Ruby VM might render certain optimizations unnecessary.)
 
-Here's an example of using benchmark-ips:
+It is very easy to make an optimization that improves performance for a
+specific scenario you care about but regresses on other common cases.
+Therefore, you should test your change against a list of representative
+scenarios. Ideally, they should be based on real-world scenarios extracted
+from production applications.
 
-```ruby
-require 'benchmark/ips'
-
-Benchmark.ips do |x|
-  x.report('addition') { 1 + 2 }
-  x.report('addition with send') { 1.send(:+, 2) }
-end
-```
-
-This will generate a report with the following information:
-
-```
-Calculating -------------------------------------
-            addition   132.013k i/100ms
-  addition with send   125.413k i/100ms
--------------------------------------------------
-            addition      9.677M (± 1.7%) i/s -     48.449M
-  addition with send      6.794M (± 1.1%) i/s -     33.987M
-```
-
-Please see the benchmark/ips [README](https://github.com/evanphx/benchmark-ips/blob/master/README.md) for more information.
+You can use the [benchmark template](https://github.com/rails/rails/blob/master/guides/bug_report_templates/benchmark.rb)
+as a starting point. It includes the boilerplate code to setup a benchmark
+using the [benchmark-ips](https://github.com/evanphx/benchmark-ips) gem. The
+template is designed for testing relatively self-contained changes that can be
+inlined into the script.
 
 ### Running Tests
 
