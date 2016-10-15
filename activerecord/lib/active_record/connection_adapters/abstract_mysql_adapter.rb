@@ -388,7 +388,7 @@ module ActiveRecord
             end
 
             indexes.last.columns << row[:Column_name]
-            indexes.last.lengths.merge!(row[:Column_name] => row[:Sub_part]) if row[:Sub_part]
+            indexes.last.lengths.merge!(row[:Column_name] => row[:Sub_part].to_i) if row[:Sub_part]
           end
         end
 
