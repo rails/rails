@@ -11,62 +11,37 @@ require "action_dispatch/testing/request_encoder"
 module ActionDispatch
   module Integration #:nodoc:
     module RequestHelpers
-      # Performs a GET request with the given parameters.
-      #
-      # - +path+: The URI (as a String) on which you want to perform a GET
-      #   request.
-      # - +params+: The HTTP parameters that you want to pass. This may
-      #   be +nil+,
-      #   a Hash, or a String that is appropriately encoded
-      #   (<tt>application/x-www-form-urlencoded</tt> or
-      #   <tt>multipart/form-data</tt>).
-      # - +headers+: Additional headers to pass, as a Hash. The headers will be
-      #   merged into the Rack env hash.
-      # - +env+: Additional env to pass, as a Hash. The headers will be
-      #   merged into the Rack env hash.
-      #
-      # This method returns a Response object, which one can use to
-      # inspect the details of the response. Furthermore, if this method was
-      # called from an ActionDispatch::IntegrationTest object, then that
-      # object's <tt>@response</tt> instance variable will point to the same
-      # response object.
-      #
-      # You can also perform POST, PATCH, PUT, DELETE, and HEAD requests with
-      # +#post+, +#patch+, +#put+, +#delete+, and +#head+.
-      #
-      # Example:
-      #
-      #   get '/feed', params: { since: 201501011400 }
-      #   post '/profile', headers: { "X-Test-Header" => "testvalue" }
+      # Performs a GET request with the given parameters. See +#process+ for more
+      # details.
       def get(path, **args)
         process(:get, path, **args)
       end
 
-      # Performs a POST request with the given parameters. See +#get+ for more
+      # Performs a POST request with the given parameters. See +#process+ for more
       # details.
       def post(path, **args)
         process(:post, path, **args)
       end
 
-      # Performs a PATCH request with the given parameters. See +#get+ for more
+      # Performs a PATCH request with the given parameters. See +#process+ for more
       # details.
       def patch(path, **args)
         process(:patch, path, **args)
       end
 
-      # Performs a PUT request with the given parameters. See +#get+ for more
+      # Performs a PUT request with the given parameters. See +#process+ for more
       # details.
       def put(path, **args)
         process(:put, path, **args)
       end
 
-      # Performs a DELETE request with the given parameters. See +#get+ for
+      # Performs a DELETE request with the given parameters. See +#process+ for
       # more details.
       def delete(path, **args)
         process(:delete, path, **args)
       end
 
-      # Performs a HEAD request with the given parameters. See +#get+ for more
+      # Performs a HEAD request with the given parameters. See +#process+ for more
       # details.
       def head(path, *args)
         process(:head, path, *args)
@@ -198,6 +173,110 @@ module ActionDispatch
         @https
       end
 
+      # Performs the actual request.
+      #
+      # - +method+: The HTTP method (GET, POST, PATCH, PUT, DELETE, HEAD, OPTIONS)
+      #   as a symbol.
+      # - +path+: The URI (as a String) on which you want to perform a GET
+      #   request.
+      # - +params+: The HTTP parameters that you want to pass. This may
+      #   be +nil+,
+      #   a Hash, or a String that is appropriately encoded
+      #   (<tt>application/x-www-form-urlencoded</tt> or
+      #   <tt>multipart/form-data</tt>).
+      # - +headers+: Additional headers to pass, as a Hash. The headers will be
+      #   merged into the Rack env hash.
+      # - +env+: Additional env to pass, as a Hash. The headers will be
+      #   merged into the Rack env hash.
+      #
+      # This method is rarely used directly. Use +#get+, +#post+, or other standard
+      # HTTP methods in integration tests. Only +#process+ is only required for an
+      # OPTIONS request.
+      #
+      # This method returns a Response object, which one can use to
+      # inspect the details of the response. Furthermore, if this method was
+      # called from an ActionDispatch::IntegrationTest object, then that
+      # object's <tt>@response</tt> instance variable will point to the same
+      # response object.
+      #
+      # Examples:
+      #   process :get, '/author', params: { since: 201501011400 }
+      def process(method, path, params: nil, headers: nil, env: nil, xhr: false, as: nil)
+        request_encoder = RequestEncoder.encoder(as)
+        headers ||= {}
+
+        if method == :get && as == :json && params
+          headers["X-Http-Method-Override"] = "GET"
+          method = :post
+        end
+
+        if path =~ %r{://}
+          path = build_expanded_path(path, request_encoder) do |location|
+            https! URI::HTTPS === location if location.scheme
+
+            if url_host = location.host
+              default = Rack::Request::DEFAULT_PORTS[location.scheme]
+              url_host += ":#{location.port}" if default != location.port
+              host! url_host
+            end
+          end
+        elsif as
+          path = build_expanded_path(path, request_encoder)
+        end
+
+        hostname, port = host.split(":")
+
+        request_env = {
+          :method => method,
+          :params => request_encoder.encode_params(params),
+
+          "SERVER_NAME"     => hostname,
+          "SERVER_PORT"     => port || (https? ? "443" : "80"),
+          "HTTPS"           => https? ? "on" : "off",
+          "rack.url_scheme" => https? ? "https" : "http",
+
+          "REQUEST_URI"    => path,
+          "HTTP_HOST"      => host,
+          "REMOTE_ADDR"    => remote_addr,
+          "CONTENT_TYPE"   => request_encoder.content_type,
+          "HTTP_ACCEPT"    => accept
+        }
+
+        wrapped_headers = Http::Headers.from_hash({})
+        wrapped_headers.merge!(headers) if headers
+
+        if xhr
+          wrapped_headers["HTTP_X_REQUESTED_WITH"] = "XMLHttpRequest"
+          wrapped_headers["HTTP_ACCEPT"] ||= [Mime[:js], Mime[:html], Mime[:xml], "text/xml", "*/*"].join(", ")
+        end
+
+        # this modifies the passed request_env directly
+        if wrapped_headers.present?
+          Http::Headers.from_hash(request_env).merge!(wrapped_headers)
+        end
+        if env.present?
+          Http::Headers.from_hash(request_env).merge!(env)
+        end
+
+        session = Rack::Test::Session.new(_mock_session)
+
+        # NOTE: rack-test v0.5 doesn't build a default uri correctly
+        # Make sure requested path is always a full uri
+        session.request(build_full_uri(path, request_env), request_env)
+
+        @request_count += 1
+        @request  = ActionDispatch::Request.new(session.last_request.env)
+        response = _mock_session.last_response
+        @response = ActionDispatch::TestResponse.from_response(response)
+        @response.request = @request
+        @html_document = nil
+        @url_options = nil
+
+        @controller = @request.controller_instance
+
+        response.status
+      end
+
       # Set the host name to use in the next request.
       #
       #   session.host! "www.example.com"
@@ -206,83 +285,6 @@ module ActionDispatch
       private
         def _mock_session
           @_mock_session ||= Rack::MockSession.new(@app, host)
-        end
-
-        # Performs the actual request.
-        def process(method, path, params: nil, headers: nil, env: nil, xhr: false, as: nil)
-          request_encoder = RequestEncoder.encoder(as)
-          headers ||= {}
-
-          if method == :get && as == :json && params
-            headers["X-Http-Method-Override"] = "GET"
-            method = :post
-          end
-
-          if path =~ %r{://}
-            path = build_expanded_path(path, request_encoder) do |location|
-              https! URI::HTTPS === location if location.scheme
-
-              if url_host = location.host
-                default = Rack::Request::DEFAULT_PORTS[location.scheme]
-                url_host += ":#{location.port}" if default != location.port
-                host! url_host
-              end
-            end
-          elsif as
-            path = build_expanded_path(path, request_encoder)
-          end
-
-          hostname, port = host.split(":")
-
-          request_env = {
-            :method => method,
-            :params => request_encoder.encode_params(params),
-
-            "SERVER_NAME"     => hostname,
-            "SERVER_PORT"     => port || (https? ? "443" : "80"),
-            "HTTPS"           => https? ? "on" : "off",
-            "rack.url_scheme" => https? ? "https" : "http",
-
-            "REQUEST_URI"    => path,
-            "HTTP_HOST"      => host,
-            "REMOTE_ADDR"    => remote_addr,
-            "CONTENT_TYPE"   => request_encoder.content_type,
-            "HTTP_ACCEPT"    => accept
-          }
-
-          wrapped_headers = Http::Headers.from_hash({})
-          wrapped_headers.merge!(headers) if headers
-
-          if xhr
-            wrapped_headers["HTTP_X_REQUESTED_WITH"] = "XMLHttpRequest"
-            wrapped_headers["HTTP_ACCEPT"] ||= [Mime[:js], Mime[:html], Mime[:xml], "text/xml", "*/*"].join(", ")
-          end
-
-          # this modifies the passed request_env directly
-          if wrapped_headers.present?
-            Http::Headers.from_hash(request_env).merge!(wrapped_headers)
-          end
-          if env.present?
-            Http::Headers.from_hash(request_env).merge!(env)
-          end
-
-          session = Rack::Test::Session.new(_mock_session)
-
-          # NOTE: rack-test v0.5 doesn't build a default uri correctly
-          # Make sure requested path is always a full uri
-          session.request(build_full_uri(path, request_env), request_env)
-
-          @request_count += 1
-          @request  = ActionDispatch::Request.new(session.last_request.env)
-          response = _mock_session.last_response
-          @response = ActionDispatch::TestResponse.from_response(response)
-          @response.request = @request
-          @html_document = nil
-          @url_options = nil
-
-          @controller = @request.controller_instance
-
-          response.status
         end
 
         def build_full_uri(path, env)
