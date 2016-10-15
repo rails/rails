@@ -177,7 +177,7 @@ module ActionDispatch
       #
       # - +method+: The HTTP method (GET, POST, PATCH, PUT, DELETE, HEAD, OPTIONS)
       #   as a symbol.
-      # - +path+: The URI (as a String) on which you want to perform a GET
+      # - +path+: The URI (as a String) on which you want to perform the
       #   request.
       # - +params+: The HTTP parameters that you want to pass. This may
       #   be +nil+,
@@ -190,8 +190,8 @@ module ActionDispatch
       #   merged into the Rack env hash.
       #
       # This method is rarely used directly. Use +#get+, +#post+, or other standard
-      # HTTP methods in integration tests. Only +#process+ is only required for an
-      # OPTIONS request.
+      # HTTP methods in integration tests. +#process+ is only required when using a
+      # request method that doesn't have a method defined in the integrations tests.
       #
       # This method returns a Response object, which one can use to
       # inspect the details of the response. Furthermore, if this method was
@@ -199,7 +199,7 @@ module ActionDispatch
       # object's <tt>@response</tt> instance variable will point to the same
       # response object.
       #
-      # Examples:
+      # Example:
       #   process :get, '/author', params: { since: 201501011400 }
       def process(method, path, params: nil, headers: nil, env: nil, xhr: false, as: nil)
         request_encoder = RequestEncoder.encoder(as)
