@@ -4,7 +4,9 @@ script: 'ci/travis.rb'
 before_install:
   - "rvm current | grep 'jruby' && export AR_JDBC=true || echo"
   - "rm ${BUNDLE_GEMFILE}.lock"
-  - "ruby -v | grep '1.9.3' && gem update bundler || true"
+  - "ruby -v | egrep '^ruby 1.9' && gem update bundler || true"
+  - "ruby -v | egrep '^ruby 2.0' && gem update bundler || true"
+  - "ruby -v | egrep '^ruby 2.1' && gem update bundler || true"
 before_script:
   - bundle update
 cache: bundler
