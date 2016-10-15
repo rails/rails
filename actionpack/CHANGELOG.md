@@ -1,3 +1,8 @@
+*   Allow keys not found in RACK_KEY_TRANSLATION for setting the environment when rendering
+    arbitrary templates.
+
+    *Sammy Larbi*
+
 *   Remove deprecated support to non-keyword arguments in `ActionDispatch::IntegrationTest#process`,
     `#get`, `#post`, `#patch`, `#put`, `#delete`, and `#head`.
 
