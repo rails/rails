@@ -26,4 +26,5 @@ class Hash
       self[key] = yield(value)
     end
   end unless method_defined? :transform_values!
+  # TODO: Remove this file when supporting only Ruby 2.4+.
 end
