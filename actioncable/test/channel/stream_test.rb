@@ -87,7 +87,7 @@ module ActionCable::StreamTests
       end
     end
 
-    test 'stop_stream_from' do
+    test "stop_stream_from" do
       run_in_eventmachine do
         channel_name = "test-stream-channel"
         connection = TestConnection.new
@@ -103,7 +103,7 @@ module ActionCable::StreamTests
       end
     end
 
-    test 'restarting a stream after stoping it' do
+    test "restarting a stream after stoping it" do
       run_in_eventmachine do
         channel_name = "test-stream-channel"
         connection = TestConnection.new
@@ -117,10 +117,10 @@ module ActionCable::StreamTests
       end
     end
 
-    test 'stop_stream_for' do
+    test "stop_stream_for" do
       run_in_eventmachine do
         model = Room.new(1)
-        channel_name = 'action_cable:stream_tests:chat:Room#1-Campfire'
+        channel_name = "action_cable:stream_tests:chat:Room#1-Campfire"
         connection = TestConnection.new
         connection.expects(:pubsub).twice.returns mock().tap { |m|
           m.expects(:subscribe).with(channel_name, kind_of(Proc), kind_of(Proc))
@@ -169,11 +169,11 @@ module ActionCable::StreamTests
       end
     end
 
-    test 'duplicate stream warning' do
+    test "duplicate stream warning" do
       run_in_eventmachine do
         connection = TestConnection.new
         channel_name = "duplicate-test-stream-channel"
-        channel = ChatChannel.new connection, ''
+        channel = ChatChannel.new connection, ""
         channel.stream_from channel_name
         channel.expects(:logger).returns mock().tap { |m|
           m.expects(:warn).with(regexp_matches(/more than once/))
