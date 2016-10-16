@@ -2266,7 +2266,12 @@ module ActionView
           end
 
           defaults = []
-          defaults << :"helpers.submit.#{object_name}.#{key}"
+          # Object is a model and it is not overwritten by as and scope option.
+          if object.respond_to?(:model_name) && object_name.to_s == model.downcase
+            defaults << :"helpers.submit.#{object.model_name.i18n_key}.#{key}"
+          else
+            defaults << :"helpers.submit.#{object_name}.#{key}"
+          end
           defaults << :"helpers.submit.#{key}"
           defaults << "#{key.to_s.humanize} #{model}"
 

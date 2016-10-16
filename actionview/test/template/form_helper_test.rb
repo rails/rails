@@ -68,6 +68,9 @@ class FormHelperTest < ActionView::TestCase
           submit: "Save changes",
           another_post: {
             update: "Update your %{model}"
+          },
+          "blog/post": {
+            update: "Update your %{model}"
           }
         }
       }
@@ -2271,13 +2274,28 @@ class FormHelperTest < ActionView::TestCase
     end
   end
 
-  def test_submit_with_object_and_nested_lookup
+  def test_submit_with_object_which_is_overwritten_by_as_option
     with_locale :submit do
       form_for(@post, as: :another_post) do |f|
         concat f.submit
       end
 
       expected = whole_form("/posts/123", "edit_another_post", "edit_another_post", method: "patch") do
+        "<input name='commit' data-disable-with='Update your Post' type='submit' value='Update your Post' />"
+      end
+
+      assert_dom_equal expected, output_buffer
+    end
+  end
+
+  def test_submit_with_object_which_is_namespaced
+    blog_post = Blog::Post.new("And his name will be forty and four.", 44)
+    with_locale :submit do
+      form_for(blog_post) do |f|
+        concat f.submit
+      end
+
+      expected = whole_form("/posts/44", "edit_post_44", "edit_post", method: "patch") do
         "<input name='commit' data-disable-with='Update your Post' type='submit' value='Update your Post' />"
       end
 
