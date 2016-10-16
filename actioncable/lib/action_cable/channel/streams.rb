@@ -74,8 +74,10 @@ module ActionCable
       def stream_from(broadcasting, callback = nil, coder: nil, &block)
         broadcasting = to_broadcasting(broadcasting)
         # nothing to do if stream exists
-        return if streams.key?(broadcasting)
-
+        if streams.key?(broadcasting)
+          logger.warn "attempted to listen to stream broadcast '#{broadcasting}' more than once"
+          return
+        end
         # Don't send the confirmation until pubsub#subscribe is successful
         defer_subscription_confirmation!
 

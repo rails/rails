@@ -168,6 +168,19 @@ module ActionCable::StreamTests
         assert_equal 1, connection.transmissions.size
       end
     end
+
+    test 'duplicate stream warning' do
+      run_in_eventmachine do
+        connection = TestConnection.new
+        channel_name = "duplicate-test-stream-channel"
+        channel = ChatChannel.new connection, ''
+        channel.stream_from channel_name
+        channel.expects(:logger).returns mock().tap { |m|
+          m.expects(:warn).with(regexp_matches(/more than once/))
+        }
+        channel.stream_from channel_name
+      end
+    end
   end
 
   require "action_cable/subscription_adapter/async"
