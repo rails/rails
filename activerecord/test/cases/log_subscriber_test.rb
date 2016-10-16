@@ -188,6 +188,17 @@ class LogSubscriberTest < ActiveRecord::TestCase
     assert_match(/SELECT .*?FROM .?developers.?/i, @logger.logged(:debug).last)
   end
 
+  def test_cached_queries_with_binds
+    ActiveRecord::Base.cache do
+      Developer.first
+      Developer.first
+    end
+    wait
+
+    assert_equal 2, @logger.logged(:debug).size
+    assert_match(/CACHE Developer Load.*"LIMIT", 1/i, @logger.logged(:debug).last)
+  end
+
   def test_basic_query_doesnt_log_when_level_is_not_debug
     @logger.level = INFO
     Developer.all.load
