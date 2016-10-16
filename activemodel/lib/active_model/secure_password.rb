@@ -2,11 +2,6 @@ module ActiveModel
   module SecurePassword
     extend ActiveSupport::Concern
 
-    # BCrypt hash function can handle maximum 72 characters, and if we pass
-    # password of length more than 72 characters it ignores extra characters.
-    # Hence need to put a restriction on password length.
-    MAX_PASSWORD_LENGTH_ALLOWED = 72
-
     class << self
       attr_accessor :min_cost # :nodoc:
     end
@@ -18,7 +13,7 @@ module ActiveModel
       #
       # The following validations are added automatically:
       # * Password must be present on creation
-      # * Password length should be less than or equal to 72 characters
+      # * Password length should be between 8 and 1024 characters
       # * Confirmation of password (using a +password_confirmation+ attribute)
       #
       # If password confirmation validation is not needed, simply leave out the
@@ -50,7 +45,7 @@ module ActiveModel
       #   user.authenticate('mUc3m00RsqyRe')                              # => user
       #   User.find_by(name: 'david').try(:authenticate, 'notright')      # => false
       #   User.find_by(name: 'david').try(:authenticate, 'mUc3m00RsqyRe') # => user
-      def has_secure_password(options = {})
+      def has_secure_password(validations: true, maximum: 1024, minimum: 8)
         # Load bcrypt gem only when has_secure_password is used.
         # This is to avoid ActiveModel (and by extension the entire framework)
         # being dependent on a binary library.
@@ -63,7 +58,7 @@ module ActiveModel
 
         include InstanceMethodsOnActivation
 
-        if options.fetch(:validations, true)
+        if validations
           include ActiveModel::Validations
 
           # This ensures the model has a password by checking whether the password_digest
@@ -74,7 +69,7 @@ module ActiveModel
             record.errors.add(:password, :blank) unless record.password_digest.present?
           end
 
-          validates_length_of :password, maximum: ActiveModel::SecurePassword::MAX_PASSWORD_LENGTH_ALLOWED
+          validates_length_of :password, in: {minimum..maximum}
           validates_confirmation_of :password, allow_blank: true
         end
       end
@@ -115,7 +110,7 @@ module ActiveModel
         elsif !unencrypted_password.empty?
           @password = unencrypted_password
           cost = ActiveModel::SecurePassword.min_cost ? BCrypt::Engine::MIN_COST : BCrypt::Engine.cost
-          self.password_digest = BCrypt::Password.create(unencrypted_password, cost: cost)
+          self.password_digest = BCrypt::Password.create(Digest::SHA384.base64digest(unencrypted_password), cost: cost)
         end
       end
 
