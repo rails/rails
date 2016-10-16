@@ -83,6 +83,40 @@ module ActionCable::StreamTests
       end
     end
 
+    test "stop_stream_from" do
+      run_in_eventmachine do
+        channel_name = "test-stream-channel"
+        connection = TestConnection.new
+        connection.expects(:pubsub).twice.returns mock().tap { |m|
+          m.expects(:subscribe).with(channel_name, kind_of(Proc), kind_of(Proc))
+            .returns stub_everything(:pubsub)
+          m.expects(:unsubscribe).with(channel_name, kind_of(Proc))
+            .returns stub_everything(:pubsub)
+        }
+        channel = ChatChannel.new connection, ""
+        channel.stream_from channel_name
+        channel.stop_stream_from channel_name
+      end
+    end
+
+
+    test "stop_stream_for" do
+      run_in_eventmachine do
+        model = Room.new(1)
+        channel_name = 'action_cable:stream_tests:chat:Room#1-Campfire'
+        connection = TestConnection.new
+        connection.expects(:pubsub).twice.returns mock().tap { |m|
+          m.expects(:subscribe).with(channel_name, kind_of(Proc), kind_of(Proc))
+            .returns stub_everything(:pubsub)
+          m.expects(:unsubscribe).with(channel_name, kind_of(Proc))
+            .returns stub_everything(:pubsub)
+        }
+        channel = ChatChannel.new connection, ""
+        channel.stream_for model
+        channel.stop_stream_for model
+      end
+    end
+
     test "stream_from subscription confirmation" do
       run_in_eventmachine do
         connection = TestConnection.new
