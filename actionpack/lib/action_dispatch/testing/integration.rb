@@ -191,7 +191,7 @@ module ActionDispatch
       #
       # This method is rarely used directly. Use +#get+, +#post+, or other standard
       # HTTP methods in integration tests. +#process+ is only required when using a
-      # request method that doesn't have a method defined in the integrations tests.
+      # request method that doesn't have a method defined in the integration tests.
       #
       # This method returns a Response object, which one can use to
       # inspect the details of the response. Furthermore, if this method was
