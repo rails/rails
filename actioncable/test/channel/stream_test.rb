@@ -23,6 +23,10 @@ module ActionCable::StreamTests
       transmit_subscription_confirmation
     end
 
+    def current_stream_broadcasts
+      streams
+    end
+
     private def pick_coder(coder)
       case coder
       when nil, "json"
@@ -83,7 +87,7 @@ module ActionCable::StreamTests
       end
     end
 
-    test "stop_stream_from" do
+    test 'stop_stream_from' do
       run_in_eventmachine do
         channel_name = "test-stream-channel"
         connection = TestConnection.new
@@ -99,8 +103,21 @@ module ActionCable::StreamTests
       end
     end
 
+    test 'restarting a stream after stoping it' do
+      run_in_eventmachine do
+        channel_name = "test-stream-channel"
+        connection = TestConnection.new
+        channel = ChatChannel.new connection, ""
+        channel.stream_from channel_name
+        assert channel.current_stream_broadcasts[channel_name]
+        channel.stop_stream_from channel_name
+        assert_empty channel.current_stream_broadcasts
+        channel.stream_from channel_name
+        assert channel.current_stream_broadcasts[channel_name]
+      end
+    end
 
-    test "stop_stream_for" do
+    test 'stop_stream_for' do
       run_in_eventmachine do
         model = Room.new(1)
         channel_name = 'action_cable:stream_tests:chat:Room#1-Campfire'

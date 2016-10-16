@@ -106,6 +106,7 @@ module ActionCable
       def stop_stream_from(broadcasting)
         broadcasting = to_broadcasting(broadcasting)
         pubsub.unsubscribe broadcasting, streams[broadcasting]
+        streams.delete(broadcasting)
         logger.info "#{self.class.name} stopped streaming from #{broadcasting}"
       end
 
