@@ -387,7 +387,7 @@ module ActiveRecord
             end
 
             indexes.last.columns << row[:Column_name]
-            indexes.last.lengths << row[:Sub_part]
+            indexes.last.lengths << row[:Sub_part].to_i
           end
         end
 
