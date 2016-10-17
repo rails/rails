@@ -272,7 +272,7 @@ The above are guidelines - please use your best judgment in using them.
 
 For changes that might have an impact on performance, please benchmark your
 code and measure the impact. Please share the benchmark script you used as well
-as the results. You should consider including these information in your commit
+as the results. You should consider including this information in your commit
 message, which allows future contributors to easily verify your findings and
 determine if they are still relevant. (For example, future optimizations in the
 Ruby VM might render certain optimizations unnecessary.)
