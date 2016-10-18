@@ -331,6 +331,12 @@ module ActionView
 
         inner_tags = method_tag.safe_concat(button).safe_concat(request_token_tag)
         if params
+          params = if params.respond_to?(:permitted?)
+                     params.to_h
+                   else
+                     params
+                   end
+
           to_form_params(params).each do |param|
             inner_tags.safe_concat tag(:input, type: "hidden", name: param[:name], value: param[:value])
           end

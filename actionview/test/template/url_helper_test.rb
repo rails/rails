@@ -221,6 +221,22 @@ class UrlHelperTest < ActiveSupport::TestCase
     )
   end
 
+  class FakeParams
+    def permitted?
+    end
+
+    def to_h
+      { foo: :bar, baz: "quux" }
+    end
+  end
+
+  def test_button_to_with_strong_params
+    assert_dom_equal(
+      %{<form action="http://www.example.com" class="button_to" method="post"><input type="submit" value="Hello" /><input type="hidden" name="baz" value="quux" /><input type="hidden" name="foo" value="bar" /></form>},
+      button_to("Hello", "http://www.example.com", params: FakeParams.new)
+    )
+  end
+
   def test_button_to_with_nested_hash_params
     assert_dom_equal(
       %{<form action="http://www.example.com" class="button_to" method="post"><input type="submit" value="Hello" /><input type="hidden" name="foo[bar]" value="baz" /></form>},
