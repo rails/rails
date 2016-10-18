@@ -142,12 +142,44 @@ class ValidatesWithTest < ActiveModel::TestCase
     assert_equal ["Value is "], topic.errors[:content]
   end
 
+  test "each validator skip nil values if :allow_nil is a proc and returns true" do
+    Topic.validates_with(ValidatorPerEachAttribute, attributes: [:title, :content], allow_nil: lambda{ |record| true })
+    topic = Topic.new content: ""
+    assert topic.invalid?
+    assert topic.errors[:title].empty?
+    assert_equal ["Value is "], topic.errors[:content]
+  end
+
+  test "each validator does not skip nil values if :allow_nil is a proc and returns false" do
+    Topic.validates_with(ValidatorPerEachAttribute, attributes: [:title, :content], allow_nil: lambda{ |record| false })
+    topic = Topic.new content: ""
+    assert topic.invalid?
+    assert_equal ["Value is "], topic.errors[:title]
+    assert_equal ["Value is "], topic.errors[:content]
+  end
+
   test "each validator skip blank values if :allow_blank is set to true" do
     Topic.validates_with(ValidatorPerEachAttribute, attributes: [:title, :content], allow_blank: true)
-    topic = Topic.new content: ""
+    topic = Topic.new title: "", content: ""
     assert topic.valid?
     assert topic.errors[:title].empty?
     assert topic.errors[:content].empty?
+  end
+
+  test "each validator skip blank values if :allow_blank is a proc and returns true" do
+    Topic.validates_with(ValidatorPerEachAttribute, attributes: [:title, :content], allow_blank: lambda{ |record| true })
+    topic = Topic.new title: "", content: ""
+    assert topic.valid?
+    assert topic.errors[:title].empty?
+    assert topic.errors[:content].empty?
+  end
+
+  test "each validator does not skip blank values if :allow_blank is a proc and returns false" do
+    Topic.validates_with(ValidatorPerEachAttribute, attributes: [:title, :content], allow_blank: lambda{ |record| false })
+    topic = Topic.new title: "", content: ""
+    assert topic.invalid?
+    assert_equal ["Value is "], topic.errors[:title]
+    assert_equal ["Value is "], topic.errors[:content]
   end
 
   test "validates_with can validate with an instance method" do

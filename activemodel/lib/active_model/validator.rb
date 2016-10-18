@@ -144,9 +144,11 @@ module ActiveModel
     # +validates_each+ to determine validity therefore subclasses should
     # override +validates_each+ with validation logic.
     def validate(record)
+      allow_nil = options[:allow_nil].respond_to?(:call) ? options[:allow_nil].call(record) : options[:allow_nil]
+      allow_blank = options[:allow_blank].respond_to?(:call) ? options[:allow_blank].call(record) : options[:allow_blank]
       attributes.each do |attribute|
         value = record.read_attribute_for_validation(attribute)
-        next if (value.nil? && options[:allow_nil]) || (value.blank? && options[:allow_blank])
+        next if (value.nil? && allow_nil) || (value.blank? && allow_blank)
         validate_each(record, attribute, value)
       end
     end
