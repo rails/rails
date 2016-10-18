@@ -90,6 +90,15 @@ module ActiveRecord
       def logger
         ActiveRecord::Base.logger
       end
+
+      def debug(progname = nil, &block)
+        backtrace = Rails.backtrace_cleaner.clean caller
+        relevant_caller_line = backtrace.first
+
+        if relevant_caller_line
+          logger.debug("  ↳ #{ relevant_caller_line.sub("#{ Rails.root }/", '') }")
+        end
+      end
   end
 end
 
