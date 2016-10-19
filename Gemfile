@@ -73,7 +73,7 @@ group :cable do
   gem 'redis', require: false
 
   gem 'faye-websocket', require: false
-  gem 'blade', '~> 0.5.5', require: false
+  gem 'blade', '~> 0.5.5', require: false, platforms: :ruby
 end
 
 # Add your own local bundler stuff.
