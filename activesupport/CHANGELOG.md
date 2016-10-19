@@ -1,3 +1,9 @@
+*   Fix `DateAndTime::Calculations#copy_time_to`. Copy `nsec` instead of `usec`.
+
+    Jumping forward or backward between weeks now preserves nanosecond digits.
+
+    *Josua Schmid*
+
 *   Fix `ActiveSupport::TimeWithZone#in` across DST boundaries.
 
     Previously calls to `in` were being sent to the non-DST aware
