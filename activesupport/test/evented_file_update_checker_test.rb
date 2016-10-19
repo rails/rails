@@ -36,6 +36,8 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
   end
 
   test 'notifies forked processes' do
+    skip if defined?(JRUBY_VERSION)
+
     FileUtils.touch(tmpfiles)
 
     checker = new_checker(tmpfiles) { }
