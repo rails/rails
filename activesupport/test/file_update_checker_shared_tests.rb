@@ -49,6 +49,7 @@ module FileUpdateCheckerSharedTests
     checker = new_checker(tmpfiles) { i += 1 }
 
     touch(tmpfiles)
+    wait
 
     assert checker.execute_if_updated
     assert_equal 1, i
@@ -62,6 +63,7 @@ module FileUpdateCheckerSharedTests
     checker = new_checker(tmpfiles) { i += 1 }
 
     touch(tmpfiles)
+    wait
 
     assert checker.execute_if_updated
     assert_equal 1, i
@@ -75,6 +77,7 @@ module FileUpdateCheckerSharedTests
     checker = new_checker(tmpfiles) { i += 1 }
 
     rm_f(tmpfiles)
+    wait
 
     assert checker.execute_if_updated
     assert_equal 1, i
@@ -87,6 +90,7 @@ module FileUpdateCheckerSharedTests
     assert !checker.updated?
 
     touch(tmpfiles)
+    wait
 
     assert checker.updated?
   end
@@ -100,6 +104,7 @@ module FileUpdateCheckerSharedTests
     assert !checker.updated?
 
     touch(tmpfiles)
+    wait
 
     assert checker.updated?
   end
@@ -113,6 +118,7 @@ module FileUpdateCheckerSharedTests
     assert !checker.updated?
 
     rm_f(tmpfiles)
+    wait
 
     assert checker.updated?
   end
@@ -129,6 +135,7 @@ module FileUpdateCheckerSharedTests
     checker = new_checker(tmpfiles) { i += 1 }
 
     touch(tmpfiles[1..-1])
+    wait
 
     assert checker.execute_if_updated
     assert_equal 1, i
@@ -145,6 +152,7 @@ module FileUpdateCheckerSharedTests
     checker = new_checker(tmpfiles) { i += 1 }
 
     touch(tmpfiles[1..-1])
+    wait
 
     assert checker.execute_if_updated
     assert_equal 1, i
@@ -157,6 +165,7 @@ module FileUpdateCheckerSharedTests
     assert !checker.updated?
 
     touch(tmpfiles)
+    wait
 
     assert checker.updated?
     checker.execute
@@ -169,6 +178,7 @@ module FileUpdateCheckerSharedTests
     checker = new_checker([], tmpdir => :rb) { i += 1 }
 
     touch(tmpfile("foo.rb"))
+    wait
 
     assert checker.execute_if_updated
     assert_equal 1, i
@@ -180,11 +190,13 @@ module FileUpdateCheckerSharedTests
     checker = new_checker([], tmpdir => [:rb, :txt]) { i += 1 }
 
     touch(tmpfile("foo.rb"))
+    wait
 
     assert checker.execute_if_updated
     assert_equal 1, i
 
     touch(tmpfile("foo.txt"))
+    wait
 
     assert checker.execute_if_updated
     assert_equal 2, i
@@ -196,6 +208,7 @@ module FileUpdateCheckerSharedTests
     checker = new_checker([], tmpdir => :txt) { i += 1 }
 
     touch(tmpfile("foo.rb"))
+    wait
 
     assert !checker.execute_if_updated
     assert_equal 0, i
@@ -208,6 +221,7 @@ module FileUpdateCheckerSharedTests
     checker = new_checker([non_existing]) { i += 1 }
 
     touch(non_existing)
+    wait
 
     assert checker.execute_if_updated
     assert_equal 1, i
@@ -226,6 +240,7 @@ module FileUpdateCheckerSharedTests
     assert_equal 0, i
 
     touch(File.join(subdir, "nested.rb"))
+    wait
 
     assert checker.execute_if_updated
     assert_equal 1, i
@@ -240,17 +255,20 @@ module FileUpdateCheckerSharedTests
     checker = new_checker([], tmpdir => :rb, subdir => :txt) { i += 1 }
 
     touch(tmpfile("new.txt"))
+    wait
 
     assert !checker.execute_if_updated
     assert_equal 0, i
 
     # subdir does not look for Ruby files, but its parent tmpdir does.
     touch(File.join(subdir, "nested.rb"))
+    wait
 
     assert checker.execute_if_updated
     assert_equal 1, i
 
     touch(File.join(subdir, "nested.txt"))
+    wait
 
     assert checker.execute_if_updated
     assert_equal 2, i
