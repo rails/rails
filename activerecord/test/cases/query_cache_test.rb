@@ -10,9 +10,30 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   fixtures :tasks, :topics, :categories, :posts, :categories_posts
 
-  teardown do
+  class ShouldNotHaveExceptionsLogger < ActiveRecord::LogSubscriber
+    attr_reader :logger
+
+    def initialize
+      super
+      @logger = ::Logger.new File::NULL
+      @exception = false
+    end
+
+    def exception?
+      @exception
+    end
+
+    def sql(event)
+      super
+    rescue
+      @exception = true
+    end
+  end
+
+  def teardown
     Task.connection.clear_query_cache
     ActiveRecord::Base.connection.disable_query_cache!
+    super
   end
 
   def test_exceptional_middleware_clears_and_disables_cache_on_error
@@ -119,6 +140,19 @@ class QueryCacheTest < ActiveRecord::TestCase
       task.reload
       assert_not_equal now, task.starting
     end
+  end
+
+  def test_cache_does_not_raise_exceptions
+    logger = ShouldNotHaveExceptionsLogger.new
+    subscriber = ActiveSupport::Notifications.subscribe "sql.active_record", logger
+
+    ActiveRecord::Base.cache do
+      assert_queries(1) { Task.find(1); Task.find(1) }
+    end
+
+    assert_not_predicate logger, :exception?
+  ensure
+    ActiveSupport::Notifications.unsubscribe subscriber
   end
 
   def test_cache_is_flat
