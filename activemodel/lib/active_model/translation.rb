@@ -34,6 +34,7 @@ module ActiveModel
     end
 
     # Humanize method for the class. Could be overwriten f.e. with :titleize.
+    mattr_accessor :humanize_attribute_name_method
     self.humanize_attribute_name_method = :humanize
     
     # Transforms attribute names into a more human format, such as "First name"
