@@ -34,7 +34,7 @@ module ActiveModel
     end
 
     # Humanize method for the class. Could be overwriten f.e. with :titleize.
-    self.humanize_method = :humanize
+    self.humanize_attribute_name_method = :humanize
     
     # Transforms attribute names into a more human format, such as "First name"
     # instead of "first_name".
@@ -62,7 +62,7 @@ module ActiveModel
 
       defaults << :"attributes.#{attribute}"
       defaults << options.delete(:default) if options[:default]
-      defaults << attribute.send(self.humanize_method)
+      defaults << attribute.send(self.humanize_attribute_name_method)
 
       options[:default] = defaults
       I18n.translate(defaults.shift, options)
