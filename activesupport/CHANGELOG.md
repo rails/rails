@@ -1,3 +1,7 @@
+*   `String#blank?` no longer raises `ArgumentError` by invalid encoding strings.
+
+    *Yuuki Inoue*
+
 *   Use `Hash#compact` and `Hash#compact!` from Ruby 2.4. Old Ruby versions
     will continue to get these methods from Active Support as before.
 
