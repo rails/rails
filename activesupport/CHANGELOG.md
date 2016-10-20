@@ -1,3 +1,10 @@
+*   Fix `ActiveSupport::TimeZone#strptime`.
+    Support for timestamps in format of seconds (%s) and milliseconds (%Q).
+
+    Fixes #26840.
+
+    *Lev Denisov*
+
 *   Fix `DateAndTime::Calculations#copy_time_to`. Copy `nsec` instead of `usec`.
 
     Jumping forward or backward between weeks now preserves nanosecond digits.
