@@ -1428,6 +1428,16 @@ class BasicsTest < ActiveRecord::TestCase
     assert_nil hash["firm_name"]
   end
 
+  def test_slice_accepts_array_argument
+    attrs = {
+      title: "slice",
+      author_name: "@Cohen-Carlisle",
+      content: "accept arrays so I don't have to splat"
+    }.with_indifferent_access
+    topic = Topic.new(attrs)
+    assert_equal attrs, topic.slice(attrs.keys)
+  end
+
   def test_default_values_are_deeply_dupped
     company = Company.new
     company.description << "foo"
