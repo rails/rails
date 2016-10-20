@@ -15,16 +15,6 @@ module ActiveRecord
       rt
     end
 
-    def render_bind(attr, type_casted_value)
-      value = if attr.type.binary? && attr.value
-        "<#{attr.value_for_database.to_s.bytesize} bytes of binary data>"
-      else
-        type_casted_value
-      end
-
-      [attr.name, value]
-    end
-
     def sql(event)
       self.class.runtime += event.duration
       return unless logger.debug?
@@ -51,6 +41,16 @@ module ActiveRecord
     end
 
     private
+
+      def render_bind(attr, type_casted_value)
+        value = if attr.type.binary? && attr.value
+          "<#{attr.value_for_database.to_s.bytesize} bytes of binary data>"
+        else
+          type_casted_value
+        end
+
+        [attr.name, value]
+      end
 
       def colorize_payload_name(name, payload_name)
         if payload_name.blank? || payload_name == "SQL" # SQL vs Model Load/Exists
