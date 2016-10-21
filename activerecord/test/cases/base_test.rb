@@ -1400,7 +1400,7 @@ class BasicsTest < ActiveRecord::TestCase
     attrs = topic.attributes.dup
     attrs.delete "id"
 
-    typecast = Class.new(ActiveRecord::Type::Value) {
+    typecast = Class.new(ActiveModel::Type::Value) {
       def cast(value)
         "t.lo"
       end

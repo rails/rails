@@ -118,7 +118,7 @@ module ActiveRecord
       # +cast+ will be called on your type object, with raw input from the
       # database or from your controllers. See ActiveModel::Type::Value for the
       # expected API. It is recommended that your type objects inherit from an
-      # existing type, or from ActiveRecord::Type::Value
+      # existing type, or from ActiveModel::Type::Value
       #
       #   class MoneyType < ActiveRecord::Type::Integer
       #     def cast(value)

@@ -81,7 +81,7 @@ if ActiveRecord::Base.connection.supports_explain?
       end
 
       def bind_param(name, value)
-        ActiveRecord::Relation::QueryAttribute.new(name, value, ActiveRecord::Type::Value.new)
+        ActiveRecord::Relation::QueryAttribute.new(name, value, ActiveModel::Type::Value.new)
       end
   end
 end

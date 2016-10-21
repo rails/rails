@@ -1,7 +1,7 @@
 module ActiveRecord
   module Type
     module Internal # :nodoc:
-      class AbstractJson < Type::Value # :nodoc:
+      class AbstractJson < ActiveModel::Type::Value # :nodoc:
         include Type::Helpers::Mutable
 
         def type

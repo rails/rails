@@ -2,7 +2,7 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module OID # :nodoc:
-        class Uuid < Type::Value # :nodoc:
+        class Uuid < ActiveModel::Type::Value # :nodoc:
           ACCEPTABLE_UUID = %r{\A\{?([a-fA-F0-9]{4}-?){8}\}?\z}x
 
           alias_method :serialize, :deserialize

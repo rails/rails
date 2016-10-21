@@ -664,7 +664,7 @@ class DirtyTest < ActiveRecord::TestCase
   end
 
   test "attribute_changed? doesn't compute in-place changes for unrelated attributes" do
-    test_type_class = Class.new(ActiveRecord::Type::Value) do
+    test_type_class = Class.new(ActiveModel::Type::Value) do
       define_method(:changed_in_place?) do |*|
         raise
       end

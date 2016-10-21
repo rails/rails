@@ -4,7 +4,7 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module OID # :nodoc:
-        class Range < Type::Value # :nodoc:
+        class Range < ActiveModel::Type::Value # :nodoc:
           attr_reader :subtype, :type
           delegate :user_input_in_time_zone, to: :subtype
 

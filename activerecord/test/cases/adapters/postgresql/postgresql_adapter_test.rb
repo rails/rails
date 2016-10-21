@@ -219,7 +219,7 @@ module ActiveRecord
             string = @connection.quote("foo")
             @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
 
-            bind = Relation::QueryAttribute.new("id", 1, Type::Value.new)
+            bind = Relation::QueryAttribute.new("id", 1, ActiveModel::Type::Value.new)
             result = @connection.exec_query("SELECT id, data FROM ex WHERE id = $1", nil, [bind])
 
             assert_equal 1, result.rows.length

@@ -4,7 +4,7 @@ module ActiveRecord
   module ConnectionAdapters
     class TypesTest < ActiveRecord::TestCase
       def test_attributes_which_are_invalid_for_database_can_still_be_reassigned
-        type_which_cannot_go_to_the_database = Type::Value.new
+        type_which_cannot_go_to_the_database = ActiveModel::Type::Value.new
         def type_which_cannot_go_to_the_database.serialize(*)
           raise
         end

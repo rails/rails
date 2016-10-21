@@ -1,5 +1,5 @@
 module ActiveRecord
   module Type
-    class Value < ActiveModel::Type::Value; end
+    Value = ActiveSupport::Deprecation::DeprecatedConstantProxy.new("ActiveRecord::Type::Value", "ActiveModel::Type::Value")
   end
 end

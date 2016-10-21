@@ -2,7 +2,7 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module OID # :nodoc:
-        class Bit < Type::Value # :nodoc:
+        class Bit < ActiveModel::Type::Value # :nodoc:
           def type
             :bit
           end
