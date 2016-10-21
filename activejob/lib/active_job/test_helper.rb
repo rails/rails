@@ -269,6 +269,25 @@ module ActiveJob
       instantiate_job(matching_job)
     end
 
+    # Performs all enqueued jobs in the duration of the block.
+    #
+    #   def test_perform_enqueued_jobs
+    #     perform_enqueued_jobs do
+    #       MyJob.perform_later(1, 2, 3)
+    #     end
+    #     assert_performed_jobs 1
+    #   end
+    #
+    # This method also supports filtering. If the +:only+ option is specified,
+    # then only the listed job(s) will be performed.
+    #
+    #   def test_perform_enqueued_jobs_with_only
+    #     perform_enqueued_jobs(only: MyJob) do
+    #       MyJob.perform_later(1, 2, 3) # will be performed
+    #       HelloJob.perform_later(1, 2, 3) # will not be perfomed
+    #     end
+    #     assert_performed_jobs 1
+    #   end
     def perform_enqueued_jobs(only: nil)
       old_perform_enqueued_jobs = queue_adapter.perform_enqueued_jobs
       old_perform_enqueued_at_jobs = queue_adapter.perform_enqueued_at_jobs
@@ -286,6 +305,11 @@ module ActiveJob
       end
     end
 
+    # Accesses the queue_adapter set by ActiveJob::Base.
+    #
+    #   def test_assert_job_has_custom_queue_adapter_set
+    #     assert_instance_of CustomQueueAdapter, HelloJob.queue_adapter
+    #   end
     def queue_adapter
       ActiveJob::Base.queue_adapter
     end
