@@ -211,7 +211,7 @@ GEM
       railties (>= 4.2.0)
       thor (>= 0.14, < 2.0)
     json (2.0.2)
-    kindlerb (0.1.1)
+    kindlerb (1.0.1)
       mustache
       nokogiri
     listen (3.1.5)
@@ -239,19 +239,15 @@ GEM
     mysql2 (0.4.4-x64-mingw32)
     mysql2 (0.4.4-x86-mingw32)
     nio4r (1.2.1)
-    nokogiri (1.6.8)
+    nokogiri (1.6.8.1)
       mini_portile2 (~> 2.1.0)
-      pkg-config (~> 1.1.7)
-    nokogiri (1.6.8-x64-mingw32)
+    nokogiri (1.6.8.1-x64-mingw32)
       mini_portile2 (~> 2.1.0)
-      pkg-config (~> 1.1.7)
-    nokogiri (1.6.8-x86-mingw32)
+    nokogiri (1.6.8.1-x86-mingw32)
       mini_portile2 (~> 2.1.0)
-      pkg-config (~> 1.1.7)
     pg (0.19.0)
     pg (0.19.0-x64-mingw32)
     pg (0.19.0-x86-mingw32)
-    pkg-config (1.1.7)
     psych (2.1.1)
     puma (3.6.0)
     qu (0.2.0)
@@ -383,7 +379,7 @@ DEPENDENCIES
   em-hiredis
   hiredis
   jquery-rails
-  kindlerb (= 0.1.1)
+  kindlerb (>= 1.0.1)
   listen (>= 3.0.5, < 3.2)
   minitest (< 5.3.4)
   mocha (~> 0.14)

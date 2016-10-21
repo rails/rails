@@ -39,7 +39,7 @@ group :doc do
   gem "sdoc", "1.0.0.beta2"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators"
-  gem "kindlerb", "0.1.1"
+  gem "kindlerb", ">= 1.0.1"
 end
 
 # Active Support.
