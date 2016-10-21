@@ -117,8 +117,8 @@ module ActiveSupport
               (skipped ||= []) << current
               next
             else
-              expanded = current.expand_call_template(env, invoke_sequence)
-              expanded.shift.send(*expanded, &expanded.shift)
+              target, block, method, *arguments = current.expand_call_template(env, invoke_sequence)
+              target.send(method, *arguments, &block)
             end
             current.invoke_after(env)
             skipped.pop.invoke_after(env) while skipped && skipped.first
