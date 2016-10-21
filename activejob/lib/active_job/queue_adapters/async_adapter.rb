@@ -66,6 +66,11 @@ module ActiveJob
 
         def perform
           Base.execute @job_data
+        rescue => ex
+          # Perform the magic incantations necessary to use ActiveJob tagged logging
+          # The format the output appropriately
+          ActiveJob::Base.logger.error ex
+          raise ex
         end
       end
 
