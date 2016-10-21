@@ -1,7 +1,6 @@
 require "rake/testtask"
 require "pathname"
 require "action_cable"
-require "blade"
 
 dir = File.dirname(__FILE__)
 
@@ -25,6 +24,7 @@ namespace :test do
   end
 
   task :integration do
+    require "blade"
     if ENV["CI"]
       Blade.start(interface: :ci)
     else
@@ -36,6 +36,7 @@ end
 namespace :assets do
   desc "Compile Action Cable assets"
   task :compile do
+    require "blade"
     Blade.build
   end
 end
