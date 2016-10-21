@@ -410,8 +410,8 @@ module ActiveSupport
         # values.
         def make_lambda
           lambda do |target, value, &block|
-            c = expand(target, value, block)
-            c.shift.send(*c, &c.shift)
+            target, block, method, *arguments = expand(target, value, block)
+            target.send(method, *arguments, &block)
           end
         end
 
@@ -419,8 +419,8 @@ module ActiveSupport
         # values, but then return the boolean inverse of that result.
         def inverted_lambda
           lambda do |target, value, &block|
-            c = expand(target, value, block)
-            ! c.shift.send(*c, &c.shift)
+            target, block, method, *arguments = expand(target, value, block)
+            ! target.send(method, *arguments, &block)
           end
         end
 
