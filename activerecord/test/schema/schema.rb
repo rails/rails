@@ -436,10 +436,12 @@ ActiveRecord::Schema.define do
   end
 
   create_table :lock_without_defaults, force: true do |t|
+    t.column :title, :string
     t.column :lock_version, :integer
   end
 
   create_table :lock_without_defaults_cust, force: true do |t|
+    t.column :title, :string
     t.column :custom_lock_version, :integer
   end
 
