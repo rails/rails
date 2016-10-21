@@ -241,6 +241,7 @@ module Rails
       end
 
       def create_db_files
+        return if options[:skip_active_record]
         build(:db)
       end
 

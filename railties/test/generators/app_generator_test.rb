@@ -356,6 +356,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_generator_if_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
+    assert_no_directory "db/"
     assert_no_file "config/database.yml"
     assert_no_file "app/models/application_record.rb"
     assert_file "config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
