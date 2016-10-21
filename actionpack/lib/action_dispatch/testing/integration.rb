@@ -689,8 +689,6 @@ module ActionDispatch
   class IntegrationTest < ActiveSupport::TestCase
     include TestProcess
 
-    undef :assigns
-
     module UrlOptions
       extend ActiveSupport::Concern
       def url_options
