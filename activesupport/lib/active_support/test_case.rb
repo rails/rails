@@ -82,5 +82,7 @@ module ActiveSupport
       end
       yield
     end
+
+    ActiveSupport.run_load_hooks(:active_support_test_case, self)
   end
 end
