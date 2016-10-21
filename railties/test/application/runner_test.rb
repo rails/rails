@@ -43,6 +43,15 @@ module ApplicationTests
       assert_match "42", Dir.chdir(app_path) { `bin/rails runner "bin/count_users.rb"` }
     end
 
+    def test_no_minitest_loaded_in_production_mode
+      app_file "bin/print_features.rb", <<-SCRIPT
+      p $LOADED_FEATURES.grep(/minitest/)
+      SCRIPT
+      assert_match "[]", Dir.chdir(app_path) {
+        `RAILS_ENV=production bin/rails runner "bin/print_features.rb"`
+      }
+    end
+
     def test_should_set_dollar_0_to_file
       app_file "bin/dollar0.rb", <<-SCRIPT
       puts $0

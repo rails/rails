@@ -1,5 +1,3 @@
-require "rails/test_unit/line_filtering"
-
 if defined?(Rake.application) && Rake.application.top_level_tasks.grep(/^(default$|test(:|$))/).any?
   ENV["RAILS_ENV"] ||= "test"
 end
@@ -11,10 +9,6 @@ module Rails
                                    fixture_replacement: nil
 
       c.integration_tool :test_unit
-    end
-
-    initializer "test_unit.line_filtering" do
-      ActiveSupport::TestCase.extend Rails::LineFiltering
     end
 
     rake_tasks do
