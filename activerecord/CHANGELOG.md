@@ -1,3 +1,8 @@
+*   Deprecate passing arguments and block at the same time to
+    `ActiveRecord::QueryMethods#select`.
+
+    *Prathamesh Sonpatki*
+
 *   Optimistic locking: Added ability update locking_column value.
     Ignore optimistic locking if update with new locking_column value.
 
