@@ -1,6 +1,5 @@
 require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/hash/reverse_merge"
-require "active_support/core_ext/hash/indifferent_access"
 
 module ActiveSupport
   # Implements a hash where keys <tt>:foo</tt> and <tt>"foo"</tt> are considered
@@ -41,6 +40,12 @@ module ActiveSupport
   #   rgb = { black: '#000000', white: '#FFFFFF' }.with_indifferent_access
   #
   # which may be handy.
+  #
+  # To access this class outside of Rails, require the core extension with:
+  #
+  #   require "active_support/core_ext/hash/indifferent_access"
+  #
+  # which will, in turn, require this file.
   class HashWithIndifferentAccess < Hash
     # Returns +true+ so that <tt>Array#extract_options!</tt> finds members of
     # this class.
