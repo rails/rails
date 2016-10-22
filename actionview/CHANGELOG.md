@@ -1,3 +1,7 @@
+*   Fix support to `ActionController::Parameters` in `button_to`.
+
+    *Jon Moss*
+
 *   Render now accepts any keys for locals, including reserved words
 
     Only locals with valid variable names get set directly. Others
