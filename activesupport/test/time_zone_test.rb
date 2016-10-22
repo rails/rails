@@ -395,6 +395,24 @@ class TimeZoneTest < ActiveSupport::TestCase
     end
   end
 
+  def test_strptime_with_timestamp_seconds
+    with_env_tz "US/Eastern" do
+      zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+      time_str = "1470272280"
+      time = zone.strptime(time_str, "%s")
+      assert_equal Time.at(1470272280), time
+    end
+  end
+
+  def test_strptime_with_timestamp_milliseconds
+    with_env_tz "US/Eastern" do
+      zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+      time_str = "1470272280000"
+      time = zone.strptime(time_str, "%Q")
+      assert_equal Time.at(1470272280), time
+    end
+  end
+
   def test_utc_offset_lazy_loaded_from_tzinfo_when_not_passed_in_to_initialize
     tzinfo = TZInfo::Timezone.get("America/New_York")
     zone = ActiveSupport::TimeZone.create(tzinfo.name, nil, tzinfo)
