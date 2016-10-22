@@ -1,3 +1,7 @@
+*   Bust Model.attribute_names cache when resetting column information
+    
+    *James Coleman*
+
 *   Fix query caching when type information is reset
 
     Backports ancillary fix in 5.0.
