@@ -1000,7 +1000,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Added `#on_weekend?`, `#on_weekday?`, `#next_weekday`, `#prev_weekday` methods to `Date`,
     `Time`, and `DateTime`.
-    ([Pull Request](https://github.com/rails/rails/pull/18335))
+    ([Pull Request](https://github.com/rails/rails/pull/18335),
+     [Pull Request](https://github.com/rails/rails/pull/23687))
 
 *   Added `same_time` option to `#next_week` and `#prev_week` for `Date`, `Time`,
     and `DateTime`.
@@ -1050,9 +1051,6 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Added `Array#second_to_last` and `Array#third_to_last` methods.
     ([Pull Request](https://github.com/rails/rails/pull/23583))
-
-*   Added `#on_weekday?` method to `Date`, `Time`, and `DateTime`.
-    ([Pull Request](https://github.com/rails/rails/pull/23687))
 
 *   Publish `ActiveSupport::Executor` and `ActiveSupport::Reloader` APIs to allow
     components and libraries to manage, and participate in, the execution of
