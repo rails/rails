@@ -86,7 +86,11 @@ module ActiveRecord
         end
 
         def save_through_record(record)
-          build_through_record(record).save!
+          associated_record = build_through_record(record)
+
+          if associated_record.new_record? || associated_record.changed?
+            associated_record.save!
+          end
         ensure
           @through_records.delete(record.object_id)
         end

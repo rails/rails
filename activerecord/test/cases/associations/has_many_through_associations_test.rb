@@ -1215,4 +1215,18 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   ensure
     TenantMembership.current_member = nil
   end
+
+  def test_after_update_callback_should_not_get_called_after_creating_a_record
+    lesson, lesson_student, student = make_no_pk_hm_t
+
+    after_update_called = false
+    lesson_student.after_update do
+      after_update_called = true
+    end
+
+    john = student.create(name: "John")
+    lesson.create(name: "SICP", student_ids: [john.id])
+
+    assert_not after_update_called, "after update should not be called"
+  end
 end
