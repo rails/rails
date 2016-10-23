@@ -48,7 +48,8 @@ module ActiveRecord
         equalities = predicates.grep(Arel::Nodes::Equality)
         if table_name
           equalities = equalities.select do |node|
-            node.left.relation.name == table_name
+            primary_key = respond_to?(:klass) && klass || 'id'
+            node.left.relation.name == table_name && node.left.name != primary_key
           end
         end
 
