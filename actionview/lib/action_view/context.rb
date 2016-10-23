@@ -28,8 +28,7 @@ module ActionView
     # returns the correct buffer on +yield+. This is usually
     # overwritten by helpers to add more behavior.
     # :api: plugin
-    def _layout_for(name=nil)
-      name ||= :layout
+    def _layout_for(name = :layout)
       view_flow.get(name).html_safe
     end
   end
