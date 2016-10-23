@@ -47,7 +47,8 @@ module ActiveRecord
     #     self.locking_column = :lock_person
     #   end
     #
-    # Note that, optimistic locking will be ignored if you update the locking column value.
+    # Please note that the optimistic locking will be ignored if you update the
+    # locking column's value.
     module Optimistic
       extend ActiveSupport::Concern
 
