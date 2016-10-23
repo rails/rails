@@ -243,30 +243,50 @@ module ActiveSupport
         end
       end
 
-      # Returns the KC normalization of the string by default. NFKC is
-      # considered the best normalization form for passing strings to databases
-      # and validations.
-      #
-      # * <tt>string</tt> - The string to perform normalization on.
-      # * <tt>form</tt> - The form you want to normalize in. Should be one of
-      #   the following: <tt>:c</tt>, <tt>:kc</tt>, <tt>:d</tt>, or <tt>:kd</tt>.
-      #   Default is ActiveSupport::Multibyte::Unicode.default_normalization_form.
-      def normalize(string, form=nil)
-        form ||= @default_normalization_form
-        # See http://www.unicode.org/reports/tr15, Table 1
-        codepoints = string.codepoints.to_a
-        case form
-        when :d
-          reorder_characters(decompose(:canonical, codepoints))
-        when :c
-          compose(reorder_characters(decompose(:canonical, codepoints)))
-        when :kd
-          reorder_characters(decompose(:compatibility, codepoints))
-        when :kc
-          compose(reorder_characters(decompose(:compatibility, codepoints)))
-          else
-          raise ArgumentError, "#{form} is not a valid normalization variant", caller
-        end.pack("U*".freeze)
+      # Ruby >= 2.3 supports Unicode 8.0
+      if Gem::Version.create(RUBY_VERSION) >= Gem::Version.create("2.3.0")
+        # Returns the KC normalization of the string by default. NFKC is
+        # considered the best normalization form for passing strings to databases
+        # and validations.
+        #
+        # * <tt>string</tt> - The string to perform normalization on.
+        # * <tt>form</tt> - The form you want to normalize in. Should be one of
+        #   the following: <tt>:c</tt>, <tt>:kc</tt>, <tt>:d</tt>, or <tt>:kd</tt>.
+        #   Default is ActiveSupport::Multibyte::Unicode.default_normalization_form.
+        def normalize(string, form=nil)
+          form ||= @default_normalization_form
+          # See http://www.unicode.org/reports/tr15, Table 1
+          case form
+          when :d
+            string.unicode_normalize(:nfd)
+          when :c
+            string.unicode_normalize(:nfc)
+          when :kd
+            string.unicode_normalize(:nfkd)
+          when :kc
+            string.unicode_normalize(:nfkc)
+            else
+            raise ArgumentError, "#{form} is not a valid normalization variant", caller
+          end
+        end
+      else
+        def normalize(string, form=nil)
+          form ||= @default_normalization_form
+          # See http://www.unicode.org/reports/tr15, Table 1
+          codepoints = string.codepoints.to_a
+          case form
+          when :d
+            reorder_characters(decompose(:canonical, codepoints))
+          when :c
+            compose(reorder_characters(decompose(:canonical, codepoints)))
+          when :kd
+            reorder_characters(decompose(:compatibility, codepoints))
+          when :kc
+            compose(reorder_characters(decompose(:compatibility, codepoints)))
+            else
+            raise ArgumentError, "#{form} is not a valid normalization variant", caller
+          end.pack("U*".freeze)
+        end
       end
 
       def downcase(string)
