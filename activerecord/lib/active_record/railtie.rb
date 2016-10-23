@@ -25,6 +25,7 @@ module ActiveRecord
 
     config.active_record.use_schema_cache_dump = true
     config.active_record.maintain_test_schema = true
+    config.active_record.belongs_to_required_by_default = true
 
     config.eager_load_namespaces << ActiveRecord
 
@@ -106,10 +107,12 @@ module ActiveRecord
       end
     end
 
-    initializer "active_record.set_configs" do |app|
-      ActiveSupport.on_load(:active_record) do
-        app.config.active_record.each do |k,v|
-          send "#{k}=", v
+    initializer "active_record.set_configs" do
+      config.after_initialize do |app|
+        ActiveSupport.on_load(:active_record) do
+          app.config.active_record.each do |k,v|
+            send "#{k}=", v
+          end
         end
       end
     end
