@@ -329,7 +329,7 @@ module ActiveRecord
     # ==== Example:
     #   # Instantiates a single new object
     #   User.new(first_name: 'Jamie')
-    def initialize(attributes = nil)
+    def initialize(attributes = nil, *args)
       @attributes = self.class._default_attributes.deep_dup
       self.class.define_attribute_methods
 
