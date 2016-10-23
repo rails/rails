@@ -235,9 +235,9 @@ GEM
     multi_json (1.12.1)
     multipart-post (2.0.0)
     mustache (1.0.3)
-    mysql2 (0.4.4)
-    mysql2 (0.4.4-x64-mingw32)
-    mysql2 (0.4.4-x86-mingw32)
+    mysql2 (0.4.5)
+    mysql2 (0.4.5-x64-mingw32)
+    mysql2 (0.4.5-x86-mingw32)
     nio4r (1.2.1)
     nokogiri (1.6.8)
       mini_portile2 (~> 2.1.0)
@@ -421,4 +421,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
-   1.13.2
+   1.13.6
