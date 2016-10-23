@@ -19,10 +19,6 @@
 
     *Edho Arief*
 
-*   Made ActiveRecord consistently use `ActiveRecord::Type` (not `ActiveModel::Type`)
-
-    *Iain Beeston*
-
 *   Serialize JSON attribute value `nil` as SQL `NULL`, not JSON `null`
 
     *Trung Duc Tran*

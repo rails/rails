@@ -1,6 +1,4 @@
 require "active_model/type"
-require "active_record/type/helpers"
-require "active_record/type/value"
 
 require "active_record/type/internal/abstract_json"
 require "active_record/type/internal/timezone"
@@ -50,6 +48,7 @@ module ActiveRecord
       end
     end
 
+    Helpers = ActiveModel::Type::Helpers
     BigInteger = ActiveModel::Type::BigInteger
     Binary = ActiveModel::Type::Binary
     Boolean = ActiveModel::Type::Boolean
@@ -60,6 +59,7 @@ module ActiveRecord
     String = ActiveModel::Type::String
     Text = ActiveModel::Type::Text
     UnsignedInteger = ActiveModel::Type::UnsignedInteger
+    Value = ActiveModel::Type::Value
 
     register(:big_integer, Type::BigInteger, override: false)
     register(:binary, Type::Binary, override: false)
