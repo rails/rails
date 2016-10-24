@@ -1,3 +1,8 @@
+*   ActiveRecord::Store accessors can now have types defined to
+    automatically cast values on read and write.
+
+    *Chris Oliver*
+
 *   Deprecate passing arguments and block at the same time to
     `ActiveRecord::QueryMethods#select`.
 

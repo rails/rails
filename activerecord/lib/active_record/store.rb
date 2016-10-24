@@ -7,7 +7,8 @@ module ActiveRecord
   #
   # You can then declare accessors to this store that are then accessible just like any other attribute
   # of the model. This is very helpful for easily exposing store keys to a form or elsewhere that's
-  # already built around just accessing attributes on the model.
+  # already built around just accessing attributes on the model. You can also specify types for your
+  # accessors which will automatically cast the value just like normal attributes.
   #
   # Make sure that you declare the database column used for the serialized store as a text, so there's
   # plenty of room.
@@ -28,12 +29,13 @@ module ActiveRecord
   # Examples:
   #
   #   class User < ActiveRecord::Base
-  #     store :settings, accessors: [ :color, :homepage ], coder: JSON
+  #     store :settings, accessors: [ :color, :homepage, birth_date: :date ], coder: JSON
   #   end
   #
-  #   u = User.new(color: 'black', homepage: '37signals.com')
+  #   u = User.new(color: 'black', homepage: '37signals.com', birth_date: "1979/10/15")
   #   u.color                          # Accessor stored attribute
   #   u.settings[:country] = 'Denmark' # Any attribute, even if not specified with an accessor
+  #   u.birth_date                     # Automatically casts the string and returns a Date object
   #
   #   # There is no difference between strings and symbols for accessing custom attributes
   #   u.settings[:country]  # => 'Denmark'
@@ -82,17 +84,17 @@ module ActiveRecord
         store_accessor(store_attribute, options[:accessors]) if options.has_key? :accessors
       end
 
-      def store_accessor(store_attribute, *keys)
-        keys = keys.flatten
+      def store_accessor(store_attribute, *accessors)
+        keys_with_types = accessors_with_types(accessors)
 
         _store_accessors_module.module_eval do
-          keys.each do |key|
+          keys_with_types.each do |key, cast_type|
             define_method("#{key}=") do |value|
-              write_store_attribute(store_attribute, key, value)
+              write_store_attribute(store_attribute, key, value, cast_type)
             end
 
             define_method(key) do
-              read_store_attribute(store_attribute, key)
+              read_store_attribute(store_attribute, key, cast_type)
             end
           end
         end
@@ -101,7 +103,18 @@ module ActiveRecord
         # has its own hash of stored attributes.
         self.local_stored_attributes ||= {}
         self.local_stored_attributes[store_attribute] ||= []
-        self.local_stored_attributes[store_attribute] |= keys
+        self.local_stored_attributes[store_attribute] |= keys_with_types.map(&:first)
+      end
+
+      def accessors_with_types(accessors)
+        accessors.flatten.map do |accessor|
+          case accessor
+          when Hash
+            accessor.flatten
+          else
+            [accessor, nil]
+          end
+        end
       end
 
       def _store_accessors_module # :nodoc:
@@ -122,14 +135,16 @@ module ActiveRecord
     end
 
     protected
-      def read_store_attribute(store_attribute, key)
+      def read_store_attribute(store_attribute, key, cast_type=nil)
         accessor = store_accessor_for(store_attribute)
-        accessor.read(self, store_attribute, key)
+        value = accessor.read(self, store_attribute, key)
+        cast_type ? ActiveRecord::Type.lookup(cast_type).cast(value) : value
       end
 
-      def write_store_attribute(store_attribute, key, value)
+      def write_store_attribute(store_attribute, key, value, cast_type=nil)
         accessor = store_accessor_for(store_attribute)
-        accessor.write(self, store_attribute, key, value)
+        new_value = cast_type ? ActiveRecord::Type.lookup(cast_type).cast(value) : value
+        accessor.write(self, store_attribute, key, new_value)
       end
 
     private

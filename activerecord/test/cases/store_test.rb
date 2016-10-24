@@ -66,6 +66,16 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal false, @john.remember_login
   end
 
+  test "casting attribute types" do
+    @john.birth_date = Date.today
+    assert_equal Date, @john.birth_date.class
+  end
+
+  test "retrieving casted attributes" do
+    @john.update(birth_date: Date.today)
+    assert_equal Date, @john.reload.birth_date.class
+  end
+
   test "overriding a write accessor" do
     @john.phone_number = "(123) 456-7890"
 
