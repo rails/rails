@@ -325,7 +325,7 @@ should support caching.
 
 #### Configure the Output of `db:structure:dump`
 
-If you're using `schema_search_path` or other PostgreSQL extentions, you can control how the schema is
+If you're using `schema_search_path` or other PostgreSQL extensions, you can control how the schema is
 dumped. Set to `:all` to generate all dumps, or to `:schema_search_path` to generate from schema search path.
 
     config.active_record.dump_schemas = :all
