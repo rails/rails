@@ -64,12 +64,16 @@ module ActiveRecord
         # * <tt>"schema_name".table_name</tt>
         # * <tt>"schema.name"."table name"</tt>
         def extract_schema_qualified_name(string)
-          schema, table = string.scan(/[^".\s]+|"[^"]*"/)
-          if table.nil?
-            table = schema
-            schema = nil
+          if string.include?(".")
+            schema, table = string.scan(/[^".\s]+|"[^"]*"/)
+            if table.nil?
+              table = schema
+              schema = nil
+            end
+            PostgreSQL::Name.new(schema, table)
+          else
+            PostgreSQL::Name.new(nil, string)
           end
-          PostgreSQL::Name.new(schema, table)
         end
       end
     end
