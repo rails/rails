@@ -417,7 +417,7 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     `ActionDispatch::IntegrationTest` instead.
     ([commit](https://github.com/rails/rails/commit/4414c5d1795e815b102571425974a8b1d46d932d))
 
-*   Rails will only generate "weak", instead of strong ETags.
+*   Rails generates weak ETags by default.
     ([Pull Request](https://github.com/rails/rails/pull/17573))
 
 *   Controller actions without an explicit `render` call and with no
@@ -453,6 +453,9 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     `ActionController::Live`.
     ([More details in this issue](https://github.com/rails/rails/issues/25581))
 
+*   Introduce `Response#strong_etag=` and `#weak_etag=` and analogous
+    options for `fresh_when` and `stale?`.
+    ([Pull Request](https://github.com/rails/rails/pull/24387))
 
 Action View
 -------------
