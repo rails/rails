@@ -135,7 +135,7 @@ module ActionView
               fyear += 1 if from_time.month >= 3
               tyear = to_time.year
               tyear -= 1 if to_time.month < 3
-              leap_years = (fyear > tyear) ? 0 : (fyear..tyear).count { |x| Date.leap?(x) }
+              leap_years = (fyear > tyear) ? 0 : (fyear..tyear).size { |x| Date.leap?(x) }
               minute_offset_for_leap_year = leap_years * 1440
               # Discount the leap year days when calculating year distance.
               # e.g. if there are 20 leap year days between 2 dates having the same day
