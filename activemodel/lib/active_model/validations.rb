@@ -72,8 +72,12 @@ module ActiveModel
       #   or an array of symbols. (e.g. <tt>on: :create</tt> or
       #   <tt>on: :custom_validation_context</tt> or
       #   <tt>on: [:create, :custom_validation_context]</tt>)
-      # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+.
-      # * <tt>:allow_blank</tt> - Skip validation if attribute is blank.
+      # * <tt>:allow_nil</tt> - Can be set to a value or a proc. Validation
+      #   is skipped if attribute is +nil+ and the setting of allow_nil evaluates
+      #   to a +true+ value.
+      # * <tt>:allow_blank</tt> - Can be set to a value or a proc. Validation
+      #   is skipped if attribute is blank and the setting of allow_blank evaluates
+      #   to a +true+ value.
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
       #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
       #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method,
