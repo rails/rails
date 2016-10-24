@@ -13,10 +13,6 @@
 
     *Rafael Mendonça França*
 
-*   Validate multiple contexts on `valid?` and `invalid?` at once.
-
-    *Rafael Mendonça França*
-
 *   Removed deprecated methods in `ActiveModel::Errors`.
 
     `#get`, `#set`, `[]=`, `add_on_empty` and `add_on_blank`.
