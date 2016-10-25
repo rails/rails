@@ -70,6 +70,7 @@ module ActiveSupport
         def with_local_cache
           use_temporary_local_cache(LocalStore.new) { yield }
         end
+
         # Middleware class can be inserted as a Rack handler to be local cache for the
         # duration of request.
         def middleware
