@@ -41,6 +41,10 @@ module ActiveRecord
   module Timestamp
     extend ActiveSupport::Concern
 
+    UPDATE_TIMESTAMP_ATTRIBUTES = [:updated_at, :updated_on]
+    CREATE_TIMESTAMP_ATTRIBUTES = [:created_at, :created_on]
+    ALL_TIMESTAMP_ATTRIBUTES    = CREATE_TIMESTAMP_ATTRIBUTES + UPDATE_TIMESTAMP_ATTRIBUTES
+
     included do
       class_attribute :record_timestamps
       self.record_timestamps = true
@@ -98,15 +102,15 @@ module ActiveRecord
     end
 
     def timestamp_attributes_for_update
-      [:updated_at, :updated_on]
+      UPDATE_TIMESTAMP_ATTRIBUTES
     end
 
     def timestamp_attributes_for_create
-      [:created_at, :created_on]
+      CREATE_TIMESTAMP_ATTRIBUTES
     end
 
     def all_timestamp_attributes
-      timestamp_attributes_for_create + timestamp_attributes_for_update
+      ALL_TIMESTAMP_ATTRIBUTES
     end
 
     def max_updated_column_timestamp(timestamp_names = timestamp_attributes_for_update)
