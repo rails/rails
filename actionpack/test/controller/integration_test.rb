@@ -1070,8 +1070,8 @@ class IntegrationFileUploadTest < ActionDispatch::IntegrationTest
   def test_fixture_file_upload
     post "/test_file_upload",
       params: {
-        file: fixture_file_upload("/mona_lisa.jpg", "image/jpg")
+        file: fixture_file_upload("/ruby_on_rails.jpg", "image/jpg")
       }
-    assert_equal "159528", @response.body
+    assert_equal "45142", @response.body
   end
 end
