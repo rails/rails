@@ -1,3 +1,8 @@
+*   Use `Hash#compact` and `Hash#compact!` from Ruby 2.4. Old Ruby versions
+    will continue to get these methods from Active Support as before.
+
+    *Prathamesh Sonpatki*
+
 *   Fix `ActiveSupport::TimeZone#strptime`.
     Support for timestamps in format of seconds (%s) and milliseconds (%Q).
 
@@ -21,10 +26,10 @@
         Time.zone = "US/Eastern"
 
         t = Time.zone.local(2016,11,6,1)
-        # => Sun, 06 Nov 2016 01:00:00 EDT -05:00 
+        # => Sun, 06 Nov 2016 01:00:00 EDT -05:00
 
         t.in(1.hour)
-        # => Sun, 06 Nov 2016 01:00:00 EST -05:00 
+        # => Sun, 06 Nov 2016 01:00:00 EST -05:00
 
     Fixes #26580.
 
