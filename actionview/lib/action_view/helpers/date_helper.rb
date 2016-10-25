@@ -267,7 +267,7 @@ module ActionView
       #   date_select("article", "written_on", default: 3.days.from_now)
       #
       #   # Generates a date select that when POSTed is stored in the article variable, in the written_on attribute
-      #   # which is set in the form with todays date, regardless of the value in the Active Record object.
+      #   # which is set in the form with today's date, regardless of the value in the Active Record object.
       #   date_select("article", "written_on", selected: Date.today)
       #
       #   # Generates a date select that when POSTed is stored in the credit_card variable, in the bill_due attribute
