@@ -412,6 +412,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/config\.assets\.js_compressor = :uglifier/, content)
       assert_no_match(/config\.assets\.css_compressor = :sass/, content)
     end
+    assert_file "config/initializers/new_framework_defaults.rb" do |content|
+      assert_no_match(/unknown_asset_fallback/, content)
+    end
   end
 
   def test_generator_if_skip_action_cable_is_given
