@@ -136,8 +136,8 @@ module ActiveRecord
     #         BelongsToReflection
     #         HasAndBelongsToManyReflection
     #     ThroughReflection
-    #       PolymorphicReflection
-    #         RuntimeReflection
+    #     PolymorphicReflection
+    #       RuntimeReflection
     class AbstractReflection # :nodoc:
       def through_reflection?
         false
@@ -988,7 +988,7 @@ module ActiveRecord
         delegate(*delegate_methods, to: :delegate_reflection)
     end
 
-    class PolymorphicReflection < ThroughReflection # :nodoc:
+    class PolymorphicReflection < AbstractReflection # :nodoc:
       def initialize(reflection, previous_reflection)
         @reflection = reflection
         @previous_reflection = previous_reflection
