@@ -65,18 +65,18 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
 
   def test_execute_after_disconnect
     @connection.disconnect!
-    error = assert_raise(ActiveRecord::StatementInvalid) do
+
+    assert_raise(ActiveRecord::StatementInvalid) do
       @connection.execute("SELECT 1")
     end
-    assert_match(/MySQL client is not connected/, error.message)
   end
 
   def test_quote_after_disconnect
     @connection.disconnect!
-    error = assert_raise(Mysql2::Error) do
+
+    assert_raise(Mysql2::Error) do
       @connection.quote("string")
     end
-    assert_match(/MySQL client is not connected/, error.message)
   end
 
   def test_active_after_disconnect
