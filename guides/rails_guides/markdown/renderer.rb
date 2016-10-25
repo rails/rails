@@ -52,7 +52,7 @@ HTML
             "ruby; html-script: true"
           when "html"
             "xml" # HTML is understood, but there are .xml rules in the CSS
-            else
+          else
             "plain"
           end
         end
