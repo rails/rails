@@ -11,7 +11,7 @@ module ActiveRecord
       def create_migration_file
         set_local_assigns!
         validate_file_name!
-        migration_template @migration_template, "db/migrate/#{file_name}.rb"
+        migration_template @migration_template, "#{migrations_path}/#{file_name}.rb"
       end
 
       protected
@@ -52,6 +52,10 @@ module ActiveRecord
             attribute.name.singularize.foreign_key
           end.to_sym
         end
+
+      def migrations_path
+        Tasks::DatabaseTasks.migrations_paths.first
+      end
 
       private
         def attributes_with_index
