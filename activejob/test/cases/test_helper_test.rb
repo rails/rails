@@ -250,7 +250,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
       HelloJob.perform_later
     end
 
-    assert_equal 2, ActiveJob::Base.queue_adapter.enqueued_jobs.count
+    assert_equal 2, queue_adapter.enqueued_jobs.count
   end
 end
 
@@ -507,7 +507,7 @@ class PerformedJobsTest < ActiveJob::TestCase
       HelloJob.perform_later
     end
 
-    assert_equal 2, ActiveJob::Base.queue_adapter.performed_jobs.count
+    assert_equal 2, queue_adapter.performed_jobs.count
   end
 end
 
