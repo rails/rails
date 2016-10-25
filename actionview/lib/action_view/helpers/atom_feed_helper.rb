@@ -102,7 +102,7 @@ module ActionView
 
         xml = options.delete(:xml) || eval("xml", block.binding)
         xml.instruct!
-        if options[:instruct]
+        if options[:instruct].present?
           options[:instruct].each do |target,attrs|
             if attrs.respond_to?(:keys)
               xml.instruct!(target, attrs)
