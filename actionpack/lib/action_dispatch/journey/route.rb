@@ -1,6 +1,7 @@
 module ActionDispatch
-  module Journey # :nodoc:
-    class Route # :nodoc:
+  # :stopdoc:
+  module Journey
+    class Route
       attr_reader :app, :path, :defaults, :name, :precedence
 
       attr_reader :constraints, :internal
@@ -81,7 +82,7 @@ module ActionDispatch
         end
       end
 
-      def requirements # :nodoc:
+      def requirements
         # needed for rails `rails routes`
         @defaults.merge(path.requirements).delete_if { |_,v|
           /.+?/ == v
@@ -177,4 +178,5 @@ module ActionDispatch
       end
     end
   end
+  # :startdoc:
 end
