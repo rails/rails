@@ -457,6 +457,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem "prototype-rails"
   end
 
+  def test_coffee_is_the_default_transpiler
+    run_generator
+    assert_gem "coffee-rails"
+  end
+
+  def test_other_transpilers
+    run_generator [destination_root, "-t", "babel"]
+    assert_gem "babel-rails"
+  end
+
   def test_javascript_is_skipped_if_required
     run_generator [destination_root, "--skip-javascript"]
 

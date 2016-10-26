@@ -33,6 +33,9 @@ module Rails
         class_option :javascript,         type: :string, aliases: "-j", default: "jquery",
                                           desc: "Preconfigure for selected JavaScript library"
 
+        class_option :transpiler,         type: :string, aliases: "-t", default: "coffee",
+                                          desc: "Preconfigure for selected JavaScript transpiler"
+
         class_option :skip_gemfile,       type: :boolean, default: false,
                                           desc: "Don't create a Gemfile"
 
@@ -314,15 +317,15 @@ module Rails
         GemfileEntry.new "jbuilder", "~> 2.5", comment, {}, options[:api]
       end
 
-      def coffee_gemfile_entry
-        GemfileEntry.version "coffee-rails", "~> 4.2", "Use CoffeeScript for .coffee assets and views"
+      def transpiler_gemfile_entry
+        GemfileEntry.version "#{options[:transpiler]}-rails", nil, "Use #{options[:transpiler]} as JavaScript Transpiler"
       end
 
       def javascript_gemfile_entry
         if options[:skip_javascript] || options[:skip_sprockets]
           []
         else
-          gems = [coffee_gemfile_entry, javascript_runtime_gemfile_entry]
+          gems = [transpiler_gemfile_entry, javascript_runtime_gemfile_entry]
           gems << GemfileEntry.version("#{options[:javascript]}-rails", nil,
                                        "Use #{options[:javascript]} as the JavaScript library")
 
