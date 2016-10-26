@@ -1,10 +1,11 @@
 require "action_controller/metal/exceptions"
 
 module ActionDispatch
+  # :stopdoc:
   module Journey
     # The Formatter class is used for formatting URLs. For example, parameters
     # passed to +url_for+ in Rails will eventually call Formatter#generate.
-    class Formatter # :nodoc:
+    class Formatter
       attr_reader :routes
 
       def initialize(routes)
@@ -178,4 +179,5 @@ module ActionDispatch
         end
     end
   end
+  # :stopdoc:
 end

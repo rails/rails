@@ -8,6 +8,7 @@ require "racc/parser.rb"
 
 require "action_dispatch/journey/parser_extras"
 module ActionDispatch
+  # :stopdoc:
   module Journey
     class Parser < Racc::Parser
       ##### State transition tables begin ###
@@ -193,4 +194,5 @@ module ActionDispatch
       end
     end   # class Parser
   end   # module Journey
+  # :startdoc:
 end   # module ActionDispatch

@@ -1,5 +1,6 @@
 module ActionDispatch
-  module Journey # :nodoc:
+  # :stopdoc:
+  module Journey
     class Format
       ESCAPE_PATH    = ->(value) { Router::Utils.escape_path(value) }
       ESCAPE_SEGMENT = ->(value) { Router::Utils.escape_segment(value) }
@@ -261,4 +262,5 @@ module ActionDispatch
       end
     end
   end
+  # :startdoc:
 end
