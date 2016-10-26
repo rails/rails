@@ -67,7 +67,7 @@ class String
   end
 
   # +safe_constantize+ tries to find a declared constant with the name specified
-  # in the string. It returns nil when the name is not in CamelCase
+  # in the string. It returns +nil+ when the name is not in CamelCase
   # or is not initialized.  See ActiveSupport::Inflector.safe_constantize
   #
   #   'Module'.safe_constantize  # => Module

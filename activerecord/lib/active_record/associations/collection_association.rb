@@ -435,8 +435,9 @@ module ActiveRecord
           records.each { |record| callback(:after_remove, record) }
         end
 
-        # Delete the given records from the association, using one of the methods :destroy,
-        # :delete_all or :nullify (or nil, in which case a default is used).
+        # Delete the given records from the association,
+        # using one of the methods +:destroy+, +:delete_all+
+        # or +:nullify+ (or +nil+, in which case a default is used).
         def delete_records(records, method)
           raise NotImplementedError
         end

@@ -6,7 +6,7 @@ module SecureRandom
   #
   # The argument _n_ specifies the length, of the random string to be generated.
   #
-  # If _n_ is not specified or is nil, 16 is assumed. It may be larger in the future.
+  # If _n_ is not specified or is +nil+, 16 is assumed. It may be larger in the future.
   #
   # The result may contain alphanumeric characters except 0, O, I and l
   #

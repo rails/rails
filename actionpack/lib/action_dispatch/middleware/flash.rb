@@ -129,7 +129,7 @@ module ActionDispatch
       end
 
       # Builds a hash containing the flashes to keep for the next request.
-      # If there are none to keep, returns nil.
+      # If there are none to keep, returns +nil+.
       def to_session_value #:nodoc:
         flashes_to_keep = @flashes.except(*@discard)
         return nil if flashes_to_keep.empty?

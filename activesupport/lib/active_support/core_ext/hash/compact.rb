@@ -14,7 +14,7 @@ class Hash
 
   unless Hash.instance_methods(false).include?(:compact!)
     # Replaces current hash with non +nil+ values.
-    # Returns nil if no changes were made, otherwise returns the hash.
+    # Returns +nil+ if no changes were made, otherwise returns the hash.
     #
     #   hash = { a: true, b: false, c: nil }
     #   hash.compact!        # => { a: true, b: false }

@@ -541,7 +541,7 @@ module ActiveRecord
 
         # Attempts to find the inverse association name automatically.
         # If it cannot find a suitable inverse association name, it returns
-        # nil.
+        # +nil+.
         def inverse_name
           options.fetch(:inverse_of) do
             if @automatic_inverse_of == false

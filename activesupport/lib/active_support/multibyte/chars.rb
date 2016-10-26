@@ -87,7 +87,7 @@ module ActiveSupport #:nodoc:
       end
 
       # Works like <tt>String#slice!</tt>, but returns an instance of
-      # Chars, or nil if the string was not modified. The string will not be
+      # Chars, or +nil+ if the string was not modified. The string will not be
       # modified if the range given is out of bounds
       #
       #   string = 'Welcome'

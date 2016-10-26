@@ -53,7 +53,7 @@ module Rails
     end
 
     # Returns a Pathname object of the current Rails project,
-    # otherwise it returns nil if there is no project:
+    # otherwise it returns +nil+ if there is no project:
     #
     #   Rails.root
     #     # => #<Pathname:/Users/someuser/some/path/project>
@@ -100,7 +100,7 @@ module Rails
     end
 
     # Returns a Pathname object of the public folder of the current
-    # Rails project, otherwise it returns nil if there is no project:
+    # Rails project, otherwise it returns +nil+ if there is no project:
     #
     #   Rails.public_path
     #     # => #<Pathname:/Users/someuser/some/path/project/public>
