@@ -17,7 +17,7 @@ module ActiveRecord
           configuration.merge("encoding" => encoding)
         establish_connection configuration
       rescue ActiveRecord::StatementInvalid => error
-        if /database .* already exists/ === error.message
+        if /database .* already exists/.match?(error.message)
           raise DatabaseAlreadyExists
         else
           raise

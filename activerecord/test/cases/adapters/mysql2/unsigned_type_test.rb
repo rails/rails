@@ -50,7 +50,7 @@ class Mysql2UnsignedTypeTest < ActiveRecord::Mysql2TestCase
       t.unsigned_decimal :unsigned_decimal_t, precision: 10, scale: 2
     end
 
-    @connection.columns("unsigned_types").select { |c| /^unsigned_/ === c.name }.each do |column|
+    @connection.columns("unsigned_types").select { |c| /^unsigned_/.match?(c.name) }.each do |column|
       assert column.unsigned?
     end
   end

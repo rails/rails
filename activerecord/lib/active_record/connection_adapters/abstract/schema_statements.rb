@@ -1116,7 +1116,7 @@ module ActiveRecord
       end
 
       def add_index_options(table_name, column_name, comment: nil, **options) # :nodoc:
-        if column_name.is_a?(String) && /\W/ === column_name
+        if column_name.is_a?(String) && /\W/.match?(column_name)
           column_names = column_name
         else
           column_names = Array(column_name)
