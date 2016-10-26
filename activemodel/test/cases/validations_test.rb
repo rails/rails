@@ -170,7 +170,7 @@ class ValidationsTest < ActiveModel::TestCase
       # A common mistake -- we meant to call 'validates'
       Topic.validate :title, presence: true
     end
-    message = "Unknown key: :presence. Valid keys are: :on, :if, :unless, :prepend. Perhaps you meant to call `validates` instead of `validate`?"
+    message = "Unknown key: :presence. Valid keys are: :on, :except_on, :if, :unless, :prepend. Perhaps you meant to call `validates` instead of `validate`?"
     assert_equal message, error.message
   end
 
@@ -459,5 +459,29 @@ class ValidationsTest < ActiveModel::TestCase
     t = Topic.new(author_name: "Admiral")
     assert t.invalid?
     assert_equal ["Title is missing. You have failed me for the last time, Admiral."], t.errors[:title]
+  end
+
+  def test_validation_with_unless_and_except_on
+    Topic.validates_presence_of :title, unless: Proc.new { |x| x.author_name = "bad"; false }, except_on: :update
+
+    t = Topic.new(title: "")
+
+    # Unless block should not fire
+    assert t.valid?(:update)
+    assert t.author_name.nil?
+
+    # Unless block should fire
+    assert t.invalid?
+    assert t.author_name == "bad"
+  end
+
+  def test_validate_with_bang_and_negative_context
+    Topic.validates :title, presence: true, except_on: :context
+
+    assert_raise(ActiveModel::ValidationError) do
+      Topic.new.validate!
+    end
+
+    assert Topic.new.validate!(:context)
   end
 end

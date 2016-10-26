@@ -54,12 +54,21 @@ module ActiveModel
         #   person.name   # => "bob"
         def before_validation(*args, &block)
           options = args.last
-          if options.is_a?(Hash) && options[:on]
-            options[:if] = Array(options[:if])
-            options[:on] = Array(options[:on])
-            options[:if].unshift ->(o) {
-              options[:on].include? o.validation_context
-            }
+          if options.is_a?(Hash)
+            if options[:on]
+              options[:if] = Array(options[:if])
+              options[:on] = Array(options[:on])
+              options[:if].unshift ->(o) {
+                options[:on].include? o.validation_context
+              }
+            end
+            if options[:except_on]
+              options[:unless] = Array(options[:unless])
+              options[:except_on] = Array(options[:except_on])
+              options[:unless].unshift ->(o) {
+                options[:except_on].include? o.validation_context
+              }
+            end
           end
           set_callback(:validation, :before, *args, &block)
         end
@@ -93,11 +102,18 @@ module ActiveModel
         def after_validation(*args, &block)
           options = args.extract_options!
           options[:prepend] = true
-          options[:if] = Array(options[:if])
           if options[:on]
+            options[:if] = Array(options[:if])
             options[:on] = Array(options[:on])
             options[:if].unshift ->(o) {
               options[:on].include? o.validation_context
+            }
+          end
+          if options[:except_on]
+            options[:unless] = Array(options[:unless])
+            options[:except_on] = Array(options[:except_on])
+            options[:unless].unshift ->(o) {
+              options[:except_on].include? o.validation_context
             }
           end
           set_callback(:validation, :after, *(args << options), &block)
