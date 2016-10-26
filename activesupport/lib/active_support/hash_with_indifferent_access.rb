@@ -273,6 +273,11 @@ module ActiveSupport
       dup.tap { |hash| hash.reject!(*args, &block) }
     end
 
+    def transform_values(*args, &block)
+      return to_enum(:transform_values) unless block_given?
+      dup.tap { |hash| hash.transform_values!(*args, &block) }
+    end
+
     # Convert to a regular hash with string keys.
     def to_hash
       _new_hash = Hash.new
