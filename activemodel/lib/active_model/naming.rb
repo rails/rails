@@ -1,7 +1,6 @@
 require "active_support/core_ext/hash/except"
 require "active_support/core_ext/module/introspection"
 require "active_support/core_ext/module/remove_method"
-require "active_support/core_ext/module/delegation"
 
 module ActiveModel
   class Name
