@@ -191,27 +191,29 @@ module ActiveRecord
         type_casted_binds = type_casted_binds(binds)
 
         log(sql, name, binds, type_casted_binds) do
-          # Don't cache statements if they are not prepared
-          unless prepare
-            stmt    = @connection.prepare(sql)
-            begin
-              cols    = stmt.columns
-              unless without_prepared_statement?(binds)
-                stmt.bind_params(type_casted_binds)
+          ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+            # Don't cache statements if they are not prepared
+            unless prepare
+              stmt    = @connection.prepare(sql)
+              begin
+                cols    = stmt.columns
+                unless without_prepared_statement?(binds)
+                  stmt.bind_params(type_casted_binds)
+                end
+                records = stmt.to_a
+              ensure
+                stmt.close
               end
+            else
+              cache = @statements[sql] ||= {
+                stmt: @connection.prepare(sql)
+              }
+              stmt = cache[:stmt]
+              cols = cache[:cols] ||= stmt.columns
+              stmt.reset!
+              stmt.bind_params(type_casted_binds)
               records = stmt.to_a
-            ensure
-              stmt.close
             end
-          else
-            cache = @statements[sql] ||= {
-              stmt: @connection.prepare(sql)
-            }
-            stmt = cache[:stmt]
-            cols = cache[:cols] ||= stmt.columns
-            stmt.reset!
-            stmt.bind_params(type_casted_binds)
-            records = stmt.to_a
           end
 
           ActiveRecord::Result.new(cols, records)
@@ -229,7 +231,11 @@ module ActiveRecord
       end
 
       def execute(sql, name = nil) #:nodoc:
-        log(sql, name) { @connection.execute(sql) }
+        log(sql, name) do
+          ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+            @connection.execute(sql)
+          end
+        end
       end
 
       def begin_db_transaction #:nodoc:

@@ -215,7 +215,11 @@ module ActiveRecord
 
       # Executes the SQL statement in the context of this connection.
       def execute(sql, name = nil)
-        log(sql, name) { @connection.query(sql) }
+        log(sql, name) do
+          ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+            @connection.query(sql)
+          end
+        end
       end
 
       # Mysql2Adapter doesn't have to free a result after using it, but we use this method
