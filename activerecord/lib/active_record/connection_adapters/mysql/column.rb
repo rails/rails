@@ -5,11 +5,11 @@ module ActiveRecord
         delegate :extra, to: :sql_type_metadata, allow_nil: true
 
         def unsigned?
-          /\bunsigned\z/ === sql_type
+          /\bunsigned\z/.match?(sql_type)
         end
 
         def case_sensitive?
-          collation && collation !~ /_ci\z/
+          collation && !/_ci\z/.match?(collation)
         end
 
         def auto_increment?

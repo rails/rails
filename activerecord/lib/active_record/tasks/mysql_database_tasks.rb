@@ -14,7 +14,7 @@ module ActiveRecord
         connection.create_database configuration["database"], creation_options
         establish_connection configuration
       rescue ActiveRecord::StatementInvalid => error
-        if /database exists/ === error.message
+        if error.message.include?("database exists")
           raise DatabaseAlreadyExists
         else
           raise
