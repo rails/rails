@@ -285,7 +285,7 @@ module ActiveSupport
       if @utc_offset
         @utc_offset
       else
-        tzinfo.current_period.utc_offset if tzinfo && tzinfo.current_period
+        tzinfo.current_period.utc_offset
       end
     end
 
