@@ -4,13 +4,13 @@ require "active_support/core_ext/object/blank"
 class BlankTest < ActiveSupport::TestCase
   class EmptyTrue
     def empty?
-      0
+      true
     end
   end
 
   class EmptyFalse
     def empty?
-      nil
+      false
     end
   end
 
