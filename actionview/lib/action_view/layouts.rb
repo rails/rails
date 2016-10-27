@@ -1,6 +1,5 @@
 require "action_view/rendering"
 require "active_support/core_ext/module/remove_method"
-require "active_support/core_ext/regexp"
 
 module ActionView
   # Layouts reverse the common pattern of including shared headers and footers in many templates to isolate changes in

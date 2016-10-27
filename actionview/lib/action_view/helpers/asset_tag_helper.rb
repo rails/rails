@@ -1,6 +1,5 @@
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/hash/keys"
-require "active_support/core_ext/regexp"
 require "action_view/helpers/asset_url_helper"
 require "action_view/helpers/tag_helper"
 

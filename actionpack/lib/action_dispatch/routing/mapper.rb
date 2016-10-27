@@ -1,7 +1,6 @@
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/array/extract_options"
-require "active_support/core_ext/regexp"
 require "action_dispatch/routing/redirection"
 require "action_dispatch/routing/endpoint"
 

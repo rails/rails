@@ -25,3 +25,9 @@ require "active_support/core_ext/module/delegation"
 
 # Defines ActiveSupport::Deprecation.
 require "active_support/deprecation"
+
+# Defines Regexp#match?.
+#
+# This should be removed when Rails needs Ruby 2.4 or later, and the require
+# added where other Regexp extensions are being used (easy to grep).
+require "active_support/core_ext/regexp"

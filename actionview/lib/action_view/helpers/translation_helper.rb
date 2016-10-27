@@ -1,6 +1,5 @@
 require "action_view/helpers/tag_helper"
 require "active_support/core_ext/string/access"
-require "active_support/core_ext/regexp"
 require "i18n/exceptions"
 
 module ActionView

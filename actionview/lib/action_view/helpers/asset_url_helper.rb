@@ -1,5 +1,4 @@
 require "zlib"
-require "active_support/core_ext/regexp"
 
 module ActionView
   # = Action View Asset URL Helpers

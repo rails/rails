@@ -1,6 +1,5 @@
 require "abstract_unit"
 require "active_support/core_ext/array/extract_options"
-require "active_support/core_ext/regexp"
 
 # The view_paths array must be set on Base and not LayoutTest so that LayoutTest's inherited
 # method has access to the view_paths array when looking for a layout to automatically assign.

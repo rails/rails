@@ -1,4 +1,3 @@
-require "active_support/core_ext/regexp"
 require "action_view/template/resolver"
 
 module ActionView #:nodoc:

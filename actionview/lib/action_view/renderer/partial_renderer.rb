@@ -1,5 +1,4 @@
 require "concurrent/map"
-require "active_support/core_ext/regexp"
 require "action_view/renderer/partial_renderer/collection_caching"
 
 module ActionView

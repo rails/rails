@@ -1,5 +1,4 @@
 require "active_support/concern"
-require "active_support/core_ext/regexp"
 
 module ActiveRecord
   module Delegation # :nodoc:

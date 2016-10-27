@@ -1,5 +1,4 @@
 require "active_support/core_ext/enumerable"
-require "active_support/core_ext/regexp"
 
 module ActionView
   # = Action View Errors

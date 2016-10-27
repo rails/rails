@@ -4,7 +4,6 @@ require "active_record/relation/where_clause"
 require "active_record/relation/where_clause_factory"
 require "active_model/forbidden_attributes_protection"
 require "active_support/core_ext/string/filters"
-require "active_support/core_ext/regexp"
 
 module ActiveRecord
   module QueryMethods

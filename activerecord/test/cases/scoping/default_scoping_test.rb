@@ -5,7 +5,6 @@ require "models/developer"
 require "models/computer"
 require "models/vehicle"
 require "models/cat"
-require "active_support/core_ext/regexp"
 
 class DefaultScopingTest < ActiveRecord::TestCase
   fixtures :developers, :posts, :comments

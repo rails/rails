@@ -2,7 +2,6 @@ require "active_support/test_case"
 require "active_support/testing/autorun"
 require "active_support/testing/method_call_assertions"
 require "active_support/testing/stream"
-require "active_support/core_ext/regexp"
 require "active_record/fixtures"
 
 require "cases/validations_repair_helper"
