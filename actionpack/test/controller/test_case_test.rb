@@ -980,12 +980,12 @@ XML
   end
 
   def test_deprecated_action_dispatch_uploaded_file_upload
-    filename = 'mona_lisa.jpg'
+    filename = "ruby_on_rails.jpg"
     path = "#{FILES_DIR}/#{filename}"
     assert_deprecated {
       post :test_file_upload, file: Rack::Test::UploadedFile.new(path, "image/jpg", true)
     }
-    assert_equal '159528', @response.body
+    assert_equal "45142", @response.body
   end
 
   def test_action_dispatch_uploaded_file_upload
