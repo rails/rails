@@ -3,6 +3,8 @@ module Rails
     class ControllerGenerator < NamedBase # :nodoc:
       argument :actions, type: :array, default: [], banner: "action action"
       class_option :skip_routes, type: :boolean, desc: "Don't add routes to config/routes.rb."
+      class_option :helper, type: :boolean
+      class_option :assets, type: :boolean
 
       check_class_collision suffix: "Controller"
 
