@@ -70,7 +70,9 @@ module AbstractController
 
       def skip_filter(*names)
         ActiveSupport::Deprecation.warn("`skip_filter` is deprecated and will be removed in Rails 5.1. Use skip_before_action, skip_after_action or skip_around_action instead.")
-        skip_action_callback(*names)
+        skip_before_action(*names, raise: false)
+        skip_after_action(*names, raise: false)
+        skip_around_action(*names, raise: false)
       end
 
       # Take callback names and an optional callback proc, normalize them,
