@@ -214,9 +214,9 @@ module ActiveRecord
               stmt.bind_params(type_casted_binds)
               records = stmt.to_a
             end
-          end
 
-          ActiveRecord::Result.new(cols, records)
+            ActiveRecord::Result.new(cols, records)
+          end
         end
       end
 
