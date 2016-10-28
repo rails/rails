@@ -35,7 +35,17 @@ Available field types:
     type. If no type is specified the string type will be used by default.
     You can use the following types:
 
-        <%= ActiveRecord::Base.connection.native_database_types.keys.join("\n\t") %>
+        integer
+        primary_key
+        decimal
+        float
+        boolean
+        binary
+        string
+        text
+        date
+        time
+        datetime
 
     You can also consider `references` as a kind of type. For instance, if you run:
 
