@@ -134,7 +134,7 @@ module Rails
   end
 
   module Command
-    class DbconsoleCommand < Base
+    class DbconsoleCommand < Base # :nodoc:
       include EnvironmentArgument
 
       class_option :include_password, aliases: "-p", type: :boolean,

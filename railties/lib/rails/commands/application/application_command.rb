@@ -13,7 +13,7 @@ module Rails
   end
 
   module Command
-    class ApplicationCommand < Base
+    class ApplicationCommand < Base # :nodoc:
       hide_command!
 
       def help

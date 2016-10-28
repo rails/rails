@@ -1,6 +1,6 @@
 module Rails
   module Command
-    class HelpCommand < Base
+    class HelpCommand < Base # :nodoc:
       hide_command!
 
       def help(*)

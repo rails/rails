@@ -1,6 +1,6 @@
 module Rails
   module Command
-    class RunnerCommand < Base
+    class RunnerCommand < Base # :nodoc:
       class_option :environment, aliases: "-e", type: :string,
         default: Rails::Command.environment.dup,
         desc: "The environment for the runner to operate under (test/development/production)"

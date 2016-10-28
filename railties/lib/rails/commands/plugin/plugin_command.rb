@@ -1,6 +1,6 @@
 module Rails
   module Command
-    class PluginCommand < Base
+    class PluginCommand < Base # :nodoc:
       hide_command!
 
       def help

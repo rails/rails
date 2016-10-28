@@ -139,8 +139,8 @@ module Rails
   end
 
   module Command
-    class ServerCommand < Base
-      def help # :nodoc:
+    class ServerCommand < Base # :nodoc:
+      def help
         puts Rails::Server::Options.new.option_parser(Hash.new)
       end
 
