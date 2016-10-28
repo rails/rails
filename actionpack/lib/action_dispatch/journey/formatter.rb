@@ -179,5 +179,5 @@ module ActionDispatch
         end
     end
   end
-  # :stopdoc:
+  # :startdoc:
 end
