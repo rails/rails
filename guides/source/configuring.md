@@ -179,6 +179,8 @@ pipeline is enabled. It is set to `true` by default.
 
 * `config.assets.debug` disables the concatenation and compression of assets. Set to `true` by default in `development.rb`.
 
+* `config.assets.version` is an option string that is used in MD5 hash generation. This can be changed to force all files to be recompiled.
+
 * `config.assets.compile` is a boolean that can be used to turn on live Sprockets compilation in production.
 
 * `config.assets.logger` accepts a logger conforming to the interface of Log4r or the default Ruby `Logger` class. Defaults to the same configured at `config.logger`. Setting `config.assets.logger` to `false` will turn off served assets logging.
