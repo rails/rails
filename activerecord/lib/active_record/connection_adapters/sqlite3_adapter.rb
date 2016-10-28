@@ -194,9 +194,9 @@ module ActiveRecord
           ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
             # Don't cache statements if they are not prepared
             unless prepare
-              stmt    = @connection.prepare(sql)
+              stmt = @connection.prepare(sql)
               begin
-                cols    = stmt.columns
+                cols = stmt.columns
                 unless without_prepared_statement?(binds)
                   stmt.bind_params(type_casted_binds)
                 end
@@ -214,9 +214,9 @@ module ActiveRecord
               stmt.bind_params(type_casted_binds)
               records = stmt.to_a
             end
-          end
 
-          ActiveRecord::Result.new(cols, records)
+            ActiveRecord::Result.new(cols, records)
+          end
         end
       end
 
