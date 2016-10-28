@@ -1,3 +1,10 @@
+*   Improved partial writes with HABTM and has many through associations
+    to fire database query only if relation has been changed.
+
+    Fixes #19663.
+
+    *Mehmet Emin İNAÇ*
+
 *   Deprecate passing arguments and block at the same time to
     `ActiveRecord::QueryMethods#select`.
 

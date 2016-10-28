@@ -1012,4 +1012,17 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     user = User.create!
     assert_nothing_raised { user.jobs_pool.clear }
   end
+
+  def test_has_and_belongs_to_many_while_partial_writes_false
+    begin
+      original_partial_writes = ActiveRecord::Base.partial_writes
+      ActiveRecord::Base.partial_writes = false
+      developer = Developer.new(name: "Mehmet Emin İNAÇ")
+      developer.projects << Project.new(name: "Bounty")
+
+      assert developer.save
+    ensure
+      ActiveRecord::Base.partial_writes = original_partial_writes
+    end
+  end
 end
