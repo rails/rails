@@ -1199,10 +1199,6 @@ module ActiveRecord
         def index_name_for_remove(table_name, options = {})
           return options[:name] if can_remove_index_by_name?(options)
 
-          # if the adapter doesn't support the indexes call the best we can do
-          # is return the default index name for the options provided
-          return index_name(table_name, options) unless respond_to?(:indexes)
-
           checks = []
 
           if options.is_a?(Hash)
