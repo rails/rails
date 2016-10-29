@@ -636,6 +636,20 @@ module ApplicationTests
       end
     end
 
+    test "that nested keys are symbolized the same as parents for hashes more than one level deep" do
+      app_file "config/secrets.yml", <<-YAML
+        development:
+          smtp_settings:
+            address: "smtp.example.com"
+            user_name: "postmaster@example.com"
+            password: "697361616320736c6f616e2028656c6f7265737429"
+      YAML
+
+      app "development"
+
+      assert_equal "697361616320736c6f616e2028656c6f7265737429", app.secrets.smtp_settings[:password]
+    end
+
     test "protect from forgery is the default in a new app" do
       make_basic_app
 

@@ -394,8 +394,8 @@ module Rails
           shared_secrets = all_secrets["shared"]
           env_secrets    = all_secrets[Rails.env]
 
-          secrets.merge!(shared_secrets.symbolize_keys) if shared_secrets
-          secrets.merge!(env_secrets.symbolize_keys) if env_secrets
+          secrets.merge!(shared_secrets.deep_symbolize_keys) if shared_secrets
+          secrets.merge!(env_secrets.deep_symbolize_keys) if env_secrets
         end
 
         # Fallback to config.secret_key_base if secrets.secret_key_base isn't set
