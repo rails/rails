@@ -194,9 +194,9 @@ module ActiveRecord
           ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
             # Don't cache statements if they are not prepared
             unless prepare
-              stmt    = @connection.prepare(sql)
+              stmt = @connection.prepare(sql)
               begin
-                cols    = stmt.columns
+                cols = stmt.columns
                 unless without_prepared_statement?(binds)
                   stmt.bind_params(type_casted_binds)
                 end
@@ -239,15 +239,15 @@ module ActiveRecord
       end
 
       def begin_db_transaction #:nodoc:
-        log("begin transaction",nil) { @connection.transaction }
+        log("begin transaction", nil) { @connection.transaction }
       end
 
       def commit_db_transaction #:nodoc:
-        log("commit transaction",nil) { @connection.commit }
+        log("commit transaction", nil) { @connection.commit }
       end
 
       def exec_rollback_db_transaction #:nodoc:
-        log("rollback transaction",nil) { @connection.rollback }
+        log("rollback transaction", nil) { @connection.rollback }
       end
 
       # SCHEMA STATEMENTS ========================================
@@ -416,7 +416,7 @@ module ActiveRecord
             self.default = options[:default] if include_default
             self.null    = options[:null] if options.include?(:null)
             self.precision = options[:precision] if options.include?(:precision)
-            self.scale   = options[:scale] if options.include?(:scale)
+            self.scale = options[:scale] if options.include?(:scale)
             self.collation = options[:collation] if options.include?(:collation)
           end
         end

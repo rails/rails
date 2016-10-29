@@ -63,11 +63,11 @@ module ActiveRecord
       assert_queries(0, options, &block)
     end
 
-    def assert_column(model, column_name, msg=nil)
+    def assert_column(model, column_name, msg = nil)
       assert has_column?(model, column_name), msg
     end
 
-    def assert_no_column(model, column_name, msg=nil)
+    def assert_no_column(model, column_name, msg = nil)
       assert_not has_column?(model, column_name), msg
     end
 

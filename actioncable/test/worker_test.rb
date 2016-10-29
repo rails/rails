@@ -9,7 +9,7 @@ class WorkerTest < ActiveSupport::TestCase
     end
 
     def process(message)
-      @last_action =  [ :process, message ]
+      @last_action = [ :process, message ]
     end
 
     def connection

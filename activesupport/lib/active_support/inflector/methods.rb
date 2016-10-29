@@ -207,7 +207,7 @@ module ActiveSupport
     def demodulize(path)
       path = path.to_s
       if i = path.rindex("::")
-        path[(i+2)..-1]
+        path[(i + 2)..-1]
       else
         path
       end
@@ -366,7 +366,7 @@ module ActiveSupport
 
         return Regexp.escape(camel_cased_word) if parts.blank?
 
-        last  = parts.pop
+        last = parts.pop
 
         parts.reverse.inject(last) do |acc, part|
           part.empty? ? acc : "#{part}(::#{acc})?"

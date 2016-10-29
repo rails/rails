@@ -5,8 +5,8 @@ require "active_support/core_ext/integer"
 
 class NumericExtTimeAndDateTimeTest < ActiveSupport::TestCase
   def setup
-    @now = Time.local(2005,2,10,15,30,45)
-    @dtnow = DateTime.civil(2005,2,10,15,30,45)
+    @now = Time.local(2005, 2, 10, 15, 30, 45)
+    @dtnow = DateTime.civil(2005, 2, 10, 15, 30, 45)
     @seconds = {
       1.minute   => 60,
       10.minutes => 600,
@@ -68,8 +68,8 @@ class NumericExtTimeAndDateTimeTest < ActiveSupport::TestCase
   end
 
   def test_add_one_year_to_leap_day
-    assert_equal Time.utc(2005,2,28,15,15,10), Time.utc(2004,2,29,15,15,10) + 1.year
-    assert_equal DateTime.civil(2005,2,28,15,15,10), DateTime.civil(2004,2,29,15,15,10) + 1.year
+    assert_equal Time.utc(2005, 2, 28, 15, 15, 10), Time.utc(2004, 2, 29, 15, 15, 10) + 1.year
+    assert_equal DateTime.civil(2005, 2, 28, 15, 15, 10), DateTime.civil(2004, 2, 29, 15, 15, 10) + 1.year
   end
 end
 
@@ -83,7 +83,7 @@ class NumericExtDateTest < ActiveSupport::TestCase
     assert_equal @today >> 1, @today + 1.month
     assert_equal @today.to_time.since(1), @today + 1.second
     assert_equal @today.to_time.since(60), @today + 1.minute
-    assert_equal @today.to_time.since(60*60), @today + 1.hour
+    assert_equal @today.to_time.since(60 * 60), @today + 1.hour
   end
 
   def test_chaining_duration_operations
@@ -92,7 +92,7 @@ class NumericExtDateTest < ActiveSupport::TestCase
   end
 
   def test_add_one_year_to_leap_day
-    assert_equal Date.new(2005,2,28), Date.new(2004,2,29) + 1.year
+    assert_equal Date.new(2005, 2, 28), Date.new(2004, 2, 29) + 1.year
   end
 end
 
@@ -102,12 +102,12 @@ class NumericExtSizeTest < ActiveSupport::TestCase
     assert_equal 1024.kilobytes, 1.megabyte
     assert_equal 3584.0.kilobytes, 3.5.megabytes
     assert_equal 3584.0.megabytes, 3.5.gigabytes
-    assert_equal 1.kilobyte ** 4, 1.terabyte
+    assert_equal 1.kilobyte**4, 1.terabyte
     assert_equal 1024.kilobytes + 2.megabytes, 3.megabytes
     assert_equal 2.gigabytes / 4, 512.megabytes
     assert_equal 256.megabytes * 20 + 5.gigabytes, 10.gigabytes
-    assert_equal 1.kilobyte ** 5, 1.petabyte
-    assert_equal 1.kilobyte ** 6, 1.exabyte
+    assert_equal 1.kilobyte**5, 1.petabyte
+    assert_equal 1.kilobyte**6, 1.exabyte
   end
 
   def test_units_as_bytes_independently
@@ -228,37 +228,37 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
 
   def test_to_s__rounded__with_significant_digits
     assert_equal "124000", 123987.to_s(:rounded, precision: 3, significant: true)
-    assert_equal "120000000", 123987876.to_s(:rounded, precision: 2, significant: true )
-    assert_equal "9775", 9775.to_s(:rounded, precision: 4, significant: true )
-    assert_equal "5.4", 5.3923.to_s(:rounded, precision: 2, significant: true )
-    assert_equal "5", 5.3923.to_s(:rounded, precision: 1, significant: true )
-    assert_equal "1", 1.232.to_s(:rounded, precision: 1, significant: true )
-    assert_equal "7", 7.to_s(:rounded, precision: 1, significant: true )
-    assert_equal "1", 1.to_s(:rounded, precision: 1, significant: true )
-    assert_equal "53", 52.7923.to_s(:rounded, precision: 2, significant: true )
-    assert_equal "9775.00", 9775.to_s(:rounded, precision: 6, significant: true )
-    assert_equal "5.392900", 5.3929.to_s(:rounded, precision: 7, significant: true )
-    assert_equal "0.0", 0.to_s(:rounded, precision: 2, significant: true )
-    assert_equal "0", 0.to_s(:rounded, precision: 1, significant: true )
-    assert_equal "0.0001", 0.0001.to_s(:rounded, precision: 1, significant: true )
-    assert_equal "0.000100", 0.0001.to_s(:rounded, precision: 3, significant: true )
-    assert_equal "0.0001", 0.0001111.to_s(:rounded, precision: 1, significant: true )
+    assert_equal "120000000", 123987876.to_s(:rounded, precision: 2, significant: true)
+    assert_equal "9775", 9775.to_s(:rounded, precision: 4, significant: true)
+    assert_equal "5.4", 5.3923.to_s(:rounded, precision: 2, significant: true)
+    assert_equal "5", 5.3923.to_s(:rounded, precision: 1, significant: true)
+    assert_equal "1", 1.232.to_s(:rounded, precision: 1, significant: true)
+    assert_equal "7", 7.to_s(:rounded, precision: 1, significant: true)
+    assert_equal "1", 1.to_s(:rounded, precision: 1, significant: true)
+    assert_equal "53", 52.7923.to_s(:rounded, precision: 2, significant: true)
+    assert_equal "9775.00", 9775.to_s(:rounded, precision: 6, significant: true)
+    assert_equal "5.392900", 5.3929.to_s(:rounded, precision: 7, significant: true)
+    assert_equal "0.0", 0.to_s(:rounded, precision: 2, significant: true)
+    assert_equal "0", 0.to_s(:rounded, precision: 1, significant: true)
+    assert_equal "0.0001", 0.0001.to_s(:rounded, precision: 1, significant: true)
+    assert_equal "0.000100", 0.0001.to_s(:rounded, precision: 3, significant: true)
+    assert_equal "0.0001", 0.0001111.to_s(:rounded, precision: 1, significant: true)
     assert_equal "10.0", 9.995.to_s(:rounded, precision: 3, significant: true)
     assert_equal "9.99", 9.994.to_s(:rounded, precision: 3, significant: true)
     assert_equal "11.0", 10.995.to_s(:rounded, precision: 3, significant: true)
   end
 
   def test_to_s__rounded__with_strip_insignificant_zeros
-    assert_equal "9775.43", 9775.43.to_s(:rounded, precision: 4, strip_insignificant_zeros: true )
-    assert_equal "9775.2", 9775.2.to_s(:rounded, precision: 6, significant: true, strip_insignificant_zeros: true )
-    assert_equal "0", 0.to_s(:rounded, precision: 6, significant: true, strip_insignificant_zeros: true )
+    assert_equal "9775.43", 9775.43.to_s(:rounded, precision: 4, strip_insignificant_zeros: true)
+    assert_equal "9775.2", 9775.2.to_s(:rounded, precision: 6, significant: true, strip_insignificant_zeros: true)
+    assert_equal "0", 0.to_s(:rounded, precision: 6, significant: true, strip_insignificant_zeros: true)
   end
 
   def test_to_s__rounded__with_significant_true_and_zero_precision
     # Zero precision with significant is a mistake (would always return zero),
     # so we treat it as if significant was false (increases backwards compatibility for number_to_human_size)
     assert_equal "124", 123.987.to_s(:rounded, precision: 0, significant: true)
-    assert_equal "12", 12.to_s(:rounded, precision: 0, significant: true )
+    assert_equal "12", 12.to_s(:rounded, precision: 0, significant: true)
   end
 
   def test_to_s__human_size
@@ -453,8 +453,8 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     end.new
     assert_not_predicate(a, :positive?)
 
-    assert_predicate(1/2r, :positive?)
-    assert_not_predicate(-1/2r, :positive?)
+    assert_predicate(1 / 2r, :positive?)
+    assert_not_predicate(-1 / 2r, :positive?)
 
     assert_predicate(T_ONE, :positive?)
     assert_not_predicate(T_MONE, :positive?)
@@ -491,8 +491,8 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     end.new
     assert_not_predicate(a, :negative?)
 
-    assert_predicate(-1/2r, :negative?)
-    assert_not_predicate(1/2r, :negative?)
+    assert_predicate(-1 / 2r, :negative?)
+    assert_not_predicate(1 / 2r, :negative?)
 
     assert_not_predicate(T_ONE, :negative?)
     assert_predicate(T_MONE, :negative?)

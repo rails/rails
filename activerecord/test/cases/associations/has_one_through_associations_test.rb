@@ -123,7 +123,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_eager_has_one_through_polymorphic_with_source_type
-    clubs = Club.all.merge!(includes: :sponsored_member, where: ["name = ?","Moustache and Eyebrow Fancier Club"]).to_a
+    clubs = Club.all.merge!(includes: :sponsored_member, where: ["name = ?", "Moustache and Eyebrow Fancier Club"]).to_a
     # Only the eyebrow fanciers club has a sponsored_member
     assert_not_nil assert_no_queries { clubs[0].sponsored_member }
   end

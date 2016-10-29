@@ -203,7 +203,7 @@ module Rails
       namespaces = public_namespaces
       namespaces.sort!
 
-      groups = Hash.new { |h,k| h[k] = [] }
+      groups = Hash.new { |h, k| h[k] = [] }
       namespaces.each do |namespace|
         base = namespace.split(":").first
         groups[base] << namespace
@@ -260,7 +260,7 @@ module Rails
     # Receives a namespace, arguments and the behavior to invoke the generator.
     # It's used as the default entry point for generate, destroy and update
     # commands.
-    def self.invoke(namespace, args=ARGV, config={})
+    def self.invoke(namespace, args = ARGV, config = {})
       names = namespace.to_s.split(":")
       if klass = find_by_namespace(names.pop, names.any? && names.join(":"))
         args << "--help" if args.empty? && klass.arguments.any?(&:required?)

@@ -18,7 +18,7 @@ module ActionView
       end
 
       def controller_path=(path)
-        self.class.controller_path=(path)
+        self.class.controller_path = (path)
       end
 
       def initialize
@@ -270,8 +270,8 @@ module ActionView
         end
 
         if routes &&
-           ( routes.named_routes.route_defined?(selector) ||
-             routes.mounted_helpers.method_defined?(selector) )
+           (routes.named_routes.route_defined?(selector) ||
+             routes.mounted_helpers.method_defined?(selector))
           @controller.__send__(selector, *args)
         else
           super

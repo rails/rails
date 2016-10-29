@@ -237,7 +237,7 @@ module InflectorTestCases
     "Ops\331"                             => "opsu",
     "Ærøskøbing"                          => "aeroskobing",
     "Aßlar"                               => "asslar",
-    "Japanese: 日本語"                    => "japanese"
+    "Japanese: 日本語" => "japanese"
   }
 
   UnderscoreToHuman = {

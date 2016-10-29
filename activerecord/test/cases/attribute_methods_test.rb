@@ -294,7 +294,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic = Topic.new(new_topic)
     assert_equal new_topic[:title], topic.title
 
-    topic.attributes= new_topic_values
+    topic.attributes = new_topic_values
     assert_equal new_topic_values[:title], topic.title
   end
 
@@ -609,7 +609,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     utc_time = Time.utc(2008, 1, 1)
     cst_time = utc_time.in_time_zone("Central Time (US & Canada)")
     in_time_zone "Pacific Time (US & Canada)" do
-      record   = @target.new
+      record = @target.new
       record.written_on = cst_time
       assert_equal utc_time, record.written_on
       assert_equal ActiveSupport::TimeZone["Pacific Time (US & Canada)"], record.written_on.time_zone
@@ -633,7 +633,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     (-11..13).each do |timezone_offset|
       time_string = utc_time.in_time_zone(timezone_offset).to_s
       in_time_zone "Pacific Time (US & Canada)" do
-        record   = @target.new
+        record = @target.new
         record.written_on = time_string
         assert_equal Time.zone.parse(time_string), record.written_on
         assert_equal ActiveSupport::TimeZone["Pacific Time (US & Canada)"], record.written_on.time_zone
@@ -654,7 +654,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   test "setting a time zone-aware attribute to a blank string returns nil" do
     in_time_zone "Pacific Time (US & Canada)" do
-      record   = @target.new
+      record = @target.new
       record.written_on = " "
       assert_nil record.written_on
       assert_nil record[:written_on]
@@ -665,7 +665,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     time_string = "Tue Jan 01 00:00:00 2008"
     (-11..13).each do |timezone_offset|
       in_time_zone timezone_offset do
-        record   = @target.new
+        record = @target.new
         record.written_on = time_string
         assert_equal Time.zone.parse(time_string), record.written_on
         assert_equal ActiveSupport::TimeZone[timezone_offset], record.written_on.time_zone
@@ -677,7 +677,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "setting a time zone-aware datetime in the current time zone" do
     utc_time = Time.utc(2008, 1, 1)
     in_time_zone "Pacific Time (US & Canada)" do
-      record   = @target.new
+      record = @target.new
       record.written_on = utc_time.in_time_zone
       assert_equal utc_time, record.written_on
       assert_equal ActiveSupport::TimeZone["Pacific Time (US & Canada)"], record.written_on.time_zone

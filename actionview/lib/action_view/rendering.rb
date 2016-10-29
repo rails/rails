@@ -113,7 +113,7 @@ module ActionView
       # Normalize args by converting render "foo" to render :action => "foo" and
       # render "foo/bar" to render :template => "foo/bar".
       # :api: private
-      def _normalize_args(action=nil, options={})
+      def _normalize_args(action = nil, options = {})
         options = super(action, options)
         case action
         when NilClass

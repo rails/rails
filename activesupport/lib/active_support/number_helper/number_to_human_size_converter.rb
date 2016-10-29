@@ -21,7 +21,7 @@ module ActiveSupport
         if smaller_than_base?
           number_to_format = number.to_i.to_s
         else
-          human_size = number / (base ** exponent)
+          human_size = number / (base**exponent)
           number_to_format = NumberToRoundedConverter.convert(human_size, options)
         end
         conversion_format.gsub("%n".freeze, number_to_format).gsub("%u".freeze, unit)

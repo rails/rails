@@ -712,7 +712,7 @@ module ActiveRecord
 
       def initialize(delegate_reflection)
         @delegate_reflection = delegate_reflection
-        @klass         = delegate_reflection.options[:anonymous_class]
+        @klass = delegate_reflection.options[:anonymous_class]
         @source_reflection_name = delegate_reflection.options[:source]
       end
 

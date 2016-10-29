@@ -9,10 +9,10 @@ class Pirate < ActiveRecord::Base
     before_remove: :log_before_remove,
     after_remove: :log_after_remove
   has_and_belongs_to_many :parrots_with_proc_callbacks, class_name: "Parrot",
-    before_add: proc { |p,pa| p.ship_log << "before_adding_proc_parrot_#{pa.id || '<new>'}" },
-    after_add: proc { |p,pa| p.ship_log << "after_adding_proc_parrot_#{pa.id || '<new>'}" },
-    before_remove: proc { |p,pa| p.ship_log << "before_removing_proc_parrot_#{pa.id}" },
-    after_remove: proc { |p,pa| p.ship_log << "after_removing_proc_parrot_#{pa.id}" }
+    before_add: proc { |p, pa| p.ship_log << "before_adding_proc_parrot_#{pa.id || '<new>'}" },
+    after_add: proc { |p, pa| p.ship_log << "after_adding_proc_parrot_#{pa.id || '<new>'}" },
+    before_remove: proc { |p, pa| p.ship_log << "before_removing_proc_parrot_#{pa.id}" },
+    after_remove: proc { |p, pa| p.ship_log << "after_removing_proc_parrot_#{pa.id}" }
   has_and_belongs_to_many :autosaved_parrots, class_name: "Parrot", autosave: true
 
   has_many :treasures, as: :looter
@@ -28,10 +28,10 @@ class Pirate < ActiveRecord::Base
     before_remove: :log_before_remove,
     after_remove: :log_after_remove
   has_many :birds_with_proc_callbacks, class_name: "Bird",
-    before_add: proc { |p,b| p.ship_log << "before_adding_proc_bird_#{b.id || '<new>'}" },
-    after_add: proc { |p,b| p.ship_log << "after_adding_proc_bird_#{b.id || '<new>'}" },
-    before_remove: proc { |p,b| p.ship_log << "before_removing_proc_bird_#{b.id}" },
-    after_remove: proc { |p,b| p.ship_log << "after_removing_proc_bird_#{b.id}" }
+    before_add: proc { |p, b| p.ship_log << "before_adding_proc_bird_#{b.id || '<new>'}" },
+    after_add: proc { |p, b| p.ship_log << "after_adding_proc_bird_#{b.id || '<new>'}" },
+    before_remove: proc { |p, b| p.ship_log << "before_removing_proc_bird_#{b.id}" },
+    after_remove: proc { |p, b| p.ship_log << "after_removing_proc_bird_#{b.id}" }
   has_many :birds_with_reject_all_blank, class_name: "Bird"
 
   has_one :foo_bulb, -> { where name: "foo" }, foreign_key: :car_id, class_name: "Bulb"

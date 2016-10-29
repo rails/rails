@@ -544,7 +544,7 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_indifferent_select
-    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).select { |k,v| v == 1 }
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).select { |k, v| v == 1 }
 
     assert_equal({ "a" => 1 }, hash)
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
@@ -556,21 +556,21 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_indifferent_select_returns_a_hash_when_unchanged
-    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).select { |k,v| true }
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).select { |k, v| true }
 
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
   end
 
   def test_indifferent_select_bang
     indifferent_strings = ActiveSupport::HashWithIndifferentAccess.new(@strings)
-    indifferent_strings.select! { |k,v| v == 1 }
+    indifferent_strings.select! { |k, v| v == 1 }
 
     assert_equal({ "a" => 1 }, indifferent_strings)
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, indifferent_strings
   end
 
   def test_indifferent_reject
-    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).reject { |k,v| v != 1 }
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).reject { |k, v| v != 1 }
 
     assert_equal({ "a" => 1 }, hash)
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
@@ -583,7 +583,7 @@ class HashExtTest < ActiveSupport::TestCase
 
   def test_indifferent_reject_bang
     indifferent_strings = ActiveSupport::HashWithIndifferentAccess.new(@strings)
-    indifferent_strings.reject! { |k,v| v != 1 }
+    indifferent_strings.reject! { |k, v| v != 1 }
 
     assert_equal({ "a" => 1 }, indifferent_strings)
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, indifferent_strings
@@ -759,9 +759,9 @@ class HashExtTest < ActiveSupport::TestCase
     hash_1 = { a: "a", b: "b", c: { c1: "c1", c2: "c2", c3: { d1: "d1" } } }
     hash_2 = { a: 1, c: { c1: 2, c3: { d2: "d2" } } }
     expected = { a: [:a, "a", 1], b: "b", c: { c1: [:c1, "c1", 2], c2: "c2", c3: { d1: "d1", d2: "d2" } } }
-    assert_equal(expected, hash_1.deep_merge(hash_2) { |k,o,n| [k, o, n] })
+    assert_equal(expected, hash_1.deep_merge(hash_2) { |k, o, n| [k, o, n] })
 
-    hash_1.deep_merge!(hash_2) { |k,o,n| [k, o, n] }
+    hash_1.deep_merge!(hash_2) { |k, o, n| [k, o, n] }
     assert_equal expected, hash_1
   end
 
@@ -1227,8 +1227,8 @@ class HashToXmlTest < ActiveSupport::TestCase
 
   def test_timezoned_attributes
     xml = {
-      created_at: Time.utc(1999,2,2),
-      local_created_at: Time.utc(1999,2,2).in_time_zone("Eastern Time (US & Canada)")
+      created_at: Time.utc(1999, 2, 2),
+      local_created_at: Time.utc(1999, 2, 2).in_time_zone("Eastern Time (US & Canada)")
     }.to_xml(@xml_options)
     assert_match %r{<created-at type=\"dateTime\">1999-02-02T00:00:00Z</created-at>}, xml
     assert_match %r{<local-created-at type=\"dateTime\">1999-02-01T19:00:00-05:00</local-created-at>}, xml
@@ -1537,7 +1537,7 @@ class HashToXmlTest < ActiveSupport::TestCase
       weight: 0.5,
       chunky: true,
       price: BigDecimal("12.50"),
-      expires_at: Time.utc(2007,12,25,12,34,56),
+      expires_at: Time.utc(2007, 12, 25, 12, 34, 56),
       notes: "",
       illustration: "babe.png",
       caption: "That'll do, pig."
@@ -1596,12 +1596,12 @@ class HashToXmlTest < ActiveSupport::TestCase
   end
 
   def test_should_use_default_proc_for_unknown_key
-    hash_wia = HashWithIndifferentAccess.new { 1 +  2 }
+    hash_wia = HashWithIndifferentAccess.new { 1 + 2 }
     assert_equal 3, hash_wia[:new_key]
   end
 
   def test_should_return_nil_if_no_key_is_supplied
-    hash_wia = HashWithIndifferentAccess.new { 1 +  2 }
+    hash_wia = HashWithIndifferentAccess.new { 1 + 2 }
     assert_equal nil, hash_wia.default
   end
 

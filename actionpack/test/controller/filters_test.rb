@@ -506,20 +506,20 @@ class FilterTest < ActionController::TestCase
     private
 
       def filter_one
-        @filters  ||= []
-        @filters  << "filter_one"
+        @filters ||= []
+        @filters << "filter_one"
       end
 
       def action_two
-        @filters  << "action_two"
+        @filters << "action_two"
       end
 
       def non_yielding_action
-        @filters  << "it didn't yield"
+        @filters << "it didn't yield"
       end
 
       def action_three
-        @filters  << "action_three"
+        @filters << "action_three"
       end
   end
 
@@ -911,7 +911,7 @@ class ControllerWithFilterInstance < PostsController
 end
 
 class ControllerWithProcFilter < PostsController
-  around_action(only: :no_raise) do |c,b|
+  around_action(only: :no_raise) do |c, b|
     c.instance_variable_set(:"@before", true)
     b.call
     c.instance_variable_set(:"@after", true)
@@ -961,34 +961,34 @@ class YieldingAroundFiltersTest < ActionController::TestCase
 
   def test_base
     controller = PostsController
-    assert_nothing_raised { test_process(controller,"no_raise") }
-    assert_nothing_raised { test_process(controller,"raises_before") }
-    assert_nothing_raised { test_process(controller,"raises_after") }
-    assert_nothing_raised { test_process(controller,"no_action") }
+    assert_nothing_raised { test_process(controller, "no_raise") }
+    assert_nothing_raised { test_process(controller, "raises_before") }
+    assert_nothing_raised { test_process(controller, "raises_after") }
+    assert_nothing_raised { test_process(controller, "no_action") }
   end
 
   def test_with_symbol
     controller = ControllerWithSymbolAsFilter
-    assert_nothing_raised { test_process(controller,"no_raise") }
-    assert_raise(Before) { test_process(controller,"raises_before") }
-    assert_raise(After) { test_process(controller,"raises_after") }
-    assert_nothing_raised { test_process(controller,"no_raise") }
+    assert_nothing_raised { test_process(controller, "no_raise") }
+    assert_raise(Before) { test_process(controller, "raises_before") }
+    assert_raise(After) { test_process(controller, "raises_after") }
+    assert_nothing_raised { test_process(controller, "no_raise") }
   end
 
   def test_with_class
     controller = ControllerWithFilterClass
-    assert_nothing_raised { test_process(controller,"no_raise") }
-    assert_raise(After) { test_process(controller,"raises_after") }
+    assert_nothing_raised { test_process(controller, "no_raise") }
+    assert_raise(After) { test_process(controller, "raises_after") }
   end
 
   def test_with_instance
     controller = ControllerWithFilterInstance
-    assert_nothing_raised { test_process(controller,"no_raise") }
-    assert_raise(After) { test_process(controller,"raises_after") }
+    assert_nothing_raised { test_process(controller, "no_raise") }
+    assert_raise(After) { test_process(controller, "raises_after") }
   end
 
   def test_with_proc
-    test_process(ControllerWithProcFilter,"no_raise")
+    test_process(ControllerWithProcFilter, "no_raise")
     assert @controller.instance_variable_get(:@before)
     assert @controller.instance_variable_get(:@after)
   end
@@ -997,25 +997,25 @@ class YieldingAroundFiltersTest < ActionController::TestCase
     controller = ControllerWithNestedFilters
     assert_nothing_raised do
       begin
-        test_process(controller,"raises_both")
+        test_process(controller, "raises_both")
       rescue Before, After
       end
     end
     assert_raise Before do
       begin
-        test_process(controller,"raises_both")
+        test_process(controller, "raises_both")
       rescue After
       end
     end
   end
 
   def test_action_order_with_all_action_types
-    test_process(ControllerWithAllTypesOfFilters,"no_raise")
+    test_process(ControllerWithAllTypesOfFilters, "no_raise")
     assert_equal "before around (before yield) around_again (before yield) around_again (after yield) after around (after yield)", @controller.instance_variable_get(:@ran_filter).join(" ")
   end
 
   def test_action_order_with_skip_action_method
-    test_process(ControllerWithTwoLessFilters,"no_raise")
+    test_process(ControllerWithTwoLessFilters, "no_raise")
     assert_equal "before around (before yield) around (after yield)", @controller.instance_variable_get(:@ran_filter).join(" ")
   end
 

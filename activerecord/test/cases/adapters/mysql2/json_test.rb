@@ -67,8 +67,8 @@ if ActiveRecord::Base.connection.supports_json?
       assert_equal({ "a_key" => "a_value" }, type.deserialize(data))
 
       assert_equal({}, type.deserialize("{}"))
-      assert_equal({ "key"=>nil }, type.deserialize('{"key": null}'))
-      assert_equal({ "c"=>"}",'"a"'=>'b "a b' }, type.deserialize(%q({"c":"}", "\"a\"":"b \"a b"})))
+      assert_equal({ "key" => nil }, type.deserialize('{"key": null}'))
+      assert_equal({ "c" => "}", '"a"' => 'b "a b' }, type.deserialize(%q({"c":"}", "\"a\"":"b \"a b"})))
     end
 
     def test_rewrite
@@ -87,7 +87,7 @@ if ActiveRecord::Base.connection.supports_json?
     def test_select_multikey
       @connection.execute %q|insert into json_data_type (payload) VALUES ('{"k1":"v1", "k2":"v2", "k3":[1,2,3]}')|
       x = JsonDataType.first
-      assert_equal({ "k1" => "v1", "k2" => "v2", "k3" => [1,2,3] }, x.payload)
+      assert_equal({ "k1" => "v1", "k2" => "v2", "k3" => [1, 2, 3] }, x.payload)
     end
 
     def test_null_json
@@ -104,17 +104,17 @@ if ActiveRecord::Base.connection.supports_json?
 
     def test_select_nil_json_after_create
       json = JsonDataType.create(payload: nil)
-      x = JsonDataType.where(payload:nil).first
+      x = JsonDataType.where(payload: nil).first
       assert_equal(json, x)
     end
 
     def test_select_nil_json_after_update
       json = JsonDataType.create(payload: "foo")
-      x = JsonDataType.where(payload:nil).first
+      x = JsonDataType.where(payload: nil).first
       assert_equal(nil, x)
 
       json.update_attributes payload: nil
-      x = JsonDataType.where(payload:nil).first
+      x = JsonDataType.where(payload: nil).first
       assert_equal(json.reload, x)
     end
 

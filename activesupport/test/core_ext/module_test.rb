@@ -48,12 +48,12 @@ class Someone < Struct.new(:name, :place)
     end
 end
 
-Invoice   = Struct.new(:client) do
+Invoice = Struct.new(:client) do
   delegate :street, :city, :name, to: :client, prefix: true
   delegate :street, :city, :name, to: :client, prefix: :customer
 end
 
-Project   = Struct.new(:description, :person) do
+Project = Struct.new(:description, :person) do
   delegate :name, to: :person, allow_nil: true
   delegate :to_f, to: :description, allow_nil: true
 end

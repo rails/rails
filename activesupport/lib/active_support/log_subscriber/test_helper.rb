@@ -58,7 +58,7 @@ module ActiveSupport
         def initialize(level = DEBUG)
           @flush_count = 0
           @level = level
-          @logged = Hash.new { |h,k| h[k] = [] }
+          @logged = Hash.new { |h, k| h[k] = [] }
         end
 
         def method_missing(level, message = nil)

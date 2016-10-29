@@ -950,7 +950,7 @@ module CallbacksTest
 
     def test_proc_arity_2
       assert_raises(ArgumentError) do
-        klass = build_class(->(x,y) {})
+        klass = build_class(->(x, y) {})
         klass.new.run
       end
     end
@@ -1029,7 +1029,7 @@ module CallbacksTest
 
     def test_proc_arity2
       assert_raises(ArgumentError) do
-        object = build_class(->(a,b) {}).new
+        object = build_class(->(a, b) {}).new
         object.run
       end
     end
@@ -1151,7 +1151,7 @@ module CallbacksTest
 
     def test_skip_string # raises error
       calls = []
-      klass =  ActiveSupport::Deprecation.silence { build_class("bar") }
+      klass = ActiveSupport::Deprecation.silence { build_class("bar") }
       klass.class_eval { define_method(:bar) { calls << klass } }
       assert_raises(ArgumentError) { klass.skip "bar" }
       klass.new.run

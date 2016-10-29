@@ -287,7 +287,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   test "does not show filtered parameters" do
     @app = DevelopmentApp
 
-    get "/", params: { "foo"=>"bar" }, headers: { "action_dispatch.show_exceptions" => true,
+    get "/", params: { "foo" => "bar" }, headers: { "action_dispatch.show_exceptions" => true,
       "action_dispatch.parameter_filter" => [:foo] }
     assert_response 500
     assert_match("&quot;foo&quot;=&gt;&quot;[FILTERED]&quot;", body)

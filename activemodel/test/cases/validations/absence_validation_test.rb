@@ -19,7 +19,7 @@ class AbsenceValidationTest < ActiveModel::TestCase
     assert_equal ["must be blank"], t.errors[:title]
     assert_equal ["must be blank"], t.errors[:content]
     t.title = ""
-    t.content  = "something"
+    t.content = "something"
     assert t.invalid?
     assert_equal ["must be blank"], t.errors[:content]
     assert_equal [], t.errors[:title]

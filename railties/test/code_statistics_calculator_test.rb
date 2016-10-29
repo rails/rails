@@ -52,7 +52,7 @@ class CodeStatisticsCalculatorTest < ActiveSupport::TestCase
     assert_equal 3, @code_statistics_calculator.classes
     assert_equal 4, @code_statistics_calculator.methods
 
-    code_statistics_calculator_2 =  CodeStatisticsCalculator.new(2, 3, 4, 5)
+    code_statistics_calculator_2 = CodeStatisticsCalculator.new(2, 3, 4, 5)
     @code_statistics_calculator.add(code_statistics_calculator_2)
 
     assert_equal 3, @code_statistics_calculator.lines

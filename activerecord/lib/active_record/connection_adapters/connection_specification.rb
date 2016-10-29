@@ -48,8 +48,8 @@ module ActiveRecord
 
         # Converts the given URL to a full connection hash.
         def to_hash
-          config = raw_config.reject { |_,value| value.blank? }
-          config.map { |key,value| config[key] = uri_parser.unescape(value) if value.is_a? String }
+          config = raw_config.reject { |_, value| value.blank? }
+          config.map { |key, value| config[key] = uri_parser.unescape(value) if value.is_a? String }
           config
         end
 

@@ -98,7 +98,7 @@ class TransactionTest < ActiveRecord::TestCase
     end
 
     Topic.transaction do
-      @first.approved  = true
+      @first.approved = true
       @first.save!
     end
 
@@ -160,7 +160,7 @@ class TransactionTest < ActiveRecord::TestCase
     assert !@first.approved
 
     Topic.transaction do
-      @first.approved  = true
+      @first.approved = true
       @first.save!
     end
     assert !Topic.find(@first.id).approved?, "Should not commit the approved flag"
@@ -443,16 +443,16 @@ class TransactionTest < ActiveRecord::TestCase
 
   def test_using_named_savepoints
     Topic.transaction do
-      @first.approved  = true
+      @first.approved = true
       @first.save!
       Topic.connection.create_savepoint("first")
 
-      @first.approved  = false
+      @first.approved = false
       @first.save!
       Topic.connection.rollback_to_savepoint("first")
       assert @first.reload.approved?
 
-      @first.approved  = false
+      @first.approved = false
       @first.save!
       Topic.connection.release_savepoint("first")
       assert_not @first.reload.approved?

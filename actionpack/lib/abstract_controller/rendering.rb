@@ -78,7 +78,7 @@ module AbstractController
     # <tt>render :action => "foo"</tt> and <tt>render "foo/bar"</tt> to
     # <tt>render :file => "foo/bar"</tt>.
     # :api: plugin
-    def _normalize_args(action=nil, options={})
+    def _normalize_args(action = nil, options = {})
       if action.respond_to?(:permitted?)
         if action.permitted?
           action

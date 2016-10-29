@@ -27,7 +27,7 @@ class ResourcesTest < ActionController::TestCase
 
   def test_override_paths_for_member_and_collection_methods
     collection_methods = { rss: :get, reorder: :post, csv: :post }
-    member_methods    = { rss: :get, atom: :get, upload: :post, fix: :post }
+    member_methods = { rss: :get, atom: :get, upload: :post, fix: :post }
     path_names = { new: "nuevo", rss: "canal", fix: "corrigir" }
 
     with_restful_routing :messages,
@@ -792,7 +792,7 @@ class ResourcesTest < ActionController::TestCase
       end
 
       assert_simply_restful_for :product_reviews, controller: "messages", as: "reviews", name_prefix: "product_", path_prefix: "products/1/", options: { product_id: "1" }
-      assert_simply_restful_for :tutor_reviews,controller: "comments", as: "reviews", name_prefix: "tutor_", path_prefix: "tutors/1/", options: { tutor_id: "1" }
+      assert_simply_restful_for :tutor_reviews, controller: "comments", as: "reviews", name_prefix: "tutor_", path_prefix: "tutors/1/", options: { tutor_id: "1" }
     end
   end
 
@@ -1306,7 +1306,7 @@ class ResourcesTest < ActionController::TestCase
     end
 
     def assert_named_route(expected, route, options)
-      actual =  @controller.send(route, options) rescue $!.class.name
+      actual = @controller.send(route, options) rescue $!.class.name
       assert_equal expected, actual, "Error on route: #{route}(#{options.inspect})"
     end
 

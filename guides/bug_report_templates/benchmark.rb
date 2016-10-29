@@ -42,8 +42,8 @@ SCENARIOS.each_pair do |name, value|
   puts
 
   Benchmark.ips do |x|
-    x.report('blank?')      { value.blank? }
-    x.report('fast_blank?') { value.fast_blank? }
+    x.report("blank?")      { value.blank? }
+    x.report("fast_blank?") { value.fast_blank? }
     x.compare!
   end
 end

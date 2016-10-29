@@ -109,7 +109,7 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
       def self.name; Project.name; end
       has_and_belongs_to_many :developers_with_callbacks,
                                 class_name: "Developer",
-                                before_add: lambda { |o,r|
+                                before_add: lambda { |o, r|
         dev     = r
         new_dev = r.new_record?
       }
@@ -159,7 +159,7 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
       activerecord.reload
       assert activerecord.developers_with_callbacks.size == 2
     end
-    activerecord.developers_with_callbacks.flat_map { |d| ["before_removing#{d.id}","after_removing#{d.id}"] }.sort
+    activerecord.developers_with_callbacks.flat_map { |d| ["before_removing#{d.id}", "after_removing#{d.id}"] }.sort
     assert activerecord.developers_with_callbacks.clear
     assert_predicate activerecord.developers_log, :empty?
   end

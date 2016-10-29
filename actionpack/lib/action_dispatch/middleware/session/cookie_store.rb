@@ -63,7 +63,7 @@ module ActionDispatch
     # Other useful options include <tt>:key</tt>, <tt>:secure</tt> and
     # <tt>:httponly</tt>.
     class CookieStore < AbstractStore
-      def initialize(app, options={})
+      def initialize(app, options = {})
         super(app, options.merge!(cookie_only: true))
       end
 
@@ -102,7 +102,7 @@ module ActionDispatch
           end
         end
 
-        def persistent_session_id!(data, sid=nil)
+        def persistent_session_id!(data, sid = nil)
           data ||= {}
           data["session_id"] ||= sid || generate_sid
           data

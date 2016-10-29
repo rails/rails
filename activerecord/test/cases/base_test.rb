@@ -494,12 +494,12 @@ class BasicsTest < ActiveRecord::TestCase
 
     def test_utc_as_time_zone_and_new
       with_timezone_config default: :utc do
-        attributes = { "bonus_time(1i)"=>"2000",
-          "bonus_time(2i)"=>"1",
-          "bonus_time(3i)"=>"1",
-          "bonus_time(4i)"=>"10",
-          "bonus_time(5i)"=>"35",
-          "bonus_time(6i)"=>"50" }
+        attributes = { "bonus_time(1i)" => "2000",
+          "bonus_time(2i)" => "1",
+          "bonus_time(3i)" => "1",
+          "bonus_time(4i)" => "10",
+          "bonus_time(5i)" => "35",
+          "bonus_time(6i)" => "50" }
         topic = Topic.new(attributes)
         assert_equal Time.utc(2000, 1, 1, 10, 35, 50), topic.bonus_time
       end
@@ -898,7 +898,7 @@ class BasicsTest < ActiveRecord::TestCase
 
         # fixed dates / times
         assert_equal Date.new(2004, 1, 1), default.fixed_date
-        assert_equal Time.local(2004, 1,1,0,0,0,0), default.fixed_time
+        assert_equal Time.local(2004, 1, 1, 0, 0, 0, 0), default.fixed_time
 
         # char types
         assert_equal "Y", default.char1
@@ -1109,7 +1109,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_set_table_name_with_inheritance
-    k = Class.new( ActiveRecord::Base )
+    k = Class.new(ActiveRecord::Base)
     def k.name; "Foo"; end
     def k.table_name; super + "ks"; end
     assert_equal "foosks", k.table_name
@@ -1160,7 +1160,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_find_last
-    last  = Developer.last
+    last = Developer.last
     assert_equal last, Developer.all.merge!(order: "id desc").first
   end
 
@@ -1179,17 +1179,17 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_find_ordered_last
-    last  = Developer.all.merge!(order: "developers.salary ASC").last
+    last = Developer.all.merge!(order: "developers.salary ASC").last
     assert_equal last, Developer.all.merge!(order: "developers.salary ASC").to_a.last
   end
 
   def test_find_reverse_ordered_last
-    last  = Developer.all.merge!(order: "developers.salary DESC").last
+    last = Developer.all.merge!(order: "developers.salary DESC").last
     assert_equal last, Developer.all.merge!(order: "developers.salary DESC").to_a.last
   end
 
   def test_find_multiple_ordered_last
-    last  = Developer.all.merge!(order: "developers.name, developers.salary DESC").last
+    last = Developer.all.merge!(order: "developers.name, developers.salary DESC").last
     assert_equal last, Developer.all.merge!(order: "developers.name, developers.salary DESC").to_a.last
   end
 
@@ -1204,7 +1204,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_find_symbol_ordered_last
-    last  = Developer.all.merge!(order: :salary).last
+    last = Developer.all.merge!(order: :salary).last
     assert_equal last, Developer.all.merge!(order: :salary).to_a.last
   end
 
@@ -1284,7 +1284,7 @@ class BasicsTest < ActiveRecord::TestCase
   def test_marshal_round_trip
     expected = posts(:welcome)
     marshalled = Marshal.dump(expected)
-    actual   = Marshal.load(marshalled)
+    actual = Marshal.load(marshalled)
 
     assert_equal expected.attributes, actual.attributes
   end

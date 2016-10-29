@@ -37,7 +37,7 @@ module ActiveSupport
         # Zero parts are removed as not significant.
         # If all parts are negative it will negate all of them and return minus as a sign.
         def normalize
-          parts = @duration.parts.each_with_object(Hash.new(0)) do |(k,v),p|
+          parts = @duration.parts.each_with_object(Hash.new(0)) do |(k, v), p|
             p[k] += v  unless v.zero?
           end
           # If all parts are negative - let's make a negative duration

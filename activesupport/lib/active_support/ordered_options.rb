@@ -68,9 +68,9 @@ module ActiveSupport
     def initialize(parent = nil)
       if parent.kind_of?(OrderedOptions)
         # use the faster _get when dealing with OrderedOptions
-        super() { |h,k| parent._get(k) }
+        super() { |h, k| parent._get(k) }
       elsif parent
-        super() { |h,k| parent[k] }
+        super() { |h, k| parent[k] }
       else
         super()
       end

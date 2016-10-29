@@ -150,7 +150,7 @@ module ActiveSupport
           assert_equal("111.23460000000000000000", number_helper.number_to_rounded(Rational(1112346, 10000), precision: 20))
           assert_equal("111.23460000000000000000", number_helper.number_to_rounded("111.2346", precision: 20))
           assert_equal("111.23460000000000000000", number_helper.number_to_rounded(BigDecimal(111.2346, Float::DIG), precision: 20))
-          assert_equal("111.2346" + "0"*96, number_helper.number_to_rounded("111.2346", precision: 100))
+          assert_equal("111.2346" + "0" * 96, number_helper.number_to_rounded("111.2346", precision: 100))
           assert_equal("111.2346", number_helper.number_to_rounded(Rational(1112346, 10000), precision: 4))
           assert_equal("0.00", number_helper.number_to_rounded(Rational(0, 1), precision: 2))
         end
@@ -166,42 +166,42 @@ module ActiveSupport
       def test_to_rounded_with_significant_digits
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
           assert_equal "124000", number_helper.number_to_rounded(123987, precision: 3, significant: true)
-          assert_equal "120000000", number_helper.number_to_rounded(123987876, precision: 2, significant: true )
-          assert_equal "40000", number_helper.number_to_rounded("43523", precision: 1, significant: true )
-          assert_equal "9775", number_helper.number_to_rounded(9775, precision: 4, significant: true )
-          assert_equal "5.4", number_helper.number_to_rounded(5.3923, precision: 2, significant: true )
-          assert_equal "5", number_helper.number_to_rounded(5.3923, precision: 1, significant: true )
-          assert_equal "1", number_helper.number_to_rounded(1.232, precision: 1, significant: true )
-          assert_equal "7", number_helper.number_to_rounded(7, precision: 1, significant: true )
-          assert_equal "1", number_helper.number_to_rounded(1, precision: 1, significant: true )
-          assert_equal "53", number_helper.number_to_rounded(52.7923, precision: 2, significant: true )
-          assert_equal "9775.00", number_helper.number_to_rounded(9775, precision: 6, significant: true )
-          assert_equal "5.392900", number_helper.number_to_rounded(5.3929, precision: 7, significant: true )
-          assert_equal "0.0", number_helper.number_to_rounded(0, precision: 2, significant: true )
-          assert_equal "0", number_helper.number_to_rounded(0, precision: 1, significant: true )
-          assert_equal "0.0001", number_helper.number_to_rounded(0.0001, precision: 1, significant: true )
-          assert_equal "0.000100", number_helper.number_to_rounded(0.0001, precision: 3, significant: true )
-          assert_equal "0.0001", number_helper.number_to_rounded(0.0001111, precision: 1, significant: true )
+          assert_equal "120000000", number_helper.number_to_rounded(123987876, precision: 2, significant: true)
+          assert_equal "40000", number_helper.number_to_rounded("43523", precision: 1, significant: true)
+          assert_equal "9775", number_helper.number_to_rounded(9775, precision: 4, significant: true)
+          assert_equal "5.4", number_helper.number_to_rounded(5.3923, precision: 2, significant: true)
+          assert_equal "5", number_helper.number_to_rounded(5.3923, precision: 1, significant: true)
+          assert_equal "1", number_helper.number_to_rounded(1.232, precision: 1, significant: true)
+          assert_equal "7", number_helper.number_to_rounded(7, precision: 1, significant: true)
+          assert_equal "1", number_helper.number_to_rounded(1, precision: 1, significant: true)
+          assert_equal "53", number_helper.number_to_rounded(52.7923, precision: 2, significant: true)
+          assert_equal "9775.00", number_helper.number_to_rounded(9775, precision: 6, significant: true)
+          assert_equal "5.392900", number_helper.number_to_rounded(5.3929, precision: 7, significant: true)
+          assert_equal "0.0", number_helper.number_to_rounded(0, precision: 2, significant: true)
+          assert_equal "0", number_helper.number_to_rounded(0, precision: 1, significant: true)
+          assert_equal "0.0001", number_helper.number_to_rounded(0.0001, precision: 1, significant: true)
+          assert_equal "0.000100", number_helper.number_to_rounded(0.0001, precision: 3, significant: true)
+          assert_equal "0.0001", number_helper.number_to_rounded(0.0001111, precision: 1, significant: true)
           assert_equal "10.0", number_helper.number_to_rounded(9.995, precision: 3, significant: true)
           assert_equal "9.99", number_helper.number_to_rounded(9.994, precision: 3, significant: true)
           assert_equal "11.0", number_helper.number_to_rounded(10.995, precision: 3, significant: true)
 
-          assert_equal "9775.0000000000000000", number_helper.number_to_rounded(9775, precision: 20, significant: true )
-          assert_equal "9775.0000000000000000", number_helper.number_to_rounded(9775.0, precision: 20, significant: true )
-          assert_equal "9775.0000000000000000", number_helper.number_to_rounded(Rational(9775, 1), precision: 20, significant: true )
-          assert_equal "97.750000000000000000", number_helper.number_to_rounded(Rational(9775, 100), precision: 20, significant: true )
-          assert_equal "9775.0000000000000000", number_helper.number_to_rounded(BigDecimal(9775), precision: 20, significant: true )
-          assert_equal "9775.0000000000000000", number_helper.number_to_rounded("9775", precision: 20, significant: true )
-          assert_equal "9775." + "0"*96, number_helper.number_to_rounded("9775", precision: 100, significant: true )
+          assert_equal "9775.0000000000000000", number_helper.number_to_rounded(9775, precision: 20, significant: true)
+          assert_equal "9775.0000000000000000", number_helper.number_to_rounded(9775.0, precision: 20, significant: true)
+          assert_equal "9775.0000000000000000", number_helper.number_to_rounded(Rational(9775, 1), precision: 20, significant: true)
+          assert_equal "97.750000000000000000", number_helper.number_to_rounded(Rational(9775, 100), precision: 20, significant: true)
+          assert_equal "9775.0000000000000000", number_helper.number_to_rounded(BigDecimal(9775), precision: 20, significant: true)
+          assert_equal "9775.0000000000000000", number_helper.number_to_rounded("9775", precision: 20, significant: true)
+          assert_equal "9775." + "0" * 96, number_helper.number_to_rounded("9775", precision: 100, significant: true)
           assert_equal("97.7", number_helper.number_to_rounded(Rational(9772, 100), precision: 3, significant: true))
         end
       end
 
       def test_to_rounded_with_strip_insignificant_zeros
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
-          assert_equal "9775.43", number_helper.number_to_rounded(9775.43, precision: 4, strip_insignificant_zeros: true )
-          assert_equal "9775.2", number_helper.number_to_rounded(9775.2, precision: 6, significant: true, strip_insignificant_zeros: true )
-          assert_equal "0", number_helper.number_to_rounded(0, precision: 6, significant: true, strip_insignificant_zeros: true )
+          assert_equal "9775.43", number_helper.number_to_rounded(9775.43, precision: 4, strip_insignificant_zeros: true)
+          assert_equal "9775.2", number_helper.number_to_rounded(9775.2, precision: 6, significant: true, strip_insignificant_zeros: true)
+          assert_equal "0", number_helper.number_to_rounded(0, precision: 6, significant: true, strip_insignificant_zeros: true)
         end
       end
 
@@ -210,8 +210,8 @@ module ActiveSupport
           # Zero precision with significant is a mistake (would always return zero),
           # so we treat it as if significant was false (increases backwards compatibility for number_to_human_size)
           assert_equal "124", number_helper.number_to_rounded(123.987, precision: 0, significant: true)
-          assert_equal "12", number_helper.number_to_rounded(12, precision: 0, significant: true )
-          assert_equal "12", number_helper.number_to_rounded("12.3", precision: 0, significant: true )
+          assert_equal "12", number_helper.number_to_rounded(12, precision: 0, significant: true)
+          assert_equal "12", number_helper.number_to_rounded("12.3", precision: 0, significant: true)
         end
       end
 

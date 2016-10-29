@@ -388,7 +388,7 @@ class MigrationTest < ActiveRecord::TestCase
     original_rails_env  = ENV["RAILS_ENV"]
     original_rack_env   = ENV["RACK_ENV"]
     ENV["RAILS_ENV"]    = ENV["RACK_ENV"] = "foofoo"
-    new_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+    new_env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
 
     refute_equal current_env, new_env
 
@@ -413,7 +413,7 @@ class MigrationTest < ActiveRecord::TestCase
     original_rails_env  = ENV["RAILS_ENV"]
     original_rack_env   = ENV["RACK_ENV"]
     ENV["RAILS_ENV"]    = ENV["RACK_ENV"] = "foofoo"
-    new_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+    new_env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
 
     refute_equal current_env, new_env
 
@@ -429,14 +429,14 @@ class MigrationTest < ActiveRecord::TestCase
 
   def test_internal_metadata_stores_environment_when_other_data_exists
     ActiveRecord::InternalMetadata.delete_all
-    ActiveRecord::InternalMetadata[:foo]  = "bar"
+    ActiveRecord::InternalMetadata[:foo] = "bar"
 
     current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
     migrations_path = MIGRATIONS_ROOT + "/valid"
     old_path        = ActiveRecord::Migrator.migrations_paths
     ActiveRecord::Migrator.migrations_paths = migrations_path
 
-    current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+    current_env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
     ActiveRecord::Migrator.up(migrations_path)
     assert_equal current_env, ActiveRecord::InternalMetadata[:environment]
     assert_equal "bar", ActiveRecord::InternalMetadata[:foo]

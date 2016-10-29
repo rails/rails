@@ -6,8 +6,8 @@ module ActionDispatch
       attr_reader :mapper, :routes, :route_set, :router
 
       def setup
-        @app       = Routing::RouteSet::Dispatcher.new({})
-        @route_set  = ActionDispatch::Routing::RouteSet.new
+        @app = Routing::RouteSet::Dispatcher.new({})
+        @route_set = ActionDispatch::Routing::RouteSet.new
         @routes = @route_set.router.routes
         @router = @route_set.router
         @formatter = @route_set.formatter
@@ -116,7 +116,7 @@ module ActionDispatch
       end
 
       def test_clear_trailing_slash_from_script_name_on_root_unanchored_routes
-        app    = lambda { |env| [200, {}, ["success!"]] }
+        app = lambda { |env| [200, {}, ["success!"]] }
         get "/weblog", to: app
 
         env  = rack_env("SCRIPT_NAME" => "", "PATH_INFO" => "/weblog")
@@ -233,7 +233,7 @@ module ActionDispatch
           nil,
           Hash[params],
           {},
-          lambda { |k,v| parameterized << [k,v]; v })
+          lambda { |k, v| parameterized << [k, v]; v })
 
         assert_equal params.map(&:to_s).sort, parameterized.map(&:to_s).sort
       end
@@ -289,15 +289,15 @@ module ActionDispatch
           relative_url_root: nil
         }
         redirection_parameters = {
-          "action"=>"show",
+          "action" => "show",
         }
         missing_key = "name"
-        missing_parameters ={
+        missing_parameters = {
           missing_key => "task_1"
         }
         request_parameters = primarty_parameters.merge(redirection_parameters).merge(missing_parameters)
 
-        message = "No route matches #{Hash[request_parameters.sort_by { |k,v|k.to_s }].inspect}, missing required keys: #{[missing_key.to_sym].inspect}"
+        message = "No route matches #{Hash[request_parameters.sort_by { |k, v|k.to_s }].inspect}, missing required keys: #{[missing_key.to_sym].inspect}"
 
         error = assert_raises(ActionController::UrlGenerationError) do
           @formatter.generate(
@@ -338,7 +338,7 @@ module ActionDispatch
           route = @routes.first
 
           env = rails_env "PATH_INFO" => request_path
-          called   = false
+          called = false
 
           router.recognize(env) do |r, params|
             assert_equal route, r
@@ -358,7 +358,7 @@ module ActionDispatch
           get "/:segment/*splat", to: "foo#bar"
 
           env = rails_env "PATH_INFO" => request_path
-          called   = false
+          called = false
           route = @routes.first
 
           router.recognize(env) do |r, params|
@@ -395,7 +395,7 @@ module ActionDispatch
         get "/books(/:action(.:format))", controller: "books"
         route = @routes.first
 
-        env    = rails_env "PATH_INFO" => "/books/list.rss"
+        env = rails_env "PATH_INFO" => "/books/list.rss"
         expected = { controller: "books", action: "list", format: "rss" }
         called = false
         router.recognize(env) do |r, params|
@@ -427,7 +427,7 @@ module ActionDispatch
         get "/books(/:action(.:format))", to: "foo#bar"
 
         env = rails_env "PATH_INFO" => "/books/list.rss",
-                        "REQUEST_METHOD"    => "HEAD"
+                        "REQUEST_METHOD" => "HEAD"
 
         called = false
         router.recognize(env) do |r, params|

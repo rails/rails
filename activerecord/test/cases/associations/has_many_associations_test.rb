@@ -84,7 +84,7 @@ class HasManyAssociationsTestPrimaryKeys < ActiveRecord::TestCase
     david = people(:david)
 
     assert_equal ["A Modest Proposal"], david.essays.map(&:name)
-    david.essays = [Essay.create!(name: "Remote Work" )]
+    david.essays = [Essay.create!(name: "Remote Work")]
     assert_equal ["Remote Work"], david.essays.map(&:name)
   end
 
@@ -528,7 +528,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_should_append_to_association_order
-    ordered_clients =  companies(:first_firm).clients_sorted_desc.order("companies.id")
+    ordered_clients = companies(:first_firm).clients_sorted_desc.order("companies.id")
     assert_equal ["id DESC", "companies.id"], ordered_clients.order_values
   end
 
@@ -990,7 +990,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_create_without_loading_association
-    first_firm  = companies(:first_firm)
+    first_firm = companies(:first_firm)
     Firm.column_names
     Client.column_names
 
@@ -2298,7 +2298,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   test "does not duplicate associations when used with natural primary keys" do
     speedometer = Speedometer.create!(id: "4")
-    speedometer.minivans.create!(minivan_id: "a-van-red" ,name: "a van", color: "red")
+    speedometer.minivans.create!(minivan_id: "a-van-red" , name: "a van", color: "red")
 
     assert_equal 1, speedometer.minivans.to_a.size, "Only one association should be present:\n#{speedometer.minivans.to_a}"
     assert_equal 1, speedometer.reload.minivans.to_a.size

@@ -168,7 +168,7 @@ module ActionView
       #
       #   favicon_link_tag 'mb-icon.png', rel: 'apple-touch-icon', type: 'image/png'
       #   # => <link href="/assets/mb-icon.png" rel="apple-touch-icon" type="image/png" />
-      def favicon_link_tag(source="favicon.ico", options={})
+      def favicon_link_tag(source = "favicon.ico", options = {})
         tag("link", {
           rel: "shortcut icon",
           type: "image/x-icon",
@@ -206,7 +206,7 @@ module ActionView
       #   # => <img alt="Icon" class="menu_icon" src="/icons/icon.gif" />
       #   image_tag("/icons/icon.gif", data: { title: 'Rails Application' })
       #   # => <img data-title="Rails Application" src="/icons/icon.gif" />
-      def image_tag(source, options={})
+      def image_tag(source, options = {})
         options = options.symbolize_keys
         check_for_image_tag_errors(options)
 

@@ -419,7 +419,7 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
 
   def test_slice_bang_removes_the_slice_from_the_receiver
     chars = "úüù".mb_chars
-    chars.slice!(0,2)
+    chars.slice!(0, 2)
     assert_equal "ù", chars
   end
 
@@ -512,7 +512,7 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
     { "аБвг аБвг" => "Абвг абвг",
       "аБвг АБВГ" => "Абвг абвг",
       "АБВГ АБВГ" => "Абвг абвг",
-      "" => "" }.each do |f,t|
+      "" => "" }.each do |f, t|
       assert_equal t, chars(f).capitalize
     end
   end
@@ -600,10 +600,10 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
     ].pack("U*")
 
     assert_equal_codepoints "", chars("").normalize
-    assert_equal_codepoints [44,105,106,328,323].pack("U*"), chars(comp_str).normalize(:kc).to_s
-    assert_equal_codepoints [44,307,328,323].pack("U*"), chars(comp_str).normalize(:c).to_s
-    assert_equal_codepoints [44,307,110,780,78,769].pack("U*"), chars(comp_str).normalize(:d).to_s
-    assert_equal_codepoints [44,105,106,110,780,78,769].pack("U*"), chars(comp_str).normalize(:kd).to_s
+    assert_equal_codepoints [44, 105, 106, 328, 323].pack("U*"), chars(comp_str).normalize(:kc).to_s
+    assert_equal_codepoints [44, 307, 328, 323].pack("U*"), chars(comp_str).normalize(:c).to_s
+    assert_equal_codepoints [44, 307, 110, 780, 78, 769].pack("U*"), chars(comp_str).normalize(:d).to_s
+    assert_equal_codepoints [44, 105, 106, 110, 780, 78, 769].pack("U*"), chars(comp_str).normalize(:kd).to_s
   end
 
   def test_should_compute_grapheme_length

@@ -154,7 +154,7 @@ class OrderedHashTest < ActiveSupport::TestCase
   end
 
   def test_merge
-    other_hash =  ActiveSupport::OrderedHash.new
+    other_hash = ActiveSupport::OrderedHash.new
     other_hash["purple"] = "800080"
     other_hash["violet"] = "ee82ee"
     merged = @ordered_hash.merge other_hash
@@ -211,7 +211,7 @@ class OrderedHashTest < ActiveSupport::TestCase
   end
 
   def test_alternate_initialization_with_splat
-    alternate = ActiveSupport::OrderedHash[1,2,3,4]
+    alternate = ActiveSupport::OrderedHash[1, 2, 3, 4]
     assert_kind_of ActiveSupport::OrderedHash, alternate
     assert_equal [1, 3], alternate.keys
   end
@@ -230,7 +230,7 @@ class OrderedHashTest < ActiveSupport::TestCase
 
   def test_alternate_initialization_raises_exception_on_odd_length_args
     assert_raises ArgumentError do
-      ActiveSupport::OrderedHash[1,2,3,4,5]
+      ActiveSupport::OrderedHash[1, 2, 3, 4, 5]
     end
   end
 

@@ -22,7 +22,7 @@ class EnumerableTests < ActiveSupport::TestCase
     end
   end
 
-  def assert_typed_equal(e, v, cls, msg=nil)
+  def assert_typed_equal(e, v, cls, msg = nil)
     assert_kind_of(cls, v, msg)
     assert_equal(e, v, msg)
   end
@@ -70,7 +70,7 @@ class EnumerableTests < ActiveSupport::TestCase
     sum = GenericEnumerable.new([1.quo(2), 1.quo(3)]).sum
     assert_typed_equal(5.quo(6), sum, Rational)
 
-    sum = GenericEnumerable.new([2.0, 3.0*Complex::I]).sum
+    sum = GenericEnumerable.new([2.0, 3.0 * Complex::I]).sum
     assert_typed_equal(Complex(2.0, 3.0), sum, Complex)
     assert_typed_equal(2.0, sum.real, Float)
     assert_typed_equal(3.0, sum.imag, Float)
@@ -157,7 +157,7 @@ class EnumerableTests < ActiveSupport::TestCase
     sum = [1.quo(2), 1.quo(3)].sum
     assert_typed_equal(5.quo(6), sum, Rational)
 
-    sum = [2.0, 3.0*Complex::I].sum
+    sum = [2.0, 3.0 * Complex::I].sum
     assert_typed_equal(Complex(2.0, 3.0), sum, Complex)
     assert_typed_equal(2.0, sum.real, Float)
     assert_typed_equal(3.0, sum.imag, Float)
@@ -180,18 +180,18 @@ class EnumerableTests < ActiveSupport::TestCase
   end
 
   def test_many
-    assert_equal false, GenericEnumerable.new([]         ).many?
-    assert_equal false, GenericEnumerable.new([ 1 ]      ).many?
-    assert_equal true,  GenericEnumerable.new([ 1, 2 ]   ).many?
+    assert_equal false, GenericEnumerable.new([]).many?
+    assert_equal false, GenericEnumerable.new([ 1 ]).many?
+    assert_equal true,  GenericEnumerable.new([ 1, 2 ]).many?
 
-    assert_equal false, GenericEnumerable.new([]         ).many? { |x| x > 1 }
-    assert_equal false, GenericEnumerable.new([ 2 ]      ).many? { |x| x > 1 }
-    assert_equal false, GenericEnumerable.new([ 1, 2 ]   ).many? { |x| x > 1 }
+    assert_equal false, GenericEnumerable.new([]).many? { |x| x > 1 }
+    assert_equal false, GenericEnumerable.new([ 2 ]).many? { |x| x > 1 }
+    assert_equal false, GenericEnumerable.new([ 1, 2 ]).many? { |x| x > 1 }
     assert_equal true,  GenericEnumerable.new([ 1, 2, 2 ]).many? { |x| x > 1 }
   end
 
   def test_many_iterates_only_on_what_is_needed
-    infinity = 1.0/0.0
+    infinity = 1.0 / 0.0
     very_long_enum = 0..infinity
     assert_equal true, very_long_enum.many?
     assert_equal true, very_long_enum.many? { |x| x > 100 }

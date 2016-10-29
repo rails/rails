@@ -1130,7 +1130,7 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     assert_queries(0) { @ship.save! }
 
     @parrot = @pirate.parrots.create(name: "some_name")
-    @parrot.name="changed_name"
+    @parrot.name = "changed_name"
     assert_queries(1) { @ship.save! }
     assert_queries(0) { @ship.save! }
   end

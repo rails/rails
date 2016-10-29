@@ -470,7 +470,7 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
 
   private
 
-    def add_counter_column_to(model, col="test_count")
+    def add_counter_column_to(model, col = "test_count")
       model.connection.add_column model.table_name, col, :integer, null: false, default: 0
       model.reset_column_information
     end

@@ -15,15 +15,15 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
 
   def test_config_with_db_config_only
     config_sample = {
-      "test"=> {
-        "adapter"=> "sqlite3",
-        "host"=> "localhost",
-        "port"=> "9000",
-        "database"=> "foo_test",
-        "user"=> "foo",
-        "password"=> "bar",
-        "pool"=> "5",
-        "timeout"=> "3000"
+      "test" => {
+        "adapter" => "sqlite3",
+        "host" => "localhost",
+        "port" => "9000",
+        "database" => "foo_test",
+        "user" => "foo",
+        "password" => "bar",
+        "pool" => "5",
+        "timeout" => "3000"
       }
     }
     app_db_config(config_sample) do

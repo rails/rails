@@ -28,7 +28,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
   end
 
   def walk_permitted(params)
-    params.each do |k,v|
+    params.each do |k, v|
       case v
       when ActionController::Parameters
         walk_permitted v
@@ -39,13 +39,13 @@ class ParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "iteration should not impact permit" do
-    hash = { "foo"=>{ "bar"=>{ "0"=>{ "baz"=>"hello", "zot"=>"1" } } } }
+    hash = { "foo" => { "bar" => { "0" => { "baz" => "hello", "zot" => "1" } } } }
     params = ActionController::Parameters.new(hash)
 
     walk_permitted params
 
     sanitized = params[:foo].permit(bar: [:baz])
-    assert_equal({ "0"=>{ "baz"=>"hello" } }, sanitized[:bar].to_unsafe_h)
+    assert_equal({ "0" => { "baz" => "hello" } }, sanitized[:bar].to_unsafe_h)
   end
 
   test "if nothing is permitted, the hash becomes empty" do
@@ -322,8 +322,8 @@ class ParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "to_unsafe_h returns unfiltered params even after accessing few keys" do
-    params = ActionController::Parameters.new("f"=>{ "language_facet"=>["Tibetan"] })
-    expected = { "f"=>{ "language_facet"=>["Tibetan"] } }
+    params = ActionController::Parameters.new("f" => { "language_facet" => ["Tibetan"] })
+    expected = { "f" => { "language_facet" => ["Tibetan"] } }
 
     assert params["f"].is_a? ActionController::Parameters
     assert_equal expected, params.to_unsafe_h

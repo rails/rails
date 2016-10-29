@@ -265,7 +265,7 @@ module ActionDispatch
         session.request(build_full_uri(path, request_env), request_env)
 
         @request_count += 1
-        @request  = ActionDispatch::Request.new(session.last_request.env)
+        @request = ActionDispatch::Request.new(session.last_request.env)
         response = _mock_session.last_response
         @response = ActionDispatch::TestResponse.from_response(response)
         @response.request = @request

@@ -4,7 +4,7 @@ require "active_support/core_ext/object/duplicable"
 require "active_support/core_ext/numeric/time"
 
 class DuplicableTest < ActiveSupport::TestCase
-  RAISE_DUP  = [nil, false, true, :symbol, 1, 2.3, method(:puts)]
+  RAISE_DUP = [nil, false, true, :symbol, 1, 2.3, method(:puts)]
   ALLOW_DUP = ["1", Object.new, /foo/, [], {}, Time.now, Class.new, Module.new]
   ALLOW_DUP << BigDecimal.new("4.56")
 

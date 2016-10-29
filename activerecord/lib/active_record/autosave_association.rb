@@ -154,10 +154,10 @@ module ActiveRecord
             # Loop prevention for validation of associations
             unless @_already_called[name]
               begin
-                @_already_called[name]=true
+                @_already_called[name] = true
                 result = instance_eval(&block)
               ensure
-                @_already_called[name]=false
+                @_already_called[name] = false
               end
             end
 
@@ -325,7 +325,7 @@ module ActiveRecord
       # Returns whether or not the association is valid and applies any errors to
       # the parent, <tt>self</tt>, if it wasn't. Skips any <tt>:autosave</tt>
       # enabled records if they're marked_for_destruction? or destroyed.
-      def association_valid?(reflection, record, index=nil)
+      def association_valid?(reflection, record, index = nil)
         return true if record.destroyed? || (reflection.options[:autosave] && record.marked_for_destruction?)
 
         validation_context = self.validation_context unless [:create, :update].include?(self.validation_context)

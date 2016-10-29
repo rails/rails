@@ -12,8 +12,8 @@ module ActiveRecord
           def deserialize(value)
             if value.is_a?(::String)
               ::Hash[value.scan(HstorePair).map { |k, v|
-                v = v.upcase == "NULL" ? nil : v.gsub(/\A"(.*)"\Z/m,'\1').gsub(/\\(.)/, '\1')
-                k = k.gsub(/\A"(.*)"\Z/m,'\1').gsub(/\\(.)/, '\1')
+                v = v.upcase == "NULL" ? nil : v.gsub(/\A"(.*)"\Z/m, '\1').gsub(/\\(.)/, '\1')
+                k = k.gsub(/\A"(.*)"\Z/m, '\1').gsub(/\\(.)/, '\1')
                 [k, v]
               }]
             else

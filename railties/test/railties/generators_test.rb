@@ -29,7 +29,7 @@ module RailtiesTests
       `#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails #{cmd}`
     end
 
-    def build_engine(is_mountable=false)
+    def build_engine(is_mountable = false)
       FileUtils.rm_rf(engine_path)
       FileUtils.mkdir_p(engine_path)
 

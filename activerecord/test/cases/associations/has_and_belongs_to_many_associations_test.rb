@@ -253,8 +253,8 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert !p.persisted?
     assert aredridel.save
     assert aredridel.persisted?
-    assert_equal no_of_devels+1, Developer.count
-    assert_equal no_of_projects+1, Project.count
+    assert_equal no_of_devels + 1, Developer.count
+    assert_equal no_of_projects + 1, Project.count
     assert_equal 2, aredridel.projects.size
     assert_equal 2, aredridel.projects.reload.size
   end

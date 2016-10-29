@@ -1,7 +1,7 @@
 module RailsGuides
   class Markdown
     class Renderer < Redcarpet::Render::HTML
-      def initialize(options={})
+      def initialize(options = {})
         super
       end
 

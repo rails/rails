@@ -21,7 +21,7 @@ class PostgresqlTimestampTest < ActiveRecord::PostgreSQLTestCase
       @connection.reconnect!
 
       timestamp = PostgresqlTimestampWithZone.find(1)
-      assert_equal Time.utc(2010,1,1, 11,0,0), timestamp.time
+      assert_equal Time.utc(2010, 1, 1, 11, 0, 0), timestamp.time
       assert_instance_of Time, timestamp.time
     end
   ensure
@@ -35,7 +35,7 @@ class PostgresqlTimestampTest < ActiveRecord::PostgreSQLTestCase
       @connection.execute("SET time zone 'America/Jamaica'", "SCHEMA")
 
       timestamp = PostgresqlTimestampWithZone.find(1)
-      assert_equal Time.utc(2010,1,1, 11,0,0), timestamp.time
+      assert_equal Time.utc(2010, 1, 1, 11, 0, 0), timestamp.time
       assert_instance_of Time, timestamp.time
     end
   ensure

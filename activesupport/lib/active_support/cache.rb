@@ -533,7 +533,7 @@ module ActiveSupport
               key = key.first
             end
           when Hash
-            key = key.sort_by { |k,_| k.to_s }.collect { |k,v| "#{k}=#{v}" }
+            key = key.sort_by { |k, _| k.to_s }.collect { |k, v| "#{k}=#{v}" }
           end
 
           key.to_param

@@ -237,7 +237,7 @@ module ActiveSupport
 
     # Same semantics as +reverse_merge+ but modifies the receiver in-place.
     def reverse_merge!(other_hash)
-      replace(reverse_merge( other_hash ))
+      replace(reverse_merge(other_hash))
     end
 
     # Replaces the contents of this hash with other_hash.

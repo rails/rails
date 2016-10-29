@@ -39,7 +39,7 @@ module SneakersJobsManager
     @pid = fork do
       queues = %w(integration_tests)
       workers = queues.map do |q|
-        worker_klass = "ActiveJobWorker"+Digest::MD5.hexdigest(q)
+        worker_klass = "ActiveJobWorker" + Digest::MD5.hexdigest(q)
         Sneakers.const_set(worker_klass, Class.new(ActiveJob::QueueAdapters::SneakersAdapter::JobWrapper) do
           from_queue q
         end)

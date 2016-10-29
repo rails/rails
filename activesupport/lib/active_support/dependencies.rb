@@ -108,7 +108,7 @@ module ActiveSupport #:nodoc:
 
       def initialize
         @watching = []
-        @stack = Hash.new { |h,k| h[k] = [] }
+        @stack = Hash.new { |h, k| h[k] = [] }
       end
 
       def each(&block)

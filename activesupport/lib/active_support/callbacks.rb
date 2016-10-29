@@ -293,7 +293,7 @@ module ActiveSupport
         attr_reader :chain_config
 
         def initialize(name, filter, kind, options, chain_config)
-          @chain_config  = chain_config
+          @chain_config = chain_config
           @name    = name
           @kind    = kind
           @filter  = filter

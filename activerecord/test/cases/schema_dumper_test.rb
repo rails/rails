@@ -451,7 +451,7 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
 
   def test_schema_dump_with_float_column_infinity_default
     skip unless current_adapter?(:PostgreSQLAdapter)
-    output = dump_table_schema('infinity_defaults')
+    output = dump_table_schema("infinity_defaults")
     assert_match %r{t\.float\s+"float_with_inf_default",\s+default: ::Float::INFINITY}, output
     assert_match %r{t\.float\s+"float_with_nan_default",\s+default: ::Float::NAN}, output
   end

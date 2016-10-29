@@ -102,7 +102,7 @@ class JsonSerializationTest < ActiveRecord::TestCase
   end
 
   def test_uses_serializable_hash_with_only_option
-    def @contact.serializable_hash(options=nil)
+    def @contact.serializable_hash(options = nil)
       super(only: %w(name))
     end
 
@@ -113,7 +113,7 @@ class JsonSerializationTest < ActiveRecord::TestCase
   end
 
   def test_uses_serializable_hash_with_except_option
-    def @contact.serializable_hash(options=nil)
+    def @contact.serializable_hash(options = nil)
       super(except: %w(age))
     end
 
@@ -137,7 +137,7 @@ class JsonSerializationTest < ActiveRecord::TestCase
     @contact = ContactSti.new(@contact.attributes)
     assert_equal "ContactSti", @contact.type
 
-    def @contact.serializable_hash(options={})
+    def @contact.serializable_hash(options = {})
       super({ except: %w(age) }.merge!(options))
     end
 

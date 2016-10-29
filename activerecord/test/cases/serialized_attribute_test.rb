@@ -107,7 +107,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_serialized_time_attribute
-    myobj = Time.local(2008,1,1,1,0)
+    myobj = Time.local(2008, 1, 1, 1, 0)
     topic = Topic.create("content" => myobj).reload
     assert_equal(myobj, topic.content)
   end

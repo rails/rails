@@ -601,7 +601,7 @@ module ActionMailer
       def body; "" end
       def header; {} end
 
-      def respond_to?(string, include_all=false)
+      def respond_to?(string, include_all = false)
         true
       end
 
@@ -933,7 +933,7 @@ module ActionMailer
 
       def create_parts_from_responses(m, responses)
         if responses.size == 1 && !m.has_attachments?
-          responses[0].each { |k,v| m[k] = v }
+          responses[0].each { |k, v| m[k] = v }
         elsif responses.size > 1 && m.has_attachments?
           container = Mail::Part.new
           container.content_type = "multipart/alternative"

@@ -51,7 +51,7 @@ module ActionController
         extend ::AbstractController::Railties::RoutesHelpers.with(app.routes)
         extend ::ActionController::Railties::Helpers
 
-        options.each do |k,v|
+        options.each do |k, v|
           k = "#{k}="
           if respond_to?(k)
             send(k, v)

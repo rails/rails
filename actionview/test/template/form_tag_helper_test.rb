@@ -65,13 +65,13 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_check_box_tag_disabled
-    actual = check_box_tag "admin","1", false, disabled: true
+    actual = check_box_tag "admin", "1", false, disabled: true
     expected = %(<input id="admin" disabled="disabled" name="admin" type="checkbox" value="1" />)
     assert_dom_equal expected, actual
   end
 
   def test_check_box_tag_default_checked
-    actual = check_box_tag "admin","1", true
+    actual = check_box_tag "admin", "1", true
     expected = %(<input id="admin" checked="checked" name="admin" type="checkbox" value="1" />)
     assert_dom_equal expected, actual
   end

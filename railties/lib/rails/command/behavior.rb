@@ -38,12 +38,12 @@ module Rails
             str2_codepoint_enumerable = str2.each_codepoint
 
             str1.each_codepoint.with_index do |char1, i|
-              e = i+1
+              e = i + 1
 
               str2_codepoint_enumerable.with_index do |char2, j|
                 cost = (char1 == char2) ? 0 : 1
                 x = [
-                     d[j+1] + 1, # insertion
+                     d[j + 1] + 1, # insertion
                      e + 1,      # deletion
                      d[j] + cost # substitution
                     ].min

@@ -54,7 +54,7 @@ if ActiveRecord::Base.connection.supports_migrations?
     def test_schema_define_w_table_name_prefix
       table_name = ActiveRecord::SchemaMigration.table_name
       old_table_name_prefix = ActiveRecord::Base.table_name_prefix
-      ActiveRecord::Base.table_name_prefix  = "nep_"
+      ActiveRecord::Base.table_name_prefix = "nep_"
       ActiveRecord::SchemaMigration.table_name = "nep_#{table_name}"
       ActiveRecord::Schema.define(version: 7) do
         create_table :fruits do |t|
@@ -66,7 +66,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
       assert_equal 7, ActiveRecord::Migrator::current_version
     ensure
-      ActiveRecord::Base.table_name_prefix  = old_table_name_prefix
+      ActiveRecord::Base.table_name_prefix = old_table_name_prefix
       ActiveRecord::SchemaMigration.table_name = table_name
     end
 

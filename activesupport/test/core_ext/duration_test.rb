@@ -75,7 +75,7 @@ class DurationTest < ActiveSupport::TestCase
     current_locale = I18n.default_locale
     I18n.default_locale = :de
     I18n.backend.store_translations(:de, support: { array: { last_word_connector: " und " } })
-    assert_equal "10 years, 1 month und 1 day", (10.years + 1.month  + 1.day).inspect
+    assert_equal "10 years, 1 month und 1 day", (10.years + 1.month + 1.day).inspect
   ensure
     I18n.default_locale = current_locale
   end
@@ -89,7 +89,7 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_time_plus_duration_returns_same_time_datatype
-    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Moscow"] , Time.utc(2016,4,28,00,45))
+    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Moscow"] , Time.utc(2016, 4, 28, 00, 45))
     now = Time.now.utc
     %w( second minute hour day week month year ).each do |unit|
       assert_equal((now + 1.send(unit)).class, Time, "Time + 1.#{unit} must be Time")
@@ -153,10 +153,10 @@ class DurationTest < ActiveSupport::TestCase
       Time.stub(:now, Time.local(2000)) do
         # since
         assert_not_instance_of ActiveSupport::TimeWithZone, 5.seconds.since
-        assert_equal Time.local(2000,1,1,0,0,5), 5.seconds.since
+        assert_equal Time.local(2000, 1, 1, 0, 0, 5), 5.seconds.since
         # ago
         assert_not_instance_of ActiveSupport::TimeWithZone, 5.seconds.ago
-        assert_equal Time.local(1999,12,31,23,59,55), 5.seconds.ago
+        assert_equal Time.local(1999, 12, 31, 23, 59, 55), 5.seconds.ago
       end
     end
   end
@@ -167,11 +167,11 @@ class DurationTest < ActiveSupport::TestCase
       Time.stub(:now, Time.local(2000)) do
         # since
         assert_instance_of ActiveSupport::TimeWithZone, 5.seconds.since
-        assert_equal Time.utc(2000,1,1,0,0,5), 5.seconds.since.time
+        assert_equal Time.utc(2000, 1, 1, 0, 0, 5), 5.seconds.since.time
         assert_equal "Eastern Time (US & Canada)", 5.seconds.since.time_zone.name
         # ago
         assert_instance_of ActiveSupport::TimeWithZone, 5.seconds.ago
-        assert_equal Time.utc(1999,12,31,23,59,55), 5.seconds.ago.time
+        assert_equal Time.utc(1999, 12, 31, 23, 59, 55), 5.seconds.ago.time
         assert_equal "Eastern Time (US & Canada)", 5.seconds.ago.time_zone.name
       end
     end
@@ -181,13 +181,13 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_adding_hours_across_dst_boundary
     with_env_tz "CET" do
-      assert_equal Time.local(2009,3,29,0,0,0) + 24.hours, Time.local(2009,3,30,1,0,0)
+      assert_equal Time.local(2009, 3, 29, 0, 0, 0) + 24.hours, Time.local(2009, 3, 30, 1, 0, 0)
     end
   end
 
   def test_adding_day_across_dst_boundary
     with_env_tz "CET" do
-      assert_equal Time.local(2009,3,29,0,0,0) + 1.day, Time.local(2009,3,30,0,0,0)
+      assert_equal Time.local(2009, 3, 29, 0, 0, 0) + 1.day, Time.local(2009, 3, 30, 0, 0, 0)
     end
   end
 
@@ -319,7 +319,7 @@ class DurationTest < ActiveSupport::TestCase
     time = Time.current
     patterns.each do |pattern|
       duration = ActiveSupport::Duration.parse(pattern)
-      assert_equal time+duration, time+ActiveSupport::Duration.parse(duration.iso8601), pattern.inspect
+      assert_equal time + duration, time + ActiveSupport::Duration.parse(duration.iso8601), pattern.inspect
     end
   end
 end

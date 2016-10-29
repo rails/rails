@@ -273,7 +273,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       self.cookies["cookie_2"] = "oatmeal"
       get "/cookie_monster"
       assert_equal "cookie_1=; path=/\ncookie_3=chocolate; path=/", headers["Set-Cookie"]
-      assert_equal({ "cookie_1"=>"", "cookie_2"=>"oatmeal", "cookie_3"=>"chocolate" }, cookies.to_hash)
+      assert_equal({ "cookie_1" => "", "cookie_2" => "oatmeal", "cookie_3" => "chocolate" }, cookies.to_hash)
     end
   end
 
@@ -283,14 +283,14 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_response :success
 
       assert_equal "foo=bar; path=/", headers["Set-Cookie"]
-      assert_equal({ "foo"=>"bar" }, cookies.to_hash)
+      assert_equal({ "foo" => "bar" }, cookies.to_hash)
 
       get "/get_cookie"
       assert_response :success
       assert_equal "bar", body
 
       assert_equal nil, headers["Set-Cookie"]
-      assert_equal({ "foo"=>"bar" }, cookies.to_hash)
+      assert_equal({ "foo" => "bar" }, cookies.to_hash)
     end
   end
 
@@ -302,14 +302,14 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_response :success
 
       assert_equal "foo=bar; path=/", headers["Set-Cookie"]
-      assert_equal({ "foo"=>"bar" }, cookies.to_hash)
+      assert_equal({ "foo" => "bar" }, cookies.to_hash)
 
       get "/get_cookie"
       assert_response :success
       assert_equal "bar", body
 
       assert_equal nil, headers["Set-Cookie"]
-      assert_equal({ "foo"=>"bar" }, cookies.to_hash)
+      assert_equal({ "foo" => "bar" }, cookies.to_hash)
     end
   end
 
@@ -916,7 +916,7 @@ class IntegrationRequestsWithSessionSetup < ActionDispatch::IntegrationTest
 
   def test_cookies_set_in_setup_are_persisted_through_the_session
     get "/foo"
-    assert_equal({ "user_name"=>"david" }, cookies.to_hash)
+    assert_equal({ "user_name" => "david" }, cookies.to_hash)
   end
 end
 

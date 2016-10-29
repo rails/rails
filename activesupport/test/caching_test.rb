@@ -838,8 +838,8 @@ class FileStoreTest < ActiveSupport::TestCase
   end
 
   def test_long_uri_encoded_keys
-    @cache.write("%"*870, 1)
-    assert_equal 1, @cache.read("%"*870)
+    @cache.write("%" * 870, 1)
+    assert_equal 1, @cache.read("%" * 870)
   end
 
   def test_key_transformation
@@ -859,7 +859,7 @@ class FileStoreTest < ActiveSupport::TestCase
     key = "#{'A' * ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE}"
     path = @cache.send(:normalize_key, key, {})
     Dir::Tmpname.create(path) do |tmpname, n, opts|
-      assert File.basename(tmpname+".lock").length <= 255, "Temp filename too long: #{File.basename(tmpname+'.lock').length}"
+      assert File.basename(tmpname + ".lock").length <= 255, "Temp filename too long: #{File.basename(tmpname + '.lock').length}"
     end
   end
 

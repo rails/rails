@@ -7,12 +7,12 @@ module ActiveRecord
       class Aliases # :nodoc:
         def initialize(tables)
           @tables = tables
-          @alias_cache = tables.each_with_object({}) { |table,h|
-            h[table.node] = table.columns.each_with_object({}) { |column,i|
+          @alias_cache = tables.each_with_object({}) { |table, h|
+            h[table.node] = table.columns.each_with_object({}) { |column, i|
               i[column.name] = column.alias
             }
           }
-          @name_and_alias_cache = tables.each_with_object({}) { |table,h|
+          @name_and_alias_cache = tables.each_with_object({}) { |table, h|
             h[table.node] = table.columns.map { |column|
               [column.name, column.alias]
             }
@@ -62,7 +62,7 @@ module ActiveRecord
             walk_tree assoc, hash
           end
         when Hash
-          associations.each do |k,v|
+          associations.each do |k, v|
             cache = hash[k] ||= {}
             walk_tree v, cache
           end
@@ -126,8 +126,8 @@ module ActiveRecord
       end
 
       def aliases
-        Aliases.new join_root.each_with_index.map { |join_part,i|
-          columns = join_part.column_names.each_with_index.map { |column_name,j|
+        Aliases.new join_root.each_with_index.map { |join_part, i|
+          columns = join_part.column_names.each_with_index.map { |column_name, j|
             Aliases::Column.new column_name, "t#{i}_r#{j}"
           }
           Aliases::Table.new(join_part, columns)
@@ -143,7 +143,7 @@ module ActiveRecord
           }
         }
 
-        model_cache = Hash.new { |h,klass| h[klass] = {} }
+        model_cache = Hash.new { |h, klass| h[klass] = {} }
         parents = model_cache[join_root]
         column_aliases = aliases.column_aliases join_root
 
@@ -223,8 +223,8 @@ module ActiveRecord
             [left.children.find { |node2| node1.match? node2 }, node1]
           }.partition(&:first)
 
-          ojs = missing.flat_map { |_,n| make_outer_joins left, n }
-          intersection.flat_map { |l,r| walk l, r }.concat ojs
+          ojs = missing.flat_map { |_, n| make_outer_joins left, n }
+          intersection.flat_map { |l, r| walk l, r }.concat ojs
         end
 
         def find_reflection(klass, name)

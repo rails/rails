@@ -100,18 +100,18 @@ class BaseMailer < ActionMailer::Base
     end
   end
 
-  def implicit_different_template(template_name="")
+  def implicit_different_template(template_name = "")
     mail(template_name: template_name)
   end
 
-  def explicit_different_template(template_name="")
+  def explicit_different_template(template_name = "")
     mail do |format|
       format.text { render template: "#{mailer_name}/#{template_name}" }
       format.html { render template: "#{mailer_name}/#{template_name}" }
     end
   end
 
-  def different_layout(layout_name="")
+  def different_layout(layout_name = "")
     mail do |format|
       format.text { render layout: layout_name }
       format.html { render layout: layout_name }

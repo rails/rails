@@ -61,15 +61,15 @@ module ActionDispatch
         end
 
         def escape(params)
-          Hash[params.map { |k,v| [k, Rack::Utils.escape(v)] }]
+          Hash[params.map { |k, v| [k, Rack::Utils.escape(v)] }]
         end
 
         def escape_fragment(params)
-          Hash[params.map { |k,v| [k, Journey::Router::Utils.escape_fragment(v)] }]
+          Hash[params.map { |k, v| [k, Journey::Router::Utils.escape_fragment(v)] }]
         end
 
         def escape_path(params)
-          Hash[params.map { |k,v| [k, Journey::Router::Utils.escape_path(v)] }]
+          Hash[params.map { |k, v| [k, Journey::Router::Utils.escape_path(v)] }]
         end
     end
 
@@ -128,7 +128,7 @@ module ActionDispatch
       end
 
       def inspect
-        "redirect(#{status}, #{options.map { |k,v| "#{k}: #{v}" }.join(', ')})"
+        "redirect(#{status}, #{options.map { |k, v| "#{k}: #{v}" }.join(', ')})"
       end
     end
 

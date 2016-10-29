@@ -675,6 +675,6 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     book = SpecialBook.create!(status: "published")
     author.book = book
 
-    refute_equal 0, SpecialAuthor.joins(:book).where(books: { status: "published" } ).count
+    refute_equal 0, SpecialAuthor.joins(:book).where(books: { status: "published" }).count
   end
 end

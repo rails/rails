@@ -270,8 +270,8 @@ task default: :test
         @name ||= begin
           # same as ActiveSupport::Inflector#underscore except not replacing '-'
           underscored = original_name.dup
-          underscored.gsub!(/([A-Z]+)([A-Z][a-z])/,'\1_\2')
-          underscored.gsub!(/([a-z\d])([A-Z])/,'\1_\2')
+          underscored.gsub!(/([A-Z]+)([A-Z][a-z])/, '\1_\2')
+          underscored.gsub!(/([a-z\d])([A-Z])/, '\1_\2')
           underscored.downcase!
 
           underscored

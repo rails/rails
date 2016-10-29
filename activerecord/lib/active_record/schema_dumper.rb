@@ -17,7 +17,7 @@ module ActiveRecord
     @@ignore_tables = []
 
     class << self
-      def dump(connection=ActiveRecord::Base.connection, stream=STDOUT, config = ActiveRecord::Base)
+      def dump(connection = ActiveRecord::Base.connection, stream = STDOUT, config = ActiveRecord::Base)
         new(connection, generate_options(config)).dump(stream)
         stream
       end
@@ -162,7 +162,7 @@ HEADER
         if (indexes = @connection.indexes(table)).any?
           add_index_statements = indexes.map do |index|
             table_name = remove_prefix_and_suffix(index.table).inspect
-            "  add_index #{([table_name]+index_parts(index)).join(', ')}"
+            "  add_index #{([table_name] + index_parts(index)).join(', ')}"
           end
 
           stream.puts add_index_statements.sort.join("\n")

@@ -52,7 +52,7 @@ module ActiveSupport
             [1, 0]
           else
             digits = digit_count(number)
-            multiplier = 10 ** (digits - precision)
+            multiplier = 10**(digits - precision)
             rounded_number = calculate_rounded_number(multiplier)
             digits = digit_count(rounded_number) # After rounding, the number of digits may have changed
             [digits, rounded_number]

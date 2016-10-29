@@ -32,7 +32,7 @@ class QueuePriorityTest < ActiveSupport::TestCase
     original_priority = HelloJob.priority
 
     begin
-      HelloJob.queue_with_priority { self.arguments.first=="1" ? 99 : 11 }
+      HelloJob.queue_with_priority { self.arguments.first == "1" ? 99 : 11 }
       assert_equal 99, HelloJob.new("1").priority
       assert_equal 11, HelloJob.new("3").priority
     ensure

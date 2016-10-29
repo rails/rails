@@ -174,7 +174,7 @@ module ActiveRecord
                         columns_hash.include?(inheritance_column) ||
                         ids.first.kind_of?(Array)
 
-        id  = ids.first
+        id = ids.first
         if ActiveRecord::Base === id
           id = id.id
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
