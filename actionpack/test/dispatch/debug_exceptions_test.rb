@@ -384,6 +384,23 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "logs with non active support loggers" do
+    @app = DevelopmentApp
+    io = StringIO.new
+    logger = Logger.new(io)
+
+    _old, ActionView::Base.logger = ActionView::Base.logger, logger
+    begin
+      assert_nothing_raised do
+        get "/", headers: { "action_dispatch.show_exceptions" => true, "action_dispatch.logger" => logger }
+      end
+    ensure
+      ActionView::Base.logger = _old
+    end
+
+    assert_match(/puke/, io.rewind && io.read)
+  end
+
   test "uses backtrace cleaner from env" do
     @app = DevelopmentApp
     backtrace_cleaner = ActiveSupport::BacktraceCleaner.new

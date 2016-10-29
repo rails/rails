@@ -38,7 +38,9 @@ module ActionDispatch
       end
 
       def render(*)
-        if logger = ActionView::Base.logger
+        logger = ActionView::Base.logger
+
+        if logger && logger.respond_to?(:silence)
           logger.silence { super }
         else
           super
