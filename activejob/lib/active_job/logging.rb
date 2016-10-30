@@ -47,13 +47,7 @@ module ActiveJob
       end
 
       def logger_tagged_by_active_job?
-        if logger.formatter.respond_to?(:current_tags)
-          logger.current_tags.include?("ActiveJob")
-        else
-          # Return true because if we cannot figure out what the current tags
-          # are, we do not want to keep adding the ActiveJob tag
-          true
-        end
+        logger.current_tags.include?("ActiveJob")
       end
 
     class LogSubscriber < ActiveSupport::LogSubscriber #:nodoc:
