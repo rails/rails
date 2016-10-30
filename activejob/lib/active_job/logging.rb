@@ -38,7 +38,7 @@ module ActiveJob
 
     private
       def tag_logger(*tags)
-        if logger.respond_to?(:tagged)
+        if logger.respond_to?(:tagged) && logger.respond_to?(:current_tags)
           tags.unshift "ActiveJob" unless logger_tagged_by_active_job?
           ActiveJob::Base.logger.tagged(*tags){ yield }
         else
@@ -48,7 +48,7 @@ module ActiveJob
 
       def logger_tagged_by_active_job?
         if logger.formatter.respond_to?(:current_tags)
-          logger.formatter.current_tags.include?("ActiveJob")
+          logger.current_tags.include?("ActiveJob")
         else
           # Return true because if we cannot figure out what the current tags
           # are, we do not want to keep adding the ActiveJob tag
