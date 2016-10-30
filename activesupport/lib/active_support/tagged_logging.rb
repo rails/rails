@@ -64,7 +64,7 @@ module ActiveSupport
       logger.extend(self)
     end
 
-    delegate :push_tags, :pop_tags, :clear_tags!, to: :formatter
+    delegate :push_tags, :pop_tags, :clear_tags!, :current_tags, to: :formatter
 
     def tagged(*tags)
       formatter.tagged(*tags) { yield self }
