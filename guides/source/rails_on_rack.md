@@ -181,7 +181,6 @@ $ bin/rails middleware
 (in /Users/lifo/Rails/blog)
 use ActionDispatch::Static
 use #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x00000001c304c8>
-use Rack::Runtime
 ...
 run Rails.application.routes
 ```
