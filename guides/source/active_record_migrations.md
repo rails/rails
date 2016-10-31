@@ -229,7 +229,7 @@ As always, what has been generated for you is just a starting point. You can add
 or remove from it as you see fit by editing the
 `db/migrate/YYYYMMDDHHMMSS_add_details_to_products.rb` file.
 
-Also, the generator accepts column type as `references`(also available as
+Also, the generator accepts column type as `references` (also available as
 `belongs_to`). For instance:
 
 ```bash
