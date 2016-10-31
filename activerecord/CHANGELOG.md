@@ -1,3 +1,7 @@
+*   Allow `slice` to take an array of methods (without need for splatting).
+
+    *Cohen Carlisle*
+
 *   Improved partial writes with HABTM and has many through associations
     to fire database query only if relation has been changed.
 
