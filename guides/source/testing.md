@@ -414,7 +414,7 @@ You can also run an entire directory of tests by providing the path to the direc
 $ bin/rails test test/controllers # run all tests from specific directory
 ```
 
-The test runner provides lot of other features too like failing fast, deferring test output
+The test runner also provides a lot of other features like failing fast, deferring test output
 at the end of test run and so on. Check the documentation of the test runner as follows:
 
 ```bash
@@ -859,7 +859,7 @@ You also have access to three instance variables in your functional tests, after
 class ArticlesControllerTest < ActionDispatch::IntegrationTest
   test "should get index" do
     get articles_url
-        
+
     assert_equal "index", @controller.action_name
     assert_equal "application/x-www-form-urlencoded", @request.media_type
     assert_match "Articles", @response.body    
