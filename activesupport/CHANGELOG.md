@@ -1,3 +1,23 @@
+*   Ensure duration parsing is consistent across DST changes
+
+    Previously `ActiveSupport::Duration.parse` used `Time.current` and
+    `Time#advance` to calculate the number of seconds in the duration
+    from an arbitrary collection of parts. However as `advance` tries to
+    be consistent across DST boundaries this meant that either the
+    duration was shorter or longer depending on the time of year.
+
+    This was fixed by using an absolute reference point in UTC which
+    isn't subject to DST transitions. An arbitrary date of Jan 1st, 2000
+    was chosen for no other reason that it seemed appropriate.
+
+    Additionally, duration parsing should now be marginally faster as we
+    are no longer creating instances of `ActiveSupport::TimeWithZone`
+    every time we parse a duration string.
+
+    Fixes #26941.
+
+    *Andrew White*
+
 *   Use `Hash#compact` and `Hash#compact!` from Ruby 2.4. Old Ruby versions
     will continue to get these methods from Active Support as before.
 

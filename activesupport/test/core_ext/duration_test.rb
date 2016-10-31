@@ -322,4 +322,35 @@ class DurationTest < ActiveSupport::TestCase
       assert_equal time + duration, time + ActiveSupport::Duration.parse(duration.iso8601), pattern.inspect
     end
   end
+
+  def test_iso8601_parsing_across_spring_dst_boundary
+    with_env_tz eastern_time_zone do
+      with_tz_default "Eastern Time (US & Canada)" do
+        travel_to Time.utc(2016, 3, 11) do
+          assert_equal 604800, ActiveSupport::Duration.parse("P7D").to_i
+          assert_equal 604800, ActiveSupport::Duration.parse("P1W").to_i
+        end
+      end
+    end
+  end
+
+  def test_iso8601_parsing_across_autumn_dst_boundary
+    with_env_tz eastern_time_zone do
+      with_tz_default "Eastern Time (US & Canada)" do
+        travel_to Time.utc(2016, 11, 4) do
+          assert_equal 604800, ActiveSupport::Duration.parse("P7D").to_i
+          assert_equal 604800, ActiveSupport::Duration.parse("P1W").to_i
+        end
+      end
+    end
+  end
+
+  private
+    def eastern_time_zone
+      if Gem.win_platform?
+        "EST5EDT"
+      else
+        "America/New_York"
+      end
+    end
 end

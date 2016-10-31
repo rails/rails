@@ -7,6 +7,8 @@ module ActiveSupport
   #
   #   1.month.ago       # equivalent to Time.now.advance(months: -1)
   class Duration
+    EPOCH = ::Time.utc(2000)
+
     attr_accessor :value, :parts
 
     autoload :ISO8601Parser,     "active_support/duration/iso8601_parser"
@@ -140,8 +142,7 @@ module ActiveSupport
     # If invalid string is provided, it will raise +ActiveSupport::Duration::ISO8601Parser::ParsingError+.
     def self.parse(iso8601duration)
       parts = ISO8601Parser.new(iso8601duration).parse!
-      time  = ::Time.current
-      new(time.advance(parts) - time, parts)
+      new(EPOCH.advance(parts) - EPOCH, parts)
     end
 
     # Build ISO 8601 Duration string for this duration.
