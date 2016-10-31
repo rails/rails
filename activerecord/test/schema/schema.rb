@@ -905,7 +905,6 @@ ActiveRecord::Schema.define do
     create_table(t, force: true) {}
   end
 
-  # NOTE - the following 4 tables are used by models that have :inverse_of options on the associations
   create_table :men, force: true do |t|
     t.string  :name
   end
