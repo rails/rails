@@ -12,7 +12,7 @@ module ActiveModel
 
       def test_small_values
         type = Type::BigInteger.new
-        assert_equal -9999999999999999999999999999999, type.serialize(-9999999999999999999999999999999)
+        assert_equal(-9999999999999999999999999999999, type.serialize(-9999999999999999999999999999999))
       end
 
       def test_large_values
