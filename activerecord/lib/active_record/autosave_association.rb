@@ -267,7 +267,7 @@ module ActiveRecord
     # Returns whether or not this record has been changed in any way (including whether
     # any of its nested autosave associations are likewise changed)
     def changed_for_autosave?
-      new_record? || changed? || marked_for_destruction? || nested_records_changed_for_autosave?
+      new_record? || has_changes_to_save? || marked_for_destruction? || nested_records_changed_for_autosave?
     end
 
     private
@@ -451,7 +451,7 @@ module ActiveRecord
       def record_changed?(reflection, record, key)
         record.new_record? ||
           (record.has_attribute?(reflection.foreign_key) && record[reflection.foreign_key] != key) ||
-          record.attribute_changed?(reflection.foreign_key)
+          record.will_save_change_to_attribute?(reflection.foreign_key)
       end
 
       # Saves the associated record if it's new or <tt>:autosave</tt> is enabled.

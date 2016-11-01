@@ -375,7 +375,7 @@ module ActiveRecord
           persisted.map! do |record|
             if mem_record = memory.delete(record)
 
-              ((record.attribute_names & mem_record.attribute_names) - mem_record.changes.keys).each do |name|
+              ((record.attribute_names & mem_record.attribute_names) - mem_record.changed_attribute_names_to_save).each do |name|
                 mem_record[name] = record[name]
               end
 

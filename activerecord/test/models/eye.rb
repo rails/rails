@@ -22,12 +22,12 @@ class Eye < ActiveRecord::Base
   alias trace_after_create2 trace_after_create
 
   def trace_after_update
-    (@after_update_callbacks_stack ||= []) << iris.changed?
+    (@after_update_callbacks_stack ||= []) << iris.has_changes_to_save?
   end
   alias trace_after_update2 trace_after_update
 
   def trace_after_save
-    (@after_save_callbacks_stack ||= []) << iris.changed?
+    (@after_save_callbacks_stack ||= []) << iris.has_changes_to_save?
   end
   alias trace_after_save2 trace_after_save
 end
