@@ -363,6 +363,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "test/test_helper.rb" do |helper_content|
       assert_no_match(/fixtures :all/, helper_content)
     end
+    assert_file "bin/setup" do |setup_content|
+      assert_no_match(/db:setup/, setup_content)
+    end
+    assert_file "bin/update" do |update_content|
+      assert_no_match(/db:migrate/, update_content)
+    end
 
     assert_file "config/initializers/new_framework_defaults.rb" do |initializer_content|
       assert_no_match(/belongs_to_required_by_default/, initializer_content)
