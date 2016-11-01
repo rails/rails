@@ -178,17 +178,6 @@ module Rails
           ActiveSupport::Inflector.underscore(string).tr("/", "_")
         end
 
-        # receives an instance variable identifier, set the variable value if is
-        # blank and append given block to value, which will be used later in
-        # `#each_registered_block(type, &block)`
-        def register_block_for(type, &blk)
-          var_name = "@#{type}"
-          blocks = instance_variable_get(var_name) || instance_variable_set(var_name, [])
-          blocks << blk if blk
-          blocks
-        end
-
-
         # If the class method does not have a method, then send the method call
         # to the Railtie instance.
         def method_missing(name, *args, &block)
@@ -197,6 +186,17 @@ module Rails
           else
             super
           end
+        end
+
+      private
+        # receives an instance variable identifier, set the variable value if is
+        # blank and append given block to value, which will be used later in
+        # `#each_registered_block(type, &block)`
+        def register_block_for(type, &blk)
+          var_name = "@#{type}"
+          blocks = instance_variable_get(var_name) || instance_variable_set(var_name, [])
+          blocks << blk if blk
+          blocks
         end
     end
 
