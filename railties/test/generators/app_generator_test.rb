@@ -457,13 +457,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem "prototype-rails"
   end
 
-  def test_coffee_is_the_default_transpiler
+  def test_coffee_is_the_default_javascript_engine
     run_generator
     assert_gem "coffee-rails"
   end
 
-  def test_other_transpilers
-    run_generator [destination_root, "-t", "babel"]
+  def test_other_javascript_engines
+    run_generator [destination_root, "-je", "babel"]
     assert_gem "babel-rails"
   end
 
