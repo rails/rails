@@ -112,6 +112,15 @@ module ActiveRecord
         record
       end
 
+      # Remove the inverse association, if possible
+      def remove_inverse_instance(record)
+        if invertible_for?(record)
+          inverse = record.association(inverse_reflection_for(record).name)
+          inverse.target = nil
+          inverse.inversed = false
+        end
+      end
+
       # Returns the class of the target. belongs_to polymorphic overrides this to look at the
       # polymorphic_type field on the owner.
       def klass

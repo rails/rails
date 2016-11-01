@@ -282,11 +282,6 @@ module ActiveRecord
       end
 
       def autosave=(autosave)
-        # autosave and inverse_of do not get along together nowadays. They may
-        # for example cause double saves. Thus, we disable this flag. If in the
-        # future those two flags are known to work well together, this could be
-        # removed.
-        @automatic_inverse_of = false
         @options[:autosave] = autosave
         parent_reflection = self.parent_reflection
         if parent_reflection
@@ -544,11 +539,7 @@ module ActiveRecord
         # nil.
         def inverse_name
           options.fetch(:inverse_of) do
-            if @automatic_inverse_of == false
-              nil
-            else
-              @automatic_inverse_of ||= automatic_inverse_of
-            end
+            @automatic_inverse_of ||= automatic_inverse_of
           end
         end
 

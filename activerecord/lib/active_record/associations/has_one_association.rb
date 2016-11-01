@@ -86,8 +86,9 @@ module ActiveRecord
             target.delete
           when :destroy
             target.destroy
-            else
+          else
             nullify_owner_attributes(target)
+            remove_inverse_instance(target)
 
             if target.persisted? && owner.persisted? && !target.save
               set_owner_attributes(target)
