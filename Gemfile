@@ -58,7 +58,7 @@ group :doc do
   # to a bug, but the PR that fixes it has been there
   # for some weeks unapplied. As a temporary solution
   # this is our own fork with the fix.
-  gem 'sdoc',  :git => 'git://github.com/fxn/sdoc.git'
+  gem 'sdoc',  :git => 'https://github.com/fxn/sdoc.git'
   gem 'RedCloth', '~> 4.2'
   gem 'w3c_validators'
 end
@@ -121,7 +121,7 @@ if ENV['ORACLE_ENHANCED_PATH'] || ENV['ORACLE_ENHANCED']
   if ENV['ORACLE_ENHANCED_PATH']
     gem 'activerecord-oracle_enhanced-adapter', :path => ENV['ORACLE_ENHANCED_PATH']
   else
-    gem 'activerecord-oracle_enhanced-adapter', :git => 'git://github.com/rsim/oracle-enhanced.git'
+    gem 'activerecord-oracle_enhanced-adapter', :git => 'https://github.com/rsim/oracle-enhanced.git'
   end
 end
 
