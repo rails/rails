@@ -124,14 +124,6 @@ module ActiveSupport
             super
           end
 
-          def set_cache_value(value, name, amount, options) # :nodoc:
-            ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
-              `set_cache_value` is deprecated and will be removed from Rails 5.1.
-              Please use `write_cache_value` instead.
-            MESSAGE
-            write_cache_value name, value, options
-          end
-
           def write_cache_value(name, value, options) # :nodoc:
             name = normalize_key(name, options)
             cache = local_cache
