@@ -398,7 +398,7 @@ db_namespace = namespace :db do
     desc 'Load a schema.rb file into the database'
     task :load => [:environment, :load_config] do
       file = ENV['SCHEMA'] || "#{Rails.root}/db/schema.rb"
-      if File.exists?(file)
+      if File.exist?(file)
         load(file)
       else
         abort %{#{file} doesn't exist yet. Run `rake db:migrate` to create it then try again. If you do not intend to use a database, you should instead alter #{Rails.root}/config/application.rb to limit the frameworks that will be loaded}
