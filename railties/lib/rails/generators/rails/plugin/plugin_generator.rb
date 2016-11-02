@@ -283,7 +283,7 @@ task default: :test
       end
 
       def namespaced_name
-        @namespaced_name ||= name.gsub("-", "/")
+        @namespaced_name ||= name.tr("-", "/")
       end
 
     protected
