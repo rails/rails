@@ -1176,14 +1176,4 @@ module CallbacksTest
       assert_equal 1, calls.length
     end
   end
-
-  class DeprecatedWarningTest < ActiveSupport::TestCase
-    def test_deprecate_string_callback
-      klass = Class.new(Record)
-
-      assert_deprecated do
-        klass.send :before_save, "tweedle_dee"
-      end
-    end
-  end
 end
