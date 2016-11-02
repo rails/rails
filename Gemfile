@@ -81,7 +81,12 @@ end
 
 platforms :ruby do
   gem 'yajl-ruby'
-  gem 'nokogiri', '>= 1.4.5', '< 1.6'
+
+  if RUBY_VERSION < '1.9.3'
+    gem 'nokogiri', '>= 1.4.5', '< 1.6'
+  else
+    gem 'nokogiri', '>= 1.6.0'
+  end
 
   # AR
   gem 'sqlite3', '~> 1.3.5'
