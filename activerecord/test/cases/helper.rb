@@ -17,6 +17,9 @@ require 'support/connection'
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true
 
+# Disable available locale checks to avoid warnings running the test suite.
+I18n.enforce_available_locales = false
+
 # Enable Identity Map only when ENV['IM'] is set to "true"
 ActiveRecord::IdentityMap.enabled = (ENV['IM'] == "true")
 

@@ -13,6 +13,9 @@ require 'setter_trap'
 require 'logger'
 ActiveResource::Base.logger = Logger.new("#{File.dirname(__FILE__)}/debug.log")
 
+# Disable available locale checks to avoid warnings running the test suite.
+I18n.enforce_available_locales = false
+
 def setup_response
   matz_hash = { 'person' => { :id => 1, :name => 'Matz' } }
 
