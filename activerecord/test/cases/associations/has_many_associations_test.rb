@@ -1742,6 +1742,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert !company.clients.loaded?
   end
 
+  def test_counter_cache_on_unloaded_association
+    car = Car.create(name: "My AppliCar")
+    assert_equal car.engines.size, 0
+  end
+
   def test_get_ids_ignores_include_option
     assert_equal [readers(:michael_welcome).id], posts(:welcome).readers_with_person_ids
   end
