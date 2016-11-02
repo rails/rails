@@ -181,14 +181,6 @@ module ActiveSupport
           key
         end
 
-        def escape_key(key)
-          ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
-            `escape_key` is deprecated and will be removed from Rails 5.1.
-            Please use `normalize_key` which will return a fully resolved key or nothing.
-          MESSAGE
-          key
-        end
-
         def deserialize_entry(raw_value)
           if raw_value
             entry = Marshal.load(raw_value) rescue raw_value
