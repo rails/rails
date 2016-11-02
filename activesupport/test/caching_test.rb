@@ -566,12 +566,6 @@ module CacheStoreBehavior
   ensure
     ActiveSupport::Notifications.unsubscribe "cache_read.active_support"
   end
-
-  def test_can_call_deprecated_namesaced_key
-    assert_deprecated "`namespaced_key` is deprecated" do
-      @cache.send(:namespaced_key, 111, {})
-    end
-  end
 end
 
 # https://rails.lighthouseapp.com/projects/8994/tickets/6225-memcachestore-cant-deal-with-umlauts-and-special-characters
