@@ -669,11 +669,11 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_relation_merging_with_arel_equalities_keeps_last_equality
-   devs = Developer.where(Developer.arel_table[:salary].eq(80000)).merge(
-     Developer.where(Developer.arel_table[:salary].eq(9000))
-   )
-   assert_equal [developers(:poor_jamis)], devs.to_a
- end
+    devs = Developer.where(Developer.arel_table[:salary].eq(80000)).merge(
+      Developer.where(Developer.arel_table[:salary].eq(9000))
+    )
+    assert_equal [developers(:poor_jamis)], devs.to_a
+  end
 
   def test_relation_merging_with_arel_equalities_with_a_non_attribute_left_hand_ignores_non_attributes_when_discarding_equalities
     salary_attr = Developer.arel_table[:salary]
@@ -681,7 +681,7 @@ class RelationTest < ActiveRecord::TestCase
       Developer.where(salary_attr.eq(9000)).where(Arel::Nodes::NamedFunction.new('abs', [salary_attr]).eq(9000))
     )
     assert_equal [developers(:poor_jamis)], devs.to_a
- end
+  end
 
   def test_relation_merging_with_eager_load
     relations = []
