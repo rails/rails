@@ -153,6 +153,20 @@ module ActiveSupport
     def symbolize_keys; to_hash.symbolize_keys end
     def to_options!; self end
 
+    if RUBY_VERSION > '2.1.0'
+      # On Ruby 2.1.1 and later the behavior of .select and reject changed to
+      # return a new Hash instance so we need to override them to return an
+      # instance of the correct class.
+
+      def select(*args, &block)
+        dup.tap { |hash| hash.select!(*args, &block) }
+      end
+
+      def reject(*args, &block)
+        dup.tap { |hash| hash.reject!(*args, &block) }
+      end
+    end
+
     # Convert to a Hash with String keys.
     def to_hash
       Hash.new(default).merge!(self)
