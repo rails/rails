@@ -194,7 +194,7 @@ module Rails
         # `#each_registered_block(type, &block)`
         def register_block_for(type, &blk)
           var_name = "@#{type}"
-          blocks = instance_variable_get(var_name) || instance_variable_set(var_name, [])
+          blocks = instance_variable_defined?(var_name) ? instance_variable_get(var_name) : instance_variable_set(var_name, [])
           blocks << blk if blk
           blocks
         end
