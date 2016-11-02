@@ -125,6 +125,9 @@ class OrderedHashTest < Test::Unit::TestCase
 
   def test_select
     assert_equal @keys, @ordered_hash.select { true }.map(&:first)
+    new_ordered_hash = @ordered_hash.select { true }
+    assert_equal @keys, new_ordered_hash.map(&:first)
+    assert_instance_of ActiveSupport::OrderedHash, new_ordered_hash
   end
 
   def test_delete_if
@@ -147,6 +150,7 @@ class OrderedHashTest < Test::Unit::TestCase
     assert_equal copy, @ordered_hash
     assert !new_ordered_hash.keys.include?('pink')
     assert @ordered_hash.keys.include?('pink')
+    assert_instance_of ActiveSupport::OrderedHash, new_ordered_hash
   end
 
   def test_clear

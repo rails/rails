@@ -52,6 +52,20 @@ module ActiveSupport
       true
     end
 
+    if RUBY_VERSION > '2.1.0'
+      # On Ruby 2.1.1 and later the behavior of .select and reject changed to
+      # return a new Hash instance so we need to override them to return an
+      # instance of the correct class.
+
+      def select(*args, &block)
+        dup.tap { |hash| hash.select!(*args, &block) }
+      end
+
+      def reject(*args, &block)
+        dup.tap { |hash| hash.reject!(*args, &block) }
+      end
+    end
+
     # Hash is ordered in Ruby 1.9!
     if RUBY_VERSION < '1.9'
 
