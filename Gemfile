@@ -68,7 +68,6 @@ gem 'memcache-client', '>= 1.8.5'
 
 platforms :mri_18 do
   gem 'system_timer'
-  gem 'json'
 end
 
 # Add your own local bundler stuff
@@ -99,7 +98,6 @@ platforms :ruby do
 end
 
 platforms :jruby do
-  gem 'json'
   gem 'activerecord-jdbcsqlite3-adapter', '>= 1.2.7'
 
   # This is needed by now to let tests work on JRuby
@@ -111,6 +109,10 @@ platforms :jruby do
     gem 'activerecord-jdbcmysql-adapter', '>= 1.2.7'
     gem 'activerecord-jdbcpostgresql-adapter', '>= 1.2.7'
   end
+end
+
+platforms :mri_18, :jruby do
+  gem 'json'
 end
 
 # gems that are necessary for ActiveRecord tests with Oracle database
