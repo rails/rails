@@ -33,7 +33,6 @@ class PostgresqlByteaTest < ActiveRecord::TestCase
   end
 
   def test_serialize
-    serializer = Serializer.new
     klass = Class.new(ByteaDataType) {
       serialize :serialized, Serializer.new
     }
