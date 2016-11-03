@@ -22,13 +22,14 @@ if "ruby".encoding_aware?
   end
 end
 
+ENV['NO_RELOAD'] = '1'
+require 'active_support'
+require 'active_support/time'
+
 require 'test/unit'
 require 'empty_bool'
 
 silence_warnings { require 'mocha/setup' }
-
-ENV['NO_RELOAD'] = '1'
-require 'active_support'
 
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false
