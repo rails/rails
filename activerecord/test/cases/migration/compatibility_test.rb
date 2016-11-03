@@ -1,4 +1,4 @@
-require 'cases/helper'
+require "cases/helper"
 
 module ActiveRecord
   class Migration
@@ -13,8 +13,8 @@ module ActiveRecord
         ActiveRecord::Migration.verbose = false
 
         connection.create_table :testings do |t|
-          t.column :foo, :string, :limit => 100
-          t.column :bar, :string, :limit => 100
+          t.column :foo, :string, limit: 100
+          t.column :bar, :string, limit: 100
         end
       end
 
@@ -25,7 +25,7 @@ module ActiveRecord
       end
 
       def test_migration_doesnt_remove_named_index
-        connection.add_index :testings, :foo, :name => "custom_index_name"
+        connection.add_index :testings, :foo, name: "custom_index_name"
 
         migration = Class.new(ActiveRecord::Migration[4.2]) {
           def version; 101 end
@@ -83,8 +83,8 @@ module ActiveRecord
 
         ActiveRecord::Migrator.new(:up, [migration]).migrate
 
-        assert connection.columns(:more_testings).find { |c| c.name == 'created_at' }.null
-        assert connection.columns(:more_testings).find { |c| c.name == 'updated_at' }.null
+        assert connection.columns(:more_testings).find { |c| c.name == "created_at" }.null
+        assert connection.columns(:more_testings).find { |c| c.name == "updated_at" }.null
       ensure
         connection.drop_table :more_testings rescue nil
       end
@@ -98,8 +98,8 @@ module ActiveRecord
 
         ActiveRecord::Migrator.new(:up, [migration]).migrate
 
-        assert connection.columns(:testings).find { |c| c.name == 'created_at' }.null
-        assert connection.columns(:testings).find { |c| c.name == 'updated_at' }.null
+        assert connection.columns(:testings).find { |c| c.name == "created_at" }.null
+        assert connection.columns(:testings).find { |c| c.name == "updated_at" }.null
       end
 
       def test_legacy_migrations_get_deprecation_warning_when_run

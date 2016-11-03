@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 # Define the essentials
 class ActiveRecordTestConnector
@@ -16,7 +16,7 @@ unless defined?(ActiveRecord) && defined?(FixtureSet)
     PATH_TO_AR = "#{File.dirname(__FILE__)}/../../activerecord/lib"
     raise LoadError, "#{PATH_TO_AR} doesn't exist" unless File.directory?(PATH_TO_AR)
     $LOAD_PATH.unshift PATH_TO_AR
-    require 'active_record'
+    require "active_record"
   rescue LoadError => e
     $stderr.print "Failed to load Active Record. Skipping Active Record assertion tests: #{e}"
     ActiveRecordTestConnector.able_to_connect = false
@@ -24,12 +24,11 @@ unless defined?(ActiveRecord) && defined?(FixtureSet)
 end
 $stderr.flush
 
-
 # Define the rest of the connector
 class ActiveRecordTestConnector
   class << self
     def setup
-      unless self.connected || !self.able_to_connect
+      unless connected || !able_to_connect
         setup_connection
         load_schema
         require_fixture_models
@@ -44,14 +43,14 @@ class ActiveRecordTestConnector
     private
       def setup_connection
         if Object.const_defined?(:ActiveRecord)
-          defaults = { :database => ':memory:' }
-          adapter = defined?(JRUBY_VERSION) ? 'jdbcsqlite3' : 'sqlite3'
-          options = defaults.merge :adapter => adapter, :timeout => 500
+          defaults = { database: ":memory:" }
+          adapter = defined?(JRUBY_VERSION) ? "jdbcsqlite3" : "sqlite3"
+          options = defaults.merge adapter: adapter, timeout: 500
           ActiveRecord::Base.establish_connection(options)
-          ActiveRecord::Base.configurations = { 'sqlite3_ar_integration' => options }
+          ActiveRecord::Base.configurations = { "sqlite3_ar_integration" => options }
           ActiveRecord::Base.connection
 
-          Object.send(:const_set, :QUOTED_TYPE, ActiveRecord::Base.connection.quote_column_name('type')) unless Object.const_defined?(:QUOTED_TYPE)
+          Object.send(:const_set, :QUOTED_TYPE, ActiveRecord::Base.connection.quote_column_name("type")) unless Object.const_defined?(:QUOTED_TYPE)
         else
           raise "Can't setup connection since ActiveRecord isn't loaded."
         end
@@ -59,13 +58,13 @@ class ActiveRecordTestConnector
 
       # Load actionpack sqlite3 tables
       def load_schema
-        File.read(File.dirname(__FILE__) + "/fixtures/db_definitions/sqlite.sql").split(';').each do |sql|
+        File.read(File.dirname(__FILE__) + "/fixtures/db_definitions/sqlite.sql").split(";").each do |sql|
           ActiveRecord::Base.connection.execute(sql) unless sql.blank?
         end
       end
 
       def require_fixture_models
-        Dir.glob(File.dirname(__FILE__) + "/fixtures/*.rb").each {|f| require f}
+        Dir.glob(File.dirname(__FILE__) + "/fixtures/*.rb").each { |f| require f }
       end
   end
 end

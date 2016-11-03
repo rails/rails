@@ -1,4 +1,4 @@
-require 'active_support/core_ext/array/extract_options'
+require "active_support/core_ext/array/extract_options"
 
 module ActionDispatch
   module Routing
@@ -19,7 +19,7 @@ module ActionDispatch
         end
       end
 
-      def respond_to?(method, include_private = false)
+      def respond_to_missing?(method, include_private = false)
         super || @helpers.respond_to?(method)
       end
 

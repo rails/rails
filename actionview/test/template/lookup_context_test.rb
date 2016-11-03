@@ -120,8 +120,8 @@ class LookupContextTest < ActiveSupport::TestCase
 
     @lookup_context.with_fallbacks do
       assert_equal 3, @lookup_context.view_paths.size
-      assert @lookup_context.view_paths.include?(ActionView::FallbackFileSystemResolver.new(""))
-      assert @lookup_context.view_paths.include?(ActionView::FallbackFileSystemResolver.new("/"))
+      assert_includes @lookup_context.view_paths, ActionView::FallbackFileSystemResolver.new("")
+      assert_includes @lookup_context.view_paths, ActionView::FallbackFileSystemResolver.new("/")
     end
   end
 
@@ -279,10 +279,9 @@ class TestMissingTemplate < ActiveSupport::TestCase
 
   test "if a single prefix is passed as a string and the lookup fails, MissingTemplate accepts it" do
     e = assert_raise ActionView::MissingTemplate do
-      details = {:handlers=>[], :formats=>[], :variants=>[], :locale=>[]}
+      details = { handlers: [], formats: [], variants: [], locale: [] }
       @lookup_context.view_paths.find("foo", "parent", true, details)
     end
     assert_match %r{Missing partial parent/_foo with .* Searched in:\n  \* "/Path/to/views"\n}, e.message
   end
-
 end

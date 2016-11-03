@@ -10,7 +10,7 @@ begin
   $:.unshift ap_lib if File.directory?(ap_lib)
 rescue LoadError
   # Guides generation from gems.
-  gem "actionpack", '>= 3.0'
+  gem "actionpack", ">= 3.0"
 end
 
 require "rails_guides/generator"

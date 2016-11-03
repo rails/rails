@@ -1,30 +1,30 @@
-require 'abstract_unit'
-require 'active_support/logger'
+require "abstract_unit"
+require "active_support/logger"
 
 class CaptureController < ActionController::Base
-  self.view_paths = [ File.dirname(__FILE__) + '/../../fixtures/actionpack' ]
+  self.view_paths = [ File.dirname(__FILE__) + "/../../fixtures/actionpack" ]
 
   def self.controller_name; "test"; end
   def self.controller_path; "test"; end
 
   def content_for
     @title = nil
-    render :layout => "talk_from_action"
+    render layout: "talk_from_action"
   end
 
   def content_for_with_parameter
     @title = nil
-    render :layout => "talk_from_action"
+    render layout: "talk_from_action"
   end
 
   def content_for_concatenated
     @title = nil
-    render :layout => "talk_from_action"
+    render layout: "talk_from_action"
   end
 
   def non_erb_block_content_for
     @title = nil
-    render :layout => "talk_from_action"
+    render layout: "talk_from_action"
   end
 
   def proper_block_detection

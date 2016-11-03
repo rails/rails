@@ -1,11 +1,11 @@
-require 'erb'
-require 'yaml'
-require 'zlib'
-require 'set'
-require 'active_support/dependencies'
-require 'active_support/core_ext/digest/uuid'
-require 'active_record/fixture_set/file'
-require 'active_record/errors'
+require "erb"
+require "yaml"
+require "zlib"
+require "set"
+require "active_support/dependencies"
+require "active_support/core_ext/digest/uuid"
+require "active_record/fixture_set/file"
+require "active_record/errors"
 
 module ActiveRecord
   class FixtureClassNotFound < ActiveRecord::ActiveRecordError #:nodoc:
@@ -66,7 +66,7 @@ module ActiveRecord
   # By default, +test_helper.rb+ will load all of your fixtures into your test
   # database, so this test will succeed.
   #
-  # The testing environment will automatically load the all fixtures into the database before each
+  # The testing environment will automatically load all the fixtures into the database before each
   # test. To ensure consistent data, the environment deletes the fixtures before running the load.
   #
   # In addition to being available in the database, the fixture's data may also be accessed by
@@ -415,9 +415,9 @@ module ActiveRecord
     # possibly in a folder with the same name.
     #++
 
-    MAX_ID = 2 ** 30 - 1
+    MAX_ID = 2**30 - 1
 
-    @@all_cached_fixtures = Hash.new { |h,k| h[k] = {} }
+    @@all_cached_fixtures = Hash.new { |h, k| h[k] = {} }
 
     def self.default_fixture_model_name(fixture_set_name, config = ActiveRecord::Base) # :nodoc:
       config.pluralize_table_names ?
@@ -426,9 +426,9 @@ module ActiveRecord
     end
 
     def self.default_fixture_table_name(fixture_set_name, config = ActiveRecord::Base) # :nodoc:
-       "#{ config.table_name_prefix }"\
-       "#{ fixture_set_name.tr('/', '_') }"\
-       "#{ config.table_name_suffix }".to_sym
+      "#{ config.table_name_prefix }"\
+      "#{ fixture_set_name.tr('/', '_') }"\
+      "#{ config.table_name_suffix }".to_sym
     end
 
     def self.reset_cache
@@ -494,18 +494,18 @@ module ActiveRecord
 
       private
 
-      def insert_class(class_names, name, klass)
-        # We only want to deal with AR objects.
-        if klass && klass < ActiveRecord::Base
-          class_names[name] = klass
-        else
-          class_names[name] = nil
+        def insert_class(class_names, name, klass)
+          # We only want to deal with AR objects.
+          if klass && klass < ActiveRecord::Base
+            class_names[name] = klass
+          else
+            class_names[name] = nil
+          end
         end
-      end
 
-      def default_fixture_model(fs_name, config)
-        ActiveRecord::FixtureSet.default_fixture_model_name(fs_name, config)
-      end
+        def default_fixture_model(fs_name, config)
+          ActiveRecord::FixtureSet.default_fixture_model_name(fs_name, config)
+        end
     end
 
     def self.create_fixtures(fixtures_directory, fixture_set_names, class_names = {}, config = ActiveRecord::Base)
@@ -535,7 +535,7 @@ module ActiveRecord
 
           update_all_loaded_fixtures fixtures_map
 
-          connection.transaction(:requires_new => true) do
+          connection.transaction(requires_new: true) do
             deleted_tables = Set.new
             fixture_sets.each do |fs|
               conn = fs.model_class.respond_to?(:connection) ? fs.model_class.connection : connection
@@ -543,7 +543,7 @@ module ActiveRecord
 
               table_rows.each_key do |table|
                 unless deleted_tables.include? table
-                  conn.delete "DELETE FROM #{conn.quote_table_name(table)}", 'Fixture Delete'
+                  conn.delete "DELETE FROM #{conn.quote_table_name(table)}", "Fixture Delete"
                 end
                 deleted_tables << table
               end
@@ -597,18 +597,18 @@ module ActiveRecord
 
       @fixtures = read_fixture_files(path)
 
-      @connection  = connection
+      @connection = connection
 
-      @table_name = ( model_class.respond_to?(:table_name) ?
+      @table_name = (model_class.respond_to?(:table_name) ?
                       model_class.table_name :
-                      self.class.default_fixture_table_name(name, config) )
+                      self.class.default_fixture_table_name(name, config))
     end
 
     def [](x)
       fixtures[x]
     end
 
-    def []=(k,v)
+    def []=(k, v)
       fixtures[k] = v
     end
 
@@ -626,10 +626,10 @@ module ActiveRecord
       now = config.default_timezone == :utc ? Time.now.utc : Time.now
 
       # allow a standard key to be used for doing defaults in YAML
-      fixtures.delete('DEFAULTS')
+      fixtures.delete("DEFAULTS")
 
       # track any join tables we need to insert later
-      rows = Hash.new { |h,table| h[table] = [] }
+      rows = Hash.new { |h, table| h[table] = [] }
 
       rows[table_name] = fixtures.map do |label, fixture|
         row = fixture.to_hash
@@ -799,7 +799,6 @@ module ActiveRecord
       def yaml_file_path(path)
         "#{path}.yml"
       end
-
   end
 
   class Fixture #:nodoc:
@@ -859,7 +858,7 @@ module ActiveRecord
     end
 
     included do
-      class_attribute :fixture_path, :instance_writer => false
+      class_attribute :fixture_path, instance_writer: false
       class_attribute :fixture_table_names
       class_attribute :fixture_class_names
       class_attribute :use_transactional_tests
@@ -868,7 +867,7 @@ module ActiveRecord
       class_attribute :pre_loaded_fixtures
       class_attribute :config
 
-      singleton_class.deprecate 'use_transactional_fixtures=' => 'use use_transactional_tests= instead'
+      singleton_class.deprecate "use_transactional_fixtures=" => "use use_transactional_tests= instead"
 
       self.fixture_table_names = []
       self.use_instantiated_fixtures = false
@@ -903,7 +902,7 @@ module ActiveRecord
 
       def fixtures(*fixture_set_names)
         if fixture_set_names.first == :all
-          fixture_set_names = Dir["#{fixture_path}/{**,*}/*.{yml}"]
+          fixture_set_names = Dir["#{fixture_path}/{**,*}/*.{yml}"].uniq
           fixture_set_names.map! { |f| f[(fixture_path.to_s.size + 1)..-5] }
         else
           fixture_set_names = fixture_set_names.flatten.map(&:to_s)
@@ -918,7 +917,7 @@ module ActiveRecord
         methods = Module.new do
           fixture_set_names.each do |fs_name|
             fs_name = fs_name.to_s
-            accessor_name = fs_name.tr('/', '_').to_sym
+            accessor_name = fs_name.tr("/", "_").to_sym
 
             define_method(accessor_name) do |*fixture_names|
               force_reload = fixture_names.pop if fixture_names.last == true || fixture_names.last == :reload
@@ -962,12 +961,13 @@ module ActiveRecord
 
     def setup_fixtures(config = ActiveRecord::Base)
       if pre_loaded_fixtures && !use_transactional_tests
-        raise RuntimeError, 'pre_loaded_fixtures requires use_transactional_tests'
+        raise RuntimeError, "pre_loaded_fixtures requires use_transactional_tests"
       end
 
       @fixture_cache = {}
       @fixture_connections = []
       @@already_loaded_fixtures ||= {}
+      @connection_subscriber = nil
 
       # Load fixtures once and begin transaction.
       if run_in_transaction?
@@ -977,10 +977,31 @@ module ActiveRecord
           @loaded_fixtures = load_fixtures(config)
           @@already_loaded_fixtures[self.class] = @loaded_fixtures
         end
+
+        # Begin transactions for connections already established
         @fixture_connections = enlist_fixture_connections
         @fixture_connections.each do |connection|
           connection.begin_transaction joinable: false
         end
+
+        # When connections are established in the future, begin a transaction too
+        @connection_subscriber = ActiveSupport::Notifications.subscribe("!connection.active_record") do |_, _, _, _, payload|
+          spec_name = payload[:spec_name] if payload.key?(:spec_name)
+
+          if spec_name
+            begin
+              connection = ActiveRecord::Base.connection_handler.retrieve_connection(spec_name)
+            rescue ConnectionNotEstablished
+              connection = nil
+            end
+
+            if connection && !@fixture_connections.include?(connection)
+              connection.begin_transaction joinable: false
+              @fixture_connections << connection
+            end
+          end
+        end
+
       # Load fixtures for every test.
       else
         ActiveRecord::FixtureSet.reset_cache
@@ -995,6 +1016,7 @@ module ActiveRecord
     def teardown_fixtures
       # Rollback changes if a transaction is active.
       if run_in_transaction?
+        ActiveSupport::Notifications.unsubscribe(@connection_subscriber) if @connection_subscriber
         @fixture_connections.each do |connection|
           connection.rollback_transaction if connection.transaction_open?
         end
@@ -1018,10 +1040,10 @@ module ActiveRecord
 
       def instantiate_fixtures
         if pre_loaded_fixtures
-          raise RuntimeError, 'Load fixtures before instantiating them.' if ActiveRecord::FixtureSet.all_loaded_fixtures.empty?
+          raise RuntimeError, "Load fixtures before instantiating them." if ActiveRecord::FixtureSet.all_loaded_fixtures.empty?
           ActiveRecord::FixtureSet.instantiate_all_loaded_fixtures(self, load_instances?)
         else
-          raise RuntimeError, 'Load fixtures before instantiating them.' if @loaded_fixtures.nil?
+          raise RuntimeError, "Load fixtures before instantiating them." if @loaded_fixtures.nil?
           @loaded_fixtures.each_value do |fixture_set|
             ActiveRecord::FixtureSet.instantiate_fixtures(self, fixture_set, load_instances?)
           end

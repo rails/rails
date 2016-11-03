@@ -1,11 +1,11 @@
-require 'active_support/all'
-require 'action_controller'
+require "active_support/all"
+require "action_controller"
 
 module Rails
   module ConsoleMethods
     # reference the global "app" instance, created on demand. To recreate the
     # instance, pass a non-false value as the parameter.
-    def app(create=false)
+    def app(create = false)
       @app_integration_instance = nil if create
       @app_integration_instance ||= new_session do |sess|
         sess.host! "www.example.com"
@@ -27,7 +27,7 @@ module Rails
     end
 
     # reloads the environment
-    def reload!(print=true)
+    def reload!(print = true)
       puts "Reloading..." if print
       Rails.application.reloader.reload!
       true

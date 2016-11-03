@@ -9,7 +9,7 @@ module ActionView
     end
 
     delegate :template_exists?, :any_templates?, :view_paths, :formats, :formats=,
-             :locale, :locale=, :to => :lookup_context
+             :locale, :locale=, to: :lookup_context
 
     module ClassMethods
       def _prefixes # :nodoc:
@@ -22,11 +22,11 @@ module ActionView
 
       private
 
-      # Override this method in your controller if you want to change paths prefixes for finding views.
-      # Prefixes defined here will still be added to parents' <tt>._prefixes</tt>.
-      def local_prefixes
-        [controller_path]
-      end
+        # Override this method in your controller if you want to change paths prefixes for finding views.
+        # Prefixes defined here will still be added to parents' <tt>._prefixes</tt>.
+        def local_prefixes
+          [controller_path]
+        end
     end
 
     # The prefixes used in render "foo" shortcuts.
@@ -43,7 +43,7 @@ module ActionView
     end
 
     def details_for_lookup
-      { }
+      {}
     end
 
     def append_view_path(path)

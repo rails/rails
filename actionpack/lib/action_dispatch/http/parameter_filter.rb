@@ -1,7 +1,9 @@
+require "active_support/core_ext/object/duplicable"
+
 module ActionDispatch
   module Http
     class ParameterFilter
-      FILTERED = '[FILTERED]'.freeze # :nodoc:
+      FILTERED = "[FILTERED]".freeze # :nodoc:
 
       def initialize(filters = [])
         @filters = filters
@@ -37,8 +39,8 @@ module ActionDispatch
           deep_regexps, regexps = regexps.partition { |r| r.to_s.include?("\\.".freeze) }
           deep_strings, strings = strings.partition { |s| s.include?("\\.".freeze) }
 
-          regexps << Regexp.new(strings.join('|'.freeze), true) unless strings.empty?
-          deep_regexps << Regexp.new(deep_strings.join('|'.freeze), true) unless deep_strings.empty?
+          regexps << Regexp.new(strings.join("|".freeze), true) unless strings.empty?
+          deep_regexps << Regexp.new(deep_strings.join("|".freeze), true) unless deep_strings.empty?
 
           new regexps, deep_regexps, blocks
         end
@@ -48,7 +50,7 @@ module ActionDispatch
         def initialize(regexps, deep_regexps, blocks)
           @regexps = regexps
           @deep_regexps = deep_regexps.any? ? deep_regexps : nil
-          @blocks  = blocks
+          @blocks = blocks
         end
 
         def call(original_params, parents = [])
@@ -58,7 +60,7 @@ module ActionDispatch
             parents.push(key) if deep_regexps
             if regexps.any? { |r| key =~ r }
               value = FILTERED
-            elsif deep_regexps && (joined = parents.join('.')) && deep_regexps.any? { |r| joined =~ r }
+            elsif deep_regexps && (joined = parents.join(".")) && deep_regexps.any? { |r| joined =~ r }
               value = FILTERED
             elsif value.is_a?(Hash)
               value = call(value, parents)

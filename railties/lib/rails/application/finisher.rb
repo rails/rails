@@ -21,12 +21,23 @@ module Rails
 
       initializer :add_builtin_route do |app|
         if Rails.env.development?
-          app.routes.append do
-            get '/rails/info/properties' => "rails/info#properties", internal: true
-            get '/rails/info/routes'     => "rails/info#routes", internal: true
-            get '/rails/info'            => "rails/info#index", internal: true
-            get '/'                      => "rails/welcome#index", internal: true
+          app.routes.prepend do
+            get "/rails/info/properties" => "rails/info#properties", internal: true
+            get "/rails/info/routes"     => "rails/info#routes", internal: true
+            get "/rails/info"            => "rails/info#index", internal: true
           end
+
+          app.routes.append do
+            get "/"                      => "rails/welcome#index", internal: true
+          end
+        end
+      end
+
+      # Setup default session store if not already set in config/application.rb
+      initializer :setup_default_session_store, before: :build_middleware_stack do |app|
+        unless app.config.session_store?
+          app_name = app.class.name ? app.railtie_name.chomp("_application") : ""
+          app.config.session_store :cookie_store, key: "_#{app_name}_session"
         end
       end
 
@@ -95,7 +106,7 @@ module Rails
 
         elsif config.allow_concurrency == :unsafe
           # Do nothing, even if we know this is dangerous. This is the
-          # historical behaviour for true.
+          # historical behavior for true.
 
         else
           # Default concurrency setting: enabled, but safe
@@ -114,7 +125,7 @@ module Rails
       initializer :set_routes_reloader_hook do |app|
         reloader = routes_reloader
         reloader.execute_if_updated
-        self.reloaders << reloader
+        reloaders << reloader
         app.reloader.to_run do
           # We configure #execute rather than #execute_if_updated because if
           # autoloaded constants are cleared we need to reload routes also in
@@ -150,7 +161,7 @@ module Rails
 
         if config.reload_classes_only_on_change
           reloader = config.file_watcher.new(*watchable_args, &callback)
-          self.reloaders << reloader
+          reloaders << reloader
 
           # Prepend this callback to have autoloaded constants cleared before
           # any other possible reloading, in case they need to autoload fresh
@@ -173,7 +184,7 @@ module Rails
 
       # Disable dependency loading during request cycle
       initializer :disable_dependency_loading do
-        if config.eager_load && config.cache_classes
+        if config.eager_load && config.cache_classes && !config.enable_dependency_loading
           ActiveSupport::Dependencies.unhook!
         end
       end

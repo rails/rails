@@ -11,9 +11,9 @@ After reading this guide, you will know:
 
 * What makes an engine.
 * How to generate an engine.
-* Building features for the engine.
-* Hooking the engine into an application.
-* Overriding engine functionality in the application.
+* How to build features for the engine.
+* How to hook the engine into an application.
+* How to override engine functionality in the application.
 
 --------------------------------------------------------------------------------
 
@@ -25,7 +25,7 @@ their host applications. A Rails application is actually just a "supercharged"
 engine, with the `Rails::Application` class inheriting a lot of its behavior
 from `Rails::Engine`.
 
-Therefore, engines and applications can be thought of almost the same thing,
+Therefore, engines and applications can be thought of as almost the same thing,
 just with subtle differences, as you'll see throughout this guide. Engines and
 applications also share a common structure.
 
@@ -46,7 +46,7 @@ see how to hook it into an application.
 
 Engines can also be isolated from their host applications. This means that an
 application is able to have a path provided by a routing helper such as
-`articles_path` and use an engine also that provides a path also called
+`articles_path` and use an engine that also provides a path also called
 `articles_path`, and the two would not clash. Along with this, controllers, models
 and table names are also namespaced. You'll see how to do this later in this
 guide.
@@ -184,7 +184,7 @@ end
 By inheriting from the `Rails::Engine` class, this gem notifies Rails that
 there's an engine at the specified path, and will correctly mount the engine
 inside the application, performing tasks such as adding the `app` directory of
-the engine to the load path for models, mailers, controllers and views.
+the engine to the load path for models, mailers, controllers, and views.
 
 The `isolate_namespace` method here deserves special notice. This call is
 responsible for isolating the controllers, models, routes and other things into
@@ -1364,7 +1364,7 @@ You can define assets for precompilation in `engine.rb`:
 
 ```ruby
 initializer "blorgh.assets.precompile" do |app|
-  app.config.assets.precompile += %w(admin.css admin.js)
+  app.config.assets.precompile += %w( admin.js admin.css )
 end
 ```
 

@@ -1,5 +1,4 @@
 module ActiveModel
-
   # == Active \Model \Basic \Model
   #
   # Includes the required interface for an object to interact with
@@ -76,7 +75,7 @@ module ActiveModel
     #   person = Person.new(name: 'bob', age: '18')
     #   person.name # => "bob"
     #   person.age  # => "18"
-    def initialize(attributes={})
+    def initialize(attributes = {})
       assign_attributes(attributes) if attributes
 
       super()

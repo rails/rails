@@ -1,6 +1,6 @@
 $: << File.expand_path("test", COMPONENT_ROOT)
 
-require 'bundler'
+require "bundler"
 Bundler.setup
 
 require "rails/test_unit/minitest_plugin"

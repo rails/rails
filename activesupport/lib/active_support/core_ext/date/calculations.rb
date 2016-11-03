@@ -1,9 +1,9 @@
-require 'date'
-require 'active_support/duration'
-require 'active_support/core_ext/object/acts_like'
-require 'active_support/core_ext/date/zones'
-require 'active_support/core_ext/time/zones'
-require 'active_support/core_ext/date_and_time/calculations'
+require "date"
+require "active_support/duration"
+require "active_support/core_ext/object/acts_like"
+require "active_support/core_ext/date/zones"
+require "active_support/core_ext/time/zones"
+require "active_support/core_ext/date_and_time/calculations"
 
 class Date
   include DateAndTime::Calculations
@@ -129,7 +129,7 @@ class Date
       options.fetch(:day, day)
     )
   end
-  
+
   # Allow Date to be compared with Time by converting to DateTime and relying on the <=> from there.
   def compare_with_coercion(other)
     if other.is_a?(Time)

@@ -1,18 +1,18 @@
-require 'rails/ruby_version_check'
+require "rails/ruby_version_check"
 
-require 'pathname'
+require "pathname"
 
-require 'active_support'
-require 'active_support/dependencies/autoload'
-require 'active_support/core_ext/kernel/reporting'
-require 'active_support/core_ext/module/delegation'
-require 'active_support/core_ext/array/extract_options'
+require "active_support"
+require "active_support/dependencies/autoload"
+require "active_support/core_ext/kernel/reporting"
+require "active_support/core_ext/module/delegation"
+require "active_support/core_ext/array/extract_options"
 
-require 'rails/application'
-require 'rails/version'
+require "rails/application"
+require "rails/version"
 
-require 'active_support/railtie'
-require 'action_dispatch/railtie'
+require "active_support/railtie"
+require "action_dispatch/railtie"
 
 # UTF-8 is the default internal and external encoding.
 silence_warnings do
@@ -46,13 +46,13 @@ module Rails
 
     def backtrace_cleaner
       @backtrace_cleaner ||= begin
-        # Relies on Active Support, so we have to lazy load to postpone definition until AS has been loaded
-        require 'rails/backtrace_cleaner'
+        # Relies on Active Support, so we have to lazy load to postpone definition until Active Support has been loaded
+        require "rails/backtrace_cleaner"
         Rails::BacktraceCleaner.new
       end
     end
 
-    # Returns a Pathname object of the current rails project,
+    # Returns a Pathname object of the current Rails project,
     # otherwise it returns nil if there is no project:
     #
     #   Rails.root
@@ -77,7 +77,7 @@ module Rails
       @_env = ActiveSupport::StringInquirer.new(environment)
     end
 
-    # Returns all rails groups for loading based on:
+    # Returns all Rails groups for loading based on:
     #
     # * The Rails environment;
     # * The environment variable RAILS_GROUPS;
@@ -100,7 +100,7 @@ module Rails
     end
 
     # Returns a Pathname object of the public folder of the current
-    # rails project, otherwise it returns nil if there is no project:
+    # Rails project, otherwise it returns nil if there is no project:
     #
     #   Rails.public_path
     #     # => #<Pathname:/Users/someuser/some/path/project/public>

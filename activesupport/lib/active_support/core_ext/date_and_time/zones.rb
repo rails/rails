@@ -22,19 +22,18 @@ module DateAndTime
       if time_zone
         time_with_zone(time, time_zone)
       else
-        time || self.to_time
+        time || to_time
       end
     end
 
     private
 
-    def time_with_zone(time, zone)
-      if time
-        ActiveSupport::TimeWithZone.new(time.utc? ? time : time.getutc, zone)
-      else
-        ActiveSupport::TimeWithZone.new(nil, zone, to_time(:utc))
+      def time_with_zone(time, zone)
+        if time
+          ActiveSupport::TimeWithZone.new(time.utc? ? time : time.getutc, zone)
+        else
+          ActiveSupport::TimeWithZone.new(nil, zone, to_time(:utc))
+        end
       end
-    end
   end
 end
-

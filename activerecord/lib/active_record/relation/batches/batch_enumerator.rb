@@ -7,7 +7,7 @@ module ActiveRecord
         @of       = of
         @relation = relation
         @start = start
-        @finish   = finish
+        @finish = finish
       end
 
       # Looping through a collection of records from the database (using the

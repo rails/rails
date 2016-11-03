@@ -88,7 +88,7 @@
   <div id="container">
     <div class="wrapper">
       <div id="mainCol">
-        <%= yield.html_safe %>
+        <%= yield %>
 
         <h3>Feedback</h3>
         <p>
@@ -111,7 +111,7 @@
           <%= link_to 'open an issue', 'https://github.com/rails/rails/issues' %>.
         </p>
         <p>And last but not least, any kind of discussion regarding Ruby on Rails
-          documentation is very welcome in the <%= link_to 'rubyonrails-docs mailing list', 'http://groups.google.com/group/rubyonrails-docs' %>.
+          documentation is very welcome in the <%= link_to 'rubyonrails-docs mailing list', 'https://groups.google.com/forum/#!forum/rubyonrails-docs' %>.
         </p>
       </div>
     </div>
@@ -127,13 +127,11 @@
   <script type="text/javascript" src="javascripts/jquery.min.js"></script>
   <script type="text/javascript" src="javascripts/responsive-tables.js"></script>
   <script type="text/javascript" src="javascripts/guides.js"></script>
-  <script type="text/javascript" src="javascripts/syntaxhighlighter/shCore.js"></script>
-  <script type="text/javascript" src="javascripts/syntaxhighlighter/shBrushRuby.js"></script>
-  <script type="text/javascript" src="javascripts/syntaxhighlighter/shBrushXml.js"></script>
-  <script type="text/javascript" src="javascripts/syntaxhighlighter/shBrushSql.js"></script>
-  <script type="text/javascript" src="javascripts/syntaxhighlighter/shBrushPlain.js"></script>
+  <script type="text/javascript" src="javascripts/syntaxhighlighter.js"></script>
   <script type="text/javascript">
-    SyntaxHighlighter.all();
+    syntaxhighlighterConfig = {
+      autoLinks: false,
+    };
     $(guidesIndex.bind);
   </script>
 </body>

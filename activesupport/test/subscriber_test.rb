@@ -1,5 +1,5 @@
-require 'abstract_unit'
-require 'active_support/subscriber'
+require "abstract_unit"
+require "active_support/subscriber"
 
 class TestSubscriber < ActiveSupport::Subscriber
   attach_to :doodle
@@ -16,9 +16,9 @@ class TestSubscriber < ActiveSupport::Subscriber
 
   private
 
-  def private_party(event)
-    events << event
-  end
+    def private_party(event)
+      events << event
+    end
 end
 
 # Monkey patch subscriber to test that only one subscriber per method is added.

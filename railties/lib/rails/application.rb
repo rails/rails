@@ -1,9 +1,9 @@
-require 'yaml'
-require 'active_support/core_ext/hash/keys'
-require 'active_support/core_ext/object/blank'
-require 'active_support/key_generator'
-require 'active_support/message_verifier'
-require 'rails/engine'
+require "yaml"
+require "active_support/core_ext/hash/keys"
+require "active_support/core_ext/object/blank"
+require "active_support/key_generator"
+require "active_support/message_verifier"
+require "rails/engine"
 
 module Rails
   # An Engine with the responsibility of coordinating the whole boot process.
@@ -75,18 +75,19 @@ module Rails
   # If you decide to define rake tasks, runners, or initializers in an
   # application other than +Rails.application+, then you must run them manually.
   class Application < Engine
-    autoload :Bootstrap,              'rails/application/bootstrap'
-    autoload :Configuration,          'rails/application/configuration'
-    autoload :DefaultMiddlewareStack, 'rails/application/default_middleware_stack'
-    autoload :Finisher,               'rails/application/finisher'
-    autoload :Railties,               'rails/engine/railties'
-    autoload :RoutesReloader,         'rails/application/routes_reloader'
+    autoload :Bootstrap,              "rails/application/bootstrap"
+    autoload :Configuration,          "rails/application/configuration"
+    autoload :DefaultMiddlewareStack, "rails/application/default_middleware_stack"
+    autoload :Finisher,               "rails/application/finisher"
+    autoload :Railties,               "rails/engine/railties"
+    autoload :RoutesReloader,         "rails/application/routes_reloader"
 
     class << self
       def inherited(base)
         super
         Rails.app_class = base
         add_lib_to_load_path!(find_root(base.called_from))
+        ActiveSupport.run_load_hooks(:before_configuration, base)
       end
 
       def instance
@@ -146,7 +147,6 @@ module Rails
     def run_load_hooks! # :nodoc:
       return self if @ran_load_hooks
       @ran_load_hooks = true
-      ActiveSupport.run_load_hooks(:before_configuration, self)
 
       @initial_variable_values.each do |variable_name, value|
         if INITIAL_VARIABLES.include?(variable_name)
@@ -274,7 +274,7 @@ module Rails
     # Sends the initializers to the +initializer+ method defined in the
     # Rails::Initializable module. Each Rails::Application class has its own
     # set of initializers, as defined by the Initializable module.
-    def initializer(name, opts={}, &block)
+    def initializer(name, opts = {}, &block)
       self.class.initializer(name, opts, &block)
     end
 
@@ -317,7 +317,7 @@ module Rails
     # Rails application, you will need to add lib to $LOAD_PATH on your own in case
     # you need to load files in lib/ during the application configuration as well.
     def self.add_lib_to_load_path!(root) #:nodoc:
-      path = File.join root, 'lib'
+      path = File.join root, "lib"
       if File.exist?(path) && !$LOAD_PATH.include?(path)
         $LOAD_PATH.unshift(path)
       end
@@ -347,7 +347,7 @@ module Rails
 
     # Initialize the application passing the given group. By default, the
     # group is :default
-    def initialize!(group=:default) #:nodoc:
+    def initialize!(group = :default) #:nodoc:
       raise "Application has been already initialized." if @initialized
       run_initializers(group, self)
       @initialized = true
@@ -385,11 +385,16 @@ module Rails
     def secrets
       @secrets ||= begin
         secrets = ActiveSupport::OrderedOptions.new
-        yaml = config.paths["config/secrets"].first
+        yaml    = config.paths["config/secrets"].first
+
         if File.exist?(yaml)
           require "erb"
-          all_secrets = YAML.load(ERB.new(IO.read(yaml)).result) || {}
-          env_secrets = all_secrets[Rails.env]
+
+          all_secrets    = YAML.load(ERB.new(IO.read(yaml)).result) || {}
+          shared_secrets = all_secrets["shared"]
+          env_secrets    = all_secrets[Rails.env]
+
+          secrets.merge!(shared_secrets.symbolize_keys) if shared_secrets
           secrets.merge!(env_secrets.symbolize_keys) if env_secrets
         end
 
@@ -517,15 +522,15 @@ module Rails
 
     private
 
-    def build_request(env)
-      req = super
-      env["ORIGINAL_FULLPATH"] = req.fullpath
-      env["ORIGINAL_SCRIPT_NAME"] = req.script_name
-      req
-    end
+      def build_request(env)
+        req = super
+        env["ORIGINAL_FULLPATH"] = req.fullpath
+        env["ORIGINAL_SCRIPT_NAME"] = req.script_name
+        req
+      end
 
-    def build_middleware
-      config.app_middleware + super
-    end
+      def build_middleware
+        config.app_middleware + super
+      end
   end
 end

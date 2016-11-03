@@ -1,4 +1,4 @@
-require 'rack/body_proxy'
+require "rack/body_proxy"
 
 module ActionDispatch
   class Executor

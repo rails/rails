@@ -10,9 +10,7 @@ module ActiveRecord
     end
 
     def resolve_column_aliases(hash)
-      # This method is a hot spot, so for now, use Hash[] to dup the hash.
-      #   https://bugs.ruby-lang.org/issues/7166
-      new_hash = Hash[hash]
+      new_hash = hash.dup
       hash.each do |key, _|
         if (key.is_a?(Symbol)) && klass.attribute_alias?(key)
           new_hash[klass.attribute_alias(key)] = new_hash.delete(key)
@@ -33,8 +31,12 @@ module ActiveRecord
       if klass
         klass.type_for_attribute(column_name.to_s)
       else
-        Type::Value.new
+        Type.default_value
       end
+    end
+
+    def has_column?(column_name)
+      klass && klass.columns_hash.key?(column_name.to_s)
     end
 
     def associated_with?(association_name)
@@ -42,10 +44,11 @@ module ActiveRecord
     end
 
     def associated_table(table_name)
-      return self if table_name == arel_table.name
+      association = klass._reflect_on_association(table_name) || klass._reflect_on_association(table_name.singularize)
 
-      association = klass._reflect_on_association(table_name)
-      if association && !association.polymorphic?
+      if !association && table_name == arel_table.name
+        return self
+      elsif association && !association.polymorphic?
         association_klass = association.klass
         arel_table = association_klass.arel_table.alias(table_name)
       else
@@ -63,6 +66,6 @@ module ActiveRecord
 
     protected
 
-    attr_reader :klass, :arel_table, :association
+      attr_reader :klass, :arel_table, :association
   end
 end

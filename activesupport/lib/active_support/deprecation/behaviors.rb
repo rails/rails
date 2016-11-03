@@ -2,7 +2,7 @@ require "active_support/notifications"
 
 module ActiveSupport
   # Raised when <tt>ActiveSupport::Deprecation::Behavior#behavior</tt> is set with <tt>:raise</tt>.
-  # You would set <tt>:raise</tt>, as a behaviour to raise errors and proactively report exceptions from deprecations.
+  # You would set <tt>:raise</tt>, as a behavior to raise errors and proactively report exceptions from deprecations.
   class DeprecationException < StandardError
   end
 
@@ -25,7 +25,7 @@ module ActiveSupport
             if defined?(Rails.logger) && Rails.logger
               Rails.logger
             else
-              require 'active_support/logger'
+              require "active_support/logger"
               ActiveSupport::Logger.new($stderr)
             end
         logger.warn message
@@ -34,7 +34,7 @@ module ActiveSupport
 
       notify: ->(message, callstack) {
         ActiveSupport::Notifications.instrument("deprecation.rails",
-                                                :message => message, :callstack => callstack)
+                                                message: message, callstack: callstack)
       },
 
       silence: ->(message, callstack) {},

@@ -1,6 +1,6 @@
-require 'action_view/helpers/tag_helper'
-require 'active_support/core_ext/string/access'
-require 'i18n/exceptions'
+require "action_view/helpers/tag_helper"
+require "active_support/core_ext/string/access"
+require "i18n/exceptions"
 
 module ActionView
   # = Action View Translation Helpers
@@ -100,12 +100,12 @@ module ActionView
 
           interpolations = options.except(:default, :scope)
           if interpolations.any?
-            title << ", " << interpolations.map { |k, v| "#{k}: #{ERB::Util.html_escape(v)}" }.join(', ')
+            title << ", " << interpolations.map { |k, v| "#{k}: #{ERB::Util.html_escape(v)}" }.join(", ")
           end
 
           return title unless ActionView::Base.debug_missing_translation
 
-          content_tag('span', keys.last.to_s.titleize, class: 'translation_missing', title: title)
+          content_tag("span", keys.last.to_s.titleize, class: "translation_missing", title: title)
         end
       end
       alias :t :translate
@@ -133,7 +133,7 @@ module ActionView
         end
 
         def html_safe_translation_key?(key)
-          key.to_s =~ /(\b|_|\.)html$/
+          /(\b|_|\.)html$/.match?(key.to_s)
         end
     end
   end

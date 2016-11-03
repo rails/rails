@@ -1,6 +1,6 @@
-require 'test_helper'
-require 'stubs/test_connection'
-require 'stubs/room'
+require "test_helper"
+require "stubs/test_connection"
+require "stubs/room"
 
 module ActionCable::StreamTests
   class Connection < ActionCable::Connection::Base
@@ -25,11 +25,11 @@ module ActionCable::StreamTests
 
     private def pick_coder(coder)
       case coder
-      when nil, 'json'
+      when nil, "json"
         ActiveSupport::JSON
-      when 'custom'
+      when "custom"
         DummyEncoder
-      when 'none'
+      when "none"
         nil
       end
     end
@@ -38,7 +38,7 @@ module ActionCable::StreamTests
   module DummyEncoder
     extend self
     def encode(*) '{ "foo": "encoded" }' end
-    def decode(*) { foo: 'decoded' } end
+    def decode(*) { foo: "decoded" } end
   end
 
   class SymbolChannel < ActionCable::Channel::Base
@@ -52,7 +52,8 @@ module ActionCable::StreamTests
       run_in_eventmachine do
         connection = TestConnection.new
         connection.expects(:pubsub).returns mock().tap { |m| m.expects(:subscribe).with("test_room_1", kind_of(Proc), kind_of(Proc)).returns stub_everything(:pubsub) }
-        channel = ChatChannel.new connection, "{id: 1}", { id: 1 }
+        channel = ChatChannel.new connection, "{id: 1}", id: 1
+        channel.subscribe_to_channel
 
         connection.expects(:pubsub).returns mock().tap { |m| m.expects(:unsubscribe) }
         channel.unsubscribe_from_channel
@@ -64,6 +65,7 @@ module ActionCable::StreamTests
         connection = TestConnection.new
         connection.expects(:pubsub).returns mock().tap { |m| m.expects(:subscribe).with("channel", kind_of(Proc), kind_of(Proc)).returns stub_everything(:pubsub) }
         channel = SymbolChannel.new connection, ""
+        channel.subscribe_to_channel
 
         connection.expects(:pubsub).returns mock().tap { |m| m.expects(:unsubscribe) }
         channel.unsubscribe_from_channel
@@ -76,6 +78,7 @@ module ActionCable::StreamTests
         connection.expects(:pubsub).returns mock().tap { |m| m.expects(:subscribe).with("action_cable:stream_tests:chat:Room#1-Campfire", kind_of(Proc), kind_of(Proc)).returns stub_everything(:pubsub) }
 
         channel = ChatChannel.new connection, ""
+        channel.subscribe_to_channel
         channel.stream_for Room.new(1)
       end
     end
@@ -84,7 +87,9 @@ module ActionCable::StreamTests
       run_in_eventmachine do
         connection = TestConnection.new
 
-        ChatChannel.new connection, "{id: 1}", { id: 1 }
+        channel = ChatChannel.new connection, "{id: 1}", id: 1
+        channel.subscribe_to_channel
+
         assert_nil connection.last_transmission
 
         wait_for_async
@@ -114,7 +119,7 @@ module ActionCable::StreamTests
     end
   end
 
-  require 'action_cable/subscription_adapter/inline'
+  require "action_cable/subscription_adapter/async"
 
   class UserCallbackChannel < ActionCable::Channel::Base
     def subscribed
@@ -124,23 +129,26 @@ module ActionCable::StreamTests
     end
   end
 
-  class StreamEncodingTest < ActionCable::TestCase
+  class MultiChatChannel < ActionCable::Channel::Base
+    def subscribed
+      stream_from "main_room"
+      stream_from "test_all_rooms"
+    end
+  end
+
+  class StreamFromTest < ActionCable::TestCase
     setup do
-      @server = TestServer.new(subscription_adapter: ActionCable::SubscriptionAdapter::Inline)
+      @server = TestServer.new(subscription_adapter: ActionCable::SubscriptionAdapter::Async)
       @server.config.allowed_request_origins = %w( http://rubyonrails.com )
-      @server.stubs(:channel_classes).returns(
-        ChatChannel.name => ChatChannel,
-        UserCallbackChannel.name => UserCallbackChannel,
-      )
     end
 
-    test 'custom encoder' do
+    test "custom encoder" do
       run_in_eventmachine do
         connection = open_connection
         subscribe_to connection, identifiers: { id: 1 }
 
         connection.websocket.expects(:transmit)
-        @server.broadcast 'test_room_1', { foo: 'bar' }, coder: DummyEncoder
+        @server.broadcast "test_room_1", { foo: "bar" }, coder: DummyEncoder
         wait_for_async
         wait_for_executor connection.server.worker_pool.executor
       end
@@ -149,21 +157,32 @@ module ActionCable::StreamTests
     test "user supplied callbacks are run through the worker pool" do
       run_in_eventmachine do
         connection = open_connection
-        receive(connection, command: 'subscribe', channel: UserCallbackChannel.name, identifiers: { id: 1 })
+        receive(connection, command: "subscribe", channel: UserCallbackChannel.name, identifiers: { id: 1 })
 
-        @server.broadcast 'channel', {}
+        @server.broadcast "channel", {}
         wait_for_async
         refute Thread.current[:ran_callback], "User callback was not run through the worker pool"
       end
     end
 
+    test "subscription confirmation should only be sent out once with muptiple stream_from" do
+      run_in_eventmachine do
+        connection = open_connection
+        expected = { "identifier" => { "channel" => MultiChatChannel.name }.to_json, "type" => "confirm_subscription" }
+        connection.websocket.expects(:transmit).with(expected.to_json)
+        receive(connection, command: "subscribe", channel: MultiChatChannel.name, identifiers: {})
+
+        wait_for_async
+      end
+    end
+
     private
       def subscribe_to(connection, identifiers:)
-        receive connection, command: 'subscribe', identifiers: identifiers
+        receive connection, command: "subscribe", identifiers: identifiers
       end
 
       def open_connection
-        env = Rack::MockRequest.env_for '/test', 'HTTP_HOST' => 'localhost', 'HTTP_CONNECTION' => 'upgrade', 'HTTP_UPGRADE' => 'websocket', 'HTTP_ORIGIN' => 'http://rubyonrails.com'
+        env = Rack::MockRequest.env_for "/test", "HTTP_HOST" => "localhost", "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket", "HTTP_ORIGIN" => "http://rubyonrails.com"
 
         Connection.new(@server, env).tap do |connection|
           connection.process
@@ -174,7 +193,7 @@ module ActionCable::StreamTests
         end
       end
 
-      def receive(connection, command:, identifiers:, channel: 'ActionCable::StreamTests::ChatChannel')
+      def receive(connection, command:, identifiers:, channel: "ActionCable::StreamTests::ChatChannel")
         identifier = JSON.generate(channel: channel, **identifiers)
         connection.dispatch_websocket_message JSON.generate(command: command, identifier: identifier)
         wait_for_async

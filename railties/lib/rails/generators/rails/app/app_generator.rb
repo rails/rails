@@ -1,4 +1,4 @@
-require 'rails/generators/app_base'
+require "rails/generators/app_base"
 
 module Rails
   module ActionMethods # :nodoc:
@@ -54,13 +54,13 @@ module Rails
     end
 
     def app
-      directory 'app'
+      directory "app"
 
-      keep_file  'app/assets/images'
-      empty_directory_with_keep_file 'app/assets/javascripts/channels' unless options[:skip_action_cable]
+      keep_file "app/assets/images"
+      empty_directory_with_keep_file "app/assets/javascripts/channels" unless options[:skip_action_cable]
 
-      keep_file  'app/controllers/concerns'
-      keep_file  'app/models/concerns'
+      keep_file  "app/controllers/concerns"
+      keep_file  "app/models/concerns"
     end
 
     def bin
@@ -89,44 +89,24 @@ module Rails
     end
 
     def config_when_updating
-      cookie_serializer_config_exist = File.exist?('config/initializers/cookies_serializer.rb')
-      callback_terminator_config_exist = File.exist?('config/initializers/callback_terminator.rb')
-      active_record_belongs_to_required_by_default_config_exist = File.exist?('config/initializers/active_record_belongs_to_required_by_default.rb')
-      to_time_preserves_timezone_config_exist = File.exist?('config/initializers/to_time_preserves_timezone.rb')
-      action_cable_config_exist = File.exist?('config/cable.yml')
-      ssl_options_exist = File.exist?('config/initializers/ssl_options.rb')
-      rack_cors_config_exist = File.exist?('config/initializers/cors.rb')
+      cookie_serializer_config_exist = File.exist?("config/initializers/cookies_serializer.rb")
+      action_cable_config_exist = File.exist?("config/cable.yml")
+      rack_cors_config_exist = File.exist?("config/initializers/cors.rb")
 
       config
 
-      gsub_file 'config/environments/development.rb', /^(\s+)config\.file_watcher/, '\1# config.file_watcher'
-
-      unless callback_terminator_config_exist
-        remove_file 'config/initializers/callback_terminator.rb'
-      end
+      gsub_file "config/environments/development.rb", /^(\s+)config\.file_watcher/, '\1# config.file_watcher'
 
       unless cookie_serializer_config_exist
-        gsub_file 'config/initializers/cookies_serializer.rb', /json(?!,)/, 'marshal'
-      end
-
-      unless active_record_belongs_to_required_by_default_config_exist
-        remove_file 'config/initializers/active_record_belongs_to_required_by_default.rb'
-      end
-
-      unless to_time_preserves_timezone_config_exist
-        remove_file 'config/initializers/to_time_preserves_timezone.rb'
+        gsub_file "config/initializers/cookies_serializer.rb", /json(?!,)/, "marshal"
       end
 
       unless action_cable_config_exist
-        template 'config/cable.yml'
-      end
-
-      unless ssl_options_exist
-        remove_file 'config/initializers/ssl_options.rb'
+        template "config/cable.yml"
       end
 
       unless rack_cors_config_exist
-        remove_file 'config/initializers/cors.rb'
+        remove_file "config/initializers/cors.rb"
       end
     end
 
@@ -139,13 +119,13 @@ module Rails
     end
 
     def lib
-      empty_directory 'lib'
-      empty_directory_with_keep_file 'lib/tasks'
-      empty_directory_with_keep_file 'lib/assets'
+      empty_directory "lib"
+      empty_directory_with_keep_file "lib/tasks"
+      empty_directory_with_keep_file "lib/assets"
     end
 
     def log
-      empty_directory_with_keep_file 'log'
+      empty_directory_with_keep_file "log"
     end
 
     def public_directory
@@ -153,15 +133,15 @@ module Rails
     end
 
     def test
-      empty_directory_with_keep_file 'test/fixtures'
-      empty_directory_with_keep_file 'test/fixtures/files'
-      empty_directory_with_keep_file 'test/controllers'
-      empty_directory_with_keep_file 'test/mailers'
-      empty_directory_with_keep_file 'test/models'
-      empty_directory_with_keep_file 'test/helpers'
-      empty_directory_with_keep_file 'test/integration'
+      empty_directory_with_keep_file "test/fixtures"
+      empty_directory_with_keep_file "test/fixtures/files"
+      empty_directory_with_keep_file "test/controllers"
+      empty_directory_with_keep_file "test/mailers"
+      empty_directory_with_keep_file "test/models"
+      empty_directory_with_keep_file "test/helpers"
+      empty_directory_with_keep_file "test/integration"
 
-      template 'test/test_helper.rb'
+      template "test/test_helper.rb"
     end
 
     def tmp
@@ -177,12 +157,12 @@ module Rails
 
     def vendor_javascripts
       unless options[:skip_javascript]
-        empty_directory_with_keep_file 'vendor/assets/javascripts'
+        empty_directory_with_keep_file "vendor/assets/javascripts"
       end
     end
 
     def vendor_stylesheets
-      empty_directory_with_keep_file 'vendor/assets/stylesheets'
+      empty_directory_with_keep_file "vendor/assets/stylesheets"
     end
   end
 
@@ -246,6 +226,11 @@ module Rails
       end
       remove_task :update_config_files
 
+      def display_upgrade_guide_info
+        say "\nAfter this, check Rails upgrade guide at http://guides.rubyonrails.org/upgrading_ruby_on_rails.html for more details about upgrading your app."
+      end
+      remove_task :display_upgrade_guide_info
+
       def create_boot_file
         template "config/boot.rb"
       end
@@ -256,6 +241,7 @@ module Rails
       end
 
       def create_db_files
+        return if options[:skip_active_record]
         build(:db)
       end
 
@@ -285,78 +271,82 @@ module Rails
 
       def delete_app_assets_if_api_option
         if options[:api]
-          remove_dir 'app/assets'
-          remove_dir 'lib/assets'
-          remove_dir 'tmp/cache/assets'
-          remove_dir 'vendor/assets'
+          remove_dir "app/assets"
+          remove_dir "lib/assets"
+          remove_dir "tmp/cache/assets"
+          remove_dir "vendor/assets"
         end
       end
 
       def delete_app_helpers_if_api_option
         if options[:api]
-          remove_dir 'app/helpers'
-          remove_dir 'test/helpers'
+          remove_dir "app/helpers"
+          remove_dir "test/helpers"
         end
       end
 
       def delete_application_layout_file_if_api_option
         if options[:api]
-          remove_file 'app/views/layouts/application.html.erb'
+          remove_file "app/views/layouts/application.html.erb"
+        end
+      end
+
+      def delete_public_files_if_api_option
+        if options[:api]
+          remove_file "public/404.html"
+          remove_file "public/422.html"
+          remove_file "public/500.html"
+          remove_file "public/apple-touch-icon-precomposed.png"
+          remove_file "public/apple-touch-icon.png"
+          remove_file "public/favicon.ico"
         end
       end
 
       def delete_js_folder_skipping_javascript
         if options[:skip_javascript]
-          remove_dir 'app/assets/javascripts'
+          remove_dir "app/assets/javascripts"
         end
       end
 
       def delete_assets_initializer_skipping_sprockets
         if options[:skip_sprockets]
-          remove_file 'config/initializers/assets.rb'
+          remove_file "config/initializers/assets.rb"
         end
       end
 
       def delete_application_record_skipping_active_record
         if options[:skip_active_record]
-          remove_file 'app/models/application_record.rb'
+          remove_file "app/models/application_record.rb"
         end
       end
 
       def delete_action_mailer_files_skipping_action_mailer
         if options[:skip_action_mailer]
-          remove_file 'app/mailers/application_mailer.rb'
-          remove_file 'app/views/layouts/mailer.html.erb'
-          remove_file 'app/views/layouts/mailer.text.erb'
-        end
-      end
-
-      def delete_active_record_initializers_skipping_active_record
-        if options[:skip_active_record]
-          remove_file 'config/initializers/active_record_belongs_to_required_by_default.rb'
+          remove_file "app/mailers/application_mailer.rb"
+          remove_file "app/views/layouts/mailer.html.erb"
+          remove_file "app/views/layouts/mailer.text.erb"
+          remove_dir "app/mailers"
+          remove_dir "test/mailers"
         end
       end
 
       def delete_action_cable_files_skipping_action_cable
         if options[:skip_action_cable]
-          remove_file 'config/cable.yml'
-          remove_file 'app/assets/javascripts/cable.js'
-          remove_dir 'app/channels'
+          remove_file "config/cable.yml"
+          remove_file "app/assets/javascripts/cable.js"
+          remove_dir "app/channels"
         end
       end
 
       def delete_non_api_initializers_if_api_option
         if options[:api]
-          remove_file 'config/initializers/session_store.rb'
-          remove_file 'config/initializers/cookies_serializer.rb'
-          remove_file 'config/initializers/request_forgery_protection.rb'
-          remove_file 'config/initializers/per_form_csrf_tokens.rb'
+          remove_file "config/initializers/cookies_serializer.rb"
         end
       end
 
       def delete_api_initializers
         unless options[:api]
-          remove_file 'config/initializers/cors.rb'
+          remove_file "config/initializers/cors.rb"
         end
       end
 
@@ -374,7 +364,7 @@ module Rails
     protected
 
       def self.banner
-        "rails new #{self.arguments.map(&:usage).join(' ')} [options]"
+        "rails new #{arguments.map(&:usage).join(' ')} [options]"
       end
 
       # Define file as an alias to create_file for backwards compatibility.
@@ -383,7 +373,7 @@ module Rails
       end
 
       def app_name
-        @app_name ||= (defined_app_const_base? ? defined_app_name : File.basename(destination_root)).tr('\\', '').tr(". ", "_")
+        @app_name ||= (defined_app_const_base? ? defined_app_name : File.basename(destination_root)).tr('\\', "").tr(". ", "_")
       end
 
       def defined_app_name
@@ -398,7 +388,7 @@ module Rails
       alias :defined_app_const_base? :defined_app_const_base
 
       def app_const_base
-        @app_const_base ||= defined_app_const_base || app_name.gsub(/\W/, '_').squeeze('_').camelize
+        @app_const_base ||= defined_app_const_base || app_name.gsub(/\W/, "_").squeeze("_").camelize
       end
       alias :camelized :app_const_base
 
@@ -433,7 +423,7 @@ module Rails
           "/opt/local/var/run/mysql4/mysqld.sock",  # mac + darwinports + mysql4
           "/opt/local/var/run/mysql5/mysqld.sock",  # mac + darwinports + mysql5
           "/opt/lampp/var/mysql/mysql.sock"         # xampp for linux
-        ].find { |f| File.exist?(f) } unless RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
+        ].find { |f| File.exist?(f) } unless RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
       end
 
       def get_builder_class
@@ -461,14 +451,14 @@ module Rails
       end
 
       def self.default_rc_file
-        File.expand_path('~/.railsrc')
+        File.expand_path("~/.railsrc")
       end
 
       private
 
         def handle_version_request!(argument)
-          if ['--version', '-v'].include?(argument)
-            require 'rails/version'
+          if ["--version", "-v"].include?(argument)
+            require "rails/version"
             puts "Rails #{Rails::VERSION::STRING}"
             exit(0)
           end
@@ -478,20 +468,20 @@ module Rails
           if argument == "new"
             yield
           else
-            ['--help'] + argv.drop(1)
+            ["--help"] + argv.drop(1)
           end
         end
 
         def handle_rails_rc!(argv)
-          if argv.find { |arg| arg == '--no-rc' }
-            argv.reject { |arg| arg == '--no-rc' }
+          if argv.find { |arg| arg == "--no-rc" }
+            argv.reject { |arg| arg == "--no-rc" }
           else
             railsrc(argv) { |rc_argv, rc| insert_railsrc_into_argv!(rc_argv, rc) }
           end
         end
 
         def railsrc(argv)
-          if (customrc = argv.index{ |x| x.include?("--rc=") })
+          if (customrc = argv.index { |x| x.include?("--rc=") })
             fname = File.expand_path(argv[customrc].gsub(/--rc=/, ""))
             yield(argv.take(customrc) + argv.drop(customrc + 1), fname)
           else

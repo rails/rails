@@ -1,4 +1,6 @@
-require 'abstract_unit'
+require "abstract_unit"
+
+class ReviewsController < ResourcesController; end
 
 class RoutingConcernsTest < ActionDispatch::IntegrationTest
   class Reviewable

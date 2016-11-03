@@ -68,7 +68,7 @@ The Rails philosophy includes two major guiding principles:
   again, our code is more maintainable, more extensible, and less buggy.
 * **Convention Over Configuration:** Rails has opinions about the best way to do many
   things in a web application, and defaults to this set of conventions, rather than
-  require that you specify every minutiae through endless configuration files.
+  require that you specify minutiae through endless configuration files.
 
 Creating a New Rails Project
 ----------------------------
@@ -148,6 +148,10 @@ This will create a Rails application called Blog in a `blog` directory and
 install the gem dependencies that are already mentioned in `Gemfile` using
 `bundle install`.
 
+NOTE: If you're using Windows Subsystem for Linux then there are currently some
+limitations on file system notifications that mean you should disable the `spring`
+and `listen` gems which you can do by running `rails new blog --skip-spring --skip-listen`.
+
 TIP: You can see all of the command line options that the Rails application
 builder accepts by running `rails new -h`.
 
@@ -178,6 +182,7 @@ of the files and folders that Rails created by default:
 |test/|Unit tests, fixtures, and other test apparatus. These are covered in [Testing Rails Applications](testing.html).|
 |tmp/|Temporary files (like cache and pid files).|
 |vendor/|A place for all third-party code. In a typical Rails application this includes vendored gems.|
+|.gitignore|This file tells git which files (or patterns) it should ignore. See [Github - Ignoring files](https://help.github.com/articles/ignoring-files) for more info about ignoring files.
 
 Hello, Rails!
 -------------
@@ -299,9 +304,6 @@ Rails.application.routes.draw do
   get 'welcome/index'
 
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
-
-  # Serve websocket cable requests in-process
-  # mount ActionCable.server => '/cable'
 end
 ```
 
@@ -316,10 +318,6 @@ It should look something like the following:
 Rails.application.routes.draw do
   get 'welcome/index'
 
-  # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
-
-  # Serve websocket cable requests in-process
-  # mount ActionCable.server => '/cable'
   root 'welcome#index'
 end
 ```
@@ -356,6 +354,7 @@ resource. You need to add the _article resource_ to the
 
 ```ruby
 Rails.application.routes.draw do
+  get 'welcome/index'
 
   resources :articles
 
@@ -462,7 +461,7 @@ available, Rails will raise an exception.
 In the above image, the bottom line has been truncated. Let's see what the full
 error message looks like:
 
->Missing template articles/new, application/new with {locale:[:en], formats:[:html], handlers:[:erb, :builder, :coffee]}. Searched in: * "/path/to/blog/app/views"
+>ArticlesController#new is missing a template for this request format and variant. request.formats: ["text/html"] request.variant: [] NOTE! For XHR/Ajax or API requests, this action would normally respond with 204 No Content: an empty white screen. Since you're loading it in a web browser, we assume that you expected to actually render a template, not… nothing, so we're showing an error to be extra-clear. If you expect 204 No Content, carry on. That's what you'll get from an XHR or API request. Give it a shot.
 
 That's quite a lot of text! Let's quickly go through and understand what each
 part of it means.
@@ -472,27 +471,24 @@ The first part identifies which template is missing. In this case, it's the
 then it will attempt to load a template called `application/new`. It looks for
 one here because the `ArticlesController` inherits from `ApplicationController`.
 
-The next part of the message contains a hash. The `:locale` key in this hash
-simply indicates which spoken language template should be retrieved. By default,
-this is the English - or "en" - template. The next key, `:formats` specifies the
-format of the template to be served in response. The default format is `:html`, and
-so Rails is looking for an HTML template. The final key, `:handlers`, is telling
-us what _template handlers_ could be used to render our template. `:erb` is most
-commonly used for HTML templates, `:builder` is used for XML templates, and
-`:coffee` uses CoffeeScript to build JavaScript templates.
-
-The final part of this message tells us where Rails has looked for the templates.
-Templates within a basic Rails application like this are kept in a single
-location, but in more complex applications it could be many different paths.
+The next part of the message contains `request.formats` which specifies
+the format of template to be served in response. It is set to `text/html` as we
+requested this page via browser, so Rails is looking for an HTML template.
+`request.variants` specifies what kind of physical devices would be served by
+the response and helps Rails determine which template to use in the response.
+It is empty because no information has been provided.
 
 The simplest template that would work in this case would be one located at
 `app/views/articles/new.html.erb`. The extension of this file name is important:
 the first extension is the _format_ of the template, and the second extension
-is the _handler_ that will be used. Rails is attempting to find a template
-called `articles/new` within `app/views` for the application. The format for
-this template can only be `html` and the handler must be one of `erb`,
-`builder` or `coffee`. Because you want to create a new HTML form, you will be
-using the `ERB` language which is designed to embed Ruby in HTML.
+is the _handler_ that will be used to render the template. Rails is attempting
+to find a template called `articles/new` within `app/views` for the
+application. The format for this template can only be `html` and the default
+handler for HTML is `erb`. Rails uses other handlers for other formats.
+`builder` handler is used to build XML templates and `coffee` handler uses
+CoffeeScript to build JavaScript templates. Since you want to create a new
+HTML form, you will be using the `ERB` language which is designed to embed Ruby
+in HTML.
 
 Therefore the file should be called `articles/new.html.erb` and needs to be
 located inside the `app/views` directory of the application.
@@ -533,7 +529,7 @@ method called `form_for`. To use this method, add this code into
 <% end %>
 ```
 
-If you refresh the page now, you'll see the exact same form as in the example.
+If you refresh the page now, you'll see the exact same form from our example above.
 Building forms in Rails is really just that easy!
 
 When you call `form_for`, you pass it an identifying object for this
@@ -611,9 +607,11 @@ class ArticlesController < ApplicationController
 end
 ```
 
-If you re-submit the form now, you'll see another familiar error: a template is
-missing. That's ok, we can ignore that for now. What the `create` action should
-be doing is saving our new article to the database.
+If you re-submit the form now, you may not see any change on the page. Don't worry!
+This is because Rails by default returns `204 No Content` response for an action if
+we don't specify what the response should be. We just added the `create` action
+but didn't specify anything about how the response should be. In this case, the
+`create` action should save our new article to the database.
 
 When a form is submitted, the fields of the form are sent to Rails as
 _parameters_. These parameters can then be referenced inside the controller
@@ -635,8 +633,7 @@ this situation, the only parameters that matter are the ones from the form.
 
 TIP: Ensure you have a firm grasp of the `params` method, as you'll use it fairly regularly. Let's consider an example URL: **http://www.example.com/?username=dhh&email=dhh@email.com**. In this URL, `params[:username]` would equal "dhh" and `params[:email]` would equal "dhh@email.com".
 
-If you re-submit the form one more time you'll now no longer get the missing
-template error. Instead, you'll see something that looks like the following:
+If you re-submit the form one more time, you'll see something that looks like the following:
 
 ```ruby
 <ActionController::Parameters {"title"=>"First Article!", "text"=>"This is my first article."} permitted: false>
@@ -703,8 +700,8 @@ in case you want to reverse it later. When you run this migration it will create
 an `articles` table with one string column and a text column. It also creates
 two timestamp fields to allow Rails to track article creation and update times.
 
-TIP: For more information about migrations, refer to [Rails Database Migrations]
-(migrations.html).
+TIP: For more information about migrations, refer to [Active Record Migrations]
+(active_record_migrations.html).
 
 At this point, you can use a bin/rails command to run the migration:
 
@@ -1158,7 +1155,7 @@ new articles. Create a file called `app/views/articles/edit.html.erb` and make
 it look as follows:
 
 ```html+erb
-<h1>Editing article</h1>
+<h1>Edit article</h1>
 
 <%= form_for :article, url: article_path(@article), method: :patch do |f| %>
 

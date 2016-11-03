@@ -1,7 +1,7 @@
 RAILS_ISOLATED_ENGINE = true
 require "isolation/abstract_unit"
 
-require 'generators/generators_test_helper'
+require "generators/generators_test_helper"
 require "rails/generators/test_case"
 
 module RailtiesTests
@@ -9,7 +9,7 @@ module RailtiesTests
     include ActiveSupport::Testing::Isolation
 
     def destination_root
-      tmp_path 'foo_bar'
+      tmp_path "foo_bar"
     end
 
     def tmp_path(*args)
@@ -18,7 +18,7 @@ module RailtiesTests
     end
 
     def engine_path
-      tmp_path('foo_bar')
+      tmp_path("foo_bar")
     end
 
     def bundled_rails(cmd)
@@ -29,7 +29,7 @@ module RailtiesTests
       `#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails #{cmd}`
     end
 
-    def build_engine(is_mountable=false)
+    def build_engine(is_mountable = false)
       FileUtils.rm_rf(engine_path)
       FileUtils.mkdir_p(engine_path)
 
@@ -39,7 +39,7 @@ module RailtiesTests
 
       Dir.chdir(engine_path) do
         File.open("Gemfile", "w") do |f|
-          f.write <<-GEMFILE.gsub(/^ {12}/, '')
+          f.write <<-GEMFILE.gsub(/^ {12}/, "")
             source "https://rubygems.org"
 
             gem 'rails', path: '#{RAILS_FRAMEWORK_ROOT}'

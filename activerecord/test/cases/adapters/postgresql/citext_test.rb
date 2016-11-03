@@ -1,49 +1,49 @@
-require 'cases/helper'
-require 'support/schema_dumping_helper'
+require "cases/helper"
+require "support/schema_dumping_helper"
 
 if ActiveRecord::Base.connection.supports_extensions?
   class PostgresqlCitextTest < ActiveRecord::PostgreSQLTestCase
     include SchemaDumpingHelper
     class Citext < ActiveRecord::Base
-      self.table_name = 'citexts'
+      self.table_name = "citexts"
     end
 
     def setup
       @connection = ActiveRecord::Base.connection
 
-      enable_extension!('citext', @connection)
+      enable_extension!("citext", @connection)
 
-      @connection.create_table('citexts') do |t|
-        t.citext 'cival'
+      @connection.create_table("citexts") do |t|
+        t.citext "cival"
       end
     end
 
     teardown do
-      @connection.drop_table 'citexts', if_exists: true
-      disable_extension!('citext', @connection)
+      @connection.drop_table "citexts", if_exists: true
+      disable_extension!("citext", @connection)
     end
 
     def test_citext_enabled
-      assert @connection.extension_enabled?('citext')
+      assert @connection.extension_enabled?("citext")
     end
 
     def test_column
-      column = Citext.columns_hash['cival']
+      column = Citext.columns_hash["cival"]
       assert_equal :citext, column.type
-      assert_equal 'citext', column.sql_type
+      assert_equal "citext", column.sql_type
       assert_not column.array?
 
-      type = Citext.type_for_attribute('cival')
+      type = Citext.type_for_attribute("cival")
       assert_not type.binary?
     end
 
     def test_change_table_supports_json
       @connection.transaction do
-        @connection.change_table('citexts') do |t|
-          t.citext 'username'
+        @connection.change_table("citexts") do |t|
+          t.citext "username"
         end
         Citext.reset_column_information
-        column = Citext.columns_hash['username']
+        column = Citext.columns_hash["username"]
         assert_equal :citext, column.type
 
         raise ActiveRecord::Rollback # reset the schema change
@@ -53,7 +53,7 @@ if ActiveRecord::Base.connection.supports_extensions?
     end
 
     def test_write
-      x = Citext.new(cival: 'Some CI Text')
+      x = Citext.new(cival: "Some CI Text")
       x.save!
       citext = Citext.first
       assert_equal "Some CI Text", citext.cival
@@ -66,8 +66,8 @@ if ActiveRecord::Base.connection.supports_extensions?
 
     def test_select_case_insensitive
       @connection.execute "insert into citexts (cival) values('Cased Text')"
-      x = Citext.where(cival: 'cased text').first
-      assert_equal 'Cased Text', x.cival
+      x = Citext.where(cival: "cased text").first
+      assert_equal "Cased Text", x.cival
     end
 
     def test_schema_dump_with_shorthand

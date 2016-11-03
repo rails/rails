@@ -1,4 +1,4 @@
-require 'active_support/core_ext/hash/indifferent_access'
+require "active_support/core_ext/hash/indifferent_access"
 
 module ActiveRecord
   # == Single table inheritance
@@ -19,7 +19,7 @@ module ActiveRecord
   # Be aware that because the type column is an attribute on the record every new
   # subclass will instantly be marked as dirty and the type column will be included
   # in the list of changed attributes on the record. This is different from non
-  # STI classes:
+  # Single Table Inheritance(STI) classes:
   #
   #   Company.new.changed? # => false
   #   Firm.new.changed?    # => true
@@ -37,6 +37,7 @@ module ActiveRecord
 
     included do
       # Determines whether to store the full constant name including namespace when using STI.
+      # This is true, by default.
       class_attribute :store_full_sti_class, instance_writer: false
       self.store_full_sti_class = true
     end
@@ -131,85 +132,85 @@ module ActiveRecord
 
       protected
 
-      # Returns the class type of the record using the current module as a prefix. So descendants of
-      # MyApp::Business::Account would appear as MyApp::Business::AccountSubclass.
-      def compute_type(type_name)
-        if type_name.match(/^::/)
-          # If the type is prefixed with a scope operator then we assume that
-          # the type_name is an absolute reference.
-          ActiveSupport::Dependencies.constantize(type_name)
-        else
-          # Build a list of candidates to search for
-          candidates = []
-          name.scan(/::|$/) { candidates.unshift "#{$`}::#{type_name}" }
-          candidates << type_name
+        # Returns the class type of the record using the current module as a prefix. So descendants of
+        # MyApp::Business::Account would appear as MyApp::Business::AccountSubclass.
+        def compute_type(type_name)
+          if type_name.match(/^::/)
+            # If the type is prefixed with a scope operator then we assume that
+            # the type_name is an absolute reference.
+            ActiveSupport::Dependencies.constantize(type_name)
+          else
+            # Build a list of candidates to search for
+            candidates = []
+            name.scan(/::|$/) { candidates.unshift "#{$`}::#{type_name}" }
+            candidates << type_name
 
-          candidates.each do |candidate|
-            constant = ActiveSupport::Dependencies.safe_constantize(candidate)
-            return constant if candidate == constant.to_s
+            candidates.each do |candidate|
+              constant = ActiveSupport::Dependencies.safe_constantize(candidate)
+              return constant if candidate == constant.to_s
+            end
+
+            raise NameError.new("uninitialized constant #{candidates.first}", candidates.first)
           end
-
-          raise NameError.new("uninitialized constant #{candidates.first}", candidates.first)
         end
-      end
 
       private
 
-      # Called by +instantiate+ to decide which class to use for a new
-      # record instance. For single-table inheritance, we check the record
-      # for a +type+ column and return the corresponding class.
-      def discriminate_class_for_record(record)
-        if using_single_table_inheritance?(record)
-          find_sti_class(record[inheritance_column])
-        else
-          super
-        end
-      end
-
-      def using_single_table_inheritance?(record)
-        record[inheritance_column].present? && has_attribute?(inheritance_column)
-      end
-
-      def find_sti_class(type_name)
-        type_name = base_class.type_for_attribute(inheritance_column).cast(type_name)
-        subclass = begin
-          if store_full_sti_class
-            ActiveSupport::Dependencies.constantize(type_name)
+        # Called by +instantiate+ to decide which class to use for a new
+        # record instance. For single-table inheritance, we check the record
+        # for a +type+ column and return the corresponding class.
+        def discriminate_class_for_record(record)
+          if using_single_table_inheritance?(record)
+            find_sti_class(record[inheritance_column])
           else
-            compute_type(type_name)
-          end
-        rescue NameError
-          raise SubclassNotFound,
-            "The single-table inheritance mechanism failed to locate the subclass: '#{type_name}'. " \
-            "This error is raised because the column '#{inheritance_column}' is reserved for storing the class in case of inheritance. " \
-            "Please rename this column if you didn't intend it to be used for storing the inheritance class " \
-            "or overwrite #{name}.inheritance_column to use another column for that information."
-        end
-        unless subclass == self || descendants.include?(subclass)
-          raise SubclassNotFound, "Invalid single-table inheritance type: #{subclass.name} is not a subclass of #{name}"
-        end
-        subclass
-      end
-
-      def type_condition(table = arel_table)
-        sti_column = arel_attribute(inheritance_column, table)
-        sti_names  = ([self] + descendants).map(&:sti_name)
-
-        sti_column.in(sti_names)
-      end
-
-      # Detect the subclass from the inheritance column of attrs. If the inheritance column value
-      # is not self or a valid subclass, raises ActiveRecord::SubclassNotFound
-      def subclass_from_attributes(attrs)
-        attrs = attrs.to_h if attrs.respond_to?(:permitted?)
-        if attrs.is_a?(Hash)
-          subclass_name = attrs.with_indifferent_access[inheritance_column]
-
-          if subclass_name.present?
-            find_sti_class(subclass_name)
+            super
           end
         end
-      end
+
+        def using_single_table_inheritance?(record)
+          record[inheritance_column].present? && has_attribute?(inheritance_column)
+        end
+
+        def find_sti_class(type_name)
+          type_name = base_class.type_for_attribute(inheritance_column).cast(type_name)
+          subclass = begin
+            if store_full_sti_class
+              ActiveSupport::Dependencies.constantize(type_name)
+            else
+              compute_type(type_name)
+            end
+          rescue NameError
+            raise SubclassNotFound,
+              "The single-table inheritance mechanism failed to locate the subclass: '#{type_name}'. " \
+              "This error is raised because the column '#{inheritance_column}' is reserved for storing the class in case of inheritance. " \
+              "Please rename this column if you didn't intend it to be used for storing the inheritance class " \
+              "or overwrite #{name}.inheritance_column to use another column for that information."
+          end
+          unless subclass == self || descendants.include?(subclass)
+            raise SubclassNotFound, "Invalid single-table inheritance type: #{subclass.name} is not a subclass of #{name}"
+          end
+          subclass
+        end
+
+        def type_condition(table = arel_table)
+          sti_column = arel_attribute(inheritance_column, table)
+          sti_names  = ([self] + descendants).map(&:sti_name)
+
+          sti_column.in(sti_names)
+        end
+
+        # Detect the subclass from the inheritance column of attrs. If the inheritance column value
+        # is not self or a valid subclass, raises ActiveRecord::SubclassNotFound
+        def subclass_from_attributes(attrs)
+          attrs = attrs.to_h if attrs.respond_to?(:permitted?)
+          if attrs.is_a?(Hash)
+            subclass_name = attrs.with_indifferent_access[inheritance_column]
+
+            if subclass_name.present?
+              find_sti_class(subclass_name)
+            end
+          end
+        end
     end
 
     def initialize_dup(other)
@@ -219,21 +220,21 @@ module ActiveRecord
 
     private
 
-    def initialize_internals_callback
-      super
-      ensure_proper_type
-    end
-
-    # Sets the attribute used for single table inheritance to this class name if this is not the
-    # ActiveRecord::Base descendant.
-    # Considering the hierarchy Reply < Message < ActiveRecord::Base, this makes it possible to
-    # do Reply.new without having to set <tt>Reply[Reply.inheritance_column] = "Reply"</tt> yourself.
-    # No such attribute would be set for objects of the Message class in that example.
-    def ensure_proper_type
-      klass = self.class
-      if klass.finder_needs_type_condition?
-        write_attribute(klass.inheritance_column, klass.sti_name)
+      def initialize_internals_callback
+        super
+        ensure_proper_type
       end
-    end
+
+      # Sets the attribute used for single table inheritance to this class name if this is not the
+      # ActiveRecord::Base descendant.
+      # Considering the hierarchy Reply < Message < ActiveRecord::Base, this makes it possible to
+      # do Reply.new without having to set <tt>Reply[Reply.inheritance_column] = "Reply"</tt> yourself.
+      # No such attribute would be set for objects of the Message class in that example.
+      def ensure_proper_type
+        klass = self.class
+        if klass.finder_needs_type_condition?
+          write_attribute(klass.inheritance_column, klass.sti_name)
+        end
+      end
   end
 end

@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class OldContentTypeController < ActionController::Base
   # :ported:
@@ -14,7 +14,7 @@ class OldContentTypeController < ActionController::Base
 
   # :ported:
   def render_content_type_from_render
-    render body: "hello world!", :content_type => Mime[:rss]
+    render body: "hello world!", content_type: Mime[:rss]
   end
 
   # :ported:
@@ -37,7 +37,7 @@ class OldContentTypeController < ActionController::Base
 
   def render_change_for_builder
     response.content_type = Mime[:html]
-    render :action => "render_default_for_builder"
+    render action: "render_default_for_builder"
   end
 
   def render_default_content_types_for_respond_to
@@ -131,13 +131,13 @@ class ContentTypeTest < ActionController::TestCase
 
   private
 
-  def with_default_charset(charset)
-    old_default_charset = ActionDispatch::Response.default_charset
-    ActionDispatch::Response.default_charset = charset
-    yield
-  ensure
-    ActionDispatch::Response.default_charset = old_default_charset
-  end
+    def with_default_charset(charset)
+      old_default_charset = ActionDispatch::Response.default_charset
+      ActionDispatch::Response.default_charset = charset
+      yield
+    ensure
+      ActionDispatch::Response.default_charset = old_default_charset
+    end
 end
 
 class AcceptBasedContentTypeTest < ActionController::TestCase

@@ -252,7 +252,7 @@ Note that `try` will swallow no-method errors, returning nil instead. If you wan
 
 ```ruby
 @number.try(:nest)  # => nil
-@number.try!(:nest) # NoMethodError: undefined method `nest' for 1:Fixnum
+@number.try!(:nest) # NoMethodError: undefined method `nest' for 1:Integer
 ```
 
 NOTE: Defined in `active_support/core_ext/object/try.rb`.
@@ -368,7 +368,7 @@ account.to_query('company[name]')
 
 so its output is ready to be used in a query string.
 
-Arrays return the result of applying `to_query` to each element with `_key_[]` as key, and join the result with "&":
+Arrays return the result of applying `to_query` to each element with `key[]` as key, and join the result with "&":
 
 ```ruby
 [3.4, -45.6].to_query('sample')
@@ -707,64 +707,6 @@ M.parents       # => [X::Y, X, Object]
 
 NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
 
-#### Qualified Constant Names
-
-The standard methods `const_defined?`, `const_get`, and `const_set` accept
-bare constant names. Active Support extends this API to be able to pass
-relative qualified constant names.
-
-The new methods are `qualified_const_defined?`, `qualified_const_get`, and
-`qualified_const_set`. Their arguments are assumed to be qualified constant
-names relative to their receiver:
-
-```ruby
-Object.qualified_const_defined?("Math::PI")       # => true
-Object.qualified_const_get("Math::PI")            # => 3.141592653589793
-Object.qualified_const_set("Math::Phi", 1.618034) # => 1.618034
-```
-
-Arguments may be bare constant names:
-
-```ruby
-Math.qualified_const_get("E") # => 2.718281828459045
-```
-
-These methods are analogous to their built-in counterparts. In particular,
-`qualified_constant_defined?` accepts an optional second argument to be
-able to say whether you want the predicate to look in the ancestors.
-This flag is taken into account for each constant in the expression while
-walking down the path.
-
-For example, given
-
-```ruby
-module M
-  X = 1
-end
-
-module N
-  class C
-    include M
-  end
-end
-```
-
-`qualified_const_defined?` behaves this way:
-
-```ruby
-N.qualified_const_defined?("C::X", false) # => false
-N.qualified_const_defined?("C::X", true)  # => true
-N.qualified_const_defined?("C::X")        # => true
-```
-
-As the last example implies, the second argument defaults to true,
-as in `const_defined?`.
-
-For coherence with the built-in methods only relative paths are accepted.
-Absolute qualified constant names like `::Math::PI` raise `NameError`.
-
-NOTE: Defined in `active_support/core_ext/module/qualified_const.rb`.
-
 ### Reachable
 
 A named module is reachable if it is stored in its corresponding constant. It means you can reach the module object via the constant.
@@ -1012,7 +954,8 @@ class A
   class_attribute :x, instance_reader: false
 end
 
-A.new.x = 1 # NoMethodError
+A.new.x = 1
+A.new.x # NoMethodError
 ```
 
 For convenience `class_attribute` also defines an instance predicate which is the double negation of what the instance reader returns. In the examples above it would be called `x?`.
@@ -1661,19 +1604,6 @@ Given a string with a qualified constant reference expression, `deconstantize` r
 "Admin::Hotel::ReservationUtils".deconstantize # => "Admin::Hotel"
 ```
 
-Active Support for example uses this method in `Module#qualified_const_set`:
-
-```ruby
-def qualified_const_set(path, value)
-  QualifiedConstUtils.raise_if_absolute(path)
-
-  const_name = path.demodulize
-  mod_name = path.deconstantize
-  mod = mod_name.empty? ? self : qualified_const_get(mod_name)
-  mod.const_set(const_name, value)
-end
-```
-
 NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
 #### `parameterize`
@@ -1742,7 +1672,7 @@ NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 The method `constantize` resolves the constant reference expression in its receiver:
 
 ```ruby
-"Fixnum".constantize # => Fixnum
+"Integer".constantize # => Integer
 
 module M
   X = 1
@@ -2106,7 +2036,7 @@ Addition only assumes the elements respond to `+`:
 ```ruby
 [[1, 2], [2, 3], [3, 4]].sum    # => [1, 2, 2, 3, 3, 4]
 %w(foo bar baz).sum             # => "foobarbaz"
-{a: 1, b: 2, c: 3}.sum # => [:b, 2, :c, 3, :a, 1]
+{a: 1, b: 2, c: 3}.sum          # => [:b, 2, :c, 3, :a, 1]
 ```
 
 The sum of an empty collection is zero by default, but this is customizable:
@@ -2611,8 +2541,7 @@ To do so, the method loops over the pairs and builds nodes that depend on the _v
 ```ruby
 XML_TYPE_NAMES = {
   "Symbol"     => "symbol",
-  "Fixnum"     => "integer",
-  "Bignum"     => "integer",
+  "Integer"    => "integer",
   "BigDecimal" => "decimal",
   "Float"      => "float",
   "TrueClass"  => "boolean",
@@ -2732,7 +2661,7 @@ The method `transform_keys` accepts a block and returns a hash that has applied 
 
 ```ruby
 {nil => nil, 1 => 1, a: :a}.transform_keys { |key| key.to_s.upcase }
-# => {"" => nil, "A" => :a, "1" => 1}
+# => {"" => nil, "1" => 1, "A" => :a}
 ```
 
 In case of key collision, one of the values will be chosen. The chosen value may not always be the same given the same hash:
@@ -2774,7 +2703,7 @@ The method `stringify_keys` returns a hash that has a stringified version of the
 
 ```ruby
 {nil => nil, 1 => 1, a: :a}.stringify_keys
-# => {"" => nil, "a" => :a, "1" => 1}
+# => {"" => nil, "1" => 1, "a" => :a}
 ```
 
 In case of key collision, one of the values will be chosen. The chosen value may not always be the same given the same hash:
@@ -2816,7 +2745,7 @@ The method `symbolize_keys` returns a hash that has a symbolized version of the 
 
 ```ruby
 {nil => nil, 1 => 1, "a" => "a"}.symbolize_keys
-# => {1=>1, nil=>nil, :a=>"a"}
+# => {nil=>nil, 1=>1, :a=>"a"}
 ```
 
 WARNING. Note in the previous example only one key was symbolized.
@@ -2893,7 +2822,7 @@ Ruby has built-in support for taking slices out of strings and arrays. Active Su
 
 ```ruby
 {a: 1, b: 2, c: 3}.slice(:a, :c)
-# => {:c=>3, :a=>1}
+# => {:a=>1, :c=>3}
 
 {a: 1, b: 2, c: 3}.slice(:b, :X)
 # => {:b=>2} # non-existing keys are ignored
@@ -2986,6 +2915,24 @@ end
 ```
 
 NOTE: Defined in `active_support/core_ext/regexp.rb`.
+
+### `match?`
+
+Rails implements `Regexp#match?` for Ruby versions prior to 2.4:
+
+```ruby
+/oo/.match?('foo')    # => true
+/oo/.match?('bar')    # => false
+/oo/.match?('foo', 1) # => true
+```
+
+The backport has the same interface and lack of side-effects in the caller like
+not setting `$1` and friends, but it does not have the speed benefits. Its
+purpose is to be able to write 2.4 compatible code. Rails itself uses this
+predicate internally for example.
+
+Active Support defines `Regexp#match?` only if not present, so code running
+under 2.4 or later does run the original one and gets the performance boost.
 
 Extensions to `Range`
 ---------------------

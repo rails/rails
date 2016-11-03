@@ -6,7 +6,6 @@ module ApplicationTests
 
     def setup
       build_app
-      boot_rails
       FileUtils.rm_rf "#{app_path}/config/environments"
       require "rails/all"
     end
@@ -31,7 +30,7 @@ module ApplicationTests
     end
 
     def assert_no_fallbacks
-      assert !I18n.backend.class.included_modules.include?(I18n::Backend::Fallbacks)
+      assert_not_includes I18n.backend.class.included_modules, I18n::Backend::Fallbacks
     end
 
     # Locales
@@ -63,8 +62,8 @@ module ApplicationTests
         "#{app_path}/config/locales/en.yml", "#{app_path}/config/another_locale.yml"
       ], Rails.application.config.i18n.load_path
 
-      assert I18n.load_path.include?("#{app_path}/config/locales/en.yml")
-      assert I18n.load_path.include?("#{app_path}/config/another_locale.yml")
+      assert_includes I18n.load_path, "#{app_path}/config/locales/en.yml"
+      assert_includes I18n.load_path, "#{app_path}/config/another_locale.yml"
     end
 
     test "load_path is populated before eager loaded models" do
@@ -77,19 +76,19 @@ en:
   foo: "1"
       YAML
 
-      app_file 'app/models/foo.rb', <<-RUBY
+      app_file "app/models/foo.rb", <<-RUBY
         class Foo < ActiveRecord::Base
           @foo = I18n.t(:foo)
         end
       RUBY
 
-      app_file 'config/routes.rb', <<-RUBY
+      app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get '/i18n',   :to => lambda { |env| [200, {}, [Foo.instance_variable_get('@foo')]] }
         end
       RUBY
 
-      require 'rack/test'
+      require "rack/test"
       extend Rack::Test::Methods
       load_app
 
@@ -107,13 +106,13 @@ en:
   foo: "1"
       YAML
 
-      app_file 'config/routes.rb', <<-RUBY
+      app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get '/i18n',   :to => lambda { |env| [200, {}, [I18n.t(:foo)]] }
         end
       RUBY
 
-      require 'rack/test'
+      require "rack/test"
       extend Rack::Test::Methods
       load_app
 
@@ -142,13 +141,13 @@ en:
   foo: "1"
       YAML
 
-      app_file 'config/routes.rb', <<-RUBY
+      app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get '/i18n',   :to => lambda { |env| [200, {}, [I18n.t(:foo)]] }
         end
       RUBY
 
-      require 'rack/test'
+      require "rack/test"
       extend Rack::Test::Methods
       load_app
 
@@ -178,13 +177,13 @@ en:
   foo: "1"
       YAML
 
-      app_file 'config/routes.rb', <<-RUBY
+      app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get '/i18n',   :to => lambda { |env| [200, {}, [I18n.load_path.inspect]] }
         end
       RUBY
 
-      require 'rack/test'
+      require "rack/test"
       extend Rack::Test::Methods
       load_app
 
@@ -215,7 +214,7 @@ fr:
     test "config.i18n.fallbacks = true initializes I18n.fallbacks with default settings" do
       I18n::Railtie.config.i18n.fallbacks = true
       load_app
-      assert I18n.backend.class.included_modules.include?(I18n::Backend::Fallbacks)
+      assert_includes I18n.backend.class.included_modules, I18n::Backend::Fallbacks
       assert_fallbacks de: [:de, :en]
     end
 
@@ -223,7 +222,7 @@ fr:
       I18n::Railtie.config.i18n.fallbacks = true
       I18n::Railtie.config.i18n.backend = Class.new(I18n::Backend::Simple).new
       load_app
-      assert I18n.backend.class.included_modules.include?(I18n::Backend::Fallbacks)
+      assert_includes I18n.backend.class.included_modules, I18n::Backend::Fallbacks
       assert_fallbacks de: [:de, :en]
     end
 
@@ -234,7 +233,7 @@ fr:
     end
 
     test "config.i18n.fallbacks.map = { :ca => :'es-ES' } initializes fallbacks with a mapping ca => es-ES" do
-      I18n::Railtie.config.i18n.fallbacks.map = { :ca => :'es-ES' }
+      I18n::Railtie.config.i18n.fallbacks.map = { ca: :'es-ES' }
       load_app
       assert_fallbacks ca: [:ca, :"es-ES", :es, :en]
     end
@@ -246,13 +245,13 @@ fr:
     end
 
     test "[shortcut] config.i18n.fallbacks = [{ :ca => :'es-ES' }] initializes fallbacks with a mapping ca => es-ES" do
-      I18n::Railtie.config.i18n.fallbacks.map = { :ca => :'es-ES' }
+      I18n::Railtie.config.i18n.fallbacks.map = { ca: :'es-ES' }
       load_app
       assert_fallbacks ca: [:ca, :"es-ES", :es, :en]
     end
 
     test "[shortcut] config.i18n.fallbacks = [:'en-US', { :ca => :'es-ES' }] initializes fallbacks with the given arguments" do
-      I18n::Railtie.config.i18n.fallbacks = [:'en-US', { :ca => :'es-ES' }]
+      I18n::Railtie.config.i18n.fallbacks = [:'en-US', { ca: :'es-ES' }]
       load_app
       assert_fallbacks ca: [:ca, :"es-ES", :es, :'en-US', :en]
     end

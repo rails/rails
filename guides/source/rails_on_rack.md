@@ -64,7 +64,7 @@ To use `rackup` instead of Rails' `rails server`, you can put the following insi
 
 ```ruby
 # Rails.root/config.ru
-require ::File.expand_path('../config/environment', __FILE__)
+require_relative 'config/environment'
 run Rails.application
 ```
 
@@ -105,19 +105,18 @@ For a freshly generated Rails application, this might produce something like:
 use Rack::Sendfile
 use ActionDispatch::Static
 use ActionDispatch::Executor
-use #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x000000029a0838>
+use ActiveSupport::Cache::Strategy::LocalCache::Middleware
 use Rack::Runtime
 use Rack::MethodOverride
 use ActionDispatch::RequestId
 use Rails::Rack::Logger
 use ActionDispatch::ShowExceptions
+use WebConsole::Middleware
 use ActionDispatch::DebugExceptions
 use ActionDispatch::RemoteIp
 use ActionDispatch::Reloader
 use ActionDispatch::Callbacks
 use ActiveRecord::Migration::CheckPending
-use ActiveRecord::ConnectionAdapters::ConnectionManagement
-use ActiveRecord::QueryCache
 use ActionDispatch::Cookies
 use ActionDispatch::Session::CookieStore
 use ActionDispatch::Flash
@@ -149,9 +148,9 @@ You can add a new middleware to the middleware stack using any of the following 
 # Push Rack::BounceFavicon at the bottom
 config.middleware.use Rack::BounceFavicon
 
-# Add Lifo::Cache after ActiveRecord::QueryCache.
+# Add Lifo::Cache after ActionDispatch::Executor.
 # Pass { page_cache: false } argument to Lifo::Cache.
-config.middleware.insert_after ActiveRecord::QueryCache, Lifo::Cache, page_cache: false
+config.middleware.insert_after ActionDispatch::Executor, Lifo::Cache, page_cache: false
 ```
 
 #### Swapping a Middleware
@@ -182,7 +181,6 @@ $ bin/rails middleware
 (in /Users/lifo/Rails/blog)
 use ActionDispatch::Static
 use #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x00000001c304c8>
-use Rack::Runtime
 ...
 run Rails.application.routes
 ```
@@ -266,14 +264,6 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 **`ActiveRecord::Migration::CheckPending`**
 
 * Checks pending migrations and raises `ActiveRecord::PendingMigrationError` if any migrations are pending.
-
-**`ActiveRecord::ConnectionAdapters::ConnectionManagement`**
-
-* Cleans active connections after each request, unless the `rack.test` key in the request environment is set to `true`.
-
-**`ActiveRecord::QueryCache`**
-
-* Enables the Active Record query cache.
 
 **`ActionDispatch::Cookies`**
 

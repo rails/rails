@@ -1,4 +1,4 @@
-require 'active_support/core_ext/object/acts_like'
+require "active_support/core_ext/object/acts_like"
 
 class Time
   # Duck-types as a Time-like class. See Object#acts_like?.

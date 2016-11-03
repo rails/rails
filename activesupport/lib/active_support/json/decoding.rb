@@ -1,6 +1,6 @@
-require 'active_support/core_ext/module/attribute_accessors'
-require 'active_support/core_ext/module/delegation'
-require 'json'
+require "active_support/core_ext/module/attribute_accessors"
+require "active_support/core_ext/module/delegation"
+require "json"
 
 module ActiveSupport
   # Look for and parse json strings that look like ISO 8601 times.
@@ -8,7 +8,8 @@ module ActiveSupport
 
   module JSON
     # matches YAML-formatted dates
-    DATE_REGEX = /^(?:\d{4}-\d{2}-\d{2}|\d{4}-\d{1,2}-\d{1,2}[T \t]+\d{1,2}:\d{2}:\d{2}(\.[0-9]*)?(([ \t]*)Z|[-+]\d{2}?(:\d{2})?))$/
+    DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
+    DATETIME_REGEX = /^(?:\d{4}-\d{2}-\d{2}|\d{4}-\d{1,2}-\d{1,2}[T \t]+\d{1,2}:\d{2}:\d{2}(\.[0-9]*)?(([ \t]*)Z|[-+]\d{2}?(:\d{2})?)?)$/
 
     class << self
       # Parses a JSON string (JavaScript Object Notation) into a hash.
@@ -48,7 +49,13 @@ module ActiveSupport
           nil
         when DATE_REGEX
           begin
-            DateTime.parse(data)
+            Date.parse(data)
+          rescue ArgumentError
+            data
+          end
+        when DATETIME_REGEX
+          begin
+            Time.zone.parse(data)
           rescue ArgumentError
             data
           end

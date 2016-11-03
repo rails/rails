@@ -1,4 +1,4 @@
-require 'active_support/concurrency/share_lock'
+require "active_support/concurrency/share_lock"
 
 module ActiveSupport #:nodoc:
   module Dependencies #:nodoc:
@@ -45,6 +45,10 @@ module ActiveSupport #:nodoc:
         @lock.yield_shares(compatible: [:load]) do
           yield
         end
+      end
+
+      def raw_state(&block) # :nodoc:
+        @lock.raw_state(&block)
       end
     end
   end

@@ -1,4 +1,4 @@
-require 'active_job/railtie'
+require "active_job/railtie"
 require "action_mailer"
 require "rails"
 require "abstract_controller/railties/routes_helpers"
@@ -18,7 +18,7 @@ module ActionMailer
 
       if app.config.force_ssl
         options.default_url_options ||= {}
-        options.default_url_options[:protocol] ||= 'https'
+        options.default_url_options[:protocol] ||= "https"
       end
 
       options.assets_dir      ||= paths["public"].first
@@ -28,7 +28,7 @@ module ActionMailer
       options.cache_store ||= Rails.cache
 
       if options.show_previews
-        options.preview_path  ||= defined?(Rails.root) ? "#{Rails.root}/test/mailers/previews" : nil
+        options.preview_path ||= defined?(Rails.root) ? "#{Rails.root}/test/mailers/previews" : nil
       end
 
       # make sure readers methods get compiled
@@ -44,7 +44,7 @@ module ActionMailer
         register_preview_interceptors(options.delete(:preview_interceptors))
         register_observers(options.delete(:observers))
 
-        options.each { |k,v| send("#{k}=", v) }
+        options.each { |k, v| send("#{k}=", v) }
       end
 
       ActiveSupport.on_load(:action_dispatch_integration_test) { include ActionMailer::TestCase::ClearTestDeliveries }
@@ -61,8 +61,8 @@ module ActionMailer
 
       if options.show_previews
         app.routes.prepend do
-          get '/rails/mailers'         => "rails/mailers#index", internal: true
-          get '/rails/mailers/*path'   => "rails/mailers#preview", internal: true
+          get "/rails/mailers"         => "rails/mailers#index", internal: true
+          get "/rails/mailers/*path"   => "rails/mailers#preview", internal: true
         end
 
         if options.preview_path

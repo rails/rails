@@ -1,4 +1,4 @@
-require 'active_record/attribute'
+require "active_record/attribute"
 
 module ActiveRecord
   class Attribute # :nodoc:
@@ -22,7 +22,7 @@ module ActiveRecord
 
       protected
 
-      attr_reader :user_provided_value
+        attr_reader :user_provided_value
     end
   end
 end

@@ -41,11 +41,11 @@ module ActionView
       #
       # ==== \Template digest
       #
-      # The template digest that's added to the cache key is computed by taking an md5 of the
+      # The template digest that's added to the cache key is computed by taking an MD5 of the
       # contents of the entire template file. This ensures that your caches will automatically
       # expire when you change the template file.
       #
-      # Note that the md5 is taken of the entire template file, not just what's within the
+      # Note that the MD5 is taken of the entire template file, not just what's within the
       # cache do/end call. So it's possible that changing something outside of that call will
       # still expire the cache.
       #
@@ -69,11 +69,11 @@ module ActionView
       #   render 'comments/comments'
       #   render('comments/comments')
       #
-      #   render "header" => render("comments/header")
+      #   render "header" translates to render("comments/header")
       #
-      #   render(@topic)         => render("topics/topic")
-      #   render(topics)         => render("topics/topic")
-      #   render(message.topics) => render("topics/topic")
+      #   render(@topic)         translates to render("topics/topic")
+      #   render(topics)         translates to render("topics/topic")
+      #   render(message.topics) translates to render("topics/topic")
       #
       # It's not possible to derive all render calls like that, though.
       # Here are a few examples of things that can't be derived:
@@ -118,7 +118,7 @@ module ActionView
       #
       # If you use a helper method, for example, inside a cached block and
       # you then update that helper, you'll have to bump the cache as well.
-      # It doesn't really matter how you do it, but the md5 of the template file
+      # It doesn't really matter how you do it, but the MD5 of the template file
       # must change. One recommendation is to simply be explicit in a comment, like:
       #
       #   <%# Helper Dependency Updated: May 6, 2012 at 6pm %>
@@ -130,9 +130,10 @@ module ActionView
       #
       # When rendering a collection of objects that each use the same partial, a `cached`
       # option can be passed.
+      #
       # For collections rendered such:
       #
-      #   <%= render partial: 'notifications/notification', collection: @notifications, cached: true %>
+      #   <%= render partial: 'projects/project', collection: @projects, cached: true %>
       #
       # The `cached: true` will make Action View's rendering read several templates
       # from cache at once instead of one call per template.
@@ -142,13 +143,21 @@ module ActionView
       # Works great alongside individual template fragment caching.
       # For instance if the template the collection renders is cached like:
       #
-      #   # notifications/_notification.html.erb
-      #   <% cache notification do %>
+      #   # projects/_project.html.erb
+      #   <% cache project do %>
       #     <%# ... %>
       #   <% end %>
       #
       # Any collection renders will find those cached templates when attempting
       # to read multiple templates at once.
+      #
+      # If your collection cache depends on multiple sources (try to avoid this to keep things simple),
+      # you can name all these dependencies as part of a block that returns an array:
+      #
+      #   <%= render partial: 'projects/project', collection: @projects, cached: -> project { [ project, current_user ] } %>
+      #
+      # This will include both records as part of the cache key and updating either of them will
+      # expire the cache.
       def cache(name = {}, options = {}, &block)
         if controller.respond_to?(:perform_caching) && controller.perform_caching
           name_options = options.slice(:skip_digest, :virtual_path)
@@ -202,12 +211,14 @@ module ActionView
         end
       end
 
+      attr_reader :cache_hit # :nodoc:
+
     private
 
       def fragment_name_with_digest(name, virtual_path) #:nodoc:
         virtual_path ||= @virtual_path
         if virtual_path
-          name  = controller.url_for(name).split("://").last if name.is_a?(Hash)
+          name = controller.url_for(name).split("://").last if name.is_a?(Hash)
           digest = Digestor.digest name: virtual_path, finder: lookup_context, dependencies: view_cache_dependencies
           [ name, digest ]
         else
@@ -215,9 +226,14 @@ module ActionView
         end
       end
 
-      # TODO: Create an object that has caching read/write on it
       def fragment_for(name = {}, options = nil, &block) #:nodoc:
-        read_fragment_for(name, options) || write_fragment_for(name, options, &block)
+        if content = read_fragment_for(name, options)
+          @cache_hit = true
+          content
+        else
+          @cache_hit = false
+          write_fragment_for(name, options, &block)
+        end
       end
 
       def read_fragment_for(name, options) #:nodoc:

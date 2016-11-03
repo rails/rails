@@ -60,7 +60,7 @@ module ActiveRecord
 
       def test_connection_pool_starts_reaper
         spec = ActiveRecord::Base.connection_pool.spec.dup
-        spec.config[:reaping_frequency] = '0.0001'
+        spec.config[:reaping_frequency] = "0.0001"
 
         pool = ConnectionPool.new spec
 

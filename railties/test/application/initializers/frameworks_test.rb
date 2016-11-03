@@ -6,7 +6,6 @@ module ApplicationTests
 
     def setup
       build_app
-      boot_rails
       FileUtils.rm_rf "#{app_path}/config/environments"
     end
 
@@ -129,7 +128,7 @@ module ApplicationTests
         end
       RUBY
 
-      require 'rack/test'
+      require "rack/test"
       extend Rack::Test::Methods
 
       get "/foo/included_helpers"
@@ -161,10 +160,10 @@ module ApplicationTests
         end
       RUBY
 
-      require 'rack/test'
+      require "rack/test"
       extend Rack::Test::Methods
 
-      get 'omg/show'
+      get "omg/show"
       assert_equal '{"omg":"omg"}', last_response.body
     end
 
@@ -176,7 +175,7 @@ module ApplicationTests
     end
 
     test "assignment config.encoding to default_charset" do
-      charset = 'Shift_JIS'
+      charset = "Shift_JIS"
       add_to_config "config.encoding = '#{charset}'"
       require "#{app_path}/config/environment"
       assert_equal charset, ActionDispatch::Response.default_charset
@@ -186,7 +185,7 @@ module ApplicationTests
     test "if there's no config.active_support.bare, all of ActiveSupport is required" do
       use_frameworks []
       require "#{app_path}/config/environment"
-      assert_nothing_raised { [1,2,3].sample }
+      assert_nothing_raised { [1, 2, 3].sample }
     end
 
     test "config.active_support.bare does not require all of ActiveSupport" do
@@ -204,7 +203,7 @@ module ApplicationTests
     test "active_record extensions are applied to ActiveRecord" do
       add_to_config "config.active_record.table_name_prefix = 'tbl_'"
       require "#{app_path}/config/environment"
-      assert_equal 'tbl_', ActiveRecord::Base.table_name_prefix
+      assert_equal "tbl_", ActiveRecord::Base.table_name_prefix
     end
 
     test "database middleware doesn't initialize when activerecord is not in frameworks" do
@@ -238,7 +237,7 @@ module ApplicationTests
       begin
         require "#{app_path}/config/environment"
         orig_database_url = ENV.delete("DATABASE_URL")
-        orig_rails_env, Rails.env = Rails.env, 'development'
+        orig_rails_env, Rails.env = Rails.env, "development"
         ActiveRecord::Base.establish_connection
         assert ActiveRecord::Base.connection
         assert_match(/#{ActiveRecord::Base.configurations[Rails.env]['database']}/, ActiveRecord::Base.connection_config[:database])
@@ -253,7 +252,7 @@ module ApplicationTests
       begin
         require "#{app_path}/config/environment"
         orig_database_url = ENV.delete("DATABASE_URL")
-        orig_rails_env, Rails.env = Rails.env, 'development'
+        orig_rails_env, Rails.env = Rails.env, "development"
         database_url_db_name = "db/database_url_db.sqlite3"
         ENV["DATABASE_URL"] = "sqlite3:#{database_url_db_name}"
         ActiveRecord::Base.establish_connection

@@ -30,7 +30,7 @@ module ActionCable
         def periodically(callback_or_method_name = nil, every:, &block)
           callback =
             if block_given?
-              raise ArgumentError, 'Pass a block or provide a callback arg, not both' if callback_or_method_name
+              raise ArgumentError, "Pass a block or provide a callback arg, not both" if callback_or_method_name
               block
             else
               case callback_or_method_name
@@ -64,9 +64,7 @@ module ActionCable
 
         def start_periodic_timer(callback, every:)
           connection.server.event_loop.timer every do
-            connection.worker_pool.async_invoke connection do
-              instance_exec(&callback)
-            end
+            connection.worker_pool.async_exec self, connection: connection, &callback
           end
         end
 

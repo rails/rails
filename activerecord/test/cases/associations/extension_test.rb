@@ -1,10 +1,10 @@
 require "cases/helper"
-require 'models/post'
-require 'models/comment'
-require 'models/project'
-require 'models/developer'
-require 'models/computer'
-require 'models/company_in_module'
+require "models/post"
+require "models/comment"
+require "models/project"
+require "models/developer"
+require "models/computer"
+require "models/company_in_module"
 
 class AssociationsExtensionsTest < ActiveRecord::TestCase
   fixtures :projects, :developers, :developers_projects, :comments, :posts
@@ -45,7 +45,7 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
     # Marshaling an association shouldn't make it unusable by wiping its reflection.
     assert_not_nil david.association(:projects).reflection
 
-    david_too  = Marshal.load(marshalled)
+    david_too = Marshal.load(marshalled)
     assert_equal projects(:action_controller), david_too.projects.find_most_recent
   end
 
@@ -63,19 +63,19 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
     extend!(Developer)
     extend!(MyApplication::Business::Developer)
 
-    assert Object.const_get 'DeveloperAssociationNameAssociationExtension'
-    assert MyApplication::Business.const_get 'DeveloperAssociationNameAssociationExtension'
+    assert Object.const_get "DeveloperAssociationNameAssociationExtension"
+    assert MyApplication::Business.const_get "DeveloperAssociationNameAssociationExtension"
   end
 
   def test_proxy_association_after_scoped
     post = posts(:welcome)
     assert_equal post.association(:comments), post.comments.the_association
-    assert_equal post.association(:comments), post.comments.where('1=1').the_association
+    assert_equal post.association(:comments), post.comments.where("1=1").the_association
   end
 
   private
 
     def extend!(model)
-      ActiveRecord::Associations::Builder::HasMany.define_extensions(model, :association_name) { }
+      ActiveRecord::Associations::Builder::HasMany.define_extensions(model, :association_name) {}
     end
 end

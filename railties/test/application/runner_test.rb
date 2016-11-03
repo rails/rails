@@ -1,5 +1,5 @@
-require 'isolation/abstract_unit'
-require 'env_helpers'
+require "isolation/abstract_unit"
+require "env_helpers"
 
 module ApplicationTests
   class RunnerTest < ActiveSupport::TestCase
@@ -8,7 +8,6 @@ module ApplicationTests
 
     def setup
       build_app
-      boot_rails
 
       # Lets create a model so we have something to play with
       app_file "app/models/user.rb", <<-MODEL
@@ -44,6 +43,15 @@ module ApplicationTests
       assert_match "42", Dir.chdir(app_path) { `bin/rails runner "bin/count_users.rb"` }
     end
 
+    def test_no_minitest_loaded_in_production_mode
+      app_file "bin/print_features.rb", <<-SCRIPT
+      p $LOADED_FEATURES.grep(/minitest/)
+      SCRIPT
+      assert_match "[]", Dir.chdir(app_path) {
+        `RAILS_ENV=production bin/rails runner "bin/print_features.rb"`
+      }
+    end
+
     def test_should_set_dollar_0_to_file
       app_file "bin/dollar0.rb", <<-SCRIPT
       puts $0
@@ -75,13 +83,15 @@ module ApplicationTests
     end
 
     def test_runner_detects_syntax_errors
-      Dir.chdir(app_path) { `bin/rails runner "puts 'hello world" 2>&1` }
-      refute $?.success? 
+      output = Dir.chdir(app_path) { `bin/rails runner "puts 'hello world" 2>&1` }
+      assert_not $?.success?
+      assert_match "unterminated string meets end of file", output
     end
 
     def test_runner_detects_bad_script_name
-      Dir.chdir(app_path) { `bin/rails runner "iuiqwiourowe" 2>&1` }
-      refute $?.success? 
+      output = Dir.chdir(app_path) { `bin/rails runner "iuiqwiourowe" 2>&1` }
+      assert_not $?.success?
+      assert_match "undefined local variable or method `iuiqwiourowe' for", output
     end
 
     def test_environment_with_rails_env

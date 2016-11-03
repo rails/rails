@@ -1,5 +1,5 @@
-require 'generators/generators_test_helper'
-require 'rails/generators/rails/scaffold/scaffold_generator'
+require "generators/generators_test_helper"
+require "rails/generators/rails/scaffold/scaffold_generator"
 
 class ScaffoldGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -11,7 +11,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     # Model
-    assert_file "app/models/product_line.rb", /class ProductLine < ActiveRecord::Base/
+    assert_file "app/models/product_line.rb", /class ProductLine < ApplicationRecord/
     assert_file "test/models/product_line_test.rb", /class ProductLineTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/product_lines.yml"
     assert_migration "db/migrate/create_product_lines.rb", /belongs_to :product/
@@ -74,8 +74,8 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "app/views/product_lines/_form.html.erb" do |test|
-      assert_match 'product_line', test
-      assert_no_match '@product_line', test
+      assert_match "product_line", test
+      assert_no_match "@product_line", test
     end
 
     # Helpers
@@ -91,7 +91,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     run_generator %w(product_line title:string product:belongs_to user:references --api --no-template-engine --no-helper --no-assets)
 
     # Model
-    assert_file "app/models/product_line.rb", /class ProductLine < ActiveRecord::Base/
+    assert_file "app/models/product_line.rb", /class ProductLine < ApplicationRecord/
     assert_file "test/models/product_line_test.rb", /class ProductLineTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/product_lines.yml"
     assert_migration "db/migrate/create_product_lines.rb", /belongs_to :product/
@@ -205,7 +205,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Model
     assert_file "app/models/admin.rb", /module Admin/
-    assert_file "app/models/admin/role.rb", /class Admin::Role < ActiveRecord::Base/
+    assert_file "app/models/admin/role.rb", /class Admin::Role < ApplicationRecord/
     assert_file "test/models/admin/role_test.rb", /class Admin::RoleTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/admin/roles.yml"
     assert_migration "db/migrate/create_admin_roles.rb"
@@ -269,7 +269,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
   def test_scaffold_with_namespace_on_revoke
     run_generator [ "admin/role", "name:string", "description:string" ]
-    run_generator [ "admin/role" ], :behavior => :revoke
+    run_generator [ "admin/role" ], behavior: :revoke
 
     # Model
     assert_file "app/models/admin.rb" # ( should not be remove )
@@ -310,7 +310,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
     File.open(route_path, "wb") { |file| file.write(content) }
 
-    run_generator ["product_line"], :behavior => :revoke
+    run_generator ["product_line"], behavior: :revoke
 
     assert_file "config/routes.rb", /\.routes\.draw do\s*\|map\|\s*$/
   end
@@ -322,13 +322,13 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     content = File.read(route_path)
 
     # Remove all of the comments and blank lines from the routes file
-    content.gsub!(/^  \#.*\n/, '')
-    content.gsub!(/^\n/, '')
+    content.gsub!(/^  \#.*\n/, "")
+    content.gsub!(/^\n/, "")
 
     File.open(route_path, "wb") { |file| file.write(content) }
     assert_file "config/routes.rb", /\.routes\.draw do\n  resources :product_lines\nend\n\z/
 
-    run_generator ["product_line"], :behavior => :revoke
+    run_generator ["product_line"], behavior: :revoke
 
     assert_file "config/routes.rb", /\.routes\.draw do\nend\n\z/
   end
@@ -488,7 +488,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
         `bin/rails g scaffold User name:string age:integer;
         bin/rails db:migrate`
       end
-      assert_match(/8 runs, 13 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
+      assert_match(/8 runs, 10 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
     end
   end
 
@@ -502,7 +502,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
         `bin/rails g scaffold User name:string age:integer;
         bin/rails db:migrate`
       end
-      assert_match(/8 runs, 13 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
+      assert_match(/8 runs, 10 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
     end
   end
 

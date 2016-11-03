@@ -1,11 +1,11 @@
-require 'generators/generators_test_helper'
-require 'rails/generators/rails/app/app_generator'
+require "generators/generators_test_helper"
+require "rails/generators/rails/app/app_generator"
 
 class ApiAppGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
   tests Rails::Generators::AppGenerator
 
-  arguments [destination_root, '--api']
+  arguments [destination_root, "--api"]
 
   def setup
     Rails.application = TestApp::Application
@@ -62,49 +62,61 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_generator_skips_per_form_csrf_token_and_origin_check_configs_for_api_apps
+    run_generator
+
+    assert_file "config/initializers/new_framework_defaults.rb" do |initializer_content|
+      assert_no_match(/per_form_csrf_tokens/, initializer_content)
+      assert_no_match(/forgery_protection_origin_check/, initializer_content)
+    end
+  end
+
   private
 
-  def default_files
-    files = %W(
-      .gitignore
-      Gemfile
-      Rakefile
-      config.ru
-      app/controllers
-      app/mailers
-      app/models
-      app/views/layouts/mailer.html.erb
-      app/views/layouts/mailer.text.erb
-      config/environments
-      config/initializers
-      config/locales
-      db
-      lib
-      lib/tasks
-      log
-      test/fixtures
-      test/controllers
-      test/integration
-      test/models
-      tmp
-      vendor
-    )
-    files.concat %w(bin/bundle bin/rails bin/rake)
-    files
-  end
+    def default_files
+      files = %W(
+        .gitignore
+        Gemfile
+        Rakefile
+        config.ru
+        app/controllers
+        app/mailers
+        app/models
+        app/views/layouts/mailer.html.erb
+        app/views/layouts/mailer.text.erb
+        config/environments
+        config/initializers
+        config/locales
+        db
+        lib
+        lib/tasks
+        log
+        test/fixtures
+        test/controllers
+        test/integration
+        test/models
+        tmp
+        vendor
+      )
+      files.concat %w(bin/bundle bin/rails bin/rake)
+      files
+    end
 
-  def skipped_files
-    %w(app/assets
-       app/helpers
-       app/views/layouts/application.html.erb
-       config/initializers/assets.rb
-       config/initializers/cookies_serializer.rb
-       config/initializers/session_store.rb
-       config/initializers/request_forgery_protection.rb
-       config/initializers/per_form_csrf_tokens.rb
-       lib/assets
-       vendor/assets
-       test/helpers
-       tmp/cache/assets)
-  end
+    def skipped_files
+      %w(app/assets
+         app/helpers
+         app/views/layouts/application.html.erb
+         config/initializers/assets.rb
+         config/initializers/cookies_serializer.rb
+         lib/assets
+         vendor/assets
+         test/helpers
+         tmp/cache/assets
+         public/404.html
+         public/422.html
+         public/500.html
+         public/apple-touch-icon-precomposed.png
+         public/apple-touch-icon.png
+         public/favicon.ico)
+    end
 end

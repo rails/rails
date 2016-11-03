@@ -1,8 +1,7 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 module AbstractController
   module Testing
-
     class ControllerWithCallbacks < AbstractController::Base
       include AbstractController::Callbacks
     end
@@ -114,8 +113,8 @@ module AbstractController
     end
 
     class CallbacksWithConditions < ControllerWithCallbacks
-      before_action :list, :only => :index
-      before_action :authenticate, :except => :index
+      before_action :list, only: :index
+      before_action :authenticate, except: :index
 
       def index
         self.response_body = @list.join(", ")
@@ -126,14 +125,14 @@ module AbstractController
       end
 
       private
-      def list
-        @list = ["Hello", "World"]
-      end
+        def list
+          @list = ["Hello", "World"]
+        end
 
-      def authenticate
-        @list ||= []
-        @authenticated = "true"
-      end
+        def authenticate
+          @list ||= []
+          @authenticated = "true"
+        end
     end
 
     class TestCallbacksWithConditions < ActiveSupport::TestCase
@@ -170,14 +169,14 @@ module AbstractController
       end
 
       private
-      def list
-        @list = ["Hello", "World"]
-      end
+        def list
+          @list = ["Hello", "World"]
+        end
 
-      def authenticate
-        @list = []
-        @authenticated = "true"
-      end
+        def authenticate
+          @list = []
+          @authenticated = "true"
+        end
     end
 
     class TestCallbacksWithArrayConditions < ActiveSupport::TestCase
@@ -202,7 +201,7 @@ module AbstractController
     end
 
     class ChangedConditions < Callback2
-      before_action :first, :only => :index
+      before_action :first, only: :index
 
       def not_index
         @text ||= nil
@@ -263,54 +262,6 @@ module AbstractController
         controller = CallbacksWithArgs.new
         controller.process(:index, " Howdy!")
         assert_equal "Hello world Howdy!", controller.response_body
-      end
-    end
-
-    class AliasedCallbacks < ControllerWithCallbacks
-      ActiveSupport::Deprecation.silence do
-        before_filter :first
-        after_filter :second
-        around_filter :aroundz
-      end
-
-      def first
-        @text = "Hello world"
-      end
-
-      def second
-        @second = "Goodbye"
-      end
-
-      def aroundz
-        @aroundz = "FIRST"
-        yield
-        @aroundz << "SECOND"
-      end
-
-      def index
-        @text ||= nil
-        self.response_body = @text.to_s
-      end
-    end
-
-    class TestAliasedCallbacks < ActiveSupport::TestCase
-      def setup
-        @controller = AliasedCallbacks.new
-      end
-
-      test "before_filter works" do
-        @controller.process(:index)
-        assert_equal "Hello world", @controller.response_body
-      end
-
-      test "after_filter works" do
-        @controller.process(:index)
-        assert_equal "Goodbye", @controller.instance_variable_get("@second")
-      end
-
-      test "around_filter works" do
-        @controller.process(:index)
-        assert_equal "FIRSTSECOND", @controller.instance_variable_get("@aroundz")
       end
     end
   end

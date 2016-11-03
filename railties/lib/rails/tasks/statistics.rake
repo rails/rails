@@ -24,6 +24,6 @@ end.select { |name, dir| File.directory?(dir) }
 
 desc "Report code statistics (KLOCs, etc) from the application or engine"
 task :stats do
-  require 'rails/code_statistics'
+  require "rails/code_statistics"
   CodeStatistics.new(*STATS_DIRECTORIES).to_s
 end

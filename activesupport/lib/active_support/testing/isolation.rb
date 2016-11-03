@@ -1,7 +1,7 @@
 module ActiveSupport
   module Testing
     module Isolation
-      require 'thread'
+      require "thread"
 
       def self.included(klass) #:nodoc:
         klass.class_eval do
@@ -11,17 +11,6 @@ module ActiveSupport
 
       def self.forking_env?
         !ENV["NO_FORK"] && Process.respond_to?(:fork)
-      end
-
-      @@class_setup_mutex = Mutex.new
-
-      def _run_class_setup      # class setup method should only happen in parent
-        @@class_setup_mutex.synchronize do
-          unless defined?(@@ran_class_setup) || ENV['ISOLATION_TEST']
-            self.class.setup if self.class.respond_to?(:setup)
-            @@ran_class_setup = true
-          end
-        end
       end
 
       def run
@@ -79,17 +68,17 @@ module ActiveSupport
           if ENV["ISOLATION_TEST"]
             yield
             File.open(ENV["ISOLATION_OUTPUT"], "w") do |file|
-              file.puts [Marshal.dump(self.dup)].pack("m")
+              file.puts [Marshal.dump(dup)].pack("m")
             end
             exit!
           else
             Tempfile.open("isolation") do |tmpfile|
               env = {
-                'ISOLATION_TEST' => self.class.name,
-                'ISOLATION_OUTPUT' => tmpfile.path
+                "ISOLATION_TEST" => self.class.name,
+                "ISOLATION_OUTPUT" => tmpfile.path
               }
 
-              load_paths = $-I.map {|p| "-I\"#{File.expand_path(p)}\"" }.join(" ")
+              load_paths = $-I.map { |p| "-I\"#{File.expand_path(p)}\"" }.join(" ")
               orig_args = ORIG_ARGV.join(" ")
               test_opts = "-n#{self.class.name}##{self.name}"
               command = "#{Gem.ruby} #{load_paths} #{$0} '#{orig_args}' #{test_opts}"

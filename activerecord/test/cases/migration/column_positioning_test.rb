@@ -1,4 +1,4 @@
-require 'cases/helper'
+require "cases/helper"
 
 module ActiveRecord
   class Migration
@@ -11,7 +11,7 @@ module ActiveRecord
 
         @connection = ActiveRecord::Base.connection
 
-        connection.create_table :testings, :id => false do |t|
+        connection.create_table :testings, id: false do |t|
           t.column :first, :integer
           t.column :second, :integer
           t.column :third, :integer
@@ -34,20 +34,20 @@ module ActiveRecord
         end
 
         def test_add_column_with_positioning_first
-          conn.add_column :testings, :new_col, :integer, :first => true
+          conn.add_column :testings, :new_col, :integer, first: true
           assert_equal %w(new_col first second third), conn.columns(:testings).map(&:name)
         end
 
         def test_add_column_with_positioning_after
-          conn.add_column :testings, :new_col, :integer, :after => :first
+          conn.add_column :testings, :new_col, :integer, after: :first
           assert_equal %w(first new_col second third), conn.columns(:testings).map(&:name)
         end
 
         def test_change_column_with_positioning
-          conn.change_column :testings, :second, :integer, :first => true
+          conn.change_column :testings, :second, :integer, first: true
           assert_equal %w(second first third), conn.columns(:testings).map(&:name)
 
-          conn.change_column :testings, :second, :integer, :after => :third
+          conn.change_column :testings, :second, :integer, after: :third
           assert_equal %w(first third second), conn.columns(:testings).map(&:name)
         end
       end

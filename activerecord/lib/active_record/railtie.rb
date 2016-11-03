@@ -3,7 +3,7 @@ require "rails"
 require "active_model/railtie"
 
 # For now, action_controller must always be present with
-# rails, so let's make sure that it gets required before
+# Rails, so let's make sure that it gets required before
 # here. This is needed for correctly setting up the middleware.
 # In the future, this might become an optional require.
 require "action_controller/railtie"
@@ -13,16 +13,15 @@ module ActiveRecord
   class Railtie < Rails::Railtie # :nodoc:
     config.active_record = ActiveSupport::OrderedOptions.new
 
-    config.app_generators.orm :active_record, :migration => true,
-                                              :timestamps => true
+    config.app_generators.orm :active_record, migration: true,
+                                              timestamps: true
 
     config.action_dispatch.rescue_responses.merge!(
-      'ActiveRecord::RecordNotFound'   => :not_found,
-      'ActiveRecord::StaleObjectError' => :conflict,
-      'ActiveRecord::RecordInvalid'    => :unprocessable_entity,
-      'ActiveRecord::RecordNotSaved'   => :unprocessable_entity
+      "ActiveRecord::RecordNotFound"   => :not_found,
+      "ActiveRecord::StaleObjectError" => :conflict,
+      "ActiveRecord::RecordInvalid"    => :unprocessable_entity,
+      "ActiveRecord::RecordNotSaved"   => :unprocessable_entity
     )
-
 
     config.active_record.use_schema_cache_dump = true
     config.active_record.maintain_test_schema = true
@@ -35,8 +34,8 @@ module ActiveRecord
           ActiveRecord::Tasks::DatabaseTasks.database_configuration = Rails.application.config.database_configuration
 
           if defined?(ENGINE_ROOT) && engine = Rails::Engine.find(ENGINE_ROOT)
-            if engine.paths['db/migrate'].existent
-              ActiveRecord::Tasks::DatabaseTasks.migrations_paths += engine.paths['db/migrate'].to_a
+            if engine.paths["db/migrate"].existent
+              ActiveRecord::Tasks::DatabaseTasks.migrations_paths += engine.paths["db/migrate"].to_a
             end
           end
         end
@@ -102,14 +101,14 @@ module ActiveRecord
     initializer "active_record.warn_on_records_fetched_greater_than" do
       if config.active_record.warn_on_records_fetched_greater_than
         ActiveSupport.on_load(:active_record) do
-          require 'active_record/relation/record_fetch_warning'
+          require "active_record/relation/record_fetch_warning"
         end
       end
     end
 
     initializer "active_record.set_configs" do |app|
       ActiveSupport.on_load(:active_record) do
-        app.config.active_record.each do |k,v|
+        app.config.active_record.each do |k, v|
           send "#{k}=", v
         end
       end

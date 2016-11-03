@@ -12,7 +12,7 @@ module ActiveSupport
       private
 
         def parts
-          left, right = number.to_s.split('.'.freeze)
+          left, right = number.to_s.split(".".freeze)
           left.gsub!(delimiter_pattern) do |digit_to_delimit|
             "#{digit_to_delimit}#{options[:delimiter]}"
           end
@@ -22,7 +22,6 @@ module ActiveSupport
         def delimiter_pattern
           options.fetch(:delimiter_pattern, DEFAULT_DELIMITER_REGEX)
         end
-
     end
   end
 end

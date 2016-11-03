@@ -18,5 +18,4 @@ class PreparedStatementsTest < ActiveRecord::PostgreSQLTestCase
       Developer.where(id: 1)
     end
   end
-
 end

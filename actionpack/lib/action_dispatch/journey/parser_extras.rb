@@ -1,9 +1,10 @@
-require 'action_dispatch/journey/scanner'
-require 'action_dispatch/journey/nodes/node'
+require "action_dispatch/journey/scanner"
+require "action_dispatch/journey/nodes/node"
 
 module ActionDispatch
-  module Journey # :nodoc:
-    class Parser < Racc::Parser # :nodoc:
+  # :stopdoc:
+  module Journey
+    class Parser < Racc::Parser
       include Journey::Nodes
 
       def self.parse(string)
@@ -24,4 +25,5 @@ module ActionDispatch
       end
     end
   end
+  # :startdoc:
 end

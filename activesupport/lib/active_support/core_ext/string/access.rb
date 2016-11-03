@@ -1,5 +1,5 @@
 class String
-  # If you pass a single Fixnum, returns a substring of one character at that
+  # If you pass a single integer, returns a substring of one character at that
   # position. The first character of the string is at position 0, the next at
   # position 1, and so on. If a range is supplied, a substring containing
   # characters at offsets given by the range is returned. In both cases, if an
@@ -74,9 +74,9 @@ class String
   #   str.first(6) # => "hello"
   def first(limit = 1)
     if limit == 0
-      ''
+      ""
     elsif limit >= size
-      self.dup
+      dup
     else
       to(limit - 1)
     end
@@ -94,9 +94,9 @@ class String
   #   str.last(6) # => "hello"
   def last(limit = 1)
     if limit == 0
-      ''
+      ""
     elsif limit >= size
-      self.dup
+      dup
     else
       from(-limit)
     end

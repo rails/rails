@@ -1,6 +1,7 @@
 module ActionDispatch
-  module Journey # :nodoc:
-    class Route # :nodoc:
+  # :stopdoc:
+  module Journey
+    class Route
       attr_reader :app, :path, :defaults, :name, :precedence
 
       attr_reader :constraints, :internal
@@ -29,16 +30,15 @@ module ActionDispatch
 
         class All
           def self.call(_); true; end
-          def self.verb; ''; end
+          def self.verb; ""; end
         end
 
-        VERB_TO_CLASS = VERBS.each_with_object({ :all => All }) do |verb, hash|
+        VERB_TO_CLASS = VERBS.each_with_object(all: All) do |verb, hash|
           klass = const_get verb
           hash[verb]                 = klass
           hash[verb.downcase]        = klass
           hash[verb.downcase.to_sym] = klass
         end
-
       end
 
       def self.verb_matcher(verb)
@@ -81,9 +81,9 @@ module ActionDispatch
         end
       end
 
-      def requirements # :nodoc:
+      def requirements
         # needed for rails `rails routes`
-        @defaults.merge(path.requirements).delete_if { |_,v|
+        @defaults.merge(path.requirements).delete_if { |_, v|
           /.+?/ == v
         }
       end
@@ -98,7 +98,7 @@ module ActionDispatch
 
       def score(constraints)
         required_keys = path.required_names
-        supplied_keys = constraints.map { |k,v| v && k.to_s }.compact
+        supplied_keys = constraints.map { |k, v| v && k.to_s }.compact
 
         return -1 unless (required_keys - supplied_keys).empty?
 
@@ -124,7 +124,7 @@ module ActionDispatch
       end
 
       def required_defaults
-        @required_defaults ||= @defaults.dup.delete_if do |k,_|
+        @required_defaults ||= @defaults.dup.delete_if do |k, _|
           parts.include?(k) || !required_default?(k)
         end
       end
@@ -164,17 +164,18 @@ module ActionDispatch
       end
 
       def verb
-        verbs.join('|')
+        verbs.join("|")
       end
 
       private
-      def verbs
-        @request_method_match.map(&:verb)
-      end
+        def verbs
+          @request_method_match.map(&:verb)
+        end
 
-      def match_verb(request)
-        @request_method_match.any? { |m| m.call request }
-      end
+        def match_verb(request)
+          @request_method_match.any? { |m| m.call request }
+        end
     end
   end
+  # :startdoc:
 end

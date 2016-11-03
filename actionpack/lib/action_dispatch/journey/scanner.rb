@@ -1,4 +1,4 @@
-require 'strscan'
+require "strscan"
 
 module ActionDispatch
   module Journey # :nodoc:
@@ -50,7 +50,7 @@ module ActionDispatch
           when text = @ss.scan(/(?<!\\):\w+/)
             [:SYMBOL, text]
           when text = @ss.scan(/(?:[\w%\-~!$&'*+,;=@]|\\:|\\\(|\\\))+/)
-            [:LITERAL, text.tr('\\', '')]
+            [:LITERAL, text.tr('\\', "")]
             # any char
           when text = @ss.scan(/./)
             [:LITERAL, text]

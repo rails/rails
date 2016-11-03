@@ -1,7 +1,6 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 module ContentNegotiation
-
   # This has no layout and it works
   class BasicController < ActionController::Base
     self.view_paths = [ActionView::FixtureResolver.new(
@@ -9,7 +8,7 @@ module ContentNegotiation
     )]
 
     def all
-      render plain: self.formats.inspect
+      render plain: formats.inspect
     end
   end
 

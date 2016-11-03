@@ -1,8 +1,8 @@
-require 'cases/helper'
-require 'models/book'
-require 'models/liquid'
-require 'models/molecule'
-require 'models/electron'
+require "cases/helper"
+require "models/book"
+require "models/liquid"
+require "models/molecule"
+require "models/electron"
 
 module ActiveRecord
   class StatementCacheTest < ActiveRecord::TestCase
@@ -16,7 +16,7 @@ module ActiveRecord
       Book.create(name: "my other book")
 
       cache = StatementCache.create(Book.connection) do |params|
-        Book.where(:name => params.bind)
+        Book.where(name: params.bind)
       end
 
       b = cache.execute([ "my book" ], Book, Book.connection)
@@ -24,7 +24,6 @@ module ActiveRecord
       b = cache.execute([ "my other book" ], Book, Book.connection)
       assert_equal "my other book", b[0].name
     end
-
 
     def test_statement_cache_id
       b1 = Book.create(name: "my book")
@@ -65,12 +64,12 @@ module ActiveRecord
 
     def test_statement_cache_with_complex_statement
       cache = ActiveRecord::StatementCache.create(Book.connection) do |params|
-        Liquid.joins(:molecules => :electrons).where('molecules.name' => 'dioxane', 'electrons.name' => 'lepton')
+        Liquid.joins(molecules: :electrons).where("molecules.name" => "dioxane", "electrons.name" => "lepton")
       end
 
-      salty = Liquid.create(name: 'salty')
-      molecule = salty.molecules.create(name: 'dioxane')
-      molecule.electrons.create(name: 'lepton')
+      salty = Liquid.create(name: "salty")
+      molecule = salty.molecules.create(name: "dioxane")
+      molecule.electrons.create(name: "lepton")
 
       liquids = cache.execute([], Book, Book.connection)
       assert_equal "salty", liquids[0].name

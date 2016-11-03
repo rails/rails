@@ -1,4 +1,4 @@
-require 'active_support/core_ext/string/inflections'
+require "active_support/core_ext/string/inflections"
 
 #--
 # Allows code reuse in the methods below without polluting Module.
@@ -11,7 +11,7 @@ module ActiveSupport
     end
 
     def self.names(path)
-      path.split('::')
+      path.split("::")
     end
   end
 end
@@ -26,7 +26,7 @@ end
 # Object.const_get('::String') raises NameError and so does qualified_const_get.
 #++
 class Module
-  def qualified_const_defined?(path, search_parents=true)
+  def qualified_const_defined?(path, search_parents = true)
     ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
       Module#qualified_const_defined? is deprecated in favour of the builtin
       Module#const_defined? and will be removed in Rails 5.1.

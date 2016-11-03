@@ -1,4 +1,4 @@
-require 'test_helper'
+require "test_helper"
 
 class ActionCable::Channel::NamingTest < ActiveSupport::TestCase
   class ChatChannel < ActionCable::Channel::Base

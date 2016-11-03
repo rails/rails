@@ -1,11 +1,10 @@
-require 'active_support/core_ext/hash/keys'
-require 'active_support/core_ext/string/output_safety'
-require 'active_support/number_helper'
+require "active_support/core_ext/hash/keys"
+require "active_support/core_ext/string/output_safety"
+require "active_support/number_helper"
 
 module ActionView
   # = Action View Number Helpers
   module Helpers #:nodoc:
-
     # Provides methods for converting numbers into formatted strings.
     # Methods are provided for phone numbers, currency, percentage,
     # precision, positional notation, file size and pretty printing.
@@ -13,7 +12,6 @@ module ActionView
     # Most methods expect a +number+ argument, and will return it
     # unchanged if can't be converted into a valid number.
     module NumberHelper
-
       # Raised when argument +number+ param given to the helpers is invalid and
       # the option :raise is set to  +true+.
       class InvalidNumberError < StandardError
@@ -263,8 +261,6 @@ module ActionView
       # * <tt>:strip_insignificant_zeros</tt> - If +true+ removes
       #   insignificant zeros after the decimal separator (defaults to
       #   +true+)
-      # * <tt>:prefix</tt> - If +:si+ formats the number using the SI
-      #   prefix (defaults to :binary)
       # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
       #   the argument is invalid.
       #
@@ -395,53 +391,53 @@ module ActionView
 
       private
 
-      def delegate_number_helper_method(method, number, options)
-        return unless number
-        options = escape_unsafe_options(options.symbolize_keys)
+        def delegate_number_helper_method(method, number, options)
+          return unless number
+          options = escape_unsafe_options(options.symbolize_keys)
 
-        wrap_with_output_safety_handling(number, options.delete(:raise)) {
-          ActiveSupport::NumberHelper.public_send(method, number, options)
-        }
-      end
-
-      def escape_unsafe_options(options)
-        options[:format]          = ERB::Util.html_escape(options[:format]) if options[:format]
-        options[:negative_format] = ERB::Util.html_escape(options[:negative_format]) if options[:negative_format]
-        options[:separator]       = ERB::Util.html_escape(options[:separator]) if options[:separator]
-        options[:delimiter]       = ERB::Util.html_escape(options[:delimiter]) if options[:delimiter]
-        options[:unit]            = ERB::Util.html_escape(options[:unit]) if options[:unit] && !options[:unit].html_safe?
-        options[:units]           = escape_units(options[:units]) if options[:units] && Hash === options[:units]
-        options
-      end
-
-      def escape_units(units)
-        Hash[units.map do |k, v|
-          [k, ERB::Util.html_escape(v)]
-        end]
-      end
-
-      def wrap_with_output_safety_handling(number, raise_on_invalid, &block)
-        valid_float = valid_float?(number)
-        raise InvalidNumberError, number if raise_on_invalid && !valid_float
-
-        formatted_number = yield
-
-        if valid_float || number.html_safe?
-          formatted_number.html_safe
-        else
-          formatted_number
+          wrap_with_output_safety_handling(number, options.delete(:raise)) {
+            ActiveSupport::NumberHelper.public_send(method, number, options)
+          }
         end
-      end
 
-      def valid_float?(number)
-        !parse_float(number, false).nil?
-      end
+        def escape_unsafe_options(options)
+          options[:format]          = ERB::Util.html_escape(options[:format]) if options[:format]
+          options[:negative_format] = ERB::Util.html_escape(options[:negative_format]) if options[:negative_format]
+          options[:separator]       = ERB::Util.html_escape(options[:separator]) if options[:separator]
+          options[:delimiter]       = ERB::Util.html_escape(options[:delimiter]) if options[:delimiter]
+          options[:unit]            = ERB::Util.html_escape(options[:unit]) if options[:unit] && !options[:unit].html_safe?
+          options[:units]           = escape_units(options[:units]) if options[:units] && Hash === options[:units]
+          options
+        end
 
-      def parse_float(number, raise_error)
-        Float(number)
-      rescue ArgumentError, TypeError
-        raise InvalidNumberError, number if raise_error
-      end
+        def escape_units(units)
+          Hash[units.map do |k, v|
+            [k, ERB::Util.html_escape(v)]
+          end]
+        end
+
+        def wrap_with_output_safety_handling(number, raise_on_invalid, &block)
+          valid_float = valid_float?(number)
+          raise InvalidNumberError, number if raise_on_invalid && !valid_float
+
+          formatted_number = yield
+
+          if valid_float || number.html_safe?
+            formatted_number.html_safe
+          else
+            formatted_number
+          end
+        end
+
+        def valid_float?(number)
+          !parse_float(number, false).nil?
+        end
+
+        def parse_float(number, raise_error)
+          Float(number)
+        rescue ArgumentError, TypeError
+          raise InvalidNumberError, number if raise_error
+        end
     end
   end
 end

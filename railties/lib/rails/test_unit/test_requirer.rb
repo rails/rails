@@ -1,5 +1,5 @@
-require 'active_support/core_ext/object/blank'
-require 'rake/file_list'
+require "active_support/core_ext/object/blank"
+require "rake/file_list"
 
 module Rails
   class TestRequirer # :nodoc:
@@ -7,7 +7,7 @@ module Rails
       def require_files(patterns)
         patterns = expand_patterns(patterns)
 
-        Rake::FileList[patterns.compact.presence || 'test/**/*_test.rb'].to_a.each do |file|
+        Rake::FileList[patterns.compact.presence || "test/**/*_test.rb"].to_a.each do |file|
           require File.expand_path(file)
         end
       end
@@ -15,7 +15,7 @@ module Rails
       private
         def expand_patterns(patterns)
           patterns.map do |arg|
-            arg = arg.gsub(/(:\d+)+?$/, '')
+            arg = arg.gsub(/(:\d+)+?$/, "")
             if Dir.exist?(arg)
               "#{arg}/**/*_test.rb"
             else

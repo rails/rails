@@ -1,10 +1,14 @@
-require 'abstract_unit'
-require 'stringio'
+require "abstract_unit"
+require "stringio"
 
 class ActionController::TestRequestTest < ActionController::TestCase
-
   def test_test_request_has_session_options_initialized
     assert @request.session_options
+  end
+
+  def test_mutating_session_options_does_not_affect_default_options
+    @request.session_options[:myparam] = 123
+    assert_equal nil, ActionController::TestSession::DEFAULT_OPTIONS[:myparam]
   end
 
   ActionDispatch::Session::AbstractStore::DEFAULT_OPTIONS.each_key do |option|
@@ -19,5 +23,4 @@ class ActionController::TestRequestTest < ActionController::TestCase
                    "Missing rack session option #{option} in request.session_options")
     end
   end
-
 end

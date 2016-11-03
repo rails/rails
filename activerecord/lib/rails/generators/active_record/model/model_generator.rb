@@ -1,9 +1,9 @@
-require 'rails/generators/active_record'
+require "rails/generators/active_record"
 
 module ActiveRecord
   module Generators # :nodoc:
     class ModelGenerator < Base # :nodoc:
-      argument :attributes, :type => :array, :default => [], :banner => "field[:type][:index] field[:type][:index]"
+      argument :attributes, type: :array, default: [], banner: "field[:type][:index] field[:type][:index]"
 
       check_class_collision
 
@@ -21,14 +21,14 @@ module ActiveRecord
       end
 
       def create_model_file
-        template 'model.rb', File.join('app/models', class_path, "#{file_name}.rb")
         generate_application_record
+        template "model.rb", File.join("app/models", class_path, "#{file_name}.rb")
       end
 
       def create_module_file
         return if regular_class_path.empty?
-        template 'module.rb', File.join('app/models', "#{class_path.join('/')}.rb") if behavior == :invoke
         generate_application_record
+        template "module.rb", File.join("app/models", "#{class_path.join('/')}.rb") if behavior == :invoke
       end
 
       hook_for :test_framework
@@ -42,13 +42,13 @@ module ActiveRecord
         # FIXME: Change this file to a symlink once RubyGems 2.5.0 is required.
         def generate_application_record
           if self.behavior == :invoke && !application_record_exist?
-            template 'application_record.rb', application_record_file_name
+            template "application_record.rb", application_record_file_name
           end
         end
 
         # Used by the migration template to determine the parent name of the model
         def parent_class_name
-          options[:parent] || determine_default_parent_class
+          options[:parent] || "ApplicationRecord"
         end
 
         def application_record_exist?
@@ -61,15 +61,7 @@ module ActiveRecord
           @application_record_file_name ||= if mountable_engine?
             "app/models/#{namespaced_path}/application_record.rb"
           else
-            'app/models/application_record.rb'
-          end
-        end
-
-        def determine_default_parent_class
-          if application_record_exist?
-            "ApplicationRecord"
-          else
-            "ActiveRecord::Base"
+            "app/models/application_record.rb"
           end
         end
     end

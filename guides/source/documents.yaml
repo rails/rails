@@ -85,9 +85,8 @@
       description: This guide provides you with all you need to get started creating, enqueuing, and executing background jobs.
     -
       name: Testing Rails Applications
-      work_in_progress: true
       url: testing.html
-      description: This is a rather comprehensive guide to the various testing facilities in Rails. It covers everything from 'What is a test?' to the testing APIs. Enjoy.
+      description: This is a rather comprehensive guide to the various testing facilities in Rails. It covers everything from 'What is a test?' to Integration Testing. Enjoy.
     -
       name: Securing Rails Applications
       url: security.html
@@ -101,9 +100,9 @@
       url: configuring.html
       description: This guide covers the basic configuration settings for a Rails application.
     -
-      name: Rails Command Line Tools and Rake Tasks
+      name: The Rails Command Line
       url: command_line.html
-      description: This guide covers the command line tools and rake tasks provided by Rails.
+      description: This guide covers the command line tools provided by Rails.
     -
       name: Asset Pipeline
       url: asset_pipeline.html
@@ -194,6 +193,10 @@
       name: Upgrading Ruby on Rails
       url: upgrading_ruby_on_rails.html
       description: This guide helps in upgrading applications to latest Ruby on Rails versions.
+    -
+      name: Ruby on Rails 5.0 Release Notes
+      url: 5_0_release_notes.html
+      description: Release notes for Rails 5.0.
     -
       name: Ruby on Rails 4.2 Release Notes
       url: 4_2_release_notes.html

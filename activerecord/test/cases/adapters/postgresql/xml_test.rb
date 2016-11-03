@@ -1,28 +1,28 @@
-require 'cases/helper'
-require 'support/schema_dumping_helper'
+require "cases/helper"
+require "support/schema_dumping_helper"
 
 class PostgresqlXMLTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
   class XmlDataType < ActiveRecord::Base
-    self.table_name = 'xml_data_type'
+    self.table_name = "xml_data_type"
   end
 
   def setup
     @connection = ActiveRecord::Base.connection
     begin
       @connection.transaction do
-        @connection.create_table('xml_data_type') do |t|
-          t.xml 'payload'
+        @connection.create_table("xml_data_type") do |t|
+          t.xml "payload"
         end
       end
     rescue ActiveRecord::StatementInvalid
       skip "do not test on PG without xml"
     end
-    @column = XmlDataType.columns_hash['payload']
+    @column = XmlDataType.columns_hash["payload"]
   end
 
   teardown do
-    @connection.drop_table 'xml_data_type', if_exists: true
+    @connection.drop_table "xml_data_type", if_exists: true
   end
 
   def test_column
@@ -30,7 +30,7 @@ class PostgresqlXMLTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_null_xml
-    @connection.execute %q|insert into xml_data_type (payload) VALUES(null)|
+    @connection.execute "insert into xml_data_type (payload) VALUES(null)"
     assert_nil XmlDataType.first.payload
   end
 

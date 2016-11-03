@@ -1,6 +1,6 @@
-require 'abstract_unit'
-require 'controller/fake_models'
-require 'active_support/logger'
+require "abstract_unit"
+require "controller/fake_models"
+require "active_support/logger"
 
 class RenderersTest < ActionController::TestCase
   class XmlRenderable
@@ -10,14 +10,14 @@ class RenderersTest < ActionController::TestCase
     end
   end
   class JsonRenderable
-    def as_json(options={})
-      hash = { :a => :b, :c => :d, :e => :f }
+    def as_json(options = {})
+      hash = { a: :b, c: :d, e: :f }
       hash.except!(*options[:except]) if options[:except]
       hash
     end
 
     def to_json(options = {})
-      super :except => [:c, :e]
+      super except: [:c, :e]
     end
   end
   class CsvRenderable
@@ -26,9 +26,8 @@ class RenderersTest < ActionController::TestCase
     end
   end
   class TestController < ActionController::Base
-
     def render_simon_says
-      render :simon => "foo"
+      render simon: "foo"
     end
 
     def respond_to_mime
@@ -36,7 +35,7 @@ class RenderersTest < ActionController::TestCase
         type.json do
           render json: JsonRenderable.new
         end
-        type.js   { render json: 'JS', callback: 'alert' }
+        type.js   { render json: "JS", callback: "alert" }
         type.csv  { render csv: CsvRenderable.new    }
         type.xml  { render xml: XmlRenderable.new     }
         type.html { render body: "HTML"    }
@@ -70,7 +69,7 @@ class RenderersTest < ActionController::TestCase
 
   def test_raises_missing_template_no_renderer
     assert_raise ActionView::MissingTemplate do
-      get :respond_to_mime, format: 'csv'
+      get :respond_to_mime, format: "csv"
     end
     assert_equal Mime[:csv], @response.content_type
     assert_equal "", @response.body
@@ -81,7 +80,7 @@ class RenderersTest < ActionController::TestCase
       send_data value.to_csv, type: Mime[:csv]
     end
     @request.accept = "text/csv"
-    get :respond_to_mime, format: 'csv'
+    get :respond_to_mime, format: "csv"
     assert_equal Mime[:csv], @response.content_type
     assert_equal "c,s,v", @response.body
   ensure

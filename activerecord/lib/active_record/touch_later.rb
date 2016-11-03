@@ -8,7 +8,12 @@ module ActiveRecord
     end
 
     def touch_later(*names) # :nodoc:
-      raise ActiveRecordError, "cannot touch on a new record object" unless persisted?
+      unless persisted?
+        raise ActiveRecordError, <<-MSG.squish
+          cannot touch on a new or destroyed record object. Consider using
+          persisted?, new_record?, or destroyed? before touching
+        MSG
+      end
 
       @_defer_touch_attrs ||= timestamp_attributes_for_update_in_model
       @_defer_touch_attrs |= names
@@ -20,7 +25,7 @@ module ActiveRecord
       # touch the parents as we are not calling the after_save callbacks
       self.class.reflect_on_all_associations(:belongs_to).each do |r|
         if touch = r.options[:touch]
-          ActiveRecord::Associations::Builder::BelongsTo.touch_record(self, r.foreign_key, r.name, touch, :touch_later)
+          ActiveRecord::Associations::Builder::BelongsTo.touch_record(self, changes_to_save, r.foreign_key, r.name, touch, :touch_later)
         end
       end
     end
@@ -53,6 +58,5 @@ module ActiveRecord
       def belongs_to_touch_method
         :touch_later
       end
-
   end
 end

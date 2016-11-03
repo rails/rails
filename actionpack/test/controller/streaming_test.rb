@@ -1,10 +1,10 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 module ActionController
   class StreamingResponseTest < ActionController::TestCase
     class TestController < ActionController::Base
       def self.controller_path
-        'test'
+        "test"
       end
 
       def basic_stream

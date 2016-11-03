@@ -1,6 +1,6 @@
-require 'rack/session/abstract/id'
-require 'action_controller/metal/exceptions'
-require 'active_support/security_utils'
+require "rack/session/abstract/id"
+require "action_controller/metal/exceptions"
+require "active_support/security_utils"
 
 module ActionController #:nodoc:
   class InvalidAuthenticityToken < ActionControllerError #:nodoc:
@@ -109,10 +109,10 @@ module ActionController #:nodoc:
       # * <tt>:only/:except</tt> - Only apply forgery protection to a subset of actions. For example <tt>only: [ :create, :create_all ]</tt>.
       # * <tt>:if/:unless</tt> - Turn off the forgery protection entirely depending on the passed Proc or method reference.
       # * <tt>:prepend</tt> - By default, the verification of the authentication token will be added at the position of the
-      #    protect_from_forgery call in your application. This means any callbacks added before are run first. This is useful
-      #    when you want your forgery protection to depend on other callbacks, like authentication methods (Oauth vs Cookie auth).
+      #   protect_from_forgery call in your application. This means any callbacks added before are run first. This is useful
+      #   when you want your forgery protection to depend on other callbacks, like authentication methods (Oauth vs Cookie auth).
       #
-      #    If you need to add verification to the beginning of the callback chain, use <tt>prepend: true</tt>.
+      #   If you need to add verification to the beginning of the callback chain, use <tt>prepend: true</tt>.
       # * <tt>:with</tt> - Set the method to handle unverified request.
       #
       # Valid unverified request handling methods are:
@@ -130,11 +130,11 @@ module ActionController #:nodoc:
 
       private
 
-      def protection_method_class(name)
-        ActionController::RequestForgeryProtection::ProtectionMethods.const_get(name.to_s.classify)
-      rescue NameError
-        raise ArgumentError, 'Invalid request forgery protection method, use :null_session, :exception, or :reset_session'
-      end
+        def protection_method_class(name)
+          ActionController::RequestForgeryProtection::ProtectionMethods.const_get(name.to_s.classify)
+        rescue NameError
+          raise ArgumentError, "Invalid request forgery protection method, use :null_session, :exception, or :reset_session"
+        end
     end
 
     module ProtectionMethods
@@ -154,26 +154,26 @@ module ActionController #:nodoc:
 
         protected
 
-        class NullSessionHash < Rack::Session::Abstract::SessionHash #:nodoc:
-          def initialize(req)
-            super(nil, req)
-            @data = {}
-            @loaded = true
+          class NullSessionHash < Rack::Session::Abstract::SessionHash #:nodoc:
+            def initialize(req)
+              super(nil, req)
+              @data = {}
+              @loaded = true
+            end
+
+            # no-op
+            def destroy; end
+
+            def exists?
+              true
+            end
           end
 
-          # no-op
-          def destroy; end
-
-          def exists?
-            true
+          class NullCookieJar < ActionDispatch::Cookies::CookieJar #:nodoc:
+            def write(*)
+              # nothing
+            end
           end
-        end
-
-        class NullCookieJar < ActionDispatch::Cookies::CookieJar #:nodoc:
-          def write(*)
-            # nothing
-          end
-        end
       end
 
       class ResetSession
@@ -235,7 +235,9 @@ module ActionController #:nodoc:
       # we aren't serving an unauthorized cross-origin response.
       def verify_same_origin_request
         if marked_for_same_origin_verification? && non_xhr_javascript_response?
-          logger.warn CROSS_ORIGIN_JAVASCRIPT_WARNING if logger
+          if logger && log_warning_on_csrf_failure
+            logger.warn CROSS_ORIGIN_JAVASCRIPT_WARNING
+          end
           raise ActionController::InvalidCrossOriginRequest, CROSS_ORIGIN_JAVASCRIPT_WARNING
         end
       end
@@ -380,7 +382,7 @@ module ActionController #:nodoc:
       def xor_byte_strings(s1, s2)
         s2_bytes = s2.bytes
         s1.each_byte.with_index { |c1, i| s2_bytes[i] ^= c1 }
-        s2_bytes.pack('C*')
+        s2_bytes.pack("C*")
       end
 
       # The form's authenticity parameter. Override to provide your own.
@@ -406,7 +408,7 @@ module ActionController #:nodoc:
 
       def normalize_action_path(action_path)
         uri = URI.parse(action_path)
-        uri.path.chomp('/')
+        uri.path.chomp("/")
       end
   end
 end

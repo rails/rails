@@ -6,8 +6,12 @@ incorporate real-time features into your Rails application.
 
 After reading this guide, you will know:
 
+* What Action Cable is and its integration on backend and frontend  
 * How to setup Action Cable
 * How to setup channels
+* Deployment and Architecture setup for running Action Cable
+
+--------------------------------------------------------------------------------
 
 Introduction
 ------------
@@ -82,7 +86,7 @@ The cookie is then automatically sent to the connection instance when a new conn
 is attempted, and you use that to set the `current_user`. By identifying the connection
 by this same current user, you're also ensuring that you can later retrieve all open
 connections by a given user (and potentially disconnect them all if the user is deleted
-or deauthorized).
+or unauthorized).
 
 ### Channels
 
@@ -236,12 +240,12 @@ WebNotificationsChannel.broadcast_to(
 ```
 
 The `WebNotificationsChannel.broadcast_to` call places a message in the current
-subscription adapter (Redis by default)'s pubsub queue under a separate
-broadcasting name for each user. For a user with an ID of 1, the broadcasting
-name would be `web_notifications_1`.
+subscription adapter (by default `redis` for production and `async` for development and 
+test environments)'s pubsub queue under a separate broadcasting name for each user. 
+For a user with an ID of 1, the broadcasting name would be `web_notifications:1`.
 
 The channel has been instructed to stream everything that arrives at
-`web_notifications_1` directly to the client by invoking the `received`
+`web_notifications:1` directly to the client by invoking the `received`
 callback.
 
 ### Subscriptions
@@ -309,7 +313,7 @@ App.cable.subscriptions.create { channel: "ChatChannel", room: "Best Room" },
 ```ruby
 # Somewhere in your app this is called, perhaps
 # from a NewCommentJob.
-ChatChannel.broadcast_to(
+ActionCable.server.broadcast(
   "chat_#{room}",
   sent_by: 'Paul',
   body: 'This is a cool chat app.'
@@ -329,7 +333,7 @@ class ChatChannel < ApplicationCable::Channel
   end
 
   def receive(data)
-    ChatChannel.broadcast_to("chat_#{params[:room]}", data)
+    ActionCable.server.broadcast("chat_#{params[:room]}", data)
   end
 end
 ```
@@ -418,7 +422,7 @@ App.cable.subscriptions.create "AppearanceChannel",
   buttonSelector = "[data-behavior~=appear_away]"
 
   install: ->
-    $(document).on "page:change.appearance", =>
+    $(document).on "turbolinks:load.appearance", =>
       @appear()
 
     $(document).on "click.appearance", buttonSelector, =>
@@ -506,10 +510,10 @@ WebNotificationsChannel.broadcast_to(
 The `WebNotificationsChannel.broadcast_to` call places a message in the current
 subscription adapter's pubsub queue under a separate broadcasting name for each
 user. For a user with an ID of 1, the broadcasting name would be
-"web_notifications_1".
+`web_notifications:1`.
 
 The channel has been instructed to stream everything that arrives at
-"web_notifications_1" directly to the client by invoking the `received`
+`web_notifications:1` directly to the client by invoking the `received`
 callback. The data passed as argument is the hash sent as the second parameter
 to the server-side broadcast call, JSON encoded for the trip across the wire,
 and unpacked for the data argument arriving to `received`.
@@ -568,12 +572,13 @@ environment configuration files.
 
 ### Other Configurations
 
-The other common option to configure is the log tags applied to the
-per-connection logger. Here's close to what we're using in Basecamp:
+The other common option to configure, is the log tags applied to the
+per-connection logger. Here's an example that uses
+the user account id if available, else "no-account" while tagging:
 
 ```ruby
 config.action_cable.log_tags = [
-  -> request { request.env['bc.account_id'] || "no-account" },
+  -> request { request.env['user_account_id'] || "no-account" },
   :action_cable,
   -> request { request.uuid }
 ]
@@ -583,7 +588,7 @@ For a full list of all configuration options, see the
 `ActionCable::Server::Configuration` class.
 
 Also note that your server must provide at least the same number of database
-connections as you have workers. The default worker pool size is set to 100, so
+connections as you have workers. The default worker pool size is set to 4, so
 that means you have to make at least that available. You can change that in
 `config/database.yml` through the `pool` attribute.
 
@@ -619,7 +624,7 @@ basic setup is as follows:
 
 ```ruby
 # cable/config.ru
-require_relative 'config/environment'
+require_relative '../config/environment'
 Rails.application.eager_load!
 
 run ActionCable.server

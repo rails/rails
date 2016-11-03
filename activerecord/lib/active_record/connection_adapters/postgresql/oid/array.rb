@@ -8,7 +8,7 @@ module ActiveRecord
           attr_reader :subtype, :delimiter
           delegate :type, :user_input_in_time_zone, :limit, to: :subtype
 
-          def initialize(subtype, delimiter = ',')
+          def initialize(subtype, delimiter = ",")
             @subtype = subtype
             @delimiter = delimiter
 
@@ -33,7 +33,11 @@ module ActiveRecord
 
           def serialize(value)
             if value.is_a?(::Array)
-              @pg_encoder.encode(type_cast_array(value, :serialize))
+              result = @pg_encoder.encode(type_cast_array(value, :serialize))
+              if encoding = determine_encoding_of_strings(value)
+                result.encode!(encoding)
+              end
+              result
             else
               super
             end
@@ -56,13 +60,20 @@ module ActiveRecord
 
           private
 
-          def type_cast_array(value, method)
-            if value.is_a?(::Array)
-              value.map { |item| type_cast_array(item, method) }
-            else
-              @subtype.public_send(method, value)
+            def type_cast_array(value, method)
+              if value.is_a?(::Array)
+                value.map { |item| type_cast_array(item, method) }
+              else
+                @subtype.public_send(method, value)
+              end
             end
-          end
+
+            def determine_encoding_of_strings(value)
+              case value
+              when ::Array then determine_encoding_of_strings(value.first)
+              when ::String then value.encoding
+              end
+            end
         end
       end
     end

@@ -21,7 +21,7 @@ After reading this guide, you will know:
 What Does a Controller Do?
 --------------------------
 
-Action Controller is the C in MVC. After routing has determined which controller to use for a request, the controller is responsible for making sense of the request and producing the appropriate output. Luckily, Action Controller does most of the groundwork for you and uses smart conventions to make this as straightforward as possible.
+Action Controller is the C in MVC. After the router has determined which controller to use for a request, the controller is responsible for making sense of the request and producing the appropriate output. Luckily, Action Controller does most of the groundwork for you and uses smart conventions to make this as straightforward as possible.
 
 For most conventional [RESTful](http://en.wikipedia.org/wiki/Representational_state_transfer) applications, the controller will receive the request (this is invisible to you as the developer), fetch or save data from a model and use a view to create HTML output. If your controller needs to do things a little differently, that's not a problem, this is just the most common way for a controller to work.
 
@@ -145,7 +145,7 @@ So for example, if you are sending this JSON content:
 
 Your controller will receive `params[:company]` as `{ "name" => "acme", "address" => "123 Carrot Street" }`.
 
-Also, if you've turned on `config.wrap_parameters` in your initializer or called `wrap_parameters` in your controller, you can safely omit the root element in the JSON parameter. In this case, the parameters will be cloned and wrapped with a key chosen based on your controller's name. So the above JSON POST can be written as:
+Also, if you've turned on `config.wrap_parameters` in your initializer or called `wrap_parameters` in your controller, you can safely omit the root element in the JSON parameter. In this case, the parameters will be cloned and wrapped with a key chosen based on your controller's name. So the above JSON request can be written as:
 
 ```json
 { "name": "acme", "address": "123 Carrot Street" }
@@ -199,11 +199,12 @@ practice to help prevent accidentally allowing users to update sensitive
 model attributes.
 
 In addition, parameters can be marked as required and will flow through a
-predefined raise/rescue flow to end up as a 400 Bad Request.
+predefined raise/rescue flow that will result in a 400 Bad Request being
+returned if not all required parameters are passed in.
 
 ```ruby
 class PeopleController < ActionController::Base
-  # This will raise an ActiveModel::ForbiddenAttributes exception
+  # This will raise an ActiveModel::ForbiddenAttributesError exception
   # because it's using mass assignment without an explicit permit
   # step.
   def create
@@ -213,8 +214,8 @@ class PeopleController < ActionController::Base
   # This will pass with flying colors as long as there's a person key
   # in the parameters, otherwise it'll raise a
   # ActionController::ParameterMissing exception, which will get
-  # caught by ActionController::Base and turned into that 400 Bad
-  # Request reply.
+  # caught by ActionController::Base and turned into a 400 Bad
+  # Request error.
   def update
     person = current_account.people.find(params[:id])
     person.update!(person_params)
@@ -361,7 +362,7 @@ If your user sessions don't store critical data or don't need to be around for l
 
 Read more about session storage in the [Security Guide](security.html).
 
-If you need a different session storage mechanism, you can change it in the `config/initializers/session_store.rb` file:
+If you need a different session storage mechanism, you can change it in an initializer:
 
 ```ruby
 # Use the database for sessions instead of the cookie-based default,
@@ -370,7 +371,7 @@ If you need a different session storage mechanism, you can change it in the `con
 # Rails.application.config.session_store :active_record_store
 ```
 
-Rails sets up a session key (the name of the cookie) when signing the session data. These can also be changed in `config/initializers/session_store.rb`:
+Rails sets up a session key (the name of the cookie) when signing the session data. These can also be changed in an initializer:
 
 ```ruby
 # Be sure to restart your server when you modify this file.
@@ -814,7 +815,7 @@ In every controller there are two accessor methods pointing to the request and t
 
 ### The `request` Object
 
-The request object contains a lot of useful information about the request coming in from the client. To get a full list of the available methods, refer to the [API documentation](http://api.rubyonrails.org/classes/ActionDispatch/Request.html). Among the properties that you can access on this object are:
+The request object contains a lot of useful information about the request coming in from the client. To get a full list of the available methods, refer to the [Rails API documentation](http://api.rubyonrails.org/classes/ActionDispatch/Request.html) and [Rack Documentation](http://www.rubydoc.info/github/rack/rack/Rack/Request). Among the properties that you can access on this object are:
 
 | Property of `request`                     | Purpose                                                                          |
 | ----------------------------------------- | -------------------------------------------------------------------------------- |
@@ -836,7 +837,7 @@ Rails collects all of the parameters sent along with the request in the `params`
 
 ### The `response` Object
 
-The response object is not usually used directly, but is built up during the execution of the action and rendering of the data that is being sent back to the user, but sometimes - like in an after filter - it can be useful to access the response directly. Some of these accessor methods also have setters, allowing you to change their values.
+The response object is not usually used directly, but is built up during the execution of the action and rendering of the data that is being sent back to the user, but sometimes - like in an after filter - it can be useful to access the response directly. Some of these accessor methods also have setters, allowing you to change their values. To get a full list of the available methods, refer to the [Rails API documentation](http://api.rubyonrails.org/classes/ActionDispatch/Response.html) and [Rack Documentation](http://www.rubydoc.info/github/rack/rack/Rack/Response).
 
 | Property of `response` | Purpose                                                                                             |
 | ---------------------- | --------------------------------------------------------------------------------------------------- |

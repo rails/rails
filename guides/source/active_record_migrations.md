@@ -229,7 +229,7 @@ As always, what has been generated for you is just a starting point. You can add
 or remove from it as you see fit by editing the
 `db/migrate/YYYYMMDDHHMMSS_add_details_to_products.rb` file.
 
-Also, the generator accepts column type as `references`(also available as
+Also, the generator accepts column type as `references` (also available as
 `belongs_to`). For instance:
 
 ```bash
@@ -241,7 +241,7 @@ generates
 ```ruby
 class AddUserRefToProducts < ActiveRecord::Migration[5.0]
   def change
-    add_reference :products, :user, index: true, foreign_key: true
+    add_reference :products, :user, foreign_key: true
   end
 end
 ```
@@ -313,7 +313,7 @@ will produce a migration that looks like this
 class AddDetailsToProducts < ActiveRecord::Migration[5.0]
   def change
     add_column :products, :price, :decimal, precision: 5, scale: 2
-    add_reference :products, :supplier, polymorphic: true, index: true
+    add_reference :products, :supplier, polymorphic: true
   end
 end
 ```
@@ -466,6 +466,8 @@ the first time (i.e. on the date the migration is applied).
 
 Some adapters may support additional options; see the adapter specific API docs
 for further information.
+
+NOTE: `null` and `default` cannot be specified via command line.
 
 ### Foreign Keys
 
@@ -1018,10 +1020,10 @@ such features, the `execute` method can be used to execute arbitrary SQL.
 Migrations and Seed Data
 ------------------------
 
-The main purpose of Rails' migration feature is to issue commands that modify the 
-schema using a consistent process. Migrations can also be used 
-to add or modify data. This is useful in an existing database that can't be destroyed 
-and recreated, such as a production database. 
+The main purpose of Rails' migration feature is to issue commands that modify the
+schema using a consistent process. Migrations can also be used
+to add or modify data. This is useful in an existing database that can't be destroyed
+and recreated, such as a production database.
 
 ```ruby
 class AddInitialProducts < ActiveRecord::Migration[5.0]
@@ -1037,10 +1039,10 @@ class AddInitialProducts < ActiveRecord::Migration[5.0]
 end
 ```
 
-To add initial data after a database is created, Rails has a built-in 
-'seeds' feature that makes the process quick and easy. This is especially 
-useful when reloading the database frequently in development and test environments. 
-It's easy to get started with this feature: just fill up `db/seeds.rb` with some 
+To add initial data after a database is created, Rails has a built-in
+'seeds' feature that makes the process quick and easy. This is especially
+useful when reloading the database frequently in development and test environments.
+It's easy to get started with this feature: just fill up `db/seeds.rb` with some
 Ruby code, and run `rails db:seed`:
 
 ```ruby

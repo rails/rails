@@ -1,4 +1,4 @@
-require 'ostruct'
+require "ostruct"
 
 class TestServer
   include ActionCable::Server::Connections
@@ -10,14 +10,8 @@ class TestServer
     @logger = ActiveSupport::TaggedLogging.new ActiveSupport::Logger.new(StringIO.new)
 
     @config = OpenStruct.new(log_tags: [], subscription_adapter: subscription_adapter)
-    @config.use_faye = ENV['FAYE'].present?
-    @config.client_socket_class = if @config.use_faye
-                                    ActionCable::Connection::FayeClientSocket
-                                  else
-                                    ActionCable::Connection::ClientSocket
-                                  end
 
-     @mutex = Monitor.new
+    @mutex = Monitor.new
   end
 
   def pubsub
@@ -25,11 +19,9 @@ class TestServer
   end
 
   def event_loop
-    @event_loop ||= if @config.use_faye
-                      ActionCable::Connection::FayeEventLoop.new
-                    else
-                      ActionCable::Connection::StreamEventLoop.new
-                    end
+    @event_loop ||= ActionCable::Connection::StreamEventLoop.new.tap do |loop|
+      loop.instance_variable_set(:@executor, Concurrent.global_io_executor)
+    end
   end
 
   def worker_pool

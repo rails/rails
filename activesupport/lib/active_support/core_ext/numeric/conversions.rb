@@ -1,9 +1,8 @@
-require 'active_support/core_ext/big_decimal/conversions'
-require 'active_support/number_helper'
-require 'active_support/core_ext/module/deprecation'
+require "active_support/core_ext/big_decimal/conversions"
+require "active_support/number_helper"
+require "active_support/core_ext/module/deprecation"
 
 module ActiveSupport::NumericWithFormat
-
   # Provides options for converting numbers into formatted strings.
   # Options are provided for phone numbers, currency, percentage,
   # precision, positional notation, file size and pretty printing.
@@ -134,6 +133,12 @@ module ActiveSupport::NumericWithFormat
   deprecate to_formatted_s: :to_s
 end
 
-[Fixnum, Bignum, Float, BigDecimal].each do |klass|
-  klass.prepend(ActiveSupport::NumericWithFormat)
+# Ruby 2.4+ unifies Fixnum & Bignum into Integer.
+if 0.class == Integer
+  Integer.prepend ActiveSupport::NumericWithFormat
+else
+  Fixnum.prepend ActiveSupport::NumericWithFormat
+  Bignum.prepend ActiveSupport::NumericWithFormat
 end
+Float.prepend ActiveSupport::NumericWithFormat
+BigDecimal.prepend ActiveSupport::NumericWithFormat

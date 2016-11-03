@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class ReloaderTest < ActiveSupport::TestCase
   Reloader = ActionDispatch::Reloader
@@ -166,7 +166,7 @@ class ReloaderTest < ActiveSupport::TestCase
     i = 10
     assert_deprecated do
       Reloader.to_prepare { i += 1 }
-      Reloader.to_prepare(:prepend => true) { i = 0 }
+      Reloader.to_prepare(prepend: true) { i = 0 }
     end
 
     assert_deprecated do
@@ -178,7 +178,7 @@ class ReloaderTest < ActiveSupport::TestCase
   def test_cleanup_callbacks_are_called_on_exceptions
     cleaned = false
     assert_deprecated do
-      Reloader.to_cleanup { cleaned  = true }
+      Reloader.to_cleanup { cleaned = true }
     end
 
     begin
@@ -196,8 +196,8 @@ class ReloaderTest < ActiveSupport::TestCase
       x = Class.new(ActiveSupport::Reloader)
       x.check = lambda { true }
 
-      @response ||= 'response'
-      @reloader ||= Reloader.new(block || proc {[200, {}, @response]}, x)
-      @reloader.call({'rack.input' => StringIO.new('')})[2]
+      @response ||= "response"
+      @reloader ||= Reloader.new(block || proc { [200, {}, @response] }, x)
+      @reloader.call("rack.input" => StringIO.new(""))[2]
     end
 end

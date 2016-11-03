@@ -1,6 +1,6 @@
-require 'active_support/core_ext/hash/keys'
-require 'action_dispatch/middleware/session/abstract_store'
-require 'rack/session/cookie'
+require "active_support/core_ext/hash/keys"
+require "action_dispatch/middleware/session/abstract_store"
+require "rack/session/cookie"
 
 module ActionDispatch
   module Session
@@ -63,8 +63,8 @@ module ActionDispatch
     # Other useful options include <tt>:key</tt>, <tt>:secure</tt> and
     # <tt>:httponly</tt>.
     class CookieStore < AbstractStore
-      def initialize(app, options={})
-        super(app, options.merge!(:cookie_only => true))
+      def initialize(app, options = {})
+        super(app, options.merge!(cookie_only: true))
       end
 
       def delete_session(req, session_id, options)
@@ -84,46 +84,46 @@ module ActionDispatch
 
       private
 
-      def extract_session_id(req)
-        stale_session_check! do
-          unpacked_cookie_data(req)["session_id"]
-        end
-      end
-
-      def unpacked_cookie_data(req)
-        req.fetch_header("action_dispatch.request.unsigned_session_cookie") do |k|
-          v = stale_session_check! do
-            if data = get_cookie(req)
-              data.stringify_keys!
-            end
-            data || {}
+        def extract_session_id(req)
+          stale_session_check! do
+            unpacked_cookie_data(req)["session_id"]
           end
-          req.set_header k, v
         end
-      end
 
-      def persistent_session_id!(data, sid=nil)
-        data ||= {}
-        data["session_id"] ||= sid || generate_sid
-        data
-      end
+        def unpacked_cookie_data(req)
+          req.fetch_header("action_dispatch.request.unsigned_session_cookie") do |k|
+            v = stale_session_check! do
+              if data = get_cookie(req)
+                data.stringify_keys!
+              end
+              data || {}
+            end
+            req.set_header k, v
+          end
+        end
 
-      def write_session(req, sid, session_data, options)
-        session_data["session_id"] = sid
-        session_data
-      end
+        def persistent_session_id!(data, sid = nil)
+          data ||= {}
+          data["session_id"] ||= sid || generate_sid
+          data
+        end
 
-      def set_cookie(request, session_id, cookie)
-        cookie_jar(request)[@key] = cookie
-      end
+        def write_session(req, sid, session_data, options)
+          session_data["session_id"] = sid
+          session_data
+        end
 
-      def get_cookie(req)
-        cookie_jar(req)[@key]
-      end
+        def set_cookie(request, session_id, cookie)
+          cookie_jar(request)[@key] = cookie
+        end
 
-      def cookie_jar(request)
-        request.cookie_jar.signed_or_encrypted
-      end
+        def get_cookie(req)
+          cookie_jar(req)[@key]
+        end
+
+        def cookie_jar(request)
+          request.cookie_jar.signed_or_encrypted
+        end
     end
   end
 end

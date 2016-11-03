@@ -1,6 +1,6 @@
-require 'cases/helper'
-require 'models/car'
-require 'active_support/core_ext/string/strip'
+require "cases/helper"
+require "models/car"
+require "active_support/core_ext/string/strip"
 
 if ActiveRecord::Base.connection.supports_explain?
   class ExplainTest < ActiveRecord::TestCase
@@ -15,13 +15,13 @@ if ActiveRecord::Base.connection.supports_explain?
     end
 
     def test_relation_explain
-      message = Car.where(:name => 'honda').explain
+      message = Car.where(name: "honda").explain
       assert_match(/^EXPLAIN for:/, message)
     end
 
     def test_collecting_queries_for_explain
       queries = ActiveRecord::Base.collecting_queries_for_explain do
-        Car.where(:name => 'honda').to_a
+        Car.where(name: "honda").to_a
       end
 
       sql, binds = queries[0]
@@ -30,7 +30,7 @@ if ActiveRecord::Base.connection.supports_explain?
         assert_equal 1, binds.length
         assert_equal "honda", binds.last.value
       else
-        assert_match 'honda', sql
+        assert_match "honda", sql
       end
     end
 
@@ -40,17 +40,14 @@ if ActiveRecord::Base.connection.supports_explain?
       queries = sqls.zip(binds)
 
       stub_explain_for_query_plans do
-        expected = sqls.map {|sql| "EXPLAIN for: #{sql}\nquery plan #{sql}"}.join("\n")
+        expected = sqls.map { |sql| "EXPLAIN for: #{sql}\nquery plan #{sql}" }.join("\n")
         assert_equal expected, base.exec_explain(queries)
       end
     end
 
     def test_exec_explain_with_binds
-      object = Struct.new(:name)
-      cols = [object.new('wadus'), object.new('chaflan')]
-
       sqls    = %w(foo bar)
-      binds   = [[[cols[0], 1]], [[cols[1], 2]]]
+      binds   = [[bind_param("wadus", 1)], [bind_param("chaflan", 2)]]
       queries = sqls.zip(binds)
 
       stub_explain_for_query_plans(["query plan foo\n", "query plan bar\n"]) do
@@ -68,20 +65,23 @@ if ActiveRecord::Base.connection.supports_explain?
     def test_unsupported_connection_adapter
       connection.stub(:supports_explain?, false) do
         assert_not_called(base.logger, :warn) do
-          Car.where(:name => 'honda').to_a
+          Car.where(name: "honda").to_a
         end
       end
     end
 
     private
 
-      def stub_explain_for_query_plans(query_plans = ['query plan foo', 'query plan bar'])
+      def stub_explain_for_query_plans(query_plans = ["query plan foo", "query plan bar"])
         explain_called = 0
 
-        connection.stub(:explain, proc{ explain_called += 1; query_plans[explain_called - 1] }) do
+        connection.stub(:explain, proc { explain_called += 1; query_plans[explain_called - 1] }) do
           yield
         end
       end
 
+      def bind_param(name, value)
+        ActiveRecord::Relation::QueryAttribute.new(name, value, ActiveRecord::Type::Value.new)
+      end
   end
 end

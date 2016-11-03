@@ -31,13 +31,13 @@ module ActiveRecord
 
       protected
 
-      attr_reader :predicate_builder
+        attr_reader :predicate_builder
 
-      module NullPredicate # :nodoc:
-        def self.or(other)
-          other
+        module NullPredicate # :nodoc:
+          def self.or(other)
+            other
+          end
         end
-      end
     end
   end
 end

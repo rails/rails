@@ -6,7 +6,7 @@ class Person
   attr_reader :id
 
   def self.find(id)
-    raise RecordNotFound.new("Cannot find person with ID=404") if id.to_i==404
+    raise RecordNotFound.new("Cannot find person with ID=404") if id.to_i == 404
     new(id)
   end
 

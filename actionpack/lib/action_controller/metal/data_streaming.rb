@@ -1,4 +1,4 @@
-require 'action_controller/metal/exceptions'
+require "action_controller/metal/exceptions"
 
 module ActionController #:nodoc:
   # Methods for sending arbitrary data and for streaming files to the browser,
@@ -8,8 +8,8 @@ module ActionController #:nodoc:
 
     include ActionController::Rendering
 
-    DEFAULT_SEND_FILE_TYPE        = 'application/octet-stream'.freeze #:nodoc:
-    DEFAULT_SEND_FILE_DISPOSITION = 'attachment'.freeze #:nodoc:
+    DEFAULT_SEND_FILE_TYPE        = "application/octet-stream".freeze #:nodoc:
+    DEFAULT_SEND_FILE_DISPOSITION = "attachment".freeze #:nodoc:
 
     protected
       # Sends the file. This uses a server-appropriate method (such as X-Sendfile)
@@ -64,12 +64,13 @@ module ActionController #:nodoc:
       # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9
       # for the Cache-Control header spec.
       def send_file(path, options = {}) #:doc:
-        raise MissingFile, "Cannot read file #{path}" unless File.file?(path) and File.readable?(path)
+        raise MissingFile, "Cannot read file #{path}" unless File.file?(path) && File.readable?(path)
 
         options[:filename] ||= File.basename(path) unless options[:url_based_filename]
         send_file_headers! options
 
         self.status = options[:status] || 200
+        self.content_type = options[:type] if options.key?(:type)
         self.content_type = options[:content_type] if options.key?(:content_type)
         response.send_file path
       end
@@ -122,7 +123,7 @@ module ActionController #:nodoc:
         else
           if !type_provided && options[:filename]
             # If type wasn't provided, try guessing from file extension.
-            content_type = Mime::Type.lookup_by_extension(File.extname(options[:filename]).downcase.delete('.')) || content_type
+            content_type = Mime::Type.lookup_by_extension(File.extname(options[:filename]).downcase.delete(".")) || content_type
           end
           self.content_type = content_type
         end
@@ -131,10 +132,10 @@ module ActionController #:nodoc:
         unless disposition.nil?
           disposition  = disposition.to_s
           disposition += %(; filename="#{options[:filename]}") if options[:filename]
-          headers['Content-Disposition'] = disposition
+          headers["Content-Disposition"] = disposition
         end
 
-        headers['Content-Transfer-Encoding'] = 'binary'
+        headers["Content-Transfer-Encoding"] = "binary"
 
         response.sending_file = true
 

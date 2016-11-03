@@ -25,7 +25,7 @@ Reporting an Issue
 
 Ruby on Rails uses [GitHub Issue Tracking](https://github.com/rails/rails/issues) to track issues (primarily bugs and contributions of new code). If you've found a bug in Ruby on Rails, this is the place to start. You'll need to create a (free) GitHub account in order to submit an issue, to comment on them or to create pull requests.
 
-NOTE: Bugs in the most recent released version of Ruby on Rails are likely to get the most attention. Also, the Rails core team is always interested in feedback from those who can take the time to test _edge Rails_ (the code for the version of Rails that is currently under development). Later in this guide you'll find out how to get edge Rails for testing.
+NOTE: Bugs in the most recent released version of Ruby on Rails are likely to get the most attention. Also, the Rails core team is always interested in feedback from those who can take the time to test _edge Rails_ (the code for the version of Rails that is currently under development). Later in this guide, you'll find out how to get edge Rails for testing.
 
 ### Creating a Bug Report
 
@@ -40,7 +40,9 @@ Then, don't get your hopes up! Unless you have a "Code Red, Mission Critical, th
 Having a way to reproduce your issue will be very helpful for others to help confirm, investigate and ultimately fix your issue. You can do this by providing an executable test case. To make this process easier, we have prepared several bug report templates for you to use as a starting point:
 
 * Template for Active Record (models, database) issues: [gem](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_record_gem.rb) / [master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_record_master.rb)
+* Template for testing Active Record (migration) issues: [gem](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_record_migrations_gem.rb) / [master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_record_migrations_master.rb)
 * Template for Action Pack (controllers, routing) issues: [gem](https://github.com/rails/rails/blob/master/guides/bug_report_templates/action_controller_gem.rb) / [master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/action_controller_master.rb)
+* Template for Active Job issues: [gem](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_job_gem.rb) / [master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_job_master.rb)
 * Generic template for other issues: [gem](https://github.com/rails/rails/blob/master/guides/bug_report_templates/generic_gem.rb) / [master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/generic_master.rb)
 
 These templates include the boilerplate code to set up a test case against either a released version of Rails (`*_gem.rb`) or edge Rails (`*_master.rb`).
@@ -58,7 +60,7 @@ WARNING: Please do not report security vulnerabilities with public GitHub issue 
 Please don't put "feature request" items into GitHub Issues. If there's a new
 feature that you want to see added to Ruby on Rails, you'll need to write the
 code yourself - or convince someone else to partner with you to write the code.
-Later in this guide you'll find detailed instructions for proposing a patch to
+Later in this guide, you'll find detailed instructions for proposing a patch to
 Ruby on Rails. If you enter a wish list item in GitHub Issues with no code, you
 can expect it to be marked "invalid" as soon as it's reviewed.
 
@@ -131,7 +133,7 @@ learn about Ruby on Rails, and the API, which serves as a reference.
 You can help improve the Rails guides by making them more coherent, consistent or readable, adding missing information, correcting factual errors, fixing typos, or bringing them up to date with the latest edge Rails.
 
 You can either open a pull request to [Rails](https://github.com/rails/rails) or
-ask the [Rails core team](http://rubyonrails.org/core) for commit access on
+ask the [Rails core team](http://rubyonrails.org/community/#core) for commit access on
 docrails if you contribute regularly.
 Please do not open pull requests in docrails, if you'd like to get feedback on your
 change, ask for it in [Rails](https://github.com/rails/rails) instead.
@@ -189,7 +191,7 @@ Contributing to the Rails Code
 
 ### Setting Up a Development Environment
 
-To move on from submitting bugs to helping resolve existing issues or contributing your own code to Ruby on Rails, you _must_ be able to run its test suite. In this section of the guide you'll learn how to setup the tests on your own computer.
+To move on from submitting bugs to helping resolve existing issues or contributing your own code to Ruby on Rails, you _must_ be able to run its test suite. In this section of the guide, you'll learn how to setup the tests on your own computer.
 
 #### The Easy Way
 
@@ -268,40 +270,31 @@ The above are guidelines - please use your best judgment in using them.
 
 ### Benchmark Your Code
 
-If your change has an impact on the performance of Rails, please use the
-[benchmark-ips](https://github.com/evanphx/benchmark-ips) gem to provide
-benchmark results for comparison.
+For changes that might have an impact on performance, please benchmark your
+code and measure the impact. Please share the benchmark script you used as well
+as the results. You should consider including this information in your commit
+message, which allows future contributors to easily verify your findings and
+determine if they are still relevant. (For example, future optimizations in the
+Ruby VM might render certain optimizations unnecessary.)
 
-Here's an example of using benchmark-ips:
+It is very easy to make an optimization that improves performance for a
+specific scenario you care about but regresses on other common cases.
+Therefore, you should test your change against a list of representative
+scenarios. Ideally, they should be based on real-world scenarios extracted
+from production applications.
 
-```ruby
-require 'benchmark/ips'
-
-Benchmark.ips do |x|
-  x.report('addition') { 1 + 2 }
-  x.report('addition with send') { 1.send(:+, 2) }
-end
-```
-
-This will generate a report with the following information:
-
-```
-Calculating -------------------------------------
-            addition   132.013k i/100ms
-  addition with send   125.413k i/100ms
--------------------------------------------------
-            addition      9.677M (± 1.7%) i/s -     48.449M
-  addition with send      6.794M (± 1.1%) i/s -     33.987M
-```
-
-Please see the benchmark/ips [README](https://github.com/evanphx/benchmark-ips/blob/master/README.md) for more information.
+You can use the [benchmark template](https://github.com/rails/rails/blob/master/guides/bug_report_templates/benchmark.rb)
+as a starting point. It includes the boilerplate code to setup a benchmark
+using the [benchmark-ips](https://github.com/evanphx/benchmark-ips) gem. The
+template is designed for testing relatively self-contained changes that can be
+inlined into the script.
 
 ### Running Tests
 
 It is not customary in Rails to run the full test suite before pushing
-changes. The railties test suite in particular takes a long time, and even
-more if the source code is mounted in `/vagrant` as happens in the recommended
-workflow with the [rails-dev-box](https://github.com/rails/rails-dev-box).
+changes. The railties test suite in particular takes a long time, and takes an
+especially long time if the source code is mounted in `/vagrant` as happens in
+the recommended workflow with the [rails-dev-box](https://github.com/rails/rails-dev-box).
 
 As a compromise, test what your code obviously affects, and if the change is
 not in railties, run the whole test suite of the affected component. If all
@@ -662,7 +655,7 @@ Changes that are merged into master are intended for the next major release of R
 
 For simple fixes, the easiest way to backport your changes is to [extract a diff from your changes in master and apply them to the target branch](http://ariejan.net/2009/10/26/how-to-create-and-apply-a-patch-with-git).
 
-First make sure your changes are the only difference between your current branch and master:
+First, make sure your changes are the only difference between your current branch and master:
 
 ```bash
 $ git log master..HEAD
@@ -677,7 +670,7 @@ $ git format-patch master --stdout > ~/my_changes.patch
 Switch over to the target branch and apply your changes:
 
 ```bash
-$ git checkout -b my_backport_branch 3-2-stable
+$ git checkout -b my_backport_branch 4-2-stable
 $ git apply ~/my_changes.patch
 ```
 

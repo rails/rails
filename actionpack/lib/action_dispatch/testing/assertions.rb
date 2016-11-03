@@ -1,9 +1,9 @@
-require 'rails-dom-testing'
+require "rails-dom-testing"
 
 module ActionDispatch
   module Assertions
-    autoload :ResponseAssertions, 'action_dispatch/testing/assertions/response'
-    autoload :RoutingAssertions, 'action_dispatch/testing/assertions/routing'
+    autoload :ResponseAssertions, "action_dispatch/testing/assertions/response"
+    autoload :RoutingAssertions, "action_dispatch/testing/assertions/routing"
 
     extend ActiveSupport::Concern
 

@@ -21,9 +21,9 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-require 'active_support'
-require 'active_support/rails'
-require 'action_view/version'
+require "active_support"
+require "active_support/rails"
+require "action_view/version"
 
 module ActionView
   extend ActiveSupport::Autoload
@@ -89,7 +89,7 @@ module ActionView
   end
 end
 
-require 'active_support/core_ext/string/output_safety'
+require "active_support/core_ext/string/output_safety"
 
 ActiveSupport.on_load(:i18n) do
   I18n.load_path << "#{File.dirname(__FILE__)}/action_view/locale/en.yml"

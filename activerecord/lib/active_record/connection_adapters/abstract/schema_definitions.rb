@@ -11,7 +11,6 @@ module ActiveRecord
     # +columns+ attribute of said TableDefinition object, in order to be used
     # for generating a number of table creation or table changing SQL statements.
     class ColumnDefinition < Struct.new(:name, :type, :limit, :precision, :scale, :default, :null, :first, :after, :auto_increment, :primary_key, :collation, :sql_type, :comment) #:nodoc:
-
       def primary_key?
         primary_key || type.to_sym == :primary_key
       end
@@ -51,18 +50,19 @@ module ActiveRecord
         options[:primary_key] != default_primary_key
       end
 
-      def defined_for?(options_or_to_table = {})
-        if options_or_to_table.is_a?(Hash)
-          options_or_to_table.all? {|key, value| options[key].to_s == value.to_s }
+      def defined_for?(to_table_ord = nil, to_table: nil, **options)
+        if to_table_ord
+          self.to_table == to_table_ord.to_s
         else
-          to_table == options_or_to_table.to_s
+          (to_table.nil? || to_table.to_s == self.to_table) &&
+            options.all? { |k, v| self.options[k].to_s == v.to_s }
         end
       end
 
       private
-      def default_primary_key
-        "id"
-      end
+        def default_primary_key
+          "id"
+        end
     end
 
     class ReferenceDefinition # :nodoc:
@@ -102,51 +102,51 @@ module ActiveRecord
 
       protected
 
-      attr_reader :name, :polymorphic, :index, :foreign_key, :type, :options
+        attr_reader :name, :polymorphic, :index, :foreign_key, :type, :options
 
       private
 
-      def as_options(value, default = {})
-        if value.is_a?(Hash)
-          value
-        else
-          default
+        def as_options(value, default = {})
+          if value.is_a?(Hash)
+            value
+          else
+            default
+          end
         end
-      end
 
-      def polymorphic_options
-        as_options(polymorphic, options)
-      end
-
-      def index_options
-        as_options(index)
-      end
-
-      def foreign_key_options
-        as_options(foreign_key).merge(column: column_name)
-      end
-
-      def columns
-        result = [[column_name, type, options]]
-        if polymorphic
-          result.unshift(["#{name}_type", :string, polymorphic_options])
+        def polymorphic_options
+          as_options(polymorphic, options)
         end
-        result
-      end
 
-      def column_name
-        "#{name}_id"
-      end
-
-      def column_names
-        columns.map(&:first)
-      end
-
-      def foreign_table_name
-        foreign_key_options.fetch(:to_table) do
-          Base.pluralize_table_names ? name.to_s.pluralize : name
+        def index_options
+          as_options(index)
         end
-      end
+
+        def foreign_key_options
+          as_options(foreign_key).merge(column: column_name)
+        end
+
+        def columns
+          result = [[column_name, type, options]]
+          if polymorphic
+            result.unshift(["#{name}_type", :string, polymorphic_options])
+          end
+          result
+        end
+
+        def column_name
+          "#{name}_id"
+        end
+
+        def column_names
+          columns.map(&:first)
+        end
+
+        def foreign_table_name
+          foreign_key_options.fetch(:to_table) do
+            Base.pluralize_table_names ? name.to_s.pluralize : name
+          end
+        end
     end
 
     module ColumnMethods
@@ -211,7 +211,7 @@ module ActiveRecord
 
       def initialize(name, temporary = false, options = nil, as = nil, comment: nil)
         @columns_hash = {}
-        @indexes = {}
+        @indexes = []
         @foreign_keys = []
         @primary_keys = nil
         @temporary = temporary
@@ -303,7 +303,7 @@ module ActiveRecord
       #   end
       def column(name, type, options = {})
         name = name.to_s
-        type = type.to_sym
+        type = type.to_sym if type
         options = options.dup
 
         if @columns_hash[name] && @columns_hash[name].primary_key?
@@ -327,7 +327,7 @@ module ActiveRecord
       #
       #   index(:account_id, name: 'index_projects_on_account_id')
       def index(column_name, options = {})
-        indexes[column_name] = options
+        indexes << [column_name, options]
       end
 
       def foreign_key(table_name, options = {}) # :nodoc:
@@ -341,9 +341,7 @@ module ActiveRecord
       # <tt>:updated_at</tt> to the table. See {connection.add_timestamps}[rdoc-ref:SchemaStatements#add_timestamps]
       #
       #   t.timestamps null: false
-      def timestamps(*args)
-        options = args.extract_options!
-
+      def timestamps(**options)
         options[:null] = false if options[:null].nil?
 
         column(:created_at, :datetime, options)
@@ -382,13 +380,13 @@ module ActiveRecord
       end
 
       private
-      def create_column_definition(name, type)
-        ColumnDefinition.new name, type
-      end
+        def create_column_definition(name, type)
+          ColumnDefinition.new name, type
+        end
 
-      def aliased_types(name, fallback)
-        'timestamp' == name ? :datetime : fallback
-      end
+        def aliased_types(name, fallback)
+          "timestamp" == name ? :datetime : fallback
+        end
     end
 
     class AlterTable # :nodoc:
@@ -477,7 +475,7 @@ module ActiveRecord
 
       # Checks to see if a column exists.
       #
-      # t.string(:name) unless t.column_exists?(:name, :string)
+      #  t.string(:name) unless t.column_exists?(:name, :string)
       #
       # See {connection.column_exists?}[rdoc-ref:SchemaStatements#column_exists?]
       def column_exists?(column_name, type = nil, options = {})
@@ -498,9 +496,9 @@ module ActiveRecord
 
       # Checks to see if an index exists.
       #
-      # unless t.index_exists?(:branch_id)
-      #   t.index(:branch_id)
-      # end
+      #  unless t.index_exists?(:branch_id)
+      #    t.index(:branch_id)
+      #  end
       #
       # See {connection.index_exists?}[rdoc-ref:SchemaStatements#index_exists?]
       def index_exists?(column_name, options = {})

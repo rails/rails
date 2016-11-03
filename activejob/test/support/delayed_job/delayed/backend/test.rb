@@ -1,5 +1,5 @@
 #copied from https://github.com/collectiveidea/delayed_job/blob/master/spec/delayed/backend/test.rb
-require 'ostruct'
+require "ostruct"
 
 # An in-memory backend suitable only for testing. Tries to behave as if it were an ORM.
 module Delayed
@@ -26,7 +26,7 @@ module Delayed
           self.attempts = 0
           self.priority = 0
           self.id = (self.class.id += 1)
-          hash.each{|k,v| send(:"#{k}=", v)}
+          hash.each { |k, v| send(:"#{k}=", v) }
         end
 
         @jobs = []
@@ -49,7 +49,7 @@ module Delayed
         def self.create!(*args); create(*args); end
 
         def self.clear_locks!(worker_name)
-          all.select{|j| j.locked_by == worker_name}.each {|j| j.locked_by = nil; j.locked_at = nil}
+          all.select { |j| j.locked_by == worker_name }.each { |j| j.locked_by = nil; j.locked_at = nil }
         end
 
         # Find a few candidate jobs to run (in case some immediately get locked by others).
@@ -60,10 +60,10 @@ module Delayed
             !j.failed?
           end
 
-          jobs = jobs.select{|j| Worker.queues.include?(j.queue)}   if Worker.queues.any?
-          jobs = jobs.select{|j| j.priority >= Worker.min_priority} if Worker.min_priority
-          jobs = jobs.select{|j| j.priority <= Worker.max_priority} if Worker.max_priority
-          jobs.sort_by{|j| [j.priority, j.run_at]}[0..limit-1]
+          jobs = jobs.select { |j| Worker.queues.include?(j.queue) }   if Worker.queues.any?
+          jobs = jobs.select { |j| j.priority >= Worker.min_priority } if Worker.min_priority
+          jobs = jobs.select { |j| j.priority <= Worker.max_priority } if Worker.max_priority
+          jobs.sort_by { |j| [j.priority, j.run_at] }[0..limit - 1]
         end
 
         # Lock this job for this worker.
@@ -84,7 +84,7 @@ module Delayed
         end
 
         def update_attributes(attrs = {})
-          attrs.each{|k,v| send(:"#{k}=", v)}
+          attrs.each { |k, v| send(:"#{k}=", v) }
           save
         end
 

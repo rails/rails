@@ -1,22 +1,22 @@
-require 'abstract_unit'
-require 'active_support/testing/stream'
+require "abstract_unit"
+require "active_support/testing/stream"
 
 class Deprecatee
   def initialize
     @request = ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(self, :request)
-    @_request = 'there we go'
+    @_request = "there we go"
   end
   def request; @_request end
   def old_request; @request end
 
   def partially(foo = nil)
-    ActiveSupport::Deprecation.warn('calling with foo=nil is out') if foo.nil?
+    ActiveSupport::Deprecation.warn("calling with foo=nil is out") if foo.nil?
   end
 
   def not() 2 end
   def none() 1 end
   def one(a) a end
-  def multi(a,b,c) [a,b,c] end
+  def multi(a, b, c) [a, b, c] end
   deprecate :none, :one, :multi
 
   def a; end
@@ -24,7 +24,7 @@ class Deprecatee
   def c; end
   def d; end
   def e; end
-  deprecate :a, :b, :c => :e, :d => "you now need to do something extra for this one"
+  deprecate :a, :b, c: :e, d: "you now need to do something extra for this one"
 
   def f=(v); end
   deprecate :f=
@@ -32,9 +32,8 @@ class Deprecatee
   module B
     C = 1
   end
-  A = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('Deprecatee::A', 'Deprecatee::B::C')
+  A = ActiveSupport::Deprecation::DeprecatedConstantProxy.new("Deprecatee::A", "Deprecatee::B::C")
 end
-
 
 class DeprecationTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Stream
@@ -74,12 +73,12 @@ class DeprecationTest < ActiveSupport::TestCase
     end
 
     assert_deprecated(/multi is deprecated/) do
-      assert_equal [1,2,3], @dtc.multi(1,2,3)
+      assert_equal [1, 2, 3], @dtc.multi(1, 2, 3)
     end
   end
 
   def test_deprecate_object
-    deprecated_object = ActiveSupport::Deprecation::DeprecatedObjectProxy.new(Object.new, ':bomb:')
+    deprecated_object = ActiveSupport::Deprecation::DeprecatedObjectProxy.new(Object.new, ":bomb:")
     assert_deprecated(/:bomb:/) { deprecated_object.to_s }
   end
 
@@ -104,7 +103,7 @@ class DeprecationTest < ActiveSupport::TestCase
   def test_raise_behaviour
     ActiveSupport::Deprecation.behavior = :raise
 
-    message   = 'Revise this deprecated stuff now!'
+    message   = "Revise this deprecated stuff now!"
     callstack = caller_locations
 
     e = assert_raise ActiveSupport::DeprecationException do
@@ -119,7 +118,7 @@ class DeprecationTest < ActiveSupport::TestCase
     behavior = ActiveSupport::Deprecation.behavior.first
 
     content = capture(:stderr) {
-      assert_nil behavior.call('Some error!', ['call stack!'])
+      assert_nil behavior.call("Some error!", ["call stack!"])
     }
     assert_match(/Some error!/, content)
     assert_match(/call stack!/, content)
@@ -129,7 +128,7 @@ class DeprecationTest < ActiveSupport::TestCase
     ActiveSupport::Deprecation.behavior = :stderr
 
     content = capture(:stderr) {
-      ActiveSupport::Deprecation.warn('Instance error!', ['instance call stack!'])
+      ActiveSupport::Deprecation.warn("Instance error!", ["instance call stack!"])
     }
 
     assert_match(/Instance error!/, content)
@@ -141,16 +140,16 @@ class DeprecationTest < ActiveSupport::TestCase
     behavior = ActiveSupport::Deprecation.behavior.first
 
     stderr_output = capture(:stderr) {
-      assert_nil behavior.call('Some error!', ['call stack!'])
+      assert_nil behavior.call("Some error!", ["call stack!"])
     }
-    assert stderr_output.blank?
+    assert stderr_output.empty?
   end
 
   def test_deprecated_instance_variable_proxy
     assert_not_deprecated { @dtc.request.size }
 
-    assert_deprecated('@request.size') { assert_equal @dtc.request.size, @dtc.old_request.size }
-    assert_deprecated('@request.to_s') { assert_equal @dtc.request.to_s, @dtc.old_request.to_s }
+    assert_deprecated("@request.size") { assert_equal @dtc.request.size, @dtc.old_request.size }
+    assert_deprecated("@request.to_s") { assert_equal @dtc.request.to_s, @dtc.old_request.to_s }
   end
 
   def test_deprecated_instance_variable_proxy_shouldnt_warn_on_inspect
@@ -159,7 +158,7 @@ class DeprecationTest < ActiveSupport::TestCase
 
   def test_deprecated_constant_proxy
     assert_not_deprecated { Deprecatee::B::C }
-    assert_deprecated('Deprecatee::A') { assert_equal Deprecatee::B::C, Deprecatee::A }
+    assert_deprecated("Deprecatee::A") { assert_equal Deprecatee::B::C, Deprecatee::A }
     assert_not_deprecated { assert_equal Deprecatee::B::C.class, Deprecatee::A.class }
   end
 
@@ -178,12 +177,12 @@ class DeprecationTest < ActiveSupport::TestCase
   end
 
   def test_assert_deprecated_matches_any_warning
-    assert_deprecated 'abc' do
-      ActiveSupport::Deprecation.warn 'abc'
-      ActiveSupport::Deprecation.warn 'def'
+    assert_deprecated "abc" do
+      ActiveSupport::Deprecation.warn "abc"
+      ActiveSupport::Deprecation.warn "def"
     end
   rescue Minitest::Assertion
-    flunk 'assert_deprecated should match any warning in block, not just the last one'
+    flunk "assert_deprecated should match any warning in block, not just the last one"
   end
 
   def test_assert_not_deprecated_returns_result_of_block
@@ -191,17 +190,17 @@ class DeprecationTest < ActiveSupport::TestCase
   end
 
   def test_assert_deprecated_returns_result_of_block
-    result = assert_deprecated('abc') do
-      ActiveSupport::Deprecation.warn 'abc'
+    result = assert_deprecated("abc") do
+      ActiveSupport::Deprecation.warn "abc"
       123
     end
     assert_equal 123, result
   end
 
   def test_assert_deprecated_warn_work_with_default_behavior
-    ActiveSupport::Deprecation.instance_variable_set('@behavior', nil)
-    assert_deprecated('abc') do
-      ActiveSupport::Deprecation.warn 'abc'
+    ActiveSupport::Deprecation.instance_variable_set("@behavior", nil)
+    assert_deprecated("abc") do
+      ActiveSupport::Deprecation.warn "abc"
     end
   end
 
@@ -280,7 +279,7 @@ class DeprecationTest < ActiveSupport::TestCase
   def test_deprecated_constant_with_deprecator_given
     deprecator = deprecator_with_messages
     klass = Class.new
-    klass.const_set(:OLD, ActiveSupport::Deprecation::DeprecatedConstantProxy.new('klass::OLD', 'Object', deprecator) )
+    klass.const_set(:OLD, ActiveSupport::Deprecation::DeprecatedConstantProxy.new("klass::OLD", "Object", deprecator))
     assert_difference("deprecator.messages.size") do
       klass::OLD.to_s
     end
@@ -353,7 +352,7 @@ class DeprecationTest < ActiveSupport::TestCase
   end
 
   def test_custom_gem_name
-    deprecator = ActiveSupport::Deprecation.new('2.0', 'Custom')
+    deprecator = ActiveSupport::Deprecation.new("2.0", "Custom")
 
     deprecator.send(:deprecated_method_warning, :deprecated_method, "You are calling deprecated method").tap do |message|
       assert_match(/is deprecated and will be removed from Custom/, message)
@@ -364,11 +363,10 @@ class DeprecationTest < ActiveSupport::TestCase
     def deprecator_with_messages
       klass = Class.new(ActiveSupport::Deprecation)
       deprecator = klass.new
-      deprecator.behavior = Proc.new{|message, callstack| deprecator.messages << message}
+      deprecator.behavior = Proc.new { |message, callstack| deprecator.messages << message }
       def deprecator.messages
         @messages ||= []
       end
       deprecator
     end
-
 end

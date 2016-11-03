@@ -1,4 +1,4 @@
-require 'active_support/core_ext/string/strip'
+require "active_support/core_ext/string/strip"
 
 module ActionController
   # Handles implicit rendering for a controller action that does not
@@ -27,7 +27,6 @@ module ActionController
   # Finally, if we DON'T find a template AND the request isn't a browser page
   # load, then we implicitly respond with 204 No Content.
   module ImplicitRender
-
     # :stopdoc:
     include BasicImplicitRender
 
@@ -49,7 +48,7 @@ module ActionController
           "NOTE! For XHR/Ajax or API requests, this action would normally " \
           "respond with 204 No Content: an empty white screen. Since you're " \
           "loading it in a web browser, we assume that you expected to " \
-          "actually render a template, not… nothing, so we're showing an " \
+          "actually render a template, not nothing, so we're showing an " \
           "error to be extra-clear. If you expect 204 No Content, carry on. " \
           "That's what you'll get from an XHR or API request. Give it a shot."
 
@@ -62,8 +61,8 @@ module ActionController
 
     def method_for_action(action_name)
       super || if template_exists?(action_name.to_s, _prefixes)
-        "default_render"
-      end
+                 "default_render"
+               end
     end
 
     private

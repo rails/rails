@@ -15,7 +15,7 @@ After reading this guide, you will know:
 What is Action View?
 --------------------
 
-In Rails, web requests are handled by [Action Controller](action_controller_overview.html) and Action View. Typically, Action Controller will be concerned with communicating with the database and performing CRUD actions where necessary. Action View is then responsible for compiling the response.
+In Rails, web requests are handled by [Action Controller](action_controller_overview.html) and Action View. Typically, Action Controller is concerned with communicating with the database and performing CRUD actions where necessary. Action View is then responsible for compiling the response.
 
 Action View templates are written using embedded Ruby in tags mingled with HTML. To avoid cluttering the templates with boilerplate code, a number of helper classes provide common behavior for forms, dates, and strings. It's also easy to add new helpers to your application as it evolves.
 
@@ -254,12 +254,6 @@ as if we had written:
 <%= render partial: "product", locals: { product: @product } %>
 ```
 
-With the `as` option we can specify a different name for the local variable. For example, if we wanted it to be `item` instead of `product` we would do:
-
-```erb
-<%= render partial: "product", as: "item" %>
-```
-
 The `object` option can be used to directly specify which object is rendered into the partial; useful when the template's object is elsewhere (e.g. in a different instance variable or in a local variable).
 
 For example, instead of:
@@ -274,10 +268,16 @@ we would do:
 <%= render partial: "product", object: @item %>
 ```
 
-The `object` and `as` options can also be used together:
+With the `as` option we can specify a different name for the said local variable. For example, if we wanted it to be `item` instead of `product` we would do:
 
 ```erb
 <%= render partial: "product", object: @item, as: "item" %>
+```
+
+This is equivalent to
+
+```erb
+<%= render partial: "product", locals: { item: @item } %>
 ```
 
 #### Rendering Collections
@@ -1439,7 +1439,7 @@ Formats a number with the specified level of `precision`, which defaults to 3.
 
 ```ruby
 number_with_precision(111.2345)     # => 111.235
-number_with_precision(111.2345, 2)  # => 111.23
+number_with_precision(111.2345, precision: 2)  # => 111.23
 ```
 
 ### SanitizeHelper

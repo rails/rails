@@ -35,4 +35,3 @@ module BackburnerJobsManager
     true
   end
 end
-

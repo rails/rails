@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 module Render
   class BlankRenderController < ActionController::Base
@@ -18,11 +18,11 @@ module Render
     end
 
     def access_request
-      render :action => "access_request"
+      render action: "access_request"
     end
 
     def render_action_name
-      render :action => "access_action_name"
+      render action: "access_action_name"
     end
 
     def overridden_with_own_view_paths_appended
@@ -36,9 +36,9 @@ module Render
 
     private
 
-    def secretz
-      render plain: "FAIL WHALE!"
-    end
+      def secretz
+        render plain: "FAIL WHALE!"
+      end
   end
 
   class DoubleRenderController < ActionController::Base
@@ -58,7 +58,7 @@ module Render
       with_routing do |set|
         set.draw do
           ActiveSupport::Deprecation.silence do
-            get ":controller", :action => 'index'
+            get ":controller", action: "index"
           end
         end
 
@@ -73,7 +73,7 @@ module Render
       with_routing do |set|
         set.draw do
           ActiveSupport::Deprecation.silence do
-            get ":controller", :action => 'index'
+            get ":controller", action: "index"
           end
         end
 

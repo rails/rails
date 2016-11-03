@@ -1,4 +1,4 @@
-require 'rbconfig'
+require "rbconfig"
 
 module ActiveSupport
   class Deprecation
@@ -57,8 +57,8 @@ module ActiveSupport
         def deprecated_method_warning(method_name, message = nil)
           warning = "#{method_name} is deprecated and will be removed from #{gem_name} #{deprecation_horizon}"
           case message
-            when Symbol then "#{warning} (use #{message} instead)"
-            when String then "#{warning} (#{message})"
+          when Symbol then "#{warning} (use #{message} instead)"
+          when String then "#{warning} (#{message})"
             else warning
           end
         end
@@ -105,7 +105,7 @@ module ActiveSupport
         RAILS_GEM_ROOT = File.expand_path("../../../../..", __FILE__) + "/"
 
         def ignored_callstack(path)
-          path.start_with?(RAILS_GEM_ROOT) || path.start_with?(RbConfig::CONFIG['rubylibdir'])
+          path.start_with?(RAILS_GEM_ROOT) || path.start_with?(RbConfig::CONFIG["rubylibdir"])
         end
     end
   end

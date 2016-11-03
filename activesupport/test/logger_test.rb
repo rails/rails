@@ -1,9 +1,9 @@
-require 'abstract_unit'
-require 'multibyte_test_helpers'
-require 'stringio'
-require 'fileutils'
-require 'tempfile'
-require 'concurrent/atomics'
+require "abstract_unit"
+require "multibyte_test_helpers"
+require "stringio"
+require "fileutils"
+require "tempfile"
+require "concurrent/atomics"
 
 class LoggerTest < ActiveSupport::TestCase
   include MultibyteTestHelpers
@@ -26,12 +26,12 @@ class LoggerTest < ActiveSupport::TestCase
   end
 
   def test_write_binary_data_to_existing_file
-    t = Tempfile.new ['development', 'log']
+    t = Tempfile.new ["development", "log"]
     t.binmode
-    t.write 'hi mom!'
+    t.write "hi mom!"
     t.close
 
-    f = File.open(t.path, 'w')
+    f = File.open(t.path, "w")
     f.binmode
 
     logger = Logger.new f
@@ -47,9 +47,9 @@ class LoggerTest < ActiveSupport::TestCase
   end
 
   def test_write_binary_data_create_file
-    fname = File.join Dir.tmpdir, 'lol', 'rofl.log'
+    fname = File.join Dir.tmpdir, "lol", "rofl.log"
     FileUtils.mkdir_p File.dirname(fname)
-    f = File.open(fname, 'w')
+    f = File.open(fname, "w")
     f.binmode
 
     logger = Logger.new f
@@ -67,7 +67,7 @@ class LoggerTest < ActiveSupport::TestCase
   def test_should_log_debugging_message_when_debugging
     @logger.level = Logger::DEBUG
     @logger.add(Logger::DEBUG, @message)
-    assert @output.string.include?(@message)
+    assert_includes @output.string, @message
   end
 
   def test_should_not_log_debug_messages_when_log_level_is_info
@@ -78,32 +78,32 @@ class LoggerTest < ActiveSupport::TestCase
 
   def test_should_add_message_passed_as_block_when_using_add
     @logger.level = Logger::INFO
-    @logger.add(Logger::INFO) {@message}
-    assert @output.string.include?(@message)
+    @logger.add(Logger::INFO) { @message }
+    assert_includes @output.string, @message
   end
 
   def test_should_add_message_passed_as_block_when_using_shortcut
     @logger.level = Logger::INFO
-    @logger.info {@message}
-    assert @output.string.include?(@message)
+    @logger.info { @message }
+    assert_includes @output.string, @message
   end
 
   def test_should_convert_message_to_string
     @logger.level = Logger::INFO
     @logger.info @integer_message
-    assert @output.string.include?(@integer_message.to_s)
+    assert_includes @output.string, @integer_message.to_s
   end
 
   def test_should_convert_message_to_string_when_passed_in_block
     @logger.level = Logger::INFO
-    @logger.info {@integer_message}
-    assert @output.string.include?(@integer_message.to_s)
+    @logger.info { @integer_message }
+    assert_includes @output.string, @integer_message.to_s
   end
 
   def test_should_not_evaluate_block_if_message_wont_be_logged
     @logger.level = Logger::INFO
     evaluated = false
-    @logger.add(Logger::DEBUG) {evaluated = true}
+    @logger.add(Logger::DEBUG) { evaluated = true }
     assert evaluated == false
   end
 
@@ -115,7 +115,7 @@ class LoggerTest < ActiveSupport::TestCase
 
   def test_should_know_if_its_loglevel_is_below_a_given_level
     Logger::Severity.constants.each do |level|
-      next if level.to_s == 'UNKNOWN'
+      next if level.to_s == "UNKNOWN"
       @logger.level = Logger::Severity.const_get(level) - 1
       assert @logger.send("#{level.downcase}?"), "didn't know if it was #{level.downcase}? or below"
     end
@@ -125,10 +125,10 @@ class LoggerTest < ActiveSupport::TestCase
     @logger.level = Logger::INFO
     @logger.info(UNICODE_STRING)
     @logger.info(BYTE_STRING)
-    assert @output.string.include?(UNICODE_STRING)
+    assert_includes @output.string, UNICODE_STRING
     byte_string = @output.string.dup
     byte_string.force_encoding("ASCII-8BIT")
-    assert byte_string.include?(BYTE_STRING)
+    assert_includes byte_string, BYTE_STRING
   end
 
   def test_silencing_everything_but_errors
@@ -138,27 +138,28 @@ class LoggerTest < ActiveSupport::TestCase
     end
 
     assert_not @output.string.include?("NOT THERE")
-    assert @output.string.include?("THIS IS HERE")
+    assert_includes @output.string, "THIS IS HERE"
   end
 
   def test_logger_silencing_works_for_broadcast
     another_output  = StringIO.new
-    another_logger  = Logger.new(another_output)
+    another_logger  = ActiveSupport::Logger.new(another_output)
 
-    @logger.extend Logger.broadcast(another_logger)
+    @logger.extend ActiveSupport::Logger.broadcast(another_logger)
 
     @logger.debug "CORRECT DEBUG"
-    @logger.silence do
+    @logger.silence do |logger|
+      assert_kind_of ActiveSupport::Logger, logger
       @logger.debug "FAILURE"
       @logger.error "CORRECT ERROR"
     end
 
-    assert @output.string.include?("CORRECT DEBUG")
-    assert @output.string.include?("CORRECT ERROR")
+    assert_includes @output.string, "CORRECT DEBUG"
+    assert_includes @output.string, "CORRECT ERROR"
     assert_not @output.string.include?("FAILURE")
 
-    assert another_output.string.include?("CORRECT DEBUG")
-    assert another_output.string.include?("CORRECT ERROR")
+    assert_includes another_output.string, "CORRECT DEBUG"
+    assert_includes another_output.string, "CORRECT ERROR"
     assert_not another_output.string.include?("FAILURE")
   end
 
@@ -166,21 +167,22 @@ class LoggerTest < ActiveSupport::TestCase
     another_output  = StringIO.new
     another_logger  = ::Logger.new(another_output)
 
-    @logger.extend Logger.broadcast(another_logger)
+    @logger.extend ActiveSupport::Logger.broadcast(another_logger)
 
     @logger.debug "CORRECT DEBUG"
-    @logger.silence do
+    @logger.silence do |logger|
+      assert_kind_of ActiveSupport::Logger, logger
       @logger.debug "FAILURE"
       @logger.error "CORRECT ERROR"
     end
 
-    assert @output.string.include?("CORRECT DEBUG")
-    assert @output.string.include?("CORRECT ERROR")
+    assert_includes @output.string, "CORRECT DEBUG"
+    assert_includes @output.string, "CORRECT ERROR"
     assert_not @output.string.include?("FAILURE")
 
-    assert another_output.string.include?("CORRECT DEBUG")
-    assert another_output.string.include?("CORRECT ERROR")
-    assert another_output.string.include?("FAILURE")
+    assert_includes another_output.string, "CORRECT DEBUG"
+    assert_includes another_output.string, "CORRECT ERROR"
+    assert_includes another_output.string, "FAILURE"
     # We can't silence plain ruby Logger cause with thread safety
     # but at least we don't break it
   end

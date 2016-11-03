@@ -28,7 +28,7 @@ class Module
 
     # Strip out punctuation on predicates, bang or writer methods since
     # e.g. target?_without_feature is not a valid method name.
-    aliased_target, punctuation = target.to_s.sub(/([?!=])$/, ''), $1
+    aliased_target, punctuation = target.to_s.sub(/([?!=])$/, ""), $1
     yield(aliased_target, punctuation) if block_given?
 
     with_method = "#{aliased_target}_with_#{feature}#{punctuation}"
@@ -65,6 +65,9 @@ class Module
   #   e.subject = "Megastars"
   #   e.title    # => "Megastars"
   def alias_attribute(new_name, old_name)
+    # The following reader methods use an explicit `self` receiver in order to
+    # support aliases that start with an uppercase letter. Otherwise, they would
+    # be resolved as constants instead.
     module_eval <<-STR, __FILE__, __LINE__ + 1
       def #{new_name}; self.#{old_name}; end          # def subject; self.title; end
       def #{new_name}?; self.#{old_name}?; end        # def subject?; self.title?; end

@@ -1,4 +1,4 @@
-require 'backburner'
+require "backburner"
 
 module ActiveJob
   module QueueAdapters

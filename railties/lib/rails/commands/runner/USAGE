@@ -1,0 +1,17 @@
+Examples:
+
+Run `puts Rails.env` after loading the app:
+
+  <%= executable %> 'puts Rails.env'
+
+Run the Ruby file located at `path/to/filename.rb` after loading the app:
+
+  <%= executable %> path/to/filename.rb
+
+<% if RbConfig::CONFIG['host_os'] !~ /mswin|mingw/ %>
+You can also use the runner command as a shebang line for your executables:
+
+  #!/usr/bin/env <%= File.expand_path(executable) %>
+
+  Product.all.each { |p| p.price *= 2 ; p.save! }
+<% end %>

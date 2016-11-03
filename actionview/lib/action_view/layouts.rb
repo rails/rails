@@ -204,7 +204,7 @@ module ActionView
     include ActionView::Rendering
 
     included do
-      class_attribute :_layout, :_layout_conditions, :instance_accessor => false
+      class_attribute :_layout, :_layout_conditions, instance_accessor: false
       self._layout = nil
       self._layout_conditions = {}
       _write_layout_method
@@ -223,36 +223,39 @@ module ActionView
       module LayoutConditions # :nodoc:
         private
 
-        # Determines whether the current action has a layout definition by
-        # checking the action name against the :only and :except conditions
-        # set by the <tt>layout</tt> method.
-        #
-        # ==== Returns
-        # * <tt>Boolean</tt> - True if the action has a layout definition, false otherwise.
-        def _conditional_layout?
-          return unless super
+          # Determines whether the current action has a layout definition by
+          # checking the action name against the :only and :except conditions
+          # set by the <tt>layout</tt> method.
+          #
+          # ==== Returns
+          # * <tt>Boolean</tt> - True if the action has a layout definition, false otherwise.
+          def _conditional_layout?
+            return unless super
 
-          conditions = _layout_conditions
+            conditions = _layout_conditions
 
-          if only = conditions[:only]
-            only.include?(action_name)
-          elsif except = conditions[:except]
-            !except.include?(action_name)
-          else
-            true
+            if only = conditions[:only]
+              only.include?(action_name)
+            elsif except = conditions[:except]
+              !except.include?(action_name)
+            else
+              true
+            end
           end
-        end
       end
 
       # Specify the layout to use for this class.
       #
       # If the specified layout is a:
       # String:: the String is the template name
-      # Symbol:: call the method specified by the symbol, which will return the template name
+      # Symbol:: call the method specified by the symbol
+      # Proc::   call the passed Proc
       # false::  There is no layout
       # true::   raise an ArgumentError
       # nil::    Force default layout behavior with inheritance
       #
+      # Return value of Proc & Symbol arguments should be String, false, true or nil
+      # with the same meaning as described above.
       # ==== Parameters
       # * <tt>layout</tt> - The layout to use.
       #
@@ -262,7 +265,7 @@ module ActionView
       def layout(layout, conditions = {})
         include LayoutConditions unless conditions.empty?
 
-        conditions.each {|k, v| conditions[k] = Array(v).map(&:to_s) }
+        conditions.each { |k, v| conditions[k] = Array(v).map(&:to_s) }
         self._layout_conditions = conditions
 
         self._layout = layout
@@ -276,7 +279,7 @@ module ActionView
       def _write_layout_method # :nodoc:
         remove_possible_method(:_layout)
 
-        prefixes    = _implied_layout_name =~ /\blayouts/ ? [] : ["layouts"]
+        prefixes = /\blayouts/.match?(_implied_layout_name) ? [] : ["layouts"]
         default_behavior = "lookup_context.find_all('#{_implied_layout_name}', #{prefixes.inspect}, false, [], { formats: formats }).first || super"
         name_clause = if name
           default_behavior
@@ -286,7 +289,8 @@ module ActionView
           RUBY
         end
 
-        layout_definition = case _layout
+        layout_definition = \
+          case _layout
           when String
             _layout.inspect
           when Symbol
@@ -313,7 +317,7 @@ module ActionView
             raise ArgumentError, "Layouts must be specified as a String, Symbol, Proc, false, or nil"
           when nil
             name_clause
-        end
+          end
 
         self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def _layout(formats)
@@ -329,14 +333,14 @@ module ActionView
 
       private
 
-      # If no layout is supplied, look for a template named the return
-      # value of this method.
-      #
-      # ==== Returns
-      # * <tt>String</tt> - A template name
-      def _implied_layout_name # :nodoc:
-        controller_path
-      end
+        # If no layout is supplied, look for a template named the return
+        # value of this method.
+        #
+        # ==== Returns
+        # * <tt>String</tt> - A template name
+        def _implied_layout_name # :nodoc:
+          controller_path
+        end
     end
 
     def _normalize_options(options) # :nodoc:
@@ -421,7 +425,7 @@ module ActionView
     end
 
     def _include_layout?(options)
-      (options.keys & [:body, :text, :plain, :html, :inline, :partial]).empty? || options.key?(:layout)
+      (options.keys & [:body, :plain, :html, :inline, :partial]).empty? || options.key?(:layout)
     end
   end
 end

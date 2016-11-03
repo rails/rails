@@ -65,7 +65,7 @@ module ActiveRecord
 
     def with_value_from_user(value)
       type.assert_valid_value(value)
-      self.class.from_user(name, value, type, self)
+      self.class.from_user(name, value, type, original_attribute || self)
     end
 
     def with_value_from_database(value)
@@ -77,7 +77,11 @@ module ActiveRecord
     end
 
     def with_type(type)
-      self.class.new(name, value_before_type_cast, type, original_attribute)
+      if changed_in_place?
+        with_value_from_user(value).with_type(type)
+      else
+        self.class.new(name, value_before_type_cast, type, original_attribute)
+      end
     end
 
     def type_cast(*)
@@ -108,100 +112,126 @@ module ActiveRecord
       [self.class, name, value_before_type_cast, type].hash
     end
 
+    def init_with(coder)
+      @name = coder["name"]
+      @value_before_type_cast = coder["value_before_type_cast"]
+      @type = coder["type"]
+      @original_attribute = coder["original_attribute"]
+      @value = coder["value"] if coder.map.key?("value")
+    end
+
+    def encode_with(coder)
+      coder["name"] = name
+      coder["value_before_type_cast"] = value_before_type_cast if value_before_type_cast
+      coder["type"] = type if type
+      coder["original_attribute"] = original_attribute if original_attribute
+      coder["value"] = value if defined?(@value)
+    end
+
     protected
 
-    attr_reader :original_attribute
-    alias_method :assigned?, :original_attribute
+      attr_reader :original_attribute
+      alias_method :assigned?, :original_attribute
 
-    def initialize_dup(other)
-      if defined?(@value) && @value.duplicable?
-        @value = @value.dup
-      end
-    end
-
-    def changed_from_assignment?
-      assigned? && type.changed?(original_value, value, value_before_type_cast)
-    end
-
-    def original_value_for_database
-      if assigned?
-        original_attribute.original_value_for_database
-      else
-        _original_value_for_database
-      end
-    end
-
-    def _original_value_for_database
-      value_for_database
-    end
-
-    class FromDatabase < Attribute # :nodoc:
-      def type_cast(value)
-        type.deserialize(value)
-      end
-
-      def _original_value_for_database
-        value_before_type_cast
-      end
-    end
-
-    class FromUser < Attribute # :nodoc:
-      def type_cast(value)
-        type.cast(value)
-      end
-
-      def came_from_user?
-        true
-      end
-    end
-
-    class WithCastValue < Attribute # :nodoc:
-      def type_cast(value)
-        value
-      end
-
-      def changed_in_place_from?(old_value)
-        false
-      end
-    end
-
-    class Null < Attribute # :nodoc:
-      def initialize(name)
-        super(name, nil, Type::Value.new)
-      end
-
-      def type_cast(*)
-        nil
-      end
-
-      def with_type(type)
-        self.class.with_cast_value(name, nil, type)
-      end
-
-      def with_value_from_database(value)
-        raise ActiveModel::MissingAttributeError, "can't write unknown attribute `#{name}`"
-      end
-      alias_method :with_value_from_user, :with_value_from_database
-    end
-
-    class Uninitialized < Attribute # :nodoc:
-      def initialize(name, type)
-        super(name, nil, type)
-      end
-
-      def value
-        if block_given?
-          yield name
+      def initialize_dup(other)
+        if defined?(@value) && @value.duplicable?
+          @value = @value.dup
         end
       end
 
-      def value_for_database
+      def changed_from_assignment?
+        assigned? && type.changed?(original_value, value, value_before_type_cast)
       end
 
-      def initialized?
-        false
+      def original_value_for_database
+        if assigned?
+          original_attribute.original_value_for_database
+        else
+          _original_value_for_database
+        end
       end
-    end
-    private_constant :FromDatabase, :FromUser, :Null, :Uninitialized, :WithCastValue
+
+      def _original_value_for_database
+        type.serialize(original_value)
+      end
+
+      class FromDatabase < Attribute # :nodoc:
+        def type_cast(value)
+          type.deserialize(value)
+        end
+
+        def _original_value_for_database
+          value_before_type_cast
+        end
+      end
+
+      class FromUser < Attribute # :nodoc:
+        def type_cast(value)
+          type.cast(value)
+        end
+
+        def came_from_user?
+          true
+        end
+      end
+
+      class WithCastValue < Attribute # :nodoc:
+        def type_cast(value)
+          value
+        end
+
+        def changed_in_place?
+          false
+        end
+      end
+
+      class Null < Attribute # :nodoc:
+        def initialize(name)
+          super(name, nil, Type.default_value)
+        end
+
+        def type_cast(*)
+          nil
+        end
+
+        def with_type(type)
+          self.class.with_cast_value(name, nil, type)
+        end
+
+        def with_value_from_database(value)
+          raise ActiveModel::MissingAttributeError, "can't write unknown attribute `#{name}`"
+        end
+        alias_method :with_value_from_user, :with_value_from_database
+      end
+
+      class Uninitialized < Attribute # :nodoc:
+        UNINITIALIZED_ORIGINAL_VALUE = Object.new
+
+        def initialize(name, type)
+          super(name, nil, type)
+        end
+
+        def value
+          if block_given?
+            yield name
+          end
+        end
+
+        def original_value
+          UNINITIALIZED_ORIGINAL_VALUE
+        end
+
+        def value_for_database
+        end
+
+        def initialized?
+          false
+        end
+
+        def with_type(type)
+          self.class.new(name, type)
+        end
+      end
+      private_constant :FromDatabase, :FromUser, :Null, :Uninitialized, :WithCastValue
   end
 end

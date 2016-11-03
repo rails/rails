@@ -1,5 +1,5 @@
-require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/hash/transform_values'
+require "active_support/core_ext/object/blank"
+require "active_support/core_ext/hash/transform_values"
 
 module ActiveSupport
   class Duration
@@ -12,13 +12,15 @@ module ActiveSupport
 
       # Builds and returns output string.
       def serialize
-        output = 'P'
         parts, sign = normalize
+        return "PT0S".freeze if parts.empty?
+
+        output = "P"
         output << "#{parts[:years]}Y"   if parts.key?(:years)
         output << "#{parts[:months]}M"  if parts.key?(:months)
         output << "#{parts[:weeks]}W"   if parts.key?(:weeks)
         output << "#{parts[:days]}D"    if parts.key?(:days)
-        time = ''
+        time = ""
         time << "#{parts[:hours]}H"     if parts.key?(:hours)
         time << "#{parts[:minutes]}M"   if parts.key?(:minutes)
         if parts.key?(:seconds)
@@ -35,13 +37,13 @@ module ActiveSupport
         # Zero parts are removed as not significant.
         # If all parts are negative it will negate all of them and return minus as a sign.
         def normalize
-          parts = @duration.parts.each_with_object(Hash.new(0)) do |(k,v),p|
+          parts = @duration.parts.each_with_object(Hash.new(0)) do |(k, v), p|
             p[k] += v  unless v.zero?
           end
           # If all parts are negative - let's make a negative duration
-          sign = ''
+          sign = ""
           if parts.values.all? { |v| v < 0 }
-            sign = '-'
+            sign = "-"
             parts.transform_values!(&:-@)
           end
           [parts, sign]

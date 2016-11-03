@@ -1,29 +1,27 @@
-require 'benchmark'
-require 'zlib'
-require 'active_support/core_ext/array/extract_options'
-require 'active_support/core_ext/array/wrap'
-require 'active_support/core_ext/benchmark'
-require 'active_support/core_ext/module/attribute_accessors'
-require 'active_support/core_ext/numeric/bytes'
-require 'active_support/core_ext/numeric/time'
-require 'active_support/core_ext/object/to_param'
-require 'active_support/core_ext/string/inflections'
-require 'active_support/core_ext/string/strip'
+require "zlib"
+require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/array/wrap"
+require "active_support/core_ext/module/attribute_accessors"
+require "active_support/core_ext/numeric/bytes"
+require "active_support/core_ext/numeric/time"
+require "active_support/core_ext/object/to_param"
+require "active_support/core_ext/string/inflections"
+require "active_support/core_ext/string/strip"
 
 module ActiveSupport
   # See ActiveSupport::Cache::Store for documentation.
   module Cache
-    autoload :FileStore,     'active_support/cache/file_store'
-    autoload :MemoryStore,   'active_support/cache/memory_store'
-    autoload :MemCacheStore, 'active_support/cache/mem_cache_store'
-    autoload :NullStore,     'active_support/cache/null_store'
+    autoload :FileStore,     "active_support/cache/file_store"
+    autoload :MemoryStore,   "active_support/cache/memory_store"
+    autoload :MemCacheStore, "active_support/cache/mem_cache_store"
+    autoload :NullStore,     "active_support/cache/null_store"
 
     # These options mean something to all cache implementations. Individual cache
     # implementations may support additional options.
     UNIVERSAL_OPTIONS = [:namespace, :compress, :compress_threshold, :expires_in, :race_condition_ttl]
 
     module Strategy
-      autoload :LocalCache, 'active_support/cache/strategy/local_cache'
+      autoload :LocalCache, "active_support/cache/strategy/local_cache"
     end
 
     class << self
@@ -153,7 +151,7 @@ module ActiveSupport
     # or +write+. To specify the threshold at which to compress values, set the
     # <tt>:compress_threshold</tt> option. The default threshold is 16K.
     class Store
-      cattr_accessor :logger, :instance_writer => true
+      cattr_accessor :logger, instance_writer: true
 
       attr_reader :silence, :options
       alias :silence? :silence
@@ -200,15 +198,15 @@ module ActiveSupport
       # You may also specify additional options via the +options+ argument.
       # Setting <tt>force: true</tt> forces a cache "miss," meaning we treat
       # the cache value as missing even if it's present. Passing a block is
-      # required when `force` is true so this always results in a cache write.
+      # required when +force+ is true so this always results in a cache write.
       #
       #   cache.write('today', 'Monday')
       #   cache.fetch('today', force: true) { 'Tuesday' } # => 'Tuesday'
       #   cache.fetch('today', force: true) # => ArgumentError
       #
-      # The `:force` option is useful when you're calling some other method to
+      # The +:force+ option is useful when you're calling some other method to
       # ask whether you should force a cache write. Otherwise, it's clearer to
-      # just call `Cache#write`.
+      # just call <tt>Cache#write</tt>.
       #
       # Setting <tt>:compress</tt> will store a large cache entry set by the call
       # in a compressed format.
@@ -250,14 +248,14 @@ module ActiveSupport
       #   sleep 60
       #
       #   Thread.new do
-      #     val_1 = cache.fetch('foo', race_condition_ttl: 10) do
+      #     val_1 = cache.fetch('foo', race_condition_ttl: 10.seconds) do
       #       sleep 1
       #       'new value 1'
       #     end
       #   end
       #
       #   Thread.new do
-      #     val_2 = cache.fetch('foo', race_condition_ttl: 10) do
+      #     val_2 = cache.fetch('foo', race_condition_ttl: 10.seconds) do
       #       'new value 2'
       #     end
       #   end
@@ -300,7 +298,7 @@ module ActiveSupport
             save_block_result_to_cache(name, options) { |_name| yield _name }
           end
         elsif options && options[:force]
-          raise ArgumentError, 'Missing block: Calling `Cache#fetch` with `force: true` requires a block.'
+          raise ArgumentError, "Missing block: Calling `Cache#fetch` with `force: true` requires a block."
         else
           read(name, options)
         end
@@ -361,6 +359,9 @@ module ActiveSupport
       # the cache with the given keys, then that data is returned. Otherwise,
       # the supplied block is called for each key for which there was no data,
       # and the result will be written to the cache and returned.
+      # Therefore, you need to pass a block that returns the data to be written
+      # to the cache. If you do not want to write the cache when the cache is
+      # not found, use #read_multi.
       #
       # Options are passed to the underlying cache implementation.
       #
@@ -374,6 +375,8 @@ module ActiveSupport
       #   #      "unknown_key" => "Fallback value for key: unknown_key" }
       #
       def fetch_multi(*names)
+        raise ArgumentError, "Missing block: `Cache#fetch_multi` requires a block." unless block_given?
+
         options = names.extract_options!
         options = merged_options(options)
         results = read_multi(*names, options)
@@ -464,7 +467,7 @@ module ActiveSupport
       # The options hash is passed to the underlying cache implementation.
       #
       # All implementations may not support this method.
-      def clear(options = nil)
+      def clear
         raise NotImplementedError.new("#{self.class.name} does not support clear")
       end
 
@@ -477,7 +480,7 @@ module ActiveSupport
           prefix = options[:namespace].is_a?(Proc) ? options[:namespace].call : options[:namespace]
           if prefix
             source = pattern.source
-            if source.start_with?('^')
+            if source.start_with?("^")
               source = source[1, source.length]
             else
               source = ".*#{source[0, source.length]}"
@@ -525,12 +528,12 @@ module ActiveSupport
           case key
           when Array
             if key.size > 1
-              key = key.collect{|element| expanded_key(element)}
+              key = key.collect { |element| expanded_key(element) }
             else
               key = key.first
             end
           when Hash
-            key = key.sort_by { |k,_| k.to_s }.collect{|k,v| "#{k}=#{v}"}
+            key = key.sort_by { |k, _| k.to_s }.collect { |k, v| "#{k}=#{v}" }
           end
 
           key.to_param
@@ -557,9 +560,9 @@ module ActiveSupport
         def instrument(operation, key, options = nil)
           log { "Cache #{operation}: #{normalize_key(key, options)}#{options.blank? ? "" : " (#{options.inspect})"}" }
 
-          payload = { :key => key }
+          payload = { key: key }
           payload.merge!(options) if options.is_a?(Hash)
-          ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload){ yield(payload) }
+          ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload) { yield(payload) }
         end
 
         def log
@@ -574,7 +577,7 @@ module ActiveSupport
               # When an entry has a positive :race_condition_ttl defined, put the stale entry back into the cache
               # for a brief period while the entry is being recalculated.
               entry.expires_at = Time.now + race_ttl
-              write_entry(key, entry, :expires_in => race_ttl * 2)
+              write_entry(key, entry, expires_in: race_ttl * 2)
             else
               delete_entry(key, options)
             end
@@ -584,7 +587,7 @@ module ActiveSupport
         end
 
         def get_entry_value(entry, name, options)
-          instrument(:fetch_hit, name, options) { }
+          instrument(:fetch_hit, name, options) {}
           entry.value
         end
 

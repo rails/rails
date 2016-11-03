@@ -44,7 +44,7 @@ from.
 In special situations, where someone from the Core Team agrees to support more series,
 they are included in the list of supported series.
 
-**Currently included series:** `5.0.Z`.
+**Currently included series:** `5.0.Z`, `4.2.Z`.
 
 Security Issues
 ---------------

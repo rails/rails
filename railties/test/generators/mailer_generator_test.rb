@@ -1,5 +1,5 @@
-require 'generators/generators_test_helper'
-require 'rails/generators/mailer/mailer_generator'
+require "generators/generators_test_helper"
+require "rails/generators/mailer/mailer_generator"
 
 class MailerGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -13,7 +13,7 @@ class MailerGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/layout :mailer_notifier/, mailer)
     end
 
-    assert_file 'app/mailers/application_mailer.rb' do |mailer|
+    assert_file "app/mailers/application_mailer.rb" do |mailer|
       assert_match(/class ApplicationMailer < ActionMailer::Base/, mailer)
       assert_match(/default from: 'from@example.com'/, mailer)
       assert_match(/layout 'mailer'/, mailer)
@@ -30,7 +30,7 @@ class MailerGeneratorTest < Rails::Generators::TestCase
 
   def test_check_class_collision
     Object.send :const_set, :NotifierMailer, Class.new
-    content = capture(:stderr){ run_generator }
+    content = capture(:stderr) { run_generator }
     assert_match(/The name 'NotifierMailer' is either already used in your application or reserved/, content)
   ensure
     Object.send :remove_const, :NotifierMailer
@@ -59,7 +59,7 @@ class MailerGeneratorTest < Rails::Generators::TestCase
 
   def test_check_test_class_collision
     Object.send :const_set, :NotifierMailerTest, Class.new
-    content = capture(:stderr){ run_generator }
+    content = capture(:stderr) { run_generator }
     assert_match(/The name 'NotifierMailerTest' is either already used in your application or reserved/, content)
   ensure
     Object.send :remove_const, :NotifierMailerTest
@@ -67,7 +67,7 @@ class MailerGeneratorTest < Rails::Generators::TestCase
 
   def test_check_preview_class_collision
     Object.send :const_set, :NotifierMailerPreview, Class.new
-    content = capture(:stderr){ run_generator }
+    content = capture(:stderr) { run_generator }
     assert_match(/The name 'NotifierMailerPreview' is either already used in your application or reserved/, content)
   ensure
     Object.send :remove_const, :NotifierMailerPreview
@@ -84,6 +84,10 @@ class MailerGeneratorTest < Rails::Generators::TestCase
       assert_match(%r(\sapp/views/notifier_mailer/bar\.text\.erb), view)
       assert_match(/<%= @greeting %>/, view)
     end
+
+    assert_file "app/views/layouts/mailer.text.erb" do |view|
+      assert_match(/<%= yield %>/, view)
+    end
   end
 
   def test_invokes_default_html_template_engine
@@ -96,6 +100,10 @@ class MailerGeneratorTest < Rails::Generators::TestCase
     assert_file "app/views/notifier_mailer/bar.html.erb" do |view|
       assert_match(%r(\sapp/views/notifier_mailer/bar\.html\.erb), view)
       assert_match(/<%= @greeting %>/, view)
+    end
+
+    assert_file "app/views/layouts/mailer.html.erb" do |view|
+      assert_match(%r{<body>\n    <%= yield %>\n  </body>}, view)
     end
   end
 

@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class WithCookiesController < ActionController::API
   include ActionController::Cookies
@@ -12,10 +12,10 @@ class WithCookiesTest < ActionController::TestCase
   tests WithCookiesController
 
   def test_with_cookies
-    request.cookies[:foobar] = 'bazbang'
+    request.cookies[:foobar] = "bazbang"
 
     get :with_cookies
 
-    assert_equal 'bazbang', response.body
+    assert_equal "bazbang", response.body
   end
 end

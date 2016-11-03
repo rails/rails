@@ -1,7 +1,7 @@
-require 'cases/helper'
-require 'models/topic'
-require 'models/person'
-require 'models/custom_reader'
+require "cases/helper"
+require "models/topic"
+require "models/person"
+require "models/custom_reader"
 
 class AbsenceValidationTest < ActiveModel::TestCase
   teardown do
@@ -19,7 +19,7 @@ class AbsenceValidationTest < ActiveModel::TestCase
     assert_equal ["must be blank"], t.errors[:title]
     assert_equal ["must be blank"], t.errors[:content]
     t.title = ""
-    t.content  = "something"
+    t.content = "something"
     assert t.invalid?
     assert_equal ["must be blank"], t.errors[:content]
     assert_equal [], t.errors[:title]

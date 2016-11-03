@@ -40,7 +40,7 @@ module ActiveRecord
     #   ActiveRecord::Schema.define(version: 20380119000001) do
     #     ...
     #   end
-    def self.define(info={}, &block)
+    def self.define(info = {}, &block)
       new.define(info, &block)
     end
 

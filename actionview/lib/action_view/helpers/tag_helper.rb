@@ -1,39 +1,207 @@
-require 'active_support/core_ext/string/output_safety'
-require 'set'
+# frozen-string-literal: true
+
+require "active_support/core_ext/string/output_safety"
+require "set"
 
 module ActionView
   # = Action View Tag Helpers
   module Helpers #:nodoc:
-    # Provides methods to generate HTML tags programmatically when you can't use
-    # a Builder. By default, they output XHTML compliant tags.
+    # Provides methods to generate HTML tags programmatically both as a modern
+    # HTML5 compliant builder style and legacy XHTML compliant tags.
     module TagHelper
       extend ActiveSupport::Concern
       include CaptureHelper
       include OutputSafetyHelper
 
-      BOOLEAN_ATTRIBUTES = %w(disabled readonly multiple checked autobuffer
-                           autoplay controls loop selected hidden scoped async
-                           defer reversed ismap seamless muted required
-                           autofocus novalidate formnovalidate open pubdate
-                           itemscope allowfullscreen default inert sortable
-                           truespeed typemustmatch).to_set
+      BOOLEAN_ATTRIBUTES = %w(allowfullscreen async autofocus autoplay checked
+                              compact controls declare default defaultchecked
+                              defaultmuted defaultselected defer disabled
+                              enabled formnovalidate hidden indeterminate inert
+                              ismap itemscope loop multiple muted nohref
+                              noresize noshade novalidate nowrap open
+                              pauseonexit readonly required reversed scoped
+                              seamless selected sortable truespeed typemustmatch
+                              visible).to_set
 
       BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map(&:to_sym))
 
-      TAG_PREFIXES = ['aria', 'data', :aria, :data].to_set
+      TAG_PREFIXES = ["aria", "data", :aria, :data].to_set
 
-      PRE_CONTENT_STRINGS             = Hash.new { "".freeze }
+      PRE_CONTENT_STRINGS             = Hash.new { "" }
       PRE_CONTENT_STRINGS[:textarea]  = "\n"
       PRE_CONTENT_STRINGS["textarea"] = "\n"
 
+      class TagBuilder #:nodoc:
+        include CaptureHelper
+        include OutputSafetyHelper
 
-      # Returns an empty HTML tag of type +name+ which by default is XHTML
+        VOID_ELEMENTS = %i(area base br col embed hr img input keygen link meta param source track wbr).to_set
+
+        def initialize(view_context)
+          @view_context = view_context
+        end
+
+        def tag_string(name, content = nil, escape_attributes: true, **options, &block)
+          content = @view_context.capture(self, &block) if block_given?
+          if VOID_ELEMENTS.include?(name) && content.nil?
+            "<#{name.to_s.dasherize}#{tag_options(options, escape_attributes)}>".html_safe
+          else
+            content_tag_string(name.to_s.dasherize, content || "", options, escape_attributes)
+          end
+        end
+
+        def content_tag_string(name, content, options, escape = true)
+          tag_options = tag_options(options, escape) if options
+          content     = ERB::Util.unwrapped_html_escape(content) if escape
+          "<#{name}#{tag_options}>#{PRE_CONTENT_STRINGS[name]}#{content}</#{name}>".html_safe
+        end
+
+        def tag_options(options, escape = true)
+          return if options.blank?
+          output = "".dup
+          sep    = " "
+          options.each_pair do |key, value|
+            if TAG_PREFIXES.include?(key) && value.is_a?(Hash)
+              value.each_pair do |k, v|
+                next if v.nil?
+                output << sep
+                output << prefix_tag_option(key, k, v, escape)
+              end
+            elsif BOOLEAN_ATTRIBUTES.include?(key)
+              if value
+                output << sep
+                output << boolean_tag_option(key)
+              end
+            elsif !value.nil?
+              output << sep
+              output << tag_option(key, value, escape)
+            end
+          end
+          output unless output.empty?
+        end
+
+        def boolean_tag_option(key)
+          %(#{key}="#{key}")
+        end
+
+        def tag_option(key, value, escape)
+          if value.is_a?(Array)
+            value = escape ? safe_join(value, " ".freeze) : value.join(" ".freeze)
+          else
+            value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
+          end
+          %(#{key}="#{value.gsub('"'.freeze, '&quot;'.freeze)}")
+        end
+
+        private
+          def prefix_tag_option(prefix, key, value, escape)
+            key = "#{prefix}-#{key.to_s.dasherize}"
+            unless value.is_a?(String) || value.is_a?(Symbol) || value.is_a?(BigDecimal)
+              value = value.to_json
+            end
+            tag_option(key, value, escape)
+          end
+
+          def respond_to_missing?(*args)
+            true
+          end
+
+          def method_missing(called, *args, &block)
+            tag_string(called, *args, &block)
+          end
+      end
+
+      # Returns an HTML tag.
+      #
+      # === Building HTML tags
+      #
+      # Builds HTML5 compliant tags with a tag proxy. Every tag can be built with:
+      #
+      #   tag.<tag name>(optional content, options)
+      #
+      # where tag name can be e.g. br, div, section, article, or any tag really.
+      #
+      # ==== Passing content
+      #
+      # Tags can pass content to embed within it:
+      #
+      #   tag.h1 'All titles fit to print' # => <h1>All titles fit to print</h1>
+      #
+      #   tag.div tag.p('Hello world!')  # => <div><p>Hello world!</p></div>
+      #
+      # Content can also be captured with a block, which is useful in templates:
+      #
+      #   <%= tag.p do %>
+      #     The next great American novel starts here.
+      #   <% end %>
+      #   # => <p>The next great American novel starts here.</p>
+      #
+      # ==== Options
+      #
+      # Use symbol keyed options to add attributes to the generated tag.
+      #
+      #   tag.section class: %w( kitties puppies )
+      #   # => <section class="kitties puppies"></section>
+      #
+      #   tag.section id: dom_id(@post)
+      #   # => <section id="<generated dom id>"></section>
+      #
+      # Pass +true+ for any attributes that can render with no values, like +disabled+ and +readonly+.
+      #
+      #   tag.input type: 'text', disabled: true
+      #   # => <input type="text" disabled="disabled">
+      #
+      # HTML5 <tt>data-*</tt> attributes can be set with a single +data+ key
+      # pointing to a hash of sub-attributes.
+      #
+      # To play nicely with JavaScript conventions, sub-attributes are dasherized.
+      #
+      #   tag.article data: { user_id: 123 }
+      #   # => <article data-user-id="123"></article>
+      #
+      # Thus <tt>data-user-id</tt> can be accessed as <tt>dataset.userId</tt>.
+      #
+      # Data attribute values are encoded to JSON, with the exception of strings, symbols and
+      # BigDecimals.
+      # This may come in handy when using jQuery's HTML5-aware <tt>.data()</tt>
+      # from 1.4.3.
+      #
+      #   tag.div data: { city_state: %w( Chigaco IL ) }
+      #   # => <div data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]"></div>
+      #
+      # The generated attributes are escaped by default. This can be disabled using
+      # +escape_attributes+.
+      #
+      #   tag.img src: 'open & shut.png'
+      #   # => <img src="open &amp; shut.png">
+      #
+      #   tag.img src: 'open & shut.png', escape_attributes: false
+      #   # => <img src="open & shut.png">
+      #
+      # The tag builder respects
+      # {HTML5 void elements}[https://www.w3.org/TR/html5/syntax.html#void-elements]
+      # if no content is passed, and omits closing tags for those elements.
+      #
+      #   # A standard element:
+      #   tag.div # => <div></div>
+      #
+      #   # A void element:
+      #   tag.br  # => <br>
+      #
+      # === Legacy syntax
+      #
+      # The following format is for legacy syntax support. It will be deprecated in future versions of Rails.
+      #
+      #   tag(name, options = nil, open = false, escape = true)
+      #
+      # It returns an empty HTML tag of type +name+ which by default is XHTML
       # compliant. Set +open+ to true to create an open tag compatible
       # with HTML 4.0 and below. Add HTML attributes by passing an attributes
       # hash to +options+. Set +escape+ to false to disable attribute value
       # escaping.
       #
       # ==== Options
+      #
       # You can use symbols or strings for the attribute names.
       #
       # Use +true+ with boolean attributes that can render with no value, like
@@ -42,16 +210,8 @@ module ActionView
       # HTML5 <tt>data-*</tt> attributes can be set with a single +data+ key
       # pointing to a hash of sub-attributes.
       #
-      # To play nicely with JavaScript conventions sub-attributes are dasherized.
-      # For example, a key +user_id+ would render as <tt>data-user-id</tt> and
-      # thus accessed as <tt>dataset.userId</tt>.
-      #
-      # Values are encoded to JSON, with the exception of strings, symbols and
-      # BigDecimals.
-      # This may come in handy when using jQuery's HTML5-aware <tt>.data()</tt>
-      # from 1.4.3.
-      #
       # ==== Examples
+      #
       #   tag("br")
       #   # => <br />
       #
@@ -72,8 +232,12 @@ module ActionView
       #
       #   tag("div", data: {name: 'Stephen', city_state: %w(Chicago IL)})
       #   # => <div data-name="Stephen" data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]" />
-      def tag(name, options = nil, open = false, escape = true)
-        "<#{name}#{tag_options(options, escape) if options}#{open ? ">" : " />"}".html_safe
+      def tag(name = nil, options = nil, open = false, escape = true)
+        if name.nil?
+          tag_builder
+        else
+          "<#{name}#{tag_builder.tag_options(options, escape) if options}#{open ? ">" : " />"}".html_safe
+        end
       end
 
       # Returns an HTML block tag of type +name+ surrounding the +content+. Add
@@ -81,6 +245,7 @@ module ActionView
       # Instead of passing the content as an argument, you can also use a block
       # in which case, you pass your +options+ as the second parameter.
       # Set escape to false to disable attribute value escaping.
+      # Note: this is legacy syntax, see +tag+ method description for details.
       #
       # ==== Options
       # The +options+ hash can be used with attributes with no value like (<tt>disabled</tt> and
@@ -104,9 +269,9 @@ module ActionView
       def content_tag(name, content_or_options_with_block = nil, options = nil, escape = true, &block)
         if block_given?
           options = content_or_options_with_block if content_or_options_with_block.is_a?(Hash)
-          content_tag_string(name, capture(&block), options, escape)
+          tag_builder.content_tag_string(name, capture(&block), options, escape)
         else
-          content_tag_string(name, content_or_options_with_block, options, escape)
+          tag_builder.content_tag_string(name, content_or_options_with_block, options, escape)
         end
       end
 
@@ -124,7 +289,7 @@ module ActionView
       #   cdata_section("hello]]>world")
       #   # => <![CDATA[hello]]]]><![CDATA[>world]]>
       def cdata_section(content)
-        splitted = content.to_s.gsub(/\]\]\>/, ']]]]><![CDATA[>')
+        splitted = content.to_s.gsub(/\]\]\>/, "]]]]><![CDATA[>")
         "<![CDATA[#{splitted}]]>".html_safe
       end
 
@@ -140,56 +305,8 @@ module ActionView
       end
 
       private
-
-        def content_tag_string(name, content, options, escape = true)
-          tag_options = tag_options(options, escape) if options
-          content     = ERB::Util.unwrapped_html_escape(content) if escape
-          "<#{name}#{tag_options}>#{PRE_CONTENT_STRINGS[name]}#{content}</#{name}>".html_safe
-        end
-
-        def tag_options(options, escape = true)
-          return if options.blank?
-          output = ""
-          sep    = " ".freeze
-          options.each_pair do |key, value|
-            if TAG_PREFIXES.include?(key) && value.is_a?(Hash)
-              value.each_pair do |k, v|
-                next if v.nil?
-                output << sep
-                output << prefix_tag_option(key, k, v, escape)
-              end
-            elsif BOOLEAN_ATTRIBUTES.include?(key)
-              if value
-                output << sep
-                output << boolean_tag_option(key)
-              end
-            elsif !value.nil?
-              output << sep
-              output << tag_option(key, value, escape)
-            end
-          end
-          output unless output.empty?
-        end
-
-        def prefix_tag_option(prefix, key, value, escape)
-          key = "#{prefix}-#{key.to_s.dasherize}"
-          unless value.is_a?(String) || value.is_a?(Symbol) || value.is_a?(BigDecimal)
-            value = value.to_json
-          end
-          tag_option(key, value, escape)
-        end
-
-        def boolean_tag_option(key)
-          %(#{key}="#{key}")
-        end
-
-        def tag_option(key, value, escape)
-          if value.is_a?(Array)
-            value = escape ? safe_join(value, " ".freeze) : value.join(" ".freeze)
-          else
-            value = escape ? ERB::Util.unwrapped_html_escape(value) : value
-          end
-          %(#{key}="#{value}")
+        def tag_builder
+          @tag_builder ||= TagBuilder.new(self)
         end
     end
   end

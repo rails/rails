@@ -387,7 +387,7 @@ The corresponding migration might look like this:
 class CreateSuppliers < ActiveRecord::Migration[5.0]
   def change
     create_table :suppliers do |t|
-      t.string  :name
+      t.string :name
       t.timestamps
     end
 
@@ -550,8 +550,8 @@ But what if you want to reload the cache, because data might have been changed b
 ```ruby
 author.books                 # retrieves books from the database
 author.books.size            # uses the cached copy of books
-author.books.reload.empty?    # discards the cached copy of books
-                                # and goes back to the database
+author.books.reload.empty?   # discards the cached copy of books
+                             # and goes back to the database
 ```
 
 ### Avoiding Name Collisions
@@ -1007,7 +1007,7 @@ class Author < ApplicationRecord
 end
 ```
 
-In this case, saving or destroying an book will update the timestamp on the associated author. You can also specify a particular timestamp attribute to update:
+In this case, saving or destroying a book will update the timestamp on the associated author. You can also specify a particular timestamp attribute to update:
 
 ```ruby
 class Book < ApplicationRecord
@@ -1477,7 +1477,7 @@ WARNING: Objects will _always_ be removed from the database, ignoring the `:depe
 
 ##### `collection=(objects)`
 
-The `collection=` method makes the collection contain only the supplied objects, by adding and deleting as appropriate.
+The `collection=` method makes the collection contain only the supplied objects, by adding and deleting as appropriate. The changes are persisted to the database.
 
 ##### `collection_singular_ids`
 
@@ -1489,7 +1489,7 @@ The `collection_singular_ids` method returns an array of the ids of the objects 
 
 ##### `collection_singular_ids=(ids)`
 
-The `collection_singular_ids=` method makes the collection contain only the objects identified by the supplied primary key values, by adding and deleting as appropriate.
+The `collection_singular_ids=` method makes the collection contain only the objects identified by the supplied primary key values, by adding and deleting as appropriate. The changes are persisted to the database.
 
 ##### `collection.clear`
 
@@ -1841,7 +1841,7 @@ article   = Article.create(name: 'a1')
 person.articles << article
 person.articles << article
 person.articles.inspect # => [#<Article id: 5, name: "a1">, #<Article id: 5, name: "a1">]
-Reading.all.inspect  # => [#<Reading id: 12, person_id: 5, article_id: 5>, #<Reading id: 13, person_id: 5, article_id: 5>]
+Reading.all.inspect     # => [#<Reading id: 12, person_id: 5, article_id: 5>, #<Reading id: 13, person_id: 5, article_id: 5>]
 ```
 
 In the above case there are two readings and `person.articles` brings out both of
@@ -1860,7 +1860,7 @@ article   = Article.create(name: 'a1')
 person.articles << article
 person.articles << article
 person.articles.inspect # => [#<Article id: 7, name: "a1">]
-Reading.all.inspect  # => [#<Reading id: 16, person_id: 7, article_id: 7>, #<Reading id: 17, person_id: 7, article_id: 7>]
+Reading.all.inspect     # => [#<Reading id: 16, person_id: 7, article_id: 7>, #<Reading id: 17, person_id: 7, article_id: 7>]
 ```
 
 In the above case there are still two readings. However `person.articles` shows
@@ -1994,11 +1994,9 @@ The `collection.delete` method removes one or more objects from the collection b
 @part.assemblies.delete(@assembly1)
 ```
 
-WARNING: This does not trigger callbacks on the join records.
-
 ##### `collection.destroy(object, ...)`
 
-The `collection.destroy` method removes one or more objects from the collection by running `destroy` on each record in the join table, including running callbacks. This does not destroy the objects.
+The `collection.destroy` method removes one or more objects from the collection by deleting records in the join table. This does not destroy the objects.
 
 ```ruby
 @part.assemblies.destroy(@assembly1)
@@ -2006,7 +2004,7 @@ The `collection.destroy` method removes one or more objects from the collection 
 
 ##### `collection=(objects)`
 
-The `collection=` method makes the collection contain only the supplied objects, by adding and deleting as appropriate.
+The `collection=` method makes the collection contain only the supplied objects, by adding and deleting as appropriate. The changes are persisted to the database.
 
 ##### `collection_singular_ids`
 
@@ -2018,7 +2016,7 @@ The `collection_singular_ids` method returns an array of the ids of the objects 
 
 ##### `collection_singular_ids=(ids)`
 
-The `collection_singular_ids=` method makes the collection contain only the objects identified by the supplied primary key values, by adding and deleting as appropriate.
+The `collection_singular_ids=` method makes the collection contain only the objects identified by the supplied primary key values, by adding and deleting as appropriate. The changes are persisted to the database.
 
 ##### `collection.clear`
 

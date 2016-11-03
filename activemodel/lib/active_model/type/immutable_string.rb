@@ -16,14 +16,15 @@ module ActiveModel
 
       private
 
-      def cast_value(value)
-        result = case value
-                 when true then "t"
-                 when false then "f"
-                 else value.to_s
-                 end
-        result.freeze
-      end
+        def cast_value(value)
+          result = \
+            case value
+            when true then "t"
+            when false then "f"
+            else value.to_s
+            end
+          result.freeze
+        end
     end
   end
 end

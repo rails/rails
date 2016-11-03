@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 module ShowExceptions
   class ShowExceptionsController < ActionController::Base
@@ -10,11 +10,11 @@ module ShowExceptions
     end
 
     def boom
-      raise 'boom!'
+      raise "boom!"
     end
 
     def another_boom
-      raise 'boom!'
+      raise "boom!"
     end
 
     def show_detailed_exceptions?
@@ -23,26 +23,26 @@ module ShowExceptions
   end
 
   class ShowExceptionsTest < ActionDispatch::IntegrationTest
-    test 'show error page from a remote ip' do
+    test "show error page from a remote ip" do
       @app = ShowExceptionsController.action(:boom)
-      self.remote_addr = '208.77.188.166'
-      get '/'
+      self.remote_addr = "208.77.188.166"
+      get "/"
       assert_equal "500 error fixture\n", body
     end
 
-    test 'show diagnostics from a local ip if show_detailed_exceptions? is set to request.local?' do
+    test "show diagnostics from a local ip if show_detailed_exceptions? is set to request.local?" do
       @app = ShowExceptionsController.action(:boom)
-      ['127.0.0.1', '127.0.0.127', '127.12.1.1', '::1', '0:0:0:0:0:0:0:1', '0:0:0:0:0:0:0:1%0'].each do |ip_address|
+      ["127.0.0.1", "127.0.0.127", "127.12.1.1", "::1", "0:0:0:0:0:0:0:1", "0:0:0:0:0:0:0:1%0"].each do |ip_address|
         self.remote_addr = ip_address
-        get '/'
+        get "/"
         assert_match(/boom/, body)
       end
     end
 
-    test 'show diagnostics from a remote ip when env is already set' do
+    test "show diagnostics from a remote ip when env is already set" do
       @app = ShowExceptionsController.action(:another_boom)
-      self.remote_addr = '208.77.188.166'
-      get '/'
+      self.remote_addr = "208.77.188.166"
+      get "/"
       assert_match(/boom/, body)
     end
   end
@@ -50,21 +50,21 @@ module ShowExceptions
   class ShowExceptionsOverriddenController < ShowExceptionsController
     private
 
-    def show_detailed_exceptions?
-      params['detailed'] == '1'
-    end
+      def show_detailed_exceptions?
+        params["detailed"] == "1"
+      end
   end
 
   class ShowExceptionsOverriddenTest < ActionDispatch::IntegrationTest
-    test 'show error page' do
+    test "show error page" do
       @app = ShowExceptionsOverriddenController.action(:boom)
-      get '/', params: { 'detailed' => '0' }
+      get "/", params: { "detailed" => "0" }
       assert_equal "500 error fixture\n", body
     end
 
-    test 'show diagnostics message' do
+    test "show diagnostics message" do
       @app = ShowExceptionsOverriddenController.action(:boom)
-      get '/', params: { 'detailed' => '1' }
+      get "/", params: { "detailed" => "1" }
       assert_match(/boom/, body)
     end
   end
@@ -72,25 +72,25 @@ module ShowExceptions
   class ShowExceptionsFormatsTest < ActionDispatch::IntegrationTest
     def test_render_json_exception
       @app = ShowExceptionsOverriddenController.action(:boom)
-      get "/", headers: { 'HTTP_ACCEPT' => 'application/json' }
+      get "/", headers: { "HTTP_ACCEPT" => "application/json" }
       assert_response :internal_server_error
-      assert_equal 'application/json', response.content_type.to_s
-      assert_equal({ :status => 500, :error => 'Internal Server Error' }.to_json, response.body)
+      assert_equal "application/json", response.content_type.to_s
+      assert_equal({ status: 500, error: "Internal Server Error" }.to_json, response.body)
     end
 
     def test_render_xml_exception
       @app = ShowExceptionsOverriddenController.action(:boom)
-      get "/", headers: { 'HTTP_ACCEPT' => 'application/xml' }
+      get "/", headers: { "HTTP_ACCEPT" => "application/xml" }
       assert_response :internal_server_error
-      assert_equal 'application/xml', response.content_type.to_s
-      assert_equal({ :status => 500, :error => 'Internal Server Error' }.to_xml, response.body)
+      assert_equal "application/xml", response.content_type.to_s
+      assert_equal({ status: 500, error: "Internal Server Error" }.to_xml, response.body)
     end
 
     def test_render_fallback_exception
       @app = ShowExceptionsOverriddenController.action(:boom)
-      get "/", headers: { 'HTTP_ACCEPT' => 'text/csv' }
+      get "/", headers: { "HTTP_ACCEPT" => "text/csv" }
       assert_response :internal_server_error
-      assert_equal 'text/html', response.content_type.to_s
+      assert_equal "text/html", response.content_type.to_s
     end
   end
 
@@ -101,9 +101,9 @@ module ShowExceptions
       @app.instance_variable_set(:@exceptions_app, nil)
       $stderr = StringIO.new
 
-      get '/', headers: { 'HTTP_ACCEPT' => 'text/json' }
+      get "/", headers: { "HTTP_ACCEPT" => "text/json" }
       assert_response :internal_server_error
-      assert_equal 'text/plain', response.content_type.to_s
+      assert_equal "text/plain", response.content_type.to_s
     ensure
       @app.instance_variable_set(:@exceptions_app, @exceptions_app)
       $stderr = STDERR

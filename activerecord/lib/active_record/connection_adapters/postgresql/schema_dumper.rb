@@ -5,7 +5,7 @@ module ActiveRecord
         def column_spec_for_primary_key(column)
           spec = super
           if schema_type(column) == :uuid
-            spec[:default] ||= 'nil'
+            spec[:default] ||= "nil"
           end
           spec
         end
@@ -13,7 +13,7 @@ module ActiveRecord
         # Adds +:array+ option to the default set
         def prepare_column_options(column)
           spec = super
-          spec[:array] = 'true' if column.array?
+          spec[:array] = "true" if column.array?
           spec
         end
 
@@ -24,23 +24,23 @@ module ActiveRecord
 
         private
 
-        def default_primary_key?(column)
-          schema_type(column) == :serial
-        end
-
-        def schema_type(column)
-          return super unless column.serial?
-
-          if column.bigint?
-            :bigserial
-          else
-            :serial
+          def default_primary_key?(column)
+            schema_type(column) == :serial
           end
-        end
 
-        def schema_expression(column)
-          super unless column.serial?
-        end
+          def schema_type(column)
+            return super unless column.serial?
+
+            if column.bigint?
+              :bigserial
+            else
+              :serial
+            end
+          end
+
+          def schema_expression(column)
+            super unless column.serial?
+          end
       end
     end
   end

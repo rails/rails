@@ -18,9 +18,9 @@ module ActionDispatch
   #      Enabled by default. Configure `config.ssl_options` with `hsts: false` to disable.
   #
   # Set `config.ssl_options` with `hsts: { … }` to configure HSTS:
-  #   * `expires`: How long, in seconds, these settings will stick. Defaults to
-  #     `180.days` (recommended). The minimum required to qualify for browser
-  #     preload lists is `18.weeks`.
+  #   * `expires`: How long, in seconds, these settings will stick. The minimum
+  #     required to qualify for browser preload lists is `18.weeks`. Defaults to
+  #     `180.days` (recommended).
   #   * `subdomains`: Set to `true` to tell the browser to apply these settings
   #     to all subdomains. This protects your cookies from interception by a
   #     vulnerable site on a subdomain. Defaults to `true`.
@@ -29,6 +29,7 @@ module ActionDispatch
   #     first visit* since it hasn't seen your HSTS header yet. To close this
   #     gap, browser vendors include a baked-in list of HSTS-enabled sites.
   #     Go to https://hstspreload.appspot.com to submit your site for inclusion.
+  #     Defaults to `false`.
   #
   # To turn off HSTS, omitting the header is not enough. Browsers will remember the
   # original HSTS directive until it expires. Instead, use the header to tell browsers to
@@ -44,34 +45,16 @@ module ActionDispatch
     HSTS_EXPIRES_IN = 15552000
 
     def self.default_hsts_options
-      { expires: HSTS_EXPIRES_IN, subdomains: false, preload: false }
+      { expires: HSTS_EXPIRES_IN, subdomains: true, preload: false }
     end
 
-    def initialize(app, redirect: {}, hsts: {}, secure_cookies: true, **options)
+    def initialize(app, redirect: {}, hsts: {}, secure_cookies: true)
       @app = app
 
-      if options[:host] || options[:port]
-        ActiveSupport::Deprecation.warn <<-end_warning.strip_heredoc
-          The `:host` and `:port` options are moving within `:redirect`:
-          `config.ssl_options = { redirect: { host: …, port: … } }`.
-        end_warning
-        @redirect = options.slice(:host, :port)
-      else
-        @redirect = redirect
-      end
+      @redirect = redirect
 
       @exclude = @redirect && @redirect[:exclude] || proc { !@redirect }
       @secure_cookies = secure_cookies
-
-      if hsts != true && hsts != false && hsts[:subdomains].nil?
-        hsts[:subdomains] = false
-
-        ActiveSupport::Deprecation.warn <<-end_warning.strip_heredoc
-          In Rails 5.1, The `:subdomains` option of HSTS config will be treated as true if
-          unspecified. Set `config.ssl_options = { hsts: { subdomains: false } }` to opt out
-          of this behavior.
-        end_warning
-      end
 
       @hsts_header = build_hsts_header(normalize_hsts_options(hsts))
     end
@@ -92,7 +75,7 @@ module ActionDispatch
 
     private
       def set_hsts_header!(headers)
-        headers['Strict-Transport-Security'.freeze] ||= @hsts_header
+        headers["Strict-Transport-Security".freeze] ||= @hsts_header
       end
 
       def normalize_hsts_options(options)
@@ -118,10 +101,10 @@ module ActionDispatch
       end
 
       def flag_cookies_as_secure!(headers)
-        if cookies = headers['Set-Cookie'.freeze]
+        if cookies = headers["Set-Cookie".freeze]
           cookies = cookies.split("\n".freeze)
 
-          headers['Set-Cookie'.freeze] = cookies.map { |cookie|
+          headers["Set-Cookie".freeze] = cookies.map { |cookie|
             if cookie !~ /;\s*secure\s*(;|$)/i
               "#{cookie}; secure"
             else
@@ -132,10 +115,18 @@ module ActionDispatch
       end
 
       def redirect_to_https(request)
-        [ @redirect.fetch(:status, 301),
-          { 'Content-Type' => 'text/html',
-            'Location' => https_location_for(request) },
+        [ @redirect.fetch(:status, redirection_status(request)),
+          { "Content-Type" => "text/html",
+            "Location" => https_location_for(request) },
           @redirect.fetch(:body, []) ]
+      end
+
+      def redirection_status(request)
+        if request.get? || request.head?
+          301 # Issue a permanent redirect via a GET request.
+        else
+          307 # Issue a fresh request redirect to preserve the HTTP method.
+        end
       end
 
       def https_location_for(request)

@@ -7,7 +7,6 @@ and scalable. It's a full-stack offering that provides both a client-side
 JavaScript framework and a server-side Ruby framework. You have access to your full
 domain model written with Active Record or your ORM of choice.
 
-
 ## Terminology
 
 A single Action Cable server can handle multiple connection instances. It has one
@@ -168,7 +167,7 @@ App.cable.subscriptions.create "AppearanceChannel",
   buttonSelector = "[data-behavior~=appear_away]"
 
   install: ->
-    $(document).on "page:change.appearance", =>
+    $(document).on "turbolinks:load.appearance", =>
       @appear()
 
     $(document).on "click.appearance", buttonSelector, =>
@@ -300,7 +299,6 @@ The rebroadcast will be received by all connected clients, _including_ the clien
 
 See the [rails/actioncable-examples](https://github.com/rails/actioncable-examples) repository for a full example of how to setup Action Cable in a Rails app, and how to add channels.
 
-
 ## Configuration
 
 Action Cable has three required configurations: a subscription adapter, allowed request origins, and the cable server URL (which can optionally be set on the client side).
@@ -328,7 +326,10 @@ Rails.application.paths.add "config/cable", with: "somewhere/else/cable.yml"
 
 ### Allowed Request Origins
 
-Action Cable will only accept requests from specified origins, which are passed to the server config as an array. The origins can be instances of strings or regular expressions, against which a check for match will be performed.
+Action Cable will only accept requests from specific origins.
+
+By default, only an origin matching the cable server itself will be permitted.
+Additional origins can be specified using strings or regular expressions, provided in an array.
 
 ```ruby
 Rails.application.config.action_cable.allowed_request_origins = ['http://rubyonrails.com', /http:\/\/ruby.*/]
@@ -336,10 +337,17 @@ Rails.application.config.action_cable.allowed_request_origins = ['http://rubyonr
 
 When running in the development environment, this defaults to "http://localhost:3000".
 
-To disable and allow requests from any origin:
+To disable protection and allow requests from any origin:
 
 ```ruby
 Rails.application.config.action_cable.disable_request_forgery_protection = true
+```
+
+To disable automatic access for same-origin requests, and strictly allow
+only the configured origins:
+
+```ruby
+Rails.application.config.action_cable.allow_same_origin_as_host = false
 ```
 
 ### Consumer Configuration
@@ -378,11 +386,11 @@ App.cable = ActionCable.createConsumer()
 
 ### Other Configurations
 
-The other common option to configure is the log tags applied to the per-connection logger. Here's close to what we're using in Basecamp:
+The other common option to configure is the log tags applied to the per-connection logger. Here's an example that uses the user account id if available, else "no-account" while tagging:
 
 ```ruby
-Rails.application.config.action_cable.log_tags = [
-  -> request { request.env['bc.account_id'] || "no-account" },
+config.action_cable.log_tags = [
+  -> request { request.env['user_account_id'] || "no-account" },
   :action_cable,
   -> request { request.uuid }
 ]
@@ -408,7 +416,7 @@ run ActionCable.server
 ```
 
 Then you start the server using a binstub in bin/cable ala:
-```
+```sh
 #!/bin/bash
 bundle exec puma -p 28080 cable/config.ru
 ```
@@ -430,7 +438,7 @@ For every instance of your server you create and for every worker your server sp
 
 ### Notes
 
-Beware that currently the cable server will _not_ auto-reload any changes in the framework. As we've discussed, long-running cable connections mean long-running objects. We don't yet have a way of reloading the classes of those objects in a safe manner. So when you change your channels, or the model your channels use, you must restart the cable server.
+Beware that currently, the cable server will _not_ auto-reload any changes in the framework. As we've discussed, long-running cable connections mean long-running objects. We don't yet have a way of reloading the classes of those objects in a safe manner. So when you change your channels, or the model your channels use, you must restart the cable server.
 
 We'll get all this abstracted properly when the framework is integrated into Rails.
 
@@ -459,6 +467,74 @@ with all the popular application servers -- Unicorn, Puma and Passenger.
 
 Action Cable does not work with WEBrick, because WEBrick does not support the
 Rack socket hijacking API.
+
+## Frontend assets
+
+Action Cable's frontend assets are distributed through two channels: the
+official gem and npm package, both titled `actioncable`.
+
+### Gem usage
+
+Through the `actioncable` gem, Action Cable's frontend assets are
+available through the Rails Asset Pipeline. Create a `cable.js` or
+`cable.coffee` file (this is automatically done for you with Rails
+generators), and then simply require the assets:
+
+In JavaScript...
+
+```javascript
+//= require action_cable
+```
+
+... and in CoffeeScript:
+
+```coffeescript
+#= require action_cable
+```
+
+### npm usage
+
+In addition to being available through the `actioncable` gem, Action Cable's
+frontend JS assets are also bundled in an officially supported npm module,
+intended for usage in standalone frontend applications that communicate with a
+Rails application. A common use case for this could be if you have a decoupled
+frontend application written in React, Ember.js, etc. and want to add real-time
+WebSocket functionality.
+
+### Installation
+
+```
+npm install actioncable --save
+```
+
+### Usage
+
+The `ActionCable` constant is available as a `require`-able module, so
+you only have to require the package to gain access to the API that is
+provided.
+
+In JavaScript...
+
+```javascript
+ActionCable = require('actioncable')
+
+var cable = ActionCable.createConsumer('wss://RAILS-API-PATH.com/cable')
+
+cable.subscriptions.create('AppearanceChannel', {
+  // normal channel code goes here...
+});
+```
+
+and in CoffeeScript...
+
+```coffeescript
+ActionCable = require('actioncable')
+
+cable = ActionCable.createConsumer('wss://RAILS-API-PATH.com/cable')
+
+cable.subscriptions.create 'AppearanceChannel',
+    # normal channel code goes here...
+```
 
 ## License
 

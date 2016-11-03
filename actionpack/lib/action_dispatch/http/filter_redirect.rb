@@ -1,8 +1,7 @@
 module ActionDispatch
   module Http
     module FilterRedirect
-
-      FILTERED = '[FILTERED]'.freeze # :nodoc:
+      FILTERED = "[FILTERED]".freeze # :nodoc:
 
       def filtered_location # :nodoc:
         if location_filter_match?
@@ -16,7 +15,7 @@ module ActionDispatch
 
       def location_filters
         if request
-          request.get_header('action_dispatch.redirect_filter') || []
+          request.get_header("action_dispatch.redirect_filter") || []
         else
           []
         end
@@ -31,7 +30,6 @@ module ActionDispatch
           end
         end
       end
-
     end
   end
 end

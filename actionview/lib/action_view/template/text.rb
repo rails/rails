@@ -11,12 +11,10 @@ module ActionView #:nodoc:
       end
 
       def identifier
-        'text template'
+        "text template"
       end
 
-      def inspect
-        'text template'
-      end
+      alias_method :inspect, :identifier
 
       def to_str
         @string
