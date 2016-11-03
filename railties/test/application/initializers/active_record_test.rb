@@ -25,8 +25,8 @@ module ApplicationTests
 
       # ActiveSupport::LogSubscriber.flush_all! in lib/rails/rack/logger.rb blew up in Ruby 2.0
       # because it tries to open the database. This behavior doesn't happen in Ruby 1.9.3.
-      # However, regardless, the server blew up.
-      if RUBY_VERSION >= '2.0.0'
+      # However, regardless, the server blew up. This appears to be fixed in 2.3.0.
+      if RUBY_VERSION >= '2.0.0' && RUBY_VERSION < '2.3.0'
         assert_raises (Errno::ENOENT) { get '/foo' }
       else
         get '/foo'
