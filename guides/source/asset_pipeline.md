@@ -197,9 +197,6 @@ only in their respective controllers using the following:
 `<%= javascript_include_tag params[:controller] %>` or `<%= stylesheet_link_tag
 params[:controller] %>`
 
-When doing this, ensure you are not using the `require_tree` directive, as that
-will result in your assets being included more than once.
-
 WARNING: When using asset precompilation, you will need to ensure that your
 controller assets will be precompiled when loading them on a per page basis. By
 default .coffee and .scss files will not be precompiled on their own. See
