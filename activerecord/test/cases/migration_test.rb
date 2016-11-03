@@ -1786,9 +1786,13 @@ if ActiveRecord::Base.connection.supports_migrations?
     def test_migrator_interleaved_migrations
       ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/interleaved/pass_1")
 
+      Object.send :remove_const, :InterleavedInnocentJointable
+
       assert_nothing_raised do
         ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/interleaved/pass_2")
       end
+
+      Object.send :remove_const, :InterleavedPeopleHaveLastNames
 
       Person.reset_column_information
       assert Person.column_methods_hash.include?(:last_name)
