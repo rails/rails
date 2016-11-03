@@ -65,7 +65,55 @@ module ActiveRecord
         end
         alias :exec_update :exec_delete
 
+        def begin_db_transaction
+          execute "BEGIN"
+        end
+
+        def begin_isolated_db_transaction(isolation)
+          execute "SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}"
+          begin_db_transaction
+        end
+
+        def commit_db_transaction # :nodoc:
+          execute "COMMIT"
+        end
+
+        def exec_rollback_db_transaction # :nodoc:
+          execute "ROLLBACK"
+        end
+
+        # In the simple case, MySQL allows us to place JOINs directly into the UPDATE
+        # query. However, this does not allow for LIMIT, OFFSET and ORDER. To support
+        # these, we must use a subquery.
+        def join_to_update(update, select, key) # :nodoc:
+          if select.limit || select.offset || select.orders.any?
+            super
+          else
+            update.table select.source
+            update.wheres = select.constraints
+          end
+        end
+
+        def empty_insert_statement_value
+          "VALUES ()"
+        end
+
         protected
+
+          # MySQL is too stupid to create a temporary table for use subquery, so we have
+          # to give it some prompting in the form of a subsubquery. Ugh!
+          def subquery_for(key, select)
+            subsubselect = select.clone
+            subsubselect.projections = [key]
+
+            # Materialize subquery by adding distinct
+            # to work with MySQL 5.7.6 which sets optimizer_switch='derived_merge=on'
+            subsubselect.distinct unless select.limit || select.offset || select.orders.any?
+
+            subselect = Arel::SelectManager.new(select.engine)
+            subselect.project Arel.sql(key.name)
+            subselect.from subsubselect.as("__active_record_temp")
+          end
 
           def last_inserted_id(result)
             @connection.last_id
