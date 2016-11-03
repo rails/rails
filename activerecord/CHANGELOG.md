@@ -1,3 +1,7 @@
+*   Deprecate passing `default` to `index_name_exists?`.
+
+    *Ryuta Kamizono*
+
 *   PostgreSQL: schema dumping support for interval and OID columns.
 
     *Ryuta Kamizono*
@@ -12,7 +16,7 @@
 
     *namusyaka*
 
-*   Allow ActiveRecord::Base#as_json to be passed a frozen Hash.
+*   Allow `ActiveRecord::Base#as_json` to be passed a frozen Hash.
 
     *Isaac Betesh*
 
@@ -32,9 +36,9 @@
 
     *Ryuta Kamizono*
 
-*   Fix `association_primary_key_type` for reflections with symbol primary key
+*   Fix `association_primary_key_type` for reflections with symbol primary key.
 
-    Fixes #27864
+    Fixes #27864.
 
     *Daniel Colson*
 
