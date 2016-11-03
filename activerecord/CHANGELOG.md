@@ -1,3 +1,8 @@
+*   Fix an Active Record DateTime field NoMethodError caused by incomplete 
+    datetime. [Bug #24195](https://github.com/rails/rails/issues/24195)
+
+    *Sen Zhang*
+
 *   Allow `slice` to take an array of methods (without need for splatting).
 
     *Cohen Carlisle*
