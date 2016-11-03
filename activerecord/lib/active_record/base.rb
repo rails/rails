@@ -648,10 +648,10 @@ module ActiveRecord #:nodoc:
         "#<#{self.class} #{inspection}>"
       end
 
-      if YAML.const_defined?(:ENGINE)
+      if RUBY_VERSION < '2.2'
         # Hackery to accomodate Syck. Remove for 4.0.
         def to_yaml(opts = {}) #:nodoc:
-          if !YAML::ENGINE.syck?
+          if YAML.const_defined?(:ENGINE) && !YAML::ENGINE.syck?
             super
           else
             coder = {}
