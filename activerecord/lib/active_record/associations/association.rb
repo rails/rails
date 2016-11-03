@@ -28,6 +28,7 @@ module ActiveRecord
         @target = nil
         @owner, @reflection = owner, reflection
         @updated = false
+        @stale_state = nil
 
         reset
         reset_scope
