@@ -94,6 +94,8 @@ platforms :ruby do
   group :db do
     if RUBY_VERSION < '1.9.3'
       gem 'pg', '>= 0.11.0', '< 0.18'
+    elsif RUBY_VERSION < '2.0.0'
+      gem 'pg', '>= 0.11.0', '< 0.19'
     else
       gem 'pg', '>= 0.11.0'
     end
