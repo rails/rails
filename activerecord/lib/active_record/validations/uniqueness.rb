@@ -17,7 +17,7 @@ module ActiveRecord
         value = deserialize_attribute(record, attribute, value)
 
         relation = build_relation(finder_class, table, attribute, value)
-        relation = relation.and(table[finder_class.primary_key.to_sym].not_eq(record.id)) if record.persisted?
+        relation = relation.and(table[finder_class.primary_key.to_sym].not_eq(record.id_was || record.id)) if record.persisted?
         relation = scope_relation(record, table, relation)
         relation = finder_class.unscoped.where(relation)
         relation = relation.merge(options[:conditions]) if options[:conditions]

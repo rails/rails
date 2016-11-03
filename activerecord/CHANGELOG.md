@@ -1,3 +1,9 @@
+*   UniquenessValidator correctly excludes itself when PK changed
+
+    Closes #23399.
+
+    *Diego Silva*
+
 ## Rails 4.1.16 (July 12, 2016) ##
 
 *   Correctly pass MySQL options when using structure_dump or structure_load
