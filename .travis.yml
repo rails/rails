@@ -1,6 +1,9 @@
 language: ruby
 sudo: false
 
+services:
+  - memcached
+
 script: 'ci/travis.rb'
 before_install:
   - gem install bundler
