@@ -79,6 +79,15 @@ class DirtyTest < ActiveModel::TestCase
     assert_not @model.name_changed?(to: "Pete")
     assert @model.name_changed?(from: nil)
     assert_not @model.name_changed?(from: "Pete")
+
+    assert @model.name_changed?(from: [nil, "Pete"])
+    assert_not @model.name_changed?(from: ["Ringo", "Pete"])
+    assert @model.name_changed?(to: [nil, "Ringo"])
+    assert_not @model.name_changed?(to: [nil, "Pete"])
+    assert @model.name_changed?(from: nil, to: ["Pete", "Ringo"])
+    assert_not @model.name_changed?(from: "Pete", to: ["Ringo", "John"])
+    assert @model.name_changed?(from: [nil, "Pete"], to: "Ringo")
+    assert_not @model.name_changed?(from: ["Pete"], to: ["Ringo", "John"])
   end
 
   test "changes accessible through both strings and symbols" do

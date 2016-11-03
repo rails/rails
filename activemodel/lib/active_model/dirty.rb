@@ -67,6 +67,9 @@ module ActiveModel
   #   person.changed?       # => true
   #   person.name_changed?  # => true
   #   person.name_changed?(from: nil, to: "Bob") # => true
+  #   person.name_changed?(from: [nil, "Pete"], to: "Bob") # => true
+  #   person.name_changed?(from: [nil, "Pete"], to: ["Bob", "John") # => true
+  #   person.name_changed?(from: nil, to: ["Bob", "John") # => true
   #   person.name_was       # => nil
   #   person.name_change    # => [nil, "Bob"]
   #   person.name = 'Bill'
@@ -179,8 +182,8 @@ module ActiveModel
     # Handles <tt>*_changed?</tt> for +method_missing+.
     def attribute_changed?(attr, from: OPTION_NOT_GIVEN, to: OPTION_NOT_GIVEN) # :nodoc:
       !!changes_include?(attr) &&
-        (to == OPTION_NOT_GIVEN || to == __send__(attr)) &&
-        (from == OPTION_NOT_GIVEN || from == changed_attributes[attr])
+        (to == OPTION_NOT_GIVEN || [to].flatten.include?(__send__(attr))) &&
+        (from == OPTION_NOT_GIVEN || [from].flatten.include?(changed_attributes[attr]))
     end
 
     # Handles <tt>*_was</tt> for +method_missing+.
