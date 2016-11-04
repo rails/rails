@@ -18,48 +18,6 @@ module QualifiedConstTestMod
 end
 
 class QualifiedConstTest < ActiveSupport::TestCase
-  test "Object.qualified_const_defined?" do
-    assert_deprecated do
-      assert Object.qualified_const_defined?("QualifiedConstTestMod")
-      assert !Object.qualified_const_defined?("NonExistingQualifiedConstTestMod")
-
-      assert Object.qualified_const_defined?("QualifiedConstTestMod::X")
-      assert !Object.qualified_const_defined?("QualifiedConstTestMod::Y")
-
-      assert Object.qualified_const_defined?("QualifiedConstTestMod::M::X")
-      assert !Object.qualified_const_defined?("QualifiedConstTestMod::M::Y")
-
-      if Module.method(:const_defined?).arity == 1
-        assert !Object.qualified_const_defined?("QualifiedConstTestMod::N::X")
-      else
-        assert Object.qualified_const_defined?("QualifiedConstTestMod::N::X")
-        assert !Object.qualified_const_defined?("QualifiedConstTestMod::N::X", false)
-        assert Object.qualified_const_defined?("QualifiedConstTestMod::N::X", true)
-      end
-    end
-  end
-
-  test "mod.qualified_const_defined?" do
-    assert_deprecated do
-      assert QualifiedConstTestMod.qualified_const_defined?("M")
-      assert !QualifiedConstTestMod.qualified_const_defined?("NonExistingM")
-
-      assert QualifiedConstTestMod.qualified_const_defined?("M::X")
-      assert !QualifiedConstTestMod.qualified_const_defined?("M::Y")
-
-      assert QualifiedConstTestMod.qualified_const_defined?("M::C::X")
-      assert !QualifiedConstTestMod.qualified_const_defined?("M::C::Y")
-
-      if Module.method(:const_defined?).arity == 1
-        assert !QualifiedConstTestMod.qualified_const_defined?("QualifiedConstTestMod::N::X")
-      else
-        assert QualifiedConstTestMod.qualified_const_defined?("N::X")
-        assert !QualifiedConstTestMod.qualified_const_defined?("N::X", false)
-        assert QualifiedConstTestMod.qualified_const_defined?("N::X", true)
-      end
-    end
-  end
-
   test "qualified_const_get" do
     assert_deprecated do
       assert_equal false, Object.qualified_const_get("QualifiedConstTestMod::X")
@@ -98,9 +56,6 @@ class QualifiedConstTest < ActiveSupport::TestCase
 
   test "reject absolute paths" do
     assert_deprecated do
-      assert_raise_with_message(NameError, "wrong constant name ::X") { Object.qualified_const_defined?("::X") }
-      assert_raise_with_message(NameError, "wrong constant name ::X") { Object.qualified_const_defined?("::X::Y") }
-
       assert_raise_with_message(NameError, "wrong constant name ::X") { Object.qualified_const_get("::X") }
       assert_raise_with_message(NameError, "wrong constant name ::X") { Object.qualified_const_get("::X::Y") }
 
