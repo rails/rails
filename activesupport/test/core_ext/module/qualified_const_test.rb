@@ -18,18 +18,6 @@ module QualifiedConstTestMod
 end
 
 class QualifiedConstTest < ActiveSupport::TestCase
-  test "qualified_const_get" do
-    assert_deprecated do
-      assert_equal false, Object.qualified_const_get("QualifiedConstTestMod::X")
-      assert_equal false, QualifiedConstTestMod.qualified_const_get("X")
-      assert_equal 1, QualifiedConstTestMod.qualified_const_get("M::X")
-      assert_equal 1, QualifiedConstTestMod.qualified_const_get("N::X")
-      assert_equal 2, QualifiedConstTestMod.qualified_const_get("M::C::X")
-
-      assert_raise(NameError) { QualifiedConstTestMod.qualified_const_get("M::C::Y") }
-    end
-  end
-
   test "qualified_const_set" do
     assert_deprecated do
       begin
@@ -56,9 +44,6 @@ class QualifiedConstTest < ActiveSupport::TestCase
 
   test "reject absolute paths" do
     assert_deprecated do
-      assert_raise_with_message(NameError, "wrong constant name ::X") { Object.qualified_const_get("::X") }
-      assert_raise_with_message(NameError, "wrong constant name ::X") { Object.qualified_const_get("::X::Y") }
-
       assert_raise_with_message(NameError, "wrong constant name ::X") { Object.qualified_const_set("::X", nil) }
       assert_raise_with_message(NameError, "wrong constant name ::X") { Object.qualified_const_set("::X::Y", nil) }
     end

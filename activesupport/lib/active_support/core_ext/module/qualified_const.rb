@@ -26,19 +26,6 @@ end
 # Object.const_get('::String') raises NameError and so does qualified_const_get.
 #++
 class Module
-  def qualified_const_get(path)
-    ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
-      Module#qualified_const_get is deprecated in favour of the builtin
-      Module#const_get and will be removed in Rails 5.1.
-    MESSAGE
-
-    ActiveSupport::QualifiedConstUtils.raise_if_absolute(path)
-
-    ActiveSupport::QualifiedConstUtils.names(path).inject(self) do |mod, name|
-      mod.const_get(name)
-    end
-  end
-
   def qualified_const_set(path, value)
     ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
       Module#qualified_const_set is deprecated in favour of the builtin
