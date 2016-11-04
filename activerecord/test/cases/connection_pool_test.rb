@@ -184,14 +184,14 @@ module ActiveRecord
 
       def test_checkout_behaviour
         pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
-        connection = pool.connection
-        assert_not_nil connection
+        main_connection = pool.connection
+        assert_not_nil main_connection
         threads = []
         4.times do |i|
           threads << Thread.new(i) do
-            connection = pool.connection
-            assert_not_nil connection
-            connection.close
+            thread_connection = pool.connection
+            assert_not_nil thread_connection
+            thread_connection.close
           end
         end
 
