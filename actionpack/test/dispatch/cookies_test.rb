@@ -43,7 +43,7 @@ class CookieJarTest < ActiveSupport::TestCase
   def test_each
     request.cookie_jar["foo"] = :bar
     list = []
-    request.cookie_jar.each do |k,v|
+    request.cookie_jar.each do |k, v|
       list << [k, v]
     end
 
@@ -52,7 +52,7 @@ class CookieJarTest < ActiveSupport::TestCase
 
   def test_enumerable
     request.cookie_jar["foo"] = :bar
-    actual = request.cookie_jar.map { |k,v| [k.to_s, v.to_s] }
+    actual = request.cookie_jar.map { |k, v| [k.to_s, v.to_s] }
     assert_equal [["foo", "bar"]], actual
   end
 
@@ -95,17 +95,17 @@ class CookiesTest < ActionController::TestCase
     end
 
     def authenticate_for_fourteen_days
-      cookies["user_name"] = { "value" => "david", "expires" => Time.utc(2005, 10, 10,5) }
+      cookies["user_name"] = { "value" => "david", "expires" => Time.utc(2005, 10, 10, 5) }
       head :ok
     end
 
     def authenticate_for_fourteen_days_with_symbols
-      cookies[:user_name] = { value: "david", expires: Time.utc(2005, 10, 10,5) }
+      cookies[:user_name] = { value: "david", expires: Time.utc(2005, 10, 10, 5) }
       head :ok
     end
 
     def set_multiple_cookies
-      cookies["user_name"] = { "value" => "david", "expires" => Time.utc(2005, 10, 10,5) }
+      cookies["user_name"] = { "value" => "david", "expires" => Time.utc(2005, 10, 10, 5) }
       cookies["login"]     = "XJ-122"
       head :ok
     end
@@ -205,7 +205,7 @@ class CookiesTest < ActionController::TestCase
 
     def delete_and_set_cookie
       cookies.delete :user_name
-      cookies[:user_name] = { value: "david", expires: Time.utc(2005, 10, 10,5) }
+      cookies[:user_name] = { value: "david", expires: Time.utc(2005, 10, 10, 5) }
       head :ok
     end
 

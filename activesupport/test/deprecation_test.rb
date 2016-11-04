@@ -16,7 +16,7 @@ class Deprecatee
   def not() 2 end
   def none() 1 end
   def one(a) a end
-  def multi(a,b,c) [a,b,c] end
+  def multi(a, b, c) [a, b, c] end
   deprecate :none, :one, :multi
 
   def a; end
@@ -73,7 +73,7 @@ class DeprecationTest < ActiveSupport::TestCase
     end
 
     assert_deprecated(/multi is deprecated/) do
-      assert_equal [1,2,3], @dtc.multi(1,2,3)
+      assert_equal [1, 2, 3], @dtc.multi(1, 2, 3)
     end
   end
 
@@ -279,7 +279,7 @@ class DeprecationTest < ActiveSupport::TestCase
   def test_deprecated_constant_with_deprecator_given
     deprecator = deprecator_with_messages
     klass = Class.new
-    klass.const_set(:OLD, ActiveSupport::Deprecation::DeprecatedConstantProxy.new("klass::OLD", "Object", deprecator) )
+    klass.const_set(:OLD, ActiveSupport::Deprecation::DeprecatedConstantProxy.new("klass::OLD", "Object", deprecator))
     assert_difference("deprecator.messages.size") do
       klass::OLD.to_s
     end

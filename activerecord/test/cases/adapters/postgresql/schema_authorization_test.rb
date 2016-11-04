@@ -110,7 +110,7 @@ class SchemaAuthorizationTest < ActiveRecord::PostgreSQLTestCase
 
   private
     def set_session_auth(auth = nil)
-      @connection.session_auth =  auth || "default"
+      @connection.session_auth = auth || "default"
     end
 
     def bind_param(value)

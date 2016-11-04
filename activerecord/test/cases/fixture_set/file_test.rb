@@ -31,7 +31,7 @@ module ActiveRecord
 
       def test_values
         File.open(::File.join(FIXTURES_ROOT, "accounts.yml")) do |fh|
-          assert_equal [1,2,3,4,5,6].sort, fh.to_a.map(&:last).map { |x|
+          assert_equal [1, 2, 3, 4, 5, 6].sort, fh.to_a.map(&:last).map { |x|
             x["id"]
           }.sort
         end

@@ -85,7 +85,9 @@ module ActiveRecord
         # Queries the database and returns the results in an Array-like object
         def query(sql, name = nil) #:nodoc:
           log(sql, name) do
-            result_as_array @connection.async_exec(sql)
+            ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+              result_as_array @connection.async_exec(sql)
+            end
           end
         end
 
@@ -95,7 +97,9 @@ module ActiveRecord
         # need it specifically, you may want consider the <tt>exec_query</tt> wrapper.
         def execute(sql, name = nil)
           log(sql, name) do
-            @connection.async_exec(sql)
+            ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+              @connection.async_exec(sql)
+            end
           end
         end
 

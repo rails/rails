@@ -20,7 +20,7 @@ module ActiveModel
 
       test "random objects cast to nil" do
         type = Type::Integer.new
-        assert_nil type.cast([1,2])
+        assert_nil type.cast([1, 2])
         assert_nil type.cast(1 => 2)
         assert_nil type.cast(1..2)
       end
@@ -33,7 +33,7 @@ module ActiveModel
       test "casting nan and infinity" do
         type = Type::Integer.new
         assert_nil type.cast(::Float::NAN)
-        assert_nil type.cast(1.0/0.0)
+        assert_nil type.cast(1.0 / 0.0)
       end
 
       test "casting booleans for database" do

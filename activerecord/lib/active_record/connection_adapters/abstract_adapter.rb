@@ -106,7 +106,7 @@ module ActiveRecord
         @pool                = nil
         @schema_cache        = SchemaCache.new self
         @quoted_column_names, @quoted_table_names = {}, {}
-        @visitor             = arel_visitor
+        @visitor = arel_visitor
 
         if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
           @prepared_statements = true

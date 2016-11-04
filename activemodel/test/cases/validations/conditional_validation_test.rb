@@ -106,7 +106,7 @@ class ConditionalValidationTest < ActiveModel::TestCase
   def test_unless_validation_using_block_false
     # When the block returns false
     Topic.validates_length_of(:title, maximum: 5, too_long: "hoo %{count}",
-      unless: Proc.new { |r| r.title != "uhohuhoh" } )
+      unless: Proc.new { |r| r.title != "uhohuhoh" })
     t = Topic.new("title" => "uhohuhoh", "content" => "whatever")
     assert t.invalid?
     assert t.errors[:title].any?

@@ -3,8 +3,8 @@ require "active_support/core_ext/object/inclusion"
 
 class InTest < ActiveSupport::TestCase
   def test_in_array
-    assert 1.in?([1,2])
-    assert !3.in?([1,2])
+    assert 1.in?([1, 2])
+    assert !3.in?([1, 2])
   end
 
   def test_in_hash
@@ -25,7 +25,7 @@ class InTest < ActiveSupport::TestCase
   end
 
   def test_in_set
-    s = Set.new([1,2])
+    s = Set.new([1, 2])
     assert 1.in?(s)
     assert !3.in?(s)
   end

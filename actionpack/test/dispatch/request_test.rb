@@ -581,7 +581,7 @@ class RequestCookie < BaseRequestTest
 
     # some Nokia phone browsers omit the space after the semicolon separator.
     # some developers have grown accustomed to using comma in cookie values.
-    request = stub_request("HTTP_COOKIE"=>"_session_id=c84ace847,96670c052c6ceb2451fb0f2;is_admin=yes")
+    request = stub_request("HTTP_COOKIE" => "_session_id=c84ace847,96670c052c6ceb2451fb0f2;is_admin=yes")
     assert_equal "c84ace847", request.cookies["_session_id"], request.cookies.inspect
     assert_equal "yes", request.cookies["is_admin"], request.cookies.inspect
   end
@@ -596,7 +596,7 @@ class RequestParamsParsing < BaseRequestTest
       "rack.input" => StringIO.new("flamenco=love")
     )
 
-    assert_equal({ "flamenco"=> "love" }, request.request_parameters)
+    assert_equal({ "flamenco" => "love" }, request.request_parameters)
   end
 
   test "doesnt interpret request uri as query string when missing" do
@@ -774,8 +774,8 @@ class RequestMethod < BaseRequestTest
     ensure
       # Reset original acronym set
       ActiveSupport::Inflector.inflections do |inflect|
-        inflect.send(:instance_variable_set,"@acronyms",existing_acrnoyms)
-        inflect.send(:instance_variable_set,"@acronym_regex",existing_acrnoym_regex)
+        inflect.send(:instance_variable_set, "@acronyms", existing_acrnoyms)
+        inflect.send(:instance_variable_set, "@acronym_regex", existing_acrnoym_regex)
       end
     end
   end
@@ -1072,14 +1072,14 @@ end
 class RequestParameterFilter < BaseRequestTest
   test "process parameter filter" do
     test_hashes = [
-    [{ "foo"=>"bar" },{ "foo"=>"bar" },%w'food'],
-    [{ "foo"=>"bar" },{ "foo"=>"[FILTERED]" },%w'foo'],
-    [{ "foo"=>"bar", "bar"=>"foo" },{ "foo"=>"[FILTERED]", "bar"=>"foo" },%w'foo baz'],
-    [{ "foo"=>"bar", "baz"=>"foo" },{ "foo"=>"[FILTERED]", "baz"=>"[FILTERED]" },%w'foo baz'],
-    [{ "bar"=>{ "foo"=>"bar","bar"=>"foo" } },{ "bar"=>{ "foo"=>"[FILTERED]","bar"=>"foo" } },%w'fo'],
-    [{ "foo"=>{ "foo"=>"bar","bar"=>"foo" } },{ "foo"=>"[FILTERED]" },%w'f banana'],
-    [{ "deep"=>{ "cc"=>{ "code"=>"bar","bar"=>"foo" },"ss"=>{ "code"=>"bar" } } },{ "deep"=>{ "cc"=>{ "code"=>"[FILTERED]","bar"=>"foo" },"ss"=>{ "code"=>"bar" } } },%w'deep.cc.code'],
-    [{ "baz"=>[{ "foo"=>"baz" }, "1"] }, { "baz"=>[{ "foo"=>"[FILTERED]" }, "1"] }, [/foo/]]]
+    [{ "foo" => "bar" }, { "foo" => "bar" }, %w'food'],
+    [{ "foo" => "bar" }, { "foo" => "[FILTERED]" }, %w'foo'],
+    [{ "foo" => "bar", "bar" => "foo" }, { "foo" => "[FILTERED]", "bar" => "foo" }, %w'foo baz'],
+    [{ "foo" => "bar", "baz" => "foo" }, { "foo" => "[FILTERED]", "baz" => "[FILTERED]" }, %w'foo baz'],
+    [{ "bar" => { "foo" => "bar", "bar" => "foo" } }, { "bar" => { "foo" => "[FILTERED]", "bar" => "foo" } }, %w'fo'],
+    [{ "foo" => { "foo" => "bar", "bar" => "foo" } }, { "foo" => "[FILTERED]" }, %w'f banana'],
+    [{ "deep" => { "cc" => { "code" => "bar", "bar" => "foo" }, "ss" => { "code" => "bar" } } }, { "deep" => { "cc" => { "code" => "[FILTERED]", "bar" => "foo" }, "ss" => { "code" => "bar" } } }, %w'deep.cc.code'],
+    [{ "baz" => [{ "foo" => "baz" }, "1"] }, { "baz" => [{ "foo" => "[FILTERED]" }, "1"] }, [/foo/]]]
 
     test_hashes.each do |before_filter, after_filter, filter_words|
       parameter_filter = ActionDispatch::Http::ParameterFilter.new(filter_words)
@@ -1091,8 +1091,8 @@ class RequestParameterFilter < BaseRequestTest
       }
 
       parameter_filter = ActionDispatch::Http::ParameterFilter.new(filter_words)
-      before_filter["barg"] = { :bargain=>"gain", "blah"=>"bar", "bar"=>{ "bargain"=>{ "blah"=>"foo" } } }
-      after_filter["barg"]  = { :bargain=>"niag", "blah"=>"[FILTERED]", "bar"=>{ "bargain"=>{ "blah"=>"[FILTERED]" } } }
+      before_filter["barg"] = { :bargain => "gain", "blah" => "bar", "bar" => { "bargain" => { "blah" => "foo" } } }
+      after_filter["barg"]  = { :bargain => "niag", "blah" => "[FILTERED]", "bar" => { "bargain" => { "blah" => "[FILTERED]" } } }
 
       assert_equal after_filter, parameter_filter.filter(before_filter)
     end

@@ -792,6 +792,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     end
 
     @ship.pirate.catchphrase = "Changed Catchphrase"
+    @ship.name_will_change!
 
     assert_raise(RuntimeError) { assert !@pirate.save }
     assert_not_nil @pirate.reload.ship
@@ -1130,7 +1131,7 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     assert_queries(0) { @ship.save! }
 
     @parrot = @pirate.parrots.create(name: "some_name")
-    @parrot.name="changed_name"
+    @parrot.name = "changed_name"
     assert_queries(1) { @ship.save! }
     assert_queries(0) { @ship.save! }
   end

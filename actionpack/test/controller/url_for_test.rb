@@ -223,13 +223,13 @@ module AbstractController
       def test_trailing_slash
         add_host!
         options = { controller: "foo", trailing_slash: true, action: "bar", id: "33" }
-        assert_equal("http://www.basecamphq.com/foo/bar/33/", W.new.url_for(options) )
+        assert_equal("http://www.basecamphq.com/foo/bar/33/", W.new.url_for(options))
       end
 
       def test_trailing_slash_with_protocol
         add_host!
-        options = { trailing_slash: true,protocol: "https", controller: "foo", action: "bar", id: "33" }
-        assert_equal("https://www.basecamphq.com/foo/bar/33/", W.new.url_for(options) )
+        options = { trailing_slash: true, protocol: "https", controller: "foo", action: "bar", id: "33" }
+        assert_equal("https://www.basecamphq.com/foo/bar/33/", W.new.url_for(options))
         assert_equal "https://www.basecamphq.com/foo/bar/33/?query=string", W.new.url_for(options.merge(query: "string"))
       end
 
@@ -238,7 +238,7 @@ module AbstractController
         assert_equal "/foo/", W.new.url_for(options.merge(only_path: true))
         options.update(action: "bar", id: "33")
         assert_equal "/foo/bar/33/", W.new.url_for(options.merge(only_path: true))
-        assert_equal "/foo/bar/33/?query=string", W.new.url_for(options.merge(query: "string",only_path: true))
+        assert_equal "/foo/bar/33/?query=string", W.new.url_for(options.merge(query: "string", only_path: true))
       end
 
       def test_trailing_slash_with_anchor
@@ -423,7 +423,7 @@ module AbstractController
         first_class.default_url_options[:host] = first_host
         second_class.default_url_options[:host] = second_host
 
-        assert_equal  first_host, first_class.default_url_options[:host]
+        assert_equal first_host, first_class.default_url_options[:host]
         assert_equal second_host, second_class.default_url_options[:host]
       end
 

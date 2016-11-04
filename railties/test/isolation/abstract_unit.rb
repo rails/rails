@@ -104,7 +104,7 @@ module TestHelpers
     # Build an application by invoking the generator and going through the whole stack.
     def build_app(options = {})
       @prev_rails_env = ENV["RAILS_ENV"]
-      ENV["RAILS_ENV"]       =   "development"
+      ENV["RAILS_ENV"] = "development"
       ENV["SECRET_KEY_BASE"] ||= SecureRandom.hex(16)
 
       FileUtils.rm_rf(app_path)

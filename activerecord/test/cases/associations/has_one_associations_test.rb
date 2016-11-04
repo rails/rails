@@ -601,7 +601,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     new_ship = Ship.create(name: "new name")
     assert_queries(2) do
-      # One query for updating name and second query for updating pirate_id
+      # One query to nullify the old ship, one query to update the new ship
       pirate.ship = new_ship
     end
 
@@ -675,6 +675,6 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     book = SpecialBook.create!(status: "published")
     author.book = book
 
-    refute_equal 0, SpecialAuthor.joins(:book).where(books: { status: "published" } ).count
+    refute_equal 0, SpecialAuthor.joins(:book).where(books: { status: "published" }).count
   end
 end

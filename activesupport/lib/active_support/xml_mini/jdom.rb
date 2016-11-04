@@ -141,7 +141,7 @@ module ActiveSupport
         attributes = element.attributes
         (0...attributes.length).each do |i|
           attribute_hash[CONTENT_KEY] ||= ""
-          attribute_hash[attributes.item(i).name] =  attributes.item(i).value
+          attribute_hash[attributes.item(i).name] = attributes.item(i).value
         end
         attribute_hash
       end

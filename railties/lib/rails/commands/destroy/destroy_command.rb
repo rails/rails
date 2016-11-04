@@ -2,8 +2,8 @@ require "rails/generators"
 
 module Rails
   module Command
-    class DestroyCommand < Base
-      def help # :nodoc:
+    class DestroyCommand < Base # :nodoc:
+      def help
         Rails::Generators.help self.class.command_name
       end
 

@@ -56,7 +56,7 @@ module Kindle
       h2["id"] = h2.inner_text.gsub(/\s/, "-")
     end
     add_head_section fdoc, "Front Matter"
-    File.open("frontmatter.html","w") { |f| f.puts fdoc.to_html }
+    File.open("frontmatter.html", "w") { |f| f.puts fdoc.to_html }
     html_pages.unshift "frontmatter.html"
   end
 
@@ -68,7 +68,7 @@ module Kindle
       title = doc.at("title").inner_text.gsub("Ruby on Rails Guides: ", "")
       title = page.capitalize.gsub(".html", "") if title.strip == ""
       File.open("sections/%03d/_section.txt" % section_idx, "w") { |f| f.puts title }
-      doc.xpath("//h3[@id]").each_with_index do |h3,item_idx|
+      doc.xpath("//h3[@id]").each_with_index do |h3, item_idx|
         subsection = h3.inner_text
         content = h3.xpath("./following-sibling::*").take_while { |x| x.name != "h3" }.map(&:to_html)
         item = Nokogiri::HTML(h3.to_html + content.join("\n"))

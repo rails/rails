@@ -88,7 +88,7 @@ class PluginTestRunnerTest < ActiveSupport::TestCase
 
   def test_executed_only_once
     create_test_file "foo"
-    result =  run_test_command("test/foo_test.rb")
+    result = run_test_command("test/foo_test.rb")
     assert_equal 1, result.scan(/1 runs, 1 assertions, 0 failures/).length
   end
 

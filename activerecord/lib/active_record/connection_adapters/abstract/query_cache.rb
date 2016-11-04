@@ -22,7 +22,7 @@ module ActiveRecord
 
       def initialize(*)
         super
-        @query_cache         = Hash.new { |h,sql| h[sql] = {} }
+        @query_cache         = Hash.new { |h, sql| h[sql] = {} }
         @query_cache_enabled = false
       end
 

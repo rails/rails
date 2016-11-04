@@ -295,7 +295,7 @@ module ActiveSupport
     #   zone = ActiveSupport::TimeZone['Central Time (US & Canada)']
     #   zone.formatted_offset        # => "-06:00"
     #   zone.formatted_offset(false) # => "-0600"
-    def formatted_offset(colon=true, alternate_utc_string = nil)
+    def formatted_offset(colon = true, alternate_utc_string = nil)
       utc_offset == 0 && alternate_utc_string || self.class.seconds_to_utc_offset(utc_offset, colon)
     end
 
@@ -355,7 +355,7 @@ module ActiveSupport
     # components are supplied, then the day of the month defaults to 1:
     #
     #   Time.zone.parse('Mar 2000') # => Wed, 01 Mar 2000 00:00:00 HST -10:00
-    def parse(str, now=now())
+    def parse(str, now = now())
       parts_to_time(Date._parse(str, false), now)
     end
 
@@ -379,7 +379,7 @@ module ActiveSupport
     # components are supplied, then the day of the month defaults to 1:
     #
     #   Time.zone.strptime('Mar 2000', '%b %Y') # => Wed, 01 Mar 2000 00:00:00 HST -10:00
-    def strptime(str, format, now=now())
+    def strptime(str, format, now = now())
       parts_to_time(DateTime._strptime(str, format), now)
     end
 
@@ -416,7 +416,7 @@ module ActiveSupport
 
     # Adjust the given time to the simultaneous time in UTC. Returns a
     # Time.utc() instance.
-    def local_to_utc(time, dst=true)
+    def local_to_utc(time, dst = true)
       tzinfo.local_to_utc(time, dst)
     end
 
@@ -428,7 +428,7 @@ module ActiveSupport
 
     # Available so that TimeZone instances respond like TZInfo::Timezone
     # instances.
-    def period_for_local(time, dst=true)
+    def period_for_local(time, dst = true)
       tzinfo.period_for_local(time, dst)
     end
 
@@ -441,7 +441,7 @@ module ActiveSupport
     end
 
     def encode_with(coder) #:nodoc:
-      coder.tag ="!ruby/object:#{self.class}"
+      coder.tag = "!ruby/object:#{self.class}"
       coder.map = { "name" => tzinfo.name }
     end
 

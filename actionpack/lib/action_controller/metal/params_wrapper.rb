@@ -205,7 +205,7 @@ module ActionController
           model = name_or_model_or_options
         end
 
-        opts   = Options.from_hash _wrapper_options.to_h.slice(:format).merge(options)
+        opts = Options.from_hash _wrapper_options.to_h.slice(:format).merge(options)
         opts.model = model
         opts.klass = self
 

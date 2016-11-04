@@ -204,7 +204,7 @@ module ActionView
         prefixes = prefixes.presence
         parts    = name.to_s.split("/".freeze)
         parts.shift if parts.first.empty?
-        name     = parts.pop
+        name = parts.pop
 
         return name, prefixes || [""] if parts.empty?
 

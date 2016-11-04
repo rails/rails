@@ -104,7 +104,7 @@ module ActiveModel
 
     # Accepts options that will be made available through the +options+ reader.
     def initialize(options = {})
-      @options  = options.except(:class).freeze
+      @options = options.except(:class).freeze
     end
 
     # Returns the kind for this validator.

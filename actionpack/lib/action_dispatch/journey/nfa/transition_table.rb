@@ -10,7 +10,7 @@ module ActionDispatch
         attr_reader :memos
 
         def initialize
-          @table     = Hash.new { |h,f| h[f] = {} }
+          @table     = Hash.new { |h, f| h[f] = {} }
           @memos     = {}
           @accepting = nil
           @inverted  = nil

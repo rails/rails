@@ -20,7 +20,7 @@ class PresenceValidationTest < ActiveModel::TestCase
     assert_equal ["can't be blank"], t.errors[:content]
 
     t.title = "something"
-    t.content  = "   "
+    t.content = "   "
 
     assert t.invalid?
     assert_equal ["can't be blank"], t.errors[:content]

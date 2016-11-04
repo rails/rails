@@ -17,7 +17,7 @@ module ActionView
             @input_html_options = input_html_options
           end
 
-          def label(label_html_options={}, &block)
+          def label(label_html_options = {}, &block)
             html_options = @input_html_options.slice(:index, :namespace).merge(label_html_options)
             html_options[:for] ||= @input_html_options[:id] if @input_html_options[:id]
 

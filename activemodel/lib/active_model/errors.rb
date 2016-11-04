@@ -211,7 +211,7 @@ module ActiveModel
     #   #    <error>name can't be blank</error>
     #   #    <error>name must be specified</error>
     #   #  </errors>
-    def to_xml(options={})
+    def to_xml(options = {})
       to_a.to_xml({ root: "errors", skip_types: true }.merge!(options))
     end
 
@@ -221,7 +221,7 @@ module ActiveModel
     #
     #   person.errors.as_json                      # => {:name=>["cannot be nil"]}
     #   person.errors.as_json(full_messages: true) # => {:name=>["name cannot be nil"]}
-    def as_json(options=nil)
+    def as_json(options = nil)
       to_hash(options && options[:full_messages])
     end
 

@@ -75,7 +75,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     posts = person_prime.includes(:posts).first.posts
 
     assert_operator posts.length, :>, 1
-    posts.each_cons(2) do |left,right|
+    posts.each_cons(2) do |left, right|
       assert_operator left.id, :>, right.id
     end
   end
@@ -702,7 +702,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       [:added, :after, "Bob"],
       [:added, :before, "Lary"],
       [:added, :after, "Lary"]
-    ],log.last(6)
+    ], log.last(6)
 
     post.people_with_callbacks.build(first_name: "Ted")
     assert_equal [
@@ -716,7 +716,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       [:added, :after, "Sam"]
     ], log.last(2)
 
-    post.people_with_callbacks = [people(:michael),people(:david), Person.new(first_name: "Julian"), Person.create!(first_name: "Roger")]
+    post.people_with_callbacks = [people(:michael), people(:david), Person.new(first_name: "Julian"), Person.create!(first_name: "Roger")]
     assert_equal((%w(Ted Bob Sam Lary) * 2).sort, log[-12..-5].collect(&:last).sort)
     assert_equal [
       [:added, :before, "Julian"],
@@ -885,8 +885,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_collection_singular_ids_setter_raises_exception_when_invalid_ids_set
     company = companies(:rails_core)
-    ids =  [Developer.first.id, -9999]
-    assert_raises(ActiveRecord::AssociationTypeMismatch) { company.developer_ids= ids }
+    ids = [Developer.first.id, -9999]
+    assert_raises(ActiveRecord::AssociationTypeMismatch) { company.developer_ids = ids }
   end
 
   def test_build_a_model_from_hm_through_association_with_where_clause

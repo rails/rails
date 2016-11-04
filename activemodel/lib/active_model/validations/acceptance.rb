@@ -24,7 +24,7 @@ module ActiveModel
 
         class LazilyDefineAttributes < Module
           def initialize(attribute_definition)
-            define_method(:respond_to_missing?) do |method_name, include_private=false|
+            define_method(:respond_to_missing?) do |method_name, include_private = false|
               super(method_name, include_private) || attribute_definition.matches?(method_name)
             end
 

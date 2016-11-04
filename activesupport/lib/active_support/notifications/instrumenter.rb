@@ -14,7 +14,7 @@ module ActiveSupport
       # Instrument the given block by measuring the time taken to execute it
       # and publish it. Notice that events get sent even if an error occurs
       # in the passed-in block.
-      def instrument(name, payload={})
+      def instrument(name, payload = {})
         # some of the listeners might have state
         listeners_state = start name, payload
         begin

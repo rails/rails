@@ -192,11 +192,8 @@ module ActiveRecord
       # +delete_records+. They are in any case removed from the collection.
       def delete(*records)
         return if records.empty?
-        _options = records.extract_options!
-        dependent = _options[:dependent] || options[:dependent]
-
         records = find(records) if records.any? { |record| record.kind_of?(Integer) || record.kind_of?(String) }
-        delete_or_destroy(records, dependent)
+        delete_or_destroy(records, options[:dependent])
       end
 
       # Deletes the +records+ and removes them from this association calling
@@ -222,11 +219,7 @@ module ActiveRecord
       # +count_records+, which is a method descendants have to provide.
       def size
         if !find_target? || loaded?
-          if association_scope.distinct_value
-            target.uniq.size
-          else
-            target.size
-          end
+          target.size
         elsif !association_scope.group_values.empty?
           load_target.size
         elsif !association_scope.distinct_value && target.is_a?(Array)
@@ -375,7 +368,7 @@ module ActiveRecord
           persisted.map! do |record|
             if mem_record = memory.delete(record)
 
-              ((record.attribute_names & mem_record.attribute_names) - mem_record.changes.keys).each do |name|
+              ((record.attribute_names & mem_record.attribute_names) - mem_record.changed_attribute_names_to_save).each do |name|
                 mem_record[name] = record[name]
               end
 

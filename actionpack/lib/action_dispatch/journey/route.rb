@@ -83,7 +83,7 @@ module ActionDispatch
 
       def requirements
         # needed for rails `rails routes`
-        @defaults.merge(path.requirements).delete_if { |_,v|
+        @defaults.merge(path.requirements).delete_if { |_, v|
           /.+?/ == v
         }
       end
@@ -98,7 +98,7 @@ module ActionDispatch
 
       def score(constraints)
         required_keys = path.required_names
-        supplied_keys = constraints.map { |k,v| v && k.to_s }.compact
+        supplied_keys = constraints.map { |k, v| v && k.to_s }.compact
 
         return -1 unless (required_keys - supplied_keys).empty?
 
@@ -124,7 +124,7 @@ module ActionDispatch
       end
 
       def required_defaults
-        @required_defaults ||= @defaults.dup.delete_if do |k,_|
+        @required_defaults ||= @defaults.dup.delete_if do |k, _|
           parts.include?(k) || !required_default?(k)
         end
       end

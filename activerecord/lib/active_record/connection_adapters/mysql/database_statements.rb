@@ -86,7 +86,9 @@ module ActiveRecord
               end
 
               begin
-                result = stmt.execute(*type_casted_binds)
+                ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+                  result = stmt.execute(*type_casted_binds)
+                end
               rescue Mysql2::Error => e
                 if cache_stmt
                   @statements.delete(sql)

@@ -1,6 +1,6 @@
 module Rails
   module Command
-    class RakeCommand < Base
+    class RakeCommand < Base # :nodoc:
       extend Rails::Command::Actions
 
       namespace "rake"

@@ -10,7 +10,7 @@ class RenderersTest < ActionController::TestCase
     end
   end
   class JsonRenderable
-    def as_json(options={})
+    def as_json(options = {})
       hash = { a: :b, c: :d, e: :f }
       hash.except!(*options[:except]) if options[:except]
       hash

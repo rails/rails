@@ -119,8 +119,8 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_scope_with_STI
-    assert_equal 3,Post.containing_the_letter_a.count
-    assert_equal 1,SpecialPost.containing_the_letter_a.count
+    assert_equal 3, Post.containing_the_letter_a.count
+    assert_equal 1, SpecialPost.containing_the_letter_a.count
   end
 
   def test_has_many_through_associations_have_access_to_scopes

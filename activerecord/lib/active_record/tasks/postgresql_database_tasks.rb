@@ -70,7 +70,7 @@ module ActiveRecord
       def structure_load(filename)
         set_psql_env
         args = [ "-v", ON_ERROR_STOP_1, "-q", "-f", filename, configuration["database"] ]
-        run_cmd("psql", args, "loading" )
+        run_cmd("psql", args, "loading")
       end
 
       private

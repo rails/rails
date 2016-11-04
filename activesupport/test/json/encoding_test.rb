@@ -49,7 +49,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
   def test_hash_encoding
     assert_equal %({\"a\":\"b\"}), ActiveSupport::JSON.encode(a: :b)
     assert_equal %({\"a\":1}), ActiveSupport::JSON.encode("a" => 1)
-    assert_equal %({\"a\":[1,2]}), ActiveSupport::JSON.encode("a" => [1,2])
+    assert_equal %({\"a\":[1,2]}), ActiveSupport::JSON.encode("a" => [1, 2])
     assert_equal %({"1":2}), ActiveSupport::JSON.encode(1 => 2)
 
     assert_equal %({\"a\":\"b\",\"c\":\"d\"}), sorted_json(ActiveSupport::JSON.encode(a: :b, c: :d))
@@ -108,7 +108,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
   def test_time_to_json_includes_local_offset
     with_standard_json_time_format(true) do
       with_env_tz "US/Eastern" do
-        assert_equal %("2005-02-01T15:15:10.000-05:00"), ActiveSupport::JSON.encode(Time.local(2005,2,1,15,15,10))
+        assert_equal %("2005-02-01T15:15:10.000-05:00"), ActiveSupport::JSON.encode(Time.local(2005, 2, 1, 15, 15, 10))
       end
     end
   end
@@ -135,7 +135,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
     h = JSONTest::Hashlike.new
     json = h.to_json only: [:foo]
 
-    assert_equal({ "foo"=>"hello" }, JSON.parse(json))
+    assert_equal({ "foo" => "hello" }, JSON.parse(json))
   end
 
   def test_object_to_json_with_options
@@ -144,7 +144,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
     obj.instance_variable_set :@bar, "world"
     json = obj.to_json only: ["foo"]
 
-    assert_equal({ "foo"=>"hello" }, JSON.parse(json))
+    assert_equal({ "foo" => "hello" }, JSON.parse(json))
   end
 
   def test_struct_to_json_with_options
@@ -153,7 +153,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
     struct.bar = "world"
     json = struct.to_json only: [:foo]
 
-    assert_equal({ "foo"=>"hello" }, JSON.parse(json))
+    assert_equal({ "foo" => "hello" }, JSON.parse(json))
   end
 
   def test_hash_should_pass_encoding_options_to_children_in_as_json
@@ -256,7 +256,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
   class CustomWithOptions
     attr_accessor :foo, :bar
 
-    def as_json(options={})
+    def as_json(options = {})
       options[:only] = %w(foo bar)
       super(options)
     end
@@ -268,8 +268,8 @@ class TestJSONEncoding < ActiveSupport::TestCase
     f.bar = "world"
 
     hash = { "foo" => f, "other_hash" => { "foo" => "other_foo", "test" => "other_test" } }
-    assert_equal({ "foo"=>{ "foo"=>"hello","bar"=>"world" },
-                  "other_hash" => { "foo"=>"other_foo","test"=>"other_test" } }, ActiveSupport::JSON.decode(hash.to_json))
+    assert_equal({ "foo" => { "foo" => "hello", "bar" => "world" },
+                  "other_hash" => { "foo" => "other_foo", "test" => "other_test" } }, ActiveSupport::JSON.decode(hash.to_json))
   end
 
   def test_array_to_json_should_not_keep_options_around
@@ -278,8 +278,8 @@ class TestJSONEncoding < ActiveSupport::TestCase
     f.bar = "world"
 
     array = [f, { "foo" => "other_foo", "test" => "other_test" }]
-    assert_equal([{ "foo"=>"hello","bar"=>"world" },
-                  { "foo"=>"other_foo","test"=>"other_test" }], ActiveSupport::JSON.decode(array.to_json))
+    assert_equal([{ "foo" => "hello", "bar" => "world" },
+                  { "foo" => "other_foo", "test" => "other_test" }], ActiveSupport::JSON.decode(array.to_json))
   end
 
   class OptionsTest
@@ -341,7 +341,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
       super
     end
 
-    def as_json(options={})
+    def as_json(options = {})
       @as_json_called = true
       super
     end

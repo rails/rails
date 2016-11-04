@@ -26,7 +26,7 @@ class AssociationValidationTest < ActiveRecord::TestCase
 
   def test_validates_associated_one
     Reply.validates :topic, associated: true
-    Topic.validates_presence_of( :content )
+    Topic.validates_presence_of(:content)
     r = Reply.new("title" => "A reply", "content" => "with content!")
     r.topic = Topic.create("title" => "uhohuhoh")
     assert !r.valid?

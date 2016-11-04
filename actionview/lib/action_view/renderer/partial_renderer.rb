@@ -357,7 +357,7 @@ module ActionView
       # set to that string. Otherwise, the +options[:partial]+ object must
       # respond to +to_partial_path+ in order to setup the path.
       def setup(context, options, block)
-        @view   = context
+        @view = context
         @options = options
         @block   = block
 

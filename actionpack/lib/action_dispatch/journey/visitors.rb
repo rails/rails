@@ -22,7 +22,7 @@ module ActionDispatch
         @children   = []
         @parameters = []
 
-        parts.each_with_index do |object,i|
+        parts.each_with_index do |object, i|
           case object
           when Journey::Format
             @children << i

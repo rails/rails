@@ -144,7 +144,7 @@ class ForbiddenAttributesProtectionTest < ActiveRecord::TestCase
   end
 
   def test_strong_params_style_objects_work_with_singular_associations
-    params = ProtectedParams.new( name: "Stern", ship_attributes: ProtectedParams.new(name: "The Black Rock").permit!).permit!
+    params = ProtectedParams.new(name: "Stern", ship_attributes: ProtectedParams.new(name: "The Black Rock").permit!).permit!
     part = ShipPart.new(params)
 
     assert_equal "Stern", part.name
@@ -155,7 +155,7 @@ class ForbiddenAttributesProtectionTest < ActiveRecord::TestCase
     params = ProtectedParams.new(
       trinkets_attributes: ProtectedParams.new(
         "0" => ProtectedParams.new(name: "Necklace").permit!,
-        "1" => ProtectedParams.new(name: "Spoon").permit! ) ).permit!
+        "1" => ProtectedParams.new(name: "Spoon").permit!)).permit!
     part = ShipPart.new(params)
 
     assert_equal "Necklace", part.trinkets[0].name

@@ -274,7 +274,7 @@ module Rails
     # Sends the initializers to the +initializer+ method defined in the
     # Rails::Initializable module. Each Rails::Application class has its own
     # set of initializers, as defined by the Initializable module.
-    def initializer(name, opts={}, &block)
+    def initializer(name, opts = {}, &block)
       self.class.initializer(name, opts, &block)
     end
 
@@ -347,7 +347,7 @@ module Rails
 
     # Initialize the application passing the given group. By default, the
     # group is :default
-    def initialize!(group=:default) #:nodoc:
+    def initialize!(group = :default) #:nodoc:
       raise "Application has been already initialized." if @initialized
       run_initializers(group, self)
       @initialized = true

@@ -769,7 +769,7 @@ module ActiveRecord
       when :down then announce "reverting"
       end
 
-      time   = nil
+      time = nil
       ActiveRecord::Base.connection_pool.with_connection do |conn|
         time = Benchmark.measure do
           exec_migration(conn, direction)
@@ -797,7 +797,7 @@ module ActiveRecord
       @connection = nil
     end
 
-    def write(text="")
+    def write(text = "")
       puts(text) if verbose
     end
 
@@ -807,7 +807,7 @@ module ActiveRecord
       write "== %s %s" % [text, "=" * length]
     end
 
-    def say(message, subitem=false)
+    def say(message, subitem = false)
       write "#{subitem ? "   ->" : "--"} #{message}"
     end
 
@@ -991,11 +991,11 @@ module ActiveRecord
         end
       end
 
-      def rollback(migrations_paths, steps=1)
+      def rollback(migrations_paths, steps = 1)
         move(:down, migrations_paths, steps)
       end
 
-      def forward(migrations_paths, steps=1)
+      def forward(migrations_paths, steps = 1)
         move(:up, migrations_paths, steps)
       end
 
@@ -1232,10 +1232,10 @@ module ActiveRecord
       end
 
       def validate(migrations)
-        name ,= migrations.group_by(&:name).find { |_,v| v.length > 1 }
+        name , = migrations.group_by(&:name).find { |_, v| v.length > 1 }
         raise DuplicateMigrationNameError.new(name) if name
 
-        version ,= migrations.group_by(&:version).find { |_,v| v.length > 1 }
+        version , = migrations.group_by(&:version).find { |_, v| v.length > 1 }
         raise DuplicateMigrationVersionError.new(version) if version
       end
 

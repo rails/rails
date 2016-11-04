@@ -103,7 +103,7 @@ module ActionView
         xml = options.delete(:xml) || eval("xml", block.binding)
         xml.instruct!
         if options[:instruct]
-          options[:instruct].each do |target,attrs|
+          options[:instruct].each do |target, attrs|
             if attrs.respond_to?(:keys)
               xml.instruct!(target, attrs)
             elsif attrs.respond_to?(:each)
@@ -113,7 +113,7 @@ module ActionView
         end
 
         feed_opts = { "xml:lang" => options[:language] || "en-US", "xmlns" => "http://www.w3.org/2005/Atom" }
-        feed_opts.merge!(options).reject! { |k,v| !k.to_s.match(/^xml/) }
+        feed_opts.merge!(options).reject! { |k, v| !k.to_s.match(/^xml/) }
 
         xml.feed(feed_opts) do
           xml.id(options[:id] || "tag:#{request.host},#{options[:schema_date]}:#{request.fullpath.split(".")[0]}")

@@ -151,7 +151,7 @@ module ActionView
     # This method is instrumented as "!render_template.action_view". Notice that
     # we use a bang in this instrumentation because you don't want to
     # consume this in production. This is only slow if it's being listened to.
-    def render(view, locals, buffer=nil, &block)
+    def render(view, locals, buffer = nil, &block)
       instrument_render_template do
         compile!(view)
         view.send(method_name, locals, buffer, &block)

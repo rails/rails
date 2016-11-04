@@ -567,7 +567,7 @@ module ActionDispatch
         # [:format]
         #   Allows you to specify the default value for optional +format+
         #   segment or disable it by supplying +false+.
-        def match(path, options=nil)
+        def match(path, options = nil)
         end
 
         # Mount a Rack-based application to be used within the application.

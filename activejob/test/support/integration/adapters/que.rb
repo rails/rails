@@ -13,7 +13,7 @@ module QueJobsManager
   def start_workers
     que_url = ENV["QUE_DATABASE_URL"] || "postgres:///active_jobs_que_int_test"
     uri = URI.parse(que_url)
-    user = uri.user||ENV["USER"]
+    user = uri.user || ENV["USER"]
     pass = uri.password
     db   = uri.path[1..-1]
     %x{#{"PGPASSWORD=\"#{pass}\"" if pass} psql -c 'drop database if exists "#{db}"' -U #{user} -t template1}

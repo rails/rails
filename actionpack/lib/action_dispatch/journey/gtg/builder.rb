@@ -17,7 +17,7 @@ module ActionDispatch
         def transition_table
           dtrans   = TransitionTable.new
           marked   = {}
-          state_id = Hash.new { |h,k| h[k] = h.length }
+          state_id = Hash.new { |h, k| h[k] = h.length }
 
           start   = firstpos(root)
           dstates = [start]

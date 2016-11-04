@@ -104,7 +104,7 @@ module ActiveJob
       def determine_delay(seconds_or_duration_or_algorithm)
         case seconds_or_duration_or_algorithm
         when :exponentially_longer
-          (executions ** 4) + 2
+          (executions**4) + 2
         when ActiveSupport::Duration
           duration = seconds_or_duration_or_algorithm
           duration.to_i

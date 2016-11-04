@@ -11,7 +11,7 @@ module ActionMailer
   #   ActionMailer::Base.preview_interceptors.delete(ActionMailer::InlinePreviewInterceptor)
   #
   class InlinePreviewInterceptor
-    PATTERN  = /src=(?:"cid:[^"]+"|'cid:[^']+')/i
+    PATTERN = /src=(?:"cid:[^"]+"|'cid:[^']+')/i
 
     include Base64
 

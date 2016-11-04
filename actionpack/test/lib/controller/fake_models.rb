@@ -6,7 +6,7 @@ class Customer < Struct.new(:name, :id)
 
   undef_method :to_json
 
-  def to_xml(options={})
+  def to_xml(options = {})
     if options[:builder]
       options[:builder].name name
     else
@@ -14,7 +14,7 @@ class Customer < Struct.new(:name, :id)
     end
   end
 
-  def to_js(options={})
+  def to_js(options = {})
     "name: #{name.inspect}"
   end
   alias :to_text :to_js

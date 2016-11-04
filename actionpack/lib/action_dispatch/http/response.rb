@@ -39,7 +39,7 @@ module ActionDispatch # :nodoc:
         super(header)
       end
 
-      def []=(k,v)
+      def []=(k, v)
         if @response.sending? || @response.sent?
           raise ActionDispatch::IllegalStateError, "header already sent"
         end

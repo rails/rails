@@ -231,7 +231,7 @@ XML
 
   def test_document_body_and_params_with_post
     post :test_params, params: { id: 1 }
-    assert_equal({ "id"=>"1", "controller"=>"test_case_test/test", "action"=>"test_params" }, ::JSON.parse(@response.body))
+    assert_equal({ "id" => "1", "controller" => "test_case_test/test", "action" => "test_params" }, ::JSON.parse(@response.body))
   end
 
   def test_document_body_with_post
@@ -651,7 +651,7 @@ XML
   def test_xhr_with_params
     get :test_params, params: { id: 1 }, xhr: true
 
-    assert_equal({ "id"=>"1", "controller"=>"test_case_test/test", "action"=>"test_params" }, ::JSON.parse(@response.body))
+    assert_equal({ "id" => "1", "controller" => "test_case_test/test", "action" => "test_params" }, ::JSON.parse(@response.body))
   end
 
   def test_xhr_with_session
@@ -753,10 +753,10 @@ XML
 
   def test_multiple_mixed_method_process_should_scrub_rack_input
     post :test_params, params: { id: 1, foo: "an foo" }
-    assert_equal({ "id"=>"1", "foo" => "an foo", "controller"=>"test_case_test/test", "action"=>"test_params" }, ::JSON.parse(@response.body))
+    assert_equal({ "id" => "1", "foo" => "an foo", "controller" => "test_case_test/test", "action" => "test_params" }, ::JSON.parse(@response.body))
 
     get :test_params, params: { bar: "an bar" }
-    assert_equal({ "bar"=>"an bar", "controller"=>"test_case_test/test", "action"=>"test_params" }, ::JSON.parse(@response.body))
+    assert_equal({ "bar" => "an bar", "controller" => "test_case_test/test", "action" => "test_params" }, ::JSON.parse(@response.body))
   end
 
   %w(controller response request).each do |variable|

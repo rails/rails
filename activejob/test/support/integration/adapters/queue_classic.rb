@@ -12,7 +12,7 @@ module QueueClassicJobsManager
 
   def start_workers
     uri = URI.parse(ENV["QC_DATABASE_URL"])
-    user = uri.user||ENV["USER"]
+    user = uri.user || ENV["USER"]
     pass = uri.password
     db   = uri.path[1..-1]
     %x{#{"PGPASSWORD=\"#{pass}\"" if pass} psql -c 'drop database if exists "#{db}"' -U #{user} -t template1}

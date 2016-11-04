@@ -316,7 +316,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_excerpt_with_omission
-    assert_equal("[...]is a beautiful morn[...]", excerpt("This is a beautiful morning", "beautiful", omission: "[...]",radius: 5))
+    assert_equal("[...]is a beautiful morn[...]", excerpt("This is a beautiful morning", "beautiful", omission: "[...]", radius: 5))
     assert_equal(
       "This is the ultimate supercalifragilisticexpialidoceous very looooooooooooooooooong looooooooooooong beautiful morning with amazing sunshine and awesome tempera[...]",
       excerpt("This is the ultimate supercalifragilisticexpialidoceous very looooooooooooooooooong looooooooooooong beautiful morning with amazing sunshine and awesome temperatures. So what are you gonna do about it?", "very",
@@ -329,7 +329,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_excerpt_does_not_modify_the_options_hash
-    options = { omission: "[...]",radius: 5 }
+    options = { omission: "[...]", radius: 5 }
     passed_options = options.dup
     excerpt("This is a beautiful morning", "beautiful", passed_options)
     assert_equal options, passed_options
@@ -463,11 +463,11 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_current_cycle_with_default_name
-    cycle("even","odd")
+    cycle("even", "odd")
     assert_equal "even", current_cycle
-    cycle("even","odd")
+    cycle("even", "odd")
     assert_equal "odd", current_cycle
-    cycle("even","odd")
+    cycle("even", "odd")
     assert_equal "even", current_cycle
   end
 
@@ -486,13 +486,13 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_current_cycle_with_more_than_two_names
-    cycle(1,2,3)
+    cycle(1, 2, 3)
     assert_equal "1", current_cycle
-    cycle(1,2,3)
+    cycle(1, 2, 3)
     assert_equal "2", current_cycle
-    cycle(1,2,3)
+    cycle(1, 2, 3)
     assert_equal "3", current_cycle
-    cycle(1,2,3)
+    cycle(1, 2, 3)
     assert_equal "1", current_cycle
   end
 

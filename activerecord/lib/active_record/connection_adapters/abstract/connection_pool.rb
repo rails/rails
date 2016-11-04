@@ -833,7 +833,7 @@ module ActiveRecord
     class ConnectionHandler
       def initialize
         # These caches are keyed by spec.name (ConnectionSpecification#name).
-        @owner_to_pool = Concurrent::Map.new(initial_capacity: 2) do |h,k|
+        @owner_to_pool = Concurrent::Map.new(initial_capacity: 2) do |h, k|
           h[k] = Concurrent::Map.new(initial_capacity: 2)
         end
       end

@@ -20,7 +20,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
   INTEGERS = [0, 10, -10] + INTEGER_STRINGS
   BIGDECIMAL = BIGDECIMAL_STRINGS.collect! { |bd| BigDecimal.new(bd) }
   JUNK = ["not a number", "42 not a number", "0xdeadbeef", "0xinvalidhex", "0Xdeadbeef", "00-1", "--3", "+-3", "+3-1", "-+019.0", "12.12.13.12", "123\nnot a number"]
-  INFINITY = [1.0/0.0]
+  INFINITY = [1.0 / 0.0]
 
   def test_default_validates_numericality_of
     Topic.validates_numericality_of :approved

@@ -15,7 +15,7 @@ module ActiveJob
       options.queue_adapter ||= :async
 
       ActiveSupport.on_load(:active_job) do
-        options.each { |k,v| send("#{k}=", v) }
+        options.each { |k, v| send("#{k}=", v) }
       end
     end
 

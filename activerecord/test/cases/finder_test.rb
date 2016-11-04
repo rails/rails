@@ -49,22 +49,22 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_with_ids_returning_ordered
-    records = Topic.find([4,2,5])
+    records = Topic.find([4, 2, 5])
     assert_equal "The Fourth Topic of the day", records[0].title
     assert_equal "The Second Topic of the day", records[1].title
     assert_equal "The Fifth Topic of the day", records[2].title
 
-    records = Topic.find(4,2,5)
+    records = Topic.find(4, 2, 5)
     assert_equal "The Fourth Topic of the day", records[0].title
     assert_equal "The Second Topic of the day", records[1].title
     assert_equal "The Fifth Topic of the day", records[2].title
 
-    records = Topic.find(["4","2","5"])
+    records = Topic.find(["4", "2", "5"])
     assert_equal "The Fourth Topic of the day", records[0].title
     assert_equal "The Second Topic of the day", records[1].title
     assert_equal "The Fifth Topic of the day", records[2].title
 
-    records = Topic.find("4","2","5")
+    records = Topic.find("4", "2", "5")
     assert_equal "The Fourth Topic of the day", records[0].title
     assert_equal "The Second Topic of the day", records[1].title
     assert_equal "The Fifth Topic of the day", records[2].title
@@ -72,12 +72,12 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_with_ids_and_order_clause
     # The order clause takes precedence over the informed ids
-    records = Topic.order(:author_name).find([5,3,1])
+    records = Topic.order(:author_name).find([5, 3, 1])
     assert_equal "The Third Topic of the day", records[0].title
     assert_equal "The First Topic",            records[1].title
     assert_equal "The Fifth Topic of the day", records[2].title
 
-    records = Topic.order(:id).find([5,3,1])
+    records = Topic.order(:id).find([5, 3, 1])
     assert_equal "The First Topic",            records[0].title
     assert_equal "The Third Topic of the day", records[1].title
     assert_equal "The Fifth Topic of the day", records[2].title
@@ -85,14 +85,14 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_with_ids_with_limit_and_order_clause
     # The order clause takes precedence over the informed ids
-    records = Topic.limit(2).order(:id).find([5,3,1])
+    records = Topic.limit(2).order(:id).find([5, 3, 1])
     assert_equal 2, records.size
     assert_equal "The First Topic",            records[0].title
     assert_equal "The Third Topic of the day", records[1].title
   end
 
   def test_find_with_ids_and_limit
-    records = Topic.limit(3).find([3,2,5,1,4])
+    records = Topic.limit(3).find([3, 2, 5, 1, 4])
     assert_equal 3, records.size
     assert_equal "The Third Topic of the day",  records[0].title
     assert_equal "The Second Topic of the day", records[1].title
@@ -102,7 +102,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_find_with_ids_where_and_limit
     # Please note that Topic 1 is the only not approved so
     # if it were among the first 3 it would raise an ActiveRecord::RecordNotFound
-    records = Topic.where(approved: true).limit(3).find([3,2,5,1,4])
+    records = Topic.where(approved: true).limit(3).find([3, 2, 5, 1, 4])
     assert_equal 3, records.size
     assert_equal "The Third Topic of the day",  records[0].title
     assert_equal "The Second Topic of the day", records[1].title
@@ -110,7 +110,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_with_ids_and_offset
-    records = Topic.offset(2).find([3,2,5,1,4])
+    records = Topic.offset(2).find([3, 2, 5, 1, 4])
     assert_equal 3, records.size
     assert_equal "The Fifth Topic of the day",  records[0].title
     assert_equal "The First Topic",             records[1].title
@@ -136,7 +136,7 @@ class FinderTest < ActiveRecord::TestCase
   # find should handle strings that come from URLs
   # (example: Category.find(params[:id]))
   def test_find_with_string
-    assert_equal(Topic.find(1).title,Topic.find("1").title)
+    assert_equal(Topic.find(1).title, Topic.find("1").title)
   end
 
   def test_exists
@@ -151,7 +151,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal false, Topic.exists?(45)
     assert_equal false, Topic.exists?(Topic.new.id)
 
-    assert_raise(NoMethodError) { Topic.exists?([1,2]) }
+    assert_raise(NoMethodError) { Topic.exists?([1, 2]) }
   end
 
   def test_exists_with_polymorphic_relation
@@ -175,7 +175,7 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_exists_returns_false_when_parameter_has_invalid_type
     assert_equal false, Topic.exists?("foo")
-    assert_equal false, Topic.exists?(("9"*53).to_i) # number that's bigger than int
+    assert_equal false, Topic.exists?(("9" * 53).to_i) # number that's bigger than int
   end
 
   def test_exists_does_not_select_columns_without_alias
@@ -258,8 +258,8 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_by_ids_with_limit_and_offset
-    assert_equal 2, Entrant.limit(2).find([1,3,2]).size
-    entrants = Entrant.limit(3).offset(2).find([1,3,2])
+    assert_equal 2, Entrant.limit(2).find([1, 3, 2]).size
+    entrants = Entrant.limit(3).offset(2).find([1, 3, 2])
     assert_equal 1, entrants.size
     assert_equal "Ruby Guru", entrants.first.name
 
@@ -584,7 +584,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_last_on_loaded_relation_should_not_use_sql
-    relation  = Topic.limit(10).load
+    relation = Topic.limit(10).load
     assert_no_queries do
       relation.last
       relation.last(2)
@@ -693,27 +693,27 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_on_hash_conditions_with_range
-    assert_equal [1,2], Topic.where(id: 1..2).to_a.map(&:id).sort
+    assert_equal [1, 2], Topic.where(id: 1..2).to_a.map(&:id).sort
     assert_raise(ActiveRecord::RecordNotFound) { Topic.where(id: 2..3).find(1) }
   end
 
   def test_find_on_hash_conditions_with_end_exclusive_range
-    assert_equal [1,2,3], Topic.where(id: 1..3).to_a.map(&:id).sort
-    assert_equal [1,2], Topic.where(id: 1...3).to_a.map(&:id).sort
+    assert_equal [1, 2, 3], Topic.where(id: 1..3).to_a.map(&:id).sort
+    assert_equal [1, 2], Topic.where(id: 1...3).to_a.map(&:id).sort
     assert_raise(ActiveRecord::RecordNotFound) { Topic.where(id: 2...3).find(3) }
   end
 
   def test_find_on_hash_conditions_with_multiple_ranges
-    assert_equal [1,2,3], Comment.where(id: 1..3, post_id: 1..2).to_a.map(&:id).sort
+    assert_equal [1, 2, 3], Comment.where(id: 1..3, post_id: 1..2).to_a.map(&:id).sort
     assert_equal [1], Comment.where(id: 1..1, post_id: 1..10).to_a.map(&:id).sort
   end
 
   def test_find_on_hash_conditions_with_array_of_integers_and_ranges
-    assert_equal [1,2,3,5,6,7,8,9], Comment.where(id: [1..2, 3, 5, 6..8, 9]).to_a.map(&:id).sort
+    assert_equal [1, 2, 3, 5, 6, 7, 8, 9], Comment.where(id: [1..2, 3, 5, 6..8, 9]).to_a.map(&:id).sort
   end
 
   def test_find_on_hash_conditions_with_array_of_ranges
-    assert_equal [1,2,6,7,8], Comment.where(id: [1..2, 6..8]).to_a.map(&:id).sort
+    assert_equal [1, 2, 6, 7, 8], Comment.where(id: [1..2, 6..8]).to_a.map(&:id).sort
   end
 
   def test_find_on_multiple_hash_conditions
@@ -1029,7 +1029,7 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_by_id_with_conditions_with_or
     assert_nothing_raised do
-      Post.where("posts.id <= 3 OR posts.#{QUOTED_TYPE} = 'Post'").find([1,2,3])
+      Post.where("posts.id <= 3 OR posts.#{QUOTED_TYPE} = 'Post'").find([1, 2, 3])
     end
   end
 
@@ -1061,8 +1061,8 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_select_values
-    assert_equal ["1","2","3","4","5","6","7","8","9", "10", "11"], Company.connection.select_values("SELECT id FROM companies ORDER BY id").map!(&:to_s)
-    assert_equal ["37signals","Summit","Microsoft", "Flamboyant Software", "Ex Nihilo", "RailsCore", "Leetsoft", "Jadedpixel", "Odegy", "Ex Nihilo Part Deux", "Apex"], Company.connection.select_values("SELECT name FROM companies ORDER BY id")
+    assert_equal ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"], Company.connection.select_values("SELECT id FROM companies ORDER BY id").map!(&:to_s)
+    assert_equal ["37signals", "Summit", "Microsoft", "Flamboyant Software", "Ex Nihilo", "RailsCore", "Leetsoft", "Jadedpixel", "Odegy", "Ex Nihilo Part Deux", "Apex"], Company.connection.select_values("SELECT name FROM companies ORDER BY id")
   end
 
   def test_select_rows
@@ -1172,7 +1172,7 @@ class FinderTest < ActiveRecord::TestCase
 
   test "find_by with associations" do
     assert_equal authors(:david), Post.find_by(author: authors(:david)).author
-    assert_equal authors(:mary) , Post.find_by(author: authors(:mary) ).author
+    assert_equal authors(:mary) , Post.find_by(author: authors(:mary)).author
   end
 
   test "find_by doesn't have implicit ordering" do

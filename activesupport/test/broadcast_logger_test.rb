@@ -142,7 +142,7 @@ module ActiveSupport
         @chevrons << x
       end
 
-      def add(message_level, message=nil, progname=nil, &block)
+      def add(message_level, message = nil, progname = nil, &block)
         @adds << [message_level, message, progname] if message_level >= local_level
       end
 

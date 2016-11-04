@@ -102,8 +102,8 @@ module ActionDispatch
       @hash["foo"] = "bar"
 
       things = []
-      @hash.each do |k,v|
-        things << [k,v]
+      @hash.each do |k, v|
+        things << [k, v]
       end
 
       assert_equal([%w{ hello world }, %w{ foo bar }].sort, things.sort)

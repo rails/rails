@@ -53,7 +53,7 @@ module ActionDispatch
           }
         end
 
-        def []=(k,v);         @delegate[k] = v; end
+        def []=(k, v);        @delegate[k] = v; end
         def to_hash;          @delegate.dup; end
         def values_at(*args); @delegate.values_at(*args); end
       end
@@ -124,7 +124,7 @@ module ActionDispatch
       # Returns the session as Hash.
       def to_hash
         load_for_read!
-        @delegate.dup.delete_if { |_,v| v.nil? }
+        @delegate.dup.delete_if { |_, v| v.nil? }
       end
 
       # Updates the session with given Hash.
@@ -162,7 +162,7 @@ module ActionDispatch
       #     :bar
       #   end
       #   # => :bar
-      def fetch(key, default=Unspecified, &block)
+      def fetch(key, default = Unspecified, &block)
         load_for_read!
         if default == Unspecified
           @delegate.fetch(key.to_s, &block)

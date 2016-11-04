@@ -44,7 +44,7 @@ class SourceAnnotationExtractor
     #
     # If +options+ has a flag <tt>:tag</tt> the tag is shown as in the example above.
     # Otherwise the string contains just line and text.
-    def to_s(options={})
+    def to_s(options = {})
       s = "[#{line.to_s.rjust(options[:indent])}] "
       s << "[#{tag}] " if options[:tag]
       s << text
@@ -66,7 +66,7 @@ class SourceAnnotationExtractor
   # See <tt>#find_in</tt> for a list of file extensions that will be taken into account.
   #
   # This class method is the single entry point for the rake tasks.
-  def self.enumerate(tag, options={})
+  def self.enumerate(tag, options = {})
     extractor = new(tag)
     dirs = options.delete(:dirs) || Annotation.directories
     extractor.display(extractor.find(dirs), options)
@@ -126,7 +126,7 @@ class SourceAnnotationExtractor
 
   # Prints the mapping from filenames to annotations in +results+ ordered by filename.
   # The +options+ hash is passed to each annotation's +to_s+.
-  def display(results, options={})
+  def display(results, options = {})
     options[:indent] = results.flat_map { |f, a| a.map(&:line) }.max.to_s.size
     results.keys.sort.each do |file|
       puts "#{file}:"

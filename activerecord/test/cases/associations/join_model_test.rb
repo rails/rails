@@ -155,21 +155,21 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     old_count = posts(:welcome).taggings.count
     tagging = posts(:welcome).taggings.create(tag: tags(:misc))
     assert_equal "Post", tagging.taggable_type
-    assert_equal old_count+1, posts(:welcome).taggings.count
+    assert_equal old_count + 1, posts(:welcome).taggings.count
   end
 
   def test_create_bang_polymorphic_with_has_many_scope
     old_count = posts(:welcome).taggings.count
     tagging = posts(:welcome).taggings.create!(tag: tags(:misc))
     assert_equal "Post", tagging.taggable_type
-    assert_equal old_count+1, posts(:welcome).taggings.count
+    assert_equal old_count + 1, posts(:welcome).taggings.count
   end
 
   def test_create_polymorphic_has_one_with_scope
     old_count = Tagging.count
     tagging = posts(:welcome).create_tagging(tag: tags(:misc))
     assert_equal "Post", tagging.taggable_type
-    assert_equal old_count+1, Tagging.count
+    assert_equal old_count + 1, Tagging.count
   end
 
   def test_delete_polymorphic_has_many_with_delete_all
@@ -179,7 +179,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
     old_count = Tagging.count
     post.destroy
-    assert_equal old_count-1, Tagging.count
+    assert_equal old_count - 1, Tagging.count
     assert_equal 0, posts(:welcome).taggings.count
   end
 
@@ -190,7 +190,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
     old_count = Tagging.count
     post.destroy
-    assert_equal old_count-1, Tagging.count
+    assert_equal old_count - 1, Tagging.count
     assert_equal 0, posts(:welcome).taggings.count
   end
 
@@ -212,7 +212,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
     old_count = Tagging.count
     post.destroy
-    assert_equal old_count-1, Tagging.count
+    assert_equal old_count - 1, Tagging.count
     posts(:welcome).association(:tagging).reload
     assert_nil posts(:welcome).tagging
   end
@@ -402,7 +402,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_polymorphic_has_one
-    assert_equal Tagging.find(1,2).sort_by(&:id), authors(:david).taggings_2
+    assert_equal Tagging.find(1, 2).sort_by(&:id), authors(:david).taggings_2
   end
 
   def test_has_many_through_polymorphic_has_many
@@ -421,7 +421,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     author = Author.all.merge!(where: ["name = ?", "David"], includes: :comments, order: "comments.id").first
     SpecialComment.new; VerySpecialComment.new
     assert_no_queries do
-      assert_equal [1,2,3,5,6,7,8,9,10,12], author.comments.collect(&:id)
+      assert_equal [1, 2, 3, 5, 6, 7, 8, 9, 10, 12], author.comments.collect(&:id)
     end
   end
 
@@ -493,25 +493,25 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     push = Tag.create!(name: "pushme")
     post_thinking = posts(:thinking)
     assert_nothing_raised { post_thinking.tags << push }
-    assert_nil( wrong = post_thinking.tags.detect { |t| t.class != Tag },
+    assert_nil(wrong = post_thinking.tags.detect { |t| t.class != Tag },
                 message = "Expected a Tag in tags collection, got #{wrong.class}.")
-    assert_nil( wrong = post_thinking.taggings.detect { |t| t.class != Tagging },
+    assert_nil(wrong = post_thinking.taggings.detect { |t| t.class != Tagging },
                 message = "Expected a Tagging in taggings collection, got #{wrong.class}.")
     assert_equal(count + 1, post_thinking.reload.tags.size)
     assert_equal(count + 1, post_thinking.tags.reload.size)
 
     assert_kind_of Tag, post_thinking.tags.create!(name: "foo")
-    assert_nil( wrong = post_thinking.tags.detect { |t| t.class != Tag },
+    assert_nil(wrong = post_thinking.tags.detect { |t| t.class != Tag },
                 message = "Expected a Tag in tags collection, got #{wrong.class}.")
-    assert_nil( wrong = post_thinking.taggings.detect { |t| t.class != Tagging },
+    assert_nil(wrong = post_thinking.taggings.detect { |t| t.class != Tagging },
                 message = "Expected a Tagging in taggings collection, got #{wrong.class}.")
     assert_equal(count + 2, post_thinking.reload.tags.size)
     assert_equal(count + 2, post_thinking.tags.reload.size)
 
     assert_nothing_raised { post_thinking.tags.concat(Tag.create!(name: "abc"), Tag.create!(name: "def")) }
-    assert_nil( wrong = post_thinking.tags.detect { |t| t.class != Tag },
+    assert_nil(wrong = post_thinking.tags.detect { |t| t.class != Tag },
                 message = "Expected a Tag in tags collection, got #{wrong.class}.")
-    assert_nil( wrong = post_thinking.taggings.detect { |t| t.class != Tagging },
+    assert_nil(wrong = post_thinking.taggings.detect { |t| t.class != Tagging },
                 message = "Expected a Tagging in taggings collection, got #{wrong.class}.")
     assert_equal(count + 4, post_thinking.reload.tags.size)
     assert_equal(count + 4, post_thinking.tags.reload.size)

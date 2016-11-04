@@ -184,14 +184,14 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_select_with_subquery_in_from_does_not_use_original_table_name
     relation = Comment.group(:type).select("COUNT(post_id) AS post_count, type")
-    subquery = Comment.from(relation).select("type","post_count")
-    assert_equal(relation.map(&:post_count).sort,subquery.map(&:post_count).sort)
+    subquery = Comment.from(relation).select("type", "post_count")
+    assert_equal(relation.map(&:post_count).sort, subquery.map(&:post_count).sort)
   end
 
   def test_group_with_subquery_in_from_does_not_use_original_table_name
     relation = Comment.group(:type).select("COUNT(post_id) AS post_count,type")
     subquery = Comment.from(relation).group("type").average("post_count")
-    assert_equal(relation.map(&:post_count).sort,subquery.values.sort)
+    assert_equal(relation.map(&:post_count).sort, subquery.values.sort)
   end
 
   def test_finding_with_conditions
@@ -291,7 +291,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_includes Topic.order(id: "DESC").to_sql, "DESC"
     assert_includes Topic.order(id: "desc").to_sql, "DESC"
     assert_includes Topic.order(id: :DESC).to_sql, "DESC"
-    assert_includes Topic.order(id: :desc).to_sql,"DESC"
+    assert_includes Topic.order(id: :desc).to_sql, "DESC"
   end
 
   def test_raising_exception_on_invalid_hash_params
@@ -365,7 +365,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_finding_with_sanitized_order
-    query = Tag.order(["field(id, ?)", [1,3,2]]).to_sql
+    query = Tag.order(["field(id, ?)", [1, 3, 2]]).to_sql
     assert_match(/field\(id, 1,3,2\)/, query)
 
     query = Tag.order(["field(id, ?)", []]).to_sql
@@ -458,55 +458,55 @@ class RelationTest < ActiveRecord::TestCase
   def test_null_relation_sum
     ac = Aircraft.new
     assert_equal Hash.new, ac.engines.group(:id).sum(:id)
-    assert_equal        0, ac.engines.count
+    assert_equal 0, ac.engines.count
     ac.save
     assert_equal Hash.new, ac.engines.group(:id).sum(:id)
-    assert_equal        0, ac.engines.count
+    assert_equal 0, ac.engines.count
   end
 
   def test_null_relation_count
     ac = Aircraft.new
     assert_equal Hash.new, ac.engines.group(:id).count
-    assert_equal        0, ac.engines.count
+    assert_equal 0, ac.engines.count
     ac.save
     assert_equal Hash.new, ac.engines.group(:id).count
-    assert_equal        0, ac.engines.count
+    assert_equal 0, ac.engines.count
   end
 
   def test_null_relation_size
     ac = Aircraft.new
     assert_equal Hash.new, ac.engines.group(:id).size
-    assert_equal        0, ac.engines.size
+    assert_equal 0, ac.engines.size
     ac.save
     assert_equal Hash.new, ac.engines.group(:id).size
-    assert_equal        0, ac.engines.size
+    assert_equal 0, ac.engines.size
   end
 
   def test_null_relation_average
     ac = Aircraft.new
     assert_equal Hash.new, ac.engines.group(:car_id).average(:id)
-    assert_equal        nil, ac.engines.average(:id)
+    assert_equal nil, ac.engines.average(:id)
     ac.save
     assert_equal Hash.new, ac.engines.group(:car_id).average(:id)
-    assert_equal        nil, ac.engines.average(:id)
+    assert_equal nil, ac.engines.average(:id)
   end
 
   def test_null_relation_minimum
     ac = Aircraft.new
     assert_equal Hash.new, ac.engines.group(:car_id).minimum(:id)
-    assert_equal        nil, ac.engines.minimum(:id)
+    assert_equal nil, ac.engines.minimum(:id)
     ac.save
     assert_equal Hash.new, ac.engines.group(:car_id).minimum(:id)
-    assert_equal        nil, ac.engines.minimum(:id)
+    assert_equal nil, ac.engines.minimum(:id)
   end
 
   def test_null_relation_maximum
     ac = Aircraft.new
     assert_equal Hash.new, ac.engines.group(:car_id).maximum(:id)
-    assert_equal        nil, ac.engines.maximum(:id)
+    assert_equal nil, ac.engines.maximum(:id)
     ac.save
     assert_equal Hash.new, ac.engines.group(:car_id).maximum(:id)
-    assert_equal        nil, ac.engines.maximum(:id)
+    assert_equal nil, ac.engines.maximum(:id)
   end
 
   def test_null_relation_in_where_condition
@@ -979,7 +979,7 @@ class RelationTest < ActiveRecord::TestCase
     assert ! davids.exists?(42)
     assert ! davids.exists?(davids.new.id)
 
-    fake  = Author.where(name: "fake author")
+    fake = Author.where(name: "fake author")
     assert ! fake.exists?
     assert ! fake.exists?(authors(:david).id)
   end
@@ -1964,7 +1964,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_unscope_removes_binds
-    left  = Post.where(id: Arel::Nodes::BindParam.new)
+    left = Post.where(id: Arel::Nodes::BindParam.new)
     column = Post.columns_hash["id"]
     left.bind_values += [[column, 20]]
 
@@ -1973,8 +1973,8 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_merging_removes_rhs_bind_parameters
-    left  = Post.where(id: 20)
-    right   = Post.where(id: [1,2,3,4])
+    left = Post.where(id: 20)
+    right = Post.where(id: [1, 2, 3, 4])
 
     merged = left.merge(right)
     assert_equal [], merged.bind_values

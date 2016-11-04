@@ -117,15 +117,15 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
   def test_select_with_strings
     @connection.execute "insert into pg_arrays (tags) VALUES ('{1,2,3}')"
     x = PgArray.first
-    assert_equal(["1","2","3"], x.tags)
+    assert_equal(["1", "2", "3"], x.tags)
   end
 
   def test_rewrite_with_strings
     @connection.execute "insert into pg_arrays (tags) VALUES ('{1,2,3}')"
     x = PgArray.first
-    x.tags = ["1","2","3","4"]
+    x.tags = ["1", "2", "3", "4"]
     x.save!
-    assert_equal ["1","2","3","4"], x.reload.tags
+    assert_equal ["1", "2", "3", "4"], x.reload.tags
   end
 
   def test_select_with_integers
@@ -163,28 +163,28 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_strings_with_quotes
-    assert_cycle(:tags, ["this has",'some "s that need to be escaped"'])
+    assert_cycle(:tags, ["this has", 'some "s that need to be escaped"'])
   end
 
   def test_strings_with_commas
-    assert_cycle(:tags, ["this,has","many,values"])
+    assert_cycle(:tags, ["this,has", "many,values"])
   end
 
   def test_strings_with_array_delimiters
-    assert_cycle(:tags, ["{","}"])
+    assert_cycle(:tags, ["{", "}"])
   end
 
   def test_strings_with_null_strings
-    assert_cycle(:tags, ["NULL","NULL"])
+    assert_cycle(:tags, ["NULL", "NULL"])
   end
 
   def test_contains_nils
-    assert_cycle(:tags, ["1",nil,nil])
+    assert_cycle(:tags, ["1", nil, nil])
   end
 
   def test_insert_fixture
     tag_values = ["val1", "val2", "val3_with_'_multiple_quote_'_chars"]
-    @connection.insert_fixture({ "tags" => tag_values }, "pg_arrays" )
+    @connection.insert_fixture({ "tags" => tag_values }, "pg_arrays")
     assert_equal(PgArray.last.tags, tag_values)
   end
 

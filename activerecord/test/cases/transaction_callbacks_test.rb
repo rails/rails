@@ -243,14 +243,14 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_only_call_after_rollback_on_records_rolled_back_to_a_savepoint
-    def @first.rollbacks(i=0); @rollbacks ||= 0; @rollbacks += i if i; end
-    def @first.commits(i=0); @commits ||= 0; @commits += i if i; end
+    def @first.rollbacks(i = 0); @rollbacks ||= 0; @rollbacks += i if i; end
+    def @first.commits(i = 0); @commits ||= 0; @commits += i if i; end
     @first.after_rollback_block { |r| r.rollbacks(1) }
     @first.after_commit_block { |r| r.commits(1) }
 
     second = TopicWithCallbacks.find(3)
-    def second.rollbacks(i=0); @rollbacks ||= 0; @rollbacks += i if i; end
-    def second.commits(i=0); @commits ||= 0; @commits += i if i; end
+    def second.rollbacks(i = 0); @rollbacks ||= 0; @rollbacks += i if i; end
+    def second.commits(i = 0); @commits ||= 0; @commits += i if i; end
     second.after_rollback_block { |r| r.rollbacks(1) }
     second.after_commit_block { |r| r.commits(1) }
 
@@ -269,8 +269,8 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_only_call_after_rollback_on_records_rolled_back_to_a_savepoint_when_release_savepoint_fails
-    def @first.rollbacks(i=0); @rollbacks ||= 0; @rollbacks += i if i; end
-    def @first.commits(i=0); @commits ||= 0; @commits += i if i; end
+    def @first.rollbacks(i = 0); @rollbacks ||= 0; @rollbacks += i if i; end
+    def @first.commits(i = 0); @commits ||= 0; @commits += i if i; end
 
     @first.after_rollback_block { |r| r.rollbacks(1) }
     @first.after_commit_block { |r| r.commits(1) }

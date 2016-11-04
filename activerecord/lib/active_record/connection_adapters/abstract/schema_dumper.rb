@@ -35,7 +35,7 @@ module ActiveRecord
         end
 
         default = schema_default(column) if column.has_default?
-        spec[:default]   = default unless default.nil?
+        spec[:default] = default unless default.nil?
 
         spec[:null] = "false" unless column.null
 

@@ -73,7 +73,7 @@ module Rails
         end
 
         # Initialize ORM::Generators::ActiveModel to access instance methods.
-        def orm_instance(name=singular_table_name)
+        def orm_instance(name = singular_table_name)
           @orm_instance ||= orm_class.new(name)
         end
     end

@@ -191,30 +191,32 @@ module ActiveRecord
         type_casted_binds = type_casted_binds(binds)
 
         log(sql, name, binds, type_casted_binds) do
-          # Don't cache statements if they are not prepared
-          unless prepare
-            stmt    = @connection.prepare(sql)
-            begin
-              cols    = stmt.columns
-              unless without_prepared_statement?(binds)
-                stmt.bind_params(type_casted_binds)
+          ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+            # Don't cache statements if they are not prepared
+            unless prepare
+              stmt = @connection.prepare(sql)
+              begin
+                cols = stmt.columns
+                unless without_prepared_statement?(binds)
+                  stmt.bind_params(type_casted_binds)
+                end
+                records = stmt.to_a
+              ensure
+                stmt.close
               end
+            else
+              cache = @statements[sql] ||= {
+                stmt: @connection.prepare(sql)
+              }
+              stmt = cache[:stmt]
+              cols = cache[:cols] ||= stmt.columns
+              stmt.reset!
+              stmt.bind_params(type_casted_binds)
               records = stmt.to_a
-            ensure
-              stmt.close
             end
-          else
-            cache = @statements[sql] ||= {
-              stmt: @connection.prepare(sql)
-            }
-            stmt = cache[:stmt]
-            cols = cache[:cols] ||= stmt.columns
-            stmt.reset!
-            stmt.bind_params(type_casted_binds)
-            records = stmt.to_a
-          end
 
-          ActiveRecord::Result.new(cols, records)
+            ActiveRecord::Result.new(cols, records)
+          end
         end
       end
 
@@ -229,19 +231,23 @@ module ActiveRecord
       end
 
       def execute(sql, name = nil) #:nodoc:
-        log(sql, name) { @connection.execute(sql) }
+        log(sql, name) do
+          ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+            @connection.execute(sql)
+          end
+        end
       end
 
       def begin_db_transaction #:nodoc:
-        log("begin transaction",nil) { @connection.transaction }
+        log("begin transaction", nil) { @connection.transaction }
       end
 
       def commit_db_transaction #:nodoc:
-        log("commit transaction",nil) { @connection.commit }
+        log("commit transaction", nil) { @connection.commit }
       end
 
       def exec_rollback_db_transaction #:nodoc:
-        log("rollback transaction",nil) { @connection.rollback }
+        log("rollback transaction", nil) { @connection.rollback }
       end
 
       # SCHEMA STATEMENTS ========================================
@@ -410,7 +416,7 @@ module ActiveRecord
             self.default = options[:default] if include_default
             self.null    = options[:null] if options.include?(:null)
             self.precision = options[:precision] if options.include?(:precision)
-            self.scale   = options[:scale] if options.include?(:scale)
+            self.scale = options[:scale] if options.include?(:scale)
             self.collation = options[:collation] if options.include?(:collation)
           end
         end

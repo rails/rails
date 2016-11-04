@@ -64,8 +64,8 @@ if ActiveRecord::Base.connection.supports_extensions?
       @connection.add_column "hstores", "permissions", :hstore, default: '"users"=>"read", "articles"=>"write"'
       Hstore.reset_column_information
 
-      assert_equal({ "users"=>"read", "articles"=>"write" }, Hstore.column_defaults["permissions"])
-      assert_equal({ "users"=>"read", "articles"=>"write" }, Hstore.new.permissions)
+      assert_equal({ "users" => "read", "articles" => "write" }, Hstore.column_defaults["permissions"])
+      assert_equal({ "users" => "read", "articles" => "write" }, Hstore.new.permissions)
     ensure
       Hstore.reset_column_information
     end
@@ -113,8 +113,8 @@ if ActiveRecord::Base.connection.supports_extensions?
     def test_type_cast_hstore
       assert_equal({ "1" => "2" }, @type.deserialize("\"1\"=>\"2\""))
       assert_equal({}, @type.deserialize(""))
-      assert_equal({ "key"=>nil }, @type.deserialize("key => NULL"))
-      assert_equal({ "c"=>"}",'"a"'=>'b "a b' }, @type.deserialize(%q(c=>"}", "\"a\""=>"b \"a b")))
+      assert_equal({ "key" => nil }, @type.deserialize("key => NULL"))
+      assert_equal({ "c" => "}", '"a"' => 'b "a b' }, @type.deserialize(%q(c=>"}", "\"a\""=>"b \"a b")))
     end
 
     def test_with_store_accessors
@@ -166,23 +166,23 @@ if ActiveRecord::Base.connection.supports_extensions?
     end
 
     def test_gen1
-      assert_equal('" "=>""', @type.serialize(" "=>""))
+      assert_equal('" "=>""', @type.serialize(" " => ""))
     end
 
     def test_gen2
-      assert_equal('","=>""', @type.serialize(","=>""))
+      assert_equal('","=>""', @type.serialize("," => ""))
     end
 
     def test_gen3
-      assert_equal('"="=>""', @type.serialize("="=>""))
+      assert_equal('"="=>""', @type.serialize("=" => ""))
     end
 
     def test_gen4
-      assert_equal('">"=>""', @type.serialize(">"=>""))
+      assert_equal('">"=>""', @type.serialize(">" => ""))
     end
 
     def test_parse1
-      assert_equal({ "a"=>nil,"b"=>nil,"c"=>"NuLl","null"=>"c" }, @type.deserialize('a=>null,b=>NuLl,c=>"NuLl",null=>c'))
+      assert_equal({ "a" => nil, "b" => nil, "c" => "NuLl", "null" => "c" }, @type.deserialize('a=>null,b=>NuLl,c=>"NuLl",null=>c'))
     end
 
     def test_parse2
@@ -194,19 +194,19 @@ if ActiveRecord::Base.connection.supports_extensions?
     end
 
     def test_parse4
-      assert_equal({ "=a"=>"q=w" },   @type.deserialize('\=a=>q=w'))
+      assert_equal({ "=a" => "q=w" },   @type.deserialize('\=a=>q=w'))
     end
 
     def test_parse5
-      assert_equal({ "=a"=>"q=w" },   @type.deserialize('"=a"=>q\=w'))
+      assert_equal({ "=a" => "q=w" },   @type.deserialize('"=a"=>q\=w'))
     end
 
     def test_parse6
-      assert_equal({ "\"a"=>"q>w" },  @type.deserialize('"\"a"=>q>w'))
+      assert_equal({ "\"a" => "q>w" },  @type.deserialize('"\"a"=>q>w'))
     end
 
     def test_parse7
-      assert_equal({ "\"a"=>"q\"w" }, @type.deserialize('\"a=>q"w'))
+      assert_equal({ "\"a" => "q\"w" }, @type.deserialize('\"a=>q"w'))
     end
 
     def test_rewrite

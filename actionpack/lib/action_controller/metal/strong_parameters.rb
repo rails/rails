@@ -680,7 +680,7 @@ module ActionController
         when Parameters
           if object.fields_for_style?
             hash = object.class.new
-            object.each { |k,v| hash[k] = yield v }
+            object.each { |k, v| hash[k] = yield v }
             hash
           else
             yield object

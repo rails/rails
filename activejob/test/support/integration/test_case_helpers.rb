@@ -32,7 +32,7 @@ module TestCaseHelpers
       adapter_class_symbols.map(&:to_s).include? adapter
     end
 
-    def wait_for_jobs_to_finish_for(seconds=60)
+    def wait_for_jobs_to_finish_for(seconds = 60)
       begin
         Timeout.timeout(seconds) do
           while !job_executed do
@@ -47,7 +47,7 @@ module TestCaseHelpers
       Dummy::Application.root.join("tmp/#{id}")
     end
 
-    def job_executed(id=@id)
+    def job_executed(id = @id)
       job_file(id).exist?
     end
 
@@ -55,11 +55,11 @@ module TestCaseHelpers
       Marshal.load(File.binread(job_file(id)))
     end
 
-    def job_executed_at(id=@id)
+    def job_executed_at(id = @id)
       job_data(id)["executed_at"]
     end
 
-    def job_executed_in_locale(id=@id)
+    def job_executed_in_locale(id = @id)
       job_data(id)["locale"]
     end
 end

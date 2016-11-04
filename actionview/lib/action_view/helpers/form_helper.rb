@@ -1569,7 +1569,7 @@ module ActionView
         index = if options.has_key?(:index)
           options[:index]
         elsif defined?(@auto_index)
-          self.object_name = @object_name.to_s.sub(/\[\]$/,"")
+          self.object_name = @object_name.to_s.sub(/\[\]$/, "")
           @auto_index
         end
 
@@ -1809,7 +1809,7 @@ module ActionView
       #         post:
       #           create: "Add %{model}"
       #
-      def submit(value=nil, options={})
+      def submit(value = nil, options = {})
         value, options = nil, value if value.is_a?(Hash)
         value ||= submit_default_value
         @template.submit_tag(value, options)

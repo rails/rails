@@ -25,7 +25,7 @@ module ActiveRecord
       # touch the parents as we are not calling the after_save callbacks
       self.class.reflect_on_all_associations(:belongs_to).each do |r|
         if touch = r.options[:touch]
-          ActiveRecord::Associations::Builder::BelongsTo.touch_record(self, r.foreign_key, r.name, touch, :touch_later)
+          ActiveRecord::Associations::Builder::BelongsTo.touch_record(self, changes_to_save, r.foreign_key, r.name, touch, :touch_later)
         end
       end
     end

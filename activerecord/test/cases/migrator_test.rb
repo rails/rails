@@ -11,7 +11,7 @@ class MigratorTest < ActiveRecord::TestCase
 
     def initialize(name = self.class.name, version = nil)
       super
-      @went_up  = false
+      @went_up = false
       @went_down = false
     end
 
@@ -344,10 +344,10 @@ class MigratorTest < ActiveRecord::TestCase
     _, migrator = migrator_class(3)
 
     migrator.migrate("valid")
-    assert_equal([1,2,3], ActiveRecord::Migrator.get_all_versions)
+    assert_equal([1, 2, 3], ActiveRecord::Migrator.get_all_versions)
 
     migrator.rollback("valid")
-    assert_equal([1,2], ActiveRecord::Migrator.get_all_versions)
+    assert_equal([1, 2], ActiveRecord::Migrator.get_all_versions)
 
     migrator.rollback("valid")
     assert_equal([1], ActiveRecord::Migrator.get_all_versions)
@@ -368,7 +368,7 @@ class MigratorTest < ActiveRecord::TestCase
     def sensors(count)
       calls = []
       migrations = count.times.map { |i|
-        m(nil, i + 1) { |c,migration|
+        m(nil, i + 1) { |c, migration|
           calls << [c, migration.version]
         }
       }

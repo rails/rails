@@ -55,7 +55,7 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
       "products[second]=Pc",
       "=Save"
     ].join("&")
-    expected =  {
+    expected = {
       "customers" => {
         "boston" => {
           "first" => {

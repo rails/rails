@@ -7,7 +7,7 @@ module ActiveSupport
         attr_reader :events
 
         def initialize
-          @events   = []
+          @events = []
         end
 
         def start(name, id, payload)

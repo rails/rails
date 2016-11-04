@@ -8,7 +8,7 @@ module ActionView #:nodoc:
   class FixtureResolver < PathResolver
     attr_reader :hash
 
-    def initialize(hash = {}, pattern=nil)
+    def initialize(hash = {}, pattern = nil)
       super(pattern)
       @hash = hash
     end

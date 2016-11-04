@@ -415,9 +415,9 @@ module ActiveRecord
     # possibly in a folder with the same name.
     #++
 
-    MAX_ID = 2 ** 30 - 1
+    MAX_ID = 2**30 - 1
 
-    @@all_cached_fixtures = Hash.new { |h,k| h[k] = {} }
+    @@all_cached_fixtures = Hash.new { |h, k| h[k] = {} }
 
     def self.default_fixture_model_name(fixture_set_name, config = ActiveRecord::Base) # :nodoc:
       config.pluralize_table_names ?
@@ -597,18 +597,18 @@ module ActiveRecord
 
       @fixtures = read_fixture_files(path)
 
-      @connection  = connection
+      @connection = connection
 
-      @table_name = ( model_class.respond_to?(:table_name) ?
+      @table_name = (model_class.respond_to?(:table_name) ?
                       model_class.table_name :
-                      self.class.default_fixture_table_name(name, config) )
+                      self.class.default_fixture_table_name(name, config))
     end
 
     def [](x)
       fixtures[x]
     end
 
-    def []=(k,v)
+    def []=(k, v)
       fixtures[k] = v
     end
 
@@ -629,7 +629,7 @@ module ActiveRecord
       fixtures.delete("DEFAULTS")
 
       # track any join tables we need to insert later
-      rows = Hash.new { |h,table| h[table] = [] }
+      rows = Hash.new { |h, table| h[table] = [] }
 
       rows[table_name] = fixtures.map do |label, fixture|
         row = fixture.to_hash

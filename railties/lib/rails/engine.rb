@@ -436,7 +436,7 @@ module Rails
 
     # Load console and invoke the registered hooks.
     # Check <tt>Rails::Railtie.console</tt> for more info.
-    def load_console(app=self)
+    def load_console(app = self)
       require "rails/console/app"
       require "rails/console/helpers"
       run_console_blocks(app)
@@ -445,14 +445,14 @@ module Rails
 
     # Load Rails runner and invoke the registered hooks.
     # Check <tt>Rails::Railtie.runner</tt> for more info.
-    def load_runner(app=self)
+    def load_runner(app = self)
       run_runner_blocks(app)
       self
     end
 
     # Load Rake, railties tasks and invoke the registered hooks.
     # Check <tt>Rails::Railtie.rake_tasks</tt> for more info.
-    def load_tasks(app=self)
+    def load_tasks(app = self)
       require "rake"
       run_tasks_blocks(app)
       self
@@ -460,7 +460,7 @@ module Rails
 
     # Load Rails generators and invoke the registered hooks.
     # Check <tt>Rails::Railtie.generators</tt> for more info.
-    def load_generators(app=self)
+    def load_generators(app = self)
       require "rails/generators"
       run_generators_blocks(app)
       Rails::Generators.configure!(app.config.generators)
@@ -658,7 +658,7 @@ module Rails
         paths["db/migrate"].existent.any?
       end
 
-      def self.find_root_with_flag(flag, root_path, default=nil) #:nodoc:
+      def self.find_root_with_flag(flag, root_path, default = nil) #:nodoc:
 
         while root_path && File.directory?(root_path) && !File.exist?("#{root_path}/#{flag}")
           parent = File.dirname(root_path)

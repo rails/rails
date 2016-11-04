@@ -563,7 +563,7 @@ module ActionView
             html_options = html_options.stringify_keys
             html_options["data-remote"] = "true".freeze if link_to_remote_options?(options) || link_to_remote_options?(html_options)
 
-            method  = html_options.delete("method".freeze)
+            method = html_options.delete("method".freeze)
 
             add_method_to_attributes!(html_options, method) if method
 
@@ -586,7 +586,7 @@ module ActionView
           html_options["data-method".freeze] = method
         end
 
-        def token_tag(token=nil, form_options: {})
+        def token_tag(token = nil, form_options: {})
           if token != false && protect_against_forgery?
             token ||= form_authenticity_token(form_options: form_options)
             tag(:input, type: "hidden", name: request_forgery_protection_token.to_s, value: token)
