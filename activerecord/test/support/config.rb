@@ -1,5 +1,5 @@
 require "yaml"
-require "erubis"
+require "erb"
 require "fileutils"
 require "pathname"
 
@@ -20,7 +20,7 @@ module ARTest
         FileUtils.cp TEST_ROOT + "/config.example.yml", config_file
       end
 
-      erb = Erubis::Eruby.new(config_file.read)
+      erb = ERB.new(config_file.read)
       expand_config(YAML.parse(erb.result(binding)).transform)
     end
 
