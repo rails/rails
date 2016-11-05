@@ -292,11 +292,11 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_iso8601_output_precision
     expectations = [
-        [nil, "P1Y1MT5.55S",  1.year + 1.month + (5.55).seconds ],
-        [0,   "P1Y1MT6S",     1.year + 1.month + (5.55).seconds ],
-        [1,   "P1Y1MT5.5S",   1.year + 1.month + (5.55).seconds ],
-        [2,   "P1Y1MT5.55S",  1.year + 1.month + (5.55).seconds ],
-        [3,   "P1Y1MT5.550S", 1.year + 1.month + (5.55).seconds ],
+        [nil, "P1Y1MT8.55S",  1.year + 1.month + (8.55).seconds ],
+        [0,   "P1Y1MT9S",     1.year + 1.month + (8.55).seconds ],
+        [1,   "P1Y1MT8.6S",   1.year + 1.month + (8.55).seconds ],
+        [2,   "P1Y1MT8.55S",  1.year + 1.month + (8.55).seconds ],
+        [3,   "P1Y1MT8.550S", 1.year + 1.month + (8.55).seconds ],
         [nil, "PT1S",         1.second                          ],
         [2,   "PT1.00S",      1.second                          ],
         [nil, "PT1.4S",       (1.4).seconds                     ],
