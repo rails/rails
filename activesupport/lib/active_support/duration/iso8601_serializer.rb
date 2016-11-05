@@ -26,7 +26,7 @@ module ActiveSupport
         if parts.key?(:seconds)
           time << "#{sprintf(@precision ? "%0.0#{@precision}f" : '%g', parts[:seconds])}S"
         end
-        output << "T#{time}"  if time.present?
+        output << "T#{time}" unless time.empty?
         "#{sign}#{output}"
       end
 
