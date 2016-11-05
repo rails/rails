@@ -1,6 +1,3 @@
-require "erb"
-require "yaml"
-
 require "rails/command/environment_argument"
 
 module Rails
