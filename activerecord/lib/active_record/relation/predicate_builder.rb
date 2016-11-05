@@ -1,6 +1,5 @@
 module ActiveRecord
   class PredicateBuilder # :nodoc:
-    require "active_record/relation/predicate_builder/array_handler"
     require "active_record/relation/predicate_builder/association_query_handler"
     require "active_record/relation/predicate_builder/basic_object_handler"
     require "active_record/relation/predicate_builder/polymorphic_array_handler"
@@ -17,7 +16,6 @@ module ActiveRecord
       register_handler(Range, RangeHandler.new)
       register_handler(RangeHandler::RangeWithBinds, RangeHandler.new)
       register_handler(Relation, RelationHandler.new)
-      register_handler(Array, ArrayHandler.new(self))
     end
 
     def build_for_hash(attributes)
@@ -82,13 +80,11 @@ module ActiveRecord
             parts.concat(prts)
             binds.concat(bvs)
             next
-          end
-
-          if value.is_a?(Array) && !table.type(column_name).respond_to?(:subtype)
-            value = value.first if value.size == 1
-          end
-
-          case
+          when value.is_a?(Array) && !table.type(column_name).respond_to?(:subtype)
+            prts, bvs = build_for_array(column_name, value)
+            parts.concat(prts)
+            binds.concat(bvs)
+            next
           when value.is_a?(Relation)
             binds.concat(value.bound_attributes)
           when value.is_a?(Range) && !table.type(column_name).respond_to?(:subtype)
@@ -127,6 +123,48 @@ module ActiveRecord
           parts = [parts.map { |type, id| Arel::Nodes::Grouping.new(type.and(id)) }.inject(&:or)]
         else
           parts.flatten!
+        end
+
+        [parts, binds]
+      end
+
+      def build_for_array(column_name, value)
+        return [["1=0"], []] if value.empty?
+        return build_from_hash(column_name => value.first) if value.size == 1
+
+        parts, binds = [], []
+        values, nils = [], false
+
+        value.each do |v|
+          case v
+          when Range, Relation
+            prts, bvs = build_from_hash(column_name => v)
+            parts.concat(prts)
+            binds.concat(bvs)
+          else
+            v = v.id if v.is_a?(Base)
+            if v.nil?
+              nils = true
+            else
+              values << v
+            end
+          end
+        end
+
+        if values.size == 1
+          prts, bvs = build_from_hash(column_name => values.first)
+          parts.concat(prts)
+          binds.concat(bvs)
+        elsif values.size > 1
+          parts << table.arel_attribute(column_name).in(values)
+        end
+
+        if nils
+          parts << table.arel_attribute(column_name).eq(nil)
+        end
+
+        if parts.size > 1
+          parts = [parts.inject(&:or)]
         end
 
         [parts, binds]
