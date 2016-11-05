@@ -1,5 +1,14 @@
-*   Fix an Active Record DateTime field NoMethodError caused by incomplete 
-    datetime. [Bug #24195](https://github.com/rails/rails/issues/24195)
+*   Avoid `unscope(:order)` when `limit_value` is presented for `count`.
+
+    If `limit_value` is presented, records fetching order is very important
+    for performance. Should not unscope the order in the case.
+
+    *Ryuta Kamizono*
+
+*   Fix an Active Record DateTime field NoMethodError caused by incomplete
+    datetime.
+
+    Fixes #24195.
 
     *Sen Zhang*
 
