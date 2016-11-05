@@ -474,6 +474,71 @@ module ActionView
       end
       private :apply_form_for_options!
 
+      # Passing model: @post will 1) set scope: :post, 2) set url: url_for(@post)
+      #
+      #   form_with(model: @post) do |form|
+      #     form.text_field :title # Will reference @post.title as normal
+      #     form.text_area :description, "Overwrite @post.description if present, if not, it will still work"
+      #
+      #     form.submit
+      #   end
+      #
+      #   form_with(scope: :post, url: posts_path) do |form|
+      #     form.text_field :title # post[title]
+      #     form.text_area :description, "Overwrite @post.description or ignore if it's not present"
+      #
+      #     form.submit
+      #   end
+      #   # =>
+      #   <form action="/posts" accept-charset="utf-8" method="post">
+      #     <input name="utf8" type="hidden" value="✓">
+      #     <input type="hidden" name="authenticity_token" value="...">
+      #
+      #     <input type="text" name="post[title]">
+      #     <textarea name="post[description]"></textarea>
+      #
+      #     <input type="submit" name="commit" value="Create Post" data-disable-with="Create Post">
+      #   </form>
+      #
+      #   form_with(url: different_path, class: 'something', id: 'specific') do |form|
+      #     form.text_field :title, 'This is the value of the title'
+      #
+      #     form.text_area :description, class: 'No value has been supplied here'
+      #
+      #     form.fields(:permission) do |fields|
+      #       # on/off instead of positional parameters for setting values
+      #       fields.check_box :admin, on: 'yes', off: 'no'
+      #     end
+      #
+      #     form.select :category, Post::CATEGORIES, blank: 'None'
+      #     form.select :author_id, Person.all.collect { |p| [ p.name, p.id ] }, blank: 'Pick someone'
+      #
+      #     form.submit
+      #   end
+      def form_with(model: nil, scope: nil, url: nil, format: nil, html: {}, **options)
+        if model
+          url ||= polymorphic_path(model, format: format)
+
+          model   = model.last if model.is_a?(Array)
+          scope ||= model_name_from_record_or_class(model).param_key
+        end
+
+        html_options = html.merge(options.except(:index, :include_id, :builder))
+        html_options[:method] ||= :patch if model.respond_to?(:persisted?) && model.persisted?
+
+        if block_given?
+          builder = instantiate_builder(scope, model, options)
+          output  = capture(builder, &Proc.new)
+          html_options[:multipart] ||= builder.multipart?
+
+          html_options = html_options_for_form(url || {}, html_options)
+          form_tag_with_body(html_options, output)
+        else
+          html_options = html_options_for_form(url || {}, html_options)
+          form_tag_html(html_options)
+        end
+      end
+
       # Creates a scope around a specific model object like form_for, but
       # doesn't create the form tags themselves. This makes fields_for suitable
       # for specifying additional model objects in the same form.
@@ -1183,7 +1248,7 @@ module ActionView
             object_name = record_name
           else
             object = record_name
-            object_name = model_name_from_record_or_class(object).param_key
+            object_name = model_name_from_record_or_class(object).param_key if object
           end
 
           builder = options[:builder] || default_form_builder_class
