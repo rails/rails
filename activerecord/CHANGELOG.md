@@ -1,3 +1,10 @@
+*   Avoid `unscope(:order)` when `limit_value` is presented for `count`.
+
+    If `limit_value` is presented, records fetching order is very important
+    for performance. We should not unscope the order in the case.
+
+    *Ryuta Kamizono*
+
 *   Check whether `Rails.application` defined before calling it
 
     In #27674 we changed the migration generator to generate migrations at the
