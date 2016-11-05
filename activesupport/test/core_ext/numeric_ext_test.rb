@@ -98,31 +98,67 @@ end
 
 class NumericExtSizeTest < ActiveSupport::TestCase
   def test_unit_in_terms_of_another
-    assert_equal 1024.bytes, 1.kilobyte
-    assert_equal 1024.kilobytes, 1.megabyte
-    assert_equal 3584.0.kilobytes, 3.5.megabytes
-    assert_equal 3584.0.megabytes, 3.5.gigabytes
+    assert_equal 1_000.bytes, 1.kilobyte
+    assert_equal 1_000.kilobytes, 1.megabyte
+    assert_equal 3_500.0.kilobytes, 3.5.megabytes
+    assert_equal 3_500.0.megabytes, 3.5.gigabytes
     assert_equal 1.kilobyte**4, 1.terabyte
-    assert_equal 1024.kilobytes + 2.megabytes, 3.megabytes
-    assert_equal 2.gigabytes / 4, 512.megabytes
-    assert_equal 256.megabytes * 20 + 5.gigabytes, 10.gigabytes
+    assert_equal 1_000.kilobytes + 2.megabytes, 3.megabytes
+    assert_equal 2.gigabytes / 4, 500.megabytes
+    assert_equal 250.megabytes * 20 + 5.gigabytes, 10.gigabytes
     assert_equal 1.kilobyte**5, 1.petabyte
     assert_equal 1.kilobyte**6, 1.exabyte
+    assert_equal 1.kilobyte**7, 1.zettabyte
+    assert_equal 1.kilobyte**8, 1.yottabyte
+
+    assert_equal 1_024.bytes, 1.kibibyte
+    assert_equal 1_024.kibibytes, 1.mebibyte
+    assert_equal 3_584.0.kibibytes, 3.5.mebibytes
+    assert_equal 3_584.0.mebibytes, 3.5.gibibytes
+    assert_equal 1.kibibytes**4, 1.tebibyte
+    assert_equal 1_024.kibibytes + 2.mebibytes, 3.mebibytes
+    assert_equal 2.gibibytes / 4, 512.mebibytes
+    assert_equal 256.mebibytes * 20 + 5.gibibytes, 10.gibibytes
+    assert_equal 1.kibibytes**5, 1.pebibyte
+    assert_equal 1.kibibytes**6, 1.exbibyte
+    assert_equal 1.kibibytes**7, 1.zebibyte
+    assert_equal 1.kibibytes**8, 1.yobibyte
   end
 
   def test_units_as_bytes_independently
-    assert_equal 3145728, 3.megabytes
-    assert_equal 3145728, 3.megabyte
-    assert_equal 3072, 3.kilobytes
-    assert_equal 3072, 3.kilobyte
-    assert_equal 3221225472, 3.gigabytes
-    assert_equal 3221225472, 3.gigabyte
-    assert_equal 3298534883328, 3.terabytes
-    assert_equal 3298534883328, 3.terabyte
-    assert_equal 3377699720527872, 3.petabytes
-    assert_equal 3377699720527872, 3.petabyte
-    assert_equal 3458764513820540928, 3.exabytes
-    assert_equal 3458764513820540928, 3.exabyte
+    assert_equal 3_072, 3.kibibytes
+    assert_equal 3_072, 3.kibibyte
+    assert_equal 3_145_728, 3.mebibytes
+    assert_equal 3_145_728, 3.mebibyte
+    assert_equal 3_221_225_472, 3.gibibytes
+    assert_equal 3_221_225_472, 3.gibibyte
+    assert_equal 3_298_534_883_328, 3.tebibytes
+    assert_equal 3_298_534_883_328, 3.tebibyte
+    assert_equal 3_377_699_720_527_872, 3.pebibytes
+    assert_equal 3_377_699_720_527_872, 3.pebibyte
+    assert_equal 3_458_764_513_820_540_928, 3.exbibytes
+    assert_equal 3_458_764_513_820_540_928, 3.exbibyte
+    assert_equal 3_541_774_862_152_233_910_272, 3.zebibytes
+    assert_equal 3_541_774_862_152_233_910_272, 3.zebibyte
+    assert_equal 3_626_777_458_843_887_524_118_528, 3.yobibytes
+    assert_equal 3_626_777_458_843_887_524_118_528, 3.yobibyte
+
+    assert_equal 3_000, 3.kilobytes
+    assert_equal 3_000, 3.kilobyte
+    assert_equal 3_000_000, 3.megabytes
+    assert_equal 3_000_000, 3.megabyte
+    assert_equal 3_000_000_000, 3.gigabytes
+    assert_equal 3_000_000_000, 3.gigabyte
+    assert_equal 3_000_000_000_000, 3.terabytes
+    assert_equal 3_000_000_000_000, 3.terabyte
+    assert_equal 3_000_000_000_000_000, 3.petabytes
+    assert_equal 3_000_000_000_000_000, 3.petabyte
+    assert_equal 3_000_000_000_000_000_000, 3.exabytes
+    assert_equal 3_000_000_000_000_000_000, 3.exabyte
+    assert_equal 3_000_000_000_000_000_000_000, 3.zettabytes
+    assert_equal 3_000_000_000_000_000_000_000, 3.zettabyte
+    assert_equal 3_000_000_000_000_000_000_000_000, 3.yottabytes
+    assert_equal 3_000_000_000_000_000_000_000_000, 3.yottabyte
   end
 end
 
