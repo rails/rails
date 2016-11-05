@@ -1082,7 +1082,7 @@ definitions for several similar resources:
 * `shared/_search_filters.html.erb`
 
     ```html+erb
-    <%= form_for(@q) do |f| %>
+    <%= form_for(search) do |f| %>
       <h1>Search form:</h1>
       <fieldset>
         <%= yield f %>
