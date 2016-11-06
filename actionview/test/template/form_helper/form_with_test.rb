@@ -570,21 +570,21 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  # def test_fields_for_with_file_field_generate_multipart
-  #   Comment.send :attr_accessor, :file
-  #
-  #   form_for(@post) do |f|
-  #     concat f.fields_for(:comment, @post) { |c|
-  #       concat c.file_field(:file)
-  #     }
-  #   end
-  #
-  #   expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch", multipart: true) do
-  #     "<input name='post[comment][file]' type='file' id='post_comment_file' />"
-  #   end
-  #
-  #   assert_dom_equal expected, output_buffer
-  # end
+  def test_fields_with_file_field_generate_multipart
+    Comment.send :attr_accessor, :file
+
+    form_with(model: @post) do |f|
+      concat f.fields(:comment, model: @post) { |c|
+        concat c.file_field(:file)
+      }
+    end
+
+    expected = whole_form("/posts/123", method: "patch", multipart: true) do
+      "<input name='post[comment][file]' type='file' id='post_comment_file' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
 
   def test_form_with_with_format
     form_with(model: @post, format: :json, id: "edit_post_123", class: "edit_post") do |f|
@@ -1030,10 +1030,10 @@ class FormWithActsLikeFormForTest < FormWithTest
     end
   end
 
-  def test_nested_fields_for
+  def test_nested_fields
     @comment.body = "Hello World"
     form_with(model: @post) do |f|
-      concat f.fields_for(@comment) { |c|
+      concat f.fields(model: @comment) { |c|
         concat c.text_field(:body)
       }
     end
@@ -1045,13 +1045,13 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_deep_nested_fields_for
+  def test_deep_nested_fields
     @comment.save
     form_with(scope: :posts) do |f|
-      f.fields_for("post[]", @post) do |f2|
+      f.fields("post[]", model: @post) do |f2|
         f2.text_field(:id)
         @post.comments.each do |comment|
-          concat f2.fields_for("comment[]", comment) { |c|
+          concat f2.fields("comment[]", model: comment) { |c|
             concat c.text_field(:name)
           }
         end
@@ -1065,10 +1065,10 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_nested_fields_for_with_nested_collections
+  def test_nested_fields_with_nested_collections
     form_with(model: @post, scope: "post[]") do |f|
       concat f.text_field(:title)
-      concat f.fields_for("comment[]", @comment) { |c|
+      concat f.fields("comment[]", model: @comment) { |c|
         concat c.text_field(:name)
       }
     end
@@ -1081,10 +1081,10 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_nested_fields_for_with_index_and_parent_fields
+  def test_nested_fields_with_index_and_parent_fields
     form_with(model: @post, index: 1) do |c|
       concat c.text_field(:title)
-      concat c.fields_for("comment", @comment, index: 1) { |r|
+      concat c.fields("comment", model: @comment, index: 1) { |r|
         concat r.text_field(:name)
       }
     end
@@ -1097,9 +1097,9 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_form_with_with_index_and_nested_fields_for
+  def test_form_with_with_index_and_nested_fields
     output_buffer = form_with(model: @post, index: 1) do |f|
-      concat f.fields_for(:comment, @post) { |c|
+      concat f.fields(:comment, model: @post) { |c|
         concat c.text_field(:title)
       }
     end
@@ -1111,9 +1111,9 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_nested_fields_for_with_index_on_both
+  def test_nested_fields_with_index_on_both
     form_with(model: @post, index: 1) do |f|
-      concat f.fields_for(:comment, @post, index: 5) { |c|
+      concat f.fields(:comment, model: @post, index: 5) { |c|
         concat c.text_field(:title)
       }
     end
@@ -1125,9 +1125,9 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_nested_fields_for_with_auto_index
+  def test_nested_fields_with_auto_index
     form_with(model: @post, scope: "post[]") do |f|
-      concat f.fields_for(:comment, @post) { |c|
+      concat f.fields(:comment, model: @post) { |c|
         concat c.text_field(:title)
       }
     end
@@ -1139,9 +1139,9 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_nested_fields_for_with_index_radio_button
+  def test_nested_fields_with_index_radio_button
     form_with(model: @post) do |f|
-      concat f.fields_for(:comment, @post, index: 5) { |c|
+      concat f.fields(:comment, model: @post, index: 5) { |c|
         concat c.radio_button(:title, "hello")
       }
     end
@@ -1153,9 +1153,9 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_nested_fields_for_with_auto_index_on_both
+  def test_nested_fields_with_auto_index_on_both
     form_with(model: @post, scope: "post[]") do |f|
-      concat f.fields_for("comment[]", @post) { |c|
+      concat f.fields("comment[]", model: @post) { |c|
         concat c.text_field(:title)
       }
     end
@@ -1167,15 +1167,15 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_nested_fields_for_with_index_and_auto_index
+  def test_nested_fields_with_index_and_auto_index
     output_buffer = form_with(model: @post, scope: "post[]") do |f|
-      concat f.fields_for(:comment, @post, index: 5) { |c|
+      concat f.fields(:comment, model: @post, index: 5) { |c|
         concat c.text_field(:title)
       }
     end
 
     output_buffer << form_with(model: @post, index: 1) do |f|
-      concat f.fields_for("comment[]", @post) { |c|
+      concat f.fields("comment[]", model: @post) { |c|
         concat c.text_field(:title)
       }
     end
@@ -1189,12 +1189,12 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_nested_fields_for_with_a_new_record_on_a_nested_attributes_one_to_one_association
+  def test_nested_fields_with_a_new_record_on_a_nested_attributes_one_to_one_association
     @post.author = Author.new
 
     form_with(model: @post) do |f|
       concat f.text_field(:title)
-      concat f.fields_for(:author) { |af|
+      concat f.fields(:author) { |af|
         concat af.text_field(:name)
       }
     end
@@ -1207,21 +1207,21 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_nested_fields_for_with_explicitly_passed_object_on_a_nested_attributes_one_to_one_association
+  def test_nested_fields_with_explicitly_passed_object_on_a_nested_attributes_one_to_one_association
     form_with(model: @post) do |f|
-      f.fields_for(:author, Author.new(123)) do |af|
+      f.fields(:author, model: Author.new(123)) do |af|
         assert_not_nil af.object
         assert_equal 123, af.object.id
       end
     end
   end
 
-  def test_nested_fields_for_with_an_existing_record_on_a_nested_attributes_one_to_one_association
+  def test_nested_fields_with_an_existing_record_on_a_nested_attributes_one_to_one_association
     @post.author = Author.new(321)
 
     form_with(model: @post) do |f|
       concat f.text_field(:title)
-      concat f.fields_for(:author) { |af|
+      concat f.fields(:author) { |af|
         concat af.text_field(:name)
       }
     end
@@ -1235,12 +1235,12 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_nested_fields_for_with_an_existing_record_on_a_nested_attributes_one_to_one_association_using_erb_and_inline_block
+  def test_nested_fields_with_an_existing_record_on_a_nested_attributes_one_to_one_association_using_erb_and_inline_block
     @post.author = Author.new(321)
 
     form_with(model: @post) do |f|
       concat f.text_field(:title)
-      concat f.fields_for(:author) { |af|
+      concat f.fields(:author) { |af|
         af.text_field(:name)
       }
     end
@@ -1254,12 +1254,12 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_nested_fields_for_with_an_existing_record_on_a_nested_attributes_one_to_one_association_with_disabled_hidden_id
+  def test_nested_fields_with_an_existing_record_on_a_nested_attributes_one_to_one_association_with_disabled_hidden_id
     @post.author = Author.new(321)
 
     form_with(model: @post) do |f|
       concat f.text_field(:title)
-      concat f.fields_for(:author, include_id: false) { |af|
+      concat f.fields(:author, include_id: false) { |af|
         af.text_field(:name)
       }
     end
@@ -1272,12 +1272,12 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_nested_fields_for_with_an_existing_record_on_a_nested_attributes_one_to_one_association_with_disabled_hidden_id_inherited
+  def test_nested_fields_with_an_existing_record_on_a_nested_attributes_one_to_one_association_with_disabled_hidden_id_inherited
     @post.author = Author.new(321)
 
     form_with(model: @post, include_id: false) do |f|
       concat f.text_field(:title)
-      concat f.fields_for(:author) { |af|
+      concat f.fields(:author) { |af|
         af.text_field(:name)
       }
     end
@@ -1290,12 +1290,12 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_nested_fields_for_with_an_existing_record_on_a_nested_attributes_one_to_one_association_with_disabled_hidden_id_override
+  def test_nested_fields_with_an_existing_record_on_a_nested_attributes_one_to_one_association_with_disabled_hidden_id_override
     @post.author = Author.new(321)
 
     form_with(model: @post, include_id: false) do |f|
       concat f.text_field(:title)
-      concat f.fields_for(:author, include_id: true) { |af|
+      concat f.fields(:author, include_id: true) { |af|
         af.text_field(:name)
       }
     end
@@ -1309,12 +1309,12 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_nested_fields_for_with_existing_records_on_a_nested_attributes_one_to_one_association_with_explicit_hidden_field_placement
+  def test_nested_fields_with_existing_records_on_a_nested_attributes_one_to_one_association_with_explicit_hidden_field_placement
     @post.author = Author.new(321)
 
     form_with(model: @post) do |f|
       concat f.text_field(:title)
-      concat f.fields_for(:author) { |af|
+      concat f.fields(:author) { |af|
         concat af.hidden_field(:id)
         concat af.text_field(:name)
       }
@@ -1329,13 +1329,13 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_nested_fields_for_with_existing_records_on_a_nested_attributes_collection_association
+  def test_nested_fields_with_existing_records_on_a_nested_attributes_collection_association
     @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
 
     form_with(model: @post) do |f|
       concat f.text_field(:title)
       @post.comments.each do |comment|
-        concat f.fields_for(:comments, comment) { |cf|
+        concat f.fields(:comments, model: comment) { |cf|
           concat cf.text_field(:name)
         }
       end
@@ -1352,17 +1352,17 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_nested_fields_for_with_existing_records_on_a_nested_attributes_collection_association_with_disabled_hidden_id
+  def test_nested_fields_with_existing_records_on_a_nested_attributes_collection_association_with_disabled_hidden_id
     @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
     @post.author = Author.new(321)
 
     form_with(model: @post) do |f|
       concat f.text_field(:title)
-      concat f.fields_for(:author) { |af|
+      concat f.fields(:author) { |af|
         concat af.text_field(:name)
       }
       @post.comments.each do |comment|
-        concat f.fields_for(:comments, comment, include_id: false) { |cf|
+        concat f.fields(:comments, model: comment, include_id: false) { |cf|
           concat cf.text_field(:name)
         }
       end
@@ -1379,17 +1379,17 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_nested_fields_for_with_existing_records_on_a_nested_attributes_collection_association_with_disabled_hidden_id_inherited
+  def test_nested_fields_with_existing_records_on_a_nested_attributes_collection_association_with_disabled_hidden_id_inherited
     @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
     @post.author = Author.new(321)
 
     form_with(model: @post, include_id: false) do |f|
       concat f.text_field(:title)
-      concat f.fields_for(:author) { |af|
+      concat f.fields(:author) { |af|
         concat af.text_field(:name)
       }
       @post.comments.each do |comment|
-        concat f.fields_for(:comments, comment) { |cf|
+        concat f.fields(:comments, model: comment) { |cf|
           concat cf.text_field(:name)
         }
       end
@@ -1405,17 +1405,17 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_nested_fields_for_with_existing_records_on_a_nested_attributes_collection_association_with_disabled_hidden_id_override
+  def test_nested_fields_with_existing_records_on_a_nested_attributes_collection_association_with_disabled_hidden_id_override
     @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
     @post.author = Author.new(321)
 
     form_with(model: @post, include_id: false) do |f|
       concat f.text_field(:title)
-      concat f.fields_for(:author, include_id: true) { |af|
+      concat f.fields(:author, include_id: true) { |af|
         concat af.text_field(:name)
       }
       @post.comments.each do |comment|
-        concat f.fields_for(:comments, comment) { |cf|
+        concat f.fields(:comments, model: comment) { |cf|
           concat cf.text_field(:name)
         }
       end
@@ -1432,13 +1432,13 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_nested_fields_for_with_existing_records_on_a_nested_attributes_collection_association_using_erb_and_inline_block
+  def test_nested_fields_with_existing_records_on_a_nested_attributes_collection_association_using_erb_and_inline_block
     @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
 
     form_with(model: @post) do |f|
       concat f.text_field(:title)
       @post.comments.each do |comment|
-        concat f.fields_for(:comments, comment) { |cf|
+        concat f.fields(:comments, model: comment) { |cf|
           cf.text_field(:name)
         }
       end
@@ -1455,13 +1455,13 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_nested_fields_for_with_existing_records_on_a_nested_attributes_collection_association_with_explicit_hidden_field_placement
+  def test_nested_fields_with_existing_records_on_a_nested_attributes_collection_association_with_explicit_hidden_field_placement
     @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
 
     form_with(model: @post) do |f|
       concat f.text_field(:title)
       @post.comments.each do |comment|
-        concat f.fields_for(:comments, comment) { |cf|
+        concat f.fields(:comments, model: comment) { |cf|
           concat cf.hidden_field(:id)
           concat cf.text_field(:name)
         }
@@ -1479,13 +1479,13 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_nested_fields_for_with_new_records_on_a_nested_attributes_collection_association
+  def test_nested_fields_with_new_records_on_a_nested_attributes_collection_association
     @post.comments = [Comment.new, Comment.new]
 
     form_with(model: @post) do |f|
       concat f.text_field(:title)
       @post.comments.each do |comment|
-        concat f.fields_for(:comments, comment) { |cf|
+        concat f.fields(:comments, model: comment) { |cf|
           concat cf.text_field(:name)
         }
       end
@@ -1500,13 +1500,13 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_nested_fields_for_with_existing_and_new_records_on_a_nested_attributes_collection_association
+  def test_nested_fields_with_existing_and_new_records_on_a_nested_attributes_collection_association
     @post.comments = [Comment.new(321), Comment.new]
 
     form_with(model: @post) do |f|
       concat f.text_field(:title)
       @post.comments.each do |comment|
-        concat f.fields_for(:comments, comment) { |cf|
+        concat f.fields(:comments, model: comment) { |cf|
           concat cf.text_field(:name)
         }
       end
@@ -1522,10 +1522,10 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_nested_fields_for_with_an_empty_supplied_attributes_collection
+  def test_nested_fields_with_an_empty_supplied_attributes_collection
     form_with(model: @post) do |f|
       concat f.text_field(:title)
-      f.fields_for(:comments, []) do |cf|
+      f.fields(:comments, model: []) do |cf|
         concat cf.text_field(:name)
       end
     end
@@ -1537,12 +1537,12 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_nested_fields_for_with_existing_records_on_a_supplied_nested_attributes_collection
+  def test_nested_fields_with_existing_records_on_a_supplied_nested_attributes_collection
     @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
 
     form_with(model: @post) do |f|
       concat f.text_field(:title)
-      concat f.fields_for(:comments, @post.comments) { |cf|
+      concat f.fields(:comments, model: @post.comments) { |cf|
         concat cf.text_field(:name)
       }
     end
@@ -1558,12 +1558,12 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_nested_fields_for_arel_like
+  def test_nested_fields_arel_like
     @post.comments = ArelLike.new
 
     form_with(model: @post) do |f|
       concat f.text_field(:title)
-      concat f.fields_for(:comments, @post.comments) { |cf|
+      concat f.fields(:comments, model: @post.comments) { |cf|
         concat cf.text_field(:name)
       }
     end
@@ -1585,20 +1585,20 @@ class FormWithActsLikeFormForTest < FormWithTest
     params = 11.times.map { ["post.comments.body", default: [:"comment.body", ""], scope: "helpers.label"] }
     assert_called_with(I18n, :t, params, returns: "Write body here") do
       form_with(model: @post) do |f|
-        f.fields_for(:comments) do |cf|
+        f.fields(:comments) do |cf|
           concat cf.label(:body)
         end
       end
     end
   end
 
-  def test_nested_fields_for_with_existing_records_on_a_supplied_nested_attributes_collection_different_from_record_one
+  def test_nested_fields_with_existing_records_on_a_supplied_nested_attributes_collection_different_from_record_one
     comments = Array.new(2) { |id| Comment.new(id + 1) }
     @post.comments = []
 
     form_with(model: @post) do |f|
       concat f.text_field(:title)
-      concat f.fields_for(:comments, comments) { |cf|
+      concat f.fields(:comments, model: comments) { |cf|
         concat cf.text_field(:name)
       }
     end
@@ -1614,13 +1614,13 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_nested_fields_for_on_a_nested_attributes_collection_association_yields_only_builder
+  def test_nested_fields_on_a_nested_attributes_collection_association_yields_only_builder
     @post.comments = [Comment.new(321), Comment.new]
     yielded_comments = []
 
     form_with(model: @post) do |f|
       concat f.text_field(:title)
-      concat f.fields_for(:comments) { |cf|
+      concat f.fields(:comments) { |cf|
         concat cf.text_field(:name)
         yielded_comments << cf.object
       }
@@ -1637,11 +1637,11 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_equal yielded_comments, @post.comments
   end
 
-  def test_nested_fields_for_with_child_index_option_override_on_a_nested_attributes_collection_association
+  def test_nested_fields_with_child_index_option_override_on_a_nested_attributes_collection_association
     @post.comments = []
 
     form_with(model: @post) do |f|
-      concat f.fields_for(:comments, Comment.new(321), child_index: "abc") { |cf|
+      concat f.fields(:comments, model: Comment.new(321), child_index: "abc") { |cf|
         concat cf.text_field(:name)
       }
     end
@@ -1654,11 +1654,11 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_nested_fields_for_with_child_index_as_lambda_option_override_on_a_nested_attributes_collection_association
+  def test_nested_fields_with_child_index_as_lambda_option_override_on_a_nested_attributes_collection_association
     @post.comments = []
 
     form_with(model: @post) do |f|
-      concat f.fields_for(:comments, Comment.new(321), child_index: -> { "abc" }) { |cf|
+      concat f.fields(:comments, model: Comment.new(321), child_index: -> { "abc" }) { |cf|
         concat cf.text_field(:name)
       }
     end
@@ -1677,11 +1677,11 @@ class FormWithActsLikeFormForTest < FormWithTest
     end
   end
 
-  def test_nested_fields_for_with_child_index_option_override_on_a_nested_attributes_collection_association_with_proxy
+  def test_nested_fields_with_child_index_option_override_on_a_nested_attributes_collection_association_with_proxy
     @post.comments = FakeAssociationProxy.new
 
     form_with(model: @post) do |f|
-      concat f.fields_for(:comments, Comment.new(321), child_index: "abc") { |cf|
+      concat f.fields(:comments, model: Comment.new(321), child_index: "abc") { |cf|
         concat cf.text_field(:name)
       }
     end
@@ -1694,13 +1694,13 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_nested_fields_for_index_method_with_existing_records_on_a_nested_attributes_collection_association
+  def test_nested_fields_index_method_with_existing_records_on_a_nested_attributes_collection_association
     @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
 
     form_with(model: @post) do |f|
       expected = 0
       @post.comments.each do |comment|
-        f.fields_for(:comments, comment) { |cf|
+        f.fields(:comments, model: comment) { |cf|
           assert_equal cf.index, expected
           expected += 1
         }
@@ -1708,13 +1708,13 @@ class FormWithActsLikeFormForTest < FormWithTest
     end
   end
 
-  def test_nested_fields_for_index_method_with_existing_and_new_records_on_a_nested_attributes_collection_association
+  def test_nested_fields_index_method_with_existing_and_new_records_on_a_nested_attributes_collection_association
     @post.comments = [Comment.new(321), Comment.new]
 
     form_with(model: @post) do |f|
       expected = 0
       @post.comments.each do |comment|
-        f.fields_for(:comments, comment) { |cf|
+        f.fields(:comments, model: comment) { |cf|
           assert_equal cf.index, expected
           expected += 1
         }
@@ -1722,23 +1722,23 @@ class FormWithActsLikeFormForTest < FormWithTest
     end
   end
 
-  def test_nested_fields_for_index_method_with_existing_records_on_a_supplied_nested_attributes_collection
+  def test_nested_fields_index_method_with_existing_records_on_a_supplied_nested_attributes_collection
     @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
 
     form_with(model: @post) do |f|
       expected = 0
-      f.fields_for(:comments, @post.comments) { |cf|
+      f.fields(:comments, model: @post.comments) { |cf|
         assert_equal cf.index, expected
         expected += 1
       }
     end
   end
 
-  def test_nested_fields_for_index_method_with_child_index_option_override_on_a_nested_attributes_collection_association
+  def test_nested_fields_index_method_with_child_index_option_override_on_a_nested_attributes_collection_association
     @post.comments = []
 
     form_with(model: @post) do |f|
-      f.fields_for(:comments, Comment.new(321), child_index: "abc") { |cf|
+      f.fields(:comments, model: Comment.new(321), child_index: "abc") { |cf|
         assert_equal cf.index, "abc"
       }
     end
@@ -1752,21 +1752,21 @@ class FormWithActsLikeFormForTest < FormWithTest
     @post.tags[1].relevances = []
 
     form_with(model: @post) do |f|
-      concat f.fields_for(:comments, @post.comments[0]) { |cf|
+      concat f.fields(:comments, model: @post.comments[0]) { |cf|
         concat cf.text_field(:name)
-        concat cf.fields_for(:relevances, CommentRelevance.new(314)) { |crf|
+        concat cf.fields(:relevances, model: CommentRelevance.new(314)) { |crf|
           concat crf.text_field(:value)
         }
       }
-      concat f.fields_for(:tags, @post.tags[0]) { |tf|
+      concat f.fields(:tags, model: @post.tags[0]) { |tf|
         concat tf.text_field(:value)
-        concat tf.fields_for(:relevances, TagRelevance.new(3141)) { |trf|
+        concat tf.fields(:relevances, model: TagRelevance.new(3141)) { |trf|
           concat trf.text_field(:value)
         }
       }
-      concat f.fields_for("tags", @post.tags[1]) { |tf|
+      concat f.fields("tags", model: @post.tags[1]) { |tf|
         concat tf.text_field(:value)
-        concat tf.fields_for(:relevances, TagRelevance.new(31415)) { |trf|
+        concat tf.fields(:relevances, model: TagRelevance.new(31415)) { |trf|
           concat trf.text_field(:value)
         }
       }
@@ -1790,11 +1790,11 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_nested_fields_for_with_hash_like_model
+  def test_nested_fields_with_hash_like_model
     @author = HashBackedAuthor.new
 
     form_with(model: @post) do |f|
-      concat f.fields_for(:author, @author) { |af|
+      concat f.fields(:author, model: @author) { |af|
         concat af.text_field(:name)
       }
     end
@@ -1806,8 +1806,8 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_fields_for
-    output_buffer = fields_for(:post, @post) do |f|
+  def test_fields
+    output_buffer = fields(:post, model: @post) do |f|
       concat f.text_field(:title)
       concat f.text_area(:body)
       concat f.check_box(:secret)
@@ -1822,8 +1822,8 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_fields_for_with_index
-    output_buffer = fields_for("post[]", @post) do |f|
+  def test_fields_with_index
+    output_buffer = fields("post[]", model: @post) do |f|
       concat f.text_field(:title)
       concat f.text_area(:body)
       concat f.check_box(:secret)
@@ -1838,8 +1838,8 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_fields_for_with_nil_index_option_override
-    output_buffer = fields_for("post[]", @post, index: nil) do |f|
+  def test_fields_with_nil_index_option_override
+    output_buffer = fields("post[]", model: @post, index: nil) do |f|
       concat f.text_field(:title)
       concat f.text_area(:body)
       concat f.check_box(:secret)
@@ -1854,8 +1854,8 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_fields_for_with_index_option_override
-    output_buffer = fields_for("post[]", @post, index: "abc") do |f|
+  def test_fields_with_index_option_override
+    output_buffer = fields("post[]", model: @post, index: "abc") do |f|
       concat f.text_field(:title)
       concat f.text_area(:body)
       concat f.check_box(:secret)
@@ -1870,8 +1870,8 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_fields_for_without_object
-    output_buffer = fields_for(:post) do |f|
+  def test_fields_without_object
+    output_buffer = fields(:post) do |f|
       concat f.text_field(:title)
       concat f.text_area(:body)
       concat f.check_box(:secret)
@@ -1886,8 +1886,8 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_fields_for_with_only_object
-    output_buffer = fields_for(@post) do |f|
+  def test_fields_with_only_object
+    output_buffer = fields(model: @post) do |f|
       concat f.text_field(:title)
       concat f.text_area(:body)
       concat f.check_box(:secret)
@@ -1902,8 +1902,8 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_fields_for_object_with_bracketed_name
-    output_buffer = fields_for("author[post]", @post) do |f|
+  def test_fields_object_with_bracketed_name
+    output_buffer = fields("author[post]", model: @post) do |f|
       concat f.label(:title)
       concat f.text_field(:title)
     end
@@ -1913,8 +1913,8 @@ class FormWithActsLikeFormForTest < FormWithTest
       output_buffer
   end
 
-  def test_fields_for_object_with_bracketed_name_and_index
-    output_buffer = fields_for("author[post]", @post, index: 1) do |f|
+  def test_fields_object_with_bracketed_name_and_index
+    output_buffer = fields("author[post]", model: @post, index: 1) do |f|
       concat f.label(:title)
       concat f.text_field(:title)
     end
@@ -1924,16 +1924,16 @@ class FormWithActsLikeFormForTest < FormWithTest
       output_buffer
   end
 
-  def test_form_builder_does_not_have_form_for_method
-    assert_not_includes ActionView::Helpers::FormBuilder.instance_methods, :form_for
+  def test_form_builder_does_not_have_form_with_method
+    assert_not_includes ActionView::Helpers::FormBuilder.instance_methods, :form_with
   end
 
-  def test_form_with_and_fields_for
+  def test_form_with_and_fields
     form_with(model: @post, scope: :post, id: "create-post") do |post_form|
       concat post_form.text_field(:title)
       concat post_form.text_area(:body)
 
-      concat fields_for(:parent_post, @post) { |parent_fields|
+      concat fields(:parent_post, model: @post) { |parent_fields|
         concat parent_fields.check_box(:secret)
       }
     end
@@ -1948,12 +1948,12 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_form_with_and_fields_for_with_object
+  def test_form_with_and_fields_with_object
     form_with(model: @post, scope: :post, id: "create-post") do |post_form|
       concat post_form.text_field(:title)
       concat post_form.text_area(:body)
 
-      concat post_form.fields_for(@comment) { |comment_fields|
+      concat post_form.fields(model: @comment) { |comment_fields|
         concat comment_fields.text_field(:name)
       }
     end
@@ -1967,9 +1967,9 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_form_with_and_fields_for_with_non_nested_association_and_without_object
+  def test_form_with_and_fields_with_non_nested_association_and_without_object
     form_with(model: @post) do |f|
-      concat f.fields_for(:category) { |c|
+      concat f.fields(:category) { |c|
         concat c.text_field(:name)
       }
     end
@@ -2048,7 +2048,7 @@ class FormWithActsLikeFormForTest < FormWithTest
   def test_form_builder_override
     self.default_form_builder = LabelledFormBuilder
 
-    output_buffer = fields_for(:post, @post) do |f|
+    output_buffer = fields(:post, model: @post) do |f|
       concat f.text_field(:title)
     end
 
@@ -2060,7 +2060,7 @@ class FormWithActsLikeFormForTest < FormWithTest
   def test_lazy_loading_form_builder_override
     self.default_form_builder = "FormWithActsLikeFormForTest::LabelledFormBuilder"
 
-    output_buffer = fields_for(:post, @post) do |f|
+    output_buffer = fields(:post, model: @post) do |f|
       concat f.text_field(:title)
     end
 
@@ -2069,8 +2069,8 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_fields_for_with_labelled_builder
-    output_buffer = fields_for(:post, @post, builder: LabelledFormBuilder) do |f|
+  def test_fields_with_labelled_builder
+    output_buffer = fields(:post, model: @post, builder: LabelledFormBuilder) do |f|
       concat f.text_field(:title)
       concat f.text_area(:body)
       concat f.check_box(:secret)
@@ -2084,11 +2084,11 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_form_with_with_labelled_builder_with_nested_fields_for_without_options_hash
+  def test_form_with_with_labelled_builder_with_nested_fields_without_options_hash
     klass = nil
 
     form_with(model: @post, builder: LabelledFormBuilder) do |f|
-      f.fields_for(:comments, Comment.new) do |nested_fields|
+      f.fields(:comments, model: Comment.new) do |nested_fields|
         klass = nested_fields.class
         ""
       end
@@ -2097,11 +2097,11 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_equal LabelledFormBuilder, klass
   end
 
-  def test_form_with_with_labelled_builder_with_nested_fields_for_with_options_hash
+  def test_form_with_with_labelled_builder_with_nested_fields_with_options_hash
     klass = nil
 
     form_with(model: @post, builder: LabelledFormBuilder) do |f|
-      f.fields_for(:comments, Comment.new, index: "foo") do |nested_fields|
+      f.fields(:comments, model: Comment.new, index: "foo") do |nested_fields|
         klass = nested_fields.class
         ""
       end
@@ -2123,11 +2123,11 @@ class FormWithActsLikeFormForTest < FormWithTest
 
   class LabelledFormBuilderSubclass < LabelledFormBuilder; end
 
-  def test_form_with_with_labelled_builder_with_nested_fields_for_with_custom_builder
+  def test_form_with_with_labelled_builder_with_nested_fields_with_custom_builder
     klass = nil
 
     form_with(model: @post, builder: LabelledFormBuilder) do |f|
-      f.fields_for(:comments, Comment.new, builder: LabelledFormBuilderSubclass) do |nested_fields|
+      f.fields(:comments, model: Comment.new, builder: LabelledFormBuilderSubclass) do |nested_fields|
         klass = nested_fields.class
         ""
       end
@@ -2230,8 +2230,8 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_match %r|data-remote="true"|, output_buffer
   end
 
-  def test_fields_for_returns_block_result
-    output = fields_for(Post.new) { |f| "fields" }
+  def test_fields_returns_block_result
+    output = fields(model: Post.new) { |f| "fields" }
     assert_equal "fields", output
   end
 

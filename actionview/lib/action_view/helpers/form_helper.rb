@@ -785,6 +785,17 @@ module ActionView
         capture(builder, &block)
       end
 
+      # TODO: Documentation
+      def fields(scope = nil, model: nil, **options, &block)
+        # TODO: Remove when ids and classes are no longer output by default.
+        if model
+          scope ||= model_name_from_record_or_class(model).param_key
+        end
+
+        builder = instantiate_builder(scope, model, options)
+        capture(builder, &block)
+      end
+
       # Returns a label tag tailored for labelling an input field for a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object+). The text of label will default to the attribute name unless a translation
       # is found in the current I18n locale (through helpers.label.<modelname>.<attribute>) or you specify it explicitly.
@@ -1314,7 +1325,7 @@ module ActionView
 
       # The methods which wrap a form helper call.
       class_attribute :field_helpers
-      self.field_helpers = [:fields_for, :label, :text_field, :password_field,
+      self.field_helpers = [:fields_for, :fields, :label, :text_field, :password_field,
                             :hidden_field, :file_field, :text_area, :check_box,
                             :radio_button, :color_field, :search_field,
                             :telephone_field, :phone_field, :date_field,
@@ -1649,6 +1660,11 @@ module ActionView
         fields_options[:child_index] = index
 
         @template.fields_for(record_name, record_object, fields_options, &block)
+      end
+
+      # TODO: Documentation
+      def fields(scope = nil, model: nil, **options, &block)
+        fields_for(scope || model, model, **options, &block)
       end
 
       # Returns a label tag tailored for labelling an input field for a specified attribute (identified by +method+) on an object
