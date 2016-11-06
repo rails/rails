@@ -24,22 +24,16 @@ module ActiveRecord
     end
 
     def self.run
-      connection    = ActiveRecord::Base.connection
-      enabled       = connection.query_cache_enabled
       connection_id = ActiveRecord::Base.connection_id
-      connection.enable_query_cache!
+      ActiveRecord::Base.connection.enable_query_cache!
 
-      [connection, enabled, connection_id]
+      connection_id
     end
 
-    def self.complete(state)
-      connection, enabled, connection_id = state
-
+    def self.complete(connection_id)
       ActiveRecord::Base.connection_id = connection_id
-      connection.clear_query_cache
-      connection.disable_query_cache! unless enabled
 
-      unless ActiveRecord::Base.connection.transaction_open?
+      unless ActiveRecord::Base.connected? && ActiveRecord::Base.connection.transaction_open?
         ActiveRecord::Base.clear_active_connections!
       end
     end
