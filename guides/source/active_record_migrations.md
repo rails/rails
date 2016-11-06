@@ -958,10 +958,10 @@ ActiveRecord::Schema.define(version: 20080906171750) do
 
   create_table "products", force: true do |t|
     t.string   "name"
-    t.text "description"
+    t.text     "description"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.string "part_number"
+    t.string   "part_number"
   end
 end
 ```
