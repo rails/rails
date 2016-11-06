@@ -28,8 +28,8 @@ module ActiveRecord
     end
 
     def self.complete(_)
-      unless ActiveRecord::Base.connected? && ActiveRecord::Base.connection.transaction_open?
-        ActiveRecord::Base.clear_active_connections!
+      ActiveRecord::Base.connection_handler.connection_pool_list.each do |pool|
+        pool.release_connection if pool.active_connection? && !pool.connection.transaction_open?
       end
     end
 
