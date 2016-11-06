@@ -7,7 +7,8 @@
 
     *Pavel Evstigneev*
 
-*   Avoid `unscope(:order)` when `limit_value` is presented for `count`.
+*   Avoid `unscope(:order)` when `limit_value` is presented for `count`
+    and `exists?`.
 
     If `limit_value` is presented, records fetching order is very important
     for performance. Should not unscope the order in the case.
