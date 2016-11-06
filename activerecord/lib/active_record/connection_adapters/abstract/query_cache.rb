@@ -4,6 +4,7 @@ module ActiveRecord
       class << self
         def included(base) #:nodoc:
           dirties_query_cache base, :insert, :update, :delete, :rollback_to_savepoint, :rollback_db_transaction
+          base.set_callback :checkin, :after, :disable_query_cache!
         end
 
         def dirties_query_cache(base, *method_names)
@@ -41,6 +42,7 @@ module ActiveRecord
 
       def disable_query_cache!
         @query_cache_enabled = false
+        clear_query_cache
       end
 
       # Disable the query cache within the block.
