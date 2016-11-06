@@ -1,4 +1,4 @@
-module SystemTesting
+module ActionSystemTest
   module TestHelpers
     # Form helpers for system testing that aren't included by default in
     # Capybara.

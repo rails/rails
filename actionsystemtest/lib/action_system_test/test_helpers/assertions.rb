@@ -1,4 +1,4 @@
-module SystemTesting
+module ActionSystemTest
   module TestHelpers
     # Assertions for system testing that aren't included by default in Capybara.
     # These are assertions that are useful specifically for Rails applications.

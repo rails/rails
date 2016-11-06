@@ -4,7 +4,7 @@ rescue LoadError
   false
 end
 
-module SystemTesting
+module ActionSystemTest
   module DriverAdapters
     module WebServer # :nodoc:
       def register_server
@@ -13,7 +13,7 @@ module SystemTesting
           when :puma
             register_puma(app, port)
           when :webrick
-            register_webrick(app, port, host)
+            register_webrick(app, port)
           else
             register_default(app, port)
           end

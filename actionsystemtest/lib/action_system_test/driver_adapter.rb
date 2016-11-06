@@ -1,7 +1,7 @@
-require "system_testing/driver_adapters"
+require "action_system_test/driver_adapters"
 
-module SystemTesting
-  # The <tt>SystemTesting::DriverAdapter</tt> module is used to load the driver
+module ActionSystemTest
+  # The <tt>ActionSystemTest::DriverAdapter</tt> module is used to load the driver
   # set in your Rails' test configuration file.
   #
   # The default driver adapter is the +:rails_selenium_driver+.

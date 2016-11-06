@@ -1,6 +1,6 @@
-require "system_testing/driver_adapters/web_server"
+require "action_system_test/driver_adapters/web_server"
 
-module SystemTesting
+module ActionSystemTest
   module DriverAdapters
     # == CapybaraDriver for System Testing
     #
@@ -29,7 +29,7 @@ module SystemTesting
     #
     # The default settings for the <tt>CapybaraDriver</tt> are:
     #
-    #   #<SystemTesting::DriverAdapters::CapybaraDriver:0x007ff0e992c1d8
+    #   #<ActionSystemTest::DriverAdapters::CapybaraDriver:0x007ff0e992c1d8
     #     @name=:rack_test,
     #     @server=:puma,
     #     @port=28100
@@ -38,7 +38,7 @@ module SystemTesting
     # The settings for the <tt>CapybaraDriver</tt> can be changed from
     # Rails' configuration file.
     #
-    #   config.system_testing.driver = SystemTesting::DriverAdapters::CapybaraDriver.new(
+    #   config.system_testing.driver = ActionSystemTest::DriverAdapters::CapybaraDriver.new(
     #     name: :webkit,
     #     server: :webrick
     #   )

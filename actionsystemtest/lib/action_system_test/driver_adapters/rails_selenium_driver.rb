@@ -1,6 +1,6 @@
-require "system_testing/driver_adapters/web_server"
+require "action_system_test/driver_adapters/web_server"
 
-module SystemTesting
+module ActionSystemTest
   module DriverAdapters
     # == RailsSeleniumDriver for System Testing
     #
@@ -23,7 +23,7 @@ module SystemTesting
     # by default. The default settings for the <tt>RailsSeleniumDriver</tt>
     # are as follows:
     #
-    #   #<SystemTesting::DriverAdapters::RailsSeleniumDriver:0x007ff0e992c1d8
+    #   #<ActionSystemTest::DriverAdapters::RailsSeleniumDriver:0x007ff0e992c1d8
     #     @browser=:chrome,
     #     @server=:puma,
     #     @port=28100,
@@ -33,7 +33,7 @@ module SystemTesting
     # The settings for the <tt>RailsSeleniumDriver</tt> can be changed in the
     # Rails configuration file.
     #
-    #   config.system_testing.driver = SystemTesting::DriverAdapters::RailsSeleniumDriver.new(
+    #   config.system_testing.driver = ActionSystemTest::DriverAdapters::RailsSeleniumDriver.new(
     #     server: :webrick,
     #     port: 28100,
     #     screen_size: [ 800, 800 ]
@@ -46,7 +46,7 @@ module SystemTesting
     # +:chrome+ to +:firefox+, initialize the Selenium driver in your Rails'
     # test environment:
     #
-    #   config.system_testing.driver = SystemTesting::DriverAdapters::RailsSeleniumDriver.new(
+    #   config.system_testing.driver = ActionSystemTest::DriverAdapters::RailsSeleniumDriver.new(
     #     browser: :firefox
     #   )
     class RailsSeleniumDriver
@@ -54,7 +54,7 @@ module SystemTesting
 
       attr_reader :browser, :server, :port, :screen_size
 
-      def initialize(browser: :chrome, server: :puma, port: 28100, screen_size: [ 1400,1400 ]) # :nodoc:
+      def initialize(browser: :chrome, server: :puma, port: 28100, screen_size: [ 1400, 1400 ]) # :nodoc:
         @browser     = browser
         @server      = server
         @port        = port

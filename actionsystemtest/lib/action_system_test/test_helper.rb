@@ -1,7 +1,7 @@
 require "capybara/dsl"
-require "system_testing/test_helpers"
+require "action_system_test/test_helpers"
 
-module SystemTesting
+module ActionSystemTest
   module TestHelper # :nodoc:
     include TestHelpers::Assertions
     include TestHelpers::FormHelper

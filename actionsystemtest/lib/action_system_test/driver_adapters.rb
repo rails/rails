@@ -1,4 +1,4 @@
-module SystemTesting
+module ActionSystemTest
   # == System Testing Driver Adapters
   #
   # By default Rails supports Capybara with the Selenium Driver. Rails provides
@@ -29,8 +29,8 @@ module SystemTesting
     class << self
       # Returns driver for specified name.
       #
-      #   SystemTesting::DriverAdapters.lookup(:rails_selenium_driver)
-      #   # => SystemTesting::DriverAdapters::RailsSeleniumDriver
+      #   ActionSystemTest::DriverAdapters.lookup(:rails_selenium_driver)
+      #   # => ActionSystemTest::DriverAdapters::RailsSeleniumDriver
       def lookup(driver)
         if CapybaraDriver::CAPYBARA_DEFAULTS.include?(driver)
           CapybaraDriver.new(name: driver)

@@ -24,6 +24,7 @@ class Build
     "av"       => "actionview",
     "aj"       => "activejob",
     "ac"       => "actioncable",
+    "ast"      => "actionsystemtest",
     "guides"   => "guides"
   }
 
@@ -154,7 +155,6 @@ ENV["GEM"].split(",").each do |gem|
 
     build = Build.new(gem, isolated: isolated)
     results[build.key] = build.run!
-
   end
 end
 

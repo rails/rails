@@ -1,4 +1,4 @@
-module SystemTesting
+module ActionSystemTest
   module TestHelpers
     # Screenshot helper for system testing
     module ScreenshotHelper
@@ -11,7 +11,7 @@ module SystemTesting
       #
       # You can check of the driver supports screenshots by running
       #
-      #   Rails::SystemTestCase.driver.supports_screenshots?
+      #   ActionSystemTest.driver.supports_screenshots?
       #   => true
       def take_screenshot
         puts "[Screenshot]: #{image_path}"
@@ -20,7 +20,7 @@ module SystemTesting
 
       private
         def supported?
-          Rails::SystemTestCase.driver.supports_screenshots? && !passed?
+          ActionSystemTest.driver.supports_screenshots? && !passed?
         end
 
         def image_path

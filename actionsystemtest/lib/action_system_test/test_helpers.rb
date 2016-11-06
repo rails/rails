@@ -1,4 +1,4 @@
-module SystemTesting
+module ActionSystemTest
   module TestHelpers
     extend ActiveSupport::Autoload
 
