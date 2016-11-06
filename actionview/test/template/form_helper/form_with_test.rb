@@ -598,6 +598,18 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_with_with_format_and_url
+    form_with(model: @post, format: :json, url: "/") do |f|
+      concat f.label(:title)
+    end
+
+    expected = whole_form("/", method: "patch") do
+      "<label for='post_title'>Title</label>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_form_with_with_model_using_relative_model_naming
     blog_post = Blog::Post.new("And his name will be forty and four.", 44)
 

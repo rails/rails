@@ -474,46 +474,228 @@ module ActionView
       end
       private :apply_form_for_options!
 
-      # Passing model: @post will 1) set scope: :post, 2) set url: url_for(@post)
+      # Creates a form tag based on mixing URLs, scopes, or models.
       #
-      #   form_with(model: @post) do |form|
-      #     form.text_field :title # Will reference @post.title as normal
-      #     form.text_area :description, "Overwrite @post.description if present, if not, it will still work"
-      #
-      #     form.submit
-      #   end
-      #
-      #   form_with(scope: :post, url: posts_path) do |form|
-      #     form.text_field :title # post[title]
-      #     form.text_area :description, "Overwrite @post.description or ignore if it's not present"
-      #
-      #     form.submit
+      #   # Using just a URL:
+      #   form_with url: posts_path do |form|
+      #     form.text_field :title
       #   end
       #   # =>
-      #   <form action="/posts" accept-charset="utf-8" method="post">
-      #     <input name="utf8" type="hidden" value="✓">
-      #     <input type="hidden" name="authenticity_token" value="...">
-      #
-      #     <input type="text" name="post[title]">
-      #     <textarea name="post[description]"></textarea>
-      #
-      #     <input type="submit" name="commit" value="Create Post" data-disable-with="Create Post">
+      #   <form action="/posts" method="post">
+      #     <input type="text" name="title">
       #   </form>
       #
-      #   form_with(url: different_path, class: 'something', id: 'specific') do |form|
-      #     form.text_field :title, 'This is the value of the title'
+      #   # Adding a scope prefixes the input field names:
+      #   form_with scope: :post, url: posts_path do |form|
+      #     form.text_field :title
+      #   end
+      #   # =>
+      #   <form action="/posts" method="post">
+      #     <input type="text" name="post[title]">
+      #   </form>
       #
-      #     form.text_area :description, class: 'No value has been supplied here'
+      #   # Using a model infers both the URL and scope:
+      #   form_with model: Post.new do |form|
+      #     form.text_field :title
+      #   end
+      #   # =>
+      #   <form action="/posts" method="post">
+      #     <input type="text" name="post[title]">
+      #   </form>
       #
-      #     form.fields(:permission) do |fields|
-      #       # on/off instead of positional parameters for setting values
-      #       fields.check_box :admin, on: 'yes', off: 'no'
-      #     end
+      #   # An existing model makes an update form and fills out field values:
+      #   form_with model: Post.first do |form|
+      #     form.text_field :title
+      #   end
+      #   # =>
+      #   <form action="/posts/1" method="post">
+      #     <input type="hidden" name="_method" value="patch">
+      #     <input type="text" name="post[title]" value="<the title of the post>">
+      #   </form>
       #
-      #     form.select :category, Post::CATEGORIES, blank: 'None'
-      #     form.select :author_id, Person.all.collect { |p| [ p.name, p.id ] }, blank: 'Pick someone'
+      # The parameters in the forms are accessible in controlleres according to
+      # their name nesting. So inputs named +title+ and <tt>post[title]</tt> are
+      # accessible as <tt>params[:title]</tt> and <tt>params[:post][:title]</tt>
+      # respectively.
+      #
+      # For ease of comparison the examples above left out the submit button,
+      # as well as the auto generated hidden fields that enable UTF-8 support
+      # and adds an authenticity token needed for Cross Site Request Forgery
+      # protection.
+      #
+      # ==== +form_with+ options
+      #
+      # * <tt>:url</tt> - The URL the form submits to. Akin to values passed to
+      #   +url_for+ or +link_to+. For example, you may use a named route
+      #   directly. When a <tt>:scope</tt> is passed without a <tt>:url</tt> the
+      #   form just submits to the current URL.
+      # * <tt>:method</tt> - The method to use when submitting the form, usually
+      #   either "get" or "post". If "patch", "put", "delete", or another verb
+      #   is used, a hidden input named <tt>_method</tt> is added to
+      #   simulate the verb over post.
+      # * <tt>:format</tt> - The format of the route post submits to.
+      #   Useful when submitting to another resource type, like <tt>:json</tt>.
+      #   Skipped if a <tt>:url</tt> is passed.
+      # * <tt>:scope</tt> - The scope to prefix input field names with and
+      #   thereby how the submitted parameters are grouped in controllers.
+      # * <tt>:model</tt> - A model object to infer the <tt>:url</tt> and
+      #   <tt>:scope</tt> by plus fill out input field values.
+      #   So if a +title+ attribute is set to "Ahoy!" then a +title+ input
+      #   field's value would be "Ahoy!".
+      #   If the model is a new record a create form is generated, if an
+      #   existing record, however, an update form is generated.
+      #   Pass <tt>:scope</tt> or <tt>:url</tt> to override the defaults.
+      #   E.g. turn <tt>params[:post]</tt> into <tt>params[:article]</tt>.
+      # * <tt>:authenticity_token</tt> - Authenticity token to use in the form.
+      #   Override with a custom authenticity token or pass <tt>false</tt> to
+      #   skip the authenticity_token field altogether.
+      #   Useful when submitting to an external resource like a payment gateway
+      #   that might limit the valid fields.
+      #   Remote forms may omit the embedded authenticity token by setting
+      #   <tt>config.action_view.embed_authenticity_token_in_remote_forms = false</tt>.
+      #   This is helpful when fragment-caching the form. Remote forms
+      #   get the authenticity token from the <tt>meta</tt> tag, so embedding is
+      #   unnecessary unless you support browsers without JavaScript.
+      # * <tt>:remote</tt> - If set to true, will allow the Unobtrusive
+      #   JavaScript drivers to control the submit behavior. By default this
+      #   behavior is an XHR submit.
+      # * <tt>:enforce_utf8</tt> - If set to false, a hidden input with name
+      #   utf8 is not output. Default is true.
+      # * <tt>:builder</tt> - Override the object used to build the form.
+      # * <tt>:id</tt> - Optional HTML id attribute.
+      # * <tt>:class</tt> - Optional HTML class attribute.
+      # * <tt>:data</tt> - Optional HTML data attributes.
+      # * <tt>:html</tt> - Other optional HTML attributes for the form tag.
+      #
+      # === Examples
+      #
+      # When not passing a block, +form_with+ just generates an opening form tag.
+      #
+      #   form_with(model: @post, url: super_posts_path)
+      #   form_with(model: @post, scope: :article)
+      #   form_with(model: @post, format: :json)
+      #   form_with(model: @post, authenticity_token: false) # Disables the token.
+      #
+      # For namespaced routes, like +admin_post_url+:
+      #
+      #   form_with(model: [ :admin, @post ]) do |form|
+      #     ...
+      #   end
+      #
+      # If your resource has associations defined, for example, you want to add comments
+      # to the document given that the routes are set correctly:
+      #
+      #   form_with(model: [ @document, Comment.new ]) do |form|
+      #     ...
+      #   end
+      #
+      # Where <tt>@document = Document.find(params[:id])</tt>.
+      #
+      # === Mixing with other form helpers
+      #
+      # While +form_with+ uses a FormBuilder object it's possible to mix and
+      # match the stand-alone FormHelper methods and methods
+      # from FormTagHelper:
+      #
+      #   form_with scope: :person do |form|
+      #     form.text_field :first_name
+      #     form.text_field :last_name
+      #
+      #     text_area :person, :biography
+      #     check_box_tag "person[admin]", "1", @person.company.admin?
       #
       #     form.submit
+      #   end
+      #
+      # Same goes for the methods in FormOptionHelper and DateHelper designed
+      # to work with an object as a base, like
+      # FormOptionHelper#collection_select and DateHelper#datetime_select.
+      #
+      # === Setting the method
+      #
+      # You can force the form to use the full array of HTTP verbs by setting
+      #
+      #    method: (:get|:post|:patch|:put|:delete)
+      #
+      # in the options hash. If the verb is not GET or POST, which are natively
+      # supported by HTML forms, the form will be set to POST and a hidden input
+      # called _method will carry the intended verb for the server to interpret.
+      #
+      # === Unobtrusive JavaScript
+      #
+      # Specifying:
+      #
+      #    remote: true
+      #
+      # allows the unobtrusive JavaScript drivers to modify its behavior.
+      # Which by default is backgrounded XMLHttpRequest submit, but ultimately
+      # the behavior is up to the JavaScript driver.
+      #
+      # Sets a <tt>data-remote="true"</tt> attribute on the form tag.
+      #
+      # === Setting HTML options
+      #
+      # You can set data attributes directly in a data hash, but HTML options
+      # besides id and class must be wrapped in an HTML key:
+      #
+      #   form_with(model: @post, data: { behavior: "autosave" }, html: { name: "go" }) do |form|
+      #     ...
+      #   end
+      #
+      # generates
+      #
+      #   <form action="http://www.example.com" method="post" data-behavior="autosave" name="go">
+      #     <input name="_method" type="hidden" value="patch" />
+      #     ...
+      #   </form>
+      #
+      # === Removing hidden model id's
+      #
+      # The +form_with+ method automatically includes the model id as a hidden field in the form.
+      # This is used to maintain the correlation between the form data and its associated model.
+      # Some ORM systems do not use IDs on nested models so in this case you want to be able
+      # to disable the hidden id.
+      #
+      # In the following example the Post model has many Comments stored within it in a NoSQL database,
+      # thus there is no primary key for comments.
+      #
+      #   form_with(model: @post) do |form|
+      #     form.fields(:comments, include_id: false) do |fields|
+      #       ...
+      #     end
+      #   end
+      #
+      # === Customized form builders
+      #
+      # You can also build forms using a customized FormBuilder class. Subclass
+      # FormBuilder and override or define some more helpers, then use your
+      # custom builder. For example, let's say you made a helper to
+      # automatically add labels to form inputs.
+      #
+      #   form_with model: @person, url: { action: "create" }, builder: LabellingFormBuilder do |form|
+      #     form.text_field :first_name
+      #     form.text_field :last_name
+      #     form.text_area :biography
+      #     form.check_box :admin
+      #     form.submit
+      #   end
+      #
+      # In this case, if you use:
+      #
+      #   <%= render form %>
+      #
+      # The rendered template is <tt>people/_labelling_form</tt> and the local
+      # variable referencing the form builder is called
+      # <tt>labelling_form</tt>.
+      #
+      # The custom FormBuilder class is automatically merged with the options
+      # of a nested +fields+ call, unless it's explicitly set.
+      #
+      # In many cases you will want to wrap the above in another helper, so you
+      # could do something like the following:
+      #
+      #   def labelled_form_for(**options, &block)
+      #     form_with(**options.merge(builder: LabellingFormBuilder), &block)
       #   end
       def form_with(model: nil, scope: nil, url: nil, format: nil, html: {}, **options)
         if model
