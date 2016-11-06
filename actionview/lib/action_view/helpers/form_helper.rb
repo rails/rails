@@ -481,7 +481,7 @@ module ActionView
       #     form.text_field :title
       #   end
       #   # =>
-      #   <form action="/posts" method="post">
+      #   <form action="/posts" method="post" data-remote="true">
       #     <input type="text" name="title">
       #   </form>
       #
@@ -490,7 +490,7 @@ module ActionView
       #     form.text_field :title
       #   end
       #   # =>
-      #   <form action="/posts" method="post">
+      #   <form action="/posts" method="post" data-remote="true">
       #     <input type="text" name="post[title]">
       #   </form>
       #
@@ -499,7 +499,7 @@ module ActionView
       #     form.text_field :title
       #   end
       #   # =>
-      #   <form action="/posts" method="post">
+      #   <form action="/posts" method="post" data-remote="true">
       #     <input type="text" name="post[title]">
       #   </form>
       #
@@ -508,7 +508,7 @@ module ActionView
       #     form.text_field :title
       #   end
       #   # =>
-      #   <form action="/posts/1" method="post">
+      #   <form action="/posts/1" method="post" data-remote="true">
       #     <input type="hidden" name="_method" value="patch">
       #     <input type="text" name="post[title]" value="<the title of the post>">
       #   </form>
@@ -517,6 +517,11 @@ module ActionView
       # their name nesting. So inputs named +title+ and <tt>post[title]</tt> are
       # accessible as <tt>params[:title]</tt> and <tt>params[:post][:title]</tt>
       # respectively.
+      #
+      # By default +form_with+ attaches the <tt>data-remote</tt> attribute
+      # submitting the form via an XMLHTTPRequest in the background if an
+      # an Unobtrusive JavaScript driver, like jquery-ujs, is used. See the
+      # <tt>:remote</tt> option for more.
       #
       # For ease of comparison the examples above left out the submit button,
       # as well as the auto generated hidden fields that enable UTF-8 support
@@ -556,9 +561,9 @@ module ActionView
       #   This is helpful when fragment-caching the form. Remote forms
       #   get the authenticity token from the <tt>meta</tt> tag, so embedding is
       #   unnecessary unless you support browsers without JavaScript.
-      # * <tt>:remote</tt> - If set to true, will allow the Unobtrusive
-      #   JavaScript drivers to control the submit behavior. By default this
-      #   behavior is an XHR submit.
+      # * <tt>:remote</tt> - Set to true to allow the Unobtrusive
+      #   JavaScript drivers to control the submit behavior, defaulting to
+      #   to an XHR submit. Disable with <tt>remote: false</tt>.
       # * <tt>:enforce_utf8</tt> - If set to false, a hidden input with name
       #   utf8 is not output. Default is true.
       # * <tt>:builder</tt> - Override the object used to build the form.
@@ -620,18 +625,6 @@ module ActionView
       # in the options hash. If the verb is not GET or POST, which are natively
       # supported by HTML forms, the form will be set to POST and a hidden input
       # called _method will carry the intended verb for the server to interpret.
-      #
-      # === Unobtrusive JavaScript
-      #
-      # Specifying:
-      #
-      #    remote: true
-      #
-      # allows the unobtrusive JavaScript drivers to modify its behavior.
-      # Which by default is backgrounded XMLHttpRequest submit, but ultimately
-      # the behavior is up to the JavaScript driver.
-      #
-      # Sets a <tt>data-remote="true"</tt> attribute on the form tag.
       #
       # === Setting HTML options
       #
@@ -697,7 +690,7 @@ module ActionView
       #   def labelled_form_for(**options, &block)
       #     form_with(**options.merge(builder: LabellingFormBuilder), &block)
       #   end
-      def form_with(model: nil, scope: nil, url: nil, format: nil, html: {}, **options)
+      def form_with(model: nil, scope: nil, url: nil, format: nil, html: {}, remote: true, **options)
         if model
           url ||= polymorphic_path(model, format: format)
 
@@ -707,6 +700,7 @@ module ActionView
 
         html_options = html.merge(options.except(:index, :include_id, :builder))
         html_options[:method] ||= :patch if model.respond_to?(:persisted?) && model.persisted?
+        html_options[:remote] = remote unless html_options.key?(:remote)
 
         if block_given?
           builder = instantiate_builder(scope, model, options)

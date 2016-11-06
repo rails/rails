@@ -27,8 +27,8 @@ class FormWithActsLikeFormTagTest < FormWithTest
     end
   end
 
-  def form_text(action = "http://www.example.com", options = {})
-    remote, enctype, html_class, id, method = options.values_at(:remote, :enctype, :html_class, :id, :method)
+  def form_text(action = "http://www.example.com", remote: true, **options)
+    enctype, html_class, id, method = options.values_at(:enctype, :html_class, :id, :method)
 
     method = method.to_s == "get" ? "get" : "post"
 
@@ -86,17 +86,10 @@ class FormWithActsLikeFormTagTest < FormWithTest
     assert_dom_equal expected, actual
   end
 
-  def test_form_with_with_remote
-    actual = form_with(remote: true)
-
-    expected = whole_form("http://www.example.com", remote: true)
-    assert_dom_equal expected, actual
-  end
-
   def test_form_with_with_remote_false
     actual = form_with(remote: false)
 
-    expected = whole_form
+    expected = whole_form("http://www.example.com", remote: false)
     assert_dom_equal expected, actual
   end
 
@@ -707,14 +700,14 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_form_with_with_remote
-    form_with(model: @post, url: "/", remote: true, id: "create-post", method: :patch) do |f|
+  def test_form_with_enables_remote_by_default
+    form_with(model: @post, url: "/", id: "create-post", method: :patch) do |f|
       concat f.text_field(:title)
       concat f.text_area(:body)
       concat f.check_box(:secret)
     end
 
-    expected = whole_form("/", "create-post", method: "patch", remote: true) do
+    expected = whole_form("/", "create-post", method: "patch") do
       "<input name='post[title]' type='text' id='post_title' value='Hello World' />" +
       "<textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea>" +
       "<input name='post[secret]' type='hidden' value='0' />" +
@@ -748,14 +741,14 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_form_with_with_remote_in_html
-    form_with(model: @post, url: "/", html: { remote: true, id: "create-post", method: :patch }) do |f|
+  def test_form_with_disable_remote_in_html
+    form_with(model: @post, url: "/", html: { remote: false, id: "create-post", method: :patch }) do |f|
       concat f.text_field(:title)
       concat f.text_area(:body)
       concat f.check_box(:secret)
     end
 
-    expected = whole_form("/", "create-post", method: "patch", remote: true) do
+    expected = whole_form("/", "create-post", method: "patch", remote: false) do
       "<input name='post[title]' type='text' id='post_title' value='Hello World' />" +
       "<textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea>" +
       "<input name='post[secret]' type='hidden' value='0' />" +
@@ -2237,7 +2230,7 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_form_with_with_data_attributes
-    form_with(model: @post, data: { behavior: "stuff" }, remote: true) {}
+    form_with(model: @post, data: { behavior: "stuff" }) {}
     assert_match %r|data-behavior="stuff"|, output_buffer
     assert_match %r|data-remote="true"|, output_buffer
   end
@@ -2287,10 +2280,10 @@ class FormWithActsLikeFormForTest < FormWithTest
       txt << %{ method="#{method}">}
     end
 
-    def whole_form(action = "/", id = nil, html_class = nil, **options)
+    def whole_form(action = "/", id = nil, html_class = nil, remote: true, **options)
       contents = block_given? ? yield : ""
 
-      method, remote, multipart = options.values_at(:method, :remote, :multipart)
+      method, multipart = options.values_at(:method, :multipart)
 
       form_text(action, id, html_class, remote, multipart, method) + hidden_fields(options.slice :method, :enforce_utf8) + contents + "</form>"
     end
