@@ -718,6 +718,12 @@ module ActiveRecord
         @association.destroy(*records)
       end
 
+      ##
+      # :method: distinct
+      #
+      # :call-seq:
+      #   distinct(value = true)
+      #
       # Specifies whether the records should be unique or not.
       #
       #   class Person < ActiveRecord::Base
@@ -732,10 +738,17 @@ module ActiveRecord
       #
       #   person.pets.select(:name).distinct
       #   # => [#<Pet name: "Fancy-Fancy">]
-      def distinct
-        @association.distinct
+      #
+      #   person.pets.select(:name).distinct.distinct(false)
+      #   # => [
+      #   #      #<Pet name: "Fancy-Fancy">,
+      #   #      #<Pet name: "Fancy-Fancy">
+      #   #    ]
+
+      #--
+      def uniq
+        load_target.uniq
       end
-      alias uniq distinct
 
       def calculate(operation, column_name)
         null_scope? ? scope.calculate(operation, column_name) : super
