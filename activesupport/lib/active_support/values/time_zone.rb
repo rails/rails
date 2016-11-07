@@ -273,6 +273,10 @@ module ActiveSupport
       @tzinfo = tzinfo || TimeZone.find_tzinfo(name)
     end
 
+    def init_with(coder) #:nodoc:
+      initialize(coder['name'])
+    end
+
     # Returns the offset of this time zone from UTC in seconds.
     def utc_offset
       if @utc_offset

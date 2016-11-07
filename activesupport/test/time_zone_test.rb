@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'active_support/time'
 require 'time_zone_test_helpers'
+require 'active_support/core_ext/string/strip'
 
 class TimeZoneTest < ActiveSupport::TestCase
   include TimeZoneTestHelpers
@@ -429,5 +430,26 @@ class TimeZoneTest < ActiveSupport::TestCase
   def test_us_zones
     assert ActiveSupport::TimeZone.us_zones.include?(ActiveSupport::TimeZone["Hawaii"])
     assert !ActiveSupport::TimeZone.us_zones.include?(ActiveSupport::TimeZone["Kuala Lumpur"])
+  end
+
+  def test_from_rails_5_yaml
+    zone = YAML.load <<-YAML.strip_heredoc
+      --- !ruby/object:ActiveSupport::TimeZone
+      name: Pacific/Honolulu
+    YAML
+
+    assert_equal("Pacific/Honolulu", zone.name)
+    assert_equal(-36000, zone.utc_offset)
+  end
+
+  def test_from_ruby_rails_5_yaml
+    hash = YAML.load <<-YAML.strip_heredoc
+      ---
+      zone: !ruby/object:ActiveSupport::TimeZone
+        name: Pacific/Honolulu\n
+    YAML
+
+    assert_equal("Pacific/Honolulu", hash["zone"].name)
+    assert_equal(-36000, hash["zone"].utc_offset)
   end
 end

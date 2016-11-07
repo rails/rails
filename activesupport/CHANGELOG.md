@@ -1,3 +1,25 @@
+*   Add `init_with` to `ActiveSupport::TimeWithZone` and `ActiveSupport::TimeZone`
+
+    It is helpful to be able to run apps concurrently written in successive
+    versions of Rails to aid migration, e.g. run Rails 4.2 and 5.0 variants
+    of your application at the same time to carry out A/B testing.
+
+    To do this serialization formats need to be cross compatible and the
+    change in 3aa26cf didn't meet this criteria because the Psych loader
+    checks for the existence of `init_with` before setting the instance
+    variables and the wrapping behavior of `ActiveSupport::TimeWithZone`
+    tries to see if the `Time` instance responds to `init_with` before the
+    `@time` variable is set.
+
+    To fix this we backported just the `init_with` behavior from the change
+    in 3aa26cf. If the revived instance is then written out to YAML again
+    it will revert to the default Rails 4.2 behavior of converting it to
+    a UTC timestamp string.
+
+    Fixes #26296.
+
+    *Andrew White*
+
 *   Fix `ActiveSupport::TimeWithZone#in` across DST boundaries.
 
     Previously calls to `in` were being sent to the non-DST aware

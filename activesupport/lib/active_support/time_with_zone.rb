@@ -160,7 +160,11 @@ module ActiveSupport
       end
     end
 
-    def encode_with(coder)
+    def init_with(coder) #:nodoc:
+      initialize(coder['utc'], coder['zone'], coder['time'])
+    end
+
+    def encode_with(coder) #:nodoc:
       if coder.respond_to?(:represent_object)
         coder.represent_object(nil, utc)
       else
