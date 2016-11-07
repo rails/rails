@@ -1655,8 +1655,8 @@ This creates five files and one empty directory:
 | app/views/comments/                          | Views of the controller are stored here  |
 | test/controllers/comments_controller_test.rb | The test for the controller              |
 | app/helpers/comments_helper.rb               | A view helper file                       |
-| app/assets/javascripts/comment.coffee        | CoffeeScript for the controller          |
-| app/assets/stylesheets/comment.scss          | Cascading style sheet for the controller |
+| app/assets/javascripts/comments.coffee       | CoffeeScript for the controller          |
+| app/assets/stylesheets/comments.scss         | Cascading style sheet for the controller |
 
 Like with any blog, our readers will create their comments directly after
 reading the article, and once they have added their comment, will be sent back
