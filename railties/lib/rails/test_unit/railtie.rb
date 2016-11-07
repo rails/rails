@@ -20,6 +20,18 @@ module Rails
       }
     end
 
+    config.system_testing = ActiveSupport::OrderedOptions.new
+
+    initializer "system_testing.set_configs" do |app|
+      ActiveSupport.on_load(:active_support_test_case) do
+        require "action_system_test"
+
+        options = app.config.system_testing
+        options.driver ||= ActionSystemTest.default_driver
+        options.each { |k, v| ActionSystemTest.send("#{k}=", v) }
+      end
+    end
+
     rake_tasks do
       load "rails/test_unit/testing.rake"
     end

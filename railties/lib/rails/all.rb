@@ -9,7 +9,6 @@ require "rails"
   action_cable/engine
   rails/test_unit/railtie
   sprockets/railtie
-  action_system_test/railtie
 ).each do |railtie|
   begin
     require railtie

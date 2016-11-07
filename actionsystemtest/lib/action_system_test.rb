@@ -50,8 +50,6 @@ require "action_system_test/driver_adapter"
 module ActionSystemTest
   include ActionSystemTest::TestHelper
   include ActionSystemTest::DriverAdapter
-
-  ActiveSupport.run_load_hooks(:system_testing, self)
 end
 
 class ActionSystemTestCase < ActionDispatch::IntegrationTest
