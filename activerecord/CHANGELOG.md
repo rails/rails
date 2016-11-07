@@ -1,3 +1,10 @@
+*   Add option to update the updated_at value of a record when incrementing,
+    decrementing, resetting, or updated counter caches.
+
+    Fixes #26724.
+
+    *Jarred Trost*
+
 *   Avoid `unscope(:order)` when `limit_value` is presented for `count`.
 
     If `limit_value` is presented, records fetching order is very important

@@ -12,12 +12,17 @@ module ActiveRecord
       #
       # * +id+ - The id of the object you wish to reset a counter on.
       # * +counters+ - One or more association counters to reset. Association name or counter name can be given.
+      # * +options+ - {updated_at: true} will update the updated_at value for each counter.
       #
       # ==== Examples
       #
       #   # For Post with id #1 records reset the comments_count
       #   Post.reset_counters(1, :comments)
-      def reset_counters(id, *counters)
+      #
+      #   # For Post with id #1 records reset the comments_count
+      #   # and updated the updated_at value.
+      #   Post.reset_counters(1, :comments, updated_at: true)
+      def reset_counters(id, *counters, **options)
         object = find(id)
         counters.each do |counter_association|
           has_many_association = _reflect_on_association(counter_association)
@@ -37,9 +42,10 @@ module ActiveRecord
           reflection   = child_class._reflections.values.find { |e| e.belongs_to? && e.foreign_key.to_s == foreign_key && e.options[:counter_cache].present? }
           counter_name = reflection.counter_cache_column
 
-          unscoped.where(primary_key => object.id).update_all(
-            counter_name => object.send(counter_association).count(:all)
-          )
+          updates = {counter_name.to_sym => object.send(counter_association).count(:all)}
+          updates[:updated_at] = DateTime.now if options[:updated_at] == true
+
+          unscoped.where(primary_key => object.id).update_all(updates)
         end
         return true
       end
@@ -55,6 +61,8 @@ module ActiveRecord
       # * +id+ - The id of the object you wish to update a counter on or an array of ids.
       # * +counters+ - A Hash containing the names of the fields
       #   to update as keys and the amount to update the field by as values.
+      #   Including updated_at: true in this hash will update the updated_at
+      #   value for each counter.
       #
       # ==== Examples
       #
@@ -73,12 +81,25 @@ module ActiveRecord
       #   # UPDATE posts
       #   #    SET comment_count = COALESCE(comment_count, 0) + 1
       #   #  WHERE id IN (10, 15)
+      #
+      #   # For the Posts with id of 10 and 15, increment the comment_count by 1
+      #   # and update the updated_at value for each counter.
+      #   Post.update_counters [10, 15], comment_count: 1, updated_at: true
+      #   # Executes the following SQL:
+      #   # UPDATE posts
+      #   #    SET comment_count = COALESCE(comment_count, 0) + 1,
+      #   #    "updated_at" = '2016-10-13T09:59:23-05:00'
+      #   #  WHERE id IN (10, 15)
       def update_counters(id, counters)
+        include_updated_at = counters.delete(:updated_at)
+
         updates = counters.map do |counter_name, value|
           operator = value < 0 ? "-" : "+"
           quoted_column = connection.quote_column_name(counter_name)
           "#{quoted_column} = COALESCE(#{quoted_column}, 0) #{operator} #{value.abs}"
         end
+
+        updates << "\"updated_at\" = '#{DateTime.now}'" if include_updated_at
 
         unscoped.where(primary_key => id).update_all updates.join(", ")
       end
@@ -94,13 +115,18 @@ module ActiveRecord
       #
       # * +counter_name+ - The name of the field that should be incremented.
       # * +id+ - The id of the object that should be incremented or an array of ids.
+      # * +options+ - {updated_at: true} will update the updated_at value for the counter.
       #
       # ==== Examples
       #
       #   # Increment the posts_count column for the record with an id of 5
       #   DiscussionBoard.increment_counter(:posts_count, 5)
-      def increment_counter(counter_name, id)
-        update_counters(id, counter_name => 1)
+      #
+      #   # Increment the posts_count column for the record with an id of 5
+      #   # and update the updated_at value.
+      #   DiscussionBoard.increment_counter(:posts_count, 5, updated_at: true)
+      def increment_counter(counter_name, id, options={})
+        update_counters(id, {counter_name => 1}.merge(options))
       end
 
       # Decrement a numeric field by one, via a direct SQL update.
@@ -112,13 +138,18 @@ module ActiveRecord
       #
       # * +counter_name+ - The name of the field that should be decremented.
       # * +id+ - The id of the object that should be decremented or an array of ids.
+      # * +options+ - {updated_at: true} will update the updated_at value for the counter.
       #
       # ==== Examples
       #
       #   # Decrement the posts_count column for the record with an id of 5
       #   DiscussionBoard.decrement_counter(:posts_count, 5)
-      def decrement_counter(counter_name, id)
-        update_counters(id, counter_name => -1)
+      #
+      #   # Decrement the posts_count column for the record with an id of 5
+      #   # and update the updated_at value.
+      #   DiscussionBoard.decrement_counter(:posts_count, 5, updated_at: true)
+      def decrement_counter(counter_name, id, options={})
+        update_counters(id, {counter_name => -1}.merge(options))
       end
     end
 

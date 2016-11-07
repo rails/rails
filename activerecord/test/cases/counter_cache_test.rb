@@ -211,4 +211,41 @@ class CounterCacheTest < ActiveRecord::TestCase
       aircraft.wheels.first.destroy
     end
   end
+
+  test "update counters with updated_at" do
+    previous_updated_at = @topic.updated_at
+    Topic.update_counters(@topic.id, replies_count: -1, updated_at: true)
+    assert_not_equal previous_updated_at, @topic.reload.updated_at
+  end
+
+  test "update multiple counters with updated_at" do
+    previous_updated_at = @topic.updated_at
+    Topic.update_counters @topic.id, replies_count: 2, unique_replies_count: 2, updated_at: true
+    assert_not_equal previous_updated_at, @topic.reload.updated_at
+  end
+
+  test "reset counters with updated_at" do
+    previous_updated_at = @topic.updated_at
+    Topic.reset_counters(@topic.id, :replies, updated_at: true)
+    assert_not_equal previous_updated_at, @topic.reload.updated_at
+  end
+
+  test "reset multiple counters with updated_at" do
+    previous_updated_at = @topic.updated_at
+    Topic.update_counters(@topic.id, replies_count: 1, unique_replies_count: 1)
+    Topic.reset_counters(@topic.id, :replies, :unique_replies, updated_at: true)
+    assert_not_equal previous_updated_at, @topic.reload.updated_at
+  end
+
+  test "increment counters with updated_at" do
+    previous_updated_at = @topic.updated_at
+    Topic.increment_counter(:replies_count, @topic.id, updated_at: true)
+    assert_not_equal previous_updated_at, @topic.reload.updated_at
+  end
+
+  test "decrement counters with updated_at" do
+    previous_updated_at = @topic.updated_at
+    Topic.decrement_counter(:replies_count, @topic.id, updated_at: true)
+    assert_not_equal previous_updated_at, @topic.reload.updated_at
+  end
 end
