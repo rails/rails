@@ -59,14 +59,14 @@ matrix:
         - "GEM=ar:mysql2"
       addons:
         mariadb: 10.0
-    - rvm: jruby-9.0.5.0
+    - rvm: jruby-9.1.5.0
       jdk: oraclejdk8
       env:
         - "JRUBY_OPTS='--dev -J-Xmx1024M'"
         - "GEM='ap'"
   allow_failures:
     - rvm: ruby-head
-    - rvm: jruby-9.0.5.0
+    - rvm: jruby-9.1.5.0
   fast_finish: true
 
 notifications:
