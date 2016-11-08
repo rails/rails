@@ -1,3 +1,11 @@
+*   Add support for arbitrary hashes in strong parameters:
+
+    ```ruby
+    params.permit(preferences: {})
+    ```
+
+    *Xavier Noria*
+
 *   Add `ActionController::Parameters#merge!`, which behaves the same as `Hash#merge!`.
 
     *Yuji Yaginuma*

@@ -334,6 +334,15 @@ module ActionController
     #   params = ActionController::Parameters.new(tags: ['rails', 'parameters'])
     #   params.permit(tags: [])
     #
+    # Sometimes it is not possible or convenient to declare the valid keys of
+    # a hash parameter or its internal structure. Just map to an empty hash:
+    #
+    #   params.permit(preferences: {})
+    #
+    # but be careful because this opens the door to arbitrary input. In this
+    # case, +permit+ ensures values in the returned structure are permitted
+    # scalars and filters out anything else.
+    #
     # You can also use +permit+ on nested parameters, like:
     #
     #   params = ActionController::Parameters.new({
@@ -766,6 +775,7 @@ module ActionController
       end
 
       EMPTY_ARRAY = []
+      EMPTY_HASH  = {}
       def hash_filter(params, filter)
         filter = filter.with_indifferent_access
 
@@ -779,10 +789,45 @@ module ActionController
             array_of_permitted_scalars?(self[key]) do |val|
               params[key] = val
             end
+          elsif filter[key] == EMPTY_HASH
+            # Declaration { preferences: {} }
+            if value.is_a?(Parameters)
+              params[key] = permit_any_in_parameters(value)
+            end
           elsif non_scalar?(value)
             # Declaration { user: :name } or { user: [:name, :age, { address: ... }] }.
             params[key] = each_element(value) do |element|
               element.permit(*Array.wrap(filter[key]))
+            end
+          end
+        end
+      end
+
+      def permit_any_in_parameters(params)
+        self.class.new.tap do |sanitized|
+          params.each do |key, value|
+            if permitted_scalar?(value)
+              sanitized[key] = value
+            elsif value.is_a?(Array)
+              sanitized[key] = permit_any_in_array(value)
+            elsif value.is_a?(Parameters)
+              sanitized[key] = permit_any_in_parameters(value)
+            else
+              # Filter this one out.
+            end
+          end
+        end
+      end
+
+      def permit_any_in_array(array)
+        [].tap do |sanitized|
+          array.each do |element|
+            if permitted_scalar?(element)
+              sanitized << element
+            elsif element.is_a?(Parameters)
+              sanitized << permit_any_in_parameters(element)
+            else
+              # Filter this one out.
             end
           end
         end

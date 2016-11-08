@@ -168,6 +168,39 @@ class ParametersPermitTest < ActiveSupport::TestCase
     end
   end
 
+  test "key to empty hash: arbitrary hashes are permitted" do
+    params = ActionController::Parameters.new(
+      username: "fxn",
+      preferences: {
+        scheme: "Marazul",
+        font: {
+          name: "Source Code Pro",
+          size: 12
+        },
+        tabstops:   [4, 8, 12, 16],
+        suspicious: [true, Object.new, false, /yo!/],
+        dubious:    [{a: :a, b: /wtf!/}, {c: :c}],
+        injected:   Object.new
+      },
+      hacked: 1 # not a hash
+    )
+
+    permitted = params.permit(:username, preferences: {}, hacked: {})
+
+    assert_equal "fxn",             permitted[:username]
+    assert_equal "Marazul",         permitted[:preferences][:scheme]
+    assert_equal "Source Code Pro", permitted[:preferences][:font][:name]
+    assert_equal 12,                permitted[:preferences][:font][:size]
+    assert_equal [4, 8, 12, 16],    permitted[:preferences][:tabstops]
+    assert_equal [true, false],     permitted[:preferences][:suspicious]
+    assert_equal :a,                permitted[:preferences][:dubious][0][:a]
+    assert_equal :c,                permitted[:preferences][:dubious][1][:c]
+
+    assert_filtered_out permitted[:preferences][:dubious][0], :b
+    assert_filtered_out permitted[:preferences], :injected
+    assert_filtered_out permitted, :hacked
+  end
+
   test "fetch raises ParameterMissing exception" do
     e = assert_raises(ActionController::ParameterMissing) do
       @params.fetch :foo
