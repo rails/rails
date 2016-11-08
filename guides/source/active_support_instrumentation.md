@@ -228,11 +228,13 @@ Action View
 
 ### render_collection.action_view
 
-| Key           | Value                               |
-| ------------- | ----------------------------------- |
-| `:identifier` | Full path to template               |
-| `:count`      | Size of collection                  |
-| `:cache_hits` | Count of cached partials (optional) |
+| Key           | Value                                 |
+| ------------- | ------------------------------------- |
+| `:identifier` | Full path to template                 |
+| `:count`      | Size of collection                    |
+| `:cache_hits` | Number of partials fetched from cache |
+
+`:cache_hits` is only included if the collection is rendered with `cached: true`.
 
 ```ruby
 {
