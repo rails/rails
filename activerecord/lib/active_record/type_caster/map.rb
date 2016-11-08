@@ -7,6 +7,7 @@ module ActiveRecord
 
       def type_cast_for_database(attr_name, value)
         return value if value.is_a?(Arel::Nodes::BindParam)
+        return value if value.is_a?(Arel::Nodes::SqlLiteral)
         type = types.type_for_attribute(attr_name.to_s)
         type.serialize(value)
       end
