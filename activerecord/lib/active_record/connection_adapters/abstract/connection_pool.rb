@@ -581,6 +581,24 @@ module ActiveRecord
         @available.num_waiting
       end
 
+      # Return connection pool's usage statistic
+      # Example:
+      #
+      #    ActiveRecord::Base.connection_pool.stat # => { size: 15, connections: 1, busy: 1, dead: 0, idle: 0, waiting: 0, checkout_timeout: 5 }
+      def stat
+        synchronize do
+          {
+            size: size,
+            connections: @connections.size,
+            busy: @connections.count { |c| c.in_use? && c.owner.alive? },
+            dead: @connections.count { |c| c.in_use? && !c.owner.alive? },
+            idle: @connections.count { |c| !c.in_use? },
+            waiting: num_waiting_in_queue,
+            checkout_timeout: checkout_timeout
+          }
+        end
+      end
+
       private
         #--
         # this is unfortunately not concurrent

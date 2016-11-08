@@ -1,3 +1,12 @@
+*   Add `stat` method to `ActiveRecord::ConnectionAdapters::ConnectionPool`
+
+    Example:
+
+        ActiveRecord::Base.connection_pool.stat # =>
+        { size: 15, connections: 1, busy: 1, dead: 0, idle: 0, waiting: 0, checkout_timeout: 5 }
+
+    *Pavel Evstigneev*
+
 *   Avoid `unscope(:order)` when `limit_value` is presented for `count`.
 
     If `limit_value` is presented, records fetching order is very important
