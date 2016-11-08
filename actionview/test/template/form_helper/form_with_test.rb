@@ -279,13 +279,6 @@ class FormWithActsLikeFormForTest < FormWithTest
     super
   end
 
-  # def test_form_with_requires_block
-  #   error = assert_raises(ArgumentError) do
-  #     form_for(@post, html: { id: "create-post" })
-  #   end
-  #   assert_equal "Missing block", error.message
-  # end
-
   def test_form_with_requires_arguments
     error = assert_raises(ArgumentError) do
       form_for(nil, html: { id: "create-post" }) do
@@ -327,227 +320,190 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  # def test_form_with_with_collection_radio_buttons
-  #   post = Post.new
-  #   def post.active; false; end
-  #   form_for(post) do |f|
-  #     concat f.collection_radio_buttons(:active, [true, false], :to_s, :to_s)
-  #   end
-  #
-  #   expected = whole_form("/posts", "new_post", "new_post") do
-  #     "<input type='hidden' name='post[active]' value='' />" +
-  #     "<input id='post_active_true' name='post[active]' type='radio' value='true' />" +
-  #     "<label for='post_active_true'>true</label>" +
-  #     "<input checked='checked' id='post_active_false' name='post[active]' type='radio' value='false' />" +
-  #     "<label for='post_active_false'>false</label>"
-  #   end
-  #
-  #   assert_dom_equal expected, output_buffer
-  # end
+  def test_form_with_with_collection_radio_buttons
+    post = Post.new
+    def post.active; false; end
+    form_with(model: post) do |f|
+      concat f.collection_radio_buttons(:active, [true, false], :to_s, :to_s)
+    end
 
-  # def test_form_with_with_collection_radio_buttons_with_custom_builder_block
-  #   post = Post.new
-  #   def post.active; false; end
-  #
-  #   form_for(post) do |f|
-  #     rendered_radio_buttons = f.collection_radio_buttons(:active, [true, false], :to_s, :to_s) do |b|
-  #       b.label { b.radio_button + b.text }
-  #     end
-  #     concat rendered_radio_buttons
-  #   end
-  #
-  #   expected = whole_form("/posts", "new_post", "new_post") do
-  #     "<input type='hidden' name='post[active]' value='' />" +
-  #     "<label for='post_active_true'>" +
-  #     "<input id='post_active_true' name='post[active]' type='radio' value='true' />" +
-  #     "true</label>" +
-  #     "<label for='post_active_false'>" +
-  #     "<input checked='checked' id='post_active_false' name='post[active]' type='radio' value='false' />" +
-  #     "false</label>"
-  #   end
-  #
-  #   assert_dom_equal expected, output_buffer
-  # end
+    expected = whole_form("/posts") do
+      "<input type='hidden' name='post[active]' value='' />" +
+      "<input id='post_active_true' name='post[active]' type='radio' value='true' />" +
+      "<label for='post_active_true'>true</label>" +
+      "<input checked='checked' id='post_active_false' name='post[active]' type='radio' value='false' />" +
+      "<label for='post_active_false'>false</label>"
+    end
 
-  # def test_form_with_with_collection_radio_buttons_with_custom_builder_block_does_not_leak_the_template
-  #   post = Post.new
-  #   def post.active; false; end
-  #   def post.id; 1; end
-  #
-  #   form_for(post) do |f|
-  #     rendered_radio_buttons = f.collection_radio_buttons(:active, [true, false], :to_s, :to_s) do |b|
-  #       b.label { b.radio_button + b.text }
-  #     end
-  #     concat rendered_radio_buttons
-  #     concat f.hidden_field :id
-  #   end
-  #
-  #   expected = whole_form("/posts", "new_post_1", "new_post") do
-  #     "<input type='hidden' name='post[active]' value='' />" +
-  #     "<label for='post_active_true'>" +
-  #     "<input id='post_active_true' name='post[active]' type='radio' value='true' />" +
-  #     "true</label>" +
-  #     "<label for='post_active_false'>" +
-  #     "<input checked='checked' id='post_active_false' name='post[active]' type='radio' value='false' />" +
-  #     "false</label>" +
-  #     "<input id='post_id' name='post[id]' type='hidden' value='1' />"
-  #   end
-  #
-  #   assert_dom_equal expected, output_buffer
-  # end
+    assert_dom_equal expected, output_buffer
+  end
 
-  # def test_form_with_namespace_and_with_collection_radio_buttons
-  #   post = Post.new
-  #   def post.active; false; end
-  #
-  #   form_for(post, namespace: "foo") do |f|
-  #     concat f.collection_radio_buttons(:active, [true, false], :to_s, :to_s)
-  #   end
-  #
-  #   expected = whole_form("/posts", "foo_new_post", "new_post") do
-  #     "<input type='hidden' name='post[active]' value='' />" +
-  #     "<input id='foo_post_active_true' name='post[active]' type='radio' value='true' />" +
-  #     "<label for='foo_post_active_true'>true</label>" +
-  #     "<input checked='checked' id='foo_post_active_false' name='post[active]' type='radio' value='false' />" +
-  #     "<label for='foo_post_active_false'>false</label>"
-  #   end
-  #
-  #   assert_dom_equal expected, output_buffer
-  # end
+  def test_form_with_with_collection_radio_buttons_with_custom_builder_block
+    post = Post.new
+    def post.active; false; end
 
-  # def test_form_with_index_and_with_collection_radio_buttons
-  #   post = Post.new
-  #   def post.active; false; end
-  #
-  #   form_for(post, index: "1") do |f|
-  #     concat f.collection_radio_buttons(:active, [true, false], :to_s, :to_s)
-  #   end
-  #
-  #   expected = whole_form("/posts", "new_post", "new_post") do
-  #     "<input type='hidden' name='post[1][active]' value='' />" +
-  #     "<input id='post_1_active_true' name='post[1][active]' type='radio' value='true' />" +
-  #     "<label for='post_1_active_true'>true</label>" +
-  #     "<input checked='checked' id='post_1_active_false' name='post[1][active]' type='radio' value='false' />" +
-  #     "<label for='post_1_active_false'>false</label>"
-  #   end
-  #
-  #   assert_dom_equal expected, output_buffer
-  # end
+    form_with(model: post) do |f|
+      rendered_radio_buttons = f.collection_radio_buttons(:active, [true, false], :to_s, :to_s) do |b|
+        b.label { b.radio_button + b.text }
+      end
+      concat rendered_radio_buttons
+    end
 
-  # def test_form_with_with_collection_check_boxes
-  #   post = Post.new
-  #   def post.tag_ids; [1, 3]; end
-  #   collection = (1..3).map { |i| [i, "Tag #{i}"] }
-  #   form_for(post) do |f|
-  #     concat f.collection_check_boxes(:tag_ids, collection, :first, :last)
-  #   end
-  #
-  #   expected = whole_form("/posts", "new_post", "new_post") do
-  #     "<input name='post[tag_ids][]' type='hidden' value='' />" +
-  #     "<input checked='checked' id='post_tag_ids_1' name='post[tag_ids][]' type='checkbox' value='1' />" +
-  #     "<label for='post_tag_ids_1'>Tag 1</label>" +
-  #     "<input id='post_tag_ids_2' name='post[tag_ids][]' type='checkbox' value='2' />" +
-  #     "<label for='post_tag_ids_2'>Tag 2</label>" +
-  #     "<input checked='checked' id='post_tag_ids_3' name='post[tag_ids][]' type='checkbox' value='3' />" +
-  #     "<label for='post_tag_ids_3'>Tag 3</label>"
-  #   end
-  #
-  #   assert_dom_equal expected, output_buffer
-  # end
-  #
-  # def test_form_with_with_collection_check_boxes_with_custom_builder_block
-  #   post = Post.new
-  #   def post.tag_ids; [1, 3]; end
-  #   collection = (1..3).map { |i| [i, "Tag #{i}"] }
-  #   form_for(post) do |f|
-  #     rendered_check_boxes = f.collection_check_boxes(:tag_ids, collection, :first, :last) do |b|
-  #       b.label { b.check_box + b.text }
-  #     end
-  #     concat rendered_check_boxes
-  #   end
-  #
-  #   expected = whole_form("/posts", "new_post", "new_post") do
-  #     "<input name='post[tag_ids][]' type='hidden' value='' />" +
-  #     "<label for='post_tag_ids_1'>" +
-  #     "<input checked='checked' id='post_tag_ids_1' name='post[tag_ids][]' type='checkbox' value='1' />" +
-  #     "Tag 1</label>" +
-  #     "<label for='post_tag_ids_2'>" +
-  #     "<input id='post_tag_ids_2' name='post[tag_ids][]' type='checkbox' value='2' />" +
-  #     "Tag 2</label>" +
-  #     "<label for='post_tag_ids_3'>" +
-  #     "<input checked='checked' id='post_tag_ids_3' name='post[tag_ids][]' type='checkbox' value='3' />" +
-  #     "Tag 3</label>"
-  #   end
-  #
-  #   assert_dom_equal expected, output_buffer
-  # end
-  #
-  # def test_form_with_with_collection_check_boxes_with_custom_builder_block_does_not_leak_the_template
-  #   post = Post.new
-  #   def post.tag_ids; [1, 3]; end
-  #   def post.id; 1; end
-  #   collection = (1..3).map { |i| [i, "Tag #{i}"] }
-  #
-  #   form_for(post) do |f|
-  #     rendered_check_boxes = f.collection_check_boxes(:tag_ids, collection, :first, :last) do |b|
-  #       b.label { b.check_box + b.text }
-  #     end
-  #     concat rendered_check_boxes
-  #     concat f.hidden_field :id
-  #   end
-  #
-  #   expected = whole_form("/posts", "new_post_1", "new_post") do
-  #     "<input name='post[tag_ids][]' type='hidden' value='' />" +
-  #     "<label for='post_tag_ids_1'>" +
-  #     "<input checked='checked' id='post_tag_ids_1' name='post[tag_ids][]' type='checkbox' value='1' />" +
-  #     "Tag 1</label>" +
-  #     "<label for='post_tag_ids_2'>" +
-  #     "<input id='post_tag_ids_2' name='post[tag_ids][]' type='checkbox' value='2' />" +
-  #     "Tag 2</label>" +
-  #     "<label for='post_tag_ids_3'>" +
-  #     "<input checked='checked' id='post_tag_ids_3' name='post[tag_ids][]' type='checkbox' value='3' />" +
-  #     "Tag 3</label>" +
-  #     "<input id='post_id' name='post[id]' type='hidden' value='1' />"
-  #   end
-  #
-  #   assert_dom_equal expected, output_buffer
-  # end
-  #
-  # def test_form_with_namespace_and_with_collection_check_boxes
-  #   post = Post.new
-  #   def post.tag_ids; [1]; end
-  #   collection = [[1, "Tag 1"]]
-  #
-  #   form_for(post, namespace: "foo") do |f|
-  #     concat f.collection_check_boxes(:tag_ids, collection, :first, :last)
-  #   end
-  #
-  #   expected = whole_form("/posts", "foo_new_post", "new_post") do
-  #     "<input name='post[tag_ids][]' type='hidden' value='' />" +
-  #     "<input checked='checked' id='foo_post_tag_ids_1' name='post[tag_ids][]' type='checkbox' value='1' />" +
-  #     "<label for='foo_post_tag_ids_1'>Tag 1</label>"
-  #   end
-  #
-  #   assert_dom_equal expected, output_buffer
-  # end
-  #
-  # def test_form_with_index_and_with_collection_check_boxes
-  #   post = Post.new
-  #   def post.tag_ids; [1]; end
-  #   collection = [[1, "Tag 1"]]
-  #
-  #   form_for(post, index: "1") do |f|
-  #     concat f.collection_check_boxes(:tag_ids, collection, :first, :last)
-  #   end
-  #
-  #   expected = whole_form("/posts", "new_post", "new_post") do
-  #     "<input name='post[1][tag_ids][]' type='hidden' value='' />" +
-  #     "<input checked='checked' id='post_1_tag_ids_1' name='post[1][tag_ids][]' type='checkbox' value='1' />" +
-  #     "<label for='post_1_tag_ids_1'>Tag 1</label>"
-  #   end
-  #
-  #   assert_dom_equal expected, output_buffer
-  # end
+    expected = whole_form("/posts") do
+      "<input type='hidden' name='post[active]' value='' />" +
+      "<label for='post_active_true'>" +
+      "<input id='post_active_true' name='post[active]' type='radio' value='true' />" +
+      "true</label>" +
+      "<label for='post_active_false'>" +
+      "<input checked='checked' id='post_active_false' name='post[active]' type='radio' value='false' />" +
+      "false</label>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_with_with_collection_radio_buttons_with_custom_builder_block_does_not_leak_the_template
+    post = Post.new
+    def post.active; false; end
+    def post.id; 1; end
+
+    form_with(model: post) do |f|
+      rendered_radio_buttons = f.collection_radio_buttons(:active, [true, false], :to_s, :to_s) do |b|
+        b.label { b.radio_button + b.text }
+      end
+      concat rendered_radio_buttons
+      concat f.hidden_field :id
+    end
+
+    expected = whole_form("/posts") do
+      "<input type='hidden' name='post[active]' value='' />" +
+      "<label for='post_active_true'>" +
+      "<input id='post_active_true' name='post[active]' type='radio' value='true' />" +
+      "true</label>" +
+      "<label for='post_active_false'>" +
+      "<input checked='checked' id='post_active_false' name='post[active]' type='radio' value='false' />" +
+      "false</label>" +
+      "<input id='post_id' name='post[id]' type='hidden' value='1' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_with_with_index_and_with_collection_radio_buttons
+    post = Post.new
+    def post.active; false; end
+
+    form_with(model: post, index: "1") do |f|
+      concat f.collection_radio_buttons(:active, [true, false], :to_s, :to_s)
+    end
+
+    expected = whole_form("/posts") do
+      "<input type='hidden' name='post[1][active]' value='' />" +
+      "<input id='post_1_active_true' name='post[1][active]' type='radio' value='true' />" +
+      "<label for='post_1_active_true'>true</label>" +
+      "<input checked='checked' id='post_1_active_false' name='post[1][active]' type='radio' value='false' />" +
+      "<label for='post_1_active_false'>false</label>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_with_with_collection_check_boxes
+    post = Post.new
+    def post.tag_ids; [1, 3]; end
+    collection = (1..3).map { |i| [i, "Tag #{i}"] }
+    form_with(model: post) do |f|
+      concat f.collection_check_boxes(:tag_ids, collection, :first, :last)
+    end
+
+    expected = whole_form("/posts") do
+      "<input name='post[tag_ids][]' type='hidden' value='' />" +
+      "<input checked='checked' id='post_tag_ids_1' name='post[tag_ids][]' type='checkbox' value='1' />" +
+      "<label for='post_tag_ids_1'>Tag 1</label>" +
+      "<input id='post_tag_ids_2' name='post[tag_ids][]' type='checkbox' value='2' />" +
+      "<label for='post_tag_ids_2'>Tag 2</label>" +
+      "<input checked='checked' id='post_tag_ids_3' name='post[tag_ids][]' type='checkbox' value='3' />" +
+      "<label for='post_tag_ids_3'>Tag 3</label>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_with_with_collection_check_boxes_with_custom_builder_block
+    post = Post.new
+    def post.tag_ids; [1, 3]; end
+    collection = (1..3).map { |i| [i, "Tag #{i}"] }
+    form_with(model: post) do |f|
+      rendered_check_boxes = f.collection_check_boxes(:tag_ids, collection, :first, :last) do |b|
+        b.label { b.check_box + b.text }
+      end
+      concat rendered_check_boxes
+    end
+
+    expected = whole_form("/posts") do
+      "<input name='post[tag_ids][]' type='hidden' value='' />" +
+      "<label for='post_tag_ids_1'>" +
+      "<input checked='checked' id='post_tag_ids_1' name='post[tag_ids][]' type='checkbox' value='1' />" +
+      "Tag 1</label>" +
+      "<label for='post_tag_ids_2'>" +
+      "<input id='post_tag_ids_2' name='post[tag_ids][]' type='checkbox' value='2' />" +
+      "Tag 2</label>" +
+      "<label for='post_tag_ids_3'>" +
+      "<input checked='checked' id='post_tag_ids_3' name='post[tag_ids][]' type='checkbox' value='3' />" +
+      "Tag 3</label>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_with_with_collection_check_boxes_with_custom_builder_block_does_not_leak_the_template
+    post = Post.new
+    def post.tag_ids; [1, 3]; end
+    def post.id; 1; end
+    collection = (1..3).map { |i| [i, "Tag #{i}"] }
+
+    form_with(model: post) do |f|
+      rendered_check_boxes = f.collection_check_boxes(:tag_ids, collection, :first, :last) do |b|
+        b.label { b.check_box + b.text }
+      end
+      concat rendered_check_boxes
+      concat f.hidden_field :id
+    end
+
+    expected = whole_form("/posts") do
+      "<input name='post[tag_ids][]' type='hidden' value='' />" +
+      "<label for='post_tag_ids_1'>" +
+      "<input checked='checked' id='post_tag_ids_1' name='post[tag_ids][]' type='checkbox' value='1' />" +
+      "Tag 1</label>" +
+      "<label for='post_tag_ids_2'>" +
+      "<input id='post_tag_ids_2' name='post[tag_ids][]' type='checkbox' value='2' />" +
+      "Tag 2</label>" +
+      "<label for='post_tag_ids_3'>" +
+      "<input checked='checked' id='post_tag_ids_3' name='post[tag_ids][]' type='checkbox' value='3' />" +
+      "Tag 3</label>" +
+      "<input id='post_id' name='post[id]' type='hidden' value='1' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_with_index_and_with_collection_check_boxes
+    post = Post.new
+    def post.tag_ids; [1]; end
+    collection = [[1, "Tag 1"]]
+
+    form_with(model: post, index: "1") do |f|
+      concat f.collection_check_boxes(:tag_ids, collection, :first, :last)
+    end
+
+    expected = whole_form("/posts") do
+      "<input name='post[1][tag_ids][]' type='hidden' value='' />" +
+      "<input checked='checked' id='post_1_tag_ids_1' name='post[1][tag_ids][]' type='checkbox' value='1' />" +
+      "<label for='post_1_tag_ids_1'>Tag 1</label>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
 
   def test_form_with_with_file_field_generate_multipart
     Post.send :attr_accessor, :file
@@ -896,85 +852,6 @@ class FormWithActsLikeFormForTest < FormWithTest
 
     assert_dom_equal expected, output_buffer
   end
-
-  # def test_form_with_with_namespace_with_date_select
-  #   form_for(@post, namespace: "namespace") do |f|
-  #     concat f.date_select(:written_on)
-  #   end
-  #
-  #   assert_select "select#namespace_post_written_on_1i"
-  # end
-  #
-  # def test_form_with_with_namespace_with_label
-  #   form_for(@post, namespace: "namespace") do |f|
-  #     concat f.label(:title)
-  #     concat f.text_field(:title)
-  #   end
-  #
-  #   expected = whole_form("/posts/123", "namespace_edit_post_123", "edit_post", method: "patch") do
-  #     "<label for='namespace_post_title'>Title</label>" +
-  #     "<input name='post[title]' type='text' id='namespace_post_title' value='Hello World' />"
-  #   end
-  #
-  #   assert_dom_equal expected, output_buffer
-  # end
-  #
-  # def test_form_with_with_namespace_and_as_option
-  #   form_for(@post, namespace: "namespace", as: "custom_name") do |f|
-  #     concat f.text_field(:title)
-  #   end
-  #
-  #   expected = whole_form("/posts/123", "namespace_edit_custom_name", "edit_custom_name", method: "patch") do
-  #     "<input id='namespace_custom_name_title' name='custom_name[title]' type='text' value='Hello World' />"
-  #   end
-  #
-  #   assert_dom_equal expected, output_buffer
-  # end
-  #
-  # def test_two_form_for_with_namespace
-  #   form_for(@post, namespace: "namespace_1") do |f|
-  #     concat f.label(:title)
-  #     concat f.text_field(:title)
-  #   end
-  #
-  #   expected_1 = whole_form("/posts/123", "namespace_1_edit_post_123", "edit_post", method: "patch") do
-  #     "<label for='namespace_1_post_title'>Title</label>" +
-  #     "<input name='post[title]' type='text' id='namespace_1_post_title' value='Hello World' />"
-  #   end
-  #
-  #   assert_dom_equal expected_1, output_buffer
-  #
-  #   form_for(@post, namespace: "namespace_2") do |f|
-  #     concat f.label(:title)
-  #     concat f.text_field(:title)
-  #   end
-  #
-  #   expected_2 = whole_form("/posts/123", "namespace_2_edit_post_123", "edit_post", method: "patch") do
-  #     "<label for='namespace_2_post_title'>Title</label>" +
-  #     "<input name='post[title]' type='text' id='namespace_2_post_title' value='Hello World' />"
-  #   end
-  #
-  #   assert_dom_equal expected_2, output_buffer
-  # end
-
-  # def test_fields_for_with_namespace
-  #   @comment.body = "Hello World"
-  #   form_for(@post, namespace: "namespace") do |f|
-  #     concat f.text_field(:title)
-  #     concat f.text_area(:body)
-  #     concat f.fields_for(@comment) { |c|
-  #       concat c.text_field(:body)
-  #     }
-  #   end
-  #
-  #   expected = whole_form("/posts/123", "namespace_edit_post_123", "edit_post", method: "patch") do
-  #     "<input name='post[title]' type='text' id='namespace_post_title' value='Hello World' />" +
-  #     "<textarea name='post[body]' id='namespace_post_body'>\nBack to the hill and over it again!</textarea>" +
-  #     "<input name='post[comment][body]' type='text' id='namespace_post_comment_body' value='Hello World' />"
-  #   end
-  #
-  #   assert_dom_equal expected, output_buffer
-  # end
 
   def test_submit_with_object_as_new_record_and_locale_strings
     with_locale :submit do
