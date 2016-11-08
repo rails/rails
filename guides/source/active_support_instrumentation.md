@@ -226,6 +226,22 @@ Action View
 }
 ```
 
+### render_collection.action_view
+
+| Key           | Value                               |
+| ------------- | ----------------------------------- |
+| `:identifier` | Full path to template               |
+| `:count`      | Size of collection                  |
+| `:cache_hits` | Count of cached partials (optional) |
+
+```ruby
+{
+  identifier: "/Users/adam/projects/notifications/app/views/posts/_post.html.erb",
+  count: 3,
+  cache_hits: 0
+}
+```
+
 Active Record
 ------------
 
