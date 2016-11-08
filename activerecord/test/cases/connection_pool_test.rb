@@ -526,6 +526,26 @@ module ActiveRecord
         end
       end
 
+      def test_connection_pool_stat
+        with_single_connection_pool do |pool|
+          pool.with_connection do |connection|
+            stats = pool.stat
+            assert_equal({ size: 1, connections: 1, busy: 1, dead: 0, idle: 0, waiting: 0, checkout_timeout: 5 }, stats)
+          end
+
+          stats = pool.stat
+          assert_equal({ size: 1, connections: 1, busy: 0, dead: 0, idle: 1, waiting: 0, checkout_timeout: 5 }, stats)
+
+          Thread.new do
+            pool.checkout
+            Thread.current.kill
+          end.join
+
+          stats = pool.stat
+          assert_equal({ size: 1, connections: 1, busy: 0, dead: 1, idle: 0, waiting: 0, checkout_timeout: 5 }, stats)
+        end
+      end
+
       private
         def with_single_connection_pool
           one_conn_spec = ActiveRecord::Base.connection_pool.spec.dup
