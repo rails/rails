@@ -4,6 +4,10 @@ module ActiveRecord
       module Quoting # :nodoc:
         QUOTED_TRUE, QUOTED_FALSE = "1".freeze, "0".freeze
 
+        def quote_string(s)
+          @connection.escape(s)
+        end
+
         def quote_column_name(name)
           @quoted_column_names[name] ||= "`#{super.gsub('`', '``')}`".freeze
         end
