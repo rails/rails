@@ -53,7 +53,13 @@ rvm:
 
 matrix:
   include:
-    # Latest compiled version in http://rubies.travis-ci.org
+    # MariaDB on Ruby 2.2.5
+    - rvm: 2.2.5
+      env:
+        - "GEM=ar:mysql2"
+      addons:
+        mariadb: 10.0
+    # MariaDB on Ruby 2.3.1
     - rvm: 2.3.1
       env:
         - "GEM=ar:mysql2"
