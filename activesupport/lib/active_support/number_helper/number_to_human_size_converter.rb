@@ -7,10 +7,6 @@ module ActiveSupport
       self.validate_float = true
 
       def convert
-        if opts.key?(:prefix)
-          ActiveSupport::Deprecation.warn("The :prefix option of `number_to_human_size` is deprecated and will be removed in Rails 5.1 with no replacement.")
-        end
-
         @number = Float(number)
 
         # for backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files
@@ -54,7 +50,7 @@ module ActiveSupport
         end
 
         def base
-          opts[:prefix] == :si ? 1000 : 1024
+          1024
         end
     end
   end

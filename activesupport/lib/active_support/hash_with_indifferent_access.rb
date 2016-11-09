@@ -84,15 +84,6 @@ module ActiveSupport
       end
     end
 
-    def self.new_from_hash_copying_default(hash)
-      ActiveSupport::Deprecation.warn(<<-MSG.squish)
-        `ActiveSupport::HashWithIndifferentAccess.new_from_hash_copying_default`
-        has been deprecated, and will be removed in Rails 5.1. The behavior of
-        this method is now identical to the behavior of `.new`.
-      MSG
-      new(hash)
-    end
-
     def self.[](*args)
       new.merge!(Hash[*args])
     end
