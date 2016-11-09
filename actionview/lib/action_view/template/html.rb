@@ -6,8 +6,11 @@ module ActionView #:nodoc:
 
       def initialize(string, type = nil)
         @string = string.to_s
-        @type   = Types[type] || type if type
-        @type ||= Types[:html]
+        @type = if type
+          Types[type] || type
+        else
+          Types[:html]
+        end
       end
 
       def identifier
