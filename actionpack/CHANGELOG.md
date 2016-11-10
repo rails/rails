@@ -1,3 +1,7 @@
+*   Add `ActionController::Parameters#merge!`, which behaves the same as `Hash#merge!`.
+
+    *Yuji Yaginuma*
+
 *   Make `fixture_file_upload` work in integration tests.
 
     *Yuji Yaginuma*
