@@ -953,6 +953,9 @@ class Client < ApplicationRecord
 end
 ```
 
+NOTE: Please note that the optimistic locking will be ignored if you update the
+locking column's value.
+
 ### Pessimistic Locking
 
 Pessimistic locking uses a locking mechanism provided by the underlying database. Using `lock` when building a relation obtains an exclusive lock on the selected rows. Relations using `lock` are usually wrapped inside a transaction for preventing deadlock conditions.
