@@ -1,3 +1,7 @@
+*   Add `ActionController::Parameters#merge!`, which behaves the same as `Hash#merge!`.
+
+    *Yuji Yaginuma*
+
 *   Allow keys not found in RACK_KEY_TRANSLATION for setting the environment when rendering
     arbitrary templates.
 

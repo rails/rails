@@ -244,6 +244,23 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert merged_params[:id]
   end
 
+  test "not permitted is sticky beyond merge!" do
+    assert_not @params.merge!(a: "b").permitted?
+  end
+
+  test "permitted is sticky beyond merge!" do
+    @params.permit!
+    assert @params.merge!(a: "b").permitted?
+  end
+
+  test "merge! with parameters" do
+    other_params = ActionController::Parameters.new(id: "1234").permit!
+    @params.merge!(other_params)
+
+    assert_equal "1234", @params[:id]
+    assert_equal "32", @params[:person][:age]
+  end
+
   test "modifying the parameters" do
     @params[:person][:hometown] = "Chicago"
     @params[:person][:family] = { brother: "Jonas" }
