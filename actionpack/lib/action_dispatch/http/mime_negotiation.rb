@@ -29,8 +29,8 @@ module ActionDispatch
         content_mime_type && content_mime_type.to_s
       end
 
-      def has_content_type?
-        has_header? "CONTENT_TYPE"
+      def has_content_type? # :nodoc:
+        get_header "CONTENT_TYPE"
       end
 
       # Returns the accepted MIME type for the request.
