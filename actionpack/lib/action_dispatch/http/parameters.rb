@@ -7,7 +7,12 @@ module ActionDispatch
 
       DEFAULT_PARSERS = {
         Mime[:json].symbol => -> (raw_post) {
-          data = ActiveSupport::JSON.decode(raw_post)
+          encoded = raw_post.force_encoding(Encoding::UTF_8)
+          unless encoded.valid_encoding?
+            raise Rack::Utils::InvalidParameterError, "Invalid UTF-8 sequence"
+          end
+
+          data = ActiveSupport::JSON.decode(encoded)
           data.is_a?(Hash) ? data : { _json: data }
         }
       }

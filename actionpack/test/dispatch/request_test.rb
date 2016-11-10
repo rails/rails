@@ -1042,6 +1042,21 @@ class RequestParameters < BaseRequestTest
     assert_raises(ActionController::BadRequest) { request.parameters }
   end
 
+  test "JSON parameter containing an invalid UTF8 sequence" do
+    invalid = "{ \"bad\": \"\xBE\" }"
+
+    request = stub_request(
+        "REQUEST_METHOD" => "POST",
+        "CONTENT_LENGTH" => invalid.length,
+        "CONTENT_TYPE" => "application/json",
+        "rack.input" => StringIO.new(invalid)
+    )
+
+    assert_raises(ActionDispatch::Http::Parameters::ParseError) do
+      request.parameters
+    end
+  end
+
   test "parameters not accessible after rack parse error 1" do
     request = stub_request(
       "REQUEST_METHOD" => "POST",
