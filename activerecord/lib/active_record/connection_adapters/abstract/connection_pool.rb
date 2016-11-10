@@ -307,6 +307,7 @@ module ActiveRecord
       end
 
       include MonitorMixin
+      include QueryCache::ConnectionPoolConfiguration
 
       attr_accessor :automatic_reconnect, :checkout_timeout, :schema_cache
       attr_reader :spec, :connections, :size, :reaper

@@ -313,6 +313,40 @@ class QueryCacheTest < ActiveRecord::TestCase
     end
   end
 
+  def test_query_cache_does_not_establish_connection_if_unconnected
+    ActiveRecord::Base.clear_active_connections!
+    refute ActiveRecord::Base.connection_handler.active_connections? # sanity check
+
+    middleware {
+      refute ActiveRecord::Base.connection_handler.active_connections?, "QueryCache forced ActiveRecord::Base to establish a connection in setup"
+    }.call({})
+
+    refute ActiveRecord::Base.connection_handler.active_connections?, "QueryCache forced ActiveRecord::Base to establish a connection in cleanup"
+  end
+
+  def test_query_cache_is_enabled_on_connections_established_after_middleware_runs
+    ActiveRecord::Base.clear_active_connections!
+    refute ActiveRecord::Base.connection_handler.active_connections? # sanity check
+
+    middleware {
+      assert ActiveRecord::Base.connection.query_cache_enabled, "QueryCache did not get lazily enabled"
+    }.call({})
+  end
+
+  def test_query_caching_is_local_to_the_current_thread
+    ActiveRecord::Base.clear_active_connections!
+
+    middleware {
+      assert ActiveRecord::Base.connection_pool.query_cache_enabled
+      assert ActiveRecord::Base.connection.query_cache_enabled
+
+      Thread.new {
+        refute ActiveRecord::Base.connection_pool.query_cache_enabled
+        refute ActiveRecord::Base.connection.query_cache_enabled
+      }.join
+    }.call({})
+  end
+
   private
     def middleware(&app)
       executor = Class.new(ActiveSupport::Executor)
