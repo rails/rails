@@ -308,20 +308,24 @@ module ActiveRecord
       def columns(table_name) # :nodoc:
         table_name = table_name.to_s
         table_structure(table_name).map do |field|
-          case field["dflt_value"]
-          when /^null$/i
-            field["dflt_value"] = nil
-          when /^'(.*)'$/m
-            field["dflt_value"] = $1.gsub("''", "'")
-          when /^"(.*)"$/m
-            field["dflt_value"] = $1.gsub('""', '"')
-          end
-
-          collation = field["collation"]
-          sql_type = field["type"]
-          type_metadata = fetch_type_metadata(sql_type)
-          new_column(field["name"], field["dflt_value"], type_metadata, field["notnull"].to_i == 0, table_name, nil, collation)
+          new_column_from_field(table_name, field)
         end
+      end
+
+      def new_column_from_field(table_name, field) # :nondoc:
+        case field["dflt_value"]
+        when /^null$/i
+          field["dflt_value"] = nil
+        when /^'(.*)'$/m
+          field["dflt_value"] = $1.gsub("''", "'")
+        when /^"(.*)"$/m
+          field["dflt_value"] = $1.gsub('""', '"')
+        end
+
+        collation = field["collation"]
+        sql_type = field["type"]
+        type_metadata = fetch_type_metadata(sql_type)
+        new_column(field["name"], field["dflt_value"], type_metadata, field["notnull"].to_i == 0, table_name, nil, collation)
       end
 
       # Returns an array of indexes for the given table.

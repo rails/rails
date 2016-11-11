@@ -398,18 +398,14 @@ module ActiveRecord
         indexes
       end
 
-      # Returns an array of +Column+ objects for the table specified by +table_name+.
-      def columns(table_name) # :nodoc:
-        table_name = table_name.to_s
-        column_definitions(table_name).map do |field|
-          type_metadata = fetch_type_metadata(field[:Type], field[:Extra])
-          if type_metadata.type == :datetime && field[:Default] == "CURRENT_TIMESTAMP"
-            default, default_function = nil, field[:Default]
-          else
-            default, default_function = field[:Default], nil
-          end
-          new_column(field[:Field], default, type_metadata, field[:Null] == "YES", table_name, default_function, field[:Collation], comment: field[:Comment].presence)
+      def new_column_from_field(table_name, field) # :nodoc:
+        type_metadata = fetch_type_metadata(field[:Type], field[:Extra])
+        if type_metadata.type == :datetime && field[:Default] == "CURRENT_TIMESTAMP"
+          default, default_function = nil, field[:Default]
+        else
+          default, default_function = field[:Default], nil
         end
+        new_column(field[:Field], default, type_metadata, field[:Null] == "YES", table_name, default_function, field[:Collation], comment: field[:Comment].presence)
       end
 
       def table_comment(table_name) # :nodoc:
