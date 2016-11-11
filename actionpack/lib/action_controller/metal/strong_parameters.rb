@@ -790,7 +790,7 @@ module ActionController
               params[key] = val
             end
           elsif filter[key] == EMPTY_HASH
-            # Declaration { preferences: {} }
+            # Declaration { preferences: {} }.
             if value.is_a?(Parameters)
               params[key] = permit_any_in_parameters(value)
             end
