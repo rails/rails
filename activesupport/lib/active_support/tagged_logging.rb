@@ -78,7 +78,7 @@ module ActiveSupport
       end
     else
       def respond_to_missing?(*args)
-        @logger.respond_to? *args
+        @logger.respond_to?(*args)
       end
     end
 

@@ -1786,9 +1786,13 @@ if ActiveRecord::Base.connection.supports_migrations?
     def test_migrator_interleaved_migrations
       ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/interleaved/pass_1")
 
+      Object.send :remove_const, :InterleavedInnocentJointable
+
       assert_nothing_raised do
         ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/interleaved/pass_2")
       end
+
+      Object.send :remove_const, :InterleavedPeopleHaveLastNames
 
       Person.reset_column_information
       assert Person.column_methods_hash.include?(:last_name)
@@ -2199,8 +2203,8 @@ if ActiveRecord::Base.connection.supports_migrations?
       @existing_migrations = Dir[@migrations_path + "/*.rb"]
 
       copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy"})
-      assert File.exists?(@migrations_path + "/4_people_have_hobbies.bukkits.rb")
-      assert File.exists?(@migrations_path + "/5_people_have_descriptions.bukkits.rb")
+      assert File.exist?(@migrations_path + "/4_people_have_hobbies.bukkits.rb")
+      assert File.exist?(@migrations_path + "/5_people_have_descriptions.bukkits.rb")
       assert_equal [@migrations_path + "/4_people_have_hobbies.bukkits.rb", @migrations_path + "/5_people_have_descriptions.bukkits.rb"], copied.map(&:filename)
 
       expected = "# This migration comes from bukkits (originally 1)"
@@ -2223,10 +2227,10 @@ if ActiveRecord::Base.connection.supports_migrations?
       sources[:bukkits] = MIGRATIONS_ROOT + "/to_copy"
       sources[:omg] = MIGRATIONS_ROOT + "/to_copy2"
       ActiveRecord::Migration.copy(@migrations_path, sources)
-      assert File.exists?(@migrations_path + "/4_people_have_hobbies.bukkits.rb")
-      assert File.exists?(@migrations_path + "/5_people_have_descriptions.bukkits.rb")
-      assert File.exists?(@migrations_path + "/6_create_articles.omg.rb")
-      assert File.exists?(@migrations_path + "/7_create_comments.omg.rb")
+      assert File.exist?(@migrations_path + "/4_people_have_hobbies.bukkits.rb")
+      assert File.exist?(@migrations_path + "/5_people_have_descriptions.bukkits.rb")
+      assert File.exist?(@migrations_path + "/6_create_articles.omg.rb")
+      assert File.exist?(@migrations_path + "/7_create_comments.omg.rb")
 
       files_count = Dir[@migrations_path + "/*.rb"].length
       ActiveRecord::Migration.copy(@migrations_path, sources)
@@ -2241,8 +2245,8 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       Time.travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
         copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
-        assert File.exists?(@migrations_path + "/20100726101010_people_have_hobbies.bukkits.rb")
-        assert File.exists?(@migrations_path + "/20100726101011_people_have_descriptions.bukkits.rb")
+        assert File.exist?(@migrations_path + "/20100726101010_people_have_hobbies.bukkits.rb")
+        assert File.exist?(@migrations_path + "/20100726101011_people_have_descriptions.bukkits.rb")
         expected = [@migrations_path + "/20100726101010_people_have_hobbies.bukkits.rb",
                     @migrations_path + "/20100726101011_people_have_descriptions.bukkits.rb"]
         assert_equal expected, copied.map(&:filename)
@@ -2266,10 +2270,10 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       Time.travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
         copied = ActiveRecord::Migration.copy(@migrations_path, sources)
-        assert File.exists?(@migrations_path + "/20100726101010_people_have_hobbies.bukkits.rb")
-        assert File.exists?(@migrations_path + "/20100726101011_people_have_descriptions.bukkits.rb")
-        assert File.exists?(@migrations_path + "/20100726101012_create_articles.omg.rb")
-        assert File.exists?(@migrations_path + "/20100726101013_create_comments.omg.rb")
+        assert File.exist?(@migrations_path + "/20100726101010_people_have_hobbies.bukkits.rb")
+        assert File.exist?(@migrations_path + "/20100726101011_people_have_descriptions.bukkits.rb")
+        assert File.exist?(@migrations_path + "/20100726101012_create_articles.omg.rb")
+        assert File.exist?(@migrations_path + "/20100726101013_create_comments.omg.rb")
         assert_equal 4, copied.length
 
         files_count = Dir[@migrations_path + "/*.rb"].length
@@ -2286,8 +2290,8 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       Time.travel_to(Time.utc(2010, 2, 20, 10, 10, 10)) do
         ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
-        assert File.exists?(@migrations_path + "/20100301010102_people_have_hobbies.bukkits.rb")
-        assert File.exists?(@migrations_path + "/20100301010103_people_have_descriptions.bukkits.rb")
+        assert File.exist?(@migrations_path + "/20100301010102_people_have_hobbies.bukkits.rb")
+        assert File.exist?(@migrations_path + "/20100301010103_people_have_descriptions.bukkits.rb")
 
         files_count = Dir[@migrations_path + "/*.rb"].length
         copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
@@ -2341,8 +2345,8 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       Time.travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
         copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
-        assert File.exists?(@migrations_path + "/20100726101010_people_have_hobbies.bukkits.rb")
-        assert File.exists?(@migrations_path + "/20100726101011_people_have_descriptions.bukkits.rb")
+        assert File.exist?(@migrations_path + "/20100726101010_people_have_hobbies.bukkits.rb")
+        assert File.exist?(@migrations_path + "/20100726101011_people_have_descriptions.bukkits.rb")
         assert_equal 2, copied.length
       end
     ensure
@@ -2356,8 +2360,8 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       Time.travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
         copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
-        assert File.exists?(@migrations_path + "/20100726101010_people_have_hobbies.bukkits.rb")
-        assert File.exists?(@migrations_path + "/20100726101011_people_have_descriptions.bukkits.rb")
+        assert File.exist?(@migrations_path + "/20100726101010_people_have_hobbies.bukkits.rb")
+        assert File.exist?(@migrations_path + "/20100726101011_people_have_descriptions.bukkits.rb")
         assert_equal 2, copied.length
       end
     ensure

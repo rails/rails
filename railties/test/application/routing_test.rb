@@ -9,6 +9,8 @@ module ApplicationTests
     def setup
       build_app
       boot_rails
+
+      sleep 1
     end
 
     def teardown
@@ -191,13 +193,13 @@ module ApplicationTests
         get '/foo'
         assert_equal 'bar', last_response.body
 
+        sleep 1
+
         app_file 'config/routes.rb', <<-RUBY
           AppTemplate::Application.routes.draw do
             match 'foo', :to => 'foo#baz'
           end
         RUBY
-
-        sleep 0.1
 
         get '/foo'
         assert_equal expected, last_response.body

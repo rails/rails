@@ -648,24 +648,26 @@ module ActiveRecord #:nodoc:
         "#<#{self.class} #{inspection}>"
       end
 
-      # Hackery to accomodate Syck. Remove for 4.0.
-      def to_yaml(opts = {}) #:nodoc:
-        if YAML.const_defined?(:ENGINE) && !YAML::ENGINE.syck?
-          super
-        else
-          coder = {}
-          encode_with(coder)
-          YAML.quick_emit(self, opts) do |out|
-            out.map(taguri, to_yaml_style) do |map|
-              coder.each { |k, v| map.add(k, v) }
+      if RUBY_VERSION < '2.2'
+        # Hackery to accomodate Syck. Remove for 4.0.
+        def to_yaml(opts = {}) #:nodoc:
+          if YAML.const_defined?(:ENGINE) && !YAML::ENGINE.syck?
+            super
+          else
+            coder = {}
+            encode_with(coder)
+            YAML.quick_emit(self, opts) do |out|
+              out.map(taguri, to_yaml_style) do |map|
+                coder.each { |k, v| map.add(k, v) }
+              end
             end
           end
         end
-      end
 
-      # Hackery to accomodate Syck. Remove for 4.0.
-      def yaml_initialize(tag, coder) #:nodoc:
-        init_with(coder)
+        # Hackery to accomodate Syck. Remove for 4.0.
+        def yaml_initialize(tag, coder) #:nodoc:
+          init_with(coder)
+        end
       end
 
     private

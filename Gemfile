@@ -58,7 +58,7 @@ group :doc do
   # to a bug, but the PR that fixes it has been there
   # for some weeks unapplied. As a temporary solution
   # this is our own fork with the fix.
-  gem 'sdoc',  :git => 'git://github.com/fxn/sdoc.git'
+  gem 'sdoc',  :git => 'https://github.com/fxn/sdoc.git'
   gem 'RedCloth', '~> 4.2'
   gem 'w3c_validators'
 end
@@ -68,11 +68,10 @@ gem 'memcache-client', '>= 1.8.5'
 
 platforms :mri_18 do
   gem 'system_timer'
-  gem 'json'
 end
 
 # Add your own local bundler stuff
-instance_eval File.read '.Gemfile' if File.exists? '.Gemfile'
+instance_eval File.read '.Gemfile' if File.exist? '.Gemfile'
 
 platforms :mri do
   group :test do
@@ -82,7 +81,12 @@ end
 
 platforms :ruby do
   gem 'yajl-ruby'
-  gem 'nokogiri', '>= 1.4.5', '< 1.6'
+
+  if RUBY_VERSION < '1.9.3'
+    gem 'nokogiri', '>= 1.4.5', '< 1.6'
+  else
+    gem 'nokogiri', '>= 1.6.0'
+  end
 
   # AR
   gem 'sqlite3', '~> 1.3.5'
@@ -90,6 +94,8 @@ platforms :ruby do
   group :db do
     if RUBY_VERSION < '1.9.3'
       gem 'pg', '>= 0.11.0', '< 0.18'
+    elsif RUBY_VERSION < '2.0.0'
+      gem 'pg', '>= 0.11.0', '< 0.19'
     else
       gem 'pg', '>= 0.11.0'
     end
@@ -99,7 +105,6 @@ platforms :ruby do
 end
 
 platforms :jruby do
-  gem 'json'
   gem 'activerecord-jdbcsqlite3-adapter', '>= 1.2.7'
 
   # This is needed by now to let tests work on JRuby
@@ -113,6 +118,10 @@ platforms :jruby do
   end
 end
 
+platforms :mri_18, :jruby do
+  gem 'json'
+end
+
 # gems that are necessary for ActiveRecord tests with Oracle database
 if ENV['ORACLE_ENHANCED_PATH'] || ENV['ORACLE_ENHANCED']
   platforms :ruby do
@@ -121,7 +130,7 @@ if ENV['ORACLE_ENHANCED_PATH'] || ENV['ORACLE_ENHANCED']
   if ENV['ORACLE_ENHANCED_PATH']
     gem 'activerecord-oracle_enhanced-adapter', :path => ENV['ORACLE_ENHANCED_PATH']
   else
-    gem 'activerecord-oracle_enhanced-adapter', :git => 'git://github.com/rsim/oracle-enhanced.git'
+    gem 'activerecord-oracle_enhanced-adapter', :git => 'https://github.com/rsim/oracle-enhanced.git'
   end
 end
 

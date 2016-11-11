@@ -69,7 +69,10 @@ module AbstractController
       end
 
       def test_declare_missing_helper
-        assert_raise(MissingSourceFile) { AbstractHelpers.helper :missing }
+        e = assert_raise AbstractController::Helpers::MissingHelperError do
+          AbstractHelpers.helper :missing
+        end
+        assert_equal "helpers/missing_helper.rb", e.path
       end
 
       def test_helpers_with_module_through_block

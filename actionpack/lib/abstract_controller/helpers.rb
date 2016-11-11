@@ -12,6 +12,15 @@ module AbstractController
       self._helper_methods = Array.new
     end
 
+    class MissingHelperError < LoadError
+      def initialize(error, path)
+        @error = error
+        @path  = "helpers/#{path}.rb"
+        set_backtrace error.backtrace
+        super("Missing helper file helpers/%s.rb" % path)
+      end
+    end
+
     module ClassMethods
       # When a class is inherited, wrap its helper module in a new module.
       # This ensures that the parent class's module can be changed
@@ -132,7 +141,11 @@ module AbstractController
           case arg
           when String, Symbol
             file_name = "#{arg.to_s.underscore}_helper"
-            require_dependency(file_name, "Missing helper file helpers/%s.rb")
+            begin
+              require_dependency(file_name)
+            rescue LoadError => e
+              raise MissingHelperError.new(e, file_name)
+            end
             file_name.camelize.constantize
           when Module
             arg

@@ -47,7 +47,7 @@ module ActionView
           if concat || (config.perform_caching && cache)
             joined_name = (cache == true ? "all" : cache) + ".#{extension}"
             joined_path = File.join((joined_name[/^#{File::SEPARATOR}/] ? config.assets_dir : custom_dir), joined_name)
-            unless config.perform_caching && File.exists?(joined_path)
+            unless config.perform_caching && File.exist?(joined_path)
               write_asset_file_contents(joined_path, compute_paths(sources, recursive))
             end
             asset_tag(joined_name, options)

@@ -95,7 +95,7 @@ module ActiveSupport
     def updated_at #:nodoc:
       @updated_at || begin
         all = []
-        all.concat @files.select { |f| File.exists?(f) }
+        all.concat @files.select { |f| File.exist?(f) }
         all.concat Dir[@glob] if @glob
         all.map { |path| File.mtime(path) }.max || Time.at(0)
       end
