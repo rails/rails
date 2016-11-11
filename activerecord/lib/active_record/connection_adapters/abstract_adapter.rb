@@ -161,6 +161,14 @@ module ActiveRecord
         SchemaCreation.new self
       end
 
+      # Returns an array of +Column+ objects for the table specified by +table_name+.
+      def columns(table_name) # :nodoc:
+        table_name = table_name.to_s
+        column_definitions(table_name).map do |field|
+          new_column_from_field(table_name, field)
+        end
+      end
+
       # this method must only be called while holding connection pool's mutex
       def lease
         if in_use?

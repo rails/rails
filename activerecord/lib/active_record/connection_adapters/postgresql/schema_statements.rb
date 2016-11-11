@@ -221,21 +221,23 @@ module ActiveRecord
           end.compact
         end
 
-        # Returns the list of all column definitions for a table.
-        def columns(table_name) # :nodoc:
-          table_name = table_name.to_s
-          column_definitions(table_name).map do |column_name, type, default, notnull, oid, fmod, collation, comment|
-            oid = oid.to_i
-            fmod = fmod.to_i
-            type_metadata = fetch_type_metadata(column_name, type, oid, fmod)
-            default_value = extract_value_from_default(default)
-            default_function = extract_default_function(default_value, default)
-            new_column(column_name, default_value, type_metadata, !notnull, table_name, default_function, collation, comment: comment.presence)
-          end
-        end
-
-        def new_column(*args) # :nodoc:
-          PostgreSQLColumn.new(*args)
+        def new_column_from_field(table_name, field) # :nondoc:
+          column_name, type, default, notnull, oid, fmod, collation, comment = field
+          oid = oid.to_i
+          fmod = fmod.to_i
+          type_metadata = fetch_type_metadata(column_name, type, oid, fmod)
+          default_value = extract_value_from_default(default)
+          default_function = extract_default_function(default_value, default)
+          PostgreSQLColumn.new(
+            column_name,
+            default_value,
+            type_metadata,
+            !notnull,
+            table_name,
+            default_function,
+            collation,
+            comment: comment.presence
+          )
         end
 
         def table_options(table_name) # :nodoc:
