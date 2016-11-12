@@ -398,7 +398,8 @@ module ActionController
 
       unpermitted_parameters!(params) if self.class.action_on_unpermitted_parameters
 
-      params.permit!
+      params.permitted = true
+      params
     end
 
     # Returns a parameter for the given +key+. If not found,
@@ -816,6 +817,7 @@ module ActionController
               # Filter this one out.
             end
           end
+          sanitized.permitted = true
         end
       end
 

@@ -187,6 +187,11 @@ class ParametersPermitTest < ActiveSupport::TestCase
 
     permitted = params.permit(:username, preferences: {}, hacked: {})
 
+    assert permitted.permitted?
+    assert permitted[:preferences].permitted?
+    assert permitted[:preferences][:font].permitted?
+    assert permitted[:preferences][:dubious].all?(&:permitted?)
+
     assert_equal "fxn",             permitted[:username]
     assert_equal "Marazul",         permitted[:preferences][:scheme]
     assert_equal "Source Code Pro", permitted[:preferences][:font][:name]
