@@ -488,6 +488,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_coffeescript_is_skipped_if_required
+    run_generator [destination_root, "--skip-coffee"]
+
+    assert_file "Gemfile" do |content|
+      assert_no_match(/coffee-rails/, content)
+      assert_match(/jquery-rails/, content)
+      assert_match(/uglifier/, content)
+    end
+  end
+
   def test_inclusion_of_jbuilder
     run_generator
     assert_gem "jbuilder"
