@@ -304,14 +304,6 @@ module ActiveRecord
         select_values(sql, "SCHEMA").any?
       end
 
-      # Returns an array of +Column+ objects for the table specified by +table_name+.
-      def columns(table_name) # :nodoc:
-        table_name = table_name.to_s
-        table_structure(table_name).map do |field|
-          new_column_from_field(table_name, field)
-        end
-      end
-
       def new_column_from_field(table_name, field) # :nondoc:
         case field["dflt_value"]
         when /^null$/i
@@ -434,11 +426,12 @@ module ActiveRecord
 
       protected
 
-        def table_structure(table_name)
+        def table_structure(table_name) # :nodoc:
           structure = exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", "SCHEMA")
           raise(ActiveRecord::StatementInvalid, "Could not find table '#{table_name}'") if structure.empty?
           table_structure_with_collation(table_name, structure)
         end
+        alias column_definitions table_structure
 
         def alter_table(table_name, options = {}) #:nodoc:
           altered_table_name = "a#{table_name}"
