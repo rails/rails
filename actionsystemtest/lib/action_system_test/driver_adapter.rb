@@ -9,15 +9,11 @@ module ActionSystemTest
     extend ActiveSupport::Concern
 
     module ClassMethods
-      def default_driver # :nodoc
-        :rails_selenium_driver
-      end
-
       # Returns the current driver that is set. If no driver is set in the
       # Rails' configuration file then +:rails_selenium_driver+ will be
       # initialized.
       def driver
-        @driver ||= DriverAdapters.lookup(default_driver)
+        @driver ||= DriverAdapters.lookup(DEFAULT_DRIVER)
       end
 
       # Specify the adapter and settings for the system test driver set in the

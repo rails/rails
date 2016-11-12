@@ -18,11 +18,11 @@ module ActionSystemTest
         puts find_image
       end
 
-      private
-        def supported?
-          ActionSystemTest.driver.supports_screenshots? && !passed?
-        end
+      def take_failed_screenshot
+        take_screenshot unless passed?
+      end
 
+      private
         def image_path
           path = "tmp/screenshots/failures_#{method_name}.png"
           page.save_screenshot(Rails.root.join(path))

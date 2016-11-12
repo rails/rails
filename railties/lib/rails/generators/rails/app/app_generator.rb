@@ -152,6 +152,8 @@ module Rails
 
     def system_test
       empty_directory_with_keep_file "test/system"
+
+      template "test/system_test_helper.rb"
     end
 
     def tmp

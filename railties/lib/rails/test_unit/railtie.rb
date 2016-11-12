@@ -11,25 +11,13 @@ module Rails
                                    fixture_replacement: nil
 
       c.integration_tool :test_unit
-      c.system_tool :test_unit
+      c.system_tests :test_unit
     end
 
     initializer "test_unit.line_filtering" do
       ActiveSupport.on_load(:active_support_test_case) {
         ActiveSupport::TestCase.extend Rails::LineFiltering
       }
-    end
-
-    config.system_testing = ActiveSupport::OrderedOptions.new
-
-    initializer "system_testing.set_configs" do |app|
-      ActiveSupport.on_load(:active_support_test_case) do
-        require "action_system_test"
-
-        options = app.config.system_testing
-        options.driver ||= ActionSystemTest.default_driver
-        options.each { |k, v| ActionSystemTest.send("#{k}=", v) }
-      end
     end
 
     rake_tasks do

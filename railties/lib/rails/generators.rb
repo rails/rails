@@ -53,7 +53,6 @@ module Rails
         force_plural: false,
         helper: true,
         integration_tool: nil,
-        system_tool: nil,
         javascripts: true,
         javascript_engine: :js,
         orm: false,
@@ -63,6 +62,7 @@ module Rails
         stylesheets: true,
         stylesheet_engine: :css,
         scaffold_stylesheet: true,
+        system_tests: nil,
         test_framework: false,
         template_engine: :erb
       }

@@ -15,7 +15,6 @@ module ActionSystemTest
     end
 
     def after_teardown
-      take_screenshot if supported?
       Capybara.reset_sessions!
       super
     end
