@@ -88,7 +88,7 @@ module ActiveRecord
   #     assert_equal "Ruby on Rails", @rubyonrails.name
   #   end
   #
-  # In order to use these methods to access fixtured data within your testcases, you must specify one of the
+  # In order to use these methods to access fixtured data within your test cases, you must specify one of the
   # following in your ActiveSupport::TestCase-derived class:
   #
   # - to fully enable instantiated fixtures (enable alternate methods #1 and #2 above)
@@ -103,7 +103,7 @@ module ActiveRecord
   #
   # = Dynamic fixtures with ERB
   #
-  # Some times you don't care about the content of the fixtures as much as you care about the volume.
+  # Sometimes you don't care about the content of the fixtures as much as you care about the volume.
   # In these cases, you can mix ERB in with your YAML fixtures to create a bunch of fixtures for load
   # testing, like:
   #

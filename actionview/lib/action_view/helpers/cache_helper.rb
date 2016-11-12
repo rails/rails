@@ -88,7 +88,7 @@ module ActionView
       #
       # === Explicit dependencies
       #
-      # Some times you'll have template dependencies that can't be derived at all. This is typically
+      # Sometimes you'll have template dependencies that can't be derived at all. This is typically
       # the case when you have template rendering that happens in helpers. Here's an example:
       #
       #   <%= render_sortable_todolists @project.todolists %>
