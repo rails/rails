@@ -59,7 +59,7 @@ module ActionSystemTest
         @port = port
       end
 
-      def call
+      def run
         registration
         setup
       end

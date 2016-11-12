@@ -66,7 +66,7 @@ module ActionSystemTest
         @screen_size = screen_size
       end
 
-      def call # :nodoc:
+      def run # :nodoc:
         registration
         setup
       end

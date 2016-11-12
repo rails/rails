@@ -22,7 +22,7 @@ module ActionSystemTest
       # When set, the driver will be initialized.
       def driver=(driver)
         @driver = DriverAdapters.lookup(driver)
-        @driver.call
+        @driver.run
       end
     end
   end
