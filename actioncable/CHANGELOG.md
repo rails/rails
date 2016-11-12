@@ -1,7 +1,7 @@
 *   Permit same-origin connections by default.
 
-    New option `config.action_cable.allow_same_origin_as_host = false`
-    to disable.
+    Added new option `config.action_cable.allow_same_origin_as_host = false`
+    to disable this behaviour.
 
     *Dávid Halász*, *Matthew Draper*
 
@@ -13,7 +13,7 @@
 
     *Vladimir Dementyev*
 
-*   Buffer writes to websocket connections, to avoid blocking threads
+*   Buffer now writes to websocket connections, to avoid blocking threads
     that could be doing more useful things.
 
     *Matthew Draper*, *Tinco Andringa*
@@ -23,7 +23,7 @@
 
     *Tinco Andringa*
 
-*   Add ActiveSupport::Notifications hook to Broadcaster#broadcast.
+*   Add `ActiveSupport::Notifications` hook to `Broadcaster#broadcast`.
 
     *Matthew Wear*
 
