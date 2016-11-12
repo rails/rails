@@ -2,7 +2,7 @@ require "action_system_test/driver_adapters/web_server"
 
 module ActionSystemTest
   module DriverAdapters
-    # == RailsSeleniumDriver for System Testing
+    # == RailsSeleniumDriver for Action System Test
     #
     # The <tt>RailsSeleniumDriver</tt> uses the Selenium 2.0 webdriver. The
     # selenium-webdriver gem is required by this driver.
@@ -12,9 +12,11 @@ module ActionSystemTest
     #
     # By default Rails system testing will use Rails' configuration with Capybara
     # and the Selenium driver. To explictly set the <tt>RailsSeleniumDriver</tt>
-    # add the following to your Rails' configuration test environment:
+    # add the following to your +system_test_helper+:
     #
-    #   config.system_testing.driver = :rails_selenium_driver
+    #   class ActionSystemTest < ActionSystemTest::Base
+    #     ActionSystemTest.driver = :rails_selenium_driver
+    #   end
     #
     # Because this driver supports real browser testing it is required that a
     # server is configured.
@@ -31,24 +33,27 @@ module ActionSystemTest
     #    >
     #
     # The settings for the <tt>RailsSeleniumDriver</tt> can be changed in the
-    # Rails configuration file.
+    # +system_test_helper+.
     #
-    #   config.system_testing.driver = ActionSystemTest::DriverAdapters::RailsSeleniumDriver.new(
-    #     server: :webrick,
-    #     port: 28100,
-    #     screen_size: [ 800, 800 ]
-    #   )
+    #   class ActionSystemTest < ActionSystemTest::Base
+    #     ActionSystemTest.driver = ActionSystemTest::DriverAdapters::RailsSeleniumDriver.new(
+    #       server: :webrick,
+    #       port: 28100,
+    #       screen_size: [ 800, 800 ]
+    #     )
+    #   end
     #
-    # The default browser is set to Chrome because the current version of
-    # Firefox does not work with selenium-webdriver. If you want to use Firefox,
+    # The default browser is set to Chrome. If you want to use Firefox,
     # you will need to use Firefox 45.0esr or 47.0 and ensure
     # that selenium-webdriver is version 2.53.4. To change the browser from
     # +:chrome+ to +:firefox+, initialize the Selenium driver in your Rails'
     # test environment:
     #
-    #   config.system_testing.driver = ActionSystemTest::DriverAdapters::RailsSeleniumDriver.new(
-    #     browser: :firefox
-    #   )
+    #   class ActionSystemTest < ActionSystemTest::Base
+    #     ActionSystemTest.driver = ActionSystemTest::DriverAdapters::RailsSeleniumDriver.new(
+    #       browser: :firefox
+    #     )
+    #   end
     class RailsSeleniumDriver
       include WebServer
 

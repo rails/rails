@@ -4,8 +4,7 @@ module ActionSystemTest
   module DriverAdapters
     # == CapybaraDriver for System Testing
     #
-    # The <tt>CapybaraDriver</tt> is a shim that sits between Rails and
-    # Capybara.
+    # The <tt>CapybaraDriver</tt> is a shim between Rails and Capybara.
     #
     # The drivers Capybara supports are: +:rack_test+, +:selenium+, +:webkit+,
     # and +:poltergeist+.
@@ -15,16 +14,21 @@ module ActionSystemTest
     # directly.
     #
     # To set your system tests to use one of Capybara's default drivers, add
-    # the following to yur Rails' configuration test environment:
+    # the following to your +system_test_helper+ class file:
     #
-    #   config.system_testing.driver = :rack_test
+    #   class ActionSystemTestCase < ActionSystemTest::Base
+    #     ActionSystemTest.driver = :rack_test
+    #   end
     #
     # The +:rack_test+ driver is a basic test driver that doesn't support
     # JavaScript testing and doesn't require a server.
     #
     # The +:poltergeist+ and +:webkit+ drivers are headless, but require some
-    # extra environment setup. Because the default server for Rails is Puma, each
-    # of the Capybara drivers will default to using Puma. Changing the configuration
+    # extra environment setup. Please see their README's for instructions on
+    # environment setup.
+    #
+    # Because the default server for Rails is Puma, each of the Capybara
+    # drivers will default to using Puma. Changing the configuration
     # to use Webrick is possible by initalizing a new driver object.
     #
     # The default settings for the <tt>CapybaraDriver</tt> are:
@@ -35,10 +39,10 @@ module ActionSystemTest
     #     @port=28100
     #    >
     #
-    # The settings for the <tt>CapybaraDriver</tt> can be changed from
-    # Rails' configuration file.
+    # The settings for the <tt>CapybaraDriver</tt> can be changed in the
+    # +system_test_helper+ file in your application's test directory.
     #
-    #   config.system_testing.driver = ActionSystemTest::DriverAdapters::CapybaraDriver.new(
+    #   ActionSystemTest.driver = ActionSystemTest::DriverAdapters::CapybaraDriver.new(
     #     name: :webkit,
     #     server: :webrick
     #   )

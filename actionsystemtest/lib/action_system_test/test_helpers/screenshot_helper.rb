@@ -2,14 +2,13 @@ module ActionSystemTest
   module TestHelpers
     # Screenshot helper for system testing
     module ScreenshotHelper
-      # Takes a screenshot of the current page in the browser if the system
-      # test driver supports screenshots and the test failed.
+      # Takes a screenshot of the current page in the browser.
       #
-      # Additionally +take_screenshot+ can be used within your tests at points
+      # +take_screenshot+ can be used within your tests at points
       # you want to take a screenshot if the driver supports screenshots. The
       # Rack Test driver does not support screenshots.
       #
-      # You can check of the driver supports screenshots by running
+      # You can check if the driver supports screenshots by running
       #
       #   ActionSystemTest.driver.supports_screenshots?
       #   => true
@@ -18,6 +17,8 @@ module ActionSystemTest
         puts find_image
       end
 
+      # Takes a screenshot only if the test failed. This is included
+      # by default in +teardown+ of system test.
       def take_failed_screenshot
         take_screenshot unless passed?
       end

@@ -1,5 +1,5 @@
 module ActionSystemTest
-  # == System Testing Driver Adapters
+  # == Action System Testing Driver Adapters
   #
   # By default Rails supports Capybara with the Selenium Driver. Rails provides
   # configuration setup for using the selenium driver with Capybara.
@@ -14,7 +14,7 @@ module ActionSystemTest
   # === Driver Features
   #
   # |                 | Default Browser       | Supports Screenshots? |
-  # |-----------------|-----------------------|-----------------------|
+  # | --------------- | --------------------- | --------------------- |
   # | Rails' Selenium | Chrome                | Yes                   |
   # | Rack Test       | No JS Support         | No                    |
   # | Selenium        | Firefox               | Yes                   |
@@ -27,7 +27,7 @@ module ActionSystemTest
     autoload :RailsSeleniumDriver
 
     class << self
-      # Returns driver for specified name.
+      # Returns driver class for specified name.
       #
       #   ActionSystemTest::DriverAdapters.lookup(:rails_selenium_driver)
       #   # => ActionSystemTest::DriverAdapters::RailsSeleniumDriver
