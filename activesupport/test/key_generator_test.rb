@@ -19,7 +19,7 @@ class KeyGeneratorTest < ActiveSupport::TestCase
   test "Generating a key of the default length" do
     derived_key = @generator.generate_key("some_salt")
     assert_kind_of String, derived_key
-    assert_equal OpenSSL::Digest::SHA1.new.block_length, derived_key.length, "Should have generated a key of the default size"
+    assert_equal OpenSSL::Cipher.new('aes-256-cbc').key_len, derived_key.length, "Should have generated a key of the default size"
   end
 
   test "Generating a key of an alternative length" do
