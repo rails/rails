@@ -918,12 +918,6 @@ class FileStoreTest < ActiveSupport::TestCase
     @cache.write(1, nil)
     assert_equal false, @cache.write(1, "aaaaaaaaaa", unless_exist: true)
   end
-
-  def test_can_call_deprecated_key_file_path
-    assert_deprecated "`key_file_path` is deprecated" do
-      assert_equal 111, @cache.send(:key_file_path, 111)
-    end
-  end
 end
 
 class MemoryStoreTest < ActiveSupport::TestCase
