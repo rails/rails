@@ -1,4 +1,4 @@
-*   Add `stat` method to `ActiveRecord::ConnectionAdapters::ConnectionPool`
+*   Added `stat` method to `ActiveRecord::ConnectionAdapters::ConnectionPool`
 
     Example:
 
@@ -10,18 +10,18 @@
 *   Avoid `unscope(:order)` when `limit_value` is presented for `count`.
 
     If `limit_value` is presented, records fetching order is very important
-    for performance. Should not unscope the order in the case.
+    for performance. We should not unscope the order in the case.
 
     *Ryuta Kamizono*
 
-*   Fix an Active Record DateTime field NoMethodError caused by incomplete
+*   Fix an Active Record `DateTime` field `NoMethodError` caused by incomplete
     datetime.
 
     Fixes #24195.
 
     *Sen Zhang*
 
-*   Allow `slice` to take an array of methods (without need for splatting).
+*   Allow `slice` to take an array of methods(without the need for splatting).
 
     *Cohen Carlisle*
 
@@ -37,12 +37,12 @@
 
     *Prathamesh Sonpatki*
 
-*   Optimistic locking: Added ability update locking_column value.
-    Ignore optimistic locking if update with new locking_column value.
+*   Optimistic locking: Added ability to update `locking_column` value.
+    Ignore optimistic locking if trying to update with new `locking_column` value.
 
     *bogdanvlviv*
 
-*   Fixed: Optimistic locking does not work well with null in the database.
+*   Fixed: Optimistic locking does not work well with `null` in the database.
 
     Fixes #26024
 

@@ -10,7 +10,7 @@
 
     *Yuji Yaginuma*
 
-*   Allow keys not found in RACK_KEY_TRANSLATION for setting the environment when rendering
+*   Allow keys not found in `RACK_KEY_TRANSLATION` for setting the environment when rendering
     arbitrary templates.
 
     *Sammy Larbi*

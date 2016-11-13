@@ -2,12 +2,12 @@
 
     *Rafael Mendonça França*
 
-*   Render now accepts any keys for locals, including reserved words
+*   Render now accepts any keys for locals, including reserved keywords.
 
     Only locals with valid variable names get set directly. Others
-    will still be available in local_assigns.
+    will still be available in `local_assigns`.
 
-    Example of render with reserved words:
+    Example of render with reserved keywords:
 
     ```erb
     <%= render "example", class: "text-center", message: "Hello world!" %>
