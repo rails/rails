@@ -111,6 +111,7 @@ module ActionDispatch
           begin
             strategy.call(raw_post.force_encoding(encoding))
           rescue # JSON or Ruby code block errors
+            raw_post.force_encoding(Encoding::BINARY)
             my_logger = logger || ActiveSupport::Logger.new($stderr)
             my_logger.debug "Error occurred while parsing request parameters.\nContents:\n\n#{raw_post}"
 
