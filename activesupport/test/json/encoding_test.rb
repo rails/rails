@@ -444,7 +444,7 @@ EXPECTED
 
   class NaNNumber
     def as_json(options = nil)
-      { "number" => Float::INFINITY }
+      { "number" => Float:NAN }
     end
   end
 
