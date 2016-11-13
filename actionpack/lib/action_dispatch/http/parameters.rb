@@ -91,10 +91,16 @@ module ActionDispatch
         def parse_formatted_parameters(parsers)
           return yield if content_length.zero? || content_mime_type.nil?
 
+          begin
+            encoding = Encoding.find(content_mime_charset || Encoding::BINARY)
+          rescue ArgumentError
+            encoding = Encoding::BINARY
+          end
+
           strategy = parsers.fetch(content_mime_type.symbol) { return yield }
 
           begin
-            strategy.call(raw_post)
+            strategy.call(raw_post.force_encoding(encoding))
           rescue # JSON or Ruby code block errors
             my_logger = logger || ActiveSupport::Logger.new($stderr)
             my_logger.debug "Error occurred while parsing request parameters.\nContents:\n\n#{raw_post}"
