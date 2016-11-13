@@ -432,24 +432,52 @@ EXPECTED
     assert_equal '"foo"', ActiveSupport::JSON.encode(exception)
   end
 
-  class InfiniteNumber
+  class FloatInfiniteNumber
     def as_json(options = nil)
       { "number" => Float::INFINITY }
     end
   end
 
   def test_to_json_works_when_as_json_returns_infinite_number
-    assert_equal '{"number":null}', InfiniteNumber.new.to_json
+    assert_deprecated do
+      assert_equal '{"number":null}', FloatInfiniteNumber.new.to_json
+    end
   end
 
-  class NaNNumber
+  class FloatNaNNumber
     def as_json(options = nil)
       { "number" => Float::NAN }
     end
   end
 
   def test_to_json_works_when_as_json_returns_NaN_number
-    assert_equal '{"number":null}', NaNNumber.new.to_json
+    assert_deprecated do
+      assert_equal '{"number":null}', FloatNaNNumber.new.to_json
+    end
+  end
+
+  class BigDecimalInfiniteNumber
+    def as_json(options = nil)
+      { "number" => BigDecimal::INFINITY }
+    end
+  end
+
+  def test_to_json_works_when_as_json_returns_infinite_number
+    assert_deprecated do
+      assert_equal '{"number":null}', BigDecimalInfiniteNumber.new.to_json
+    end
+  end
+
+  class BigDecimalNaNNumber
+    def as_json(options = nil)
+      { "number" => BigDecimal::NAN }
+    end
+  end
+
+  def test_to_json_works_when_as_json_returns_NaN_number
+    assert_deprecated do
+      assert_equal '{"number":null}', BigDecimalNaNNumber.new.to_json
+    end
   end
 
   protected

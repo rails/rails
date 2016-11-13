@@ -36,10 +36,6 @@ module JSONTest
     NilTests      = [[ nil,   %(null)  ]]
     NumericTests  = [[ 1,     %(1)     ],
                      [ 2.5,   %(2.5)   ],
-                     [ 0.0 / 0.0,   %(null) ],
-                     [ 1.0 / 0.0,   %(null) ],
-                     [ -1.0 / 0.0,  %(null) ],
-                     [ BigDecimal("0.0") / BigDecimal("0.0"),  %(null) ],
                      [ BigDecimal("2.5"), %("#{BigDecimal('2.5')}") ]]
 
     StringTests   = [[ "this is the <string>",     %("this is the \\u003cstring\\u003e")],

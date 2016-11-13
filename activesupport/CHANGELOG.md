@@ -1,3 +1,13 @@
+*   Deprecate the behavior of returning `nil` on `Float::INFINITY.as_json`,
+    `Float::NAN.as_json` and `BigDecimal::INFINITY.as_json`,
+    `BigDecimal::NAN.as_json`.
+
+    This change matches `#as_json` behavior from Active Support to that
+    JSON gem and Ruby rather than silently converting `INFINITY` or `NAN`
+    to `nil`.
+
+    *Prathamesh Sopatki*
+
 *   Remove deprecated class `ActiveSupport::Concurrency::Latch`
 
     *Andrew White*

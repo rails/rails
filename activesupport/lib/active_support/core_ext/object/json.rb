@@ -99,10 +99,18 @@ class Numeric
 end
 
 class Float
-  # Encoding Infinity or NaN to JSON should return "null". The default returns
-  # "Infinity" or "NaN" which are not valid JSON.
   def as_json(options = nil) #:nodoc:
-    finite? ? self : nil
+    if finite?
+      self
+    else
+      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        The behavior of `Float::INFINITY.as_json` and `Float::NAN.as_json`
+        returning `nil` has been deprecated, and will be removed in Rails 5.2.
+        Users are expected to handle this conversion on the application level.
+      MSG
+
+      nil
+    end
   end
 end
 
@@ -117,7 +125,18 @@ class BigDecimal
   # BigDecimal, it still has the chance to post-process the string and get the
   # real value.
   def as_json(options = nil) #:nodoc:
-    finite? ? to_s : nil
+    if
+      finite?
+      to_s
+    else
+      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        The behavior of `BigDecimal::INFINITY.as_json` and `BigDecimal::NAN.as_json`
+        returning `nil` has been deprecated, and will be removed in Rails 5.2.
+        Users are expected to handle this conversion on the application level.
+      MSG
+
+      nil
+    end
   end
 end
 
