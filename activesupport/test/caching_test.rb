@@ -1092,12 +1092,6 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     value << "bingo"
     assert_not_equal value, @cache.read("foo")
   end
-
-  def test_can_call_deprecated_escape_key
-    assert_deprecated "`escape_key` is deprecated" do
-      assert_equal 111, @cache.send(:escape_key, 111)
-    end
-  end
 end
 
 class NullStoreTest < ActiveSupport::TestCase
