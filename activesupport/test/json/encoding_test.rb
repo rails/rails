@@ -434,24 +434,22 @@ EXPECTED
 
   class InfiniteNumber
     def as_json(options = nil)
-      { "number" => 1.0 / 0 }
+      { "number" => Float::INFINITY }
     end
   end
 
   def test_to_json_works_when_as_json_returns_infinite_number
-    expected = { number: nil }.to_json
-    assert_equal expected, InfiniteNumber.new.to_json
+    assert_equal '{"number":null}', InfiniteNumber.new.to_json
   end
 
   class NaNNumber
     def as_json(options = nil)
-      { "number" => 0.0 / 0 }
+      { "number" => Float::INFINITY }
     end
   end
 
   def test_to_json_works_when_as_json_returns_NaN_number
-    expected = { number: nil }.to_json
-    assert_equal expected, NaNNumber.new.to_json
+    assert_equal '{"number":null}', NaNNumber.new.to_json
   end
 
   protected
