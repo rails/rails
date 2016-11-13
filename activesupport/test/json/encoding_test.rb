@@ -444,7 +444,7 @@ EXPECTED
 
   class NaNNumber
     def as_json(options = nil)
-      { "number" => Float:NAN }
+      { "number" => Float::NAN }
     end
   end
 
