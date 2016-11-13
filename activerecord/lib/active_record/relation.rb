@@ -681,9 +681,10 @@ module ActiveRecord
         @records = eager_loading? ? find_with_associations.freeze : @klass.find_by_sql(arel, bound_attributes, &block).freeze
 
         preload = preload_values
-        preload +=  includes_values unless eager_loading?
-        preloader = build_preloader
+        preload += includes_values unless eager_loading?
+        preloader = nil
         preload.each do |associations|
+          preloader ||= build_preloader
           preloader.preload @records, associations
         end
 
