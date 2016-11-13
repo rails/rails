@@ -254,7 +254,7 @@ module ActionView
       # true::   raise an ArgumentError
       # nil::    Force default layout behavior with inheritance
       #
-      # Return value of +Proc & Symbol+ arguments should be +String+, +false+, +true+ or +nil+
+      # Return value of +Proc+ and +Symbol+ arguments should be +String+, +false+, +true+ or +nil+
       # with the same meaning as described above.
       # ==== Parameters
       # * <tt>layout</tt> - The layout to use.
