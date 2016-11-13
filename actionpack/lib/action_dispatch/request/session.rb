@@ -85,7 +85,7 @@ module ActionDispatch
       end
 
       # Returns value of the key stored in the session or
-      # nil if the given key is not found in the session.
+      # +nil+ if the given key is not found in the session.
       def [](key)
         load_for_read!
         @delegate[key.to_s]

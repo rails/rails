@@ -220,7 +220,7 @@ module ActionView
       #   the respective locale (e.g. [:year, :month, :day] in the en locale that ships with Rails).
       # * <tt>:include_blank</tt>     - Include a blank option in every select field so it's possible to set empty
       #   dates.
-      # * <tt>:default</tt>           - Set a default date if the affected date isn't set or is nil.
+      # * <tt>:default</tt>           - Set a default date if the affected date isn't set or is +nil+.
       # * <tt>:selected</tt>          - Set a date that overrides the actual value.
       # * <tt>:disabled</tt>          - Set to true if you want show the select fields as disabled.
       # * <tt>:prompt</tt>            - Set to true (for a generic prompt), a prompt string or a hash of prompt strings
@@ -866,7 +866,7 @@ module ActionView
         end
 
         # Returns translated month names, but also ensures that a custom month
-        # name array has a leading nil element.
+        # name array has a leading +nil+ element.
         def month_names
           @month_names ||= begin
             month_names = @options[:use_month_names] || translated_month_names

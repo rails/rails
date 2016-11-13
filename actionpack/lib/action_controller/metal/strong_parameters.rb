@@ -549,7 +549,7 @@ module ActionController
       new_instance_with_inherited_permitted_status(@parameters.select(&block))
     end
 
-    # Equivalent to Hash#keep_if, but returns nil if no changes were made.
+    # Equivalent to Hash#keep_if, but returns +nil+ if no changes were made.
     def select!(&block)
       @parameters.select!(&block)
       self

@@ -264,7 +264,7 @@ module ActiveRecord
         super
       end
 
-      # Returns the specified association instance if it exists, nil otherwise.
+      # Returns the specified association instance if it exists, +nil+ otherwise.
       def association_instance_get(name)
         @association_cache[name]
       end

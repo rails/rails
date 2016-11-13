@@ -206,7 +206,7 @@ module ActiveRecord
         #   or a Proc that is called when a new value is assigned to the value object. The converter is
         #   passed the single value that is used in the assignment and is only called if the new value is
         #   not an instance of <tt>:class_name</tt>. If <tt>:allow_nil</tt> is set to true, the converter
-        #   can return nil to skip the assignment.
+        #   can return +nil+ to skip the assignment.
         #
         # Option examples:
         #   composed_of :temperature, mapping: %w(reading celsius)

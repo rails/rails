@@ -53,7 +53,7 @@ module ActiveRecord
 
         # Returns an instance of <tt>ActiveRecord::ConnectionAdapters::PostgreSQL::Name</tt>
         # extracted from +string+.
-        # +schema+ is nil if not specified in +string+.
+        # +schema+ is +nil+ if not specified in +string+.
         # +schema+ and +identifier+ exclude surrounding quotes (regardless of whether provided in +string+)
         # +string+ supports the range of schema/table references understood by PostgreSQL, for example:
         #

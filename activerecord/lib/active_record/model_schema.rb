@@ -292,7 +292,7 @@ module ActiveRecord
       end
 
       # Sets the name of the sequence to use when generating ids to the given
-      # value, or (if the value is nil or false) to the value returned by the
+      # value, or (if the value is +nil+ or +false+) to the value returned by the
       # given block. This is required for Oracle and is useful for any
       # database which relies on sequences for primary key generation.
       #

@@ -74,7 +74,7 @@ module ActiveSupport
       #
       # If no handler matches the exception, check for a handler matching the
       # (optional) exception.cause. If no handler matches the exception or its
-      # cause, this returns nil so you can deal with unhandled exceptions.
+      # cause, this returns +nil+, so you can deal with unhandled exceptions.
       # Be sure to re-raise unhandled exceptions if this is what you expect.
       #
       #     begin
@@ -83,7 +83,7 @@ module ActiveSupport
       #       rescue_with_handler(exception) || raise
       #     end
       #
-      # Returns the exception if it was handled and nil if it was not.
+      # Returns the exception if it was handled and +nil+ if it was not.
       def rescue_with_handler(exception, object: self)
         if handler = handler_for_rescue(exception, object: object)
           handler.call exception

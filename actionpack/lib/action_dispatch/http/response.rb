@@ -249,7 +249,7 @@ module ActionDispatch # :nodoc:
       end
     end
 
-    # Sets the HTTP character set. In case of nil parameter
+    # Sets the HTTP character set. In case of +nil+ parameter
     # it sets the charset to utf-8.
     #
     #   response.charset = 'utf-16' # => 'utf-16'

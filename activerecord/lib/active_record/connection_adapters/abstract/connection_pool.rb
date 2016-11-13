@@ -69,7 +69,7 @@ module ActiveRecord
     #   threads, which can occur if a programmer forgets to close a
     #   connection at the end of a thread or a thread dies unexpectedly.
     #   Regardless of this setting, the Reaper will be invoked before every
-    #   blocking wait. (Default nil, which means don't schedule the Reaper).
+    #   blocking wait. (Default +nil+, which means don't schedule the Reaper).
     #
     #--
     # Synchronization policy:
@@ -116,7 +116,7 @@ module ActiveRecord
           end
         end
 
-        # If +element+ is in the queue, remove and return it, or nil.
+        # If +element+ is in the queue, remove and return it, or +nil+.
         def delete(element)
           synchronize do
             @queue.delete(element)
@@ -135,7 +135,7 @@ module ActiveRecord
         # If +timeout+ is not given, remove and return the head the
         # queue if the number of available elements is strictly
         # greater than the number of threads currently waiting (that
-        # is, don't jump ahead in line).  Otherwise, return nil.
+        # is, don't jump ahead in line).  Otherwise, return +nil+.
         #
         # If +timeout+ is given, block if there is no element
         # available, waiting up to +timeout+ seconds for an element to
@@ -171,14 +171,14 @@ module ActiveRecord
             @queue.size > @num_waiting
           end
 
-          # Removes and returns the head of the queue if possible, or nil.
+          # Removes and returns the head of the queue if possible, or +nil+.
           def remove
             @queue.shift
           end
 
           # Remove and return the head the queue if the number of
           # available elements is strictly greater than the number of
-          # threads currently waiting.  Otherwise, return nil.
+          # threads currently waiting.  Otherwise, return +nil+.
           def no_wait_poll
             remove if can_remove_no_wait?
           end
@@ -282,7 +282,7 @@ module ActiveRecord
       end
 
       # Every +frequency+ seconds, the reaper will call +reap+ on +pool+.
-      # A reaper instantiated with a nil frequency will never reap the
+      # A reaper instantiated with a +nil+ frequency will never reap the
       # connection pool.
       #
       # Configure the frequency by setting "reaping_frequency" in your

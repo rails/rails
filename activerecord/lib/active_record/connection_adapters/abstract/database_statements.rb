@@ -115,7 +115,7 @@ module ActiveRecord
 
       # Executes an INSERT query and returns the new record's ID
       #
-      # +id_value+ will be returned unless the value is nil, in
+      # +id_value+ will be returned unless the value is +nil+, in
       # which case the database will attempt to calculate the last inserted
       # id and return that value.
       #
