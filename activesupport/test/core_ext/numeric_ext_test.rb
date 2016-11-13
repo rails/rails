@@ -423,7 +423,6 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
 
   # TODO: Remove positive and negative tests when we drop support to ruby < 2.3
   b = 2**64
-  b *= b until Bignum === b
 
   T_ZERO = b.coerce(0).first
   T_ONE  = b.coerce(1).first
