@@ -1,3 +1,51 @@
+*   Remove deprecated `:prefix` option from `number_to_human_size`
+
+    *Andrew White*
+
+*   Remove deprecated method `ActiveSupport::HashWithIndifferentAccess.new_from_hash_copying_default`
+
+    *Andrew White*
+
+*   Remove deprecated method `Module.local_constants`
+
+    *Andrew White*
+
+*   Remove deprecated file `active_support/core_ext/time/marshal.rb`
+
+    *Andrew White*
+
+*   Remove deprecated file `active_support/core_ext/struct.rb`
+
+    *Andrew White*
+
+*   Remove deprecated file `active_support/core_ext/module/method_transplanting.rb`
+
+    *Andrew White*
+
+*   Remove deprecated method `Module.local_constants`
+
+    *Andrew White*
+
+*   Remove deprecated file `active_support/core_ext/kernel/debugger.rb`
+
+    *Andrew White*
+
+*   Remove deprecated method `ActiveSupport::Cache::Store#namespaced_key`
+
+    *Andrew White*
+
+*   Remove deprecated method `ActiveSupport::Cache::Strategy::LocalCache::LocalStore#set_cache_value`
+
+    *Andrew White*
+
+*   Remove deprecated method `ActiveSupport::Cache::MemCacheStore#escape_key`
+
+    *Andrew White*
+
+*   Remove deprecated method `ActiveSupport::Cache::FileStore#key_file_path`
+
+    *Andrew White*
+
 *   Ensure duration parsing is consistent across DST changes
 
     Previously `ActiveSupport::Duration.parse` used `Time.current` and
