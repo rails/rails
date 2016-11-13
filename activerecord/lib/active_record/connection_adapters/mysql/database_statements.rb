@@ -85,6 +85,7 @@ module ActiveRecord
                 stmt = @connection.prepare(sql)
               end
 
+              result = nil
               begin
                 ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
                   result = stmt.execute(*type_casted_binds)
