@@ -391,7 +391,7 @@ module ActionController
         case filter
         when Symbol, String
           permitted_scalar_filter(params, filter)
-        when Hash then
+        when Hash
           hash_filter(params, filter)
         end
       end
