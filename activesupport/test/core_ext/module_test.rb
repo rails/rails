@@ -385,16 +385,6 @@ class ModuleTest < ActiveSupport::TestCase
     assert_equal [Yz::Zy, Yz, Object], Yz::Zy::Cd.parents
     assert_equal [Yz, Object], Yz::Zy.parents
   end
-
-  def test_local_constants
-    ActiveSupport::Deprecation.silence do
-      assert_equal %w(Constant1 Constant3), Ab.local_constants.sort.map(&:to_s)
-    end
-  end
-
-  def test_local_constants_is_deprecated
-    assert_deprecated { Ab.local_constants.sort.map(&:to_s) }
-  end
 end
 
 module BarMethodAliaser
