@@ -807,11 +807,12 @@ module ActionController
       def permit_any_in_parameters(params)
         self.class.new.tap do |sanitized|
           params.each do |key, value|
-            if permitted_scalar?(value)
+            case value
+            when ->(v) { permitted_scalar?(v) }
               sanitized[key] = value
-            elsif value.is_a?(Array)
+            when Array
               sanitized[key] = permit_any_in_array(value)
-            elsif value.is_a?(Parameters)
+            when Parameters
               sanitized[key] = permit_any_in_parameters(value)
             else
               # Filter this one out.
@@ -824,9 +825,10 @@ module ActionController
       def permit_any_in_array(array)
         [].tap do |sanitized|
           array.each do |element|
-            if permitted_scalar?(element)
+            case element
+            when ->(e) { permitted_scalar?(e) }
               sanitized << element
-            elsif element.is_a?(Parameters)
+            when Parameters
               sanitized << permit_any_in_parameters(element)
             else
               # Filter this one out.
