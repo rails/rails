@@ -747,15 +747,6 @@ module LocalCacheBehavior
     app = @cache.middleware.new(app)
     app.call({})
   end
-
-  def test_can_call_deprecated_set_cache_value
-    @cache.with_local_cache do
-      assert_deprecated "`set_cache_value` is deprecated" do
-        @cache.send(:set_cache_value, 1, "foo", :ignored, {})
-      end
-      assert_equal 1, @cache.read("foo")
-    end
-  end
 end
 
 module AutoloadingCacheBehavior
