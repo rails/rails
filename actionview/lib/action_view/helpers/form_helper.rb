@@ -513,7 +513,7 @@ module ActionView
       #     <input type="text" name="post[title]" value="<the title of the post>">
       #   </form>
       #
-      # The parameters in the forms are accessible in controlleres according to
+      # The parameters in the forms are accessible in controllers according to
       # their name nesting. So inputs named +title+ and <tt>post[title]</tt> are
       # accessible as <tt>params[:title]</tt> and <tt>params[:post][:title]</tt>
       # respectively.
@@ -525,7 +525,7 @@ module ActionView
       #
       # For ease of comparison the examples above left out the submit button,
       # as well as the auto generated hidden fields that enable UTF-8 support
-      # and adds an authenticity token needed for Cross Site Request Forgery
+      # and adds an authenticity token needed for cross site request forgery
       # protection.
       #
       # ==== +form_with+ options
@@ -538,13 +538,13 @@ module ActionView
       #   either "get" or "post". If "patch", "put", "delete", or another verb
       #   is used, a hidden input named <tt>_method</tt> is added to
       #   simulate the verb over post.
-      # * <tt>:format</tt> - The format of the route post submits to.
+      # * <tt>:format</tt> - The format of the route the form submits to.
       #   Useful when submitting to another resource type, like <tt>:json</tt>.
       #   Skipped if a <tt>:url</tt> is passed.
       # * <tt>:scope</tt> - The scope to prefix input field names with and
       #   thereby how the submitted parameters are grouped in controllers.
       # * <tt>:model</tt> - A model object to infer the <tt>:url</tt> and
-      #   <tt>:scope</tt> by plus fill out input field values.
+      #   <tt>:scope</tt> by, plus fill out input field values.
       #   So if a +title+ attribute is set to "Ahoy!" then a +title+ input
       #   field's value would be "Ahoy!".
       #   If the model is a new record a create form is generated, if an
@@ -553,7 +553,7 @@ module ActionView
       #   E.g. turn <tt>params[:post]</tt> into <tt>params[:article]</tt>.
       # * <tt>:authenticity_token</tt> - Authenticity token to use in the form.
       #   Override with a custom authenticity token or pass <tt>false</tt> to
-      #   skip the authenticity_token field altogether.
+      #   skip the authenticity token field altogether.
       #   Useful when submitting to an external resource like a payment gateway
       #   that might limit the valid fields.
       #   Remote forms may omit the embedded authenticity token by setting
@@ -637,7 +637,7 @@ module ActionView
       #
       # generates
       #
-      #   <form action="http://www.example.com" method="post" data-behavior="autosave" name="go">
+      #   <form action="/posts/123" method="post" data-behavior="autosave" name="go">
       #     <input name="_method" type="hidden" value="patch" />
       #     ...
       #   </form>
@@ -1019,7 +1019,7 @@ module ActionView
       # <tt>*_attributes=</tt> form, e.g. <tt>address_attributes=</tt>.
       #
       # Depending on the association's reader method return value a different
-      # form builder is yielded. For single object returns a one-to-one builder,
+      # form builder is yielded. For single object returns, a one-to-one builder,
       # while a one-to-many builder for array returns.
       #
       # ==== One-to-one
