@@ -383,11 +383,11 @@ module ActiveRecord
               mysql_index_type = row[:Index_type].downcase.to_sym
               index_type  = INDEX_TYPES.include?(mysql_index_type)  ? mysql_index_type : nil
               index_using = INDEX_USINGS.include?(mysql_index_type) ? mysql_index_type : nil
-              indexes << IndexDefinition.new(row[:Table], row[:Key_name], row[:Non_unique].to_i == 0, [], [], nil, nil, index_type, index_using, row[:Index_comment].presence)
+              indexes << IndexDefinition.new(row[:Table], row[:Key_name], row[:Non_unique].to_i == 0, [], {}, nil, nil, index_type, index_using, row[:Index_comment].presence)
             end
 
             indexes.last.columns << row[:Column_name]
-            indexes.last.lengths << row[:Sub_part]
+            indexes.last.lengths.merge!(row[:Column_name] => row[:Sub_part].to_i) if row[:Sub_part]
           end
         end
 
@@ -712,29 +712,22 @@ module ActiveRecord
         MySQL::TypeMetadata.new(super(sql_type), extra: extra, strict: strict_mode?)
       end
 
-      def add_index_length(option_strings, column_names, options = {})
-        if options.is_a?(Hash) && length = options[:length]
+      def add_index_length(quoted_columns, **options)
+        if length = options[:length]
           case length
           when Hash
-            column_names.each {|name| option_strings[name] += "(#{length[name]})" if length.has_key?(name) && length[name].present?}
+            quoted_columns.each { |name, column| column << "(#{length[name]})" if length[name].present? }
           when Integer
-            column_names.each {|name| option_strings[name] += "(#{length})"}
+            quoted_columns.each { |name, column| column << "(#{length})" }
           end
         end
 
-        return option_strings
+        quoted_columns
       end
 
-      def quoted_columns_for_index(column_names, options = {})
-        option_strings = Hash[column_names.map {|name| [name, '']}]
-
-        # add index length
-        option_strings = add_index_length(option_strings, column_names, options)
-
-        # add index sort order
-        option_strings = add_index_sort_order(option_strings, column_names, options)
-
-        column_names.map {|name| quote_column_name(name) + option_strings[name]}
+      def add_options_for_index_columns(quoted_columns, **options)
+        quoted_columns = add_index_length(quoted_columns, options)
+        super
       end
 
       def translate_exception(exception, message)
