@@ -1,3 +1,7 @@
+*   Remove deprecated method `Numeric#to_formatted_s`
+
+    *Andrew White*
+
 *   Remove deprecated method `alias_method_chain`
 
     *Andrew White*

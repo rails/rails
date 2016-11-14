@@ -376,12 +376,6 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal "1 Million", BigDecimal("1000010").to_s(:human)
   end
 
-  def test_to_formatted_s_is_deprecated
-    assert_deprecated do
-      5551234.to_formatted_s(:phone)
-    end
-  end
-
   def test_to_s_with_invalid_formatter
     assert_equal "123", 123.to_s(:invalid)
     assert_equal "2.5", 2.5.to_s(:invalid)
