@@ -387,14 +387,14 @@ module ApplicationTests
          bin/rails generate model product name:string;
          bin/rails db:migrate db:schema:cache:dump`
       end
-      assert File.exist?(File.join(app_path, "db", "schema_cache.dump"))
+      assert File.exist?(File.join(app_path, "db", "schema_cache.yml"))
     end
 
     def test_rake_clear_schema_cache
       Dir.chdir(app_path) do
         `bin/rails db:schema:cache:dump db:schema:cache:clear`
       end
-      assert !File.exist?(File.join(app_path, "db", "schema_cache.dump"))
+      assert !File.exist?(File.join(app_path, "db", "schema_cache.yml"))
     end
 
     def test_copy_templates
