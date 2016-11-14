@@ -1,3 +1,7 @@
+*   Remove deprecated class `ActiveSupport::Concurrency::Latch`
+
+    *Andrew White*
+
 *   Remove deprecated separator argument from `parameterize`
 
     *Andrew White*
