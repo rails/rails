@@ -1,3 +1,7 @@
+*   Remove deprecated method `alias_method_chain`
+
+    *Andrew White*
+
 *   Remove deprecated constant `MissingSourceFile`
 
     *Andrew White*
