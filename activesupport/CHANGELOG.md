@@ -1,3 +1,8 @@
+*   Remove deprecated methods `Module.qualified_const_defined?`,
+    `Module.qualified_const_get` and `Module.qualified_const_set`
+
+    *Andrew White*
+
 *   Remove deprecated `:prefix` option from `number_to_human_size`
 
     *Andrew White*
