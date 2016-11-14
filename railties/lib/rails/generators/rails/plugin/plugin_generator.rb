@@ -81,7 +81,7 @@ task default: :test
     end
 
     PASSTHROUGH_OPTIONS = [
-      :skip_active_record, :skip_action_mailer, :skip_javascript, :database,
+      :skip_active_record, :skip_action_mailer, :skip_javascript, :skip_sprockets, :database,
       :javascript, :quiet, :pretend, :force, :skip
     ]
 

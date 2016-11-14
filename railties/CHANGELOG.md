@@ -1,3 +1,7 @@
+*   Add `:skip_sprockets` to `Rails::PluginBuilder::PASSTHROUGH_OPTIONS`
+
+    *Tsukuru Tanimichi*
+
 *   Run `Minitest.after_run` hooks when running `rails test`.
 
     *Michael Grosser*
