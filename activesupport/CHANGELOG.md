@@ -1,3 +1,7 @@
+*   Remove deprecated separator argument from `parameterize`
+
+    *Andrew White*
+
 *   Remove deprecated method `Numeric#to_formatted_s`
 
     *Andrew White*
