@@ -48,13 +48,12 @@ module ActiveSupport
         Thread.current[thread_key] ||= []
       end
 
-      private
-        def tags_text
-          tags = current_tags
-          if tags.any?
-            tags.collect { |tag| "[#{tag}] " }.join
-          end
+      def tags_text
+        tags = current_tags
+        if tags.any?
+          tags.collect { |tag| "[#{tag}] " }.join
         end
+      end
     end
 
     def self.new(logger)
