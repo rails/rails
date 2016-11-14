@@ -511,56 +511,6 @@ NOTE: Defined in `active_support/core_ext/object/inclusion.rb`.
 Extensions to `Module`
 ----------------------
 
-### `alias_method_chain`
-
-**This method is deprecated in favour of using Module#prepend.**
-
-Using plain Ruby you can wrap methods with other methods, that's called _alias chaining_.
-
-For example, let's say you'd like params to be strings in functional tests, as they are in real requests, but still want the convenience of assigning integers and other kind of values. To accomplish that you could wrap `ActionDispatch::IntegrationTest#process` this way in `test/test_helper.rb`:
-
-```ruby
-ActionDispatch::IntegrationTest.class_eval do
-  # save a reference to the original process method
-  alias_method :original_process, :process
-
-  # now redefine process and delegate to original_process
-  def process('GET', path, params: nil, headers: nil, env: nil, xhr: false)
-    params = Hash[*params.map {|k, v| [k, v.to_s]}.flatten]
-    original_process('GET', path, params: params)
-  end
-end
-```
-
-That's the method `get`, `post`, etc., delegate the work to.
-
-That technique has a risk, it could be the case that `:original_process` was taken. To try to avoid collisions people choose some label that characterizes what the chaining is about:
-
-```ruby
-ActionDispatch::IntegrationTest.class_eval do
-  def process_with_stringified_params(...)
-    params = Hash[*params.map {|k, v| [k, v.to_s]}.flatten]
-    process_without_stringified_params(method, path, params: params)
-  end
-  alias_method :process_without_stringified_params, :process
-  alias_method :process, :process_with_stringified_params
-end
-```
-
-The method `alias_method_chain` provides a shortcut for that pattern:
-
-```ruby
-ActionDispatch::IntegrationTest.class_eval do
-  def process_with_stringified_params(...)
-    params = Hash[*params.map {|k, v| [k, v.to_s]}.flatten]
-    process_without_stringified_params(method, path, params: params)
-  end
-  alias_method_chain :process, :stringified_params
-end
-```
-
-NOTE: Defined in `active_support/core_ext/module/aliasing.rb`.
-
 ### Attributes
 
 #### `alias_attribute`
