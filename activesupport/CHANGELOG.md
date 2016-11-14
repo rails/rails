@@ -31,10 +31,6 @@
 
     *Andrew White*
 
-*   Remove deprecated method `Module.local_constants`
-
-    *Andrew White*
-
 *   Remove deprecated file `active_support/core_ext/time/marshal.rb`
 
     *Andrew White*
