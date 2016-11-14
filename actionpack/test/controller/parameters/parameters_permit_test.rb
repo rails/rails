@@ -179,7 +179,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
         },
         tabstops:   [4, 8, 12, 16],
         suspicious: [true, Object.new, false, /yo!/],
-        dubious:    [{a: :a, b: /wtf!/}, {c: :c}],
+        dubious:    [{ a: :a, b: /wtf!/ }, { c: :c }],
         injected:   Object.new
       },
       hacked: 1 # not a hash
