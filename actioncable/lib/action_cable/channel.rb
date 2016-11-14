@@ -9,6 +9,7 @@ module ActionCable
       autoload :Naming
       autoload :PeriodicTimers
       autoload :Streams
+      autoload :StreamsHandlers
     end
   end
 end

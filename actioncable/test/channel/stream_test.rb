@@ -15,30 +15,13 @@ module ActionCable::StreamTests
     def subscribed
       if params[:id]
         @room = Room.new params[:id]
-        stream_from "test_room_#{@room.id}", coder: pick_coder(params[:coder])
+        stream_from "test_room_#{@room.id}"
       end
     end
 
     def send_confirmation
       transmit_subscription_confirmation
     end
-
-    private def pick_coder(coder)
-      case coder
-      when nil, "json"
-        ActiveSupport::JSON
-      when "custom"
-        DummyEncoder
-      when "none"
-        nil
-      end
-    end
-  end
-
-  module DummyEncoder
-    extend self
-    def encode(*) '{ "foo": "encoded" }' end
-    def decode(*) { foo: "decoded" } end
   end
 
   class SymbolChannel < ActionCable::Channel::Base
@@ -121,10 +104,28 @@ module ActionCable::StreamTests
 
   require "action_cable/subscription_adapter/async"
 
+  module DummyEncoder
+    extend self
+    def encode(*) '{ "foo": "encoded" }' end
+    def decode(*) { foo: "decoded" } end
+  end
+
   class UserCallbackChannel < ActionCable::Channel::Base
     def subscribed
-      stream_from :channel do
+      stream_from :channel, coder: pick_coder(params["coder"]) do |message|
         Thread.current[:ran_callback] = true
+        transmit message
+      end
+    end
+
+    private def pick_coder(coder)
+      case coder
+      when nil, "json"
+        ActiveSupport::JSON
+      when "custom"
+        DummyEncoder
+      when "none"
+        nil
       end
     end
   end
@@ -142,13 +143,41 @@ module ActionCable::StreamTests
       @server.config.allowed_request_origins = %w( http://rubyonrails.com )
     end
 
-    test "custom encoder" do
+    test "custom handler and encoder" do
       run_in_eventmachine do
         connection = open_connection
-        subscribe_to connection, identifiers: { id: 1 }
 
-        connection.websocket.expects(:transmit)
-        @server.broadcast "test_room_1", { foo: "bar" }, coder: DummyEncoder
+        receive(connection, command: "subscribe", channel: UserCallbackChannel.name, identifiers: { coder: 'custom' })
+
+        expected = {
+            "identifier" => { "channel" => UserCallbackChannel.name, "coder" => "custom" }.to_json,
+            "message" => { "foo" => "decoded" }
+        }
+
+        connection.websocket.expects(:transmit).with(expected.to_json)
+
+        @server.broadcast "channel", { foo: "bar" }
+
+        wait_for_async
+        wait_for_executor connection.server.worker_pool.executor
+      end
+    end
+
+    test "default handler" do
+      run_in_eventmachine do
+        connection = open_connection
+
+        receive(connection, command: "subscribe", channel: ChatChannel.name, identifiers: { id: 1 })
+
+        expected = {
+            "identifier" => { "channel" => ChatChannel.name, "id" => 1 }.to_json,
+            "message" => { "message" => "hello world!" }
+        }
+
+        connection.websocket.expects(:transmit).with(expected.to_json)
+
+        @server.broadcast "test_room_1", { message: "hello world!" }
+
         wait_for_async
         wait_for_executor connection.server.worker_pool.executor
       end

@@ -91,8 +91,8 @@ module ActionCable
         end
       end
 
-      def transmit(cable_message) # :nodoc:
-        websocket.transmit encode(cable_message)
+      def transmit(cable_message, encoded = false) # :nodoc:
+        websocket.transmit(encoded ? cable_message : encode(cable_message))
       end
 
       # Close the WebSocket connection.

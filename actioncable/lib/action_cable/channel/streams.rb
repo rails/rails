@@ -131,43 +131,10 @@ module ActionCable
         # TODO: Tests demonstrating this.
         def stream_handler(broadcasting, user_handler, coder: nil)
           if user_handler
-            stream_decoder user_handler, coder: coder
+            ActionCable::Channel::StreamsHandlers::Custom.new(self, handler: user_handler, coder: coder)
           else
-            default_stream_handler broadcasting, coder: coder
+            ActionCable::Channel::StreamsHandlers::Base.new(self)
           end
-        end
-
-        # May be overridden to change the default stream handling behavior
-        # which decodes JSON and transmits to the client.
-        #
-        # TODO: Tests demonstrating this.
-        #
-        # TODO: Room for optimization. Update transmit API to be coder-aware
-        # so we can no-op when pubsub and connection are both JSON-encoded.
-        # Then we can skip decode+encode if we're just proxying messages.
-        def default_stream_handler(broadcasting, coder:)
-          coder ||= ActiveSupport::JSON
-          stream_transmitter stream_decoder(coder: coder), broadcasting: broadcasting
-        end
-
-        def stream_decoder(handler = identity_handler, coder:)
-          if coder
-            -> message { handler.(coder.decode(message)) }
-          else
-            handler
-          end
-        end
-
-        def stream_transmitter(handler = identity_handler, broadcasting:)
-          via = "streamed from #{broadcasting}"
-
-          -> (message) do
-            transmit handler.(message), via: via
-          end
-        end
-
-        def identity_handler
-          -> message { message }
         end
     end
   end
