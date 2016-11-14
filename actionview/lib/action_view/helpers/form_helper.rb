@@ -477,36 +477,36 @@ module ActionView
       # Creates a form tag based on mixing URLs, scopes, or models.
       #
       #   # Using just a URL:
-      #   form_with url: posts_path do |form|
-      #     form.text_field :title
-      #   end
+      #   <%= form_with url: posts_path do |form| %>
+      #     <%= form.text_field :title %>
+      #   <% end %>
       #   # =>
       #   <form action="/posts" method="post" data-remote="true">
       #     <input type="text" name="title">
       #   </form>
       #
       #   # Adding a scope prefixes the input field names:
-      #   form_with scope: :post, url: posts_path do |form|
-      #     form.text_field :title
-      #   end
+      #   <%= form_with scope: :post, url: posts_path do |form| %>
+      #     <%= form.text_field :title %>
+      #   <% end %>
       #   # =>
       #   <form action="/posts" method="post" data-remote="true">
       #     <input type="text" name="post[title]">
       #   </form>
       #
       #   # Using a model infers both the URL and scope:
-      #   form_with model: Post.new do |form|
-      #     form.text_field :title
-      #   end
+      #   <%= form_with model: Post.new do |form| %>
+      #     <%= form.text_field :title %>
+      #   <% end %>
       #   # =>
       #   <form action="/posts" method="post" data-remote="true">
       #     <input type="text" name="post[title]">
       #   </form>
       #
       #   # An existing model makes an update form and fills out field values:
-      #   form_with model: Post.first do |form|
-      #     form.text_field :title
-      #   end
+      #   <%= form_with model: Post.first do |form| %>
+      #     <%= form.text_field :title %>
+      #   <% end %>
       #   # =>
       #   <form action="/posts/1" method="post" data-remote="true">
       #     <input type="hidden" name="_method" value="patch">
@@ -576,23 +576,23 @@ module ActionView
       #
       # When not passing a block, +form_with+ just generates an opening form tag.
       #
-      #   form_with(model: @post, url: super_posts_path)
-      #   form_with(model: @post, scope: :article)
-      #   form_with(model: @post, format: :json)
-      #   form_with(model: @post, authenticity_token: false) # Disables the token.
+      #   <%= form_with(model: @post, url: super_posts_path) %>
+      #   <%= form_with(model: @post, scope: :article) %>
+      #   <%= form_with(model: @post, format: :json) %>
+      #   <%= form_with(model: @post, authenticity_token: false) %> # Disables the token.
       #
       # For namespaced routes, like +admin_post_url+:
       #
-      #   form_with(model: [ :admin, @post ]) do |form|
+      #   <%= form_with(model: [ :admin, @post ]) do |form| %>
       #     ...
-      #   end
+      #   <% end %>
       #
       # If your resource has associations defined, for example, you want to add comments
       # to the document given that the routes are set correctly:
       #
-      #   form_with(model: [ @document, Comment.new ]) do |form|
+      #   <%= form_with(model: [ @document, Comment.new ]) do |form| %>
       #     ...
-      #   end
+      #   <% end %>
       #
       # Where <tt>@document = Document.find(params[:id])</tt>.
       #
@@ -602,15 +602,15 @@ module ActionView
       # match the stand-alone FormHelper methods and methods
       # from FormTagHelper:
       #
-      #   form_with scope: :person do |form|
-      #     form.text_field :first_name
-      #     form.text_field :last_name
+      #   <%= form_with scope: :person do |form| %>
+      #     <%= form.text_field :first_name %>
+      #     <%= form.text_field :last_name %>
       #
-      #     text_area :person, :biography
-      #     check_box_tag "person[admin]", "1", @person.company.admin?
+      #     <%= text_area :person, :biography %>
+      #     <%= check_box_tag "person[admin]", "1", @person.company.admin? %>
       #
-      #     form.submit
-      #   end
+      #     <%= form.submit %>
+      #   <% end %>
       #
       # Same goes for the methods in FormOptionHelper and DateHelper designed
       # to work with an object as a base, like
@@ -631,9 +631,9 @@ module ActionView
       # You can set data attributes directly in a data hash, but HTML options
       # besides id and class must be wrapped in an HTML key:
       #
-      #   form_with(model: @post, data: { behavior: "autosave" }, html: { name: "go" }) do |form|
+      #   <%= form_with(model: @post, data: { behavior: "autosave" }, html: { name: "go" }) do |form| %>
       #     ...
-      #   end
+      #   <% end %>
       #
       # generates
       #
@@ -652,11 +652,11 @@ module ActionView
       # In the following example the Post model has many Comments stored within it in a NoSQL database,
       # thus there is no primary key for comments.
       #
-      #   form_with(model: @post) do |form|
-      #     form.fields(:comments, include_id: false) do |fields|
+      #   <%= form_with(model: @post) do |form| %>
+      #     <%= form.fields(:comments, include_id: false) do |fields| %>
       #       ...
-      #     end
-      #   end
+      #     <% end %>
+      #   <% end %>
       #
       # === Customized form builders
       #
@@ -665,13 +665,13 @@ module ActionView
       # custom builder. For example, let's say you made a helper to
       # automatically add labels to form inputs.
       #
-      #   form_with model: @person, url: { action: "create" }, builder: LabellingFormBuilder do |form|
-      #     form.text_field :first_name
-      #     form.text_field :last_name
-      #     form.text_area :biography
-      #     form.check_box :admin
-      #     form.submit
-      #   end
+      #   <%= form_with model: @person, url: { action: "create" }, builder: LabellingFormBuilder do |form| %>
+      #     <%= form.text_field :first_name %>
+      #     <%= form.text_field :last_name %>
+      #     <%= form.text_area :biography %>
+      #     <%= form.check_box :admin %>
+      #     <%= form.submit %>
+      #   <% end %>
       #
       # In this case, if you use:
       #
@@ -687,7 +687,7 @@ module ActionView
       # In many cases you will want to wrap the above in another helper, so you
       # could do something like the following:
       #
-      #   def labelled_form_for(**options, &block)
+      #   def labelled_form_with(**options, &block)
       #     form_with(**options.merge(builder: LabellingFormBuilder), &block)
       #   end
       def form_with(model: nil, scope: nil, url: nil, format: nil, html: {}, remote: true, **options)
@@ -966,26 +966,26 @@ module ActionView
       # except it doesn't output the form tags.
       #
       #   # Using a scope prefixes the input field names:
-      #   fields :comment do |fields|
-      #     fields.text_field :body
-      #   end
+      #   <%= fields :comment do |fields| %>
+      #     <%= fields.text_field :body %>
+      #   <% end %>
       #   # => <input type="text" name="comment[body] id="comment_body">
       #
       #   # Using a model infers the scope and assigns field values:
-      #   fields model: Comment.new(body: "full bodied") do |fields|
-      #     fields.text_field :body
-      #   end
+      #   <%= fields model: Comment.new(body: "full bodied") do |fields| %<
+      #     <%= fields.text_field :body %>
+      #   <% end %>
       #   # =>
       #   <input type="text" name="comment[body] id="comment_body" value="full bodied">
       #
       #   # Using +fields+ with +form_with+:
-      #   form_with model: @post do |form|
-      #     form.text_field :title
+      #   <%= form_with model: @post do |form| %>
+      #     <%= form.text_field :title %>
       #
-      #     form.fields :comment do |fields|
-      #       fields.text_field :body
-      #     end
-      #   end
+      #     <%= form.fields :comment do |fields| %>
+      #       <%= fields.text_field :body %>
+      #     <% end %>
+      #   <% end %>
       #
       # Much like +form_with+ a FormBuilder instance associated with the scope
       # or model is yielded, so any generated field names are prefixed with
@@ -997,12 +997,12 @@ module ActionView
       # match the stand-alone FormHelper methods and methods
       # from FormTagHelper:
       #
-      #   fields model: @comment do |fields|
-      #     fields.text_field :body
+      #   <%= fields model: @comment do |fields| %>
+      #     <%= fields.text_field :body %>
       #
-      #     text_area :commenter, :biography
-      #     check_box_tag "comment[all_caps]", "1", @comment.commenter.hulk_mode?
-      #   end
+      #     <%= text_area :commenter, :biography %>
+      #     <%= check_box_tag "comment[all_caps]", "1", @comment.commenter.hulk_mode? %>
+      #   <% end %>
       #
       # Same goes for the methods in FormOptionHelper and DateHelper designed
       # to work with an object as a base, like
