@@ -549,14 +549,6 @@ module ActiveSupport
           key
         end
 
-        def namespaced_key(*args)
-          ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
-            `namespaced_key` is deprecated and will be removed from Rails 5.1.
-            Please use `normalize_key` which will return a fully resolved key.
-          MESSAGE
-          normalize_key(*args)
-        end
-
         def instrument(operation, key, options = nil)
           log { "Cache #{operation}: #{normalize_key(key, options)}#{options.blank? ? "" : " (#{options.inspect})"}" }
 

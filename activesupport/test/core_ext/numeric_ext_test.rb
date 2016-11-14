@@ -287,21 +287,6 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal "10 Bytes",  10.to_s(:human_size)
   end
 
-  def test_to_s__human_size_with_si_prefix
-    assert_deprecated do
-      assert_equal "3 Bytes",    3.14159265.to_s(:human_size, prefix: :si)
-      assert_equal "123 Bytes",  123.0.to_s(:human_size, prefix: :si)
-      assert_equal "123 Bytes",  123.to_s(:human_size, prefix: :si)
-      assert_equal "1.23 KB",    1234.to_s(:human_size, prefix: :si)
-      assert_equal "12.3 KB",    12345.to_s(:human_size, prefix: :si)
-      assert_equal "1.23 MB",    1234567.to_s(:human_size, prefix: :si)
-      assert_equal "1.23 GB",    1234567890.to_s(:human_size, prefix: :si)
-      assert_equal "1.23 TB",    1234567890123.to_s(:human_size, prefix: :si)
-      assert_equal "1.23 PB",    1234567890123456.to_s(:human_size, prefix: :si)
-      assert_equal "1.23 EB",    1234567890123456789.to_s(:human_size, prefix: :si)
-    end
-  end
-
   def test_to_s__human_size_with_options_hash
     assert_equal "1.2 MB",   1234567.to_s(:human_size, precision: 2)
     assert_equal "3 Bytes",  3.14159265.to_s(:human_size, precision: 4)
@@ -389,12 +374,6 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal "1.23 Thousand", Float(1230).to_s(:human)
     assert_equal "100000 Quadrillion", (100**10).to_s(:human)
     assert_equal "1 Million", BigDecimal("1000010").to_s(:human)
-  end
-
-  def test_to_formatted_s_is_deprecated
-    assert_deprecated do
-      5551234.to_formatted_s(:phone)
-    end
   end
 
   def test_to_s_with_invalid_formatter

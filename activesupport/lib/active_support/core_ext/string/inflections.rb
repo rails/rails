@@ -178,11 +178,7 @@ class String
   #
   #   <%= link_to(@person.name, person_path) %>
   #   # => <a href="/person/1-Donald-E-Knuth">Donald E. Knuth</a>
-  def parameterize(sep = :unused, separator: "-", preserve_case: false)
-    unless sep == :unused
-      ActiveSupport::Deprecation.warn("Passing the separator argument as a positional parameter is deprecated and will soon be removed. Use `separator: '#{sep}'` instead.")
-      separator = sep
-    end
+  def parameterize(separator: "-", preserve_case: false)
     ActiveSupport::Inflector.parameterize(self, separator: separator, preserve_case: preserve_case)
   end
 

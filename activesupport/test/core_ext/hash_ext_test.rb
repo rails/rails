@@ -1051,13 +1051,6 @@ class HashExtTest < ActiveSupport::TestCase
     assert_nothing_raised { hash.to_hash }
   end
 
-  def test_new_from_hash_copying_default_should_not_raise_when_default_proc_does
-    hash = Hash.new
-    hash.default_proc = proc { |h, k| raise "walrus" }
-
-    assert_deprecated { HashWithIndifferentAccess.new_from_hash_copying_default(hash) }
-  end
-
   def test_new_with_to_hash_conversion_copies_default
     normal_hash = Hash.new(3)
     normal_hash[:a] = 1

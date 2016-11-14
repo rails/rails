@@ -126,11 +126,6 @@ module ActiveSupport::NumericWithFormat
       end
     end
   end
-
-  def to_formatted_s(*args)
-    to_s(*args)
-  end
-  deprecate to_formatted_s: :to_s
 end
 
 # Ruby 2.4+ unifies Fixnum & Bignum into Integer.
