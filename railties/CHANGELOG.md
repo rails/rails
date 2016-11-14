@@ -1,3 +1,7 @@
+*   Add `:skip_sprockets` to `Rails::PluginBuilder::PASSTHROUGH_OPTIONS`
+
+    *Tsukuru Tanimichi*
+
 *   Allow the use of listen's 3.1.x branch
 
     *Esteban Santana Santana*
