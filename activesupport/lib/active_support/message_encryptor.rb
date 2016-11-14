@@ -18,6 +18,8 @@ module ActiveSupport
   #   encrypted_data = crypt.encrypt_and_sign('my secret data')              # => "NlFBTTMwOUV5UlA1QlNEN2xkY2d6eThYWWh..."
   #   crypt.decrypt_and_verify(encrypted_data)                               # => "my secret data"
   class MessageEncryptor
+    DEFAULT_CIPHER = "aes-256-cbc"
+
     module NullSerializer #:nodoc:
       def self.load(value)
         value
@@ -62,6 +64,11 @@ module ActiveSupport
     # avoid padding attacks. Reference: http://www.limited-entropy.com/padding-oracle-attacks.
     def decrypt_and_verify(value)
       _decrypt(verifier.verify(value))
+    end
+
+    # Given a cipher, returns the key length of the cipher to help generate the key of desired size
+    def self.key_len(cipher = DEFAULT_CIPHER)
+      OpenSSL::Cipher.new(cipher).key_len
     end
 
     private
