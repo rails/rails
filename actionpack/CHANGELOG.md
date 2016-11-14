@@ -1,3 +1,11 @@
+*   Fixes multiple calls to `logger.fatal` instead of a single call, 
+    for every line in an exception backtrace, when printing trace 
+    from `DebugExceptions` middleware.
+      
+    Fixes #26134  
+
+    *Vipul A M*
+   
 *   Add support for arbitrary hashes in strong parameters:
 
     ```ruby
