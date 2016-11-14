@@ -1,14 +1,6 @@
 require "abstract_unit"
 require "active_support/core_ext/load_error"
 
-class TestMissingSourceFile < ActiveSupport::TestCase
-  def test_it_is_deprecated
-    assert_deprecated do
-      MissingSourceFile.new
-    end
-  end
-end
-
 class TestLoadError < ActiveSupport::TestCase
   def test_with_require
     assert_raise(LoadError) { require 'no_this_file_don\'t_exist' }

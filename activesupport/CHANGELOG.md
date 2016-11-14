@@ -1,3 +1,7 @@
+*   Remove deprecated constant `MissingSourceFile`
+
+    *Andrew White*
+
 *   Remove deprecated methods `Module.qualified_const_defined?`,
     `Module.qualified_const_get` and `Module.qualified_const_set`
 
