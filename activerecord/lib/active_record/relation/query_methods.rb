@@ -763,7 +763,7 @@ module ActiveRecord
     #   end
     #
     def none
-      where("1=0").extending!(NullRelation)
+      spawn.none!
     end
 
     def none! # :nodoc:
