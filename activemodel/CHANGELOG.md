@@ -1,3 +1,7 @@
+*   Added `:except_on` option to validators that does the exact opposite of `:on`.
+    
+    *Jochen Niebuhr*
+
 *   Removed deprecated `:tokenizer` in the length validator.
 
     *Rafael Mendonça França*

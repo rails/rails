@@ -57,6 +57,14 @@ class DogValidatorWithOnCondition < Dog
   def set_after_validation_marker;  history << "after_validation_marker" ; end
 end
 
+class DogValidatorWithExceptOnCondition < Dog
+  before_validation :set_before_validation_marker, except_on: :update
+  after_validation :set_after_validation_marker, except_on: :update
+
+  def set_before_validation_marker; history << "before_validation_marker"; end
+  def set_after_validation_marker;  history << "after_validation_marker" ; end
+end
+
 class DogValidatorWithIfCondition < Dog
   before_validation :set_before_validation_marker1, if: -> { true }
   before_validation :set_before_validation_marker2, if: -> { false }
@@ -94,6 +102,24 @@ class CallbacksWithMethodNamesShouldBeCalled < ActiveModel::TestCase
     d = DogValidatorWithOnCondition.new
     d.valid?
     assert_equal [], d.history
+  end
+
+  def test_except_on_condition_is_respected_for_validation_with_matching_context
+    d = DogValidatorWithExceptOnCondition.new
+    d.valid?(:update)
+    assert_equal [], d.history
+  end
+
+  def test_except_on_condition_is_respected_for_validation_without_matching_context
+    d = DogValidatorWithExceptOnCondition.new
+    d.valid?(:save)
+    assert_equal ["before_validation_marker", "after_validation_marker"], d.history
+  end
+
+  def test_except_on_condition_is_respected_for_validation_without_context
+    d = DogValidatorWithExceptOnCondition.new
+    d.valid?
+    assert_equal ["before_validation_marker", "after_validation_marker"], d.history
   end
 
   def test_before_validation_and_after_validation_callbacks_should_be_called

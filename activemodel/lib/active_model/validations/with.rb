@@ -49,6 +49,12 @@ module ActiveModel
       #   or an array of symbols. (e.g. <tt>on: :create</tt> or
       #   <tt>on: :custom_validation_context</tt> or
       #   <tt>on: [:create, :custom_validation_context]</tt>)
+      # * <tt>:except_on</tt> - Specifies the contexts where this validation is not active.
+      #   This works the opposite way of <tt>:on</tt>.
+      #   Runs in all validation contexts by default (unless specified otherwise using <tt>:on</tt>).
+      #   You can pass a symbol or an array of symbols. (e.g. <tt>except_on: :create</tt> or
+      #   <tt>except_on: :custom_validation_context</tt> or
+      #   <tt>except_on: [:create, :custom_validation_context]</tt>)
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
       #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
       #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>).
@@ -124,7 +130,7 @@ module ActiveModel
     #     end
     #   end
     #
-    # Standard configuration options (<tt>:on</tt>, <tt>:if</tt> and
+    # Standard configuration options (<tt>:on</tt>, <tt>:except_on</tt>, <tt>:if</tt> and
     # <tt>:unless</tt>), which are available on the class version of
     # +validates_with+, should instead be placed on the +validates+ method
     # as these are applied and tested in the callback.
