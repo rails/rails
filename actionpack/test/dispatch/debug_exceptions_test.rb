@@ -50,6 +50,8 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
         raise ActionView::MissingTemplate.new(%w(foo), "foo/index", %w(foo), false, "mailer")
       when %r{/bad_request}
         raise ActionController::BadRequest
+      when %r{/unsupported_media_type}
+        raise ActionController::UnsupportedMediaType
       when %r{/missing_keys}
         raise ActionController::UrlGenerationError, "No route matches"
       when %r{/parameter_missing}
@@ -148,6 +150,10 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     get "/bad_request", headers: { "action_dispatch.show_exceptions" => true }
     assert_response 400
     assert_match(/ActionController::BadRequest/, body)
+
+    get "/unsupported_media_type", headers: { "action_dispatch.show_exceptions" => true }
+    assert_response 415
+    assert_match(/ActionController::UnsupportedMediaType/, body)
 
     get "/parameter_missing", headers: { "action_dispatch.show_exceptions" => true }
     assert_response 400
