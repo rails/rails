@@ -379,6 +379,7 @@ DEPENDENCIES
   em-hiredis
   hiredis
   jquery-rails
+  json (>= 2.0.0)
   kindlerb (>= 1.0.1)
   listen (>= 3.0.5, < 3.2)
   minitest (< 5.3.4)

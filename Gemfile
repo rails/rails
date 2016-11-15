@@ -35,6 +35,9 @@ gem "sass", github: "sass/sass", branch: "stable", require: false
 # FIXME: Remove this fork after https://github.com/nex3/rb-inotify/pull/49 is fixed.
 gem "rb-inotify", github: "matthewd/rb-inotify", branch: "close-handling", require: false
 
+# Explicitly avoid 1.x that doesn't support Ruby 2.4+
+gem "json", ">= 2.0.0"
+
 group :doc do
   gem "sdoc", "1.0.0.beta2"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
