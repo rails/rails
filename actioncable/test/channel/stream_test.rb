@@ -120,12 +120,10 @@ module ActionCable::StreamTests
 
     private def pick_coder(coder)
       case coder
-      when nil, "json"
-        ActiveSupport::JSON
       when "custom"
         DummyEncoder
-      when "none"
-        nil
+      when nil, "json"
+        ActiveSupport::JSON
       end
     end
   end
@@ -147,7 +145,7 @@ module ActionCable::StreamTests
       run_in_eventmachine do
         connection = open_connection
 
-        receive(connection, command: "subscribe", channel: UserCallbackChannel.name, identifiers: { coder: 'custom' })
+        receive(connection, command: "subscribe", channel: UserCallbackChannel.name, identifiers: { coder: "custom" })
 
         expected = {
             "identifier" => { "channel" => UserCallbackChannel.name, "coder" => "custom" }.to_json,
@@ -156,7 +154,27 @@ module ActionCable::StreamTests
 
         connection.websocket.expects(:transmit).with(expected.to_json)
 
-        @server.broadcast "channel", { foo: "bar" }
+        @server.broadcast "channel", foo: "bar"
+
+        wait_for_async
+        wait_for_executor connection.server.worker_pool.executor
+      end
+    end
+
+    test "no encoder" do
+      run_in_eventmachine do
+        connection = open_connection
+
+        receive(connection, command: "subscribe", channel: UserCallbackChannel.name, identifiers: {})
+
+        expected = {
+            "identifier" => { "channel" => UserCallbackChannel.name }.to_json,
+            "message" => "raw message"
+        }
+
+        connection.websocket.expects(:transmit).with(expected.to_json)
+
+        @server.broadcast "channel", "raw message"#, coder: ActionCable::Channel::Streams::NoopCoder
 
         wait_for_async
         wait_for_executor connection.server.worker_pool.executor
@@ -176,7 +194,7 @@ module ActionCable::StreamTests
 
         connection.websocket.expects(:transmit).with(expected.to_json)
 
-        @server.broadcast "test_room_1", { message: "hello world!" }
+        @server.broadcast "test_room_1", message: "hello world!"
 
         wait_for_async
         wait_for_executor connection.server.worker_pool.executor

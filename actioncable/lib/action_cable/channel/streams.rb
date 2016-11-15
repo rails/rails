@@ -63,6 +63,16 @@ module ActionCable
     module Streams
       extend ActiveSupport::Concern
 
+      class IdentityCoder
+        class << self
+          def decode(val)
+            val
+          end
+
+          alias encode decode
+        end
+      end
+
       included do
         on_unsubscribe :stop_all_streams
       end
@@ -127,14 +137,21 @@ module ActionCable
 
         # May be overridden to add instrumentation, logging, specialized error
         # handling, or other forms of handler decoration.
-        #
-        # TODO: Tests demonstrating this.
         def stream_handler(broadcasting, user_handler, coder: nil)
           if user_handler
-            ActionCable::Channel::StreamsHandlers::Custom.new(self, handler: user_handler, coder: coder)
+            user_stream_handler user_handler, coder: coder
           else
-            ActionCable::Channel::StreamsHandlers::Base.new(self)
+            default_stream_handler
           end
+        end
+
+        def user_stream_handler(user_handler, coder: nil)
+          coder ||= IdentityCoder
+          -> encoded_message { user_handler.(coder.decode(encoded_message)) }
+        end
+
+        def default_stream_handler
+          -> encoded_message { transmit_encoded encoded_message }
         end
     end
   end

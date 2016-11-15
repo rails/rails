@@ -213,6 +213,10 @@ module ActionCable
           end
         end
 
+        def transmit_encoded(encoded)
+          connection.transmit_encoded "{\"identifier\":#{identifier_json},\"message\":#{encoded}}"
+        end
+
         def ensure_confirmation_sent
           return if subscription_rejected?
           @defer_subscription_confirmation_counter.decrement
@@ -296,6 +300,10 @@ module ActionCable
           ActiveSupport::Notifications.instrument("transmit_subscription_rejection.action_cable", channel_class: self.class.name) do
             connection.transmit identifier: @identifier, type: ActionCable::INTERNAL[:message_types][:rejection]
           end
+        end
+
+        def identifier_json
+          @identifier_json ||= identifier.to_json
         end
     end
   end

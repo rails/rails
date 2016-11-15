@@ -1,3 +1,11 @@
+*   Improve broadcasting performance when using default stream handlers.
+
+    Optimize streams callbacks to increase the perfomance (5-6x according to
+    the [benchmark](https://gist.github.com/palkan/4fa301e0eecc5c881ede385afc59b391))
+    by avoiding unnecessary decoding and logging.
+
+    *Vladimir Dementyev*
+
 *   Permit same-origin connections by default.
 
     Added new option `config.action_cable.allow_same_origin_as_host = false`
