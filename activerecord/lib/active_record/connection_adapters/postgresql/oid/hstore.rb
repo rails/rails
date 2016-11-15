@@ -24,6 +24,8 @@ module ActiveRecord
           def serialize(value)
             if value.is_a?(::Hash)
               value.map { |k, v| "#{escape_hstore(k)}=>#{escape_hstore(v)}" }.join(", ")
+            elsif value.respond_to?(:to_unsafe_h)
+              serialize(value.to_unsafe_h)
             else
               value
             end
