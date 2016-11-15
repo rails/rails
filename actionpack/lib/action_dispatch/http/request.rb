@@ -357,7 +357,20 @@ module ActionDispatch
       fetch_header("action_dispatch.request.request_parameters") do
         pr = parse_formatted_parameters(params_parsers) do |params|
           # PRNOTE(BF): This isn't where the empty {} comes from in the test.
-          super || {}
+          rack_request_helpers_post = super
+          if rack_request_helpers_post
+            if content_length.nonzero? && rack_request_helpers_post.empty?
+              if env.key?('action_dispatch.exception')
+                {}
+              else
+                raise ActionController::UnsupportedMediaType.new(content_mime_type)
+              end
+            else
+              rack_request_helpers_post
+            end
+          else
+            {}
+          end
         end
         self.request_parameters = Request::Utils.normalize_encode_params(pr)
       end
