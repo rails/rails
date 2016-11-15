@@ -980,6 +980,12 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
     Mime::Type.unregister :wibble
   end
 
+  def test_encoding_with_unregistered_encoder
+    assert_raise ArgumentError do
+      post_to_foos as: :unregisterd_encoder
+    end
+  end
+
   def test_parsed_body_without_as_option
     with_routing do |routes|
       routes.draw do

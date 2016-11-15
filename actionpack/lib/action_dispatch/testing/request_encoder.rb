@@ -40,7 +40,7 @@ module ActionDispatch
     end
 
     def self.encoder(name)
-      @encoders[name] || WWWFormEncoder
+      @encoders[name] || raise(ArgumentError, "Can't respond with unregistered encoder: #{name}. Register encoders with ActionDispatch::IntegrationTest.register_encoder(:#{name})")
     end
 
     def self.register_encoder(mime_name, param_encoder: nil, response_parser: nil)
