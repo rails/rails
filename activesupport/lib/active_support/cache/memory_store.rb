@@ -28,6 +28,7 @@ module ActiveSupport
         @pruning = false
       end
 
+      # Delete all data stored in a given cache store.
       def clear(options = nil)
         synchronize do
           @data.clear
@@ -83,6 +84,7 @@ module ActiveSupport
         modify_value(name, -amount, options)
       end
 
+      # Deletes cache entires if the cache key matches a given pattern
       def delete_matched(matcher, options = nil)
         options = merged_options(options)
         instrument(:delete_matched, matcher.inspect) do
