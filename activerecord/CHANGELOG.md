@@ -1,3 +1,10 @@
+*   Allow `ActionController::Parameters`-like objects to be passed as
+    values for Postgres HStore columns.
+
+    Fixes #26904.
+
+    *Jon Moss*
+
 *   Fixed support for case insensitive comparisons of `text` columns in
     PostgreSQL.
 

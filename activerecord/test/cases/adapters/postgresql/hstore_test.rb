@@ -10,6 +10,12 @@ if ActiveRecord::Base.connection.supports_extensions?
       store_accessor :settings, :language, :timezone
     end
 
+    class FakeParameters
+      def to_unsafe_h
+        { "hi" => "hi" }
+      end
+    end
+
     def setup
       @connection = ActiveRecord::Base.connection
 
@@ -319,6 +325,10 @@ if ActiveRecord::Base.connection.supports_extensions?
     def test_schema_dump_with_shorthand
       output = dump_table_schema("hstores")
       assert_match %r[t\.hstore "tags",\s+default: {}], output
+    end
+
+    def test_supports_to_unsafe_h_values
+      assert_equal("\"hi\"=>\"hi\"", @type.serialize(FakeParameters.new))
     end
 
     private
