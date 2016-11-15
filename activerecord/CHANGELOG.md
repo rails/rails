@@ -1,3 +1,10 @@
+*   Allow `ActionController::Parameters`-like objects to be passed as
+    values for Postgres HStore columns.
+
+    Fixes #26904.
+
+    *Jon Moss*
+
 *   Added `stat` method to `ActiveRecord::ConnectionAdapters::ConnectionPool`
 
     Example:
