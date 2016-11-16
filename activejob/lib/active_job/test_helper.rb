@@ -232,16 +232,16 @@ module ActiveJob
     #       MyJob.set(wait_until: Date.tomorrow.noon).perform_later
     #     end
     #   end
-    def assert_enqueued_with(args = {})
+    def assert_enqueued_with(job: nil, args: nil, at: nil, queue: nil)
       original_enqueued_jobs_count = enqueued_jobs.count
-      args.assert_valid_keys(:job, :args, :at, :queue)
-      serialized_args = serialize_args_for_assertion(args)
+      expected = { job: job, args: args, at: at, queue: queue }.compact
+      serialized_args = serialize_args_for_assertion(expected)
       yield
       in_block_jobs = enqueued_jobs.drop(original_enqueued_jobs_count)
       matching_job = in_block_jobs.find do |job|
         serialized_args.all? { |key, value| value == job[key] }
       end
-      assert matching_job, "No enqueued job found with #{args}"
+      assert matching_job, "No enqueued job found with #{expected}"
       instantiate_job(matching_job)
     end
 
@@ -256,16 +256,16 @@ module ActiveJob
     #       MyJob.set(wait_until: Date.tomorrow.noon).perform_later
     #     end
     #   end
-    def assert_performed_with(args = {})
+    def assert_performed_with(job: nil, args: nil, at: nil, queue: nil)
       original_performed_jobs_count = performed_jobs.count
-      args.assert_valid_keys(:job, :args, :at, :queue)
-      serialized_args = serialize_args_for_assertion(args)
+      expected = { job: job, args: args, at: at, queue: queue }.compact
+      serialized_args = serialize_args_for_assertion(expected)
       perform_enqueued_jobs { yield }
       in_block_jobs = performed_jobs.drop(original_performed_jobs_count)
       matching_job = in_block_jobs.find do |job|
         serialized_args.all? { |key, value| value == job[key] }
       end
-      assert matching_job, "No performed job found with #{args}"
+      assert matching_job, "No performed job found with #{expected}"
       instantiate_job(matching_job)
     end
 
