@@ -362,6 +362,9 @@ module ActiveRecord
     #
     #   # Update all books that match conditions, but limit it to 5 ordered by date
     #   Book.where('title LIKE ?', '%Rails%').order(:created_at).limit(5).update_all(author: 'David')
+    #
+    #   # Update all invoices and set the number column to its id value.
+    #   Invoice.update_all('number = id')
     def update_all(updates)
       raise ArgumentError, "Empty list of attributes to change" if updates.blank?
 
