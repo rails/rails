@@ -64,6 +64,7 @@ matrix:
       env:
         - "JRUBY_OPTS='--dev -J-Xmx1024M'"
         - "GEM='ap'"
+        - "TESTOPTS='-v'"
   allow_failures:
     - rvm: ruby-head
     - rvm: jruby-9.1.5.0
