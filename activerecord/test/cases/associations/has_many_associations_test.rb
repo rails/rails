@@ -919,6 +919,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     company.clients_of_firm.build("name" => "Another Client")
     company.clients_of_firm.build("name" => "Yet Another Client")
     assert_equal 4, company.clients_of_firm.size
+    assert_equal 4, company.clients_of_firm.uniq.size
   end
 
   def test_collection_not_empty_after_building

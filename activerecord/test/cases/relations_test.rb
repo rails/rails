@@ -785,7 +785,6 @@ class RelationTest < ActiveRecord::TestCase
     expected_taggings = taggings(:welcome_general, :thinking_general)
 
     assert_no_queries do
-      assert_equal expected_taggings, author.taggings.distinct.sort_by(&:id)
       assert_equal expected_taggings, author.taggings.uniq.sort_by(&:id)
     end
 
