@@ -3,6 +3,9 @@ require "abstract_unit"
 class WraithAttack < StandardError
 end
 
+class WraithAlerted < StandardError
+end
+
 class MadRonon < StandardError
 end
 
@@ -27,6 +30,10 @@ class Stargate
   rescue_from WraithAttack, with: :sos_first
 
   rescue_from WraithAttack, with: :sos
+
+  rescue_from WraithAlerted, fall_back_to_cause: false do
+    @result = "alerted"
+  end
 
   rescue_from "NuclearExplosion" do
     @result = "alldead"
@@ -64,6 +71,16 @@ class Stargate
   rescue
     # This is the exception we'll handle that doesn't have a cause.
     raise "unhandled RuntimeError with a handleable cause"
+  end
+
+  def dont_fall_back_to_cause
+    alert
+  rescue
+    raise "Teal'c, look scary and take point."
+  end
+
+  def alert
+    raise WraithAlerted
   end
 
   def weird
@@ -124,13 +141,13 @@ class RescuableTest < ActiveSupport::TestCase
   end
 
   def test_rescues_defined_later_are_added_at_end_of_the_rescue_handlers_array
-    expected = ["WraithAttack", "WraithAttack", "NuclearExplosion", "MadRonon", "WeirdError"]
+    expected = ["WraithAttack", "WraithAttack", "WraithAlerted", "NuclearExplosion", "MadRonon", "WeirdError"]
     result = @stargate.send(:rescue_handlers).collect(&:first)
     assert_equal expected, result
   end
 
   def test_children_should_inherit_rescue_definitions_from_parents_and_child_rescue_should_be_appended
-    expected = ["WraithAttack", "WraithAttack", "NuclearExplosion", "MadRonon", "WeirdError", "CoolError"]
+    expected = ["WraithAttack", "WraithAttack", "WraithAlerted", "NuclearExplosion", "MadRonon", "WeirdError", "CoolError"]
     result = @cool_stargate.send(:rescue_handlers).collect(&:first)
     assert_equal expected, result
   end
@@ -138,5 +155,15 @@ class RescuableTest < ActiveSupport::TestCase
   def test_rescue_falls_back_to_exception_cause
     @stargate.dispatch :fall_back_to_cause
     assert_equal "unhandled RuntimeError with a handleable cause", @stargate.result
+  end
+
+  def test_rescue_does_not_fall_back_to_exception_cause_if_cause_false
+    @stargate.dispatch :dont_fall_back_to_cause
+    assert_equal nil, @stargate.result
+  end
+
+  def test_rescue_from_if_cause_false
+    @stargate.dispatch :alert
+    assert_equal "alerted", @stargate.result
   end
 end

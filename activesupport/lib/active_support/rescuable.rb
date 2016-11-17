@@ -47,7 +47,7 @@ module ActiveSupport
       #   end
       #
       # Exceptions raised inside exception handlers are not propagated up.
-      def rescue_from(*klasses, with: nil, &block)
+      def rescue_from(*klasses, with: nil, fall_back_to_cause: true, &block)
         unless with
           if block_given?
             with = block
@@ -66,7 +66,7 @@ module ActiveSupport
           end
 
           # Put the new handler at the end because the list is read in reverse.
-          self.rescue_handlers += [[key, with]]
+          self.rescue_handlers += [[key, with, fall_back_to_cause]]
         end
       end
 
@@ -110,18 +110,19 @@ module ActiveSupport
       end
 
       private
-        def find_rescue_handler(exception)
+        def find_rescue_handler(exception, is_cause = false)
           if exception
             # Handlers are in order of declaration but the most recently declared
             # is the highest priority match, so we search for matching handlers
             # in reverse.
-            _, handler = rescue_handlers.reverse_each.detect do |class_or_name, _|
+            _, handler, _ = rescue_handlers.reverse_each.detect do |class_or_name, _, fall_back_to_cause|
+              next if is_cause && !fall_back_to_cause
               if klass = constantize_rescue_handler_class(class_or_name)
                 klass === exception
               end
             end
 
-            handler || find_rescue_handler(exception.cause)
+            handler || find_rescue_handler(exception.cause, true)
           end
         end
 
