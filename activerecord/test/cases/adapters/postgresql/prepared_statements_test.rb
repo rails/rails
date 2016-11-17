@@ -16,7 +16,8 @@ class PreparedStatementsTest < ActiveRecord::PostgreSQLTestCase
 
   def test_nothing_raised_with_falsy_prepared_statements
     assert_nothing_raised do
-      Developer.where(id: 1)
+      Developer.first #With Binds
+      Developer.count #Without Binds
     end
   end
 end
