@@ -312,9 +312,9 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_encoding_arrays_of_utf8_strings
-    string_with_utf8 = "nový"
-    assert_equal [string_with_utf8], @type.deserialize(@type.serialize([string_with_utf8]))
-    assert_equal [[string_with_utf8]], @type.deserialize(@type.serialize([[string_with_utf8]]))
+    arrays_of_utf8_strings = %w(nový ファイル)
+    assert_equal arrays_of_utf8_strings, @type.deserialize(@type.serialize(arrays_of_utf8_strings))
+    assert_equal [arrays_of_utf8_strings], @type.deserialize(@type.serialize([arrays_of_utf8_strings]))
   end
 
   private
