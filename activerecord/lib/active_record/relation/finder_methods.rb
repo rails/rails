@@ -321,7 +321,7 @@ module ActiveRecord
       relation = apply_join_dependency(self, construct_join_dependency(eager_loading: false))
       return false if ActiveRecord::NullRelation === relation
 
-      relation = relation.except(:select, :order).select(ONE_AS_ONE).limit(1)
+      relation = relation.except(:select, :distinct).select(ONE_AS_ONE).limit(1)
 
       case conditions
       when Array, Hash
