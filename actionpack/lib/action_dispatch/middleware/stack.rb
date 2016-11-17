@@ -127,11 +127,9 @@ module ActionDispatch
       end
 
       def target_deleted(target, where)
-        if where == :after
-          new_target = @deleted_middlewares[target][:previous]
-        else
-          new_target = @deleted_middlewares[target][:next]
-        end
+        position = where == :after ? :previous : :next
+
+        @deleted_middlewares[target][position]
       end
 
       def middleware_index(klass)
