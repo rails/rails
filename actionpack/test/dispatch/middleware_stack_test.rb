@@ -110,4 +110,22 @@ class MiddlewareStackTest < ActiveSupport::TestCase
   test "includes a middleware" do
     assert_equal true, @stack.include?(ActionDispatch::MiddlewareStack::Middleware.new(BarMiddleware, nil, nil))
   end
+
+  test "allow adding middleware after a middleware that was already removed" do
+    @stack.delete FooMiddleware
+    @stack.insert_after FooMiddleware, BazMiddleware
+    assert_equal BarMiddleware, @stack.first.klass
+    assert_equal BazMiddleware, @stack[1].klass
+    assert_equal false, @stack.include?(FooMiddleware)
+  end
+
+  test "adds middleware right after the previous middleware of the deleted target" do
+    @stack.use BazMiddleware
+    @stack.delete BarMiddleware
+    @stack.insert_after BarMiddleware, HiyaMiddleware
+    assert_equal FooMiddleware, @stack.first.klass
+    assert_equal HiyaMiddleware, @stack[1].klass
+    assert_equal BazMiddleware, @stack[2].klass
+    assert_equal false, @stack.include?(BarMiddleware)
+  end
 end

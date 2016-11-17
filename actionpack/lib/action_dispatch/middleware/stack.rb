@@ -42,6 +42,7 @@ module ActionDispatch
 
     def initialize(*args)
       @middlewares = []
+      @deleted_middlewares = {}
       yield(self) if block_given?
     end
 
@@ -88,7 +89,10 @@ module ActionDispatch
     end
 
     def delete(target)
-      middlewares.delete_if { |m| m.klass == target }
+      index = middlewares.index { |m| m.klass == target }
+      previous_middleware = middlewares[index - 1]
+      @deleted_middlewares[middlewares[index].klass] = previous_middleware.klass
+      middlewares.delete_at(index)
     end
 
     def use(klass, *args, &block)
@@ -102,9 +106,18 @@ module ActionDispatch
     private
 
       def assert_index(index, where)
-        i = index.is_a?(Integer) ? index : middlewares.index { |m| m.klass == index }
+        if index.is_a?(Integer)
+          i = index
+        else
+          index = target_deleted(index)
+          i = middlewares.index { |m| m.klass == index }
+        end
         raise "No such middleware to insert #{where}: #{index.inspect}" unless i
         i
+      end
+
+      def target_deleted(target)
+        @deleted_middlewares[target] || target
       end
 
       def build_middleware(klass, args, block)
