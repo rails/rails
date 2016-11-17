@@ -128,4 +128,22 @@ class MiddlewareStackTest < ActiveSupport::TestCase
     assert_equal BazMiddleware, @stack[2].klass
     assert_equal false, @stack.include?(BarMiddleware)
   end
+
+  test "allow adding middleware before a middleware that was already removed" do
+    @stack.delete FooMiddleware
+    @stack.insert_before FooMiddleware, BazMiddleware
+    assert_equal BazMiddleware, @stack.first.klass
+    assert_equal BarMiddleware, @stack[1].klass
+    assert_equal false, @stack.include?(FooMiddleware)
+  end
+
+  test "adds middleware right before the previous middleware of the deleted target" do
+    @stack.use BazMiddleware
+    @stack.delete BarMiddleware
+    @stack.insert_before BarMiddleware, HiyaMiddleware
+    assert_equal FooMiddleware, @stack.first.klass
+    assert_equal HiyaMiddleware, @stack[1].klass
+    assert_equal BazMiddleware, @stack[2].klass
+    assert_equal false, @stack.include?(BarMiddleware)
+  end
 end
