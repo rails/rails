@@ -110,6 +110,8 @@ module ActionDispatch
         else
           if target_deleted?(index)
             target = next_target(index, where)
+
+            return -1 unless target
           else
             target = index
           end
@@ -138,7 +140,10 @@ module ActionDispatch
 
       def track_deleted_middleware_at(index)
         previous_middleware = middlewares[index - 1].klass
-        next_middleware = middlewares[index + 1].klass
+
+        next_middleware = middlewares[index + 1]
+        next_middleware = next_middleware && next_middleware.klass
+
         @deleted_middlewares[middlewares[index].klass] = { previous: previous_middleware, next: next_middleware }
       end
 

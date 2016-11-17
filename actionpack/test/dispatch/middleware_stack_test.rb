@@ -146,4 +146,14 @@ class MiddlewareStackTest < ActiveSupport::TestCase
     assert_equal BazMiddleware, @stack[2].klass
     assert_equal false, @stack.include?(BarMiddleware)
   end
+
+  test "adds middleware to the end if the deleted middlewere was in the end" do
+    @stack.use BazMiddleware
+    @stack.delete BazMiddleware
+    @stack.insert_before BazMiddleware, HiyaMiddleware
+    assert_equal FooMiddleware, @stack.first.klass
+    assert_equal BarMiddleware, @stack[1].klass
+    assert_equal HiyaMiddleware, @stack[2].klass
+    assert_equal false, @stack.include?(BazMiddleware)
+  end
 end
