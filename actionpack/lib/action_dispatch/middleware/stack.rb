@@ -109,7 +109,7 @@ module ActionDispatch
           i = index
         else
           if target_deleted?(index)
-            target = target_deleted(index, where)
+            target = next_target(index, where)
           else
             target = index
           end
@@ -126,7 +126,7 @@ module ActionDispatch
         @deleted_middlewares.key?(target)
       end
 
-      def target_deleted(target, where)
+      def next_target(target, where)
         position = where == :after ? :previous : :next
 
         @deleted_middlewares[target][position]
