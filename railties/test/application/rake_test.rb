@@ -159,13 +159,13 @@ module ApplicationTests
         end
       RUBY
       expected_output = ["         Prefix Verb   URI Pattern                Controller#Action",
-                         "     admin_post POST   /admin/post(.:format)      admin/posts#create",
                          " new_admin_post GET    /admin/post/new(.:format)  admin/posts#new",
                          "edit_admin_post GET    /admin/post/edit(.:format) admin/posts#edit",
-                         "                GET    /admin/post(.:format)      admin/posts#show",
+                         "     admin_post GET    /admin/post(.:format)      admin/posts#show",
                          "                PATCH  /admin/post(.:format)      admin/posts#update",
                          "                PUT    /admin/post(.:format)      admin/posts#update",
-                         "                DELETE /admin/post(.:format)      admin/posts#destroy\n"].join("\n")
+                         "                DELETE /admin/post(.:format)      admin/posts#destroy",
+                         "                POST   /admin/post(.:format)      admin/posts#create\n"].join("\n")
 
       output = Dir.chdir(app_path) { `bin/rails routes -c Admin::PostController` }
       assert_equal expected_output, output
