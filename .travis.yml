@@ -33,6 +33,8 @@ before_script:
 script: 'ci/travis.rb'
 
 env:
+  global:
+    - "JRUBY_OPTS='--dev -J-Xmx1024M'"
   matrix:
     - "GEM=railties"
     - "GEM=ap"
@@ -62,13 +64,11 @@ matrix:
     - rvm: jruby-9.1.5.0
       jdk: oraclejdk8
       env:
-        - "JRUBY_OPTS='--dev -J-Xmx1024M'"
-        - "GEM='ap'"
+        - "GEM=ap"
     - rvm: jruby-9.1.5.0
       jdk: oraclejdk8
       env:
-        - "JRUBY_OPTS='--dev -J-Xmx1024M'"
-        - "GEM='am'"
+        - "GEM=am,aj"
   allow_failures:
     - rvm: ruby-head
     - rvm: jruby-9.1.5.0
