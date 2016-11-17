@@ -1227,35 +1227,25 @@ Sprockets.
 Making Your Library or Gem a Pre-Processor
 ------------------------------------------
 
-As Sprockets uses [Tilt](https://github.com/rtomayko/tilt) as a generic
-interface to different templating engines, your gem should just implement the
-Tilt template protocol. Normally, you would subclass `Tilt::Template` and
-reimplement the `prepare` method, which initializes your template, and the
-`evaluate` method, which returns the processed source. The original source is
-stored in `data`. Have a look at
-[`Tilt::Template`](https://github.com/rtomayko/tilt/blob/master/lib/tilt/template.rb)
-sources to learn more.
+Sprockets uses Processors, Transformers, Compressors, and Exporters to extend
+Sprockets functionality. Have a look at
+[Extending Sprockets](https://github.com/rails/sprockets/blob/master/guides/extending_sprockets.md)
+to learn more. Here we registered a preprocessor to add a comment to the end
+of text/css (.css) files.
 
 ```ruby
-module BangBang
-  class Template < ::Tilt::Template
-    def prepare
-      # Do any initialization here
-    end
-
-    # Adds a "!" to original template.
-    def evaluate(scope, locals, &block)
-      "#{data}!"
-    end
+module AddComment
+  def self.call(input)
+    { data: input[:data] + "/* Hello From my sprockets extension */" }
   end
 end
 ```
 
-Now that you have a `Template` class, it's time to associate it with an
-extension for template files:
+Now that you have a module that modifies the input data, it's time to register
+it as a preprocessor for your mime type.
 
 ```ruby
-Sprockets.register_engine '.bang', BangBang::Template
+Sprockets.register_preprocessor 'text/css', AddComment
 ```
 
 Upgrading from Old Versions of Rails
