@@ -97,7 +97,7 @@ module ActiveSupport
         options = merged_options(options)
 
         keys_to_names = Hash[names.map { |name| [normalize_key(name, options), name] }]
-        raw_values = @data.get_multi(keys_to_names.keys, raw: true)
+        raw_values = @data.get_multi(keys_to_names.keys)
         values = {}
         raw_values.each do |key, value|
           entry = deserialize_entry(value)
