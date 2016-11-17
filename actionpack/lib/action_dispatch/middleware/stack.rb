@@ -108,9 +108,13 @@ module ActionDispatch
         if index.is_a?(Integer)
           i = index
         else
-          index = target_deleted(index, where)
+          if target_deleted?(index)
+            target = target_deleted(index, where)
+          else
+            target = index
+          end
 
-          i = middleware_index(index)
+          i = middleware_index(target)
         end
 
         raise "No such middleware to insert #{where}: #{index.inspect}" unless i
@@ -118,16 +122,16 @@ module ActionDispatch
         i
       end
 
-      def target_deleted(target, where)
-        if @deleted_middlewares[target]
-          if where == :after
-            new_target = @deleted_middlewares[target][:previous]
-          else
-            new_target = @deleted_middlewares[target][:next]
-          end
-        end
+      def target_deleted?(target)
+        @deleted_middlewares.key?(target)
+      end
 
-        new_target || target
+      def target_deleted(target, where)
+        if where == :after
+          new_target = @deleted_middlewares[target][:previous]
+        else
+          new_target = @deleted_middlewares[target][:next]
+        end
       end
 
       def middleware_index(klass)
