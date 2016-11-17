@@ -85,16 +85,16 @@ module ActiveSupport
       #
       # Returns the exception if it was handled and +nil+ if it was not.
       def rescue_with_handler(exception, object: self)
-        handler, exception = handler_for_rescue(exception, object: object)
-        if handler
+        if handler = handler_for_rescue(exception, object: object)
           handler.call exception
           exception
+        elsif exception
+          rescue_with_handler(exception.cause, object: object)
         end
       end
 
       def handler_for_rescue(exception, object: self) #:nodoc:
-        rescuer, exception = find_rescue_handler(exception)
-        result = case rescuer
+        case rescuer = find_rescue_handler(exception)
         when Symbol
           method = object.method(rescuer)
           if method.arity == 0
@@ -109,7 +109,6 @@ module ActiveSupport
             -> e { object.instance_exec(e, &rescuer) }
           end
         end
-        [result, exception]
       end
 
       private
@@ -124,11 +123,7 @@ module ActiveSupport
               end
             end
 
-            if handler
-              [handler, exception]
-            else
-              find_rescue_handler(exception.cause)
-            end
+            handler
           end
         end
 
