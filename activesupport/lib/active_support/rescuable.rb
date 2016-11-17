@@ -88,6 +88,8 @@ module ActiveSupport
         if handler = handler_for_rescue(exception, object: object)
           handler.call exception
           exception
+        elsif exception
+          rescue_with_handler(exception.cause, object: object)
         end
       end
 
@@ -121,7 +123,7 @@ module ActiveSupport
               end
             end
 
-            handler || find_rescue_handler(exception.cause)
+            handler
           end
         end
 
