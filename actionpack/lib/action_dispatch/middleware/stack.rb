@@ -89,7 +89,7 @@ module ActionDispatch
     end
 
     def delete(target)
-      index = middlewares.index { |m| m.klass == target }
+      index = middleware_index(target)
       previous_middleware = middlewares[index - 1]
       next_middleware = middlewares[index + 1]
       @deleted_middlewares[middlewares[index].klass] = { previous: previous_middleware.klass, next: next_middleware.klass }
@@ -112,7 +112,7 @@ module ActionDispatch
         else
           index = target_deleted(index, where)
 
-          i = middlewares.index { |m| m.klass == index }
+          i = middleware_index(index)
         end
 
         raise "No such middleware to insert #{where}: #{index.inspect}" unless i
@@ -130,6 +130,10 @@ module ActionDispatch
         end
 
         new_target || target
+      end
+
+      def middleware_index(klass)
+        middlewares.index { |m| m.klass == klass }
       end
 
       def build_middleware(klass, args, block)
