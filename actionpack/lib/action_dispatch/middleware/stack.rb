@@ -90,9 +90,7 @@ module ActionDispatch
 
     def delete(target)
       index = middleware_index(target)
-      previous_middleware = middlewares[index - 1]
-      next_middleware = middlewares[index + 1]
-      @deleted_middlewares[middlewares[index].klass] = { previous: previous_middleware.klass, next: next_middleware.klass }
+      track_deleted_middleware_at(index)
       middlewares.delete_at(index)
     end
 
@@ -134,6 +132,12 @@ module ActionDispatch
 
       def middleware_index(klass)
         middlewares.index { |m| m.klass == klass }
+      end
+
+      def track_deleted_middleware_at(index)
+        previous_middleware = middlewares[index - 1].klass
+        next_middleware = middlewares[index + 1].klass
+        @deleted_middlewares[middlewares[index].klass] = { previous: previous_middleware, next: next_middleware }
       end
 
       def build_middleware(klass, args, block)
