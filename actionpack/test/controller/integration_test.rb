@@ -356,7 +356,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test 'creation of multiple integration sessions' do
+  test "creation of multiple integration sessions" do
     integration_session # initialize first session
     a = open_session
     b = open_session
