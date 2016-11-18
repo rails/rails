@@ -112,8 +112,9 @@ module ActionController
           end
         end
 
-        set_header "CONTENT_LENGTH", data.length.to_s
-        set_header "rack.input", StringIO.new(data)
+        data_stream = StringIO.new(data)
+        set_header "CONTENT_LENGTH", data_stream.length.to_s
+        set_header "rack.input", data_stream
       end
 
       fetch_header("PATH_INFO") do |k|
