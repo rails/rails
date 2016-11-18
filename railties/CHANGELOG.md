@@ -1,3 +1,9 @@
+*   Reset a new session directly after its creation in ActionDispatch::IntegrationTest#open_session
+
+    Fixes Issue #22742
+
+    *Tawan Sierek*
+
 *   Bring back `TEST=` env for `rake test` task.
 
     *Yves Senn*
