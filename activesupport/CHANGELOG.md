@@ -1,3 +1,9 @@
+*   Add `Integer#round` and `Float#round` core extensions.
+
+    This commit enables to pass a option to `#round` even before Ruby 2.3.
+
+    *Yuichiro Kaneko*
+
 *   Remove deprecated class `ActiveSupport::Concurrency::Latch`
 
     *Andrew White*
