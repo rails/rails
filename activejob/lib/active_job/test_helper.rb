@@ -238,8 +238,8 @@ module ActiveJob
       serialized_args = serialize_args_for_assertion(expected)
       yield
       in_block_jobs = enqueued_jobs.drop(original_enqueued_jobs_count)
-      matching_job = in_block_jobs.find do |job|
-        serialized_args.all? { |key, value| value == job[key] }
+      matching_job = in_block_jobs.find do |in_block_job|
+        serialized_args.all? { |key, value| value == in_block_job[key] }
       end
       assert matching_job, "No enqueued job found with #{expected}"
       instantiate_job(matching_job)
@@ -262,8 +262,8 @@ module ActiveJob
       serialized_args = serialize_args_for_assertion(expected)
       perform_enqueued_jobs { yield }
       in_block_jobs = performed_jobs.drop(original_performed_jobs_count)
-      matching_job = in_block_jobs.find do |job|
-        serialized_args.all? { |key, value| value == job[key] }
+      matching_job = in_block_jobs.find do |in_block_job|
+        serialized_args.all? { |key, value| value == in_block_job[key] }
       end
       assert matching_job, "No performed job found with #{expected}"
       instantiate_job(matching_job)
