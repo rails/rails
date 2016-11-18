@@ -1,12 +1,12 @@
-require 'resque'
-require 'active_support/core_ext/enumerable'
-require 'active_support/core_ext/array/access'
+require "resque"
+require "active_support/core_ext/enumerable"
+require "active_support/core_ext/array/access"
 
 begin
-  require 'resque-scheduler'
+  require "resque-scheduler"
 rescue LoadError
   begin
-    require 'resque_scheduler'
+    require "resque_scheduler"
   rescue LoadError
     false
   end
@@ -27,6 +27,7 @@ module ActiveJob
     #   Rails.application.config.active_job.queue_adapter = :resque
     class ResqueAdapter
       def enqueue(job) #:nodoc:
+        JobWrapper.instance_variable_set(:@queue, job.queue_name)
         Resque.enqueue_to job.queue_name, JobWrapper, job.serialize
       end
 

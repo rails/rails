@@ -1,40 +1,35 @@
-require File.expand_path('../../../load_paths', __FILE__)
+require "action_cable"
+require "active_support/testing/autorun"
 
-require 'action_cable'
-require 'active_support/testing/autorun'
+require "puma"
+require "mocha/setup"
+require "rack/mock"
 
-
-require 'puma'
-
-require 'mocha/setup'
-
-require 'rack/mock'
-
-# Require all the stubs and models
-Dir[File.dirname(__FILE__) + '/stubs/*.rb'].each {|file| require file }
-
-require 'faye/websocket'
-class << Faye::WebSocket
-  remove_method :ensure_reactor_running
-
-  # We don't want Faye to start the EM reactor in tests because it makes testing much harder.
-  # We want to be able to start and stop EM loop in tests to make things simpler.
-  def ensure_reactor_running
-    # no-op
-  end
+begin
+  require "byebug"
+rescue LoadError
 end
 
-class ActionCable::TestCase < ActiveSupport::TestCase
-  def run_in_eventmachine
-    EM.run do
-      yield
+# Require all the stubs and models
+Dir[File.dirname(__FILE__) + "/stubs/*.rb"].each { |file| require file }
 
-      EM.run_deferred_callbacks
-      EM.stop
-    end
+class ActionCable::TestCase < ActiveSupport::TestCase
+  def wait_for_async
+    wait_for_executor Concurrent.global_io_executor
   end
 
-  def spawn_eventmachine
-    Thread.new { EventMachine.run } unless EventMachine.reactor_running?
+  def run_in_eventmachine
+    yield
+    wait_for_async
+  end
+
+  def wait_for_executor(executor)
+    # do not wait forever, wait 2s
+    timeout = 2
+    until executor.completed_task_count == executor.scheduled_task_count
+      sleep 0.1
+      timeout -= 0.1
+      raise "Executor could not complete all tasks in 2 seconds" unless timeout > 0
+    end
   end
 end

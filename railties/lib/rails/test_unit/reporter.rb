@@ -18,13 +18,13 @@ module Rails
       if output_inline? && result.failure && (!result.skipped? || options[:verbose])
         io.puts
         io.puts
-        io.puts format_failures(result).map { |line| color_output(line, by: result) }
+        io.puts color_output(result, by: result)
         io.puts
         io.puts format_rerun_snippet(result)
         io.puts
       end
 
-      if fail_fast? && result.failure && !result.error? && !result.skipped?
+      if fail_fast? && result.failure && !result.skipped?
         raise Interrupt
       end
     end
@@ -50,7 +50,7 @@ module Rails
     end
 
     def relative_path_for(file)
-      file.sub(/^#{app_root}\/?/, '')
+      file.sub(/^#{app_root}\/?/, "")
     end
 
     private
@@ -66,21 +66,9 @@ module Rails
         "%s#%s = %.2f s = %s" % [result.class, result.name, result.time, result.result_code]
       end
 
-      def format_failures(result)
-        result.failures.map do |failure|
-          "#{failure.result_label}:\n#{result.class}##{result.name}:\n#{failure.message}\n"
-        end
-      end
-
       def format_rerun_snippet(result)
-        # Try to extract path to assertion from backtrace.
-        if result.location =~ /\[(.*)\]\z/
-          assertion_path = $1
-        else
-          assertion_path = result.method(result.name).source_location.join(':')
-        end
-
-        "#{self.executable} #{relative_path_for(assertion_path)}"
+        location, line = result.method(result.name).source_location
+        "#{executable} #{relative_path_for(location)}:#{line}"
       end
 
       def app_root

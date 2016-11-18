@@ -9,16 +9,16 @@ After reading this guide, you will know:
 
 * How to interpret the code in `config/routes.rb`.
 * How to construct your own routes, using either the preferred resourceful style or the `match` method.
-* What parameters to expect an action to receive.
+* How to declare route parameters, which are passed onto controller actions.
 * How to automatically create paths and URLs using route helpers.
-* Advanced techniques such as constraints and Rack endpoints.
+* Advanced techniques such as creating constraints and mounting Rack endpoints.
 
 --------------------------------------------------------------------------------
 
 The Purpose of the Rails Router
 -------------------------------
 
-The Rails router recognizes URLs and dispatches them to a controller's action. It can also generate paths and URLs, avoiding the need to hardcode strings in your views.
+The Rails router recognizes URLs and dispatches them to a controller's action, or to a Rack application. It can also generate paths and URLs, avoiding the need to hardcode strings in your views.
 
 ### Connecting URLs to Code
 
@@ -553,29 +553,23 @@ In particular, simple routing makes it very easy to map legacy URLs to new Rails
 
 ### Bound Parameters
 
-When you set up a regular route, you supply a series of symbols that Rails maps to parts of an incoming HTTP request. Two of these symbols are special: `:controller` maps to the name of a controller in your application, and `:action` maps to the name of an action within that controller. For example, consider this route:
+When you set up a regular route, you supply a series of symbols that Rails maps to parts of an incoming HTTP request. For example, consider this route:
 
 ```ruby
-get ':controller(/:action(/:id))'
+get 'photos(/:id)', to: :display
 ```
 
-If an incoming request of `/photos/show/1` is processed by this route (because it hasn't matched any previous route in the file), then the result will be to invoke the `show` action of the `PhotosController`, and to make the final parameter `"1"` available as `params[:id]`. This route will also route the incoming request of `/photos` to `PhotosController#index`, since `:action` and `:id` are optional parameters, denoted by parentheses.
+If an incoming request of `/photos/1` is processed by this route (because it hasn't matched any previous route in the file), then the result will be to invoke the `display` action of the `PhotosController`, and to make the final parameter `"1"` available as `params[:id]`. This route will also route the incoming request of `/photos` to `PhotosController#display`, since `:id` is an optional parameter, denoted by parentheses.
 
 ### Dynamic Segments
 
-You can set up as many dynamic segments within a regular route as you like. Anything other than `:controller` or `:action` will be available to the action as part of `params`. If you set up this route:
+You can set up as many dynamic segments within a regular route as you like. Any segment will be available to the action as part of `params`. If you set up this route:
 
 ```ruby
-get ':controller/:action/:id/:user_id'
+get 'photos/:id/:user_id', to: 'photos#show'
 ```
 
-An incoming path of `/photos/show/1/2` will be dispatched to the `show` action of the `PhotosController`. `params[:id]` will be `"1"`, and `params[:user_id]` will be `"2"`.
-
-NOTE: You can't use `:namespace` or `:module` with a `:controller` path segment. If you need to do this then use a constraint on :controller that matches the namespace you require. e.g:
-
-```ruby
-get ':controller(/:action(/:id))', controller: /admin\/[^\/]+/
-```
+An incoming path of `/photos/1/2` will be dispatched to the `show` action of the `PhotosController`. `params[:id]` will be `"1"`, and `params[:user_id]` will be `"2"`.
 
 TIP: By default, dynamic segments don't accept dots - this is because the dot is used as a separator for formatted routes. If you need to use a dot within a dynamic segment, add a constraint that overrides this – for example, `id: /[^\/]+/` allows anything except a slash.
 
@@ -584,32 +578,24 @@ TIP: By default, dynamic segments don't accept dots - this is because the dot is
 You can specify static segments when creating a route by not prepending a colon to a fragment:
 
 ```ruby
-get ':controller/:action/:id/with_user/:user_id'
+get 'photos/:id/with_user/:user_id', to: 'photos#show'
 ```
 
-This route would respond to paths such as `/photos/show/1/with_user/2`. In this case, `params` would be `{ controller: 'photos', action: 'show', id: '1', user_id: '2' }`.
+This route would respond to paths such as `/photos/1/with_user/2`. In this case, `params` would be `{ controller: 'photos', action: 'show', id: '1', user_id: '2' }`.
 
 ### The Query String
 
 The `params` will also include any parameters from the query string. For example, with this route:
 
 ```ruby
-get ':controller/:action/:id'
-```
-
-An incoming path of `/photos/show/1?user_id=2` will be dispatched to the `show` action of the `Photos` controller. `params` will be `{ controller: 'photos', action: 'show', id: '1', user_id: '2' }`.
-
-### Defining Defaults
-
-You do not need to explicitly use the `:controller` and `:action` symbols within a route. You can supply them as defaults:
-
-```ruby
 get 'photos/:id', to: 'photos#show'
 ```
 
-With this route, Rails will match an incoming path of `/photos/12` to the `show` action of `PhotosController`.
+An incoming path of `/photos/1?user_id=2` will be dispatched to the `show` action of the `Photos` controller. `params` will be `{ controller: 'photos', action: 'show', id: '1', user_id: '2' }`.
 
-You can also define other defaults in a route by supplying a hash for the `:defaults` option. This even applies to parameters that you do not specify as dynamic segments. For example:
+### Defining Defaults
+
+You can define defaults in a route by supplying a hash for the `:defaults` option. This even applies to parameters that you do not specify as dynamic segments. For example:
 
 ```ruby
 get 'photos/:id', to: 'photos#show', defaults: { format: 'jpg' }
@@ -705,6 +691,8 @@ end
 ```
 
 NOTE: Request constraints work by calling a method on the [Request object](action_controller_overview.html#the-request-object) with the same name as the hash key and then compare the return value with the hash value. Therefore, constraint values should match the corresponding Request object method return type. For example: `constraints: { subdomain: 'api' }` will match an `api` subdomain as expected, however using a symbol `constraints: { subdomain: :api }` will not, because `request.subdomain` returns `'api'` as a String.
+
+NOTE: There is an exception for the `format` constraint: while it's a method on the Request object, it's also an implicit optional parameter on every path. Segment constraints take precedence and the `format` constraint is only applied as such when enforced through a hash. For example, `get 'foo', constraints: { format: 'json' }` will match `GET  /foo` because the format is optional by default. However, you can [use a lambda](#advanced-constraints) like in `get 'foo', constraints: lambda { |req| req.format == :json }` and the route will only match explicit JSON requests.
 
 ### Advanced Constraints
 
@@ -810,10 +798,10 @@ In all of these cases, if you don't provide the leading host (`http://www.exampl
 Instead of a String like `'articles#index'`, which corresponds to the `index` action in the `ArticlesController`, you can specify any [Rack application](rails_on_rack.html) as the endpoint for a matcher:
 
 ```ruby
-match '/application.js', to: Sprockets, via: :all
+match '/application.js', to: MyRackApp, via: :all
 ```
 
-As long as `Sprockets` responds to `call` and returns a `[status, headers, body]`, the router won't know the difference between the Rack application and an action. This is an appropriate use of `via: :all`, as you will want to allow your Rack application to handle all verbs as it considers appropriate.
+As long as `MyRackApp` responds to `call` and returns a `[status, headers, body]`, the router won't know the difference between the Rack application and an action. This is an appropriate use of `via: :all`, as you will want to allow your Rack application to handle all verbs as it considers appropriate.
 
 NOTE: For the curious, `'articles#index'` actually expands out to `ArticlesController.action(:index)`, which returns a valid Rack application.
 
@@ -1134,10 +1122,21 @@ For example, here's a small section of the `rails routes` output for a RESTful r
 edit_user GET    /users/:id/edit(.:format) users#edit
 ```
 
-You may restrict the listing to the routes that map to a particular controller setting the `CONTROLLER` environment variable:
+You can search through your routes with the grep option: -g. This outputs any routes that partially match the URL helper method name, the HTTP verb, or the URL path.
 
-```bash
-$ CONTROLLER=users bin/rails routes
+```
+$ bin/rails routes -g new_comment
+$ bin/rails routes -g POST
+$ bin/rails routes -g admin
+```
+
+If you only want to see the routes that map to a specific controller, there's the -c option.
+
+```
+$ bin/rails routes -c users
+$ bin/rails routes -c admin/users
+$ bin/rails routes -c Comments
+$ bin/rails routes -c Articles::CommentsController
 ```
 
 TIP: You'll find that the output from `rails routes` is much more readable if you widen your terminal window until the output lines don't wrap.

@@ -21,21 +21,22 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-require 'active_support'
-require 'active_support/rails'
-require 'action_cable/version'
+require "active_support"
+require "active_support/rails"
+require "action_cable/version"
 
 module ActionCable
   extend ActiveSupport::Autoload
 
   INTERNAL = {
-    identifiers: {
-      ping: '_ping'.freeze
-    },
     message_types: {
-      confirmation: 'confirm_subscription'.freeze,
-      rejection: 'reject_subscription'.freeze
-    }
+      welcome: "welcome".freeze,
+      ping: "ping".freeze,
+      confirmation: "confirm_subscription".freeze,
+      rejection: "reject_subscription".freeze
+    },
+    default_mount_path: "/cable".freeze,
+    protocols: ["actioncable-v1-json".freeze, "actioncable-unsupported".freeze].freeze
   }
 
   # Singleton instance of the server

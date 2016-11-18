@@ -1,2 +1,2 @@
-require 'sidekiq/testing/inline'
+require "sidekiq/testing/inline"
 ActiveJob::Base.queue_adapter = :sidekiq

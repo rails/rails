@@ -30,14 +30,19 @@ module ActiveRecord
 
     module ClassMethods
       def suppress(&block)
+        previous_state = SuppressorRegistry.suppressed[name]
         SuppressorRegistry.suppressed[name] = true
         yield
       ensure
-        SuppressorRegistry.suppressed[name] = false
+        SuppressorRegistry.suppressed[name] = previous_state
       end
     end
 
-    def create_or_update(*args) # :nodoc:
+    def save(*) # :nodoc:
+      SuppressorRegistry.suppressed[self.class.name] ? true : super
+    end
+
+    def save!(*) # :nodoc:
       SuppressorRegistry.suppressed[self.class.name] ? true : super
     end
   end

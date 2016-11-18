@@ -1,10 +1,15 @@
-gem 'pg', '~> 0.18'
-require 'pg'
-require 'thread'
+gem "pg", "~> 0.18"
+require "pg"
+require "thread"
 
 module ActionCable
   module SubscriptionAdapter
     class PostgreSQL < Base # :nodoc:
+      def initialize(*)
+        super
+        @listener = nil
+      end
+
       def broadcast(channel, payload)
         with_connection do |pg_conn|
           pg_conn.exec("NOTIFY #{pg_conn.escape_identifier(channel)}, '#{pg_conn.escape_string(payload)}'")
@@ -28,7 +33,7 @@ module ActionCable
           pg_conn = ar_conn.raw_connection
 
           unless pg_conn.is_a?(PG::Connection)
-            raise 'ActiveRecord database must be Postgres in order to use the Postgres ActionCable storage adapter'
+            raise "The Active Record database must be PostgreSQL in order to use the PostgreSQL Action Cable storage adapter"
           end
 
           yield pg_conn
@@ -37,14 +42,15 @@ module ActionCable
 
       private
         def listener
-          @listener ||= Listener.new(self)
+          @listener || @server.mutex.synchronize { @listener ||= Listener.new(self, @server.event_loop) }
         end
 
         class Listener < SubscriberMap
-          def initialize(adapter)
+          def initialize(adapter, event_loop)
             super()
 
             @adapter = adapter
+            @event_loop = event_loop
             @queue = Queue.new
 
             @thread = Thread.new do
@@ -63,7 +69,7 @@ module ActionCable
                     case action
                     when :listen
                       pg_conn.exec("LISTEN #{pg_conn.escape_identifier channel}")
-                      ::EM.next_tick(&callback) if callback
+                      @event_loop.post(&callback) if callback
                     when :unlisten
                       pg_conn.exec("UNLISTEN #{pg_conn.escape_identifier channel}")
                     when :shutdown
@@ -93,7 +99,7 @@ module ActionCable
           end
 
           def invoke_callback(*)
-            ::EM.next_tick { super }
+            @event_loop.post { super }
           end
         end
     end

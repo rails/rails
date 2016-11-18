@@ -1,8 +1,8 @@
 require "cases/helper"
-require 'models/face'
-require 'models/interest'
-require 'models/man'
-require 'models/topic'
+require "models/face"
+require "models/interest"
+require "models/man"
+require "models/topic"
 
 class AbsenceValidationTest < ActiveRecord::TestCase
   def test_non_association
@@ -52,24 +52,22 @@ class AbsenceValidationTest < ActiveRecord::TestCase
     end
 
     face_with_to_a = Face.new
-    def face_with_to_a.to_a; ['(/)', '(\)']; end
+    def face_with_to_a.to_a; ["(/)", '(\)']; end
 
     assert_nothing_raised { boy_klass.new(face: face_with_to_a).valid? }
   end
 
-  def test_does_not_validate_if_parent_record_is_validate_false
+  def test_validates_absence_of_virtual_attribute_on_model
     repair_validations(Interest) do
-      Interest.validates_absence_of(:topic)
-      interest = Interest.new(topic: Topic.new(title: "Math"))
-      interest.save!(validate: false)
-      assert interest.persisted?
+      Interest.send(:attr_accessor, :token)
+      Interest.validates_absence_of(:token)
 
-      man = Man.new(interest_ids: [interest.id])
-      man.save!
-
-      assert_equal man.interests.size, 1
+      interest = Interest.create!(topic: "Thought Leadering")
       assert interest.valid?
-      assert man.valid?
+
+      interest.token = "tl"
+
+      assert interest.invalid?
     end
   end
 end

@@ -1,4 +1,5 @@
-require 'active_support/core_ext/array/extract_options'
+require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/regexp"
 
 # Extends the module object with class/module and instance accessors for
 # class/module attributes, just like the native attr* accessors for instance
@@ -27,7 +28,7 @@ class Module
   # <tt>instance_reader: false</tt> or <tt>instance_accessor: false</tt>.
   #
   #   module HairColors
-  #     mattr_writer :hair_colors, instance_reader: false
+  #     mattr_reader :hair_colors, instance_reader: false
   #   end
   #
   #   class Person
@@ -40,7 +41,7 @@ class Module
   # Also, you can pass a block to set up the attribute with a default value.
   #
   #   module HairColors
-  #     cattr_reader :hair_colors do
+  #     mattr_reader :hair_colors do
   #       [:brown, :black, :blonde, :red]
   #     end
   #   end
@@ -53,7 +54,7 @@ class Module
   def mattr_reader(*syms)
     options = syms.extract_options!
     syms.each do |sym|
-      raise NameError.new("invalid attribute name: #{sym}") unless sym =~ /\A[_A-Za-z]\w*\z/
+      raise NameError.new("invalid attribute name: #{sym}") unless /\A[_A-Za-z]\w*\z/.match?(sym)
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         @@#{sym} = nil unless defined? @@#{sym}
 
@@ -119,7 +120,7 @@ class Module
   def mattr_writer(*syms)
     options = syms.extract_options!
     syms.each do |sym|
-      raise NameError.new("invalid attribute name: #{sym}") unless sym =~ /\A[_A-Za-z]\w*\z/
+      raise NameError.new("invalid attribute name: #{sym}") unless /\A[_A-Za-z]\w*\z/.match?(sym)
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         @@#{sym} = nil unless defined? @@#{sym}
 

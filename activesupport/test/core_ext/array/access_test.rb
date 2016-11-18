@@ -1,5 +1,5 @@
-require 'abstract_unit'
-require 'active_support/core_ext/array'
+require "abstract_unit"
+require "active_support/core_ext/array"
 
 class AccessTest < ActiveSupport::TestCase
   def test_from
@@ -26,6 +26,8 @@ class AccessTest < ActiveSupport::TestCase
     assert_equal array[3], array.fourth
     assert_equal array[4], array.fifth
     assert_equal array[41], array.forty_two
+    assert_equal array[-3], array.third_to_last
+    assert_equal array[-2], array.second_to_last
   end
 
   def test_without

@@ -1,9 +1,9 @@
 # Implements the logic behind the rake tasks for annotations like
 #
-#   rake notes
-#   rake notes:optimize
+#   rails notes
+#   rails notes:optimize
 #
-# and friends. See <tt>rake -T notes</tt> and <tt>railties/lib/rails/tasks/annotations.rake</tt>.
+# and friends. See <tt>rails -T notes</tt> and <tt>railties/lib/rails/tasks/annotations.rake</tt>.
 #
 # Annotation objects are triplets <tt>:line</tt>, <tt>:tag</tt>, <tt>:text</tt> that
 # represent the line where the annotation lives, its tag, and its text. Note
@@ -15,7 +15,13 @@
 class SourceAnnotationExtractor
   class Annotation < Struct.new(:line, :tag, :text)
     def self.directories
-      @@directories ||= %w(app config db lib test) + (ENV['SOURCE_ANNOTATION_DIRECTORIES'] || '').split(',')
+      @@directories ||= %w(app config db lib test) + (ENV["SOURCE_ANNOTATION_DIRECTORIES"] || "").split(",")
+    end
+
+    # Registers additional directories to be included
+    #  SourceAnnotationExtractor::Annotation.register_directories("spec","another")
+    def self.register_directories(*dirs)
+      directories.push(*dirs)
     end
 
     def self.extensions
@@ -38,7 +44,7 @@ class SourceAnnotationExtractor
     #
     # If +options+ has a flag <tt>:tag</tt> the tag is shown as in the example above.
     # Otherwise the string contains just line and text.
-    def to_s(options={})
+    def to_s(options = {})
       s = "[#{line.to_s.rjust(options[:indent])}] "
       s << "[#{tag}] " if options[:tag]
       s << text
@@ -60,7 +66,7 @@ class SourceAnnotationExtractor
   # See <tt>#find_in</tt> for a list of file extensions that will be taken into account.
   #
   # This class method is the single entry point for the rake tasks.
-  def self.enumerate(tag, options={})
+  def self.enumerate(tag, options = {})
     extractor = new(tag)
     dirs = options.delete(:dirs) || Annotation.directories
     extractor.display(extractor.find(dirs), options)
@@ -120,7 +126,7 @@ class SourceAnnotationExtractor
 
   # Prints the mapping from filenames to annotations in +results+ ordered by filename.
   # The +options+ hash is passed to each annotation's +to_s+.
-  def display(results, options={})
+  def display(results, options = {})
     options[:indent] = results.flat_map { |f, a| a.map(&:line) }.max.to_s.size
     results.keys.sort.each do |file|
       puts "#{file}:"

@@ -12,9 +12,6 @@ source 'https://rubygems.org'
 <% end -%>
 <% end -%>
 
-# Use Puma as the app server
-gem 'puma'
-
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
 
@@ -29,21 +26,27 @@ gem 'puma'
 <% if RUBY_ENGINE == 'ruby' -%>
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
-  gem 'byebug'
+  gem 'byebug', platform: :mri
 end
 
 group :development do
 <%- unless options.api? -%>
-  # Access an IRB console on exception pages or by using <%%= console %> in views
+  # Access an IRB console on exception pages or by using <%%= console %> anywhere in the code.
   <%- if options.dev? || options.edge? -%>
   gem 'web-console', github: 'rails/web-console'
   <%- else -%>
-  gem 'web-console', '~> 3.0'
+  gem 'web-console', '>= 3.3.0'
   <%- end -%>
 <%- end -%>
+<% if depend_on_listen? -%>
+  gem 'listen', '>= 3.0.5', '< 3.2'
+<% end -%>
 <% if spring_install? -%>
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
   gem 'spring'
+<% if depend_on_listen? -%>
+  gem 'spring-watcher-listen', '~> 2.0.0'
+<% end -%>
 <% end -%>
 end
 <% end -%>

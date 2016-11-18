@@ -7,7 +7,16 @@ module ActionDispatch
     define_callbacks :call
 
     class << self
-      delegate :to_prepare, :to_cleanup, :to => "ActionDispatch::Reloader"
+      def to_prepare(*args, &block)
+        ActiveSupport::Reloader.to_prepare(*args, &block)
+      end
+
+      def to_cleanup(*args, &block)
+        ActiveSupport::Reloader.to_complete(*args, &block)
+      end
+
+      deprecate to_prepare: "use ActiveSupport::Reloader.to_prepare instead",
+        to_cleanup: "use ActiveSupport::Reloader.to_complete instead"
 
       def before(*args, &block)
         set_callback(:call, :before, *args, &block)

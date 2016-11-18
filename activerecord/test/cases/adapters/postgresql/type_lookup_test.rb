@@ -1,4 +1,4 @@
-require 'cases/helper'
+require "cases/helper"
 
 class PostgresqlTypeLookupTest < ActiveRecord::PostgreSQLTestCase
   setup do
@@ -9,8 +9,8 @@ class PostgresqlTypeLookupTest < ActiveRecord::PostgreSQLTestCase
     box_array = @connection.type_map.lookup(1020)
     int_array = @connection.type_map.lookup(1007)
 
-    assert_equal ';', box_array.delimiter
-    assert_equal ',', int_array.delimiter
+    assert_equal ";", box_array.delimiter
+    assert_equal ",", int_array.delimiter
   end
 
   test "array types correctly respect registration of subtypes" do
@@ -18,7 +18,7 @@ class PostgresqlTypeLookupTest < ActiveRecord::PostgreSQLTestCase
     bigint_array = @connection.type_map.lookup(1016, -1, "bigint[]")
     big_array = [123456789123456789]
 
-    assert_raises(RangeError) { int_array.serialize(big_array) }
+    assert_raises(ActiveModel::RangeError) { int_array.serialize(big_array) }
     assert_equal "{123456789123456789}", bigint_array.serialize(big_array)
   end
 
@@ -27,7 +27,7 @@ class PostgresqlTypeLookupTest < ActiveRecord::PostgreSQLTestCase
     bigint_range = @connection.type_map.lookup(3926, -1, "int8range")
     big_range = 0..123456789123456789
 
-    assert_raises(RangeError) { int_range.serialize(big_range) }
+    assert_raises(ActiveModel::RangeError) { int_range.serialize(big_range) }
     assert_equal "[0,123456789123456789]", bigint_range.serialize(big_range)
   end
 end

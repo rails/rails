@@ -1,5 +1,5 @@
-require 'active_record/scoping/default'
-require 'active_record/scoping/named'
+require "active_record/scoping/default"
+require "active_record/scoping/named"
 
 module ActiveRecord
   # This class is used to create a table that keeps track of values and keys such
@@ -14,12 +14,8 @@ module ActiveRecord
         "#{table_name_prefix}#{ActiveRecord::Base.internal_metadata_table_name}#{table_name_suffix}"
       end
 
-      def index_name
-        "#{table_name_prefix}unique_#{ActiveRecord::Base.internal_metadata_table_name}#{table_name_suffix}"
-      end
-
       def []=(key, value)
-        first_or_initialize(key: key).update_attributes!(value: value)
+        find_or_initialize_by(key: key).update_attributes!(value: value)
       end
 
       def [](key)
@@ -33,11 +29,12 @@ module ActiveRecord
       # Creates an internal metadata table with columns +key+ and +value+
       def create_table
         unless table_exists?
+          key_options = connection.internal_string_options_for_primary_key
+
           connection.create_table(table_name, id: false) do |t|
-            t.column :key,   :string
-            t.column :value, :string
+            t.string :key, key_options
+            t.string :value
             t.timestamps
-            t.index  :key, unique: true, name: index_name
           end
         end
       end

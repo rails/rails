@@ -28,20 +28,20 @@ module ActiveRecord
     end
 
     test "it triggers at most one query" do
-      developers =  Developer.where(name: "David")
+      developers = Developer.where(name: "David")
 
       assert_queries(1) { developers.cache_key }
       assert_queries(0) { developers.cache_key }
     end
 
     test "it doesn't trigger any query if the relation is already loaded" do
-      developers =  Developer.where(name: "David").load
+      developers = Developer.where(name: "David").load
       assert_queries(0) { developers.cache_key }
     end
 
     test "relation cache_key changes when the sql query changes" do
       developers = Developer.where(name: "David")
-      other_relation =  Developer.where(name: "David").where("1 = 1")
+      other_relation = Developer.where(name: "David").where("1 = 1")
 
       assert_not_equal developers.cache_key, other_relation.cache_key
     end
@@ -73,6 +73,17 @@ module ActiveRecord
       empty_loaded_collection = posts.first.comments
 
       assert_match(/\Acomments\/query-(\h+)-0\Z/, empty_loaded_collection.cache_key)
+    end
+
+    test "cache_key for queries with offset which return 0 rows" do
+      developers = Developer.offset(20)
+      assert_match(/\Adevelopers\/query-(\h+)-0\Z/, developers.cache_key)
+    end
+
+    test "cache_key with a relation having selected columns" do
+      developers = Developer.select(:salary)
+
+      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\Z/, developers.cache_key)
     end
   end
 end

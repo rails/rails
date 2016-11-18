@@ -1,3 +1,5 @@
+require "rbconfig"
+
 module ActiveSupport
   class Deprecation
     module Reporting
@@ -55,15 +57,14 @@ module ActiveSupport
         def deprecated_method_warning(method_name, message = nil)
           warning = "#{method_name} is deprecated and will be removed from #{gem_name} #{deprecation_horizon}"
           case message
-            when Symbol then "#{warning} (use #{message} instead)"
-            when String then "#{warning} (#{message})"
+          when Symbol then "#{warning} (use #{message} instead)"
+          when String then "#{warning} (#{message})"
             else warning
           end
         end
 
         def deprecation_message(callstack, message = nil)
           message ||= "You are using deprecated behavior which will be removed from the next major or minor release."
-          message += '.' unless message =~ /\.$/
           "DEPRECATION WARNING: #{message} #{deprecation_caller_message(callstack)}"
         end
 
@@ -81,17 +82,17 @@ module ActiveSupport
         def extract_callstack(callstack)
           return _extract_callstack(callstack) if callstack.first.is_a? String
 
-          rails_gem_root = File.expand_path("../../../../..", __FILE__) + "/"
           offending_line = callstack.find { |frame|
-            frame.absolute_path && !frame.absolute_path.start_with?(rails_gem_root)
+            frame.absolute_path && !ignored_callstack(frame.absolute_path)
           } || callstack.first
+
           [offending_line.path, offending_line.lineno, offending_line.label]
         end
 
         def _extract_callstack(callstack)
           warn "Please pass `caller_locations` to the deprecation API" if $VERBOSE
-          rails_gem_root = File.expand_path("../../../../..", __FILE__) + "/"
-          offending_line = callstack.find { |line| !line.start_with?(rails_gem_root) } || callstack.first
+          offending_line = callstack.find { |line| !ignored_callstack(line) } || callstack.first
+
           if offending_line
             if md = offending_line.match(/^(.+?):(\d+)(?::in `(.*?)')?/)
               md.captures
@@ -99,6 +100,12 @@ module ActiveSupport
               offending_line
             end
           end
+        end
+
+        RAILS_GEM_ROOT = File.expand_path("../../../../..", __FILE__) + "/"
+
+        def ignored_callstack(path)
+          path.start_with?(RAILS_GEM_ROOT) || path.start_with?(RbConfig::CONFIG["rubylibdir"])
         end
     end
   end

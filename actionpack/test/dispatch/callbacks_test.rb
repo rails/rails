@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class DispatcherTest < ActiveSupport::TestCase
   class Foo
@@ -7,7 +7,7 @@ class DispatcherTest < ActiveSupport::TestCase
 
   class DummyApp
     def call(env)
-      [200, {}, 'response']
+      [200, {}, "response"]
     end
   end
 
@@ -37,13 +37,19 @@ class DispatcherTest < ActiveSupport::TestCase
 
   def test_to_prepare_and_cleanup_delegation
     prepared = cleaned = false
-    ActionDispatch::Callbacks.to_prepare { prepared = true }
-    ActionDispatch::Callbacks.to_prepare { cleaned = true }
+    assert_deprecated do
+      ActionDispatch::Callbacks.to_prepare { prepared = true }
+      ActionDispatch::Callbacks.to_prepare { cleaned = true }
+    end
 
-    ActionDispatch::Reloader.prepare!
+    assert_deprecated do
+      ActionDispatch::Reloader.prepare!
+    end
     assert prepared
 
-    ActionDispatch::Reloader.cleanup!
+    assert_deprecated do
+      ActionDispatch::Reloader.cleanup!
+    end
     assert cleaned
   end
 
@@ -51,8 +57,7 @@ class DispatcherTest < ActiveSupport::TestCase
 
     def dispatch(&block)
       ActionDispatch::Callbacks.new(block || DummyApp.new).call(
-        {'rack.input' => StringIO.new('')}
+        "rack.input" => StringIO.new("")
       )
     end
-
 end

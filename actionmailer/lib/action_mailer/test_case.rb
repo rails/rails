@@ -1,5 +1,5 @@
-require 'active_support/test_case'
-require 'rails-dom-testing'
+require "active_support/test_case"
+require "rails-dom-testing"
 
 module ActionMailer
   class NonInferrableMailerError < ::StandardError
@@ -11,6 +11,23 @@ module ActionMailer
   end
 
   class TestCase < ActiveSupport::TestCase
+    module ClearTestDeliveries
+      extend ActiveSupport::Concern
+
+      included do
+        setup :clear_test_deliveries
+        teardown :clear_test_deliveries
+      end
+
+      private
+
+        def clear_test_deliveries
+          if ActionMailer::Base.delivery_method == :test
+            ActionMailer::Base.deliveries.clear
+          end
+        end
+    end
+
     module Behavior
       extend ActiveSupport::Concern
 
@@ -24,6 +41,7 @@ module ActionMailer
         setup :initialize_test_deliveries
         setup :set_expected_mail
         teardown :restore_test_deliveries
+        ActiveSupport.run_load_hooks(:action_mailer_test_case, self)
       end
 
       module ClassMethods
@@ -61,12 +79,12 @@ module ActionMailer
           set_delivery_method :test
           @old_perform_deliveries = ActionMailer::Base.perform_deliveries
           ActionMailer::Base.perform_deliveries = true
+          ActionMailer::Base.deliveries.clear
         end
 
         def restore_test_deliveries # :nodoc:
           restore_delivery_method
           ActionMailer::Base.perform_deliveries = @old_perform_deliveries
-          ActionMailer::Base.deliveries.clear
         end
 
         def set_delivery_method(method) # :nodoc:
@@ -75,13 +93,14 @@ module ActionMailer
         end
 
         def restore_delivery_method # :nodoc:
+          ActionMailer::Base.deliveries.clear
           ActionMailer::Base.delivery_method = @old_delivery_method
         end
 
         def set_expected_mail # :nodoc:
           @expected = Mail.new
           @expected.content_type ["text", "plain", { "charset" => charset }]
-          @expected.mime_version = '1.0'
+          @expected.mime_version = "1.0"
         end
 
       private
@@ -95,7 +114,7 @@ module ActionMailer
         end
 
         def read_fixture(action)
-          IO.readlines(File.join(Rails.root, 'test', 'fixtures', self.class.mailer_class.name.underscore, action))
+          IO.readlines(File.join(Rails.root, "test", "fixtures", self.class.mailer_class.name.underscore, action))
         end
     end
 

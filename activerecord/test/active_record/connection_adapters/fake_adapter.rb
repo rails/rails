@@ -9,7 +9,7 @@ module ActiveRecord
     class FakeAdapter < AbstractAdapter
       attr_accessor :data_sources, :primary_keys
 
-      @columns = Hash.new { |h,k| h[k] = [] }
+      @columns = Hash.new { |h, k| h[k] = [] }
       class << self
         attr_reader :columns
       end

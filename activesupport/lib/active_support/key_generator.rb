@@ -1,5 +1,5 @@
-require 'concurrent/map'
-require 'openssl'
+require "concurrent/map"
+require "openssl"
 
 module ActiveSupport
   # KeyGenerator is a simple wrapper around OpenSSL's implementation of PBKDF2.
@@ -17,7 +17,7 @@ module ActiveSupport
     # Returns a derived key suitable for use.  The default key_size is chosen
     # to be compatible with the default settings of ActiveSupport::MessageVerifier.
     # i.e. OpenSSL::Digest::SHA1#block_length
-    def generate_key(salt, key_size=64)
+    def generate_key(salt, key_size = 64)
       OpenSSL::PKCS5.pbkdf2_hmac_sha1(@secret, salt, @iterations, key_size)
     end
   end
@@ -31,11 +31,9 @@ module ActiveSupport
       @cache_keys = Concurrent::Map.new
     end
 
-    # Returns a derived key suitable for use.  The default key_size is chosen
-    # to be compatible with the default settings of ActiveSupport::MessageVerifier.
-    # i.e. OpenSSL::Digest::SHA1#block_length
-    def generate_key(salt, key_size=64)
-      @cache_keys["#{salt}#{key_size}"] ||= @key_generator.generate_key(salt, key_size)
+    # Returns a derived key suitable for use.
+    def generate_key(*args)
+      @cache_keys[args.join] ||= @key_generator.generate_key(*args)
     end
   end
 
@@ -53,21 +51,21 @@ module ActiveSupport
 
     private
 
-    # To prevent users from using something insecure like "Password" we make sure that the
-    # secret they've provided is at least 30 characters in length.
-    def ensure_secret_secure(secret)
-      if secret.blank?
-        raise ArgumentError, "A secret is required to generate an integrity hash " \
-          "for cookie session data. Set a secret_key_base of at least " \
-          "#{SECRET_MIN_LENGTH} characters in config/secrets.yml."
-      end
+      # To prevent users from using something insecure like "Password" we make sure that the
+      # secret they've provided is at least 30 characters in length.
+      def ensure_secret_secure(secret)
+        if secret.blank?
+          raise ArgumentError, "A secret is required to generate an integrity hash " \
+            "for cookie session data. Set a secret_key_base of at least " \
+            "#{SECRET_MIN_LENGTH} characters in config/secrets.yml."
+        end
 
-      if secret.length < SECRET_MIN_LENGTH
-        raise ArgumentError, "Secret should be something secure, " \
-          "like \"#{SecureRandom.hex(16)}\". The value you " \
-          "provided, \"#{secret}\", is shorter than the minimum length " \
-          "of #{SECRET_MIN_LENGTH} characters."
+        if secret.length < SECRET_MIN_LENGTH
+          raise ArgumentError, "Secret should be something secure, " \
+            "like \"#{SecureRandom.hex(16)}\". The value you " \
+            "provided, \"#{secret}\", is shorter than the minimum length " \
+            "of #{SECRET_MIN_LENGTH} characters."
+        end
       end
-    end
   end
 end

@@ -1,5 +1,5 @@
 require "cases/helper"
-require 'concurrent/atomic/count_down_latch'
+require "concurrent/atomic/count_down_latch"
 
 module ActiveRecord
   module ConnectionAdapters
@@ -151,7 +151,7 @@ module ActiveRecord
 
         assert_equal 1, active_connections(@pool).size
       ensure
-        @pool.connections.each(&:close)
+        @pool.connections.each { |conn| conn.close if conn.in_use? }
       end
 
       def test_remove_connection
@@ -184,14 +184,14 @@ module ActiveRecord
 
       def test_checkout_behaviour
         pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
-        connection = pool.connection
-        assert_not_nil connection
+        main_connection = pool.connection
+        assert_not_nil main_connection
         threads = []
         4.times do |i|
           threads << Thread.new(i) do
-            connection = pool.connection
-            assert_not_nil connection
-            connection.close
+            thread_connection = pool.connection
+            assert_not_nil thread_connection
+            thread_connection.close
           end
         end
 
@@ -335,11 +335,22 @@ module ActiveRecord
       # is called with an anonymous class
       def test_anonymous_class_exception
         anonymous = Class.new(ActiveRecord::Base)
-        handler = ActiveRecord::Base.connection_handler
 
-        assert_raises(RuntimeError) {
-          handler.establish_connection anonymous, nil
-        }
+        assert_raises(RuntimeError) do
+          anonymous.establish_connection
+        end
+      end
+
+      def test_connection_notification_is_called
+        payloads = []
+        subscription = ActiveSupport::Notifications.subscribe("!connection.active_record") do |name, started, finished, unique_id, payload|
+          payloads << payload
+        end
+        ActiveRecord::Base.establish_connection :arunit
+        assert_equal [:config, :connection_id, :spec_name], payloads[0].keys.sort
+        assert_equal "primary", payloads[0][:spec_name]
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscription) if subscription
       end
 
       def test_pool_sets_connection_schema_cache
@@ -384,8 +395,8 @@ module ActiveRecord
             all_threads_in_new_connection.wait
           end
         rescue Timeout::Error
-          flunk 'pool unable to establish connections concurrently or implementation has ' <<
-                'changed, this test then needs to patch a different :new_connection method'
+          flunk "pool unable to establish connections concurrently or implementation has " <<
+                "changed, this test then needs to patch a different :new_connection method"
         ensure
           # clean up the threads
           all_go.count_down
@@ -433,6 +444,9 @@ module ActiveRecord
             Thread.new { @pool.send(group_action_method) }.join
             # assert connection has been forcefully taken away from us
             assert_not @pool.active_connection?
+
+            # make a new connection for with_connection to clean up
+            @pool.connection
           end
         end
       end
@@ -505,21 +519,41 @@ module ActiveRecord
           pool.clear_reloadable_connections
 
           unless stuck_thread.join(2)
-            flunk 'clear_reloadable_connections must not let other connection waiting threads get stuck in queue'
+            flunk "clear_reloadable_connections must not let other connection waiting threads get stuck in queue"
           end
 
           assert_equal 0, pool.num_waiting_in_queue
         end
       end
 
-      private
-      def with_single_connection_pool
-        one_conn_spec = ActiveRecord::Base.connection_pool.spec.dup
-        one_conn_spec.config[:pool] = 1 # this is safe to do, because .dupped ConnectionSpecification also auto-dups its config
-        yield(pool = ConnectionPool.new(one_conn_spec))
-      ensure
-        pool.disconnect! if pool
+      def test_connection_pool_stat
+        with_single_connection_pool do |pool|
+          pool.with_connection do |connection|
+            stats = pool.stat
+            assert_equal({ size: 1, connections: 1, busy: 1, dead: 0, idle: 0, waiting: 0, checkout_timeout: 5 }, stats)
+          end
+
+          stats = pool.stat
+          assert_equal({ size: 1, connections: 1, busy: 0, dead: 0, idle: 1, waiting: 0, checkout_timeout: 5 }, stats)
+
+          Thread.new do
+            pool.checkout
+            Thread.current.kill
+          end.join
+
+          stats = pool.stat
+          assert_equal({ size: 1, connections: 1, busy: 0, dead: 1, idle: 0, waiting: 0, checkout_timeout: 5 }, stats)
+        end
       end
+
+      private
+        def with_single_connection_pool
+          one_conn_spec = ActiveRecord::Base.connection_pool.spec.dup
+          one_conn_spec.config[:pool] = 1 # this is safe to do, because .dupped ConnectionSpecification also auto-dups its config
+          yield(pool = ConnectionPool.new(one_conn_spec))
+        ensure
+          pool.disconnect! if pool
+        end
     end
   end
 end

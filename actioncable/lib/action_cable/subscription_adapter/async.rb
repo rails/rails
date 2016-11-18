@@ -1,20 +1,25 @@
-require 'action_cable/subscription_adapter/inline'
+require "action_cable/subscription_adapter/inline"
 
 module ActionCable
   module SubscriptionAdapter
     class Async < Inline # :nodoc:
       private
-        def subscriber_map
-          @subscriber_map ||= AsyncSubscriberMap.new
+        def new_subscriber_map
+          AsyncSubscriberMap.new(server.event_loop)
         end
 
         class AsyncSubscriberMap < SubscriberMap
+          def initialize(event_loop)
+            @event_loop = event_loop
+            super()
+          end
+
           def add_subscriber(*)
-            ::EM.next_tick { super }
+            @event_loop.post { super }
           end
 
           def invoke_callback(*)
-            ::EM.next_tick { super }
+            @event_loop.post { super }
           end
         end
     end

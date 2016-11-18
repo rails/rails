@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 module ContentType
   class BaseController < ActionController::Base
@@ -43,7 +43,9 @@ module ContentType
     test "default response is text/plain and UTF8" do
       with_routing do |set|
         set.draw do
-          get ':controller', :action => 'index'
+          ActiveSupport::Deprecation.silence do
+            get ":controller", action: "index"
+          end
         end
 
         get "/content_type/base"

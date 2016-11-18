@@ -1,5 +1,5 @@
-require 'cases/helper'
-require 'models/book'
+require "cases/helper"
+require "models/book"
 
 class EnumTest < ActiveRecord::TestCase
   fixtures :books
@@ -18,6 +18,7 @@ class EnumTest < ActiveRecord::TestCase
     assert @book.author_visibility_visible?
     assert @book.illustrator_visibility_visible?
     assert @book.with_medium_font_size?
+    assert @book.medium_to_read?
   end
 
   test "query state with strings" do
@@ -26,6 +27,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal "english", @book.language
     assert_equal "visible", @book.author_visibility
     assert_equal "visible", @book.illustrator_visibility
+    assert_equal "medium", @book.difficulty
   end
 
   test "find via scope" do
@@ -34,6 +36,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal @book, Book.in_english.first
     assert_equal @book, Book.author_visibility_visible.first
     assert_equal @book, Book.illustrator_visibility_visible.first
+    assert_equal @book, Book.medium_to_read.first
   end
 
   test "find via where with values" do
@@ -122,8 +125,8 @@ class EnumTest < ActiveRecord::TestCase
     old_language = @book.language
     @book.status = :proposed
     @book.language = :spanish
-    assert_equal [old_status, 'proposed'], @book.changes[:status]
-    assert_equal [old_language, 'spanish'], @book.changes[:language]
+    assert_equal [old_status, "proposed"], @book.changes[:status]
+    assert_equal [old_language, "spanish"], @book.changes[:language]
   end
 
   test "enum attribute was" do
@@ -145,8 +148,8 @@ class EnumTest < ActiveRecord::TestCase
   test "enum attribute changed to" do
     @book.status = :proposed
     @book.language = :french
-    assert @book.attribute_changed?(:status, to: 'proposed')
-    assert @book.attribute_changed?(:language, to: 'french')
+    assert @book.attribute_changed?(:status, to: "proposed")
+    assert @book.attribute_changed?(:language, to: "french")
   end
 
   test "enum attribute changed from" do
@@ -163,8 +166,8 @@ class EnumTest < ActiveRecord::TestCase
     old_language = @book.language
     @book.status = :proposed
     @book.language = :french
-    assert @book.attribute_changed?(:status, from: old_status, to: 'proposed')
-    assert @book.attribute_changed?(:language, from: old_language, to: 'french')
+    assert @book.attribute_changed?(:status, from: old_status, to: "proposed")
+    assert @book.attribute_changed?(:language, from: old_language, to: "french")
   end
 
   test "enum didn't change" do
@@ -216,12 +219,12 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "assign empty string value" do
-    @book.status = ''
+    @book.status = ""
     assert_nil @book.status
   end
 
   test "assign long empty string value" do
-    @book.status = '   '
+    @book.status = "   "
     assert_nil @book.status
   end
 
@@ -318,7 +321,7 @@ class EnumTest < ActiveRecord::TestCase
 
   test "validate uniqueness" do
     klass = Class.new(ActiveRecord::Base) do
-      def self.name; 'Book'; end
+      def self.name; "Book"; end
       enum status: [:proposed, :written]
       validates_uniqueness_of :status
     end
@@ -332,7 +335,7 @@ class EnumTest < ActiveRecord::TestCase
 
   test "validate inclusion of value in array" do
     klass = Class.new(ActiveRecord::Base) do
-      def self.name; 'Book'; end
+      def self.name; "Book"; end
       enum status: [:proposed, :written]
       validates_inclusion_of :status, in: ["written"]
     end
@@ -356,11 +359,11 @@ class EnumTest < ActiveRecord::TestCase
 
     book1 = klass1.proposed.create!
     book1.status = :written
-    assert_equal ['proposed', 'written'], book1.status_change
+    assert_equal ["proposed", "written"], book1.status_change
 
     book2 = klass2.drafted.create!
     book2.status = :uploaded
-    assert_equal ['drafted', 'uploaded'], book2.status_change
+    assert_equal ["drafted", "uploaded"], book2.status_change
   end
 
   test "enums are inheritable" do
@@ -372,11 +375,11 @@ class EnumTest < ActiveRecord::TestCase
 
     book1 = subklass1.proposed.create!
     book1.status = :written
-    assert_equal ['proposed', 'written'], book1.status_change
+    assert_equal ["proposed", "written"], book1.status_change
 
     book2 = subklass2.drafted.create!
     book2.status = :uploaded
-    assert_equal ['drafted', 'uploaded'], book2.status_change
+    assert_equal ["drafted", "uploaded"], book2.status_change
   end
 
   test "declare multiple enums at a time" do
@@ -393,6 +396,22 @@ class EnumTest < ActiveRecord::TestCase
     assert book2.single?
   end
 
+  test "enum with alias_attribute" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      alias_attribute :aliased_status, :status
+      enum aliased_status: [:proposed, :written, :published]
+    end
+
+    book = klass.proposed.create!
+    assert book.proposed?
+    assert_equal "proposed", book.aliased_status
+
+    book = klass.find(book.id)
+    assert book.proposed?
+    assert_equal "proposed", book.aliased_status
+  end
+
   test "query state by predicate with prefix" do
     assert @book.author_visibility_visible?
     assert_not @book.author_visibility_invisible?
@@ -404,6 +423,43 @@ class EnumTest < ActiveRecord::TestCase
     assert @book.in_english?
     assert_not @book.in_spanish?
     assert_not @book.in_french?
+  end
+
+  test "query state by predicate with custom suffix" do
+    assert     @book.medium_to_read?
+    assert_not @book.easy_to_read?
+    assert_not @book.hard_to_read?
+  end
+
+  test "enum methods with custom suffix defined" do
+    assert @book.class.respond_to?(:easy_to_read)
+    assert @book.class.respond_to?(:medium_to_read)
+    assert @book.class.respond_to?(:hard_to_read)
+
+    assert @book.respond_to?(:easy_to_read?)
+    assert @book.respond_to?(:medium_to_read?)
+    assert @book.respond_to?(:hard_to_read?)
+
+    assert @book.respond_to?(:easy_to_read!)
+    assert @book.respond_to?(:medium_to_read!)
+    assert @book.respond_to?(:hard_to_read!)
+  end
+
+  test "update enum attributes with custom suffix" do
+    @book.medium_to_read!
+    assert_not @book.easy_to_read?
+    assert     @book.medium_to_read?
+    assert_not @book.hard_to_read?
+
+    @book.easy_to_read!
+    assert     @book.easy_to_read?
+    assert_not @book.medium_to_read?
+    assert_not @book.hard_to_read?
+
+    @book.hard_to_read!
+    assert_not @book.easy_to_read?
+    assert_not @book.medium_to_read?
+    assert     @book.hard_to_read?
   end
 
   test "uses default status when no status is provided in fixtures" do
@@ -420,5 +476,9 @@ class EnumTest < ActiveRecord::TestCase
   test "uses default value from database on initialization when using custom mapping" do
     book = Book.new
     assert book.hard?
+  end
+
+  test "data type of Enum type" do
+    assert_equal :integer, Book.type_for_attribute("status").type
   end
 end

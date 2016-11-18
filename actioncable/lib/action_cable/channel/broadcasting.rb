@@ -1,4 +1,4 @@
-require 'active_support/core_ext/object/to_param'
+require "active_support/core_ext/object/to_param"
 
 module ActionCable
   module Channel
@@ -16,7 +16,7 @@ module ActionCable
         def broadcasting_for(model) #:nodoc:
           case
           when model.is_a?(Array)
-            model.map { |m| broadcasting_for(m) }.join(':')
+            model.map { |m| broadcasting_for(m) }.join(":")
           when model.respond_to?(:to_gid_param)
             model.to_gid_param
           else

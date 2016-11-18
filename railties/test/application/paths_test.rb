@@ -6,7 +6,6 @@ module ApplicationTests
 
     def setup
       build_app
-      boot_rails
       FileUtils.rm_rf("#{app_path}/config/environments")
       app_file "config/environments/development.rb", ""
       add_to_config <<-RUBY
@@ -56,9 +55,9 @@ module ApplicationTests
 
     test "booting up Rails yields a list of paths that are eager" do
       eager_load = @paths.eager_load
-      assert eager_load.include?(root("app/controllers"))
-      assert eager_load.include?(root("app/helpers"))
-      assert eager_load.include?(root("app/models"))
+      assert_includes eager_load, root("app/controllers")
+      assert_includes eager_load, root("app/helpers")
+      assert_includes eager_load, root("app/models")
     end
 
     test "environments has a glob equal to the current environment" do

@@ -1,23 +1,20 @@
-require 'action_dispatch/journey/router/utils'
-require 'action_dispatch/journey/routes'
-require 'action_dispatch/journey/formatter'
+require "action_dispatch/journey/router/utils"
+require "action_dispatch/journey/routes"
+require "action_dispatch/journey/formatter"
 
 before = $-w
 $-w = false
-require 'action_dispatch/journey/parser'
+require "action_dispatch/journey/parser"
 $-w = before
 
-require 'action_dispatch/journey/route'
-require 'action_dispatch/journey/path/pattern'
+require "action_dispatch/journey/route"
+require "action_dispatch/journey/path/pattern"
 
 module ActionDispatch
   module Journey # :nodoc:
     class Router # :nodoc:
       class RoutingError < ::StandardError # :nodoc:
       end
-
-      # :nodoc:
-      VERSION = '2.0.0'
 
       attr_accessor :routes
 
@@ -32,7 +29,7 @@ module ActionDispatch
           script_name = req.script_name
 
           unless route.path.anchored
-            req.script_name = (script_name.to_s + match.to_s).chomp('/')
+            req.script_name = (script_name.to_s + match.to_s).chomp("/")
             req.path_info = match.post_match
             req.path_info = "/" + req.path_info unless req.path_info.start_with? "/"
           end
@@ -41,7 +38,7 @@ module ActionDispatch
 
           status, headers, body = route.app.serve(req)
 
-          if 'pass' == headers['X-Cascade']
+          if "pass" == headers["X-Cascade"]
             req.script_name     = script_name
             req.path_info       = path_info
             req.path_parameters = set_params
@@ -51,7 +48,7 @@ module ActionDispatch
           return [status, headers, body]
         end
 
-        return [404, {'X-Cascade' => 'pass'}, ['Not Found']]
+        return [404, { "X-Cascade" => "pass" }, ["Not Found"]]
       end
 
       def recognize(rails_req)
@@ -75,7 +72,9 @@ module ActionDispatch
       private
 
         def partitioned_routes
-          routes.partitioned_routes
+          routes.partition { |r|
+            r.path.anchored && r.ast.grep(Nodes::Symbol).all? { |n| n.default_regexp?  }
+          }
         end
 
         def ast
@@ -95,7 +94,7 @@ module ActionDispatch
           simulator.memos(path) { [] }
         end
 
-        def find_routes req
+        def find_routes(req)
           routes = filter_routes(req.path_info).concat custom_routes.find_all { |r|
             r.path.match(req.path_info)
           }
@@ -110,9 +109,9 @@ module ActionDispatch
           routes.sort_by!(&:precedence)
 
           routes.map! { |r|
-            match_data  = r.path.match(req.path_info)
+            match_data = r.path.match(req.path_info)
             path_parameters = r.defaults.dup
-            match_data.names.zip(match_data.captures) { |name,val|
+            match_data.names.zip(match_data.captures) { |name, val|
               path_parameters[name.to_sym] = Utils.unescape_uri(val) if val
             }
             [match_data, path_parameters, r]

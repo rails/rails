@@ -19,13 +19,13 @@ http://travis-ci.org/rails/rails
 
 ### Is Sam Ruby happy?  If not, make him happy.
 
-Sam Ruby keeps a test suite that makes sure the code samples in his book (Agile
-Web Development with Rails) all work.  These are valuable integration tests
-for Rails.  You can check the status of his tests here:
+Sam Ruby keeps a [test suite](https://github.com/rubys/awdwr) that makes
+sure the code samples in his book
+([Agile Web Development with Rails](https://pragprog.com/titles/rails5/agile-web-development-with-rails-5th-edition))
+all work.  These are valuable system tests
+for Rails.  You can check the status of these tests here:
 
-```
-http://intertwingly.net/projects/dashboard.html
-```
+[http://intertwingly.net/projects/dashboard.html](http://intertwingly.net/projects/dashboard.html)
 
 Do not release with Red AWDwR tests.
 
@@ -36,7 +36,7 @@ Obviously Rails cannot be released when it depends on unreleased code.
 Contact the authors of those particular gems and work out a release date that
 suits them.
 
-### Contact the security team (either Koz or tenderlove)
+### Contact the security team (either tenderlove or rafaelfranca)
 
 Let them know of your plans to release.  There may be security issues to be
 addressed, and that can impact your release date.
@@ -47,7 +47,7 @@ Ruby implementors have high stakes in making sure Rails works.  Be kind and
 give them a heads up that Rails will be released soonish.
 
 This is only required for major and minor releases, bugfix releases aren't a
-big enough deal, and are supposed to be backwards compatible.
+big enough deal, and are supposed to be backward compatible.
 
 Send an email just giving a heads up about the upcoming release to these
 lists:
@@ -103,18 +103,24 @@ branch.
 Run `rake install` to generate the gems and install them locally. Then try
 generating a new app and ensure that nothing explodes.
 
+Verify that Action Cable's package.json is updated with the RC version.
+
 This will stop you from looking silly when you push an RC to rubygems.org and
 then realize it is broken.
 
-### Release the gem.
+### Release to RubyGems and NPM.
 
-IMPORTANT: Due to YAML parse problems on the rubygems.org server, it is safest
-to use Ruby 1.8 when releasing.
+IMPORTANT: The Action Cable client is released as an NPM package, so you must
+have Node.js installed, have an NPM account (npmjs.com), and be an actioncable
+package owner (`npm owner ls actioncable`) to do a full release. Do not release
+until you're set up with NPM!
 
-Run `rake release`.  This will populate the gemspecs with data from
-RAILS_VERSION, commit the changes, tag it, and push the gems to rubygems.org.
-Here are the commands that `rake release` should use, so you can understand
-what to do in case anything goes wrong:
+Run `rake release`. This will populate the gemspecs and NPM package.json with
+the current RAILS_VERSION, commit the changes, tag it, and push the gems to
+rubygems.org.
+
+Here are the commands that `rake release` uses so you can understand what to do
+in case anything goes wrong:
 
 ```
 $ rake all:build
@@ -122,7 +128,7 @@ $ git commit -am'updating RAILS_VERSION'
 $ git tag -m 'v3.0.10.rc1 release' v3.0.10.rc1
 $ git push
 $ git push --tags
-$ for i in $(ls pkg); do gem push $i; done
+$ for i in $(ls pkg); do gem push $i; npm publish; done
 ```
 
 ### Send Rails release announcements
@@ -144,7 +150,7 @@ break existing applications.
 
 ### Post the announcement to the Rails blog.
 
-If you used Markdown format for your email, you can just paste it in to the
+If you used Markdown format for your email, you can just paste it into the
 blog.
 
 * http://weblog.rubyonrails.org

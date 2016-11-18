@@ -1,4 +1,4 @@
-require 'abstract_controller/collector'
+require "abstract_controller/collector"
 
 module ActionController #:nodoc:
   module MimeResponds
@@ -198,7 +198,7 @@ module ActionController #:nodoc:
         _process_format(format)
         _set_rendered_content_type format
         response = collector.response
-        response ? response.call : render({})
+        response.call if response
       else
         raise ActionController::UnknownFormat
       end
@@ -280,8 +280,8 @@ module ActionController #:nodoc:
 
         def any(*args, &block)
           if block_given?
-            if args.any? && args.none?{ |a| a == @variant }
-              args.each{ |v| @variants[v] = block }
+            if args.any? && args.none? { |a| a == @variant }
+              args.each { |v| @variants[v] = block }
             else
               @variants[:any] = block
             end

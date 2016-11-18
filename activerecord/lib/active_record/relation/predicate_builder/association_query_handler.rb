@@ -1,6 +1,17 @@
 module ActiveRecord
   class PredicateBuilder
     class AssociationQueryHandler # :nodoc:
+      def self.value_for(table, column, value)
+        associated_table = table.associated_table(column)
+        klass = if associated_table.polymorphic_association? && ::Array === value && value.first.is_a?(Base)
+          PolymorphicArrayValue
+        else
+          AssociationQueryValue
+        end
+
+        klass.new(associated_table, value)
+      end
+
       def initialize(predicate_builder)
         @predicate_builder = predicate_builder
       end
@@ -19,7 +30,7 @@ module ActiveRecord
 
       protected
 
-      attr_reader :predicate_builder
+        attr_reader :predicate_builder
     end
 
     class AssociationQueryValue # :nodoc:
@@ -49,30 +60,30 @@ module ActiveRecord
 
       private
 
-      def primary_key
-        associated_table.association_primary_key(base_class)
-      end
-
-      def polymorphic_base_class_from_value
-        case value
-        when Relation
-          value.klass.base_class
-        when Array
-          val = value.compact.first
-          val.class.base_class if val.is_a?(Base)
-        when Base
-          value.class.base_class
+        def primary_key
+          associated_table.association_primary_key(base_class)
         end
-      end
 
-      def convert_to_id(value)
-        case value
-        when Base
-          value._read_attribute(primary_key)
-        else
-          value
+        def polymorphic_base_class_from_value
+          case value
+          when Relation
+            value.klass.base_class
+          when Array
+            val = value.compact.first
+            val.class.base_class if val.is_a?(Base)
+          when Base
+            value.class.base_class
+          end
         end
-      end
+
+        def convert_to_id(value)
+          case value
+          when Base
+            value._read_attribute(primary_key)
+          else
+            value
+          end
+        end
     end
   end
 end

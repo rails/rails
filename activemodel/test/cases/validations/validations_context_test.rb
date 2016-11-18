@@ -1,6 +1,6 @@
-require 'cases/helper'
+require "cases/helper"
 
-require 'models/topic'
+require "models/topic"
 
 class ValidationsContextTest < ActiveModel::TestCase
   def teardown
@@ -38,7 +38,7 @@ class ValidationsContextTest < ActiveModel::TestCase
     Topic.validates_with(ValidatorThatAddsErrors, on: :create)
     topic = Topic.new
     assert topic.invalid?(:create), "Validation does run on create if 'on' is set to create"
-    assert topic.errors[:base].include?(ERROR_MESSAGE)
+    assert_includes topic.errors[:base], ERROR_MESSAGE
   end
 
   test "with a class that adds errors on multiple contexts and validating a new model" do
@@ -48,10 +48,10 @@ class ValidationsContextTest < ActiveModel::TestCase
     assert topic.valid?, "Validation ran with no context given when 'on' is set to context1 and context2"
 
     assert topic.invalid?(:context1), "Validation did not run on context1 when 'on' is set to context1 and context2"
-    assert topic.errors[:base].include?(ERROR_MESSAGE)
+    assert_includes topic.errors[:base], ERROR_MESSAGE
 
     assert topic.invalid?(:context2), "Validation did not run on context2 when 'on' is set to context1 and context2"
-    assert topic.errors[:base].include?(ERROR_MESSAGE)
+    assert_includes topic.errors[:base], ERROR_MESSAGE
   end
 
   test "with a class that validating a model for a multiple contexts" do
@@ -62,7 +62,7 @@ class ValidationsContextTest < ActiveModel::TestCase
     assert topic.valid?, "Validation ran with no context given when 'on' is set to context1 and context2"
 
     assert topic.invalid?([:context1, :context2]), "Validation did not run on context1 when 'on' is set to context1 and context2"
-    assert topic.errors[:base].include?(ERROR_MESSAGE)
-    assert topic.errors[:base].include?(ANOTHER_ERROR_MESSAGE)
+    assert_includes topic.errors[:base], ERROR_MESSAGE
+    assert_includes topic.errors[:base], ANOTHER_ERROR_MESSAGE
   end
 end

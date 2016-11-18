@@ -3,8 +3,8 @@
 The Rails Initialization Process
 ================================
 
-This guide explains the internals of the initialization process in Rails
-as of Rails 4. It is an extremely in-depth guide and recommended for advanced Rails developers.
+This guide explains the internals of the initialization process in Rails.
+It is an extremely in-depth guide and recommended for advanced Rails developers.
 
 After reading this guide, you will know:
 
@@ -16,7 +16,7 @@ After reading this guide, you will know:
 --------------------------------------------------------------------------------
 
 This guide goes through every method call that is
-required to boot up the Ruby on Rails stack for a default Rails 4
+required to boot up the Ruby on Rails stack for a default Rails
 application, explaining each part in detail along the way. For this
 guide, we will be focusing on what happens when you execute `rails server`
 to boot your app.
@@ -157,7 +157,7 @@ snippet.
 If we had used `s` rather than `server`, Rails would have used the `aliases`
 defined here to find the matching command.
 
-### `rails/commands/command_tasks.rb`
+### `rails/commands/commands_tasks.rb`
 
 When one types a valid Rails command, `run_command!` a method of the same name
 is called. If Rails doesn't recognize the command, it tries to run a Rake task
@@ -318,7 +318,7 @@ def parse!(args)
   args, options = args.dup, {}
 
   opt_parser = OptionParser.new do |opts|
-    opts.banner = "Usage: rails server [mongrel, thin, etc] [options]"
+    opts.banner = "Usage: rails server [puma, thin, etc] [options]"
     opts.on("-p", "--port=port", Integer,
             "Runs Rails on the specified port.", "Default: 3000") { |v| options[:Port] = v }
   ...
@@ -356,8 +356,6 @@ private
   def print_boot_information
     ...
     puts "=> Run `rails server -h` for more startup options"
-    ...
-    puts "=> Ctrl-C to shutdown server" unless options[:daemonize]
   end
 
   def create_tmp_directories
@@ -466,7 +464,7 @@ The `options[:config]` value defaults to `config.ru` which contains this:
 ```ruby
 # This file is used by Rack-based servers to start the application.
 
-require ::File.expand_path('../config/environment', __FILE__)
+require_relative 'config/environment'
 run <%= app_const %>
 ```
 
@@ -487,7 +485,7 @@ end
 The `initialize` method of `Rack::Builder` will take the block here and execute it within an instance of `Rack::Builder`. This is where the majority of the initialization process of Rails happens. The `require` line for `config/environment.rb` in `config.ru` is the first to run:
 
 ```ruby
-require ::File.expand_path('../config/environment', __FILE__)
+require_relative 'config/environment'
 ```
 
 ### `config/environment.rb`
@@ -497,7 +495,7 @@ This file is the common file required by `config.ru` (`rails server`) and Passen
 This file begins with requiring `config/application.rb`:
 
 ```ruby
-require File.expand_path('../application', __FILE__)
+require_relative 'application'
 ```
 
 ### `config/application.rb`
@@ -505,7 +503,7 @@ require File.expand_path('../application', __FILE__)
 This file requires `config/boot.rb`:
 
 ```ruby
-require File.expand_path('../boot', __FILE__)
+require_relative 'boot'
 ```
 
 But only if it hasn't been required before, which would be the case in `rails server`
@@ -665,7 +663,7 @@ DEFAULT_OPTIONS = {
 }
 
 def self.run(app, options = {})
-  options  = DEFAULT_OPTIONS.merge(options)
+  options = DEFAULT_OPTIONS.merge(options)
 
   if options[:Verbose]
     app = Rack::CommonLogger.new(app, STDOUT)

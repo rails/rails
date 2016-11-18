@@ -2,7 +2,6 @@ module ActiveRecord
   # = Active Record Belongs To Association
   module Associations
     class BelongsToAssociation < SingularAssociation #:nodoc:
-
       def handle_dependency
         target.send(options[:dependent]) if load_target
       end
@@ -61,6 +60,7 @@ module ActiveRecord
 
         def update_counters_on_replace(record)
           if require_counter_update? && different_target?(record)
+            owner.instance_variable_set :@_after_replace_counter_called, true
             record.increment!(reflection.counter_cache_column)
             decrement_counters
           end

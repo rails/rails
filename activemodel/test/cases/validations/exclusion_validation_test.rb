@@ -1,11 +1,10 @@
-require 'cases/helper'
-require 'active_support/core_ext/numeric/time'
+require "cases/helper"
+require "active_support/core_ext/numeric/time"
 
-require 'models/topic'
-require 'models/person'
+require "models/topic"
+require "models/person"
 
 class ExclusionValidationTest < ActiveModel::TestCase
-
   def teardown
     Topic.clear_validators!
   end
@@ -68,8 +67,8 @@ class ExclusionValidationTest < ActiveModel::TestCase
   def test_validates_exclusion_of_with_range
     Topic.validates_exclusion_of :content, in: ("a".."g")
 
-    assert Topic.new(content: 'g').invalid?
-    assert Topic.new(content: 'h').valid?
+    assert Topic.new(content: "g").invalid?
+    assert Topic.new(content: "h").valid?
   end
 
   def test_validates_exclusion_of_with_time_range

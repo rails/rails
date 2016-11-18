@@ -12,4 +12,3 @@ module InlineJobsManager
   def stop_workers
   end
 end
-

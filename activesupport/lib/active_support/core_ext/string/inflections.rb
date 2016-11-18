@@ -1,5 +1,5 @@
-require 'active_support/inflector/methods'
-require 'active_support/inflector/transliterate'
+require "active_support/inflector/methods"
+require "active_support/inflector/transliterate"
 
 # String inflections define new methods on the String class to transform names for different purposes.
 # For instance, you can figure out the name of a table from the name of a class.
@@ -31,7 +31,7 @@ class String
   def pluralize(count = nil, locale = :en)
     locale = count if count.is_a?(Symbol)
     if count == 1
-      self.dup
+      dup
     else
       ActiveSupport::Inflector.pluralize(self, locale)
     end
@@ -67,7 +67,7 @@ class String
   end
 
   # +safe_constantize+ tries to find a declared constant with the name specified
-  # in the string. It returns nil when the name is not in CamelCase
+  # in the string. It returns +nil+ when the name is not in CamelCase
   # or is not initialized.  See ActiveSupport::Inflector.safe_constantize
   #
   #   'Module'.safe_constantize  # => Module
@@ -164,7 +164,7 @@ class String
   #
   #   <%= link_to(@person.name, person_path) %>
   #   # => <a href="/person/1-donald-e-knuth">Donald E. Knuth</a>
-  #   
+  #
   # To preserve the case of the characters in a string, use the `preserve_case` argument.
   #
   #   class Person
@@ -178,11 +178,7 @@ class String
   #
   #   <%= link_to(@person.name, person_path) %>
   #   # => <a href="/person/1-Donald-E-Knuth">Donald E. Knuth</a>
-  def parameterize(sep = :unused, separator: '-', preserve_case: false)
-    unless sep == :unused
-      ActiveSupport::Deprecation.warn("Passing the separator argument as a positional parameter is deprecated and will soon be removed. Use `separator: '#{sep}'` instead.")
-      separator = sep
-    end
+  def parameterize(separator: "-", preserve_case: false)
     ActiveSupport::Inflector.parameterize(self, separator: separator, preserve_case: preserve_case)
   end
 
@@ -220,6 +216,15 @@ class String
   #   '_id'.humanize                          # => "Id"
   def humanize(options = {})
     ActiveSupport::Inflector.humanize(self, options)
+  end
+
+  # Converts just the first character to uppercase.
+  #
+  #   'what a Lovely Day'.upcase_first # => "What a Lovely Day"
+  #   'w'.upcase_first                 # => "W"
+  #   ''.upcase_first                  # => ""
+  def upcase_first
+    ActiveSupport::Inflector.upcase_first(self)
   end
 
   # Creates a foreign key name from a class name.

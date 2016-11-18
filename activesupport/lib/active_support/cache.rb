@@ -1,29 +1,27 @@
-require 'benchmark'
-require 'zlib'
-require 'active_support/core_ext/array/extract_options'
-require 'active_support/core_ext/array/wrap'
-require 'active_support/core_ext/benchmark'
-require 'active_support/core_ext/module/attribute_accessors'
-require 'active_support/core_ext/numeric/bytes'
-require 'active_support/core_ext/numeric/time'
-require 'active_support/core_ext/object/to_param'
-require 'active_support/core_ext/string/inflections'
-require 'active_support/core_ext/string/strip'
+require "zlib"
+require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/array/wrap"
+require "active_support/core_ext/module/attribute_accessors"
+require "active_support/core_ext/numeric/bytes"
+require "active_support/core_ext/numeric/time"
+require "active_support/core_ext/object/to_param"
+require "active_support/core_ext/string/inflections"
+require "active_support/core_ext/string/strip"
 
 module ActiveSupport
   # See ActiveSupport::Cache::Store for documentation.
   module Cache
-    autoload :FileStore,     'active_support/cache/file_store'
-    autoload :MemoryStore,   'active_support/cache/memory_store'
-    autoload :MemCacheStore, 'active_support/cache/mem_cache_store'
-    autoload :NullStore,     'active_support/cache/null_store'
+    autoload :FileStore,     "active_support/cache/file_store"
+    autoload :MemoryStore,   "active_support/cache/memory_store"
+    autoload :MemCacheStore, "active_support/cache/mem_cache_store"
+    autoload :NullStore,     "active_support/cache/null_store"
 
     # These options mean something to all cache implementations. Individual cache
     # implementations may support additional options.
     UNIVERSAL_OPTIONS = [:namespace, :compress, :compress_threshold, :expires_in, :race_condition_ttl]
 
     module Strategy
-      autoload :LocalCache, 'active_support/cache/strategy/local_cache'
+      autoload :LocalCache, "active_support/cache/strategy/local_cache"
     end
 
     class << self
@@ -153,25 +151,25 @@ module ActiveSupport
     # or +write+. To specify the threshold at which to compress values, set the
     # <tt>:compress_threshold</tt> option. The default threshold is 16K.
     class Store
-      cattr_accessor :logger, :instance_writer => true
+      cattr_accessor :logger, instance_writer: true
 
       attr_reader :silence, :options
       alias :silence? :silence
 
-      # Create a new cache. The options will be passed to any write method calls
+      # Creates a new cache. The options will be passed to any write method calls
       # except for <tt>:namespace</tt> which can be used to set the global
       # namespace for the cache.
       def initialize(options = nil)
         @options = options ? options.dup : {}
       end
 
-      # Silence the logger.
+      # Silences the logger.
       def silence!
         @silence = true
         self
       end
 
-      # Silence the logger within a block.
+      # Silences the logger within a block.
       def mute
         previous_silence, @silence = defined?(@silence) && @silence, true
         yield
@@ -198,10 +196,17 @@ module ActiveSupport
       #   cache.fetch('city')   # => "Duckburgh"
       #
       # You may also specify additional options via the +options+ argument.
-      # Setting <tt>force: true</tt> will force a cache miss:
+      # Setting <tt>force: true</tt> forces a cache "miss," meaning we treat
+      # the cache value as missing even if it's present. Passing a block is
+      # required when +force+ is true so this always results in a cache write.
       #
       #   cache.write('today', 'Monday')
-      #   cache.fetch('today', force: true)  # => nil
+      #   cache.fetch('today', force: true) { 'Tuesday' } # => 'Tuesday'
+      #   cache.fetch('today', force: true) # => ArgumentError
+      #
+      # The +:force+ option is useful when you're calling some other method to
+      # ask whether you should force a cache write. Otherwise, it's clearer to
+      # just call <tt>Cache#write</tt>.
       #
       # Setting <tt>:compress</tt> will store a large cache entry set by the call
       # in a compressed format.
@@ -243,14 +248,14 @@ module ActiveSupport
       #   sleep 60
       #
       #   Thread.new do
-      #     val_1 = cache.fetch('foo', race_condition_ttl: 10) do
+      #     val_1 = cache.fetch('foo', race_condition_ttl: 10.seconds) do
       #       sleep 1
       #       'new value 1'
       #     end
       #   end
       #
       #   Thread.new do
-      #     val_2 = cache.fetch('foo', race_condition_ttl: 10) do
+      #     val_2 = cache.fetch('foo', race_condition_ttl: 10.seconds) do
       #       'new value 2'
       #     end
       #   end
@@ -292,6 +297,8 @@ module ActiveSupport
           else
             save_block_result_to_cache(name, options) { |_name| yield _name }
           end
+        elsif options && options[:force]
+          raise ArgumentError, "Missing block: Calling `Cache#fetch` with `force: true` requires a block."
         else
           read(name, options)
         end
@@ -323,7 +330,7 @@ module ActiveSupport
         end
       end
 
-      # Read multiple values at once from the cache. Options can be passed
+      # Reads multiple values at once from the cache. Options can be passed
       # in the last argument.
       #
       # Some cache implementation may optimize this method.
@@ -333,27 +340,28 @@ module ActiveSupport
         options = names.extract_options!
         options = merged_options(options)
 
-        instrument_multi(:read, names, options) do |payload|
-          results = {}
-          names.each do |name|
-            key = normalize_key(name, options)
-            entry = read_entry(key, options)
-            if entry
-              if entry.expired?
-                delete_entry(key, options)
-              else
-                results[name] = entry.value
-              end
+        results = {}
+        names.each do |name|
+          key = normalize_key(name, options)
+          entry = read_entry(key, options)
+          if entry
+            if entry.expired?
+              delete_entry(key, options)
+            else
+              results[name] = entry.value
             end
           end
-          results
         end
+        results
       end
 
       # Fetches data from the cache, using the given keys. If there is data in
       # the cache with the given keys, then that data is returned. Otherwise,
       # the supplied block is called for each key for which there was no data,
       # and the result will be written to the cache and returned.
+      # Therefore, you need to pass a block that returns the data to be written
+      # to the cache. If you do not want to write the cache when the cache is
+      # not found, use #read_multi.
       #
       # Options are passed to the underlying cache implementation.
       #
@@ -367,6 +375,8 @@ module ActiveSupport
       #   #      "unknown_key" => "Fallback value for key: unknown_key" }
       #
       def fetch_multi(*names)
+        raise ArgumentError, "Missing block: `Cache#fetch_multi` requires a block." unless block_given?
+
         options = names.extract_options!
         options = merged_options(options)
         results = read_multi(*names, options)
@@ -415,7 +425,7 @@ module ActiveSupport
         end
       end
 
-      # Delete all entries with keys matching the pattern.
+      # Deletes all entries with keys matching the pattern.
       #
       # Options are passed to the underlying cache implementation.
       #
@@ -424,7 +434,7 @@ module ActiveSupport
         raise NotImplementedError.new("#{self.class.name} does not support delete_matched")
       end
 
-      # Increment an integer value in the cache.
+      # Increments an integer value in the cache.
       #
       # Options are passed to the underlying cache implementation.
       #
@@ -433,7 +443,7 @@ module ActiveSupport
         raise NotImplementedError.new("#{self.class.name} does not support increment")
       end
 
-      # Decrement an integer value in the cache.
+      # Decrements an integer value in the cache.
       #
       # Options are passed to the underlying cache implementation.
       #
@@ -442,7 +452,7 @@ module ActiveSupport
         raise NotImplementedError.new("#{self.class.name} does not support decrement")
       end
 
-      # Cleanup the cache by removing expired entries.
+      # Cleanups the cache by removing expired entries.
       #
       # Options are passed to the underlying cache implementation.
       #
@@ -451,18 +461,18 @@ module ActiveSupport
         raise NotImplementedError.new("#{self.class.name} does not support cleanup")
       end
 
-      # Clear the entire cache. Be careful with this method since it could
+      # Clears the entire cache. Be careful with this method since it could
       # affect other processes if shared cache is being used.
       #
       # The options hash is passed to the underlying cache implementation.
       #
       # All implementations may not support this method.
-      def clear(options = nil)
+      def clear
         raise NotImplementedError.new("#{self.class.name} does not support clear")
       end
 
       protected
-        # Add the namespace defined in the options to a pattern designed to
+        # Adds the namespace defined in the options to a pattern designed to
         # match keys. Implementations that support delete_matched should call
         # this method to translate a pattern that matches names into one that
         # matches namespaced keys.
@@ -470,7 +480,7 @@ module ActiveSupport
           prefix = options[:namespace].is_a?(Proc) ? options[:namespace].call : options[:namespace]
           if prefix
             source = pattern.source
-            if source.start_with?('^')
+            if source.start_with?("^")
               source = source[1, source.length]
             else
               source = ".*#{source[0, source.length]}"
@@ -481,26 +491,26 @@ module ActiveSupport
           end
         end
 
-        # Read an entry from the cache implementation. Subclasses must implement
+        # Reads an entry from the cache implementation. Subclasses must implement
         # this method.
         def read_entry(key, options) # :nodoc:
           raise NotImplementedError.new
         end
 
-        # Write an entry to the cache implementation. Subclasses must implement
+        # Writes an entry to the cache implementation. Subclasses must implement
         # this method.
         def write_entry(key, entry, options) # :nodoc:
           raise NotImplementedError.new
         end
 
-        # Delete an entry from the cache implementation. Subclasses must
+        # Deletes an entry from the cache implementation. Subclasses must
         # implement this method.
         def delete_entry(key, options) # :nodoc:
           raise NotImplementedError.new
         end
 
       private
-        # Merge the default options with ones specific to a method call.
+        # Merges the default options with ones specific to a method call.
         def merged_options(call_options) # :nodoc:
           if call_options
             options.merge(call_options)
@@ -509,7 +519,7 @@ module ActiveSupport
           end
         end
 
-        # Expand key to be a consistent string value. Invoke +cache_key+ if
+        # Expands key to be a consistent string value. Invokes +cache_key+ if
         # object responds to +cache_key+. Otherwise, +to_param+ method will be
         # called. If the key is a Hash, then keys will be sorted alphabetically.
         def expanded_key(key) # :nodoc:
@@ -518,18 +528,18 @@ module ActiveSupport
           case key
           when Array
             if key.size > 1
-              key = key.collect{|element| expanded_key(element)}
+              key = key.collect { |element| expanded_key(element) }
             else
               key = key.first
             end
           when Hash
-            key = key.sort_by { |k,_| k.to_s }.collect{|k,v| "#{k}=#{v}"}
+            key = key.sort_by { |k, _| k.to_s }.collect { |k, v| "#{k}=#{v}" }
           end
 
           key.to_param
         end
 
-        # Prefix a key with the namespace. Namespace and key will be delimited
+        # Prefixes a key with the namespace. Namespace and key will be delimited
         # with a colon.
         def normalize_key(key, options)
           key = expanded_key(key)
@@ -539,31 +549,12 @@ module ActiveSupport
           key
         end
 
-        def namespaced_key(*args)
-          ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
-            `namespaced_key` is deprecated and will be removed from Rails 5.1.
-            Please use `normalize_key` which will return a fully resolved key.
-          MESSAGE
-          normalize_key(*args)
-        end
-
         def instrument(operation, key, options = nil)
           log { "Cache #{operation}: #{normalize_key(key, options)}#{options.blank? ? "" : " (#{options.inspect})"}" }
 
-          payload = { :key => key }
+          payload = { key: key }
           payload.merge!(options) if options.is_a?(Hash)
-          ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload){ yield(payload) }
-        end
-
-        def instrument_multi(operation, keys, options = nil)
-          log do
-            formatted_keys = keys.map { |k| "- #{k}" }.join("\n")
-            "Caches multi #{operation}:\n#{formatted_keys}#{options.blank? ? "" : " (#{options.inspect})"}"
-          end
-
-          payload = { key: keys }
-          payload.merge!(options) if options.is_a?(Hash)
-          ActiveSupport::Notifications.instrument("cache_#{operation}_multi.active_support", payload) { yield(payload) }
+          ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload) { yield(payload) }
         end
 
         def log
@@ -578,7 +569,7 @@ module ActiveSupport
               # When an entry has a positive :race_condition_ttl defined, put the stale entry back into the cache
               # for a brief period while the entry is being recalculated.
               entry.expires_at = Time.now + race_ttl
-              write_entry(key, entry, :expires_in => race_ttl * 2)
+              write_entry(key, entry, expires_in: race_ttl * 2)
             else
               delete_entry(key, options)
             end
@@ -588,12 +579,12 @@ module ActiveSupport
         end
 
         def get_entry_value(entry, name, options)
-          instrument(:fetch_hit, name, options) { |payload| }
+          instrument(:fetch_hit, name, options) {}
           entry.value
         end
 
         def save_block_result_to_cache(name, options)
-          result = instrument(:generate, name, options) do |payload|
+          result = instrument(:generate, name, options) do
             yield(name)
           end
 
@@ -611,7 +602,7 @@ module ActiveSupport
     class Entry # :nodoc:
       DEFAULT_COMPRESS_LIMIT = 16.kilobytes
 
-      # Create a new cache entry for the specified value. Options supported are
+      # Creates a new cache entry for the specified value. Options supported are
       # +:compress+, +:compress_threshold+, and +:expires_in+.
       def initialize(value, options = {})
         if should_compress?(value, options)
@@ -630,7 +621,7 @@ module ActiveSupport
         compressed? ? uncompress(@value) : @value
       end
 
-      # Check if the entry is expired. The +expires_in+ parameter can override
+      # Checks if the entry is expired. The +expires_in+ parameter can override
       # the value set when the entry was created.
       def expired?
         @expires_in && @created_at + @expires_in <= Time.now.to_f
@@ -665,7 +656,7 @@ module ActiveSupport
         end
       end
 
-      # Duplicate the value in a class. This is used by cache implementations that don't natively
+      # Duplicates the value in a class. This is used by cache implementations that don't natively
       # serialize entries to protect against accidental cache modifications.
       def dup_value!
         if @value && !compressed? && !(@value.is_a?(Numeric) || @value == true || @value == false)

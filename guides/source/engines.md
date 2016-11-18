@@ -11,9 +11,9 @@ After reading this guide, you will know:
 
 * What makes an engine.
 * How to generate an engine.
-* Building features for the engine.
-* Hooking the engine into an application.
-* Overriding engine functionality in the application.
+* How to build features for the engine.
+* How to hook the engine into an application.
+* How to override engine functionality in the application.
 
 --------------------------------------------------------------------------------
 
@@ -25,7 +25,7 @@ their host applications. A Rails application is actually just a "supercharged"
 engine, with the `Rails::Application` class inheriting a lot of its behavior
 from `Rails::Engine`.
 
-Therefore, engines and applications can be thought of almost the same thing,
+Therefore, engines and applications can be thought of as almost the same thing,
 just with subtle differences, as you'll see throughout this guide. Engines and
 applications also share a common structure.
 
@@ -46,7 +46,7 @@ see how to hook it into an application.
 
 Engines can also be isolated from their host applications. This means that an
 application is able to have a path provided by a routing helper such as
-`articles_path` and use an engine also that provides a path also called
+`articles_path` and use an engine that also provides a path also called
 `articles_path`, and the two would not clash. Along with this, controllers, models
 and table names are also namespaced. You'll see how to do this later in this
 guide.
@@ -184,7 +184,7 @@ end
 By inheriting from the `Rails::Engine` class, this gem notifies Rails that
 there's an engine at the specified path, and will correctly mount the engine
 inside the application, performing tasks such as adding the `app` directory of
-the engine to the load path for models, mailers, controllers and views.
+the engine to the load path for models, mailers, controllers, and views.
 
 The `isolate_namespace` method here deserves special notice. This call is
 responsible for isolating the controllers, models, routes and other things into
@@ -402,8 +402,8 @@ module Blorgh
 end
 ```
 
-NOTE: The `ApplicationController` class being inherited from here is the
-`Blorgh::ApplicationController`, not an application's `ApplicationController`.
+NOTE: The `ArticlesController` class inherits from
+`Blorgh::ApplicationController`, not the application's `ApplicationController`.
 
 The helper inside `app/helpers/blorgh/articles_helper.rb` is also namespaced:
 
@@ -461,7 +461,7 @@ model, a comment controller and then modify the articles scaffold to display
 comments and allow people to create new ones.
 
 From the application root, run the model generator. Tell it to generate a
-`Comment` model, with the related table having two columns: a `article_id` integer
+`Comment` model, with the related table having two columns: an `article_id` integer
 and `text` text column.
 
 ```bash
@@ -799,7 +799,7 @@ before the article is saved. It will also need to have an `attr_accessor` set up
 for this field, so that the setter and getter methods are defined for it.
 
 To do all this, you'll need to add the `attr_accessor` for `author_name`, the
-association for the author and the `before_save` call into
+association for the author and the `before_validation` call into
 `app/models/blorgh/article.rb`. The `author` association will be hard-coded to the
 `User` class for the time being.
 
@@ -807,7 +807,7 @@ association for the author and the `before_save` call into
 attr_accessor :author_name
 belongs_to :author, class_name: "User"
 
-before_save :set_author
+before_validation :set_author
 
 private
   def set_author
@@ -1034,6 +1034,8 @@ typical `GET` to a controller in a controller's functional test like this:
 ```ruby
 module Blorgh
   class FooControllerTest < ActionDispatch::IntegrationTest
+    include Engine.routes.url_helpers
+
     def test_index
       get foos_url
       ...
@@ -1050,6 +1052,8 @@ in your setup code:
 ```ruby
 module Blorgh
   class FooControllerTest < ActionDispatch::IntegrationTest
+    include Engine.routes.url_helpers
+
     setup do
       @routes = Engine.routes
     end
@@ -1205,7 +1209,7 @@ module Blorgh::Concerns::Models::Article
     attr_accessor :author_name
     belongs_to :author, class_name: "User"
 
-    before_save :set_author
+    before_validation :set_author
 
     private
       def set_author
@@ -1360,7 +1364,7 @@ You can define assets for precompilation in `engine.rb`:
 
 ```ruby
 initializer "blorgh.assets.precompile" do |app|
-  app.config.assets.precompile += %w(admin.css admin.js)
+  app.config.assets.precompile += %w( admin.js admin.css )
 end
 ```
 

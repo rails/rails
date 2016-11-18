@@ -1,4 +1,4 @@
-require 'active_support/core_ext/hash/indifferent_access'
+require "active_support/core_ext/hash/indifferent_access"
 
 module ActiveRecord
   # Store gives you a thin wrapper around serialize for the purpose of storing hashes in a single column.
@@ -114,8 +114,8 @@ module ActiveRecord
 
       def stored_attributes
         parent = superclass.respond_to?(:stored_attributes) ? superclass.stored_attributes : {}
-        if self.local_stored_attributes
-          parent.merge!(self.local_stored_attributes) { |k, a, b| a | b }
+        if local_stored_attributes
+          parent.merge!(local_stored_attributes) { |k, a, b| a | b }
         end
         parent
       end
@@ -177,34 +177,34 @@ module ActiveRecord
         end
       end
 
-    class IndifferentCoder # :nodoc:
-      def initialize(coder_or_class_name)
-        @coder =
-          if coder_or_class_name.respond_to?(:load) && coder_or_class_name.respond_to?(:dump)
-            coder_or_class_name
+      class IndifferentCoder # :nodoc:
+        def initialize(coder_or_class_name)
+          @coder =
+            if coder_or_class_name.respond_to?(:load) && coder_or_class_name.respond_to?(:dump)
+              coder_or_class_name
+            else
+              ActiveRecord::Coders::YAMLColumn.new(coder_or_class_name || Object)
+            end
+        end
+
+        def dump(obj)
+          @coder.dump self.class.as_indifferent_hash(obj)
+        end
+
+        def load(yaml)
+          self.class.as_indifferent_hash(@coder.load(yaml || ""))
+        end
+
+        def self.as_indifferent_hash(obj)
+          case obj
+          when ActiveSupport::HashWithIndifferentAccess
+            obj
+          when Hash
+            obj.with_indifferent_access
           else
-            ActiveRecord::Coders::YAMLColumn.new(coder_or_class_name || Object)
+            ActiveSupport::HashWithIndifferentAccess.new
           end
-      end
-
-      def dump(obj)
-        @coder.dump self.class.as_indifferent_hash(obj)
-      end
-
-      def load(yaml)
-        self.class.as_indifferent_hash(@coder.load(yaml || ''))
-      end
-
-      def self.as_indifferent_hash(obj)
-        case obj
-        when ActiveSupport::HashWithIndifferentAccess
-          obj
-        when Hash
-          obj.with_indifferent_access
-        else
-          ActiveSupport::HashWithIndifferentAccess.new
         end
       end
-    end
   end
 end

@@ -1,3 +1,5 @@
+require "active_support/core_ext/object/blank"
+
 module ActiveSupport
   # Usually key value pairs are handled something like this:
   #
@@ -36,10 +38,10 @@ module ActiveSupport
 
     def method_missing(name, *args)
       name_string = name.to_s
-      if name_string.chomp!('=')
+      if name_string.chomp!("=")
         self[name_string] = args.first
       else
-        bangs = name_string.chomp!('!')
+        bangs = name_string.chomp!("!")
 
         if bangs
           fetch(name_string.to_sym).presence || raise(KeyError.new("#{name_string} is blank."))
@@ -66,9 +68,9 @@ module ActiveSupport
     def initialize(parent = nil)
       if parent.kind_of?(OrderedOptions)
         # use the faster _get when dealing with OrderedOptions
-        super() { |h,k| parent._get(k) }
+        super() { |h, k| parent._get(k) }
       elsif parent
-        super() { |h,k| parent[k] }
+        super() { |h, k| parent[k] }
       else
         super()
       end

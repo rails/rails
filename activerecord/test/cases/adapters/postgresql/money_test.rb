@@ -1,5 +1,5 @@
 require "cases/helper"
-require 'support/schema_dumping_helper'
+require "support/schema_dumping_helper"
 
 class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
@@ -9,14 +9,14 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
   setup do
     @connection = ActiveRecord::Base.connection
     @connection.execute("set lc_monetary = 'C'")
-    @connection.create_table('postgresql_moneys', force: true) do |t|
+    @connection.create_table("postgresql_moneys", force: true) do |t|
       t.money "wealth"
       t.money "depth", default: "150.55"
     end
   end
 
   teardown do
-    @connection.drop_table 'postgresql_moneys', if_exists: true
+    @connection.drop_table "postgresql_moneys", if_exists: true
   end
 
   def test_column
@@ -31,7 +31,7 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_default
-    assert_equal BigDecimal.new("150.55"), PostgresqlMoney.column_defaults['depth']
+    assert_equal BigDecimal.new("150.55"), PostgresqlMoney.column_defaults["depth"]
     assert_equal BigDecimal.new("150.55"), PostgresqlMoney.new.depth
   end
 
@@ -46,7 +46,7 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_money_type_cast
-    type = PostgresqlMoney.type_for_attribute('wealth')
+    type = PostgresqlMoney.type_for_attribute("wealth")
     assert_equal(12345678.12, type.cast("$12,345,678.12"))
     assert_equal(12345678.12, type.cast("$12.345.678,12"))
     assert_equal(-1.15, type.cast("-$1.15"))
@@ -63,7 +63,7 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
     money = PostgresqlMoney.create(wealth: "987.65")
     assert_equal 987.65, money.wealth
 
-    new_value = BigDecimal.new('123.45')
+    new_value = BigDecimal.new("123.45")
     money.wealth = new_value
     money.save!
     money.reload
@@ -80,7 +80,7 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
 
   def test_update_all_with_money_big_decimal
     money = PostgresqlMoney.create!
-    PostgresqlMoney.update_all(wealth: '123.45'.to_d)
+    PostgresqlMoney.update_all(wealth: "123.45".to_d)
     money.reload
 
     assert_equal 123.45, money.wealth

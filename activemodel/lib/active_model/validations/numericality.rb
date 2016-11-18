@@ -1,5 +1,4 @@
 module ActiveModel
-
   module Validations
     class NumericalityValidator < EachValidator # :nodoc:
       CHECKS = { greater_than: :>, greater_than_or_equal_to: :>=,
@@ -26,8 +25,6 @@ module ActiveModel
         if record_attribute_changed_in_place?(record, attr_name)
           raw_value = value
         end
-
-        return if options[:allow_nil] && raw_value.nil?
 
         unless is_number?(raw_value)
           record.errors.add(attr_name, :not_a_number, filtered_options(raw_value))
@@ -99,10 +96,10 @@ module ActiveModel
 
       private
 
-      def record_attribute_changed_in_place?(record, attr_name)
-        record.respond_to?(:attribute_changed_in_place?) &&
-          record.attribute_changed_in_place?(attr_name.to_s)
-      end
+        def record_attribute_changed_in_place?(record, attr_name)
+          record.respond_to?(:attribute_changed_in_place?) &&
+            record.attribute_changed_in_place?(attr_name.to_s)
+        end
     end
 
     module HelperMethods
@@ -120,7 +117,7 @@ module ActiveModel
       # * <tt>:only_integer</tt> - Specifies whether the value has to be an
       #   integer, e.g. an integral value (default is +false+).
       # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+ (default is
-      #   +false+). Notice that for fixnum and float columns empty strings are
+      #   +false+). Notice that for Integer and Float columns empty strings are
       #   converted to +nil+.
       # * <tt>:greater_than</tt> - Specifies the value must be greater than the
       #   supplied value.

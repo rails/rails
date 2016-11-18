@@ -20,12 +20,7 @@ switch between them without having to rewrite your jobs.
 
 ## Usage
 
-Set the queue adapter for Active Job:
-
-``` ruby
-ActiveJob::Base.queue_adapter = :inline # default queue adapter
-```
-Note: To learn how to use your preferred queueing backend see its adapter
+To learn how to use your preferred queueing backend see its adapter
 documentation at
 [ActiveJob::QueueAdapters](http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
 

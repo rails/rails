@@ -1,6 +1,7 @@
-require 'active_support/concern'
-require 'active_support/ordered_options'
-require 'active_support/core_ext/array/extract_options'
+require "active_support/concern"
+require "active_support/ordered_options"
+require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/regexp"
 
 module ActiveSupport
   # Configurable provides a <tt>config</tt> method to store and retrieve
@@ -107,7 +108,7 @@ module ActiveSupport
         options = names.extract_options!
 
         names.each do |name|
-          raise NameError.new('invalid config attribute name') unless name =~ /\A[_A-Za-z]\w*\z/
+          raise NameError.new("invalid config attribute name") unless /\A[_A-Za-z]\w*\z/.match?(name)
 
           reader, reader_line = "def #{name}; config.#{name}; end", __LINE__
           writer, writer_line = "def #{name}=(value); config.#{name} = value; end", __LINE__
@@ -145,4 +146,3 @@ module ActiveSupport
     end
   end
 end
-

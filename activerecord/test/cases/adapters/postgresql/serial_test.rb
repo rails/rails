@@ -1,5 +1,5 @@
 require "cases/helper"
-require 'support/schema_dumping_helper'
+require "support/schema_dumping_helper"
 
 class PostgresqlSerialTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
@@ -10,6 +10,7 @@ class PostgresqlSerialTest < ActiveRecord::PostgreSQLTestCase
     @connection = ActiveRecord::Base.connection
     @connection.create_table "postgresql_serials", force: true do |t|
       t.serial :seq
+      t.integer :serials_id, default: -> { "nextval('postgresql_serials_id_seq')" }
     end
   end
 
@@ -24,9 +25,21 @@ class PostgresqlSerialTest < ActiveRecord::PostgreSQLTestCase
     assert column.serial?
   end
 
+  def test_not_serial_column
+    column = PostgresqlSerial.columns_hash["serials_id"]
+    assert_equal :integer, column.type
+    assert_equal "integer", column.sql_type
+    assert_not column.serial?
+  end
+
   def test_schema_dump_with_shorthand
     output = dump_table_schema "postgresql_serials"
-    assert_match %r{t\.serial\s+"seq"}, output
+    assert_match %r{t\.serial\s+"seq",\s+null: false$}, output
+  end
+
+  def test_schema_dump_with_not_serial
+    output = dump_table_schema "postgresql_serials"
+    assert_match %r{t\.integer\s+"serials_id",\s+default: -> \{ "nextval\('postgresql_serials_id_seq'::regclass\)" \}$}, output
   end
 end
 
@@ -39,6 +52,7 @@ class PostgresqlBigSerialTest < ActiveRecord::PostgreSQLTestCase
     @connection = ActiveRecord::Base.connection
     @connection.create_table "postgresql_big_serials", force: true do |t|
       t.bigserial :seq
+      t.bigint :serials_id, default: -> { "nextval('postgresql_big_serials_id_seq')" }
     end
   end
 
@@ -53,8 +67,20 @@ class PostgresqlBigSerialTest < ActiveRecord::PostgreSQLTestCase
     assert column.serial?
   end
 
+  def test_not_bigserial_column
+    column = PostgresqlBigSerial.columns_hash["serials_id"]
+    assert_equal :integer, column.type
+    assert_equal "bigint", column.sql_type
+    assert_not column.serial?
+  end
+
   def test_schema_dump_with_shorthand
     output = dump_table_schema "postgresql_big_serials"
-    assert_match %r{t\.bigserial\s+"seq"}, output
+    assert_match %r{t\.bigserial\s+"seq",\s+null: false$}, output
+  end
+
+  def test_schema_dump_with_not_bigserial
+    output = dump_table_schema "postgresql_big_serials"
+    assert_match %r{t\.bigint\s+"serials_id",\s+default: -> \{ "nextval\('postgresql_big_serials_id_seq'::regclass\)" \}$}, output
   end
 end

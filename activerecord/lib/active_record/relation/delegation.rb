@@ -1,6 +1,3 @@
-require 'set'
-require 'active_support/concern'
-
 module ActiveRecord
   module Delegation # :nodoc:
     module DelegateCache # :nodoc:
@@ -18,7 +15,7 @@ module ActiveRecord
           delegate = Class.new(klass) {
             include ClassSpecificRelation
           }
-          const_set klass.name.gsub('::'.freeze, '_'.freeze), delegate
+          const_set klass.name.gsub("::".freeze, "_".freeze), delegate
           cache[klass] = delegate
         end
       end
@@ -36,11 +33,12 @@ module ActiveRecord
     # may vary depending on the klass of a relation, so we create a subclass of Relation
     # for each different klass, and the delegations are compiled into that subclass only.
 
-    delegate :to_xml, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to_ary, :join,
-      :[], :&, :|, :+, :-, :sample, :shuffle, :reverse, :compact, to: :to_a
+    delegate :to_xml, :encode_with, :length, :collect, :map, :each, :all?, :include?, :to_ary, :join,
+             :[], :&, :|, :+, :-, :sample, :reverse, :compact, :in_groups, :in_groups_of,
+             :shuffle, :split, :index, to: :records
 
     delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key,
-             :connection, :columns_hash, :to => :klass
+             :connection, :columns_hash, to: :klass
 
     module ClassSpecificRelation # :nodoc:
       extend ActiveSupport::Concern
@@ -58,7 +56,7 @@ module ActiveRecord
           @delegation_mutex.synchronize do
             return if method_defined?(method)
 
-            if method.to_s =~ /\A[a-zA-Z_]\w*[!?]?\z/
+            if /\A[a-zA-Z_]\w*[!?]?\z/.match?(method)
               module_eval <<-RUBY, __FILE__, __LINE__ + 1
                 def #{method}(*args, &block)
                   scoping { @klass.#{method}(*args, &block) }
@@ -82,17 +80,17 @@ module ActiveRecord
 
       protected
 
-      def method_missing(method, *args, &block)
-        if @klass.respond_to?(method)
-          self.class.delegate_to_scoped_klass(method)
-          scoping { @klass.public_send(method, *args, &block) }
-        elsif arel.respond_to?(method)
-          self.class.delegate method, :to => :arel
-          arel.public_send(method, *args, &block)
-        else
-          super
+        def method_missing(method, *args, &block)
+          if @klass.respond_to?(method)
+            self.class.delegate_to_scoped_klass(method)
+            scoping { @klass.public_send(method, *args, &block) }
+          elsif arel.respond_to?(method)
+            self.class.delegate method, to: :arel
+            arel.public_send(method, *args, &block)
+          else
+            super
+          end
         end
-      end
     end
 
     module ClassMethods # :nodoc:
@@ -102,26 +100,26 @@ module ActiveRecord
 
       private
 
-      def relation_class_for(klass)
-        klass.relation_delegate_class(self)
-      end
+        def relation_class_for(klass)
+          klass.relation_delegate_class(self)
+        end
     end
 
-    def respond_to?(method, include_private = false)
+    def respond_to_missing?(method, include_private = false)
       super || @klass.respond_to?(method, include_private) ||
         arel.respond_to?(method, include_private)
     end
 
     protected
 
-    def method_missing(method, *args, &block)
-      if @klass.respond_to?(method)
-        scoping { @klass.public_send(method, *args, &block) }
-      elsif arel.respond_to?(method)
-        arel.public_send(method, *args, &block)
-      else
-        super
+      def method_missing(method, *args, &block)
+        if @klass.respond_to?(method)
+          scoping { @klass.public_send(method, *args, &block) }
+        elsif arel.respond_to?(method)
+          arel.public_send(method, *args, &block)
+        else
+          super
+        end
       end
-    end
   end
 end

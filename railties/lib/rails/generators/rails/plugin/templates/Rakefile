@@ -25,5 +25,5 @@ load 'rails/tasks/statistics.rake'
 
 <% unless options[:skip_gemspec] -%>
 
-Bundler::GemHelper.install_tasks
+require 'bundler/gem_tasks'
 <% end %>

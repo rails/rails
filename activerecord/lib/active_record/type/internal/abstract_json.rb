@@ -17,10 +17,10 @@ module ActiveRecord
         end
 
         def serialize(value)
-          if value.is_a?(::Array) || value.is_a?(::Hash)
-            ::ActiveSupport::JSON.encode(value)
+          if value.nil?
+            nil
           else
-            value
+            ::ActiveSupport::JSON.encode(value)
           end
         end
 

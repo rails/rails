@@ -1,4 +1,4 @@
-ARGV << '--help' if ARGV.empty?
+require "rails/command"
 
 aliases = {
   "g"  => "generate",
@@ -13,7 +13,4 @@ aliases = {
 command = ARGV.shift
 command = aliases[command] || command
 
-require 'rails/command'
-require 'rails/commands/dev_cache'
-
-Rails::Command.run(command, ARGV)
+Rails::Command.invoke command, ARGV

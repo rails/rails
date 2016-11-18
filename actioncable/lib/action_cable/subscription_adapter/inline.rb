@@ -1,6 +1,11 @@
 module ActionCable
   module SubscriptionAdapter
     class Inline < Base # :nodoc:
+      def initialize(*)
+        super
+        @subscriber_map = nil
+      end
+
       def broadcast(channel, payload)
         subscriber_map.broadcast(channel, payload)
       end
@@ -19,7 +24,11 @@ module ActionCable
 
       private
         def subscriber_map
-          @subscriber_map ||= SubscriberMap.new
+          @subscriber_map || @server.mutex.synchronize { @subscriber_map ||= new_subscriber_map }
+        end
+
+        def new_subscriber_map
+          SubscriberMap.new
         end
     end
   end

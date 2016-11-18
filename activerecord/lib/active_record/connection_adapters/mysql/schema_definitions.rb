@@ -80,9 +80,9 @@ module ActiveRecord
 
         private
 
-        def create_column_definition(name, type)
-          MySQL::ColumnDefinition.new(name, type)
-        end
+          def create_column_definition(name, type)
+            MySQL::ColumnDefinition.new(name, type)
+          end
       end
 
       class Table < ActiveRecord::ConnectionAdapters::Table

@@ -7,10 +7,6 @@ module ActiveSupport
       self.validate_float = true
 
       def convert
-        if opts.key?(:prefix)
-          ActiveSupport::Deprecation.warn('The :prefix option of `number_to_human_size` is deprecated and will be removed in Rails 5.1 with no replacement.')
-        end
-
         @number = Float(number)
 
         # for backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files
@@ -21,24 +17,24 @@ module ActiveSupport
         if smaller_than_base?
           number_to_format = number.to_i.to_s
         else
-          human_size = number / (base ** exponent)
+          human_size = number / (base**exponent)
           number_to_format = NumberToRoundedConverter.convert(human_size, options)
         end
-        conversion_format.gsub('%n'.freeze, number_to_format).gsub('%u'.freeze, unit)
+        conversion_format.gsub("%n".freeze, number_to_format).gsub("%u".freeze, unit)
       end
 
       private
 
         def conversion_format
-          translate_number_value_with_default('human.storage_units.format', :locale => options[:locale], :raise => true)
+          translate_number_value_with_default("human.storage_units.format", locale: options[:locale], raise: true)
         end
 
         def unit
-          translate_number_value_with_default(storage_unit_key, :locale => options[:locale], :count => number.to_i, :raise => true)
+          translate_number_value_with_default(storage_unit_key, locale: options[:locale], count: number.to_i, raise: true)
         end
 
         def storage_unit_key
-          key_end = smaller_than_base? ? 'byte' : STORAGE_UNITS[exponent]
+          key_end = smaller_than_base? ? "byte" : STORAGE_UNITS[exponent]
           "human.storage_units.units.#{key_end}"
         end
 
@@ -54,9 +50,8 @@ module ActiveSupport
         end
 
         def base
-          opts[:prefix] == :si ? 1000 : 1024
+          1024
         end
     end
   end
 end
-

@@ -1,4 +1,4 @@
-if RUBY_VERSION < '2.2.2' && RUBY_ENGINE == 'ruby'
+if RUBY_VERSION < "2.2.2" && RUBY_ENGINE == "ruby"
   desc = defined?(RUBY_DESCRIPTION) ? RUBY_DESCRIPTION : "ruby #{RUBY_VERSION} (#{RUBY_RELEASE_DATE})"
   abort <<-end_message
 

@@ -1,3 +1,5 @@
+require "active_support/core_ext/regexp"
+
 class Object
   # An object is blank if it's false, empty, or a whitespace string.
   # For example, +false+, '', '   ', +nil+, [], and {} are all blank.
@@ -112,7 +114,10 @@ class String
   #
   # @return [true, false]
   def blank?
-    BLANK_RE === self
+    # The regexp that matches blank strings is expensive. For the case of empty
+    # strings we can speed up this method (~3.5x) with an empty? call. The
+    # penalty for the rest of strings is marginal.
+    empty? || BLANK_RE.match?(self)
   end
 end
 

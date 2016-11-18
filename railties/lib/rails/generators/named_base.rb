@@ -1,6 +1,6 @@
-require 'active_support/core_ext/module/introspection'
-require 'rails/generators/base'
-require 'rails/generators/generated_attribute'
+require "active_support/core_ext/module/introspection"
+require "rails/generators/base"
+require "rails/generators/generated_attribute"
 
 module Rails
   module Generators
@@ -14,7 +14,7 @@ module Rails
         # Unfreeze name in case it's given as a frozen string
         args[0] = args[0].dup if args[0].is_a?(String) && args[0].frozen?
         super
-        assign_names!(self.name)
+        assign_names!(name)
         parse_attributes! if respond_to?(:attributes)
       end
 
@@ -25,6 +25,10 @@ module Rails
           inside_template do
             super
           end
+        end
+
+        def js_template(source, destination)
+          template(source + ".js", destination + ".js")
         end
       end
 
@@ -47,7 +51,7 @@ module Rails
 
         def indent(content, multiplier = 2)
           spaces = " " * multiplier
-          content.each_line.map {|line| line.blank? ? line : "#{spaces}#{line}" }.join
+          content.each_line.map { |line| line.blank? ? line : "#{spaces}#{line}" }.join
         end
 
         def wrap_with_namespace(content)
@@ -75,7 +79,7 @@ module Rails
         end
 
         def file_path
-          @file_path ||= (class_path + [file_name]).join('/')
+          @file_path ||= (class_path + [file_name]).join("/")
         end
 
         def class_path
@@ -99,7 +103,7 @@ module Rails
         end
 
         def class_name
-          (class_path + [file_name]).map!(&:camelize).join('::')
+          (class_path + [file_name]).map!(&:camelize).join("::")
         end
 
         def human_name
@@ -111,13 +115,13 @@ module Rails
         end
 
         def i18n_scope
-          @i18n_scope ||= file_path.tr('/', '.')
+          @i18n_scope ||= file_path.tr("/", ".")
         end
 
         def table_name
           @table_name ||= begin
             base = pluralize_table_names? ? plural_name : singular_name
-            (class_path + [base]).join('_')
+            (class_path + [base]).join("_")
           end
         end
 
@@ -158,24 +162,24 @@ module Rails
         end
 
         def route_url
-          @route_url ||= class_path.collect {|dname| "/" + dname }.join + "/" + plural_file_name
+          @route_url ||= class_path.collect { |dname| "/" + dname }.join + "/" + plural_file_name
         end
 
         def url_helper_prefix
-          @url_helper_prefix ||= (class_path + [file_name]).join('_')
+          @url_helper_prefix ||= (class_path + [file_name]).join("_")
         end
 
         # Tries to retrieve the application name or simply return application.
         def application_name
           if defined?(Rails) && Rails.application
-            Rails.application.class.name.split('::').first.underscore
+            Rails.application.class.name.split("::").first.underscore
           else
             "application"
           end
         end
 
         def assign_names!(name) #:nodoc:
-          @class_path = name.include?('/') ? name.split('/') : name.split('::')
+          @class_path = name.include?("/") ? name.split("/") : name.split("::")
           @class_path.map!(&:underscore)
           @file_name = @class_path.pop
         end
@@ -190,7 +194,7 @@ module Rails
         def attributes_names
           @attributes_names ||= attributes.each_with_object([]) do |a, names|
             names << a.column_name
-            names << 'password_confirmation' if a.password_digest?
+            names << "password_confirmation" if a.password_digest?
             names << "#{a.name}_type" if a.polymorphic?
           end
         end
@@ -213,7 +217,7 @@ module Rails
         # If the generator is invoked with class name Admin, it will check for
         # the presence of "AdminDecorator".
         #
-        def self.check_class_collision(options={})
+        def self.check_class_collision(options = {})
           define_method :check_class_collision do
             name = if self.respond_to?(:controller_class_name) # for ScaffoldBase
               controller_class_name

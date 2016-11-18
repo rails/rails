@@ -1,5 +1,5 @@
-require 'date'
-require 'active_support/core_ext/time/calculations'
+require "date"
+require "active_support/core_ext/time/calculations"
 
 class String
   # Converts a string to a Time value.
@@ -18,7 +18,8 @@ class String
   #   "12/13/2012".to_time               # => ArgumentError: argument out of range
   def to_time(form = :local)
     parts = Date._parse(self, false)
-    return if parts.empty?
+    used_keys = %i(year mon mday hour min sec sec_fraction offset)
+    return if (parts.keys & used_keys).empty?
 
     now = Time.now
     time = Time.new(
@@ -31,7 +32,7 @@ class String
       parts.fetch(:offset, form == :utc ? 0 : nil)
     )
 
-    form == :utc ? time.utc : time.getlocal
+    form == :utc ? time.utc : time.to_time
   end
 
   # Converts a string to a Date value.

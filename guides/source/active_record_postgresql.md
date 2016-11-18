@@ -14,7 +14,7 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-In order to use the PostgreSQL adapter you need to have at least version 8.2
+In order to use the PostgreSQL adapter you need to have at least version 9.1
 installed. Older versions are not supported.
 
 To get started with PostgreSQL have a look at the
@@ -435,7 +435,7 @@ create_table :documents do |t|
   t.string 'body'
 end
 
-execute "CREATE INDEX documents_idx ON documents USING gin(to_tsvector('english', title || ' ' || body));"
+add_index :documents, "to_tsvector('english', title || ' ' || body)", using: :gin, name: 'documents_idx'
 
 # app/models/document.rb
 class Document < ApplicationRecord
@@ -503,9 +503,9 @@ second = Article.create! title: "Brace yourself",
                          status: "draft",
                          published_at: 1.month.ago
 
-Article.count # => 1
-first.archive!
 Article.count # => 2
+first.archive!
+Article.count # => 1
 ```
 
 NOTE: This application only cares about non-archived `Articles`. A view also

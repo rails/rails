@@ -1,5 +1,5 @@
-require 'erb'
-require 'yaml'
+require "erb"
+require "yaml"
 
 module ActiveRecord
   class FixtureSet
@@ -24,21 +24,21 @@ module ActiveRecord
       end
 
       def model_class
-        config_row['model_class']
+        config_row["model_class"]
       end
 
       private
         def rows
-          @rows ||= raw_rows.reject { |fixture_name, _| fixture_name == '_fixture' }
+          @rows ||= raw_rows.reject { |fixture_name, _| fixture_name == "_fixture" }
         end
 
         def config_row
           @config_row ||= begin
-            row = raw_rows.find { |fixture_name, _| fixture_name == '_fixture' }
+            row = raw_rows.find { |fixture_name, _| fixture_name == "_fixture" }
             if row
               row.last
             else
-              {'model_class': nil}
+              { 'model_class': nil }
             end
           end
         end
@@ -52,15 +52,21 @@ module ActiveRecord
           end
         end
 
+        def prepare_erb(content)
+          erb = ERB.new(content)
+          erb.filename = @file
+          erb
+        end
+
         def render(content)
           context = ActiveRecord::FixtureSet::RenderContext.create_subclass.new
-          ERB.new(content).result(context.get_binding)
+          prepare_erb(content).result(context.get_binding)
         end
 
         # Validate our unmarshalled data.
         def validate(data)
           unless Hash === data || YAML::Omap === data
-            raise Fixture::FormatError, 'fixture is not a hash'
+            raise Fixture::FormatError, "fixture is not a hash"
           end
 
           raise Fixture::FormatError unless data.all? { |name, row| Hash === row }

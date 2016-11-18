@@ -1,7 +1,10 @@
-require 'active_record/attribute_set/builder'
+require "active_record/attribute_set/builder"
+require "active_record/attribute_set/yaml_encoder"
 
 module ActiveRecord
   class AttributeSet # :nodoc:
+    delegate :each_value, :fetch, to: :attributes
+
     def initialize(attributes)
       @attributes = attributes
     end
@@ -97,12 +100,12 @@ module ActiveRecord
 
     protected
 
-    attr_reader :attributes
+      attr_reader :attributes
 
     private
 
-    def initialized_attributes
-      attributes.select { |_, attr| attr.initialized? }
-    end
+      def initialized_attributes
+        attributes.select { |_, attr| attr.initialized? }
+      end
   end
 end

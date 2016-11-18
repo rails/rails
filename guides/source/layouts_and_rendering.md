@@ -149,23 +149,22 @@ render template: "products/show"
 
 #### Rendering an Arbitrary File
 
-The `render` method can also use a view that's entirely outside of your application (perhaps you're sharing views between two Rails applications):
-
-```ruby
-render "/u/apps/warehouse_app/current/app/views/products/show"
-```
-
-Rails determines that this is a file render because of the leading slash character. To be explicit, you can use the `:file` option (which was required on Rails 2.2 and earlier):
+The `render` method can also use a view that's entirely outside of your application:
 
 ```ruby
 render file: "/u/apps/warehouse_app/current/app/views/products/show"
 ```
 
-The `:file` option takes an absolute file-system path. Of course, you need to have rights to the view that you're using to render the content.
+The `:file` option takes an absolute file-system path. Of course, you need to have rights
+to the view that you're using to render the content.
+
+NOTE: Using the `:file` option in combination with users input can lead to security problems
+since an attacker could use this action to access security sensitive files in your file system.
 
 NOTE: By default, the file is rendered using the current layout.
 
-TIP: If you're running Rails on Microsoft Windows, you should use the `:file` option to render a file, because Windows filenames do not have the same format as Unix filenames.
+TIP: If you're running Rails on Microsoft Windows, you should use the `:file` option to
+render a file, because Windows filenames do not have the same format as Unix filenames.
 
 #### Wrapping it up
 
@@ -238,7 +237,7 @@ TIP: This is useful when you're rendering a small snippet of HTML code.
 However, you might want to consider moving it to a template file if the markup
 is complex.
 
-NOTE: When using `html:` option, HTML entities will be escaped if the string is not marked as HTML safe by using `html_safe` method.  
+NOTE: When using `html:` option, HTML entities will be escaped if the string is not marked as HTML safe by using `html_safe` method.
 
 #### Rendering JSON
 
@@ -555,7 +554,7 @@ class Admin::ProductsController < AdminController
 end
 ```
 
-The lookup order for a `admin/products#index` action will be:
+The lookup order for an `admin/products#index` action will be:
 
 * `app/views/admin/products/`
 * `app/views/admin/`
@@ -631,6 +630,8 @@ to use in this case.
 redirect_back(fallback_location: root_path)
 ```
 
+NOTE: `redirect_to` and `redirect_back` do not halt and return immediately from method execution, but simply set HTTP responses. Statements occurring after them in a method will be executed. You can halt by an explicit `return` or some other halting mechanism, if needed.
+
 #### Getting a Different Redirect Status Code
 
 Rails uses HTTP status code 302, a temporary redirect, when you call `redirect_to`. If you'd like to use a different status code, perhaps 301, a permanent redirect, you can use the `:status` option:
@@ -700,7 +701,7 @@ This would detect that there are no books with the specified ID, populate the `@
 
 ### Using `head` To Build Header-Only Responses
 
-The `head` method can be used to send responses with only headers to the browser. It provides a more obvious alternative to calling `render :nothing`. The `head` method accepts a number or symbol (see [reference table](#the-status-option)) representing a HTTP status code. The options argument is interpreted as a hash of header names and values. For example, you can return only an error header:
+The `head` method can be used to send responses with only headers to the browser. The `head` method accepts a number or symbol (see [reference table](#the-status-option)) representing an HTTP status code. The options argument is interpreted as a hash of header names and values. For example, you can return only an error header:
 
 ```ruby
 head :bad_request
@@ -750,7 +751,7 @@ When Rails renders a view as a response, it does so by combining the view with t
 
 ### Asset Tag Helpers
 
-Asset tag helpers provide methods for generating HTML that link views to feeds, JavaScript, stylesheets, images, videos and audios. There are six asset tag helpers available in Rails:
+Asset tag helpers provide methods for generating HTML that link views to feeds, JavaScript, stylesheets, images, videos, and audios. There are six asset tag helpers available in Rails:
 
 * `auto_discovery_link_tag`
 * `javascript_include_tag`
@@ -1081,7 +1082,7 @@ definitions for several similar resources:
 * `shared/_search_filters.html.erb`
 
     ```html+erb
-    <%= form_for(@q) do |f| %>
+    <%= form_for(search) do |f| %>
       <h1>Search form:</h1>
       <fieldset>
         <%= yield f %>
@@ -1279,7 +1280,7 @@ When rendering collections it is also possible to use the `:layout` option:
 <%= render partial: "product", collection: @products, layout: "special_layout" %>
 ```
 
-The layout will be rendered together with the partial for each item in the collection. The current object and object_counter variables will be available in the layout as well, the same way they do within the partial.
+The layout will be rendered together with the partial for each item in the collection. The current object and object_counter variables will be available in the layout as well, the same way they are within the partial.
 
 ### Using Nested Layouts
 

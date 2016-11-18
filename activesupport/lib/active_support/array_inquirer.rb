@@ -9,8 +9,10 @@ module ActiveSupport
   #   variants.desktop?  # => false
   class ArrayInquirer < Array
     # Passes each element of +candidates+ collection to ArrayInquirer collection.
-    # The method returns true if at least one element is the same. If +candidates+
-    # collection is not given, method returns true.
+    # The method returns true if any element from the ArrayInquirer collection
+    # is equal to the stringified or symbolized form of any element in the +candidates+ collection.
+    #
+    # If +candidates+ collection is not given, method returns true.
     #
     #   variants = ActiveSupport::ArrayInquirer.new([:phone, :tablet])
     #
@@ -30,11 +32,11 @@ module ActiveSupport
 
     private
       def respond_to_missing?(name, include_private = false)
-        name[-1] == '?'
+        name[-1] == "?"
       end
 
       def method_missing(name, *args)
-        if name[-1] == '?'
+        if name[-1] == "?"
           any?(name[0..-2])
         else
           super

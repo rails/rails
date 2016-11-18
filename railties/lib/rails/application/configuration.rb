@@ -1,10 +1,10 @@
-require 'active_support/core_ext/kernel/reporting'
-require 'active_support/file_update_checker'
-require 'rails/engine/configuration'
-require 'rails/source_annotation_extractor'
+require "active_support/core_ext/kernel/reporting"
+require "active_support/file_update_checker"
+require "rails/engine/configuration"
+require "rails/source_annotation_extractor"
 
-require 'active_support/deprecation'
-require 'active_support/core_ext/string/strip' # for strip_heredoc
+require "active_support/deprecation"
+require "active_support/core_ext/string/strip" # for strip_heredoc
 
 module Rails
   class Application
@@ -16,7 +16,7 @@ module Rails
                     :railties_order, :relative_url_root, :secret_key_base, :secret_token,
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
-                    :beginning_of_week, :filter_redirect, :x
+                    :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading
 
       attr_writer :log_level
       attr_reader :encoding, :api_only, :static_cache_control
@@ -34,8 +34,7 @@ module Rails
         @public_file_server.index_name   = "index"
         @force_ssl                       = false
         @ssl_options                     = {}
-        @session_store                   = :cookie_store
-        @session_options                 = {}
+        @session_store                   = nil
         @time_zone                       = "UTC"
         @beginning_of_week               = :monday
         @log_level                       = nil
@@ -54,11 +53,12 @@ module Rails
         @api_only                        = false
         @debug_exception_response_format = nil
         @x                               = Custom.new
+        @enable_dependency_loading       = false
       end
 
       def static_cache_control=(value)
         ActiveSupport::Deprecation.warn <<-eow.strip_heredoc
-          `static_cache_control` is deprecated and will be removed in Rails 5.1.
+          `config.static_cache_control` is deprecated and will be removed in Rails 5.1.
           Please use
           `config.public_file_server.headers = { 'Cache-Control' => '#{value}' }`
           instead.
@@ -69,8 +69,8 @@ module Rails
 
       def serve_static_files
         ActiveSupport::Deprecation.warn <<-eow.strip_heredoc
-          `serve_static_files` is deprecated and will be removed in Rails 5.1.
-          Please use `public_file_server.enabled` instead.
+          `config.serve_static_files` is deprecated and will be removed in Rails 5.1.
+          Please use `config.public_file_server.enabled` instead.
         eow
 
         @public_file_server.enabled
@@ -78,8 +78,8 @@ module Rails
 
       def serve_static_files=(value)
         ActiveSupport::Deprecation.warn <<-eow.strip_heredoc
-          `serve_static_files` is deprecated and will be removed in Rails 5.1.
-          Please use `public_file_server.enabled = #{value}` instead.
+          `config.serve_static_files` is deprecated and will be removed in Rails 5.1.
+          Please use `config.public_file_server.enabled = #{value}` instead.
         eow
 
         @public_file_server.enabled = value
@@ -134,7 +134,7 @@ module Rails
           require "yaml"
           require "erb"
           YAML.load(ERB.new(yaml.read).result) || {}
-        elsif ENV['DATABASE_URL']
+        elsif ENV["DATABASE_URL"]
           # Value from ENV['DATABASE_URL'] is set to default database connection
           # by Active Record.
           {}
@@ -164,27 +164,35 @@ module Rails
         self.generators.colorize_logging = val
       end
 
-      def session_store(*args)
-        if args.empty?
-          case @session_store
-          when :disabled
-            nil
-          when :active_record_store
+      def session_store(new_session_store = nil, **options)
+        if new_session_store
+          if new_session_store == :active_record_store
             begin
               ActionDispatch::Session::ActiveRecordStore
             rescue NameError
               raise "`ActiveRecord::SessionStore` is extracted out of Rails into a gem. " \
                 "Please add `activerecord-session_store` to your Gemfile to use it."
             end
+          end
+
+          @session_store = new_session_store
+          @session_options = options || {}
+        else
+          case @session_store
+          when :disabled
+            nil
+          when :active_record_store
+            ActionDispatch::Session::ActiveRecordStore
           when Symbol
             ActionDispatch::Session.const_get(@session_store.to_s.camelize)
           else
             @session_store
           end
-        else
-          @session_store = args.shift
-          @session_options = args.shift || {}
         end
+      end
+
+      def session_store? #:nodoc:
+        @session_store
       end
 
       def annotations
@@ -204,6 +212,10 @@ module Rails
               @configurations[method] = ActiveSupport::OrderedOptions.new
             }
           end
+        end
+
+        def respond_to_missing?(symbol, *)
+          true
         end
       end
     end

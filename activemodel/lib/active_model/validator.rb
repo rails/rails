@@ -1,7 +1,6 @@
 require "active_support/core_ext/module/anonymous"
 
 module ActiveModel
-
   # == Active \Model \Validator
   #
   # A simple base class that can be used along with
@@ -100,12 +99,12 @@ module ActiveModel
     #   PresenceValidator.kind   # => :presence
     #   UniquenessValidator.kind # => :uniqueness
     def self.kind
-      @kind ||= name.split('::').last.underscore.sub(/_validator$/, '').to_sym unless anonymous?
+      @kind ||= name.split("::").last.underscore.chomp("_validator").to_sym unless anonymous?
     end
 
     # Accepts options that will be made available through the +options+ reader.
     def initialize(options = {})
-      @options  = options.except(:class).freeze
+      @options = options.except(:class).freeze
     end
 
     # Returns the kind for this validator.
@@ -163,10 +162,6 @@ module ActiveModel
     # +ArgumentError+ when invalid options are supplied.
     def check_validity!
     end
-
-    def should_validate?(record) # :nodoc:
-      !record.persisted? || record.changed? || record.marked_for_destruction?
-    end
   end
 
   # +BlockValidator+ is a special +EachValidator+ which receives a block on initialization
@@ -179,8 +174,8 @@ module ActiveModel
 
     private
 
-    def validate_each(record, attribute, value)
-      @block.call(record, attribute, value)
-    end
+      def validate_each(record, attribute, value)
+        @block.call(record, attribute, value)
+      end
   end
 end

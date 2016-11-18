@@ -1,18 +1,24 @@
-require 'action_dispatch/http/parameter_filter'
+require "action_dispatch/http/parameter_filter"
 
 module ActionDispatch
   module Http
     # Allows you to specify sensitive parameters which will be replaced from
     # the request log by looking in the query string of the request and all
-    # sub-hashes of the params hash to filter. If a block is given, each key and
-    # value of the params hash and all sub-hashes is passed to it, the value
-    # or key can be replaced using String#replace or similar method.
+    # sub-hashes of the params hash to filter. Filtering only certain sub-keys
+    # from a hash is possible by using the dot notation: 'credit_card.number'.
+    # If a block is given, each key and value of the params hash and all
+    # sub-hashes is passed to it, the value or key can be replaced using
+    # String#replace or similar method.
     #
     #   env["action_dispatch.parameter_filter"] = [:password]
     #   => replaces the value to all keys matching /password/i with "[FILTERED]"
     #
     #   env["action_dispatch.parameter_filter"] = [:foo, "bar"]
     #   => replaces the value to all keys matching /foo|bar/i with "[FILTERED]"
+    #
+    #   env["action_dispatch.parameter_filter"] = [ "credit_card.code" ]
+    #   => replaces { credit_card: {code: "xxxx"} } with "[FILTERED]", does not
+    #   change { file: { code: "xxxx"} }
     #
     #   env["action_dispatch.parameter_filter"] = -> (k, v) do
     #     v.reverse! if k =~ /secret/i
@@ -64,7 +70,7 @@ module ActionDispatch
         ParameterFilter.new(filters)
       end
 
-      KV_RE   = '[^&;=]+'
+      KV_RE   = "[^&;=]+"
       PAIR_RE = %r{(#{KV_RE})=(#{KV_RE})}
       def filtered_query_string
         query_string.gsub(PAIR_RE) do |_|

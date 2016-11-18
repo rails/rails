@@ -11,7 +11,7 @@ require "rails"
   sprockets/railtie
 ).each do |railtie|
   begin
-    require "#{railtie}"
+    require railtie
   rescue LoadError
   end
 end

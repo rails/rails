@@ -48,9 +48,16 @@ module ActiveModel
       def test_changed?
         type = Decimal.new
 
-        assert type.changed?(5.0, 5.0, '5.0wibble')
-        assert_not type.changed?(5.0, 5.0, '5.0')
-        assert_not type.changed?(-5.0, -5.0, '-5.0')
+        assert type.changed?(5.0, 5.0, "5.0wibble")
+        assert_not type.changed?(5.0, 5.0, "5.0")
+        assert_not type.changed?(-5.0, -5.0, "-5.0")
+      end
+
+      def test_scale_is_applied_before_precision_to_prevent_rounding_errors
+        type = Decimal.new(precision: 5, scale: 3)
+
+        assert_equal BigDecimal("1.250"), type.cast(1.250473853637869)
+        assert_equal BigDecimal("1.250"), type.cast("1.250473853637869")
       end
     end
   end

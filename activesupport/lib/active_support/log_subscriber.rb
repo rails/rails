@@ -1,6 +1,6 @@
-require 'active_support/core_ext/module/attribute_accessors'
-require 'active_support/core_ext/class/attribute'
-require 'active_support/subscriber'
+require "active_support/core_ext/module/attribute_accessors"
+require "active_support/core_ext/class/attribute"
+require "active_support/subscriber"
 
 module ActiveSupport
   # ActiveSupport::LogSubscriber is an object set to consume
@@ -99,7 +99,7 @@ module ActiveSupport
     # option is set to +true+, it also adds bold to the string. This is based
     # on the Highline implementation and will automatically append CLEAR to the
     # end of the returned String.
-    def color(text, color, bold=false)
+    def color(text, color, bold = false)
       return text unless colorize_logging
       color = self.class.const_get(color.upcase) if color.is_a?(Symbol)
       bold  = bold ? BOLD : ""

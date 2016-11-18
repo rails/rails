@@ -1,14 +1,16 @@
-namespace :rails do
+require "active_support/deprecation"
+
+namespace :app do
   desc "Update configs and some other initially generated files (or use just update:configs or update:bin)"
-  task update: [ "update:configs", "update:bin" ]
+  task update: [ "update:configs", "update:bin", "update:upgrade_guide_info" ]
 
   desc "Applies the template supplied by LOCATION=(/path/to/template) or URL"
   task template: :environment do
     template = ENV["LOCATION"]
     raise "No LOCATION value given. Please set LOCATION either as path to a file or a URL" if template.blank?
     template = File.expand_path(template) if template !~ %r{\A[A-Za-z][A-Za-z0-9+\-\.]*://}
-    require 'rails/generators'
-    require 'rails/generators/rails/app/app_generator'
+    require "rails/generators"
+    require "rails/generators/rails/app/app_generator"
     generator = Rails::Generators::AppGenerator.new [Rails.root], {}, destination_root: Rails.root
     generator.apply template, verbose: false
   end
@@ -24,12 +26,12 @@ namespace :rails do
 
       default_templates.each do |type, names|
         local_template_type_dir = File.join(project_templates, type)
-        FileUtils.mkdir_p local_template_type_dir
+        mkdir_p local_template_type_dir, verbose: false
 
         names.each do |name|
           dst_name = File.join(local_template_type_dir, name)
           src_name = File.join(generators_lib, type, name, "templates")
-          FileUtils.cp_r src_name, dst_name
+          cp_r src_name, dst_name, verbose: false
         end
       end
     end
@@ -43,10 +45,11 @@ namespace :rails do
 
       def self.app_generator
         @app_generator ||= begin
-          require 'rails/generators'
-          require 'rails/generators/rails/app/app_generator'
-          gen = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true },
-            destination_root: Rails.root
+          require "rails/generators"
+          require "rails/generators/rails/app/app_generator"
+          gen = Rails::Generators::AppGenerator.new ["rails"],
+                                                    { api: !!Rails.application.config.api_only, update: true },
+                                                    destination_root: Rails.root
           File.exist?(Rails.root.join("config", "application.rb")) ?
             gen.send(:app_const) : gen.send(:valid_const?)
           gen
@@ -63,6 +66,22 @@ namespace :rails do
     # desc "Adds new executables to the application bin/ directory"
     task :bin do
       RailsUpdate.invoke_from_app_generator :create_bin_files
+    end
+
+    task :upgrade_guide_info do
+      RailsUpdate.invoke_from_app_generator :display_upgrade_guide_info
+    end
+  end
+end
+
+namespace :rails do
+  %i(update template templates:copy update:configs update:bin).each do |task_name|
+    task "#{task_name}" do
+      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        Running #{task_name} with the rails: namespace is deprecated in favor of app: namespace.
+        Run bin/rails app:#{task_name} instead.
+      MSG
+      Rake.application.invoke_task("app:#{task_name}")
     end
   end
 end

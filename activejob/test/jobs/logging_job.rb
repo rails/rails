@@ -7,4 +7,3 @@ class LoggingJob < ActiveJob::Base
     "LOGGING-JOB-ID"
   end
 end
-

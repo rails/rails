@@ -3,16 +3,13 @@
   <head>
     <title><%= camelized %></title>
     <%%= csrf_meta_tags %>
-    <%- unless options[:skip_action_cable] -%>
-    <%%= action_cable_meta_tag %>
-    <%- end -%>
 
     <%- if options[:skip_javascript] -%>
     <%%= stylesheet_link_tag    'application', media: 'all' %>
     <%- else -%>
       <%- if gemfile_entries.any? { |m| m.name == 'turbolinks' } -%>
-    <%%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track' => true %>
-    <%%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
+    <%%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track': 'reload' %>
+    <%%= javascript_include_tag 'application', 'data-turbolinks-track': 'reload' %>
       <%- else -%>
     <%%= stylesheet_link_tag    'application', media: 'all' %>
     <%%= javascript_include_tag 'application' %>

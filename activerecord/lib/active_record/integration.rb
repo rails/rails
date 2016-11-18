@@ -1,4 +1,4 @@
-require 'active_support/core_ext/string/filters'
+require "active_support/core_ext/string/filters"
 
 module ActiveRecord
   module Integration
@@ -11,13 +11,13 @@ module ActiveRecord
       # Accepts any of the symbols in <tt>Time::DATE_FORMATS</tt>.
       #
       # This is +:usec+, by default.
-      class_attribute :cache_timestamp_format, :instance_writer => false
+      class_attribute :cache_timestamp_format, instance_writer: false
       self.cache_timestamp_format = :usec
     end
 
-    # Returns a String, which Action Pack uses for constructing a URL to this
-    # object. The default implementation returns this record's id as a String,
-    # or nil if this record's unsaved.
+    # Returns a +String+, which Action Pack uses for constructing a URL to this
+    # object. The default implementation returns this record's id as a +String+,
+    # or +nil+ if this record's unsaved.
     #
     # For example, suppose that you have a User model, and that you have a
     # <tt>resources :users</tt> route. Normally, +user_path+ will
@@ -53,18 +53,21 @@ module ActiveRecord
     #
     #   Person.find(5).cache_key(:updated_at, :last_reviewed_at)
     def cache_key(*timestamp_names)
-      case
-      when new_record?
+      if new_record?
         "#{model_name.cache_key}/new"
-      when timestamp_names.any?
-        timestamp = max_updated_column_timestamp(timestamp_names)
-        timestamp = timestamp.utc.to_s(cache_timestamp_format)
-        "#{model_name.cache_key}/#{id}-#{timestamp}"
-      when timestamp = max_updated_column_timestamp
-        timestamp = timestamp.utc.to_s(cache_timestamp_format)
-        "#{model_name.cache_key}/#{id}-#{timestamp}"
       else
-        "#{model_name.cache_key}/#{id}"
+        timestamp = if timestamp_names.any?
+          max_updated_column_timestamp(timestamp_names)
+        else
+          max_updated_column_timestamp
+        end
+
+        if timestamp
+          timestamp = timestamp.utc.to_s(cache_timestamp_format)
+          "#{model_name.cache_key}/#{id}-#{timestamp}"
+        else
+          "#{model_name.cache_key}/#{id}"
+        end
       end
     end
 
@@ -86,7 +89,7 @@ module ActiveRecord
       #
       #   user = User.find_by(name: 'David Heinemeier Hansson')
       #   user.id         # => 125
-      #   user_path(user) # => "/users/125-david"
+      #   user_path(user) # => "/users/125-david-heinemeier"
       #
       # Because the generated param begins with the record's +id+, it is
       # suitable for passing to +find+. In a controller, for example:
@@ -100,7 +103,7 @@ module ActiveRecord
           define_method :to_param do
             if (default = super()) &&
                  (result = send(method_name).to_s).present? &&
-                   (param = result.squish.truncate(20, separator: /\s/, omission: nil).parameterize).present?
+                   (param = result.squish.parameterize.truncate(20, separator: /-/, omission: "")).present?
               "#{default}-#{param}"
             else
               default

@@ -1,5 +1,5 @@
-require 'active_support/core_ext/object/try'
-require 'rails-html-sanitizer'
+require "active_support/core_ext/object/try"
+require "rails-html-sanitizer"
 
 module ActionView
   # = Action View Sanitize Helpers
@@ -120,7 +120,7 @@ module ActionView
         attr_writer :full_sanitizer, :link_sanitizer, :white_list_sanitizer
 
         # Vendors the full, link and white list sanitizers.
-        # Provided strictly for compatibility and can be removed in Rails 5.
+        # Provided strictly for compatibility and can be removed in Rails 5.1.
         def sanitizer_vendor
           Rails::Html::Sanitizer
         end

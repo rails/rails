@@ -4,6 +4,8 @@ require "rack"
 module ActiveRecord
   module ConnectionAdapters
     class ConnectionManagementTest < ActiveRecord::TestCase
+      self.use_transactional_tests = false
+
       class App
         attr_reader :calls
         def initialize
@@ -12,14 +14,14 @@ module ActiveRecord
 
         def call(env)
           @calls << env
-          [200, {}, ['hi mom']]
+          [200, {}, ["hi mom"]]
         end
       end
 
       def setup
         @env = {}
         @app = App.new
-        @management = ConnectionManagement.new(@app)
+        @management = middleware(@app)
 
         # make sure we have an active connection
         assert ActiveRecord::Base.connection
@@ -27,22 +29,17 @@ module ActiveRecord
       end
 
       def test_app_delegation
-        manager = ConnectionManagement.new(@app)
+        manager = middleware(@app)
 
         manager.call @env
         assert_equal [@env], @app.calls
-      end
-
-      def test_connections_are_active_after_call
-        @management.call(@env)
-        assert ActiveRecord::Base.connection_handler.active_connections?
       end
 
       def test_body_responds_to_each
         _, _, body = @management.call(@env)
         bits = []
         body.each { |bit| bits << bit }
-        assert_equal ['hi mom'], bits
+        assert_equal ["hi mom"], bits
       end
 
       def test_connections_are_cleared_after_body_close
@@ -51,56 +48,65 @@ module ActiveRecord
         assert !ActiveRecord::Base.connection_handler.active_connections?
       end
 
-      def test_active_connections_are_not_cleared_on_body_close_during_test
-        @env['rack.test'] = true
-        _, _, body = @management.call(@env)
-        body.close
-        assert ActiveRecord::Base.connection_handler.active_connections?
+      def test_active_connections_are_not_cleared_on_body_close_during_transaction
+        ActiveRecord::Base.transaction do
+          _, _, body = @management.call(@env)
+          body.close
+          assert ActiveRecord::Base.connection_handler.active_connections?
+        end
       end
 
       def test_connections_closed_if_exception
         app       = Class.new(App) { def call(env); raise NotImplementedError; end }.new
-        explosive = ConnectionManagement.new(app)
+        explosive = middleware(app)
         assert_raises(NotImplementedError) { explosive.call(@env) }
         assert !ActiveRecord::Base.connection_handler.active_connections?
       end
 
-      def test_connections_not_closed_if_exception_and_test
-        @env['rack.test'] = true
-        app               = Class.new(App) { def call(env); raise; end }.new
-        explosive         = ConnectionManagement.new(app)
-        assert_raises(RuntimeError) { explosive.call(@env) }
-        assert ActiveRecord::Base.connection_handler.active_connections?
-      end
-
-      def test_connections_closed_if_exception_and_explicitly_not_test
-        @env['rack.test'] = false
-        app       = Class.new(App) { def call(env); raise NotImplementedError; end }.new
-        explosive = ConnectionManagement.new(app)
-        assert_raises(NotImplementedError) { explosive.call(@env) }
-        assert !ActiveRecord::Base.connection_handler.active_connections?
+      def test_connections_not_closed_if_exception_inside_transaction
+        ActiveRecord::Base.transaction do
+          app               = Class.new(App) { def call(env); raise RuntimeError; end }.new
+          explosive         = middleware(app)
+          assert_raises(RuntimeError) { explosive.call(@env) }
+          assert ActiveRecord::Base.connection_handler.active_connections?
+        end
       end
 
       test "doesn't clear active connections when running in a test case" do
-        @env['rack.test'] = true
-        @management.call(@env)
-        assert ActiveRecord::Base.connection_handler.active_connections?
+        executor.wrap do
+          @management.call(@env)
+          assert ActiveRecord::Base.connection_handler.active_connections?
+        end
       end
 
       test "proxy is polite to its body and responds to it" do
         body = Class.new(String) { def to_path; "/path"; end }.new
         app = lambda { |_| [200, {}, body] }
-        response_body = ConnectionManagement.new(app).call(@env)[2]
+        response_body = middleware(app).call(@env)[2]
         assert response_body.respond_to?(:to_path)
         assert_equal "/path", response_body.to_path
       end
 
       test "doesn't mutate the original response" do
-        original_response = [200, {}, 'hi']
+        original_response = [200, {}, "hi"]
         app = lambda { |_| original_response }
-        ConnectionManagement.new(app).call(@env)[2]
-        assert_equal 'hi', original_response.last
+        middleware(app).call(@env)[2]
+        assert_equal "hi", original_response.last
       end
+
+      private
+        def executor
+          @executor ||= Class.new(ActiveSupport::Executor).tap do |exe|
+            ActiveRecord::QueryCache.install_executor_hooks(exe)
+          end
+        end
+
+        def middleware(app)
+          lambda do |env|
+            a, b, c = executor.wrap { app.call(env) }
+            [a, b, Rack::BodyProxy.new(c) {}]
+          end
+        end
     end
   end
 end

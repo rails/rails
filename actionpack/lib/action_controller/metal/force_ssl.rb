@@ -1,18 +1,18 @@
-require 'active_support/core_ext/hash/except'
-require 'active_support/core_ext/hash/slice'
+require "active_support/core_ext/hash/except"
+require "active_support/core_ext/hash/slice"
 
 module ActionController
-  # This module provides a method which will redirect browser to use HTTPS
+  # This module provides a method which will redirect the browser to use HTTPS
   # protocol. This will ensure that user's sensitive information will be
-  # transferred safely over the internet. You _should_ always force browser
+  # transferred safely over the internet. You _should_ always force the browser
   # to use HTTPS when you're transferring sensitive information such as
   # user authentication, account information, or credit card information.
   #
   # Note that if you are really concerned about your application security,
   # you might consider using +config.force_ssl+ in your config file instead.
   # That will ensure all the data transferred via HTTPS protocol and prevent
-  # user from getting session hijacked when accessing the site under unsecured
-  # HTTP protocol.
+  # the user from getting their session hijacked when accessing the site over
+  # unsecured HTTP protocol.
   module ForceSSL
     extend ActiveSupport::Concern
     include AbstractController::Callbacks
@@ -76,10 +76,10 @@ module ActionController
     def force_ssl_redirect(host_or_options = nil)
       unless request.ssl?
         options = {
-          :protocol => 'https://',
-          :host     => request.host,
-          :path     => request.fullpath,
-          :status   => :moved_permanently
+          protocol: "https://",
+          host: request.host,
+          path: request.fullpath,
+          status: :moved_permanently
         }
 
         if host_or_options.is_a?(Hash)

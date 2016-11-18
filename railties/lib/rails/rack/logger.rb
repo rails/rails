@@ -1,8 +1,8 @@
-require 'active_support/core_ext/time/conversions'
-require 'active_support/core_ext/object/blank'
-require 'active_support/log_subscriber'
-require 'action_dispatch/http/request'
-require 'rack/body_proxy'
+require "active_support/core_ext/time/conversions"
+require "active_support/core_ext/object/blank"
+require "active_support/log_subscriber"
+require "action_dispatch/http/request"
+require "rack/body_proxy"
 
 module Rails
   module Rack
@@ -30,14 +30,8 @@ module Rails
     protected
 
       def call_app(request, env)
-        # Put some space between requests in development logs.
-        if development?
-          logger.debug ''
-          logger.debug ''
-        end
-
         instrumenter = ActiveSupport::Notifications.instrumenter
-        instrumenter.start 'request.action_dispatch', request: request
+        instrumenter.start "request.action_dispatch", request: request
         logger.info { started_request_message(request) }
         resp = @app.call(env)
         resp[2] = ::Rack::BodyProxy.new(resp[2]) { finish(request) }
@@ -73,18 +67,14 @@ module Rails
 
       private
 
-      def finish(request)
-        instrumenter = ActiveSupport::Notifications.instrumenter
-        instrumenter.finish 'request.action_dispatch', request: request
-      end
+        def finish(request)
+          instrumenter = ActiveSupport::Notifications.instrumenter
+          instrumenter.finish "request.action_dispatch", request: request
+        end
 
-      def development?
-        Rails.env.development?
-      end
-
-      def logger
-        Rails.logger
-      end
+        def logger
+          Rails.logger
+        end
     end
   end
 end

@@ -1,5 +1,3 @@
-require 'active_support/core_ext/object/try'
-
 module ActionView
   module CollectionCaching # :nodoc:
     extend ActiveSupport::Concern
@@ -11,39 +9,28 @@ module ActionView
     end
 
     private
-      def cache_collection_render
-        return yield unless cache_collection?
+      def cache_collection_render(instrumentation_payload)
+        return yield unless @options[:cached]
 
         keyed_collection = collection_by_cache_keys
-        partial_cache = collection_cache.read_multi(*keyed_collection.keys)
+        cached_partials  = collection_cache.read_multi(*keyed_collection.keys)
+        instrumentation_payload[:cache_hits] = cached_partials.size
 
-        @collection = keyed_collection.reject { |key, _| partial_cache.key?(key) }.values
-        rendered_partials = @collection.any? ? yield.dup : []
+        @collection = keyed_collection.reject { |key, _| cached_partials.key?(key) }.values
+        rendered_partials = @collection.empty? ? [] : yield
 
-        fetch_or_cache_partial(partial_cache, order_by: keyed_collection.each_key) do
-          rendered_partials.shift
+        index = 0
+        fetch_or_cache_partial(cached_partials, order_by: keyed_collection.each_key) do
+          rendered_partials[index].tap { index += 1 }
         end
       end
 
-      def cache_collection?
-        @options.fetch(:cache, automatic_cache_eligible?)
-      end
-
-      def automatic_cache_eligible?
-        single_template_render? && !callable_cache_key? &&
-          @template.eligible_for_collection_caching?(as: @options[:as])
-      end
-
-      def single_template_render?
-        @template # Template is only set when a collection renders one template.
-      end
-
       def callable_cache_key?
-        @options[:cache].respond_to?(:call)
+        @options[:cached].respond_to?(:call)
       end
 
       def collection_by_cache_keys
-        seed = callable_cache_key? ? @options[:cache] : ->(i) { i }
+        seed = callable_cache_key? ? @options[:cached] : ->(i) { i }
 
         @collection.each_with_object({}) do |item, hash|
           hash[expanded_cache_key(seed.call(item))] = item
@@ -56,12 +43,10 @@ module ActionView
       end
 
       def fetch_or_cache_partial(cached_partials, order_by:)
-        cache_options = @options[:cache_options] || @locals[:cache_options] || {}
-
-        order_by.map do |key|
-          cached_partials.fetch(key) do
+        order_by.map do |cache_key|
+          cached_partials.fetch(cache_key) do
             yield.tap do |rendered_partial|
-              collection_cache.write(key, rendered_partial, cache_options)
+              collection_cache.write(cache_key, rendered_partial)
             end
           end
         end

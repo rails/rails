@@ -1,34 +1,14 @@
-require 'abstract_unit'
-require 'multibyte_test_helpers'
+require "abstract_unit"
+require "multibyte_test_helpers"
 
-require 'fileutils'
-require 'open-uri'
-require 'tmpdir'
-
-class Downloader
-  def self.download(from, to)
-    unless File.exist?(to)
-      unless File.exist?(File.dirname(to))
-        system "mkdir -p #{File.dirname(to)}"
-      end
-      open(from) do |source|
-        File.open(to, 'w') do |target|
-          source.each_line do |l|
-            target.write l
-          end
-        end
-      end
-    end
-    true
-  end
-end
+require "fileutils"
+require "open-uri"
+require "tmpdir"
 
 class MultibyteConformanceTest < ActiveSupport::TestCase
   include MultibyteTestHelpers
 
-  UNIDATA_URL = "http://www.unicode.org/Public/#{ActiveSupport::Multibyte::Unicode::UNICODE_VERSION}/ucd"
-  UNIDATA_FILE = '/NormalizationTest.txt'
-  CACHE_DIR = File.join(Dir.tmpdir, 'cache')
+  UNIDATA_FILE = "/NormalizationTest.txt"
   FileUtils.mkdir_p(CACHE_DIR)
   RUN_P = begin
             Downloader.download(UNIDATA_URL + UNIDATA_FILE, CACHE_DIR + UNIDATA_FILE)
@@ -104,17 +84,17 @@ class MultibyteConformanceTest < ActiveSupport::TestCase
 
   protected
     def each_line_of_norm_tests(&block)
-      File.open(File.join(CACHE_DIR, UNIDATA_FILE), 'r') do | f |
+      File.open(File.join(CACHE_DIR, UNIDATA_FILE), "r") do | f |
         until f.eof?
           line = f.gets.chomp!
-          next if (line.empty? || line =~ /^\#/)
+          next if line.empty? || line.start_with?("#")
 
           cols, comment = line.split("#")
           cols = cols.split(";").map(&:strip).reject(&:empty?)
           next unless cols.length == 5
 
           # codepoints are in hex in the test suite, pack wants them as integers
-          cols.map!{|c| c.split.map{|codepoint| codepoint.to_i(16)}.pack("U*") }
+          cols.map! { |c| c.split.map { |codepoint| codepoint.to_i(16) }.pack("U*") }
           cols << comment
 
           yield(*cols)
@@ -123,6 +103,6 @@ class MultibyteConformanceTest < ActiveSupport::TestCase
     end
 
     def inspect_codepoints(str)
-      str.to_s.unpack("U*").map{|cp| cp.to_s(16) }.join(' ')
+      str.to_s.unpack("U*").map { |cp| cp.to_s(16) }.join(" ")
     end
 end

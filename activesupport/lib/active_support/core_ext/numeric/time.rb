@@ -1,8 +1,8 @@
-require 'active_support/duration'
-require 'active_support/core_ext/time/calculations'
-require 'active_support/core_ext/time/acts_like'
-require 'active_support/core_ext/date/calculations'
-require 'active_support/core_ext/date/acts_like'
+require "active_support/duration"
+require "active_support/core_ext/time/calculations"
+require "active_support/core_ext/time/acts_like"
+require "active_support/core_ext/date/calculations"
+require "active_support/core_ext/date/acts_like"
 
 class Numeric
   # Enables the use of time calculations and declarations, like 45.minutes + 2.hours + 4.years.
@@ -25,17 +25,17 @@ class Numeric
 
   # Returns a Duration instance matching the number of minutes provided.
   #
-  #   2.minutes # => 120 seconds
+  #   2.minutes # => 2 minutes
   def minutes
-    ActiveSupport::Duration.new(self * 60, [[:seconds, self * 60]])
+    ActiveSupport::Duration.new(self * 60, [[:minutes, self]])
   end
   alias :minute :minutes
 
   # Returns a Duration instance matching the number of hours provided.
   #
-  #   2.hours # => 7_200 seconds
+  #   2.hours # => 2 hours
   def hours
-    ActiveSupport::Duration.new(self * 3600, [[:seconds, self * 3600]])
+    ActiveSupport::Duration.new(self * 3600, [[:hours, self]])
   end
   alias :hour :hours
 
@@ -49,17 +49,17 @@ class Numeric
 
   # Returns a Duration instance matching the number of weeks provided.
   #
-  #   2.weeks # => 14 days
+  #   2.weeks # => 2 weeks
   def weeks
-    ActiveSupport::Duration.new(self * 7.days, [[:days, self * 7]])
+    ActiveSupport::Duration.new(self * 7.days, [[:weeks, self]])
   end
   alias :week :weeks
 
   # Returns a Duration instance matching the number of fortnights provided.
   #
-  #   2.fortnights # => 28 days
+  #   2.fortnights # => 4 weeks
   def fortnights
-    ActiveSupport::Duration.new(self * 2.weeks, [[:days, self * 14]])
+    ActiveSupport::Duration.new(self * 2.weeks, [[:weeks, self * 2]])
   end
   alias :fortnight :fortnights
 

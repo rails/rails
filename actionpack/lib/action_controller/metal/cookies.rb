@@ -3,7 +3,7 @@ module ActionController #:nodoc:
     extend ActiveSupport::Concern
 
     included do
-      helper_method :cookies
+      helper_method :cookies if defined?(helper_method)
     end
 
     private

@@ -1,14 +1,37 @@
-*   Create notion of an `ActionCable::SubscriptionAdapter`.
-    Separate out Redis functionality into
-    `ActionCable::SubscriptionAdapter::Redis`, and add a
-    PostgreSQL adapter as well. Configuration file for
-    ActionCable was changed from`config/redis/cable.yml` to
-    `config/cable.yml`.
+*   Permit same-origin connections by default.
 
-   *Jon Moss*
+    Added new option `config.action_cable.allow_same_origin_as_host = false`
+    to disable this behaviour.
 
-## Rails 5.0.0.beta1 (December 18, 2015) ##
+    *Dávid Halász*, *Matthew Draper*
 
-*   Added to Rails!
+*   Prevent race where the client could receive and act upon a
+    subscription confirmation before the channel's `subscribed` method
+    completed.
 
-    *DHH*
+    Fixes #25381.
+
+    *Vladimir Dementyev*
+
+*   Buffer now writes to websocket connections, to avoid blocking threads
+    that could be doing more useful things.
+
+    *Matthew Draper*, *Tinco Andringa*
+
+*   Protect against concurrent writes to a websocket connection from
+    multiple threads; the underlying OS write is not always threadsafe.
+
+    *Tinco Andringa*
+
+*   Add `ActiveSupport::Notifications` hook to `Broadcaster#broadcast`.
+
+    *Matthew Wear*
+
+*   Close hijacked socket when connection is shut down.
+
+    Fixes #25613.
+
+    *Tinco Andringa*
+
+
+Please check [5-0-stable](https://github.com/rails/rails/blob/5-0-stable/actioncable/CHANGELOG.md) for previous changes.

@@ -6,7 +6,7 @@ module ActiveRecord
       def setup
         @adapter = AbstractAdapter.new(nil)
         def @adapter.native_database_types
-          {:string => "varchar"}
+          { string: "varchar" }
         end
         @viz = @adapter.schema_creation
       end
@@ -18,7 +18,7 @@ module ActiveRecord
         column_def = ColumnDefinition.new(
           column.name, "string",
           column.limit, column.precision, column.scale, column.default, column.null)
-          assert_equal "title varchar(20)", @viz.accept(column_def)
+        assert_equal "title varchar(20)", @viz.accept(column_def)
       end
 
       def test_should_include_default_clause_when_default_is_present
@@ -26,7 +26,7 @@ module ActiveRecord
         column_def = ColumnDefinition.new(
           column.name, "string",
           column.limit, column.precision, column.scale, column.default, column.null)
-          assert_equal %Q{title varchar(20) DEFAULT 'Hello'}, @viz.accept(column_def)
+        assert_equal "title varchar(20) DEFAULT 'Hello'", @viz.accept(column_def)
       end
 
       def test_should_specify_not_null_if_null_option_is_false
@@ -35,7 +35,7 @@ module ActiveRecord
         column_def = ColumnDefinition.new(
           column.name, "string",
           column.limit, column.precision, column.scale, column.default, column.null)
-          assert_equal %Q{title varchar(20) DEFAULT 'Hello' NOT NULL}, @viz.accept(column_def)
+        assert_equal "title varchar(20) DEFAULT 'Hello' NOT NULL", @viz.accept(column_def)
       end
 
       if current_adapter?(:Mysql2Adapter)
@@ -60,21 +60,13 @@ module ActiveRecord
         end
 
         def test_should_not_set_default_for_blob_and_text_data_types
-          assert_raise ArgumentError do
-            MySQL::Column.new("title", "a", SqlTypeMetadata.new(sql_type: "blob"))
-          end
-
-          text_type = MySQL::TypeMetadata.new(
-            SqlTypeMetadata.new(type: :text))
-          assert_raise ArgumentError do
-            MySQL::Column.new("title", "Hello", text_type)
-          end
+          text_type = MySQL::TypeMetadata.new(SqlTypeMetadata.new(type: :text))
 
           text_column = MySQL::Column.new("title", nil, text_type)
-          assert_equal nil, text_column.default
+          assert_nil text_column.default
 
           not_null_text_column = MySQL::Column.new("title", nil, text_type, false)
-          assert_equal "", not_null_text_column.default
+          assert_nil not_null_text_column.default
         end
 
         def test_has_default_should_return_false_for_blob_and_text_data_types

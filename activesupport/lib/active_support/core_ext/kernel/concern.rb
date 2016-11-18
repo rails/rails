@@ -1,6 +1,8 @@
-require 'active_support/core_ext/module/concerning'
+require "active_support/core_ext/module/concerning"
 
 module Kernel
+  module_function
+
   # A shortcut to define a toplevel concern, not within a module.
   #
   # See Module::Concerning for more.

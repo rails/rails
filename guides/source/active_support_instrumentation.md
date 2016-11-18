@@ -112,6 +112,7 @@ Action Controller
 | `:controller` | The controller name                                       |
 | `:action`     | The action                                                |
 | `:params`     | Hash of request parameters without any filtered parameter |
+| `:headers`    | Request headers                                           |
 | `:format`     | html/js/json/xml etc                                      |
 | `:method`     | HTTP request verb                                         |
 | `:path`       | Request path                                              |
@@ -121,6 +122,7 @@ Action Controller
   controller: "PostsController",
   action: "new",
   params: { "action" => "new", "controller" => "posts" },
+  headers: #<ActionDispatch::Http::Headers:0x0055a67a519b88>,
   format: :html,
   method: "GET",
   path: "/posts/new"
@@ -134,6 +136,7 @@ Action Controller
 | `:controller`   | The controller name                                       |
 | `:action`       | The action                                                |
 | `:params`       | Hash of request parameters without any filtered parameter |
+| `:headers`      | Request headers                                           |
 | `:format`       | html/js/json/xml etc                                      |
 | `:method`       | HTTP request verb                                         |
 | `:path`         | Request path                                              |
@@ -146,6 +149,7 @@ Action Controller
   controller: "PostsController",
   action: "index",
   params: {"action" => "index", "controller" => "posts"},
+  headers: #<ActionDispatch::Http::Headers:0x0055a67a519b88>,
   format: :html,
   method: "GET",
   path: "/posts",
@@ -222,17 +226,36 @@ Action View
 }
 ```
 
+### render_collection.action_view
+
+| Key           | Value                                 |
+| ------------- | ------------------------------------- |
+| `:identifier` | Full path to template                 |
+| `:count`      | Size of collection                    |
+| `:cache_hits` | Number of partials fetched from cache |
+
+`:cache_hits` is only included if the collection is rendered with `cached: true`.
+
+```ruby
+{
+  identifier: "/Users/adam/projects/notifications/app/views/posts/_post.html.erb",
+  count: 3,
+  cache_hits: 0
+}
+```
+
 Active Record
 ------------
 
 ### sql.active_record
 
-| Key              | Value                 |
-| ---------------- | --------------------- |
-| `:sql`           | SQL statement         |
-| `:name`          | Name of the operation |
-| `:connection_id` | `self.object_id`      |
-| `:binds`         | Bind parameters       |
+| Key              | Value                                    |
+| ---------------- | ---------------------------------------- |
+| `:sql`           | SQL statement                            |
+| `:name`          | Name of the operation                    |
+| `:connection_id` | `self.object_id`                         |
+| `:binds`         | Bind parameters                          |
+| `:cached`        | `true` is added when cached queries used |
 
 INFO. The adapters will add their own data as well.
 

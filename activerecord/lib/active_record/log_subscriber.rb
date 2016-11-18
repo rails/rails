@@ -15,36 +15,24 @@ module ActiveRecord
       rt
     end
 
-    def initialize
-      super
-      @odd = false
-    end
-
-    def render_bind(attribute)
-      value = if attribute.type.binary? && attribute.value
-        "<#{attribute.value.bytesize} bytes of binary data>"
-      else
-        attribute.value_for_database
-      end
-
-      [attribute.name, value]
-    end
-
     def sql(event)
-      return unless logger.debug?
-
       self.class.runtime += event.duration
+      return unless logger.debug?
 
       payload = event.payload
 
       return if IGNORE_PAYLOAD_NAMES.include?(payload[:name])
 
       name  = "#{payload[:name]} (#{event.duration.round(1)}ms)"
+      name  = "CACHE #{name}" if payload[:cached]
       sql   = payload[:sql]
       binds = nil
 
       unless (payload[:binds] || []).empty?
-        binds = "  " + payload[:binds].map { |attr| render_bind(attr) }.inspect
+        casted_params = type_casted_binds(payload[:binds], payload[:type_casted_binds])
+        binds = "  " + payload[:binds].zip(casted_params).map { |attr, value|
+          render_bind(attr, value)
+        }.inspect
       end
 
       name = colorize_payload_name(name, payload[:name])
@@ -55,19 +43,33 @@ module ActiveRecord
 
     private
 
-    def colorize_payload_name(name, payload_name)
-      if payload_name.blank? || payload_name == "SQL" # SQL vs Model Load/Exists
-        color(name, MAGENTA, true)
-      else
-        color(name, CYAN, true)
+      def type_casted_binds(binds, casted_binds)
+        casted_binds || binds.map { |attr| type_cast attr.value_for_database }
       end
-    end
 
-    def sql_color(sql)
-      case sql
+      def render_bind(attr, type_casted_value)
+        value = if attr.type.binary? && attr.value
+          "<#{attr.value_for_database.to_s.bytesize} bytes of binary data>"
+        else
+          type_casted_value
+        end
+
+        [attr.name, value]
+      end
+
+      def colorize_payload_name(name, payload_name)
+        if payload_name.blank? || payload_name == "SQL" # SQL vs Model Load/Exists
+          color(name, MAGENTA, true)
+        else
+          color(name, CYAN, true)
+        end
+      end
+
+      def sql_color(sql)
+        case sql
         when /\A\s*rollback/mi
           RED
-        when /\s*.*?select .*for update/mi, /\A\s*lock/mi
+        when /select .*for update/mi, /\A\s*lock/mi
           WHITE
         when /\A\s*select/i
           BLUE
@@ -79,14 +81,18 @@ module ActiveRecord
           RED
         when /transaction\s*\Z/i
           CYAN
-        else
+          else
           MAGENTA
+        end
       end
-    end
 
-    def logger
-      ActiveRecord::Base.logger
-    end
+      def logger
+        ActiveRecord::Base.logger
+      end
+
+      def type_cast(value)
+        ActiveRecord::Base.connection.type_cast(value)
+      end
   end
 end
 

@@ -1,10 +1,9 @@
 # This class is inherited by the has_many and has_many_and_belongs_to_many association classes
 
-require 'active_record/associations'
+require "active_record/associations"
 
 module ActiveRecord::Associations::Builder # :nodoc:
   class CollectionAssociation < Association #:nodoc:
-
     CALLBACKS = [:before_add, :after_add, :before_remove, :after_remove]
 
     def self.valid_options(options)
@@ -70,7 +69,11 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
     def self.wrap_scope(scope, mod)
       if scope
-        proc { |owner| instance_exec(owner, &scope).extending(mod) }
+        if scope.arity > 0
+          proc { |owner| instance_exec(owner, &scope).extending(mod) }
+        else
+          proc { instance_exec(&scope).extending(mod) }
+        end
       else
         proc { extending(mod) }
       end

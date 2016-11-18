@@ -1,21 +1,21 @@
-require 'abstract_unit'
-require 'controller/fake_models'
-require 'pathname'
+require "abstract_unit"
+require "controller/fake_models"
+require "pathname"
 
 class RenderJSTest < ActionController::TestCase
   class TestController < ActionController::Base
     protect_from_forgery
 
     def self.controller_path
-      'test'
+      "test"
     end
 
     def render_vanilla_js_hello
-      render :js => "alert('hello')"
+      render js: "alert('hello')"
     end
 
     def show_partial
-      render :partial => 'partial'
+      render partial: "partial"
     end
   end
 
@@ -28,7 +28,7 @@ class RenderJSTest < ActionController::TestCase
   end
 
   def test_should_render_js_partial
-    get :show_partial, format: 'js', xhr: true
-    assert_equal 'partial js', @response.body
+    get :show_partial, format: "js", xhr: true
+    assert_equal "partial js", @response.body
   end
 end

@@ -1,6 +1,6 @@
-require 'active_support/core_ext/object/try'
-require 'active_support/core_ext/kernel/singleton_class'
-require 'thread'
+require "active_support/core_ext/object/try"
+require "active_support/core_ext/kernel/singleton_class"
+require "thread"
 
 module ActionView
   # = Action View Template
@@ -65,8 +65,7 @@ module ActionView
     # If you want to provide an alternate mechanism for
     # specifying encodings (like ERB does via <%# encoding: ... %>),
     # you may indicate that you will handle encodings yourself
-    # by implementing <tt>self.handles_encoding?</tt>
-    # on your handler.
+    # by implementing <tt>handles_encoding?</tt> on your handler.
     #
     # If you do, Rails will not try to encode the String
     # into the default_internal, passing you the unaltered
@@ -130,7 +129,6 @@ module ActionView
       @source            = source
       @identifier        = identifier
       @handler           = handler
-      @cache_name        = extract_resource_cache_name
       @compiled          = false
       @original_encoding = nil
       @locals            = details[:locals] || []
@@ -153,8 +151,8 @@ module ActionView
     # This method is instrumented as "!render_template.action_view". Notice that
     # we use a bang in this instrumentation because you don't want to
     # consume this in production. This is only slow if it's being listened to.
-    def render(view, locals, buffer=nil, &block)
-      instrument("!render_template".freeze) do
+    def render(view, locals, buffer = nil, &block)
+      instrument_render_template do
         compile!(view)
         view.send(method_name, locals, buffer, &block)
       end
@@ -164,10 +162,6 @@ module ActionView
 
     def type
       @type ||= Types[@formats.first] if @formats.first
-    end
-
-    def eligible_for_collection_caching?(as: nil)
-      @cache_name == (as || inferred_cache_name).to_s
     end
 
     # Receives a view object and return a template similar to self by using @virtual_path.
@@ -185,12 +179,12 @@ module ActionView
       name    = pieces.pop
       partial = !!name.sub!(/^_/, "")
       lookup.disable_cache do
-        lookup.find_template(name, [ pieces.join('/') ], partial, @locals)
+        lookup.find_template(name, [ pieces.join("/") ], partial, @locals)
       end
     end
 
     def inspect
-      @inspect ||= defined?(Rails.root) ? identifier.sub("#{Rails.root}/", ''.freeze) : identifier
+      @inspect ||= defined?(Rails.root) ? identifier.sub("#{Rails.root}/", "".freeze) : identifier
     end
 
     # This method is responsible for properly setting the encoding of the
@@ -209,7 +203,7 @@ module ActionView
       # Look for # encoding: *. If we find one, we'll encode the
       # String in that encoding, otherwise, we'll use the
       # default external encoding.
-      if source.sub!(/\A#{ENCODING_FLAG}/, '')
+      if source.sub!(/\A#{ENCODING_FLAG}/, "")
         encoding = magic_encoding = $1
       else
         encoding = Encoding.default_external
@@ -330,48 +324,39 @@ module ActionView
       end
 
       def locals_code #:nodoc:
+        # Only locals with valid variable names get set directly. Others will
+        # still be available in local_assigns.
+        locals = @locals.to_set - Module::DELEGATION_RESERVED_METHOD_NAMES
+        locals = locals.grep(/\A(?![A-Z0-9])(?:[[:alnum:]_]|[^\0-\177])+\z/)
+
         # Double assign to suppress the dreaded 'assigned but unused variable' warning
-        @locals.each_with_object('') { |key, code| code << "#{key} = #{key} = local_assigns[:#{key}];" }
+        locals.each_with_object("") { |key, code| code << "#{key} = #{key} = local_assigns[:#{key}];" }
       end
 
       def method_name #:nodoc:
         @method_name ||= begin
           m = "_#{identifier_method_name}__#{@identifier.hash}_#{__id__}"
-          m.tr!('-'.freeze, '_'.freeze)
+          m.tr!("-".freeze, "_".freeze)
           m
         end
       end
 
       def identifier_method_name #:nodoc:
-        inspect.tr('^a-z_'.freeze, '_'.freeze)
+        inspect.tr("^a-z_".freeze, "_".freeze)
       end
 
       def instrument(action, &block)
-        payload = { virtual_path: @virtual_path, identifier: @identifier }
-        case action
-        when "!render_template".freeze
-          ActiveSupport::Notifications.instrument("!render_template.action_view".freeze, payload, &block)
-        else
-          ActiveSupport::Notifications.instrument("#{action}.action_view".freeze, payload, &block)
-        end
+        ActiveSupport::Notifications.instrument("#{action}.action_view".freeze, instrument_payload, &block)
       end
 
-      EXPLICIT_COLLECTION = /# Template Collection: (?<resource_name>\w+)/
+    private
 
-      def extract_resource_cache_name
-        if match = @source.match(EXPLICIT_COLLECTION) || resource_cache_call_match
-          match[:resource_name]
-        end
+      def instrument_render_template(&block)
+        ActiveSupport::Notifications.instrument("!render_template.action_view".freeze, instrument_payload, &block)
       end
 
-      def resource_cache_call_match
-        if @handler.respond_to?(:resource_cache_call_pattern)
-          @source.match(@handler.resource_cache_call_pattern)
-        end
-      end
-
-      def inferred_cache_name
-        @inferred_cache_name ||= @virtual_path.split('/'.freeze).last.sub('_'.freeze, ''.freeze)
+      def instrument_payload
+        { virtual_path: @virtual_path, identifier: @identifier }
       end
   end
 end

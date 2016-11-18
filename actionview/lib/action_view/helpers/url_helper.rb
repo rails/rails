@@ -1,7 +1,7 @@
-require 'action_view/helpers/javascript_helper'
-require 'active_support/core_ext/array/access'
-require 'active_support/core_ext/hash/keys'
-require 'active_support/core_ext/string/output_safety'
+require "action_view/helpers/javascript_helper"
+require "active_support/core_ext/array/access"
+require "active_support/core_ext/hash/keys"
+require "active_support/core_ext/string/output_safety"
 
 module ActionView
   # = Action View URL Helpers
@@ -41,14 +41,14 @@ module ActionView
       end
 
       def _back_url # :nodoc:
-        _filtered_referrer || 'javascript:history.back()'
+        _filtered_referrer || "javascript:history.back()"
       end
       protected :_back_url
 
       def _filtered_referrer # :nodoc:
         if controller.respond_to?(:request)
           referrer = controller.request.env["HTTP_REFERER"]
-          if referrer && URI(referrer).scheme != 'javascript'
+          if referrer && URI(referrer).scheme != "javascript"
             referrer
           end
         end
@@ -298,42 +298,43 @@ module ActionView
         html_options = html_options.stringify_keys
 
         url    = options.is_a?(String) ? options : url_for(options)
-        remote = html_options.delete('remote')
-        params = html_options.delete('params')
+        remote = html_options.delete("remote")
+        params = html_options.delete("params")
 
-        method     = html_options.delete('method').to_s
-        method_tag = BUTTON_TAG_METHOD_VERBS.include?(method) ? method_tag(method) : ''.html_safe
+        method     = html_options.delete("method").to_s
+        method_tag = BUTTON_TAG_METHOD_VERBS.include?(method) ? method_tag(method) : "".freeze.html_safe
 
-        form_method  = method == 'get' ? 'get' : 'post'
-        form_options = html_options.delete('form') || {}
-        form_options[:class] ||= html_options.delete('form_class') || 'button_to'
+        form_method  = method == "get" ? "get" : "post"
+        form_options = html_options.delete("form") || {}
+        form_options[:class] ||= html_options.delete("form_class") || "button_to"
         form_options[:method] = form_method
         form_options[:action] = url
         form_options[:'data-remote'] = true if remote
 
-        request_token_tag = if form_method == 'post'
-          token_tag(nil, form_options: form_options)
+        request_token_tag = if form_method == "post"
+          request_method = method.empty? ? "post" : method
+          token_tag(nil, form_options: { action: url, method: request_method })
         else
-          ''
+          "".freeze
         end
 
         html_options = convert_options_to_data_attributes(options, html_options)
-        html_options['type'] = 'submit'
+        html_options["type"] = "submit"
 
         button = if block_given?
-          content_tag('button', html_options, &block)
+          content_tag("button", html_options, &block)
         else
-          html_options['value'] = name || url
-          tag('input', html_options)
+          html_options["value"] = name || url
+          tag("input", html_options)
         end
 
         inner_tags = method_tag.safe_concat(button).safe_concat(request_token_tag)
         if params
-          params.each do |param_name, value|
-            inner_tags.safe_concat tag(:input, type: "hidden", name: param_name, value: value.to_param)
+          to_form_params(params).each do |param|
+            inner_tags.safe_concat tag(:input, type: "hidden", name: param[:name], value: param[:value])
           end
         end
-        content_tag('form', inner_tags, form_options)
+        content_tag("form", inner_tags, form_options)
       end
 
       # Creates a link tag of the given +name+ using a URL created by the set of
@@ -480,7 +481,7 @@ module ActionView
           option = html_options.delete(item).presence || next
           "#{item.dasherize}=#{ERB::Util.url_encode(option)}"
         }.compact
-        extras = extras.empty? ? '' : '?' + extras.join('&')
+        extras = extras.empty? ? "".freeze : "?" + extras.join("&")
 
         encoded_email_address = ERB::Util.url_encode(email_address).gsub("%40", "@")
         html_options["href"] = "mailto:#{encoded_email_address}#{extras}"
@@ -547,7 +548,9 @@ module ActionView
         request_uri = url_string.index("?") ? request.fullpath : request.path
         request_uri = URI.parser.unescape(request_uri).force_encoding(Encoding::BINARY)
 
-        if url_string =~ /^\w+:\/\//
+        url_string.chomp!("/") if url_string.start_with?("/") && url_string != "/"
+
+        if %r{^\w+://}.match?(url_string)
           url_string == "#{request.protocol}#{request.host_with_port}#{request_uri}"
         else
           url_string == request_uri
@@ -558,42 +561,89 @@ module ActionView
         def convert_options_to_data_attributes(options, html_options)
           if html_options
             html_options = html_options.stringify_keys
-            html_options['data-remote'] = 'true' if link_to_remote_options?(options) || link_to_remote_options?(html_options)
+            html_options["data-remote"] = "true".freeze if link_to_remote_options?(options) || link_to_remote_options?(html_options)
 
-            method  = html_options.delete('method')
+            method = html_options.delete("method".freeze)
 
             add_method_to_attributes!(html_options, method) if method
 
             html_options
           else
-            link_to_remote_options?(options) ? {'data-remote' => 'true'} : {}
+            link_to_remote_options?(options) ? { "data-remote" => "true".freeze } : {}
           end
         end
 
         def link_to_remote_options?(options)
           if options.is_a?(Hash)
-            options.delete('remote') || options.delete(:remote)
+            options.delete("remote".freeze) || options.delete(:remote)
           end
         end
 
         def add_method_to_attributes!(html_options, method)
-          if method && method.to_s.downcase != "get" && html_options["rel"] !~ /nofollow/
-            html_options["rel"] = "#{html_options["rel"]} nofollow".lstrip
+          if method && method.to_s.downcase != "get".freeze && html_options["rel".freeze] !~ /nofollow/
+            html_options["rel".freeze] = "#{html_options["rel".freeze]} nofollow".lstrip
           end
-          html_options["data-method"] = method
+          html_options["data-method".freeze] = method
         end
 
-        def token_tag(token=nil, form_options: {})
+        def token_tag(token = nil, form_options: {})
           if token != false && protect_against_forgery?
             token ||= form_authenticity_token(form_options: form_options)
             tag(:input, type: "hidden", name: request_forgery_protection_token.to_s, value: token)
           else
-            ''
+            "".freeze
           end
         end
 
         def method_tag(method)
-          tag('input', type: 'hidden', name: '_method', value: method.to_s)
+          tag("input", type: "hidden", name: "_method", value: method.to_s)
+        end
+
+        # Returns an array of hashes each containing :name and :value keys
+        # suitable for use as the names and values of form input fields:
+        #
+        #   to_form_params(name: 'David', nationality: 'Danish')
+        #   # => [{name: :name, value: 'David'}, {name: 'nationality', value: 'Danish'}]
+        #
+        #   to_form_params(country: {name: 'Denmark'})
+        #   # => [{name: 'country[name]', value: 'Denmark'}]
+        #
+        #   to_form_params(countries: ['Denmark', 'Sweden']})
+        #   # => [{name: 'countries[]', value: 'Denmark'}, {name: 'countries[]', value: 'Sweden'}]
+        #
+        # An optional namespace can be passed to enclose key names:
+        #
+        #   to_form_params({ name: 'Denmark' }, 'country')
+        #   # => [{name: 'country[name]', value: 'Denmark'}]
+        def to_form_params(attribute, namespace = nil) # :nodoc:
+          attribute = if attribute.respond_to?(:permitted?)
+            unless attribute.permitted?
+              raise ArgumentError, "Attempting to generate a buttom from non-sanitized request parameters!" \
+                " Whitelist and sanitize passed parameters to be secure."
+            end
+
+            attribute.to_h
+          else
+            attribute
+          end
+
+          params = []
+          case attribute
+          when Hash
+            attribute.each do |key, value|
+              prefix = namespace ? "#{namespace}[#{key}]" : key
+              params.push(*to_form_params(value, prefix))
+            end
+          when Array
+            array_prefix = "#{namespace}[]"
+            attribute.each do |value|
+              params.push(*to_form_params(value, array_prefix))
+            end
+          else
+            params << { name: namespace, value: attribute.to_param }
+          end
+
+          params.sort_by { |pair| pair[:name] }
         end
     end
   end

@@ -15,7 +15,7 @@ After reading this guide, you will know:
 What is Action View?
 --------------------
 
-In Rails, web requests are handled by [Action Controller](action_controller_overview.html) and Action View. Typically, Action Controller will be concerned with communicating with the database and performing CRUD actions where necessary. Action View is then responsible for compiling the response.
+In Rails, web requests are handled by [Action Controller](action_controller_overview.html) and Action View. Typically, Action Controller is concerned with communicating with the database and performing CRUD actions where necessary. Action View is then responsible for compiling the response.
 
 Action View templates are written using embedded Ruby in tags mingled with HTML. To avoid cluttering the templates with boilerplate code, a number of helper classes provide common behavior for forms, dates, and strings. It's also easy to add new helpers to your application as it evolves.
 
@@ -173,11 +173,11 @@ would produce:
 ```json
 {
   "name": "Alex",
-  "email: "alex@example.com"
+  "email": "alex@example.com"
 }
 ```
 
-See the [Jbuilder documention](https://github.com/rails/jbuilder#jbuilder) for
+See the [Jbuilder documentation](https://github.com/rails/jbuilder#jbuilder) for
 more examples and information.
 
 #### Template Caching
@@ -254,13 +254,7 @@ as if we had written:
 <%= render partial: "product", locals: { product: @product } %>
 ```
 
-With the `as` option we can specify a different name for the local variable. For example, if we wanted it to be `item` instead of `product` we would do:
-
-```erb
-<%= render partial: "product", as: "item" %>
-```
-
-The `object` option can be used to directly specify which object is rendered into the partial; useful when the template's object is elsewhere (eg. in a different instance variable or in a local variable).
+The `object` option can be used to directly specify which object is rendered into the partial; useful when the template's object is elsewhere (e.g. in a different instance variable or in a local variable).
 
 For example, instead of:
 
@@ -274,10 +268,16 @@ we would do:
 <%= render partial: "product", object: @item %>
 ```
 
-The `object` and `as` options can also be used together:
+With the `as` option we can specify a different name for the said local variable. For example, if we wanted it to be `item` instead of `product` we would do:
 
 ```erb
 <%= render partial: "product", object: @item, as: "item" %>
+```
+
+This is equivalent to
+
+```erb
+<%= render partial: "product", locals: { item: @item } %>
 ```
 
 #### Rendering Collections
@@ -442,7 +442,7 @@ image_path("edit.png") # => /assets/edit-2d1a2db63fc738690021fedb5a65b68e.png
 
 #### image_url
 
-Computes the url to an image asset in the `app/assets/images` directory. This will call `image_path` internally and merge with your current host or your asset host.
+Computes the URL to an image asset in the `app/assets/images` directory. This will call `image_path` internally and merge with your current host or your asset host.
 
 ```ruby
 image_url("edit.png") # => http://www.example.com/assets/edit.png
@@ -493,7 +493,7 @@ javascript_path "common" # => /assets/common.js
 
 #### javascript_url
 
-Computes the url to a JavaScript asset in the `app/assets/javascripts` directory. This will call `javascript_path` internally and merge with your current host or your asset host.
+Computes the URL to a JavaScript asset in the `app/assets/javascripts` directory. This will call `javascript_path` internally and merge with your current host or your asset host.
 
 ```ruby
 javascript_url "common" # => http://www.example.com/assets/common.js
@@ -530,7 +530,7 @@ stylesheet_path "application" # => /assets/application.css
 
 #### stylesheet_url
 
-Computes the url to a stylesheet asset in the `app/assets/stylesheets` directory. This will call `stylesheet_path` internally and merge with your current host or your asset host.
+Computes the URL to a stylesheet asset in the `app/assets/stylesheets` directory. This will call `stylesheet_path` internally and merge with your current host or your asset host.
 
 ```ruby
 stylesheet_url "application" # => http://www.example.com/assets/application.css
@@ -599,7 +599,7 @@ This would add something like "Process data files (0.34523)" to the log, which y
 
 #### cache
 
-A method for caching fragments of a view rather than an entire action or page. This technique is useful for caching pieces like menus, lists of news topics, static HTML fragments, and so on. This method takes a block that contains the content you wish to cache. See `ActionController::Caching::Fragments` for more information.
+A method for caching fragments of a view rather than an entire action or page. This technique is useful for caching pieces like menus, lists of news topics, static HTML fragments, and so on. This method takes a block that contains the content you wish to cache. See `AbstractController::Caching::Fragments` for more information.
 
 ```erb
 <% cache do %>
@@ -1247,7 +1247,7 @@ file_field_tag 'attachment'
 
 #### form_tag
 
-Starts a form tag that points the action to a url configured with `url_for_options` just like `ActionController::Base#url_for`.
+Starts a form tag that points the action to a URL configured with `url_for_options` just like `ActionController::Base#url_for`.
 
 ```html+erb
 <%= form_tag '/articles' do %>
@@ -1419,7 +1419,7 @@ number_to_percentage(100, precision: 0)        # => 100%
 
 #### number_to_phone
 
-Formats a number into a US phone number.
+Formats a number into a phone number (US by default).
 
 ```ruby
 number_to_phone(1235551234) # => 123-555-1234
@@ -1439,7 +1439,7 @@ Formats a number with the specified level of `precision`, which defaults to 3.
 
 ```ruby
 number_with_precision(111.2345)     # => 111.235
-number_with_precision(111.2345, 2)  # => 111.23
+number_with_precision(111.2345, precision: 2)  # => 111.23
 ```
 
 ### SanitizeHelper
@@ -1524,7 +1524,7 @@ Localized Views
 
 Action View has the ability to render different templates depending on the current locale.
 
-For example, suppose you have a `ArticlesController` with a show action. By default, calling this action will render `app/views/articles/show.html.erb`. But if you set `I18n.locale = :de`, then `app/views/articles/show.de.html.erb` will be rendered instead. If the localized template isn't present, the undecorated version will be used. This means you're not required to provide localized views for all cases, but they will be preferred and used if available.
+For example, suppose you have an `ArticlesController` with a show action. By default, calling this action will render `app/views/articles/show.html.erb`. But if you set `I18n.locale = :de`, then `app/views/articles/show.de.html.erb` will be rendered instead. If the localized template isn't present, the undecorated version will be used. This means you're not required to provide localized views for all cases, but they will be preferred and used if available.
 
 You can use the same technique to localize the rescue files in your public directory. For example, setting `I18n.locale = :de` and creating `public/500.de.html` and `public/404.de.html` would allow you to have localized rescue pages.
 

@@ -1,6 +1,6 @@
-require 'abstract_unit'
-require 'rails/paths'
-require 'minitest/mock'
+require "abstract_unit"
+require "rails/paths"
+require "minitest/mock"
 
 class PathsTest < ActiveSupport::TestCase
   def setup
@@ -103,7 +103,7 @@ class PathsTest < ActiveSupport::TestCase
       @root.add "app", with: "/app"
       @root["app"].autoload_once!
       assert @root["app"].autoload_once?
-      assert @root.autoload_once.include?(@root["app"].expanded.first)
+      assert_includes @root.autoload_once, @root["app"].expanded.first
     end
   end
 
@@ -114,14 +114,14 @@ class PathsTest < ActiveSupport::TestCase
 
     @root["app"].skip_autoload_once!
     assert !@root["app"].autoload_once?
-    assert !@root.autoload_once.include?(@root["app"].expanded.first)
+    assert_not_includes @root.autoload_once, @root["app"].expanded.first
   end
 
   test "it is possible to add a path without assignment and specify it should be loaded only once" do
     File.stub(:exist?, true) do
       @root.add "app", with: "/app", autoload_once: true
       assert @root["app"].autoload_once?
-      assert @root.autoload_once.include?("/app")
+      assert_includes @root.autoload_once, "/app"
     end
   end
 
@@ -129,8 +129,8 @@ class PathsTest < ActiveSupport::TestCase
     File.stub(:exist?, true) do
       @root.add "app", with: ["/app", "/app2"], autoload_once: true
       assert @root["app"].autoload_once?
-      assert @root.autoload_once.include?("/app")
-      assert @root.autoload_once.include?("/app2")
+      assert_includes @root.autoload_once, "/app"
+      assert_includes @root.autoload_once, "/app2"
     end
   end
 
@@ -139,7 +139,7 @@ class PathsTest < ActiveSupport::TestCase
       @root["app"] = "/app"
       @root["app"].autoload_once!
       @root["app"].autoload_once!
-      assert_equal 1, @root.autoload_once.select {|p| p == @root["app"].expanded.first }.size
+      assert_equal 1, @root.autoload_once.select { |p| p == @root["app"].expanded.first }.size
     end
   end
 
@@ -157,7 +157,7 @@ class PathsTest < ActiveSupport::TestCase
       @root["app"] = "/app"
       @root["app"].eager_load!
       assert @root["app"].eager_load?
-      assert @root.eager_load.include?(@root["app"].to_a.first)
+      assert_includes @root.eager_load, @root["app"].to_a.first
     end
   end
 
@@ -168,14 +168,14 @@ class PathsTest < ActiveSupport::TestCase
 
     @root["app"].skip_eager_load!
     assert !@root["app"].eager_load?
-    assert !@root.eager_load.include?(@root["app"].to_a.first)
+    assert_not_includes @root.eager_load, @root["app"].to_a.first
   end
 
   test "it is possible to add a path without assignment and mark it as eager" do
     File.stub(:exist?, true) do
       @root.add "app", with: "/app", eager_load: true
       assert @root["app"].eager_load?
-      assert @root.eager_load.include?("/app")
+      assert_includes @root.eager_load, "/app"
     end
   end
 
@@ -183,8 +183,8 @@ class PathsTest < ActiveSupport::TestCase
     File.stub(:exist?, true) do
       @root.add "app", with: ["/app", "/app2"], eager_load: true
       assert @root["app"].eager_load?
-      assert @root.eager_load.include?("/app")
-      assert @root.eager_load.include?("/app2")
+      assert_includes @root.eager_load, "/app"
+      assert_includes @root.eager_load, "/app2"
     end
   end
 
@@ -193,8 +193,8 @@ class PathsTest < ActiveSupport::TestCase
       @root.add "app", with: "/app", eager_load: true, autoload_once: true
       assert @root["app"].eager_load?
       assert @root["app"].autoload_once?
-      assert @root.eager_load.include?("/app")
-      assert @root.autoload_once.include?("/app")
+      assert_includes @root.eager_load, "/app"
+      assert_includes @root.autoload_once, "/app"
     end
   end
 
@@ -203,7 +203,7 @@ class PathsTest < ActiveSupport::TestCase
       @root["app"] = "/app"
       @root["app"].eager_load!
       @root["app"].eager_load!
-      assert_equal 1, @root.eager_load.select {|p| p == @root["app"].expanded.first }.size
+      assert_equal 1, @root.eager_load.select { |p| p == @root["app"].expanded.first }.size
     end
   end
 

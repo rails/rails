@@ -11,20 +11,18 @@ module ActiveRecord
       end
 
       def validate_each(record, attribute, value)
-        return unless should_validate?(record)
         finder_class = find_finder_class_for(record)
-        table = finder_class.arel_table
         value = map_enum_attribute(finder_class, attribute, value)
 
-        relation = build_relation(finder_class, table, attribute, value)
-        if record.persisted? && finder_class.primary_key.to_s != attribute.to_s
+        relation = build_relation(finder_class, attribute, value)
+        if record.persisted?
           if finder_class.primary_key
-            relation = relation.where.not(finder_class.primary_key => record.id)
+            relation = relation.where.not(finder_class.primary_key => record.id_in_database || record.id)
           else
             raise UnknownPrimaryKey.new(finder_class, "Can not validate uniqueness for persisted record without primary key.")
           end
         end
-        relation = scope_relation(record, table, relation)
+        relation = scope_relation(record, relation)
         relation = relation.merge(options[:conditions]) if options[:conditions]
 
         if relation.exists?
@@ -51,45 +49,41 @@ module ActiveRecord
         class_hierarchy.detect { |klass| !klass.abstract_class? }
       end
 
-      def build_relation(klass, table, attribute, value) #:nodoc:
+      def build_relation(klass, attribute, value) # :nodoc:
         if reflection = klass._reflect_on_association(attribute)
           attribute = reflection.foreign_key
           value = value.attributes[reflection.klass.primary_key] unless value.nil?
         end
 
-        attribute_name = attribute.to_s
+        if value.nil?
+          return klass.unscoped.where!(attribute => value)
+        end
 
         # the attribute may be an aliased attribute
-        if klass.attribute_aliases[attribute_name]
-          attribute = klass.attribute_aliases[attribute_name]
-          attribute_name = attribute.to_s
+        if klass.attribute_alias?(attribute)
+          attribute = klass.attribute_alias(attribute)
         end
 
+        attribute_name = attribute.to_s
+
+        table = klass.arel_table
         column = klass.columns_hash[attribute_name]
         cast_type = klass.type_for_attribute(attribute_name)
-        value = cast_type.serialize(value)
-        value = klass.connection.type_cast(value)
-        if value.is_a?(String) && column.limit
-          value = value.to_s[0, column.limit]
-        end
 
-        comparison = if !options[:case_sensitive] && !value.nil?
+        comparison = if !options[:case_sensitive]
           # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
           klass.connection.case_insensitive_comparison(table, attribute, column, value)
         else
           klass.connection.case_sensitive_comparison(table, attribute, column, value)
         end
-        if value.nil?
-          klass.unscoped.where(comparison)
-        else
-          bind = Relation::QueryAttribute.new(attribute.to_s, value, Type::Value.new)
-          klass.unscoped.where(comparison, bind)
+        klass.unscoped.tap do |scope|
+          parts = [comparison]
+          binds = [Relation::QueryAttribute.new(attribute_name, value, cast_type)]
+          scope.where_clause += Relation::WhereClause.new(parts, binds)
         end
-      rescue RangeError
-        klass.none
       end
 
-      def scope_relation(record, table, relation)
+      def scope_relation(record, relation)
         Array(options[:scope]).each do |scope_item|
           if reflection = record.class._reflect_on_association(scope_item)
             scope_value = record.send(reflection.foreign_key)

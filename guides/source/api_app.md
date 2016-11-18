@@ -8,13 +8,13 @@ In this guide you will learn:
 
 * What Rails provides for API-only applications
 * How to configure Rails to start without any browser features
-* How to decide which middlewares you will want to include
+* How to decide which middleware you will want to include
 * How to decide which modules to use in your controller
 
 --------------------------------------------------------------------------------
 
-What is an API app?
--------------------
+What is an API Application?
+---------------------------
 
 Traditionally, when people said that they used Rails as an "API", they meant
 providing a programmatically accessible API alongside their web application.
@@ -28,15 +28,14 @@ applications.
 For example, Twitter uses its [public API](https://dev.twitter.com) in its web
 application, which is built as a static site that consumes JSON resources.
 
-Instead of using Rails to generate dynamic HTML that will communicate with the
-server through forms and links, many developers are treating their web application
-as just another client, delivered as static HTML, CSS and JavaScript  consuming
-a simple JSON API.
+Instead of using Rails to generate HTML that communicates with the server
+through forms and links, many developers are treating their web application as
+just an API client delivered as HTML with JavaScript that consumes a JSON API.
 
 This guide covers building a Rails application that serves JSON resources to an
-API client **or** a client-side framework.
+API client, including client-side frameworks.
 
-Why use Rails for JSON APIs?
+Why Use Rails for JSON APIs?
 ----------------------------
 
 The first question a lot of people have when thinking about building a JSON API
@@ -44,11 +43,11 @@ using Rails is: "isn't using Rails to spit out some JSON overkill? Shouldn't I
 just use something like Sinatra?".
 
 For very simple APIs, this may be true. However, even in very HTML-heavy
-applications, most of an application's logic is actually outside of the view
+applications, most of an application's logic lives outside of the view
 layer.
 
 The reason most people use Rails is that it provides a set of defaults that
-allows us to get up and running quickly without having to make a lot of trivial
+allows developers to get up and running quickly, without having to make a lot of trivial
 decisions.
 
 Let's take a look at some of the things that Rails provides out of the box that are
@@ -75,18 +74,16 @@ Handled at the middleware layer:
   URL-encoded String? No problem. Rails will decode the JSON for you and make
   it available in `params`. Want to use nested URL-encoded parameters? That
   works too.
-- Conditional GETs: Rails handles conditional `GET`, (`ETag` and `Last-Modified`),
+- Conditional GETs: Rails handles conditional `GET` (`ETag` and `Last-Modified`)
   processing request headers and returning the correct response headers and status
   code. All you need to do is use the
   [`stale?`](http://api.rubyonrails.org/classes/ActionController/ConditionalGet.html#method-i-stale-3F)
   check in your controller, and Rails will handle all of the HTTP details for you.
-- Caching: If you use `dirty?` with public cache control, Rails will automatically
-  cache your responses. You can easily configure the cache store.
 - HEAD requests: Rails will transparently convert `HEAD` requests into `GET` ones,
   and return just the headers on the way out. This makes `HEAD` work reliably in
   all Rails APIs.
 
-While you could obviously build these up in terms of existing Rack middlewares,
+While you could obviously build these up in terms of existing Rack middleware,
 this list demonstrates that the default Rails middleware stack provides a lot
 of value, even if you're "just generating JSON".
 
@@ -97,28 +94,28 @@ Handled at the Action Pack layer:
   means not having to spend time thinking about how to model your API in terms
   of HTTP.
 - URL Generation: The flip side of routing is URL generation. A good API based
-  on HTTP includes URLs (see [the GitHub gist API](http://developer.github.com/v3/gists/)
+  on HTTP includes URLs (see [the GitHub Gist API](http://developer.github.com/v3/gists/)
   for an example).
 - Header and Redirection Responses: `head :no_content` and
   `redirect_to user_url(current_user)` come in handy. Sure, you could manually
   add the response headers, but why?
 - Caching: Rails provides page, action and fragment caching. Fragment caching
   is especially helpful when building up a nested JSON object.
-- Basic, Digest and Token Authentication: Rails comes with out-of-the-box support
+- Basic, Digest, and Token Authentication: Rails comes with out-of-the-box support
   for three kinds of HTTP authentication.
-- Instrumentation: Rails has an instrumentation API that will trigger registered
+- Instrumentation: Rails has an instrumentation API that triggers registered
   handlers for a variety of events, such as action processing, sending a file or
   data, redirection, and database queries. The payload of each event comes with
   relevant information (for the action processing event, the payload includes
   the controller, action, parameters, request format, request method and the
   request's full path).
-- Generators: This may be passé for advanced Rails users, but it can be nice to
-  generate a resource and get your model, controller, test stubs, and routes
-  created for you in a single command.
+- Generators: It is often handy to generate a resource and get your model,
+  controller, test stubs, and routes created for you in a single command for
+  further tweaking. Same for migrations and others.
 - Plugins: Many third-party libraries come with support for Rails that reduce
   or eliminate the cost of setting up and gluing together the library and the
   web framework. This includes things like overriding default generators, adding
-  rake tasks, and honoring Rails choices (like the logger and cache back-end).
+  Rake tasks, and honoring Rails choices (like the logger and cache back-end).
 
 Of course, the Rails boot process also glues together all registered components.
 For example, the Rails boot process is what uses your `config/database.yml` file
@@ -126,7 +123,7 @@ when configuring Active Record.
 
 **The short version is**: you may not have thought about which parts of Rails
 are still applicable even if you remove the view layer, but the answer turns out
-to be "most of it".
+to be most of it.
 
 The Basic Configuration
 -----------------------
@@ -134,6 +131,8 @@ The Basic Configuration
 If you're building a Rails application that will be an API server first and
 foremost, you can start with a more limited subset of Rails and add in features
 as needed.
+
+### Creating a new application
 
 You can generate a new api Rails app:
 
@@ -143,15 +142,17 @@ $ rails new my_api --api
 
 This will do three main things for you:
 
-- Configure your application to start with a more limited set of middlewares
+- Configure your application to start with a more limited set of middleware
   than normal. Specifically, it will not include any middleware primarily useful
   for browser applications (like cookies support) by default.
 - Make `ApplicationController` inherit from `ActionController::API` instead of
-  `ActionController::Base`. As with middlewares, this will leave out any Action
+  `ActionController::Base`. As with middleware, this will leave out any Action
   Controller modules that provide functionalities primarily used by browser
   applications.
 - Configure the generators to skip generating views, helpers and assets when
   you generate a new resource.
+
+### Changing an existing application
 
 If you want to take an existing application and make it an API one, read the
 following steps.
@@ -163,13 +164,22 @@ class definition:
 config.api_only = true
 ```
 
-Optionally, in `config/environments/development.rb` add the following line
-to render error responses using the API format (JSON by default) when it
-is a local request:
+In `config/environments/development.rb`, set `config.debug_exception_response_format`
+to configure the format used in responses when errors occur in development mode.
+
+To render an HTML page with debugging information, use the value `:default`.
+
+```ruby
+config.debug_exception_response_format = :default
+```
+
+To render debugging information preserving the response format, use the value `:api`.
 
 ```ruby
 config.debug_exception_response_format = :api
 ```
+
+By default, `config.debug_exception_response_format` is set to `:api`, when `config.api_only` is set to true.
 
 Finally, inside `app/controllers/application_controller.rb`, instead of:
 
@@ -185,35 +195,36 @@ class ApplicationController < ActionController::API
 end
 ```
 
-Choosing Middlewares
+Choosing Middleware
 --------------------
 
-An API application comes with the following middlewares by default:
+An API application comes with the following middleware by default:
 
 - `Rack::Sendfile`
 - `ActionDispatch::Static`
-- `Rack::Lock`
+- `ActionDispatch::Executor`
 - `ActiveSupport::Cache::Strategy::LocalCache::Middleware`
+- `Rack::Runtime`
 - `ActionDispatch::RequestId`
 - `Rails::Rack::Logger`
-- `Rack::Runtime`
 - `ActionDispatch::ShowExceptions`
 - `ActionDispatch::DebugExceptions`
 - `ActionDispatch::RemoteIp`
 - `ActionDispatch::Reloader`
 - `ActionDispatch::Callbacks`
+- `ActiveRecord::Migration::CheckPending`
 - `Rack::Head`
 - `Rack::ConditionalGet`
 - `Rack::ETag`
 
-See the [internal middlewares](rails_on_rack.html#internal-middleware-stack)
+See the [internal middleware](rails_on_rack.html#internal-middleware-stack)
 section of the Rack guide for further information on them.
 
-Other plugins, including Active Record, may add additional middlewares. In
-general, these middlewares are agnostic to the type of application you are
+Other plugins, including Active Record, may add additional middleware. In
+general, these middleware are agnostic to the type of application you are
 building, and make sense in an API-only Rails application.
 
-You can get a list of all middlewares in your application via:
+You can get a list of all middleware in your application via:
 
 ```bash
 $ rails middleware
@@ -262,9 +273,6 @@ subsequent inbound requests for the same URL.
 
 Think of it as page caching using HTTP semantics.
 
-NOTE: This middleware is always outside of the `Rack::Lock` mutex, even in
-single-threaded applications.
-
 ### Using Rack::Sendfile
 
 When you use the `send_file` method inside a Rails controller, it sets the
@@ -282,7 +290,7 @@ You can learn more about how to use `Rack::Sendfile` with popular
 front-ends in [the Rack::Sendfile
 documentation](http://rubydoc.info/github/rack/rack/master/Rack/Sendfile).
 
-Here are some values for popular servers, once they are configured, to support
+Here are some values for this header for some popular servers, once these servers are configured to support
 accelerated file sending:
 
 ```ruby
@@ -295,9 +303,6 @@ config.action_dispatch.x_sendfile_header = "X-Accel-Redirect"
 
 Make sure to configure your server to support these options following the
 instructions in the `Rack::Sendfile` documentation.
-
-NOTE: The `Rack::Sendfile` middleware is always outside of the `Rack::Lock`
-mutex, even in single-threaded applications.
 
 ### Using ActionDispatch::Request
 
@@ -327,26 +332,26 @@ will be:
 { :person => { :firstName => "Yehuda", :lastName => "Katz" } }
 ```
 
-### Other Middlewares
+### Other Middleware
 
-Rails ships with a number of other middlewares that you might want to use in an
+Rails ships with a number of other middleware that you might want to use in an
 API application, especially if one of your API clients is the browser:
 
 - `Rack::MethodOverride`
 - `ActionDispatch::Cookies`
 - `ActionDispatch::Flash`
-- For sessions management
+- For session management
     * `ActionDispatch::Session::CacheStore`
     * `ActionDispatch::Session::CookieStore`
     * `ActionDispatch::Session::MemCacheStore`
 
-Any of these middlewares can be added via:
+Any of these middleware can be added via:
 
 ```ruby
 config.middleware.use Rack::MethodOverride
 ```
 
-### Removing Middlewares
+### Removing Middleware
 
 If you don't want to use a middleware that is included by default in the API-only
 middleware set, you can remove it with:
@@ -355,7 +360,7 @@ middleware set, you can remove it with:
 config.middleware.delete ::Rack::Sendfile
 ```
 
-Keep in mind that removing these middlewares will remove support for certain
+Keep in mind that removing these middleware will remove support for certain
 features in Action Controller.
 
 Choosing Controller Modules
@@ -364,24 +369,24 @@ Choosing Controller Modules
 An API application (using `ActionController::API`) comes with the following
 controller modules by default:
 
-- `ActionController::UrlFor`: Makes `url_for` and friends available.
+- `ActionController::UrlFor`: Makes `url_for` and similar helpers available.
 - `ActionController::Redirecting`: Support for `redirect_to`.
-- `ActionController::Rendering`: Basic support for rendering.
+- `AbstractController::Rendering` and `ActionController::ApiRendering`: Basic support for rendering.
 - `ActionController::Renderers::All`: Support for `render :json` and friends.
 - `ActionController::ConditionalGet`: Support for `stale?`.
+- `ActionController::BasicImplicitRender`: Makes sure to return an empty response, if there isn't an explicit one.
+- `ActionController::StrongParameters`: Support for parameters white-listing in combination with Active Model mass assignment.
 - `ActionController::ForceSSL`: Support for `force_ssl`.
 - `ActionController::DataStreaming`: Support for `send_file` and `send_data`.
-- `AbstractController::Callbacks`: Support for `before_action` and friends.
+- `AbstractController::Callbacks`: Support for `before_action` and
+  similar helpers.
+- `ActionController::Rescue`: Support for `rescue_from`.
 - `ActionController::Instrumentation`: Support for the instrumentation
   hooks defined by Action Controller (see [the instrumentation
-  guide](active_support_instrumentation.html#action-controller)).
-- `ActionController::Rescue`: Support for `rescue_from`.
-- `ActionController::BasicImplicitRender`: Makes sure to return an empty response
-  if there's not an explicit one.
-- `ActionController::StrongParameters`: Support for parameters white-listing in
-  combination with Active Model mass assignment.
-- `ActionController::ParamsWrapper`: Wraps the parameters hash into a nested hash
-  so you don't have to specify root elements sending POST requests for instance.
+  guide](active_support_instrumentation.html#action-controller) for
+more information regarding this).
+- `ActionController::ParamsWrapper`: Wraps the parameters hash into a nested hash, 
+  so that you don't have to specify root elements sending POST requests for instance.
 
 Other plugins may add additional modules. You can get a list of all modules
 included into `ActionController::API` in the rails console:
@@ -389,6 +394,13 @@ included into `ActionController::API` in the rails console:
 ```bash
 $ bin/rails c
 >> ActionController::API.ancestors - ActionController::Metal.ancestors
+=> [ActionController::API, 
+    ActiveRecord::Railties::ControllerRuntime, 
+    ActionDispatch::Routing::RouteSet::MountedHelpers, 
+    ActionController::ParamsWrapper, 
+    ... , 
+    AbstractController::Rendering, 
+    ActionView::ViewPaths]
 ```
 
 ### Adding Other Modules
@@ -403,10 +415,10 @@ Some common modules you might want to add:
   and translation methods.
 - `ActionController::HttpAuthentication::Basic` (or `Digest` or `Token`): Support
   for basic, digest or token HTTP authentication.
-- `AbstractController::Layouts`: Support for layouts when rendering.
+- `ActionView::Layouts`: Support for layouts when rendering.
 - `ActionController::MimeResponds`: Support for `respond_to`.
 - `ActionController::Cookies`: Support for `cookies`, which includes
   support for signed and encrypted cookies. This requires the cookies middleware.
 
-The best place to add a module is in your `ApplicationController` but you can
+The best place to add a module is in your `ApplicationController`, but you can
 also add modules to individual controllers.

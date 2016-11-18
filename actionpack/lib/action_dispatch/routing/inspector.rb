@@ -1,5 +1,5 @@
-require 'delegate'
-require 'active_support/core_ext/string/strip'
+require "delegate"
+require "active_support/core_ext/string/strip"
 
 module ActionDispatch
   module Routing
@@ -33,15 +33,15 @@ module ActionDispatch
       end
 
       def controller
-        requirements[:controller] || ':controller'
+        parts.include?(:controller) ? ":controller" : requirements[:controller]
       end
 
       def action
-        requirements[:action] || ':action'
+        parts.include?(:action) ? ":action" : requirements[:action]
       end
 
       def internal?
-        controller.to_s =~ %r{\Arails/(info|mailers|welcome)}
+        internal
       end
 
       def engine?
@@ -51,7 +51,7 @@ module ActionDispatch
 
     ##
     # This class is just used for displaying route information when someone
-    # executes `rake routes` or looks at the RoutingError page.
+    # executes `rails routes` or looks at the RoutingError page.
     # People should not use this class.
     class RoutesInspector # :nodoc:
       def initialize(routes)
@@ -60,12 +60,10 @@ module ActionDispatch
       end
 
       def format(formatter, filter = nil)
-        routes_to_display = filter_routes(filter)
-
+        routes_to_display = filter_routes(normalize_filter(filter))
         routes = collect_routes(routes_to_display)
-
         if routes.none?
-          formatter.no_routes(collect_routes(@routes), filter)
+          formatter.no_routes(collect_routes(@routes))
           return formatter.result
         end
 
@@ -82,38 +80,48 @@ module ActionDispatch
 
       private
 
-      def filter_routes(filter)
-        if filter
-          filter_name = filter.underscore.sub(/_controller$/, '')
-          @routes.select { |route| route.defaults[:controller] == filter_name }
-        else
-          @routes
+        def normalize_filter(filter)
+          if filter.is_a?(Hash) && filter[:controller]
+            { controller: /#{filter[:controller].downcase.sub(/_?controller\z/, '').sub('::', '/')}/ }
+          elsif filter
+            { controller: /#{filter}/, action: /#{filter}/, verb: /#{filter}/, name: /#{filter}/, path: /#{filter}/ }
+          end
         end
-      end
 
-      def collect_routes(routes)
-        routes.collect do |route|
-          RouteWrapper.new(route)
-        end.reject(&:internal?).collect do |route|
-          collect_engine_routes(route)
-
-          { name: route.name,
-            verb: route.verb,
-            path: route.path,
-            reqs: route.reqs }
+        def filter_routes(filter)
+          if filter
+            @routes.select do |route|
+              route_wrapper = RouteWrapper.new(route)
+              filter.any? { |default, value| route_wrapper.send(default) =~ value }
+            end
+          else
+            @routes
+          end
         end
-      end
 
-      def collect_engine_routes(route)
-        name = route.endpoint
-        return unless route.engine?
-        return if @engines[name]
+        def collect_routes(routes)
+          routes.collect do |route|
+            RouteWrapper.new(route)
+          end.reject(&:internal?).collect do |route|
+            collect_engine_routes(route)
 
-        routes = route.rack_app.routes
-        if routes.is_a?(ActionDispatch::Routing::RouteSet)
-          @engines[name] = collect_routes(routes.routes)
+            { name: route.name,
+              verb: route.verb,
+              path: route.path,
+              reqs: route.reqs }
+          end
         end
-      end
+
+        def collect_engine_routes(route)
+          name = route.endpoint
+          return unless route.engine?
+          return if @engines[name]
+
+          routes = route.rack_app.routes
+          if routes.is_a?(ActionDispatch::Routing::RouteSet)
+            @engines[name] = collect_routes(routes.routes)
+          end
+        end
     end
 
     class ConsoleFormatter
@@ -137,7 +145,7 @@ module ActionDispatch
         @buffer << draw_header(routes)
       end
 
-      def no_routes(routes, filter)
+      def no_routes(routes)
         @buffer <<
         if routes.none?
           <<-MESSAGE.strip_heredoc
@@ -145,8 +153,6 @@ module ActionDispatch
 
           Please add some routes in config/routes.rb.
           MESSAGE
-        elsif missing_controller?(filter)
-          "The controller #{filter} does not exist!"
         else
           "No routes were found for this controller"
         end
@@ -154,12 +160,8 @@ module ActionDispatch
       end
 
       private
-        def missing_controller?(controller_name)
-          [ controller_name.camelize, "#{controller_name.camelize}Controller" ].none?(&:safe_constantize)
-        end
-
         def draw_section(routes)
-          header_lengths = ['Prefix', 'Verb', 'URI Pattern'].map(&:length)
+          header_lengths = ["Prefix", "Verb", "URI Pattern"].map(&:length)
           name_width, verb_width, path_width = widths(routes).zip(header_lengths).map(&:max)
 
           routes.map do |r|

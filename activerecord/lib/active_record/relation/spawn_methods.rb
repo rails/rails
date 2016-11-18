@@ -1,10 +1,9 @@
-require 'active_support/core_ext/hash/except'
-require 'active_support/core_ext/hash/slice'
-require 'active_record/relation/merger'
+require "active_support/core_ext/hash/except"
+require "active_support/core_ext/hash/slice"
+require "active_record/relation/merger"
 
 module ActiveRecord
   module SpawnMethods
-
     # This is overridden by Associations::CollectionProxy
     def spawn #:nodoc:
       clone
@@ -29,7 +28,7 @@ module ActiveRecord
     # This is mainly intended for sharing common conditions between multiple associations.
     def merge(other)
       if other.is_a?(Array)
-        to_a & other
+        records & other
       elsif other
         spawn.merge!(other)
       else

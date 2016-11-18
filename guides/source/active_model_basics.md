@@ -13,7 +13,7 @@ After reading this guide, you will know:
 * How an Active Record model behaves.
 * How Callbacks and validations work.
 * How serializers work.
-* The Rails internationalization (i18n) framework.
+* How Active Model integrates with the Rails internationalization (i18n) framework.
 
 --------------------------------------------------------------------------------
 
@@ -319,7 +319,7 @@ person.serializable_hash   # => {"name"=>"Bob"}
 
 #### ActiveModel::Serializers
 
-Rails provides a `ActiveModel::Serializers::JSON` serializer.
+Rails provides an `ActiveModel::Serializers::JSON` serializer.
 This module automatically include the `ActiveModel::Serialization`.
 
 ##### ActiveModel::Serializers::JSON
@@ -416,7 +416,6 @@ the Active Model API.
     ```ruby
     class Person
       include ActiveModel::Model
-
     end
     ```
 
@@ -467,7 +466,7 @@ In order to make this work, the model must have an accessor named `password_dige
 The `has_secure_password` will add the following validations on the `password` accessor:
 
 1. Password should be present.
-2. Password should be equal to its confirmation.
+2. Password should be equal to its confirmation (provided +password_confirmation+ is passed along).
 3. The maximum length of a password is 72 (required by `bcrypt` on which ActiveModel::SecurePassword depends)
 
 #### Examples
@@ -492,6 +491,10 @@ person.valid? # => false
 # When the length of password exceeds 72.
 person.password = person.password_confirmation = 'a' * 100
 person.valid? # => false
+
+# When only password is supplied with no password_confirmation.
+person.password = 'aditya'
+person.valid? # => true
 
 # When all validations are passed.
 person.password = person.password_confirmation = 'aditya'

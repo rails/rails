@@ -1,4 +1,4 @@
-require 'action_dispatch/journey/visitors'
+require "action_dispatch/journey/visitors"
 
 module ActionDispatch
   module Journey # :nodoc:
@@ -18,7 +18,7 @@ module ActionDispatch
         end
 
         def to_s
-          Visitors::String::INSTANCE.accept(self, '')
+          Visitors::String::INSTANCE.accept(self, "")
         end
 
         def to_dot
@@ -30,7 +30,7 @@ module ActionDispatch
         end
 
         def name
-          left.tr '*:'.freeze, ''.freeze
+          left.tr "*:".freeze, "".freeze
         end
 
         def type
@@ -80,7 +80,7 @@ module ActionDispatch
         def initialize(left)
           super
           @regexp = DEFAULT_EXP
-          @name = left.tr '*:'.freeze, ''.freeze
+          @name = left.tr "*:".freeze, "".freeze
         end
 
         def default_regexp?
@@ -104,7 +104,7 @@ module ActionDispatch
         def type; :STAR; end
 
         def name
-          left.name.tr '*:', ''
+          left.name.tr "*:", ""
         end
       end
 

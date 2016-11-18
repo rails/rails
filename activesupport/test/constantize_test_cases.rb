@@ -1,4 +1,4 @@
-require 'dependencies_test_helpers'
+require "dependencies_test_helpers"
 
 module Ace
   module Base
@@ -100,10 +100,10 @@ module ConstantizeTestCases
     assert_nil yield("Ace::Gas::ConstantizeTestCases")
     assert_nil yield("#<Class:0x7b8b718b>::Nested_1")
     assert_nil yield("Ace::gas")
-    assert_nil yield('Object::ABC')
-    assert_nil yield('Object::Object::Object::ABC')
-    assert_nil yield('A::Object::B')
-    assert_nil yield('A::Object::Object::Object::B')
+    assert_nil yield("Object::ABC")
+    assert_nil yield("Object::Object::Object::ABC")
+    assert_nil yield("A::Object::B")
+    assert_nil yield("A::Object::Object::Object::B")
 
     assert_raises(NameError) do
       with_autoloading_fixtures do

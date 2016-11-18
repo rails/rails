@@ -1,6 +1,6 @@
-require 'abstract_unit'
-require 'active_support/core_ext/marshal'
-require 'dependencies_test_helpers'
+require "abstract_unit"
+require "active_support/core_ext/marshal"
+require "dependencies_test_helpers"
 
 class MarshalTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation
@@ -12,7 +12,7 @@ class MarshalTest < ActiveSupport::TestCase
   end
 
   test "that Marshal#load still works" do
-    sanity_data = ["test", [1, 2, 3], {a: [1, 2, 3]}, ActiveSupport::TestCase]
+    sanity_data = ["test", [1, 2, 3], { a: [1, 2, 3] }, ActiveSupport::TestCase]
     sanity_data.each do |obj|
       dumped = Marshal.dump(obj)
       assert_equal Marshal.method(:load).super_method.call(dumped), Marshal.load(dumped)
@@ -29,7 +29,12 @@ class MarshalTest < ActiveSupport::TestCase
     ActiveSupport::Dependencies.clear
 
     with_autoloading_fixtures do
-      assert_kind_of EM, Marshal.load(dumped)
+      object = nil
+      assert_nothing_raised do
+        object = Marshal.load(dumped)
+      end
+
+      assert_kind_of EM, object
     end
   end
 
@@ -43,7 +48,12 @@ class MarshalTest < ActiveSupport::TestCase
     ActiveSupport::Dependencies.clear
 
     with_autoloading_fixtures do
-      assert_kind_of ClassFolder::ClassFolderSubclass, Marshal.load(dumped)
+      object = nil
+      assert_nothing_raised do
+        object = Marshal.load(dumped)
+      end
+
+      assert_kind_of ClassFolder::ClassFolderSubclass, object
     end
   end
 
@@ -62,6 +72,17 @@ class MarshalTest < ActiveSupport::TestCase
       assert_kind_of EM, loaded[0]
       assert_kind_of ClassFolder, loaded[1]
     end
+  end
+
+  test "when one constant resolves to another" do
+    class Parent; C = Class.new; end
+    class Child < Parent; C = Class.new; end
+
+    dump = Marshal.dump(Child::C.new)
+
+    Child.send(:remove_const, :C)
+
+    assert_raise(ArgumentError) { Marshal.load(dump) }
   end
 
   test "that a real missing class is causing an exception" do
@@ -96,7 +117,7 @@ class MarshalTest < ActiveSupport::TestCase
         Marshal.load(dumped)
       end
 
-      assert_nothing_raised("EM failed to load while we expect only SomeClass to fail loading") do
+      assert_nothing_raised do
         EM.new
       end
 
@@ -117,7 +138,12 @@ class MarshalTest < ActiveSupport::TestCase
       ActiveSupport::Dependencies.clear
 
       with_autoloading_fixtures do
-        assert_kind_of EM, Marshal.load(f)
+        object = nil
+        assert_nothing_raised do
+          object = Marshal.load(f)
+        end
+
+        assert_kind_of EM, object
       end
     end
   end

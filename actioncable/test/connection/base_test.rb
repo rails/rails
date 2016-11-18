@@ -1,5 +1,6 @@
-require 'test_helper'
-require 'stubs/test_server'
+require "test_helper"
+require "stubs/test_server"
+require "active_support/core_ext/object/json"
 
 class ActionCable::Connection::BaseTest < ActionCable::TestCase
   class Connection < ActionCable::Connection::Base
@@ -37,6 +38,8 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
       connection.process
 
       assert connection.websocket.possible?
+
+      wait_for_async
       assert connection.websocket.alive?
     end
   end
@@ -53,16 +56,15 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
   test "on connection open" do
     run_in_eventmachine do
       connection = open_connection
-      connection.process
 
-      connection.websocket.expects(:transmit).with(regexp_matches(/\_ping/))
+      connection.websocket.expects(:transmit).with({ type: "welcome" }.to_json)
       connection.message_buffer.expects(:process!)
 
-      # Allow EM to run on_open callback
-      EM.next_tick do
-        assert_equal [ connection ], @server.connections
-        assert connection.connected
-      end
+      connection.process
+      wait_for_async
+
+      assert_equal [ connection ], @server.connections
+      assert connection.connected
     end
   end
 
@@ -72,12 +74,12 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
       connection.process
 
       # Setup the connection
-      EventMachine.stubs(:add_periodic_timer).returns(true)
-      connection.send :on_open
+      connection.server.stubs(:timer).returns(true)
+      connection.send :handle_open
       assert connection.connected
 
       connection.subscriptions.expects(:unsubscribe_from_all)
-      connection.send :on_close
+      connection.send :handle_close
 
       assert ! connection.connected
       assert_equal [], @server.connections
@@ -107,10 +109,30 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
     end
   end
 
+  test "rejecting a connection causes a 404" do
+    run_in_eventmachine do
+      class CallMeMaybe
+        def call(*)
+          raise "Do not call me!"
+        end
+      end
+
+      env = Rack::MockRequest.env_for(
+        "/test",
+        "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket",
+          "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.org", "rack.hijack" => CallMeMaybe.new
+      )
+
+      connection = ActionCable::Connection::Base.new(@server, env)
+      response = connection.process
+      assert_equal 404, response[0]
+    end
+  end
+
   private
     def open_connection
-      env = Rack::MockRequest.env_for "/test", 'HTTP_CONNECTION' => 'upgrade', 'HTTP_UPGRADE' => 'websocket',
-        'HTTP_ORIGIN' => 'http://rubyonrails.com'
+      env = Rack::MockRequest.env_for "/test", "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket",
+        "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.com"
 
       Connection.new(@server, env)
     end

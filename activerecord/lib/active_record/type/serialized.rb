@@ -32,7 +32,7 @@ module ActiveRecord
 
       def changed_in_place?(raw_old_value, value)
         return false if value.nil?
-        raw_new_value = serialize(value)
+        raw_new_value = encoded(value)
         raw_old_value.nil? != raw_new_value.nil? ||
           subtype.changed_in_place?(raw_old_value, raw_new_value)
       end
@@ -49,9 +49,15 @@ module ActiveRecord
 
       private
 
-      def default_value?(value)
-        value == coder.load(nil)
-      end
+        def default_value?(value)
+          value == coder.load(nil)
+        end
+
+        def encoded(value)
+          unless default_value?(value)
+            coder.dump(value)
+          end
+        end
     end
   end
 end

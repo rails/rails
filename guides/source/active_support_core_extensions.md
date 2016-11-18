@@ -252,7 +252,7 @@ Note that `try` will swallow no-method errors, returning nil instead. If you wan
 
 ```ruby
 @number.try(:nest)  # => nil
-@number.try!(:nest) # NoMethodError: undefined method `nest' for 1:Fixnum
+@number.try!(:nest) # NoMethodError: undefined method `nest' for 1:Integer
 ```
 
 NOTE: Defined in `active_support/core_ext/object/try.rb`.
@@ -368,7 +368,7 @@ account.to_query('company[name]')
 
 so its output is ready to be used in a query string.
 
-Arrays return the result of applying `to_query` to each element with `_key_[]` as key, and join the result with "&":
+Arrays return the result of applying `to_query` to each element with `key[]` as key, and join the result with "&":
 
 ```ruby
 [3.4, -45.6].to_query('sample')
@@ -511,56 +511,6 @@ NOTE: Defined in `active_support/core_ext/object/inclusion.rb`.
 Extensions to `Module`
 ----------------------
 
-### `alias_method_chain`
-
-**This method is deprecated in favour of using Module#prepend.**
-
-Using plain Ruby you can wrap methods with other methods, that's called _alias chaining_.
-
-For example, let's say you'd like params to be strings in functional tests, as they are in real requests, but still want the convenience of assigning integers and other kind of values. To accomplish that you could wrap `ActionDispatch::IntegrationTest#process` this way in `test/test_helper.rb`:
-
-```ruby
-ActionDispatch::IntegrationTest.class_eval do
-  # save a reference to the original process method
-  alias_method :original_process, :process
-
-  # now redefine process and delegate to original_process
-  def process('GET', path, params: nil, headers: nil, env: nil, xhr: false)
-    params = Hash[*params.map {|k, v| [k, v.to_s]}.flatten]
-    original_process('GET', path, params: params)
-  end
-end
-```
-
-That's the method `get`, `post`, etc., delegate the work to.
-
-That technique has a risk, it could be the case that `:original_process` was taken. To try to avoid collisions people choose some label that characterizes what the chaining is about:
-
-```ruby
-ActionDispatch::IntegrationTest.class_eval do
-  def process_with_stringified_params(...)
-    params = Hash[*params.map {|k, v| [k, v.to_s]}.flatten]
-    process_without_stringified_params(method, path, params: params)
-  end
-  alias_method :process_without_stringified_params, :process
-  alias_method :process, :process_with_stringified_params
-end
-```
-
-The method `alias_method_chain` provides a shortcut for that pattern:
-
-```ruby
-ActionDispatch::IntegrationTest.class_eval do
-  def process_with_stringified_params(...)
-    params = Hash[*params.map {|k, v| [k, v.to_s]}.flatten]
-    process_without_stringified_params(method, path, params: params)
-  end
-  alias_method_chain :process, :stringified_params
-end
-```
-
-NOTE: Defined in `active_support/core_ext/module/aliasing.rb`.
-
 ### Attributes
 
 #### `alias_attribute`
@@ -632,8 +582,6 @@ module ActiveSupport
     mattr_accessor :load_once_paths
     mattr_accessor :autoloaded_constants
     mattr_accessor :explicitly_unloadable_constants
-    mattr_accessor :logger
-    mattr_accessor :log_activity
     mattr_accessor :constant_watch_stack
     mattr_accessor :constant_watch_stack_mutex
   end
@@ -708,87 +656,6 @@ M.parents       # => [X::Y, X, Object]
 ```
 
 NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
-
-### Constants
-
-The method `local_constants` returns the names of the constants that have been
-defined in the receiver module:
-
-```ruby
-module X
-  X1 = 1
-  X2 = 2
-  module Y
-    Y1 = :y1
-    X1 = :overrides_X1_above
-  end
-end
-
-X.local_constants    # => [:X1, :X2, :Y]
-X::Y.local_constants # => [:Y1, :X1]
-```
-
-The names are returned as symbols.
-
-NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
-
-#### Qualified Constant Names
-
-The standard methods `const_defined?`, `const_get`, and `const_set` accept
-bare constant names. Active Support extends this API to be able to pass
-relative qualified constant names.
-
-The new methods are `qualified_const_defined?`, `qualified_const_get`, and
-`qualified_const_set`. Their arguments are assumed to be qualified constant
-names relative to their receiver:
-
-```ruby
-Object.qualified_const_defined?("Math::PI")       # => true
-Object.qualified_const_get("Math::PI")            # => 3.141592653589793
-Object.qualified_const_set("Math::Phi", 1.618034) # => 1.618034
-```
-
-Arguments may be bare constant names:
-
-```ruby
-Math.qualified_const_get("E") # => 2.718281828459045
-```
-
-These methods are analogous to their built-in counterparts. In particular,
-`qualified_constant_defined?` accepts an optional second argument to be
-able to say whether you want the predicate to look in the ancestors.
-This flag is taken into account for each constant in the expression while
-walking down the path.
-
-For example, given
-
-```ruby
-module M
-  X = 1
-end
-
-module N
-  class C
-    include M
-  end
-end
-```
-
-`qualified_const_defined?` behaves this way:
-
-```ruby
-N.qualified_const_defined?("C::X", false) # => false
-N.qualified_const_defined?("C::X", true)  # => true
-N.qualified_const_defined?("C::X")        # => true
-```
-
-As the last example implies, the second argument defaults to true,
-as in `const_defined?`.
-
-For coherence with the built-in methods only relative paths are accepted.
-Absolute qualified constant names like `::Math::PI` raise `NameError`.
-
-NOTE: Defined in `active_support/core_ext/module/qualified_const.rb`.
 
 ### Reachable
 
@@ -1037,7 +904,8 @@ class A
   class_attribute :x, instance_reader: false
 end
 
-A.new.x = 1 # NoMethodError
+A.new.x = 1
+A.new.x # NoMethodError
 ```
 
 For convenience `class_attribute` also defines an instance predicate which is the double negation of what the instance reader returns. In the examples above it would be called `x?`.
@@ -1686,19 +1554,6 @@ Given a string with a qualified constant reference expression, `deconstantize` r
 "Admin::Hotel::ReservationUtils".deconstantize # => "Admin::Hotel"
 ```
 
-Active Support for example uses this method in `Module#qualified_const_set`:
-
-```ruby
-def qualified_const_set(path, value)
-  QualifiedConstUtils.raise_if_absolute(path)
-
-  const_name = path.demodulize
-  mod_name = path.deconstantize
-  mod = mod_name.empty? ? self : qualified_const_get(mod_name)
-  mod.const_set(const_name, value)
-end
-```
-
 NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
 #### `parameterize`
@@ -1767,7 +1622,7 @@ NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 The method `constantize` resolves the constant reference expression in its receiver:
 
 ```ruby
-"Fixnum".constantize # => Fixnum
+"Integer".constantize # => Integer
 
 module M
   X = 1
@@ -2131,7 +1986,7 @@ Addition only assumes the elements respond to `+`:
 ```ruby
 [[1, 2], [2, 3], [3, 4]].sum    # => [1, 2, 2, 3, 3, 4]
 %w(foo bar baz).sum             # => "foobarbaz"
-{a: 1, b: 2, c: 3}.sum # => [:b, 2, :c, 3, :a, 1]
+{a: 1, b: 2, c: 3}.sum          # => [:b, 2, :c, 3, :a, 1]
 ```
 
 The sum of an empty collection is zero by default, but this is customizable:
@@ -2240,7 +2095,7 @@ Similarly, `from` returns the tail from the element at the passed index to the e
 [].from(0)           # => []
 ```
 
-The methods `second`, `third`, `fourth`, and `fifth` return the corresponding element (`first` is built-in). Thanks to social wisdom and positive constructiveness all around, `forty_two` is also available.
+The methods `second`, `third`, `fourth`, and `fifth` return the corresponding element, as do `second_to_last` and `third_to_last` (`first` and `last` are built-in). Thanks to social wisdom and positive constructiveness all around, `forty_two` is also available.
 
 ```ruby
 %w(a b c d).third # => "c"
@@ -2374,7 +2229,7 @@ Contributor.limit(2).order(:rank).to_xml
 
 To do so it sends `to_xml` to every item in turn, and collects the results under a root node. All items must respond to `to_xml`, an exception is raised otherwise.
 
-By default, the name of the root element is the underscorized and dasherized plural of the name of the class of the first item, provided the rest of elements belong to that type (checked with `is_a?`) and they are not hashes. In the example above that's "contributors".
+By default, the name of the root element is the underscored and dasherized plural of the name of the class of the first item, provided the rest of elements belong to that type (checked with `is_a?`) and they are not hashes. In the example above that's "contributors".
 
 If there's any element that does not belong to the type of the first one the root node becomes "objects":
 
@@ -2636,8 +2491,7 @@ To do so, the method loops over the pairs and builds nodes that depend on the _v
 ```ruby
 XML_TYPE_NAMES = {
   "Symbol"     => "symbol",
-  "Fixnum"     => "integer",
-  "Bignum"     => "integer",
+  "Integer"    => "integer",
   "BigDecimal" => "decimal",
   "Float"      => "float",
   "TrueClass"  => "boolean",
@@ -2757,7 +2611,7 @@ The method `transform_keys` accepts a block and returns a hash that has applied 
 
 ```ruby
 {nil => nil, 1 => 1, a: :a}.transform_keys { |key| key.to_s.upcase }
-# => {"" => nil, "A" => :a, "1" => 1}
+# => {"" => nil, "1" => 1, "A" => :a}
 ```
 
 In case of key collision, one of the values will be chosen. The chosen value may not always be the same given the same hash:
@@ -2799,7 +2653,7 @@ The method `stringify_keys` returns a hash that has a stringified version of the
 
 ```ruby
 {nil => nil, 1 => 1, a: :a}.stringify_keys
-# => {"" => nil, "a" => :a, "1" => 1}
+# => {"" => nil, "1" => 1, "a" => :a}
 ```
 
 In case of key collision, one of the values will be chosen. The chosen value may not always be the same given the same hash:
@@ -2841,7 +2695,7 @@ The method `symbolize_keys` returns a hash that has a symbolized version of the 
 
 ```ruby
 {nil => nil, 1 => 1, "a" => "a"}.symbolize_keys
-# => {1=>1, nil=>nil, :a=>"a"}
+# => {nil=>nil, 1=>1, :a=>"a"}
 ```
 
 WARNING. Note in the previous example only one key was symbolized.
@@ -2918,7 +2772,7 @@ Ruby has built-in support for taking slices out of strings and arrays. Active Su
 
 ```ruby
 {a: 1, b: 2, c: 3}.slice(:a, :c)
-# => {:c=>3, :a=>1}
+# => {:a=>1, :c=>3}
 
 {a: 1, b: 2, c: 3}.slice(:b, :X)
 # => {:b=>2} # non-existing keys are ignored
@@ -3012,6 +2866,24 @@ end
 
 NOTE: Defined in `active_support/core_ext/regexp.rb`.
 
+### `match?`
+
+Rails implements `Regexp#match?` for Ruby versions prior to 2.4:
+
+```ruby
+/oo/.match?('foo')    # => true
+/oo/.match?('bar')    # => false
+/oo/.match?('foo', 1) # => true
+```
+
+The backport has the same interface and lack of side-effects in the caller like
+not setting `$1` and friends, but it does not have the speed benefits. Its
+purpose is to be able to write 2.4 compatible code. Rails itself uses this
+predicate internally for example.
+
+Active Support defines `Regexp#match?` only if not present, so code running
+under 2.4 or later does run the original one and gets the performance boost.
+
 Extensions to `Range`
 ---------------------
 
@@ -3078,7 +2950,7 @@ INFO: The following calculation methods have edge cases in October 1582, since d
 
 #### `Date.current`
 
-Active Support defines `Date.current` to be today in the current time zone. That's like `Date.today`, except that it honors the user time zone, if defined. It also defines `Date.yesterday` and `Date.tomorrow`, and the instance predicates `past?`, `today?`, and `future?`, all of them relative to `Date.current`.
+Active Support defines `Date.current` to be today in the current time zone. That's like `Date.today`, except that it honors the user time zone, if defined. It also defines `Date.yesterday` and `Date.tomorrow`, and the instance predicates `past?`, `today?`, `future?`, `on_weekday?` and `on_weekend?`, all of them relative to `Date.current`.
 
 When making Date comparisons using methods which honor the user time zone, make sure to use `Date.current` and not `Date.today`. There are cases where the user time zone might be in the future compared to the system time zone, which `Date.today` uses by default. This means `Date.today` may equal `Date.yesterday`.
 
@@ -3467,6 +3339,8 @@ years_ago
 years_since
 prev_year (last_year)
 next_year
+on_weekday?
+on_weekend?
 ```
 
 The following methods are reimplemented so you do **not** need to load `active_support/core_ext/date/calculations.rb` for these ones:
@@ -3653,6 +3527,8 @@ years_ago
 years_since
 prev_year (last_year)
 next_year
+on_weekday?
+on_weekend?
 ```
 
 They are analogous. Please refer to their documentation above and take into account the following differences:

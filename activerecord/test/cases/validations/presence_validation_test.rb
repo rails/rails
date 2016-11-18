@@ -1,9 +1,9 @@
 require "cases/helper"
-require 'models/man'
-require 'models/face'
-require 'models/interest'
-require 'models/speedometer'
-require 'models/dashboard'
+require "models/man"
+require "models/face"
+require "models/interest"
+require "models/speedometer"
+require "models/dashboard"
 
 class PresenceValidationTest < ActiveRecord::TestCase
   class Boy < Man; end
@@ -57,7 +57,7 @@ class PresenceValidationTest < ActiveRecord::TestCase
     dash = Dashboard.new
 
     # dashboard has to_a method
-    def dash.to_a; ['(/)', '(\)']; end
+    def dash.to_a; ["(/)", '(\)']; end
 
     s = speedometer.new
     s.dashboard = dash
@@ -65,19 +65,39 @@ class PresenceValidationTest < ActiveRecord::TestCase
     assert_nothing_raised { s.valid? }
   end
 
-  def test_does_not_validate_presence_of_if_parent_record_is_validate_false
+  def test_validates_presence_of_virtual_attribute_on_model
     repair_validations(Interest) do
+      Interest.send(:attr_accessor, :abbreviation)
       Interest.validates_presence_of(:topic)
-      interest = Interest.new
-      interest.save!(validate: false)
-      assert interest.persisted?
+      Interest.validates_presence_of(:abbreviation)
 
-      man = Man.new(interest_ids: [interest.id])
-      man.save!
-
-      assert_equal man.interests.size, 1
+      interest = Interest.create!(topic: "Thought Leadering", abbreviation: "tl")
       assert interest.valid?
-      assert man.valid?
+
+      interest.abbreviation = ""
+
+      assert interest.invalid?
+    end
+  end
+
+  def test_validations_run_on_persisted_record
+    repair_validations(Interest) do
+      interest = Interest.new
+      interest.save!
+      assert_predicate interest, :valid?
+
+      Interest.validates_presence_of(:topic)
+
+      assert_not_predicate interest, :valid?
+    end
+  end
+
+  def test_validates_presence_with_on_context
+    repair_validations(Interest) do
+      Interest.validates_presence_of(:topic, on: :required_name)
+      interest = Interest.new
+      interest.save!
+      assert_not interest.valid?(:required_name)
     end
   end
 end

@@ -1,5 +1,4 @@
 module ActiveRecord
-
   # = Active Record Errors
   #
   # Generic Active Record exception class.
@@ -44,7 +43,7 @@ module ActiveRecord
 
   # Raised when connection to the database could not been established (for example when
   # {ActiveRecord::Base.connection=}[rdoc-ref:ConnectionHandling#connection]
-  # is given a nil object).
+  # is given a +nil+ object).
   class ConnectionNotEstablished < ActiveRecordError
   end
 
@@ -96,7 +95,6 @@ module ActiveRecord
   #
   # Wraps the underlying database error as +cause+.
   class StatementInvalid < ActiveRecordError
-
     def initialize(message = nil, original_exception = nil)
       if original_exception
         ActiveSupport::Deprecation.warn("Passing #original_exception is deprecated and has no effect. " \
@@ -125,6 +123,10 @@ module ActiveRecord
   class InvalidForeignKey < WrappedDatabaseException
   end
 
+  # Raised when a record cannot be inserted or updated because a value too long for a column type.
+  class ValueTooLong < StatementInvalid
+  end
+
   # Raised when number of bind variables in statement given to +:condition+ key
   # (for example, when using {ActiveRecord::Base.find}[rdoc-ref:FinderMethods#find] method)
   # does not match number of expected values supplied.
@@ -137,6 +139,11 @@ module ActiveRecord
 
   # Raised when a given database does not exist.
   class NoDatabaseError < StatementInvalid
+  end
+
+  # Raised when Postgres returns 'cached plan must not change result type' and
+  # we cannot retry gracefully (e.g. inside a transaction)
+  class PreparedStatementCacheExpired < StatementInvalid
   end
 
   # Raised on attempt to save stale record. Record is stale when it's being saved in another query after
@@ -157,7 +164,6 @@ module ActiveRecord
         super("Stale object error.")
       end
     end
-
   end
 
   # Raised when association is being configured improperly or user tries to use
@@ -274,5 +280,30 @@ module ActiveRecord
   #
   # The mysql2 and postgresql adapters support setting the transaction isolation level.
   class TransactionIsolationError < ActiveRecordError
+  end
+
+  # TransactionRollbackError will be raised when a transaction is rolled
+  # back by the database due to a serialization failure or a deadlock.
+  #
+  # See the following:
+  #
+  # * http://www.postgresql.org/docs/current/static/transaction-iso.html
+  # * https://dev.mysql.com/doc/refman/5.7/en/error-messages-server.html#error_er_lock_deadlock
+  class TransactionRollbackError < StatementInvalid
+  end
+
+  # SerializationFailure will be raised when a transaction is rolled
+  # back by the database due to a serialization failure.
+  class SerializationFailure < TransactionRollbackError
+  end
+
+  # Deadlocked will be raised when a transaction is rolled
+  # back by the database when a deadlock is encountered.
+  class Deadlocked < TransactionRollbackError
+  end
+
+  # IrreversibleOrderError is raised when a relation's order is too complex for
+  # +reverse_order+ to automatically reverse.
+  class IrreversibleOrderError < ActiveRecordError
   end
 end

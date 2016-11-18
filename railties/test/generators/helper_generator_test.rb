@@ -1,5 +1,5 @@
-require 'generators/generators_test_helper'
-require 'rails/generators/rails/helper/helper_generator'
+require "generators/generators_test_helper"
+require "rails/generators/rails/helper/helper_generator"
 
 ObjectHelper = Class.new
 AnotherObjectHelperTest = Class.new
@@ -14,7 +14,7 @@ class HelperGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_check_class_collision
-    content = capture(:stderr){ run_generator ["object"] }
+    content = capture(:stderr) { run_generator ["object"] }
     assert_match(/The name 'ObjectHelper' is either already used in your application or reserved/, content)
   end
 

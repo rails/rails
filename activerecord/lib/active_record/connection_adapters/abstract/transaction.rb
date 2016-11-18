@@ -41,7 +41,6 @@ module ActiveRecord
     end
 
     class Transaction #:nodoc:
-
       attr_reader :connection, :state, :records, :savepoint_name
       attr_writer :joinable
 
@@ -101,7 +100,6 @@ module ActiveRecord
     end
 
     class SavepointTransaction < Transaction
-
       def initialize(connection, savepoint_name, options, *args)
         super(connection, options, *args)
         if options[:isolation]
@@ -124,7 +122,6 @@ module ActiveRecord
     end
 
     class RealTransaction < Transaction
-
       def initialize(connection, options, *args)
         super
         if options[:isolation]
@@ -167,8 +164,13 @@ module ActiveRecord
 
       def commit_transaction
         transaction = @stack.last
-        transaction.before_commit_records
-        @stack.pop
+
+        begin
+          transaction.before_commit_records
+        ensure
+          @stack.pop
+        end
+
         transaction.commit
         transaction.commit_records
       end
@@ -183,11 +185,14 @@ module ActiveRecord
         transaction = begin_transaction options
         yield
       rescue Exception => error
-        rollback_transaction if transaction
+        if transaction
+          rollback_transaction
+          after_failure_actions(transaction, error)
+        end
         raise
       ensure
         unless error
-          if Thread.current.status == 'aborting'
+          if Thread.current.status == "aborting"
             rollback_transaction if transaction
           else
             begin
@@ -209,7 +214,15 @@ module ActiveRecord
       end
 
       private
+
         NULL_TRANSACTION = NullTransaction.new
+
+        # Deallocate invalidated prepared statements outside of the transaction
+        def after_failure_actions(transaction, error)
+          return unless transaction.is_a?(RealTransaction)
+          return unless error.is_a?(ActiveRecord::PreparedStatementCacheExpired)
+          @connection.clear_cache!
+        end
     end
   end
 end

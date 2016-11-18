@@ -1,7 +1,7 @@
-require 'cgi'
-require 'action_view/helpers/tag_helper'
-require 'active_support/core_ext/string/output_safety'
-require 'active_support/core_ext/module/attribute_accessors'
+require "cgi"
+require "action_view/helpers/tag_helper"
+require "active_support/core_ext/string/output_safety"
+require "active_support/core_ext/module/attribute_accessors"
 
 module ActionView
   # = Action View Form Tag Helpers
@@ -134,18 +134,20 @@ module ActionView
 
         if options.include?(:include_blank)
           include_blank = options.delete(:include_blank)
+          options_for_blank_options_tag = { value: "" }
 
           if include_blank == true
-            include_blank = ''
+            include_blank = ""
+            options_for_blank_options_tag[:label] = " "
           end
 
           if include_blank
-            option_tags = content_tag("option".freeze, include_blank, value: '').safe_concat(option_tags)
+            option_tags = content_tag("option".freeze, include_blank, options_for_blank_options_tag).safe_concat(option_tags)
           end
         end
 
         if prompt = options.delete(:prompt)
-          option_tags = content_tag("option".freeze, prompt, value: '').safe_concat(option_tags)
+          option_tags = content_tag("option".freeze, prompt, value: "").safe_concat(option_tags)
         end
 
         content_tag "select".freeze, option_tags, { "name" => html_name, "id" => sanitize_to_id(name) }.update(options.stringify_keys)
@@ -516,12 +518,12 @@ module ActionView
           options ||= {}
         end
 
-        options = { 'name' => 'button', 'type' => 'submit' }.merge!(options.stringify_keys)
+        options = { "name" => "button", "type" => "submit" }.merge!(options.stringify_keys)
 
         if block_given?
           content_tag :button, options, &block
         else
-          content_tag :button, content_or_options || 'Button', options
+          content_tag :button, content_or_options || "Button", options
         end
       end
 
@@ -683,17 +685,6 @@ module ActionView
         text_field_tag(name, value, options.merge(type: :time))
       end
 
-      # Creates a text field of type "datetime".
-      #
-      # === Options
-      # * <tt>:min</tt> - The minimum acceptable value.
-      # * <tt>:max</tt> - The maximum acceptable value.
-      # * <tt>:step</tt> - The acceptable value granularity.
-      # * Otherwise accepts the same options as text_field_tag.
-      def datetime_field_tag(name, value = nil, options = {})
-        text_field_tag(name, value, options.merge(type: :datetime))
-      end
-
       # Creates a text field of type "datetime-local".
       #
       # === Options
@@ -701,9 +692,11 @@ module ActionView
       # * <tt>:max</tt> - The maximum acceptable value.
       # * <tt>:step</tt> - The acceptable value granularity.
       # * Otherwise accepts the same options as text_field_tag.
-      def datetime_local_field_tag(name, value = nil, options = {})
-        text_field_tag(name, value, options.merge(type: 'datetime-local'))
+      def datetime_field_tag(name, value = nil, options = {})
+        text_field_tag(name, value, options.merge(type: "datetime-local"))
       end
+
+      alias datetime_local_field_tag datetime_field_tag
 
       # Creates a text field of type "month".
       #
@@ -862,13 +855,14 @@ module ActionView
 
         def extra_tags_for_form(html_options)
           authenticity_token = html_options.delete("authenticity_token")
-          method = html_options.delete("method").to_s
+          method = html_options.delete("method").to_s.downcase
 
-          method_tag = case method
-            when /^get$/i # must be case-insensitive, but can't use downcase as might be nil
+          method_tag = \
+            case method
+            when "get"
               html_options["method"] = "get"
-              ''
-            when /^post$/i, "", nil
+              ""
+            when "post", ""
               html_options["method"] = "post"
               token_tag(authenticity_token, form_options: {
                 action: html_options["action"],
@@ -880,7 +874,7 @@ module ActionView
                 action: html_options["action"],
                 method: method
               })
-          end
+            end
 
           if html_options.delete("enforce_utf8") { true }
             utf8_enforcer_tag + method_tag
@@ -902,7 +896,7 @@ module ActionView
 
         # see http://www.w3.org/TR/html4/types.html#type-name
         def sanitize_to_id(name)
-          name.to_s.delete(']').tr('^-a-zA-Z0-9:.', "_")
+          name.to_s.delete("]").tr("^-a-zA-Z0-9:.", "_")
         end
     end
   end

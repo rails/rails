@@ -1,6 +1,6 @@
-require 'abstract_unit'
-require 'rails/test_unit/reporter'
-require 'minitest/mock'
+require "abstract_unit"
+require "rails/test_unit/reporter"
+require "minitest/mock"
 
 class TestUnitReporterTest < ActiveSupport::TestCase
   class ExampleTest < Minitest::Test
@@ -33,7 +33,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     @reporter.record(passing_test)
     @reporter.record(skipped_test)
     @reporter.report
-    assert_no_match 'Failed tests:', @output.string
+    assert_no_match "Failed tests:", @output.string
     assert_rerun_snippet_count 0
   end
 
@@ -62,7 +62,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     @reporter.record(failed_test)
     @reporter.report
 
-    expect = %r{\AF\n\nFailure:\nTestUnitReporterTest::ExampleTest#woot:\nboo\n\nbin/rails test test/test_unit/reporter_test.rb:\d+\n\n\z}
+    expect = %r{\AF\n\nFailure:\nTestUnitReporterTest::ExampleTest#woot \[[^\]]+\]:\nboo\n\nbin/rails test test/test_unit/reporter_test.rb:\d+\n\n\z}
     assert_match expect, @output.string
   end
 
@@ -79,7 +79,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     verbose.record(skipped_test)
     verbose.report
 
-    expect = %r{\ATestUnitReporterTest::ExampleTest#woot = 10\.00 s = S\n\n\nSkipped:\nTestUnitReporterTest::ExampleTest#woot:\nskipchurches, misstemples\n\nbin/rails test test/test_unit/reporter_test.rb:\d+\n\n\z}
+    expect = %r{\ATestUnitReporterTest::ExampleTest#woot = 10\.00 s = S\n\n\nSkipped:\nTestUnitReporterTest::ExampleTest#woot \[[^\]]+\]:\nskipchurches, misstemples\n\nbin/rails test test/test_unit/reporter_test.rb:\d+\n\n\z}
     assert_match expect, @output.string
   end
 
@@ -87,7 +87,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     @reporter.record(failed_test)
     @reporter.report
 
-    assert_no_match 'Failed tests:', @output.string
+    assert_no_match "Failed tests:", @output.string
   end
 
   test "fail fast interrupts run on failure" do
@@ -100,18 +100,29 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     rescue Interrupt
       interrupt_raised = true
     ensure
-      assert interrupt_raised, 'Expected Interrupt to be raised.'
+      assert interrupt_raised, "Expected Interrupt to be raised."
     end
   end
 
-  test "fail fast does not interrupt run errors or skips" do
+  test "fail fast interrupts run on error" do
+    fail_fast = Rails::TestUnitReporter.new @output, fail_fast: true
+    interrupt_raised = false
+
+    # Minitest passes through Interrupt, catch it manually.
+    begin
+      fail_fast.record(errored_test)
+    rescue Interrupt
+      interrupt_raised = true
+    ensure
+      assert interrupt_raised, "Expected Interrupt to be raised."
+    end
+  end
+
+  test "fail fast does not interrupt run skips" do
     fail_fast = Rails::TestUnitReporter.new @output, fail_fast: true
 
-    fail_fast.record(errored_test)
-    assert_no_match 'Failed tests:', @output.string
-
     fail_fast.record(skipped_test)
-    assert_no_match 'Failed tests:', @output.string
+    assert_no_match "Failed tests:", @output.string
   end
 
   test "outputs colored passing results" do
@@ -145,38 +156,38 @@ class TestUnitReporterTest < ActiveSupport::TestCase
   end
 
   private
-  def assert_rerun_snippet_count(snippet_count)
-    assert_equal snippet_count, @output.string.scan(%r{^bin/rails test }).size
-  end
+    def assert_rerun_snippet_count(snippet_count)
+      assert_equal snippet_count, @output.string.scan(%r{^bin/rails test }).size
+    end
 
-  def failed_test
-    ft = ExampleTest.new(:woot)
-    ft.failures << begin
-                     raise Minitest::Assertion, "boo"
-                   rescue Minitest::Assertion => e
-                     e
-                   end
-    ft
-  end
+    def failed_test
+      ft = ExampleTest.new(:woot)
+      ft.failures << begin
+                       raise Minitest::Assertion, "boo"
+                     rescue Minitest::Assertion => e
+                       e
+                     end
+      ft
+    end
 
-  def errored_test
-    et = ExampleTest.new(:woot)
-    et.failures << Minitest::UnexpectedError.new(ArgumentError.new("wups"))
-    et
-  end
+    def errored_test
+      et = ExampleTest.new(:woot)
+      et.failures << Minitest::UnexpectedError.new(ArgumentError.new("wups"))
+      et
+    end
 
-  def passing_test
-    ExampleTest.new(:woot)
-  end
+    def passing_test
+      ExampleTest.new(:woot)
+    end
 
-  def skipped_test
-    st = ExampleTest.new(:woot)
-    st.failures << begin
-                     raise Minitest::Skip, "skipchurches, misstemples"
-                   rescue Minitest::Assertion => e
-                     e
-                   end
-    st.time = 10
-    st
-  end
+    def skipped_test
+      st = ExampleTest.new(:woot)
+      st.failures << begin
+                       raise Minitest::Skip, "skipchurches, misstemples"
+                     rescue Minitest::Assertion => e
+                       e
+                     end
+      st.time = 10
+      st
+    end
 end

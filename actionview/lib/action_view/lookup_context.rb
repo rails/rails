@@ -1,7 +1,7 @@
-require 'concurrent/map'
-require 'active_support/core_ext/module/remove_method'
-require 'active_support/core_ext/module/attribute_accessors'
-require 'action_view/template/resolver'
+require "concurrent/map"
+require "active_support/core_ext/module/remove_method"
+require "active_support/core_ext/module/attribute_accessors"
+require "action_view/template/resolver"
 
 module ActionView
   # = Action View Lookup Context
@@ -21,8 +21,8 @@ module ActionView
     self.registered_details = []
 
     def self.register_detail(name, &block)
-      self.registered_details << name
-      initialize = registered_details.map { |n| "@details[:#{n}] = details[:#{n}] || default_#{n}" }
+      registered_details << name
+      Accessors::DEFAULT_PROCS[name] = block
 
       Accessors.send :define_method, :"default_#{name}", &block
       Accessors.module_eval <<-METHOD, __FILE__, __LINE__ + 1
@@ -34,16 +34,12 @@ module ActionView
           value = value.present? ? Array(value) : default_#{name}
           _set_detail(:#{name}, value) if value != @details[:#{name}]
         end
-
-        remove_possible_method :initialize_details
-        def initialize_details(details)
-          #{initialize.join("\n")}
-        end
       METHOD
     end
 
     # Holds accessors for the registered details.
     module Accessors #:nodoc:
+      DEFAULT_PROCS = {}
     end
 
     register_detail(:locale) do
@@ -59,9 +55,7 @@ module ActionView
 
     class DetailsKey #:nodoc:
       alias :eql? :equal?
-      alias :object_hash :hash
 
-      attr_reader :hash
       @details_keys = Concurrent::Map.new
 
       def self.get(details)
@@ -69,15 +63,15 @@ module ActionView
           details = details.dup
           details[:formats] &= Template::Types.symbols
         end
-        @details_keys[details] ||= new
+        @details_keys[details] ||= Concurrent::Map.new
       end
 
       def self.clear
         @details_keys.clear
       end
 
-      def initialize
-        @hash = object_hash
+      def self.digest_caches
+        @details_keys.values
       end
     end
 
@@ -123,6 +117,10 @@ module ActionView
       end
       alias :find_template :find
 
+      def find_file(name, prefixes = [], partial = false, keys = [], options = {})
+        @view_paths.find_file(*args_for_lookup(name, prefixes, partial, keys, options))
+      end
+
       def find_all(name, prefixes = [], partial = false, keys = [], options = {})
         @view_paths.find_all(*args_for_lookup(name, prefixes, partial, keys, options))
       end
@@ -131,6 +129,11 @@ module ActionView
         @view_paths.exists?(*args_for_lookup(name, prefixes, partial, keys, options))
       end
       alias :template_exists? :exists?
+
+      def any?(name, prefixes = [], partial = false)
+        @view_paths.exists?(*args_for_any(name, prefixes, partial))
+      end
+      alias :any_templates? :any?
 
       # Adds fallbacks to the view paths. Useful in cases when you are rendering
       # a :file.
@@ -168,18 +171,44 @@ module ActionView
         [user_details, details_key]
       end
 
+      def args_for_any(name, prefixes, partial) # :nodoc:
+        name, prefixes = normalize_name(name, prefixes)
+        details, details_key = detail_args_for_any
+        [name, prefixes, partial || false, details, details_key]
+      end
+
+      def detail_args_for_any # :nodoc:
+        @detail_args_for_any ||= begin
+          details = {}
+
+          registered_details.each do |k|
+            if k == :variants
+              details[k] = :any
+            else
+              details[k] = Accessors::DEFAULT_PROCS[k].call
+            end
+          end
+
+          if @cache
+            [details, DetailsKey.get(details)]
+          else
+            [details, nil]
+          end
+        end
+      end
+
       # Support legacy foo.erb names even though we now ignore .erb
       # as well as incorrectly putting part of the path in the template
       # name instead of the prefix.
       def normalize_name(name, prefixes) #:nodoc:
         prefixes = prefixes.presence
-        parts    = name.to_s.split('/'.freeze)
+        parts    = name.to_s.split("/".freeze)
         parts.shift if parts.first.empty?
-        name     = parts.pop
+        name = parts.pop
 
         return name, prefixes || [""] if parts.empty?
 
-        parts    = parts.join('/'.freeze)
+        parts    = parts.join("/".freeze)
         prefixes = prefixes ? prefixes.map { |p| "#{p}/#{parts}" } : [parts]
 
         return name, prefixes
@@ -191,14 +220,26 @@ module ActionView
     include ViewPaths
 
     def initialize(view_paths, details = {}, prefixes = [])
-      @details, @details_key = {}, nil
+      @details_key = nil
       @cache = true
       @prefixes = prefixes
       @rendered_format = nil
 
+      @details = initialize_details({}, details)
       self.view_paths = view_paths
-      initialize_details(details)
     end
+
+    def digest_cache
+      details_key
+    end
+
+    def initialize_details(target, details)
+      registered_details.each do |k|
+        target[k] = details[k] || Accessors::DEFAULT_PROCS[k].call
+      end
+      target
+    end
+    private :initialize_details
 
     # Override formats= to expand ["*/*"] values and automatically
     # add :html as fallback to :js.

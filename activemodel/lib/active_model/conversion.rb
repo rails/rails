@@ -40,15 +40,19 @@ module ActiveModel
       self
     end
 
-    # Returns an Array of all key attributes if any is set, regardless if
-    # the object is persisted or not. Returns +nil+ if there are no key attributes.
+    # Returns an Array of all key attributes if any of the attributes is set, whether or not
+    # the object is persisted. Returns +nil+ if there are no key attributes.
     #
     #   class Person
     #     include ActiveModel::Conversion
     #     attr_accessor :id
+    #
+    #     def initialize(id)
+    #       @id = id
+    #     end
     #   end
     #
-    #   person = Person.create(id: 1)
+    #   person = Person.new(1)
     #   person.to_key # => [1]
     def to_key
       key = respond_to?(:id) && id
@@ -61,15 +65,20 @@ module ActiveModel
     #   class Person
     #     include ActiveModel::Conversion
     #     attr_accessor :id
+    #
+    #     def initialize(id)
+    #       @id = id
+    #     end
+    #
     #     def persisted?
     #       true
     #     end
     #   end
     #
-    #   person = Person.create(id: 1)
+    #   person = Person.new(1)
     #   person.to_param # => "1"
     def to_param
-      (persisted? && key = to_key) ? key.join('-') : nil
+      (persisted? && key = to_key) ? key.join("-") : nil
     end
 
     # Returns a +string+ identifying the path associated with the object.

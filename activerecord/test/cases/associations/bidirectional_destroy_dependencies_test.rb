@@ -1,5 +1,5 @@
-require 'cases/helper'
-require 'models/content'
+require "cases/helper"
+require "models/content"
 
 class BidirectionalDestroyDependenciesTest < ActiveRecord::TestCase
   fixtures :content, :content_positions

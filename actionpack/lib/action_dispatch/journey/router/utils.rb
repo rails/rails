@@ -14,10 +14,10 @@ module ActionDispatch
         #   normalize_path("/%ab")  # => "/%AB"
         def self.normalize_path(path)
           path = "/#{path}"
-          path.squeeze!('/'.freeze)
-          path.sub!(%r{/+\Z}, ''.freeze)
+          path.squeeze!("/".freeze)
+          path.sub!(%r{/+\Z}, "".freeze)
           path.gsub!(/(%[a-f0-9]{2})/) { $1.upcase }
-          path = '/' if path == ''.freeze
+          path = "/" if path == "".freeze
           path
         end
 
@@ -28,7 +28,7 @@ module ActionDispatch
           US_ASCII = Encoding::US_ASCII
           UTF_8    = Encoding::UTF_8
           EMPTY    = "".force_encoding(US_ASCII).freeze
-          DEC2HEX  = (0..255).to_a.map{ |i| ENCODE % i }.map{ |s| s.force_encoding(US_ASCII) }
+          DEC2HEX  = (0..255).to_a.map { |i| ENCODE % i }.map { |s| s.force_encoding(US_ASCII) }
 
           ALPHA = "a-zA-Z".freeze
           DIGIT = "0-9".freeze
@@ -55,12 +55,12 @@ module ActionDispatch
 
           def unescape_uri(uri)
             encoding = uri.encoding == US_ASCII ? UTF_8 : uri.encoding
-            uri.gsub(ESCAPED) { |match| [match[1, 2].hex].pack('C') }.force_encoding(encoding)
+            uri.gsub(ESCAPED) { |match| [match[1, 2].hex].pack("C") }.force_encoding(encoding)
           end
 
           protected
             def escape(component, pattern)
-              component.gsub(pattern){ |unsafe| percent_encode(unsafe) }.force_encoding(US_ASCII)
+              component.gsub(pattern) { |unsafe| percent_encode(unsafe) }.force_encoding(US_ASCII)
             end
 
             def percent_encode(unsafe)

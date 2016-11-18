@@ -1,6 +1,7 @@
-require 'openssl'
-require 'base64'
-require 'active_support/core_ext/array/extract_options'
+require "openssl"
+require "base64"
+require "active_support/core_ext/array/extract_options"
+require "active_support/message_verifier"
 
 module ActiveSupport
   # MessageEncryptor is a simple way to encrypt values which get stored
@@ -18,12 +19,24 @@ module ActiveSupport
   #   encrypted_data = crypt.encrypt_and_sign('my secret data')              # => "NlFBTTMwOUV5UlA1QlNEN2xkY2d6eThYWWh..."
   #   crypt.decrypt_and_verify(encrypted_data)                               # => "my secret data"
   class MessageEncryptor
+    DEFAULT_CIPHER = "aes-256-cbc"
+
     module NullSerializer #:nodoc:
       def self.load(value)
         value
       end
 
       def self.dump(value)
+        value
+      end
+    end
+
+    module NullVerifier #:nodoc:
+      def self.verify(value)
+        value
+      end
+
+      def self.generate(value)
         value
       end
     end
@@ -40,15 +53,17 @@ module ActiveSupport
     # Options:
     # * <tt>:cipher</tt>     - Cipher to use. Can be any cipher returned by
     #   <tt>OpenSSL::Cipher.ciphers</tt>. Default is 'aes-256-cbc'.
-    # * <tt>:digest</tt> - String of digest to use for signing. Default is +SHA1+.
+    # * <tt>:digest</tt> - String of digest to use for signing. Default is
+    #   +SHA1+. Ignored when using an AEAD cipher like 'aes-256-gcm'.
     # * <tt>:serializer</tt> - Object serializer to use. Default is +Marshal+.
     def initialize(secret, *signature_key_or_options)
       options = signature_key_or_options.extract_options!
       sign_secret = signature_key_or_options.first
       @secret = secret
       @sign_secret = sign_secret
-      @cipher = options[:cipher] || 'aes-256-cbc'
-      @verifier = MessageVerifier.new(@sign_secret || @secret, digest: options[:digest] || 'SHA1', serializer: NullSerializer)
+      @cipher = options[:cipher] || "aes-256-cbc"
+      @digest = options[:digest] || "SHA1" unless aead_mode?
+      @verifier = resolve_verifier
       @serializer = options[:serializer] || Marshal
     end
 
@@ -64,44 +79,73 @@ module ActiveSupport
       _decrypt(verifier.verify(value))
     end
 
+    # Given a cipher, returns the key length of the cipher to help generate the key of desired size
+    def self.key_len(cipher = DEFAULT_CIPHER)
+      OpenSSL::Cipher.new(cipher).key_len
+    end
+
     private
 
-    def _encrypt(value)
-      cipher = new_cipher
-      cipher.encrypt
-      cipher.key = @secret
+      def _encrypt(value)
+        cipher = new_cipher
+        cipher.encrypt
+        cipher.key = @secret
 
-      # Rely on OpenSSL for the initialization vector
-      iv = cipher.random_iv
+        # Rely on OpenSSL for the initialization vector
+        iv = cipher.random_iv
+        cipher.auth_data = "" if aead_mode?
 
-      encrypted_data = cipher.update(@serializer.dump(value))
-      encrypted_data << cipher.final
+        encrypted_data = cipher.update(@serializer.dump(value))
+        encrypted_data << cipher.final
 
-      "#{::Base64.strict_encode64 encrypted_data}--#{::Base64.strict_encode64 iv}"
-    end
+        blob = "#{::Base64.strict_encode64 encrypted_data}--#{::Base64.strict_encode64 iv}"
+        blob << "--#{::Base64.strict_encode64 cipher.auth_tag}" if aead_mode?
+        blob
+      end
 
-    def _decrypt(encrypted_message)
-      cipher = new_cipher
-      encrypted_data, iv = encrypted_message.split("--".freeze).map {|v| ::Base64.strict_decode64(v)}
+      def _decrypt(encrypted_message)
+        cipher = new_cipher
+        encrypted_data, iv, auth_tag = encrypted_message.split("--".freeze).map { |v| ::Base64.strict_decode64(v) }
 
-      cipher.decrypt
-      cipher.key = @secret
-      cipher.iv  = iv
+        # Currently the OpenSSL bindings do not raise an error if auth_tag is
+        # truncated, which would allow an attacker to easily forge it. See
+        # https://github.com/ruby/openssl/issues/63
+        raise InvalidMessage if aead_mode? && auth_tag.bytes.length != 16
 
-      decrypted_data = cipher.update(encrypted_data)
-      decrypted_data << cipher.final
+        cipher.decrypt
+        cipher.key = @secret
+        cipher.iv  = iv
+        if aead_mode?
+          cipher.auth_tag = auth_tag
+          cipher.auth_data = ""
+        end
 
-      @serializer.load(decrypted_data)
-    rescue OpenSSLCipherError, TypeError, ArgumentError
-      raise InvalidMessage
-    end
+        decrypted_data = cipher.update(encrypted_data)
+        decrypted_data << cipher.final
 
-    def new_cipher
-      OpenSSL::Cipher::Cipher.new(@cipher)
-    end
+        @serializer.load(decrypted_data)
+      rescue OpenSSLCipherError, TypeError, ArgumentError
+        raise InvalidMessage
+      end
 
-    def verifier
-      @verifier
-    end
+      def new_cipher
+        OpenSSL::Cipher.new(@cipher)
+      end
+
+      def verifier
+        @verifier
+      end
+
+      def aead_mode?
+        @aead_mode ||= new_cipher.authenticated?
+      end
+
+      def resolve_verifier
+        if aead_mode?
+          NullVerifier
+        else
+          MessageVerifier.new(@sign_secret || @secret, digest: @digest, serializer: NullSerializer)
+        end
+      end
   end
 end

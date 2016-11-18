@@ -23,74 +23,32 @@ module ActionDispatch
   # middleware stack, but are executed only when <tt>ActionDispatch::Reloader.prepare!</tt>
   # or <tt>ActionDispatch::Reloader.cleanup!</tt> are called manually.
   #
-  class Reloader
-    include ActiveSupport::Callbacks
-    include ActiveSupport::Deprecation::Reporting
-
-    define_callbacks :prepare
-    define_callbacks :cleanup
-
-    # Add a prepare callback. Prepare callbacks are run before each request, prior
-    # to ActionDispatch::Callback's before callbacks.
+  class Reloader < Executor
     def self.to_prepare(*args, &block)
-      unless block_given?
-        warn "to_prepare without a block is deprecated. Please use a block"
-      end
-      set_callback(:prepare, *args, &block)
+      ActiveSupport::Reloader.to_prepare(*args, &block)
     end
 
-    # Add a cleanup callback. Cleanup callbacks are run after each request is
-    # complete (after #close is called on the response body).
     def self.to_cleanup(*args, &block)
-      unless block_given?
-        warn "to_cleanup without a block is deprecated. Please use a block"
-      end
-      set_callback(:cleanup, *args, &block)
+      ActiveSupport::Reloader.to_complete(*args, &block)
     end
 
-    # Execute all prepare callbacks.
     def self.prepare!
-      new(nil).prepare!
+      default_reloader.prepare!
     end
 
-    # Execute all cleanup callbacks.
     def self.cleanup!
-      new(nil).cleanup!
+      default_reloader.reload!
     end
 
-    def initialize(app, condition=nil)
-      @app = app
-      @condition = condition || lambda { true }
-      @validated = true
+    class << self
+      attr_accessor :default_reloader # :nodoc:
+
+      deprecate to_prepare: "use ActiveSupport::Reloader.to_prepare instead",
+        to_cleanup: "use ActiveSupport::Reloader.to_complete instead",
+        prepare!: "use Rails.application.reloader.prepare! instead",
+        cleanup!: "use Rails.application.reloader.reload! instead of cleanup + prepare"
     end
 
-    def call(env)
-      @validated = @condition.call
-      prepare!
-
-      response = @app.call(env)
-      response[2] = ::Rack::BodyProxy.new(response[2]) { cleanup! }
-
-      response
-    rescue Exception
-      cleanup!
-      raise
-    end
-
-    def prepare! #:nodoc:
-      run_callbacks :prepare if validated?
-    end
-
-    def cleanup! #:nodoc:
-      run_callbacks :cleanup if validated?
-    ensure
-      @validated = true
-    end
-
-    private
-
-    def validated? #:nodoc:
-      @validated
-    end
+    self.default_reloader = ActiveSupport::Reloader
   end
 end

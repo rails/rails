@@ -173,7 +173,7 @@ module ActionDispatch
                          route_name)
         when ActionController::Parameters
           unless options.permitted?
-            raise ArgumentError.new("Generating an URL from non sanitized request parameters is insecure!")
+            raise ArgumentError.new(ActionDispatch::Routing::INSECURE_URL_PARAMETERS_MESSAGE)
           end
           route_name = options.delete :use_route
           _routes.url_for(options.to_h.symbolize_keys.
@@ -194,20 +194,20 @@ module ActionDispatch
 
       protected
 
-      def optimize_routes_generation?
-        _routes.optimize_routes_generation? && default_url_options.empty?
-      end
+        def optimize_routes_generation?
+          _routes.optimize_routes_generation? && default_url_options.empty?
+        end
 
-      def _with_routes(routes)
-        old_routes, @_routes = @_routes, routes
-        yield
-      ensure
-        @_routes = old_routes
-      end
+        def _with_routes(routes)
+          old_routes, @_routes = @_routes, routes
+          yield
+        ensure
+          @_routes = old_routes
+        end
 
-      def _routes_context
-        self
-      end
+        def _routes_context
+          self
+        end
     end
   end
 end
