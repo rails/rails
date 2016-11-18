@@ -356,6 +356,14 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "creation of multiple integration sessions" do
+    integration_session # initialize first session
+    a = open_session
+    b = open_session
+
+    refute_same(a.integration_session, b.integration_session)
+  end
+
   def test_get_with_query_string
     with_test_route_set do
       get "/get_with_params?foo=bar"
