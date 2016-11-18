@@ -5,6 +5,7 @@ require "active_support/core_ext/date/conversions"
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/object/acts_like"
 require "active_support/core_ext/object/with_options"
+require "active_support/core_ext/numeric/round"
 
 module ActionView
   module Helpers
@@ -98,8 +99,8 @@ module ActionView
         from_time = from_time.to_time if from_time.respond_to?(:to_time)
         to_time = to_time.to_time if to_time.respond_to?(:to_time)
         from_time, to_time = to_time, from_time if from_time > to_time
-        distance_in_minutes = ((to_time - from_time) / 60.0).round
-        distance_in_seconds = (to_time - from_time).round
+        distance_in_minutes = ((to_time - from_time) / 60.0).round(half: :up)
+        distance_in_seconds = (to_time - from_time).round(half: :up)
 
         I18n.with_options locale: options[:locale], scope: options[:scope] do |locale|
           case distance_in_minutes
@@ -120,15 +121,15 @@ module ActionView
           when 2...45           then locale.t :x_minutes,      count: distance_in_minutes
           when 45...90          then locale.t :about_x_hours,  count: 1
             # 90 mins up to 24 hours
-          when 90...1440        then locale.t :about_x_hours,  count: (distance_in_minutes.to_f / 60.0).round
+          when 90...1440        then locale.t :about_x_hours,  count: (distance_in_minutes.to_f / 60.0).round(half: :up)
             # 24 hours up to 42 hours
           when 1440...2520      then locale.t :x_days,         count: 1
             # 42 hours up to 30 days
-          when 2520...43200     then locale.t :x_days,         count: (distance_in_minutes.to_f / 1440.0).round
+          when 2520...43200     then locale.t :x_days,         count: (distance_in_minutes.to_f / 1440.0).round(half: :up)
             # 30 days up to 60 days
-          when 43200...86400    then locale.t :about_x_months, count: (distance_in_minutes.to_f / 43200.0).round
+          when 43200...86400    then locale.t :about_x_months, count: (distance_in_minutes.to_f / 43200.0).round(half: :up)
             # 60 days up to 365 days
-          when 86400...525600   then locale.t :x_months,       count: (distance_in_minutes.to_f / 43200.0).round
+          when 86400...525600   then locale.t :x_months,       count: (distance_in_minutes.to_f / 43200.0).round(half: :up)
             else
             if from_time.acts_like?(:time) && to_time.acts_like?(:time)
               fyear = from_time.year
