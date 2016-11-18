@@ -1,3 +1,9 @@
+*   Reset a new session directly after its creation in ActionDispatch::IntegrationTest#open_session
+
+    Fixes Issue #22742
+
+    *Tawan Sierek*
+
 *   Run `before_configuration` callbacks as soon as application constant
     inherits from `Rails::Application`.
 
