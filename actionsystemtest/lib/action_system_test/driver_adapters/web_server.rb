@@ -30,7 +30,7 @@ module ActionSystemTest
         end
 
         def register_webrick(app, port)
-          Rack::Handler::WEBrick.run(app, Port: port)
+          Rack::Handler::WEBrick.run(app, Port: port, AccessLog: [], Logger: WEBrick::Log::new(nil, 0))
         end
 
         def set_server
