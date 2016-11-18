@@ -458,6 +458,7 @@ module ActionDispatch
       # simultaneously.
       def open_session
         dup.tap do |session|
+          session.reset!
           yield session if block_given?
         end
       end
