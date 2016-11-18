@@ -26,7 +26,7 @@ module ActionSystemTest
         end
 
         def register_puma(app, port)
-          Rack::Handler::Puma.run(app, Port: port, Threads: "0:4")
+          Rack::Handler::Puma.run(app, Port: port, Threads: "0:1")
         end
 
         def register_webrick(app, port)
