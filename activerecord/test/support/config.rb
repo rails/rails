@@ -26,7 +26,8 @@ module ARTest
 
     def expand_config(config)
       config["connections"].each do |adapter, connection|
-        dbs = [["arunit", "activerecord_unittest"], ["arunit2", "activerecord_unittest2"]]
+        dbs = [["arunit", "activerecord_unittest"], ["arunit2", "activerecord_unittest2"],
+               ["arunit_with_prepared_statements", "activerecord_unittest"]]
         dbs.each do |name, dbname|
           unless connection[name].is_a?(Hash)
             connection[name] = { "database" => connection[name] }
