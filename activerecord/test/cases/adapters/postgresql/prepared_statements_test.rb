@@ -6,7 +6,7 @@ class PreparedStatementsTest < ActiveRecord::PostgreSQLTestCase
   fixtures :developers
 
   def setup
-    @conn = ActiveRecord::Base.establish_connection :arunit_with_prepared_statements
+    @conn = ActiveRecord::Base.establish_connection :arunit_without_prepared_statements
   end
 
   def teardown
