@@ -6,17 +6,17 @@ class PreparedStatementsTest < ActiveRecord::PostgreSQLTestCase
   fixtures :developers
 
   def setup
-    @default_prepared_statements = ActiveRecord::Base.connection.instance_variable_get("@prepared_statements")
-    ActiveRecord::Base.connection.instance_variable_set("@prepared_statements", false)
+    @conn = ActiveRecord::Base.establish_connection :arunit_with_prepared_statements
   end
 
   def teardown
-    ActiveRecord::Base.connection.instance_variable_set("@prepared_statements", @default_prepared_statements)
+    @conn.release_connection
+    ActiveRecord::Base.establish_connection :arunit
   end
 
   def test_nothing_raised_with_falsy_prepared_statements
     assert_nothing_raised do
-      Developer.where(id: 1)
+      Developer.where(id: 1).to_a
     end
   end
 end
