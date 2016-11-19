@@ -1,3 +1,9 @@
+*   Reset a new session directly after its creation in ActionDispatch::IntegrationTest#open_session.
+
+    Fixes #22742.
+
+    *Tawan Sierek*
+
 *   Fixes incorrect output from rails routes when using singular resources.
 
     Fixes #26606.
