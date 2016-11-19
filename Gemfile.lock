@@ -214,6 +214,7 @@ GEM
     kindlerb (1.0.1)
       mustache
       nokogiri
+    libxml-ruby (2.9.0)
     listen (3.1.5)
       rb-fsevent (~> 0.9, >= 0.9.4)
       rb-inotify (~> 0.9, >= 0.9.7)
@@ -381,6 +382,7 @@ DEPENDENCIES
   jquery-rails
   json (>= 2.0.0)
   kindlerb (>= 1.0.1)
+  libxml-ruby
   listen (>= 3.0.5, < 3.2)
   minitest (< 5.3.4)
   mocha (~> 0.14)
