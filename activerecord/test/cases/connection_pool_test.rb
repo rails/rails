@@ -487,12 +487,6 @@ module ActiveRecord
             #--- post test clean up start
             second_thread_done.count_down if failed
 
-            # after `pool.disconnect()` the first thread will be left stuck in queue, no need to wait for
-            # it to timeout with ConnectionTimeoutError
-            if (group_action_method == :disconnect || group_action_method == :disconnect!) && pool.num_waiting_in_queue > 0
-              pool.with_connection {} # create a new connection in case there are threads still stuck in a queue
-            end
-
             first_thread.join
             second_thread.join
             #--- post test clean up end

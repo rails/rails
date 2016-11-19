@@ -422,7 +422,6 @@ module ActiveRecord
               conn.disconnect!
             end
             @connections = []
-            @available.clear
           end
         end
       end
@@ -445,8 +444,6 @@ module ActiveRecord
       #   connections in the pool within a timeout interval (default duration is
       #   <tt>spec.config[:checkout_timeout] * 2</tt> seconds).
       def clear_reloadable_connections(raise_on_acquisition_timeout = true)
-        num_new_conns_required = 0
-
         with_exclusively_acquired_all_connections(raise_on_acquisition_timeout) do
           synchronize do
             @connections.each do |conn|
@@ -457,24 +454,8 @@ module ActiveRecord
               conn.disconnect! if conn.requires_reloading?
             end
             @connections.delete_if(&:requires_reloading?)
-
-            @available.clear
-
-            if @connections.size < @size
-              # because of the pruning done by this method, we might be running
-              # low on connections, while threads stuck in queue are helpless
-              # (not being able to establish new connections for themselves),
-              # see also more detailed explanation in +remove+
-              num_new_conns_required = num_waiting_in_queue - @connections.size
-            end
-
-            @connections.each do |conn|
-              @available.add conn
-            end
           end
         end
-
-        bulk_make_new_connections(num_new_conns_required) if num_new_conns_required > 0
       end
 
       # Clears the cache which maps classes and re-connects connections that
@@ -705,9 +686,26 @@ module ActiveRecord
 
           yield
         ensure
+          num_new_conns_required = 0
+
           synchronize do
             @threads_blocking_new_connections -= 1
+
+            if @threads_blocking_new_connections.zero?
+              @available.clear
+
+              num_new_conns_required = num_waiting_in_queue
+
+              @connections.each do |conn|
+                next if conn.in_use?
+
+                @available.add conn
+                num_new_conns_required -= 1
+              end
+            end
           end
+
+          bulk_make_new_connections(num_new_conns_required) if num_new_conns_required > 0
         end
 
         # Acquire a connection by one of 1) immediately removing one
