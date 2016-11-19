@@ -350,8 +350,7 @@ module ActiveRecord
         # currently in the process of independently establishing connections to the DB.
         @now_connecting = 0
 
-        # A boolean toggle that allows/disallows new connections.
-        @new_cons_enabled = true
+        @threads_blocking_new_connections = 0
 
         @available = ConnectionLeasingQueue.new self
       end
@@ -700,13 +699,15 @@ module ActiveRecord
         end
 
         def with_new_connections_blocked
-          previous_value = nil
           synchronize do
-            previous_value, @new_cons_enabled = @new_cons_enabled, false
+            @threads_blocking_new_connections += 1
           end
+
           yield
         ensure
-          synchronize { @new_cons_enabled = previous_value }
+          synchronize do
+            @threads_blocking_new_connections -= 1
+          end
         end
 
         # Acquire a connection by one of 1) immediately removing one
@@ -758,7 +759,7 @@ module ActiveRecord
           # and increment @now_connecting, to prevent overstepping this pool's @size
           # constraint
           do_checkout = synchronize do
-            if @new_cons_enabled && (@connections.size + @now_connecting) < @size
+            if @threads_blocking_new_connections.zero? && (@connections.size + @now_connecting) < @size
               @now_connecting += 1
             end
           end
