@@ -4,17 +4,15 @@ if RUBY_PLATFORM.include?("java")
   require "active_support/core_ext/hash/conversions"
 
   class JDOMEngineTest < ActiveSupport::TestCase
-    include ActiveSupport
-
     FILES_DIR = File.dirname(__FILE__) + "/../fixtures/xml"
 
     def setup
-      @default_backend = XmlMini.backend
-      XmlMini.backend = "JDOM"
+      @default_backend = ActiveSupport::XmlMini.backend
+      ActiveSupport::XmlMini.backend = "JDOM"
     end
 
     def teardown
-      XmlMini.backend = @default_backend
+      ActiveSupport::XmlMini.backend = @default_backend
     end
 
     def test_file_from_xml
@@ -84,13 +82,13 @@ if RUBY_PLATFORM.include?("java")
     end
 
     def test_setting_JDOM_as_backend
-      XmlMini.backend = "JDOM"
-      assert_equal XmlMini_JDOM, XmlMini.backend
+      ActiveSupport::XmlMini.backend = "JDOM"
+      assert_equal ActiveSupport::XmlMini_JDOM, ActiveSupport::XmlMini.backend
     end
 
     def test_blank_returns_empty_hash
-      assert_equal({}, XmlMini.parse(nil))
-      assert_equal({}, XmlMini.parse(""))
+      assert_equal({}, ActiveSupport::XmlMini.parse(nil))
+      assert_equal({}, ActiveSupport::XmlMini.parse(""))
     end
 
     def test_array_type_makes_an_array
@@ -175,8 +173,8 @@ if RUBY_PLATFORM.include?("java")
 
     private
       def assert_equal_rexml(xml)
-        parsed_xml = XmlMini.parse(xml)
-        hash = XmlMini.with_backend("REXML") { XmlMini.parse(xml) }
+        parsed_xml = ActiveSupport::XmlMini.parse(xml)
+        hash = ActiveSupport::XmlMini.with_backend("REXML") { ActiveSupport::XmlMini.parse(xml) }
         assert_equal(hash, parsed_xml)
       end
   end

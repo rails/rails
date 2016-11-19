@@ -8,17 +8,15 @@ else
   require "active_support/core_ext/hash/conversions"
 
   class LibxmlEngineTest < ActiveSupport::TestCase
-    include ActiveSupport
-
     def setup
-      @default_backend = XmlMini.backend
-      XmlMini.backend = "LibXML"
+      @default_backend = ActiveSupport::XmlMini.backend
+      ActiveSupport::XmlMini.backend = "LibXML"
 
       LibXML::XML::Error.set_handler(&lambda { |error| }) #silence libxml, exceptions will do
     end
 
     def teardown
-      XmlMini.backend = @default_backend
+      ActiveSupport::XmlMini.backend = @default_backend
     end
 
     def test_exception_thrown_on_expansion_attack
@@ -42,13 +40,13 @@ else
     end
 
     def test_setting_libxml_as_backend
-      XmlMini.backend = "LibXML"
-      assert_equal XmlMini_LibXML, XmlMini.backend
+      ActiveSupport::XmlMini.backend = "LibXML"
+      assert_equal ActiveSupport::XmlMini_LibXML, ActiveSupport::XmlMini.backend
     end
 
     def test_blank_returns_empty_hash
-      assert_equal({}, XmlMini.parse(nil))
-      assert_equal({}, XmlMini.parse(""))
+      assert_equal({}, ActiveSupport::XmlMini.parse(nil))
+      assert_equal({}, ActiveSupport::XmlMini.parse(""))
     end
 
     def test_array_type_makes_an_array
@@ -193,9 +191,9 @@ else
 
     private
       def assert_equal_rexml(xml)
-        parsed_xml = XmlMini.parse(xml)
+        parsed_xml = ActiveSupport::XmlMini.parse(xml)
         xml.rewind if xml.respond_to?(:rewind)
-        hash = XmlMini.with_backend("REXML") { XmlMini.parse(xml) }
+        hash = ActiveSupport::XmlMini.with_backend("REXML") { ActiveSupport::XmlMini.parse(xml) }
         assert_equal(hash, parsed_xml)
       end
   end
