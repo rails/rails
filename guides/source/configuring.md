@@ -829,6 +829,8 @@ production:
 
 Now the behavior is clear, that we are only using the connection information in `ENV['DATABASE_URL']`.
 
+NOTE: When we are using `ENV['DATABASE_URL']` for connection management, it gets applied to the current Rails environment. This is in contrast with the `database.yml` where we have to explicitly add database configuration for different environments. By default, the `ENV['DATABASE_URL']` gets applied to `development` environment if Rails environment is not set.
+
 #### Configuring an SQLite3 Database
 
 Rails comes with built-in support for [SQLite3](http://www.sqlite.org), which is a lightweight serverless database application. While a busy production environment may overload SQLite, it works well for development and testing. Rails defaults to using an SQLite database when creating a new project, but you can always change it later.
