@@ -52,6 +52,13 @@ module ActiveRecord
         @@configurations
       end
 
+      # Returns configuration for given env or raises error if the configuration does not exist
+      def self.configuration(env)
+        configurations.fetch(env) do
+          raise ActiveRecord::AdapterNotSpecified, "No #{env.inspect} database configured. Available database configurations: #{configurations.keys.inspect}"
+        end
+      end
+
       ##
       # :singleton-method:
       # Determines whether to use Time.utc (using :utc) or Time.local (using :local) when pulling

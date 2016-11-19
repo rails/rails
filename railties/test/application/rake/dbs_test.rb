@@ -307,6 +307,52 @@ module ApplicationTests
           ENV["RACK_ENV"] = @old_rack_env
         end
       end
+
+      test "db:test:load throws an error when test database not configured" do
+        output = Dir.chdir(app_path) do
+          `bin/rails generate scaffold user username:string;
+           bin/rails db:create;
+           bin/rails db:migrate;`
+          File.open("#{app_path}/config/database.yml", "w") do |f|
+            f.puts <<-YAML
+            default: &default
+              adapter: sqlite3
+              pool: 5
+              timeout: 5000
+            development:
+              <<: *default
+              database: db/development.sqlite3
+           YAML
+          end
+          `bin/rails db:test:load 2>&1 --trace`
+        end
+
+        assert_match(/'test' database is not configured/, output)
+      end
+
+      test "db:test:load throws error when used with database url" do
+        output = Dir.chdir(app_path) do
+          set_database_url
+          `bin/rails generate scaffold user username:string;
+           bin/rails db:create;
+           bin/rails db:migrate;
+           bin/rails db:test:load 2>&1 --trace`
+        end
+
+        assert_match(/'test' database is not configured/, output)
+      end
+
+      test "db:test:load does not throw error when used with database_url and rails_env is test" do
+        output = Dir.chdir(app_path) do
+          set_database_url
+          `bin/rails generate scaffold user username:string;
+           bin/rails db:create;
+           bin/rails db:migrate;
+           RAILS_ENV=test bin/rails db:test:load 2>&1 --trace`
+        end
+
+        assert_no_match(/'test' database is not configured/, output)
+      end
     end
   end
 end
