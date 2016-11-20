@@ -561,9 +561,8 @@ module ActionView
       #   This is helpful when fragment-caching the form. Remote forms
       #   get the authenticity token from the <tt>meta</tt> tag, so embedding is
       #   unnecessary unless you support browsers without JavaScript.
-      # * <tt>:remote</tt> - Set to true to allow the Unobtrusive
-      #   JavaScript drivers to control the submit behavior, defaulting to
-      #   to an XHR submit. Disable with <tt>remote: false</tt>.
+      # * <tt>:local</tt> - By default form submits are remote and unobstrusive XHRs.
+      #   Disable remote submits with <tt>local: true</tt>.
       # * <tt>:enforce_utf8</tt> - If set to false, a hidden input with name
       #   utf8 is not output. Default is true.
       # * <tt>:builder</tt> - Override the object used to build the form.
@@ -690,7 +689,7 @@ module ActionView
       #   def labelled_form_with(**options, &block)
       #     form_with(**options.merge(builder: LabellingFormBuilder), &block)
       #   end
-      def form_with(model: nil, scope: nil, url: nil, format: nil, html: {}, remote: true, **options)
+      def form_with(model: nil, scope: nil, url: nil, format: nil, html: {}, local: false, **options)
         if model
           url ||= polymorphic_path(model, format: format)
 
@@ -700,7 +699,7 @@ module ActionView
 
         html_options = html.merge(options.except(:index, :skip_id, :builder))
         html_options[:method] ||= :patch if model.respond_to?(:persisted?) && model.persisted?
-        html_options[:remote] = remote unless html_options.key?(:remote)
+        html_options[:remote] = !local unless html_options.key?(:remote)
 
         if block_given?
           builder = instantiate_builder(scope, model, options)
@@ -2247,6 +2246,8 @@ module ActionView
           if options.key?(:skip_id)
             options[:include_id] = !options[:skip_id]
           end
+
+          options[:remote] = !options[:local]
         end
     end
   end
