@@ -563,8 +563,8 @@ module ActionView
       #   unnecessary unless you support browsers without JavaScript.
       # * <tt>:local</tt> - By default form submits are remote and unobstrusive XHRs.
       #   Disable remote submits with <tt>local: true</tt>.
-      # * <tt>:enforce_utf8</tt> - If set to false, a hidden input with name
-      #   utf8 is not output. Default is true.
+      # * <tt>:skip_enforcing_utf8</tt> - By default a hidden field named +utf8+
+      #   is output to enforce UTF-8 submits. Set to true to skip the field.
       # * <tt>:builder</tt> - Override the object used to build the form.
       # * <tt>:id</tt> - Optional HTML id attribute.
       # * <tt>:class</tt> - Optional HTML class attribute.
@@ -689,7 +689,7 @@ module ActionView
       #   def labelled_form_with(**options, &block)
       #     form_with(**options.merge(builder: LabellingFormBuilder), &block)
       #   end
-      def form_with(model: nil, scope: nil, url: nil, format: nil, html: {}, local: false, **options)
+      def form_with(model: nil, scope: nil, url: nil, format: nil, html: {}, local: false, skip_enforcing_utf8: false, **options)
         if model
           url ||= polymorphic_path(model, format: format)
 
@@ -700,6 +700,7 @@ module ActionView
         html_options = html.merge(options.except(:index, :skip_id, :builder))
         html_options[:method] ||= :patch if model.respond_to?(:persisted?) && model.persisted?
         html_options[:remote] = !local unless html_options.key?(:remote)
+        html_options[:enforce_utf8] = !skip_enforcing_utf8
 
         if block_given?
           builder = instantiate_builder(scope, model, options)
