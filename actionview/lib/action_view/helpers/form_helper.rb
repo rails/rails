@@ -689,7 +689,7 @@ module ActionView
       #   def labelled_form_with(**options, &block)
       #     form_with(**options.merge(builder: LabellingFormBuilder), &block)
       #   end
-      def form_with(model: nil, scope: nil, url: nil, format: nil, html: {}, local: false, skip_enforcing_utf8: false, **options)
+      def form_with(model: nil, scope: nil, url: nil, format: nil, **options)
         if model
           url ||= polymorphic_path(model, format: format)
 
@@ -697,20 +697,15 @@ module ActionView
           scope ||= model_name_from_record_or_class(model).param_key
         end
 
-        html_options = html.merge(options.except(:index, :skip_id, :builder))
-        html_options[:method] ||= :patch if model.respond_to?(:persisted?) && model.persisted?
-        html_options[:remote] = !local unless html_options.key?(:remote)
-        html_options[:enforce_utf8] = !skip_enforcing_utf8
-
         if block_given?
           builder = instantiate_builder(scope, model, options)
           output  = capture(builder, &Proc.new)
-          html_options[:multipart] ||= builder.multipart?
+          options[:multipart] ||= builder.multipart?
 
-          html_options = html_options_for_form(url || {}, html_options)
+          html_options = html_options_for_form_with(url, model, options)
           form_tag_with_body(html_options, output)
         else
-          html_options = html_options_for_form(url || {}, html_options)
+          html_options = html_options_for_form_with(url, model, options)
           form_tag_html(html_options)
         end
       end
@@ -1472,6 +1467,32 @@ module ActionView
       end
 
       private
+        def html_options_for_form_with(url_for_options = nil, model = nil, html: {}, local: false,
+          skip_enforcing_utf8: false, **options)
+          html_options = options.except(:index, :include_id, :builder).merge(html)
+          html_options[:method] ||= :patch if model.respond_to?(:persisted?) && model.persisted?
+          html_options[:enforce_utf8] = !skip_enforcing_utf8
+
+          html_options[:enctype] = "multipart/form-data" if html_options.delete(:multipart)
+
+          # The following URL is unescaped, this is just a hash of options, and it is the
+          # responsibility of the caller to escape all the values.
+          html_options[:action] = url_for(url_for_options || {})
+          html_options[:"accept-charset"] = "UTF-8"
+          html_options[:"data-remote"] = true unless local
+
+          if !local && !embed_authenticity_token_in_remote_forms &&
+            html_options[:authenticity_token].blank?
+            # The authenticity token is taken from the meta tag in this case
+            html_options[:authenticity_token] = false
+          elsif html_options[:authenticity_token] == true
+            # Include the default authenticity_token, which is only generated when its set to nil,
+            # but we needed the true value to override the default of no authenticity_token on data-remote.
+            html_options[:authenticity_token] = nil
+          end
+
+          html_options.stringify_keys!
+        end
 
         def instantiate_builder(record_name, record_object, options)
           case record_name
@@ -2245,10 +2266,12 @@ module ActionView
 
         def convert_to_legacy_options(options)
           if options.key?(:skip_id)
-            options[:include_id] = !options[:skip_id]
+            options[:include_id] = !options.delete(:skip_id)
           end
 
-          options[:remote] = !options[:local]
+          if options.key?(:local)
+            options[:remote] = !options.delete(:local)
+          end
         end
     end
   end

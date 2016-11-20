@@ -86,7 +86,7 @@ class FormWithActsLikeFormTagTest < FormWithTest
     assert_dom_equal expected, actual
   end
 
-  def test_form_with_with_remote_false
+  def test_form_with_with_local_true
     actual = form_with(local: true)
 
     expected = whole_form("http://www.example.com", local: true)
@@ -688,26 +688,6 @@ class FormWithActsLikeFormForTest < FormWithTest
     end
 
     assert_dom_equal expected, output_buffer
-  end
-
-  def test_form_with_with_remote_without_html
-    @post.persisted = false
-    @post.stub(:to_key, nil) do
-      form_with(model: @post, remote: true) do |f|
-        concat f.text_field(:title)
-        concat f.text_area(:body)
-        concat f.check_box(:secret)
-      end
-
-      expected = whole_form("/posts") do
-        "<input name='post[title]' type='text' id='post_title' value='Hello World' />" +
-        "<textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea>" +
-        "<input name='post[secret]' type='hidden' value='0' />" +
-        "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />"
-      end
-
-      assert_dom_equal expected, output_buffer
-    end
   end
 
   def test_form_with_without_object
