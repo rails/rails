@@ -20,11 +20,11 @@ class REXMLEngineTest < ActiveSupport::TestCase
 
   private
 
-  def adapter_name
-    "REXML"
-  end
+    def engine
+      "REXML"
+    end
 
-  def expansion_attack_error
-    RuntimeError
-  end
+    def expansion_attack_error
+      RuntimeError
+    end
 end

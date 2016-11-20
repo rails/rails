@@ -13,12 +13,12 @@ else
 
     private
 
-    def adapter_name
-      "LibXMLSAX"
-    end
+      def engine
+        "LibXMLSAX"
+      end
 
-    def expansion_attack_error
-      LibXML::XML::Error
-    end
+      def expansion_attack_error
+        LibXML::XML::Error
+      end
   end
 end

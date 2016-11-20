@@ -13,12 +13,12 @@ else
 
     private
 
-    def adapter_name
-      "NokogiriSAX"
-    end
+      def engine
+        "NokogiriSAX"
+      end
 
-    def expansion_attack_error
-      RuntimeError
-    end
+      def expansion_attack_error
+        RuntimeError
+      end
   end
 end

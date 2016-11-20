@@ -13,12 +13,12 @@ else
 
     private
 
-    def expansion_attack_error
-      Nokogiri::XML::SyntaxError
-    end
+      def engine
+        "Nokogiri"
+      end
 
-    def adapter_name
-      "Nokogiri"
-    end
+      def expansion_attack_error
+        Nokogiri::XML::SyntaxError
+      end
   end
 end

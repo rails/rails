@@ -42,12 +42,16 @@ if RUBY_PLATFORM.include?("java")
 
     private
 
-    def adapter_name
-      "JDOM"
-    end
+      def engine
+        "JDOM"
+      end
 
-    def expansion_attack_error
-      Java::OrgXmlSax::SAXParseException
-    end
+      def expansion_attack_error
+        Java::OrgXmlSax::SAXParseException
+      end
+
+      def extended_engine?
+        false
+      end
   end
 end
