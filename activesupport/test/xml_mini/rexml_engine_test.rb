@@ -15,7 +15,6 @@ class REXMLEngineTest < XMLMiniEngineTest
   end
 
   private
-
     def engine
       "REXML"
     end

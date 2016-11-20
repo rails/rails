@@ -36,7 +36,6 @@ XMLMiniEngineTest.run_with_platform("java") do
     end
 
     private
-
       def engine
         "JDOM"
       end

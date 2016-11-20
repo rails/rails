@@ -8,7 +8,6 @@ XMLMiniEngineTest.run_with_gem("libxml") do
     end
 
     private
-
       def engine
         "LibXML"
       end
