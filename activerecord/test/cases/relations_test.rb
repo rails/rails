@@ -1962,6 +1962,18 @@ class RelationTest < ActiveRecord::TestCase
     assert !Post.all.respond_to?(:by_lifo)
   end
 
+  def test_unscope_with_subquery
+    p1 = Post.where(id: 1)
+    p2 = Post.where(id: 2)
+
+    assert_not_equal p1, p2
+
+    comments = Comment.where(post: p1).unscope(where: :post_id).where(post: p2)
+
+    assert_not_equal p1.first.comments, comments
+    assert_equal p2.first.comments, comments
+  end
+
   def test_unscope_removes_binds
     left = Post.where(id: Arel::Nodes::BindParam.new)
     column = Post.columns_hash["id"]

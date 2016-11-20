@@ -25,10 +25,7 @@ module ActiveRecord
       end
 
       def except(*columns)
-        WhereClause.new(
-          predicates_except(columns),
-          binds_except(columns),
-        )
+        WhereClause.new(*except_predicates_and_binds(columns))
       end
 
       def or(other)
@@ -132,20 +129,32 @@ module ActiveRecord
           end
         end
 
-        def predicates_except(columns)
-          predicates.reject do |node|
+        def except_predicates_and_binds(columns)
+          except_binds = []
+          binds_index = 0
+
+          predicates = self.predicates.reject do |node|
             case node
             when Arel::Nodes::Between, Arel::Nodes::In, Arel::Nodes::NotIn, Arel::Nodes::Equality, Arel::Nodes::NotEqual, Arel::Nodes::LessThan, Arel::Nodes::LessThanOrEqual, Arel::Nodes::GreaterThan, Arel::Nodes::GreaterThanOrEqual
+              binds_contains = node.grep(Arel::Nodes::BindParam).size
               subrelation = (node.left.kind_of?(Arel::Attributes::Attribute) ? node.left : node.right)
               columns.include?(subrelation.name.to_s)
+            end.tap do |except|
+              if except && binds_contains > 0
+                (binds_index...(binds_index + binds_contains)).each do |i|
+                  except_binds[i] = true
+                end
+
+                binds_index += binds_contains
+              end
             end
           end
-        end
 
-        def binds_except(columns)
-          binds.reject do |attr|
-            columns.include?(attr.name)
+          binds = self.binds.reject.with_index do |_, i|
+            except_binds[i]
           end
+
+          [predicates, binds]
         end
 
         def predicates_with_wrapped_sql_literals
