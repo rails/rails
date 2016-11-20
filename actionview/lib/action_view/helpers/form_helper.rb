@@ -653,7 +653,7 @@ module ActionView
       # thus there is no primary key for comments.
       #
       #   <%= form_with(model: @post) do |form| %>
-      #     <%= form.fields(:comments, include_id: false) do |fields| %>
+      #     <%= form.fields(:comments, skip_id: true) do |fields| %>
       #       ...
       #     <% end %>
       #   <% end %>
@@ -698,7 +698,7 @@ module ActionView
           scope ||= model_name_from_record_or_class(model).param_key
         end
 
-        html_options = html.merge(options.except(:index, :include_id, :builder))
+        html_options = html.merge(options.except(:index, :skip_id, :builder))
         html_options[:method] ||= :patch if model.respond_to?(:persisted?) && model.persisted?
         html_options[:remote] = remote unless html_options.key?(:remote)
 
@@ -1583,6 +1583,9 @@ module ActionView
         @nested_child_index = {}
         @object_name, @object, @template, @options = object_name, object, template, options
         @default_options = @options ? @options.slice(:index, :namespace) : {}
+
+        convert_to_legacy_options(@options)
+
         if @object_name.to_s.match(/\[\]$/)
           if (object ||= @template.instance_variable_get("@#{Regexp.last_match.pre_match}")) && object.respond_to?(:to_param)
             @auto_index = object.to_param
@@ -1590,6 +1593,7 @@ module ActionView
             raise ArgumentError, "object[] naming but object param and @object var don't exist or don't respond to to_param: #{object.inspect}"
           end
         end
+
         @multipart = nil
         @index = options[:index] || options[:child_index]
       end
@@ -1885,6 +1889,8 @@ module ActionView
 
       # See the docs for the <tt>ActionView::FormHelper.fields</tt> helper method.
       def fields(scope = nil, model: nil, **options, &block)
+        convert_to_legacy_options(options)
+
         fields_for(scope || model, model, **options, &block)
       end
 
@@ -2235,6 +2241,12 @@ module ActionView
         def nested_child_index(name)
           @nested_child_index[name] ||= -1
           @nested_child_index[name] += 1
+        end
+
+        def convert_to_legacy_options(options)
+          if options.key?(:skip_id)
+            options[:include_id] = !options[:skip_id]
+          end
         end
     end
   end

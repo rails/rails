@@ -1141,7 +1141,7 @@ class FormWithActsLikeFormForTest < FormWithTest
 
     form_with(model: @post) do |f|
       concat f.text_field(:title)
-      concat f.fields(:author, include_id: false) { |af|
+      concat f.fields(:author, skip_id: true) { |af|
         af.text_field(:name)
       }
     end
@@ -1157,7 +1157,7 @@ class FormWithActsLikeFormForTest < FormWithTest
   def test_nested_fields_with_an_existing_record_on_a_nested_attributes_one_to_one_association_with_disabled_hidden_id_inherited
     @post.author = Author.new(321)
 
-    form_with(model: @post, include_id: false) do |f|
+    form_with(model: @post, skip_id: true) do |f|
       concat f.text_field(:title)
       concat f.fields(:author) { |af|
         af.text_field(:name)
@@ -1175,9 +1175,9 @@ class FormWithActsLikeFormForTest < FormWithTest
   def test_nested_fields_with_an_existing_record_on_a_nested_attributes_one_to_one_association_with_disabled_hidden_id_override
     @post.author = Author.new(321)
 
-    form_with(model: @post, include_id: false) do |f|
+    form_with(model: @post, skip_id: true) do |f|
       concat f.text_field(:title)
-      concat f.fields(:author, include_id: true) { |af|
+      concat f.fields(:author, skip_id: false) { |af|
         af.text_field(:name)
       }
     end
@@ -1244,7 +1244,7 @@ class FormWithActsLikeFormForTest < FormWithTest
         concat af.text_field(:name)
       }
       @post.comments.each do |comment|
-        concat f.fields(:comments, model: comment, include_id: false) { |cf|
+        concat f.fields(:comments, model: comment, skip_id: true) { |cf|
           concat cf.text_field(:name)
         }
       end
@@ -1265,7 +1265,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
     @post.author = Author.new(321)
 
-    form_with(model: @post, include_id: false) do |f|
+    form_with(model: @post, skip_id: true) do |f|
       concat f.text_field(:title)
       concat f.fields(:author) { |af|
         concat af.text_field(:name)
@@ -1291,9 +1291,9 @@ class FormWithActsLikeFormForTest < FormWithTest
     @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
     @post.author = Author.new(321)
 
-    form_with(model: @post, include_id: false) do |f|
+    form_with(model: @post, skip_id: true) do |f|
       concat f.text_field(:title)
-      concat f.fields(:author, include_id: true) { |af|
+      concat f.fields(:author, skip_id: false) { |af|
         concat af.text_field(:name)
       }
       @post.comments.each do |comment|
