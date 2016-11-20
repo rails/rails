@@ -1,13 +1,12 @@
-require 'cases/helper'
+require "cases/helper"
 
-require 'models/topic'
-require 'models/person'
+require "models/topic"
+require "models/person"
 
-require 'bigdecimal'
-require 'active_support/core_ext/big_decimal'
+require "bigdecimal"
+require "active_support/core_ext/big_decimal"
 
 class NumericalityValidationTest < ActiveModel::TestCase
-
   def teardown
     Topic.clear_validators!
   end
@@ -21,7 +20,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
   INTEGERS = [0, 10, -10] + INTEGER_STRINGS
   BIGDECIMAL = BIGDECIMAL_STRINGS.collect! { |bd| BigDecimal.new(bd) }
   JUNK = ["not a number", "42 not a number", "0xdeadbeef", "0xinvalidhex", "0Xdeadbeef", "00-1", "--3", "+-3", "+3-1", "-+019.0", "12.12.13.12", "123\nnot a number"]
-  INFINITY = [1.0/0.0]
+  INFINITY = [1.0 / 0.0]
 
   def test_default_validates_numericality_of
     Topic.validates_numericality_of :approved
@@ -34,6 +33,13 @@ class NumericalityValidationTest < ActiveModel::TestCase
 
     invalid!(JUNK + BLANK)
     valid!(NIL + FLOATS + INTEGERS + BIGDECIMAL + INFINITY)
+  end
+
+  def test_validates_numericality_of_with_blank_allowed
+    Topic.validates_numericality_of :approved, allow_blank: true
+
+    invalid!(JUNK)
+    valid!(NIL + BLANK + FLOATS + INTEGERS + BIGDECIMAL + INFINITY)
   end
 
   def test_validates_numericality_of_with_integer_only
@@ -68,119 +74,119 @@ class NumericalityValidationTest < ActiveModel::TestCase
   def test_validates_numericality_with_greater_than
     Topic.validates_numericality_of :approved, greater_than: 10
 
-    invalid!([-10, 10], 'must be greater than 10')
+    invalid!([-10, 10], "must be greater than 10")
     valid!([11])
   end
 
   def test_validates_numericality_with_greater_than_using_differing_numeric_types
-    Topic.validates_numericality_of :approved, greater_than: BigDecimal.new('97.18')
+    Topic.validates_numericality_of :approved, greater_than: BigDecimal.new("97.18")
 
-    invalid!([-97.18, BigDecimal.new('97.18'), BigDecimal('-97.18')], 'must be greater than 97.18')
-    valid!([97.18, 98, BigDecimal.new('98')]) # Notice the 97.18 as a float is greater than 97.18 as a BigDecimal due to floating point precision
+    invalid!([-97.18, BigDecimal.new("97.18"), BigDecimal("-97.18")], "must be greater than 97.18")
+    valid!([97.19, 98, BigDecimal.new("98"), BigDecimal.new("97.19")])
   end
 
   def test_validates_numericality_with_greater_than_using_string_value
     Topic.validates_numericality_of :approved, greater_than: 10
 
-    invalid!(['-10', '9', '9.9', '10'], 'must be greater than 10')
-    valid!(['10.1', '11'])
+    invalid!(["-10", "9", "9.9", "10"], "must be greater than 10")
+    valid!(["10.1", "11"])
   end
 
   def test_validates_numericality_with_greater_than_or_equal
     Topic.validates_numericality_of :approved, greater_than_or_equal_to: 10
 
-    invalid!([-9, 9], 'must be greater than or equal to 10')
+    invalid!([-9, 9], "must be greater than or equal to 10")
     valid!([10])
   end
 
   def test_validates_numericality_with_greater_than_or_equal_using_differing_numeric_types
-    Topic.validates_numericality_of :approved, greater_than_or_equal_to: BigDecimal.new('97.18') 
+    Topic.validates_numericality_of :approved, greater_than_or_equal_to: BigDecimal.new("97.18")
 
-    invalid!([-97.18, 97.17, 97, BigDecimal.new('97.17'), BigDecimal.new('-97.18')], 'must be greater than or equal to 97.18')
-    valid!([97.18, 98, BigDecimal.new('97.19')])
+    invalid!([-97.18, 97.17, 97, BigDecimal.new("97.17"), BigDecimal.new("-97.18")], "must be greater than or equal to 97.18")
+    valid!([97.18, 98, BigDecimal.new("97.19")])
   end
 
   def test_validates_numericality_with_greater_than_or_equal_using_string_value
     Topic.validates_numericality_of :approved, greater_than_or_equal_to: 10
 
-    invalid!(['-10', '9', '9.9'], 'must be greater than or equal to 10')
-    valid!(['10', '10.1', '11'])
+    invalid!(["-10", "9", "9.9"], "must be greater than or equal to 10")
+    valid!(["10", "10.1", "11"])
   end
 
   def test_validates_numericality_with_equal_to
     Topic.validates_numericality_of :approved, equal_to: 10
 
-    invalid!([-10, 11] + INFINITY, 'must be equal to 10')
+    invalid!([-10, 11] + INFINITY, "must be equal to 10")
     valid!([10])
   end
 
   def test_validates_numericality_with_equal_to_using_differing_numeric_types
-    Topic.validates_numericality_of :approved, equal_to: BigDecimal.new('97.18')
+    Topic.validates_numericality_of :approved, equal_to: BigDecimal.new("97.18")
 
-    invalid!([-97.18, 97.18], 'must be equal to 97.18')
-    valid!([BigDecimal.new('97.18')])
+    invalid!([-97.18], "must be equal to 97.18")
+    valid!([BigDecimal.new("97.18")])
   end
 
   def test_validates_numericality_with_equal_to_using_string_value
     Topic.validates_numericality_of :approved, equal_to: 10
 
-    invalid!(['-10', '9', '9.9', '10.1', '11'], 'must be equal to 10')
-    valid!(['10'])
+    invalid!(["-10", "9", "9.9", "10.1", "11"], "must be equal to 10")
+    valid!(["10"])
   end
 
   def test_validates_numericality_with_less_than
     Topic.validates_numericality_of :approved, less_than: 10
 
-    invalid!([10], 'must be less than 10')
+    invalid!([10], "must be less than 10")
     valid!([-9, 9])
   end
 
   def test_validates_numericality_with_less_than_using_differing_numeric_types
-    Topic.validates_numericality_of :approved, less_than: BigDecimal.new('97.18')
+    Topic.validates_numericality_of :approved, less_than: BigDecimal.new("97.18")
 
-    invalid!([97.18, BigDecimal.new('97.18')], 'must be less than 97.18')
-    valid!([-97.0, 97.0, -97, 97, BigDecimal.new('-97'), BigDecimal.new('97')])
+    invalid!([97.18, BigDecimal.new("97.18")], "must be less than 97.18")
+    valid!([-97.0, 97.0, -97, 97, BigDecimal.new("-97"), BigDecimal.new("97")])
   end
 
   def test_validates_numericality_with_less_than_using_string_value
     Topic.validates_numericality_of :approved, less_than: 10
 
-    invalid!(['10', '10.1', '11'], 'must be less than 10')
-    valid!(['-10', '9', '9.9'])
+    invalid!(["10", "10.1", "11"], "must be less than 10")
+    valid!(["-10", "9", "9.9"])
   end
 
   def test_validates_numericality_with_less_than_or_equal_to
     Topic.validates_numericality_of :approved, less_than_or_equal_to: 10
 
-    invalid!([11], 'must be less than or equal to 10')
+    invalid!([11], "must be less than or equal to 10")
     valid!([-10, 10])
   end
 
   def test_validates_numericality_with_less_than_or_equal_to_using_differing_numeric_types
-    Topic.validates_numericality_of :approved, less_than_or_equal_to: BigDecimal.new('97.18')
+    Topic.validates_numericality_of :approved, less_than_or_equal_to: BigDecimal.new("97.18")
 
-    invalid!([97.18, 98], 'must be less than or equal to 97.18')
-    valid!([-97.18, BigDecimal.new('-97.18'), BigDecimal.new('97.18')])
+    invalid!([97.19, 98], "must be less than or equal to 97.18")
+    valid!([-97.18, BigDecimal.new("-97.18"), BigDecimal.new("97.18")])
   end
 
   def test_validates_numericality_with_less_than_or_equal_using_string_value
     Topic.validates_numericality_of :approved, less_than_or_equal_to: 10
 
-    invalid!(['10.1', '11'], 'must be less than or equal to 10')
-    valid!(['-10', '9', '9.9', '10'])
+    invalid!(["10.1", "11"], "must be less than or equal to 10")
+    valid!(["-10", "9", "9.9", "10"])
   end
 
   def test_validates_numericality_with_odd
     Topic.validates_numericality_of :approved, odd: true
 
-    invalid!([-2, 2], 'must be odd')
+    invalid!([-2, 2], "must be odd")
     valid!([-1, 1])
   end
 
   def test_validates_numericality_with_even
     Topic.validates_numericality_of :approved, even: true
 
-    invalid!([-1, 1], 'must be even')
+    invalid!([-1, 1], "must be even")
     valid!([-2, 2])
   end
 
@@ -201,8 +207,8 @@ class NumericalityValidationTest < ActiveModel::TestCase
   def test_validates_numericality_with_other_than_using_string_value
     Topic.validates_numericality_of :approved, other_than: 0
 
-    invalid!(['0', '0.0'])
-    valid!(['-1', '1.1', '42'])
+    invalid!(["0", "0.0"])
+    valid!(["-1", "1.1", "42"])
   end
 
   def test_validates_numericality_with_proc
@@ -255,34 +261,34 @@ class NumericalityValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_numericality_with_invalid_args
-    assert_raise(ArgumentError){ Topic.validates_numericality_of :approved, greater_than_or_equal_to: "foo" }
-    assert_raise(ArgumentError){ Topic.validates_numericality_of :approved, less_than_or_equal_to: "foo" }
-    assert_raise(ArgumentError){ Topic.validates_numericality_of :approved, greater_than: "foo" }
-    assert_raise(ArgumentError){ Topic.validates_numericality_of :approved, less_than: "foo" }
-    assert_raise(ArgumentError){ Topic.validates_numericality_of :approved, equal_to: "foo" }
+    assert_raise(ArgumentError) { Topic.validates_numericality_of :approved, greater_than_or_equal_to: "foo" }
+    assert_raise(ArgumentError) { Topic.validates_numericality_of :approved, less_than_or_equal_to: "foo" }
+    assert_raise(ArgumentError) { Topic.validates_numericality_of :approved, greater_than: "foo" }
+    assert_raise(ArgumentError) { Topic.validates_numericality_of :approved, less_than: "foo" }
+    assert_raise(ArgumentError) { Topic.validates_numericality_of :approved, equal_to: "foo" }
   end
 
   private
 
-  def invalid!(values, error = nil)
-    with_each_topic_approved_value(values) do |topic, value|
-      assert topic.invalid?, "#{value.inspect} not rejected as a number"
-      assert topic.errors[:approved].any?, "FAILED for #{value.inspect}"
-      assert_equal error, topic.errors[:approved].first if error
+    def invalid!(values, error = nil)
+      with_each_topic_approved_value(values) do |topic, value|
+        assert topic.invalid?, "#{value.inspect} not rejected as a number"
+        assert topic.errors[:approved].any?, "FAILED for #{value.inspect}"
+        assert_equal error, topic.errors[:approved].first if error
+      end
     end
-  end
 
-  def valid!(values)
-    with_each_topic_approved_value(values) do |topic, value|
-      assert topic.valid?, "#{value.inspect} not accepted as a number with validation error: #{topic.errors[:approved].first}"
+    def valid!(values)
+      with_each_topic_approved_value(values) do |topic, value|
+        assert topic.valid?, "#{value.inspect} not accepted as a number with validation error: #{topic.errors[:approved].first}"
+      end
     end
-  end
 
-  def with_each_topic_approved_value(values)
-    topic = Topic.new(title: "numeric test", content: "whatever")
-    values.each do |value|
-      topic.approved = value
-      yield topic, value
+    def with_each_topic_approved_value(values)
+      topic = Topic.new(title: "numeric test", content: "whatever")
+      values.each do |value|
+        topic.approved = value
+        yield topic, value
+      end
     end
-  end
 end

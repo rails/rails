@@ -1,7 +1,7 @@
-require 'active_support/core_ext/enumerable'
-require 'active_support/core_ext/string/filters'
-require 'mutex_m'
-require 'concurrent/map'
+require "active_support/core_ext/enumerable"
+require "active_support/core_ext/string/filters"
+require "mutex_m"
+require "concurrent/map"
 
 module ActiveRecord
   # = Active Record Attribute Methods
@@ -148,7 +148,7 @@ module ActiveRecord
       #   Person.attribute_method?(:age=)    # => true
       #   Person.attribute_method?(:nothing) # => false
       def attribute_method?(attribute)
-        super || (table_exists? && column_names.include?(attribute.to_s.sub(/=$/, '')))
+        super || (table_exists? && column_names.include?(attribute.to_s.sub(/=$/, "")))
       end
 
       # Returns an array of column names as strings if it's not an abstract class and
@@ -161,10 +161,10 @@ module ActiveRecord
       #   # => ["id", "created_at", "updated_at", "name", "age"]
       def attribute_names
         @attribute_names ||= if !abstract_class? && table_exists?
-            attribute_types.keys
-          else
-            []
-          end
+          attribute_types.keys
+        else
+          []
+        end
       end
 
       # Returns true if the given attribute exists, otherwise false.
@@ -394,65 +394,65 @@ module ActiveRecord
 
     protected
 
-    def clone_attribute_value(reader_method, attribute_name) # :nodoc:
-      value = send(reader_method, attribute_name)
-      value.duplicable? ? value.clone : value
-    rescue TypeError, NoMethodError
-      value
-    end
+      def clone_attribute_value(reader_method, attribute_name) # :nodoc:
+        value = send(reader_method, attribute_name)
+        value.duplicable? ? value.clone : value
+      rescue TypeError, NoMethodError
+        value
+      end
 
-    def arel_attributes_with_values_for_create(attribute_names) # :nodoc:
-      arel_attributes_with_values(attributes_for_create(attribute_names))
-    end
+      def arel_attributes_with_values_for_create(attribute_names) # :nodoc:
+        arel_attributes_with_values(attributes_for_create(attribute_names))
+      end
 
-    def arel_attributes_with_values_for_update(attribute_names) # :nodoc:
-      arel_attributes_with_values(attributes_for_update(attribute_names))
-    end
+      def arel_attributes_with_values_for_update(attribute_names) # :nodoc:
+        arel_attributes_with_values(attributes_for_update(attribute_names))
+      end
 
-    def attribute_method?(attr_name) # :nodoc:
-      # We check defined? because Syck calls respond_to? before actually calling initialize.
-      defined?(@attributes) && @attributes.key?(attr_name)
-    end
+      def attribute_method?(attr_name) # :nodoc:
+        # We check defined? because Syck calls respond_to? before actually calling initialize.
+        defined?(@attributes) && @attributes.key?(attr_name)
+      end
 
     private
 
-    # Returns a Hash of the Arel::Attributes and attribute values that have been
-    # typecasted for use in an Arel insert/update method.
-    def arel_attributes_with_values(attribute_names)
-      attrs = {}
-      arel_table = self.class.arel_table
+      # Returns a Hash of the Arel::Attributes and attribute values that have been
+      # typecasted for use in an Arel insert/update method.
+      def arel_attributes_with_values(attribute_names)
+        attrs = {}
+        arel_table = self.class.arel_table
 
-      attribute_names.each do |name|
-        attrs[arel_table[name]] = typecasted_attribute_value(name)
+        attribute_names.each do |name|
+          attrs[arel_table[name]] = typecasted_attribute_value(name)
+        end
+        attrs
       end
-      attrs
-    end
 
-    # Filters the primary keys and readonly attributes from the attribute names.
-    def attributes_for_update(attribute_names)
-      attribute_names.reject do |name|
-        readonly_attribute?(name)
+      # Filters the primary keys and readonly attributes from the attribute names.
+      def attributes_for_update(attribute_names)
+        attribute_names.reject do |name|
+          readonly_attribute?(name)
+        end
       end
-    end
 
-    # Filters out the primary keys, from the attribute names, when the primary
-    # key is to be generated (e.g. the id attribute has no value).
-    def attributes_for_create(attribute_names)
-      attribute_names.reject do |name|
-        pk_attribute?(name) && id.nil?
+      # Filters out the primary keys, from the attribute names, when the primary
+      # key is to be generated (e.g. the id attribute has no value).
+      def attributes_for_create(attribute_names)
+        attribute_names.reject do |name|
+          pk_attribute?(name) && id.nil?
+        end
       end
-    end
 
-    def readonly_attribute?(name)
-      self.class.readonly_attributes.include?(name)
-    end
+      def readonly_attribute?(name)
+        self.class.readonly_attributes.include?(name)
+      end
 
-    def pk_attribute?(name)
-      name == self.class.primary_key
-    end
+      def pk_attribute?(name)
+        name == self.class.primary_key
+      end
 
-    def typecasted_attribute_value(name)
-      _read_attribute(name)
-    end
+      def typecasted_attribute_value(name)
+        _read_attribute(name)
+      end
   end
 end

@@ -1,4 +1,4 @@
-require 'active_support/callbacks'
+require "active_support/callbacks"
 
 module ActiveJob
   # = Active Job Callbacks

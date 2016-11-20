@@ -1,8 +1,8 @@
-require 'cases/helper'
-require 'models/person'
-require 'models/topic'
-require 'pp'
-require 'active_support/core_ext/string/strip'
+require "cases/helper"
+require "models/person"
+require "models/topic"
+require "pp"
+require "active_support/core_ext/string/strip"
 
 class NonExistentTable < ActiveRecord::Base; end
 
@@ -10,8 +10,8 @@ class CoreTest < ActiveRecord::TestCase
   fixtures :topics
 
   def test_inspect_class
-    assert_equal 'ActiveRecord::Base', ActiveRecord::Base.inspect
-    assert_equal 'LoosePerson(abstract)', LoosePerson.inspect
+    assert_equal "ActiveRecord::Base", ActiveRecord::Base.inspect
+    assert_equal "LoosePerson(abstract)", LoosePerson.inspect
     assert_match(/^Topic\(id: integer, title: string/, Topic.inspect)
   end
 
@@ -25,8 +25,8 @@ class CoreTest < ActiveRecord::TestCase
   end
 
   def test_inspect_limited_select_instance
-    assert_equal %(#<Topic id: 1>), Topic.all.merge!(:select => 'id', :where => 'id = 1').first.inspect
-    assert_equal %(#<Topic id: 1, title: "The First Topic">), Topic.all.merge!(:select => 'id, title', :where => 'id = 1').first.inspect
+    assert_equal %(#<Topic id: 1>), Topic.all.merge!(select: "id", where: "id = 1").first.inspect
+    assert_equal %(#<Topic id: 1, title: "The First Topic">), Topic.all.merge!(select: "id, title", where: "id = 1").first.inspect
   end
 
   def test_inspect_class_without_table
@@ -35,7 +35,7 @@ class CoreTest < ActiveRecord::TestCase
 
   def test_pretty_print_new
     topic = Topic.new
-    actual = ''
+    actual = ""
     PP.pp(topic, StringIO.new(actual))
     expected = <<-PRETTY.strip_heredoc
     #<Topic:0xXXXXXX
@@ -58,13 +58,13 @@ class CoreTest < ActiveRecord::TestCase
      created_at: nil,
      updated_at: nil>
     PRETTY
-    assert actual.start_with?(expected.split('XXXXXX').first)
-    assert actual.end_with?(expected.split('XXXXXX').last)
+    assert actual.start_with?(expected.split("XXXXXX").first)
+    assert actual.end_with?(expected.split("XXXXXX").last)
   end
 
   def test_pretty_print_persisted
     topic = topics(:first)
-    actual = ''
+    actual = ""
     PP.pp(topic, StringIO.new(actual))
     expected = <<-PRETTY.strip_heredoc
     #<Topic:0x\\w+
@@ -92,11 +92,11 @@ class CoreTest < ActiveRecord::TestCase
 
   def test_pretty_print_uninitialized
     topic = Topic.allocate
-    actual = ''
+    actual = ""
     PP.pp(topic, StringIO.new(actual))
     expected = "#<Topic:XXXXXX not initialized>\n"
-    assert actual.start_with?(expected.split('XXXXXX').first)
-    assert actual.end_with?(expected.split('XXXXXX').last)
+    assert actual.start_with?(expected.split("XXXXXX").first)
+    assert actual.end_with?(expected.split("XXXXXX").last)
   end
 
   def test_pretty_print_overridden_by_inspect
@@ -105,7 +105,7 @@ class CoreTest < ActiveRecord::TestCase
         "inspecting topic"
       end
     end
-    actual = ''
+    actual = ""
     PP.pp(subtopic.new, StringIO.new(actual))
     assert_equal "inspecting topic\n", actual
   end

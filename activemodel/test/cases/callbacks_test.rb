@@ -1,7 +1,6 @@
 require "cases/helper"
 
 class CallbacksTest < ActiveModel::TestCase
-
   class CallbackValidator
     def around_create(model)
       model.callbacks << :before_around_create
@@ -110,8 +109,8 @@ class CallbacksTest < ActiveModel::TestCase
     end
     extend ActiveModel::Callbacks
     define_model_callbacks :create
-    def callback1; self.history << 'callback1'; end
-    def callback2; self.history << 'callback2'; end
+    def callback1; history << "callback1"; end
+    def callback2; history << "callback2"; end
     def create
       run_callbacks(:create) {}
       self
@@ -131,5 +130,4 @@ class CallbacksTest < ActiveModel::TestCase
   test "after_create callbacks with both callbacks declared in different lines" do
     assert_equal ["callback1", "callback2"], Violin2.new.create.history
   end
-
 end

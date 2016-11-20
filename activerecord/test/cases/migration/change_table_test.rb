@@ -95,7 +95,7 @@ module ActiveRecord
       def test_remove_timestamps_creates_updated_at_and_created_at
         with_change_table do |t|
           @connection.expect :remove_timestamps, nil, [:delete_me, { null: true }]
-          t.remove_timestamps({ null: true })
+          t.remove_timestamps(null: true)
         end
       end
 
@@ -157,8 +157,8 @@ module ActiveRecord
 
       def test_column_creates_column_with_options
         with_change_table do |t|
-          @connection.expect :add_column, nil, [:delete_me, :bar, :integer, {:null => false}]
-          t.column :bar, :integer, :null => false
+          @connection.expect :add_column, nil, [:delete_me, :bar, :integer, { null: false }]
+          t.column :bar, :integer, null: false
         end
       end
 
@@ -171,8 +171,8 @@ module ActiveRecord
 
       def test_index_creates_index_with_options
         with_change_table do |t|
-          @connection.expect :add_index, nil, [:delete_me, :bar, {:unique => true}]
-          t.index :bar, :unique => true
+          @connection.expect :add_index, nil, [:delete_me, :bar, { unique: true }]
+          t.index :bar, unique: true
         end
       end
 
@@ -185,8 +185,8 @@ module ActiveRecord
 
       def test_index_exists_with_options
         with_change_table do |t|
-          @connection.expect :index_exists?, nil, [:delete_me, :bar, {:unique => true}]
-          t.index_exists?(:bar, :unique => true)
+          @connection.expect :index_exists?, nil, [:delete_me, :bar, { unique: true }]
+          t.index_exists?(:bar, unique: true)
         end
       end
 
@@ -206,8 +206,8 @@ module ActiveRecord
 
       def test_change_changes_column_with_options
         with_change_table do |t|
-          @connection.expect :change_column, nil, [:delete_me, :bar, :string, {:null => true}]
-          t.change :bar, :string, :null => true
+          @connection.expect :change_column, nil, [:delete_me, :bar, :string, { null: true }]
+          t.change :bar, :string, null: true
         end
       end
 
@@ -234,8 +234,8 @@ module ActiveRecord
 
       def test_remove_index_removes_index_with_options
         with_change_table do |t|
-          @connection.expect :remove_index, nil, [:delete_me, {:unique => true}]
-          t.remove_index :unique => true
+          @connection.expect :remove_index, nil, [:delete_me, { unique: true }]
+          t.remove_index unique: true
         end
       end
 

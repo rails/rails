@@ -1,8 +1,7 @@
-require 'active_support/core_ext/array/extract_options'
-require 'active_support/core_ext/hash/keys'
-require 'active_support/core_ext/regexp'
-require 'action_view/helpers/asset_url_helper'
-require 'action_view/helpers/tag_helper'
+require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/hash/keys"
+require "action_view/helpers/asset_url_helper"
+require "action_view/helpers/tag_helper"
 
 module ActionView
   # = Action View Asset Tag Helpers
@@ -56,7 +55,7 @@ module ActionView
       #   # => <script src="http://www.example.com/xmlhr.js"></script>
       def javascript_include_tag(*sources)
         options = sources.extract_options!.stringify_keys
-        path_options = options.extract!('protocol', 'extname', 'host').symbolize_keys
+        path_options = options.extract!("protocol", "extname", "host", "skip_pipeline").symbolize_keys
         sources.uniq.map { |source|
           tag_options = {
             "src" => path_to_javascript(source, path_options)
@@ -92,8 +91,7 @@ module ActionView
       #   #    <link href="/css/stylish.css" media="screen" rel="stylesheet" />
       def stylesheet_link_tag(*sources)
         options = sources.extract_options!.stringify_keys
-        path_options = options.extract!('protocol', 'host').symbolize_keys
-
+        path_options = options.extract!("protocol", "host", "skip_pipeline").symbolize_keys
         sources.uniq.map { |source|
           tag_options = {
             "rel" => "stylesheet",
@@ -139,7 +137,7 @@ module ActionView
           "rel"   => tag_options[:rel] || "alternate",
           "type"  => tag_options[:type] || Template::Types[type].to_s,
           "title" => tag_options[:title] || type.to_s.upcase,
-          "href"  => url_options.is_a?(Hash) ? url_for(url_options.merge(:only_path => false)) : url_options
+          "href"  => url_options.is_a?(Hash) ? url_for(url_options.merge(only_path: false)) : url_options
         )
       end
 
@@ -170,11 +168,11 @@ module ActionView
       #
       #   favicon_link_tag 'mb-icon.png', rel: 'apple-touch-icon', type: 'image/png'
       #   # => <link href="/assets/mb-icon.png" rel="apple-touch-icon" type="image/png" />
-      def favicon_link_tag(source='favicon.ico', options={})
-        tag('link', {
-          :rel  => 'shortcut icon',
-          :type => 'image/x-icon',
-          :href => path_to_image(source)
+      def favicon_link_tag(source = "favicon.ico", options = {})
+        tag("link", {
+          rel: "shortcut icon",
+          type: "image/x-icon",
+          href: path_to_image(source, skip_pipeline: options.delete(:skip_pipeline))
         }.merge!(options.symbolize_keys))
       end
 
@@ -208,13 +206,13 @@ module ActionView
       #   # => <img alt="Icon" class="menu_icon" src="/icons/icon.gif" />
       #   image_tag("/icons/icon.gif", data: { title: 'Rails Application' })
       #   # => <img data-title="Rails Application" src="/icons/icon.gif" />
-      def image_tag(source, options={})
+      def image_tag(source, options = {})
         options = options.symbolize_keys
         check_for_image_tag_errors(options)
 
-        src = options[:src] = path_to_image(source)
+        src = options[:src] = path_to_image(source, skip_pipeline: options.delete(:skip_pipeline))
 
-        unless src.start_with?('cid:') || src.start_with?('data:') || src.blank?
+        unless src.start_with?("cid:") || src.start_with?("data:") || src.blank?
           options[:alt] = options.fetch(:alt) { image_alt(src) }
         end
 
@@ -240,7 +238,7 @@ module ActionView
       #   image_alt('underscored_file_name.png')
       #   # => Underscored file name
       def image_alt(src)
-        File.basename(src, '.*'.freeze).sub(/-[[:xdigit:]]{32,64}\z/, ''.freeze).tr('-_'.freeze, ' '.freeze).capitalize
+        File.basename(src, ".*".freeze).sub(/-[[:xdigit:]]{32,64}\z/, "".freeze).tr("-_".freeze, " ".freeze).capitalize
       end
 
       # Returns an HTML video tag for the +sources+. If +sources+ is a string,
@@ -258,6 +256,8 @@ module ActionView
       # * <tt>:size</tt> - Supplied as "{Width}x{Height}" or "{Number}", so "30x45" becomes
       #   width="30" and height="45", and "50" becomes width="50" and height="50".
       #   <tt>:size</tt> will be ignored if the value is not in the correct format.
+      # * <tt>:poster_skip_pipeline</tt> will bypass the asset pipeline when using
+      #   the <tt>:poster</tt> option instead using an asset in the public folder.
       #
       # ==== Examples
       #
@@ -269,6 +269,8 @@ module ActionView
       #   # => <video preload="none" controls="controls" src="/videos/trailer.ogg" ></video>
       #   video_tag("trailer.m4v", size: "16x10", poster: "screenshot.png")
       #   # => <video src="/videos/trailer.m4v" width="16" height="10" poster="/assets/screenshot.png"></video>
+      #   video_tag("trailer.m4v", size: "16x10", poster: "screenshot.png", poster_skip_pipeline: true)
+      #   # => <video src="/videos/trailer.m4v" width="16" height="10" poster="screenshot.png"></video>
       #   video_tag("/trailers/hd.avi", size: "16x16")
       #   # => <video src="/trailers/hd.avi" width="16" height="16"></video>
       #   video_tag("/trailers/hd.avi", size: "16")
@@ -282,9 +284,12 @@ module ActionView
       #   video_tag(["trailer.ogg", "trailer.flv"], size: "160x120")
       #   # => <video height="120" width="160"><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
       def video_tag(*sources)
-        multiple_sources_tag('video', sources) do |options|
-          options[:poster] = path_to_image(options[:poster]) if options[:poster]
-          options[:width], options[:height] = extract_dimensions(options.delete(:size)) if options[:size]
+        options = sources.extract_options!.symbolize_keys
+        public_poster_folder = options.delete(:poster_skip_pipeline)
+        sources << options
+        multiple_sources_tag_builder("video", sources) do |tag_options|
+          tag_options[:poster] = path_to_image(tag_options[:poster], skip_pipeline: public_poster_folder) if tag_options[:poster]
+          tag_options[:width], tag_options[:height] = extract_dimensions(tag_options.delete(:size)) if tag_options[:size]
         end
       end
 
@@ -301,22 +306,23 @@ module ActionView
       #   audio_tag("sound.wav", "sound.mid")
       #   # => <audio><source src="/audios/sound.wav" /><source src="/audios/sound.mid" /></audio>
       def audio_tag(*sources)
-        multiple_sources_tag('audio', sources)
+        multiple_sources_tag_builder("audio", sources)
       end
 
       private
-        def multiple_sources_tag(type, sources)
-          options = sources.extract_options!.symbolize_keys
+        def multiple_sources_tag_builder(type, sources)
+          options       = sources.extract_options!.symbolize_keys
+          skip_pipeline = options.delete(:skip_pipeline)
           sources.flatten!
 
           yield options if block_given?
 
           if sources.size > 1
             content_tag(type, options) do
-              safe_join sources.map { |source| tag("source", :src => send("path_to_#{type}", source)) }
+              safe_join sources.map { |source| tag("source", src: send("path_to_#{type}", source, skip_pipeline: skip_pipeline)) }
             end
           else
-            options[:src] = send("path_to_#{type}", sources.first)
+            options[:src] = send("path_to_#{type}", sources.first, skip_pipeline: skip_pipeline)
             content_tag(type, nil, options)
           end
         end
@@ -324,7 +330,7 @@ module ActionView
         def extract_dimensions(size)
           size = size.to_s
           if /\A\d+x\d+\z/.match?(size)
-            size.split('x')
+            size.split("x")
           elsif /\A\d+\z/.match?(size)
             [size, size]
           end

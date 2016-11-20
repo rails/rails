@@ -17,7 +17,6 @@ class CallbackJob < ActiveJob::Base
     job.history << "CallbackJob ran around_enqueue_stop"
   end
 
-
   def perform(person = "david")
     # NOTHING!
   end
@@ -25,5 +24,4 @@ class CallbackJob < ActiveJob::Base
   def history
     @history ||= []
   end
-
 end

@@ -1,5 +1,5 @@
-require 'abstract_unit'
-require 'active_support/log_subscriber/test_helper'
+require "abstract_unit"
+require "active_support/log_subscriber/test_helper"
 
 class MyLogSubscriber < ActiveSupport::LogSubscriber
   attr_reader :event
@@ -116,7 +116,7 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
     wait
 
     assert_equal 1, @logger.logged(:info).size
-    assert_equal 'some_event.my_log_subscriber', @logger.logged(:info).last
+    assert_equal "some_event.my_log_subscriber", @logger.logged(:info).last
 
     assert_equal 1, @logger.logged(:error).size
     assert_match 'Could not log "puke.my_log_subscriber" event. RuntimeError: puke', @logger.logged(:error).last

@@ -1,8 +1,8 @@
-require 'rails/railtie'
-require 'rails/engine/railties'
-require 'active_support/core_ext/module/delegation'
-require 'pathname'
-require 'thread'
+require "rails/railtie"
+require "rails/engine/railties"
+require "active_support/core_ext/module/delegation"
+require "pathname"
+require "thread"
 
 module Rails
   # <tt>Rails::Engine</tt> allows you to wrap a specific Rails application or subset of
@@ -337,7 +337,7 @@ module Rails
   # == Loading priority
   #
   # In order to change engine's priority you can use +config.railties_order+ in the main application.
-  # It will affect the priority of loading views, helpers, assets and all the other files
+  # It will affect the priority of loading views, helpers, assets, and all the other files
   # related to engine or application.
   #
   #   # load Blog::Engine with highest priority, followed by application and other railties
@@ -402,7 +402,7 @@ module Rails
             end
 
             unless mod.respond_to?(:railtie_routes_url_helpers)
-              define_method(:railtie_routes_url_helpers) {|include_path_helpers = true| railtie.routes.url_helpers(include_path_helpers) }
+              define_method(:railtie_routes_url_helpers) { |include_path_helpers = true| railtie.routes.url_helpers(include_path_helpers) }
             end
           end
         end
@@ -436,7 +436,7 @@ module Rails
 
     # Load console and invoke the registered hooks.
     # Check <tt>Rails::Railtie.console</tt> for more info.
-    def load_console(app=self)
+    def load_console(app = self)
       require "rails/console/app"
       require "rails/console/helpers"
       run_console_blocks(app)
@@ -445,14 +445,14 @@ module Rails
 
     # Load Rails runner and invoke the registered hooks.
     # Check <tt>Rails::Railtie.runner</tt> for more info.
-    def load_runner(app=self)
+    def load_runner(app = self)
       run_runner_blocks(app)
       self
     end
 
     # Load Rake, railties tasks and invoke the registered hooks.
     # Check <tt>Rails::Railtie.rake_tasks</tt> for more info.
-    def load_tasks(app=self)
+    def load_tasks(app = self)
       require "rake"
       run_tasks_blocks(app)
       self
@@ -460,7 +460,7 @@ module Rails
 
     # Load Rails generators and invoke the registered hooks.
     # Check <tt>Rails::Railtie.generators</tt> for more info.
-    def load_generators(app=self)
+    def load_generators(app = self)
       require "rails/generators"
       run_generators_blocks(app)
       Rails::Generators.configure!(app.config.generators)
@@ -590,8 +590,8 @@ module Rails
     initializer :add_view_paths do
       views = paths["app/views"].existent
       unless views.empty?
-        ActiveSupport.on_load(:action_controller){ prepend_view_path(views) if respond_to?(:prepend_view_path) }
-        ActiveSupport.on_load(:action_mailer){ prepend_view_path(views) }
+        ActiveSupport.on_load(:action_controller) { prepend_view_path(views) if respond_to?(:prepend_view_path) }
+        ActiveSupport.on_load(:action_mailer) { prepend_view_path(views) }
       end
     end
 
@@ -619,7 +619,7 @@ module Rails
     end
 
     rake_tasks do
-      next if self.is_a?(Rails::Application)
+      next if is_a?(Rails::Application)
       next unless has_migrations?
 
       namespace railtie_name do
@@ -643,62 +643,62 @@ module Rails
 
     protected
 
-    def load_config_initializer(initializer)
-      ActiveSupport::Notifications.instrument('load_config_initializer.railties', initializer: initializer) do
-        load(initializer)
-      end
-    end
-
-    def run_tasks_blocks(*) #:nodoc:
-      super
-      paths["lib/tasks"].existent.sort.each { |ext| load(ext) }
-    end
-
-    def has_migrations? #:nodoc:
-      paths["db/migrate"].existent.any?
-    end
-
-    def self.find_root_with_flag(flag, root_path, default=nil) #:nodoc:
-
-      while root_path && File.directory?(root_path) && !File.exist?("#{root_path}/#{flag}")
-        parent = File.dirname(root_path)
-        root_path = parent != root_path && parent
+      def load_config_initializer(initializer)
+        ActiveSupport::Notifications.instrument("load_config_initializer.railties", initializer: initializer) do
+          load(initializer)
+        end
       end
 
-      root = File.exist?("#{root_path}/#{flag}") ? root_path : default
-      raise "Could not find root path for #{self}" unless root
+      def run_tasks_blocks(*) #:nodoc:
+        super
+        paths["lib/tasks"].existent.sort.each { |ext| load(ext) }
+      end
 
-      Pathname.new File.realpath root
-    end
+      def has_migrations? #:nodoc:
+        paths["db/migrate"].existent.any?
+      end
 
-    def default_middleware_stack #:nodoc:
-      ActionDispatch::MiddlewareStack.new
-    end
+      def self.find_root_with_flag(flag, root_path, default = nil) #:nodoc:
 
-    def _all_autoload_once_paths #:nodoc:
-      config.autoload_once_paths
-    end
+        while root_path && File.directory?(root_path) && !File.exist?("#{root_path}/#{flag}")
+          parent = File.dirname(root_path)
+          root_path = parent != root_path && parent
+        end
 
-    def _all_autoload_paths #:nodoc:
-      @_all_autoload_paths ||= (config.autoload_paths + config.eager_load_paths + config.autoload_once_paths).uniq
-    end
+        root = File.exist?("#{root_path}/#{flag}") ? root_path : default
+        raise "Could not find root path for #{self}" unless root
 
-    def _all_load_paths #:nodoc:
-      @_all_load_paths ||= (config.paths.load_paths + _all_autoload_paths).uniq
-    end
+        Pathname.new File.realpath root
+      end
+
+      def default_middleware_stack #:nodoc:
+        ActionDispatch::MiddlewareStack.new
+      end
+
+      def _all_autoload_once_paths #:nodoc:
+        config.autoload_once_paths
+      end
+
+      def _all_autoload_paths #:nodoc:
+        @_all_autoload_paths ||= (config.autoload_paths + config.eager_load_paths + config.autoload_once_paths).uniq
+      end
+
+      def _all_load_paths #:nodoc:
+        @_all_load_paths ||= (config.paths.load_paths + _all_autoload_paths).uniq
+      end
 
     private
 
-    def build_request(env)
-      env.merge!(env_config)
-      req = ActionDispatch::Request.new env
-      req.routes = routes
-      req.engine_script_name = req.script_name
-      req
-    end
+      def build_request(env)
+        env.merge!(env_config)
+        req = ActionDispatch::Request.new env
+        req.routes = routes
+        req.engine_script_name = req.script_name
+        req
+      end
 
-    def build_middleware
-      config.middleware
-    end
+      def build_middleware
+        config.middleware
+      end
   end
 end

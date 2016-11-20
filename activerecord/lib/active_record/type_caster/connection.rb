@@ -14,16 +14,16 @@ module ActiveRecord
 
       protected
 
-      attr_reader :table_name
-      delegate :connection, to: :@klass
+        attr_reader :table_name
+        delegate :connection, to: :@klass
 
       private
 
-      def column_for(attribute_name)
-        if connection.schema_cache.data_source_exists?(table_name)
-          connection.schema_cache.columns_hash(table_name)[attribute_name.to_s]
+        def column_for(attribute_name)
+          if connection.schema_cache.data_source_exists?(table_name)
+            connection.schema_cache.columns_hash(table_name)[attribute_name.to_s]
+          end
         end
-      end
     end
   end
 end

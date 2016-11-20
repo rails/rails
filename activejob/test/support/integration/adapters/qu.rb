@@ -1,9 +1,9 @@
 module QuJobsManager
   def setup
-    require 'qu-rails'
-    require 'qu-redis'
+    require "qu-rails"
+    require "qu-redis"
     ActiveJob::Base.queue_adapter = :qu
-    ENV['REDISTOGO_URL'] = "redis://127.0.0.1:6379/12"
+    ENV["REDISTOGO_URL"] = "redis://127.0.0.1:6379/12"
     backend = Qu::Backend::Redis.new
     backend.namespace = "active_jobs_int_test"
     Qu.backend  = backend

@@ -29,7 +29,7 @@ module ActiveRecord
       end
 
       def bigint?
-        /\Abigint\b/ === sql_type
+        /\Abigint\b/.match?(sql_type)
       end
 
       # Returns the human name of the column name.
@@ -52,9 +52,9 @@ module ActiveRecord
 
       protected
 
-      def attributes_for_hash
-        [self.class, name, default, sql_type_metadata, null, table_name, default_function, collation]
-      end
+        def attributes_for_hash
+          [self.class, name, default, sql_type_metadata, null, table_name, default_function, collation]
+        end
     end
 
     class NullColumn < Column

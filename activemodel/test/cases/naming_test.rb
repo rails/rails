@@ -1,8 +1,8 @@
-require 'cases/helper'
-require 'models/contact'
-require 'models/sheep'
-require 'models/track_back'
-require 'models/blog_post'
+require "cases/helper"
+require "models/contact"
+require "models/sheep"
+require "models/track_back"
+require "models/blog_post"
 
 class NamingTest < ActiveModel::TestCase
   def setup
@@ -10,31 +10,31 @@ class NamingTest < ActiveModel::TestCase
   end
 
   def test_singular
-    assert_equal 'post_track_back', @model_name.singular
+    assert_equal "post_track_back", @model_name.singular
   end
 
   def test_plural
-    assert_equal 'post_track_backs', @model_name.plural
+    assert_equal "post_track_backs", @model_name.plural
   end
 
   def test_element
-    assert_equal 'track_back', @model_name.element
+    assert_equal "track_back", @model_name.element
   end
 
   def test_collection
-    assert_equal 'post/track_backs', @model_name.collection
+    assert_equal "post/track_backs", @model_name.collection
   end
 
   def test_human
-    assert_equal 'Track back', @model_name.human
+    assert_equal "Track back", @model_name.human
   end
 
   def test_route_key
-    assert_equal 'post_track_backs', @model_name.route_key
+    assert_equal "post_track_backs", @model_name.route_key
   end
 
   def test_param_key
-    assert_equal 'post_track_back', @model_name.param_key
+    assert_equal "post_track_back", @model_name.param_key
   end
 
   def test_i18n_key
@@ -48,31 +48,31 @@ class NamingWithNamespacedModelInIsolatedNamespaceTest < ActiveModel::TestCase
   end
 
   def test_singular
-    assert_equal 'blog_post', @model_name.singular
+    assert_equal "blog_post", @model_name.singular
   end
 
   def test_plural
-    assert_equal 'blog_posts', @model_name.plural
+    assert_equal "blog_posts", @model_name.plural
   end
 
   def test_element
-    assert_equal 'post', @model_name.element
+    assert_equal "post", @model_name.element
   end
 
   def test_collection
-    assert_equal 'blog/posts', @model_name.collection
+    assert_equal "blog/posts", @model_name.collection
   end
 
   def test_human
-    assert_equal 'Post', @model_name.human
+    assert_equal "Post", @model_name.human
   end
 
   def test_route_key
-    assert_equal 'posts', @model_name.route_key
+    assert_equal "posts", @model_name.route_key
   end
 
   def test_param_key
-    assert_equal 'post', @model_name.param_key
+    assert_equal "post", @model_name.param_key
   end
 
   def test_i18n_key
@@ -86,31 +86,31 @@ class NamingWithNamespacedModelInSharedNamespaceTest < ActiveModel::TestCase
   end
 
   def test_singular
-    assert_equal 'blog_post', @model_name.singular
+    assert_equal "blog_post", @model_name.singular
   end
 
   def test_plural
-    assert_equal 'blog_posts', @model_name.plural
+    assert_equal "blog_posts", @model_name.plural
   end
 
   def test_element
-    assert_equal 'post', @model_name.element
+    assert_equal "post", @model_name.element
   end
 
   def test_collection
-    assert_equal 'blog/posts', @model_name.collection
+    assert_equal "blog/posts", @model_name.collection
   end
 
   def test_human
-    assert_equal 'Post', @model_name.human
+    assert_equal "Post", @model_name.human
   end
 
   def test_route_key
-    assert_equal 'blog_posts', @model_name.route_key
+    assert_equal "blog_posts", @model_name.route_key
   end
 
   def test_param_key
-    assert_equal 'blog_post', @model_name.param_key
+    assert_equal "blog_post", @model_name.param_key
   end
 
   def test_i18n_key
@@ -120,35 +120,35 @@ end
 
 class NamingWithSuppliedModelNameTest < ActiveModel::TestCase
   def setup
-    @model_name = ActiveModel::Name.new(Blog::Post, nil, 'Article')
+    @model_name = ActiveModel::Name.new(Blog::Post, nil, "Article")
   end
 
   def test_singular
-    assert_equal 'article', @model_name.singular
+    assert_equal "article", @model_name.singular
   end
 
   def test_plural
-    assert_equal 'articles', @model_name.plural
+    assert_equal "articles", @model_name.plural
   end
 
   def test_element
-    assert_equal 'article', @model_name.element
+    assert_equal "article", @model_name.element
   end
 
   def test_collection
-    assert_equal 'articles', @model_name.collection
+    assert_equal "articles", @model_name.collection
   end
 
   def test_human
-    assert_equal 'Article', @model_name.human
+    assert_equal "Article", @model_name.human
   end
 
   def test_route_key
-    assert_equal 'articles', @model_name.route_key
+    assert_equal "articles", @model_name.route_key
   end
 
   def test_param_key
-    assert_equal 'article', @model_name.param_key
+    assert_equal "article", @model_name.param_key
   end
 
   def test_i18n_key
@@ -162,31 +162,31 @@ class NamingUsingRelativeModelNameTest < ActiveModel::TestCase
   end
 
   def test_singular
-    assert_equal 'blog_post', @model_name.singular
+    assert_equal "blog_post", @model_name.singular
   end
 
   def test_plural
-    assert_equal 'blog_posts', @model_name.plural
+    assert_equal "blog_posts", @model_name.plural
   end
 
   def test_element
-    assert_equal 'post', @model_name.element
+    assert_equal "post", @model_name.element
   end
 
   def test_collection
-    assert_equal 'blog/posts', @model_name.collection
+    assert_equal "blog/posts", @model_name.collection
   end
 
   def test_human
-    assert_equal 'Post', @model_name.human
+    assert_equal "Post", @model_name.human
   end
 
   def test_route_key
-    assert_equal 'posts', @model_name.route_key
+    assert_equal "posts", @model_name.route_key
   end
 
   def test_param_key
-    assert_equal 'post', @model_name.param_key
+    assert_equal "post", @model_name.param_key
   end
 
   def test_i18n_key
@@ -198,16 +198,16 @@ class NamingHelpersTest < ActiveModel::TestCase
   def setup
     @klass  = Contact
     @record = @klass.new
-    @singular = 'contact'
-    @plural = 'contacts'
+    @singular = "contact"
+    @plural = "contacts"
     @uncountable = Sheep
-    @singular_route_key = 'contact'
-    @route_key = 'contacts'
-    @param_key = 'contact'
+    @singular_route_key = "contact"
+    @route_key = "contacts"
+    @param_key = "contact"
   end
 
   def test_to_model_called_on_record
-    assert_equal 'post_named_track_backs', plural(Post::TrackBack.new)
+    assert_equal "post_named_track_backs", plural(Post::TrackBack.new)
   end
 
   def test_singular

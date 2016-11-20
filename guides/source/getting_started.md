@@ -68,7 +68,7 @@ The Rails philosophy includes two major guiding principles:
   again, our code is more maintainable, more extensible, and less buggy.
 * **Convention Over Configuration:** Rails has opinions about the best way to do many
   things in a web application, and defaults to this set of conventions, rather than
-  require that you specify every minutiae through endless configuration files.
+  require that you specify minutiae through endless configuration files.
 
 Creating a New Rails Project
 ----------------------------
@@ -148,6 +148,10 @@ This will create a Rails application called Blog in a `blog` directory and
 install the gem dependencies that are already mentioned in `Gemfile` using
 `bundle install`.
 
+NOTE: If you're using Windows Subsystem for Linux then there are currently some
+limitations on file system notifications that mean you should disable the `spring`
+and `listen` gems which you can do by running `rails new blog --skip-spring --skip-listen`.
+
 TIP: You can see all of the command line options that the Rails application
 builder accepts by running `rails new -h`.
 
@@ -178,6 +182,7 @@ of the files and folders that Rails created by default:
 |test/|Unit tests, fixtures, and other test apparatus. These are covered in [Testing Rails Applications](testing.html).|
 |tmp/|Temporary files (like cache and pid files).|
 |vendor/|A place for all third-party code. In a typical Rails application this includes vendored gems.|
+|.gitignore|This file tells git which files (or patterns) it should ignore. See [Github - Ignoring files](https://help.github.com/articles/ignoring-files) for more info about ignoring files.
 
 Hello, Rails!
 -------------
@@ -349,6 +354,7 @@ resource. You need to add the _article resource_ to the
 
 ```ruby
 Rails.application.routes.draw do
+  get 'welcome/index'
 
   resources :articles
 
@@ -480,7 +486,7 @@ to find a template called `articles/new` within `app/views` for the
 application. The format for this template can only be `html` and the default
 handler for HTML is `erb`. Rails uses other handlers for other formats.
 `builder` handler is used to build XML templates and `coffee` handler uses
-CoffeeScript to build JavaScript templates. Because you want to create a new
+CoffeeScript to build JavaScript templates. Since you want to create a new
 HTML form, you will be using the `ERB` language which is designed to embed Ruby
 in HTML.
 
@@ -523,7 +529,7 @@ method called `form_for`. To use this method, add this code into
 <% end %>
 ```
 
-If you refresh the page now, you'll see the exact same form as in the example.
+If you refresh the page now, you'll see the exact same form from our example above.
 Building forms in Rails is really just that easy!
 
 When you call `form_for`, you pass it an identifying object for this
@@ -627,8 +633,7 @@ this situation, the only parameters that matter are the ones from the form.
 
 TIP: Ensure you have a firm grasp of the `params` method, as you'll use it fairly regularly. Let's consider an example URL: **http://www.example.com/?username=dhh&email=dhh@email.com**. In this URL, `params[:username]` would equal "dhh" and `params[:email]` would equal "dhh@email.com".
 
-If you re-submit the form one more time you'll now no longer get the missing
-template error. Instead, you'll see something that looks like the following:
+If you re-submit the form one more time, you'll see something that looks like the following:
 
 ```ruby
 <ActionController::Parameters {"title"=>"First Article!", "text"=>"This is my first article."} permitted: false>
@@ -1150,7 +1155,7 @@ new articles. Create a file called `app/views/articles/edit.html.erb` and make
 it look as follows:
 
 ```html+erb
-<h1>Editing article</h1>
+<h1>Edit article</h1>
 
 <%= form_for :article, url: article_path(@article), method: :patch do |f| %>
 
@@ -1650,8 +1655,8 @@ This creates five files and one empty directory:
 | app/views/comments/                          | Views of the controller are stored here  |
 | test/controllers/comments_controller_test.rb | The test for the controller              |
 | app/helpers/comments_helper.rb               | A view helper file                       |
-| app/assets/javascripts/comment.coffee        | CoffeeScript for the controller          |
-| app/assets/stylesheets/comment.scss          | Cascading style sheet for the controller |
+| app/assets/javascripts/comments.coffee       | CoffeeScript for the controller          |
+| app/assets/stylesheets/comments.scss         | Cascading style sheet for the controller |
 
 Like with any blog, our readers will create their comments directly after
 reading the article, and once they have added their comment, will be sent back

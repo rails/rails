@@ -41,7 +41,7 @@ module ActionCable
 
         # Uses the internal channel to disconnect the connection.
         def disconnect
-          server.broadcast internal_channel, type: 'disconnect'
+          server.broadcast internal_channel, type: "disconnect"
         end
 
         # Returns all the identifiers that were applied to this connection.
@@ -54,7 +54,7 @@ module ActionCable
 
           def set_identifier_instance_vars(ids)
             raise InvalidIdentifiersError unless valid_identifiers?(ids)
-            ids.each { |k,v| instance_variable_set("@#{k}", v) }
+            ids.each { |k, v| instance_variable_set("@#{k}", v) }
           end
 
           def valid_identifiers?(ids)

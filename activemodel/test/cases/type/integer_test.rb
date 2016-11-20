@@ -1,5 +1,6 @@
 require "cases/helper"
 require "active_model/type"
+require "active_support/core_ext/numeric/time"
 
 module ActiveModel
   module Type
@@ -7,10 +8,10 @@ module ActiveModel
       test "simple values" do
         type = Type::Integer.new
         assert_equal 1, type.cast(1)
-        assert_equal 1, type.cast('1')
-        assert_equal 1, type.cast('1ignore')
-        assert_equal 0, type.cast('bad1')
-        assert_equal 0, type.cast('bad')
+        assert_equal 1, type.cast("1")
+        assert_equal 1, type.cast("1ignore")
+        assert_equal 0, type.cast("bad1")
+        assert_equal 0, type.cast("bad")
         assert_equal 1, type.cast(1.7)
         assert_equal 0, type.cast(false)
         assert_equal 1, type.cast(true)
@@ -19,8 +20,8 @@ module ActiveModel
 
       test "random objects cast to nil" do
         type = Type::Integer.new
-        assert_nil type.cast([1,2])
-        assert_nil type.cast({1 => 2})
+        assert_nil type.cast([1, 2])
+        assert_nil type.cast(1 => 2)
         assert_nil type.cast(1..2)
       end
 
@@ -32,7 +33,7 @@ module ActiveModel
       test "casting nan and infinity" do
         type = Type::Integer.new
         assert_nil type.cast(::Float::NAN)
-        assert_nil type.cast(1.0/0.0)
+        assert_nil type.cast(1.0 / 0.0)
       end
 
       test "casting booleans for database" do
@@ -41,14 +42,20 @@ module ActiveModel
         assert_equal 0, type.serialize(false)
       end
 
+      test "casting duration" do
+        type = Type::Integer.new
+        assert_equal 1800, type.cast(30.minutes)
+        assert_equal 7200, type.cast(2.hours)
+      end
+
       test "changed?" do
         type = Type::Integer.new
 
-        assert type.changed?(5, 5, '5wibble')
-        assert_not type.changed?(5, 5, '5')
-        assert_not type.changed?(5, 5, '5.0')
-        assert_not type.changed?(-5, -5, '-5')
-        assert_not type.changed?(-5, -5, '-5.0')
+        assert type.changed?(5, 5, "5wibble")
+        assert_not type.changed?(5, 5, "5")
+        assert_not type.changed?(5, 5, "5.0")
+        assert_not type.changed?(-5, -5, "-5")
+        assert_not type.changed?(-5, -5, "-5.0")
         assert_not type.changed?(nil, nil, nil)
       end
 

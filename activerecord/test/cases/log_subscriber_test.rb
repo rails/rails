@@ -30,7 +30,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
       super
     end
 
-    def debug message
+    def debug(message)
       @debugs << message
     end
   end
@@ -60,20 +60,20 @@ class LogSubscriberTest < ActiveRecord::TestCase
     logger = TestDebugLogSubscriber.new
     assert_equal 0, logger.debugs.length
 
-    logger.sql(event.new(0, sql: 'hi mom!'))
+    logger.sql(event.new(0, sql: "hi mom!"))
     assert_equal 1, logger.debugs.length
 
-    logger.sql(event.new(0, sql: 'hi mom!', name: 'foo'))
+    logger.sql(event.new(0, sql: "hi mom!", name: "foo"))
     assert_equal 2, logger.debugs.length
 
-    logger.sql(event.new(0, sql: 'hi mom!', name: 'SCHEMA'))
+    logger.sql(event.new(0, sql: "hi mom!", name: "SCHEMA"))
     assert_equal 2, logger.debugs.length
   end
 
   def test_sql_statements_are_not_squeezed
     event = Struct.new(:duration, :payload)
     logger = TestDebugLogSubscriber.new
-    logger.sql(event.new(0, sql: 'ruby   rails'))
+    logger.sql(event.new(0, sql: "ruby   rails"))
     assert_match(/ruby   rails/, logger.debugs.first)
   end
 
@@ -103,7 +103,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
       logger.sql(event.new(0, sql: verb.to_s))
       assert_match(/#{REGEXP_BOLD}#{REGEXP_MAGENTA} \(0.0ms\)#{REGEXP_CLEAR}/i, logger.debugs.last)
 
-      logger.sql(event.new(0, {sql: verb.to_s, name: "SQL"}))
+      logger.sql(event.new(0, sql: verb.to_s, name: "SQL"))
       assert_match(/#{REGEXP_BOLD}#{REGEXP_MAGENTA}SQL \(0.0ms\)#{REGEXP_CLEAR}/i, logger.debugs.last)
     end
   end
@@ -113,13 +113,13 @@ class LogSubscriberTest < ActiveRecord::TestCase
     logger = TestDebugLogSubscriber.new
     logger.colorize_logging = true
     SQL_COLORINGS.each do |verb, _|
-      logger.sql(event.new(0, {sql: verb.to_s, name: "Model Load"}))
+      logger.sql(event.new(0, sql: verb.to_s, name: "Model Load"))
       assert_match(/#{REGEXP_BOLD}#{REGEXP_CYAN}Model Load \(0.0ms\)#{REGEXP_CLEAR}/i, logger.debugs.last)
 
-      logger.sql(event.new(0, {sql: verb.to_s, name: "Model Exists"}))
+      logger.sql(event.new(0, sql: verb.to_s, name: "Model Exists"))
       assert_match(/#{REGEXP_BOLD}#{REGEXP_CYAN}Model Exists \(0.0ms\)#{REGEXP_CLEAR}/i, logger.debugs.last)
 
-      logger.sql(event.new(0, {sql: verb.to_s, name: "ANY SPECIFIC NAME"}))
+      logger.sql(event.new(0, sql: verb.to_s, name: "ANY SPECIFIC NAME"))
       assert_match(/#{REGEXP_BOLD}#{REGEXP_CYAN}ANY SPECIFIC NAME \(0.0ms\)#{REGEXP_CLEAR}/i, logger.debugs.last)
     end
   end
@@ -211,7 +211,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
 
   if ActiveRecord::Base.connection.prepared_statements
     def test_binary_data_is_not_logged
-      Binary.create(data: 'some binary data')
+      Binary.create(data: "some binary data")
       wait
       assert_match(/<16 bytes of binary data>/, @logger.logged(:debug).join)
     end

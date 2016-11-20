@@ -71,7 +71,7 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
 * `config.beginning_of_week` sets the default beginning of week for the
 application. Accepts a valid week day symbol (e.g. `:monday`).
 
-* `config.cache_store` configures which cache store to use for Rails caching. Options include one of the symbols `:memory_store`, `:file_store`, `:mem_cache_store`, `:null_store`, or an object that implements the cache API. Defaults to `:file_store` if the directory `tmp/cache` exists, and to `:memory_store` otherwise.
+* `config.cache_store` configures which cache store to use for Rails caching. Options include one of the symbols `:memory_store`, `:file_store`, `:mem_cache_store`, `:null_store`, or an object that implements the cache API. Defaults to `:file_store`.
 
 * `config.colorize_logging` specifies whether or not to use ANSI color codes when logging information. Defaults to `true`.
 
@@ -110,7 +110,7 @@ numbers. By default, Rails filters out passwords by adding `Rails.application.co
 
 * `config.force_ssl` forces all requests to be served over HTTPS by using the `ActionDispatch::SSL` middleware, and sets `config.action_mailer.default_url_options` to be `{ protocol: 'https' }`. This can be configured by setting `config.ssl_options` - see the [ActionDispatch::SSL documentation](http://edgeapi.rubyonrails.org/classes/ActionDispatch/SSL.html) for details.
 
-* `config.log_formatter` defines the formatter of the Rails logger. This option defaults to an instance of `ActiveSupport::Logger::SimpleFormatter` for all modes except production, where it defaults to `Logger::Formatter`. If you are setting a value for `config.logger` you must manually pass the value of your formatter to your logger before it is wrapped in an `ActiveSupport::TaggedLogging` instance, Rails will not do it for you.
+* `config.log_formatter` defines the formatter of the Rails logger. This option defaults to an instance of `ActiveSupport::Logger::SimpleFormatter` for all modes. If you are setting a value for `config.logger` you must manually pass the value of your formatter to your logger before it is wrapped in an `ActiveSupport::TaggedLogging` instance, Rails will not do it for you.
 
 * `config.log_level` defines the verbosity of the Rails logger. This option
 defaults to `:debug` for all environments. The available log levels are: `:debug`,
@@ -131,7 +131,7 @@ defaults to `:debug` for all environments. The available log levels are: `:debug
 
     mylogger           = MyLogger.new(STDOUT)
     mylogger.formatter = config.log_formatter
-    config.logger = ActiveSupport::TaggedLogging.new(mylogger)
+    config.logger      = ActiveSupport::TaggedLogging.new(mylogger)
     ```
 
 * `config.middleware` allows you to configure the application's middleware. This is covered in depth in the [Configuring Middleware](#configuring-middleware) section below.
@@ -169,13 +169,17 @@ pipeline is enabled. It is set to `true` by default.
 
 * `config.assets.precompile` allows you to specify additional assets (other than `application.css` and `application.js`) which are to be precompiled when `rake assets:precompile` is run.
 
+* `config.assets.unknown_asset_fallback` allows you to modify the behavior of the asset pipeline when an asset is not in the pipeline, if you use sprockets-rails 3.2.0 or newer. Defaults to `true`.
+
 * `config.assets.prefix` defines the prefix where assets are served from. Defaults to `/assets`.
 
 * `config.assets.manifest` defines the full path to be used for the asset precompiler's manifest file. Defaults to a file named `manifest-<random>.json` in the `config.assets.prefix` directory within the public folder.
 
-* `config.assets.digest` enables the use of MD5 fingerprints in asset names. Set to `true` by default.
+* `config.assets.digest` enables the use of SHA256 fingerprints in asset names. Set to `true` by default.
 
 * `config.assets.debug` disables the concatenation and compression of assets. Set to `true` by default in `development.rb`.
+
+* `config.assets.version` is an option string that is used in SHA256 hash generation. This can be changed to force all files to be recompiled.
 
 * `config.assets.compile` is a boolean that can be used to turn on live Sprockets compilation in production.
 
@@ -402,6 +406,22 @@ The schema dumper adds one additional configuration option:
 
 * `config.action_controller.always_permitted_parameters` sets a list of whitelisted parameters that are permitted by default. The default values are `['controller', 'action']`.
 
+* `config.action_controller.enable_fragment_cache_logging` determines whether to log fragment cache reads and writes in verbose format as follows:
+
+    ```
+    Read fragment views/v1/2914079/v1/2914079/recordings/70182313-20160225015037000000/d0bdf2974e1ef6d31685c3b392ad0b74 (0.6ms)
+    Rendered messages/_message.html.erb in 1.2 ms [cache hit]
+    Write fragment views/v1/2914079/v1/2914079/recordings/70182313-20160225015037000000/3b4e249ac9d168c617e32e84b99218b5 (1.1ms)
+    Rendered recordings/threads/_thread.html.erb in 1.5 ms [cache miss]
+    ```
+
+  By default it is set to `false` which results in following output:
+
+    ```
+    Rendered messages/_message.html.erb in 1.2 ms [cache hit]
+    Rendered recordings/threads/_thread.html.erb in 1.5 ms [cache miss]
+    ```
+
 ### Configuring Action Dispatch
 
 * `config.action_dispatch.session_store` sets the name of the store for session data. The default is `:cookie_store`; other valid options include `:active_record_store`, `:mem_cache_store` or the name of your own custom class.
@@ -444,21 +464,23 @@ encrypted cookies salt value. Defaults to `'signed encrypted cookie'`.
 
   ```ruby
   config.action_dispatch.rescue_responses = {
-    'ActionController::RoutingError'              => :not_found,
-    'AbstractController::ActionNotFound'          => :not_found,
-    'ActionController::MethodNotAllowed'          => :method_not_allowed,
-    'ActionController::UnknownHttpMethod'         => :method_not_allowed,
-    'ActionController::NotImplemented'            => :not_implemented,
-    'ActionController::UnknownFormat'             => :not_acceptable,
-    'ActionController::InvalidAuthenticityToken'  => :unprocessable_entity,
-    'ActionController::InvalidCrossOriginRequest' => :unprocessable_entity,
-    'ActionDispatch::ParamsParser::ParseError'    => :bad_request,
-    'ActionController::BadRequest'                => :bad_request,
-    'ActionController::ParameterMissing'          => :bad_request,
-    'ActiveRecord::RecordNotFound'                => :not_found,
-    'ActiveRecord::StaleObjectError'              => :conflict,
-    'ActiveRecord::RecordInvalid'                 => :unprocessable_entity,
-    'ActiveRecord::RecordNotSaved'                => :unprocessable_entity
+    'ActionController::RoutingError'               => :not_found,
+    'AbstractController::ActionNotFound'           => :not_found,
+    'ActionController::MethodNotAllowed'           => :method_not_allowed,
+    'ActionController::UnknownHttpMethod'          => :method_not_allowed,
+    'ActionController::NotImplemented'             => :not_implemented,
+    'ActionController::UnknownFormat'              => :not_acceptable,
+    'ActionController::InvalidAuthenticityToken'   => :unprocessable_entity,
+    'ActionController::InvalidCrossOriginRequest'  => :unprocessable_entity,
+    'ActionDispatch::Http::Parameters::ParseError' => :bad_request,
+    'ActionController::BadRequest'                 => :bad_request,
+    'ActionController::ParameterMissing'           => :bad_request,
+    'Rack::QueryParser::ParameterTypeError'        => :bad_request,
+    'Rack::QueryParser::InvalidParameterError'     => :bad_request,
+    'ActiveRecord::RecordNotFound'                 => :not_found,
+    'ActiveRecord::StaleObjectError'               => :conflict,
+    'ActiveRecord::RecordInvalid'                  => :unprocessable_entity,
+    'ActiveRecord::RecordNotSaved'                 => :unprocessable_entity
   }
   ```
 
@@ -1161,7 +1183,7 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `finisher_hook`: Provides a hook for after the initialization of process of the application is complete, as well as running all the `config.after_initialize` blocks for the application, railties and engines.
 
-* `set_routes_reloader`: Configures Action Dispatch to reload the routes file using `ActionDispatch::Callbacks.to_prepare`.
+* `set_routes_reloader_hook`: Configures Action Dispatch to reload the routes file using `ActionDispatch::Callbacks.to_prepare`.
 
 * `disable_dependency_loading`: Disables the automatic dependency loading if the `config.eager_load` is set to `true`.
 
@@ -1178,7 +1200,7 @@ development:
   timeout: 5000
 ```
 
-Since the connection pooling is handled inside of Active Record by default, all application servers (Thin, mongrel, Unicorn etc.) should behave the same. The database connection pool is initially empty. As demand for connections increases it will create them until it reaches the connection pool limit.
+Since the connection pooling is handled inside of Active Record by default, all application servers (Thin, Puma, Unicorn etc.) should behave the same. The database connection pool is initially empty. As demand for connections increases it will create them until it reaches the connection pool limit.
 
 Any one request will check out a connection the first time it requires access to the database. At the end of the request it will check the connection back in. This means that the additional connection slot will be available again for the next request in the queue.
 
@@ -1199,21 +1221,25 @@ NOTE. If you are running in a multi-threaded environment, there could be a chanc
 Custom configuration
 --------------------
 
-You can configure your own code through the Rails configuration object with custom configuration. It works like this:
+You can configure your own code through the Rails configuration object with
+custom configuration under either the `config.x` namespace, or `config` directly.
+The key difference between these two is that you should be using `config.x` if you
+are defining _nested_ configuration (ex: `config.x.nested.nested.hi`), and just
+`config` for _single level_ configuration (ex: `config.hello`).
 
   ```ruby
-  config.payment_processing.schedule = :daily
-  config.payment_processing.retries  = 3
+  config.x.payment_processing.schedule = :daily
+  config.x.payment_processing.retries  = 3
   config.super_debugger = true
   ```
 
 These configuration points are then available through the configuration object:
 
   ```ruby
-  Rails.configuration.payment_processing.schedule # => :daily
-  Rails.configuration.payment_processing.retries  # => 3
-  Rails.configuration.super_debugger              # => true
-  Rails.configuration.super_debugger.not_set      # => nil
+  Rails.configuration.x.payment_processing.schedule # => :daily
+  Rails.configuration.x.payment_processing.retries  # => 3
+  Rails.configuration.x.payment_processing.not_set  # => nil
+  Rails.configuration.super_debugger                # => true
   ```
 
 You can also use `Rails::Application.config_for` to load whole configuration files:
@@ -1272,7 +1298,7 @@ evented file system monitor to detect changes when `config.cache_classes` is
 
 ```ruby
 group :development do
-  gem 'listen', '~> 3.0.4'
+  gem 'listen', '>= 3.0.5', '< 3.2'
 end
 ```
 

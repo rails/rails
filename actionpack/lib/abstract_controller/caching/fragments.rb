@@ -51,7 +51,7 @@ module AbstractController
         #     end
         #   end
         def fragment_cache_key(value = nil, &key)
-          self.fragment_cache_keys += [key || ->{ value }]
+          self.fragment_cache_keys += [key || -> { value }]
         end
       end
 

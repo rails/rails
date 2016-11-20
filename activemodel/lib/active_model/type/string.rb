@@ -11,9 +11,9 @@ module ActiveModel
 
       private
 
-      def cast_value(value)
-        ::String.new(super)
-      end
+        def cast_value(value)
+          ::String.new(super)
+        end
     end
   end
 end

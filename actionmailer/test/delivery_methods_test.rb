@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class MyCustomDelivery
 end
@@ -23,7 +23,7 @@ class DefaultsDeliveryMethodsTest < ActiveSupport::TestCase
   test "default smtp settings" do
     settings = { address:              "localhost",
                  port:                 25,
-                 domain:               'localhost.localdomain',
+                 domain:               "localhost.localdomain",
                  user_name:            nil,
                  password:             nil,
                  authentication:       nil,
@@ -32,14 +32,14 @@ class DefaultsDeliveryMethodsTest < ActiveSupport::TestCase
   end
 
   test "default file delivery settings (with Rails.root)" do
-    settings = {location: "#{Rails.root}/tmp/mails"}
+    settings = { location: "#{Rails.root}/tmp/mails" }
     assert_equal settings, ActionMailer::Base.file_settings
   end
 
   test "default sendmail settings" do
     settings = {
-      location:  '/usr/sbin/sendmail',
-      arguments: '-i'
+      location:  "/usr/sbin/sendmail",
+      arguments: "-i"
     }
     assert_equal settings, ActionMailer::Base.sendmail_settings
   end
@@ -83,11 +83,11 @@ end
 class MailDeliveryTest < ActiveSupport::TestCase
   class DeliveryMailer < ActionMailer::Base
     DEFAULT_HEADERS = {
-      to: 'mikel@test.lindsaar.net',
-      from: 'jose@test.plataformatec.com'
+      to: "mikel@test.lindsaar.net",
+      from: "jose@test.plataformatec.com"
     }
 
-    def welcome(hash={})
+    def welcome(hash = {})
       mail(DEFAULT_HEADERS.merge(hash))
     end
   end
@@ -127,16 +127,16 @@ class MailDeliveryTest < ActiveSupport::TestCase
   end
 
   test "delivery method options default to class level options" do
-    default_options = {a: "b"}
+    default_options = { a: "b" }
     ActionMailer::Base.add_delivery_method :optioned, MyOptionedDelivery, default_options
     mail_instance = DeliveryMailer.welcome(delivery_method: :optioned)
     assert_equal default_options, mail_instance.delivery_method.options
   end
 
   test "delivery method options can be overridden per mail instance" do
-    default_options = {a: "b"}
+    default_options = { a: "b" }
     ActionMailer::Base.add_delivery_method :optioned, MyOptionedDelivery, default_options
-    overridden_options = {a: "a"}
+    overridden_options = { a: "a" }
     mail_instance = DeliveryMailer.welcome(delivery_method: :optioned, delivery_method_options: overridden_options)
     assert_equal overridden_options, mail_instance.delivery_method.options
   end
@@ -145,14 +145,14 @@ class MailDeliveryTest < ActiveSupport::TestCase
     settings = {
       address: "localhost",
       port: 25,
-      domain: 'localhost.localdomain',
+      domain: "localhost.localdomain",
       user_name: nil,
       password: nil,
       authentication: nil,
       enable_starttls_auto: true
     }
     assert_equal settings, ActionMailer::Base.smtp_settings
-    overridden_options = {user_name: "overridden", password: "somethingobtuse"}
+    overridden_options = { user_name: "overridden", password: "somethingobtuse" }
     mail_instance = DeliveryMailer.welcome(delivery_method_options: overridden_options)
     delivery_method_instance = mail_instance.delivery_method
     assert_equal "overridden", delivery_method_instance.settings[:user_name]

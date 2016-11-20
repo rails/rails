@@ -1,13 +1,12 @@
-require 'rake/testtask'
-require 'pathname'
-require 'action_cable'
-require 'blade'
+require "rake/testtask"
+require "pathname"
+require "action_cable"
 
 dir = File.dirname(__FILE__)
 
-task :default => :test
+task default: :test
 
-task :package => "assets:compile"
+task package: "assets:compile"
 
 Rake::TestTask.new do |t|
   t.libs << "test"
@@ -20,12 +19,13 @@ end
 namespace :test do
   task :isolated do
     Dir.glob("test/**/*_test.rb").all? do |file|
-      sh(Gem.ruby, '-w', '-Ilib:test', file)
-    end or raise "Failures"
+      sh(Gem.ruby, "-w", "-Ilib:test", file)
+    end || raise("Failures")
   end
 
   task :integration do
-    if ENV['CI']
+    require "blade"
+    if ENV["CI"]
       Blade.start(interface: :ci)
     else
       Blade.start(interface: :runner)
@@ -36,6 +36,7 @@ end
 namespace :assets do
   desc "Compile Action Cable assets"
   task :compile do
+    require "blade"
     Blade.build
   end
 end

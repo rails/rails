@@ -1,4 +1,4 @@
-require 'active_support/time'
+require "active_support/time"
 
 module Rails
   module Generators
@@ -12,7 +12,7 @@ module Rails
 
       class << self
         def parse(column_definition)
-          name, type, has_index = column_definition.split(':')
+          name, type, has_index = column_definition.split(":")
 
           # if user provided "name:index" instead of "name:string:index"
           # type should be set blank so GeneratedAttribute's constructor
@@ -56,7 +56,7 @@ module Rails
         end
       end
 
-      def initialize(name, type=nil, index_type=false, attr_options={})
+      def initialize(name, type = nil, index_type = false, attr_options = {})
         @name           = name
         @type           = type || :string
         @has_index      = INDEX_OPTIONS.include?(index_type)
@@ -66,40 +66,40 @@ module Rails
 
       def field_type
         @field_type ||= case type
-          when :integer              then :number_field
-          when :float, :decimal      then :text_field
-          when :time                 then :time_select
-          when :datetime, :timestamp then :datetime_select
-          when :date                 then :date_select
-          when :text                 then :text_area
-          when :boolean              then :check_box
+                        when :integer              then :number_field
+                        when :float, :decimal      then :text_field
+                        when :time                 then :time_select
+                        when :datetime, :timestamp then :datetime_select
+                        when :date                 then :date_select
+                        when :text                 then :text_area
+                        when :boolean              then :check_box
           else
-            :text_field
+                          :text_field
         end
       end
 
       def default
         @default ||= case type
-          when :integer                     then 1
-          when :float                       then 1.5
-          when :decimal                     then "9.99"
-          when :datetime, :timestamp, :time then Time.now.to_s(:db)
-          when :date                        then Date.today.to_s(:db)
-          when :string                      then name == "type" ? "" : "MyString"
-          when :text                        then "MyText"
-          when :boolean                     then false
-          when :references, :belongs_to     then nil
+                     when :integer                     then 1
+                     when :float                       then 1.5
+                     when :decimal                     then "9.99"
+                     when :datetime, :timestamp, :time then Time.now.to_s(:db)
+                     when :date                        then Date.today.to_s(:db)
+                     when :string                      then name == "type" ? "" : "MyString"
+                     when :text                        then "MyText"
+                     when :boolean                     then false
+                     when :references, :belongs_to     then nil
           else
-            ""
+                       ""
         end
       end
 
       def plural_name
-        name.sub(/_id$/, '').pluralize
+        name.sub(/_id$/, "").pluralize
       end
 
       def singular_name
-        name.sub(/_id$/, '').singularize
+        name.sub(/_id$/, "").singularize
       end
 
       def human_name
@@ -127,11 +127,11 @@ module Rails
       end
 
       def polymorphic?
-        self.attr_options[:polymorphic]
+        attr_options[:polymorphic]
       end
 
       def required?
-        self.attr_options[:required]
+        attr_options[:required]
       end
 
       def has_index?
@@ -143,7 +143,7 @@ module Rails
       end
 
       def password_digest?
-        name == 'password' && type == :digest
+        name == "password" && type == :digest
       end
 
       def token?
@@ -151,7 +151,7 @@ module Rails
       end
 
       def inject_options
-        "".tap { |s| options_for_migration.each { |k,v| s << ", #{k}: #{v.inspect}" } }
+        "".tap { |s| options_for_migration.each { |k, v| s << ", #{k}: #{v.inspect}" } }
       end
 
       def inject_index_options

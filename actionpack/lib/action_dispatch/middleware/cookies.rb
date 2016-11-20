@@ -1,13 +1,13 @@
-require 'active_support/core_ext/hash/keys'
-require 'active_support/key_generator'
-require 'active_support/message_verifier'
-require 'active_support/json'
-require 'rack/utils'
+require "active_support/core_ext/hash/keys"
+require "active_support/key_generator"
+require "active_support/message_verifier"
+require "active_support/json"
+require "rack/utils"
 
 module ActionDispatch
   class Request
     def cookie_jar
-      fetch_header('action_dispatch.cookies'.freeze) do
+      fetch_header("action_dispatch.cookies".freeze) do
         self.cookie_jar = Cookies::CookieJar.build(self, cookies)
       end
     end
@@ -20,11 +20,11 @@ module ActionDispatch
     }
 
     def have_cookie_jar?
-      has_header? 'action_dispatch.cookies'.freeze
+      has_header? "action_dispatch.cookies".freeze
     end
 
     def cookie_jar=(jar)
-      set_header 'action_dispatch.cookies'.freeze, jar
+      set_header "action_dispatch.cookies".freeze, jar
     end
 
     def key_generator
@@ -179,7 +179,7 @@ module ActionDispatch
 
       # Returns a jar that'll automatically generate a signed representation of cookie value and verify it when reading from
       # the cookie again. This is useful for creating cookies with values that the user is not supposed to change. If a signed
-      # cookie was tampered with by the user (or a 3rd party), nil will be returned.
+      # cookie was tampered with by the user (or a 3rd party), +nil+ will be returned.
       #
       # If +secrets.secret_key_base+ and +secrets.secret_token+ (deprecated) are both set,
       # legacy cookies signed with the old key generator will be transparently upgraded.
@@ -202,7 +202,7 @@ module ActionDispatch
       end
 
       # Returns a jar that'll automatically encrypt cookie values before sending them to the client and will decrypt them for read.
-      # If the cookie was tampered with by the user (or a 3rd party), nil will be returned.
+      # If the cookie was tampered with by the user (or a 3rd party), +nil+ will be returned.
       #
       # If +secrets.secret_key_base+ and +secrets.secret_token+ (deprecated) are both set,
       # legacy cookies signed with the old key generator will be transparently upgraded.
@@ -237,9 +237,9 @@ module ActionDispatch
 
       private
 
-      def upgrade_legacy_signed_cookies?
-        request.secret_token.present? && request.secret_key_base.present?
-      end
+        def upgrade_legacy_signed_cookies?
+          request.secret_token.present? && request.secret_key_base.present?
+        end
     end
 
     # Passing the ActiveSupport::MessageEncryptor::NullSerializer downstream
@@ -332,19 +332,19 @@ module ActionDispatch
 
       def update_cookies_from_jar
         request_jar = @request.cookie_jar.instance_variable_get(:@cookies)
-        set_cookies = request_jar.reject { |k,_| @delete_cookies.key?(k) }
+        set_cookies = request_jar.reject { |k, _| @delete_cookies.key?(k) }
 
         @cookies.update set_cookies if set_cookies
       end
 
       def to_header
-        @cookies.map { |k,v| "#{escape(k)}=#{escape(v)}" }.join '; '
+        @cookies.map { |k, v| "#{escape(k)}=#{escape(v)}" }.join "; "
       end
 
       def handle_options(options) #:nodoc:
         options[:path] ||= "/"
 
-        if options[:domain] == :all || options[:domain] == 'all'
+        if options[:domain] == :all || options[:domain] == "all"
           # if there is a provided tld length then we use it otherwise default domain regexp
           domain_regexp = options[:tld_length] ? /([^.]+\.?){#{options[:tld_length]}}$/ : DOMAIN_REGEXP
 
@@ -355,7 +355,7 @@ module ActionDispatch
           end
         elsif options[:domain].is_a? Array
           # if host matches one of the supplied domains without a dot in front of it
-          options[:domain] = options[:domain].find {|domain| request.host.include? domain.sub(/^\./, '') }
+          options[:domain] = options[:domain].find { |domain| request.host.include? domain.sub(/^\./, "") }
         end
       end
 
@@ -367,12 +367,12 @@ module ActionDispatch
           value = options[:value]
         else
           value = options
-          options = { :value => value }
+          options = { value: value }
         end
 
         handle_options(options)
 
-        if @cookies[name.to_s] != value or options[:expires]
+        if @cookies[name.to_s] != value || options[:expires]
           @cookies[name.to_s] = value
           @set_cookies[name.to_s] = options
           @delete_cookies.delete(name.to_s)
@@ -406,7 +406,7 @@ module ActionDispatch
 
       # Removes all cookies on the client machine by calling <tt>delete</tt> for each cookie
       def clear(options = {})
-        @cookies.each_key{ |k| delete(k, options) }
+        @cookies.each_key { |k| delete(k, options) }
       end
 
       def write(headers)
@@ -420,26 +420,26 @@ module ActionDispatch
 
       private
 
-      def escape(string)
-        ::Rack::Utils.escape(string)
-      end
+        def escape(string)
+          ::Rack::Utils.escape(string)
+        end
 
-      def make_set_cookie_header(header)
-        header = @set_cookies.inject(header) { |m, (k, v)|
-          if write_cookie?(v)
-            ::Rack::Utils.add_cookie_to_header(m, k, v)
-          else
-            m
-          end
-        }
-        @delete_cookies.inject(header) { |m, (k, v)|
-          ::Rack::Utils.add_remove_cookie_to_header(m, k, v)
-        }
-      end
+        def make_set_cookie_header(header)
+          header = @set_cookies.inject(header) { |m, (k, v)|
+            if write_cookie?(v)
+              ::Rack::Utils.add_cookie_to_header(m, k, v)
+            else
+              m
+            end
+          }
+          @delete_cookies.inject(header) { |m, (k, v)|
+            ::Rack::Utils.add_remove_cookie_to_header(m, k, v)
+          }
+        end
 
-      def write_cookie?(cookie)
-        request.ssl? || !cookie[:secure] || always_write_cookie
-      end
+        def write_cookie?(cookie)
+          request.ssl? || !cookie[:secure] || always_write_cookie
+        end
     end
 
     class AbstractCookieJar # :nodoc:
@@ -528,7 +528,7 @@ module ActionDispatch
         end
 
         def digest
-          request.cookies_digest || 'SHA1'
+          request.cookies_digest || "SHA1"
         end
 
         def key_generator
@@ -576,8 +576,8 @@ module ActionDispatch
             "Read the upgrade documentation to learn more about this new config option."
         end
 
-        secret = key_generator.generate_key(request.encrypted_cookie_salt || '')
-        sign_secret = key_generator.generate_key(request.encrypted_signed_cookie_salt || '')
+        secret = key_generator.generate_key(request.encrypted_cookie_salt || "")[0, ActiveSupport::MessageEncryptor.key_len]
+        sign_secret = key_generator.generate_key(request.encrypted_signed_cookie_salt || "")
         @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, digest: digest, serializer: ActiveSupport::MessageEncryptor::NullSerializer)
       end
 

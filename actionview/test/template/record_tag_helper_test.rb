@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class RecordTagPost
   extend ActiveModel::Naming
@@ -14,7 +14,6 @@ class RecordTagPost
 end
 
 class RecordTagHelperTest < ActionView::TestCase
-
   tests ActionView::Helpers::RecordTagHelper
 
   def setup

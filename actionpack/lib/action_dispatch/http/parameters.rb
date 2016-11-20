@@ -3,14 +3,22 @@ module ActionDispatch
     module Parameters
       extend ActiveSupport::Concern
 
-      PARAMETERS_KEY = 'action_dispatch.request.path_parameters'
+      PARAMETERS_KEY = "action_dispatch.request.path_parameters"
 
       DEFAULT_PARSERS = {
         Mime[:json].symbol => -> (raw_post) {
           data = ActiveSupport::JSON.decode(raw_post)
-          data.is_a?(Hash) ? data : {:_json => data}
+          data.is_a?(Hash) ? data : { _json: data }
         }
       }
+
+      # Raised when raw data from the request cannot be parsed by the parser
+      # defined for request's content mime type.
+      class ParseError < StandardError
+        def initialize
+          super($!.message)
+        end
+      end
 
       included do
         class << self
@@ -37,13 +45,14 @@ module ActionDispatch
                    query_parameters.dup
                  end
         params.merge!(path_parameters)
+        params = set_custom_encoding(params)
         set_header("action_dispatch.request.parameters", params)
         params
       end
       alias :params :parameters
 
       def path_parameters=(parameters) #:nodoc:
-        delete_header('action_dispatch.request.parameters')
+        delete_header("action_dispatch.request.parameters")
 
         # If any of the path parameters has an invalid encoding then
         # raise since it's likely to trigger errors further on.
@@ -64,24 +73,43 @@ module ActionDispatch
 
       private
 
-      def parse_formatted_parameters(parsers)
-        return yield if content_length.zero? || content_mime_type.nil?
+        def set_custom_encoding(params)
+          action = params[:action]
+          params.each do |k, v|
+            if v.is_a?(String) && v.encoding != encoding_template(action, k)
+              params[k] = v.force_encoding(encoding_template(action, k))
+            end
+          end
 
-        strategy = parsers.fetch(content_mime_type.symbol) { return yield }
-
-        begin
-          strategy.call(raw_post)
-        rescue # JSON or Ruby code block errors
-          my_logger = logger || ActiveSupport::Logger.new($stderr)
-          my_logger.debug "Error occurred while parsing request parameters.\nContents:\n\n#{raw_post}"
-
-          raise ParamsParser::ParseError
+          params
         end
-      end
 
-      def params_parsers
-        ActionDispatch::Request.parameter_parsers
-      end
+        def encoding_template(action, param)
+          controller_class.encoding_for_param(action, param)
+        end
+
+        def parse_formatted_parameters(parsers)
+          return yield if content_length.zero? || content_mime_type.nil?
+
+          strategy = parsers.fetch(content_mime_type.symbol) { return yield }
+
+          begin
+            strategy.call(raw_post)
+          rescue # JSON or Ruby code block errors
+            my_logger = logger || ActiveSupport::Logger.new($stderr)
+            my_logger.debug "Error occurred while parsing request parameters.\nContents:\n\n#{raw_post}"
+
+            raise ParseError
+          end
+        end
+
+        def params_parsers
+          ActionDispatch::Request.parameter_parsers
+        end
     end
+  end
+
+  module ParamsParser
+    ParseError = ActiveSupport::Deprecation::DeprecatedConstantProxy.new("ActionDispatch::ParamsParser::ParseError", "ActionDispatch::Http::Parameters::ParseError")
   end
 end

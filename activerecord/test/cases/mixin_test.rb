@@ -63,5 +63,4 @@ class TouchTest < ActiveRecord::TestCase
   ensure
     Mixin.record_timestamps = true
   end
-
 end

@@ -1,6 +1,6 @@
-require 'ipaddr'
-require 'isolation/abstract_unit'
-require 'active_support/key_generator'
+require "ipaddr"
+require "isolation/abstract_unit"
+require "active_support/key_generator"
 
 module ApplicationTests
   class RemoteIpTest < ActiveSupport::TestCase
@@ -9,8 +9,8 @@ module ApplicationTests
     def remote_ip(env = {})
       remote_ip = nil
       env = Rack::MockRequest.env_for("/").merge(env).merge!(
-        'action_dispatch.show_exceptions' => false,
-        'action_dispatch.key_generator'   => ActiveSupport::LegacyKeyGenerator.new('b3c631c314c0bbca50c1b2843150fe33')
+        "action_dispatch.show_exceptions" => false,
+        "action_dispatch.key_generator"   => ActiveSupport::LegacyKeyGenerator.new("b3c631c314c0bbca50c1b2843150fe33")
       )
 
       endpoint = Proc.new do |e|
@@ -69,7 +69,7 @@ module ApplicationTests
 
     test "the user can set trusted proxies with an IPAddr argument" do
       make_basic_app do |app|
-        app.config.action_dispatch.trusted_proxies = IPAddr.new('4.2.42.0/24')
+        app.config.action_dispatch.trusted_proxies = IPAddr.new("4.2.42.0/24")
       end
 
       assert_equal "1.1.1.1", remote_ip("REMOTE_ADDR" => "1.1.1.1", "HTTP_X_FORWARDED_FOR" => "10.0.0.0,4.2.42.42")

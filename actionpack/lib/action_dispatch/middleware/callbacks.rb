@@ -15,8 +15,8 @@ module ActionDispatch
         ActiveSupport::Reloader.to_complete(*args, &block)
       end
 
-      deprecate to_prepare: 'use ActiveSupport::Reloader.to_prepare instead',
-        to_cleanup: 'use ActiveSupport::Reloader.to_complete instead'
+      deprecate to_prepare: "use ActiveSupport::Reloader.to_prepare instead",
+        to_cleanup: "use ActiveSupport::Reloader.to_complete instead"
 
       def before(*args, &block)
         set_callback(:call, :before, *args, &block)

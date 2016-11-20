@@ -1,7 +1,7 @@
 # frozen-string-literal: true
 
-require 'active_support/core_ext/string/output_safety'
-require 'set'
+require "active_support/core_ext/string/output_safety"
+require "set"
 
 module ActionView
   # = Action View Tag Helpers
@@ -25,7 +25,7 @@ module ActionView
 
       BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map(&:to_sym))
 
-      TAG_PREFIXES = ['aria', 'data', :aria, :data].to_set
+      TAG_PREFIXES = ["aria", "data", :aria, :data].to_set
 
       PRE_CONTENT_STRINGS             = Hash.new { "" }
       PRE_CONTENT_STRINGS[:textarea]  = "\n"
@@ -46,7 +46,7 @@ module ActionView
           if VOID_ELEMENTS.include?(name) && content.nil?
             "<#{name.to_s.dasherize}#{tag_options(options, escape_attributes)}>".html_safe
           else
-            content_tag_string(name.to_s.dasherize, content || '', options, escape_attributes)
+            content_tag_string(name.to_s.dasherize, content || "", options, escape_attributes)
           end
         end
 
@@ -86,11 +86,11 @@ module ActionView
 
         def tag_option(key, value, escape)
           if value.is_a?(Array)
-            value = escape ? safe_join(value, " ") : value.join(" ")
+            value = escape ? safe_join(value, " ".freeze) : value.join(" ".freeze)
           else
-            value = escape ? ERB::Util.unwrapped_html_escape(value) : value
+            value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
           end
-          %(#{key}="#{value}")
+          %(#{key}="#{value.gsub('"'.freeze, '&quot;'.freeze)}")
         end
 
         private
@@ -109,7 +109,6 @@ module ActionView
           def method_missing(called, *args, &block)
             tag_string(called, *args, &block)
           end
-
       end
 
       # Returns an HTML tag.
@@ -139,7 +138,7 @@ module ActionView
       #
       # ==== Options
       #
-      # Any passed options become attributes on the generated tag.
+      # Use symbol keyed options to add attributes to the generated tag.
       #
       #   tag.section class: %w( kitties puppies )
       #   # => <section class="kitties puppies"></section>
@@ -290,7 +289,7 @@ module ActionView
       #   cdata_section("hello]]>world")
       #   # => <![CDATA[hello]]]]><![CDATA[>world]]>
       def cdata_section(content)
-        splitted = content.to_s.gsub(/\]\]\>/, ']]]]><![CDATA[>')
+        splitted = content.to_s.gsub(/\]\]\>/, "]]]]><![CDATA[>")
         "<![CDATA[#{splitted}]]>".html_safe
       end
 

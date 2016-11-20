@@ -1,7 +1,7 @@
-require 'abstract_unit'
-require 'active_support/time'
-require 'active_support/core_ext/numeric'
-require 'active_support/core_ext/range'
+require "abstract_unit"
+require "active_support/time"
+require "active_support/core_ext/numeric"
+require "active_support/core_ext/range"
 
 class RangeTest < ActiveSupport::TestCase
   def test_to_s_from_dates
@@ -66,15 +66,15 @@ class RangeTest < ActiveSupport::TestCase
   end
 
   def test_exclusive_end_should_not_include_identical_with_inclusive_end
-    assert !(1...10).include?(1..10)
+    assert_not_includes (1...10), 1..10
   end
 
   def test_should_not_include_overlapping_first
-    assert !(2..8).include?(1..3)
+    assert_not_includes (2..8), 1..3
   end
 
   def test_should_not_include_overlapping_last
-    assert !(2..8).include?(5..9)
+    assert_not_includes (2..8), 5..9
   end
 
   def test_should_include_identical_exclusive_with_floats
@@ -99,21 +99,21 @@ class RangeTest < ActiveSupport::TestCase
   end
 
   def test_each_on_time_with_zone
-    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone['Eastern Time (US & Canada)'] , Time.utc(2006,11,28,10,30))
+    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"] , Time.utc(2006, 11, 28, 10, 30))
     assert_raises TypeError do
       ((twz - 1.hour)..twz).each {}
     end
   end
 
   def test_step_on_time_with_zone
-    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone['Eastern Time (US & Canada)'] , Time.utc(2006,11,28,10,30))
+    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"] , Time.utc(2006, 11, 28, 10, 30))
     assert_raises TypeError do
       ((twz - 1.hour)..twz).step(1) {}
     end
   end
 
   def test_include_on_time_with_zone
-    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone['Eastern Time (US & Canada)'] , Time.utc(2006,11,28,10,30))
+    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"] , Time.utc(2006, 11, 28, 10, 30))
     assert_raises TypeError do
       ((twz - 1.hour)..twz).include?(twz)
     end

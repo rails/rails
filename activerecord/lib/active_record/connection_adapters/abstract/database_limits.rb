@@ -1,7 +1,6 @@
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module DatabaseLimits
-
       # Returns the maximum length of a table alias.
       def table_alias_length
         255
@@ -47,7 +46,7 @@ module ActiveRecord
       end
 
       # Returns the maximum number of elements in an IN (x,y,z) clause.
-      # nil means no limit.
+      # +nil+ means no limit.
       def in_clause_length
         nil
       end
@@ -61,7 +60,6 @@ module ActiveRecord
       def joins_per_query
         256
       end
-
     end
   end
 end

@@ -29,10 +29,10 @@ module ActiveSupport
 
           formatted_string =
             if BigDecimal === rounded_number && rounded_number.finite?
-              s = rounded_number.to_s('F')
-              s << '0'.freeze * precision
-              a, b = s.split('.'.freeze, 2)
-              a << '.'.freeze
+              s = rounded_number.to_s("F")
+              s << "0".freeze * precision
+              a, b = s.split(".".freeze, 2)
+              a << ".".freeze
               a << b[0, precision]
             else
               "%00.#{precision}f" % rounded_number
@@ -52,7 +52,7 @@ module ActiveSupport
             [1, 0]
           else
             digits = digit_count(number)
-            multiplier = 10 ** (digits - precision)
+            multiplier = 10**(digits - precision)
             rounded_number = calculate_rounded_number(multiplier)
             digits = digit_count(rounded_number) # After rounding, the number of digits may have changed
             [digits, rounded_number]
@@ -74,7 +74,7 @@ module ActiveSupport
         def format_number(number)
           if strip_insignificant_zeros
             escaped_separator = Regexp.escape(options[:separator])
-            number.sub(/(#{escaped_separator})(\d*[1-9])?0+\z/, '\1\2').sub(/#{escaped_separator}\z/, '')
+            number.sub(/(#{escaped_separator})(\d*[1-9])?0+\z/, '\1\2').sub(/#{escaped_separator}\z/, "")
           else
             number
           end

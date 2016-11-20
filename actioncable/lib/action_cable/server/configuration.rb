@@ -4,8 +4,8 @@ module ActionCable
     # in a Rails config initializer.
     class Configuration
       attr_accessor :logger, :log_tags
-      attr_accessor :use_faye, :connection_class, :worker_pool_size
-      attr_accessor :disable_request_forgery_protection, :allowed_request_origins
+      attr_accessor :connection_class, :worker_pool_size
+      attr_accessor :disable_request_forgery_protection, :allowed_request_origins, :allow_same_origin_as_host
       attr_accessor :cable, :url, :mount_path
 
       def initialize
@@ -15,13 +15,14 @@ module ActionCable
         @worker_pool_size = 4
 
         @disable_request_forgery_protection = false
+        @allow_same_origin_as_host = true
       end
 
       # Returns constant of subscription adapter specified in config/cable.yml.
       # If the adapter cannot be found, this will default to the Redis adapter.
       # Also makes sure proper dependencies are required.
       def pubsub_adapter
-        adapter = (cable.fetch('adapter') { 'redis' })
+        adapter = (cable.fetch("adapter") { "redis" })
         path_to_adapter = "action_cable/subscription_adapter/#{adapter}"
         begin
           require path_to_adapter
@@ -32,24 +33,8 @@ module ActionCable
         end
 
         adapter = adapter.camelize
-        adapter = 'PostgreSQL' if adapter == 'Postgresql'
+        adapter = "PostgreSQL" if adapter == "Postgresql"
         "ActionCable::SubscriptionAdapter::#{adapter}".constantize
-      end
-
-      def event_loop_class
-        if use_faye
-          ActionCable::Connection::FayeEventLoop
-        else
-          ActionCable::Connection::StreamEventLoop
-        end
-      end
-
-      def client_socket_class
-        if use_faye
-          ActionCable::Connection::FayeClientSocket
-        else
-          ActionCable::Connection::ClientSocket
-        end
       end
     end
   end

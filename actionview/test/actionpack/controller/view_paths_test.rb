@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class ViewLoadPathsTest < ActionController::TestCase
   class TestController < ActionController::Base
@@ -7,7 +7,7 @@ class ViewLoadPathsTest < ActionController::TestCase
     before_action :add_view_path, only: :hello_world_at_request_time
 
     def hello_world() end
-    def hello_world_at_request_time() render(:action => 'hello_world') end
+    def hello_world_at_request_time() render(action: "hello_world") end
 
     private
       def add_view_path
@@ -17,15 +17,15 @@ class ViewLoadPathsTest < ActionController::TestCase
 
   module Test
     class SubController < ActionController::Base
-      layout 'test/sub'
-      def hello_world; render(:template => 'test/hello_world'); end
+      layout "test/sub"
+      def hello_world; render(template: "test/hello_world"); end
     end
   end
 
   def setup
-    @request  = ActionController::TestRequest.create
-    @response = ActionDispatch::TestResponse.new
     @controller = TestController.new
+    @request  = ActionController::TestRequest.create(@controller.class)
+    @response = ActionDispatch::TestResponse.new
     @paths = TestController.view_paths
   end
 
@@ -34,7 +34,7 @@ class ViewLoadPathsTest < ActionController::TestCase
   end
 
   def expand(array)
-    array.map {|x| File.expand_path(x.to_s)}
+    array.map { |x| File.expand_path(x.to_s) }
   end
 
   def assert_paths(*paths)
@@ -47,7 +47,7 @@ class ViewLoadPathsTest < ActionController::TestCase
   end
 
   def test_controller_appends_view_path_correctly
-    @controller.append_view_path 'foo'
+    @controller.append_view_path "foo"
     assert_paths(FIXTURE_LOAD_PATH, "foo")
 
     @controller.append_view_path(%w(bar baz))
@@ -58,7 +58,7 @@ class ViewLoadPathsTest < ActionController::TestCase
   end
 
   def test_controller_prepends_view_path_correctly
-    @controller.prepend_view_path 'baz'
+    @controller.prepend_view_path "baz"
     assert_paths("baz", FIXTURE_LOAD_PATH)
 
     @controller.prepend_view_path(%w(foo bar))
@@ -72,7 +72,7 @@ class ViewLoadPathsTest < ActionController::TestCase
     @controller.instance_variable_set :@template, ActionView::Base.new(TestController.view_paths, {}, @controller)
     class_view_paths = TestController.view_paths
 
-    @controller.append_view_path 'foo'
+    @controller.append_view_path "foo"
     assert_paths FIXTURE_LOAD_PATH, "foo"
 
     @controller.append_view_path(%w(bar baz))
@@ -84,7 +84,7 @@ class ViewLoadPathsTest < ActionController::TestCase
     @controller.instance_variable_set :@template, ActionView::Base.new(TestController.view_paths, {}, @controller)
     class_view_paths = TestController.view_paths
 
-    @controller.prepend_view_path 'baz'
+    @controller.prepend_view_path "baz"
     assert_paths "baz", FIXTURE_LOAD_PATH
 
     @controller.prepend_view_path(%w(foo bar))
@@ -131,10 +131,8 @@ class ViewLoadPathsTest < ActionController::TestCase
             "Decorated body",
             template.identifier,
             template.handler,
-            {
-              :virtual_path => template.virtual_path,
-              :format => template.formats
-            }
+              virtual_path: template.virtual_path,
+              format: template.formats
           )
         end
       end
@@ -157,14 +155,14 @@ class ViewLoadPathsTest < ActionController::TestCase
       class C < ActionController::Base; end
     }
 
-    A.view_paths = ['a/path']
+    A.view_paths = ["a/path"]
 
     assert_paths A, "a/path"
     assert_paths A, *B.view_paths
     assert_paths C, *original_load_paths
 
     C.view_paths = []
-    assert_nothing_raised { C.append_view_path 'c/path' }
+    assert_nothing_raised { C.append_view_path "c/path" }
     assert_paths C, "c/path"
   end
 

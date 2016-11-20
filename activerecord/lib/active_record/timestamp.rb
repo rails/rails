@@ -54,7 +54,7 @@ module ActiveRecord
   private
 
     def _create_record
-      if self.record_timestamps
+      if record_timestamps
         current_time = current_time_from_proper_timezone
 
         all_timestamp_attributes.each do |column|
@@ -74,7 +74,7 @@ module ActiveRecord
 
         timestamp_attributes_for_update_in_model.each do |column|
           column = column.to_s
-          next if attribute_changed?(column)
+          next if will_save_change_to_attribute?(column)
           write_attribute(column, current_time)
         end
       end
@@ -82,7 +82,7 @@ module ActiveRecord
     end
 
     def should_record_timestamps?
-      self.record_timestamps && (!partial_writes? || changed?)
+      record_timestamps && (!partial_writes? || has_changes_to_save?)
     end
 
     def timestamp_attributes_for_create_in_model

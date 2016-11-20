@@ -1,25 +1,13 @@
-require 'active_support/core_ext/hash'
+require "active_support/core_ext/hash"
 
 module ActiveJob
   # Raised when an exception is raised during job arguments deserialization.
   #
   # Wraps the original exception raised as +cause+.
   class DeserializationError < StandardError
-    def initialize(e = nil) #:nodoc:
-      if e
-        ActiveSupport::Deprecation.warn("Passing #original_exception is deprecated and has no effect. " \
-                                        "Exceptions will automatically capture the original exception.", caller)
-      end
-
+    def initialize #:nodoc:
       super("Error while trying to deserialize arguments: #{$!.message}")
       set_backtrace $!.backtrace
-    end
-
-    # The original exception that was raised during deserialization of job
-    # arguments.
-    def original_exception
-      ActiveSupport::Deprecation.warn("#original_exception is deprecated. Use #cause instead.", caller)
-      cause
     end
   end
 
@@ -34,8 +22,8 @@ module ActiveJob
   module Arguments
     extend self
     # :nodoc:
-    # Calls #uniq since Integer, Fixnum, and Bignum are all the same class on Ruby 2.4+
-    TYPE_WHITELIST = [ NilClass, String, Integer, Fixnum, Bignum, Float, BigDecimal, TrueClass, FalseClass ].uniq
+    TYPE_WHITELIST = [ NilClass, String, Integer, Float, BigDecimal, TrueClass, FalseClass ]
+    TYPE_WHITELIST.push(Fixnum, Bignum) unless 1.class == Integer
 
     # Serializes a set of arguments. Whitelisted types are returned
     # as-is. Arrays/Hashes are serialized element by element.
@@ -55,11 +43,11 @@ module ActiveJob
 
     private
       # :nodoc:
-      GLOBALID_KEY = '_aj_globalid'.freeze
+      GLOBALID_KEY = "_aj_globalid".freeze
       # :nodoc:
-      SYMBOL_KEYS_KEY = '_aj_symbol_keys'.freeze
+      SYMBOL_KEYS_KEY = "_aj_symbol_keys".freeze
       # :nodoc:
-      WITH_INDIFFERENT_ACCESS_KEY = '_aj_hash_with_indifferent_access'.freeze
+      WITH_INDIFFERENT_ACCESS_KEY = "_aj_hash_with_indifferent_access".freeze
       private_constant :GLOBALID_KEY, :SYMBOL_KEYS_KEY, :WITH_INDIFFERENT_ACCESS_KEY
 
       def serialize_argument(argument)
@@ -104,7 +92,7 @@ module ActiveJob
       end
 
       def serialized_global_id?(hash)
-        hash.size == 1 and hash.include?(GLOBALID_KEY)
+        hash.size == 1 && hash.include?(GLOBALID_KEY)
       end
 
       def deserialize_global_id(hash)

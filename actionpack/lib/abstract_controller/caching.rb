@@ -29,10 +29,13 @@ module AbstractController
       extend ConfigMethods
 
       config_accessor :default_static_extension
-      self.default_static_extension ||= '.html'
+      self.default_static_extension ||= ".html"
 
       config_accessor :perform_caching
       self.perform_caching = true if perform_caching.nil?
+
+      config_accessor :enable_fragment_cache_logging
+      self.enable_fragment_cache_logging = false
 
       class_attribute :_view_cache_dependencies
       self._view_cache_dependencies = []

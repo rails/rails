@@ -18,29 +18,29 @@ module ActiveSupport
 
         units = opts[:units]
         exponent = calculate_exponent(units)
-        @number = number / (10 ** exponent)
+        @number = number / (10**exponent)
 
         until (rounded_number = NumberToRoundedConverter.convert(number, options)) != NumberToRoundedConverter.convert(1000, options)
           @number = number / 1000.0
           exponent += 3
         end
         unit = determine_unit(units, exponent)
-        format.gsub('%n'.freeze, rounded_number).gsub('%u'.freeze, unit).strip
+        format.gsub("%n".freeze, rounded_number).gsub("%u".freeze, unit).strip
       end
 
       private
 
         def format
-          options[:format] || translate_in_locale('human.decimal_units.format')
+          options[:format] || translate_in_locale("human.decimal_units.format")
         end
 
         def determine_unit(units, exponent)
           exp = DECIMAL_UNITS[exponent]
           case units
           when Hash
-            units[exp] || ''
+            units[exp] || ""
           when String, Symbol
-            I18n.translate("#{units}.#{exp}", :locale => options[:locale], :count => number.to_i)
+            I18n.translate("#{units}.#{exp}", locale: options[:locale], count: number.to_i)
           else
             translate_in_locale("human.decimal_units.units.#{exp}", count: number.to_i)
           end
@@ -56,7 +56,7 @@ module ActiveSupport
           when Hash
             units
           when String, Symbol
-            I18n.translate(units.to_s, :locale => options[:locale], :raise => true)
+            I18n.translate(units.to_s, locale: options[:locale], raise: true)
           when nil
             translate_in_locale("human.decimal_units.units", raise: true)
           else

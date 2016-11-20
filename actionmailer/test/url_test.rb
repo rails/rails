@@ -1,5 +1,5 @@
-require 'abstract_unit'
-require 'action_controller'
+require "abstract_unit"
+require "action_controller"
 
 class WelcomeController < ActionController::Base
 end
@@ -11,10 +11,10 @@ class ActionMailer::Base
 end
 
 class UrlTestMailer < ActionMailer::Base
-  default_url_options[:host] = 'www.basecamphq.com'
+  default_url_options[:host] = "www.basecamphq.com"
 
   configure do |c|
-    c.assets_dir = '' # To get the tests to pass
+    c.assets_dir = "" # To get the tests to pass
   end
 
   def signed_up_with_url(recipient)
@@ -27,14 +27,14 @@ class UrlTestMailer < ActionMailer::Base
   def exercise_url_for(options)
     @options = options
     @url = url_for(@options)
-    mail(from: 'from@example.com', to: 'to@example.com', subject: 'subject')
+    mail(from: "from@example.com", to: "to@example.com", subject: "subject")
   end
 end
 
 class ActionMailerUrlTest < ActionMailer::TestCase
   class DummyModel
     def self.model_name
-      OpenStruct.new(route_key: 'dummy_model')
+      OpenStruct.new(route_key: "dummy_model")
     end
 
     def persisted?
@@ -50,11 +50,11 @@ class ActionMailerUrlTest < ActionMailer::TestCase
     end
   end
 
-  def encode( text, charset="UTF-8" )
-    quoted_printable( text, charset )
+  def encode(text, charset = "UTF-8")
+    quoted_printable(text, charset)
   end
 
-  def new_mail( charset="UTF-8" )
+  def new_mail(charset = "UTF-8")
     mail = Mail.new
     mail.mime_version = "1.0"
     if charset
@@ -64,7 +64,7 @@ class ActionMailerUrlTest < ActionMailer::TestCase
   end
 
   def assert_url_for(expected, options, relative = false)
-    expected = "http://www.basecamphq.com#{expected}" if expected.start_with?('/') && !relative
+    expected = "http://www.basecamphq.com#{expected}" if expected.start_with?("/") && !relative
     urls = UrlTestMailer.exercise_url_for(options).body.to_s.chomp.split
 
     assert_equal expected, urls.first
@@ -72,7 +72,7 @@ class ActionMailerUrlTest < ActionMailer::TestCase
   end
 
   def setup
-    @recipient = 'test@localhost'
+    @recipient = "test@localhost"
   end
 
   def test_url_for
@@ -80,30 +80,30 @@ class ActionMailerUrlTest < ActionMailer::TestCase
 
     AppRoutes.draw do
       ActiveSupport::Deprecation.silence do
-        get ':controller(/:action(/:id))'
-        get '/welcome'  => 'foo#bar', as: 'welcome'
-        get '/dummy_model' => 'foo#baz', as: 'dummy_model'
+        get ":controller(/:action(/:id))"
+        get "/welcome" => "foo#bar", as: "welcome"
+        get "/dummy_model" => "foo#baz", as: "dummy_model"
       end
     end
 
     # string
-    assert_url_for 'http://foo/', 'http://foo/'
+    assert_url_for "http://foo/", "http://foo/"
 
     # symbol
-    assert_url_for '/welcome', :welcome
+    assert_url_for "/welcome", :welcome
 
     # hash
-    assert_url_for '/a/b/c', controller: 'a', action: 'b', id: 'c'
-    assert_url_for '/a/b/c', {controller: 'a', action: 'b', id: 'c', only_path: true}, true
+    assert_url_for "/a/b/c", controller: "a", action: "b", id: "c"
+    assert_url_for "/a/b/c", { controller: "a", action: "b", id: "c", only_path: true }, true
 
     # model
-    assert_url_for '/dummy_model', DummyModel.new
+    assert_url_for "/dummy_model", DummyModel.new
 
     # class
-    assert_url_for '/dummy_model', DummyModel
+    assert_url_for "/dummy_model", DummyModel
 
     # array
-    assert_url_for '/dummy_model' , [DummyModel]
+    assert_url_for "/dummy_model" , [DummyModel]
   end
 
   def test_signed_up_with_url
@@ -111,8 +111,8 @@ class ActionMailerUrlTest < ActionMailer::TestCase
 
     AppRoutes.draw do
       ActiveSupport::Deprecation.silence do
-        get ':controller(/:action(/:id))'
-        get '/welcome' => "foo#bar", as: "welcome"
+        get ":controller(/:action(/:id))"
+        get "/welcome" => "foo#bar", as: "welcome"
       end
     end
 
@@ -128,15 +128,15 @@ class ActionMailerUrlTest < ActionMailer::TestCase
     assert_nothing_raised { created = UrlTestMailer.signed_up_with_url(@recipient) }
     assert_not_nil created
 
-    expected.message_id = '<123@456>'
-    created.message_id = '<123@456>'
+    expected.message_id = "<123@456>"
+    created.message_id = "<123@456>"
     assert_dom_equal expected.encoded, created.encoded
 
     assert_nothing_raised { UrlTestMailer.signed_up_with_url(@recipient).deliver_now }
     assert_not_nil ActionMailer::Base.deliveries.first
     delivered = ActionMailer::Base.deliveries.first
 
-    delivered.message_id = '<123@456>'
+    delivered.message_id = "<123@456>"
     assert_dom_equal expected.encoded, delivered.encoded
   end
 end

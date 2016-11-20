@@ -82,21 +82,22 @@ module ActiveRecord
       # Executes +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
-      def exec_query(sql, name = 'SQL', binds = [], prepare: false)
+      def exec_query(sql, name = "SQL", binds = [], prepare: false)
         raise NotImplementedError
       end
 
       # Executes insert +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
-      def exec_insert(sql, name, binds, pk = nil, sequence_name = nil)
+      def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil)
+        sql, binds = sql_for_insert(sql, pk, nil, sequence_name, binds)
         exec_query(sql, name, binds)
       end
 
       # Executes delete +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
-      def exec_delete(sql, name, binds)
+      def exec_delete(sql, name = nil, binds = [])
         exec_query(sql, name, binds)
       end
 
@@ -108,21 +109,20 @@ module ActiveRecord
       # Executes update +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
-      def exec_update(sql, name, binds)
+      def exec_update(sql, name = nil, binds = [])
         exec_query(sql, name, binds)
       end
 
       # Executes an INSERT query and returns the new record's ID
       #
-      # +id_value+ will be returned unless the value is nil, in
+      # +id_value+ will be returned unless the value is +nil+, in
       # which case the database will attempt to calculate the last inserted
       # id and return that value.
       #
       # If the next id was calculated in advance (as in Oracle), it should be
       # passed in as +id_value+.
       def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [])
-        sql, binds, pk, sequence_name = sql_for_insert(to_sql(arel, binds), pk, id_value, sequence_name, binds)
-        value = exec_insert(sql, name, binds, pk, sequence_name)
+        value = exec_insert(to_sql(arel, binds), name, binds, pk, sequence_name)
         id_value || last_inserted_id(value)
       end
       alias create insert
@@ -245,7 +245,7 @@ module ActiveRecord
       end
 
       def reset_transaction #:nodoc:
-        @transaction_manager = TransactionManager.new(self)
+        @transaction_manager = ConnectionAdapters::TransactionManager.new(self)
       end
 
       # Register a record with the current transaction so that its after_commit and after_rollback callbacks
@@ -324,7 +324,7 @@ module ActiveRecord
           end
         end
 
-        execute "INSERT INTO #{quote_table_name(table_name)} (#{key_list.join(', ')}) VALUES (#{value_list.join(', ')})", 'Fixture Insert'
+        execute "INSERT INTO #{quote_table_name(table_name)} (#{key_list.join(', ')}) VALUES (#{value_list.join(', ')})", "Fixture Insert"
       end
 
       def empty_insert_statement_value
@@ -343,8 +343,8 @@ module ActiveRecord
       def sanitize_limit(limit)
         if limit.is_a?(Integer) || limit.is_a?(Arel::Nodes::SqlLiteral)
           limit
-        elsif limit.to_s.include?(',')
-          Arel.sql limit.to_s.split(',').map{ |i| Integer(i) }.join(',')
+        elsif limit.to_s.include?(",")
+          Arel.sql limit.to_s.split(",").map { |i| Integer(i) }.join(",")
         else
           Integer(limit)
         end
@@ -379,7 +379,7 @@ module ActiveRecord
         end
 
         def sql_for_insert(sql, pk, id_value, sequence_name, binds)
-          [sql, binds, pk, sequence_name]
+          [sql, binds]
         end
 
         def last_inserted_id(result)

@@ -5,14 +5,14 @@ class PostgresqlNumberTest < ActiveRecord::PostgreSQLTestCase
 
   setup do
     @connection = ActiveRecord::Base.connection
-    @connection.create_table('postgresql_numbers', force: true) do |t|
-      t.column 'single', 'REAL'
-      t.column 'double', 'DOUBLE PRECISION'
+    @connection.create_table("postgresql_numbers", force: true) do |t|
+      t.column "single", "REAL"
+      t.column "double", "DOUBLE PRECISION"
     end
   end
 
   teardown do
-    @connection.drop_table 'postgresql_numbers', if_exists: true
+    @connection.drop_table "postgresql_numbers", if_exists: true
   end
 
   def test_data_type

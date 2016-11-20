@@ -28,7 +28,6 @@ module ActiveRecord
     # is computed directly through SQL and does not trigger by itself the
     # instantiation of the actual post records.
     class CollectionProxy < Relation
-      delegate(*(ActiveRecord::Calculations.public_instance_methods - [:count]), to: :scope)
       delegate :exists?, :update_all, :arel, to: :scope
 
       def initialize(klass, association) #:nodoc:
@@ -54,6 +53,12 @@ module ActiveRecord
         @association.loaded?
       end
 
+      ##
+      # :method: select
+      #
+      # :call-seq:
+      #   select(*fields, &block)
+      #
       # Works in two ways.
       #
       # *First:* Specify a subset of fields to be selected from the result set.
@@ -101,15 +106,6 @@ module ActiveRecord
       #   #      #<Pet id: 2, name: "Spook", person_id: 1>,
       #   #      #<Pet id: 3, name: "Choo-Choo", person_id: 1>
       #   #    ]
-      #
-      #   person.pets.select(:name) { |pet| pet.name =~ /oo/ }
-      #   # => [
-      #   #      #<Pet id: 2, name: "Spook">,
-      #   #      #<Pet id: 3, name: "Choo-Choo">
-      #   #    ]
-      def select(*fields, &block)
-        @association.select(*fields, &block)
-      end
 
       # Finds an object in the collection responding to the +id+. Uses the same
       # rules as ActiveRecord::Base.find. Returns ActiveRecord::RecordNotFound
@@ -141,6 +137,12 @@ module ActiveRecord
         @association.find(*args, &block)
       end
 
+      ##
+      # :method: first
+      #
+      # :call-seq:
+      #   first(limit = nil)
+      #
       # Returns the first record, or the first +n+ records, from the collection.
       # If the collection is empty, the first form returns +nil+, and the second
       # form returns an empty array.
@@ -167,45 +169,63 @@ module ActiveRecord
       #   another_person_without.pets          # => []
       #   another_person_without.pets.first    # => nil
       #   another_person_without.pets.first(3) # => []
-      def first(*args)
-        @association.first(*args)
-      end
 
+      ##
+      # :method: second
+      #
+      # :call-seq:
+      #   second()
+      #
       # Same as #first except returns only the second record.
-      def second(*args)
-        @association.second(*args)
-      end
 
+      ##
+      # :method: third
+      #
+      # :call-seq:
+      #   third()
+      #
       # Same as #first except returns only the third record.
-      def third(*args)
-        @association.third(*args)
-      end
 
+      ##
+      # :method: fourth
+      #
+      # :call-seq:
+      #   fourth()
+      #
       # Same as #first except returns only the fourth record.
-      def fourth(*args)
-        @association.fourth(*args)
-      end
 
+      ##
+      # :method: fifth
+      #
+      # :call-seq:
+      #   fifth()
+      #
       # Same as #first except returns only the fifth record.
-      def fifth(*args)
-        @association.fifth(*args)
-      end
 
+      ##
+      # :method: forty_two
+      #
+      # :call-seq:
+      #   forty_two()
+      #
       # Same as #first except returns only the forty second record.
       # Also known as accessing "the reddit".
-      def forty_two(*args)
-        @association.forty_two(*args)
-      end
 
+      ##
+      # :method: third_to_last
+      #
+      # :call-seq:
+      #   third_to_last()
+      #
       # Same as #first except returns only the third-to-last record.
-      def third_to_last(*args)
-        @association.third_to_last(*args)
-      end
 
+      ##
+      # :method: second_to_last
+      #
+      # :call-seq:
+      #   second_to_last()
+      #
       # Same as #first except returns only the second-to-last record.
-      def second_to_last(*args)
-        @association.second_to_last(*args)
-      end
 
       # Returns the last record, or the last +n+ records, from the collection.
       # If the collection is empty, the first form returns +nil+, and the second
@@ -233,8 +253,9 @@ module ActiveRecord
       #   another_person_without.pets         # => []
       #   another_person_without.pets.last    # => nil
       #   another_person_without.pets.last(3) # => []
-      def last(*args)
-        @association.last(*args)
+      def last(limit = nil)
+        load_target if find_from_target?
+        super
       end
 
       # Gives a record (or N records if a parameter is supplied) from the collection
@@ -262,8 +283,9 @@ module ActiveRecord
       #   another_person_without.pets         # => []
       #   another_person_without.pets.take    # => nil
       #   another_person_without.pets.take(2) # => []
-      def take(n = nil)
-        @association.take(n)
+      def take(limit = nil)
+        load_target if find_from_target?
+        super
       end
 
       # Returns a new object of the collection type that has been instantiated
@@ -696,6 +718,12 @@ module ActiveRecord
         @association.destroy(*records)
       end
 
+      ##
+      # :method: distinct
+      #
+      # :call-seq:
+      #   distinct(value = true)
+      #
       # Specifies whether the records should be unique or not.
       #
       #   class Person < ActiveRecord::Base
@@ -710,11 +738,32 @@ module ActiveRecord
       #
       #   person.pets.select(:name).distinct
       #   # => [#<Pet name: "Fancy-Fancy">]
-      def distinct
-        @association.distinct
-      end
-      alias uniq distinct
+      #
+      #   person.pets.select(:name).distinct.distinct(false)
+      #   # => [
+      #   #      #<Pet name: "Fancy-Fancy">,
+      #   #      #<Pet name: "Fancy-Fancy">
+      #   #    ]
 
+      #--
+      def uniq
+        load_target.uniq
+      end
+
+      def calculate(operation, column_name)
+        null_scope? ? scope.calculate(operation, column_name) : super
+      end
+
+      def pluck(*column_names)
+        null_scope? ? scope.pluck(*column_names) : super
+      end
+
+      ##
+      # :method: count
+      #
+      # :call-seq:
+      #   count(column_name = nil, &block)
+      #
       # Count all records.
       #
       #   class Person < ActiveRecord::Base
@@ -734,9 +783,6 @@ module ActiveRecord
       # perform the count using Ruby.
       #
       #   person.pets.count { |pet| pet.name.include?('-') } # => 2
-      def count(column_name = nil, &block)
-        @association.count(column_name, &block)
-      end
 
       # Returns the size of the collection. If the collection hasn't been loaded,
       # it executes a <tt>SELECT COUNT(*)</tt> query. Else it calls <tt>collection.size</tt>.
@@ -766,6 +812,12 @@ module ActiveRecord
         @association.size
       end
 
+      ##
+      # :method: length
+      #
+      # :call-seq:
+      #   length()
+      #
       # Returns the size of the collection calling +size+ on the target.
       # If the collection has been already loaded, +length+ and +size+ are
       # equivalent. If not and you are going to need the records anyway this
@@ -786,9 +838,6 @@ module ActiveRecord
       #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
       #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
       #   #    ]
-      def length
-        @association.length
-      end
 
       # Returns +true+ if the collection is empty. If the collection has been
       # loaded it is equivalent
@@ -812,6 +861,12 @@ module ActiveRecord
         @association.empty?
       end
 
+      ##
+      # :method: any?
+      #
+      # :call-seq:
+      #   any?()
+      #
       # Returns +true+ if the collection is not empty.
       #
       #   class Person < ActiveRecord::Base
@@ -841,10 +896,13 @@ module ActiveRecord
       #     pet.group == 'dogs'
       #   end
       #   # => true
-      def any?(&block)
-        @association.any?(&block)
-      end
 
+      ##
+      # :method: many?
+      #
+      # :call-seq:
+      #   many?()
+      #
       # Returns true if the collection has more than one record.
       # Equivalent to <tt>collection.size > 1</tt>.
       #
@@ -879,9 +937,6 @@ module ActiveRecord
       #     pet.group == 'cats'
       #   end
       #   # => true
-      def many?(&block)
-        @association.many?(&block)
-      end
 
       # Returns +true+ if the given +record+ is present in the collection.
       #
@@ -1071,7 +1126,27 @@ module ActiveRecord
         self
       end
 
+      protected
+
+        def find_nth_with_limit(index, limit)
+          load_target if find_from_target?
+          super
+        end
+
+        def find_nth_from_last(index)
+          load_target if find_from_target?
+          super
+        end
+
       private
+
+        def null_scope?
+          @association.null_scope?
+        end
+
+        def find_from_target?
+          @association.find_from_target?
+        end
 
         def exec_queries
           load_target

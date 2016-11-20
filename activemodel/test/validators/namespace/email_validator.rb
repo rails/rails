@@ -1,4 +1,4 @@
-require 'validators/email_validator'
+require "validators/email_validator"
 
 module Namespace
   class EmailValidator < ::EmailValidator

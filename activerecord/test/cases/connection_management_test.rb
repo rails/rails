@@ -14,7 +14,7 @@ module ActiveRecord
 
         def call(env)
           @calls << env
-          [200, {}, ['hi mom']]
+          [200, {}, ["hi mom"]]
         end
       end
 
@@ -39,7 +39,7 @@ module ActiveRecord
         _, _, body = @management.call(@env)
         bits = []
         body.each { |bit| bits << bit }
-        assert_equal ['hi mom'], bits
+        assert_equal ["hi mom"], bits
       end
 
       def test_connections_are_cleared_after_body_close
@@ -88,10 +88,10 @@ module ActiveRecord
       end
 
       test "doesn't mutate the original response" do
-        original_response = [200, {}, 'hi']
+        original_response = [200, {}, "hi"]
         app = lambda { |_| original_response }
         middleware(app).call(@env)[2]
-        assert_equal 'hi', original_response.last
+        assert_equal "hi", original_response.last
       end
 
       private
@@ -104,7 +104,7 @@ module ActiveRecord
         def middleware(app)
           lambda do |env|
             a, b, c = executor.wrap { app.call(env) }
-            [a, b, Rack::BodyProxy.new(c) { }]
+            [a, b, Rack::BodyProxy.new(c) {}]
           end
         end
     end

@@ -1,9 +1,9 @@
-require 'cgi'
-require 'erb'
-require 'action_view/helpers/form_helper'
-require 'active_support/core_ext/string/output_safety'
-require 'active_support/core_ext/array/extract_options'
-require 'active_support/core_ext/array/wrap'
+require "cgi"
+require "erb"
+require "action_view/helpers/form_helper"
+require "active_support/core_ext/string/output_safety"
+require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/array/wrap"
 
 module ActionView
   # = Action View Form Option Helpers
@@ -578,7 +578,7 @@ module ActionView
           end
 
           zone_options.safe_concat options_for_select(convert_zones[priority_zones], selected)
-          zone_options.safe_concat content_tag("option".freeze, '-------------', value: '', disabled: true)
+          zone_options.safe_concat content_tag("option".freeze, "-------------", value: "", disabled: true)
           zone_options.safe_concat "\n"
 
           zones = zones - priority_zones
@@ -800,7 +800,7 @@ module ActionView
         end
 
         def prompt_text(prompt)
-          prompt.kind_of?(String) ? prompt : I18n.translate('helpers.select.prompt', default: 'Please select')
+          prompt.kind_of?(String) ? prompt : I18n.translate("helpers.select.prompt", default: "Please select")
         end
     end
 

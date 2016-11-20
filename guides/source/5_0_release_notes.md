@@ -125,7 +125,7 @@ store_listing.price_in_cents # => 10
 StoreListing.new.my_string # => "new default"
 StoreListing.new.my_default_proc # => 2015-05-30 11:04:48 -0600
 model = StoreListing.new(field_without_db_column: ["1", "2", "3"])
-model.attributes #=> {field_without_db_column: [1, 2, 3]}
+model.attributes # => {field_without_db_column: [1, 2, 3]}
 ```
 
 **Creating Custom Types:**
@@ -171,7 +171,7 @@ instead of waiting for the suite to complete.
 - Complete exception backtrace output using `-b` option.
 - Integration with `Minitest` to allow options like `-s` for test seed data,
 `-n` for running specific test by name, `-v` for better verbose output and so forth.
-- Colored test output
+- Colored test output.
 
 Railties
 --------
@@ -212,7 +212,7 @@ Please refer to the [Changelog][railties] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/22173))
 
 *   Deprecated the tasks in the `rails` task namespace in favor of the `app` namespace.
-    (e.g. `rails:update` and `rails:template` tasks is renamed to `app:update` and `app:template`.)
+    (e.g. `rails:update` and `rails:template` tasks are renamed to `app:update` and `app:template`.)
     ([Pull Request](https://github.com/rails/rails/pull/23439))
 
 ### Notable changes
@@ -417,7 +417,7 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     `ActionDispatch::IntegrationTest` instead.
     ([commit](https://github.com/rails/rails/commit/4414c5d1795e815b102571425974a8b1d46d932d))
 
-*   Rails will only generate "weak", instead of strong ETags.
+*   Rails generates weak ETags by default.
     ([Pull Request](https://github.com/rails/rails/pull/17573))
 
 *   Controller actions without an explicit `render` call and with no
@@ -431,11 +431,6 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 *   Added request encoding and response parsing to integration tests.
     ([Pull Request](https://github.com/rails/rails/pull/21671))
-
-*   Update default rendering policies when the controller action did
-    not explicitly indicate a response.
-    ([Pull Request](https://github.com/rails/rails/pull/23827))
-
 
 *   Add `ActionController#helpers` to get access to the view context
     at the controller level.
@@ -458,6 +453,9 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     `ActionController::Live`.
     ([More details in this issue](https://github.com/rails/rails/issues/25581))
 
+*   Introduce `Response#strong_etag=` and `#weak_etag=` and analogous
+    options for `fresh_when` and `stale?`.
+    ([Pull Request](https://github.com/rails/rails/pull/24387))
 
 Action View
 -------------
@@ -588,7 +586,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Removed support for the legacy `mysql` database adapter from core. Most users should
     be able to use `mysql2`. It will be converted to a separate gem when when we find someone
-    to maintain it. ([Pull Request 1](https://github.com/rails/rails/pull/22642)],
+    to maintain it. ([Pull Request 1](https://github.com/rails/rails/pull/22642),
     [Pull Request 2](https://github.com/rails/rails/pull/22715))
 
 *   Removed support for the `protected_attributes` gem.
@@ -599,6 +597,9 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Removed support for `activerecord-deprecated_finders` gem.
     ([commit](https://github.com/rails/rails/commit/78dab2a8569408658542e462a957ea5a35aa4679))
+
+*   Removed `ActiveRecord::ConnectionAdapters::Column::TRUE_VALUES` constant.
+    ([commit](https://github.com/rails/rails/commit/a502703c3d2151d4d3b421b29fefdac5ad05df61))
 
 ### Deprecations
 
@@ -703,9 +704,6 @@ Please refer to the [Changelog][active-record] for detailed changes.
     operator to combine WHERE or HAVING clauses.
     ([commit](https://github.com/rails/rails/commit/b0b37942d729b6bdcd2e3178eda7fa1de203b3d0))
 
-*   Added `:time` option added for `#touch`.
-    ([Pull Request](https://github.com/rails/rails/pull/18956))
-
 *   Added `ActiveRecord::Base.suppress` to prevent the receiver from being saved
     during the given block.
     ([Pull Request](https://github.com/rails/rails/pull/18910))
@@ -804,6 +802,15 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Added `:time` option to `touch` method to touch records with different time
     than the current time.
     ([Pull Request](https://github.com/rails/rails/pull/18956))
+
+*   Change transaction callbacks to not swallow errors.
+    Before this change any errors raised inside a transaction callback
+    were getting rescued and printed in the logs, unless you used
+    the (newly deprecated) `raise_in_transactional_callbacks = true` option.
+
+    Now these errors are not rescued anymore and just bubble up, matching the
+    behavior of other callbacks.
+    ([commit](https://github.com/rails/rails/commit/07d3d402341e81ada0214f2cb2be1da69eadfe72))
 
 Active Model
 ------------
@@ -962,8 +969,10 @@ Please refer to the [Changelog][active-support] for detailed changes.
     `ActiveSupport::Cache::MemCachedStore#escape_key`, and
     `ActiveSupport::Cache::FileStore#key_file_path`.
     Use `normalize_key` instead.
+    ([Pull Request](https://github.com/rails/rails/pull/22215),
+     [commit](https://github.com/rails/rails/commit/a8f773b0))
 
-    Deprecated `ActiveSupport::Cache::LocaleCache#set_cache_value` in favor of `write_cache_value`.
+*   Deprecated `ActiveSupport::Cache::LocaleCache#set_cache_value` in favor of `write_cache_value`.
     ([Pull Request](https://github.com/rails/rails/pull/22215))
 
 *   Deprecated passing arguments to `assert_nothing_raised`.
@@ -994,7 +1003,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Added `#on_weekend?`, `#on_weekday?`, `#next_weekday`, `#prev_weekday` methods to `Date`,
     `Time`, and `DateTime`.
-    ([Pull Request](https://github.com/rails/rails/pull/18335))
+    ([Pull Request](https://github.com/rails/rails/pull/18335),
+     [Pull Request](https://github.com/rails/rails/pull/23687))
 
 *   Added `same_time` option to `#next_week` and `#prev_week` for `Date`, `Time`,
     and `DateTime`.
@@ -1002,7 +1012,7 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Added `#prev_day` and `#next_day` counterparts to `#yesterday` and
     `#tomorrow` for `Date`, `Time`, and `DateTime`.
-    ([Pull Request](httpshttps://github.com/rails/rails/pull/18335))
+    ([Pull Request](https://github.com/rails/rails/pull/18335))
 
 *   Added `SecureRandom.base58` for generation of random base58 strings.
     ([commit](https://github.com/rails/rails/commit/b1093977110f18ae0cafe56c3d99fc22a7d54d1b))
@@ -1044,9 +1054,6 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Added `Array#second_to_last` and `Array#third_to_last` methods.
     ([Pull Request](https://github.com/rails/rails/pull/23583))
-
-*   Added `#on_weekday?` method to `Date`, `Time`, and `DateTime`.
-    ([Pull Request](https://github.com/rails/rails/pull/23687))
 
 *   Publish `ActiveSupport::Executor` and `ActiveSupport::Reloader` APIs to allow
     components and libraries to manage, and participate in, the execution of

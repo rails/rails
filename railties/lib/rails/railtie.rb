@@ -1,7 +1,7 @@
-require 'rails/initializable'
-require 'active_support/inflector'
-require 'active_support/core_ext/module/introspection'
-require 'active_support/core_ext/module/delegation'
+require "rails/initializable"
+require "active_support/inflector"
+require "active_support/core_ext/module/introspection"
+require "active_support/core_ext/module/delegation"
 
 module Rails
   # <tt>Rails::Railtie</tt> is the core of the Rails framework and provides
@@ -111,7 +111,7 @@ module Rails
   #
   # Be sure to look at the documentation of those specific classes for more information.
   class Railtie
-    autoload :Configuration, 'rails/railtie/configuration'
+    autoload :Configuration, "rails/railtie/configuration"
 
     include Initializable
 
@@ -132,27 +132,19 @@ module Rails
       end
 
       def rake_tasks(&blk)
-        @rake_tasks ||= []
-        @rake_tasks << blk if blk
-        @rake_tasks
+        register_block_for(:rake_tasks, &blk)
       end
 
       def console(&blk)
-        @load_console ||= []
-        @load_console << blk if blk
-        @load_console
+        register_block_for(:load_console, &blk)
       end
 
       def runner(&blk)
-        @load_runner ||= []
-        @load_runner << blk if blk
-        @load_runner
+        register_block_for(:runner, &blk)
       end
 
       def generators(&blk)
-        @generators ||= []
-        @generators << blk if blk
-        @generators
+        register_block_for(:generators, &blk)
       end
 
       def abstract_railtie?
@@ -195,6 +187,17 @@ module Rails
             super
           end
         end
+
+      private
+        # receives an instance variable identifier, set the variable value if is
+        # blank and append given block to value, which will be used later in
+        # `#each_registered_block(type, &block)`
+        def register_block_for(type, &blk)
+          var_name = "@#{type}"
+          blocks = instance_variable_defined?(var_name) ? instance_variable_get(var_name) : instance_variable_set(var_name, [])
+          blocks << blk if blk
+          blocks
+        end
     end
 
     delegate :railtie_name, to: :class
@@ -222,31 +225,32 @@ module Rails
 
     protected
 
-    def run_console_blocks(app) #:nodoc:
-      each_registered_block(:console) { |block| block.call(app) }
-    end
+      def run_console_blocks(app) #:nodoc:
+        each_registered_block(:console) { |block| block.call(app) }
+      end
 
-    def run_generators_blocks(app) #:nodoc:
-      each_registered_block(:generators) { |block| block.call(app) }
-    end
+      def run_generators_blocks(app) #:nodoc:
+        each_registered_block(:generators) { |block| block.call(app) }
+      end
 
-    def run_runner_blocks(app) #:nodoc:
-      each_registered_block(:runner) { |block| block.call(app) }
-    end
+      def run_runner_blocks(app) #:nodoc:
+        each_registered_block(:runner) { |block| block.call(app) }
+      end
 
-    def run_tasks_blocks(app) #:nodoc:
-      extend Rake::DSL
-      each_registered_block(:rake_tasks) { |block| instance_exec(app, &block) }
-    end
+      def run_tasks_blocks(app) #:nodoc:
+        extend Rake::DSL
+        each_registered_block(:rake_tasks) { |block| instance_exec(app, &block) }
+      end
 
     private
 
-    def each_registered_block(type, &block)
-      klass = self.class
-      while klass.respond_to?(type)
-        klass.public_send(type).each(&block)
-        klass = klass.superclass
+      # run `&block` in every registered block in `#register_block_for`
+      def each_registered_block(type, &block)
+        klass = self.class
+        while klass.respond_to?(type)
+          klass.public_send(type).each(&block)
+          klass = klass.superclass
+        end
       end
-    end
   end
 end

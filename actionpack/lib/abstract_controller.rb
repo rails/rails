@@ -1,6 +1,6 @@
-require 'action_pack'
-require 'active_support/rails'
-require 'active_support/i18n'
+require "action_pack"
+require "active_support/rails"
+require "active_support/i18n"
 
 module AbstractController
   extend ActiveSupport::Autoload

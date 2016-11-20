@@ -630,6 +630,8 @@ to use in this case.
 redirect_back(fallback_location: root_path)
 ```
 
+NOTE: `redirect_to` and `redirect_back` do not halt and return immediately from method execution, but simply set HTTP responses. Statements occurring after them in a method will be executed. You can halt by an explicit `return` or some other halting mechanism, if needed.
+
 #### Getting a Different Redirect Status Code
 
 Rails uses HTTP status code 302, a temporary redirect, when you call `redirect_to`. If you'd like to use a different status code, perhaps 301, a permanent redirect, you can use the `:status` option:
@@ -749,7 +751,7 @@ When Rails renders a view as a response, it does so by combining the view with t
 
 ### Asset Tag Helpers
 
-Asset tag helpers provide methods for generating HTML that link views to feeds, JavaScript, stylesheets, images, videos and audios. There are six asset tag helpers available in Rails:
+Asset tag helpers provide methods for generating HTML that link views to feeds, JavaScript, stylesheets, images, videos, and audios. There are six asset tag helpers available in Rails:
 
 * `auto_discovery_link_tag`
 * `javascript_include_tag`
@@ -1080,7 +1082,7 @@ definitions for several similar resources:
 * `shared/_search_filters.html.erb`
 
     ```html+erb
-    <%= form_for(@q) do |f| %>
+    <%= form_for(search) do |f| %>
       <h1>Search form:</h1>
       <fieldset>
         <%= yield f %>
@@ -1278,7 +1280,7 @@ When rendering collections it is also possible to use the `:layout` option:
 <%= render partial: "product", collection: @products, layout: "special_layout" %>
 ```
 
-The layout will be rendered together with the partial for each item in the collection. The current object and object_counter variables will be available in the layout as well, the same way they do within the partial.
+The layout will be rendered together with the partial for each item in the collection. The current object and object_counter variables will be available in the layout as well, the same way they are within the partial.
 
 ### Using Nested Layouts
 

@@ -1,6 +1,6 @@
-require 'abstract_unit'
-require 'rails/test_unit/reporter'
-require 'minitest/mock'
+require "abstract_unit"
+require "rails/test_unit/reporter"
+require "minitest/mock"
 
 class TestUnitReporterTest < ActiveSupport::TestCase
   class ExampleTest < Minitest::Test
@@ -33,7 +33,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     @reporter.record(passing_test)
     @reporter.record(skipped_test)
     @reporter.report
-    assert_no_match 'Failed tests:', @output.string
+    assert_no_match "Failed tests:", @output.string
     assert_rerun_snippet_count 0
   end
 
@@ -87,7 +87,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     @reporter.record(failed_test)
     @reporter.report
 
-    assert_no_match 'Failed tests:', @output.string
+    assert_no_match "Failed tests:", @output.string
   end
 
   test "fail fast interrupts run on failure" do
@@ -100,7 +100,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     rescue Interrupt
       interrupt_raised = true
     ensure
-      assert interrupt_raised, 'Expected Interrupt to be raised.'
+      assert interrupt_raised, "Expected Interrupt to be raised."
     end
   end
 
@@ -114,7 +114,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     rescue Interrupt
       interrupt_raised = true
     ensure
-      assert interrupt_raised, 'Expected Interrupt to be raised.'
+      assert interrupt_raised, "Expected Interrupt to be raised."
     end
   end
 
@@ -122,7 +122,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     fail_fast = Rails::TestUnitReporter.new @output, fail_fast: true
 
     fail_fast.record(skipped_test)
-    assert_no_match 'Failed tests:', @output.string
+    assert_no_match "Failed tests:", @output.string
   end
 
   test "outputs colored passing results" do
@@ -156,38 +156,38 @@ class TestUnitReporterTest < ActiveSupport::TestCase
   end
 
   private
-  def assert_rerun_snippet_count(snippet_count)
-    assert_equal snippet_count, @output.string.scan(%r{^bin/rails test }).size
-  end
+    def assert_rerun_snippet_count(snippet_count)
+      assert_equal snippet_count, @output.string.scan(%r{^bin/rails test }).size
+    end
 
-  def failed_test
-    ft = ExampleTest.new(:woot)
-    ft.failures << begin
-                     raise Minitest::Assertion, "boo"
-                   rescue Minitest::Assertion => e
-                     e
-                   end
-    ft
-  end
+    def failed_test
+      ft = ExampleTest.new(:woot)
+      ft.failures << begin
+                       raise Minitest::Assertion, "boo"
+                     rescue Minitest::Assertion => e
+                       e
+                     end
+      ft
+    end
 
-  def errored_test
-    et = ExampleTest.new(:woot)
-    et.failures << Minitest::UnexpectedError.new(ArgumentError.new("wups"))
-    et
-  end
+    def errored_test
+      et = ExampleTest.new(:woot)
+      et.failures << Minitest::UnexpectedError.new(ArgumentError.new("wups"))
+      et
+    end
 
-  def passing_test
-    ExampleTest.new(:woot)
-  end
+    def passing_test
+      ExampleTest.new(:woot)
+    end
 
-  def skipped_test
-    st = ExampleTest.new(:woot)
-    st.failures << begin
-                     raise Minitest::Skip, "skipchurches, misstemples"
-                   rescue Minitest::Assertion => e
-                     e
-                   end
-    st.time = 10
-    st
-  end
+    def skipped_test
+      st = ExampleTest.new(:woot)
+      st.failures << begin
+                       raise Minitest::Skip, "skipchurches, misstemples"
+                     rescue Minitest::Assertion => e
+                       e
+                     end
+      st.time = 10
+      st
+    end
 end

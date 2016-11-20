@@ -1,4 +1,4 @@
-require 'rails/generators/resource_helpers'
+require "rails/generators/resource_helpers"
 
 module Rails
   module Generators
@@ -17,7 +17,7 @@ module Rails
 
       def create_controller_files
         template_file = options.api? ? "api_controller.rb" : "controller.rb"
-        template template_file, File.join('app/controllers', controller_class_path, "#{controller_file_name}_controller.rb")
+        template template_file, File.join("app/controllers", controller_class_path, "#{controller_file_name}_controller.rb")
       end
 
       hook_for :template_engine, :test_framework, as: :scaffold

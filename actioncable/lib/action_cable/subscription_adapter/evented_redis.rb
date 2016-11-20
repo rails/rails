@@ -1,9 +1,9 @@
-require 'thread'
+require "thread"
 
-gem 'em-hiredis', '~> 0.3.0'
-gem 'redis', '~> 3.0'
-require 'em-hiredis'
-require 'redis'
+gem "em-hiredis", "~> 0.3.0"
+gem "redis", "~> 3.0"
+require "em-hiredis"
+require "redis"
 
 EventMachine.epoll  if EventMachine.epoll?
 EventMachine.kqueue if EventMachine.kqueue?

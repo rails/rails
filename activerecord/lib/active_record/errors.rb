@@ -1,5 +1,4 @@
 module ActiveRecord
-
   # = Active Record Errors
   #
   # Generic Active Record exception class.
@@ -44,7 +43,7 @@ module ActiveRecord
 
   # Raised when connection to the database could not been established (for example when
   # {ActiveRecord::Base.connection=}[rdoc-ref:ConnectionHandling#connection]
-  # is given a nil object).
+  # is given a +nil+ object).
   class ConnectionNotEstablished < ActiveRecordError
   end
 
@@ -96,7 +95,6 @@ module ActiveRecord
   #
   # Wraps the underlying database error as +cause+.
   class StatementInvalid < ActiveRecordError
-
     def initialize(message = nil, original_exception = nil)
       if original_exception
         ActiveSupport::Deprecation.warn("Passing #original_exception is deprecated and has no effect. " \
@@ -166,7 +164,6 @@ module ActiveRecord
         super("Stale object error.")
       end
     end
-
   end
 
   # Raised when association is being configured improperly or user tries to use
@@ -300,9 +297,9 @@ module ActiveRecord
   class SerializationFailure < TransactionRollbackError
   end
 
-  # DeadlockDetected will be raised when a transaction is rolled
+  # Deadlocked will be raised when a transaction is rolled
   # back by the database when a deadlock is encountered.
-  class DeadlockDetected < TransactionRollbackError
+  class Deadlocked < TransactionRollbackError
   end
 
   # IrreversibleOrderError is raised when a relation's order is too complex for

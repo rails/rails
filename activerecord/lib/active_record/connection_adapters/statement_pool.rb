@@ -6,7 +6,7 @@ module ActiveRecord
       DEFAULT_STATEMENT_LIMIT = 1000
 
       def initialize(statement_limit = nil)
-        @cache = Hash.new { |h,pid| h[pid] = {} }
+        @cache = Hash.new { |h, pid| h[pid] = {} }
         @statement_limit = statement_limit || DEFAULT_STATEMENT_LIMIT
       end
 
@@ -47,13 +47,13 @@ module ActiveRecord
 
       private
 
-      def cache
-        @cache[Process.pid]
-      end
+        def cache
+          @cache[Process.pid]
+        end
 
-      def dealloc(stmt)
-        raise NotImplementedError
-      end
+        def dealloc(stmt)
+          raise NotImplementedError
+        end
     end
   end
 end

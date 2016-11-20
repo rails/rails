@@ -1,8 +1,6 @@
-require 'abstract_unit'
-
+require "abstract_unit"
 
 class MultibyteUnicodeDatabaseTest < ActiveSupport::TestCase
-
   include ActiveSupport::Multibyte::Unicode
 
   def setup

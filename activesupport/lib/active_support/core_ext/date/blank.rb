@@ -1,4 +1,4 @@
-require 'date'
+require "date"
 
 class Date #:nodoc:
   # No Date is blank:

@@ -23,14 +23,6 @@ module ActiveRecord
         replace(record)
       end
 
-      def create(attributes = {}, &block)
-        _create_record(attributes, &block)
-      end
-
-      def create!(attributes = {}, &block)
-        _create_record(attributes, true, &block)
-      end
-
       def build(attributes = {})
         record = build_record(attributes)
         yield(record) if block_given?
@@ -56,9 +48,9 @@ module ActiveRecord
           end
 
           binds = AssociationScope.get_bind_values(owner, reflection.chain)
-          if record = sc.execute(binds, klass, conn).first
+          sc.execute(binds, klass, conn) do |record|
             set_inverse_instance record
-          end
+          end.first
         end
 
         def replace(record)

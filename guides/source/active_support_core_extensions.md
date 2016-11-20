@@ -511,56 +511,6 @@ NOTE: Defined in `active_support/core_ext/object/inclusion.rb`.
 Extensions to `Module`
 ----------------------
 
-### `alias_method_chain`
-
-**This method is deprecated in favour of using Module#prepend.**
-
-Using plain Ruby you can wrap methods with other methods, that's called _alias chaining_.
-
-For example, let's say you'd like params to be strings in functional tests, as they are in real requests, but still want the convenience of assigning integers and other kind of values. To accomplish that you could wrap `ActionDispatch::IntegrationTest#process` this way in `test/test_helper.rb`:
-
-```ruby
-ActionDispatch::IntegrationTest.class_eval do
-  # save a reference to the original process method
-  alias_method :original_process, :process
-
-  # now redefine process and delegate to original_process
-  def process('GET', path, params: nil, headers: nil, env: nil, xhr: false)
-    params = Hash[*params.map {|k, v| [k, v.to_s]}.flatten]
-    original_process('GET', path, params: params)
-  end
-end
-```
-
-That's the method `get`, `post`, etc., delegate the work to.
-
-That technique has a risk, it could be the case that `:original_process` was taken. To try to avoid collisions people choose some label that characterizes what the chaining is about:
-
-```ruby
-ActionDispatch::IntegrationTest.class_eval do
-  def process_with_stringified_params(...)
-    params = Hash[*params.map {|k, v| [k, v.to_s]}.flatten]
-    process_without_stringified_params(method, path, params: params)
-  end
-  alias_method :process_without_stringified_params, :process
-  alias_method :process, :process_with_stringified_params
-end
-```
-
-The method `alias_method_chain` provides a shortcut for that pattern:
-
-```ruby
-ActionDispatch::IntegrationTest.class_eval do
-  def process_with_stringified_params(...)
-    params = Hash[*params.map {|k, v| [k, v.to_s]}.flatten]
-    process_without_stringified_params(method, path, params: params)
-  end
-  alias_method_chain :process, :stringified_params
-end
-```
-
-NOTE: Defined in `active_support/core_ext/module/aliasing.rb`.
-
 ### Attributes
 
 #### `alias_attribute`
@@ -2036,7 +1986,7 @@ Addition only assumes the elements respond to `+`:
 ```ruby
 [[1, 2], [2, 3], [3, 4]].sum    # => [1, 2, 2, 3, 3, 4]
 %w(foo bar baz).sum             # => "foobarbaz"
-{a: 1, b: 2, c: 3}.sum # => [:b, 2, :c, 3, :a, 1]
+{a: 1, b: 2, c: 3}.sum          # => [:b, 2, :c, 3, :a, 1]
 ```
 
 The sum of an empty collection is zero by default, but this is customizable:
@@ -2661,7 +2611,7 @@ The method `transform_keys` accepts a block and returns a hash that has applied 
 
 ```ruby
 {nil => nil, 1 => 1, a: :a}.transform_keys { |key| key.to_s.upcase }
-# => {"" => nil, "A" => :a, "1" => 1}
+# => {"" => nil, "1" => 1, "A" => :a}
 ```
 
 In case of key collision, one of the values will be chosen. The chosen value may not always be the same given the same hash:
@@ -2703,7 +2653,7 @@ The method `stringify_keys` returns a hash that has a stringified version of the
 
 ```ruby
 {nil => nil, 1 => 1, a: :a}.stringify_keys
-# => {"" => nil, "a" => :a, "1" => 1}
+# => {"" => nil, "1" => 1, "a" => :a}
 ```
 
 In case of key collision, one of the values will be chosen. The chosen value may not always be the same given the same hash:
@@ -2745,7 +2695,7 @@ The method `symbolize_keys` returns a hash that has a symbolized version of the 
 
 ```ruby
 {nil => nil, 1 => 1, "a" => "a"}.symbolize_keys
-# => {1=>1, nil=>nil, :a=>"a"}
+# => {nil=>nil, 1=>1, :a=>"a"}
 ```
 
 WARNING. Note in the previous example only one key was symbolized.
@@ -2822,7 +2772,7 @@ Ruby has built-in support for taking slices out of strings and arrays. Active Su
 
 ```ruby
 {a: 1, b: 2, c: 3}.slice(:a, :c)
-# => {:c=>3, :a=>1}
+# => {:a=>1, :c=>3}
 
 {a: 1, b: 2, c: 3}.slice(:b, :X)
 # => {:b=>2} # non-existing keys are ignored

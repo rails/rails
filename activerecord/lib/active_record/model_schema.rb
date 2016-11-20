@@ -2,75 +2,154 @@ module ActiveRecord
   module ModelSchema
     extend ActiveSupport::Concern
 
+    ##
+    # :singleton-method: primary_key_prefix_type
+    # :call-seq: primary_key_prefix_type
+    #
+    # The prefix type that will be prepended to every primary key column name.
+    # The options are +:table_name+ and +:table_name_with_underscore+. If the first is specified,
+    # the Product class will look for "productid" instead of "id" as the primary column. If the
+    # latter is specified, the Product class will look for "product_id" instead of "id". Remember
+    # that this is a global setting for all Active Records.
+
+    ##
+    # :singleton-method: primary_key_prefix_type=
+    # :call-seq: primary_key_prefix_type=(prefix_type)
+    #
+    # Sets the prefix type that will be prepended to every primary key column name.
+    # The options are +:table_name+ and +:table_name_with_underscore+. If the first is specified,
+    # the Product class will look for "productid" instead of "id" as the primary column. If the
+    # latter is specified, the Product class will look for "product_id" instead of "id". Remember
+    # that this is a global setting for all Active Records.
+
+    ##
+    # :singleton-method: table_name_prefix
+    # :call-seq: table_name_prefix
+    #
+    # The prefix string to prepend to every table name.
+
+    ##
+    # :singleton-method: table_name_prefix=
+    # :call-seq: table_name_prefix=(prefix)
+    #
+    # Sets the prefix string to prepend to every table name. So if set to "basecamp_", all table
+    # names will be named like "basecamp_projects", "basecamp_people", etc. This is a convenient
+    # way of creating a namespace for tables in a shared database. By default, the prefix is the
+    # empty string.
+    #
+    # If you are organising your models within modules you can add a prefix to the models within
+    # a namespace by defining a singleton method in the parent module called table_name_prefix which
+    # returns your chosen prefix.
+
+    ##
+    # :singleton-method: table_name_suffix
+    # :call-seq: table_name_suffix
+    #
+    # The suffix string to append to every table name.
+
+    ##
+    # :singleton-method: table_name_suffix=
+    # :call-seq: table_name_suffix=(suffix)
+    #
+    # Works like +table_name_prefix=+, but appends instead of prepends (set to "_basecamp" gives "projects_basecamp",
+    # "people_basecamp"). By default, the suffix is the empty string.
+    #
+    # If you are organising your models within modules, you can add a suffix to the models within
+    # a namespace by defining a singleton method in the parent module called table_name_suffix which
+    # returns your chosen suffix.
+
+    ##
+    # :singleton-method: schema_migrations_table_name
+    # :call-seq: schema_migrations_table_name
+    #
+    # The name of the schema migrations table. By default, the value is <tt>"schema_migrations"</tt>.
+
+    ##
+    # :singleton-method: schema_migrations_table_name=
+    # :call-seq: schema_migrations_table_name=(table_name)
+    #
+    # Sets the name of the schema migrations table.
+
+    ##
+    # :singleton-method: internal_metadata_table_name
+    # :call-seq: internal_metadata_table_name
+    #
+    # The name of the internal metadata table. By default, the value is <tt>"ar_internal_metadata"</tt>.
+
+    ##
+    # :singleton-method: internal_metadata_table_name=
+    # :call-seq: internal_metadata_table_name=(table_name)
+    #
+    # Sets the name of the internal metadata table.
+
+    ##
+    # :singleton-method: protected_environments
+    # :call-seq: protected_environments
+    #
+    # The array of names of environments where destructive actions should be prohibited. By default,
+    # the value is <tt>["production"]</tt>.
+
+    ##
+    # :singleton-method: protected_environments=
+    # :call-seq: protected_environments=(environments)
+    #
+    # Sets an array of names of environments where destructive actions should be prohibited.
+
+    ##
+    # :singleton-method: pluralize_table_names
+    # :call-seq: pluralize_table_names
+    #
+    # Indicates whether table names should be the pluralized versions of the corresponding class names.
+    # If true, the default table name for a Product class will be "products". If false, it would just be "product".
+    # See table_name for the full rules on table/class naming. This is true, by default.
+
+    ##
+    # :singleton-method: pluralize_table_names=
+    # :call-seq: pluralize_table_names=(value)
+    #
+    # Set whether table names should be the pluralized versions of the corresponding class names.
+    # If true, the default table name for a Product class will be "products". If false, it would just be "product".
+    # See table_name for the full rules on table/class naming. This is true, by default.
+
+    ##
+    # :singleton-method: ignored_columns
+    # :call-seq: ignored_columns
+    #
+    # The list of columns names the model should ignore. Ignored columns won't have attribute
+    # accessors defined, and won't be referenced in SQL queries.
+
+    ##
+    # :singleton-method: ignored_columns=
+    # :call-seq: ignored_columns=(columns)
+    #
+    # Sets the columns names the model should ignore. Ignored columns won't have attribute
+    # accessors defined, and won't be referenced in SQL queries.
+
     included do
-      ##
-      # :singleton-method:
-      # Accessor for the prefix type that will be prepended to every primary key column name.
-      # The options are :table_name and :table_name_with_underscore. If the first is specified,
-      # the Product class will look for "productid" instead of "id" as the primary column. If the
-      # latter is specified, the Product class will look for "product_id" instead of "id". Remember
-      # that this is a global setting for all Active Records.
       mattr_accessor :primary_key_prefix_type, instance_writer: false
 
-      ##
-      # :singleton-method:
-      # Accessor for the name of the prefix string to prepend to every table name. So if set
-      # to "basecamp_", all table names will be named like "basecamp_projects", "basecamp_people",
-      # etc. This is a convenient way of creating a namespace for tables in a shared database.
-      # By default, the prefix is the empty string.
-      #
-      # If you are organising your models within modules you can add a prefix to the models within
-      # a namespace by defining a singleton method in the parent module called table_name_prefix which
-      # returns your chosen prefix.
       class_attribute :table_name_prefix, instance_writer: false
       self.table_name_prefix = ""
 
-      ##
-      # :singleton-method:
-      # Works like +table_name_prefix+, but appends instead of prepends (set to "_basecamp" gives "projects_basecamp",
-      # "people_basecamp"). By default, the suffix is the empty string.
-      #
-      # If you are organising your models within modules, you can add a suffix to the models within
-      # a namespace by defining a singleton method in the parent module called table_name_suffix which
-      # returns your chosen suffix.
       class_attribute :table_name_suffix, instance_writer: false
       self.table_name_suffix = ""
 
-      ##
-      # :singleton-method:
-      # Accessor for the name of the schema migrations table. By default, the value is "schema_migrations"
       class_attribute :schema_migrations_table_name, instance_accessor: false
       self.schema_migrations_table_name = "schema_migrations"
 
-      ##
-      # :singleton-method:
-      # Accessor for the name of the internal metadata table. By default, the value is "ar_internal_metadata"
       class_attribute :internal_metadata_table_name, instance_accessor: false
       self.internal_metadata_table_name = "ar_internal_metadata"
 
-      ##
-      # :singleton-method:
-      # Accessor for an array of names of environments where destructive actions should be prohibited. By default,
-      # the value is ["production"]
       class_attribute :protected_environments, instance_accessor: false
       self.protected_environments = ["production"]
 
-      ##
-      # :singleton-method:
-      # Indicates whether table names should be the pluralized versions of the corresponding class names.
-      # If true, the default table name for a Product class will be +products+. If false, it would just be +product+.
-      # See table_name for the full rules on table/class naming. This is true, by default.
       class_attribute :pluralize_table_names, instance_writer: false
       self.pluralize_table_names = true
 
-      ##
-      # :singleton-method:
-      # Accessor for the list of columns names the model should ignore. Ignored columns won't have attribute
-      # accessors defined, and won't be referenced in SQL queries.
       class_attribute :ignored_columns, instance_accessor: false
       self.ignored_columns = [].freeze
 
-      self.inheritance_column = 'type'
+      self.inheritance_column = "type"
 
       delegate :type_for_attribute, to: :class
     end
@@ -173,11 +252,11 @@ module ActiveRecord
       end
 
       def full_table_name_prefix #:nodoc:
-        (parents.detect{ |p| p.respond_to?(:table_name_prefix) } || self).table_name_prefix
+        (parents.detect { |p| p.respond_to?(:table_name_prefix) } || self).table_name_prefix
       end
 
       def full_table_name_suffix #:nodoc:
-        (parents.detect {|p| p.respond_to?(:table_name_suffix) } || self).table_name_suffix
+        (parents.detect { |p| p.respond_to?(:table_name_suffix) } || self).table_name_suffix
       end
 
       # Defines the name of the table column which will store the class name on single-table
@@ -213,7 +292,7 @@ module ActiveRecord
       end
 
       # Sets the name of the sequence to use when generating ids to the given
-      # value, or (if the value is nil or false) to the value returned by the
+      # value, or (if the value is +nil+ or +false+) to the value returned by the
       # given block. This is required for Oracle and is useful for any
       # database which relies on sequences for primary key generation.
       #
@@ -268,7 +347,7 @@ module ActiveRecord
 
       def attribute_types # :nodoc:
         load_schema
-        @attribute_types ||= Hash.new(Type::Value.new)
+        @attribute_types ||= Hash.new(Type.default_value)
       end
 
       def yaml_encoder # :nodoc:
@@ -316,8 +395,8 @@ module ActiveRecord
         @content_columns ||= columns.reject do |c|
           c.name == primary_key ||
           c.name == inheritance_column ||
-          c.name.end_with?('_id') ||
-          c.name.end_with?('_count')
+          c.name.end_with?("_id") ||
+          c.name.end_with?("_count")
         end
       end
 
@@ -357,92 +436,69 @@ module ActiveRecord
 
       private
 
-      def schema_loaded?
-        defined?(@columns_hash) && @columns_hash
-      end
-
-      def load_schema
-        unless schema_loaded?
-          load_schema!
+        def schema_loaded?
+          defined?(@columns_hash) && @columns_hash
         end
-      end
 
-      def load_schema!
-        @columns_hash = connection.schema_cache.columns_hash(table_name).except(*ignored_columns)
-        @columns_hash.each do |name, column|
-          warn_if_deprecated_type(column)
-          define_attribute(
-            name,
-            connection.lookup_cast_type_from_column(column),
-            default: column.default,
-            user_provided_default: false
-          )
-        end
-      end
-
-      def reload_schema_from_cache
-        @arel_engine = nil
-        @arel_table = nil
-        @column_names = nil
-        @attribute_types = nil
-        @content_columns = nil
-        @default_attributes = nil
-        @inheritance_column = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
-        @attributes_builder = nil
-        @columns = nil
-        @columns_hash = nil
-        @attribute_names = nil
-        @yaml_encoder = nil
-        direct_descendants.each do |descendant|
-          descendant.send(:reload_schema_from_cache)
-        end
-      end
-
-      # Guesses the table name, but does not decorate it with prefix and suffix information.
-      def undecorated_table_name(class_name = base_class.name)
-        table_name = class_name.to_s.demodulize.underscore
-        pluralize_table_names ? table_name.pluralize : table_name
-      end
-
-      # Computes and returns a table name according to default conventions.
-      def compute_table_name
-        base = base_class
-        if self == base
-          # Nested classes are prefixed with singular parent table name.
-          if parent < Base && !parent.abstract_class?
-            contained = parent.table_name
-            contained = contained.singularize if parent.pluralize_table_names
-            contained += '_'
+        def load_schema
+          unless schema_loaded?
+            load_schema!
           end
-
-          "#{full_table_name_prefix}#{contained}#{undecorated_table_name(name)}#{full_table_name_suffix}"
-        else
-          # STI subclasses always use their superclass' table.
-          base.table_name
         end
-      end
 
-      def warn_if_deprecated_type(column)
-        return if attributes_to_define_after_schema_loads.key?(column.name)
-        if column.respond_to?(:oid) && column.sql_type.start_with?("point")
-          if column.array?
-            array_arguments = ", array: true"
+        def load_schema!
+          @columns_hash = connection.schema_cache.columns_hash(table_name).except(*ignored_columns)
+          @columns_hash.each do |name, column|
+            define_attribute(
+              name,
+              connection.lookup_cast_type_from_column(column),
+              default: column.default,
+              user_provided_default: false
+            )
+          end
+        end
+
+        def reload_schema_from_cache
+          @arel_engine = nil
+          @arel_table = nil
+          @column_names = nil
+          @attribute_types = nil
+          @content_columns = nil
+          @default_attributes = nil
+          @inheritance_column = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
+          @attributes_builder = nil
+          @columns = nil
+          @columns_hash = nil
+          @attribute_names = nil
+          @yaml_encoder = nil
+          direct_descendants.each do |descendant|
+            descendant.send(:reload_schema_from_cache)
+          end
+        end
+
+        # Guesses the table name, but does not decorate it with prefix and suffix information.
+        def undecorated_table_name(class_name = base_class.name)
+          table_name = class_name.to_s.demodulize.underscore
+          pluralize_table_names ? table_name.pluralize : table_name
+        end
+
+        # Computes and returns a table name according to default conventions.
+        def compute_table_name
+          base = base_class
+          if self == base
+            # Nested classes are prefixed with singular parent table name.
+            if parent < Base && !parent.abstract_class?
+              contained = parent.table_name
+              contained = contained.singularize if parent.pluralize_table_names
+              contained += "_"
+            end
+
+            "#{full_table_name_prefix}#{contained}#{undecorated_table_name(name)}#{full_table_name_suffix}"
           else
-            array_arguments = ""
+            # STI subclasses always use their superclass' table.
+            base.table_name
           end
-          ActiveSupport::Deprecation.warn(<<-WARNING.strip_heredoc)
-            The behavior of the `:point` type will be changing in Rails 5.1 to
-            return a `Point` object, rather than an `Array`. If you'd like to
-            keep the old behavior, you can add this line to #{self.name}:
-
-              attribute :#{column.name}, :legacy_point#{array_arguments}
-
-            If you'd like the new behavior today, you can add this line:
-
-              attribute :#{column.name}, :point#{array_arguments}
-          WARNING
         end
-      end
     end
   end
 end

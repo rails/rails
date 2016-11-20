@@ -88,7 +88,10 @@
     <% unless @email.attachments.nil? || @email.attachments.empty? %>
       <dt>Attachments:</dt>
       <dd>
-        <%= @email.attachments.map { |a| a.respond_to?(:original_filename) ? a.original_filename : a.filename }.join(', ') %>
+        <% @email.attachments.each do |a| %>
+          <% filename = a.respond_to?(:original_filename) ? a.original_filename : a.filename %>
+          <%= link_to filename, "data:application/octet-stream;charset=utf-8;base64,#{Base64.encode64(a.body.to_s)}", download: filename %>
+        <% end %>
       </dd>
     <% end %>
 

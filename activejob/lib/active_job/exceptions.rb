@@ -1,4 +1,4 @@
-require 'active_support/core_ext/numeric/time'
+require "active_support/core_ext/numeric/time"
 
 module ActiveJob
   # Provides behavior for retrying and discarding jobs on exceptions.
@@ -12,12 +12,12 @@ module ActiveJob
       # holding queue for inspection.
       #
       # You can also pass a block that'll be invoked if the retry attempts fail for custom logic rather than letting
-      # the exception bubble up.
+      # the exception bubble up. This block is yielded with the job instance as the first and the error instance as the second parameter.
       #
       # ==== Options
       # * <tt>:wait</tt> - Re-enqueues the job with a delay specified either in seconds (default: 3 seconds),
       #   as a computing proc that the number of executions so far as an argument, or as a symbol reference of
-      #   <tt>:exponentially_longer<>, which applies the wait algorithm of <tt>(executions ** 4) + 2</tt>
+      #   <tt>:exponentially_longer</tt>, which applies the wait algorithm of <tt>(executions ** 4) + 2</tt>
       #   (first wait 3s, then 18s, then 83s, etc)
       # * <tt>:attempts</tt> - Re-enqueues the job the specified number of times (default: 5 attempts)
       # * <tt>:queue</tt> - Re-enqueues the job on a different queue
@@ -28,15 +28,15 @@ module ActiveJob
       #  class RemoteServiceJob < ActiveJob::Base
       #    retry_on CustomAppException # defaults to 3s wait, 5 attempts
       #    retry_on AnotherCustomAppException, wait: ->(executions) { executions * 2 }
-      #    retry_on(YetAnotherCustomAppException) do |exception|
+      #    retry_on(YetAnotherCustomAppException) do |job, exception|
       #      ExceptionNotifier.caught(exception)
       #    end
-      #    retry_on ActiveRecord::StatementInvalid, wait: 5.seconds, attempts: 3
+      #    retry_on ActiveRecord::Deadlocked, wait: 5.seconds, attempts: 3
       #    retry_on Net::OpenTimeout, wait: :exponentially_longer, attempts: 10
       #
       #    def perform(*args)
       #      # Might raise CustomAppException, AnotherCustomAppException, or YetAnotherCustomAppException for something domain specific
-      #      # Might raise ActiveRecord::StatementInvalid when a local db deadlock is detected
+      #      # Might raise ActiveRecord::Deadlocked when a local db deadlock is detected
       #      # Might raise Net::OpenTimeout when the remote service is down
       #    end
       #  end
@@ -47,7 +47,7 @@ module ActiveJob
             retry_job wait: determine_delay(wait), queue: queue, priority: priority
           else
             if block_given?
-              yield exception
+              yield self, exception
             else
               logger.error "Stopped retrying #{self.class} due to a #{exception}, which reoccurred on #{executions} attempts. The original exception was #{error.cause.inspect}."
               raise error
@@ -104,7 +104,7 @@ module ActiveJob
       def determine_delay(seconds_or_duration_or_algorithm)
         case seconds_or_duration_or_algorithm
         when :exponentially_longer
-          (executions ** 4) + 2
+          (executions**4) + 2
         when ActiveSupport::Duration
           duration = seconds_or_duration_or_algorithm
           duration.to_i

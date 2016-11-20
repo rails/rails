@@ -1,4 +1,4 @@
-require 'qu'
+require "qu"
 
 module ActiveJob
   module QueueAdapters
@@ -20,7 +20,7 @@ module ActiveJob
         qu_job = Qu::Payload.new(klass: JobWrapper, args: [job.serialize]).tap do |payload|
           payload.instance_variable_set(:@queue, job.queue_name)
         end.push
-        
+
         # qu_job can be nil depending on the configured backend
         job.provider_job_id = qu_job.id unless qu_job.nil?
         qu_job
@@ -32,7 +32,7 @@ module ActiveJob
 
       class JobWrapper < Qu::Job #:nodoc:
         def initialize(job_data)
-          @job_data  = job_data
+          @job_data = job_data
         end
 
         def perform

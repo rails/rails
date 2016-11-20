@@ -3,7 +3,7 @@ class JobsManager
   attr :adapter_name
 
   def self.current_manager
-    @@managers[ENV['AJ_ADAPTER']] ||= new(ENV['AJ_ADAPTER'])
+    @@managers[ENV["AJ_ADAPTER"]] ||= new(ENV["AJ_ADAPTER"])
   end
 
   def initialize(adapter_name)

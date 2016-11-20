@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 module RenderHtml
   class MinimalController < ActionController::Metal
@@ -88,7 +88,7 @@ module RenderHtml
 
     test "rendering text from an action with default options renders the text with the layout" do
       with_routing do |set|
-        set.draw { ActiveSupport::Deprecation.silence { get ':controller', action: 'index' } }
+        set.draw { ActiveSupport::Deprecation.silence { get ":controller", action: "index" } }
 
         get "/render_html/simple"
         assert_body "hello david"
@@ -98,7 +98,7 @@ module RenderHtml
 
     test "rendering text from an action with default options renders the text without the layout" do
       with_routing do |set|
-        set.draw { ActiveSupport::Deprecation.silence { get ':controller', action: 'index' } }
+        set.draw { ActiveSupport::Deprecation.silence { get ":controller", action: "index" } }
 
         get "/render_html/with_layout"
 

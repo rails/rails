@@ -4,7 +4,6 @@ require "rack/test"
 
 module RailtiesTest
   class EngineTest < ActiveSupport::TestCase
-
     include ActiveSupport::Testing::Isolation
     include Rack::Test::Methods
 
@@ -99,7 +98,7 @@ module RailtiesTest
 
         assert_no_match(/2_create_users/, output.join("\n"))
 
-        bukkits_migration_order = output.index(output.detect{|o| /NOTE: Migration 3_create_sessions.rb from bukkits has been skipped/ =~ o })
+        bukkits_migration_order = output.index(output.detect { |o| /NOTE: Migration 3_create_sessions.rb from bukkits has been skipped/ =~ o })
         assert_not_nil bukkits_migration_order, "Expected migration to be skipped"
 
         migrations_count = Dir["#{app_path}/db/migrate/*.rb"].length
@@ -109,7 +108,7 @@ module RailtiesTest
       end
     end
 
-    test 'respects the order of railties when installing migrations' do
+    test "respects the order of railties when installing migrations" do
       @blog = engine "blog" do |plugin|
         plugin.write "lib/blog.rb", <<-RUBY
           module Blog
@@ -134,7 +133,7 @@ module RailtiesTest
       boot_rails
 
       Dir.chdir(app_path) do
-        output  = `bundle exec rake railties:install:migrations`.split("\n")
+        output = `bundle exec rake railties:install:migrations`.split("\n")
 
         assert_match(/Copied migration \d+_create_users.bukkits.rb from bukkits/, output.first)
         assert_match(/Copied migration \d+_create_blogs.blog_engine.rb from blog_engine/, output.last)
@@ -170,7 +169,7 @@ module RailtiesTest
       boot_rails
 
       Dir.chdir(app_path) do
-        output  = `bundle exec rake railties:install:migrations`.split("\n")
+        output = `bundle exec rake railties:install:migrations`.split("\n")
 
         assert_match(/Copied migration \d+_create_users.core_engine.rb from core_engine/, output.first)
         assert_match(/Copied migration \d+_create_keys.api_engine.rb from api_engine/, output.last)
@@ -210,11 +209,11 @@ module RailtiesTest
 
     test "no rake task without migrations" do
       boot_rails
-      require 'rake'
-      require 'rdoc/task'
-      require 'rake/testtask'
+      require "rake"
+      require "rdoc/task"
+      require "rake/testtask"
       Rails.application.load_tasks
-      assert !Rake::Task.task_defined?('bukkits:install:migrations')
+      assert !Rake::Task.task_defined?("bukkits:install:migrations")
     end
 
     test "puts its lib directory on load path" do
@@ -328,7 +327,7 @@ module RailtiesTest
       controller "foo", <<-RUBY
         class FooController < ActionController::Base
           def index
-            render :text => "foo"
+            render plain: "foo"
           end
         end
       RUBY
@@ -342,7 +341,7 @@ module RailtiesTest
       @plugin.write "app/controllers/bar_controller.rb", <<-RUBY
         class BarController < ActionController::Base
           def index
-            render :text => "bar"
+            render plain: "bar"
           end
         end
       RUBY
@@ -356,11 +355,11 @@ module RailtiesTest
 
       boot_rails
 
-      get '/foo'
-      assert_equal 'foo', last_response.body
+      get "/foo"
+      assert_equal "foo", last_response.body
 
-      get '/bar'
-      assert_equal 'bar', last_response.body
+      get "/bar"
+      assert_equal "bar", last_response.body
     end
 
     test "rake tasks lib tasks are loaded" do
@@ -372,9 +371,9 @@ module RailtiesTest
       RUBY
 
       boot_rails
-      require 'rake'
-      require 'rdoc/task'
-      require 'rake/testtask'
+      require "rake"
+      require "rdoc/task"
+      require "rake/testtask"
       Rails.application.load_tasks
       Rake::Task[:foo].invoke
       assert $executed
@@ -385,18 +384,18 @@ module RailtiesTest
         config.i18n.load_path << "#{app_path}/app/locales/en.yml"
       RUBY
 
-      app_file 'app/locales/en.yml', <<-YAML
+      app_file "app/locales/en.yml", <<-YAML
 en:
   bar: "1"
 YAML
 
-      app_file 'config/locales/en.yml', <<-YAML
+      app_file "config/locales/en.yml", <<-YAML
 en:
   foo: "2"
   bar: "2"
 YAML
 
-      @plugin.write 'config/locales/en.yml', <<-YAML
+      @plugin.write "config/locales/en.yml", <<-YAML
 en:
   foo: "3"
 YAML
@@ -437,7 +436,7 @@ YAML
       @plugin.write "app/controllers/admin/foo/bar_controller.rb", <<-RUBY
         class Admin::Foo::BarController < ApplicationController
           def index
-            render text: "Rendered from namespace"
+            render plain: "Rendered from namespace"
           end
         end
       RUBY
@@ -537,7 +536,7 @@ YAML
       controller "foo", <<-RUBY
         class FooController < ActionController::Base
           def index
-            render text: params[:username]
+            render plain: params[:username]
           end
         end
       RUBY
@@ -628,11 +627,11 @@ YAML
 
       env = Rack::MockRequest.env_for("/")
       Bukkits::Engine.call(env)
-      assert_equal Bukkits::Engine.routes, env['action_dispatch.routes']
+      assert_equal Bukkits::Engine.routes, env["action_dispatch.routes"]
 
       env = Rack::MockRequest.env_for("/")
       Rails.application.call(env)
-      assert_equal Rails.application.routes, env['action_dispatch.routes']
+      assert_equal Rails.application.routes, env["action_dispatch.routes"]
     end
 
     test "isolated engine should include only its own routes and helpers" do
@@ -701,7 +700,7 @@ YAML
           end
 
           def show
-            render text: foo_path
+            render plain: foo_path
           end
 
           def from_app
@@ -713,7 +712,7 @@ YAML
           end
 
           def polymorphic_path_without_namespace
-            render text: polymorphic_path(Post.new)
+            render plain: polymorphic_path(Post.new)
           end
         end
       RUBY
@@ -836,7 +835,7 @@ YAML
       @plugin.write "app/controllers/bukkits/awesome/foo_controller.rb", <<-RUBY
         class Bukkits::Awesome::FooController < ActionController::Base
           def index
-            render :text => "ok"
+            render plain: "ok"
           end
         end
       RUBY
@@ -1019,7 +1018,7 @@ YAML
 
       # check expanding paths
       engine_dir = @plugin.path.chomp("/").split("/").last
-      engine_path = File.join(@plugin.path, '..', engine_dir)
+      engine_path = File.join(@plugin.path, "..", engine_dir)
       assert_equal Bukkits::Engine.instance, Rails::Engine.find(engine_path)
     end
 
@@ -1221,12 +1220,11 @@ YAML
                 fullpath: \#{request.fullpath}
                 path: \#{request.path}
               TEXT
-              render text: text
+              render plain: text
             end
           end
         end
       RUBY
-
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
@@ -1259,7 +1257,7 @@ YAML
       app_file "app/controllers/bar_controller.rb", <<-RUBY
         class BarController < ApplicationController
           def index
-            render text: bukkits.bukkit_path
+            render plain: bukkits.bukkit_path
           end
         end
       RUBY
@@ -1277,22 +1275,21 @@ YAML
         end
       RUBY
 
-
       @plugin.write "app/controllers/bukkits/bukkit_controller.rb", <<-RUBY
         class Bukkits::BukkitController < ActionController::Base
           def index
-            render text: main_app.bar_path
+            render plain: main_app.bar_path
           end
         end
       RUBY
 
       boot_rails
 
-      get("/bukkits/bukkit", {}, {'SCRIPT_NAME' => '/foo'})
-      assert_equal '/foo/bar', last_response.body
+      get("/bukkits/bukkit", {}, "SCRIPT_NAME" => "/foo")
+      assert_equal "/foo/bar", last_response.body
 
-      get("/bar", {}, {'SCRIPT_NAME' => '/foo'})
-      assert_equal '/foo/bukkits/bukkit', last_response.body
+      get("/bar", {}, "SCRIPT_NAME" => "/foo")
+      assert_equal "/foo/bukkits/bukkit", last_response.body
     end
 
     test "paths are properly generated when application is mounted at sub-path and relative_url_root is set" do
@@ -1309,7 +1306,7 @@ YAML
       app_file "app/controllers/bar_controller.rb", <<-RUBY
         class BarController < ApplicationController
           def index
-            render text: bukkits.bukkit_path
+            render plain: bukkits.bukkit_path
           end
         end
       RUBY
@@ -1330,18 +1327,18 @@ YAML
       @plugin.write "app/controllers/bukkits/bukkit_controller.rb", <<-RUBY
         class Bukkits::BukkitController < ActionController::Base
           def index
-            render text: main_app.bar_path
+            render plain: main_app.bar_path
           end
         end
       RUBY
 
       boot_rails
 
-      get("/bukkits/bukkit", {}, {'SCRIPT_NAME' => '/foo'})
-      assert_equal '/foo/bar', last_response.body
+      get("/bukkits/bukkit", {}, "SCRIPT_NAME" => "/foo")
+      assert_equal "/foo/bar", last_response.body
 
-      get("/bar", {}, {'SCRIPT_NAME' => '/foo'})
-      assert_equal '/foo/bukkits/bukkit', last_response.body
+      get("/bar", {}, "SCRIPT_NAME" => "/foo")
+      assert_equal "/foo/bukkits/bukkit", last_response.body
     end
 
   private

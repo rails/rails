@@ -1,4 +1,4 @@
-require 'active_support/descendants_tracker'
+require "active_support/descendants_tracker"
 
 module ActionMailer
   module Previews #:nodoc:
@@ -34,7 +34,8 @@ module ActionMailer
       # Either a class or a string can be passed in as the Interceptor. If a
       # string is passed in it will be <tt>constantize</tt>d.
       def register_preview_interceptor(interceptor)
-        preview_interceptor = case interceptor
+        preview_interceptor = \
+          case interceptor
           when String, Symbol
             interceptor.to_s.camelize.constantize
           else
@@ -80,23 +81,23 @@ module ActionMailer
 
       # Returns true if the preview exists.
       def exists?(preview)
-        all.any?{ |p| p.preview_name == preview }
+        all.any? { |p| p.preview_name == preview }
       end
 
       # Find a mailer preview by its underscored class name.
       def find(preview)
-        all.find{ |p| p.preview_name == preview }
+        all.find { |p| p.preview_name == preview }
       end
 
       # Returns the underscored name of the mailer preview without the suffix.
       def preview_name
-        name.sub(/Preview$/, '').underscore
+        name.sub(/Preview$/, "").underscore
       end
 
       protected
         def load_previews #:nodoc:
           if preview_path
-            Dir["#{preview_path}/**/*_preview.rb"].each{ |file| require_dependency file }
+            Dir["#{preview_path}/**/*_preview.rb"].each { |file| require_dependency file }
           end
         end
 

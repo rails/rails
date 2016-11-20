@@ -1,4 +1,4 @@
-require 'action_dispatch/testing/request_encoder'
+require "action_dispatch/testing/request_encoder"
 
 module ActionDispatch
   # Integration test methods such as ActionDispatch::Integration::Session#get

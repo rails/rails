@@ -1,4 +1,4 @@
-require 'test_helper'
+require "test_helper"
 
 class WorkerTest < ActiveSupport::TestCase
   class Receiver
@@ -9,7 +9,7 @@ class WorkerTest < ActiveSupport::TestCase
     end
 
     def process(message)
-      @last_action =  [ :process, message ]
+      @last_action = [ :process, message ]
     end
 
     def connection

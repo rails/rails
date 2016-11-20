@@ -229,7 +229,7 @@ As always, what has been generated for you is just a starting point. You can add
 or remove from it as you see fit by editing the
 `db/migrate/YYYYMMDDHHMMSS_add_details_to_products.rb` file.
 
-Also, the generator accepts column type as `references`(also available as
+Also, the generator accepts column type as `references` (also available as
 `belongs_to`). For instance:
 
 ```bash
@@ -466,6 +466,8 @@ the first time (i.e. on the date the migration is applied).
 
 Some adapters may support additional options; see the adapter specific API docs
 for further information.
+
+NOTE: `null` and `default` cannot be specified via command line.
 
 ### Foreign Keys
 
@@ -956,10 +958,10 @@ ActiveRecord::Schema.define(version: 20080906171750) do
 
   create_table "products", force: true do |t|
     t.string   "name"
-    t.text "description"
+    t.text     "description"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.string "part_number"
+    t.string   "part_number"
   end
 end
 ```
@@ -1018,10 +1020,10 @@ such features, the `execute` method can be used to execute arbitrary SQL.
 Migrations and Seed Data
 ------------------------
 
-The main purpose of Rails' migration feature is to issue commands that modify the 
-schema using a consistent process. Migrations can also be used 
-to add or modify data. This is useful in an existing database that can't be destroyed 
-and recreated, such as a production database. 
+The main purpose of Rails' migration feature is to issue commands that modify the
+schema using a consistent process. Migrations can also be used
+to add or modify data. This is useful in an existing database that can't be destroyed
+and recreated, such as a production database.
 
 ```ruby
 class AddInitialProducts < ActiveRecord::Migration[5.0]
@@ -1037,10 +1039,10 @@ class AddInitialProducts < ActiveRecord::Migration[5.0]
 end
 ```
 
-To add initial data after a database is created, Rails has a built-in 
-'seeds' feature that makes the process quick and easy. This is especially 
-useful when reloading the database frequently in development and test environments. 
-It's easy to get started with this feature: just fill up `db/seeds.rb` with some 
+To add initial data after a database is created, Rails has a built-in
+'seeds' feature that makes the process quick and easy. This is especially
+useful when reloading the database frequently in development and test environments.
+It's easy to get started with this feature: just fill up `db/seeds.rb` with some
 Ruby code, and run `rails db:seed`:
 
 ```ruby

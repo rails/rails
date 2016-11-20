@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class ForceSSLApiController < ActionController::API
   force_ssl

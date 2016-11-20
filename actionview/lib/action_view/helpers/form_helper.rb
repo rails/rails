@@ -1,14 +1,14 @@
-require 'cgi'
-require 'action_view/helpers/date_helper'
-require 'action_view/helpers/tag_helper'
-require 'action_view/helpers/form_tag_helper'
-require 'action_view/helpers/active_model_helper'
-require 'action_view/model_naming'
-require 'action_view/record_identifier'
-require 'active_support/core_ext/module/attribute_accessors'
-require 'active_support/core_ext/hash/slice'
-require 'active_support/core_ext/string/output_safety'
-require 'active_support/core_ext/string/inflections'
+require "cgi"
+require "action_view/helpers/date_helper"
+require "action_view/helpers/tag_helper"
+require "action_view/helpers/form_tag_helper"
+require "action_view/helpers/active_model_helper"
+require "action_view/model_naming"
+require "action_view/record_identifier"
+require "active_support/core_ext/module/attribute_accessors"
+require "active_support/core_ext/hash/slice"
+require "active_support/core_ext/string/output_safety"
+require "active_support/core_ext/string/inflections"
 
 module ActionView
   # = Action View Form Helpers
@@ -467,10 +467,10 @@ module ActionView
         )
 
         options[:url] ||= if options.key?(:format)
-                            polymorphic_path(record, format: options.delete(:format))
-                          else
-                            polymorphic_path(record, {})
-                          end
+          polymorphic_path(record, format: options.delete(:format))
+        else
+          polymorphic_path(record, {})
+        end
       end
       private :apply_form_for_options!
 
@@ -965,6 +965,7 @@ module ActionView
       #   # => <input type="radio" id="post_category_rails" name="post[category]" value="rails" checked="checked" />
       #   #    <input type="radio" id="post_category_java" name="post[category]" value="java" />
       #
+      #   # Let's say that @user.receive_newsletter returns "no":
       #   radio_button("user", "receive_newsletter", "yes")
       #   radio_button("user", "receive_newsletter", "no")
       #   # => <input type="radio" id="user_receive_newsletter_yes" name="user[receive_newsletter]" value="yes" />
@@ -1270,7 +1271,7 @@ module ActionView
       end
 
       def self._to_partial_path
-        @_to_partial_path ||= name.demodulize.underscore.sub!(/_builder$/, '')
+        @_to_partial_path ||= name.demodulize.underscore.sub!(/_builder$/, "")
       end
 
       def to_partial_path
@@ -1286,7 +1287,7 @@ module ActionView
         @object_name, @object, @template, @options = object_name, object, template, options
         @default_options = @options ? @options.slice(:index, :namespace) : {}
         if @object_name.to_s.match(/\[\]$/)
-          if object ||= @template.instance_variable_get("@#{Regexp.last_match.pre_match}") and object.respond_to?(:to_param)
+          if (object ||= @template.instance_variable_get("@#{Regexp.last_match.pre_match}")) && object.respond_to?(:to_param)
             @auto_index = object.to_param
           else
             raise ArgumentError, "object[] naming but object param and @object var don't exist or don't respond to to_param: #{object.inspect}"
@@ -1568,18 +1569,18 @@ module ActionView
         index = if options.has_key?(:index)
           options[:index]
         elsif defined?(@auto_index)
-          self.object_name = @object_name.to_s.sub(/\[\]$/,"")
+          self.object_name = @object_name.to_s.sub(/\[\]$/, "")
           @auto_index
         end
 
         record_name = if index
-                        "#{object_name}[#{index}][#{record_name}]"
-                      elsif record_name.to_s.end_with?('[]')
-                        record_name = record_name.to_s.sub(/(.*)\[\]$/, "[\\1][#{record_object.id}]")
-                        "#{object_name}#{record_name}"
-                      else
-                        "#{object_name}[#{record_name}]"
-                      end
+          "#{object_name}[#{index}][#{record_name}]"
+        elsif record_name.to_s.end_with?("[]")
+          record_name = record_name.to_s.sub(/(.*)\[\]$/, "[\\1][#{record_object.id}]")
+          "#{object_name}#{record_name}"
+        else
+          "#{object_name}[#{record_name}]"
+        end
         fields_options[:child_index] = index
 
         @template.fields_for(record_name, record_object, fields_options, &block)
@@ -1711,7 +1712,7 @@ module ActionView
       #   # => <input type="radio" id="post_category_rails" name="post[category]" value="rails" checked="checked" />
       #   #    <input type="radio" id="post_category_java" name="post[category]" value="java" />
       #
-      #   # Let's say that @user.category returns "no":
+      #   # Let's say that @user.receive_newsletter returns "no":
       #   radio_button("receive_newsletter", "yes")
       #   radio_button("receive_newsletter", "no")
       #   # => <input type="radio" id="user_receive_newsletter_yes" name="user[receive_newsletter]" value="yes" />
@@ -1808,7 +1809,7 @@ module ActionView
       #         post:
       #           create: "Add %{model}"
       #
-      def submit(value=nil, options={})
+      def submit(value = nil, options = {})
         value, options = nil, value if value.is_a?(Hash)
         value ||= submit_default_value
         @template.submit_tag(value, options)

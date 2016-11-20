@@ -1,5 +1,5 @@
-require 'active_support/core_ext/string/strip' # for strip_heredoc
-require 'concurrent/map'
+require "active_support/core_ext/string/strip" # for strip_heredoc
+require "concurrent/map"
 
 module ActiveSupport
   module Testing

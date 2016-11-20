@@ -1,4 +1,4 @@
-require 'ipaddr'
+require "ipaddr"
 
 module ActiveRecord
   module ConnectionAdapters

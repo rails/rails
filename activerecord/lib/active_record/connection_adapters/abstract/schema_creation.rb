@@ -1,4 +1,4 @@
-require 'active_support/core_ext/string/strip'
+require "active_support/core_ext/string/strip"
 
 module ActiveRecord
   module ConnectionAdapters
@@ -23,9 +23,9 @@ module ActiveRecord
 
           def visit_AlterTable(o)
             sql = "ALTER TABLE #{quote_table_name(o.name)} "
-            sql << o.adds.map { |col| accept col }.join(' ')
-            sql << o.foreign_key_adds.map { |fk| visit_AddForeignKey fk }.join(' ')
-            sql << o.foreign_key_drops.map { |fk| visit_DropForeignKey fk }.join(' ')
+            sql << o.adds.map { |col| accept col }.join(" ")
+            sql << o.foreign_key_adds.map { |fk| visit_AddForeignKey fk }.join(" ")
+            sql << o.foreign_key_drops.map { |fk| visit_DropForeignKey fk }.join(" ")
           end
 
           def visit_ColumnDefinition(o)

@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class MiddlewareStackTest < ActiveSupport::TestCase
   class FooMiddleware; end
@@ -18,14 +18,6 @@ class MiddlewareStackTest < ActiveSupport::TestCase
     @stack.use BarMiddleware
   end
 
-  def test_delete_with_string_is_deprecated
-    assert_deprecated do
-      assert_difference "@stack.size", -1 do
-        @stack.delete FooMiddleware.name
-      end
-    end
-  end
-
   def test_delete_works
     assert_difference "@stack.size", -1 do
       @stack.delete FooMiddleware
@@ -39,30 +31,12 @@ class MiddlewareStackTest < ActiveSupport::TestCase
     assert_equal BazMiddleware, @stack.last.klass
   end
 
-  test "use should push middleware as a string onto the stack" do
-    assert_deprecated do
-      assert_difference "@stack.size" do
-        @stack.use "MiddlewareStackTest::BazMiddleware"
-      end
-      assert_equal BazMiddleware, @stack.last.klass
-    end
-  end
-
-  test "use should push middleware as a symbol onto the stack" do
-    assert_deprecated do
-      assert_difference "@stack.size" do
-        @stack.use :"MiddlewareStackTest::BazMiddleware"
-      end
-      assert_equal BazMiddleware, @stack.last.klass
-    end
-  end
-
   test "use should push middleware class with arguments onto the stack" do
     assert_difference "@stack.size" do
-      @stack.use BazMiddleware, true, :foo => "bar"
+      @stack.use BazMiddleware, true, foo: "bar"
     end
     assert_equal BazMiddleware, @stack.last.klass
-    assert_equal([true, {:foo => "bar"}], @stack.last.args)
+    assert_equal([true, { foo: "bar" }], @stack.last.args)
   end
 
   test "use should push middleware class with block arguments onto the stack" do
@@ -102,15 +76,13 @@ class MiddlewareStackTest < ActiveSupport::TestCase
 
   test "swaps one middleware out for same middleware class" do
     assert_equal FooMiddleware, @stack[0].klass
-    @stack.swap(FooMiddleware, FooMiddleware, Proc.new { |env| [500, {}, ['error!']] })
+    @stack.swap(FooMiddleware, FooMiddleware, Proc.new { |env| [500, {}, ["error!"]] })
     assert_equal FooMiddleware, @stack[0].klass
   end
 
   test "unshift adds a new middleware at the beginning of the stack" do
-    assert_deprecated do
-      @stack.unshift :"MiddlewareStackTest::BazMiddleware"
-      assert_equal BazMiddleware, @stack.first.klass
-    end
+    @stack.unshift MiddlewareStackTest::BazMiddleware
+    assert_equal BazMiddleware, @stack.first.klass
   end
 
   test "raise an error on invalid index" do
@@ -120,15 +92,6 @@ class MiddlewareStackTest < ActiveSupport::TestCase
 
     assert_raise RuntimeError do
       @stack.insert_after(HiyaMiddleware, BazMiddleware)
-    end
-  end
-
-  test "lazy evaluates middleware class" do
-    assert_deprecated do
-      assert_difference "@stack.size" do
-        @stack.use "MiddlewareStackTest::BazMiddleware"
-      end
-      assert_equal BazMiddleware, @stack.last.klass
     end
   end
 

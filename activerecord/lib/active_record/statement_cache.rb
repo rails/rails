@@ -1,5 +1,4 @@
 module ActiveRecord
-
   # Statement cache is used to cache a single statement in order to avoid creating the AST again.
   # Initializing the cache is done by passing the statement in the create block:
   #
@@ -8,12 +7,12 @@ module ActiveRecord
   #   end
   #
   # The cached statement is executed by using the
-  # [connection.execute]{rdoc-ref:ConnectionAdapters::DatabaseStatements#execute} method:
+  # {connection.execute}[rdoc-ref:ConnectionAdapters::DatabaseStatements#execute] method:
   #
   #   cache.execute([], Book, Book.connection)
   #
   # The relation returned by the block is cached, and for each
-  # [execute]{rdoc-ref:ConnectionAdapters::DatabaseStatements#execute}
+  # {execute}[rdoc-ref:ConnectionAdapters::DatabaseStatements#execute]
   # call the cached relation gets duped. Database is queried when +to_a+ is called on the relation.
   #
   # If you want to cache the statement without the values you can use the +bind+ method of the
@@ -42,7 +41,7 @@ module ActiveRecord
     class PartialQuery < Query # :nodoc:
       def initialize(values)
         @values = values
-        @indexes = values.each_with_index.find_all { |thing,i|
+        @indexes = values.each_with_index.find_all { |thing, i|
           Arel::Nodes::BindParam === thing
         }.map(&:last)
       end
@@ -69,7 +68,7 @@ module ActiveRecord
 
     class BindMap # :nodoc:
       def initialize(bound_attributes)
-        @indexes   = []
+        @indexes = []
         @bound_attributes = bound_attributes
 
         bound_attributes.each_with_index do |attr, i|
@@ -81,7 +80,7 @@ module ActiveRecord
 
       def bind(values)
         bas = @bound_attributes.dup
-        @indexes.each_with_index { |offset,i| bas[offset] = bas[offset].with_cast_value(values[i]) }
+        @indexes.each_with_index { |offset, i| bas[offset] = bas[offset].with_cast_value(values[i]) }
         bas
       end
     end
@@ -100,12 +99,12 @@ module ActiveRecord
       @bind_map      = bind_map
     end
 
-    def execute(params, klass, connection)
+    def execute(params, klass, connection, &block)
       bind_values = bind_map.bind params
 
       sql = query_builder.sql_for bind_values, connection
 
-      klass.find_by_sql(sql, bind_values, preparable: true)
+      klass.find_by_sql(sql, bind_values, preparable: true, &block)
     end
     alias :call :execute
   end

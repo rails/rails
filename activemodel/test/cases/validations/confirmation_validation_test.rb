@@ -1,10 +1,9 @@
-require 'cases/helper'
+require "cases/helper"
 
-require 'models/topic'
-require 'models/person'
+require "models/topic"
+require "models/person"
 
 class ConfirmationValidationTest < ActiveModel::TestCase
-
   def teardown
     Topic.clear_validators!
   end
@@ -29,7 +28,7 @@ class ConfirmationValidationTest < ActiveModel::TestCase
   def test_title_confirmation
     Topic.validates_confirmation_of(:title)
 
-    t = Topic.new("title" => "We should be confirmed","title_confirmation" => "")
+    t = Topic.new("title" => "We should be confirmed", "title_confirmation" => "")
     assert t.invalid?
 
     t.title_confirmation = "We should be confirmed"
@@ -56,14 +55,13 @@ class ConfirmationValidationTest < ActiveModel::TestCase
       @old_load_path, @old_backend = I18n.load_path.dup, I18n.backend
       I18n.load_path.clear
       I18n.backend = I18n::Backend::Simple.new
-      I18n.backend.store_translations('en', {
+      I18n.backend.store_translations("en",
         errors: { messages: { confirmation: "doesn't match %{attribute}" } },
-        activemodel: { attributes: { topic: { title: 'Test Title'} } }
-      })
+        activemodel: { attributes: { topic: { title: "Test Title" } } })
 
       Topic.validates_confirmation_of(:title)
 
-      t = Topic.new("title" => "We should be confirmed","title_confirmation" => "")
+      t = Topic.new("title" => "We should be confirmed", "title_confirmation" => "")
       assert t.invalid?
       assert_equal ["doesn't match Test Title"], t.errors[:title_confirmation]
     ensure

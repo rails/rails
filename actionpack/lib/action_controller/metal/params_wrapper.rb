@@ -1,7 +1,7 @@
-require 'active_support/core_ext/hash/slice'
-require 'active_support/core_ext/hash/except'
-require 'active_support/core_ext/module/anonymous'
-require 'action_dispatch/http/mime_type'
+require "active_support/core_ext/hash/slice"
+require "active_support/core_ext/hash/except"
+require "active_support/core_ext/module/anonymous"
+require "action_dispatch/http/mime_type"
 
 module ActionController
   # Wraps the parameters hash into a nested hash. This will allow clients to
@@ -71,7 +71,7 @@ module ActionController
 
     EXCLUDE_PARAMETERS = %w(authenticity_token _method utf8)
 
-    require 'mutex_m'
+    require "mutex_m"
 
     class Options < Struct.new(:name, :format, :include, :exclude, :klass, :model) # :nodoc:
       include Mutex_m
@@ -128,30 +128,30 @@ module ActionController
       end
 
       private
-      # Determine the wrapper model from the controller's name. By convention,
-      # this could be done by trying to find the defined model that has the
-      # same singular name as the controller. For example, +UsersController+
-      # will try to find if the +User+ model exists.
-      #
-      # This method also does namespace lookup. Foo::Bar::UsersController will
-      # try to find Foo::Bar::User, Foo::User and finally User.
-      def _default_wrap_model #:nodoc:
-        return nil if klass.anonymous?
-        model_name = klass.name.sub(/Controller$/, '').classify
+        # Determine the wrapper model from the controller's name. By convention,
+        # this could be done by trying to find the defined model that has the
+        # same singular name as the controller. For example, +UsersController+
+        # will try to find if the +User+ model exists.
+        #
+        # This method also does namespace lookup. Foo::Bar::UsersController will
+        # try to find Foo::Bar::User, Foo::User and finally User.
+        def _default_wrap_model #:nodoc:
+          return nil if klass.anonymous?
+          model_name = klass.name.sub(/Controller$/, "").classify
 
-        begin
-          if model_klass = model_name.safe_constantize
-            model_klass
-          else
-            namespaces = model_name.split("::")
-            namespaces.delete_at(-2)
-            break if namespaces.last == model_name
-            model_name = namespaces.join("::")
-          end
-        end until model_klass
+          begin
+            if model_klass = model_name.safe_constantize
+              model_klass
+            else
+              namespaces = model_name.split("::")
+              namespaces.delete_at(-2)
+              break if namespaces.last == model_name
+              model_name = namespaces.join("::")
+            end
+          end until model_klass
 
-        model_klass
-      end
+          model_klass
+        end
     end
 
     included do
@@ -198,14 +198,14 @@ module ActionController
         when Hash
           options = name_or_model_or_options
         when false
-          options = options.merge(:format => [])
+          options = options.merge(format: [])
         when Symbol, String
-          options = options.merge(:name => name_or_model_or_options)
+          options = options.merge(name: name_or_model_or_options)
         else
           model = name_or_model_or_options
         end
 
-        opts   = Options.from_hash _wrapper_options.to_h.slice(:format).merge(options)
+        opts = Options.from_hash _wrapper_options.to_h.slice(:format).merge(options)
         opts.model = model
         opts.klass = self
 

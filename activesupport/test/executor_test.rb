@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class ExecutorTest < ActiveSupport::TestCase
   class DummyError < RuntimeError
@@ -21,7 +21,7 @@ class ExecutorTest < ActiveSupport::TestCase
     executor.to_run { @foo = true }
     executor.to_complete { result = @foo }
 
-    executor.wrap { }
+    executor.wrap {}
 
     assert result
   end
@@ -83,7 +83,7 @@ class ExecutorTest < ActiveSupport::TestCase
 
     executor.register_hook(hook)
 
-    executor.wrap { }
+    executor.wrap {}
 
     assert_equal :some_state, supplied_state
   end
@@ -103,7 +103,7 @@ class ExecutorTest < ActiveSupport::TestCase
 
     executor.register_hook(hook)
 
-    executor.wrap { }
+    executor.wrap {}
 
     assert_equal nil, supplied_state
   end
@@ -127,7 +127,7 @@ class ExecutorTest < ActiveSupport::TestCase
     executor.register_hook(hook)
 
     assert_raises(DummyError) do
-      executor.wrap { }
+      executor.wrap {}
     end
 
     assert_equal :none, supplied_state
@@ -152,10 +152,67 @@ class ExecutorTest < ActiveSupport::TestCase
     end
 
     assert_raises(DummyError) do
-      executor.wrap { }
+      executor.wrap {}
     end
 
     assert_equal :some_state, supplied_state
+  end
+
+  def test_hook_insertion_order
+    invoked = []
+    supplied_state = []
+
+    hook_class = Class.new do
+      attr_accessor :letter
+
+      define_method(:initialize) do |letter|
+        self.letter = letter
+      end
+
+      define_method(:run) do
+        invoked << :"run_#{letter}"
+        :"state_#{letter}"
+      end
+
+      define_method(:complete) do |state|
+        invoked << :"complete_#{letter}"
+        supplied_state << state
+      end
+    end
+
+    executor.register_hook(hook_class.new(:a))
+    executor.register_hook(hook_class.new(:b))
+    executor.register_hook(hook_class.new(:c), outer: true)
+    executor.register_hook(hook_class.new(:d))
+
+    executor.wrap {}
+
+    assert_equal [:run_c, :run_a, :run_b, :run_d, :complete_a, :complete_b, :complete_d, :complete_c], invoked
+    assert_equal [:state_a, :state_b, :state_d, :state_c], supplied_state
+  end
+
+  def test_class_serial_is_unaffected
+    skip if !defined?(RubyVM)
+
+    hook = Class.new do
+      define_method(:run) do
+        nil
+      end
+
+      define_method(:complete) do |state|
+        nil
+      end
+    end.new
+
+    executor.register_hook(hook)
+
+    before = RubyVM.stat(:class_serial)
+    executor.wrap {}
+    executor.wrap {}
+    executor.wrap {}
+    after = RubyVM.stat(:class_serial)
+
+    assert_equal before, after
   end
 
   def test_separate_classes_can_wrap

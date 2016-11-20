@@ -1,7 +1,7 @@
-require 'securerandom'
-require 'concurrent/scheduled_task'
-require 'concurrent/executor/thread_pool_executor'
-require 'concurrent/utility/processor_counter'
+require "securerandom"
+require "concurrent/scheduled_task"
+require "concurrent/executor/thread_pool_executor"
+require "concurrent/utility/processor_counter"
 
 module ActiveJob
   module QueueAdapters

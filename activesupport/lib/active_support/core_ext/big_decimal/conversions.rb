@@ -1,9 +1,9 @@
-require 'bigdecimal'
-require 'bigdecimal/util'
+require "bigdecimal"
+require "bigdecimal/util"
 
 module ActiveSupport
   module BigDecimalWithDefaultFormat #:nodoc:
-    def to_s(format = 'F')
+    def to_s(format = "F")
       super(format)
     end
   end

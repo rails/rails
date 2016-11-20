@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 # The exhaustive tests are in test/controller/html/sanitizer_test.rb.
 # This tests that the helpers hook up correctly to the sanitizer classes.
@@ -13,7 +13,7 @@ class SanitizeHelperTest < ActionView::TestCase
   end
 
   def test_sanitize_form
-    assert_equal '', sanitize("<form action=\"/foo/bar\" method=\"post\"><input></form>")
+    assert_equal "", sanitize("<form action=\"/foo/bar\" method=\"post\"><input></form>")
   end
 
   def test_should_sanitize_illegal_style_properties

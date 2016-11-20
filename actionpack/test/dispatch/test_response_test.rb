@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class TestResponseTest < ActiveSupport::TestCase
   def assert_response_code_range(range, predicate)
@@ -19,10 +19,10 @@ class TestResponseTest < ActiveSupport::TestCase
   end
 
   test "response parsing" do
-    response = ActionDispatch::TestResponse.create(200, {}, '')
+    response = ActionDispatch::TestResponse.create(200, {}, "")
     assert_equal response.body, response.parsed_body
 
-    response = ActionDispatch::TestResponse.create(200, { 'Content-Type' => 'application/json' }, '{ "foo": "fighters" }')
-    assert_equal({ 'foo' => 'fighters' }, response.parsed_body)
+    response = ActionDispatch::TestResponse.create(200, { "Content-Type" => "application/json" }, '{ "foo": "fighters" }')
+    assert_equal({ "foo" => "fighters" }, response.parsed_body)
   end
 end

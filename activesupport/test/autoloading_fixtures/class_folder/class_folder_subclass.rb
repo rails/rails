@@ -1,3 +1,3 @@
 class ClassFolder::ClassFolderSubclass < ClassFolder
-  ConstantInClassFolder = 'indeed'
+  ConstantInClassFolder = "indeed"
 end
