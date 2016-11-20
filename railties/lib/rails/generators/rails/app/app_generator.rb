@@ -53,6 +53,10 @@ module Rails
       template "gitignore", ".gitignore"
     end
 
+    def packagejson
+      template "package.json"
+    end
+
     def app
       directory "app"
 
@@ -205,6 +209,7 @@ module Rails
         build(:readme)
         build(:rakefile)
         build(:configru)
+        build(:packagejson) if options[:yarn]
         build(:gitignore) unless options[:skip_git]
         build(:gemfile)   unless options[:skip_gemfile]
       end
@@ -355,7 +360,7 @@ module Rails
       end
 
       public_task :apply_rails_template, :run_bundle
-      public_task :generate_spring_binstubs
+      public_task :run_yarn, :generate_spring_binstubs
 
       def run_after_bundle_callbacks
         @after_bundle_callbacks.each(&:call)
