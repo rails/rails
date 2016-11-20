@@ -40,7 +40,7 @@ module ActiveRecord
       ""
     end
 
-    def calculate(operation, _column_name)
+    def calculate(operation, *_column_names)
       case operation
       when :count, :sum
         group_values.any? ? Hash.new : 0

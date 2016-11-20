@@ -750,8 +750,8 @@ module ActiveRecord
         load_target.uniq
       end
 
-      def calculate(operation, column_name)
-        null_scope? ? scope.calculate(operation, column_name) : super
+      def calculate(operation, *column_name)
+        null_scope? ? scope.calculate(operation, *column_name) : super
       end
 
       def pluck(*column_names)

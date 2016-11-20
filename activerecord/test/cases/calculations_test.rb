@@ -32,8 +32,20 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 318, Account.sum(:credit_limit)
   end
 
+  def test_should_sum_multiple_field
+    results = Account.sum(:credit_limit, :firm_id)
+    assert_equal 318, results[:credit_limit]
+    assert_equal 24, results[:firm_id]
+  end
+
   def test_should_sum_arel_attribute
     assert_equal 318, Account.sum(Account.arel_table[:credit_limit])
+  end
+
+  def test_should_sum_multiple_arel_attributes
+    results = Account.sum(Account.arel_table[:credit_limit], Account.arel_table[:firm_id])
+    assert_equal 318, results[Account.arel_table[:credit_limit]]
+    assert_equal 24, results[Account.arel_table[:firm_id]]
   end
 
   def test_should_average_field
@@ -41,13 +53,31 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 53.0, value
   end
 
+  def test_should_average_multiple_fields
+    value = Account.average(:credit_limit, :firm_id)
+    assert_equal 53.0, value[:credit_limit]
+    assert_equal 4.0, value[:firm_id].to_i
+  end
+
   def test_should_average_arel_attribute
     value = Account.average(Account.arel_table[:credit_limit])
     assert_equal 53.0, value
   end
 
+  def test_should_average_multiple_arel_attributes
+    value = Account.average(Account.arel_table[:credit_limit], Account.arel_table[:firm_id])
+    assert_equal 53.0, value[Account.arel_table[:credit_limit]]
+    assert_equal 4.0, value[Account.arel_table[:firm_id]].to_i
+  end
+
   def test_should_resolve_aliased_attributes
     assert_equal 318, Account.sum(:available_credit)
+  end
+
+  def test_should_resolve_aliased_attributes_mixed_with_normal_attributes
+    value = Account.sum(:available_credit, :credit_limit)
+    assert_equal 318, value[:available_credit]
+    assert_equal 318, value[:credit_limit]
   end
 
   def test_should_return_decimal_average_of_integer_field
@@ -70,24 +100,60 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 60, Account.maximum(:credit_limit)
   end
 
+  def test_should_get_maximum_of_multiple_fields
+    results = Account.maximum(:credit_limit, :firm_id)
+    assert_equal 60, results[:credit_limit]
+    assert_equal 9, results[:firm_id]
+  end
+
   def test_should_get_maximum_of_arel_attribute
     assert_equal 60, Account.maximum(Account.arel_table[:credit_limit])
+  end
+
+  def test_should_get_maximum_of_arel_attribute
+    results = Account.maximum(Account.arel_table[:credit_limit], Account.arel_table[:firm_id])
+    assert_equal 60, results[Account.arel_table[:credit_limit]]
+    assert_equal 9, results[Account.arel_table[:firm_id]]
   end
 
   def test_should_get_maximum_of_field_with_include
     assert_equal 55, Account.where("companies.name != 'Summit'").references(:companies).includes(:firm).maximum(:credit_limit)
   end
 
+  def test_should_get_maximum_of_multiple_fields_with_include
+    results = Account.where("companies.name != 'Summit'").references(:companies).includes(:firm).maximum(:credit_limit, :id)
+    assert_equal 55, results[:credit_limit]
+    assert_equal 6, results[:id]
+  end
+
   def test_should_get_maximum_of_arel_attribute_with_include
     assert_equal 55, Account.where("companies.name != 'Summit'").references(:companies).includes(:firm).maximum(Account.arel_table[:credit_limit])
+  end
+
+  def test_should_get_maximum_of_multiple_arel_attribute_with_include
+    results = Account.where("companies.name != 'Summit'").references(:companies).includes(:firm).maximum(Account.arel_table[:credit_limit], Account.arel_table[:id])
+    assert_equal 55, results[Account.arel_table[:credit_limit]]
+    assert_equal 6, results[Account.arel_table[:id]]
   end
 
   def test_should_get_minimum_of_field
     assert_equal 50, Account.minimum(:credit_limit)
   end
 
+  def test_should_get_minimum_of_multiple_fields
+    results = Account.minimum(:credit_limit, :id)
+    assert_equal 50, results[:credit_limit]
+    assert_equal 1, results[:id]
+  end
+
   def test_should_get_minimum_of_arel_attribute
     assert_equal 50, Account.minimum(Account.arel_table[:credit_limit])
+  end
+
+  def test_should_get_minimum_of_multiple_arel_attribute
+    results = Account.minimum(Account.arel_table[:credit_limit], Account.arel_table[:id])
+    assert_equal 50, results[Account.arel_table[:credit_limit]]
+    assert_equal 1, results[Account.arel_table[:id]]
   end
 
   def test_should_group_by_field
@@ -122,6 +188,13 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 50,   c[1]
     assert_equal 105,  c[6]
     assert_equal 60,   c[2]
+  end
+
+  def test_should_group_by_multiple_summed_field
+    c = Account.group(:firm_id).sum(:credit_limit, :id)
+    assert_equal({ credit_limit: 50, id: 1 }, c[1])
+    assert_equal({ credit_limit: 105, id: 8 },  c[6])
+    assert_equal({ credit_limit: 60, id: 4 },  c[2])
   end
 
   def test_should_generate_valid_sql_with_joins_and_group
@@ -463,10 +536,6 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_count_with_no_parameters_isnt_deprecated
     assert_not_deprecated { Account.count }
-  end
-
-  def test_count_with_too_many_parameters_raises
-    assert_raise(ArgumentError) { Account.count(1, 2, 3) }
   end
 
   def test_count_with_order

@@ -1,3 +1,19 @@
+*   Allow all ActiveRecord Calculations to accecpt mutliple columns for 
+    aggregation. When requesting mutltiple columns with an aggregation a
+    hash is returned where the keys are the requested column names and the
+    values are the caluclated values
+
+        scope.sum(:foo, :bar)
+        # => {foo: 123, bar: 456}
+
+    When requesting a grouped aggregation, the same structure is provided
+    one layer deepr.
+
+        scope.group(:id).sum(:foo, :bar)
+        # => { 1: {foo: 123, bar: 456}, 2: {foo: 987, bar: 765}}
+
+    *Brian Malinconico*
+
 *   Make sure eager loading `ActiveRecord::Associations` also loads
     constants defined in `ActiveRecord::Associations::Preloader`.
 
