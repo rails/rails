@@ -1,16 +1,7 @@
-begin
-  require "nokogiri"
-rescue LoadError
-  # Skip nokogiri tests
-else
-  require "abstract_unit"
-  require "active_support/xml_mini"
-  require "active_support/core_ext/hash/conversions"
-  require_relative "./common"
+require_relative "xml_mini_engine_test"
 
-  class NokogiriSAXEngineTest < ActiveSupport::TestCase
-    include CommonXMLMiniAdapterTest
-
+XMLMiniEngineTest.run_with_gem("nokogiri") do
+  class NokogiriSAXEngineTest < XMLMiniEngineTest
     private
 
       def engine

@@ -1,10 +1,6 @@
-require "abstract_unit"
-require "active_support/xml_mini"
-require_relative "./common"
+require_relative "xml_mini_engine_test"
 
-class REXMLEngineTest < ActiveSupport::TestCase
-  include CommonXMLMiniAdapterTest
-
+class REXMLEngineTest < XMLMiniEngineTest
   def test_default_is_rexml
     assert_equal ActiveSupport::XmlMini_REXML, ActiveSupport::XmlMini.backend
   end

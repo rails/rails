@@ -1,16 +1,7 @@
-begin
-  require "libxml"
-rescue LoadError
-  # Skip libxml tests
-else
-  require "abstract_unit"
-  require "active_support/xml_mini"
-  require "active_support/core_ext/hash/conversions"
-  require_relative "./common"
+require_relative "xml_mini_engine_test"
 
-  class LibXMLSAXEngineTest < ActiveSupport::TestCase
-    include CommonXMLMiniAdapterTest
-
+XMLMiniEngineTest.run_with_gem("libxml") do
+  class LibXMLSAXEngineTest < XMLMiniEngineTest
     private
 
       def engine

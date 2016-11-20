@@ -1,4 +1,19 @@
-module CommonXMLMiniAdapterTest
+require "abstract_unit"
+require "active_support/xml_mini"
+require "active_support/core_ext/hash/conversions"
+
+class XMLMiniEngineTest < ActiveSupport::TestCase
+  def self.run_with_gem(gem_name)
+    require gem_name
+    yield
+  rescue LoadError
+    # Skip tests unless gem is available
+  end
+
+  def self.run_with_platform(platform_name)
+    yielf if RUBY_PLATFORM.include?(platform_name)
+  end
+
   def setup
     @default_backend = ActiveSupport::XmlMini.backend
     ActiveSupport::XmlMini.backend = engine

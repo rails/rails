@@ -1,13 +1,8 @@
-if RUBY_PLATFORM.include?("java")
-  require "abstract_unit"
-  require "active_support/xml_mini"
-  require "active_support/core_ext/hash/conversions"
-  require_relative "./common"
+require_relative "xml_mini_engine_test"
 
-  class JDOMEngineTest < ActiveSupport::TestCase
+XMLMiniEngineTest.run_with_platform("java") do
+  class JDOMEngineTest < XMLMiniEngineTest
     FILES_DIR = File.dirname(__FILE__) + "/../fixtures/xml"
-
-    include CommonXMLMiniAdapterTest
 
     def test_not_allowed_to_expand_entities_to_files
       attack_xml = <<-EOT
