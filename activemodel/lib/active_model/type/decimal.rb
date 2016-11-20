@@ -5,6 +5,14 @@ module ActiveModel
     class Decimal < Value # :nodoc:
       include Helpers::Numeric
 
+      def initialize(**args)
+        super(**args)
+
+        unless @precision
+          @precision = 18
+        end
+      end
+
       def type
         :decimal
       end
