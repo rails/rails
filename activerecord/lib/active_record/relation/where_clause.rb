@@ -17,6 +17,13 @@ module ActiveRecord
         )
       end
 
+      def -(other)
+        WhereClause.new(
+          predicates - other.predicates,
+          binds - other.binds
+        )
+      end
+
       def merge(other)
         WhereClause.new(
           predicates_unreferenced_by(other) + other.predicates,

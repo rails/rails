@@ -310,10 +310,20 @@ module ActiveRecord
           relation = Relation.create(self, arel_table, predicate_builder)
 
           if finder_needs_type_condition? && !ignore_default_scope?
-            relation.where(type_condition).create_with(inheritance_column.to_sym => sti_name)
+            relation_with_type_condition
           else
-            relation
+            relation_without_type_condition
           end
+        end
+
+        def relation_with_type_condition #:nodoc:
+          relation = relation_without_type_condition
+
+          relation.where(type_condition).create_with(inheritance_column.to_sym => sti_name)
+        end
+
+        def relation_without_type_condition #:nodoc:
+          relation = Relation.create(self, arel_table, predicate_builder)
         end
 
         def table_metadata # :nodoc:
