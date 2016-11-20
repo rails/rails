@@ -1,3 +1,8 @@
+*   Removed jquery-rails from default stack, instead rails-ujs is
+    included as default UJS adapter.
+
+    *Guillermo Iguaran*
+
 *   The config file `secrets.yml` is now loaded in with all keys as symbols.
     This allows secrets files to contain more complex information without all
     child keys being strings while parent keys are symbols.
