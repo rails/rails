@@ -68,6 +68,14 @@ module ApplicationTests
       assert_match "bin/program_name.rb", Dir.chdir(app_path) { `bin/rails runner "bin/program_name.rb"` }
     end
 
+    def test_passes_extra_args_to_file
+      app_file "bin/program_name.rb", <<-SCRIPT
+      p ARGV
+      SCRIPT
+
+      assert_match %w( a b ).to_s, Dir.chdir(app_path) { `bin/rails runner "bin/program_name.rb" a b` }
+    end
+
     def test_with_hook
       add_to_config <<-RUBY
         runner do |app|

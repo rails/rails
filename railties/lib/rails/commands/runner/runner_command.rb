@@ -14,7 +14,7 @@ module Rails
         "#{super} [<'Some.ruby(code)'> | <filename.rb>]"
       end
 
-      def perform(code_or_file = nil)
+      def perform(code_or_file = nil, *file_argv)
         unless code_or_file
           help
           exit 1
@@ -27,6 +27,7 @@ module Rails
 
         if File.exist?(code_or_file)
           $0 = code_or_file
+          ARGV.replace(file_argv)
           Kernel.load code_or_file
         else
           begin
