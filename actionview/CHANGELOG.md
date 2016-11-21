@@ -1,3 +1,33 @@
+*   Add `form_with` to unify `form_tag` and `form_for` usage.
+
+    Used like `form_tag` (where just the open tag is output):
+
+    ```erb
+    <%= form_with scope: :post, url: super_special_posts_path %>
+    ```
+
+    Used like `form_for`:
+
+    ```erb
+    <%= form_with model: @post do |form| %>
+      <%= form.text_field :title %>
+    <% end %>
+    ```
+
+    *Kasper Timm Hansen*, *Marek Kirejczyk*
+
+*   Add `fields` form helper method.
+
+    ```erb
+    <%= fields :comment, model: @comment do |fields| %>
+      <%= fields.text_field :title %>
+    <% end %>
+    ```
+
+    Can also be used within form helpers such as `form_with`.
+
+    *Kasper Timm Hansen*
+
 *   Removed deprecated `#original_exception` in `ActionView::Template::Error`.
 
     *Rafael Mendonça França*
