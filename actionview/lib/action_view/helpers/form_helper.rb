@@ -595,6 +595,16 @@ module ActionView
       #
       # Where <tt>@document = Document.find(params[:id])</tt>.
       #
+      # When using labels +form_with+ requires setting the id on the field being
+      # labelled:
+      #
+      #   <%= form_with(model: @post) do |form| %>
+      #     <%= form.label :title %>
+      #     <%= form.text_field :title, id: :post_title %>
+      #   <% end %>
+      #
+      # See +label+ for more on how the +for+ attribute is derived.
+      #
       # === Mixing with other form helpers
       #
       # While +form_with+ uses a FormBuilder object it's possible to mix and
@@ -690,6 +700,8 @@ module ActionView
       #     form_with(**options.merge(builder: LabellingFormBuilder), &block)
       #   end
       def form_with(model: nil, scope: nil, url: nil, format: nil, **options)
+        options[:skip_default_ids] = true
+
         if model
           url ||= polymorphic_path(model, format: format)
 
@@ -986,6 +998,16 @@ module ActionView
       # or model is yielded, so any generated field names are prefixed with
       # either the passed scope or the scope inferred from the <tt>:model</tt>.
       #
+      # When using labels +fields+ requires setting the id on the field being
+      # labelled:
+      #
+      #   <%= fields :comment do |fields| %>
+      #     <%= fields.label :body %>
+      #     <%= fields.text_field :body, id: :comment_body %>
+      #   <% end %>
+      #
+      # See +label+ for more on how the +for+ attribute is derived.
+      #
       # === Mixing with other form helpers
       #
       # While +form_with+ uses a FormBuilder object it's possible to mix and
@@ -1003,7 +1025,8 @@ module ActionView
       # to work with an object as a base, like
       # FormOptionHelper#collection_select and DateHelper#datetime_select.
       def fields(scope = nil, model: nil, **options, &block)
-        # TODO: Remove when ids and classes are no longer output by default.
+        options[:skip_default_ids] = true
+
         if model
           scope ||= model_name_from_record_or_class(model).param_key
         end
@@ -1469,7 +1492,7 @@ module ActionView
       private
         def html_options_for_form_with(url_for_options = nil, model = nil, html: {}, local: false,
           skip_enforcing_utf8: false, **options)
-          html_options = options.except(:index, :include_id, :builder).merge(html)
+          html_options = options.except(:index, :include_id, :skip_default_ids, :builder).merge(html)
           html_options[:method] ||= :patch if model.respond_to?(:persisted?) && model.persisted?
           html_options[:enforce_utf8] = !skip_enforcing_utf8
 
@@ -1603,7 +1626,7 @@ module ActionView
       def initialize(object_name, object, template, options)
         @nested_child_index = {}
         @object_name, @object, @template, @options = object_name, object, template, options
-        @default_options = @options ? @options.slice(:index, :namespace) : {}
+        @default_options = @options ? @options.slice(:index, :namespace, :skip_default_ids) : {}
 
         convert_to_legacy_options(@options)
 
@@ -1910,6 +1933,8 @@ module ActionView
 
       # See the docs for the <tt>ActionView::FormHelper.fields</tt> helper method.
       def fields(scope = nil, model: nil, **options, &block)
+        options[:skip_default_ids] = true
+
         convert_to_legacy_options(options)
 
         fields_for(scope || model, model, **options, &block)

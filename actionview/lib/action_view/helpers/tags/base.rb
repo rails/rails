@@ -13,6 +13,7 @@ module ActionView
 
           @object_name.sub!(/\[\]$/, "") || @object_name.sub!(/\[\]\]$/, "]")
           @object = retrieve_object(options.delete(:object))
+          @skip_default_ids = options.delete(:skip_default_ids)
           @options = options
           @auto_index = Regexp.last_match ? retrieve_autoindex(Regexp.last_match.pre_match) : nil
         end
@@ -81,9 +82,12 @@ module ActionView
           def add_default_name_and_id(options)
             index = name_and_id_index(options)
             options["name"] = options.fetch("name") { tag_name(options["multiple"], index) }
-            options["id"] = options.fetch("id") { tag_id(index) }
-            if namespace = options.delete("namespace")
-              options["id"] = options["id"] ? "#{namespace}_#{options['id']}" : namespace
+
+            unless skip_default_ids?
+              options["id"] = options.fetch("id") { tag_id(index) }
+              if namespace = options.delete("namespace")
+                options["id"] = options["id"] ? "#{namespace}_#{options['id']}" : namespace
+              end
             end
           end
 
@@ -153,6 +157,10 @@ module ActionView
 
           def name_and_id_index(options)
             options.key?("index") ? options.delete("index") || "" : @auto_index
+          end
+
+          def skip_default_ids?
+            @skip_default_ids
           end
       end
     end
