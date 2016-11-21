@@ -6,7 +6,7 @@ Bundler.setup
 require "rails/test_unit/minitest_plugin"
 
 module Rails
-  # Necessary to get rerun-snippts working.
+  # Necessary to get rerun-snippets working.
   def self.root
     @root ||= Pathname.new(COMPONENT_ROOT)
   end
