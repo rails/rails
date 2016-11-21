@@ -224,6 +224,11 @@ module ActiveRecord
       autoload :AliasTracker
     end
 
+    def self.eager_load!
+      super
+      Preloader.eager_load!
+    end
+
     # Returns the association instance for the given name, instantiating it if it doesn't already exist
     def association(name) #:nodoc:
       association = association_instance_get(name)
