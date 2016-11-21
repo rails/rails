@@ -326,6 +326,16 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_reload_association
+    odegy = companies(:odegy)
+
+    assert_equal 53, odegy.account.credit_limit
+    Account.where(id: odegy.account.id).update_all(credit_limit: 80)
+    assert_equal 53, odegy.account.credit_limit
+
+    assert_equal 80, odegy.reload_account.credit_limit
+  end
+
   def test_build
     firm = Firm.new("name" => "GlobalMegaCorp")
     firm.save
