@@ -1,3 +1,8 @@
+*   Make sure eager loading `ActiveRecord::Associations` also loads
+    constants defined in `ActiveRecord::Associations::Preloader`.
+
+    *Yves Senn*
+
 *   Allow `ActionController::Parameters`-like objects to be passed as
     values for Postgres HStore columns.
 
