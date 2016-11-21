@@ -13,3 +13,5 @@ module Rails
 end
 
 Rails::TestUnitReporter.executable = "bin/test"
+Minitest.run_via[:rails] = true
+require "active_support/testing/autorun"
