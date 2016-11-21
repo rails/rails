@@ -179,7 +179,7 @@ more explanation on a particular step, see the RC steps.
 Today, do this stuff in this order:
 
 * Apply security patches to the release branch
-* Update CHANGELOG with security fixes.
+* Update CHANGELOG with security fixes
 * Update RAILS_VERSION to remove the rc
 * Build and test the gem
 * Release the gems
@@ -206,7 +206,7 @@ so we need to give them the security fixes in patch form.
 
 * Blog announcements
 * Twitter announcements
-* Merge the release branch to the stable branch.
+* Merge the release branch to the stable branch
 * Drink beer (or other cocktail)
 
 ## Misc
