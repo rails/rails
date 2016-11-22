@@ -11,8 +11,10 @@
 // about supported directives.
 //
 <% unless options[:skip_javascript] -%>
+<% if options[:javascript] -%>
 //= require <%= options[:javascript] %>
-//= require <%= options[:javascript] %>_ujs
+<% end -%>
+//= require rails-ujs
 <% unless options[:skip_turbolinks] -%>
 //= require turbolinks
 <% end -%>

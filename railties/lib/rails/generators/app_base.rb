@@ -30,7 +30,7 @@ module Rails
         class_option :database,           type: :string, aliases: "-d", default: "sqlite3",
                                           desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
 
-        class_option :javascript,         type: :string, aliases: "-j", default: "jquery",
+        class_option :javascript,         type: :string, aliases: "-j",
                                           desc: "Preconfigure for selected JavaScript library"
 
         class_option :skip_gemfile,       type: :boolean, default: false,
@@ -328,8 +328,13 @@ module Rails
           gems = [javascript_runtime_gemfile_entry]
           gems << coffee_gemfile_entry unless options[:skip_coffee]
 
-          gems << GemfileEntry.version("#{options[:javascript]}-rails", nil,
-                                       "Use #{options[:javascript]} as the JavaScript library")
+          if options[:javascript]
+            gems << GemfileEntry.version("#{options[:javascript]}-rails", nil,
+              "Use #{options[:javascript]} as the JavaScript library")
+          end
+
+          gems << GemfileEntry.github("rails-ujs", "rails/rails-ujs", nil,
+                                      "Unobstrusive JavaScript adapter for Rails")
 
           unless options[:skip_turbolinks]
             gems << GemfileEntry.version("turbolinks", "~> 5",

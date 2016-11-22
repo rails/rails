@@ -507,7 +507,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
       assert_no_match("gemspec", contents)
       assert_match(/gem 'rails'/, contents)
       assert_match_sqlite3(contents)
-      assert_no_match(/# gem "jquery-rails"/, contents)
     end
   end
 

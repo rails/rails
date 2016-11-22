@@ -405,7 +405,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match(/#\s+require\s+["']sprockets\/railtie["']/, content)
     end
     assert_file "Gemfile" do |content|
-      assert_no_match(/jquery-rails/, content)
       assert_no_match(/sass-rails/, content)
       assert_no_match(/uglifier/, content)
       assert_no_match(/coffee-rails/, content)
@@ -448,22 +447,20 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_jquery_is_the_default_javascript_library
+  def test_rails_ujs_is_the_default_ujs_library
     run_generator
     assert_file "app/assets/javascripts/application.js" do |contents|
-      assert_match %r{^//= require jquery}, contents
-      assert_match %r{^//= require jquery_ujs}, contents
+      assert_match %r{^//= require rails-ujs}, contents
     end
-    assert_gem "jquery-rails"
+    assert_gem "rails-ujs"
   end
 
-  def test_other_javascript_libraries
-    run_generator [destination_root, "-j", "prototype"]
+  def test_inclusion_of_javascript_libraries_if_required
+    run_generator [destination_root, "-j", "jquery"]
     assert_file "app/assets/javascripts/application.js" do |contents|
-      assert_match %r{^//= require prototype}, contents
-      assert_match %r{^//= require prototype_ujs}, contents
+      assert_match %r{^//= require jquery}, contents
     end
-    assert_gem "prototype-rails"
+    assert_gem "jquery-rails"
   end
 
   def test_javascript_is_skipped_if_required
@@ -479,8 +476,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "Gemfile" do |content|
       assert_no_match(/coffee-rails/, content)
-      assert_no_match(/jquery-rails/, content)
       assert_no_match(/uglifier/, content)
+      assert_no_match(/rails-ujs/, content)
     end
 
     assert_file "config/environments/production.rb" do |content|
@@ -493,7 +490,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "Gemfile" do |content|
       assert_no_match(/coffee-rails/, content)
-      assert_match(/jquery-rails/, content)
       assert_match(/uglifier/, content)
     end
   end
