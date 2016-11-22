@@ -211,7 +211,7 @@ module ActionDispatch
         end
 
         if path =~ %r{://}
-          path = build_expanded_path(path, request_encoder) do |location|
+          path = build_expanded_path(path) do |location|
             https! URI::HTTPS === location if location.scheme
 
             if url_host = location.host
@@ -220,8 +220,6 @@ module ActionDispatch
               host! url_host
             end
           end
-        elsif as
-          path = build_expanded_path(path, request_encoder)
         end
 
         hostname, port = host.split(":")
@@ -239,7 +237,7 @@ module ActionDispatch
           "HTTP_HOST"      => host,
           "REMOTE_ADDR"    => remote_addr,
           "CONTENT_TYPE"   => request_encoder.content_type,
-          "HTTP_ACCEPT"    => accept
+          "HTTP_ACCEPT"    => request_encoder.accept_header || accept
         }
 
         wrapped_headers = Http::Headers.from_hash({})
@@ -291,10 +289,10 @@ module ActionDispatch
           "#{env['rack.url_scheme']}://#{env['SERVER_NAME']}:#{env['SERVER_PORT']}#{path}"
         end
 
-        def build_expanded_path(path, request_encoder)
+        def build_expanded_path(path)
           location = URI.parse(path)
           yield location if block_given?
-          path = request_encoder.append_format_to location.path
+          path = location.path
           location.query ? "#{path}?#{location.query}" : path
         end
     end
