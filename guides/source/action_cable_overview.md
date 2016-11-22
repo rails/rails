@@ -226,8 +226,8 @@ is routed directly to the channel subscribers who are streaming that named
 broadcasting. Each channel can be streaming zero or more broadcastings.
 
 Broadcastings are purely an online queue and time dependent. If a consumer is
-not streaming (subscribed to a given channel), they'll not get the broadcast
-should they connect later.
+not streaming (subscribed to a given channel), they'll not get the broadcast 
+and should reconnect to get later broadcasts.
 
 Broadcasts are called elsewhere in your Rails application:
 
