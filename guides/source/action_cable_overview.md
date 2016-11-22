@@ -240,8 +240,8 @@ WebNotificationsChannel.broadcast_to(
 ```
 
 The `WebNotificationsChannel.broadcast_to` call places a message in the current
-subscription adapter (by default `redis` for production and `async` for development and 
-test environments)'s pubsub queue under a separate broadcasting name for each user. 
+subscription adapters (by default `redis` for production and `async` for development and 
+test environments) pub/sub queue under a separate broadcasting name for each user. 
 For a user with an ID of 1, the broadcasting name would be `web_notifications:1`.
 
 The channel has been instructed to stream everything that arrives at
