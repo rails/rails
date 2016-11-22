@@ -433,7 +433,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     a = open_session
     b = open_session
 
-    refute_same(a.integration_session, b.integration_session)
+    refute_same(a.send(:integration_session), b.send(:integration_session))
   end
 
   def test_get_with_query_string
