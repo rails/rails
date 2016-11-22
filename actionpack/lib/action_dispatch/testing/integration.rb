@@ -290,11 +290,6 @@ module ActionDispatch
             url_host += ":#{location.port}" if default != location.port
             host! url_host
           end
-          path = request_encoder.append_format_to location.path
-          path = location.query ? "#{path}?#{location.query}" : path
-        elsif !as.nil?
-          location = URI.parse(path)
-          path = request_encoder.append_format_to location.path
           path = location.query ? "#{path}?#{location.query}" : path
         end
 
@@ -313,7 +308,7 @@ module ActionDispatch
           "HTTP_HOST"      => host,
           "REMOTE_ADDR"    => remote_addr,
           "CONTENT_TYPE"   => request_encoder.content_type,
-          "HTTP_ACCEPT"    => accept
+          "HTTP_ACCEPT"    => request_encoder.accept_header || accept
         }
 
         wrapped_headers = Http::Headers.from_hash({})
@@ -339,7 +334,7 @@ module ActionDispatch
         session.request(build_full_uri(path, request_env), request_env)
 
         @request_count += 1
-        @request  = ActionDispatch::Request.new(session.last_request.env)
+        @request = ActionDispatch::Request.new(session.last_request.env)
         response = _mock_session.last_response
         @response = ActionDispatch::TestResponse.from_response(response)
         @response.request = @request
