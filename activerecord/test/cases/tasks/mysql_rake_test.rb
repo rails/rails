@@ -1,12 +1,12 @@
 require 'cases/helper'
 
-if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+if current_adapter?(:Mysql2Adapter)
 module ActiveRecord
   class MysqlDBCreateTest < ActiveRecord::TestCase
     def setup
       @connection    = stub(:create_database => true)
       @configuration = {
-        'adapter'  => 'mysql',
+        'adapter'  => 'mysql2',
         'database' => 'my-app-db'
       }
 
@@ -16,7 +16,7 @@ module ActiveRecord
 
     def test_establishes_connection_without_database
       ActiveRecord::Base.expects(:establish_connection).
-        with('adapter' => 'mysql', 'database' => nil)
+        with('adapter' => 'mysql2', 'database' => nil)
 
       ActiveRecord::Tasks::DatabaseTasks.create @configuration
     end
@@ -72,7 +72,7 @@ module ActiveRecord
         @connection    = stub("Connection", create_database: true)
         @error         = Mysql::Error.new "Invalid permissions"
         @configuration = {
-          'adapter'  => 'mysql',
+          'adapter'  => 'mysql2',
           'database' => 'my-app-db',
           'username' => 'pat',
           'password' => 'wossname'
@@ -99,7 +99,7 @@ module ActiveRecord
       def test_connection_established_as_root
         assert_permissions_granted_for "pat"
         ActiveRecord::Base.expects(:establish_connection).with(
-          'adapter'  => 'mysql',
+          'adapter'  => 'mysql2',
           'database' => nil,
           'username' => 'root',
           'password' => 'secret'
@@ -131,7 +131,7 @@ module ActiveRecord
         assert_permissions_granted_for "pat"
         ActiveRecord::Base.expects(:establish_connection).returns do
           ActiveRecord::Base.expects(:establish_connection).with(
-            'adapter'  => 'mysql',
+            'adapter'  => 'mysql2',
             'database' => 'my-app-db',
             'username' => 'pat',
             'password' => 'secret'
@@ -164,7 +164,7 @@ module ActiveRecord
     def setup
       @connection    = stub(:drop_database => true)
       @configuration = {
-        'adapter'  => 'mysql',
+        'adapter'  => 'mysql2',
         'database' => 'my-app-db'
       }
 
@@ -189,7 +189,7 @@ module ActiveRecord
     def setup
       @connection    = stub(:recreate_database => true)
       @configuration = {
-        'adapter'  => 'mysql',
+        'adapter'  => 'mysql2',
         'database' => 'test-db'
       }
 
@@ -223,7 +223,7 @@ module ActiveRecord
     def setup
       @connection    = stub(:create_database => true)
       @configuration = {
-        'adapter'  => 'mysql',
+        'adapter'  => 'mysql2',
         'database' => 'my-app-db'
       }
 
@@ -241,7 +241,7 @@ module ActiveRecord
     def setup
       @connection    = stub(:create_database => true)
       @configuration = {
-        'adapter'  => 'mysql',
+        'adapter'  => 'mysql2',
         'database' => 'my-app-db'
       }
 
@@ -258,7 +258,7 @@ module ActiveRecord
   class MySQLStructureDumpTest < ActiveRecord::TestCase
     def setup
       @configuration = {
-        'adapter'  => 'mysql',
+        'adapter'  => 'mysql2',
         'database' => 'test-db'
       }
     end
@@ -315,7 +315,7 @@ module ActiveRecord
   class MySQLStructureLoadTest < ActiveRecord::TestCase
     def setup
       @configuration = {
-        'adapter'  => 'mysql',
+        'adapter'  => 'mysql2',
         'database' => 'test-db'
       }
     end

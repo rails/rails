@@ -80,7 +80,7 @@ module ActiveRecord
       end
     end
 
-    if current_adapter?(:MysqlAdapter)
+    if current_adapter?(:Mysql2Adapter)
       def test_charset
         assert_not_nil @connection.charset
         assert_not_equal 'character_set_database', @connection.charset
