@@ -50,13 +50,13 @@ env:
 
 rvm:
   - 2.2.6
-  - 2.3.2
+  - 2.3.3
   - ruby-head
 
 matrix:
   include:
     # Latest compiled version in http://rubies.travis-ci.org
-    - rvm: 2.3.2
+    - rvm: 2.3.3
       env:
         - "GEM=ar:mysql2"
       addons:
