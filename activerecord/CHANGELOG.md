@@ -1,3 +1,17 @@
+*   Introduce `Model#reload_<association>` to bring back the behavior
+    of `Article.category(true)` where `category` is a singular
+    association.
+
+    The force reloading of the association reader was deprecated in
+    #20888. Unfortunately the suggested alternative of
+    `article.reload.category` does not expose the same behavior.
+
+    This patch adds a reader method with the prefix `reload_` for
+    singular associations. This method has the same semantics as
+    passing true to the association reader used to have.
+
+    *Yves Senn*
+
 *   Make sure eager loading `ActiveRecord::Associations` also loads
     constants defined in `ActiveRecord::Associations::Preloader`.
 

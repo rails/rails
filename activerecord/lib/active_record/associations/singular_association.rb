@@ -6,8 +6,7 @@ module ActiveRecord
         if force_reload && klass
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
             Passing an argument to force an association to reload is now
-            deprecated and will be removed in Rails 5.1. Please call `reload`
-            on the parent object instead.
+            deprecated and will be removed in Rails 5.1. Please call `reload_#{reflection.name}` instead.
           MSG
 
           klass.uncached { reload }
@@ -36,6 +35,13 @@ module ActiveRecord
         yield(record) if block_given?
         set_new_record(record)
         record
+      end
+
+      # Implements the reload reader method, e.g. foo.reload_bar for
+      # Foo.has_one :bar
+      def force_reload_reader
+        klass.uncached { reload }
+        target
       end
 
       private
