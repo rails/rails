@@ -291,6 +291,16 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert client.account.new_record?
   end
 
+  def test_reloading_the_belonging_object
+    odegy_account = accounts(:odegy_account)
+
+    assert_equal "Odegy", odegy_account.firm.name
+    Company.where(id: odegy_account.firm_id).update_all(name: "ODEGY")
+    assert_equal "Odegy", odegy_account.firm.name
+
+    assert_equal "ODEGY", odegy_account.reload_firm.name
+  end
+
   def test_natural_assignment_to_nil
     client = Client.find(3)
     client.firm = nil
