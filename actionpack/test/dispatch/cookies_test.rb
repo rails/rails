@@ -272,6 +272,10 @@ class CookiesTest < ActionController::TestCase
     def noop
       head :ok
     end
+
+    def encrypted_cookie
+      cookies.encrypted["foo"]
+    end
   end
 
   tests TestController
@@ -1187,6 +1191,12 @@ class CookiesTest < ActionController::TestCase
     get :noop
     assert_equal "david", cookies["user_name"]
     assert_equal "david", cookies[:user_name]
+  end
+
+  def test_cookies_are_not_cleared
+    cookies.encrypted["foo"] = "bar"
+    get :noop
+    assert_equal "bar", @controller.encrypted_cookie
   end
 
   private

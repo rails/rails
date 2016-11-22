@@ -514,8 +514,6 @@ module ActionController
           @request = @controller.request
           @response = @controller.response
 
-          @request.delete_header "HTTP_COOKIE"
-
           if @request.have_cookie_jar?
             unless @request.cookie_jar.committed?
               @request.cookie_jar.write(@response)
