@@ -315,6 +315,10 @@ module ActiveRecord
         postgresql_version >= 90300
       end
 
+      def supports_pgcrypto_uuid?
+        postgresql_version >= 90400
+      end
+
       def get_advisory_lock(lock_id) # :nodoc:
         unless lock_id.is_a?(Integer) && lock_id.bit_length <= 63
           raise(ArgumentError, "Postgres requires advisory lock ids to be a signed 64 bit integer")

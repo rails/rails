@@ -1,3 +1,8 @@
+*   For PostgreSQL >= 9.4 use `pgcrypto`'s `gen_random_uuid()` instead of
+    `uuid-ossp`'s UUID generation function.
+
+    *Yuji Yaginuma*, *Yaw Boakye*
+
 *   Introduce `Model#reload_<association>` to bring back the behavior
     of `Article.category(true)` where `category` is a singular
     association.

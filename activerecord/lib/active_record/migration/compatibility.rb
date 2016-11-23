@@ -103,6 +103,14 @@ module ActiveRecord
       end
 
       class V5_0 < V5_1
+        def create_table(table_name, options = {})
+          if ActiveRecord::Base.connection.adapter_name == "PostgreSQL"
+            if options[:id] == :uuid && !options[:default]
+              options[:default] = "uuid_generate_v4()"
+            end
+          end
+          super
+        end
       end
 
       class V4_2 < V5_0
