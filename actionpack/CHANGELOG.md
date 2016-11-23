@@ -1,3 +1,14 @@
+*   Use accept header in integration tests with `as: :json`
+
+    Instead of appending the `format` to the request path. Rails will figure
+    out the format from the header instead.
+
+    This allows devs to use `:as` on routes that don't have a format.
+    
+    Fixes #27144.
+
+    *Kasper Timm Hansen*
+
 *   Reset a new session directly after its creation in ActionDispatch::IntegrationTest#open_session.
 
     Fixes #22742.
