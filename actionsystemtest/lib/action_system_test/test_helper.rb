@@ -13,10 +13,5 @@ module ActionSystemTest
         run Rails.application
       end
     end
-
-    def after_teardown
-      Capybara.reset_sessions!
-      super
-    end
   end
 end
