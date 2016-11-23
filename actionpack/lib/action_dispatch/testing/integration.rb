@@ -290,7 +290,7 @@ module ActionDispatch
             url_host += ":#{location.port}" if default != location.port
             host! url_host
           end
-          path = location.query ? "#{path}?#{location.query}" : path
+          path = location.query ? "#{location.path}?#{location.query}" : location.path
         end
 
         hostname, port = host.split(':')
