@@ -583,7 +583,8 @@ module ActionDispatch
   # Calling +parsed_body+ on the response parses the response body based on the
   # last response MIME type.
   #
-  # For any custom MIME types you've registered, you can even add your own encoders with:
+  # Out of the box, only <tt>:json</tt> is supported. But for any custom MIME
+  # types you've registered, you can add your own encoders with:
   #
   #   ActionDispatch::IntegrationTest.register_encoder :wibble,
   #     param_encoder: -> params { params.to_wibble },
