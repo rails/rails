@@ -236,6 +236,9 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
 
     if ActiveRecord::Base.connection.supports_pgcrypto_uuid?
       def test_schema_dumper_for_uuid_primary_key_default_in_legacy_migration
+        @verbose_was = ActiveRecord::Migration.verbose
+        ActiveRecord::Migration.verbose = false
+
         migration = Class.new(ActiveRecord::Migration[4.2]) do
           def version; 101 end
           def migrate(x)
@@ -248,6 +251,7 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
         assert_match(/\bcreate_table "pg_uuids_4", id: :uuid, default: -> { "uuid_generate_v4\(\)" }/, schema)
       ensure
         drop_table "pg_uuids_4"
+        ActiveRecord::Migration.verbose = @verbose_was
       end
     end
   end
