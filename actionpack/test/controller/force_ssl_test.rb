@@ -92,22 +92,6 @@ class RedirectToSSL < ForceSSLController
   end
 end
 
-class RedirectToSSLIfSessionStoreDisabled < ForceSSLController
-  def banana
-    request.class_eval do
-      alias_method :flash_origin, :flash
-      undef_method :flash
-    end
-
-    force_ssl_redirect || render(plain: "monkey")
-  ensure
-    request.class_eval do
-      alias_method :flash, :flash_origin
-      undef_method :flash_origin
-    end
-  end
-end
-
 class ForceSSLControllerLevelTest < ActionController::TestCase
   def test_banana_redirects_to_https
     get :banana
@@ -334,14 +318,6 @@ class RedirectToSSLTest < ActionController::TestCase
     get :cheeseburger
     assert_response 200
     assert_equal "ihaz", response.body
-  end
-end
-
-class RedirectToSSLIfSessionStoreDisabledTest < ActionController::TestCase
-  def test_banana_redirects_to_https_if_not_https_and_session_store_disabled
-    get :banana
-    assert_response 301
-    assert_equal "https://test.host/redirect_to_ssl_if_session_store_disabled/banana", redirect_to_url
   end
 end
 
