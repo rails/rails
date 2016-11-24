@@ -1,3 +1,12 @@
+*   Raise ActiveRecord::RecordNotFound from collection `*_ids` setters
+    for unknown IDs with a better error message.
+
+    Changes the collection `*_ids` setters to cast provided IDs the data
+    type of the primary key set in the association, not the model
+    primary key.
+
+    *Dominic Cleal*
+
 *   For PostgreSQL >= 9.4 use `pgcrypto`'s `gen_random_uuid()` instead of
     `uuid-ossp`'s UUID generation function.
 

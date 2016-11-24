@@ -397,6 +397,10 @@ module ActiveRecord
         options[:primary_key] || primary_key(klass || self.klass)
       end
 
+      def association_primary_key_type
+        klass.type_for_attribute(association_primary_key)
+      end
+
       def active_record_primary_key
         @active_record_primary_key ||= options[:primary_key] || primary_key(active_record)
       end
