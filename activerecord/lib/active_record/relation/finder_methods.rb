@@ -343,16 +343,16 @@ module ActiveRecord
     # of results obtained should be provided in the +result_size+ argument and
     # the expected number of results should be provided in the +expected_size+
     # argument.
-    def raise_record_not_found_exception!(ids, result_size, expected_size) #:nodoc:
+    def raise_record_not_found_exception!(ids, result_size, expected_size, key = primary_key) #:nodoc:
       conditions = arel.where_sql(@klass.arel_engine)
       conditions = " [#{conditions}]" if conditions
       name = @klass.name
 
       if Array(ids).size == 1
-        error = "Couldn't find #{name} with '#{primary_key}'=#{ids}#{conditions}"
-        raise RecordNotFound.new(error, name, primary_key, ids)
+        error = "Couldn't find #{name} with '#{key}'=#{ids}#{conditions}"
+        raise RecordNotFound.new(error, name, key, ids)
       else
-        error = "Couldn't find all #{name.pluralize} with '#{primary_key}': "
+        error = "Couldn't find all #{name.pluralize} with '#{key}': "
         error << "(#{ids.join(", ")})#{conditions} (found #{result_size} results, but was looking for #{expected_size})"
 
         raise RecordNotFound, error

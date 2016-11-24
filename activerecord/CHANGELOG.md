@@ -1,3 +1,12 @@
+*   Raise ActiveRecord::RecordNotFound from collection `*_ids` setters
+    for unknown IDs with a better error message.
+
+    Changes the collection `*_ids` setters to cast provided IDs the data
+    type of the primary key set in the association, not the model
+    primary key.
+
+    *Dominic Cleal*
+
 *   Introduce `Model#reload_<association>` to bring back the behavior
     of `Article.category(true)` where `category` is a singular
     association.
