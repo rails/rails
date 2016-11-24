@@ -43,20 +43,20 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
       column = UUIDType.columns_hash["thingy"]
       assert_equal "gen_random_uuid()", column.default_function
     end
-  else
-    def test_change_column_default
-      connection.add_column :uuid_data_type, :thingy, :uuid, null: false, default: "uuid_generate_v1()"
-      UUIDType.reset_column_information
-      column = UUIDType.columns_hash["thingy"]
-      assert_equal "uuid_generate_v1()", column.default_function
+  end
 
-      connection.change_column :uuid_data_type, :thingy, :uuid, null: false, default: "uuid_generate_v4()"
-      UUIDType.reset_column_information
-      column = UUIDType.columns_hash["thingy"]
-      assert_equal "uuid_generate_v4()", column.default_function
-    ensure
-      UUIDType.reset_column_information
-    end
+  def test_change_column_default
+    connection.add_column :uuid_data_type, :thingy, :uuid, null: false, default: "uuid_generate_v1()"
+    UUIDType.reset_column_information
+    column = UUIDType.columns_hash["thingy"]
+    assert_equal "uuid_generate_v1()", column.default_function
+
+    connection.change_column :uuid_data_type, :thingy, :uuid, null: false, default: "uuid_generate_v4()"
+    UUIDType.reset_column_information
+    column = UUIDType.columns_hash["thingy"]
+    assert_equal "uuid_generate_v4()", column.default_function
+  ensure
+    UUIDType.reset_column_information
   end
 
   def test_data_type_of_uuid_types
