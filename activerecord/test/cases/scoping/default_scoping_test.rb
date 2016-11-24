@@ -5,7 +5,6 @@ require "models/developer"
 require "models/computer"
 require "models/vehicle"
 require "models/cat"
-require "active_support/core_ext/regexp"
 
 class DefaultScopingTest < ActiveRecord::TestCase
   fixtures :developers, :posts, :comments
@@ -63,7 +62,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
     def test_default_scoping_with_threads
       2.times do
         Thread.new {
-          assert DeveloperOrderedBySalary.all.to_sql.include?("salary DESC")
+          assert_includes DeveloperOrderedBySalary.all.to_sql, "salary DESC"
           DeveloperOrderedBySalary.connection.close
         }.join
       end
@@ -368,7 +367,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   def test_unscoped_with_named_scope_should_not_have_default_scope
     assert_equal [DeveloperCalledJamis.find(developers(:poor_jamis).id)], DeveloperCalledJamis.poor
 
-    assert DeveloperCalledJamis.unscoped.poor.include?(developers(:david).becomes(DeveloperCalledJamis))
+    assert_includes DeveloperCalledJamis.unscoped.poor, developers(:david).becomes(DeveloperCalledJamis)
 
     assert_equal 11, DeveloperCalledJamis.unscoped.length
     assert_equal 1,  DeveloperCalledJamis.poor.length

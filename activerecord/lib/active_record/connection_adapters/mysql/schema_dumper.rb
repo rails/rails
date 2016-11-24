@@ -38,7 +38,7 @@ module ActiveRecord
           end
 
           def schema_precision(column)
-            super unless /time/ === column.sql_type && column.precision == 0
+            super unless /time/.match?(column.sql_type) && column.precision == 0
           end
 
           def schema_collation(column)

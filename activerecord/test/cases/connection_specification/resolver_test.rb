@@ -4,11 +4,11 @@ module ActiveRecord
   module ConnectionAdapters
     class ConnectionSpecification
       class ResolverTest < ActiveRecord::TestCase
-        def resolve(spec, config={})
+        def resolve(spec, config = {})
           Resolver.new(config).resolve(spec)
         end
 
-        def spec(spec, config={})
+        def spec(spec, config = {})
           Resolver.new(config).spec(spec)
         end
 

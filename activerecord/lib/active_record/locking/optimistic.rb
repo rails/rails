@@ -47,6 +47,8 @@ module ActiveRecord
     #     self.locking_column = :lock_person
     #   end
     #
+    # Please note that the optimistic locking will be ignored if you update the
+    # locking column's value.
     module Optimistic
       extend ActiveSupport::Concern
 
@@ -60,6 +62,7 @@ module ActiveRecord
       end
 
       private
+
         def increment_lock
           lock_col = self.class.locking_column
           previous_lock_value = send(lock_col).to_i
@@ -77,21 +80,24 @@ module ActiveRecord
 
         def _update_record(attribute_names = self.attribute_names) #:nodoc:
           return super unless locking_enabled?
-          return 0 if attribute_names.empty?
 
           lock_col = self.class.locking_column
-          previous_lock_value = send(lock_col).to_i
-          increment_lock
 
-          attribute_names += [lock_col]
-          attribute_names.uniq!
+          return super if attribute_names.include?(lock_col)
+          return 0 if attribute_names.empty?
 
           begin
+            previous_lock_value = read_attribute_before_type_cast(lock_col)
+
+            increment_lock
+
+            attribute_names.push(lock_col)
+
             relation = self.class.unscoped
 
             affected_rows = relation.where(
               self.class.primary_key => id,
-              lock_col => previous_lock_value,
+              lock_col => previous_lock_value
             ).update_all(
               attributes_for_update(attribute_names).map do |name|
                 [name, _read_attribute(name)]
@@ -104,9 +110,9 @@ module ActiveRecord
 
             affected_rows
 
-          # If something went wrong, revert the version.
+          # If something went wrong, revert the locking_column value.
           rescue Exception
-            send(lock_col + "=", previous_lock_value)
+            send(lock_col + "=", previous_lock_value.to_i)
             raise
           end
         end
@@ -168,10 +174,10 @@ module ActiveRecord
 
           private
 
-          # We need to apply this decorator here, rather than on module inclusion. The closure
-          # created by the matcher would otherwise evaluate for `ActiveRecord::Base`, not the
-          # sub class being decorated. As such, changes to `lock_optimistically`, or
-          # `locking_column` would not be picked up.
+            # We need to apply this decorator here, rather than on module inclusion. The closure
+            # created by the matcher would otherwise evaluate for `ActiveRecord::Base`, not the
+            # sub class being decorated. As such, changes to `lock_optimistically`, or
+            # `locking_column` would not be picked up.
             def inherited(subclass)
               subclass.class_eval do
                 is_lock_column = ->(name, _) { lock_optimistically && name == locking_column }

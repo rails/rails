@@ -1,5 +1,4 @@
 require "cases/helper"
-require "thread"
 
 module ActiveRecord
   module AttributeMethods
@@ -15,6 +14,7 @@ module ActiveRecord
           def self.decorate_matching_attribute_types(*); end
           def self.initialize_generated_modules; end
 
+          include ActiveRecord::DefineCallbacks
           include ActiveRecord::AttributeMethods
 
           def self.attribute_names
@@ -40,13 +40,13 @@ module ActiveRecord
         instance = @klass.new
 
         @klass.attribute_names.each do |name|
-          assert !instance.methods.map(&:to_s).include?(name)
+          assert_not_includes instance.methods.map(&:to_s), name
         end
 
         @klass.define_attribute_methods
 
         @klass.attribute_names.each do |name|
-          assert instance.methods.map(&:to_s).include?(name), "#{name} is not defined"
+          assert_includes instance.methods.map(&:to_s), name, "#{name} is not defined"
         end
       end
 

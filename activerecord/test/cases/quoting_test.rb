@@ -124,6 +124,10 @@ module ActiveRecord
         assert_equal "'lol'", @quoter.quote(DateTime.now, nil)
       end
 
+      def test_quoting_classes
+        assert_equal "'Object'", @quoter.quote(Object)
+      end
+
       def test_crazy_object
         crazy = Object.new
         e = assert_raises(TypeError) do
@@ -133,16 +137,12 @@ module ActiveRecord
       end
 
       def test_quote_string_no_column
-        assert_equal "'lo\\\\l'", @quoter.quote('lo\l', nil)
+        assert_equal "'lo\\\\l'", @quoter.quote('lo\l')
       end
 
       def test_quote_as_mb_chars_no_column
         string = ActiveSupport::Multibyte::Chars.new('lo\l')
-        assert_equal "'lo\\\\l'", @quoter.quote(string, nil)
-      end
-
-      def test_string_with_crazy_column
-        assert_equal "'lo\\\\l'", @quoter.quote('lo\l')
+        assert_equal "'lo\\\\l'", @quoter.quote(string)
       end
 
       def test_quote_duration

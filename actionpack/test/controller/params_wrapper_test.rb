@@ -212,6 +212,16 @@ class ParamsWrapperTest < ActionController::TestCase
       )
     end
   end
+
+  def test_handles_empty_content_type
+    with_default_wrapper_options do
+      @request.env["CONTENT_TYPE"] = nil
+      _controller_class.dispatch(:parse, @request, @response)
+
+      assert_equal 200, @response.status
+      assert_equal "", @response.body
+    end
+  end
 end
 
 class NamespacedParamsWrapperTest < ActionController::TestCase

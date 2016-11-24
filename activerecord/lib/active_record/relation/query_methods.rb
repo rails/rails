@@ -4,7 +4,6 @@ require "active_record/relation/where_clause"
 require "active_record/relation/where_clause_factory"
 require "active_model/forbidden_attributes_protection"
 require "active_support/core_ext/string/filters"
-require "active_support/core_ext/regexp"
 
 module ActiveRecord
   module QueryMethods
@@ -242,7 +241,16 @@ module ActiveRecord
     #   Model.select(:field).first.other_field
     #   # => ActiveModel::MissingAttributeError: missing attribute: other_field
     def select(*fields)
-      return super if block_given?
+      if block_given?
+        if fields.any?
+          ActiveSupport::Deprecation.warn(<<-WARNING.squish)
+            When select is called with a block, it ignores other arguments. This behavior is now deprecated and will result in an ArgumentError in Rails 5.1. You can safely remove the arguments to resolve the deprecation warning because they do not have any effect on the output of the call to the select method with a block.
+          WARNING
+        end
+
+        return super()
+      end
+
       raise ArgumentError, "Call this with at least one field" if fields.empty?
       spawn._select!(*fields)
     end
@@ -755,7 +763,7 @@ module ActiveRecord
     #   end
     #
     def none
-      where("1=0").extending!(NullRelation)
+      spawn.none!
     end
 
     def none! # :nodoc:
@@ -1150,22 +1158,22 @@ module ActiveRecord
         end.flatten!
       end
 
-    # Checks to make sure that the arguments are not blank. Note that if some
-    # blank-like object were initially passed into the query method, then this
-    # method will not raise an error.
-    #
-    # Example:
-    #
-    #    Post.references()   # raises an error
-    #    Post.references([]) # does not raise an error
-    #
-    # This particular method should be called with a method_name and the args
-    # passed into that method as an input. For example:
-    #
-    # def references(*args)
-    #   check_if_method_has_arguments!("references", args)
-    #   ...
-    # end
+      # Checks to make sure that the arguments are not blank. Note that if some
+      # blank-like object were initially passed into the query method, then this
+      # method will not raise an error.
+      #
+      # Example:
+      #
+      #    Post.references()   # raises an error
+      #    Post.references([]) # does not raise an error
+      #
+      # This particular method should be called with a method_name and the args
+      # passed into that method as an input. For example:
+      #
+      # def references(*args)
+      #   check_if_method_has_arguments!("references", args)
+      #   ...
+      # end
       def check_if_method_has_arguments!(method_name, args)
         if args.blank?
           raise ArgumentError, "The method .#{method_name}() must contain arguments."

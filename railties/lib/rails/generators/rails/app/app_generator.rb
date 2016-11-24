@@ -56,7 +56,7 @@ module Rails
     def app
       directory "app"
 
-      keep_file  "app/assets/images"
+      keep_file "app/assets/images"
       empty_directory_with_keep_file "app/assets/javascripts/channels" unless options[:skip_action_cable]
 
       keep_file  "app/controllers/concerns"
@@ -241,6 +241,7 @@ module Rails
       end
 
       def create_db_files
+        return if options[:skip_active_record]
         build(:db)
       end
 

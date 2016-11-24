@@ -71,8 +71,6 @@ module ActionController
     #       format.csv { render csv: @csvable, filename: @csvable.name }
     #     end
     #   end
-    # To use renderers and their mime types in more concise ways, see
-    # <tt>ActionController::MimeResponds::ClassMethods.respond_to</tt>
     def self.add(key, &block)
       define_method(_render_with_renderer_method_name(key), &block)
       RENDERERS << key.to_sym

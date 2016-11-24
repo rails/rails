@@ -62,16 +62,16 @@ module ActiveRecord
     # notably, the instance methods provided by SchemaStatements are very useful.
     class AbstractAdapter
       ADAPTER_NAME = "Abstract".freeze
+      include ActiveSupport::Callbacks
+      define_callbacks :checkout, :checkin
+
       include Quoting, DatabaseStatements, SchemaStatements
       include DatabaseLimits
       include QueryCache
-      include ActiveSupport::Callbacks
       include ColumnDumper
       include Savepoints
 
       SIMPLE_INT = /\A\d+\z/
-
-      define_callbacks :checkout, :checkin
 
       attr_accessor :visitor, :pool
       attr_reader :schema_cache, :owner, :logger
@@ -106,7 +106,7 @@ module ActiveRecord
         @pool                = nil
         @schema_cache        = SchemaCache.new self
         @quoted_column_names, @quoted_table_names = {}, {}
-        @visitor             = arel_visitor
+        @visitor = arel_visitor
 
         if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
           @prepared_statements = true
@@ -159,6 +159,14 @@ module ActiveRecord
 
       def schema_creation
         SchemaCreation.new self
+      end
+
+      # Returns an array of +Column+ objects for the table specified by +table_name+.
+      def columns(table_name) # :nodoc:
+        table_name = table_name.to_s
+        column_definitions(table_name).map do |field|
+          new_column_from_field(table_name, field)
+        end
       end
 
       # this method must only be called while holding connection pool's mutex

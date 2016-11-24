@@ -7,7 +7,7 @@
     <%- if options[:skip_javascript] -%>
     <%%= stylesheet_link_tag    'application', media: 'all' %>
     <%- else -%>
-      <%- if gemfile_entries.any? { |m| m.name == 'turbolinks' } -%>
+      <%- unless options[:skip_turbolinks] -%>
     <%%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track': 'reload' %>
     <%%= javascript_include_tag 'application', 'data-turbolinks-track': 'reload' %>
       <%- else -%>

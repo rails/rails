@@ -36,10 +36,10 @@ module JSONTest
     NilTests      = [[ nil,   %(null)  ]]
     NumericTests  = [[ 1,     %(1)     ],
                      [ 2.5,   %(2.5)   ],
-                     [ 0.0/0.0,   %(null) ],
-                     [ 1.0/0.0,   %(null) ],
-                     [ -1.0/0.0,  %(null) ],
-                     [ BigDecimal("0.0")/BigDecimal("0.0"),  %(null) ],
+                     [ 0.0 / 0.0,   %(null) ],
+                     [ 1.0 / 0.0,   %(null) ],
+                     [ -1.0 / 0.0,  %(null) ],
+                     [ BigDecimal("0.0") / BigDecimal("0.0"),  %(null) ],
                      [ BigDecimal("2.5"), %("#{BigDecimal('2.5')}") ]]
 
     StringTests   = [[ "this is the <string>",     %("this is the \\u003cstring\\u003e")],
@@ -80,13 +80,13 @@ module JSONTest
 
     PathnameTests = [[ Pathname.new("lib/index.rb"), %("lib/index.rb") ]]
 
-    DateTests     = [[ Date.new(2005,2,1), %("2005/02/01") ]]
-    TimeTests     = [[ Time.utc(2005,2,1,15,15,10), %("2005/02/01 15:15:10 +0000") ]]
-    DateTimeTests = [[ DateTime.civil(2005,2,1,15,15,10), %("2005/02/01 15:15:10 +0000") ]]
+    DateTests     = [[ Date.new(2005, 2, 1), %("2005/02/01") ]]
+    TimeTests     = [[ Time.utc(2005, 2, 1, 15, 15, 10), %("2005/02/01 15:15:10 +0000") ]]
+    DateTimeTests = [[ DateTime.civil(2005, 2, 1, 15, 15, 10), %("2005/02/01 15:15:10 +0000") ]]
 
-    StandardDateTests     = [[ Date.new(2005,2,1), %("2005-02-01") ]]
-    StandardTimeTests     = [[ Time.utc(2005,2,1,15,15,10), %("2005-02-01T15:15:10.000Z") ]]
-    StandardDateTimeTests = [[ DateTime.civil(2005,2,1,15,15,10), %("2005-02-01T15:15:10.000+00:00") ]]
+    StandardDateTests     = [[ Date.new(2005, 2, 1), %("2005-02-01") ]]
+    StandardTimeTests     = [[ Time.utc(2005, 2, 1, 15, 15, 10), %("2005-02-01T15:15:10.000Z") ]]
+    StandardDateTimeTests = [[ DateTime.civil(2005, 2, 1, 15, 15, 10), %("2005-02-01T15:15:10.000+00:00") ]]
     StandardStringTests   = [[ "this is the <string>", %("this is the <string>")]]
   end
 end

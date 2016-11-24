@@ -107,7 +107,7 @@ module ActiveRecord
     #
     # By default, save always runs validations. If any of them fail the action
     # is cancelled and #save returns +false+, and the record won't be saved. However, if you supply
-    # validate: false, validations are bypassed altogether. See
+    # <tt>validate: false</tt>, validations are bypassed altogether. See
     # ActiveRecord::Validations for more information.
     #
     # By default, #save also sets the +updated_at+/+updated_on+ attributes to
@@ -134,7 +134,7 @@ module ActiveRecord
     #
     # By default, #save! always runs validations. If any of them fail
     # ActiveRecord::RecordInvalid gets raised, and the record won't be saved. However, if you supply
-    # validate: false, validations are bypassed altogether. See
+    # <tt>validate: false</tt>, validations are bypassed altogether. See
     # ActiveRecord::Validations for more information.
     #
     # By default, #save! also sets the +updated_at+/+updated_on+ attributes to
@@ -252,7 +252,12 @@ module ActiveRecord
       name = name.to_s
       verify_readonly_attribute(name)
       public_send("#{name}=", value)
-      save(validate: false) if changed?
+
+      if has_changes_to_save?
+        save(validate: false)
+      else
+        true
+      end
     end
 
     # Updates the attributes of the model from the passed-in hash and saves the
@@ -335,7 +340,7 @@ module ActiveRecord
     # record could be saved.
     def increment!(attribute, by = 1)
       increment(attribute, by)
-      change = public_send(attribute) - (attribute_was(attribute.to_s) || 0)
+      change = public_send(attribute) - (attribute_in_database(attribute.to_s) || 0)
       self.class.update_counters(id, attribute => change)
       clear_attribute_change(attribute) # eww
       self
@@ -498,7 +503,6 @@ module ActiveRecord
           changes[column] = write_attribute(column, time)
         end
 
-        clear_attribute_changes(changes.keys)
         primary_key = self.class.primary_key
         scope = self.class.unscoped.where(primary_key => _read_attribute(primary_key))
 
@@ -508,6 +512,7 @@ module ActiveRecord
           changes[locking_column] = increment_lock
         end
 
+        clear_attribute_changes(changes.keys)
         result = scope.update_all(changes) == 1
 
         if !result && locking_enabled?
@@ -547,7 +552,7 @@ module ActiveRecord
       if attributes_values.empty?
         0
       else
-        self.class.unscoped._update_record attributes_values, id, id_was
+        self.class.unscoped._update_record attributes_values, id, id_in_database
       end
     end
 

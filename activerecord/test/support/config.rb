@@ -1,5 +1,5 @@
 require "yaml"
-require "erubis"
+require "erb"
 require "fileutils"
 require "pathname"
 
@@ -20,13 +20,14 @@ module ARTest
         FileUtils.cp TEST_ROOT + "/config.example.yml", config_file
       end
 
-      erb = Erubis::Eruby.new(config_file.read)
+      erb = ERB.new(config_file.read)
       expand_config(YAML.parse(erb.result(binding)).transform)
     end
 
     def expand_config(config)
       config["connections"].each do |adapter, connection|
-        dbs = [["arunit", "activerecord_unittest"], ["arunit2", "activerecord_unittest2"]]
+        dbs = [["arunit", "activerecord_unittest"], ["arunit2", "activerecord_unittest2"],
+               ["arunit_without_prepared_statements", "activerecord_unittest"]]
         dbs.each do |name, dbname|
           unless connection[name].is_a?(Hash)
             connection[name] = { "database" => connection[name] }

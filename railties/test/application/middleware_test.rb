@@ -73,7 +73,7 @@ module ApplicationTests
     test "Rack::Cache is not included by default" do
       boot!
 
-      assert !middleware.include?("Rack::Cache"), "Rack::Cache is not included in the default stack unless you set config.action_dispatch.rack_cache"
+      assert_not_includes middleware, "Rack::Cache", "Rack::Cache is not included in the default stack unless you set config.action_dispatch.rack_cache"
     end
 
     test "Rack::Cache is present when action_dispatch.rack_cache is set" do
@@ -81,7 +81,7 @@ module ApplicationTests
 
       boot!
 
-      assert middleware.include?("Rack::Cache")
+      assert_includes middleware, "Rack::Cache"
     end
 
     test "ActiveRecord::Migration::CheckPending is present when active_record.migration_error is set to :page_load" do
@@ -89,27 +89,27 @@ module ApplicationTests
 
       boot!
 
-      assert middleware.include?("ActiveRecord::Migration::CheckPending")
+      assert_includes middleware, "ActiveRecord::Migration::CheckPending"
     end
 
     test "ActionDispatch::SSL is present when force_ssl is set" do
       add_to_config "config.force_ssl = true"
       boot!
-      assert middleware.include?("ActionDispatch::SSL")
+      assert_includes middleware, "ActionDispatch::SSL"
     end
 
     test "ActionDispatch::SSL is configured with options when given" do
       add_to_config "config.force_ssl = true"
-      add_to_config "config.ssl_options = { host: 'example.com' }"
+      add_to_config "config.ssl_options = { redirect: { host: 'example.com' } }"
       boot!
 
-      assert_equal [{ host: "example.com" }], Rails.application.middleware.first.args
+      assert_equal [{ redirect: { host: "example.com" } }], Rails.application.middleware.first.args
     end
 
     test "removing Active Record omits its middleware" do
       use_frameworks []
       boot!
-      assert !middleware.include?("ActiveRecord::Migration::CheckPending")
+      assert_not_includes middleware, "ActiveRecord::Migration::CheckPending"
     end
 
     test "includes executor" do
@@ -139,20 +139,20 @@ module ApplicationTests
     test "removes static asset server if public_file_server.enabled is disabled" do
       add_to_config "config.public_file_server.enabled = false"
       boot!
-      assert !middleware.include?("ActionDispatch::Static")
+      assert_not_includes middleware, "ActionDispatch::Static"
     end
 
     test "can delete a middleware from the stack" do
       add_to_config "config.middleware.delete ActionDispatch::Static"
       boot!
-      assert !middleware.include?("ActionDispatch::Static")
+      assert_not_includes middleware, "ActionDispatch::Static"
     end
 
     test "can delete a middleware from the stack even if insert_before is added after delete" do
       add_to_config "config.middleware.delete Rack::Runtime"
       add_to_config "config.middleware.insert_before(Rack::Runtime, Rack::Config)"
       boot!
-      assert middleware.include?("Rack::Config")
+      assert_includes middleware, "Rack::Config"
       assert_not middleware.include?("Rack::Runtime")
     end
 
@@ -160,21 +160,21 @@ module ApplicationTests
       add_to_config "config.middleware.delete Rack::Runtime"
       add_to_config "config.middleware.insert_after(Rack::Runtime, Rack::Config)"
       boot!
-      assert middleware.include?("Rack::Config")
+      assert_includes middleware, "Rack::Config"
       assert_not middleware.include?("Rack::Runtime")
     end
 
     test "includes exceptions middlewares even if action_dispatch.show_exceptions is disabled" do
       add_to_config "config.action_dispatch.show_exceptions = false"
       boot!
-      assert middleware.include?("ActionDispatch::ShowExceptions")
-      assert middleware.include?("ActionDispatch::DebugExceptions")
+      assert_includes middleware, "ActionDispatch::ShowExceptions"
+      assert_includes middleware, "ActionDispatch::DebugExceptions"
     end
 
     test "removes ActionDispatch::Reloader if cache_classes is true" do
       add_to_config "config.cache_classes = true"
       boot!
-      assert !middleware.include?("ActionDispatch::Reloader")
+      assert_not_includes middleware, "ActionDispatch::Reloader"
     end
 
     test "use middleware" do
@@ -227,9 +227,9 @@ module ApplicationTests
       class ::OmgController < ActionController::Base
         def index
           if params[:nothing]
-            render text: ""
+            render plain: ""
           else
-            render text: "OMG"
+            render plain: "OMG"
           end
         end
       end
@@ -239,7 +239,7 @@ module ApplicationTests
       get "/"
       assert_equal 200, last_response.status
       assert_equal "OMG", last_response.body
-      assert_equal "text/html; charset=utf-8", last_response.headers["Content-Type"]
+      assert_equal "text/plain; charset=utf-8", last_response.headers["Content-Type"]
       assert_equal "max-age=0, private, must-revalidate", last_response.headers["Cache-Control"]
       assert_equal etag, last_response.headers["Etag"]
 
@@ -253,7 +253,7 @@ module ApplicationTests
       get "/?nothing=true"
       assert_equal 200, last_response.status
       assert_equal "", last_response.body
-      assert_equal "text/html; charset=utf-8", last_response.headers["Content-Type"]
+      assert_equal "text/plain; charset=utf-8", last_response.headers["Content-Type"]
       assert_equal "no-cache", last_response.headers["Cache-Control"]
       assert_equal nil, last_response.headers["Etag"]
     end

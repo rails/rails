@@ -414,7 +414,7 @@ You can also run an entire directory of tests by providing the path to the direc
 $ bin/rails test test/controllers # run all tests from specific directory
 ```
 
-The test runner provides lot of other features too like failing fast, deferring test output
+The test runner also provides a lot of other features like failing fast, deferring test output
 at the end of test run and so on. Check the documentation of the test runner as follows:
 
 ```bash
@@ -761,8 +761,8 @@ and also ensuring that the right response body has been generated.
 
 The `get` method kicks off the web request and populates the results into the `@response`. It can accept up to 6 arguments:
 
-* The action of the controller you are requesting.
-  This can be in the form of a string or a route (i.e. `articles_url`).
+* The URI of the controller action you are requesting.
+  This can be in the form of a string or a route helper (e.g. `articles_url`).
 * `params`: option with a hash of request parameters to pass into the action
   (e.g. query string parameters or article variables).
 * `headers`: for setting the headers that will be passed with the request.
@@ -775,13 +775,13 @@ All of these keyword arguments are optional.
 Example: Calling the `:show` action, passing an `id` of 12 as the `params` and setting `HTTP_REFERER` header:
 
 ```ruby
-get :show, params: { id: 12 }, headers: { "HTTP_REFERER" => "http://example.com/home" }
+get article_url, params: { id: 12 }, headers: { "HTTP_REFERER" => "http://example.com/home" }
 ```
 
 Another example: Calling the `:update` action, passing an `id` of 12 as the `params` as an Ajax request.
 
 ```ruby
-patch update_url, params: { id: 12 }, xhr: true
+patch article_url, params: { id: 12 }, xhr: true
 ```
 
 NOTE: If you try running `test_should_create_article` test from `articles_controller_test.rb` it will fail on account of the newly added model level validation and rightly so.
@@ -859,7 +859,7 @@ You also have access to three instance variables in your functional tests, after
 class ArticlesControllerTest < ActionDispatch::IntegrationTest
   test "should get index" do
     get articles_url
-        
+
     assert_equal "index", @controller.action_name
     assert_equal "application/x-www-form-urlencoded", @request.media_type
     assert_match "Articles", @response.body    
@@ -1317,8 +1317,8 @@ end
 This test is pretty simple and only asserts that the job get the work done
 as expected.
 
-By default, `ActiveJob::TestCase` will set the queue adapter to `:async` so that
-your jobs are performed in an async fashion. It will also ensure that all previously performed
+By default, `ActiveJob::TestCase` will set the queue adapter to `:test` so that
+your jobs are performed inline. It will also ensure that all previously performed
 and enqueued jobs are cleared before any test run so you can safely assume that
 no jobs have already been executed in the scope of each test.
 

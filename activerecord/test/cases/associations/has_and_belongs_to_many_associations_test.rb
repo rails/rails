@@ -86,6 +86,10 @@ class DeveloperWithSymbolClassName < Developer
   has_and_belongs_to_many :projects, class_name: :ProjectWithSymbolsForKeys
 end
 
+class DeveloperWithConstantClassName < Developer
+  has_and_belongs_to_many :projects, class_name: ProjectWithSymbolsForKeys
+end
+
 class DeveloperWithExtendOption < Developer
   module NamedExtension
     def category
@@ -169,7 +173,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     active_record = Project.find(1)
     assert !active_record.developers.empty?
     assert_equal 3, active_record.developers.size
-    assert active_record.developers.include?(david)
+    assert_includes active_record.developers, david
   end
 
   def test_adding_single
@@ -249,8 +253,8 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert !p.persisted?
     assert aredridel.save
     assert aredridel.persisted?
-    assert_equal no_of_devels+1, Developer.count
-    assert_equal no_of_projects+1, Project.count
+    assert_equal no_of_devels + 1, Developer.count
+    assert_equal no_of_projects + 1, Project.count
     assert_equal 2, aredridel.projects.size
     assert_equal 2, aredridel.projects.reload.size
   end
@@ -379,7 +383,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     dev.projects << projects(:active_record)
 
     assert_equal 3, dev.projects.size
-    assert_equal 1, dev.projects.distinct.size
+    assert_equal 1, dev.projects.uniq.size
   end
 
   def test_distinct_before_the_fact
@@ -544,7 +548,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
     assert_no_queries(ignore_none: false) do
       assert project.developers.loaded?
-      assert project.developers.include?(developer)
+      assert_includes project.developers, developer
     end
   end
 
@@ -555,7 +559,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     project.reload
     assert ! project.developers.loaded?
     assert_queries(1) do
-      assert project.developers.include?(developer)
+      assert_includes project.developers, developer
     end
     assert ! project.developers.loaded?
   end
@@ -600,8 +604,8 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     project.save!
     project.reload
 
-    assert project.developers.include?(jamis)
-    assert project.developers.include?(david)
+    assert_includes project.developers, jamis
+    assert_includes project.developers, david
   end
 
   def test_find_in_association_with_options
@@ -628,7 +632,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     david.projects = [projects(:action_controller), Project.new("name" => "ActionWebSearch")]
     david.save
     assert_equal 2, david.projects.length
-    assert !david.projects.include?(projects(:active_record))
+    assert_not_includes david.projects, projects(:active_record)
   end
 
   def test_replace_on_new_object
@@ -646,9 +650,9 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     developer.special_projects << special_project
     developer.reload
 
-    assert developer.projects.include?(special_project)
-    assert developer.special_projects.include?(special_project)
-    assert !developer.special_projects.include?(other_project)
+    assert_includes developer.projects, special_project
+    assert_includes developer.special_projects, special_project
+    assert_not_includes developer.special_projects, other_project
   end
 
   def test_symbol_join_table
@@ -854,7 +858,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_include_method_in_has_and_belongs_to_many_association_should_return_true_for_instance_added_with_build
     project = Project.new
     developer = project.developers.build
-    assert project.developers.include?(developer)
+    assert_includes project.developers, developer
   end
 
   def test_destruction_does_not_error_without_primary_key
@@ -939,7 +943,15 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_with_symbol_class_name
     assert_nothing_raised do
-      DeveloperWithSymbolClassName.new
+      developer = DeveloperWithSymbolClassName.new
+      developer.projects
+    end
+  end
+
+  def test_with_constant_class_name
+    assert_nothing_raised do
+      developer = DeveloperWithConstantClassName.new
+      developer.projects
     end
   end
 
@@ -999,5 +1011,18 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_association_name_is_the_same_as_join_table_name
     user = User.create!
     assert_nothing_raised { user.jobs_pool.clear }
+  end
+
+  def test_has_and_belongs_to_many_while_partial_writes_false
+    begin
+      original_partial_writes = ActiveRecord::Base.partial_writes
+      ActiveRecord::Base.partial_writes = false
+      developer = Developer.new(name: "Mehmet Emin İNAÇ")
+      developer.projects << Project.new(name: "Bounty")
+
+      assert developer.save
+    ensure
+      ActiveRecord::Base.partial_writes = original_partial_writes
+    end
   end
 end

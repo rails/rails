@@ -151,7 +151,7 @@ module ActionView
       # defined in <tt>:radius</tt> (which defaults to 100). If the excerpt radius overflows the beginning or end of the +text+,
       # then the <tt>:omission</tt> option (which defaults to "...") will be prepended/appended accordingly. Use the
       # <tt>:separator</tt> option to choose the delimitation. The resulting string will be stripped in any case. If the +phrase+
-      # isn't found, nil is returned.
+      # isn't found, +nil+ is returned.
       #
       #   excerpt('This is an example', 'an', radius: 5)
       #   # => ...s is an exam...
@@ -225,14 +225,7 @@ module ActionView
       #
       #   pluralize(2, 'Person', locale: :de)
       #   # => 2 Personen
-      def pluralize(count, singular, deprecated_plural = nil, plural: nil, locale: I18n.locale)
-        if deprecated_plural
-          ActiveSupport::Deprecation.warn("Passing plural as a positional argument " \
-            "is deprecated and will be removed in Rails 5.1. Use e.g. " \
-            "pluralize(1, 'person', plural: 'people') instead.")
-          plural ||= deprecated_plural
-        end
-
+      def pluralize(count, singular, plural_arg = nil, plural: plural_arg, locale: I18n.locale)
         word = if (count == 1 || count =~ /^1(\.0+)?$/)
           singular
         else

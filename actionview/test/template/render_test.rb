@@ -460,7 +460,7 @@ module RenderTestCases
   def test_render_knows_about_types_registered_when_extensions_are_checked_earlier_in_initialization
     ActionView::Template::Handlers.extensions
     ActionView::Template.register_template_handler :foo, CustomHandler
-    assert ActionView::Template::Handlers.extensions.include?(:foo)
+    assert_includes ActionView::Template::Handlers.extensions, :foo
   ensure
     ActionView::Template.unregister_template_handler :foo
   end

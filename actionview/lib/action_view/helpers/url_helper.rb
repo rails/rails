@@ -2,7 +2,6 @@ require "action_view/helpers/javascript_helper"
 require "active_support/core_ext/array/access"
 require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/string/output_safety"
-require "active_support/core_ext/regexp"
 
 module ActionView
   # = Action View URL Helpers
@@ -564,7 +563,7 @@ module ActionView
             html_options = html_options.stringify_keys
             html_options["data-remote"] = "true".freeze if link_to_remote_options?(options) || link_to_remote_options?(html_options)
 
-            method  = html_options.delete("method".freeze)
+            method = html_options.delete("method".freeze)
 
             add_method_to_attributes!(html_options, method) if method
 
@@ -587,7 +586,7 @@ module ActionView
           html_options["data-method".freeze] = method
         end
 
-        def token_tag(token=nil, form_options: {})
+        def token_tag(token = nil, form_options: {})
           if token != false && protect_against_forgery?
             token ||= form_authenticity_token(form_options: form_options)
             tag(:input, type: "hidden", name: request_forgery_protection_token.to_s, value: token)
@@ -617,6 +616,17 @@ module ActionView
         #   to_form_params({ name: 'Denmark' }, 'country')
         #   # => [{name: 'country[name]', value: 'Denmark'}]
         def to_form_params(attribute, namespace = nil) # :nodoc:
+          attribute = if attribute.respond_to?(:permitted?)
+            unless attribute.permitted?
+              raise ArgumentError, "Attempting to generate a buttom from non-sanitized request parameters!" \
+                " Whitelist and sanitize passed parameters to be secure."
+            end
+
+            attribute.to_h
+          else
+            attribute
+          end
+
           params = []
           case attribute
           when Hash

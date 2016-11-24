@@ -17,5 +17,3 @@ module Minitest
 end
 
 Minitest.extensions.unshift "active_record"
-
-exit Minitest.run(ARGV)

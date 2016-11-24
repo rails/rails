@@ -46,14 +46,14 @@ module Rails
 
     def backtrace_cleaner
       @backtrace_cleaner ||= begin
-        # Relies on Active Support, so we have to lazy load to postpone definition until AS has been loaded
+        # Relies on Active Support, so we have to lazy load to postpone definition until Active Support has been loaded
         require "rails/backtrace_cleaner"
         Rails::BacktraceCleaner.new
       end
     end
 
     # Returns a Pathname object of the current Rails project,
-    # otherwise it returns nil if there is no project:
+    # otherwise it returns +nil+ if there is no project:
     #
     #   Rails.root
     #     # => #<Pathname:/Users/someuser/some/path/project>
@@ -100,7 +100,7 @@ module Rails
     end
 
     # Returns a Pathname object of the public folder of the current
-    # Rails project, otherwise it returns nil if there is no project:
+    # Rails project, otherwise it returns +nil+ if there is no project:
     #
     #   Rails.public_path
     #     # => #<Pathname:/Users/someuser/some/path/project/public>

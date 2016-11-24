@@ -63,8 +63,6 @@ module ActiveRecord
           # Do a manual insertion
           if current_adapter?(:OracleAdapter)
             connection.execute "insert into test_models (id, wealth) values (people_seq.nextval, 12345678901234567890.0123456789)"
-          elsif current_adapter?(:PostgreSQLAdapter)
-            connection.execute "insert into test_models (wealth) values (12345678901234567890.0123456789)"
           else
             connection.execute "insert into test_models (wealth) values (12345678901234567890.0123456789)"
           end
@@ -74,9 +72,7 @@ module ActiveRecord
           assert_kind_of BigDecimal, row.wealth
 
           # If this assert fails, that means the SELECT is broken!
-          unless current_adapter?(:SQLite3Adapter)
-            assert_equal correct_value, row.wealth
-          end
+          assert_equal correct_value, row.wealth
 
           # Reset to old state
           TestModel.delete_all
@@ -167,7 +163,7 @@ module ActiveRecord
           assert_raise(ActiveRecordError) { add_column :test_models, :integer_too_big, :integer, limit: 10 }
 
           unless current_adapter?(:PostgreSQLAdapter)
-            assert_raise(ActiveRecordError) { add_column :test_models, :text_too_big, :integer, limit: 0xfffffffff }
+            assert_raise(ActiveRecordError) { add_column :test_models, :text_too_big, :text, limit: 0xfffffffff }
           end
         end
       end

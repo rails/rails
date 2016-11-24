@@ -26,10 +26,10 @@ class OutputSafetyHelperTest < ActionView::TestCase
   end
 
   test "safe_join should work recursively similarly to Array.join" do
-    joined = safe_join(["a",["b","c"]], ":")
+    joined = safe_join(["a", ["b", "c"]], ":")
     assert_equal "a:b:c", joined
 
-    joined = safe_join(['"a"',["<b>","<c>"]], " <br/> ")
+    joined = safe_join(['"a"', ["<b>", "<c>"]], " <br/> ")
     assert_equal "&quot;a&quot; &lt;br/&gt; &lt;b&gt; &lt;br/&gt; &lt;c&gt;", joined
   end
 

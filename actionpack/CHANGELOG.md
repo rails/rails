@@ -1,3 +1,180 @@
+*   Use accept header in integration tests with `as: :json`
+
+    Instead of appending the `format` to the request path. Rails will figure
+    out the format from the header instead.
+
+    This allows devs to use `:as` on routes that don't have a format.
+    
+    Fixes #27144.
+
+    *Kasper Timm Hansen*
+
+*   Reset a new session directly after its creation in ActionDispatch::IntegrationTest#open_session.
+
+    Fixes #22742.
+
+    *Tawan Sierek*
+
+*   Fixes incorrect output from rails routes when using singular resources.
+
+    Fixes #26606.
+
+    *Erick Reyna*
+
+*   Fixes multiple calls to `logger.fatal` instead of a single call,
+    for every line in an exception backtrace, when printing trace
+    from `DebugExceptions` middleware.
+
+    Fixes #26134.
+
+    *Vipul A M*
+
+*   Add support for arbitrary hashes in strong parameters:
+
+    ```ruby
+    params.permit(preferences: {})
+    ```
+
+    *Xavier Noria*
+
+*   Add `ActionController::Parameters#merge!`, which behaves the same as `Hash#merge!`.
+
+    *Yuji Yaginuma*
+
+*   Allow keys not found in `RACK_KEY_TRANSLATION` for setting the environment when rendering
+    arbitrary templates.
+
+    *Sammy Larbi*
+
+*   Remove deprecated support to non-keyword arguments in `ActionDispatch::IntegrationTest#process`,
+    `#get`, `#post`, `#patch`, `#put`, `#delete`, and `#head`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActionDispatch::IntegrationTest#*_via_redirect`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActionDispatch::IntegrationTest#xml_http_request`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support for passing `:path` and route path as strings in `ActionDispatch::Routing::Mapper#match`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support for passing path as `nil` in `ActionDispatch::Routing::Mapper#match`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `cache_control` argument from `ActionDispatch::Static#initialize`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to passing strings or symbols to the middleware stack.
+
+    *Rafael Mendonça França*
+
+*   Change HSTS subdomain to true.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `host` and `port` ssl options.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `const_error` argument in
+    `ActionDispatch::Session::SessionRestoreError#initialize`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `#original_exception` in `ActionDispatch::Session::SessionRestoreError`.
+
+    *Rafael Mendonça França*
+
+*   Deprecate `ActionDispatch::ParamsParser::ParseError` in favor of
+    `ActionDispatch::Http::Parameters::ParseError`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActionDispatch::ParamsParser`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `original_exception` and `message` arguments in
+    `ActionDispatch::ParamsParser::ParseError#initialize`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `#original_exception` in `ActionDispatch::ParamsParser::ParseError`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated access to mime types through constants.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to non-keyword arguments in `ActionController::TestCase#process`,
+    `#get`, `#post`, `#patch`, `#put`, `#delete`, and `#head`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `xml_http_request` and `xhr` methods in `ActionController::TestCase`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated methods in `ActionController::Parameters`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to comparing a `ActionController::Parameters`
+    with a `Hash`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to `:text` in `render`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to `:nothing` in `render`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to `:back` in `redirect_to`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to passing status as option `head`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to passing original exception to `ActionController::BadRequest`
+    and the `ActionController::BadRequest#original_exception` method.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated methods `skip_action_callback`, `skip_filter`, `before_filter`,
+    `prepend_before_filter`, `skip_before_filter`, `append_before_filter`, `around_filter`
+    `prepend_around_filter`, `skip_around_filter`, `append_around_filter`, `after_filter`,
+    `prepend_after_filter`, `skip_after_filter` and `append_after_filter`.
+
+    *Rafael Mendonça França*
+
+*   Show an "unmatched constraints" error when params fail to match constraints
+    on a matched route, rather than a "missing keys" error.
+
+    Fixes #26470.
+
+    *Chris Carter*
+
+*   Fix adding implicitly rendered template digests to ETags.
+
+    Fixes a case when modifying an implicitly rendered template for a
+    controller action using `fresh_when` or `stale?` would not result in a new
+    `ETag` value.
+
+    *Javan Makhmali*
+
 *   Make `fixture_file_upload` work in integration tests.
 
     *Yuji Yaginuma*

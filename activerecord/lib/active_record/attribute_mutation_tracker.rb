@@ -1,7 +1,10 @@
 module ActiveRecord
   class AttributeMutationTracker # :nodoc:
+    OPTION_NOT_GIVEN = Object.new
+
     def initialize(attributes)
       @attributes = attributes
+      @forced_changes = Set.new
     end
 
     def changed_values
@@ -14,15 +17,29 @@ module ActiveRecord
 
     def changes
       attr_names.each_with_object({}.with_indifferent_access) do |attr_name, result|
-        if changed?(attr_name)
-          result[attr_name] = [attributes[attr_name].original_value, attributes.fetch_value(attr_name)]
+        change = change_to_attribute(attr_name)
+        if change
+          result[attr_name] = change
         end
       end
     end
 
-    def changed?(attr_name)
+    def change_to_attribute(attr_name)
+      if changed?(attr_name)
+        [attributes[attr_name].original_value, attributes.fetch_value(attr_name)]
+      end
+    end
+
+    def any_changes?
+      attr_names.any? { |attr| changed?(attr) }
+    end
+
+    def changed?(attr_name, from: OPTION_NOT_GIVEN, to: OPTION_NOT_GIVEN)
       attr_name = attr_name.to_s
-      attributes[attr_name].changed?
+      forced_changes.include?(attr_name) ||
+        attributes[attr_name].changed? &&
+        (OPTION_NOT_GIVEN == from || attributes[attr_name].original_value == from) &&
+        (OPTION_NOT_GIVEN == to || attributes[attr_name].value == to)
     end
 
     def changed_in_place?(attr_name)
@@ -32,11 +49,20 @@ module ActiveRecord
     def forget_change(attr_name)
       attr_name = attr_name.to_s
       attributes[attr_name] = attributes[attr_name].forgetting_assignment
+      forced_changes.delete(attr_name)
+    end
+
+    def original_value(attr_name)
+      attributes[attr_name].original_value
+    end
+
+    def force_change(attr_name)
+      forced_changes << attr_name.to_s
     end
 
     protected
 
-      attr_reader :attributes
+      attr_reader :attributes, :forced_changes
 
     private
 
@@ -48,12 +74,19 @@ module ActiveRecord
   class NullMutationTracker # :nodoc:
     include Singleton
 
-    def changed_values
+    def changed_values(*)
       {}
     end
 
-    def changes
+    def changes(*)
       {}
+    end
+
+    def change_to_attribute(attr_name)
+    end
+
+    def any_changes?(*)
+      false
     end
 
     def changed?(*)
@@ -65,6 +98,9 @@ module ActiveRecord
     end
 
     def forget_change(*)
+    end
+
+    def original_value(*)
     end
   end
 end

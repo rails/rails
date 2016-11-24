@@ -17,7 +17,7 @@ module ActionView
             @input_html_options = input_html_options
           end
 
-          def label(label_html_options={}, &block)
+          def label(label_html_options = {}, &block)
             html_options = @input_html_options.slice(:index, :namespace).merge(label_html_options)
             html_options[:for] ||= @input_html_options[:id] if @input_html_options[:id]
 
@@ -41,8 +41,8 @@ module ActionView
                               sanitize_attribute_name(value), text, value, html_options)
           end
 
-        # Generate default options for collection helpers, such as :checked and
-        # :disabled.
+          # Generate default options for collection helpers, such as :checked and
+          # :disabled.
           def default_html_options_for_collection(item, value) #:nodoc:
             html_options = @html_options.dup
 

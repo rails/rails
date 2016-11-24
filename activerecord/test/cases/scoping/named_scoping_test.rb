@@ -33,8 +33,8 @@ class NamedScopingTest < ActiveRecord::TestCase
     all_posts.to_a
 
     new_post = Topic.create!
-    assert !all_posts.include?(new_post)
-    assert all_posts.reload.include?(new_post)
+    assert_not_includes all_posts, new_post
+    assert_includes all_posts.reload, new_post
   end
 
   def test_delegates_finds_and_calculations_to_the_base_class
@@ -119,8 +119,8 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_scope_with_STI
-    assert_equal 3,Post.containing_the_letter_a.count
-    assert_equal 1,SpecialPost.containing_the_letter_a.count
+    assert_equal 3, Post.containing_the_letter_a.count
+    assert_equal 1, SpecialPost.containing_the_letter_a.count
   end
 
   def test_has_many_through_associations_have_access_to_scopes

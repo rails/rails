@@ -57,7 +57,7 @@ module ActionCable
         @worker_pool = server.worker_pool
         @logger = new_tagged_logger
 
-        @websocket      = ActionCable::Connection::WebSocket.new(env, self, event_loop, server.config.client_socket_class)
+        @websocket      = ActionCable::Connection::WebSocket.new(env, self, event_loop)
         @subscriptions  = ActionCable::Connection::Subscriptions.new(self)
         @message_buffer = ActionCable::Connection::MessageBuffer.new(self)
 
@@ -105,7 +105,7 @@ module ActionCable
         worker_pool.async_invoke(self, method, *arguments)
       end
 
-      # Return a basic hash of statistics for the connection keyed with `identifier`, `started_at`, and `subscriptions`.
+      # Return a basic hash of statistics for the connection keyed with <tt>identifier</tt>, <tt>started_at</tt>, <tt>subscriptions</tt>, and <tt>request_id</tt>.
       # This can be returned by a health check against the connection.
       def statistics
         {
@@ -195,7 +195,10 @@ module ActionCable
         def allow_request_origin?
           return true if server.config.disable_request_forgery_protection
 
-          if Array(server.config.allowed_request_origins).any? { |allowed_origin|  allowed_origin === env["HTTP_ORIGIN"] }
+          proto = Rack::Request.new(env).ssl? ? "https" : "http"
+          if server.config.allow_same_origin_as_host && env["HTTP_ORIGIN"] == "#{proto}://#{env['HTTP_HOST']}"
+            true
+          elsif Array(server.config.allowed_request_origins).any? { |allowed_origin|  allowed_origin === env["HTTP_ORIGIN"] }
             true
           else
             logger.error("Request origin not allowed: #{env['HTTP_ORIGIN']}")

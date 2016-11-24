@@ -55,7 +55,7 @@ module ActionController
           list     = except
         end
 
-        Middleware.new(get_class(klass), args, list, strategy, block)
+        Middleware.new(klass, args, list, strategy, block)
       end
   end
 

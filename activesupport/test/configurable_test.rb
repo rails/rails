@@ -121,11 +121,11 @@ class ConfigurableActiveSupport < ActiveSupport::TestCase
 
   def assert_method_defined(object, method)
     methods = object.public_methods.map(&:to_s)
-    assert methods.include?(method.to_s), "Expected #{methods.inspect} to include #{method.to_s.inspect}"
+    assert_includes methods, method.to_s, "Expected #{methods.inspect} to include #{method.to_s.inspect}"
   end
 
   def assert_method_not_defined(object, method)
     methods = object.public_methods.map(&:to_s)
-    assert !methods.include?(method.to_s), "Expected #{methods.inspect} to not include #{method.to_s.inspect}"
+    assert_not_includes methods, method.to_s, "Expected #{methods.inspect} to not include #{method.to_s.inspect}"
   end
 end

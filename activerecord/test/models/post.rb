@@ -47,7 +47,7 @@ class Post < ActiveRecord::Base
 
   scope :typographically_interesting, -> { containing_the_letter_a.or(titled_with_an_apostrophe) }
 
-  has_many   :comments do
+  has_many :comments do
     def find_most_recent
       order("id DESC").first
     end
@@ -168,7 +168,7 @@ class Post < ActiveRecord::Base
     @log = []
   end
 
-  def self.log(message=nil, side=nil, new_record=nil)
+  def self.log(message = nil, side = nil, new_record = nil)
     return @log if message.nil?
     @log << [message, side, new_record]
   end
@@ -231,7 +231,7 @@ end
 class SpecialPostWithDefaultScope < ActiveRecord::Base
   self.inheritance_column = :disabled
   self.table_name = "posts"
-  default_scope { where(id: [1, 5,6]) }
+  default_scope { where(id: [1, 5, 6]) }
 end
 
 class PostThatLoadsCommentsInAnAfterSaveHook < ActiveRecord::Base

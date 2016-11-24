@@ -63,6 +63,27 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     assert @connection.active?
   end
 
+  def test_execute_after_disconnect
+    @connection.disconnect!
+
+    assert_raise(ActiveRecord::StatementInvalid) do
+      @connection.execute("SELECT 1")
+    end
+  end
+
+  def test_quote_after_disconnect
+    @connection.disconnect!
+
+    assert_raise(Mysql2::Error) do
+      @connection.quote("string")
+    end
+  end
+
+  def test_active_after_disconnect
+    @connection.disconnect!
+    assert_equal false, @connection.active?
+  end
+
   def test_mysql_connection_collation_is_configured
     assert_equal "utf8_unicode_ci", @connection.show_variable("collation_connection")
     assert_equal "utf8_general_ci", ARUnit2Model.connection.show_variable("collation_connection")
@@ -101,7 +122,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   def test_passing_arbitary_flags_to_adapter
     run_without_connection do |orig_connection|
       ActiveRecord::Base.establish_connection(orig_connection.merge(flags: Mysql2::Client::COMPRESS))
-      assert_equal (Mysql2::Client::COMPRESS |  Mysql2::Client::FOUND_ROWS), ActiveRecord::Base.connection.raw_connection.query_options[:flags]
+      assert_equal (Mysql2::Client::COMPRESS | Mysql2::Client::FOUND_ROWS), ActiveRecord::Base.connection.raw_connection.query_options[:flags]
     end
   end
 

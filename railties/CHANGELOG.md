@@ -1,3 +1,26 @@
+*   Removed jquery-rails from default stack, instead rails-ujs is
+    included as default UJS adapter.
+
+    *Guillermo Iguaran*
+
+*   The config file `secrets.yml` is now loaded in with all keys as symbols.
+    This allows secrets files to contain more complex information without all
+    child keys being strings while parent keys are symbols.
+
+    *Isaac Sloan*
+
+*   Add `:skip_sprockets` to `Rails::PluginBuilder::PASSTHROUGH_OPTIONS`
+
+    *Tsukuru Tanimichi*
+
+*   Allow the use of listen's 3.1.x branch
+
+    *Esteban Santana Santana*
+
+*   Run `Minitest.after_run` hooks when running `rails test`.
+
+    *Michael Grosser*
+
 *   Run `before_configuration` callbacks as soon as application constant
     inherits from `Rails::Application`.
 

@@ -129,22 +129,22 @@ class OrderedHashTest < ActiveSupport::TestCase
     copy = @ordered_hash.dup
     copy.delete("pink")
     assert_equal copy, @ordered_hash.delete_if { |k, _| k == "pink" }
-    assert !@ordered_hash.keys.include?("pink")
+    assert_not_includes @ordered_hash.keys, "pink"
   end
 
   def test_reject!
     (copy = @ordered_hash.dup).delete("pink")
     @ordered_hash.reject! { |k, _| k == "pink" }
     assert_equal copy, @ordered_hash
-    assert !@ordered_hash.keys.include?("pink")
+    assert_not_includes @ordered_hash.keys, "pink"
   end
 
   def test_reject
     copy = @ordered_hash.dup
     new_ordered_hash = @ordered_hash.reject { |k, _| k == "pink" }
     assert_equal copy, @ordered_hash
-    assert !new_ordered_hash.keys.include?("pink")
-    assert @ordered_hash.keys.include?("pink")
+    assert_not_includes new_ordered_hash.keys, "pink"
+    assert_includes @ordered_hash.keys, "pink"
     assert_instance_of ActiveSupport::OrderedHash, new_ordered_hash
   end
 
@@ -154,7 +154,7 @@ class OrderedHashTest < ActiveSupport::TestCase
   end
 
   def test_merge
-    other_hash =  ActiveSupport::OrderedHash.new
+    other_hash = ActiveSupport::OrderedHash.new
     other_hash["purple"] = "800080"
     other_hash["violet"] = "ee82ee"
     merged = @ordered_hash.merge other_hash
@@ -191,7 +191,7 @@ class OrderedHashTest < ActiveSupport::TestCase
   def test_shift
     pair = @ordered_hash.shift
     assert_equal [@keys.first, @values.first], pair
-    assert !@ordered_hash.keys.include?(pair.first)
+    assert_not_includes @ordered_hash.keys, pair.first
   end
 
   def test_keys
@@ -201,7 +201,7 @@ class OrderedHashTest < ActiveSupport::TestCase
   end
 
   def test_inspect
-    assert @ordered_hash.inspect.include?(@hash.inspect)
+    assert_includes @ordered_hash.inspect, @hash.inspect
   end
 
   def test_json
@@ -211,7 +211,7 @@ class OrderedHashTest < ActiveSupport::TestCase
   end
 
   def test_alternate_initialization_with_splat
-    alternate = ActiveSupport::OrderedHash[1,2,3,4]
+    alternate = ActiveSupport::OrderedHash[1, 2, 3, 4]
     assert_kind_of ActiveSupport::OrderedHash, alternate
     assert_equal [1, 3], alternate.keys
   end
@@ -230,7 +230,7 @@ class OrderedHashTest < ActiveSupport::TestCase
 
   def test_alternate_initialization_raises_exception_on_odd_length_args
     assert_raises ArgumentError do
-      ActiveSupport::OrderedHash[1,2,3,4,5]
+      ActiveSupport::OrderedHash[1, 2, 3, 4, 5]
     end
   end
 

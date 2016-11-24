@@ -184,14 +184,14 @@ module ActiveRecord
 
       def test_checkout_behaviour
         pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
-        connection = pool.connection
-        assert_not_nil connection
+        main_connection = pool.connection
+        assert_not_nil main_connection
         threads = []
         4.times do |i|
           threads << Thread.new(i) do
-            connection = pool.connection
-            assert_not_nil connection
-            connection.close
+            thread_connection = pool.connection
+            assert_not_nil thread_connection
+            thread_connection.close
           end
         end
 
@@ -487,12 +487,6 @@ module ActiveRecord
             #--- post test clean up start
             second_thread_done.count_down if failed
 
-            # after `pool.disconnect()` the first thread will be left stuck in queue, no need to wait for
-            # it to timeout with ConnectionTimeoutError
-            if (group_action_method == :disconnect || group_action_method == :disconnect!) && pool.num_waiting_in_queue > 0
-              pool.with_connection {} # create a new connection in case there are threads still stuck in a queue
-            end
-
             first_thread.join
             second_thread.join
             #--- post test clean up end
@@ -523,6 +517,26 @@ module ActiveRecord
           end
 
           assert_equal 0, pool.num_waiting_in_queue
+        end
+      end
+
+      def test_connection_pool_stat
+        with_single_connection_pool do |pool|
+          pool.with_connection do |connection|
+            stats = pool.stat
+            assert_equal({ size: 1, connections: 1, busy: 1, dead: 0, idle: 0, waiting: 0, checkout_timeout: 5 }, stats)
+          end
+
+          stats = pool.stat
+          assert_equal({ size: 1, connections: 1, busy: 0, dead: 0, idle: 1, waiting: 0, checkout_timeout: 5 }, stats)
+
+          Thread.new do
+            pool.checkout
+            Thread.current.kill
+          end.join
+
+          stats = pool.stat
+          assert_equal({ size: 1, connections: 1, busy: 0, dead: 1, idle: 0, waiting: 0, checkout_timeout: 5 }, stats)
         end
       end
 

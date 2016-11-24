@@ -120,7 +120,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_nothing_raised { MixedCaseMonkey.find(1) }
   end
   def test_find_with_multiple_ids_should_quote_pkey
-    assert_nothing_raised { MixedCaseMonkey.find([1,2]) }
+    assert_nothing_raised { MixedCaseMonkey.find([1, 2]) }
   end
   def test_instance_update_should_quote_pkey
     assert_nothing_raised { MixedCaseMonkey.find(1).save }
@@ -154,7 +154,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   end
 
   def test_quoted_primary_key_after_set_primary_key
-    k = Class.new( ActiveRecord::Base )
+    k = Class.new(ActiveRecord::Base)
     assert_equal k.connection.quote_column_name("id"), k.quoted_primary_key
     k.primary_key = "foo"
     assert_equal k.connection.quote_column_name("foo"), k.quoted_primary_key

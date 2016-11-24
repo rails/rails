@@ -131,7 +131,7 @@ class ResponseTest < ActiveSupport::TestCase
   def test_only_set_charset_still_defaults_to_text_html
     response = ActionDispatch::Response.new
     response.charset = "utf-16"
-    _,headers,_ = response.to_a
+    _, headers, _ = response.to_a
     assert_equal "text/html; charset=utf-16", headers["Content-Type"]
   end
 
@@ -229,7 +229,7 @@ class ResponseTest < ActiveSupport::TestCase
 
   test "multiple cookies" do
     @response.set_cookie("user_name", value: "david", path: "/")
-    @response.set_cookie("login", value: "foo&bar", path: "/", expires: Time.utc(2005, 10, 10,5))
+    @response.set_cookie("login", value: "foo&bar", path: "/", expires: Time.utc(2005, 10, 10, 5))
     _status, headers, _body = @response.to_a
     assert_equal "user_name=david; path=/\nlogin=foo%26bar; path=/; expires=Mon, 10 Oct 2005 05:00:00 -0000", headers["Set-Cookie"]
     assert_equal({ "login" => "foo&bar", "user_name" => "david" }, @response.cookies)
@@ -237,7 +237,7 @@ class ResponseTest < ActiveSupport::TestCase
 
   test "delete cookies" do
     @response.set_cookie("user_name", value: "david", path: "/")
-    @response.set_cookie("login", value: "foo&bar", path: "/", expires: Time.utc(2005, 10, 10,5))
+    @response.set_cookie("login", value: "foo&bar", path: "/", expires: Time.utc(2005, 10, 10, 5))
     @response.delete_cookie("login")
     assert_equal({ "user_name" => "david", "login" => nil }, @response.cookies)
   end

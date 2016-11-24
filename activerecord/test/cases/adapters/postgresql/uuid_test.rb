@@ -9,6 +9,10 @@ module PostgresqlUUIDHelper
   def drop_table(name)
     connection.drop_table name, if_exists: true
   end
+
+  def uuid_function
+    connection.supports_pgcrypto_uuid? ? "gen_random_uuid()" : "uuid_generate_v4()"
+  end
 end
 
 class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
@@ -21,6 +25,7 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
 
   setup do
     enable_extension!("uuid-ossp", connection)
+    enable_extension!("pgcrypto",  connection) if connection.supports_pgcrypto_uuid?
 
     connection.create_table "uuid_data_type" do |t|
       t.uuid "guid"
@@ -31,19 +36,27 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
     drop_table "uuid_data_type"
   end
 
-  def test_change_column_default
-    @connection.add_column :uuid_data_type, :thingy, :uuid, null: false, default: "uuid_generate_v1()"
-    UUIDType.reset_column_information
-    column = UUIDType.columns_hash["thingy"]
-    assert_equal "uuid_generate_v1()", column.default_function
+  if ActiveRecord::Base.connection.supports_pgcrypto_uuid?
+    def test_uuid_column_default
+      connection.add_column :uuid_data_type, :thingy, :uuid, null: false, default: "gen_random_uuid()"
+      UUIDType.reset_column_information
+      column = UUIDType.columns_hash["thingy"]
+      assert_equal "gen_random_uuid()", column.default_function
+    end
+  else
+    def test_change_column_default
+      connection.add_column :uuid_data_type, :thingy, :uuid, null: false, default: "uuid_generate_v1()"
+      UUIDType.reset_column_information
+      column = UUIDType.columns_hash["thingy"]
+      assert_equal "uuid_generate_v1()", column.default_function
 
-    @connection.change_column :uuid_data_type, :thingy, :uuid, null: false, default: "uuid_generate_v4()"
-
-    UUIDType.reset_column_information
-    column = UUIDType.columns_hash["thingy"]
-    assert_equal "uuid_generate_v4()", column.default_function
-  ensure
-    UUIDType.reset_column_information
+      connection.change_column :uuid_data_type, :thingy, :uuid, null: false, default: "uuid_generate_v4()"
+      UUIDType.reset_column_information
+      column = UUIDType.columns_hash["thingy"]
+      assert_equal "uuid_generate_v4()", column.default_function
+    ensure
+      UUIDType.reset_column_information
+    end
   end
 
   def test_data_type_of_uuid_types
@@ -155,7 +168,7 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
     # to test dumping tables which columns have defaults with custom functions
     connection.execute <<-SQL
     CREATE OR REPLACE FUNCTION my_uuid_generator() RETURNS uuid
-    AS $$ SELECT * FROM uuid_generate_v4() $$
+    AS $$ SELECT * FROM #{uuid_function} $$
     LANGUAGE SQL VOLATILE;
     SQL
 
@@ -164,11 +177,16 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
       t.string "name"
       t.uuid "other_uuid_2", default: "my_uuid_generator()"
     end
+
+    connection.create_table("pg_uuids_3", id: :uuid) do |t|
+      t.string "name"
+    end
   end
 
   teardown do
     drop_table "pg_uuids"
     drop_table "pg_uuids_2"
+    drop_table "pg_uuids_3"
     connection.execute "DROP FUNCTION IF EXISTS my_uuid_generator();"
   end
 
@@ -205,6 +223,33 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
       schema = dump_table_schema "pg_uuids_2"
       assert_match(/\bcreate_table "pg_uuids_2", id: :uuid, default: -> { "my_uuid_generator\(\)" }/, schema)
       assert_match(/t\.uuid "other_uuid_2", default: -> { "my_uuid_generator\(\)" }/, schema)
+    end
+
+    def test_schema_dumper_for_uuid_primary_key_default
+      schema = dump_table_schema "pg_uuids_3"
+      if connection.supports_pgcrypto_uuid?
+        assert_match(/\bcreate_table "pg_uuids_3", id: :uuid, default: -> { "gen_random_uuid\(\)" }/, schema)
+      else
+        assert_match(/\bcreate_table "pg_uuids_3", id: :uuid, default: -> { "uuid_generate_v4\(\)" }/, schema)
+      end
+    end
+
+    if ActiveRecord::Base.connection.supports_pgcrypto_uuid?
+      def test_schema_dumper_for_uuid_primary_key_default_in_legacy_migration
+        migration = Class.new(ActiveRecord::Migration[4.2]) do
+          def version; 101 end
+          def migrate(x)
+            create_table("pg_uuids_4", id: :uuid)
+          end
+        end.new
+        ActiveRecord::Migrator.new(:up, [migration]).migrate
+
+        schema = dump_table_schema "pg_uuids_4"
+        assert_match(/\bcreate_table "pg_uuids_4", id: :uuid, default: -> { "uuid_generate_v4\(\)" }/, schema)
+      ensure
+        drop_table "pg_uuids_4"
+      end
+    else
     end
   end
 end

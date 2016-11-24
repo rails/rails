@@ -194,7 +194,7 @@ class UrlOptionsTest < ActionController::TestCase
         get "account/overview"
       end
 
-      assert !@controller.class.action_methods.include?("account_overview_path")
+      assert_not_includes @controller.class.action_methods, "account_overview_path"
     end
   end
 end

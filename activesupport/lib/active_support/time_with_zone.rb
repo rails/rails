@@ -80,7 +80,7 @@ module ActiveSupport
 
     # Returns a <tt>Time</tt> instance of the simultaneous time in the system timezone.
     def localtime(utc_offset = nil)
-      @localtime ||= utc.getlocal(utc_offset)
+      utc.getlocal(utc_offset)
     end
     alias_method :getlocal, :localtime
 
@@ -133,7 +133,7 @@ module ActiveSupport
       period.zone_identifier.to_s
     end
 
-    # Returns a string of the object's date, time, zone and offset from UTC.
+    # Returns a string of the object's date, time, zone, and offset from UTC.
     #
     #   Time.zone.now.inspect # => "Thu, 04 Dec 2014 11:00:25 EST -05:00"
     def inspect
@@ -279,6 +279,7 @@ module ActiveSupport
       end
     end
     alias_method :since, :+
+    alias_method :in, :+
 
     # Returns a new TimeWithZone object that represents the difference between
     # the current object's time and the +other+ time.
@@ -476,6 +477,8 @@ module ActiveSupport
       end
 
       def transfer_time_values_to_utc_constructor(time)
+        # avoid creating another Time object if possible
+        return time if time.instance_of?(::Time) && time.utc?
         ::Time.utc(time.year, time.month, time.day, time.hour, time.min, time.sec + time.subsec)
       end
 

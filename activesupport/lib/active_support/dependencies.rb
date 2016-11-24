@@ -6,7 +6,6 @@ require "active_support/core_ext/module/aliasing"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/module/introspection"
 require "active_support/core_ext/module/anonymous"
-require "active_support/core_ext/module/qualified_const"
 require "active_support/core_ext/object/blank"
 require "active_support/core_ext/kernel/reporting"
 require "active_support/core_ext/load_error"
@@ -108,7 +107,7 @@ module ActiveSupport #:nodoc:
 
       def initialize
         @watching = []
-        @stack = Hash.new { |h,k| h[k] = [] }
+        @stack = Hash.new { |h, k| h[k] = [] }
       end
 
       def each(&block)

@@ -2,6 +2,7 @@ module ActiveSupport
   module Testing
     module Isolation
       require "thread"
+      require "shellwords"
 
       def self.included(klass) #:nodoc:
         klass.class_eval do
@@ -80,7 +81,7 @@ module ActiveSupport
 
               load_paths = $-I.map { |p| "-I\"#{File.expand_path(p)}\"" }.join(" ")
               orig_args = ORIG_ARGV.join(" ")
-              test_opts = "-n#{self.class.name}##{self.name}"
+              test_opts = "-n#{self.class.name}##{Shellwords.escape(self.name)}"
               command = "#{Gem.ruby} #{load_paths} #{$0} '#{orig_args}' #{test_opts}"
 
               # IO.popen lets us pass env in a cross-platform way

@@ -12,6 +12,14 @@ module ActionDispatch
         }
       }
 
+      # Raised when raw data from the request cannot be parsed by the parser
+      # defined for request's content mime type.
+      class ParseError < StandardError
+        def initialize
+          super($!.message)
+        end
+      end
+
       included do
         class << self
           attr_reader :parameter_parsers
@@ -91,7 +99,7 @@ module ActionDispatch
             my_logger = logger || ActiveSupport::Logger.new($stderr)
             my_logger.debug "Error occurred while parsing request parameters.\nContents:\n\n#{raw_post}"
 
-            raise ParamsParser::ParseError
+            raise ParseError
           end
         end
 
@@ -99,5 +107,9 @@ module ActionDispatch
           ActionDispatch::Request.parameter_parsers
         end
     end
+  end
+
+  module ParamsParser
+    ParseError = ActiveSupport::Deprecation::DeprecatedConstantProxy.new("ActionDispatch::ParamsParser::ParseError", "ActionDispatch::Http::Parameters::ParseError")
   end
 end

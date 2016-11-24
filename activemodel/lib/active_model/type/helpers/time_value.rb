@@ -33,7 +33,7 @@ module ActiveModel
         def apply_seconds_precision(value)
           return value unless precision && value.respond_to?(:usec)
           number_of_insignificant_digits = 6 - precision
-          round_power = 10 ** number_of_insignificant_digits
+          round_power = 10**number_of_insignificant_digits
           value.change(usec: value.usec / round_power * round_power)
         end
 
@@ -64,7 +64,7 @@ module ActiveModel
 
           ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(\.\d+)?\z/
 
-        # Doesn't handle time zones.
+          # Doesn't handle time zones.
           def fast_string_to_time(string)
             if string =~ ISO_DATETIME
               microsec = ($7.to_r * 1_000_000).to_i

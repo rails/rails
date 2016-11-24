@@ -341,7 +341,7 @@ class DirtyTest < ActiveRecord::TestCase
 
   def test_partial_update_with_optimistic_locking
     person = Person.new(first_name: "foo")
-    old_lock_version = 1
+    old_lock_version = person.lock_version
 
     with_partial_writes Person, false do
       assert_queries(2) { 2.times { person.save! } }
@@ -495,8 +495,8 @@ class DirtyTest < ActiveRecord::TestCase
     assert_equal 4, pirate.previous_changes.size
     assert_equal [nil, "arrr"], pirate.previous_changes["catchphrase"]
     assert_equal [nil, pirate.id], pirate.previous_changes["id"]
-    assert pirate.previous_changes.include?("updated_on")
-    assert pirate.previous_changes.include?("created_on")
+    assert_includes pirate.previous_changes, "updated_on"
+    assert_includes pirate.previous_changes, "created_on"
     assert !pirate.previous_changes.key?("parrot_id")
 
     pirate.catchphrase = "Yar!!"
@@ -631,7 +631,7 @@ class DirtyTest < ActiveRecord::TestCase
     assert_equal("arrrr", pirate.catchphrase_was)
     assert pirate.catchphrase_changed?(from: "arrrr")
     assert_not pirate.catchphrase_changed?(from: "anything else")
-    assert pirate.changed_attributes.include?(:catchphrase)
+    assert_includes pirate.changed_attributes, :catchphrase
 
     pirate.save!
     pirate.reload
@@ -724,6 +724,89 @@ class DirtyTest < ActiveRecord::TestCase
 
     person.first_name = nil
     assert person.changed?
+  end
+
+  test "saved_change_to_attribute? returns whether a change occurred in the last save" do
+    person = Person.create!(first_name: "Sean")
+
+    assert person.saved_change_to_first_name?
+    refute person.saved_change_to_gender?
+    assert person.saved_change_to_first_name?(from: nil, to: "Sean")
+    assert person.saved_change_to_first_name?(from: nil)
+    assert person.saved_change_to_first_name?(to: "Sean")
+    refute person.saved_change_to_first_name?(from: "Jim", to: "Sean")
+    refute person.saved_change_to_first_name?(from: "Jim")
+    refute person.saved_change_to_first_name?(to: "Jim")
+  end
+
+  test "saved_change_to_attribute returns the change that occurred in the last save" do
+    person = Person.create!(first_name: "Sean", gender: "M")
+
+    assert_equal [nil, "Sean"], person.saved_change_to_first_name
+    assert_equal [nil, "M"], person.saved_change_to_gender
+
+    person.update(first_name: "Jim")
+
+    assert_equal ["Sean", "Jim"], person.saved_change_to_first_name
+    assert_nil person.saved_change_to_gender
+  end
+
+  test "attribute_before_last_save returns the original value before saving" do
+    person = Person.create!(first_name: "Sean", gender: "M")
+
+    assert_nil person.first_name_before_last_save
+    assert_nil person.gender_before_last_save
+
+    person.first_name = "Jim"
+
+    assert_nil person.first_name_before_last_save
+    assert_nil person.gender_before_last_save
+
+    person.save
+
+    assert_equal "Sean", person.first_name_before_last_save
+    assert_equal "M", person.gender_before_last_save
+  end
+
+  test "saved_changes? returns whether the last call to save changed anything" do
+    person = Person.create!(first_name: "Sean")
+
+    assert person.saved_changes?
+
+    person.save
+
+    refute person.saved_changes?
+  end
+
+  test "saved_changes returns a hash of all the changes that occurred" do
+    person = Person.create!(first_name: "Sean", gender: "M")
+
+    assert_equal [nil, "Sean"], person.saved_changes[:first_name]
+    assert_equal [nil, "M"], person.saved_changes[:gender]
+    assert_equal %w(id first_name gender created_at updated_at).sort, person.saved_changes.keys.sort
+
+    travel(1.second) do
+      person.update(first_name: "Jim")
+    end
+
+    assert_equal ["Sean", "Jim"], person.saved_changes[:first_name]
+    assert_equal %w(first_name lock_version updated_at).sort, person.saved_changes.keys.sort
+  end
+
+  test "changed? in after callbacks returns true but is deprecated" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "people"
+
+      after_save do
+        ActiveSupport::Deprecation.silence do
+          raise "changed? should be true" unless changed?
+        end
+        raise "has_changes_to_save? should be false" if has_changes_to_save?
+      end
+    end
+
+    person = klass.create!(first_name: "Sean")
+    refute person.changed?
   end
 
   private

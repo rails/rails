@@ -98,6 +98,7 @@ ActiveRecord::Schema.define do
     t.column :author_visibility, :integer, default: 0
     t.column :illustrator_visibility, :integer, default: 0
     t.column :font_size, :integer, default: 0
+    t.column :difficulty, :integer, default: 0
     t.column :cover, :string, default: "hard"
   end
 
@@ -196,7 +197,7 @@ ActiveRecord::Schema.define do
     t.integer :rating, default: 1
     t.integer :account_id
     t.string :description, default: ""
-    t.index [:firm_id, :type, :rating], name: "company_index"
+    t.index [:firm_id, :type, :rating], name: "company_index", length: { type: 10 }, order: { rating: :desc }
     t.index [:firm_id, :type], name: "company_partial_index", where: "rating > 10"
     t.index :name, name: "company_name_index", using: :btree
     t.index "lower(name)", name: "company_expression_index" if supports_expression_index?
@@ -435,10 +436,12 @@ ActiveRecord::Schema.define do
   end
 
   create_table :lock_without_defaults, force: true do |t|
+    t.column :title, :string
     t.column :lock_version, :integer
   end
 
   create_table :lock_without_defaults_cust, force: true do |t|
+    t.column :title, :string
     t.column :custom_lock_version, :integer
   end
 
@@ -902,7 +905,6 @@ ActiveRecord::Schema.define do
     create_table(t, force: true) {}
   end
 
-  # NOTE - the following 4 tables are used by models that have :inverse_of options on the associations
   create_table :men, force: true do |t|
     t.string  :name
   end
@@ -926,12 +928,12 @@ ActiveRecord::Schema.define do
     t.integer :zine_id
   end
 
-  create_table :wheels, force: true do |t|
-    t.references :wheelable, polymorphic: true
-  end
-
   create_table :zines, force: true do |t|
     t.string :title
+  end
+
+  create_table :wheels, force: true do |t|
+    t.references :wheelable, polymorphic: true
   end
 
   create_table :countries, force: true, id: false, primary_key: "country_id" do |t|

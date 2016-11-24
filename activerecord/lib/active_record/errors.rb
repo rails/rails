@@ -43,7 +43,7 @@ module ActiveRecord
 
   # Raised when connection to the database could not been established (for example when
   # {ActiveRecord::Base.connection=}[rdoc-ref:ConnectionHandling#connection]
-  # is given a nil object).
+  # is given a +nil+ object).
   class ConnectionNotEstablished < ActiveRecordError
   end
 

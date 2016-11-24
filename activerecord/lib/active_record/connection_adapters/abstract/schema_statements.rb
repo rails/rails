@@ -120,7 +120,7 @@ module ActiveRecord
         checks = []
         checks << lambda { |c| c.name == column_name }
         checks << lambda { |c| c.type == type } if type
-        (migration_keys - [:name]).each do |attr|
+        migration_keys.each do |attr|
           checks << lambda { |c| c.send(attr) == options[attr] } if options.key?(attr)
         end
 
@@ -284,10 +284,10 @@ module ActiveRecord
         end
 
         if supports_comments? && !supports_comments_in_create?
-          change_table_comment(table_name, comment) if comment
+          change_table_comment(table_name, comment) if comment.present?
 
           td.columns.each do |column|
-            change_column_comment(table_name, column.name, column.comment) if column.comment
+            change_column_comment(table_name, column.name, column.comment) if column.comment.present?
           end
         end
 
@@ -511,7 +511,7 @@ module ActiveRecord
       #   Default is (38,0).
       # * DB2: <tt>:precision</tt> [1..63], <tt>:scale</tt> [0..62].
       #   Default unknown.
-      # * SqlServer?: <tt>:precision</tt> [1..38], <tt>:scale</tt> [0..38].
+      # * SqlServer: <tt>:precision</tt> [1..38], <tt>:scale</tt> [0..38].
       #   Default (38,0).
       #
       # == Examples
@@ -1116,7 +1116,7 @@ module ActiveRecord
       end
 
       def add_index_options(table_name, column_name, comment: nil, **options) # :nodoc:
-        if column_name.is_a?(String) && /\W/ === column_name
+        if column_name.is_a?(String) && /\W/.match?(column_name)
           column_names = column_name
         else
           column_names = Array(column_name)
@@ -1192,16 +1192,12 @@ module ActiveRecord
         def quoted_columns_for_index(column_names, **options)
           return [column_names] if column_names.is_a?(String)
 
-          quoted_columns = Hash[column_names.map { |name| [name, quote_column_name(name).dup] }]
+          quoted_columns = Hash[column_names.map { |name| [name.to_sym, quote_column_name(name).dup] }]
           add_options_for_index_columns(quoted_columns, options).values
         end
 
         def index_name_for_remove(table_name, options = {})
           return options[:name] if can_remove_index_by_name?(options)
-
-          # if the adapter doesn't support the indexes call the best we can do
-          # is return the default index name for the options provided
-          return index_name(table_name, options) unless respond_to?(:indexes)
 
           checks = []
 

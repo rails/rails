@@ -363,6 +363,12 @@ module CacheStoreBehavior
     assert_equal({ foo => "FOO!", bar => "BAM!" }, values)
   end
 
+  def test_fetch_multi_without_block
+    assert_raises(ArgumentError) do
+      @cache.fetch_multi("foo")
+    end
+  end
+
   def test_read_and_write_compressed_small_data
     @cache.write("foo", "bar", compress: true)
     assert_equal "bar", @cache.read("foo")
@@ -560,12 +566,6 @@ module CacheStoreBehavior
   ensure
     ActiveSupport::Notifications.unsubscribe "cache_read.active_support"
   end
-
-  def test_can_call_deprecated_namesaced_key
-    assert_deprecated "`namespaced_key` is deprecated" do
-      @cache.send(:namespaced_key, 111, {})
-    end
-  end
 end
 
 # https://rails.lighthouseapp.com/projects/8994/tickets/6225-memcachestore-cant-deal-with-umlauts-and-special-characters
@@ -741,15 +741,6 @@ module LocalCacheBehavior
     app = @cache.middleware.new(app)
     app.call({})
   end
-
-  def test_can_call_deprecated_set_cache_value
-    @cache.with_local_cache do
-      assert_deprecated "`set_cache_value` is deprecated" do
-        @cache.send(:set_cache_value, 1, "foo", :ignored, {})
-      end
-      assert_equal 1, @cache.read("foo")
-    end
-  end
 end
 
 module AutoloadingCacheBehavior
@@ -832,8 +823,8 @@ class FileStoreTest < ActiveSupport::TestCase
   end
 
   def test_long_uri_encoded_keys
-    @cache.write("%"*870, 1)
-    assert_equal 1, @cache.read("%"*870)
+    @cache.write("%" * 870, 1)
+    assert_equal 1, @cache.read("%" * 870)
   end
 
   def test_key_transformation
@@ -853,7 +844,7 @@ class FileStoreTest < ActiveSupport::TestCase
     key = "#{'A' * ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE}"
     path = @cache.send(:normalize_key, key, {})
     Dir::Tmpname.create(path) do |tmpname, n, opts|
-      assert File.basename(tmpname+".lock").length <= 255, "Temp filename too long: #{File.basename(tmpname+'.lock').length}"
+      assert File.basename(tmpname + ".lock").length <= 255, "Temp filename too long: #{File.basename(tmpname + '.lock').length}"
     end
   end
 
@@ -911,12 +902,6 @@ class FileStoreTest < ActiveSupport::TestCase
     assert_equal false, @cache.write(1, "aaaaaaaaaa", unless_exist: true)
     @cache.write(1, nil)
     assert_equal false, @cache.write(1, "aaaaaaaaaa", unless_exist: true)
-  end
-
-  def test_can_call_deprecated_key_file_path
-    assert_deprecated "`key_file_path` is deprecated" do
-      assert_equal 111, @cache.send(:key_file_path, 111)
-    end
   end
 end
 
@@ -1091,12 +1076,6 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     assert_not_equal value.object_id, @cache.read("foo").object_id
     value << "bingo"
     assert_not_equal value, @cache.read("foo")
-  end
-
-  def test_can_call_deprecated_escape_key
-    assert_deprecated "`escape_key` is deprecated" do
-      assert_equal 111, @cache.send(:escape_key, 111)
-    end
   end
 end
 

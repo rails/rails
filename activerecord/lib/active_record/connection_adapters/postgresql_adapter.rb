@@ -315,6 +315,10 @@ module ActiveRecord
         postgresql_version >= 90300
       end
 
+      def supports_pgcrypto_uuid?
+        postgresql_version >= 90400
+      end
+
       def get_advisory_lock(lock_id) # :nodoc:
         unless lock_id.is_a?(Integer) && lock_id.bit_length <= 63
           raise(ArgumentError, "Postgres requires advisory lock ids to be a signed 64 bit integer")
@@ -527,7 +531,7 @@ module ActiveRecord
           case default
             # Quoted types
           when /\A[\(B]?'(.*)'.*::"?([\w. ]+)"?(?:\[\])?\z/m
-              # The default 'now'::date is CURRENT_DATE
+            # The default 'now'::date is CURRENT_DATE
             if $1 == "now".freeze && $2 == "date".freeze
               nil
             else
@@ -542,9 +546,9 @@ module ActiveRecord
             # Object identifier types
           when /\A-?\d+\z/
             $1
-            else
-              # Anything else is blank, some user type, or some function
-              # and we can't know the value of that, so return nil.
+          else
+            # Anything else is blank, some user type, or some function
+            # and we can't know the value of that, so return nil.
             nil
           end
         end
@@ -601,7 +605,11 @@ module ActiveRecord
 
         def exec_no_cache(sql, name, binds)
           type_casted_binds = type_casted_binds(binds)
-          log(sql, name, binds, type_casted_binds) { @connection.async_exec(sql, type_casted_binds) }
+          log(sql, name, binds, type_casted_binds) do
+            ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+              @connection.async_exec(sql, type_casted_binds)
+            end
+          end
         end
 
         def exec_cache(sql, name, binds)
@@ -609,7 +617,9 @@ module ActiveRecord
           type_casted_binds = type_casted_binds(binds)
 
           log(sql, name, binds, type_casted_binds, stmt_key) do
-            @connection.exec_prepared(stmt_key, type_casted_binds)
+            ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+              @connection.exec_prepared(stmt_key, type_casted_binds)
+            end
           end
         rescue ActiveRecord::StatementInvalid => e
           raise unless is_cached_plan_failure?(e)
@@ -750,7 +760,7 @@ module ActiveRecord
                      col_description(a.attrelid, a.attnum) AS comment
                 FROM pg_attribute a LEFT JOIN pg_attrdef d
                   ON a.attrelid = d.adrelid AND a.attnum = d.adnum
-               WHERE a.attrelid = '#{quote_table_name(table_name)}'::regclass
+               WHERE a.attrelid = #{quote(quote_table_name(table_name))}::regclass
                  AND a.attnum > 0 AND NOT a.attisdropped
                ORDER BY a.attnum
           end_sql
@@ -771,10 +781,14 @@ module ActiveRecord
             sql = <<-end_sql
               SELECT exists(
                 SELECT * FROM pg_proc
-                INNER JOIN pg_cast
-                  ON casttarget::text::oidvector = proargtypes
                 WHERE proname = 'lower'
-                  AND castsource = '#{column.sql_type}'::regtype::oid
+                  AND proargtypes = ARRAY[#{quote column.sql_type}::regtype]::oidvector
+              ) OR exists(
+                SELECT * FROM pg_proc
+                INNER JOIN pg_cast
+                  ON ARRAY[casttarget]::oidvector = proargtypes
+                WHERE proname = 'lower'
+                  AND castsource = #{quote column.sql_type}::regtype
               )
             end_sql
             execute_and_clear(sql, "SCHEMA", []) do |result|

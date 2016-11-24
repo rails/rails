@@ -31,7 +31,7 @@ module ApplicationTests
       RUBY
 
       require "#{app_path}/config/environment"
-      assert_equal [1,2,3], $initialization_callbacks
+      assert_equal [1, 2, 3], $initialization_callbacks
     end
 
     test "hooks block works correctly with eager_load" do
@@ -46,7 +46,7 @@ module ApplicationTests
       RUBY
 
       require "#{app_path}/config/environment"
-      assert_equal [1,2,3,4], $initialization_callbacks
+      assert_equal [1, 2, 3, 4], $initialization_callbacks
     end
 
     test "after_initialize runs after frameworks have been initialized" do

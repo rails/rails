@@ -243,7 +243,6 @@ module ActiveRecord
     # Please see further details in the
     # {Active Record Query Interface guide}[http://guides.rubyonrails.org/active_record_querying.html#running-explain].
     def explain
-      #TODO: Fix for binds.
       exec_explain(collecting_queries_for_explain { exec_queries })
     end
 
@@ -363,6 +362,9 @@ module ActiveRecord
     #
     #   # Update all books that match conditions, but limit it to 5 ordered by date
     #   Book.where('title LIKE ?', '%Rails%').order(:created_at).limit(5).update_all(author: 'David')
+    #
+    #   # Update all invoices and set the number column to its id value.
+    #   Invoice.update_all('number = id')
     def update_all(updates)
       raise ArgumentError, "Empty list of attributes to change" if updates.blank?
 
@@ -682,9 +684,10 @@ module ActiveRecord
         @records = eager_loading? ? find_with_associations.freeze : @klass.find_by_sql(arel, bound_attributes, &block).freeze
 
         preload = preload_values
-        preload +=  includes_values unless eager_loading?
-        preloader = build_preloader
+        preload += includes_values unless eager_loading?
+        preloader = nil
         preload.each do |associations|
+          preloader ||= build_preloader
           preloader.preload @records, associations
         end
 

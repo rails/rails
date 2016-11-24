@@ -34,7 +34,7 @@ class Module
   #   end
   #
   #   Current.new.user # => NoMethodError
-  def thread_mattr_reader(*syms)
+  def thread_mattr_reader(*syms) # :nodoc:
     options = syms.extract_options!
 
     syms.each do |sym|
@@ -77,7 +77,7 @@ class Module
   #   end
   #
   #   Current.new.user = "DHH" # => NoMethodError
-  def thread_mattr_writer(*syms)
+  def thread_mattr_writer(*syms) # :nodoc:
     options = syms.extract_options!
     syms.each do |sym|
       raise NameError.new("invalid attribute name: #{sym}") unless /^[_A-Za-z]\w*$/.match?(sym)

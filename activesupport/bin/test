@@ -2,5 +2,3 @@
 
 COMPONENT_ROOT = File.expand_path("..", __dir__)
 require File.expand_path("../tools/test", COMPONENT_ROOT)
-
-exit Minitest.run(ARGV)

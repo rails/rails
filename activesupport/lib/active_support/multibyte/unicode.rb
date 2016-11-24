@@ -30,36 +30,6 @@ module ActiveSupport
       HANGUL_NCOUNT = HANGUL_VCOUNT * HANGUL_TCOUNT
       HANGUL_SCOUNT = 11172
       HANGUL_SLAST = HANGUL_SBASE + HANGUL_SCOUNT
-      HANGUL_JAMO_FIRST = 0x1100
-      HANGUL_JAMO_LAST = 0x11FF
-
-      # All the unicode whitespace
-      WHITESPACE = [
-        (0x0009..0x000D).to_a, # White_Space # Cc   [5] <control-0009>..<control-000D>
-        0x0020,                # White_Space # Zs       SPACE
-        0x0085,                # White_Space # Cc       <control-0085>
-        0x00A0,                # White_Space # Zs       NO-BREAK SPACE
-        0x1680,                # White_Space # Zs       OGHAM SPACE MARK
-        (0x2000..0x200A).to_a, # White_Space # Zs  [11] EN QUAD..HAIR SPACE
-        0x2028,                # White_Space # Zl       LINE SEPARATOR
-        0x2029,                # White_Space # Zp       PARAGRAPH SEPARATOR
-        0x202F,                # White_Space # Zs       NARROW NO-BREAK SPACE
-        0x205F,                # White_Space # Zs       MEDIUM MATHEMATICAL SPACE
-        0x3000,                # White_Space # Zs       IDEOGRAPHIC SPACE
-      ].flatten.freeze
-
-      # BOM (byte order mark) can also be seen as whitespace, it's a
-      # non-rendering character used to distinguish between little and big
-      # endian. This is not an issue in utf-8, so it must be ignored.
-      LEADERS_AND_TRAILERS = WHITESPACE + [65279] # ZERO-WIDTH NO-BREAK SPACE aka BOM
-
-      # Returns a regular expression pattern that matches the passed Unicode
-      # codepoints.
-      def self.codepoints_to_pattern(array_of_codepoints) #:nodoc:
-        array_of_codepoints.collect { |e| [e].pack "U*".freeze }.join("|".freeze)
-      end
-      TRAILERS_PAT = /(#{codepoints_to_pattern(LEADERS_AND_TRAILERS)})+\Z/u
-      LEADERS_PAT = /\A(#{codepoints_to_pattern(LEADERS_AND_TRAILERS)})+/u
 
       # Detect whether the codepoint is in a certain character class. Returns
       # +true+ when it's in the specified character class and +false+ otherwise.
@@ -82,9 +52,9 @@ module ActiveSupport
         pos = 0
         marker = 0
         eoc = codepoints.length
-        while(pos < eoc)
+        while (pos < eoc)
           pos += 1
-          previous = codepoints[pos-1]
+          previous = codepoints[pos - 1]
           current = codepoints[pos]
 
           should_break =
@@ -92,19 +62,19 @@ module ActiveSupport
             if previous == database.boundary[:cr] && current == database.boundary[:lf]
               false
             # GB4. (Control|CR|LF) ÷
-            elsif previous && in_char_class?(previous, [:control,:cr,:lf])
+            elsif previous && in_char_class?(previous, [:control, :cr, :lf])
               true
             # GB5. ÷ (Control|CR|LF)
-            elsif in_char_class?(current, [:control,:cr,:lf])
+            elsif in_char_class?(current, [:control, :cr, :lf])
               true
             # GB6. L X (L|V|LV|LVT)
-            elsif database.boundary[:l] === previous && in_char_class?(current, [:l,:v,:lv,:lvt])
+            elsif database.boundary[:l] === previous && in_char_class?(current, [:l, :v, :lv, :lvt])
               false
             # GB7. (LV|V) X (V|T)
-            elsif in_char_class?(previous, [:lv,:v]) && in_char_class?(current, [:v,:t])
+            elsif in_char_class?(previous, [:lv, :v]) && in_char_class?(current, [:v, :t])
               false
             # GB8. (LVT|T) X (T)
-            elsif in_char_class?(previous, [:lvt,:t]) && database.boundary[:t] === current
+            elsif in_char_class?(previous, [:lvt, :t]) && database.boundary[:t] === current
               false
             # GB8a. Regional_Indicator X Regional_Indicator
             elsif database.boundary[:regional_indicator] === previous && database.boundary[:regional_indicator] === current
@@ -124,7 +94,7 @@ module ActiveSupport
             end
 
           if should_break
-            unpacked << codepoints[marker..pos-1]
+            unpacked << codepoints[marker..pos - 1]
             marker = pos
           end
         end
@@ -140,12 +110,12 @@ module ActiveSupport
 
       # Re-order codepoints so the string becomes canonical.
       def reorder_characters(codepoints)
-        length = codepoints.length- 1
+        length = codepoints.length - 1
         pos = 0
         while pos < length do
-          cp1, cp2 = database.codepoints[codepoints[pos]], database.codepoints[codepoints[pos+1]]
+          cp1, cp2 = database.codepoints[codepoints[pos]], database.codepoints[codepoints[pos + 1]]
           if (cp1.combining_class > cp2.combining_class) && (cp2.combining_class > 0)
-            codepoints[pos..pos+1] = cp2.code, cp1.code
+            codepoints[pos..pos + 1] = cp2.code, cp1.code
             pos += (pos > 0 ? -1 : 1)
           else
             pos += 1
@@ -187,9 +157,9 @@ module ActiveSupport
           lindex = starter_char - HANGUL_LBASE
           # -- Hangul
           if 0 <= lindex && lindex < HANGUL_LCOUNT
-            vindex = codepoints[starter_pos+1] - HANGUL_VBASE rescue vindex = -1
+            vindex = codepoints[starter_pos + 1] - HANGUL_VBASE rescue vindex = -1
             if 0 <= vindex && vindex < HANGUL_VCOUNT
-              tindex = codepoints[starter_pos+2] - HANGUL_TBASE rescue tindex = -1
+              tindex = codepoints[starter_pos + 2] - HANGUL_TBASE rescue tindex = -1
               if 0 <= tindex && tindex < HANGUL_TCOUNT
                 j = starter_pos + 2
                 eoa -= 2
@@ -281,7 +251,7 @@ module ActiveSupport
       # * <tt>form</tt> - The form you want to normalize in. Should be one of
       #   the following: <tt>:c</tt>, <tt>:kc</tt>, <tt>:d</tt>, or <tt>:kd</tt>.
       #   Default is ActiveSupport::Multibyte::Unicode.default_normalization_form.
-      def normalize(string, form=nil)
+      def normalize(string, form = nil)
         form ||= @default_normalization_form
         # See http://www.unicode.org/reports/tr15, Table 1
         codepoints = string.codepoints.to_a

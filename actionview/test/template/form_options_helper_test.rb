@@ -258,7 +258,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_collection_options_with_preselected_value_as_string_and_option_value_is_integer
-    albums = [ Album.new(1, "first","rap"), Album.new(2, "second","pop")]
+    albums = [ Album.new(1, "first", "rap"), Album.new(2, "second", "pop")]
     assert_dom_equal(
     %(<option selected="selected" value="1">rap</option>\n<option value="2">pop</option>),
     options_from_collection_for_select(albums, "id", "genre", selected: "1")
@@ -266,7 +266,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_collection_options_with_preselected_value_as_integer_and_option_value_is_string
-    albums = [ Album.new("1", "first","rap"), Album.new("2", "second","pop")]
+    albums = [ Album.new("1", "first", "rap"), Album.new("2", "second", "pop")]
 
     assert_dom_equal(
     %(<option selected="selected" value="1">rap</option>\n<option value="2">pop</option>),
@@ -275,7 +275,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_collection_options_with_preselected_value_as_string_and_option_value_is_float
-    albums = [ Album.new(1.0, "first","rap"), Album.new(2.0, "second","pop")]
+    albums = [ Album.new(1.0, "first", "rap"), Album.new(2.0, "second", "pop")]
 
     assert_dom_equal(
     %(<option value="1.0">rap</option>\n<option value="2.0" selected="selected">pop</option>),
@@ -284,7 +284,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_collection_options_with_preselected_value_as_nil
-    albums = [ Album.new(1.0, "first","rap"), Album.new(2.0, "second","pop")]
+    albums = [ Album.new(1.0, "first", "rap"), Album.new(2.0, "second", "pop")]
 
     assert_dom_equal(
     %(<option value="1.0">rap</option>\n<option value="2.0">pop</option>),
@@ -293,7 +293,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_collection_options_with_disabled_value_as_nil
-    albums = [ Album.new(1.0, "first","rap"), Album.new(2.0, "second","pop")]
+    albums = [ Album.new(1.0, "first", "rap"), Album.new(2.0, "second", "pop")]
 
     assert_dom_equal(
     %(<option value="1.0">rap</option>\n<option value="2.0">pop</option>),
@@ -302,7 +302,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_collection_options_with_disabled_value_as_array
-    albums = [ Album.new(1.0, "first","rap"), Album.new(2.0, "second","pop")]
+    albums = [ Album.new(1.0, "first", "rap"), Album.new(2.0, "second", "pop")]
 
     assert_dom_equal(
     %(<option disabled="disabled" value="1.0">rap</option>\n<option disabled="disabled" value="2.0">pop</option>),
@@ -311,11 +311,11 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_collection_options_with_preselected_values_as_string_array_and_option_value_is_float
-    albums = [ Album.new(1.0, "first","rap"), Album.new(2.0, "second","pop"), Album.new(3.0, "third","country") ]
+    albums = [ Album.new(1.0, "first", "rap"), Album.new(2.0, "second", "pop"), Album.new(3.0, "third", "country") ]
 
     assert_dom_equal(
     %(<option value="1.0" selected="selected">rap</option>\n<option value="2.0">pop</option>\n<option value="3.0" selected="selected">country</option>),
-    options_from_collection_for_select(albums, "id", "genre", ["1.0","3.0"])
+    options_from_collection_for_select(albums, "id", "genre", ["1.0", "3.0"])
     )
   end
 
@@ -335,9 +335,9 @@ class FormOptionsHelperTest < ActionView::TestCase
       "<optgroup label=\"North America\"><option value=\"US\">United States</option>\n<option value=\"Canada\">Canada</option></optgroup><optgroup label=\"Europe\"><option value=\"GB\">Great Britain</option>\n<option value=\"Germany\">Germany</option></optgroup>",
       grouped_options_for_select([
          ["North America",
-             [["United States","US"],"Canada"]],
+             [["United States", "US"], "Canada"]],
          ["Europe",
-             [["Great Britain","GB"], "Germany"]]
+             [["Great Britain", "GB"], "Germany"]]
        ])
     )
   end
@@ -346,8 +346,8 @@ class FormOptionsHelperTest < ActionView::TestCase
     assert_dom_equal(
       "<optgroup label=\"North America\" data-foo=\"bar\"><option value=\"US\">United States</option>\n<option value=\"Canada\">Canada</option></optgroup><optgroup label=\"Europe\" disabled=\"disabled\"><option value=\"GB\">Great Britain</option>\n<option value=\"Germany\">Germany</option></optgroup>",
       grouped_options_for_select([
-         ["North America", [["United States","US"],"Canada"], data: { foo: "bar" }],
-         ["Europe", [["Great Britain","GB"], "Germany"], disabled: "disabled"]
+         ["North America", [["United States", "US"], "Canada"], data: { foo: "bar" }],
+         ["Europe", [["Great Britain", "GB"], "Germany"], disabled: "disabled"]
        ])
     )
   end
@@ -356,38 +356,38 @@ class FormOptionsHelperTest < ActionView::TestCase
     assert_dom_equal(
       "<optgroup label=\"----------\"><option value=\"US\">US</option>\n<option value=\"Canada\">Canada</option></optgroup><optgroup label=\"----------\"><option value=\"GB\">GB</option>\n<option value=\"Germany\">Germany</option></optgroup>",
 
-      grouped_options_for_select([["US","Canada"] , ["GB", "Germany"]], nil, divider: "----------")
+      grouped_options_for_select([["US", "Canada"] , ["GB", "Germany"]], nil, divider: "----------")
     )
   end
 
   def test_grouped_options_for_select_with_selected_and_prompt
     assert_dom_equal(
         "<option value=\"\">Choose a product...</option><optgroup label=\"Hats\"><option value=\"Baseball Cap\">Baseball Cap</option>\n<option selected=\"selected\" value=\"Cowboy Hat\">Cowboy Hat</option></optgroup>",
-        grouped_options_for_select([["Hats", ["Baseball Cap","Cowboy Hat"]]], "Cowboy Hat", prompt: "Choose a product...")
+        grouped_options_for_select([["Hats", ["Baseball Cap", "Cowboy Hat"]]], "Cowboy Hat", prompt: "Choose a product...")
     )
   end
 
   def test_grouped_options_for_select_with_selected_and_prompt_true
     assert_dom_equal(
         "<option value=\"\">Please select</option><optgroup label=\"Hats\"><option value=\"Baseball Cap\">Baseball Cap</option>\n<option selected=\"selected\" value=\"Cowboy Hat\">Cowboy Hat</option></optgroup>",
-        grouped_options_for_select([["Hats", ["Baseball Cap","Cowboy Hat"]]], "Cowboy Hat", prompt: true)
+        grouped_options_for_select([["Hats", ["Baseball Cap", "Cowboy Hat"]]], "Cowboy Hat", prompt: true)
     )
   end
 
   def test_grouped_options_for_select_returns_html_safe_string
-    assert grouped_options_for_select([["Hats", ["Baseball Cap","Cowboy Hat"]]]).html_safe?
+    assert grouped_options_for_select([["Hats", ["Baseball Cap", "Cowboy Hat"]]]).html_safe?
   end
 
   def test_grouped_options_for_select_with_prompt_returns_html_escaped_string
     assert_dom_equal(
       "<option value=\"\">&lt;Choose One&gt;</option><optgroup label=\"Hats\"><option value=\"Baseball Cap\">Baseball Cap</option>\n<option value=\"Cowboy Hat\">Cowboy Hat</option></optgroup>",
-      grouped_options_for_select([["Hats", ["Baseball Cap","Cowboy Hat"]]], nil, prompt: "<Choose One>"))
+      grouped_options_for_select([["Hats", ["Baseball Cap", "Cowboy Hat"]]], nil, prompt: "<Choose One>"))
   end
 
   def test_optgroups_with_with_options_with_hash
     assert_dom_equal(
        "<optgroup label=\"North America\"><option value=\"United States\">United States</option>\n<option value=\"Canada\">Canada</option></optgroup><optgroup label=\"Europe\"><option value=\"Denmark\">Denmark</option>\n<option value=\"Germany\">Germany</option></optgroup>",
-       grouped_options_for_select("North America" => ["United States","Canada"], "Europe" => ["Denmark","Germany"])
+       grouped_options_for_select("North America" => ["United States", "Canada"], "Europe" => ["Denmark", "Germany"])
     )
   end
 
@@ -402,7 +402,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_time_zone_options_with_selected
-    opts = time_zone_options_for_select( "D" )
+    opts = time_zone_options_for_select("D")
     assert_dom_equal "<option value=\"A\">A</option>\n" +
                  "<option value=\"B\">B</option>\n" +
                  "<option value=\"C\">C</option>\n" +
@@ -412,7 +412,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_time_zone_options_with_unknown_selected
-    opts = time_zone_options_for_select( "K" )
+    opts = time_zone_options_for_select("K")
     assert_dom_equal "<option value=\"A\">A</option>\n" +
                  "<option value=\"B\">B</option>\n" +
                  "<option value=\"C\">C</option>\n" +
@@ -422,8 +422,8 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_time_zone_options_with_priority_zones
-    zones = [ ActiveSupport::TimeZone.new( "B" ), ActiveSupport::TimeZone.new( "E" ) ]
-    opts = time_zone_options_for_select( nil, zones )
+    zones = [ ActiveSupport::TimeZone.new("B"), ActiveSupport::TimeZone.new("E") ]
+    opts = time_zone_options_for_select(nil, zones)
     assert_dom_equal "<option value=\"B\">B</option>\n" +
                  "<option value=\"E\">E</option>" +
                  "<option value=\"\" disabled=\"disabled\">-------------</option>\n" +
@@ -434,8 +434,8 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_time_zone_options_with_selected_priority_zones
-    zones = [ ActiveSupport::TimeZone.new( "B" ), ActiveSupport::TimeZone.new( "E" ) ]
-    opts = time_zone_options_for_select( "E", zones )
+    zones = [ ActiveSupport::TimeZone.new("B"), ActiveSupport::TimeZone.new("E") ]
+    opts = time_zone_options_for_select("E", zones)
     assert_dom_equal "<option value=\"B\">B</option>\n" +
                  "<option value=\"E\" selected=\"selected\">E</option>" +
                  "<option value=\"\" disabled=\"disabled\">-------------</option>\n" +
@@ -446,8 +446,8 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_time_zone_options_with_unselected_priority_zones
-    zones = [ ActiveSupport::TimeZone.new( "B" ), ActiveSupport::TimeZone.new( "E" ) ]
-    opts = time_zone_options_for_select( "C", zones )
+    zones = [ ActiveSupport::TimeZone.new("B"), ActiveSupport::TimeZone.new("E") ]
+    opts = time_zone_options_for_select("C", zones)
     assert_dom_equal "<option value=\"B\">B</option>\n" +
                  "<option value=\"E\">E</option>" +
                  "<option value=\"\" disabled=\"disabled\">-------------</option>\n" +
@@ -459,7 +459,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
   def test_time_zone_options_with_priority_zones_does_not_mutate_time_zones
     original_zones = ActiveSupport::TimeZone.all.dup
-    zones = [ ActiveSupport::TimeZone.new( "B" ), ActiveSupport::TimeZone.new( "E" ) ]
+    zones = [ ActiveSupport::TimeZone.new("B"), ActiveSupport::TimeZone.new("E") ]
     time_zone_options_for_select(nil, zones)
     assert_equal original_zones, ActiveSupport::TimeZone.all
   end
@@ -628,7 +628,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_select_with_multiple_to_add_hidden_input
-    output_buffer =  select(:post, :category, "", {}, multiple: true)
+    output_buffer = select(:post, :category, "", {}, multiple: true)
     assert_dom_equal(
       "<input type=\"hidden\" name=\"post[category][]\" value=\"\"/><select multiple=\"multiple\" id=\"post_category\" name=\"post[category][]\"></select>",
       output_buffer
@@ -636,7 +636,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_select_with_multiple_and_without_hidden_input
-    output_buffer =  select(:post, :category, "", { include_hidden: false }, multiple: true)
+    output_buffer = select(:post, :category, "", { include_hidden: false }, multiple: true)
     assert_dom_equal(
       "<select multiple=\"multiple\" id=\"post_category\" name=\"post[category][]\"></select>",
       output_buffer
@@ -644,7 +644,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_select_with_multiple_and_with_explicit_name_ending_with_brackets
-    output_buffer =  select(:post, :category, [], { include_hidden: false }, multiple: true, name: "post[category][]")
+    output_buffer = select(:post, :category, [], { include_hidden: false }, multiple: true, name: "post[category][]")
     assert_dom_equal(
       "<select multiple=\"multiple\" id=\"post_category\" name=\"post[category][]\"></select>",
       output_buffer
@@ -652,7 +652,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_select_with_multiple_and_disabled_to_add_disabled_hidden_input
-    output_buffer =  select(:post, :category, "", {}, multiple: true, disabled: true)
+    output_buffer = select(:post, :category, "", {}, multiple: true, disabled: true)
     assert_dom_equal(
       "<input disabled=\"disabled\"type=\"hidden\" name=\"post[category][]\" value=\"\"/><select multiple=\"multiple\" disabled=\"disabled\" id=\"post_category\" name=\"post[category][]\"></select>",
       output_buffer
@@ -1030,7 +1030,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
   def test_time_zone_select
     @firm = Firm.new("D")
-    html = time_zone_select( "firm", "time_zone" )
+    html = time_zone_select("firm", "time_zone")
     assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
                  "<option value=\"A\">A</option>\n" +
                  "<option value=\"B\">B</option>\n" +
@@ -1180,7 +1180,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_time_zone_select_with_priority_zones
     @firm = Firm.new("D")
     zones = [ ActiveSupport::TimeZone.new("A"), ActiveSupport::TimeZone.new("D") ]
-    html = time_zone_select("firm", "time_zone", zones )
+    html = time_zone_select("firm", "time_zone", zones)
     assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
                  "<option value=\"A\">A</option>\n" +
                  "<option value=\"D\" selected=\"selected\">D</option>" +
@@ -1236,7 +1236,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @firm = Firm.new()
     @firm.time_zone = nil
 
-    html = time_zone_select( "firm", "time_zone", nil, default: "B" )
+    html = time_zone_select("firm", "time_zone", nil, default: "B")
     assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
                   "<option value=\"A\">A</option>\n" +
                   "<option value=\"B\" selected=\"selected\">B</option>\n" +
@@ -1250,7 +1250,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_time_zone_select_with_default_time_zone_and_value
     @firm = Firm.new("D")
 
-    html = time_zone_select( "firm", "time_zone", nil, default: "B" )
+    html = time_zone_select("firm", "time_zone", nil, default: "B")
     assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
                   "<option value=\"A\">A</option>\n" +
                   "<option value=\"B\">B</option>\n" +

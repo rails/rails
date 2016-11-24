@@ -30,7 +30,7 @@ module Rails
         class_option :database,           type: :string, aliases: "-d", default: "sqlite3",
                                           desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
 
-        class_option :javascript,         type: :string, aliases: "-j", default: "jquery",
+        class_option :javascript,         type: :string, aliases: "-j",
                                           desc: "Preconfigure for selected JavaScript library"
 
         class_option :skip_gemfile,       type: :boolean, default: false,
@@ -66,6 +66,9 @@ module Rails
 
         class_option :skip_listen,        type: :boolean, default: false,
                                           desc: "Don't generate configuration that depends on the listen gem"
+
+        class_option :skip_coffee,        type: :boolean, default: false,
+                                          desc: "Don't use CoffeeScript"
 
         class_option :skip_javascript,    type: :boolean, aliases: "-J", default: false,
                                           desc: "Skip JavaScript files"
@@ -243,7 +246,7 @@ module Rails
           ] + dev_edge_common
         elsif options.edge?
           [
-            GemfileEntry.github("rails", "rails/rails", "5-0-stable")
+            GemfileEntry.github("rails", "rails/rails")
           ] + dev_edge_common
         else
           [GemfileEntry.version("rails",
@@ -322,9 +325,16 @@ module Rails
         if options[:skip_javascript] || options[:skip_sprockets]
           []
         else
-          gems = [coffee_gemfile_entry, javascript_runtime_gemfile_entry]
-          gems << GemfileEntry.version("#{options[:javascript]}-rails", nil,
-                                       "Use #{options[:javascript]} as the JavaScript library")
+          gems = [javascript_runtime_gemfile_entry]
+          gems << coffee_gemfile_entry unless options[:skip_coffee]
+
+          if options[:javascript]
+            gems << GemfileEntry.version("#{options[:javascript]}-rails", nil,
+              "Use #{options[:javascript]} as the JavaScript library")
+          end
+
+          gems << GemfileEntry.github("rails-ujs", "rails/rails-ujs", nil,
+                                      "Unobstrusive JavaScript adapter for Rails")
 
           unless options[:skip_turbolinks]
             gems << GemfileEntry.version("turbolinks", "~> 5",

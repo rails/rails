@@ -106,14 +106,7 @@ module ActionDispatch
   # produce a directory traversal using this middleware. Only 'GET' and 'HEAD'
   # requests will result in a file being returned.
   class Static
-    def initialize(app, path, deprecated_cache_control = :not_set, index: "index", headers: {})
-      if deprecated_cache_control != :not_set
-        ActiveSupport::Deprecation.warn("The `cache_control` argument is deprecated," \
-                                        "replaced by `headers: { 'Cache-Control' => #{deprecated_cache_control} }`, " \
-                                        " and will be removed in Rails 5.1.")
-        headers["Cache-Control".freeze] = deprecated_cache_control
-      end
-
+    def initialize(app, path, index: "index", headers: {})
       @app = app
       @file_handler = FileHandler.new(path, index: index, headers: headers)
     end

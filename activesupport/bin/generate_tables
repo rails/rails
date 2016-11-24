@@ -51,9 +51,9 @@ module ActiveSupport
           codepoint.code              = $1.hex
           codepoint.combining_class   = Integer($4)
           codepoint.decomp_type       = $7
-          codepoint.decomp_mapping    = ($8=="") ? nil : $8.split.collect(&:hex)
-          codepoint.uppercase_mapping = ($16=="") ? 0 : $16.hex
-          codepoint.lowercase_mapping = ($17=="") ? 0 : $17.hex
+          codepoint.decomp_mapping    = ($8 == "") ? nil : $8.split.collect(&:hex)
+          codepoint.uppercase_mapping = ($16 == "") ? 0 : $16.hex
+          codepoint.lowercase_mapping = ($17 == "") ? 0 : $17.hex
           @ucd.codepoints[codepoint.code] = codepoint
         end
 
@@ -92,7 +92,7 @@ module ActiveSupport
         end
 
         def normalize_boundary_map
-          @ucd.boundary.each do |k,v|
+          @ucd.boundary.each do |k, v|
             if [:lf, :cr].include? k
               @ucd.boundary[k] = v[0]
             end
@@ -101,7 +101,7 @@ module ActiveSupport
 
         def parse
           SOURCES.each do |type, url|
-            filename =  File.join(Dir.tmpdir, "#{url.split('/').last}")
+            filename = File.join(Dir.tmpdir, "#{url.split('/').last}")
             unless File.exist?(filename)
               $stderr.puts "Downloading #{url.split('/').last}"
               File.open(filename, "wb") do |target|

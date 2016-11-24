@@ -264,53 +264,5 @@ module AbstractController
         assert_equal "Hello world Howdy!", controller.response_body
       end
     end
-
-    class AliasedCallbacks < ControllerWithCallbacks
-      ActiveSupport::Deprecation.silence do
-        before_filter :first
-        after_filter :second
-        around_filter :aroundz
-      end
-
-      def first
-        @text = "Hello world"
-      end
-
-      def second
-        @second = "Goodbye"
-      end
-
-      def aroundz
-        @aroundz = "FIRST"
-        yield
-        @aroundz << "SECOND"
-      end
-
-      def index
-        @text ||= nil
-        self.response_body = @text.to_s
-      end
-    end
-
-    class TestAliasedCallbacks < ActiveSupport::TestCase
-      def setup
-        @controller = AliasedCallbacks.new
-      end
-
-      test "before_filter works" do
-        @controller.process(:index)
-        assert_equal "Hello world", @controller.response_body
-      end
-
-      test "after_filter works" do
-        @controller.process(:index)
-        assert_equal "Goodbye", @controller.instance_variable_get("@second")
-      end
-
-      test "around_filter works" do
-        @controller.process(:index)
-        assert_equal "FIRSTSECOND", @controller.instance_variable_get("@aroundz")
-      end
-    end
   end
 end

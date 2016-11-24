@@ -9,6 +9,7 @@ awdr:
   author_visibility: :visible
   illustrator_visibility: :visible
   font_size: :medium
+  difficulty: :medium
 
 rfr:
   author_id: 1

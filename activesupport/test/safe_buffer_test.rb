@@ -130,7 +130,7 @@ class SafeBufferTest < ActiveSupport::TestCase
   end
 
   test "Should be safe when sliced if original value was safe" do
-    new_buffer = @buffer[0,0]
+    new_buffer = @buffer[0, 0]
     assert_not_nil new_buffer
     assert new_buffer.html_safe?, "should be safe"
   end

@@ -11,7 +11,7 @@ module ActionView
           @object_name, @method_name = object_name.to_s.dup, method_name.to_s.dup
           @template_object = template_object
 
-          @object_name.sub!(/\[\]$/,"") || @object_name.sub!(/\[\]\]$/,"]")
+          @object_name.sub!(/\[\]$/, "") || @object_name.sub!(/\[\]\]$/, "]")
           @object = retrieve_object(options.delete(:object))
           @options = options
           @auto_index = Regexp.last_match ? retrieve_autoindex(Regexp.last_match.pre_match) : nil
@@ -110,7 +110,7 @@ module ActionView
           end
 
           def sanitized_method_name
-            @sanitized_method_name ||= @method_name.sub(/\?$/,"")
+            @sanitized_method_name ||= @method_name.sub(/\?$/, "")
           end
 
           def sanitized_value(value)
@@ -152,7 +152,7 @@ module ActionView
           end
 
           def name_and_id_index(options)
-            options.key?("index") ?  options.delete("index") || "" : @auto_index
+            options.key?("index") ? options.delete("index") || "" : @auto_index
           end
       end
     end

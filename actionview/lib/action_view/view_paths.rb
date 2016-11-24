@@ -22,8 +22,8 @@ module ActionView
 
       private
 
-      # Override this method in your controller if you want to change paths prefixes for finding views.
-      # Prefixes defined here will still be added to parents' <tt>._prefixes</tt>.
+        # Override this method in your controller if you want to change paths prefixes for finding views.
+        # Prefixes defined here will still be added to parents' <tt>._prefixes</tt>.
         def local_prefixes
           [controller_path]
         end
@@ -46,10 +46,22 @@ module ActionView
       {}
     end
 
+    # Append a path to the list of view paths for the current <tt>LookupContext</tt>.
+    #
+    # ==== Parameters
+    # * <tt>path</tt> - If a String is provided, it gets converted into
+    #   the default view path. You may also provide a custom view path
+    #   (see ActionView::PathSet for more information)
     def append_view_path(path)
       lookup_context.view_paths.push(*path)
     end
 
+    # Prepend a path to the list of view paths for the current <tt>LookupContext</tt>.
+    #
+    # ==== Parameters
+    # * <tt>path</tt> - If a String is provided, it gets converted into
+    #   the default view path. You may also provide a custom view path
+    #   (see ActionView::PathSet for more information)
     def prepend_view_path(path)
       lookup_context.view_paths.unshift(*path)
     end

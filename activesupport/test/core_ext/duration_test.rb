@@ -75,7 +75,7 @@ class DurationTest < ActiveSupport::TestCase
     current_locale = I18n.default_locale
     I18n.default_locale = :de
     I18n.backend.store_translations(:de, support: { array: { last_word_connector: " und " } })
-    assert_equal "10 years, 1 month und 1 day", (10.years + 1.month  + 1.day).inspect
+    assert_equal "10 years, 1 month und 1 day", (10.years + 1.month + 1.day).inspect
   ensure
     I18n.default_locale = current_locale
   end
@@ -89,7 +89,7 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_time_plus_duration_returns_same_time_datatype
-    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Moscow"] , Time.utc(2016,4,28,00,45))
+    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Moscow"] , Time.utc(2016, 4, 28, 00, 45))
     now = Time.now.utc
     %w( second minute hour day week month year ).each do |unit|
       assert_equal((now + 1.send(unit)).class, Time, "Time + 1.#{unit} must be Time")
@@ -153,10 +153,10 @@ class DurationTest < ActiveSupport::TestCase
       Time.stub(:now, Time.local(2000)) do
         # since
         assert_not_instance_of ActiveSupport::TimeWithZone, 5.seconds.since
-        assert_equal Time.local(2000,1,1,0,0,5), 5.seconds.since
+        assert_equal Time.local(2000, 1, 1, 0, 0, 5), 5.seconds.since
         # ago
         assert_not_instance_of ActiveSupport::TimeWithZone, 5.seconds.ago
-        assert_equal Time.local(1999,12,31,23,59,55), 5.seconds.ago
+        assert_equal Time.local(1999, 12, 31, 23, 59, 55), 5.seconds.ago
       end
     end
   end
@@ -167,11 +167,11 @@ class DurationTest < ActiveSupport::TestCase
       Time.stub(:now, Time.local(2000)) do
         # since
         assert_instance_of ActiveSupport::TimeWithZone, 5.seconds.since
-        assert_equal Time.utc(2000,1,1,0,0,5), 5.seconds.since.time
+        assert_equal Time.utc(2000, 1, 1, 0, 0, 5), 5.seconds.since.time
         assert_equal "Eastern Time (US & Canada)", 5.seconds.since.time_zone.name
         # ago
         assert_instance_of ActiveSupport::TimeWithZone, 5.seconds.ago
-        assert_equal Time.utc(1999,12,31,23,59,55), 5.seconds.ago.time
+        assert_equal Time.utc(1999, 12, 31, 23, 59, 55), 5.seconds.ago.time
         assert_equal "Eastern Time (US & Canada)", 5.seconds.ago.time_zone.name
       end
     end
@@ -181,13 +181,13 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_adding_hours_across_dst_boundary
     with_env_tz "CET" do
-      assert_equal Time.local(2009,3,29,0,0,0) + 24.hours, Time.local(2009,3,30,1,0,0)
+      assert_equal Time.local(2009, 3, 29, 0, 0, 0) + 24.hours, Time.local(2009, 3, 30, 1, 0, 0)
     end
   end
 
   def test_adding_day_across_dst_boundary
     with_env_tz "CET" do
-      assert_equal Time.local(2009,3,29,0,0,0) + 1.day, Time.local(2009,3,30,0,0,0)
+      assert_equal Time.local(2009, 3, 29, 0, 0, 0) + 1.day, Time.local(2009, 3, 30, 0, 0, 0)
     end
   end
 
@@ -292,11 +292,11 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_iso8601_output_precision
     expectations = [
-        [nil, "P1Y1MT5.55S",  1.year + 1.month + (5.55).seconds ],
-        [0,   "P1Y1MT6S",     1.year + 1.month + (5.55).seconds ],
-        [1,   "P1Y1MT5.5S",   1.year + 1.month + (5.55).seconds ],
-        [2,   "P1Y1MT5.55S",  1.year + 1.month + (5.55).seconds ],
-        [3,   "P1Y1MT5.550S", 1.year + 1.month + (5.55).seconds ],
+        [nil, "P1Y1MT8.55S",  1.year + 1.month + (8.55).seconds ],
+        [0,   "P1Y1MT9S",     1.year + 1.month + (8.55).seconds ],
+        [1,   "P1Y1MT8.6S",   1.year + 1.month + (8.55).seconds ],
+        [2,   "P1Y1MT8.55S",  1.year + 1.month + (8.55).seconds ],
+        [3,   "P1Y1MT8.550S", 1.year + 1.month + (8.55).seconds ],
         [nil, "PT1S",         1.second                          ],
         [2,   "PT1.00S",      1.second                          ],
         [nil, "PT1.4S",       (1.4).seconds                     ],
@@ -319,7 +319,38 @@ class DurationTest < ActiveSupport::TestCase
     time = Time.current
     patterns.each do |pattern|
       duration = ActiveSupport::Duration.parse(pattern)
-      assert_equal time+duration, time+ActiveSupport::Duration.parse(duration.iso8601), pattern.inspect
+      assert_equal time + duration, time + ActiveSupport::Duration.parse(duration.iso8601), pattern.inspect
     end
   end
+
+  def test_iso8601_parsing_across_spring_dst_boundary
+    with_env_tz eastern_time_zone do
+      with_tz_default "Eastern Time (US & Canada)" do
+        travel_to Time.utc(2016, 3, 11) do
+          assert_equal 604800, ActiveSupport::Duration.parse("P7D").to_i
+          assert_equal 604800, ActiveSupport::Duration.parse("P1W").to_i
+        end
+      end
+    end
+  end
+
+  def test_iso8601_parsing_across_autumn_dst_boundary
+    with_env_tz eastern_time_zone do
+      with_tz_default "Eastern Time (US & Canada)" do
+        travel_to Time.utc(2016, 11, 4) do
+          assert_equal 604800, ActiveSupport::Duration.parse("P7D").to_i
+          assert_equal 604800, ActiveSupport::Duration.parse("P1W").to_i
+        end
+      end
+    end
+  end
+
+  private
+    def eastern_time_zone
+      if Gem.win_platform?
+        "EST5EDT"
+      else
+        "America/New_York"
+      end
+    end
 end

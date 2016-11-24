@@ -104,7 +104,7 @@ module RenderStreaming
       assert_equal nil, headers["Transfer-Encoding"]
     end
 
-    def assert_streaming!(cache="no-cache")
+    def assert_streaming!(cache = "no-cache")
       assert_status 200
       assert_equal nil, headers["Content-Length"]
       assert_equal "chunked", headers["Transfer-Encoding"]

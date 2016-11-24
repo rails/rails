@@ -36,7 +36,7 @@ module ActionDispatch
         def visit_OR(node)
           from = @i += 1
           children = node.children.map { |c| visit(c) }
-          to   = @i += 1
+          to = @i += 1
 
           children.each do |child|
             @tt[from, child.first] = nil

@@ -112,7 +112,7 @@ module ActiveRecord
 
       assert_equal 7, klass.attribute_types.length
       assert_equal 7, klass.column_defaults.length
-      assert klass.attribute_types.include?("wibble")
+      assert_includes klass.attribute_types, "wibble"
     end
 
     test "the given default value is cast from user" do
@@ -253,7 +253,7 @@ module ActiveRecord
     test "attributes not backed by database columns appear in inspect" do
       inspection = OverloadedType.new.inspect
 
-      assert inspection.include?("non_existent_decimal")
+      assert_includes inspection, "non_existent_decimal"
     end
   end
 end

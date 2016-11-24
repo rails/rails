@@ -55,7 +55,7 @@ module AbstractController
         collector.js(:bar) { :baz }
         assert_equal [Mime[:html], [], nil], collector.responses[0]
         assert_equal [Mime[:text], [:foo], nil], collector.responses[1]
-        assert_equal [Mime[:js], [:bar]], collector.responses[2][0,2]
+        assert_equal [Mime[:js], [:bar]], collector.responses[2][0, 2]
         assert_equal :baz, collector.responses[2][2].call
       end
     end

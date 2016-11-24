@@ -134,10 +134,10 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       Rails.application.load_generators
 
-      assert Rails::Generators.hidden_namespaces.include?("assets")
-      assert Rails::Generators.hidden_namespaces.include?("helper")
-      assert Rails::Generators.hidden_namespaces.include?("js")
-      assert Rails::Generators.hidden_namespaces.include?("css")
+      assert_includes Rails::Generators.hidden_namespaces, "assets"
+      assert_includes Rails::Generators.hidden_namespaces, "helper"
+      assert_includes Rails::Generators.hidden_namespaces, "js"
+      assert_includes Rails::Generators.hidden_namespaces, "css"
       assert Rails::Generators.options[:rails][:api]
       assert_equal false, Rails::Generators.options[:rails][:assets]
       assert_equal false, Rails::Generators.options[:rails][:helper]

@@ -1,6 +1,6 @@
 require "active_record_unit"
 
-class RelationCacheTest <  ActionView::TestCase
+class RelationCacheTest < ActionView::TestCase
   tests ActionView::Helpers::CacheHelper
 
   def setup

@@ -1,5 +1,4 @@
 require "action_dispatch/journey"
-require "active_support/concern"
 require "active_support/core_ext/object/to_query"
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/module/remove_method"
@@ -71,7 +70,7 @@ module ActionDispatch
         private :routes
 
         def initialize
-          @routes  = {}
+          @routes = {}
           @path_helpers = Set.new
           @url_helpers = Set.new
           @url_helpers_module  = Module.new
@@ -208,9 +207,9 @@ module ActionDispatch
                 params = parameterize_args(args) { |missing_key|
                   missing_keys << missing_key
                 }
-                constraints = Hash[@route.requirements.merge(params).sort_by { |k,v| k.to_s }]
+                constraints = Hash[@route.requirements.merge(params).sort_by { |k, v| k.to_s }]
                 message = "No route matches #{constraints.inspect}"
-                message << " missing required keys: #{missing_keys.sort.inspect}"
+                message << ", missing required keys: #{missing_keys.sort.inspect}"
 
                 raise ActionController::UrlGenerationError, message
               end
@@ -264,19 +263,19 @@ module ActionDispatch
         end
 
         private
-        # Create a url helper allowing ordered parameters to be associated
-        # with corresponding dynamic segments, so you can do:
-        #
-        #   foo_url(bar, baz, bang)
-        #
-        # Instead of:
-        #
-        #   foo_url(bar: bar, baz: baz, bang: bang)
-        #
-        # Also allow options hash, so you can do:
-        #
-        #   foo_url(bar, baz, bang, sort_by: 'baz')
-        #
+          # Create a url helper allowing ordered parameters to be associated
+          # with corresponding dynamic segments, so you can do:
+          #
+          #   foo_url(bar, baz, bang)
+          #
+          # Instead of:
+          #
+          #   foo_url(bar: bar, baz: baz, bang: bang)
+          #
+          # Also allow options hash, so you can do:
+          #
+          #   foo_url(bar, baz, bang, sort_by: 'baz')
+          #
           def define_url_helper(mod, route, name, opts, route_key, url_strategy)
             helper = UrlHelper.create(route, opts, route_key, url_strategy)
             mod.module_eval do
@@ -647,11 +646,11 @@ module ActionDispatch
 
       # Generate the path indicated by the arguments, and return an array of
       # the keys that were not used to generate it.
-      def extra_keys(options, recall={})
+      def extra_keys(options, recall = {})
         generate_extras(options, recall).last
       end
 
-      def generate_extras(options, recall={})
+      def generate_extras(options, recall = {})
         route_key = options.delete :use_route
         path, params = generate(route_key, options, recall)
         return path, params.keys
@@ -693,7 +692,7 @@ module ActionDispatch
           password = options.delete :password
         end
 
-        recall  = options.delete(:_recall) { {} }
+        recall = options.delete(:_recall) { {} }
 
         original_script_name = options.delete(:original_script_name)
         script_name = find_script_name options

@@ -48,8 +48,8 @@ module ActiveSupport
       }
 
       # No need to map these on Ruby 2.4+
-      TYPE_NAMES["Fixnum"] = "integer" unless Fixnum == Integer
-      TYPE_NAMES["Bignum"] = "integer" unless Bignum == Integer
+      TYPE_NAMES["Fixnum"] = "integer" unless 0.class == Integer
+      TYPE_NAMES["Bignum"] = "integer" unless 0.class == Integer
     end
 
     FORMATTING = {
@@ -153,11 +153,11 @@ module ActiveSupport
 
       def _dasherize(key)
         # $2 must be a non-greedy regex for this to work
-        left, middle, right = /\A(_*)(.*?)(_*)\Z/.match(key.strip)[1,3]
+        left, middle, right = /\A(_*)(.*?)(_*)\Z/.match(key.strip)[1, 3]
         "#{left}#{middle.tr('_ ', '--')}#{right}"
       end
 
-    # TODO: Add support for other encodings
+      # TODO: Add support for other encodings
       def _parse_binary(bin, entity) #:nodoc:
         case entity["encoding"]
         when "base64"

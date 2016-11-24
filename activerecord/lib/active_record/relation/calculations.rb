@@ -112,10 +112,6 @@ module ActiveRecord
     #        ...
     #      end
     def calculate(operation, column_name)
-      if column_name.is_a?(Symbol) && attribute_alias?(column_name)
-        column_name = attribute_alias(column_name)
-      end
-
       if has_include?(column_name)
         relation = construct_relation_for_association_calculations
         relation = relation.distinct if operation.to_s.downcase == "count"
@@ -215,8 +211,8 @@ module ActiveRecord
       def aggregate_column(column_name)
         return column_name if Arel::Expressions === column_name
 
-        if @klass.column_names.include?(column_name.to_s)
-          Arel::Attribute.new(@klass.unscoped.table, column_name)
+        if @klass.has_attribute?(column_name.to_s) || @klass.attribute_alias?(column_name.to_s)
+          @klass.arel_attribute(column_name)
         else
           Arel.sql(column_name == :all ? "*" : column_name.to_s)
         end
@@ -227,17 +223,17 @@ module ActiveRecord
       end
 
       def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
-        # PostgreSQL doesn't like ORDER BY when there are no GROUP BY
-        relation = unscope(:order)
-
         column_alias = column_name
 
-        if operation == "count" && (relation.limit_value || relation.offset_value)
+        if operation == "count" && (limit_value || offset_value)
           # Shortcut when limit is zero.
-          return 0 if relation.limit_value == 0
+          return 0 if limit_value == 0
 
-          query_builder = build_count_subquery(relation, column_name, distinct)
+          query_builder = build_count_subquery(spawn, column_name, distinct)
         else
+          # PostgreSQL doesn't like ORDER BY when there are no GROUP BY
+          relation = unscope(:order)
+
           column = aggregate_column(column_name)
 
           select_value = operation_over_aggregate_column(column, operation, distinct)
@@ -252,11 +248,11 @@ module ActiveRecord
         result = @klass.connection.select_all(query_builder, nil, bound_attributes)
         row    = result.first
         value  = row && row.values.first
-        column = result.column_types.fetch(column_alias) do
+        type   = result.column_types.fetch(column_alias) do
           type_for(column_name)
         end
 
-        type_cast_calculated_value(value, column, operation)
+        type_cast_calculated_value(value, type, operation)
       end
 
       def execute_grouped_calculation(operation, column_name, distinct) #:nodoc:
@@ -310,28 +306,26 @@ module ActiveRecord
 
         Hash[calculated_data.map do |row|
           key = group_columns.map { |aliaz, col_name|
-            column = type_for(col_name) do
-              calculated_data.column_types.fetch(aliaz) do
-                Type.default_value
-              end
+            type = type_for(col_name) do
+              calculated_data.column_types.fetch(aliaz, Type.default_value)
             end
-            type_cast_calculated_value(row[aliaz], column)
+            type_cast_calculated_value(row[aliaz], type)
           }
           key = key.first if key.size == 1
           key = key_records[key] if associated
 
-          column_type = calculated_data.column_types.fetch(aggregate_alias) { type_for(column_name) }
-          [key, type_cast_calculated_value(row[aggregate_alias], column_type, operation)]
+          type = calculated_data.column_types.fetch(aggregate_alias) { type_for(column_name) }
+          [key, type_cast_calculated_value(row[aggregate_alias], type, operation)]
         end]
       end
 
-    # Converts the given keys to the value that the database adapter returns as
-    # a usable column name:
-    #
-    #   column_alias_for("users.id")                 # => "users_id"
-    #   column_alias_for("sum(id)")                  # => "sum_id"
-    #   column_alias_for("count(distinct users.id)") # => "count_distinct_users_id"
-    #   column_alias_for("count(*)")                 # => "count_all"
+      # Converts the given keys to the value that the database adapter returns as
+      # a usable column name:
+      #
+      #   column_alias_for("users.id")                 # => "users_id"
+      #   column_alias_for("sum(id)")                  # => "sum_id"
+      #   column_alias_for("count(distinct users.id)") # => "count_distinct_users_id"
+      #   column_alias_for("count(*)")                 # => "count_all"
       def column_alias_for(keys)
         if keys.respond_to? :name
           keys = "#{keys.relation.name}.#{keys.name}"
@@ -356,7 +350,7 @@ module ActiveRecord
         when "count"   then value.to_i
         when "sum"     then type.deserialize(value || 0)
         when "average" then value.respond_to?(:to_d) ? value.to_d : value
-          else type.deserialize(value)
+        else type.deserialize(value)
         end
       end
 

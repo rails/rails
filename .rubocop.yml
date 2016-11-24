@@ -1,5 +1,5 @@
 AllCops:
-  TargetRubyVersion: 2.3
+  TargetRubyVersion: 2.2
   # RuboCop has a bunch of cops enabled by default. This setting tells RuboCop
   # to ignore them, so only the ones explicitly set in this file are enabled.
   DisabledByDefault: true
@@ -18,6 +18,10 @@ Style/BracesAroundHashParameters:
 
 # Align `when` with `case`.
 Style/CaseIndentation:
+  Enabled: true
+
+# Align comments with method definitions.
+Style/CommentIndentation:
   Enabled: true
 
 # No extra empty lines.
@@ -46,6 +50,24 @@ Style/IndentationConsistency:
 Style/IndentationWidth:
   Enabled: true
 
+Style/SpaceAfterColon:
+  Enabled: true
+
+Style/SpaceAfterComma:
+  Enabled: true
+
+Style/SpaceAroundEqualsInParameterDefault:
+  Enabled: true
+
+Style/SpaceAroundKeyword:
+  Enabled: true
+
+Style/SpaceAroundOperators:
+  Enabled: true
+
+Style/SpaceBeforeFirstArg:
+    Enabled: true
+
 # Defining a method with parameters needs parentheses.
 Style/MethodDefParentheses:
   Enabled: true
@@ -60,6 +82,9 @@ Style/SpaceInsideBlockBraces:
 
 # Use `{ a: 1 }` not `{a:1}`.
 Style/SpaceInsideHashLiteralBraces:
+  Enabled: true
+
+Style/SpaceInsideParens:
   Enabled: true
 
 # Check quotes usage according to lint rule below.

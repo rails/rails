@@ -132,8 +132,8 @@ module ActiveRecord
 
       protected
 
-      # Returns the class type of the record using the current module as a prefix. So descendants of
-      # MyApp::Business::Account would appear as MyApp::Business::AccountSubclass.
+        # Returns the class type of the record using the current module as a prefix. So descendants of
+        # MyApp::Business::Account would appear as MyApp::Business::AccountSubclass.
         def compute_type(type_name)
           if type_name.match(/^::/)
             # If the type is prefixed with a scope operator then we assume that
@@ -156,9 +156,9 @@ module ActiveRecord
 
       private
 
-      # Called by +instantiate+ to decide which class to use for a new
-      # record instance. For single-table inheritance, we check the record
-      # for a +type+ column and return the corresponding class.
+        # Called by +instantiate+ to decide which class to use for a new
+        # record instance. For single-table inheritance, we check the record
+        # for a +type+ column and return the corresponding class.
         def discriminate_class_for_record(record)
           if using_single_table_inheritance?(record)
             find_sti_class(record[inheritance_column])
@@ -199,8 +199,8 @@ module ActiveRecord
           sti_column.in(sti_names)
         end
 
-      # Detect the subclass from the inheritance column of attrs. If the inheritance column value
-      # is not self or a valid subclass, raises ActiveRecord::SubclassNotFound
+        # Detect the subclass from the inheritance column of attrs. If the inheritance column value
+        # is not self or a valid subclass, raises ActiveRecord::SubclassNotFound
         def subclass_from_attributes(attrs)
           attrs = attrs.to_h if attrs.respond_to?(:permitted?)
           if attrs.is_a?(Hash)
@@ -225,11 +225,11 @@ module ActiveRecord
         ensure_proper_type
       end
 
-    # Sets the attribute used for single table inheritance to this class name if this is not the
-    # ActiveRecord::Base descendant.
-    # Considering the hierarchy Reply < Message < ActiveRecord::Base, this makes it possible to
-    # do Reply.new without having to set <tt>Reply[Reply.inheritance_column] = "Reply"</tt> yourself.
-    # No such attribute would be set for objects of the Message class in that example.
+      # Sets the attribute used for single table inheritance to this class name if this is not the
+      # ActiveRecord::Base descendant.
+      # Considering the hierarchy Reply < Message < ActiveRecord::Base, this makes it possible to
+      # do Reply.new without having to set <tt>Reply[Reply.inheritance_column] = "Reply"</tt> yourself.
+      # No such attribute would be set for objects of the Message class in that example.
       def ensure_proper_type
         klass = self.class
         if klass.finder_needs_type_condition?

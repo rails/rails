@@ -68,7 +68,8 @@ module ActiveSupport
             :ESCAPE_REGEX_WITHOUT_HTML_ENTITIES, :EscapedString
 
           # Convert an object into a "JSON-ready" representation composed of
-          # primitives like Hash, Array, String, Numeric, and true/false/nil.
+          # primitives like Hash, Array, String, Numeric,
+          # and +true+/+false+/+nil+.
           # Recursively calls #as_json to the object to recursively build a
           # fully JSON-ready object.
           #
@@ -84,7 +85,7 @@ module ActiveSupport
             when String
               EscapedString.new(value)
             when Numeric, NilClass, TrueClass, FalseClass
-              value
+              value.as_json
             when Hash
               Hash[value.map { |k, v| [jsonify(k), jsonify(v)] }]
             when Array

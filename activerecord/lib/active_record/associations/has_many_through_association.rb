@@ -86,7 +86,10 @@ module ActiveRecord
         end
 
         def save_through_record(record)
-          build_through_record(record).save!
+          association = build_through_record(record)
+          if association.changed?
+            association.save!
+          end
         ensure
           @through_records.delete(record.object_id)
         end
@@ -202,6 +205,10 @@ module ActiveRecord
         # NOTE - not sure that we can actually cope with inverses here
         def invertible_for?(record)
           false
+        end
+
+        def append_record(record)
+          @target << record
         end
     end
   end

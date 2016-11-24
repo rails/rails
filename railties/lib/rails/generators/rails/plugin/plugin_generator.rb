@@ -81,7 +81,7 @@ task default: :test
     end
 
     PASSTHROUGH_OPTIONS = [
-      :skip_active_record, :skip_action_mailer, :skip_javascript, :database,
+      :skip_active_record, :skip_action_mailer, :skip_javascript, :skip_sprockets, :database,
       :javascript, :quiet, :pretend, :force, :skip
     ]
 
@@ -270,8 +270,8 @@ task default: :test
         @name ||= begin
           # same as ActiveSupport::Inflector#underscore except not replacing '-'
           underscored = original_name.dup
-          underscored.gsub!(/([A-Z]+)([A-Z][a-z])/,'\1_\2')
-          underscored.gsub!(/([a-z\d])([A-Z])/,'\1_\2')
+          underscored.gsub!(/([A-Z]+)([A-Z][a-z])/, '\1_\2')
+          underscored.gsub!(/([a-z\d])([A-Z])/, '\1_\2')
           underscored.downcase!
 
           underscored
@@ -283,7 +283,7 @@ task default: :test
       end
 
       def namespaced_name
-        @namespaced_name ||= name.gsub("-", "/")
+        @namespaced_name ||= name.tr("-", "/")
       end
 
     protected

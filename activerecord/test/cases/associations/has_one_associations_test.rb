@@ -326,6 +326,16 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_reload_association
+    odegy = companies(:odegy)
+
+    assert_equal 53, odegy.account.credit_limit
+    Account.where(id: odegy.account.id).update_all(credit_limit: 80)
+    assert_equal 53, odegy.account.credit_limit
+
+    assert_equal 80, odegy.reload_account.credit_limit
+  end
+
   def test_build
     firm = Firm.new("name" => "GlobalMegaCorp")
     firm.save
@@ -601,7 +611,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     new_ship = Ship.create(name: "new name")
     assert_queries(2) do
-      # One query for updating name and second query for updating pirate_id
+      # One query to nullify the old ship, one query to update the new ship
       pirate.ship = new_ship
     end
 
@@ -675,6 +685,6 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     book = SpecialBook.create!(status: "published")
     author.book = book
 
-    refute_equal 0, SpecialAuthor.joins(:book).where(books: { status: "published" } ).count
+    refute_equal 0, SpecialAuthor.joins(:book).where(books: { status: "published" }).count
   end
 end

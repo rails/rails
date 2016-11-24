@@ -1,6 +1,5 @@
 require "concurrent/map"
 require "mutex_m"
-require "active_support/core_ext/regexp"
 
 module ActiveModel
   # Raised when an attribute is not defined.

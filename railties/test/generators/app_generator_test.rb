@@ -356,11 +356,18 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_generator_if_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
+    assert_no_directory "db/"
     assert_no_file "config/database.yml"
     assert_no_file "app/models/application_record.rb"
     assert_file "config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
     assert_file "test/test_helper.rb" do |helper_content|
       assert_no_match(/fixtures :all/, helper_content)
+    end
+    assert_file "bin/setup" do |setup_content|
+      assert_no_match(/db:setup/, setup_content)
+    end
+    assert_file "bin/update" do |update_content|
+      assert_no_match(/db:migrate/, update_content)
     end
 
     assert_file "config/initializers/new_framework_defaults.rb" do |initializer_content|
@@ -398,7 +405,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match(/#\s+require\s+["']sprockets\/railtie["']/, content)
     end
     assert_file "Gemfile" do |content|
-      assert_no_match(/jquery-rails/, content)
       assert_no_match(/sass-rails/, content)
       assert_no_match(/uglifier/, content)
       assert_no_match(/coffee-rails/, content)
@@ -410,6 +416,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/config\.assets\.digest = true/, content)
       assert_no_match(/config\.assets\.js_compressor = :uglifier/, content)
       assert_no_match(/config\.assets\.css_compressor = :sass/, content)
+    end
+    assert_file "config/initializers/new_framework_defaults.rb" do |content|
+      assert_no_match(/unknown_asset_fallback/, content)
     end
   end
 
@@ -438,22 +447,20 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_jquery_is_the_default_javascript_library
+  def test_rails_ujs_is_the_default_ujs_library
     run_generator
     assert_file "app/assets/javascripts/application.js" do |contents|
-      assert_match %r{^//= require jquery}, contents
-      assert_match %r{^//= require jquery_ujs}, contents
+      assert_match %r{^//= require rails-ujs}, contents
     end
-    assert_gem "jquery-rails"
+    assert_gem "rails-ujs"
   end
 
-  def test_other_javascript_libraries
-    run_generator [destination_root, "-j", "prototype"]
+  def test_inclusion_of_javascript_libraries_if_required
+    run_generator [destination_root, "-j", "jquery"]
     assert_file "app/assets/javascripts/application.js" do |contents|
-      assert_match %r{^//= require prototype}, contents
-      assert_match %r{^//= require prototype_ujs}, contents
+      assert_match %r{^//= require jquery}, contents
     end
-    assert_gem "prototype-rails"
+    assert_gem "jquery-rails"
   end
 
   def test_javascript_is_skipped_if_required
@@ -469,12 +476,21 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "Gemfile" do |content|
       assert_no_match(/coffee-rails/, content)
-      assert_no_match(/jquery-rails/, content)
       assert_no_match(/uglifier/, content)
+      assert_no_match(/rails-ujs/, content)
     end
 
     assert_file "config/environments/production.rb" do |content|
       assert_no_match(/config\.assets\.js_compressor = :uglifier/, content)
+    end
+  end
+
+  def test_coffeescript_is_skipped_if_required
+    run_generator [destination_root, "--skip-coffee"]
+
+    assert_file "Gemfile" do |content|
+      assert_no_match(/coffee-rails/, content)
+      assert_match(/uglifier/, content)
     end
   end
 
@@ -606,7 +622,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_edge_option
     assert_generates_with_bundler edge: true
-    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']#{Regexp.escape("5-0-stable")}["']$}
+    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["']$}
   end
 
   def test_spring

@@ -123,7 +123,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_eager_has_one_through_polymorphic_with_source_type
-    clubs = Club.all.merge!(includes: :sponsored_member, where: ["name = ?","Moustache and Eyebrow Fancier Club"]).to_a
+    clubs = Club.all.merge!(includes: :sponsored_member, where: ["name = ?", "Moustache and Eyebrow Fancier Club"]).to_a
     # Only the eyebrow fanciers club has a sponsored_member
     assert_not_nil assert_no_queries { clubs[0].sponsored_member }
   end
@@ -182,7 +182,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
       @member.organization = @organization
     end
     assert_equal @organization, @member.organization
-    assert @organization.members.include?(@member)
+    assert_includes @organization.members, @member
     assert_equal "Extra", @member.member_detail.extra_data
   end
 
@@ -197,16 +197,16 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     end
     assert_equal @organization, @member.organization
     assert_equal "Extra", @member.member_detail.extra_data
-    assert @organization.members.include?(@member)
-    assert !@new_organization.members.include?(@member)
+    assert_includes @organization.members, @member
+    assert_not_includes @new_organization.members, @member
 
     assert_no_difference "MemberDetail.count" do
       @member.organization = @new_organization
     end
     assert_equal @new_organization, @member.organization
     assert_equal "Extra", @member.member_detail.extra_data
-    assert !@organization.members.include?(@member)
-    assert @new_organization.members.include?(@member)
+    assert_not_includes @organization.members, @member
+    assert_includes @new_organization.members, @member
   end
 
   def test_preloading_has_one_through_on_belongs_to

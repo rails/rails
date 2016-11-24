@@ -70,6 +70,7 @@ module ActiveSupport
         def with_local_cache
           use_temporary_local_cache(LocalStore.new) { yield }
         end
+
         # Middleware class can be inserted as a Rack handler to be local cache for the
         # duration of request.
         def middleware
@@ -121,14 +122,6 @@ module ActiveSupport
           def delete_entry(key, options) # :nodoc:
             local_cache.delete_entry(key, options) if local_cache
             super
-          end
-
-          def set_cache_value(value, name, amount, options) # :nodoc:
-            ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
-              `set_cache_value` is deprecated and will be removed from Rails 5.1.
-              Please use `write_cache_value` instead.
-            MESSAGE
-            write_cache_value name, value, options
           end
 
           def write_cache_value(name, value, options) # :nodoc:

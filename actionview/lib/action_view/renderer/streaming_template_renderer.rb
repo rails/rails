@@ -27,8 +27,8 @@ module ActionView
 
       private
 
-      # This is the same logging logic as in ShowExceptions middleware.
-      # TODO Once "exceptron" is in, refactor this piece to simply re-use exceptron.
+        # This is the same logging logic as in ShowExceptions middleware.
+        # TODO Once "exceptron" is in, refactor this piece to simply re-use exceptron.
         def log_error(exception) #:nodoc:
           logger = ActionView::Base.logger
           return unless logger

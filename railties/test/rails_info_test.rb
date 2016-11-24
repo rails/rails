@@ -48,9 +48,9 @@ class InfoTest < ActiveSupport::TestCase
     end
 
     html = Rails::Info.to_html
-    assert html.include?('<tr><td class="name">Middleware</td>')
+    assert_includes html, '<tr><td class="name">Middleware</td>'
     properties.value_for("Middleware").each do |value|
-      assert html.include?("<li>#{CGI.escapeHTML(value)}</li>")
+      assert_includes html, "<li>#{CGI.escapeHTML(value)}</li>"
     end
   end
 

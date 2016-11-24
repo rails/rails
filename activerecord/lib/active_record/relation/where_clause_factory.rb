@@ -7,8 +7,6 @@ module ActiveRecord
       end
 
       def build(opts, other)
-        binds = []
-
         case opts
         when String, Array
           parts = [klass.send(:sanitize_sql, other.empty? ? opts : ([opts] + other))]
@@ -26,7 +24,7 @@ module ActiveRecord
           raise ArgumentError, "Unsupported argument type: #{opts} (#{opts.class})"
         end
 
-        WhereClause.new(parts, binds)
+        WhereClause.new(parts, binds || [])
       end
 
       protected

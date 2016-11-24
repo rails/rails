@@ -23,7 +23,7 @@ module ActionView
 
     initializer "action_view.set_configs" do |app|
       ActiveSupport.on_load(:action_view) do
-        app.config.action_view.each do |k,v|
+        app.config.action_view.each do |k, v|
           send "#{k}=", v
         end
       end
@@ -40,7 +40,7 @@ module ActionView
     initializer "action_view.per_request_digest_cache" do |app|
       ActiveSupport.on_load(:action_view) do
         if app.config.consider_all_requests_local
-          app.executor.to_run { ActionView::LookupContext::DetailsKey.clear }
+          app.executor.to_run ActionView::Digestor::PerExecutionDigestCacheExpiry
         end
       end
     end

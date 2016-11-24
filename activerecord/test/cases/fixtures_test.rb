@@ -192,27 +192,27 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_empty_yaml_fixture
-    assert_not_nil ActiveRecord::FixtureSet.new( Account.connection, "accounts", Account, FIXTURES_ROOT + "/naked/yml/accounts")
+    assert_not_nil ActiveRecord::FixtureSet.new(Account.connection, "accounts", Account, FIXTURES_ROOT + "/naked/yml/accounts")
   end
 
   def test_empty_yaml_fixture_with_a_comment_in_it
-    assert_not_nil ActiveRecord::FixtureSet.new( Account.connection, "companies", Company, FIXTURES_ROOT + "/naked/yml/companies")
+    assert_not_nil ActiveRecord::FixtureSet.new(Account.connection, "companies", Company, FIXTURES_ROOT + "/naked/yml/companies")
   end
 
   def test_nonexistent_fixture_file
     nonexistent_fixture_path = FIXTURES_ROOT + "/imnothere"
 
     #sanity check to make sure that this file never exists
-    assert Dir[nonexistent_fixture_path+"*"].empty?
+    assert Dir[nonexistent_fixture_path + "*"].empty?
 
     assert_raise(Errno::ENOENT) do
-      ActiveRecord::FixtureSet.new( Account.connection, "companies", Company, nonexistent_fixture_path)
+      ActiveRecord::FixtureSet.new(Account.connection, "companies", Company, nonexistent_fixture_path)
     end
   end
 
   def test_dirty_dirty_yaml_file
     assert_raise(ActiveRecord::Fixture::FormatError) do
-      ActiveRecord::FixtureSet.new( Account.connection, "courses", Course, FIXTURES_ROOT + "/naked/yml/courses")
+      ActiveRecord::FixtureSet.new(Account.connection, "courses", Course, FIXTURES_ROOT + "/naked/yml/courses")
     end
   end
 
@@ -728,7 +728,7 @@ class LoadAllFixturesTest < ActiveRecord::TestCase
     self.class.fixtures :all
 
     if File.symlink? FIXTURES_ROOT + "/all/admin"
-      assert_equal %w(admin/accounts admin/users developers people tasks), fixture_table_names.sort
+      assert_equal %w(admin/accounts admin/users developers namespaced/accounts people tasks), fixture_table_names.sort
     end
   ensure
     ActiveRecord::FixtureSet.reset_cache
@@ -741,7 +741,7 @@ class LoadAllFixturesWithPathnameTest < ActiveRecord::TestCase
     self.class.fixtures :all
 
     if File.symlink? FIXTURES_ROOT + "/all/admin"
-      assert_equal %w(admin/accounts admin/users developers people tasks), fixture_table_names.sort
+      assert_equal %w(admin/accounts admin/users developers namespaced/accounts people tasks), fixture_table_names.sort
     end
   ensure
     ActiveRecord::FixtureSet.reset_cache
@@ -923,7 +923,7 @@ class FoxyFixturesTest < ActiveRecord::TestCase
   end
 
   def test_namespaced_models
-    assert admin_accounts(:signals37).users.include?(admin_users(:david))
+    assert_includes admin_accounts(:signals37).users, admin_users(:david)
     assert_equal 2, admin_accounts(:signals37).users.size
   end
 
@@ -948,7 +948,7 @@ end
 class CustomNameForFixtureOrModelTest < ActiveRecord::TestCase
   ActiveRecord::FixtureSet.reset_cache
 
-  set_fixture_class :randomly_named_a9         =>
+  set_fixture_class :randomly_named_a9 =>
                         ClassNameThatDoesNotFollowCONVENTIONS,
                     :'admin/randomly_named_a9' =>
                         Admin::ClassNameThatDoesNotFollowCONVENTIONS1,

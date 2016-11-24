@@ -28,7 +28,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
   end
 
   def walk_permitted(params)
-    params.each do |k,v|
+    params.each do |k, v|
       case v
       when ActionController::Parameters
         walk_permitted v
@@ -39,13 +39,13 @@ class ParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "iteration should not impact permit" do
-    hash = { "foo"=>{ "bar"=>{ "0"=>{ "baz"=>"hello", "zot"=>"1" } } } }
+    hash = { "foo" => { "bar" => { "0" => { "baz" => "hello", "zot" => "1" } } } }
     params = ActionController::Parameters.new(hash)
 
     walk_permitted params
 
     sanitized = params[:foo].permit(bar: [:baz])
-    assert_equal({ "0"=>{ "baz"=>"hello" } }, sanitized[:bar].to_unsafe_h)
+    assert_equal({ "0" => { "baz" => "hello" } }, sanitized[:bar].to_unsafe_h)
   end
 
   test "if nothing is permitted, the hash becomes empty" do
@@ -168,6 +168,44 @@ class ParametersPermitTest < ActiveSupport::TestCase
     end
   end
 
+  test "key to empty hash: arbitrary hashes are permitted" do
+    params = ActionController::Parameters.new(
+      username: "fxn",
+      preferences: {
+        scheme: "Marazul",
+        font: {
+          name: "Source Code Pro",
+          size: 12
+        },
+        tabstops:   [4, 8, 12, 16],
+        suspicious: [true, Object.new, false, /yo!/],
+        dubious:    [{ a: :a, b: /wtf!/ }, { c: :c }],
+        injected:   Object.new
+      },
+      hacked: 1 # not a hash
+    )
+
+    permitted = params.permit(:username, preferences: {}, hacked: {})
+
+    assert permitted.permitted?
+    assert permitted[:preferences].permitted?
+    assert permitted[:preferences][:font].permitted?
+    assert permitted[:preferences][:dubious].all?(&:permitted?)
+
+    assert_equal "fxn",             permitted[:username]
+    assert_equal "Marazul",         permitted[:preferences][:scheme]
+    assert_equal "Source Code Pro", permitted[:preferences][:font][:name]
+    assert_equal 12,                permitted[:preferences][:font][:size]
+    assert_equal [4, 8, 12, 16],    permitted[:preferences][:tabstops]
+    assert_equal [true, false],     permitted[:preferences][:suspicious]
+    assert_equal :a,                permitted[:preferences][:dubious][0][:a]
+    assert_equal :c,                permitted[:preferences][:dubious][1][:c]
+
+    assert_filtered_out permitted[:preferences][:dubious][0], :b
+    assert_filtered_out permitted[:preferences], :injected
+    assert_filtered_out permitted, :hacked
+  end
+
   test "fetch raises ParameterMissing exception" do
     e = assert_raises(ActionController::ParameterMissing) do
       @params.fetch :foo
@@ -242,6 +280,23 @@ class ParametersPermitTest < ActiveSupport::TestCase
     merged_params = @params.merge(other_params)
 
     assert merged_params[:id]
+  end
+
+  test "not permitted is sticky beyond merge!" do
+    assert_not @params.merge!(a: "b").permitted?
+  end
+
+  test "permitted is sticky beyond merge!" do
+    @params.permit!
+    assert @params.merge!(a: "b").permitted?
+  end
+
+  test "merge! with parameters" do
+    other_params = ActionController::Parameters.new(id: "1234").permit!
+    @params.merge!(other_params)
+
+    assert_equal "1234", @params[:id]
+    assert_equal "32", @params[:person][:age]
   end
 
   test "modifying the parameters" do
@@ -322,8 +377,8 @@ class ParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "to_unsafe_h returns unfiltered params even after accessing few keys" do
-    params = ActionController::Parameters.new("f"=>{ "language_facet"=>["Tibetan"] })
-    expected = { "f"=>{ "language_facet"=>["Tibetan"] } }
+    params = ActionController::Parameters.new("f" => { "language_facet" => ["Tibetan"] })
+    expected = { "f" => { "language_facet" => ["Tibetan"] } }
 
     assert params["f"].is_a? ActionController::Parameters
     assert_equal expected, params.to_unsafe_h

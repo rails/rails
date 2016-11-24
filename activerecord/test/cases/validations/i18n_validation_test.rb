@@ -36,7 +36,7 @@ class I18nValidationTest < ActiveRecord::TestCase
   # are used to generate tests to keep things DRY
   #
   COMMON_CASES = [
-  # [ case,                                validation_options,            generate_message_options]
+    # [ case,                              validation_options,            generate_message_options]
     [ "given no options",                  {},                            {}],
     [ "given custom message",              { message: "custom" },        { message: "custom" }],
     [ "given if condition",                { if: lambda { true } },  {}],

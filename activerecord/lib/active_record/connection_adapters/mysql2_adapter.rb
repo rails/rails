@@ -14,12 +14,10 @@ module ActiveRecord
       config[:username] = "root" if config[:username].nil?
       config[:flags] ||= 0
 
-      if Mysql2::Client.const_defined? :FOUND_ROWS
-        if config[:flags].kind_of? Array
-          config[:flags].push "FOUND_ROWS".freeze
-        else
-          config[:flags] |= Mysql2::Client::FOUND_ROWS
-        end
+      if config[:flags].kind_of? Array
+        config[:flags].push "FOUND_ROWS".freeze
+      else
+        config[:flags] |= Mysql2::Client::FOUND_ROWS
       end
 
       client = Mysql2::Client.new(config)
@@ -90,7 +88,6 @@ module ActiveRecord
       #++
 
       def active?
-        return false unless @connection
         @connection.ping
       end
 
@@ -105,10 +102,7 @@ module ActiveRecord
       # Otherwise, this method does nothing.
       def disconnect!
         super
-        unless @connection.nil?
-          @connection.close
-          @connection = nil
-        end
+        @connection.close
       end
 
       private

@@ -9,7 +9,6 @@ require "active_record/connection_adapters/mysql/schema_dumper"
 require "active_record/connection_adapters/mysql/type_metadata"
 
 require "active_support/core_ext/string/strip"
-require "active_support/core_ext/regexp"
 
 module ActiveRecord
   module ConnectionAdapters
@@ -216,7 +215,11 @@ module ActiveRecord
 
       # Executes the SQL statement in the context of this connection.
       def execute(sql, name = nil)
-        log(sql, name) { @connection.query(sql) }
+        log(sql, name) do
+          ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+            @connection.query(sql)
+          end
+        end
       end
 
       # Mysql2Adapter doesn't have to free a result after using it, but we use this method
@@ -384,29 +387,25 @@ module ActiveRecord
               mysql_index_type = row[:Index_type].downcase.to_sym
               index_type  = INDEX_TYPES.include?(mysql_index_type)  ? mysql_index_type : nil
               index_using = INDEX_USINGS.include?(mysql_index_type) ? mysql_index_type : nil
-              indexes << IndexDefinition.new(row[:Table], row[:Key_name], row[:Non_unique].to_i == 0, [], [], nil, nil, index_type, index_using, row[:Index_comment].presence)
+              indexes << IndexDefinition.new(row[:Table], row[:Key_name], row[:Non_unique].to_i == 0, [], {}, nil, nil, index_type, index_using, row[:Index_comment].presence)
             end
 
             indexes.last.columns << row[:Column_name]
-            indexes.last.lengths << row[:Sub_part]
+            indexes.last.lengths.merge!(row[:Column_name] => row[:Sub_part].to_i) if row[:Sub_part]
           end
         end
 
         indexes
       end
 
-      # Returns an array of +Column+ objects for the table specified by +table_name+.
-      def columns(table_name) # :nodoc:
-        table_name = table_name.to_s
-        column_definitions(table_name).map do |field|
-          type_metadata = fetch_type_metadata(field[:Type], field[:Extra])
-          if type_metadata.type == :datetime && field[:Default] == "CURRENT_TIMESTAMP"
-            default, default_function = nil, field[:Default]
-          else
-            default, default_function = field[:Default], nil
-          end
-          new_column(field[:Field], default, type_metadata, field[:Null] == "YES", table_name, default_function, field[:Collation], comment: field[:Comment].presence)
+      def new_column_from_field(table_name, field) # :nodoc:
+        type_metadata = fetch_type_metadata(field[:Type], field[:Extra])
+        if type_metadata.type == :datetime && field[:Default] == "CURRENT_TIMESTAMP"
+          default, default_function = nil, field[:Default]
+        else
+          default, default_function = field[:Default], nil
         end
+        new_column(field[:Field], default, type_metadata, field[:Null] == "YES", table_name, default_function, field[:Collation], comment: field[:Comment].presence)
       end
 
       def table_comment(table_name) # :nodoc:
@@ -509,7 +508,7 @@ module ActiveRecord
       end
 
       def add_sql_comment!(sql, comment) # :nodoc:
-        sql << " COMMENT #{quote(comment)}" if comment
+        sql << " COMMENT #{quote(comment)}" if comment.present?
         sql
       end
 
@@ -694,7 +693,7 @@ module ActiveRecord
 
         def register_integer_type(mapping, key, options) # :nodoc:
           mapping.register_type(key) do |sql_type|
-            if /\bunsigned\z/ === sql_type
+            if /\bunsigned\z/.match?(sql_type)
               Type::UnsignedInteger.new(options)
             else
               Type::Integer.new(options)
@@ -703,7 +702,7 @@ module ActiveRecord
         end
 
         def extract_precision(sql_type)
-          if /time/ === sql_type
+          if /time/.match?(sql_type)
             super || 0
           else
             super
@@ -818,8 +817,8 @@ module ActiveRecord
 
       private
 
-      # MySQL is too stupid to create a temporary table for use subquery, so we have
-      # to give it some prompting in the form of a subsubquery. Ugh!
+        # MySQL is too stupid to create a temporary table for use subquery, so we have
+        # to give it some prompting in the form of a subsubquery. Ugh!
         def subquery_for(key, select)
           subsubselect = select.clone
           subsubselect.projections = [key]
@@ -887,7 +886,7 @@ module ActiveRecord
           end.compact.join(", ")
 
           # ...and send them all in one query
-          @connection.query  "SET #{encoding} #{sql_mode_assignment} #{variable_assignments}"
+          @connection.query "SET #{encoding} #{sql_mode_assignment} #{variable_assignments}"
         end
 
         def column_definitions(table_name) # :nodoc:

@@ -88,6 +88,13 @@ class TestRequestTest < ActiveSupport::TestCase
     assert_equal "GoogleBot", req.user_agent
   end
 
+  test "request_method getter and setter" do
+    req = ActionDispatch::TestRequest.create
+    req.request_method # to reproduce bug caused by memoization
+    req.request_method = "POST"
+    assert_equal "POST", req.request_method
+  end
+
   test "setter methods" do
     req = ActionDispatch::TestRequest.create({})
     get = "GET"

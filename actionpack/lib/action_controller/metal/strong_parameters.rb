@@ -151,15 +151,6 @@ module ActionController
     def ==(other)
       if other.respond_to?(:permitted?)
         self.permitted? == other.permitted? && self.parameters == other.parameters
-      elsif other.is_a?(Hash)
-        ActiveSupport::Deprecation.warn <<-WARNING.squish
-          Comparing equality between `ActionController::Parameters` and a
-          `Hash` is deprecated and will be removed in Rails 5.1. Please only do
-          comparisons between instances of `ActionController::Parameters`. If
-          you need to compare to a hash, first convert it using
-          `ActionController::Parameters#new`.
-        WARNING
-        @parameters == other.with_indifferent_access
       else
         @parameters == other
       end
@@ -343,6 +334,15 @@ module ActionController
     #   params = ActionController::Parameters.new(tags: ['rails', 'parameters'])
     #   params.permit(tags: [])
     #
+    # Sometimes it is not possible or convenient to declare the valid keys of
+    # a hash parameter or its internal structure. Just map to an empty hash:
+    #
+    #   params.permit(preferences: {})
+    #
+    # but be careful because this opens the door to arbitrary input. In this
+    # case, +permit+ ensures values in the returned structure are permitted
+    # scalars and filters out anything else.
+    #
     # You can also use +permit+ on nested parameters, like:
     #
     #   params = ActionController::Parameters.new({
@@ -391,14 +391,15 @@ module ActionController
         case filter
         when Symbol, String
           permitted_scalar_filter(params, filter)
-        when Hash then
+        when Hash
           hash_filter(params, filter)
         end
       end
 
       unpermitted_parameters!(params) if self.class.action_on_unpermitted_parameters
 
-      params.permit!
+      params.permitted = true
+      params
     end
 
     # Returns a parameter for the given +key+. If not found,
@@ -548,7 +549,7 @@ module ActionController
       new_instance_with_inherited_permitted_status(@parameters.select(&block))
     end
 
-    # Equivalent to Hash#keep_if, but returns nil if no changes were made.
+    # Equivalent to Hash#keep_if, but returns +nil+ if no changes were made.
     def select!(&block)
       @parameters.select!(&block)
       self
@@ -580,6 +581,13 @@ module ActionController
       new_instance_with_inherited_permitted_status(
         @parameters.merge(other_hash.to_h)
       )
+    end
+
+    # Returns current <tt>ActionController::Parameters</tt> instance which
+    # +other_hash+ merges into current hash.
+    def merge!(other_hash)
+      @parameters.merge!(other_hash.to_h)
+      self
     end
 
     # This is required by ActiveModel attribute assignment, so that user can
@@ -620,25 +628,12 @@ module ActionController
       end
     end
 
-    # Undefine `to_param` such that it gets caught in the `method_missing`
-    # deprecation cycle below.
     undef_method :to_param
 
-    def method_missing(method_sym, *args, &block)
-      if @parameters.respond_to?(method_sym)
-        message = <<-DEPRECATE.squish
-          Method #{method_sym} is deprecated and will be removed in Rails 5.1,
-          as `ActionController::Parameters` no longer inherits from
-          hash. Using this deprecated behavior exposes potential security
-          problems. If you continue to use this method you may be creating
-          a security vulnerability in your app that can be exploited. Instead,
-          consider using one of these documented methods which are not
-          deprecated: http://api.rubyonrails.org/v#{ActionPack.version}/classes/ActionController/Parameters.html
-        DEPRECATE
-        ActiveSupport::Deprecation.warn(message)
-        @parameters.public_send(method_sym, *args, &block)
-      else
-        super
+    # Returns duplicate of object including all parameters
+    def deep_dup
+      self.class.new(@parameters.deep_dup).tap do |duplicate|
+        duplicate.permitted = @permitted
       end
     end
 
@@ -702,7 +697,7 @@ module ActionController
         when Parameters
           if object.fields_for_style?
             hash = object.class.new
-            object.each { |k,v| hash[k] = yield v }
+            object.each { |k, v| hash[k] = yield v }
             hash
           else
             yield object
@@ -781,6 +776,7 @@ module ActionController
       end
 
       EMPTY_ARRAY = []
+      EMPTY_HASH  = {}
       def hash_filter(params, filter)
         filter = filter.with_indifferent_access
 
@@ -794,10 +790,48 @@ module ActionController
             array_of_permitted_scalars?(self[key]) do |val|
               params[key] = val
             end
+          elsif filter[key] == EMPTY_HASH
+            # Declaration { preferences: {} }.
+            if value.is_a?(Parameters)
+              params[key] = permit_any_in_parameters(value)
+            end
           elsif non_scalar?(value)
             # Declaration { user: :name } or { user: [:name, :age, { address: ... }] }.
             params[key] = each_element(value) do |element|
               element.permit(*Array.wrap(filter[key]))
+            end
+          end
+        end
+      end
+
+      def permit_any_in_parameters(params)
+        self.class.new.tap do |sanitized|
+          params.each do |key, value|
+            case value
+            when ->(v) { permitted_scalar?(v) }
+              sanitized[key] = value
+            when Array
+              sanitized[key] = permit_any_in_array(value)
+            when Parameters
+              sanitized[key] = permit_any_in_parameters(value)
+            else
+              # Filter this one out.
+            end
+          end
+          sanitized.permitted = true
+        end
+      end
+
+      def permit_any_in_array(array)
+        [].tap do |sanitized|
+          array.each do |element|
+            case element
+            when ->(e) { permitted_scalar?(e) }
+              sanitized << element
+            when Parameters
+              sanitized << permit_any_in_parameters(element)
+            else
+              # Filter this one out.
             end
           end
         end

@@ -27,7 +27,7 @@ module ActiveModel
       delegate :add_modifier, to: :registry
 
       # Add a new type to the registry, allowing it to be referenced as a
-      # symbol by ActiveModel::Attributes::ClassMethods#attribute.  If your
+      # symbol by ActiveRecord::Attributes::ClassMethods#attribute.  If your
       # type is only meant to be used with a specific database adapter, you can
       # do so by passing +adapter: :postgresql+. If your type has the same
       # name as a native type for the current adapter, an exception will be

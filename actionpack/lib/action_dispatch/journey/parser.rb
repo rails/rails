@@ -8,9 +8,10 @@ require "racc/parser.rb"
 
 require "action_dispatch/journey/parser_extras"
 module ActionDispatch
+  # :stopdoc:
   module Journey
     class Parser < Racc::Parser
-##### State transition tables begin ###
+      ##### State transition tables begin ###
 
       racc_action_table = [
           13,    15,    14,     7,    21,    16,     8,    19,    13,    15,
@@ -128,9 +129,9 @@ module ActionDispatch
 
       Racc_debug_parser = false
 
-##### State transition tables end #####
+      ##### State transition tables end #####
 
-# reduce 0 omitted
+      # reduce 0 omitted
 
       def _reduce_1(val, _values)
         Cat.new(val.first, val.last)
@@ -140,13 +141,13 @@ module ActionDispatch
         val.first
       end
 
-# reduce 3 omitted
+      # reduce 3 omitted
 
-# reduce 4 omitted
+      # reduce 4 omitted
 
-# reduce 5 omitted
+      # reduce 5 omitted
 
-# reduce 6 omitted
+      # reduce 6 omitted
 
       def _reduce_7(val, _values)
         Group.new(val[1])
@@ -164,13 +165,13 @@ module ActionDispatch
         Star.new(Symbol.new(val.last))
       end
 
-# reduce 11 omitted
+      # reduce 11 omitted
 
-# reduce 12 omitted
+      # reduce 12 omitted
 
-# reduce 13 omitted
+      # reduce 13 omitted
 
-# reduce 14 omitted
+      # reduce 14 omitted
 
       def _reduce_15(val, _values)
         Slash.new("/")
@@ -193,4 +194,5 @@ module ActionDispatch
       end
     end   # class Parser
   end   # module Journey
+  # :startdoc:
 end   # module ActionDispatch

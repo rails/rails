@@ -416,8 +416,8 @@ module ActiveRecord
 
     private
 
-    # Returns a Hash of the Arel::Attributes and attribute values that have been
-    # typecasted for use in an Arel insert/update method.
+      # Returns a Hash of the Arel::Attributes and attribute values that have been
+      # typecasted for use in an Arel insert/update method.
       def arel_attributes_with_values(attribute_names)
         attrs = {}
         arel_table = self.class.arel_table
@@ -428,15 +428,15 @@ module ActiveRecord
         attrs
       end
 
-    # Filters the primary keys and readonly attributes from the attribute names.
+      # Filters the primary keys and readonly attributes from the attribute names.
       def attributes_for_update(attribute_names)
         attribute_names.reject do |name|
           readonly_attribute?(name)
         end
       end
 
-    # Filters out the primary keys, from the attribute names, when the primary
-    # key is to be generated (e.g. the id attribute has no value).
+      # Filters out the primary keys, from the attribute names, when the primary
+      # key is to be generated (e.g. the id attribute has no value).
       def attributes_for_create(attribute_names)
         attribute_names.reject do |name|
           pk_attribute?(name) && id.nil?

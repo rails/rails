@@ -84,7 +84,7 @@ class HasManyAssociationsTestPrimaryKeys < ActiveRecord::TestCase
     david = people(:david)
 
     assert_equal ["A Modest Proposal"], david.essays.map(&:name)
-    david.essays = [Essay.create!(name: "Remote Work" )]
+    david.essays = [Essay.create!(name: "Remote Work")]
     assert_equal ["Remote Work"], david.essays.map(&:name)
   end
 
@@ -528,7 +528,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_should_append_to_association_order
-    ordered_clients =  companies(:first_firm).clients_sorted_desc.order("companies.id")
+    ordered_clients = companies(:first_firm).clients_sorted_desc.order("companies.id")
     assert_equal ["id DESC", "companies.id"], ordered_clients.order_values
   end
 
@@ -788,6 +788,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [1], posts(:welcome).comments.select { |c| c.id == 1 }.map(&:id)
   end
 
+  def test_select_with_block_and_specific_attributes
+    assert_deprecated do
+      comments = posts(:welcome).comments.select(:id, :body) { |c| c.id == 1 }
+      assert_equal [1], comments.map(&:id)
+    end
+  end
+
   def test_select_without_foreign_key
     assert_equal companies(:first_firm).accounts.first.credit_limit, companies(:first_firm).accounts.select(:credit_limit).first.credit_limit
   end
@@ -870,7 +877,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     rescue Client::RaisedOnSave
     end
 
-    assert !companies(:first_firm).clients_of_firm.reload.include?(good)
+    assert_not_includes companies(:first_firm).clients_of_firm.reload, good
   end
 
   def test_transactions_when_adding_to_new_record
@@ -912,6 +919,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     company.clients_of_firm.build("name" => "Another Client")
     company.clients_of_firm.build("name" => "Yet Another Client")
     assert_equal 4, company.clients_of_firm.size
+    assert_equal 4, company.clients_of_firm.uniq.size
   end
 
   def test_collection_not_empty_after_building
@@ -983,7 +991,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_create_without_loading_association
-    first_firm  = companies(:first_firm)
+    first_firm = companies(:first_firm)
     Firm.column_names
     Client.column_names
 
@@ -1735,6 +1743,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert !company.clients.loaded?
   end
 
+  def test_counter_cache_on_unloaded_association
+    car = Car.create(name: "My AppliCar")
+    assert_equal car.engines.size, 0
+  end
+
   def test_get_ids_ignores_include_option
     assert_equal [readers(:michael_welcome).id], posts(:welcome).readers_with_person_ids
   end
@@ -2291,7 +2304,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   test "does not duplicate associations when used with natural primary keys" do
     speedometer = Speedometer.create!(id: "4")
-    speedometer.minivans.create!(minivan_id: "a-van-red" ,name: "a van", color: "red")
+    speedometer.minivans.create!(minivan_id: "a-van-red" , name: "a van", color: "red")
 
     assert_equal 1, speedometer.minivans.to_a.size, "Only one association should be present:\n#{speedometer.minivans.to_a}"
     assert_equal 1, speedometer.reload.minivans.to_a.size
@@ -2461,9 +2474,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   test "double insertion of new object to association when same association used in the after create callback of a new object" do
-    car = Car.create!
-    car.bulbs << TrickyBulb.new
-    assert_equal 1, car.bulbs.size
+    reset_callbacks(:save, Bulb) do
+      Bulb.after_save { |record| record.car.bulbs.to_a }
+      car = Car.create!
+      car.bulbs << Bulb.new
+      assert_equal 1, car.bulbs.size
+    end
   end
 
   def test_association_force_reload_with_only_true_is_deprecated
@@ -2510,9 +2526,34 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_no_queries { car.bulb_ids }
   end
 
+  def test_loading_association_in_validate_callback_doesnt_affect_persistence
+    reset_callbacks(:validation, Bulb) do
+      Bulb.after_validation { |m| m.car.bulbs.load }
+
+      car = Car.create!(name: "Car")
+      bulb = car.bulbs.create!
+
+      assert_equal [bulb], car.bulbs
+    end
+  end
+
   private
 
     def force_signal37_to_load_all_clients_of_firm
       companies(:first_firm).clients_of_firm.load_target
+    end
+
+    def reset_callbacks(kind, klass)
+      old_callbacks = {}
+      old_callbacks[klass] = klass.send("_#{kind}_callbacks").dup
+      klass.subclasses.each do |subclass|
+        old_callbacks[subclass] = subclass.send("_#{kind}_callbacks").dup
+      end
+      yield
+    ensure
+      klass.send("_#{kind}_callbacks=", old_callbacks[klass])
+      klass.subclasses.each do |subclass|
+        subclass.send("_#{kind}_callbacks=", old_callbacks[subclass])
+      end
     end
 end

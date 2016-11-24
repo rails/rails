@@ -544,7 +544,7 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_indifferent_select
-    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).select { |k,v| v == 1 }
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).select { |k, v| v == 1 }
 
     assert_equal({ "a" => 1 }, hash)
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
@@ -556,21 +556,21 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_indifferent_select_returns_a_hash_when_unchanged
-    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).select { |k,v| true }
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).select { |k, v| true }
 
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
   end
 
   def test_indifferent_select_bang
     indifferent_strings = ActiveSupport::HashWithIndifferentAccess.new(@strings)
-    indifferent_strings.select! { |k,v| v == 1 }
+    indifferent_strings.select! { |k, v| v == 1 }
 
     assert_equal({ "a" => 1 }, indifferent_strings)
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, indifferent_strings
   end
 
   def test_indifferent_reject
-    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).reject { |k,v| v != 1 }
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).reject { |k, v| v != 1 }
 
     assert_equal({ "a" => 1 }, hash)
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
@@ -583,7 +583,7 @@ class HashExtTest < ActiveSupport::TestCase
 
   def test_indifferent_reject_bang
     indifferent_strings = ActiveSupport::HashWithIndifferentAccess.new(@strings)
-    indifferent_strings.reject! { |k,v| v != 1 }
+    indifferent_strings.reject! { |k, v| v != 1 }
 
     assert_equal({ "a" => 1 }, indifferent_strings)
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, indifferent_strings
@@ -759,9 +759,9 @@ class HashExtTest < ActiveSupport::TestCase
     hash_1 = { a: "a", b: "b", c: { c1: "c1", c2: "c2", c3: { d1: "d1" } } }
     hash_2 = { a: 1, c: { c1: 2, c3: { d2: "d2" } } }
     expected = { a: [:a, "a", 1], b: "b", c: { c1: [:c1, "c1", 2], c2: "c2", c3: { d1: "d1", d2: "d2" } } }
-    assert_equal(expected, hash_1.deep_merge(hash_2) { |k,o,n| [k, o, n] })
+    assert_equal(expected, hash_1.deep_merge(hash_2) { |k, o, n| [k, o, n] })
 
-    hash_1.deep_merge!(hash_2) { |k,o,n| [k, o, n] }
+    hash_1.deep_merge!(hash_2) { |k, o, n| [k, o, n] }
     assert_equal expected, hash_1
   end
 
@@ -1051,13 +1051,6 @@ class HashExtTest < ActiveSupport::TestCase
     assert_nothing_raised { hash.to_hash }
   end
 
-  def test_new_from_hash_copying_default_should_not_raise_when_default_proc_does
-    hash = Hash.new
-    hash.default_proc = proc { |h, k| raise "walrus" }
-
-    assert_deprecated { HashWithIndifferentAccess.new_from_hash_copying_default(hash) }
-  end
-
   def test_new_with_to_hash_conversion_copies_default
     normal_hash = Hash.new(3)
     normal_hash[:a] = 1
@@ -1127,63 +1120,63 @@ class HashToXmlTest < ActiveSupport::TestCase
   def test_one_level
     xml = { name: "David", street: "Paulina" }.to_xml(@xml_options)
     assert_equal "<person>", xml.first(8)
-    assert xml.include?(%(<street>Paulina</street>))
-    assert xml.include?(%(<name>David</name>))
+    assert_includes xml, %(<street>Paulina</street>)
+    assert_includes xml, %(<name>David</name>)
   end
 
   def test_one_level_dasherize_false
     xml = { name: "David", street_name: "Paulina" }.to_xml(@xml_options.merge(dasherize: false))
     assert_equal "<person>", xml.first(8)
-    assert xml.include?(%(<street_name>Paulina</street_name>))
-    assert xml.include?(%(<name>David</name>))
+    assert_includes xml, %(<street_name>Paulina</street_name>)
+    assert_includes xml, %(<name>David</name>)
   end
 
   def test_one_level_dasherize_true
     xml = { name: "David", street_name: "Paulina" }.to_xml(@xml_options.merge(dasherize: true))
     assert_equal "<person>", xml.first(8)
-    assert xml.include?(%(<street-name>Paulina</street-name>))
-    assert xml.include?(%(<name>David</name>))
+    assert_includes xml, %(<street-name>Paulina</street-name>)
+    assert_includes xml, %(<name>David</name>)
   end
 
   def test_one_level_camelize_true
     xml = { name: "David", street_name: "Paulina" }.to_xml(@xml_options.merge(camelize: true))
     assert_equal "<Person>", xml.first(8)
-    assert xml.include?(%(<StreetName>Paulina</StreetName>))
-    assert xml.include?(%(<Name>David</Name>))
+    assert_includes xml, %(<StreetName>Paulina</StreetName>)
+    assert_includes xml, %(<Name>David</Name>)
   end
 
   def test_one_level_camelize_lower
     xml = { name: "David", street_name: "Paulina" }.to_xml(@xml_options.merge(camelize: :lower))
     assert_equal "<person>", xml.first(8)
-    assert xml.include?(%(<streetName>Paulina</streetName>))
-    assert xml.include?(%(<name>David</name>))
+    assert_includes xml, %(<streetName>Paulina</streetName>)
+    assert_includes xml, %(<name>David</name>)
   end
 
   def test_one_level_with_types
     xml = { name: "David", street: "Paulina", age: 26, age_in_millis: 820497600000, moved_on: Date.new(2005, 11, 15), resident: :yes }.to_xml(@xml_options)
     assert_equal "<person>", xml.first(8)
-    assert xml.include?(%(<street>Paulina</street>))
-    assert xml.include?(%(<name>David</name>))
-    assert xml.include?(%(<age type="integer">26</age>))
-    assert xml.include?(%(<age-in-millis type="integer">820497600000</age-in-millis>))
-    assert xml.include?(%(<moved-on type="date">2005-11-15</moved-on>))
-    assert xml.include?(%(<resident type="symbol">yes</resident>))
+    assert_includes xml, %(<street>Paulina</street>)
+    assert_includes xml, %(<name>David</name>)
+    assert_includes xml, %(<age type="integer">26</age>)
+    assert_includes xml, %(<age-in-millis type="integer">820497600000</age-in-millis>)
+    assert_includes xml, %(<moved-on type="date">2005-11-15</moved-on>)
+    assert_includes xml, %(<resident type="symbol">yes</resident>)
   end
 
   def test_one_level_with_nils
     xml = { name: "David", street: "Paulina", age: nil }.to_xml(@xml_options)
     assert_equal "<person>", xml.first(8)
-    assert xml.include?(%(<street>Paulina</street>))
-    assert xml.include?(%(<name>David</name>))
-    assert xml.include?(%(<age nil="true"/>))
+    assert_includes xml, %(<street>Paulina</street>)
+    assert_includes xml, %(<name>David</name>)
+    assert_includes xml, %(<age nil="true"/>)
   end
 
   def test_one_level_with_skipping_types
     xml = { name: "David", street: "Paulina", age: nil }.to_xml(@xml_options.merge(skip_types: true))
     assert_equal "<person>", xml.first(8)
-    assert xml.include?(%(<street>Paulina</street>))
-    assert xml.include?(%(<name>David</name>))
-    assert xml.include?(%(<age nil="true"/>))
+    assert_includes xml, %(<street>Paulina</street>)
+    assert_includes xml, %(<name>David</name>)
+    assert_includes xml, %(<age nil="true"/>)
   end
 
   def test_one_level_with_yielding
@@ -1192,43 +1185,43 @@ class HashToXmlTest < ActiveSupport::TestCase
     end
 
     assert_equal "<person>", xml.first(8)
-    assert xml.include?(%(<street>Paulina</street>))
-    assert xml.include?(%(<name>David</name>))
-    assert xml.include?(%(<creator>Rails</creator>))
+    assert_includes xml, %(<street>Paulina</street>)
+    assert_includes xml, %(<name>David</name>)
+    assert_includes xml, %(<creator>Rails</creator>)
   end
 
   def test_two_levels
     xml = { name: "David", address: { street: "Paulina" } }.to_xml(@xml_options)
     assert_equal "<person>", xml.first(8)
-    assert xml.include?(%(<address><street>Paulina</street></address>))
-    assert xml.include?(%(<name>David</name>))
+    assert_includes xml, %(<address><street>Paulina</street></address>)
+    assert_includes xml, %(<name>David</name>)
   end
 
   def test_two_levels_with_second_level_overriding_to_xml
     xml = { name: "David", address: { street: "Paulina" }, child: IWriteMyOwnXML.new }.to_xml(@xml_options)
     assert_equal "<person>", xml.first(8)
-    assert xml.include?(%(<address><street>Paulina</street></address>))
-    assert xml.include?(%(<level_one><second_level>content</second_level></level_one>))
+    assert_includes xml, %(<address><street>Paulina</street></address>)
+    assert_includes xml, %(<level_one><second_level>content</second_level></level_one>)
   end
 
   def test_two_levels_with_array
     xml = { name: "David", addresses: [{ street: "Paulina" }, { street: "Evergreen" }] }.to_xml(@xml_options)
     assert_equal "<person>", xml.first(8)
-    assert xml.include?(%(<addresses type="array"><address>))
-    assert xml.include?(%(<address><street>Paulina</street></address>))
-    assert xml.include?(%(<address><street>Evergreen</street></address>))
-    assert xml.include?(%(<name>David</name>))
+    assert_includes xml, %(<addresses type="array"><address>)
+    assert_includes xml, %(<address><street>Paulina</street></address>)
+    assert_includes xml, %(<address><street>Evergreen</street></address>)
+    assert_includes xml, %(<name>David</name>)
   end
 
   def test_three_levels_with_array
     xml = { name: "David", addresses: [{ streets: [ { name: "Paulina" }, { name: "Paulina" } ] } ] }.to_xml(@xml_options)
-    assert xml.include?(%(<addresses type="array"><address><streets type="array"><street><name>))
+    assert_includes xml, %(<addresses type="array"><address><streets type="array"><street><name>)
   end
 
   def test_timezoned_attributes
     xml = {
-      created_at: Time.utc(1999,2,2),
-      local_created_at: Time.utc(1999,2,2).in_time_zone("Eastern Time (US & Canada)")
+      created_at: Time.utc(1999, 2, 2),
+      local_created_at: Time.utc(1999, 2, 2).in_time_zone("Eastern Time (US & Canada)")
     }.to_xml(@xml_options)
     assert_match %r{<created-at type=\"dateTime\">1999-02-02T00:00:00Z</created-at>}, xml
     assert_match %r{<local-created-at type=\"dateTime\">1999-02-01T19:00:00-05:00</local-created-at>}, xml
@@ -1537,7 +1530,7 @@ class HashToXmlTest < ActiveSupport::TestCase
       weight: 0.5,
       chunky: true,
       price: BigDecimal("12.50"),
-      expires_at: Time.utc(2007,12,25,12,34,56),
+      expires_at: Time.utc(2007, 12, 25, 12, 34, 56),
       notes: "",
       illustration: "babe.png",
       caption: "That'll do, pig."
@@ -1596,12 +1589,12 @@ class HashToXmlTest < ActiveSupport::TestCase
   end
 
   def test_should_use_default_proc_for_unknown_key
-    hash_wia = HashWithIndifferentAccess.new { 1 +  2 }
+    hash_wia = HashWithIndifferentAccess.new { 1 + 2 }
     assert_equal 3, hash_wia[:new_key]
   end
 
   def test_should_return_nil_if_no_key_is_supplied
-    hash_wia = HashWithIndifferentAccess.new { 1 +  2 }
+    hash_wia = HashWithIndifferentAccess.new { 1 + 2 }
     assert_equal nil, hash_wia.default
   end
 

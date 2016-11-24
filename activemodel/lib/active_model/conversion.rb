@@ -46,9 +46,13 @@ module ActiveModel
     #   class Person
     #     include ActiveModel::Conversion
     #     attr_accessor :id
+    #
+    #     def initialize(id)
+    #       @id = id
+    #     end
     #   end
     #
-    #   person = Person.create(id: 1)
+    #   person = Person.new(1)
     #   person.to_key # => [1]
     def to_key
       key = respond_to?(:id) && id
@@ -61,12 +65,17 @@ module ActiveModel
     #   class Person
     #     include ActiveModel::Conversion
     #     attr_accessor :id
+    #
+    #     def initialize(id)
+    #       @id = id
+    #     end
+    #
     #     def persisted?
     #       true
     #     end
     #   end
     #
-    #   person = Person.create(id: 1)
+    #   person = Person.new(1)
     #   person.to_param # => "1"
     def to_param
       (persisted? && key = to_key) ? key.join("-") : nil

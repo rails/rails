@@ -44,7 +44,7 @@ module ActiveSupport
         #
         # hash::
         #   Hash to merge the converted element into.
-        def to_hash(hash={})
+        def to_hash(hash = {})
           node_hash = {}
 
           # Insert node hash into parent hash correctly.

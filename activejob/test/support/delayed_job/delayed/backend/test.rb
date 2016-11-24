@@ -26,7 +26,7 @@ module Delayed
           self.attempts = 0
           self.priority = 0
           self.id = (self.class.id += 1)
-          hash.each { |k,v| send(:"#{k}=", v) }
+          hash.each { |k, v| send(:"#{k}=", v) }
         end
 
         @jobs = []
@@ -63,7 +63,7 @@ module Delayed
           jobs = jobs.select { |j| Worker.queues.include?(j.queue) }   if Worker.queues.any?
           jobs = jobs.select { |j| j.priority >= Worker.min_priority } if Worker.min_priority
           jobs = jobs.select { |j| j.priority <= Worker.max_priority } if Worker.max_priority
-          jobs.sort_by { |j| [j.priority, j.run_at] }[0..limit-1]
+          jobs.sort_by { |j| [j.priority, j.run_at] }[0..limit - 1]
         end
 
         # Lock this job for this worker.
@@ -84,7 +84,7 @@ module Delayed
         end
 
         def update_attributes(attrs = {})
-          attrs.each { |k,v| send(:"#{k}=", v) }
+          attrs.each { |k, v| send(:"#{k}=", v) }
           save
         end
 

@@ -39,7 +39,7 @@ class Triangle < ActiveRecord::Base
   has_many :shape_expressions, as: :shape
   include Remembered
 end
-class PaintColor  < ActiveRecord::Base
+class PaintColor < ActiveRecord::Base
   has_many   :shape_expressions, as: :paint
   belongs_to :non_poly, foreign_key: "non_poly_one_id", class_name: "NonPolyOne"
   include Remembered

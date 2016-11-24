@@ -7,6 +7,8 @@ module ActiveSupport
   #
   #   1.month.ago       # equivalent to Time.now.advance(months: -1)
   class Duration
+    EPOCH = ::Time.utc(2000)
+
     attr_accessor :value, :parts
 
     autoload :ISO8601Parser,     "active_support/duration/iso8601_parser"
@@ -33,7 +35,7 @@ module ActiveSupport
     end
 
     def -@ #:nodoc:
-      Duration.new(-value, parts.map { |type,number| [type, -number] })
+      Duration.new(-value, parts.map { |type, number| [type, -number] })
     end
 
     def is_a?(klass) #:nodoc:
@@ -119,7 +121,7 @@ module ActiveSupport
 
     def inspect #:nodoc:
       parts.
-        reduce(::Hash.new(0)) { |h,(l,r)| h[l] += r; h }.
+        reduce(::Hash.new(0)) { |h, (l, r)| h[l] += r; h }.
         sort_by { |unit,  _ | [:years, :months, :weeks, :days, :hours, :minutes, :seconds].index(unit) }.
         map     { |unit, val| "#{val} #{val == 1 ? unit.to_s.chop : unit.to_s}" }.
         to_sentence(locale: ::I18n.default_locale)
@@ -129,7 +131,7 @@ module ActiveSupport
       to_i
     end
 
-    def respond_to_missing?(method, include_private=false) #:nodoc:
+    def respond_to_missing?(method, include_private = false) #:nodoc:
       @value.respond_to?(method, include_private)
     end
 
@@ -140,8 +142,7 @@ module ActiveSupport
     # If invalid string is provided, it will raise +ActiveSupport::Duration::ISO8601Parser::ParsingError+.
     def self.parse(iso8601duration)
       parts = ISO8601Parser.new(iso8601duration).parse!
-      time  = ::Time.current
-      new(time.advance(parts) - time, parts)
+      new(EPOCH.advance(parts) - EPOCH, parts)
     end
 
     # Build ISO 8601 Duration string for this duration.
@@ -155,7 +156,7 @@ module ActiveSupport
     protected
 
       def sum(sign, time = ::Time.current) #:nodoc:
-        parts.inject(time) do |t,(type,number)|
+        parts.inject(time) do |t, (type, number)|
           if t.acts_like?(:time) || t.acts_like?(:date)
             if type == :seconds
               t.since(sign * number)

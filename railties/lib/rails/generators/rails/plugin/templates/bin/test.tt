@@ -5,4 +5,6 @@ require 'rails/test_unit/minitest_plugin'
 
 Rails::TestUnitReporter.executable = 'bin/test'
 
-exit Minitest.run(ARGV)
+Minitest.run_via[:rails] = true
+
+require "active_support/testing/autorun"

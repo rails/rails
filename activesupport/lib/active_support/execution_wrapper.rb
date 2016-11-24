@@ -19,6 +19,23 @@ module ActiveSupport
       set_callback(:complete, *args, &block)
     end
 
+    class RunHook < Struct.new(:hook) # :nodoc:
+      def before(target)
+        hook_state = target.send(:hook_state)
+        hook_state[hook] = hook.run
+      end
+    end
+
+    class CompleteHook < Struct.new(:hook) # :nodoc:
+      def before(target)
+        hook_state = target.send(:hook_state)
+        if hook_state.key?(hook)
+          hook.complete hook_state[hook]
+        end
+      end
+      alias after before
+    end
+
     # Register an object to be invoked during both the +run+ and
     # +complete+ steps.
     #
@@ -29,19 +46,11 @@ module ActiveSupport
     # invoked in that situation.)
     def self.register_hook(hook, outer: false)
       if outer
-        run_args = [prepend: true]
-        complete_args = [:after]
+        to_run RunHook.new(hook), prepend: true
+        to_complete :after, CompleteHook.new(hook)
       else
-        run_args = complete_args = []
-      end
-
-      to_run(*run_args) do
-        hook_state[hook] = hook.run
-      end
-      to_complete(*complete_args) do
-        if hook_state.key?(hook)
-          hook.complete hook_state[hook]
-        end
+        to_run RunHook.new(hook)
+        to_complete CompleteHook.new(hook)
       end
     end
 

@@ -53,10 +53,10 @@ module ActionDispatch
         end
 
         def test_alphabet
-          table  = tt "a|:a"
+          table = tt "a|:a"
           assert_equal [/[^\.\/\?]+/, "a"], table.alphabet
 
-          table  = tt "a|a"
+          table = tt "a|a"
           assert_equal ["a"], table.alphabet
         end
 

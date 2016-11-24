@@ -32,7 +32,7 @@ class ActionCable::Channel::PeriodicTimersTest < ActiveSupport::TestCase
 
     timers.each_with_index do |timer, i|
       assert_kind_of Proc, timer[0]
-      assert_equal i+1, timer[1][:every]
+      assert_equal i + 1, timer[1][:every]
     end
   end
 
@@ -62,6 +62,7 @@ class ActionCable::Channel::PeriodicTimersTest < ActiveSupport::TestCase
     @connection.server.event_loop.expects(:timer).times(3).returns(stub(shutdown: nil))
     channel = ChatChannel.new @connection, "{id: 1}", id: 1
 
+    channel.subscribe_to_channel
     channel.unsubscribe_from_channel
     assert_equal [], channel.send(:active_periodic_timers)
   end

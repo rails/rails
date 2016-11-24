@@ -1,3 +1,55 @@
+*   Add `form_with` to unify `form_tag` and `form_for` usage.
+
+    Used like `form_tag` (where just the open tag is output):
+
+    ```erb
+    <%= form_with scope: :post, url: super_special_posts_path %>
+    ```
+
+    Used like `form_for`:
+
+    ```erb
+    <%= form_with model: @post do |form| %>
+      <%= form.text_field :title %>
+    <% end %>
+    ```
+
+    *Kasper Timm Hansen*, *Marek Kirejczyk*
+
+*   Add `fields` form helper method.
+
+    ```erb
+    <%= fields :comment, model: @comment do |fields| %>
+      <%= fields.text_field :title %>
+    <% end %>
+    ```
+
+    Can also be used within form helpers such as `form_with`.
+
+    *Kasper Timm Hansen*
+
+*   Removed deprecated `#original_exception` in `ActionView::Template::Error`.
+
+    *Rafael Mendonça França*
+
+*   Render now accepts any keys for locals, including reserved keywords.
+
+    Only locals with valid variable names get set directly. Others
+    will still be available in `local_assigns`.
+
+    Example of render with reserved keywords:
+
+    ```erb
+    <%= render "example", class: "text-center", message: "Hello world!" %>
+
+    <!-- _example.html.erb: -->
+    <%= tag.div class: local_assigns[:class] do %>
+      <p><%= message %></p>
+    <% end %>
+    ```
+
+    *Peter Schilling*, *Matthew Draper*
+
 *   Show cache hits and misses when rendering partials.
 
     Partials using the `cache` helper will show whether a render hit or missed

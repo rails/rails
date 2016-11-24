@@ -12,7 +12,7 @@ module ApplicationTests
       teardown_app
     end
 
-    test "truth" do
+    test "simple successful test" do
       app_file "test/unit/foo_test.rb", <<-RUBY
         require 'test_helper'
 
@@ -24,6 +24,38 @@ module ApplicationTests
       RUBY
 
       assert_successful_test_run "unit/foo_test.rb"
+    end
+
+    test "after_run" do
+      app_file "test/unit/foo_test.rb", <<-RUBY
+        require 'test_helper'
+
+        Minitest.after_run { puts "WORLD" }
+        Minitest.after_run { puts "HELLO" }
+
+        class FooTest < ActiveSupport::TestCase
+          def test_truth
+            assert true
+          end
+        end
+      RUBY
+
+      result = assert_successful_test_run "unit/foo_test.rb"
+      assert_equal ["HELLO", "WORLD"], result.scan(/HELLO|WORLD/) # only once and in correct order
+    end
+
+    test "simple failed test" do
+      app_file "test/unit/foo_test.rb", <<-RUBY
+        require 'test_helper'
+
+        class FooTest < ActiveSupport::TestCase
+          def test_truth
+            assert false
+          end
+        end
+      RUBY
+
+      assert_unsuccessful_run "unit/foo_test.rb", "Failed assertion"
     end
 
     test "integration test" do
@@ -101,7 +133,7 @@ module ApplicationTests
       File.delete "#{app_path}/config/initializers/disable_maintain_test_schema.rb"
 
       result = assert_successful_test_run("models/user_test.rb")
-      assert !result.include?("create_table(:users)")
+      assert_not_includes result, "create_table(:users)"
     end
 
     test "sql structure migrations" do
@@ -289,7 +321,7 @@ Expected: ["id", "name"]
       def assert_unsuccessful_run(name, message)
         result = run_test_file(name)
         assert_not_equal 0, $?.to_i
-        assert result.include?(message)
+        assert_includes result, message
         result
       end
 

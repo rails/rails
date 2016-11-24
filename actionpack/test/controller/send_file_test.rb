@@ -180,7 +180,7 @@ class SendFileTest < ActionController::TestCase
       "file.zip" => "application/zip",
       "file.unk" => "application/octet-stream",
       "zip" => "application/octet-stream"
-    }.each do |filename,expected_type|
+    }.each do |filename, expected_type|
       get __method__, params: { filename: filename }
       assert_equal expected_type, response.content_type
     end

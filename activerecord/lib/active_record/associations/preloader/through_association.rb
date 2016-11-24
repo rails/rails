@@ -24,7 +24,7 @@ module ActiveRecord
 
           reset_association owners, through_reflection.name
 
-          middle_records = through_records.flat_map { |(_,rec)| rec }
+          middle_records = through_records.flat_map { |(_, rec)| rec }
 
           preloaders = preloader.preload(middle_records,
                                          source_reflection.name,
@@ -32,13 +32,13 @@ module ActiveRecord
 
           @preloaded_records = preloaders.flat_map(&:preloaded_records)
 
-          middle_to_pl = preloaders.each_with_object({}) do |pl,h|
+          middle_to_pl = preloaders.each_with_object({}) do |pl, h|
             pl.owners.each { |middle|
               h[middle] = pl
             }
           end
 
-          through_records.each_with_object({}) do |(lhs,center), records_by_owner|
+          through_records.each_with_object({}) do |(lhs, center), records_by_owner|
             pl_to_middle = center.group_by { |record| middle_to_pl[record] }
 
             records_by_owner[lhs] = pl_to_middle.flat_map do |pl, middles|

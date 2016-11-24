@@ -1,5 +1,4 @@
 require "erubis"
-require "active_support/core_ext/regexp"
 
 module ActionView
   class Template

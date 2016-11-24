@@ -398,7 +398,7 @@ module ApplicationTests
       class ::OmgController < ActionController::Base
         def index
           cookies.signed[:some_key] = "some_value"
-          render text: cookies[:some_key]
+          render plain: cookies[:some_key]
         end
       end
 
@@ -636,6 +636,20 @@ module ApplicationTests
       end
     end
 
+    test "that nested keys are symbolized the same as parents for hashes more than one level deep" do
+      app_file "config/secrets.yml", <<-YAML
+        development:
+          smtp_settings:
+            address: "smtp.example.com"
+            user_name: "postmaster@example.com"
+            password: "697361616320736c6f616e2028656c6f7265737429"
+      YAML
+
+      app "development"
+
+      assert_equal "697361616320736c6f616e2028656c6f7265737429", app.secrets.smtp_settings[:password]
+    end
+
     test "protect from forgery is the default in a new app" do
       make_basic_app
 
@@ -704,7 +718,7 @@ module ApplicationTests
         end
 
         def update
-          render text: "update"
+          render plain: "update"
         end
 
         private
@@ -978,7 +992,7 @@ module ApplicationTests
 
       class ::OmgController < ActionController::Base
         def index
-          render text: env["action_dispatch.show_exceptions"]
+          render plain: env["action_dispatch.show_exceptions"]
         end
       end
 
@@ -1008,7 +1022,7 @@ module ApplicationTests
       app_file "app/controllers/posts_controller.rb", <<-RUBY
       class PostsController < ApplicationController
         def create
-          render text: params[:post].inspect
+          render plain: params[:post].inspect
         end
       end
       RUBY
@@ -1029,7 +1043,7 @@ module ApplicationTests
       app_file "app/controllers/posts_controller.rb", <<-RUBY
       class PostsController < ActionController::Base
         def create
-          render text: params[:post].permitted? ? "permitted" : "forbidden"
+          render plain: params[:post].permitted? ? "permitted" : "forbidden"
         end
       end
       RUBY
@@ -1043,7 +1057,7 @@ module ApplicationTests
 
       app "development"
 
-      post "/posts", post: { "title" =>"zomg" }
+      post "/posts", post: { "title" => "zomg" }
       assert_equal "permitted", last_response.body
     end
 
@@ -1051,7 +1065,7 @@ module ApplicationTests
       app_file "app/controllers/posts_controller.rb", <<-RUBY
       class PostsController < ActionController::Base
         def create
-          render text: params.require(:post).permit(:name)
+          render plain: params.require(:post).permit(:name)
         end
       end
       RUBY
@@ -1067,7 +1081,7 @@ module ApplicationTests
 
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
 
-      post "/posts", post: { "title" =>"zomg" }
+      post "/posts", post: { "title" => "zomg" }
       assert_match "We're sorry, but something went wrong", last_response.body
     end
 
@@ -1090,7 +1104,7 @@ module ApplicationTests
       app_file "app/controllers/posts_controller.rb", <<-RUBY
       class PostsController < ActionController::Base
         def create
-          render text: params.permit(post: [:title])
+          render plain: params.permit(post: [:title])
         end
       end
       RUBY
@@ -1107,7 +1121,7 @@ module ApplicationTests
 
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
 
-      post "/posts", post: { "title" =>"zomg" }, format: "json"
+      post "/posts", post: { "title" => "zomg" }, format: "json"
       assert_equal 200, last_response.status
     end
 
@@ -1137,8 +1151,8 @@ module ApplicationTests
       class ::OmgController < ActionController::Base
         def index
           respond_to do |format|
-            format.html { render text: "HTML" }
-            format.xml { render text: "XML" }
+            format.html { render plain: "HTML" }
+            format.xml { render plain: "XML" }
           end
         end
       end

@@ -76,9 +76,9 @@ class HeaderTest < ActiveSupport::TestCase
 
   test "key?" do
     assert @headers.key?("CONTENT_TYPE")
-    assert @headers.include?("CONTENT_TYPE")
+    assert_includes @headers, "CONTENT_TYPE"
     assert @headers.key?("Content-Type")
-    assert @headers.include?("Content-Type")
+    assert_includes @headers, "Content-Type"
   end
 
   test "fetch with block" do
@@ -155,8 +155,8 @@ class HeaderTest < ActiveSupport::TestCase
     headers = make_headers(env)
     headers["Referer"] = "http://example.com/"
     headers.merge! "CONTENT_TYPE" => "text/plain"
-    assert_equal({ "HTTP_REFERER"=>"http://example.com/",
-                  "CONTENT_TYPE"=>"text/plain" }, env)
+    assert_equal({ "HTTP_REFERER" => "http://example.com/",
+                  "CONTENT_TYPE" => "text/plain" }, env)
   end
 
   test "fetch exception" do

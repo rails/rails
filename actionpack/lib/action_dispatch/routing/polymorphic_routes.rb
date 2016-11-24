@@ -160,7 +160,7 @@ module ActionDispatch
           CACHE = { "path" => {}, "url" => {} }
 
           def self.get(action, type)
-            type   = type.to_s
+            type = type.to_s
             CACHE[type].fetch(action) { build action, type }
           end
 
@@ -266,7 +266,7 @@ module ActionDispatch
 
             args = []
 
-            route  = record_list.map { |parent|
+            route = record_list.map { |parent|
               case parent
               when Symbol, String
                 parent.to_s
@@ -304,7 +304,7 @@ module ActionDispatch
           private
 
             def get_method_for_class(klass)
-              name   = @key_strategy.call klass.model_name
+              name = @key_strategy.call klass.model_name
               get_method_for_string name
             end
 

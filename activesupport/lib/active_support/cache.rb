@@ -1,8 +1,6 @@
-require "benchmark"
 require "zlib"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/array/wrap"
-require "active_support/core_ext/benchmark"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/numeric/bytes"
 require "active_support/core_ext/numeric/time"
@@ -200,15 +198,15 @@ module ActiveSupport
       # You may also specify additional options via the +options+ argument.
       # Setting <tt>force: true</tt> forces a cache "miss," meaning we treat
       # the cache value as missing even if it's present. Passing a block is
-      # required when `force` is true so this always results in a cache write.
+      # required when +force+ is true so this always results in a cache write.
       #
       #   cache.write('today', 'Monday')
       #   cache.fetch('today', force: true) { 'Tuesday' } # => 'Tuesday'
       #   cache.fetch('today', force: true) # => ArgumentError
       #
-      # The `:force` option is useful when you're calling some other method to
+      # The +:force+ option is useful when you're calling some other method to
       # ask whether you should force a cache write. Otherwise, it's clearer to
-      # just call `Cache#write`.
+      # just call <tt>Cache#write</tt>.
       #
       # Setting <tt>:compress</tt> will store a large cache entry set by the call
       # in a compressed format.
@@ -361,6 +359,9 @@ module ActiveSupport
       # the cache with the given keys, then that data is returned. Otherwise,
       # the supplied block is called for each key for which there was no data,
       # and the result will be written to the cache and returned.
+      # Therefore, you need to pass a block that returns the data to be written
+      # to the cache. If you do not want to write the cache when the cache is
+      # not found, use #read_multi.
       #
       # Options are passed to the underlying cache implementation.
       #
@@ -374,6 +375,8 @@ module ActiveSupport
       #   #      "unknown_key" => "Fallback value for key: unknown_key" }
       #
       def fetch_multi(*names)
+        raise ArgumentError, "Missing block: `Cache#fetch_multi` requires a block." unless block_given?
+
         options = names.extract_options!
         options = merged_options(options)
         results = read_multi(*names, options)
@@ -530,7 +533,7 @@ module ActiveSupport
               key = key.first
             end
           when Hash
-            key = key.sort_by { |k,_| k.to_s }.collect { |k,v| "#{k}=#{v}" }
+            key = key.sort_by { |k, _| k.to_s }.collect { |k, v| "#{k}=#{v}" }
           end
 
           key.to_param
@@ -544,14 +547,6 @@ module ActiveSupport
           prefix = namespace.is_a?(Proc) ? namespace.call : namespace
           key = "#{prefix}:#{key}" if prefix
           key
-        end
-
-        def namespaced_key(*args)
-          ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
-            `namespaced_key` is deprecated and will be removed from Rails 5.1.
-            Please use `normalize_key` which will return a fully resolved key.
-          MESSAGE
-          normalize_key(*args)
         end
 
         def instrument(operation, key, options = nil)

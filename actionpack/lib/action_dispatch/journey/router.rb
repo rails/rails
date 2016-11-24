@@ -109,9 +109,9 @@ module ActionDispatch
           routes.sort_by!(&:precedence)
 
           routes.map! { |r|
-            match_data  = r.path.match(req.path_info)
+            match_data = r.path.match(req.path_info)
             path_parameters = r.defaults.dup
-            match_data.names.zip(match_data.captures) { |name,val|
+            match_data.names.zip(match_data.captures) { |name, val|
               path_parameters[name.to_sym] = Utils.unescape_uri(val) if val
             }
             [match_data, path_parameters, r]

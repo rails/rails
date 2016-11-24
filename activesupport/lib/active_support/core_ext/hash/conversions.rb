@@ -160,7 +160,7 @@ module ActiveSupport
       def normalize_keys(params)
         case params
         when Hash
-          Hash[params.map { |k,v| [k.to_s.tr("-", "_"), normalize_keys(v)] } ]
+          Hash[params.map { |k, v| [k.to_s.tr("-", "_"), normalize_keys(v)] } ]
         when Array
           params.map { |v| normalize_keys(v) }
           else
@@ -187,7 +187,7 @@ module ActiveSupport
         end
 
         if become_array?(value)
-          _, entries = Array.wrap(value.detect { |k,v| not v.is_a?(String) })
+          _, entries = Array.wrap(value.detect { |k, v| not v.is_a?(String) })
           if entries.nil? || value["__content__"].try(:empty?)
             []
           else
@@ -206,7 +206,7 @@ module ActiveSupport
         elsif become_empty_string?(value)
           ""
         elsif become_hash?(value)
-          xml_value = Hash[value.map { |k,v| [k, deep_to_h(v)] }]
+          xml_value = Hash[value.map { |k, v| [k, deep_to_h(v)] }]
 
           # Turn { files: { file: #<StringIO> } } into { files: #<StringIO> } so it is compatible with
           # how multipart uploaded files from HTML appear

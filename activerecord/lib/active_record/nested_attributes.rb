@@ -341,17 +341,17 @@ module ActiveRecord
 
       private
 
-      # Generates a writer method for this association. Serves as a point for
-      # accessing the objects in the association. For example, this method
-      # could generate the following:
-      #
-      #   def pirate_attributes=(attributes)
-      #     assign_nested_attributes_for_one_to_one_association(:pirate, attributes)
-      #   end
-      #
-      # This redirects the attempts to write objects in an association through
-      # the helper methods defined below. Makes it seem like the nested
-      # associations are just regular associations.
+        # Generates a writer method for this association. Serves as a point for
+        # accessing the objects in the association. For example, this method
+        # could generate the following:
+        #
+        #   def pirate_attributes=(attributes)
+        #     assign_nested_attributes_for_one_to_one_association(:pirate, attributes)
+        #   end
+        #
+        # This redirects the attempts to write objects in an association through
+        # the helper methods defined below. Makes it seem like the nested
+        # associations are just regular associations.
         def generate_association_writer(association_name, type)
           generated_association_methods.module_eval <<-eoruby, __FILE__, __LINE__ + 1
             if method_defined?(:#{association_name}_attributes=)
@@ -375,23 +375,23 @@ module ActiveRecord
 
     private
 
-    # Attribute hash keys that should not be assigned as normal attributes.
-    # These hash keys are nested attributes implementation details.
+      # Attribute hash keys that should not be assigned as normal attributes.
+      # These hash keys are nested attributes implementation details.
       UNASSIGNABLE_KEYS = %w( id _destroy )
 
-    # Assigns the given attributes to the association.
-    #
-    # If an associated record does not yet exist, one will be instantiated. If
-    # an associated record already exists, the method's behavior depends on
-    # the value of the update_only option. If update_only is +false+ and the
-    # given attributes include an <tt>:id</tt> that matches the existing record's
-    # id, then the existing record will be modified. If no <tt>:id</tt> is provided
-    # it will be replaced with a new record. If update_only is +true+ the existing
-    # record will be modified regardless of whether an <tt>:id</tt> is provided.
-    #
-    # If the given attributes include a matching <tt>:id</tt> attribute, or
-    # update_only is true, and a <tt>:_destroy</tt> key set to a truthy value,
-    # then the existing record will be marked for destruction.
+      # Assigns the given attributes to the association.
+      #
+      # If an associated record does not yet exist, one will be instantiated. If
+      # an associated record already exists, the method's behavior depends on
+      # the value of the update_only option. If update_only is +false+ and the
+      # given attributes include an <tt>:id</tt> that matches the existing record's
+      # id, then the existing record will be modified. If no <tt>:id</tt> is provided
+      # it will be replaced with a new record. If update_only is +true+ the existing
+      # record will be modified regardless of whether an <tt>:id</tt> is provided.
+      #
+      # If the given attributes include a matching <tt>:id</tt> attribute, or
+      # update_only is true, and a <tt>:_destroy</tt> key set to a truthy value,
+      # then the existing record will be marked for destruction.
       def assign_nested_attributes_for_one_to_one_association(association_name, attributes)
         options = self.nested_attributes_options[association_name]
         if attributes.respond_to?(:permitted?)
@@ -424,33 +424,33 @@ module ActiveRecord
         end
       end
 
-    # Assigns the given attributes to the collection association.
-    #
-    # Hashes with an <tt>:id</tt> value matching an existing associated record
-    # will update that record. Hashes without an <tt>:id</tt> value will build
-    # a new record for the association. Hashes with a matching <tt>:id</tt>
-    # value and a <tt>:_destroy</tt> key set to a truthy value will mark the
-    # matched record for destruction.
-    #
-    # For example:
-    #
-    #   assign_nested_attributes_for_collection_association(:people, {
-    #     '1' => { id: '1', name: 'Peter' },
-    #     '2' => { name: 'John' },
-    #     '3' => { id: '2', _destroy: true }
-    #   })
-    #
-    # Will update the name of the Person with ID 1, build a new associated
-    # person with the name 'John', and mark the associated Person with ID 2
-    # for destruction.
-    #
-    # Also accepts an Array of attribute hashes:
-    #
-    #   assign_nested_attributes_for_collection_association(:people, [
-    #     { id: '1', name: 'Peter' },
-    #     { name: 'John' },
-    #     { id: '2', _destroy: true }
-    #   ])
+      # Assigns the given attributes to the collection association.
+      #
+      # Hashes with an <tt>:id</tt> value matching an existing associated record
+      # will update that record. Hashes without an <tt>:id</tt> value will build
+      # a new record for the association. Hashes with a matching <tt>:id</tt>
+      # value and a <tt>:_destroy</tt> key set to a truthy value will mark the
+      # matched record for destruction.
+      #
+      # For example:
+      #
+      #   assign_nested_attributes_for_collection_association(:people, {
+      #     '1' => { id: '1', name: 'Peter' },
+      #     '2' => { name: 'John' },
+      #     '3' => { id: '2', _destroy: true }
+      #   })
+      #
+      # Will update the name of the Person with ID 1, build a new associated
+      # person with the name 'John', and mark the associated Person with ID 2
+      # for destruction.
+      #
+      # Also accepts an Array of attribute hashes:
+      #
+      #   assign_nested_attributes_for_collection_association(:people, [
+      #     { id: '1', name: 'Peter' },
+      #     { name: 'John' },
+      #     { id: '2', _destroy: true }
+      #   ])
       def assign_nested_attributes_for_collection_association(association_name, attributes_collection)
         options = self.nested_attributes_options[association_name]
         if attributes_collection.respond_to?(:permitted?)
@@ -511,12 +511,12 @@ module ActiveRecord
         end
       end
 
-    # Takes in a limit and checks if the attributes_collection has too many
-    # records. It accepts limit in the form of symbol, proc, or
-    # number-like object (anything that can be compared with an integer).
-    #
-    # Raises TooManyRecords error if the attributes_collection is
-    # larger than the limit.
+      # Takes in a limit and checks if the attributes_collection has too many
+      # records. It accepts limit in the form of symbol, proc, or
+      # number-like object (anything that can be compared with an integer).
+      #
+      # Raises TooManyRecords error if the attributes_collection is
+      # larger than the limit.
       def check_record_limit!(limit, attributes_collection)
         if limit
           limit = \
@@ -535,30 +535,30 @@ module ActiveRecord
         end
       end
 
-    # Updates a record with the +attributes+ or marks it for destruction if
-    # +allow_destroy+ is +true+ and has_destroy_flag? returns +true+.
+      # Updates a record with the +attributes+ or marks it for destruction if
+      # +allow_destroy+ is +true+ and has_destroy_flag? returns +true+.
       def assign_to_or_mark_for_destruction(record, attributes, allow_destroy)
         record.assign_attributes(attributes.except(*UNASSIGNABLE_KEYS))
         record.mark_for_destruction if has_destroy_flag?(attributes) && allow_destroy
       end
 
-    # Determines if a hash contains a truthy _destroy key.
+      # Determines if a hash contains a truthy _destroy key.
       def has_destroy_flag?(hash)
         Type::Boolean.new.cast(hash["_destroy"])
       end
 
-    # Determines if a new record should be rejected by checking
-    # has_destroy_flag? or if a <tt>:reject_if</tt> proc exists for this
-    # association and evaluates to +true+.
+      # Determines if a new record should be rejected by checking
+      # has_destroy_flag? or if a <tt>:reject_if</tt> proc exists for this
+      # association and evaluates to +true+.
       def reject_new_record?(association_name, attributes)
         will_be_destroyed?(association_name, attributes) || call_reject_if(association_name, attributes)
       end
 
-    # Determines if a record with the particular +attributes+ should be
-    # rejected by calling the reject_if Symbol or Proc (if defined).
-    # The reject_if option is defined by +accepts_nested_attributes_for+.
-    #
-    # Returns false if there is a +destroy_flag+ on the attributes.
+      # Determines if a record with the particular +attributes+ should be
+      # rejected by calling the reject_if Symbol or Proc (if defined).
+      # The reject_if option is defined by +accepts_nested_attributes_for+.
+      #
+      # Returns false if there is a +destroy_flag+ on the attributes.
       def call_reject_if(association_name, attributes)
         return false if will_be_destroyed?(association_name, attributes)
 
@@ -570,7 +570,7 @@ module ActiveRecord
         end
       end
 
-    # Only take into account the destroy flag if <tt>:allow_destroy</tt> is true
+      # Only take into account the destroy flag if <tt>:allow_destroy</tt> is true
       def will_be_destroyed?(association_name, attributes)
         allow_destroy?(association_name) && has_destroy_flag?(attributes)
       end
