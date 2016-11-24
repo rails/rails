@@ -249,7 +249,6 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
       ensure
         drop_table "pg_uuids_4"
       end
-    else
     end
   end
 end
