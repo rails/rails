@@ -1,3 +1,9 @@
+*   Added support for array arguments to name_changed? method.
+    
+    `object.name_changed? from: [nil, "Pete"], to: "John"`
+
+    *Valentín Sanjuan*
+
 *   Removed deprecated `:tokenizer` in the length validator.
 
     *Rafael Mendonça França*
