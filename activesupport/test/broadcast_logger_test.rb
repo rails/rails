@@ -69,6 +69,20 @@ module ActiveSupport
       assert_equal ::Logger::FATAL, log2.local_level
     end
 
+    test "#silence does not break custom loggers" do
+      new_logger = FakeLogger.new
+      custom_logger = CustomLogger.new
+      custom_logger.extend(Logger.broadcast(new_logger))
+
+      custom_logger.silence do
+        custom_logger.error "from error"
+        custom_logger.unknown "from unknown"
+      end
+
+      assert_equal [[::Logger::ERROR, "from error", nil], [::Logger::UNKNOWN, "from unknown", nil]], custom_logger.adds
+      assert_equal [[::Logger::ERROR, "from error", nil], [::Logger::UNKNOWN, "from unknown", nil]], new_logger.adds
+    end
+
     test "#silence silences all loggers below the default level of ERROR" do
       logger.silence do
         logger.debug "test"
@@ -98,9 +112,7 @@ module ActiveSupport
       assert_equal [[::Logger::FATAL, "seen", nil]], log2.adds
     end
 
-    class FakeLogger
-      include LoggerSilence
-
+    class CustomLogger
       attr_reader :adds, :closed, :chevrons
       attr_accessor :level, :progname, :formatter, :local_level
 
@@ -149,6 +161,10 @@ module ActiveSupport
       def close
         @closed = true
       end
+    end
+
+    class FakeLogger < CustomLogger
+      include LoggerSilence
     end
   end
 end
