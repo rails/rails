@@ -1,3 +1,9 @@
+*   Allow indifferent access in `ActiveModel::Errors`.
+
+    `#include?`, `#has_key?`, `#key?`, `#delete` and `#full_messages_for`.
+
+    *Kenichi Kamiya*
+
 *   Removed deprecated `:tokenizer` in the length validator.
 
     *Rafael Mendonça França*

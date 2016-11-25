@@ -30,7 +30,7 @@ class ErrorsTest < ActiveModel::TestCase
   def test_delete
     errors = ActiveModel::Errors.new(self)
     errors[:foo] << "omg"
-    errors.delete(:foo)
+    errors.delete("foo")
     assert_empty errors[:foo]
   end
 
@@ -38,6 +38,7 @@ class ErrorsTest < ActiveModel::TestCase
     errors = ActiveModel::Errors.new(self)
     errors[:foo] << "omg"
     assert_includes errors, :foo, "errors should include :foo"
+    assert_includes errors, "foo", "errors should include 'foo' as :foo"
   end
 
   def test_dup
@@ -52,6 +53,7 @@ class ErrorsTest < ActiveModel::TestCase
     errors = ActiveModel::Errors.new(self)
     errors[:foo] << "omg"
     assert_equal true, errors.has_key?(:foo), "errors should have key :foo"
+    assert_equal true, errors.has_key?("foo"), "errors should have key 'foo' as :foo"
   end
 
   def test_has_no_key
@@ -63,6 +65,7 @@ class ErrorsTest < ActiveModel::TestCase
     errors = ActiveModel::Errors.new(self)
     errors[:foo] << "omg"
     assert_equal true, errors.key?(:foo), "errors should have key :foo"
+    assert_equal true, errors.key?("foo"), "errors should have key 'foo' as :foo"
   end
 
   def test_no_key
@@ -150,10 +153,11 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal ["cannot be blank"], person.errors[:name]
   end
 
-  test "added? detects if a specific error was added to the object" do
+  test "added? detects indifferent if a specific error was added to the object" do
     person = Person.new
     person.errors.add(:name, "cannot be blank")
     assert person.errors.added?(:name, "cannot be blank")
+    assert person.errors.added?("name", "cannot be blank")
   end
 
   test "added? handles symbol message" do
@@ -241,7 +245,7 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal ["name cannot be blank", "name cannot be nil"], person.errors.full_messages
   end
 
-  test "full_messages_for contains all the error messages for the given attribute" do
+  test "full_messages_for contains all the error messages for the given attribute indifferent" do
     person = Person.new
     person.errors.add(:name, "cannot be blank")
     person.errors.add(:name, "cannot be nil")
@@ -253,6 +257,7 @@ class ErrorsTest < ActiveModel::TestCase
     person.errors.add(:name, "cannot be blank")
     person.errors.add(:email, "cannot be blank")
     assert_equal ["name cannot be blank"], person.errors.full_messages_for(:name)
+    assert_equal ["name cannot be blank"], person.errors.full_messages_for("name")
   end
 
   test "full_messages_for returns an empty list in case there are no errors for the given attribute" do
