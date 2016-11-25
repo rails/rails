@@ -135,5 +135,16 @@ module TestUrlGeneration
         format: "json"
       )
     end
+
+    test "generating URLS with permitted strong params" do
+      params = ActionController::Parameters.new(test: { truthy: "1" })
+      params.permit!
+      assert_equal "/bars?test%5Btruthy%5D=1", bars_path(params: { test: params[:test] })
+    end
+
+    test "generating URLS with unpermited strong params" do
+      params = ActionController::Parameters.new(test: { truthy: "1" })
+      assert_raise(ArgumentError) { bars_path(params: { test: params[:test] }) }
+    end
   end
 end

@@ -1,3 +1,9 @@
+*   Fix support to `ActionController::Parameters` in path helper method.
+
+    Fixes #26958.
+
+    *Yuji Yaginuma*
+
 *   Commit flash changes when using a redirect route.
 
     Fixes #27992.
