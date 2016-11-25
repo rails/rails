@@ -242,7 +242,7 @@ module ActiveSupport #:nodoc:
       # resolution deterministic for constants with the same relative name in
       # different namespaces whose evaluation would depend on load order
       # otherwise.
-      def require_dependency(file_name, message = "No such file to load -- %s")
+      def require_dependency(file_name, message = "No such file to load -- %s.rb")
         file_name = file_name.to_path if file_name.respond_to?(:to_path)
         unless file_name.is_a?(String)
           raise ArgumentError, "the file name must either be a String or implement #to_path -- you passed #{file_name.inspect}"
