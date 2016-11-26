@@ -3,7 +3,7 @@ require "rake/testtask"
 desc "Default Task"
 task default: :test
 
-task :package
+task package: "assets:compile"
 
 # Run the unit tests
 
@@ -50,6 +50,14 @@ namespace :ujs do
   desc "Starts the test server"
   task :server do
     system 'bundle exec rackup test/ujs/config.ru -p 4567 -s puma'
+  end
+end
+
+namespace :assets do
+  desc "Compile Action View assets"
+  task :compile do
+    require "blade"
+    Blade.build
   end
 end
 
