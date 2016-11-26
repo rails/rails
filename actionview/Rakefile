@@ -46,6 +46,13 @@ namespace :test do
   end
 end
 
+namespace :ujs do
+  desc "Starts the test server"
+  task :server do
+    system 'bundle exec rackup test/ujs/config.ru -p 4567 -s puma'
+  end
+end
+
 task :lines do
   load File.expand_path("..", File.dirname(__FILE__)) + "/tools/line_statistics"
   files = FileList["lib/**/*.rb"]

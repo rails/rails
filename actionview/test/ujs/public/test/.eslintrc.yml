@@ -1,0 +1,21 @@
+env:
+  browser: true
+extends: eslint:recommended
+rules:
+  no-undef: off
+  no-unused-vars: off
+  indent: off
+  linebreak-style: ['error', 'unix']
+  quotes: ['error', 'single']
+  semi: ['error', 'never']
+  no-shadow: ['error'] # Prevent potential errors
+  no-console: 'off'
+  # styles
+  space-before-function-paren: ['error', 'never']
+  space-before-blocks: 'error'
+  brace-style: ['error', '1tbs', { allowSingleLine: true }]
+  key-spacing: 'error'
+  array-bracket-spacing: 'error'
+  comma-spacing: 'error'
+  comma-dangle: 'off'
+  eol-last: 'error'
