@@ -85,11 +85,10 @@ module ActiveRecord
 
       def scope_relation(record, relation)
         Array(options[:scope]).each do |scope_item|
-          if reflection = record.class._reflect_on_association(scope_item)
-            scope_value = record.send(reflection.foreign_key)
-            scope_item  = reflection.foreign_key
+          scope_value = if record.class._reflect_on_association(scope_item)
+            record.association(scope_item).reader
           else
-            scope_value = record._read_attribute(scope_item)
+            record._read_attribute(scope_item)
           end
           relation = relation.where(scope_item => scope_value)
         end
