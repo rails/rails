@@ -6,6 +6,8 @@ cache:
   directories:
     - /tmp/cache/unicode_conformance
     - /tmp/beanstalkd-1.10
+    - node_modules
+    - $HOME/.nvm
 
 services:
   - memcached
@@ -21,6 +23,8 @@ before_install:
   - "gem update bundler"
   - "[ -f /tmp/beanstalkd-1.10/Makefile ] || (curl -L https://github.com/kr/beanstalkd/archive/v1.10.tar.gz | tar xz -C /tmp)"
   - "pushd /tmp/beanstalkd-1.10 && make && (./beanstalkd &); popd"
+  - "nvm install node"
+  - "[[ $(phantomjs --version) > '2' ]] || npm install -g phantomjs-prebuilt"
 
 before_script:
   - bundle update
