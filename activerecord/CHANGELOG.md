@@ -1,3 +1,7 @@
+*   Fix the uniqueness validation scope with a polymorphic association.
+
+    *Sergey Alekseev*
+
 *   Raise ActiveRecord::RecordNotFound from collection `*_ids` setters
     for unknown IDs with a better error message.
 
