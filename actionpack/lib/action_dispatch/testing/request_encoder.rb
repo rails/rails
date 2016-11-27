@@ -11,7 +11,7 @@ module ActionDispatch
 
     attr_reader :response_parser
 
-    def initialize(mime_name, param_encoder, response_parser = nil)
+    def initialize(mime_name, param_encoder, response_parser)
       @mime = Mime[mime_name]
 
       unless @mime
