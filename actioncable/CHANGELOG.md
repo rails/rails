@@ -5,6 +5,18 @@
 
     *Dávid Halász*, *Matthew Draper*
 
+*   Fixed and added a workaround to avoid race condition, when one
+    thread closed the IO, when an another thread was still trying read
+    from IO on a connection.
+
+    *Matthew Draper*
+
+*   Shutdown pubsub connection before classes are reloaded, to avoid
+    hangups caused by pubsub still holding reference to Active Record
+    connection from the pool, and Active Record trying to cleanup the pool.
+
+    *Jon Moss*
+
 *   Prevent race where the client could receive and act upon a
     subscription confirmation before the channel's `subscribed` method
     completed.
@@ -17,6 +29,13 @@
     that could be doing more useful things.
 
     *Matthew Draper*, *Tinco Andringa*
+
+*   Invocation of channel action is now prevented, if subscription
+    connection was rejected.
+
+    Fixes #23757.
+
+    *Jon Moss*
 
 *   Protect against concurrent writes to a websocket connection from
     multiple threads; the underlying OS write is not always threadsafe.

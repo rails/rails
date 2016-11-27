@@ -43,6 +43,17 @@
 
     *Jon Moss*
 
+*   Configure query caching (per thread) on the connection pool.
+
+    Moving the configuration to the pool means we don't allocate a connection
+    until it's actually needed.
+
+    Applications that manually interact with the connection pool and/or query
+    cache may notice that the connection's cache is now cleared and disabled
+    when it gets returned to the pool, even if the request is not yet completed.
+
+    *Samuel Cochran*, *Matthew Draper*
+
 *   Fixed support for case insensitive comparisons of `text` columns in
     PostgreSQL.
 
@@ -163,6 +174,13 @@
     Fixes #25585.
 
     *Matthew Draper*
+
+*   Fixed dumping of foreign key's referential actions when MySQL connection
+    uses `sql_mode = ANSI_QUOTES`.
+
+    Fixes #25300.
+
+    *Ryuta Kamizono*
 
 
 ## Rails 5.0.0 (June 30, 2016) ##

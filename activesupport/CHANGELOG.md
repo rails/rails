@@ -24,6 +24,10 @@
 
     *Josua Schmid*
 
+*   Avoid bumping the class serial when invoking executor.
+
+    *Matthew Draper*
+
 *   Fix `ActiveSupport::TimeWithZone#in` across DST boundaries.
 
     Previously calls to `in` were being sent to the non-DST aware

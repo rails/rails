@@ -1,3 +1,10 @@
+*   Fixed error caused by `force_ssl_redirect` when `session_store` is
+    enabled.
+
+    Fixes #19679
+
+    *Taishi Kasuga*
+
 *   Use accept header in integration tests with `as: :json`
 
     Instead of appending the `format` to the request path. Rails will figure
@@ -8,6 +15,17 @@
     Fixes #27144.
 
     *Kasper Timm Hansen*
+
+*   Fixed integration test requests appending and changing request paths.
+
+        #Before
+        post "/anything", params: params, headers: headers, as: :json
+
+    "/anything" would be converted to "/anything.json" based on format.
+    The path is now maintained and the format is respected based on `:as`
+    option.
+
+    Fixes #27144.
 
 *   Fixes incorrect output from rails routes when using singular resources.
 
@@ -26,6 +44,13 @@
 *   Add `ActionController::Parameters#merge!`, which behaves the same as `Hash#merge!`.
 
     *Yuji Yaginuma*
+
+*   Added `ActionController::Parameters#deep_dup` which actually creates
+    a params copy, instead of refereing to old references in params.
+
+    Fixes #26566.
+
+    *Pavel Evstigneev*, *Rafael Mendonça França*
 
 *   Make `fixture_file_upload` work in integration tests.
 
@@ -73,7 +98,7 @@
         redirects to
         POST https://example.com/articles (i.e. ArticlesContoller#create)
 
-   *Chirag Singhal*
+    *Chirag Singhal*
 
 *   Add `:as` option to `ActionController:TestCase#process` and related methods.
 
@@ -81,6 +106,10 @@
     in controller tests without manually doing this through `@request.headers['CONTENT_TYPE']`.
 
     *Everest Stefan Munro-Zeisberger*
+
+*   Prevent autoload from deadlocking while ActionController::Live is streaming.
+
+    *Alex Chinn*
 
 *   Don't override the `Accept` header in integration tests when called with `xhr: true`.
 
@@ -120,6 +149,46 @@
     for `ParameterTypeError` and `InvalidParameterError` errors.
 
     *Grey Baker*
+
+*   Deprecated omitting the route path.
+    Specify the path with a String or a Symbol instead.
+
+        # Before
+        get action: :show, as: :show
+        # After
+        get "", action: :show, as: :show
+
+    *Volmer*
+
+*   Added new `ActionDispatch::DebugLocks` middleware that can be used
+    to diagnose deadlocks in the autoload interlock.
+    To use it, insert it near the top of the middleware stack, using
+    `config/application.rb`:
+
+        config.middleware.insert_before Rack::Sendfile, ActionDispatch::DebugLocks
+
+    After adding, visiting `/rails/locks` will show a summary of all
+    threads currently known to the interlock.
+
+    *Matthew Draper*
+
+*   Fix request encoding in Integration tests when string literals are
+    frozen using `--enable-frozen-string-literal` or `# frozen_string_literal: true`.
+
+    *Volmer*
+
+*   Since long keys are truncated when passed to ciphers, Ruby 2.4
+    doesn't accept keys greater than their max length.
+    Fixed default key length on cipher for `ActiveSupport::MessageEncryptor`,
+    which was causing errors on Ruby 2.4.
+
+    *Vipul A M*
+
+*   Fixed adding implicitly rendered template digests to ETags.
+    Properly ignore implicit template cache option to ETag, if `template: false`
+    is passed when rendering.
+
+    *Javan Makhmali*
 
 
 ## Rails 5.0.0 (June 30, 2016) ##

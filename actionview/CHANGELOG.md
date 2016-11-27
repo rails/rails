@@ -20,6 +20,24 @@
 
     *Peter Schilling*, *Matthew Draper*
 
+*   Changed partial rendering with a collection to allow collections which
+    implement `to_a`.
+
+    Extracting the collection option had an optimization to avoid unnecessary
+    queries of ActiveRecord Relations by calling `#to_ary` on the given
+    collection. Instances of `Enumerator` or `Enumerable` are valid
+    collections, but they do not implement `#to_ary`. By changing this to
+    `#to_a`, they will now be extracted and rendered as expected.
+
+    *Steven Harman*
+
+*   Fix `ActionView::Helpers#current_page?` to work properly even with
+    a trailing slash.
+
+    Fixes #19472.
+
+    *Stan Lo*
+
 
 ## Rails 5.0.0 (June 30, 2016) ##
 

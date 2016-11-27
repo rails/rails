@@ -1,3 +1,11 @@
+*   Fix `Type::Date#serialize` to cast a value to a date object properly.
+    This casting fixes queries for finding records by date column.
+
+    Fixes #25354.
+
+    *Ryuta Kamizono*
+
+
 ## Rails 5.0.0 (June 30, 2016) ##
 
 *   `Dirty`'s `*_changed?` methods now return an actual singleton, never `nil`, as in 4.2.
