@@ -1625,6 +1625,50 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal posts(:welcome),  comments(:greetings).post
   end
 
+  def test_update_all_with_left_outer_joins
+    posts = Post.left_outer_joins(:author).where("authors.id" => authors(:david).id)
+    count = posts.count
+
+    assert_equal count, posts.update_all(author_id: authors(:mary).id)
+    assert_equal authors(:mary), posts(:welcome).author
+
+    posts = Post.left_outer_joins(:author).where("authors.id" => nil)
+    count = posts.count
+
+    assert_equal count, posts.update_all(author_id: authors(:david).id)
+    assert_equal authors(:david), posts(:authorless).author
+  end
+
+  def test_update_all_with_left_outer_joins_and_limit
+    comments = Comment.left_outer_joins(:post).where("posts.id" => posts(:welcome).id).limit(1)
+    assert_equal 1, comments.update_all(post_id: posts(:thinking).id)
+  end
+
+  def test_update_all_with_left_outer_joins_and_limit_and_order
+    comments = Comment.left_outer_joins(:post).where("posts.id" => posts(:welcome).id).order("comments.id").limit(1)
+    assert_equal 1, comments.update_all(post_id: posts(:thinking).id)
+    assert_equal posts(:thinking), comments(:greetings).post
+    assert_equal posts(:welcome),  comments(:more_greetings).post
+  end
+
+  def test_update_all_with_left_outer_joins_and_offset
+    all_comments = Comment.left_outer_joins(:post).where("posts.id" => posts(:welcome).id)
+    count        = all_comments.count
+    comments     = all_comments.offset(1)
+
+    assert_equal count - 1, comments.update_all(post_id: posts(:thinking).id)
+  end
+
+  def test_update_all_with_left_outer_joins_and_offset_and_order
+    all_comments = Comment.left_outer_joins(:post).where("posts.id" => posts(:welcome).id).order("posts.id", "comments.id")
+    count        = all_comments.count
+    comments     = all_comments.offset(1)
+
+    assert_equal count - 1, comments.update_all(post_id: posts(:thinking).id)
+    assert_equal posts(:thinking), comments(:more_greetings).post
+    assert_equal posts(:welcome),  comments(:greetings).post
+  end
+
   def test_update_on_relation
     topic1 = TopicWithCallbacks.create! title: "arel", author_name: nil
     topic2 = TopicWithCallbacks.create! title: "activerecord", author_name: nil
