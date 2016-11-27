@@ -99,8 +99,6 @@ module ActionDispatch
                   "omg"
                 end
               when Nodes::Terminal then n.symbol
-              else
-                nil
               end
             }.compact.join
           end
