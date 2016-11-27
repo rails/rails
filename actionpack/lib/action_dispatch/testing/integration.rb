@@ -577,7 +577,8 @@ module ActionDispatch
   #     end
   #   end
   #
-  # The +as+ option sets the format to JSON, sets the content type to
+  # The +as+ option passes an "application/json" Accept header (thereby setting
+  # the request format to JSON unless overridden), sets the content type to
   # "application/json" and encodes the parameters as JSON.
   #
   # Calling +parsed_body+ on the response parses the response body based on the
