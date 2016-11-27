@@ -10,6 +10,8 @@ module ActiveRecord
     end
 
     setup do
+      @abort, Thread.abort_on_exception = Thread.abort_on_exception, false
+
       @connection = ActiveRecord::Base.connection
       @connection.clear_cache!
 
@@ -25,6 +27,8 @@ module ActiveRecord
 
     teardown do
       @connection.drop_table "samples", if_exists: true
+
+      Thread.abort_on_exception = @abort
     end
 
     test "raises Deadlocked when a deadlock is encountered" do
@@ -35,8 +39,6 @@ module ActiveRecord
         s2 = Sample.create value: 2
 
         thread = Thread.new do
-          Thread.current.abort_on_exception = false
-
           Sample.transaction do
             s1.lock!
             barrier.wait

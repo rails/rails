@@ -11,6 +11,8 @@ module ActiveRecord
     end
 
     setup do
+      @abort, Thread.abort_on_exception = Thread.abort_on_exception, false
+
       @connection = ActiveRecord::Base.connection
 
       @connection.transaction do
@@ -25,6 +27,8 @@ module ActiveRecord
 
     teardown do
       @connection.drop_table "samples", if_exists: true
+
+      Thread.abort_on_exception = @abort
     end
 
     test "raises SerializationFailure when a serialization failure occurs" do
@@ -33,8 +37,6 @@ module ActiveRecord
         after = Concurrent::CyclicBarrier.new(2)
 
         thread = Thread.new do
-          Thread.current.abort_on_exception = false
-
           with_warning_suppression do
             Sample.transaction isolation: :serializable do
               before.wait
@@ -67,8 +69,6 @@ module ActiveRecord
           s2 = Sample.create value: 2
 
           thread = Thread.new do
-            Thread.current.abort_on_exception = false
-
             Sample.transaction do
               s1.lock!
               barrier.wait
