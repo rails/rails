@@ -422,6 +422,7 @@ module ActiveRecord
               conn.disconnect!
             end
             @connections = []
+            @available.clear
           end
         end
       end
@@ -454,6 +455,7 @@ module ActiveRecord
               conn.disconnect! if conn.requires_reloading?
             end
             @connections.delete_if(&:requires_reloading?)
+            @available.clear
           end
         end
       end
