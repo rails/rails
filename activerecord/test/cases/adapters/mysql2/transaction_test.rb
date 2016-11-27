@@ -29,26 +29,30 @@ module ActiveRecord
 
     test "raises Deadlocked when a deadlock is encountered" do
       assert_raises(ActiveRecord::Deadlocked) do
+        barrier = Concurrent::CyclicBarrier.new(2)
+
         s1 = Sample.create value: 1
         s2 = Sample.create value: 2
 
         thread = Thread.new do
+          Thread.current.abort_on_exception = false
+
           Sample.transaction do
             s1.lock!
-            sleep 1
+            barrier.wait
             s2.update_attributes value: 1
           end
         end
 
-        sleep 0.5
-
-        Sample.transaction do
-          s2.lock!
-          sleep 1
-          s1.update_attributes value: 2
+        begin
+          Sample.transaction do
+            s2.lock!
+            barrier.wait
+            s1.update_attributes value: 2
+          end
+        ensure
+          thread.join
         end
-
-        thread.join
       end
     end
   end

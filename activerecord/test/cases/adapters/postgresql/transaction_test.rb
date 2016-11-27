@@ -33,6 +33,8 @@ module ActiveRecord
         after = Concurrent::CyclicBarrier.new(2)
 
         thread = Thread.new do
+          Thread.current.abort_on_exception = false
+
           with_warning_suppression do
             Sample.transaction isolation: :serializable do
               before.wait
@@ -65,6 +67,8 @@ module ActiveRecord
           s2 = Sample.create value: 2
 
           thread = Thread.new do
+            Thread.current.abort_on_exception = false
+
             Sample.transaction do
               s1.lock!
               barrier.wait
