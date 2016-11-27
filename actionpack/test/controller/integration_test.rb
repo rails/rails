@@ -145,7 +145,7 @@ class IntegrationTestTest < ActiveSupport::TestCase
         name.to_s == "foo" ? "pass" : super
       end
     end
-    @test.class.superclass.__send__(:include, mixin)
+    @test.class.superclass.include(mixin)
     begin
       assert_equal "pass", @test.foo
     ensure
