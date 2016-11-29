@@ -29,14 +29,22 @@ module ActionCable
       end
 
       def with_connection(&block) # :nodoc:
-        ActiveRecord::Base.connection_pool.with_connection do |ar_conn|
-          pg_conn = ar_conn.raw_connection
-
-          unless pg_conn.is_a?(PG::Connection)
+        fetch_connection do |conn|
+          unless conn.is_a?(PG::Connection)
             raise "The Active Record database must be PostgreSQL in order to use the PostgreSQL Action Cable storage adapter"
           end
 
-          yield pg_conn
+          yield conn
+        end
+      end
+
+      # This method provides the database connection (an instance of PG::Connection)
+      # which is used for the adapter. By default, a connection is taken from
+      # Active Record's connection pool. Override this method if you wish to
+      # use a different ORM.
+      def fetch_connection
+        ActiveRecord::Base.connection_pool.with_connection do |ar_conn|
+          yield ar_conn.raw_connection
         end
       end
 
