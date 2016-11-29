@@ -21,5 +21,10 @@
 !/tmp/.keep
 <% end -%>
 
+<% if options[:yarn] -%>
+# Ignore node modules.
+/node_modules/*
+
+<% end -%>
 # Ignore Byebug command history file.
 .byebug_history

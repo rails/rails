@@ -1,0 +1,7 @@
+{
+  "name": "<%= app_name %>",
+  "private": true,
+  "dependencies": {
+    "rails-ujs": "rails/rails-ujs"
+  }
+}

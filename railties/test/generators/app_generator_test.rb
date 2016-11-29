@@ -492,6 +492,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_generator_if_yarn_option_is_given
+    run_generator([destination_root, "--yarn"])
+    assert_file "package.json", /dependencies/
+    assert_file "config/initializers/assets.rb", /node_modules/
+  end
+
   def test_inclusion_of_jbuilder
     run_generator
     assert_gem "jbuilder"
@@ -610,6 +616,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_generation_runs_bundle_install
     assert_generates_with_bundler
+  end
+
+  def test_generation_runs_yarn_install_with_yarn_option
+    assert_generates_with_yarn yarn: true
   end
 
   def test_dev_option
@@ -834,6 +844,20 @@ class AppGeneratorTest < Rails::Generators::TestCase
       end
 
       generator.stub :bundle_command, command_check do
+        quietly { generator.invoke_all }
+      end
+    end
+
+    def assert_generates_with_yarn(options = {})
+      generator([destination_root], options)
+
+      command_check = -> command do
+        @install_called ||= 0
+        @install_called += 1
+        assert_equal 1, @install_called, "install expected to be called once, but was called #{@install_called} times"
+      end
+
+      generator.stub :yarn_command, command_check do
         quietly { generator.invoke_all }
       end
     end
