@@ -309,7 +309,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "reverse_merge with parameters" do
-    other_params = ActionController::Parameters.new(id: "1234", person: {age: 30}).permit!
+    other_params = ActionController::Parameters.new(id: "1234", person: { age: 30 }).permit!
     merged_params = @params.reverse_merge(other_params)
 
     assert merged_params[:id]
@@ -326,7 +326,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "reverse_merge! with parameters" do
-    other_params = ActionController::Parameters.new(id: "1234", person: {age: 30}).permit!
+    other_params = ActionController::Parameters.new(id: "1234", person: { age: 30 }).permit!
     @params.reverse_merge!(other_params)
 
     assert_equal "1234", @params[:id]
