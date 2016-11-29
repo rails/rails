@@ -1,4 +1,4 @@
-*   Add ActionController::Parameters#reverse_merge[!]` which behaves the same as `Hash#reverse_merge[!]`.
+*   Add `ActionController::Parameters#reverse_merge[!]` which behaves the same as `Hash#reverse_merge[!]`.
 
 	*Mitsutaka Mimura*
 
