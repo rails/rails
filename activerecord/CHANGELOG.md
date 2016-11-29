@@ -1,3 +1,9 @@
+*   Fix that unsigned with zerofill is treated as signed.
+
+    Fixes #27125.
+
+    *Ryuta Kamizono*
+
 *   Fix the uniqueness validation scope with a polymorphic association.
 
     *Sergey Alekseev*

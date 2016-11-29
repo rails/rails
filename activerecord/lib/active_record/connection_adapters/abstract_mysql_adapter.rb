@@ -693,7 +693,7 @@ module ActiveRecord
 
         def register_integer_type(mapping, key, options) # :nodoc:
           mapping.register_type(key) do |sql_type|
-            if /\bunsigned\z/.match?(sql_type)
+            if /\bunsigned\b/.match?(sql_type)
               Type::UnsignedInteger.new(options)
             else
               Type::Integer.new(options)
