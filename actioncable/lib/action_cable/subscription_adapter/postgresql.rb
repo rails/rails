@@ -31,7 +31,7 @@ module ActionCable
       def with_connection(&block) # :nodoc:
         fetch_connection do |conn|
           unless conn.is_a?(PG::Connection)
-            raise "The Active Record database must be PostgreSQL in order to use the PostgreSQL Action Cable storage adapter"
+            raise "Action Cable's PostgreSQL adapter only supports the use of PG::Connection objects for interacting with the database."
           end
 
           yield conn
