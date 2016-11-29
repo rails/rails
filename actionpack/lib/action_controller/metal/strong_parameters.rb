@@ -594,7 +594,7 @@ module ActionController
     # current hasth merges into +other_hash+.
     def reverse_merge(other_hash)
       new_instance_with_inherited_permitted_status(
-        other_hash.to_h.reverse_merge(@parameters)
+        other_hash.to_h.merge(@parameters)
       )
     end
 
