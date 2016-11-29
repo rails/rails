@@ -20,7 +20,7 @@ module ActiveRecord
         end
 
         def unsigned?
-          /\bunsigned\z/ === sql_type
+          !/\A(?:enum|set)\b/.match?(sql_type) && /\bunsigned\b/.match?(sql_type)
         end
 
         def case_sensitive?
