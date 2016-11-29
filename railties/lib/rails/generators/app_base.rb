@@ -333,9 +333,6 @@ module Rails
               "Use #{options[:javascript]} as the JavaScript library")
           end
 
-          gems << GemfileEntry.github("rails-ujs", "rails/rails-ujs", nil,
-                                      "Unobstrusive JavaScript adapter for Rails")
-
           unless options[:skip_turbolinks]
             gems << GemfileEntry.version("turbolinks", "~> 5",
              "Turbolinks makes navigating your web application faster. Read more: https://github.com/turbolinks/turbolinks")

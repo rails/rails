@@ -452,7 +452,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "app/assets/javascripts/application.js" do |contents|
       assert_match %r{^//= require rails-ujs}, contents
     end
-    assert_gem "rails-ujs"
   end
 
   def test_inclusion_of_javascript_libraries_if_required
@@ -477,7 +476,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile" do |content|
       assert_no_match(/coffee-rails/, content)
       assert_no_match(/uglifier/, content)
-      assert_no_match(/rails-ujs/, content)
     end
 
     assert_file "config/environments/production.rb" do |content|

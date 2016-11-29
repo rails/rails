@@ -39,13 +39,6 @@ GIT
       websocket
 
 GIT
-  remote: https://github.com/rails/rails-ujs.git
-  revision: 767692f53dec79d42928029a55fdfcced35681e8
-  specs:
-    rails-ujs (0.0.1)
-      railties (>= 3.1)
-
-GIT
   remote: https://github.com/resque/resque.git
   revision: 20d885065ac19e7f7d7a982f4ed1296083db0300
   specs:
@@ -419,7 +412,6 @@ DEPENDENCIES
   racc (>= 1.4.6)
   rack-cache (~> 1.2)
   rails!
-  rails-ujs!
   rake (>= 11.1)
   rb-inotify!
   redcarpet (~> 3.2.3)

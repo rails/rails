@@ -1,5 +1,5 @@
-*   Removed jquery-rails from default stack, instead rails-ujs is
-    included as default UJS adapter.
+*   Removed jquery-rails from default stack, instead rails-ujs that is shipped
+    with Action View is included as default UJS adapter.
 
     *Guillermo Iguaran*
 
