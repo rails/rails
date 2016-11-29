@@ -209,6 +209,22 @@ module ActiveRecord
         end
       end
 
+      def test_execute_batch
+        with_example_table do
+          @conn.execute_batch "INSERT INTO ex (number) VALUES (10); INSERT INTO ex (number) VALUES (20)"
+          records = @conn.execute "SELECT * FROM ex"
+          assert_equal 2, records.length
+
+          record = records.first
+          assert_equal 10, record["number"]
+          assert_equal 1, record["id"]
+
+          record = records.last
+          assert_equal 20, record["number"]
+          assert_equal 2, record["id"]
+        end
+      end
+
       def test_quote_string
         assert_equal "''", @conn.quote_string("'")
       end
