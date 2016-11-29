@@ -1,3 +1,8 @@
+*   Remove deprecated `activerecord.errors.messages.restrict_dependent_destroy.one` and
+    `activerecord.errors.messages.restrict_dependent_destroy.many` i18n scopes.
+
+    *Rafael Mendonça França*
+
 *   Allow passing extra flags to `db:structure:load` and `db:structure:dump`
 
     Introduces `ActiveRecord::Tasks::DatabaseTasks.structure_(load|dump)_flags` to customize the
