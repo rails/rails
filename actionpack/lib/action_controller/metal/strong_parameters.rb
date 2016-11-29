@@ -71,8 +71,8 @@ module ActionController
   # * +permit_all_parameters+ - If it's +true+, all the parameters will be
   #   permitted by default. The default is +false+.
   # * +action_on_unpermitted_parameters+ - Allow to control the behavior when parameters
-  #   that are not explicitly permitted are found. The values can be <tt>:log</tt> to
-  #   write a message on the logger or <tt>:raise</tt> to raise
+  #   that are not explicitly permitted are found. The values can be +false+ to just filter them
+  #   out, <tt>:log</tt> to additionally write a message on the logger, or <tt>:raise</tt> to raise
   #   ActionController::UnpermittedParameters exception. The default value is <tt>:log</tt>
   #   in test and development environments, +false+ otherwise.
   #
