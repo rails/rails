@@ -15,16 +15,22 @@ module ActiveSupport
     autoload :ISO8601Serializer, "active_support/duration/iso8601_serializer"
 
     def initialize(value, parts) #:nodoc:
-      @value, @parts = value, parts
+      @value, @parts = value, parts.to_h
+      @parts.default = 0
     end
 
     # Adds another Duration or a Numeric to this Duration. Numeric values
     # are treated as seconds.
     def +(other)
       if Duration === other
-        Duration.new(value + other.value, @parts + other.parts)
+        parts = @parts.dup
+        other.parts.each do |(key, value)|
+          parts[key] += value
+        end
+        Duration.new(value + other.value, parts)
       else
-        Duration.new(value + other, @parts + [[:seconds, other]])
+        seconds = @parts[:seconds] + other
+        Duration.new(value + other, @parts.merge(seconds: seconds))
       end
     end
 

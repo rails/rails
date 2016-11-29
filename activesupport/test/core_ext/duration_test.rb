@@ -345,6 +345,17 @@ class DurationTest < ActiveSupport::TestCase
     end
   end
 
+  def test_adding_durations_do_not_hold_prior_states
+    time = Time.parse("Nov 29, 2016")
+    # If the implementation adds and subtracts 3 months, the
+    # resulting date would have been in February so the day will
+    # change to the 29th.
+    d1 = 3.months - 3.months
+    d2 = 2.months - 2.months
+
+    assert_equal time + d1, time + d2
+  end
+
   private
     def eastern_time_zone
       if Gem.win_platform?
