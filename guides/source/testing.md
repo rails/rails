@@ -800,6 +800,13 @@ end
 
 Now you can try running all the tests and they should pass.
 
+NOTE: If you followed the steps in the Basic Authentication section, you'll need to add the following to the `setup` block to get all the tests passing:
+
+```ruby
+request.headers['Authorization'] = ActionController::HttpAuthentication::Basic.
+  encode_credentials('dhh', 'secret')
+```
+
 ### Available Request Types for Functional Tests
 
 If you're familiar with the HTTP protocol, you'll know that `get` is a type of request. There are 6 request types supported in Rails functional tests:
