@@ -1,4 +1,5 @@
 require "active_support/per_thread_registry"
+require "active_support/notifications"
 
 module ActiveSupport
   # ActiveSupport::Subscriber is an object set to consume
