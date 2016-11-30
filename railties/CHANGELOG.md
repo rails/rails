@@ -1,4 +1,4 @@
-*   Add Yarn support in new apps using --yarn option. This add a package.json
+*   Add Yarn support in new apps using --yarn option. This adds a package.json
     and the settings needed to get npm modules integrated in new apps.
 
     *Liceth Ovalles*, *Guillermo Iguaran*
