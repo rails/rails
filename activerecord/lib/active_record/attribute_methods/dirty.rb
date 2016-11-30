@@ -100,14 +100,14 @@ module ActiveRecord
         if defined?(@cached_changed_attributes)
           @cached_changed_attributes
         else
-          emit_warning_if_needed("changed_attributes", "attributes_in_database")
+          emit_warning_if_needed("changed_attributes", "saved_changes.transform_values(&:first)")
           super.reverse_merge(mutation_tracker.changed_values).freeze
         end
       end
 
       def changes
         cache_changed_attributes do
-          emit_warning_if_needed("changes", "changes_to_save")
+          emit_warning_if_needed("changes", "saved_changes")
           super
         end
       end
@@ -212,22 +212,22 @@ module ActiveRecord
       end
 
       def attribute_was(*)
-        emit_warning_if_needed("attribute_was", "attribute_in_database")
+        emit_warning_if_needed("attribute_was", "attribute_before_last_save")
         super
       end
 
       def attribute_change(*)
-        emit_warning_if_needed("attribute_change", "attribute_change_to_be_saved")
+        emit_warning_if_needed("attribute_change", "saved_change_to_attribute")
         super
       end
 
       def attribute_changed?(*)
-        emit_warning_if_needed("attribute_changed?", "will_save_change_to_attribute?")
+        emit_warning_if_needed("attribute_changed?", "saved_change_to_attribute?")
         super
       end
 
       def changed(*)
-        emit_warning_if_needed("changed", "changed_attribute_names_to_save")
+        emit_warning_if_needed("changed", "saved_changes.keys")
         super
       end
 
