@@ -433,7 +433,7 @@ module Rails
       def yarn_path
         commands = ["yarn"]
 
-        if RbConfig::CONFIG["host_os"] =~ /mswin|cygwin/
+        if Gem.win_platform?
           ENV["PATHEXT"].split(File::PATH_SEPARATOR).each do |ext|
             commands << commands[0] + ext
           end
