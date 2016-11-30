@@ -1,3 +1,5 @@
+## Rails 5.0.1.rc1 (December 01, 2016) ##
+
 *   Fixed error caused by `force_ssl_redirect` when `session_store` is
     enabled.
 

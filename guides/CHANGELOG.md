@@ -1,3 +1,8 @@
+## Rails 5.0.1.rc1 (December 01, 2016) ##
+
+*   No changes.
+
+
 ## Rails 5.0.0 (June 30, 2016) ##
 
 *   Update example of passing a proc to `:message` option for validating records.

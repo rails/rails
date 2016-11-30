@@ -1,3 +1,5 @@
+## Rails 5.0.1.rc1 (December 01, 2016) ##
+
 *   Permit same-origin connections by default.
 
     New option `config.action_cable.allow_same_origin_as_host = false`

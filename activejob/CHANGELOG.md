@@ -1,3 +1,5 @@
+## Rails 5.0.1.rc1 (December 01, 2016) ##
+
 *   Added instance variable `@queue` to JobWrapper.
 
     This will fix issues in [resque-scheduler](https://github.com/resque/resque-scheduler) `#job_to_hash` method,

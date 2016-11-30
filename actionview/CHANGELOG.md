@@ -1,3 +1,5 @@
+## Rails 5.0.1.rc1 (December 01, 2016) ##
+
 *   Fix support to `ActionController::Parameters` in `button_to`.
 
     *Jon Moss*

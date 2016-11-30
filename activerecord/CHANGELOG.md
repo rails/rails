@@ -1,3 +1,5 @@
+## Rails 5.0.1.rc1 (December 01, 2016) ##
+
 *   Fix that unsigned with zerofill is treated as signed.
 
     Fixes #27125.
