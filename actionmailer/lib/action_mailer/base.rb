@@ -900,13 +900,17 @@ module ActionMailer
           yield(collector)
           collector.responses
         elsif headers[:body]
-          [{
-            body: headers.delete(:body),
-            content_type: self.class.default[:content_type] || "text/plain"
-          }]
+          collect_responses_from_text(headers)
         else
           collect_responses_from_templates(headers)
         end
+      end
+
+      def collect_responses_from_text(headers)
+        [{
+          body: headers.delete(:body),
+          content_type: headers[:content_type] || self.class.default[:content_type] || "text/plain"
+        }]
       end
 
       def collect_responses_from_templates(headers)
