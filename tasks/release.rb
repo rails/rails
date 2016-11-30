@@ -1,8 +1,10 @@
 FRAMEWORKS = %w( activesupport activemodel activerecord actionview actionpack activejob actionmailer railties )
+FRAMEWORK_NAMES = Hash.new { |h, k| k.split(/(?<=active|action)/).map(&:capitalize).join(" ") }
 
 root    = File.expand_path('../../', __FILE__)
 version = File.read("#{root}/RAILS_VERSION").strip
 tag     = "v#{version}"
+gem_version = Gem::Version.new(version)
 
 directory "pkg"
 
@@ -67,13 +69,15 @@ end
 
 namespace :changelog do
   task :header do
-    (FRAMEWORKS + ['guides']).each do |fw|
-      require 'date'
-      fname = File.join fw, 'CHANGELOG.md'
+    (FRAMEWORKS + ["guides"]).each do |fw|
+      require "date"
+      fname = File.join fw, "CHANGELOG.md"
+      current_contents = File.read(fname)
 
-      header = "## Rails #{version} (#{Date.today.strftime('%B %d, %Y')}) ##\n\n*   No changes.\n\n\n"
-      contents = header + File.read(fname)
-      File.open(fname, 'wb') { |f| f.write contents }
+      header = "## Rails #{version} (#{Date.today.strftime('%B %d, %Y')}) ##\n\n"
+      header << "*   No changes.\n\n\n" if current_contents =~ /\A##/
+      contents = header + current_contents
+      File.open(fname, "wb") { |f| f.write contents }
     end
   end
 
@@ -109,7 +113,7 @@ namespace :all do
   task :push            => FRAMEWORKS.map { |f| "#{f}:push"            } + ['rails:push']
 
   task :ensure_clean_state do
-    unless `git status -s | grep -v 'RAILS_VERSION\\|CHANGELOG\\|Gemfile.lock'`.strip.empty?
+    unless `git status -s | grep -v 'RAILS_VERSION\\|CHANGELOG\\|Gemfile.lock\\|version.rb'`.strip.empty?
       abort "[ABORTING] `git status` reports a dirty tree. Make sure all changes are committed"
     end
 
@@ -124,14 +128,16 @@ namespace :all do
   end
 
   task :commit do
-    File.open('pkg/commit_message.txt', 'w') do |f|
-      f.puts "# Preparing for #{version} release\n"
-      f.puts
-      f.puts "# UNCOMMENT THE LINE ABOVE TO APPROVE THIS COMMIT"
-    end
+    unless `git status -s`.strip.empty?
+      File.open("pkg/commit_message.txt", "w") do |f|
+        f.puts "# Preparing for #{version} release\n"
+        f.puts
+        f.puts "# UNCOMMENT THE LINE ABOVE TO APPROVE THIS COMMIT"
+      end
 
-    sh "git add . && git commit --verbose --template=pkg/commit_message.txt"
-    rm_f "pkg/commit_message.txt"
+      sh "git add . && git commit --verbose --template=pkg/commit_message.txt"
+      rm_f "pkg/commit_message.txt"
+    end
   end
 
   task :tag do
@@ -139,5 +145,74 @@ namespace :all do
     sh "git push --tags"
   end
 
-  task :release => %w(ensure_clean_state build bundle commit tag push)
+  task :prep_release => %w(ensure_clean_state build bundle commit)
+
+  task :release => %w(prep_release tag push)
+end
+
+task :announce do
+  Dir.chdir("pkg/") do
+    if gem_version.segments[2] == 0 || gem_version.segments[3].is_a?(Integer)
+      # Not major releases, and not security releases
+      raise "Only valid for patch releases"
+    end
+
+    sums = "$ shasum -a 256 *-#{version}.gem\n" + `shasum -a 256 *-#{version}.gem`
+
+    puts "Hi everyone,"
+    puts
+
+    puts "I am happy to announce that Rails #{version} has been released."
+    puts
+
+    previous_version = gem_version.segments[0, 3]
+    previous_version[2] -= 1
+    previous_version = previous_version.join(".")
+
+    if version =~ /rc/
+      require "date"
+      future_date = Date.today + 5
+      future_date += 1 while future_date.saturday? || future_date.sunday?
+
+      github_user = `git config github.user`.chomp
+
+      puts <<MSG
+If no regressions are found, expect the final release on #{future_date.strftime('%A, %B %-d, %Y')}.
+If you find one, please open an [issue on GitHub](https://github.com/rails/rails/issues/new)
+#{"and mention me (@#{github_user}) on it, " unless github_user.empty?}so that we can fix it before the final release.
+
+MSG
+    end
+
+    puts <<MSG
+## CHANGES since #{previous_version}
+
+To view the changes for each gem, please read the changelogs on GitHub:
+
+MSG
+    FRAMEWORKS.sort.each do |framework|
+      puts "* [#{FRAMEWORK_NAMES[framework]} CHANGELOG](https://github.com/rails/rails/blob/v#{version}/#{framework}/CHANGELOG.md)"
+    end
+    puts <<MSG
+
+*Full listing*
+
+To see the full list of changes, [check out all the commits on
+GitHub](https://github.com/rails/rails/compare/v#{previous_version}...v#{version}).
+
+## SHA-256
+
+If you'd like to verify that your gem is the same as the one I've uploaded,
+please use these SHA-256 hashes.
+
+Here are the checksums for #{version}:
+
+```
+#{sums}
+```
+
+As always, huge thanks to the many contributors who helped with this release.
+
+MSG
+  end
 end
