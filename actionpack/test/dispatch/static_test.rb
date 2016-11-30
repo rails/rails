@@ -204,7 +204,7 @@ module StaticTests
   end
 
   # Windows doesn't allow \ / : * ? " < > | in filenames
-  unless RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
+  unless Gem.win_platform?
     def test_serves_static_file_with_colon
       with_static_file "/foo/foo:bar.html" do |file|
         assert_html file, get("/foo/foo%3Abar.html")

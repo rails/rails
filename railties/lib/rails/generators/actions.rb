@@ -279,13 +279,13 @@ module Rails
         def execute_command(executor, command, options = {})
           log executor, command
           env  = options[:env] || ENV["RAILS_ENV"] || "development"
-          sudo = options[:sudo] && RbConfig::CONFIG["host_os"] !~ /mswin|mingw/ ? "sudo " : ""
+          sudo = options[:sudo] && !Gem.win_platform? ? "sudo " : ""
           in_root { run("#{sudo}#{extify(executor)} #{command} RAILS_ENV=#{env}", verbose: false) }
         end
 
         # Add an extension to the given name based on the platform.
         def extify(name)
-          if RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
+          if Gem.win_platform?
             "#{name}.bat"
           else
             name
