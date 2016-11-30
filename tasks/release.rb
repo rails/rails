@@ -1,8 +1,10 @@
 FRAMEWORKS = %w( activesupport activemodel activerecord actionview actionpack activejob actionmailer actioncable railties )
+FRAMEWORK_NAMES = Hash.new { |h, k| k.split(/(?<=active|action)/).map(&:capitalize).join(" ") }
 
 root    = File.expand_path("../../", __FILE__)
 version = File.read("#{root}/RAILS_VERSION").strip
 tag     = "v#{version}"
+gem_version = Gem::Version.new(version)
 
 directory "pkg"
 
@@ -176,4 +178,71 @@ namespace :all do
   task prep_release: %w(ensure_clean_state build)
 
   task release: %w(ensure_clean_state build bundle commit tag push)
+end
+
+task :announce do
+  Dir.chdir("pkg/") do
+    if gem_version.segments[2] == 0 || gem_version.segments[3].is_a?(Integer)
+      # Not major releases, and not security releases
+      raise "Only valid for patch releases"
+    end
+
+    sums = "$ shasum *-#{version}.gem\n" + `shasum *-#{version}.gem`
+
+    puts "Hi everyone,"
+    puts
+
+    puts "I am happy to announce that Rails #{version} has been released."
+    puts
+
+    previous_version = gem_version.segments[0, 3]
+    previous_version[2] -= 1
+    previous_version = previous_version.join(".")
+
+    if version =~ /rc/
+      require "date"
+      future_date = Date.today + 5
+      future_date += 1 while future_date.saturday? || future_date.sunday?
+
+      github_user = `git config github.user`.chomp
+
+      puts <<MSG
+If no regressions are found, expect the final release on #{future_date.strftime('%A, %B %-d, %Y')}.
+If you find one, please open an [issue on GitHub](https://github.com/rails/rails/issues/new)
+#{"and mention me (@#{github_user}) on it, " unless github_user.empty?}so that we can fix it before the final release.
+
+MSG
+    end
+
+    puts <<MSG
+## CHANGES since #{previous_version}
+
+To view the changes for each gem, please read the changelogs on GitHub:
+
+MSG
+    FRAMEWORKS.sort.each do |framework|
+      puts "* [#{FRAMEWORK_NAMES[framework]} CHANGELOG](https://github.com/rails/rails/blob/v#{version}/#{framework}/CHANGELOG.md)"
+    end
+    puts <<MSG
+
+*Full listing*
+
+To see the full list of changes, [check out all the commits on
+GitHub](https://github.com/rails/rails/compare/v#{previous_version}...v#{version}).
+
+## SHA-1
+
+If you'd like to verify that your gem is the same as the one I've uploaded,
+please use these SHA-1 hashes.
+
+Here are the checksums for #{version}:
+
+```
+#{sums}
+```
+
+As always, huge thanks to the many contributors who helped with this release.
+
+MSG
+  end
 end
