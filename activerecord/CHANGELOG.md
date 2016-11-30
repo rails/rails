@@ -1,3 +1,9 @@
+*   Change the type argument of `ActiveRecord::Base#attribute` to be optional.
+    The default is now `ActiveRecord::Type::Value.new`, which provides no type
+    casting behavior.
+
+    *Sean Griffin*
+
 *   Fix that unsigned with zerofill is treated as signed.
 
     Fixes #27125.

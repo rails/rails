@@ -255,5 +255,13 @@ module ActiveRecord
 
       assert_includes inspection, "non_existent_decimal"
     end
+
+    test "attributes do not require a type" do
+      klass = Class.new(OverloadedType) do
+        attribute :no_type
+      end
+      assert_equal 1, klass.new(no_type: 1).no_type
+      assert_equal "foo", klass.new(no_type: "foo").no_type
+    end
   end
 end
