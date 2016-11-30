@@ -68,10 +68,10 @@ module ActionCable
         end
 
         def ensure_reactor_running
-          return if EventMachine.reactor_running?
+          return if EventMachine.reactor_running? && EventMachine.reactor_thread
           @@mutex.synchronize do
             Thread.new { EventMachine.run } unless EventMachine.reactor_running?
-            Thread.pass until EventMachine.reactor_running?
+            Thread.pass until EventMachine.reactor_running? && EventMachine.reactor_thread
           end
         end
     end
