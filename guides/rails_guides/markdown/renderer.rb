@@ -15,6 +15,16 @@ module RailsGuides
 HTML
       end
 
+      def link(url, title, content)
+        if url.start_with?('http://api.rubyonrails.org')
+          %(<a href="#{api_link(url)}">#{content}</a>)
+        elsif title
+          %(<a href="#{url}" title="#{title}">#{content}</a>)
+        else
+          %(<a href="#{url}">#{content}</a>)
+        end
+      end
+
       def header(text, header_level)
         # Always increase the heading level by 1, so we can use h1, h2 heading in the document
         header_level += 1
@@ -78,6 +88,19 @@ HTML
               end
             %(<div class="#{css_class}"><p>#{$2.strip}</p></div>)
           end
+        end
+
+        def version
+          ENV['RAILS_VERSION']
+        end
+
+        def api_link(url)
+          if version && !url.match(/v\d\.\d\.\d/)
+            url.insert(url.index('.org')+4, "/#{version}")
+            url.sub('http://edgeapi', 'http://api') if url.include?('edgeapi')
+          end
+
+          url
         end
     end
   end
