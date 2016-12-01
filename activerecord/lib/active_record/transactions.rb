@@ -461,9 +461,10 @@ module ActiveRecord
           when :create
             transaction_record_state(:new_record)
           when :destroy
-            destroyed?
+            defined?(@_trigger_destroy_callback) && @_trigger_destroy_callback
           when :update
-            !(transaction_record_state(:new_record) || destroyed?)
+            !(transaction_record_state(:new_record) || destroyed?) &&
+              (defined?(@_trigger_update_callback) && @_trigger_update_callback)
           end
         end
       end
