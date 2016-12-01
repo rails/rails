@@ -802,7 +802,6 @@ module ActiveRecord
           map[Integer] = PG::TextEncoder::Integer.new
           map[TrueClass] = PG::TextEncoder::Boolean.new
           map[FalseClass] = PG::TextEncoder::Boolean.new
-          map[Float] = PG::TextEncoder::Float.new
           @connection.type_map_for_queries = map
         end
 
