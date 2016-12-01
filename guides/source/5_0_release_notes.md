@@ -533,6 +533,10 @@ Please refer to the [Changelog][action-mailer] for detailed changes.
     whether your templates should perform caching or not.
     ([Pull Request](https://github.com/rails/rails/pull/22825))
 
+*   Added support for custom `content_type` when setting body in
+    headers and attachments.
+    ([Pull Request](https://github.com/rails/rails/pull/27227))
+
 
 Active Record
 -------------

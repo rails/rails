@@ -3,4 +3,16 @@
 
     *Jeremy Daer*
 
+*   Mime type: allow to custom content type when setting body in headers
+    and attachments.
+
+    Example:
+
+        def test_emails
+          attachments["invoice.pdf"] = "This is test File content"
+          mail(body: "Hello there", content_type: "text/html")
+        end
+
+    *Minh Quy*
+
 Please check [5-0-stable](https://github.com/rails/rails/blob/5-0-stable/actionmailer/CHANGELOG.md) for previous changes.
