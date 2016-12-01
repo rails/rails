@@ -112,4 +112,38 @@ class TaggedLoggingTest < ActiveSupport::TestCase
 
     assert_equal "[BCX] [Jason] Funky time\n[BCX] Junky time!\n", @output.string
   end
+
+  test "does not log backtrace for exceptions with simple formatter" do
+    exception = RuntimeError.new("Uncool story")
+    exception.set_backtrace(["Exception backtrace"])
+
+    @logger.tagged("BCX") do
+      @logger.tagged("OMG") do
+        @logger.error exception
+      end
+    end
+
+    msg = "[BCX] [OMG] Uncool story (RuntimeError)\n"
+
+    assert_equal msg, @output.string
+  end
+
+  test "logs backtrace for exceptions with base formatter" do
+    base_logger = ::Logger.new(@output)
+    base_logger.formatter = ::Logger::Formatter.new
+    logger = ActiveSupport::TaggedLogging.new(base_logger)
+
+    exception = RuntimeError.new("Uncool story")
+    exception.set_backtrace(["Exception backtrace"])
+
+    logger.tagged("BCX") do
+      logger.tagged("OMG") do
+        logger.error exception
+      end
+    end
+
+    msg = "[BCX] [OMG] Uncool story (RuntimeError)\nException backtrace\n"
+
+    assert_match msg, @output.string
+  end
 end

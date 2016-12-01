@@ -99,7 +99,20 @@ module ActiveSupport
     class SimpleFormatter < ::Logger::Formatter
       # This method is invoked when a log event occurs
       def call(severity, timestamp, progname, msg)
-        "#{String === msg ? msg : msg.inspect}\n"
+        "#{msg2str(msg)}\n"
+      end
+
+      private
+
+      def msg2str(msg)
+        case msg
+        when ::String
+          msg
+        when ::Exception
+          "#{ msg.message } (#{ msg.class })"
+        else
+          msg.inspect
+        end
       end
     end
   end

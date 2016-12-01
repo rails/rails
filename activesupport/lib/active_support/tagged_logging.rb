@@ -16,9 +16,8 @@ module ActiveSupport
   # to aid debugging of multi-user production applications.
   module TaggedLogging
     module Formatter # :nodoc:
-      # This method is invoked when a log event occurs.
       def call(severity, timestamp, progname, msg)
-        super(severity, timestamp, progname, "#{tags_text}#{msg}")
+        super(severity, timestamp, progname, "#{tags_text}#{msg2str(msg)}")
       end
 
       def tagged(*tags)
