@@ -25,4 +25,14 @@ class ClassTest < ActiveSupport::TestCase
     assert_equal [Baz], Bar.subclasses
     assert_equal [], Baz.subclasses
   end
+
+  def test_descendants_excludes_singleton_classes
+    klass = Parent.new.singleton_class
+    refute Parent.descendants.include?(klass), "descendants should not include singleton classes"
+  end
+
+  def test_subclasses_excludes_singleton_classes
+    klass = Parent.new.singleton_class
+    refute Parent.subclasses.include?(klass), "subclasses should not include singleton classes"
+  end
 end
