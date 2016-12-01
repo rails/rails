@@ -34,7 +34,8 @@ module ActionCable
           attr_reader :server, :broadcasting, :coder
 
           def initialize(server, broadcasting, coder:)
-            @server, @broadcasting, @coder = server, broadcasting, coder
+            @server, @coder = server, coder
+            @broadcasting = [@server.config.channel_prefix, broadcasting].compact.join(':')
           end
 
           def broadcast(message)
