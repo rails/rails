@@ -155,8 +155,12 @@ module Rails
     end
 
     def vendor
-      vendor_javascripts
-      vendor_stylesheets
+      if options[:yarn]
+        empty_directory_with_keep_file "vendor"
+      else
+        vendor_javascripts
+        vendor_stylesheets
+      end
     end
 
     def vendor_javascripts
