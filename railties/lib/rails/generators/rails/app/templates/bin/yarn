@@ -1,0 +1,2 @@
+VENDOR_PATH = File.expand_path('../vendor', __dir__)
+Dir.chdir(VENDOR_PATH) { exec "yarnpkg #{ARGV.join(" ")}" }

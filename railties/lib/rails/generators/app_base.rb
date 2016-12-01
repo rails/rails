@@ -427,7 +427,7 @@ module Rails
       end
 
       def package_json_exist?
-        File.exist?("package.json")
+        File.exist?("vendor/package.json")
       end
 
       def yarn_path

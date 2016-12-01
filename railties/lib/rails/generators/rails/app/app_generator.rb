@@ -54,7 +54,7 @@ module Rails
     end
 
     def packagejson
-      template "package.json"
+      template "package.json", "vendor/package.json"
     end
 
     def app
