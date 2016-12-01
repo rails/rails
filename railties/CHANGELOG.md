@@ -1,7 +1,7 @@
-*   Add Yarn support in new apps using --yarn option. This adds a package.json
+*   Add Yarn support in new apps using --yarn option. This adds a yarn binstop, vendor/package.json,
     and the settings needed to get npm modules integrated in new apps.
 
-    *Liceth Ovalles*, *Guillermo Iguaran*
+    *Liceth Ovalles*, *Guillermo Iguaran*, *DHH*
 
 *   Removed jquery-rails from default stack, instead rails-ujs that is shipped
     with Action View is included as default UJS adapter.
