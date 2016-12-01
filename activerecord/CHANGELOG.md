@@ -32,8 +32,8 @@
     of `Article.category(true)` where `category` is a singular
     association.
 
-    The force reloading of the association reader was deprecated in
-    #20888. Unfortunately the suggested alternative of
+    The force reloading of the association reader was deprecated
+    in #20888. Unfortunately the suggested alternative of
     `article.reload.category` does not expose the same behavior.
 
     This patch adds a reader method with the prefix `reload_` for
