@@ -1,6 +1,7 @@
 # Arel
 
 * http://github.com/rails/arel
+* [API Documentation](http://www.rubydoc.info/github/rails/arel)
 
 ## DESCRIPTION
 
