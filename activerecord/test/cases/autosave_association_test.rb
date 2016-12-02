@@ -649,6 +649,33 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     assert_equal 2, firm.clients.length
     assert_includes firm.clients, Client.find_by_name("New Client")
   end
+
+  def test_inverse_association_within_autosave_after_save_callback
+    posts = Class.new(ActiveRecord::Base) do
+      self.table_name = "posts"
+    end
+    comments = Class.new(ActiveRecord::Base) do
+      self.table_name = "comments"
+    end
+    posts.class_eval do
+      has_many :comments, inverse_of: :post, foreign_key: :post_id, anonymous_class: comments
+    end
+    comments.class_eval do
+      belongs_to :post, inverse_of: :comments, anonymous_class: posts
+
+      attr_accessor :post_comments_count
+      after_save do
+        self.post_comments_count = post.comments.count
+      end
+    end
+
+    post = posts.new(title: "Test", body: "...")
+    comment = post.comments.build(body: "...")
+    post.save!
+
+    assert_equal 1, post.comments.count
+    assert_equal 1, comment.post_comments_count
+  end
 end
 
 class TestDefaultAutosaveAssociationOnNewRecord < ActiveRecord::TestCase
