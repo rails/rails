@@ -17,7 +17,7 @@ chdir APP_ROOT do
   system! 'gem install bundler --conservative'
   system('bundle check') || system!('bundle install')
 <% if options[:yarn] %>
-  system! 'yarn'
+  system! 'bin/yarn'
 
 <% end %>
 <% unless options.skip_active_record -%>
