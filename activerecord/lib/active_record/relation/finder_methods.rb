@@ -425,8 +425,9 @@ module ActiveRecord
       end
 
       def limited_ids_for(relation)
-        values = @klass.connection.columns_for_distinct(
-          "#{quoted_table_name}.#{quoted_primary_key}", relation.order_values)
+        col = "#{quoted_table_name}.#{quoted_primary_key}"
+        col = "MIN(#{col}) AS #{primary_key}" if group_values.any?
+        values = @klass.connection.columns_for_distinct(col, relation.order_values)
 
         relation = relation.except(:select).select(values).distinct!
         arel = relation.arel
