@@ -4,10 +4,9 @@ module ActionView #:nodoc:
     class Text #:nodoc:
       attr_accessor :type
 
-      def initialize(string, type = nil)
+      def initialize(string)
         @string = string.to_s
-        @type   = Types[type] || type if type
-        @type ||= Types[:text]
+        @type = Types[:text]
       end
 
       def identifier
@@ -25,7 +24,7 @@ module ActionView #:nodoc:
       end
 
       def formats
-        [@type.respond_to?(:ref) ? @type.ref : @type.to_s]
+        [@type.ref]
       end
     end
   end
