@@ -14,10 +14,7 @@ module Rails
 
       def add_routes
         unless options[:skip_routes]
-          actions.reverse_each do |action|
-            # route prepends two spaces onto the front of the string that is passed, this corrects that.
-            route generate_routing_code(action)[2..-1]
-          end
+          route generate_routing_code(actions)
         end
       end
 
@@ -26,10 +23,11 @@ module Rails
       private
 
         # This method creates nested route entry for namespaced resources.
-        # For eg. rails g controller foo/bar/baz index
+        # For eg. rails g controller foo/bar/baz index show
         # Will generate -
         # namespace :foo do
         #   namespace :bar do
+        #     get 'baz/show'
         #     get 'baz/index'
         #   end
         # end
@@ -42,9 +40,13 @@ module Rails
             indent("  namespace :#{ns} do\n", i * 2)
           end.join
 
-          # Create route
+
+          # Create routes
+          #     get 'baz/show'
           #     get 'baz/index'
-          route = indent(%{  get '#{file_name}/#{action}'\n}, depth * 2)
+          route = actions.reverse_each.map do |action|
+            indent(%{  get '#{file_name}/#{action}'\n}, depth * 2)
+          end.join
 
           # Create `end` ladder
           #   end
@@ -54,7 +56,8 @@ module Rails
           end.join
 
           # Combine the 3 parts to generate complete route entry
-          namespace_ladder + route + end_ladder
+          # route prepends two spaces onto the front of the string that is passed, this corrects that.
+          (namespace_ladder + route + end_ladder)[2..-1]
         end
     end
   end
