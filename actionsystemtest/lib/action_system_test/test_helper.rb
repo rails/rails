@@ -3,8 +3,6 @@ require "action_system_test/test_helpers"
 
 module ActionSystemTest
   module TestHelper # :nodoc:
-    include TestHelpers::Assertions
-    include TestHelpers::FormHelper
     include TestHelpers::ScreenshotHelper
     include Capybara::DSL
 

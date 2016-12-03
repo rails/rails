@@ -13,24 +13,32 @@ module ActionSystemTest
       #   ActionSystemTest.driver.supports_screenshots?
       #   => true
       def take_screenshot
+        save_image
         puts "[Screenshot]: #{image_path}"
-        puts find_image
+        puts display_image
       end
 
-      # Takes a screenshot only if the test failed. This is included
-      # by default in +teardown+ of system test.
+      # Takes a screenshot of the current page in the browser if the test
+      # failed.
+      #
+      # +take_screenshot+ is included in <tt>system_test_helper.rb</tt> that is
+      # generated with the application. To take screenshots when a test fails
+      # add +take_failed_screenshot+ to the teardown block before clearing any
+      # sessions.
       def take_failed_screenshot
         take_screenshot unless passed?
       end
 
       private
         def image_path
-          path = "tmp/screenshots/failures_#{method_name}.png"
-          page.save_screenshot(Rails.root.join(path))
-          path
+          "tmp/screenshots/failures_#{method_name}.png"
         end
 
-        def find_image
+        def save_image
+          page.save_screenshot(Rails.root.join(image_path))
+        end
+
+        def display_image
           if ENV["CAPYBARA_INLINE_SCREENSHOT"] == "artifact"
             "\e]1338;url=artifact://#{image_path}\a"
           else
