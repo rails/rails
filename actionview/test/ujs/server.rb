@@ -96,7 +96,7 @@ class TestsController < ActionController::Base
 
       render html: html.html_safe
     else
-      render text: "ERROR: #{request.path} requested without ajax", status: 404
+      render plain: "ERROR: #{request.path} requested without ajax", status: 404
     end
   end
 end

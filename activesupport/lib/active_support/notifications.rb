@@ -13,7 +13,7 @@ module ActiveSupport
   # To instrument an event you just need to do:
   #
   #   ActiveSupport::Notifications.instrument('render', extra: :information) do
-  #     render text: 'Foo'
+  #     render plain: 'Foo'
   #   end
   #
   # That first executes the block and then notifies all subscribers once done.
@@ -48,7 +48,7 @@ module ActiveSupport
   # The block is saved and will be called whenever someone instruments "render":
   #
   #   ActiveSupport::Notifications.instrument('render', extra: :information) do
-  #     render text: 'Foo'
+  #     render plain: 'Foo'
   #   end
   #
   #   event = events.first
