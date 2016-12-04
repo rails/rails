@@ -495,6 +495,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_generator_if_yarn_option_is_given
     run_generator([destination_root, "--yarn"])
     assert_file "vendor/package.json", /dependencies/
+    assert_file "bin/yarn", %r{\A#!/bin/sh\n}
     assert_file "config/initializers/assets.rb", /node_modules/
   end
 

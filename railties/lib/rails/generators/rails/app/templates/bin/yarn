@@ -1,2 +1,11 @@
-VENDOR_PATH = File.expand_path('../vendor', __dir__)
-Dir.chdir(VENDOR_PATH) { exec "yarnpkg #{ARGV.join(" ")}" }
+#!/bin/sh
+
+case $(uname) in
+	*CYGWIN*) basedir=$(cygpath -w "$basedir")
+	;;
+	*)        basedir=$(dirname "$(echo "$0" | sed -e 's,\\,/,g')")
+	;;
+esac
+
+cd "$basedir/../vendor" || exit
+yarn "$@"

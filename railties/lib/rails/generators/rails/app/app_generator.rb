@@ -68,9 +68,12 @@ module Rails
     end
 
     def bin
-      directory "bin" do |content|
+      directory "bin" , exclude_pattern: /\/bin\/yarn$/ do |content|
         "#{shebang}\n" + content
       end
+
+      copy_file "bin/yarn", "bin/yarn"
+
       chmod "bin", 0755 & ~File.umask, verbose: false
     end
 
