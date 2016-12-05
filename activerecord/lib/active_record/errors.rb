@@ -124,7 +124,7 @@ module ActiveRecord
   end
 
   # Raised when a foreign key constraint cannot be added because the column type does not match the referenced column type.
-  class MismatchedForeignKey < WrappedDatabaseException
+  class MismatchedForeignKey < StatementInvalid
     def initialize(adapter = nil, message: nil, table: nil, foreign_key: nil, target_table: nil, primary_key: nil)
       @adapter = adapter
       if table
