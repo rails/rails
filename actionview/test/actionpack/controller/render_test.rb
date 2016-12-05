@@ -146,6 +146,12 @@ class TestController < ApplicationController
     render plain: "hello world"
   end
 
+  def render_deprecated_text_hello_world
+    ActiveSupport::Deprecation.silence do
+      render text: "hello world"
+    end
+  end
+
   # :ported:
   def render_text_hello_world_with_layout
     @variable_for_layout = ", I am here!"
@@ -759,6 +765,12 @@ class RenderTest < ActionController::TestCase
   # :ported:
   def test_render_text
     get :render_text_hello_world
+    assert_equal "hello world", @response.body
+  end
+
+  def test_render_text_with_accept
+    @request.accept = 'application/text, application/octet-stream'
+    get :render_deprecated_text_hello_world
     assert_equal "hello world", @response.body
   end
 

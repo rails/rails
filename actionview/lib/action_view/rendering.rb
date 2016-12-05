@@ -84,7 +84,8 @@ module ActionView
     end
 
     def rendered_format
-      Template::Types[lookup_context.rendered_format]
+      format = lookup_context.rendered_format
+      Template::Types[format] || format
     end
 
     private
