@@ -3,6 +3,7 @@ require "active_record/connection_adapters/statement_pool"
 require "active_record/connection_adapters/sqlite3/explain_pretty_printer"
 require "active_record/connection_adapters/sqlite3/quoting"
 require "active_record/connection_adapters/sqlite3/schema_creation"
+require "active_record/connection_adapters/sqlite3/schema_definitions"
 
 gem "sqlite3", "~> 1.3.6"
 require "sqlite3"
@@ -73,6 +74,10 @@ module ActiveRecord
           def dealloc(stmt)
             stmt[:stmt].close unless stmt[:stmt].closed?
           end
+      end
+
+      def update_table_definition(table_name, base) # :nodoc:
+        SQLite3::Table.new(table_name, base)
       end
 
       def schema_creation # :nodoc:
@@ -568,6 +573,10 @@ module ActiveRecord
           else
             basic_structure.to_hash
           end
+        end
+
+        def create_table_definition(*args)
+          SQLite3::TableDefinition.new(*args)
         end
     end
   end
