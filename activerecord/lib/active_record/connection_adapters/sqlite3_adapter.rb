@@ -238,6 +238,14 @@ module ActiveRecord
         end
       end
 
+      def execute_batch(sql, name = nil) #:nodoc:
+        log(sql, name) do
+          ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+            @connection.execute_batch(sql)
+          end
+        end
+      end
+
       def begin_db_transaction #:nodoc:
         log("begin transaction", nil) { @connection.transaction }
       end

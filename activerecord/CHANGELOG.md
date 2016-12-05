@@ -1,3 +1,10 @@
+*   Introduce ActiveRecord::ConnectionAdapters::SQLite3Adapter.execute_batch() to allow batch
+    statements to be passed to SQLite.
+
+    Fixes #26948.
+
+    *Joe Nyland*
+
 *   Change the type argument of `ActiveRecord::Base#attribute` to be optional.
     The default is now `ActiveRecord::Type::Value.new`, which provides no type
     casting behavior.
