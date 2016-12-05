@@ -235,4 +235,15 @@ module ActiveRecord
       end
     end
   end
+
+  module Persistence
+    module ClassMethods
+      def create_or_update(*)
+        super
+      rescue NotNull => e
+        errors.add(e.column, :blank)
+        raise RecordInvalid.new(self)
+      end
+    end
+  end
 end
