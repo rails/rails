@@ -769,6 +769,10 @@ module ActiveRecord
             options[:null] = column.null
           end
 
+          unless options.key?(:comment)
+            options[:comment] = column.comment
+          end
+
           td = create_table_definition(table_name)
           cd = td.new_column_definition(column.name, type, options)
           schema_creation.accept(ChangeColumnDefinition.new(cd, column.name))
