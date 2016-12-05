@@ -3,7 +3,7 @@ module ActiveRecord
     module SQLite3
       module ColumnMethods
         def primary_key(name, type = :primary_key, **options)
-          if options.delete(:auto_increment) == true && type == :integer
+          if options.delete(:auto_increment) == true && %i(integer bigint).include?(type)
             type = :primary_key
           end
 
