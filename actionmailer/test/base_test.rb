@@ -140,7 +140,7 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("multipart/mixed", email.mime_type)
   end
 
-  test "set mime type to text/html when attachment is inclued and body is set" do
+  test "set mime type to text/html when attachment is included and body is set" do
     email = BaseMailer.attachment_with_content(body: "Hello there", content_type: "text/html")
     assert_equal("text/html", email.mime_type)
   end
