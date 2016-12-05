@@ -224,7 +224,6 @@ class PrimaryKeyWithAutoIncrementTest < ActiveRecord::TestCase
 
   def setup
     @connection = ActiveRecord::Base.connection
-    @connection.create_table(:auto_increments, id: :integer, auto_increment: true, force: true)
   end
 
   def teardown
@@ -232,15 +231,26 @@ class PrimaryKeyWithAutoIncrementTest < ActiveRecord::TestCase
   end
 
   def test_primary_key_with_auto_increment
-    record1 = AutoIncrement.create!
-    assert_not_nil record1.id
-
-    record1.destroy
-
-    record2 = AutoIncrement.create!
-    assert_not_nil record2.id
-    assert_operator record2.id, :>, record1.id
+    @connection.create_table(:auto_increments, id: :integer, auto_increment: true, force: true)
+    assert_auto_incremented
   end
+
+  def test_primary_key_with_auto_increment_and_bigint
+    @connection.create_table(:auto_increments, id: :bigint, auto_increment: true, force: true)
+    assert_auto_incremented
+  end
+
+  private
+    def assert_auto_incremented
+      record1 = AutoIncrement.create!
+      assert_not_nil record1.id
+
+      record1.destroy
+
+      record2 = AutoIncrement.create!
+      assert_not_nil record2.id
+      assert_operator record2.id, :>, record1.id
+    end
 end
 
 class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
