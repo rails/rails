@@ -39,7 +39,7 @@ module ActiveRecord
       self.emulate_booleans = true
 
       NATIVE_DATABASE_TYPES = {
-        primary_key: "int auto_increment PRIMARY KEY",
+        primary_key: "BIGINT(8) UNSIGNED auto_increment PRIMARY KEY",
         string:      { name: "varchar", limit: 255 },
         text:        { name: "text", limit: 65535 },
         integer:     { name: "int", limit: 4 },
@@ -736,6 +736,8 @@ module ActiveRecord
         ER_NO_REFERENCED_ROW_2  = 1452
         ER_DATA_TOO_LONG        = 1406
         ER_LOCK_DEADLOCK        = 1213
+        ER_CANNOT_ADD_FOREIGN   = 1215
+        ER_CANNOT_CREATE_TABLE  = 1005
 
         def translate_exception(exception, message)
           case error_number(exception)
@@ -743,6 +745,14 @@ module ActiveRecord
             RecordNotUnique.new(message)
           when ER_NO_REFERENCED_ROW_2
             InvalidForeignKey.new(message)
+          when ER_CANNOT_ADD_FOREIGN
+            mismatched_foreign_key(message)
+          when ER_CANNOT_CREATE_TABLE
+            if message.include?("errno: 150")
+              mismatched_foreign_key(message)
+            else
+              super
+            end
           when ER_DATA_TOO_LONG
             ValueTooLong.new(message)
           when ER_LOCK_DEADLOCK
@@ -912,6 +922,18 @@ module ActiveRecord
 
         def create_table_definition(*args) # :nodoc:
           MySQL::TableDefinition.new(*args)
+        end
+
+        def mismatched_foreign_key(message)
+          parts = message.scan(/`(\w+)`[ $)]/).flatten
+          MismatchedForeignKey.new(
+            self,
+            message: message,
+            table: parts[0],
+            foreign_key: parts[1],
+            target_table: parts[2],
+            primary_key: parts[3],
+          )
         end
 
         def extract_schema_qualified_name(string) # :nodoc:

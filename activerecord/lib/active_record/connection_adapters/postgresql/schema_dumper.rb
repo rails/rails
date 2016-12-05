@@ -25,7 +25,7 @@ module ActiveRecord
         private
 
           def default_primary_key?(column)
-            schema_type(column) == :serial
+            schema_type(column) == :bigserial
           end
 
           def schema_type(column)

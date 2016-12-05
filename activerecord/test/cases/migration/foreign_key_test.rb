@@ -76,7 +76,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
         end
 
         def test_add_foreign_key_with_non_standard_primary_key
-          with_example_table @connection, "space_shuttles", "pk integer PRIMARY KEY" do
+          with_example_table @connection, "space_shuttles", "pk BIGINT PRIMARY KEY" do
             @connection.add_foreign_key(:astronauts, :space_shuttles,
                                         column: "rocket_id", primary_key: "pk", name: "custom_pk")
 
@@ -229,7 +229,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
             create_table("cities") { |t| }
 
             create_table("houses") do |t|
-              t.column :city_id, :integer
+              t.column :city_id, :bigint
             end
             add_foreign_key :houses, :cities, column: "city_id"
 
@@ -261,7 +261,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
             create_table(:schools)
 
             create_table(:classes) do |t|
-              t.column :school_id, :integer
+              t.column :school_id, :bigint
             end
             add_foreign_key :classes, :schools
           end
