@@ -216,6 +216,33 @@ class PrimaryKeyWithNoConnectionTest < ActiveRecord::TestCase
   end
 end
 
+class PrimaryKeyWithAutoIncrementTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
+  class AutoIncrement < ActiveRecord::Base
+  end
+
+  def setup
+    @connection = ActiveRecord::Base.connection
+    @connection.create_table(:auto_increments, id: :integer, auto_increment: true, force: true)
+  end
+
+  def teardown
+    @connection.drop_table(:auto_increments, if_exists: true)
+  end
+
+  def test_primary_key_with_auto_increment
+    record1 = AutoIncrement.create!
+    assert_not_nil record1.id
+
+    record1.destroy
+
+    record2 = AutoIncrement.create!
+    assert_not_nil record2.id
+    assert_operator record2.id, :>, record1.id
+  end
+end
+
 class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
   include SchemaDumpingHelper
 
