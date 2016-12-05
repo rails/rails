@@ -996,15 +996,13 @@ module ActiveRecord
       def insert_versions_sql(versions) # :nodoc:
         sm_table = ActiveRecord::Migrator.schema_migrations_table_name
 
-        if supports_multi_insert?
+        if versions.is_a?(Array)
           sql = "INSERT INTO #{sm_table} (version) VALUES\n"
           sql << versions.map { |v| "('#{v}')" }.join(",\n")
           sql << ";\n\n"
           sql
         else
-          versions.map { |version|
-            "INSERT INTO #{sm_table} (version) VALUES ('#{version}');"
-          }.join "\n\n"
+          "INSERT INTO #{sm_table} (version) VALUES ('#{versions}');"
         end
       end
 
@@ -1042,7 +1040,13 @@ module ActiveRecord
           if (duplicate = inserting.detect { |v| inserting.count(v) > 1 })
             raise "Duplicate migration #{duplicate}. Please renumber your migrations to resolve the conflict."
           end
-          execute insert_versions_sql(inserting)
+          if supports_multi_insert?
+            execute insert_versions_sql(inserting)
+          else
+            inserting.each do |v|
+              execute insert_versions_sql(v)
+            end
+          end
         end
       end
 
