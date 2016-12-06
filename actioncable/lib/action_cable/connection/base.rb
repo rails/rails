@@ -24,11 +24,8 @@ module ActionCable
     #
     #       protected
     #         def find_verified_user
-    #           if current_user = User.find_by_identity cookies.signed[:identity_id]
-    #             current_user
-    #           else
+    #           User.find_by_identity(cookies.signed[:identity_id]) ||
     #             reject_unauthorized_connection
-    #           end
     #         end
     #     end
     #   end
