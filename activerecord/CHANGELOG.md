@@ -1,3 +1,11 @@
+*   Support index length and order options using both string and symbol
+    column names.
+
+    Fixes #27243.
+
+    *Ryuta Kamizono*
+
+
 ## Rails 5.0.1.rc1 (December 01, 2016) ##
 
 *   Fix that unsigned with zerofill is treated as signed.
