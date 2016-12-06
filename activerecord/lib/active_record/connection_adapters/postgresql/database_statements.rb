@@ -174,6 +174,16 @@ module ActiveRecord
           execute "ROLLBACK"
         end
 
+        def normalize_handlable_error(e)
+          case e.original_exception
+          when PG::NotNullViolation
+            column = e.result.error_field(PG::Result::PG_DIAG_COLUMN_NAME)
+            return ActiveRecord::NotNull.new(column)
+          else
+            return e
+          end
+        end
+
         private
 
           def suppress_composite_primary_key(pk)

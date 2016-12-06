@@ -155,6 +155,16 @@ module ActiveRecord
   class ValueTooLong < StatementInvalid
   end
 
+  # Raised when a record cannot be inserted or updated because it would violate a not null constraint.
+  class NotNull < WrappedDatabaseException
+    attr_reader :column
+
+    def initialize(column)
+      super(cause.message)
+      @column = column
+    end
+  end
+
   # Raised when number of bind variables in statement given to +:condition+ key
   # (for example, when using {ActiveRecord::Base.find}[rdoc-ref:FinderMethods#find] method)
   # does not match number of expected values supplied.

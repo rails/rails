@@ -546,3 +546,15 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert_equal(["has already been taken"], item2.errors[:id])
   end
 end
+
+class ValidationPersistenceTest
+  def test_not_null_constraints_are_translated_to_validation_error
+    author = Author.new(name: nil)
+
+    assert_raises(ActiveRecord::RecordInvalid) do
+      author.save!
+    end
+
+    assert_equal("can't be blank", author.errors[:name])
+  end
+end

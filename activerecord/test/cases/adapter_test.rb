@@ -182,6 +182,13 @@ module ActiveRecord
       assert_not_nil error.cause
     end
 
+    def test_not_null_constraints_are_translated_to_specific_exception
+      err = assert_raises(ActiveRecord::NotNull) do
+        @connection.execute "INSERT INTO authors(name) VALUES(null)"
+      end
+      assert_equal("name", err.column)
+    end
+
     unless current_adapter?(:SQLite3Adapter)
       def test_foreign_key_violations_are_translated_to_specific_exception
         error = assert_raises(ActiveRecord::InvalidForeignKey) do
