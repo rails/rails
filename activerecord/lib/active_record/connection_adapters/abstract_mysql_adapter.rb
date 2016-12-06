@@ -39,7 +39,7 @@ module ActiveRecord
       self.emulate_booleans = true
 
       NATIVE_DATABASE_TYPES = {
-        primary_key: "BIGINT(8) UNSIGNED auto_increment PRIMARY KEY",
+        primary_key: "bigint auto_increment PRIMARY KEY",
         string:      { name: "varchar", limit: 255 },
         text:        { name: "text", limit: 65535 },
         integer:     { name: "int", limit: 4 },
