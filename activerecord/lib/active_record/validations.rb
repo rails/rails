@@ -82,6 +82,21 @@ module ActiveRecord
       options[:validate] == false || valid?(options[:context])
     end
   end
+
+  module Persistence
+    module ClassMethods
+      def create_or_update(*)
+        begin
+          super
+        rescue StatementInvalid => e
+          raise connection.normalize_handlable_error(e)
+        rescue NotNull => e
+          errors.add(e.column, :blank)
+          raise RecordInvalid.new(self)
+        end
+      end
+    end
+  end
 end
 
 require "active_record/validations/associated"

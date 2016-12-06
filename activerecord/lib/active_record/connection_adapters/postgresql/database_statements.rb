@@ -152,9 +152,6 @@ module ActiveRecord
             end
             last_insert_id_result(sequence_name)
           end
-        rescue PG::NotNullViolation => e
-          column = e.result.error_field(PG::Result::PG_DIAG_COLUMN_NAME)
-          raise ActiveRecord::NotNull.new(column)
         end
 
         # Begins a transaction.
@@ -175,6 +172,16 @@ module ActiveRecord
         # Aborts a transaction.
         def exec_rollback_db_transaction
           execute "ROLLBACK"
+        end
+
+        def normalize_handlable_error(e)
+          case e.original_exception
+          when PG::NotNullViolation
+            column = e.result.error_field(PG::Result::PG_DIAG_COLUMN_NAME)
+            return ActiveRecord::NotNull.new(column)
+          else
+            return e
+          end
         end
 
         private
