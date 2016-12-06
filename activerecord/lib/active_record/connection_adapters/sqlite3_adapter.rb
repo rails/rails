@@ -530,6 +530,8 @@ module ActiveRecord
           #   column *column_name* is not unique
           when /column(s)? .* (is|are) not unique/, /UNIQUE constraint failed: .*/
             RecordNotUnique.new(message)
+          when /.* may not be NULL/, /NOT NULL constraint failed: .*/
+            NotNullViolation.new(message)
           else
             super
           end

@@ -151,6 +151,10 @@ module ActiveRecord
       end
   end
 
+  # Raised when a record cannot be inserted or updated because it would violate a not null constraint.
+  class NotNullViolation < StatementInvalid
+  end
+
   # Raised when a record cannot be inserted or updated because a value too long for a column type.
   class ValueTooLong < StatementInvalid
   end
