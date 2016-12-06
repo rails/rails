@@ -1699,3 +1699,27 @@ class TestAutosaveAssociationWithTouch < ActiveRecord::TestCase
     assert_nothing_raised { invoice.line_items.create(amount: 10) }
   end
 end
+
+class TestAutosaveAssociationOnAHasManyAssociationWithInverse < ActiveRecord::TestCase
+  class Post < ActiveRecord::Base
+    has_many :comments, inverse_of: :post
+  end
+
+  class Comment < ActiveRecord::Base
+    belongs_to :post, inverse_of: :comments
+
+    attr_accessor :post_comments_count
+    after_save do
+      self.post_comments_count = post.comments.count
+    end
+  end
+
+  def test_after_save_callback_with_autosave
+    post = Post.new(title: "Test", body: "...")
+    comment = post.comments.build(body: "...")
+    post.save!
+
+    assert_equal 1, post.comments.count
+    assert_equal 1, comment.post_comments_count
+  end
+end
