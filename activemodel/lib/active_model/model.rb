@@ -2,7 +2,7 @@ module ActiveModel
   # == Active \Model \Basic \Model
   #
   # Includes the required interface for an object to interact with
-  # Action Pack, using different Active Model modules.
+  # Action Pack and Action View, using different Active Model modules.
   # It includes model name introspections, conversions, translations and
   # validations. Besides that, it allows you to initialize the object with a
   # hash of attributes, pretty much like Active Record does.
