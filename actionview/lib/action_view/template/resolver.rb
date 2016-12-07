@@ -179,11 +179,10 @@ module ActionView
     # it always hits the resolver but if the key is present, check if the
     # resolver is fresher before returning it.
     def cached(key, path_info, details, locals)
-      name, prefix, partial = path_info
       locals = locals.map(&:to_s).sort!
 
       if key
-        @cache.cache(key, name, prefix, partial, locals) do
+        @cache.cache(key, *path_info, locals) do
           decorate(yield, path_info, details, locals)
         end
       else
