@@ -41,11 +41,11 @@ class PerRequestDigestCacheTest < ActiveSupport::TestCase
       end
     RUBY
 
-    app_file "app/views/customers/_customer.html.erb", <<-RUBY
+    app_file "app/views/customers/_customer.html.erb", <<-ERB
       <% cache customer do %>
         <%= customer.name %>
       <% end %>
-    RUBY
+    ERB
 
     require "#{app_path}/config/environment"
   end
@@ -56,15 +56,42 @@ class PerRequestDigestCacheTest < ActiveSupport::TestCase
     get "/customers"
     assert_equal 200, last_response.status
 
-    values = ActionView::LookupContext::DetailsKey.digest_caches.first.values
+    values = ActionView::Digestor.cache.values
     assert_equal [ "effc8928d0b33535c8a21d24ec617161" ], values
     assert_equal %w(david dingus), last_response.body.split.map(&:strip)
   end
 
   test "template digests are cleared before a request" do
-    assert_called(ActionView::LookupContext::DetailsKey, :clear) do
+    assert_called(ActionView::Digestor, :clear_cache) do
       get "/customers"
       assert_equal 200, last_response.status
+    end
+  end
+
+  test "recompiles updated template" do
+    get "/customers"
+    assert_no_match "Hi", last_response.body
+    app_file "app/views/customers/_customer.html.erb", <<-ERB
+      <% cache customer do %>
+        Hi <%= customer.name %>!
+      <% end %>
+    ERB
+    get "/customers"
+    assert_match "Hi ", last_response.body
+  end
+
+  test "does not recompile not-modified templates" do
+    get "/customers"
+    assert_no_changes -> { ActionView::CompiledTemplates.instance_methods } do
+      get "/customers"
+    end
+  end
+
+  test "does not leak memory in templates cache" do
+    app_file "app/views/customers/_customer.html.erb",
+      "<%= lookup_context.view_paths.paths.sum { |x| x.instance_variable_get(:@cache).size } %>"
+    assert_no_changes -> { get("/customers") && last_response.body } do
+      # noop
     end
   end
 end

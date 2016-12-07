@@ -283,10 +283,15 @@ module TemplateModificationHelper
       path = File.expand_path("../fixtures/#{name}.erb", __dir__)
       original = File.read(path)
       File.write(path, "#{original} Modified!")
-      ActionView::LookupContext::DetailsKey.clear
       yield
     ensure
       File.write(path, original)
+    end
+
+    # Simulate dev request.
+    def get(*)
+      ActionView::Digestor::PerExecutionCacheExpiry.before(nil)
+      super
     end
 end
 
@@ -532,7 +537,7 @@ end
 
 class EtagRenderTest < ActionController::TestCase
   tests TestControllerWithExtraEtags
-  include TemplateModificationHelper
+  prepend TemplateModificationHelper
 
   def test_strong_etag
     @request.if_none_match = strong_etag(["strong", "ab", :cde, [:f]])
@@ -618,7 +623,7 @@ end
 
 class NamespacedEtagRenderTest < ActionController::TestCase
   tests Namespaced::ImplicitRenderTestController
-  include TemplateModificationHelper
+  prepend TemplateModificationHelper
 
   def test_etag_reflects_template_digest
     get :hello_world

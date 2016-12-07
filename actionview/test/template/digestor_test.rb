@@ -24,7 +24,7 @@ class TemplateDigestorTest < ActionView::TestCase
     @cwd     = Dir.pwd
     @tmp_dir = Dir.mktmpdir
 
-    ActionView::LookupContext::DetailsKey.clear
+    ActionView::Digestor.clear_cache
     FileUtils.cp_r FixtureFinder::FIXTURES_DIR, @tmp_dir
     Dir.chdir @tmp_dir
   end
@@ -330,12 +330,12 @@ class TemplateDigestorTest < ActionView::TestCase
 
     def assert_digest_difference(template_name, options = {})
       previous_digest = digest(template_name, options)
-      finder.digest_cache.clear
+      ActionView::Digestor.clear_cache
 
       yield
 
       assert_not_equal previous_digest, digest(template_name, options), "digest didn't change"
-      finder.digest_cache.clear
+      ActionView::Digestor.clear_cache
     end
 
     def digest(template_name, options = {})

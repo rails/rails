@@ -1,3 +1,7 @@
+*   Fix memory leak when ActionView::Resolver.caching? is false.
+
+    *Max Melentiev*
+
 *   Fix issue with `button_to`'s `to_form_params`
 
     `button_to` was throwing exception when invoked with `params` hash that

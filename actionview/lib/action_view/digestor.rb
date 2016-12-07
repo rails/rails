@@ -4,15 +4,22 @@ require "action_view/dependency_tracker"
 
 module ActionView
   module Digestor
-    @@digest_mutex = Mutex.new
+    @digest_mutex = Mutex.new
+    @cache = Concurrent::Map.new
 
-    module PerExecutionDigestCacheExpiry
+    module PerExecutionCacheExpiry
       def self.before(target)
-        ActionView::LookupContext::DetailsKey.clear
+        Digestor.clear_cache
       end
     end
 
     class << self
+      attr_reader :cache
+
+      def clear_cache
+        cache.clear
+      end
+
       # Supported options:
       #
       # * <tt>name</tt>   - Template name
@@ -20,18 +27,23 @@ module ActionView
       # * <tt>dependencies</tt>  - An array of dependent views
       def digest(name:, finder:, dependencies: [])
         dependencies ||= []
-        cache_key = [ name, finder.rendered_format, dependencies ].flatten.compact.join(".")
+        cache_key = [
+          finder.details_key.hash,
+          name,
+          finder.rendered_format,
+          dependencies,
+        ].flatten.compact.join(".")
 
         # this is a correctly done double-checked locking idiom
         # (Concurrent::Map's lookups have volatile semantics)
-        finder.digest_cache[cache_key] || @@digest_mutex.synchronize do
-          finder.digest_cache.fetch(cache_key) do # re-check under lock
+        cache[cache_key] || @digest_mutex.synchronize do
+          cache.fetch(cache_key) do # re-check under lock
             partial = name.include?("/_")
             root = tree(name, finder, partial)
             dependencies.each do |injected_dep|
               root.children << Injected.new(injected_dep, nil, nil)
             end
-            finder.digest_cache[cache_key] = root.digest(finder)
+            cache[cache_key] = root.digest(finder)
           end
         end
       end
@@ -101,10 +113,10 @@ module ActionView
           if stack.include?(node)
             false
           else
-            finder.digest_cache[node.name] ||= begin
-                                                 stack.push node
-                                                 node.digest(finder, stack).tap { stack.pop }
-                                               end
+            Digestor.cache[node.name] ||= begin
+              stack.push node
+              node.digest(finder, stack).tap { stack.pop }
+            end
           end
         end.join("-")
       end

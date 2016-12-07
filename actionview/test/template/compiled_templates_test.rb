@@ -3,10 +3,6 @@
 require "abstract_unit"
 
 class CompiledTemplatesTest < ActiveSupport::TestCase
-  teardown do
-    ActionView::LookupContext::DetailsKey.clear
-  end
-
   def test_template_with_nil_erb_return
     assert_equal "This is nil: \n", render(template: "test/nil_return")
   end
