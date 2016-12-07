@@ -53,12 +53,12 @@ module ActionView
     register_detail(:variants) { [] }
     register_detail(:handlers) { Template::Handlers.extensions }
 
-    class DetailsKey #:nodoc:
-      alias :eql? :equal?
+    module DetailsKey #:nodoc:
+      module_function
 
       @details_keys = Concurrent::Map.new
 
-      def self.get(details)
+      def get(details)
         if details[:formats]
           details = details.dup
           details[:formats] &= Template::Types.symbols
@@ -66,11 +66,11 @@ module ActionView
         @details_keys[details] ||= Concurrent::Map.new
       end
 
-      def self.clear
+      def clear
         @details_keys.clear
       end
 
-      def self.digest_caches
+      def digest_caches
         @details_keys.values
       end
     end

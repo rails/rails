@@ -3,7 +3,7 @@
 require "action_view/dependency_tracker"
 
 module ActionView
-  class Digestor
+  module Digestor
     @@digest_mutex = Mutex.new
 
     module PerExecutionDigestCacheExpiry
