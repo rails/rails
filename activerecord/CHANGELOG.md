@@ -1,3 +1,7 @@
+*   Moved DecimalWithoutScale, Text, and UnsignedInteger from Active Model to Active Record
+
+    *Iain Beeston*
+
 *   Fix `write_attribute` method to check whether an attribute is aliased or not, and
     use the aliased attribute name if needed.
 

@@ -1,9 +1,8 @@
 require "cases/helper"
-require "active_model/type"
 
-module ActiveModel
+module ActiveRecord
   module Type
-    class UnsignedIntegerTest < ActiveModel::TestCase
+    class UnsignedIntegerTest < ActiveRecord::TestCase
       test "unsigned int max value is in range" do
         assert_equal(4294967295, UnsignedInteger.new.serialize(4294967295))
       end
