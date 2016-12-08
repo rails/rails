@@ -45,6 +45,7 @@ module ActionCable
         end
 
         # Returns all the identifiers that were applied to this connection.
+        remove_method :identifiers
         def identifiers
           server.connection_identifiers
         end
