@@ -43,9 +43,6 @@ DEFAULT_APP_FILES = %w(
   test/mailers
   test/integration
   vendor
-  vendor/assets
-  vendor/assets/stylesheets
-  vendor/assets/javascripts
   tmp
   tmp/cache
   tmp/cache/assets
@@ -466,7 +463,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip-javascript"]
 
     assert_no_file "app/assets/javascripts"
-    assert_no_file "vendor/assets/javascripts"
 
     assert_file "app/views/layouts/application.html.erb" do |contents|
       assert_match(/stylesheet_link_tag\s+'application', media: 'all' %>/, contents)
@@ -492,10 +488,19 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_generator_if_yarn_option_is_given
-    run_generator([destination_root, "--yarn"])
+  def test_generator_for_yarn
+    run_generator([destination_root])
     assert_file "vendor/package.json", /dependencies/
     assert_file "config/initializers/assets.rb", /node_modules/
+  end
+
+  def test_generator_for_yarn_skipped
+    run_generator([destination_root])
+    assert_no_file "vendor/package.json"
+
+    assert_file "config/environments/production.rb" do |content|
+      assert_no_match(/node_modules/, content)
+    end
   end
 
   def test_inclusion_of_jbuilder
@@ -616,10 +621,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_generation_runs_bundle_install
     assert_generates_with_bundler
-  end
-
-  def test_generation_runs_yarn_install_with_yarn_option
-    assert_generates_with_yarn yarn: true
   end
 
   def test_dev_option
@@ -844,20 +845,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       end
 
       generator.stub :bundle_command, command_check do
-        quietly { generator.invoke_all }
-      end
-    end
-
-    def assert_generates_with_yarn(options = {})
-      generator([destination_root], options)
-
-      command_check = -> command do
-        @install_called ||= 0
-        @install_called += 1
-        assert_equal 1, @install_called, "install expected to be called once, but was called #{@install_called} times"
-      end
-
-      generator.stub :yarn_command, command_check do
         quietly { generator.invoke_all }
       end
     end

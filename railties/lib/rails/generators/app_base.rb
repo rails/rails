@@ -33,8 +33,8 @@ module Rails
         class_option :javascript,         type: :string, aliases: "-j",
                                           desc: "Preconfigure for selected JavaScript library"
 
-        class_option :yarn,               type: :boolean, default: false,
-                                          desc: "Preconfigure for assets management with Yarn"
+        class_option :skip_yarn,          type: :boolean, default: false,
+                                          desc: "Don't use Yarn for managing JavaScript dependencies"
 
         class_option :skip_gemfile,       type: :boolean, default: false,
                                           desc: "Don't create a Gemfile"
@@ -412,55 +412,6 @@ module Rails
 
       def run_bundle
         bundle_command("install") if bundle_install?
-      end
-
-      def run_yarn
-        if package_json_exist?
-          if yarn_path
-            say_status :run, "yarn install"
-            yarn_command("install")
-          else
-            say_status :warning, "yarn option passed but Yarn executable was not detected in the system.", :yellow
-            say_status :warning, "Download Yarn at https://yarnpkg.com/en/docs/install", :yellow
-          end
-        end
-      end
-
-      def package_json_exist?
-        File.exist?("vendor/package.json")
-      end
-
-      def yarn_path
-        commands = ["yarn"]
-
-        if Gem.win_platform?
-          ENV["PATHEXT"].split(File::PATH_SEPARATOR).each do |ext|
-            commands << commands[0] + ext
-          end
-        end
-
-        yarn_path = commands.find do |cmd|
-          paths = ENV["PATH"].split(File::PATH_SEPARATOR)
-
-          path = paths.find do |p|
-            full_path = File.expand_path(cmd, p)
-            File.executable?(full_path) && File.file?(full_path)
-          end
-
-          path && File.expand_path(cmd, path)
-        end
-
-        yarn_path
-      end
-
-      def yarn_command(command)
-        full_command = "#{yarn_path} #{command}"
-
-        if options[:quiet]
-          system(full_command, out: File::NULL)
-        else
-          system(full_command)
-        end
       end
 
       def generate_spring_binstubs
