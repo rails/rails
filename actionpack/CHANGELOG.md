@@ -1,3 +1,14 @@
+*   Move `cookies`, `flash`, and `session` methods back to
+    `ActionDispatch::Integration::Session`.
+
+    *Matthew Draper*
+
+*   Do not reset in `ActionDispatch::IntegrationTest#open_session`; doing so
+    is incompatible with existing (unintended) API usage.
+
+    *Sean Griffin*
+
+
 ## Rails 5.0.1.rc1 (December 01, 2016) ##
 
 *   Fixed error caused by `force_ssl_redirect` when `session_store` is
@@ -118,6 +129,12 @@
     Fixes #25859.
 
     *David Chen*
+
+*   Reset a new session directly after its creation in `ActionDispatch::IntegrationTest#open_session`.
+
+    Fixes #22742.
+
+    *Tawan Sierek*
 
 *   Fix 'defaults' option for root route.
 
