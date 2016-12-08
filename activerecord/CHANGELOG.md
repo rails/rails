@@ -1,3 +1,10 @@
+*   Correct resolution of associated class in `has_many :through`
+    associations' `*_ids` setters.
+
+    Fixes #27297.
+
+    *Matthew Draper*
+
 *   Support index length and order options using both string and symbol
     column names.
 
