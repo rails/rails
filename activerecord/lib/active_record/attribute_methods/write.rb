@@ -29,7 +29,13 @@ module ActiveRecord
       # specified +value+. Empty strings for Integer and Float columns are
       # turned into +nil+.
       def write_attribute(attr_name, value)
-        write_attribute_with_type_cast(attr_name, value, true)
+        name = if self.class.attribute_alias?(attr_name)
+          self.class.attribute_alias(attr_name).to_s
+        else
+          attr_name.to_s
+        end
+
+        write_attribute_with_type_cast(name, value, true)
       end
 
       def raw_write_attribute(attr_name, value) # :nodoc:
