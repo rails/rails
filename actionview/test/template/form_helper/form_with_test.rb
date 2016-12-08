@@ -499,8 +499,6 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_form_with_with_file_field_generate_multipart
-    Post.send :attr_accessor, :file
-
     form_with(model: @post, id: "create-post") do |f|
       concat f.file_field(:file)
     end
@@ -513,8 +511,6 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_fields_with_file_field_generate_multipart
-    Comment.send :attr_accessor, :file
-
     form_with(model: @post) do |f|
       concat f.fields(:comment, model: @post) { |c|
         concat c.file_field(:file)
