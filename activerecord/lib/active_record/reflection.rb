@@ -850,6 +850,10 @@ module ActiveRecord
         actual_source_reflection.options[:primary_key] || primary_key(klass || self.klass)
       end
 
+      def association_primary_key_type
+        klass.type_for_attribute(association_primary_key)
+      end
+
       # Gets an array of possible <tt>:through</tt> source reflection names in both singular and plural form.
       #
       #   class Post < ActiveRecord::Base

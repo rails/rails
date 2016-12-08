@@ -904,6 +904,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_match(/Couldn't find all Clients with 'name'/, e.message)
   end
 
+  def test_collection_singular_ids_through_setter_raises_exception_when_invalid_ids_set
+    author = authors(:david)
+    ids = [categories(:general).name, "Unknown"]
+    e = assert_raises(ActiveRecord::RecordNotFound) { author.essay_category_ids = ids }
+    assert_equal "Couldn't find all Categories with 'name': (General, Unknown) (found 1 results, but was looking for 2)", e.message
+  end
+
   def test_build_a_model_from_hm_through_association_with_where_clause
     assert_nothing_raised { books(:awdr).subscribers.where(nick: "marklazz").build }
   end
