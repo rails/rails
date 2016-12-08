@@ -44,12 +44,6 @@ module ActionCable
           server.broadcast internal_channel, type: "disconnect"
         end
 
-        # Returns all the identifiers that were applied to this connection.
-        remove_method :identifiers
-        def identifiers
-          server.connection_identifiers
-        end
-
         private
           attr_reader :server
 
