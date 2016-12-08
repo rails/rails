@@ -252,6 +252,35 @@ class DefaultUrlOptionsTest < ActionController::TestCase
       assert_equal "/en/descriptions/1.xml", @controller.send(:description_path, 1, format: "xml")
     end
   end
+
+  def test_callable_default_url_options_in_routing
+    @controller = NonEmptyController.new
+    @controller.request = @request
+
+    with_routing do |set|
+      set.draw do
+        default_url_options -> { { locale: I18n.locale == :en ? nil : I18n.locale } }
+
+        scope "(:locale)", locale: /en|pl/ do
+          resources :descriptions
+        end
+      end
+
+      I18n.with_locale :en do
+        assert_equal "/descriptions", @controller.send(:descriptions_path)
+        assert_equal "/descriptions/1", @controller.send(:description_path, 1)
+        assert_equal "/pl/descriptions", @controller.send(:descriptions_path, "pl")
+        assert_equal "/pl/descriptions/1", @controller.send(:description_path, "pl", 1)
+      end
+
+      I18n.with_locale :pl do
+        assert_equal "/pl/descriptions", @controller.send(:descriptions_path)
+        assert_equal "/pl/descriptions/1", @controller.send(:description_path, 1)
+        assert_equal "/en/descriptions", @controller.send(:descriptions_path, "en")
+        assert_equal "/en/descriptions/1", @controller.send(:description_path, "en", 1)
+      end
+    end
+  end
 end
 
 class OptionalDefaultUrlOptionsControllerTest < ActionController::TestCase

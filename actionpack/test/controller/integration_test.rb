@@ -818,6 +818,19 @@ class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_equal "/foo/1/edit", url_for(action: "edit", only_path: true)
   end
+
+  def test_can_haz_callable_default_url_options_in_routes
+    original_default_url_options = self.class.routes.default_url_options.dup
+    self.class.routes.default_url_options = -> { { host: "foobar.com" } }
+
+    assert_equal "http://foobar.com/foo", foos_url
+
+    get "/bar"
+    assert_response :success
+    assert_equal "http://bar.com/foo", foos_url
+  ensure
+    self.class.routes.default_url_options = original_default_url_options
+  end
 end
 
 class HeadWithStatusActionIntegrationTest < ActionDispatch::IntegrationTest

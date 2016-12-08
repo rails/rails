@@ -79,10 +79,14 @@ class ActionMailerUrlTest < ActionMailer::TestCase
     UrlTestMailer.delivery_method = :test
 
     AppRoutes.draw do
-      ActiveSupport::Deprecation.silence do
-        get ":controller(/:action(/:id))"
-        get "/welcome" => "foo#bar", as: "welcome"
-        get "/dummy_model" => "foo#baz", as: "dummy_model"
+      default_url_options -> { { locale: I18n.locale == :en ? nil : I18n.locale } }
+
+      scope "(:locale)", locale: /en|id/ do
+        ActiveSupport::Deprecation.silence do
+          get ":controller(/:action(/:id))"
+          get "/welcome" => "foo#bar", as: "welcome"
+          get "/dummy_model" => "foo#baz", as: "dummy_model"
+        end
       end
     end
 
@@ -104,6 +108,15 @@ class ActionMailerUrlTest < ActionMailer::TestCase
 
     # array
     assert_url_for "/dummy_model" , [DummyModel]
+
+    # dynamic segment
+    I18n.with_locale :en do
+      assert_url_for "/a/b/c", controller: "a", action: "b", id: "c"
+    end
+
+    I18n.with_locale :id do
+      assert_url_for "/id/a/b/c", controller: "a", action: "b", id: "c"
+    end
   end
 
   def test_signed_up_with_url

@@ -115,6 +115,16 @@ module ActionDispatch
         assert_equal "http://example.com/foo", url_helpers.foo_url(only_path: false)
       end
 
+      test "only_path: false with *_url and callable global :host option" do
+        @set.default_url_options = -> { { host: "example.com" } }
+
+        draw do
+          get "foo", to: SimpleApp.new("foo#index")
+        end
+
+        assert_equal "http://example.com/foo", url_helpers.foo_url(only_path: false)
+      end
+
       test "explicit keys win over implicit keys" do
         draw do
           resources :foo do
