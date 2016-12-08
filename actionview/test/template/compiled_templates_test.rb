@@ -14,6 +14,10 @@ class CompiledTemplatesTest < ActiveSupport::TestCase
       render(file: "test/render_file_with_ruby_keyword_locals", locals: { class: "foo" })
   end
 
+  def test_template_with_block_variable
+    assert_equal "foo", render(file: "test/test_template_with_block_variable", locals: { block: "foo" })
+  end
+
   def test_template_with_invalid_identifier_locals
     locals = {
       foo: "bar",
