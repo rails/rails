@@ -1,3 +1,10 @@
+*   Restore support for locals named `_`, `arg`, `args`, and `block`.
+
+    Fixes #27302.
+
+    *Toshimaru*
+
+
 ## Rails 5.0.1.rc1 (December 01, 2016) ##
 
 *   Fix support to `ActionController::Parameters` in `button_to`.
