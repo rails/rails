@@ -59,6 +59,7 @@ module ActiveRecord
     Float = ActiveModel::Type::Float
     Integer = ActiveModel::Type::Integer
     String = ActiveModel::Type::String
+    Value = ActiveModel::Type::Value
 
     register(:big_integer, Type::BigInteger, override: false)
     register(:binary, Type::Binary, override: false)
