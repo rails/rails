@@ -495,10 +495,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_generator_for_yarn_skipped
-    run_generator([destination_root])
+    run_generator([destination_root, "--skip-yarn"])
     assert_no_file "vendor/package.json"
 
-    assert_file "config/environments/production.rb" do |content|
+    assert_file "config/initializers/assets.rb" do |content|
       assert_no_match(/node_modules/, content)
     end
   end
@@ -741,7 +741,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       test/helpers
       test/integration
       tmp
-      vendor/assets/stylesheets
     )
     folders_with_keep.each do |folder|
       assert_file("#{folder}/.keep")
