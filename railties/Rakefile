@@ -18,6 +18,7 @@ namespace :test do
         "lib",
         "#{File.dirname(__FILE__)}/../activesupport/lib",
         "#{File.dirname(__FILE__)}/../actionpack/lib",
+        "#{File.dirname(__FILE__)}/../actionview/lib",
         "#{File.dirname(__FILE__)}/../activemodel/lib"
       ]
       ruby "-w", "-I#{dash_i.join ':'}", file
