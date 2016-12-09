@@ -181,7 +181,11 @@ module ActiveRecord
       _raise_readonly_record_error if readonly?
       destroy_associations
       self.class.connection.add_transaction_record(self)
-      destroy_row if persisted?
+      @_trigger_destroy_callback = if persisted?
+        destroy_row > 0
+      else
+        true
+      end
       @destroyed = true
       freeze
     end
@@ -519,6 +523,7 @@ module ActiveRecord
           raise ActiveRecord::StaleObjectError.new(self, "touch")
         end
 
+        @_trigger_update_callback = result
         result
       else
         true
@@ -550,10 +555,13 @@ module ActiveRecord
     def _update_record(attribute_names = self.attribute_names)
       attributes_values = arel_attributes_with_values_for_update(attribute_names)
       if attributes_values.empty?
-        0
+        rows_affected = 0
+        @_trigger_update_callback = true
       else
-        self.class.unscoped._update_record attributes_values, id, id_in_database
+        rows_affected = self.class.unscoped._update_record attributes_values, id, id_in_database
+        @_trigger_update_callback = rows_affected > 0
       end
+      rows_affected
     end
 
     # Creates a record with values matching those of the instance attributes

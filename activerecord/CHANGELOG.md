@@ -1,3 +1,11 @@
+*   Emulate db trigger behaviour for after_commit :destroy, :update
+
+    Race conditions can occur when an ActiveRecord is destroyed
+    twice or destroyed and updated. The callbacks should only be
+    triggered once, similar to a SQL database trigger.
+
+    *Stefan Budeanu*
+
 *   Moved DecimalWithoutScale, Text, and UnsignedInteger from Active Model to Active Record
 
     *Iain Beeston*
