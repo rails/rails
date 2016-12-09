@@ -1,4 +1,6 @@
 require "cases/helper"
+require "active_support/core_ext/string/strip"
+require "yaml"
 
 class ErrorsTest < ActiveModel::TestCase
   class Person
