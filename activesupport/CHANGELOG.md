@@ -1,5 +1,10 @@
 ## Rails 6.0.0.alpha (Unreleased) ##
 
+*   `String#truncate_bytes` to truncate a string to a maximum bytesize without
+    breaking multibyte characters or grapheme clusters like 👩‍👩‍👦‍👦.
+
+    *Jeremy Daer*
+
 *   `String#strip_heredoc` preserves frozenness.
 
         "foo".freeze.strip_heredoc.frozen?  # => true
