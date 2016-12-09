@@ -597,7 +597,7 @@ module ActionDispatch
             options.delete(app) if app
           end
 
-          raise ArgumentError, "A rack application must be specified" unless app.respond_to?(:call)
+          raise_if_not_rack_app(app)
           raise ArgumentError, <<-MSG.strip_heredoc unless path
             Must be called with mount point
 
@@ -1847,7 +1847,15 @@ module ActionDispatch
               decomposed_match(action, controller, route_options, option_path, to, via, formatted, anchor, options_constraints)
             end
 
+            raise_if_not_rack_app(to)
+
             self
+          end
+
+          def raise_if_not_rack_app(to)
+            if to && !to.is_a?(String) && !to.respond_to?(:action) && !to.respond_to?(:call)
+              raise ArgumentError, "A Rack application (responds to the #call method) must be specified"
+            end
           end
 
           def get_to_from_path(path, to, action)
@@ -1866,6 +1874,8 @@ module ActionDispatch
           end
 
           def decomposed_match(path, controller, options, _path, to, via, formatted, anchor, options_constraints)
+            raise_if_not_rack_app(to)
+
             if on = options.delete(:on)
               send(on) { decomposed_match(path, controller, options, _path, to, via, formatted, anchor, options_constraints) }
             else

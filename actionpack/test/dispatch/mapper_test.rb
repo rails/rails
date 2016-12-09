@@ -189,6 +189,12 @@ module ActionDispatch
         assert_raises ArgumentError do
           mapper.mount as: "exciting"
         end
+
+        assert_raises ArgumentError do
+          mapper.match 10, to: Object.new, via: [:all]
+          mapper.get 10, to: Object.new
+          mapper.post 10, to: Object.new
+        end
       end
 
       def test_scope_does_not_destructively_mutate_default_options
