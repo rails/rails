@@ -105,6 +105,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
       %w(app/assets
          app/helpers
          app/views/layouts/application.html.erb
+         bin/yarn
          config/initializers/assets.rb
          config/initializers/cookies_serializer.rb
          lib/assets
@@ -115,6 +116,8 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
          public/500.html
          public/apple-touch-icon-precomposed.png
          public/apple-touch-icon.png
-         public/favicon.ico)
+         public/favicon.icon
+         vendor/package.json
+      )
     end
 end

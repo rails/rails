@@ -186,9 +186,11 @@ module Rails
           raise Error, "Invalid value for --database option. Supported for preconfiguration are: #{DATABASES.join(", ")}."
         end
 
-        # Force sprockets to be skipped when generating API only apps.
+        # Force sprockets and yarn to be skipped when generating API only apps.
         # Can't modify options hash as it's frozen by default.
-        self.options = options.merge(skip_sprockets: true, skip_javascript: true).freeze if options[:api]
+        if options[:api]
+          self.options = options.merge(skip_sprockets: true, skip_javascript: true, skip_yarn: true).freeze
+        end
       end
 
       public_task :set_default_accessors!
@@ -344,6 +346,10 @@ module Rails
         unless options[:api]
           remove_file "config/initializers/cors.rb"
         end
+      end
+
+      def delete_bin_yarn_if_api_option
+        remove_file "bin/yarn" if options[:api]
       end
 
       def finish_template
