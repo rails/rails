@@ -33,6 +33,9 @@ module Rails
         class_option :javascript,         type: :string, aliases: "-j",
                                           desc: "Preconfigure for selected JavaScript library"
 
+        class_option :webpack,            type: :boolean, default: false,
+                                          desc: "Preconfigure for app-like JavaScript with Webpack"
+
         class_option :skip_yarn,          type: :boolean, default: false,
                                           desc: "Don't use Yarn for managing JavaScript dependencies"
 
@@ -128,6 +131,7 @@ module Rails
          database_gemfile_entry,
          webserver_gemfile_entry,
          assets_gemfile_entry,
+         webpacker_gemfile_entry,
          javascript_gemfile_entry,
          jbuilder_gemfile_entry,
          psych_gemfile_entry,
@@ -315,6 +319,13 @@ module Rails
         gems
       end
 
+      def webpacker_gemfile_entry
+        if options[:webpack]
+          comment = "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
+          GemfileEntry.new "webpacker", "~> 0.1", comment
+        end
+      end
+
       def jbuilder_gemfile_entry
         comment = "Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder"
         GemfileEntry.new "jbuilder", "~> 2.5", comment, {}, options[:api]
@@ -412,6 +423,10 @@ module Rails
 
       def run_bundle
         bundle_command("install") if bundle_install?
+      end
+
+      def run_webpack
+        rails_command "webpacker:install"
       end
 
       def generate_spring_binstubs
