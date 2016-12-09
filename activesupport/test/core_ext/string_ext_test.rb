@@ -285,6 +285,68 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(15, omission: "[...]", separator: /\s/)
   end
 
+  def test_truncate_bytes
+    assert_equal "👍👍👍👍", "👍👍👍👍".truncate_bytes(16)
+    assert_equal "👍👍👍👍", "👍👍👍👍".truncate_bytes(16, omission: nil)
+    assert_equal "👍👍👍👍", "👍👍👍👍".truncate_bytes(16, omission: " ")
+    assert_equal "👍👍👍👍", "👍👍👍👍".truncate_bytes(16, omission: "🖖")
+
+    assert_equal "👍👍👍…", "👍👍👍👍".truncate_bytes(15)
+    assert_equal "👍👍👍", "👍👍👍👍".truncate_bytes(15, omission: nil)
+    assert_equal "👍👍👍 ", "👍👍👍👍".truncate_bytes(15, omission: " ")
+    assert_equal "👍👍🖖", "👍👍👍👍".truncate_bytes(15, omission: "🖖")
+
+    assert_equal "…", "👍👍👍👍".truncate_bytes(5)
+    assert_equal "👍", "👍👍👍👍".truncate_bytes(5, omission: nil)
+    assert_equal "👍 ", "👍👍👍👍".truncate_bytes(5, omission: " ")
+    assert_equal "🖖", "👍👍👍👍".truncate_bytes(5, omission: "🖖")
+
+    assert_equal "…", "👍👍👍👍".truncate_bytes(4)
+    assert_equal "👍", "👍👍👍👍".truncate_bytes(4, omission: nil)
+    assert_equal " ", "👍👍👍👍".truncate_bytes(4, omission: " ")
+    assert_equal "🖖", "👍👍👍👍".truncate_bytes(4, omission: "🖖")
+
+    assert_raise ArgumentError do
+      "👍👍👍👍".truncate_bytes(3, omission: "🖖")
+    end
+  end
+
+  def test_truncate_bytes_preserves_codepoints
+    assert_equal "👍👍👍👍", "👍👍👍👍".truncate_bytes(16)
+    assert_equal "👍👍👍👍", "👍👍👍👍".truncate_bytes(16, omission: nil)
+    assert_equal "👍👍👍👍", "👍👍👍👍".truncate_bytes(16, omission: " ")
+    assert_equal "👍👍👍👍", "👍👍👍👍".truncate_bytes(16, omission: "🖖")
+
+    assert_equal "👍👍👍…", "👍👍👍👍".truncate_bytes(15)
+    assert_equal "👍👍👍", "👍👍👍👍".truncate_bytes(15, omission: nil)
+    assert_equal "👍👍👍 ", "👍👍👍👍".truncate_bytes(15, omission: " ")
+    assert_equal "👍👍🖖", "👍👍👍👍".truncate_bytes(15, omission: "🖖")
+
+    assert_equal "…", "👍👍👍👍".truncate_bytes(5)
+    assert_equal "👍", "👍👍👍👍".truncate_bytes(5, omission: nil)
+    assert_equal "👍 ", "👍👍👍👍".truncate_bytes(5, omission: " ")
+    assert_equal "🖖", "👍👍👍👍".truncate_bytes(5, omission: "🖖")
+
+    assert_equal "…", "👍👍👍👍".truncate_bytes(4)
+    assert_equal "👍", "👍👍👍👍".truncate_bytes(4, omission: nil)
+    assert_equal " ", "👍👍👍👍".truncate_bytes(4, omission: " ")
+    assert_equal "🖖", "👍👍👍👍".truncate_bytes(4, omission: "🖖")
+
+    assert_raise ArgumentError do
+      "👍👍👍👍".truncate_bytes(3, omission: "🖖")
+    end
+  end
+
+  def test_truncates_bytes_preserves_grapheme_clusters
+    assert_equal "a ", "a ❤️ b".truncate_bytes(2, omission: nil)
+    assert_equal "a ", "a ❤️ b".truncate_bytes(3, omission: nil)
+    assert_equal "a ", "a ❤️ b".truncate_bytes(7, omission: nil)
+    assert_equal "a ❤️", "a ❤️ b".truncate_bytes(8, omission: nil)
+
+    assert_equal "a ", "a 👩‍❤️‍👩".truncate_bytes(13, omission: nil)
+    assert_equal "", "👩‍❤️‍👩".truncate_bytes(13, omission: nil)
+  end
+
   def test_truncate_words
     assert_equal "Hello Big World!", "Hello Big World!".truncate_words(3)
     assert_equal "Hello Big...", "Hello Big World!".truncate_words(2)
