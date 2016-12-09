@@ -319,6 +319,13 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal "Still another topic: part 4", topic.title
   end
 
+  test "write_attribute can write aliased attributes as well" do
+    topic = Topic.new(title: "Don't change the topic")
+    topic.write_attribute :heading, "New topic"
+
+    assert_equal "New topic", topic.title
+  end
+
   test "read_attribute" do
     topic = Topic.new
     topic.title = "Don't change the topic"
@@ -327,6 +334,16 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
     assert_equal "Don't change the topic", topic.read_attribute(:title)
     assert_equal "Don't change the topic", topic[:title]
+  end
+
+  test "read_attribute can read aliased attributes as well" do
+    topic = Topic.new(title: "Don't change the topic")
+
+    assert_equal "Don't change the topic", topic.read_attribute("heading")
+    assert_equal "Don't change the topic", topic["heading"]
+
+    assert_equal "Don't change the topic", topic.read_attribute(:heading)
+    assert_equal "Don't change the topic", topic[:heading]
   end
 
   test "read_attribute raises ActiveModel::MissingAttributeError when the attribute does not exist" do

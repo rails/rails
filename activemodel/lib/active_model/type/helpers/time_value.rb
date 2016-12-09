@@ -34,7 +34,7 @@ module ActiveModel
           return value unless precision && value.respond_to?(:usec)
           number_of_insignificant_digits = 6 - precision
           round_power = 10**number_of_insignificant_digits
-          value.change(usec: value.usec / round_power * round_power)
+          value.change(usec: value.usec - value.usec % round_power)
         end
 
         def type_cast_for_schema(value)

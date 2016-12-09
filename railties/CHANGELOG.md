@@ -1,5 +1,4 @@
-*   Add Yarn support in new apps using --yarn option. This adds a yarn binstub, vendor/package.json,
-    and the settings needed to get npm modules integrated in new apps.
+*   Add Yarn support in new apps with a yarn binstub and vendor/package.json. Skippable via --skip-yarn option.
 
     *Liceth Ovalles*, *Guillermo Iguaran*, *DHH*
 

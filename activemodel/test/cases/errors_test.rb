@@ -365,4 +365,24 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal errors.messages, serialized.messages
     assert_equal errors.details, serialized.details
   end
+
+  test "errors are backward compatible with the Rails 4.2 format" do
+    yaml = <<-CODE.strip_heredoc
+    --- !ruby/object:ActiveModel::Errors
+    base: &1 !ruby/object:ErrorsTest::Person
+      errors: !ruby/object:ActiveModel::Errors
+        base: *1
+        messages: {}
+    messages: {}
+    CODE
+
+    errors = YAML.load(yaml)
+    errors.add(:name, :invalid)
+    assert_equal({ name: ["is invalid"] }, errors.messages)
+    assert_equal({ name: [{ error: :invalid }] }, errors.details)
+
+    errors.clear
+    assert_equal({}, errors.messages)
+    assert_equal({}, errors.details)
+  end
 end
