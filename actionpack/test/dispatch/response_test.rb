@@ -110,6 +110,11 @@ class ResponseTest < ActiveSupport::TestCase
     assert_equal "application/aaron", @response.content_type
   end
 
+  def test_empty_content_type_returns_nil
+    @response.headers['Content-Type'] = ""
+    assert_equal nil, @response.content_type
+  end
+
   test "simple output" do
     @response.body = "Hello, World!"
 
