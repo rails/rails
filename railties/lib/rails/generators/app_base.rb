@@ -322,7 +322,7 @@ module Rails
       def webpacker_gemfile_entry
         if options[:webpack]
           comment = "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
-          GemfileEntry.new "webpacker", "~> 0.1", comment
+          GemfileEntry.github "webpacker", "rails/webpacker", nil, comment
         end
       end
 
