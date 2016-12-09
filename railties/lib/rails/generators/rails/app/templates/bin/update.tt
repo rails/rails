@@ -16,10 +16,6 @@ chdir APP_ROOT do
   puts '== Installing dependencies =='
   system! 'gem install bundler --conservative'
   system('bundle check') || system!('bundle install')
-<% unless options[:skip_yarn] %>
-  system('bin/yarn') # Ignore failure from yarn not being installed
-
-<% end %>
 <% unless options.skip_active_record -%>
   puts "\n== Updating database =="
   system! 'bin/rails db:migrate'
