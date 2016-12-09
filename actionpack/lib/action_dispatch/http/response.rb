@@ -408,7 +408,7 @@ module ActionDispatch # :nodoc:
     def parse_content_type(content_type)
       if content_type
         type, charset = content_type.split(/;\s*charset=/)
-        type = nil if type.empty?
+        type = nil if type && type.empty?
         ContentTypeHeader.new(type, charset)
       else
         NullContentTypeHeader
