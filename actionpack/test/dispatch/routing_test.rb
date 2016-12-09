@@ -1661,14 +1661,24 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   def test_namespaced_roots
     draw do
       namespace :account do
-        root :to => "account#index"
+        root "account#index"
+      end
+
+      root "account#index"
+
+      namespace :bar do
+        root "account#index"
       end
     end
 
     assert_equal '/account', account_root_path
+    assert_equal "/", root_path
+    assert_equal "/bar", bar_root_path
+
     get '/account'
     assert_equal 'account/account#index', @response.body
   end
+
 
   def test_optional_scoped_root
     draw do
@@ -3720,24 +3730,6 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     get "http://admin.example.com/"
     assert_equal "admin/pages#index", @response.body
-  end
-
-  def test_namespaced_roots
-    draw do
-      namespace :foo do
-        root "test#index"
-      end
-
-      root "test#index"
-
-      namespace :bar do
-        root "test#index"
-      end
-    end
-
-    assert_equal "/foo", foo_root_path
-    assert_equal "/", root_path
-    assert_equal "/bar", bar_root_path
   end
 
 private
