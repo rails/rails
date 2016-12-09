@@ -1,3 +1,5 @@
+## Rails 5.0.1.rc2 (December 10, 2016) ##
+
 *   Restore support for locals named `_`, `arg`, `args`, and `block`.
 
     Fixes #27302.

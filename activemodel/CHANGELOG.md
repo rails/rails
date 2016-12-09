@@ -1,3 +1,8 @@
+## Rails 5.0.1.rc2 (December 10, 2016) ##
+
+*   No changes.
+
+
 ## Rails 5.0.1.rc1 (December 01, 2016) ##
 
 *   Fix `Type::Date#serialize` to cast a value to a date object properly.

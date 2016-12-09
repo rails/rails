@@ -1,3 +1,5 @@
+## Rails 5.0.1.rc2 (December 10, 2016) ##
+
 *   Move `cookies`, `flash`, and `session` methods back to
     `ActionDispatch::Integration::Session`.
 

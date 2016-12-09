@@ -1,3 +1,5 @@
+## Rails 5.0.1.rc2 (December 10, 2016) ##
+
 *   Correct resolution of associated class in `has_many :through`
     associations' `*_ids` setters.
 
