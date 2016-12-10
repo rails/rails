@@ -1079,7 +1079,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     end
 
     comment = model.new
-    comment.post_id = 10_000_000_000
+    comment.post_id = 9223372036854775808 # out of range in the bigint
 
     assert_nil comment.post
     assert_not comment.valid?
