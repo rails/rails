@@ -58,6 +58,8 @@ module ActiveRecord
           sc.execute(binds, klass, conn) do |record|
             set_inverse_instance record
           end.first
+        rescue RangeError
+          nil
         end
 
         def replace(record)
