@@ -320,10 +320,10 @@ module Rails
       end
 
       def webpacker_gemfile_entry
-        if options[:webpack]
-          comment = "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
-          GemfileEntry.github "webpacker", "rails/webpacker", nil, comment
-        end
+        return [] unless options[:webpack]
+
+        comment = "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
+        GemfileEntry.github "webpacker", "rails/webpacker", nil, comment
       end
 
       def jbuilder_gemfile_entry
