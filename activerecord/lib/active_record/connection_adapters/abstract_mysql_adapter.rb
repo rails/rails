@@ -738,6 +738,7 @@ module ActiveRecord
         ER_DO_NOT_HAVE_DEFAULT  = 1364
         ER_NO_REFERENCED_ROW_2  = 1452
         ER_DATA_TOO_LONG        = 1406
+        ER_OUT_OF_RANGE         = 1264
         ER_LOCK_DEADLOCK        = 1213
         ER_CANNOT_ADD_FOREIGN   = 1215
         ER_CANNOT_CREATE_TABLE  = 1005
@@ -758,6 +759,8 @@ module ActiveRecord
             end
           when ER_DATA_TOO_LONG
             ValueTooLong.new(message)
+          when ER_OUT_OF_RANGE
+            RangeError.new(message)
           when ER_NOT_NULL_VIOLATION, ER_DO_NOT_HAVE_DEFAULT
             NotNullViolation.new(message)
           when ER_LOCK_DEADLOCK

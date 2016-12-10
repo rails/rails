@@ -159,6 +159,10 @@ module ActiveRecord
   class ValueTooLong < StatementInvalid
   end
 
+  # Raised when values that executed are out of range.
+  class RangeError < StatementInvalid
+  end
+
   # Raised when number of bind variables in statement given to +:condition+ key
   # (for example, when using {ActiveRecord::Base.find}[rdoc-ref:FinderMethods#find] method)
   # does not match number of expected values supplied.
