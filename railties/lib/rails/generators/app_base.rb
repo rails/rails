@@ -426,7 +426,7 @@ module Rails
       end
 
       def run_webpack
-        rails_command "webpacker:install"
+        rails_command "webpacker:install" if options[:webpack]
       end
 
       def generate_spring_binstubs
