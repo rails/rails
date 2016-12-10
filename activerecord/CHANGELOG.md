@@ -1,3 +1,7 @@
+*   Raise `ActiveRecord::RangeError` when values that executed are out of range.
+
+    *Ryuta Kamizono*
+
 *   Raise `ActiveRecord::NotNullViolation` when a record cannot be inserted
     or updated because it would violate a not null constraint.
 
