@@ -40,8 +40,12 @@ module ActionDispatch
       encoder(mime ? mime.ref : nil).response_parser
     end
 
+    class << self
+      attr_accessor :fallback_encoder
+    end
+
     def self.encoder(name)
-      @encoders[name] || @encoders[:identity]
+      @encoders[name] || @encoders[fallback_encoder || :identity]
     end
 
     def self.register_encoder(mime_name, param_encoder: nil, response_parser: nil)

@@ -636,6 +636,8 @@ module ActionDispatch
         def register_encoder(*args)
           RequestEncoder.register_encoder(*args)
         end
+
+        delegate :fallback_encoder, :fallback_encoder=, to: RequestEncoder
       end
 
       def app

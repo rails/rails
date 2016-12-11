@@ -941,6 +941,13 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
     def foos_wibble
       render plain: "ok"
     end
+
+    def foos_content_type
+      respond_to do |format|
+        format.json { render json: { "ok" => "ok" } }
+        format.any { render plain: "ok" }
+      end
+    end
   end
 
   def test_standard_json_encoding_works
@@ -1009,6 +1016,30 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
     end
   ensure
     Mime::Type.unregister :wibble
+  end
+
+  def test_fallback_encoder
+    with_routing do |routes|
+      routes.draw do
+        ActiveSupport::Deprecation.silence do
+          post ":action" => FooController
+        end
+      end
+
+      post "/foos_content_type", params: { foo: "fighters" }
+      assert_response :success
+      assert_equal("ok", response.parsed_body)
+      assert_equal("application/x-www-form-urlencoded", request.content_type)
+
+      ActionDispatch::IntegrationTest.fallback_encoder = :json
+
+      post "/foos_content_type", params: { foo: "fighters" }
+      assert_response :success
+      assert_equal({ "ok" => "ok" }, response.parsed_body)
+      assert_equal("application/json", request.content_type)
+
+      ActionDispatch::IntegrationTest.fallback_encoder = nil
+    end
   end
 
   def test_parsed_body_without_as_option
