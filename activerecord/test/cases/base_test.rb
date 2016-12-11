@@ -4,6 +4,7 @@ require "models/author"
 require "models/topic"
 require "models/reply"
 require "models/category"
+require "models/categorization"
 require "models/company"
 require "models/customer"
 require "models/developer"
@@ -33,8 +34,6 @@ class SecondAbstractClass < FirstAbstractClass
   self.abstract_class = true
 end
 class Photo < SecondAbstractClass; end
-class Category < ActiveRecord::Base; end
-class Categorization < ActiveRecord::Base; end
 class Smarts < ActiveRecord::Base; end
 class CreditCard < ActiveRecord::Base
   class PinNumber < ActiveRecord::Base
@@ -45,8 +44,6 @@ class CreditCard < ActiveRecord::Base
   class Brand < Category; end
 end
 class MasterCreditCard < ActiveRecord::Base; end
-class Post < ActiveRecord::Base; end
-class Computer < ActiveRecord::Base; end
 class NonExistentTable < ActiveRecord::Base; end
 class TestOracleDefault < ActiveRecord::Base; end
 
@@ -55,12 +52,6 @@ class ReadonlyTitlePost < Post
 end
 
 class Weird < ActiveRecord::Base; end
-
-class Boolean < ActiveRecord::Base
-  def has_fun
-    super
-  end
-end
 
 class LintTest < ActiveRecord::TestCase
   include ActiveModel::Lint::Tests
