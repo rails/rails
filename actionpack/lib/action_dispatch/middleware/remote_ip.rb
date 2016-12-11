@@ -112,8 +112,15 @@ module ActionDispatch
         remote_addr = ips_from(@req.remote_addr).last
 
         # Could be a CSV list and/or repeated headers that were concatenated.
-        client_ips    = ips_from(@req.client_ip).reverse
-        forwarded_ips = ips_from(@req.x_forwarded_for).reverse
+        client_ips     = ips_from(@req.client_ip)
+        forwarded_ips  = ips_from(@req.x_forwarded_for)
+        real_ips       = ips_from(@req.x_real_ip)
+        cluster_ips    = ips_from(@req.x_cluster_client_ip)
+        other_forwarded_ips = [
+            ips_from(@req.x_forwarded),
+            ips_from(@req.forwarded_for),
+            ips_from(@req.forwarded)
+        ]
 
         # +Client-Ip+ and +X-Forwarded-For+ should not, generally, both be set.
         # If they are both set, it means that either:
@@ -136,12 +143,17 @@ module ActionDispatch
             "HTTP_X_FORWARDED_FOR=#{@req.x_forwarded_for.inspect}"
         end
 
-        # We assume these things about the IP headers:
+        # The following is the order we use to determine the user ip from the request:
         #
-        #   - X-Forwarded-For will be a list of IPs, one per proxy, or blank
-        #   - Client-Ip is propagated from the outermost proxy, or is blank
+        #   - X-Client-Ip is propagated from the outermost proxy, or is blank
+        #   - X-Forwarded-For will be a list of IPs, one per proxy, or blank,
+        #     it return addresses in the format: "client IP, proxy 1 IP, proxy 2 IP",
+        #     so we take them in straight order.
+        #   - X-Real-IP (nginx proxy/FastCGI)
+        #   - X-Cluster-Client-IP (Rackspace LB, Riverbed Stingray)
+        #   - Permuations of X-Forwarded-For such as: X-Forwarded, Forwarded-For and Forwarded
         #   - REMOTE_ADDR will be the IP that made the request to Rack
-        ips = [forwarded_ips, client_ips, remote_addr].flatten.compact
+        ips = [client_ips, forwarded_ips, real_ips, cluster_ips, other_forwarded_ips, remote_addr].flatten.compact
 
         # If every single IP option is in the trusted list, just return REMOTE_ADDR
         filter_proxies(ips).first || remote_addr
