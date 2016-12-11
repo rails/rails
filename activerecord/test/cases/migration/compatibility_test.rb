@@ -138,6 +138,7 @@ class LegacyPrimaryKeyTest < ActiveRecord::TestCase
     @migration = Class.new(ActiveRecord::Migration[5.0]) {
       def change
         create_table :legacy_primary_keys do |t|
+          t.references :legacy_ref
         end
       end
     }.new
@@ -147,6 +148,9 @@ class LegacyPrimaryKeyTest < ActiveRecord::TestCase
     legacy_pk = LegacyPrimaryKey.columns_hash["id"]
     assert_not legacy_pk.bigint?
     assert_not legacy_pk.null
+
+    legacy_ref = LegacyPrimaryKey.columns_hash["legacy_ref_id"]
+    assert_not legacy_ref.bigint?
 
     record1 = LegacyPrimaryKey.create!
     assert_not_nil record1.id

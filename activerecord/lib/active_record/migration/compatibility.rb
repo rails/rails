@@ -14,6 +14,13 @@ module ActiveRecord
       V5_1 = Current
 
       class V5_0 < V5_1
+        module TableDefinition
+          def references(*args, **options)
+            super(*args, type: :integer, **options)
+          end
+          alias :belongs_to :references
+        end
+
         def create_table(table_name, options = {})
           if adapter_name == "PostgreSQL"
             if options[:id] == :uuid && !options.key?(:default)
@@ -34,8 +41,35 @@ module ActiveRecord
             options[:id] = :integer
           end
 
-          super
+          if block_given?
+            super(table_name, options) do |t|
+              class << t
+                prepend TableDefinition
+              end
+              yield t
+            end
+          else
+            super
+          end
         end
+
+        def change_table(table_name, options = {})
+          if block_given?
+            super(table_name, options) do |t|
+              class << t
+                prepend TableDefinition
+              end
+              yield t
+            end
+          else
+            super
+          end
+        end
+
+        def add_reference(table_name, ref_name, **options)
+          super(table_name, ref_name, type: :integer, **options)
+        end
+        alias :add_belongs_to :add_reference
       end
 
       class V4_2 < V5_0

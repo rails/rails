@@ -247,7 +247,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
             create_table("cities") { |t| }
 
             create_table("houses") do |t|
-              t.column :city_id, :bigint
+              t.references :city
             end
             add_foreign_key :houses, :cities, column: "city_id"
 
@@ -279,7 +279,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
             create_table(:schools)
 
             create_table(:classes) do |t|
-              t.column :school_id, :bigint
+              t.references :school
             end
             add_foreign_key :classes, :schools
           end

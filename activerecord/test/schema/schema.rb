@@ -54,8 +54,8 @@ ActiveRecord::Schema.define do
 
   create_table :authors, force: true do |t|
     t.string :name, null: false
-    t.bigint :author_address_id
-    t.integer :author_address_extra_id
+    t.references :author_address
+    t.references :author_address_extra
     t.string :organization_id
     t.string :owned_essay_id
   end
@@ -88,7 +88,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :books, force: true do |t|
-    t.integer :author_id
+    t.references :author
     t.string :format
     t.column :name, :string
     t.column :status, :integer, default: 0
@@ -306,7 +306,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :engines, force: true do |t|
-    t.bigint :car_id
+    t.references :car, index: false
   end
 
   create_table :entrants, force: true do |t|
@@ -664,8 +664,8 @@ ActiveRecord::Schema.define do
   end
 
   create_table :posts, force: true do |t|
-    t.integer :author_id
-    t.string  :title, null: false
+    t.references :author
+    t.string :title, null: false
     # use VARCHAR2(4000) instead of CLOB datatype as CLOB data type has many limitations in
     # Oracle SELECT WHERE clause which causes many unit test failures
     if current_adapter?(:OracleAdapter)

@@ -42,8 +42,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys_in_create?
 
         test "options hash can be passed" do
           @connection.change_table :testing_parents do |t|
-            t.bigint :other_id
-            t.index :other_id, unique: true
+            t.references :other, index: { unique: true }
           end
           @connection.create_table :testings do |t|
             t.references :testing_parent, foreign_key: { primary_key: :other_id }
@@ -110,8 +109,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
 
         test "foreign keys accept options when changing the table" do
           @connection.change_table :testing_parents do |t|
-            t.bigint :other_id
-            t.index :other_id, unique: true
+            t.references :other, index: { unique: true }
           end
           @connection.create_table :testings
           @connection.change_table :testings do |t|
@@ -195,18 +193,15 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
 
         test "multiple foreign keys can be added to the same table" do
           @connection.create_table :testings do |t|
-            t.bigint :col_1
-            t.bigint :col_2
-
-            t.foreign_key :testing_parents, column: :col_1
-            t.foreign_key :testing_parents, column: :col_2
+            t.references :parent1, foreign_key: { to_table: :testing_parents }
+            t.references :parent2, foreign_key: { to_table: :testing_parents }
           end
 
-          fks = @connection.foreign_keys("testings")
+          fks = @connection.foreign_keys("testings").sort_by(&:column)
 
           fk_definitions = fks.map { |fk| [fk.from_table, fk.to_table, fk.column] }
-          assert_equal([["testings", "testing_parents", "col_1"],
-                        ["testings", "testing_parents", "col_2"]], fk_definitions)
+          assert_equal([["testings", "testing_parents", "parent1_id"],
+                        ["testings", "testing_parents", "parent2_id"]], fk_definitions)
         end
       end
     end
