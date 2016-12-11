@@ -85,5 +85,11 @@ module ActiveRecord
 
       assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\Z/, developers.cache_key)
     end
+  
+    test "cache_key with a relation with limit" do
+      developers = Developer.limit(2)
+
+      assert_match(/\Adevelopers\/query-(\h+)-2-(\d+)\Z/, developers.cache_key)
+    end
   end
 end
