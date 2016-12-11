@@ -983,7 +983,6 @@ class FinderTest < ActiveRecord::TestCase
 
     assert_equal devs[2], Developer.offset(2).first
     assert_equal devs[-3], Developer.offset(2).last
-    assert_equal devs[-3], Developer.offset(2).last
     assert_equal devs[-3], Developer.offset(2).order("id DESC").first
   end
 
