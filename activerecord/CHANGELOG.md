@@ -1,3 +1,10 @@
+*   Support index length and order options using both string and symbol
+    column names.
+
+    Fixes #27243.
+
+    *Ryuta Kamizono*
+
 *   Raise `ActiveRecord::RangeError` when values that executed are out of range.
 
     *Ryuta Kamizono*
