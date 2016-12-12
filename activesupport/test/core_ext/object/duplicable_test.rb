@@ -5,8 +5,7 @@ require "active_support/core_ext/numeric/time"
 
 class DuplicableTest < ActiveSupport::TestCase
   RAISE_DUP = [method(:puts)]
-  ALLOW_DUP = ["1", Object.new, /foo/, [], {}, Time.now, Class.new, Module.new]
-  ALLOW_DUP << BigDecimal.new("4.56")
+  ALLOW_DUP = ["1", Object.new, /foo/, [], {}, Time.now, Class.new, Module.new, BigDecimal.new("4.56")]
 
   def test_duplicable
     rubinius_skip "* Method#dup is allowed at the moment on Rubinius\n" \
