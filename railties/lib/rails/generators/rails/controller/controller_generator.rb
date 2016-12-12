@@ -54,7 +54,7 @@ module Rails
           end.join
 
           # Combine the 3 parts to generate complete route entry
-          namespace_ladder + route + end_ladder
+          "#{namespace_ladder}#{route}#{end_ladder}"
         end
     end
   end
