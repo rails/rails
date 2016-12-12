@@ -33,7 +33,7 @@ module Rails
         class_option :javascript,         type: :string, aliases: "-j",
                                           desc: "Preconfigure for selected JavaScript library"
 
-        class_option :webpack,            type: :string, default: "base",
+        class_option :webpack,            type: :string, default: nil,
                                           desc: "Preconfigure for app-like JavaScript with Webpack"
 
         class_option :skip_yarn,          type: :boolean, default: false,
@@ -428,7 +428,7 @@ module Rails
       def run_webpack
         if !(webpack = options[:webpack]).nil?
           rails_command "webpacker:install"
-          rails_command "webpacker:install:#{webpack}" unless webpack == "base"
+          rails_command "webpacker:install:#{webpack}" unless webpack == "webpack"
         end
       end
 
