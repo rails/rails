@@ -1,4 +1,5 @@
 require "cases/helper"
+require "yaml"
 
 class ErrorsTest < ActiveModel::TestCase
   class Person
