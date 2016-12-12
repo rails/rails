@@ -285,13 +285,13 @@ module ActiveRecord
 
     unless current_adapter?(:PostgreSQLAdapter)
       def test_log_invalid_encoding
-        error = assert_raise ActiveRecord::StatementInvalid do
+        error = assert_raises RuntimeError do
           @connection.send :log, "SELECT 'ы' FROM DUAL" do
             raise "ы".force_encoding(Encoding::ASCII_8BIT)
           end
         end
 
-        assert_not_nil error.cause
+        assert_not_nil error.message
       end
     end
 

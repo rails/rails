@@ -598,7 +598,12 @@ module ActiveRecord
 
         def translate_exception(exception, message)
           # override in derived class
-          ActiveRecord::StatementInvalid.new(message)
+          case exception
+          when RuntimeError
+            exception
+          else
+            ActiveRecord::StatementInvalid.new(message)
+          end
         end
 
         def without_prepared_statement?(binds)
