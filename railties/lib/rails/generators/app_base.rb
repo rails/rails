@@ -33,7 +33,7 @@ module Rails
         class_option :javascript,         type: :string, aliases: "-j",
                                           desc: "Preconfigure for selected JavaScript library"
 
-        class_option :webpack,            type: :boolean, default: false,
+        class_option :webpack,            type: :string, default: "base",
                                           desc: "Preconfigure for app-like JavaScript with Webpack"
 
         class_option :skip_yarn,          type: :boolean, default: false,
@@ -426,7 +426,10 @@ module Rails
       end
 
       def run_webpack
-        rails_command "webpacker:install" if options[:webpack]
+        if !(webpack = options[:webpack]).nil?
+          rails_command "webpacker:install"
+          rails_command "webpacker:install:#{webpack}" unless webpack == "base"
+        end
       end
 
       def generate_spring_binstubs

@@ -1,3 +1,15 @@
+*   Add Webpack support in new apps via the --webpack option, which will delegate to the rails/webpacker gem.
+
+    To generate a new app that has Webpack dependencies configured and binstubs for webpack and webpack-watcher:
+
+      rails new myapp --webpack
+
+    To generate a new app that has Webpack + React configured and an example intalled:
+    
+      rails new myapp --webpack=react
+    
+    *DHH*
+
 *   Add Yarn support in new apps with a yarn binstub and vendor/package.json. Skippable via --skip-yarn option.
 
     *Liceth Ovalles*, *Guillermo Iguaran*, *DHH*
