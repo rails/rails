@@ -16,7 +16,7 @@ module Rails
         unless options[:skip_routes]
           actions.reverse_each do |action|
             # route prepends two spaces onto the front of the string that is passed, this corrects that.
-            route generate_routing_code(action)[2..-1]
+            route generate_routing_code(action)
           end
         end
       end
@@ -40,7 +40,7 @@ module Rails
           #   namespace :bar do
           namespace_ladder = regular_class_path.each_with_index.map do |ns, i|
             indent("  namespace :#{ns} do\n", i * 2)
-          end.join
+          end.join[2..-1]
 
           # Create route
           #     get 'baz/index'
