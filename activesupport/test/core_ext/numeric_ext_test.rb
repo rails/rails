@@ -483,3 +483,148 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_match(/negative\?/, e.message)
   end
 end
+
+class NumericExtRoundTest < ActiveSupport::TestCase
+  def assert_int_equal(expected, result, mesg = nil)
+    assert_kind_of(Integer, result, mesg)
+    assert_equal(expected, result, mesg)
+  end
+
+  def assert_float_equal(expected, result, mesg = nil)
+    assert_kind_of(Float, result, mesg)
+    assert_equal(expected, result, mesg)
+  end
+
+  def test_round
+    # Integer
+    assert_int_equal(11111, 11111.round)
+    assert_int_equal(11111, 11111.round(0))
+
+    assert_float_equal(11111.0, 11111.round(1))
+    assert_float_equal(11111.0, 11111.round(2))
+
+    assert_int_equal(11110, 11111.round(-1))
+    assert_int_equal(11100, 11111.round(-2))
+    assert_int_equal(+200, +249.round(-2))
+    assert_int_equal(+200, +250.round(-2))
+    assert_int_equal(-200, -249.round(-2))
+    assert_int_equal(+200, +249.round(-2, half: :even))
+    assert_int_equal(+200, +250.round(-2, half: :even))
+    assert_int_equal(+300, +349.round(-2, half: :even))
+    assert_int_equal(+400, +350.round(-2, half: :even))
+    assert_int_equal(+200, +249.round(-2, half: :up))
+    assert_int_equal(+300, +250.round(-2, half: :up))
+    assert_int_equal(+300, +349.round(-2, half: :up))
+    assert_int_equal(+400, +350.round(-2, half: :up))
+    assert_int_equal(+200, +249.round(-2, half: :down))
+    assert_int_equal(+200, +250.round(-2, half: :down))
+    assert_int_equal(+300, +349.round(-2, half: :down))
+    assert_int_equal(+300, +350.round(-2, half: :down))
+    assert_int_equal(-200, -250.round(-2))
+    assert_int_equal(-200, -249.round(-2, half: :even))
+    assert_int_equal(-200, -250.round(-2, half: :even))
+    assert_int_equal(-300, -349.round(-2, half: :even))
+    assert_int_equal(-400, -350.round(-2, half: :even))
+    assert_int_equal(-200, -249.round(-2, half: :up))
+    assert_int_equal(-300, -250.round(-2, half: :up))
+    assert_int_equal(-300, -349.round(-2, half: :up))
+    assert_int_equal(-400, -350.round(-2, half: :up))
+    assert_int_equal(-200, -249.round(-2, half: :down))
+    assert_int_equal(-200, -250.round(-2, half: :down))
+    assert_int_equal(-300, -349.round(-2, half: :down))
+    assert_int_equal(-300, -350.round(-2, half: :down))
+    assert_int_equal(+20 * 10**70, (+25 * 10**70).round(-71))
+    assert_int_equal(-20 * 10**70, (-25 * 10**70).round(-71))
+    assert_int_equal(+20 * 10**70, (+25 * 10**70 - 1).round(-71))
+    assert_int_equal(-20 * 10**70, (-25 * 10**70 + 1).round(-71))
+    assert_int_equal(+40 * 10**70, (+35 * 10**70).round(-71))
+    assert_int_equal(-40 * 10**70, (-35 * 10**70).round(-71))
+    assert_int_equal(+30 * 10**70, (+35 * 10**70 - 1).round(-71))
+    assert_int_equal(-30 * 10**70, (-35 * 10**70 + 1).round(-71))
+    assert_int_equal(+20 * 10**70, (+25 * 10**70).round(-71, half: :even))
+    assert_int_equal(-20 * 10**70, (-25 * 10**70).round(-71, half: :even))
+    assert_int_equal(+20 * 10**70, (+25 * 10**70 - 1).round(-71, half: :even))
+    assert_int_equal(-20 * 10**70, (-25 * 10**70 + 1).round(-71, half: :even))
+    assert_int_equal(+40 * 10**70, (+35 * 10**70).round(-71, half: :even))
+    assert_int_equal(-40 * 10**70, (-35 * 10**70).round(-71, half: :even))
+    assert_int_equal(+30 * 10**70, (+35 * 10**70 - 1).round(-71, half: :even))
+    assert_int_equal(-30 * 10**70, (-35 * 10**70 + 1).round(-71, half: :even))
+    assert_int_equal(+30 * 10**70, (+25 * 10**70).round(-71, half: :up))
+    assert_int_equal(-30 * 10**70, (-25 * 10**70).round(-71, half: :up))
+    assert_int_equal(+20 * 10**70, (+25 * 10**70 - 1).round(-71, half: :up))
+    assert_int_equal(-20 * 10**70, (-25 * 10**70 + 1).round(-71, half: :up))
+    assert_int_equal(+40 * 10**70, (+35 * 10**70).round(-71, half: :up))
+    assert_int_equal(-40 * 10**70, (-35 * 10**70).round(-71, half: :up))
+    assert_int_equal(+30 * 10**70, (+35 * 10**70 - 1).round(-71, half: :up))
+    assert_int_equal(-30 * 10**70, (-35 * 10**70 + 1).round(-71, half: :up))
+    assert_int_equal(+20 * 10**70, (+25 * 10**70).round(-71, half: :down))
+    assert_int_equal(-20 * 10**70, (-25 * 10**70).round(-71, half: :down))
+    assert_int_equal(+20 * 10**70, (+25 * 10**70 - 1).round(-71, half: :down))
+    assert_int_equal(-20 * 10**70, (-25 * 10**70 + 1).round(-71, half: :down))
+    assert_int_equal(+30 * 10**70, (+35 * 10**70).round(-71, half: :down))
+    assert_int_equal(-30 * 10**70, (-35 * 10**70).round(-71, half: :down))
+    assert_int_equal(+30 * 10**70, (+35 * 10**70 - 1).round(-71, half: :down))
+    assert_int_equal(-30 * 10**70, (-35 * 10**70 + 1).round(-71, half: :down))
+
+    assert_int_equal(1111_1111_1111_1111_1111_1111_1111_1110, 1111_1111_1111_1111_1111_1111_1111_1111.round(-1))
+    assert_int_equal(-1111_1111_1111_1111_1111_1111_1111_1110, (-1111_1111_1111_1111_1111_1111_1111_1111).round(-1))
+
+    # Float
+    assert_equal(12.0, 12.5.round(half: :even))
+    assert_equal(14.0, 13.5.round(half: :even))
+
+    assert_equal(2.2, 2.15.round(1, half: :even))
+    assert_equal(2.2, 2.25.round(1, half: :even))
+    assert_equal(2.4, 2.35.round(1, half: :even))
+
+    assert_equal(-2.2, -2.15.round(1, half: :even))
+    assert_equal(-2.2, -2.25.round(1, half: :even))
+    assert_equal(-2.4, -2.35.round(1, half: :even))
+
+    assert_equal(7.1364, 7.13645.round(4, half: :even))
+    assert_equal(7.1365, 7.1364501.round(4, half: :even))
+    assert_equal(7.1364, 7.1364499.round(4, half: :even))
+
+    assert_equal(-7.1364, -7.13645.round(4, half: :even))
+    assert_equal(-7.1365, -7.1364501.round(4, half: :even))
+    assert_equal(-7.1364, -7.1364499.round(4, half: :even))
+
+    assert_equal(13.0, 12.5.round(half: :up))
+    assert_equal(14.0, 13.5.round(half: :up))
+
+    assert_equal(2.2, 2.15.round(1, half: :up))
+    assert_equal(2.3, 2.25.round(1, half: :up))
+    assert_equal(2.4, 2.35.round(1, half: :up))
+
+    assert_equal(-2.2, -2.15.round(1, half: :up))
+    assert_equal(-2.3, -2.25.round(1, half: :up))
+    assert_equal(-2.4, -2.35.round(1, half: :up))
+
+    assert_equal(7.1365, 7.13645.round(4, half: :up))
+    assert_equal(7.1365, 7.1364501.round(4, half: :up))
+    assert_equal(7.1364, 7.1364499.round(4, half: :up))
+
+    assert_equal(-7.1365, -7.13645.round(4, half: :up))
+    assert_equal(-7.1365, -7.1364501.round(4, half: :up))
+    assert_equal(-7.1364, -7.1364499.round(4, half: :up))
+
+    assert_equal(12.0, 12.5.round(half: :down))
+    assert_equal(13.0, 13.5.round(half: :down))
+
+    assert_equal(2.1, 2.15.round(1, half: :down))
+    assert_equal(2.2, 2.25.round(1, half: :down))
+    assert_equal(2.3, 2.35.round(1, half: :down))
+
+    assert_equal(-2.1, -2.15.round(1, half: :down))
+    assert_equal(-2.2, -2.25.round(1, half: :down))
+    assert_equal(-2.3, -2.35.round(1, half: :down))
+
+    assert_equal(7.1364, 7.13645.round(4, half: :down))
+    assert_equal(7.1365, 7.1364501.round(4, half: :down))
+    assert_equal(7.1364, 7.1364499.round(4, half: :down))
+
+    assert_equal(-7.1364, -7.13645.round(4, half: :down))
+    assert_equal(-7.1365, -7.1364501.round(4, half: :down))
+    assert_equal(-7.1364, -7.1364499.round(4, half: :down))
+  end
+end
