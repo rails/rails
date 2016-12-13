@@ -1,3 +1,7 @@
+*   Change the schema cache format to use YAML instead of Marshal.
+
+    *Kir Shatrov*
+
 *   Support index length and order options using both string and symbol
     column names.
 
