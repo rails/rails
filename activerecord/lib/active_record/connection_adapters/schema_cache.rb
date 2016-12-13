@@ -21,6 +21,22 @@ module ActiveRecord
         @data_sources = @data_sources.dup
       end
 
+      def encode_with(coder)
+        coder["columns"] = @columns
+        coder["columns_hash"] = @columns_hash
+        coder["primary_keys"] = @primary_keys
+        coder["data_sources"] = @data_sources
+        coder["version"] = ActiveRecord::Migrator.current_version
+      end
+
+      def init_with(coder)
+        @columns = coder["columns"]
+        @columns_hash = coder["columns_hash"]
+        @primary_keys = coder["primary_keys"]
+        @data_sources = coder["data_sources"]
+        @version = coder["version"]
+      end
+
       def primary_keys(table_name)
         @primary_keys[table_name] ||= data_source_exists?(table_name) ? connection.primary_key(table_name) : nil
       end
