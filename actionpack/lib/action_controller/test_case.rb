@@ -3,6 +3,7 @@ require "active_support/core_ext/hash/conversions"
 require "active_support/core_ext/object/to_query"
 require "active_support/core_ext/module/anonymous"
 require "active_support/core_ext/hash/keys"
+require "active_support/testing/constant_lookup"
 require "action_controller/template_assertions"
 require "rails-dom-testing"
 
