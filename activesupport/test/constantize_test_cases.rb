@@ -73,6 +73,11 @@ module ConstantizeTestCases
         yield("RaisesNoMethodError")
       end
     end
+
+    with_autoloading_fixtures do
+      yield("Prepend::SubClassConflict")
+      assert_equal "constant", defined?(Prepend::SubClassConflict)
+    end
   end
 
   def run_safe_constantize_tests_on

@@ -274,7 +274,7 @@ module ActiveSupport
 
           # Go down the ancestors to check if it is owned directly. The check
           # stops when we reach Object or the end of ancestors tree.
-          constant = constant.ancestors.inject do |const, ancestor|
+          constant = constant.ancestors.inject(constant) do |const, ancestor|
             break const    if ancestor == Object
             break ancestor if ancestor.const_defined?(name, false)
             const
