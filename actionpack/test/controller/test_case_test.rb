@@ -385,7 +385,9 @@ XML
       $stderr = STDERR
     end
 
-    assert err.empty?, err.inspect
+    # Ignore warnings caused by bundled gems
+    err_without_bundled_gem = err.split("\n").reject { |msg| msg =~ /vendor\/bundle/ }
+    assert err_without_bundled_gem.empty?, err_without_bundled_gem.inspect
   end
 
   def test_assert_generates
