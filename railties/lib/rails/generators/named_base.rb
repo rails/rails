@@ -90,10 +90,6 @@ module Rails
           @class_path
         end
 
-        def namespaced_file_path
-          @namespaced_file_path ||= namespaced_class_path.join("/")
-        end
-
         def namespaced_class_path
           @namespaced_class_path ||= [namespaced_path] + @class_path
         end
